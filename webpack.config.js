@@ -21,9 +21,23 @@ module.exports = {
     filename: 'bundle.js',
     path: path.resolve(__dirname, 'temp'),
   },
-  plugins: [new HtmlWebpackPlugin()],
+  plugins: [
+    new HtmlWebpackPlugin(),
+    {
+      apply(compiler) {
+        compiler.hooks.done.tapAsync('MyCustomPlugin', function(compiler, callback) {
+          if (!process.env.EXAMPLE) {
+            setTimeout(() => {
+              console.log('\n使用 `EXAMPLE=[example-name] npm run example` 指定用例')
+            })
+          }
+          callback()
+        })
+      },
+    },
+  ],
   devServer: {
-    contentBase: `./temp`,
+    contentBase: './temp',
   },
   devtool: 'source-map',
 }

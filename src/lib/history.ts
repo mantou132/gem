@@ -1,4 +1,4 @@
-import { createStore, updateStore } from './store.js'
+import { createStore, updateStore } from './store'
 import { Storage } from './utils'
 
 const storage = new Storage<object>()

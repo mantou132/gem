@@ -15,7 +15,7 @@ const store = createStore({
 })
 // 创建组件
 class App extends Component {
-  static observedStore = [store.module1]
+  static observedStores = [store.module1]
   clickHandle = () => {
     updateStore(store.module1, { a: ++store.module1.a })
   }
