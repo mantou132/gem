@@ -1,2 +1,14 @@
 /node_modules/
-/temp/
+
+# Compiler output
+/lib/
+/components/
+/index.d.ts
+/index.d.ts.map
+/index.js
+/index.js.map
+
+.DS_Store
+logs
+*.log
+npm-debug.log*

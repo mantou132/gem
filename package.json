@@ -2,10 +2,25 @@
   "name": "@mantou/gem",
   "version": "0.0.2",
   "description": "快速基于 WebComponents 创建 App",
-  "main": "dist/index.js",
+  "main": "index.js",
+  "module": "index.js",
+  "files": [
+    "/index.js",
+    "/index.js.map",
+    "/index.d.ts",
+    "/index.d.ts.map",
+    "/components/",
+    "/src/"
+  ],
+  "directories": {
+    "example": "examples",
+    "test": "test"
+  },
+  "typings": "index.d.ts",
   "scripts": {
-    "build": "rm -rf dist/ && tsc",
-    "example": "webpack-dev-server"
+    "build": "tsc",
+    "prepare": "npm run build",
+    "example": "webpack-dev-server --open"
   },
   "repository": {
     "type": "git",
@@ -16,7 +31,7 @@
     "webcomponents",
     "global state management"
   ],
-  "author": "mt",
+  "author": "mantou132",
   "license": "ISC",
   "bugs": {
     "url": "https://github.com/mantou132/gem/issues"
@@ -47,12 +62,9 @@
     }
   },
   "lint-staged": {
-    "*.js": [
+    "*.ts": [
       "eslint --fix",
       "git add"
     ]
-  },
-  "directories": {
-    "example": "examples"
   }
 }

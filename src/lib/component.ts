@@ -2,8 +2,9 @@ import { html, render } from 'lit-html'
 import { connect, disconnect, STORE_MODULE_KEY } from './store'
 import { Pool, mergeObject } from './utils'
 
-export { html, render } from 'lit-html'
+export { html, svg, render, directive } from 'lit-html'
 export { repeat } from 'lit-html/directives/repeat'
+export { ifDefined } from 'lit-html/directives/if-defined'
 
 // global component render task pool
 const renderTaskPool = new Pool<Function>()

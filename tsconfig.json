@@ -1,7 +1,8 @@
 {
   "compilerOptions": {
-    "outDir": "./dist/",
+    "outDir": "./",
     "declaration": true,
+    "declarationMap": true,
     "sourceMap": true,
     "noImplicitAny": false,
     "module": "es6",
@@ -9,5 +10,6 @@
     "target": "es6",
     "lib": ["es2018", "dom"]
   },
-  "include": ["src/**/*"]
+  "include": ["src/**/*.ts"],
+  "exclude": []
 }
