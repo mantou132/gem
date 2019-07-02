@@ -2,7 +2,7 @@ import { html, render } from 'lit-html'
 import { connect, disconnect, STORE_MODULE_KEY } from './store'
 import { Pool, mergeObject } from './utils'
 
-export { html, svg, render, directive } from 'lit-html'
+export { html, svg, render, directive, TemplateResult } from 'lit-html'
 export { repeat } from 'lit-html/directives/repeat'
 export { ifDefined } from 'lit-html/directives/if-defined'
 
@@ -23,6 +23,12 @@ const exec = () =>
 
 exec()
 
+declare global {
+  interface ShadowRoot {
+    adoptedStyleSheets: CSSStyleSheet[]
+  }
+}
+
 type State = object
 type StoreModule = object
 
@@ -31,6 +37,7 @@ class BaseComponent extends HTMLElement {
   static observedAttributes?: string[]
   static observedPropertys?: string[]
   static observedStores?: StoreModule[]
+  static adoptedStyleSheets?: CSSStyleSheet[]
 
   state: State;
   [isMountedSymbol]: boolean
@@ -49,7 +56,8 @@ class BaseComponent extends HTMLElement {
     this.attributeChanged = this.attributeChanged.bind(this)
     this.unmounted = this.unmounted.bind(this)
 
-    const { observedPropertys, observedStores } = new.target
+    const shadowRoot = this.attachShadow({ mode: 'open' })
+    const { observedPropertys, observedStores, adoptedStyleSheets } = new.target
     if (observedPropertys) {
       observedPropertys.forEach(prop => {
         let propValue: any
@@ -78,7 +86,9 @@ class BaseComponent extends HTMLElement {
         )
       })
     }
-    this.attachShadow({ mode: 'open' })
+    if (adoptedStyleSheets) {
+      shadowRoot.adoptedStyleSheets = adoptedStyleSheets
+    }
   }
   /**
    * @readonly do't modify
@@ -132,11 +142,8 @@ class BaseComponent extends HTMLElement {
   // adoptedCallback() {}
 
   private disconnectedCallback() {
-    interface Constructor {
-      observedStores: StoreModule[]
-    }
-    const constructor = this.constructor as unknown
-    ;(constructor as Constructor).observedStores.forEach(storeModule => {
+    const constructor = this.constructor as typeof BaseComponent
+    constructor.observedStores.forEach(storeModule => {
       disconnect(storeModule, this.update)
     })
     this.unmounted()
@@ -150,19 +157,6 @@ export class Component extends BaseComponent {
     render(this.render(), this.shadowRoot)
     this.mounted()
     this[isMountedSymbol] = true
-  }
-}
-
-export class SingleInstanceComponent extends BaseComponent {
-  static instance: SingleInstanceComponent
-
-  constructor() {
-    super()
-    if (new.target.instance) {
-      throw new Error('multiple instances are not allowed')
-    } else {
-      new.target.instance = this
-    }
   }
 }
 
@@ -186,5 +180,12 @@ export class AsyncComponent extends BaseComponent {
       this.mounted()
       this[isMountedSymbol] = true
     })
+  }
+}
+
+const define = customElements.define.bind(customElements)
+customElements.define = function(tagName: string, Class: Function, options?: ElementDefinitionOptions) {
+  if (!customElements.get(tagName)) {
+    define(tagName, Class, options)
   }
 }

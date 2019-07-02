@@ -1,54 +1,53 @@
 import { Component, html, history } from '../'
 
-customElements.define(
-  'app-link',
-  class extends Component {
-    static observedStores = [history.historyState]
+/**
+ * @attr path
+ * @attr query
+ */
+export class Link extends Component {
+  static observedStores = [history.historyState]
 
-    constructor() {
-      super()
-      this.onclick = this.clickHandle
-    }
+  constructor() {
+    super()
+    this.onclick = this.clickHandle
+  }
 
-    get active() {
-      const path = this.getAttribute('path')
-      const query = this.getAttribute('query') || ''
+  get active() {
+    const pathAttr = this.getAttribute('path')
+    const queryAttr = this.getAttribute('query') || ''
 
-      const { href } = history.location
-      return path + query === href
-    }
+    const { path, query } = history.location
+    return path + query === pathAttr + queryAttr
+  }
 
-    clickHandle = () => {
-      const { $close } = history.location.state
-      const path = this.getAttribute('path')
-      const query = this.getAttribute('query') || ''
-      if (!this.active) {
-        if ($close) {
-          history.back()
-          setTimeout(() => {
-            history.push({ path, query })
-          }, 200)
-        } else {
+  clickHandle = (e: MouseEvent) => {
+    const { $close } = history.location.state
+    const path = this.getAttribute('path')
+    const query = this.getAttribute('query') || ''
+    if (!this.active) {
+      e.stopPropagation()
+      if ($close) {
+        history.back()
+        setTimeout(() => {
           history.push({ path, query })
-        }
-      }
-    }
-
-    render() {
-      if (this.active) {
-        this.setAttribute('active', '')
+        }, 200)
       } else {
-        this.removeAttribute('active')
+        history.push({ path, query })
       }
-
-      return html`
-        <style>
-          :host {
-            display: contents;
-          }
-        </style>
-        <slot></slot>
-      `
     }
-  },
-)
+  }
+
+  render() {
+    if (this.active) {
+      this.setAttribute('active', '')
+    } else {
+      this.removeAttribute('active')
+    }
+
+    return html`
+      <slot></slot>
+    `
+  }
+}
+
+customElements.define('gem-link', Link)

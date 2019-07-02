@@ -18,7 +18,7 @@ module.exports = {
     extensions: ['.tsx', '.ts', '.js'],
   },
   output: {
-    filename: 'bundle.js',
+    filename: 'bundle.[contenthash].js',
     path: path.resolve(__dirname, 'temp'),
   },
   plugins: [
@@ -38,6 +38,7 @@ module.exports = {
   ],
   devServer: {
     contentBase: './temp',
+    historyApiFallback: true,
   },
   devtool: 'source-map',
 }

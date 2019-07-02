@@ -10,6 +10,6 @@
     "target": "es6",
     "lib": ["es2018", "dom"]
   },
-  "include": ["src/**/*.ts"],
+  "include": ["src/**.ts"],
   "exclude": []
 }

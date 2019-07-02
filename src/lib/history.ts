@@ -1,44 +1,5 @@
 import { createStore, updateStore } from './store'
-import { Storage } from './utils'
-
-const storage = new Storage<object>()
-
-export class QueryString extends URLSearchParams {
-  constructor(param: any) {
-    if (param instanceof QueryString) {
-      return param
-    }
-    if (typeof param === 'string') {
-      super(param)
-    } else {
-      super()
-      Object.keys(param).forEach(key => {
-        this.append(key, param[key])
-      })
-    }
-  }
-
-  concat(param: any) {
-    let query: any
-    if (typeof param === 'string') {
-      query = new URLSearchParams(param)
-    } else {
-      query = param
-    }
-    Object.keys(query).forEach(key => {
-      this.append(key, query[key])
-    })
-  }
-
-  toString() {
-    const string = super.toString()
-    return string ? `?${string}` : ''
-  }
-
-  toJSON() {
-    return this.toString()
-  }
-}
+import { Storage, QueryString } from './utils'
 
 interface HistoryItemState {
   $close: boolean
@@ -97,24 +58,21 @@ export const history = {
   get location() {
     const { list, currentIndex } = store.historyState
     const location = list[currentIndex]
-    const query = new QueryString(location.query)
     return {
+      get query() {
+        return new QueryString(location.query)
+      },
       path: location.path,
-      query,
       state: location.state,
       title: location.title,
-      href: location.path + query,
     }
   },
-
   forward() {
     window.history.forward()
   },
-
   back() {
     window.history.back()
   },
-
   push(options: NavigationParameter) {
     const { path, close } = options
     const query = options.query || ''
@@ -137,15 +95,16 @@ export const history = {
       currentIndex: newList.length - 1,
     })
   },
+  // 修改 url 意外的状态
   pushState(options: NavigationParameter) {
-    const { path, query } = history.location
+    const { list, currentIndex } = store.historyState
+    const { path, query } = list[currentIndex]
     history.push({
       path,
       query,
       ...options,
     })
   },
-
   replace(options: NavigationParameter) {
     const { path, close } = options
     const query = options.query || ''
@@ -167,8 +126,10 @@ export const history = {
       list,
     })
   },
+  // 修改 url 意外的状态
   replaceState(options: NavigationParameter) {
-    const { path, query } = history.location
+    const { list, currentIndex } = store.historyState
+    const { path, query } = list[currentIndex]
     history.replace({
       path,
       query,
@@ -186,6 +147,7 @@ if (!window.history.state) {
   history.back()
 }
 
+const storage = new Storage<typeof store.historyState>()
 const sessionStorageKey = 'gem@historyStateList'
 updateStore(store.historyState, storage.getSession(sessionStorageKey))
 
