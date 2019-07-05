@@ -3,15 +3,18 @@ import './page-a'
 import './page-b'
 import '../../components/link'
 import '../../components/route'
+import '../../components/title'
 
 const routes = [
   {
+    title: 'Page A Title',
     pattern: '/a',
     component: html`
       <app-page-a>A: </app-page-a>
     `,
   },
   {
+    title: 'Page B Title',
     pattern: '/b',
     component: html`
       <app-page-b>B: </app-page-b>
@@ -39,6 +42,7 @@ class App extends Component {
           text-decoration: underline;
         }
       </style>
+      <header><gem-title>Home Page Title</gem-title></header>
       <nav>
         <gem-link path="/">Home</gem-link>
         <gem-link path="/a">PageA</gem-link>

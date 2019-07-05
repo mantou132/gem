@@ -1,4 +1,4 @@
-import { Component, history, TemplateResult } from '../'
+import { Component, history, TemplateResult, updateStore } from '../'
 
 class ParamsRegExp extends RegExp {
   namePosition: object
@@ -39,6 +39,7 @@ function isMatch(pattern: string, path: string) {
 interface RouteItem {
   pattern: string
   component: TemplateResult
+  title?: string
 }
 
 let selsctedRoute: RouteItem
@@ -55,6 +56,44 @@ export class Route extends Component {
   }
 
   routes: RouteItem[]
+  private href: string
+
+  constructor() {
+    super()
+    const { path, query } = history.location
+    const href = path + query
+    this.href = href
+  }
+  initPage() {
+    const { list, currentIndex } = history.historyState
+    if (selsctedRoute && selsctedRoute.title && selsctedRoute.title !== list[currentIndex].title) {
+      list.splice(currentIndex, 1, {
+        ...list[currentIndex],
+        title: selsctedRoute.title,
+      })
+      updateStore(history.historyState, {
+        list,
+      })
+    }
+  }
+
+  shouldUpdate() {
+    const { path, query } = history.location
+    const href = path + query
+    if (path + query !== this.href) {
+      this.href = href
+      return true
+    }
+    return false
+  }
+
+  mounted() {
+    this.initPage()
+  }
+
+  updated() {
+    this.initPage()
+  }
 
   render() {
     if (!this.routes) return this.callback()
