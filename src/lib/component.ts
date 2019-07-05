@@ -111,7 +111,7 @@ class BaseComponent extends HTMLElement {
    * @readonly do't modify
    */
   update() {
-    if (this.shouldUpdate()) {
+    if (this[isMountedSymbol] && this.shouldUpdate()) {
       render(this.render(), this.shadowRoot)
       this.updated()
     }
