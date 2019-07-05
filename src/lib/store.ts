@@ -4,26 +4,36 @@ export const STORE_MODULE_KEY = Symbol('key: get store module key')
 const FUNC_MARK_KEY = Symbol('function mark')
 const HANDLES_KEY = Symbol('handles key')
 
-export function createStore<T extends object>(originStore: T): T {
+interface StoreModuleTrait<T> {
+  [STORE_MODULE]: StoreModule<T>
+  [STORE_MODULE_KEY]: string
+  [HANDLES_KEY]: Map<string, Set<Function>>
+}
+export type StoreModule<T> = T & StoreModuleTrait<T>
+type Store<T> = {
+  [P in keyof T]: T[P] & StoreModule<T[P]>
+}
+
+export function createStore<T extends object>(originStore: T): Store<T> {
   const handler = {
-    has(target: T, key: string) {
+    has(target: Store<T>, key: string) {
       return key in target
     },
-    get(target: T, key: string) {
+    get(target: Store<T>, key: string) {
       return target[key]
     },
-    set(target: T, key: string, value: any) {
+    set(target: Store<T>, key: string, value: StoreModule<unknown>) {
       target[key] = value
-      const listeners: Set<Function> = target[key][HANDLES_KEY].get(key)
+      const listeners = value[HANDLES_KEY].get(key)
       listeners.forEach(func => func[FUNC_MARK_KEY].has(key) && func(value))
       return true
     },
   }
 
-  const proxy = new Proxy(originStore, handler)
+  const proxy = new Proxy(originStore, handler) as Store<T>
   const keys = Object.keys(originStore)
   keys.forEach(key => {
-    const storeModule = originStore[key]
+    const storeModule = originStore[key] as StoreModule<unknown>
     storeModule[STORE_MODULE] = storeModule
     storeModule[STORE_MODULE_KEY] = key
     storeModule[HANDLES_KEY] = new Map([[key, new Set<Function>()]])
@@ -33,10 +43,16 @@ export function createStore<T extends object>(originStore: T): T {
   return proxy
 }
 
-type StoreModule = object
+export function createStoreModule<T extends object>(origin: T) {
+  const store = createStore({ origin })
+  return store.origin
+}
 
 const updaterSet = new Set<Function>()
-export function updateStore(storeModule: StoreModule, value: Partial<StoreModule>) {
+export function updateStore<T extends StoreModule<unknown>>(
+  storeModule: T,
+  value: Partial<Omit<T, keyof StoreModuleTrait<unknown>>>,
+) {
   if (!updaterSet.size) {
     // delayed execution callback after updating store
     queueMicrotask(() => {
@@ -45,9 +61,8 @@ export function updateStore(storeModule: StoreModule, value: Partial<StoreModule
     })
   }
   const storeKey = storeModule[STORE_MODULE_KEY]
-  if (!storeKey) throw new Error('Parameter error')
   Object.assign(storeModule[STORE_MODULE], value) // Equivalent set store[key]
-  const listeners: Set<Function> = storeModule[HANDLES_KEY].get(storeKey)
+  const listeners = storeModule[HANDLES_KEY].get(storeKey)
   listeners.forEach(func => {
     if (func[FUNC_MARK_KEY].has(storeKey)) {
       updaterSet.add(func)
@@ -55,18 +70,16 @@ export function updateStore(storeModule: StoreModule, value: Partial<StoreModule
   })
 }
 
-export function connect(storeModule: StoreModule, func: Function) {
+export function connect<T extends StoreModule<unknown>>(storeModule: T, func: Function) {
   const storeKey = storeModule[STORE_MODULE_KEY]
-  if (!storeKey) throw new Error('Parameter error')
   const listeners = storeModule[HANDLES_KEY].get(storeKey)
   if (!func[FUNC_MARK_KEY]) func[FUNC_MARK_KEY] = new Set()
   func[FUNC_MARK_KEY].add(storeKey)
   listeners.add(func)
 }
 
-export function disconnect(storeModule: StoreModule, func: Function) {
+export function disconnect<T extends StoreModule<unknown>>(storeModule: T, func: Function) {
   const storeKey = storeModule[STORE_MODULE_KEY]
-  if (!storeKey) throw new Error('Parameter error')
   const listeners = storeModule[HANDLES_KEY].get(storeKey)
   listeners.delete(func)
 }

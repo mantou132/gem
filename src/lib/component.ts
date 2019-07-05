@@ -1,6 +1,6 @@
 import { html, render } from 'lit-html'
-import { connect, disconnect, STORE_MODULE_KEY } from './store'
-import { Pool, mergeObject } from './utils'
+import { connect, disconnect, STORE_MODULE_KEY, StoreModule } from './store'
+import { Pool } from './utils'
 
 export { html, svg, render, directive, TemplateResult } from 'lit-html'
 export { repeat } from 'lit-html/directives/repeat'
@@ -30,13 +30,12 @@ declare global {
 }
 
 type State = object
-type StoreModule = object
 
 const isMountedSymbol = Symbol('mounted')
 class BaseComponent extends HTMLElement {
   static observedAttributes?: string[]
   static observedPropertys?: string[]
-  static observedStores?: StoreModule[]
+  static observedStores?: StoreModule<unknown>[]
   static adoptedStyleSheets?: CSSStyleSheet[]
 
   state: State;
@@ -44,7 +43,6 @@ class BaseComponent extends HTMLElement {
 
   constructor() {
     super()
-    this.state = {}
     this.setState = this.setState.bind(this)
     this.willMount = this.willMount.bind(this)
     this.render = this.render.bind(this)
@@ -94,7 +92,7 @@ class BaseComponent extends HTMLElement {
    * @readonly do't modify
    */
   setState(payload: Partial<State>) {
-    this.state = mergeObject(this.state, payload)
+    this.state = Object.assign(this.state, payload)
     this.update()
   }
 
@@ -123,7 +121,7 @@ class BaseComponent extends HTMLElement {
   /**
    * @readonly do't modify
    */
-  disconnectStores(storeModuleList: StoreModule[]) {
+  disconnectStores(storeModuleList: StoreModule<unknown>[]) {
     storeModuleList.forEach(storeModule => {
       disconnect(storeModule, this.update)
     })
@@ -184,7 +182,11 @@ export class AsyncComponent extends BaseComponent {
 }
 
 const define = customElements.define.bind(customElements)
-customElements.define = function(tagName: string, Class: Function, options?: ElementDefinitionOptions) {
+customElements.define = function(
+  tagName: string,
+  Class: typeof Component | typeof AsyncComponent,
+  options?: ElementDefinitionOptions,
+) {
   if (!customElements.get(tagName)) {
     define(tagName, Class, options)
   }

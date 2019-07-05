@@ -1,4 +1,4 @@
-import { Component, html } from '../../src'
+import { Component, html } from '../../'
 import store from './store'
 import api from './api'
 

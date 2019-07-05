@@ -1,8 +1,8 @@
-import { Component, html, css } from '../../src'
+import { Component, html, css } from '../../'
 import './page-a'
 import './page-b'
-import './../../src/components/link'
-import './../../src/components/route'
+import '../../components/link'
+import '../../components/route'
 
 const routes = [
   {

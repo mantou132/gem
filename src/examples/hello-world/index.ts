@@ -1,4 +1,4 @@
-import { Component, createStore, updateStore, html } from '../../src'
+import { Component, createStore, updateStore, html } from '../../'
 // 新建全局数据对象
 const store = createStore({
   module1: {

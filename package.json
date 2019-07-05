@@ -12,10 +12,6 @@
     "/components/",
     "/src/"
   ],
-  "directories": {
-    "example": "examples",
-    "test": "test"
-  },
   "typings": "index.d.ts",
   "scripts": {
     "build": "tsc",

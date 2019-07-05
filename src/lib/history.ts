@@ -1,11 +1,27 @@
-import { createStore, updateStore } from './store'
+import { createStoreModule, updateStore } from './store'
 import { Storage, QueryString } from './utils'
 
-interface HistoryItemState {
+export interface HistoryItemState {
   $close: boolean
   $key: number
   [index: string]: any
 }
+export interface HistoryItem {
+  path: string
+  query: string | QueryString
+  title: string
+  state: HistoryItemState
+}
+
+export interface HistoryStore {
+  list: HistoryItem[]
+  currentIndex: number
+}
+
+const historyState = createStoreModule<HistoryStore>({
+  list: [],
+  currentIndex: -1,
+})
 
 const colseHandleMap = new WeakMap<HistoryItemState, Function>()
 
@@ -22,28 +38,7 @@ function generateState(data: any, close: Function): HistoryItemState {
   return state
 }
 
-interface HistoryItem {
-  path: string
-  query: string | QueryString
-  title: string
-  state: HistoryItemState
-}
-
-interface HistoryStore {
-  historyState: {
-    list: HistoryItem[]
-    currentIndex: number
-  }
-}
-
-const store = createStore<HistoryStore>({
-  historyState: {
-    list: [],
-    currentIndex: -1,
-  },
-})
-
-interface NavigationParameter {
+export interface NavigationParameter {
   path?: string
   query?: string | QueryString
   title?: string
@@ -52,11 +47,11 @@ interface NavigationParameter {
 }
 
 export const history = {
-  historyState: store.historyState,
+  historyState,
   basePath: '',
 
   get location() {
-    const { list, currentIndex } = store.historyState
+    const { list, currentIndex } = historyState
     const location = list[currentIndex]
     return {
       get query() {
@@ -83,21 +78,21 @@ export const history = {
 
     window.history.pushState(state, title, history.basePath + path + new QueryString(query))
 
-    const { list, currentIndex } = store.historyState
+    const { list, currentIndex } = historyState
     const newList = list.slice(0, currentIndex + 1).concat({
       state,
       title,
       path,
       query,
     })
-    updateStore(store.historyState, {
+    updateStore(historyState, {
       list: newList,
       currentIndex: newList.length - 1,
     })
   },
   // 修改 url 意外的状态
   pushState(options: NavigationParameter) {
-    const { list, currentIndex } = store.historyState
+    const { list, currentIndex } = historyState
     const { path, query } = list[currentIndex]
     history.push({
       path,
@@ -115,20 +110,20 @@ export const history = {
 
     window.history.replaceState(state, title, history.basePath + path + new QueryString(query))
 
-    const { list, currentIndex } = store.historyState
+    const { list, currentIndex } = historyState
     list.splice(currentIndex, 1, {
       state,
       title,
       path,
       query,
     })
-    updateStore(store.historyState, {
+    updateStore(historyState, {
       list,
     })
   },
   // 修改 url 意外的状态
   replaceState(options: NavigationParameter) {
-    const { list, currentIndex } = store.historyState
+    const { list, currentIndex } = historyState
     const { path, query } = list[currentIndex]
     history.replace({
       path,
@@ -147,12 +142,12 @@ if (!window.history.state) {
   history.back()
 }
 
-const storage = new Storage<typeof store.historyState>()
+const storage = new Storage<typeof historyState>()
 const sessionStorageKey = 'gem@historyStateList'
-updateStore(store.historyState, storage.getSession(sessionStorageKey))
+updateStore(historyState, storage.getSession(sessionStorageKey))
 
 window.addEventListener('unload', () => {
-  storage.setSession(sessionStorageKey, store.historyState)
+  storage.setSession(sessionStorageKey, historyState)
 })
 
 window.addEventListener('popstate', event => {
@@ -160,7 +155,7 @@ window.addEventListener('popstate', event => {
   // none replace
 
   // prev data
-  const { list, currentIndex } = store.historyState
+  const { list, currentIndex } = historyState
 
   if (event.state === null) {
     const { state, title, path, query } = list[0]
@@ -181,7 +176,7 @@ window.addEventListener('popstate', event => {
     }
   }
 
-  updateStore(store.historyState, {
+  updateStore(historyState, {
     currentIndex: newStateIndex,
   })
 })

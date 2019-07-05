@@ -4,7 +4,7 @@ const HtmlWebpackPlugin = require('html-webpack-plugin')
 const hello = 'hello-world'
 
 module.exports = {
-  entry: `./examples/${process.env.EXAMPLE || hello}/index.ts`,
+  entry: `./src/examples/${process.env.EXAMPLE || hello}/index.ts`,
   module: {
     rules: [
       {
