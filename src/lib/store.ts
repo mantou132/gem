@@ -15,32 +15,15 @@ type Store<T> = {
 }
 
 export function createStore<T extends object>(originStore: T): Store<T> {
-  const handler = {
-    has(target: Store<T>, key: string) {
-      return key in target
-    },
-    get(target: Store<T>, key: string) {
-      return target[key]
-    },
-    set(target: Store<T>, key: string, value: StoreModule<unknown>) {
-      target[key] = value
-      const listeners = value[HANDLES_KEY].get(key)
-      listeners.forEach(func => func[FUNC_MARK_KEY].has(key) && func(value))
-      return true
-    },
-  }
-
-  const proxy = new Proxy(originStore, handler) as Store<T>
   const keys = Object.keys(originStore)
   keys.forEach(key => {
     const storeModule = originStore[key] as StoreModule<unknown>
     storeModule[STORE_MODULE] = storeModule
     storeModule[STORE_MODULE_KEY] = key
     storeModule[HANDLES_KEY] = new Map([[key, new Set<Function>()]])
-    proxy[key] = storeModule
   })
 
-  return proxy
+  return originStore as Store<T>
 }
 
 export function createStoreModule<T extends object>(origin: T) {
@@ -65,6 +48,8 @@ export function updateStore<T extends StoreModule<unknown>>(
   const listeners = storeModule[HANDLES_KEY].get(storeKey)
   listeners.forEach(func => {
     if (func[FUNC_MARK_KEY].has(storeKey)) {
+      // 更新遍历顺序
+      updaterSet.delete(func)
       updaterSet.add(func)
     }
   })
