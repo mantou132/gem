@@ -42,16 +42,19 @@ interface RouteItem {
   title?: string
 }
 
-let selsctedRoute: RouteItem
-
+/**
+ * @event change
+ */
 export class Route extends Component {
   static observedPropertys = ['routes']
   static observedStores = [history.historyState]
 
+  static currentRoute: RouteItem
+
   // 获取当前匹配的路由的 params
   static getParams() {
-    if (selsctedRoute) {
-      return getParams(selsctedRoute.pattern, history.location.path)
+    if (Route.currentRoute) {
+      return getParams(Route.currentRoute.pattern, history.location.path)
     }
   }
 
@@ -66,10 +69,10 @@ export class Route extends Component {
   }
   initPage() {
     const { list, currentIndex } = history.historyState
-    if (selsctedRoute && selsctedRoute.title && selsctedRoute.title !== list[currentIndex].title) {
+    if (Route.currentRoute && Route.currentRoute.title && Route.currentRoute.title !== list[currentIndex].title) {
       list.splice(currentIndex, 1, {
         ...list[currentIndex],
-        title: selsctedRoute.title,
+        title: Route.currentRoute.title,
       })
       updateStore(history.historyState, {
         list,
@@ -93,6 +96,7 @@ export class Route extends Component {
 
   updated() {
     this.initPage()
+    this.dispatchEvent(new CustomEvent('change'))
   }
 
   render() {
@@ -101,17 +105,17 @@ export class Route extends Component {
     for (let item of this.routes) {
       const { pattern } = item
       if (isMatch(pattern, history.location.path)) {
-        selsctedRoute = item
+        Route.currentRoute = item
         break
       }
     }
 
-    if (!selsctedRoute) return this.callback()
-    return selsctedRoute.component
+    if (!Route.currentRoute) return this.callback()
+    return Route.currentRoute.component
   }
 
   callback() {
-    selsctedRoute = null
+    Route.currentRoute = null
     return super.render()
   }
 }
