@@ -1,4 +1,4 @@
-import { createStoreModule, updateStore } from './store'
+import { createStore, updateStore } from './store'
 import { Storage, QueryString } from './utils'
 
 export interface HistoryItemState {
@@ -18,7 +18,7 @@ export interface HistoryStore {
   currentIndex: number
 }
 
-const historyState = createStoreModule<HistoryStore>({
+const historyState = createStore<HistoryStore>({
   list: [],
   currentIndex: -1,
 })

@@ -1,5 +1,5 @@
 import { html, render } from 'lit-html'
-import { connect, disconnect, STORE_MODULE_KEY, StoreModule } from './store'
+import { connect, disconnect, HANDLES_KEY, Store } from './store'
 import { Pool } from './utils'
 
 export { html, svg, render, directive, TemplateResult } from 'lit-html'
@@ -35,7 +35,7 @@ const isMountedSymbol = Symbol('mounted')
 class BaseComponent extends HTMLElement {
   static observedAttributes?: string[]
   static observedPropertys?: string[]
-  static observedStores?: StoreModule<unknown>[]
+  static observedStores?: Store<unknown>[]
   static adoptedStyleSheets?: CSSStyleSheet[]
 
   state: State;
@@ -74,7 +74,7 @@ class BaseComponent extends HTMLElement {
     }
     if (observedStores) {
       observedStores.forEach(storeModule => {
-        if (!storeModule[STORE_MODULE_KEY]) {
+        if (!storeModule[HANDLES_KEY]) {
           throw new Error('`observedStores` only support store module')
         }
 
@@ -121,7 +121,7 @@ class BaseComponent extends HTMLElement {
   /**
    * @readonly do't modify
    */
-  disconnectStores(storeModuleList: StoreModule<unknown>[]) {
+  disconnectStores(storeModuleList: Store<unknown>[]) {
     storeModuleList.forEach(storeModule => {
       disconnect(storeModule, this.update)
     })

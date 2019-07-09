@@ -1,6 +1,6 @@
-import { createStore } from '../../'
+import { createStoreSet } from '../../'
 
-export default createStore({
+export default createStoreSet({
   pageA: {
     text: 'this is page A',
   },

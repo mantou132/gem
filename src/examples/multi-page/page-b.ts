@@ -1,13 +1,13 @@
 import { Component, html } from '../../'
-import store from './store'
+import storeSet from './store'
 
 customElements.define(
   'app-page-b',
   class extends Component {
-    static observedStores = [store.pageB]
+    static observedStores = [storeSet.pageB]
     render() {
       return html`
-        <slot></slot> ${store.pageB.text}
+        <slot></slot> ${storeSet.pageB.text}
       `
     }
   },

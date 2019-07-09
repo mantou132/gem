@@ -1,41 +1,32 @@
-export const STORE_MODULE = Symbol('key: get store module')
-export const STORE_MODULE_KEY = Symbol('key: get store module key')
+export const HANDLES_KEY = Symbol('handles key')
 
 const FUNC_MARK_KEY = Symbol('function mark')
-const HANDLES_KEY = Symbol('handles key')
 
-interface StoreModuleTrait<T> {
-  [STORE_MODULE]: StoreModule<T>
-  [STORE_MODULE_KEY]: string
-  [HANDLES_KEY]: Map<string, Set<Function>>
+interface StoreTrait {
+  [HANDLES_KEY]: Set<Function>
 }
-export type StoreModule<T> = T & StoreModuleTrait<T>
-type Store<T> = {
-  [P in keyof T]: T[P] & StoreModule<T[P]>
+export type Store<T> = T & StoreTrait
+type StoreSet<T> = {
+  [P in keyof T]: T[P] & Store<T[P]>
 }
 
 export function createStore<T extends object>(originStore: T): Store<T> {
-  const keys = Object.keys(originStore)
-  keys.forEach(key => {
-    const storeModule = originStore[key] as StoreModule<unknown>
-    storeModule[STORE_MODULE] = storeModule
-    storeModule[STORE_MODULE_KEY] = key
-    storeModule[HANDLES_KEY] = new Map([[key, new Set<Function>()]])
-  })
-
-  return originStore as Store<T>
+  const store = originStore as Store<T>
+  store[HANDLES_KEY] = new Set<Function>()
+  return store
 }
 
-export function createStoreModule<T extends object>(origin: T) {
-  const store = createStore({ origin })
-  return store.origin
+export function createStoreSet<T extends object>(originStoreSet: T) {
+  const keys = Object.keys(originStoreSet)
+  keys.forEach(key => {
+    createStore(originStoreSet[key])
+  })
+
+  return originStoreSet as StoreSet<T>
 }
 
 const updaterSet = new Set<Function>()
-export function updateStore<T extends StoreModule<unknown>>(
-  storeModule: T,
-  value: Partial<Omit<T, keyof StoreModuleTrait<unknown>>>,
-) {
+export function updateStore<T extends Store<unknown>>(storeModule: T, value: Partial<Omit<T, keyof StoreTrait>>) {
   if (!updaterSet.size) {
     // delayed execution callback after updating store
     queueMicrotask(() => {
@@ -43,11 +34,10 @@ export function updateStore<T extends StoreModule<unknown>>(
       updaterSet.clear()
     })
   }
-  const storeKey = storeModule[STORE_MODULE_KEY]
-  Object.assign(storeModule[STORE_MODULE], value) // Equivalent set store[key]
-  const listeners = storeModule[HANDLES_KEY].get(storeKey)
+  Object.assign(storeModule, value)
+  const listeners = storeModule[HANDLES_KEY]
   listeners.forEach(func => {
-    if (func[FUNC_MARK_KEY].has(storeKey)) {
+    if (func[FUNC_MARK_KEY].has(storeModule)) {
       // 更新遍历顺序
       updaterSet.delete(func)
       updaterSet.add(func)
@@ -55,16 +45,14 @@ export function updateStore<T extends StoreModule<unknown>>(
   })
 }
 
-export function connect<T extends StoreModule<unknown>>(storeModule: T, func: Function) {
-  const storeKey = storeModule[STORE_MODULE_KEY]
-  const listeners = storeModule[HANDLES_KEY].get(storeKey)
+export function connect<T extends Store<unknown>>(storeModule: T, func: Function) {
+  const listeners = storeModule[HANDLES_KEY]
   if (!func[FUNC_MARK_KEY]) func[FUNC_MARK_KEY] = new Set()
-  func[FUNC_MARK_KEY].add(storeKey)
+  func[FUNC_MARK_KEY].add(storeModule)
   listeners.add(func)
 }
 
-export function disconnect<T extends StoreModule<unknown>>(storeModule: T, func: Function) {
-  const storeKey = storeModule[STORE_MODULE_KEY]
-  const listeners = storeModule[HANDLES_KEY].get(storeKey)
+export function disconnect<T extends Store<unknown>>(storeModule: T, func: Function) {
+  const listeners = storeModule[HANDLES_KEY]
   listeners.delete(func)
 }

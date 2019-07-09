@@ -9,20 +9,18 @@
 import { Component, createStore, updateStore, html } from 'https://dev.jspm.io/@mantou/gem'
 // 新建全局数据对象
 const store = createStore({
-  module1: {
-    a: 1,
-  },
+  a: 1,
 })
 // 创建组件
 class App extends Component {
-  static observedStores = [store.module1]
+  static observedStores = [store]
   clickHandle = () => {
-    updateStore(store.module1, { a: ++store.module1.a })
+    updateStore(store, { a: ++store.a })
   }
   render() {
     return html`
       <div @click="${this.clickHandle}">Hello, World</div>
-      <div>store.module1.a: ${store.module1.a}</div>
+      <div>store.a: ${store.a}</div>
     `
   }
 }
