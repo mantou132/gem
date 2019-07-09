@@ -1,17 +1,20 @@
 import { Component, html, css } from '../../'
-import './page-a'
-import './page-b'
 import '../../components/link'
 import '../../components/route'
 import '../../components/title'
+
+import './page-b'
 
 const routes = [
   {
     title: 'Page A Title',
     pattern: '/a',
-    component: html`
-      <app-page-a>A: </app-page-a>
-    `,
+    get component() {
+      import('./page-a')
+      return html`
+        <app-page-a>A: </app-page-a>
+      `
+    },
   },
   {
     title: 'Page B Title',
