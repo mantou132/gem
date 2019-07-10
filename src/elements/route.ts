@@ -1,4 +1,4 @@
-import { GemElement, history, TemplateResult, updateStore } from '../'
+import { html, GemElement, history, TemplateResult, updateStore } from '../'
 
 class ParamsRegExp extends RegExp {
   namePosition: object
@@ -111,7 +111,14 @@ export class Route extends GemElement {
     }
 
     if (!Route.currentRoute) return this.callback()
-    return Route.currentRoute.content
+    return html`
+      <style>
+        :host {
+          display: contents;
+        }
+      </style>
+      ${Route.currentRoute.content}
+    `
   }
 
   callback() {
