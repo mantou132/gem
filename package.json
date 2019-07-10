@@ -9,7 +9,7 @@
     "/index.js.map",
     "/index.d.ts",
     "/index.d.ts.map",
-    "/components/",
+    "/elements/",
     "/src/"
   ],
   "typings": "index.d.ts",
@@ -25,7 +25,8 @@
   "keywords": [
     "web",
     "webcomponents",
-    "global state management"
+    "global state management",
+    "web framework"
   ],
   "author": "mantou132",
   "license": "ISC",

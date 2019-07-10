@@ -1,6 +1,6 @@
-import { html, Component, history, updateStore } from '../'
+import { html, GemElement, history, updateStore } from '..'
 
-class Title extends Component {
+class Title extends GemElement {
   static observedStores = [history.historyState]
 
   static setTitle(documentTitle: string) {

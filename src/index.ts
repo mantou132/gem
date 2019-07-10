@@ -1,4 +1,4 @@
 export * from './lib/store'
 export * from './lib/history'
-export * from './lib/component'
+export * from './lib/element'
 export * from './lib/utils'

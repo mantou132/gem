@@ -1,7 +1,7 @@
-import { Component, html, css } from '../../'
-import '../../components/link'
-import '../../components/route'
-import '../../components/title'
+import { GemElement, html, css } from '../../'
+import '../../elements/link'
+import '../../elements/route'
+import '../../elements/title'
 
 import './page-b'
 
@@ -9,7 +9,7 @@ const routes = [
   {
     title: 'Page A Title',
     pattern: '/a',
-    get component() {
+    get content() {
       import('./page-a')
       return html`
         <app-page-a>A: </app-page-a>
@@ -19,19 +19,19 @@ const routes = [
   {
     title: 'Page B Title',
     pattern: '/b',
-    component: html`
+    content: html`
       <app-page-b>B: </app-page-b>
     `,
   },
   {
     pattern: '/',
-    component: html`
+    content: html`
       <div>hello</div>
     `,
   },
 ]
 
-class App extends Component {
+class App extends GemElement {
   render() {
     return html`
       <style>

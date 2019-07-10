@@ -1,9 +1,9 @@
-import { Component, html } from '../../'
+import { GemElement, html } from '../../'
 import storeSet from './store'
 
 customElements.define(
   'app-page-b',
-  class extends Component {
+  class extends GemElement {
     static observedStores = [storeSet.pageB]
     render() {
       return html`

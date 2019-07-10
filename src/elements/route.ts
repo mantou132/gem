@@ -1,4 +1,4 @@
-import { Component, history, TemplateResult, updateStore } from '../'
+import { GemElement, history, TemplateResult, updateStore } from '../'
 
 class ParamsRegExp extends RegExp {
   namePosition: object
@@ -38,14 +38,14 @@ function isMatch(pattern: string, path: string) {
 
 interface RouteItem {
   pattern: string
-  component: TemplateResult
+  content: TemplateResult
   title?: string
 }
 
 /**
  * @event change
  */
-export class Route extends Component {
+export class Route extends GemElement {
   static observedPropertys = ['routes']
   static observedStores = [history.historyState]
 
@@ -111,7 +111,7 @@ export class Route extends Component {
     }
 
     if (!Route.currentRoute) return this.callback()
-    return Route.currentRoute.component
+    return Route.currentRoute.content
   }
 
   callback() {

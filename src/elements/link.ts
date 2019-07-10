@@ -1,10 +1,10 @@
-import { Component, html, history } from '../'
+import { GemElement, html, history } from '../'
 
 /**
  * @attr path
  * @attr query
  */
-export class Link extends Component {
+export class Link extends GemElement {
   static observedStores = [history.historyState]
 
   constructor() {

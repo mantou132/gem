@@ -6,7 +6,7 @@ export { html, svg, render, directive, TemplateResult } from 'lit-html'
 export { repeat } from 'lit-html/directives/repeat'
 export { ifDefined } from 'lit-html/directives/if-defined'
 
-// global component render task pool
+// global render task pool
 const renderTaskPool = new Pool<Function>()
 const exec = () =>
   window.requestAnimationFrame(function callback(timestamp) {
@@ -32,7 +32,7 @@ declare global {
 type State = object
 
 const isMountedSymbol = Symbol('mounted')
-class BaseComponent extends HTMLElement {
+class BaseElement extends HTMLElement {
   static observedAttributes?: string[]
   static observedPropertys?: string[]
   static observedStores?: Store<unknown>[]
@@ -73,13 +73,13 @@ class BaseComponent extends HTMLElement {
       })
     }
     if (observedStores) {
-      observedStores.forEach(storeModule => {
-        if (!storeModule[HANDLES_KEY]) {
+      observedStores.forEach(store => {
+        if (!store[HANDLES_KEY]) {
           throw new Error('`observedStores` only support store module')
         }
 
         connect(
-          storeModule,
+          store,
           this.update,
         )
       })
@@ -121,9 +121,9 @@ class BaseComponent extends HTMLElement {
   /**
    * @readonly do't modify
    */
-  disconnectStores(storeModuleList: Store<unknown>[]) {
-    storeModuleList.forEach(storeModule => {
-      disconnect(storeModule, this.update)
+  disconnectStores(storeList: Store<unknown>[]) {
+    storeList.forEach(store => {
+      disconnect(store, this.update)
     })
   }
 
@@ -140,16 +140,16 @@ class BaseComponent extends HTMLElement {
   // adoptedCallback() {}
 
   private disconnectedCallback() {
-    const constructor = this.constructor as typeof BaseComponent
-    constructor.observedStores.forEach(storeModule => {
-      disconnect(storeModule, this.update)
+    const constructor = this.constructor as typeof BaseElement
+    constructor.observedStores.forEach(store => {
+      disconnect(store, this.update)
     })
     this.unmounted()
     this[isMountedSymbol] = false
   }
 }
 
-export class Component extends BaseComponent {
+export class GemElement extends BaseElement {
   private connectedCallback() {
     this.willMount()
     render(this.render(), this.shadowRoot)
@@ -158,7 +158,7 @@ export class Component extends BaseComponent {
   }
 }
 
-export class AsyncComponent extends BaseComponent {
+export class AsyncGemElement extends BaseElement {
   /**
    * @readonly do't modify
    */
@@ -184,7 +184,7 @@ export class AsyncComponent extends BaseComponent {
 const define = customElements.define.bind(customElements)
 customElements.define = function(
   tagName: string,
-  Class: typeof Component | typeof AsyncComponent,
+  Class: typeof GemElement | typeof AsyncGemElement,
   options?: ElementDefinitionOptions,
 ) {
   if (!customElements.get(tagName)) {
