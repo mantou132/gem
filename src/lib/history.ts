@@ -96,6 +96,20 @@ export const history = {
       currentIndex: newList.length - 1,
     });
   },
+  // push 一条历史记录
+  // 有 close 处理函数时先执行 closeHandle 在 replace
+  // 比如在 modal 打开时跳转页面
+  pushWithoutCloseHandle(options: NavigationParameter) {
+    const { list, currentIndex } = historyState;
+    const { state } = list[currentIndex];
+    if (state.$close) {
+      const closeHandle = colseHandleMap.get(state);
+      closeHandle();
+      history.replace(options);
+    } else {
+      history.push(options);
+    }
+  },
   // 修改 url 意外的状态
   pushState(options: NavigationParameter) {
     const { list, currentIndex } = historyState;

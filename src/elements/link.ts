@@ -21,21 +21,11 @@ export class Link extends GemElement {
   }
 
   clickHandle = (e: MouseEvent) => {
-    const { $close } = history.location.state;
     const path = this.getAttribute('path');
     const query = this.getAttribute('query') || '';
     if (!this.active) {
       e.stopPropagation();
-      if ($close) {
-        // 有模块窗口下跳转页面
-        // https://bugs.chromium.org/p/chromium/issues/detail?id=983094
-        history.back();
-        setTimeout(() => {
-          history.push({ path, query });
-        }, 200);
-      } else {
-        history.push({ path, query });
-      }
+      history.pushWithoutCloseHandle({ path, query });
     }
   };
 

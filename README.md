@@ -6,32 +6,32 @@
 ## 开始
 
 ```js
-import { GemElement, createStore, updateStore, html } from 'https://dev.jspm.io/@mantou/gem'
+import { GemElement, createStore, updateStore, html } from 'https://dev.jspm.io/@mantou/gem';
 
 // 新建全局数据对象
 const store = createStore({
   a: 1,
-})
+});
 
 // 定义自定义元素
 customElements.define(
   'app-root',
   class extends GemElement {
-    static observedStores = [store]
+    static observedStores = [store];
     clickHandle = () => {
-      updateStore(store, { a: ++store.a })
-    }
+      updateStore(store, { a: ++store.a });
+    };
     render() {
       return html`
         <button @click="${this.clickHandle}">Hello, World</button>
         <div>store.a: ${store.a}</div>
-      `
+      `;
     }
   },
-)
+);
 
 // 插入 html
-document.body.append(document.createElement('app-root'))
+document.body.append(document.createElement('app-root'));
 ```
 
 ## 特色
@@ -107,13 +107,14 @@ document.body.append(document.createElement('app-root'))
 
 ### history
 
-| 属性         | 描述                          |
-| ------------ | ----------------------------- |
-| historyState | 维护历史记录的 `Store`        |
-| basePath     | 指定基本路径                  |
-| forward      |                               |
-| back         |                               |
-| push         | 添加一条历史记录              |
-| pushState    | 添加一条相同 URL 的历史记录   |
-| replace      | 替换当前历史记录              |
-| replaceState | 替换当前历史记录的非 URL 属性 |
+| 属性                   | 描述                                        |
+| ---------------------- | ------------------------------------------- |
+| historyState           | 维护历史记录的 `Store`                      |
+| basePath               | 指定基本路径                                |
+| forward                |                                             |
+| back                   |                                             |
+| push                   | 添加一条历史记录                            |
+| pushWithoutCloseHandle | 添加一条历史记录, 排除类似 modal 的中间页面 |
+| pushState              | 添加一条相同 URL 的历史记录                 |
+| replace                | 替换当前历史记录                            |
+| replaceState           | 替换当前历史记录的非 URL 属性               |
