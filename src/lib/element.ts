@@ -31,7 +31,6 @@ declare global {
 
 export type State = object;
 
-export const isMountedSymbol = Symbol('mounted');
 export class BaseElement extends HTMLElement {
   static observedAttributes?: string[];
   static observedPropertys?: string[];
@@ -39,7 +38,7 @@ export class BaseElement extends HTMLElement {
   static adoptedStyleSheets?: CSSStyleSheet[];
 
   state: State;
-  [isMountedSymbol]: boolean;
+  isMounted: boolean;
 
   constructor() {
     super();
@@ -111,7 +110,7 @@ export class BaseElement extends HTMLElement {
    * @readonly do't modify
    */
   update() {
-    if (this[isMountedSymbol] && this.shouldUpdate()) {
+    if (this.isMounted && this.shouldUpdate()) {
       render(this.render(), this.shadowRoot);
       this.updated();
     }
@@ -130,8 +129,11 @@ export class BaseElement extends HTMLElement {
   attributeChanged(_name: string, _oldValue: string, _newValue: string) {}
   unmounted() {}
 
-  private attributeChangedCallback(name: string, oldValue: string, newValue: string) {
-    if (this[isMountedSymbol]) {
+  /**
+   * @private
+   */
+  attributeChangedCallback(name: string, oldValue: string, newValue: string) {
+    if (this.isMounted) {
       this.attributeChanged(name, oldValue, newValue);
       this.update();
     }
@@ -139,22 +141,28 @@ export class BaseElement extends HTMLElement {
 
   // adoptedCallback() {}
 
-  private disconnectedCallback() {
+  /**
+   * @private
+   */
+  disconnectedCallback() {
     const constructor = this.constructor as typeof BaseElement;
     constructor.observedStores.forEach(store => {
       disconnect(store, this.update);
     });
     this.unmounted();
-    this[isMountedSymbol] = false;
+    this.isMounted = false;
   }
 }
 
 export class GemElement extends BaseElement {
-  private connectedCallback() {
+  /**
+   * @private
+   */
+  connectedCallback() {
     this.willMount();
     render(this.render(), this.shadowRoot);
     this.mounted();
-    this[isMountedSymbol] = true;
+    this.isMounted = true;
   }
 }
 
@@ -171,12 +179,15 @@ export class AsyncGemElement extends BaseElement {
     });
   }
 
-  private connectedCallback() {
+  /**
+   * @private
+   */
+  connectedCallback() {
     this.willMount();
     renderTaskPool.add(() => {
       render(this.render(), this.shadowRoot);
       this.mounted();
-      this[isMountedSymbol] = true;
+      this.isMounted = true;
     });
   }
 }
