@@ -3,6 +3,7 @@ import { Storage, QueryString } from './utils'
 
 export interface HistoryItemState {
   $close: boolean
+  $colseBefore: boolean
   $key: number
   [index: string]: any
 }
@@ -19,22 +20,26 @@ export interface HistoryStore {
 }
 
 const historyState = createStore<HistoryStore>({
-  list: [],
-  currentIndex: -1,
+  list: [{}] as HistoryItem[],
+  currentIndex: 0,
 })
 
 const colseHandleMap = new WeakMap<HistoryItemState, Function>()
+const colseBeforeHandleMap = new WeakMap<HistoryItemState, Function>()
 
-function generateState(data: any, close: Function): HistoryItemState {
+function generateState(data: any, close: Function, colseBefore?: Function): HistoryItemState {
   if (data.$key) throw new Error('`$key` is not allowed')
   if (data.$close) throw new Error('`$close` is not allowed')
+  if (data.$colseBefore) throw new Error('`$colseBefore` is not allowed')
 
   const state: HistoryItemState = {
     ...data,
     $key: Date.now() + performance.now(),
     $close: !!close,
+    $colseBefore: !!colseBefore,
   }
   colseHandleMap.set(state, close)
+  colseBeforeHandleMap.set(state, colseBefore)
   return state
 }
 
@@ -42,7 +47,8 @@ export interface NavigationParameter {
   path?: string
   query?: string | QueryString
   title?: string
-  close?: Function
+  close?: Function // 按下返回键时执行
+  colseBefore?: Function // 按下返回键时判断是否执行 close 函数，返回为 false 时不执行，并恢复 history
   data?: any
 }
 
@@ -69,12 +75,12 @@ export const history = {
     window.history.back()
   },
   push(options: NavigationParameter) {
-    const { path, close } = options
+    const { path, close, colseBefore } = options
     const query = options.query || ''
     const title = options.title || ''
     const data = options.data || {}
 
-    const state = generateState(data, close)
+    const state = generateState(data, close, colseBefore)
 
     window.history.pushState(state, title, history.basePath + path + new QueryString(query))
 
@@ -101,12 +107,12 @@ export const history = {
     })
   },
   replace(options: NavigationParameter) {
-    const { path, close } = options
+    const { path, close, colseBefore } = options
     const query = options.query || ''
     const data = options.data || {}
     const title = options.title || ''
 
-    const state = generateState(data, close)
+    const state = generateState(data, close, colseBefore)
 
     window.history.replaceState(state, title, history.basePath + path + new QueryString(query))
 
@@ -134,11 +140,11 @@ export const history = {
 }
 
 if (!window.history.state) {
-  // first time use app
+  // 初始化 historyItem[]
   const { pathname, search } = window.location
-  history.push({ path: pathname, query: search })
+  history.replace({ path: pathname, query: search })
 } else if (window.history.state.$close) {
-  // reload on page with modal window
+  // 有 handle 返回键的页面刷新
   history.back()
 }
 
@@ -150,29 +156,42 @@ window.addEventListener('unload', () => {
   storage.setSession(sessionStorageKey, historyState)
 })
 
+/**
+ * 表示 popstate handler 中正在进行导航
+ */
+let navigating = false
 window.addEventListener('popstate', event => {
-  // forward or back
-  // none replace
-
-  // prev data
-  const { list, currentIndex } = historyState
-
-  if (event.state === null) {
-    const { state, title, path, query } = list[0]
-    window.history.pushState(state, title, history.basePath + path + new QueryString(query))
+  if (navigating) {
+    navigating = false
     return
   }
 
-  const { state } = list[currentIndex]
-  const newStateIndex = list.findIndex(historyItem => historyItem.state.$key === event.state.$key)
+  // forward or back
+  // replace 不会触发
 
-  if (state.$close) {
-    const closeHandle = colseHandleMap.get(state)
-    if (closeHandle) {
-      // reason: back button close modal
-      closeHandle()
+  // url 变化前 historyItem
+  const { list, currentIndex } = historyState
+
+  const { state: prevState } = list[currentIndex]
+  const newStateIndex = list.findIndex(({ state }) => state.$key === event.state.$key)
+
+  if (prevState.$close) {
+    const closeHandle = colseHandleMap.get(prevState)
+    const closeBeforeHandle = colseBeforeHandleMap.get(prevState)
+    const notAllowClose = closeBeforeHandle && !closeBeforeHandle()
+    if (notAllowClose) {
+      navigating = true
+      history.forward() // 将重新触发 popstate
+      return
     } else {
-      // reason: reload modal
+      if (closeHandle) {
+        // handle 返回键
+        // 不完美：这里将留下一条无意义的可供前进的历史记录
+        closeHandle()
+      } else {
+        // 有 handle 返回键的页面刷新后自动触发 popstate 事件
+        // 不执行任何动作
+      }
     }
   }
 
