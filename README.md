@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/mantou132/gem.svg?branch=master)](https://travis-ci.org/mantou132/gem)
+
 # gem
 
 创建自定义元素, 绑定数据, 路由切换, 快速基于 WebComponents 开发 WebApp。
