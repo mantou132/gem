@@ -1,28 +1,28 @@
-import { GemElement, createStore, updateStore, history, html, ifDefined, TemplateResult } from '../../'
+import { GemElement, createStore, updateStore, history, html, ifDefined, TemplateResult } from '../../';
 
 // 新建全局数据对象
 const dialog = createStore({
   open: false,
   content: null,
-})
+});
 class Dialog extends GemElement {
-  static observedStores = [history.historyState, dialog]
+  static observedStores = [history.historyState, dialog];
 
   static open(content?: TemplateResult) {
-    updateStore(dialog, { open: true, content })
-    history.pushState({ close: Dialog.close, colseBefore: Dialog.closeBefore })
+    updateStore(dialog, { open: true, content });
+    history.pushState({ close: Dialog.close, colseBefore: Dialog.closeBefore });
   }
 
   static close() {
-    updateStore(dialog, { open: false, content: null })
+    updateStore(dialog, { open: false, content: null });
   }
 
   static closeBefore() {
-    return confirm('confirm close dialog?')
+    return confirm('confirm close dialog?');
   }
 
   closeHandle() {
-    history.back() // 恢复历史栈
+    history.back(); // 恢复历史栈
   }
   render() {
     return html`
@@ -52,10 +52,10 @@ class Dialog extends GemElement {
           <button @click=${this.closeHandle}>close dialog</button>
         </div>
       </div>
-    `
+    `;
   }
 }
-customElements.define('app-dialog', Dialog)
+customElements.define('app-dialog', Dialog);
 
 class Root extends GemElement {
   clickHandle = () =>
@@ -63,14 +63,14 @@ class Root extends GemElement {
       html`
         <div>dialog</div>
       `,
-    )
+    );
   render() {
     return html`
       <button @click="${this.clickHandle}">open dialog</button>
       <app-dialog></app-dialog>
-    `
+    `;
   }
 }
-customElements.define('app-root', Root)
+customElements.define('app-root', Root);
 
-document.body.append(new Root())
+document.body.append(new Root());

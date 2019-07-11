@@ -1,19 +1,19 @@
-import { GemElement, html, css } from '../../'
-import '../../elements/link'
-import '../../elements/route'
-import '../../elements/title'
+import { GemElement, html, css } from '../../';
+import '../../elements/link';
+import '../../elements/route';
+import '../../elements/title';
 
-import './page-b'
+import './page-b';
 
 const routes = [
   {
     title: 'Page A Title',
     pattern: '/a',
     get content() {
-      import('./page-a')
+      import('./page-a');
       return html`
         <app-page-a>A: </app-page-a>
-      `
+      `;
     },
   },
   {
@@ -29,7 +29,7 @@ const routes = [
       <div>hello</div>
     `,
   },
-]
+];
 
 class App extends GemElement {
   render() {
@@ -54,17 +54,17 @@ class App extends GemElement {
       <main>
         <gem-route .routes=${routes}></gem-route>
       </main>
-    `
+    `;
   }
 }
 
-const style = document.createElement('style')
+const style = document.createElement('style');
 style.innerHTML = css`
   body {
     font-size: xx-large;
   }
-`
-document.head.append(style)
+`;
+document.head.append(style);
 
-customElements.define('app-root', App)
-document.body.append(new App())
+customElements.define('app-root', App);
+document.body.append(new App());

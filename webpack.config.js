@@ -1,7 +1,7 @@
-const path = require('path')
-const HtmlWebpackPlugin = require('html-webpack-plugin')
+const path = require('path');
+const HtmlWebpackPlugin = require('html-webpack-plugin');
 
-const hello = 'hello-world'
+const hello = 'hello-world';
 
 module.exports = {
   entry: `./src/examples/${process.env.EXAMPLE || hello}/index.ts`,
@@ -25,14 +25,14 @@ module.exports = {
     new HtmlWebpackPlugin(),
     {
       apply(compiler) {
-        compiler.hooks.done.tapAsync('MyCustomPlugin', function(compiler, callback) {
+        compiler.hooks.done.tapAsync('MyCustomPlugin', function(_compiler, callback) {
           if (!process.env.EXAMPLE) {
             setTimeout(() => {
-              console.log('\n使用 `EXAMPLE=[example-name] npm run example` 指定用例')
-            })
+              console.log('\n使用 `EXAMPLE=[example-name] npm run example` 指定用例');
+            });
           }
-          callback()
-        })
+          callback();
+        });
       },
     },
   ],
@@ -41,4 +41,4 @@ module.exports = {
     historyApiFallback: true,
   },
   devtool: 'source-map',
-}
+};

@@ -1,4 +1,4 @@
-import { createStoreSet } from '../../'
+import { createStoreSet } from '../../';
 
 export default createStoreSet({
   pageA: {
@@ -7,4 +7,4 @@ export default createStoreSet({
   pageB: {
     text: 'this is page B',
   },
-})
+});
