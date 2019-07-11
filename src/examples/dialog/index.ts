@@ -1,10 +1,49 @@
 import { GemElement, html, ifDefined } from '../../';
 import createModalElement from '../../elements/modal-base';
 import '../../elements/link';
+class Dialog1 extends createModalElement({ content: html`` }) {
+  render() {
+    return html`
+      <style>
+        .root {
+          position: fixed;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          background: rgba(0, 0, 0, 0.5);
+        }
+        .body {
+          position: absolute;
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%, -50%);
+          width: 200px;
+          height: 100px;
+          background: white;
+        }
+      </style>
+      <div class="root" hidden=${ifDefined(Dialog1.isOpen && undefined)}>
+        <div class="body">
+          <h2>hello.</h2>
+        </div>
+      </div>
+    `;
+  }
+}
+customElements.define('app-dialog1', Dialog1);
 
 class Dialog extends createModalElement({ content: html`` }) {
   static shouldClose() {
     return confirm('confirm close dialog?');
+  }
+
+  openModal() {
+    Dialog1.open({
+      content: html`
+        213
+      `,
+    });
   }
 
   render() {
@@ -33,6 +72,8 @@ class Dialog extends createModalElement({ content: html`` }) {
           <h2>hello.</h2>
           <div>${Dialog.store.content}</div>
           <button @click=${this.closeHandle}>x</button>
+          <button @click=${this.openModal}>创建另一个 dialog</button>
+          <app-dialog1></app-dialog1>
         </div>
       </div>
     `;

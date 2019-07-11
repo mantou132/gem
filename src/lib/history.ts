@@ -99,6 +99,7 @@ export const history = {
   // push 一条历史记录
   // 有 close 处理函数时先执行 closeHandle 在 replace
   // 比如在 modal 打开时跳转页面
+  // 不完美：只支持在 1 级 modal 中切换页面
   pushWithoutCloseHandle(options: NavigationParameter) {
     const { list, currentIndex } = historyState;
     const { state } = list[currentIndex];
@@ -196,15 +197,19 @@ window.addEventListener('popstate', event => {
     if (notAllowClose) {
       navigating = true;
       history.forward(); // 将重新触发 popstate
-      return;
+      return; // 历史记录栈位置没有变化，不需要后面的 updateStore
     } else {
+      // handle 返回键
+      // 不完美：这里将留下一条无意义的可供前进的历史记录
       if (closeHandle) {
-        // handle 返回键
-        // 不完美：这里将留下一条无意义的可供前进的历史记录
         closeHandle();
       } else {
-        // 有 handle 返回键的页面刷新后自动触发 popstate 事件
-        // 不执行任何动作
+        // 有 modal 的页面刷新会执行 back 触发 popstate
+        // 如果是耳机 modal 页面刷新
+        // 则还需要进行一次 back
+        // 不完美：三级 modal 页面刷新不支持返回到初始页面
+        navigating = true;
+        history.back();
       }
     }
   }
