@@ -3,7 +3,7 @@ import createModalElement from '../../elements/modal-base';
 import '../../elements/link';
 
 class Dialog extends createModalElement({ content: html`` }) {
-  static closeBefore() {
+  static shouldClose() {
     return confirm('confirm close dialog?');
   }
 

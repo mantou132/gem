@@ -3,7 +3,7 @@ import { Storage, QueryString } from './utils';
 
 export interface HistoryItemState {
   $close: boolean;
-  $colseBefore: boolean;
+  $shouldClose: boolean;
   $key: number;
   [index: string]: any;
 }
@@ -25,21 +25,21 @@ const historyState = createStore<HistoryStore>({
 });
 
 const colseHandleMap = new WeakMap<HistoryItemState, Function>();
-const colseBeforeHandleMap = new WeakMap<HistoryItemState, Function>();
+const shouldCloseHandleMap = new WeakMap<HistoryItemState, Function>();
 
-function generateState(data: any, close: Function, colseBefore?: Function): HistoryItemState {
+function generateState(data: any, close: Function, shouldClose?: Function): HistoryItemState {
   if (data.$key) throw new Error('`$key` is not allowed');
   if (data.$close) throw new Error('`$close` is not allowed');
-  if (data.$colseBefore) throw new Error('`$colseBefore` is not allowed');
+  if (data.$shouldClose) throw new Error('`$shouldClose` is not allowed');
 
   const state: HistoryItemState = {
     ...data,
     $key: Date.now() + performance.now(),
     $close: !!close,
-    $colseBefore: !!colseBefore,
+    $shouldClose: !!shouldClose,
   };
   colseHandleMap.set(state, close);
-  colseBeforeHandleMap.set(state, colseBefore);
+  shouldCloseHandleMap.set(state, shouldClose);
   return state;
 }
 
@@ -48,7 +48,7 @@ export interface NavigationParameter {
   query?: string | QueryString;
   title?: string;
   close?: Function; // 按下返回键时执行
-  colseBefore?: Function; // 按下返回键时判断是否执行 close 函数，返回为 false 时不执行，并恢复 history
+  shouldClose?: () => boolean; // 按下返回键时判断是否执行 close 函数，返回为 false 时不执行，并恢复 history
   data?: any;
 }
 
@@ -75,12 +75,12 @@ export const history = {
     window.history.back();
   },
   push(options: NavigationParameter) {
-    const { path, close, colseBefore } = options;
+    const { path, close, shouldClose } = options;
     const query = options.query || '';
     const title = options.title || '';
     const data = options.data || {};
 
-    const state = generateState(data, close, colseBefore);
+    const state = generateState(data, close, shouldClose);
 
     window.history.pushState(state, title, history.basePath + path + new QueryString(query));
 
@@ -121,12 +121,12 @@ export const history = {
     });
   },
   replace(options: NavigationParameter) {
-    const { path, close, colseBefore } = options;
+    const { path, close, shouldClose } = options;
     const query = options.query || '';
     const data = options.data || {};
     const title = options.title || '';
 
-    const state = generateState(data, close, colseBefore);
+    const state = generateState(data, close, shouldClose);
 
     window.history.replaceState(state, title, history.basePath + path + new QueryString(query));
 
@@ -191,8 +191,8 @@ window.addEventListener('popstate', event => {
 
   if (prevState.$close) {
     const closeHandle = colseHandleMap.get(prevState);
-    const closeBeforeHandle = colseBeforeHandleMap.get(prevState);
-    const notAllowClose = closeBeforeHandle && !closeBeforeHandle();
+    const shouldCloseHandle = shouldCloseHandleMap.get(prevState);
+    const notAllowClose = shouldCloseHandle && !shouldCloseHandle();
     if (notAllowClose) {
       navigating = true;
       history.forward(); // 将重新触发 popstate

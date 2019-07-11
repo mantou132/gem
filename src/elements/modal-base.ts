@@ -24,7 +24,7 @@ export default function createModalElement<T extends object>(options: T) {
       updateStore(this.store, { [open]: true, ...opts });
       history.pushState({
         close: this.close.bind(this),
-        colseBefore: this.closeBefore.bind(this),
+        shouldClose: this.shouldClose.bind(this),
       });
     }
 
@@ -32,7 +32,7 @@ export default function createModalElement<T extends object>(options: T) {
       updateStore(this.store, { [open]: false, ...options });
     }
 
-    static closeBefore() {
+    static shouldClose() {
       return true;
     }
 
