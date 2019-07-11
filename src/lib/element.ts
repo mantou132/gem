@@ -29,10 +29,10 @@ declare global {
   }
 }
 
-type State = object;
+export type State = object;
 
-const isMountedSymbol = Symbol('mounted');
-class BaseElement extends HTMLElement {
+export const isMountedSymbol = Symbol('mounted');
+export class BaseElement extends HTMLElement {
   static observedAttributes?: string[];
   static observedPropertys?: string[];
   static observedStores?: Store<unknown>[];

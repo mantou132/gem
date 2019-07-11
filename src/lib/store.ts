@@ -1,10 +1,12 @@
 export const HANDLES_KEY = Symbol('handles key');
 
-interface StoreTrait {
+export interface StoreTrait {
   [HANDLES_KEY]: Set<Function>;
 }
+
 export type Store<T> = T & StoreTrait;
-type StoreSet<T> = {
+
+export type StoreSet<T> = {
   [P in keyof T]: T[P] & Store<T[P]>;
 };
 
