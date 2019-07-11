@@ -1,4 +1,5 @@
 import { GemElement, createStore, updateStore, history, html, ifDefined, TemplateResult } from '../../';
+import '../../elements/link';
 
 // 新建全局数据对象
 const dialog = createStore({
@@ -48,8 +49,8 @@ class Dialog extends GemElement {
       <div class="root" hidden=${ifDefined(dialog.open && undefined)}>
         <div class="body">
           <h2>hello.</h2>
-          ${dialog.content}
-          <button @click=${this.closeHandle}>close dialog</button>
+          <div>${dialog.content}</div>
+          <button @click=${this.closeHandle}>x</button>
         </div>
       </div>
     `;
@@ -62,10 +63,16 @@ class Root extends GemElement {
     Dialog.open(
       html`
         <div>dialog</div>
+        <gem-link path="/hi" style="cursor: pointer; color: blue">replace route</gem-link>
       `,
     );
   render() {
     return html`
+      <style>
+        :host {
+          font-size: x-large;
+        }
+      </style>
       <button @click="${this.clickHandle}">open dialog</button>
       <app-dialog></app-dialog>
     `;
