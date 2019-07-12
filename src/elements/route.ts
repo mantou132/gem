@@ -37,7 +37,7 @@ function isMatch(pattern: string, path: string) {
 }
 
 interface RouteItem {
-  pattern: string;
+  pattern: '*' | (string & {});
   content: TemplateResult;
   title?: string;
 }
@@ -101,13 +101,22 @@ export class Route extends GemElement {
 
   render() {
     if (!this.routes) return this.callback();
+    Route.currentRoute = null;
+
+    let defaultRoute: RouteItem;
 
     for (let item of this.routes) {
       const { pattern } = item;
-      if (isMatch(pattern, history.location.path)) {
+      if ('*' === pattern) {
+        defaultRoute = item;
+      } else if (isMatch(pattern, history.location.path)) {
         Route.currentRoute = item;
         break;
       }
+    }
+
+    if (!Route.currentRoute) {
+      Route.currentRoute = defaultRoute;
     }
 
     if (!Route.currentRoute) return this.callback();
