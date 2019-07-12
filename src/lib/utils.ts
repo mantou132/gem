@@ -120,6 +120,7 @@ declare global {
 }
 
 const rulesWeakMap = new WeakMap<Sheet<unknown>, any>();
+// rules 引用的是字符串，所以不能动态更新
 export function createCSSSheet<T extends object>(rules: T): Sheet<T> {
   let cssSheet = rulesWeakMap.get(rules);
   if (!cssSheet) {
