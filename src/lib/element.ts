@@ -1,6 +1,6 @@
 import { html, render } from 'lit-html';
 import { connect, disconnect, HANDLES_KEY, Store } from './store';
-import { Pool } from './utils';
+import { Pool, Sheet } from './utils';
 
 export { html, svg, render, directive, TemplateResult } from 'lit-html';
 export { repeat } from 'lit-html/directives/repeat';
@@ -23,19 +23,13 @@ const exec = () =>
 
 exec();
 
-declare global {
-  interface ShadowRoot {
-    adoptedStyleSheets: CSSStyleSheet[];
-  }
-}
-
 export type State = object;
 
-export class BaseElement extends HTMLElement {
+export abstract class BaseElement extends HTMLElement {
   static observedAttributes?: string[];
   static observedPropertys?: string[];
   static observedStores?: Store<unknown>[];
-  static adoptedStyleSheets?: CSSStyleSheet[];
+  static adoptedStyleSheets?: CSSStyleSheet[] | Sheet<unknown>[];
 
   state: State;
   isMounted: boolean;

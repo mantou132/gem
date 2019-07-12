@@ -105,3 +105,72 @@ export function raw(arr: TemplateStringsArray, ...args: any[]) {
 export function css(arr: TemplateStringsArray, ...args: any[]) {
   return raw(arr, ...args);
 }
+
+export type Sheet<T> = {
+  [P in keyof T]: P;
+};
+
+declare global {
+  interface CSSStyleSheet {
+    replaceSync: (str: string) => void;
+  }
+  interface ShadowRoot {
+    adoptedStyleSheets: Sheet<unknown>[];
+  }
+}
+
+const rulesWeakMap = new WeakMap<Sheet<unknown>, any>();
+export function createCSSSheet<T extends object>(rules: T): Sheet<T> {
+  let cssSheet = rulesWeakMap.get(rules);
+  if (!cssSheet) {
+    const sheet = new CSSStyleSheet();
+    let style = '';
+    Object.keys(rules).forEach(key => {
+      sheet[key] = key;
+      style += rules[key].replace(/&/g, key);
+    });
+    sheet.replaceSync(style);
+    rulesWeakMap.set(rules, sheet);
+    cssSheet = sheet;
+  }
+  return cssSheet;
+}
+
+// 只支持一层嵌套
+// https://drafts.csswg.org/css-nesting-1/
+function flatStyled(style: string, type: 'id' | 'class' | 'tag') {
+  const subStyle = [];
+  const midStr =
+    `& {${style.replace(/&.*{(.*)}/gs, function(substr) {
+      subStyle.push(substr);
+      return '';
+    })}}` + subStyle.join('');
+  if (type === 'tag') return midStr;
+  return midStr.replace(/&/g, type === 'class' ? '.&' : '#&');
+}
+
+// 写 css 文本，在 CSSStyleSheet 中使用，使用 styed-components 高亮
+//
+// createCSSSheet({
+//   red: styled.class`
+//     background: red;
+//     &:hover {
+//       background: blue;
+//     }
+//   `,
+// });
+
+export const styled = {
+  class: (arr: TemplateStringsArray, ...args: any[]) => {
+    const style = raw(arr, ...args);
+    return flatStyled(style, 'class');
+  },
+  id: (arr: TemplateStringsArray, ...args: any[]) => {
+    const style = raw(arr, ...args);
+    return flatStyled(style, 'id');
+  },
+  tag: (arr: TemplateStringsArray, ...args: any[]) => {
+    const style = raw(arr, ...args);
+    return flatStyled(style, 'tag');
+  },
+};
