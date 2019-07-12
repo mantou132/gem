@@ -24,20 +24,24 @@ const historyState = createStore<HistoryStore>({
   currentIndex: 0,
 });
 
+const openHandleMap = new WeakMap<HistoryItemState, Function>();
 const colseHandleMap = new WeakMap<HistoryItemState, Function>();
 const shouldCloseHandleMap = new WeakMap<HistoryItemState, Function>();
 
-function generateState(data: any, close: Function, shouldClose?: Function): HistoryItemState {
+function generateState(data: any, open: Function, close: Function, shouldClose: Function): HistoryItemState {
   if (data.$key) throw new Error('`$key` is not allowed');
+  if (data.$open) throw new Error('`$open` is not allowed');
   if (data.$close) throw new Error('`$close` is not allowed');
   if (data.$shouldClose) throw new Error('`$shouldClose` is not allowed');
 
   const state: HistoryItemState = {
     ...data,
     $key: Date.now() + performance.now(),
+    $open: !!open,
     $close: !!close,
     $shouldClose: !!shouldClose,
   };
+  openHandleMap.set(state, open);
   colseHandleMap.set(state, close);
   shouldCloseHandleMap.set(state, shouldClose);
   return state;
@@ -47,6 +51,7 @@ export interface NavigationParameter {
   path?: string;
   query?: string | QueryString;
   title?: string;
+  open?: Function; // 按下前进键时执行
   close?: Function; // 按下返回键时执行
   shouldClose?: () => boolean; // 按下返回键时判断是否执行 close 函数，返回为 false 时不执行，并恢复 history
   data?: any;
@@ -75,12 +80,12 @@ export const history = {
     window.history.back();
   },
   push(options: NavigationParameter) {
-    const { path, close, shouldClose } = options;
+    const { path, open, close, shouldClose } = options;
     const query = options.query || '';
     const title = options.title || '';
     const data = options.data || {};
 
-    const state = generateState(data, close, shouldClose);
+    const state = generateState(data, open, close, shouldClose);
 
     window.history.pushState(state, title, history.basePath + path + new QueryString(query));
 
@@ -122,12 +127,12 @@ export const history = {
     });
   },
   replace(options: NavigationParameter) {
-    const { path, close, shouldClose } = options;
+    const { path, open, close, shouldClose } = options;
     const query = options.query || '';
     const data = options.data || {};
     const title = options.title || '';
 
-    const state = generateState(data, close, shouldClose);
+    const state = generateState(data, open, close, shouldClose);
 
     window.history.replaceState(state, title, history.basePath + path + new QueryString(query));
 
@@ -189,8 +194,14 @@ window.addEventListener('popstate', event => {
 
   const { state: prevState } = list[currentIndex];
   const newStateIndex = list.findIndex(({ state }) => state.$key === event.state.$key);
+  const { state: newState } = list[newStateIndex];
 
-  if (prevState.$close) {
+  if (newStateIndex > currentIndex && newState.$open) {
+    // 返回键关闭的 modal 能前进键重新打开
+    // 刷新后不能工作：刷新后 historyItem 中只有 url
+    const openHandle = openHandleMap.get(newState);
+    if (openHandle) openHandle();
+  } else if (prevState.$close) {
     const closeHandle = colseHandleMap.get(prevState);
     const shouldCloseHandle = shouldCloseHandleMap.get(prevState);
     const notAllowClose = shouldCloseHandle && !shouldCloseHandle();
@@ -200,7 +211,6 @@ window.addEventListener('popstate', event => {
       return; // 历史记录栈位置没有变化，不需要后面的 updateStore
     } else {
       // handle 返回键
-      // 不完美：这里将留下一条无意义的可供前进的历史记录
       if (closeHandle) {
         closeHandle();
       } else {
