@@ -17,8 +17,11 @@
   "scripts": {
     "lint": "eslint --ext .ts --fix src/",
     "build": "tsc",
-    "prepare": "npm run build",
-    "example": "webpack-dev-server --open"
+    "prepare": "npm run lint && npm run build && npm run quicktest",
+    "example": "webpack-dev-server --open",
+    "test": "npm run build && karma start",
+    "quicktest": "karma start",
+    "test:bs": "npm run build &&  karma start karma.bs.config.js"
   },
   "repository": {
     "type": "git",
@@ -53,7 +56,11 @@
     "typescript": "^3.5.2",
     "webpack": "^4.35.0",
     "webpack-cli": "^3.3.5",
-    "webpack-dev-server": "^3.7.2"
+    "webpack-dev-server": "^3.7.2",
+    "@open-wc/testing-karma": "^2.0.0",
+    "webpack-merge": "^4.1.5",
+    "@open-wc/testing-karma-bs": "^1.0.0",
+    "@open-wc/testing": "^0.11.1"
   },
   "husky": {
     "hooks": {
