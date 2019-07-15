@@ -160,9 +160,11 @@ export abstract class BaseElement extends HTMLElement {
    */
   disconnectedCallback() {
     const constructor = this.constructor as typeof BaseElement;
-    constructor.observedStores.forEach(store => {
-      disconnect(store, this.update);
-    });
+    if (constructor.observedStores) {
+      constructor.observedStores.forEach(store => {
+        disconnect(store, this.update);
+      });
+    }
     this.unmounted();
     this._isMounted = false;
   }
