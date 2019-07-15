@@ -1,3 +1,5 @@
+import { addMicrotask } from './utils';
+
 export const HANDLES_KEY = Symbol('handles key');
 
 export interface StoreTrait {
@@ -25,21 +27,11 @@ export function createStoreSet<T extends object>(originStoreSet: T) {
   return originStoreSet as StoreSet<T>;
 }
 
-const updaterSet = new Set<Function>();
 export function updateStore<T extends Store<unknown>>(store: T, value: Partial<Omit<T, keyof StoreTrait>>) {
-  if (!updaterSet.size) {
-    // delayed execution callback after updating store
-    queueMicrotask(() => {
-      updaterSet.forEach(func => func(value));
-      updaterSet.clear();
-    });
-  }
   Object.assign(store, value);
   const listeners = store[HANDLES_KEY];
   listeners.forEach(func => {
-    // 更新遍历顺序
-    updaterSet.delete(func);
-    updaterSet.add(func);
+    addMicrotask(func);
   });
 }
 

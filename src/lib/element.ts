@@ -1,6 +1,6 @@
 import { html, render } from 'lit-html';
 import { connect, disconnect, HANDLES_KEY, Store } from './store';
-import { Pool, Sheet } from './utils';
+import { Pool, addMicrotask, Sheet } from './utils';
 
 export { html, svg, render, directive, TemplateResult } from 'lit-html';
 export { repeat } from 'lit-html/directives/repeat';
@@ -24,6 +24,8 @@ const exec = () =>
 exec();
 
 export type State = object;
+
+export const updaterWithSetStateSet = new Set<Function>();
 
 export abstract class BaseElement extends HTMLElement {
   static observedAttributes?: string[];
@@ -74,7 +76,7 @@ export abstract class BaseElement extends HTMLElement {
               propValue = v;
               if (this._isMounted) {
                 this.propertyChanged(prop, propValue, v);
-                this.update();
+                addMicrotask(this.update);
               }
             }
           },
@@ -102,7 +104,7 @@ export abstract class BaseElement extends HTMLElement {
    */
   setState(payload: Partial<State>) {
     Object.assign(this.state, payload);
-    this.update();
+    addMicrotask(this.update);
   }
 
   willMount() {}
@@ -149,7 +151,7 @@ export abstract class BaseElement extends HTMLElement {
   attributeChangedCallback(name: string, oldValue: string, newValue: string) {
     if (this._isMounted) {
       this.attributeChanged(name, oldValue, newValue);
-      this.update();
+      addMicrotask(this.update);
     }
   }
 

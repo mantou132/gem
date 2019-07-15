@@ -1,3 +1,16 @@
+const updaterSet = new Set<Function>();
+export function addMicrotask(func: Function) {
+  if (!updaterSet.size) {
+    // delayed execution callback after updating store
+    queueMicrotask(() => {
+      updaterSet.forEach(func => func());
+      updaterSet.clear();
+    });
+  }
+  updaterSet.delete(func);
+  updaterSet.add(func);
+}
+
 export class Pool<T> {
   currentId = 0;
   count = 0;
