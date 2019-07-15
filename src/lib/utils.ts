@@ -146,7 +146,7 @@ export function createCSSSheet<T extends object>(rules: T | string): Sheet<T> {
 function flatStyled(style: string, type: 'id' | 'class' | 'tag') {
   const subStyle = [];
   const midStr =
-    `& {${style.replace(/&.*{(.*)}/gs, function(substr) {
+    `& {${style.replace(new RegExp('&.*{(.*)}', 'gs'), function(substr) {
       subStyle.push(substr);
       return '';
     })}}` + subStyle.join('');
