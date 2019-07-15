@@ -90,6 +90,7 @@ document.body.append(document.createElement('app-root'));
 | shouldUpdate     | 更新元素前的回调, 返回 `false` 时不更新元素 |
 | updated          | 更新元素后的回调                            |
 | attributeChanged | 更新元素 `attribute` 的回调                 |
+| porpertyChanged  | 更新元素 `porperty` 的回调                  |
 | unmounted        | 卸载元素后的回调                            |
 
 | 只读方法         | 描述                                              |

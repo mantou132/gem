@@ -31,8 +31,8 @@ export abstract class BaseElement extends HTMLElement {
   static observedStores?: Store<unknown>[];
   static adoptedStyleSheets?: CSSStyleSheet[] | Sheet<unknown>[];
 
-  state: State;
-  isMounted: boolean;
+  readonly state: State;
+  _isMounted: boolean; // do't modify
 
   constructor() {
     super();
@@ -45,21 +45,37 @@ export abstract class BaseElement extends HTMLElement {
     this.updated = this.updated.bind(this);
     this.disconnectStores = this.disconnectStores.bind(this);
     this.attributeChanged = this.attributeChanged.bind(this);
+    this.propertyChanged = this.propertyChanged.bind(this);
     this.unmounted = this.unmounted.bind(this);
 
     const shadowRoot = this.attachShadow({ mode: 'open' });
-    const { observedPropertys, observedStores, adoptedStyleSheets } = new.target;
+    const { observedAttributes, observedPropertys, observedStores, adoptedStyleSheets } = new.target;
+    if (observedAttributes) {
+      observedAttributes.forEach(attr => {
+        Object.defineProperty(this, attr, {
+          get: () => {
+            return this.getAttribute(attr);
+          },
+          set: (v: string) => {
+            this.setAttribute(attr, v);
+          },
+        });
+      });
+    }
     if (observedPropertys) {
       observedPropertys.forEach(prop => {
         let propValue: any;
         Object.defineProperty(this, prop, {
-          get() {
+          get: () => {
             return propValue;
           },
-          set(v) {
+          set: v => {
             if (v !== propValue) {
               propValue = v;
-              this.update();
+              if (this._isMounted) {
+                this.propertyChanged(prop, propValue, v);
+                this.update();
+              }
             }
           },
         });
@@ -85,7 +101,7 @@ export abstract class BaseElement extends HTMLElement {
    * @readonly do't modify
    */
   setState(payload: Partial<State>) {
-    this.state = Object.assign(this.state, payload);
+    Object.assign(this.state, payload);
     this.update();
   }
 
@@ -104,7 +120,7 @@ export abstract class BaseElement extends HTMLElement {
    * @readonly do't modify
    */
   update() {
-    if (this.isMounted && this.shouldUpdate()) {
+    if (this._isMounted && this.shouldUpdate()) {
       render(this.render(), this.shadowRoot);
       this.updated();
     }
@@ -120,14 +136,18 @@ export abstract class BaseElement extends HTMLElement {
     });
   }
 
+  // 同步触发
+  propertyChanged(_name: string, _oldValue: any, _newValue: any) {}
+  // 异步触发
   attributeChanged(_name: string, _oldValue: string, _newValue: string) {}
+
   unmounted() {}
 
   /**
    * @private
    */
   attributeChangedCallback(name: string, oldValue: string, newValue: string) {
-    if (this.isMounted) {
+    if (this._isMounted) {
       this.attributeChanged(name, oldValue, newValue);
       this.update();
     }
@@ -144,7 +164,7 @@ export abstract class BaseElement extends HTMLElement {
       disconnect(store, this.update);
     });
     this.unmounted();
-    this.isMounted = false;
+    this._isMounted = false;
   }
 }
 
@@ -156,7 +176,7 @@ export class GemElement extends BaseElement {
     this.willMount();
     render(this.render(), this.shadowRoot);
     this.mounted();
-    this.isMounted = true;
+    this._isMounted = true;
   }
 }
 
@@ -181,7 +201,7 @@ export class AsyncGemElement extends BaseElement {
     renderTaskPool.add(() => {
       render(this.render(), this.shadowRoot);
       this.mounted();
-      this.isMounted = true;
+      this._isMounted = true;
     });
   }
 }
