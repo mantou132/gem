@@ -18,10 +18,25 @@ describe('history 测试', () => {
     const { currentIndex } = history.historyState;
     let state = { open: true };
     const close = () => (state = { open: false });
+    const open = () => (state = { open: true });
     // 打开 modal
     history.pushState({ close });
     await aTimeout(10);
     expect(() => history.pushState({ data: { $shouldClose: 1 } })).to.throw();
+    expect(() => history.pushState({ data: { $close: 1 } })).to.throw();
+    expect(() => history.pushState({ data: { $open: 1 } })).to.throw();
+    expect(() => history.pushState({ data: { $key: 1 } })).to.throw();
+    // 关闭 modal
+    history.back();
+    await aTimeout(10);
+    expect(state.open).to.false;
+    // 打开 modal
+    history.forward();
+    await aTimeout(10);
+    // 替换 close
+    history.replaceState({ close, open });
+    await aTimeout(10);
+    expect(history.historyState.list[history.historyState.currentIndex].state.$open).to.true;
     await aTimeout(10);
     expect(window.location.href).to.equal(href);
     // 跳转页面
@@ -37,5 +52,9 @@ describe('history 测试', () => {
     history.forward();
     await aTimeout(10);
     expect(window.location.pathname).to.equal('/b');
+    // 卸载页面
+    const sessionStorageLength = sessionStorage.length;
+    dispatchEvent(new CustomEvent('unload'));
+    expect(sessionStorage.length).to.equal(sessionStorageLength + 1);
   });
 });

@@ -1,5 +1,5 @@
 import { expect } from '@open-wc/testing';
-import { Pool, Storage, QueryString, css, createCSSSheet, styled } from '..';
+import { Pool, Storage, QueryString, css, raw, createCSSSheet, styled } from '..';
 
 describe('utils 测试', () => {
   it('Pool', () => {
@@ -13,17 +13,26 @@ describe('utils 测试', () => {
   });
   it('Storage', () => {
     const storage = new Storage();
+    storage.setLocal('local', { a: 1 });
+    expect(localStorage.getItem('local')).to.equal('{"a":1}');
+    expect(storage.getLocal('local')).to.deep.equal({ a: 1 });
     storage.setSession('session', { a: 1 });
     expect(storage.getSession('session')).to.deep.equal({ a: 1 });
+    expect(new Storage().getSession('session')).to.deep.equal({ a: 1 });
+    sessionStorage.setItem('invalid_json', 'invalid');
+    expect(storage.getSession('invalid_json')).to.equal(undefined);
   });
   it('QueryString', () => {
     const query = new QueryString('a=1&b=2');
+    expect(query.toJSON()).to.equal('?a=1&b=2');
     expect(query.toString()).to.equal('?a=1&b=2');
     expect(query.get('a')).to.equal('1');
     query.concat('c=3');
     expect(query.get('c')).to.equal('3');
     query.concat({ d: 4 });
     expect(query.toString()).to.equal('?a=1&b=2&c=3&d=4');
+    expect(new QueryString({ a: 1 }).toString()).to.equal('?a=1');
+    expect(new QueryString(query).toString()).to.equal(query.toString());
   });
   it('createCSSSheet', () => {
     const cssSheet = createCSSSheet(css`
@@ -33,6 +42,9 @@ describe('utils 测试', () => {
     `);
     expect(cssSheet.cssRules.item(0).selectorText).to.equal('body');
     expect(cssSheet.cssRules.item(0).style.background).to.equal('red');
+  });
+  it('raw/css', () => {
+    expect(raw`<div>${'str'}</div>`).to.equal('<div>str</div>');
   });
   it('styled', () => {
     const styles = createCSSSheet({
@@ -45,6 +57,9 @@ describe('utils 测试', () => {
       wrap: styled.id`
         position: fixed;
       `,
+      div: styled.tag`
+        border: 1px solid;
+      `,
     });
     expect(styles.scroll).to.equal('scroll');
     let temp = styles as unknown;
@@ -54,5 +69,6 @@ describe('utils 测试', () => {
     expect(cssSheet.cssRules.item(1).selectorText).to.equal('.scroll:hover *');
     expect(cssSheet.cssRules.item(1).style.background).to.equal('blue');
     expect(cssSheet.cssRules.item(2).selectorText).to.equal('#wrap');
+    expect(cssSheet.cssRules.item(3).selectorText).to.equal('div');
   });
 });

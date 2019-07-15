@@ -1,5 +1,5 @@
 import { fixture, expect, nextFrame } from '@open-wc/testing';
-import { AsyncGemElement, GemElement, html, createStore, updateStore, createCSSSheet, css } from '..';
+import { AsyncGemElement, GemElement, html, createStore, updateStore, createCSSSheet, css, Store } from '..';
 
 const store = createStore({
   a: 1,
@@ -143,5 +143,15 @@ describe('异步 gem element 测试', () => {
     expect(el.renderCount).to.equal(1);
     await nextFrame();
     expect(el.renderCount).to.equal(2);
+  });
+});
+
+class ErrorGemDemo extends GemElement {
+  static observedStores = [{}] as Store<unknown>[];
+}
+customElements.define('error-gem-demo', ErrorGemDemo);
+describe('元素初始化错误', () => {
+  it('observedStores 错误', async () => {
+    expect(() => new ErrorGemDemo()).to.throw();
   });
 });

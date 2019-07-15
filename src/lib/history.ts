@@ -3,6 +3,7 @@ import { Storage, QueryString } from './utils';
 
 export interface HistoryItemState {
   $close: boolean;
+  $open: boolean;
   $shouldClose: boolean;
   $key: number;
   [index: string]: any;
