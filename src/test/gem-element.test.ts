@@ -1,9 +1,15 @@
-import { fixture, expect, aTimeout } from '@open-wc/testing';
-import { AsyncGemElement, GemElement, html, createStore, updateStore } from '..';
+import { fixture, expect, nextFrame } from '@open-wc/testing';
+import { AsyncGemElement, GemElement, html, createStore, updateStore, createCSSSheet, css } from '..';
 
 const store = createStore({
   a: 1,
 });
+
+const styles = createCSSSheet(css`
+  :host {
+    background: rgb(255, 0, 0);
+  }
+`);
 
 class GemDemo extends GemElement {
   /** @attr */ attr: string;
@@ -14,6 +20,7 @@ class GemDemo extends GemElement {
   prop = { value: '' };
   static observedPropertys = ['prop'];
 
+  static adoptedStyleSheets = [styles];
   state = { value: '' };
 
   renderCount = 0;
@@ -29,6 +36,12 @@ class GemDemo extends GemElement {
 customElements.define('gem-demo', GemDemo);
 
 describe('基本 gem element 测试', () => {
+  it('adoptedStyleSheets 共享样式', async () => {
+    const el = await fixture(html`
+      <gem-demo attr="attr" .prop=${{ value: 'prop' }}></gem-demo>
+    `);
+    expect(window.getComputedStyle(el).backgroundColor).to.equal('rgb(255, 0, 0)');
+  });
   it('渲染 gem element', async () => {
     const el = await fixture(html`
       <gem-demo attr="attr" .prop=${{ value: 'prop' }}></gem-demo>
@@ -46,7 +59,11 @@ describe('基本 gem element 测试', () => {
     const el = await fixture(html`
       <gem-demo attr="attr"></gem-demo>
     `);
+    expect(el.renderCount).to.equal(1);
     el.attr = 'value';
+    el.attr = 'value';
+    await Promise.resolve();
+    expect(el.renderCount).to.equal(2);
     expect(el.attr).to.equal('value');
     expect(el).shadowDom.to.equal('attr: value, prop: , state: ');
   });
@@ -62,7 +79,12 @@ describe('基本 gem element 测试', () => {
     const el = await fixture(html`
       <gem-demo .prop=${{ value: 'prop' }}></gem-demo>
     `);
+    expect(el.renderCount).to.equal(1);
+    el.prop = { value: 'asdfasdfdsf' };
     el.prop = { value: 'value' };
+    el.prop = { value: 'value' };
+    await Promise.resolve();
+    expect(el.renderCount).to.equal(2);
     expect(el.prop).to.deep.equal({ value: 'value' });
     expect(el).shadowDom.to.equal('attr: , prop: value, state: ');
   });
@@ -71,22 +93,30 @@ describe('基本 gem element 测试', () => {
     const el = await fixture(html`
       <gem-demo></gem-demo>
     `);
+    expect(el.renderCount).to.equal(1);
+    el.setState({ value: 'asfasdf' });
     el.setState({ value: 'state' });
+    el.setState({ value: 'state' });
+    await Promise.resolve();
+    expect(el.renderCount).to.equal(2);
     expect(el.state).to.deep.equal({ value: 'state' });
     expect(el).shadowDom.to.equal('attr: , prop: , state: state');
   });
 
   it('更新 store', async () => {
+    const a = store.a;
     const el = await fixture(html`
       <gem-demo></gem-demo>
     `);
     updateStore(store, { a: ++store.a });
     updateStore(store, { a: ++store.a });
-    await aTimeout();
+    expect(store.a).to.equal(a + 2);
+    expect(el.renderCount).to.equal(1);
+    await Promise.resolve();
     expect(el.renderCount).to.equal(2);
     el.disconnectStores([store]);
     updateStore(store, { a: ++store.a });
-    await aTimeout();
+    await nextFrame();
     expect(el.renderCount).to.equal(2);
   });
 });
@@ -109,10 +139,9 @@ describe('异步 gem element 测试', () => {
     `);
     updateStore(store, { a: ++store.a });
     el.setState({ a: ++el.state.a });
+    await Promise.resolve();
     expect(el.renderCount).to.equal(1);
-    await aTimeout(20);
-    expect(el.renderCount).to.equal(3);
-    await aTimeout(20);
-    expect(el.renderCount).to.equal(3);
+    await nextFrame();
+    expect(el.renderCount).to.equal(2);
   });
 });
