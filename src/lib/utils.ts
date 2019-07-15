@@ -62,11 +62,9 @@ export class QueryString extends URLSearchParams {
   constructor(param: any) {
     if (param instanceof QueryString) {
       return param;
-    }
-    if (typeof param === 'string') {
+    } else if (typeof param === 'string') {
       super(param);
-    }
-    if (param) {
+    } else if (param) {
       super();
       Object.keys(param).forEach(key => {
         this.append(key, param[key]);
@@ -77,7 +75,8 @@ export class QueryString extends URLSearchParams {
   concat(param: any) {
     let query: any;
     if (typeof param === 'string') {
-      query = new URLSearchParams(param);
+      // @ts-ignore
+      query = Object.fromEntries(new URLSearchParams(param));
     } else {
       query = param;
     }
@@ -114,6 +113,10 @@ declare global {
   interface CSSStyleSheet {
     replaceSync: (str: string) => void;
   }
+
+  interface CSSRuleList {
+    item(index: number): CSSStyleRule;
+  }
   interface ShadowRoot {
     adoptedStyleSheets: Sheet<unknown>[];
   }
@@ -121,7 +124,7 @@ declare global {
 
 const rulesWeakMap = new WeakMap<Sheet<unknown>, any>();
 // rules 引用的是字符串，所以不能动态更新
-export function createCSSSheet<T extends object>(rules: T | string): Sheet<T> {
+export function createCSSSheet<T>(rules: T | string): T extends string ? CSSStyleSheet : Sheet<T> {
   let cssSheet = rulesWeakMap.get(rules);
   if (!cssSheet) {
     const sheet = new CSSStyleSheet();
@@ -133,9 +136,9 @@ export function createCSSSheet<T extends object>(rules: T | string): Sheet<T> {
         sheet[key] = key;
         style += rules[key].replace(/&/g, key);
       });
+      rulesWeakMap.set(rules, sheet);
     }
     sheet.replaceSync(style);
-    rulesWeakMap.set(rules, sheet);
     cssSheet = sheet;
   }
   return cssSheet;
