@@ -1,4 +1,4 @@
-import { html, GemElement, history, TemplateResult, updateStore, NavigationParameter } from '../';
+import { html, GemElement, history, TemplateResult, updateStore, Location } from '../';
 
 class ParamsRegExp extends RegExp {
   namePosition: object;
@@ -47,7 +47,7 @@ export interface RoutesObject {
 }
 
 // params 中的成员不会验证
-export type RouteOptions = Omit<NavigationParameter, 'path'> & { params: object };
+export type RouteOptions = Omit<Location, 'path'> & { params: object };
 
 export function createPath(route: RouteItem, options?: RouteOptions) {
   let path = route.pattern;
@@ -59,7 +59,7 @@ export function createPath(route: RouteItem, options?: RouteOptions) {
   return path;
 }
 
-export function createRoute(route: RouteItem, options?: RouteOptions): NavigationParameter {
+export function createLocation(route: RouteItem, options?: RouteOptions): Location {
   const path = createPath(route, options);
   return {
     path,

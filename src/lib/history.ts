@@ -48,7 +48,7 @@ function generateState(data: any, open: Function, close: Function, shouldClose: 
   return state;
 }
 
-export interface NavigationParameter {
+export interface Location {
   path?: string;
   query?: string | QueryString;
   title?: string;
@@ -80,7 +80,7 @@ export const history = {
   back() {
     window.history.back();
   },
-  push(options: NavigationParameter) {
+  push(options: Location) {
     const { path, open, close, shouldClose } = options;
     const query = options.query || '';
     const title = options.title || '';
@@ -106,7 +106,7 @@ export const history = {
   // 有 close 处理函数时先执行 closeHandle 在 replace
   // 比如在 modal 打开时跳转页面
   // 不完美：只支持在 1 级 modal 中切换页面
-  pushWithoutCloseHandle(options: NavigationParameter) {
+  pushWithoutCloseHandle(options: Location) {
     const { list, currentIndex } = historyState;
     const { state } = list[currentIndex];
     if (state.$close) {
@@ -118,7 +118,7 @@ export const history = {
     }
   },
   // 修改 url 意外的状态
-  pushState(options: NavigationParameter) {
+  pushState(options: Location) {
     const { list, currentIndex } = historyState;
     const { path, query } = list[currentIndex];
     history.push({
@@ -127,7 +127,7 @@ export const history = {
       ...options,
     });
   },
-  replace(options: NavigationParameter) {
+  replace(options: Location) {
     const { path, open, close, shouldClose } = options;
     const query = options.query || '';
     const data = options.data || {};
@@ -149,7 +149,7 @@ export const history = {
     });
   },
   // 修改 url 意外的状态
-  replaceState(options: NavigationParameter) {
+  replaceState(options: Location) {
     const { list, currentIndex } = historyState;
     const { path, query } = list[currentIndex];
     history.replace({

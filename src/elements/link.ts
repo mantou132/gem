@@ -1,5 +1,5 @@
 import { GemElement, html, history } from '../';
-import { RouteItem, RouteOptions, createRoute, createPath } from './route';
+import { RouteItem, RouteOptions, createLocation, createPath } from './route';
 
 export class Link extends GemElement {
   /**@attr */ path: string;
@@ -31,7 +31,7 @@ export class Link extends GemElement {
     if (!this.active) {
       e.stopPropagation();
       if (this.route) {
-        history.pushWithoutCloseHandle(createRoute(this.route, this.options));
+        history.pushWithoutCloseHandle(createLocation(this.route, this.options));
       } else {
         history.pushWithoutCloseHandle({ path: this.path, query: this.query });
       }
