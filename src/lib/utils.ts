@@ -146,8 +146,8 @@ export function createCSSSheet<T>(rules: T | string): T extends string ? CSSStyl
       style = rules;
     } else {
       Object.keys(rules).forEach(key => {
-        sheet[key] = key;
-        style += rules[key].replace(/&/g, key);
+        sheet[key] = rules[key].type === 'tag' ? key : `${key}-${rules[key].key}`;
+        style += rules[key].str.replace(/&/g, sheet[key]);
       });
       rulesWeakMap.set(rules, sheet);
     }
@@ -157,17 +157,26 @@ export function createCSSSheet<T>(rules: T | string): T extends string ? CSSStyl
   return cssSheet;
 }
 
+function randomStr(number = 5, origin = '0123456789abcdefghijklmnopqrstuvwxyz') {
+  const len = origin.length;
+  let str = '';
+  for (let i = 0; i < number; i++) {
+    str += origin[Math.floor(Math.random() * len)];
+  }
+  return str;
+}
+
 // 只支持一层嵌套
 // https://drafts.csswg.org/css-nesting-1/
 function flatStyled(style: string, type: 'id' | 'class' | 'tag') {
   const subStyle = [];
-  const midStr =
+  let str =
     `& {${style.replace(new RegExp('&.*{(.*)}', 'gs'), function(substr) {
       subStyle.push(substr);
       return '';
     })}}` + subStyle.join('');
-  if (type === 'tag') return midStr;
-  return midStr.replace(/&/g, type === 'class' ? '.&' : '#&');
+  if (type !== 'tag') str = str.replace(/&/g, type === 'class' ? '.&' : '#&');
+  return { str, key: randomStr(), type };
 }
 
 // 写 css 文本，在 CSSStyleSheet 中使用，使用 styed-components 高亮

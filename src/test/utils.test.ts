@@ -61,14 +61,14 @@ describe('utils 测试', () => {
         border: 1px solid;
       `,
     });
-    expect(styles.scroll).to.equal('scroll');
+    expect(styles.scroll.startsWith('scroll')).to.true;
     let temp = styles as unknown;
     let cssSheet = temp as CSSStyleSheet;
-    expect(cssSheet.cssRules.item(0).selectorText).to.equal('.scroll');
-    expect(cssSheet.cssRules.item(0).style.background).to.equal('red');
-    expect(cssSheet.cssRules.item(1).selectorText).to.equal('.scroll:hover *');
-    expect(cssSheet.cssRules.item(1).style.background).to.equal('blue');
-    expect(cssSheet.cssRules.item(2).selectorText).to.equal('#wrap');
+    expect(cssSheet.cssRules.item(0).selectorText.startsWith('.scroll')).to.true;
+    expect(cssSheet.cssRules.item(0).style.background.startsWith('red')).to.true;
+    expect(/\.scroll(-|\w)+:hover \*/.test(cssSheet.cssRules.item(1).selectorText)).to.true;
+    expect(cssSheet.cssRules.item(1).style.background.startsWith('blue')).to.true;
+    expect(cssSheet.cssRules.item(2).selectorText.startsWith('#wrap')).to.true;
     expect(cssSheet.cssRules.item(3).selectorText).to.equal('div');
   });
 });
