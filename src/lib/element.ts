@@ -214,6 +214,9 @@ export class AsyncGemElement extends BaseElement {
   }
 }
 
+// 重写了全局 customElements
+// 原因是方便多个独立 app 同时使用 gem
+// 用户使用和 gem 同名的元素不会生效也不会报错
 const define = customElements.define.bind(customElements);
 customElements.define = function(
   tagName: string,
