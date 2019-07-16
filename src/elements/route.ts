@@ -1,4 +1,4 @@
-import { html, GemElement, history, TemplateResult, updateStore } from '../';
+import { html, GemElement, history, TemplateResult, updateStore, NavigationParameter } from '../';
 
 class ParamsRegExp extends RegExp {
   namePosition: object;
@@ -36,10 +36,30 @@ function isMatch(pattern: string, path: string) {
   return !!path.match(getReg(pattern));
 }
 
-interface RouteItem {
+export interface RouteItem {
   pattern: '*' | (string & {});
   content: TemplateResult;
   title?: string;
+}
+
+export interface RoutesObject {
+  [prop: string]: RouteItem;
+}
+
+// params 中的成员不会验证
+type RouteOptions = Omit<NavigationParameter, 'path'> & { params: object };
+
+export function createRoute(route: RouteItem, options?: RouteOptions): NavigationParameter {
+  let path = route.pattern;
+  if (options && options.params) {
+    Object.keys(options.params).forEach(param => {
+      path = path.replace(new RegExp(`:${param}`, 'g'), options.params[param]);
+    });
+  }
+  return {
+    path,
+    ...options,
+  };
 }
 
 /**
@@ -58,7 +78,7 @@ export class Route extends GemElement {
     }
   }
 
-  routes: RouteItem[];
+  routes: RouteItem[] | RoutesObject;
   private href: string;
 
   constructor() {
@@ -104,8 +124,14 @@ export class Route extends GemElement {
     Route.currentRoute = null;
 
     let defaultRoute: RouteItem;
+    let routes: RouteItem[];
+    if (this.routes instanceof Array) {
+      routes = this.routes;
+    } else {
+      routes = Object.values(this.routes);
+    }
 
-    for (let item of this.routes) {
+    for (let item of routes) {
       const { pattern } = item;
       if ('*' === pattern) {
         defaultRoute = item;
