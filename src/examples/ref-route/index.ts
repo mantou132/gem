@@ -1,18 +1,43 @@
 import { GemElement, html, history } from '../../';
 import { createRoute, Route } from '../../elements/route';
+import '../../elements/link';
 
 const routes = {
   home: {
     pattern: '/',
-    content: html`
-      current route: home page, click navigation to a page
-    `,
+    get content() {
+      return html`
+        <style>
+          gem-link {
+            display: block;
+            color: blue;
+          }
+          gem-link[active] {
+            color: inherit;
+          }
+        </style>
+        current route: home page, click navigation to a page
+        <gem-link .route=${routes.a} .options=${{ params: { b: 1 } }}>a page link, params: {a: 1}</gem-link>
+      `;
+    },
   },
   a: {
     pattern: '/a/:b',
-    content: html`
-      current route: /a/:b, click navigation to home page
-    `,
+    get content() {
+      return html`
+        <style>
+          gem-link {
+            display: block;
+            color: blue;
+          }
+          gem-link[active] {
+            color: inherit;
+          }
+        </style>
+        current route: /a/:b, click navigation to home page
+        <gem-link .route=${routes.a} .options=${{ params: { b: 1 }, query: '?a=1' }}>a page link, query: ?a=1</gem-link>
+      `;
+    },
   },
 };
 

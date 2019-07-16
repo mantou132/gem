@@ -47,15 +47,20 @@ export interface RoutesObject {
 }
 
 // params 中的成员不会验证
-type RouteOptions = Omit<NavigationParameter, 'path'> & { params: object };
+export type RouteOptions = Omit<NavigationParameter, 'path'> & { params: object };
 
-export function createRoute(route: RouteItem, options?: RouteOptions): NavigationParameter {
+export function createPath(route: RouteItem, options?: RouteOptions) {
   let path = route.pattern;
   if (options && options.params) {
     Object.keys(options.params).forEach(param => {
       path = path.replace(new RegExp(`:${param}`, 'g'), options.params[param]);
     });
   }
+  return path;
+}
+
+export function createRoute(route: RouteItem, options?: RouteOptions): NavigationParameter {
+  const path = createPath(route, options);
   return {
     path,
     ...options,

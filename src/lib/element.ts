@@ -56,10 +56,14 @@ export abstract class BaseElement extends HTMLElement {
       observedAttributes.forEach(attr => {
         Object.defineProperty(this, attr, {
           get: () => {
-            return this.getAttribute(attr);
+            return this.getAttribute(attr) || '';
           },
           set: (v: string) => {
-            this.setAttribute(attr, v);
+            if (v === null) {
+              this.removeAttribute(attr);
+            } else {
+              this.setAttribute(attr, v);
+            }
           },
         });
       });
