@@ -67,9 +67,6 @@ export function createLocation(route: RouteItem, options?: RouteOptions): Locati
   };
 }
 
-/**
- * @event change
- */
 export class Route extends GemElement {
   static observedPropertys = ['routes'];
   static observedStores = [history.historyState];
