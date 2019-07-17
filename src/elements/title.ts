@@ -37,11 +37,14 @@ class Title extends GemElement {
     const { title } = list[currentIndex];
 
     document.title = title;
-    if (this.hidden) return super.render();
-    if (!title)
+    if (this.hidden) {
+      return html``;
+    }
+    if (!title) {
       return html`
         <slot></slot>
       `;
+    }
     return html`
       ${title}
     `;

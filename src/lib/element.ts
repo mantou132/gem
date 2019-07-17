@@ -114,7 +114,9 @@ export abstract class BaseElement extends HTMLElement {
   willMount() {}
 
   render() {
-    return html``;
+    return html`
+      <slot></slot>
+    `;
   }
 
   mounted() {}

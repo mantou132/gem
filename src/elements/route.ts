@@ -163,7 +163,7 @@ export class Route extends GemElement {
 
   callback() {
     Route.currentRoute = null;
-    return super.render();
+    return html``;
   }
 }
 
