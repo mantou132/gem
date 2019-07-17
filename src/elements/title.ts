@@ -1,6 +1,6 @@
 import { html, GemElement, history, updateStore } from '..';
 
-class Title extends GemElement {
+export class Title extends GemElement {
   static observedStores = [history.historyState];
 
   static setTitle(documentTitle: string) {
