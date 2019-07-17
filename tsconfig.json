@@ -7,7 +7,9 @@
     "noImplicitAny": false,
     "module": "esnext",
     "moduleResolution": "node",
+    "allowSyntheticDefaultImports": true,
     "target": "es6",
+    "jsx": "react",
     "lib": ["es2018", "dom"]
   },
   "include": ["src/**/*.ts"],
