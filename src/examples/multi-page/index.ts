@@ -4,6 +4,7 @@ import '../../elements/route';
 import '../../elements/title';
 
 import './page-b';
+import './page-c';
 
 const routes = [
   {
@@ -21,6 +22,13 @@ const routes = [
     pattern: '/b',
     content: html`
       <app-page-b>B: </app-page-b>
+    `,
+  },
+  {
+    title: 'Page C Title',
+    pattern: '/c/*',
+    content: html`
+      <app-page-c>C: </app-page-c>
     `,
   },
   {
@@ -50,6 +58,7 @@ class App extends GemElement {
         <gem-link path="/">Home</gem-link>
         <gem-link path="/a">PageA</gem-link>
         <gem-link path="/b">PageB</gem-link>
+        <gem-link path="/c/e">PageC</gem-link>
       </nav>
       <main>
         <gem-route .routes=${routes}></gem-route>

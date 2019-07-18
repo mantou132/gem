@@ -16,6 +16,13 @@ describe('history 测试', () => {
     expect(window.location.hash).to.equal('#b');
     expect(window.history.length - historyLength).to.equal(1);
   });
+  it('basePath', async () => {
+    history.basePath = '/d';
+    history.push({ path: '/a' });
+    await aTimeout(10);
+    expect(window.location.pathname).to.equal('/d/a');
+    history.basePath = '';
+  });
   it('push/replace', async () => {
     const historyLength = window.history.length;
     history.push({ path: '/a' });
@@ -66,6 +73,10 @@ describe('history 测试', () => {
     history.forward();
     await aTimeout(10);
     expect(window.location.pathname).to.equal('/b');
+    // 点击链接
+    history.pushWithoutCloseHandle({ path: '/c' });
+    await aTimeout(10);
+    expect(window.location.pathname).to.equal('/c');
     // 卸载页面
     const sessionStorageLength = sessionStorage.length;
     dispatchEvent(new CustomEvent('unload'));

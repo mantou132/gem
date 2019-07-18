@@ -52,4 +52,6 @@ export class Title extends GemElement {
 }
 
 customElements.define('gem-title', Title);
-document.head.append(new Title(true));
+if (!document.head.querySelector('gem-title')) {
+  document.head.append(new Title(true));
+}

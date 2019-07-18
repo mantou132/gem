@@ -60,9 +60,25 @@ export interface Location {
   data?: any;
 }
 
-export const history = {
+declare global {
+  interface Window {
+    gemHistory: object;
+  }
+}
+const hasOtherHistory = !!window.gemHistory;
+let basePath = '';
+export const history = (window.gemHistory = {
   historyState,
-  basePath: '',
+
+  get basePath() {
+    return basePath;
+  },
+  set basePath(v) {
+    if (hasOtherHistory) {
+      throw new Error('已经有其他环境使用 gem , 会共享 history 对象，禁止再修改 history 对象');
+    }
+    basePath = v;
+  },
 
   get location() {
     const { list, currentIndex } = historyState;
@@ -171,7 +187,7 @@ export const history = {
       ...options,
     });
   },
-};
+});
 
 if (!window.history.state) {
   // 初始化 historyItem[]
@@ -212,6 +228,10 @@ window.addEventListener('popstate', event => {
 
   const { state: prevState } = list[currentIndex];
   const newStateIndex = list.findIndex(({ state }) => state.$key === event.state.$key);
+
+  // gem app 嵌套 gem app，且不是同一个 history 对象时
+  if (newStateIndex === -1) return;
+
   const { state: newState } = list[newStateIndex];
 
   if (newStateIndex > currentIndex && newState.$open) {
