@@ -6,10 +6,12 @@ class ParamsRegExp extends RegExp {
     const namePosition = {};
     let i = 0;
     super(
-      `^${pattern.replace(/:([^/$]+)/g, (_m, name: string) => {
-        namePosition[name] = i++;
-        return `([^/]+)`;
-      })}$`,
+      `^${pattern
+        .replace(/:([^/$]+)/g, (_m, name: string) => {
+          namePosition[name] = i++;
+          return `([^/]+)`;
+        })
+        .replace('*', '.*')}$`,
     );
     this.namePosition = namePosition;
   }
