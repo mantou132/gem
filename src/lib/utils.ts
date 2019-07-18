@@ -137,10 +137,11 @@ declare global {
 
 const rulesWeakMap = new WeakMap<Sheet<unknown>, any>();
 // rules 引用的是字符串，所以不能动态更新
-export function createCSSSheet<T>(rules: T | string): T extends string ? CSSStyleSheet : Sheet<T> {
+export function createCSSSheet<T>(rules: T | string, mediaQuery = ''): T extends string ? CSSStyleSheet : Sheet<T> {
   let cssSheet = rulesWeakMap.get(rules);
   if (!cssSheet) {
     const sheet = new CSSStyleSheet();
+    sheet.media.mediaText = mediaQuery;
     let style = '';
     if (typeof rules === 'string') {
       style = rules;
