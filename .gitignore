@@ -9,6 +9,7 @@
 /index.js.map
 /test/
 /coverage/
+/helper/
 
 .DS_Store
 logs
