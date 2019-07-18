@@ -11,6 +11,7 @@ export interface HistoryItemState {
 export interface HistoryItem {
   path: string;
   query: string | QueryString;
+  hash: string;
   title: string;
   state: HistoryItemState;
 }
@@ -52,6 +53,7 @@ export interface Location {
   path?: string;
   query?: string | QueryString;
   title?: string;
+  hash?: string;
   open?: Function; // 按下前进键时执行
   close?: Function; // 按下返回键时执行
   shouldClose?: () => boolean; // 按下返回键时判断是否执行 close 函数，返回为 false 时不执行，并恢复 history
@@ -69,6 +71,7 @@ export const history = {
       get query() {
         return new QueryString(location.query);
       },
+      hash: location.hash,
       path: location.path,
       state: location.state,
       title: location.title,
@@ -83,19 +86,23 @@ export const history = {
   push(options: Location) {
     const { path, open, close, shouldClose } = options;
     const query = options.query || '';
+    const hash = options.hash || '';
     const title = options.title || '';
     const data = options.data || {};
 
     const state = generateState(data, open, close, shouldClose);
 
-    window.history.pushState(state, title, history.basePath + path + new QueryString(query));
+    window.history.pushState(state, title, history.basePath + path + new QueryString(query) + hash);
 
     const { list, currentIndex } = historyState;
+    if (hash !== list[currentIndex].hash) window.dispatchEvent(new CustomEvent('hashchange'));
+
     const newList = list.slice(0, currentIndex + 1).concat({
       state,
       title,
       path,
       query,
+      hash,
     });
     updateStore(historyState, {
       list: newList,
@@ -120,29 +127,34 @@ export const history = {
   // 修改 url 意外的状态
   pushState(options: Location) {
     const { list, currentIndex } = historyState;
-    const { path, query } = list[currentIndex];
+    const { path, query, hash } = list[currentIndex];
     history.push({
       path,
       query,
+      hash,
       ...options,
     });
   },
   replace(options: Location) {
     const { path, open, close, shouldClose } = options;
     const query = options.query || '';
+    const hash = options.hash || '';
     const data = options.data || {};
     const title = options.title || '';
 
     const state = generateState(data, open, close, shouldClose);
 
-    window.history.replaceState(state, title, history.basePath + path + new QueryString(query));
+    window.history.replaceState(state, title, history.basePath + path + new QueryString(query) + hash);
 
     const { list, currentIndex } = historyState;
+    if (hash !== list[currentIndex].hash) window.dispatchEvent(new CustomEvent('hashchange'));
+
     list.splice(currentIndex, 1, {
       state,
       title,
       path,
       query,
+      hash,
     });
     updateStore(historyState, {
       list,
@@ -151,10 +163,11 @@ export const history = {
   // 修改 url 意外的状态
   replaceState(options: Location) {
     const { list, currentIndex } = historyState;
-    const { path, query } = list[currentIndex];
+    const { path, query, hash } = list[currentIndex];
     history.replace({
       path,
       query,
+      hash,
       ...options,
     });
   },
@@ -162,8 +175,8 @@ export const history = {
 
 if (!window.history.state) {
   // 初始化 historyItem[]
-  const { pathname, search } = window.location;
-  history.replace({ path: pathname, query: search });
+  const { pathname, search, hash } = window.location;
+  history.replace({ path: pathname, query: search, hash });
 } else if (window.history.state.$close) {
   // 有 handle 返回键的页面刷新
   history.back();
@@ -182,6 +195,10 @@ window.addEventListener('unload', () => {
  */
 let navigating = false;
 window.addEventListener('popstate', event => {
+  if (!event.state || !event.state.$key) {
+    // 比如作为其他 app 的宿主 app
+    return;
+  }
   if (navigating) {
     navigating = false;
     return;

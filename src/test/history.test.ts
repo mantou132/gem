@@ -2,6 +2,20 @@ import { expect, aTimeout } from '@open-wc/testing';
 import { history } from '..';
 
 describe('history 测试', () => {
+  it('hash', async () => {
+    const historyLength = window.history.length;
+    const hash = window.location.hash;
+    history.push({ path: '/a', hash: '#a' });
+    await aTimeout(10);
+    expect(window.location.hash).to.equal('#a');
+    history.back();
+    await aTimeout(10);
+    expect(window.location.hash).to.equal(hash);
+    history.push({ path: '/a', hash: '#b' });
+    await aTimeout(10);
+    expect(window.location.hash).to.equal('#b');
+    expect(window.history.length - historyLength).to.equal(1);
+  });
   it('push/replace', async () => {
     const historyLength = window.history.length;
     history.push({ path: '/a' });

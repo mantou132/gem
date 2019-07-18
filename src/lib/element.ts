@@ -6,6 +6,26 @@ export { html, svg, render, directive, TemplateResult } from 'lit-html';
 export { repeat } from 'lit-html/directives/repeat';
 export { ifDefined } from 'lit-html/directives/if-defined';
 
+const idElementMap = new Map<string, BaseElement>();
+// id 必须全局唯一才能正确跳转
+// 只能检查自定义元素的 ID
+const checkHash = () => {
+  const hash = window.location.hash.substr(1);
+  if (hash) {
+    const element = idElementMap.get(hash);
+    if (element) {
+      element.scrollIntoView();
+    }
+  }
+};
+window.addEventListener('hashchange', checkHash);
+
+if (document.readyState === 'complete') {
+  checkHash();
+} else {
+  window.addEventListener('load', checkHash);
+}
+
 // global render task pool
 const renderTaskPool = new Pool<Function>();
 const exec = () =>
@@ -29,7 +49,7 @@ export const updaterWithSetStateSet = new Set<Function>();
 
 // final 字段如果使用 symbol 或者 private 将导致 modal-base 生成匿名子类 declaration 失败
 export abstract class BaseElement extends HTMLElement {
-  static observedAttributes?: string[];
+  static observedAttributes = ['id']; // WebAPI 中是实时检查这个列表
   static observedPropertys?: string[];
   static observedStores?: Store<unknown>[];
   static adoptedStyleSheets?: CSSStyleSheet[] | Sheet<unknown>[];
@@ -72,6 +92,10 @@ export abstract class BaseElement extends HTMLElement {
           },
         });
       });
+    }
+    if (observedAttributes && !observedAttributes.includes('id')) {
+      // ID 更改是触发 update，更新 `idElementMap`
+      observedAttributes.push('id');
     }
     if (observedPropertys) {
       observedPropertys.forEach(prop => {
@@ -134,6 +158,7 @@ export abstract class BaseElement extends HTMLElement {
     if (this._isMounted && this.shouldUpdate()) {
       render(this.render(), this._renderRoot);
       this.updated();
+      idElementMap.set(this.id, this);
     }
   }
 
@@ -180,24 +205,26 @@ export abstract class BaseElement extends HTMLElement {
   }
 }
 
-export class GemElement extends BaseElement {
+export abstract class GemElement extends BaseElement {
   /**@private */
   /**@final */
   connectedCallback() {
     this.willMount();
     render(this.render(), this._renderRoot);
     this.mounted();
+    idElementMap.set(this.id, this);
     this._isMounted = true;
   }
 }
 
-export class AsyncGemElement extends BaseElement {
+export abstract class AsyncGemElement extends BaseElement {
   /**@final */
   update() {
     renderTaskPool.add(() => {
       if (this.shouldUpdate()) {
         render(this.render(), this._renderRoot);
         this.updated();
+        idElementMap.set(this.id, this);
       }
     });
   }
@@ -209,6 +236,7 @@ export class AsyncGemElement extends BaseElement {
     renderTaskPool.add(() => {
       render(this.render(), this._renderRoot);
       this.mounted();
+      idElementMap.set(this.id, this);
       this._isMounted = true;
     });
   }
