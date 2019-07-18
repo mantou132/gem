@@ -4,11 +4,11 @@ const HtmlWebpackPlugin = require('html-webpack-plugin');
 const hello = 'hello-world';
 
 module.exports = {
-  entry: `./src/examples/${process.env.EXAMPLE || hello}/index`,
+  entry: `./src/examples/${process.env.EXAMPLE || hello}/index.ts`,
   module: {
     rules: [
       {
-        test: /\.ts(x?)$/,
+        test: /\.ts$/,
         use: 'ts-loader',
         exclude: /node_modules/,
       },
