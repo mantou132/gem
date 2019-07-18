@@ -1,5 +1,5 @@
 import { GemElement, html } from '../../';
-import { createTheme, updateTheme } from '../../elements/gem-theme';
+import { createTheme, updateTheme } from '../../elements/theme';
 import mediaQuery from '../../helper/mediaquery';
 
 const theme = createTheme({
