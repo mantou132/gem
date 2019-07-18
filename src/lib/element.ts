@@ -27,6 +27,7 @@ export type State = object;
 
 export const updaterWithSetStateSet = new Set<Function>();
 
+// final 字段如果使用 symbol 或者 private 将导致 modal-base 生成匿名子类 declaration 失败
 export abstract class BaseElement extends HTMLElement {
   static observedAttributes?: string[];
   static observedPropertys?: string[];
@@ -34,9 +35,13 @@ export abstract class BaseElement extends HTMLElement {
   static adoptedStyleSheets?: CSSStyleSheet[] | Sheet<unknown>[];
 
   readonly state: State;
+
+  /**@final */
+  _renderRoot: HTMLElement | ShadowRoot;
+  /**@final */
   _isMounted: boolean; // do't modify
 
-  constructor() {
+  constructor(shadow = true) {
     super();
     this.setState = this.setState.bind(this);
     this.willMount = this.willMount.bind(this);
@@ -50,7 +55,7 @@ export abstract class BaseElement extends HTMLElement {
     this.propertyChanged = this.propertyChanged.bind(this);
     this.unmounted = this.unmounted.bind(this);
 
-    const shadowRoot = this.attachShadow({ mode: 'open' });
+    this._renderRoot = shadow ? this.attachShadow({ mode: 'open' }) : this;
     const { observedAttributes, observedPropertys, observedStores, adoptedStyleSheets } = new.target;
     if (observedAttributes) {
       observedAttributes.forEach(attr => {
@@ -100,12 +105,11 @@ export abstract class BaseElement extends HTMLElement {
       });
     }
     if (adoptedStyleSheets) {
-      shadowRoot.adoptedStyleSheets = adoptedStyleSheets;
+      (this.shadowRoot || document).adoptedStyleSheets = adoptedStyleSheets;
     }
   }
-  /**
-   * @readonly do't modify
-   */
+
+  /**@final */
   setState(payload: Partial<State>) {
     Object.assign(this.state, payload);
     addMicrotask(this.update);
@@ -124,20 +128,18 @@ export abstract class BaseElement extends HTMLElement {
   shouldUpdate() {
     return true;
   }
-  /**
-   * @readonly do't modify
-   */
+
+  /**@final */
   update() {
     if (this._isMounted && this.shouldUpdate()) {
-      render(this.render(), this.shadowRoot);
+      render(this.render(), this._renderRoot);
       this.updated();
     }
   }
 
   updated() {}
-  /**
-   * @readonly do't modify
-   */
+
+  /**@final */
   disconnectStores(storeList: Store<unknown>[]) {
     storeList.forEach(store => {
       disconnect(store, this.update);
@@ -151,9 +153,8 @@ export abstract class BaseElement extends HTMLElement {
 
   unmounted() {}
 
-  /**
-   * @private
-   */
+  /**@private */
+  /**@final */
   attributeChangedCallback(name: string, oldValue: string, newValue: string) {
     if (this._isMounted) {
       this.attributeChanged(name, oldValue, newValue);
@@ -161,11 +162,12 @@ export abstract class BaseElement extends HTMLElement {
     }
   }
 
+  /**@private */
+  /**@final */
   // adoptedCallback() {}
 
-  /**
-   * @private
-   */
+  /**@private */
+  /**@final */
   disconnectedCallback() {
     const constructor = this.constructor as typeof BaseElement;
     if (constructor.observedStores) {
@@ -179,37 +181,33 @@ export abstract class BaseElement extends HTMLElement {
 }
 
 export class GemElement extends BaseElement {
-  /**
-   * @private
-   */
+  /**@private */
+  /**@final */
   connectedCallback() {
     this.willMount();
-    render(this.render(), this.shadowRoot);
+    render(this.render(), this._renderRoot);
     this.mounted();
     this._isMounted = true;
   }
 }
 
 export class AsyncGemElement extends BaseElement {
-  /**
-   * @readonly do't modify
-   */
+  /**@final */
   update() {
     renderTaskPool.add(() => {
       if (this.shouldUpdate()) {
-        render(this.render(), this.shadowRoot);
+        render(this.render(), this._renderRoot);
         this.updated();
       }
     });
   }
 
-  /**
-   * @private
-   */
+  /**@private */
+  /**@final */
   connectedCallback() {
     this.willMount();
     renderTaskPool.add(() => {
-      render(this.render(), this.shadowRoot);
+      render(this.render(), this._renderRoot);
       this.mounted();
       this._isMounted = true;
     });

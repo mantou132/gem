@@ -133,6 +133,9 @@ declare global {
   interface ShadowRoot {
     adoptedStyleSheets: Sheet<unknown>[];
   }
+  interface Document {
+    adoptedStyleSheets: Sheet<unknown>[];
+  }
 }
 
 const rulesWeakMap = new WeakMap<Sheet<unknown>, any>();
