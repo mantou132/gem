@@ -1,4 +1,4 @@
-import { GemElement, html } from '../../';
+import { GemElement, html } from '../';
 
 customElements.define(
   'gem-use',
