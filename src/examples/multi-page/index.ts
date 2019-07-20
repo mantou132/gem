@@ -58,7 +58,7 @@ class App extends GemElement {
         <gem-link path="/">Home</gem-link>
         <gem-link path="/a">PageA</gem-link>
         <gem-link path="/b">PageB</gem-link>
-        <gem-link path="/c/e" pattern="/c/*">PageC</gem-link>
+        <gem-link path="/c/e">PageC</gem-link>
       </nav>
       <main>
         <gem-route .routes=${routes}></gem-route>
