@@ -271,31 +271,16 @@ export abstract class AsyncGemElement extends BaseElement {
   }
 }
 
-declare global {
-  interface CustomElementRegistry {
-    define<T extends typeof GemElement | typeof AsyncGemElement>(
-      name: string,
-      constructor: T,
-      options?: ElementDefinitionOptions,
-    ): T;
-  }
-}
-
-// 自定义元素导出构造函数应该使用 `export const Route = customElements.define()`
-// 确保使用同一个构造函数
-// 重写全局 customElements 调整返回值
-// 以及兼容 lit-plugin
+// 重写了全局 customElements
+// 原因是方便多个独立 app 同时使用 gem
+// 用户使用和 gem 同名的元素不会生效也不会报错
 const define = customElements.define.bind(customElements);
-customElements.define = function<T extends typeof GemElement | typeof AsyncGemElement>(
+customElements.define = function(
   tagName: string,
-  Class: T,
+  Class: typeof GemElement | typeof AsyncGemElement,
   options?: ElementDefinitionOptions,
-): T {
-  const proto = customElements.get(tagName);
-  if (proto) {
-    return proto;
-  } else {
+) {
+  if (!customElements.get(tagName)) {
     define(tagName, Class, options);
-    return Class;
   }
 };

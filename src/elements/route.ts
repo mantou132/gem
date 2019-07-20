@@ -71,97 +71,101 @@ export function createLocation(route: RouteItem, options?: RouteOptions): Locati
   };
 }
 
-let currentHref: string;
+export class Route extends GemElement {
+  static observedPropertys = ['routes'];
+  static observedStores = [history.historyState];
 
-export const Route = customElements.define(
-  'gem-route',
-  class extends GemElement {
-    static observedPropertys = ['routes'];
-    static observedStores = [history.historyState];
+  static currentRoute: RouteItem;
 
-    static currentRoute: RouteItem;
+  // 获取当前匹配的路由的 params
+  static getParams() {
+    if (Route.currentRoute) {
+      return getParams(Route.currentRoute.pattern, history.location.path);
+    }
+  }
 
-    // 获取当前匹配的路由的 params
-    static getParams() {
-      if (Route.currentRoute) {
-        return getParams(Route.currentRoute.pattern, history.location.path);
+  routes: RouteItem[] | RoutesObject;
+  private href: string;
+
+  constructor() {
+    super();
+    const { path, query } = history.location;
+    const href = path + query;
+    this.href = href;
+  }
+  initPage() {
+    const { list, currentIndex } = history.historyState;
+    if (Route.currentRoute && Route.currentRoute.title && Route.currentRoute.title !== list[currentIndex].title) {
+      list.splice(currentIndex, 1, {
+        ...list[currentIndex],
+        title: Route.currentRoute.title,
+      });
+      updateStore(history.historyState, {
+        list,
+      });
+    }
+  }
+
+  shouldUpdate() {
+    const { path, query } = history.location;
+    const href = path + query;
+    if (path + query !== this.href) {
+      this.href = href;
+      return true;
+    }
+    return false;
+  }
+
+  mounted() {
+    this.initPage();
+  }
+
+  updated() {
+    this.initPage();
+    this.dispatchEvent(new CustomEvent('change'));
+  }
+
+  render() {
+    if (!this.routes) return this.callback();
+    Route.currentRoute = null;
+
+    let defaultRoute: RouteItem;
+    let routes: RouteItem[];
+    if (this.routes instanceof Array) {
+      routes = this.routes;
+    } else {
+      routes = Object.values(this.routes);
+    }
+
+    for (let item of routes) {
+      const { pattern } = item;
+      if ('*' === pattern) {
+        defaultRoute = item;
+      } else if (isMatch(pattern, history.location.path)) {
+        Route.currentRoute = item;
+        break;
       }
     }
 
-    routes: RouteItem[] | RoutesObject;
-
-    initPage() {
-      const { list, currentIndex } = history.historyState;
-      if (Route.currentRoute && Route.currentRoute.title && Route.currentRoute.title !== list[currentIndex].title) {
-        list.splice(currentIndex, 1, {
-          ...list[currentIndex],
-          title: Route.currentRoute.title,
-        });
-        updateStore(history.historyState, {
-          list,
-        });
-      }
+    if (!Route.currentRoute) {
+      Route.currentRoute = defaultRoute;
     }
 
-    shouldUpdate() {
-      const { path, query } = history.location;
-      const href = path + query;
-      if (path + query !== currentHref) {
-        currentHref = href;
-        return true;
-      }
-      return false;
-    }
-
-    mounted() {
-      this.initPage();
-    }
-
-    updated() {
-      this.initPage();
-      this.dispatchEvent(new CustomEvent('change'));
-    }
-
-    render(): TemplateResult {
-      if (!this.routes) return this.callback();
-      Route.currentRoute = null;
-
-      let defaultRoute: RouteItem;
-      let routes: RouteItem[];
-      if (this.routes instanceof Array) {
-        routes = this.routes;
-      } else {
-        routes = Object.values(this.routes);
-      }
-
-      for (let item of routes) {
-        const { pattern } = item;
-        if ('*' === pattern) {
-          defaultRoute = item;
-        } else if (isMatch(pattern, history.location.path)) {
-          Route.currentRoute = item;
-          break;
+    if (!Route.currentRoute) return this.callback();
+    return html`
+      <style>
+        :host {
+          display: contents;
         }
-      }
+      </style>
+      ${Route.currentRoute.content}
+    `;
+  }
 
-      if (!Route.currentRoute) {
-        Route.currentRoute = defaultRoute;
-      }
+  callback() {
+    Route.currentRoute = null;
+    return html``;
+  }
+}
 
-      if (!Route.currentRoute) return this.callback();
-      return html`
-        <style>
-          :host {
-            display: contents;
-          }
-        </style>
-        ${Route.currentRoute.content}
-      `;
-    }
-
-    callback() {
-      Route.currentRoute = null;
-      return html``;
-    }
-  },
-);
+customElements.define('gem-route', Route);
