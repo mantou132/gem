@@ -60,25 +60,10 @@ export interface Location {
   data?: any;
 }
 
-declare global {
-  interface Window {
-    gemHistory: object;
-  }
-}
-const hasOtherHistory = !!window.gemHistory;
-let basePath = '';
-export const history = (window.gemHistory = {
+let history = {
   historyState,
 
-  get basePath() {
-    return basePath;
-  },
-  set basePath(v) {
-    if (hasOtherHistory) {
-      throw new Error('已经有其他环境使用 gem , 会共享 history 对象，禁止再修改 history 对象');
-    }
-    basePath = v;
-  },
+  basePath: '',
 
   get location() {
     const { list, currentIndex } = historyState;
@@ -187,9 +172,30 @@ export const history = (window.gemHistory = {
       ...options,
     });
   },
-});
+};
 
-if (!hasOtherHistory) {
+declare global {
+  interface Window {
+    __gemHistory: typeof history;
+  }
+}
+
+const hasOtherHistory = !!window.__gemHistory;
+
+if (hasOtherHistory) {
+  history = window.__gemHistory;
+  const basePath = history.basePath;
+  Object.defineProperty(history, 'basePath', {
+    get() {
+      return basePath;
+    },
+    set() {
+      throw new Error('已经有其他环境使用 gem , 会共享 history 对象，禁止再修改 history 对象');
+    },
+  });
+} else {
+  window.__gemHistory = history;
+
   if (!window.history.state) {
     // 初始化 historyItem[]
     const { pathname, search, hash } = window.location;
@@ -268,3 +274,5 @@ if (!hasOtherHistory) {
     });
   });
 }
+
+export { history };

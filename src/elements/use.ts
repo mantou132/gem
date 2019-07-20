@@ -1,6 +1,6 @@
 import { GemElement, html } from '../';
 
-customElements.define(
+export const Use = customElements.define(
   'gem-use',
   class extends GemElement {
     /**@attr */ ref: string; // CSS 选择器

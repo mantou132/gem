@@ -1,10 +1,39 @@
-import { html, render } from 'lit-html';
+import * as lit from 'lit-html';
+import { TemplateResult } from 'lit-html';
 import { connect, disconnect, HANDLES_KEY, Store } from './store';
 import { Pool, addMicrotask, Sheet } from './utils';
 
-export { html, svg, render, directive, TemplateResult } from 'lit-html';
-export { repeat } from 'lit-html/directives/repeat';
-export { ifDefined } from 'lit-html/directives/if-defined';
+import { repeat as litRepeat } from 'lit-html/directives/repeat';
+import { ifDefined as litIfDefined } from 'lit-html/directives/if-defined';
+
+let litHtml = {
+  html: lit.html,
+  svg: lit.svg,
+  render: lit.render,
+  directive: lit.directive,
+  repeat: litRepeat,
+  ifDefined: litIfDefined,
+};
+
+declare global {
+  interface Window {
+    __litHtml: typeof litHtml;
+  }
+}
+
+if (window.__litHtml) {
+  // 自定义元素不能重复定义
+  // 所以嵌套 gem app 中导出的自定义元素类可能是之前定义的类
+  // 可能造成使用的 html 对象不是同一个
+  // map, 缓存之类的会变得不同
+  // 所以需要把他们放在全局对象中
+  litHtml = window.__litHtml;
+} else {
+  window.__litHtml = litHtml;
+}
+
+const { html, svg, render, directive, repeat, ifDefined } = litHtml;
+export { html, svg, render, directive, repeat, ifDefined, TemplateResult };
 
 const idElementMap = new Map<string, BaseElement>();
 // id 必须全局唯一才能正确跳转
@@ -242,16 +271,31 @@ export abstract class AsyncGemElement extends BaseElement {
   }
 }
 
-// 重写了全局 customElements
-// 原因是方便多个独立 app 同时使用 gem
-// 用户使用和 gem 同名的元素不会生效也不会报错
+declare global {
+  interface CustomElementRegistry {
+    define<T extends typeof GemElement | typeof AsyncGemElement>(
+      name: string,
+      constructor: T,
+      options?: ElementDefinitionOptions,
+    ): T;
+  }
+}
+
+// 自定义元素导出构造函数应该使用 `export const Route = customElements.define()`
+// 确保使用同一个构造函数
+// 重写全局 customElements 调整返回值
+// 以及兼容 lit-plugin
 const define = customElements.define.bind(customElements);
-customElements.define = function(
+customElements.define = function<T extends typeof GemElement | typeof AsyncGemElement>(
   tagName: string,
-  Class: typeof GemElement | typeof AsyncGemElement,
+  Class: T,
   options?: ElementDefinitionOptions,
-) {
-  if (!customElements.get(tagName)) {
+): T {
+  const proto = customElements.get(tagName);
+  if (proto) {
+    return proto;
+  } else {
     define(tagName, Class, options);
+    return Class;
   }
 };
