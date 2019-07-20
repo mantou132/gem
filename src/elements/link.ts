@@ -1,12 +1,13 @@
 import { GemElement, html, history } from '../';
-import { RouteItem, RouteOptions, createLocation, createPath } from './route';
+import { isMatch, RouteItem, RouteOptions, createLocation, createPath } from './route';
 
 export class Link extends GemElement {
   /**@attr */ href: string;
   /**@attr */ path: string;
   /**@attr */ query: string;
   /**@attr */ hash: string;
-  static observedAttributes = ['href', 'path', 'query', 'hash'];
+  /**@attr */ pattern: string; // 使用匹配模式设定 active
+  static observedAttributes = ['href', 'path', 'query', 'hash', 'pattern'];
   static observedStores = [history.historyState];
 
   // 动态路由，根据 route.pattern 和 options.params 计算出 path
@@ -50,9 +51,9 @@ export class Link extends GemElement {
   };
 
   render() {
-    const href = this.getHref();
     const { path, query, hash } = history.location;
-    if (path + query + hash === href) {
+    const isMatchPattern = this.pattern && isMatch(this.pattern, path);
+    if (isMatchPattern || path + query + hash === this.getHref()) {
       this.setAttribute('active', '');
     } else {
       this.removeAttribute('active');
