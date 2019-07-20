@@ -189,80 +189,82 @@ export const history = (window.gemHistory = {
   },
 });
 
-if (!window.history.state) {
-  // 初始化 historyItem[]
-  const { pathname, search, hash } = window.location;
-  history.replace({ path: pathname, query: search, hash });
-} else if (window.history.state.$close) {
-  // 有 handle 返回键的页面刷新
-  history.back();
-}
-
-const storage = new Storage<typeof historyState>();
-const sessionStorageKey = 'gem@historyStateList';
-updateStore(historyState, storage.getSession(sessionStorageKey));
-
-window.addEventListener('unload', () => {
-  storage.setSession(sessionStorageKey, historyState);
-});
-
-/**
- * 表示 popstate handler 中正在进行导航
- */
-let navigating = false;
-window.addEventListener('popstate', event => {
-  if (!event.state || !event.state.$key) {
-    // 比如作为其他 app 的宿主 app
-    return;
-  }
-  if (navigating) {
-    navigating = false;
-    return;
+if (!hasOtherHistory) {
+  if (!window.history.state) {
+    // 初始化 historyItem[]
+    const { pathname, search, hash } = window.location;
+    history.replace({ path: pathname, query: search, hash });
+  } else if (window.history.state.$close) {
+    // 有 handle 返回键的页面刷新
+    history.back();
   }
 
-  // forward or back
-  // replace 不会触发
+  const storage = new Storage<typeof historyState>();
+  const sessionStorageKey = 'gem@historyStateList';
+  updateStore(historyState, storage.getSession(sessionStorageKey));
 
-  // url 变化前 historyItem
-  const { list, currentIndex } = historyState;
+  window.addEventListener('unload', () => {
+    storage.setSession(sessionStorageKey, historyState);
+  });
 
-  const { state: prevState } = list[currentIndex];
-  const newStateIndex = list.findIndex(({ state }) => state.$key === event.state.$key);
+  /**
+   * 表示 popstate handler 中正在进行导航
+   */
+  let navigating = false;
+  window.addEventListener('popstate', event => {
+    if (!event.state || !event.state.$key) {
+      // 比如作为其他 app 的宿主 app
+      return;
+    }
+    if (navigating) {
+      navigating = false;
+      return;
+    }
 
-  // gem app 嵌套 gem app，且不是同一个 history 对象时
-  if (newStateIndex === -1) return;
+    // forward or back
+    // replace 不会触发
 
-  const { state: newState } = list[newStateIndex];
+    // url 变化前 historyItem
+    const { list, currentIndex } = historyState;
 
-  if (newStateIndex > currentIndex && newState.$open) {
-    // 返回键关闭的 modal 能前进键重新打开
-    // 刷新后不能工作：刷新后 historyItem 中只有 url
-    const openHandle = openHandleMap.get(newState);
-    if (openHandle) openHandle();
-  } else if (prevState.$close) {
-    const closeHandle = colseHandleMap.get(prevState);
-    const shouldCloseHandle = shouldCloseHandleMap.get(prevState);
-    const notAllowClose = shouldCloseHandle && !shouldCloseHandle();
-    if (notAllowClose) {
-      navigating = true;
-      history.forward(); // 将重新触发 popstate
-      return; // 历史记录栈位置没有变化，不需要后面的 updateStore
-    } else {
-      // handle 返回键
-      if (closeHandle) {
-        closeHandle();
-      } else {
-        // 有 modal 的页面刷新会执行 back 触发 popstate
-        // 如果是耳机 modal 页面刷新
-        // 则还需要进行一次 back
-        // 不完美：三级 modal 页面刷新不支持返回到初始页面
+    const { state: prevState } = list[currentIndex];
+    const newStateIndex = list.findIndex(({ state }) => state.$key === event.state.$key);
+
+    // gem app 嵌套 gem app，且不是同一个 history 对象时
+    if (newStateIndex === -1) return;
+
+    const { state: newState } = list[newStateIndex];
+
+    if (newStateIndex > currentIndex && newState.$open) {
+      // 返回键关闭的 modal 能前进键重新打开
+      // 刷新后不能工作：刷新后 historyItem 中只有 url
+      const openHandle = openHandleMap.get(newState);
+      if (openHandle) openHandle();
+    } else if (prevState.$close) {
+      const closeHandle = colseHandleMap.get(prevState);
+      const shouldCloseHandle = shouldCloseHandleMap.get(prevState);
+      const notAllowClose = shouldCloseHandle && !shouldCloseHandle();
+      if (notAllowClose) {
         navigating = true;
-        history.back();
+        history.forward(); // 将重新触发 popstate
+        return; // 历史记录栈位置没有变化，不需要后面的 updateStore
+      } else {
+        // handle 返回键
+        if (closeHandle) {
+          closeHandle();
+        } else {
+          // 有 modal 的页面刷新会执行 back 触发 popstate
+          // 如果是耳机 modal 页面刷新
+          // 则还需要进行一次 back
+          // 不完美：三级 modal 页面刷新不支持返回到初始页面
+          navigating = true;
+          history.back();
+        }
       }
     }
-  }
 
-  updateStore(historyState, {
-    currentIndex: newStateIndex,
+    updateStore(historyState, {
+      currentIndex: newStateIndex,
+    });
   });
-});
+}
