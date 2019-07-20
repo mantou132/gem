@@ -44,6 +44,7 @@ export interface RouteItem {
   pattern: string;
   content: TemplateResult;
   title?: string;
+  index?: boolean; // 是否也匹配 ‘/’
 }
 
 export interface RoutesObject {
@@ -126,6 +127,7 @@ export class Route extends GemElement {
   }
 
   render() {
+    const { path } = history.location;
     if (!this.routes) return this.callback();
     Route.currentRoute = null;
 
@@ -138,10 +140,11 @@ export class Route extends GemElement {
     }
 
     for (let item of routes) {
-      const { pattern } = item;
+      const { pattern, index } = item;
+      const isMatchIndexPage = index && path === '/';
       if ('*' === pattern) {
         defaultRoute = item;
-      } else if (isMatch(pattern, history.location.path)) {
+      } else if (isMatchIndexPage || isMatch(pattern, path)) {
         Route.currentRoute = item;
         break;
       }
