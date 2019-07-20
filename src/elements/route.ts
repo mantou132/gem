@@ -34,7 +34,7 @@ function getParams(pattern: string, path: string) {
   }
 }
 
-function isMatch(pattern: string, path: string) {
+export function isMatch(pattern: string, path: string) {
   return !!path.match(getReg(pattern));
 }
 
