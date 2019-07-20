@@ -8,6 +8,10 @@ import './page-c';
 
 const routes = [
   {
+    pattern: '/',
+    redirect: '/c/e',
+  },
+  {
     title: 'Page A Title',
     pattern: '/a',
     get content() {

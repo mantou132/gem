@@ -42,7 +42,8 @@ export interface RouteItem {
   // 支持 *
   // 支持 /a/*
   pattern: string;
-  content: TemplateResult;
+  redirect?: string;
+  content?: TemplateResult;
   title?: string;
 }
 
@@ -152,6 +153,10 @@ export class Route extends GemElement {
     }
 
     if (!Route.currentRoute) return this.callback();
+    if (Route.currentRoute.redirect) {
+      history.replace({ path: Route.currentRoute.redirect });
+      return this.callback();
+    }
     return html`
       <style>
         :host {
