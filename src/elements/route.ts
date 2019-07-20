@@ -39,7 +39,9 @@ function isMatch(pattern: string, path: string) {
 }
 
 export interface RouteItem {
-  pattern: '*' | (string & {});
+  // 支持 *
+  // 支持 /a/*
+  pattern: string;
   content: TemplateResult;
   title?: string;
 }
