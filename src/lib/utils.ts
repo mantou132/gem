@@ -82,6 +82,8 @@ export class QueryString extends URLSearchParams {
       Object.keys(param).forEach(key => {
         this.append(key, param[key]);
       });
+    } else {
+      super();
     }
   }
 

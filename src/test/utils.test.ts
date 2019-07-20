@@ -23,6 +23,7 @@ describe('utils 测试', () => {
     expect(storage.getSession('invalid_json')).to.equal(undefined);
   });
   it('QueryString', () => {
+    expect(new QueryString(undefined).toString()).to.equal('');
     const query = new QueryString('a=1&b=2');
     expect(query.toJSON()).to.equal('?a=1&b=2');
     expect(query.toString()).to.equal('?a=1&b=2');
