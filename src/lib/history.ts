@@ -60,10 +60,23 @@ export interface Location {
   data?: any;
 }
 
+let basePath = '';
+
 let history = {
   historyState,
 
-  basePath: '',
+  get basePath() {
+    return basePath;
+  },
+
+  set basePath(v) {
+    const { list, currentIndex } = historyState;
+    // 应用初始化的时候设置
+    const location = list[currentIndex];
+    location.path = window.location.pathname.replace(new RegExp(`^${v}`), '');
+    updateStore(historyState, {});
+    basePath = v;
+  },
 
   get location() {
     const { list, currentIndex } = historyState;
