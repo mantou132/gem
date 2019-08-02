@@ -36,6 +36,23 @@ class GemDemo extends GemElement {
 customElements.define('gem-demo', GemDemo);
 
 describe('基本 gem element 测试', () => {
+  it('后定义元素', async () => {
+    const el = await fixture(html`
+      <defer-gem-demo attr="attr" .prop=${{ value: 'prop' }}></defer-gem-demo>
+    `);
+    expect(el.prop.value).to.equal('prop');
+    customElements.define(
+      'defer-gem-demo',
+      class extends GemElement {
+        /** @attr */ attr: string;
+        static observedAttributes = ['attr'];
+        prop: { value: string };
+      },
+    );
+    await nextFrame();
+    expect(el.prop.value).to.equal('prop');
+    expect(el.attr).to.equal('attr');
+  });
   it('adoptedStyleSheets 共享样式', async () => {
     const el = await fixture(html`
       <gem-demo attr="attr" .prop=${{ value: 'prop' }}></gem-demo>
