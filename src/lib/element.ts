@@ -128,7 +128,7 @@ export abstract class BaseElement extends HTMLElement {
     }
     if (observedPropertys) {
       observedPropertys.forEach(prop => {
-        let propValue: any;
+        let propValue: any = this[prop];
         Object.defineProperty(this, prop, {
           get: () => {
             return propValue;
