@@ -62,6 +62,12 @@ document.body.append(document.createElement('app-root'));
 
 下拉菜单, 抽屉式菜单, 弹窗能像原生 App 一样通过返回键关闭，并且还能在关闭前类似确认的动作
 
+## 相关 repo
+
+- [gem-boilerplate](https://github.com/mantou132/gem-boilerplate)
+- [gem-devtools](https://github.com/mantou132/gem-devtools)
+- [create-gem-app](https://github.com/mantou132/create-gem-app)
+
 ## API
 
 ### Store 相关
