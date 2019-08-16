@@ -4,6 +4,7 @@ const open = Symbol('open mark');
 
 /**
  * 导出一个函数，用来创建类似 Modal 元素的基类
+ * 需要使用 Modal 的静态方式所以使用 Store 来管理组件状态
  */
 export default function createModalElement<T extends object>(options: T) {
   return class extends GemElement {

@@ -1,4 +1,4 @@
-import { GemElement, html, ifDefined } from '../../';
+import { GemElement, html } from '../../';
 import createModalElement from '../../elements/modal-base';
 import '../../elements/link';
 class Dialog1 extends createModalElement({ content: html`` }) {
@@ -23,7 +23,7 @@ class Dialog1 extends createModalElement({ content: html`` }) {
           background: white;
         }
       </style>
-      <div class="root" hidden=${ifDefined(Dialog1.isOpen && undefined)}>
+      <div class="root" ?hidden=${!Dialog1.isOpen}>
         <div class="body">
           <h2>hello.</h2>
         </div>
@@ -67,7 +67,7 @@ class Dialog extends createModalElement({ content: html`` }) {
           background: white;
         }
       </style>
-      <div class="root" hidden=${ifDefined(Dialog.isOpen && undefined)}>
+      <div class="root" ?hidden=${!Dialog.isOpen}>
         <div class="body">
           <h2>hello.</h2>
           <div>${Dialog.store.content}</div>
