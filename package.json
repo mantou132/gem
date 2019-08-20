@@ -15,7 +15,7 @@
   ],
   "typings": "index.d.ts",
   "scripts": {
-    "lint": "eslint --ext .ts --fix src/",
+    "lint": "tsc --noEmit && eslint --ext .ts --fix src/",
     "build": "rm -rf `ls src` && tsc",
     "prepare": "npm run lint && npm run build && karma start",
     "example": "webpack-dev-server --open",
