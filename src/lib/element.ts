@@ -35,7 +35,7 @@ if (window.__litHtml) {
 const { html, svg, render, directive, repeat, ifDefined } = litHtml;
 export { html, svg, render, directive, repeat, ifDefined, TemplateResult };
 
-const idElementMap = new Map<string, BaseElement>();
+const idElementMap = new Map<string, BaseElement<any>>();
 // id 必须全局唯一才能正确跳转
 // 只能检查自定义元素的 ID
 const checkHash = () => {
@@ -72,18 +72,16 @@ const exec = () =>
 
 exec();
 
-export type State = object;
-
 export const updaterWithSetStateSet = new Set<Function>();
 
 // final 字段如果使用 symbol 或者 private 将导致 modal-base 生成匿名子类 declaration 失败
-export abstract class BaseElement extends HTMLElement {
+export abstract class BaseElement<T = {}> extends HTMLElement {
   static observedAttributes = ['id']; // WebAPI 中是实时检查这个列表
   static observedPropertys?: string[];
   static observedStores?: Store<unknown>[];
   static adoptedStyleSheets?: CSSStyleSheet[] | Sheet<unknown>[];
 
-  readonly state: State;
+  readonly state: T;
 
   /**@final */
   _renderRoot: HTMLElement | ShadowRoot;
@@ -163,7 +161,7 @@ export abstract class BaseElement extends HTMLElement {
   }
 
   /**@final */
-  setState(payload: Partial<State>) {
+  setState(payload: Partial<T>) {
     Object.assign(this.state, payload);
     addMicrotask(this.update);
   }
@@ -234,7 +232,7 @@ export abstract class BaseElement extends HTMLElement {
   }
 }
 
-export abstract class GemElement extends BaseElement {
+export abstract class GemElement<T = {}> extends BaseElement<T> {
   /**@private */
   /**@final */
   connectedCallback() {
@@ -246,7 +244,7 @@ export abstract class GemElement extends BaseElement {
   }
 }
 
-export abstract class AsyncGemElement extends BaseElement {
+export abstract class AsyncGemElement<T = {}> extends BaseElement<T> {
   /**@final */
   update() {
     renderTaskPool.add(() => {
