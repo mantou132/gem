@@ -1,6 +1,7 @@
 import { addMicrotask } from './utils';
 
-export const HANDLES_KEY = Symbol('handles key');
+// 不使用符号，方便跨 Realms
+export const HANDLES_KEY = 'gem@storeHandlesKey';
 
 export interface StoreTrait {
   [HANDLES_KEY]: Set<Function>;
@@ -14,7 +15,8 @@ export type StoreSet<T> = {
 
 export function createStore<T extends object>(originStore: T): Store<T> {
   const store = originStore as Store<T>;
-  store[HANDLES_KEY] = new Set<Function>();
+  // 序列化时忽略
+  Object.defineProperty(store, HANDLES_KEY, { enumerable: false, value: new Set<Function>(), writable: true });
   return store;
 }
 
