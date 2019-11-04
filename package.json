@@ -12,7 +12,7 @@
     "/elements/",
     "/lib/",
     "/src/",
-    "/cjs/"
+    "/commonjs/"
   ],
   "typings": "index.d.ts",
   "scripts": {
