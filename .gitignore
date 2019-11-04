@@ -1,6 +1,7 @@
 /node_modules/
 
 # Compiler output
+/commonjs/
 /lib/
 /elements/
 /index.d.ts

@@ -11,12 +11,13 @@
     "/index.d.ts.map",
     "/elements/",
     "/lib/",
-    "/src/"
+    "/src/",
+    "/cjs/"
   ],
   "typings": "index.d.ts",
   "scripts": {
     "lint": "tsc --noEmit && eslint --ext .ts --fix src/",
-    "build": "rm -rf `ls src` && tsc",
+    "build": "rm -rf `ls src` && rm -rf commonjs && tsc && tsc --outDir ./commonjs --module commonjs",
     "prepare": "npm run lint && npm run build && karma start",
     "example": "webpack-dev-server --open",
     "test": "npm run build && karma start --coverage",
