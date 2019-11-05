@@ -97,6 +97,7 @@ export abstract class BaseElement<T = {}> extends HTMLElement {
     this.shouldUpdate = this.shouldUpdate.bind(this);
     this.update = this.update.bind(this);
     this.updated = this.updated.bind(this);
+    this.connectStores = this.connectStores.bind(this);
     this.disconnectStores = this.disconnectStores.bind(this);
     this.attributeChanged = this.attributeChanged.bind(this);
     this.propertyChanged = this.propertyChanged.bind(this);
@@ -190,6 +191,16 @@ export abstract class BaseElement<T = {}> extends HTMLElement {
   }
 
   updated() {}
+
+  /**@final */
+  connectStores(storeList: Store<unknown>[]) {
+    storeList.forEach(store => {
+      connect(
+        store,
+        this.update,
+      );
+    });
+  }
 
   /**@final */
   disconnectStores(storeList: Store<unknown>[]) {

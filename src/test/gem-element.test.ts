@@ -138,6 +138,36 @@ describe('基本 gem element 测试', () => {
   });
 });
 
+const storeB = createStore({
+  b: 1,
+});
+class DynGemDemo extends AsyncGemElement {
+  renderCount = 0;
+  render() {
+    this.renderCount++;
+    return html``;
+  }
+}
+customElements.define('dyn-gem-demo', DynGemDemo);
+
+describe('动态 store 测试', () => {
+  it('动态监听', async () => {
+    const el = await fixture(html`
+      <dyn-gem-demo></dyn-gem-demo>
+    `);
+    el.connectStores([storeB]);
+    updateStore(storeB, { b: ++storeB.b });
+    await Promise.resolve();
+    expect(el.renderCount).to.equal(1);
+    await nextFrame();
+    expect(el.renderCount).to.equal(2);
+    el.disconnectStores([storeB]);
+    updateStore(storeB, { b: ++storeB.b });
+    await nextFrame();
+    expect(el.renderCount).to.equal(2);
+  });
+});
+
 class AsyncGemDemo extends AsyncGemElement {
   static observedStores = [store];
   state = { a: 0 };
