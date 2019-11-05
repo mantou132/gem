@@ -72,8 +72,6 @@ const exec = () =>
 
 exec();
 
-export const updaterWithSetStateSet = new Set<Function>();
-
 // final 字段如果使用 symbol 或者 private 将导致 modal-base 生成匿名子类 declaration 失败
 export abstract class BaseElement<T = {}> extends HTMLElement {
   static observedAttributes = ['id']; // WebAPI 中是实时检查这个列表
