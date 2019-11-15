@@ -17,13 +17,10 @@ function create<T extends object>(themeObj: T, media?: string) {
   const theme = createStore<T>(themeObj);
   const style = document.createElement('style');
   const replace = () => replaceStyle(style, theme, media);
-  connect(
-    theme,
-    replace,
-  );
+  connect(theme, replace);
   replace();
   document.head.append(style);
-  let themeVarSet = {};
+  const themeVarSet = {};
   map.set(themeVarSet, theme);
   Object.keys(theme).forEach(key => {
     themeVarSet[key] = `var(--${key})`;

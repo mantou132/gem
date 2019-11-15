@@ -8,7 +8,7 @@
     "module": "esnext",
     "moduleResolution": "node",
     "target": "es6",
-    "lib": ["es2018", "dom"]
+    "lib": ["es2019", "dom"]
   },
   "include": ["src/**/*.ts"],
   "exclude": ["src/examples/"]

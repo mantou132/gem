@@ -41,7 +41,7 @@ export class Storage<T> {
     if (!this.cache[type]) this.cache[type] = {};
     if (key in this.cache[type]) return this.cache[type][key];
 
-    let value = window[type].getItem(key);
+    const value = window[type].getItem(key);
 
     if (!value) return undefined;
     try {
@@ -71,6 +71,11 @@ export class Storage<T> {
   }
 }
 
+declare global {
+  interface URLSearchParams {
+    entries(): Iterable<readonly [string | number | symbol, any]>;
+  }
+}
 export class QueryString extends URLSearchParams {
   constructor(param: any) {
     if (param instanceof QueryString) {
@@ -90,8 +95,7 @@ export class QueryString extends URLSearchParams {
   concat(param: any) {
     let query: any;
     if (typeof param === 'string') {
-      // @ts-ignore
-      query = Object.fromEntries(new URLSearchParams(param));
+      query = Object.fromEntries(new URLSearchParams(param).entries());
     } else {
       query = param;
     }

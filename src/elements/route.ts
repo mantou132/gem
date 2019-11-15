@@ -138,7 +138,7 @@ export class Route extends GemElement {
       routes = Object.values(this.routes);
     }
 
-    for (let item of routes) {
+    for (const item of routes) {
       const { pattern } = item;
       if ('*' === pattern) {
         defaultRoute = item;

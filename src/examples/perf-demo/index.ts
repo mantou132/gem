@@ -63,7 +63,7 @@ customElements.define(
     seconds: number;
 
     render() {
-      var s = this.s;
+      let s = this.s;
       if (s <= targetSize) {
         return html`
           <fiber-dot .x=${this.x - targetSize / 2} .y=${this.y - targetSize / 2} .size=${targetSize}></fiber-dot>
@@ -71,9 +71,9 @@ customElements.define(
       }
       s = s / 2;
 
-      var slowDown = true;
+      const slowDown = true;
       if (slowDown) {
-        var e = performance.now() + 0.8;
+        const e = performance.now() + 0.8;
         while (performance.now() < e) {
           // Artificially long execution time.
         }
@@ -89,7 +89,7 @@ customElements.define(
 
 class App extends GemElement {
   static observedPropertys = ['elapsed'];
-  elapsed: number = 0;
+  elapsed = 0;
   render() {
     const elapsed = this.elapsed;
     const t = (elapsed / 1000) % 10;

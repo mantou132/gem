@@ -63,8 +63,8 @@ describe('utils 测试', () => {
       `,
     });
     expect(styles.scroll.startsWith('scroll')).to.true;
-    let temp = styles as unknown;
-    let cssSheet = temp as CSSStyleSheet;
+    const temp = styles as unknown;
+    const cssSheet = temp as CSSStyleSheet;
     expect(cssSheet.cssRules.item(0).selectorText.startsWith('.scroll')).to.true;
     expect(cssSheet.cssRules.item(0).style.background.startsWith('red')).to.true;
     expect(/\.scroll(-|\w)+:hover \*/.test(cssSheet.cssRules.item(1).selectorText)).to.true;

@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-empty-function */
+
 import * as lit from 'lit-html';
 import { TemplateResult } from 'lit-html';
 import { connect, disconnect, HANDLES_KEY, Store } from './store';
@@ -148,10 +150,7 @@ export abstract class BaseElement<T = {}> extends HTMLElement {
           throw new Error('`observedStores` only support store module');
         }
 
-        connect(
-          store,
-          this.update,
-        );
+        connect(store, this.update);
       });
     }
     if (adoptedStyleSheets) {
@@ -193,10 +192,7 @@ export abstract class BaseElement<T = {}> extends HTMLElement {
   /**@final */
   connectStores(storeList: Store<unknown>[]) {
     storeList.forEach(store => {
-      connect(
-        store,
-        this.update,
-      );
+      connect(store, this.update);
     });
   }
 

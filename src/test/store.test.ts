@@ -13,10 +13,7 @@ describe('store 测试', () => {
     const store = createStore({ a: 1 });
     let flag = true;
     const update = () => (flag = !flag);
-    connect(
-      store,
-      update,
-    );
+    connect(store, update);
     updateStore(store, { a: 1 });
     await aTimeout();
     expect(flag).to.equal(false);
