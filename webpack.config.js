@@ -2,9 +2,11 @@ const path = require('path');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 
 const hello = 'hello-world';
+const example = process.env.NAME;
+const tip = '使用 `NAME=[example-name] npm run example` 指定用例';
 
 module.exports = {
-  entry: `./src/examples/${process.env.EXAMPLE || hello}/index.ts`,
+  entry: `./src/examples/${example || hello}/`,
   module: {
     rules: [
       {
@@ -27,11 +29,7 @@ module.exports = {
     {
       apply(compiler) {
         compiler.hooks.done.tapAsync('MyCustomPlugin', function(_compiler, callback) {
-          if (!process.env.EXAMPLE) {
-            setTimeout(() => {
-              console.log('\n使用 `EXAMPLE=[example-name] npm run example` 指定用例');
-            });
-          }
+          if (!example) setTimeout(() => console.log(`\n${tip}`));
           callback();
         });
       },
@@ -39,6 +37,7 @@ module.exports = {
   ],
   devServer: {
     contentBase: './temp',
+    open: true,
     historyApiFallback: true,
   },
   devtool: 'source-map',
