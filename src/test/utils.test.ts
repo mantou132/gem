@@ -4,8 +4,8 @@ import { Pool, Storage, QueryString, css, raw, createCSSSheet, styled } from '..
 describe('utils 测试', () => {
   it('Pool', () => {
     const pool = new Pool<Function>();
-    const fun1 = () => {};
-    const fun2 = () => {};
+    const fun1 = () => ({});
+    const fun2 = () => ({});
     pool.add(fun1);
     pool.add(fun2);
     expect(pool.get()).to.equal(fun1);
