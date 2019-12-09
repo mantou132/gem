@@ -57,23 +57,6 @@ if (document.readyState === 'complete') {
   window.addEventListener('load', checkHash);
 }
 
-// global render task pool
-const renderTaskPool = new Pool<Function>();
-const exec = () =>
-  window.requestAnimationFrame(function callback(timestamp) {
-    const task = renderTaskPool.get();
-    if (task) {
-      task();
-      if (performance.now() - timestamp < 16) {
-        callback(timestamp);
-        return;
-      }
-    }
-    exec();
-  });
-
-exec();
-
 // final 字段如果使用 symbol 或者 private 将导致 modal-base 生成匿名子类 declaration 失败
 export abstract class BaseElement<T = {}> extends HTMLElement {
   static observedAttributes = ['id']; // WebAPI 中是实时检查这个列表
@@ -248,6 +231,31 @@ export abstract class GemElement<T = {}> extends BaseElement<T> {
     this._isMounted = true;
   }
 }
+
+// global render task pool
+const renderTaskPool = new Pool<Function>();
+let loop = false;
+const tick = () => {
+  window.requestAnimationFrame(function callback(timestamp) {
+    const task = renderTaskPool.get();
+    if (task) {
+      task();
+      if (performance.now() - timestamp < 16) {
+        callback(timestamp);
+        return;
+      }
+    }
+    // `renderTaskPool` not empty
+    if (loop) {
+      tick();
+    }
+  });
+};
+renderTaskPool.addEventListener('start', () => {
+  loop = true;
+  tick();
+});
+renderTaskPool.addEventListener('end', () => (loop = false));
 
 export abstract class AsyncGemElement<T = {}> extends BaseElement<T> {
   /**@final */

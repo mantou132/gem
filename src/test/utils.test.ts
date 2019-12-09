@@ -4,12 +4,20 @@ import { Pool, Storage, QueryString, css, raw, createCSSSheet, styled } from '..
 describe('utils 测试', () => {
   it('Pool', () => {
     const pool = new Pool<Function>();
+    let countAtStart = 0;
+    let countAtPause = 0;
+    pool.addEventListener('start', () => (countAtStart = pool.count));
+    pool.addEventListener('end', () => (countAtPause = pool.count));
     const fun1 = () => ({});
     const fun2 = () => ({});
     pool.add(fun1);
     pool.add(fun2);
     expect(pool.get()).to.equal(fun1);
     expect(pool.get()).to.equal(fun2);
+    expect(countAtStart).to.equal(0);
+    expect(countAtPause).to.equal(2);
+    expect(pool.pool.size).to.equal(0);
+    expect(pool.get()).to.equal(undefined);
   });
   it('Storage', () => {
     const storage = new Storage();

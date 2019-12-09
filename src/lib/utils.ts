@@ -11,12 +11,23 @@ export function addMicrotask(func: Function) {
   updaterSet.add(func);
 }
 
-export class Pool<T> {
+interface PoolEventMap {
+  start: Event;
+  end: Event;
+}
+export class Pool<T> extends EventTarget {
+  addEventListener: <K extends keyof PoolEventMap>(
+    type: K,
+    listener: (this: Pool<T>, ev: PoolEventMap[K]) => any,
+    options?: boolean | AddEventListenerOptions,
+  ) => void;
+
   currentId = 0;
   count = 0;
   pool = new Map<number, T>();
 
   add(item: T) {
+    if (!this.pool.size) this.dispatchEvent(new CustomEvent('start'));
     this.pool.set(this.count, item);
     this.count += 1;
   }
@@ -26,6 +37,7 @@ export class Pool<T> {
     if (item) {
       this.pool.delete(this.currentId);
       this.currentId += 1;
+      if (!this.pool.size) this.dispatchEvent(new CustomEvent('end'));
     }
     return item;
   }
