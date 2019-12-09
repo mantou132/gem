@@ -1,4 +1,4 @@
-import { raw, GemElement, createStore, updateStore, html } from '../../';
+import { raw, GemElement, AsyncGemElement, createStore, updateStore, html } from '../../';
 
 const store = createStore({
   number: 1,
@@ -10,7 +10,7 @@ setInterval(() => {
 
 customElements.define(
   'fiber-dot',
-  class extends GemElement {
+  class extends AsyncGemElement {
     static observedStores = [store];
 
     onmouseenter = () => {
