@@ -1,4 +1,4 @@
-const createDefaultConfig = require('@open-wc/testing-karma/default-config');
+const { createDefaultConfig } = require('@open-wc/testing-karma');
 const merge = require('webpack-merge');
 
 module.exports = config => {
@@ -13,6 +13,9 @@ module.exports = config => {
         { pattern: config.grep ? config.grep : 'test/**/*.test.js', type: 'module' },
       ],
 
+      esm: {
+        nodeResolve: true,
+      },
       // you can overwrite/extend the config further
     }),
   );

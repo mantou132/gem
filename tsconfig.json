@@ -7,8 +7,10 @@
     "noImplicitAny": false,
     "module": "esnext",
     "moduleResolution": "node",
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
     "target": "es6",
-    "lib": ["es2019", "dom"]
+    "lib": ["es2020", "dom"]
   },
   "include": ["src/**/*.ts"],
   "exclude": ["src/examples/"]
