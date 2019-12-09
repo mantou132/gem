@@ -15,11 +15,11 @@ describe('store 测试', () => {
     const update = () => (flag = !flag);
     connect(store, update);
     updateStore(store, { a: 1 });
-    await aTimeout();
+    await aTimeout(0);
     expect(flag).to.equal(false);
     disconnect(store, update);
     updateStore(store, { a: 1 });
-    await aTimeout();
+    await aTimeout(0);
     expect(flag).to.equal(false);
   });
 });

@@ -35,20 +35,19 @@ class GemDemo extends GemElement {
 
 customElements.define('gem-demo', GemDemo);
 
+class DeferGemElement extends GemElement {
+  /** @attr */ attr: string;
+  static observedAttributes = ['attr'];
+  prop: { value: string };
+}
+
 describe('基本 gem element 测试', () => {
   it('后定义元素', async () => {
-    const el = await fixture(html`
+    const el: DeferGemElement = await fixture(html`
       <defer-gem-demo attr="attr" .prop=${{ value: 'prop' }}></defer-gem-demo>
     `);
     expect(el.prop.value).to.equal('prop');
-    customElements.define(
-      'defer-gem-demo',
-      class extends GemElement {
-        /** @attr */ attr: string;
-        static observedAttributes = ['attr'];
-        prop: { value: string };
-      },
-    );
+    customElements.define('defer-gem-demo', DeferGemElement);
     await nextFrame();
     expect(el.prop.value).to.equal('prop');
     expect(el.attr).to.equal('attr');
@@ -66,14 +65,14 @@ describe('基本 gem element 测试', () => {
     expect(el).shadowDom.to.equal('attr: attr, prop: prop, state: ');
   });
   it('读取 attr', async () => {
-    const el = await fixture(html`
+    const el: GemDemo = await fixture(html`
       <gem-demo attr="attr"></gem-demo>
     `);
     expect(el.attr).to.equal('attr');
   });
 
   it('修改 attr', async () => {
-    const el = await fixture(html`
+    const el: GemDemo = await fixture(html`
       <gem-demo attr="attr"></gem-demo>
     `);
     expect(el.renderCount).to.equal(1);
@@ -86,14 +85,14 @@ describe('基本 gem element 测试', () => {
   });
 
   it('读取 prop', async () => {
-    const el = await fixture(html`
+    const el: GemDemo = await fixture(html`
       <gem-demo .prop=${{ value: 'prop' }}></gem-demo>
     `);
     expect(el.prop).to.deep.equal({ value: 'prop' });
   });
 
   it('修改 prop', async () => {
-    const el = await fixture(html`
+    const el: GemDemo = await fixture(html`
       <gem-demo .prop=${{ value: 'prop' }}></gem-demo>
     `);
     expect(el.renderCount).to.equal(1);
@@ -107,7 +106,7 @@ describe('基本 gem element 测试', () => {
   });
 
   it('修改 state', async () => {
-    const el = await fixture(html`
+    const el: GemDemo = await fixture(html`
       <gem-demo></gem-demo>
     `);
     expect(el.renderCount).to.equal(1);
@@ -122,7 +121,7 @@ describe('基本 gem element 测试', () => {
 
   it('更新 store', async () => {
     const a = store.a;
-    const el = await fixture(html`
+    const el: GemDemo = await fixture(html`
       <gem-demo></gem-demo>
     `);
     updateStore(store, { a: ++store.a });
@@ -152,7 +151,7 @@ customElements.define('dyn-gem-demo', DynGemDemo);
 
 describe('动态 store 测试', () => {
   it('动态监听', async () => {
-    const el = await fixture(html`
+    const el: DynGemDemo = await fixture(html`
       <dyn-gem-demo></dyn-gem-demo>
     `);
     el.connectStores([storeB]);
@@ -181,7 +180,7 @@ customElements.define('async-gem-demo', AsyncGemDemo);
 
 describe('异步 gem element 测试', () => {
   it('异步 gem element 更新', async () => {
-    const el = await fixture(html`
+    const el: AsyncGemDemo = await fixture(html`
       <async-gem-demo></async-gem-demo>
     `);
     updateStore(store, { a: ++store.a });
