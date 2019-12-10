@@ -6,6 +6,7 @@ import { connect, disconnect, HANDLES_KEY, Store } from './store';
 import { Pool, addMicrotask, Sheet } from './utils';
 
 import { repeat as litRepeat } from 'lit-html/directives/repeat';
+import { guard as litGuard } from 'lit-html/directives/guard';
 import { ifDefined as litIfDefined } from 'lit-html/directives/if-defined';
 
 let litHtml = {
@@ -14,6 +15,7 @@ let litHtml = {
   render: lit.render,
   directive: lit.directive,
   repeat: litRepeat,
+  guard: litGuard,
   ifDefined: litIfDefined,
 };
 
@@ -34,8 +36,8 @@ if (window.__litHtml) {
   window.__litHtml = litHtml;
 }
 
-const { html, svg, render, directive, repeat, ifDefined } = litHtml;
-export { html, svg, render, directive, repeat, ifDefined, TemplateResult };
+const { html, svg, render, directive, repeat, guard, ifDefined } = litHtml;
+export { html, svg, render, directive, repeat, guard, ifDefined, TemplateResult };
 
 const idElementMap = new Map<string, BaseElement<any>>();
 // id 必须全局唯一才能正确跳转
@@ -147,7 +149,11 @@ export abstract class BaseElement<T = {}> extends HTMLElement {
       });
     }
     if (adoptedStyleSheets) {
-      (this.shadowRoot || document).adoptedStyleSheets = adoptedStyleSheets;
+      if (this.shadowRoot) {
+        this.shadowRoot.adoptedStyleSheets = adoptedStyleSheets;
+      } else {
+        document.adoptedStyleSheets = document.adoptedStyleSheets.concat(adoptedStyleSheets);
+      }
     }
   }
 
