@@ -91,8 +91,16 @@ export abstract class BaseElement<T = {}> extends HTMLElement {
     if (observedAttributes) {
       observedAttributes.forEach(attr => {
         const prop = attr.replace(/-(.)/g, (_substr, $1: string) => $1.toUpperCase());
+        if (typeof this[prop] === 'function') {
+          throw `Don't use attribute with the same name as native methods`;
+        }
+        // Native attribute，no need difine property
+        // e.g: `id`, `title`, `hidden`, `alt`, `lang`
+        if (this[prop] !== undefined) return;
+        // !!! Custom property shortcut access only supports `string` type
         Object.defineProperty(this, prop, {
           get: () => {
+            // Return empty string if attribute does not exist
             return this.getAttribute(attr) || '';
           },
           set: (v: string) => {
@@ -111,6 +119,7 @@ export abstract class BaseElement<T = {}> extends HTMLElement {
     }
     if (observedPropertys) {
       observedPropertys.forEach(prop => {
+        if (prop in this) console.warn(`\`${prop}\` prop duplicate definition`);
         let propValue: any = this[prop];
         Object.defineProperty(this, prop, {
           get: () => {
