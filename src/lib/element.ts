@@ -90,7 +90,8 @@ export abstract class BaseElement<T = {}> extends HTMLElement {
     const { observedAttributes, observedPropertys, observedStores, adoptedStyleSheets } = new.target;
     if (observedAttributes) {
       observedAttributes.forEach(attr => {
-        Object.defineProperty(this, attr, {
+        const prop = attr.replace(/-(.)/g, (_substr, $1: string) => $1.toUpperCase());
+        Object.defineProperty(this, prop, {
           get: () => {
             return this.getAttribute(attr) || '';
           },

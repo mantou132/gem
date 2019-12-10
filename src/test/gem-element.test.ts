@@ -13,7 +13,8 @@ const styles = createCSSSheet(css`
 
 class GemDemo extends GemElement {
   /** @attr */ attr: string;
-  static observedAttributes = ['attr'];
+  /** @attr long-attr*/ longAttr: string;
+  static observedAttributes = ['attr', 'long-attr'];
 
   static observedStores = [store];
 
@@ -66,9 +67,10 @@ describe('基本 gem element 测试', () => {
   });
   it('读取 attr', async () => {
     const el: GemDemo = await fixture(html`
-      <gem-demo attr="attr"></gem-demo>
+      <gem-demo attr="attr" long-attr="hi"></gem-demo>
     `);
     expect(el.attr).to.equal('attr');
+    expect(el.longAttr).to.equal('hi');
   });
 
   it('修改 attr', async () => {
