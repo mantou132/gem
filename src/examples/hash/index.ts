@@ -2,6 +2,27 @@ import { GemElement, render, html } from '../../';
 import '../../elements/link';
 
 class Article extends GemElement {
+  constructor() {
+    super();
+    window.addEventListener('hashchange', this.checkHash);
+  }
+
+  mounted = () => {
+    // 在当前页面刷新浏览器会保留滚动位置
+    // 开新窗口测试带 hash 链接
+    this.checkHash();
+  };
+
+  unmounted = () => {
+    window.removeEventListener('hashchange', this.checkHash);
+  };
+
+  checkHash = () => {
+    if (this.id === location.hash.substr(1)) {
+      this.scrollIntoView();
+    }
+  };
+
   render() {
     return html`
       <div style="height: 1000px"><slot></slot></div>
