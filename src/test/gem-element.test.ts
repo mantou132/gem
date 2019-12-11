@@ -1,5 +1,19 @@
 import { fixture, expect, nextFrame } from '@open-wc/testing';
-import { AsyncGemElement, GemElement, html, createStore, updateStore, createCSSSheet, css, Store } from '..';
+import {
+  AsyncGemElement,
+  GemElement,
+  html,
+  createStore,
+  updateStore,
+  createCSSSheet,
+  css,
+  Store,
+  attribute,
+  property,
+  customElement,
+  connectStore,
+  adoptedStyle,
+} from '..';
 
 const store = createStore({
   a: 1,
@@ -35,6 +49,21 @@ class GemDemo extends GemElement {
 }
 
 customElements.define('gem-demo', GemDemo);
+
+@connectStore(store)
+@adoptedStyle(styles)
+@customElement('decorator-gem-demo')
+class DecoratorGemElement extends GemElement {
+  @attribute attr: string;
+  @property prop = { value: '' };
+  renderCount = 0;
+  render() {
+    this.renderCount++;
+    return html`
+      attr: ${this.attr}, prop: ${this.prop.value}
+    `;
+  }
+}
 
 class DeferGemElement extends GemElement {
   /** @attr */ attr: string;
@@ -137,12 +166,22 @@ describe('基本 gem element 测试', () => {
     await nextFrame();
     expect(el.renderCount).to.equal(2);
   });
+  it('装饰器定义的自定义元素', async () => {
+    const el: DecoratorGemElement = await fixture(html`
+      <decorator-gem-demo attr="attr" .prop=${{ value: 'prop' }}></decorator-gem-demo>
+    `);
+    expect(el.attr).to.equal('attr');
+    expect(el.prop).to.eql({ value: 'prop' });
+    expect(el).shadowDom.to.equal('attr: attr, prop: prop');
+  });
 });
 
 const storeB = createStore({
   b: 1,
 });
 class DynGemDemo extends AsyncGemElement {
+  attr: string;
+  prop: boolean;
   renderCount = 0;
   render() {
     this.renderCount++;
@@ -151,8 +190,25 @@ class DynGemDemo extends AsyncGemElement {
 }
 customElements.define('dyn-gem-demo', DynGemDemo);
 
-describe('动态 store 测试', () => {
-  it('动态监听', async () => {
+describe('动态测试', () => {
+  it('动态监听 attr', async () => {
+    const el: DynGemDemo = await fixture(html`
+      <dyn-gem-demo></dyn-gem-demo>
+    `);
+    el.connectAttributes(['attr']);
+    el.attr = 'ttt';
+    expect(el.getAttribute('attr')).to.equal('ttt');
+  });
+  it('动态监听 prop', async () => {
+    const el: DynGemDemo = await fixture(html`
+      <dyn-gem-demo></dyn-gem-demo>
+    `);
+    el.connectPropertys(['prop']);
+    el.prop = true;
+    await Promise.resolve();
+    expect(el.renderCount).to.equal(1);
+  });
+  it('动态监听 store', async () => {
     const el: DynGemDemo = await fixture(html`
       <dyn-gem-demo></dyn-gem-demo>
     `);
