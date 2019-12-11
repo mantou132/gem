@@ -62,12 +62,12 @@ export abstract class BaseElement<T = {}> extends HTMLElement {
     this.shouldUpdate = this.shouldUpdate.bind(this);
     this.__update = this.__update.bind(this);
     this.updated = this.updated.bind(this);
-    this.__connectAttributes = this.__connectAttributes.bind(this);
-    this.__disconnectAttributes = this.__disconnectAttributes.bind(this);
-    this.__connectPropertys = this.__connectPropertys.bind(this);
-    this.__disconnectPropertys = this.__disconnectPropertys.bind(this);
-    this.__connectStores = this.__connectStores.bind(this);
-    this.__disconnectStores = this.__disconnectStores.bind(this);
+    this.__connectAttribute = this.__connectAttribute.bind(this);
+    this.__disconnectAttribute = this.__disconnectAttribute.bind(this);
+    this.__connectProperty = this.__connectProperty.bind(this);
+    this.__disconnectProperty = this.__disconnectProperty.bind(this);
+    this.__connectStore = this.__connectStore.bind(this);
+    this.__disconnectStore = this.__disconnectStore.bind(this);
     this.attributeChanged = this.attributeChanged.bind(this);
     this.propertyChanged = this.propertyChanged.bind(this);
     this.unmounted = this.unmounted.bind(this);
@@ -75,13 +75,19 @@ export abstract class BaseElement<T = {}> extends HTMLElement {
     this.__renderRoot = shadow ? this.attachShadow({ mode: 'open' }) : this;
     const { observedAttributes, observedPropertys, observedStores, adoptedStyleSheets } = new.target;
     if (observedAttributes) {
-      this.__connectAttributes(observedAttributes, true);
+      observedAttributes.forEach(attr => {
+        this.__connectAttribute(attr, true);
+      });
     }
     if (observedPropertys) {
-      this.__connectPropertys(observedPropertys);
+      observedPropertys.forEach(prop => {
+        this.__connectProperty(prop);
+      });
     }
     if (observedStores) {
-      this.__connectStores(observedStores);
+      observedStores.forEach(store => {
+        this.__connectStore(store);
+      });
     }
     if (adoptedStyleSheets) {
       if (this.shadowRoot) {
@@ -133,126 +139,116 @@ export abstract class BaseElement<T = {}> extends HTMLElement {
   updated() {}
 
   /**@final */
-  __connectAttributes(attrList: string[], isAttr = false) {
-    attrList.forEach(str => {
-      const prop = isAttr ? kebabToCamelCase(str) : str;
-      const attr = isAttr ? str : camelToKebabCase(prop);
-      if (typeof this[prop] === 'function') {
-        throw `Don't use attribute with the same name as native methods`;
-      }
-      // Native attribute，no need difine property
-      // e.g: `id`, `title`, `hidden`, `alt`, `lang`
-      if (this[prop] !== undefined) return;
-      const con = this.constructor as typeof BaseElement;
-      if (!con.observedAttributes) con.observedAttributes = [];
-      con.observedAttributes.push(attr);
-      // !!! Custom property shortcut access only supports `string` type
-      Object.defineProperty(this, prop, {
-        configurable: true,
-        get() {
-          // Return empty string if attribute does not exist
-          return this.getAttribute(attr) || '';
-        },
-        set(v: string) {
-          if (v === null) {
-            this.removeAttribute(attr);
-          } else {
-            this.setAttribute(attr, v);
+  __connectAttribute(str: string, isAttr = false) {
+    const prop = isAttr ? kebabToCamelCase(str) : str;
+    const attr = isAttr ? str : camelToKebabCase(prop);
+    if (typeof this[prop] === 'function') {
+      throw `Don't use attribute with the same name as native methods`;
+    }
+    // Native attribute，no need difine property
+    // e.g: `id`, `title`, `hidden`, `alt`, `lang`
+    if (this[prop] !== undefined) return;
+    const con = this.constructor as typeof BaseElement;
+    if (!con.observedAttributes) con.observedAttributes = [];
+    con.observedAttributes.push(attr);
+    // !!! Custom property shortcut access only supports `string` type
+    Object.defineProperty(this, prop, {
+      configurable: true,
+      get() {
+        // Return empty string if attribute does not exist
+        return this.getAttribute(attr) || '';
+      },
+      set(v: string) {
+        if (v === null) {
+          this.removeAttribute(attr);
+        } else {
+          this.setAttribute(attr, v);
+        }
+      },
+    });
+  }
+  /**@helper */
+  connectAttribute(str: string, isAttr = false) {
+    this.__connectAttribute(str, isAttr);
+  }
+
+  /**@final */
+  __disconnectAttribute(str: string, isAttr = false) {
+    const prop = isAttr ? kebabToCamelCase(str) : str;
+    const attr = isAttr ? str : camelToKebabCase(prop);
+    Object.defineProperty(this, prop, { configurable: true, enumerable: true, writable: true });
+    const con = this.constructor as typeof BaseElement;
+    con.observedAttributes = deleteSubArr(con.observedAttributes, [attr]);
+  }
+  /**@helper */
+  disconnectAttribute(str: string, isAttr = false) {
+    this.__disconnectAttribute(str, isAttr);
+  }
+
+  /**@final */
+  __connectProperty(prop: string) {
+    if (prop in this) return;
+    const con = this.constructor as typeof BaseElement;
+    if (!con.observedPropertys) con.observedPropertys = [];
+    con.observedPropertys.push(prop);
+    let propValue: any = this[prop];
+    Object.defineProperty(this, prop, {
+      configurable: true,
+      get() {
+        return propValue;
+      },
+      set(v) {
+        if (v !== propValue) {
+          propValue = v;
+          if (this.__isMounted) {
+            this.propertyChanged(prop, propValue, v);
+            addMicrotask(this.__update);
           }
-        },
-      });
+        }
+      },
     });
   }
   /**@helper */
-  connectAttributes(attrList: string[], isAttr = false) {
-    this.__connectAttributes(attrList, isAttr);
+  connectProperty(prop: string) {
+    this.__connectProperty(prop);
   }
 
   /**@final */
-  __disconnectAttributes(attrList: string[]) {
-    attrList.forEach(prop => {
-      Object.defineProperty(this, prop, { configurable: true, enumerable: true, writable: true });
-    });
+  __disconnectProperty(prop: string) {
+    Object.defineProperty(this, prop, { configurable: true, enumerable: true, writable: true });
     const con = this.constructor as typeof BaseElement;
-    con.observedAttributes = deleteSubArr(con.observedAttributes, attrList);
+    con.observedPropertys = deleteSubArr(con.observedPropertys, [prop]);
   }
   /**@helper */
-  disconnectAttributes(attrList: string[]) {
-    this.__disconnectAttributes(attrList);
+  disconnectPropertys(prop: string) {
+    this.__disconnectProperty(prop);
   }
 
   /**@final */
-  __connectPropertys(propList: string[]) {
-    propList.forEach(prop => {
-      if (prop in this) return;
-      const con = this.constructor as typeof BaseElement;
-      if (!con.observedPropertys) con.observedPropertys = [];
-      con.observedPropertys.push(prop);
-      let propValue: any = this[prop];
-      Object.defineProperty(this, prop, {
-        configurable: true,
-        get() {
-          return propValue;
-        },
-        set(v) {
-          if (v !== propValue) {
-            propValue = v;
-            if (this.__isMounted) {
-              this.propertyChanged(prop, propValue, v);
-              addMicrotask(this.__update);
-            }
-          }
-        },
-      });
-    });
-  }
-  /**@helper */
-  connectPropertys(propList: string[]) {
-    this.__connectPropertys(propList);
-  }
+  __connectStore(store: Store<unknown>) {
+    if (!store[HANDLES_KEY]) {
+      throw new Error('`observedStores` only support store module');
+    }
 
-  /**@final */
-  __disconnectPropertys(propList: string[]) {
-    propList.forEach(prop => {
-      Object.defineProperty(this, prop, { configurable: true, enumerable: true, writable: true });
-    });
     const con = this.constructor as typeof BaseElement;
-    con.observedPropertys = deleteSubArr(con.observedPropertys, propList);
+    if (!con.observedStores) con.observedStores = [];
+    con.observedStores.push(store);
+    connect(store, this.__update);
   }
   /**@helper */
-  disconnectPropertys(propList: string[]) {
-    this.__disconnectPropertys(propList);
+  connectStore(store: Store<unknown>) {
+    this.__connectStore(store);
   }
 
   /**@final */
-  __connectStores(storeList: Store<unknown>[]) {
-    storeList.forEach(store => {
-      if (!store[HANDLES_KEY]) {
-        throw new Error('`observedStores` only support store module');
-      }
-
-      const con = this.constructor as typeof BaseElement;
-      if (!con.observedStores) con.observedStores = [];
-      con.observedStores.push(store);
-      connect(store, this.__update);
-    });
-  }
-  /**@helper */
-  connectStores(storeList: Store<unknown>[]) {
-    this.__connectStores(storeList);
-  }
-
-  /**@final */
-  __disconnectStores(storeList: Store<unknown>[]) {
-    storeList.forEach(store => {
-      disconnect(store, this.__update);
-    });
+  __disconnectStore(store: Store<unknown>) {
+    disconnect(store, this.__update);
     const con = this.constructor as typeof BaseElement;
-    con.observedStores = deleteSubArr(con.observedStores, storeList);
+    con.observedStores = deleteSubArr(con.observedStores, [store]);
   }
   /**@helper */
-  disconnectStores(storeList: Store<unknown>[]) {
-    this.__disconnectStores(storeList);
+  disconnectStore(store: Store<unknown>) {
+    this.__disconnectStore(store);
   }
 
   // 同步触发

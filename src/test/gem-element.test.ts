@@ -65,6 +65,19 @@ class DecoratorGemElement extends GemElement {
   }
 }
 
+@connectStore(store)
+@adoptedStyle(styles)
+@customElement('decorator-gem-demo2')
+class DecoratorGemElement2 extends GemElement {
+  static observedStores = [];
+  static adoptedStyleSheets = [];
+  renderCount = 0;
+  render() {
+    this.renderCount++;
+    return html``;
+  }
+}
+
 class DeferGemElement extends GemElement {
   /** @attr */ attr: string;
   static observedAttributes = ['attr'];
@@ -161,7 +174,7 @@ describe('基本 gem element 测试', () => {
     expect(el.renderCount).to.equal(1);
     await Promise.resolve();
     expect(el.renderCount).to.equal(2);
-    el.disconnectStores([store]);
+    el.disconnectStore(store);
     updateStore(store, { a: ++store.a });
     await nextFrame();
     expect(el.renderCount).to.equal(2);
@@ -173,6 +186,19 @@ describe('基本 gem element 测试', () => {
     expect(el.attr).to.equal('attr');
     expect(el.prop).to.eql({ value: 'prop' });
     expect(el).shadowDom.to.equal('attr: attr, prop: prop');
+    updateStore(store, { a: 3 });
+    await Promise.resolve();
+    expect(el.renderCount).to.equal(2);
+  });
+
+  it('装饰器和静态属性共存', async () => {
+    const el: DecoratorGemElement2 = await fixture(html`
+      <decorator-gem-demo2></decorator-gem-demo2>
+    `);
+    updateStore(store, { a: 3 });
+    await Promise.resolve();
+    expect(el.renderCount).to.equal(2);
+    expect(el.shadowRoot.adoptedStyleSheets.length).to.equal(1);
   });
 });
 
@@ -195,7 +221,7 @@ describe('动态测试', () => {
     const el: DynGemDemo = await fixture(html`
       <dyn-gem-demo></dyn-gem-demo>
     `);
-    el.connectAttributes(['attr']);
+    el.connectAttribute('attr');
     el.attr = 'ttt';
     expect(el.getAttribute('attr')).to.equal('ttt');
   });
@@ -203,7 +229,7 @@ describe('动态测试', () => {
     const el: DynGemDemo = await fixture(html`
       <dyn-gem-demo></dyn-gem-demo>
     `);
-    el.connectPropertys(['prop']);
+    el.connectProperty('prop');
     el.prop = true;
     await Promise.resolve();
     expect(el.renderCount).to.equal(1);
@@ -212,13 +238,13 @@ describe('动态测试', () => {
     const el: DynGemDemo = await fixture(html`
       <dyn-gem-demo></dyn-gem-demo>
     `);
-    el.connectStores([storeB]);
+    el.connectStore(storeB);
     updateStore(storeB, { b: ++storeB.b });
     await Promise.resolve();
     expect(el.renderCount).to.equal(1);
     await nextFrame();
     expect(el.renderCount).to.equal(2);
-    el.disconnectStores([storeB]);
+    el.disconnectStore(storeB);
     updateStore(storeB, { b: ++storeB.b });
     await nextFrame();
     expect(el.renderCount).to.equal(2);

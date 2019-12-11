@@ -2,11 +2,11 @@ import { BaseElement } from './element';
 import { Store } from './store';
 import { Sheet } from './utils';
 
-export function attribute(target: BaseElement, name: string): any {
-  target.connectAttributes([name]);
+export function attribute(target: BaseElement, attr: string): any {
+  target.connectAttribute(attr);
 }
-export function property(target: BaseElement, name: string): any {
-  target.connectPropertys([name]);
+export function property(target: BaseElement, prop: string): any {
+  target.connectProperty(prop);
 }
 export function customElement(name: string) {
   return function(cls: Function) {
