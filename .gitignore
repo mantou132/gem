@@ -10,6 +10,8 @@
 /test/
 /coverage/
 /helper/
+/examples/
+/build/
 
 .DS_Store
 logs
