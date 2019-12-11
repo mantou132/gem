@@ -39,39 +39,19 @@ if (window.__litHtml) {
 const { html, svg, render, directive, repeat, guard, ifDefined } = litHtml;
 export { html, svg, render, directive, repeat, guard, ifDefined, TemplateResult };
 
-const idElementMap = new Map<string, BaseElement<any>>();
-// id 必须全局唯一才能正确跳转
-// 只能检查自定义元素的 ID
-const checkHash = () => {
-  const hash = window.location.hash.substr(1);
-  if (hash) {
-    const element = idElementMap.get(hash);
-    if (element) {
-      element.scrollIntoView();
-    }
-  }
-};
-window.addEventListener('hashchange', checkHash);
-
-if (document.readyState === 'complete') {
-  checkHash();
-} else {
-  window.addEventListener('load', checkHash);
-}
-
 // final 字段如果使用 symbol 或者 private 将导致 modal-base 生成匿名子类 declaration 失败
 export abstract class BaseElement<T = {}> extends HTMLElement {
-  static observedAttributes = ['id']; // WebAPI 中是实时检查这个列表
-  static observedPropertys?: string[];
-  static observedStores?: Store<unknown>[];
-  static adoptedStyleSheets?: (CSSStyleSheet | Sheet<unknown>)[];
+  static observedAttributes: string[]; // WebAPI 中是实时检查这个列表
+  static observedPropertys: string[];
+  static observedStores: Store<unknown>[];
+  static adoptedStyleSheets: (CSSStyleSheet | Sheet<unknown>)[];
 
   readonly state: T;
 
   /**@final */
-  _renderRoot: HTMLElement | ShadowRoot;
+  __renderRoot: HTMLElement | ShadowRoot;
   /**@final */
-  _isMounted: boolean; // do't modify
+  __isMounted: boolean;
 
   constructor(shadow = true) {
     super();
@@ -80,30 +60,28 @@ export abstract class BaseElement<T = {}> extends HTMLElement {
     this.render = this.render.bind(this);
     this.mounted = this.mounted.bind(this);
     this.shouldUpdate = this.shouldUpdate.bind(this);
-    this.update = this.update.bind(this);
+    this.__update = this.__update.bind(this);
     this.updated = this.updated.bind(this);
-    this.connectAttributes = this.connectAttributes.bind(this);
-    this.disconnectAttributes = this.disconnectAttributes.bind(this);
-    this.connectPropertys = this.connectPropertys.bind(this);
-    this.disconnectPropertys = this.disconnectPropertys.bind(this);
-    this.connectStores = this.connectStores.bind(this);
-    this.disconnectStores = this.disconnectStores.bind(this);
+    this.__connectAttributes = this.__connectAttributes.bind(this);
+    this.__disconnectAttributes = this.__disconnectAttributes.bind(this);
+    this.__connectPropertys = this.__connectPropertys.bind(this);
+    this.__disconnectPropertys = this.__disconnectPropertys.bind(this);
+    this.__connectStores = this.__connectStores.bind(this);
+    this.__disconnectStores = this.__disconnectStores.bind(this);
     this.attributeChanged = this.attributeChanged.bind(this);
     this.propertyChanged = this.propertyChanged.bind(this);
     this.unmounted = this.unmounted.bind(this);
 
-    this._renderRoot = shadow ? this.attachShadow({ mode: 'open' }) : this;
+    this.__renderRoot = shadow ? this.attachShadow({ mode: 'open' }) : this;
     const { observedAttributes, observedPropertys, observedStores, adoptedStyleSheets } = new.target;
-    this.connectAttributes(observedAttributes, true);
-    if (!observedAttributes.includes('id')) {
-      // ID 更改是触发 update，更新 `idElementMap`
-      observedAttributes.push('id');
+    if (observedAttributes) {
+      this.__connectAttributes(observedAttributes, true);
     }
     if (observedPropertys) {
-      this.connectPropertys(observedPropertys);
+      this.__connectPropertys(observedPropertys);
     }
     if (observedStores) {
-      this.connectStores(observedStores);
+      this.__connectStores(observedStores);
     }
     if (adoptedStyleSheets) {
       if (this.shadowRoot) {
@@ -117,39 +95,48 @@ export abstract class BaseElement<T = {}> extends HTMLElement {
   /**@final */
   setState(payload: Partial<T>) {
     Object.assign(this.state, payload);
-    addMicrotask(this.update);
+    addMicrotask(this.__update);
   }
 
+  /**@lifecycle */
   willMount() {}
 
+  /**@lifecycle */
   render() {
     return html`
       <slot></slot>
     `;
   }
 
+  /**@lifecycle */
   mounted() {}
 
+  /**@lifecycle */
   shouldUpdate() {
     return true;
   }
 
   /**@final */
-  update() {
-    if (this._isMounted && this.shouldUpdate()) {
-      render(this.render(), this._renderRoot);
+  __update() {
+    if (this.__isMounted && this.shouldUpdate()) {
+      render(this.render(), this.__renderRoot);
       this.updated();
-      idElementMap.set(this.id, this);
     }
   }
 
+  /**@helper */
+  update() {
+    this.__update();
+  }
+
+  /**@lifecycle */
   updated() {}
 
   /**@final */
-  connectAttributes(attrList: string[], _isAttr = false) {
+  __connectAttributes(attrList: string[], isAttr = false) {
     attrList.forEach(str => {
-      const prop = _isAttr ? kebabToCamelCase(str) : str;
-      const attr = _isAttr ? str : camelToKebabCase(prop);
+      const prop = isAttr ? kebabToCamelCase(str) : str;
+      const attr = isAttr ? str : camelToKebabCase(prop);
       if (typeof this[prop] === 'function') {
         throw `Don't use attribute with the same name as native methods`;
       }
@@ -157,6 +144,7 @@ export abstract class BaseElement<T = {}> extends HTMLElement {
       // e.g: `id`, `title`, `hidden`, `alt`, `lang`
       if (this[prop] !== undefined) return;
       const con = this.constructor as typeof BaseElement;
+      if (!con.observedAttributes) con.observedAttributes = [];
       con.observedAttributes.push(attr);
       // !!! Custom property shortcut access only supports `string` type
       Object.defineProperty(this, prop, {
@@ -175,18 +163,26 @@ export abstract class BaseElement<T = {}> extends HTMLElement {
       });
     });
   }
+  /**@helper */
+  connectAttributes(attrList: string[], isAttr = false) {
+    this.__connectAttributes(attrList, isAttr);
+  }
 
   /**@final */
-  disconnectAttributes(attrList: string[]) {
+  __disconnectAttributes(attrList: string[]) {
     attrList.forEach(prop => {
       Object.defineProperty(this, prop, { configurable: true, enumerable: true, writable: true });
     });
     const con = this.constructor as typeof BaseElement;
     con.observedAttributes = deleteSubArr(con.observedAttributes, attrList);
   }
+  /**@helper */
+  disconnectAttributes(attrList: string[]) {
+    this.__disconnectAttributes(attrList);
+  }
 
   /**@final */
-  connectPropertys(propList: string[]) {
+  __connectPropertys(propList: string[]) {
     propList.forEach(prop => {
       if (prop in this) return;
       const con = this.constructor as typeof BaseElement;
@@ -201,27 +197,35 @@ export abstract class BaseElement<T = {}> extends HTMLElement {
         set(v) {
           if (v !== propValue) {
             propValue = v;
-            if (this._isMounted) {
+            if (this.__isMounted) {
               this.propertyChanged(prop, propValue, v);
-              addMicrotask(this.update);
+              addMicrotask(this.__update);
             }
           }
         },
       });
     });
   }
+  /**@helper */
+  connectPropertys(propList: string[]) {
+    this.__connectPropertys(propList);
+  }
 
   /**@final */
-  disconnectPropertys(propList: string[]) {
+  __disconnectPropertys(propList: string[]) {
     propList.forEach(prop => {
       Object.defineProperty(this, prop, { configurable: true, enumerable: true, writable: true });
     });
     const con = this.constructor as typeof BaseElement;
     con.observedPropertys = deleteSubArr(con.observedPropertys, propList);
   }
+  /**@helper */
+  disconnectPropertys(propList: string[]) {
+    this.__disconnectPropertys(propList);
+  }
 
   /**@final */
-  connectStores(storeList: Store<unknown>[]) {
+  __connectStores(storeList: Store<unknown>[]) {
     storeList.forEach(store => {
       if (!store[HANDLES_KEY]) {
         throw new Error('`observedStores` only support store module');
@@ -230,32 +234,43 @@ export abstract class BaseElement<T = {}> extends HTMLElement {
       const con = this.constructor as typeof BaseElement;
       if (!con.observedStores) con.observedStores = [];
       con.observedStores.push(store);
-      connect(store, this.update);
+      connect(store, this.__update);
     });
+  }
+  /**@helper */
+  connectStores(storeList: Store<unknown>[]) {
+    this.__connectStores(storeList);
   }
 
   /**@final */
-  disconnectStores(storeList: Store<unknown>[]) {
+  __disconnectStores(storeList: Store<unknown>[]) {
     storeList.forEach(store => {
-      disconnect(store, this.update);
+      disconnect(store, this.__update);
     });
     const con = this.constructor as typeof BaseElement;
     con.observedStores = deleteSubArr(con.observedStores, storeList);
   }
+  /**@helper */
+  disconnectStores(storeList: Store<unknown>[]) {
+    this.__disconnectStores(storeList);
+  }
 
   // 同步触发
+  /**@lifecycle */
   propertyChanged(_name: string, _oldValue: any, _newValue: any) {}
   // 异步触发
+  /**@lifecycle */
   attributeChanged(_name: string, _oldValue: string, _newValue: string) {}
 
+  /**@lifecycle */
   unmounted() {}
 
   /**@private */
   /**@final */
   attributeChangedCallback(name: string, oldValue: string, newValue: string) {
-    if (this._isMounted) {
+    if (this.__isMounted) {
       this.attributeChanged(name, oldValue, newValue);
-      addMicrotask(this.update);
+      addMicrotask(this.__update);
     }
   }
 
@@ -269,11 +284,11 @@ export abstract class BaseElement<T = {}> extends HTMLElement {
     const constructor = this.constructor as typeof BaseElement;
     if (constructor.observedStores) {
       constructor.observedStores.forEach(store => {
-        disconnect(store, this.update);
+        disconnect(store, this.__update);
       });
     }
     this.unmounted();
-    this._isMounted = false;
+    this.__isMounted = false;
   }
 }
 
@@ -282,10 +297,9 @@ export abstract class GemElement<T = {}> extends BaseElement<T> {
   /**@final */
   connectedCallback() {
     this.willMount();
-    render(this.render(), this._renderRoot);
+    render(this.render(), this.__renderRoot);
     this.mounted();
-    idElementMap.set(this.id, this);
-    this._isMounted = true;
+    this.__isMounted = true;
   }
 }
 
@@ -316,12 +330,11 @@ renderTaskPool.addEventListener('end', () => (loop = false));
 
 export abstract class AsyncGemElement<T = {}> extends BaseElement<T> {
   /**@final */
-  update() {
+  __update() {
     renderTaskPool.add(() => {
       if (this.shouldUpdate()) {
-        render(this.render(), this._renderRoot);
+        render(this.render(), this.__renderRoot);
         this.updated();
-        idElementMap.set(this.id, this);
       }
     });
   }
@@ -331,10 +344,9 @@ export abstract class AsyncGemElement<T = {}> extends BaseElement<T> {
   connectedCallback() {
     this.willMount();
     renderTaskPool.add(() => {
-      render(this.render(), this._renderRoot);
+      render(this.render(), this.__renderRoot);
       this.mounted();
-      idElementMap.set(this.id, this);
-      this._isMounted = true;
+      this.__isMounted = true;
     });
   }
 }
