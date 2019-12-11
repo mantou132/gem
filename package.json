@@ -16,7 +16,8 @@
   "typings": "index.d.ts",
   "scripts": {
     "lint": "tsc --noEmit && eslint --ext .ts --fix src/",
-    "build": "rm -rf `ls src` && tsc",
+    "clean": "node -e \"fs.readdirSync('src').map(dir => require('rimraf').sync(dir))\"",
+    "build": "npm run clean && tsc",
     "prepare": "npm run lint && npm run test",
     "example": "webpack-dev-server",
     "test": "npm run build && karma start --coverage",
@@ -54,6 +55,7 @@
     "husky": "^2.7.0",
     "lint-staged": "^8.2.1",
     "prettier": "^1.19.1",
+    "rimraf": "^3.0.0",
     "ts-loader": "^6.2.1",
     "typescript": "^3.7.2",
     "webpack": "^4.41.2",
