@@ -1,4 +1,5 @@
 const path = require('path');
+const webpack = require('webpack');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 
 const hello = 'hello-world';
@@ -6,7 +7,7 @@ const example = process.env.NAME || hello;
 const tip = '使用 `NAME=[example-name] npm run example` 指定用例';
 
 module.exports = {
-  entry: `./src/examples/${example}/`,
+  entry: `./src/examples/${example}`,
   module: {
     rules: [
       {
@@ -25,6 +26,7 @@ module.exports = {
     path: path.resolve(__dirname, 'build', example),
   },
   plugins: [
+    new webpack.EnvironmentPlugin(['NODE_ENV', 'NAME', 'EXAMPLES', 'npm_package_version']),
     new HtmlWebpackPlugin(),
     {
       apply(compiler) {
