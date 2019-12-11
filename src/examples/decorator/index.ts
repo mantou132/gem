@@ -1,13 +1,31 @@
-import { createStore, updateStore, GemElement, html, attribute, connectStore, customElement } from '../../';
+import {
+  createStore,
+  updateStore,
+  createCSSSheet,
+  GemElement,
+  html,
+  attribute,
+  connectStore,
+  customElement,
+} from '../../';
 import { Message } from './chidren';
 import './chidren';
+import { css } from '../../lib/utils';
+import { adoptedStyle } from '../../lib/decorators';
 
 const store = createStore<{ msg: Message; now: Date }>({
   msg: [1, 2],
   now: new Date(),
 });
 
+const styles = createCSSSheet(css`
+  h1 {
+    text-decoration: underline;
+  }
+`);
+
 @connectStore(store)
+@adoptedStyle(styles)
 @customElement('app-root')
 class App extends GemElement {
   constructor(title: string) {
