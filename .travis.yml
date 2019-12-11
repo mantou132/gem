@@ -8,7 +8,7 @@ branches:
     - /^v?\d+(\.\d+){1,2}.*/
 
 before_deploy:
-  - npm run build:examples
+  - node scripts/build-examples.js
 
 deploy:
   provider: pages
