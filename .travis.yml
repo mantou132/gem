@@ -5,3 +5,13 @@ node_js: 12
 branches:
   only:
     - master
+
+deploy:
+  script: npm run build:examples
+  provider: pages
+  skip_cleanup: true
+  github_token: $GITHUB_TOKEN
+  keep_history: true
+  on:
+    branch: master
+    tags: true
