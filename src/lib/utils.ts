@@ -226,3 +226,19 @@ export const styled = {
     return flatStyled(style, 'tag');
   },
 };
+
+export function camelToKebabCase(str: string) {
+  return str.replace(/[A-Z]/g, ($1: string) => '-' + $1.toLowerCase());
+}
+
+export function kebabToCamelCase(str: string) {
+  return str.replace(/-(.)/g, (_substr, $1: string) => $1.toUpperCase());
+}
+
+export function deleteSubArr<T>(originArr: T[], arr: T[]) {
+  const set = new Set(originArr);
+  arr.forEach(item => {
+    set.delete(item);
+  });
+  return [...set];
+}

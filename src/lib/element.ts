@@ -3,7 +3,7 @@
 import * as lit from 'lit-html';
 import { TemplateResult } from 'lit-html';
 import { connect, disconnect, HANDLES_KEY, Store } from './store';
-import { Pool, addMicrotask, Sheet } from './utils';
+import { Pool, addMicrotask, Sheet, camelToKebabCase, kebabToCamelCase, deleteSubArr } from './utils';
 
 import { repeat as litRepeat } from 'lit-html/directives/repeat';
 import { guard as litGuard } from 'lit-html/directives/guard';
@@ -64,7 +64,7 @@ export abstract class BaseElement<T = {}> extends HTMLElement {
   static observedAttributes = ['id']; // WebAPI 中是实时检查这个列表
   static observedPropertys?: string[];
   static observedStores?: Store<unknown>[];
-  static adoptedStyleSheets?: CSSStyleSheet[] | Sheet<unknown>[];
+  static adoptedStyleSheets?: (CSSStyleSheet | Sheet<unknown>)[];
 
   readonly state: T;
 
@@ -82,6 +82,10 @@ export abstract class BaseElement<T = {}> extends HTMLElement {
     this.shouldUpdate = this.shouldUpdate.bind(this);
     this.update = this.update.bind(this);
     this.updated = this.updated.bind(this);
+    this.connectAttributes = this.connectAttributes.bind(this);
+    this.disconnectAttributes = this.disconnectAttributes.bind(this);
+    this.connectPropertys = this.connectPropertys.bind(this);
+    this.disconnectPropertys = this.disconnectPropertys.bind(this);
     this.connectStores = this.connectStores.bind(this);
     this.disconnectStores = this.disconnectStores.bind(this);
     this.attributeChanged = this.attributeChanged.bind(this);
@@ -90,63 +94,16 @@ export abstract class BaseElement<T = {}> extends HTMLElement {
 
     this._renderRoot = shadow ? this.attachShadow({ mode: 'open' }) : this;
     const { observedAttributes, observedPropertys, observedStores, adoptedStyleSheets } = new.target;
-    if (observedAttributes) {
-      observedAttributes.forEach(attr => {
-        const prop = attr.replace(/-(.)/g, (_substr, $1: string) => $1.toUpperCase());
-        if (typeof this[prop] === 'function') {
-          throw `Don't use attribute with the same name as native methods`;
-        }
-        // Native attribute，no need difine property
-        // e.g: `id`, `title`, `hidden`, `alt`, `lang`
-        if (this[prop] !== undefined) return;
-        // !!! Custom property shortcut access only supports `string` type
-        Object.defineProperty(this, prop, {
-          get: () => {
-            // Return empty string if attribute does not exist
-            return this.getAttribute(attr) || '';
-          },
-          set: (v: string) => {
-            if (v === null) {
-              this.removeAttribute(attr);
-            } else {
-              this.setAttribute(attr, v);
-            }
-          },
-        });
-      });
-    }
-    if (observedAttributes && !observedAttributes.includes('id')) {
+    this.connectAttributes(observedAttributes, true);
+    if (!observedAttributes.includes('id')) {
       // ID 更改是触发 update，更新 `idElementMap`
       observedAttributes.push('id');
     }
     if (observedPropertys) {
-      observedPropertys.forEach(prop => {
-        if (prop in this) console.warn(`\`${prop}\` prop duplicate definition`);
-        let propValue: any = this[prop];
-        Object.defineProperty(this, prop, {
-          get: () => {
-            return propValue;
-          },
-          set: v => {
-            if (v !== propValue) {
-              propValue = v;
-              if (this._isMounted) {
-                this.propertyChanged(prop, propValue, v);
-                addMicrotask(this.update);
-              }
-            }
-          },
-        });
-      });
+      this.connectPropertys(observedPropertys);
     }
     if (observedStores) {
-      observedStores.forEach(store => {
-        if (!store[HANDLES_KEY]) {
-          throw new Error('`observedStores` only support store module');
-        }
-
-        connect(store, this.update);
-      });
+      this.connectStores(observedStores);
     }
     if (adoptedStyleSheets) {
       if (this.shadowRoot) {
@@ -189,8 +146,90 @@ export abstract class BaseElement<T = {}> extends HTMLElement {
   updated() {}
 
   /**@final */
+  connectAttributes(attrList: string[], _isAttr = false) {
+    attrList.forEach(str => {
+      const prop = _isAttr ? kebabToCamelCase(str) : str;
+      const attr = _isAttr ? str : camelToKebabCase(prop);
+      if (typeof this[prop] === 'function') {
+        throw `Don't use attribute with the same name as native methods`;
+      }
+      // Native attribute，no need difine property
+      // e.g: `id`, `title`, `hidden`, `alt`, `lang`
+      if (this[prop] !== undefined) return;
+      const con = this.constructor as typeof BaseElement;
+      con.observedAttributes.push(attr);
+      // !!! Custom property shortcut access only supports `string` type
+      Object.defineProperty(this, prop, {
+        configurable: true,
+        get() {
+          // Return empty string if attribute does not exist
+          return this.getAttribute(attr) || '';
+        },
+        set(v: string) {
+          if (v === null) {
+            this.removeAttribute(attr);
+          } else {
+            this.setAttribute(attr, v);
+          }
+        },
+      });
+    });
+  }
+
+  /**@final */
+  disconnectAttributes(attrList: string[]) {
+    attrList.forEach(prop => {
+      Object.defineProperty(this, prop, { configurable: true, enumerable: true, writable: true });
+    });
+    const con = this.constructor as typeof BaseElement;
+    con.observedAttributes = deleteSubArr(con.observedAttributes, attrList);
+  }
+
+  /**@final */
+  connectPropertys(propList: string[]) {
+    propList.forEach(prop => {
+      if (prop in this) return;
+      const con = this.constructor as typeof BaseElement;
+      if (!con.observedPropertys) con.observedPropertys = [];
+      con.observedPropertys.push(prop);
+      let propValue: any = this[prop];
+      Object.defineProperty(this, prop, {
+        configurable: true,
+        get() {
+          return propValue;
+        },
+        set(v) {
+          if (v !== propValue) {
+            propValue = v;
+            if (this._isMounted) {
+              this.propertyChanged(prop, propValue, v);
+              addMicrotask(this.update);
+            }
+          }
+        },
+      });
+    });
+  }
+
+  /**@final */
+  disconnectPropertys(propList: string[]) {
+    propList.forEach(prop => {
+      Object.defineProperty(this, prop, { configurable: true, enumerable: true, writable: true });
+    });
+    const con = this.constructor as typeof BaseElement;
+    con.observedPropertys = deleteSubArr(con.observedPropertys, propList);
+  }
+
+  /**@final */
   connectStores(storeList: Store<unknown>[]) {
     storeList.forEach(store => {
+      if (!store[HANDLES_KEY]) {
+        throw new Error('`observedStores` only support store module');
+      }
+
+      const con = this.constructor as typeof BaseElement;
+      if (!con.observedStores) con.observedStores = [];
+      con.observedStores.push(store);
       connect(store, this.update);
     });
   }
@@ -200,6 +239,8 @@ export abstract class BaseElement<T = {}> extends HTMLElement {
     storeList.forEach(store => {
       disconnect(store, this.update);
     });
+    const con = this.constructor as typeof BaseElement;
+    con.observedStores = deleteSubArr(con.observedStores, storeList);
   }
 
   // 同步触发
