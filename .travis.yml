@@ -5,6 +5,7 @@ node_js: 12
 branches:
   only:
     - master
+    - /^v?\d+(\.\d+){1,2}.*/
 
 deploy:
   script: npm run build:examples
