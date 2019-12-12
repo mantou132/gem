@@ -3,7 +3,7 @@
 import * as lit from 'lit-html';
 import { TemplateResult } from 'lit-html';
 import { connect, disconnect, HANDLES_KEY, Store } from './store';
-import { Pool, addMicrotask, Sheet, camelToKebabCase, kebabToCamelCase, deleteSubArr } from './utils';
+import { Pool, addMicrotask, Sheet, camelToKebabCase, kebabToCamelCase, deleteSubArr, emptyFunction } from './utils';
 
 import { repeat as litRepeat } from 'lit-html/directives/repeat';
 import { guard as litGuard } from 'lit-html/directives/guard';
@@ -45,6 +45,7 @@ export abstract class BaseElement<T = {}> extends HTMLElement {
   static observedPropertys: string[];
   static observedStores: Store<unknown>[];
   static adoptedStyleSheets: (CSSStyleSheet | Sheet<unknown>)[];
+  static defineEvents: string[];
 
   readonly state: T;
 
@@ -73,10 +74,15 @@ export abstract class BaseElement<T = {}> extends HTMLElement {
     this.unmounted = this.unmounted.bind(this);
 
     this.__renderRoot = shadow ? this.attachShadow({ mode: 'open' }) : this;
-    const { observedAttributes, observedPropertys, observedStores, adoptedStyleSheets } = new.target;
+    const { observedAttributes, observedPropertys, defineEvents, observedStores, adoptedStyleSheets } = new.target;
     if (observedAttributes) {
       observedAttributes.forEach(attr => {
         this.__connectAttribute(attr, true);
+      });
+    }
+    if (defineEvents) {
+      defineEvents.forEach(event => {
+        this[event] = emptyFunction;
       });
     }
     if (observedPropertys) {
@@ -183,6 +189,31 @@ export abstract class BaseElement<T = {}> extends HTMLElement {
   /**@helper */
   disconnectAttribute(str: string, isAttr = false) {
     this.__disconnectAttribute(str, isAttr);
+  }
+
+  /**@final */
+  __defineEvent(event: string) {
+    const con = this.constructor as typeof BaseElement;
+    if (!con.defineEvents) con.defineEvents = [];
+    con.defineEvents.push(event);
+    let propValue: any = this[event];
+    Object.defineProperty(this, event, {
+      configurable: true,
+      get() {
+        return propValue;
+      },
+      set(v: any) {
+        if (v.isEventHandle) throw `Don't assign a wrapped event handler`;
+        propValue = (data: any) => {
+          this.dispatchEvent(
+            new CustomEvent(event.toLowerCase(), {
+              detail: data instanceof Event ? null : data,
+            }),
+          );
+        };
+        propValue.isEventHandle = true;
+      },
+    });
   }
 
   /**@final */

@@ -8,6 +8,9 @@ export function attribute(target: BaseElement, attr: string): any {
 export function property(target: BaseElement, prop: string): any {
   target.connectProperty(prop);
 }
+export function emitter(target: BaseElement, event: string): any {
+  target.__defineEvent(event);
+}
 export function customElement(name: string) {
   return function(cls: Function) {
     customElements.define(name, cls);

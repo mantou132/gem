@@ -46,7 +46,13 @@ class App extends GemElement {
   render() {
     return html`
       <h1>${this.appTitle}</h1>
-      <app-children @say-hi=${this.onSayHi} .message=${store.msg} first-name="hello" last-name="world">
+      <app-children
+        @load=${console.log}
+        @sayhi=${this.onSayHi}
+        .message=${store.msg}
+        first-name="hello"
+        last-name="world"
+      >
         <p slot="light">now: ${store.now}</p>
       </app-children>
     `;

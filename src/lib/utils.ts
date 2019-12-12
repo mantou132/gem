@@ -242,3 +242,7 @@ export function deleteSubArr<T>(originArr: T[], arr: T[]) {
   });
   return [...set];
 }
+
+export function emptyFunction() {
+  // 用于占位的空函数
+}
