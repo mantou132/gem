@@ -65,6 +65,7 @@ document.body.append(document.createElement('app-root'));
 ## 相关 repo
 
 - [gem-boilerplate](https://github.com/mantou132/gem-boilerplate)
+- [gem-lib-boilerplate](https://github.com/mantou132/gem-lib-boilerplate)
 - [gem-devtools](https://github.com/mantou132/gem-devtools)
 - [create-gem-app](https://github.com/mantou132/create-gem-app)
 
@@ -99,20 +100,19 @@ document.body.append(document.createElement('app-root'));
 | porpertyChanged  | 更新元素 `porperty` 的回调                  |
 | unmounted        | 卸载元素后的回调                            |
 
-| 只读方法         | 描述                                              |
-| ---------------- | ------------------------------------------------- |
-| setState         | 使用 `Object.assign` 更新 `State`, 并自动触发更新 |
-| update           | 重新调用 render 并更新元素                        |
-| disconnectStores | 断开元素监听的 `Store`                            |
+| 只读方法 | 描述                                              |
+| -------- | ------------------------------------------------- |
+| setState | 使用 `Object.assign` 更新 `State`, 并自动触发更新 |
+| update   | 重新调用 render 并更新元素                        |
 
-| 其他   | 描述                              |
-| ------ | --------------------------------- |
-| render | 渲染元素                          |
-| state  | 指定元素 `State`, 通过 `setState` |
+| 其他   | 描述                                   |
+| ------ | -------------------------------------- |
+| render | 渲染元素                               |
+| state  | 指定元素 `State`, 通过 `setState` 修改 |
 
 ### AsyncGemElement
 
-和 `GemElement` 不同的是, 会使用 `requestAnimationFrame` 进行异步渲染, 不会阻塞主线程
+和 `GemElement` 不同的是, `AsyncGemElement` 会使用 `requestAnimationFrame` 进行异步列队渲染, 不会阻塞主线程
 
 ### history
 
@@ -127,6 +127,16 @@ document.body.append(document.createElement('app-root'));
 | pushState              | 添加一条相同 URL 的历史记录                 |
 | replace                | 替换当前历史记录                            |
 | replaceState           | 替换当前历史记录的非 URL 属性               |
+
+### TS 装饰器
+
+| 属性          | 描述                                                           |
+| ------------- | -------------------------------------------------------------- |
+| customElement | 定义自定义元素                                                 |
+| connectStore  | 绑定 Store 到 gem 元素                                         |
+| attribute     | 注册 attribute 到 gem 元素                                     |
+| property      | 注册 property 到 gem 元素                                      |
+| emitter       | 注册 event 到 gem 元素，调用触发该事件，类似 `element.click()` |
 
 ## 自定义元素
 
