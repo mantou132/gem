@@ -235,14 +235,6 @@ export function kebabToCamelCase(str: string) {
   return str.replace(/-(.)/g, (_substr, $1: string) => $1.toUpperCase());
 }
 
-export function deleteSubArr<T>(originArr: T[], arr: T[]) {
-  const set = new Set(originArr);
-  arr.forEach(item => {
-    set.delete(item);
-  });
-  return [...set];
-}
-
 export function emptyFunction() {
   // 用于占位的空函数
 }

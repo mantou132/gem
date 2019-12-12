@@ -184,10 +184,6 @@ describe('基本 gem element 测试', () => {
     expect(el.renderCount).to.equal(1);
     await Promise.resolve();
     expect(el.renderCount).to.equal(2);
-    el.disconnectStore(store);
-    updateStore(store, { a: ++store.a });
-    await nextFrame();
-    expect(el.renderCount).to.equal(2);
   });
   it('装饰器定义的自定义元素', async () => {
     let a = 1;
@@ -217,65 +213,6 @@ describe('基本 gem element 测试', () => {
     await Promise.resolve();
     expect(el.renderCount).to.equal(2);
     expect(el.shadowRoot.adoptedStyleSheets.length).to.equal(1);
-  });
-});
-
-const storeB = createStore({
-  b: 1,
-});
-class DynGemDemo extends AsyncGemElement {
-  attr: string;
-  prop: boolean;
-  renderCount = 0;
-  render() {
-    this.renderCount++;
-    return html``;
-  }
-}
-customElements.define('dyn-gem-demo', DynGemDemo);
-
-describe('动态测试', () => {
-  it('动态监听 attr', async () => {
-    const el: DynGemDemo = await fixture(html`
-      <dyn-gem-demo></dyn-gem-demo>
-    `);
-    el.connectAttribute('attr');
-    el.attr = 'ttt';
-    expect(el.getAttribute('attr')).to.equal('ttt');
-    el.disconnectAttribute('attr');
-    el.attr = 'ccc';
-    await Promise.resolve();
-    expect(el.attr).to.equal('ccc');
-    expect(el.getAttribute('attr')).to.equal('ttt');
-  });
-  it('动态监听 prop', async () => {
-    const el: DynGemDemo = await fixture(html`
-      <dyn-gem-demo></dyn-gem-demo>
-    `);
-    el.connectProperty('prop');
-    el.prop = true;
-    await Promise.resolve();
-    expect(el.renderCount).to.equal(1);
-    el.disconnectPropertys('prop');
-    el.prop = false;
-    await Promise.resolve();
-    expect(el.renderCount).to.equal(1);
-    expect(el.prop).to.equal(false);
-  });
-  it('动态监听 store', async () => {
-    const el: DynGemDemo = await fixture(html`
-      <dyn-gem-demo></dyn-gem-demo>
-    `);
-    el.connectStore(storeB);
-    updateStore(storeB, { b: ++storeB.b });
-    await Promise.resolve();
-    expect(el.renderCount).to.equal(1);
-    await nextFrame();
-    expect(el.renderCount).to.equal(2);
-    el.disconnectStore(storeB);
-    updateStore(storeB, { b: ++storeB.b });
-    await nextFrame();
-    expect(el.renderCount).to.equal(2);
   });
 });
 

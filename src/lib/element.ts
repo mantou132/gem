@@ -3,7 +3,7 @@
 import * as lit from 'lit-html';
 import { TemplateResult } from 'lit-html';
 import { connect, disconnect, HANDLES_KEY, Store } from './store';
-import { Pool, addMicrotask, Sheet, camelToKebabCase, kebabToCamelCase, deleteSubArr, emptyFunction } from './utils';
+import { Pool, addMicrotask, Sheet, kebabToCamelCase, emptyFunction } from './utils';
 
 import { repeat as litRepeat } from 'lit-html/directives/repeat';
 import { guard as litGuard } from 'lit-html/directives/guard';
@@ -41,6 +41,7 @@ export { html, svg, render, directive, repeat, guard, ifDefined, TemplateResult 
 
 // final 字段如果使用 symbol 或者 private 将导致 modal-base 生成匿名子类 declaration 失败
 export abstract class BaseElement<T = {}> extends HTMLElement {
+  // 这里只是字段申明，不能赋值，否则子类会继承被共享该字段
   static observedAttributes: string[]; // WebAPI 中是实时检查这个列表
   static observedPropertys: string[];
   static observedStores: Store<unknown>[];
@@ -63,12 +64,6 @@ export abstract class BaseElement<T = {}> extends HTMLElement {
     this.shouldUpdate = this.shouldUpdate.bind(this);
     this.__update = this.__update.bind(this);
     this.updated = this.updated.bind(this);
-    this.__connectAttribute = this.__connectAttribute.bind(this);
-    this.__disconnectAttribute = this.__disconnectAttribute.bind(this);
-    this.__connectProperty = this.__connectProperty.bind(this);
-    this.__disconnectProperty = this.__disconnectProperty.bind(this);
-    this.__connectStore = this.__connectStore.bind(this);
-    this.__disconnectStore = this.__disconnectStore.bind(this);
     this.attributeChanged = this.attributeChanged.bind(this);
     this.propertyChanged = this.propertyChanged.bind(this);
     this.unmounted = this.unmounted.bind(this);
@@ -77,22 +72,48 @@ export abstract class BaseElement<T = {}> extends HTMLElement {
     const { observedAttributes, observedPropertys, defineEvents, observedStores, adoptedStyleSheets } = new.target;
     if (observedAttributes) {
       observedAttributes.forEach(attr => {
-        this.__connectAttribute(attr, true);
-      });
-    }
-    if (defineEvents) {
-      defineEvents.forEach(event => {
-        this[event] = emptyFunction;
+        const prop = kebabToCamelCase(attr);
+        if (typeof this[prop] === 'function') {
+          throw `Don't use attribute with the same name as native methods`;
+        }
+        // Native attribute，no need difine property
+        // e.g: `id`, `title`, `hidden`, `alt`, `lang`
+        if (this[prop] !== undefined) return;
+        // !!! Custom property shortcut access only supports `string` type
+        Object.defineProperty(this, prop, {
+          configurable: true,
+          get() {
+            // Return empty string if attribute does not exist
+            return this.getAttribute(attr) || '';
+          },
+          set(v: string) {
+            if (v === null) {
+              this.removeAttribute(attr);
+            } else {
+              this.setAttribute(attr, v);
+            }
+          },
+        });
       });
     }
     if (observedPropertys) {
       observedPropertys.forEach(prop => {
-        this.__connectProperty(prop);
+        this.__connectProperty(prop, false);
+      });
+    }
+    if (defineEvents) {
+      defineEvents.forEach(event => {
+        this.__connectProperty(event, true);
+        this[event] = emptyFunction;
       });
     }
     if (observedStores) {
       observedStores.forEach(store => {
-        this.__connectStore(store);
+        if (!store[HANDLES_KEY]) {
+          throw new Error('`observedStores` only support store module');
+        }
+
+        connect(store, this.__update);
       });
     }
     if (adoptedStyleSheets) {
@@ -102,6 +123,37 @@ export abstract class BaseElement<T = {}> extends HTMLElement {
         document.adoptedStyleSheets = document.adoptedStyleSheets.concat(adoptedStyleSheets);
       }
     }
+  }
+
+  /**@final */
+  __connectProperty(prop: string, isEventHandle = false) {
+    if (prop in this) return;
+    let propValue: any = this[prop];
+    Object.defineProperty(this, prop, {
+      configurable: true,
+      get() {
+        return propValue;
+      },
+      set(v) {
+        if (v !== propValue) {
+          if (isEventHandle) {
+            if (v.isEventHandle) throw `Don't assign a wrapped event handler`;
+            propValue = (detail: any) => {
+              const evt = new CustomEvent(prop.toLowerCase(), { detail });
+              this.dispatchEvent(evt);
+              v(evt);
+            };
+            propValue.isEventHandle = true;
+          } else {
+            propValue = v;
+          }
+          if (this.__isMounted) {
+            this.propertyChanged(prop, propValue, v);
+            addMicrotask(this.__update);
+          }
+        }
+      },
+    });
   }
 
   /**@final */
@@ -143,138 +195,6 @@ export abstract class BaseElement<T = {}> extends HTMLElement {
 
   /**@lifecycle */
   updated() {}
-
-  /**@final */
-  __connectAttribute(str: string, isAttr = false) {
-    const prop = isAttr ? kebabToCamelCase(str) : str;
-    const attr = isAttr ? str : camelToKebabCase(prop);
-    if (typeof this[prop] === 'function') {
-      throw `Don't use attribute with the same name as native methods`;
-    }
-    // Native attribute，no need difine property
-    // e.g: `id`, `title`, `hidden`, `alt`, `lang`
-    if (this[prop] !== undefined) return;
-    const con = this.constructor as typeof BaseElement;
-    if (!con.observedAttributes) con.observedAttributes = [];
-    con.observedAttributes.push(attr);
-    // !!! Custom property shortcut access only supports `string` type
-    Object.defineProperty(this, prop, {
-      configurable: true,
-      get() {
-        // Return empty string if attribute does not exist
-        return this.getAttribute(attr) || '';
-      },
-      set(v: string) {
-        if (v === null) {
-          this.removeAttribute(attr);
-        } else {
-          this.setAttribute(attr, v);
-        }
-      },
-    });
-  }
-  /**@helper */
-  connectAttribute(str: string, isAttr = false) {
-    this.__connectAttribute(str, isAttr);
-  }
-
-  /**@final */
-  __disconnectAttribute(str: string, isAttr = false) {
-    const prop = isAttr ? kebabToCamelCase(str) : str;
-    const attr = isAttr ? str : camelToKebabCase(prop);
-    Object.defineProperty(this, prop, { configurable: true, enumerable: true, writable: true });
-    const con = this.constructor as typeof BaseElement;
-    con.observedAttributes = deleteSubArr(con.observedAttributes, [attr]);
-  }
-  /**@helper */
-  disconnectAttribute(str: string, isAttr = false) {
-    this.__disconnectAttribute(str, isAttr);
-  }
-
-  /**@final */
-  __connectProperty(prop: string, isEventHandle = false) {
-    if (prop in this) return;
-    const con = this.constructor as typeof BaseElement;
-    if (isEventHandle) {
-      if (!con.defineEvents) con.defineEvents = [];
-      con.defineEvents.push(prop);
-    } else {
-      if (!con.observedPropertys) con.observedPropertys = [];
-      con.observedPropertys.push(prop);
-    }
-    let propValue: any = this[prop];
-    Object.defineProperty(this, prop, {
-      configurable: true,
-      get() {
-        return propValue;
-      },
-      set(v) {
-        if (v !== propValue) {
-          if (isEventHandle) {
-            if (v.isEventHandle) throw `Don't assign a wrapped event handler`;
-            propValue = (detail: any) => {
-              const evt = new CustomEvent(prop.toLowerCase(), { detail });
-              this.dispatchEvent(evt);
-              v(evt);
-            };
-            propValue.isEventHandle = true;
-          } else {
-            propValue = v;
-          }
-          if (this.__isMounted) {
-            this.propertyChanged(prop, propValue, v);
-            addMicrotask(this.__update);
-          }
-        }
-      },
-    });
-  }
-  /**@helper */
-  connectProperty(prop: string, isEventHandle = false) {
-    this.__connectProperty(prop, isEventHandle);
-  }
-
-  /**@final */
-  __disconnectProperty(prop: string, isEventHandle = false) {
-    Object.defineProperty(this, prop, { configurable: true, enumerable: true, writable: true });
-    const con = this.constructor as typeof BaseElement;
-    if (isEventHandle) {
-      con.defineEvents = deleteSubArr(con.defineEvents, [prop]);
-    } else {
-      con.observedPropertys = deleteSubArr(con.observedPropertys, [prop]);
-    }
-  }
-  /**@helper */
-  disconnectPropertys(prop: string, isEventHandle = false) {
-    this.__disconnectProperty(prop, isEventHandle);
-  }
-
-  /**@final */
-  __connectStore(store: Store<unknown>) {
-    if (!store[HANDLES_KEY]) {
-      throw new Error('`observedStores` only support store module');
-    }
-
-    const con = this.constructor as typeof BaseElement;
-    if (!con.observedStores) con.observedStores = [];
-    con.observedStores.push(store);
-    connect(store, this.__update);
-  }
-  /**@helper */
-  connectStore(store: Store<unknown>) {
-    this.__connectStore(store);
-  }
-
-  /**@final */
-  __disconnectStore(store: Store<unknown>) {
-    disconnect(store, this.__update);
-    const con = this.constructor as typeof BaseElement;
-    con.observedStores = deleteSubArr(con.observedStores, [store]);
-  }
-  /**@helper */
-  disconnectStore(store: Store<unknown>) {
-    this.__disconnectStore(store);
-  }
 
   // 同步触发
   /**@lifecycle */
