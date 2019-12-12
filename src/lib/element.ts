@@ -192,36 +192,16 @@ export abstract class BaseElement<T = {}> extends HTMLElement {
   }
 
   /**@final */
-  __defineEvent(event: string) {
-    const con = this.constructor as typeof BaseElement;
-    if (!con.defineEvents) con.defineEvents = [];
-    con.defineEvents.push(event);
-    let propValue: any = this[event];
-    Object.defineProperty(this, event, {
-      configurable: true,
-      get() {
-        return propValue;
-      },
-      set(v: any) {
-        if (v.isEventHandle) throw `Don't assign a wrapped event handler`;
-        propValue = (data: any) => {
-          this.dispatchEvent(
-            new CustomEvent(event.toLowerCase(), {
-              detail: data instanceof Event ? null : data,
-            }),
-          );
-        };
-        propValue.isEventHandle = true;
-      },
-    });
-  }
-
-  /**@final */
-  __connectProperty(prop: string) {
+  __connectProperty(prop: string, isEventHandle = false) {
     if (prop in this) return;
     const con = this.constructor as typeof BaseElement;
-    if (!con.observedPropertys) con.observedPropertys = [];
-    con.observedPropertys.push(prop);
+    if (isEventHandle) {
+      if (!con.defineEvents) con.defineEvents = [];
+      con.defineEvents.push(prop);
+    } else {
+      if (!con.observedPropertys) con.observedPropertys = [];
+      con.observedPropertys.push(prop);
+    }
     let propValue: any = this[prop];
     Object.defineProperty(this, prop, {
       configurable: true,
@@ -230,7 +210,17 @@ export abstract class BaseElement<T = {}> extends HTMLElement {
       },
       set(v) {
         if (v !== propValue) {
-          propValue = v;
+          if (isEventHandle) {
+            if (v.isEventHandle) throw `Don't assign a wrapped event handler`;
+            propValue = (detail: any) => {
+              const evt = new CustomEvent(prop.toLowerCase(), { detail });
+              this.dispatchEvent(evt);
+              v(evt);
+            };
+            propValue.isEventHandle = true;
+          } else {
+            propValue = v;
+          }
           if (this.__isMounted) {
             this.propertyChanged(prop, propValue, v);
             addMicrotask(this.__update);
@@ -240,19 +230,23 @@ export abstract class BaseElement<T = {}> extends HTMLElement {
     });
   }
   /**@helper */
-  connectProperty(prop: string) {
-    this.__connectProperty(prop);
+  connectProperty(prop: string, isEventHandle = false) {
+    this.__connectProperty(prop, isEventHandle);
   }
 
   /**@final */
-  __disconnectProperty(prop: string) {
+  __disconnectProperty(prop: string, isEventHandle = false) {
     Object.defineProperty(this, prop, { configurable: true, enumerable: true, writable: true });
     const con = this.constructor as typeof BaseElement;
-    con.observedPropertys = deleteSubArr(con.observedPropertys, [prop]);
+    if (isEventHandle) {
+      con.defineEvents = deleteSubArr(con.defineEvents, [prop]);
+    } else {
+      con.observedPropertys = deleteSubArr(con.observedPropertys, [prop]);
+    }
   }
   /**@helper */
-  disconnectPropertys(prop: string) {
-    this.__disconnectProperty(prop);
+  disconnectPropertys(prop: string, isEventHandle = false) {
+    this.__disconnectProperty(prop, isEventHandle);
   }
 
   /**@final */

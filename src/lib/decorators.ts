@@ -9,7 +9,7 @@ export function property(target: BaseElement, prop: string): any {
   target.connectProperty(prop);
 }
 export function emitter(target: BaseElement, event: string): any {
-  target.__defineEvent(event);
+  target.connectProperty(event, true);
 }
 export function customElement(name: string) {
   return function(cls: Function) {
