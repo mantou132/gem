@@ -13,6 +13,7 @@ import {
   customElement,
   connectStore,
   adoptedStyle,
+  emitter,
 } from '..';
 
 const store = createStore({
@@ -54,6 +55,7 @@ customElements.define('gem-demo', GemDemo);
 @adoptedStyle(styles)
 @customElement('decorator-gem-demo')
 class DecoratorGemElement extends GemElement {
+  @emitter hi: Function;
   @attribute attr: string;
   @property prop = { value: '' };
   renderCount = 0;
@@ -102,10 +104,15 @@ describe('基本 gem element 测试', () => {
     expect(window.getComputedStyle(el).backgroundColor).to.equal('rgb(255, 0, 0)');
   });
   it('渲染 gem element', async () => {
-    const el = await fixture(html`
+    const el: GemDemo = await fixture(html`
       <gem-demo attr="attr" .prop=${{ value: 'prop' }}></gem-demo>
     `);
     expect(el).shadowDom.to.equal('attr: attr, prop: prop, state: ');
+    await Promise.resolve();
+    expect(el.renderCount).to.equal(1);
+    el.update();
+    await Promise.resolve();
+    expect(el.renderCount).to.equal(2);
   });
   it('读取 attr', async () => {
     const el: GemDemo = await fixture(html`
@@ -120,12 +127,15 @@ describe('基本 gem element 测试', () => {
       <gem-demo attr="attr"></gem-demo>
     `);
     expect(el.renderCount).to.equal(1);
-    el.attr = 'value';
+    el.attr = 'rrr';
     el.attr = 'value';
     await Promise.resolve();
     expect(el.renderCount).to.equal(2);
     expect(el.attr).to.equal('value');
     expect(el).shadowDom.to.equal('attr: value, prop: , state: ');
+    el.attr = null;
+    await Promise.resolve();
+    expect(el.hasAttribute('attr')).to.equal(false);
   });
 
   it('读取 prop', async () => {
@@ -180,8 +190,13 @@ describe('基本 gem element 测试', () => {
     expect(el.renderCount).to.equal(2);
   });
   it('装饰器定义的自定义元素', async () => {
+    let a = 1;
     const el: DecoratorGemElement = await fixture(html`
-      <decorator-gem-demo attr="attr" .prop=${{ value: 'prop' }}></decorator-gem-demo>
+      <decorator-gem-demo
+        @hi=${(e: CustomEvent) => (a = e.detail)}
+        attr="attr"
+        .prop=${{ value: 'prop' }}
+      ></decorator-gem-demo>
     `);
     expect(el.attr).to.equal('attr');
     expect(el.prop).to.eql({ value: 'prop' });
@@ -189,6 +204,9 @@ describe('基本 gem element 测试', () => {
     updateStore(store, { a: 3 });
     await Promise.resolve();
     expect(el.renderCount).to.equal(2);
+    el.hi(2);
+    expect(el.renderCount).to.equal(2);
+    expect(a).to.equal(2);
   });
 
   it('装饰器和静态属性共存', async () => {
@@ -224,6 +242,11 @@ describe('动态测试', () => {
     el.connectAttribute('attr');
     el.attr = 'ttt';
     expect(el.getAttribute('attr')).to.equal('ttt');
+    el.disconnectAttribute('attr');
+    el.attr = 'ccc';
+    await Promise.resolve();
+    expect(el.attr).to.equal('ccc');
+    expect(el.getAttribute('attr')).to.equal('ttt');
   });
   it('动态监听 prop', async () => {
     const el: DynGemDemo = await fixture(html`
@@ -233,6 +256,11 @@ describe('动态测试', () => {
     el.prop = true;
     await Promise.resolve();
     expect(el.renderCount).to.equal(1);
+    el.disconnectPropertys('prop');
+    el.prop = false;
+    await Promise.resolve();
+    expect(el.renderCount).to.equal(1);
+    expect(el.prop).to.equal(false);
   });
   it('动态监听 store', async () => {
     const el: DynGemDemo = await fixture(html`
@@ -273,6 +301,27 @@ describe('异步 gem element 测试', () => {
     expect(el.renderCount).to.equal(1);
     await nextFrame();
     expect(el.renderCount).to.equal(2);
+  });
+});
+
+@customElement('light-gem-demo')
+class LightGemDemo extends GemElement {
+  constructor() {
+    super(false);
+  }
+  render() {
+    return html`
+      hi
+    `;
+  }
+}
+describe('没有 Shadow DOM 的 gem 元素', () => {
+  it('渲染没有 Shadow DOM 的 gem 元素', async () => {
+    const el: LightGemDemo = await fixture(html`
+      <light-gem-demo></light-gem-demo>
+    `);
+    expect(el.shadowRoot).to.equal(null);
+    expect(el.innerHTML.includes('hi')).to.equal(true);
   });
 });
 
