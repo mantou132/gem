@@ -76,7 +76,7 @@ export class Route extends GemElement {
   static observedPropertys = ['routes'];
   static observedStores = [history.historyState];
 
-  static currentRoute: RouteItem;
+  static currentRoute: RouteItem | null;
 
   // 获取当前匹配的路由的 params
   static getParams() {
@@ -130,7 +130,7 @@ export class Route extends GemElement {
     if (!this.routes) return this.callback();
     Route.currentRoute = null;
 
-    let defaultRoute: RouteItem;
+    let defaultRoute: RouteItem | null = null;
     let routes: RouteItem[];
     if (this.routes instanceof Array) {
       routes = this.routes;

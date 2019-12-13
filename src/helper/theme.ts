@@ -28,14 +28,33 @@ function create<T extends object>(themeObj: T, media?: string) {
   return themeVarSet as CSSVars<T>;
 }
 
+/**
+ * 创建主题
+ *
+ * @example
+ * createTheme({
+ *   primaryColor: '#eee',
+ * });
+ * // 指定媒体类型
+ * createTheme('screen', {
+ *   primaryColor: '#eee',
+ * });
+ */
 export function createTheme<T extends object>(mediaOrThemeObj: T | string, themeObj?: T) {
   if (typeof mediaOrThemeObj === 'string') {
+    if (!themeObj) throw 'argument error';
     return create(themeObj, mediaOrThemeObj);
   } else {
     return create(mediaOrThemeObj);
   }
 }
 
+/**
+ * 更新主题
+ * @param varSet 主题
+ * @param newThemeObj 新主题
+ */
 export function updateTheme(varSet: CSSVars<object>, newThemeObj: object) {
-  updateStore(map.get(varSet), newThemeObj);
+  const store = map.get(varSet);
+  if (store) updateStore(store, newThemeObj);
 }

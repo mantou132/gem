@@ -41,7 +41,7 @@ export class Pool<T> extends Image {
     this.count += 1;
   }
 
-  get(): T {
+  get(): T | undefined {
     const item = this.pool.get(this.currentId);
     if (item) {
       this.pool.delete(this.currentId);
@@ -58,7 +58,7 @@ enum StorageType {
 }
 export class Storage<T> {
   cache = {};
-  get(key: string, type: StorageType): T {
+  get(key: string, type: StorageType): T | undefined {
     if (!this.cache[type]) this.cache[type] = {};
     if (key in this.cache[type]) return this.cache[type][key];
 
@@ -73,10 +73,10 @@ export class Storage<T> {
       window[type].removeItem(key);
     }
   }
-  getLocal(key: string): T {
+  getLocal(key: string): T | undefined {
     return this.get(key, StorageType.LOCALSTORAGE);
   }
-  getSession(key: string): T {
+  getSession(key: string): T | undefined {
     return this.get(key, StorageType.SESSIONSTORAGE);
   }
   set(key: string, value: T, type: StorageType) {
@@ -131,7 +131,6 @@ export class QueryString extends URLSearchParams {
     return this.toString();
   }
 }
-window['q'] = QueryString;
 
 // 写 html 文本
 export function raw(arr: TemplateStringsArray, ...args: any[]) {
@@ -205,7 +204,7 @@ function randomStr(number = 5, origin = '0123456789abcdefghijklmnopqrstuvwxyz') 
 // 只支持一层嵌套
 // https://drafts.csswg.org/css-nesting-1/
 function flatStyled(style: string, type: 'id' | 'class' | 'tag') {
-  const subStyle = [];
+  const subStyle: string[] = [];
   let str =
     `& {${style.replace(new RegExp('&.*{(.*)}', 'gs'), function(substr) {
       subStyle.push(substr);

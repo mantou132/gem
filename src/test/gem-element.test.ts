@@ -27,7 +27,7 @@ const styles = createCSSSheet(css`
 `);
 
 class GemDemo extends GemElement {
-  /** @attr */ attr: string;
+  /** @attr */ attr: string | null;
   /** @attr long-attr*/ longAttr: string;
   static observedAttributes = ['attr', 'long-attr'];
 
@@ -56,7 +56,7 @@ customElements.define('gem-demo', GemDemo);
 @customElement('decorator-gem-demo')
 class DecoratorGemElement extends GemElement {
   @emitter hi: Function;
-  @attribute attr: string;
+  @attribute attr: string | null;
   @property prop = { value: '' };
   renderCount = 0;
   render() {
@@ -81,7 +81,7 @@ class DecoratorGemElement2 extends GemElement {
 }
 
 class DeferGemElement extends GemElement {
-  /** @attr */ attr: string;
+  /** @attr */ attr: string | null;
   static observedAttributes = ['attr'];
   prop: { value: string };
 }
@@ -212,7 +212,7 @@ describe('基本 gem element 测试', () => {
     updateStore(store, { a: 3 });
     await Promise.resolve();
     expect(el.renderCount).to.equal(2);
-    expect(el.shadowRoot.adoptedStyleSheets.length).to.equal(1);
+    expect(el.shadowRoot?.adoptedStyleSheets.length).to.equal(1);
   });
 });
 

@@ -26,11 +26,16 @@ const historyState = createStore<HistoryStore>({
   currentIndex: 0,
 });
 
-const openHandleMap = new WeakMap<HistoryItemState, Function>();
-const colseHandleMap = new WeakMap<HistoryItemState, Function>();
-const shouldCloseHandleMap = new WeakMap<HistoryItemState, Function>();
+const openHandleMap = new WeakMap<HistoryItemState, Function | undefined>();
+const colseHandleMap = new WeakMap<HistoryItemState, Function | undefined>();
+const shouldCloseHandleMap = new WeakMap<HistoryItemState, Function | undefined>();
 
-function generateState(data: any, open: Function, close: Function, shouldClose: Function): HistoryItemState {
+function generateState(
+  data: any,
+  open: Function | undefined,
+  close: Function | undefined,
+  shouldClose: Function | undefined,
+): HistoryItemState {
   if (data.$key) throw new Error('`$key` is not allowed');
   if (data.$open) throw new Error('`$open` is not allowed');
   if (data.$close) throw new Error('`$close` is not allowed');
@@ -98,7 +103,7 @@ let history = {
     window.history.back();
   },
   push(options: Location) {
-    const { path, open, close, shouldClose } = options;
+    const { path = '', open, close, shouldClose } = options;
     const query = options.query || '';
     const hash = options.hash || '';
     const title = options.title || '';
@@ -132,7 +137,7 @@ let history = {
     const { state } = list[currentIndex];
     if (state.$close) {
       const closeHandle = colseHandleMap.get(state);
-      closeHandle();
+      if (closeHandle) closeHandle();
       history.replace(options);
     } else {
       history.push(options);
@@ -150,7 +155,7 @@ let history = {
     });
   },
   replace(options: Location) {
-    const { path, open, close, shouldClose } = options;
+    const { path = '', open, close, shouldClose } = options;
     const query = options.query || '';
     const hash = options.hash || '';
     const data = options.data || {};

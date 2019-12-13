@@ -20,16 +20,20 @@ export function createStore<T extends object>(originStore: T): Store<T> {
   return store;
 }
 
-export function createStoreSet<T extends object>(originStoreSet: T) {
+interface StoreObjectSet {
+  [store: string]: object;
+}
+export function createStoreSet<T extends StoreObjectSet>(originStoreSet: T) {
   const keys = Object.keys(originStoreSet);
   keys.forEach(key => {
-    createStore(originStoreSet[key]);
+    const store = originStoreSet[key] as any;
+    createStore(store as object);
   });
 
   return originStoreSet as StoreSet<T>;
 }
 
-export function updateStore<T extends Store<unknown>>(store: T, value: Partial<Omit<T, keyof StoreTrait>>) {
+export function updateStore<T extends Store<unknown>>(store: T, value: Partial<Omit<T, keyof StoreTrait>> | undefined) {
   Object.assign(store, value);
   const listeners = store[HANDLES_KEY];
   listeners.forEach(func => {

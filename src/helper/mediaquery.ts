@@ -34,7 +34,7 @@ const mediaQuery = {
 
   TABLET: '(min-width: 768px) and (max-width: 1024px)',
   get isTablet() {
-    return window.matchMedia(this.Tablet).matches;
+    return window.matchMedia(this.TABLET).matches;
   },
 
   SMALL_PHONE: '(min-width: 320px) and (max-width: 480px) and (max-height: 640px)',
