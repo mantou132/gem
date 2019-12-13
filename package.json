@@ -2,9 +2,10 @@
   "name": "@mantou/gem",
   "version": "0.2.8",
   "description": "快速基于 WebComponents 创建 App",
-  "main": "index.js",
+  "main": "dist/index.js",
   "module": "index.js",
   "files": [
+    "/dist/",
     "/index.js",
     "/index.js.map",
     "/index.d.ts",
@@ -18,12 +19,14 @@
     "lint": "tsc --noEmit && eslint --ext .ts --fix src/",
     "clean": "node -e \"fs.readdirSync('src').map(dir => require('rimraf').sync(dir))\"",
     "build:examples": "rimraf build && node scripts/build-examples.js",
-    "build": "npm run clean && tsc",
-    "prepare": "npm run lint && npm run test",
+    "build:module": "npm run clean && tsc",
+    "build:dist": "rimraf dist && webpack --config webpack.config.build.js",
+    "build": "npm run build:module && npm run build:dist",
+    "prepare": "npm run lint && npm run test && npm run build",
     "example": "webpack-dev-server",
     "example:index": "cross-env NAME=index EXAMPLES=index,hello-world  npm run example",
-    "test": "npm run build && karma start --coverage",
-    "test:bs": "npm run build &&  karma start karma.bs.config.js --coverage"
+    "test": "npm run build:module && karma start --coverage",
+    "test:bs": "npm run build:module &&  karma start karma.bs.config.js --coverage"
   },
   "repository": {
     "type": "git",
