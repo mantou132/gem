@@ -1,6 +1,6 @@
 import { GemElement, html, customElement } from '../..';
 
-const getGitPageUrl = (name: string) => `../${name}/index.html`;
+const getGitPageUrl = (name: string) => `../${name}/`;
 
 @customElement('app-root')
 class App extends GemElement {

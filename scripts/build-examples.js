@@ -13,6 +13,7 @@ fs.readdirSync('src/examples')
     spinner.text = `compile \`${name}\` ${index + 1}/${arr.length}`;
     return await exec('webpack', {
       env: Object.assign(process.env, {
+        TAEGET: 'pages',
         NAME: name,
         EXAMPLES: arr,
       }),

@@ -21,7 +21,7 @@ module.exports = {
     extensions: ['.tsx', '.ts', '.js'],
   },
   output: {
-    publicPath: '',
+    publicPath: process.env.TAEGET === 'pages' ? '/gem/build/' : '/',
     filename: 'bundle.[contenthash].js',
     path: path.resolve(__dirname, 'build', example),
   },
