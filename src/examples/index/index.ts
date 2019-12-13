@@ -5,7 +5,7 @@ const getGitPageUrl = (name: string) => `../${name}/`;
 @customElement('app-root')
 class App extends GemElement {
   render = () => {
-    const examples = process.env.EXAMPLES.split(',');
+    const examples = (process.env.EXAMPLES || '').split(',');
     return html`
       <dl>
         <dt>version:</dt>

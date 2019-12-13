@@ -16,6 +16,6 @@
     "target": "es6",
     "lib": ["es2020", "dom"]
   },
-  "include": ["src/**/*.ts"],
-  "exclude": ["src/examples/"]
+  "include": ["src"],
+  "exclude": []
 }
