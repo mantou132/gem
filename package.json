@@ -2,7 +2,8 @@
   "name": "@mantou/gem",
   "version": "0.2.11",
   "description": "快速基于 WebComponents 创建 App",
-  "main": "dist/index.js",
+  "type": "module",
+  "main": "index.js",
   "module": "index.js",
   "files": [
     "/dist/",
