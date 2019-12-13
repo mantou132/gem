@@ -15,13 +15,22 @@ interface PoolEventMap {
   start: Event;
   end: Event;
 }
-export class Pool<T> extends EventTarget {
+
+/**
+ * `EventTarget` safari not support
+ * https://bugs.webkit.org/show_bug.cgi?id=174313
+ */
+export class Pool<T> extends Image {
   addEventListener: <K extends keyof PoolEventMap>(
     type: K,
     listener: (this: Pool<T>, ev: PoolEventMap[K]) => any,
     options?: boolean | AddEventListenerOptions,
   ) => void;
-
+  constructor() {
+    super();
+    // https://bugs.webkit.org/show_bug.cgi?id=198674
+    Object.setPrototypeOf(this, Pool.prototype);
+  }
   currentId = 0;
   count = 0;
   pool = new Map<number, T>();
@@ -92,16 +101,13 @@ export class QueryString extends URLSearchParams {
   constructor(param: any) {
     if (param instanceof QueryString) {
       return param;
-    } else if (typeof param === 'string') {
-      super(param);
-    } else if (param) {
-      super();
-      Object.keys(param).forEach(key => {
-        this.append(key, param[key]);
-      });
-    } else {
-      super();
     }
+    super(param);
+    /**
+     * can't extend `URLSearchParams`
+     * https://bugs.webkit.org/show_bug.cgi?id=198674
+     */
+    Object.setPrototypeOf(this, QueryString.prototype);
   }
 
   concat(param: any) {
@@ -125,6 +131,7 @@ export class QueryString extends URLSearchParams {
     return this.toString();
   }
 }
+window['q'] = QueryString;
 
 // 写 html 文本
 export function raw(arr: TemplateStringsArray, ...args: any[]) {
@@ -157,7 +164,14 @@ declare global {
 }
 
 const rulesWeakMap = new WeakMap<Sheet<unknown>, any>();
-// rules 引用的是字符串，所以不能动态更新
+/**
+ * !!! 目前只有 Chrome 支持
+ * https://bugzilla.mozilla.org/show_bug.cgi?id=1520690
+ *
+ * 创建 style sheet 用于 `adoptedStyleSheets`
+ * @param rules string 不能动态更新的 css
+ * @param mediaQuery string 媒体查询
+ */
 export function createCSSSheet<T>(rules: T | string, mediaQuery = ''): T extends string ? CSSStyleSheet : Sheet<T> {
   let cssSheet = rulesWeakMap.get(rules);
   if (!cssSheet) {
