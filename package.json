@@ -20,7 +20,7 @@
     "clean": "node -e \"fs.readdirSync('src').map(dir => require('rimraf').sync(dir))\"",
     "build:examples": "rimraf build && node scripts/build-examples.js",
     "build:module": "npm run clean && tsc",
-    "build:dist": "rimraf dist && webpack --config webpack.config.build.js",
+    "build:dist": "rimraf dist && webpack --config webpack.config.dist.js",
     "build": "npm run build:module && npm run build:dist",
     "prepare": "npm run lint && npm run test && npm run build",
     "example": "webpack-dev-server",
