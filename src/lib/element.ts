@@ -169,6 +169,7 @@ export abstract class BaseElement<T = {}> extends HTMLElement {
 
   /**@final */
   setState(payload: Partial<T>) {
+    if (!this.state) throw new Error('`state` not initialized');
     Object.assign(this.state, payload);
     addMicrotask(this.__update);
   }
