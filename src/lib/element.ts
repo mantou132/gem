@@ -41,7 +41,6 @@ export { html, svg, render, directive, repeat, guard, ifDefined, TemplateResult 
 
 // final 字段如果使用 symbol 或者 private 将导致 modal-base 生成匿名子类 declaration 失败
 export abstract class BaseElement<T = {}> extends HTMLElement {
-  [index: string]: any;
   // 这里只是字段申明，不能赋值，否则子类会继承被共享该字段
   static observedAttributes: string[]; // WebAPI 中是实时检查这个列表
   static observedPropertys: string[];
@@ -74,11 +73,15 @@ export abstract class BaseElement<T = {}> extends HTMLElement {
     if (observedAttributes) {
       observedAttributes.forEach(attr => {
         const prop = kebabToCamelCase(attr);
+        // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
+        // @ts-ignore
         if (typeof this[prop] === 'function') {
           throw `Don't use attribute with the same name as native methods`;
         }
         // Native attribute，no need difine property
         // e.g: `id`, `title`, `hidden`, `alt`, `lang`
+        // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
+        // @ts-ignore
         if (this[prop] !== undefined) return;
         // !!! Custom property shortcut access only supports `string` type
         Object.defineProperty(this, prop, {
@@ -105,6 +108,8 @@ export abstract class BaseElement<T = {}> extends HTMLElement {
     if (defineEvents) {
       defineEvents.forEach(event => {
         this.__connectProperty(event, true);
+        // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
+        // @ts-ignore
         this[event] = emptyFunction;
       });
     }
@@ -139,6 +144,8 @@ export abstract class BaseElement<T = {}> extends HTMLElement {
    * */
   __connectProperty(prop: string, isEventHandle = false) {
     if (prop in this) return;
+    // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
+    // @ts-ignore
     let propValue: any = this[prop];
     Object.defineProperty(this, prop, {
       configurable: true,

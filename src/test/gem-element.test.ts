@@ -117,6 +117,8 @@ describe('基本 gem element 测试', () => {
   it('读取 attr', async () => {
     class G extends GemElement {
       static observedAttributes = ['attr'];
+      // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
+      // @ts-ignore
       test = expect(this.attr).to.equal('attr');
     }
     customElements.define('temp-field-read-attr', G);
@@ -149,6 +151,8 @@ describe('基本 gem element 测试', () => {
   it('读取 prop', async () => {
     class G extends GemElement {
       static observedPropertys = ['prop'];
+      // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
+      // @ts-ignore
       // !!! 和 `attr` 不同
       test = expect(this.prop).to.equal(undefined);
     }
