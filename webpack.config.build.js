@@ -1,5 +1,8 @@
 const path = require('path');
 
+/**
+ * @type {import('webpack/declarations/WebpackOptions').WebpackOptions}
+ */
 module.exports = {
   entry: `./src`,
   module: {
