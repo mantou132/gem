@@ -1,9 +1,13 @@
 import { html, GemElement, history, TemplateResult, updateStore, Location } from '../';
 
+interface NamePostition {
+  [index: string]: number;
+}
+
 class ParamsRegExp extends RegExp {
-  namePosition: object;
+  namePosition: NamePostition;
   constructor(pattern: string) {
-    const namePosition = {};
+    const namePosition: NamePostition = {};
     let i = 0;
     super(
       `^${pattern
@@ -26,7 +30,7 @@ function getParams(pattern: string, path: string) {
   const reg = getReg(pattern);
   const matchResult = path.match(reg);
   if (matchResult) {
-    const params = {};
+    const params: { [index: string]: string } = {};
     Object.keys(reg.namePosition).forEach(name => {
       params[name] = matchResult[reg.namePosition[name] + 1];
     });
@@ -52,7 +56,7 @@ export interface RoutesObject {
 }
 
 // params 中的成员不会验证
-export type RouteOptions = Omit<Location, 'path'> & { params: object };
+export type RouteOptions = Omit<Location, 'path'> & { params: { [index: string]: string } };
 
 export function createPath(route: RouteItem, options?: RouteOptions) {
   let path = route.pattern;

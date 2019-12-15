@@ -2,7 +2,7 @@ import { connect, createStore, updateStore, Store } from '..';
 
 function replaceStyle(style: HTMLStyleElement, themeObj: Store<object>, media = '') {
   style.media = media;
-  style.innerHTML = `:root {${Object.keys(themeObj).reduce((prev, key) => {
+  style.innerHTML = `:root {${Object.keys(themeObj).reduce((prev, key: keyof Store<object>) => {
     return prev + `--${key}:${themeObj[key]};`;
   }, '')}}`;
 }
@@ -20,7 +20,7 @@ function create<T extends object>(themeObj: T, media?: string) {
   connect(theme, replace);
   replace();
   document.head.append(style);
-  const themeVarSet = {};
+  const themeVarSet: { [index: string]: string } = {};
   map.set(themeVarSet, theme);
   Object.keys(theme).forEach(key => {
     themeVarSet[key] = `var(--${key})`;

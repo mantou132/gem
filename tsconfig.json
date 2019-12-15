@@ -5,7 +5,7 @@
     "declarationMap": true,
     "alwaysStrict": true,
     "noImplicitThis": true,
-    // "noImplicitAny": true,
+    "noImplicitAny": true,
     "strictNullChecks": true,
     "sourceMap": true,
     "module": "esnext",

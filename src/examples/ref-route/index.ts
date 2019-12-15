@@ -44,7 +44,7 @@ const routes = {
 class App extends GemElement {
   onclick = () => {
     if (Route.currentRoute === routes.home) {
-      history.push(createLocation(routes.a, { params: { b: Date.now() } }));
+      history.push(createLocation(routes.a, { params: { b: String(Date.now()) } }));
     } else {
       history.push(createLocation(routes.home));
     }

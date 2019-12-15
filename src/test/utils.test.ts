@@ -49,8 +49,10 @@ describe('utils 测试', () => {
         background: red;
       }
     `);
-    expect(cssSheet.cssRules.item(0).selectorText).to.equal('body');
-    expect(cssSheet.cssRules.item(0).style.background).to.equal('red');
+    const rules = cssSheet.cssRules as unknown;
+    const sheet = rules as CSSRuleList;
+    expect(sheet.item(0).selectorText).to.equal('body');
+    expect(sheet.item(0).style.background).to.equal('red');
   });
   it('raw/css', () => {
     expect(raw`<div>${'str'}</div>`).to.equal('<div>str</div>');

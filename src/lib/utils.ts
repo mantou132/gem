@@ -56,10 +56,14 @@ enum StorageType {
   LOCALSTORAGE = 'localStorage',
   SESSIONSTORAGE = 'sessionStorage',
 }
+class StorageCache<T> {
+  [StorageType.LOCALSTORAGE]: { [key: string]: T } = {};
+  [StorageType.SESSIONSTORAGE]: { [key: string]: T } = {};
+}
+
 export class Storage<T> {
-  cache = {};
+  cache = new StorageCache<T>();
   get(key: string, type: StorageType): T | undefined {
-    if (!this.cache[type]) this.cache[type] = {};
     if (key in this.cache[type]) return this.cache[type][key];
 
     const value = window[type].getItem(key);
@@ -80,7 +84,6 @@ export class Storage<T> {
     return this.get(key, StorageType.SESSIONSTORAGE);
   }
   set(key: string, value: T, type: StorageType) {
-    if (!this.cache[type]) this.cache[type] = {};
     this.cache[type][key] = value;
     return window[type].setItem(key, JSON.stringify(value));
   }
@@ -149,6 +152,8 @@ export type Sheet<T> = {
 declare global {
   interface CSSStyleSheet {
     replaceSync: (str: string) => void;
+    // 作为 CSSStyleSheet 用的同时能作为原始对象读取属性
+    [selector: string]: any;
   }
 
   interface CSSRuleList {
@@ -162,6 +167,16 @@ declare global {
   }
 }
 
+type StyledType = 'id' | 'class' | 'tag';
+interface StyledValue {
+  str: string;
+  key: string;
+  type: StyledType;
+}
+interface StyledValues {
+  [index: string]: StyledValue;
+}
+
 const rulesWeakMap = new WeakMap<Sheet<unknown>, any>();
 /**
  * !!! 目前只有 Chrome 支持
@@ -171,7 +186,10 @@ const rulesWeakMap = new WeakMap<Sheet<unknown>, any>();
  * @param rules string 不能动态更新的 css
  * @param mediaQuery string 媒体查询
  */
-export function createCSSSheet<T>(rules: T | string, mediaQuery = ''): T extends string ? CSSStyleSheet : Sheet<T> {
+export function createCSSSheet<T extends StyledValues>(
+  rules: T | string,
+  mediaQuery = '',
+): T extends string ? CSSStyleSheet : Sheet<T> {
   let cssSheet = rulesWeakMap.get(rules);
   if (!cssSheet) {
     const sheet = new CSSStyleSheet();
@@ -203,7 +221,7 @@ function randomStr(number = 5, origin = '0123456789abcdefghijklmnopqrstuvwxyz') 
 
 // 只支持一层嵌套
 // https://drafts.csswg.org/css-nesting-1/
-function flatStyled(style: string, type: 'id' | 'class' | 'tag') {
+function flatStyled(style: string, type: StyledType): StyledValue {
   const subStyle: string[] = [];
   let str =
     `& {${style.replace(new RegExp('&.*{(.*)}', 'gs'), function(substr) {

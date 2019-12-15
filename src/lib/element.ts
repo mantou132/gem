@@ -41,6 +41,7 @@ export { html, svg, render, directive, repeat, guard, ifDefined, TemplateResult 
 
 // final 字段如果使用 symbol 或者 private 将导致 modal-base 生成匿名子类 declaration 失败
 export abstract class BaseElement<T = {}> extends HTMLElement {
+  [index: string]: any;
   // 这里只是字段申明，不能赋值，否则子类会继承被共享该字段
   static observedAttributes: string[]; // WebAPI 中是实时检查这个列表
   static observedPropertys: string[];
