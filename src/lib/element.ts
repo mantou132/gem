@@ -126,7 +126,17 @@ export abstract class BaseElement<T = {}> extends HTMLElement {
     }
   }
 
-  /**@final */
+  /**
+   * @final
+   * 和 `attr` 不一样，只有等 `lit-html` 在已经初始化的元素上设置 `prop` 后才能访问
+   * 所以能在类字段中直接访问 `attr` 而不能访问 `prop`
+   * @example
+   * class TempGem extends GemElement {
+   *   static observedPropertys = ['prop'];
+   *   test = expect(this.prop).to.equal(undefined);
+   * }
+   * // <temp-gem .prop=${{a: 1}}></temp-gem>
+   * */
   __connectProperty(prop: string, isEventHandle = false) {
     if (prop in this) return;
     let propValue: any = this[prop];

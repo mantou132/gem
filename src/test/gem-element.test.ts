@@ -115,6 +115,14 @@ describe('基本 gem element 测试', () => {
     expect(el.renderCount).to.equal(2);
   });
   it('读取 attr', async () => {
+    class G extends GemElement {
+      static observedAttributes = ['attr'];
+      test = expect(this.attr).to.equal('attr');
+    }
+    customElements.define('temp-field-read-attr', G);
+    await fixture(html`
+      <temp-field-read-attr attr="attr"></temp-field-read-attr>
+    `);
     const el: GemDemo = await fixture(html`
       <gem-demo attr="attr" long-attr="hi"></gem-demo>
     `);
@@ -139,6 +147,15 @@ describe('基本 gem element 测试', () => {
   });
 
   it('读取 prop', async () => {
+    class G extends GemElement {
+      static observedPropertys = ['prop'];
+      // !!! 和 `attr` 不同
+      test = expect(this.prop).to.equal(undefined);
+    }
+    customElements.define('temp-field-read-prop', G);
+    await fixture(html`
+      <temp-field-read-prop .prop=${{ value: 'prop' }}></temp-field-read-prop>
+    `);
     const el: GemDemo = await fixture(html`
       <gem-demo .prop=${{ value: 'prop' }}></gem-demo>
     `);
