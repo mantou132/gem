@@ -10,7 +10,6 @@ const routes = {
         <style>
           gem-link {
             display: block;
-            color: blue;
           }
           gem-link[active] {
             color: inherit;
@@ -28,7 +27,6 @@ const routes = {
         <style>
           gem-link {
             display: block;
-            color: blue;
           }
           gem-link[active] {
             color: inherit;
