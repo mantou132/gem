@@ -283,6 +283,27 @@ describe('没有 Shadow DOM 的 gem 元素', () => {
   });
 });
 
+@customElement('lifecycle-gem-demo')
+class LifecycleGemElement extends GemElement {
+  renderCount = 0;
+  mounted() {
+    this.renderCount++;
+    return () => {
+      this.renderCount = 0;
+    };
+  }
+}
+describe('gem element 生命周期', () => {
+  it('mounted/unmounted', async () => {
+    const el: LifecycleGemElement = await fixture(html`
+      <lifecycle-gem-demo></lifecycle-gem-demo>
+    `);
+    expect(el.renderCount).to.equal(1);
+    el.remove();
+    expect(el.renderCount).to.equal(0);
+  });
+});
+
 class ErrorGemDemo extends GemElement {
   static observedStores = [{}] as Store<unknown>[];
 }

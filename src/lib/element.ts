@@ -39,6 +39,8 @@ if (window.__litHtml) {
 const { html, svg, render, directive, repeat, guard, ifDefined } = litHtml;
 export { html, svg, render, directive, repeat, guard, ifDefined, TemplateResult };
 
+type UnmountCallback = () => void;
+
 // final 字段如果使用 symbol 或者 private 将导致 modal-base 生成匿名子类 declaration 失败
 export abstract class BaseElement<T = {}> extends HTMLElement {
   // 这里只是字段申明，不能赋值，否则子类会继承被共享该字段
@@ -54,6 +56,8 @@ export abstract class BaseElement<T = {}> extends HTMLElement {
   __renderRoot: HTMLElement | ShadowRoot;
   /**@final */
   __isMounted: boolean;
+
+  __unmountCallback: UnmountCallback | undefined;
 
   constructor(shadow = true) {
     super();
@@ -192,7 +196,7 @@ export abstract class BaseElement<T = {}> extends HTMLElement {
   }
 
   /**@lifecycle */
-  mounted() {}
+  mounted(): UnmountCallback | void {}
 
   /**@lifecycle */
   shouldUpdate() {
@@ -234,6 +238,14 @@ export abstract class BaseElement<T = {}> extends HTMLElement {
     }
   }
 
+  /**@final */
+  __connectedCallback() {
+    render(this.render(), this.__renderRoot);
+    const callback = this.mounted();
+    if (callback) this.__unmountCallback = callback;
+    this.__isMounted = true;
+  }
+
   /**@private */
   /**@final */
   // adoptedCallback() {}
@@ -247,6 +259,7 @@ export abstract class BaseElement<T = {}> extends HTMLElement {
         disconnect(store, this.__update);
       });
     }
+    this.__unmountCallback?.();
     this.unmounted();
     this.__isMounted = false;
   }
@@ -257,9 +270,7 @@ export abstract class GemElement<T = {}> extends BaseElement<T> {
   /**@final */
   connectedCallback() {
     this.willMount();
-    render(this.render(), this.__renderRoot);
-    this.mounted();
-    this.__isMounted = true;
+    this.__connectedCallback();
   }
 }
 
@@ -304,9 +315,7 @@ export abstract class AsyncGemElement<T = {}> extends BaseElement<T> {
   connectedCallback() {
     this.willMount();
     renderTaskPool.add(() => {
-      render(this.render(), this.__renderRoot);
-      this.mounted();
-      this.__isMounted = true;
+      this.__connectedCallback();
     });
   }
 }
