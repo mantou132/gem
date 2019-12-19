@@ -32,7 +32,7 @@ const routes = {
             color: inherit;
           }
         </style>
-        current route: /a/:b, click navigation to home page
+        current route: /a/:b, click navigation to home page, cuurent query: ${history.location.query.toString()}
         <gem-link .route=${routes.a} .options=${{ params: { b: 1 }, query: '?a=1' }}>a page link, query: ?a=1</gem-link>
       `;
     },
