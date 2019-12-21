@@ -1,11 +1,25 @@
-import { GemElement, html } from '../';
+import { GemElement, html, attribute, customElement } from '../';
 
+/**
+ * @attr ref
+ */
+@customElement('gem-use')
 export class Use extends GemElement {
-  /**@attr */ ref: string; // CSS 选择器
-  static observedAttributes = ['ref'];
+  @attribute ref: string; // CSS 选择器
+
+  private getContent() {
+    // 只支持 `svg` 或者 `template>svg`
+    const ele = document.querySelector(this.ref);
+    if (ele instanceof HTMLTemplateElement) {
+      return ele.content.cloneNode(true);
+    } else if (ele instanceof SVGSVGElement) {
+      return ele.cloneNode(true);
+    } else {
+      return null;
+    }
+  }
 
   render() {
-    const template = document.querySelector(this.ref);
     return html`
       <style>
         :host {
@@ -14,11 +28,13 @@ export class Use extends GemElement {
         :host(:not([hidden])) {
           display: inline-block;
         }
+        svg {
+          width: 100%;
+          height: 100%;
+        }
       </style>
-      ${template && template.cloneNode(true)}
+      ${this.getContent()}
       <slot></slot>
     `;
   }
 }
-
-customElements.define('gem-use', Use);
