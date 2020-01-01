@@ -20,7 +20,7 @@ interface PoolEventMap {
  * `EventTarget` safari not support
  * https://bugs.webkit.org/show_bug.cgi?id=174313
  */
-export class Pool<T> extends Image {
+export class Pool<T> extends (globalThis.Image || null) {
   addEventListener: <K extends keyof PoolEventMap>(
     type: K,
     listener: (this: Pool<T>, ev: PoolEventMap[K]) => any,
