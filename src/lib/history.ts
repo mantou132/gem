@@ -227,7 +227,7 @@ if (hasOtherHistory) {
   const sessionStorageKey = 'gem@historyStateList';
   updateStore(historyState, storage.getSession(sessionStorageKey));
 
-  window.addEventListener('unload', () => {
+  window.addEventListener('beforeunload', () => {
     storage.setSession(sessionStorageKey, historyState);
   });
 
