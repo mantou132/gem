@@ -79,7 +79,9 @@ describe('history 测试', () => {
     expect(window.location.pathname).to.equal('/c');
     // 卸载页面
     const sessionStorageLength = sessionStorage.length;
-    dispatchEvent(new CustomEvent('unload'));
+    // https://github.com/karma-runner/karma/commit/15d80f47a227839e9b0d54aeddf49b9aa9afe8aa
+    window.onbeforeunload = null;
+    dispatchEvent(new CustomEvent('beforeunload'));
     expect(sessionStorage.length).to.equal(sessionStorageLength + 1);
   });
 });
