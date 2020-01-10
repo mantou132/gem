@@ -1,4 +1,4 @@
-import { GemElement, html, history, attribute, property, connectStore, customElement } from '../';
+import { GemElement, html, history, basePathStore, attribute, property, connectStore, customElement } from '../';
 import { isMatch, RouteItem, RouteOptions, createHistoryParams, createPath } from './route';
 
 /**
@@ -10,6 +10,7 @@ import { isMatch, RouteItem, RouteOptions, createHistoryParams, createPath } fro
  * @state active
  */
 @customElement('gem-link')
+@connectStore(basePathStore)
 export class Link extends GemElement {
   @attribute href: string;
   @attribute path: string;
@@ -50,7 +51,11 @@ export class Link extends GemElement {
     e.stopPropagation();
     if (this.route) {
       history.pushIgnoreCloseHandle(createHistoryParams(this.route, this.options));
+    } else if (this.href) {
+      const { pathname, search, hash } = new URL(this.href, location.origin);
+      history.pushIgnoreCloseHandle({ path: pathname, query: search, hash });
     } else {
+      console.log(this.href);
       history.pushIgnoreCloseHandle({ path: this.path, query: this.query, hash: this.hash });
     }
   };

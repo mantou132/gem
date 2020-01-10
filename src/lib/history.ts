@@ -113,21 +113,23 @@ function updateHistoryByNative(type: UpdateHistoryType, data: any, title: string
   if (prevHave !== hash) window.dispatchEvent(new CustomEvent('hashchange'));
 }
 
+export const basePathStore = createStore({
+  basePath: '',
+});
+
 if (!('basePath' in history)) {
-  let _basePath = '';
   // 不允许其他框架重写
   // 保持原有功能
   Object.defineProperties(history, {
     basePath: {
       get() {
-        return _basePath;
+        return basePathStore.basePath;
       },
       set(v: string) {
-        if (!_basePath) {
+        if (!basePathStore.basePath) {
           // 应用初始化的时候设置
           Object.assign(paramsMap.get(store.$key), { path: window.location.pathname.replace(new RegExp(`^${v}`), '') });
-          updateStore(store, {});
-          _basePath = v;
+          updateStore(basePathStore, { basePath: v });
         } else {
           throw new GemError('已经有其他环境使用 gem , 会共享 history 对象，禁止再修改 history 对象');
         }
