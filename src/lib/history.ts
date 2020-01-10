@@ -205,6 +205,19 @@ window.addEventListener('popstate', event => {
   // 处理 forward or back
   // replace 不会触发
 
+  // 刷新后再导航需要从当前 state 中构建 params
+  // 理论上该条历史记录中不会出现事件处理器
+  if (!paramsMap.has(newState.$key)) {
+    const { pathname, search, hash } = location;
+    paramsMap.set(newState.$key, {
+      path: pathname,
+      query: new QueryString(search),
+      hash,
+      title: document.title, // 浏览器缓存的 title
+      data: newState,
+    });
+  }
+
   // url 变化前 historyItem
   const prevState = store;
 
