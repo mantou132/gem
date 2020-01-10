@@ -10,7 +10,7 @@ import { isMatch, RouteItem, RouteOptions, createLocation, createPath } from './
  * @state active
  */
 @customElement('gem-link')
-@connectStore(history.historyState)
+@connectStore(history.store) // TODO
 export class Link extends GemElement {
   @attribute href: string;
   @attribute path: string;
@@ -44,16 +44,16 @@ export class Link extends GemElement {
       return;
     }
 
-    const { path, query, hash } = history.location;
+    const { path, query, hash } = history.getParams();
     if (path + query + hash === href) {
       return;
     }
 
     e.stopPropagation();
     if (this.route) {
-      history.pushWithoutCloseHandle(createLocation(this.route, this.options));
+      history.pushIgnoreCloseHandle(createLocation(this.route, this.options));
     } else {
-      history.pushWithoutCloseHandle({ path: this.path, query: this.query, hash: this.hash });
+      history.pushIgnoreCloseHandle({ path: this.path, query: this.query, hash: this.hash });
     }
   };
 
@@ -62,7 +62,7 @@ export class Link extends GemElement {
   };
 
   render() {
-    const { path, query, hash } = history.location;
+    const { path, query, hash } = history.getParams();
     const isMatchPattern = this.pattern && isMatch(this.pattern, path);
     const href = this.getHref();
     if (isMatchPattern || path + query + hash === href) {
