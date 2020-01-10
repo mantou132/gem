@@ -168,86 +168,86 @@ if (!('basePath' in history)) {
       },
     },
   });
-}
 
-if (!history.state) {
-  // 初始化 historyItem
-  const { pathname, search, hash } = location;
-  history.replace({ path: pathname, query: search, hash });
-} else if (history.state.$close) {
-  // 有 handle 返回键的页面刷新需要清除返回 handler
-  history.back();
-} else {
-  // 有 gem 历史的正常普通刷新, 储存 params
-  const params = initParams({ title: document.title });
-  updateStore(store, {
-    $key: getKey(),
-    ...(history.state || {}),
-  });
-  paramsMap.set(store.$key, params);
-}
-
-/**
- * 表示 popstate handler 中正在进行导航
- */
-let navigating = false;
-window.addEventListener('popstate', event => {
-  const newState = event.state as HistoryItem | null;
-  if (!newState?.$key) {
-    // 比如作为其他 app 的宿主 app
-    return;
-  }
-  if (navigating) {
-    navigating = false;
-    return;
-  }
-
-  // 处理 forward or back
-  // replace 不会触发
-
-  // 刷新后再导航需要从当前 state 中构建 params
-  // 理论上该条历史记录中不会出现事件处理器
-  if (!paramsMap.has(newState.$key)) {
+  if (!history.state) {
+    // 初始化 historyItem
     const { pathname, search, hash } = location;
-    paramsMap.set(newState.$key, {
-      path: pathname,
-      query: new QueryString(search),
-      hash,
-      title: document.title, // 浏览器缓存的 title
-      data: newState,
+    history.replace({ path: pathname, query: search, hash });
+  } else if (history.state.$close) {
+    // 有 handle 返回键的页面刷新需要清除返回 handler
+    history.back();
+  } else {
+    // 有 gem 历史的正常普通刷新, 储存 params
+    const params = initParams({ title: document.title });
+    updateStore(store, {
+      $key: getKey(),
+      ...(history.state || {}),
     });
+    paramsMap.set(store.$key, params);
   }
 
-  // url 变化前 historyItem
-  const prevState = store;
+  /**
+   * 表示 popstate handler 中正在进行导航
+   */
+  let navigating = false;
+  window.addEventListener('popstate', event => {
+    const newState = event.state as HistoryItem | null;
+    if (!newState?.$key) {
+      // 比如作为其他 app 的宿主 app
+      return;
+    }
+    if (navigating) {
+      navigating = false;
+      return;
+    }
 
-  if (newState.$key > prevState.$key && newState.$hasOpenHandle) {
-    // 返回键关闭的 modal 能前进键重新打开
-    // 刷新后不能工作：刷新后 historyItem 中只有 url
-    paramsMap.get(newState.$key)?.open?.();
-  } else if (prevState.$hasCloseHandle) {
-    const prevParams = paramsMap.get(prevState.$key);
-    const closeHandle = prevParams?.close;
-    const shouldCloseHandle = prevParams?.shouldClose;
-    const notAllowClose = shouldCloseHandle && !shouldCloseHandle();
-    if (notAllowClose) {
-      navigating = true;
-      history.forward(); // 将重新触发 popstate
-      return; // 历史记录栈位置没有变化，不需要后面的 updateStore
-    } else {
-      // handle 返回键
-      if (closeHandle) {
-        closeHandle();
-      } else {
-        // 有 modal 的页面刷新会执行 back 触发 popstate
-        // 如果是耳机 modal 页面刷新
-        // 则还需要进行一次 back
-        // !!! 不完美：三级 modal 页面刷新不支持返回到初始页面
+    // 处理 forward or back
+    // replace 不会触发
+
+    // 刷新后再导航需要从当前 state 中构建 params
+    // 理论上该条历史记录中不会出现事件处理器
+    if (!paramsMap.has(newState.$key)) {
+      const { pathname, search, hash } = location;
+      paramsMap.set(newState.$key, {
+        path: pathname,
+        query: new QueryString(search),
+        hash,
+        title: document.title, // 浏览器缓存的 title
+        data: newState,
+      });
+    }
+
+    // url 变化前 historyItem
+    const prevState = store;
+
+    if (newState.$key > prevState.$key && newState.$hasOpenHandle) {
+      // 返回键关闭的 modal 能前进键重新打开
+      // 刷新后不能工作：刷新后 historyItem 中只有 url
+      paramsMap.get(newState.$key)?.open?.();
+    } else if (prevState.$hasCloseHandle) {
+      const prevParams = paramsMap.get(prevState.$key);
+      const closeHandle = prevParams?.close;
+      const shouldCloseHandle = prevParams?.shouldClose;
+      const notAllowClose = shouldCloseHandle && !shouldCloseHandle();
+      if (notAllowClose) {
         navigating = true;
-        history.back();
+        history.forward(); // 将重新触发 popstate
+        return; // 历史记录栈位置没有变化，不需要后面的 updateStore
+      } else {
+        // handle 返回键
+        if (closeHandle) {
+          closeHandle();
+        } else {
+          // 有 modal 的页面刷新会执行 back 触发 popstate
+          // 如果是耳机 modal 页面刷新
+          // 则还需要进行一次 back
+          // !!! 不完美：三级 modal 页面刷新不支持返回到初始页面
+          navigating = true;
+          history.back();
+        }
       }
     }
-  }
 
-  updateStore(cleanObject(store), newState);
-});
+    updateStore(cleanObject(store), newState);
+  });
+}
