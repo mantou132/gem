@@ -8,15 +8,17 @@ const routes = {
     get content() {
       return html`
         <style>
-          gem-link {
+          gem-active-link {
             display: block;
           }
-          gem-link[active] {
+          gem-active-link[active] {
             color: inherit;
           }
         </style>
         current route: home page, click navigation to a page
-        <gem-link .route=${routes.a} .options=${{ params: { b: 1 } }}>a page link, params: {a: 1}</gem-link>
+        <gem-active-link .route=${routes.a} .options=${{ params: { b: 1 } }}>
+          a page link, params: {a: 1}
+        </gem-active-link>
       `;
     },
   },
@@ -25,15 +27,17 @@ const routes = {
     get content() {
       return html`
         <style>
-          gem-link {
+          gem-active-link {
             display: block;
           }
-          gem-link[active] {
+          gem-active-link[active] {
             color: inherit;
           }
         </style>
         current route: /a/:b, click navigation to home page, cuurent query: ${history.getParams().query.toString()}
-        <gem-link .route=${routes.a} .options=${{ params: { b: 1 }, query: '?a=1' }}>a page link, query: ?a=1</gem-link>
+        <gem-active-link .route=${routes.a} .options=${{ params: { b: 1 }, query: '?a=1' }}>
+          a page link, query: ?a=1
+        </gem-active-link>
       `;
     },
   },

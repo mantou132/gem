@@ -10,13 +10,11 @@ import { isMatch, RouteItem, RouteOptions, createLocation, createPath } from './
  * @state active
  */
 @customElement('gem-link')
-@connectStore(history.store) // TODO
 export class Link extends GemElement {
   @attribute href: string;
   @attribute path: string;
   @attribute query: string;
   @attribute hash: string;
-  @attribute pattern: string; // 使用匹配模式设定 active
 
   // 动态路由，根据 route.pattern 和 options.params 计算出 path
   @property route: RouteItem;
@@ -61,16 +59,7 @@ export class Link extends GemElement {
     e.preventDefault();
   };
 
-  render() {
-    const { path, query, hash } = history.getParams();
-    const isMatchPattern = this.pattern && isMatch(this.pattern, path);
-    const href = this.getHref();
-    if (isMatchPattern || path + query + hash === href) {
-      this.setAttribute('active', '');
-    } else {
-      this.removeAttribute('active');
-    }
-
+  render(href = this.getHref()) {
     return html`
       <style>
         :host {
@@ -87,5 +76,25 @@ export class Link extends GemElement {
         <slot></slot>
       </a>
     `;
+  }
+}
+
+/**
+ * @attr pattern
+ */
+@customElement('gem-active-link')
+@connectStore(history.store)
+export class ActiveLink extends Link {
+  @attribute pattern: string; // 使用匹配模式设定 active
+  render() {
+    const { path, query, hash } = history.getParams();
+    const isMatchPattern = this.pattern && isMatch(this.pattern, path);
+    const href = this.getHref();
+    if (isMatchPattern || path + query + hash === href) {
+      this.setAttribute('active', '');
+    } else {
+      this.removeAttribute('active');
+    }
+    return super.render(href);
   }
 }
