@@ -1,5 +1,5 @@
 import { GemElement, html, history, attribute, property, connectStore, customElement } from '../';
-import { isMatch, RouteItem, RouteOptions, createLocation, createPath } from './route';
+import { isMatch, RouteItem, RouteOptions, createHistoryParams, createPath } from './route';
 
 /**
  * @attr href
@@ -49,7 +49,7 @@ export class Link extends GemElement {
 
     e.stopPropagation();
     if (this.route) {
-      history.pushIgnoreCloseHandle(createLocation(this.route, this.options));
+      history.pushIgnoreCloseHandle(createHistoryParams(this.route, this.options));
     } else {
       history.pushIgnoreCloseHandle({ path: this.path, query: this.query, hash: this.hash });
     }

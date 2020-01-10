@@ -77,7 +77,7 @@ export function createPath(route: RouteItem, options?: RouteOptions) {
   return path;
 }
 
-export function createLocation(route: RouteItem, options?: RouteOptions): UpdateHistoryParams {
+export function createHistoryParams(route: RouteItem, options?: RouteOptions): UpdateHistoryParams {
   const path = createPath(route, options);
   return {
     path,
