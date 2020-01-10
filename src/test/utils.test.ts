@@ -1,5 +1,5 @@
 import { expect } from '@open-wc/testing';
-import { Pool, Storage, QueryString, css, raw, createCSSSheet, styled } from '..';
+import { Pool, QueryString, css, raw, createCSSSheet, styled } from '..';
 
 describe('utils 测试', () => {
   it('Pool', () => {
@@ -18,17 +18,6 @@ describe('utils 测试', () => {
     expect(countAtPause).to.equal(2);
     expect(pool.pool.size).to.equal(0);
     expect(pool.get()).to.equal(undefined);
-  });
-  it('Storage', () => {
-    const storage = new Storage();
-    storage.setLocal('local', { a: 1 });
-    expect(localStorage.getItem('local')).to.equal('{"a":1}');
-    expect(storage.getLocal('local')).to.deep.equal({ a: 1 });
-    storage.setSession('session', { a: 1 });
-    expect(storage.getSession('session')).to.deep.equal({ a: 1 });
-    expect(new Storage().getSession('session')).to.deep.equal({ a: 1 });
-    sessionStorage.setItem('invalid_json', 'invalid');
-    expect(storage.getSession('invalid_json')).to.equal(undefined);
   });
   it('QueryString', () => {
     expect(new QueryString(undefined).toString()).to.equal('');

@@ -53,11 +53,14 @@ class App extends GemElement {
         gem-link {
           cursor: pointer;
         }
+        gem-link + gem-link {
+          margin-left: 0.5em;
+        }
         gem-link:hover {
           text-decoration: underline;
         }
       </style>
-      <header><gem-title>Home Page Title</gem-title></header>
+      <header><gem-title>Default Title</gem-title></header>
       <nav>
         <gem-link path="/">Home</gem-link>
         <gem-link path="/a">PageA</gem-link>

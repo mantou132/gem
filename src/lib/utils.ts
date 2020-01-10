@@ -52,49 +52,6 @@ export class Pool<T> extends (globalThis.Image || null) {
   }
 }
 
-enum StorageType {
-  LOCALSTORAGE = 'localStorage',
-  SESSIONSTORAGE = 'sessionStorage',
-}
-class StorageCache<T> {
-  [StorageType.LOCALSTORAGE]: { [key: string]: T } = {};
-  [StorageType.SESSIONSTORAGE]: { [key: string]: T } = {};
-}
-
-export class Storage<T> {
-  cache = new StorageCache<T>();
-  get(key: string, type: StorageType): T | undefined {
-    if (key in this.cache[type]) return this.cache[type][key];
-
-    const value = window[type].getItem(key);
-
-    if (!value) return undefined;
-    try {
-      const result: T = JSON.parse(value);
-      this.cache[type][key] = result;
-      return result;
-    } catch (e) {
-      window[type].removeItem(key);
-    }
-  }
-  getLocal(key: string): T | undefined {
-    return this.get(key, StorageType.LOCALSTORAGE);
-  }
-  getSession(key: string): T | undefined {
-    return this.get(key, StorageType.SESSIONSTORAGE);
-  }
-  set(key: string, value: T, type: StorageType) {
-    this.cache[type][key] = value;
-    return window[type].setItem(key, JSON.stringify(value));
-  }
-  setLocal(key: string, value: T) {
-    return this.set(key, value, StorageType.LOCALSTORAGE);
-  }
-  setSession(key: string, value: T) {
-    return this.set(key, value, StorageType.SESSIONSTORAGE);
-  }
-}
-
 declare global {
   interface URLSearchParams {
     entries(): Iterable<readonly [string | number | symbol, any]>;
@@ -264,6 +221,21 @@ export function camelToKebabCase(str: string) {
 
 export function kebabToCamelCase(str: string) {
   return str.replace(/-(.)/g, (_substr, $1: string) => $1.toUpperCase());
+}
+
+export function cleanObject<T extends object>(o: T) {
+  Object.keys(o).forEach((key: string) => {
+    const k = key as keyof T;
+    delete o[k];
+  });
+  return o;
+}
+
+export class GemError extends Error {
+  constructor(msg: string) {
+    super(msg);
+    this.message = `gem: ${this.message}`;
+  }
 }
 
 export function emptyFunction() {

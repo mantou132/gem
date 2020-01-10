@@ -18,13 +18,13 @@ export default function createModalElement<T extends object>(options: T) {
     }
 
     static get observedStores() {
-      return [history.historyState, this.store];
+      return [history.store, this.store];
     }
 
     static open(opts: T) {
       const changeStore = () => updateStore(this.store, { [open]: true, ...opts });
       changeStore();
-      history.pushState({
+      history.push({
         open: changeStore,
         close: this.close.bind(this),
         shouldClose: this.shouldClose.bind(this),

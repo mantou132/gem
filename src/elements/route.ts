@@ -1,4 +1,13 @@
-import { html, GemElement, history, TemplateResult, updateStore, Location } from '../';
+import {
+  html,
+  GemElement,
+  customElement,
+  connectStore,
+  property,
+  history,
+  TemplateResult,
+  UpdateHistoryParams,
+} from '../';
 
 interface NamePostition {
   [index: string]: number;
@@ -56,7 +65,7 @@ export interface RoutesObject {
 }
 
 // params 中的成员不会验证
-export type RouteOptions = Omit<Location, 'path'> & { params: { [index: string]: string } };
+export type RouteOptions = Omit<UpdateHistoryParams, 'path'> & { params: { [index: string]: string } };
 
 export function createPath(route: RouteItem, options?: RouteOptions) {
   let path = route.pattern;
@@ -68,7 +77,7 @@ export function createPath(route: RouteItem, options?: RouteOptions) {
   return path;
 }
 
-export function createLocation(route: RouteItem, options?: RouteOptions): Location {
+export function createLocation(route: RouteItem, options?: RouteOptions): UpdateHistoryParams {
   const path = createPath(route, options);
   return {
     path,
@@ -76,43 +85,35 @@ export function createLocation(route: RouteItem, options?: RouteOptions): Locati
   };
 }
 
+@connectStore(history.store)
+@customElement('gem-route')
 export class Route extends GemElement {
-  static observedPropertys = ['routes'];
-  static observedStores = [history.historyState];
-
   static currentRoute: RouteItem | null;
 
   // 获取当前匹配的路由的 params
   static getParams() {
     if (Route.currentRoute) {
-      return getParams(Route.currentRoute.pattern, history.location.path);
+      return getParams(Route.currentRoute.pattern, history.getParams().path);
     }
   }
 
-  routes: RouteItem[] | RoutesObject;
+  @property routes: RouteItem[] | RoutesObject;
   private href: string;
 
   constructor() {
     super();
-    const { path, query } = history.location;
+    const { path, query } = history.getParams();
     const href = path + query;
     this.href = href;
   }
   initPage() {
-    const { list, currentIndex } = history.historyState;
-    if (Route.currentRoute && Route.currentRoute.title && Route.currentRoute.title !== list[currentIndex].title) {
-      list.splice(currentIndex, 1, {
-        ...list[currentIndex],
-        title: Route.currentRoute.title,
-      });
-      updateStore(history.historyState, {
-        list,
-      });
+    if (Route.currentRoute && Route.currentRoute.title && Route.currentRoute.title !== history.getParams().title) {
+      history.updateParams({ title: Route.currentRoute.title });
     }
   }
 
   shouldUpdate() {
-    const { path, query } = history.location;
+    const { path, query } = history.getParams();
     const href = path + query;
     if (path + query !== this.href) {
       this.href = href;
@@ -146,7 +147,7 @@ export class Route extends GemElement {
       const { pattern } = item;
       if ('*' === pattern) {
         defaultRoute = item;
-      } else if (isMatch(pattern, history.location.path)) {
+      } else if (isMatch(pattern, history.getParams().path)) {
         Route.currentRoute = item;
         break;
       }
@@ -176,5 +177,3 @@ export class Route extends GemElement {
     return html``;
   }
 }
-
-customElements.define('gem-route', Route);

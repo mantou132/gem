@@ -116,17 +116,15 @@ document.body.append(document.createElement('app-root'));
 
 ### history
 
-| 属性                   | 描述                                        |
-| ---------------------- | ------------------------------------------- |
-| historyState           | 维护历史记录的 `Store`                      |
-| basePath               | 指定基本路径                                |
-| forward                |                                             |
-| back                   |                                             |
-| push                   | 添加一条历史记录                            |
-| pushWithoutCloseHandle | 添加一条历史记录, 排除类似 modal 的中间页面 |
-| pushState              | 添加一条相同 URL 的历史记录                 |
-| replace                | 替换当前历史记录                            |
-| replaceState           | 替换当前历史记录的非 URL 属性               |
+| 属性                  | 描述                                        |
+| --------------------- | ------------------------------------------- |
+| store                 | 维护历史记录的 `Store`                      |
+| basePath              | 指定基本路径(只允许制定一次)                |
+| push                  | 添加一条历史记录                            |
+| pushIgnoreCloseHandle | 添加一条历史记录, 忽略类似 modal 的中间页面 |
+| replace               | 替换当前历史记录                            |
+| getParams             | 获取当前页面的 `path`, `query`,`hash` 等值  |
+| updateParams          | 更新 `title` 或者 handle                    |
 
 ### TS 装饰器
 

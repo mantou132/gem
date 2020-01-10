@@ -1,57 +1,35 @@
-import { html, GemElement, history, updateStore } from '..';
+import { html, GemElement, history, connectStore, customElement } from '..';
 
+@connectStore(history.store)
+@customElement('gem-title')
 export class Title extends GemElement {
-  static observedStores = [history.historyState];
-
-  static setTitle(documentTitle: string) {
-    const { list, currentIndex } = history.historyState;
-    list.splice(currentIndex, 1, {
-      ...list[currentIndex],
-      title: documentTitle,
-    });
-    updateStore(history.historyState, {
-      list,
-    });
+  static setTitle(title: string) {
+    // 触发组件更新
+    history.updateParams({ title });
   }
-
-  private documentTitle: string;
 
   constructor(isHidden: boolean) {
     super();
-    const { title } = history.location;
-    this.documentTitle = title;
     this.hidden = isHidden;
   }
 
-  shouldUpdate() {
-    const { title } = history.location;
-    if (title !== this.documentTitle) {
-      this.documentTitle = title;
-      return true;
-    }
-    return false;
-  }
-
   render() {
-    const { list, currentIndex } = history.historyState;
-    const { title } = list[currentIndex];
-
-    document.title = title;
+    const { title } = history.getParams();
+    document.title = title || this.textContent || '';
     if (this.hidden) {
       return html``;
     }
-    if (!title) {
+    if (!document.title) {
       return html`
         <slot></slot>
       `;
     }
     return html`
-      ${title}
+      ${document.title}
     `;
   }
 }
 
-customElements.define('gem-title', Title);
-if (!document.head.querySelector('gem-title')) {
+if (document.head && !document.head.querySelector('gem-title')) {
   document.head.append(new Title(true));
 }
