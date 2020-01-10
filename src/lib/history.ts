@@ -69,7 +69,8 @@ function validData(data: any) {
 
 function initParams(params: UpdateHistoryParams): HistoryParams {
   const title = params.title || '';
-  const path = params.path || location.pathname;
+  const path =
+    params.path || (location.pathname === '/' ? '' : location.pathname.replace(new RegExp(`^${history.basePath}`), ''));
   const query = new QueryString(params.query || (params.path ? '' : location.search));
   const changePath = params.path || params.query;
   const hash = params.hash || (changePath ? '' : location.hash);
@@ -90,7 +91,9 @@ function updateHistory(type: UpdateHistoryType, p: UpdateHistoryParams) {
   paramsMap.set(state.$key, params);
   updateStore(cleanObject(store), state);
   const url = history.basePath + path + new QueryString(query) + hash;
+  const prevHave = location.hash;
   (type === 'push' ? pushState : replaceState)(state, title, url);
+  if (prevHave !== hash) window.dispatchEvent(new CustomEvent('hashchange'));
 }
 
 function updateHistoryByNative(type: UpdateHistoryType, data: any, title: string, path: string) {
@@ -100,10 +103,14 @@ function updateHistoryByNative(type: UpdateHistoryType, data: any, title: string
     ...(data || {}),
   };
   const { pathname, search, hash } = new URL(path, location.origin);
+  if (location.hash !== hash) window.dispatchEvent(new CustomEvent('hashchange'));
   const params = initParams({ path: pathname, query: new QueryString(search), hash, title, data });
   paramsMap.set(state.$key, params);
   updateStore(cleanObject(store), state);
-  (type === 'push' ? pushState : replaceState)(state, title, path);
+  const url = history.basePath + path;
+  const prevHave = location.hash;
+  (type === 'push' ? pushState : replaceState)(state, title, url);
+  if (prevHave !== hash) window.dispatchEvent(new CustomEvent('hashchange'));
 }
 
 if (!('basePath' in history)) {
@@ -117,6 +124,9 @@ if (!('basePath' in history)) {
       },
       set(v: string) {
         if (!_basePath) {
+          // 应用初始化的时候设置
+          Object.assign(paramsMap.get(store.$key), { path: window.location.pathname.replace(new RegExp(`^${v}`), '') });
+          updateStore(store, {});
           _basePath = v;
         } else {
           throw new GemError('已经有其他环境使用 gem , 会共享 history 对象，禁止再修改 history 对象');

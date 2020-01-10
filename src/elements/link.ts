@@ -72,7 +72,7 @@ export class Link extends GemElement {
           all: unset;
         }
       </style>
-      <a @click=${this.preventDefault} href=${new URL(href, location.origin).toString()}>
+      <a @click=${this.preventDefault} href=${new URL(history.basePath + href, location.origin).toString()}>
         <slot></slot>
       </a>
     `;

@@ -92,7 +92,12 @@ describe('history 测试', () => {
   });
   // 在一个 window 中测试，所以 `basePath` 的测试必须放最后
   it('basePath', async () => {
+    history.push({ path: '/d' });
+    await aTimeout(10);
     history.basePath = '/d';
+    history.push({ hash: '#a' });
+    await aTimeout(10);
+    expect(window.location.pathname).to.equal('/d');
     history.push({ path: '/a' });
     await aTimeout(10);
     expect(window.location.pathname).to.equal('/d/a');
