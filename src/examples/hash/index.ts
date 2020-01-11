@@ -34,6 +34,8 @@ customElements.define('app-article', Article);
 class App extends GemElement {
   render() {
     return html`
+      <a href="#article-1">${'<a href="#article-1">'}</a>
+      <a href="#article-2">${'<a href="#article-2">'}</a>
       <gem-link path="/" hash="#article-1"><button>go #article-1</button></gem-link>
       <gem-link path="/" hash="#article-2"><button>go #article-2</button></gem-link>
       <app-article id="article-1" style="display: block; margin-top: 100px;">article-1</app-article>

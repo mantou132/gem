@@ -103,7 +103,6 @@ function updateHistoryByNative(type: UpdateHistoryType, data: any, title: string
     ...(data || {}),
   };
   const { pathname, search, hash } = new URL(path, location.origin);
-  if (location.hash !== hash) window.dispatchEvent(new CustomEvent('hashchange'));
   const params = initParams({ path: pathname, query: new QueryString(search), hash, title, data });
   paramsMap.set(state.$key, params);
   updateStore(cleanObject(store), state);

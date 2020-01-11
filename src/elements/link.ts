@@ -55,7 +55,6 @@ export class Link extends GemElement {
       const { pathname, search, hash } = new URL(this.href, location.origin);
       history.pushIgnoreCloseHandle({ path: pathname, query: search, hash });
     } else {
-      console.log(this.href);
       history.pushIgnoreCloseHandle({ path: this.path, query: this.query, hash: this.hash });
     }
   };
