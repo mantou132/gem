@@ -3,14 +3,12 @@ import { GemElement, createStore, updateStore, history, html } from '../';
 const open = Symbol('open mark');
 
 /**
- * TODO: 重构
- * 导出一个函数，用来创建类似 Modal 元素的基类;
+ * 导出一个函数，用来*创建*类似 Modal 元素的基类;
  * 需要使用 Modal 的静态方式所以使用 Store 来管理组件状态;
- * 如果不需要修改历史记录，只需要使用申明式自定义元素
  */
-export default function createModalElement<T extends object>(options: T) {
+export default function createModalClass<T extends object>(options: T) {
   /**
-   * 导出单实例 Modal 类
+   * 导出*单实例* Modal 类
    */
   return class extends GemElement {
     /**
