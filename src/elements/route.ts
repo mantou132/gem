@@ -4,6 +4,7 @@ import {
   customElement,
   connectStore,
   property,
+  emitter,
   history,
   TemplateResult,
   UpdateHistoryParams,
@@ -47,9 +48,8 @@ function getParams(pattern: string, path: string) {
   }
 }
 
-// pattern 或者 path 为空字符串时以根目录方式匹配
 export function isMatch(pattern: string, path: string) {
-  return !!(path || '/').match(getReg(pattern || '/'));
+  return !!path.match(getReg(pattern));
 }
 
 export interface RouteItem {
@@ -68,6 +68,8 @@ export interface RoutesObject {
 // params 中的成员不会验证
 export type RouteOptions = Omit<UpdateHistoryParams, 'path'> & { params: { [index: string]: string } };
 
+// 从路由创建路径
+// 不包含 basePath
 export function createPath(route: RouteItem, options?: RouteOptions) {
   let path = route.pattern;
   if (options && options.params) {
@@ -99,13 +101,15 @@ export class Route extends GemElement {
   }
 
   @property routes: RouteItem[] | RoutesObject;
-  private href: string;
+  @emitter change: Function;
+
+  private _href: string; // 用于内部比较
 
   constructor() {
     super();
     const { path, query } = history.getParams();
     const href = path + query;
-    this.href = href;
+    this._href = href;
   }
   initPage() {
     if (Route.currentRoute && Route.currentRoute.title && Route.currentRoute.title !== history.getParams().title) {
@@ -116,8 +120,8 @@ export class Route extends GemElement {
   shouldUpdate() {
     const { path, query } = history.getParams();
     const href = path + query;
-    if (path + query !== this.href) {
-      this.href = href;
+    if (href !== this._href) {
+      this._href = href;
       return true;
     }
     return false;
@@ -129,7 +133,7 @@ export class Route extends GemElement {
 
   updated() {
     this.initPage();
-    this.dispatchEvent(new CustomEvent('change'));
+    this.change(Route.currentRoute);
   }
 
   render() {

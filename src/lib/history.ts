@@ -27,7 +27,7 @@ const store = createStore<HistoryItem>({
 
 export interface UpdateHistoryParams {
   title?: string;
-  path?: string;
+  path?: string; // 不包括 basePath，只有根目录储存末尾斜杠
   query?: string | QueryString; // 包含 `?`
   hash?: string; // 包含 `#`
   open?: Function; // 按下前进键时执行
@@ -36,9 +36,10 @@ export interface UpdateHistoryParams {
   data?: any;
 }
 
+// 实际应用值
 type HistoryParams = UpdateHistoryParams & { title: string; path: string; query: QueryString; hash: string };
 
-// 需要 WeakRef
+// TODO: WeakRef
 const paramsMap = new Map<number, HistoryParams>();
 
 declare global {
@@ -67,12 +68,26 @@ function validData(data: any) {
   if (data?.$hasShouldCloseHandle) throw new GemError('`$hasShouldCloseHandle` is not allowed');
 }
 
+// 并非实际路径 `location.pathname`
+function getAbsolutePath(relativePath: string) {
+  if (history.basePath) {
+    return history.basePath + (relativePath === '/' ? '' : relativePath);
+  }
+  return relativePath;
+}
+
+function getRelativePath(realPath: string) {
+  return realPath.replace(new RegExp(`^${history.basePath}`), '');
+}
+
 function initParams(params: UpdateHistoryParams): HistoryParams {
   const title = params.title || '';
-  const path =
-    params.path || (location.pathname === '/' ? '' : location.pathname.replace(new RegExp(`^${history.basePath}`), ''));
+  // 没提供 path 使用当前 path
+  const path = params.path || getRelativePath(location.pathname);
+  // 没提供 query 又没有提供 path 时使用当前 search
   const query = new QueryString(params.query || (params.path ? '' : location.search));
   const changePath = params.path || params.query;
+  // 没提供 hash 又没有改变路径时使用当前 hash
   const hash = params.hash || (changePath ? '' : location.hash);
   return { ...params, title, path, query, hash };
 }
@@ -90,23 +105,24 @@ function updateHistory(type: UpdateHistoryType, p: UpdateHistoryParams) {
   };
   paramsMap.set(state.$key, params);
   updateStore(cleanObject(store), state);
-  const url = history.basePath + path + new QueryString(query) + hash;
+  const url = getAbsolutePath(path) + new QueryString(query) + hash;
   const prevHave = location.hash;
   (type === 'push' ? pushState : replaceState)(state, title, url);
   if (prevHave !== hash) window.dispatchEvent(new CustomEvent('hashchange'));
 }
 
-function updateHistoryByNative(type: UpdateHistoryType, data: any, title: string, path: string) {
+// 跨框架时，调用者对 basePath 无感知
+function updateHistoryByNative(type: UpdateHistoryType, data: any, title: string, originUrl: string) {
   validData(data);
   const state = {
     $key: getKey(),
     ...(data || {}),
   };
-  const { pathname, search, hash } = new URL(path, location.origin);
+  const { pathname, search, hash } = new URL(originUrl, location.origin);
   const params = initParams({ path: pathname, query: new QueryString(search), hash, title, data });
   paramsMap.set(state.$key, params);
   updateStore(cleanObject(store), state);
-  const url = history.basePath + path;
+  const url = getAbsolutePath(pathname) + params.query + hash;
   const prevHave = location.hash;
   (type === 'push' ? pushState : replaceState)(state, title, url);
   if (prevHave !== hash) window.dispatchEvent(new CustomEvent('hashchange'));
@@ -127,8 +143,9 @@ if (!('basePath' in history)) {
       set(v: string) {
         if (!basePathStore.basePath) {
           // 应用初始化的时候设置
-          Object.assign(paramsMap.get(store.$key), { path: window.location.pathname.replace(new RegExp(`^${v}`), '') });
           updateStore(basePathStore, { basePath: v });
+          // paramsMap 更新后 ui 才会更新
+          Object.assign(paramsMap.get(store.$key), { path: getRelativePath(location.pathname) });
         } else {
           throw new GemError('已经有其他环境使用 gem , 会共享 history 对象，禁止再修改 history 对象');
         }

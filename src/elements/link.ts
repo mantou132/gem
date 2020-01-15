@@ -26,10 +26,11 @@ export class Link extends GemElement {
     this.onclick = this.clickHandle;
   }
 
+  // 不包含 basePath
   getHref() {
     if (this.route) {
-      const queryProp = this.options ? this.options.query || '' : '';
-      const hashProp = this.options ? this.options.hash || '' : '';
+      const queryProp = (this.options && this.options.query) || '';
+      const hashProp = (this.options && this.options.hash) || '';
       return createPath(this.route, this.options) + queryProp + hashProp;
     } else {
       return this.href || this.path + this.query + this.hash;
@@ -38,6 +39,8 @@ export class Link extends GemElement {
 
   clickHandle = (e: MouseEvent) => {
     const href = this.getHref();
+
+    // 外部链接使用 `window.open`
     if (!href.startsWith('/')) {
       window.open(href);
       return;

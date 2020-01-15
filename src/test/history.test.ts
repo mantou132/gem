@@ -15,6 +15,10 @@ describe('history 测试', () => {
     await aTimeout(10);
     expect(window.location.hash).to.equal('#b');
     expect(window.history.length - historyLength).to.equal(1);
+    history.push({ hash: '#c' });
+    await aTimeout(10);
+    expect(window.location.pathname).to.equal('/a');
+    expect(window.location.hash).to.equal('#c');
   });
   it('push/replace', async () => {
     const historyLength = window.history.length;
@@ -26,6 +30,13 @@ describe('history 测试', () => {
     expect(window.location.pathname).to.equal('/b');
     expect(new URLSearchParams(location.search).get('tab')).to.equal('a');
     expect(window.history.length - historyLength).to.equal(1);
+    history.push({ path: '/' });
+    await aTimeout(10);
+    expect(window.location.pathname).to.equal('/');
+    history.push({ query: 'tab=bb' });
+    await aTimeout(10);
+    expect(window.location.pathname).to.equal('/');
+    expect(new URLSearchParams(location.search).get('tab')).to.equal('bb');
   });
   it('getParams/updateParams', async () => {
     const historyLength = window.history.length;
@@ -95,12 +106,24 @@ describe('history 测试', () => {
     history.push({ path: '/d' });
     await aTimeout(10);
     history.basePath = '/d';
+    history.push({ query: 'tab=bb' });
+    await aTimeout(10);
+    expect(window.location.pathname).to.equal('/d');
     history.push({ hash: '#a' });
     await aTimeout(10);
     expect(window.location.pathname).to.equal('/d');
     history.push({ path: '/a' });
     await aTimeout(10);
     expect(window.location.pathname).to.equal('/d/a');
+    history.push({ path: '/' });
+    await aTimeout(10);
+    expect(window.location.pathname).to.equal('/d');
+    history.pushState({}, '', '/');
+    await aTimeout(10);
+    expect(window.location.pathname).to.equal('/d');
+    history.pushState({}, '', '/c');
+    await aTimeout(10);
+    expect(window.location.pathname).to.equal('/d/c');
     expect(() => (history.basePath = '')).to.throw();
   });
 });
