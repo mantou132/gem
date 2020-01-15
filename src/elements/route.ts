@@ -47,8 +47,9 @@ function getParams(pattern: string, path: string) {
   }
 }
 
+// pattern 或者 path 为空字符串时以根目录方式匹配
 export function isMatch(pattern: string, path: string) {
-  return !!path.match(getReg(pattern));
+  return !!(path || '/').match(getReg(pattern || '/'));
 }
 
 export interface RouteItem {
