@@ -4,14 +4,17 @@ import {
   createCSSSheet,
   GemElement,
   html,
+  refobject,
+  RefObject,
   attribute,
   connectStore,
   customElement,
+  adoptedStyle,
+  css,
 } from '../../';
-import { Message } from './chidren';
+
+import { Message, Children } from './chidren';
 import './chidren';
-import { css } from '../../lib/utils';
-import { adoptedStyle } from '../../lib/decorators';
 
 const store = createStore<{ msg: Message; now: Date }>({
   msg: [1, 2],
@@ -28,12 +31,13 @@ const styles = createCSSSheet(css`
 @adoptedStyle(styles)
 @customElement('app-root')
 class App extends GemElement {
+  @refobject childRef: RefObject<Children>;
+  @attribute appTitle: string;
+
   constructor(title: string) {
     super();
     this.appTitle = title;
   }
-
-  @attribute appTitle: string;
 
   onSayHi = () => {
     const [foo, bar] = store.msg;
@@ -43,11 +47,17 @@ class App extends GemElement {
     });
   };
 
+  loadHandle = () => {
+    const { element } = this.childRef;
+    console.log(element?.firstName, element?.lastName);
+  };
+
   render() {
     return html`
       <h1>${this.appTitle}</h1>
       <app-children
-        @load=${console.log}
+        ref=${this.childRef.ref}
+        @load=${this.loadHandle}
         @sayhi=${this.onSayHi}
         .message=${store.msg}
         first-name="hello"
