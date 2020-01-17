@@ -1,13 +1,15 @@
-import { GemElement, html, property, attribute, emitter, customElement } from '../../';
+import { GemElement, html, property, attribute, slot, part, state, emitter, customElement } from '../../';
 
 export type Message = number[];
 
 /**
  * @attr first-name
  * @attr last-name
- * @slot light
  * @fires sayhi
  * @fires load
+ * @state odd
+ * @slot light
+ * @part paragraph
  */
 @customElement('app-children')
 export class Children extends GemElement {
@@ -17,8 +19,15 @@ export class Children extends GemElement {
   @emitter sayHi: Function;
   @emitter load: Function;
 
+  @state odd: boolean;
+  @slot light: string;
+  @part paragraph: string;
+
   mounted = () => {
     setTimeout(() => this.load(new Date()), 1000);
+    this.addEventListener('click', () => {
+      this.odd = !this.odd;
+    });
   };
 
   render() {
@@ -28,8 +37,8 @@ export class Children extends GemElement {
         <span>${this.firstName}</span>
         <span>${this.lastName}</span>
       </p>
-      <p>properties: ${JSON.stringify(this.message)}</p>
-      <slot name="light"></slot>
+      <p part=${this.paragraph}>properties: ${JSON.stringify(this.message)}</p>
+      <slot name=${this.slot}></slot>
       <button @click=${this.sayHi}>say hi</button>
     `;
   }

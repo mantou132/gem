@@ -54,6 +54,11 @@ class App extends GemElement {
 
   render() {
     return html`
+      <style>
+        app-children:state(odd)::part(paragraph) {
+          color: red;
+        }
+      </style>
       <h1>${this.appTitle}</h1>
       <app-children
         ref=${this.childRef.ref}

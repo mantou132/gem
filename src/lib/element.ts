@@ -39,6 +39,15 @@ if (window.__litHtml) {
 const { html, svg, render, directive, repeat, guard, ifDefined } = litHtml;
 export { html, svg, render, directive, repeat, guard, ifDefined, TemplateResult };
 
+declare global {
+  interface ElementInternals {
+    states?: DOMTokenList;
+  }
+  interface HTMLElement {
+    attachInternals: () => ElementInternals;
+  }
+}
+
 type UnmountCallback = () => void;
 
 // final 字段如果使用 symbol 或者 private 将导致 modal-base 生成匿名子类 declaration 失败

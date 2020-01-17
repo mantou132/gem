@@ -8,9 +8,6 @@ import { BaseElement } from './element';
 import { Store } from './store';
 import { Sheet, camelToKebabCase } from './utils';
 
-// TODO: @slot, @state
-// 全部使用装饰器，争取省略 jsdoc
-
 export type RefObject<T = BaseElement> = { ref: string; element: T | null };
 
 export function refobject(target: BaseElement, prop: string) {
@@ -36,6 +33,38 @@ export function property(target: BaseElement, prop: string) {
   const con = target.constructor as typeof BaseElement;
   if (!con.observedPropertys) con.observedPropertys = [];
   con.observedPropertys.push(prop);
+}
+
+export function state(target: BaseElement, prop: string) {
+  let internal: ElementInternals;
+  Object.defineProperty(target, prop, {
+    get() {
+      return !!internal?.states?.contains(prop);
+    },
+    set(v: boolean) {
+      const that = this as BaseElement;
+      if (!internal) {
+        internal = that.attachInternals();
+      }
+      if (internal.states) {
+        if (v) {
+          internal.states.add(prop);
+        } else {
+          internal.states.remove(prop);
+        }
+      }
+    },
+  });
+}
+
+export function slot(target: BaseElement, prop: string) {
+  const proto = target as BaseElement & { [index: string]: string };
+  proto[prop] = prop;
+}
+
+export function part(target: BaseElement, prop: string) {
+  const proto = target as BaseElement & { [index: string]: string };
+  proto[prop] = prop;
 }
 
 export function emitter(target: BaseElement, event: string) {
