@@ -5,16 +5,17 @@ import { GemElement, html, attribute, property, customElement } from '../';
  * 此元素用来模拟 `<use>`,
  * 由于是复制元素，所以不能像 `<use>` 一样自动更新
  *
- * @attr ref
+ * @customElement gem-use
+ * @attr selector
  */
 @customElement('gem-use')
 export class Use extends GemElement {
-  @attribute ref: string; // CSS 选择器
+  @attribute selector: string; // CSS 选择器
   @property root: HTMLElement | Document | ShadowRoot = document;
 
   private getContent() {
     // 只支持 `svg` 或者 `template > svg`
-    const ele = this.root.querySelector(this.ref);
+    const ele = this.root.querySelector(this.selector);
     if (ele instanceof HTMLTemplateElement) {
       return ele.content.cloneNode(true);
     } else if (ele instanceof SVGSVGElement) {

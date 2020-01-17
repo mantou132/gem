@@ -1,5 +1,8 @@
 import { html, GemElement, history, connectStore, customElement } from '..';
 
+/**
+ * @customElement gem-title
+ */
 @connectStore(history.store)
 @customElement('gem-title')
 export class Title extends GemElement {

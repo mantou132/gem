@@ -54,6 +54,7 @@ export abstract class BaseElement<T = {}> extends HTMLElement {
   static defineEvents: string[];
 
   readonly state: T;
+  /**@final */
   ref: string;
 
   /**@final */

@@ -2,6 +2,7 @@ import { GemElement, html, history, basePathStore, attribute, property, connectS
 import { isMatch, RouteItem, RouteOptions, createHistoryParams, createPath } from './route';
 
 /**
+ * @customElement gem-link
  * @attr href
  * @attr path
  * @attr query
@@ -87,6 +88,7 @@ export class Link extends GemElement {
 }
 
 /**
+ * @customElement gem-active-link
  * @attr pattern
  */
 @customElement('gem-active-link')

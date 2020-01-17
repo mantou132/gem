@@ -88,6 +88,10 @@ export function createHistoryParams(route: RouteItem, options?: RouteOptions): U
   };
 }
 
+/**
+ * @customElement gem-route
+ * @fires change
+ */
 @connectStore(history.store)
 @customElement('gem-route')
 export class Route extends GemElement {

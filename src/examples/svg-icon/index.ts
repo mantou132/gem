@@ -10,8 +10,8 @@ render(
         <path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z" />
       </svg>
     </template>
-    <gem-use .root=${document.body} ref="#icon"></gem-use>
-    <gem-use ref="#icon"></gem-use>
+    <gem-use .root=${document.body} selector="#icon"></gem-use>
+    <gem-use selector="#icon"></gem-use>
   `,
   document.body,
 );

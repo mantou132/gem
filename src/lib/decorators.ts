@@ -8,6 +8,9 @@ import { BaseElement } from './element';
 import { Store } from './store';
 import { Sheet, camelToKebabCase } from './utils';
 
+// TODO: @slot, @state
+// 全部使用装饰器，争取省略 jsdoc
+
 export type RefObject<T = BaseElement> = { ref: string; element: T | null };
 
 export function refobject(target: BaseElement, prop: string) {
