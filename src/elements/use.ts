@@ -5,6 +5,8 @@ import { GemElement, html, attribute, property, customElement } from '../';
  * 此元素用来模拟 `<use>`,
  * 由于是复制元素，所以不能像 `<use>` 一样自动更新
  *
+ * slot 支持为 icon 添加效果，如涟漪，徽章
+ *
  * @customElement gem-use
  * @attr selector
  */
@@ -32,7 +34,7 @@ export class Use extends GemElement {
           position: relative;
         }
         :host(:not([hidden])) {
-          display: inline-block;
+          display: inline-flex;
         }
         svg {
           width: 100%;
