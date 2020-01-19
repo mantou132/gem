@@ -1,4 +1,4 @@
-import { GemElement, html, history, basePathStore, attribute, property, connectStore, customElement } from '../';
+import { GemElement, html, history, basePathStore, attribute, property, connectStore, customElement, state } from '../';
 import { isMatch, RouteItem, RouteOptions, createHistoryParams, createPath } from './route';
 
 /**
@@ -8,7 +8,6 @@ import { isMatch, RouteItem, RouteOptions, createHistoryParams, createPath } fro
  * @attr query
  * @attr hash
  * @attr pattern
- * @state active
  */
 @customElement('gem-link')
 @connectStore(basePathStore)
@@ -90,19 +89,22 @@ export class Link extends GemElement {
 /**
  * @customElement gem-active-link
  * @attr pattern
+ * @state active
  */
 @customElement('gem-active-link')
 @connectStore(history.store)
 export class ActiveLink extends Link {
   @attribute pattern: string; // 使用匹配模式设定 active
+  @state active: boolean;
+
   render() {
     const { path, query, hash } = history.getParams();
     const isMatchPattern = this.pattern && isMatch(this.pattern, path);
     const href = this.getHref();
     if (isMatchPattern || path + query + hash === href) {
-      this.setAttribute('active', '');
+      this.active = true;
     } else {
-      this.removeAttribute('active');
+      this.active = false;
     }
     return super.render(href);
   }

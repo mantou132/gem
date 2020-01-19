@@ -11,7 +11,10 @@ const routes = {
           gem-active-link {
             display: block;
           }
-          gem-active-link[active] {
+          gem-active-link:state(active) {
+            color: inherit;
+          }
+          gem-active-link.active {
             color: inherit;
           }
         </style>
@@ -30,7 +33,10 @@ const routes = {
           gem-active-link {
             display: block;
           }
-          gem-active-link[active] {
+          gem-active-link:state(active) {
+            color: inherit;
+          }
+          gem-active-link.active {
             color: inherit;
           }
         </style>
