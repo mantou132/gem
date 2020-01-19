@@ -41,6 +41,7 @@ export { html, svg, render, directive, repeat, guard, ifDefined, TemplateResult 
 
 declare global {
   interface ElementInternals {
+    // 不一定支持
     states?: DOMTokenList;
   }
   interface HTMLElement {
@@ -63,11 +64,12 @@ export abstract class BaseElement<T = {}> extends HTMLElement {
   static defineEvents: string[];
 
   readonly state: T;
-  /**@final */
-  ref: string;
+  readonly ref: string;
 
   /**@final */
   __renderRoot: HTMLElement | ShadowRoot;
+  /**@final */
+  __internals: ElementInternals | undefined;
   /**@final */
   __isMounted: boolean;
 
@@ -147,6 +149,14 @@ export abstract class BaseElement<T = {}> extends HTMLElement {
         document.adoptedStyleSheets = document.adoptedStyleSheets.concat(adoptedStyleSheets);
       }
     }
+  }
+
+  /**@final */
+  get internals() {
+    if (!this.__internals) {
+      this.__internals = this.attachInternals();
+    }
+    return this.__internals;
   }
 
   /**

@@ -1,4 +1,4 @@
-import { GemElement, createStore, updateStore, history, html } from '../';
+import { GemElement, createStore, updateStore, history } from '../';
 
 const open = Symbol('open mark');
 
@@ -62,10 +62,6 @@ export default function createModalClass<T extends object>(options: T) {
      */
     static shouldClose() {
       return true;
-    }
-
-    render() {
-      return html``;
     }
   };
 }

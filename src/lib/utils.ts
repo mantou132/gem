@@ -20,7 +20,8 @@ interface PoolEventMap {
  * `EventTarget` safari not support
  * https://bugs.webkit.org/show_bug.cgi?id=174313
  */
-export class Pool<T> extends (globalThis.Image || null) {
+const EventTarget = globalThis.Image || Object; // support nodejs
+export class Pool<T> extends EventTarget {
   addEventListener: <K extends keyof PoolEventMap>(
     type: K,
     listener: (this: Pool<T>, ev: PoolEventMap[K]) => any,

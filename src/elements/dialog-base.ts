@@ -1,17 +1,15 @@
-import { html, GemElement, connectStore, history } from '..';
+import { GemElement, connectStore, history, state } from '..';
 
 @connectStore(history.store)
 export default abstract class DialogBase extends GemElement {
-  get isOpen() {
-    return this.hasAttribute('open');
-  }
+  @state opened = false;
 
   closeHandle() {
-    this.removeAttribute('open');
+    this.opened = false;
   }
 
   openHandle() {
-    this.setAttribute('open', '');
+    this.opened = true;
   }
 
   shouldClose() {
@@ -26,7 +24,7 @@ export default abstract class DialogBase extends GemElement {
   }
 
   open = () => {
-    if (this.isOpen) return;
+    if (this.opened) return;
     this.openHandle();
     history.push({
       open: this.openHandle,
@@ -38,8 +36,4 @@ export default abstract class DialogBase extends GemElement {
   close = () => {
     history.back();
   };
-
-  render() {
-    return html``;
-  }
 }

@@ -38,7 +38,7 @@ export class Children extends GemElement {
         <span>${this.lastName}</span>
       </p>
       <p part=${this.paragraph}>properties: ${JSON.stringify(this.message)}</p>
-      <slot name=${this.slot}></slot>
+      <slot name=${this.light}></slot>
       <button @click=${this.sayHi}>say hi</button>
     `;
   }

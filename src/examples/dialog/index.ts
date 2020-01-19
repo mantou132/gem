@@ -42,7 +42,7 @@ customElements.define('app-confirm', Confirm);
 
 class Dialog extends DialogBase {
   shouldClose = () => {
-    if (this.isOpen) {
+    if (this.opened) {
       Confirm.open({
         content: html`
           Confirm?
@@ -80,7 +80,7 @@ class Dialog extends DialogBase {
           background: white;
         }
       </style>
-      <div class="root" ?hidden=${!this.isOpen}>
+      <div class="root" ?hidden=${!this.opened}>
         <div class="body">
           <h2>Dialog Title</h2>
           <slot></slot>

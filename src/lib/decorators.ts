@@ -36,22 +36,22 @@ export function property(target: BaseElement, prop: string) {
 }
 
 export function state(target: BaseElement, prop: string) {
-  let internal: ElementInternals;
   Object.defineProperty(target, prop, {
     get() {
-      return !!internal?.states?.contains(prop);
+      const that = this as BaseElement;
+      return !!that.internals?.states?.contains(prop);
     },
     set(v: boolean) {
       const that = this as BaseElement;
-      if (!internal) {
-        internal = that.attachInternals();
+      const internals = that.internals;
+      if (!internals.states) {
+        // 不支持 css states 时使用 classList
+        internals.states = that.classList;
       }
-      if (internal.states) {
-        if (v) {
-          internal.states.add(prop);
-        } else {
-          internal.states.remove(prop);
-        }
+      if (v) {
+        internals.states.add(prop);
+      } else {
+        internals.states.remove(prop);
       }
     },
   });
