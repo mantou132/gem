@@ -210,17 +210,17 @@ export abstract class BaseElement<T = {}> extends HTMLElement {
   }
 
   /**@lifecycle */
-  willMount() {}
+  willMount(): any {}
 
   /**@lifecycle */
-  render() {
+  render(): TemplateResult | null {
     return html`
       <slot></slot>
     `;
   }
 
   /**@lifecycle */
-  mounted(): UnmountCallback | void {}
+  mounted(): any {}
 
   /**@lifecycle */
   shouldUpdate() {
@@ -241,17 +241,17 @@ export abstract class BaseElement<T = {}> extends HTMLElement {
   }
 
   /**@lifecycle */
-  updated() {}
+  updated(): any {}
 
   // 同步触发
   /**@lifecycle */
-  propertyChanged(_name: string, _oldValue: any, _newValue: any) {}
+  propertyChanged(_name: string, _oldValue: any, _newValue: any): any {}
   // 异步触发
   /**@lifecycle */
-  attributeChanged(_name: string, _oldValue: string, _newValue: string) {}
+  attributeChanged(_name: string, _oldValue: string, _newValue: string): any {}
 
   /**@lifecycle */
-  unmounted() {}
+  unmounted(): any {}
 
   /**@private */
   /**@final */
@@ -266,7 +266,7 @@ export abstract class BaseElement<T = {}> extends HTMLElement {
   __connectedCallback() {
     render(this.render(), this.__renderRoot);
     const callback = this.mounted();
-    if (callback) this.__unmountCallback = callback;
+    if (typeof callback === 'function') this.__unmountCallback = callback;
     this.__isMounted = true;
   }
 

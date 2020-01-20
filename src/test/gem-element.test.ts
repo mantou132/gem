@@ -243,7 +243,7 @@ class AsyncGemDemo extends AsyncGemElement {
   renderCount = 0;
   render() {
     this.renderCount++;
-    return html``;
+    return null;
   }
 }
 customElements.define('async-gem-demo', AsyncGemDemo);
