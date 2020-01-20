@@ -41,11 +41,22 @@ class GemDemo extends GemElement {
 
   renderCount = 0;
 
+  attrChangeCount = 0;
+  propChangeCount = 0;
+
   render() {
     this.renderCount++;
     return html`
       attr: ${this.attr}, prop: ${this.prop.value}, state: ${this.state.value}
     `;
+  }
+
+  attributeChanged(_name: string, _oldValue: string, _newValue: string) {
+    this.attrChangeCount++;
+  }
+
+  propertyChanged(_name: string, _oldValue: any, _newValue: any) {
+    this.propChangeCount++;
   }
 }
 
@@ -139,6 +150,7 @@ describe('基本 gem element 测试', () => {
     expect(el.renderCount).to.equal(1);
     el.attr = 'rrr';
     el.attr = 'value';
+    expect(el.attrChangeCount).to.equal(2);
     await Promise.resolve();
     expect(el.renderCount).to.equal(2);
     expect(el.attr).to.equal('value');
@@ -174,6 +186,7 @@ describe('基本 gem element 测试', () => {
     el.prop = { value: 'asdfasdfdsf' };
     el.prop = { value: 'value' };
     el.prop = { value: 'value' };
+    expect(el.propChangeCount).to.equal(3);
     await Promise.resolve();
     expect(el.renderCount).to.equal(2);
     expect(el.prop).to.deep.equal({ value: 'value' });

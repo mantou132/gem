@@ -246,7 +246,7 @@ export abstract class BaseElement<T = {}> extends HTMLElement {
   // 同步触发
   /**@lifecycle */
   propertyChanged(_name: string, _oldValue: any, _newValue: any): any {}
-  // 异步触发
+  // 同步触发
   /**@lifecycle */
   attributeChanged(_name: string, _oldValue: string, _newValue: string): any {}
 
