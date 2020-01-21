@@ -29,13 +29,22 @@ export class Link extends GemElement {
   }
 
   // 不包含 basePath
+  // 不支持相对路径
   getHref() {
     if (this.route) {
       const queryProp = (this.options && this.options.query) || '';
       const hashProp = (this.options && this.options.hash) || '';
       return createPath(this.route, this.options) + queryProp + hashProp;
     } else {
-      return this.href || this.path + this.query + this.hash;
+      const url = this.href || this.path + this.query + this.hash;
+      const { path, query } = history.getParams();
+      if (url.startsWith('#')) {
+        return `${path}${query}${url}`;
+      } else if (url.startsWith('?')) {
+        return `${path}${url}`;
+      } else {
+        return url;
+      }
     }
   }
 
