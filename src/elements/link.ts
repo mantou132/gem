@@ -4,6 +4,7 @@ import { isMatch, RouteItem, RouteOptions, createHistoryParams, createPath } fro
 /**
  * @customElement gem-link
  * @attr href
+ * @attr doc-title
  * @attr path
  * @attr query
  * @attr hash
@@ -16,6 +17,7 @@ export class Link extends GemElement {
   @attribute path: string;
   @attribute query: string;
   @attribute hash: string;
+  @attribute docTitle: string;
 
   // 动态路由，根据 route.pattern 和 options.params 计算出 path
   @property route: RouteItem;
@@ -53,12 +55,12 @@ export class Link extends GemElement {
 
     e.stopPropagation();
     if (this.route) {
-      history.pushIgnoreCloseHandle(createHistoryParams(this.route, this.options));
+      history.pushIgnoreCloseHandle({ ...createHistoryParams(this.route, this.options), title: this.docTitle });
     } else if (this.href) {
       const { pathname, search, hash } = new URL(this.href, location.origin);
-      history.pushIgnoreCloseHandle({ path: pathname, query: search, hash });
+      history.pushIgnoreCloseHandle({ path: pathname, query: search, hash, title: this.docTitle });
     } else {
-      history.pushIgnoreCloseHandle({ path: this.path, query: this.query, hash: this.hash });
+      history.pushIgnoreCloseHandle({ path: this.path, query: this.query, hash: this.hash, title: this.docTitle });
     }
   };
 
