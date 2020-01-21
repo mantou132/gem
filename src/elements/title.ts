@@ -1,8 +1,7 @@
-import { html, GemElement, history, connectStore, customElement, attribute } from '..';
+import { html, GemElement, history, connectStore, customElement } from '..';
 
 /**
  * @customElement gem-title
- * @attr mode
  */
 @connectStore(history.store)
 @customElement('gem-title')
@@ -17,16 +16,9 @@ export class Title extends GemElement {
     this.hidden = isHidden;
   }
 
-  @attribute mode: 'safe';
-
   render() {
     const { title } = history.getParams();
-    const newTitle = title || this.textContent || '';
-
-    if (this.mode !== 'safe' || newTitle) {
-      document.title = newTitle;
-    }
-
+    document.title = title || this.textContent || '';
     if (this.hidden) {
       return html``;
     }
