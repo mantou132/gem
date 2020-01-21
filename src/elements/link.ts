@@ -114,8 +114,10 @@ export class ActiveLink extends Link {
     const href = this.getHref();
     if (isMatchPattern || path + query + hash === href) {
       this.active = true;
+      this.classList.add('active'); // internals 支持 states 再删除
     } else {
       this.active = false;
+      this.classList.remove('active');
     }
     return super.render(href);
   }
