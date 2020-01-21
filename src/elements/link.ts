@@ -64,7 +64,10 @@ export class Link extends GemElement {
 
     e.stopPropagation();
     if (this.route) {
-      history.pushIgnoreCloseHandle({ ...createHistoryParams(this.route, this.options), title: this.docTitle });
+      history.pushIgnoreCloseHandle({
+        ...createHistoryParams(this.route, this.options),
+        title: this.route.title || this.docTitle,
+      });
     } else if (this.href) {
       const { pathname, search, hash } = new URL(href, location.origin);
       history.pushIgnoreCloseHandle({ path: pathname, query: search, hash, title: this.docTitle });

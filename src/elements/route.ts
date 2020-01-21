@@ -116,6 +116,7 @@ export class Route extends GemElement {
     this._href = href;
   }
   initPage() {
+    // 路径更新后可能发起第二次更新，更新 `document.title`
     if (Route.currentRoute && Route.currentRoute.title && Route.currentRoute.title !== history.getParams().title) {
       history.updateParams({ title: Route.currentRoute.title });
     }
