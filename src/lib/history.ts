@@ -94,6 +94,12 @@ function initParams(params: UpdateHistoryParams): HistoryParams {
   return { ...params, title, path, query, hash };
 }
 
+window.addEventListener('hashchange', ({ isTrusted }) => {
+  if (isTrusted) {
+    history.replace({ hash: location.hash });
+  }
+});
+
 function updateHistory(type: UpdateHistoryType, p: UpdateHistoryParams) {
   validData(p.data);
   const params = initParams(p);
