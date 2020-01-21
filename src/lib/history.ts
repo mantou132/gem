@@ -81,14 +81,16 @@ function getRelativePath(realPath: string) {
 }
 
 function initParams(params: UpdateHistoryParams): HistoryParams {
-  const title = params.title || '';
+  const current = paramsMap.get(store.$key) || ({} as HistoryParams);
   // 没提供 path 使用当前 path
   const path = params.path || getRelativePath(location.pathname);
   // 没提供 query 又没有提供 path 时使用当前 search
   const query = new QueryString(params.query || (params.path ? '' : location.search));
-  const changePath = params.path || params.query;
+  const pathChanged =
+    (params.path && params.path !== current.path) || (params.query && String(params.query) !== String(current.query));
+  const title = params.title || (pathChanged ? '' : document.title);
   // 没提供 hash 又没有改变路径时使用当前 hash
-  const hash = params.hash || (changePath ? '' : location.hash);
+  const hash = params.hash || (pathChanged ? '' : location.hash);
   return { ...params, title, path, query, hash };
 }
 
