@@ -1,5 +1,6 @@
 const updaterSet = new Set<Function>();
 export function addMicrotask(func: Function) {
+  if (typeof func !== 'function') return;
   if (!updaterSet.size) {
     // delayed execution callback after updating store
     globalThis.queueMicrotask(() => {

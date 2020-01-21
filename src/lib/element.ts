@@ -231,7 +231,7 @@ export abstract class BaseElement<T = {}> extends HTMLElement {
   __update() {
     if (this.__isMounted && this.shouldUpdate()) {
       render(this.render(), this.__renderRoot);
-      this.updated();
+      addMicrotask(this.updated);
     }
   }
 
