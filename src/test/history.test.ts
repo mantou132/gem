@@ -15,10 +15,11 @@ describe('history 测试', () => {
     await aTimeout(10);
     expect(window.location.hash).to.equal('#b');
     expect(window.history.length - historyLength).to.equal(1);
-    history.push({ hash: '#c' });
+    history.push({ hash: '#标题' });
     await aTimeout(10);
     expect(window.location.pathname).to.equal('/a');
-    expect(window.location.hash).to.equal('#c');
+    expect(decodeURIComponent(window.location.hash)).to.equal('#标题');
+    expect(history.getParams().hash).to.equal('#标题');
   });
   it('push/replace', async () => {
     const historyLength = window.history.length;

@@ -90,13 +90,13 @@ function initParams(params: UpdateHistoryParams): HistoryParams {
     (params.path && params.path !== current.path) || (params.query && String(params.query) !== String(current.query));
   const title = params.title || (pathChanged ? '' : document.title);
   // 没提供 hash 又没有改变路径时使用当前 hash
-  const hash = params.hash || (pathChanged ? '' : location.hash);
+  const hash = params.hash || (pathChanged ? '' : decodeURIComponent(location.hash));
   return { ...params, title, path, query, hash };
 }
 
 window.addEventListener('hashchange', ({ isTrusted }) => {
   if (isTrusted) {
-    history.replace({ hash: location.hash });
+    history.replace({ hash: decodeURIComponent(location.hash) });
   }
 });
 
@@ -114,7 +114,7 @@ function updateHistory(type: UpdateHistoryType, p: UpdateHistoryParams) {
   paramsMap.set(state.$key, params);
   updateStore(cleanObject(store), state);
   const url = getAbsolutePath(path) + new QueryString(query) + hash;
-  const prevHave = location.hash;
+  const prevHave = decodeURIComponent(location.hash);
   (type === 'push' ? pushState : replaceState)(state, title, url);
   if (prevHave !== hash) window.dispatchEvent(new CustomEvent('hashchange'));
 }
@@ -131,7 +131,7 @@ function updateHistoryByNative(type: UpdateHistoryType, data: any, title: string
   paramsMap.set(state.$key, params);
   updateStore(cleanObject(store), state);
   const url = getAbsolutePath(pathname) + params.query + hash;
-  const prevHave = location.hash;
+  const prevHave = decodeURIComponent(location.hash);
   (type === 'push' ? pushState : replaceState)(state, title, url);
   if (prevHave !== hash) window.dispatchEvent(new CustomEvent('hashchange'));
 }
