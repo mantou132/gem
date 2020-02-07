@@ -9,11 +9,31 @@
       "children": [
         {
           "title": "简介",
-          "link": "/guide/"
+          "link": "/guide/",
+          "children": [
+            {
+              "title": "开始",
+              "link": "#开始"
+            },
+            {
+              "title": "准备好了吗？",
+              "link": "#准备好了吗？"
+            }
+          ]
         },
         {
-          "title": "自定义元素",
-          "link": "/guide/002-custom-element"
+          "title": "响应式元素",
+          "link": "/guide/002-reactive-element",
+          "children": [
+            {
+              "title": "属性",
+              "link": "#属性"
+            },
+            {
+              "title": "生命周期",
+              "link": "#生命周期"
+            }
+          ]
         },
         {
           "title": "全局状态管理",
@@ -29,11 +49,31 @@
         },
         {
           "title": "与 React/Vue 比较",
-          "link": "/guide/006-vs-react-vue"
+          "link": "/guide/006-vs-react-vue",
+          "children": [
+            {
+              "title": "模版",
+              "link": "#模版"
+            },
+            {
+              "title": "事件",
+              "link": "#事件"
+            }
+          ]
+        },
+        {
+          "title": "IDE 支持",
+          "link": "/guide/007-ide-support",
+          "children": [
+            {
+              "title": "VSCode",
+              "link": "#vscode"
+            }
+          ]
         },
         {
           "title": "FAQ",
-          "link": "/guide/007-faq"
+          "link": "/guide/008-faq"
         }
       ]
     },
