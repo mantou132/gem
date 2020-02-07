@@ -1,0 +1,66 @@
+{
+  "title": "gem",
+  "github": "https://github.com/mantou132/gem",
+  "sourceDir": "docs",
+  "sourceBranch": "feat/docs",
+  "sidebar": [
+    {
+      "title": "guide",
+      "children": [
+        {
+          "title": "简介",
+          "link": "/guide/"
+        },
+        {
+          "title": "自定义元素",
+          "link": "/guide/002-custom-element"
+        },
+        {
+          "title": "全局状态管理",
+          "link": "/guide/003-global-state-management"
+        },
+        {
+          "title": "路由",
+          "link": "/guide/004-route"
+        },
+        {
+          "title": "ICON",
+          "link": "/guide/005-icon"
+        },
+        {
+          "title": "与 React/Vue 比较",
+          "link": "/guide/006-vs-react-vue"
+        },
+        {
+          "title": "FAQ",
+          "link": "/guide/007-faq"
+        }
+      ]
+    },
+    {
+      "title": "API",
+      "children": [
+        {
+          "title": "概览",
+          "link": "/API/"
+        },
+        {
+          "title": "GemElement",
+          "link": "/API/002-gem-element"
+        },
+        {
+          "title": "Store",
+          "link": "/API/003-store"
+        },
+        {
+          "title": "History",
+          "link": "/API/004-history"
+        },
+        {
+          "title": "内置 gem 元素",
+          "link": "/API/005-internal-element"
+        }
+      ]
+    }
+  ]
+}
