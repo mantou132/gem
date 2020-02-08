@@ -2,7 +2,7 @@
   "title": "gem",
   "github": "https://github.com/mantou132/gem",
   "sourceDir": "docs",
-  "sourceBranch": "feat/docs",
+  "sourceBranch": "master",
   "sidebar": [
     {
       "title": "guide",
