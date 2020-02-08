@@ -86,7 +86,13 @@
         },
         {
           "title": "GemElement",
-          "link": "/API/002-gem-element"
+          "link": "/API/002-gem-element",
+          "children": [
+            {
+              "title": "AsyncGemElement",
+              "link": "#asyncgemelement"
+            }
+          ]
         },
         {
           "title": "Store",
@@ -99,6 +105,10 @@
         {
           "title": "内置 gem 元素",
           "link": "/API/005-internal-element"
+        },
+        {
+          "title": "Helper",
+          "link": "/API/006-helper"
         }
       ]
     }
