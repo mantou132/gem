@@ -131,8 +131,9 @@ function updateHistoryByNative(type: UpdateHistoryType, data: any, title: string
   paramsMap.set(state.$key, params);
   updateStore(cleanObject(store), state);
   const url = getAbsolutePath(pathname) + params.query + hash;
-  const prevHave = decodeURIComponent(location.hash);
+  const prevHave = location.hash;
   (type === 'push' ? pushState : replaceState)(state, title, url);
+  // `location.hash` 和 `hash` 都已经进行了 url 编码，可以直接进行相等判断
   if (prevHave !== hash) window.dispatchEvent(new CustomEvent('hashchange'));
 }
 

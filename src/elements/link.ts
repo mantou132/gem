@@ -70,7 +70,13 @@ export class Link extends GemElement {
       });
     } else if (this.href) {
       const { pathname, search, hash } = new URL(href, location.origin);
-      history.pushIgnoreCloseHandle({ path: pathname, query: search, hash, title: this.docTitle });
+      history.pushIgnoreCloseHandle({
+        path: pathname,
+        query: search,
+        // 解码，方便 `<gem-active-link>` CJK hash 比较
+        hash: decodeURIComponent(hash),
+        title: this.docTitle,
+      });
     } else {
       history.pushIgnoreCloseHandle({ path: this.path, query: this.query, hash: this.hash, title: this.docTitle });
     }
