@@ -31,7 +31,7 @@ class Confirm extends createModalClass({ content: html``, confirmHandle: emptyFu
       </style>
       <div class="root" ?hidden=${!Confirm.isOpen}>
         <div class="body">
-          <h2>Confirm Title</h2>
+          <h2>${Confirm.store.content}</h2>
           <button @click=${this.confirm}>close dialog</button>
         </div>
       </div>
@@ -48,8 +48,11 @@ class Dialog extends DialogBase {
           Confirm?
         `,
         confirmHandle: () => {
+          // 强制进入关闭状态，用于跳过 `shouldClose`
           this.closeHandle();
-          history.back();
+          // 关闭当前 dialog
+          // 这个调用发生在关闭 confirm 之前，所以实际上是关闭 confirm，confirm 中调用才是关闭 dialog
+          this.close();
         },
       });
       return false;
@@ -116,4 +119,3 @@ class Root extends GemElement {
 customElements.define('app-root', Root);
 
 document.body.append(new Root());
-document.body.append(new Confirm());
