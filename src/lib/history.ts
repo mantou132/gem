@@ -212,6 +212,8 @@ if (!('basePath' in history)) {
     history.replace({ path: pathname, query: search, hash });
   } else if (history.state.$hasCloseHandle) {
     updateStore(store, history.state);
+    const params = initParams({ title: document.title });
+    paramsMap.set(store.$key, params);
     // 有 handle 返回键的页面刷新需要清除返回 handler
     history.back();
   } else {
