@@ -1,5 +1,5 @@
 import { expect } from '@open-wc/testing';
-import { Pool, QueryString, css, raw, createCSSSheet, styled } from '..';
+import { Pool, QueryString, css, raw, createCSSSheet, styled, SheetToken } from '..';
 
 describe('utils 测试', () => {
   it('Pool', () => {
@@ -38,16 +38,15 @@ describe('utils 测试', () => {
         background: red;
       }
     `);
-    const rules = cssSheet.cssRules as unknown;
-    const sheet = rules as CSSRuleList;
-    expect(sheet.item(0).selectorText).to.equal('body');
-    expect(sheet.item(0).style.background).to.equal('red');
+    const rules = cssSheet[SheetToken].cssRules;
+    expect(rules.item(0).selectorText).to.equal('body');
+    expect(rules.item(0).style.background).to.equal('red');
   });
   it('raw/css', () => {
     expect(raw`<div>${'str'}</div>`).to.equal('<div>str</div>');
   });
   it('styled', () => {
-    const styles = createCSSSheet({
+    const cssSheet = createCSSSheet({
       scroll: styled.class`
         background: red;
         &:hover * {
@@ -61,14 +60,13 @@ describe('utils 测试', () => {
         border: 1px solid;
       `,
     });
-    expect(styles.scroll.startsWith('scroll')).to.true;
-    const temp = styles as unknown;
-    const cssSheet = temp as CSSStyleSheet;
-    expect(cssSheet.cssRules.item(0).selectorText.startsWith('.scroll')).to.true;
-    expect(cssSheet.cssRules.item(0).style.background.startsWith('red')).to.true;
-    expect(/\.scroll(-|\w)+:hover \*/.test(cssSheet.cssRules.item(1).selectorText)).to.true;
-    expect(cssSheet.cssRules.item(1).style.background.startsWith('blue')).to.true;
-    expect(cssSheet.cssRules.item(2).selectorText.startsWith('#wrap')).to.true;
-    expect(cssSheet.cssRules.item(3).selectorText).to.equal('div');
+    expect(cssSheet.scroll.startsWith('scroll')).to.true;
+    const rules = cssSheet[SheetToken].cssRules;
+    expect(rules.item(0).selectorText.startsWith('.scroll')).to.true;
+    expect(rules.item(0).style.background.startsWith('red')).to.true;
+    expect(/\.scroll(-|\w)+:hover \*/.test(rules.item(1).selectorText)).to.true;
+    expect(rules.item(1).style.background.startsWith('blue')).to.true;
+    expect(rules.item(2).selectorText.startsWith('#wrap')).to.true;
+    expect(rules.item(3).selectorText).to.equal('div');
   });
 });

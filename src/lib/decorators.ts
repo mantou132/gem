@@ -73,7 +73,7 @@ export function emitter(target: BaseElement, event: string) {
   con.defineEvents.push(event);
 }
 
-export function adoptedStyle(style: CSSStyleSheet | Sheet<unknown>) {
+export function adoptedStyle(style: Sheet<unknown>) {
   return function(cls: Function) {
     const c = cls as typeof BaseElement;
     if (!c.adoptedStyleSheets) c.adoptedStyleSheets = [];

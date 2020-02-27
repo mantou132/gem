@@ -104,9 +104,11 @@ export function css(arr: TemplateStringsArray, ...args: any[]) {
   return raw(arr, ...args);
 }
 
+export const SheetToken = Symbol('sheet token');
+
 export type Sheet<T> = {
   [P in keyof T]: P;
-};
+} & { [SheetToken]: CSSStyleSheet };
 
 declare global {
   interface CSSStyleSheet {
@@ -119,10 +121,10 @@ declare global {
     item(index: number): CSSStyleRule;
   }
   interface ShadowRoot {
-    adoptedStyleSheets: Sheet<unknown>[];
+    adoptedStyleSheets: CSSStyleSheet[];
   }
   interface Document {
-    adoptedStyleSheets: Sheet<unknown>[];
+    adoptedStyleSheets: CSSStyleSheet[];
   }
 }
 
@@ -136,37 +138,30 @@ interface StyledValues {
   [index: string]: StyledValue;
 }
 
-const rulesWeakMap = new WeakMap<Sheet<unknown>, any>();
 /**
- * !!! 目前只有 Chrome 支持
+ * !!! 目前只有 Chrome/FirefoxNightly 支持
  * https://bugzilla.mozilla.org/show_bug.cgi?id=1520690
  *
- * 创建 style sheet 用于 `adoptedStyleSheets`
- * @param rules string 不能动态更新的 css
- * @param mediaQuery string 媒体查询
+ * 创建 style sheet 用于 `adoptedStyleSheets`，不支持样式更新
+ * @param rules string | Record<string, string> 不能动态更新的 css
+ * @param mediaQuery string 媒体查询 StyleSheet.media.mediaText
  */
-export function createCSSSheet<T extends StyledValues>(
-  rules: T | string,
-  mediaQuery = '',
-): T extends string ? CSSStyleSheet : Sheet<T> {
-  let cssSheet = rulesWeakMap.get(rules);
-  if (!cssSheet) {
-    const sheet = new CSSStyleSheet();
-    sheet.media.mediaText = mediaQuery;
-    let style = '';
-    if (typeof rules === 'string') {
-      style = rules;
-    } else {
-      Object.keys(rules).forEach(key => {
-        sheet[key] = rules[key].type === 'tag' ? key : `${key}-${rules[key].key}`;
-        style += rules[key].str.replace(/&/g, sheet[key]);
-      });
-      rulesWeakMap.set(rules, sheet);
-    }
-    sheet.replaceSync(style);
-    cssSheet = sheet;
+export function createCSSSheet<T extends StyledValues>(rules: T | string, mediaQuery = ''): Sheet<T> {
+  const styleSheet = new CSSStyleSheet();
+  const sheet: any = {};
+  styleSheet.media.mediaText = mediaQuery;
+  let style = '';
+  if (typeof rules === 'string') {
+    style = rules;
+  } else {
+    Object.keys(rules).forEach((key: keyof T) => {
+      sheet[key] = rules[key].type === 'tag' ? key : `${key}-${rules[key].key}`;
+      style += rules[key].str.replace(/&/g, sheet[key]);
+    });
   }
-  return cssSheet;
+  styleSheet.replaceSync(style);
+  sheet[SheetToken] = styleSheet;
+  return sheet as Sheet<T>;
 }
 
 function randomStr(number = 5, origin = '0123456789abcdefghijklmnopqrstuvwxyz') {

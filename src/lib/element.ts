@@ -3,7 +3,7 @@
 import * as lit from 'lit-html';
 import { TemplateResult } from 'lit-html';
 import { connect, disconnect, HANDLES_KEY, Store } from './store';
-import { Pool, addMicrotask, Sheet, kebabToCamelCase, emptyFunction } from './utils';
+import { Pool, addMicrotask, Sheet, SheetToken, kebabToCamelCase, emptyFunction } from './utils';
 
 import { repeat as litRepeat } from 'lit-html/directives/repeat';
 import { guard as litGuard } from 'lit-html/directives/guard';
@@ -60,7 +60,7 @@ export abstract class BaseElement<T = {}> extends HTMLElement {
   static observedAttributes: string[]; // WebAPI 中是实时检查这个列表
   static observedPropertys: string[];
   static observedStores: Store<unknown>[];
-  static adoptedStyleSheets: (CSSStyleSheet | Sheet<unknown>)[];
+  static adoptedStyleSheets: Sheet<unknown>[];
   static defineEvents: string[];
 
   readonly state: T;
@@ -143,10 +143,11 @@ export abstract class BaseElement<T = {}> extends HTMLElement {
       });
     }
     if (adoptedStyleSheets) {
+      const sheets = adoptedStyleSheets.map(item => item[SheetToken]);
       if (this.shadowRoot) {
-        this.shadowRoot.adoptedStyleSheets = adoptedStyleSheets;
+        this.shadowRoot.adoptedStyleSheets = sheets;
       } else {
-        document.adoptedStyleSheets = document.adoptedStyleSheets.concat(adoptedStyleSheets);
+        document.adoptedStyleSheets = document.adoptedStyleSheets.concat(sheets);
       }
     }
   }
