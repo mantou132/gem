@@ -178,7 +178,7 @@ function randomStr(number = 5, origin = '0123456789abcdefghijklmnopqrstuvwxyz') 
 function flatStyled(style: string, type: StyledType): StyledValue {
   const subStyle: string[] = [];
   let str =
-    `& {${style.replace(new RegExp('&.*{(.*)}', 'gs'), function(substr) {
+    `& {${style.replace(new RegExp('&.*{((.|\n)*)}', 'g'), function(substr) {
       subStyle.push(substr);
       return '';
     })}}` + subStyle.join('');
