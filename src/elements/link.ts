@@ -99,6 +99,9 @@ export class Link extends GemElement {
           all: unset;
           display: contents;
         }
+        a:visited {
+          color: unset;
+        }
       </style>
       <a @click=${this.preventDefault} href=${new URL(history.basePath + href, location.origin).toString()}>
         <slot></slot>
