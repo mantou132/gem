@@ -6,7 +6,7 @@ React 使用 jsx，Vue 有独特的语法，gem 使用 lit-html，原生 js 语�
 
 ## 事件
 
-React 中使用 `Prop` 调用父组件方法，Vue 和 gem 都支持事件传播，gem 使用原生 `[CustomEvent](docs/Web/API/CustomEvent/CustomEvent)`，在传递时要主要 ShadowDOM 边界。
+React 中使用 `Prop` 调用父组件方法，Vue 和 gem 都支持事件传播，gem 使用原生 [`CustomEvent`](https://developer.mozilla.org/en-US/docs/Web/API/CustomEvent/CustomEvent)，在传递时要主要 ShadowDOM 边界。
 
 gem 提供一个 ts 装饰器，以便方便都触发事件：
 

@@ -48,8 +48,26 @@
           "link": "/guide/005-icon"
         },
         {
+          "title": "样式化元素",
+          "link": "/guide/006-styled-element",
+          "children": [
+            {
+              "title": "共享样式",
+              "link": "#共享样式"
+            },
+            {
+              "title": "CSS in JS",
+              "link": "#css-in-js"
+            },
+            {
+              "title": "自定义样式",
+              "link": "#自定义样式"
+            }
+          ]
+        },
+        {
           "title": "与 React/Vue 比较",
-          "link": "/guide/006-vs-react-vue",
+          "link": "/guide/007-vs-react-vue",
           "children": [
             {
               "title": "模版",
@@ -63,7 +81,7 @@
         },
         {
           "title": "IDE 支持",
-          "link": "/guide/007-ide-support",
+          "link": "/guide/008-ide-support",
           "children": [
             {
               "title": "VSCode",
@@ -73,7 +91,7 @@
         },
         {
           "title": "FAQ",
-          "link": "/guide/008-faq"
+          "link": "/guide/009-faq"
         }
       ]
     },
