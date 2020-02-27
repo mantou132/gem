@@ -1,9 +1,9 @@
-import { connect, createStore, updateStore, Store } from '..';
+import { connect, createStore, updateStore, Store, camelToKebabCase } from '..';
 
 function replaceStyle(style: HTMLStyleElement, themeObj: Store<object>, media = '') {
   style.media = media;
   style.innerHTML = `:root {${Object.keys(themeObj).reduce((prev, key: keyof Store<object>) => {
-    return prev + `--${key}:${themeObj[key]};`;
+    return prev + `--${camelToKebabCase(key)}:${themeObj[key]};`;
   }, '')}}`;
 }
 
@@ -13,7 +13,19 @@ type CSSVars<T> = {
 
 const map = new WeakMap<CSSVars<unknown>, Store<unknown>>();
 
-function create<T extends object>(themeObj: T, media?: string) {
+/**
+ * 创建主题，插入 `document.head`
+ *
+ * @example
+ * createTheme({
+ *   primaryColor: '#eee',
+ * });
+ * // 指定媒体类型
+ * createTheme({
+ *   primaryColor: '#eee',
+ * }, 'screen');
+ */
+export function createTheme<T extends object>(themeObj: T, media?: string) {
   const theme = createStore<T>(themeObj);
   const style = document.createElement('style');
   const replace = () => replaceStyle(style, theme, media);
@@ -23,30 +35,9 @@ function create<T extends object>(themeObj: T, media?: string) {
   const themeVarSet: { [index: string]: string } = {};
   map.set(themeVarSet, theme);
   Object.keys(theme).forEach(key => {
-    themeVarSet[key] = `var(--${key})`;
+    themeVarSet[key] = `var(--${camelToKebabCase(key)})`;
   });
   return themeVarSet as CSSVars<T>;
-}
-
-/**
- * 创建主题
- *
- * @example
- * createTheme({
- *   primaryColor: '#eee',
- * });
- * // 指定媒体类型
- * createTheme('screen', {
- *   primaryColor: '#eee',
- * });
- */
-export function createTheme<T extends object>(mediaOrThemeObj: T | string, themeObj?: T) {
-  if (typeof mediaOrThemeObj === 'string') {
-    if (!themeObj) throw 'argument error';
-    return create(themeObj, mediaOrThemeObj);
-  } else {
-    return create(mediaOrThemeObj);
-  }
 }
 
 /**

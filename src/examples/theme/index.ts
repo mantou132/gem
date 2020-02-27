@@ -3,12 +3,17 @@ import { createTheme, updateTheme } from '../../helper/theme';
 import mediaQuery from '../../helper/mediaquery';
 
 const theme = createTheme({
+  // 支持动态修改不透明度
+  color: '0, 0, 0',
   primaryColor: '#eee',
 });
 
-const printTheme = createTheme(mediaQuery.PRINT, {
-  primaryColor: 'yellow',
-});
+const printTheme = createTheme(
+  {
+    primaryColor: 'yellow',
+  },
+  mediaQuery.PRINT,
+);
 
 document.onclick = () => {
   updateTheme(theme, {
@@ -24,6 +29,7 @@ class App extends GemElement {
     return html`
       <style>
         div {
+          color: rgba(${theme.color}, 0.5);
           background-color: ${theme.primaryColor};
         }
       </style>
