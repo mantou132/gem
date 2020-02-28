@@ -67,6 +67,7 @@ export function part(target: BaseElement, prop: string) {
   proto[prop] = prop;
 }
 
+export type Emitter = (detail: any, options?: Omit<CustomEventInit<unknown>, 'detail'>) => void;
 export function emitter(target: BaseElement, event: string) {
   const con = target.constructor as typeof BaseElement;
   if (!con.defineEvents) con.defineEvents = [];

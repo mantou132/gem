@@ -58,6 +58,10 @@ class App extends GemElement {
         app-children:state(odd)::part(paragraph) {
           color: red;
         }
+        /* https://bugzilla.mozilla.org/show_bug.cgi?id=1588763 */
+        app-children.odd::part(paragraph) {
+          color: red;
+        }
       </style>
       <h1>${this.appTitle}</h1>
       <app-children
@@ -75,3 +79,6 @@ class App extends GemElement {
 }
 
 document.body.append(new App(`I'm Title`));
+document.addEventListener('sayhi', (e: CustomEvent) => {
+  console.log('`sayhi` target', e.composedPath()[0]);
+});

@@ -182,21 +182,22 @@ export abstract class BaseElement<T = {}> extends HTMLElement {
         return propValue;
       },
       set(v) {
+        const that = this as GemElement;
         if (v !== propValue) {
           if (isEventHandle) {
             if (v.isEventHandle) throw `Don't assign a wrapped event handler`;
-            propValue = (detail: any) => {
-              const evt = new CustomEvent(prop.toLowerCase(), { detail });
-              this.dispatchEvent(evt);
+            propValue = (detail: any, options: any) => {
+              const evt = new CustomEvent(prop.toLowerCase(), { detail, ...options });
+              that.dispatchEvent(evt);
               v(evt);
             };
             propValue.isEventHandle = true;
           } else {
             propValue = v;
           }
-          if (this.__isMounted) {
-            this.propertyChanged(prop, propValue, v);
-            addMicrotask(this.__update);
+          if (that.__isMounted) {
+            that.propertyChanged(prop, propValue, v);
+            addMicrotask(that.__update);
           }
         }
       },
