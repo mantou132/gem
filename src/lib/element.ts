@@ -41,11 +41,10 @@ export { html, svg, render, directive, repeat, guard, ifDefined, TemplateResult 
 
 declare global {
   interface ElementInternals {
-    // 不一定支持
-    states?: DOMTokenList;
+    states: DOMTokenList;
   }
   interface HTMLElement {
-    attachInternals: () => ElementInternals;
+    attachInternals?: () => ElementInternals;
   }
 }
 
@@ -155,7 +154,15 @@ export abstract class BaseElement<T = {}> extends HTMLElement {
   /**@final */
   get internals() {
     if (!this.__internals) {
+      if (!this.attachInternals) {
+        // https://bugs.webkit.org/show_bug.cgi?id=197960
+        this.attachInternals = () => ({ states: this.classList });
+      }
       this.__internals = this.attachInternals();
+      if (!this.__internals.states) {
+        // https://bugzilla.mozilla.org/show_bug.cgi?id=1588763
+        this.__internals.states = this.classList;
+      }
     }
     return this.__internals;
   }

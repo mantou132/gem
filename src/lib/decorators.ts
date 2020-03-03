@@ -44,10 +44,6 @@ export function state(target: BaseElement, prop: string) {
     set(v: boolean) {
       const that = this as BaseElement;
       const internals = that.internals;
-      if (!internals.states) {
-        // 不支持 css states 时使用 classList
-        internals.states = that.classList;
-      }
       if (v) {
         internals.states.add(prop);
       } else {
