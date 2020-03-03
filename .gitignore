@@ -12,6 +12,9 @@
 /helper/
 /examples/
 
+# examples
+/build/
+
 .DS_Store
 logs
 *.log
