@@ -62,6 +62,9 @@ export abstract class BaseElement<T = {}> extends HTMLElement {
   static adoptedStyleSheets: Sheet<unknown>[];
   static defineEvents: string[];
 
+  /**@final 保存已经定义自定义元素的构造函数 */
+  static __origin: typeof BaseElement;
+
   readonly state: T;
   readonly ref: string;
 
@@ -75,6 +78,12 @@ export abstract class BaseElement<T = {}> extends HTMLElement {
   __unmountCallback: UnmountCallback | undefined;
 
   constructor(shadow = true) {
+    if (new.target.__origin) {
+      // 子类会继续执行 `super()` 后面的代码，但是在 `super()` 中已经执行完了
+      // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
+      // @ts-ignore
+      return new new.target.__origin(shadow);
+    }
     super();
     this.setState = this.setState.bind(this);
     this.willMount = this.willMount.bind(this);
@@ -362,7 +371,10 @@ customElements.define = function(
   Class: typeof GemElement | typeof AsyncGemElement,
   options?: ElementDefinitionOptions,
 ) {
-  if (!customElements.get(tagName)) {
+  const originClass = customElements.get(tagName);
+  if (!originClass) {
     define(tagName, Class, options);
+  } else {
+    Class.__origin = originClass;
   }
 };
