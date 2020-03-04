@@ -119,7 +119,7 @@ export abstract class BaseElement<T = {}> extends HTMLElement {
             return this.getAttribute(attr) || '';
           },
           set(v: string) {
-            if (v === null) {
+            if (v === null || v === undefined) {
               this.removeAttribute(attr);
             } else {
               this.setAttribute(attr, v);
