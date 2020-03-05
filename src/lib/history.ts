@@ -94,12 +94,6 @@ function initParams(params: UpdateHistoryParams): HistoryParams {
   return { ...params, title, path, query, hash };
 }
 
-window.addEventListener('hashchange', ({ isTrusted }) => {
-  if (isTrusted) {
-    history.replace({ hash: decodeURIComponent(location.hash) });
-  }
-});
-
 function updateHistory(type: UpdateHistoryType, p: UpdateHistoryParams) {
   validData(p.data);
   const params = initParams(p);
@@ -142,6 +136,13 @@ export const basePathStore = createStore({
 });
 
 if (!('basePath' in history)) {
+  // 避免在 gem 子 app 中重复监听
+  window.addEventListener('hashchange', ({ isTrusted }) => {
+    if (isTrusted) {
+      history.replace({ hash: decodeURIComponent(location.hash) });
+    }
+  });
+
   // 不允许其他框架重写
   // 保持原有功能
   Object.defineProperties(history, {
