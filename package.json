@@ -1,6 +1,6 @@
 {
   "name": "@mantou/gem",
-  "version": "0.3.16",
+  "version": "0.3.17",
   "description": "快速基于 WebComponents 创建 App",
   "module": "index.js",
   "files": [
