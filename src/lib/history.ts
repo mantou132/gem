@@ -77,7 +77,8 @@ function getAbsolutePath(relativePath: string) {
 }
 
 function getRelativePath(realPath: string) {
-  return realPath.replace(new RegExp(`^${history.basePath}`), '');
+  if (realPath === history.basePath) return '/';
+  return realPath.replace(new RegExp(`^${history.basePath}/`), '/');
 }
 
 function initParams(params: UpdateHistoryParams): HistoryParams {
