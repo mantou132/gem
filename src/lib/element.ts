@@ -201,13 +201,14 @@ export abstract class BaseElement<T = {}> extends HTMLElement {
         const that = this as GemElement;
         if (v !== propValue) {
           if (isEventHandle) {
-            if (v.isEventHandle) throw `Don't assign a wrapped event handler`;
-            propValue = (detail: any, options: any) => {
-              const evt = new CustomEvent(prop.toLowerCase(), { detail, ...options });
-              that.dispatchEvent(evt);
-              v(evt);
-            };
-            propValue.isEventHandle = true;
+            propValue = v?.__isEventHandle
+              ? v
+              : (detail: any, options: any) => {
+                  const evt = new CustomEvent(prop.toLowerCase(), { detail, ...options });
+                  that.dispatchEvent(evt);
+                  v(evt);
+                };
+            propValue.__isEventHandle = true;
           } else {
             propValue = v;
           }
