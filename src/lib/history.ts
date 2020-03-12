@@ -148,6 +148,7 @@ if (!('basePath' in history)) {
   // 保持原有功能
   Object.defineProperties(history, {
     basePath: {
+      configurable: true,
       get() {
         return basePathStore.basePath;
       },
@@ -163,25 +164,30 @@ if (!('basePath' in history)) {
       },
     },
     getParams: {
+      configurable: true,
       value: function() {
         return paramsMap.get(store.$key);
       },
     },
     updateParams: {
+      configurable: true,
       value: function(params: UpdateHistoryParams) {
         Object.assign(paramsMap.get(store.$key), params);
         updateStore(store, {});
       },
     },
     store: {
+      configurable: true,
       value: store,
     },
     push: {
+      configurable: true,
       value: function(params: UpdateHistoryParams) {
         updateHistory('push', params);
       },
     },
     pushIgnoreCloseHandle: {
+      configurable: true,
       value: function(params: UpdateHistoryParams) {
         if (store.$hasCloseHandle) {
           paramsMap.get(store.$key)?.close?.();
@@ -192,16 +198,19 @@ if (!('basePath' in history)) {
       },
     },
     replace: {
+      configurable: true,
       value: function(params: UpdateHistoryParams) {
         updateHistory('replace', params);
       },
     },
     pushState: {
+      configurable: true,
       value: function(data: any, title: string, path: string) {
         updateHistoryByNative('push', data, title, path);
       },
     },
     replaceState: {
+      configurable: true,
       value: function(data: any, title: string, path: string) {
         updateHistoryByNative('replace', data, title, path);
       },
