@@ -7,7 +7,6 @@ import { Pool, addMicrotask, Sheet, SheetToken, kebabToCamelCase, emptyFunction 
 
 import { repeat as litRepeat } from 'lit-html/directives/repeat';
 import { guard as litGuard } from 'lit-html/directives/guard';
-import { ifDefined as litIfDefined } from 'lit-html/directives/if-defined';
 
 let litHtml = {
   html: lit.html,
@@ -16,7 +15,6 @@ let litHtml = {
   directive: lit.directive,
   repeat: litRepeat,
   guard: litGuard,
-  ifDefined: litIfDefined,
 };
 
 declare global {
@@ -36,8 +34,8 @@ if (window.__litHtml) {
   window.__litHtml = litHtml;
 }
 
-const { html, svg, render, directive, repeat, guard, ifDefined } = litHtml;
-export { html, svg, render, directive, repeat, guard, ifDefined, TemplateResult };
+const { html, svg, render, directive, repeat, guard } = litHtml;
+export { html, svg, render, directive, repeat, guard, TemplateResult };
 
 declare global {
   interface ElementInternals {
