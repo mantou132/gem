@@ -1,13 +1,14 @@
 import { expect, aTimeout } from '@open-wc/testing';
-import { createStore, createStoreSet, updateStore, connect, disconnect } from '..';
+import { HANDLES_KEY, createStore, createStoreSet, updateStore, connect, disconnect } from '..';
 
 describe('store 测试', () => {
   it('create store', () => {
     const origin = { a: 1 };
     const store = createStore(origin);
     expect(store).to.equal(origin);
-    const stores = createStoreSet({ a: origin });
-    expect(stores.a).to.equal(origin);
+    expect(!!store[HANDLES_KEY]).to.equal(true);
+    const stores = createStoreSet({ a: {} });
+    expect(!!stores.a[HANDLES_KEY]).to.equal(true);
   });
   it('update store', async () => {
     const store = createStore({ a: 1 });

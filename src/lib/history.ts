@@ -136,169 +136,158 @@ export const basePathStore = createStore({
   basePath: '',
 });
 
-if (!('basePath' in history)) {
-  // 避免在 gem 子 app 中重复监听
-  window.addEventListener('hashchange', ({ isTrusted }) => {
-    if (isTrusted) {
-      history.replace({ hash: decodeURIComponent(location.hash) });
-    }
-  });
+window.addEventListener('hashchange', ({ isTrusted }) => {
+  if (isTrusted) {
+    history.replace({ hash: decodeURIComponent(location.hash) });
+  }
+});
+// 不允许其他框架重写
+// 保持原有功能
+Object.defineProperties(history, {
+  basePath: {
+    get() {
+      return basePathStore.basePath;
+    },
+    set(v: string) {
+      if (!basePathStore.basePath) {
+        // 应用初始化的时候设置
+        updateStore(basePathStore, { basePath: v });
+        // paramsMap 更新后 ui 才会更新
+        Object.assign(paramsMap.get(store.$key), { path: getRelativePath(location.pathname) });
+      } else {
+        throw new GemError('已经有其他环境使用 gem , 会共享 history 对象，禁止再修改 history 对象');
+      }
+    },
+  },
+  getParams: {
+    value: function() {
+      return paramsMap.get(store.$key);
+    },
+  },
+  updateParams: {
+    value: function(params: UpdateHistoryParams) {
+      Object.assign(paramsMap.get(store.$key), params);
+      updateStore(store, {});
+    },
+  },
+  store: {
+    value: store,
+  },
+  push: {
+    value: function(params: UpdateHistoryParams) {
+      updateHistory('push', params);
+    },
+  },
+  pushIgnoreCloseHandle: {
+    value: function(params: UpdateHistoryParams) {
+      if (store.$hasCloseHandle) {
+        paramsMap.get(store.$key)?.close?.();
+        history.replace(params);
+      } else {
+        history.push(params);
+      }
+    },
+  },
+  replace: {
+    value: function(params: UpdateHistoryParams) {
+      updateHistory('replace', params);
+    },
+  },
+  pushState: {
+    configurable: true,
+    value: function(data: any, title: string, path: string) {
+      updateHistoryByNative('push', data, title, path);
+    },
+  },
+  replaceState: {
+    configurable: true,
+    value: function(data: any, title: string, path: string) {
+      updateHistoryByNative('replace', data, title, path);
+    },
+  },
+});
 
-  // 不允许其他框架重写
-  // 保持原有功能
-  Object.defineProperties(history, {
-    basePath: {
-      configurable: true,
-      get() {
-        return basePathStore.basePath;
-      },
-      set(v: string) {
-        if (!basePathStore.basePath) {
-          // 应用初始化的时候设置
-          updateStore(basePathStore, { basePath: v });
-          // paramsMap 更新后 ui 才会更新
-          Object.assign(paramsMap.get(store.$key), { path: getRelativePath(location.pathname) });
-        } else {
-          throw new GemError('已经有其他环境使用 gem , 会共享 history 对象，禁止再修改 history 对象');
-        }
-      },
-    },
-    getParams: {
-      configurable: true,
-      value: function() {
-        return paramsMap.get(store.$key);
-      },
-    },
-    updateParams: {
-      configurable: true,
-      value: function(params: UpdateHistoryParams) {
-        Object.assign(paramsMap.get(store.$key), params);
-        updateStore(store, {});
-      },
-    },
-    store: {
-      configurable: true,
-      value: store,
-    },
-    push: {
-      configurable: true,
-      value: function(params: UpdateHistoryParams) {
-        updateHistory('push', params);
-      },
-    },
-    pushIgnoreCloseHandle: {
-      configurable: true,
-      value: function(params: UpdateHistoryParams) {
-        if (store.$hasCloseHandle) {
-          paramsMap.get(store.$key)?.close?.();
-          history.replace(params);
-        } else {
-          history.push(params);
-        }
-      },
-    },
-    replace: {
-      configurable: true,
-      value: function(params: UpdateHistoryParams) {
-        updateHistory('replace', params);
-      },
-    },
-    pushState: {
-      configurable: true,
-      value: function(data: any, title: string, path: string) {
-        updateHistoryByNative('push', data, title, path);
-      },
-    },
-    replaceState: {
-      configurable: true,
-      value: function(data: any, title: string, path: string) {
-        updateHistoryByNative('replace', data, title, path);
-      },
-    },
+if (!history.state) {
+  // 初始化 historyItem
+  const { pathname, search, hash } = location;
+  history.replace({ path: pathname, query: search, hash });
+} else if (history.state.$hasCloseHandle) {
+  updateStore(store, history.state);
+  const params = initParams({ title: document.title });
+  paramsMap.set(store.$key, params);
+  // 有 handle 返回键的页面刷新需要清除返回 handler
+  history.back();
+} else {
+  // 有 gem 历史的正常普通刷新, 储存 params
+  const params = initParams({ title: document.title });
+  updateStore(store, {
+    $key: getKey(),
+    ...(history.state || {}),
   });
+  paramsMap.set(store.$key, params);
+}
 
-  if (!history.state) {
-    // 初始化 historyItem
-    const { pathname, search, hash } = location;
-    history.replace({ path: pathname, query: search, hash });
-  } else if (history.state.$hasCloseHandle) {
-    updateStore(store, history.state);
-    const params = initParams({ title: document.title });
-    paramsMap.set(store.$key, params);
-    // 有 handle 返回键的页面刷新需要清除返回 handler
-    history.back();
-  } else {
-    // 有 gem 历史的正常普通刷新, 储存 params
-    const params = initParams({ title: document.title });
-    updateStore(store, {
-      $key: getKey(),
-      ...(history.state || {}),
-    });
-    paramsMap.set(store.$key, params);
+/**
+ * 表示 popstate handler 中正在进行导航
+ */
+let navigating = false;
+window.addEventListener('popstate', event => {
+  const newState = event.state as HistoryItem | null;
+  if (!newState?.$key) {
+    // 比如作为其他 app 的宿主 app
+    return;
+  }
+  if (navigating) {
+    navigating = false;
+    return;
   }
 
-  /**
-   * 表示 popstate handler 中正在进行导航
-   */
-  let navigating = false;
-  window.addEventListener('popstate', event => {
-    const newState = event.state as HistoryItem | null;
-    if (!newState?.$key) {
-      // 比如作为其他 app 的宿主 app
-      return;
-    }
-    if (navigating) {
-      navigating = false;
-      return;
-    }
+  // 处理 forward or back
+  // replace 不会触发
 
-    // 处理 forward or back
-    // replace 不会触发
+  // 刷新后再导航需要从当前 state 中构建 params
+  // 理论上该条历史记录中不会出现事件处理器
+  if (!paramsMap.has(newState.$key)) {
+    const { pathname, search, hash } = location;
+    paramsMap.set(newState.$key, {
+      path: pathname,
+      query: new QueryString(search),
+      hash,
+      title: document.title, // 浏览器缓存的 title
+      data: newState,
+    });
+  }
 
-    // 刷新后再导航需要从当前 state 中构建 params
-    // 理论上该条历史记录中不会出现事件处理器
-    if (!paramsMap.has(newState.$key)) {
-      const { pathname, search, hash } = location;
-      paramsMap.set(newState.$key, {
-        path: pathname,
-        query: new QueryString(search),
-        hash,
-        title: document.title, // 浏览器缓存的 title
-        data: newState,
-      });
-    }
+  // url 变化前 historyItem
+  const prevState = store;
 
-    // url 变化前 historyItem
-    const prevState = store;
-
-    if (newState.$key > prevState.$key && newState.$hasOpenHandle) {
-      // 返回键关闭的 modal 能前进键重新打开
-      // 刷新后不能工作：刷新后 historyItem 中只有 url
-      paramsMap.get(newState.$key)?.open?.();
-    } else if (prevState.$hasCloseHandle) {
-      const prevParams = paramsMap.get(prevState.$key);
-      const closeHandle = prevParams?.close;
-      const shouldCloseHandle = prevParams?.shouldClose;
-      const notAllowClose = shouldCloseHandle && !shouldCloseHandle();
-      if (notAllowClose) {
+  if (newState.$key > prevState.$key && newState.$hasOpenHandle) {
+    // 返回键关闭的 modal 能前进键重新打开
+    // 刷新后不能工作：刷新后 historyItem 中只有 url
+    paramsMap.get(newState.$key)?.open?.();
+  } else if (prevState.$hasCloseHandle) {
+    const prevParams = paramsMap.get(prevState.$key);
+    const closeHandle = prevParams?.close;
+    const shouldCloseHandle = prevParams?.shouldClose;
+    const notAllowClose = shouldCloseHandle && !shouldCloseHandle();
+    if (notAllowClose) {
+      navigating = true;
+      history.forward(); // 将重新触发 popstate
+      return; // 历史记录栈位置没有变化，不需要后面的 updateStore
+    } else {
+      // handle 返回键
+      if (closeHandle) {
+        closeHandle();
+      } else if (newState.$hasCloseHandle) {
+        // 有 modal 的页面刷新会执行 back 触发 popstate
+        // 如果是二级 modal 页面刷新
+        // 则还需要进行一次 back
+        // !!! 不完美：三级 modal 页面刷新不支持返回到初始页面
         navigating = true;
-        history.forward(); // 将重新触发 popstate
-        return; // 历史记录栈位置没有变化，不需要后面的 updateStore
-      } else {
-        // handle 返回键
-        if (closeHandle) {
-          closeHandle();
-        } else if (newState.$hasCloseHandle) {
-          // 有 modal 的页面刷新会执行 back 触发 popstate
-          // 如果是二级 modal 页面刷新
-          // 则还需要进行一次 back
-          // !!! 不完美：三级 modal 页面刷新不支持返回到初始页面
-          navigating = true;
-          history.back();
-        }
+        history.back();
       }
     }
+  }
 
-    updateStore(cleanObject(store), newState);
-  });
-}
+  updateStore(cleanObject(store), newState);
+});

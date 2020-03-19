@@ -11,11 +11,6 @@ export class Title extends GemElement {
     history.updateParams({ title });
   }
 
-  constructor(isHidden: boolean) {
-    super();
-    this.hidden = isHidden;
-  }
-
   render() {
     const { title } = history.getParams();
     document.title = title || this.textContent || '';
@@ -34,5 +29,5 @@ export class Title extends GemElement {
 }
 
 if (document.head && !document.head.querySelector('gem-title')) {
-  document.head.append(new Title(true));
+  document.head.append(document.createElement('gem-title'));
 }

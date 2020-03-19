@@ -89,6 +89,6 @@ export function connectStore(store: Store<unknown>) {
 
 export function customElement(name: string) {
   return function(cls: Function) {
-    customElements.define(name, cls);
+    customElements.define(name, cls as CustomElementConstructor);
   };
 }

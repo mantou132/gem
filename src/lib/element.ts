@@ -1,41 +1,14 @@
 /* eslint-disable @typescript-eslint/no-empty-function */
 
-import * as lit from 'lit-html';
-import { TemplateResult } from 'lit-html';
+import { html, render, TemplateResult } from 'lit-html';
 import { connect, disconnect, HANDLES_KEY, Store } from './store';
 import { Pool, addMicrotask, Sheet, SheetToken, kebabToCamelCase, emptyFunction } from './utils';
 
-import { repeat as litRepeat } from 'lit-html/directives/repeat';
-import { guard as litGuard } from 'lit-html/directives/guard';
+export { html, svg, render, directive, TemplateResult } from 'lit-html';
+export { repeat } from 'lit-html/directives/repeat';
 
-let litHtml = {
-  html: lit.html,
-  svg: lit.svg,
-  render: lit.render,
-  directive: lit.directive,
-  repeat: litRepeat,
-  guard: litGuard,
-};
-
-declare global {
-  interface Window {
-    __litHtml: typeof litHtml;
-  }
-}
-
-if (window.__litHtml) {
-  // 自定义元素不能重复定义
-  // 所以嵌套 gem app 中导出的自定义元素类可能是之前定义的类
-  // 可能造成使用的 html 对象不是同一个
-  // map, 缓存之类的会变得不同
-  // 所以需要把他们放在全局对象中
-  litHtml = window.__litHtml;
-} else {
-  window.__litHtml = litHtml;
-}
-
-const { html, svg, render, directive, repeat, guard } = litHtml;
-export { html, svg, render, directive, repeat, guard, TemplateResult };
+// https://github.com/Polymer/lit-html/issues/1048
+export { guard } from 'lit-html/directives/guard';
 
 declare global {
   interface ElementInternals {
@@ -60,9 +33,6 @@ export abstract class BaseElement<T = {}> extends HTMLElement {
   static adoptedStyleSheets: Sheet<unknown>[];
   static defineEvents: string[];
 
-  /**@final 保存已经定义自定义元素的构造函数 */
-  static __origin: typeof BaseElement;
-
   readonly state: T;
   readonly ref: string;
 
@@ -76,12 +46,6 @@ export abstract class BaseElement<T = {}> extends HTMLElement {
   __unmountCallback: UnmountCallback | undefined;
 
   constructor(shadow = true) {
-    if (new.target.__origin) {
-      // 子类会继续执行 `super()` 后面的代码，但是在 `super()` 中已经执行完了
-      // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
-      // @ts-ignore
-      return new new.target.__origin(shadow);
-    }
     super();
     this.setState = this.setState.bind(this);
     this.willMount = this.willMount.bind(this);
@@ -360,20 +324,3 @@ export abstract class AsyncGemElement<T = {}> extends BaseElement<T> {
     });
   }
 }
-
-// 重写了全局 customElements
-// 原因是方便多个独立 app 同时使用 gem
-// 用户使用和 gem 同名的元素不会生效也不会报错
-const define = customElements.define.bind(customElements);
-customElements.define = function(
-  tagName: string,
-  Class: typeof GemElement | typeof AsyncGemElement,
-  options?: ElementDefinitionOptions,
-) {
-  const originClass = customElements.get(tagName);
-  if (!originClass) {
-    define(tagName, Class, options);
-  } else {
-    Class.__origin = originClass;
-  }
-};

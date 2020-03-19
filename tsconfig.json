@@ -8,6 +8,7 @@
     "noImplicitAny": true,
     "strictNullChecks": true,
     "sourceMap": true,
+    "skipLibCheck": true,
     "module": "esnext",
     "moduleResolution": "node",
     "esModuleInterop": true,

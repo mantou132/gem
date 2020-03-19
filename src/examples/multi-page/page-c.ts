@@ -1,8 +1,6 @@
 import { GemElement, html } from '../../';
 import '../../elements/route';
 
-setTimeout(() => import(`../../${`elem${''}ents`}/${'ti' + 'tle'}?123`));
-
 const routes = [
   {
     title: 'ccccccd',

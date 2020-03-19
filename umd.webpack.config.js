@@ -1,10 +1,8 @@
-const path = require('path');
-
 /**
  * @type {import('webpack/declarations/WebpackOptions').WebpackOptions}
  */
 module.exports = {
-  entry: `./src`,
+  entry: `./src/umd`,
   module: {
     rules: [
       {
@@ -18,8 +16,10 @@ module.exports = {
     extensions: ['.tsx', '.ts', '.js'],
   },
   output: {
-    path: path.resolve(__dirname, 'dist'),
-    filename: 'index.js',
+    path: __dirname,
+    filename: 'umd.js',
+    library: 'Gem',
+    libraryTarget: 'umd',
   },
   devtool: 'source-map',
 };
