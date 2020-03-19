@@ -32,14 +32,15 @@ export class Link extends GemElement {
   @attribute docTitle: string;
 
   // 动态路由，根据 route.pattern 和 options.params 计算出 path
-  @property route: RouteItem;
-  @property options: RouteOptions;
+  @property route: RouteItem | undefined;
+  @property options: RouteOptions | undefined;
+  @property prepare: Function | undefined;
 
   @part link = 'link';
 
   constructor() {
     super();
-    this.onclick = this.clickHandle;
+    this.addEventListener('click', this.clickHandle);
   }
 
   // 不包含 basePath
@@ -62,7 +63,7 @@ export class Link extends GemElement {
     }
   }
 
-  clickHandle = (e: MouseEvent) => {
+  clickHandle = async (e: MouseEvent) => {
     const href = this.getHref();
 
     // 外部链接使用 `window.open`
@@ -77,6 +78,9 @@ export class Link extends GemElement {
     }
 
     e.stopPropagation();
+
+    await this.prepare?.();
+
     if (this.route) {
       history.pushIgnoreCloseHandle({
         ...createHistoryParams(this.route, this.options),
