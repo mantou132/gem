@@ -1,4 +1,15 @@
-import { GemElement, html, history, basePathStore, attribute, property, connectStore, customElement, state } from '../';
+import {
+  GemElement,
+  html,
+  history,
+  basePathStore,
+  part,
+  attribute,
+  property,
+  connectStore,
+  customElement,
+  state,
+} from '../';
 import { isMatch, RouteItem, RouteOptions, createHistoryParams, createPath } from './route';
 
 /**
@@ -9,6 +20,7 @@ import { isMatch, RouteItem, RouteOptions, createHistoryParams, createPath } fro
  * @attr query
  * @attr hash
  * @attr pattern
+ * @part link
  */
 @customElement('gem-link')
 @connectStore(basePathStore)
@@ -22,6 +34,8 @@ export class Link extends GemElement {
   // 动态路由，根据 route.pattern 和 options.params 计算出 path
   @property route: RouteItem;
   @property options: RouteOptions;
+
+  @part link = 'link';
 
   constructor() {
     super();
@@ -103,7 +117,11 @@ export class Link extends GemElement {
           color: unset;
         }
       </style>
-      <a @click=${this.preventDefault} href=${new URL(history.basePath + href, location.origin).toString()}>
+      <a
+        part=${this.link}
+        @click=${this.preventDefault}
+        href=${new URL(history.basePath + href, location.origin).toString()}
+      >
         <slot></slot>
       </a>
     `;
