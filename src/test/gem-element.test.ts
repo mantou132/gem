@@ -41,22 +41,11 @@ class GemDemo extends GemElement {
 
   renderCount = 0;
 
-  attrChangeCount = 0;
-  propChangeCount = 0;
-
   render() {
     this.renderCount++;
     return html`
       attr: ${this.attr}, prop: ${this.prop.value}, state: ${this.state.value}
     `;
-  }
-
-  attributeChanged(_name: string, _oldValue: string, _newValue: string) {
-    this.attrChangeCount++;
-  }
-
-  propertyChanged(_name: string, _oldValue: any, _newValue: any) {
-    this.propChangeCount++;
   }
 }
 
@@ -150,7 +139,6 @@ describe('基本 gem element 测试', () => {
     expect(el.renderCount).to.equal(1);
     el.attr = 'rrr';
     el.attr = 'value';
-    expect(el.attrChangeCount).to.equal(2);
     await Promise.resolve();
     expect(el.renderCount).to.equal(2);
     expect(el.attr).to.equal('value');
@@ -186,7 +174,6 @@ describe('基本 gem element 测试', () => {
     el.prop = { value: 'asdfasdfdsf' };
     el.prop = { value: 'value' };
     el.prop = { value: 'value' };
-    expect(el.propChangeCount).to.equal(3);
     await Promise.resolve();
     expect(el.renderCount).to.equal(2);
     expect(el.prop).to.deep.equal({ value: 'value' });
@@ -314,6 +301,37 @@ describe('gem element 生命周期', () => {
     expect(el.renderCount).to.equal(1);
     el.remove();
     expect(el.renderCount).to.equal(0);
+  });
+});
+
+class EffectGemDemo extends GemElement {
+  @attribute attr = 'a';
+  @property prop = {};
+  effectCount = 0;
+  mounted() {
+    this.effect(
+      () => this.effectCount++,
+      () => [this.attr, this.prop],
+    );
+    this.effect(
+      () => this.effectCount++,
+      () => [],
+    );
+  }
+}
+customElements.define('effect-gem-demo', EffectGemDemo);
+describe('gem element 副作用', () => {
+  it('依赖当前值', async () => {
+    const el: EffectGemDemo = await fixture(html`
+      <effect-gem-demo></effect-gem-demo>
+    `);
+    expect(el.effectCount).to.equal(2);
+    el.attr = 'b';
+    el.prop = {};
+    expect(el.__effectList?.[0]?.values?.[0]).to.equal('a');
+    await nextFrame();
+    expect(el.effectCount).to.equal(3);
+    expect(el.__effectList?.[0]?.values?.[0]).to.equal('b');
   });
 });
 

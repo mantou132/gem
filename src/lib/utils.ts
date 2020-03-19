@@ -235,6 +235,14 @@ export class GemError extends Error {
   }
 }
 
+export function isArrayChange(newValues: any[], oldValues: any[]) {
+  const length = newValues.length;
+  for (let i = 0; i < length; i++) {
+    if (newValues[i] !== oldValues[i]) return true;
+  }
+  return false;
+}
+
 export function emptyFunction() {
   // 用于占位的空函数
 }

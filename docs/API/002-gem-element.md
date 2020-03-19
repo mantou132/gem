@@ -7,19 +7,18 @@
 | observedStores     | 监听指定的 `Store`, 当被监听的 `Store` 变化时元素将自动更新         |
 | adoptedStyleSheets | 同 `DocumentOrShadowRoot.adoptedStyleSheets`(注意兼容性)            |
 
-| 生命周期         | 描述                                        |
-| ---------------- | ------------------------------------------- |
-| willMount        | 挂载元素前的回调                            |
-| mounted          | 挂载元素后的回调                            |
-| shouldUpdate     | 更新元素前的回调, 返回 `false` 时不更新元素 |
-| updated          | 更新元素后的回调                            |
-| attributeChanged | 更新元素 `attribute` 的回调                 |
-| porpertyChanged  | 更新元素 `porperty` 的回调                  |
-| unmounted        | 卸载元素后的回调                            |
+| 生命周期     | 描述                                        |
+| ------------ | ------------------------------------------- |
+| willMount    | 挂载元素前的回调                            |
+| mounted      | 挂载元素后的回调                            |
+| shouldUpdate | 更新元素前的回调, 返回 `false` 时不更新元素 |
+| updated      | 更新元素后的回调                            |
+| unmounted    | 卸载元素后的回调                            |
 
 | 只读方法 | 描述                                              |
 | -------- | ------------------------------------------------- |
 | setState | 使用 `Object.assign` 更新 `State`, 并自动触发更新 |
+| effect   | 执行副作用回调，可以指定依赖                      |
 | update   | 重新调用 render 并更新元素                        |
 
 | 其他   | 描述                                   |

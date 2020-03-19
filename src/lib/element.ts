@@ -2,7 +2,16 @@
 
 import { html, render, TemplateResult } from 'lit-html';
 import { connect, disconnect, HANDLES_KEY, Store } from './store';
-import { Pool, addMicrotask, Sheet, SheetToken, kebabToCamelCase, emptyFunction } from './utils';
+import {
+  Pool,
+  addMicrotask,
+  Sheet,
+  SheetToken,
+  kebabToCamelCase,
+  emptyFunction,
+  isArrayChange,
+  GemError,
+} from './utils';
 
 export { html, svg, render, directive, TemplateResult } from 'lit-html';
 export { repeat } from 'lit-html/directives/repeat';
@@ -20,6 +29,8 @@ declare global {
 }
 
 type UnmountCallback = () => void;
+type GetDepFun = () => any[];
+type EffectItem = { callback: Function; values: any[]; getDep: GetDepFun };
 
 // final 字段如果使用 symbol 或者 private 将导致 modal-base 生成匿名子类 declaration 失败
 /**
@@ -42,20 +53,22 @@ export abstract class BaseElement<T = {}> extends HTMLElement {
   __internals: ElementInternals | undefined;
   /**@final */
   __isMounted: boolean;
+  /**@final */
+  __effectList: EffectItem[] | undefined;
 
   __unmountCallback: UnmountCallback | undefined;
 
   constructor(shadow = true) {
     super();
+    this.effect = this.effect.bind(this);
     this.setState = this.setState.bind(this);
     this.willMount = this.willMount.bind(this);
     this.render = this.render.bind(this);
     this.mounted = this.mounted.bind(this);
     this.shouldUpdate = this.shouldUpdate.bind(this);
     this.__update = this.__update.bind(this);
+    this.__execEffect = this.__execEffect.bind(this);
     this.updated = this.updated.bind(this);
-    this.attributeChanged = this.attributeChanged.bind(this);
-    this.propertyChanged = this.propertyChanged.bind(this);
     this.unmounted = this.unmounted.bind(this);
 
     this.__renderRoot = shadow ? this.attachShadow({ mode: 'open' }) : this;
@@ -66,7 +79,7 @@ export abstract class BaseElement<T = {}> extends HTMLElement {
         // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
         // @ts-ignore
         if (typeof this[prop] === 'function') {
-          throw `Don't use attribute with the same name as native methods`;
+          throw new GemError(`Don't use attribute with the same name as native methods`);
         }
         // Native attribute，no need difine property
         // e.g: `id`, `title`, `hidden`, `alt`, `lang`
@@ -175,7 +188,6 @@ export abstract class BaseElement<T = {}> extends HTMLElement {
             propValue = v;
           }
           if (that.__isMounted) {
-            that.propertyChanged(prop, propValue, v);
             addMicrotask(that.__update);
           }
         }
@@ -185,9 +197,35 @@ export abstract class BaseElement<T = {}> extends HTMLElement {
 
   /**@final */
   setState(payload: Partial<T>) {
-    if (!this.state) throw new Error('`state` not initialized');
+    if (!this.state) throw new GemError('`state` not initialized');
     Object.assign(this.state, payload);
     addMicrotask(this.__update);
+  }
+
+  /**
+   * @final
+   * 每次更新完检查依赖，执行对应的副作用回调
+   * */
+  __execEffect() {
+    this.__effectList?.forEach(effectItem => {
+      const { callback, getDep, values } = effectItem;
+      const newValues = getDep();
+      if (isArrayChange(values, newValues)) callback();
+      effectItem.values = newValues;
+    });
+  }
+
+  /**
+   * @final
+   * 记录副作用回调和值，会立即执行一次回调
+   * 不要在构造函数中调用，因为只有挂载后才有效
+   * */
+  effect(callback: Function, getDep: GetDepFun) {
+    if (!this.__isMounted) throw new GemError('Please register side effects after element mounting');
+    callback();
+    if (!this.__effectList) this.__effectList = [];
+    const values = getDep();
+    this.__effectList.push({ callback, getDep, values });
   }
 
   /**@lifecycle */
@@ -213,6 +251,7 @@ export abstract class BaseElement<T = {}> extends HTMLElement {
     if (this.__isMounted && this.shouldUpdate()) {
       render(this.render(), this.__renderRoot);
       addMicrotask(this.updated);
+      addMicrotask(this.__execEffect);
     }
   }
 
@@ -224,21 +263,13 @@ export abstract class BaseElement<T = {}> extends HTMLElement {
   /**@lifecycle */
   updated(): any {}
 
-  // 同步触发
-  /**@lifecycle */
-  propertyChanged(_name: string, _oldValue: any, _newValue: any): any {}
-  // 同步触发
-  /**@lifecycle */
-  attributeChanged(_name: string, _oldValue: string, _newValue: string): any {}
-
   /**@lifecycle */
   unmounted(): any {}
 
   /**@private */
   /**@final */
-  attributeChangedCallback(name: string, oldValue: string, newValue: string) {
+  attributeChangedCallback() {
     if (this.__isMounted) {
-      this.attributeChanged(name, oldValue, newValue);
       addMicrotask(this.__update);
     }
   }
@@ -246,9 +277,9 @@ export abstract class BaseElement<T = {}> extends HTMLElement {
   /**@final */
   __connectedCallback() {
     render(this.render(), this.__renderRoot);
+    this.__isMounted = true;
     const callback = this.mounted();
     if (typeof callback === 'function') this.__unmountCallback = callback;
-    this.__isMounted = true;
   }
 
   /**@private */
@@ -258,6 +289,7 @@ export abstract class BaseElement<T = {}> extends HTMLElement {
   /**@private */
   /**@final */
   disconnectedCallback() {
+    this.__isMounted = false;
     const constructor = this.constructor as typeof BaseElement;
     if (constructor.observedStores) {
       constructor.observedStores.forEach(store => {
@@ -266,7 +298,6 @@ export abstract class BaseElement<T = {}> extends HTMLElement {
     }
     this.__unmountCallback?.();
     this.unmounted();
-    this.__isMounted = false;
   }
 }
 
