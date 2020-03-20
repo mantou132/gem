@@ -308,11 +308,14 @@ class EffectGemDemo extends GemElement {
   @attribute attr = 'a';
   @property prop = {};
   effectCount = 0;
-  mounted() {
+  constructor() {
+    super();
     this.effect(
       () => this.effectCount++,
       () => [this.attr, this.prop],
     );
+  }
+  mounted() {
     this.effect(
       () => this.effectCount++,
       () => [],

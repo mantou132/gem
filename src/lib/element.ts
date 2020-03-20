@@ -30,7 +30,7 @@ declare global {
 
 type UnmountCallback = () => void;
 type GetDepFun = () => any[];
-type EffectItem = { callback: Function; values: any[]; getDep: GetDepFun };
+type EffectItem = { callback: Function; values: any[]; getDep: GetDepFun; initialized: boolean };
 
 // final 字段如果使用 symbol 或者 private 将导致 modal-base 生成匿名子类 declaration 失败
 /**
@@ -217,15 +217,28 @@ export abstract class BaseElement<T = {}> extends HTMLElement {
 
   /**
    * @final
-   * 记录副作用回调和值，会立即执行一次回调
-   * 不要在构造函数中调用，因为只有挂载后才有效
+   * 记录副作用回调和值
    * */
   effect(callback: Function, getDep: GetDepFun) {
-    if (!this.__isMounted) throw new GemError('Please register side effects after element mounting');
-    callback();
     if (!this.__effectList) this.__effectList = [];
     const values = getDep();
-    this.__effectList.push({ callback, getDep, values });
+    // 以挂载时立即执行副作用，未挂载时等挂载后执行
+    if (this.__isMounted) callback();
+    this.__effectList.push({ callback, getDep, values, initialized: this.__isMounted });
+  }
+
+  /**
+   * @final
+   * 元素挂载后执行还未初始化的副作用
+   * */
+  __initEffect() {
+    this.__effectList?.forEach(effectItem => {
+      const { callback, initialized } = effectItem;
+      if (!initialized) {
+        callback();
+        effectItem.initialized = true;
+      }
+    });
   }
 
   /**@lifecycle */
@@ -307,6 +320,7 @@ export abstract class GemElement<T = {}> extends BaseElement<T> {
   connectedCallback() {
     this.willMount();
     this.__connectedCallback();
+    this.__initEffect();
   }
 }
 
@@ -342,6 +356,7 @@ export abstract class AsyncGemElement<T = {}> extends BaseElement<T> {
       if (this.shouldUpdate()) {
         render(this.render(), this.__renderRoot);
         this.updated();
+        addMicrotask(this.__execEffect);
       }
     });
   }
@@ -352,6 +367,7 @@ export abstract class AsyncGemElement<T = {}> extends BaseElement<T> {
     this.willMount();
     renderTaskPool.add(() => {
       this.__connectedCallback();
+      this.__initEffect();
     });
   }
 }
