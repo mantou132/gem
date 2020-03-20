@@ -44,7 +44,9 @@ export abstract class BaseElement<T = {}> extends HTMLElement {
   static adoptedStyleSheets: Sheet<unknown>[];
   static defineEvents: string[];
 
+  // 定义当前元素的状态，和 attr/prop 的本质区别是不为外部输入
   readonly state: T;
+  // 用于 css 选择器选择元素，使用 @ref 自动选择获取，应该避免重名
   readonly ref: string;
 
   /**@final */
@@ -195,7 +197,19 @@ export abstract class BaseElement<T = {}> extends HTMLElement {
     });
   }
 
-  /**@final */
+  /**
+   * @final
+   * 设置元素 state，会触发更新
+   *
+   * @example
+   * ```js
+   * class App extends GemElement {
+   *   click() {
+   *     this.setState({});
+   *   }
+   * }
+   * ```
+   * */
   setState(payload: Partial<T>) {
     if (!this.state) throw new GemError('`state` not initialized');
     Object.assign(this.state, payload);
@@ -218,6 +232,15 @@ export abstract class BaseElement<T = {}> extends HTMLElement {
   /**
    * @final
    * 记录副作用回调和值
+   *
+   * @example
+   * ```js
+   * class App extends GemElement {
+   *   mounted() {
+   *     this.effect(callback, () => [this.attrName]);
+   *   }
+   * }
+   * ```
    * */
   effect(callback: Function, getDep: GetDepFun) {
     if (!this.__effectList) this.__effectList = [];

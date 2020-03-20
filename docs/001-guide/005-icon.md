@@ -1,8 +1,8 @@
 # ICON
 
-由于 gem 使用 ShadowDOM 来组织元素，提供 css 隔离，同时也使得 [svg sprite](https://css-tricks.com/svg-sprites-use-better-icon-fonts/) 失效，svg 引用不同穿透 ShadowDOM 边界。
+由于 Gem 使用 ShadowDOM 来组织元素，防止了样式冲突的同时也使得 [SVG Sprite](https://css-tricks.com/svg-sprites-use-better-icon-fonts/) 失效，SVG 引用不同穿透 ShadowDOM 边界。
 
-gem 有一个内置元素 `<gem-use>`，来用替代 svg sprite：
+Gem 有一个内置元素 `<gem-use>`，来用替代 SVG Sprite：
 
 ```js
 import { html, render } from '@mantou/gem';

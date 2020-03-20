@@ -2,7 +2,7 @@
 
 使用 [History API](https://developer.mozilla.org/en-US/docs/Web/API/History) 可以改变 URL，
 扩展以及重写 `history` 让导航动作自动通知订阅 `history.store` 的元素，
-为了方便路由操作，gem 内置 `<gem-route>` 和 `<gem-link>` 元素。
+为了方便路由操作，Gem 内置 `<gem-route>` 和 `<gem-link>` 元素。
 
 ```js
 import { GemElement, html } from '@mantou/gem';

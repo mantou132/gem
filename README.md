@@ -14,12 +14,12 @@
 
 整个框架分为三个模块（自定义元素, 全局数据管理, 路由）,
 内置的自定义元素可以自己选择是否使用，
-所有内存打包在一起也只有 30kb。
+所有内容打包在一起也只有 40kb。
 
 ### 简单
 
-没有全新的语法, 一切都是 html, css, js 。
-没有多余的概念, 只需要 "observe" 就能创建响应式自定义元素;
+没有全新的语法, 一切都是 HTML, CSS, JavaScript。
+没有多余的概念, 只需要“Observe”就能创建响应式自定义元素;
 
 ### 高性能
 
@@ -37,7 +37,10 @@
 
 ## 相关 repo
 
+- [create-gem-app](https://github.com/mantou132/create-gem-app)
 - [gem-boilerplate](https://github.com/mantou132/gem-boilerplate)
 - [gem-lib-boilerplate](https://github.com/mantou132/gem-lib-boilerplate)
+- [gem-book](https://github.com/mantou132/gem-book)
+- [gem-frame](https://github.com/mantou132/gem-frame)
+- [gem-ui](https://github.com/mantou132/gem-ui)
 - [gem-devtools](https://github.com/mantou132/gem-devtools)
-- [create-gem-app](https://github.com/mantou132/create-gem-app)

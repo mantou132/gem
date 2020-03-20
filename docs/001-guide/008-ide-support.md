@@ -5,11 +5,11 @@
 ### 高亮
 
 - 模版高亮 [vscode-lit-plugin](https://github.com/runem/lit-analyzer/tree/master/packages/vscode-lit-plugin)
-- css 规则高亮 [vscode-styled-component](https://github.com/styled-components/vscode-styled-components)
+- CSS 规则高亮 [vscode-styled-component](https://github.com/styled-components/vscode-styled-components)
 
 ### 验证
 
-在模版中使用定义的元素时 vscode-lit-plugin 能进行许多验证，包括 attr/prop 类型，自定义元素标签名等。
+在模版中使用定义的元素时 [vscode-lit-plugin](https://github.com/runem/lit-analyzer/tree/master/packages/vscode-lit-plugin) 能进行许多验证，包括 attr/prop 类型，自定义元素标签名等。
 要为元素提供这些功能，需要手动[编写](https://github.com/runem/lit-analyzer/tree/master/packages/vscode-lit-plugin#-documenting-slots-events-attributes-and-properties) jsdoc 注释：
 
 ```js
@@ -30,3 +30,6 @@
  */
 class MyElement extends GemElement {}
 ```
+
+_在未来可能通过 ts 装饰器让编辑器识别定义的元素，_
+_另外通过自定义 ts 编译器将装饰器自动转移成 jsdoc，以便使用在 js 项目中_

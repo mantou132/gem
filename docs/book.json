@@ -5,29 +5,37 @@
   "sourceBranch": "master",
   "sidebar": [
     {
+      "title": "简介",
+      "link": "/",
+      "children": [
+        {
+          "title": "开始",
+          "link": "#开始"
+        },
+        {
+          "title": "准备好了吗？",
+          "link": "#准备好了吗？"
+        }
+      ]
+    },
+    {
       "title": "guide",
       "children": [
         {
-          "title": "简介",
-          "link": "/guide/",
+          "title": "响应式元素",
+          "link": "/001-guide/002-reactive-element",
           "children": [
             {
-              "title": "开始",
-              "link": "#开始"
+              "title": "定义",
+              "link": "#定义"
             },
             {
-              "title": "准备好了吗？",
-              "link": "#准备好了吗？"
-            }
-          ]
-        },
-        {
-          "title": "响应式元素",
-          "link": "/guide/002-reactive-element",
-          "children": [
+              "title": "例子",
+              "link": "#例子"
+            },
             {
-              "title": "属性",
-              "link": "#属性"
+              "title": "使用 TypeScript",
+              "link": "#使用-typescript"
             },
             {
               "title": "生命周期",
@@ -37,19 +45,19 @@
         },
         {
           "title": "全局状态管理",
-          "link": "/guide/003-global-state-management"
+          "link": "/001-guide/003-global-state-management"
         },
         {
           "title": "路由",
-          "link": "/guide/004-route"
+          "link": "/001-guide/004-route"
         },
         {
           "title": "ICON",
-          "link": "/guide/005-icon"
+          "link": "/001-guide/005-icon"
         },
         {
           "title": "样式化元素",
-          "link": "/guide/006-styled-element",
+          "link": "/001-guide/006-styled-element",
           "children": [
             {
               "title": "共享样式",
@@ -60,14 +68,18 @@
               "link": "#css-in-js"
             },
             {
-              "title": "自定义样式",
-              "link": "#自定义样式"
+              "title": "定义内部样式",
+              "link": "#定义内部样式"
+            },
+            {
+              "title": "定义外部样式",
+              "link": "#定义外部样式"
             }
           ]
         },
         {
           "title": "与 React/Vue 比较",
-          "link": "/guide/007-vs-react-vue",
+          "link": "/001-guide/007-vs-react-vue",
           "children": [
             {
               "title": "模版",
@@ -76,12 +88,16 @@
             {
               "title": "事件",
               "link": "#事件"
+            },
+            {
+              "title": "性能",
+              "link": "#性能"
             }
           ]
         },
         {
           "title": "IDE 支持",
-          "link": "/guide/008-ide-support",
+          "link": "/001-guide/008-ide-support",
           "children": [
             {
               "title": "VSCode",
@@ -90,8 +106,12 @@
           ]
         },
         {
+          "title": "测试",
+          "link": "/001-guide/009-testing"
+        },
+        {
           "title": "FAQ",
-          "link": "/guide/009-faq"
+          "link": "/001-guide/010-faq"
         }
       ]
     },
@@ -99,12 +119,8 @@
       "title": "API",
       "children": [
         {
-          "title": "概览",
-          "link": "/API/"
-        },
-        {
           "title": "GemElement",
-          "link": "/API/002-gem-element",
+          "link": "/002-API/002-gem-element",
           "children": [
             {
               "title": "AsyncGemElement",
@@ -114,19 +130,23 @@
         },
         {
           "title": "Store",
-          "link": "/API/003-store"
+          "link": "/002-API/003-store"
         },
         {
           "title": "History",
-          "link": "/API/004-history"
+          "link": "/002-API/004-history"
         },
         {
           "title": "内置 gem 元素",
-          "link": "/API/005-internal-element"
+          "link": "/002-API/005-internal-element"
         },
         {
           "title": "Helper",
-          "link": "/API/006-helper"
+          "link": "/002-API/006-helper"
+        },
+        {
+          "title": "装饰器",
+          "link": "/002-API/007-decorator"
         }
       ]
     }

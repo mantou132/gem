@@ -15,7 +15,7 @@ export type Message = number[];
 export class Children extends GemElement {
   @attribute firstName: string;
   @attribute lastName: string;
-  @property message: Message;
+  @property message: Message | undefined;
   @emitter sayHi: Emitter;
   @emitter load: Emitter;
 

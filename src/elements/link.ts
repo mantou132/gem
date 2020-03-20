@@ -36,7 +36,7 @@ export class Link extends GemElement {
   @property options: RouteOptions | undefined;
   @property prepare: Function | undefined;
 
-  @part link = 'link';
+  @part link: string;
 
   constructor() {
     super();

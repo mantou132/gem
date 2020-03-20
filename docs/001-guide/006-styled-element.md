@@ -1,9 +1,16 @@
 # 样式化元素
 
+由于使用 ShadowDOM，所以不再需要 [CSS Modules](https://css-tricks.com/css-modules-part-3-react/) 类似的方案，
+另外浏览器的兼容性近年来已经好转，供应商私有前缀也纷纷被取消，
+我们可以使用原生 CSS 功能来完成日常工作。
+
+_[嵌套 CSS 提案](https://drafts.csswg.org/css-nesting-1/) 非常值得期待_
+
 ## 共享样式
 
 由于样式不能穿透 ShadowDOM，所以不能使用全局样式表来实现共享样式。
-但是可以使用 `<link>` 来达到同样的效果，
+但是可以使用 [`<link>`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/link) 和
+[CSS variables](https://developer.mozilla.org/en-US/docs/Web/CSS/--*) 来达到同样的效果，
 使用 [Constructable Stylesheet](https://wicg.github.io/construct-stylesheets/) 更加方便，但是 Safari 还不支持。
 
 ```js
@@ -19,7 +26,9 @@ class HelloWorld extends GemElement {
 }
 ```
 
-像绑定 `Store` 一样，也实现了一个 Typescript 装饰器：
+其他方法：
+
+像绑定 `Store` 一样，也有一个 Typescript 装饰器可用：
 
 ```ts
 import { adoptedStyle, GemElement } from '@mantou/gem';
@@ -38,6 +47,9 @@ import { createCSSSheet, styled, GemElement, html } from '@mantou/gem';
 const styles = createCSSSheet({
   h1: styled.class`
     text-decoration: underline;
+    &:hover {
+      text-decoration: none;
+    }
   `,
 });
 
@@ -51,7 +63,7 @@ class HelloWorld extends GemElement {
 }
 ```
 
-## 自定义样式
+## 定义内部样式
 
 可以使用 [`::part`](https://drafts.csswg.org/css-shadow-parts-1/#part) 导出元素内部内容，允许外部进行自定义样式：
 
@@ -78,3 +90,9 @@ class HelloWorld extends GemElement {
   }
 }
 ```
+
+## 定义外部样式
+
+- [`:host()`](<https://developer.mozilla.org/en-US/docs/Web/CSS/:host()>)
+- [`:host-context()`](<https://developer.mozilla.org/en-US/docs/Web/CSS/:host-context()>)
+- [`::slotted()`](https://developer.mozilla.org/en-US/docs/Web/CSS/::slotted)
