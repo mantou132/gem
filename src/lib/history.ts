@@ -175,7 +175,7 @@ Object.defineProperties(history, {
   },
   push: {
     value: function(params: UpdateHistoryParams) {
-      updateHistory('push', params);
+      history.pushState(params, '');
     },
   },
   pushIgnoreCloseHandle: {
@@ -196,7 +196,11 @@ Object.defineProperties(history, {
   pushState: {
     configurable: true,
     value: function(data: any, title: string, path: string) {
-      updateHistoryByNative('push', data, title, path);
+      if (path) {
+        updateHistoryByNative('push', data, title, path);
+      } else {
+        updateHistory('push', data);
+      }
     },
   },
   replaceState: {
