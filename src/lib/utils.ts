@@ -113,8 +113,6 @@ export type Sheet<T> = {
 declare global {
   interface CSSStyleSheet {
     replaceSync: (str: string) => void;
-    // 作为 CSSStyleSheet 用的同时能作为原始对象读取属性
-    [selector: string]: any;
   }
 
   interface CSSRuleList {
