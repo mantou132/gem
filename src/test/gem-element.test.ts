@@ -7,7 +7,6 @@ import {
   updateStore,
   createCSSSheet,
   css,
-  Store,
   attribute,
   property,
   customElement,
@@ -335,15 +334,5 @@ describe('gem element 副作用', () => {
     await nextFrame();
     expect(el.effectCount).to.equal(3);
     expect(el.__effectList?.[0]?.values?.[0]).to.equal('b');
-  });
-});
-
-class ErrorGemDemo extends GemElement {
-  static observedStores = [{}] as Store<unknown>[];
-}
-customElements.define('error-gem-demo', ErrorGemDemo);
-describe('元素初始化错误', () => {
-  it('observedStores 错误', async () => {
-    expect(() => new ErrorGemDemo()).to.throw();
   });
 });

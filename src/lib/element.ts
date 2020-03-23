@@ -74,7 +74,7 @@ export abstract class BaseElement<T = {}> extends HTMLElement {
     this.unmounted = this.unmounted.bind(this);
 
     this.__renderRoot = shadow ? this.attachShadow({ mode: 'open' }) : this;
-    const { observedAttributes, observedPropertys, defineEvents, observedStores, adoptedStyleSheets } = new.target;
+    const { observedAttributes, observedPropertys, defineEvents, adoptedStyleSheets } = new.target;
     if (observedAttributes) {
       observedAttributes.forEach(attr => {
         const prop = kebabToCamelCase(attr);
@@ -116,15 +116,6 @@ export abstract class BaseElement<T = {}> extends HTMLElement {
         // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
         // @ts-ignore
         this[event] = emptyFunction;
-      });
-    }
-    if (observedStores) {
-      observedStores.forEach(store => {
-        if (!store[HANDLES_KEY]) {
-          throw new Error('`observedStores` only support store module');
-        }
-
-        connect(store, this.__update);
       });
     }
     if (adoptedStyleSheets) {
@@ -312,6 +303,13 @@ export abstract class BaseElement<T = {}> extends HTMLElement {
 
   /**@final */
   __connectedCallback() {
+    const { observedStores } = this.constructor as typeof BaseElement;
+    if (observedStores) {
+      observedStores.forEach(store => {
+        if (!store[HANDLES_KEY]) throw new Error('`observedStores` only support store module');
+        connect(store, this.__update);
+      });
+    }
     render(this.render(), this.__renderRoot);
     this.__isMounted = true;
     const callback = this.mounted();
@@ -326,9 +324,9 @@ export abstract class BaseElement<T = {}> extends HTMLElement {
   /**@final */
   disconnectedCallback() {
     this.__isMounted = false;
-    const constructor = this.constructor as typeof BaseElement;
-    if (constructor.observedStores) {
-      constructor.observedStores.forEach(store => {
+    const { observedStores } = this.constructor as typeof BaseElement;
+    if (observedStores) {
+      observedStores.forEach(store => {
         disconnect(store, this.__update);
       });
     }
