@@ -258,8 +258,12 @@ export abstract class BaseElement<T = {}> extends HTMLElement {
   /**@lifecycle */
   willMount(): any {}
 
-  /**@lifecycle */
-  render(): TemplateResult | null {
+  /**
+   * @lifecycle
+   * 返回 null 时渲染 lit-html 定义的空内容
+   * 返回 undefined 时不会调用 `render()`
+   * */
+  render(): TemplateResult | null | undefined {
     return html`
       <slot></slot>
     `;
@@ -276,7 +280,8 @@ export abstract class BaseElement<T = {}> extends HTMLElement {
   /**@final */
   __update() {
     if (this.__isMounted && this.shouldUpdate()) {
-      render(this.render(), this.__renderRoot);
+      const temp = this.render();
+      temp !== undefined && render(temp, this.__renderRoot);
       addMicrotask(this.updated);
       addMicrotask(this.__execEffect);
     }
@@ -310,7 +315,8 @@ export abstract class BaseElement<T = {}> extends HTMLElement {
         connect(store, this.__update);
       });
     }
-    render(this.render(), this.__renderRoot);
+    const temp = this.render();
+    temp !== undefined && render(temp, this.__renderRoot);
     this.__isMounted = true;
     const callback = this.mounted();
     if (typeof callback === 'function') this.__unmountCallback = callback;
@@ -375,7 +381,8 @@ export abstract class AsyncGemElement<T = {}> extends BaseElement<T> {
   __update() {
     renderTaskPool.add(() => {
       if (this.shouldUpdate()) {
-        render(this.render(), this.__renderRoot);
+        const temp = this.render();
+        temp !== undefined && render(temp, this.__renderRoot);
         this.updated();
         addMicrotask(this.__execEffect);
       }
