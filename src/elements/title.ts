@@ -1,33 +1,65 @@
-import { html, GemElement, history, connectStore, customElement } from '..';
+/**
+ * 标题显示在：
+ *
+ * - 桌面端 Tab 的 title
+ * - 移动端 Appbar 的 title
+ *
+ * 修改标题：
+ *
+ * - `<gem-route>` 匹配路由时自动设置 `route.title`
+ * - `<gem-link>` 的 `doc-title` 属性和 `route.title`
+ * - 修改路径时，`history` 默认设置 `title` 为空
+ * - 数据获取后，手动调用 `Title.setTitle`
+ * - `<gem-title>` 作为默认值设置
+ */
+
+import { html, GemElement, history, connectStore, customElement, connect, attribute } from '..';
 
 /**
+ * 允许声明式设置 `document.title`
  * @customElement gem-title
+ * @attr suffix
  */
 @connectStore(history.store)
 @customElement('gem-title')
 export class Title extends GemElement {
+  // 没有后缀的标题
+  static title = document.title;
+  static defaultTitle = document.title;
+  static defaultSuffix = ` - ${document.title}`;
+
   static setTitle(title: string) {
     // 触发组件更新
     history.updateParams({ title });
   }
 
-  render() {
+  static updateTitle(str = '', suffix = '') {
     const { title } = history.getParams();
-    document.title = title || this.textContent || '';
+    if (title && title !== Title.defaultTitle) {
+      Title.title = title;
+      document.title = Title.title + suffix;
+    } else if (str) {
+      Title.title = str;
+      document.title = Title.title + suffix;
+    } else {
+      Title.title = Title.defaultTitle;
+      document.title = Title.title;
+    }
+  }
+
+  @attribute suffix: string;
+
+  render() {
+    // 多个 <gem-title> 时，最终 document.title 按执行顺序决定
+    Title.updateTitle(this.textContent || '', this.suffix);
+
     if (this.hidden) {
       return html``;
     }
-    if (!document.title) {
-      return html`
-        <slot></slot>
-      `;
-    }
     return html`
-      ${document.title}
+      ${Title.title}
     `;
   }
 }
 
-if (document.head && !document.head.querySelector('gem-title')) {
-  document.head.append(document.createElement('gem-title'));
-}
+connect(history.store, Title.updateTitle);
