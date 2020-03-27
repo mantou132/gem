@@ -45,7 +45,17 @@
         },
         {
           "title": "全局状态管理",
-          "link": "/001-guide/003-global-state-management"
+          "link": "/001-guide/003-global-state-management",
+          "children": [
+            {
+              "title": "基本使用",
+              "link": "#基本使用"
+            },
+            {
+              "title": "规划 Store",
+              "link": "#规划-store"
+            }
+          ]
         },
         {
           "title": "路由",
@@ -78,20 +88,16 @@
           ]
         },
         {
-          "title": "与 React/Vue 比较",
-          "link": "/001-guide/007-vs-react-vue",
+          "title": "对比其他库和框架",
+          "link": "/001-guide/007-vs-other",
           "children": [
             {
-              "title": "模版",
-              "link": "#模版"
+              "title": "VS React/Vue",
+              "link": "#vs-reactvue"
             },
             {
-              "title": "事件",
-              "link": "#事件"
-            },
-            {
-              "title": "性能",
-              "link": "#性能"
+              "title": "VS Lit-Element",
+              "link": "#vs-lit-element"
             }
           ]
         },
@@ -123,6 +129,18 @@
           "link": "/002-API/002-gem-element",
           "children": [
             {
+              "title": "静态字段",
+              "link": "#静态字段"
+            },
+            {
+              "title": "生命周期",
+              "link": "#生命周期"
+            },
+            {
+              "title": "其他",
+              "link": "#其他"
+            },
+            {
               "title": "AsyncGemElement",
               "link": "#asyncgemelement"
             }
@@ -137,7 +155,7 @@
           "link": "/002-API/004-history"
         },
         {
-          "title": "内置 gem 元素",
+          "title": "内置 Gem 元素",
           "link": "/002-API/005-internal-element"
         },
         {

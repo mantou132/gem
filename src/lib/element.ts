@@ -189,7 +189,7 @@ export abstract class BaseElement<T = {}> extends HTMLElement {
   }
 
   /**
-   * @final
+   * @helper
    * 设置元素 state，会触发更新
    *
    * @example
@@ -221,7 +221,7 @@ export abstract class BaseElement<T = {}> extends HTMLElement {
   }
 
   /**
-   * @final
+   * @helper
    * 记录副作用回调和值
    *
    * @example

@@ -32,8 +32,8 @@ customElements.define('hello-world', HelloWorld);
 使用标准的 [customElements](https://developer.mozilla.org/en-US/docs/Web/API/Window/customElements) 定义一个自定义元素，
 然后以任何方式在 HTML 中使用他，当然也可以在其他自定义元素的模板中使用。
 
-在 `render` 方法中渲染模块。 Gem 将 [lit-html](https://github.com/Polymer/lit-html) 作为其模版引擎，
-他使用 ES6 的模版字符串来编写 HTML 模版，没有其他概念，也不需要编译。
+在 `render` 方法中返回渲染模版。 Gem 将 [lit-html](https://github.com/Polymer/lit-html) 作为其模版引擎，
+他使用 ES6 的模版字符串来编写 HTML 模版，没有其他概念，也不需要编译时。
 
 使用变量：
 
@@ -63,4 +63,4 @@ html`
 
 ## 准备好了吗？
 
-刚才只是介绍了 Gem 最基本的功能 —— 定义 Gem 元素，接下来将介绍完成一个反应性 WebApp 的其他部分。
+刚才只是介绍了 Gem 最基本的功能 —— 定义 Gem 元素，接下来将介绍开发一个反应性 WebApp 的其他部分。

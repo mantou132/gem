@@ -2,20 +2,28 @@
 
 当你想要创建一个响应式的 WebApp 时，
 你需要你的元素对不同的输入（Attribute/Property/Store）做出响应（重新渲染）。
-由于原生 HTML 就有 Attribute/Property，
+原生 DOM API 就有 Attribute/Property 的概念，
+为了区分普通和能够响应数据更改的 Attribute/Property，
 所以响应式的 Attribute/Property/Store 需要通过“Observe”指定。
 
 ## 定义
 
-定义具备响应性的 Attribute，使用标准的 [observedAttributes](https://developer.mozilla.org/en-US/docs/Web/Web_Components/Using_custom_elements#Using_the_lifecycle_callbacks)：
+定义具备响应性的 Attribute，使用标准的 [observedAttributes](https://developer.mozilla.org/en-US/docs/Web/Web_Components/Using_custom_elements#Using_the_lifecycle_callbacks) 静态属性：
 
 ```js
 class HelloWorld extends GemElement {
-  static observedAttributes = ['name'];
+  static observedAttributes = ['first-name'];
+  render() {
+    // “Observed” 的 attribute 能直接通过 Property 进行访问
+    // 且会自动进行驼峰和烤串格式的转换
+    return html`
+      ${this.firestName}
+    `;
+  }
 }
 ```
 
-当 `name` 属性更改时，`HelloWorld` 的实例元素将自动更新。
+当 `first-name` 属性更改时，`HelloWorld` 的实例元素将自动更新。
 
 _注：`GemElement` 的 attribute 只支持 `string`，没有添加或者没有赋值时读取值都为空字符串_
 
@@ -25,6 +33,18 @@ _注：`GemElement` 的 attribute 只支持 `string`，没有添加或者没有�
 class HelloWorld extends GemElement {
   static observedPropertys = ['data'];
   static observedStores = [store];
+}
+```
+
+另外 `GemElement` 提供了类似 React 的 `state`/`setState` 用来处理元素自身的状态，
+每当调用 `setState` 时将触发元素更新：
+
+```js
+class HelloWorld extends GemElement {
+  state: { a: 1 };
+  clicked() {
+    this.setState({ a: 2 });
+  }
 }
 ```
 
@@ -86,17 +106,17 @@ class HelloWorld extends GemElement {
   +-------------+         +----------------+
          |                         |
          |                         |
-  +---------------------------------------+
+  +------v-------------------------v------+
   |                render                 |
   +---------------------------------------+
          |                         |
          |                         |
-  +------v------+            +-----v-----+
-  |   mounted   |            |  updated  |
-  +-------------+            +-----------+
+  +------v------+           +------v------+
+  |   mounted   |           |   updated   |
+  +-------------+           +-------------+
          |                         |
-         |<------------------------+
-  +------v------+
-  |  unmounted  |
-  +-------------+
+         |                         |
+  +------v-------------------------v------+
+  |               unmounted               |
+  +---------------------------------------+
 ```

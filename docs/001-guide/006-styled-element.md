@@ -4,31 +4,33 @@
 另外浏览器的兼容性近年来已经好转，供应商私有前缀也纷纷被取消，
 我们可以使用原生 CSS 功能来完成日常工作。
 
-_[嵌套 CSS 提案](https://drafts.csswg.org/css-nesting-1/) 非常值得期待_
+_另外[嵌套 CSS 提案](https://drafts.csswg.org/css-nesting-1/) 非常值得期待_
 
 ## 共享样式
 
 由于样式不能穿透 ShadowDOM，所以不能使用全局样式表来实现共享样式。
 但是可以使用 [`<link>`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/link) 和
 [CSS variables](https://developer.mozilla.org/en-US/docs/Web/CSS/--*) 来达到同样的效果，
-使用 [Constructable Stylesheet](https://wicg.github.io/construct-stylesheets/) 更加方便，但是 Safari 还不支持。
+使用 [Constructable Stylesheet](https://wicg.github.io/construct-stylesheets/) 更加方便，
+但目前 Safari 还不支持。
 
 ```js
 import { createCSSSheet, css, GemElement } from '@mantou/gem';
 
+// 使用 Constructable Stylesheet 创建样式表
 const styles = createCSSSheet(css`
   h1 {
     text-decoration: underline;
   }
 `);
 class HelloWorld extends GemElement {
-  static observedAttributes = [styles];
+  static adoptedStyleSheets = [styles];
 }
 ```
 
 其他方法：
 
-像绑定 `Store` 一样，也有一个 Typescript 装饰器可用：
+像绑定 `Store` 一样，也有一个类似的 Typescript 装饰器可用：
 
 ```ts
 import { adoptedStyle, GemElement } from '@mantou/gem';
@@ -39,7 +41,7 @@ class HelloWorld extends GemElement {}
 
 ## CSS in JS
 
-可以在 js 中引用 css 选择器：
+可以在 JS 中引用 CSS 选择器：
 
 ```js
 import { createCSSSheet, styled, GemElement, html } from '@mantou/gem';
@@ -54,7 +56,7 @@ const styles = createCSSSheet({
 });
 
 class HelloWorld extends GemElement {
-  static observedAttributes = [styles];
+  static adoptedStyleSheets = [styles];
   render() {
     return html`
       <div class=${styles.h1}></div>
@@ -91,8 +93,8 @@ class HelloWorld extends GemElement {
 }
 ```
 
+_注意跟 `state`/`setState` 的区别_
+
 ## 定义外部样式
 
-- [`:host()`](<https://developer.mozilla.org/en-US/docs/Web/CSS/:host()>)
-- [`:host-context()`](<https://developer.mozilla.org/en-US/docs/Web/CSS/:host-context()>)
 - [`::slotted()`](https://developer.mozilla.org/en-US/docs/Web/CSS/::slotted)
