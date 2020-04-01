@@ -155,7 +155,7 @@ Object.defineProperties(history, {
         // paramsMap 更新后 ui 才会更新
         Object.assign(paramsMap.get(store.$key), { path: getRelativePath(location.pathname) });
       } else {
-        throw new GemError('已经有其他环境使用 gem , 会共享 history 对象，禁止再修改 history 对象');
+        throw new GemError('not allow');
       }
     },
   },

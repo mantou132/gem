@@ -1,21 +1,16 @@
-# 响应式元素
+# 反应性元素
 
-当你想要创建一个响应式的 WebApp 时，
-你需要你的元素对不同的输入（Attribute/Property/Store）做出响应（重新渲染）。
-原生 DOM API 就有 Attribute/Property 的概念，
-为了区分普通和能够响应数据更改的 Attribute/Property，
-所以响应式的 Attribute/Property/Store 需要通过“Observe”指定。
+当你想要创建一个反应性的 WebApp 时，
+你需要元素能对不同的输入（attribute/property/store）做出反应（重新渲染）。
 
 ## 定义
 
-定义具备响应性的 Attribute，使用标准的 [observedAttributes](https://developer.mozilla.org/en-US/docs/Web/Web_Components/Using_custom_elements#Using_the_lifecycle_callbacks) 静态属性：
+定义具备反应性的 attribute，使用标准的 [observedAttributes](https://developer.mozilla.org/en-US/docs/Web/Web_Components/Using_custom_elements#Using_the_lifecycle_callbacks) 静态属性：
 
 ```js
 class HelloWorld extends GemElement {
   static observedAttributes = ['first-name'];
   render() {
-    // “Observed” 的 attribute 能直接通过 Property 进行访问
-    // 且会自动进行驼峰和烤串格式的转换
     return html`
       ${this.firestName}
     `;
@@ -23,11 +18,14 @@ class HelloWorld extends GemElement {
 }
 ```
 
-当 `first-name` 属性更改时，`HelloWorld` 的实例元素将自动更新。
+当 `first-name` 属性经过“Observed”，他能直接通过 property 进行访问，
+且会自动进行驼峰和烤串格式的转换，
+当数据更改时，`HelloWorld` 的实例元素将自动更新。
 
-_注：`GemElement` 的 attribute 只支持 `string`，没有添加或者没有赋值时读取值都为空字符串_
+_注：`GemElement` 的 attribute 只支持 `string`，没有添加或者没有赋值时读取值都为空字符串，_
+_当需要 boolean 时，可以用 "off"/"on" 代替_
 
-类似 `observedAttributes`，GemElement 还支持 `observedPropertys`/`observedStores` 用来响应指定的 Property/Store：
+类似 `observedAttributes`，GemElement 还支持 `observedPropertys`/`observedStores` 用来反应指定的 property/store：
 
 ```js
 class HelloWorld extends GemElement {
@@ -36,12 +34,14 @@ class HelloWorld extends GemElement {
 }
 ```
 
+_不要在元素 `constructor` 以外的地方修改 prop/attr，他们应该由父元素单向传递进来_
+
 另外 `GemElement` 提供了类似 React 的 `state`/`setState` 用来处理元素自身的状态，
 每当调用 `setState` 时将触发元素更新：
 
 ```js
 class HelloWorld extends GemElement {
-  state: { a: 1 };
+  state = { a: 1 };
   clicked() {
     this.setState({ a: 2 });
   }
@@ -77,10 +77,11 @@ class HelloWorld extends GemElement {
 
 ## 使用 TypeScript
 
-当使用 TypeScript 时，可以在声明字段的同时使用装饰器进行响应式声明：
+当使用 TypeScript 时，可以在声明字段的同时使用装饰器进行反应性声明：
 
 ```ts
-import { connectStore, GemElement, attribute, property } from '@mantou/gem';
+import { GemElement } from '@mantou/gem';
+import { connectStore, attribute, property } from '@mantou/gem';
 
 const store = createStore({
   count: 0,
@@ -96,12 +97,12 @@ class HelloWorld extends GemElement {
 ## 生命周期
 
 ```
-                        +----------------------+
-                        |attr/prop/store update|
-                        +----------------------+
-                                   |
-                                   |
-  +-------------+         +--------v-------+
+  +-------------+       +----------------------+
+  |  construct  |       |attr/prop/store update|
+  +-------------+       +----------------------+
+         |                         |
+         |                         |
+  +------v------+         +--------v-------+
   |  willMount  |         |  shouldUpdate  |
   +-------------+         +----------------+
          |                         |

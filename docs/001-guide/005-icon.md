@@ -26,4 +26,4 @@ render(
 
 [![Edit svg-icon](https://codesandbox.io/static/img/play-codesandbox.svg)](https://codesandbox.io/s/gem-route-tb4v6?fontsize=14&hidenavigation=1&theme=dark)
 
-_注：`<gem-use>` 由于是复制内容进行渲染，所以 svg 更新 `<gem-use>` 不能同步更新_
+_注：`<gem-use>` 由于是复制内容进行渲染，所以 `<svg>` 更新不能同步更新 `<gem-use>`_

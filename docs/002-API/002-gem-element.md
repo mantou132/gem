@@ -1,35 +1,37 @@
 # GemElement
 
-## 静态字段
+## 静态属性
 
-| 名称               | 描述                                                                |
-| ------------------ | ------------------------------------------------------------------- |
-| observedAttributes | 监听指定的 `attribute`, 当被监听的 `attribute` 变化时元素将自动更新 |
-| observedPropertys  | 监听指定的 `property`, 当被监听的 `property` 变化时元素将自动更新   |
-| observedStores     | 监听指定的 `Store`, 当被监听的 `Store` 变化时元素将自动更新         |
-| adoptedStyleSheets | 同 `DocumentOrShadowRoot.adoptedStyleSheets`(注意兼容性)            |
+| 名称                 | 描述                                                                |
+| -------------------- | ------------------------------------------------------------------- |
+| `observedAttributes` | 监听指定的 `attribute`, 当被监听的 `attribute` 变化时元素将自动更新 |
+| `observedPropertys`  | 监听指定的 `property`, 当被监听的 `property` 变化时元素将自动更新   |
+| `observedStores`     | 监听指定的 `Store`, 当被监听的 `Store` 变化时元素将自动更新         |
+| `adoptedStyleSheets` | 同 [`DocumentOrShadowRoot.adoptedStyleSheets`][1]                   |
 
-## 生命周期
+[1]: https://developer.mozilla.org/en-US/docs/Web/API/DocumentOrShadowRoot/adoptedStyleSheets
 
-| 名称         | 描述                                        |
-| ------------ | ------------------------------------------- |
-| willMount    | 挂载元素前的回调                            |
-| mounted      | 挂载元素后的回调                            |
-| shouldUpdate | 更新元素前的回调, 返回 `false` 时不更新元素 |
-| updated      | 更新元素后的回调                            |
-| unmounted    | 卸载元素后的回调                            |
+## 生命周期钩子
+
+| 名称           | 描述                                        |
+| -------------- | ------------------------------------------- |
+| `willMount`    | 挂载元素前的回调                            |
+| `render`       | 渲染元素                                    |
+| `mounted`      | 挂载元素后的回调                            |
+| `shouldUpdate` | 更新元素前的回调, 返回 `false` 时不更新元素 |
+| `updated`      | 更新元素后的回调                            |
+| `unmounted`    | 卸载元素后的回调                            |
 
 ## 其他
 
-| 名称           | 描述                                                   |
-| -------------- | ------------------------------------------------------ |
-| effect         | 指定副作用，可以指定依赖                               |
-| update         | 重新调用 render 并更新元素                             |
-| render         | 渲染元素                                               |
-| state/setState | 指定元素 `State`, 通过 `setState` 修改，修改后触发更新 |
-| internals      | 获取元素的 [ElementInternals][1] 对象                  |
+| 名称               | 描述                                                   |
+| ------------------ | ------------------------------------------------------ |
+| `effect`           | 注册副作用，可以指定依赖                               |
+| `update`           | 手动更新元素                                           |
+| `state`/`setState` | 指定元素 `State`, 通过 `setState` 修改，修改后触发更新 |
+| `internals`        | 获取元素的 [ElementInternals][2] 对象                  |
 
-[1]: https://html.spec.whatwg.org/multipage/custom-elements.html#the-elementinternals-interface
+[2]: https://html.spec.whatwg.org/multipage/custom-elements.html#the-elementinternals-interface
 
 ## AsyncGemElement
 

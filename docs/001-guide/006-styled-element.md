@@ -4,7 +4,7 @@
 另外浏览器的兼容性近年来已经好转，供应商私有前缀也纷纷被取消，
 我们可以使用原生 CSS 功能来完成日常工作。
 
-_另外[嵌套 CSS 提案](https://drafts.csswg.org/css-nesting-1/) 非常值得期待_
+_[嵌套 CSS](https://drafts.csswg.org/css-nesting-1/) 仍然是非常值得期待的功能_
 
 ## 共享样式
 
@@ -15,7 +15,8 @@ _另外[嵌套 CSS 提案](https://drafts.csswg.org/css-nesting-1/) 非常值得
 但目前 Safari 还不支持。
 
 ```js
-import { createCSSSheet, css, GemElement } from '@mantou/gem';
+import { GemElement } from '@mantou/gem';
+import { createCSSSheet, css } from '@mantou/gem';
 
 // 使用 Constructable Stylesheet 创建样式表
 const styles = createCSSSheet(css`
@@ -28,12 +29,11 @@ class HelloWorld extends GemElement {
 }
 ```
 
-其他方法：
-
-像绑定 `Store` 一样，也有一个类似的 Typescript 装饰器可用：
+像连接 `Store` 一样，也有一个类似的 Typescript 装饰器可用：
 
 ```ts
-import { adoptedStyle, GemElement } from '@mantou/gem';
+import { GemElement } from '@mantou/gem';
+import { adoptedStyle } from '@mantou/gem';
 
 @adoptedStyle(styles)
 class HelloWorld extends GemElement {}
@@ -44,7 +44,8 @@ class HelloWorld extends GemElement {}
 可以在 JS 中引用 CSS 选择器：
 
 ```js
-import { createCSSSheet, styled, GemElement, html } from '@mantou/gem';
+import { GemElement, html } from '@mantou/gem';
+import { createCSSSheet, styled } from '@mantou/gem';
 
 const styles = createCSSSheet({
   h1: styled.class`

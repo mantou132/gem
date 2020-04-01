@@ -1,6 +1,6 @@
 # 对比其他库和框架
 
-## VS React/Vue
+## React/Vue
 
 ### 模版
 
@@ -31,7 +31,7 @@ Gem 使用完全不同的方式，参见 lit-html [文档](https://github.com/Po
 他们只由该元素“Observe”的 Attribute/Property/Store 通知更新，这会造成 Gem App 是分批次列队更新，
 有少许的任务管理成本。
 
-## VS Lit-Element
+## Lit-Element
 
 [`LitElement`](https://lit-element.polymer-project.org/) 和 `GemElment` 的工作方式很相似，
 但是 [API](../002-API/002-gem-element) 设计有一些区别，`GemElement` 以简单为原则设计 API。
