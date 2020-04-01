@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-empty-function */
 
 import { html, render, TemplateResult } from 'lit-html';
-import { connect, disconnect, HANDLES_KEY, Store } from './store';
+import { connect, disconnect, Store } from './store';
 import {
   Pool,
   addMicrotask,
@@ -311,7 +311,6 @@ export abstract class BaseElement<T = {}> extends HTMLElement {
     const { observedStores } = this.constructor as typeof BaseElement;
     if (observedStores) {
       observedStores.forEach(store => {
-        if (!store[HANDLES_KEY]) throw new Error('`observedStores` only support store module');
         connect(store, this.__update);
       });
     }

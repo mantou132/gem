@@ -1,56 +1,47 @@
-import { addMicrotask } from './utils';
+import { addMicrotask, GemError } from './utils';
 
-export const HANDLES_KEY = (Symbol('handles-key') as unknown) as '';
+export const StoreListenerMap = new WeakMap<object, Set<Function>>();
 
-export interface StoreTrait {
-  [HANDLES_KEY]: Set<Function>;
-}
+// 限制 `updateStore` 的参数类型
+export type Store<T> = T & { '': string };
 
-export type Store<T> = T & StoreTrait;
-
-export type StoreSet<T> = {
-  [P in keyof T]: T[P] & Store<T[P]>;
-};
-
-export function createStore<T extends object>(originStore: T): Store<T> {
-  const store = originStore as Store<T>;
-  // 序列化时忽略
-  Object.defineProperty(store, HANDLES_KEY, {
-    configurable: false,
-    enumerable: false,
-    writable: false,
-    value: new Set<Function>(),
-  });
-  return store;
+export function createStore<T extends object>(originStore: T) {
+  if (StoreListenerMap.has(originStore)) {
+    throw new GemError('argument error');
+  }
+  StoreListenerMap.set(originStore, new Set<Function>());
+  return originStore as Store<T>;
 }
 
 interface StoreObjectSet {
   [store: string]: object;
 }
+export type StoreSet<T> = {
+  [P in keyof T]: T[P] & Store<T[P]>;
+};
 export function createStoreSet<T extends StoreObjectSet>(originStoreSet: T) {
   const keys = Object.keys(originStoreSet);
   keys.forEach(key => {
-    const store = originStoreSet[key] as any;
-    createStore(store as object);
+    createStore(originStoreSet[key]);
   });
 
   return originStoreSet as StoreSet<T>;
 }
 
-export function updateStore<T extends Store<unknown>>(store: T, value: Partial<Omit<T, keyof StoreTrait>> | undefined) {
+export function updateStore<T extends object>(store: Store<T>, value: Partial<T>) {
   Object.assign(store, value);
-  const listeners = store[HANDLES_KEY];
-  listeners.forEach(func => {
+  const listeners = StoreListenerMap.get(store);
+  listeners?.forEach(func => {
     addMicrotask(func);
   });
 }
 
-export function connect<T extends Store<unknown>>(store: T, func: Function) {
-  const listeners = store[HANDLES_KEY];
-  listeners.add(func);
+export function connect<T extends object>(store: Store<T>, func: Function) {
+  const listeners = StoreListenerMap.get(store);
+  listeners?.add(func);
 }
 
-export function disconnect<T extends Store<unknown>>(store: T, func: Function) {
-  const listeners = store[HANDLES_KEY];
-  listeners.delete(func);
+export function disconnect<T extends object>(store: Store<T>, func: Function) {
+  const listeners = StoreListenerMap.get(store);
+  listeners?.delete(func);
 }
