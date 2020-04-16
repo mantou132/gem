@@ -174,7 +174,7 @@ export abstract class BaseElement<T = {}> extends HTMLElement {
               : (detail: any, options: any) => {
                   const evt = new CustomEvent(prop.toLowerCase(), { detail, ...options });
                   that.dispatchEvent(evt);
-                  v(evt);
+                  v(detail, options);
                 };
             propValue.__isEventHandle = true;
           } else {
