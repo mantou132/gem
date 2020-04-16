@@ -26,14 +26,17 @@ export type RefObject<T = BaseElement> = { ref: string; element: T | null };
  * ```
  */
 export function refobject(target: BaseElement, prop: string) {
-  const attr = prop;
-  const ref: RefObject<BaseElement> = { ref: attr, element: null };
+  const attr = camelToKebabCase(prop);
   Object.defineProperty(target, prop, {
     get() {
       const that = this as BaseElement;
       const ele = that.shadowRoot || that;
-      ref.element = ele.querySelector(`[ref=${prop}]`);
-      return ref;
+      return {
+        ref: attr,
+        get element() {
+          return ele.querySelector(`[ref=${attr}]`);
+        },
+      };
     },
   });
 }
