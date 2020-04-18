@@ -240,7 +240,3 @@ export function isArrayChange(newValues: any[], oldValues: any[]) {
   }
   return false;
 }
-
-export function emptyFunction() {
-  // 用于占位的空函数
-}

@@ -1,8 +1,13 @@
-import { GemElement, html, emptyFunction } from '../../';
+import { GemElement, html } from '../../';
 import createModalClass from '../../elements/modal-base';
 import DialogBase from '../../elements/dialog-base';
 import '../../elements/link';
-class Confirm extends createModalClass({ content: html``, confirmHandle: emptyFunction }) {
+class Confirm extends createModalClass({
+  content: html``,
+  confirmHandle: () => {
+    /** */
+  },
+}) {
   confirm = () => {
     Confirm.store.confirmHandle();
     Confirm.close();

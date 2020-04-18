@@ -2,16 +2,7 @@
 
 import { html, render, TemplateResult } from 'lit-html';
 import { connect, disconnect, Store } from './store';
-import {
-  Pool,
-  addMicrotask,
-  Sheet,
-  SheetToken,
-  kebabToCamelCase,
-  emptyFunction,
-  isArrayChange,
-  GemError,
-} from './utils';
+import { Pool, addMicrotask, Sheet, SheetToken, kebabToCamelCase, isArrayChange, GemError } from './utils';
 
 export { html, svg, render, directive, TemplateResult } from 'lit-html';
 export { repeat } from 'lit-html/directives/repeat';
@@ -26,6 +17,10 @@ declare global {
   interface HTMLElement {
     attachInternals?: () => ElementInternals;
   }
+}
+
+function emptyFunction() {
+  // 用于占位的空函数
 }
 
 type UnmountCallback = () => void;
@@ -87,7 +82,10 @@ export abstract class BaseElement<T = {}> extends HTMLElement {
         // e.g: `id`, `title`, `hidden`, `alt`, `lang`
         // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
         // @ts-ignore
-        if (this[prop] !== undefined) return;
+        if (this[prop] !== undefined) {
+          // 所以 `prop` 不能是方法
+          return;
+        }
         // !!! Custom property shortcut access only supports `string` type
         Object.defineProperty(this, prop, {
           configurable: true,
