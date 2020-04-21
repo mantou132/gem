@@ -9,6 +9,7 @@ import {
   connectStore,
   customElement,
   state,
+  ifDefined,
 } from '../';
 import { isMatch, RouteItem, RouteOptions, createHistoryParams, createPath } from './route';
 
@@ -20,6 +21,7 @@ import { isMatch, RouteItem, RouteOptions, createHistoryParams, createPath } fro
  * @attr query
  * @attr hash
  * @attr pattern
+ * @attr hint
  * @part link
  */
 @customElement('gem-link')
@@ -30,6 +32,7 @@ export class Link extends GemElement {
   @attribute query: string;
   @attribute hash: string;
   @attribute docTitle: string;
+  @attribute hint: 'on' | 'off';
 
   // 动态路由，根据 route.pattern 和 options.params 计算出 path
   @property route: RouteItem | undefined;
@@ -124,7 +127,9 @@ export class Link extends GemElement {
       <a
         part=${this.link}
         @click=${this.preventDefault}
-        href=${new URL(history.basePath + href, location.origin).toString()}
+        href=${ifDefined(
+          this.hint === 'off' ? undefined : new URL(history.basePath + href, location.origin).toString(),
+        )}
       >
         <slot></slot>
       </a>
