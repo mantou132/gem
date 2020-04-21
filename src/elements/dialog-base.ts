@@ -7,22 +7,21 @@ import { GemElement, connectStore, history, state } from '..';
 export default abstract class DialogBase extends GemElement {
   @state opened = false;
 
-  /**@final */
-  closeHandle() {
+  /**
+   * @final
+   * 进入关闭状态
+   */
+  closeHandle = () => {
     this.opened = false;
-  }
+  };
 
-  /**@final */
-  openHandle() {
+  /**
+   * @final
+   * 进入打开状态
+   */
+  openHandle = () => {
     this.opened = true;
-  }
-
-  constructor() {
-    super();
-    this.closeHandle = this.closeHandle.bind(this);
-    this.openHandle = this.openHandle.bind(this);
-    this.shouldClose = this.shouldClose.bind(this);
-  }
+  };
 
   /**@final */
   open = () => {
@@ -41,6 +40,16 @@ export default abstract class DialogBase extends GemElement {
 
   /**@final */
   close = () => {
+    history.back();
+  };
+
+  /**
+   * @final
+   * 跳过 `shouldClose` 强制关闭
+   * 避免 `shouldClose` 中造成无限循环
+   */
+  forceClose = () => {
+    this.closeHandle();
     history.back();
   };
 }

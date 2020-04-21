@@ -1,7 +1,9 @@
-import { GemElement, html } from '../../';
+import { GemElement, html, customElement, refobject, RefObject } from '../../';
 import createModalClass from '../../elements/modal-base';
 import DialogBase from '../../elements/dialog-base';
 import '../../elements/link';
+
+@customElement('app-confirm')
 class Confirm extends createModalClass({
   content: html``,
   confirmHandle: () => {
@@ -9,8 +11,8 @@ class Confirm extends createModalClass({
   },
 }) {
   confirm = () => {
-    Confirm.store.confirmHandle();
     Confirm.close();
+    Confirm.store.confirmHandle();
   };
 
   render() {
@@ -43,8 +45,8 @@ class Confirm extends createModalClass({
     `;
   }
 }
-customElements.define('app-confirm', Confirm);
 
+@customElement('app-dialog')
 class Dialog extends DialogBase {
   shouldClose = () => {
     if (this.opened) {
@@ -52,13 +54,7 @@ class Dialog extends DialogBase {
         content: html`
           Confirm?
         `,
-        confirmHandle: () => {
-          // 强制进入关闭状态，用于跳过 `shouldClose`
-          this.closeHandle();
-          // 关闭当前 dialog
-          // 这个调用发生在关闭 confirm 之前，所以实际上是关闭 confirm，confirm 中调用才是关闭 dialog
-          this.close();
-        },
+        confirmHandle: this.forceClose,
       });
       return false;
     } else {
@@ -69,6 +65,12 @@ class Dialog extends DialogBase {
   render() {
     return html`
       <style>
+        :host {
+          display: none;
+        }
+        :host(.opened) {
+          display: block;
+        }
         .root {
           position: fixed;
           top: 0;
@@ -88,7 +90,7 @@ class Dialog extends DialogBase {
           background: white;
         }
       </style>
-      <div class="root" ?hidden=${!this.opened}>
+      <div class="root">
         <div class="body">
           <h2>Dialog Title</h2>
           <slot></slot>
@@ -98,12 +100,13 @@ class Dialog extends DialogBase {
     `;
   }
 }
-customElements.define('app-dialog', Dialog);
 
+@customElement('app-root')
 class Root extends GemElement {
+  @refobject dialog: RefObject<Dialog>;
+
   clickHandle = () => {
-    const dialog: Dialog | null | undefined = this.shadowRoot?.querySelector('app-dialog');
-    dialog?.open();
+    this.dialog.element?.open();
   };
 
   render() {
@@ -114,13 +117,12 @@ class Root extends GemElement {
         }
       </style>
       <button @click="${this.clickHandle}">open dialog</button>
-      <app-dialog>
+      <app-dialog ref=${this.dialog.ref}>
         <div>dialog body</div>
         <gem-link path="/hi" style="cursor: pointer; color: blue">replace route</gem-link>
       </app-dialog>
     `;
   }
 }
-customElements.define('app-root', Root);
 
 document.body.append(new Root());
