@@ -123,7 +123,7 @@ export abstract class BaseElement<T = {}> extends HTMLElement {
       if (this.shadowRoot) {
         this.shadowRoot.adoptedStyleSheets = sheets;
       } else {
-        document.adoptedStyleSheets = document.adoptedStyleSheets.concat(sheets);
+        document.adoptedStyleSheets = [...new Set(document.adoptedStyleSheets.concat(sheets))];
       }
     }
   }
