@@ -1,5 +1,5 @@
 import { expect } from '@open-wc/testing';
-import { Pool, QueryString, css, raw, createCSSSheet, styled, SheetToken } from '..';
+import { Pool, QueryString, css, raw, createCSSSheet, styled, SheetToken, styleMap, classMap } from '..';
 
 describe('utils 测试', () => {
   it('Pool', () => {
@@ -68,5 +68,9 @@ describe('utils 测试', () => {
     expect(rules.item(1).style.background.startsWith('blue')).to.true;
     expect(rules.item(2).selectorText.startsWith('#wrap')).to.true;
     expect(rules.item(3).selectorText).to.equal('div');
+  });
+  it('styleMap/classMap', () => {
+    expect(styleMap({ fontSize: '14px', content: `'*'` })).to.equal(`font-size:14px;content:'*';`);
+    expect(classMap({ foo: true, content: false })).to.equal(` foo `);
   });
 });

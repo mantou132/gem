@@ -240,3 +240,21 @@ export function isArrayChange(newValues: any[], oldValues: any[]) {
   }
   return false;
 }
+
+export function styleMap(obj: Partial<CSSStyleDeclaration>) {
+  let styleString = '';
+  for (const key in obj) {
+    styleString += `${camelToKebabCase(key)}:${obj[key]};`;
+  }
+  return styleString;
+}
+
+export function classMap(obj: Record<string, boolean>) {
+  let classList = ' ';
+  for (const className in obj) {
+    if (obj[className]) {
+      classList += `${className} `;
+    }
+  }
+  return classList;
+}
