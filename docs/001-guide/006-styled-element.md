@@ -4,7 +4,7 @@
 另外浏览器的兼容性近年来已经好转，供应商私有前缀也纷纷被取消，
 我们可以使用原生 CSS 功能来完成日常工作。
 
-_[嵌套 CSS](https://drafts.csswg.org/css-nesting-1/) 仍然是非常值得期待的功能_
+_[嵌套 CSS](https://drafts.csswg.org/css-nesting-1/) 仍然是非常值得期待的功能。_
 
 ## 共享样式
 
@@ -48,6 +48,7 @@ import { GemElement, html } from '@mantou/gem';
 import { createCSSSheet, styled } from '@mantou/gem';
 
 const styles = createCSSSheet({
+  // 这里暂时设计成 `styled.class` 时为了兼容 `styled-component` 的语法高亮
   h1: styled.class`
     text-decoration: underline;
     &:hover {
@@ -70,7 +71,11 @@ class HelloWorld extends GemElement {
 
 可以使用 [`::part`](https://drafts.csswg.org/css-shadow-parts-1/#part) 导出元素内部内容，允许外部进行自定义样式：
 
-```js
+```ts
+/**
+ * 下面的代码跟 `<div part="header"></div>` 效果一样，
+ * 但是 Gem 推荐使用装饰器来定义 part，这样在将来能很好的进行 IDE 集成
+ */
 class HelloWorld extends GemElement {
   @part header: string;
 
@@ -84,17 +89,18 @@ class HelloWorld extends GemElement {
 
 还可以使用 [`:state`](https://github.com/w3c/webcomponents/blob/gh-pages/proposals/custom-states-and-state-pseudo-class.md) 导出元素内部状态，供外部样式化当前状态:
 
-```js
+```ts
 class HelloWorld extends GemElement {
   @state opened: boolean;
 
   open() {
+    // 可被选择器 `:state(opened)` 选中
     this.opened = true;
   }
 }
 ```
 
-_注意跟 `state`/`setState` 的区别_
+_注意跟 `state`/`setState` 的区别。_
 
 ## 定义外部样式
 

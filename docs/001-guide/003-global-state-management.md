@@ -1,6 +1,6 @@
 # 全局状态管理
 
-多个元素（其他框架中称为“组件”）之间共享数据是框架的一个基本能力，
+多个元素（其他框架中称为“组件”）之间共享数据是 WebApp 框架的一个基本能力，
 Gem 使用“订阅-通知”模式，让多个元素共享数据，并且数据更新时通知所有订阅该数据的元素。
 在 Gem 中，全局数据称为 “Store”。
 
@@ -23,7 +23,7 @@ updateStore(store, { a: 2 });
 
 前一节有提到，使用 `static observedStores`/`@connectStore` 来连接 `Store`，
 实际上，他们的作用只是注册 `GemElement` 实例的 `update` 方法，
-所以，当 `Store` 更新时，连接 `Store` 的 `GemElement` 的实例会自动更新。
+所以，当 `Store` 更新时，连接 `Store` 的 `GemElement` 的实例会调用 `update`，从而实现自动更新。
 
 ## 规划 Store
 

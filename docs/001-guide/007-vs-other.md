@@ -1,5 +1,7 @@
 # 对比其他库和框架
 
+Gem 借鉴了其他框架/库的思想，但 Gem 还是有很多独特之处。
+
 ## React/Vue
 
 ### 模版
@@ -31,7 +33,11 @@ Gem 使用完全不同的方式，参见 lit-html [文档](https://github.com/Po
 他们只由该元素“Observe”的 Attribute/Property/Store 通知更新，这会造成 Gem App 是分批次列队更新，
 有少许的任务管理成本。
 
+使用 Gem 可能会造成过多的 ShadowDOM，这可能会减慢 App 的速度。
+
+_目前 Gem 还没有大型 App 的实践，所以实际情况下的性能问题尚未可知_
+
 ## Lit-Element
 
 [`LitElement`](https://lit-element.polymer-project.org/) 和 `GemElment` 的工作方式很相似，
-但是 [API](../002-API/002-gem-element) 设计有一些区别，`GemElement` 以简单为原则设计 API。
+但是 [API](../002-API/002-gem-element) 设计有很大的区别。

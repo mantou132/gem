@@ -22,8 +22,8 @@ class HelloWorld extends GemElement {
 且会自动进行驼峰和烤串格式的转换，
 当数据更改时，`HelloWorld` 的实例元素将自动更新。
 
-_注：`GemElement` 的 attribute 只支持 `string`，没有添加或者没有赋值时读取值都为空字符串，_
-_当需要 boolean 时，可以用 "off"/"on" 代替_
+_`GemElement` 的 attribute 只支持 `string`，没有添加或者没有赋值时读取值都为空字符串，_
+_当需要 `boolean` 时，可以用 `off/on` 代替_
 
 类似 `observedAttributes`，GemElement 还支持 `observedPropertys`/`observedStores` 用来反应指定的 property/store：
 
