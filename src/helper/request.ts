@@ -1,18 +1,19 @@
 const defaultReq: RequestInit = {
+  credentials: 'include',
   mode: 'cors',
 };
 
-async function request<T>(uri: string, options: RequestInit = {}): Promise<T> {
+export async function request<T>(uri: string, options: RequestInit = {}): Promise<T> {
   const res = await fetch(uri, { ...defaultReq, ...options });
-  if (!res.ok || res.status === 0) throw new Error('Request fail');
-  if (res.status >= 500) throw new Error('Server error');
+  if (res.status === 0) throw 'Request fail';
+  if (res.status >= 500) throw res.statusText;
   let data;
   try {
     data = await res.json();
   } catch {
     data = await res.text();
   }
-  if (res.status >= 400) throw data;
+  if (res.status >= 400) throw data || res.statusText;
   return data;
 }
 
