@@ -8,12 +8,17 @@ const svgStr = `
     <path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z" />
   </svg>
 `;
+const svgStyle = `
+  svg {
+    transform: scale(2);
+  }
+`;
 const htmlStr = `
   <pre><code>// code code code</code></pre>
 `;
 render(
   html`
-    <gem-unsafe content="${svgStr}"></gem-unsafe>
+    <gem-unsafe content="${svgStr}" contentcss="${svgStyle}"></gem-unsafe>
     <gem-unsafe content="${htmlStr}"></gem-unsafe>
   `,
   document.body,
