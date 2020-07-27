@@ -7,7 +7,9 @@
 | `@customElement` | 类装饰器，定义自定义元素                                  |
 | `@connectStore`  | 类装饰器，绑定 `Store`                                    |
 | `@adoptedStyle`  | 类装饰器，附加样式表                                      |
-| `@attribute`     | 字段装饰器，定义反应性 [`Attribute`][5]                   |
+| `@attribute`     | 字段装饰器，定义 `string` 类型反应性 [`Attribute`][5]     |
+| `@boolattribute` | 字段装饰器，定义 `boolean` 类型反应性 [`Attribute`]       |
+| `@numattribute`  | 字段装饰器，定义 `number` 类型反应性 [`Attribute`]        |
 | `@property`      | 字段装饰器，定义反应性 [`Property`][6]                    |
 | `@emitter`       | 字段装饰器，定义事件发射器，类似 [`HTMLElement.click`][4] |
 | `@refobject`     | 字段装饰器，定义元素引用                                  |

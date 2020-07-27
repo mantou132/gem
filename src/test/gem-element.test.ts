@@ -13,6 +13,8 @@ import {
   connectStore,
   adoptedStyle,
   emitter,
+  boolattribute,
+  numattribute,
 } from '..';
 
 const store = createStore({
@@ -27,8 +29,12 @@ const styles = createCSSSheet(css`
 
 class GemDemo extends GemElement {
   /** @attr */ attr: string | null;
+  /** @attr */ disabled: boolean;
+  /** @attr */ count: number;
   /** @attr long-attr*/ longAttr: string;
-  static observedAttributes = ['attr', 'long-attr'];
+  static observedAttributes = ['attr', 'long-attr', 'disabled', 'count'];
+  static booleanAttributes = new Set(['disabled']);
+  static numberAttributes = new Set(['count']);
 
   static observedStores = [store];
 
@@ -41,9 +47,10 @@ class GemDemo extends GemElement {
   renderCount = 0;
 
   render() {
+    const { attr, disabled, count, prop, state } = this;
     this.renderCount++;
     return html`
-      attr: ${this.attr}, prop: ${this.prop.value}, state: ${this.state.value}
+      attr: ${attr}, disabled: ${disabled}, count: ${count}, prop: ${prop.value}, state: ${state.value}
     `;
   }
 }
@@ -55,13 +62,15 @@ customElements.define('gem-demo', GemDemo);
 @customElement('decorator-gem-demo')
 class DecoratorGemElement extends GemElement {
   @emitter hi: Function;
-  @attribute attr: string | null;
+  @attribute attr: string;
+  @boolattribute disabled: boolean;
+  @numattribute count: number;
   @property prop = { value: '' };
   renderCount = 0;
   render() {
     this.renderCount++;
     return html`
-      attr: ${this.attr}, prop: ${this.prop.value}
+      attr: ${this.attr}, disabled: ${this.disabled}, count: ${this.count}, prop: ${this.prop.value}
     `;
   }
 }
@@ -106,7 +115,7 @@ describe('基本 gem element 测试', () => {
     const el: GemDemo = await fixture(html`
       <gem-demo attr="attr" .prop=${{ value: 'prop' }}></gem-demo>
     `);
-    expect(el).shadowDom.to.equal('attr: attr, prop: prop, state: ');
+    expect(el).shadowDom.to.equal('attr: attr, disabled: false, count: 0, prop: prop, state: ');
     await Promise.resolve();
     expect(el.renderCount).to.equal(1);
     el.update();
@@ -125,10 +134,12 @@ describe('基本 gem element 测试', () => {
       <temp-field-read-attr attr="attr"></temp-field-read-attr>
     `);
     const el: GemDemo = await fixture(html`
-      <gem-demo attr="attr" long-attr="hi"></gem-demo>
+      <gem-demo attr="attr" ?disabled=${true} count=${1} long-attr="hi"></gem-demo>
     `);
     expect(el.attr).to.equal('attr');
     expect(el.longAttr).to.equal('hi');
+    expect(el.disabled).to.equal(true);
+    expect(el.count).to.equal(1);
   });
 
   it('修改 attr', async () => {
@@ -138,10 +149,14 @@ describe('基本 gem element 测试', () => {
     expect(el.renderCount).to.equal(1);
     el.attr = 'rrr';
     el.attr = 'value';
+    el.disabled = true;
+    el.count = 2;
     await Promise.resolve();
     expect(el.renderCount).to.equal(2);
     expect(el.attr).to.equal('value');
-    expect(el).shadowDom.to.equal('attr: value, prop: , state: ');
+    expect(el.disabled).to.equal(true);
+    expect(el.count).to.equal(2);
+    expect(el).shadowDom.to.equal('attr: value, disabled: true, count: 2, prop: , state: ');
     el.attr = null;
     await Promise.resolve();
     expect(el.hasAttribute('attr')).to.equal(false);
@@ -176,7 +191,7 @@ describe('基本 gem element 测试', () => {
     await Promise.resolve();
     expect(el.renderCount).to.equal(2);
     expect(el.prop).to.deep.equal({ value: 'value' });
-    expect(el).shadowDom.to.equal('attr: , prop: value, state: ');
+    expect(el).shadowDom.to.equal('attr: , disabled: false, count: 0, prop: value, state: ');
   });
 
   it('修改 state', async () => {
@@ -190,7 +205,7 @@ describe('基本 gem element 测试', () => {
     await Promise.resolve();
     expect(el.renderCount).to.equal(2);
     expect(el.state).to.deep.equal({ value: 'state' });
-    expect(el).shadowDom.to.equal('attr: , prop: , state: state');
+    expect(el).shadowDom.to.equal('attr: , disabled: false, count: 0, prop: , state: state');
   });
 
   it('更新 store', async () => {
@@ -212,11 +227,15 @@ describe('基本 gem element 测试', () => {
         @hi=${(e: CustomEvent) => (a = e.detail)}
         attr="attr"
         .prop=${{ value: 'prop' }}
+        disabled
+        count="2"
       ></decorator-gem-demo>
     `);
     expect(el.attr).to.equal('attr');
+    expect(el.disabled).to.equal(true);
+    expect(el.count).to.equal(2);
     expect(el.prop).to.eql({ value: 'prop' });
-    expect(el).shadowDom.to.equal('attr: attr, prop: prop');
+    expect(el).shadowDom.to.equal('attr: attr, disabled: true, count: 2, prop: prop');
     updateStore(store, { a: 3 });
     await Promise.resolve();
     expect(el.renderCount).to.equal(2);

@@ -36,6 +36,8 @@ type EffectItem = { callback: Function; values: any[]; getDep: GetDepFun; initia
 export abstract class BaseElement<T = {}> extends HTMLElement {
   // 这里只是字段申明，不能赋值，否则子类会继承被共享该字段
   static observedAttributes: string[]; // WebAPI 中是实时检查这个列表
+  static booleanAttributes: Set<string>;
+  static numberAttributes: Set<string>;
   static observedPropertys: string[];
   static observedStores: Store<unknown>[];
   static adoptedStyleSheets: Sheet<unknown>[];
@@ -71,7 +73,14 @@ export abstract class BaseElement<T = {}> extends HTMLElement {
     this.unmounted = this.unmounted.bind(this);
 
     this.__renderRoot = shadow ? this.attachShadow({ mode: 'open' }) : this;
-    const { observedAttributes, observedPropertys, defineEvents, adoptedStyleSheets } = new.target;
+    const {
+      observedAttributes,
+      observedPropertys,
+      defineEvents,
+      adoptedStyleSheets,
+      booleanAttributes,
+      numberAttributes,
+    } = new.target;
     if (observedAttributes) {
       observedAttributes.forEach(attr => {
         const prop = kebabToCamelCase(attr);
@@ -92,12 +101,23 @@ export abstract class BaseElement<T = {}> extends HTMLElement {
         Object.defineProperty(this, prop, {
           configurable: true,
           get() {
+            const that = this as BaseElement;
+            const value = that.getAttribute(attr);
+            if (booleanAttributes?.has(prop)) {
+              return value === null ? false : true;
+            }
+            if (numberAttributes?.has(prop)) {
+              return Number(value);
+            }
             // Return empty string if attribute does not exist
             return this.getAttribute(attr) || '';
           },
-          set(v: string) {
-            if (v === null || v === undefined) {
+          set(v: string | null | undefined | number | boolean) {
+            const isBool = booleanAttributes?.has(prop);
+            if (v === null || v === undefined || (isBool && !v)) {
               this.removeAttribute(attr);
+            } else if (isBool && v) {
+              this.setAttribute(attr, '');
             } else {
               this.setAttribute(attr, v);
             }

@@ -20,6 +20,8 @@ Gem 现在没有完美的 IDE 支持，但下面的内容也能让你获得不�
  * @custom-element my-element
  * @attr size
  * @attr {red|blue} color - The color of my element
+ * @attr {boolean} disabled
+ * @attr {number} count
  * @prop {String} value
  * @prop {Boolean} myProp - This is my property
  * @fires change

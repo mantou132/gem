@@ -5,6 +5,8 @@
 | 名称                 | 描述                                                                |
 | -------------------- | ------------------------------------------------------------------- |
 | `observedAttributes` | 监听指定的 `attribute`, 当被监听的 `attribute` 变化时元素将自动更新 |
+| `booleanAttributes`  | 指定 Attribute 的类型为 `boolean`                                   |
+| `numberAttributes`   | 指定 Attribute 的类型为 `number`                                    |
 | `observedPropertys`  | 监听指定的 `property`, 当被监听的 `property` 变化时元素将自动更新   |
 | `observedStores`     | 监听指定的 `Store`, 当被监听的 `Store` 变化时元素将自动更新         |
 | `adoptedStyleSheets` | 同 [`DocumentOrShadowRoot.adoptedStyleSheets`][1]                   |

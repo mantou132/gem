@@ -1,10 +1,25 @@
-import { GemElement, html, property, attribute, slot, part, state, emitter, Emitter, customElement } from '../../';
+import {
+  GemElement,
+  html,
+  property,
+  attribute,
+  slot,
+  part,
+  state,
+  emitter,
+  Emitter,
+  customElement,
+  numattribute,
+  boolattribute,
+} from '../../';
 
 export type Message = number[];
 
 /**
  * @attr first-name
  * @attr last-name
+ * @attr count
+ * @attr disabled
  * @fires sayhi
  * @fires load
  * @state odd
@@ -15,6 +30,8 @@ export type Message = number[];
 export class Children extends GemElement {
   @attribute firstName: string;
   @attribute lastName: string;
+  @numattribute count: number;
+  @boolattribute disabled: boolean;
   @property message: Message | undefined;
   @emitter sayHi: Emitter;
   @emitter load: Emitter;
@@ -34,8 +51,10 @@ export class Children extends GemElement {
     return html`
       <p>
         attributes:
-        <span>${this.firstName}</span>
-        <span>${this.lastName}</span>
+        <span>${this.firstName},</span>
+        <span>${this.lastName},</span>
+        <span>${this.disabled},</span>
+        <span>${this.count}.</span>
       </p>
       <p part=${this.paragraph}>properties: ${JSON.stringify(this.message)}</p>
       <slot name=${this.light}></slot>

@@ -51,10 +51,27 @@ export function refobject(target: BaseElement, prop: string) {
  *  }
  * ```
  */
-export function attribute(target: BaseElement, prop: string) {
+function defineAttr(target: BaseElement, attr: string) {
   const con = target.constructor as typeof BaseElement;
   if (!con.observedAttributes) con.observedAttributes = [];
-  con.observedAttributes.push(camelToKebabCase(prop));
+  con.observedAttributes.push(attr);
+}
+export function boolattribute(target: BaseElement, prop: string) {
+  const con = target.constructor as typeof BaseElement;
+  if (!con.booleanAttributes) con.booleanAttributes = new Set();
+  const attr = camelToKebabCase(prop);
+  con.booleanAttributes.add(attr);
+  defineAttr(target, attr);
+}
+export function numattribute(target: BaseElement, prop: string) {
+  const con = target.constructor as typeof BaseElement;
+  if (!con.numberAttributes) con.numberAttributes = new Set();
+  const attr = camelToKebabCase(prop);
+  con.numberAttributes.add(attr);
+  defineAttr(target, attr);
+}
+export function attribute(target: BaseElement | typeof Boolean | typeof Number, prop: string) {
+  defineAttr(target as BaseElement, camelToKebabCase(prop));
 }
 
 /**

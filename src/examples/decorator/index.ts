@@ -49,7 +49,9 @@ class App extends GemElement {
 
   loadHandle = () => {
     const { element } = this.childRef;
-    console.log(element?.firstName, element?.lastName);
+    if (!element) return;
+    const { firstName, lastName, disabled, count } = element;
+    console.log({ firstName, lastName, disabled, count });
   };
 
   render() {
@@ -71,6 +73,8 @@ class App extends GemElement {
         .message=${store.msg}
         first-name="hello"
         last-name="world"
+        count=${1}
+        disabled
       >
         <p slot="light">now: ${store.now}</p>
       </app-children>
