@@ -162,7 +162,7 @@ export function createCSSSheet<T extends StyledValues>(rules: T | string, mediaQ
   return sheet as Sheet<T>;
 }
 
-function randomStr(number = 5, origin = '0123456789abcdefghijklmnopqrstuvwxyz') {
+export function randomStr(number = 5, origin = '0123456789abcdefghijklmnopqrstuvwxyz') {
   const len = origin.length;
   let str = '';
   for (let i = 0; i < number; i++) {

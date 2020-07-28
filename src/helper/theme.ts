@@ -1,9 +1,9 @@
-import { connect, createStore, updateStore, Store, camelToKebabCase } from '..';
+import { connect, createStore, updateStore, Store, camelToKebabCase, randomStr } from '..';
 
-function replaceStyle(style: HTMLStyleElement, themeObj: Store<object>, media = '') {
+function replaceStyle(salt: string, style: HTMLStyleElement, themeObj: Store<object>, media = '') {
   style.media = media;
   style.innerHTML = `:root {${Object.keys(themeObj).reduce((prev, key: keyof Store<object>) => {
-    return prev + `--${camelToKebabCase(key)}:${themeObj[key]};`;
+    return prev + `--${camelToKebabCase(key)}-${salt}:${themeObj[key]};`;
   }, '')}}`;
 }
 
@@ -28,14 +28,15 @@ const map = new WeakMap<CSSVars<unknown>, Store<unknown>>();
 export function createTheme<T extends object>(themeObj: T, media?: string) {
   const theme = createStore<T>(themeObj);
   const style = document.createElement('style');
-  const replace = () => replaceStyle(style, theme, media);
+  const salt = randomStr();
+  const replace = () => replaceStyle(salt, style, theme, media);
   connect(theme, replace);
   replace();
   document.head.append(style);
   const themeVarSet: { [index: string]: string } = {};
   map.set(themeVarSet, theme);
   Object.keys(theme).forEach(key => {
-    themeVarSet[key] = `var(--${camelToKebabCase(key)})`;
+    themeVarSet[key] = `var(--${camelToKebabCase(key)}-${salt})`;
   });
   return themeVarSet as CSSVars<T>;
 }
