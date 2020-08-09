@@ -1,4 +1,5 @@
-import { connect, createStore, updateStore, Store, camelToKebabCase, randomStr } from '..';
+import { connect, createStore, updateStore, Store } from '../lib/store';
+import { camelToKebabCase, randomStr } from '../lib/utils';
 
 function replaceStyle(salt: string, style: HTMLStyleElement, themeObj: Store<object>, media = '') {
   style.media = media;
