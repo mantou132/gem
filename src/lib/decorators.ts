@@ -153,7 +153,7 @@ export function part(target: BaseElement, prop: string) {
   proto[prop] = prop;
 }
 
-export type Emitter = (detail: any, options?: Omit<CustomEventInit<unknown>, 'detail'>) => void;
+export type Emitter<T = any> = (detail: T, options?: Omit<CustomEventInit<unknown>, 'detail'>) => void;
 
 /**
  * 定义一个事件发射器，类似 `HTMLElement.click`，
