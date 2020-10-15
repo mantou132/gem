@@ -1,7 +1,7 @@
 // https://gist.github.com/gokulkrishh/242e68d1ee94ad05f488
 // https://mediag.com/news/popular-screen-resolutions-designing-for-all/
 
-const mediaQuery = {
+export const mediaQuery = {
   PRINT: 'print',
   get isPrint() {
     return window.matchMedia(this.PRINT).matches;
@@ -63,5 +63,3 @@ const mediaQuery = {
     return window.matchMedia(this.MOTION_REDUCE).matches;
   },
 };
-
-export default mediaQuery;

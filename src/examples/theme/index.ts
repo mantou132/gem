@@ -1,6 +1,6 @@
 import { GemElement, html } from '../../';
 import { createTheme, updateTheme } from '../../helper/theme';
-import mediaQuery from '../../helper/mediaquery';
+import { mediaQuery } from '../../helper/mediaquery';
 
 const theme = createTheme({
   // 支持动态修改不透明度

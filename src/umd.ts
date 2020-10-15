@@ -19,4 +19,4 @@ export * from './lib/utils';
 export * from './helper/theme';
 export * from './helper/i18n';
 export * from './helper/request';
-export { default as mediaquery } from './helper/mediaquery';
+export * from './helper/mediaquery';
