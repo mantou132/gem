@@ -4,6 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <link rel="shortcut icon" href="/logo.png" type="image/png" />
     <title>gem docs</title>
   </head>
   <body>
@@ -14,8 +15,9 @@
     </style>
     <script src="https://unpkg.com/gem-book"></script>
     <script>
+      // 开发预览： http-server docs
       // 使用 gem-book 自带命令行生成 book.json：
-      // gem-book -t Gem docs
+      // gem-book -t Gem docs -i /logo.png
       async function init() {
         const res = await fetch('/book.json');
         const config = await res.json();

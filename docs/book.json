@@ -1,5 +1,6 @@
 {
   "title": "Gem",
+  "icon": "/logo.png",
   "github": "https://github.com/mantou132/gem",
   "sourceDir": "docs",
   "sourceBranch": "master",
@@ -113,7 +114,17 @@
         },
         {
           "title": "测试",
-          "link": "/001-guide/009-testing"
+          "link": "/001-guide/009-testing",
+          "children": [
+            {
+              "title": "Unit Test",
+              "link": "#unit-test"
+            },
+            {
+              "title": "E2E",
+              "link": "#e2e"
+            }
+          ]
         },
         {
           "title": "FAQ",
