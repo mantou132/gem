@@ -66,15 +66,18 @@ export interface RoutesObject {
 }
 
 // params 中的成员不会验证
-export type RouteOptions = Omit<UpdateHistoryParams, 'path'> & { params: { [index: string]: string } };
+export interface RouteOptions extends Omit<UpdateHistoryParams, 'path'> {
+  params?: { [index: string]: string };
+}
 
 // 从路由创建路径
 // 不包含 basePath
 export function createPath(route: RouteItem, options?: RouteOptions) {
   let path = route.pattern;
-  if (options && options.params) {
-    Object.keys(options.params).forEach(param => {
-      path = path.replace(new RegExp(`:${param}`, 'g'), options.params[param]);
+  const params = options?.params;
+  if (params) {
+    Object.keys(params).forEach(key => {
+      path = path.replace(new RegExp(`:${key}`, 'g'), params[key]);
     });
   }
   return path;
