@@ -108,9 +108,11 @@ export class Route extends GemElement {
   }
 
   @property routes: RouteItem[] | RoutesObject;
+  @property key: any; // 除了 href 提供另外一种方式来更新
   @emitter change: Function;
 
   private _href: string; // 用于内部比较
+  private _key: any; // 用于内部比较
 
   constructor() {
     super();
@@ -128,14 +130,16 @@ export class Route extends GemElement {
   shouldUpdate() {
     const { path, query } = history.getParams();
     const href = path + query;
-    if (href !== this._href) {
+    if (href !== this._href || this.key !== this._key) {
       this._href = href;
+      this._key = this.key;
       return true;
     }
     return false;
   }
 
   mounted() {
+    this._key = this.key;
     this.initPage();
   }
 
