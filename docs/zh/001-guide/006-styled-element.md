@@ -29,11 +29,13 @@ class HelloWorld extends GemElement {
 }
 ```
 
-像连接 `Store` 一样，也有一个类似的 Typescript 装饰器可用：
+像连接 `Store` 一样，也有一个类似的 Typescript 装饰器可用：`@adoptedStyle`。
 
 ```ts
 import { GemElement } from '@mantou/gem';
 import { adoptedStyle } from '@mantou/gem';
+
+// 省略 styles 定义...
 
 @adoptedStyle(styles)
 class HelloWorld extends GemElement {}
@@ -67,7 +69,7 @@ class HelloWorld extends GemElement {
 }
 ```
 
-## 定义内部样式
+## 在元素外自定义样式
 
 可以使用 [`::part`](https://drafts.csswg.org/css-shadow-parts-1/#part) 导出元素内部内容，允许外部进行自定义样式：
 
@@ -76,6 +78,9 @@ class HelloWorld extends GemElement {
  * 下面的代码跟 `<div part="header"></div>` 效果一样，
  * 但是 Gem 推荐使用装饰器来定义 part，这样在将来能很好的进行 IDE 集成
  */
+
+// 省略导入...
+
 class HelloWorld extends GemElement {
   @part header: string;
 
@@ -90,6 +95,8 @@ class HelloWorld extends GemElement {
 还可以使用 [`:state`](https://github.com/w3c/webcomponents/blob/gh-pages/proposals/custom-states-and-state-pseudo-class.md) 导出元素内部状态，供外部样式化当前状态:
 
 ```ts
+// 省略导入...
+
 class HelloWorld extends GemElement {
   @state opened: boolean;
 
@@ -102,6 +109,6 @@ class HelloWorld extends GemElement {
 
 _注意跟 `state`/`setState` 的区别。_
 
-## 定义外部样式
+## 自定义元素外部样式
 
 - [`::slotted()`](https://developer.mozilla.org/en-US/docs/Web/CSS/::slotted)

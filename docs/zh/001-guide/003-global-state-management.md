@@ -1,13 +1,13 @@
 # 全局状态管理
 
-多个元素（其他框架中称为“组件”）之间共享数据是 WebApp 框架的一个基本能力，
-Gem 使用“订阅-通知”模式，让多个元素共享数据，并且数据更新时通知所有订阅该数据的元素。
+多个元素（其他框架中称为“组件”）之间共享数据是 WebApp 框架的一项基本能力，
+Gem 使用发布订阅模式，让多个元素共享数据，并且数据更新时通知所有订阅该数据的元素。
 在 Gem 中，全局数据称为 “Store”。
 
 ## 基本使用
 
 ```js
-import { createStore, connect, updateStore } from '@mantou/gem';
+// 省略导入...
 
 // 创建 store
 const store = createStore({ a: 1 });
@@ -32,12 +32,14 @@ updateStore(store, { a: 2 });
 你应该花点心思规划你的 `Store`，以避免对 `Store` 的任何更新都造成整个 App 更新。
 
 ```js
+// 省略导入...
+
 const posts = createStore({ ... });
 const users = createStore({ ... });
 const photos = createStore({ ... });
 const profiles = createStore({ ... });
 
-...
+// ...
 ```
 
 甚至，你可以将 `Store` 和元素定义在一起。

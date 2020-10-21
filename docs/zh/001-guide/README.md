@@ -1,3 +1,8 @@
+---
+isNav: true
+navTitle: 指南
+---
+
 # 反应性元素
 
 当你想要创建一个反应性的 WebApp 时，
@@ -8,6 +13,8 @@
 定义具备反应性的 attribute，使用标准的 [observedAttributes](https://developer.mozilla.org/en-US/docs/Web/Web_Components/Using_custom_elements#Using_the_lifecycle_callbacks) 静态属性：
 
 ```js
+// 省略导入...
+
 class HelloWorld extends GemElement {
   static observedAttributes = ['first-name'];
   render() {
@@ -18,13 +25,15 @@ class HelloWorld extends GemElement {
 }
 ```
 
-当 `first-name` 属性经过“Observed”，他能直接通过 property 进行访问，
+`first-name` 属性经过“Observed”，他就能直接通过 property 进行访问，
 且会自动进行驼峰和烤串格式的转换，
-当数据更改时，`HelloWorld` 的实例元素将自动更新。
+当 `first-name` 属性更改时，`HelloWorld` 的实例元素将重新渲染。
 
 类似 `observedAttributes`，GemElement 还支持 `observedPropertys`/`observedStores` 用来反应指定的 property/store：
 
 ```js
+// 省略导入...
+
 class HelloWorld extends GemElement {
   static observedPropertys = ['data'];
   static observedStores = [store];
@@ -33,10 +42,12 @@ class HelloWorld extends GemElement {
 
 _不要在元素 `constructor` 以外的地方修改 prop/attr，他们应该由父元素单向传递进来_
 
-另外 `GemElement` 提供了类似 React 的 `state`/`setState` 用来处理元素自身的状态，
-每当调用 `setState` 时将触发元素更新：
+另外 `GemElement` 提供了类似 React 的 `state`/`setState` API 来管理元素自身的状态，
+每当调用 `setState` 时触发元素重新渲染：
 
 ```js
+// 省略导入...
+
 class HelloWorld extends GemElement {
   state = { a: 1 };
   clicked() {
@@ -48,6 +59,8 @@ class HelloWorld extends GemElement {
 ## 例子
 
 ```js
+// 省略导入...
+
 const store = createStore({
   count: 0,
 });
@@ -77,19 +90,19 @@ class HelloWorld extends GemElement {
 当使用 TypeScript 时，可以在声明字段的同时使用装饰器进行反应性声明：
 
 ```ts
-import { GemElement } from '@mantou/gem';
-import { connectStore, attribute, property } from '@mantou/gem';
+// 省略导入...
 
 const store = createStore({
   count: 0,
 });
 
+@customElement('hello-world')
 @connectStore(store)
 class HelloWorld extends GemElement {
   @attribute name: string;
   @boolattribute disabled: boolean;
   @numattribute count: number;
-  @property data: Data | undefined;
+  @property data: Data | undefined; // property 没有默认值
 }
 ```
 

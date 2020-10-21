@@ -1,8 +1,8 @@
-# ICON
+# Use SVG icons
 
-由于 Gem 使用 ShadowDOM 来组织元素，防止了样式冲突的同时也使得 [SVG Sprite](https://css-tricks.com/svg-sprites-use-better-icon-fonts/) 失效，SVG 引用不能穿透 ShadowDOM 边界。
+Because Gem uses ShadowDOM to organize elements, it prevents style conflicts and also makes [SVG Sprite](https://css-tricks.com/svg-sprites-use-better-icon-fonts/) invalid. SVG references cannot penetrate ShadowDOM boundaries.
 
-Gem 有一个内置元素 `<gem-use>`，来用替代 SVG Sprite：
+Gem has a built-in element `<gem-use>` to replace SVG Sprite:
 
 ```js
 import { html, render } from '@mantou/gem';
@@ -26,4 +26,4 @@ render(
 
 [![Edit svg-icon](https://codesandbox.io/static/img/play-codesandbox.svg)](https://codesandbox.io/s/gem-route-tb4v6?fontsize=14&hidenavigation=1&theme=dark)
 
-_注：`<gem-use>` 由于是复制内容进行渲染，所以 `<svg>` 更新不能同步更新 `<gem-use>`_
+_`<gem-use>` Since the content is copied for rendering, the update of `<svg>` cannot be updated synchronously `<gem-use>`_

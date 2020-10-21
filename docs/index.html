@@ -1,12 +1,12 @@
 <!DOCTYPE html>
-<html lang="zh-cn">
+<html>
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta http-equiv="X-UA-Compatible" content="ie=edge" />
     <meta name="google-site-verification" content="KIl7BLZQRcE5c5qXz9FebpM0zJd8AjlunjcIx9KJH0s" />
     <link rel="shortcut icon" href="/logo.png" type="image/png" />
-    <title>gem docs</title>
+    <title>Gem Docs</title>
   </head>
   <body>
     <style>
@@ -18,7 +18,7 @@
     <script>
       // 开发预览： http-server docs
       // 使用 gem-book 自带命令行生成 book.json：
-      // gem-book -t Gem docs -i /logo.png
+      // gem-book docs -t Gem -i /logo.png --watch --i18n
       async function init() {
         const res = await fetch('/book.json');
         const config = await res.json();

@@ -1,191 +1,392 @@
 {
   "title": "Gem",
   "icon": "/logo.png",
+  "i18n": true,
   "github": "https://github.com/mantou132/gem",
   "sourceDir": "docs",
   "sourceBranch": "master",
-  "sidebar": [
-    {
-      "title": "简介",
-      "link": "/",
-      "children": [
+  "sidebar": {
+    "en": {
+      "data": [
         {
-          "title": "开始",
-          "link": "#开始"
+          "title": "Introduction",
+          "link": "/",
+          "children": [
+            {
+              "title": "Start",
+              "link": "#start"
+            },
+            {
+              "title": "Are you ready?",
+              "link": "#are-you-ready"
+            }
+          ]
         },
         {
-          "title": "准备好了吗？",
-          "link": "#准备好了吗？"
+          "title": "guide",
+          "children": [
+            {
+              "title": "Reactive element",
+              "link": "/001-guide/002-reactive-element",
+              "isNav": true,
+              "navTitle": "Guide",
+              "children": [
+                {
+                  "title": "Definition",
+                  "link": "#definition"
+                },
+                {
+                  "title": "Example",
+                  "link": "#example"
+                },
+                {
+                  "title": "Use TypeScript",
+                  "link": "#use-typescript"
+                },
+                {
+                  "title": "Life cycle",
+                  "link": "#life-cycle"
+                }
+              ]
+            },
+            {
+              "title": "Global state management",
+              "link": "/001-guide/003-global-state-management",
+              "children": [
+                {
+                  "title": "Basic use",
+                  "link": "#basic-use"
+                },
+                {
+                  "title": "Planning the store",
+                  "link": "#planning-the-store"
+                }
+              ]
+            },
+            {
+              "title": "Route",
+              "link": "/001-guide/004-route"
+            },
+            {
+              "title": "Use SVG icons",
+              "link": "/001-guide/005-icon"
+            },
+            {
+              "title": "Stylized elements",
+              "link": "/001-guide/006-styled-element",
+              "children": [
+                {
+                  "title": "Shared style",
+                  "link": "#shared-style"
+                },
+                {
+                  "title": "CSS in JS",
+                  "link": "#css-in-js"
+                },
+                {
+                  "title": "Customize the style outside the element",
+                  "link": "#customize-the-style-outside-the-element"
+                },
+                {
+                  "title": "Custom element external style",
+                  "link": "#custom-element-external-style"
+                }
+              ]
+            },
+            {
+              "title": "Compare other libraries and frameworks",
+              "link": "/001-guide/007-vs-other",
+              "children": [
+                {
+                  "title": "React/Vue",
+                  "link": "#reactvue"
+                },
+                {
+                  "title": "Lit-Element",
+                  "link": "#lit-element"
+                }
+              ]
+            },
+            {
+              "title": "IDE support",
+              "link": "/001-guide/008-ide-support",
+              "children": [
+                {
+                  "title": "VSCode",
+                  "link": "#vscode"
+                }
+              ]
+            },
+            {
+              "title": "Testing",
+              "link": "/001-guide/009-testing",
+              "children": [
+                {
+                  "title": "Unit Test",
+                  "link": "#unit-test"
+                },
+                {
+                  "title": "E2E",
+                  "link": "#e2e"
+                }
+              ]
+            },
+            {
+              "title": "FAQ",
+              "link": "/001-guide/010-faq"
+            }
+          ]
+        },
+        {
+          "title": "API",
+          "children": [
+            {
+              "title": "GemElement",
+              "link": "/002-API/002-gem-element",
+              "isNav": true,
+              "navTitle": "API",
+              "children": [
+                {
+                  "title": "Static properties",
+                  "link": "#static-properties"
+                },
+                {
+                  "title": "Lifecycle hook",
+                  "link": "#lifecycle-hook"
+                },
+                {
+                  "title": "Other",
+                  "link": "#other"
+                },
+                {
+                  "title": "AsyncGemElement",
+                  "link": "#asyncgemelement"
+                }
+              ]
+            },
+            {
+              "title": "Store",
+              "link": "/002-API/003-store"
+            },
+            {
+              "title": "History",
+              "link": "/002-API/004-history"
+            },
+            {
+              "title": "Built-in elements",
+              "link": "/002-API/005-built-in-element"
+            },
+            {
+              "title": "Helper",
+              "link": "/002-API/006-helper"
+            },
+            {
+              "title": "Decorator",
+              "link": "/002-API/007-decorator"
+            },
+            {
+              "title": "Utils",
+              "link": "/002-API/008-utils"
+            },
+            {
+              "title": "Re-Export",
+              "link": "/002-API/009-re-export"
+            }
+          ]
         }
-      ]
+      ],
+      "name": "English"
     },
-    {
-      "title": "guide",
-      "children": [
+    "zh": {
+      "data": [
         {
-          "title": "反应性元素",
-          "link": "/001-guide/002-reactive-element",
+          "title": "简介",
+          "link": "/",
           "children": [
             {
-              "title": "定义",
-              "link": "#定义"
+              "title": "开始",
+              "link": "#开始"
             },
             {
-              "title": "例子",
-              "link": "#例子"
-            },
-            {
-              "title": "使用 TypeScript",
-              "link": "#使用-typescript"
-            },
-            {
-              "title": "生命周期",
-              "link": "#生命周期"
+              "title": "准备好了吗？",
+              "link": "#准备好了吗？"
             }
           ]
         },
         {
-          "title": "全局状态管理",
-          "link": "/001-guide/003-global-state-management",
+          "title": "指南",
           "children": [
             {
-              "title": "基本使用",
-              "link": "#基本使用"
+              "title": "反应性元素",
+              "link": "/001-guide/002-reactive-element",
+              "isNav": true,
+              "navTitle": "指南",
+              "children": [
+                {
+                  "title": "定义",
+                  "link": "#定义"
+                },
+                {
+                  "title": "例子",
+                  "link": "#例子"
+                },
+                {
+                  "title": "使用 TypeScript",
+                  "link": "#使用-typescript"
+                },
+                {
+                  "title": "生命周期",
+                  "link": "#生命周期"
+                }
+              ]
             },
             {
-              "title": "规划 Store",
-              "link": "#规划-store"
+              "title": "全局状态管理",
+              "link": "/001-guide/003-global-state-management",
+              "children": [
+                {
+                  "title": "基本使用",
+                  "link": "#基本使用"
+                },
+                {
+                  "title": "规划 Store",
+                  "link": "#规划-store"
+                }
+              ]
+            },
+            {
+              "title": "路由",
+              "link": "/001-guide/004-route"
+            },
+            {
+              "title": "使用 SVG 图标",
+              "link": "/001-guide/005-icon"
+            },
+            {
+              "title": "样式化元素",
+              "link": "/001-guide/006-styled-element",
+              "children": [
+                {
+                  "title": "共享样式",
+                  "link": "#共享样式"
+                },
+                {
+                  "title": "CSS in JS",
+                  "link": "#css-in-js"
+                },
+                {
+                  "title": "在元素外自定义样式",
+                  "link": "#在元素外自定义样式"
+                },
+                {
+                  "title": "自定义元素外部样式",
+                  "link": "#自定义元素外部样式"
+                }
+              ]
+            },
+            {
+              "title": "对比其他库和框架",
+              "link": "/001-guide/007-vs-other",
+              "children": [
+                {
+                  "title": "React/Vue",
+                  "link": "#reactvue"
+                },
+                {
+                  "title": "Lit-Element",
+                  "link": "#lit-element"
+                }
+              ]
+            },
+            {
+              "title": "IDE 支持",
+              "link": "/001-guide/008-ide-support",
+              "children": [
+                {
+                  "title": "VSCode",
+                  "link": "#vscode"
+                }
+              ]
+            },
+            {
+              "title": "测试",
+              "link": "/001-guide/009-testing",
+              "children": [
+                {
+                  "title": "单元测试",
+                  "link": "#单元测试"
+                },
+                {
+                  "title": "端到端测试",
+                  "link": "#端到端测试"
+                }
+              ]
+            },
+            {
+              "title": "常见问题以及回答",
+              "link": "/001-guide/010-faq"
             }
           ]
         },
         {
-          "title": "路由",
-          "link": "/001-guide/004-route"
-        },
-        {
-          "title": "ICON",
-          "link": "/001-guide/005-icon"
-        },
-        {
-          "title": "样式化元素",
-          "link": "/001-guide/006-styled-element",
+          "title": "API",
           "children": [
             {
-              "title": "共享样式",
-              "link": "#共享样式"
+              "title": "GemElement",
+              "link": "/002-API/002-gem-element",
+              "isNav": true,
+              "navTitle": "API",
+              "children": [
+                {
+                  "title": "静态属性",
+                  "link": "#静态属性"
+                },
+                {
+                  "title": "生命周期钩子",
+                  "link": "#生命周期钩子"
+                },
+                {
+                  "title": "其他",
+                  "link": "#其他"
+                },
+                {
+                  "title": "AsyncGemElement",
+                  "link": "#asyncgemelement"
+                }
+              ]
             },
             {
-              "title": "CSS in JS",
-              "link": "#css-in-js"
+              "title": "Store",
+              "link": "/002-API/003-store"
             },
             {
-              "title": "定义内部样式",
-              "link": "#定义内部样式"
+              "title": "History",
+              "link": "/002-API/004-history"
             },
             {
-              "title": "定义外部样式",
-              "link": "#定义外部样式"
+              "title": "内置 Gem 元素",
+              "link": "/002-API/005-built-in-element"
+            },
+            {
+              "title": "Helper",
+              "link": "/002-API/006-helper"
+            },
+            {
+              "title": "装饰器",
+              "link": "/002-API/007-decorator"
+            },
+            {
+              "title": "工具函数",
+              "link": "/002-API/008-utils"
+            },
+            {
+              "title": "重导出",
+              "link": "/002-API/009-re-export"
             }
           ]
-        },
-        {
-          "title": "对比其他库和框架",
-          "link": "/001-guide/007-vs-other",
-          "children": [
-            {
-              "title": "React/Vue",
-              "link": "#reactvue"
-            },
-            {
-              "title": "Lit-Element",
-              "link": "#lit-element"
-            }
-          ]
-        },
-        {
-          "title": "IDE 支持",
-          "link": "/001-guide/008-ide-support",
-          "children": [
-            {
-              "title": "VSCode",
-              "link": "#vscode"
-            }
-          ]
-        },
-        {
-          "title": "测试",
-          "link": "/001-guide/009-testing",
-          "children": [
-            {
-              "title": "Unit Test",
-              "link": "#unit-test"
-            },
-            {
-              "title": "E2E",
-              "link": "#e2e"
-            }
-          ]
-        },
-        {
-          "title": "FAQ",
-          "link": "/001-guide/010-faq"
         }
-      ]
-    },
-    {
-      "title": "API",
-      "children": [
-        {
-          "title": "GemElement",
-          "link": "/002-API/002-gem-element",
-          "children": [
-            {
-              "title": "静态属性",
-              "link": "#静态属性"
-            },
-            {
-              "title": "生命周期钩子",
-              "link": "#生命周期钩子"
-            },
-            {
-              "title": "其他",
-              "link": "#其他"
-            },
-            {
-              "title": "AsyncGemElement",
-              "link": "#asyncgemelement"
-            }
-          ]
-        },
-        {
-          "title": "Store",
-          "link": "/002-API/003-store"
-        },
-        {
-          "title": "History",
-          "link": "/002-API/004-history"
-        },
-        {
-          "title": "内置 Gem 元素",
-          "link": "/002-API/005-internal-element"
-        },
-        {
-          "title": "Helper",
-          "link": "/002-API/006-helper"
-        },
-        {
-          "title": "装饰器",
-          "link": "/002-API/007-decorator"
-        },
-        {
-          "title": "Utils",
-          "link": "/002-API/008-utils"
-        },
-        {
-          "title": "Reexport",
-          "link": "/002-API/009-reexport"
-        }
-      ]
+      ],
+      "name": "中文 (Zhōngwén), 汉语, 漢語"
     }
-  ]
+  }
 }

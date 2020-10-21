@@ -1,4 +1,4 @@
-# Reexport
+# 重导出
 
 Gem 依赖 [`lit-html`](https://github.com/Polymer/lit-html)，部分 API 被 Gem 重新导出：
 

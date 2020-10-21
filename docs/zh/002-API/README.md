@@ -1,15 +1,24 @@
+---
+isNav: true
+navTitle: API
+---
+
 # GemElement
+
+```ts
+GemElement<State>
+```
 
 ## 静态属性
 
 | 名称                 | 描述                                                                |
 | -------------------- | ------------------------------------------------------------------- |
-| `observedAttributes` | 监听指定的 `attribute`, 当被监听的 `attribute` 变化时元素将自动更新 |
-| `booleanAttributes`  | 指定 Attribute 的类型为 `boolean`                                   |
-| `numberAttributes`   | 指定 Attribute 的类型为 `number`                                    |
-| `observedPropertys`  | 监听指定的 `property`, 当被监听的 `property` 变化时元素将自动更新   |
-| `observedStores`     | 监听指定的 `Store`, 当被监听的 `Store` 变化时元素将自动更新         |
+| `observedAttributes` | 监听指定的 `attribute`, 当被监听的 `attribute` 变化时元素将重新渲染 |
+| `observedPropertys`  | 监听指定的 `property`, 当被监听的 `property` 变化时元素将重新渲染   |
+| `observedStores`     | 监听指定的 `Store`, 当被监听的 `Store` 变化时元素将重新渲染         |
 | `adoptedStyleSheets` | 同 [`DocumentOrShadowRoot.adoptedStyleSheets`][1]                   |
+| `booleanAttributes`  | 将指定的 `attribute` 的类型标记为 `boolean`                         |
+| `numberAttributes`   | 将指定的 `attribute` 的类型标记为 `number`                          |
 
 [1]: https://developer.mozilla.org/en-US/docs/Web/API/DocumentOrShadowRoot/adoptedStyleSheets
 
@@ -37,7 +46,11 @@
 
 ## AsyncGemElement
 
+```ts
+AsyncGemElement<State>
+```
+
 和 `GemElement` 不同的是, `AsyncGemElement` 在必要情况下会使用 `requestAnimationFrame` 进行异步列队渲染,
 不会阻塞主线程，[Live Demo](https://gem-examples.netlify.com/perf-demo/)（将 CPU 节流以直观的查看渲染方式）。
 
-但他的 API 和 `GemElement` 保持一致。
+他的 API 和 `GemElement` 保持一致。

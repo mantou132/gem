@@ -4,21 +4,19 @@ Gem 借鉴了其他框架/库的思想，但 Gem 还是有很多独特之处。
 
 ## React/Vue
 
-### 模版
+### 模板
 
 React 使用 [JSX](https://reactjs.org/docs/introducing-jsx.html)，Vue 有独特的[模板语法](https://vuejs.org/v2/guide/syntax.html)，Gem 使用 [lit-html](https://github.com/Polymer/lit-html)，原生 js 语法
 
 ### 事件
 
-React 中使用 `Prop` 调用父组件方法，Vue 和 Gem 都支持事件传播，Gem 使用原生 [`CustomEvent`](https://developer.mozilla.org/en-US/docs/Web/API/CustomEvent/CustomEvent)，跨框架使用时也能很好的工作。
-
-Gem 提供一个 Typescript 装饰器，以便方便的触发事件：
+React 中使用 `Prop` 调用父组件方法，Vue 和 Gem 都支持事件传播，Gem 使用原生 [`CustomEvent`](https://developer.mozilla.org/en-US/docs/Web/API/CustomEvent/CustomEvent)，跨框架使用时也能很好的工作。Gem 提供一个 Typescript 装饰器，以便方便的触发事件：
 
 ```ts
-import { emitter } from '@mantou/gem';
+import { emitter, Emitter, GemElement } from '@mantou/gem';
 
 class MyElement extends GemElement {
-  @emitter load: Function;
+  @emitter load: Emitter;
 }
 ```
 
@@ -34,8 +32,6 @@ Gem 使用完全不同的方式，参见 lit-html [文档](https://github.com/Po
 有少许的任务管理成本。
 
 使用 Gem 可能会造成过多的 ShadowDOM，这可能会减慢 App 的速度。
-
-_目前 Gem 还没有大型 App 的实践，所以实际情况下的性能问题尚未可知_
 
 ## Lit-Element
 
