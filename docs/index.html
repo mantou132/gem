@@ -16,9 +16,7 @@
     </style>
     <script src="https://unpkg.com/gem-book"></script>
     <script>
-      // 开发预览： http-server docs
-      // 使用 gem-book 自带命令行生成 book.json：
-      // gem-book docs -t Gem -i /logo.png --watch --i18n
+      // 开发预览： http-server docs --proxy http://localhost:xxxx?
       async function init() {
         const res = await fetch('/book.json');
         const config = await res.json();

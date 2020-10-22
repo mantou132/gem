@@ -19,6 +19,8 @@
   ],
   "typings": "index.d.ts",
   "scripts": {
+    "docs": "npx gem-book docs -t Gem -i /logo.png --i18n --debug",
+    "docs:dev": "npm run docs -- --watch",
     "lint": "tsc --noEmit && eslint --ext .ts --fix src/",
     "clean": "node -e \"fs.readdirSync('src').map(dir => require('rimraf').sync(dir))\"",
     "build:examples": "rimraf build && node scripts/build-examples.js",
