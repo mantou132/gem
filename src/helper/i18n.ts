@@ -14,11 +14,12 @@ const matchStrIndex = 3;
 export class I18n<T = Record<string, string>> {
   resources: {
     [key: string]: Partial<T> | string;
-  };
-  fallbackLanguage: string;
-  currentLanguage: string;
+  } = {};
+  fallbackLanguage = '';
+  currentLanguage = '';
+  cache = false;
+
   store: Store<this>;
-  cache: boolean;
 
   constructor(options: {
     resources: {
@@ -32,11 +33,8 @@ export class I18n<T = Record<string, string>> {
       throw new Error('i18n: fallbackLanguage invalid');
     }
     this.store = createStore(this);
-    this.resources = options.resources;
-    this.fallbackLanguage = options.fallbackLanguage;
-    this.cache = !!options.cache;
-    this.currentLanguage = options.currentLanguage || '';
-    if (this.cache) {
+    Object.assign(this, options);
+    if (this.cache && !this.currentLanguage) {
       this.currentLanguage = localStorage.getItem(currentKey) || '';
     }
     if (!this.currentLanguage) {
@@ -119,7 +117,9 @@ export class I18n<T = Record<string, string>> {
   }
 
   resetLanguage() {
-    localStorage.removeItem(currentKey);
+    if (this.cache) {
+      localStorage.removeItem(currentKey);
+    }
     return this.setLanguage(this.detectLanguage());
   }
 }
