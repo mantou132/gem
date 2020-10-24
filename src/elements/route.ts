@@ -177,7 +177,8 @@ export class Route extends GemElement {
     if (!Route.currentRoute) return this.callback();
     if (Route.currentRoute.redirect) {
       history.replace({ path: Route.currentRoute.redirect });
-      return this.callback();
+      // 不要渲染空内容，等待重定向结果
+      return undefined;
     }
     return html`
       <style>
