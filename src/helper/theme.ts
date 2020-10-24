@@ -47,7 +47,7 @@ export function createTheme<T extends object>(themeObj: T, media?: string) {
  * @param varSet 主题
  * @param newThemeObj 新主题
  */
-export function updateTheme(varSet: CSSVars<object>, newThemeObj: object) {
+export function updateTheme<T = CSSVars<object>>(varSet: T, newThemeObj: Partial<T>) {
   const store = map.get(varSet);
   if (store) updateStore(store, newThemeObj);
 }
