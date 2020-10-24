@@ -30,6 +30,7 @@ export interface UpdateHistoryParams {
   path?: string; // 不包括 basePath，只有根目录储存末尾斜杠
   query?: string | QueryString; // 包含 `?`
   hash?: string; // 包含 `#`
+  // 以下为看不见的状态
   open?: Function; // 按下前进键时执行
   close?: Function; // 按下返回键时执行
   shouldClose?: () => boolean; // 按下返回键时判断是否执行 close 函数，返回为 false 时不执行，并恢复 history
@@ -90,8 +91,9 @@ function initParams(params: UpdateHistoryParams): HistoryParams {
   const pathChanged =
     (params.path && params.path !== current.path) || (params.query && String(params.query) !== String(current.query));
   const title = params.title || (pathChanged ? '' : document.title);
-  // 没提供 hash 又没有改变路径时使用当前 hash
-  const hash = params.hash || (pathChanged ? '' : decodeURIComponent(location.hash));
+  const statusChanged = params.close || params.data || params.open || params.shouldClose;
+  // 没提供 hash 又没有改变路径又不是状态更新时使用当前 hash
+  const hash = params.hash || (!pathChanged && statusChanged ? decodeURIComponent(location.hash) : '');
   return { ...params, title, path, query, hash };
 }
 
@@ -126,10 +128,10 @@ function updateHistoryByNative(type: UpdateHistoryType, data: any, title: string
   paramsMap.set(state.$key, params);
   updateStore(cleanObject(store), state);
   const url = getAbsolutePath(pathname) + params.query + hash;
-  const prevHave = location.hash;
+  const prevHash = location.hash;
   (type === 'push' ? pushState : replaceState)(state, title, url);
   // `location.hash` 和 `hash` 都已经进行了 url 编码，可以直接进行相等判断
-  if (prevHave !== hash) window.dispatchEvent(new CustomEvent('hashchange'));
+  if (prevHash !== hash) window.dispatchEvent(new CustomEvent('hashchange'));
 }
 
 export const basePathStore = createStore({
