@@ -37,7 +37,7 @@ export class Link extends GemElement {
   // 动态路由，根据 route.pattern 和 options.params 计算出 path
   @property route: RouteItem | undefined;
   @property options: RouteOptions | undefined;
-  @property prepare: Function | undefined;
+  @property prepare: (() => void | Promise<void>) | undefined;
 
   @part link: string;
 

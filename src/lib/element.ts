@@ -26,14 +26,14 @@ function emptyFunction() {
 }
 
 type UnmountCallback = () => void;
-type GetDepFun = () => any[];
-type EffectItem = { callback: Function; values: any[]; getDep: GetDepFun; initialized: boolean };
+type GetDepFun<T> = () => T;
+type EffectItem<T> = { callback: (arg: T) => void; values: T; getDep: GetDepFun<T>; initialized: boolean };
 
 // final 字段如果使用 symbol 或者 private 将导致 modal-base 生成匿名子类 declaration 失败
 /**
  * @attr ref
  */
-export abstract class BaseElement<T = {}> extends HTMLElement {
+export abstract class BaseElement<T = Record<string, unknown>> extends HTMLElement {
   // 这里只是字段申明，不能赋值，否则子类会继承被共享该字段
   static observedAttributes: string[]; // WebAPI 中是实时检查这个列表
   static booleanAttributes: Set<string>;
@@ -55,7 +55,7 @@ export abstract class BaseElement<T = {}> extends HTMLElement {
   /**@final */
   __isMounted: boolean;
   /**@final */
-  __effectList: EffectItem[] | undefined;
+  __effectList: EffectItem<any>[] | undefined;
 
   __unmountCallback: UnmountCallback | undefined;
 
@@ -82,16 +82,16 @@ export abstract class BaseElement<T = {}> extends HTMLElement {
       numberAttributes,
     } = new.target;
     if (observedAttributes) {
-      observedAttributes.forEach(attr => {
+      observedAttributes.forEach((attr) => {
         const prop = kebabToCamelCase(attr);
-        // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-ignore
         if (typeof this[prop] === 'function') {
           throw new GemError(`Don't use attribute with the same name as native methods`);
         }
         // Native attribute，no need difine property
         // e.g: `id`, `title`, `hidden`, `alt`, `lang`
-        // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-ignore
         if (this[prop] !== undefined) {
           // 所以 `prop` 不能是方法
@@ -126,20 +126,20 @@ export abstract class BaseElement<T = {}> extends HTMLElement {
       });
     }
     if (observedPropertys) {
-      observedPropertys.forEach(prop => {
+      observedPropertys.forEach((prop) => {
         this.__connectProperty(prop, false);
       });
     }
     if (defineEvents) {
-      defineEvents.forEach(event => {
+      defineEvents.forEach((event) => {
         this.__connectProperty(event, true);
-        // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-ignore
         this[event] = emptyFunction;
       });
     }
     if (adoptedStyleSheets) {
-      const sheets = adoptedStyleSheets.map(item => item[SheetToken]);
+      const sheets = adoptedStyleSheets.map((item) => item[SheetToken]);
       if (this.shadowRoot) {
         this.shadowRoot.adoptedStyleSheets = sheets;
       } else {
@@ -177,7 +177,7 @@ export abstract class BaseElement<T = {}> extends HTMLElement {
    * */
   __connectProperty(prop: string, isEventHandle = false) {
     if (prop in this) return;
-    // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
     let propValue: any = this[prop];
     Object.defineProperty(this, prop, {
@@ -232,10 +232,10 @@ export abstract class BaseElement<T = {}> extends HTMLElement {
    * 每次更新完检查依赖，执行对应的副作用回调
    * */
   __execEffect() {
-    this.__effectList?.forEach(effectItem => {
+    this.__effectList?.forEach((effectItem) => {
       const { callback, getDep, values } = effectItem;
       const newValues = getDep();
-      if (isArrayChange(values, newValues)) callback();
+      if (isArrayChange(values, newValues)) callback(newValues);
       effectItem.values = newValues;
     });
   }
@@ -253,11 +253,11 @@ export abstract class BaseElement<T = {}> extends HTMLElement {
    * }
    * ```
    * */
-  effect(callback: Function, getDep: GetDepFun) {
+  effect<T extends Array<any>>(callback: (arg: T) => void, getDep: () => [...T]) {
     if (!this.__effectList) this.__effectList = [];
     const values = getDep();
     // 以挂载时立即执行副作用，未挂载时等挂载后执行
-    if (this.__isMounted) callback();
+    if (this.__isMounted) callback(values);
     this.__effectList.push({ callback, getDep, values, initialized: this.__isMounted });
   }
 
@@ -266,10 +266,10 @@ export abstract class BaseElement<T = {}> extends HTMLElement {
    * 元素挂载后执行还未初始化的副作用
    * */
   __initEffect() {
-    this.__effectList?.forEach(effectItem => {
-      const { callback, initialized } = effectItem;
+    this.__effectList?.forEach((effectItem) => {
+      const { callback, getDep, initialized } = effectItem;
       if (!initialized) {
-        callback();
+        callback(getDep());
         effectItem.initialized = true;
       }
     });
@@ -284,9 +284,7 @@ export abstract class BaseElement<T = {}> extends HTMLElement {
    * 返回 undefined 时不会调用 `render()`
    * */
   render(): TemplateResult | null | undefined {
-    return html`
-      <slot></slot>
-    `;
+    return html`<slot></slot>`;
   }
 
   /**@lifecycle */
@@ -330,7 +328,7 @@ export abstract class BaseElement<T = {}> extends HTMLElement {
   __connectedCallback() {
     const { observedStores } = this.constructor as typeof BaseElement;
     if (observedStores) {
-      observedStores.forEach(store => {
+      observedStores.forEach((store) => {
         connect(store, this.__update);
       });
     }
@@ -351,7 +349,7 @@ export abstract class BaseElement<T = {}> extends HTMLElement {
     this.__isMounted = false;
     const { observedStores } = this.constructor as typeof BaseElement;
     if (observedStores) {
-      observedStores.forEach(store => {
+      observedStores.forEach((store) => {
         disconnect(store, this.__update);
       });
     }
@@ -360,7 +358,7 @@ export abstract class BaseElement<T = {}> extends HTMLElement {
   }
 }
 
-export abstract class GemElement<T = {}> extends BaseElement<T> {
+export abstract class GemElement<T = Record<string, unknown>> extends BaseElement<T> {
   /**@private */
   /**@final */
   connectedCallback() {
@@ -371,7 +369,7 @@ export abstract class GemElement<T = {}> extends BaseElement<T> {
 }
 
 // global render task pool
-const renderTaskPool = new Pool<Function>();
+const renderTaskPool = new Pool<() => void>();
 let loop = false;
 const tick = () => {
   window.requestAnimationFrame(function callback(timestamp) {
@@ -395,7 +393,7 @@ renderTaskPool.addEventListener('start', () => {
 });
 renderTaskPool.addEventListener('end', () => (loop = false));
 
-export abstract class AsyncGemElement<T = {}> extends BaseElement<T> {
+export abstract class AsyncGemElement<T = Record<string, unknown>> extends BaseElement<T> {
   /**@final */
   __update() {
     renderTaskPool.add(() => {

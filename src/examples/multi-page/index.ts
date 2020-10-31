@@ -16,30 +16,22 @@ const routes = [
     pattern: '/a',
     get content() {
       import('./page-a');
-      return html`
-        <app-page-a>A: </app-page-a>
-      `;
+      return html`<app-page-a>A: </app-page-a>`;
     },
   },
   {
     title: 'Page B Title',
     pattern: '/b',
-    content: html`
-      <app-page-b>B: </app-page-b>
-    `,
+    content: html` <app-page-b>B: </app-page-b> `,
   },
   {
     title: 'Page C Title',
     pattern: '/c/*',
-    content: html`
-      <app-page-c>C: </app-page-c>
-    `,
+    content: html`<app-page-c>C: </app-page-c>`,
   },
   {
     pattern: '/',
-    content: html`
-      <div>hello</div>
-    `,
+    content: html`<div>hello</div>`,
   },
 ];
 

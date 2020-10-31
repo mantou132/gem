@@ -5,22 +5,16 @@ const routes = [
   {
     title: 'ccccccd',
     pattern: '/c/d',
-    content: html`
-      <div>C/D</div>
-    `,
+    content: html`<div>C/D</div>`,
   },
   {
     // `title` 未设置会使用父路由标题
     pattern: '/c/e',
-    content: html`
-      <div>C/E</div>
-    `,
+    content: html`<div>C/E</div>`,
   },
   {
     pattern: '/c/*',
-    content: html`
-      <div>C/E</div>
-    `,
+    content: html`<div>C/E</div>`,
   },
 ];
 

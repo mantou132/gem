@@ -6,9 +6,7 @@ customElements.define(
   class extends GemElement {
     static observedStores = [storeSet.pageB];
     render() {
-      return html`
-        <slot></slot> ${storeSet.pageB.text}
-      `;
+      return html`<slot></slot> ${storeSet.pageB.text}`;
     }
   },
 );

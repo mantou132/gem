@@ -24,9 +24,7 @@ class Article extends GemElement {
   };
 
   render() {
-    return html`
-      <div style="height: 1000px"><slot></slot></div>
-    `;
+    return html`<div style="height: 1000px"><slot></slot></div>`;
   }
 }
 customElements.define('app-article', Article);
@@ -45,9 +43,4 @@ class App extends GemElement {
 }
 customElements.define('app-root', App);
 
-render(
-  html`
-    <app-root></app-root>
-  `,
-  document.body,
-);
+render(html`<app-root></app-root>`, document.body);

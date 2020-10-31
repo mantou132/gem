@@ -3,7 +3,7 @@ import { Pool, QueryString, css, raw, createCSSSheet, styled, SheetToken, styleM
 
 describe('utils 测试', () => {
   it('Pool', () => {
-    const pool = new Pool<Function>();
+    const pool = new Pool<() => void>();
     let countAtStart = 0;
     let countAtPause = 0;
     pool.addEventListener('start', () => (countAtStart = pool.count));

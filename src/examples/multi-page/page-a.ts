@@ -10,9 +10,7 @@ customElements.define(
       api.getData();
     }
     render() {
-      return html`
-        <slot></slot> ${storeSet.pageA.text}
-      `;
+      return html`<slot></slot> ${storeSet.pageA.text}`;
     }
   },
 );

@@ -1,47 +1,47 @@
 import { addMicrotask, GemError } from './utils';
 
-export const StoreListenerMap = new WeakMap<object, Set<Function>>();
+export const StoreListenerMap = new WeakMap<Record<string, unknown>, Set<() => void>>();
 
 // 限制 `updateStore` 的参数类型
 export type Store<T> = T & { '': string };
 
-export function createStore<T extends object>(originStore: T) {
+export function createStore<T extends Record<string, unknown>>(originStore: T) {
   if (StoreListenerMap.has(originStore)) {
     throw new GemError('argument error');
   }
-  StoreListenerMap.set(originStore, new Set<Function>());
+  StoreListenerMap.set(originStore, new Set<() => void>());
   return originStore as Store<T>;
 }
 
 interface StoreObjectSet {
-  [store: string]: object;
+  [store: string]: Record<string, unknown>;
 }
 export type StoreSet<T> = {
   [P in keyof T]: T[P] & Store<T[P]>;
 };
 export function createStoreSet<T extends StoreObjectSet>(originStoreSet: T) {
   const keys = Object.keys(originStoreSet);
-  keys.forEach(key => {
+  keys.forEach((key) => {
     createStore(originStoreSet[key]);
   });
 
   return originStoreSet as StoreSet<T>;
 }
 
-export function updateStore<T extends object>(store: Store<T>, value: Partial<T>) {
+export function updateStore<T extends Record<string, unknown>>(store: Store<T>, value: Partial<T>) {
   Object.assign(store, value);
   const listeners = StoreListenerMap.get(store);
-  listeners?.forEach(func => {
+  listeners?.forEach((func) => {
     addMicrotask(func);
   });
 }
 
-export function connect<T extends object>(store: Store<T>, func: Function) {
+export function connect<T extends Record<string, unknown>>(store: Store<T>, func: () => void) {
   const listeners = StoreListenerMap.get(store);
   listeners?.add(func);
 }
 
-export function disconnect<T extends object>(store: Store<T>, func: Function) {
+export function disconnect<T extends Record<string, unknown>>(store: Store<T>, func: () => void) {
   const listeners = StoreListenerMap.get(store);
   listeners?.delete(func);
 }

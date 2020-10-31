@@ -7,7 +7,7 @@ const open = Symbol('open mark');
  * 需要使用 Confirm 的静态方式所以使用 Store 来管理组件状态;
  * 返回 *单实例* Confirm 类
  */
-export default function createModalClass<T extends object>(options: T) {
+export default function createModalClass<T extends Record<string, unknown>>(options: T) {
   return class extends GemElement {
     static instance: GemElement | null = null;
     /**

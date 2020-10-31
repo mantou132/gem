@@ -9,6 +9,7 @@ import {
   TemplateResult,
   UpdateHistoryParams,
 } from '../';
+import { Emitter } from '../lib/decorators';
 
 interface NamePostition {
   [index: string]: number;
@@ -41,7 +42,7 @@ function getParams(pattern: string, path: string) {
   const matchResult = path.match(reg);
   if (matchResult) {
     const params: { [index: string]: string } = {};
-    Object.keys(reg.namePosition).forEach(name => {
+    Object.keys(reg.namePosition).forEach((name) => {
       params[name] = matchResult[reg.namePosition[name] + 1];
     });
     return params;
@@ -76,7 +77,7 @@ export function createPath(route: RouteItem, options?: RouteOptions) {
   let path = route.pattern;
   const params = options?.params;
   if (params) {
-    Object.keys(params).forEach(key => {
+    Object.keys(params).forEach((key) => {
       path = path.replace(new RegExp(`:${key}`, 'g'), params[key]);
     });
   }
@@ -109,7 +110,7 @@ export class Route extends GemElement {
 
   @property routes: RouteItem[] | RoutesObject;
   @property key: any; // 除了 href 提供另外一种方式来更新
-  @emitter change: Function;
+  @emitter change: Emitter<RouteItem | null>;
 
   private _href: string; // 用于内部比较
   private _key: any; // 用于内部比较

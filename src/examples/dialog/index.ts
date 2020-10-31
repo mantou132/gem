@@ -51,9 +51,7 @@ class Dialog extends DialogBase {
   shouldClose = () => {
     if (this.opened) {
       Confirm.open({
-        content: html`
-          Confirm?
-        `,
+        content: html`Confirm?`,
         confirmHandle: this.forceClose,
       });
       return false;

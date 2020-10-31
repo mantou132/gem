@@ -182,7 +182,7 @@ export function emitter(target: BaseElement, event: string) {
  * ```
  */
 export function adoptedStyle(style: Sheet<unknown>) {
-  return function(cls: Function) {
+  return function (cls: unknown) {
     const c = cls as typeof BaseElement;
     if (!c.adoptedStyleSheets) c.adoptedStyleSheets = [];
     c.adoptedStyleSheets.push(style);
@@ -200,7 +200,7 @@ export function adoptedStyle(style: Sheet<unknown>) {
  */
 export function connectStore(store: Store<unknown>) {
   // 这里的签名该怎么写？
-  return function(cls: Function) {
+  return function (cls: unknown) {
     const c = cls as typeof BaseElement;
     if (!c.observedStores) c.observedStores = [];
     c.observedStores.push(store);
@@ -217,7 +217,7 @@ export function connectStore(store: Store<unknown>) {
  * ```
  */
 export function customElement(name: string) {
-  return function(cls: Function) {
+  return function (cls: unknown) {
     customElements.define(name, cls as CustomElementConstructor);
   };
 }

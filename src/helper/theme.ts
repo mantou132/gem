@@ -1,9 +1,9 @@
 import { connect, createStore, updateStore, Store } from '../lib/store';
 import { camelToKebabCase, randomStr } from '../lib/utils';
 
-function replaceStyle(salt: string, style: HTMLStyleElement, themeObj: Store<object>, media = '') {
+function replaceStyle(salt: string, style: HTMLStyleElement, themeObj: Store<Record<string, unknown>>, media = '') {
   style.media = media;
-  style.innerHTML = `:root {${Object.keys(themeObj).reduce((prev, key: keyof Store<object>) => {
+  style.innerHTML = `:root {${Object.keys(themeObj).reduce((prev, key: keyof Store<Record<string, unknown>>) => {
     return prev + `--${camelToKebabCase(key)}-${salt}:${themeObj[key]};`;
   }, '')}}`;
 }
@@ -26,7 +26,7 @@ const map = new WeakMap<CSSVars<unknown>, Store<unknown>>();
  *   primaryColor: '#eee',
  * }, 'screen');
  */
-export function createTheme<T extends object>(themeObj: T, media?: string) {
+export function createTheme<T extends Record<string, unknown>>(themeObj: T, media?: string) {
   const theme = createStore<T>(themeObj);
   const style = document.createElement('style');
   const salt = randomStr();
@@ -36,7 +36,7 @@ export function createTheme<T extends object>(themeObj: T, media?: string) {
   document.head.append(style);
   const themeVarSet: { [index: string]: string } = {};
   map.set(themeVarSet, theme);
-  Object.keys(theme).forEach(key => {
+  Object.keys(theme).forEach((key) => {
     themeVarSet[key] = `var(--${camelToKebabCase(key)}-${salt})`;
   });
   return themeVarSet as CSSVars<T>;
@@ -47,7 +47,7 @@ export function createTheme<T extends object>(themeObj: T, media?: string) {
  * @param varSet 主题
  * @param newThemeObj 新主题
  */
-export function updateTheme<T = CSSVars<object>>(varSet: T, newThemeObj: Partial<T>) {
+export function updateTheme<T = CSSVars<Record<string, unknown>>>(varSet: T, newThemeObj: Partial<T>) {
   const store = map.get(varSet);
   if (store) updateStore(store, newThemeObj);
 }

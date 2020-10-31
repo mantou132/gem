@@ -16,6 +16,7 @@ import {
   boolattribute,
   numattribute,
 } from '..';
+import { Emitter } from '../lib/decorators';
 
 const store = createStore({
   a: 1,
@@ -49,9 +50,7 @@ class GemDemo extends GemElement {
   render() {
     const { attr, disabled, count, prop, state } = this;
     this.renderCount++;
-    return html`
-      attr: ${attr}, disabled: ${disabled}, count: ${count}, prop: ${prop.value}, state: ${state.value}
-    `;
+    return html`attr: ${attr}, disabled: ${disabled}, count: ${count}, prop: ${prop.value}, state: ${state.value}`;
   }
 }
 
@@ -61,7 +60,7 @@ customElements.define('gem-demo', GemDemo);
 @adoptedStyle(styles)
 @customElement('decorator-gem-demo')
 class DecoratorGemElement extends GemElement {
-  @emitter hi: Function;
+  @emitter hi: Emitter;
   @attribute attr: string;
   @boolattribute disabled: boolean;
   @numattribute count: number;
@@ -69,9 +68,7 @@ class DecoratorGemElement extends GemElement {
   renderCount = 0;
   render() {
     this.renderCount++;
-    return html`
-      attr: ${this.attr}, disabled: ${this.disabled}, count: ${this.count}, prop: ${this.prop.value}
-    `;
+    return html`attr: ${this.attr}, disabled: ${this.disabled}, count: ${this.count}, prop: ${this.prop.value}`;
   }
 }
 
@@ -106,15 +103,11 @@ describe('基本 gem element 测试', () => {
     expect(el.attr).to.equal('attr');
   });
   it('adoptedStyleSheets 共享样式', async () => {
-    const el = await fixture(html`
-      <gem-demo attr="attr" .prop=${{ value: 'prop' }}></gem-demo>
-    `);
+    const el = await fixture(html`<gem-demo attr="attr" .prop=${{ value: 'prop' }}></gem-demo>`);
     expect(window.getComputedStyle(el).backgroundColor).to.equal('rgb(255, 0, 0)');
   });
   it('渲染 gem element', async () => {
-    const el: GemDemo = await fixture(html`
-      <gem-demo attr="attr" .prop=${{ value: 'prop' }}></gem-demo>
-    `);
+    const el: GemDemo = await fixture(html`<gem-demo attr="attr" .prop=${{ value: 'prop' }}></gem-demo>`);
     expect(el).shadowDom.to.equal('attr: attr, disabled: false, count: 0, prop: prop, state: ');
     await Promise.resolve();
     expect(el.renderCount).to.equal(1);
@@ -125,14 +118,11 @@ describe('基本 gem element 测试', () => {
   it('读取 attr', async () => {
     class G extends GemElement {
       static observedAttributes = ['attr'];
-      // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
-      // @ts-ignore
+      attr!: string;
       test = expect(this.attr).to.equal('attr');
     }
     customElements.define('temp-field-read-attr', G);
-    await fixture(html`
-      <temp-field-read-attr attr="attr"></temp-field-read-attr>
-    `);
+    await fixture(html`<temp-field-read-attr attr="attr"></temp-field-read-attr>`);
     const el: GemDemo = await fixture(html`
       <gem-demo attr="attr" ?disabled=${true} count=${1} long-attr="hi"></gem-demo>
     `);
@@ -143,9 +133,7 @@ describe('基本 gem element 测试', () => {
   });
 
   it('修改 attr', async () => {
-    const el: GemDemo = await fixture(html`
-      <gem-demo attr="attr"></gem-demo>
-    `);
+    const el: GemDemo = await fixture(html`<gem-demo attr="attr"></gem-demo>`);
     expect(el.renderCount).to.equal(1);
     el.attr = 'rrr';
     el.attr = 'value';
@@ -165,25 +153,17 @@ describe('基本 gem element 测试', () => {
   it('读取 prop', async () => {
     class G extends GemElement {
       static observedPropertys = ['prop'];
-      // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
-      // @ts-ignore
-      // !!! 和 `attr` 不同
+      prop!: any;
       test = expect(this.prop).to.equal(undefined);
     }
     customElements.define('temp-field-read-prop', G);
-    await fixture(html`
-      <temp-field-read-prop .prop=${{ value: 'prop' }}></temp-field-read-prop>
-    `);
-    const el: GemDemo = await fixture(html`
-      <gem-demo .prop=${{ value: 'prop' }}></gem-demo>
-    `);
+    await fixture(html`<temp-field-read-prop .prop=${{ value: 'prop' }}></temp-field-read-prop>`);
+    const el: GemDemo = await fixture(html`<gem-demo .prop=${{ value: 'prop' }}></gem-demo>`);
     expect(el.prop).to.deep.equal({ value: 'prop' });
   });
 
   it('修改 prop', async () => {
-    const el: GemDemo = await fixture(html`
-      <gem-demo .prop=${{ value: 'prop' }}></gem-demo>
-    `);
+    const el: GemDemo = await fixture(html`<gem-demo .prop=${{ value: 'prop' }}></gem-demo>`);
     expect(el.renderCount).to.equal(1);
     el.prop = { value: 'asdfasdfdsf' };
     el.prop = { value: 'value' };
@@ -195,9 +175,7 @@ describe('基本 gem element 测试', () => {
   });
 
   it('修改 state', async () => {
-    const el: GemDemo = await fixture(html`
-      <gem-demo></gem-demo>
-    `);
+    const el: GemDemo = await fixture(html`<gem-demo></gem-demo>`);
     expect(el.renderCount).to.equal(1);
     el.setState({ value: 'asfasdf' });
     el.setState({ value: 'state' });
@@ -210,9 +188,7 @@ describe('基本 gem element 测试', () => {
 
   it('更新 store', async () => {
     const a = store.a;
-    const el: GemDemo = await fixture(html`
-      <gem-demo></gem-demo>
-    `);
+    const el: GemDemo = await fixture(html`<gem-demo></gem-demo>`);
     updateStore(store, { a: ++store.a });
     updateStore(store, { a: ++store.a });
     expect(store.a).to.equal(a + 2);
@@ -245,9 +221,7 @@ describe('基本 gem element 测试', () => {
   });
 
   it('装饰器和静态属性共存', async () => {
-    const el: DecoratorGemElement2 = await fixture(html`
-      <decorator-gem-demo2></decorator-gem-demo2>
-    `);
+    const el: DecoratorGemElement2 = await fixture(html`<decorator-gem-demo2></decorator-gem-demo2>`);
     updateStore(store, { a: 3 });
     await Promise.resolve();
     expect(el.renderCount).to.equal(2);
@@ -268,9 +242,7 @@ customElements.define('async-gem-demo', AsyncGemDemo);
 
 describe('异步 gem element 测试', () => {
   it('异步 gem element 更新', async () => {
-    const el: AsyncGemDemo = await fixture(html`
-      <async-gem-demo></async-gem-demo>
-    `);
+    const el: AsyncGemDemo = await fixture(html`<async-gem-demo></async-gem-demo>`);
     updateStore(store, { a: ++store.a });
     el.setState({ a: ++el.state.a });
     await Promise.resolve();
@@ -286,16 +258,12 @@ class LightGemDemo extends GemElement {
     super(false);
   }
   render() {
-    return html`
-      hi
-    `;
+    return html`hi`;
   }
 }
 describe('没有 Shadow DOM 的 gem 元素', () => {
   it('渲染没有 Shadow DOM 的 gem 元素', async () => {
-    const el: LightGemDemo = await fixture(html`
-      <light-gem-demo></light-gem-demo>
-    `);
+    const el: LightGemDemo = await fixture(html`<light-gem-demo></light-gem-demo>`);
     expect(el.shadowRoot).to.equal(null);
     expect(el.innerHTML.includes('hi')).to.equal(true);
   });
@@ -313,9 +281,7 @@ class LifecycleGemElement extends GemElement {
 }
 describe('gem element 生命周期', () => {
   it('mounted/unmounted', async () => {
-    const el: LifecycleGemElement = await fixture(html`
-      <lifecycle-gem-demo></lifecycle-gem-demo>
-    `);
+    const el: LifecycleGemElement = await fixture(html`<lifecycle-gem-demo></lifecycle-gem-demo>`);
     expect(el.renderCount).to.equal(1);
     el.remove();
     expect(el.renderCount).to.equal(0);
@@ -343,9 +309,7 @@ class EffectGemDemo extends GemElement {
 customElements.define('effect-gem-demo', EffectGemDemo);
 describe('gem element 副作用', () => {
   it('依赖当前值', async () => {
-    const el: EffectGemDemo = await fixture(html`
-      <effect-gem-demo></effect-gem-demo>
-    `);
+    const el: EffectGemDemo = await fixture(html`<effect-gem-demo></effect-gem-demo>`);
     expect(el.effectCount).to.equal(2);
     el.attr = 'b';
     el.prop = {};

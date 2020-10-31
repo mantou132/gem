@@ -45,9 +45,7 @@ export class FormText extends GemElement {
   };
 
   render() {
-    return html`
-      <input ref=${this.inputRef.ref} @input=${this.inputHandle} />
-    `;
+    return html`<input ref=${this.inputRef.ref} @input=${this.inputHandle} />`;
   }
 }
 
@@ -65,9 +63,4 @@ export class Root extends GemElement {
   }
 }
 
-render(
-  html`
-    <app-root></app-root>
-  `,
-  document.body,
-);
+render(html`<app-root></app-root>`, document.body);

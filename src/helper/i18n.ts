@@ -19,7 +19,7 @@ export class I18n<T = Record<string, string>> {
   currentLanguage = '';
   cache = false;
 
-  store: Store<this>;
+  store: Store<any>;
 
   constructor(options: {
     resources: {
@@ -32,7 +32,7 @@ export class I18n<T = Record<string, string>> {
     if (!options.resources[options.fallbackLanguage]) {
       throw new Error('i18n: fallbackLanguage invalid');
     }
-    this.store = createStore(this);
+    this.store = createStore(this as any);
     Object.assign(this, options);
     if (this.cache && !this.currentLanguage) {
       this.currentLanguage = localStorage.getItem(currentKey) || '';
@@ -66,9 +66,9 @@ export class I18n<T = Record<string, string>> {
 
   detectLanguage() {
     const availableLangs = Object.keys(this.resources);
-    const uiLangs = [htmlLang, ...navigator.languages].map(lang => lang.replace(/-(.*)/, $1 => $1.toUpperCase()));
+    const uiLangs = [htmlLang, ...navigator.languages].map((lang) => lang.replace(/-(.*)/, ($1) => $1.toUpperCase()));
     for (const lang of uiLangs) {
-      const matched = availableLangs.find(e => e === lang || lang.startsWith(`${e}-`));
+      const matched = availableLangs.find((e) => e === lang || lang.startsWith(`${e}-`));
       if (matched) return matched;
     }
     return this.fallbackLanguage;

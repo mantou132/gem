@@ -31,8 +31,8 @@ export interface UpdateHistoryParams {
   query?: string | QueryString; // 包含 `?`
   hash?: string; // 包含 `#`
   // 以下为看不见的状态
-  open?: Function; // 按下前进键时执行
-  close?: Function; // 按下返回键时执行
+  open?: () => void; // 按下前进键时执行
+  close?: () => void; // 按下返回键时执行
   shouldClose?: () => boolean; // 按下返回键时判断是否执行 close 函数，返回为 false 时不执行，并恢复 history
   data?: any;
 }
@@ -162,12 +162,12 @@ Object.defineProperties(history, {
     },
   },
   getParams: {
-    value: function() {
+    value: function () {
       return paramsMap.get(store.$key);
     },
   },
   updateParams: {
-    value: function(params: UpdateHistoryParams) {
+    value: function (params: UpdateHistoryParams) {
       Object.assign(paramsMap.get(store.$key), params);
       updateStore(store, {});
     },
@@ -176,12 +176,12 @@ Object.defineProperties(history, {
     value: store,
   },
   push: {
-    value: function(params: UpdateHistoryParams) {
+    value: function (params: UpdateHistoryParams) {
       history.pushState(params, '');
     },
   },
   pushIgnoreCloseHandle: {
-    value: function(params: UpdateHistoryParams) {
+    value: function (params: UpdateHistoryParams) {
       if (store.$hasCloseHandle) {
         paramsMap.get(store.$key)?.close?.();
         history.replace(params);
@@ -191,13 +191,13 @@ Object.defineProperties(history, {
     },
   },
   replace: {
-    value: function(params: UpdateHistoryParams) {
+    value: function (params: UpdateHistoryParams) {
       updateHistory('replace', params);
     },
   },
   pushState: {
     configurable: true,
-    value: function(data: any, title: string, path: string) {
+    value: function (data: any, title: string, path: string) {
       if (path) {
         updateHistoryByNative('push', data, title, path);
       } else {
@@ -207,7 +207,7 @@ Object.defineProperties(history, {
   },
   replaceState: {
     configurable: true,
-    value: function(data: any, title: string, path: string) {
+    value: function (data: any, title: string, path: string) {
       updateHistoryByNative('replace', data, title, path);
     },
   },
@@ -237,7 +237,7 @@ if (!history.state) {
  * 表示 popstate handler 中正在进行导航
  */
 let navigating = false;
-window.addEventListener('popstate', event => {
+window.addEventListener('popstate', (event) => {
   const newState = event.state as HistoryItem | null;
   if (!newState?.$key) {
     // 比如作为其他 app 的宿主 app

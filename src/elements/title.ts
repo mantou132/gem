@@ -56,9 +56,7 @@ export class Title extends GemElement {
     if (this.hidden) {
       return html``;
     }
-    return html`
-      ${Title.title}
-    `;
+    return html`${Title.title}`;
   }
 }
 

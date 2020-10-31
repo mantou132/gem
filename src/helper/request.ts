@@ -17,7 +17,7 @@ export async function request<T>(uri: string, options: RequestInit = {}): Promis
   return data;
 }
 
-type ReqBody = object | BodyInit;
+type ReqBody = Record<string, unknown> | BodyInit;
 const TypedArray = Object.getPrototypeOf(Object.getPrototypeOf(new Int8Array()));
 
 function serializationBody(body?: ReqBody): BodyInit | undefined {
@@ -37,7 +37,7 @@ function serializationBody(body?: ReqBody): BodyInit | undefined {
   return body;
 }
 
-export function get<T>(url: string, params?: object) {
+export function get<T>(url: string, params?: Record<string, string | number>) {
   const { origin, pathname, search } = new URL(url, location.origin);
   return request<T>(
     `${origin}${pathname}${search ? `${search}&` : '?'}${new URLSearchParams(params as Record<string, string>)}`,

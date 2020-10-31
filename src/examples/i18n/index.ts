@@ -30,15 +30,7 @@ class App extends GemElement {
       <p>Current language: ${i18n.currentLanguage}</p>
       <p>${i18n.get('title')}</p>
       <p>${i18n.get('hello', 'World', 'reverse')}</p>
-      <p>
-        ${i18n.get(
-          'detail',
-          s =>
-            html`
-              <a href="#">${s}</a>
-            `,
-        )}
-      </p>
+      <p>${i18n.get('detail', (s) => html`<a href="#">${s}</a>`)}</p>
     `;
   }
 }

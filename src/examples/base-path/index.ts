@@ -18,12 +18,8 @@ class App extends GemElement {
     return html`
       <main>
         ${this.state.count > 0
-          ? html`
-              <div>${this.state.count} 次后将改变 \`basePath\`</div>
-            `
-          : html`
-              <div>\`basePath\` 为 ${history.basePath}</div>
-            `}
+          ? html`<div>${this.state.count} 次后将改变 \`basePath\`</div>`
+          : html`<div>\`basePath\` 为 ${history.basePath}</div>`}
         <gem-link href="/a">href="/a"</gem-link>
         <button @click=${() => history.push({ path: '/b' })}>push({ path: '/b' })</button>
         <button @click=${() => history.push({ hash: '#b' })}>push({ hash: '#b' })</button>

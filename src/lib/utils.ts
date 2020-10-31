@@ -1,10 +1,10 @@
-const updaterSet = new Set<Function>();
-export function addMicrotask(func: Function) {
+const updaterSet = new Set<() => void>();
+export function addMicrotask(func: () => void) {
   if (typeof func !== 'function') return;
   if (!updaterSet.size) {
     // delayed execution callback after updating store
     globalThis.queueMicrotask(() => {
-      updaterSet.forEach(func => func());
+      updaterSet.forEach((func) => func());
       updaterSet.clear();
     });
   }
@@ -79,7 +79,7 @@ export class QueryString extends URLSearchParams {
     } else {
       query = param;
     }
-    Object.keys(query).forEach(key => {
+    Object.keys(query).forEach((key) => {
       this.append(key, query[key]);
     });
   }
@@ -176,7 +176,7 @@ export function randomStr(number = 5, origin = '0123456789abcdefghijklmnopqrstuv
 function flatStyled(style: string, type: StyledType): StyledValue {
   const subStyle: string[] = [];
   let str =
-    `& {${style.replace(new RegExp('&.*{((.|\n)*)}', 'g'), function(substr) {
+    `& {${style.replace(new RegExp('&.*{((.|\n)*)}', 'g'), function (substr) {
       subStyle.push(substr);
       return '';
     })}}` + subStyle.join('');
@@ -218,7 +218,7 @@ export function kebabToCamelCase(str: string) {
   return str.replace(/-(.)/g, (_substr, $1: string) => $1.toUpperCase());
 }
 
-export function cleanObject<T extends object>(o: T) {
+export function cleanObject<T extends Record<string, unknown>>(o: T) {
   Object.keys(o).forEach((key: string) => {
     const k = key as keyof T;
     delete o[k];

@@ -11,7 +11,7 @@ class App extends GemElement {
         <dt>version:</dt>
         <dd>${process.env.npm_package_version}</dd>
         ${examples.map(
-          name => html`
+          (name) => html`
             <dt>${name}:</dt>
             <dd><a href=${getGitPageUrl(name)}>${new URL(getGitPageUrl(name), location.href)}</a></dd>
           `,
