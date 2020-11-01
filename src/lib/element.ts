@@ -61,16 +61,21 @@ export abstract class BaseElement<T = Record<string, unknown>> extends HTMLEleme
 
   constructor(shadow = true) {
     super();
-    this.effect = this.effect.bind(this);
-    this.setState = this.setState.bind(this);
-    this.willMount = this.willMount.bind(this);
-    this.render = this.render.bind(this);
-    this.mounted = this.mounted.bind(this);
-    this.shouldUpdate = this.shouldUpdate.bind(this);
+
     this.__update = this.__update.bind(this);
+    this.__updated = this.__updated.bind(this);
     this.__execEffect = this.__execEffect.bind(this);
-    this.updated = this.updated.bind(this);
-    this.unmounted = this.unmounted.bind(this);
+
+    this.effect = this.effect.bind(this);
+    this.update = this.update.bind(this);
+    this.setState = this.setState.bind(this);
+
+    if (this.willMount) this.willMount = this.willMount.bind(this);
+    if (this.render) this.render = this.render.bind(this);
+    if (this.mounted) this.mounted = this.mounted.bind(this);
+    if (this.shouldUpdate) this.shouldUpdate = this.shouldUpdate.bind(this);
+    if (this.updated) this.updated = this.updated.bind(this);
+    if (this.unmounted) this.unmounted = this.unmounted.bind(this);
 
     this.__renderRoot = shadow ? this.attachShadow({ mode: 'open' }) : this;
     const {
@@ -276,31 +281,34 @@ export abstract class BaseElement<T = Record<string, unknown>> extends HTMLEleme
   }
 
   /**@lifecycle */
-  willMount(): any {}
+  willMount?(): void;
 
   /**
    * @lifecycle
    * 返回 null 时渲染 lit-html 定义的空内容
    * 返回 undefined 时不会调用 `render()`
    * */
-  render(): TemplateResult | null | undefined {
-    return html`<slot></slot>`;
+  render?(): TemplateResult | null | undefined;
+
+  __render() {
+    return this.render ? this.render() : html`<slot></slot>`;
   }
 
   /**@lifecycle */
-  mounted(): any {}
+  mounted?(): void;
 
   /**@lifecycle */
-  shouldUpdate() {
-    return true;
+  shouldUpdate?(): boolean;
+  __shouldUpdate() {
+    return this.shouldUpdate ? this.shouldUpdate() : true;
   }
 
   /**@final */
   __update() {
-    if (this.__isMounted && this.shouldUpdate()) {
-      const temp = this.render();
+    if (this.__isMounted && this.__shouldUpdate()) {
+      const temp = this.__render();
       temp !== undefined && render(temp, this.__renderRoot);
-      addMicrotask(this.updated);
+      addMicrotask(this.__updated);
       addMicrotask(this.__execEffect);
     }
   }
@@ -311,10 +319,13 @@ export abstract class BaseElement<T = Record<string, unknown>> extends HTMLEleme
   }
 
   /**@lifecycle */
-  updated(): any {}
+  updated?(): void;
+  __updated() {
+    this.updated?.();
+  }
 
   /**@lifecycle */
-  unmounted(): any {}
+  unmounted?(): void;
 
   /**@private */
   /**@final */
@@ -332,10 +343,10 @@ export abstract class BaseElement<T = Record<string, unknown>> extends HTMLEleme
         connect(store, this.__update);
       });
     }
-    const temp = this.render();
+    const temp = this.__render();
     temp !== undefined && render(temp, this.__renderRoot);
     this.__isMounted = true;
-    const callback = this.mounted();
+    const callback = this.mounted?.();
     if (typeof callback === 'function') this.__unmountCallback = callback;
   }
 
@@ -354,7 +365,7 @@ export abstract class BaseElement<T = Record<string, unknown>> extends HTMLEleme
       });
     }
     this.__unmountCallback?.();
-    this.unmounted();
+    this.unmounted?.();
   }
 }
 
@@ -362,7 +373,7 @@ export abstract class GemElement<T = Record<string, unknown>> extends BaseElemen
   /**@private */
   /**@final */
   connectedCallback() {
-    this.willMount();
+    this.willMount?.();
     this.__connectedCallback();
     this.__initEffect();
   }
@@ -397,10 +408,10 @@ export abstract class AsyncGemElement<T = Record<string, unknown>> extends BaseE
   /**@final */
   __update() {
     renderTaskPool.add(() => {
-      if (this.shouldUpdate()) {
-        const temp = this.render();
+      if (this.__shouldUpdate()) {
+        const temp = this.__render();
         temp !== undefined && render(temp, this.__renderRoot);
-        this.updated();
+        this.updated?.();
         addMicrotask(this.__execEffect);
       }
     });
@@ -409,7 +420,7 @@ export abstract class AsyncGemElement<T = Record<string, unknown>> extends BaseE
   /**@private */
   /**@final */
   connectedCallback() {
-    this.willMount();
+    this.willMount?.();
     renderTaskPool.add(() => {
       this.__connectedCallback();
       this.__initEffect();
