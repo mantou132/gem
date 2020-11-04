@@ -19,9 +19,7 @@ import { GemElement, html } from '@mantou/gem';
 
 class HelloWorld extends GemElement {
   render() {
-    return html`
-      hello world
-    `;
+    return html`hello world`;
   }
 }
 
@@ -39,25 +37,19 @@ customElements.define('hello-world', HelloWorld);
 使用变量：
 
 ```js
-html`
-  <div>${value}</div>
-`;
+html`<div>${value}</div>`;
 ```
 
 绑定 attribute 和 property：
 
 ```js
-html`
-  <div title=${title} .data=${data}></div>
-`;
+html`<div title=${title} .data=${data}></div>`;
 ```
 
 使用绑定事件
 
 ```js
-html`
-  <div @click=${clickHandle}></div>
-`;
+html`<div @click=${clickHandle}></div>`;
 ```
 
 更详细的语法可以查看 [lit-html](https://lit-html.polymer-project.org/guide) 文档。

@@ -62,9 +62,7 @@ const styles = createCSSSheet({
 class HelloWorld extends GemElement {
   static adoptedStyleSheets = [styles];
   render() {
-    return html`
-      <div class=${styles.h1}></div>
-    `;
+    return html`<div class=${styles.h1}></div>`;
   }
 }
 ```
@@ -85,9 +83,7 @@ class HelloWorld extends GemElement {
   @part header: string;
 
   render() {
-    return html`
-      <div part=${this.header}></div>
-    `;
+    return html`<div part=${this.header}></div>`;
   }
 }
 ```

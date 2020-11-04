@@ -31,4 +31,4 @@ Using Gem may cause too much ShadowDOM, which may slow down the speed of the App
 ## Lit-Element
 
 [`LitElement`](https://lit-element.polymer-project.org/) and `GemElment` work very similarly,
-But [API](../002-API/002-gem-element) has a big difference in design.
+But [API](../002-API/) has a big difference in design.

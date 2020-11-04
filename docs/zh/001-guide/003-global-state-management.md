@@ -13,7 +13,7 @@ Gem 使用发布订阅模式，让多个元素共享数据，并且数据更新�
 const store = createStore({ a: 1 });
 
 // 连接 store
-connect(store, function() {
+connect(store, function () {
   // store 更新时执行
 });
 

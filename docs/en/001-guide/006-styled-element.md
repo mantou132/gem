@@ -2,7 +2,7 @@
 
 Because of the use of ShadowDOM, there is no longer a need for [CSS Modules](https://css-tricks.com/css-modules-part-3-react/) similar solutions, in addition, browser compatibility has improved in recent years, and vendor private prefixes have also been cancelled. We can use native CSS features to complete daily work.
 
-_[Nesting CSS](https://drafts.csswg.org/css-nesting-1/) is still a feature worth looking forward to. _
+_[Nesting CSS](https://drafts.csswg.org/css-nesting-1/) is still a feature worth looking forward to._
 
 ## Shared style
 
@@ -56,9 +56,7 @@ const styles = createCSSSheet({
 class HelloWorld extends GemElement {
   static adoptedStyleSheets = [styles];
   render() {
-    return html`
-      <div class=${styles.h1}></div>
-    `;
+    return html`<div class=${styles.h1}></div>`;
   }
 }
 ```
@@ -80,9 +78,7 @@ class HelloWorld extends GemElement {
   @part header: string;
 
   render() {
-    return html`
-      <div part=${this.header}></div>
-    `;
+    return html`<div part=${this.header}></div>`;
   }
 }
 ```

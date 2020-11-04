@@ -17,9 +17,7 @@ Define reactive attributes, using standard static property [observedAttributes](
 class HelloWorld extends GemElement {
   static observedAttributes = ['first-name'];
   render() {
-    return html`
-      ${this.firestName}
-    `;
+    return html`${this.firestName}`;
   }
 }
 ```

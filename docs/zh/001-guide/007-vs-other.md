@@ -36,4 +36,4 @@ Gem 使用完全不同的方式，参见 lit-html [文档](https://github.com/Po
 ## Lit-Element
 
 [`LitElement`](https://lit-element.polymer-project.org/) 和 `GemElment` 的工作方式很相似，
-但是 [API](../002-API/002-gem-element) 设计有很大的区别。
+但是 [API](../002-API/) 设计有很大的区别。

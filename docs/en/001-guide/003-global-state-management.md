@@ -11,7 +11,7 @@ Sharing data between multiple elements (called "components" in other frameworks)
 const store = createStore({ a: 1 });
 
 // connect store
-connect(store, function() {
+connect(store, function () {
   // Execute when store is updated
 });
 

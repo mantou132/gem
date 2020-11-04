@@ -13,17 +13,13 @@ const routes = {
   home: {
     pattern: '/',
     get content() {
-      return html`
-        home page
-      `;
+      return html`home page`;
     },
   },
   a: {
     pattern: '/a/:b',
     get content() {
-      return html`
-        a page
-      `;
+      return html`a page`;
     },
   },
 };

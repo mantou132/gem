@@ -5,9 +5,8 @@ Gem 提供了一些常用的自定义元素, 他们没有默认内置, 需要自
 ```js
 import { html } from 'https://dev.jspm.io/@mantou/gem';
 import 'https://dev.jspm.io/@mantou/gem/elements/link';
-html`
-  <gem-link path="/page"></gem-link>
-`;
+
+html`<gem-link path="/page"></gem-link>`;
 ```
 
 | 自定义元素    | 描述                                           |

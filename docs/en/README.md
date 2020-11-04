@@ -15,9 +15,7 @@ import { GemElement, html } from '@mantou/gem';
 
 class HelloWorld extends GemElement {
   render() {
-    return html`
-      hello world
-    `;
+    return html`hello world`;
   }
 }
 
@@ -33,25 +31,19 @@ Return the rendering template in the `render` method. Gem uses [lit-html](https:
 Use variables:
 
 ```js
-html`
-  <div>${value}</div>
-`;
+html`<div>${value}</div>`;
 ```
 
 Bind attribute and property:
 
 ```js
-html`
-  <div title=${title} .data=${data}></div>
-`;
+html`<div title=${title} .data=${data}></div>`;
 ```
 
 Use event bind:
 
 ```js
-html`
-  <div @click=${clickHandle}></div>
-`;
+html`<div @click=${clickHandle}></div>`;
 ```
 
 More detailed syntax can be found in [lit-html](https://lit-html.polymer-project.org/guide) document.
