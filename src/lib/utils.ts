@@ -12,6 +12,11 @@ export function addMicrotask(func: () => void) {
   updaterSet.add(func);
 }
 
+export function absoluteLocation(currentPath = '', relativePath = '') {
+  const { pathname, search, hash } = new URL(relativePath, location.origin + currentPath);
+  return pathname + search + hash;
+}
+
 interface PoolEventMap {
   start: Event;
   end: Event;

@@ -1,5 +1,5 @@
 import { createStore, updateStore, Store } from './store';
-import { QueryString, cleanObject, GemError } from './utils';
+import { QueryString, cleanObject, GemError, absoluteLocation } from './utils';
 
 export const history = window.history;
 const location = window.location;
@@ -69,23 +69,22 @@ function validData(data: any) {
   if (data?.$hasShouldCloseHandle) throw new GemError('`$hasShouldCloseHandle` is not allowed');
 }
 
-// 并非实际路径 `location.pathname`
-function getAbsolutePath(relativePath: string) {
+function getUrlbarPath(internalPath: string) {
   if (history.basePath) {
-    return history.basePath + (relativePath === '/' ? '' : relativePath);
+    return history.basePath + (internalPath === '/' ? '' : internalPath);
   }
-  return relativePath;
+  return internalPath;
 }
 
-function getRelativePath(realPath: string) {
-  if (realPath === history.basePath) return '/';
-  return realPath.replace(new RegExp(`^${history.basePath}/`), '/');
+function getInternalPath(urlbarPath: string) {
+  if (urlbarPath === history.basePath) return '/';
+  return urlbarPath.replace(new RegExp(`^${history.basePath}/`), '/');
 }
 
 function initParams(params: UpdateHistoryParams): HistoryParams {
   const current = paramsMap.get(store.$key) || ({} as HistoryParams);
   // 没提供 path 使用当前 path
-  const path = params.path || getRelativePath(location.pathname);
+  const path = params.path ? absoluteLocation(current.path, params.path) : getInternalPath(location.pathname);
   // 没提供 query 又没有提供 path 时使用当前 search
   const query = new QueryString(params.query || (params.path ? '' : location.search));
   const pathChanged =
@@ -100,17 +99,17 @@ function initParams(params: UpdateHistoryParams): HistoryParams {
 function updateHistory(type: UpdateHistoryType, p: UpdateHistoryParams) {
   validData(p.data);
   const params = initParams(p);
-  const { title, path, query, hash } = params;
+  const { title, path, query, hash, close, open, shouldClose, data } = params;
   const state = {
-    $hasCloseHandle: !!params.close,
-    $hasOpenHandle: !!params.open,
-    $hasShouldCloseHandle: !!params.shouldClose,
+    $hasCloseHandle: !!close,
+    $hasOpenHandle: !!open,
+    $hasShouldCloseHandle: !!shouldClose,
     $key: getKey(),
-    ...(params.data || {}),
+    ...(data || {}),
   };
   paramsMap.set(state.$key, params);
   updateStore(cleanObject(store), state);
-  const url = getAbsolutePath(path) + new QueryString(query) + hash;
+  const url = getUrlbarPath(path) + new QueryString(query) + hash;
   const prevHave = decodeURIComponent(location.hash);
   (type === 'push' ? pushState : replaceState)(state, title, url);
   if (prevHave !== hash) window.dispatchEvent(new CustomEvent('hashchange'));
@@ -123,11 +122,11 @@ function updateHistoryByNative(type: UpdateHistoryType, data: any, title: string
     $key: getKey(),
     ...(data || {}),
   };
-  const { pathname, search, hash } = new URL(originUrl, location.origin);
+  const { pathname, search, hash } = new URL(originUrl, location.origin + location.pathname);
   const params = initParams({ path: pathname, query: new QueryString(search), hash, title, data });
   paramsMap.set(state.$key, params);
   updateStore(cleanObject(store), state);
-  const url = getAbsolutePath(pathname) + params.query + hash;
+  const url = getUrlbarPath(pathname) + params.query + hash;
   const prevHash = location.hash;
   (type === 'push' ? pushState : replaceState)(state, title, url);
   // `location.hash` 和 `hash` 都已经进行了 url 编码，可以直接进行相等判断
@@ -155,7 +154,7 @@ Object.defineProperties(history, {
         // 应用初始化的时候设置
         updateStore(basePathStore, { basePath: v });
         // paramsMap 更新后 ui 才会更新
-        Object.assign(paramsMap.get(store.$key), { path: getRelativePath(location.pathname) });
+        Object.assign(paramsMap.get(store.$key), { path: getInternalPath(location.pathname) });
       } else {
         throw new GemError('not allow');
       }

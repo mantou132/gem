@@ -1,7 +1,23 @@
 import { expect } from '@open-wc/testing';
-import { Pool, QueryString, css, raw, createCSSSheet, styled, SheetToken, styleMap, classMap } from '..';
+import {
+  Pool,
+  QueryString,
+  css,
+  raw,
+  createCSSSheet,
+  styled,
+  SheetToken,
+  styleMap,
+  classMap,
+  absoluteLocation,
+} from '..';
 
 describe('utils 测试', () => {
+  it('absoluteLocation', () => {
+    expect(absoluteLocation('/a', '/a/b')).to.equal('/a/b');
+    expect(absoluteLocation('/a/c', './b')).to.equal('/a/b');
+    expect(absoluteLocation('/a/c/d', '../b')).to.equal('/a/b');
+  });
   it('Pool', () => {
     const pool = new Pool<() => void>();
     let countAtStart = 0;

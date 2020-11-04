@@ -11,6 +11,7 @@ import {
   state,
   ifDefined,
 } from '../';
+import { absoluteLocation } from '../lib/utils';
 import { isMatch, RouteItem, RouteOptions, createHistoryParams, createPath } from './route';
 
 /**
@@ -47,11 +48,10 @@ export class Link extends GemElement {
   }
 
   // 不包含 basePath
-  // 不支持相对路径
   getHref() {
     if (this.route) {
-      const queryProp = (this.options && this.options.query) || '';
-      const hashProp = (this.options && this.options.hash) || '';
+      const queryProp = this.options?.query || '';
+      const hashProp = this.options?.hash || '';
       return createPath(this.route, this.options) + queryProp + hashProp;
     } else {
       const url = this.href || this.path + this.query + this.hash;
@@ -60,6 +60,8 @@ export class Link extends GemElement {
         return `${path}${query}${url}`;
       } else if (url.startsWith('?')) {
         return `${path}${url}`;
+      } else if (url.startsWith('.')) {
+        return absoluteLocation(path, url);
       } else {
         return url;
       }

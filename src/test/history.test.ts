@@ -102,6 +102,24 @@ describe('history 测试', () => {
     await aTimeout(10);
     expect(window.location.pathname).to.equal('/c');
   });
+  it('relative path', async () => {
+    history.push({ path: '/' });
+    await aTimeout(10);
+    history.push({ path: './a' });
+    await aTimeout(10);
+    expect(window.location.pathname).to.equal('/a');
+    history.replace({ path: '/a/b', query: 'tab=a' });
+    await aTimeout(10);
+    expect(window.location.pathname).to.equal('/a/b');
+    expect(new URLSearchParams(location.search).get('tab')).to.equal('a');
+    history.push({ path: '../c' });
+    await aTimeout(10);
+    expect(window.location.pathname).to.equal('/c');
+    history.push({ query: 'tab=bb' });
+    await aTimeout(10);
+    expect(window.location.pathname).to.equal('/c');
+    expect(new URLSearchParams(location.search).get('tab')).to.equal('bb');
+  });
   // 在一个 window 中测试，所以 `basePath` 的测试必须放最后
   it('basePath', async () => {
     history.push({ path: '/d' });

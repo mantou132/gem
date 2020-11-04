@@ -28,8 +28,8 @@ customElements.define(
             margin-left: 0.5em;
           }
         </style>
-        <gem-link path="/c/d">Page c/d</gem-link>
-        <gem-link path="/c/e">Page c/e</gem-link>
+        <gem-link path="./d">Page c/d</gem-link>
+        <gem-link path="./e">Page c/e</gem-link>
         <gem-route .routes=${routes}></gem-route>
       `;
     }

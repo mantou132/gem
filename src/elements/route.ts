@@ -56,6 +56,7 @@ export function isMatch(pattern: string, path: string) {
 export interface RouteItem {
   // 支持 *
   // 支持 /a/*
+  // 不支持相对路径
   pattern: string;
   redirect?: string;
   content?: TemplateResult;
