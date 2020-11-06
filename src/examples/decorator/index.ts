@@ -16,7 +16,12 @@ import {
 import { Message, Children } from './chidren';
 import './chidren';
 
-const store = createStore<{ msg: Message; now: Date }>({
+interface GlobalState {
+  msg: Message;
+  now: Date;
+}
+
+const store = createStore<GlobalState>({
   msg: [1, 2],
   now: new Date(),
 });
