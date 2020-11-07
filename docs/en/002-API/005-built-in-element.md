@@ -9,12 +9,14 @@ import 'https://dev.jspm.io/@mantou/gem/elements/link';
 html`<gem-link path="/page"></gem-link>`;
 ```
 
-| element       | description                                             |
-| ------------- | ------------------------------------------------------- |
-| `<gem-link>`  | Similar to `<a>`                                        |
-| `<gem-route>` | Provide routing matching, can be nested                 |
-| `<gem-title>` | Update `document.title` or display it where you need it |
-| `<gem-use>`   | SVG-like `<use>`                                        |
+| element         | description                                             |
+| --------------- | ------------------------------------------------------- |
+| `<gem-link>`    | Similar to `<a>`                                        |
+| `<gem-route>`   | Provide routing matching, can be nested                 |
+| `<gem-title>`   | Update `document.title` or display it where you need it |
+| `<gem-use>`     | SVG-like `<use>`                                        |
+| `<gem-unsafe>`  | Render the string directly into content                 |
+| `<gem-reflect>` | Render the content to the specified element             |
 
 _When it comes to history stack_, two basic functions are provided:
 

@@ -6,6 +6,8 @@ import './elements/link';
 import './elements/route';
 import './elements/title';
 import './elements/use';
+import './elements/unsafe';
+import './elements/reflect';
 
 export { default as createModalClass } from './elements/modal-base';
 export { default as DialogBase } from './elements/dialog-base';

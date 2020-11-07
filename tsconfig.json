@@ -15,7 +15,7 @@
     "allowSyntheticDefaultImports": true,
     "experimentalDecorators": true,
     "target": "es6",
-    "lib": ["es2020", "dom"]
+    "lib": ["es2020", "dom", "DOM.Iterable"]
   },
   "include": ["src"],
   "exclude": []

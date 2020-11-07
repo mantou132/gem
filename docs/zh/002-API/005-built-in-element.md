@@ -9,12 +9,14 @@ import 'https://dev.jspm.io/@mantou/gem/elements/link';
 html`<gem-link path="/page"></gem-link>`;
 ```
 
-| 自定义元素    | 描述                                           |
-| ------------- | ---------------------------------------------- |
-| `<gem-link>`  | 类似 `<a>`                                     |
-| `<gem-route>` | 提供路由匹配，可以嵌套                         |
-| `<gem-title>` | 更新 `document.title` 或者显示在你需要他的地方 |
-| `<gem-use>`   | 类似 SVG 的 `<use>`                            |
+| 自定义元素      | 描述                                           |
+| --------------- | ---------------------------------------------- |
+| `<gem-link>`    | 类似 `<a>`                                     |
+| `<gem-route>`   | 提供路由匹配，可以嵌套                         |
+| `<gem-title>`   | 更新 `document.title` 或者显示在你需要他的地方 |
+| `<gem-use>`     | 类似 SVG 的 `<use>`                            |
+| `<gem-unsafe>`  | 直接将字符串渲染成内容                         |
+| `<gem-reflect>` | 将内容渲染到指定元素                           |
 
 *涉及历史记录栈*时，提供两个基础功能：
 
