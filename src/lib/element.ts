@@ -291,7 +291,8 @@ export abstract class BaseElement<T = Record<string, unknown>> extends HTMLEleme
   render?(): TemplateResult | null | undefined;
 
   __render() {
-    return this.render ? this.render() : html`<slot></slot>`;
+    if (this.render) return this.render();
+    return this.__renderRoot === this ? undefined : html`<slot></slot>`;
   }
 
   /**@lifecycle */
