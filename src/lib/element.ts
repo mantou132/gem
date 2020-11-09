@@ -30,34 +30,37 @@ type GetDepFun<T> = () => T;
 type EffectItem<T> = { callback: (arg: T) => void; values: T; getDep: GetDepFun<T>; initialized: boolean };
 
 // final 字段如果使用 symbol 或者 private 将导致 modal-base 生成匿名子类 declaration 失败
-/**
- * @attr ref
- */
 export abstract class BaseElement<T = Record<string, unknown>> extends HTMLElement {
   // 这里只是字段申明，不能赋值，否则子类会继承被共享该字段
-  static observedAttributes: string[]; // WebAPI 中是实时检查这个列表
-  static booleanAttributes: Set<string>;
-  static numberAttributes: Set<string>;
-  static observedPropertys: string[];
-  static observedStores: Store<unknown>[];
-  static adoptedStyleSheets: Sheet<unknown>[];
-  static defineEvents: string[];
+  static observedAttributes?: string[]; // WebAPI 中是实时检查这个列表
+  static booleanAttributes?: Set<string>;
+  static numberAttributes?: Set<string>;
+  static observedPropertys?: string[];
+  static observedStores?: Store<unknown>[];
+  static adoptedStyleSheets?: Sheet<unknown>[];
+  static defineEvents?: string[];
+  // 用于 Devtools，且只有 ts 装饰器定义才有效
+  static defineCSSStates?: string[];
+  static defineParts?: string[];
+  static defineSlots?: string[];
+  static defineRefs?: string[];
 
   // 定义当前元素的状态，和 attr/prop 的本质区别是不为外部输入
-  readonly state: T;
-  // 用于 css 选择器选择元素，使用 @ref 自动选择获取，应该避免重名
-  readonly ref: string;
+  readonly state?: T;
+  // 用于 css 选择器选择元素，使用 @refobject 自动选择获取
+  /**@attr ref */
+  ref: any;
 
   /**@final */
   __renderRoot: HTMLElement | ShadowRoot;
   /**@final */
-  __internals: ElementInternals | undefined;
+  __internals?: ElementInternals;
   /**@final */
   __isMounted: boolean;
   /**@final */
-  __effectList: EffectItem<any>[] | undefined;
+  __effectList?: EffectItem<any>[];
 
-  __unmountCallback: UnmountCallback | undefined;
+  __unmountCallback?: UnmountCallback;
 
   constructor(shadow = true) {
     super();
@@ -78,56 +81,21 @@ export abstract class BaseElement<T = Record<string, unknown>> extends HTMLEleme
     if (this.unmounted) this.unmounted = this.unmounted.bind(this);
 
     this.__renderRoot = shadow ? this.attachShadow({ mode: 'open' }) : this;
-    const {
-      observedAttributes,
-      observedPropertys,
-      defineEvents,
-      adoptedStyleSheets,
-      booleanAttributes,
-      numberAttributes,
-    } = new.target;
+    const { observedAttributes, observedPropertys, defineEvents, adoptedStyleSheets } = new.target;
+    if (adoptedStyleSheets) {
+      const sheets = adoptedStyleSheets.map((item) => item[SheetToken]);
+      if (this.shadowRoot) {
+        this.shadowRoot.adoptedStyleSheets = sheets;
+      } else {
+        document.adoptedStyleSheets = [...new Set(document.adoptedStyleSheets.concat(sheets))];
+      }
+    }
+    // attr/prop/emitter 定义在为了适配 js 只能在这里定义
+    // 如果只支持 ts，则在装饰器中将他们定义在 `prototype` 上是否有性能提升？
+    // css state 在装饰器中定义，js 不支持 `defineCSSStates`
     if (observedAttributes) {
       observedAttributes.forEach((attr) => {
-        const prop = kebabToCamelCase(attr);
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore
-        if (typeof this[prop] === 'function') {
-          throw new GemError(`Don't use attribute with the same name as native methods`);
-        }
-        // Native attribute，no need difine property
-        // e.g: `id`, `title`, `hidden`, `alt`, `lang`
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore
-        if (this[prop] !== undefined) {
-          // 所以 `prop` 不能是方法
-          return;
-        }
-        // !!! Custom property shortcut access only supports `string` type
-        Object.defineProperty(this, prop, {
-          configurable: true,
-          get() {
-            const that = this as BaseElement;
-            const value = that.getAttribute(attr);
-            if (booleanAttributes?.has(prop)) {
-              return value === null ? false : true;
-            }
-            if (numberAttributes?.has(prop)) {
-              return Number(value);
-            }
-            // Return empty string if attribute does not exist
-            return this.getAttribute(attr) || '';
-          },
-          set(v: string | null | undefined | number | boolean) {
-            const isBool = booleanAttributes?.has(prop);
-            if (v === null || v === undefined || (isBool && !v)) {
-              this.removeAttribute(attr);
-            } else if (isBool && v) {
-              this.setAttribute(attr, '');
-            } else {
-              this.setAttribute(attr, v);
-            }
-          },
-        });
+        this.__connectAttrbute(attr, new.target);
       });
     }
     if (observedPropertys) {
@@ -142,14 +110,6 @@ export abstract class BaseElement<T = Record<string, unknown>> extends HTMLEleme
         // @ts-ignore
         this[event] = emptyFunction;
       });
-    }
-    if (adoptedStyleSheets) {
-      const sheets = adoptedStyleSheets.map((item) => item[SheetToken]);
-      if (this.shadowRoot) {
-        this.shadowRoot.adoptedStyleSheets = sheets;
-      } else {
-        document.adoptedStyleSheets = [...new Set(document.adoptedStyleSheets.concat(sheets))];
-      }
     }
   }
 
@@ -169,16 +129,55 @@ export abstract class BaseElement<T = Record<string, unknown>> extends HTMLEleme
     return this.__internals;
   }
 
+  /**@final */
+  __connectAttrbute(attr: string, target: typeof BaseElement) {
+    const { booleanAttributes, numberAttributes } = target;
+    const prop = kebabToCamelCase(attr);
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
+    if (typeof this[prop] === 'function') {
+      throw new GemError(`Don't use attribute with the same name as native methods`);
+    }
+    // Native attribute，no need difine property
+    // e.g: `id`, `title`, `hidden`, `alt`, `lang`
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
+    if (this[prop] !== undefined) {
+      // 所以 `prop` 不能是方法
+      return;
+    }
+    // !!! Custom property shortcut access only supports `string` type
+    Object.defineProperty(this, prop, {
+      configurable: true,
+      get() {
+        const that = this as BaseElement;
+        const value = that.getAttribute(attr);
+        if (booleanAttributes?.has(prop)) {
+          return value === null ? false : true;
+        }
+        if (numberAttributes?.has(prop)) {
+          return Number(value);
+        }
+        // Return empty string if attribute does not exist
+        return this.getAttribute(attr) || '';
+      },
+      set(v: string | null | undefined | number | boolean) {
+        const isBool = booleanAttributes?.has(prop);
+        if (v === null || v === undefined || (isBool && !v)) {
+          this.removeAttribute(attr);
+        } else if (isBool && v) {
+          this.setAttribute(attr, '');
+        } else {
+          this.setAttribute(attr, v);
+        }
+      },
+    });
+  }
+
   /**
    * @final
-   * 和 `attr` 不一样，只有等 `lit-html` 在已经初始化的元素上设置 `prop` 后才能访问
-   * 所以能在类字段中直接访问 `attr` 而不能访问 `prop`
-   * @example
-   * class TempGem extends GemElement {
-   *   static observedPropertys = ['prop'];
-   *   test = expect(this.prop).to.equal(undefined);
-   * }
-   * // <temp-gem .prop=${{a: 1}}></temp-gem>
+   * 和 `attr` 不一样，只有等 `lit-html` 在已经初始化的元素上设置 `prop` 的值后才能访问模版上的值
+   * 即能在类字段（执行在构造函数之后）中直接访问到模版上的 `attr` 而不能访问到 `prop`
    * */
   __connectProperty(prop: string, isEventHandle = false) {
     if (prop in this) return;

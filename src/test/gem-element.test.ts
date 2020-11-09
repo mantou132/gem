@@ -15,8 +15,13 @@ import {
   emitter,
   boolattribute,
   numattribute,
+  Emitter,
+  part,
+  RefObject,
+  refobject,
+  slot,
+  state,
 } from '..';
-import { Emitter } from '../lib/decorators';
 
 const store = createStore({
   a: 1,
@@ -65,6 +70,10 @@ class DecoratorGemElement extends GemElement {
   @boolattribute disabled: boolean;
   @numattribute count: number;
   @property prop = { value: '' };
+  @state open: boolean;
+  @part header: string;
+  @refobject inputRef: RefObject<HTMLElement>;
+  @slot body: string;
   renderCount = 0;
   render() {
     this.renderCount++;
@@ -207,6 +216,16 @@ describe('基本 gem element 测试', () => {
         count="2"
       ></decorator-gem-demo>
     `);
+    expect(DecoratorGemElement.observedAttributes).to.eql(['attr', 'disabled', 'count']);
+    expect(DecoratorGemElement.numberAttributes).to.eql(new Set(['count']));
+    expect(DecoratorGemElement.booleanAttributes).to.eql(new Set(['disabled']));
+    expect(DecoratorGemElement.observedPropertys).to.eql(['prop']);
+    expect(DecoratorGemElement.observedStores?.length).to.equal(1);
+    expect(DecoratorGemElement.defineEvents?.length).to.equal(1);
+    expect(DecoratorGemElement.defineCSSStates).to.eql(['open']);
+    expect(DecoratorGemElement.defineParts).to.eql(['header']);
+    expect(DecoratorGemElement.defineRefs).to.eql(['inputRef']);
+    expect(DecoratorGemElement.defineSlots).to.eql(['body']);
     expect(el.attr).to.equal('attr');
     expect(el.disabled).to.equal(true);
     expect(el.count).to.equal(2);
