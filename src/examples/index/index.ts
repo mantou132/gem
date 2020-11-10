@@ -1,4 +1,4 @@
-import { GemElement, html, customElement } from '../..';
+import { GemElement, html, customElement, version } from '../..';
 
 const getGitPageUrl = (name: string) => `../${name}/`;
 
@@ -9,7 +9,7 @@ class App extends GemElement {
     return html`
       <dl>
         <dt>version:</dt>
-        <dd>${process.env.npm_package_version}</dd>
+        <dd>${version}</dd>
         ${examples.map(
           (name) => html`
             <dt>${name}:</dt>

@@ -1,5 +1,5 @@
 import { expect, aTimeout } from '@open-wc/testing';
-import { history } from '..';
+import { history } from '../lib/history';
 
 describe('history 测试', () => {
   it('hash', async () => {

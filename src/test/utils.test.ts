@@ -10,7 +10,7 @@ import {
   styleMap,
   classMap,
   absoluteLocation,
-} from '..';
+} from '../lib/utils';
 
 describe('utils 测试', () => {
   it('absoluteLocation', () => {

@@ -1,5 +1,5 @@
 import { expect, aTimeout } from '@open-wc/testing';
-import { StoreListenerMap, createStore, createStoreSet, updateStore, connect, disconnect } from '..';
+import { StoreListenerMap, createStore, createStoreSet, updateStore, connect, disconnect } from '../lib/store';
 
 describe('store 测试', () => {
   it('create store', () => {

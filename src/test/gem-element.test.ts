@@ -1,12 +1,8 @@
 import { fixture, expect, nextFrame } from '@open-wc/testing';
+import { AsyncGemElement, GemElement, html } from '../lib/element';
+import { createStore, updateStore } from '../lib/store';
+import { createCSSSheet, css } from '../lib/utils';
 import {
-  AsyncGemElement,
-  GemElement,
-  html,
-  createStore,
-  updateStore,
-  createCSSSheet,
-  css,
   attribute,
   property,
   customElement,
@@ -21,7 +17,7 @@ import {
   refobject,
   slot,
   state,
-} from '..';
+} from '../lib/decorators';
 
 const store = createStore({
   a: 1,

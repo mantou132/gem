@@ -33,7 +33,7 @@ module.exports = {
     new HtmlWebpackPlugin(),
     {
       apply(compiler) {
-        compiler.hooks.done.tapAsync('MyCustomPlugin', function(_compiler, callback) {
+        compiler.hooks.done.tapAsync('MyCustomPlugin', function (_compiler, callback) {
           if (!process.env.NAME) setTimeout(() => console.log(`\n${tip}`));
           callback();
         });
