@@ -11,7 +11,7 @@ import { GemElement, html, attribute, property, customElement } from '../';
  * @attr selector
  */
 @customElement('gem-use')
-export class Use extends GemElement {
+export class GemUseElement extends GemElement {
   @attribute selector: string; // CSS 选择器
   @property root: HTMLElement | Document | ShadowRoot = document;
 

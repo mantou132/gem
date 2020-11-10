@@ -1,6 +1,6 @@
 import { GemElement, html, customElement, refobject, RefObject } from '../../';
-import createModalClass from '../../elements/modal-base';
-import DialogBase from '../../elements/dialog-base';
+import { createModalClass } from '../../elements/modal-base';
+import { DialogBase } from '../../elements/dialog-base';
 import '../../elements/link';
 
 @customElement('app-confirm')

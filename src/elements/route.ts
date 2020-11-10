@@ -99,13 +99,13 @@ export function createHistoryParams(route: RouteItem, options?: RouteOptions): U
  */
 @connectStore(history.store)
 @customElement('gem-route')
-export class Route extends GemElement {
+export class GemRouteElement extends GemElement {
   static currentRoute: RouteItem | null;
 
   // 获取当前匹配的路由的 params
   static getParams() {
-    if (Route.currentRoute) {
-      return getParams(Route.currentRoute.pattern, history.getParams().path);
+    if (GemRouteElement.currentRoute) {
+      return getParams(GemRouteElement.currentRoute.pattern, history.getParams().path);
     }
   }
 
@@ -124,8 +124,12 @@ export class Route extends GemElement {
   }
   initPage() {
     // 路径更新后可能发起第二次更新，更新 `document.title`
-    if (Route.currentRoute && Route.currentRoute.title && Route.currentRoute.title !== history.getParams().title) {
-      history.updateParams({ title: Route.currentRoute.title });
+    if (
+      GemRouteElement.currentRoute &&
+      GemRouteElement.currentRoute.title &&
+      GemRouteElement.currentRoute.title !== history.getParams().title
+    ) {
+      history.updateParams({ title: GemRouteElement.currentRoute.title });
     }
   }
 
@@ -147,12 +151,12 @@ export class Route extends GemElement {
 
   updated() {
     this.initPage();
-    this.change(Route.currentRoute);
+    this.change(GemRouteElement.currentRoute);
   }
 
   render() {
     if (!this.routes) return this.callback();
-    Route.currentRoute = null;
+    GemRouteElement.currentRoute = null;
 
     let defaultRoute: RouteItem | null = null;
     let routes: RouteItem[];
@@ -167,18 +171,18 @@ export class Route extends GemElement {
       if ('*' === pattern) {
         defaultRoute = item;
       } else if (isMatch(pattern, history.getParams().path)) {
-        Route.currentRoute = item;
+        GemRouteElement.currentRoute = item;
         break;
       }
     }
 
-    if (!Route.currentRoute) {
-      Route.currentRoute = defaultRoute;
+    if (!GemRouteElement.currentRoute) {
+      GemRouteElement.currentRoute = defaultRoute;
     }
 
-    if (!Route.currentRoute) return this.callback();
-    if (Route.currentRoute.redirect) {
-      history.replace({ path: Route.currentRoute.redirect });
+    if (!GemRouteElement.currentRoute) return this.callback();
+    if (GemRouteElement.currentRoute.redirect) {
+      history.replace({ path: GemRouteElement.currentRoute.redirect });
       // 不要渲染空内容，等待重定向结果
       return undefined;
     }
@@ -188,12 +192,12 @@ export class Route extends GemElement {
           display: contents;
         }
       </style>
-      ${Route.currentRoute.content}
+      ${GemRouteElement.currentRoute.content}
     `;
   }
 
   callback() {
-    Route.currentRoute = null;
+    GemRouteElement.currentRoute = null;
     return html``;
   }
 }

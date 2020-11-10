@@ -27,7 +27,7 @@ import { isMatch, RouteItem, RouteOptions, createHistoryParams, createPath } fro
  */
 @customElement('gem-link')
 @connectStore(basePathStore)
-export class Link extends GemElement {
+export class GemLinkElement extends GemElement {
   @attribute href: string;
   @attribute path: string;
   @attribute query: string;
@@ -146,7 +146,7 @@ export class Link extends GemElement {
  */
 @customElement('gem-active-link')
 @connectStore(history.store)
-export class ActiveLink extends Link {
+export class GemActiveLinkElement extends GemLinkElement {
   @attribute pattern: string; // 使用匹配模式设定 active
   @state active: boolean;
 

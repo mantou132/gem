@@ -1,5 +1,5 @@
 import { GemElement, html, history } from '../../';
-import { createHistoryParams, Route } from '../../elements/route';
+import { createHistoryParams, GemRouteElement } from '../../elements/route';
 import '../../elements/link';
 
 const routes = {
@@ -51,7 +51,7 @@ const routes = {
 
 class App extends GemElement {
   onclick = () => {
-    if (Route.currentRoute === routes.home) {
+    if (GemRouteElement.currentRoute === routes.home) {
       history.push(createHistoryParams(routes.a, { params: { b: String(Date.now()) } }));
     } else {
       history.push(createHistoryParams(routes.home));

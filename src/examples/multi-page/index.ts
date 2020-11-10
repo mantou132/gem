@@ -1,5 +1,5 @@
 import { GemElement, html, css } from '../../';
-import { Title } from '../../elements/title';
+import { GemTitleElement } from '../../elements/title';
 import '../../elements/link';
 import '../../elements/route';
 
@@ -52,7 +52,7 @@ class App extends GemElement {
           text-decoration: underline;
         }
       </style>
-      <header><gem-title suffix=${Title.defaultSuffix}>AppName</gem-title></header>
+      <header><gem-title suffix=${GemTitleElement.defaultSuffix}>AppName</gem-title></header>
       <nav>
         <gem-link path="/">Home</gem-link>
         <gem-link path="/a">PageA</gem-link>

@@ -22,7 +22,7 @@ import { html, GemElement, history, connectStore, customElement, connect, attrib
  */
 @connectStore(history.store)
 @customElement('gem-title')
-export class Title extends GemElement {
+export class GemTitleElement extends GemElement {
   // 没有后缀的标题
   static title = document.title;
   static defaultTitle = document.title;
@@ -35,15 +35,15 @@ export class Title extends GemElement {
 
   static updateTitle(str = '', suffix = '') {
     const { title } = history.getParams();
-    if (title && title !== Title.defaultTitle) {
-      Title.title = title;
-      document.title = Title.title + suffix;
+    if (title && title !== GemTitleElement.defaultTitle) {
+      GemTitleElement.title = title;
+      document.title = GemTitleElement.title + suffix;
     } else if (str) {
-      Title.title = str;
-      document.title = Title.title + suffix;
+      GemTitleElement.title = str;
+      document.title = GemTitleElement.title + suffix;
     } else {
-      Title.title = Title.defaultTitle;
-      document.title = Title.title;
+      GemTitleElement.title = GemTitleElement.defaultTitle;
+      document.title = GemTitleElement.title;
     }
   }
 
@@ -51,13 +51,13 @@ export class Title extends GemElement {
 
   render() {
     // 多个 <gem-title> 时，最终 document.title 按执行顺序决定
-    Title.updateTitle(this.textContent || '', this.suffix);
+    GemTitleElement.updateTitle(this.textContent || '', this.suffix);
 
     if (this.hidden) {
       return html``;
     }
-    return html`${Title.title}`;
+    return html`${GemTitleElement.title}`;
   }
 }
 
-connect(history.store, Title.updateTitle);
+connect(history.store, GemTitleElement.updateTitle);

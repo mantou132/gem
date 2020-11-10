@@ -8,7 +8,7 @@ import { GemElement, customElement, property } from '..';
  * @customElement gem-reflect
  */
 @customElement('gem-reflect')
-export class Meta extends GemElement {
+export class GemReflectElement extends GemElement {
   @property target: HTMLElement = document.head;
 
   constructor() {

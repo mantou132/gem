@@ -8,7 +8,7 @@ import { GemElement, attribute, customElement } from '../';
  * @attr contentcss
  */
 @customElement('gem-unsafe')
-export class Use extends GemElement {
+export class GemUnsafeElement extends GemElement {
   @attribute content = '';
   @attribute contentcss = '';
 
