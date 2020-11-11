@@ -22,4 +22,4 @@ export * from './lib/element';
 export * from './lib/decorators';
 export * from './lib/utils';
 
-export * from './version';
+export * from './lib/version';

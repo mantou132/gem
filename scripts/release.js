@@ -1,6 +1,6 @@
 const { writeFileSync } = require('fs');
 const { resolve: pathResolve } = require('path');
-const { execSync } = require('child_process');
+const { spawn } = require('child_process');
 const semver = require('semver');
 const inquirer = require('inquirer');
 
@@ -14,18 +14,23 @@ const writeFile = (path, content) => {
   );
 };
 
+const exec = (command) => {
+  const [program, ...args] = command.split(/\s+/);
+  spawn(program, args, { stdio: 'inherit' });
+};
+
 const main = (version) => {
   pkg.version = version;
   writeFile('../package.json', pkg);
   pkgLock.version = version;
   writeFile('../package-lock.json', pkgLock);
-  writeFile('../src/version.ts', `// Do not modify manually\nexport const version = '${version}';\n`);
-  execSync('npm run lint');
-  execSync(`git commit -a -m 'Update to ${version}'`);
-  execSync('git push');
-  execSync(`git tag ${version}`);
-  execSync('git push --tags');
-  execSync('npx release');
+  writeFile('../src/lib/version.ts', `// Do not modify manually\nexport const version = '${version}';\n`);
+  exec('npm run lint');
+  exec(`git commit -a -m 'Update to ${version}'`);
+  exec('git push');
+  exec(`git tag ${version}`);
+  exec('git push --tags');
+  exec('npx release');
 };
 
 const arg = process.argv[2];
