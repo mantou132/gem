@@ -1,6 +1,6 @@
 const { writeFileSync } = require('fs');
 const { resolve: pathResolve } = require('path');
-const { spawn } = require('child_process');
+const { spawnSync } = require('child_process');
 const semver = require('semver');
 const inquirer = require('inquirer');
 
@@ -14,9 +14,10 @@ const writeFile = (path, content) => {
   );
 };
 
+// Parameter does not support string
 const exec = (command) => {
   const [program, ...args] = command.split(/\s+/);
-  spawn(program, args, { stdio: 'inherit' });
+  spawnSync(program, args, { stdio: 'inherit' });
 };
 
 const main = (version) => {
@@ -26,7 +27,7 @@ const main = (version) => {
   writeFile('../package-lock.json', pkgLock);
   writeFile('../src/lib/version.ts', `// Do not modify manually\nexport const version = '${version}';\n`);
   exec('npm run lint');
-  exec(`git commit -a -m 'Update to ${version}'`);
+  exec(`git commit -a -m ${version}`);
   exec('git push');
   exec(`git tag ${version}`);
   exec('git push --tags');
