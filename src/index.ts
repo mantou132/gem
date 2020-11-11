@@ -1,8 +1,7 @@
 import { updateStore } from './lib/store';
-import { version } from './manifest.json';
+import * as Gem from './';
 
 export interface DevToolsHook {
-  version: string;
   updateStore: typeof updateStore;
 }
 
@@ -14,10 +13,7 @@ declare global {
 
 if (window.__GEM_DEVTOOLS__HOOK__) {
   // 不支持多个 gem
-  Object.assign<DevToolsHook, DevToolsHook>(window.__GEM_DEVTOOLS__HOOK__, {
-    version,
-    updateStore,
-  });
+  Object.assign(window.__GEM_DEVTOOLS__HOOK__, { ...Gem });
 }
 
 export * from './lib/store';
@@ -26,4 +22,4 @@ export * from './lib/element';
 export * from './lib/decorators';
 export * from './lib/utils';
 
-export { version } from './manifest.json';
+export * from './version';
