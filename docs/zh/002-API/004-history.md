@@ -1,5 +1,7 @@
 # History
 
+Gem 导出一个 `history` 对象，它扩展了 [History API](https://developer.mozilla.org/en-US/docs/Web/API/History).
+
 | 属性                    | 描述                                        |
 | ----------------------- | ------------------------------------------- |
 | `store`                 | 维护历史记录的 `Store`                      |

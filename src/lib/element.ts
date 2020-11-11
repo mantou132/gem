@@ -4,7 +4,7 @@ import { html, render, TemplateResult } from 'lit-html';
 import { connect, disconnect, Store } from './store';
 import { Pool, addMicrotask, Sheet, SheetToken, kebabToCamelCase, isArrayChange, GemError } from './utils';
 
-export { html, svg, render, directive, TemplateResult } from 'lit-html';
+export { html, svg, render, directive, TemplateResult, SVGTemplateResult } from 'lit-html';
 export { repeat } from 'lit-html/directives/repeat';
 
 // https://github.com/Polymer/lit-html/issues/1048
@@ -30,7 +30,8 @@ type GetDepFun<T> = () => T;
 type EffectItem<T> = { callback: (arg: T) => void; values: T; getDep: GetDepFun<T>; initialized: boolean };
 
 // final 字段如果使用 symbol 或者 private 将导致 modal-base 生成匿名子类 declaration 失败
-export abstract class BaseElement<T = Record<string, unknown>> extends HTMLElement {
+// gem 元素如果设置 attr 默认值，那么 `cloneNode` 的 attr 始终等于默认值 https://github.com/whatwg/dom/issues/922
+export abstract class GemBaseElement<T = Record<string, unknown>> extends HTMLElement {
   // 这里只是字段申明，不能赋值，否则子类会继承被共享该字段
   static observedAttributes?: string[]; // WebAPI 中是实时检查这个列表
   static booleanAttributes?: Set<string>;
@@ -83,7 +84,7 @@ export abstract class BaseElement<T = Record<string, unknown>> extends HTMLEleme
     this.__renderRoot = shadow ? this.attachShadow({ mode: 'open' }) : this;
     const { observedAttributes, observedPropertys, defineEvents, adoptedStyleSheets } = new.target;
     if (adoptedStyleSheets) {
-      const sheets = adoptedStyleSheets.map((item) => item[SheetToken]);
+      const sheets = adoptedStyleSheets.map((item) => item[SheetToken] || item);
       if (this.shadowRoot) {
         this.shadowRoot.adoptedStyleSheets = sheets;
       } else {
@@ -130,7 +131,7 @@ export abstract class BaseElement<T = Record<string, unknown>> extends HTMLEleme
   }
 
   /**@final */
-  __connectAttrbute(attr: string, target: typeof BaseElement) {
+  __connectAttrbute(attr: string, target: typeof GemBaseElement) {
     const { booleanAttributes, numberAttributes } = target;
     const prop = kebabToCamelCase(attr);
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -150,7 +151,7 @@ export abstract class BaseElement<T = Record<string, unknown>> extends HTMLEleme
     Object.defineProperty(this, prop, {
       configurable: true,
       get() {
-        const that = this as BaseElement;
+        const that = this as GemBaseElement;
         const value = that.getAttribute(attr);
         if (booleanAttributes?.has(prop)) {
           return value === null ? false : true;
@@ -337,7 +338,7 @@ export abstract class BaseElement<T = Record<string, unknown>> extends HTMLEleme
 
   /**@final */
   __connectedCallback() {
-    const { observedStores } = this.constructor as typeof BaseElement;
+    const { observedStores } = this.constructor as typeof GemBaseElement;
     if (observedStores) {
       observedStores.forEach((store) => {
         connect(store, this.__update);
@@ -358,7 +359,7 @@ export abstract class BaseElement<T = Record<string, unknown>> extends HTMLEleme
   /**@final */
   disconnectedCallback() {
     this.__isMounted = false;
-    const { observedStores } = this.constructor as typeof BaseElement;
+    const { observedStores } = this.constructor as typeof GemBaseElement;
     if (observedStores) {
       observedStores.forEach((store) => {
         disconnect(store, this.__update);
@@ -369,7 +370,7 @@ export abstract class BaseElement<T = Record<string, unknown>> extends HTMLEleme
   }
 }
 
-export abstract class GemElement<T = Record<string, unknown>> extends BaseElement<T> {
+export abstract class GemElement<T = Record<string, unknown>> extends GemBaseElement<T> {
   /**@private */
   /**@final */
   connectedCallback() {
@@ -404,7 +405,7 @@ renderTaskPool.addEventListener('start', () => {
 });
 renderTaskPool.addEventListener('end', () => (loop = false));
 
-export abstract class AsyncGemElement<T = Record<string, unknown>> extends BaseElement<T> {
+export abstract class AsyncGemElement<T = Record<string, unknown>> extends GemBaseElement<T> {
   /**@final */
   __update() {
     renderTaskPool.add(() => {

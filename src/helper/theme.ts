@@ -33,7 +33,7 @@ export function createTheme<T extends Record<string, unknown>>(themeObj: T, medi
   const replace = () => replaceStyle(salt, style, theme, media);
   connect(theme, replace);
   replace();
-  document.head.append(style);
+  (document.head || document.documentElement).append(style);
   const themeVarSet: { [index: string]: string } = {};
   map.set(themeVarSet, theme);
   Object.keys(theme).forEach((key) => {

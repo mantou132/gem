@@ -1,5 +1,7 @@
 # History
 
+Gem exports a `history` object, which extends [History API](https://developer.mozilla.org/en-US/docs/Web/API/History).
+
 | property                | description                                                       |
 | ----------------------- | ----------------------------------------------------------------- |
 | `store`                 | `Store` to maintain history                                       |

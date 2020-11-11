@@ -4,6 +4,26 @@ Gem is a lightweight framework that uses modern WebComponents technology to buil
 
 Before learning Gem, Hope you have a certain understanding of [WebComponents](https://developer.mozilla.org/en-US/docs/Web/Web_Components) technology.
 
+## Installation
+
+use npm:
+
+```bash
+npm install @mantou/gem
+```
+
+or use ES modules:
+
+```js
+import * as Gem from 'https://dev.jspm.io/@mantou/gem';
+```
+
+or use Unpkg：
+
+```html
+<script src="https://unpkg.com/@mantou/gem/umd.js"></script>
+```
+
 ## Start
 
 ```html

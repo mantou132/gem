@@ -4,7 +4,7 @@ import { GemElement, connectStore, history, state } from '..';
  * 在模版中声明的 dialog，使用 `open` 方法 打开
  */
 @connectStore(history.store)
-export abstract class DialogBase extends GemElement {
+export abstract class DialogBaseElement extends GemElement {
   @state opened = false;
 
   /**

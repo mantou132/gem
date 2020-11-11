@@ -8,6 +8,26 @@ Gem 是一套使用现代 WebComponents 技术构建 WebApp 的轻量级框架�
 在学习 Gem 之前，
 希望你对 [WebComponents](https://developer.mozilla.org/en-US/docs/Web/Web_Components) 技术有一定的了解。
 
+## 安装
+
+使用 npm：
+
+```bash
+npm install @mantou/gem
+```
+
+或者使用 ES modules：
+
+```js
+import * as Gem from 'https://dev.jspm.io/@mantou/gem';
+```
+
+或者使用 Unpkg：
+
+```html
+<script src="https://unpkg.com/@mantou/gem/umd.js"></script>
+```
+
 ## 开始
 
 ```html

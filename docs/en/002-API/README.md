@@ -22,6 +22,8 @@ GemElement<State>
 
 [1]: https://developer.mozilla.org/en-US/docs/Web/API/DocumentOrShadowRoot/adoptedStyleSheets
 
+_Please use [decorator](./007-decorator) in TypeScript_
+
 ## Lifecycle hook
 
 | name           | description                                                                               |

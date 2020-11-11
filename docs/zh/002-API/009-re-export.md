@@ -7,8 +7,10 @@ Gem 依赖 [`lit-html`](https://github.com/Polymer/lit-html)，部分 API 被 Ge
 | `html`      | 模版字符串标签，用于创建 HTML lit-html 模版 |
 | `svg`       | 模版字符串标签，用于创建 SVG lit-html 模版  |
 | `render`    | 挂载 lit-html 模版到 DOM                    |
-| `repeat`    | 优化 lit-html 列表渲染指令                  |
 | `directive` | 自定义 lit-html 模版渲染指令                |
+| `repeat`    | 优化 lit-html 列表渲染指令                  |
+| `guard`     | 阻止重新渲染模版的指令                      |
+| `ifDefined` | 如果值为为定义，则移除 Attribute 的指令     |
 
 其他 API 和指令可以从 lit-html 中导入：
 

@@ -1,6 +1,6 @@
 import { GemElement, html, customElement, refobject, RefObject } from '../../';
 import { createModalClass } from '../../elements/modal-base';
-import { DialogBase } from '../../elements/dialog-base';
+import { DialogBaseElement } from '../../elements/dialog-base';
 import '../../elements/link';
 
 @customElement('app-confirm')
@@ -47,7 +47,7 @@ class Confirm extends createModalClass({
 }
 
 @customElement('app-dialog')
-class Dialog extends DialogBase {
+class Dialog extends DialogBaseElement {
   shouldClose = () => {
     if (this.opened) {
       Confirm.open({
