@@ -16,6 +16,7 @@ declare global {
   interface ElementInternals {
     states: DOMTokenList;
   }
+  /**@attr ref */
   interface HTMLElement {
     attachInternals?: () => ElementInternals;
   }

@@ -11,6 +11,8 @@ import { Sheet, camelToKebabCase } from './utils';
 export type RefObject<T = GemBaseElement> = { ref: string; element: T | null };
 
 /**
+ * 引用元素，只有第一个标记 ref 的元素有效
+ *
  * For example
  * ```ts
  *  class App extends GemElement {
