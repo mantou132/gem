@@ -1,5 +1,5 @@
 import { GemElement, html } from '../../';
-import { createTheme, updateTheme } from '../../helper/theme';
+import { createTheme, getThemeStore, updateTheme } from '../../helper/theme';
 import { mediaQuery } from '../../helper/mediaquery';
 
 const theme = createTheme({
@@ -8,12 +8,11 @@ const theme = createTheme({
   primaryColor: '#eee',
 });
 
-const printTheme = createTheme(
-  {
-    primaryColor: 'yellow',
-  },
-  mediaQuery.PRINT,
-);
+const themeStore = getThemeStore(theme);
+
+const printTheme = createTheme({
+  primaryColor: 'yellow',
+});
 
 document.onclick = () => {
   updateTheme(theme, {
@@ -25,15 +24,21 @@ document.onclick = () => {
 };
 
 class App extends GemElement {
+  static observedStores = [themeStore];
   render() {
     return html`
       <style>
         div {
           color: rgba(${theme.color}, 0.5);
-          background-color: ${theme.primaryColor};
+          border: 2px solid ${theme.primaryColor};
+        }
+        @media ${mediaQuery.PRINT} {
+          div {
+            border: 2px solid ${printTheme.primaryColor};
+          }
         }
       </style>
-      <div>hello world!</div>
+      <div>color: ${themeStore.primaryColor}</div>
     `;
   }
 }
