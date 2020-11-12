@@ -154,17 +154,17 @@ export abstract class GemBaseElement<T = Record<string, unknown>> extends HTMLEl
       get() {
         const that = this as GemBaseElement;
         const value = that.getAttribute(attr);
-        if (booleanAttributes?.has(prop)) {
+        if (booleanAttributes?.has(attr)) {
           return value === null ? false : true;
         }
-        if (numberAttributes?.has(prop)) {
+        if (numberAttributes?.has(attr)) {
           return Number(value);
         }
         // Return empty string if attribute does not exist
         return this.getAttribute(attr) || '';
       },
       set(v: string | null | undefined | number | boolean) {
-        const isBool = booleanAttributes?.has(prop);
+        const isBool = booleanAttributes?.has(attr);
         if (v === null || v === undefined || (isBool && !v)) {
           this.removeAttribute(attr);
         } else if (isBool && v) {

@@ -63,8 +63,11 @@ customElements.define('gem-demo', GemDemo);
 class DecoratorGemElement extends GemElement {
   @emitter hi: Emitter;
   @attribute attr: string;
+  @attribute rankAttr: string;
   @boolattribute disabled: boolean;
+  @boolattribute rankDisabled: boolean;
   @numattribute count: number;
+  @numattribute rankCount: number;
   @property prop = { value: '' };
   @state open: boolean;
   @part header: string;
@@ -206,15 +209,25 @@ describe('基本 gem element 测试', () => {
     const el: DecoratorGemElement = await fixture(html`
       <decorator-gem-demo
         @hi=${(e: CustomEvent) => (a = e.detail)}
-        attr="attr"
         .prop=${{ value: 'prop' }}
+        attr="attr"
+        rank-attr="attr"
         disabled
+        rank-disabled
         count="2"
+        rank-count="2"
       ></decorator-gem-demo>
     `);
-    expect(DecoratorGemElement.observedAttributes).to.eql(['attr', 'disabled', 'count']);
-    expect(DecoratorGemElement.numberAttributes).to.eql(new Set(['count']));
-    expect(DecoratorGemElement.booleanAttributes).to.eql(new Set(['disabled']));
+    expect(DecoratorGemElement.observedAttributes).to.eql([
+      'attr',
+      'rank-attr',
+      'disabled',
+      'rank-disabled',
+      'count',
+      'rank-count',
+    ]);
+    expect(DecoratorGemElement.booleanAttributes).to.eql(new Set(['disabled', 'rank-disabled']));
+    expect(DecoratorGemElement.numberAttributes).to.eql(new Set(['count', 'rank-count']));
     expect(DecoratorGemElement.observedPropertys).to.eql(['prop']);
     expect(DecoratorGemElement.observedStores?.length).to.equal(1);
     expect(DecoratorGemElement.defineEvents?.length).to.equal(1);
@@ -223,8 +236,11 @@ describe('基本 gem element 测试', () => {
     expect(DecoratorGemElement.defineRefs).to.eql(['inputRef']);
     expect(DecoratorGemElement.defineSlots).to.eql(['body']);
     expect(el.attr).to.equal('attr');
+    expect(el.rankAttr).to.equal('attr');
     expect(el.disabled).to.equal(true);
+    expect(el.rankDisabled).to.equal(true);
     expect(el.count).to.equal(2);
+    expect(el.rankCount).to.equal(2);
     expect(el.prop).to.eql({ value: 'prop' });
     expect(el).shadowDom.to.equal('attr: attr, disabled: true, count: 2, prop: prop');
     updateStore(store, { a: 3 });
