@@ -43,3 +43,28 @@ const profiles = createStore({ ... });
 ```
 
 甚至，你可以将 `Store` 和元素定义在一起。
+
+## 例子
+
+在元素的生命周期中可以很方便的监听 `visibilitychange` 事件，然后在该事件的回调中来切换元素的状态，比如进入节能模式。
+如果这个逻辑需要在很多元素中共享使用时，你可以使用 `Store` 轻松完成这个工作。
+
+```js
+// 省略导入...
+
+const isSavingMode = () => document.visibilityState !== 'visible';
+
+const store = createStore({ savingMode: isSavingMode() });
+
+document.addEventListener('visibilitychange', () => {
+  updateStore({ savingMode: isSavingMode() });
+});
+
+@customElement('hello-world')
+@connectStore(store)
+class HelloWorld extends GemElement {
+  render() {
+    return html`${store.savingMode}`;
+  }
+}
+```

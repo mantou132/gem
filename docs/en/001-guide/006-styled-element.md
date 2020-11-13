@@ -1,6 +1,6 @@
 # Stylized elements
 
-Because of the use of ShadowDOM, there is no longer a need for [CSS Modules](https://css-tricks.com/css-modules-part-3-react/) similar solutions, in addition, browser compatibility has improved in recent years, and vendor private prefixes have also been cancelled. We can use native CSS features to complete daily work.
+Because of the use of ShadowDOM, there is no longer a need for [CSS Modules](https://css-tricks.com/css-modules-part-3-react/) similar solutions, in addition, browser compatibility has improved in recent years, and vendor private prefixes have also been cancelled. Can use native CSS features to complete daily work.
 
 _[Nesting CSS](https://drafts.csswg.org/css-nesting-1/) is still a feature worth looking forward to._
 

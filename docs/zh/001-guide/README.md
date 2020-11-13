@@ -6,7 +6,7 @@ navTitle: 指南
 # 反应性元素
 
 当你想要创建一个反应性的 WebApp 时，
-你需要元素能对不同的输入（attribute/property/store）做出反应（重新渲染）。
+你需要元素能对不同的输入（attribute/property/[store](./003-global-state-management)）做出反应（重新渲染）。
 
 ## 定义
 
@@ -35,10 +35,13 @@ class HelloWorld extends GemElement {
 class HelloWorld extends GemElement {
   static observedPropertys = ['data'];
   static observedStores = [store];
+  render() {
+    return html`${this.data.id} ${store.name}`;
+  }
 }
 ```
 
-_不要在元素 `constructor` 以外的地方修改 prop/attr，他们应该由父元素单向传递进来_
+_不要在元素 `constructor` 以外的地方修改 prop/attr，他们应该由父元素单向传递进来，就像原生元素一样_
 
 另外 `GemElement` 提供了类似 React 的 `state`/`setState` API 来管理元素自身的状态，
 每当调用 `setState` 时触发元素重新渲染：
@@ -47,12 +50,17 @@ _不要在元素 `constructor` 以外的地方修改 prop/attr，他们应该由
 // 省略导入...
 
 class HelloWorld extends GemElement {
-  state = { a: 1 };
+  state = { id: 1 };
   clicked() {
-    this.setState({ a: 2 });
+    this.setState({ id: 2 });
+  }
+  render() {
+    return html`${this.state.id}`;
   }
 }
 ```
+
+_`GemElement` 扩展自 [`HTMLElement`](https://developer.mozilla.org/en-US/docs/Web/API/HTMLElement)，不要覆盖 `HTMLElement` 的 attribute/property/method/event，此外，定义默认行为而不要定义默认属性，和 `HTMLElement` 保持一致性_
 
 ## 例子
 

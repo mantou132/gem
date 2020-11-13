@@ -1,8 +1,20 @@
 # 路由
 
 使用 [History API](https://developer.mozilla.org/en-US/docs/Web/API/History) 可以改变 URL，
-Gem 的 `history` 对象维护一个历史记录的 Store: `history.store`，使用 `history` 更新路由时，
+Gem 的 `history` 对象维护一个历史记录的 `Store`: `history.store`，使用 `history` 更新路由时，
 其 `history.store` 将得到更新，进而更新连接 `history.store` 的元素。
+
+```js
+import { GemElement, html, history } from '@mantou/gem';
+
+@customElement('hello-world')
+@connectStore(history.store)
+class App extends GemElement {
+  render() {
+    return html`${history.getParams().path}`;
+  }
+}
+```
 
 Gem 内置元素 `<gem-route>` 和 `<gem-link>` 就是这样工作。
 

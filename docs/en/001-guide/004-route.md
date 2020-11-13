@@ -1,6 +1,18 @@
 # Route
 
-The URL can be changed using the [History API](https://developer.mozilla.org/en-US/docs/Web/API/History), Gem's `history` object maintains a store of history: `history.store`, when using `history` to update the route, its `history.store` will be updated to update the elements connected to `history.store`.
+The URL can be changed using the [History API](https://developer.mozilla.org/en-US/docs/Web/API/History), Gem's `history` object maintains a `Store` of history: `history.store`, when using `history` to update the route, its `history.store` will be updated to update the elements connected to `history.store`.
+
+```js
+import { GemElement, html, history } from '@mantou/gem';
+
+@customElement('hello-world')
+@connectStore(history.store)
+class App extends GemElement {
+  render() {
+    return html`${history.getParams().path}`;
+  }
+}
+```
 
 Gem built-in elements `<gem-route>` and `<gem-link>` work like this.
 

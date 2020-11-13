@@ -5,7 +5,7 @@ navTitle: Guide
 
 # Reactive element
 
-When you want to create a reactive WebApp, you need elements that can react (re-render) to different inputs (attribute/property/store).
+When you want to create a reactive WebApp, you need elements that can react (re-render) to different inputs (attribute/property/[store](./003-global-state-management)).
 
 ## Definition
 
@@ -24,7 +24,7 @@ class HelloWorld extends GemElement {
 
 After the `first-name` attribute is "Observed", he can directly access it through property, and it will automatically convert the kebab-case and camelCase format, when the `first-name` property is changed, the instance element of `HelloWorld` will be re-rendered.
 
-Similar to ʻobservedAttributes`, GemElement also supports ʻobservedPropertys`/ʻobservedStores` to reflect the specified property/store:
+Similar to `observedAttributes`, GemElement also supports `observedPropertys`/`observedStores` to reflect the specified property/store:
 
 ```js
 // Omit import...
@@ -32,10 +32,13 @@ Similar to ʻobservedAttributes`, GemElement also supports ʻobservedPropertys`/
 class HelloWorld extends GemElement {
   static observedPropertys = ['data'];
   static observedStores = [store];
+  render() {
+    return html`${this.data.id} ${store.name}`;
+  }
 }
 ```
 
-_Don't modify prop/attr outside the element `constructor`, they should be passed in one way by the parent element_
+_Don't modify prop/attr outside the element `constructor`, they should be passed in one way by the parent element, just like native elements_
 
 In addition, `GemElement` provides React-like `state`/`setState` API to manage the state of the element itself. an element re-rendered is triggered whenever `setState` is called:
 
@@ -43,12 +46,17 @@ In addition, `GemElement` provides React-like `state`/`setState` API to manage t
 // Omit import...
 
 class HelloWorld extends GemElement {
-  state = { a: 1 };
+  state = { id: 1 };
   clicked() {
-    this.setState({ a: 2 });
+    this.setState({ id: 2 });
+  }
+  render() {
+    return html`${this.state.id}`;
   }
 }
 ```
+
+_`GemElement` extends from [`HTMLElement`](https://developer.mozilla.org/en-US/docs/Web/API/HTMLElement), don’t override the attribute/property/method/event, in addition, define the default behavior instead of the default attribute, which is consistent with `HTMLElement`_
 
 ## Example
 

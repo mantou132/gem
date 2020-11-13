@@ -37,3 +37,28 @@ const profiles = createStore({ ... });
 ```
 
 Of course, you can define `Store` and elements together.
+
+## Examples
+
+In the life cycle of an element, you can easily monitor the `visibilitychange` event, and then switch the state of the element in the callback of the event, such as entering the energy-saving mode.
+If this logic needs to be shared among many elements, you can use `Store` to easily accomplish this job.
+
+```js
+// Omit import...
+
+const isSavingMode = () => document.visibilityState !== 'visible';
+
+const store = createStore({ savingMode: isSavingMode() });
+
+document.addEventListener('visibilitychange', () => {
+  updateStore({ savingMode: isSavingMode() });
+});
+
+@customElement('hello-world')
+@connectStore(store)
+class HelloWorld extends GemElement {
+  render() {
+    return html`${store.savingMode}`;
+  }
+}
+```

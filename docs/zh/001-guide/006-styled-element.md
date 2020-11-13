@@ -2,7 +2,7 @@
 
 由于使用 ShadowDOM，所以不再需要 [CSS Modules](https://css-tricks.com/css-modules-part-3-react/) 类似的方案，
 另外浏览器的兼容性近年来已经好转，供应商私有前缀也纷纷被取消，
-我们可以使用原生 CSS 功能来完成日常工作。
+可以使用原生 CSS 功能来完成日常工作。
 
 _[嵌套 CSS](https://drafts.csswg.org/css-nesting-1/) 仍然是非常值得期待的功能。_
 
