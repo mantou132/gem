@@ -26,6 +26,10 @@ function emptyFunction() {
   // 用于占位的空函数
 }
 
+function execCallback(fun: any) {
+  typeof fun === 'function' && fun();
+}
+
 // global render task pool
 const renderTaskPool = new Pool<() => void>();
 let loop = false;
@@ -51,9 +55,15 @@ renderTaskPool.addEventListener('start', () => {
 });
 renderTaskPool.addEventListener('end', () => (loop = false));
 
-type UnmountCallback = () => void;
 type GetDepFun<T> = () => T;
-type EffectItem<T> = { callback: (arg: T) => void; values: T; getDep: GetDepFun<T>; initialized: boolean };
+type EffectCallback<T> = (arg: T) => any;
+type EffectItem<T> = {
+  callback: EffectCallback<T>;
+  values: T;
+  getDep: GetDepFun<T>;
+  initialized: boolean;
+  preCallback?: () => void;
+};
 
 // final 字段如果使用 symbol 或者 private 将导致 modal-base 生成匿名子类 declaration 失败
 // gem 元素如果设置 attr 默认值，那么 `cloneNode` 的 attr 始终等于默认值 https://github.com/whatwg/dom/issues/922
@@ -89,7 +99,7 @@ export abstract class GemElement<T = Record<string, unknown>> extends HTMLElemen
   /**@final */
   __effectList?: EffectItem<any>[];
 
-  __unmountCallback?: UnmountCallback;
+  __unmountCallback?: any;
 
   constructor(options?: { isLight?: boolean; isAsync?: boolean }) {
     super();
@@ -270,10 +280,13 @@ export abstract class GemElement<T = Record<string, unknown>> extends HTMLElemen
    * */
   __execEffect() {
     this.__effectList?.forEach((effectItem) => {
-      const { callback, getDep, values } = effectItem;
+      const { callback, getDep, values, preCallback } = effectItem;
       const newValues = getDep();
-      if (isArrayChange(values, newValues)) callback(newValues);
-      effectItem.values = newValues;
+      if (isArrayChange(values, newValues)) {
+        execCallback(preCallback);
+        effectItem.preCallback = callback(newValues);
+        effectItem.values = newValues;
+      }
     });
   }
 
@@ -290,12 +303,13 @@ export abstract class GemElement<T = Record<string, unknown>> extends HTMLElemen
    * }
    * ```
    * */
-  effect<T extends Array<any>>(callback: (arg: T) => void, getDep: () => [...T]) {
+  effect<T extends Array<any>>(callback: EffectCallback<T>, getDep: () => [...T]) {
     if (!this.__effectList) this.__effectList = [];
     const values = getDep();
+    const effectItem: EffectItem<T> = { callback, getDep, values, initialized: !!this.__isMounted };
     // 以挂载时立即执行副作用，未挂载时等挂载后执行
-    if (this.__isMounted) callback(values);
-    this.__effectList.push({ callback, getDep, values, initialized: !!this.__isMounted });
+    if (this.__isMounted) effectItem.preCallback = callback(values);
+    this.__effectList.push(effectItem);
   }
 
   /**
@@ -306,7 +320,7 @@ export abstract class GemElement<T = Record<string, unknown>> extends HTMLElemen
     this.__effectList?.forEach((effectItem) => {
       const { callback, getDep, initialized } = effectItem;
       if (!initialized) {
-        callback(getDep());
+        effectItem.preCallback = callback(getDep());
         effectItem.initialized = true;
       }
     });
@@ -328,7 +342,7 @@ export abstract class GemElement<T = Record<string, unknown>> extends HTMLElemen
   }
 
   /**@lifecycle */
-  mounted?(): void;
+  mounted?(): void | (() => void);
 
   /**@lifecycle */
   shouldUpdate?(): boolean;
@@ -388,8 +402,7 @@ export abstract class GemElement<T = Record<string, unknown>> extends HTMLElemen
     const temp = this.__render();
     temp !== undefined && render(temp, this.__renderRoot);
     this.__isMounted = true;
-    const callback = this.mounted?.();
-    if (typeof callback === 'function') this.__unmountCallback = callback;
+    this.__unmountCallback = this.mounted?.();
     this.__initEffect();
   }
 
@@ -417,7 +430,10 @@ export abstract class GemElement<T = Record<string, unknown>> extends HTMLElemen
         disconnect(store, this.__update);
       });
     }
-    this.__unmountCallback?.();
+    execCallback(this.__unmountCallback);
     this.unmounted?.();
+    this.__effectList?.forEach((effectItem) => {
+      execCallback(effectItem.preCallback);
+    });
   }
 }

@@ -5,10 +5,12 @@ declare let ResizeObserver: any;
 
 type State = { height: number };
 function effect([element, textareaElement]: [GemElement<State>, HTMLTextAreaElement | null]) {
-  if (!textareaElement) return;
-  new ResizeObserver(([entry]: [any]) => {
+  if (!textareaElement) return element.setState({ height: 0 });
+  const ro = new ResizeObserver(([entry]: [any]) => {
     element.setState({ height: entry.contentRect.height });
-  }).observe(textareaElement, {});
+  });
+  ro.observe(textareaElement, {});
+  return () => ro.disconnect();
 }
 
 @customElement('app-root')
