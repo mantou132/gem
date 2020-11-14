@@ -6,8 +6,18 @@ navTitle: API
 # GemElement
 
 ```ts
-GemElement<State>
+class GemElement<State> extends HTMLElement {
+  constructor(options?: { isLight: boolean; isAsync: boolean }): GemElement;
+  // ...
+}
 ```
+
+## 构造参数
+
+| 名称      | 描述                   |
+| --------- | ---------------------- |
+| `isLight` | 是否渲染成 Light DOM   |
+| `isAsync` | 是否使用非阻塞渲染模式 |
 
 ## 静态属性
 
@@ -45,14 +55,3 @@ _在 TypeScript 中请使用[装饰器](./007-decorator)_
 | `internals`        | 获取元素的 [ElementInternals][2] 对象                  |
 
 [2]: https://html.spec.whatwg.org/multipage/custom-elements.html#the-elementinternals-interface
-
-## AsyncGemElement
-
-```ts
-AsyncGemElement<State>
-```
-
-和 `GemElement` 不同的是, `AsyncGemElement` 在必要情况下会使用 `requestAnimationFrame` 进行异步列队渲染,
-不会阻塞主线程，[Live Demo](https://gem-examples.netlify.com/perf-demo/)（将 CPU 节流以直观的查看渲染方式）。
-
-他的 API 和 `GemElement` 保持一致。

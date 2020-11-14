@@ -6,8 +6,18 @@ navTitle: API
 # GemElement
 
 ```ts
-GemElement<State>
+class GemElement<State> extends HTMLElement {
+  constructor(options?: { isLight: boolean; isAsync: boolean }): GemElement;
+  // ...
+}
 ```
+
+## Construction parameters
+
+| name      | description                                |
+| --------- | ------------------------------------------ |
+| `isLight` | Whether to render as Light DOM             |
+| `isAsync` | Whether to use non-blocking rendering mode |
 
 ## Static properties
 
@@ -45,13 +55,3 @@ _Please use [decorator](./007-decorator) in TypeScript_
 | `internals`        | Get the element's [ElementInternals][2] object       |
 
 [2]: https://html.spec.whatwg.org/multipage/custom-elements.html#the-elementinternals-interface
-
-## AsyncGemElement
-
-```ts
-AsyncGemElement<State>
-```
-
-Unlike `GemElement`, `AsyncGemElement` will use `requestAnimationFrame` for asynchronous queue rendering when necessary. will not block the main thread, [Live Demo](https://gem-examples.netlify.com/perf-demo/) (throttling the CPU to intuitively view the rendering method).
-
-Its API is consistent with `GemElement`.

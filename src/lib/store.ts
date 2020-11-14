@@ -1,7 +1,4 @@
-import { addMicrotask, GemError } from './utils';
-
-// eslint-disable-next-line @typescript-eslint/ban-types
-type NonPrimitive = object;
+import { addMicrotask, GemError, NonPrimitive } from './utils';
 
 export const StoreListenerMap = new WeakMap<NonPrimitive, Set<() => void>>();
 

@@ -1,5 +1,5 @@
 import { fixture, expect, nextFrame } from '@open-wc/testing';
-import { AsyncGemElement, GemElement, html } from '../lib/element';
+import { GemElement, html } from '../lib/element';
 import { createStore, updateStore } from '../lib/store';
 import { createCSSSheet, css } from '../lib/utils';
 import {
@@ -260,8 +260,11 @@ describe('基本 gem element 测试', () => {
   });
 });
 
-class AsyncGemDemo extends AsyncGemElement {
+class AsyncGemDemo extends GemElement {
   static observedStores = [store];
+  constructor() {
+    super({ isAsync: true });
+  }
   state = { a: 0 };
   renderCount = 0;
   render() {
@@ -286,7 +289,7 @@ describe('异步 gem element 测试', () => {
 @customElement('light-gem-demo')
 class LightGemDemo extends GemElement {
   constructor() {
-    super(false);
+    super({ isLight: true });
   }
   render() {
     return html`hi`;

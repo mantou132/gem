@@ -4,11 +4,11 @@
  * 类定义之后立即执行，自定义元素可以在实例化时覆盖原型对象上的属性
  */
 
-import { GemBaseElement } from './element';
+import { GemElement } from './element';
 import { Store } from './store';
 import { Sheet, camelToKebabCase } from './utils';
 
-export type RefObject<T = GemBaseElement> = { ref: string; element: T | null };
+export type RefObject<T = GemElement> = { ref: string; element: T | null };
 
 /**
  * 引用元素，只有第一个标记 ref 的元素有效
@@ -27,13 +27,13 @@ export type RefObject<T = GemBaseElement> = { ref: string; element: T | null };
  *  }
  * ```
  */
-export function refobject(target: GemBaseElement, prop: string) {
-  const con = target.constructor as typeof GemBaseElement;
+export function refobject(target: GemElement, prop: string) {
+  const con = target.constructor as typeof GemElement;
   (con.defineRefs ||= []).push(prop);
   const attr = camelToKebabCase(prop);
   Object.defineProperty(target, prop, {
     get() {
-      const that = this as GemBaseElement;
+      const that = this as GemElement;
       const ele = that.shadowRoot || that;
       return {
         ref: attr,
@@ -55,24 +55,24 @@ export function refobject(target: GemBaseElement, prop: string) {
  *  }
  * ```
  */
-function defineAttr(target: GemBaseElement, attr: string) {
-  const con = target.constructor as typeof GemBaseElement;
+function defineAttr(target: GemElement, attr: string) {
+  const con = target.constructor as typeof GemElement;
   (con.observedAttributes ||= []).push(attr);
 }
-export function boolattribute(target: GemBaseElement, prop: string) {
+export function boolattribute(target: GemElement, prop: string) {
   const attr = camelToKebabCase(prop);
-  const con = target.constructor as typeof GemBaseElement;
+  const con = target.constructor as typeof GemElement;
   (con.booleanAttributes ||= new Set()).add(attr);
   defineAttr(target, attr);
 }
-export function numattribute(target: GemBaseElement, prop: string) {
+export function numattribute(target: GemElement, prop: string) {
   const attr = camelToKebabCase(prop);
-  const con = target.constructor as typeof GemBaseElement;
+  const con = target.constructor as typeof GemElement;
   (con.numberAttributes ||= new Set()).add(attr);
   defineAttr(target, attr);
 }
-export function attribute(target: GemBaseElement | typeof Boolean | typeof Number, prop: string) {
-  defineAttr(target as GemBaseElement, camelToKebabCase(prop));
+export function attribute(target: GemElement | typeof Boolean | typeof Number, prop: string) {
+  defineAttr(target as GemElement, camelToKebabCase(prop));
 }
 
 /**
@@ -85,8 +85,8 @@ export function attribute(target: GemBaseElement | typeof Boolean | typeof Numbe
  *  }
  * ```
  */
-export function property(target: GemBaseElement, prop: string) {
-  const con = target.constructor as typeof GemBaseElement;
+export function property(target: GemElement, prop: string) {
+  const con = target.constructor as typeof GemElement;
   (con.observedPropertys ||= []).push(prop);
 }
 
@@ -103,16 +103,16 @@ export function property(target: GemBaseElement, prop: string) {
  *  }
  * ```
  */
-export function state(target: GemBaseElement, prop: string) {
-  const con = target.constructor as typeof GemBaseElement;
+export function state(target: GemElement, prop: string) {
+  const con = target.constructor as typeof GemElement;
   (con.defineCSSStates ||= []).push(prop);
   Object.defineProperty(target, prop, {
     get() {
-      const that = this as GemBaseElement;
+      const that = this as GemElement;
       return !!that.internals?.states?.contains(prop);
     },
     set(v: boolean) {
-      const that = this as GemBaseElement;
+      const that = this as GemElement;
       const internals = that.internals;
       if (v) {
         internals.states.add(prop);
@@ -134,8 +134,8 @@ export function state(target: GemBaseElement, prop: string) {
  *  }
  * ```
  */
-export function slot(target: GemBaseElement, prop: string) {
-  const con = target.constructor as typeof GemBaseElement;
+export function slot(target: GemElement, prop: string) {
+  const con = target.constructor as typeof GemElement;
   (con.defineSlots ||= []).push(prop);
   (target as any)[prop] = prop;
 }
@@ -151,8 +151,8 @@ export function slot(target: GemBaseElement, prop: string) {
  *  }
  * ```
  */
-export function part(target: GemBaseElement, prop: string) {
-  const con = target.constructor as typeof GemBaseElement;
+export function part(target: GemElement, prop: string) {
+  const con = target.constructor as typeof GemElement;
   (con.defineParts ||= []).push(prop);
   (target as any)[prop] = prop;
 }
@@ -170,8 +170,8 @@ export type Emitter<T = any> = (detail: T, options?: Omit<CustomEventInit<unknow
  *  }
  * ```
  */
-export function emitter(target: GemBaseElement, event: string) {
-  const con = target.constructor as typeof GemBaseElement;
+export function emitter(target: GemElement, event: string) {
+  const con = target.constructor as typeof GemElement;
   (con.defineEvents ||= []).push(event);
 }
 
@@ -186,7 +186,7 @@ export function emitter(target: GemBaseElement, event: string) {
  */
 export function adoptedStyle(style: Sheet<unknown>) {
   return function (cls: unknown) {
-    const con = cls as typeof GemBaseElement;
+    const con = cls as typeof GemElement;
     (con.adoptedStyleSheets ||= []).push(style);
   };
 }
@@ -203,7 +203,7 @@ export function adoptedStyle(style: Sheet<unknown>) {
 export function connectStore(store: Store<unknown>) {
   // 这里的签名该怎么写？
   return function (cls: unknown) {
-    const con = cls as typeof GemBaseElement;
+    const con = cls as typeof GemElement;
     (con.observedStores ||= []).push(store);
   };
 }

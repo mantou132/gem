@@ -12,7 +12,7 @@ export class GemReflectElement extends GemElement {
   @property target: HTMLElement = document.head;
 
   constructor() {
-    super(false);
+    super({ isLight: true });
     this.hidden = true;
   }
 

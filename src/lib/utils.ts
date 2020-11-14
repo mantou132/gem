@@ -17,6 +17,9 @@ export function absoluteLocation(currentPath = '', relativePath = '') {
   return pathname + search + hash;
 }
 
+// eslint-disable-next-line @typescript-eslint/ban-types
+export type NonPrimitive = object;
+
 interface PoolEventMap {
   start: Event;
   end: Event;
@@ -27,7 +30,7 @@ interface PoolEventMap {
  * https://bugs.webkit.org/show_bug.cgi?id=174313
  */
 const EventTarget = globalThis.Image || Object; // support nodejs
-export class Pool<T> extends EventTarget {
+export class Pool<T extends NonPrimitive> extends EventTarget {
   addEventListener: <K extends keyof PoolEventMap>(
     type: K,
     listener: (this: Pool<T>, ev: PoolEventMap[K]) => any,
@@ -41,10 +44,15 @@ export class Pool<T> extends EventTarget {
   currentId = 0;
   count = 0;
   pool = new Map<number, T>();
+  poolRev = new WeakMap<T, number>();
 
+  // 添加已存在的项目时会删除老的项目
   add(item: T) {
     if (!this.pool.size) this.dispatchEvent(new CustomEvent('start'));
+    const id = this.poolRev.get(item);
+    if (id !== undefined) this.pool.delete(id);
     this.pool.set(this.count, item);
+    this.poolRev.set(item, this.count);
     this.count += 1;
   }
 
@@ -54,6 +62,9 @@ export class Pool<T> extends EventTarget {
       this.pool.delete(this.currentId);
       this.currentId += 1;
       if (!this.pool.size) this.dispatchEvent(new CustomEvent('end'));
+    } else if (this.currentId < this.count) {
+      this.currentId += 1;
+      return this.get();
     }
     return item;
   }

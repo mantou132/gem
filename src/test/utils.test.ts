@@ -28,10 +28,11 @@ describe('utils 测试', () => {
     const fun2 = () => ({});
     pool.add(fun1);
     pool.add(fun2);
-    expect(pool.get()).to.equal(fun1);
+    pool.add(fun1);
     expect(pool.get()).to.equal(fun2);
+    expect(pool.get()).to.equal(fun1);
     expect(countAtStart).to.equal(0);
-    expect(countAtPause).to.equal(2);
+    expect(countAtPause).to.equal(3);
     expect(pool.pool.size).to.equal(0);
     expect(pool.get()).to.equal(undefined);
   });

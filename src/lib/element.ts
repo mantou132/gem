@@ -26,13 +26,38 @@ function emptyFunction() {
   // 用于占位的空函数
 }
 
+// global render task pool
+const renderTaskPool = new Pool<() => void>();
+let loop = false;
+const tick = () => {
+  window.requestAnimationFrame(function callback(timestamp) {
+    const task = renderTaskPool.get();
+    if (task) {
+      task();
+      if (performance.now() - timestamp < 16) {
+        callback(timestamp);
+        return;
+      }
+    }
+    // `renderTaskPool` not empty
+    if (loop) {
+      tick();
+    }
+  });
+};
+renderTaskPool.addEventListener('start', () => {
+  loop = true;
+  tick();
+});
+renderTaskPool.addEventListener('end', () => (loop = false));
+
 type UnmountCallback = () => void;
 type GetDepFun<T> = () => T;
 type EffectItem<T> = { callback: (arg: T) => void; values: T; getDep: GetDepFun<T>; initialized: boolean };
 
 // final 字段如果使用 symbol 或者 private 将导致 modal-base 生成匿名子类 declaration 失败
 // gem 元素如果设置 attr 默认值，那么 `cloneNode` 的 attr 始终等于默认值 https://github.com/whatwg/dom/issues/922
-export abstract class GemBaseElement<T = Record<string, unknown>> extends HTMLElement {
+export abstract class GemElement<T = Record<string, unknown>> extends HTMLElement {
   // 这里只是字段申明，不能赋值，否则子类会继承被共享该字段
   static observedAttributes?: string[]; // WebAPI 中是实时检查这个列表
   static booleanAttributes?: Set<string>;
@@ -58,31 +83,37 @@ export abstract class GemBaseElement<T = Record<string, unknown>> extends HTMLEl
   /**@final */
   __internals?: ElementInternals;
   /**@final */
-  __isMounted: boolean;
+  __isMounted?: boolean;
+  /**@final */
+  __isAsync?: boolean;
   /**@final */
   __effectList?: EffectItem<any>[];
 
   __unmountCallback?: UnmountCallback;
 
-  constructor(shadow = true) {
+  constructor(options?: { isLight?: boolean; isAsync?: boolean }) {
     super();
 
+    this.__isAsync = options?.isAsync;
+    this.__renderRoot = options?.isLight ? this : this.attachShadow({ mode: 'open' });
+
+    this.__updateCallback = this.__updateCallback.bind(this);
     this.__update = this.__update.bind(this);
     this.__updated = this.__updated.bind(this);
     this.__execEffect = this.__execEffect.bind(this);
+    this.__connectedCallback = this.__connectedCallback.bind(this);
 
     this.effect = this.effect.bind(this);
     this.update = this.update.bind(this);
     this.setState = this.setState.bind(this);
 
-    if (this.willMount) this.willMount = this.willMount.bind(this);
-    if (this.render) this.render = this.render.bind(this);
-    if (this.mounted) this.mounted = this.mounted.bind(this);
-    if (this.shouldUpdate) this.shouldUpdate = this.shouldUpdate.bind(this);
-    if (this.updated) this.updated = this.updated.bind(this);
-    if (this.unmounted) this.unmounted = this.unmounted.bind(this);
+    this.willMount &&= this.willMount.bind(this);
+    this.render &&= this.render.bind(this);
+    this.mounted &&= this.mounted.bind(this);
+    this.shouldUpdate &&= this.shouldUpdate.bind(this);
+    this.updated &&= this.updated.bind(this);
+    this.unmounted &&= this.unmounted.bind(this);
 
-    this.__renderRoot = shadow ? this.attachShadow({ mode: 'open' }) : this;
     const { observedAttributes, observedPropertys, defineEvents, adoptedStyleSheets } = new.target;
     if (adoptedStyleSheets) {
       const sheets = adoptedStyleSheets.map((item) => item[SheetToken] || item);
@@ -132,7 +163,7 @@ export abstract class GemBaseElement<T = Record<string, unknown>> extends HTMLEl
   }
 
   /**@final */
-  __connectAttrbute(attr: string, target: typeof GemBaseElement) {
+  __connectAttrbute(attr: string, target: typeof GemElement) {
     const { booleanAttributes, numberAttributes } = target;
     const prop = kebabToCamelCase(attr);
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -152,7 +183,7 @@ export abstract class GemBaseElement<T = Record<string, unknown>> extends HTMLEl
     Object.defineProperty(this, prop, {
       configurable: true,
       get() {
-        const that = this as GemBaseElement;
+        const that = this as GemElement;
         const value = that.getAttribute(attr);
         if (booleanAttributes?.has(attr)) {
           return value === null ? false : true;
@@ -264,7 +295,7 @@ export abstract class GemBaseElement<T = Record<string, unknown>> extends HTMLEl
     const values = getDep();
     // 以挂载时立即执行副作用，未挂载时等挂载后执行
     if (this.__isMounted) callback(values);
-    this.__effectList.push({ callback, getDep, values, initialized: this.__isMounted });
+    this.__effectList.push({ callback, getDep, values, initialized: !!this.__isMounted });
   }
 
   /**
@@ -306,12 +337,20 @@ export abstract class GemBaseElement<T = Record<string, unknown>> extends HTMLEl
   }
 
   /**@final */
-  __update() {
+  __updateCallback() {
     if (this.__isMounted && this.__shouldUpdate()) {
       const temp = this.__render();
       temp !== undefined && render(temp, this.__renderRoot);
       addMicrotask(this.__updated);
       addMicrotask(this.__execEffect);
+    }
+  }
+
+  __update() {
+    if (this.__isAsync) {
+      renderTaskPool.add(this.__updateCallback);
+    } else {
+      this.__updateCallback();
     }
   }
 
@@ -339,7 +378,8 @@ export abstract class GemBaseElement<T = Record<string, unknown>> extends HTMLEl
 
   /**@final */
   __connectedCallback() {
-    const { observedStores } = this.constructor as typeof GemBaseElement;
+    this.willMount?.();
+    const { observedStores } = this.constructor as typeof GemElement;
     if (observedStores) {
       observedStores.forEach((store) => {
         connect(store, this.__update);
@@ -350,6 +390,17 @@ export abstract class GemBaseElement<T = Record<string, unknown>> extends HTMLEl
     this.__isMounted = true;
     const callback = this.mounted?.();
     if (typeof callback === 'function') this.__unmountCallback = callback;
+    this.__initEffect();
+  }
+
+  /**@private */
+  /**@final */
+  connectedCallback() {
+    if (this.__isAsync) {
+      renderTaskPool.add(this.__connectedCallback);
+    } else {
+      this.__connectedCallback();
+    }
   }
 
   /**@private */
@@ -360,7 +411,7 @@ export abstract class GemBaseElement<T = Record<string, unknown>> extends HTMLEl
   /**@final */
   disconnectedCallback() {
     this.__isMounted = false;
-    const { observedStores } = this.constructor as typeof GemBaseElement;
+    const { observedStores } = this.constructor as typeof GemElement;
     if (observedStores) {
       observedStores.forEach((store) => {
         disconnect(store, this.__update);
@@ -368,64 +419,5 @@ export abstract class GemBaseElement<T = Record<string, unknown>> extends HTMLEl
     }
     this.__unmountCallback?.();
     this.unmounted?.();
-  }
-}
-
-export abstract class GemElement<T = Record<string, unknown>> extends GemBaseElement<T> {
-  /**@private */
-  /**@final */
-  connectedCallback() {
-    this.willMount?.();
-    this.__connectedCallback();
-    this.__initEffect();
-  }
-}
-
-// global render task pool
-const renderTaskPool = new Pool<() => void>();
-let loop = false;
-const tick = () => {
-  window.requestAnimationFrame(function callback(timestamp) {
-    const task = renderTaskPool.get();
-    if (task) {
-      task();
-      if (performance.now() - timestamp < 16) {
-        callback(timestamp);
-        return;
-      }
-    }
-    // `renderTaskPool` not empty
-    if (loop) {
-      tick();
-    }
-  });
-};
-renderTaskPool.addEventListener('start', () => {
-  loop = true;
-  tick();
-});
-renderTaskPool.addEventListener('end', () => (loop = false));
-
-export abstract class AsyncGemElement<T = Record<string, unknown>> extends GemBaseElement<T> {
-  /**@final */
-  __update() {
-    renderTaskPool.add(() => {
-      if (this.__shouldUpdate()) {
-        const temp = this.__render();
-        temp !== undefined && render(temp, this.__renderRoot);
-        this.updated?.();
-        addMicrotask(this.__execEffect);
-      }
-    });
-  }
-
-  /**@private */
-  /**@final */
-  connectedCallback() {
-    this.willMount?.();
-    renderTaskPool.add(() => {
-      this.__connectedCallback();
-      this.__initEffect();
-    });
   }
 }

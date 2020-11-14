@@ -3,7 +3,7 @@ import { GemElement, html, raw } from '../../';
 class App extends GemElement {
   state = { now: 0 };
   constructor() {
-    super(false);
+    super({ isLight: true });
     setInterval(() => {
       this.setState({ now: Date.now() });
     }, 1000);
