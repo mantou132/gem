@@ -1,9 +1,8 @@
 import { createStore, updateStore, Store } from '../lib/store';
 import { html, TemplateResult } from '../lib/element';
 
-const cachePrefix = 'gem@i18n';
-const currentKey = `${cachePrefix}:current`;
 const htmlLang = document.documentElement.lang;
+
 // Hello, $1
 // See $1<detail>
 // 嵌套模版中用到 $ < > 时使用 &dollar; &lt;  &gt;  替代
@@ -11,31 +10,39 @@ const splitReg = /\$\d(?:<[^>]*>)?/;
 const matchReg = /\$(\d)(<([^>]*)>)?/g;
 const matchStrIndex = 3;
 
-export class I18n<T = Record<string, string>> {
+interface Options<T> {
+  resources: {
+    [key: string]: Partial<T> | string;
+  };
+  fallbackLanguage: string;
+  currentLanguage?: string;
+  cache?: boolean;
+  cachePrefix?: string;
+}
+
+export class I18n<T = Record<string, string>> implements Options<T> {
   resources: {
     [key: string]: Partial<T> | string;
   } = {};
   fallbackLanguage = '';
   currentLanguage = '';
   cache = false;
+  cachePrefix = 'gem@i18n';
 
   store: Store<any>;
 
-  constructor(options: {
-    resources: {
-      [key: string]: Partial<T> | string;
-    };
-    fallbackLanguage: string;
-    currentLanguage?: string;
-    cache?: boolean;
-  }) {
+  get cacheCurrentKey() {
+    return `${this.cachePrefix}:current`;
+  }
+
+  constructor(options: Options<T>) {
     if (!options.resources[options.fallbackLanguage]) {
       throw new Error('i18n: fallbackLanguage invalid');
     }
     this.store = createStore(this as any);
-    Object.assign(this, options);
+    Object.assign<I18n, Options<T>>(this as I18n, options);
     if (this.cache && !this.currentLanguage) {
-      this.currentLanguage = localStorage.getItem(currentKey) || '';
+      this.currentLanguage = localStorage.getItem(this.cacheCurrentKey) || '';
     }
     if (!this.currentLanguage) {
       this.currentLanguage = options.fallbackLanguage;
@@ -83,7 +90,7 @@ export class I18n<T = Record<string, string>> {
     }
 
     if (typeof data === 'string') {
-      const localKey = `${cachePrefix}:${data}`;
+      const localKey = `${this.cachePrefix}:${data}`;
       const localPackString = localStorage.getItem(localKey);
 
       const fetchPack = async () => {
@@ -110,7 +117,7 @@ export class I18n<T = Record<string, string>> {
     document.documentElement.lang = lang;
     this.currentLanguage = lang;
     if (this.cache) {
-      localStorage.setItem(currentKey, lang);
+      localStorage.setItem(this.cacheCurrentKey, lang);
     }
     updateStore(this.store, {});
     return lang;
@@ -118,7 +125,7 @@ export class I18n<T = Record<string, string>> {
 
   resetLanguage() {
     if (this.cache) {
-      localStorage.removeItem(currentKey);
+      localStorage.removeItem(this.cacheCurrentKey);
     }
     return this.setLanguage(this.detectLanguage());
   }
