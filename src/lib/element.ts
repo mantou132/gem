@@ -130,7 +130,7 @@ export abstract class GemElement<T = Record<string, unknown>> extends HTMLElemen
       if (this.shadowRoot) {
         this.shadowRoot.adoptedStyleSheets = sheets;
       } else {
-        document.adoptedStyleSheets = [...new Set(document.adoptedStyleSheets.concat(sheets))];
+        throw new GemError('Please mount to ShadowDOM or Document');
       }
     }
     // attr/prop/emitter 定义在为了适配 js 只能在这里定义
