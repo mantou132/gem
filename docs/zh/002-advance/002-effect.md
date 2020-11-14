@@ -18,3 +18,7 @@ class HelloWorld extends GemElement {
   }
 }
 ```
+
+下面是依赖子元素的 `effect` 例子（[其他实现](https://twitter.com/youyuxi/status/1327328144525848577?s=20)）：
+
+<gem-book-plugin-file src="/src/examples/effect/index.ts"/>

@@ -30,7 +30,7 @@
 ## 文档
 
 - [Guide](https://gem-docs.netlify.com/guide/)
-- [API](https://gem-docs.netlify.com/API/)
+- [API](https://gem-docs.netlify.com/api/)
 
 ## 相关项目
 

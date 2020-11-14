@@ -24,7 +24,7 @@ Create custom elements, bind data, route switching, and quickly develop WebApps 
 ## Document
 
 - [Guide](https://gem-docs.netlify.com/guide/)
-- [API](https://gem-docs.netlify.com/API/)
+- [API](https://gem-docs.netlify.com/api/)
 
 ## Related repo
 
