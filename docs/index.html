@@ -17,7 +17,7 @@
     <script src="https://unpkg.com/gem-book"></script>
     <script type="module" src="https://unpkg.com/gem-book/element/plugins/file.js"></script>
     <script>
-      // 开发预览： http-server docs --proxy http://localhost:xxxx?
+      // 开发预览： serve docs -s
       async function init() {
         const res = await fetch('/book.json');
         const config = await res.json();
