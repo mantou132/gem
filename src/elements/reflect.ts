@@ -19,7 +19,7 @@ export class GemReflectElement extends GemElement {
   mounted() {
     this.effect(
       () => {
-        console.warn('Changes `target` will not be re-rendered');
+        return () => this.isConnected && console.warn('Changes `target` will not be re-rendered');
       },
       () => [this.target],
     );
