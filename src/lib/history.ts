@@ -224,7 +224,7 @@ if (!history.state) {
   history.back();
 } else {
   // 有 gem 历史的正常普通刷新, 储存 params
-  const params = initParams({ title: document.title });
+  const params = initParams({ title: document.title, hash: location.hash });
   updateStore(store, {
     $key: getKey(),
     ...(history.state || {}),
