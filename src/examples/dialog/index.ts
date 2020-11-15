@@ -22,6 +22,7 @@ class Confirm extends createModalClass({
       <style>
         .root {
           position: fixed;
+          z-index: 3;
           top: 0;
           left: 0;
           width: 100%;
@@ -71,8 +72,12 @@ class Dialog extends DialogBaseElement {
         :host(.opened) {
           display: block;
         }
+        :host(:state(opened)) {
+          display: block;
+        }
         .root {
           position: fixed;
+          z-index: 2;
           top: 0;
           left: 0;
           width: 100%;
