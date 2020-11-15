@@ -2,6 +2,8 @@ import { html, render } from '../../';
 
 import '../../elements/unsafe';
 
+import '../elements/layout';
+
 const svgStr = `
   <svg width="24" height="24" viewBox="0 0 24 24">
     <path d="M0 0h24v24H0z" fill="none" />
@@ -16,10 +18,12 @@ const svgStyle = `
 const htmlStr = `
   <pre><code>// code code code</code></pre>
 `;
-render(
-  html`
+
+const app = html`
+  <div slot="main">
     <gem-unsafe content="${svgStr}" contentcss="${svgStyle}"></gem-unsafe>
     <gem-unsafe content="${htmlStr}"></gem-unsafe>
-  `,
-  document.body,
-);
+  </div>
+`;
+
+render(html`<gem-examples-layout>${app}</gem-examples-layout>`, document.body);

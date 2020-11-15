@@ -1,4 +1,6 @@
-import { GemElement, html, connectStore, customElement } from '../../';
+import { GemElement, html, connectStore, customElement, render } from '../../';
+
+import '../elements/layout';
 
 import { I18n } from '../../helper/i18n';
 
@@ -21,7 +23,7 @@ const i18n = new I18n<typeof en>({
 
 @connectStore(i18n.store)
 @customElement('app-root')
-class App extends GemElement {
+export class App extends GemElement {
   render() {
     return html`
       <button @click=${() => i18n.setLanguage('de')}>de</button>
@@ -35,4 +37,11 @@ class App extends GemElement {
   }
 }
 
-document.body.append(new App());
+render(
+  html`
+    <gem-examples-layout>
+      <app-root slot="main"></app-root>
+    </gem-examples-layout>
+  `,
+  document.body,
+);

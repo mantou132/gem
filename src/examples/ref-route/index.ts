@@ -1,6 +1,8 @@
-import { GemElement, html, history } from '../../';
+import { GemElement, html, history, render } from '../../';
 import { createHistoryParams, GemRouteElement } from '../../elements/route';
 import '../../elements/link';
+
+import '../elements/layout';
 
 const routes = {
   home: {
@@ -66,4 +68,12 @@ class App extends GemElement {
   }
 }
 customElements.define('app-root', App);
-document.body.append(new App());
+
+render(
+  html`
+    <gem-examples-layout>
+      <app-root slot="main"></app-root>
+    </gem-examples-layout>
+  `,
+  document.body,
+);

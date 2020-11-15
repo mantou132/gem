@@ -8,6 +8,7 @@ const exec = util.promisify(childProcess.exec);
 const spinner = ora('Start compile...').start();
 
 fs.readdirSync('src/examples')
+  .filter((example) => example !== 'elements')
   .reduce(async (prevTask, name, index, arr) => {
     await prevTask;
     spinner.text = `compile \`${name}\` ${index + 1}/${arr.length}`;
@@ -15,7 +16,6 @@ fs.readdirSync('src/examples')
       env: Object.assign(process.env, {
         TAEGET: 'pages',
         NAME: name,
-        EXAMPLES: arr,
       }),
     });
   }, Promise.resolve())

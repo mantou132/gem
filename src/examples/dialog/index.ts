@@ -1,7 +1,9 @@
-import { GemElement, html, customElement, refobject, RefObject } from '../../';
+import { GemElement, html, customElement, refobject, RefObject, render } from '../../';
 import { createModalClass } from '../../elements/modal-base';
 import { DialogBaseElement } from '../../elements/dialog-base';
 import '../../elements/link';
+
+import '../elements/layout';
 
 @customElement('app-confirm')
 class Confirm extends createModalClass({
@@ -100,7 +102,7 @@ class Dialog extends DialogBaseElement {
 }
 
 @customElement('app-root')
-class Root extends GemElement {
+export class Root extends GemElement {
   @refobject dialog: RefObject<Dialog>;
 
   clickHandle = () => {
@@ -123,4 +125,11 @@ class Root extends GemElement {
   }
 }
 
-document.body.append(new Root());
+render(
+  html`
+    <gem-examples-layout>
+      <app-root slot="main"></app-root>
+    </gem-examples-layout>
+  `,
+  document.body,
+);

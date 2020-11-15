@@ -11,7 +11,10 @@ import {
   customElement,
   adoptedStyle,
   css,
+  render,
 } from '../../';
+
+import '../elements/layout';
 
 import { Message, Children } from './chidren';
 import './chidren';
@@ -35,7 +38,7 @@ const styles = createCSSSheet(css`
 @connectStore(store)
 @adoptedStyle(styles)
 @customElement('app-root')
-class App extends GemElement {
+export class App extends GemElement {
   @refobject childRef: RefObject<Children>;
   @attribute appTitle: string;
 
@@ -87,7 +90,15 @@ class App extends GemElement {
   }
 }
 
-document.body.append(new App(`I'm Title`));
 document.addEventListener('sayhi', (e: CustomEvent) => {
   console.log('`sayhi` target', e.composedPath()[0]);
 });
+
+render(
+  html`
+    <gem-examples-layout>
+      <app-root app-title="I'm Title" slot="main"></app-root>
+    </gem-examples-layout>
+  `,
+  document.body,
+);

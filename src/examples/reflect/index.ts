@@ -1,9 +1,11 @@
-import { html, randomStr, GemElement, customElement } from '../..';
+import { html, randomStr, GemElement, customElement, render } from '../..';
 
 import '../../elements/reflect';
 
+import '../elements/layout';
+
 @customElement('app-root')
-class App extends GemElement {
+export class App extends GemElement {
   state = {
     mount: true,
   };
@@ -39,4 +41,11 @@ class App extends GemElement {
   }
 }
 
-document.body.append(new App());
+render(
+  html`
+    <gem-examples-layout>
+      <app-root slot="main"></app-root>
+    </gem-examples-layout>
+  `,
+  document.body,
+);

@@ -1,4 +1,6 @@
-import { GemElement, html, styled, createCSSSheet } from '../../';
+import { GemElement, html, styled, createCSSSheet, render } from '../../';
+
+import '../elements/layout';
 
 const styles = createCSSSheet({
   h1: styled.class`
@@ -33,4 +35,12 @@ class App extends GemElement {
 }
 
 customElements.define('app-root', App);
-document.body.append(new App());
+
+render(
+  html`
+    <gem-examples-layout>
+      <app-root slot="main"></app-root>
+    </gem-examples-layout>
+  `,
+  document.body,
+);

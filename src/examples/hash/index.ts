@@ -1,6 +1,8 @@
 import { GemElement, render, html } from '../../';
 import '../../elements/link';
 
+import '../elements/layout';
+
 class Article extends GemElement {
   constructor() {
     super();
@@ -43,4 +45,11 @@ class App extends GemElement {
 }
 customElements.define('app-root', App);
 
-render(html`<app-root></app-root>`, document.body);
+render(
+  html`
+    <gem-examples-layout>
+      <app-root slot="main"></app-root>
+    </gem-examples-layout>
+  `,
+  document.body,
+);

@@ -1,24 +1,33 @@
-import { GemElement, html, customElement, version } from '../..';
+import { render, GemElement, createStore, updateStore, html } from '../../';
+import { connectStore, customElement } from '../../lib/decorators';
 
-const getGitPageUrl = (name: string) => `../${name}/`;
+import '../elements/layout';
 
+// 新建全局数据对象
+const store = createStore({
+  a: 1,
+});
+
+// 定义自定义元素
 @customElement('app-root')
-class App extends GemElement {
-  render = () => {
-    const examples = (process.env.EXAMPLES || '').split(',');
-    return html`
-      <dl>
-        <dt>version:</dt>
-        <dd>${version}</dd>
-        ${examples.map(
-          (name) => html`
-            <dt>${name}:</dt>
-            <dd><a href=${getGitPageUrl(name)}>${new URL(getGitPageUrl(name), location.href)}</a></dd>
-          `,
-        )}
-      </dl>
-    `;
+@connectStore(store)
+export class HelloWorld extends GemElement {
+  clickHandle = () => {
+    updateStore(store, { a: ++store.a });
   };
+  render() {
+    return html`
+      <button @click="${this.clickHandle}">Hello, World</button>
+      <div>store.a: ${store.a}</div>
+    `;
+  }
 }
 
-document.body.append(new App());
+render(
+  html`
+    <gem-examples-layout>
+      <app-root slot="main"></app-root>
+    </gem-examples-layout>
+  `,
+  document.body,
+);

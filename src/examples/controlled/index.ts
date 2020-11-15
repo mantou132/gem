@@ -1,5 +1,7 @@
 import { html, customElement, GemElement, render, attribute, emitter, Emitter, refobject, RefObject } from '../../';
 
+import '../elements/layout';
+
 @customElement('app-form-text')
 export class FormText extends GemElement {
   @refobject inputRef: RefObject<HTMLInputElement>;
@@ -63,4 +65,11 @@ export class Root extends GemElement {
   }
 }
 
-render(html`<app-root></app-root>`, document.body);
+render(
+  html`
+    <gem-examples-layout>
+      <app-root slot="main"></app-root>
+    </gem-examples-layout>
+  `,
+  document.body,
+);

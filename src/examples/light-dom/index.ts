@@ -1,6 +1,8 @@
-import { GemElement, html, raw } from '../../';
+import { GemElement, html, render } from '../../';
 
-class App extends GemElement {
+import '../elements/layout';
+
+export class App extends GemElement {
   state = { now: 0 };
   constructor() {
     super({ isLight: true });
@@ -19,8 +21,11 @@ class App extends GemElement {
 
 customElements.define('app-root', App);
 
-document.body.append(new App());
-
-const style = document.createElement('style');
-document.body.append(style);
-style.outerHTML = raw`<style>div{color: red}</style>`;
+render(
+  html`
+    <gem-examples-layout>
+      <app-root slot="main"></app-root>
+    </gem-examples-layout>
+  `,
+  document.body,
+);

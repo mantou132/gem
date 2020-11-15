@@ -1,6 +1,8 @@
-import { GemElement, html } from '../../';
+import { GemElement, html, render } from '../../';
 import { createTheme, getThemeStore, updateTheme } from '../../helper/theme';
 import { mediaQuery } from '../../helper/mediaquery';
+
+import '../elements/layout';
 
 const theme = createTheme({
   // 支持动态修改不透明度
@@ -43,4 +45,12 @@ class App extends GemElement {
   }
 }
 customElements.define('app-root', App);
-document.body.append(new App());
+
+render(
+  html`
+    <gem-examples-layout>
+      <app-root slot="main"></app-root>
+    </gem-examples-layout>
+  `,
+  document.body,
+);

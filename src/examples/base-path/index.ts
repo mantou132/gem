@@ -1,7 +1,10 @@
-import { GemElement, html, history } from '../../';
+import { GemElement, html, history, render, customElement } from '../../';
 import '../../elements/link';
 
-class App extends GemElement {
+import '../elements/layout';
+
+@customElement('app-root')
+export class App extends GemElement {
   state = {
     count: 5,
   };
@@ -30,5 +33,12 @@ class App extends GemElement {
     `;
   }
 }
-customElements.define('app-root', App);
-document.body.append(new App());
+
+render(
+  html`
+    <gem-examples-layout>
+      <app-root slot="main"></app-root>
+    </gem-examples-layout>
+  `,
+  document.body,
+);

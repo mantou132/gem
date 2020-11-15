@@ -2,8 +2,10 @@ import { html, render } from '../../';
 
 import '../../elements/use';
 
-render(
-  html`
+import '../elements/layout';
+
+const app = html`
+  <div slot="main">
     <template id="icon">
       <svg width="24" height="24" viewBox="0 0 24 24">
         <path d="M0 0h24v24H0z" fill="none" />
@@ -12,6 +14,7 @@ render(
     </template>
     <gem-use .root=${document.body} selector="#icon"></gem-use>
     <gem-use selector="#icon"></gem-use>
-  `,
-  document.body,
-);
+  </div>
+`;
+
+render(html`<gem-examples-layout>${app}</gem-examples-layout>`, document.body);

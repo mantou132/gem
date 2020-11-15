@@ -1,4 +1,6 @@
-import { GemElement, html, customElement, RefObject, refobject } from '../../';
+import { GemElement, html, customElement, RefObject, refobject, render } from '../../';
+
+import '../elements/layout';
 
 // https://github.com/Microsoft/TypeScript/issues/28502
 declare let ResizeObserver: any;
@@ -14,7 +16,7 @@ function effect([element, textareaElement]: [GemElement<State>, HTMLTextAreaElem
 }
 
 @customElement('app-root')
-class App extends GemElement<State & { hidden: boolean }> {
+export class App extends GemElement<State & { hidden: boolean }> {
   @refobject textAreaRef: RefObject<HTMLTextAreaElement>;
   state = {
     height: 0,
@@ -33,4 +35,11 @@ class App extends GemElement<State & { hidden: boolean }> {
   }
 }
 
-document.body.append(new App());
+render(
+  html`
+    <gem-examples-layout>
+      <app-root slot="main"></app-root>
+    </gem-examples-layout>
+  `,
+  document.body,
+);

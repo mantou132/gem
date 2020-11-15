@@ -1,7 +1,9 @@
-import { GemElement, html, css } from '../../';
+import { GemElement, html, render } from '../../';
 import { GemTitleElement } from '../../elements/title';
 import '../../elements/link';
 import '../../elements/route';
+
+import '../elements/layout';
 
 import './page-b';
 import './page-c';
@@ -66,13 +68,13 @@ class App extends GemElement {
   }
 }
 
-const style = document.createElement('style');
-style.innerHTML = css`
-  body {
-    font-size: xx-large;
-  }
-`;
-document.head.append(style);
-
 customElements.define('app-root', App);
-document.body.append(new App());
+
+render(
+  html`
+    <gem-examples-layout>
+      <app-root slot="main"></app-root>
+    </gem-examples-layout>
+  `,
+  document.body,
+);
