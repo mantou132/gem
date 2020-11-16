@@ -31,8 +31,7 @@
     "prepare": "npm run build",
     "prepublishOnly": "npm run lint && npm run test",
     "release": "node scripts/release",
-    "test": "npm run build && karma start --coverage",
-    "test:bs": "npm run build &&  karma start karma.bs.config.js --coverage"
+    "test": "npm run build && karma start --coverage"
   },
   "repository": {
     "type": "git",

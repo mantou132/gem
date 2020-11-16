@@ -20,4 +20,4 @@ class HelloWorld extends GemElement {
 
 Below is an example of `effect` that depends on child elements([Other implementations](https://twitter.com/youyuxi/status/1327328144525848577?s=20))
 
-<gem-book-plugin-file src="/src/examples/effect/index.ts"/>
+<gbp-raw src="/src/examples/effect/index.ts"></gbp-raw>
