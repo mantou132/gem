@@ -24,7 +24,7 @@ In order to integrate TypeScript more conveniently, Gem has many built-in decora
 [5]: https://developer.mozilla.org/en-US/docs/Glossary/Attribute
 [6]: https://developer.mozilla.org/en-US/docs/Glossary/property/JavaScript
 
-_Fields using decorators (except `@property`) have default values_
+_Except for `@property`, all fields decorated by decorators have default values, `@attribute`/`@boolattribute`/`@numattribute`/`@state`/`@slot`/`@part` the value of the decorated field will be automatically converted to kebab-case. Please use the kebab-case value when you use it outside the element outside_
 
 Type with decorator
 

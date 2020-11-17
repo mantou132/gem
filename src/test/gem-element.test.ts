@@ -62,21 +62,19 @@ customElements.define('gem-demo', GemDemo);
 @customElement('decorator-gem-demo')
 class DecoratorGemElement extends GemElement {
   @emitter hi: Emitter;
-  @attribute attr: string;
   @attribute rankAttr: string;
-  @boolattribute disabled: boolean;
   @boolattribute rankDisabled: boolean;
-  @numattribute count: number;
   @numattribute rankCount: number;
-  @property prop = { value: '' };
-  @state open: boolean;
-  @part header: string;
+  @property dataProp = { value: '' };
+  @state openState: boolean;
+  @part headerPart: string;
   @refobject inputRef: RefObject<HTMLElement>;
-  @slot body: string;
+  @slot bodySlot: string;
   renderCount = 0;
   render() {
     this.renderCount++;
-    return html`attr: ${this.attr}, disabled: ${this.disabled}, count: ${this.count}, prop: ${this.prop.value}`;
+    const { rankAttr, rankDisabled, rankCount, dataProp } = this;
+    return html`attr: ${rankAttr}, disabled: ${rankDisabled}, count: ${rankCount}, prop: ${dataProp.value}`;
   }
 }
 
@@ -209,39 +207,30 @@ describe('基本 gem element 测试', () => {
     const el: DecoratorGemElement = await fixture(html`
       <decorator-gem-demo
         @hi=${(e: CustomEvent) => (a = e.detail)}
-        .prop=${{ value: 'prop' }}
-        attr="attr"
+        .dataProp=${{ value: 'prop' }}
         rank-attr="attr"
-        disabled
         rank-disabled
-        count="2"
         rank-count="2"
       ></decorator-gem-demo>
     `);
-    expect(DecoratorGemElement.observedAttributes).to.eql([
-      'attr',
-      'rank-attr',
-      'disabled',
-      'rank-disabled',
-      'count',
-      'rank-count',
-    ]);
-    expect(DecoratorGemElement.booleanAttributes).to.eql(new Set(['disabled', 'rank-disabled']));
-    expect(DecoratorGemElement.numberAttributes).to.eql(new Set(['count', 'rank-count']));
-    expect(DecoratorGemElement.observedPropertys).to.eql(['prop']);
+    expect(DecoratorGemElement.observedAttributes).to.eql(['rank-attr', 'rank-disabled', 'rank-count']);
+    expect(DecoratorGemElement.booleanAttributes).to.eql(new Set(['rank-disabled']));
+    expect(DecoratorGemElement.numberAttributes).to.eql(new Set(['rank-count']));
+    expect(DecoratorGemElement.observedPropertys).to.eql(['dataProp']);
     expect(DecoratorGemElement.observedStores?.length).to.equal(1);
     expect(DecoratorGemElement.defineEvents?.length).to.equal(1);
-    expect(DecoratorGemElement.defineCSSStates).to.eql(['open']);
-    expect(DecoratorGemElement.defineParts).to.eql(['header']);
+    expect(DecoratorGemElement.defineCSSStates).to.eql(['open-state']);
+    expect(DecoratorGemElement.defineParts).to.eql(['header-part']);
     expect(DecoratorGemElement.defineRefs).to.eql(['inputRef']);
-    expect(DecoratorGemElement.defineSlots).to.eql(['body']);
-    expect(el.attr).to.equal('attr');
+    expect(DecoratorGemElement.defineSlots).to.eql(['body-slot']);
     expect(el.rankAttr).to.equal('attr');
-    expect(el.disabled).to.equal(true);
     expect(el.rankDisabled).to.equal(true);
-    expect(el.count).to.equal(2);
     expect(el.rankCount).to.equal(2);
-    expect(el.prop).to.eql({ value: 'prop' });
+    expect(el.dataProp).to.eql({ value: 'prop' });
+    expect(el.openState).to.equal(false);
+    expect(el.headerPart).to.equal('header-part');
+    expect(el.inputRef.ref).to.equal('input-ref');
+    expect(el.bodySlot).to.equal('body-slot');
     expect(el).shadowDom.to.equal('attr: attr, disabled: true, count: 2, prop: prop');
     updateStore(store, { a: 3 });
     await Promise.resolve();

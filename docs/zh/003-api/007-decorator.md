@@ -24,7 +24,7 @@
 [5]: https://developer.mozilla.org/en-US/docs/Glossary/Attribute
 [6]: https://developer.mozilla.org/en-US/docs/Glossary/property/JavaScript
 
-_使用装饰器(除了 `@property`)的字段都有默认值_
+_除 `@property` 外其他装饰器装饰的字段都有默认值，`@attribute`/`@boolattribute`/`@numattribute`/`@state`/`@slot`/`@part` 装饰的字段的值都将自动进行烤串式转换，在元素外部使用时请使用对应的烤串式值_
 
 配合装饰器的 Type
 

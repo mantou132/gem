@@ -104,20 +104,21 @@ export function property(target: GemElement, prop: string) {
  * ```
  */
 export function state(target: GemElement, prop: string) {
+  const attr = camelToKebabCase(prop);
   const con = target.constructor as typeof GemElement;
-  (con.defineCSSStates ||= []).push(prop);
+  (con.defineCSSStates ||= []).push(attr);
   Object.defineProperty(target, prop, {
     get() {
       const that = this as GemElement;
-      return !!that.internals?.states?.contains(prop);
+      return !!that.internals?.states?.contains(attr);
     },
     set(v: boolean) {
       const that = this as GemElement;
       const internals = that.internals;
       if (v) {
-        internals.states.add(prop);
+        internals.states.add(attr);
       } else {
-        internals.states.remove(prop);
+        internals.states.remove(attr);
       }
     },
   });
@@ -135,9 +136,10 @@ export function state(target: GemElement, prop: string) {
  * ```
  */
 export function slot(target: GemElement, prop: string) {
+  const attr = camelToKebabCase(prop);
   const con = target.constructor as typeof GemElement;
-  (con.defineSlots ||= []).push(prop);
-  (target as any)[prop] = prop;
+  (con.defineSlots ||= []).push(attr);
+  (target as any)[prop] = attr;
 }
 
 /**
@@ -152,9 +154,10 @@ export function slot(target: GemElement, prop: string) {
  * ```
  */
 export function part(target: GemElement, prop: string) {
+  const attr = camelToKebabCase(prop);
   const con = target.constructor as typeof GemElement;
-  (con.defineParts ||= []).push(prop);
-  (target as any)[prop] = prop;
+  (con.defineParts ||= []).push(attr);
+  (target as any)[prop] = attr;
 }
 
 export type Emitter<T = any> = (detail: T, options?: Omit<CustomEventInit<unknown>, 'detail'>) => void;
