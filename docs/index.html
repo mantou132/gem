@@ -14,6 +14,20 @@
         margin: 0;
       }
     </style>
+    <gem-book>
+      <style>
+        body {
+          display: flex;
+          height: 100vh;
+          place-content: center;
+          place-items: center;
+        }
+        gem-book img {
+          width: 200px;
+        }
+      </style>
+      <img alt="Loading..." src="/logo.png" />
+    </gem-book>
     <script src="https://unpkg.com/gem-book"></script>
     <script type="module" src="https://unpkg.com/gem-book/plugins/raw.js"></script>
     <script>
@@ -21,9 +35,9 @@
       async function init() {
         const res = await fetch('/book.json');
         const config = await res.json();
-        const book = document.createElement('gem-book');
+        const book = document.querySelector('gem-book');
+        book.innerHTML = '';
         book.config = config;
-        document.body.append(book);
       }
       init();
     </script>
