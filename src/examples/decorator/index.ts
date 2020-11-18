@@ -77,7 +77,7 @@ export class App extends GemElement {
       <app-children
         ref=${this.childRef.ref}
         @load=${this.loadHandle}
-        @sayhi=${this.onSayHi}
+        @say-hi=${this.onSayHi}
         .message=${store.msg}
         first-name="hello"
         last-name="world"
@@ -90,7 +90,7 @@ export class App extends GemElement {
   }
 }
 
-document.addEventListener('sayhi', (e: CustomEvent) => {
+document.addEventListener('say-hi', (e: CustomEvent) => {
   console.log('`sayhi` target', e.composedPath()[0]);
 });
 

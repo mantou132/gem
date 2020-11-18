@@ -61,7 +61,7 @@ customElements.define('gem-demo', GemDemo);
 @adoptedStyle(styles)
 @customElement('decorator-gem-demo')
 class DecoratorGemElement extends GemElement {
-  @emitter hi: Emitter;
+  @emitter sayHi: Emitter;
   @attribute rankAttr: string;
   @boolattribute rankDisabled: boolean;
   @numattribute rankCount: number;
@@ -206,22 +206,24 @@ describe('基本 gem element 测试', () => {
     let a = 1;
     const el: DecoratorGemElement = await fixture(html`
       <decorator-gem-demo
-        @hi=${(e: CustomEvent) => (a = e.detail)}
+        @say-hi=${(e: CustomEvent) => (a = e.detail)}
         .dataProp=${{ value: 'prop' }}
         rank-attr="attr"
         rank-disabled
         rank-count="2"
       ></decorator-gem-demo>
     `);
+    updateStore(store, { a: 1 });
+    await Promise.resolve();
+    expect(DecoratorGemElement.observedStores).to.eql([{ a: 1 }]);
     expect(DecoratorGemElement.observedAttributes).to.eql(['rank-attr', 'rank-disabled', 'rank-count']);
     expect(DecoratorGemElement.booleanAttributes).to.eql(new Set(['rank-disabled']));
     expect(DecoratorGemElement.numberAttributes).to.eql(new Set(['rank-count']));
     expect(DecoratorGemElement.observedPropertys).to.eql(['dataProp']);
-    expect(DecoratorGemElement.observedStores?.length).to.equal(1);
-    expect(DecoratorGemElement.defineEvents?.length).to.equal(1);
+    expect(DecoratorGemElement.defineEvents).to.eql(['sayHi']);
+    expect(DecoratorGemElement.defineRefs).to.eql(['inputRef']);
     expect(DecoratorGemElement.defineCSSStates).to.eql(['open-state']);
     expect(DecoratorGemElement.defineParts).to.eql(['header-part']);
-    expect(DecoratorGemElement.defineRefs).to.eql(['inputRef']);
     expect(DecoratorGemElement.defineSlots).to.eql(['body-slot']);
     expect(el.rankAttr).to.equal('attr');
     expect(el.rankDisabled).to.equal(true);
@@ -234,9 +236,9 @@ describe('基本 gem element 测试', () => {
     expect(el).shadowDom.to.equal('attr: attr, disabled: true, count: 2, prop: prop');
     updateStore(store, { a: 3 });
     await Promise.resolve();
-    expect(el.renderCount).to.equal(2);
-    el.hi(2);
-    expect(el.renderCount).to.equal(2);
+    expect(el.renderCount).to.equal(3);
+    el.sayHi(2);
+    expect(el.renderCount).to.equal(3);
     expect(a).to.equal(2);
   });
 

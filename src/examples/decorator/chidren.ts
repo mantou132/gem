@@ -20,7 +20,7 @@ export type Message = number[];
  * @attr last-name
  * @attr count
  * @attr disabled
- * @fires sayhi
+ * @fires say-hi
  * @fires load
  * @state odd
  * @slot light

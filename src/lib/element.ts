@@ -2,7 +2,16 @@
 
 import { html, render, TemplateResult } from 'lit-html';
 import { connect, disconnect, Store } from './store';
-import { Pool, addMicrotask, Sheet, SheetToken, kebabToCamelCase, isArrayChange, GemError } from './utils';
+import {
+  Pool,
+  addMicrotask,
+  Sheet,
+  SheetToken,
+  isArrayChange,
+  GemError,
+  kebabToCamelCase,
+  camelToKebabCase,
+} from './utils';
 
 export { html, svg, render, directive, TemplateResult, SVGTemplateResult } from 'lit-html';
 export { repeat } from 'lit-html/directives/repeat';
@@ -239,7 +248,7 @@ export abstract class GemElement<T = Record<string, unknown>> extends HTMLElemen
             propValue = v?.__isEventHandle
               ? v
               : (detail: any, options: any) => {
-                  const evt = new CustomEvent(prop.toLowerCase(), { detail, ...options });
+                  const evt = new CustomEvent(camelToKebabCase(prop), { detail, ...options });
                   that.dispatchEvent(evt);
                   v(detail, options);
                 };

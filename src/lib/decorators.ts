@@ -164,7 +164,7 @@ export type Emitter<T = any> = (detail: T, options?: Omit<CustomEventInit<unknow
 
 /**
  * 定义一个事件发射器，类似 `HTMLElement.click`，
- * 调用时将同步发送一个和字段同名且全小写的自定义事件
+ * 调用时将同步发送一个和字段名称的烤串式格式的自定义事件
  *
  * For example
  * ```ts
