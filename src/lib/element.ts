@@ -199,7 +199,7 @@ export abstract class GemElement<T = Record<string, unknown>> extends HTMLElemen
   };
 
   /**@lifecycle */
-  willMount?(): void;
+  willMount?(): void | Promise<void>;
 
   /**
    * @lifecycle
@@ -214,7 +214,7 @@ export abstract class GemElement<T = Record<string, unknown>> extends HTMLElemen
   };
 
   /**@lifecycle */
-  mounted?(): void | (() => void);
+  mounted?(): void | (() => void) | Promise<void>;
 
   /**@lifecycle */
   shouldUpdate?(): boolean;
@@ -251,13 +251,13 @@ export abstract class GemElement<T = Record<string, unknown>> extends HTMLElemen
   };
 
   /**@lifecycle */
-  updated?(): void;
+  updated?(): void | Promise<void>;
   #updated = () => {
     this.updated?.();
   };
 
   /**@lifecycle */
-  unmounted?(): void;
+  unmounted?(): void | Promise<void>;
 
   /**@private */
   /**@final */
