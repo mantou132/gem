@@ -126,8 +126,8 @@ export function state(target: GemElementPrototype, prop: string) {
  * ```
  */
 export function slot(target: any, prop: string) {
-  const attr = camelToKebabCase(prop);
-  (target as any)[prop] ||= attr;
+  const attr = camelToKebabCase((target as any)[prop] || prop);
+  (target as any)[prop] = attr;
   const con = (target instanceof GemElement ? target.constructor : target) as GemElementConstructor;
   (con.defineSlots ||= []).push(attr);
 }
@@ -144,8 +144,8 @@ export function slot(target: any, prop: string) {
  * ```
  */
 export function part(target: any, prop: string) {
-  const attr = camelToKebabCase(prop);
-  (target as any)[prop] ||= attr;
+  const attr = camelToKebabCase((target as any)[prop] || prop);
+  (target as any)[prop] = attr;
   const con = (target instanceof GemElement ? target.constructor : target) as GemElementConstructor;
   (con.defineParts ||= []).push(attr);
 }
