@@ -223,8 +223,8 @@ describe('基本 gem element 测试', () => {
     expect(DecoratorGemElement.defineCSSStates).to.eql(['open-state']);
     expect(DecoratorGemElement.defineParts).to.eql(['header-part']);
     expect(DecoratorGemElement.defineSlots).to.eql(['body-slot']);
+    expect(DecoratorGemElement.defineRefs).to.eql(['input-ref']);
     expect(DecoratorGemElement.observedPropertys).to.eql(['dataProp']);
-    expect(DecoratorGemElement.defineRefs).to.eql(['inputRef']);
     expect(el.rankAttr).to.equal('attr');
     expect(el.rankDisabled).to.equal(true);
     expect(el.rankCount).to.equal(2);

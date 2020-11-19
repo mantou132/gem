@@ -14,6 +14,8 @@ declare global {
   interface ElementInternals {
     states: DOMTokenList;
   }
+  // 用于 css 选择器选择元素，使用 @refobject 自动选择获取
+  // 必须使用 attr 赋值
   /**@attr ref */
   interface HTMLElement {
     attachInternals?: () => ElementInternals;
@@ -81,10 +83,6 @@ export abstract class GemElement<T = Record<string, unknown>> extends HTMLElemen
 
   // 定义当前元素的状态，和 attr/prop 的本质区别是不为外部输入
   readonly state?: T;
-  // 用于 css 选择器选择元素，使用 @refobject 自动选择获取
-  // 必须使用 attr 赋值
-  /**@attr ref */
-  ref: any;
 
   #renderRoot: HTMLElement | ShadowRoot;
   #internals?: ElementInternals;

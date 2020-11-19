@@ -5,7 +5,7 @@ import { Sheet, camelToKebabCase } from './utils';
 type GemElementPrototype = GemElement;
 type GemElementConstructor = typeof GemElement;
 
-export type RefObject<T = GemElement> = { ref: string; element: T | null };
+export type RefObject<T = HTMLElement> = { ref: string; element: T | null };
 
 /**
  * 引用元素，只有第一个标记 ref 的元素有效
@@ -25,19 +25,24 @@ export type RefObject<T = GemElement> = { ref: string; element: T | null };
  * ```
  */
 export function refobject(target: GemElementPrototype, prop: string) {
-  const con = target.constructor as GemElementConstructor;
-  (con.defineRefs ||= []).push(prop);
   const attr = camelToKebabCase(prop);
+  const con = target.constructor as GemElementConstructor;
+  (con.defineRefs ||= []).push(attr);
+  let ref: RefObject;
   Object.defineProperty(target, prop, {
     get() {
+      if (ref) return ref;
       const that = this as GemElement;
       const ele = that.shadowRoot || that;
-      return {
-        ref: attr,
+      ref = {
+        get ref() {
+          return attr;
+        },
         get element() {
-          return ele.querySelector(`[ref=${attr}]`);
+          return ele.querySelector(`[ref=${attr}]`) as HTMLElement | null;
         },
       };
+      return ref;
     },
   });
 }
