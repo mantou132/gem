@@ -355,28 +355,32 @@ export function defineAttribute(target: GemElement, prop: string, attr: string) 
 }
 
 const isEventHandleSymbol = Symbol('event handle');
+const dataWeakMap = new WeakMap<GemElement, Record<string, unknown>>();
 export function defineProperty(target: GemElement, prop: string, event?: string) {
   if (prop in target) return;
-  let propValue: any = undefined;
   Object.defineProperty(target, prop, {
     configurable: true,
     get() {
-      return propValue;
+      return dataWeakMap.get(this)?.[prop];
     },
     set(v) {
       const that = this as GemElement;
-      if (v !== propValue) {
+      if (!dataWeakMap.has(that)) {
+        dataWeakMap.set(that, {});
+      }
+      const proxy = dataWeakMap.get(this) as any;
+      if (v !== proxy[prop]) {
         if (event) {
-          propValue = v?.[isEventHandleSymbol]
+          proxy[prop] = v?.[isEventHandleSymbol]
             ? v
             : (detail: any, options: any) => {
                 const evt = new CustomEvent(event, { detail, ...options });
                 that.dispatchEvent(evt);
                 v(detail, options);
               };
-          propValue[isEventHandleSymbol] = true;
+          proxy[prop][isEventHandleSymbol] = true;
         } else {
-          propValue = v;
+          proxy[prop] = v;
         }
         that.__update();
       }
