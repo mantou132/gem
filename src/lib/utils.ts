@@ -70,6 +70,17 @@ export class Pool<T extends NonPrimitive> extends EventTarget {
   }
 }
 
+export class PropProxyMap<T extends NonPrimitive, V = unknown> extends WeakMap<T, Record<string, V>> {
+  get(ele: T) {
+    let proxy = super.get(ele);
+    if (!proxy) {
+      proxy = {};
+      this.set(ele, proxy);
+    }
+    return proxy;
+  }
+}
+
 declare global {
   interface URLSearchParams {
     entries(): Iterable<readonly [string | number | symbol, any]>;

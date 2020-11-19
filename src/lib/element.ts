@@ -1,6 +1,15 @@
 import { html, render, TemplateResult } from 'lit-html';
 import { connect, disconnect, Store } from './store';
-import { Pool, addMicrotask, Sheet, SheetToken, isArrayChange, GemError, kebabToCamelCase } from './utils';
+import {
+  Pool,
+  addMicrotask,
+  Sheet,
+  SheetToken,
+  isArrayChange,
+  GemError,
+  kebabToCamelCase,
+  PropProxyMap,
+} from './utils';
 
 export { html, svg, render, directive, TemplateResult, SVGTemplateResult } from 'lit-html';
 export { repeat } from 'lit-html/directives/repeat';
@@ -355,20 +364,17 @@ export function defineAttribute(target: GemElement, prop: string, attr: string) 
 }
 
 const isEventHandleSymbol = Symbol('event handle');
-const dataWeakMap = new WeakMap<GemElement, Record<string, unknown>>();
+const gemElementProxyMap = new PropProxyMap<GemElement>();
 export function defineProperty(target: GemElement, prop: string, event?: string) {
   if (prop in target) return;
   Object.defineProperty(target, prop, {
     configurable: true,
     get() {
-      return dataWeakMap.get(this)?.[prop];
+      return gemElementProxyMap.get(this)[prop];
     },
     set(v) {
       const that = this as GemElement;
-      if (!dataWeakMap.has(that)) {
-        dataWeakMap.set(that, {});
-      }
-      const proxy = dataWeakMap.get(this) as any;
+      const proxy = gemElementProxyMap.get(that) as any;
       if (v !== proxy[prop]) {
         if (event) {
           proxy[prop] = v?.[isEventHandleSymbol]
