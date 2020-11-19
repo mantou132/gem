@@ -116,38 +116,38 @@ export function state(target: GemElementPrototype, prop: string) {
 
 /**
  * 定义一个内部 slot，默认值即为字段名，不能使用全局属性 `slot`
- * 将来也可能用于 IDE 识别
  *
  * For example
  * ```ts
  *  class App extends GemElement {
  *    @slot slot: string;
+ *    @slot static slot: string;
  *  }
  * ```
  */
-export function slot(target: GemElementPrototype, prop: string) {
+export function slot(target: any, prop: string) {
   const attr = camelToKebabCase(prop);
-  const con = target.constructor as GemElementConstructor;
+  (target as any)[prop] ||= attr;
+  const con = (target instanceof GemElement ? target.constructor : target) as GemElementConstructor;
   (con.defineSlots ||= []).push(attr);
-  (target as any)[prop] = attr;
 }
 
 /**
  * 定义一个内部 part，默认值即为字段名，不能使用全局属性 `part`
- * 将来也可能用于 IDE 识别
  *
  * For example
  * ```ts
  *  class App extends GemElement {
  *    @part part: string;
+ *    @part static part: string;
  *  }
  * ```
  */
-export function part(target: GemElementPrototype, prop: string) {
+export function part(target: any, prop: string) {
   const attr = camelToKebabCase(prop);
-  const con = target.constructor as GemElementConstructor;
+  (target as any)[prop] ||= attr;
+  const con = (target instanceof GemElement ? target.constructor : target) as GemElementConstructor;
   (con.defineParts ||= []).push(attr);
-  (target as any)[prop] = attr;
 }
 
 export type Emitter<T = any> = (detail: T, options?: Omit<CustomEventInit<unknown>, 'detail'>) => void;

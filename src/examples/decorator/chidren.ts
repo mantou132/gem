@@ -28,6 +28,9 @@ export type Message = number[];
  */
 @customElement('app-children')
 export class Children extends GemElement {
+  @slot static light: string;
+  @part static paragraph: string;
+
   @attribute firstName: string;
   @attribute lastName: string;
   @numattribute count: number;
@@ -35,10 +38,7 @@ export class Children extends GemElement {
   @property message: Message | undefined;
   @emitter sayHi: Emitter;
   @emitter load: Emitter;
-
   @state odd: boolean;
-  @slot light: string;
-  @part paragraph: string;
 
   mounted = () => {
     setTimeout(() => this.load(new Date()), 1000);
@@ -56,8 +56,8 @@ export class Children extends GemElement {
         <span>${this.disabled},</span>
         <span>${this.count}.</span>
       </p>
-      <p part=${this.paragraph}>properties: ${JSON.stringify(this.message)}</p>
-      <slot name=${this.light}></slot>
+      <p part=${Children.paragraph}>properties: ${JSON.stringify(this.message)}</p>
+      <slot name=${Children.light}></slot>
       <button @click=${() => this.sayHi({}, { bubbles: true, composed: true })}>say hi</button>
     `;
   }

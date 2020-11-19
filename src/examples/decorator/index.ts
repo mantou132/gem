@@ -65,11 +65,11 @@ export class App extends GemElement {
   render() {
     return html`
       <style>
-        app-children:state(odd)::part(paragraph) {
+        app-children:state(odd)::part(${Children.paragraph}) {
           color: red;
         }
         /* https://bugzilla.mozilla.org/show_bug.cgi?id=1588763 */
-        app-children.odd::part(paragraph) {
+        app-children.odd::part(${Children.paragraph}) {
           color: red;
         }
       </style>
@@ -84,7 +84,7 @@ export class App extends GemElement {
         count=${1}
         disabled
       >
-        <p slot="light">now: ${store.now}</p>
+        <p slot=${Children.light}>now: ${store.now}</p>
       </app-children>
     `;
   }
