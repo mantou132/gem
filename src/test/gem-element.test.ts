@@ -326,7 +326,10 @@ class EffectGemDemo extends GemElement {
   }
   mounted() {
     this.effect(
-      () => this.effectCount++,
+      () => {
+        this.effectCount++;
+        return () => (this.effectCount = 0);
+      },
       () => [],
     );
   }
@@ -338,9 +341,9 @@ describe('gem element 副作用', () => {
     expect(el.effectCount).to.equal(2);
     el.attr = 'b';
     el.prop = {};
-    expect(el.__effectList?.[0]?.values?.[0]).to.equal('a');
     await nextFrame();
     expect(el.effectCount).to.equal(3);
-    expect(el.__effectList?.[0]?.values?.[0]).to.equal('b');
+    el.remove();
+    expect(el.effectCount).to.equal(0);
   });
 });
