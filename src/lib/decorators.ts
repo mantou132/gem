@@ -1,12 +1,9 @@
-/**
- * target 并非元素，而是类的原型对象
- * 不能在 target 上使用 DOM API
- * 类定义之后立即执行，自定义元素可以在实例化时覆盖原型对象上的属性
- */
-
-import { GemElement } from './element';
+import { defineAttribute, defineCSSState, defineProperty, GemElement, nativeDefineElement } from './element';
 import { Store } from './store';
 import { Sheet, camelToKebabCase } from './utils';
+
+type GemElementPrototype = GemElement;
+type GemElementConstructor = typeof GemElement;
 
 export type RefObject<T = GemElement> = { ref: string; element: T | null };
 
@@ -27,8 +24,8 @@ export type RefObject<T = GemElement> = { ref: string; element: T | null };
  *  }
  * ```
  */
-export function refobject(target: GemElement, prop: string) {
-  const con = target.constructor as typeof GemElement;
+export function refobject(target: GemElementPrototype, prop: string) {
+  const con = target.constructor as GemElementConstructor;
   (con.defineRefs ||= []).push(prop);
   const attr = camelToKebabCase(prop);
   Object.defineProperty(target, prop, {
@@ -55,24 +52,25 @@ export function refobject(target: GemElement, prop: string) {
  *  }
  * ```
  */
-function defineAttr(target: GemElement, attr: string) {
-  const con = target.constructor as typeof GemElement;
+function defineAttr(target: GemElementPrototype, prop: string, attr: string) {
+  const con = target.constructor as GemElementConstructor;
   (con.observedAttributes ||= []).push(attr);
+  defineAttribute(target, prop, attr);
 }
-export function boolattribute(target: GemElement, prop: string) {
+export function attribute(target: GemElementPrototype, prop: string) {
+  defineAttr(target, prop, camelToKebabCase(prop));
+}
+export function boolattribute(target: GemElementPrototype, prop: string) {
   const attr = camelToKebabCase(prop);
-  const con = target.constructor as typeof GemElement;
+  const con = target.constructor as GemElementConstructor;
   (con.booleanAttributes ||= new Set()).add(attr);
-  defineAttr(target, attr);
+  defineAttr(target, prop, attr);
 }
-export function numattribute(target: GemElement, prop: string) {
+export function numattribute(target: GemElementPrototype, prop: string) {
   const attr = camelToKebabCase(prop);
-  const con = target.constructor as typeof GemElement;
+  const con = target.constructor as GemElementConstructor;
   (con.numberAttributes ||= new Set()).add(attr);
-  defineAttr(target, attr);
-}
-export function attribute(target: GemElement | typeof Boolean | typeof Number, prop: string) {
-  defineAttr(target as GemElement, camelToKebabCase(prop));
+  defineAttr(target, prop, attr);
 }
 
 /**
@@ -85,9 +83,10 @@ export function attribute(target: GemElement | typeof Boolean | typeof Number, p
  *  }
  * ```
  */
-export function property(target: GemElement, prop: string) {
-  const con = target.constructor as typeof GemElement;
+export function property(target: GemElementPrototype, prop: string) {
+  const con = target.constructor as GemElementConstructor;
   (con.observedPropertys ||= []).push(prop);
+  defineProperty(target, prop);
 }
 
 /**
@@ -103,25 +102,11 @@ export function property(target: GemElement, prop: string) {
  *  }
  * ```
  */
-export function state(target: GemElement, prop: string) {
+export function state(target: GemElementPrototype, prop: string) {
   const attr = camelToKebabCase(prop);
-  const con = target.constructor as typeof GemElement;
+  const con = target.constructor as GemElementConstructor;
   (con.defineCSSStates ||= []).push(attr);
-  Object.defineProperty(target, prop, {
-    get() {
-      const that = this as GemElement;
-      return !!that.internals?.states?.contains(attr);
-    },
-    set(v: boolean) {
-      const that = this as GemElement;
-      const internals = that.internals;
-      if (v) {
-        internals.states.add(attr);
-      } else {
-        internals.states.remove(attr);
-      }
-    },
-  });
+  defineCSSState(target, prop, attr);
 }
 
 /**
@@ -135,9 +120,9 @@ export function state(target: GemElement, prop: string) {
  *  }
  * ```
  */
-export function slot(target: GemElement, prop: string) {
+export function slot(target: GemElementPrototype, prop: string) {
   const attr = camelToKebabCase(prop);
-  const con = target.constructor as typeof GemElement;
+  const con = target.constructor as GemElementConstructor;
   (con.defineSlots ||= []).push(attr);
   (target as any)[prop] = attr;
 }
@@ -153,9 +138,9 @@ export function slot(target: GemElement, prop: string) {
  *  }
  * ```
  */
-export function part(target: GemElement, prop: string) {
+export function part(target: GemElementPrototype, prop: string) {
   const attr = camelToKebabCase(prop);
-  const con = target.constructor as typeof GemElement;
+  const con = target.constructor as GemElementConstructor;
   (con.defineParts ||= []).push(attr);
   (target as any)[prop] = attr;
 }
@@ -173,9 +158,11 @@ export type Emitter<T = any> = (detail: T, options?: Omit<CustomEventInit<unknow
  *  }
  * ```
  */
-export function emitter(target: GemElement, event: string) {
-  const con = target.constructor as typeof GemElement;
+export function emitter(target: GemElementPrototype, prop: string) {
+  const event = camelToKebabCase(prop);
+  const con = target.constructor as GemElementConstructor;
   (con.defineEvents ||= []).push(event);
+  defineProperty(target, prop, event);
 }
 
 /**
@@ -189,7 +176,7 @@ export function emitter(target: GemElement, event: string) {
  */
 export function adoptedStyle(style: Sheet<unknown>) {
   return function (cls: unknown) {
-    const con = cls as typeof GemElement;
+    const con = cls as GemElementConstructor;
     (con.adoptedStyleSheets ||= []).push(style);
   };
 }
@@ -206,7 +193,7 @@ export function adoptedStyle(style: Sheet<unknown>) {
 export function connectStore(store: Store<unknown>) {
   // 这里的签名该怎么写？
   return function (cls: unknown) {
-    const con = cls as typeof GemElement;
+    const con = cls as GemElementConstructor;
     (con.observedStores ||= []).push(store);
   };
 }
@@ -222,6 +209,6 @@ export function connectStore(store: Store<unknown>) {
  */
 export function customElement(name: string) {
   return function (cls: unknown) {
-    customElements.define(name, cls as CustomElementConstructor);
+    nativeDefineElement(name, cls as CustomElementConstructor);
   };
 }

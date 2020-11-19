@@ -1,17 +1,6 @@
-/* eslint-disable @typescript-eslint/no-empty-function */
-
 import { html, render, TemplateResult } from 'lit-html';
 import { connect, disconnect, Store } from './store';
-import {
-  Pool,
-  addMicrotask,
-  Sheet,
-  SheetToken,
-  isArrayChange,
-  GemError,
-  kebabToCamelCase,
-  camelToKebabCase,
-} from './utils';
+import { Pool, addMicrotask, Sheet, SheetToken, isArrayChange, GemError, kebabToCamelCase } from './utils';
 
 export { html, svg, render, directive, TemplateResult, SVGTemplateResult } from 'lit-html';
 export { repeat } from 'lit-html/directives/repeat';
@@ -40,11 +29,11 @@ function execCallback(fun: any) {
 }
 
 // global render task pool
-const renderTaskPool = new Pool<() => void>();
+const asyncRenderTaskPool = new Pool<() => void>();
 let loop = false;
 const tick = () => {
   window.requestAnimationFrame(function callback(timestamp) {
-    const task = renderTaskPool.get();
+    const task = asyncRenderTaskPool.get();
     if (task) {
       task();
       if (performance.now() - timestamp < 16) {
@@ -58,11 +47,11 @@ const tick = () => {
     }
   });
 };
-renderTaskPool.addEventListener('start', () => {
+asyncRenderTaskPool.addEventListener('start', () => {
   loop = true;
   tick();
 });
-renderTaskPool.addEventListener('end', () => (loop = false));
+asyncRenderTaskPool.addEventListener('end', () => (loop = false));
 
 type GetDepFun<T> = () => T;
 type EffectCallback<T> = (arg: T) => any;
@@ -83,8 +72,8 @@ export abstract class GemElement<T = Record<string, unknown>> extends HTMLElemen
   static observedPropertys?: string[];
   static observedStores?: Store<unknown>[];
   static adoptedStyleSheets?: Sheet<unknown>[];
+  // 以下静态字段仅供外部读取，没有实际作用
   static defineEvents?: string[];
-  // 用于 Devtools，且只有 ts 装饰器定义才有效
   static defineCSSStates?: string[];
   static defineParts?: string[];
   static defineSlots?: string[];
@@ -110,7 +99,13 @@ export abstract class GemElement<T = Record<string, unknown>> extends HTMLElemen
     this.#isAsync = options?.isAsync;
     this.#renderRoot = options?.isLight ? this : this.attachShadow({ mode: 'open' });
 
-    const { observedAttributes, observedPropertys, defineEvents, adoptedStyleSheets } = new.target;
+    const { defineEvents, adoptedStyleSheets } = new.target;
+    if (defineEvents) {
+      defineEvents.forEach((event) => {
+        const that = this as any;
+        that[kebabToCamelCase(event)] = emptyFunction;
+      });
+    }
     if (adoptedStyleSheets) {
       const sheets = adoptedStyleSheets.map((item) => item[SheetToken] || item);
       if (this.shadowRoot) {
@@ -118,27 +113,6 @@ export abstract class GemElement<T = Record<string, unknown>> extends HTMLElemen
       } else {
         throw new GemError('Please mount to ShadowDOM or Document');
       }
-    }
-    // attr/prop/emitter 定义在为了适配 js 只能在这里定义
-    // 如果只支持 ts，则在装饰器中将他们定义在 `prototype` 上是否有性能提升？
-    // css state 在装饰器中定义，js 不支持 `defineCSSStates`
-    if (observedAttributes) {
-      observedAttributes.forEach((attr) => {
-        this.#connectAttrbute(attr, new.target);
-      });
-    }
-    if (observedPropertys) {
-      observedPropertys.forEach((prop) => {
-        this.#connectProperty(prop, false);
-      });
-    }
-    if (defineEvents) {
-      defineEvents.forEach((event) => {
-        this.#connectProperty(event, true);
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore
-        this[event] = emptyFunction;
-      });
     }
   }
 
@@ -156,87 +130,6 @@ export abstract class GemElement<T = Record<string, unknown>> extends HTMLElemen
     }
     return this.#internals;
   }
-
-  #connectAttrbute = (attr: string, target: typeof GemElement) => {
-    const { booleanAttributes, numberAttributes } = target;
-    const prop = kebabToCamelCase(attr);
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore
-    if (typeof this[prop] === 'function') {
-      throw new GemError(`Don't use attribute with the same name as native methods`);
-    }
-    // Native attribute，no need difine property
-    // e.g: `id`, `title`, `hidden`, `alt`, `lang`
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore
-    if (this[prop] !== undefined) {
-      // 所以 `prop` 不能是方法
-      return;
-    }
-    // !!! Custom property shortcut access only supports `string` type
-    Object.defineProperty(this, prop, {
-      configurable: true,
-      get() {
-        const that = this as GemElement;
-        const value = that.getAttribute(attr);
-        if (booleanAttributes?.has(attr)) {
-          return value === null ? false : true;
-        }
-        if (numberAttributes?.has(attr)) {
-          return Number(value);
-        }
-        // Return empty string if attribute does not exist
-        return this.getAttribute(attr) || '';
-      },
-      set(v: string | null | undefined | number | boolean) {
-        const isBool = booleanAttributes?.has(attr);
-        if (v === null || v === undefined || (isBool && !v)) {
-          this.removeAttribute(attr);
-        } else if (isBool && v) {
-          this.setAttribute(attr, '');
-        } else {
-          this.setAttribute(attr, v);
-        }
-      },
-    });
-  };
-
-  /**
-   * 和 `attr` 不一样，只有等 `lit-html` 在已经初始化的元素上设置 `prop` 的值后才能访问模版上的值
-   * 即能在类字段（执行在构造函数之后）中直接访问到模版上的 `attr` 而不能访问到 `prop`
-   * */
-  #connectProperty = (prop: string, isEventHandle = false) => {
-    if (prop in this) return;
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore
-    let propValue: any = this[prop];
-    Object.defineProperty(this, prop, {
-      configurable: true,
-      get() {
-        return propValue;
-      },
-      set(v) {
-        const that = this as GemElement;
-        if (v !== propValue) {
-          if (isEventHandle) {
-            propValue = v?.__isEventHandle
-              ? v
-              : (detail: any, options: any) => {
-                  const evt = new CustomEvent(camelToKebabCase(prop), { detail, ...options });
-                  that.dispatchEvent(evt);
-                  v(detail, options);
-                };
-            propValue.__isEventHandle = true;
-          } else {
-            propValue = v;
-          }
-          if (that.#isMounted) {
-            addMicrotask(that.#update);
-          }
-        }
-      },
-    });
-  };
 
   /**
    * @helper
@@ -342,9 +235,15 @@ export abstract class GemElement<T = Record<string, unknown>> extends HTMLElemen
 
   #update = () => {
     if (this.#isAsync) {
-      renderTaskPool.add(this.#updateCallback);
+      asyncRenderTaskPool.add(this.#updateCallback);
     } else {
       this.#updateCallback();
+    }
+  };
+
+  __update = () => {
+    if (this.#isMounted) {
+      addMicrotask(this.#update);
     }
   };
 
@@ -389,7 +288,7 @@ export abstract class GemElement<T = Record<string, unknown>> extends HTMLElemen
   /**@final */
   connectedCallback() {
     if (this.#isAsync) {
-      renderTaskPool.add(this.#connectedCallback);
+      asyncRenderTaskPool.add(this.#connectedCallback);
     } else {
       this.#connectedCallback();
     }
@@ -416,3 +315,115 @@ export abstract class GemElement<T = Record<string, unknown>> extends HTMLElemen
     });
   }
 }
+
+export function defineAttribute(target: GemElement, prop: string, attr: string) {
+  const { booleanAttributes, numberAttributes } = target.constructor as typeof GemElement;
+  const prototype = target as any;
+  if (typeof prototype[prop] === 'function') {
+    throw new GemError(`Don't use attribute with the same name as native methods`);
+  }
+  // Native attribute，no need difine property
+  // e.g: `id`, `title`, `hidden`, `alt`, `lang`
+  if (prototype[prop] !== undefined) {
+    return;
+  }
+  Object.defineProperty(target, prop, {
+    configurable: true,
+    get() {
+      // fix karma test
+      if (Object.getPrototypeOf(this) !== target) return;
+      const that = this as GemElement;
+      const value = that.getAttribute(attr);
+      if (booleanAttributes?.has(attr)) {
+        return value === null ? false : true;
+      }
+      if (numberAttributes?.has(attr)) {
+        return Number(value);
+      }
+      // Return empty string if attribute does not exist
+      return this.getAttribute(attr) || '';
+    },
+    set(v: string | null | undefined | number | boolean) {
+      const isBool = booleanAttributes?.has(attr);
+      if (v === null || v === undefined || (isBool && !v)) {
+        this.removeAttribute(attr);
+      } else if (isBool && v) {
+        this.setAttribute(attr, '');
+      } else {
+        this.setAttribute(attr, v);
+      }
+    },
+  });
+}
+
+const isEventHandleSymbol = Symbol('event handle');
+export function defineProperty(target: GemElement, prop: string, event?: string) {
+  if (prop in target) return;
+  let propValue: any = undefined;
+  Object.defineProperty(target, prop, {
+    configurable: true,
+    get() {
+      return propValue;
+    },
+    set(v) {
+      const that = this as GemElement;
+      if (v !== propValue) {
+        if (event) {
+          propValue = v?.[isEventHandleSymbol]
+            ? v
+            : (detail: any, options: any) => {
+                const evt = new CustomEvent(event, { detail, ...options });
+                that.dispatchEvent(evt);
+                v(detail, options);
+              };
+          propValue[isEventHandleSymbol] = true;
+        } else {
+          propValue = v;
+        }
+        that.__update();
+      }
+    },
+  });
+}
+
+export function defineCSSState(target: GemElement, prop: string, attr: string) {
+  Object.defineProperty(target, prop, {
+    configurable: true,
+    get() {
+      const that = this as GemElement;
+      return !!that.internals?.states?.contains(attr);
+    },
+    set(v: boolean) {
+      const that = this as GemElement;
+      const internals = that.internals;
+      if (v) {
+        internals.states.add(attr);
+      } else {
+        internals.states.remove(attr);
+      }
+    },
+  });
+}
+
+export const nativeDefineElement = customElements.define.bind(customElements);
+customElements.define = (name: string, cls: CustomElementConstructor, options?: ElementDefinitionOptions) => {
+  const {
+    observedAttributes,
+    observedPropertys,
+    defineEvents,
+    defineCSSStates,
+  } = (cls as unknown) as typeof GemElement;
+  if (observedAttributes) {
+    observedAttributes.forEach((attr) => defineAttribute(cls.prototype, kebabToCamelCase(attr), attr));
+  }
+  if (observedPropertys) {
+    observedPropertys.forEach((prop) => defineProperty(cls.prototype, prop));
+  }
+  if (defineEvents) {
+    defineEvents.forEach((event) => defineProperty(cls.prototype, kebabToCamelCase(event), event));
+  }
+  if (defineCSSStates) {
+    defineCSSStates.forEach((state) => defineCSSState(cls.prototype, kebabToCamelCase(state), state));
+  }
+  nativeDefineElement(name, cls as CustomElementConstructor, options);
+};
