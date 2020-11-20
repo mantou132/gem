@@ -74,6 +74,9 @@ type EffectItem<T> = {
   preCallback?: () => void;
 };
 
+const initSymbol = Symbol('init');
+const updateSymbol = Symbol('update');
+
 // gem 元素如果设置 attr 默认值，那么 `cloneNode` 的 attr 始终等于默认值 https://github.com/whatwg/dom/issues/922
 export abstract class GemElement<T = Record<string, unknown>> extends HTMLElement {
   // 这里只是字段申明，不能赋值，否则子类会继承被共享该字段
@@ -102,6 +105,15 @@ export abstract class GemElement<T = Record<string, unknown>> extends HTMLElemen
 
   constructor(options?: { isLight?: boolean; isAsync?: boolean }) {
     super();
+
+    // 外部不可见，但允许类外面使用
+    addMicrotask(() => ((this as any)[initSymbol] = false));
+    (this as any)[initSymbol] = true;
+    (this as any)[updateSymbol] = () => {
+      if (this.#isMounted) {
+        addMicrotask(this.#update);
+      }
+    };
 
     this.#isAsync = options?.isAsync;
     this.#renderRoot = options?.isLight ? this : this.attachShadow({ mode: 'open' });
@@ -248,12 +260,6 @@ export abstract class GemElement<T = Record<string, unknown>> extends HTMLElemen
     }
   };
 
-  __update = () => {
-    if (this.#isMounted) {
-      addMicrotask(this.#update);
-    }
-  };
-
   /**@helper */
   update = () => {
     this.#update();
@@ -323,6 +329,8 @@ export abstract class GemElement<T = Record<string, unknown>> extends HTMLElemen
   }
 }
 
+const gemElementProxyMap = new PropProxyMap<GemElement>();
+
 export function defineAttribute(target: GemElement, prop: string, attr: string) {
   const { booleanAttributes, numberAttributes } = target.constructor as typeof GemElement;
   const prototype = target as any;
@@ -351,19 +359,25 @@ export function defineAttribute(target: GemElement, prop: string, attr: string) 
       return this.getAttribute(attr) || '';
     },
     set(v: string | null | undefined | number | boolean) {
+      const that = this as GemElement;
+      const proxy = gemElementProxyMap.get(this) as any;
+      const hasSet = proxy[prop];
+      // https://github.com/whatwg/dom/issues/922
+      if (this[initSymbol] && that.hasAttribute(attr) && !hasSet) return;
+      // 字段和构造函数中都有对 attr 设置时会执行多次
+      // Firefox 不知道为什么在构造函数中 this[initSymbol] 已经为 false
+      proxy[prop] = true;
       const isBool = booleanAttributes?.has(attr);
       if (v === null || v === undefined || (isBool && !v)) {
-        this.removeAttribute(attr);
+        that.removeAttribute(attr);
       } else if (isBool && v) {
-        this.setAttribute(attr, '');
+        that.setAttribute(attr, '');
       } else {
-        this.setAttribute(attr, v);
+        that.setAttribute(attr, String(v));
       }
     },
   });
 }
-
-const gemElementProxyMap = new PropProxyMap<GemElement>();
 
 const isEventHandleSymbol = Symbol('event handle');
 export function defineProperty(target: GemElement, prop: string, event?: string) {
@@ -389,7 +403,7 @@ export function defineProperty(target: GemElement, prop: string, event?: string)
         } else {
           proxy[prop] = v;
         }
-        that.__update();
+        this[updateSymbol]();
       }
     },
   });
