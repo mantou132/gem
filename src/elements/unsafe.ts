@@ -9,8 +9,8 @@ import { GemElement, attribute, customElement } from '../';
  */
 @customElement('gem-unsafe')
 export class GemUnsafeElement extends GemElement {
-  @attribute content = '';
-  @attribute contentcss = '';
+  @attribute content: string;
+  @attribute contentcss: string;
 
   constructor() {
     super();
