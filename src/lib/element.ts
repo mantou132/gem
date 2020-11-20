@@ -118,13 +118,7 @@ export abstract class GemElement<T = Record<string, unknown>> extends HTMLElemen
     this.#isAsync = options?.isAsync;
     this.#renderRoot = options?.isLight ? this : this.attachShadow({ mode: 'open' });
 
-    const { defineEvents, adoptedStyleSheets } = new.target;
-    if (defineEvents) {
-      defineEvents.forEach((event) => {
-        const that = this as any;
-        that[kebabToCamelCase(event)] = emptyFunction;
-      });
-    }
+    const { adoptedStyleSheets } = new.target;
     if (adoptedStyleSheets) {
       const sheets = adoptedStyleSheets.map((item) => item[SheetToken] || item);
       if (this.shadowRoot) {
@@ -385,7 +379,13 @@ export function defineProperty(target: GemElement, prop: string, event?: string)
   Object.defineProperty(target, prop, {
     configurable: true,
     get() {
-      return gemElementProxyMap.get(this)[prop];
+      const value = gemElementProxyMap.get(this)[prop];
+      if (value || !event) {
+        return value;
+      } else {
+        this[prop] = emptyFunction;
+        return this[prop];
+      }
     },
     set(v) {
       const that = this as GemElement;
