@@ -1,6 +1,6 @@
-import { defineAttribute, defineCSSState, defineProperty, GemElement, nativeDefineElement } from './element';
+import { defineAttribute, defineCSSState, defineProperty, defineRef, GemElement, nativeDefineElement } from './element';
 import { Store } from './store';
-import { Sheet, camelToKebabCase, PropProxyMap } from './utils';
+import { Sheet, camelToKebabCase } from './utils';
 
 type GemElementPrototype = GemElement;
 type GemElementConstructor = typeof GemElement;
@@ -24,31 +24,11 @@ export type RefObject<T = HTMLElement> = { ref: string; element: T | null };
  *  }
  * ```
  */
-const gemElementProxyMap = new PropProxyMap<GemElement, RefObject>();
 export function refobject(target: GemElementPrototype, prop: string) {
   const attr = camelToKebabCase(prop);
   const con = target.constructor as GemElementConstructor;
   (con.defineRefs ||= []).push(attr);
-  Object.defineProperty(target, prop, {
-    get() {
-      const proxy = gemElementProxyMap.get(this);
-      let ref = proxy[prop];
-      if (!ref) {
-        const that = this as GemElement;
-        const ele = that.shadowRoot || that;
-        ref = {
-          get ref() {
-            return attr;
-          },
-          get element() {
-            return ele.querySelector(`[ref=${attr}]`) as HTMLElement | null;
-          },
-        };
-        proxy[prop] = ref;
-      }
-      return ref;
-    },
-  });
+  defineRef(target, prop, attr);
 }
 
 /**

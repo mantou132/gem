@@ -83,12 +83,12 @@ export abstract class GemElement<T = Record<string, unknown>> extends HTMLElemen
   static observedPropertys?: string[];
   static observedStores?: Store<unknown>[];
   static adoptedStyleSheets?: Sheet<unknown>[];
-  // 以下静态字段仅供外部读取，没有实际作用
   static defineEvents?: string[];
   static defineCSSStates?: string[];
+  static defineRefs?: string[];
+  // 以下静态字段仅供外部读取，没有实际作用
   static defineParts?: string[];
   static defineSlots?: string[];
-  static defineRefs?: string[];
 
   // 定义当前元素的状态，和 attr/prop 的本质区别是不为外部输入
   readonly state?: T;
@@ -363,8 +363,9 @@ export function defineAttribute(target: GemElement, prop: string, attr: string) 
   });
 }
 
-const isEventHandleSymbol = Symbol('event handle');
 const gemElementProxyMap = new PropProxyMap<GemElement>();
+
+const isEventHandleSymbol = Symbol('event handle');
 export function defineProperty(target: GemElement, prop: string, event?: string) {
   if (prop in target) return;
   Object.defineProperty(target, prop, {
@@ -394,20 +395,43 @@ export function defineProperty(target: GemElement, prop: string, event?: string)
   });
 }
 
-export function defineCSSState(target: GemElement, prop: string, attr: string) {
+export function defineRef(target: GemElement, prop: string, ref: string) {
+  Object.defineProperty(target, prop, {
+    get() {
+      const proxy = gemElementProxyMap.get(this);
+      let refobject = proxy[prop];
+      if (!refobject) {
+        const that = this as GemElement;
+        const ele = that.shadowRoot || that;
+        refobject = {
+          get ref() {
+            return ref;
+          },
+          get element() {
+            return ele.querySelector(`[ref=${ref}]`) as HTMLElement | null;
+          },
+        };
+        proxy[prop] = refobject;
+      }
+      return refobject;
+    },
+  });
+}
+
+export function defineCSSState(target: GemElement, prop: string, state: string) {
   Object.defineProperty(target, prop, {
     configurable: true,
     get() {
       const that = this as GemElement;
-      return !!that.internals?.states?.contains(attr);
+      return !!that.internals?.states?.contains(state);
     },
     set(v: boolean) {
       const that = this as GemElement;
       const internals = that.internals;
       if (v) {
-        internals.states.add(attr);
+        internals.states.add(state);
       } else {
-        internals.states.remove(attr);
+        internals.states.remove(state);
       }
     },
   });
@@ -415,23 +439,20 @@ export function defineCSSState(target: GemElement, prop: string, attr: string) {
 
 export const nativeDefineElement = customElements.define.bind(customElements);
 customElements.define = (name: string, cls: CustomElementConstructor, options?: ElementDefinitionOptions) => {
-  const {
-    observedAttributes,
-    observedPropertys,
-    defineEvents,
-    defineCSSStates,
-  } = (cls as unknown) as typeof GemElement;
-  if (observedAttributes) {
-    observedAttributes.forEach((attr) => defineAttribute(cls.prototype, kebabToCamelCase(attr), attr));
+  if (cls.prototype instanceof GemElement) {
+    const {
+      observedAttributes,
+      observedPropertys,
+      defineEvents,
+      defineCSSStates,
+      defineRefs,
+    } = (cls as unknown) as typeof GemElement;
+    observedAttributes?.forEach((attr) => defineAttribute(cls.prototype, kebabToCamelCase(attr), attr));
+    observedPropertys?.forEach((prop) => defineProperty(cls.prototype, prop));
+    defineEvents?.forEach((event) => defineProperty(cls.prototype, kebabToCamelCase(event), event));
+    defineCSSStates?.forEach((state) => defineCSSState(cls.prototype, kebabToCamelCase(state), state));
+    defineRefs?.forEach((ref) => defineRef(cls.prototype, kebabToCamelCase(ref), ref));
   }
-  if (observedPropertys) {
-    observedPropertys.forEach((prop) => defineProperty(cls.prototype, prop));
-  }
-  if (defineEvents) {
-    defineEvents.forEach((event) => defineProperty(cls.prototype, kebabToCamelCase(event), event));
-  }
-  if (defineCSSStates) {
-    defineCSSStates.forEach((state) => defineCSSState(cls.prototype, kebabToCamelCase(state), state));
-  }
+
   nativeDefineElement(name, cls as CustomElementConstructor, options);
 };
