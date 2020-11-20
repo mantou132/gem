@@ -7,7 +7,7 @@ Create custom elements, bind data, route switching, and quickly develop WebApps 
 ## Features
 
 - **Lightweight:**
-  The whole framework is divided into three modules (custom elements, global data management, routing), you can choose whether to use the built-in custom elements, all the content is packaged together and only 40kb.
+  The whole librarie is divided into three modules (custom elements, global data management, routing), you can choose whether to use the built-in custom elements, all the content is packaged together and only 15kb(br compression).
 
 - **Simple:**
   There is no new syntax, everything is HTML, CSS, JavaScript. There is no superfluous concept, only "Observe" is needed to create reactive custom elements;
@@ -16,7 +16,7 @@ Create custom elements, bind data, route switching, and quickly develop WebApps 
   The template engine uses [lit-html](https://github.com/Polymer/lit-html), bundle size, performance of addition, deletion, modification, and memory usage are better than React and Vue, [here](https://rawgit.com/krausest/js-framework-benchmark/master/webdriver-ts-results/table.html) is the performance comparison between lit-html and React and Vue;
 
 - **Asynchronous rendering:**
-  Contains an `AsyncGemElement` class, which will avoid blocking the main thread for a long time when continuously rendering (such as creating a list) of this type of element, providing a smooth user experience;
+  which will avoid blocking the main thread for a long time when continuously rendering (such as creating a list) of element, providing a smooth user experience;
 
 - **Support back button:**
   Drop-down menus, drawer-style menus, and pop-up windows can be closed with the back button just like native apps, and can also perform similar confirmation actions before closing;

@@ -38,7 +38,7 @@ class HelloWorld extends GemElement {
 }
 ```
 
-_Don't modify prop/attr outside the element `constructor`, they should be passed in one way by the parent element, just like native elements_
+_Do not modify prop/attr within the element, they should be passed in one-way by the parent element, just like native elements_
 
 In addition, `GemElement` provides React-like `state`/`setState` API to manage the state of the element itself. an element re-rendered is triggered whenever `setState` is called:
 
@@ -56,7 +56,7 @@ class HelloWorld extends GemElement {
 }
 ```
 
-_`GemElement` extends from [`HTMLElement`](https://developer.mozilla.org/en-US/docs/Web/API/HTMLElement), don’t override the attribute/property/method/event, in addition, define the default behavior instead of the default attribute, which is consistent with `HTMLElement`_
+_`GemElement` extends from [`HTMLElement`](https://developer.mozilla.org/en-US/docs/Web/API/HTMLElement), don’t override the attribute/property/method/event, in addition, do not define the default attr/prop, which is consistent with `HTMLElement`_
 
 ## Example
 
@@ -87,28 +87,21 @@ class HelloWorld extends GemElement {
 
 [![Edit reactive-element](https://codesandbox.io/static/img/play-codesandbox.svg)](https://codesandbox.io/s/reactive-element-chu75?fontsize=14&hidenavigation=1&theme=dark)
 
-## Use TypeScript
+## Life cycle
 
-When using TypeScript, you can use decorators to make reactive declarations while declaring fields:
+You can specify life cycle functions for GemElement. Sometimes they are useful, for example:
 
-```ts
+```js
 // Omit import...
 
-const store = createStore({
-  count: 0,
-});
-
-@customElement('hello-world')
-@connectStore(store)
 class HelloWorld extends GemElement {
-  @attribute name: string;
-  @boolattribute disabled: boolean;
-  @numattribute count: number;
-  @property data: Data | undefined; // property has no default value
+  mounted() {
+    console.log('element mounted!');
+  }
 }
 ```
 
-## Life cycle
+Complete life cycle:
 
 ```
   +-------------+       +----------------------+
@@ -134,4 +127,25 @@ class HelloWorld extends GemElement {
   +------v-------------------------v------+
   |               unmounted               |
   +---------------------------------------+
+```
+
+## Use TypeScript
+
+When using TypeScript, you can use decorators to make reactive declarations while declaring fields:
+
+```ts
+// Omit import...
+
+const store = createStore({
+  count: 0,
+});
+
+@customElement('hello-world')
+@connectStore(store)
+class HelloWorld extends GemElement {
+  @attribute name: string;
+  @boolattribute disabled: boolean;
+  @numattribute count: number;
+  @property data: Data | undefined; // property has no default value
+}
 ```

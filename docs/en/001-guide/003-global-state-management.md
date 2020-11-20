@@ -1,6 +1,6 @@
 # Global state management
 
-Sharing data between multiple elements (called "components" in other frameworks) is a basic capability of the WebApp framework. Gem uses the "Publish/Subscribe" model to allow multiple elements to share data, and notify all elements that subscribe to the data when the data is updated. In Gem, global data is called "Store".
+Sharing data between elements (also called "components") is a basic capability of the WebApp requirements. Gem uses the "Publish/Subscribe" model to allow multiple elements to share data, and notify all elements that subscribe to the data when the data is updated. In Gem, global data is called "Store".
 
 ## Basic use
 

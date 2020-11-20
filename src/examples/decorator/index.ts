@@ -44,7 +44,7 @@ export class App extends GemElement {
 
   constructor(title: string) {
     super();
-    this.appTitle = title;
+    this.appTitle = this.appTitle || title;
   }
 
   onSayHi = () => {

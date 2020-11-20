@@ -41,7 +41,7 @@ class HelloWorld extends GemElement {
 }
 ```
 
-_不要在元素 `constructor` 以外的地方修改 prop/attr，他们应该由父元素单向传递进来，就像原生元素一样_
+_不要在元素内修改 prop/attr，他们应该由父元素单向传递进来，就像原生元素一样_
 
 另外 `GemElement` 提供了类似 React 的 `state`/`setState` API 来管理元素自身的状态，
 每当调用 `setState` 时触发元素重新渲染：
@@ -60,7 +60,7 @@ class HelloWorld extends GemElement {
 }
 ```
 
-_`GemElement` 扩展自 [`HTMLElement`](https://developer.mozilla.org/en-US/docs/Web/API/HTMLElement)，不要覆盖 `HTMLElement` 的 attribute/property/method/event，此外，定义默认行为而不要定义默认属性，和 `HTMLElement` 保持一致性_
+_`GemElement` 扩展自 [`HTMLElement`](https://developer.mozilla.org/en-US/docs/Web/API/HTMLElement)，不要覆盖 `HTMLElement` 的 attribute/property/method/event，此外，不要定义默认 attr/prop，和 `HTMLElement` 保持一致性_
 
 ## 例子
 
@@ -91,28 +91,21 @@ class HelloWorld extends GemElement {
 
 [![Edit reactive-element](https://codesandbox.io/static/img/play-codesandbox.svg)](https://codesandbox.io/s/reactive-element-chu75?fontsize=14&hidenavigation=1&theme=dark)
 
-## 使用 TypeScript
+## 生命周期
 
-当使用 TypeScript 时，可以在声明字段的同时使用装饰器进行反应性声明：
+你可以为 GemElement 指定生命周期函数，有时候他们会很有用，例如：
 
-```ts
+```js
 // 省略导入...
 
-const store = createStore({
-  count: 0,
-});
-
-@customElement('hello-world')
-@connectStore(store)
 class HelloWorld extends GemElement {
-  @attribute name: string;
-  @boolattribute disabled: boolean;
-  @numattribute count: number;
-  @property data: Data | undefined; // property 没有默认值
+  mounted() {
+    console.log('element mounted!');
+  }
 }
 ```
 
-## 生命周期
+完整的生命周期：
 
 ```
   +-------------+       +----------------------+
@@ -138,4 +131,25 @@ class HelloWorld extends GemElement {
   +------v-------------------------v------+
   |               unmounted               |
   +---------------------------------------+
+```
+
+## 使用 TypeScript
+
+当使用 TypeScript 时，可以在声明字段的同时使用装饰器进行反应性声明：
+
+```ts
+// 省略导入...
+
+const store = createStore({
+  count: 0,
+});
+
+@customElement('hello-world')
+@connectStore(store)
+class HelloWorld extends GemElement {
+  @attribute name: string;
+  @boolattribute disabled: boolean;
+  @numattribute count: number;
+  @property data: Data | undefined; // property 没有默认值
+}
 ```
