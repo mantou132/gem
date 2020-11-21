@@ -148,7 +148,6 @@ export abstract class GemElement<T = Record<string, unknown>> extends HTMLElemen
    * @helper
    * 设置元素 state，会触发更新
    *
-   * @example
    * ```js
    * class App extends GemElement {
    *   click() {
@@ -182,7 +181,6 @@ export abstract class GemElement<T = Record<string, unknown>> extends HTMLElemen
    * @helper
    * 记录副作用回调和值
    *
-   * @example
    * ```js
    * class App extends GemElement {
    *   mounted() {
@@ -327,15 +325,6 @@ const gemElementProxyMap = new PropProxyMap<GemElement>();
 
 export function defineAttribute(target: GemElement, prop: string, attr: string) {
   const { booleanAttributes, numberAttributes } = target.constructor as typeof GemElement;
-  const prototype = target as any;
-  if (typeof prototype[prop] === 'function') {
-    throw new GemError(`Don't use attribute with the same name as native methods`);
-  }
-  // Native attribute，no need difine property
-  // e.g: `id`, `title`, `hidden`, `alt`, `lang`
-  if (prototype[prop] !== undefined) {
-    return;
-  }
   Object.defineProperty(target, prop, {
     configurable: true,
     get() {
@@ -376,7 +365,6 @@ export function defineAttribute(target: GemElement, prop: string, attr: string) 
 
 const isEventHandleSymbol = Symbol('event handle');
 export function defineProperty(target: GemElement, prop: string, event?: string) {
-  if (prop in target) return;
   Object.defineProperty(target, prop, {
     configurable: true,
     get() {
