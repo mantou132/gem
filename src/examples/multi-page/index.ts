@@ -1,7 +1,7 @@
 import { GemElement, html, render } from '../../';
 import { GemTitleElement } from '../../elements/title';
-import '../../elements/link';
 import '../../elements/route';
+import '../../elements/link';
 
 import '../elements/layout';
 
@@ -61,9 +61,7 @@ class App extends GemElement {
         <gem-link path="/b">PageB</gem-link>
         <gem-link path="/c/e" pattern="/c/*">PageC</gem-link>
       </nav>
-      <main>
-        <gem-route .routes=${routes}></gem-route>
-      </main>
+      <main><gem-light-route .routes=${routes}></gem-light-route></main>
     `;
   }
 }

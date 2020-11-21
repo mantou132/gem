@@ -5,11 +5,11 @@ import {
   connectStore,
   property,
   emitter,
+  Emitter,
   history,
   TemplateResult,
   UpdateHistoryParams,
 } from '../';
-import { Emitter } from '../lib/decorators';
 
 interface NamePostition {
   [index: string]: number;
@@ -93,9 +93,15 @@ export function createHistoryParams(route: RouteItem, options?: RouteOptions): U
   };
 }
 
+interface ConstructorOptions {
+  isLight?: boolean;
+  routes?: RouteItem[] | RoutesObject;
+}
+
 /**
  * @customElement gem-route
  * @fires change
+ * @attr light-dom
  */
 @connectStore(history.store)
 @customElement('gem-route')
@@ -109,20 +115,26 @@ export class GemRouteElement extends GemElement {
     }
   }
 
-  @property routes: RouteItem[] | RoutesObject;
-  @property key: any; // 除了 href 提供另外一种方式来更新
+  @property routes?: RouteItem[] | RoutesObject;
+  @property key: any; // 除了 href 提供另外一种方式来更新，比如语言更新也需要刷新 <gem-route>
   @emitter change: Emitter<RouteItem | null>;
 
-  private _href: string; // 用于内部比较
-  private _key: any; // 用于内部比较
+  #href: string; // 用于内部比较
+  #key: any; // 用于内部比较
+  #isLight?: boolean;
 
-  constructor() {
-    super();
+  constructor({ isLight, routes }: ConstructorOptions = {}) {
+    super({ isLight });
+    this.#isLight = isLight;
+
+    this.routes = routes;
+
     const { path, query } = history.getParams();
     const href = path + query;
-    this._href = href;
+    this.#href = href;
   }
-  initPage() {
+
+  #initPage = () => {
     // 路径更新后可能发起第二次更新，更新 `document.title`
     if (
       GemRouteElement.currentRoute &&
@@ -131,31 +143,26 @@ export class GemRouteElement extends GemElement {
     ) {
       history.updateParams({ title: GemRouteElement.currentRoute.title });
     }
-  }
+  };
+
+  #callback = () => {
+    GemRouteElement.currentRoute = null;
+    return html``;
+  };
 
   shouldUpdate() {
     const { path, query } = history.getParams();
     const href = path + query;
-    if (href !== this._href || this.key !== this._key) {
-      this._href = href;
-      this._key = this.key;
+    if (href !== this.#href || this.key !== this.#key) {
+      this.#href = href;
+      this.#key = this.key;
       return true;
     }
     return false;
   }
 
-  mounted() {
-    this._key = this.key;
-    this.initPage();
-  }
-
-  updated() {
-    this.initPage();
-    this.change(GemRouteElement.currentRoute);
-  }
-
   render() {
-    if (!this.routes) return this.callback();
+    if (!this.routes) return this.#callback();
     GemRouteElement.currentRoute = null;
 
     let defaultRoute: RouteItem | null = null;
@@ -180,24 +187,40 @@ export class GemRouteElement extends GemElement {
       GemRouteElement.currentRoute = defaultRoute;
     }
 
-    if (!GemRouteElement.currentRoute) return this.callback();
+    if (!GemRouteElement.currentRoute) return this.#callback();
     if (GemRouteElement.currentRoute.redirect) {
       history.replace({ path: GemRouteElement.currentRoute.redirect });
       // 不要渲染空内容，等待重定向结果
       return undefined;
     }
     return html`
-      <style>
-        :host {
-          display: contents;
-        }
-      </style>
+      ${this.#isLight
+        ? ''
+        : html`
+            <style>
+              :host {
+                display: contents;
+              }
+            </style>
+          `}
       ${GemRouteElement.currentRoute.content}
     `;
   }
 
-  callback() {
-    GemRouteElement.currentRoute = null;
-    return html``;
+  mounted() {
+    this.#key = this.key;
+    this.#initPage();
+  }
+
+  updated() {
+    this.#initPage();
+    this.change(GemRouteElement.currentRoute);
+  }
+}
+
+@customElement('gem-light-route')
+export class GemLightRouteElement extends GemRouteElement {
+  constructor(options: ConstructorOptions = {}) {
+    super({ ...options, isLight: true });
   }
 }
