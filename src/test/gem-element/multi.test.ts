@@ -1,6 +1,6 @@
 import { expect, fixture } from '@open-wc/testing';
-import { customElement, property, RefObject, refobject } from '../lib/decorators';
-import { GemElement, html } from '../lib/element';
+import { customElement, property, RefObject, refobject } from '../../lib/decorators';
+import { GemElement, html } from '../../lib/element';
 
 @customElement('app-children')
 export class Children extends GemElement {
