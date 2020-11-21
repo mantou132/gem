@@ -18,6 +18,7 @@ interface Options<T> {
   currentLanguage?: string;
   cache?: boolean;
   cachePrefix?: string;
+  urlParams?: string;
 }
 
 export class I18n<T = Record<string, string>> implements Options<T> {
@@ -28,6 +29,7 @@ export class I18n<T = Record<string, string>> implements Options<T> {
   currentLanguage = '';
   cache = false;
   cachePrefix = 'gem@i18n';
+  urlParams = '';
 
   store: Store<any>;
 
@@ -41,6 +43,9 @@ export class I18n<T = Record<string, string>> implements Options<T> {
     }
     this.store = createStore(this as any);
     Object.assign<I18n, Options<T>>(this as I18n, options);
+    if (this.urlParams && !this.currentLanguage) {
+      this.currentLanguage = new URLSearchParams(location.search).get(this.urlParams) || '';
+    }
     if (this.cache && !this.currentLanguage) {
       this.currentLanguage = localStorage.getItem(this.cacheCurrentKey) || '';
     }
