@@ -7,14 +7,14 @@ const pushState: typeof history.pushState = history.pushState.bind(history);
 const replaceState: typeof history.replaceState = history.replaceState.bind(history);
 
 let key = 0;
-const getKey = () => ++key;
+const getKey = () => `${performance.now()}-${++key}`;
 
 // history.state
 export interface HistoryItem {
   $hasCloseHandle: boolean;
   $hasOpenHandle: boolean;
   $hasShouldCloseHandle: boolean;
-  $key: number;
+  $key: string;
   [index: string]: any;
 }
 
@@ -22,7 +22,7 @@ const store = createStore<HistoryItem>({
   $hasCloseHandle: false,
   $hasOpenHandle: false,
   $hasShouldCloseHandle: false,
-  $key: 0,
+  $key: '',
 });
 
 export interface UpdateHistoryParams {
@@ -41,7 +41,7 @@ export interface UpdateHistoryParams {
 type HistoryParams = UpdateHistoryParams & { title: string; path: string; query: QueryString; hash: string };
 
 // TODO: WeakRef
-const paramsMap = new Map<number, HistoryParams>();
+const paramsMap = new Map<string, HistoryParams>();
 
 declare global {
   interface History {
@@ -100,12 +100,12 @@ function updateHistory(type: UpdateHistoryType, p: UpdateHistoryParams) {
   validData(p.data);
   const params = initParams(p);
   const { title, path, query, hash, close, open, shouldClose, data } = params;
-  const state = {
+  const state: HistoryItem = {
     $hasCloseHandle: !!close,
     $hasOpenHandle: !!open,
     $hasShouldCloseHandle: !!shouldClose,
     $key: getKey(),
-    ...(data || {}),
+    ...data,
   };
   paramsMap.set(state.$key, params);
   updateStore(cleanObject(store), state);
