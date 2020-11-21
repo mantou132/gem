@@ -56,7 +56,7 @@ class HelloWorld extends GemElement {
 }
 ```
 
-_`GemElement` extends from [`HTMLElement`](https://developer.mozilla.org/en-US/docs/Web/API/HTMLElement), don’t override the attribute/property/method/event, in addition, do not define the default attr/prop, which is consistent with `HTMLElement`_
+_`GemElement` extends from [`HTMLElement`](https://developer.mozilla.org/en-US/docs/Web/API/HTMLElement), don’t override the attribute/property/method/event, use [private fields](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Classes/Private_class_fields) to avoid overwriting the property/methods of `GemElement`/`HTMLElement`_
 
 ## Example
 
