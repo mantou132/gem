@@ -1,4 +1,5 @@
 import { GemElement, html, history, render } from '../../';
+import { customElement, RefObject, refobject } from '../../lib/decorators';
 import { createHistoryParams, GemRouteElement } from '../../elements/route';
 import '../../elements/link';
 
@@ -51,9 +52,11 @@ const routes = {
   },
 };
 
-class App extends GemElement {
+@customElement('app-root')
+export class App extends GemElement {
+  @refobject routeRef: RefObject<GemRouteElement>;
   onclick = () => {
-    if (GemRouteElement.currentRoute === routes.home) {
+    if (this.routeRef.element?.currentRoute === routes.home) {
       history.push(createHistoryParams(routes.a, { params: { b: String(Date.now()) } }));
     } else {
       history.push(createHistoryParams(routes.home));
@@ -62,12 +65,11 @@ class App extends GemElement {
   render() {
     return html`
       <main>
-        <gem-route .routes=${routes}></gem-route>
+        <gem-route ref=${this.routeRef.ref} .routes=${routes}></gem-route>
       </main>
     `;
   }
 }
-customElements.define('app-root', App);
 
 render(
   html`

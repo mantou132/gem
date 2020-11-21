@@ -400,6 +400,7 @@ export function defineProperty(target: GemElement, prop: string, event?: string)
 
 export function defineRef(target: GemElement, prop: string, ref: string) {
   Object.defineProperty(target, prop, {
+    configurable: true,
     get() {
       const proxy = gemElementProxyMap.get(this);
       let refobject = proxy[prop];
