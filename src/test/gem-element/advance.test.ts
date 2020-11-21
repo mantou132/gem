@@ -1,7 +1,7 @@
 import { fixture, expect, nextFrame } from '@open-wc/testing';
 import { GemElement, html } from '../../lib/element';
 import { createStore, updateStore } from '../../lib/store';
-import { attribute, property, customElement } from '../../lib/decorators';
+import { attribute, property, customElement, emitter } from '../../lib/decorators';
 
 const store = createStore({
   a: 1,
@@ -131,5 +131,31 @@ describe('gem element 副作用', () => {
     expect(el.effectCount).to.equal(3);
     el.remove();
     expect(el.effectCount).to.equal(0);
+  });
+});
+
+class I extends GemElement {
+  @attribute appTitle = 'string';
+  @property appData = { a: 1 };
+  @emitter sayHi = () => {
+    window.name += '1';
+  };
+}
+@customElement('inherit-gem')
+class InheritGem extends I {}
+describe('gem element 继承', () => {
+  it('attr/prop/emitter 继承', async () => {
+    const el: InheritGem = await fixture(html`<inherit-gem></inherit-gem>`);
+    expect(el.appTitle).to.equal('string');
+    expect(el.appData.a).to.equal(1);
+    el.appTitle = 'b';
+    el.appData = { a: 2 };
+    expect(el.appTitle).to.equal('b');
+    expect(el.appData.a).to.equal(2);
+    el.addEventListener('say-hi', () => {
+      window.name += '2';
+    });
+    el.sayHi();
+    expect(window.name).to.equal('21');
   });
 });

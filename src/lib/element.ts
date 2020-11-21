@@ -340,7 +340,8 @@ export function defineAttribute(target: GemElement, prop: string, attr: string) 
     configurable: true,
     get() {
       // fix karma test
-      if (Object.getPrototypeOf(this) !== target) return;
+      // 判断是否是自定义元素实例
+      if (!(initSymbol in this)) return;
       const that = this as GemElement;
       const value = that.getAttribute(attr);
       if (booleanAttributes?.has(attr)) {
