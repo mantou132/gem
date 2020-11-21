@@ -29,6 +29,9 @@ class GemElement<State> extends HTMLElement {
 | `adoptedStyleSheets` | See [`DocumentOrShadowRoot.adoptedStyleSheets`][1]                    |
 | `booleanAttributes`  | Mark the type of the specified `attribute` as `boolean`               |
 | `numberAttributes`   | Mark the type of the specified `attribute` as `number`                |
+| `defineEvents`       | Define events, execute trigger events                                 |
+| `defineCSSStates`    | Define CSS State                                                      |
+| `defineRefs`         | Define DOM reference, [see](../002-advance/002-gem-element-more.md)   |
 
 [1]: https://developer.mozilla.org/en-US/docs/Web/API/DocumentOrShadowRoot/adoptedStyleSheets
 

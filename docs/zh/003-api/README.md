@@ -29,6 +29,9 @@ class GemElement<State> extends HTMLElement {
 | `adoptedStyleSheets` | 同 [`DocumentOrShadowRoot.adoptedStyleSheets`][1]                   |
 | `booleanAttributes`  | 将指定的 `attribute` 的类型标记为 `boolean`                         |
 | `numberAttributes`   | 将指定的 `attribute` 的类型标记为 `number`                          |
+| `defineEvents`       | 定义事件，执行触发事件                                              |
+| `defineCSSStates`    | 定义 CSS State                                                      |
+| `defineRefs`         | 定义 DOM 引用，[使用](../002-advance/002-gem-element-more.md)       |
 
 [1]: https://developer.mozilla.org/en-US/docs/Web/API/DocumentOrShadowRoot/adoptedStyleSheets
 
