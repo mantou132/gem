@@ -27,6 +27,7 @@ class ParamsRegExp extends RegExp {
           return `([^/]+)`;
         })
         .replace('*', '.*')}$`,
+      'i',
     );
     this.namePosition = namePosition;
   }
@@ -157,6 +158,7 @@ export class GemRouteElement extends GemElement {
 
   render() {
     if (!this.routes) return this.#callback();
+    const { path } = history.getParams();
     this.currentRoute = null;
 
     let defaultRoute: RouteItem | null = null;
@@ -171,7 +173,7 @@ export class GemRouteElement extends GemElement {
       const { pattern } = item;
       if ('*' === pattern) {
         defaultRoute = item;
-      } else if (isMatch(pattern, history.getParams().path)) {
+      } else if (isMatch(pattern, path)) {
         this.currentRoute = item;
         break;
       }

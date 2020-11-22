@@ -23,7 +23,7 @@ const routes = [
   },
   {
     title: 'Page B Title',
-    pattern: '/b',
+    pattern: '/B',
     content: html` <app-page-b>B: </app-page-b> `,
   },
   {
@@ -57,7 +57,7 @@ class App extends GemElement {
       <header><gem-title suffix=${GemTitleElement.defaultSuffix}>AppName</gem-title></header>
       <nav>
         <gem-link path="/">Home</gem-link>
-        <gem-link path="/a">PageA</gem-link>
+        <gem-link path="/A">PageA</gem-link>
         <gem-link path="/b">PageB</gem-link>
         <gem-link path="/c/e" pattern="/c/*">PageC</gem-link>
       </nav>
