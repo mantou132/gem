@@ -3,153 +3,82 @@ isNav: true
 navTitle: 指南
 ---
 
-# 反应性元素
+# 简介
 
-当你想要创建一个反应性的 WebApp 时，
-你需要元素能对不同的输入（attribute/property/[store](./003-global-state-management)）做出反应（重新渲染）。
+Gem 是一套使用现代 WebComponents 技术构建 WebApp 的轻量级库。
+本质上说，你只是创建一个个自定义元素，然后让他们协同工作，他们非常灵活，可以很容易的进行扩展，比如集成手势。
+另外，也可以使用 Gem 只构建并发布自定义元素，自定义元素很容易和其他库集成，
+所以，你可以使用 Gem 构建 UI 组件库。
 
-## 定义
+在学习 Gem 之前，
+希望你对 [WebComponents](https://developer.mozilla.org/en-US/docs/Web/Web_Components) 技术有一定的了解。
 
-定义具备反应性的 attribute，使用标准的 [observedAttributes](https://developer.mozilla.org/en-US/docs/Web/Web_Components/Using_custom_elements#Using_the_lifecycle_callbacks) 静态属性：
+## 安装
+
+使用 npm：
+
+```bash
+npm install @mantou/gem
+```
+
+或者使用 ES modules：
 
 ```js
-// 省略导入...
+import * as Gem from 'https://dev.jspm.io/@mantou/gem';
+```
+
+或者使用 Unpkg：
+
+```html
+<script src="https://unpkg.com/@mantou/gem/umd.js"></script>
+```
+
+## 开始
+
+```html
+<hello-world></hello-world>
+```
+
+```js
+import { GemElement, html } from '@mantou/gem';
 
 class HelloWorld extends GemElement {
-  static observedAttributes = ['first-name'];
   render() {
-    return html`${this.firestName}`;
+    return html`hello world`;
   }
 }
+
+customElements.define('hello-world', HelloWorld);
 ```
 
-`first-name` 属性经过“Observed”，他就能直接通过 property 进行访问，
-且会自动进行驼峰和烤串格式的转换，
-当 `first-name` 属性更改时，`HelloWorld` 的实例元素将重新渲染。
+[![Edit hello-world](https://codesandbox.io/static/img/play-codesandbox.svg)](https://codesandbox.io/s/hello-world-llky3?fontsize=14&hidenavigation=1&theme=dark)
 
-类似 `observedAttributes`，GemElement 还支持 `observedPropertys`/`observedStores` 用来反应指定的 property/store：
+使用标准的 [customElements](https://developer.mozilla.org/en-US/docs/Web/API/Window/customElements) 定义一个自定义元素，
+然后以任何方式在 HTML 中使用他，当然也可以在其他自定义元素的模板中使用。
+
+在 `render` 方法中返回渲染模版。 Gem 将 [lit-html](https://github.com/Polymer/lit-html) 作为其模版引擎，
+他使用 ES6 的模版字符串来编写 HTML 模版，没有其他概念，也不需要编译时。
+
+使用变量：
 
 ```js
-// 省略导入...
-
-class HelloWorld extends GemElement {
-  static observedPropertys = ['data'];
-  static observedStores = [store];
-  render() {
-    return html`${this.data.id} ${store.name}`;
-  }
-}
+html`<div>${value}</div>`;
 ```
 
-_不要在元素内修改 prop/attr，他们应该由父元素单向传递进来，就像原生元素一样_
-
-另外 `GemElement` 提供了类似 React 的 `state`/`setState` API 来管理元素自身的状态，
-每当调用 `setState` 时触发元素重新渲染：
+绑定 attribute 和 property：
 
 ```js
-// 省略导入...
-
-class HelloWorld extends GemElement {
-  state = { id: 1 };
-  clicked() {
-    this.setState({ id: 2 });
-  }
-  render() {
-    return html`${this.state.id}`;
-  }
-}
+html`<div title=${title} .data=${data}></div>`;
 ```
 
-_`GemElement` 扩展自 [`HTMLElement`](https://developer.mozilla.org/en-US/docs/Web/API/HTMLElement)，不要覆盖 `HTMLElement` 的 attribute/property/method/event，使用[私有字段](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Classes/Private_class_fields)来避免 `GemElement`/`HTMLElement` 的属性方法被覆盖_
-
-## 例子
+使用绑定事件
 
 ```js
-// 省略导入...
-
-const store = createStore({
-  count: 0,
-});
-
-class HelloWorld extends GemElement {
-  static observedStores = [store];
-  static observedAttributes = ['name'];
-  static observedPropertys = ['data'];
-
-  clickHandle = () => {
-    updateStore(store, { count: ++store.count });
-  };
-  render() {
-    return html`
-      <button @click="${this.clickHandle}">Hello, ${this.name}</button>
-      <div>clicked clount: ${store.count}</div>
-      <pre>${JSON.stringify(this.data)}</pre>
-    `;
-  }
-}
+html`<div @click=${clickHandle}></div>`;
 ```
 
-[![Edit reactive-element](https://codesandbox.io/static/img/play-codesandbox.svg)](https://codesandbox.io/s/reactive-element-chu75?fontsize=14&hidenavigation=1&theme=dark)
+更详细的语法可以查看 [lit-html](https://lit-html.polymer-project.org/guide) 文档。
 
-## 生命周期
+## 准备好了吗？
 
-你可以为 GemElement 指定生命周期函数，有时候他们会很有用，例如：
-
-```js
-// 省略导入...
-
-class HelloWorld extends GemElement {
-  mounted() {
-    console.log('element mounted!');
-  }
-}
-```
-
-完整的生命周期：
-
-```
-  +-------------+       +----------------------+
-  |  construct  |       |attr/prop/store update|
-  +-------------+       +----------------------+
-         |                         |
-         |                         |
-  +------v------+         +--------v-------+
-  |  willMount  |         |  shouldUpdate  |
-  +-------------+         +----------------+
-         |                         |
-         |                         |
-  +------v-------------------------v------+
-  |                render                 |
-  +---------------------------------------+
-         |                         |
-         |                         |
-  +------v------+           +------v------+
-  |   mounted   |           |   updated   |
-  +-------------+           +-------------+
-         |                         |
-         |                         |
-  +------v-------------------------v------+
-  |               unmounted               |
-  +---------------------------------------+
-```
-
-## 使用 TypeScript
-
-当使用 TypeScript 时，可以在声明字段的同时使用装饰器进行反应性声明：
-
-```ts
-// 省略导入...
-
-const store = createStore({
-  count: 0,
-});
-
-@customElement('hello-world')
-@connectStore(store)
-class HelloWorld extends GemElement {
-  @attribute name: string;
-  @boolattribute disabled: boolean;
-  @numattribute count: number;
-  @property data: Data | undefined; // property 没有默认值
-}
-```
+刚才只是介绍了 Gem 最基本的功能 —— 定义 Gem 元素，接下来将介绍开发一个反应性 WebApp 的其他部分。

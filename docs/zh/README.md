@@ -1,79 +1,39 @@
-# 简介
+---
+title: 使用 WebComponents 快速构建复杂的高性能 WebApp
+hero:
+  title: Gem
+  desc: 使用 WebComponents 快速构建复杂的高性能 WebApp
+  actions:
+    - text: 快速开始
+      link: ./001-guide/
+features:
+  - title: 基于 WebComponents
+    desc: >
+      构建管理其自身状态的封装元素，然后对其进行组合以构成复杂的 UI。
 
-Gem 是一套使用现代 WebComponents 技术构建 WebApp 的轻量级库。
-本质上说，你只是创建一个个自定义元素，然后让他们协同工作，他们非常灵活，可以很容易的进行扩展，比如集成手势。
-另外，也可以使用 Gem 只构建并发布自定义元素，自定义元素很容易和其他库集成，
-所以，你可以使用 Gem 构建 UI 组件库。
 
-在学习 Gem 之前，
-希望你对 [WebComponents](https://developer.mozilla.org/en-US/docs/Web/Web_Components) 技术有一定的了解。
+      使用熟悉的 ES Classes 语法来编写自定义元素，并声明自定义元素的数据和属性。
 
-## 安装
+  - title: 声明式模版
+    desc: >
+      Gem 的简单，熟悉的开发模型使构建 Web 组件比以往更加容易。
 
-使用 npm：
 
-```bash
-npm install @mantou/gem
-```
+      根据状态声明性地表达 UI。 无需学习自定义模板语言-您可以在模板中使用 JavaScript 的全部功能。 元素的属性更改时会自动更新。
 
-或者使用 ES modules：
+  - title: 观察模式
+    desc: >
+      全局数据的管理，路由的修改全部使用观察模式。
 
-```js
-import * as Gem from 'https://dev.jspm.io/@mantou/gem';
-```
 
-或者使用 Unpkg：
+      使用观察模式来连接自定义元素和数据，在数据更新时高效的更新你的 WebApp，只需要将注意力集中在业务逻辑上。
+---
 
-```html
-<script src="https://unpkg.com/@mantou/gem/umd.js"></script>
-```
+## 待办事项 App
 
-## 开始
-
-```html
-<hello-world></hello-world>
-```
-
-```js
-import { GemElement, html } from '@mantou/gem';
-
-class HelloWorld extends GemElement {
-  render() {
-    return html`hello world`;
-  }
-}
-
-customElements.define('hello-world', HelloWorld);
-```
-
-[![Edit hello-world](https://codesandbox.io/static/img/play-codesandbox.svg)](https://codesandbox.io/s/hello-world-llky3?fontsize=14&hidenavigation=1&theme=dark)
-
-使用标准的 [customElements](https://developer.mozilla.org/en-US/docs/Web/API/Window/customElements) 定义一个自定义元素，
-然后以任何方式在 HTML 中使用他，当然也可以在其他自定义元素的模板中使用。
-
-在 `render` 方法中返回渲染模版。 Gem 将 [lit-html](https://github.com/Polymer/lit-html) 作为其模版引擎，
-他使用 ES6 的模版字符串来编写 HTML 模版，没有其他概念，也不需要编译时。
-
-使用变量：
-
-```js
-html`<div>${value}</div>`;
-```
-
-绑定 attribute 和 property：
-
-```js
-html`<div title=${title} .data=${data}></div>`;
-```
-
-使用绑定事件
-
-```js
-html`<div @click=${clickHandle}></div>`;
-```
-
-更详细的语法可以查看 [lit-html](https://lit-html.polymer-project.org/guide) 文档。
-
-## 准备好了吗？
-
-刚才只是介绍了 Gem 最基本的功能 —— 定义 Gem 元素，接下来将介绍开发一个反应性 WebApp 的其他部分。
+<iframe src="https://codesandbox.io/embed/todoapp-cxsdv?autoresize=1&fontsize=14&hidenavigation=1&theme=dark&view=editor"
+     style="width:100%; height:500px; border:0; border-radius: 4px; overflow:hidden;"
+     title="TodoApp"
+     allow="accelerometer; ambient-light-sensor; camera; encrypted-media; geolocation; gyroscope; hid; microphone; midi; payment; usb; vr; xr-spatial-tracking"
+     sandbox="allow-forms allow-modals allow-popups allow-presentation allow-same-origin allow-scripts"
+   ></iframe>

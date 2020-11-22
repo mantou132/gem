@@ -1,73 +1,39 @@
-# Introduction
+---
+title: Use WebComponents to quickly build complex high-performance WebApps
+hero:
+  title: Gem
+  desc: Use WebComponents to quickly build complex high-performance WebApps
+  actions:
+    - text: Getting Started
+      link: ./001-guide/
+features:
+  - title: WebComponents-Based
+    desc: >
+      Build encapsulated elements that manage their own state, and then combine them to form a complex WebApp.
 
-Gem is a lightweight library that uses modern WebComponents technology to build WebApp. Essentially, you just create individual custom elements and let them work together. They are very flexible and can be easily extended, such as integrated gestures. In addition, you can also use Gem to build and publish only custom elements, which can be easily integrated with other library. So, you can use Gem to build UI component library.
 
-Before learning Gem, Hope you have a certain understanding of [WebComponents](https://developer.mozilla.org/en-US/docs/Web/Web_Components) technology.
+      Use the familiar ES Classes syntax to write custom elements and declare the data and attributes of the custom elements.
 
-## Installation
+  - title: Declarative template
+    desc: >
+      GemElement’s simple, familiar development model makes it easier than ever to build Web Components.
 
-use npm:
 
-```bash
-npm install @mantou/gem
-```
+      Express your UI declaratively, as a function of state. No need to learn a custom templating language – you can use the full power of JavaScript in your templates. Elements update automatically when their properties change.
 
-or use ES modules:
+  - title: Observation mode
+    desc: >
+      The management of global data and the modification of routing all use the observation mode.
 
-```js
-import * as Gem from 'https://dev.jspm.io/@mantou/gem';
-```
 
-or use Unpkg：
+      Use the observation mode to connect custom elements and data, and efficiently update your WebApp when data is updated, you only need to focus on business logic.
+---
 
-```html
-<script src="https://unpkg.com/@mantou/gem/umd.js"></script>
-```
+## TodoApp
 
-## Start
-
-```html
-<hello-world></hello-world>
-```
-
-```js
-import { GemElement, html } from '@mantou/gem';
-
-class HelloWorld extends GemElement {
-  render() {
-    return html`hello world`;
-  }
-}
-
-customElements.define('hello-world', HelloWorld);
-```
-
-[![Edit hello-world](https://codesandbox.io/static/img/play-codesandbox.svg)](https://codesandbox.io/s/hello-world-llky3?fontsize=14&hidenavigation=1&theme=dark)
-
-Use standard [customElements](https://developer.mozilla.org/en-US/docs/Web/API/Window/customElements) to define a custom element, and then use it in HTML in any way, of course, it can also be used in other custom element templates.
-
-Return the rendering template in the `render` method. Gem uses [lit-html](https://github.com/Polymer/lit-html) as its template engine. He uses ES6 template strings to write HTML templates. There are no other concepts and no compile-time.
-
-Use variables:
-
-```js
-html`<div>${value}</div>`;
-```
-
-Bind attribute and property:
-
-```js
-html`<div title=${title} .data=${data}></div>`;
-```
-
-Use event bind:
-
-```js
-html`<div @click=${clickHandle}></div>`;
-```
-
-More detailed syntax can be found in [lit-html](https://lit-html.polymer-project.org/guide) document.
-
-## Are you ready?
-
-Just introduced the most basic function of Gem: defining Gem elements, and then I will introduce the other parts of developing a reactive WebApp.
+<iframe src="https://codesandbox.io/embed/todoapp-cxsdv?autoresize=1&fontsize=14&hidenavigation=1&theme=dark&view=editor"
+     style="width:100%; height:500px; border:0; border-radius: 4px; overflow:hidden;"
+     title="TodoApp"
+     allow="accelerometer; ambient-light-sensor; camera; encrypted-media; geolocation; gyroscope; hid; microphone; midi; payment; usb; vr; xr-spatial-tracking"
+     sandbox="allow-forms allow-modals allow-popups allow-presentation allow-same-origin allow-scripts"
+   ></iframe>
