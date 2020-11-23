@@ -1,5 +1,6 @@
 import { createStore, updateStore, Store } from '../lib/store';
 import { html, TemplateResult } from '../lib/element';
+import { GemError } from '../lib/utils';
 
 const htmlLang = document.documentElement.lang;
 
@@ -18,18 +19,21 @@ interface Options<T> {
   currentLanguage?: string;
   cache?: boolean;
   cachePrefix?: string;
+  urlParamsType?: 'path' | 'querystring' | 'ccTLD' | 'gTLD';
   urlParams?: string;
 }
 
-export class I18n<T = Record<string, string>> implements Options<T> {
+export class I18n<T = Record<string, string>> {
   resources: {
     [key: string]: Partial<T> | string;
   } = {};
-  fallbackLanguage = '';
-  currentLanguage = '';
-  cache = false;
+  fallbackLanguage: string;
+  // 在构造函数中指定
+  currentLanguage: string;
+  cache?: boolean;
   cachePrefix = 'gem@i18n';
-  urlParams = '';
+  urlParamsType?: 'path' | 'querystring' | 'ccTLD' | 'gTLD';
+  urlParamsName?: string;
 
   store: Store<any>;
 
@@ -37,18 +41,34 @@ export class I18n<T = Record<string, string>> implements Options<T> {
     return `${this.cachePrefix}:current`;
   }
 
+  get urlParamsLang() {
+    const { hostname, pathname, search } = location;
+    const parts = hostname.split('.');
+    switch (this.urlParamsType) {
+      case 'ccTLD':
+        return parts.pop();
+      case 'gTLD':
+        return parts.shift();
+      case 'path':
+        return pathname.split('/')[1];
+      default:
+        return this.urlParamsName && new URLSearchParams(search).get(this.urlParamsName);
+    }
+  }
+
+  get cacheLang() {
+    return this.cache ? localStorage.getItem(this.cacheCurrentKey) || '' : '';
+  }
+
   constructor(options: Options<T>) {
     if (!options.resources[options.fallbackLanguage]) {
-      throw new Error('i18n: fallbackLanguage invalid');
+      throw new GemError('i18n: fallbackLanguage invalid');
     }
     this.store = createStore(this as any);
     Object.assign<I18n, Options<T>>(this as I18n, options);
-    if (this.urlParams && !this.currentLanguage) {
-      this.currentLanguage = new URLSearchParams(location.search).get(this.urlParams) || '';
-    }
-    if (this.cache && !this.currentLanguage) {
-      this.currentLanguage = localStorage.getItem(this.cacheCurrentKey) || '';
-    }
+
+    this.currentLanguage ||= this.urlParamsLang || this.cacheLang;
+
     if (!this.currentLanguage) {
       this.currentLanguage = options.fallbackLanguage;
       this.resetLanguage();
