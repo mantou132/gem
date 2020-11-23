@@ -148,10 +148,16 @@ export type Emitter<T = any> = (detail: T, options?: Omit<CustomEventInit<unknow
  * ```
  */
 export function emitter(target: GemElementPrototype, prop: string) {
+  defineEmitter(target, prop);
+}
+export function globalemitter(target: GemElementPrototype, prop: string) {
+  defineEmitter(target, prop, { bubbles: true, composed: true });
+}
+function defineEmitter(target: GemElementPrototype, prop: string, options?: Omit<CustomEventInit<unknown>, 'detail'>) {
   const event = camelToKebabCase(prop);
   const con = target.constructor as GemElementConstructor;
   (con.defineEvents ||= []).push(event);
-  defineProperty(target, prop, event);
+  defineProperty(target, prop, event, options);
 }
 
 /**

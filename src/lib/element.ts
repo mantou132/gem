@@ -364,7 +364,12 @@ export function defineAttribute(target: GemElement, prop: string, attr: string) 
 }
 
 const isEventHandleSymbol = Symbol('event handle');
-export function defineProperty(target: GemElement, prop: string, event?: string) {
+export function defineProperty(
+  target: GemElement,
+  prop: string,
+  event?: string,
+  eventOptions?: Omit<CustomEventInit<unknown>, 'detail'>,
+) {
   Object.defineProperty(target, prop, {
     configurable: true,
     get() {
@@ -384,7 +389,7 @@ export function defineProperty(target: GemElement, prop: string, event?: string)
           proxy[prop] = v?.[isEventHandleSymbol]
             ? v
             : (detail: any, options: any) => {
-                const evt = new CustomEvent(event, { detail, ...options });
+                const evt = new CustomEvent(event, { ...options, ...eventOptions, detail });
                 that.dispatchEvent(evt);
                 v(detail, options);
               };
