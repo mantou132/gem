@@ -1,27 +1,27 @@
 ---
-title: Use WebComponents to quickly build complex high-performance WebApps
+title: Use Web Components to quickly build complex high-performance WebApps
 hero:
   title: Gem
-  desc: Use WebComponents to quickly build complex high-performance WebApps
+  desc: Use Web Components to quickly build complex high-performance WebApps
   actions:
     - text: Getting Started
       link: ./001-guide/
 features:
-  - title: WebComponents-Based
+  - title: Web Components
     desc: >
       Build encapsulated elements that manage their own state, and then combine them to form a complex WebApp.
 
 
       Use the familiar ES Classes syntax to write custom elements and declare the data and attributes of the custom elements.
 
-  - title: Declarative template
+  - title: Declarative
     desc: >
       GemElement’s simple, familiar development model makes it easier than ever to build Web Components.
 
 
       Express your UI declaratively, as a function of state. No need to learn a custom templating language – you can use the full power of JavaScript in your templates. Elements update automatically when their properties change.
 
-  - title: Observation mode
+  - title: Observation
     desc: >
       The management of global data and the modification of routing all use the observation mode.
 
