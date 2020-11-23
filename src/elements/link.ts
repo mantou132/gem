@@ -71,6 +71,8 @@ export class GemLinkElement extends GemElement {
   clickHandle = async (e: MouseEvent) => {
     const href = this.getHref();
 
+    if (!href) return;
+
     // 外部链接使用 `window.open`
     if (!href.startsWith('/')) {
       window.open(href);
