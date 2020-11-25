@@ -1,5 +1,4 @@
 ---
-isNav: true
 navTitle: API
 ---
 

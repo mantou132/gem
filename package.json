@@ -19,8 +19,8 @@
   ],
   "typings": "index.d.ts",
   "scripts": {
-    "docs": "npx gem-book docs -t Gem --i18n --debug -i /logo.png --home-mode --nav1=Lit-HTML,https://lit-html.polymer-project.org/guide",
-    "docs:dev": "npm run docs -- --watch",
+    "docs": "npx gem-book docs -t Gem -i logo.png --i18n --home-mode --nav1=Lit-HTML,https://lit-html.polymer-project.org/guide --template docs/template.html --plugins raw --debug",
+    "build:docs": "npm run docs -- --build",
     "lint": "tsc --noEmit && eslint --ext .ts --fix src/",
     "clean": "node -e \"fs.readdirSync('src').map(dir => require('rimraf').sync(dir))\"",
     "example": "webpack-dev-server",
