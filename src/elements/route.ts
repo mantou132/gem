@@ -54,7 +54,7 @@ export function isMatch(pattern: string, path: string) {
   return !!path.match(getReg(pattern)) || !!`${path}/`.match(getReg(pattern));
 }
 
-export interface RouteItem {
+export interface RouteItem<T = unknown> {
   // 支持 *
   // 支持 /a/*
   // 不支持相对路径
@@ -62,6 +62,8 @@ export interface RouteItem {
   redirect?: string;
   content?: TemplateResult;
   title?: string;
+  // 用来传递数据
+  data?: T;
 }
 
 export interface RoutesObject {
