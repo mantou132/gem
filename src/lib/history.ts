@@ -70,10 +70,7 @@ function validData(data: any) {
 }
 
 function getUrlbarPath(internalPath: string) {
-  if (history.basePath) {
-    return history.basePath + (internalPath === '/' ? '' : internalPath);
-  }
-  return internalPath;
+  return history.basePath ? history.basePath + internalPath : internalPath;
 }
 
 function getInternalPath(urlbarPath: string) {
@@ -150,14 +147,10 @@ Object.defineProperties(history, {
       return basePathStore.basePath;
     },
     set(v: string) {
-      if (!basePathStore.basePath) {
-        // 应用初始化的时候设置
-        updateStore(basePathStore, { basePath: v });
-        // paramsMap 更新后 ui 才会更新
-        Object.assign(paramsMap.get(store.$key), { path: getInternalPath(location.pathname) });
-      } else {
-        throw new GemError('not allow');
-      }
+      // 应用初始化的时候设置
+      updateStore(basePathStore, { basePath: v });
+      // paramsMap 更新后 ui 才会更新
+      Object.assign(paramsMap.get(store.$key), { path: getInternalPath(location.pathname) });
     },
   },
   getParams: {
