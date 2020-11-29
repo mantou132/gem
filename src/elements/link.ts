@@ -48,7 +48,7 @@ export class GemLinkElement extends GemElement {
   }
 
   // 不包含 basePath
-  getHref() {
+  getPathInfo() {
     if (this.route) {
       const queryProp = this.options?.query || '';
       const hashProp = this.options?.hash || '';
@@ -68,19 +68,23 @@ export class GemLinkElement extends GemElement {
     }
   }
 
-  clickHandle = async (e: MouseEvent) => {
-    const href = this.getHref();
+  isExternal(pathInfo: string) {
+    return !pathInfo.startsWith('/');
+  }
 
-    if (!href) return;
+  clickHandle = async (e: MouseEvent) => {
+    const pathInfo = this.getPathInfo();
+
+    if (!pathInfo) return;
 
     // 外部链接使用 `window.open`
-    if (!href.startsWith('/')) {
-      window.open(href);
+    if (this.isExternal(pathInfo)) {
+      window.open(pathInfo);
       return;
     }
 
     const { path, query, hash } = history.getParams();
-    if (path + query + hash === href) {
+    if (path + query + hash === pathInfo) {
       return;
     }
 
@@ -94,7 +98,7 @@ export class GemLinkElement extends GemElement {
         title: this.route.title || this.docTitle,
       });
     } else if (this.href) {
-      const { pathname, search, hash } = new URL(href, location.origin);
+      const { pathname, search, hash } = new URL(pathInfo, location.origin);
       history.pushIgnoreCloseHandle({
         path: pathname,
         query: search,
@@ -111,7 +115,7 @@ export class GemLinkElement extends GemElement {
     e.preventDefault();
   };
 
-  render(href = this.getHref()) {
+  render(pathInfo = this.getPathInfo()) {
     return html`
       <style>
         :host {
@@ -132,7 +136,11 @@ export class GemLinkElement extends GemElement {
         part=${this.link}
         @click=${this.preventDefault}
         href=${ifDefined(
-          this.hint === 'off' ? undefined : new URL(history.basePath + href, location.origin).toString(),
+          this.hint === 'off'
+            ? undefined
+            : this.isExternal(pathInfo)
+            ? pathInfo
+            : new URL(history.basePath + pathInfo, location.origin).toString(),
         )}
       >
         <slot></slot>
@@ -155,14 +163,14 @@ export class GemActiveLinkElement extends GemLinkElement {
   render() {
     const { path, query, hash } = history.getParams();
     const isMatchPattern = this.pattern && isMatch(this.pattern, path);
-    const href = this.getHref();
-    if (isMatchPattern || path + query + hash === href) {
+    const pathInfo = this.getPathInfo();
+    if (isMatchPattern || path + query + hash === pathInfo) {
       this.active = true;
       this.classList.add('active'); // internals 支持 states 再删除
     } else {
       this.active = false;
       this.classList.remove('active');
     }
-    return super.render(href);
+    return super.render(pathInfo);
   }
 }
