@@ -1,6 +1,6 @@
 {
   "name": "@mantou/gem",
-  "version": "0.6.7",
+  "version": "0.6.8",
   "description": "💎 使用自定义元素的轻量级 WebApp 开发框架",
   "main": "index.js",
   "files": [
