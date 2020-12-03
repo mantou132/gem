@@ -1,8 +1,3 @@
----
-isNav: true
-navTitle: 指南
----
-
 # 简介
 
 Gem 是一套使用现代 WebComponents 技术构建 WebApp 的轻量级库。

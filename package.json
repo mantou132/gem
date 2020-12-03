@@ -19,7 +19,7 @@
   ],
   "typings": "index.d.ts",
   "scripts": {
-    "docs": "npx gem-book docs -t Gem -i logo.png --i18n --home-mode --nav1=Lit-HTML,https://lit-html.polymer-project.org/guide --template docs/template.html --plugins raw --debug",
+    "docs": "npx gem-book docs -t Gem -i logo.png --i18n --home-mode --nav=Lit-HTML,https://lit-html.polymer-project.org/guide --template docs/template.html --plugin raw --debug",
     "build:docs": "npm run docs -- --build",
     "lint": "tsc --noEmit && eslint --ext .ts --fix src/",
     "clean": "node -e \"fs.readdirSync('src').map(dir => require('rimraf').sync(dir))\"",
