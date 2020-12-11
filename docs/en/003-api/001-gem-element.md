@@ -20,21 +20,21 @@ class GemElement<State> extends HTMLElement {
 
 ## Static properties
 
-| name                 | description                                                           |
-| -------------------- | --------------------------------------------------------------------- |
-| `observedAttributes` | Observe the specified `attribute`, re-rendered by `attribute` changes |
-| `observedPropertys`  | Observe the specified `property`, re-rendered by `property` changes   |
-| `observedStores`     | Observe the specified `Store`, re-rendered by `Store` changes         |
-| `adoptedStyleSheets` | See [`DocumentOrShadowRoot.adoptedStyleSheets`][1]                    |
-| `booleanAttributes`  | Mark the type of the specified `attribute` as `boolean`               |
-| `numberAttributes`   | Mark the type of the specified `attribute` as `number`                |
-| `defineEvents`       | Define events, execute trigger events                                 |
-| `defineCSSStates`    | Define CSS State                                                      |
-| `defineRefs`         | Define DOM reference, [see](../002-advance/002-gem-element-more.md)   |
+| name                 | description                                                                   |
+| -------------------- | ----------------------------------------------------------------------------- |
+| `observedAttributes` | Observe the specified `attribute`, re-rendered by `attribute` changes         |
+| `observedPropertys`  | Observe the specified `property`, re-rendered by `property` changes           |
+| `observedStores`     | Observe the specified `Store`, re-rendered by `Store` changes                 |
+| `adoptedStyleSheets` | See [`DocumentOrShadowRoot.adoptedStyleSheets`][1]                            |
+| `booleanAttributes`  | Mark the type of the specified `attribute` as `boolean`                       |
+| `numberAttributes`   | Mark the type of the specified `attribute` as `number`                        |
+| `defineEvents`       | Define events, execute trigger events                                         |
+| `defineCSSStates`    | Define CSS State                                                              |
+| `defineRefs`         | Define DOM reference, [see](../001-guide/002-advance/002-gem-element-more.md) |
 
 [1]: https://developer.mozilla.org/en-US/docs/Web/API/DocumentOrShadowRoot/adoptedStyleSheets
 
-_Please use [decorator](./007-decorator) in TypeScript_
+_Please use [decorator](./007-decorator.md) in TypeScript_
 
 ## Lifecycle hook
 

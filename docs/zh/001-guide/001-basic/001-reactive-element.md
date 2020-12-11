@@ -1,7 +1,7 @@
 # 反应性元素
 
 当你想要创建一个反应性的 WebApp 时，
-你需要元素能对不同的输入（attribute/property/[store](./003-global-state-management)）做出反应（重新渲染）。
+你需要元素能对不同的输入（attribute/property/[store](./003-global-state-management.md)）做出反应（重新渲染）。
 
 ## 定义
 

@@ -1,6 +1,6 @@
 # Reactive element
 
-When you want to create a reactive WebApp, you need elements that can react (re-render) to different inputs (attribute/property/[store](./003-global-state-management)).
+When you want to create a reactive WebApp, you need elements that can react (re-render) to different inputs (attribute/property/[store](./003-global-state-management.md)).
 
 ## Definition
 
