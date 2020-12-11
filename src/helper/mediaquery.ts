@@ -62,4 +62,9 @@ export const mediaQuery = {
   get isMotionReduce() {
     return window.matchMedia(this.MOTION_REDUCE).matches;
   },
+
+  DATA_REDUCE: '(prefers-reduced-data: reduce)',
+  get isDataReduce() {
+    return window.matchMedia(this.DATA_REDUCE).matches;
+  },
 };
