@@ -9,9 +9,9 @@ export async function request<T>(uri: string, options: RequestInit = {}): Promis
     ...defaultReq,
     ...options,
   });
-  if (res.status === 0) throw 'Request fail';
-  if (res.status >= 500) throw res.statusText;
-  if (res.status >= 400) throw (await res.text()) || res.statusText;
+  if (res.status === 0) throw new Error('Request fail');
+  if (res.status >= 500) throw new Error(res.statusText);
+  if (res.status >= 400) throw new Error((await res.text()) || res.statusText);
   return await res.json();
 }
 
