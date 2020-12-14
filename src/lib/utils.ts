@@ -25,22 +25,13 @@ interface PoolEventMap {
   end: Event;
 }
 
-/**
- * `EventTarget` safari not support
- * https://bugs.webkit.org/show_bug.cgi?id=174313
- */
-const EventTarget = globalThis.Image || Object; // support nodejs
-export class Pool<T extends NonPrimitive> extends EventTarget {
+// work on nodejs
+export class Pool<T extends NonPrimitive> extends (globalThis.EventTarget || null) {
   addEventListener: <K extends keyof PoolEventMap>(
     type: K,
     listener: (this: Pool<T>, ev: PoolEventMap[K]) => any,
     options?: boolean | AddEventListenerOptions,
   ) => void;
-  constructor() {
-    super();
-    // https://bugs.webkit.org/show_bug.cgi?id=198674
-    Object.setPrototypeOf(this, Pool.prototype);
-  }
   currentId = 0;
   count = 0;
   pool = new Map<number, T>();
@@ -92,11 +83,6 @@ export class QueryString extends URLSearchParams {
       return param;
     }
     super(param);
-    /**
-     * can't extend `URLSearchParams`
-     * https://bugs.webkit.org/show_bug.cgi?id=198674
-     */
-    Object.setPrototypeOf(this, QueryString.prototype);
   }
 
   concat(param: any) {
