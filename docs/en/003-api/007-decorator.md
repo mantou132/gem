@@ -2,7 +2,7 @@
 
 In order to integrate TypeScript more conveniently, Gem has many built-in decorators for GemElement.
 
-| 名称             | 描述                                                                       |
+| name             | description                                                                |
 | ---------------- | -------------------------------------------------------------------------- |
 | `@customElement` | Class decorator, define custom elements                                    |
 | `@connectStore`  | Class decorator, bound to `Store`                                          |
