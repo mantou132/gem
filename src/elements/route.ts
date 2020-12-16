@@ -9,6 +9,8 @@ import {
   history,
   TemplateResult,
   UpdateHistoryParams,
+  titleStore,
+  updateStore,
 } from '../';
 
 interface NamePostition {
@@ -138,8 +140,8 @@ export class GemRouteElement extends GemElement {
   #initPage = () => {
     // 路由更新后可能触发第二次更新，更新 `document.title`
     const title = this.currentRoute?.title;
-    if (title && title !== history.getParams().title) {
-      history.updateParams({ title: title });
+    if (title) {
+      updateStore(titleStore, { title });
     }
   };
 

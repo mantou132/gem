@@ -1,4 +1,4 @@
-import { createStore, updateStore, Store } from './store';
+import { createStore, updateStore, Store, connect } from './store';
 import { QueryString, cleanObject, GemError, absoluteLocation } from './utils';
 
 export const history = window.history;
@@ -224,6 +224,22 @@ if (!history.state) {
   });
   paramsMap.set(store.$key, params);
 }
+
+export const titleStore = createStore({ title: '' });
+
+connect(titleStore, () => {
+  const params = paramsMap.get(store.$key);
+  if (params) {
+    params.title = titleStore.title;
+  }
+});
+
+connect(store, () => {
+  const { title } = history.getParams();
+  if (title !== titleStore.title) {
+    updateStore(titleStore, { title });
+  }
+});
 
 /**
  * 表示 popstate handler 中正在进行导航

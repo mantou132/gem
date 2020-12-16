@@ -13,14 +13,14 @@
  * - `<gem-title>` 作为默认值设置
  */
 
-import { html, GemElement, history, connectStore, customElement, connect, attribute } from '..';
+import { html, GemElement, connectStore, updateStore, customElement, connect, attribute, titleStore } from '..';
 
 /**
  * 允许声明式设置 `document.title`
  * @customElement gem-title
  * @attr suffix
  */
-@connectStore(history.store)
+@connectStore(titleStore)
 @customElement('gem-title')
 export class GemTitleElement extends GemElement {
   // 没有后缀的标题
@@ -29,12 +29,11 @@ export class GemTitleElement extends GemElement {
   static defaultSuffix = ` - ${document.title}`;
 
   static setTitle(title: string) {
-    // 触发组件更新
-    history.updateParams({ title });
+    updateStore(titleStore, { title });
   }
 
   static updateTitle(str = '', suffix = '') {
-    const { title } = history.getParams();
+    const { title } = titleStore;
     if (title && title !== GemTitleElement.defaultTitle) {
       GemTitleElement.title = title;
       document.title = GemTitleElement.title + suffix;
@@ -60,4 +59,4 @@ export class GemTitleElement extends GemElement {
   }
 }
 
-connect(history.store, GemTitleElement.updateTitle);
+connect(titleStore, GemTitleElement.updateTitle);
