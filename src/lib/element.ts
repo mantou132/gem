@@ -77,7 +77,6 @@ type EffectItem<T> = {
 const initSymbol = Symbol('init');
 const updateSymbol = Symbol('update');
 
-// gem 元素如果设置 attr 默认值，那么 `cloneNode` 的 attr 始终等于默认值 https://github.com/whatwg/dom/issues/922
 export abstract class GemElement<T = Record<string, unknown>> extends HTMLElement {
   // 这里只是字段申明，不能赋值，否则子类会继承被共享该字段
   static observedAttributes?: string[]; // WebAPI 中是实时检查这个列表
@@ -277,11 +276,9 @@ export abstract class GemElement<T = Record<string, unknown>> extends HTMLElemen
   #connectedCallback = () => {
     this.willMount?.();
     const { observedStores } = this.constructor as typeof GemElement;
-    if (observedStores) {
-      observedStores.forEach((store) => {
-        connect(store, this.#update);
-      });
-    }
+    observedStores?.forEach((store) => {
+      connect(store, this.#update);
+    });
     const temp = this.#render();
     temp !== undefined && render(temp, this.#renderRoot);
     this.#isMounted = true;
@@ -308,11 +305,9 @@ export abstract class GemElement<T = Record<string, unknown>> extends HTMLElemen
   disconnectedCallback() {
     this.#isMounted = false;
     const { observedStores } = this.constructor as typeof GemElement;
-    if (observedStores) {
-      observedStores.forEach((store) => {
-        disconnect(store, this.#update);
-      });
-    }
+    observedStores?.forEach((store) => {
+      disconnect(store, this.#update);
+    });
     execCallback(this.#unmountCallback);
     this.unmounted?.();
     this.#effectList?.forEach((effectItem) => {

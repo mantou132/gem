@@ -136,9 +136,10 @@ export class GemRouteElement extends GemElement {
   }
 
   #initPage = () => {
-    // 路径更新后可能发起第二次更新，更新 `document.title`
-    if (this.currentRoute && this.currentRoute.title && this.currentRoute.title !== history.getParams().title) {
-      history.updateParams({ title: this.currentRoute.title });
+    // 路由更新后可能触发第二次更新，更新 `document.title`
+    const title = this.currentRoute?.title;
+    if (title && title !== history.getParams().title) {
+      history.updateParams({ title: title });
     }
   };
 
