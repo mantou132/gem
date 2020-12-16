@@ -4,6 +4,20 @@ import { Sheet, camelToKebabCase } from './utils';
 
 type GemElementPrototype = GemElement;
 type GemElementConstructor = typeof GemElement;
+type StaticField = Exclude<keyof GemElementConstructor, 'prototype'>;
+type StaticFieldMember = string | Store<unknown> | Sheet<unknown>;
+
+function pushStaticField(target: GemElementPrototype, field: StaticField, member: StaticFieldMember, isSet = false) {
+  const cls = target.constructor as GemElementConstructor;
+  const current = cls[field];
+  if (!cls.hasOwnProperty(field)) {
+    Object.defineProperty(cls, field, {
+      value: isSet ? new Set<unknown>(current) : current ? Array.from<any>(current) : [],
+    });
+  }
+
+  (cls[field] as any)[isSet ? 'add' : 'push'](member);
+}
 
 export type RefObject<T = HTMLElement> = { ref: string; element: T | null };
 
@@ -26,8 +40,7 @@ export type RefObject<T = HTMLElement> = { ref: string; element: T | null };
  */
 export function refobject(target: GemElementPrototype, prop: string) {
   const attr = camelToKebabCase(prop);
-  const con = target.constructor as GemElementConstructor;
-  (con.defineRefs ||= []).push(attr);
+  pushStaticField(target, 'defineRefs', attr);
   defineRef(target, prop, attr);
 }
 
@@ -42,8 +55,7 @@ export function refobject(target: GemElementPrototype, prop: string) {
  * ```
  */
 function defineAttr(target: GemElementPrototype, prop: string, attr: string) {
-  const con = target.constructor as GemElementConstructor;
-  (con.observedAttributes ||= []).push(attr);
+  pushStaticField(target, 'observedAttributes', attr);
   defineAttribute(target, prop, attr);
 }
 export function attribute(target: GemElementPrototype, prop: string) {
@@ -51,14 +63,12 @@ export function attribute(target: GemElementPrototype, prop: string) {
 }
 export function boolattribute(target: GemElementPrototype, prop: string) {
   const attr = camelToKebabCase(prop);
-  const con = target.constructor as GemElementConstructor;
-  (con.booleanAttributes ||= new Set()).add(attr);
+  pushStaticField(target, 'booleanAttributes', attr, true);
   defineAttr(target, prop, attr);
 }
 export function numattribute(target: GemElementPrototype, prop: string) {
   const attr = camelToKebabCase(prop);
-  const con = target.constructor as GemElementConstructor;
-  (con.numberAttributes ||= new Set()).add(attr);
+  pushStaticField(target, 'numberAttributes', attr, true);
   defineAttr(target, prop, attr);
 }
 
@@ -73,8 +83,7 @@ export function numattribute(target: GemElementPrototype, prop: string) {
  * ```
  */
 export function property(target: GemElementPrototype, prop: string) {
-  const con = target.constructor as GemElementConstructor;
-  (con.observedPropertys ||= []).push(prop);
+  pushStaticField(target, 'observedPropertys', prop);
   defineProperty(target, prop);
 }
 
@@ -93,8 +102,7 @@ export function property(target: GemElementPrototype, prop: string) {
  */
 export function state(target: GemElementPrototype, prop: string) {
   const attr = camelToKebabCase(prop);
-  const con = target.constructor as GemElementConstructor;
-  (con.defineCSSStates ||= []).push(attr);
+  pushStaticField(target, 'defineCSSStates', attr);
   defineCSSState(target, prop, attr);
 }
 
@@ -112,8 +120,7 @@ export function state(target: GemElementPrototype, prop: string) {
 export function slot(target: any, prop: string) {
   const attr = camelToKebabCase((target as any)[prop] || prop);
   (target as any)[prop] = attr;
-  const con = (target instanceof GemElement ? target.constructor : target) as GemElementConstructor;
-  (con.defineSlots ||= []).push(attr);
+  pushStaticField(target instanceof GemElement ? target : target.prototype, 'defineSlots', attr);
 }
 
 /**
@@ -130,8 +137,7 @@ export function slot(target: any, prop: string) {
 export function part(target: any, prop: string) {
   const attr = camelToKebabCase((target as any)[prop] || prop);
   (target as any)[prop] = attr;
-  const con = (target instanceof GemElement ? target.constructor : target) as GemElementConstructor;
-  (con.defineParts ||= []).push(attr);
+  pushStaticField(target instanceof GemElement ? target : target.prototype, 'defineParts', attr);
 }
 
 export type Emitter<T = any> = (detail: T, options?: Omit<CustomEventInit<unknown>, 'detail'>) => void;
@@ -155,8 +161,7 @@ export function globalemitter(target: GemElementPrototype, prop: string) {
 }
 function defineEmitter(target: GemElementPrototype, prop: string, options?: Omit<CustomEventInit<unknown>, 'detail'>) {
   const event = camelToKebabCase(prop);
-  const con = target.constructor as GemElementConstructor;
-  (con.defineEvents ||= []).push(event);
+  pushStaticField(target, 'defineEvents', event);
   defineProperty(target, prop, event, options);
 }
 
@@ -172,7 +177,7 @@ function defineEmitter(target: GemElementPrototype, prop: string, options?: Omit
 export function adoptedStyle(style: Sheet<unknown>) {
   return function (cls: unknown) {
     const con = cls as GemElementConstructor;
-    (con.adoptedStyleSheets ||= []).push(style);
+    pushStaticField(con.prototype, 'adoptedStyleSheets', style);
   };
 }
 
@@ -189,7 +194,7 @@ export function connectStore(store: Store<unknown>) {
   // 这里的签名该怎么写？
   return function (cls: unknown) {
     const con = cls as GemElementConstructor;
-    (con.observedStores ||= []).push(store);
+    pushStaticField(con.prototype, 'observedStores', store);
   };
 }
 

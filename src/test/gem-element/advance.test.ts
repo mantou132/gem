@@ -142,11 +142,18 @@ class I extends GemElement {
   };
 }
 @customElement('inherit-gem')
-class InheritGem extends I {}
+class InheritGem extends I {
+  @attribute appTitle = '1';
+  @attribute appTitle2 = '2';
+}
 describe('gem element 继承', () => {
+  it('静态字段继承', async () => {
+    expect(I.observedAttributes).to.eql(['app-title']);
+    expect(InheritGem.observedAttributes).to.eql(['app-title', 'app-title', 'app-title2']);
+  });
   it('attr/prop/emitter 继承', async () => {
     const el: InheritGem = await fixture(html`<inherit-gem></inherit-gem>`);
-    expect(el.appTitle).to.equal('string');
+    expect(el.appTitle).to.equal('1');
     expect(el.appData.a).to.equal(1);
     el.appTitle = 'b';
     el.appData = { a: 2 };
