@@ -124,9 +124,12 @@ export class GemLinkElement extends GemElement {
           color: blue;
           text-decoration: underline;
         }
-        a,
-        a:visited {
+        a {
           all: unset;
+          display: contents;
+        }
+        a:visited {
+          color: unset;
         }
       </style>
       <a
