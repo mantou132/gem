@@ -4,6 +4,11 @@
   "description": "💎 使用自定义元素的轻量级 WebApp 开发框架",
   "main": "index.js",
   "module": "index.js",
+  "exports": {
+    ".": "./index.js",
+    "./elements/*": "./elements/*.js",
+    "./helper/*": "./helper/*.js"
+  },
   "files": [
     "/index.js",
     "/index.js.map",
