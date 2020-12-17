@@ -96,6 +96,10 @@ describe('基本 gem element 测试', () => {
     el.disabled = true;
     el.count = 2;
     await Promise.resolve();
+    el.attr = 'value';
+    el.disabled = true;
+    el.count = 2;
+    await Promise.resolve();
     expect(el.renderCount).to.equal(2);
     expect(el.attr).to.equal('value');
     expect(el.disabled).to.equal(true);

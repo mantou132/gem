@@ -327,6 +327,7 @@ export function defineAttribute(target: GemElement, prop: string, attr: string) 
       // 判断是否是自定义元素实例
       if (!(initSymbol in this)) return;
       const that = this as GemElement;
+      // 不能从 proxy 对象中读取值
       const value = that.getAttribute(attr);
       if (booleanAttributes?.has(attr)) {
         return value === null ? false : true;
@@ -334,25 +335,26 @@ export function defineAttribute(target: GemElement, prop: string, attr: string) 
       if (numberAttributes?.has(attr)) {
         return Number(value);
       }
-      // Return empty string if attribute does not exist
-      return this.getAttribute(attr) || '';
+      return value || '';
     },
     set(v: string | null | undefined | number | boolean) {
       const that = this as GemElement;
       const proxy = gemElementProxyMap.get(this) as any;
       const hasSet = proxy[prop];
+      const value = that.getAttribute(attr);
+      const hasAttr = value !== null;
       // https://github.com/whatwg/dom/issues/922
-      if (this[initSymbol] && that.hasAttribute(attr) && !hasSet) return;
+      if (this[initSymbol] && hasAttr && !hasSet) return;
       // 字段和构造函数中都有对 attr 设置时会执行多次
-      // Firefox 不知道为什么在构造函数中 this[initSymbol] 已经为 false
+      // Firefox WebConsole 中不知道为什么在构造函数中 this[initSymbol] 已经为 false
       proxy[prop] = true;
       const isBool = booleanAttributes?.has(attr);
       if (v === null || v === undefined || (isBool && !v)) {
         that.removeAttribute(attr);
       } else if (isBool && v) {
-        that.setAttribute(attr, '');
+        if (!hasAttr) that.setAttribute(attr, '');
       } else {
-        that.setAttribute(attr, String(v));
+        if (value !== String(v)) that.setAttribute(attr, String(v));
       }
     },
   });
