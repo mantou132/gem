@@ -391,10 +391,11 @@ export function defineProperty(
                 v(detail, options);
               };
           proxy[prop][isEventHandleSymbol] = true;
+          // emitter 不触发元素更新
         } else {
           proxy[prop] = v;
+          this[updateSymbol]();
         }
-        this[updateSymbol]();
       }
     },
   });
