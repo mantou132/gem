@@ -3,9 +3,7 @@
   "version": "0.6.11",
   "description": "💎 使用自定义元素的轻量级 WebApp 开发框架",
   "main": "index.js",
-  "exports": {
-    "import": "./index.js"
-  },
+  "module": "index.js",
   "files": [
     "/index.js",
     "/index.js.map",
