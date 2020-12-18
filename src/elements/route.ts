@@ -116,6 +116,7 @@ export class GemRouteElement extends GemElement {
 
   #href: string; // 用于内部比较
   #key: any; // 用于内部比较
+  #redirect: boolean;
   #isLight?: boolean;
 
   currentRoute: RouteItem | null;
@@ -138,7 +139,6 @@ export class GemRouteElement extends GemElement {
   }
 
   #initPage = () => {
-    // 路由更新后可能触发第二次更新，更新 `document.title`
     const title = this.currentRoute?.title;
     if (title) {
       updateStore(titleStore, { title });
@@ -189,11 +189,16 @@ export class GemRouteElement extends GemElement {
     }
 
     if (!this.currentRoute) return this.#callback();
-    if (this.currentRoute.redirect) {
-      history.replace({ path: this.currentRoute.redirect });
+
+    const { redirect, content } = this.currentRoute;
+    if (redirect) {
+      this.#redirect = true;
+      history.replace({ path: redirect });
       // 不要渲染空内容，等待重定向结果
       return undefined;
     }
+
+    this.#redirect = false;
     return html`
       ${this.#isLight
         ? ''
@@ -204,7 +209,7 @@ export class GemRouteElement extends GemElement {
               }
             </style>
           `}
-      ${this.currentRoute.content}
+      ${content}
     `;
   }
 
@@ -215,7 +220,9 @@ export class GemRouteElement extends GemElement {
 
   updated() {
     this.#initPage();
-    this.change(this.currentRoute);
+    if (!this.#redirect) {
+      this.change(this.currentRoute);
+    }
   }
 }
 
