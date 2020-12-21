@@ -26,7 +26,7 @@ interface PoolEventMap {
 }
 
 // work on nodejs
-export class Pool<T extends NonPrimitive> extends (globalThis.EventTarget || null) {
+export class Pool<T extends NonPrimitive> extends (globalThis.EventTarget || Object) {
   addEventListener: <K extends keyof PoolEventMap>(
     type: K,
     listener: (this: Pool<T>, ev: PoolEventMap[K]) => any,

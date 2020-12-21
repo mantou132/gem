@@ -112,23 +112,26 @@ class EffectGemDemo extends GemElement {
   }
   mounted() {
     this.effect(
-      () => {
+      (_arr) => {
         this.effectCount++;
         return () => (this.effectCount = 0);
       },
       () => [],
     );
+    this.effect(() => {
+      this.effectCount++;
+    });
   }
 }
 customElements.define('effect-gem-demo', EffectGemDemo);
 describe('gem element 副作用', () => {
   it('依赖当前值', async () => {
     const el: EffectGemDemo = await fixture(html`<effect-gem-demo></effect-gem-demo>`);
-    expect(el.effectCount).to.equal(2);
+    expect(el.effectCount).to.equal(3);
     el.attr = 'b';
     el.prop = {};
     await nextFrame();
-    expect(el.effectCount).to.equal(3);
+    expect(el.effectCount).to.equal(5);
     el.remove();
     expect(el.effectCount).to.equal(0);
   });

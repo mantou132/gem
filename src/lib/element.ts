@@ -68,9 +68,9 @@ type GetDepFun<T> = () => T;
 type EffectCallback<T> = (arg: T) => any;
 type EffectItem<T> = {
   callback: EffectCallback<T>;
-  values: T;
-  getDep: GetDepFun<T>;
   initialized: boolean;
+  values?: T;
+  getDep?: GetDepFun<T>;
   preCallback?: () => void;
 };
 
@@ -167,8 +167,8 @@ export abstract class GemElement<T = Record<string, unknown>> extends HTMLElemen
   #execEffect = () => {
     this.#effectList?.forEach((effectItem) => {
       const { callback, getDep, values, preCallback } = effectItem;
-      const newValues = getDep();
-      if (isArrayChange(values, newValues)) {
+      const newValues = getDep?.();
+      if (!getDep || isArrayChange(values, newValues)) {
         execCallback(preCallback);
         effectItem.preCallback = callback(newValues);
         effectItem.values = newValues;
@@ -178,7 +178,7 @@ export abstract class GemElement<T = Record<string, unknown>> extends HTMLElemen
 
   /**
    * @helper
-   * 记录副作用回调和值
+   * 记录副作用回调和值，不要在重复执行的生命周期回调中调用
    *
    * ```js
    * class App extends GemElement {
@@ -188,10 +188,18 @@ export abstract class GemElement<T = Record<string, unknown>> extends HTMLElemen
    * }
    * ```
    * */
-  effect = <T extends Array<any>>(callback: EffectCallback<T>, getDep: () => [...T]) => {
+  effect = <T = any[] | undefined>(
+    callback: EffectCallback<T>,
+    getDep?: T extends any[] ? () => [...T] : undefined,
+  ) => {
     if (!this.#effectList) this.#effectList = [];
-    const values = getDep();
-    const effectItem: EffectItem<T> = { callback, getDep, values, initialized: !!this.#isMounted };
+    const values = getDep?.() as T;
+    const effectItem: EffectItem<T> = {
+      callback,
+      getDep,
+      values,
+      initialized: !!this.#isMounted,
+    };
     // 以挂载时立即执行副作用，未挂载时等挂载后执行
     if (this.#isMounted) effectItem.preCallback = callback(values);
     this.#effectList.push(effectItem);
@@ -204,7 +212,7 @@ export abstract class GemElement<T = Record<string, unknown>> extends HTMLElemen
     this.#effectList?.forEach((effectItem) => {
       const { callback, getDep, initialized } = effectItem;
       if (!initialized) {
-        effectItem.preCallback = callback(getDep());
+        effectItem.preCallback = callback(getDep?.());
         effectItem.initialized = true;
       }
     });
