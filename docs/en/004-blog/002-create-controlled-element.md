@@ -1,5 +1,7 @@
 # Create controlled elements
 
+> It is recommended to use TypeScript to write, the examples in this article also use TypeScript
+
 In React, form elements are [controlled](https://reactjs.org/docs/forms.html#controlled-components) by default, and components need to be used to pass data to form elements to modify the value of form elements. Many benefits:
 
 - Single source of data
@@ -8,12 +10,12 @@ In React, form elements are [controlled](https://reactjs.org/docs/forms.html#con
 Gem does not handle this behavior by default, you can handle forms like Vanilla JS:
 
 ```ts
-@customElement('my-input')
-class MyInputElement extends GemElement {
+@customElement('form-text')
+class FormTextElement extends GemElement {
   @refobject inputRef: RefObject<HTMLInputElement>;
 
-  get value() {
-    return this.inputRef.element?.value;
+  submit() {
+    return fetch('/', { body: this.inputRef.element!.value });
   }
 
   render() {
@@ -56,7 +58,7 @@ You can use [`input` event](https://developer.mozilla.org/en-US/docs/Web/API/HTM
 
      #inputHandle = (e: InputEvent) => {
        this.#nextState = this.inputRef.element!.value;
-       element.value = this.value;
+       this.inputRef.element!.value = this.value;
        this.change(value);
      };
 
@@ -79,7 +81,7 @@ You can use [`input` event](https://developer.mozilla.org/en-US/docs/Web/API/HTM
 
      #inputHandle = (e: InputEvent) => {
        this.#nextState = this.inputRef.element!.value;
-       element.value = this.value;
+       this.inputRef.element!.value = this.value;
        this.change(value);
      };
 
@@ -93,7 +95,7 @@ You can use [`input` event](https://developer.mozilla.org/en-US/docs/Web/API/HTM
            if (this.value === this.nextState.value) {
              this.inputRef.element!.value = this.nextState.value;
            } else {
-             element.value = this.value;
+             this.inputRef.element!.value = this.value;
            }
          },
          () => [this.value],
@@ -101,6 +103,25 @@ You can use [`input` event](https://developer.mozilla.org/en-US/docs/Web/API/HTM
      }
    }
    ```
+
+Now `<form-text>` is a controlled element, it only receives the value of the `value` attribute:
+
+```ts
+@customElement('form')
+class FormElement extends GemElement {
+  state = {
+    value: '',
+  };
+
+  submit = () => fetch('/', { body: this.state.value });
+
+  #changeHandle = ({ detail }) => this.setState({ value: detail });
+
+  render() {
+    return html`<form-text value=${this.state.value} @change=${this.#changeHandle}></form-text>`;
+  }
+}
+```
 
 Finally, you may need to use [`selectionStart`/`selectionEnd`](https://developer.mozilla.org/en-US/docs/Web/API/HTMLInputElement) to handle the pointer position, [`isComposing`](https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/isComposing) Process input method candidates.
 

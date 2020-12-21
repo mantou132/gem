@@ -1,5 +1,7 @@
 # 创建受控元素
 
+> 推荐使用 TypeScript 来编写，本文的示例也使用 TypeScript
+
 在 React 中，表单元素默认是[受控](https://reactjs.org/docs/forms.html#controlled-components)的，需要使用组件传递数据给表单元素以修改表单元素的值，这有许多的好处：
 
 - 单一数据来源
@@ -8,12 +10,12 @@
 Gem 默认没有处理此行为，你可以像 Vanilla JS 一样处理表单：
 
 ```ts
-@customElement('my-input')
-class MyInputElement extends GemElement {
+@customElement('form-text')
+class FormTextElement extends GemElement {
   @refobject inputRef: RefObject<HTMLInputElement>;
 
-  get value() {
-    return this.inputRef.element?.value;
+  submit() {
+    return fetch('/', { body: this.inputRef.element!.value });
   }
 
   render() {
@@ -56,7 +58,7 @@ class MyInputElement extends GemElement {
 
      #inputHandle = (e: InputEvent) => {
        this.#nextState = this.inputRef.element!.value;
-       element.value = this.value;
+       this.inputRef.element!.value = this.value;
        this.change(value);
      };
 
@@ -79,7 +81,7 @@ class MyInputElement extends GemElement {
 
      #inputHandle = (e: InputEvent) => {
        this.#nextState = this.inputRef.element!.value;
-       element.value = this.value;
+       this.inputRef.element!.value = this.value;
        this.change(value);
      };
 
@@ -93,7 +95,7 @@ class MyInputElement extends GemElement {
            if (this.value === this.nextState.value) {
              this.inputRef.element!.value = this.nextState.value;
            } else {
-             element.value = this.value;
+             this.inputRef.element!.value = this.value;
            }
          },
          () => [this.value],
@@ -101,6 +103,25 @@ class MyInputElement extends GemElement {
      }
    }
    ```
+
+现在 `<form-text>` 就是一个受控元素，它只接收 `value` 属性的值：
+
+```ts
+@customElement('form')
+class FormElement extends GemElement {
+  state = {
+    value: '',
+  };
+
+  submit = () => fetch('/', { body: this.state.value });
+
+  #changeHandle = ({ detail }) => this.setState({ value: detail });
+
+  render() {
+    return html`<form-text value=${this.state.value} @change=${this.#changeHandle}></form-text>`;
+  }
+}
+```
 
 最后，你可能需要利用 [`selectionStart`/`selectionEnd`](https://developer.mozilla.org/en-US/docs/Web/API/HTMLInputElement) 处理指针位置、[`isComposing`](https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/isComposing) 处理输入法候选。
 
