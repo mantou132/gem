@@ -109,7 +109,7 @@ export class QueryString extends URLSearchParams {
 
 // 写 html 文本
 export function raw(arr: TemplateStringsArray, ...args: any[]) {
-  return arr.reduce((prev, current, index) => prev + (args[index - 1] || '') + current);
+  return arr.reduce((prev, current, index) => prev + (args[index - 1] || '""') + current);
 }
 
 // 写 css 文本，在 CSSStyleSheet 中使用

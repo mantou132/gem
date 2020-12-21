@@ -60,6 +60,8 @@ describe('utils 测试', () => {
     expect(rules.item(0).style.background).to.equal('red');
   });
   it('raw/css', () => {
+    const title: any = undefined;
+    expect(raw`<div title=${title}></div>`).to.equal('<div title=""></div>');
     expect(raw`<div>${'str'}</div>`).to.equal('<div>str</div>');
   });
   it('styled', () => {
