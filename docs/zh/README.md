@@ -31,9 +31,58 @@ features:
 
 ## 待办事项 App
 
-<iframe src="https://codesandbox.io/embed/todoapp-cxsdv?autoresize=1&fontsize=14&hidenavigation=1&theme=dark&view=editor"
-     style="width:100%; height:500px; border:0; border-radius: 4px; overflow:hidden;"
-     title="TodoApp"
-     allow="accelerometer; ambient-light-sensor; camera; encrypted-media; geolocation; gyroscope; hid; microphone; midi; payment; usb; vr; xr-spatial-tracking"
-     sandbox="allow-forms allow-modals allow-popups allow-presentation allow-same-origin allow-scripts"
-   ></iframe>
+```ts
+import { customElement, GemElement, html, render, createStore, connectStore, updateStore } from '@mantou/gem';
+
+const todoData = createStore<{ items: string[] }>({
+  items: [],
+});
+
+const addItemAction = (item: string) => {
+  updateStore(todoData, { items: [...todoData.items, item] });
+};
+
+@customElement('todo-list')
+@connectStore(todoData)
+export class TodoListElement extends GemElement {
+  render = () => {
+    return html`
+      <ul>
+        ${todoData.items.map((item) => html`<li>${item}</li>`)}
+      </ul>
+    `;
+  };
+}
+
+@customElement('todo-root')
+export class TodoRootElement extends GemElement {
+  #inputValue = '';
+
+  #onInput = (e: InputEvent) => {
+    this.#inputValue = (e.target as HTMLInputElement).value;
+  };
+
+  #onSubmit = (e: Event) => {
+    e.preventDefault();
+    addItemAction(this.#inputValue);
+  };
+
+  render = () => {
+    return html`
+      <div>
+        <h3>TODO</h3>
+        <todo-list></todo-list>
+        <form @submit=${this.#onSubmit}>
+          <label for="new-todo"> What needs to be done? </label>
+          <input id="new-todo" @input=${this.#onInput} />
+          <button>Add #${todoData.items.length + 1}</button>
+        </form>
+      </div>
+    `;
+  };
+}
+
+render(html`<todo-root></todo-root>`, document.querySelector('#root') as Element);
+```
+
+[![Edit on CodeSandbox](https://codesandbox.io/static/img/play-codesandbox.svg)](https://codesandbox.io/s/todoapp-cxsdv)
