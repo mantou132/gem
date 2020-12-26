@@ -115,12 +115,20 @@ export class I18n<T = Record<string, string>> {
     }
 
     if (typeof data === 'string') {
-      const localKey = `${this.cachePrefix}:${data}`;
+      const { href, origin, pathname } = new URL(data, location.href);
+      const localKey = `${this.cachePrefix}:${href}`;
       const localPackString = localStorage.getItem(localKey);
 
       const fetchPack = async () => {
         const pack = await (await fetch(data)).json();
         if (this.cache) {
+          // 移除之前的版本缓存，只有使用 querystring 标记版本才有效
+          for (let i = 0; i < localStorage.length; i++) {
+            const key = localStorage.key(i) as string;
+            if (key.startsWith(`${this.cachePrefix}:${origin}${pathname}?`)) {
+              localStorage.removeItem(key);
+            }
+          }
           localStorage.setItem(localKey, JSON.stringify(pack));
         }
         return pack;
