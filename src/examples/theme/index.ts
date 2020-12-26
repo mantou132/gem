@@ -1,4 +1,4 @@
-import { GemElement, html, render } from '../../';
+import { GemElement, html, render, customElement, connectStore } from '../../';
 import { createTheme, getThemeStore, updateTheme } from '../../helper/theme';
 import { mediaQuery } from '../../helper/mediaquery';
 
@@ -25,8 +25,9 @@ document.onclick = () => {
   });
 };
 
-class App extends GemElement {
-  static observedStores = [themeStore];
+@customElement('app-root')
+@connectStore(themeStore)
+export class App extends GemElement {
   render() {
     return html`
       <style>
@@ -44,7 +45,6 @@ class App extends GemElement {
     `;
   }
 }
-customElements.define('app-root', App);
 
 render(
   html`
