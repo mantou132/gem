@@ -350,17 +350,17 @@ export function defineAttribute(target: GemElement, prop: string, attr: string) 
       const proxy = gemElementProxyMap.get(this) as any;
       const hasSet = proxy[prop];
       const value = that.getAttribute(attr);
-      const hasAttr = value !== null;
       // https://github.com/whatwg/dom/issues/922
-      if (this[initSymbol] && hasAttr && !hasSet) return;
+      if (this[initSymbol] && value !== null && !hasSet) return;
       // 字段和构造函数中都有对 attr 设置时会执行多次
       // Firefox WebConsole 中不知道为什么在构造函数中 this[initSymbol] 已经为 false
       proxy[prop] = true;
       const isBool = booleanAttributes?.has(attr);
-      if (v === null || v === undefined || (isBool && !v)) {
+      if (v === null || v === undefined) {
         that.removeAttribute(attr);
-      } else if (isBool && v) {
-        if (!hasAttr) that.setAttribute(attr, '');
+      } else if (isBool) {
+        // 当 attr 存在且 !!v 为 true 时，toggleAttribute 不会造成 Attribute 改变
+        that.toggleAttribute(attr, !!v);
       } else {
         if (value !== String(v)) that.setAttribute(attr, String(v));
       }
