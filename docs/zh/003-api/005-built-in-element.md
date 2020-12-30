@@ -9,14 +9,15 @@ import '@mantou/gem/elements/link';
 html`<gem-link path="/page"></gem-link>`;
 ```
 
-| 自定义元素                        | 描述                                           |
-| --------------------------------- | ---------------------------------------------- |
-| `<gem-link>`/`<gem-active-link>`  | 类似 `<a>`                                     |
-| `<gem-route>`/`<gem-light-route>` | 提供路由匹配，可以嵌套                         |
-| `<gem-title>`                     | 更新 `document.title` 或者显示在你需要他的地方 |
-| `<gem-use>`                       | 类似 SVG 的 `<use>`                            |
-| `<gem-unsafe>`                    | 直接将字符串渲染成内容                         |
-| `<gem-reflect>`                   | 将内容渲染到指定元素                           |
+| 自定义元素                        | 描述                                                            |
+| --------------------------------- | --------------------------------------------------------------- |
+| `<gem-link>`/`<gem-active-link>`  | 类似 `<a>`                                                      |
+| `<gem-route>`/`<gem-light-route>` | 提供路由匹配，可以嵌套                                          |
+| `<gem-title>`                     | 更新 `document.title` 或者显示在你需要他的地方                  |
+| `<gem-use>`                       | 类似 SVG 的 `<use>`                                             |
+| `<gem-unsafe>`                    | 直接将字符串渲染成内容                                          |
+| `<gem-reflect>`                   | 将内容渲染到指定元素                                            |
+| `<gem-gesture>`                   | 支持 `pan`, `pinch`, `rotate`, `swipe`, `press`, `end` 手势事件 |
 
 另外，还有用于开发涉及*历史记录栈*组件的模块：
 

@@ -59,6 +59,7 @@ module.exports = {
     },
   ],
   devServer: {
+    disableHostCheck: true,
     contentBase: path.join('./build', example),
     open: true,
     historyApiFallback: true,

@@ -34,6 +34,15 @@ export class Layout extends GemElement {
           overflow: auto;
           padding: 2em;
         }
+        @media (max-width: 480px) {
+          :host {
+            display: block;
+          }
+          gem-examples-nav,
+          gem-examples-source {
+            display: none;
+          }
+        }
       </style>
       <gem-examples-nav></gem-examples-nav>
       <slot name=${this.main}></slot>
