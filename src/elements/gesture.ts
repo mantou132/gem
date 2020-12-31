@@ -226,6 +226,7 @@ export class GemGestureElement extends GemElement {
       <style>
         :host {
           display: block;
+          user-select: none;
           touch-action: ${this.touchAction || 'none'};
         }
       </style>
