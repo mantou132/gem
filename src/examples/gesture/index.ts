@@ -1,7 +1,7 @@
 import { render, GemElement, html, customElement, refobject, RefObject } from '../..';
 
 import '../../elements/gesture';
-import { PinchEventDetail, RotateEventDetail } from '../../elements/gesture';
+import { PanEventDetail, PinchEventDetail, RotateEventDetail, SwipeEventDetail } from '../../elements/gesture';
 import '../elements/layout';
 import './canvas';
 
@@ -17,7 +17,7 @@ export class AppRoot extends GemElement {
     swipe: '',
     moves: [],
   };
-  onPan = (evt: CustomEvent<any>) => {
+  onPan = (evt: CustomEvent<PanEventDetail>) => {
     const { detail } = evt;
     const { x, y } = this.state;
     this.setState({ x: detail.x + x, y: detail.y + y, duration: 0 });
@@ -28,8 +28,8 @@ export class AppRoot extends GemElement {
   onRotate = (evt: CustomEvent<RotateEventDetail>) => {
     this.setState({ rotate: evt.detail.rotate + this.state.rotate });
   };
-  onSwipe = (e: CustomEvent<any>) => {
-    this.setState({ swipe: e.detail.direction });
+  onSwipe = (e: CustomEvent<SwipeEventDetail>) => {
+    this.setState({ swipe: `${e.detail.direction}, speed: ${e.detail.speed}` });
   };
   onEnd = () => {
     this.setState({

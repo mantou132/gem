@@ -1,6 +1,7 @@
 import { html, GemElement, customElement, emitter, Emitter, attribute } from '../';
 
 export type PanEventDetail = {
+  // movement
   x: number;
   y: number;
   screenX: number;
@@ -9,9 +10,22 @@ export type PanEventDetail = {
   isPrimary: boolean;
   pointerId: number;
 };
-export type SwipeEventDetail = { direction: 'top' | 'right' | 'bottom' | 'left' };
-export type PinchEventDetail = { x: number; y: number; scale: number };
-export type RotateEventDetail = { x: number; y: number; rotate: number };
+export interface SwipeEventDetail {
+  direction: 'top' | 'right' | 'bottom' | 'left';
+  speed: number; // px/ms
+}
+export interface PinchEventDetail {
+  // center base screen
+  x: number;
+  y: number;
+  scale: number;
+}
+export interface RotateEventDetail {
+  // center base screen
+  x: number;
+  y: number;
+  rotate: number;
+}
 
 function angleAB(
   a: number,
@@ -195,22 +209,25 @@ export class GemGestureElement extends GemElement {
       const moves = this.getMoves(pointerId);
 
       if (moves.length > 2) {
-        const { x, y } = moves[moves.length - 1];
+        const { x, y, timeStamp, screenX, screenY } = moves[moves.length - 1];
+        const move2 = moves[moves.length - 3];
         if (Math.abs(x) > 2) {
           if (Math.abs(x) > Math.abs(y)) {
+            const speed = Math.abs(move2.screenX - screenX) / (timeStamp - move2.timeStamp);
             if (x > 0) {
-              this.swipe({ direction: 'right' });
+              this.swipe({ direction: 'right', speed });
             } else {
-              this.swipe({ direction: 'left' });
+              this.swipe({ direction: 'left', speed });
             }
           }
         }
         if (Math.abs(y) > 2) {
+          const speed = Math.abs(move2.screenY - screenY) / (timeStamp - move2.timeStamp);
           if (Math.abs(y) > Math.abs(x)) {
             if (y > 0) {
-              this.swipe({ direction: 'bottom' });
+              this.swipe({ direction: 'bottom', speed });
             } else {
-              this.swipe({ direction: 'top' });
+              this.swipe({ direction: 'top', speed });
             }
           }
         }
