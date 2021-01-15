@@ -4,8 +4,8 @@ export type PanEventDetail = {
   // movement
   x: number;
   y: number;
-  screenX: number;
-  screenY: number;
+  clientX: number;
+  clientY: number;
   timeStamp: number;
   isPrimary: boolean;
   pointerId: number;
@@ -15,13 +15,13 @@ export interface SwipeEventDetail {
   speed: number; // px/ms
 }
 export interface PinchEventDetail {
-  // center base screen
+  // center base viewport
   x: number;
   y: number;
   scale: number;
 }
 export interface RotateEventDetail {
-  // center base screen
+  // center base viewport
   x: number;
   y: number;
   rotate: number;
@@ -31,9 +31,9 @@ function angleAB(
   a: number,
   b: number,
   c: number,
-  { screenX: x1, screenY: y1 }: PanEventDetail,
-  { screenX: x2, screenY: y2 }: PanEventDetail,
-  { screenX: x3, screenY: y3 }: PanEventDetail,
+  { clientX: x1, clientY: y1 }: PanEventDetail,
+  { clientX: x2, clientY: y2 }: PanEventDetail,
+  { clientX: x3, clientY: y3 }: PanEventDetail,
 ) {
   // https://en.wikipedia.org/wiki/Law_of_cosines
   // https://blog.csdn.net/z278930050/article/details/53319091
@@ -149,20 +149,20 @@ export class GemGestureElement extends GemElement {
     }
   }
 
-  onMove({ pointerId, screenX, screenY, isPrimary, pointerType, timeStamp }: PointerEvent) {
+  onMove({ pointerId, clientX, clientY, isPrimary, pointerType, timeStamp }: PointerEvent) {
     if (!this.pressed && this.hasPointerCapture(pointerId)) {
       const moves = this.getMoves(pointerId);
       const startEvent = this.getStartEvent(pointerId);
       const lastMove = moves[moves.length - 1] || startEvent;
       // https://bugs.webkit.org/show_bug.cgi?id=220194
       // https://bugs.chromium.org/p/chromium/issues/detail?id=1092358
-      const movementX = screenX - lastMove.screenX;
-      const movementY = screenY - lastMove.screenY;
+      const movementX = clientX - lastMove.clientX;
+      const movementY = clientY - lastMove.clientY;
       const move = {
         x: this.getMovementX(movementX, movementY),
         y: this.getMovementY(movementX, movementY),
-        screenX,
-        screenY,
+        clientX,
+        clientY,
         timeStamp,
         isPrimary,
         pointerId,
@@ -174,13 +174,13 @@ export class GemGestureElement extends GemElement {
         const secondaryPoint = this.getOtherLastmove(pointerId) as PanEventDetail;
         const moveLen = Math.sqrt(movementX ** 2 + movementY ** 2);
         const distanceLen = Math.sqrt(
-          (lastMove.screenX - secondaryPoint.screenX) ** 2 + (lastMove.screenY - secondaryPoint.screenY) ** 2,
+          (lastMove.clientX - secondaryPoint.clientX) ** 2 + (lastMove.clientY - secondaryPoint.clientY) ** 2,
         );
         const newDistanceLen = Math.sqrt(
-          (screenX - secondaryPoint.screenX) ** 2 + (screenY - secondaryPoint.screenY) ** 2,
+          (clientX - secondaryPoint.clientX) ** 2 + (clientY - secondaryPoint.clientY) ** 2,
         );
-        const x = (lastMove.screenX + secondaryPoint.screenX) / 2;
-        const y = (lastMove.screenY + secondaryPoint.screenY) / 2;
+        const x = (lastMove.clientX + secondaryPoint.clientX) / 2;
+        const y = (lastMove.clientY + secondaryPoint.clientY) / 2;
         this.pinch({ x, y, scale: newDistanceLen / distanceLen });
         this.rotate({ x, y, rotate: angleAB(newDistanceLen, distanceLen, moveLen, secondaryPoint, lastMove, move) });
       }
@@ -189,8 +189,8 @@ export class GemGestureElement extends GemElement {
       if (
         Math.abs(movementX) > accuracy ||
         Math.abs(movementY) > accuracy ||
-        Math.abs(move.screenX - startEvent.screenX) > accuracy ||
-        Math.abs(move.screenY - startEvent.screenY) > accuracy
+        Math.abs(move.clientX - startEvent.clientX) > accuracy ||
+        Math.abs(move.clientY - startEvent.clientY) > accuracy
       ) {
         window.clearTimeout(this.pressTimer);
       }
@@ -209,11 +209,11 @@ export class GemGestureElement extends GemElement {
       const moves = this.getMoves(pointerId);
 
       if (moves.length > 2) {
-        const { x, y, timeStamp, screenX, screenY } = moves[moves.length - 1];
+        const { x, y, timeStamp, clientX, clientY } = moves[moves.length - 1];
         const move2 = moves[moves.length - 3];
         if (Math.abs(x) > 2) {
           if (Math.abs(x) > Math.abs(y)) {
-            const speed = Math.abs(move2.screenX - screenX) / (timeStamp - move2.timeStamp);
+            const speed = Math.abs(move2.clientX - clientX) / (timeStamp - move2.timeStamp);
             if (x > 0) {
               this.swipe({ direction: 'right', speed });
             } else {
@@ -222,7 +222,7 @@ export class GemGestureElement extends GemElement {
           }
         }
         if (Math.abs(y) > 2) {
-          const speed = Math.abs(move2.screenY - screenY) / (timeStamp - move2.timeStamp);
+          const speed = Math.abs(move2.clientY - clientY) / (timeStamp - move2.timeStamp);
           if (Math.abs(y) > Math.abs(x)) {
             if (y > 0) {
               this.swipe({ direction: 'bottom', speed });
