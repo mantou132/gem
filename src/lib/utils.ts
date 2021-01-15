@@ -20,44 +20,67 @@ export function absoluteLocation(currentPath = '', relativePath = '') {
 // eslint-disable-next-line @typescript-eslint/ban-types
 export type NonPrimitive = object;
 
-interface PoolEventMap {
+interface LinkedListEventMap {
   start: Event;
   end: Event;
 }
-
+interface LinkedListItem<T> {
+  value: T;
+  prev?: LinkedListItem<T>;
+  next?: LinkedListItem<T>;
+}
 // work on nodejs
-export class Pool<T extends NonPrimitive> extends (globalThis.EventTarget || Object) {
-  addEventListener: <K extends keyof PoolEventMap>(
+export class LinkedList<T extends NonPrimitive> extends (globalThis.EventTarget || Object) {
+  addEventListener: <K extends keyof LinkedListEventMap>(
     type: K,
-    listener: (this: Pool<T>, ev: PoolEventMap[K]) => any,
+    listener: (this: LinkedList<T>, ev: LinkedListEventMap[K]) => any,
     options?: boolean | AddEventListenerOptions,
   ) => void;
-  currentId = 0;
-  count = 0;
-  pool = new Map<number, T>();
-  poolRev = new WeakMap<T, number>();
+
+  pool = new Map<T, LinkedListItem<T>>();
+  firstItem?: LinkedListItem<T>;
+  lastItem?: LinkedListItem<T>;
 
   // 添加已存在的项目时会删除老的项目
-  add(item: T) {
-    if (!this.pool.size) this.dispatchEvent(new CustomEvent('start'));
-    const id = this.poolRev.get(item);
-    if (id !== undefined) this.pool.delete(id);
-    this.pool.set(this.count, item);
-    this.poolRev.set(item, this.count);
-    this.count += 1;
+  add(value: T) {
+    const item: LinkedListItem<T> = { value };
+    if (!this.firstItem) {
+      this.dispatchEvent(new CustomEvent('start'));
+      this.firstItem = item;
+    }
+    if (this.lastItem) {
+      this.lastItem.next = item;
+      item.prev = this.lastItem;
+    }
+    this.lastItem = item;
+
+    const existItem = this.pool.get(value);
+    if (existItem) {
+      if (existItem.prev) {
+        existItem.prev.next = existItem.next;
+      } else {
+        this.firstItem = existItem.next;
+      }
+      if (existItem.next) {
+        existItem.next.prev = existItem.prev;
+      }
+    }
+
+    this.pool.set(value, item);
   }
 
   get(): T | undefined {
-    const item = this.pool.get(this.currentId);
-    if (item) {
-      this.pool.delete(this.currentId);
-      this.currentId += 1;
-      if (!this.pool.size) this.dispatchEvent(new CustomEvent('end'));
-    } else if (this.currentId < this.count) {
-      this.currentId += 1;
-      return this.get();
+    const firstItem = this.firstItem;
+    if (!firstItem) return;
+
+    this.pool.delete(firstItem.value);
+
+    this.firstItem = firstItem.next;
+    if (!this.firstItem) {
+      this.lastItem = undefined;
+      this.dispatchEvent(new CustomEvent('end'));
     }
-    return item;
+    return firstItem.value;
   }
 }
 

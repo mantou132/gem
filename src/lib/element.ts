@@ -1,7 +1,7 @@
 import { html, render, TemplateResult } from 'lit-html';
 import { connect, disconnect, Store } from './store';
 import {
-  Pool,
+  LinkedList,
   addMicrotask,
   Sheet,
   SheetToken,
@@ -40,29 +40,21 @@ function execCallback(fun: any) {
 }
 
 // global render task pool
-const asyncRenderTaskPool = new Pool<() => void>();
-let loop = false;
+const asyncRenderTaskList = new LinkedList<() => void>();
 const tick = () => {
   window.requestAnimationFrame(function callback(timestamp) {
-    const task = asyncRenderTaskPool.get();
+    if (performance.now() > timestamp + 16) {
+      tick();
+      return;
+    }
+    const task = asyncRenderTaskList.get();
     if (task) {
       task();
-      if (performance.now() - timestamp < 16) {
-        callback(timestamp);
-        return;
-      }
-    }
-    // `renderTaskPool` not empty
-    if (loop) {
-      tick();
+      callback(timestamp);
     }
   });
 };
-asyncRenderTaskPool.addEventListener('start', () => {
-  loop = true;
-  tick();
-});
-asyncRenderTaskPool.addEventListener('end', () => (loop = false));
+asyncRenderTaskList.addEventListener('start', tick);
 
 type GetDepFun<T> = () => T;
 type EffectCallback<T> = (arg: T) => any;
@@ -253,7 +245,7 @@ export abstract class GemElement<T = Record<string, unknown>> extends HTMLElemen
 
   #update = () => {
     if (this.#isAsync) {
-      asyncRenderTaskPool.add(this.#updateCallback);
+      asyncRenderTaskList.add(this.#updateCallback);
     } else {
       this.#updateCallback();
     }
@@ -298,7 +290,7 @@ export abstract class GemElement<T = Record<string, unknown>> extends HTMLElemen
   /**@final */
   connectedCallback() {
     if (this.#isAsync) {
-      asyncRenderTaskPool.add(this.#connectedCallback);
+      asyncRenderTaskList.add(this.#connectedCallback);
     } else {
       this.#connectedCallback();
     }

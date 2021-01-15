@@ -1,6 +1,6 @@
 import { expect } from '@open-wc/testing';
 import {
-  Pool,
+  LinkedList,
   QueryString,
   css,
   raw,
@@ -18,23 +18,24 @@ describe('utils 测试', () => {
     expect(absoluteLocation('/a/c', './b')).to.equal('/a/b');
     expect(absoluteLocation('/a/c/d', '../b')).to.equal('/a/b');
   });
-  it('Pool', () => {
-    const pool = new Pool<() => void>();
+  it('LinkedList', () => {
+    const linkedList = new LinkedList<() => void>();
     let countAtStart = 0;
     let countAtPause = 0;
-    pool.addEventListener('start', () => (countAtStart = pool.count));
-    pool.addEventListener('end', () => (countAtPause = pool.count));
+    linkedList.addEventListener('start', () => (countAtStart = linkedList.pool.size));
+    linkedList.addEventListener('end', () => (countAtPause = linkedList.pool.size));
     const fun1 = () => ({});
     const fun2 = () => ({});
-    pool.add(fun1);
-    pool.add(fun2);
-    pool.add(fun1);
-    expect(pool.get()).to.equal(fun2);
-    expect(pool.get()).to.equal(fun1);
+    linkedList.add(fun1);
+    linkedList.add(fun2);
+    linkedList.add(fun1);
+    expect(linkedList.pool.size).to.equal(2);
+    expect(linkedList.get()).to.equal(fun2);
+    expect(linkedList.get()).to.equal(fun1);
+    expect(linkedList.pool.size).to.equal(0);
+    expect(linkedList.get()).to.equal(undefined);
     expect(countAtStart).to.equal(0);
-    expect(countAtPause).to.equal(3);
-    expect(pool.pool.size).to.equal(0);
-    expect(pool.get()).to.equal(undefined);
+    expect(countAtPause).to.equal(0);
   });
   it('QueryString', () => {
     expect(new QueryString(undefined).toString()).to.equal('');
