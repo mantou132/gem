@@ -89,7 +89,7 @@ export function property(target: GemElementPrototype, prop: string) {
 
 /**
  * 定义一个元素[内部](https://html.spec.whatwg.org/multipage/custom-elements.html#elementinternals) state，
- * 类似 `:checked`，用于自定义 css 伪类（:state(xxx)），默认值即为字段名。
+ * 类似 `:checked`，用于自定义 css 伪类（:--xxx），默认值即为字段名。
  * 重新赋值转换 css 伪类
  * 将来也可能用于 IDE 识别
  *
@@ -103,7 +103,7 @@ export function property(target: GemElementPrototype, prop: string) {
 export function state(target: GemElementPrototype, prop: string) {
   const attr = camelToKebabCase(prop);
   pushStaticField(target, 'defineCSSStates', attr);
-  defineCSSState(target, prop, attr);
+  defineCSSState(target, prop, `--${attr}`);
 }
 
 /**

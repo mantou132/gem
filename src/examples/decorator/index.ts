@@ -65,11 +65,7 @@ export class App extends GemElement {
   render() {
     return html`
       <style>
-        app-children:state(odd)::part(${Children.paragraph}) {
-          color: red;
-        }
-        /* https://bugzilla.mozilla.org/show_bug.cgi?id=1588763 */
-        app-children.odd::part(${Children.paragraph}) {
+        app-children:where(:--odd, .--odd)::part(${Children.paragraph}) {
           color: red;
         }
       </style>

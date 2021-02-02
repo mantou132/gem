@@ -69,10 +69,7 @@ class Dialog extends DialogBaseElement {
         :host {
           display: none;
         }
-        :host(.opened) {
-          display: block;
-        }
-        :host(:state(opened)) {
+        :host(:where(.--opened, :--opened)) {
           display: block;
         }
         .root {

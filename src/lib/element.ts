@@ -19,9 +19,11 @@ export { guard } from 'lit-html/directives/guard';
 
 export { ifDefined } from 'lit-html/directives/if-defined';
 
+type CustomStateSet = Set<string>;
+
 declare global {
   interface ElementInternals {
-    states: DOMTokenList;
+    states: CustomStateSet;
   }
   // 用于 css 选择器选择元素，使用 @refobject 自动选择获取
   // 必须使用 attr 赋值
@@ -122,14 +124,25 @@ export abstract class GemElement<T = Record<string, unknown>> extends HTMLElemen
 
   get internals() {
     if (!this.#internals) {
+      const getCustomStateSet = () => {
+        // https://wicg.github.io/custom-state-pseudo-class/
+        const { classList } = this;
+        return {
+          has: (v) => classList.contains(v),
+          add: (v) => classList.add(v),
+          delete: (v) => classList.remove(v),
+        } as CustomStateSet;
+      };
       if (!this.attachInternals) {
         // https://bugs.webkit.org/show_bug.cgi?id=197960
-        this.attachInternals = () => ({ states: this.classList });
+        this.attachInternals = () => {
+          return { states: getCustomStateSet() };
+        };
       }
       this.#internals = this.attachInternals();
       if (!this.#internals.states) {
         // https://bugzilla.mozilla.org/show_bug.cgi?id=1588763
-        this.#internals.states = this.classList;
+        this.#internals.states = getCustomStateSet();
       }
     }
     return this.#internals;
@@ -430,15 +443,16 @@ export function defineCSSState(target: GemElement, prop: string, state: string) 
     configurable: true,
     get() {
       const that = this as GemElement;
-      return !!that.internals?.states?.contains(state);
+      const { states } = that.internals;
+      return states.has?.(state);
     },
     set(v: boolean) {
       const that = this as GemElement;
-      const internals = that.internals;
+      const { states } = that.internals;
       if (v) {
-        internals.states.add(state);
+        states.add(state);
       } else {
-        internals.states.remove(state);
+        states.delete(state);
       }
     },
   });
@@ -457,7 +471,7 @@ customElements.define = (name: string, cls: CustomElementConstructor, options?: 
     observedAttributes?.forEach((attr) => defineAttribute(cls.prototype, kebabToCamelCase(attr), attr));
     observedPropertys?.forEach((prop) => defineProperty(cls.prototype, prop));
     defineEvents?.forEach((event) => defineProperty(cls.prototype, kebabToCamelCase(event), event));
-    defineCSSStates?.forEach((state) => defineCSSState(cls.prototype, kebabToCamelCase(state), state));
+    defineCSSStates?.forEach((state) => defineCSSState(cls.prototype, kebabToCamelCase(state), `--${state}`));
     defineRefs?.forEach((ref) => defineRef(cls.prototype, kebabToCamelCase(ref), ref));
   }
 
