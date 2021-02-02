@@ -31,22 +31,22 @@ import * as Gem from 'https://dev.jspm.io/@mantou/gem';
 ## 开始
 
 ```html
-<hello-world></hello-world>
+<my-element></my-element>
 ```
 
 ```js
 import { GemElement, html } from '@mantou/gem';
 
-class HelloWorld extends GemElement {
+class MyElement extends GemElement {
   render() {
     return html`hello world`;
   }
 }
 
-customElements.define('hello-world', HelloWorld);
+customElements.define('my-element', MyElement);
 ```
 
-[![Edit hello-world](https://codesandbox.io/static/img/play-codesandbox.svg)](https://codesandbox.io/s/hello-world-llky3?fontsize=14&hidenavigation=1&theme=dark)
+[![Edit `<my-element>`](https://codesandbox.io/static/img/play-codesandbox.svg)](https://codesandbox.io/s/hello-world-llky3?fontsize=14&hidenavigation=1&theme=dark)
 
 使用标准的 [customElements](https://developer.mozilla.org/en-US/docs/Web/API/Window/customElements) 定义一个自定义元素，
 然后以任何方式在 HTML 中使用他，当然也可以在其他自定义元素的模板中使用。

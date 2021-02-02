@@ -5,9 +5,9 @@ Gem 的 `history` 对象维护一个历史记录的 `Store`: `history.store`，�
 其 `history.store` 将得到更新，进而更新连接 `history.store` 的元素。
 
 ```js
-import { GemElement, html, history } from '@mantou/gem';
+import { GemElement, html, history, customElement, connectStore } from '@mantou/gem';
 
-@customElement('hello-world')
+@customElement('app-root')
 @connectStore(history.store)
 class App extends GemElement {
   render() {

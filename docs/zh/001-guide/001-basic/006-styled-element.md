@@ -24,21 +24,23 @@ const styles = createCSSSheet(css`
     text-decoration: underline;
   }
 `);
-class HelloWorld extends GemElement {
+class MyElement extends GemElement {
   static adoptedStyleSheets = [styles];
 }
+customElements.define('my-element', MyElement);
 ```
 
 像连接 `Store` 一样，也有一个类似的 Typescript 装饰器可用：`@adoptedStyle`。
 
-```ts
+```ts 6
 import { GemElement } from '@mantou/gem';
-import { adoptedStyle } from '@mantou/gem';
+import { adoptedStyle, customElement } from '@mantou/gem';
 
-// 省略 styles 定义...
+// Omit the styles definition...
 
 @adoptedStyle(styles)
-class HelloWorld extends GemElement {}
+@customElement('my-element')
+class MyElement extends GemElement {}
 ```
 
 ## CSS in JS
@@ -59,12 +61,13 @@ const styles = createCSSSheet({
   `,
 });
 
-class HelloWorld extends GemElement {
+class MyElement extends GemElement {
   static adoptedStyleSheets = [styles];
   render() {
     return html`<div class=${styles.h1}></div>`;
   }
 }
+customElements.define('my-element', MyElement);
 ```
 
 ## 在元素外自定义样式
@@ -79,28 +82,31 @@ class HelloWorld extends GemElement {
 
 // 省略导入...
 
-class HelloWorld extends GemElement {
+class MyElement extends GemElement {
   @part header: string;
 
   render() {
     return html`<div part=${this.header}></div>`;
   }
 }
+customElements.define('my-element', MyElement);
 ```
 
-还可以使用 [`:state`](https://github.com/w3c/webcomponents/blob/gh-pages/proposals/custom-states-and-state-pseudo-class.md) 导出元素内部状态，供外部样式化当前状态:
+还可以使用 [`:--xxx`](https://wicg.github.io/custom-state-pseudo-class/) 导出元素内部状态，供外部样式化当前状态:
 
 ```ts
 // 省略导入...
 
-class HelloWorld extends GemElement {
+class MyElement extends GemElement {
   @state opened: boolean;
 
   open() {
-    // 可被选择器 `:state(opened)` 选中
+    // 可被选择器 `:--opened` 选中
+    // 考虑兼容性可以使用 `:where(:--opened, .--opened)`
     this.opened = true;
   }
 }
+customElements.define('my-element', MyElement);
 ```
 
 _注意跟 `state`/`setState` 的区别。_

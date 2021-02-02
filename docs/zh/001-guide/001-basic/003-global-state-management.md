@@ -60,9 +60,9 @@ document.addEventListener('visibilitychange', () => {
   updateStore({ savingMode: isSavingMode() });
 });
 
-@customElement('hello-world')
+@customElement('my-element')
 @connectStore(store)
-class HelloWorld extends GemElement {
+class MyElement extends GemElement {
   render() {
     return html`${store.savingMode}`;
   }

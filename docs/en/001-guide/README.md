@@ -27,22 +27,22 @@ or use Unpkg：
 ## Start
 
 ```html
-<hello-world></hello-world>
+<my-element></my-element>
 ```
 
 ```js
 import { GemElement, html } from '@mantou/gem';
 
-class HelloWorld extends GemElement {
+class MyElement extends GemElement {
   render() {
     return html`hello world`;
   }
 }
 
-customElements.define('hello-world', HelloWorld);
+customElements.define('my-element', MyElement);
 ```
 
-[![Edit hello-world](https://codesandbox.io/static/img/play-codesandbox.svg)](https://codesandbox.io/s/hello-world-llky3?fontsize=14&hidenavigation=1&theme=dark)
+[![Edit `<my-element>`](https://codesandbox.io/static/img/play-codesandbox.svg)](https://codesandbox.io/s/hello-world-llky3?fontsize=14&hidenavigation=1&theme=dark)
 
 Use standard [customElements](https://developer.mozilla.org/en-US/docs/Web/API/Window/customElements) to define a custom element, and then use it in HTML in any way, of course, it can also be used in other custom element templates.
 

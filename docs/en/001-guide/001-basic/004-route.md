@@ -3,9 +3,9 @@
 The URL can be changed using the [History API](https://developer.mozilla.org/en-US/docs/Web/API/History), Gem's `history` object maintains a `Store` of history: `history.store`, when using `history` to update the route, its `history.store` will be updated to update the elements connected to `history.store`.
 
 ```js
-import { GemElement, html, history } from '@mantou/gem';
+import { GemElement, html, history, customElement, connectStore } from '@mantou/gem';
 
-@customElement('hello-world')
+@customElement('app-root')
 @connectStore(history.store)
 class App extends GemElement {
   render() {

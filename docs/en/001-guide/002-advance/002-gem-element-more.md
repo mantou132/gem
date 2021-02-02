@@ -9,8 +9,8 @@ If you want to manipulate the DOM content within an element, such as reading the
 ```ts
 // Omit import...
 
-@customElement('hello-world')
-class HelloWorld extends GemElement {
+@customElement('my-element')
+class MyElement extends GemElement {
   @refobject inputRef: RefObject<HTMLInputElement>;
 
   render() {
@@ -30,8 +30,8 @@ Custom event is a method of transferring data. It can be easily done by using `d
 ```ts
 // Omit import...
 
-@customElement('hello-world')
-class HelloWorld extends GemElement {
+@customElement('my-element')
+class MyElement extends GemElement {
   @emitter valueChange: Emitter<string>;
 
   render() {
@@ -47,8 +47,8 @@ In many cases, elements need to perform some side effects based on certain attri
 ```ts
 // Omit import...
 
-@customElement('hello-world')
-class HelloWorld extends GemElement {
+@customElement('my-element')
+class MyElement extends GemElement {
   @attribute src: string;
 
   mounted() {

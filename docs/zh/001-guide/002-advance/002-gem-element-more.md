@@ -10,8 +10,8 @@
 ```ts
 // 省略导入...
 
-@customElement('hello-world')
-class HelloWorld extends GemElement {
+@customElement('my-element')
+class MyElement extends GemElement {
   @refobject inputRef: RefObject<HTMLInputElement>;
 
   render() {
@@ -32,8 +32,8 @@ GemElement 允许快速定义方法来触发自定义事件：
 ```ts
 // 省略导入...
 
-@customElement('hello-world')
-class HelloWorld extends GemElement {
+@customElement('my-element')
+class MyElement extends GemElement {
   @emitter valueChange: Emitter<string>;
 
   render() {
@@ -50,8 +50,8 @@ class HelloWorld extends GemElement {
 ```ts
 // 省略导入...
 
-@customElement('hello-world')
-class HelloWorld extends GemElement {
+@customElement('my-element')
+class MyElement extends GemElement {
   @attribute src: string;
 
   mounted() {

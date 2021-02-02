@@ -10,30 +10,32 @@
 ```js
 // 省略导入...
 
-class HelloWorld extends GemElement {
+class MyElement extends GemElement {
   static observedAttributes = ['first-name'];
   render() {
     return html`${this.firestName}`;
   }
 }
+customElements.define('my-element', MyElement);
 ```
 
 `first-name` 属性经过“Observed”，他就能直接通过 property 进行访问，
 且会自动进行驼峰和烤串格式的转换，
-当 `first-name` 属性更改时，`HelloWorld` 的实例元素将重新渲染。
+当 `first-name` 属性更改时，`MyElement` 的实例元素将重新渲染。
 
 类似 `observedAttributes`，GemElement 还支持 `observedPropertys`/`observedStores` 用来反应指定的 property/store：
 
 ```js
 // 省略导入...
 
-class HelloWorld extends GemElement {
+class MyElement extends GemElement {
   static observedPropertys = ['data'];
   static observedStores = [store];
   render() {
     return html`${this.data.id} ${store.name}`;
   }
 }
+customElements.define('my-element', MyElement);
 ```
 
 _不要在元素内修改 prop/attr，他们应该由父元素单向传递进来，就像原生元素一样_
@@ -44,7 +46,7 @@ _不要在元素内修改 prop/attr，他们应该由父元素单向传递进来
 ```js
 // 省略导入...
 
-class HelloWorld extends GemElement {
+class MyElement extends GemElement {
   state = { id: 1 };
   clicked() {
     this.setState({ id: 2 });
@@ -53,6 +55,7 @@ class HelloWorld extends GemElement {
     return html`${this.state.id}`;
   }
 }
+customElements.define('my-element', MyElement);
 ```
 
 _`GemElement` 扩展自 [`HTMLElement`](https://developer.mozilla.org/en-US/docs/Web/API/HTMLElement)，不要覆盖 `HTMLElement` 的 attribute/property/method/event，使用[私有字段](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Classes/Private_class_fields)来避免 `GemElement`/`HTMLElement` 的属性方法被覆盖_
@@ -66,7 +69,7 @@ const store = createStore({
   count: 0,
 });
 
-class HelloWorld extends GemElement {
+class MyElement extends GemElement {
   static observedStores = [store];
   static observedAttributes = ['name'];
   static observedPropertys = ['data'];
@@ -82,6 +85,7 @@ class HelloWorld extends GemElement {
     `;
   }
 }
+customElements.define('my-element', MyElement);
 ```
 
 [![Edit reactive-element](https://codesandbox.io/static/img/play-codesandbox.svg)](https://codesandbox.io/s/reactive-element-chu75?fontsize=14&hidenavigation=1&theme=dark)
@@ -93,11 +97,12 @@ class HelloWorld extends GemElement {
 ```js
 // 省略导入...
 
-class HelloWorld extends GemElement {
+class MyElement extends GemElement {
   mounted() {
     console.log('element mounted!');
   }
 }
+customElements.define('my-element', MyElement);
 ```
 
 完整的生命周期：
@@ -139,9 +144,9 @@ const store = createStore({
   count: 0,
 });
 
-@customElement('hello-world')
+@customElement('my-element')
 @connectStore(store)
-class HelloWorld extends GemElement {
+class MyElement extends GemElement {
   @attribute name: string;
   @boolattribute disabled: boolean;
   @numattribute count: number;

@@ -18,21 +18,23 @@ const styles = createCSSSheet(css`
     text-decoration: underline;
   }
 `);
-class HelloWorld extends GemElement {
+class MyElement extends GemElement {
   static adoptedStyleSheets = [styles];
 }
+customElements.define('my-element', MyElement);
 ```
 
 Just like connecting to the Store, there is a similar Typescript decorator available: `@adoptedStyle`.
 
-```ts
+```ts 6
 import { GemElement } from '@mantou/gem';
-import { adoptedStyle } from '@mantou/gem';
+import { adoptedStyle, customElement } from '@mantou/gem';
 
 // Omit the styles definition...
 
 @adoptedStyle(styles)
-class HelloWorld extends GemElement {}
+@customElement('my-element')
+class MyElement extends GemElement {}
 ```
 
 ## CSS in JS
@@ -53,12 +55,13 @@ const styles = createCSSSheet({
   `,
 });
 
-class HelloWorld extends GemElement {
+class MyElement extends GemElement {
   static adoptedStyleSheets = [styles];
   render() {
     return html`<div class=${styles.h1}></div>`;
   }
 }
+customElements.define('my-element', MyElement);
 ```
 
 ## Customize the style outside the element
@@ -74,28 +77,31 @@ Use [`::part`](https://drafts.csswg.org/css-shadow-parts-1/#part) to export the 
 
 // Omit import...
 
-class HelloWorld extends GemElement {
+class MyElement extends GemElement {
   @part header: string;
 
   render() {
     return html`<div part=${this.header}></div>`;
   }
 }
+customElements.define('my-element', MyElement);
 ```
 
-Also use [`:state`](https://github.com/w3c/webcomponents/blob/gh-pages/proposals/custom-states-and-state-pseudo-class.md) to export the internal state of the element for current state of external styling:
+Also use [`:--xxx`](https://wicg.github.io/custom-state-pseudo-class/) to export the internal state of the element for current state of external styling:
 
 ```ts
 // Omit import...
 
-class HelloWorld extends GemElement {
+class MyElement extends GemElement {
   @state opened: boolean;
 
   open() {
-    // Can be selected by the selector `:state(opened)`
+    // Can be selected by the selector `:--opened`
+    // Consider compatibility can be used `:where(:--opened, .--opened)`
     this.opened = true;
   }
 }
+customElements.define('my-element', MyElement);
 ```
 
 _Note the difference with `state`/`setState`._
