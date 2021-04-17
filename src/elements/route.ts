@@ -151,6 +151,7 @@ export class GemRouteElement extends GemElement {
   };
 
   shouldUpdate() {
+    if (this.inert) return false;
     const { path, query } = history.getParams();
     const href = path + query;
     if (href !== this.#href || this.key !== this.#key) {

@@ -27,9 +27,13 @@ declare global {
   }
   // 用于 css 选择器选择元素，使用 @refobject 自动选择获取
   // 必须使用 attr 赋值
-  /**@attr ref */
+  /**
+   * @attr ref
+   * @attr inert
+   */
   interface HTMLElement {
     attachInternals?: () => ElementInternals;
+    inert?: boolean;
   }
 }
 

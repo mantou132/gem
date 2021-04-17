@@ -31,6 +31,8 @@ customElements.define(
         <gem-link path="./d">Page c/d</gem-link>
         <gem-link path="./e">Page c/e</gem-link>
         <gem-route .routes=${routes}></gem-route>
+        inert route:
+        <gem-route ?inert=${true} .routes=${routes}></gem-route>
       `;
     }
   },
