@@ -55,7 +55,7 @@ class Dialog extends DialogBaseElement {
     if (this.opened) {
       Confirm.open({
         content: html`Confirm?`,
-        confirmHandle: this.forceClose,
+        confirmHandle: this.forceClose, // 不能使用 `close` 方法
       });
       return false;
     } else {
@@ -107,6 +107,10 @@ class Dialog extends DialogBaseElement {
 export class Root extends GemElement {
   @refobject dialog: RefObject<Dialog>;
 
+  state = {
+    modal: false,
+  };
+
   clickHandle = () => {
     this.dialog.element?.open();
   };
@@ -118,8 +122,12 @@ export class Root extends GemElement {
           font-size: x-large;
         }
       </style>
-      <button @click="${this.clickHandle}">open dialog</button>
-      <app-dialog ref=${this.dialog.ref}>
+      <button ?inert=${this.state.modal} @click="${this.clickHandle}">open dialog</button>
+      <app-dialog
+        ref=${this.dialog.ref}
+        @open=${() => this.setState({ modal: true })}
+        @close=${() => this.setState({ modal: false })}
+      >
         <div>dialog body</div>
         <gem-link path="/hi" style="cursor: pointer; color: blue">replace route</gem-link>
       </app-dialog>

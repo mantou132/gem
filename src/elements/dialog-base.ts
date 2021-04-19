@@ -12,6 +12,7 @@ export abstract class DialogBaseElement extends GemElement {
    * 进入关闭状态
    */
   closeHandle = () => {
+    this.dispatchEvent(new CustomEvent('close'));
     this.opened = false;
   };
 
@@ -20,6 +21,7 @@ export abstract class DialogBaseElement extends GemElement {
    * 进入打开状态
    */
   openHandle = () => {
+    this.dispatchEvent(new CustomEvent('open'));
     this.opened = true;
   };
 
@@ -47,9 +49,10 @@ export abstract class DialogBaseElement extends GemElement {
    * @final
    * 跳过 `shouldClose` 强制关闭
    * 避免 `shouldClose` 中造成无限循环
+   * 延时关闭避免同步操作 history
    */
   forceClose = () => {
-    this.closeHandle();
-    history.back();
+    this.opened = false;
+    setTimeout(this.close, 100);
   };
 }
