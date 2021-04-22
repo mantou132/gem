@@ -187,7 +187,8 @@ export abstract class GemElement<T = Record<string, unknown>> extends HTMLElemen
 
   /**
    * @helper
-   * 记录副作用回调和值，不要在重复执行的生命周期回调中调用
+   * 记录副作用回调和值，在 `constructor`/`mounted` 中使用
+   * 回调到返回值如果是函数将再卸载时执行
    *
    * ```js
    * class App extends GemElement {
@@ -282,8 +283,11 @@ export abstract class GemElement<T = Record<string, unknown>> extends HTMLElemen
   /**@lifecycle */
   unmounted?(): void | Promise<void>;
 
-  /**@private */
-  /**@final */
+  /**
+   * @private
+   * @final
+   * use `effect`
+   */
   attributeChangedCallback() {
     if (this.#isMounted) {
       addMicrotask(this.#update);
@@ -303,8 +307,11 @@ export abstract class GemElement<T = Record<string, unknown>> extends HTMLElemen
     this.#initEffect();
   };
 
-  /**@private */
-  /**@final */
+  /**
+   * @private
+   * @final
+   * use `mounted`
+   */
   connectedCallback() {
     if (this.#isAsync) {
       asyncRenderTaskList.add(this.#connectedCallback);
@@ -313,12 +320,17 @@ export abstract class GemElement<T = Record<string, unknown>> extends HTMLElemen
     }
   }
 
-  /**@private */
-  /**@final */
+  /**
+   * @private
+   * @final
+   */
   // adoptedCallback() {}
 
-  /**@private */
-  /**@final */
+  /**
+   * @private
+   * @final
+   * use `unmounted`
+   */
   disconnectedCallback() {
     this.#isMounted = false;
     const { observedStores } = this.constructor as typeof GemElement;

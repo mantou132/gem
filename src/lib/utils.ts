@@ -221,6 +221,7 @@ function flatStyled(style: string, type: StyledType): StyledValue {
 }
 
 // 写 css 文本，在 CSSStyleSheet 中使用，使用 styed-components 高亮
+// 暂时不支持 `at` 规则
 //
 // createCSSSheet({
 //   red: styled.class`
@@ -230,7 +231,6 @@ function flatStyled(style: string, type: StyledType): StyledValue {
 //     }
 //   `,
 // });
-
 export const styled = {
   class: (arr: TemplateStringsArray, ...args: any[]) => {
     const style = raw(arr, ...args);
