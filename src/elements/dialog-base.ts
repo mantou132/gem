@@ -1,17 +1,32 @@
 import { GemElement, connectStore, history, state } from '..';
 
 /**
- * 在模版中声明的 dialog，使用 `open` 方法 打开
+ * 在模版中声明的 dialog，使用 `open` 方法 打开；
+ * 如果要应用关闭动画，可以在动画执行完后设置 `hidden` 属性；
+ * 模拟 top layer：https://github.com/whatwg/html/issues/4633.
  */
 @connectStore(history.store)
 export abstract class DialogBaseElement extends GemElement {
   @state opened = false;
+
+  inert = true;
+
+  #nextSibling: ChildNode | null;
+  #parentElement: Node | null;
+  #inertStore: HTMLElement[] = [];
 
   /**
    * @final
    * 进入关闭状态
    */
   closeHandle = () => {
+    this.inert = true;
+    this.#inertStore.forEach((e) => (e.inert = false));
+    if (this.#nextSibling) {
+      this.#nextSibling.before(this);
+    } else if (this.#parentElement) {
+      this.#parentElement?.appendChild(this);
+    }
     this.dispatchEvent(new CustomEvent('close'));
     this.opened = false;
   };
@@ -21,6 +36,13 @@ export abstract class DialogBaseElement extends GemElement {
    * 进入打开状态
    */
   openHandle = () => {
+    this.hidden = false;
+    this.inert = false;
+    this.#nextSibling = this.nextSibling;
+    this.#parentElement = this.parentElement || this.getRootNode();
+    this.#inertStore = ([...document.body.children] as HTMLElement[]).filter((e) => !e.inert);
+    this.#inertStore.forEach((e) => (e.inert = true));
+    document.body.append(this);
     this.dispatchEvent(new CustomEvent('open'));
     this.opened = true;
   };

@@ -5,10 +5,14 @@ const open = Symbol('open mark');
 /**
  * 需要使用范型，所以导出一个函数，用来*创建*类似 Confirm 元素的基类;
  * 需要使用 Confirm 的静态方式所以使用 Store 来管理组件状态;
- * 返回 *单实例* Confirm 类
+ * 返回 *单实例* Confirm 类;
+ * 关闭时将立即移除实例，所以不支持动画；
+ * 使用 `mounted`/`unmounted` 定义 `open`/`close` 回调;
+ * 模拟 top layer：https://github.com/whatwg/html/issues/4633.
  */
 export function createModalClass<T extends Record<string, unknown>>(options: T) {
   return class extends GemElement {
+    static inertStore: HTMLElement[] = [];
     static instance: GemElement | null = null;
     /**
      * @final
@@ -36,6 +40,8 @@ export function createModalClass<T extends Record<string, unknown>>(options: T) 
      */
     static open(opts: T) {
       this.instance = new this();
+      this.inertStore = ([...document.body.children] as HTMLElement[]).filter((e) => !e.inert);
+      this.inertStore.forEach((e) => (e.inert = true));
       document.body.append(this.instance);
       const changeStore = () => updateStore(this.store, { [open]: true, ...opts });
       setTimeout(() => {
@@ -61,6 +67,7 @@ export function createModalClass<T extends Record<string, unknown>>(options: T) 
      * history 中自动调用
      */
     static closeHandle() {
+      this.inertStore.forEach((e) => (e.inert = false));
       this.instance?.remove();
       updateStore(this.store, { [open]: false, ...options });
     }
