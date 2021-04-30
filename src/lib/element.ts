@@ -24,6 +24,9 @@ type CustomStateSet = Set<string>;
 declare global {
   interface ElementInternals {
     states: CustomStateSet;
+    // https://w3c.github.io/aria/#role_definitions
+    role?: string;
+    ariaModal?: boolean;
   }
   // 用于 css 选择器选择元素，使用 @refobject 自动选择获取
   // 必须使用 attr 赋值

@@ -15,6 +15,12 @@ export abstract class DialogBaseElement extends GemElement {
   #parentElement: Node | null;
   #inertStore: HTMLElement[] = [];
 
+  constructor() {
+    super();
+    this.internals.role = 'dialog';
+    this.internals.ariaModal = true;
+  }
+
   /**
    * @final
    * 进入关闭状态

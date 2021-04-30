@@ -78,5 +78,11 @@ export function createModalClass<T extends Record<string, unknown>>(options: T) 
     static shouldClose() {
       return true;
     }
+
+    constructor() {
+      super();
+      this.internals.role = 'alertdialog';
+      this.internals.ariaModal = true;
+    }
   };
 }
