@@ -13,7 +13,7 @@
  * - `<gem-title>` 作为默认值设置
  */
 
-import { html, GemElement, connectStore, updateStore, customElement, connect, attribute, titleStore } from '..';
+import { html, GemElement, connectStore, updateStore, customElement, attribute, titleStore } from '..';
 
 /**
  * 允许声明式设置 `document.title`
@@ -58,5 +58,3 @@ export class GemTitleElement extends GemElement {
     return html`${GemTitleElement.title}`;
   }
 }
-
-connect(titleStore, GemTitleElement.updateTitle);

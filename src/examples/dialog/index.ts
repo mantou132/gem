@@ -12,6 +12,8 @@ class Confirm extends createModalClass({
     /** */
   },
 }) {
+  title = 'confirm title';
+
   confirm = () => {
     Confirm.close();
     Confirm.store.confirmHandle();
@@ -124,6 +126,7 @@ export class Root extends GemElement {
       </style>
       <button ?inert=${this.state.modal} @click="${this.clickHandle}">open dialog</button>
       <app-dialog
+        title="dialog title"
         ref=${this.dialog.ref}
         @open=${() => this.setState({ modal: true })}
         @close=${() => this.setState({ modal: false })}

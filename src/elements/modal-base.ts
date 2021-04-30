@@ -39,14 +39,16 @@ export function createModalClass<T extends Record<string, unknown>>(options: T) 
      * 浏览器 history 为异步 API，需要设置较长延迟;
      */
     static open(opts: T) {
-      this.instance = new this();
+      const instance = new this();
+      this.instance = instance;
       this.inertStore = ([...document.body.children] as HTMLElement[]).filter((e) => !e.inert);
       this.inertStore.forEach((e) => (e.inert = true));
-      document.body.append(this.instance);
+      document.body.append(instance);
       const changeStore = () => updateStore(this.store, { [open]: true, ...opts });
       setTimeout(() => {
         changeStore();
         history.push({
+          title: instance.title,
           open: changeStore,
           close: this.closeHandle.bind(this),
           shouldClose: this.shouldClose.bind(this),

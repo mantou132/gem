@@ -24,6 +24,8 @@ import { isMatch, RouteItem, RouteOptions, createHistoryParams, createPath } fro
  * @attr pattern
  * @attr hint
  * @part link
+ *
+ * print bug: https://github.com/mantou132/gem/issues/36
  */
 @customElement('gem-link')
 @connectStore(basePathStore)

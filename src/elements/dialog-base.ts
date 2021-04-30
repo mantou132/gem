@@ -58,6 +58,7 @@ export abstract class DialogBaseElement extends GemElement {
     if (this.opened) return;
     this.openHandle();
     history.push({
+      title: this.title,
       open: this.openHandle,
       close: this.closeHandle,
       shouldClose: this.shouldClose,

@@ -86,7 +86,7 @@ function initParams(params: UpdateHistoryParams): HistoryParams {
   const query = new QueryString(params.query || (params.path ? '' : location.search));
   const pathChanged =
     (params.path && params.path !== current.path) || (params.query && String(params.query) !== String(current.query));
-  const title = params.title || (pathChanged ? '' : document.title);
+  const title = params.title || '';
   const statusChanged = params.close || params.data || params.open || params.shouldClose;
   // 没提供 hash 又没有改变路径又不是状态更新时使用当前 hash
   const hash = params.hash || (!pathChanged && statusChanged ? decodeURIComponent(location.hash) : '');
