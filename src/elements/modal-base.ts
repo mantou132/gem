@@ -48,7 +48,7 @@ export function createModalClass<T extends Record<string, unknown>>(options: T) 
       setTimeout(() => {
         changeStore();
         history.push({
-          title: instance.title,
+          title: instance.label,
           open: changeStore,
           close: this.closeHandle.bind(this),
           shouldClose: this.shouldClose.bind(this),
@@ -86,5 +86,7 @@ export function createModalClass<T extends Record<string, unknown>>(options: T) 
       this.internals.role = 'alertdialog';
       this.internals.ariaModal = true;
     }
+
+    label = '';
   };
 }

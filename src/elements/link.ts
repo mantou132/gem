@@ -87,6 +87,7 @@ export class GemLinkElement extends GemElement {
 
     const { path, query, hash } = history.getParams();
     if (path + query + hash === pathInfo) {
+      // 点击当前路由链接时，什么也没做
       return;
     }
 

@@ -1,9 +1,11 @@
-import { GemElement, connectStore, history, state } from '..';
+import { GemElement, connectStore, history, state, attribute } from '..';
 
 /**
  * 在模版中声明的 dialog，使用 `open` 方法 打开；
  * 如果要应用关闭动画，可以在动画执行完后设置 `hidden` 属性；
  * 模拟 top layer：https://github.com/whatwg/html/issues/4633.
+ *
+ * @attr label
  */
 @connectStore(history.store)
 export abstract class DialogBaseElement extends GemElement {
@@ -14,6 +16,8 @@ export abstract class DialogBaseElement extends GemElement {
   #nextSibling: ChildNode | null;
   #parentElement: Node | null;
   #inertStore: HTMLElement[] = [];
+
+  @attribute label = '';
 
   constructor() {
     super();
@@ -58,7 +62,7 @@ export abstract class DialogBaseElement extends GemElement {
     if (this.opened) return;
     this.openHandle();
     history.push({
-      title: this.title,
+      title: this.label,
       open: this.openHandle,
       close: this.closeHandle,
       shouldClose: this.shouldClose,
