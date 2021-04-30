@@ -11,6 +11,7 @@ import {
   UpdateHistoryParams,
   titleStore,
   updateStore,
+  addMicrotaskToStack,
 } from '../';
 
 interface NamePostition {
@@ -216,7 +217,7 @@ export class GemRouteElement extends GemElement {
 
   mounted() {
     this.#key = this.key;
-    this.#initPage();
+    addMicrotaskToStack(this.#initPage);
   }
 
   updated() {

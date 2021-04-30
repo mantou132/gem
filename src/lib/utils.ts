@@ -1,15 +1,35 @@
-const updaterSet = new Set<() => void>();
+const microtaskSet = new Set<() => void>();
 export function addMicrotask(func: () => void) {
   if (typeof func !== 'function') return;
-  if (!updaterSet.size) {
+  if (!microtaskSet.size) {
     // delayed execution callback after updating store
     globalThis.queueMicrotask(() => {
-      updaterSet.forEach((func) => func());
-      updaterSet.clear();
+      microtaskSet.forEach((func) => func());
+      microtaskSet.clear();
     });
   }
-  updaterSet.delete(func);
-  updaterSet.add(func);
+  microtaskSet.delete(func);
+  microtaskSet.add(func);
+}
+
+const microtaskStack: (() => void)[] = [];
+
+function execMicrotaskStack() {
+  for (let i = microtaskStack.length - 1; i >= 0; i--) {
+    microtaskStack[i]();
+  }
+  microtaskStack.length = 0;
+}
+
+/**
+ * 添加回调函数到微任务队列栈；
+ * 先进后执行；
+ */
+export function addMicrotaskToStack(func: () => void) {
+  if (!microtaskStack.length) {
+    addMicrotask(execMicrotaskStack);
+  }
+  microtaskStack.push(func);
 }
 
 export function absoluteLocation(currentPath = '', relativePath = '') {
