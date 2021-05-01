@@ -62,7 +62,7 @@ describe('utils 测试', () => {
   });
   it('raw/css', () => {
     const title: any = undefined;
-    expect(raw`<div title=${title}></div>`).to.equal('<div title=""></div>');
+    expect(raw`<div title="${title}" class="${0}"></div>`).to.equal('<div title="" class="0"></div>');
     expect(raw`<div>${'str'}</div>`).to.equal('<div>str</div>');
   });
   it('styled', () => {

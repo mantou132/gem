@@ -150,9 +150,13 @@ export class QueryString extends URLSearchParams {
   }
 }
 
-// 写 html 文本
+/**
+ * 写纯文本，仅用于 IDE HTML 高亮
+ *
+ * 不同于 lit-html 的 `html` 模版函数，写 attribute 时必须手动写引号并自行进行 html 编码
+ */
 export function raw(arr: TemplateStringsArray, ...args: any[]) {
-  return arr.reduce((prev, current, index) => prev + (args[index - 1] || '""') + current);
+  return arr.reduce((prev, current, index) => prev + (args[index - 1] ?? '') + current);
 }
 
 // 写 css 文本，在 CSSStyleSheet 中使用
