@@ -137,6 +137,7 @@ export class GemGestureElement extends GemElement {
   }
 
   onStart(evt: PointerEvent) {
+    evt.stopPropagation();
     this.setPointerCapture(evt.pointerId);
     this.movesMap.set(evt.pointerId, []);
     this.startEventMap.set(evt.pointerId, evt);
@@ -149,7 +150,9 @@ export class GemGestureElement extends GemElement {
     }
   }
 
-  onMove({ pointerId, clientX, clientY, isPrimary, pointerType, timeStamp }: PointerEvent) {
+  onMove(evt: PointerEvent) {
+    evt.stopPropagation();
+    const { pointerId, clientX, clientY, isPrimary, pointerType, timeStamp } = evt;
     if (!this.pressed && this.hasPointerCapture(pointerId)) {
       const moves = this.getMoves(pointerId);
       const startEvent = this.getStartEvent(pointerId);
@@ -197,7 +200,9 @@ export class GemGestureElement extends GemElement {
     }
   }
 
-  onEnd({ pointerId }: PointerEvent) {
+  onEnd(evt: PointerEvent) {
+    evt.stopPropagation();
+    const { pointerId } = evt;
     window.clearTimeout(this.pressTimer);
 
     if (this.movesMap.size === 1) {
