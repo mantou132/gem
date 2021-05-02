@@ -18,9 +18,12 @@ describe('store 测试', () => {
     updateStore(store, { a: 1 });
     await aTimeout(0);
     expect(flag).to.equal(false);
+    updateStore(store);
+    await aTimeout(0);
+    expect(flag).to.equal(true);
     disconnect(store, update);
     updateStore(store, { a: 1 });
     await aTimeout(0);
-    expect(flag).to.equal(false);
+    expect(flag).to.equal(true);
   });
 });

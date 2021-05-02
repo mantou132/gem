@@ -28,7 +28,7 @@ export function createStoreSet<T extends StoreObjectSet>(originStoreSet: T) {
   return originStoreSet as StoreSet<T>;
 }
 
-export function updateStore<T extends NonPrimitive>(store: Store<T>, value: Partial<T>) {
+export function updateStore<T extends NonPrimitive>(store: Store<T>, value?: Partial<T>) {
   Object.assign(store, value);
   const listeners = StoreListenerMap.get(store);
   listeners?.forEach((func) => {
