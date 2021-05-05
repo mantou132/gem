@@ -66,7 +66,7 @@ const tick = () => {
 asyncRenderTaskList.addEventListener('start', tick);
 
 type GetDepFun<T> = () => T;
-type EffectCallback<T> = (arg: T) => any;
+type EffectCallback<T> = (depValues: T, oldDepValues?: T) => any;
 type EffectItem<T> = {
   callback: EffectCallback<T>;
   initialized: boolean;
@@ -182,7 +182,7 @@ export abstract class GemElement<T = Record<string, unknown>> extends HTMLElemen
       const newValues = getDep?.();
       if (!getDep || isArrayChange(values, newValues)) {
         execCallback(preCallback);
-        effectItem.preCallback = callback(newValues);
+        effectItem.preCallback = callback(newValues, values);
         effectItem.values = newValues;
       }
     });

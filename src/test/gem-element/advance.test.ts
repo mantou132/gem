@@ -132,6 +132,23 @@ describe('gem element 副作用', () => {
     el.prop = {};
     await nextFrame();
     expect(el.effectCount).to.equal(5);
+
+    let oldV: string | undefined = '';
+    let newV: string | undefined = '';
+    el.effect(
+      ([n], [o]: string[] = []) => {
+        oldV = o;
+        newV = n;
+      },
+      () => [el.attr],
+    );
+    expect(oldV).to.equal(undefined);
+    expect(newV).to.equal('b');
+    el.attr = 'n';
+    await nextFrame();
+    expect(oldV).to.equal('b');
+    expect(newV).to.equal('n');
+
     el.remove();
     expect(el.effectCount).to.equal(0);
   });
