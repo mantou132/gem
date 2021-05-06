@@ -92,6 +92,8 @@ export abstract class GemElement<T = Record<string, unknown>> extends HTMLElemen
   // 以下静态字段仅供外部读取，没有实际作用
   static defineParts?: string[];
   static defineSlots?: string[];
+  // 指定 root 元素类型
+  static rootElement?: string;
 
   // 定义当前元素的状态，和 attr/prop 的本质区别是不为外部输入
   readonly state?: T;
@@ -299,7 +301,7 @@ export abstract class GemElement<T = Record<string, unknown>> extends HTMLElemen
 
   #connectedCallback = () => {
     this.willMount?.();
-    const { observedStores } = this.constructor as typeof GemElement;
+    const { observedStores, rootElement } = this.constructor as typeof GemElement;
     observedStores?.forEach((store) => {
       connect(store, this.#update);
     });
@@ -308,6 +310,9 @@ export abstract class GemElement<T = Record<string, unknown>> extends HTMLElemen
     this.#isMounted = true;
     this.#unmountCallback = this.mounted?.();
     this.#initEffect();
+    if (rootElement && (this.getRootNode() as ShadowRoot).host?.tagName !== rootElement.toUpperCase()) {
+      throw new GemError(`not allow current root type`);
+    }
   };
 
   /**

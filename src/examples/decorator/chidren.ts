@@ -11,6 +11,7 @@ import {
   customElement,
   numattribute,
   boolattribute,
+  rootElement,
 } from '../../';
 
 export type Message = number[];
@@ -27,6 +28,7 @@ export type Message = number[];
  * @part paragraph
  */
 @customElement('app-children')
+@rootElement('app-root')
 export class Children extends GemElement {
   @slot static light: string;
   @part static paragraph: string;

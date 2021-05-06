@@ -4,7 +4,7 @@ import { Sheet, camelToKebabCase } from './utils';
 
 type GemElementPrototype = GemElement;
 type GemElementConstructor = typeof GemElement;
-type StaticField = Exclude<keyof GemElementConstructor, 'prototype'>;
+type StaticField = Exclude<keyof GemElementConstructor, 'prototype' | 'rootElement'>;
 type StaticFieldMember = string | Store<unknown> | Sheet<unknown>;
 
 function pushStaticField(target: GemElementPrototype, field: StaticField, member: StaticFieldMember, isSet = false) {
@@ -195,6 +195,22 @@ export function connectStore(store: Store<unknown>) {
   return function (cls: unknown) {
     const con = cls as GemElementConstructor;
     pushStaticField(con.prototype, 'observedStores', store);
+  };
+}
+
+/**
+ * 限制元素的 root 节点类型
+ *
+ * For example
+ * ```ts
+ *  @rootElement(MyElement)
+ *  class App extends GemElement {}
+ * ```
+ */
+export function rootElement(rootType: string) {
+  return function (cls: unknown) {
+    const con = cls as GemElementConstructor;
+    con.rootElement = rootType;
   };
 }
 
