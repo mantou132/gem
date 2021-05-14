@@ -318,3 +318,5 @@ export function classMap(obj: Record<string, boolean>) {
   }
   return classList;
 }
+
+export const partMap = classMap;
