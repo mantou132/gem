@@ -23,6 +23,8 @@ class MyElement extends GemElement {
 }
 ```
 
+_Cannot be used with `<gem-reflect>`_
+
 ## Custom event
 
 Custom event is a method of transferring data. It can be easily done by using `dispatch(new CustomEvent('event'))`. Also in order to obtain TypeScript type support, GemElement allows you to quickly define methods to emit custom events:
@@ -38,6 +40,12 @@ class MyElement extends GemElement {
     return html`<input @change=${(e) => this.valueChange(e.target.value)} />`;
   }
 }
+```
+
+When receiving custom events, you still need to handwrite the event name:
+
+```ts
+html`<my-element @value-change=${console.log}></my-element>`;
 ```
 
 ## Effect

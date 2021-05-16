@@ -24,6 +24,8 @@ class MyElement extends GemElement {
 }
 ```
 
+_不能和 `<gem-reflect>` 一起使用_
+
 ## 自定义事件
 
 自定义事件是一种传递数据的方法，使用 `dispatch(new CustomEvent('event'))` 能轻松完成，同样为了获得 TypeScript 的类型支持，
@@ -40,6 +42,12 @@ class MyElement extends GemElement {
     return html`<input @change=${(e) => this.valueChange(e.target.value)} />`;
   }
 }
+```
+
+接收自定义事件时，您仍然需要手写事件名称：
+
+```ts
+html` <my-element @value-change=${console.log}></my-element>`;
 ```
 
 ## 副作用

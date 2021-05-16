@@ -10,19 +10,19 @@ Gem 是一套使用现代 WebComponents 技术构建 WebApp 的轻量级库。
 
 ## 安装
 
-使用 npm：
+使用 NPM：
 
 ```bash
 npm install @mantou/gem
 ```
 
-或者使用 ES modules：
+或者使用 ESM：
 
 ```js
 import * as Gem from 'https://dev.jspm.io/@mantou/gem';
 ```
 
-或者使用 Unpkg：
+或者使用 UNPKG：
 
 ```html
 <script src="https://unpkg.com/@mantou/gem/umd.js"></script>

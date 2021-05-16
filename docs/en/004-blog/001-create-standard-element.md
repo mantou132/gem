@@ -146,3 +146,30 @@ class MyElement extends GemElement {
   }
 }
 ```
+
+### Accessibility
+
+When users use custom elements, they can use the `role`,`aria-*` attributes to specify the semantics of the element:
+
+```ts
+html`<my-element role="region" aria-label="my profile"></my-element>`;
+```
+
+Use [`ElementInternals`](https://html.spec.whatwg.org/multipage/custom-elements.html#elementinternals) to define the default semantics of custom elements, which is more convenient for users to use:
+
+```ts
+@customElement('my-element')
+class MyElement extends GemElement {
+  constructor() {
+    super();
+    this.internals.role = 'region';
+    this.internals.ariaLabel = 'my profile';
+  }
+}
+```
+
+Resources:
+
+- https://w3c.github.io/html-aria
+- https://w3c.github.io/using-aria/
+- https://www.w3.org/WAI/fundamentals/accessibility-principles/

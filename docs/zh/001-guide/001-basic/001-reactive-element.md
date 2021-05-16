@@ -109,7 +109,7 @@ customElements.define('my-element', MyElement);
 
 ```
   +-------------+       +----------------------+
-  |  construct  |       |attr/prop/store update|
+  | constructor |       |attr/prop/store update|
   +-------------+       +----------------------+
          |                         |
          |                         |
@@ -132,6 +132,8 @@ customElements.define('my-element', MyElement);
   |               unmounted               |
   +---------------------------------------+
 ```
+
+_父元素的 `constructor` 和 `unmounted` 于子元素先执行，但 `mounted` 后于子元素执行_
 
 ## 使用 TypeScript
 

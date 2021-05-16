@@ -146,3 +146,30 @@ class MyElement extends GemElement {
   }
 }
 ```
+
+### 可访问性
+
+在用户使用自定义元素时，他们可以用 `role`,`aria-*` 属性指定元素的语义:
+
+```ts
+html`<my-element role="region" aria-label="my profile"></my-element>`;
+```
+
+使用 [`ElementInternals`](https://html.spec.whatwg.org/multipage/custom-elements.html#elementinternals) 可以定义自定义元素的默认语义，更方便用户来使用：
+
+```ts
+@customElement('my-element')
+class MyElement extends GemElement {
+  constructor() {
+    super();
+    this.internals.role = 'region';
+    this.internals.ariaLabel = 'my profile';
+  }
+}
+```
+
+资源：
+
+- https://w3c.github.io/html-aria
+- https://w3c.github.io/using-aria/
+- https://www.w3.org/WAI/fundamentals/accessibility-principles/

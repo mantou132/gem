@@ -8,7 +8,7 @@ _[Nesting CSS](https://drafts.csswg.org/css-nesting-1/) is still a feature worth
 
 Since styles cannot penetrate ShadowDOM, global style sheets cannot be used to implement shared styles. But you can use [`<link>`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/link) and [CSS variables](https://developer.mozilla.org/en-US/docs/Web/CSS/--*) to achieve the same effect, it’s more convenient to use [Constructable Stylesheet](https://wicg.github.io/construct-stylesheets/), but currently Safari does not support it.
 
-```js
+```js 11
 import { GemElement } from '@mantou/gem';
 import { createCSSSheet, css } from '@mantou/gem';
 
@@ -41,13 +41,13 @@ class MyElement extends GemElement {}
 
 You can reference CSS selectors in JS:
 
-```js
+```js 17
 import { GemElement, html } from '@mantou/gem';
 import { createCSSSheet, styled } from '@mantou/gem';
 
 const styles = createCSSSheet({
   // This is temporarily designed as `styled.class` in order to be compatible with the syntax highlighting of `styled-component`
-  h1: styled.class`
+  header: styled.class`
     text-decoration: underline;
     &:hover {
       text-decoration: none;
@@ -58,7 +58,7 @@ const styles = createCSSSheet({
 class MyElement extends GemElement {
   static adoptedStyleSheets = [styles];
   render() {
-    return html`<div class=${styles.h1}></div>`;
+    return html`<div class=${styles.header}></div>`;
   }
 }
 customElements.define('my-element', MyElement);
@@ -68,7 +68,7 @@ customElements.define('my-element', MyElement);
 
 Use [`::part`](https://drafts.csswg.org/css-shadow-parts-1/#part) to export the internal content of the element, allowing external custom styles:
 
-```ts
+```ts 13
 /**
  * The following code has the same effect as `<div part="header"></div>`,
  * But Gem recommends using decorators to define parts,

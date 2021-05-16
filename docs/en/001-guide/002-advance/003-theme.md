@@ -40,7 +40,7 @@ console.log(theme.primaryColor);
 
 Sometimes you may need to read the original object, such as printing the subject to the element:
 
-```ts
+```ts 7,10,19
 import { createTheme, getThemeStore } from '@mantou/gem/helper/theme';
 
 const theme = createTheme({

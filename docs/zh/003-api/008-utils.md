@@ -4,11 +4,12 @@
 
 | 名称                  | 描述                                                      |
 | --------------------- | --------------------------------------------------------- |
-| `css`                 | 模版字符串标签函数，用于 CSS 文本语法高亮                 |
-| `raw`                 | 模版字符串标签函数，用来 HTML 文本语法高亮                |
+| `css`                 | 模版字符串标签函数，仅用于 CSS 文本语法高亮               |
+| `raw`                 | 模版字符串标签函数，仅用于 HTML 文本语法高亮              |
 | `createCSSSheet`      | 使用构造函数创建能附加到元素的样式表                      |
 | `styled`              | 模版字符串标签函数的集合，用来提供 CSS 规则高亮和 JS 引用 |
-| `styleMap`            | 将对象构建成 `style` attribute                            |
-| `classMap`            | 将对象构建成 `class` attribute                            |
+| `styleMap`            | 将对象构建成 `style` 属性                                 |
+| `classMap`            | 将对象构建成 `class` 属性                                 |
+| `partMap`             | 将对象构建成 `part` 属性                                  |
 | `addMicrotask`        | 添加微任务，会避免重复                                    |
-| `addMicrotaskToStack` | 类似 `addMicrotask`, 但先添加但微任务后执行               |
+| `addMicrotaskToStack` | 类似 `addMicrotask`, 但先添加的微任务后执行               |

@@ -18,6 +18,8 @@ class GemElement<State> extends HTMLElement {
 | `isLight` | 是否渲染成 Light DOM   |
 | `isAsync` | 是否使用非阻塞渲染模式 |
 
+_暂时不支持 [`delegatesFocus`](https://developer.mozilla.org/en-US/docs/Web/API/Element/attachShadow) 参数，你可以使用 [`:focus-within`](https://developer.mozilla.org/en-US/docs/Web/CSS/:focus-within)_
+
 ## 静态属性
 
 | 名称                 | 描述                                                                    |

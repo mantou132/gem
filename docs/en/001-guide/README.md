@@ -6,19 +6,19 @@ Before learning Gem, Hope you have a certain understanding of [WebComponents](ht
 
 ## Installation
 
-use npm:
+use NPM:
 
 ```bash
 npm install @mantou/gem
 ```
 
-or use ES modules:
+or use ESM:
 
 ```js
 import * as Gem from 'https://dev.jspm.io/@mantou/gem';
 ```
 
-or use Unpkg：
+or use UNPKG:
 
 ```html
 <script src="https://unpkg.com/@mantou/gem/umd.js"></script>

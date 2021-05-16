@@ -14,7 +14,7 @@ _[嵌套 CSS](https://drafts.csswg.org/css-nesting-1/) 仍然是非常值得期�
 使用 [Constructable Stylesheet](https://wicg.github.io/construct-stylesheets/) 更加方便，
 但目前 Safari 还不支持。
 
-```js
+```js 11
 import { GemElement } from '@mantou/gem';
 import { createCSSSheet, css } from '@mantou/gem';
 
@@ -47,13 +47,13 @@ class MyElement extends GemElement {}
 
 可以在 JS 中引用 CSS 选择器：
 
-```js
+```js 17
 import { GemElement, html } from '@mantou/gem';
 import { createCSSSheet, styled } from '@mantou/gem';
 
 const styles = createCSSSheet({
-  // 这里暂时设计成 `styled.class` 时为了兼容 `styled-component` 的语法高亮
-  h1: styled.class`
+  // 这里暂时设计成 `styled.class` 是为了兼容 `styled-component` 的语法高亮
+  header: styled.class`
     text-decoration: underline;
     &:hover {
       text-decoration: none;
@@ -64,7 +64,7 @@ const styles = createCSSSheet({
 class MyElement extends GemElement {
   static adoptedStyleSheets = [styles];
   render() {
-    return html`<div class=${styles.h1}></div>`;
+    return html`<div class=${styles.header}></div>`;
   }
 }
 customElements.define('my-element', MyElement);
@@ -74,7 +74,7 @@ customElements.define('my-element', MyElement);
 
 可以使用 [`::part`](https://drafts.csswg.org/css-shadow-parts-1/#part) 导出元素内部内容，允许外部进行自定义样式：
 
-```ts
+```ts 12
 /**
  * 下面的代码跟 `<div part="header"></div>` 效果一样，
  * 但是 Gem 推荐使用装饰器来定义 part，这样在将来能很好的进行 IDE 集成

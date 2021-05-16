@@ -18,6 +18,8 @@ class GemElement<State> extends HTMLElement {
 | `isLight` | Whether to render as Light DOM             |
 | `isAsync` | Whether to use non-blocking rendering mode |
 
+_The [`delegatesFocus`](https://developer.mozilla.org/en-US/docs/Web/API/Element/attachShadow) parameter is not supported temporarily, you can use [`:focus-within`](https://developer.mozilla.org/en-US/docs/Web/CSS/:focus-within)_
+
 ## Static properties
 
 | name                 | description                                                                   |

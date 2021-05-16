@@ -105,7 +105,7 @@ Complete life cycle:
 
 ```
   +-------------+       +----------------------+
-  |  construct  |       |attr/prop/store update|
+  | constructor |       |attr/prop/store update|
   +-------------+       +----------------------+
          |                         |
          |                         |
@@ -128,6 +128,8 @@ Complete life cycle:
   |               unmounted               |
   +---------------------------------------+
 ```
+
+_The `constructor` and `unmounted` of the parent element are executed before the child element, but the `mounted` is executed after the child element_
 
 ## Use TypeScript
 

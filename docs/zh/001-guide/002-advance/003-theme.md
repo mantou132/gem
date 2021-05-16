@@ -40,7 +40,7 @@ console.log(theme.primaryColor);
 
 有时候可能需要读取原始对象，比如将主题打印到元素中：
 
-```ts
+```ts 7,10,19
 import { createTheme, getThemeStore } from '@mantou/gem/helper/theme';
 
 const theme = createTheme({
