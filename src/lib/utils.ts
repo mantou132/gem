@@ -186,14 +186,14 @@ declare global {
   }
 }
 
-type StyledType = 'id' | 'class' | 'tag';
-interface StyledValue {
-  str: string;
-  key: string;
+type StyledType = 'id' | 'class' | 'tag' | 'keyframes';
+interface StyledValueObject {
+  styledContent: string;
+  encodeKey: string;
   type: StyledType;
 }
-interface StyledValues {
-  [index: string]: StyledValue;
+interface StyledKeyValuePair {
+  [key: string]: StyledValueObject;
 }
 
 /**
@@ -204,7 +204,7 @@ interface StyledValues {
  * @param rules string | Record<string, string> 不能动态更新的 css
  * @param mediaQuery string 媒体查询 StyleSheet.media.mediaText
  */
-export function createCSSSheet<T extends StyledValues>(rules: T | string, mediaQuery = ''): Sheet<T> {
+export function createCSSSheet<T extends StyledKeyValuePair>(rules: T | string, mediaQuery = ''): Sheet<T> {
   const styleSheet = new CSSStyleSheet();
   const sheet: any = {};
   styleSheet.media.mediaText = mediaQuery;
@@ -213,8 +213,8 @@ export function createCSSSheet<T extends StyledValues>(rules: T | string, mediaQ
     style = rules;
   } else {
     Object.keys(rules).forEach((key: keyof T) => {
-      sheet[key] = rules[key].type === 'tag' ? key : `${key}-${rules[key].key}`;
-      style += rules[key].str.replace(/&/g, sheet[key]);
+      sheet[key] = rules[key].type === 'tag' ? key : `${key}-${rules[key].encodeKey}`;
+      style += rules[key].styledContent.replace(/&/g, sheet[key]);
     });
   }
   styleSheet.replaceSync(style);
@@ -233,15 +233,17 @@ export function randomStr(number = 5, origin = '0123456789abcdefghijklmnopqrstuv
 
 // 只支持一层嵌套
 // https://drafts.csswg.org/css-nesting-1/
-function flatStyled(style: string, type: StyledType): StyledValue {
+function flatStyled(style: string, type: StyledType): StyledValueObject {
   const subStyle: string[] = [];
-  let str =
+  let styledContent =
     `& {${style.replace(new RegExp('&.*{((.|\n)*)}', 'g'), function (substr) {
       subStyle.push(substr);
       return '';
     })}}` + subStyle.join('');
-  if (type !== 'tag') str = str.replace(/&/g, type === 'class' ? '.&' : '#&');
-  return { str, key: randomStr(), type };
+  if (type !== 'tag') {
+    styledContent = styledContent.replace(/&/g, type === 'class' ? '.&' : '#&');
+  }
+  return { styledContent, encodeKey: randomStr(), type };
 }
 
 // 写 css 文本，在 CSSStyleSheet 中使用，使用 styed-components 高亮
@@ -267,6 +269,12 @@ export const styled = {
   tag: (arr: TemplateStringsArray, ...args: any[]) => {
     const style = raw(arr, ...args);
     return flatStyled(style, 'tag');
+  },
+  keyframes: (arr: TemplateStringsArray, ...args: any[]): StyledValueObject => {
+    const encodeKey = randomStr();
+    const keyframesContent = raw(arr, ...args);
+    const styledContent = `@keyframes & {${keyframesContent}}`;
+    return { encodeKey, styledContent, type: 'keyframes' };
   },
 };
 
