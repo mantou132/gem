@@ -186,10 +186,9 @@ declare global {
   }
 }
 
-type StyledType = 'id' | 'class' | 'tag' | 'keyframes';
+type StyledType = 'id' | 'class' | 'keyframes';
 interface StyledValueObject {
   styledContent: string;
-  encodeKey: string;
   type: StyledType;
 }
 interface StyledKeyValuePair {
@@ -213,7 +212,7 @@ export function createCSSSheet<T extends StyledKeyValuePair>(rules: T | string, 
     style = rules;
   } else {
     Object.keys(rules).forEach((key: keyof T) => {
-      sheet[key] = rules[key].type === 'tag' ? key : `${key}-${rules[key].encodeKey}`;
+      sheet[key] = `${key}-${randomStr()}`;
       style += rules[key].styledContent.replace(/&/g, sheet[key]);
     });
   }
@@ -231,19 +230,18 @@ export function randomStr(number = 5, origin = '0123456789abcdefghijklmnopqrstuv
   return str;
 }
 
+const nestingRuleRegExp = new RegExp('&.*{((.|\n)*)}', 'g');
 // 只支持一层嵌套
 // https://drafts.csswg.org/css-nesting-1/
 function flatStyled(style: string, type: StyledType): StyledValueObject {
-  const subStyle: string[] = [];
+  const nestingRules: string[] = [];
   let styledContent =
-    `& {${style.replace(new RegExp('&.*{((.|\n)*)}', 'g'), function (substr) {
-      subStyle.push(substr);
+    `& {${style.replace(nestingRuleRegExp, (substr) => {
+      nestingRules.push(substr);
       return '';
-    })}}` + subStyle.join('');
-  if (type !== 'tag') {
-    styledContent = styledContent.replace(/&/g, type === 'class' ? '.&' : '#&');
-  }
-  return { styledContent, encodeKey: randomStr(), type };
+    })}}` + nestingRules.join('');
+  styledContent = styledContent.replace(/&/g, type === 'class' ? '.&' : '#&');
+  return { styledContent, type };
 }
 
 // 写 css 文本，在 CSSStyleSheet 中使用，使用 styed-components 高亮
@@ -266,15 +264,10 @@ export const styled = {
     const style = raw(arr, ...args);
     return flatStyled(style, 'id');
   },
-  tag: (arr: TemplateStringsArray, ...args: any[]) => {
-    const style = raw(arr, ...args);
-    return flatStyled(style, 'tag');
-  },
   keyframes: (arr: TemplateStringsArray, ...args: any[]): StyledValueObject => {
-    const encodeKey = randomStr();
     const keyframesContent = raw(arr, ...args);
     const styledContent = `@keyframes & {${keyframesContent}}`;
-    return { encodeKey, styledContent, type: 'keyframes' };
+    return { styledContent, type: 'keyframes' };
   },
 };
 

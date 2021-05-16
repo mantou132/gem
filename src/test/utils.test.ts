@@ -76,9 +76,6 @@ describe('utils 测试', () => {
       wrap: styled.id`
         position: fixed;
       `,
-      div: styled.tag`
-        border: 1px solid;
-      `,
     });
     expect(cssSheet.scroll.startsWith('scroll')).to.true;
     const rules = cssSheet[SheetToken].cssRules;
@@ -87,7 +84,6 @@ describe('utils 测试', () => {
     expect(/\.scroll(-|\w)+:hover \*/.test(rules.item(1).selectorText)).to.true;
     expect(rules.item(1).style.background.startsWith('blue')).to.true;
     expect(rules.item(2).selectorText.startsWith('#wrap')).to.true;
-    expect(rules.item(3).selectorText).to.equal('div');
   });
   it('styleMap/classMap', () => {
     expect(styleMap({ fontSize: '14px', content: `'*'` })).to.equal(`font-size:14px;content:'*';`);

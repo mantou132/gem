@@ -15,12 +15,6 @@ const styles = createCSSSheet({
       background: red;
     }
   `,
-  h3: styled.tag`
-    text-decoration: underline;
-    &:hover {
-      text-decoration: none;
-    }
-  `,
 });
 
 class App extends GemElement {
@@ -29,7 +23,6 @@ class App extends GemElement {
     return html`
       <h1 class=${styles.h1}>Header 1</h1>
       <h2 id=${styles.h2}>Header 2</h2>
-      <h3>Header 3</h3>
     `;
   }
 }
