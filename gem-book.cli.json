@@ -1,0 +1,15 @@
+{
+  "title": "Gem",
+  "icon": "logo.png",
+  "i18n": true,
+  "homeMode": true,
+  "nav": [
+    {
+      "title": "Lit-HTML",
+      "link": "https://lit-html.polymer-project.org/guide"
+    }
+  ],
+  "template": "docs/template.html",
+  "plugin": ["raw"],
+  "debug": true
+}
