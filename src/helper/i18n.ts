@@ -84,7 +84,7 @@ export class I18n<T = Record<string, string>> {
     const rawValue = (currentLanguagePack?.[s] || fallbackLanguagePack?.[s] || '') as string;
     if (!rest.length) return rawValue;
 
-    const templateArr = (rawValue.split(splitReg) as unknown) as TemplateStringsArray;
+    const templateArr = rawValue.split(splitReg) as unknown as TemplateStringsArray;
     const values: (TemplateResult | string)[] = [];
     let result: RegExpExecArray | null;
     while ((result = matchReg.exec(rawValue))) {

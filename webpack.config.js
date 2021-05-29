@@ -18,7 +18,7 @@ examples.forEach((example) => {
 });
 
 /**
- * @type {import('webpack/declarations/WebpackOptions').WebpackOptions}
+ * @type {import('webpack').Configuration}
  */
 module.exports = {
   entry: `./src/examples/${example}`,

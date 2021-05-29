@@ -3,14 +3,8 @@
 # Compiler output
 /lib/
 /elements/
-/index.d.ts
-/index.d.ts.map
-/index.js
-/index.js.map
-/umd.js
-/umd.js.map
-/umd.d.ts
-/umd.d.ts.map
+/index.*
+/umd.*
 /test/
 /coverage/
 /helper/

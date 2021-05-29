@@ -1,11 +1,12 @@
 module.exports = {
   parser: '@typescript-eslint/parser',
-  extends: ['plugin:@typescript-eslint/recommended', 'prettier/@typescript-eslint', 'plugin:prettier/recommended'],
+  extends: ['plugin:@typescript-eslint/recommended', 'plugin:prettier/recommended'],
   parserOptions: {
     ecmaVersion: 2018,
     sourceType: 'module',
   },
   rules: {
+    'no-console': 1,
     '@typescript-eslint/explicit-module-boundary-types': 'off',
     '@typescript-eslint/no-var-requires': 'off',
     '@typescript-eslint/explicit-member-accessibility': 'off',

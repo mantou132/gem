@@ -489,13 +489,8 @@ export function defineCSSState(target: GemElement, prop: string, state: string) 
 export const nativeDefineElement = customElements.define.bind(customElements);
 customElements.define = (name: string, cls: CustomElementConstructor, options?: ElementDefinitionOptions) => {
   if (cls.prototype instanceof GemElement) {
-    const {
-      observedAttributes,
-      observedPropertys,
-      defineEvents,
-      defineCSSStates,
-      defineRefs,
-    } = (cls as unknown) as typeof GemElement;
+    const { observedAttributes, observedPropertys, defineEvents, defineCSSStates, defineRefs } =
+      cls as unknown as typeof GemElement;
     observedAttributes?.forEach((attr) => defineAttribute(cls.prototype, kebabToCamelCase(attr), attr));
     observedPropertys?.forEach((prop) => defineProperty(cls.prototype, prop));
     defineEvents?.forEach((event) => defineProperty(cls.prototype, kebabToCamelCase(event), event));
