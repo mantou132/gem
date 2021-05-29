@@ -206,7 +206,8 @@ export class GemRouteElement extends GemElement {
         ? ''
         : html`
             <style>
-              :host {
+              :host,
+              :not(:defined) {
                 display: contents;
               }
             </style>
