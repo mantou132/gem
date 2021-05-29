@@ -285,7 +285,11 @@ export abstract class GemElement<T = Record<string, unknown>> extends HTMLElemen
     this.updated?.();
   };
 
-  /**@lifecycle */
+  /**
+   * @lifecycle
+   *
+   * 卸载元素，但不一定会被垃圾回收，所以事件监听器需要手动清除，以免重复注册
+   */
   unmounted?(): void | Promise<void>;
 
   /**

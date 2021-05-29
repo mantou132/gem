@@ -2,25 +2,25 @@ import { GemElement, html, customElement, RefObject, refobject, render } from '.
 
 import '../elements/layout';
 
-// https://github.com/Microsoft/TypeScript/issues/28502
-declare let ResizeObserver: any;
-
-type State = { height: number };
-function effect([element, textareaElement]: [GemElement<State>, HTMLTextAreaElement | null]) {
-  if (!textareaElement) return element.setState({ height: 0 });
+function effect([textareaElement, callback]: [HTMLTextAreaElement | null, (height: number) => void]) {
+  if (!textareaElement) return callback(0);
   const ro = new ResizeObserver(([entry]: [any]) => {
-    element.setState({ height: entry.contentRect.height });
+    callback(entry.contentRect.height);
   });
   ro.observe(textareaElement, {});
   return () => ro.disconnect();
 }
 
 @customElement('app-root')
-export class App extends GemElement<State & { hidden: boolean }> {
+export class App extends GemElement {
   @refobject textAreaRef: RefObject<HTMLTextAreaElement>;
   state = {
     height: 0,
     hidden: false,
+  };
+
+  #updateHeight = (height: number) => {
+    this.setState({ height });
   };
 
   render() {
@@ -31,7 +31,7 @@ export class App extends GemElement<State & { hidden: boolean }> {
     `;
   }
   mounted() {
-    this.effect(effect, () => [this, this.textAreaRef.element]);
+    this.effect(effect, () => [this.textAreaRef.element, this.#updateHeight]);
   }
 }
 
