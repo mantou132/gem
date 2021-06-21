@@ -62,11 +62,12 @@ declare global {
 
 type UpdateHistoryType = 'push' | 'replace';
 
-function validData(data: any) {
-  if (data?.$key) throw new GemError('`$key` is not allowed');
-  if (data?.$hasCloseHandle) throw new GemError('`$hasCloseHandle` is not allowed');
-  if (data?.$hasOpenHandle) throw new GemError('`$hasOpenHandle` is not allowed');
-  if (data?.$hasShouldCloseHandle) throw new GemError('`$hasShouldCloseHandle` is not allowed');
+function validData({ $key, $hasCloseHandle, $hasOpenHandle, $hasShouldCloseHandle }: any = {}) {
+  if (store.$key === $key) return;
+  if ($key) throw new GemError('`$key` is not allowed');
+  if ($hasCloseHandle) throw new GemError('`$hasCloseHandle` is not allowed');
+  if ($hasOpenHandle) throw new GemError('`$hasOpenHandle` is not allowed');
+  if ($hasShouldCloseHandle) throw new GemError('`$hasShouldCloseHandle` is not allowed');
 }
 
 function getUrlbarPath(internalPath: string) {
