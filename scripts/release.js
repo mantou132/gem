@@ -5,7 +5,6 @@ const semver = require('semver');
 const inquirer = require('inquirer');
 
 const pkg = require('../package.json');
-const pkgLock = require('../package-lock.json');
 
 const writeFile = (path, content) => {
   writeFileSync(
@@ -23,8 +22,7 @@ const exec = (command) => {
 const main = (version) => {
   pkg.version = version;
   writeFile('../package.json', pkg);
-  pkgLock.version = version;
-  writeFile('../package-lock.json', pkgLock);
+
   writeFile('../src/lib/version.ts', `// Do not modify manually\nexport const version = '${version}';\n`);
   exec('npm run lint');
   exec(`git commit -a -m ${version}`);
