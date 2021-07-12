@@ -42,14 +42,25 @@ export class Children extends GemElement {
   @emitter load: Emitter;
   @state odd: boolean;
 
+  constructor() {
+    super();
+    console.log('child cons');
+  }
+
   mounted = () => {
+    console.log('child mounted');
     setTimeout(() => this.load(new Date()), 1000);
     this.addEventListener('click', () => {
       this.odd = !this.odd;
     });
   };
 
+  updated = () => {
+    console.log('child updated');
+  };
+
   render() {
+    console.log('child render');
     return html`
       <p>
         attributes:

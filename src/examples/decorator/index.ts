@@ -45,7 +45,16 @@ export class App extends GemElement {
   constructor(title: string) {
     super();
     this.appTitle = title;
+    console.log('parent cons');
   }
+
+  mounted = () => {
+    console.log('parent mounted');
+  };
+
+  updated = () => {
+    console.log('parent updated');
+  };
 
   onSayHi = () => {
     const [foo, bar] = store.msg;
@@ -63,6 +72,7 @@ export class App extends GemElement {
   };
 
   render() {
+    console.log('parent render');
     return html`
       <style>
         app-children:where(:--odd, .--odd)::part(${Children.paragraph}) {
