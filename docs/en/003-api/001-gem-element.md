@@ -57,5 +57,6 @@ _Please use [decorator](./007-decorator.md) in TypeScript_
 | `update`           | Update elements manually                             |
 | `state`/`setState` | Specify the element `State`, modify it by `setState` |
 | `internals`        | Get the element's [ElementInternals][2] object       |
+| `closestElement`   | get closest parent element                           |
 
 [2]: https://html.spec.whatwg.org/multipage/custom-elements.html#the-elementinternals-interface

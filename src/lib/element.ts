@@ -319,6 +319,24 @@ export abstract class GemElement<T = Record<string, unknown>> extends HTMLElemen
     }
   };
 
+  closestElement(clsOrName: CustomElementConstructor | string) {
+    const isConstructor = typeof clsOrName === 'function';
+    const tagName = typeof clsOrName === 'string' && clsOrName.toUpperCase();
+    const getRootElement = (ele: Element): Element | null => {
+      const rootEle = ele.parentElement || (ele.getRootNode() as ShadowRoot).host;
+      if (!rootEle) return null;
+      if (isConstructor) {
+        if (rootEle.constructor === clsOrName) {
+          return rootEle;
+        }
+      } else if (rootEle.tagName === tagName) {
+        return rootEle;
+      }
+      return getRootElement(rootEle);
+    };
+    return getRootElement(this);
+  }
+
   /**
    * @private
    * @final

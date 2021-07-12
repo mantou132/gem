@@ -57,5 +57,6 @@ _在 TypeScript 中请使用[装饰器](./007-decorator.md)_
 | `update`           | 手动更新元素                                           |
 | `state`/`setState` | 指定元素 `State`, 通过 `setState` 修改，修改后触发更新 |
 | `internals`        | 获取元素的 [ElementInternals][2] 对象                  |
+| `closestElement`   | 获取元素最近的祖先元素                                 |
 
 [2]: https://html.spec.whatwg.org/multipage/custom-elements.html#the-elementinternals-interface
