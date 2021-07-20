@@ -23,7 +23,14 @@ interface Options<T> {
   urlParams?: string;
 }
 
-export class I18n<T = Record<string, string>> {
+type Msg =
+  | {
+      message: string;
+      description: string;
+    }
+  | string;
+
+export class I18n<T = Record<string, Msg>> {
   resources: {
     [key: string]: Partial<T> | string;
   } = {};
@@ -65,7 +72,7 @@ export class I18n<T = Record<string, string>> {
       throw new GemError('i18n: fallbackLanguage invalid');
     }
     this.store = createStore(this as any);
-    Object.assign<I18n, Options<T>>(this as I18n, options);
+    Object.assign<I18n<T>, Options<T>>(this as I18n<T>, options);
 
     this.currentLanguage ||= this.urlParamsLang || this.cacheLang;
 
@@ -81,7 +88,8 @@ export class I18n<T = Record<string, string>> {
     const currentLanguagePack = this.resources[this.currentLanguage] as T | undefined;
     if (!currentLanguagePack) this.resetLanguage();
     const fallbackLanguagePack = this.resources[this.fallbackLanguage] as T;
-    const rawValue = (currentLanguagePack?.[s] || fallbackLanguagePack?.[s] || '') as string;
+    const msg: any = currentLanguagePack?.[s] || fallbackLanguagePack?.[s];
+    const rawValue: string = msg?.message || msg || '';
     if (!rest.length) return rawValue;
 
     const templateArr = rawValue.split(splitReg) as unknown as TemplateStringsArray;
