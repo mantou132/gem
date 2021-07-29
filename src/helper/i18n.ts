@@ -30,6 +30,11 @@ type Msg =
     }
   | string;
 
+type PrerenderData<T> = {
+  currentLanguage: string;
+  currentLanguagePack: Partial<T>;
+};
+
 export class I18n<T = Record<string, Msg>> {
   resources: {
     [key: string]: Partial<T> | string;
@@ -43,6 +48,19 @@ export class I18n<T = Record<string, Msg>> {
   urlParamsName?: string;
 
   store: Store<any>;
+
+  /**
+   * @example
+   * <gem-reflect>
+   *  <script type="gem-i18n">${i18n.prerenderJSON}</script>
+   * </gem-reflect>
+   */
+  get prerenderJSON() {
+    return JSON.stringify({
+      currentLanguage: this.currentLanguage,
+      currentLanguagePack: this.resources[this.currentLanguage],
+    });
+  }
 
   get cacheCurrentKey() {
     return `${this.cachePrefix}:current`;
@@ -71,10 +89,22 @@ export class I18n<T = Record<string, Msg>> {
     if (!options.resources[options.fallbackLanguage]) {
       throw new GemError('i18n: fallbackLanguage invalid');
     }
+
     this.store = createStore(this as any);
     Object.assign<I18n<T>, Options<T>>(this as I18n<T>, options);
 
     this.currentLanguage ||= this.urlParamsLang || this.cacheLang;
+
+    const ele = document.querySelector('[type*=gem-i18n]');
+    if (ele) {
+      try {
+        const prerenderData = JSON.parse(ele.textContent || '') as PrerenderData<T>;
+        this.currentLanguage = prerenderData.currentLanguage;
+        this.resources[prerenderData.currentLanguage] = prerenderData.currentLanguagePack;
+      } catch {
+        //
+      }
+    }
 
     if (!this.currentLanguage) {
       this.currentLanguage = options.fallbackLanguage;
@@ -118,6 +148,7 @@ export class I18n<T = Record<string, Msg>> {
     let pack: Partial<T>;
     const data = this.resources[lang];
     if (!data) {
+      // eslint-disable-next-line no-console
       console.warn(`i18n: not found \`${lang}\``);
       return await this.resetLanguage();
     }
