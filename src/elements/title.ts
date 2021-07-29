@@ -48,6 +48,11 @@ export class GemTitleElement extends GemElement {
 
   @attribute suffix: string;
 
+  constructor() {
+    super();
+    new MutationObserver(() => this.update()).observe(this, { childList: true, characterData: true, subtree: true });
+  }
+
   render() {
     // 多个 <gem-title> 时，最终 document.title 按执行顺序决定
     GemTitleElement.updateTitle(this.textContent || '', this.suffix);
