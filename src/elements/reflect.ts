@@ -10,16 +10,15 @@ export class GemReflectElement extends GemElement {
   constructor() {
     super({ isLight: true });
     this.hidden = true;
-  }
-
-  mounted() {
-    const childNodes = [...this.childNodes];
     this.effect(
-      () => this.target.append(...childNodes),
+      () => {
+        const childNodes = [...this.childNodes];
+        this.target.append(...childNodes);
+        return () => {
+          childNodes.forEach((node) => node.remove());
+        };
+      },
       () => [this.target],
     );
-    return () => {
-      childNodes.forEach((node) => node.remove());
-    };
   }
 }

@@ -26,7 +26,7 @@ describe('异步 gem element 测试', () => {
     const el: AsyncGemDemo = await fixture(html`<async-gem-demo></async-gem-demo>`);
     updateStore(store, { a: ++store.a });
     el.setState({ a: ++el.state.a });
-    await Promise.resolve();
+    await nextFrame();
     expect(el.renderCount).to.equal(1);
     await nextFrame();
     expect(el.renderCount).to.equal(2);
@@ -60,11 +60,23 @@ class LifecycleGemElement extends GemElement {
     this.appTitle2 = appTitle2;
   }
   renderCount = 0;
+  mountedCount = 0;
+  updatedCount = 0;
+
+  updated() {
+    this.updatedCount++;
+  }
+
   mounted() {
-    this.renderCount++;
+    this.mountedCount++;
     return () => {
       this.renderCount = 0;
     };
+  }
+
+  render() {
+    this.renderCount++;
+    return html``;
   }
 }
 describe('gem element 生命周期', () => {
@@ -89,6 +101,23 @@ describe('gem element 生命周期', () => {
     expect(el2.renderCount).to.equal(0);
     container.append(el2);
     expect(el2.renderCount).to.equal(1);
+
+    // disconnectedCallback, connectedCallback
+    container.append(el2);
+    expect(el2.mountedCount).to.equal(1);
+    expect(el2.renderCount).to.equal(1);
+    el2.remove();
+    expect(el2.mountedCount).to.equal(1);
+    expect(el2.renderCount).to.equal(0);
+    container.append(el2);
+    expect(el2.mountedCount).to.equal(2);
+    expect(el2.renderCount).to.equal(1);
+    expect(el2.updatedCount).to.equal(0);
+    el2.update();
+    el2.update();
+    await Promise.resolve();
+    expect(el2.renderCount).to.equal(2);
+    expect(el2.updatedCount).to.equal(1);
 
     const el3 = new LifecycleGemElement('test1', 'test2');
     expect(el3.appTitle).to.equal('test1');

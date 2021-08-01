@@ -3,10 +3,14 @@ import { html, randomStr, GemElement, customElement, render, refobject, RefObjec
 import '../../elements/reflect';
 
 import '../elements/layout';
+@customElement('app-children')
+export class AppChild extends GemElement {
+  mounted = () => console.log('mounted');
+}
 
 @customElement('app-root')
 export class App extends GemElement {
-  @refobject styleRef: RefObject<HTMLStyleElement>;
+  @refobject childrenRef: RefObject<HTMLStyleElement>;
   state = {
     mount: true,
   };
@@ -16,7 +20,7 @@ export class App extends GemElement {
   }
 
   updated() {
-    console.log(this.styleRef.element);
+    console.trace('updated', this.childrenRef.element);
   }
 
   render() {
@@ -26,7 +30,8 @@ export class App extends GemElement {
       ${this.state.mount
         ? html`
             <gem-reflect>
-              <style ref=${this.styleRef.ref}>
+              <app-children ref=${this.childrenRef.ref}></app-children>
+              <style>
                 head {
                   display: block;
                 }

@@ -102,7 +102,7 @@ export abstract class GemElement<T = Record<string, unknown>> extends HTMLElemen
 
   #renderRoot: HTMLElement | ShadowRoot;
   #internals?: ElementInternals;
-  #isMounted?: boolean;
+  #isAppendReason?: boolean;
   #isAsync?: boolean;
   #effectList?: EffectItem<any>[];
   #unmountCallback?: any;
@@ -114,7 +114,7 @@ export abstract class GemElement<T = Record<string, unknown>> extends HTMLElemen
     addMicrotask(() => ((this as any)[initSymbol] = false));
     (this as any)[initSymbol] = true;
     (this as any)[updateSymbol] = () => {
-      if (this.#isMounted) {
+      if (this.isConnected) {
         addMicrotask(this.#update);
       }
     };
@@ -215,10 +215,10 @@ export abstract class GemElement<T = Record<string, unknown>> extends HTMLElemen
       callback,
       getDep,
       values,
-      initialized: !!this.#isMounted,
+      initialized: !!this.isConnected,
     };
     // 以挂载时立即执行副作用，未挂载时等挂载后执行
-    if (this.#isMounted) effectItem.preCallback = callback(values);
+    if (this.isConnected) effectItem.preCallback = callback(values);
     this.#effectList.push(effectItem);
   };
 
@@ -260,7 +260,7 @@ export abstract class GemElement<T = Record<string, unknown>> extends HTMLElemen
   };
 
   #updateCallback = () => {
-    if (this.#isMounted && this.#shouldUpdate()) {
+    if (this.isConnected && this.#shouldUpdate()) {
       const temp = this.#render();
       temp !== undefined && render(temp, this.#renderRoot);
       addMicrotask(this.#updated);
@@ -278,7 +278,7 @@ export abstract class GemElement<T = Record<string, unknown>> extends HTMLElemen
 
   /**@helper */
   update = () => {
-    this.#update();
+    addMicrotask(this.#update);
   };
 
   /**@lifecycle */
@@ -300,12 +300,16 @@ export abstract class GemElement<T = Record<string, unknown>> extends HTMLElemen
    * use `effect`
    */
   attributeChangedCallback() {
-    if (this.#isMounted) {
+    if (this.isConnected) {
       addMicrotask(this.#update);
     }
   }
 
   #connectedCallback = () => {
+    if (this.#isAppendReason) {
+      this.#isAppendReason = false;
+      return;
+    }
     this.willMount?.();
     const { observedStores, rootElement } = this.constructor as typeof GemElement;
     observedStores?.forEach((store) => {
@@ -313,7 +317,6 @@ export abstract class GemElement<T = Record<string, unknown>> extends HTMLElemen
     });
     const temp = this.#render();
     temp !== undefined && render(temp, this.#renderRoot);
-    this.#isMounted = true;
     this.#unmountCallback = this.mounted?.();
     this.#initEffect();
     if (rootElement && (this.getRootNode() as ShadowRoot).host?.tagName !== rootElement.toUpperCase()) {
@@ -364,7 +367,10 @@ export abstract class GemElement<T = Record<string, unknown>> extends HTMLElemen
    * use `unmounted`
    */
   disconnectedCallback() {
-    this.#isMounted = false;
+    if (this.isConnected) {
+      this.#isAppendReason = true;
+      return;
+    }
     const { observedStores } = this.constructor as typeof GemElement;
     observedStores?.forEach((store) => {
       disconnect(store, this.#update);
