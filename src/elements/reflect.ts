@@ -1,9 +1,6 @@
 import { GemElement, customElement, property } from '..';
 
 /**
- * 将 `<gem-reflect>` 的子元素渲染到其他元素中，
- * 不能再从父元素中使用 ref 引用子元素了
- *
  * @customElement gem-reflect
  */
 @customElement('gem-reflect')

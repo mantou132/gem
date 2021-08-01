@@ -1,4 +1,4 @@
-import { html, randomStr, GemElement, customElement, render } from '../..';
+import { html, randomStr, GemElement, customElement, render, refobject, RefObject } from '../..';
 
 import '../../elements/reflect';
 
@@ -6,12 +6,17 @@ import '../elements/layout';
 
 @customElement('app-root')
 export class App extends GemElement {
+  @refobject styleRef: RefObject<HTMLStyleElement>;
   state = {
     mount: true,
   };
 
   mounted() {
     document.addEventListener('click', this.update);
+  }
+
+  updated() {
+    console.log(this.styleRef.element);
   }
 
   render() {
@@ -21,7 +26,7 @@ export class App extends GemElement {
       ${this.state.mount
         ? html`
             <gem-reflect>
-              <style>
+              <style ref=${this.styleRef.ref}>
                 head {
                   display: block;
                 }

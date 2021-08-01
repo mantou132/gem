@@ -1,3 +1,5 @@
+import type { GemReflectElement } from '../elements/reflect';
+
 import { html, render, TemplateResult } from 'lit-html';
 import { connect, disconnect, Store } from './store';
 import {
@@ -474,7 +476,11 @@ export function defineRef(target: GemElement, prop: string, ref: string) {
             return ref;
           },
           get element() {
-            return ele.querySelector(`[ref=${ref}]`) as HTMLElement | null;
+            const gemReflects = ([...ele.querySelectorAll('gem-reflect')] as GemReflectElement[]).map((e) => e.target);
+            for (const e of [ele, ...gemReflects]) {
+              const result = e.querySelector(`[ref=${ref}]`);
+              if (result) return result;
+            }
           },
         };
         proxy[prop] = refobject;

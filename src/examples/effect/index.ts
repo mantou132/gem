@@ -2,7 +2,7 @@ import { GemElement, html, customElement, RefObject, refobject, render } from '.
 
 import '../elements/layout';
 
-function effect([textareaElement, callback]: [HTMLTextAreaElement | null, (height: number) => void]) {
+function effect([textareaElement, callback]: [HTMLTextAreaElement | undefined, (height: number) => void]) {
   if (!textareaElement) return callback(0);
   const ro = new ResizeObserver(([entry]: [any]) => {
     callback(entry.contentRect.height);

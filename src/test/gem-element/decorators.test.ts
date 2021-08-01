@@ -85,7 +85,7 @@ describe('装饰器', () => {
     expect(DecoratorGemElement.defineCSSStates).to.eql(['open-state']);
     expect(DecoratorGemElement.defineParts).to.eql(['header-part']);
     expect(DecoratorGemElement.defineSlots).to.eql(['body-slot']);
-    expect(DecoratorGemElement.defineRefs).to.eql(['input-ref']);
+    expect(DecoratorGemElement.defineRefs?.[0].startsWith('input-ref-')).to.equal(true);
     expect(DecoratorGemElement.observedPropertys).to.eql(['dataProp']);
     expect(el.rankAttr).to.equal('attr');
     expect(el.rankDisabled).to.equal(true);
@@ -93,7 +93,7 @@ describe('装饰器', () => {
     expect(el.dataProp).to.eql({ value: 'prop' });
     expect(el.openState).to.equal(false);
     expect(el.headerPart).to.equal('header-part');
-    expect(el.inputRef.ref).to.equal('input-ref');
+    expect(el.inputRef.ref.startsWith('input-ref-')).to.equal(true);
     expect(el.bodySlot).to.equal('body-slot');
     expect(el).shadowDom.to.equal('attr: attr, disabled: true, count: 2, prop: prop');
     updateStore(store, { a: 3 });

@@ -1,6 +1,6 @@
 import { defineAttribute, defineCSSState, defineProperty, defineRef, GemElement, nativeDefineElement } from './element';
 import { Store } from './store';
-import { Sheet, camelToKebabCase } from './utils';
+import { Sheet, camelToKebabCase, randomStr } from './utils';
 
 type GemElementPrototype = GemElement;
 type GemElementConstructor = typeof GemElement;
@@ -19,7 +19,7 @@ function pushStaticField(target: GemElementPrototype, field: StaticField, member
   (cls[field] as any)[isSet ? 'add' : 'push'](member);
 }
 
-export type RefObject<T = HTMLElement> = { ref: string; element: T | null };
+export type RefObject<T = HTMLElement> = { ref: string; element: T | undefined };
 
 /**
  * 引用元素，只有第一个标记 ref 的元素有效
@@ -39,9 +39,9 @@ export type RefObject<T = HTMLElement> = { ref: string; element: T | null };
  * ```
  */
 export function refobject(target: GemElementPrototype, prop: string) {
-  const attr = camelToKebabCase(prop);
-  pushStaticField(target, 'defineRefs', attr);
-  defineRef(target, prop, attr);
+  const ref = `${camelToKebabCase(prop)}-${randomStr()}`;
+  pushStaticField(target, 'defineRefs', ref);
+  defineRef(target, prop, ref);
 }
 
 /**
