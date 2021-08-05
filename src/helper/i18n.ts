@@ -2,26 +2,12 @@ import { createStore, updateStore, Store } from '../lib/store';
 import { html, TemplateResult } from '../lib/element';
 import { GemError } from '../lib/utils';
 
-const htmlLang = document.documentElement.lang;
-
 // Hello, $1
 // See $1<detail>
 // 嵌套模版中用到 $ < > 时使用 &dollar; &lt;  &gt;  替代
 const splitReg = /\$\d(?:<[^>]*>)?/;
 const matchReg = /\$(\d)(<([^>]*)>)?/g;
 const matchStrIndex = 3;
-
-interface Options<T> {
-  resources: {
-    [key: string]: Partial<T> | string;
-  };
-  fallbackLanguage: string;
-  currentLanguage?: string;
-  cache?: boolean;
-  cachePrefix?: string;
-  urlParamsType?: 'path' | 'querystring' | 'ccTLD' | 'gTLD';
-  urlParams?: string;
-}
 
 type Msg =
   | {
@@ -30,15 +16,28 @@ type Msg =
     }
   | string;
 
-type PrerenderData<T> = {
+export type I18nJSON<T> = {
   currentLanguage: string;
   currentLanguagePack: Partial<T>;
 };
 
+interface Resources<T> {
+  [key: string]: Partial<T> | string;
+}
+
+interface Options<T> {
+  resources: Resources<T>;
+  fallbackLanguage: string;
+  currentLanguage?: string;
+  cache?: boolean;
+  cachePrefix?: string;
+  urlParamsType?: 'path' | 'querystring' | 'ccTLD' | 'gTLD';
+  urlParamsName?: string;
+  onChange?: (currentLanguage: string) => void;
+}
+
 export class I18n<T = Record<string, Msg>> {
-  resources: {
-    [key: string]: Partial<T> | string;
-  } = {};
+  resources: Resources<T>;
   fallbackLanguage: string;
   // 在构造函数中指定
   currentLanguage: string;
@@ -46,21 +45,9 @@ export class I18n<T = Record<string, Msg>> {
   cachePrefix = 'gem@i18n';
   urlParamsType?: 'path' | 'querystring' | 'ccTLD' | 'gTLD';
   urlParamsName?: string;
+  onChange?: (currentLanguage: string) => void;
 
   store: Store<any>;
-
-  /**
-   * @example
-   * <gem-reflect>
-   *  <script type="gem-i18n">${i18n.prerenderJSON}</script>
-   * </gem-reflect>
-   */
-  get prerenderJSON() {
-    return JSON.stringify({
-      currentLanguage: this.currentLanguage,
-      currentLanguagePack: this.resources[this.currentLanguage],
-    });
-  }
 
   get cacheCurrentKey() {
     return `${this.cachePrefix}:current`;
@@ -85,6 +72,12 @@ export class I18n<T = Record<string, Msg>> {
     return this.cache ? localStorage.getItem(this.cacheCurrentKey) || '' : '';
   }
 
+  set lang(lang: string) {
+    this.currentLanguage = lang;
+    document.documentElement.lang = lang;
+    this.onChange?.(lang);
+  }
+
   constructor(options: Options<T>) {
     if (!options.resources[options.fallbackLanguage]) {
       throw new GemError('i18n: fallbackLanguage invalid');
@@ -93,33 +86,32 @@ export class I18n<T = Record<string, Msg>> {
     this.store = createStore(this as any);
     Object.assign<I18n<T>, Options<T>>(this as I18n<T>, options);
 
-    this.currentLanguage ||= this.urlParamsLang || this.cacheLang;
+    let currentLanguage = this.currentLanguage || this.urlParamsLang || this.cacheLang;
 
     const ele = document.querySelector('[type*=gem-i18n]');
     if (ele) {
       try {
-        const prerenderData = JSON.parse(ele.textContent || '') as PrerenderData<T>;
-        this.currentLanguage = prerenderData.currentLanguage;
+        const prerenderData = JSON.parse(ele.textContent || '') as I18nJSON<T>;
+        currentLanguage = prerenderData.currentLanguage;
         this.resources[prerenderData.currentLanguage] = prerenderData.currentLanguagePack;
       } catch {
         //
       }
     }
 
-    if (!this.currentLanguage) {
-      this.currentLanguage = options.fallbackLanguage;
-      this.resetLanguage();
+    if (currentLanguage) {
+      this.lang = currentLanguage;
+      this.setLanguage(currentLanguage);
     } else {
-      this.setLanguage(this.currentLanguage);
+      this.resetLanguage();
     }
   }
 
   get(s: keyof T, ...rest: (((s: string) => TemplateResult) | string)[]) {
-    const currentLanguagePack = this.resources[this.currentLanguage] as T | undefined;
-    if (!currentLanguagePack) this.resetLanguage();
-    const fallbackLanguagePack = this.resources[this.fallbackLanguage] as T;
-    const msg: any = currentLanguagePack?.[s] || fallbackLanguagePack?.[s];
-    const rawValue: string = msg?.message || msg || '';
+    const currentLanguagePack = this.resources[this.currentLanguage] as any;
+    const fallbackLanguagePack = this.resources[this.fallbackLanguage] as any;
+    const msg = currentLanguagePack[s] || fallbackLanguagePack[s];
+    const rawValue: string = msg?.message || msg || `[${s}]`;
     if (!rest.length) return rawValue;
 
     const templateArr = rawValue.split(splitReg) as unknown as TemplateStringsArray;
@@ -136,7 +128,7 @@ export class I18n<T = Record<string, Msg>> {
 
   detectLanguage() {
     const availableLangs = Object.keys(this.resources);
-    const uiLangs = [htmlLang, ...navigator.languages].map((lang) => lang.replace(/-(.*)/, ($1) => $1.toUpperCase()));
+    const uiLangs = navigator.languages.map((lang) => lang.replace(/-(.*)/, ($1) => $1.toUpperCase()));
     for (const lang of uiLangs) {
       const matched = availableLangs.find((e) => e === lang || lang.startsWith(`${e}-`));
       if (matched) return matched;
@@ -150,7 +142,7 @@ export class I18n<T = Record<string, Msg>> {
     if (!data) {
       // eslint-disable-next-line no-console
       console.warn(`i18n: not found \`${lang}\``);
-      return await this.resetLanguage();
+      return this.resetLanguage();
     }
 
     if (typeof data === 'string') {
@@ -186,9 +178,10 @@ export class I18n<T = Record<string, Msg>> {
       pack = data;
     }
     this.resources[lang] = pack;
-    document.documentElement.lang = lang;
-    this.currentLanguage = lang;
-    if (this.cache) {
+    if (lang !== this.currentLanguage) {
+      this.lang = lang;
+    }
+    if (this.cache && lang !== this.fallbackLanguage) {
       localStorage.setItem(this.cacheCurrentKey, lang);
     }
     updateStore(this.store, {});
@@ -196,9 +189,28 @@ export class I18n<T = Record<string, Msg>> {
   }
 
   resetLanguage() {
+    this.lang = this.fallbackLanguage;
     if (this.cache) {
       localStorage.removeItem(this.cacheCurrentKey);
     }
     return this.setLanguage(this.detectLanguage());
+  }
+
+  /**
+   * prepare: @connectStore(i18n.store)
+   *
+   * @example
+   *
+   * html`
+   *  <gem-reflect>
+   *    <script type="gem-i18n">${JSON.stringify(i18n)}</script>
+   *  </gem-reflect>
+   * `
+   */
+  toJSON() {
+    return {
+      currentLanguage: this.currentLanguage,
+      currentLanguagePack: this.resources[this.currentLanguage],
+    };
   }
 }

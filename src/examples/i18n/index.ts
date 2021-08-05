@@ -19,6 +19,7 @@ const i18n = new I18n<typeof en>({
     },
     zh: 'data:text/plain;base64,eyJ0aXRsZSI6Iui/meaYr0kxOG4ifQ==',
   },
+  onChange: console.log,
 });
 
 @connectStore(i18n.store)
@@ -28,6 +29,7 @@ export class App extends GemElement {
     return html`
       <button @click=${() => i18n.setLanguage('de')}>de</button>
       <button @click=${() => i18n.setLanguage('zh')}>zh</button>
+      <button @click=${() => i18n.setLanguage('en')}>en</button>
       <button @click=${() => i18n.resetLanguage()}>reset</button>
       <p>Current language: ${i18n.currentLanguage}</p>
       <p>${i18n.get('title')}</p>

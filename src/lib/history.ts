@@ -147,9 +147,9 @@ Object.defineProperties(history, {
     get() {
       return basePathStore.basePath;
     },
-    set(v: string) {
+    set(basePath: string) {
       // 应用初始化的时候设置
-      updateStore(basePathStore, { basePath: v });
+      updateStore(basePathStore, { basePath });
       // paramsMap 更新后 ui 才会更新
       Object.assign(paramsMap.get(store.$key), { path: getInternalPath(location.pathname) });
     },
