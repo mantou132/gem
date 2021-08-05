@@ -17,6 +17,7 @@ import { isMatch, RouteItem, RouteOptions, createHistoryParams, createPath } fro
 /**
  * @customElement gem-link
  * @attr href
+ * @attr target
  * @attr doc-title
  * @attr path
  * @attr query
@@ -31,6 +32,7 @@ import { isMatch, RouteItem, RouteOptions, createHistoryParams, createPath } fro
 @connectStore(basePathStore)
 export class GemLinkElement extends GemElement {
   @attribute href: string;
+  @attribute target: string;
   @attribute path: string;
   @attribute query: string;
   @attribute hash: string;
@@ -81,8 +83,20 @@ export class GemLinkElement extends GemElement {
 
     // 外部链接使用 `window.open`
     if (this.isExternal(pathInfo)) {
-      window.open(pathInfo);
-      return;
+      switch (this.target) {
+        case '_self':
+          window.location.href = pathInfo;
+          return;
+        case '_parent':
+          window.parent.location.href = pathInfo;
+          return;
+        case '_top':
+          window.top.location.href = pathInfo;
+          return;
+        default:
+          window.open(pathInfo);
+          return;
+      }
     }
 
     const { path, query, hash } = history.getParams();
