@@ -188,23 +188,19 @@ Object.defineProperties(history, {
       updateHistory('replace', params);
     },
   },
-  pushState: {
-    configurable: true,
-    value: function (data: any, title: string, path: string) {
-      if (path) {
-        updateHistoryByNative('push', data, title, path);
-      } else {
-        updateHistory('push', data);
-      }
-    },
-  },
-  replaceState: {
-    configurable: true,
-    value: function (data: any, title: string, path: string) {
-      updateHistoryByNative('replace', data, title, path);
-    },
-  },
 });
+
+history.pushState = function (data: any, title: string, path: string) {
+  if (path) {
+    updateHistoryByNative('push', data, title, path);
+  } else {
+    updateHistory('push', data);
+  }
+};
+
+history.replaceState = function (data: any, title: string, path: string) {
+  updateHistoryByNative('replace', data, title, path);
+};
 
 if (!history.state) {
   // 初始化 historyItem
