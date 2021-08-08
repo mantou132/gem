@@ -46,7 +46,9 @@ const paramsMap = new Map<string, HistoryParams>();
 declare global {
   interface History {
     store: Store<HistoryItem>;
+    // 修改会更改 `history.getParams()` 的值
     basePath?: string;
+    // 返回 `history` 当前储存的值, 是一个可变对象，当修改 `basePath` 时会改变
     getParams: () => HistoryParams;
 
     push: (params: UpdateHistoryParams) => void;

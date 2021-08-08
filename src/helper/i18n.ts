@@ -181,7 +181,7 @@ export class I18n<T = Record<string, Msg>> {
     if (lang !== this.currentLanguage) {
       this.lang = lang;
     }
-    if (this.cache && lang !== this.fallbackLanguage) {
+    if (this.cache) {
       localStorage.setItem(this.cacheCurrentKey, lang);
     }
     updateStore(this.store, {});
