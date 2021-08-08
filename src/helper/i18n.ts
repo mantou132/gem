@@ -28,9 +28,15 @@ interface Resources<T> {
 interface Options<T> {
   resources: Resources<T>;
   fallbackLanguage: string;
+  // 可以在构造函数中指定，但会被 URL 中的语言参数覆盖
   currentLanguage?: string;
-  cache?: boolean;
+  /**
+   * `true` 表示在修改语言时自动缓存。
+   * 为了避免缓存超出 `localStorage` 限制，语言包 URL 应该带版本号查询参数
+   */
+  cache?: boolean | 'manual';
   cachePrefix?: string;
+  // 为 `path` 时页面的路由不能和语言代码相同
   urlParamsType?: 'path' | 'querystring' | 'ccTLD' | 'gTLD';
   urlParamsName?: string;
   onChange?: (currentLanguage: string) => void;
@@ -39,9 +45,8 @@ interface Options<T> {
 export class I18n<T = Record<string, Msg>> {
   resources: Resources<T>;
   fallbackLanguage: string;
-  // 在构造函数中指定
   currentLanguage: string;
-  cache?: boolean;
+  cache?: boolean | 'manual';
   cachePrefix = 'gem@i18n';
   urlParamsType?: 'path' | 'querystring' | 'ccTLD' | 'gTLD';
   urlParamsName?: string;
@@ -64,12 +69,13 @@ export class I18n<T = Record<string, Msg>> {
       case 'path':
         return pathname.split('/')[1];
       default:
-        return this.urlParamsName && new URLSearchParams(search).get(this.urlParamsName);
+        const fragment = (this.urlParamsName && new URLSearchParams(search).get(this.urlParamsName)) || '';
+        return fragment in this.resources ? fragment : '';
     }
   }
 
   get cacheLang() {
-    return this.cache ? localStorage.getItem(this.cacheCurrentKey) || '' : '';
+    return (this.cache && localStorage.getItem(this.cacheCurrentKey)) || '';
   }
 
   set lang(lang: string) {
@@ -86,7 +92,7 @@ export class I18n<T = Record<string, Msg>> {
     this.store = createStore(this as any);
     Object.assign<I18n<T>, Options<T>>(this as I18n<T>, options);
 
-    let currentLanguage = this.currentLanguage || this.urlParamsLang || this.cacheLang;
+    let currentLanguage = this.urlParamsLang || this.currentLanguage || this.cacheLang;
 
     const ele = document.querySelector('[type*=gem-i18n]');
     if (ele) {
@@ -178,13 +184,14 @@ export class I18n<T = Record<string, Msg>> {
       pack = data;
     }
     this.resources[lang] = pack;
+    updateStore(this.store, {});
     if (lang !== this.currentLanguage) {
       this.lang = lang;
     }
-    if (this.cache) {
-      localStorage.setItem(this.cacheCurrentKey, lang);
+    // auto cache
+    if (this.cache === true) {
+      this.setCache();
     }
-    updateStore(this.store, {});
     return lang;
   }
 
@@ -194,6 +201,11 @@ export class I18n<T = Record<string, Msg>> {
       localStorage.removeItem(this.cacheCurrentKey);
     }
     return this.setLanguage(this.detectLanguage());
+  }
+
+  // 一般用在 `onChange` 中
+  setCache() {
+    localStorage.setItem(this.cacheCurrentKey, this.currentLanguage);
   }
 
   /**
