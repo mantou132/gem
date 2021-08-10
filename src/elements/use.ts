@@ -13,17 +13,19 @@ import { GemElement, html, attribute, property, customElement } from '../';
 @customElement('gem-use')
 export class GemUseElement extends GemElement {
   @attribute selector: string; // CSS 选择器
-  @property root: HTMLElement | Document | ShadowRoot = document;
+  @property root?: HTMLElement | Document | ShadowRoot;
+  @property element?: string | DocumentFragment | Element;
 
   private getContent() {
-    // 只支持 `svg` 或者 `template > svg`
-    const ele = this.root.querySelector(this.selector);
+    const ele = this.element || (this.selector ? (this.root || document).querySelector(this.selector) : null);
     if (ele instanceof HTMLTemplateElement) {
       return ele.content.cloneNode(true);
-    } else if (ele instanceof SVGSVGElement) {
-      return ele.cloneNode(true);
+    } else if (typeof ele === 'string') {
+      const temp = document.createElement('template');
+      temp.innerHTML = ele;
+      return temp.content;
     } else {
-      return null;
+      return ele?.cloneNode(true);
     }
   }
 
