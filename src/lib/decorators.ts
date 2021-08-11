@@ -166,7 +166,7 @@ function defineEmitter(target: GemElementPrototype, prop: string, options?: Omit
 }
 
 /**
- * 分配一个构造的样式表
+ * 分配一个构造的样式表，如果元素是 lightDOM，则将样式表挂载到 RootNode 上
  *
  * For example
  * ```ts

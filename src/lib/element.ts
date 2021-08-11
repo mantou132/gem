@@ -11,6 +11,7 @@ import {
   GemError,
   kebabToCamelCase,
   PropProxyMap,
+  removeItems,
 } from './utils';
 
 export { html, svg, render, directive, TemplateResult, SVGTemplateResult } from 'lit-html';
@@ -128,7 +129,16 @@ export abstract class GemElement<T = Record<string, unknown>> extends HTMLElemen
       if (this.shadowRoot) {
         this.shadowRoot.adoptedStyleSheets = sheets;
       } else {
-        throw new GemError('Please mount to ShadowDOM or Document');
+        this.effect(
+          () => {
+            const root = this.getRootNode() as ShadowRoot;
+            root.adoptedStyleSheets = [...root.adoptedStyleSheets, ...sheets];
+            return () => {
+              root.adoptedStyleSheets = removeItems(root.adoptedStyleSheets, sheets);
+            };
+          },
+          () => [],
+        );
       }
     }
   }

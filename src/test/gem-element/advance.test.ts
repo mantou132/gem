@@ -1,7 +1,8 @@
 import { fixture, expect, nextFrame } from '@open-wc/testing';
 import { GemElement, html } from '../../lib/element';
 import { createStore, updateStore } from '../../lib/store';
-import { attribute, property, customElement, emitter } from '../../lib/decorators';
+import { attribute, property, customElement, emitter, adoptedStyle } from '../../lib/decorators';
+import { createCSSSheet, css } from '../../lib/utils';
 
 const store = createStore({
   a: 1,
@@ -33,20 +34,33 @@ describe('异步 gem element 测试', () => {
   });
 });
 
+const lightStyle = createCSSSheet(css`
+  body {
+    font-size: 18.1px;
+  }
+`);
+
 @customElement('light-gem-demo')
+@adoptedStyle(lightStyle)
 class LightGemDemo extends GemElement {
   constructor() {
     super({ isLight: true });
   }
   render() {
-    return html`hi`;
+    return html`<div>hi</div>`;
   }
 }
 describe('没有 Shadow DOM 的 gem 元素', () => {
   it('渲染没有 Shadow DOM 的 gem 元素', async () => {
-    const el: LightGemDemo = await fixture(html`<light-gem-demo></light-gem-demo>`);
-    expect(el.shadowRoot).to.equal(null);
-    expect(el.innerHTML.includes('hi')).to.equal(true);
+    const el1: LightGemDemo = await fixture(html`<light-gem-demo></light-gem-demo>`);
+    const el2: LightGemDemo = await fixture(html`<light-gem-demo></light-gem-demo>`);
+    expect(el1.shadowRoot).to.equal(null);
+    expect(el1.innerHTML.includes('hi')).to.equal(true);
+    expect(getComputedStyle(document.body).fontSize).to.equal('18.1px');
+    el1.remove();
+    expect(getComputedStyle(document.body).fontSize).to.equal('18.1px');
+    el2.remove();
+    expect(getComputedStyle(document.body).fontSize).not.to.equal('18.1px');
   });
 });
 
