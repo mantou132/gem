@@ -44,13 +44,13 @@ function getReg(pattern: string) {
 function getParams(pattern: string, path: string) {
   const reg = getReg(pattern);
   const matchResult = path.match(reg);
+  const params: Record<string, string> = {};
   if (matchResult) {
-    const params: { [index: string]: string } = {};
     Object.keys(reg.namePosition).forEach((name) => {
       params[name] = matchResult[reg.namePosition[name] + 1];
     });
-    return params;
   }
+  return params;
 }
 
 export function isMatch(pattern: string, path: string) {
@@ -64,14 +64,13 @@ export interface RouteItem<T = unknown> {
   pattern: string;
   redirect?: string;
   content?: TemplateResult;
+  getContent?: (params: Record<string, string>) => TemplateResult;
   title?: string;
   // 用来传递数据
   data?: T;
 }
 
-export interface RoutesObject {
-  [prop: string]: RouteItem;
-}
+export type RoutesObject = Record<string, RouteItem>;
 
 // params 中的成员不会验证
 export interface RouteOptions extends Omit<UpdateHistoryParams, 'path'> {
@@ -124,9 +123,7 @@ export class GemRouteElement extends GemElement {
 
   // 获取当前匹配的路由的 params
   getParams() {
-    if (this.currentRoute) {
-      return getParams(this.currentRoute.pattern, history.getParams().path);
-    }
+    return this.currentRoute ? getParams(this.currentRoute.pattern, history.getParams().path) : {};
   }
 
   constructor({ isLight, routes }: ConstructorOptions = {}) {
@@ -192,7 +189,7 @@ export class GemRouteElement extends GemElement {
 
     if (!this.currentRoute) return this.#callback();
 
-    const { redirect, content } = this.currentRoute;
+    const { redirect, content, getContent } = this.currentRoute;
     if (redirect) {
       this.#redirect = true;
       history.replace({ path: redirect });
@@ -212,7 +209,7 @@ export class GemRouteElement extends GemElement {
               }
             </style>
           `}
-      ${content}
+      ${content || getContent?.(this.getParams())}
     `;
   }
 

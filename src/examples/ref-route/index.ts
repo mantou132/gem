@@ -1,11 +1,11 @@
 import { GemElement, html, history, render } from '../../';
 import { customElement, RefObject, refobject } from '../../lib/decorators';
-import { createHistoryParams, GemRouteElement } from '../../elements/route';
+import { createHistoryParams, GemRouteElement, RoutesObject } from '../../elements/route';
 import '../../elements/link';
 
 import '../elements/layout';
 
-const routes = {
+const routes: RoutesObject = {
   home: {
     pattern: '/',
     get content() {
@@ -27,7 +27,7 @@ const routes = {
   },
   a: {
     pattern: '/a/:b',
-    get content() {
+    getContent({ b }) {
       return html`
         <style>
           gem-active-link {
@@ -37,7 +37,7 @@ const routes = {
             color: inherit;
           }
         </style>
-        current route: /a/:b, click navigation to home page, cuurent query: ${history.getParams().query.toString()}
+        current route: /a/${b}, click navigation to home page, cuurent query: ${history.getParams().query.toString()}
         <gem-active-link .route=${routes.a} .options=${{ params: { b: 1 }, query: '?a=1' }}>
           a page link, query: ?a=1
         </gem-active-link>
