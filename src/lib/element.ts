@@ -81,6 +81,12 @@ type EffectItem<T> = {
 const initSymbol = Symbol('init');
 const updateSymbol = Symbol('update');
 
+interface GemElementOptions {
+  isLight?: boolean;
+  isAsync?: boolean;
+  delegatesFocus?: boolean;
+}
+
 export abstract class GemElement<T = Record<string, unknown>> extends HTMLElement {
   // 这里只是字段申明，不能赋值，否则子类会继承被共享该字段
   static observedAttributes?: string[]; // WebAPI 中是实时检查这个列表
@@ -108,7 +114,7 @@ export abstract class GemElement<T = Record<string, unknown>> extends HTMLElemen
   #effectList?: EffectItem<any>[];
   #unmountCallback?: any;
 
-  constructor(options?: { isLight?: boolean; isAsync?: boolean }) {
+  constructor({ isAsync, isLight, delegatesFocus }: GemElementOptions = {}) {
     super();
 
     // 外部不可见，但允许类外面使用
@@ -120,8 +126,8 @@ export abstract class GemElement<T = Record<string, unknown>> extends HTMLElemen
       }
     };
 
-    this.#isAsync = options?.isAsync;
-    this.#renderRoot = options?.isLight ? this : this.attachShadow({ mode: 'open' });
+    this.#isAsync = isAsync;
+    this.#renderRoot = isLight ? this : this.attachShadow({ mode: 'open', delegatesFocus });
 
     const { adoptedStyleSheets } = new.target;
     if (adoptedStyleSheets) {
