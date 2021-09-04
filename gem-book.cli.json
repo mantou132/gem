@@ -10,6 +10,6 @@
     }
   ],
   "template": "docs/template.html",
-  "plugin": ["raw"],
+  "plugin": ["raw", "docsearch"],
   "debug": true
 }
