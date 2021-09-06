@@ -1,5 +1,8 @@
 import { GemElement, customElement, property } from '..';
 
+// support prerender
+document.querySelectorAll('[data-reflect]').forEach((e) => e.remove());
+
 /**
  * @customElement gem-reflect
  */
@@ -13,7 +16,12 @@ export class GemReflectElement extends GemElement {
     this.effect(
       () => {
         const childNodes = [...this.childNodes];
-        this.target.append(...childNodes);
+        childNodes.forEach((node) => {
+          if (node instanceof HTMLElement) {
+            node.dataset.reflect = '';
+          }
+          this.target.append(node);
+        });
         return () => {
           childNodes.forEach((node) => node.remove());
         };
