@@ -1,5 +1,6 @@
 import { GemElement, html, attribute, property, customElement } from '../';
 
+const eleCache = new Map<string, HTMLTemplateElement>();
 /**
  * svg 中的 `<use>` 不能穿透 ShadowDOM,
  * 此元素用来模拟 `<use>`,
@@ -18,12 +19,16 @@ export class GemUseElement extends GemElement {
 
   private getContent() {
     const ele = this.element || (this.selector ? (this.root || document).querySelector(this.selector) : null);
-    if (ele instanceof HTMLTemplateElement) {
+    if (typeof ele === 'string') {
+      let temp = eleCache.get(ele);
+      if (!temp) {
+        temp = document.createElement('template');
+        temp.innerHTML = ele;
+        eleCache.set(ele, temp);
+      }
+      return temp.content.cloneNode(true);
+    } else if (ele instanceof HTMLTemplateElement) {
       return ele.content.cloneNode(true);
-    } else if (typeof ele === 'string') {
-      const temp = document.createElement('template');
-      temp.innerHTML = ele;
-      return temp.content;
     } else {
       return ele?.cloneNode(true);
     }
@@ -37,6 +42,7 @@ export class GemUseElement extends GemElement {
         }
         :host(:not([hidden])) {
           display: inline-flex;
+          align-items: center;
         }
         svg {
           width: 100%;
