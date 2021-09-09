@@ -91,7 +91,7 @@ export class GemLinkElement extends GemElement {
           window.parent.location.href = pathInfo;
           return;
         case '_top':
-          window.top.location.href = pathInfo;
+          window.top!.location.href = pathInfo;
           return;
         default:
           window.open(pathInfo);
