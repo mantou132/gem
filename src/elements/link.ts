@@ -12,7 +12,7 @@ import {
   ifDefined,
 } from '../';
 import { absoluteLocation } from '../lib/utils';
-import { isMatch, RouteItem, RouteOptions, createHistoryParams, createPath } from './route';
+import { matchPath, RouteItem, RouteOptions, createHistoryParams, createPath } from './route';
 
 /**
  * @customElement gem-link
@@ -179,7 +179,7 @@ export class GemActiveLinkElement extends GemLinkElement {
 
   render() {
     const { path, query, hash } = history.getParams();
-    const isMatchPattern = this.pattern && isMatch(this.pattern, path);
+    const isMatchPattern = this.pattern && matchPath(this.pattern, path);
     const pathInfo = this.getPathInfo();
     if (isMatchPattern || path + query + hash === pathInfo) {
       this.active = true;

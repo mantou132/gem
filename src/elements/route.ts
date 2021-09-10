@@ -11,13 +11,16 @@ import {
   UpdateHistoryParams,
   titleStore,
   updateStore,
-  addMicrotaskToStack,
+  Store,
+  QueryString,
+  createStore,
 } from '../';
 
 interface NamePostition {
   [index: string]: number;
 }
 
+// TODO: use `URLPattern`
 class ParamsRegExp extends RegExp {
   namePosition: NamePostition;
   constructor(pattern: string) {
@@ -36,25 +39,21 @@ class ParamsRegExp extends RegExp {
   }
 }
 
-function getReg(pattern: string) {
-  return new ParamsRegExp(pattern);
-}
+type Params = Record<string, string>;
 
 // `/a/b/:c/:d` `/a/b/1/2`
-function getParams(pattern: string, path: string) {
-  const reg = getReg(pattern);
-  const matchResult = path.match(reg);
-  const params: Record<string, string> = {};
+// 匹配成功时返回 params
+export function matchPath(pattern: string, path: string) {
+  const reg = new ParamsRegExp(pattern);
+  const matchResult = path.match(reg) || `${path}/`.match(reg);
+  if (!matchResult) return null;
+  const params: Params = {};
   if (matchResult) {
     Object.keys(reg.namePosition).forEach((name) => {
       params[name] = matchResult[reg.namePosition[name] + 1];
     });
   }
   return params;
-}
-
-export function isMatch(pattern: string, path: string) {
-  return !!path.match(getReg(pattern)) || !!`${path}/`.match(getReg(pattern));
 }
 
 export interface RouteItem<T = unknown> {
@@ -64,7 +63,7 @@ export interface RouteItem<T = unknown> {
   pattern: string;
   redirect?: string;
   content?: TemplateResult;
-  getContent?: (params: Record<string, string>) => TemplateResult;
+  getContent?: (params: Params) => TemplateResult | Promise<TemplateResult>;
   title?: string;
   // 用来传递数据
   data?: T;
@@ -103,126 +102,142 @@ interface ConstructorOptions {
   routes?: RouteItem[] | RoutesObject;
 }
 
+type State = {
+  content?: TemplateResult;
+};
+
 /**
  * @customElement gem-route
+ * @attr inert 暂停路由更新
  * @fires change
+ * @fires error
+ * @fires loading
  */
 @connectStore(history.store)
 @customElement('gem-route')
-export class GemRouteElement extends GemElement {
+export class GemRouteElement extends GemElement<State> {
   @property routes?: RouteItem[] | RoutesObject;
+  /**
+   * @example
+   * const locationStore = GemRouteElement.createLocationStore()
+   * html`<gem-route .locationStore=${locationStore}>`
+   */
+  @property locationStore?: Store<{ path: string; params: Params; query: QueryString; data?: any }>;
   @property key: any; // 除了 href 提供另外一种方式来更新，比如语言更新也需要刷新 <gem-route>
-  @emitter change: Emitter<RouteItem | null>;
-
-  #href: string; // 用于内部比较
-  #key: any; // 用于内部比较
-  #redirect: boolean;
-  #isLight?: boolean;
+  @emitter change: Emitter<RouteItem | null>; // path 改变或者 key 改变，包含初始渲染
+  @emitter loading: Emitter<RouteItem>;
+  @emitter error: Emitter<any>;
 
   currentRoute: RouteItem | null;
+  // 当前匹配的路由的 params
+  currentParams: Params = {};
 
-  // 获取当前匹配的路由的 params
-  getParams() {
-    return this.currentRoute ? getParams(this.currentRoute.pattern, history.getParams().path) : {};
-  }
+  #lastLoader?: Promise<TemplateResult>;
+
+  static createLocationStore = () => {
+    const { path, query, data } = history.getParams();
+    return createStore({ path, query, data, params: {} as Record<string, string> });
+  };
+
+  static findRoute = (target: RouteItem[] | RoutesObject = [], path: string) => {
+    let defaultRoute: RouteItem | null = null;
+    let routes: RouteItem[];
+    if (target instanceof Array) {
+      routes = target;
+    } else {
+      routes = Object.values(target);
+    }
+    for (const route of routes) {
+      if ('*' === route.pattern) {
+        defaultRoute = route;
+      } else {
+        const params = matchPath(route.pattern, path);
+        if (params) {
+          return { route, params };
+        }
+      }
+    }
+    return { route: defaultRoute };
+  };
 
   constructor({ isLight, routes }: ConstructorOptions = {}) {
     super({ isLight });
-    this.#isLight = isLight;
-
     this.routes = routes;
-
-    const { path, query } = history.getParams();
-    this.#href = path + query;
   }
 
-  #initPage = () => {
-    const title = this.currentRoute?.title;
-    if (title) {
-      updateStore(titleStore, { title });
+  state: State = {
+    content: undefined,
+  };
+
+  #setContent = (route: RouteItem | null, params: Params, content?: TemplateResult) => {
+    this.#lastLoader = undefined;
+    this.currentRoute = route;
+    this.currentParams = params;
+    this.setState({ content });
+    this.change(this.currentRoute);
+    const title = route?.title;
+    if (title) updateStore(titleStore, { title });
+    if (this.locationStore) {
+      const { path, query, data } = history.getParams();
+      updateStore(this.locationStore, {
+        path,
+        params: this.currentParams,
+        query,
+        data,
+      });
     }
   };
 
-  #callback = () => {
-    this.currentRoute = null;
-    return html``;
-  };
+  mounted() {
+    this.effect(
+      ([_, path]) => {
+        const { route, params = {} } = GemRouteElement.findRoute(this.routes, path);
+        const { redirect, content, getContent } = route || {};
+        if (redirect) {
+          history.replace({ path: redirect });
+          return;
+        }
+        const contentOrLoader = content || getContent?.(params);
+        if (contentOrLoader instanceof Promise) {
+          this.loading(route!);
+          this.#lastLoader = contentOrLoader;
+          const isSomeLoader = () => this.#lastLoader === contentOrLoader;
+          contentOrLoader
+            .then((content) => {
+              if (isSomeLoader()) this.#setContent(route, params, content);
+            })
+            .catch((err) => {
+              if (isSomeLoader()) this.error(err);
+            });
+          return;
+        }
+        this.#setContent(route, params, contentOrLoader);
+      },
+      () => {
+        const { path, query } = history.getParams();
+        return [this.key, path, String(query)];
+      },
+    );
+  }
 
   shouldUpdate() {
     if (this.inert) return false;
-    const { path, query } = history.getParams();
-    const href = path + query;
-    if (href !== this.#href || this.key !== this.#key) {
-      this.#href = href;
-      this.#key = this.key;
-      return true;
-    }
-    return false;
+    return true;
   }
 
   render() {
-    if (!this.routes) return this.#callback();
-    const { path } = history.getParams();
-    this.currentRoute = null;
+    const { content } = this.state;
+    if (!this.shadowRoot) return html`${content}`;
 
-    let defaultRoute: RouteItem | null = null;
-    let routes: RouteItem[];
-    if (this.routes instanceof Array) {
-      routes = this.routes;
-    } else {
-      routes = Object.values(this.routes);
-    }
-
-    for (const item of routes) {
-      const { pattern } = item;
-      if ('*' === pattern) {
-        defaultRoute = item;
-      } else if (isMatch(pattern, path)) {
-        this.currentRoute = item;
-        break;
-      }
-    }
-
-    if (!this.currentRoute) {
-      this.currentRoute = defaultRoute;
-    }
-
-    if (!this.currentRoute) return this.#callback();
-
-    const { redirect, content, getContent } = this.currentRoute;
-    if (redirect) {
-      this.#redirect = true;
-      history.replace({ path: redirect });
-      // 不要渲染空内容，等待重定向结果
-      return undefined;
-    }
-
-    this.#redirect = false;
     return html`
-      ${this.#isLight
-        ? ''
-        : html`
-            <style>
-              :host,
-              :not(:defined) {
-                display: contents;
-              }
-            </style>
-          `}
-      ${content || getContent?.(this.getParams())}
+      <style>
+        :host,
+        :not(:defined) {
+          display: contents;
+        }
+      </style>
+      ${content}
     `;
-  }
-
-  mounted() {
-    this.#key = this.key;
-    addMicrotaskToStack(this.#initPage);
-  }
-
-  updated() {
-    this.#initPage();
-    if (!this.#redirect) {
-      this.change(this.currentRoute);
-    }
   }
 }
 

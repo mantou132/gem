@@ -1,14 +1,38 @@
 import { GemElement, html, history, render } from '../../';
-import { customElement, RefObject, refobject } from '../../lib/decorators';
+import { connectStore, customElement, RefObject, refobject } from '../../lib/decorators';
 import { createHistoryParams, GemRouteElement, RoutesObject } from '../../elements/route';
 import '../../elements/link';
 
 import '../elements/layout';
 
+const locationStore = GemRouteElement.createLocationStore();
+
+@connectStore(locationStore)
+@customElement('route-a')
+export class RouteA extends GemElement {
+  render = () => {
+    return html`
+      <style>
+        gem-active-link {
+          display: block;
+        }
+        gem-active-link:where(.--active, :--active) {
+          color: inherit;
+        }
+      </style>
+      current route: /a/:b, current params: ${JSON.stringify(locationStore.params)}, click navigation to home page,
+      cuurent query: ${history.getParams().query.toString()}
+      <gem-active-link .route=${routes.a} .options=${{ params: { b: 1 }, query: '?a=1' }}>
+        a page link, query: ?a=1
+      </gem-active-link>
+    `;
+  };
+}
+
 const routes: RoutesObject = {
   home: {
     pattern: '/',
-    get content() {
+    getContent(params) {
       return html`
         <style>
           gem-active-link {
@@ -18,7 +42,7 @@ const routes: RoutesObject = {
             color: inherit;
           }
         </style>
-        current route: home page, click navigation to a page
+        current route: home page, current params: ${JSON.stringify(params)}, click navigation to /a page
         <gem-active-link .route=${routes.a} .options=${{ params: { b: 1 } }}>
           a page link, params: {a: 1}
         </gem-active-link>
@@ -27,26 +51,14 @@ const routes: RoutesObject = {
   },
   a: {
     pattern: '/a/:b',
-    getContent({ b }) {
-      return html`
-        <style>
-          gem-active-link {
-            display: block;
-          }
-          gem-active-link:where(.--active, :--active) {
-            color: inherit;
-          }
-        </style>
-        current route: /a/${b}, click navigation to home page, cuurent query: ${history.getParams().query.toString()}
-        <gem-active-link .route=${routes.a} .options=${{ params: { b: 1 }, query: '?a=1' }}>
-          a page link, query: ?a=1
-        </gem-active-link>
-      `;
+    async getContent() {
+      await new Promise((res) => setTimeout(res, 1000));
+      return html`<route-a></route-a>`;
     },
   },
 };
-
 @customElement('app-root')
+@connectStore(locationStore)
 export class App extends GemElement {
   @refobject routeRef: RefObject<GemRouteElement>;
   onclick = () => {
@@ -59,7 +71,15 @@ export class App extends GemElement {
   render() {
     return html`
       <main>
-        <gem-route ref=${this.routeRef.ref} .routes=${routes}></gem-route>
+        <pre>${JSON.stringify(locationStore.params)}</pre>
+        <gem-route
+          ref=${this.routeRef.ref}
+          @loading=${console.log}
+          @change=${console.log}
+          @error=${console.error}
+          .routes=${routes}
+          .locationStore=${locationStore}
+        ></gem-route>
       </main>
     `;
   }
