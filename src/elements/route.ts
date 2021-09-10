@@ -169,14 +169,7 @@ export class GemRouteElement extends GemElement<State> {
     content: undefined,
   };
 
-  #setContent = (route: RouteItem | null, params: Params, content?: TemplateResult) => {
-    this.#lastLoader = undefined;
-    this.currentRoute = route;
-    this.currentParams = params;
-    this.setState({ content });
-    this.change(this.currentRoute);
-    const title = route?.title;
-    if (title) updateStore(titleStore, { title });
+  #updateLocationStore = () => {
     if (this.locationStore) {
       const { path, query, data } = history.getParams();
       updateStore(this.locationStore, {
@@ -186,6 +179,17 @@ export class GemRouteElement extends GemElement<State> {
         data,
       });
     }
+  };
+
+  #setContent = (route: RouteItem | null, params: Params, content?: TemplateResult) => {
+    this.#lastLoader = undefined;
+    this.currentRoute = route;
+    this.currentParams = params;
+    this.setState({ content });
+    this.change(this.currentRoute);
+    const title = route?.title;
+    if (title) updateStore(titleStore, { title });
+    this.#updateLocationStore();
   };
 
   mounted() {
@@ -214,10 +218,11 @@ export class GemRouteElement extends GemElement<State> {
         this.#setContent(route, params, contentOrLoader);
       },
       () => {
-        const { path, query } = history.getParams();
-        return [this.key, path, String(query)];
+        const { path } = history.getParams();
+        return [this.key, path];
       },
     );
+    this.effect(this.#updateLocationStore, () => [location.search]);
   }
 
   shouldUpdate() {
