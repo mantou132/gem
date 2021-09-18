@@ -35,6 +35,8 @@ interface Options<T> {
    * 为了避免缓存超出 `localStorage` 限制，语言包 URL 应该带版本号查询参数
    */
   cache?: boolean | 'manual';
+  // lib 需要设置，避免被应用中的 i18n 一起清理掉语言缓存
+  // 也用来作为 prerender 的 script type
   cachePrefix?: string;
   // 为 `path` 时页面的路由不能和语言代码相同
   urlParamsType?: 'path' | 'querystring' | 'ccTLD' | 'gTLD';
@@ -94,7 +96,7 @@ export class I18n<T = Record<string, Msg>> {
 
     let currentLanguage = this.urlParamsLang || this.currentLanguage || this.cacheLang;
 
-    const ele = document.querySelector('[type*=gem-i18n]');
+    const ele = document.querySelector(`[type*=${this.cachePrefix}]`);
     if (ele) {
       try {
         const prerenderData = JSON.parse(ele.textContent || '') as I18nJSON<T>;
@@ -152,17 +154,17 @@ export class I18n<T = Record<string, Msg>> {
     }
 
     if (typeof data === 'string') {
-      const { href, origin, pathname } = new URL(data, location.href);
-      const localKey = `${this.cachePrefix}:${href}`;
+      const prefix = `${this.cachePrefix}:`;
+      const localKey = `${prefix}${data}`;
       const localPackString = localStorage.getItem(localKey);
 
       const fetchPack = async () => {
         const pack = await (await fetch(data)).json();
         if (this.cache) {
-          // 移除之前的版本缓存，只有使用 querystring 标记版本才有效
+          // 移除之前的版本缓存
           for (let i = 0; i < localStorage.length; i++) {
             const key = localStorage.key(i) as string;
-            if (key.startsWith(`${this.cachePrefix}:${origin}${pathname}?`)) {
+            if (key.startsWith(prefix)) {
               localStorage.removeItem(key);
             }
           }
@@ -215,7 +217,7 @@ export class I18n<T = Record<string, Msg>> {
    *
    * html`
    *  <gem-reflect>
-   *    <script type="gem-i18n">${JSON.stringify(i18n)}</script>
+   *    <script type="${i18n.cachePrefix}">${JSON.stringify(i18n)}</script>
    *  </gem-reflect>
    * `
    */
