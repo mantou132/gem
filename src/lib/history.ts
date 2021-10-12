@@ -274,7 +274,7 @@ window.addEventListener('popstate', (event) => {
   // url 变化前 historyItem
   const prevState = store;
 
-  if (newState.$key > prevState.$key && newState.$hasOpenHandle) {
+  if (parseFloat(newState.$key) > parseFloat(prevState.$key) && newState.$hasOpenHandle) {
     // 返回键关闭的 modal 能前进键重新打开
     // 刷新后不能工作：刷新后 historyItem 中只有 url
     paramsMap.get(newState.$key)?.open?.();
