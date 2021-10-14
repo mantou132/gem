@@ -69,11 +69,11 @@ export interface RouteItem<T = unknown> {
   data?: T;
 }
 
-export type RoutesObject = Record<string, RouteItem>;
+type RoutesObject = Record<string, RouteItem>;
 
 // params 中的成员不会验证
 export interface RouteOptions extends Omit<UpdateHistoryParams, 'path'> {
-  params?: { [index: string]: string };
+  params?: Params;
 }
 
 // 从路由创建路径

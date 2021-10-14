@@ -1,11 +1,52 @@
 import { GemElement, html, history, render } from '../../';
 import { connectStore, customElement, RefObject, refobject } from '../../lib/decorators';
-import { createHistoryParams, GemRouteElement, RoutesObject } from '../../elements/route';
+import { createHistoryParams, GemRouteElement, RouteItem } from '../../elements/route';
 import '../../elements/link';
 
 import '../elements/layout';
 
+const homeRoute: RouteItem = {
+  pattern: '/',
+  getContent(params) {
+    return html`<route-home .params=${params}></route-home>`;
+  },
+};
+
+const aRoute: RouteItem = {
+  pattern: '/a/:b',
+  async getContent() {
+    await new Promise((res) => setTimeout(res, 1000));
+    return html`<route-a></route-a>`;
+  },
+};
+
+const routes = {
+  home: homeRoute,
+  a: aRoute,
+};
+
 const locationStore = GemRouteElement.createLocationStore();
+
+@customElement('route-home')
+export class RouteHome extends GemElement {
+  params: Record<string, string>;
+  render = () => {
+    return html`
+      <style>
+        gem-active-link {
+          display: block;
+        }
+        gem-active-link:where(.--active, :--active) {
+          color: inherit;
+        }
+      </style>
+      current route: home page, current params: ${JSON.stringify(this.params)}, click navigation to /a page
+      <gem-active-link .route=${routes.a} .options=${{ params: { b: 1 } }}>
+        a page link, params: {a: 1}
+      </gem-active-link>
+    `;
+  };
+}
 
 @connectStore(locationStore)
 @customElement('route-a')
@@ -29,34 +70,6 @@ export class RouteA extends GemElement {
   };
 }
 
-const routes: RoutesObject = {
-  home: {
-    pattern: '/',
-    getContent(params) {
-      return html`
-        <style>
-          gem-active-link {
-            display: block;
-          }
-          gem-active-link:where(.--active, :--active) {
-            color: inherit;
-          }
-        </style>
-        current route: home page, current params: ${JSON.stringify(params)}, click navigation to /a page
-        <gem-active-link .route=${routes.a} .options=${{ params: { b: 1 } }}>
-          a page link, params: {a: 1}
-        </gem-active-link>
-      `;
-    },
-  },
-  a: {
-    pattern: '/a/:b',
-    async getContent() {
-      await new Promise((res) => setTimeout(res, 1000));
-      return html`<route-a></route-a>`;
-    },
-  },
-};
 @customElement('app-root')
 @connectStore(locationStore)
 export class App extends GemElement {
