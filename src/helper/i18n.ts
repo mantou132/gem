@@ -49,7 +49,7 @@ export class I18n<T = Record<string, Msg>> {
   fallbackLanguage: string;
   currentLanguage: string;
   cache?: boolean | 'manual';
-  cachePrefix = 'gem@i18n';
+  cachePrefix = 'gem-i18n';
   urlParamsType?: 'path' | 'querystring' | 'ccTLD' | 'gTLD';
   urlParamsName?: string;
   onChange?: (currentLanguage: string) => void;
