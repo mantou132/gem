@@ -74,3 +74,25 @@ class MyElement extends GemElement {
 下面是依赖子元素的 `effect` 例子（[其他实现](https://twitter.com/youyuxi/status/1327328144525848577?s=20)）：
 
 <gbp-raw src="/src/examples/effect/index.ts"></gbp-raw>
+
+## Memo
+
+类似 Effect，`memo` 能在需要时执行回调函数：
+
+```ts
+// 省略导入...
+
+@customElement('my-element')
+class MyElement extends GemElement {
+  @attribute src: string;
+
+  #href: string;
+
+  willMount() {
+    this.memo(
+      () => this.#href = new URL(this.src, location.origin).href,
+      () => [this.src],
+    );
+  }
+}
+```

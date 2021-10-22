@@ -71,3 +71,26 @@ class MyElement extends GemElement {
 Below is an example of `effect` that depends on child elements([Other implementations](https://twitter.com/youyuxi/status/1327328144525848577?s=20))
 
 <gbp-raw src="/src/examples/effect/index.ts"></gbp-raw>
+
+
+## Memo
+
+Similar to Effect, `memo` can execute callback function when needed:
+
+```ts
+// Omit import...
+
+@customElement('my-element')
+class MyElement extends GemElement {
+  @attribute src: string;
+
+  #href: string;
+
+  willMount() {
+    this.memo(
+      () => this.#href = new URL(this.src, location.origin).href,
+      () => [this.src],
+    );
+  }
+}
+```

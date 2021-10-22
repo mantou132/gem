@@ -54,6 +54,7 @@ _Please use [decorator](./007-decorator.md) in TypeScript_
 | name               | description                                          |
 | ------------------ | ---------------------------------------------------- |
 | `effect`           | Register side effects, you can specify dependencies  |
+| `memo`             | Register callback, you can specify dependencies      |
 | `update`           | Update elements manually                             |
 | `state`/`setState` | Specify the element `State`, modify it by `setState` |
 | `internals`        | Get the element's [ElementInternals][2] object       |

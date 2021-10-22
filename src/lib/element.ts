@@ -112,6 +112,7 @@ export abstract class GemElement<T = Record<string, unknown>> extends HTMLElemen
   #isAppendReason?: boolean;
   #isAsync?: boolean;
   #effectList?: EffectItem<any>[];
+  #momeList?: EffectItem<any>[];
   #unmountCallback?: any;
 
   constructor({ isAsync, isLight, delegatesFocus }: GemElementOptions = {}) {
@@ -193,11 +194,8 @@ export abstract class GemElement<T = Record<string, unknown>> extends HTMLElemen
     addMicrotask(this.#update);
   };
 
-  /**
-   * 每次更新完检查依赖，执行对应的副作用回调
-   * */
-  #execEffect = () => {
-    this.#effectList?.forEach((effectItem) => {
+  #exec = (list?: EffectItem<any>[]) => {
+    list?.forEach((effectItem) => {
       const { callback, getDep, values, preCallback } = effectItem;
       const newValues = getDep?.();
       if (!getDep || isArrayChange(values, newValues)) {
@@ -206,6 +204,17 @@ export abstract class GemElement<T = Record<string, unknown>> extends HTMLElemen
         effectItem.values = newValues;
       }
     });
+  };
+
+  /**
+   * 每次更新完检查依赖，执行对应的副作用回调
+   * */
+  #execEffect = () => {
+    this.#exec(this.#effectList);
+  };
+
+  #execMemo = () => {
+    this.#exec(this.#momeList);
   };
 
   /**
@@ -239,6 +248,31 @@ export abstract class GemElement<T = Record<string, unknown>> extends HTMLElemen
   };
 
   /**
+   * @helper
+   * 在 `render` 前执行回调，和 `effect` 一样接受依赖数组参数，在 `constructor`/`willMount` 中使用
+   *
+   * ```js
+   * class App extends GemElement {
+   *   willMount() {
+   *     this.memo(() => {
+   *       this.a = exec(this.attrName);
+   *     }), () => [this.attrName]);
+   *   }
+   * }
+   * ```
+   * */
+  memo = <T = any[] | undefined>(callback: EffectCallback<T>, getDep?: T extends any[] ? () => [...T] : undefined) => {
+    if (!this.#momeList) this.#momeList = [];
+    this.#momeList.push({
+      callback,
+      getDep,
+      values: [Symbol()],
+      // 是否是 `willMount` 中定义
+      initialized: this.isConnected,
+    });
+  };
+
+  /**
    * 元素挂载后执行还未初始化的副作用
    * */
   #initEffect = () => {
@@ -262,6 +296,7 @@ export abstract class GemElement<T = Record<string, unknown>> extends HTMLElemen
   render?(): TemplateResult | null | undefined;
 
   #render = () => {
+    this.#execMemo();
     if (this.render) return this.render();
     return this.#renderRoot === this ? undefined : html`<slot></slot>`;
   };
@@ -292,7 +327,10 @@ export abstract class GemElement<T = Record<string, unknown>> extends HTMLElemen
     }
   };
 
-  /**@helper */
+  /**
+   * @helper
+   * async
+   */
   update = () => {
     addMicrotask(this.#update);
   };
@@ -396,6 +434,7 @@ export abstract class GemElement<T = Record<string, unknown>> extends HTMLElemen
     this.#effectList?.forEach((effectItem) => {
       execCallback(effectItem.preCallback);
     });
+    this.#momeList = this.#momeList?.filter(({ initialized }) => !initialized);
   }
 }
 

@@ -197,6 +197,53 @@ describe('gem element 副作用', () => {
   });
 });
 
+class MemoGemDemo extends GemElement {
+  @attribute attr = 'a';
+  @property prop = {};
+  memoCount = 0;
+  constructor() {
+    super();
+    this.memo(
+      () => this.memoCount++,
+      () => [this.attr, this.prop],
+    );
+  }
+  willMount() {
+    this.memo(
+      (_arr) => {
+        this.memoCount++;
+      },
+      () => [],
+    );
+    this.memo(() => {
+      this.memoCount++;
+    });
+  }
+}
+customElements.define('memo-gem-demo', MemoGemDemo);
+describe('gem element Memo', () => {
+  it('依赖当前值', async () => {
+    const el: MemoGemDemo = await fixture(html`<memo-gem-demo></memo-gem-demo>`);
+    expect(el.memoCount).to.equal(3);
+    el.attr = 'b';
+    el.prop = {};
+    await nextFrame();
+    expect(el.memoCount).to.equal(5);
+
+    el.update();
+    await Promise.resolve();
+    expect(el.memoCount).to.equal(6);
+
+    document.body.append(el);
+    expect(el.memoCount).to.equal(6);
+
+    el.remove();
+    await Promise.resolve();
+    document.body.append(el);
+    expect(el.memoCount).to.equal(8);
+  });
+});
+
 class I extends GemElement {
   @attribute appTitle = 'string';
   @property appData = { a: 1 };
