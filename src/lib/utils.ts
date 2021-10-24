@@ -115,17 +115,21 @@ export class PropProxyMap<T extends NonPrimitive, V = unknown> extends WeakMap<T
   }
 }
 
+export function isObject(value: any) {
+  return typeof value === 'object';
+}
+
 declare global {
   interface URLSearchParams {
     entries(): Iterable<readonly [string | number | symbol, any]>;
   }
 }
 export class QueryString extends URLSearchParams {
-  constructor(param: any) {
+  constructor(param?: any) {
+    super(param);
     if (param instanceof QueryString) {
       return param;
     }
-    super(param);
   }
 
   concat(param: any) {
@@ -138,6 +142,36 @@ export class QueryString extends URLSearchParams {
     Object.keys(query).forEach((key) => {
       this.append(key, query[key]);
     });
+  }
+
+  #stringify = (value: any) => (isObject(value) ? JSON.stringify(value) : value);
+
+  setAny(key: string, value: any) {
+    if (Array.isArray(value)) {
+      this.delete(key);
+      value.forEach((e) => this.append(key, this.#stringify(e)));
+    } else {
+      this.set(key, this.#stringify(value));
+    }
+  }
+
+  #parse = (value: any) => {
+    if (!value) return null;
+    try {
+      return JSON.parse(value);
+    } catch {
+      return null;
+    }
+  };
+
+  getAny(key: string) {
+    return this.getAnyAll(key)[0];
+  }
+
+  getAnyAll(key: string) {
+    return this.getAll(key)
+      .filter((e) => e !== '')
+      .map((e) => this.#parse(e));
   }
 
   toString() {

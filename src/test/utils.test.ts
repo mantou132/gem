@@ -47,6 +47,12 @@ describe('utils 测试', () => {
     expect(query.get('c')).to.equal('3');
     query.concat({ d: 4 });
     expect(query.toString()).to.equal('?a=1&b=2&c=3&d=4');
+    query.setAny('obj', { a: 1, b: 2 });
+    expect(query.getAny('obj')).to.deep.equal({ a: 1, b: 2 });
+    expect(query.getAnyAll('obj')).to.deep.equal([{ a: 1, b: 2 }]);
+    query.setAny('obj', [{ a: 1, b: 2 }]);
+    expect(query.getAny('obj')).to.deep.equal({ a: 1, b: 2 });
+    expect(query.getAnyAll('obj')).to.deep.equal([{ a: 1, b: 2 }]);
     expect(new QueryString({ a: 1 }).toString()).to.equal('?a=1');
     expect(new QueryString(query).toString()).to.equal(query.toString());
   });
