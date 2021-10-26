@@ -115,6 +115,8 @@ export class I18n<T = Record<string, Msg>> {
     }
   }
 
+  get(s: keyof T): string;
+  get(s: keyof T, ...rest: (((s: string) => TemplateResult) | string)[]): TemplateResult;
   get(s: keyof T, ...rest: (((s: string) => TemplateResult) | string)[]) {
     const currentLanguagePack = this.resources[this.currentLanguage] as any;
     const fallbackLanguagePack = this.resources[this.fallbackLanguage] as any;
