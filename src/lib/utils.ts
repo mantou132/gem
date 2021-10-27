@@ -115,10 +115,6 @@ export class PropProxyMap<T extends NonPrimitive, V = unknown> extends WeakMap<T
   }
 }
 
-export function isObject(value: any) {
-  return typeof value === 'object';
-}
-
 declare global {
   interface URLSearchParams {
     entries(): Iterable<readonly [string | number | symbol, any]>;
@@ -144,14 +140,15 @@ export class QueryString extends URLSearchParams {
     });
   }
 
-  #stringify = (value: any) => (isObject(value) ? JSON.stringify(value) : value);
+  #stringify = (value: any) => (typeof value === 'string' ? value : JSON.stringify(value));
 
   setAny(key: string, value: any) {
     if (Array.isArray(value)) {
       this.delete(key);
       value.forEach((e) => this.append(key, this.#stringify(e)));
     } else {
-      this.set(key, this.#stringify(value));
+      const v = this.#stringify(value);
+      v ? this.set(key, v) : this.delete(key);
     }
   }
 
