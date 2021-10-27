@@ -220,12 +220,12 @@ declare global {
   }
 }
 
-type StyledType = 'id' | 'class' | 'keyframes';
-interface StyledValueObject {
+export type StyledType = 'id' | 'class' | 'keyframes';
+export interface StyledValueObject {
   styledContent: string;
   type: StyledType;
 }
-interface StyledKeyValuePair {
+export interface StyledKeyValuePair {
   [key: string]: StyledValueObject;
 }
 
