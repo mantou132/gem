@@ -347,7 +347,9 @@ export function removeItems(target: any[], items: any[]) {
 export function styleMap(obj: Partial<CSSStyleDeclaration>) {
   let styleString = '';
   for (const key in obj) {
-    styleString += `${camelToKebabCase(key)}:${obj[key]};`;
+    if (obj[key]) {
+      styleString += `${camelToKebabCase(key)}:${obj[key]};`;
+    }
   }
   return styleString;
 }
