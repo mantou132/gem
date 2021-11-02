@@ -123,9 +123,6 @@ declare global {
 export class QueryString extends URLSearchParams {
   constructor(param?: any) {
     super(param);
-    if (param instanceof QueryString) {
-      return param;
-    }
   }
 
   concat(param: any) {
