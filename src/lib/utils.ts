@@ -125,6 +125,7 @@ export class QueryString extends URLSearchParams {
     super(param);
   }
 
+  // support `{ key: ObjectValue }`
   concat(param: any) {
     let query: any;
     if (typeof param === 'string') {
@@ -132,8 +133,8 @@ export class QueryString extends URLSearchParams {
     } else {
       query = param;
     }
-    Object.keys(query).forEach((key) => {
-      this.append(key, query[key]);
+    Object.entries(query).forEach(([key, value]) => {
+      this.append(key, this.#stringify(value));
     });
   }
 
