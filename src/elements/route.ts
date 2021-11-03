@@ -60,6 +60,7 @@ export interface RouteItem<T = unknown> {
   // 支持 *
   // 支持 /a/*
   // 不支持相对路径
+  // 不能匹配查询字符串
   pattern: string;
   redirect?: string;
   content?: TemplateResult;
@@ -194,7 +195,12 @@ export class GemRouteElement extends GemElement<State> {
 
   mounted() {
     this.effect(
-      ([_, path]) => {
+      ([key, path], old) => {
+        // 只有查询参数改变
+        if (old && key === old[0] && path === old[1]) {
+          this.#updateLocationStore();
+          return;
+        }
         const { route, params = {} } = GemRouteElement.findRoute(this.routes, path);
         const { redirect, content, getContent } = route || {};
         if (redirect) {
@@ -219,10 +225,9 @@ export class GemRouteElement extends GemElement<State> {
       },
       () => {
         const { path } = history.getParams();
-        return [this.key, path];
+        return [this.key, path, location.search];
       },
     );
-    this.effect(this.#updateLocationStore, () => [location.search]);
   }
 
   shouldUpdate() {

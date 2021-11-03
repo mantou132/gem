@@ -7,7 +7,8 @@ import '../elements/layout';
 
 const homeRoute: RouteItem = {
   pattern: '/',
-  getContent(params) {
+  async getContent(params) {
+    await new Promise((res) => setTimeout(res, 1000));
     return html`<route-home .params=${params}></route-home>`;
   },
 };
