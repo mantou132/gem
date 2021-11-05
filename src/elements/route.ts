@@ -246,7 +246,7 @@ export class GemRouteElement extends GemElement<State> {
           display: contents;
         }
       </style>
-      ${content}
+      ${content ?? html`<slot></slot>`}
     `;
   }
 }
