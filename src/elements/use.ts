@@ -1,4 +1,4 @@
-import { GemElement, html, attribute, property, customElement } from '../';
+import { GemElement, html, attribute, property, customElement, state } from '../';
 
 const eleCache = new Map<string, HTMLTemplateElement>();
 /**
@@ -16,6 +16,8 @@ export class GemUseElement extends GemElement {
   @attribute selector: string; // CSS 选择器
   @property root?: HTMLElement | Document | ShadowRoot;
   @property element?: string | DocumentFragment | Element;
+
+  @state active: boolean;
 
   private getContent() {
     const ele = this.element || (this.selector ? (this.root || document).querySelector(this.selector) : null);
