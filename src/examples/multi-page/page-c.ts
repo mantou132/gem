@@ -1,5 +1,6 @@
 import { GemElement, html } from '../../';
 import '../../elements/route';
+import '../../elements/link';
 
 const routes = [
   {
