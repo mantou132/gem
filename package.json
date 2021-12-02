@@ -1,6 +1,6 @@
 {
   "name": "@mantou/gem",
-  "version": "1.5.4",
+  "version": "1.5.5",
   "description": "💎 使用自定义元素的轻量级 WebApp 开发框架",
   "main": "index.js",
   "module": "index.js",
@@ -20,18 +20,18 @@
   "typings": "index.d.ts",
   "scripts": {
     "docs": "npx gem-book docs",
-    "build:docs": "npm run docs -- --build",
+    "build:docs": "yarn docs -- --build",
     "lint": "tsc --noEmit && eslint --ext .ts --fix src/",
     "clean": "node -e \"fs.readdirSync('src').map(dir => require('rimraf').sync(dir))\"",
     "example": "cross-env NODE_ENV=development webpack serve",
     "build:examples": "rimraf build && node scripts/build-examples",
-    "build:module": "npm run clean && tsc",
+    "build:module": "yarn clean && tsc",
     "build:umd": "cross-env NODE_ENV=production webpack --config webpack.config.umd.js",
-    "build": "npm run build:module && npm run build:umd",
-    "prepare": "npm run build",
-    "prepublishOnly": "npm run lint && npm run test",
+    "build": "yarn build:module && yarn build:umd",
+    "prepare": "yarn build",
+    "prepublishOnly": "yarn lint && yarn test",
     "release": "node scripts/release",
-    "test": "npm run build:module && karma start --coverage"
+    "test": "yarn build:module && karma start --coverage"
   },
   "repository": {
     "type": "git",

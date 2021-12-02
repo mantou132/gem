@@ -25,11 +25,10 @@ export { ifDefined } from 'lit-html/directives/if-defined';
 type CustomStateSet = Set<string>;
 
 declare global {
-  interface ElementInternals {
+  interface ElementInternals extends ARIAMixin {
     states: CustomStateSet;
     // https://w3c.github.io/aria/#role_definitions
     role?: string;
-    ariaModal?: boolean;
   }
   // 用于 css 选择器选择元素，使用 @refobject 自动选择获取
   // 必须使用 attr 赋值
@@ -38,8 +37,8 @@ declare global {
    * @attr inert
    */
   interface HTMLElement {
-    attachInternals?: () => ElementInternals;
-    inert?: boolean;
+    attachInternals: () => ElementInternals;
+    inert: boolean;
   }
 }
 
@@ -164,7 +163,7 @@ export abstract class GemElement<T = Record<string, unknown>> extends HTMLElemen
       if (!this.attachInternals) {
         // https://bugs.webkit.org/show_bug.cgi?id=197960
         this.attachInternals = () => {
-          return { states: getCustomStateSet() };
+          return { states: getCustomStateSet() } as any;
         };
       }
       this.#internals = this.attachInternals();

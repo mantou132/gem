@@ -84,7 +84,7 @@ export function createModalClass<T extends Record<string, unknown>>(options: T) 
     constructor() {
       super();
       this.internals.role = 'alertdialog';
-      this.internals.ariaModal = true;
+      this.internals.ariaModal = 'true';
     }
 
     label = '';
