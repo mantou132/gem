@@ -50,56 +50,70 @@ interface LinkedListItem<T> {
   next?: LinkedListItem<T>;
 }
 // work on nodejs
-export class LinkedList<T extends NonPrimitive> extends (globalThis.EventTarget || Object) {
+export class LinkedList<T = any> extends (globalThis.EventTarget || Object) {
   addEventListener: <K extends keyof LinkedListEventMap>(
     type: K,
     listener: (this: LinkedList<T>, ev: LinkedListEventMap[K]) => any,
     options?: boolean | AddEventListenerOptions,
   ) => void;
 
-  pool = new Map<T, LinkedListItem<T>>();
-  firstItem?: LinkedListItem<T>;
-  lastItem?: LinkedListItem<T>;
+  #map = new Map<T, LinkedListItem<T>>();
+  #firstItem?: LinkedListItem<T>;
+  #lastItem?: LinkedListItem<T>;
 
-  // 添加已存在的项目时会删除老的项目
-  add(value: T) {
-    const item: LinkedListItem<T> = { value };
-    if (!this.firstItem) {
-      this.dispatchEvent(new CustomEvent('start'));
-      this.firstItem = item;
-    }
-    if (this.lastItem) {
-      this.lastItem.next = item;
-      item.prev = this.lastItem;
-    }
-    this.lastItem = item;
-
-    const existItem = this.pool.get(value);
+  #delete(value: T) {
+    const existItem = this.#map.get(value);
     if (existItem) {
       if (existItem.prev) {
         existItem.prev.next = existItem.next;
       } else {
-        this.firstItem = existItem.next;
+        this.#firstItem = existItem.next;
       }
       if (existItem.next) {
         existItem.next.prev = existItem.prev;
+      } else {
+        this.#lastItem = existItem.prev;
       }
+      this.#map.delete(value);
     }
-
-    this.pool.set(value, item);
+    return existItem;
   }
 
-  get(): T | undefined {
-    const firstItem = this.firstItem;
-    if (!firstItem) return;
+  get size() {
+    return this.#map.size;
+  }
 
-    this.pool.delete(firstItem.value);
+  // 添加到尾部，已存在时会删除老的项目
+  add(value: T) {
+    if (!this.#lastItem) {
+      this.dispatchEvent(new CustomEvent('start'));
+    }
+    const item: LinkedListItem<T> = this.#delete(value) || { value };
+    item.prev = this.#lastItem;
+    if (item.prev) {
+      item.prev.next = item;
+    }
+    item.next = undefined;
+    this.#lastItem = item;
+    if (!this.#firstItem) {
+      this.#firstItem = item;
+    }
+    this.#map.set(value, item);
+  }
 
-    this.firstItem = firstItem.next;
-    if (!this.firstItem) {
-      this.lastItem = undefined;
+  delete(value: T) {
+    const deleteItem = this.#delete(value);
+    if (!this.#firstItem) {
       this.dispatchEvent(new CustomEvent('end'));
     }
+    return deleteItem;
+  }
+
+  // 获取头部元素
+  get(): T | undefined {
+    const firstItem = this.#firstItem;
+    if (!firstItem) return;
+    this.#delete(firstItem.value);
     return firstItem.value;
   }
 }
