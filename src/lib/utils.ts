@@ -84,6 +84,7 @@ export class LinkedList<T = any> extends (globalThis.EventTarget || Object) {
   }
 
   // 添加到尾部，已存在时会删除老的项目
+  // 如果是添加第一个，start 事件会在添加前触发，避免处理事件重复的逻辑
   add(value: T) {
     if (!this.#lastItem) {
       this.dispatchEvent(new CustomEvent('start'));
@@ -101,6 +102,7 @@ export class LinkedList<T = any> extends (globalThis.EventTarget || Object) {
     this.#map.set(value, item);
   }
 
+  // 删除这个元素后没有其他元素时立即出发 end 事件
   delete(value: T) {
     const deleteItem = this.#delete(value);
     if (!this.#firstItem) {

@@ -25,10 +25,11 @@ customElements.define('async-gem-demo', AsyncGemDemo);
 describe('异步 gem element 测试', () => {
   it('异步 gem element 更新', async () => {
     const el: AsyncGemDemo = await fixture(html`<async-gem-demo></async-gem-demo>`);
+    expect(el.renderCount).to.equal(1);
     updateStore(store, { a: ++store.a });
     el.setState({ a: ++el.state.a });
     await nextFrame();
-    expect(el.renderCount).to.equal(1);
+    expect(el.renderCount).to.equal(2);
     await nextFrame();
     expect(el.renderCount).to.equal(2);
   });

@@ -52,20 +52,15 @@ function execCallback(fun: any) {
 
 // global render task pool
 const asyncRenderTaskList = new LinkedList<() => void>();
-const tick = () => {
-  window.requestAnimationFrame(function callback(timestamp) {
-    if (performance.now() > timestamp + 16) {
-      tick();
-      return;
-    }
-    const task = asyncRenderTaskList.get();
-    if (task) {
-      task();
-      callback(timestamp);
-    }
-  });
+const tick = (timeStamp = performance.now()) => {
+  if (performance.now() > timeStamp + 16) return requestAnimationFrame(tick);
+  const task = asyncRenderTaskList.get();
+  if (task) {
+    task();
+    tick(timeStamp);
+  }
 };
-asyncRenderTaskList.addEventListener('start', tick);
+asyncRenderTaskList.addEventListener('start', () => addMicrotask(tick));
 
 type GetDepFun<T> = () => T;
 type EffectCallback<T> = (depValues: T, oldDepValues?: T) => any;
