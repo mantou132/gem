@@ -192,7 +192,7 @@ export abstract class GemElement<T = Record<string, unknown>> extends HTMLElemen
     list?.forEach((effectItem) => {
       const { callback, getDep, values, preCallback } = effectItem;
       const newValues = getDep?.();
-      if (!getDep || isArrayChange(values, newValues)) {
+      if (!getDep || !values || isArrayChange(values, newValues)) {
         execCallback(preCallback);
         effectItem.preCallback = callback(newValues, values);
         effectItem.values = newValues;
@@ -229,15 +229,17 @@ export abstract class GemElement<T = Record<string, unknown>> extends HTMLElemen
     getDep?: T extends any[] ? () => [...T] : undefined,
   ) => {
     if (!this.#effectList) this.#effectList = [];
-    const values = getDep?.() as T;
     const effectItem: EffectItem<T> = {
       callback,
       getDep,
-      values,
+      values: undefined,
       initialized: !!this.isConnected,
     };
     // 以挂载时立即执行副作用，未挂载时等挂载后执行
-    if (this.isConnected) effectItem.preCallback = callback(values);
+    if (this.isConnected) {
+      effectItem.values = getDep?.() as T;
+      effectItem.preCallback = callback(effectItem.values);
+    }
     this.#effectList.push(effectItem);
   };
 
@@ -273,7 +275,8 @@ export abstract class GemElement<T = Record<string, unknown>> extends HTMLElemen
     this.#effectList?.forEach((effectItem) => {
       const { callback, getDep, initialized } = effectItem;
       if (!initialized) {
-        effectItem.preCallback = callback(getDep?.());
+        effectItem.values = getDep?.();
+        effectItem.preCallback = callback(effectItem.values);
         effectItem.initialized = true;
       }
     });

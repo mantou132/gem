@@ -147,11 +147,15 @@ class EffectGemDemo extends GemElement {
   @attribute attr = 'a';
   @property prop = {};
   effectCount = 0;
+  compareCount = 0;
   constructor() {
     super();
     this.effect(
       () => this.effectCount++,
-      () => [this.attr, this.prop],
+      () => {
+        this.compareCount++;
+        return [this.attr, this.prop];
+      },
     );
   }
   mounted() {
@@ -171,6 +175,7 @@ customElements.define('effect-gem-demo', EffectGemDemo);
 describe('gem element 副作用', () => {
   it('依赖当前值', async () => {
     const el: EffectGemDemo = await fixture(html`<effect-gem-demo></effect-gem-demo>`);
+    expect(el.compareCount).to.equal(1);
     expect(el.effectCount).to.equal(3);
     el.attr = 'b';
     el.prop = {};
