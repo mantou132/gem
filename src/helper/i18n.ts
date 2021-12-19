@@ -8,6 +8,7 @@ import { GemError } from '../lib/utils';
 const splitReg = /\$\d(?:<[^>]*>)?/;
 const matchReg = /\$(\d)(<([^>]*)>)?/g;
 const matchStrIndex = 3;
+const modules = new Set<I18n<any>>();
 
 type Msg =
   | {
@@ -56,11 +57,11 @@ export class I18n<T = Record<string, Msg>> {
 
   store: Store<any>;
 
-  get cacheCurrentKey() {
+  get #cacheCurrentKey() {
     return `${this.cachePrefix}:current`;
   }
 
-  get urlParamsLang() {
+  get #urlParamsLang() {
     const { hostname, pathname, search } = location;
     const parts = hostname.split('.');
     switch (this.urlParamsType) {
@@ -76,13 +77,19 @@ export class I18n<T = Record<string, Msg>> {
     }
   }
 
-  get cacheLang() {
-    return (this.cache && localStorage.getItem(this.cacheCurrentKey)) || '';
+  get #cacheLang() {
+    return (this.cache && localStorage.getItem(this.#cacheCurrentKey)) || '';
   }
 
-  set lang(lang: string) {
+  get #isMain(): boolean {
+    return !modules.has(this);
+  }
+
+  set #lang(lang: string) {
+    if (this.#isMain) {
+      document.documentElement.lang = lang;
+    }
     this.currentLanguage = lang;
-    document.documentElement.lang = lang;
     this.onChange?.(lang);
   }
 
@@ -94,7 +101,7 @@ export class I18n<T = Record<string, Msg>> {
     this.store = createStore(this as any);
     Object.assign<I18n<T>, Options<T>>(this as I18n<T>, options);
 
-    let currentLanguage = this.urlParamsLang || this.currentLanguage || this.cacheLang;
+    let currentLanguage = this.#urlParamsLang || this.currentLanguage || this.#cacheLang;
 
     const ele = document.querySelector(`[type*=${this.cachePrefix}]`);
     if (ele) {
@@ -108,7 +115,7 @@ export class I18n<T = Record<string, Msg>> {
     }
 
     if (currentLanguage) {
-      this.lang = currentLanguage;
+      this.#lang = currentLanguage;
       this.setLanguage(currentLanguage);
     } else {
       this.resetLanguage();
@@ -147,11 +154,14 @@ export class I18n<T = Record<string, Msg>> {
   }
 
   async setLanguage(lang: string): Promise<string> {
+    if (this.#isMain) {
+      modules.forEach(async (i18n) => await i18n.setLanguage(lang));
+    }
     let pack: Partial<T>;
     const data = this.resources[lang];
     if (!data) {
       // eslint-disable-next-line no-console
-      console.warn(`i18n: not found \`${lang}\``);
+      console.warn(`${this.cachePrefix}: not found \`${lang}\``);
       return this.resetLanguage();
     }
 
@@ -190,7 +200,7 @@ export class I18n<T = Record<string, Msg>> {
     this.resources[lang] = pack;
     updateStore(this.store, {});
     if (lang !== this.currentLanguage) {
-      this.lang = lang;
+      this.#lang = lang;
     }
     // auto cache
     if (this.cache === true) {
@@ -200,16 +210,34 @@ export class I18n<T = Record<string, Msg>> {
   }
 
   resetLanguage() {
-    this.lang = this.fallbackLanguage;
+    if (this.#isMain) {
+      modules.forEach((i18n) => i18n.resetLanguage());
+    }
+    this.#lang = this.fallbackLanguage;
     if (this.cache) {
-      localStorage.removeItem(this.cacheCurrentKey);
+      localStorage.removeItem(this.#cacheCurrentKey);
     }
     return this.setLanguage(this.detectLanguage());
   }
 
   // 一般用在 `onChange` 中
   setCache() {
-    localStorage.setItem(this.cacheCurrentKey, this.currentLanguage);
+    if (this.#isMain) {
+      modules.forEach((i18n) => i18n.setCache());
+    }
+    localStorage.setItem(this.#cacheCurrentKey, this.currentLanguage);
+  }
+
+  createSubModule<K = Record<string, Msg>>(name: string, resources: Resources<K>) {
+    const module = new I18n<K>({
+      resources,
+      cachePrefix: `${this.cachePrefix}-${name}`,
+      currentLanguage: this.currentLanguage,
+      fallbackLanguage: this.fallbackLanguage,
+      cache: this.cache,
+    });
+    modules.add(module);
+    return module;
   }
 
   /**

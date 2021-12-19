@@ -22,7 +22,16 @@ const i18n = new I18n<typeof en>({
   onChange: console.log,
 });
 
+const i18nModule = i18n.createSubModule<typeof en>('test', {
+  en,
+  de: {
+    title: 'Das ist I18n',
+  },
+  zh: 'data:text/plain;base64,eyJ0aXRsZSI6Iui/meaYr0kxOG4ifQ==',
+});
+
 @connectStore(i18n.store)
+@connectStore(i18nModule.store)
 @customElement('app-root')
 export class App extends GemElement {
   render() {
@@ -35,6 +44,11 @@ export class App extends GemElement {
       <p>${i18n.get('title')}</p>
       <p>${i18n.get('hello', 'World', 'reverse')}</p>
       <p>${i18n.get('detail', (s) => html`<a href="#">${s}</a>`)}</p>
+
+      <h2>sub module</h2>
+      <p>${i18nModule.get('title')}</p>
+      <p>${i18nModule.get('hello', 'World', 'reverse')}</p>
+      <p>${i18nModule.get('detail', (s) => html`<a href="#">${s}</a>`)}</p>
     `;
   }
 }
