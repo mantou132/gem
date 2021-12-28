@@ -2,7 +2,7 @@ import { defineAttribute, defineCSSState, defineProperty, defineRef, GemElement,
 import { Store } from './store';
 import { Sheet, camelToKebabCase, randomStr } from './utils';
 
-type GemElementPrototype = GemElement;
+type GemElementPrototype = GemElement<any>;
 type GemElementConstructor = typeof GemElement;
 type StaticField = Exclude<keyof GemElementConstructor, 'prototype' | 'rootElement'>;
 type StaticFieldMember = string | Store<unknown> | Sheet<unknown>;
