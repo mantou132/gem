@@ -8,6 +8,20 @@ import { GemError } from '../lib/utils';
 const splitReg = /\$\d(?:<[^>]*>)?/;
 const matchReg = /\$(\d)(<([^>]*)>)?/g;
 const matchStrIndex = 3;
+
+export function splice(rawValue: string, ...rest: (((s: string) => TemplateResult) | string)[]) {
+  const templateArr = rawValue.split(splitReg) as unknown as TemplateStringsArray;
+  const values: (TemplateResult | string)[] = [];
+  let result: RegExpExecArray | null;
+  while ((result = matchReg.exec(rawValue))) {
+    const str = result[matchStrIndex];
+    const index = Number(result[1]) - 1;
+    const arg = rest[index];
+    values.push(typeof arg === 'string' ? arg : arg(str));
+  }
+  return html(templateArr, ...values);
+}
+
 const modules = new Set<I18n<any>>();
 
 type Msg =
@@ -130,17 +144,7 @@ export class I18n<T = Record<string, Msg>> {
     const msg = currentLanguagePack[s] || fallbackLanguagePack[s];
     const rawValue: string = msg?.message || msg || `[${s}]`;
     if (!rest.length) return rawValue;
-
-    const templateArr = rawValue.split(splitReg) as unknown as TemplateStringsArray;
-    const values: (TemplateResult | string)[] = [];
-    let result: RegExpExecArray | null;
-    while ((result = matchReg.exec(rawValue))) {
-      const str = result[matchStrIndex];
-      const index = Number(result[1]) - 1;
-      const arg = rest[index];
-      values.push(typeof arg === 'string' ? arg : arg(str));
-    }
-    return html(templateArr, ...values);
+    return splice(rawValue, ...rest);
   }
 
   detectLanguage() {
