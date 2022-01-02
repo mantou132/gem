@@ -75,7 +75,7 @@ type EffectItem<T> = {
 const initSymbol = Symbol('init');
 const updateSymbol = Symbol('update');
 
-interface GemElementOptions {
+export interface GemElementOptions {
   isLight?: boolean;
   isAsync?: boolean;
   delegatesFocus?: boolean;
