@@ -149,11 +149,13 @@ export abstract class GemElement<T = Record<string, unknown>> extends HTMLElemen
     if (!this.#internals) {
       const getCustomStateSet = () => {
         // https://wicg.github.io/custom-state-pseudo-class/
-        const { classList } = this;
+        const getV = (v: string) => v.replace('--', '');
         return {
-          has: (v) => classList.contains(v),
-          add: (v) => classList.add(v),
-          delete: (v) => classList.remove(v),
+          has: (v) => getV(v) in this.dataset,
+          add: (v) => {
+            this.dataset[getV(v)] = '';
+          },
+          delete: (v) => delete this.dataset[getV(v)],
         } as CustomStateSet;
       };
       if (!this.attachInternals) {

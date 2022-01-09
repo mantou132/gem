@@ -97,7 +97,7 @@ class MyElement extends GemElement {
 
   open() {
     // Can be selected by the selector `:--opened`
-    // Consider compatibility can be used `:where(:--opened, .--opened)`
+    // Consider compatibility can be used `:where(:--opened, [data-opened])`
     this.opened = true;
   }
 }

@@ -102,7 +102,7 @@ class MyElement extends GemElement {
 
   open() {
     // 可被选择器 `:--opened` 选中
-    // 考虑兼容性可以使用 `:where(:--opened, .--opened)`
+    // 考虑兼容性可以使用 `:where(:--opened, [data-opened])`
     this.opened = true;
   }
 }
