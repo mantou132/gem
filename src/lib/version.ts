@@ -1,2 +1,2 @@
 // Do not modify manually
-export const version = '1.5.8';
+export const version = '1.6.0';
