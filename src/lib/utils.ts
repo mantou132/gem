@@ -244,11 +244,12 @@ export interface StyledKeyValuePair {
 // https://bugzilla.mozilla.org/show_bug.cgi?id=1520690
 // https://bugs.webkit.org/show_bug.cgi?id=228684
 export let useNativeCSSStyleSheet = true;
+let CSSStyleSheet = window.CSSStyleSheet;
 try {
   new (CSSStyleSheet as any)();
 } catch {
   useNativeCSSStyleSheet = false;
-  window.CSSStyleSheet = class {
+  CSSStyleSheet = class {
     media = { mediaText: '' };
     style = '';
     replaceSync = (style: string) => (this.style = style);
