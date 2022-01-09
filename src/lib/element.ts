@@ -133,11 +133,35 @@ export abstract class GemElement<T = Record<string, unknown>> extends HTMLElemen
       } else {
         this.effect(
           () => {
-            const root = this.getRootNode() as ShadowRoot;
-            root.adoptedStyleSheets = [...root.adoptedStyleSheets, ...sheets];
-            return () => {
-              root.adoptedStyleSheets = removeItems(root.adoptedStyleSheets, sheets);
-            };
+            const root = this.getRootNode() as ShadowRoot | Document;
+            if (!useNativeCSSStyleSheet) {
+              const ele: any = root === document ? document.body : root;
+              ele._sheets = ele._sheets || {};
+              sheets.forEach(({ style, media }: any) => {
+                if (ele._sheets[style]) {
+                  ele._sheets[style].count++;
+                } else {
+                  const s = document.createElement('style');
+                  s.innerHTML = style;
+                  s.media = media.mediaText;
+                  ele.append(s);
+                  ele._sheets[style] = { ele: s, count: 1 };
+                }
+              });
+              return () => {
+                sheets.forEach(({ style }: any) => {
+                  ele._sheets[style].count--;
+                  if (!ele._sheets[style].count) {
+                    delete ele._sheets[style];
+                  }
+                });
+              };
+            } else {
+              root.adoptedStyleSheets = [...root.adoptedStyleSheets, ...sheets];
+              return () => {
+                root.adoptedStyleSheets = removeItems(root.adoptedStyleSheets, sheets);
+              };
+            }
           },
           () => [],
         );
