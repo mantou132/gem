@@ -12,6 +12,7 @@ import {
   kebabToCamelCase,
   PropProxyMap,
   removeItems,
+  useNativeCSSStyleSheet,
 } from './utils';
 
 export { html, svg, render, directive, TemplateResult, SVGTemplateResult } from 'lit-html';
@@ -294,8 +295,18 @@ export abstract class GemElement<T = Record<string, unknown>> extends HTMLElemen
 
   #render = () => {
     this.#execMemo();
-    if (this.render) return this.render();
-    return this.#renderRoot === this ? undefined : html`<slot></slot>`;
+    const styles = useNativeCSSStyleSheet
+      ? ''
+      : html`${this.shadowRoot?.adoptedStyleSheets?.map(
+          (e: any) =>
+            html`
+              <style media=${e.media.mediaText}>
+                ${e.style}
+              </style>
+            `,
+        )}`;
+    if (this.render) return html`${this.render()}${styles}`;
+    return this.#renderRoot === this ? undefined : html`<slot></slot>${styles}`;
   };
 
   /**@lifecycle */

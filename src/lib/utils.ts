@@ -240,9 +240,22 @@ export interface StyledKeyValuePair {
   [key: string]: StyledValueObject;
 }
 
+// !!! 目前只有 Chrome/FirefoxNightly 支持
+// https://bugzilla.mozilla.org/show_bug.cgi?id=1520690
+// https://bugs.webkit.org/show_bug.cgi?id=228684
+export let useNativeCSSStyleSheet = true;
+try {
+  new (CSSStyleSheet as any)();
+} catch {
+  useNativeCSSStyleSheet = false;
+  window.CSSStyleSheet = class {
+    media = { mediaText: '' };
+    style = '';
+    replaceSync = (style: string) => (this.style = style);
+  } as any;
+}
+
 /**
- * !!! 目前只有 Chrome/FirefoxNightly 支持
- * https://bugzilla.mozilla.org/show_bug.cgi?id=1520690
  *
  * 创建 style sheet 用于 `adoptedStyleSheets`，不支持样式更新
  * @param rules string | Record<string, string> 不能动态更新的 css
