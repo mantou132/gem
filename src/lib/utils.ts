@@ -355,6 +355,7 @@ export class GemError extends Error {
 
 export function isArrayChange(newValues: any[], oldValues: any[]) {
   const length = newValues.length;
+  if (oldValues.length !== length) return true;
   for (let i = 0; i < length; i++) {
     if (newValues[i] !== oldValues[i]) return true;
   }
