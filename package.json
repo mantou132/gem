@@ -6,6 +6,7 @@
   "module": "index.js",
   "exports": {
     ".": "./index.js",
+    "./lib/*": "./lib/*.js",
     "./elements/*": "./elements/*.js",
     "./helper/*": "./helper/*.js"
   },
