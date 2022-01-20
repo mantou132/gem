@@ -13,7 +13,10 @@
  * - `<gem-title>` 作为默认值设置
  */
 
-import { html, GemElement, connectStore, updateStore, customElement, connect, attribute, titleStore } from '..';
+import { GemElement, html } from '../lib/element';
+import { attribute, customElement, connectStore } from '../lib/decorators';
+import { updateStore, connect } from '../lib/store';
+import { titleStore } from '../lib/history';
 
 /**
  * 允许声明式设置 `document.title`

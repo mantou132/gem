@@ -1,4 +1,5 @@
-import { GemElement, customElement, property } from '..';
+import { GemElement } from '../lib/element';
+import { property, customElement } from '../lib/decorators';
 
 // support prerender
 document.querySelectorAll('[data-reflect]').forEach((e) => e.remove());

@@ -1,4 +1,6 @@
-import { GemElement, createStore, updateStore, history } from '../';
+import { GemElement } from '../lib/element';
+import { createStore, updateStore } from '../lib/store';
+import { history } from '../lib/history';
 
 const open = Symbol('open mark');
 

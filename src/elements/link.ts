@@ -1,16 +1,6 @@
-import {
-  GemElement,
-  html,
-  history,
-  basePathStore,
-  part,
-  attribute,
-  property,
-  connectStore,
-  customElement,
-  state,
-  ifDefined,
-} from '../';
+import { GemElement, html, ifDefined } from '../lib/element';
+import { attribute, property, customElement, state, part, connectStore } from '../lib/decorators';
+import { history, basePathStore } from '../lib/history';
 import { absoluteLocation } from '../lib/utils';
 import { matchPath, RouteItem, RouteOptions, createHistoryParams, createPath } from './route';
 

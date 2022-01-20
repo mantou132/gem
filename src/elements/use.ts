@@ -1,4 +1,5 @@
-import { GemElement, html, attribute, property, customElement, state } from '../';
+import { GemElement, html } from '../lib/element';
+import { attribute, property, customElement, state } from '../lib/decorators';
 
 const eleCache = new Map<string, HTMLTemplateElement>();
 /**

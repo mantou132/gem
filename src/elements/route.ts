@@ -1,20 +1,8 @@
-import {
-  html,
-  GemElement,
-  customElement,
-  connectStore,
-  property,
-  emitter,
-  Emitter,
-  history,
-  TemplateResult,
-  UpdateHistoryParams,
-  titleStore,
-  updateStore,
-  Store,
-  QueryString,
-  createStore,
-} from '../';
+import { GemElement, html, TemplateResult } from '../lib/element';
+import { property, customElement, connectStore, emitter, Emitter } from '../lib/decorators';
+import { createStore, updateStore, Store } from '../lib/store';
+import { titleStore, history, UpdateHistoryParams } from '../lib/history';
+import { QueryString } from '../lib/utils';
 
 interface NamePostition {
   [index: string]: number;

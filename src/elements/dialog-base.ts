@@ -1,4 +1,6 @@
-import { GemElement, connectStore, history, state, attribute } from '..';
+import { GemElement } from '../lib/element';
+import { attribute, state, connectStore } from '../lib/decorators';
+import { history } from '../lib/history';
 
 /**
  * 在模版中声明的 dialog，使用 `open` 方法 打开；

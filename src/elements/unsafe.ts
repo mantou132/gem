@@ -1,4 +1,5 @@
-import { GemElement, attribute, customElement } from '../';
+import { GemElement } from '../lib/element';
+import { attribute, customElement } from '../lib/decorators';
 
 /**
  * 直接写会被解释成固定属性，需要使用变量赋值

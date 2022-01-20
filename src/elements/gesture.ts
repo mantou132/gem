@@ -1,4 +1,5 @@
-import { html, GemElement, customElement, emitter, Emitter, attribute } from '../';
+import { GemElement, html } from '../lib/element';
+import { attribute, customElement, emitter, Emitter } from '../lib/decorators';
 
 export type PanEventDetail = {
   // movement
