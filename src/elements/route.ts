@@ -98,7 +98,7 @@ type State = {
 /**
  * @customElement gem-route
  * @attr inert 暂停路由更新
- * @fires route-change
+ * @fires routechange
  * @fires error
  * @fires loading
  */
@@ -113,7 +113,7 @@ export class GemRouteElement extends GemElement<State> {
    */
   @property locationStore?: Store<{ path: string; params: Params; query: QueryString; data?: any }>;
   @property key: any; // 除了 href 提供另外一种方式来更新，比如语言更新也需要刷新 <gem-route>
-  @emitter routeChange: Emitter<RouteItem | null>; // path 改变或者 key 改变，包含初始渲染
+  @emitter routechange: Emitter<RouteItem | null>; // path 改变或者 key 改变，包含初始渲染
   @emitter loading: Emitter<RouteItem>;
   @emitter error: Emitter<any>;
 
@@ -175,7 +175,7 @@ export class GemRouteElement extends GemElement<State> {
     this.currentRoute = route;
     this.currentParams = params;
     this.setState({ content });
-    this.routeChange(this.currentRoute);
+    this.routechange(this.currentRoute);
     const title = route?.title;
     if (title) updateStore(titleStore, { title });
     this.#updateLocationStore();
