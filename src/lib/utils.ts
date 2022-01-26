@@ -373,11 +373,16 @@ export function removeItems(target: any[], items: any[]) {
   });
 }
 
-export function styleMap(obj: Partial<CSSStyleDeclaration>) {
+type StyleProp = keyof CSSStyleDeclaration | `--${string}`;
+
+export type StyleObject = Partial<Record<StyleProp, string | number | undefined>>;
+
+// 不支持 webkit 属性
+export function styleMap(object: StyleObject) {
   let styleString = '';
-  for (const key in obj) {
-    if (obj[key]) {
-      styleString += `${camelToKebabCase(key)}:${obj[key]};`;
+  for (const key in object) {
+    if (object[key as StyleProp] !== undefined) {
+      styleString += `${camelToKebabCase(key)}:${object[key as StyleProp]};`;
     }
   }
   return styleString;
