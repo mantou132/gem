@@ -1,0 +1,48 @@
+{
+  "name": "duoyun-ui",
+  "version": "0.0.5",
+  "description": "WebComponts UI",
+  "files": [
+    "/elements/",
+    "/lib/",
+    "/locales/"
+  ],
+  "scripts": {
+    "docs": "gem-book docs --i18n -t DuoyunUI",
+    "build:docs": "yarn docs --build",
+    "clean": "node -e \"fs.readdirSync('src').map(dir => require('rimraf').sync(dir))\"",
+    "build": "yarn clean && tsc -p tsconfig.build.json",
+    "start": "yarn build --watch",
+    "test": "wtr",
+    "prepublishOnly": "yarn build"
+  },
+  "dependencies": {
+    "d3-geo": "^3.0.1"
+  },
+  "peerDependencies": {
+    "@mantou/gem": "^1.6.5"
+  },
+  "devDependencies": {
+    "@esm-bundle/chai": "^4.3.4-fix.0",
+    "@gemjs/config": "^1.6.5",
+    "@mantou/gem": "^1.6.5",
+    "@open-wc/testing": "^2.5.33",
+    "@types/d3-geo": "^3.0.1",
+    "@web/dev-server-esbuild": "^0.2.16",
+    "@web/test-runner": "^0.13.22",
+    "rimraf": "^3.0.2",
+    "typescript": "^4.5.2",
+    "webpack-merge": "^5.7.3"
+  },
+  "author": "mantou132",
+  "license": "ISC",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mantou132/gem.git",
+    "directory": "packages/duoyun-ui"
+  },
+  "bugs": {
+    "url": "https://github.com/mantou132/gem/issues"
+  },
+  "homepage": "https://github.com/mantou132/gem#readme"
+}

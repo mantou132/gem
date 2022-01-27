@@ -1,0 +1,80 @@
+import { GemElement, html, TemplateResult } from '@mantou/gem/lib/element';
+import { adoptedStyle, customElement, property, attribute } from '@mantou/gem/lib/decorators';
+import { createCSSSheet, css } from '@mantou/gem/lib/utils';
+
+import { theme } from '../lib/theme';
+
+import { Status, getStatusColor } from './status-light';
+
+import '@mantou/gem/elements/use';
+import './heading';
+import './paragraph';
+import './space';
+
+const style = createCSSSheet(css`
+  :host {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+  .header {
+    margin-block-start: 1em;
+    color: ${theme.textColor};
+  }
+  .icon {
+    width: 5em;
+  }
+  .illustrator {
+    color: ${theme.neutralColor};
+    width: 10em;
+  }
+  .description {
+    color: ${theme.describeColor};
+    font-style: italic;
+  }
+  slot::slotted(*) {
+    margin-block-start: 1em;
+  }
+`);
+
+/**
+ * @customElement dy-result
+ */
+@customElement('dy-result')
+@adoptedStyle(style)
+export class DyResultElement extends GemElement {
+  @attribute status: Status;
+
+  @property icon?: string | Element | DocumentFragment;
+  @property illustrator?: string | Element | DocumentFragment;
+  @property header?: string | TemplateResult;
+  @property description?: string | TemplateResult;
+
+  get #status() {
+    return this.status || 'default';
+  }
+
+  get #color() {
+    return getStatusColor(this.#status);
+  }
+
+  render = () => {
+    return html`
+      ${this.icon
+        ? html`
+            <style>
+              .icon {
+                color: ${this.#color};
+              }
+            </style>
+            <gem-use class="icon" .element=${this.icon}></gem-use>
+          `
+        : ''}
+      ${this.illustrator ? html`<gem-use class="illustrator" .element=${this.illustrator}></gem-use>` : ''}
+      ${this.header ? html`<dy-heading lv="2" class="header">${this.header}</dy-heading>` : ''}
+      ${this.description ? html`<dy-paragraph class="description">${this.description}</dy-paragraph>` : ''}
+      <slot></slot>
+    `;
+  };
+}

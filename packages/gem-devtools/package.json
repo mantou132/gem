@@ -1,0 +1,35 @@
+{
+  "name": "gem-devtools",
+  "version": "1.6.5",
+  "description": "Gem devtools",
+  "scripts": {
+    "update:version": "node ./script/update.js",
+    "build": "vite build",
+    "build:watch": "yarn build --watch",
+    "build:zip": "yarn build && web-ext --config web-ext.config.js build",
+    "browser": "web-ext --config web-ext.config.js run",
+    "start": "concurrently npm:build:watch npm:browser"
+  },
+  "dependencies": {
+    "@mantou/gem": "^1.6.5",
+    "webextension-polyfill": "^0.8.0"
+  },
+  "devDependencies": {
+    "@gemjs/config": "^1.6.5",
+    "@types/webextension-polyfill": "^0.8.2",
+    "concurrently": "^6.2.0",
+    "vite": "^2.7.13",
+    "web-ext": "^6.6.0"
+  },
+  "author": "mantou132",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mantou132/gem.git",
+    "directory": "packages/gem-devtools"
+  },
+  "bugs": {
+    "url": "https://github.com/mantou132/gem/issues"
+  },
+  "homepage": "https://github.com/mantou132/gem#readme"
+}

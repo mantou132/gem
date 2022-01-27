@@ -1,0 +1,9 @@
+{
+  "extends": "@gemjs/config/tsconfig",
+  "compilerOptions": {
+    "outDir": "./",
+    "module": "ES2020"
+  },
+  "include": ["src/element", "src/common", "src/plugins", "src/index.ts"],
+  "exclude": ["./src/**/*.test.ts", "./src/**/*.spec.ts"]
+}

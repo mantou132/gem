@@ -1,0 +1,12 @@
+/node_modules/
+
+# Compiler output
+/lib/
+/elements/
+/locales/
+/coverage/
+
+.DS_Store
+logs
+*.log
+npm-debug.log*

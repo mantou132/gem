@@ -1,0 +1,25 @@
+name: Publish
+
+on:
+  push:
+    tags:
+      - "gem-book@*"
+
+jobs:
+  gem-book-publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v1
+        with:
+          node-version: 14.x
+
+      - run: yarn
+      - run: cd packages/gem-book
+      - run: yarn build
+
+      - uses: JS-DevTools/npm-publish@v1
+        with:
+          token: ${{ secrets.NPM_TOKEN }}

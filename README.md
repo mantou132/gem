@@ -1,4 +1,4 @@
-# Gem &middot; [![Build Status](https://travis-ci.org/mantou132/gem.svg?branch=master)](https://travis-ci.org/mantou132/gem)
+# Gem
 
 Read in other languages: English | [中文](./README_zh.md)
 
@@ -18,24 +18,11 @@ Create custom elements, bind data, route switching, and quickly develop WebApps 
 - **Asynchronous rendering:**
   which will avoid blocking the main thread for a long time when continuously rendering (such as creating a list) of element, providing a smooth user experience;
 
-- **Support back button:**
-  Drop-down menus, drawer-style menus, and pop-up windows can be closed with the back button just like native apps, and can also perform similar confirmation actions before closing;
-
 ## Document
 
 - [Guide](https://gem-docs.netlify.com/guide/)
 - [API](https://gem-docs.netlify.com/api/)
 
-## Related repo
-
-- [create-gem-app](https://github.com/mantou132/create-gem-app)
-- [gem-boilerplate](https://github.com/mantou132/gem-boilerplate)
-- [gem-lib-boilerplate](https://github.com/mantou132/gem-lib-boilerplate)
-- [gem-book](https://github.com/mantou132/gem-book)
-- [gem-frame](https://github.com/mantou132/gem-frame)
-- [gem-ui](https://github.com/mantou132/gem-ui)
-- [gem-devtools](https://github.com/mantou132/gem-devtools)
-
 ## Contribution
 
-Fork repo you are interested in, submit PR
+Fork repo, submit PR
