@@ -1,0 +1,91 @@
+{
+  "name": "gem-book",
+  "version": "1.5.6",
+  "description": "Create your document website easily and quickly",
+  "keywords": [
+    "doc",
+    "docs",
+    "documentation",
+    "creator",
+    "generator"
+  ],
+  "main": "index.js",
+  "module": "index.js",
+  "bin": {
+    "gem-book": "bin/index.js"
+  },
+  "typings": "index.d.ts",
+  "files": [
+    "/bin/",
+    "/common/",
+    "/element/",
+    "/plugins/",
+    "/public/",
+    "/website/",
+    "/themes/",
+    "/index.*"
+  ],
+  "scripts": {
+    "build:cli": "esbuild ./src/bin/index.ts --outdir=./bin --bundle --platform=node --minify --sourcemap --external:ts-loader --external:jsdom --external:webpack --external:webpack-dev-server --external:html-webpack-plugin --external:workbox-webpack-plugin",
+    "start:cli": "yarn build:cli --watch",
+    "docs": "node ./bin docs",
+    "start:docs": "cross-env PORT=8090 GEM_BOOK_DEV=true nodemon --watch bin --watch gem-book.cli.json --exec \"yarn docs\"",
+    "start": "concurrently npm:start:cli npm:start:docs",
+    "build:website": "yarn build:cli && yarn docs --build --ga G-7X2Z4B2KV0",
+    "build": "yarn build:cli && tsc -p ./tsconfig.build.json",
+    "test": "wtr",
+    "prepublishOnly": "yarn build"
+  },
+  "dependencies": {
+    "@mantou/gem": "^1.6.8",
+    "commander": "^7.2.0",
+    "copy-webpack-plugin": "^8.1.1",
+    "front-matter": "^4.0.2",
+    "git-remote-origin-url": "^3.1.0",
+    "git-repo-info": "^2.1.1",
+    "html-webpack-plugin": "^5.3.1",
+    "jimp": "^0.16.1",
+    "jsdom": "^16.5.3",
+    "lodash": "^4.17.21",
+    "marked": "^2.0.3",
+    "mkdirp": "^1.0.4",
+    "parse-github-url": "^1.0.2",
+    "ts-loader": "^9.1.2",
+    "typescript": "^4.5.0",
+    "webpack": "^5.37.0",
+    "webpack-dev-server": "^4.7.3",
+    "workbox-webpack-plugin": "^6.1.5",
+    "yaml": "^1.10.2"
+  },
+  "devDependencies": {
+    "@esm-bundle/chai": "^4.3.4-fix.0",
+    "@gemjs/config": "^1.6.8",
+    "@open-wc/testing": "^2.5.33",
+    "@types/copy-webpack-plugin": "^8.0.0",
+    "@types/jsdom": "^16.2.10",
+    "@types/lodash": "^4.14.169",
+    "@types/marked": "^2.0.2",
+    "@types/mkdirp": "^1.0.1",
+    "@types/parse-github-url": "^1.0.0",
+    "@types/prismjs": "^1.16.5",
+    "@types/workbox-webpack-plugin": "^5.1.6",
+    "@web/dev-server-esbuild": "^0.2.16",
+    "@web/test-runner": "^0.13.22",
+    "esbuild": "^0.12.5",
+    "nodemon": "^2.0.7",
+    "webpack-cli": "^4.7.0",
+    "webpack-merge": "^5.7.3",
+    "webpack-node-externals": "^3.0.0"
+  },
+  "author": "mantou132",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mantou132/gem.git",
+    "directory": "packages/gem-book"
+  },
+  "bugs": {
+    "url": "https://github.com/mantou132/gem/issues"
+  },
+  "homepage": "https://github.com/mantou132/gem#readme"
+}

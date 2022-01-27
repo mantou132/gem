@@ -1,4 +1,4 @@
-# Gem &middot; [![Build Status](https://travis-ci.org/mantou132/gem.svg?branch=master)](https://travis-ci.org/mantou132/gem)
+# Gem
 
 使用其他语言阅读：[English](./README.md) | 简体中文
 
@@ -24,24 +24,11 @@
 - **异步渲染：**
   连续渲染（例如创建列表）该类元素时会避免长时间阻塞主线程，提供流畅的用户体验；
 
-- **支持返回键：**
-  下拉菜单，抽屉式菜单，弹窗能像原生 App 一样通过返回键关闭，并且还能在关闭前类似确认的动作；
-
 ## 文档
 
 - [Guide](https://gem-docs.netlify.com/guide/)
 - [API](https://gem-docs.netlify.com/api/)
 
-## 相关项目
-
-- [create-gem-app](https://github.com/mantou132/create-gem-app)
-- [gem-boilerplate](https://github.com/mantou132/gem-boilerplate)
-- [gem-lib-boilerplate](https://github.com/mantou132/gem-lib-boilerplate)
-- [gem-book](https://github.com/mantou132/gem-book)
-- [gem-frame](https://github.com/mantou132/gem-frame)
-- [gem-ui](https://github.com/mantou132/gem-ui)
-- [gem-devtools](https://github.com/mantou132/gem-devtools)
-
 ## 贡献
 
-Fork 你感兴趣的项目，提交 PR
+Fork 项目，提交 PR

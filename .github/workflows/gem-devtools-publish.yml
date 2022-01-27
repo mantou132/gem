@@ -1,0 +1,59 @@
+name: Publish Gem Devtools
+
+on:
+  push:
+    tags:
+      - gem-devtools@*
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+jobs:
+  gem-devtools-publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v1
+        with:
+          node-version: 14.x
+
+      - run: yarn
+
+      - name: Build
+        run: |
+          yarn update:version && yarn build:zip
+          export VERSION=$(node -e "console.log(require('./package.json').version)")
+          export ZIP_NAME=gem_devtools-${VERSION}.zip
+          export ZIP_PATH=packages/gem-devtools/build/${ZIP_NAME}
+          echo "ZIP_NAME=${ZIP_NAME}" >> $GITHUB_ENV
+          echo "ZIP_PATH=${ZIP_PATH}" >> $GITHUB_ENV
+          echo ${ZIP_NAME}
+          echo ${ZIP_PATH}
+        working-directory: packages/gem-devtools
+
+      - name: Upload to release
+        uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: packages/gem-devtools/build/*
+          file_glob: true
+          tag: ${{ github.ref }}
+          overwrite: true
+
+      # https://github.com/trmcnvn/firefox-addon
+      # - uses: trmcnvn/firefox-addon@v1
+      #   with:
+      #     uuid: ""
+      #     xpi: ${{ env.ZIP_PATH }}
+      #     manifest: packages/gem-devtools/extension/manifest.json
+      #     api-key: ${{ secrets.FIREFOX_API_KEY }}
+      #     api-secret: ${{ secrets.FIREFOX_API_SECRET }}
+
+      - uses: trmcnvn/chrome-addon@v2
+        with:
+          extension: lgfpciakeemopebkmjajengljoakjfle
+          zip: ${{ env.ZIP_PATH }}
+          client-id: ${{ secrets.CHROME_CLIENT_ID }}
+          client-secret: ${{ secrets.CHROME_CLIENT_SECRET }}
+          refresh-token: ${{ secrets.CHROME_REFRESH_TOKEN }}

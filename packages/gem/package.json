@@ -1,0 +1,61 @@
+{
+  "name": "@mantou/gem",
+  "version": "1.6.9",
+  "description": "💎 使用自定义元素的轻量级 WebApp 开发框架",
+  "main": "index.js",
+  "module": "index.js",
+  "exports": {
+    ".": "./index.js",
+    "./lib/*": "./lib/*.js",
+    "./elements/*": "./elements/*.js",
+    "./helper/*": "./helper/*.js"
+  },
+  "files": [
+    "/index.*",
+    "/dist/",
+    "/elements/",
+    "/lib/",
+    "/helper/",
+    "/src/"
+  ],
+  "typings": "index.d.ts",
+  "scripts": {
+    "docs": "gem-book docs",
+    "build:docs": "yarn docs --build",
+    "build:module": "tsc -p tsconfig.build.json",
+    "build:lib": "vite build",
+    "build": "yarn build:module && yarn build:lib",
+    "start": "yarn build:module --watch",
+    "test": "wtr"
+  },
+  "keywords": [
+    "web",
+    "webcomponents",
+    "global state management",
+    "web framework"
+  ],
+  "dependencies": {
+    "lit-html": "^1.4.1"
+  },
+  "devDependencies": {
+    "@esm-bundle/chai": "^4.3.4-fix.0",
+    "@gemjs/config": "^1.6.8",
+    "@open-wc/testing": "^2.5.33",
+    "@web/dev-server-esbuild": "^0.2.16",
+    "@web/test-runner": "^0.13.22",
+    "rimraf": "^3.0.2",
+    "typescript": "^4.5.0",
+    "vite": "^2.7.13"
+  },
+  "author": "mantou132",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mantou132/gem.git",
+    "directory": "packages/gem"
+  },
+  "bugs": {
+    "url": "https://github.com/mantou132/gem/issues"
+  },
+  "homepage": "https://github.com/mantou132/gem#readme"
+}

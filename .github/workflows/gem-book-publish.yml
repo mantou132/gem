@@ -1,0 +1,26 @@
+name: Publish Gem Book
+
+on:
+  push:
+    tags:
+      - gem-book@*
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+jobs:
+  gem-book-publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v1
+        with:
+          node-version: 14.x
+
+      - run: yarn
+
+      - uses: JS-DevTools/npm-publish@v1
+        with:
+          package: packages/gem-book/package.json
+          token: ${{ secrets.NPM_TOKEN }}

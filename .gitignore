@@ -1,19 +1,5 @@
-/node_modules/
-
-# Compiler output
-/lib/
-/elements/
-/index.*
-/umd.*
-/test/
-/coverage/
-/helper/
-/examples/
-
-# examples
-/build/
-
-.DS_Store
+node_modules
 logs
 *.log
 npm-debug.log*
+.DS_Store

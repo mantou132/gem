@@ -1,0 +1,10 @@
+{
+  "title": "Gem-book",
+  "icon": "../../logo.png",
+  "i18n": true,
+  "homeMode": true,
+  "plugin": ["raw", "docsearch"],
+  "template": "docs/template.html",
+  "ga": "G-PZYZ441YD3",
+  "debug": true
+}

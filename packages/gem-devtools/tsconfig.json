@@ -1,0 +1,10 @@
+{
+  "extends": "@gemjs/config/tsconfig",
+  "compilerOptions": {
+    "outDir": "./",
+    "declaration": false,
+    "declarationMap": false
+  },
+  "include": ["src"],
+  "exclude": []
+}
