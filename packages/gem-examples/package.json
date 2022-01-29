@@ -1,17 +1,17 @@
 {
   "private": true,
   "name": "gem-examples",
-  "version": "1.6.6",
+  "version": "1.6.7",
   "description": "gem examples",
   "scripts": {
     "build": "vite build",
     "start": "vite serve"
   },
   "dependencies": {
-    "@mantou/gem": "^1.6.6"
+    "@mantou/gem": "^1.6.7"
   },
   "devDependencies": {
-    "@gemjs/config": "^1.6.6",
+    "@gemjs/config": "^1.6.7",
     "vite": "^2.7.13"
   }
 }
