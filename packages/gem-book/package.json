@@ -1,6 +1,6 @@
 {
   "name": "gem-book",
-  "version": "1.5.1",
+  "version": "1.5.2",
   "description": "Create your document website easily and quickly",
   "keywords": [
     "doc",
@@ -28,7 +28,7 @@
     "prepublishOnly": "npm build"
   },
   "dependencies": {
-    "@mantou/gem": "^1.6.5",
+    "@mantou/gem": "^1.6.6",
     "commander": "^7.2.0",
     "copy-webpack-plugin": "^8.1.1",
     "front-matter": "^4.0.2",
@@ -49,11 +49,9 @@
     "yaml": "^1.10.2"
   },
   "devDependencies": {
-    "@gemjs/config": "^1.6.5",
     "@esm-bundle/chai": "^4.3.4-fix.0",
+    "@gemjs/config": "^1.6.6",
     "@open-wc/testing": "^2.5.33",
-    "@web/dev-server-esbuild": "^0.2.16",
-    "@web/test-runner": "^0.13.22",
     "@types/copy-webpack-plugin": "^8.0.0",
     "@types/jsdom": "^16.2.10",
     "@types/lodash": "^4.14.169",
@@ -62,6 +60,8 @@
     "@types/parse-github-url": "^1.0.0",
     "@types/prismjs": "^1.16.5",
     "@types/workbox-webpack-plugin": "^5.1.6",
+    "@web/dev-server-esbuild": "^0.2.16",
+    "@web/test-runner": "^0.13.22",
     "concurrently": "^6.2.0",
     "cross-env": "^7.0.3",
     "esbuild": "^0.12.5",

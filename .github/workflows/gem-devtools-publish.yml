@@ -1,4 +1,4 @@
-name: Publish
+name: Publish Geme Devtools
 
 on:
   push:
