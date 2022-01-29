@@ -3,7 +3,7 @@ name: Publish Gem Book
 on:
   push:
     tags:
-      - "gem-book@*"
+      - "gem-book@**"
 
 jobs:
   gem-book-publish:

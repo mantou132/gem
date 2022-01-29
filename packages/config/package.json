@@ -2,5 +2,5 @@
   "private": true,
   "name": "@gemjs/config",
   "version": "1.6.7",
-  "description": "Common config"
+  "description": "Gemjs common config"
 }

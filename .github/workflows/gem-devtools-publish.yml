@@ -3,7 +3,7 @@ name: Publish Geme Devtools
 on:
   push:
     tags:
-      - "gem-devtools@*"
+      - "gem-devtools@**"
 
 jobs:
   gem-devtools-publish:
