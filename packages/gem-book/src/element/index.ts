@@ -21,7 +21,7 @@ import { BookConfig } from '../common/config';
 
 import { GemBookPluginElement } from './elements/plugin';
 import { theme, changeTheme, Theme } from './helper/theme';
-import { bookStore, updateBookConfig } from './store';
+import { bookStore, updateBookConfig, locationStore } from './store';
 
 import '@mantou/gem/elements/title';
 import '@mantou/gem/elements/reflect';
@@ -148,7 +148,7 @@ export class GemBookElement extends GemElement {
           margin-top: 3rem;
         }
         gem-light-route {
-          min-height: 30rem;
+          min-height: 100vh;
         }
         @media ${renderFullWidth ? 'all' : 'not all'} {
           gem-light-route {
@@ -235,6 +235,7 @@ export class GemBookElement extends GemElement {
         ref=${this.routeRef.ref}
         role="main"
         part=${this.main}
+        .locationStore=${locationStore}
         .key=${lang}
         .routes=${routes}
         @routechange=${this.#onRouteChange}

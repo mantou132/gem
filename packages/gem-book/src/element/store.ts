@@ -1,5 +1,5 @@
 import { connect, createStore, html, updateStore } from '@mantou/gem';
-import { RouteItem } from '@mantou/gem/elements/route';
+import { RouteItem, GemLightRouteElement } from '@mantou/gem/elements/route';
 import { I18n } from '@mantou/gem/helper/i18n';
 
 import { BookConfig, NavItem } from '../common/config';
@@ -233,6 +233,8 @@ export function updateBookConfig(config: BookConfig | undefined, gemBookElement?
   }
 }
 
-connect(history.store, () => {
+export const locationStore = GemLightRouteElement.createLocationStore();
+
+connect(locationStore, () => {
   updateBookConfig(bookStore.config);
 });
