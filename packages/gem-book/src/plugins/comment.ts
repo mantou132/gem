@@ -1,6 +1,6 @@
 import type { GemBookElement } from '../element';
 
-const url = 'https://dev.jspm.io/gitalk';
+const url = 'https://jspm.dev/gitalk@1.7.2';
 
 customElements.whenDefined('gem-book').then(async () => {
   const { GemBookPluginElement } = customElements.get('gem-book') as typeof GemBookElement;

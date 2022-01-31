@@ -3,7 +3,7 @@
 Gem 是一套使用现代 WebComponents 技术构建 WebApp 的轻量级库。
 本质上说，你只是创建一个个自定义元素，然后让他们协同工作，他们非常灵活，可以很容易的进行扩展，比如集成手势。
 另外，也可以使用 Gem 只构建并发布自定义元素，自定义元素很容易和其他库集成，
-所以，你可以使用 Gem 构建 UI 组件库。
+所以，你可以使用 Gem 构建 UI 组件库（例如 [DuoyunUI](https://duoyun-ui.gemjs.org)）。
 
 在学习 Gem 之前，
 希望你对 [WebComponents](https://developer.mozilla.org/en-US/docs/Web/Web_Components) 技术有一定的了解。
@@ -19,13 +19,13 @@ npm install @mantou/gem
 或者使用 ESM：
 
 ```js
-import * as Gem from 'https://dev.jspm.io/@mantou/gem';
+import * as Gem from 'https://jspm.dev/@mantou/gem';
 ```
 
 或者使用 UNPKG：
 
 ```html
-<script src="https://unpkg.com/@mantou/gem/umd.js"></script>
+<script src="https://unpkg.com/@mantou/gem/dist/gem.umd.js"></script>
 ```
 
 ## 开始
