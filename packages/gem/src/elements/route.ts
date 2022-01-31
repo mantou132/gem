@@ -176,8 +176,6 @@ export class GemRouteElement extends GemElement<State> {
     this.currentParams = params;
     this.setState({ content });
     this.routechange(this.currentRoute);
-    const title = route?.title;
-    if (title) updateStore(titleStore, { title });
     this.#updateLocationStore();
   };
 
@@ -195,6 +193,8 @@ export class GemRouteElement extends GemElement<State> {
           history.replace({ path: redirect });
           return;
         }
+        const title = route?.title;
+        if (title) updateStore(titleStore, { title });
         const contentOrLoader = content || getContent?.(params);
         if (contentOrLoader instanceof Promise) {
           this.loading(route!);
