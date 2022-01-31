@@ -10,6 +10,7 @@ import {
   state,
 } from '@mantou/gem/lib/decorators';
 import { GemElement, html } from '@mantou/gem/lib/element';
+import { history } from '@mantou/gem/lib/history';
 import { createCSSSheet, css, QueryString } from '@mantou/gem/lib/utils';
 import { createHistoryParams, RouteItem } from '@mantou/gem/elements/route';
 import { GemUseElement } from '@mantou/gem/elements/use';

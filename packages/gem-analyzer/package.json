@@ -1,0 +1,36 @@
+{
+  "name": "gem-analyzer",
+  "version": "1.6.9",
+  "description": "gem analyzer",
+  "main": "index.js",
+  "files": [
+    "/index.*"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "start": "yarn build --watch",
+    "prepublishOnly": "yarn build"
+  },
+  "dependencies": {
+    "@mantou/gem": "^1.6.9"
+  },
+  "devDependencies": {
+    "@gemjs/config": "^1.6.9",
+    "ts-morph": "^13.0.0",
+    "typescript": "^4.5.0"
+  },
+  "peerDependencies": {
+    "ts-morph": "^13.0.0"
+  },
+  "author": "mantou132",
+  "license": "ISC",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mantou132/gem.git",
+    "directory": "packages/gem-analyzer"
+  },
+  "bugs": {
+    "url": "https://github.com/mantou132/gem/issues"
+  },
+  "homepage": "https://github.com/mantou132/gem#readme"
+}

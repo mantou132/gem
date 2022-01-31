@@ -51,7 +51,7 @@ export class GemBookElement extends GemElement {
   @property config: BookConfig | undefined;
   @property theme: Partial<Theme> | undefined;
 
-  @globalemitter routechange: Emitter;
+  @globalemitter routechange: Emitter<null>;
 
   @part nav: string;
   @part navShadow: string;
@@ -75,7 +75,9 @@ export class GemBookElement extends GemElement {
     this.theme = theme;
   }
 
-  changeTheme = changeTheme;
+  changeTheme(newTheme?: Partial<Theme>) {
+    return changeTheme(newTheme);
+  }
 
   #onRouteChange = (e: CustomEvent) => {
     document.body.scroll(0, 0);

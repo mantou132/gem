@@ -13,28 +13,33 @@ customElements.whenDefined('gem-book').then(() => {
     @attribute highlight: string;
 
     mounted() {
-      this.renderContent();
+      this.#renderContent();
     }
 
     updated() {
-      this.renderContent();
+      this.#renderContent();
     }
 
-    async renderContent() {
-      if (!this.src) return;
-      this.innerHTML = 'Loading...';
+    #getRemoteUrl() {
+      if (!this.src) return '';
 
       let url = this.src;
-
       if (!/^(https?:)?\/\//.test(this.src)) {
-        if (!config.github || !config.sourceBranch) return;
+        if (!config.github || !config.sourceBranch) return '';
         const rawOrigin = 'https://raw.githubusercontent.com';
         const repo = new URL(config.github).pathname;
         const src = `${this.src.startsWith('/') ? '' : '/'}${this.src}`;
         const basePath = config.base ? `/${config.base}` : '';
         url = devMode ? `/_assets${src}` : `${rawOrigin}${repo}/${config.sourceBranch}${basePath}${src}`;
       }
-      const text = await (await fetch(url)).text();
+      return url;
+    }
+
+    async #renderContent() {
+      if (!this.src) return;
+      this.innerHTML = 'Loading...';
+
+      const text = await (await fetch(this.#getRemoteUrl())).text();
       const div = document.createElement('div');
       div.textContent = text;
       const content = div.innerHTML;

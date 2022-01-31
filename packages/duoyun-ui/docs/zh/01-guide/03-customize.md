@@ -72,7 +72,7 @@ import zh from 'duoyun-ui/locales/zh';
 updateLocale({ ...zh, more: '其他' });
 ```
 
-`updateLocale` 的参数支持 `Promise`，所以你可以很方便的按需加载，下面是 Gem [I18n](https://gem.js.org/en/guide/advance/i18n) 方案的例子：
+`updateLocale` 的参数支持 `Promise`，所以你可以很方便的按需加载，下面是 Gem [I18n](https://gemjs.org/en/guide/advance/i18n) 方案的例子：
 
 ```ts
 import { I18n } from '@mantou/gem/helper/i18n';

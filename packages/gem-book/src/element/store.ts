@@ -1,4 +1,4 @@
-import { connect, createStore, html, updateStore } from '@mantou/gem';
+import { connect, createStore, html, updateStore, history } from '@mantou/gem';
 import { RouteItem, GemLightRouteElement } from '@mantou/gem/elements/route';
 import { I18n } from '@mantou/gem/helper/i18n';
 
@@ -117,7 +117,7 @@ function getRouter(links: NavItemWithLink[], title: string, lang: string, displa
       pattern: link,
       async getContent() {
         const renderer = getRenderer({ lang, link: originLink, displayRank });
-        const content = await fetchDocument({ lang, link: originLink, renderer });
+        const content = await fetchDocument({ lang, link: originLink });
         return html`<gem-book-main role="article" .renderer=${renderer} .content=${content}></gem-book-main>`;
       },
       data: item,

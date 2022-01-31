@@ -15,7 +15,7 @@ Build beautiful documentation websites quickly.
 
 ## Documentation
 
-- [Docs](https://gem-book.js.org/)
+- [Docs](https://book.gemjs.org/)
 
 ## Development
 

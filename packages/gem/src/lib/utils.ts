@@ -209,7 +209,8 @@ export function css(arr: TemplateStringsArray, ...args: any[]) {
   return raw(arr, ...args);
 }
 
-export const SheetToken = Symbol('sheet token');
+// 跨多个 gem 工作
+export const SheetToken = Symbol.for('gem@sheetToken');
 
 export type Sheet<T> = {
   [P in keyof T]: P;

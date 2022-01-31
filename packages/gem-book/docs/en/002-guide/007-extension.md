@@ -65,7 +65,7 @@ Then use it in Markdown to render files in the warehouse:
 <gbp-raw src="/src/plugins/raw.ts"></gbp-raw>
 ```
 
-Any element can be used as a plugin, but if you want to read the data of `<gem-book>` like `<gbp-raw>`, you need to use `GemBookPluginElement`, which extends from [`GemElement`](https://gem.js.org/api/), obtain `GemBookPluginElement` and read `<gem-book>` configuration in the following way.
+Any element can be used as a plugin, but if you want to read the data of `<gem-book>` like `<gbp-raw>`, you need to use `GemBookPluginElement`, which extends from [`GemElement`](https://gemjs.org/api/), obtain `GemBookPluginElement` and read `<gem-book>` configuration in the following way.
 
 ```js
 customElements.whenDefined('gem-book').then(({ GemBookPluginElement }) => {

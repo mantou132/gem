@@ -6,7 +6,7 @@
     "lint": "lerna exec --ignore @gemjs/config -- tsc --noEmit && eslint --ext .ts,.tsx,.js,.jsx packages/*/src/",
     "test": "lerna exec --scope @mantou/gem --scope gem-book -- yarn test",
     "release": "lerna version",
-    "prepare": "husky install && yarn --cwd packages/gem build && yarn --cwd packages/gem-book build && yarn --cwd packages/gem-book link"
+    "prepare": "husky install && yarn --cwd packages/gem build && yarn --cwd packages/gem-analyzer build && yarn --cwd packages/gem-book build && yarn --cwd packages/gem-book link"
   },
   "devDependencies": {
     "@types/node": "^15.6.1",

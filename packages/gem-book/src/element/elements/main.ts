@@ -9,9 +9,11 @@ import '@mantou/gem/elements/link';
 import '@mantou/gem/elements/reflect';
 import './pre';
 
+const parser = new DOMParser();
+
 @customElement('gem-book-main')
 export class Main extends GemElement {
-  @property content: Element[] | null;
+  @property content: string;
   @property renderer: Renderer;
 
   #linkStyle = css`
@@ -46,7 +48,7 @@ export class Main extends GemElement {
 
   render() {
     return html`
-      ${this.content}
+      ${this.parseMarkdown(this.content)}
       <style>
         ${this.#linkStyle}
       </style>
@@ -236,6 +238,10 @@ export class Main extends GemElement {
     return () => {
       window.removeEventListener('hashchange', this.#hashChangeHandle);
     };
+  }
+
+  parseMarkdown(mdBody: string) {
+    return [...parser.parseFromString(parse(mdBody, { renderer: this.renderer }), 'text/html').body.children];
   }
 
   unsafeRenderHTML(s: string, style = '') {

@@ -71,7 +71,7 @@ export class AppRoot extends GemElement {
           @swipe=${console.log}
           touch-action="pan-y"
         >
-          <img src="https://gem-book.js.org/logo.png" width="200" />
+          <img src="https://book.gemjs.org/logo.png" width="200" />
         </gem-gesture>
         <div>${moves[moves.length - 1] ? `${JSON.stringify(moves[moves.length - 1])}` : ''}</div>
         <div>${swipe}</div>

@@ -1,4 +1,4 @@
-import { css } from '@mantou/gem';
+import { css, history } from '@mantou/gem';
 
 import { DEFAULT_FILE, DEV_THEME_FILE } from '../common/constant';
 import { GemBookElement } from '../element';
@@ -12,7 +12,7 @@ if (process.env.GA_ID) {
       (window as any).dataLayer.push(arguments);
     }
     function send() {
-      // https://gem.js.org/en/api/history
+      // https://gemjs.org/en/api/history
       const { path } = history.getParams();
       gtag('event', 'page_view', {
         page_location: location.origin + path,
@@ -23,7 +23,7 @@ if (process.env.GA_ID) {
     gtag('js', new Date());
     gtag('config', process.env.GA_ID, { send_page_view: false });
     send();
-    // https://gem-book.js.org/en/api/event
+    // https://book.gemjs.org/en/api/event
     window.addEventListener('routechange', send);
   };
   document.body.append(script);

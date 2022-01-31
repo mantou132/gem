@@ -39,7 +39,7 @@
   },
   "devDependencies": {
     "@esm-bundle/chai": "^4.3.4-fix.0",
-    "@gemjs/config": "^1.6.8",
+    "@gemjs/config": "^1.6.9",
     "@open-wc/testing": "^2.5.33",
     "@web/dev-server-esbuild": "^0.2.16",
     "@web/test-runner": "^0.13.22",

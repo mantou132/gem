@@ -37,7 +37,7 @@
     "prepublishOnly": "yarn build"
   },
   "dependencies": {
-    "@mantou/gem": "^1.6.8",
+    "@mantou/gem": "^1.6.9",
     "commander": "^7.2.0",
     "copy-webpack-plugin": "^8.1.1",
     "front-matter": "^4.0.2",
@@ -59,7 +59,7 @@
   },
   "devDependencies": {
     "@esm-bundle/chai": "^4.3.4-fix.0",
-    "@gemjs/config": "^1.6.8",
+    "@gemjs/config": "^1.6.9",
     "@open-wc/testing": "^2.5.33",
     "@types/copy-webpack-plugin": "^8.0.0",
     "@types/jsdom": "^16.2.10",
@@ -71,11 +71,13 @@
     "@types/workbox-webpack-plugin": "^5.1.6",
     "@web/dev-server-esbuild": "^0.2.16",
     "@web/test-runner": "^0.13.22",
-    "esbuild": "^0.12.5",
+    "esbuild": "^0.14.14",
+    "gem-analyzer": "^1.6.9",
     "nodemon": "^2.0.7",
     "webpack-cli": "^4.7.0",
     "webpack-merge": "^5.7.3",
-    "webpack-node-externals": "^3.0.0"
+    "webpack-node-externals": "^3.0.0",
+    "ts-morph": "^13.0.0"
   },
   "author": "mantou132",
   "license": "MIT",

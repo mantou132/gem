@@ -8,7 +8,7 @@
     "/locales/"
   ],
   "scripts": {
-    "docs": "gem-book docs --i18n -t DuoyunUI",
+    "docs": "gem-book docs --i18n -t DuoyunUI --plugin example --plugin api",
     "build:docs": "yarn docs --build",
     "clean": "node -e \"fs.readdirSync('src').map(dir => require('rimraf').sync(dir))\"",
     "build": "yarn clean && tsc -p tsconfig.build.json",
@@ -20,18 +20,18 @@
     "d3-geo": "^3.0.1"
   },
   "peerDependencies": {
-    "@mantou/gem": "^1.6.5"
+    "@mantou/gem": "^1.6.9"
   },
   "devDependencies": {
     "@esm-bundle/chai": "^4.3.4-fix.0",
-    "@gemjs/config": "^1.6.8",
-    "@mantou/gem": "^1.6.8",
+    "@gemjs/config": "^1.6.9",
+    "@mantou/gem": "^1.6.9",
     "@open-wc/testing": "^2.5.33",
     "@types/d3-geo": "^3.0.1",
     "@web/dev-server-esbuild": "^0.2.16",
     "@web/test-runner": "^0.13.22",
     "rimraf": "^3.0.2",
-    "typescript": "^4.5.2",
+    "typescript": "^4.5.0",
     "webpack-merge": "^5.7.3"
   },
   "author": "mantou132",

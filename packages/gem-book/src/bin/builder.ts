@@ -157,7 +157,7 @@ export function startBuilder(dir: string, options: Required<CliUniqueConfig>, bo
           devServer.app!.use('/_assets/', express.static(process.cwd()));
           return middlewares;
         },
-        port: Number(process.env.PORT) || 0,
+        port: Number(process.env.PORT) || 8091,
       },
       compiler,
     );

@@ -620,5 +620,10 @@ customElements.define = (name: string, cls: CustomElementConstructor, options?: 
     defineRefs?.forEach((ref) => defineRef(cls.prototype, kebabToCamelCase(ref), ref));
   }
 
-  nativeDefineElement(name, cls as CustomElementConstructor, options);
+  const existCls = customElements.get(name);
+  if (existCls) {
+    console.warn(`duplicate define element \`${name}\``);
+  } else {
+    nativeDefineElement(name, cls as CustomElementConstructor, options);
+  }
 };

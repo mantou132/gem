@@ -1,4 +1,4 @@
-import { raw, GemElement, createStore, updateStore, html, render } from '@mantou/gem';
+import { GemElement, createStore, updateStore, html, render } from '@mantou/gem';
 
 import '../elements/layout';
 

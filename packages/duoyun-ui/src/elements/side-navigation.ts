@@ -1,5 +1,6 @@
 import { connectStore, adoptedStyle, customElement, property } from '@mantou/gem/lib/decorators';
 import { html, TemplateResult } from '@mantou/gem/lib/element';
+import { history } from '@mantou/gem/lib/history';
 import { createCSSSheet, css, QueryString } from '@mantou/gem/lib/utils';
 import { createPath, matchPath } from '@mantou/gem/elements/route';
 

@@ -5,7 +5,7 @@ const url = 'https://jspm.dev/gitalk@1.7.2';
 customElements.whenDefined('gem-book').then(async () => {
   const { GemBookPluginElement } = customElements.get('gem-book') as typeof GemBookElement;
   const { config, Gem, theme } = GemBookPluginElement;
-  const { html, customElement, attribute } = Gem;
+  const { html, customElement, attribute, history } = Gem;
 
   @customElement('gbp-comment')
   class _GbpCommentElement extends GemBookPluginElement {

@@ -1,6 +1,6 @@
 # 简介
 
-DuoyunUI 是使用 [Gem](https://gem.js.org/) 开发的桌面端中后台 Web UI 库，它具有 70+ 自定义元素，
+DuoyunUI 是使用 [Gem](https://gemjs.org/) 开发的桌面端中后台 Web UI 库，它具有 70+ 自定义元素，
 除了支持常用功能外，还能轻松完成多语言、自定义主题、键盘访问等需求。DuoyunUI 旨在提供一套轻量、高性能、功能全面、[跨框架](https://custom-elements-everywhere.com/)的 UI 库。
 
 > DuoyunUI 有部分元素的设计参考了 [Adobe Spectrum](https://spectrum.adobe.com) 和 [AntD](https://ant.design/)
@@ -8,17 +8,17 @@ DuoyunUI 是使用 [Gem](https://gem.js.org/) 开发的桌面端中后台 Web UI
 ## 元素分类
 
 - 表单元素
-  > `<dy-cascader-pick>`, `<dy-cascader>`, `<dy-checkbox>`, `<dy-color-panel>`, `<dy-color-pick>`, `<dy-date-panel>`, `<dy-date-pick>`, `<dy-date-range-panel>`, `<dy-date-range-pick>`, `<dy-drop-area>`, `<dy-file-pick>`, `<dy-form>`, `<dy-input>`, `<dy-pick>`, `<dy-radio>`, `<dy-rating>`, `<dy-select>`, `<dy-shortcut-record>`, `<dy-slider>`, `<dy-switch>`, `<dy-time-panel>`
+  > [`<dy-cascader-pick>`](../02-elements/cascader-pick.md), [`<dy-cascader>`](../02-elements/cascader.md), [`<dy-checkbox>`](../02-elements/checkbox.md), [`<dy-color-panel>`](../02-elements/color-panel.md), [`<dy-color-pick>`](../02-elements/color-pick.md), [`<dy-date-panel>`](../02-elements/date-panel.md), [`<dy-date-pick>`](../02-elements/date-pick.md), [`<dy-date-range-panel>`](../02-elements/date-range-panel.md), [`<dy-date-range-pick>`](../02-elements/date-range-pick.md), [`<dy-drop-area>`](../02-elements/drop-area.md), [`<dy-file-pick>`](../02-elements/file-pick.md), [`<dy-form>`](../02-elements/form.md), [`<dy-input>`](../02-elements/input.md), [`<dy-pick>`](../02-elements/pick.md), [`<dy-radio>`](../02-elements/radio.md), [`<dy-rating>`](../02-elements/rating.md), [`<dy-select>`](../02-elements/select.md), [`<dy-shortcut-record>`](../02-elements/shortcut-record.md), [`<dy-slider>`](../02-elements/slider.md), [`<dy-switch>`](../02-elements/switch.md), [`<dy-time-panel>`](../02-elements/time-panel.md)
 - 动作元素
-  > `<dy-action-text>`, `<dy-button>`, `<dy-copy>`, `<dy-link>`, `<dy-menu>`, `<dy-options>`
+  > [`<dy-action-text>`](../02-elements/action-text.md), [`<dy-button>`](../02-elements/button.md), [`<dy-copy>`](../02-elements/copy.md), [`<dy-link>`](../02-elements/link.md), [`<dy-menu>`](../02-elements/menu.md), [`<dy-options>`](../02-elements/options.md)
 - 反馈元素
-  > `<dy-coach-mark>`, `<dy-drawer>`, `<dy-help-text>`, `<dy-input-capture>`, `<dy-keyboard-access>`, `<dy-loading>`, `<dy-meter>`, `<dy-modal>`, `<dy-page-loadbar>`, `<dy-placeholder>`, `<dy-popover>`, `<dy-progress>`, `<dy-status-light>`, `<dy-toast>`, `<dy-tooltip>`, `<dy-wait>`
+  > [`<dy-coach-mark>`](../02-elements/coach-mark.md), [`<dy-drawer>`](../02-elements/drawer.md), [`<dy-help-text>`](../02-elements/help-text.md), [`<dy-input-capture>`](../02-elements/input-capture.md), [`<dy-keyboard-access>`](../02-elements/keyboard-access.md), [`<dy-loading>`](../02-elements/loading.md), [`<dy-meter>`](../02-elements/meter.md), [`<dy-modal>`](../02-elements/modal.md), [`<dy-page-loadbar>`](../02-elements/page-loadbar.md), [`<dy-placeholder>`](../02-elements/placeholder.md), [`<dy-popover>`](../02-elements/popover.md), [`<dy-progress>`](../02-elements/progress.md), [`<dy-status-light>`](../02-elements/status-light.md), [`<dy-toast>`](../02-elements/toast.md), [`<dy-tooltip>`](../02-elements/tooltip.md), [`<dy-wait>`](../02-elements/wait.md)
 - 导航元素
-  > `<dy-breadcrumbs>`, `<dy-pagination>`, `<dy-side-navigation>`
+  > [`<dy-breadcrumbs>`](../02-elements/breadcrumbs.md), [`<dy-pagination>`](../02-elements/pagination.md), [`<dy-side-navigation>`](../02-elements/side-navigation.md)
 - 内容展示元素
-  > `<dy-avatar>`, `<dy-banner>`, `<dy-calendar>`, `<dy-card>`, `<dy-code-block>`, `<dy-collapse>`, `<dy-compartment>`, `<dy-divider>`, `<dy-empty>`, `<dy-heading>`, `<image-preview>`, `<dy-list>`, `<dy-more>`, `<dy-paragraph>`, `<dy-result>`, `<dy-space>`, `<dy-statistic>`, `<dy-table>`, `<dy-tabs>`, `<dy-tag>`, `<dy-timeline>`, `<dy-tree>`
+  > [`<dy-avatar>`](../02-elements/avatar.md), [`<dy-banner>`](../02-elements/banner.md), [`<dy-calendar>`](../02-elements/calendar.md), [`<dy-card>`](../02-elements/card.md), [`<dy-code-block>`](../02-elements/code-block.md), [`<dy-collapse>`](../02-elements/collapse.md), [`<dy-compartment>`](../02-elements/compartment.md), [`<dy-divider>`](../02-elements/divider.md), [`<dy-empty>`](../02-elements/empty.md), [`<dy-heading>`](../02-elements/heading.md), `<image-preview>`, [`<dy-list>`](../02-elements/list.md), [`<dy-more>`](../02-elements/more.md), [`<dy-paragraph>`](../02-elements/paragraph.md), [`<dy-result>`](../02-elements/result.md), [`<dy-space>`](../02-elements/space.md), [`<dy-statistic>`](../02-elements/statistic.md), [`<dy-table>`](../02-elements/table.md), [`<dy-tabs>`](../02-elements/tabs.md), [`<dy-tag>`](../02-elements/tag.md), [`<dy-timeline>`](../02-elements/timeline.md), [`<dy-tree>`](../02-elements/tree.md)
 - 图表元素
-  > `<dy-area-chart>`, `<dy-bar-chart>`, `<dy-chart-tooltip>`, `<dy-chart-zoom>`, `<dy-donut-chart>`, `<dy-legend>`, `<dy-line-chart>`, `<dy-map>`, `<dy-scatter-chart>`
+  > [`<dy-area-chart>`](../02-elements/area-chart.md), [`<dy-bar-chart>`](../02-elements/bar-chart.md), [`<dy-chart-tooltip>`](../02-elements/chart-tooltip.md), [`<dy-chart-zoom>`](../02-elements/chart-zoom.md), [`<dy-donut-chart>`](../02-elements/donut-chart.md), [`<dy-legend>`](../02-elements/legend.md), [`<dy-line-chart>`](../02-elements/line-chart.md), [`<dy-map>`](../02-elements/map.md), [`<dy-scatter-chart>`](../02-elements/scatter-chart.md)
 - 基类（扩展它们创建自己的自定义元素）
   > `DuoyunLoadableBaseElement`, `DuoyunResizeBaseElement`, `DuoyunScrollBaseElement`, `DuoyunVisibleBaseElement`
 
@@ -75,8 +75,6 @@ import('https://cdn.skypack.dev/duoyun-ui/elements/input-capture').then(({ Duoyu
 ## 路线图
 
 - Logo 设计
-- 添加示例
-- 编写 API 文档（Gem 元素[自动文档生成](https://github.com/mantou132/gem-book/commit/5cfb05d64313a4bda55edfa2fcfe6cfbc5db67cb)）
 - 完善现有元素， 规范化 API
 - 添加缺失元素和功能
 - 添加更多的语言支持

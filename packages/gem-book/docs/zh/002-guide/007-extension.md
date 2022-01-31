@@ -65,7 +65,7 @@ or
 <gbp-raw src="/src/plugins/raw.ts"></gbp-raw>
 ```
 
-任意元素都可以作为插件，但如果你想像 `<gbp-raw>` 一样读取 `<gem-book>` 的数据，就需要使用 `GemBookPluginElement`, 他扩展自 [`GemElement`](https://gem.js.org/api/)，通过下面这种方式获取 `GemBookPluginElement` 和读取 `<gem-book>` 配置。
+任意元素都可以作为插件，但如果你想像 `<gbp-raw>` 一样读取 `<gem-book>` 的数据，就需要使用 `GemBookPluginElement`, 他扩展自 [`GemElement`](https://gemjs.org/api/)，通过下面这种方式获取 `GemBookPluginElement` 和读取 `<gem-book>` 配置。
 
 ```js
 customElements.whenDefined('gem-book').then(({ GemBookPluginElement }) => {

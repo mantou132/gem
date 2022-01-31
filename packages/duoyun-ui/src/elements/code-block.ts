@@ -226,7 +226,7 @@ const style = createCSSSheet(css`
   }
   .code {
     display: block;
-    font-family: monospace;
+    font-family: Consolas, Monaco, 'Andale Mono', 'Ubuntu Mono', monospace;
     text-align: left;
     white-space: pre;
     tab-size: 2;

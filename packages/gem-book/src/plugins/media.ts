@@ -4,7 +4,7 @@ type MediaType = 'img' | 'video' | 'audio' | 'unknown';
 
 customElements.whenDefined('gem-book').then(() => {
   const { GemBookPluginElement } = customElements.get('gem-book') as typeof GemBookElement;
-  const { Gem, config, theme } = GemBookPluginElement;
+  const { Gem, config, theme, devMode } = GemBookPluginElement;
   const { html, customElement, attribute } = Gem;
 
   @customElement('gbp-media')
@@ -14,20 +14,22 @@ customElements.whenDefined('gem-book').then(() => {
     @attribute width: string;
     @attribute height: string;
 
-    getRemoteUrl() {
+    #getRemoteUrl() {
       if (!this.src) return '';
 
       let url = this.src;
-      if (this.src.startsWith('/') && !this.src.startsWith('//')) {
+      if (!/^(https?:)?\/\//.test(this.src)) {
         if (!config.github || !config.sourceBranch) return '';
         const rawOrigin = 'https://raw.githubusercontent.com';
         const repo = new URL(config.github).pathname;
-        url = `${rawOrigin}${repo}/${config.sourceBranch}${this.src}`;
+        const src = `${this.src.startsWith('/') ? '' : '/'}${this.src}`;
+        const basePath = config.base ? `/${config.base}` : '';
+        url = devMode ? `/_assets${src}` : `${rawOrigin}${repo}/${config.sourceBranch}${basePath}${src}`;
       }
       return url;
     }
 
-    detectType(): MediaType {
+    #detectType(): MediaType {
       // https://developer.mozilla.org/en-US/docs/Web/Media/Formats
       const ext = this.src.split('.').pop() || '';
       if (/a?png|jpe?g|gif|webp|avif|svg/.test(ext)) {
@@ -42,7 +44,7 @@ customElements.whenDefined('gem-book').then(() => {
       return 'unknown';
     }
 
-    renderUnknownContent() {
+    #renderUnknownContent() {
       return html`
         <style>
           :host::before {
@@ -57,29 +59,29 @@ customElements.whenDefined('gem-book').then(() => {
       `;
     }
 
-    renderImage() {
-      return html`<img width=${this.width} height=${this.height} src=${this.getRemoteUrl()} />`;
+    #renderImage() {
+      return html`<img width=${this.width} height=${this.height} src=${this.#getRemoteUrl()} />`;
     }
 
-    renderVideo() {
-      return html`<video width=${this.width} height=${this.height} src=${this.getRemoteUrl()}></video>`;
+    #renderVideo() {
+      return html`<video width=${this.width} height=${this.height} src=${this.#getRemoteUrl()}></video>`;
     }
 
-    renderAudio() {
-      return html`<audio src=${this.getRemoteUrl()}></audio>`;
+    #renderAudio() {
+      return html`<audio src=${this.#getRemoteUrl()}></audio>`;
     }
 
-    renderContent() {
-      const type = this.type || this.detectType();
+    #renderContent() {
+      const type = this.type || this.#detectType();
       switch (type) {
         case 'img':
-          return this.renderImage();
+          return this.#renderImage();
         case 'video':
-          return this.renderVideo();
+          return this.#renderVideo();
         case 'audio':
-          return this.renderAudio();
+          return this.#renderAudio();
         default:
-          return this.renderUnknownContent();
+          return this.#renderUnknownContent();
       }
     }
 
@@ -90,7 +92,7 @@ customElements.whenDefined('gem-book').then(() => {
             display: contents;
           }
         </style>
-        ${this.renderContent()}
+        ${this.#renderContent()}
       `;
     }
   }

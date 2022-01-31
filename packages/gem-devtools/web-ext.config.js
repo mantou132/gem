@@ -4,7 +4,7 @@ module.exports = {
   verbose: true,
   run: {
     firefox: 'nightly',
-    startUrl: ['about:debugging', 'https://gem.js.org/'],
+    startUrl: ['about:debugging', 'https://gemjs.org/'],
   },
   build: {
     overwriteDest: true,

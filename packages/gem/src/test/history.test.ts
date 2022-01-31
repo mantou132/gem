@@ -39,6 +39,10 @@ describe('history 测试', () => {
     await aTimeout(10);
     expect(window.location.pathname).to.equal('/');
     expect(new URLSearchParams(location.search).get('tab')).to.equal('bb');
+    expect(() => history.replace({ data: { $key: 'adf' } })).to.throw();
+    expect(() => history.replace({ data: { $hasCloseHandle: 'adf' } })).to.throw();
+    expect(() => history.replace({ data: { $hasOpenHandle: 'adf' } })).to.throw();
+    expect(() => history.replace({ data: { $hasShouldCloseHandle: 'adf' } })).to.throw();
   });
   it('getParams/updateParams', async () => {
     const historyLength = window.history.length;
@@ -50,16 +54,16 @@ describe('history 测试', () => {
     await aTimeout(10);
     expect(history.getParams().title).to.equal('321');
   });
-  it('pushState/replaceState', async () => {
+  it('Native pushState/replaceState', async () => {
     const historyLength = window.history.length;
-    history.pushState({}, 'title', '/a');
+    window.history.pushState({}, 'title', '/a');
     await aTimeout(10);
     expect(window.location.pathname).to.equal('/a');
-    history.replaceState({}, 'title', '/b?tab=a');
-    expect(() => history.replaceState({ $key: 'adf' }, '', '')).to.throw();
-    expect(() => history.replaceState({ $hasCloseHandle: 'adf' }, '', '')).to.throw();
-    expect(() => history.replaceState({ $hasOpenHandle: 'adf' }, '', '')).to.throw();
-    expect(() => history.replaceState({ $hasShouldCloseHandle: 'adf' }, '', '')).to.throw();
+    window.history.replaceState({}, 'title', '/b?tab=a');
+    expect(() => window.history.replaceState({ $key: 'adf' }, '', '')).to.throw();
+    expect(() => window.history.replaceState({ $hasCloseHandle: 'adf' }, '', '')).to.throw();
+    expect(() => window.history.replaceState({ $hasOpenHandle: 'adf' }, '', '')).to.throw();
+    expect(() => window.history.replaceState({ $hasShouldCloseHandle: 'adf' }, '', '')).to.throw();
     await aTimeout(10);
     expect(window.location.pathname).to.equal('/b');
     expect(new URLSearchParams(location.search).get('tab')).to.equal('a');
@@ -84,7 +88,7 @@ describe('history 测试', () => {
     // 替换 close
     history.replace({ close, open });
     await aTimeout(10);
-    expect(history?.state?.$hasOpenHandle).to.true;
+    expect(window.history?.state?.$hasOpenHandle).to.true;
     await aTimeout(10);
     expect(window.location.href).to.equal(href);
     // 跳转页面
@@ -134,14 +138,15 @@ describe('history 测试', () => {
     expect(window.location.pathname).to.equal('/d/');
     history.push({ path: '/a' });
     await aTimeout(10);
+    expect(history.getParams().path).to.equal('/a');
     expect(window.location.pathname).to.equal('/d/a');
     history.push({ path: '/' });
     await aTimeout(10);
     expect(window.location.pathname).to.equal('/d/');
-    history.pushState({}, '', '/');
+    window.history.pushState({}, '', '/');
     await aTimeout(10);
     expect(window.location.pathname).to.equal('/d/');
-    history.pushState({}, '', '/c');
+    window.history.pushState({}, '', '/c');
     await aTimeout(10);
     expect(window.location.pathname).to.equal('/d/c');
     history.basePath = '';
