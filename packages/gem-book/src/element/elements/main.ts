@@ -27,6 +27,10 @@ export class Main extends GemElement {
       background: rgba(${theme.primaryColorRGB}, 0.2);
       border-bottom: 1px solid rgba(${theme.textColorRGB}, 0.4);
     }
+    .link code {
+      background: transparent;
+      padding: 0;
+    }
     .link:hover {
       background: rgba(${theme.primaryColorRGB}, 0.4);
       border-color: currentColor;
@@ -205,10 +209,6 @@ export class Main extends GemElement {
           font-size: 90%;
           background: ${theme.inlineCodeBackground};
           padding: 0 3px;
-        }
-        a code {
-          background: transparent;
-          padding: 0;
         }
         gem-book-pre {
           z-index: 2;

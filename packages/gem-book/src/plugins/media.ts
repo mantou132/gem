@@ -89,7 +89,10 @@ customElements.whenDefined('gem-book').then(() => {
       return html`
         <style>
           :host {
-            display: contents;
+            display: block;
+          }
+          * {
+            width: 100%;
           }
         </style>
         ${this.#renderContent()}

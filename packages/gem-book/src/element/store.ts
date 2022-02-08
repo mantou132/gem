@@ -58,6 +58,7 @@ function getI18nSidebar(config: BookConfig | undefined) {
         await i18n.setLanguage(lang);
         // Use custom anchors id to ensure that the hash is correct after i18n switching
         history.replace({ path, query, hash });
+        updateBookConfig(bookStore.config);
       };
     }
   }

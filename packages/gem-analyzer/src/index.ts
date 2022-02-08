@@ -69,7 +69,7 @@ const partDecoratorName = ['part'];
 const refDecoratorName = ['refobject'];
 const eventDecoratorName = ['emitter', 'globalemitter'];
 const globalEventDecoratorName = ['globalemitter'];
-const lifecycleMethods = ['willMount', 'render', 'mounted', 'shouldUpdate', 'updated', 'unmounted'];
+const lifecyclePopsOrMethods = ['state', 'willMount', 'render', 'mounted', 'shouldUpdate', 'updated', 'unmounted'];
 
 export const parseElement = (declaration: ClassDeclaration) => {
   const detail: ElementDetail = {
@@ -163,7 +163,7 @@ export const parseElement = (declaration: ClassDeclaration) => {
   for (const propDeclaration of propDeclarations) {
     const propName = propDeclaration.getName();
     if (propName.startsWith('#')) continue;
-    if (lifecycleMethods.includes(propName)) continue;
+    if (lifecyclePopsOrMethods.includes(propName)) continue;
     const prop: Property = {
       name: propName,
       reactive: false,
@@ -210,7 +210,7 @@ export const parseElement = (declaration: ClassDeclaration) => {
   for (const methodDeclaration of methodDeclarations) {
     const methodName = methodDeclaration.getName();
     if (methodName.startsWith('#')) continue;
-    if (lifecycleMethods.includes(methodName)) continue;
+    if (lifecyclePopsOrMethods.includes(methodName)) continue;
     const method: Method = {
       name: methodName,
       type: methodDeclaration.getType().getText(),

@@ -92,8 +92,8 @@ export class GemBookElement extends GemElement {
     const hasNavbar = icon || title || nav.length;
     this.isHomePage = homePage === history.getParams().path;
     const renderHomePage = homeMode && this.isHomePage;
-    const onlyHomepage = homeMode && currentSidebar?.every((e) => e.link === homePage);
-    const renderFullWidth = renderHomePage || onlyHomepage;
+    const missSidebar = homeMode ? currentSidebar?.every((e) => e.link === homePage) : !currentSidebar?.length;
+    const renderFullWidth = renderHomePage || missSidebar;
 
     return html`
       <style>
@@ -180,6 +180,7 @@ export class GemBookElement extends GemElement {
           .nav-shadow ~ gem-book-sidebar {
             margin-top: 0;
             height: auto;
+            max-height: none;
           }
           slot[name='${this.mainBefore}'] {
             margin-top: 1rem;

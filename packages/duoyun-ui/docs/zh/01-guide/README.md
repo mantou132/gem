@@ -3,6 +3,8 @@
 DuoyunUI 是使用 [Gem](https://gemjs.org/) 开发的桌面端中后台 Web UI 库，它具有 70+ 自定义元素，
 除了支持常用功能外，还能轻松完成多语言、自定义主题、键盘访问等需求。DuoyunUI 旨在提供一套轻量、高性能、功能全面、[跨框架](https://custom-elements-everywhere.com/)的 UI 库。
 
+<gbp-media src="/preview.png"></gbp-media>
+
 > DuoyunUI 有部分元素的设计参考了 [Adobe Spectrum](https://spectrum.adobe.com) 和 [AntD](https://ant.design/)
 
 ## 元素分类
@@ -16,7 +18,7 @@ DuoyunUI 是使用 [Gem](https://gemjs.org/) 开发的桌面端中后台 Web UI 
 - 导航元素
   > [`<dy-breadcrumbs>`](../02-elements/breadcrumbs.md), [`<dy-pagination>`](../02-elements/pagination.md), [`<dy-side-navigation>`](../02-elements/side-navigation.md)
 - 内容展示元素
-  > [`<dy-avatar>`](../02-elements/avatar.md), [`<dy-banner>`](../02-elements/banner.md), [`<dy-calendar>`](../02-elements/calendar.md), [`<dy-card>`](../02-elements/card.md), [`<dy-code-block>`](../02-elements/code-block.md), [`<dy-collapse>`](../02-elements/collapse.md), [`<dy-compartment>`](../02-elements/compartment.md), [`<dy-divider>`](../02-elements/divider.md), [`<dy-empty>`](../02-elements/empty.md), [`<dy-heading>`](../02-elements/heading.md), `<image-preview>`, [`<dy-list>`](../02-elements/list.md), [`<dy-more>`](../02-elements/more.md), [`<dy-paragraph>`](../02-elements/paragraph.md), [`<dy-result>`](../02-elements/result.md), [`<dy-space>`](../02-elements/space.md), [`<dy-statistic>`](../02-elements/statistic.md), [`<dy-table>`](../02-elements/table.md), [`<dy-tabs>`](../02-elements/tabs.md), [`<dy-tag>`](../02-elements/tag.md), [`<dy-timeline>`](../02-elements/timeline.md), [`<dy-tree>`](../02-elements/tree.md)
+  > [`<dy-avatar>`](../02-elements/avatar.md), [`<dy-banner>`](../02-elements/banner.md), [`<dy-calendar>`](../02-elements/calendar.md), [`<dy-card>`](../02-elements/card.md), [`<dy-code-block>`](../02-elements/code-block.md), [`<dy-collapse>`](../02-elements/collapse.md), [`<dy-compartment>`](../02-elements/compartment.md), [`<dy-divider>`](../02-elements/divider.md), [`<dy-empty>`](../02-elements/empty.md), [`<dy-heading>`](../02-elements/heading.md), [`<dy-image-preview>`](../02-elements/image-preview.md), [`<dy-list>`](../02-elements/list.md), [`<dy-more>`](../02-elements/more.md), [`<dy-paragraph>`](../02-elements/paragraph.md), [`<dy-result>`](../02-elements/result.md), [`<dy-space>`](../02-elements/space.md), [`<dy-statistic>`](../02-elements/statistic.md), [`<dy-table>`](../02-elements/table.md), [`<dy-tabs>`](../02-elements/tabs.md), [`<dy-tag>`](../02-elements/tag.md), [`<dy-timeline>`](../02-elements/timeline.md), [`<dy-tree>`](../02-elements/tree.md)
 - 图表元素
   > [`<dy-area-chart>`](../02-elements/area-chart.md), [`<dy-bar-chart>`](../02-elements/bar-chart.md), [`<dy-chart-tooltip>`](../02-elements/chart-tooltip.md), [`<dy-chart-zoom>`](../02-elements/chart-zoom.md), [`<dy-donut-chart>`](../02-elements/donut-chart.md), [`<dy-legend>`](../02-elements/legend.md), [`<dy-line-chart>`](../02-elements/line-chart.md), [`<dy-map>`](../02-elements/map.md), [`<dy-scatter-chart>`](../02-elements/scatter-chart.md)
 - 基类（扩展它们创建自己的自定义元素）
