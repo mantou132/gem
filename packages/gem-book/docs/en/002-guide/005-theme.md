@@ -8,7 +8,7 @@ The `<gem-book>` element provides the theme API, which can be very convenient to
 
 ## Custom theme
 
-You can directly use the cli options to provide the theme file path in `json`/`CommonJs` format or [build-in theme](https://github.com/mantou132/gem-book/tree/master/themes) name:
+You can directly use the cli options to provide the theme file path in `json`/`CommonJs` format or [build-in theme](https://github.com/mantou132/gem/tree/master/packages/gem-book/themes) name:
 
 ```bash
 gem-book docs --theme my-theme

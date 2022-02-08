@@ -32,4 +32,4 @@ npx gem-book docs --build
 
 ## Feedback
 
-Please visit [GitHub](https://github.com/mantou132/gem-book)
+Please visit [GitHub](https://github.com/mantou132/gem)

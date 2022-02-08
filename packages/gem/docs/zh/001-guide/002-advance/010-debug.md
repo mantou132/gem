@@ -4,4 +4,4 @@ GemElement 是标准的自定义元素，能在浏览器 DevTools 中检查和�
 
 ## 使用 Gem Devtools
 
-![Gem Devtools](https://raw.githubusercontent.com/mantou132/gem-devtools/master/screenshot/firefox.jpg)
+![Gem Devtools](https://raw.githubusercontent.com/mantou132/gem/master/packages/gem-devtools/screenshot/firefox.jpg)

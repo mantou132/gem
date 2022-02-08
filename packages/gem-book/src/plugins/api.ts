@@ -1,3 +1,6 @@
+/**
+ * TODO: support json
+ */
 import type { ElementDetail } from 'gem-analyzer';
 
 import type { Main } from '../element/elements/main';
@@ -48,6 +51,7 @@ customElements.whenDefined('gem-book').then(() => {
     #parseElements = async (text: string) => {
       const { Project } = (await import(/* webpackIgnore: true */ tsMorph)) as typeof import('ts-morph');
       const { getElements } = (await import(/* webpackIgnore: true */ gemAnalyzer)) as typeof import('gem-analyzer');
+      // const { getElements } = await import('gem-analyzer');
       const project = new Project({ useInMemoryFileSystem: true });
       const file = project.createSourceFile(this.src, text);
       return getElements(file);
@@ -137,7 +141,7 @@ customElements.whenDefined('gem-book').then(() => {
         text += `${this.#renderHeader(2)} Instance Properties\n\n`;
         text += this.#renderTable(
           properties.filter(({ slot, cssState, part, isRef }) => !slot && !cssState && !part && !isRef),
-          ['Property(Attribute)', 'Reactive', 'Type', 'Description'],
+          ['Property(Attribute)', 'Reactive', 'Type'].concat(innerWidth < 600 ? [] : ['Description']),
           [
             ({ name, attribute }) => this.#renderCode(name) + (attribute ? `(${this.#renderCode(attribute)})` : ''),
             ({ reactive }) => (reactive ? 'Yes' : ''),

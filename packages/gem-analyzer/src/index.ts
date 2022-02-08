@@ -159,7 +159,7 @@ export const parseElement = (declaration: ClassDeclaration) => {
     detail.staticMethods.push(method);
   }
 
-  const propDeclarations = declaration.getProperties();
+  const propDeclarations = declaration.getInstanceProperties();
   for (const propDeclaration of propDeclarations) {
     const propName = propDeclaration.getName();
     if (propName.startsWith('#')) continue;
@@ -169,10 +169,12 @@ export const parseElement = (declaration: ClassDeclaration) => {
       reactive: false,
       type: propDeclaration.getType().getText(),
       description:
-        propDeclaration
-          .getJsDocs()
-          .map((jsDoc) => jsDoc.getCommentText())
-          .join('\n\n') || undefined,
+        ('getJsDocs' in propDeclaration &&
+          propDeclaration
+            .getJsDocs()
+            .map((jsDoc) => jsDoc.getCommentText())
+            .join('\n\n')) ||
+        undefined,
     };
     detail.properties.push(prop);
 
@@ -206,7 +208,7 @@ export const parseElement = (declaration: ClassDeclaration) => {
     }
   }
 
-  const methodDeclarations = declaration.getMethods();
+  const methodDeclarations = declaration.getInstanceMethods();
   for (const methodDeclaration of methodDeclarations) {
     const methodName = methodDeclaration.getName();
     if (methodName.startsWith('#')) continue;

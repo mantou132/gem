@@ -4,4 +4,4 @@ GemElement is a standard custom element that can be inspected and debugged in th
 
 ## Use Gem Devtools
 
-![Gem Devtools](https://raw.githubusercontent.com/mantou132/gem-devtools/master/screenshot/firefox.jpg)
+![Gem Devtools](https://raw.githubusercontent.com/mantou132/gem/master/packages/gem-devtools/screenshot/firefox.jpg)

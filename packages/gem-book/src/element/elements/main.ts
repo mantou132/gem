@@ -233,11 +233,16 @@ export class Main extends GemElement {
   }
 
   mounted() {
-    this.#hashChangeHandle();
-    window.addEventListener('hashchange', this.#hashChangeHandle);
-    return () => {
-      window.removeEventListener('hashchange', this.#hashChangeHandle);
-    };
+    this.effect(
+      () => {
+        this.#hashChangeHandle();
+        window.addEventListener('hashchange', this.#hashChangeHandle);
+        return () => {
+          window.removeEventListener('hashchange', this.#hashChangeHandle);
+        };
+      },
+      () => [this.content],
+    );
   }
 
   parseMarkdown(mdBody: string) {

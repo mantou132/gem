@@ -8,7 +8,7 @@
 
 ## 自定义主题
 
-可以直接使用命令行参数提供 `json`/`CommonJs` 格式的主题文件路径或者[内置主题](https://github.com/mantou132/gem-book/tree/master/themes)名称：
+可以直接使用命令行参数提供 `json`/`CommonJs` 格式的主题文件路径或者[内置主题](https://github.com/mantou132/gem/tree/master/packages/gem-book/themes)名称：
 
 ```bash
 gem-book docs --theme my-theme

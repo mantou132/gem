@@ -73,7 +73,7 @@ class MyElement extends GemElement {
 
 下面是依赖子元素的 `effect` 例子（[其他实现](https://twitter.com/youyuxi/status/1327328144525848577?s=20)）：
 
-<gbp-raw src="/src/examples/effect/index.ts"></gbp-raw>
+<gbp-raw src="https://raw.githubusercontent.com/mantou132/gem/master/packages/gem-examples/src/effect/index.ts"></gbp-raw>
 
 ## Memo
 
@@ -90,7 +90,7 @@ class MyElement extends GemElement {
 
   willMount() {
     this.memo(
-      () => this.#href = new URL(this.src, location.origin).href,
+      () => (this.#href = new URL(this.src, location.origin).href),
       () => [this.src],
     );
   }
