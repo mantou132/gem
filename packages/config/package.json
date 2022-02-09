@@ -1,6 +1,6 @@
 {
   "private": true,
   "name": "@gemjs/config",
-  "version": "1.6.9",
+  "version": "1.6.10",
   "description": "Gemjs common config"
 }

@@ -1,6 +1,6 @@
 {
   "name": "@mantou/gem",
-  "version": "1.6.9",
+  "version": "1.6.10",
   "description": "💎 使用自定义元素的轻量级 WebApp 开发框架",
   "main": "index.js",
   "module": "index.js",
@@ -39,7 +39,7 @@
   },
   "devDependencies": {
     "@esm-bundle/chai": "^4.3.4-fix.0",
-    "@gemjs/config": "^1.6.9",
+    "@gemjs/config": "^1.6.10",
     "@open-wc/testing": "^2.5.33",
     "@web/dev-server-esbuild": "^0.2.16",
     "@web/test-runner": "^0.13.22",
