@@ -1,12 +1,13 @@
 import { adoptedStyle, customElement, emitter, Emitter, property } from '@mantou/gem/lib/decorators';
 import { GemElement, html } from '@mantou/gem/lib/element';
 import { createCSSSheet, css, styleMap, classMap } from '@mantou/gem/lib/utils';
-import type { PanEventDetail } from '@mantou/gem/elements/gesture';
 
 import { clamp } from '../lib/number';
 import { theme } from '../lib/theme';
 
-import '@mantou/gem/elements/gesture';
+import type { PanEventDetail } from './gesture';
+
+import './gesture';
 import './area-chart';
 
 const style = createCSSSheet(css`
@@ -166,7 +167,7 @@ export class DuoyunChartZoomElement extends GemElement<State> {
         .yAxi=${null}
         .sequences=${this.values && [{ label: '', values: this.values }]}
       ></dy-area-chart>
-      <gem-gesture class="bg" @pointerdown=${this.#onNewStart} @pan=${this.#onNewChange} @end=${this.#onNewEnd}>
+      <dy-gesture class="bg" @pointerdown=${this.#onNewStart} @pan=${this.#onNewChange} @end=${this.#onNewEnd}>
         ${newValue
           ? html`
               <div
@@ -178,25 +179,25 @@ export class DuoyunChartZoomElement extends GemElement<State> {
               ></div>
             `
           : ''}
-      </gem-gesture>
+      </dy-gesture>
       <div
         class=${classMap({ range: true, grabing })}
         style=${styleMap({ left: `calc(${start * 100}% - 1px)`, right: `calc(${(1 - stop) * 100}% - 2px)` })}
       >
-        <gem-gesture
+        <dy-gesture
           class=${classMap({ grab: true, grabing })}
           @pointerdown=${this.#onGrabStart}
           @pan=${this.#onPan}
           @end=${this.#onGrabEnd}
-        ></gem-gesture>
-        <gem-gesture
+        ></dy-gesture>
+        <dy-gesture
           class="crosshair"
           @pointerdown=${this.#onNewStart}
           @pan=${this.#onNewChange}
           @end=${this.#onNewEnd}
-        ></gem-gesture>
-        <gem-gesture class="start" @pan=${this.#onPanStart}></gem-gesture>
-        <gem-gesture class="stop" @pan=${this.#onPanStop}></gem-gesture>
+        ></dy-gesture>
+        <dy-gesture class="start" @pan=${this.#onPanStart}></dy-gesture>
+        <dy-gesture class="stop" @pan=${this.#onPanStop}></dy-gesture>
       </div>
     `;
   };

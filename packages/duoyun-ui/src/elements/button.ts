@@ -12,8 +12,6 @@ import {
 import { GemElement, html } from '@mantou/gem/lib/element';
 import { history } from '@mantou/gem/lib/history';
 import { createCSSSheet, css, QueryString } from '@mantou/gem/lib/utils';
-import { createHistoryParams, RouteItem } from '@mantou/gem/elements/route';
-import { GemUseElement } from '@mantou/gem/elements/use';
 
 import { theme, getSemanticColor } from '../lib/theme';
 import { icons } from '../lib/icons';
@@ -21,6 +19,8 @@ import { commonHandle } from '../lib/hotkeys';
 import { StringList } from '../lib/types';
 import { focusStyle } from '../lib/styles';
 
+import { DuoyunUseElement } from './use';
+import { createHistoryParams, RouteItem } from './route';
 import { MenuItem, ContextMenu } from './menu';
 
 const style = createCSSSheet(css`
@@ -128,7 +128,7 @@ export class DuoyunButtonElement extends GemElement {
   @property icon?: string | Element | DocumentFragment;
   @state active: boolean;
 
-  @refobject dropdownRef: RefObject<GemUseElement>;
+  @refobject dropdownRef: RefObject<DuoyunUseElement>;
   @refobject buttonRef: RefObject<HTMLDivElement>;
 
   get #color() {
@@ -183,7 +183,7 @@ export class DuoyunButtonElement extends GemElement {
         @keydown=${commonHandle}
         class="content"
       >
-        ${this.icon ? html`<gem-use class="icon" .element=${this.icon}></gem-use>` : ''}
+        ${this.icon ? html`<dy-use class="icon" .element=${this.icon}></dy-use>` : ''}
         <slot></slot>
       </div>
       ${this.dropdown
@@ -198,7 +198,7 @@ export class DuoyunButtonElement extends GemElement {
                 border-end-start-radius: 0;
               }
             </style>
-            <gem-use
+            <dy-use
               ref=${this.dropdownRef.ref}
               class="dropdown"
               tabindex="0"
@@ -207,7 +207,7 @@ export class DuoyunButtonElement extends GemElement {
               aria-disabled=${this.disabled}
               @click=${this.#onClickDropdown}
               .element=${icons.expand}
-            ></gem-use>
+            ></dy-use>
           `
         : ''}
     `;

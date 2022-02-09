@@ -16,7 +16,7 @@ import { StringList } from '../lib/types';
 import { commonHandle } from '../lib/hotkeys';
 import { focusStyle } from '../lib/styles';
 
-import '@mantou/gem/elements/use';
+import './use';
 
 const style = createCSSSheet(css`
   :host {
@@ -104,14 +104,14 @@ export class DuoyunTagElement extends GemElement {
       <slot></slot>
       ${this.closeable
         ? html`
-            <gem-use
+            <dy-use
               tabindex="0"
               role="button"
               class="close"
               @keydown=${commonHandle}
               @click=${this.#onClose}
               .element=${icons.close}
-            ></gem-use>
+            ></dy-use>
           `
         : ''}
     `;

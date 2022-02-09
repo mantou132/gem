@@ -20,7 +20,7 @@ import { icons } from '../lib/icons';
 import { focusStyle } from '../lib/styles';
 import { commonHandle } from '../lib/hotkeys';
 
-import '@mantou/gem/elements/use';
+import './use';
 
 type DataListItem = { label: string | TemplateResult; value?: any };
 export type DataList = DataListItem[];
@@ -254,7 +254,7 @@ export class DuoyunInputElement extends GemElement {
 
   render() {
     return html`
-      ${this.icon ? html`<gem-use class="icon" .element=${this.icon}></gem-use>` : ''}
+      ${this.icon ? html`<dy-use class="icon" .element=${this.icon}></dy-use>` : ''}
       ${this.#type === 'textarea'
         ? html`
             <textarea
@@ -298,7 +298,7 @@ export class DuoyunInputElement extends GemElement {
       `}
       ${this.clearable && this.value
         ? html`
-            <gem-use
+            <dy-use
               tabindex="0"
               role="button"
               @keydown=${commonHandle}
@@ -306,7 +306,7 @@ export class DuoyunInputElement extends GemElement {
               part="clear"
               class="clear"
               .element=${icons.close}
-            ></gem-use>
+            ></dy-use>
           `
         : ''}
     `;

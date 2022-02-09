@@ -20,7 +20,7 @@ import { focusStyle } from '../lib/styles';
 
 import { Popover } from './popover';
 
-import '@mantou/gem/elements/use';
+import './use';
 import './input';
 import './button';
 import './pick';
@@ -129,7 +129,7 @@ export class DuoyunPaginationElement extends GemElement {
     };
     return html`
       <div class="item more" role="combobox" tabindex="0" @click=${openMore} @keydown=${commonHandle}>
-        <gem-use class="icon" .element=${icons.more}></gem-use>
+        <dy-use class="icon" .element=${icons.more}></dy-use>
       </div>
     `;
   };

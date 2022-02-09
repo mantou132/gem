@@ -17,7 +17,7 @@ import { icons } from '../lib/icons';
 import { commonHandle } from '../lib/hotkeys';
 import { focusStyle } from '../lib/styles';
 
-import '@mantou/gem/elements/use';
+import './use';
 import './calendar';
 import './divider';
 import './time-panel';
@@ -169,23 +169,23 @@ export class DuoyunDatePanelElement extends GemElement<State> {
     return html`
       <div class="datepanel">
         <div class="head">
-          <gem-use
+          <dy-use
             class="button"
             tabindex="0"
             role="button"
             @keydown=${commonHandle}
             @click=${() => this.#increaseView(-1)}
             .element=${icons.left}
-          ></gem-use>
+          ></dy-use>
           <div class="current">${this.#currentPosition.format({ year: 'numeric', month: 'long' })}</div>
-          <gem-use
+          <dy-use
             class="button"
             tabindex="0"
             role="button"
             @keydown=${commonHandle}
             @click=${() => this.#increaseView(1)}
             .element=${icons.right}
-          ></gem-use>
+          ></dy-use>
         </div>
         <dy-calendar
           class="calendar"

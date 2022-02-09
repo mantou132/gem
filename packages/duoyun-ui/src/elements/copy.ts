@@ -8,7 +8,7 @@ import { locale } from '../lib/locale';
 import { commonHandle } from '../lib/hotkeys';
 import { focusStyle } from '../lib/styles';
 
-import '@mantou/gem/elements/use';
+import './use';
 import '../elements/tooltip';
 
 const style = createCSSSheet(css`
@@ -125,7 +125,7 @@ export class DuoyunCopyElement extends GemElement<State> {
     return html`
       <slot></slot>
       <dy-tooltip .content=${this.tooltip}>
-        <gem-use
+        <dy-use
           role="button"
           tabindex="0"
           class=${classMap({ icon: true, [status]: true })}
@@ -140,7 +140,7 @@ export class DuoyunCopyElement extends GemElement<State> {
                   <span class="text">${status === 'fail' ? locale.copyFail : locale.copySuccess}</span>
                 </div>
               `}
-        </gem-use>
+        </dy-use>
       </dy-tooltip>
       <slot name="after"></slot>
     `;

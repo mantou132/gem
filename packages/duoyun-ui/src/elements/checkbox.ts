@@ -14,7 +14,7 @@ import { icons } from '../lib/icons';
 import { commonHandle } from '../lib/hotkeys';
 import { focusStyle } from '../lib/styles';
 
-import '@mantou/gem/elements/use';
+import './use';
 
 const style = createCSSSheet(css`
   :host {
@@ -82,7 +82,7 @@ export class DuoyunCheckboxElement extends GemElement {
 
   render = () => {
     return html`
-      <gem-use
+      <dy-use
         role="checkbox"
         tabindex="0"
         @keydown=${commonHandle}
@@ -91,7 +91,7 @@ export class DuoyunCheckboxElement extends GemElement {
         aria-checked=${this.indeterminate ? 'mixed' : this.checked}
         class="checkbox"
         .element=${this.checked ? icons.check : undefined}
-      ></gem-use>
+      ></dy-use>
       <slot id="label"></slot>
     `;
   };

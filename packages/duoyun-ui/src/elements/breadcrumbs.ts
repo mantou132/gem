@@ -7,7 +7,7 @@ import { icons } from '../lib/icons';
 import { theme } from '../lib/theme';
 import { commonHandle } from '../lib/hotkeys';
 
-import '@mantou/gem/elements/use';
+import './use';
 import './tooltip';
 import './action-text';
 
@@ -71,7 +71,7 @@ export class DuoyunBreadcrumbsElement extends GemElement {
         ({ title, tooltip, handle, icon }, index, arr, isLast = arr.length - 1 === index) => html`
           <dy-tooltip .content=${tooltip}>
             ${icon
-              ? html`<gem-use class="item-icon" .element=${icon}></gem-use>`
+              ? html`<dy-use class="item-icon" .element=${icon}></dy-use>`
               : html`
                   <dy-action-text
                     role="link"
@@ -83,7 +83,7 @@ export class DuoyunBreadcrumbsElement extends GemElement {
                   </dy-action-text>
                 `}
           </dy-tooltip>
-          ${!isLast ? html`<gem-use class="separator" role="separator" .element=${icons.right}></gem-use>` : ''}
+          ${!isLast ? html`<dy-use class="separator" role="separator" .element=${icons.right}></dy-use>` : ''}
         `,
       )}
     `;

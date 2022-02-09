@@ -2,15 +2,15 @@ import { connectStore, adoptedStyle, customElement, property } from '@mantou/gem
 import { html, TemplateResult } from '@mantou/gem/lib/element';
 import { history } from '@mantou/gem/lib/history';
 import { createCSSSheet, css, QueryString } from '@mantou/gem/lib/utils';
-import { createPath, matchPath } from '@mantou/gem/elements/route';
 
 import { theme } from '../lib/theme';
 import { commonHandle } from '../lib/hotkeys';
 import { focusStyle } from '../lib/styles';
 
+import { createPath, matchPath } from './route';
 import { DuoyunScrollBaseElement } from './base/scroll';
 
-import '@mantou/gem/elements/link';
+import './link';
 
 interface Item {
   title?: string;
@@ -117,7 +117,7 @@ export class DuoyunSideNavigationElement extends DuoyunScrollBaseElement<State> 
 
   #renderItem = ({ pattern, title = '<No Title>', slot, params, query, children }: Item): TemplateResult => {
     return html`
-      <gem-active-link
+      <dy-active-link
         class="item"
         tabindex="0"
         @keydown=${commonHandle}
@@ -128,7 +128,7 @@ export class DuoyunSideNavigationElement extends DuoyunScrollBaseElement<State> 
         pattern=${!pattern ? '' : pattern.endsWith('*') ? pattern : `${pattern}/*`}
       >
         <span>${title}</span>${slot}
-      </gem-active-link>
+      </dy-active-link>
       ${children && this.state[title] ? html`<div class="children">${children.map(this.#renderItem)}</div>` : ''}
     `;
   };

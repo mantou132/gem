@@ -15,7 +15,7 @@ import { theme } from '../lib/theme';
 import { icons } from '../lib/icons';
 import { commonHandle } from '../lib/hotkeys';
 
-import '@mantou/gem/elements/use';
+import './use';
 import './divider';
 
 const style = createCSSSheet(css`
@@ -106,7 +106,7 @@ export class DuoyunBannerElement extends GemElement {
   render = () => {
     const icon = this.#icon;
     return html`
-      ${icon ? html`<gem-use class="icon" .element=${icon}></gem-use>` : ''}
+      ${icon ? html`<dy-use class="icon" .element=${icon}></dy-use>` : ''}
       <div class="content">
         <slot></slot>
       </div>
@@ -118,13 +118,13 @@ export class DuoyunBannerElement extends GemElement {
       ${this.closeable
         ? html`
             <dy-divider class="divider" orientation="vertical"></dy-divider>
-            <gem-use
+            <dy-use
               role="button"
               class="close"
               .element=${icons.close}
               @click=${() => this.close(null)}
               @keydown=${commonHandle}
-            ></gem-use>
+            ></dy-use>
           `
         : ''}
     `;

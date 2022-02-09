@@ -9,7 +9,6 @@ import {
 } from '@mantou/gem/lib/decorators';
 import { GemElement, html } from '@mantou/gem/lib/element';
 import { createCSSSheet, css, styleMap, classMap } from '@mantou/gem/lib/utils';
-import type { PanEventDetail } from '@mantou/gem/elements/gesture';
 
 import {
   HexColor,
@@ -27,8 +26,10 @@ import { theme } from '../lib/theme';
 import { icons } from '../lib/icons';
 import { clamp, formatToPrecision } from '../lib/number';
 
-import '@mantou/gem/elements/gesture';
-import '@mantou/gem/elements/use';
+import type { PanEventDetail } from './gesture';
+
+import './gesture';
+import './use';
 import './input';
 import './select';
 
@@ -346,32 +347,32 @@ export class DuoyunColorPanelElement extends GemElement<State> {
         }
       </style>
       <div class="color">
-        <gem-gesture class="area" @pan=${this.#onPanSV} @end=${this.#onChange}>
+        <dy-gesture class="area" @pan=${this.#onPanSV} @end=${this.#onChange}>
           <div
             class=${classMap({ current: true, grabbing: grabbingSV })}
             style=${styleMap({ left: `${this.#sa * 100}%`, top: `${(1 - this.#v) * 100}%` })}
           >
             <span></span>
           </div>
-        </gem-gesture>
-        <gem-gesture class="hue-bar" @pan=${this.#onPanHue} @end=${this.#onChange}>
+        </dy-gesture>
+        <dy-gesture class="hue-bar" @pan=${this.#onPanHue} @end=${this.#onChange}>
           <div
             class=${classMap({ current: true, grabbing: grabbingHue })}
             style=${styleMap({ top: `${(1 - this.#h) * 100}%`, left: '50%' })}
           >
             <span></span>
           </div>
-        </gem-gesture>
+        </dy-gesture>
         ${this.alpha
           ? html`
-              <gem-gesture class="alpha-bar" @pan=${this.#onPanA} @end=${this.#onChange}>
+              <dy-gesture class="alpha-bar" @pan=${this.#onPanA} @end=${this.#onChange}>
                 <div
                   class=${classMap({ current: true, grabbing: grabbingA })}
                   style=${styleMap({ top: `${(1 - this.#a) * 100}%`, left: '50%' })}
                 >
                   <span></span>
                 </div>
-              </gem-gesture>
+              </dy-gesture>
             `
           : ''}
       </div>
@@ -397,13 +398,13 @@ export class DuoyunColorPanelElement extends GemElement<State> {
           step=${0.1}
           @change=${this.#onChangeA}
         ></dy-input>
-        <gem-use
+        <dy-use
           role="button"
           aria-hidden=${!('EyeDropper' in window)}
           class=${classMap({ colorize: true, hidden: !('EyeDropper' in window) })}
           .element=${icons.colorize}
           @click=${this.#openEyeDropper}
-        ></gem-use>
+        ></dy-use>
       </div>
     `;
   };

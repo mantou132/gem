@@ -6,7 +6,7 @@ import { theme } from '../lib/theme';
 
 import { DuoyunScrollBaseElement } from './base/scroll';
 
-import '@mantou/gem/elements/use';
+import './use';
 import './compartment';
 import './divider';
 
@@ -88,7 +88,7 @@ export class DuoyunTabsElement extends GemElement {
               part=${partMap({ tab: true, current: isCurrent })}
               @click=${() => this.change(value ?? index)}
             >
-              ${icon ? html`<gem-use part="icon" .element=${icon}></gem-use>` : ''}${tab}
+              ${icon ? html`<dy-use part="icon" .element=${icon}></dy-use>` : ''}${tab}
               ${isCurrent ? html`<dy-divider part="mark" size="medium" .color=${theme.primaryColor}></dy-divider>` : ''}
             </div>
           `;

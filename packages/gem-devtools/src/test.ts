@@ -23,7 +23,7 @@ changeStore({
   ],
   observedPropertys: [
     { name: 'list', value: '[1, 2]', type: 'object' },
-    { name: 'config', value: '{a: "https://gem-docs.netlify.app/#are-you-ready"}', type: 'object' },
+    { name: 'config', value: '{a: "https://gemjs.org/#are-you-ready"}', type: 'object' },
   ],
   observedStores: [{ name: 'store', value: '{...}', type: 'object' }],
   lifecycleMethod: [{ name: 'render', value: 'function ()', type: 'function' }],

@@ -11,7 +11,7 @@ import { focusStyle } from '../lib/styles';
 import { DuoyunLoadableBaseElement } from './base/loadable';
 import { MenuItem, ContextMenu } from './menu';
 
-import '@mantou/gem/elements/use';
+import './use';
 
 const style = createCSSSheet(css`
   :host {
@@ -131,14 +131,14 @@ export class DuoyunCardElement extends DuoyunLoadableBaseElement {
               <div class="detail right">${this.detailRight}</div>
               ${this.actions
                 ? html`
-                    <gem-use
+                    <dy-use
                       tabindex="0"
                       role="button"
                       class="actions"
                       @click=${this.#onOpenMenu}
                       @keydown=${commonHandle}
                       .element=${icons.more}
-                    ></gem-use>
+                    ></dy-use>
                   `
                 : ''}
             </div>

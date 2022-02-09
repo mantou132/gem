@@ -1,17 +1,17 @@
 import { GemElement, html } from '@mantou/gem/lib/element';
 import { adoptedStyle, customElement, property, numattribute, refobject, RefObject } from '@mantou/gem/lib/decorators';
 import { createCSSSheet, css, styleMap, classMap } from '@mantou/gem/lib/utils';
-import type { SwipeEventDetail } from '@mantou/gem/elements/gesture';
 
 import { theme } from '../lib/theme';
 import { icons } from '../lib/icons';
 import { commonHandle } from '../lib/hotkeys';
 import { focusStyle } from '../lib/styles';
 
+import type { SwipeEventDetail } from './gesture';
 import type { DouyunLinkElement } from './link';
 
-import '@mantou/gem/elements/gesture';
-import '@mantou/gem/elements/use';
+import './gesture';
+import './use';
 import './link';
 import './heading';
 import './paragraph';
@@ -214,7 +214,7 @@ export class DuoyunCarouselElement extends GemElement<State> {
   render = () => {
     const { currentIndex, direction } = this.state;
     return html`
-      <gem-gesture @click=${this.#goLink} @swipe=${this.#onSwipe}>
+      <dy-gesture @click=${this.#goLink} @swipe=${this.#onSwipe}>
         <ul class="list" role="region">
           ${this.data?.map(
             ({ img, background, link, title, description, actionText, tag }, index) => html`
@@ -236,7 +236,7 @@ export class DuoyunCarouselElement extends GemElement<State> {
                       ? html`
                           <dy-button class="action">
                             ${actionText}
-                            <gem-use class="forward" .element=${icons.forward}></gem-use>
+                            <dy-use class="forward" .element=${icons.forward}></dy-use>
                           </dy-button>
                         `
                       : ''}
@@ -246,7 +246,7 @@ export class DuoyunCarouselElement extends GemElement<State> {
             `,
           )}
         </ul>
-      </gem-gesture>
+      </dy-gesture>
       <div class="nav">
         ${this.data?.map(
           (_, index) =>

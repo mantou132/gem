@@ -1,8 +1,8 @@
 import { GemElement, html, customElement, refobject, RefObject, render } from '@mantou/gem';
-import { createModalClass } from '@mantou/gem/elements/modal-base';
-import { DialogBaseElement } from '@mantou/gem/elements/dialog-base';
-import '@mantou/gem/elements/link';
+import { createModalClass } from '@mantou/gem/elements/base/modal-factory';
+import { GemDialogBaseElement } from '@mantou/gem/elements/base/dialog';
 
+import '@mantou/gem/elements/link';
 import '../elements/layout';
 
 @customElement('app-confirm')
@@ -52,7 +52,7 @@ class Confirm extends createModalClass({
 }
 
 @customElement('app-dialog')
-class Dialog extends DialogBaseElement {
+class Dialog extends GemDialogBaseElement {
   shouldClose = () => {
     if (this.opened) {
       Confirm.open({

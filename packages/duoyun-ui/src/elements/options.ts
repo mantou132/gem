@@ -9,7 +9,7 @@ import { locale } from '../lib/locale';
 import { commonHandle } from '../lib/hotkeys';
 import { focusStyle } from '../lib/styles';
 
-import '@mantou/gem/elements/use';
+import './use';
 import './input';
 
 const style = createCSSSheet(css`
@@ -193,7 +193,7 @@ export class DuoyunOptionsElement extends GemElement<State> {
                     <div class="label">${label}</div>
                     <div class="description">${description}</div>
                   </div>
-                  ${tag}${icon ? html`<gem-use class="icon" .element=${icon}></gem-use>` : ''}
+                  ${tag}${icon ? html`<dy-use class="icon" .element=${icon}></dy-use>` : ''}
                 </div>
               `,
       )}

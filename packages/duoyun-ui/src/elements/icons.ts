@@ -10,7 +10,7 @@ import { locale } from '../lib/locale';
 
 import { Toast } from './toast';
 
-import '@mantou/gem/elements/use';
+import './use';
 
 const style = createCSSSheet(css`
   :host {
@@ -18,7 +18,7 @@ const style = createCSSSheet(css`
     grid-template-columns: repeat(auto-fill, minmax(6em, 1fr));
     gap: ${theme.gridGutter};
   }
-  div {
+  .item {
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -28,10 +28,10 @@ const style = createCSSSheet(css`
     cursor: default;
     background-color: ${theme.lightBackgroundColor};
   }
-  div:hover {
+  .item:hover {
     background-color: ${theme.hoverBackgroundColor};
   }
-  gem-use {
+  .icon {
     width: 2em;
   }
 `);
@@ -43,7 +43,7 @@ const style = createCSSSheet(css`
 @adoptedStyle(style)
 export class DuoyunIconsElement extends GemElement {
   #onCopy = async (name: string) => {
-    await navigator.clipboard.writeText(`<gem-use .element=\${icons.${name}}></gem-use>`);
+    await navigator.clipboard.writeText(`<dy-use .element=\${icons.${name}}></dy-use>`);
     Toast.open('success', locale.copySuccess, {
       duration: 1000,
     });
@@ -53,7 +53,11 @@ export class DuoyunIconsElement extends GemElement {
     const entries = Object.entries(icons);
     return html`
       ${entries.map(([name, value]) => {
-        return html`<div @click=${() => this.#onCopy(name)}><gem-use .element=${value}></gem-use>${name}</div>`;
+        return html`
+          <div class="item" @click=${() => this.#onCopy(name)}>
+            <dy-use class="icon" .element=${value}></dy-use>${name}
+          </div>
+        `;
       })}
     `;
   };

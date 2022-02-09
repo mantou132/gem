@@ -12,14 +12,15 @@ import {
 } from '@mantou/gem/lib/decorators';
 import { GemElement, html } from '@mantou/gem/lib/element';
 import { createCSSSheet, css, classMap } from '@mantou/gem/lib/utils';
-import type { PanEventDetail } from '@mantou/gem/elements/gesture';
 
 import { theme } from '../lib/theme';
 import { clamp } from '../lib/number';
 import { hotkeys } from '../lib/hotkeys';
 import { focusStyle } from '../lib/styles';
 
-import '@mantou/gem/elements/gesture';
+import type { PanEventDetail } from './gesture';
+
+import './gesture';
 import './input';
 
 const style = createCSSSheet(css`
@@ -186,12 +187,12 @@ export class DuoyunSliderElement extends GemElement {
         }
       </style>
       <div class="slider" ref=${this.sliderRef.ref}>
-        <gem-gesture
+        <dy-gesture
           class=${classMap({ mark: true, start })}
           @pan=${this.#onPan}
           @pointerdown=${() => !this.disabled && this.setState({ start: true })}
           @end=${() => this.setState({ start: false })}
-        ></gem-gesture>
+        ></dy-gesture>
         ${this.label
           ? html`
               <div class="label">${this.label}</div>

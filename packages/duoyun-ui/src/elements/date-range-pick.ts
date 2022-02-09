@@ -23,6 +23,7 @@ import { focusStyle } from '../lib/styles';
 import type { DuoyunButtonElement } from './button';
 import { ContextMenu } from './menu';
 
+import './use';
 import './date-range-panel';
 import './button';
 
@@ -57,15 +58,15 @@ const style = createCSSSheet(css`
   .placeholder {
     color: ${theme.describeColor};
   }
-  gem-use {
+  .icon {
+    display: flex;
+  }
+  dy-use {
     width: 1.2em;
     color: ${theme.borderColor};
   }
-  :host(:where(:hover, :--active, [data-active])) gem-use {
+  :host(:where(:hover, :--active, [data-active])) dy-use {
     color: ${theme.textColor};
-  }
-  .icon {
-    display: flex;
   }
   .close,
   .clearable:hover .date {
@@ -192,8 +193,8 @@ export class DuoyunDateRangePickElement extends GemElement {
         ${this.value ? this.#getCurrentLabel(this.value) : this.placeholder}
       </div>
       <div class=${classMap({ icon: true, clearable: this.clearable })}>
-        <gem-use class="date" .element=${icons.date}></gem-use>
-        <gem-use @click=${this.#onClear} class="close" .element=${icons.close}></gem-use>
+        <dy-use class="date" .element=${icons.date}></dy-use>
+        <dy-use @click=${this.#onClear} class="close" .element=${icons.close}></dy-use>
       </div>
     `;
   };

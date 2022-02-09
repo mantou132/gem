@@ -22,8 +22,8 @@ import { hotkeys } from '../lib/hotkeys';
 import { isNotNullish } from '../lib/types';
 import { focusStyle } from '../lib/styles';
 
-import '@mantou/gem/elements/reflect';
-import '@mantou/gem/elements/use';
+import './reflect';
+import './use';
 import './options';
 import './input';
 import './tag';
@@ -394,10 +394,10 @@ export class DuoyunSelectElement extends GemElement<State> {
                   `
                 : ''}
             </div>
-            <gem-use class="icon" .element=${icons.expand}></gem-use>
+            <dy-use class="icon" .element=${icons.expand}></dy-use>
             ${this.options && open
               ? html`
-                  <gem-reflect .target=${document.body}>
+                  <dy-reflect .target=${document.body}>
                     <dy-options
                       ref=${this.optionsRef.ref}
                       @keydown=${hotkeys({ esc: this.#close })}
@@ -414,7 +414,7 @@ export class DuoyunSelectElement extends GemElement<State> {
                       })}
                       .options=${getOptions()}
                     ></dy-options>
-                  </gem-reflect>
+                  </dy-reflect>
                 `
               : ''}
           `}

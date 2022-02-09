@@ -6,7 +6,7 @@ import { theme } from '../lib/theme';
 
 import { Status, getStatusColor } from './status-light';
 
-import '@mantou/gem/elements/use';
+import './use';
 import './heading';
 import './paragraph';
 import './space';
@@ -68,10 +68,10 @@ export class DyResultElement extends GemElement {
                 color: ${this.#color};
               }
             </style>
-            <gem-use class="icon" .element=${this.icon}></gem-use>
+            <dy-use class="icon" .element=${this.icon}></dy-use>
           `
         : ''}
-      ${this.illustrator ? html`<gem-use class="illustrator" .element=${this.illustrator}></gem-use>` : ''}
+      ${this.illustrator ? html`<dy-use class="illustrator" .element=${this.illustrator}></dy-use>` : ''}
       ${this.header ? html`<dy-heading lv="2" class="header">${this.header}</dy-heading>` : ''}
       ${this.description ? html`<dy-paragraph class="description">${this.description}</dy-paragraph>` : ''}
       <slot></slot>

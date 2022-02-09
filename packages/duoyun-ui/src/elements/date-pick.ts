@@ -25,7 +25,7 @@ import type { DuoyunButtonElement } from './button';
 import type { DuoyunDatePanelElement } from './date-panel';
 import { ContextMenu } from './menu';
 
-import '@mantou/gem/elements/use';
+import './use';
 import './date-panel';
 import './button';
 
@@ -60,11 +60,11 @@ const style = createCSSSheet(css`
   .placeholder {
     color: ${theme.describeColor};
   }
-  gem-use {
+  dy-use {
     width: 1.2em;
     color: ${theme.borderColor};
   }
-  :host(:where(:hover, :--active, [data-active])) gem-use {
+  :host(:where(:hover, :--active, [data-active])) dy-use {
     color: ${theme.textColor};
   }
   .iconwrap {
@@ -185,8 +185,8 @@ export class DuoyunDatePickElement extends GemElement {
     return html`
       <div class=${classMap({ value: true, placeholder: !this.#value })}>${this.#valueString || this.placeholder}</div>
       <div class=${classMap({ iconwrap: true, clearable: this.clearable })}>
-        <gem-use class="date" .element=${icons.date}></gem-use>
-        <gem-use class="close" @click=${this.#onClear} .element=${icons.close}></gem-use>
+        <dy-use class="date" .element=${icons.date}></dy-use>
+        <dy-use class="close" @click=${this.#onClear} .element=${icons.close}></dy-use>
       </div>
     `;
   };

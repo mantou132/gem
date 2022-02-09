@@ -8,7 +8,7 @@ import { icons } from '../lib/icons';
 import { commonHandle } from '../lib/hotkeys';
 import { focusStyle } from '../lib/styles';
 
-import '@mantou/gem/elements/use';
+import './use';
 
 const style = createCSSSheet(css`
   :host {
@@ -155,7 +155,7 @@ export class DuoyunImagePreviewElement extends GemElement<State> {
         : this.#status !== 'detault'
         ? html`
             <div class="mask status">
-              <gem-use class="icon" .element=${this.#icon}></gem-use>
+              <dy-use class="icon" .element=${this.#icon}></dy-use>
             </div>
           `
         : this.actions
@@ -163,14 +163,14 @@ export class DuoyunImagePreviewElement extends GemElement<State> {
             <div class="mask">
               ${this.actions.map(
                 ({ icon, handle }) => html`
-                  <gem-use
+                  <dy-use
                     class="icon"
                     .element=${icon}
                     role="button"
                     tabindex="0"
                     @keydown=${commonHandle}
                     @click=${() => handle()}
-                  ></gem-use>
+                  ></dy-use>
                 `,
               )}
             </div>

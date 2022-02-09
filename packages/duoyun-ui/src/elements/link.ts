@@ -1,9 +1,11 @@
 import { adoptedStyle, customElement } from '@mantou/gem/lib/decorators';
 import { createCSSSheet, css } from '@mantou/gem/lib/utils';
-import { GemLinkElement, GemActiveLinkElement } from '@mantou/gem/elements/link';
+import { GemLinkElement, GemActiveLinkElement } from '@mantou/gem/elements/base/link';
 
 import { commonHandle } from '../lib/hotkeys';
 import { focusStyle } from '../lib/styles';
+
+export * from '@mantou/gem/elements/base/link';
 
 const style = createCSSSheet(css`
   :host {
@@ -21,7 +23,6 @@ const style = createCSSSheet(css`
 export class DouyunLinkElement extends GemLinkElement {
   constructor() {
     super();
-    this.tabIndex = 0;
     this.addEventListener('keydown', commonHandle);
   }
 }
@@ -35,7 +36,6 @@ export class DouyunLinkElement extends GemLinkElement {
 export class DuoyunActiveLinkElement extends GemActiveLinkElement {
   constructor() {
     super();
-    this.tabIndex = 0;
     this.addEventListener('keydown', commonHandle);
   }
 }

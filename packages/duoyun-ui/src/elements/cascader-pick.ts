@@ -20,6 +20,7 @@ import { focusStyle } from '../lib/styles';
 import { ContextMenu } from './menu';
 import type { Option, DuoyunCascaderElement } from './cascader';
 
+import './use';
 import './cascader';
 import './tag';
 
@@ -158,7 +159,7 @@ export class DuoyunCascaderPickElement extends GemElement {
           ? this.#renderMultipleValue(this.value as (string | number)[][])
           : this.#renderValue(this.value as (string | number)[])}
       </div>
-      <gem-use class="icon" .element=${icons.expand}></gem-use>
+      <dy-use class="icon" .element=${icons.expand}></dy-use>
     `;
   };
 }

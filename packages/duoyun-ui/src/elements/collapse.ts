@@ -8,7 +8,7 @@ import { theme } from '../lib/theme';
 import { commonHandle } from '../lib/hotkeys';
 import { focusStyle } from '../lib/styles';
 
-import '@mantou/gem/elements/use';
+import './use';
 
 const panelStyle = createCSSSheet(css`
   :host {
@@ -75,7 +75,7 @@ export class DuoyunCollapsePanelElement extends GemElement<State> {
         @keydown=${commonHandle}
         @click=${() => this.setState({ expand: !expand })}
       >
-        <gem-use class=${classMap({ icon: true, expand: expand })} .element=${icons.right}></gem-use>
+        <dy-use class=${classMap({ icon: true, expand: expand })} .element=${icons.right}></dy-use>
         <span class="title">${this.header}</span>
       </div>
       ${expand

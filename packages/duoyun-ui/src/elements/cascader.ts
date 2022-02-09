@@ -14,7 +14,7 @@ import { structuredClone, getCascaderDeep, readProp } from '../lib/utils';
 import { theme } from '../lib/theme';
 import { isNotNullish } from '../lib/types';
 
-import '@mantou/gem/elements/use';
+import './use';
 import './checkbox';
 
 const style = createCSSSheet(css`
@@ -242,7 +242,7 @@ export class DuoyunCascaderElement extends GemElement<State> {
                         `
                       : ''}
                     <span class="label">${item.value ?? item.label}</span>
-                    <gem-use class="right" .element=${item.children && icons.right}></gem-use>
+                    <dy-use class="right" .element=${item.children && icons.right}></dy-use>
                   </li>
                 `,
               )}

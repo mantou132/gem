@@ -19,7 +19,7 @@ import { focusStyle } from '../lib/styles';
 
 import { ContextMenu, MenuItem } from './menu';
 
-import '@mantou/gem/elements/use';
+import './use';
 
 const style = createCSSSheet(css`
   :host {
@@ -159,7 +159,7 @@ export class DuoyunPickElement extends GemElement {
       <div class=${classMap({ value: true, placeholder: isEmpty })}>
         ${isEmpty ? this.placeholder : typeof currentLabels[0] === 'object' ? currentLabels : currentLabels.join()}
       </div>
-      <gem-use class="icon" .element=${icons.expand}></gem-use>
+      <dy-use class="icon" .element=${icons.expand}></dy-use>
     `;
   };
 }

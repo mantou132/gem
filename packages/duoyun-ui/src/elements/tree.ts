@@ -18,7 +18,7 @@ import { theme, getSemanticColor } from '../lib/theme';
 import { getCascaderBubbleWeakMap } from '../lib/utils';
 import { focusStyle } from '../lib/styles';
 
-import '@mantou/gem/elements/use';
+import './use';
 
 type Status = 'positive' | 'notice' | 'negative';
 
@@ -110,11 +110,11 @@ export class DuoyunTreeItemElement extends GemElement {
           color: ${this.color};
         }
       </style>
-      <gem-use
+      <dy-use
         class="icon expandable"
         .element=${!children ? undefined : this.expanded ? icons.expand : icons.right}
-      ></gem-use>
-      ${icon ? html`<gem-use class="icon" .element=${icon}></gem-use>` : ''}
+      ></dy-use>
+      ${icon ? html`<dy-use class="icon" .element=${icon}></dy-use>` : ''}
       ${context ? html`<div class="context">${context}</div>` : ''}
       <span class="label">${label}</span>
       ${this.hastags ? html`<div class="tags children"></div>` : ''}

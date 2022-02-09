@@ -19,7 +19,7 @@ import { focusStyle } from '../lib/styles';
 
 import type { ImageStatus } from './image-preview';
 
-import '@mantou/gem/elements/use';
+import './use';
 import './image-preview';
 
 const style = createCSSSheet(css`
@@ -163,14 +163,14 @@ export class DuoyunFilePickElement extends GemElement {
       <div role="listitem" class="item" style=${styleMap({ color: getColor() })}>
         <div class="name">${name}</div>
         ${progress ? html`<div role="progressbar">${Math.floor(progress)}%</div>` : ''}
-        <gem-use
+        <dy-use
           role="button"
           tabindex="0"
           @keydown=${commonHandle}
           class="icon"
           .element=${icons.delete}
           @click=${() => this.#onRemoveItem(item)}
-        ></gem-use>
+        ></dy-use>
       </div>
     `;
   };
@@ -218,7 +218,7 @@ export class DuoyunFilePickElement extends GemElement {
         class="item button"
         @keydown=${commonHandle}
         @click=${() => this.openFilePicker()}>
-        <gem-use class="icon" .element=${icons.add}></gem-use>
+        <dy-use class="icon" .element=${icons.add}></dy-use>
         <span class="name">${this.#placeholder}</span>
       </div>
       ${this.value ? html`<div role="list" class="list">${repeat(this.value, (e) => e, renderItem)}</div>` : ''}

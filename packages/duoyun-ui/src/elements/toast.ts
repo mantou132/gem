@@ -5,7 +5,7 @@ import { createCSSSheet, css, classMap, isArrayChange } from '@mantou/gem/lib/ut
 import { icons } from '../lib/icons';
 import { theme } from '../lib/theme';
 
-import '@mantou/gem/elements/use';
+import './use';
 
 const style = createCSSSheet(css`
   :host {
@@ -41,7 +41,7 @@ const style = createCSSSheet(css`
   .error {
     background: ${theme.negativeColor};
   }
-  gem-use {
+  .icon {
     width: 1.2em;
   }
   .body {
@@ -142,7 +142,7 @@ export class DuoyunToastElement extends GemElement {
       ${this.data?.map(
         ({ type, content }) => html`
           <div class=${classMap({ item: true, [type]: true })}>
-            <gem-use .element=${this.#getIcon(type)}></gem-use>
+            <dy-use class="icon" .element=${this.#getIcon(type)}></dy-use>
             <span class="body">${content}</span>
           </div>
         `,

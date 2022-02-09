@@ -26,8 +26,8 @@
 
 ## 文档
 
-- [Guide](https://gem-docs.netlify.com/guide/)
-- [API](https://gem-docs.netlify.com/api/)
+- [Guide](https://gemjs.org/guide/)
+- [API](https://gemjs.org/api/)
 
 ## 贡献
 

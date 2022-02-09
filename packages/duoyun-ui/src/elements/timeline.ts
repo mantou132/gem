@@ -7,7 +7,7 @@ import { theme } from '../lib/theme';
 
 import { DuoyunScrollBaseElement } from './base/scroll';
 
-import '@mantou/gem/elements/use';
+import './use';
 
 const style = createCSSSheet(css`
   :host {
@@ -82,11 +82,11 @@ export class DuoyunTimelineElement extends DuoyunScrollBaseElement {
         ({ title, description, icon, color }, index) => html`
           <div role="listitem" class="item">
             <div class=${classMap({ line: true, last: index === events.length - 1 })}></div>
-            <gem-use
+            <dy-use
               class=${classMap({ dot: true, circle: !icon })}
               style=${styleMap({ color })}
               .element=${icon}
-            ></gem-use>
+            ></dy-use>
             <div class="title">${title}</div>
             <div class="desc">${description}</div>
           </div>

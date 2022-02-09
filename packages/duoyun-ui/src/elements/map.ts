@@ -2,15 +2,15 @@ import { adoptedStyle, customElement, emitter, Emitter, property, state } from '
 import { html, svg } from '@mantou/gem/lib/element';
 import { createCSSSheet, css, styleMap, classMap } from '@mantou/gem/lib/utils';
 import { geoProjection, geoMercatorRaw, geoEquirectangularRaw, GeoRawProjection, geoPath } from 'd3-geo';
-import type { PanEventDetail } from '@mantou/gem/elements/gesture';
-
-export type { PanEventDetail } from '@mantou/gem/elements/gesture';
 
 import { theme } from '../lib/theme';
 
+import type { PanEventDetail } from './gesture';
 import { DuoyunLoadableBaseElement } from './base/loadable';
 
-import '@mantou/gem/elements/gesture';
+import './gesture';
+
+export type { PanEventDetail } from './gesture';
 
 // https://github.com/d3/d3-geo/blob/main/src/projection/equirectangular.js
 // https://github.com/d3/d3-geo/blob/main/src/projection/mercator.js
@@ -291,7 +291,7 @@ export class DuoyunMapElement extends DuoyunLoadableBaseElement<State> {
   render = () => {
     const { currentArea, currentNode } = this.state;
     return html`
-      <gem-gesture @pan=${this.#onPan} @end=${this.#onEnd}>
+      <dy-gesture @pan=${this.#onPan} @end=${this.#onEnd}>
         ${svg`
           <svg
             part="svg"
@@ -309,7 +309,7 @@ export class DuoyunMapElement extends DuoyunLoadableBaseElement<State> {
             ${currentNode ? this.#renderNode(currentNode, true) : ''}
           </svg>
         `}
-      </gem-gesture>
+      </dy-gesture>
     `;
   };
 }

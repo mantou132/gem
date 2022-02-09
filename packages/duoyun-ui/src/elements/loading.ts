@@ -6,7 +6,7 @@ import { icons } from '../lib/icons';
 
 import { DuoyunVisibleBaseElement } from './base/visible';
 
-import '@mantou/gem/elements/use';
+import './use';
 
 const style = createCSSSheet(css`
   :host {
@@ -31,7 +31,7 @@ const style = createCSSSheet(css`
 export class DuoyunLoadingElement extends DuoyunVisibleBaseElement {
   render = () => {
     return html`
-      <gem-use class="icon" .element=${icons.loading}></gem-use>
+      <dy-use class="icon" .element=${icons.loading}></dy-use>
       <span class="describe"><slot></slot></span>
     `;
   };

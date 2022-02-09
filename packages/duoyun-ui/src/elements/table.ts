@@ -11,7 +11,6 @@ import {
 } from '@mantou/gem/lib/decorators';
 import { GemElement, html, TemplateResult } from '@mantou/gem/lib/element';
 import { createCSSSheet, css, styleMap, classMap, StyleObject } from '@mantou/gem/lib/utils';
-import { GemUseElement } from '@mantou/gem/elements/use';
 
 import { theme } from '../lib/theme';
 import { readProp } from '../lib/utils';
@@ -20,6 +19,7 @@ import { icons } from '../lib/icons';
 import { commonHandle } from '../lib/hotkeys';
 import { focusStyle } from '../lib/styles';
 
+import { DuoyunUseElement } from './use';
 import { MenuItem, ContextMenu } from './menu';
 
 import './placeholder';
@@ -132,7 +132,7 @@ export class DuoyunTableElement extends GemElement {
   @emitter expand: Emitter<any>;
 
   #openActions = (evt: PointerEvent, menu: MenuItem[]) => {
-    if (evt.target instanceof GemUseElement) {
+    if (evt.target instanceof DuoyunUseElement) {
       ContextMenu.open(menu, {
         activeElement: evt.target as HTMLElement,
         searchable: menu.length > 20,
@@ -176,11 +176,11 @@ export class DuoyunTableElement extends GemElement {
     width: this.#iconColWidth,
     render: (record) =>
       html`
-        <gem-use
+        <dy-use
           class="action"
           @click=${() => this.#toggleExpand(record)}
           .element=${this.#expandedMap.get(this.#getKey(record)) ? icons.expand : icons.right}
-        ></gem-use>
+        ></dy-use>
       `,
   };
 
@@ -219,7 +219,7 @@ export class DuoyunTableElement extends GemElement {
                           ${tooltip
                             ? html`
                                 <dy-tooltip .content=${tooltip}>
-                                  <gem-use class="tooltip" .element=${icons.help}></gem-use>
+                                  <dy-use class="tooltip" .element=${icons.help}></dy-use>
                                 </dy-tooltip>
                               `
                             : ''}
@@ -271,7 +271,7 @@ export class DuoyunTableElement extends GemElement {
                                 ? render(record)
                                 : getActions
                                 ? html`
-                                    <gem-use
+                                    <dy-use
                                       class="action"
                                       tabindex="0"
                                       role="button"
@@ -280,7 +280,7 @@ export class DuoyunTableElement extends GemElement {
                                       @keydown=${commonHandle}
                                       @click=${(evt: PointerEvent) =>
                                         this.#openActions(evt, getActions(record, evt.target as HTMLElement))}
-                                    ></gem-use>
+                                    ></dy-use>
                                   `
                                 : dataIndex
                                 ? readProp(record, dataIndex)

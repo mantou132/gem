@@ -16,7 +16,7 @@ import { theme } from '../lib/theme';
 import { commonHandle } from '../lib/hotkeys';
 import { focusStyle } from '../lib/styles';
 
-import '@mantou/gem/elements/use';
+import './use';
 
 const starUrl = createDataURLFromSVG(icons.star);
 
@@ -105,7 +105,7 @@ export class DuoyunRatingElement extends GemElement {
         { length: this.#total },
         (_, index) =>
           html`
-            <gem-use
+            <dy-use
               class=${classMap({
                 icon: true,
                 fill: this.value >= this.#total - index,
@@ -115,7 +115,7 @@ export class DuoyunRatingElement extends GemElement {
               @keydown=${commonHandle}
               @click=${() => this.#onClick(this.#total - index)}
               .element=${icons.star}
-            ></gem-use>
+            ></dy-use>
           `,
       )}
     `;

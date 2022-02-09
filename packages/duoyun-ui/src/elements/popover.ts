@@ -15,7 +15,7 @@ import { createCSSSheet, css, styleMap, StyleObject } from '@mantou/gem/lib/util
 import { sleep, setBodyInert } from '../lib/utils';
 import { theme } from '../lib/theme';
 
-import '@mantou/gem/elements/reflect';
+import './reflect';
 
 const style = createCSSSheet(css`
   :host {
@@ -247,7 +247,7 @@ export class DuoyunPopoverElement extends GemElement<PopoverState> {
     return html`
       ${open
         ? html`
-            <gem-reflect .target=${document.body}>
+            <dy-reflect .target=${document.body}>
               <div
                 style=${styleMap({
                   display: this.trigger === 'click' ? 'block' : 'none',
@@ -264,7 +264,7 @@ export class DuoyunPopoverElement extends GemElement<PopoverState> {
               >
                 ${this.content}
               </dy-popover-ghost>
-            </gem-reflect>
+            </dy-reflect>
           `
         : ''}
       <slot ref=${this.slotRef.ref}></slot>
