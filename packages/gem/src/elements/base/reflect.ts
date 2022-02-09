@@ -10,6 +10,7 @@ export class GemReflectElement extends GemElement {
   constructor() {
     super({ isLight: true });
     this.hidden = true;
+    this.dataset.gemreflect = '';
     this.effect(
       () => {
         const childNodes = [...this.childNodes];

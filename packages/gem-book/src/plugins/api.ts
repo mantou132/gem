@@ -7,7 +7,7 @@ import type { Main } from '../element/elements/main';
 import type { GemBookElement } from '../element';
 
 const tsMorph = 'https://esm.sh/ts-morph@13.0.3';
-const gemAnalyzer = 'https://jspm.dev/gem-analyzer@1.6.9';
+const gemAnalyzer = 'https://jspm.dev/gem-analyzer@1.6.10';
 
 type State = { elements?: ElementDetail[] };
 
@@ -21,10 +21,11 @@ customElements.whenDefined('gem-book').then(() => {
   @customElement('gbp-api')
   class _GbpApiElement extends GemBookPluginElement<State> {
     @attribute src: string;
-    @numattribute headerLevel: number;
+    @attribute name: string;
+    @numattribute headinglevel: number;
 
-    get #headerLevel() {
-      return this.headerLevel || 1;
+    get #headinglevel() {
+      return this.headinglevel || 3;
     }
 
     constructor() {
@@ -57,12 +58,12 @@ customElements.whenDefined('gem-book').then(() => {
       return getElements(file);
     };
 
-    #renderHeader = (level: number) => {
-      return '#'.repeat(level + (this.#headerLevel - 1));
+    #renderHeader = (headinglevel: number) => {
+      return '#'.repeat(headinglevel + this.#headinglevel - 1);
     };
 
     #renderCode = (s?: string) => {
-      return s ? `\`${s.replace(/\|/g, '\\|')}\`` : '';
+      return s ? `\`${s.replace(/\|/g, '\\|').replace(/\n/g, ' ')}\`` : '';
     };
 
     #renderTable = <T>(list: T[], headers: string[], fields: ((data: T) => string)[]) => {
@@ -77,7 +78,6 @@ customElements.whenDefined('gem-book').then(() => {
 
     #renderElement = (detail: ElementDetail) => {
       const {
-        name,
         description = '',
         constructorName,
         constructorExtendsName,
@@ -92,9 +92,6 @@ customElements.whenDefined('gem-book').then(() => {
         slots,
       } = detail;
       let text = '';
-      if (!this.closestElement(MainElement)?.shadowRoot?.querySelector('h1')) {
-        text = `${this.#renderHeader(1)} ${this.#renderCode(`<${name}>`)}` + '\n\n';
-      }
 
       text += description + '\n\n';
       if (constructorExtendsName) {
@@ -102,7 +99,7 @@ customElements.whenDefined('gem-book').then(() => {
       }
 
       if (constructorName && constructorParams.length) {
-        text += `${this.#renderHeader(2)} Constructor \`${constructorName}()\`\n\n`;
+        text += `${this.#renderHeader(1)} Constructor \`${constructorName}()\`\n\n`;
         text += this.#renderTable(
           constructorParams,
           ['Params', 'Type', 'Description'],
@@ -114,7 +111,7 @@ customElements.whenDefined('gem-book').then(() => {
         );
       }
       if (staticProperties.length) {
-        text += `${this.#renderHeader(2)} Static Properties\n\n`;
+        text += `${this.#renderHeader(1)} Static Properties\n\n`;
         text += this.#renderTable(
           staticProperties,
           ['Property', 'Type', 'Description'],
@@ -126,7 +123,7 @@ customElements.whenDefined('gem-book').then(() => {
         );
       }
       if (staticMethods.length) {
-        text += `${this.#renderHeader(2)} Static Methods\n\n`;
+        text += `${this.#renderHeader(1)} Static Methods\n\n`;
         text += this.#renderTable(
           staticMethods,
           ['Method', 'Type', 'Description'],
@@ -138,7 +135,7 @@ customElements.whenDefined('gem-book').then(() => {
         );
       }
       if (properties.length) {
-        text += `${this.#renderHeader(2)} Instance Properties\n\n`;
+        text += `${this.#renderHeader(1)} Instance Properties\n\n`;
         text += this.#renderTable(
           properties.filter(({ slot, cssState, part, isRef }) => !slot && !cssState && !part && !isRef),
           ['Property(Attribute)', 'Reactive', 'Type'].concat(innerWidth < 600 ? [] : ['Description']),
@@ -152,7 +149,7 @@ customElements.whenDefined('gem-book').then(() => {
       }
 
       if (methods.length) {
-        text += `${this.#renderHeader(2)} Instance Methods\n\n`;
+        text += `${this.#renderHeader(1)} Instance Methods\n\n`;
         text += this.#renderTable(
           methods.filter(({ event }) => !event),
           ['Method', 'Type', 'Description'],
@@ -164,7 +161,7 @@ customElements.whenDefined('gem-book').then(() => {
         );
       }
 
-      text += `${this.#renderHeader(2)} Other\n\n`;
+      text += `${this.#renderHeader(1)} Other\n\n`;
       text += this.#renderTable(
         [
           { type: 'Event', value: events },
@@ -181,7 +178,8 @@ customElements.whenDefined('gem-book').then(() => {
     render = () => {
       const { elements } = this.state;
       if (!elements) return html`API loading...`;
-      return html`${elements.map(this.#renderElement)}`;
+      const renderElements = this.name ? elements.filter(({ name }) => this.name === name) : elements;
+      return html`${renderElements.map(this.#renderElement)}`;
     };
 
     mounted = () => {

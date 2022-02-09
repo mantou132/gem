@@ -45,7 +45,7 @@ export class DuoyunAreaChartElement extends DuoyunChartBaseElement {
     return this.stack || this.fill;
   }
 
-  get isDefaultRange() {
+  get #isDefaultRange() {
     return this.range[0] === 0 && this.range[1] === 1;
   }
 
@@ -190,7 +190,7 @@ export class DuoyunAreaChartElement extends DuoyunChartBaseElement {
           ...e,
           values: e.values.slice(e.values.length * start, e.values.length * stop),
         }));
-        if (!this.#sequencesWithoutStack?.[0]?.values.length && !this.isDefaultRange) {
+        if (!this.#sequencesWithoutStack?.[0]?.values.length && !this.#isDefaultRange) {
           this.#sequencesWithoutStack = this.sequences;
           this.zoom([0, 1]);
         }
@@ -226,7 +226,7 @@ export class DuoyunAreaChartElement extends DuoyunChartBaseElement {
             }
           });
         });
-        this.initXAxi(xMin, xMax, xMin > 946684800000 && this.isDefaultRange);
+        this.initXAxi(xMin, xMax, xMin > 946684800000 && this.#isDefaultRange);
         this.initYAxi(yMin, yMax);
         this.initViewBox();
 

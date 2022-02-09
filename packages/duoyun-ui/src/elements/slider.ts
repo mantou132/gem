@@ -119,10 +119,14 @@ export class DuoyunSliderElement extends GemElement {
     this.tabIndex = 0;
     this.addEventListener('keydown', this.#onKeydown);
     this.internals.role = 'slider';
-    this.effect(() => {
-      this.internals.ariaDisabled = String(this.disabled);
-      this.internals.ariaValueText = String(this.value);
-    });
+    this.effect(
+      () => {
+        this.internals.ariaDisabled = String(this.disabled);
+        this.internals.ariaValueText = String(this.value);
+        this.#setPrecisionValue(this.value);
+      },
+      () => [this.value, this.disabled],
+    );
   }
 
   state = {

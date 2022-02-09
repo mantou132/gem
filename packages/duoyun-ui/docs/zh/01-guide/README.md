@@ -56,7 +56,7 @@ Toast.open('error', '发生了一个错误');
 DuoyunUI 支持以 ESM 的方法独立使用某一个元素，例如为你的网站添加键盘访问（`f` 列出所有可聚焦元素）：
 
 ```ts
-import('https://cdn.skypack.dev/duoyun-ui/elements/keyboard-access').then(({ DuoyunKeyboardAccessElement }) =>
+import('https://jspm.dev/duoyun-ui/elements/keyboard-access').then(({ DuoyunKeyboardAccessElement }) =>
   document.body.append(new DuoyunKeyboardAccessElement()),
 );
 ```
@@ -64,7 +64,7 @@ import('https://cdn.skypack.dev/duoyun-ui/elements/keyboard-access').then(({ Duo
 例如启用录屏模式：
 
 ```ts
-import('https://cdn.skypack.dev/duoyun-ui/elements/input-capture').then(({ DuoyunInputCaptureElement }) =>
+import('https://jspm.dev/duoyun-ui/elements/input-capture').then(({ DuoyunInputCaptureElement }) =>
   document.body.append(new DuoyunInputCaptureElement()),
 );
 ```

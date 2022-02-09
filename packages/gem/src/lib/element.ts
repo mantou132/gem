@@ -574,7 +574,9 @@ export function defineRef(target: GemElement, prop: string, ref: string) {
             return ref;
           },
           get element() {
-            const gemReflects = ([...ele.querySelectorAll('gem-reflect')] as GemReflectElement[]).map((e) => e.target);
+            const gemReflects = ([...ele.querySelectorAll('[data-gemreflect]')] as GemReflectElement[]).map(
+              (e) => e.target,
+            );
             for (const e of [ele, ...gemReflects]) {
               const result = e.querySelector(`[ref=${ref}]`);
               if (result) return result;

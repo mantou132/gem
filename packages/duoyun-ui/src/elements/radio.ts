@@ -125,6 +125,11 @@ export class DuoyunRadioGroupElement extends GemElement {
     this.internals.role = 'radiogroup';
   }
 
+  #onChange = (evt: CustomEvent<string>) => {
+    evt.stopPropagation();
+    this.change(evt.detail);
+  };
+
   render = () => {
     if (!this.options) return null;
     return html`${this.options.map(
@@ -132,8 +137,9 @@ export class DuoyunRadioGroupElement extends GemElement {
         html`
           <dy-radio
             ?disabled=${this.disabled}
+            .value=${value ?? label}
             ?checked=${(value ?? label) === this.value}
-            @change=${() => this.change(value ?? label)}
+            @change=${this.#onChange}
           >
             ${label}
           </dy-radio>

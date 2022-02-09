@@ -74,7 +74,7 @@ export class Main extends GemElement {
           z-index: 1;
           line-height: 1.7;
         }
-        :host :first-child {
+        :host > :first-child {
           margin-top: 0;
         }
         a > img + svg {
@@ -172,6 +172,17 @@ export class Main extends GemElement {
         blockquote > :nth-child(n + 2),
         blockquote > :last-child {
           font-weight: normal;
+        }
+        kbd {
+          font-family: monospace;
+          margin-inline: 0.2em;
+          padding: 0.15em 0.4em 0.1em;
+          font-size: 0.9em;
+          line-height: 1.2;
+          background: rgba(${theme.textColorRGB}, 0.05);
+          border: 1px solid ${theme.borderColor};
+          border-bottom-width: 2px;
+          border-radius: 2px;
         }
         hr {
           height: 1px;

@@ -151,6 +151,9 @@ export function startBuilder(dir: string, options: Required<CliUniqueConfig>, bo
         static: {
           directory: outputDir,
         },
+        headers: {
+          'Cache-Control': 'no-store',
+        },
         historyApiFallback: true,
         open: process.env.PORT ? false : true,
         setupMiddlewares: (middlewares, devServer) => {

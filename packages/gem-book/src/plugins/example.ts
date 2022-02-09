@@ -13,17 +13,14 @@ type State = {
 
 customElements.whenDefined('gem-book').then(() => {
   const { GemBookPluginElement } = customElements.get('gem-book') as typeof GemBookElement;
-  const { html, customElement, attribute, property } = GemBookPluginElement.Gem;
+  const { html, customElement, attribute } = GemBookPluginElement.Gem;
+  const theme = GemBookPluginElement.theme;
   @customElement('gbp-example')
-  class _GbpExampleElement extends GemBookPluginElement {
+  class _GbpExampleElement extends GemBookPluginElement<State> {
     @attribute name: string;
     @attribute src: string;
-
-    @property initValue?: Value;
-
-    constructor() {
-      super({ isLight: true });
-    }
+    @attribute html: string;
+    @attribute props: string;
 
     state: State = {
       loading: true,
@@ -45,7 +42,7 @@ customElements.whenDefined('gem-book').then(() => {
           } else if (key.startsWith('.')) {
             (ele as any)[key.slice(1)] = JSON.parse(value);
           } else {
-            (ele as any)[key.slice(1)] = value;
+            (ele as any)[key] = value;
           }
         });
       }
@@ -56,28 +53,42 @@ customElements.whenDefined('gem-book').then(() => {
       return html`<span class="token">${token}</span>`;
     };
 
-    #renderPropValue = ([key, value]: [string, string]) => {
-      return html`<br /><span> </span><span> </span><span class="attribute">${key}</span>${this.#renderToken(
-          '=',
-        )}${html`\${${this.#renderToken(value)}}`}`;
+    #addIndentation = (str: string, indentation = 2) => {
+      return str
+        .split('\n')
+        .map((s) => `${' '.repeat(indentation)}${s}`)
+        .join('\n');
+    };
+
+    #renderPropValue = (key: string, value: string, isNewLine: boolean) => {
+      const vString = key.startsWith('@') ? value : JSON.stringify(value, null, 2);
+      const kString = key.startsWith('@') ? key : `.${key}`;
+      const indentValue = vString.includes('\n') ? `\n${this.#addIndentation(vString, 4)}\n` : vString;
+      return html`${isNewLine ? html`<br /><span> </span> ` : ' '}<span class="attribute">${kString}</span
+        >${this.#renderToken('=')}${html`\${${this.#renderToken(indentValue)}}`}`;
     };
 
     #renderProps = () => {
       const { props } = this.state.value;
-      return html`${Object.entries(props || {}).map(this.#renderPropValue)}`;
+      const propEntries = Object.entries(props || {});
+      return html`${propEntries.map(([key, value]) => this.#renderPropValue(key, value, propEntries.length > 2))}`;
     };
 
     #renderTag = (tag: string, close?: boolean) => {
       const openToken = '<' + (close ? '/' : '');
       const closeToken = '>';
-      return html`${close ? html`<br />` : ''}${this.#renderToken(openToken)}<span class="tag"
-          >${tag}${close ? '' : this.#renderProps()}</span
+      return html`${this.#renderToken(openToken)}<span class="tag">${tag}${close ? '' : this.#renderProps()}</span
         >${this.#renderToken(closeToken)}`;
     };
 
-    #renderCode = () => {
+    #renderInnerHTML = () => {
       const { value } = this.state;
-      return html`${this.#renderTag(this.name)}${value.innerHTML}${this.#renderTag(this.name, true)}`;
+      if (!value.innerHTML) return html``;
+      return `\n${this.#addIndentation(value.innerHTML)}\n`;
+    };
+
+    #renderCode = () => {
+      return html`${this.#renderTag(this.name)}${this.#renderInnerHTML()}${this.#renderTag(this.name, true)}`;
     };
 
     mounted = async () => {
@@ -85,7 +96,16 @@ customElements.whenDefined('gem-book').then(() => {
       script.type = 'module';
       script.src = this.src;
       script.crossOrigin = 'anonymous';
-      script.onload = () => this.setState({ value: this.initValue, loading: false });
+      script.onload = () => {
+        this.setState({
+          value: {
+            innerHTML: this.html,
+            props: JSON.parse(this.props || '{}'),
+          },
+          loading: false,
+        });
+        script.remove();
+      };
       script.onerror = (evt: ErrorEvent) => this.setState({ error: evt.error });
       document.body.append(script);
     };
@@ -95,10 +115,52 @@ customElements.whenDefined('gem-book').then(() => {
       if (error) return html`${error}`;
       if (loading) return html`<div class="loading">Example loading...</div>`;
       return html`
-        <div class="preview">${this.#renderElement()}</div>
+        <div class="preview">${this.#renderElement()}<slot></slot></div>
         <div class="panel">
           <div class="code">${this.#renderCode()}</div>
         </div>
+        <style>
+          :host {
+            display: flex;
+            flex-direction: column;
+            min-height: 25em;
+          }
+          .preview {
+            flex-grow: 1;
+            background: rgba(${theme.textColorRGB}, 0.05);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1em;
+          }
+          .panel {
+            background: rgba(${theme.textColorRGB}, 0.02);
+            padding: 1em;
+          }
+          .code {
+            display: block;
+            font-family: Consolas, Monaco, 'Andale Mono', 'Ubuntu Mono', monospace;
+            text-align: left;
+            white-space: pre;
+            tab-size: 2;
+            hyphens: none;
+            overflow: auto;
+            overflow-clip-box: content-box;
+            box-shadow: none;
+            border: none;
+            background: transparent;
+            scrollbar-width: thin;
+          }
+          .token {
+            color: #757575;
+          }
+          .tag {
+            color: #c9252d;
+          }
+          .attribute {
+            color: #4646c6;
+          }
+        </style>
       `;
     };
   }

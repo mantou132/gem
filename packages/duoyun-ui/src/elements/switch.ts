@@ -17,6 +17,7 @@ const style = createCSSSheet(css`
   :host {
     --color: ${theme.borderColor};
     display: inline-flex;
+    align-items: center;
     gap: 0.5em;
   }
   .switch {
