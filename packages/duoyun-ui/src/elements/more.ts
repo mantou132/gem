@@ -101,7 +101,7 @@ export class DuoyunMoreSlotElement extends DuoyunScrollBaseElement {
 
   constructor() {
     super();
-    this.addEventListener('scroll', (e) => e.preventDefault(), { passive: true });
+    this.addEventListener('scroll', (e) => e.preventDefault(), { passive: false });
     this.internals.role = 'paragraph';
   }
 

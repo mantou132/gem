@@ -2,7 +2,11 @@
 
 ## Example
 
-None
+```ts
+import { waitLoading } from '@duoyun-fe/duoyun-ui/elements/wait';
+
+waitLoading(fetch('/'));
+```
 
 ## API
 

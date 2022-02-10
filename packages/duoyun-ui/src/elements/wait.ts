@@ -62,6 +62,8 @@ export async function waitLoading<T>(promise: Promise<T>, { minDelay = 500, text
 export class DuoyunWaitElement extends GemElement {
   static instance?: DuoyunWaitElement;
 
+  static wait = waitLoading;
+
   constructor(text = '') {
     super();
     this.#text = text;

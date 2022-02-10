@@ -1,9 +1,9 @@
 # `<dy-map>`
 
-# Example
+## Example
 
-None
+<gbp-media src="/map.png"></gbp-media>
 
-# API
+## API
 
 <gbp-api src="/src/elements/map.ts"></gbp-api>

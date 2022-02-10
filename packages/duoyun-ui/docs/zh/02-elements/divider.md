@@ -4,7 +4,7 @@
 
 <gbp-example
   name="dy-divider"
-  props='{"style": "width: 80%; align-self: center;", "size": "large"}'
+  props='{"style": "width: 100%; align-self: center;", "size": "large", "color": "currentColor"}'
   src="https://jspm.dev/duoyun-ui/elements/divider"></gbp-example>
 
 ## API

@@ -4,7 +4,7 @@
 
 <gbp-example
   name="dy-placeholder"
-  props='{"style": "width: 80%; height: 200px;", "mode": "multi", "minLine": 4, "maxLine": 10}'
+  props='{"style": "width: 100%; height: 200px;", "mode": "multi", "minLine": 4, "maxLine": 10}'
   src="https://jspm.dev/duoyun-ui/elements/placeholder"></gbp-example>
 
 ## API

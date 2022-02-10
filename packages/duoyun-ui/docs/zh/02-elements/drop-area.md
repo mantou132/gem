@@ -4,7 +4,7 @@
 
 <gbp-example
   name="dy-drop-area"
-  props='{"style": "width: 80%; height: 200px;"}'
+  props='{"style": "width: 100%; height: 200px;"}'
   html='Drop File To Here'
   src="https://jspm.dev/duoyun-ui/elements/drop-area"></gbp-example>
 

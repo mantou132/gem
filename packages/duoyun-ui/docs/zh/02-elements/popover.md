@@ -2,7 +2,7 @@
 
 ## Example
 
-See [`<dy-action-text>`](./action-text.md)
+See [`<dy-color-pick>`](./color-pick.md)
 
 ## API
 

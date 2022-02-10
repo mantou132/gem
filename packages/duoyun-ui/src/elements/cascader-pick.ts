@@ -97,7 +97,9 @@ export class DuoyunCascaderPickElement extends GemElement {
   #onChange = ({ detail, target }: CustomEvent) => {
     this.#cascader = target as DuoyunCascaderElement;
     this.change(detail);
-    ContextMenu.close();
+    if (!this.multiple) {
+      ContextMenu.close();
+    }
   };
 
   #onOpen = () => {

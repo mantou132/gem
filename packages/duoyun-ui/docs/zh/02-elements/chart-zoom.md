@@ -2,7 +2,7 @@
 
 ## Example
 
-None
+See [`<dy-area-chart>`](./area-chart.md)
 
 ## API
 

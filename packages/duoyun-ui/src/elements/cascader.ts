@@ -144,7 +144,7 @@ export class DuoyunCascaderElement extends GemElement<State> {
     if (selected[index] !== item) {
       this.setState({ selected: clickValue });
     }
-    if (!this.multiple) {
+    if (!this.multiple && !item.children) {
       this.change(clickValue.map((e) => e.value ?? e.label));
     }
   };

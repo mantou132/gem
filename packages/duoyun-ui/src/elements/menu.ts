@@ -126,9 +126,7 @@ export class DuoyunMenuElement extends GemElement {
       menuStack: [{ x, y, menu, searchable }],
     });
     if (ContextMenu.instance) {
-      // await `ContextMenu` content update
-      await Promise.resolve();
-      ContextMenu.instance.#initPosition();
+      await ContextMenu.instance.#initPosition();
     } else {
       new ContextMenu();
     }
@@ -242,7 +240,9 @@ export class DuoyunMenuElement extends GemElement {
     })(evt);
   };
 
-  #initPosition = () => {
+  #initPosition = async () => {
+    // await `ContextMenu` content update
+    await Promise.resolve();
     const element = this.#menuEles.shift();
     const { activeElement, openLeft, menuStack, maxHeight } = menuStore;
     const { scrollHeight, clientHeight, clientWidth } = element!;

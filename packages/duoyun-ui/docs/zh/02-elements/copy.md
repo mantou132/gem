@@ -4,7 +4,7 @@
 
 <gbp-example
   name="dy-copy"
-  props='{"style": "width: 80%;"}'
+  props='{"style": "width: 100%;"}'
   html="Hover Text Copy!"
   src="https://jspm.dev/duoyun-ui/elements/copy"></gbp-example>
 

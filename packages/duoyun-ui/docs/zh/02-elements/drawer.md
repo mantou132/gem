@@ -10,4 +10,6 @@
 
 ## API
 
+See [`<dy-modal>`](./modal.md)
+
 <gbp-api src="/src/elements/drawer.ts"></gbp-api>

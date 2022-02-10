@@ -2,7 +2,12 @@
 
 ## Example
 
-None
+```ts
+import { Loadbar } from '@duoyun-fe/duoyun-ui/elements/page-loadbar';
+
+Loadbar.start();
+setTimeout(() => Loadbar.end(), 3000);
+```
 
 ## API
 

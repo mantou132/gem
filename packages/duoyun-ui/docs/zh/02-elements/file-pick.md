@@ -4,7 +4,7 @@
 
 <gbp-example
   name="dy-file-pick"
-  props='{"style": "width: 80%;", "@change": "(evt) => evt.target.value = evt.detail", "multiple": true, "type": "image"}'
+  props='{"style": "width: 100%; align-self: flex-start;", "multiple": true, "type": "image", "@change": "(evt) => evt.target.value = evt.detail"}'
   src="https://jspm.dev/duoyun-ui/elements/file-pick"></gbp-example>
 
 ## API
