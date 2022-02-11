@@ -13,8 +13,8 @@
     "/locales/"
   ],
   "scripts": {
-    "docs": "gem-book docs --i18n -t DuoyunUI --plugin example --plugin api --plugin media",
-    "build:docs": "yarn docs --build",
+    "docs": "node scripts/hack-gbp-example && gem-book docs --plugin node_modules/gbp-example-hack",
+    "build:docs": "gem-book docs --build --plugin example",
     "clean": "node -e \"fs.readdirSync('src').map(dir => require('rimraf').sync(dir))\"",
     "build": "yarn clean && tsc -p tsconfig.build.json",
     "start": "yarn build --watch",

@@ -1,4 +1,4 @@
-import { adoptedStyle, emitter, Emitter, property, state } from '@mantou/gem/lib/decorators';
+import { adoptedStyle, emitter, Emitter, property, state, part } from '@mantou/gem/lib/decorators';
 import { html, svg, TemplateResult, GemElementOptions } from '@mantou/gem/lib/element';
 import { createCSSSheet, css, randomStr } from '@mantou/gem/lib/utils';
 
@@ -53,6 +53,8 @@ const style = createCSSSheet(css`
 
 @adoptedStyle(style)
 export class DuoyunChartBaseElement<_T = Record<string, unknown>> extends DuoyunResizeBaseElement {
+  @part static chart: string;
+
   @property filters?: string[];
   @property colors = commonColors;
   @property xAxi?: Axi | null;

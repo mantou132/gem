@@ -4,7 +4,7 @@
 
 <gbp-example
   name="dy-slider"
-  props='{"value": 20, "@change": "(evt) => evt.target.value = evt.detail"}'
+  props='{"value": 20, "editable": true, "@change": "(evt) => evt.target.value = evt.detail"}'
   src="https://jspm.dev/duoyun-ui/elements/slider"></gbp-example>
 
 ## API

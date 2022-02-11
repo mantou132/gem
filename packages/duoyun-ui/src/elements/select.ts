@@ -405,6 +405,7 @@ export class DuoyunSelectElement extends GemElement<State> {
                       style=${styleMap({
                         width: `${Math.max(120, width)}px`,
                         ...this.dropdownStyle,
+                        boxShadow: `0 0.3em 1em rgba(0, 0, 0, calc(${theme.maskAlpha} - 0.1))`,
                         position: 'fixed',
                         zIndex: '99999999',
                         left: `${left}px`,

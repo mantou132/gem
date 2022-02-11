@@ -3,7 +3,7 @@
   "version": "1.6.11",
   "description": "Gem devtools",
   "scripts": {
-    "update:version": "node ./script/update.js",
+    "update:version": "node ./scripts/update.js",
     "build": "vite build",
     "build:watch": "yarn build --watch",
     "build:zip": "yarn build && web-ext --config web-ext.config.js build",

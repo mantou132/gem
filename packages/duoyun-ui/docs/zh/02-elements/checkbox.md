@@ -4,7 +4,7 @@
 
 <gbp-example
   name="dy-checkbox"
-  props='{"@change": "(evt) => evt.target.checked = evt.detail"}'
+  props='{"indeterminate": true, "checked": false, "@change": "(evt) => {evt.target.indeterminate = false;evt.target.checked = evt.detail;}"}'
   html="Checkbox Label"
   src="https://jspm.dev/duoyun-ui/elements/checkbox"></gbp-example>
 

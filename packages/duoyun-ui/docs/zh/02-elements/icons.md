@@ -1,5 +1,7 @@
 # `<dy-icons>`
 
+所有内置 Icon.
+
 ## Example
 
 <gbp-example

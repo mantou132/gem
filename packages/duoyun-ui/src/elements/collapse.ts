@@ -1,5 +1,5 @@
 // https://ant.design/components/collapse/
-import { adoptedStyle, customElement, attribute } from '@mantou/gem/lib/decorators';
+import { adoptedStyle, customElement, attribute, part } from '@mantou/gem/lib/decorators';
 import { GemElement, html } from '@mantou/gem/lib/element';
 import { createCSSSheet, css, classMap } from '@mantou/gem/lib/utils';
 
@@ -53,6 +53,8 @@ type State = {
 @adoptedStyle(panelStyle)
 @adoptedStyle(focusStyle)
 export class DuoyunCollapsePanelElement extends GemElement<State> {
+  @part static header: string;
+
   @attribute header: string;
 
   constructor() {
@@ -70,7 +72,7 @@ export class DuoyunCollapsePanelElement extends GemElement<State> {
     return html`
       <div
         class="header"
-        part="header"
+        part=${DuoyunCollapsePanelElement.header}
         tabindex="0"
         @keydown=${commonHandle}
         @click=${() => this.setState({ expand: !expand })}

@@ -1,14 +1,21 @@
-import { connectStore, adoptedStyle, customElement } from '@mantou/gem/lib/decorators';
-import { GemElement, html } from '@mantou/gem/lib/element';
+import { connectStore, adoptedStyle, customElement, property } from '@mantou/gem/lib/decorators';
+import { GemElement, html, TemplateResult } from '@mantou/gem/lib/element';
 import { createCSSSheet, css } from '@mantou/gem/lib/utils';
 
 import { locale } from '../lib/locale';
 
+import './use';
+
 const style = createCSSSheet(css`
   :host {
     display: inline-flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
+    gap: 1em;
+  }
+  .icon {
+    width: 3em;
   }
 `);
 
@@ -19,7 +26,13 @@ const style = createCSSSheet(css`
 @adoptedStyle(style)
 @connectStore(locale)
 export class DuoyunEmptyElement extends GemElement {
+  @property icon?: string | Element | DocumentFragment;
+  @property description?: string | TemplateResult;
+
   render = () => {
-    return html`<div>${locale.noData}</div>`;
+    return html`
+      ${this.icon ? html`<dy-use class="icon" .element=${this.icon}></dy-use>` : ''}
+      <div>${this.description || locale.noData}</div>
+    `;
   };
 }

@@ -1,6 +1,14 @@
-import { adoptedStyle, customElement, emitter, Emitter, property, boolattribute } from '@mantou/gem/lib/decorators';
+import {
+  adoptedStyle,
+  customElement,
+  emitter,
+  Emitter,
+  property,
+  boolattribute,
+  part,
+} from '@mantou/gem/lib/decorators';
 import { GemElement, html, TemplateResult } from '@mantou/gem/lib/element';
-import { createCSSSheet, css, partMap } from '@mantou/gem/lib/utils';
+import { createCSSSheet, css, partMap, classMap } from '@mantou/gem/lib/utils';
 
 import { theme } from '../lib/theme';
 
@@ -15,7 +23,7 @@ const style = createCSSSheet(css`
     display: flex;
     flex-direction: column;
   }
-  [part~='tabs'] {
+  .tabs {
     display: flex;
     font-size: 0.875em;
     gap: 2em;
@@ -24,10 +32,10 @@ const style = createCSSSheet(css`
   .divider {
     flex-shrink: 0;
   }
-  :host([center]) [part~='tabs'] {
+  :host([center]) .tabs {
     justify-content: center;
   }
-  [part~='tab'] {
+  .tab {
     position: relative;
     cursor: pointer;
     display: flex;
@@ -36,14 +44,14 @@ const style = createCSSSheet(css`
     padding: 0.8em 0;
     gap: 0.3em;
   }
-  [part~='icon'] {
+  .icon {
     width: 1.2em;
   }
-  [part~='tab']:hover,
-  [part~='current'] {
+  .tab:hover,
+  .current {
     color: ${theme.primaryColor};
   }
-  [part~='mark'] {
+  .marker {
     position: absolute;
     bottom: 0;
     left: 0;
@@ -64,6 +72,12 @@ export interface TabItem<T = any> {
 @customElement('dy-tabs')
 @adoptedStyle(style)
 export class DuoyunTabsElement extends GemElement {
+  @part static tabs: string;
+  @part static tab: string;
+  @part static currentTab: string;
+  @part static icon: string;
+  @part static marker: string;
+
   @boolattribute center: boolean;
   @property data?: TabItem[];
   @property value?: any;
@@ -78,18 +92,28 @@ export class DuoyunTabsElement extends GemElement {
     if (!this.data) return html``;
     let currentContent: TemplateResult | string = '';
     return html`
-      <div part="tabs">
+      <div part=${DuoyunTabsElement.tabs} class="tabs">
         ${this.data.map(({ value, tab, icon, getContent }, index) => {
           const isCurrent = (value ?? index) === this.value;
           if (isCurrent) currentContent = getContent?.() || '';
           return html`
             <div
               role="tab"
-              part=${partMap({ tab: true, current: isCurrent })}
+              class=${classMap({ tab: true, current: isCurrent })}
+              part=${partMap({ [DuoyunTabsElement.tab]: true, [DuoyunTabsElement.currentTab]: isCurrent })}
               @click=${() => this.change(value ?? index)}
             >
-              ${icon ? html`<dy-use part="icon" .element=${icon}></dy-use>` : ''}${tab}
-              ${isCurrent ? html`<dy-divider part="mark" size="medium" .color=${theme.primaryColor}></dy-divider>` : ''}
+              ${icon ? html`<dy-use part=${DuoyunTabsElement.icon} class="icon" .element=${icon}></dy-use>` : ''}${tab}
+              ${isCurrent
+                ? html`
+                    <dy-divider
+                      part=${DuoyunTabsElement.marker}
+                      class="marker"
+                      size="medium"
+                      .color=${theme.primaryColor}
+                    ></dy-divider>
+                  `
+                : ''}
             </div>
           `;
         })}

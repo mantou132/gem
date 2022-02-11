@@ -1,5 +1,5 @@
 // https://spectrum.adobe.com/page/cards/
-import { adoptedStyle, customElement, attribute, property } from '@mantou/gem/lib/decorators';
+import { adoptedStyle, customElement, attribute, property, part } from '@mantou/gem/lib/decorators';
 import { html, TemplateResult } from '@mantou/gem/lib/element';
 import { createCSSSheet, css } from '@mantou/gem/lib/utils';
 
@@ -98,6 +98,9 @@ export type ActionItem = Omit<MenuItem, 'handle'> & { handle: (rest: HTMLElement
 @adoptedStyle(style)
 @adoptedStyle(focusStyle)
 export class DuoyunCardElement extends DuoyunLoadableBaseElement {
+  @part static preview: string;
+  @part static avatar: string;
+
   @attribute avatar: string;
   @attribute preview: string;
 
@@ -121,8 +124,12 @@ export class DuoyunCardElement extends DuoyunLoadableBaseElement {
 
   render = () => {
     return html`
-      ${this.preview ? html`<img part="preview" alt="preview" class="preview" src=${this.preview}></img>` : ''}
-      ${this.avatar ? html`<img part="avatar" alt="avatar" class="avatar" src=${this.avatar}></img>` : ''}
+      ${this.preview
+        ? html`<img part=${DuoyunCardElement.preview} alt="preview" class="preview" src=${this.preview}></img>`
+        : ''}
+      ${this.avatar
+        ? html`<img part=${DuoyunCardElement.avatar} alt="avatar" class="avatar" src=${this.avatar}></img>`
+        : ''}
       ${this.header
         ? html`
             <div class="header">

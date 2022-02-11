@@ -3,7 +3,7 @@ import { adoptedStyle, customElement, attribute } from '@mantou/gem/lib/decorato
 import { GemElement, html } from '@mantou/gem/lib/element';
 import { createCSSSheet, css } from '@mantou/gem/lib/utils';
 
-import { theme } from '../lib/theme';
+import { theme, getSemanticColor } from '../lib/theme';
 
 const style = createCSSSheet(css`
   :host {
@@ -56,7 +56,7 @@ export class DuoyunDividerElement extends GemElement {
   }
 
   get #bgColor() {
-    if (this.color) return this.color;
+    if (this.color) return getSemanticColor(this.color) || this.color;
     switch (this.size) {
       case 'large':
         return theme.textColor;

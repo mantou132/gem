@@ -7,7 +7,7 @@ import type { Main } from '../element/elements/main';
 import type { GemBookElement } from '../element';
 
 const tsMorph = 'https://esm.sh/ts-morph@13.0.3';
-const gemAnalyzer = 'https://jspm.dev/gem-analyzer@1.6.10';
+const gemAnalyzer = 'https://jspm.dev/gem-analyzer';
 
 type State = { elements?: ElementDetail[] };
 

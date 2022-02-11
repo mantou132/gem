@@ -10,6 +10,7 @@ import {
   SheetToken,
   styleMap,
   classMap,
+  exportPartsMap,
   absoluteLocation,
 } from '../lib/utils';
 
@@ -95,8 +96,11 @@ describe('utils 测试', () => {
     expect(rules.item(1).style.background.startsWith('blue')).to.true;
     expect(rules.item(2).selectorText.startsWith('#wrap')).to.true;
   });
-  it('styleMap/classMap', () => {
-    expect(styleMap({ fontSize: '14px', content: `'*'` })).to.equal(`font-size:14px;content:'*';`);
+  it('styleMap/classMap/exportPartsMap', () => {
+    expect(styleMap({ '--x': '1px', fontSize: '14px', content: `'*'` })).to.equal(
+      `;--x:1px;font-size:14px;content:'*';`,
+    );
     expect(classMap({ foo: true, content: false })).to.equal(` foo `);
+    expect(exportPartsMap({ foo: 'bar', content: 'content' })).to.equal(`,foo:bar,content:content,`);
   });
 });

@@ -67,7 +67,7 @@ export class DuoyunSwitchElement extends GemElement {
   @boolattribute disabled: boolean;
   @boolattribute checked: boolean;
   @attribute value: string;
-  @attribute neutral: 'positive' | 'negative' | 'neutral';
+  @attribute neutral: 'positive' | 'negative' | 'neutral' | 'informative';
   @globalemitter change: Emitter<boolean>;
 
   get #checkedColor() {

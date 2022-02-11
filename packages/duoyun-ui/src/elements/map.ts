@@ -1,4 +1,4 @@
-import { adoptedStyle, customElement, emitter, Emitter, property, state } from '@mantou/gem/lib/decorators';
+import { adoptedStyle, customElement, emitter, Emitter, property, state, part } from '@mantou/gem/lib/decorators';
 import { html, svg } from '@mantou/gem/lib/element';
 import { createCSSSheet, css, styleMap, classMap } from '@mantou/gem/lib/utils';
 import { geoProjection, geoMercatorRaw, geoEquirectangularRaw, GeoRawProjection, geoPath } from 'd3-geo';
@@ -156,6 +156,8 @@ export type AreaEventDetail = { name: string; originEvent: MouseEvent };
 @customElement('dy-map')
 @adoptedStyle(style)
 export class DuoyunMapElement extends DuoyunLoadableBaseElement<State> {
+  @part static map: string;
+
   @property getProjection?: (fn: GeoCommonProjection) => ReturnType<GeoCommonProjection>;
   @property geo?: Geo;
   @property getAreaColor?: (name: string, isCurrent: boolean) => string | undefined;
@@ -294,7 +296,7 @@ export class DuoyunMapElement extends DuoyunLoadableBaseElement<State> {
       <dy-gesture @pan=${this.#onPan} @end=${this.#onEnd}>
         ${svg`
           <svg
-            part="svg"
+            part=${DuoyunMapElement.map}
             xmlns="http://www.w3.org/2000/svg"
             viewBox="-180 -90 360 180"
             aria-hidden="true"

@@ -4,7 +4,7 @@
 
 <gbp-example
   name="dy-form"
-  props='{"style": "width: 100%;"}'
+  props='{"style": "width: 100%;", "@change": "(evt) => console.log(evt.currentTarget.data)"}'
   html='<dy-form-item name="name" label="Name"></dy-form-item>
 <dy-form-item name="email" label="Email"></dy-form-item>
 <dy-form-item name="phone" label="Phone"></dy-form-item>'

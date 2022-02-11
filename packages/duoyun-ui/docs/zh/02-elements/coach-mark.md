@@ -2,7 +2,7 @@
 
 ## Example
 
-先定义 `Tours`, `<dy-coach-mark>` 将根据 `index` 显示内容:
+先定义 `Tours`:
 
 ```ts
 import { setTours } from '@duoyun-fe/duoyun-ui/elements/coach-mark';
@@ -24,7 +24,7 @@ setTours([
 ]);
 ```
 
-在合适的位置添加 `<dy-coach-mark>`
+在合适的位置添加 `<dy-coach-mark>`，并添加 `index` 属性，它将从 `Tours` 中匹配索引，在元素显示的同时显示 `Tour`：
 
 ```ts
 html`<div class="container"><dy-coach-mark index="0"></dy-coach-mark></div>`;

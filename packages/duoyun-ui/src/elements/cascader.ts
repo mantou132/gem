@@ -5,6 +5,7 @@ import {
   Emitter,
   property,
   boolattribute,
+  part,
 } from '@mantou/gem/lib/decorators';
 import { GemElement, html } from '@mantou/gem/lib/element';
 import { createCSSSheet, css, styleMap, classMap } from '@mantou/gem/lib/utils';
@@ -75,6 +76,8 @@ const token = Symbol();
 @customElement('dy-cascader')
 @adoptedStyle(style)
 export class DuoyunCascaderElement extends GemElement<State> {
+  @part static column: string;
+
   @property options: Option[];
   @boolattribute fit: boolean;
   @boolattribute multiple: boolean;
@@ -216,7 +219,7 @@ export class DuoyunCascaderElement extends GemElement<State> {
       ${[this.options, ...selected.map((e) => e.children).filter(isNotNullish)].map(
         (list, index) =>
           html`
-            <ul part="column" class="list" style=${listStyle}>
+            <ul part=${DuoyunCascaderElement.column} class="list" style=${listStyle}>
               ${list.map(
                 (
                   item,

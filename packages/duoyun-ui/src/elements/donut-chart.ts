@@ -85,9 +85,12 @@ export class DuoyunDonutChartElement extends DuoyunChartBaseElement {
   };
 
   render = () => {
+    if (!this.contentRect.width) return html``;
     return html`
       ${svg`
-        <svg aria-hidden="true" part="svg" xmlns="http://www.w3.org/2000/svg" viewBox="-150 -150 300 300">
+        <svg aria-hidden="true" part=${
+          DuoyunChartBaseElement.chart
+        } xmlns="http://www.w3.org/2000/svg" viewBox="-150 -150 300 300">
           ${this.#paths?.map(
             (d, index) => svg`
               <path

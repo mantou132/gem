@@ -2,7 +2,6 @@
 import {
   adoptedStyle,
   customElement,
-  attribute,
   emitter,
   Emitter,
   property,
@@ -10,7 +9,7 @@ import {
   part,
 } from '@mantou/gem/lib/decorators';
 import { GemElement, html, TemplateResult } from '@mantou/gem/lib/element';
-import { createCSSSheet, css } from '@mantou/gem/lib/utils';
+import { createCSSSheet, css, styleMap } from '@mantou/gem/lib/utils';
 
 import { icons } from '../lib/icons';
 import { commonHandle } from '../lib/hotkeys';
@@ -87,13 +86,11 @@ const itemStyle = createCSSSheet(css`
  */
 @customElement('dy-tree-item')
 @adoptedStyle(itemStyle)
-export class DuoyunTreeItemElement extends GemElement {
+class _DuoyunTreeItemElement extends GemElement {
   @boolattribute expanded: boolean;
   @boolattribute highlight: boolean;
   @boolattribute hastags: boolean;
-  @attribute color: string;
 
-  @property level: number;
   @property item: TreeItem;
 
   constructor() {
@@ -104,12 +101,6 @@ export class DuoyunTreeItemElement extends GemElement {
   render = () => {
     const { label, children, icon, context, tags } = this.item;
     return html`
-      <style>
-        :host {
-          padding-left: ${this.level}em;
-          color: ${this.color};
-        }
-      </style>
       <dy-use
         class="icon expandable"
         .element=${!children ? undefined : this.expanded ? icons.expand : icons.right}
@@ -142,13 +133,13 @@ const style = createCSSSheet(css`
 @adoptedStyle(style)
 @adoptedStyle(focusStyle)
 export class DuoyunTreeElement extends GemElement<State> {
+  @part static item: string;
+
   @property data?: TreeItem[];
   /**value array */
   @property highlights?: any[];
 
   @emitter itemclick: Emitter;
-
-  @part item: string;
 
   state: State = {
     expandItem: new Set(),
@@ -191,11 +182,10 @@ export class DuoyunTreeElement extends GemElement<State> {
         tabindex="0"
         @keydown=${commonHandle}
         @click=${() => this.#onClick(item)}
-        part=${this.item}
+        part=${DuoyunTreeElement.item}
+        style=${styleMap({ paddingLeft: `${level}em`, color: this.#getItemColor(item) })}
         .hastags=${this.#tagsMap.has(item)}
-        .color=${this.#getItemColor(item)}
         .item=${item}
-        .level=${level}
         .expanded=${expanded}
         .highlight=${this.#highlights.has(value)}
       ></dy-tree-item>

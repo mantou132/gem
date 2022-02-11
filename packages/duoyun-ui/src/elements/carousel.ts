@@ -21,6 +21,7 @@ const style = createCSSSheet(css`
   :host {
     display: block;
     position: relative;
+    color: ${theme.highlightColor};
   }
   * {
     cursor: pointer;
@@ -79,6 +80,11 @@ const style = createCSSSheet(css`
   }
   .heading {
     margin-block-start: 0;
+  }
+  .item,
+  .heading,
+  .paragraph {
+    color: inherit;
   }
   .action {
     font-weight: bold;
@@ -231,7 +237,7 @@ export class DuoyunCarouselElement extends GemElement<State> {
                   <div class="content">
                     ${tag ? html`<div class="tag">${tag}</div>` : ''}
                     <dy-heading class="heading" lv="2">${title}</dy-heading>
-                    <dy-paragraph>${description}</dy-paragraph>
+                    <dy-paragraph class="paragraph">${description}</dy-paragraph>
                     ${actionText
                       ? html`
                           <dy-button class="action">

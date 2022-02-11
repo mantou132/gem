@@ -87,7 +87,7 @@ export const getSelectedGem = function (data: PanelStore, gemElementSymbols: str
   const attrs: Set<string> = $0.attributes ? new Set([...$0.attributes].map((attr) => attr.nodeName)) : new Set();
   const lifecycleMethod = new Set(['willMount', 'render', 'mounted', 'shouldUpdate', 'updated', 'unmounted']);
   const buildInLifecycleMethod = new Set(['connectedCallback', 'attributeChangedCallback', 'disconnectedCallback']);
-  const buildInMethod = new Set(['update', 'setState', 'effect', 'memo']);
+  const buildInMethod = new Set(['update', 'setState', 'effect', 'memo', 'closestElement']);
   const buildInProperty = new Set(['internals']);
   const buildInAttribute = new Set(['ref']);
   const member = getProps($0);
@@ -171,7 +171,7 @@ export const getSelectedGem = function (data: PanelStore, gemElementSymbols: str
     if (!$0.constructor[prop]) {
       member.delete(prop);
     }
-    const selector = `[part=${part}],[exportparts*=${part}]`;
+    const selector = `[part~=${part}],[exportparts*=${part}]`;
     data.parts.push({
       name: part,
       value: objectToString(($0.shadowRoot || $0).querySelector(selector)),
@@ -260,7 +260,13 @@ export const getSelectedGem = function (data: PanelStore, gemElementSymbols: str
   ]);
   const getStaticMember = (cls: any, set = new Set<string>()) => {
     Object.getOwnPropertyNames(cls).forEach((key) => {
-      if (!buildInStaticMember.has(key)) set.add(key);
+      if (
+        !buildInStaticMember.has(key) &&
+        !tagClass.defineParts?.includes(cls[key]) &&
+        !tagClass.defineSlots?.includes(cls[key])
+      ) {
+        set.add(key);
+      }
     });
     const proto = Object.getPrototypeOf(cls);
     if (proto !== HTMLElement) getStaticMember(proto, set);
@@ -276,6 +282,7 @@ export const getSelectedGem = function (data: PanelStore, gemElementSymbols: str
       path: inspectable(value) ? ['constructor', key] : undefined,
     });
   });
+  // `Class` self
   data.staticMember.push({
     name: 'constructor',
     type: 'function',

@@ -3,6 +3,7 @@
   "icon": "../../logo.png",
   "i18n": true,
   "homeMode": true,
+  "sourceBranch": "docs",
   "plugin": ["raw", "docsearch", "api"],
   "template": "docs/template.html",
   "ga": "G-PZYZ441YD3",

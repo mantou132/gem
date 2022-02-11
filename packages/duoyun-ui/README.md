@@ -7,6 +7,8 @@
 yarn
 # test
 yarn test
-# development
+# build watch
 yarn start
+# development, view example and api
+yarn docs
 ```

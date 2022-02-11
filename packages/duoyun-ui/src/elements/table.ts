@@ -8,6 +8,7 @@ import {
   Emitter,
   property,
   boolattribute,
+  part,
 } from '@mantou/gem/lib/decorators';
 import { GemElement, html, TemplateResult } from '@mantou/gem/lib/element';
 import { createCSSSheet, css, styleMap, classMap, StyleObject } from '@mantou/gem/lib/utils';
@@ -120,6 +121,10 @@ export type Columns<T> = Column<T>[];
 @adoptedStyle(focusStyle)
 @connectStore(icons)
 export class DuoyunTableElement extends GemElement {
+  @part static th: string;
+  @part static td: string;
+  @part static tr: string;
+
   @attribute caption: string;
   @boolattribute headless: boolean;
 
@@ -213,7 +218,7 @@ export class DuoyunTableElement extends GemElement {
                 <tr>
                   ${columns.map(
                     ({ title = '', width, style = this.#getDefaultStyle(width), tooltip }) => html`
-                      <th part="th" style=${styleMap(style)}>
+                      <th part=${DuoyunTableElement.th} style=${styleMap(style)}>
                         <dy-space size="small">
                           ${title}
                           ${tooltip
@@ -234,7 +239,7 @@ export class DuoyunTableElement extends GemElement {
           ${this.data?.map(
             (record, _rowIndex, _data, colSpanMemo = [0]) =>
               html`
-                <tr part="tr" style=${this.getRowStyle ? styleMap(this.getRowStyle(record)) : ''}>
+                <tr part=${DuoyunTableElement.tr} style=${this.getRowStyle ? styleMap(this.getRowStyle(record)) : ''}>
                   ${columns.map(
                     (
                       {
@@ -261,7 +266,7 @@ export class DuoyunTableElement extends GemElement {
                             <td
                               class=${classMap({ placeholder: !record, ellipsis })}
                               style=${styleMap(style)}
-                              part="td"
+                              part=${DuoyunTableElement.td}
                               rowspan=${rowSpan}
                               colspan=${colSpan}
                             >

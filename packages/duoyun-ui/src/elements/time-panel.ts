@@ -15,6 +15,7 @@ const style = createCSSSheet(css`
   .scrollbar {
     flex-grow: 1;
     overflow: auto;
+    scrollbar-width: thin;
     scrollbar-gutter: both-edges;
   }
   .cell:where(:hover) {

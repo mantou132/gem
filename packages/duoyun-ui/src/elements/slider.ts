@@ -169,8 +169,8 @@ export class DuoyunSliderElement extends GemElement {
   };
 
   #onKeydown = hotkeys({
-    up: () => this.#setPrecisionValue(this.value++),
-    down: () => this.#setPrecisionValue(this.value--),
+    up: () => this.#setPrecisionValue(this.value + 1),
+    down: () => this.#setPrecisionValue(this.value - 1),
   });
 
   render = () => {

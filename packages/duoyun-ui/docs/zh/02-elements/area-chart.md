@@ -4,7 +4,7 @@
 
 <gbp-example
   name="dy-area-chart"
-  props='{"style": "width: 100%;", "fill": "true", "sequences": [{"label": "Label", "values": [[100, 1], [600, 3], [1000, 5]] }], "chartzoom": true }'
+  props='{"style": "width: 100%;", "fill": "true", "chartzoom": true, "sequences": [{"label": "Label", "values": [[100, 1], [600, 3], [1000, 5]] }]}'
   src="https://jspm.dev/duoyun-ui/elements/area-chart"></gbp-example>
 
 ## API

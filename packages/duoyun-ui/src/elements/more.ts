@@ -17,6 +17,7 @@ const style = createCSSSheet(css`
   }
   .slot {
     text-align: left;
+    overflow: hidden;
   }
   .slot::-webkit-scrollbar {
     width: 0;
@@ -95,13 +96,11 @@ export class DuoyunMoreElement extends GemElement<State> {
  * @customElement dy-more-slot
  */
 @customElement('dy-more-slot')
-@adoptedStyle(style)
 export class DuoyunMoreSlotElement extends DuoyunScrollBaseElement {
   @emitter change: Emitter<boolean>;
 
   constructor() {
     super();
-    this.addEventListener('scroll', (e) => e.preventDefault(), { passive: false });
     this.internals.role = 'paragraph';
   }
 

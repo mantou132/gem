@@ -3,6 +3,7 @@
   "icon": "../../logo.png",
   "i18n": true,
   "homeMode": true,
+  "sourceBranch": "docs",
   "nav": [
     {
       "title": "Lit-HTML",

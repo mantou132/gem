@@ -55,6 +55,7 @@ const style = createCSSSheet(css`
     font-size: 1em;
     line-height: 1.5;
     margin-block: -2px;
+    margin-inline-end: 0.5em;
   }
   .action:hover {
     border-color: #fff;

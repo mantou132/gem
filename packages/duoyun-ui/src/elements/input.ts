@@ -11,6 +11,7 @@ import {
   refobject,
   RefObject,
   state,
+  part,
 } from '@mantou/gem/lib/decorators';
 import { GemElement, html, TemplateResult } from '@mantou/gem/lib/element';
 import { createCSSSheet, css } from '@mantou/gem/lib/utils';
@@ -110,6 +111,9 @@ const style = createCSSSheet(css`
 @adoptedStyle(style)
 @adoptedStyle(focusStyle)
 export class DuoyunInputElement extends GemElement {
+  @part static input: string;
+  @part static clear: string;
+
   @refobject inputRef: RefObject<HTMLInputElement>;
   @globalemitter change: Emitter<string>;
   @emitter clear: Emitter<string>;
@@ -260,7 +264,7 @@ export class DuoyunInputElement extends GemElement {
             <textarea
               ref=${this.inputRef.ref}
               class="input"
-              part="input"
+              part=${DuoyunInputElement.input}
               spellcheck=${this.#spellcheck}
               placeholder=${this.placeholder}
               ?disabled=${this.disabled}
@@ -277,7 +281,7 @@ export class DuoyunInputElement extends GemElement {
               type=${this.#type}
               ?disabled=${this.disabled}
               class="input"
-              part="input"
+              part=${DuoyunInputElement.input}
               spellcheck=${this.#spellcheck}
               list="datalist"
               step=${this.#step}
@@ -303,7 +307,7 @@ export class DuoyunInputElement extends GemElement {
               role="button"
               @keydown=${commonHandle}
               @click=${this.#onClear}
-              part="clear"
+              part=${DuoyunInputElement.clear}
               class="clear"
               .element=${icons.close}
             ></dy-use>

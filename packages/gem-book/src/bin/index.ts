@@ -66,7 +66,9 @@ function readConfig(configPath: string) {
       const cliConfigValue = cliConfig[key];
 
       // Overriding command line options is not allowed
-      if (!(Array.isArray(cliConfigValue) ? cliConfigValue.length : cliConfigValue)) {
+      if (Array.isArray(cliConfigValue)) {
+        cliConfigValue.splice(cliConfigValue.length, 0, ...(value as any[]));
+      } else if (!cliConfigValue) {
         Object.assign(cliConfig, { [key]: value });
       }
     }

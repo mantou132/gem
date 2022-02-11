@@ -389,7 +389,8 @@ export class Pre extends GemElement {
   }
 
   render() {
-    const lineHeight = 1.6;
+    // Safari 精度问题
+    const lineHeight = 1.5;
     const padding = 1;
     return html`
       ${this.highlight

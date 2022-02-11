@@ -2,7 +2,7 @@ import { GemElement, html } from '@mantou/gem/lib/element';
 import { adoptedStyle, customElement, attribute, state } from '@mantou/gem/lib/decorators';
 import { createCSSSheet, css } from '@mantou/gem/lib/utils';
 
-import { theme } from '../lib/theme';
+import { theme, getSemanticColor } from '../lib/theme';
 import { commonHandle } from '../lib/hotkeys';
 import { focusStyle } from '../lib/styles';
 
@@ -49,7 +49,7 @@ export class DuoyunActionTextElement extends GemElement {
     return html`
       <style>
         :host([color]) {
-          --color: ${this.color};
+          --color: ${getSemanticColor(this.color) || this.color};
         }
       </style>
       <dy-tooltip .content=${this.tooltip}>

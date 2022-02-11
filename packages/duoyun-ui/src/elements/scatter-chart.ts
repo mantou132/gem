@@ -105,7 +105,9 @@ export class DuoyunScatterChartElement extends DuoyunChartBaseElement {
         }
       </style>
       ${svg`
-        <svg aria-hidden="true" part="svg" xmlns="http://www.w3.org/2000/svg" viewBox=${this.viewBox.join(' ')}>
+        <svg aria-hidden="true" part=${
+          DuoyunChartBaseElement.chart
+        } xmlns="http://www.w3.org/2000/svg" viewBox=${this.viewBox.join(' ')}>
           ${this.renderXAxi({ grid: true })}
           ${this.renderYAxi()}
           ${this.sequences.map(({ label, value }, index) =>

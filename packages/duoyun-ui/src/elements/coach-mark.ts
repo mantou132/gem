@@ -5,7 +5,7 @@ import { createCSSSheet, css } from '@mantou/gem/lib/utils';
 import { createStore, updateStore } from '@mantou/gem/lib/store';
 import { splice } from '@mantou/gem/helper/i18n';
 
-import { theme } from '../lib/theme';
+import { theme, getSemanticColor } from '../lib/theme';
 import { locale } from '../lib/locale';
 
 import { ContextMenu } from './menu';
@@ -207,7 +207,7 @@ export class DuoyunCoachMarkElement extends DuoyunVisibleBaseElement {
     return html`
       <style>
         :host {
-          color: ${this.color || theme.informativeColor};
+          color: ${getSemanticColor(this.color) || this.color || theme.informativeColor};
         }
       </style>
       <span class="ring"></span>

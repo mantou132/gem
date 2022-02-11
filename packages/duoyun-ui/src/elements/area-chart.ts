@@ -292,7 +292,9 @@ export class DuoyunAreaChartElement extends DuoyunChartBaseElement {
         }
       </style>
       ${svg`
-        <svg aria-hidden="true" part="svg" xmlns="http://www.w3.org/2000/svg" viewBox=${this.viewBox.join(' ')}>
+        <svg aria-hidden="true" part=${
+          DuoyunChartBaseElement.chart
+        } xmlns="http://www.w3.org/2000/svg" viewBox=${this.viewBox.join(' ')}>
           ${
             this.#gradient
               ? svg`

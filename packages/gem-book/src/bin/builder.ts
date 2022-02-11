@@ -19,19 +19,23 @@ const pluginDir = path.resolve(__dirname, process.env.GEM_BOOK_DEV ? '../src/plu
 
 // dev mode uses memory file system
 export function startBuilder(dir: string, options: Required<CliUniqueConfig>, bookConfig: Partial<BookConfig>) {
-  const { debug, build, theme, template, output, icon, plugin: plugins, ga } = options;
+  const { debug, build, theme, template, output, icon, plugin, ga } = options;
 
   if (path.extname(output) === '.json') {
     return;
   }
 
-  plugins.forEach((plugin) => {
+  const plugins = [...plugin];
+
+  plugins.forEach((plugin, index) => {
     const localPath = resolveLocalPlugin(plugin);
     if (localPath) {
       const filename = path.basename(localPath);
       const uniqueFilename = filename + Date.now();
       symlinkSync(localPath, path.resolve(pluginDir, uniqueFilename));
       renameSync(path.resolve(pluginDir, uniqueFilename), path.resolve(pluginDir, filename));
+      // load from `plugins` dir
+      plugins[index] = filename;
     }
   });
 

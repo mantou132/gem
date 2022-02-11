@@ -128,18 +128,25 @@ export const parseElement = (declaration: ClassDeclaration) => {
           .map((jsDoc) => jsDoc.getCommentText())
           .join('\n\n') || undefined,
     };
-    detail.staticProperties.push(prop);
+
+    let isPartOrSlot = false;
 
     const staticPorpDecorators = staticPropDeclaration.getDecorators();
     for (const decorator of staticPorpDecorators) {
       const decoratorName = decorator.getName();
       if (slotDecoratorName.includes(decoratorName)) {
+        isPartOrSlot = true;
         prop.slot = camelToKebabCase(staticPropName);
         detail.slots.push(prop.slot);
       } else if (partDecoratorName.includes(decoratorName)) {
+        isPartOrSlot = true;
         prop.part = camelToKebabCase(staticPropName);
         detail.parts.push(prop.part);
       }
+    }
+
+    if (!isPartOrSlot) {
+      detail.staticProperties.push(prop);
     }
   }
 
@@ -246,14 +253,17 @@ export const getElements = (file: SourceFile) => {
       .getDecorators()
       .find((decorator) => elementDecoratorName.includes(decorator.getName()));
     if (elementDecoratior) {
-      result.push({
+      const detail = {
         ...parseElement(declaration),
         name: elementDecoratior
           .getCallExpression()!
           .getArguments()[0]
           .getText()
           .replace(/('|"|`)?(\S*)\1/, '$2'),
-      });
+      };
+      if (!detail.constructorName.startsWith('_')) {
+        result.push(detail);
+      }
     }
   }
   return result;

@@ -1,4 +1,12 @@
-import { adoptedStyle, customElement, emitter, Emitter, property, boolattribute } from '@mantou/gem/lib/decorators';
+import {
+  adoptedStyle,
+  customElement,
+  emitter,
+  Emitter,
+  property,
+  boolattribute,
+  part,
+} from '@mantou/gem/lib/decorators';
 import { GemElement, html, TemplateResult } from '@mantou/gem/lib/element';
 import { createCSSSheet, css, classMap, partMap } from '@mantou/gem/lib/utils';
 
@@ -44,7 +52,7 @@ const style = createCSSSheet(css`
   .day:where(:hover) {
     background: ${theme.hoverBackgroundColor};
   }
-  [part~='leftbottom'] {
+  .leftbottom {
     border-end-start-radius: inherit;
   }
   .day:last-of-type {
@@ -111,6 +119,17 @@ interface Day {
 @adoptedStyle(style)
 @adoptedStyle(focusStyle)
 export class DuoyunCalendarElement extends GemElement {
+  @part static headerRow: string;
+  @part static headerLeftCell: string;
+  @part static headerRightCell: string;
+  @part static dayCell: string;
+  @part static todayCell: string;
+  @part static otherDayCell: string;
+  @part static leftTopCell: string;
+  @part static rightTopCell: string;
+  @part static leftBottomCell: string;
+  @part static rightBottomCell: string;
+
   @emitter datehover: Emitter<number>;
   @emitter dateclick: Emitter<number>;
   @boolattribute borderless: boolean;
@@ -162,9 +181,9 @@ export class DuoyunCalendarElement extends GemElement {
             <div
               class="head"
               part=${partMap({
-                head: true,
-                left: index === 0,
-                right: index === 6,
+                [DuoyunCalendarElement.headerRow]: true,
+                [DuoyunCalendarElement.headerLeftCell]: index === 0,
+                [DuoyunCalendarElement.headerRightCell]: index === 6,
               })}
             >
               ${date.format({ weekday: 'narrow' })}
@@ -178,28 +197,28 @@ export class DuoyunCalendarElement extends GemElement {
               tabindex="0"
               role="button"
               part=${partMap({
-                day: true,
-                today: !!isToday,
-                other: !isThisMonth,
-                lefttop: index === 0,
-                righttop: index === 6,
-                leftbottom: index === arr.length - 7,
-                rightbottom: index === arr.length - 1,
+                [DuoyunCalendarElement.dayCell]: true,
+                [DuoyunCalendarElement.todayCell]: !!isToday,
+                [DuoyunCalendarElement.otherDayCell]: !isThisMonth,
+                [DuoyunCalendarElement.leftTopCell]: index === 0,
+                [DuoyunCalendarElement.rightTopCell]: index === 6,
+                [DuoyunCalendarElement.leftBottomCell]: index === arr.length - 7,
+                [DuoyunCalendarElement.rightBottomCell]: index === arr.length - 1,
               })}
-              class=${classMap(
-                isThisMonth
+              class=${classMap({
+                day: true,
+                leftbottom: index === arr.length - 7,
+                ...(isThisMonth
                   ? {
-                      day: true,
                       today: this.today && !!isToday,
                       start: !!this.highlights?.some(([d]) => date.isSome(d, 'd')),
                       stop: !!this.highlights?.some((ds) => date.isSome(ds[ds.length - 1], 'd')),
                       highlight: this.#isHighlight(date),
                     }
                   : {
-                      day: true,
                       other: true,
-                    },
-              )}
+                    }),
+              })}
               @click=${() => this.dateclick(date.valueOf())}
               @mouseover=${() => this.datehover(date.valueOf())}
               @keydown=${commonHandle}

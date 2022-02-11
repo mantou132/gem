@@ -38,12 +38,13 @@ npm install duoyun-ui
 
 ```ts
 import { render } from '@mantou/gem';
+
 import 'duoyun-ui/elements/color-pick';
 
 render(html`<dy-color-pick></dy-color-pick>`, document.body);
 ```
 
-使用单实例元素：
+使用元素 API：
 
 ```ts
 import { Toast } from 'duoyun-ui/elements/toast';
@@ -77,6 +78,6 @@ import('https://jspm.dev/duoyun-ui/elements/input-capture').then(({ DuoyunInputC
 ## 路线图
 
 - Logo 设计
-- 完善现有元素， 规范化 API
+- 完善现有元素，规范化 API
 - 添加缺失元素和功能
 - 添加更多的语言支持

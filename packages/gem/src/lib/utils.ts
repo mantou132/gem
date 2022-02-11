@@ -374,29 +374,36 @@ export function removeItems(target: any[], items: any[]) {
   });
 }
 
+export function objectMapToString<T = any>(
+  object: Record<string, T>,
+  separate: string,
+  toString: (key: string, value: T) => string,
+) {
+  let result = separate;
+  for (const key in object) {
+    const s = toString(key, object[key]);
+    result += s ? s + separate : '';
+  }
+  return result;
+}
+
 type StyleProp = keyof CSSStyleDeclaration | `--${string}`;
 
 export type StyleObject = Partial<Record<StyleProp, string | number | undefined>>;
 
 // 不支持 webkit 属性
 export function styleMap(object: StyleObject) {
-  let styleString = '';
-  for (const key in object) {
-    if (object[key as StyleProp] !== undefined) {
-      styleString += `${camelToKebabCase(key)}:${object[key as StyleProp]};`;
-    }
-  }
-  return styleString;
+  return objectMapToString(object, ';', (key, value) =>
+    value !== undefined ? `${camelToKebabCase(key)}:${value}` : '',
+  );
 }
 
-export function classMap(obj: Record<string, boolean>) {
-  let classList = ' ';
-  for (const className in obj) {
-    if (obj[className]) {
-      classList += `${className} `;
-    }
-  }
-  return classList;
+export function classMap(object: Record<string, boolean>) {
+  return objectMapToString(object, ' ', (key, value) => (value ? key : ''));
 }
 
 export const partMap = classMap;
+
+export function exportPartsMap(object: Record<string, string | undefined>) {
+  return objectMapToString(object, ',', (key, value) => (value !== undefined ? `${key}:${value}` : ''));
+}

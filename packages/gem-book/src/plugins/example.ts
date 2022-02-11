@@ -13,8 +13,8 @@ type State = {
 
 customElements.whenDefined('gem-book').then(() => {
   const { GemBookPluginElement } = customElements.get('gem-book') as typeof GemBookElement;
+  const { theme } = GemBookPluginElement;
   const { html, customElement, attribute } = GemBookPluginElement.Gem;
-  const theme = GemBookPluginElement.theme;
   @customElement('gbp-example')
   class _GbpExampleElement extends GemBookPluginElement<State> {
     @attribute name: string;
@@ -63,9 +63,12 @@ customElements.whenDefined('gem-book').then(() => {
     #renderPropValue = (key: string, value: string, isNewLine: boolean) => {
       const vString = key.startsWith('@') ? value : JSON.stringify(value, null, 2);
       const kString = key.startsWith('@') ? key : `.${key}`;
-      const indentValue = vString.includes('\n') ? `\n${this.#addIndentation(vString, 4)}\n` : vString;
-      return html`${isNewLine ? html`<br /><span> </span> ` : ' '}<span class="attribute">${kString}</span
-        >${this.#renderToken('=')}${html`\${${this.#renderToken(indentValue)}}`}`;
+      const hasMultipleLine = vString.includes('\n');
+      const indentValue = hasMultipleLine ? `\n${this.#addIndentation(vString, 4)}\n` : vString;
+      return html`${isNewLine ? html`<br />${this.#addIndentation('')}` : ' '}<span class="attribute">${kString}</span
+        >${this.#renderToken('=')}${html`\${${this.#renderToken(indentValue)}${hasMultipleLine
+          ? this.#addIndentation('')
+          : ''}}`}`;
     };
 
     #renderProps = () => {
@@ -91,19 +94,24 @@ customElements.whenDefined('gem-book').then(() => {
       return html`${this.#renderTag(this.name)}${this.#renderInnerHTML()}${this.#renderTag(this.name, true)}`;
     };
 
+    #elementDefined = () => {
+      this.setState({
+        value: {
+          innerHTML: this.html,
+          props: JSON.parse(this.props || '{}'),
+        },
+        loading: false,
+      });
+    };
+
     mounted = async () => {
+      // hack from duoyun-ui
       const script = document.createElement('script');
       script.type = 'module';
       script.src = this.src;
       script.crossOrigin = 'anonymous';
       script.onload = () => {
-        this.setState({
-          value: {
-            innerHTML: this.html,
-            props: JSON.parse(this.props || '{}'),
-          },
-          loading: false,
-        });
+        this.#elementDefined();
         script.remove();
       };
       script.onerror = (evt: ErrorEvent) => this.setState({ error: evt.error });

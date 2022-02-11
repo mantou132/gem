@@ -4,7 +4,7 @@
 
 <gbp-example
   name="dy-shortcut-record"
-  props='{"value": ["Ctrl", "K"], "@change": "(evt) => evt.target.value = evt.detail"}'
+  props='{"placeholder": "Focus on him", "tooltip": "Press key", "@change": "(evt) => evt.target.value = evt.detail"}'
   src="https://jspm.dev/duoyun-ui/elements/shortcut-record"></gbp-example>
 
 ## API

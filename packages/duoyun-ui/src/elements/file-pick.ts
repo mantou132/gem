@@ -8,6 +8,7 @@ import {
   boolattribute,
   refobject,
   RefObject,
+  part,
 } from '@mantou/gem/lib/decorators';
 import { GemElement, html, repeat } from '@mantou/gem/lib/element';
 import { createCSSSheet, css, styleMap } from '@mantou/gem/lib/utils';
@@ -114,6 +115,8 @@ export interface FileItem extends File {
 @adoptedStyle(style)
 @adoptedStyle(focusStyle)
 export class DuoyunFilePickElement extends GemElement {
+  @part static button: string;
+
   @attribute type: 'file' | 'image';
   @attribute accept: string;
   @attribute placeholder: string;
@@ -214,7 +217,7 @@ export class DuoyunFilePickElement extends GemElement {
       <div
         tabindex="0"
         role="button"
-        part="button"
+        part=${DuoyunFilePickElement.button}
         class="item button"
         @keydown=${commonHandle}
         @click=${() => this.openFilePicker()}>
