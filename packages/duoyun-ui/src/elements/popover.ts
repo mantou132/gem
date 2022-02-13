@@ -13,6 +13,7 @@ import { GemElement, html, TemplateResult } from '@mantou/gem/lib/element';
 import { createCSSSheet, css, styleMap, StyleObject } from '@mantou/gem/lib/utils';
 
 import { sleep, setBodyInert } from '../lib/utils';
+import { hotkeys } from '../lib/hotkeys';
 import { theme } from '../lib/theme';
 
 import './reflect';
@@ -261,6 +262,7 @@ export class DuoyunPopoverElement extends GemElement<PopoverState> {
                 ref=${this.wrapRef.ref}
                 data-position=${position}
                 style=${`${styleMap(style)}${styleMap(this.ghostStyle)}`}
+                @close=${this.#close}
               >
                 ${this.content}
               </dy-popover-ghost>
@@ -329,4 +331,13 @@ const ghostStyle = createCSSSheet(css`
  */
 @customElement('dy-popover-ghost')
 @adoptedStyle(ghostStyle)
-export class DuoyunPopoverGhostElement extends GemElement {}
+export class DuoyunPopoverGhostElement extends GemElement {
+  @emitter close: Emitter;
+
+  #onKeyDown = hotkeys({ esc: () => this.close(null) });
+
+  mounted = () => {
+    addEventListener('keydown', this.#onKeyDown);
+    return () => removeEventListener('keydown', this.#onKeyDown);
+  };
+}

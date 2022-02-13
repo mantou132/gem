@@ -2,6 +2,7 @@ import { css, history } from '@mantou/gem';
 
 import { DEFAULT_FILE, DEV_THEME_FILE } from '../common/constant';
 import { GemBookElement } from '../element';
+import { theme as defaultTheme } from '../element/helper/theme';
 
 if (process.env.GA_ID) {
   const script = document.createElement('script');
@@ -68,16 +69,17 @@ process.env.DEV_MODE ? devRender() : buildRender();
 
 const style = document.createElement('style');
 style.innerText = css`
-  html {
+  :where(html) {
     height: 100%;
     overflow: hidden;
+    font: 16px/1.7 ${defaultTheme.font};
+    -moz-osx-font-smoothing: grayscale;
+    -webkit-font-smoothing: antialiased;
   }
-  body {
+  :where(body) {
     margin: 0;
     height: 100%;
     overflow: auto;
-    -moz-osx-font-smoothing: grayscale;
-    -webkit-font-smoothing: antialiased;
   }
 `;
 document.head.append(style);

@@ -120,6 +120,10 @@ export class DuoyunPaginationElement extends GemElement {
             <dy-input
               type="number"
               autofocus
+              step=${1}
+              min=${1}
+              max=${this.total}
+              value=${this.page}
               @change=${({ detail, target }: CustomEvent<string>) => ((target as HTMLInputElement).value = detail)}
             ></dy-input>
             <dy-button small @click=${pageChange}> ${locale.ok} </dy-button>

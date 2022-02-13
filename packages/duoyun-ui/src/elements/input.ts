@@ -19,7 +19,8 @@ import { createCSSSheet, css } from '@mantou/gem/lib/utils';
 import { theme } from '../lib/theme';
 import { icons } from '../lib/icons';
 import { focusStyle } from '../lib/styles';
-import { commonHandle } from '../lib/hotkeys';
+import { commonHandle, hotkeys } from '../lib/hotkeys';
+import { clamp } from '../lib/number';
 
 import './use';
 
@@ -234,6 +235,26 @@ export class DuoyunInputElement extends GemElement {
     this.clear('');
   };
 
+  #onKeyDown = (evt: KeyboardEvent) => {
+    const nextValue = (n: number) => String(clamp(this.#min, Number(this.value || this.min) + n, this.#max));
+    const prevent = (evt: Event) => {
+      evt.stopPropagation();
+      evt.preventDefault();
+    };
+    if (this.type === 'number') {
+      hotkeys({
+        up: () => {
+          this.change(nextValue(this.#step));
+          prevent(evt);
+        },
+        down: () => {
+          this.change(nextValue(-this.#step));
+          prevent(evt);
+        },
+      })(evt);
+    }
+  };
+
   mounted = () => {
     this.effect(
       () => {
@@ -268,30 +289,28 @@ export class DuoyunInputElement extends GemElement {
               spellcheck=${this.#spellcheck}
               placeholder=${this.placeholder}
               ?disabled=${this.disabled}
-              rows=${this.#rows}
               ?required=${this.required}
               @input=${this.#inputHandle}
               @compositionstart=${this.#compositionstartHandle}
               @compositionend=${this.#compositionendHandle}
+              rows=${this.#rows}
             ></textarea>
           `
         : html`
             <input
-              ref=${this.inputRef.ref}
               type=${this.#type}
-              ?disabled=${this.disabled}
+              ref=${this.inputRef.ref}
               class="input"
               part=${DuoyunInputElement.input}
               spellcheck=${this.#spellcheck}
-              list="datalist"
-              step=${this.#step}
-              min=${this.#min}
-              max=${this.#max}
               placeholder=${this.placeholder}
+              ?disabled=${this.disabled}
               ?required=${this.required}
               @input=${this.#inputHandle}
               @compositionstart=${this.#compositionstartHandle}
               @compositionend=${this.#compositionendHandle}
+              @keydown=${this.#onKeyDown}
+              list="datalist"
             />
           `}
       ${this.dataList &&
