@@ -155,6 +155,23 @@ type State = {
   grabbingHue: boolean;
   grabbingSV: boolean;
   grabbingA: boolean;
+  // stringify
+  r: number;
+  g: number;
+  b: number;
+
+  h: number;
+  s: number;
+  l: number;
+  a: number;
+  // hsv
+  sa: number;
+  v: number;
+
+  // current input value; without alpha
+  str: string;
+
+  commitValue?: { v?: number; sa?: number; h?: number; a?: number; str?: string };
 };
 
 /**
@@ -170,6 +187,18 @@ export class DuoyunColorPanelElement extends GemElement<State> {
 
   @globalemitter change: Emitter<HexColor>;
 
+  get #color() {
+    const { r, g, b, mode } = this.state;
+    switch (mode) {
+      case 'Hex':
+        return rgbToHexColor([r, g, b]);
+      case 'RGB':
+        return rgbToRgbColor([r, g, b]);
+      case 'HSL':
+        return rgbToHslColor([r, g, b]);
+    }
+  }
+
   constructor() {
     super();
     this.internals.role = 'widget';
@@ -180,23 +209,22 @@ export class DuoyunColorPanelElement extends GemElement<State> {
     grabbingHue: false,
     grabbingA: false,
     grabbingSV: false,
+    // stringify
+    r: 0,
+    g: 0,
+    b: 0,
+
+    h: 0,
+    s: 0,
+    l: 0,
+    a: 0,
+    // hsv
+    sa: 0,
+    v: 0,
+
+    // without alpha
+    str: '',
   };
-
-  // stringify
-  #r = 0;
-  #g = 0;
-  #b = 0;
-
-  #h = 0;
-  #s = 0;
-  #l = 0;
-  #a = 0;
-  // hsv
-  #sa = 0;
-  #v = 0;
-
-  // without alpha
-  #value = '';
 
   #typeOptions: { label: Mode }[] = [
     {
@@ -210,17 +238,6 @@ export class DuoyunColorPanelElement extends GemElement<State> {
     },
   ];
 
-  #getColor = (mode: Mode) => {
-    switch (mode) {
-      case 'Hex':
-        return rgbToHexColor([this.#r, this.#g, this.#b]);
-      case 'RGB':
-        return rgbToRgbColor([this.#r, this.#g, this.#b]);
-      case 'HSL':
-        return rgbToHslColor([this.#r, this.#g, this.#b]);
-    }
-  };
-
   #getPosition = (target: HTMLElement, { clientX, clientY }: PanEventDetail) => {
     const { left, top, width, height } = target.getBoundingClientRect();
     return {
@@ -229,36 +246,45 @@ export class DuoyunColorPanelElement extends GemElement<State> {
     };
   };
 
-  #setRgb = () => {
-    const [r, g, b] = hslToRgb([this.#h, this.#s, this.#l]);
-    this.#r = r;
-    this.#g = g;
-    this.#b = b;
-    this.#value = this.#getColor('Hex');
-  };
-
   #onPanHue = ({ detail, target }: CustomEvent<PanEventDetail>) => {
-    const { top } = this.#getPosition(target as HTMLElement, detail);
-    this.#h = 1 - top;
-    this.#setRgb();
     this.setState({ grabbingHue: true });
+    const { a, s, l } = this.state;
+    const { top } = this.#getPosition(target as HTMLElement, detail);
+    const h = 1 - top;
+    const [r, g, b] = hslToRgb([h, s, l]);
+    const color = rgbToHexColor([r, g, b, a]);
+    this.setState({ commitValue: { h, str: color } });
+    this.change(color);
   };
 
   #onPanSV = ({ detail, target }: CustomEvent<PanEventDetail>) => {
-    const { left, top } = this.#getPosition(target as HTMLElement, detail);
-    this.#v = 1 - top;
-    this.#sa = left;
-    const [_, s, l] = hsvToHsl([this.#h, this.#sa, this.#v]);
-    this.#s = s;
-    this.#l = l;
-    this.#setRgb();
     this.setState({ grabbingSV: true });
+    const { h, a, str } = this.state;
+    const { left, top } = this.#getPosition(target as HTMLElement, detail);
+    const v = 1 - top;
+    const sa = left;
+    const [_, s, l] = hsvToHsl([h, sa, v]);
+    const [r, g, b] = hslToRgb([h, s, l]);
+    const color = rgbToHexColor([r, g, b, a]);
+    this.setState({
+      sa: color === str ? sa : this.state.sa,
+      commitValue: { str: color, v, sa, h },
+    });
+    this.change(color);
   };
 
   #onPanA = ({ detail, target }: CustomEvent<PanEventDetail>) => {
-    const { top } = this.#getPosition(target as HTMLElement, detail);
-    this.#a = 1 - top;
     this.setState({ grabbingA: true });
+    const { r, g, b } = this.state;
+    const { top } = this.#getPosition(target as HTMLElement, detail);
+    const a = 1 - top;
+    const color = rgbToHexColor([r, g, b, a]);
+    this.setState({ commitValue: { str: color, a } });
+    this.change(color);
+  };
+
+  #onPanEnd = () => {
+    this.setState({ grabbingHue: false, grabbingSV: false, grabbingA: false });
   };
 
   #onChangeType = (evt: CustomEvent<Mode>) => {
@@ -268,39 +294,28 @@ export class DuoyunColorPanelElement extends GemElement<State> {
 
   #onChangeValue = (evt: CustomEvent<string>) => {
     evt.stopPropagation();
-    if (this.state.mode !== 'Hex') {
+    const { mode, a } = this.state;
+    if (mode !== 'Hex') {
       this.setState({ mode: 'Hex' });
-    } else {
-      this.#value = '#' + evt.detail.trim().replace('#', '').replace(/[g-z]/gi, '').toLowerCase();
-      // valid color emit event
-      if (isValidHexColor(this.#value)) {
-        this.#init(this.#value);
-        this.#onChange();
-      } else {
-        this.update();
-      }
+      return;
     }
+    let str = '#' + evt.detail.trim().replace('#', '').replace(/[g-z]/gi, '').toLowerCase();
+    // valid color emit event
+    if (isValidHexColor(str)) {
+      const aStr = Math.round(a * 255)
+        .toString(16)
+        .padStart(2, '0');
+      const isShortHex = str.length === 4 && aStr[0] === aStr[1];
+      str = str.slice(0, isShortHex ? 4 : 7);
+      this.change((this.alpha && a !== 1 ? str + (isShortHex ? aStr[0] : aStr) : str) as HexColor);
+    }
+    this.setState({ str });
   };
 
   #onChangeA = (evt: CustomEvent<string>) => {
     evt.stopPropagation();
-    this.#a = clamp(0, Number(evt.detail) || 0, 1);
-    this.#onChange();
-  };
-
-  #onChange = () => {
-    const isShort = this.#value.length === 4;
-    const aStr = Math.round(this.#a * 255)
-      .toString(16)
-      .padStart(2, '0');
-    const supportSingle = aStr[0] === aStr[1];
-    const useShort = isShort && supportSingle;
-    if (!useShort) {
-      this.#value = this.#getColor('Hex');
-    }
-    const color = (this.alpha && this.#a !== 1 ? this.#value + (useShort ? aStr[0] : aStr) : this.#value) as HexColor;
-    this.setState({ grabbingHue: false, grabbingSV: false, grabbingA: false });
-    this.change(color);
+    const { r, g, b } = this.state;
+    this.change(rgbToHexColor([r, g, b, clamp(0, Number(evt.detail) || 0, 1)]));
   };
 
   #openEyeDropper = async () => {
@@ -308,67 +323,60 @@ export class DuoyunColorPanelElement extends GemElement<State> {
     this.change(result.sRGBHex);
   };
 
-  #init = (value: HexColor) => {
-    const [r, g, b, a] = parseHexColor(value);
-    const [h, s, l] = rgbToHsl([r, g, b]);
-    const [_, sa, v] = hslToHsv([h, s, l]);
-    this.#r = r;
-    this.#g = g;
-    this.#b = b;
-    this.#a = a;
-    if (v !== 0 && sa !== 0) {
-      this.#h = h;
-    }
-    this.#s = s;
-    this.#l = l;
-    if (v !== 0) {
-      this.#sa = sa;
-    }
-    this.#v = v;
-    this.#value = value.length === 5 ? value.slice(0, 4) : value.length === 9 ? value.slice(0, 7) : value;
-  };
-
   willMount = () => {
     this.memo(
-      () => this.#init(this.value || '#fff'),
+      () => {
+        const value = this.value || '#fff';
+        const [r, g, b, a] = parseHexColor(value);
+        const [h, s, l] = rgbToHsl([r, g, b]);
+        const [_, sa, v] = hslToHsv([h, s, l]);
+        const str = value.length === 5 ? value.slice(0, 4) : value.length === 9 ? value.slice(0, 7) : value;
+        const parseState: Partial<State> = { r, g, b, a, h, s, l, sa, v, str };
+        if (this.value === this.state.commitValue?.str) {
+          this.setState({ ...parseState, ...this.state.commitValue });
+          return;
+        } else {
+          this.setState({ ...parseState });
+        }
+      },
       () => [this.value],
     );
   };
 
   render = () => {
-    const { mode, grabbingHue, grabbingSV, grabbingA } = this.state;
+    const { mode, grabbingHue, grabbingSV, grabbingA, h, s, l, a, sa, v, str } = this.state;
     return html`
       <style>
         :host {
-          --h: ${this.#h * 360};
-          --s: ${this.#s * 100}%;
-          --l: ${this.#l * 100}%;
-          --a: ${this.#a};
+          --h: ${h * 360};
+          --s: ${s * 100}%;
+          --l: ${l * 100}%;
+          --a: ${a};
         }
       </style>
       <div class="color">
-        <dy-gesture class="area" @pan=${this.#onPanSV} @end=${this.#onChange}>
+        <dy-gesture class="area" @pan=${this.#onPanSV} @end=${this.#onPanEnd}>
           <div
             class=${classMap({ current: true, grabbing: grabbingSV })}
-            style=${styleMap({ left: `${this.#sa * 100}%`, top: `${(1 - this.#v) * 100}%` })}
+            style=${styleMap({ left: `${sa * 100}%`, top: `${(1 - v) * 100}%` })}
           >
             <span></span>
           </div>
         </dy-gesture>
-        <dy-gesture class="hue-bar" @pan=${this.#onPanHue} @end=${this.#onChange}>
+        <dy-gesture class="hue-bar" @pan=${this.#onPanHue} @end=${this.#onPanEnd}>
           <div
             class=${classMap({ current: true, grabbing: grabbingHue })}
-            style=${styleMap({ top: `${(1 - this.#h) * 100}%`, left: '50%' })}
+            style=${styleMap({ top: `${(1 - h) * 100}%`, left: '50%' })}
           >
             <span></span>
           </div>
         </dy-gesture>
         ${this.alpha
           ? html`
-              <dy-gesture class="alpha-bar" @pan=${this.#onPanA} @end=${this.#onChange}>
+              <dy-gesture class="alpha-bar" @pan=${this.#onPanA} @end=${this.#onPanEnd}>
                 <div
                   class=${classMap({ current: true, grabbing: grabbingA })}
-                  style=${styleMap({ top: `${(1 - this.#a) * 100}%`, left: '50%' })}
+                  style=${styleMap({ top: `${(1 - a) * 100}%`, left: '50%' })}
                 >
                   <span></span>
                 </div>
@@ -385,16 +393,12 @@ export class DuoyunColorPanelElement extends GemElement<State> {
           .dropdownStyle=${{ fontSize: '0.75em' }}
           @change=${this.#onChangeType}
         ></dy-select>
-        <dy-input
-          class="value"
-          value=${mode === 'Hex' ? this.#value : this.#getColor(mode)}
-          @change=${this.#onChangeValue}
-        ></dy-input>
+        <dy-input class="value" value=${mode === 'Hex' ? str : this.#color} @change=${this.#onChangeValue}></dy-input>
         <dy-input
           class=${classMap({ alpha: true, hidden: !this.alpha })}
           aria-hidden=${!this.alpha}
           type="number"
-          value=${String(formatToPrecision(this.#a))}
+          value=${String(formatToPrecision(a))}
           step=${0.1}
           @change=${this.#onChangeA}
         ></dy-input>

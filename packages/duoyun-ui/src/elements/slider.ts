@@ -156,8 +156,7 @@ export class DuoyunSliderElement extends GemElement {
     const position = clamp(0, this.state.position + movement / totalLength, 1);
     const precisionValue = position * this.#diff;
     const value = this.#getValue(precisionValue);
-    const displayPosition = value / this.#diff;
-    this.setState({ position, displayPosition });
+    this.setState({ position });
     this.change(value);
   };
 
