@@ -43,7 +43,7 @@ const formStyle = createCSSSheet(css`
   }
   dy-form-item-inline-group {
     display: flex;
-    gap: 0.875em;
+    gap: 1em;
   }
   @media ${mediaQuery.PHONE} {
     dy-form-item-inline-group {
@@ -167,7 +167,16 @@ type FormItemRule = {
 @customElement('dy-form-item')
 @adoptedStyle(formItemStyle)
 export class DuoyunFormItemElement extends GemElement<FormItemState> {
-  @attribute type: 'text' | 'number' | 'checkbox' | 'pick' | 'radio' | 'select' | 'textarea' | 'slot';
+  @attribute type:
+    | 'text'
+    | 'number'
+    | 'checkbox'
+    | 'checkbox-group' // value is array
+    | 'pick'
+    | 'radio-group'
+    | 'select'
+    | 'textarea'
+    | 'slot';
   @boolattribute multiple: boolean; // pick/select/text
   @attribute name: string;
   @attribute label: string;
@@ -295,7 +304,7 @@ export class DuoyunFormItemElement extends GemElement<FormItemState> {
               ${this.label}
             </dy-checkbox>
           `
-        : this.#type === 'radio'
+        : this.#type === 'radio-group'
         ? html`
             <dy-radio-group
               @change=${this.#onChange}
@@ -304,6 +313,16 @@ export class DuoyunFormItemElement extends GemElement<FormItemState> {
               .value=${this.value}
             >
             </dy-radio-group>
+          `
+        : this.#type === 'checkbox-group'
+        ? html`
+            <dy-checkbox-group
+              @change=${this.#onChange}
+              ?disabled=${this.disabled}
+              .options=${this.dataList}
+              .value=${this.value}
+            >
+            </dy-checkbox-group>
           `
         : this.name && this.#type !== 'slot'
         ? this.multiple

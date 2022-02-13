@@ -5,6 +5,7 @@ import {
   globalemitter,
   Emitter,
   boolattribute,
+  property,
 } from '@mantou/gem/lib/decorators';
 import { GemElement, html } from '@mantou/gem/lib/element';
 import { createCSSSheet, css } from '@mantou/gem/lib/utils';
@@ -13,6 +14,8 @@ import { theme } from '../lib/theme';
 import { icons } from '../lib/icons';
 import { commonHandle } from '../lib/hotkeys';
 import { focusStyle } from '../lib/styles';
+
+import { groupStyle, Option } from './radio';
 
 import './use';
 
@@ -94,5 +97,62 @@ export class DuoyunCheckboxElement extends GemElement {
       ></dy-use>
       <slot id="label"></slot>
     `;
+  };
+}
+
+/**
+ * @customElement dy-checkbox-group
+ * @attr disabled
+ */
+@customElement('dy-checkbox-group')
+@adoptedStyle(groupStyle)
+export class DuoyunCheckboxGroupElement extends GemElement {
+  @attribute orientation: 'horizontal' | 'vertical';
+  @boolattribute disabled: boolean;
+  @globalemitter change: Emitter<any[]>;
+  @property value?: any[];
+  @property options?: Option[];
+
+  constructor() {
+    super();
+    this.internals.role = 'group';
+  }
+
+  #valueSet: Set<any>;
+
+  #onChange = (evt: CustomEvent<boolean>, value: string) => {
+    evt.stopPropagation();
+    const newValue = new Set(this.#valueSet);
+    if (evt.detail) {
+      newValue.add(value);
+    } else {
+      newValue.delete(value);
+    }
+    this.change([...newValue]);
+  };
+
+  willMount = () => {
+    this.memo(
+      () => {
+        this.#valueSet = new Set(this.value);
+      },
+      () => [this.value],
+    );
+  };
+
+  render = () => {
+    if (!this.options) return null;
+    return html`${this.options.map(
+      ({ label, value }) =>
+        html`
+          <dy-checkbox
+            ?disabled=${this.disabled}
+            ?checked=${this.#valueSet.has(value ?? label)}
+            @change=${(evt: CustomEvent<boolean>) => this.#onChange(evt, value ?? label)}
+          >
+            ${label}
+          </dy-checkbox>
+        `,
+    )}`;
   };
 }

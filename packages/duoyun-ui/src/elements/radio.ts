@@ -90,11 +90,14 @@ export class DuoyunRadioElement extends GemElement {
   };
 }
 
-const groupStyle = createCSSSheet(css`
+export const groupStyle = createCSSSheet(css`
   :host {
     display: flex;
     align-items: center;
     flex-wrap: wrap;
+  }
+  :host([orientation='horizontal']) {
+    gap: 1em;
   }
   :host([orientation='vertical']) {
     flex-direction: column;
@@ -117,7 +120,7 @@ export class DuoyunRadioGroupElement extends GemElement {
   @attribute orientation: 'horizontal' | 'vertical';
   @boolattribute disabled: boolean;
   @globalemitter change: Emitter<any>;
-  @property value: any;
+  @property value?: any;
   @property options?: Option[];
 
   constructor() {
