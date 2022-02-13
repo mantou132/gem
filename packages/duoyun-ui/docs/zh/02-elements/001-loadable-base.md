@@ -1,6 +1,6 @@
 # DuoyunLoadableBaseElement
 
-`DuoyunLoadableBaseElement` 有 `loading` 交互性属性,
+`DuoyunLoadableBaseElement` 有 `loading` 交互性属性，
 当 `loading` 为 `true` 时，显示一个加载器在元素上方，例如：
 
 <gbp-example

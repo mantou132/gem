@@ -106,7 +106,7 @@ export function checkRelativeLink(fullPath: string, docsRootDir: string) {
         currentNum += line.length + 1;
       }
       const position = `(${lineNum},${colNum})`;
-      console.warn(`${fullPath}${position} link warn: ${link}`);
+      console.warn(`\x1b[33m[${new Date()}]: ${fullPath}${position} link warn: ${link}'\x1b[0m`);
     }
   });
 }

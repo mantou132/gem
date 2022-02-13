@@ -183,7 +183,7 @@ async function generateBookConfig(dir: string) {
       fs.writeFileSync(configPath, configStr);
     }
   }
-  if (cliConfig.debug) inspectObject(JSON.parse(configStr));
+  console.log('Updated!');
 }
 
 const debounceCommand = debounce(generateBookConfig, 300);
