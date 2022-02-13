@@ -1,6 +1,7 @@
-# 高级表单
+# Advanced form
 
-DuoyunUI 所有的表单元素均为“[受控](https://reactjs.org/docs/forms.html#controlled-components)”元素，在进行表单编辑时，你需要动态的给表单元素进行赋值，例如：
+All form elements of DuoyunUI are "[Controlled](https://reactjs.org/docs/forms.html#controlled-components)" elements,
+when forming a form editing, you need to dynamically assign a value, for example:
 
 ```ts
 @customElement('my-ele')
@@ -23,9 +24,9 @@ export class MyEleElement extends GemElement {
 }
 ```
 
-## 表单验证
+## Form validation
 
-为字段添加 `required` 属性，并在提交时进行表单验证：
+Add a `required` attribute for the field, and perform a form validation when submitted:
 
 ```ts 16,23
 @customElement('my-ele')
@@ -58,7 +59,7 @@ export class MyEleElement extends GemElement {
 }
 ```
 
-使用自定义验证器：
+Use a custom validator:
 
 ```ts 16,26-30
 @customElement('my-ele')
@@ -103,10 +104,11 @@ export class MyEleElement extends GemElement {
 }
 ```
 
-## 自定义表单字段
+## Custom form field
 
-`<dy-form-item>` 默认支持 `text`, `number`, `checkbox`, `pick`, `radio`, `select`, `textarea`，如果这些不能满足你的需求，你可以使用自己的元素，
-只需要实现 `value` 属性 和全局 `change` 事件即可，然后你可以使用 [`<dy-form-item>`](../02-elements/form.md#dy-form-item-api) 的 `slot` 类型：
+`<dy-form-item>` default support `text`, `number`, `checkbox`, `pick`, `radio`, `select`, `textarea`,
+if them can't meet your needs, you can use your own elements,
+just implement the `value` attributes and global`change` event, then you can use [`<dy-form-item>`](../02-elements/form.md#dy-form-item-api) `slot` type:
 
 ```ts 14-16
 @customElement('my-ele')
@@ -131,7 +133,7 @@ export class MyEleElement extends GemElement {
 }
 ```
 
-如果你不想编写自定义元素，也可能利用 DuoyunUI 现有表单元素组合来完成你的需求：
+If you don't want to write a custom element, you may also use the DuoyunUI existing form element combination to complete your needs:
 
 ```ts 20-23
 @customElement('my-ele')

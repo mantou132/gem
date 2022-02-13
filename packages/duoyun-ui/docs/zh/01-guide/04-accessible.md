@@ -1,7 +1,7 @@
 # 可访问性支持
 
 DuoyunUI 有部分可访问性支持：元素参考 [ARIA 1.3](https://w3c.github.io/aria/#role_definitions) 定义角色和状态，使用语义化标签，
-另外，还具备键盘访问支持，你可以利用键盘 `Tab`, `Space`, `Esc` 键即可导航、操作。
+另外，还具备键盘访问支持，你可以利用键盘 <kbd>Tab</kbd>, <kbd>Space</kbd>, <kbd>Esc</kbd> 键即可导航、操作。
 
 > 快捷键支持
 >
@@ -19,8 +19,8 @@ DuoyunUI 有部分可访问性支持：元素参考 [ARIA 1.3](https://w3c.githu
 
 > 全键盘支持
 >
-> DuoyunUI 包含一个 `<dy-keyboard-access>` 元素，它能让你的应用具备全键盘支持，类似（[Vimperator](http://vimperator.org/)），
-> `h`, `j`, `k`, `l` 滚动页面，`f` 标记应用当前可见可聚焦元素，然后按下相应的键即可聚焦该元素并点击
+> DuoyunUI 包含一个 [`<dy-keyboard-access>`](../02-elements/keyboard-access.md) 元素，它能让你的应用具备全键盘支持，类似（[Vimperator](http://vimperator.org/)），
+> <kbd>h</kbd>, <kbd>j</kbd>, <kbd>k</kbd>, <kbd>l</kbd> 滚动页面，<kbd>f</kbd> 标记应用当前可见可聚焦元素，然后按下相应的键即可聚焦该元素并点击
 
 ## [`inert`](https://developer.mozilla.org/en-US/docs/Web/API/HTMLElement/inert) 特性
 

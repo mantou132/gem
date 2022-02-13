@@ -7,12 +7,12 @@ DuoyunUI 除了提供许多自定义元素、具有某些特定功能的基类�
 - `cache`：提供一个简单的 [LRU](<https://en.wikipedia.org/wiki/Cache_replacement_policies#Least_recently_used_(LRU)>) 缓存
 - `color`：色彩空间转换；亮度、对比度计算
 - `hotkeys`：轻量版的 [hotkeys](https://github.com/greena13/react-hotkeys)
-- `icons`：自用 Icons
+- `icons`：内置图标
 - `image`：压缩图片；生成 SVG 图片
 - `locale`：切换、修改语言
 - `number`：格式化数字、范围调整
 - `styles`：一些可全局共享的样式
-- `theme`：自用主题
+- `theme`：内置主题
 - `time`：轻量版的日期时间处理库
 - `types`：方便 Typescript 类型推导的帮助函数
 - `utils`：一些常用的函数

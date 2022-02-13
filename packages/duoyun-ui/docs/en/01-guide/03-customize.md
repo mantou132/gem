@@ -1,7 +1,7 @@
-# 自定义 DuoyunUI
+# Customize
 
-DuoyunUI 自带主题（包含一套暗黑主题）、图标（例如 [`<dy-loading>`](../02-elements/loading.md)）、文本（例如 [`<dy-pagination>`](../02-elements/pagination.md)）都能轻松使用和修改，
-在你的应用中，你可以这样使用它们：
+DuoyunUI comes with the theme (including a dark theme), icon(such as [`<dy-loading>`](../02-elements/loading.md)), text (eg, [`<dy-pagination>`](../02-elements/pagination.md)) can be easily used and modified,
+in your application, you can use them like this:
 
 ```ts
 import { createCSSSheet, css, adoptedStyle, customElement, GemElement, html } from '@mantou/gem';
@@ -26,9 +26,9 @@ export class MyEleElement extends GemElement {
 }
 ```
 
-## 自定义主题
+## Customize theme
 
-使用自带暗黑主题：
+Use build-in dark theme:
 
 ```ts
 import { updateTheme, darkTheme } from 'duoyun-ui/lib/theme';
@@ -36,7 +36,7 @@ import { updateTheme, darkTheme } from 'duoyun-ui/lib/theme';
 updateTheme(darkTheme);
 ```
 
-使用自定义主题色：
+Use customize theme:
 
 ```ts
 import { updateTheme } from 'duoyun-ui/lib/theme';
@@ -44,9 +44,9 @@ import { updateTheme } from 'duoyun-ui/lib/theme';
 updateTheme({ primaryColor: 'blue' });
 ```
 
-## 自定义图标
+## Customize icon
 
-目前 DuoyunUI 使用 [Material Icon](https://fonts.google.com/icons?selected=Material+Icons)，修改 Icon：
+Currently DuoyunUI uses [Material Icon](https://fonts.google.com/icons?selected=Material+Icons), modify icon:
 
 ```ts
 import { setIcons } from 'duoyun-ui/lib/icons';
@@ -61,9 +61,9 @@ setIcons({
 });
 ```
 
-## 自定义语言
+## Customize language
 
-DuoyunUI 默认使用英语，指定成中文并修改某个文本：
+DuoyunUI defaults English, specifying Chinese and modifying a text:
 
 ```ts
 import { updateLocale } from 'duoyun-ui/lib/locale';
@@ -72,7 +72,7 @@ import zh from 'duoyun-ui/locales/zh';
 updateLocale({ ...zh, more: '其他' });
 ```
 
-`updateLocale` 的参数支持 `Promise`，所以你可以很方便的按需加载，下面是 Gem [I18n](https://gemjs.org/en/guide/advance/i18n) 方案的例子：
+`updateLocale` support `Promise`, so you can be loaded on demand, the following is an example of Gem [I18n](https://gemjs.org/en/guide/advance/i18n) scheme:
 
 ```ts
 import { I18n } from '@mantou/gem/helper/i18n';

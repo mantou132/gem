@@ -29,25 +29,21 @@ export function getRenderer({ lang, link, displayRank }: { lang: string; link: s
   renderer.link = function (href, title, text) {
     if (href?.startsWith('.')) {
       const { search, hash } = new URL(href, location.origin);
-      return `
-        <gem-link
+      return `<gem-link
           class="link"
           path="${getUserLink(href.replace(/#.*/, ''), displayRank)}"
           hash="${hash}"
           query="${search}"
           title="${title || ''}"
-        >${text}</gem-link>
-      `;
+        >${text}</gem-link>`;
     }
     const internal = isSameOrigin(href || '');
-    return `
-      <a
+    return `<a
         class="link"
         ${internal ? '' : `ref="noreferrer" target="_blank"`}
         href="${href || ''}"
         title="${title || ''}"
-      >${text}${internal ? '' : linkIcon}</a>
-    `;
+      >${text}${internal ? '' : linkIcon}</a>`;
   };
   return renderer;
 }
