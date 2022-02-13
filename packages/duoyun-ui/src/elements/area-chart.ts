@@ -144,7 +144,8 @@ export class DuoyunAreaChartElement extends DuoyunChartBaseElement {
 
   #genPath = (sequences: Sequence[], isArea = false) => {
     this.#symbolSequences = [];
-    const controlPoint = (prev: number[], point: number[]) => [point[0] + (point[0] - prev[0]) / 2, point[1]];
+    const controlPointFromPrev = (prev: number[], point: number[]) => [point[0] + (point[0] - prev[0]) / 2, point[1]];
+    const controlPoint = (prev: number[], point: number[]) => [prev[0] + (point[0] - prev[0]) / 2, prev[1]];
     return sequences.map(({ values }) => {
       const dots: (number[] | null)[] = [];
       const path = values
@@ -158,6 +159,7 @@ export class DuoyunAreaChartElement extends DuoyunChartBaseElement {
           }
           const point = this.getStagePoint([x, y]);
           dots.push(point);
+          const isLastDot = index === arr.length - 1;
           const prevNull = isNullish(prev) || isNullish(prev[0]) || isNullish(prev[1]);
           const nextNull = isNullish(next) || isNullish(next[0]) || isNullish(next[1]);
           // orphan
@@ -165,13 +167,17 @@ export class DuoyunAreaChartElement extends DuoyunChartBaseElement {
             return '';
           }
           if (nextNull) {
-            return isArea ? `L${point.join(' ')}L${point[0]} ${this.stageHeight}` : `L${point.join(' ')}`;
+            const curve =
+              this.#smooth && isLastDot && !prevNull
+                ? `C${controlPoint(this.getStagePoint(prev as number[]), point)},${point.join(' ')},${point.join(' ')}`
+                : `L${point.join(' ')}`;
+            return isArea ? `${curve}L${point[0]} ${this.stageHeight}` : `${curve}L${point.join(' ')}`;
           }
           if (prevNull) {
             return isArea ? `M${point[0]} ${this.stageHeight}L${point.join(' ')}` : `M${point.join(' ')}`;
           }
           return this.#smooth
-            ? `S${controlPoint(this.getStagePoint(next as number[]), point).join()} ${point.join(' ')}`
+            ? `S${controlPointFromPrev(this.getStagePoint(next as number[]), point).join()} ${point.join(' ')}`
             : `L${point.join(' ')}`;
         })
         .join('');
