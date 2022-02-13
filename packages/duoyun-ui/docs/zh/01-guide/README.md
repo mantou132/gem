@@ -22,7 +22,7 @@ DuoyunUI 是使用 [Gem](https://gemjs.org/) 开发的桌面端中后台 Web UI 
 - 图表元素
   > [`<dy-area-chart>`](../02-elements/area-chart.md), [`<dy-bar-chart>`](../02-elements/bar-chart.md), [`<dy-chart-tooltip>`](../02-elements/chart-tooltip.md), [`<dy-chart-zoom>`](../02-elements/chart-zoom.md), [`<dy-donut-chart>`](../02-elements/donut-chart.md), [`<dy-legend>`](../02-elements/legend.md), [`<dy-line-chart>`](../02-elements/line-chart.md), [`<dy-map>`](../02-elements/map.md), [`<dy-scatter-chart>`](../02-elements/scatter-chart.md)
 - 基类（扩展它们创建自己的自定义元素）
-  > `DuoyunLoadableBaseElement`, `DuoyunResizeBaseElement`, `DuoyunScrollBaseElement`, `DuoyunVisibleBaseElement`
+  > [`DuoyunLoadableBaseElement`](../02-elements/001-loadable-base.md), [`DuoyunResizeBaseElement`](../02-elements/002-resize-base.md), [`DuoyunScrollBaseElement`](../02-elements/003-scroll-base.md), [`DuoyunVisibleBaseElement`](../02-elements/004-visible-base.md)
 
 ## 使用方法
 
