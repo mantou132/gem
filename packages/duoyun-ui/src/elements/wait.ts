@@ -11,7 +11,7 @@ import './loading';
 const style = createCSSSheet(css`
   :host {
     position: fixed;
-    z-index: 999998;
+    z-index: ${theme.popupZIndex};
     display: flex;
     width: 100%;
     height: 100%;

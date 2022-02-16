@@ -25,7 +25,7 @@ import './divider';
 const style = createCSSSheet(css`
   :host {
     position: fixed;
-    z-index: 999;
+    z-index: ${theme.popupZIndex};
     top: env(titlebar-area-height, 0);
     left: 0;
     width: 100%;

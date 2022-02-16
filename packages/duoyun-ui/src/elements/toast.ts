@@ -9,7 +9,7 @@ import './use';
 
 const style = createCSSSheet(css`
   :host {
-    z-index: 999999;
+    z-index: ${theme.popupZIndex};
     position: fixed;
     display: flex;
     align-items: center;

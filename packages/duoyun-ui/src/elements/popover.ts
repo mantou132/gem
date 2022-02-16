@@ -279,7 +279,7 @@ export const Popover = DuoyunPopoverElement;
 const ghostStyle = createCSSSheet(css`
   :host {
     position: fixed;
-    z-index: 9999999;
+    z-index: ${theme.popupZIndex};
     background-color: var(--bg);
     color: var(--color);
     line-height: 1.5;

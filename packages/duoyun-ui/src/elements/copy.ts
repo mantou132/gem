@@ -37,7 +37,7 @@ const style = createCSSSheet(css`
     right: 1em;
   }
   .tip {
-    z-index: 99999;
+    z-index: ${theme.popupZIndex};
     position: absolute;
     top: 50%;
     left: 100%;

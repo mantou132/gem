@@ -7,7 +7,7 @@ import { sleep } from '../lib/utils';
 
 const style = createCSSSheet(css`
   :host {
-    z-index: 999999999;
+    z-index: ${theme.popupZIndex};
     position: fixed;
     display: flex;
     justify-content: flex-end;

@@ -4,6 +4,7 @@ import { createCSSSheet, css, styleMap } from '@mantou/gem/lib/utils';
 
 import { hotkeys, HotKeyHandles, unlock } from '../lib/hotkeys';
 import { isNotNullish } from '../lib/types';
+import { theme } from '../lib/theme';
 
 import { Toast } from './toast';
 
@@ -16,7 +17,7 @@ const style = createCSSSheet(css`
   }
   .contaner {
     position: fixed;
-    z-index: 9999999999999;
+    z-index: ${theme.popupZIndex};
     pointer-events: none;
     inset: 0;
     margin: 0;

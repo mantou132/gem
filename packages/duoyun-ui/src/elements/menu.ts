@@ -79,7 +79,7 @@ const style = createCSSSheet(css`
   :host {
     display: block;
     position: fixed;
-    z-index: 99999999;
+    z-index: ${theme.popupZIndex};
     inset: 0;
     font-size: 0.875em;
     cursor: default;

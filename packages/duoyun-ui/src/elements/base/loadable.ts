@@ -9,7 +9,7 @@ import '../loading';
 const maskStyle = createCSSSheet(css`
   :host {
     position: absolute;
-    z-index: 9999999;
+    z-index: ${theme.popupZIndex};
     inset: 0;
     display: flex;
     align-items: center;
@@ -41,6 +41,7 @@ const style = createCSSSheet(css`
   :host {
     display: block;
     position: relative;
+    z-index: 1;
     overflow: hidden;
   }
 `);
