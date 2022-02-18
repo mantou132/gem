@@ -8,6 +8,7 @@ import {
   refobject,
   RefObject,
   state,
+  part,
 } from '@mantou/gem/lib/decorators';
 import { GemElement, html } from '@mantou/gem/lib/element';
 import { history } from '@mantou/gem/lib/history';
@@ -116,6 +117,9 @@ const style = createCSSSheet(css`
 @adoptedStyle(focusStyle)
 @connectStore(icons)
 export class DuoyunButtonElement extends GemElement {
+  @part static button: string;
+  @part static dropdown: string;
+
   @attribute type: 'solid' | 'reverse';
   @attribute color: StringList<'normal' | 'danger' | 'cancel'>;
   @boolattribute small: boolean;
@@ -182,6 +186,7 @@ export class DuoyunButtonElement extends GemElement {
         aria-disabled=${this.disabled}
         @keydown=${commonHandle}
         class="content"
+        part=${DuoyunButtonElement.button}
       >
         ${this.icon ? html`<dy-use class="icon" .element=${this.icon}></dy-use>` : ''}
         <slot></slot>
@@ -201,6 +206,7 @@ export class DuoyunButtonElement extends GemElement {
             <dy-use
               ref=${this.dropdownRef.ref}
               class="dropdown"
+              part=${DuoyunButtonElement.dropdown}
               tabindex="0"
               @keydown=${commonHandle}
               role="button"
