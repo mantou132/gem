@@ -28,6 +28,7 @@ const style = createCSSSheet(css`
   }
   :host([disabled]) {
     cursor: not-allowed;
+    opacity: 0.3;
   }
   .checkbox {
     box-sizing: border-box;
@@ -50,9 +51,6 @@ const style = createCSSSheet(css`
   :host([indeterminate]) .checkbox {
     padding: 2px;
     background-color: ${theme.primaryColor};
-  }
-  :host([disabled]) .checkbox {
-    background-color: ${theme.disabledColor};
   }
 `);
 

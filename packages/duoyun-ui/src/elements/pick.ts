@@ -122,7 +122,7 @@ export class DuoyunPickElement extends GemElement {
               const set = new Set(this.value);
               set.has(v) ? set.delete(v) : set.add(v);
               this.change([...set]);
-            } else {
+            } else if (!this.#isContain(v)) {
               this.change(v);
             }
           },

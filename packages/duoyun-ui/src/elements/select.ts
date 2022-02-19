@@ -73,7 +73,11 @@ const style = createCSSSheet(css`
     width: auto;
   }
   .placeholder {
+    position: relative;
+  }
+  .placeholder .value {
     color: ${theme.describeColor};
+    position: absolute;
   }
   .value {
     display: flex;
@@ -163,9 +167,10 @@ export class DuoyunSelectElement extends GemElement<State> {
   }
 
   get #fiteredOptions() {
-    return this.options?.filter(({ label, description = '' }) =>
-      isIncludesString(html`${label}${description}`, this.state.search),
-    );
+    const { search } = this.state;
+    return search
+      ? this.options?.filter(({ label, description = '' }) => isIncludesString(html`${label}${description}`, search))
+      : this.options;
   }
 
   get #value(): any[] | undefined {
@@ -223,17 +228,27 @@ export class DuoyunSelectElement extends GemElement<State> {
     },
   });
 
+  #onEsc = (evt: KeyboardEvent) => {
+    this.#close();
+    (this.searchRef.element || this).focus();
+    evt.stopPropagation();
+  };
+
   #onSearchKeydown = hotkeys({
     backspace: () => {
       if (!this.state.search && this.#valueOptions?.length) {
-        this.#onRemoveTag(this.#valueOptions[this.#valueOptions.length - 1]);
+        if (this.multiple) {
+          this.#onRemoveTag(this.#valueOptions[this.#valueOptions.length - 1]);
+        } else {
+          this.change(undefined);
+        }
       }
     },
-    esc: (evt) => {
-      this.#close();
-      this.focus();
-      evt.stopPropagation();
+    tab: (evt) => {
+      this.optionsRef.element?.focus();
+      evt.preventDefault();
     },
+    esc: this.#onEsc,
     enter: (evt) => {
       const options = this.#fiteredOptions;
       if (options?.length === 1) {
@@ -247,8 +262,18 @@ export class DuoyunSelectElement extends GemElement<State> {
     },
   });
 
+  #onOptionsKeydown = hotkeys({
+    esc: this.#onEsc,
+    'shift+tab': (evt) => {
+      if (!this.optionsRef.element?.shadowRoot?.activeElement) {
+        (this.searchRef.element || this).focus();
+        evt.preventDefault();
+      }
+    },
+  });
+
   #onSearch = (evt: CustomEvent<string>) => {
-    this.setState({ search: evt.detail });
+    this.setState({ search: evt.detail, open: true });
     evt.stopPropagation();
   };
 
@@ -262,7 +287,9 @@ export class DuoyunSelectElement extends GemElement<State> {
         this.change([...this.value, value]);
       }
     } else {
-      this.change(value);
+      if (this.value !== value) {
+        this.change(value);
+      }
       this.setState({ open: false });
     }
     this.setState({ search: '' });
@@ -338,7 +365,7 @@ export class DuoyunSelectElement extends GemElement<State> {
         return {
           label: this.renderLabel ? this.renderLabel(option) : label,
           description,
-          icon: this.#valueSet.has(value ?? label) ? icons.check : undefined,
+          tagIcon: this.#valueSet.has(value ?? label) ? icons.check : undefined,
           onPointerUp: (e: Event) => e.stopPropagation(),
           onClick: () => this.#onChange(value ?? label),
           disabled,
@@ -353,7 +380,7 @@ export class DuoyunSelectElement extends GemElement<State> {
         ? html`<dy-options class="inline-options" .options=${getOptions()}></dy-options>`
         : html`
             <div class=${classMap({ 'value-wrap': true, placeholder: isEmpty })}>
-              ${!isEmpty || this.placeholder
+              ${!isEmpty || (!search && this.placeholder)
                 ? html`
                     <div class="value">
                       ${isEmpty
@@ -400,7 +427,7 @@ export class DuoyunSelectElement extends GemElement<State> {
                   <dy-reflect .target=${document.body}>
                     <dy-options
                       ref=${this.optionsRef.ref}
-                      @keydown=${hotkeys({ esc: this.#close })}
+                      @keydown=${this.#onOptionsKeydown}
                       aria-multiselectable=${this.multiple}
                       style=${styleMap({
                         width: `${Math.max(120, width)}px`,

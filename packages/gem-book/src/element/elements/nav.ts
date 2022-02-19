@@ -117,7 +117,8 @@ export class Nav extends GemElement {
           object-fit: contain;
           transform: translateX(-10%);
         }
-        .item + .item {
+        .item + .item,
+        .slot::slotted(*) {
           margin-left: 1rem;
         }
         gem-link,
@@ -168,7 +169,7 @@ export class Nav extends GemElement {
         ${internals.map(this.renderInternalItem)}
       </div>
       ${externals.map(this.renderExternalItem)} ${githubLink} ${this.renderI18nSelect()}
-      <slot class="item"></slot>
+      <slot class="slot"></slot>
     `;
   }
 

@@ -18,25 +18,6 @@ import { theme } from '../lib/theme';
 
 import './reflect';
 
-const style = createCSSSheet(css`
-  :host {
-    display: contents;
-  }
-`);
-
-export type PopoverState = {
-  open: boolean;
-  left: number;
-  right: number;
-  top: number;
-  bottom: number;
-  style: StyleObject;
-  position: Position;
-};
-
-// TODO: 'topLeft' | 'topRight' | 'bottomLeft' | 'bottomRight'
-type Position = 'top' | 'bottom' | 'right' | 'left';
-
 const getAssignedElements = (ele: HTMLSlotElement): Element[] => {
   const es = ele!.assignedElements();
   if (es[0] instanceof HTMLSlotElement) {
@@ -54,6 +35,24 @@ const getBoundingClientRect = (eles: Element[]) => {
     bottom: Math.max(...rects.map((e) => e.bottom)),
   };
 };
+
+const style = createCSSSheet(css`
+  :host {
+    display: contents;
+  }
+`);
+
+export type PopoverState = {
+  open: boolean;
+  left: number;
+  right: number;
+  top: number;
+  bottom: number;
+  style: StyleObject;
+  position: Position;
+};
+
+type Position = 'top' | 'bottom' | 'right' | 'left' | 'topLeft' | 'topRight' | 'bottomLeft' | 'bottomRight';
 
 type GhostStyle = {
   '--bg': string;
@@ -220,6 +219,26 @@ export class DuoyunPopoverElement extends GemElement<PopoverState> {
           top: `${top + (bottom - top) / 2}px`,
           transform: `translateY(-50%)`,
         };
+      case 'bottomRight':
+        return {
+          right: `${innerWidth - right}px`,
+          top: `${bottom + offset}px`,
+        };
+      case 'topRight':
+        return {
+          right: `${innerWidth - right}px`,
+          bottom: `${innerHeight - top + offset}px`,
+        };
+      case 'bottomLeft':
+        return {
+          left: `${left}px`,
+          top: `${bottom + offset}px`,
+        };
+      case 'topLeft':
+        return {
+          left: `${left}px`,
+          bottom: `${innerHeight - top + offset}px`,
+        };
     }
   };
 
@@ -227,14 +246,26 @@ export class DuoyunPopoverElement extends GemElement<PopoverState> {
     this.effect(
       () => {
         if (this.state.open && this.#position === 'auto') {
-          const { top, left, right } = this.wrapRef.element!.getBoundingClientRect();
+          const { top, left, right, bottom, height } = this.wrapRef.element!.getBoundingClientRect();
           let position: Position = 'top';
           if (right > innerWidth) {
-            position = 'left';
+            if (top < 0) {
+              position = 'bottomRight';
+            } else if (innerHeight - bottom < height / 2) {
+              position = 'topRight';
+            } else {
+              position = 'left';
+            }
+          } else if (left < 0) {
+            if (top < 0) {
+              position = 'bottomLeft';
+            } else if (innerHeight - bottom < height / 2) {
+              position = 'topLeft';
+            } else {
+              position = 'right';
+            }
           } else if (top < 0) {
             position = 'bottom';
-          } else if (left < 0) {
-            position = 'right';
           }
           this.setState({ style: this.#genStyle(position), position });
         }
@@ -296,18 +327,42 @@ const ghostStyle = createCSSSheet(css`
     position: absolute;
     border-style: solid;
   }
-  :host([data-position='top'])::before {
+  :host([data-position='top'])::before,
+  :host([data-position='topRight'])::before,
+  :host([data-position='topLeft'])::before {
     top: 100%;
-    left: 50%;
     border-color: var(--bg) transparent transparent transparent;
     border-width: 6px 6px 0 6px;
+  }
+  :host([data-position='top'])::before {
+    left: 50%;
     transform: translateX(-50%);
   }
-  :host([data-position='bottom'])::before {
+  :host([data-position='topRight'])::before {
+    right: 2em;
+    transform: translateX(50%);
+  }
+  :host([data-position='topLeft'])::before {
+    left: 2em;
+    transform: translateX(-50%);
+  }
+  :host([data-position='bottom'])::before,
+  :host([data-position='bottomRight'])::before,
+  :host([data-position='bottomLeft'])::before {
     bottom: 100%;
-    left: 50%;
     border-color: transparent transparent var(--bg) transparent;
     border-width: 0 6px 6px 6px;
+  }
+  :host([data-position='bottom'])::before {
+    left: 50%;
+    transform: translateX(-50%);
+  }
+  :host([data-position='bottomRight'])::before {
+    right: 2em;
+    transform: translateX(50%);
+  }
+  :host([data-position='bottomLeft'])::before {
+    left: 2em;
     transform: translateX(-50%);
   }
   :host([data-position='left'])::before {

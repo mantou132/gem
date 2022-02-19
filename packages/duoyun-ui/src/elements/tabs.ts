@@ -43,6 +43,7 @@ const style = createCSSSheet(css`
     line-height: 1.5;
     padding: 0.8em 0;
     gap: 0.3em;
+    color: ${theme.describeColor};
   }
   .icon {
     width: 1.2em;

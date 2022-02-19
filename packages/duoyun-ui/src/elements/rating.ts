@@ -46,9 +46,9 @@ const style = createCSSSheet(css`
     -webkit-mask: url(${starUrl}) center / 100%;
     mask: url(${starUrl}) center / 100%;
   }
-  :host(:not(:hover)) .fill::part(icon),
-  .icon:hover::part(icon),
-  .icon:hover ~ .icon::part(icon) {
+  :host(:where(:not(:hover), [readonly])) .fill::part(icon),
+  :host(:not([readonly])) .icon:hover::part(icon),
+  :host(:not([readonly])) .icon:hover ~ .icon::part(icon) {
     fill: currentColor;
   }
 `);
@@ -63,6 +63,7 @@ export class DuoyunRatingElement extends GemElement {
   @numattribute value: number;
   @numattribute total: number;
   @boolattribute disabled: boolean;
+  @boolattribute readonly: boolean;
   @globalemitter change: Emitter<number>;
 
   get #total() {
@@ -87,13 +88,14 @@ export class DuoyunRatingElement extends GemElement {
   }
 
   #onClick = (score: number) => {
+    if (this.readonly) return;
     this.change(score);
   };
 
   render = () => {
     return html`
       <style>
-        :host(:not(:hover)) .mask::part(icon) {
+        :host(:where(:not(:hover), [readonly])) .mask::part(icon) {
           background-image: linear-gradient(
             to right,
             currentColor ${this.#ratio * 100}%,

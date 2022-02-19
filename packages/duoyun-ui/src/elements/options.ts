@@ -37,6 +37,7 @@ const style = createCSSSheet(css`
     line-height: 1.5;
     padding: 0.4em 1em;
     display: flex;
+    align-items: center;
     gap: 0.5em;
   }
   .value {
@@ -89,6 +90,7 @@ export type Option = {
   label: string | TemplateResult;
   icon?: string | DocumentFragment | Element;
   tag?: string | TemplateResult;
+  tagIcon?: string | DocumentFragment | Element;
   description?: string | TemplateResult;
   disabled?: boolean;
   danger?: boolean;
@@ -133,9 +135,9 @@ export class DuoyunOptionsElement extends GemElement<State> {
   render = () => {
     const { search } = this.state;
 
-    const options = this.options?.filter(({ label, description = '' }) =>
-      isIncludesString(html`${label}${description}`, search),
-    );
+    const options = search
+      ? this.options?.filter(({ label, description = '' }) => isIncludesString(html`${label}${description}`, search))
+      : this.options;
 
     return html`
       ${this.searchable
@@ -156,6 +158,7 @@ export class DuoyunOptionsElement extends GemElement<State> {
         ({
           label,
           tag = '',
+          tagIcon,
           description,
           disabled = false,
           danger,
@@ -189,11 +192,12 @@ export class DuoyunOptionsElement extends GemElement<State> {
                   @click=${onClick}
                   @keydown=${commonHandle}
                 >
+                  ${icon ? html`<dy-use class="icon" .element=${icon}></dy-use>` : ''}
                   <div class="value">
                     <div class="label">${label}</div>
                     <div class="description">${description}</div>
                   </div>
-                  ${tag}${icon ? html`<dy-use class="icon" .element=${icon}></dy-use>` : ''}
+                  ${tag}${tagIcon ? html`<dy-use class="icon" .element=${tagIcon}></dy-use>` : ''}
                 </div>
               `,
       )}

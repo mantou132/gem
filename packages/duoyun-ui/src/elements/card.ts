@@ -66,6 +66,7 @@ const style = createCSSSheet(css`
     width: 1.5em;
     padding: 0.1em;
     border-radius: ${theme.normalRound};
+    align-self: center;
   }
   .actions:where(:hover, :--active, [data-active]) {
     background-color: ${theme.hoverBackgroundColor};

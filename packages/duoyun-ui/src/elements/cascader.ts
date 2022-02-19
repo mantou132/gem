@@ -27,7 +27,7 @@ const style = createCSSSheet(css`
     box-sizing: border-box;
     margin: 0;
     padding: 0.2em 0;
-    width: 10em;
+    width: 12em;
     overflow: auto;
   }
   .list + .list {
@@ -37,12 +37,15 @@ const style = createCSSSheet(css`
     display: flex;
     align-items: center;
     gap: 0.5em;
-    line-height: 1.8;
-    padding-inline-start: 0.5em;
+    line-height: 1.6;
+    padding: 0.3em 0.3em 0.3em 0.6em;
   }
   .item:hover,
   .item.selected {
     background-color: ${theme.lightBackgroundColor};
+  }
+  .checkbox {
+    margin-inline-start: 0.2em;
   }
   .label {
     cursor: default;

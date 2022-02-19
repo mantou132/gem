@@ -374,7 +374,7 @@ export class DuoyunFormItemElement extends GemElement<FormItemState> {
     }
     for await (const rule of rules) {
       let invalidMessage = '';
-      if (rule.required && (!this.value || !this.value.length)) {
+      if (rule.required && (!this.value || (Array.isArray(this.value) && !this.value.length))) {
         invalidMessage = rule.message || locale.requiredMeg;
       } else if (rule.pattern && !new RegExp(rule.pattern).test(String(this.value || ''))) {
         invalidMessage = rule.message || locale.ptternMsg;

@@ -1,5 +1,3 @@
-// TODO: move to docs
-
 import { adoptedStyle, customElement } from '@mantou/gem/lib/decorators';
 import { GemElement, html } from '@mantou/gem/lib/element';
 import { createCSSSheet, css } from '@mantou/gem/lib/utils';

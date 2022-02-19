@@ -4,7 +4,7 @@
 
 <gbp-example
   name="dy-tabs"
-  props='{"center": true, "value": 0, "data": [{"tab": "Tab 1"}, {"tab": "Tab 2"}, {"tab": "Tab 3"}], "@change": "(evt) => evt.target.value = evt.detail"}'
+  props='{"style": "width: 240px", "center": true, "value": 0, "data": [{"tab": "Tab 1"}, {"tab": "Tab 2"}, {"tab": "Tab 3"}], "@change": "(evt) => evt.target.value = evt.detail"}'
   src="https://jspm.dev/duoyun-ui/elements/tabs"></gbp-example>
 
 ## API

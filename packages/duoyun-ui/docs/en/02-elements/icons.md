@@ -1,6 +1,6 @@
 # `<dy-icons>`
 
-All build-in icons.
+All build-in icons, click copy code.
 
 ## Example
 

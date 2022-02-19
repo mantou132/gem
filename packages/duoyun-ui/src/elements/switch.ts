@@ -16,9 +16,15 @@ import { focusStyle } from '../lib/styles';
 const style = createCSSSheet(css`
   :host {
     --color: ${theme.borderColor};
+    cursor: default;
     display: inline-flex;
     align-items: center;
     gap: 0.5em;
+  }
+  :host([disabled]) {
+    --color: ${theme.neutralColor};
+    cursor: not-allowed;
+    opacity: 0.3;
   }
   .switch {
     height: 1.2em;
@@ -28,10 +34,6 @@ const style = createCSSSheet(css`
     background: var(--color);
     transition: all 0.3s ${theme.timingFunction};
     transition-property: background, opacity, margin-inline-start;
-  }
-  :host([disabled]) .switch {
-    opacity: 0.4;
-    cursor: not-allowed;
   }
   :host(:hover:not([disabled])) .switch {
     opacity: 1;

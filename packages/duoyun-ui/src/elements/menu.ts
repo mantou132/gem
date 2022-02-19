@@ -316,7 +316,7 @@ export class DuoyunMenuElement extends GemElement {
                     disabled,
                     danger,
                     highlight: !!(subMenu && subMenu === menuStack[index + 1]?.menu),
-                    icon: subMenu ? icons.right : selected ? icons.check : undefined,
+                    tagIcon: subMenu ? icons.right : selected ? icons.check : undefined,
                     onClick: subMenu ? onPointerEnter : onClick,
                     onPointerEnter,
                   }),

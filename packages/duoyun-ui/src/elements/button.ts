@@ -58,7 +58,7 @@ const style = createCSSSheet(css`
   .dropdown {
     display: flex;
     border-radius: 0 ${theme.normalRound} ${theme.normalRound} 0;
-    margin-inline-start: -0.6em;
+    margin-inline-start: -1px;
     padding-inline: 0.2em;
     width: 1.4em;
   }
@@ -68,9 +68,12 @@ const style = createCSSSheet(css`
   :host([small]) {
     font-size: 0.75em;
   }
-  :host([small]) :where(.content, .dropdown) {
+  :host([small]) .content {
     min-width: auto;
     padding: 0.5em 0.8em;
+  }
+  :host([small]) .dropdown {
+    padding: 0.5em;
   }
   :host([type='reverse']) :where(.content, .dropdown) {
     color: var(--bg);

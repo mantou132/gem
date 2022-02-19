@@ -70,10 +70,7 @@ export class SideBar extends GemElement {
           scrollbar-width: thin;
         }
         :host::-webkit-scrollbar {
-          width: 0.5em;
-        }
-        :host::-webkit-scrollbar-thumb {
-          background: ${theme.borderColor};
+          width: 0;
         }
         @media ${mediaQuery.PHONE} {
           :host {

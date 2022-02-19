@@ -107,7 +107,7 @@ export class DuoyunCascaderPickElement extends GemElement {
     ContextMenu.open(
       html`
         <dy-cascader
-          style="margin: -0.4em -1em;"
+          style="margin: -0.4em -1em; min-height: 10em;"
           .options=${this.options}
           .value=${this.value}
           @change=${(evt: CustomEvent) => this.#onChange(evt)}

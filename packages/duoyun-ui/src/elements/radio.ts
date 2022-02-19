@@ -23,6 +23,7 @@ const style = createCSSSheet(css`
   }
   :host([disabled]) {
     cursor: not-allowed;
+    opacity: 0.3;
   }
   .radio {
     box-sizing: border-box;
@@ -40,9 +41,6 @@ const style = createCSSSheet(css`
   }
   :host([checked]) .radio {
     background-color: currentColor;
-  }
-  :host([disabled]) .radio {
-    background-color: ${theme.disabledColor};
   }
 `);
 

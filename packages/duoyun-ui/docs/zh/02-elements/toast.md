@@ -2,7 +2,7 @@
 
 ## Example
 
-See [`<dy-copy>`](./copy.md)
+See [`<dy-icons>`](./icons.md)
 
 ## API
 
