@@ -83,9 +83,10 @@ export class DuoyunToastElement extends GemElement {
     const item = toast.data?.find((e) => {
       if (e.type !== type) return false;
       // support simple `TemplateResult`
-      return typeof e.content === 'string' || typeof content === 'string'
-        ? e.content === content
-        : !isArrayChange(content.values as any[], e.content.values as any[]);
+      return e.content instanceof TemplateResult && content instanceof TemplateResult
+        ? content.strings.join() === e.content.strings.join() &&
+            !isArrayChange(content.values as any[], e.content.values as any[])
+        : e.content === content;
     }) || { type, content };
     clearTimeout(itemMap.get(item));
     toast.data = [...(toast.data || []).filter((e) => e !== item), item];

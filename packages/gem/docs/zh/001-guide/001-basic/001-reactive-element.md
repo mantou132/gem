@@ -13,7 +13,7 @@
 class MyElement extends GemElement {
   static observedAttributes = ['first-name'];
   render() {
-    return html`${this.firestName}`;
+    return html`${this.firstName}`;
   }
 }
 customElements.define('my-element', MyElement);

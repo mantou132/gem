@@ -4,8 +4,8 @@
  * Automatically generate configuration from directory
  *
  * @example
- * gem-book -c gem-book.cli.json src/docs
- * gem-book -t documentTitle src/docs
+ * gem-book -c gem-book.cli.json docs
+ * gem-book -t documentTitle docs
  */
 
 import path from 'path';
@@ -183,7 +183,7 @@ async function generateBookConfig(dir: string) {
       fs.writeFileSync(configPath, configStr);
     }
   }
-  console.log('Updated!');
+  console.log(`${new Date().toISOString()} <gem-book> config file updated!`);
 }
 
 const debounceCommand = debounce(generateBookConfig, 300);

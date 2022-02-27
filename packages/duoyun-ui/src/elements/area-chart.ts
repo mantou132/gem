@@ -84,7 +84,9 @@ export class DuoyunAreaChartElement extends DuoyunChartBaseElement {
       let index = -1;
       let xValue = this.xAxiMin + value[0] * this.xAxiUnit;
       if (this.#sequences) {
-        index = Math.round((value[0] / this.stageWidth) * (this.#sequences[0].values.length - 1));
+        index =
+          Math.ceil(this.sequences![0].values.length * this.range[0]) +
+          Math.round((value[0] / this.stageWidth) * (this.#sequences[0].values.length - 1));
         xValue = this.#sequences[0].values[index][0]!;
         const xAbsPos = (xValue - this.xAxiMin) / this.xAxiUnit;
         if (this.state.hoverIndex !== index) {
@@ -192,10 +194,15 @@ export class DuoyunAreaChartElement extends DuoyunChartBaseElement {
     this.memo(
       () => {
         const [start, stop] = this.range;
-        this.#sequencesWithoutStack = this.sequences?.map((e) => ({
-          ...e,
-          values: e.values.slice(e.values.length * start, e.values.length * stop),
-        }));
+        this.#sequencesWithoutStack = this.sequences?.map((e) => {
+          const newValues = e.values.slice(e.values.length * start, e.values.length * stop);
+          const firstTime = e.values[0]?.[0];
+          const needReverse = firstTime && newValues.find((e) => e[0] && e[0] < firstTime);
+          return {
+            ...e,
+            values: needReverse ? newValues.reverse() : newValues,
+          };
+        });
         if (!this.#sequencesWithoutStack?.[0]?.values.length && !this.#isDefaultRange) {
           this.#sequencesWithoutStack = this.sequences;
           this.zoom([0, 1]);

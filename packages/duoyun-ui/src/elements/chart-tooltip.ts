@@ -8,6 +8,7 @@ import { theme } from '../lib/theme';
 const style = createCSSSheet(css`
   :host {
     position: fixed;
+    z-index: ${theme.popupZIndex};
     display: block;
     pointer-events: none;
     padding: 1em;
