@@ -326,4 +326,28 @@ export class DuoyunChartBaseElement<_T = Record<string, unknown>> extends Duoyun
     if (!seqs || !seqs[0]) return;
     return seqs[0].map((point, index) => [point && point[0], seqs.reduce((p, c) => p + (c[index]?.[1] || 0), 0)]);
   };
+
+  findClosestIndex = (values: number[], v: number) => {
+    let index = 0;
+    let slice = values.slice();
+    const check = () => {
+      if (slice.length === 1) return;
+      if (slice.length === 2) {
+        if (v - slice[0] > slice[1] - v) {
+          index += 1;
+        }
+        return;
+      }
+      const mid = Math.floor(slice.length / 2);
+      if (v > slice[mid]) {
+        index += mid;
+        slice = slice.slice(mid);
+      } else {
+        slice = slice.slice(0, mid + 1);
+      }
+      check();
+    };
+    check();
+    return index;
+  };
 }

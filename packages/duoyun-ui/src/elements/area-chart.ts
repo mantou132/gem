@@ -63,8 +63,11 @@ export class DuoyunAreaChartElement extends DuoyunChartBaseElement {
     hoverSequence: '',
   };
 
-  #sequences?: Sequence[];
+  #needReverse = false;
+  #xValues?: (number | null)[];
+  #sequencesNormalize?: Sequence[];
   #sequencesWithoutStack?: Sequence[];
+  #sequences?: Sequence[];
   #totalValues?: (number | null)[][] = [];
   #paths = [''];
   #areas = [''];
@@ -83,11 +86,9 @@ export class DuoyunAreaChartElement extends DuoyunChartBaseElement {
     } else {
       let index = -1;
       let xValue = this.xAxiMin + value[0] * this.xAxiUnit;
-      if (this.#sequences) {
-        index =
-          Math.ceil(this.sequences![0].values.length * this.range[0]) +
-          Math.round((value[0] / this.stageWidth) * (this.#sequences[0].values.length - 1));
-        xValue = this.#sequences[0].values[index][0]!;
+      if (this.#sequencesNormalize) {
+        index = this.findClosestIndex(this.#xValues as any, xValue);
+        xValue = this.#sequencesNormalize[0].values[index][0]!;
         const xAbsPos = (xValue - this.xAxiMin) / this.xAxiUnit;
         if (this.state.hoverIndex !== index) {
           this.setState({ hoverIndex: index, hoverLine: `M${xAbsPos} 0L${xAbsPos} ${this.stageHeight}` });
@@ -101,7 +102,7 @@ export class DuoyunAreaChartElement extends DuoyunChartBaseElement {
     if (this.noData || this.loading) return;
     const current = this.#preProcessEvent(evt);
     if (!current) return;
-    this.indexclick(current.index);
+    this.indexclick(this.#needReverse ? this.sequences![0].values.length - 1 - current.index : current.index);
   };
 
   #onPointerMove = (evt: MouseEvent) => {
@@ -112,7 +113,7 @@ export class DuoyunAreaChartElement extends DuoyunChartBaseElement {
       render: this.tooltip?.render,
       xValue: current.xValue,
       title: this.tooltip?.formatter?.(current.xValue) || String(current.xValue),
-      values: this.#sequencesWithoutStack
+      values: this.#sequencesNormalize
         ?.map(({ values, label, value }, i) => {
           const [_, v] = values[current.index];
           return {
@@ -146,12 +147,23 @@ export class DuoyunAreaChartElement extends DuoyunChartBaseElement {
 
   #genPath = (sequences: Sequence[], isArea = false) => {
     this.#symbolSequences = [];
-    const controlPointFromPrev = (prev: number[], point: number[]) => [point[0] + (point[0] - prev[0]) / 2, point[1]];
-    const controlPoint = (prev: number[], point: number[]) => [prev[0] + (point[0] - prev[0]) / 2, prev[1]];
+    const controlPointFromPrev = (prev: number[], point: number[], next: number[], n = 1) => {
+      const t = (point[0] - prev[0]) / 2;
+      const x = point[0] - n * t;
+      if ((point[1] > prev[1] && next[1] > point[1]) || (point[1] < prev[1] && next[1] < point[1])) {
+        const slope1 = (next[1] - point[1]) / (next[0] - point[0]);
+        const slope2 = (point[1] - prev[1]) / (point[0] - prev[0]);
+        const slope = Math.abs(slope1) < Math.abs(slope2) ? slope1 : slope2;
+        return [x, point[1] - n * slope * t];
+      }
+      return [x, point[1]];
+    };
+    const isEmpty = (prev: (number | null)[] | null) => isNullish(prev) || isNullish(prev[0]) || isNullish(prev[1]);
     return sequences.map(({ values }) => {
       const dots: (number[] | null)[] = [];
       const path = values
         .map(([x, y], index, arr) => {
+          const prevPrev = arr[index - 2];
           const prev = arr[index - 1];
           const next = arr[index + 1];
           const currentNull = isNullish(x) || isNullish(y);
@@ -162,16 +174,22 @@ export class DuoyunAreaChartElement extends DuoyunChartBaseElement {
           const point = this.getStagePoint([x, y]);
           dots.push(point);
           const isLastDot = index === arr.length - 1;
-          const prevNull = isNullish(prev) || isNullish(prev[0]) || isNullish(prev[1]);
-          const nextNull = isNullish(next) || isNullish(next[0]) || isNullish(next[1]);
+          const prevPrevNull = isEmpty(prevPrev);
+          const prevNull = isEmpty(prev);
+          const nextNull = isEmpty(next);
           // orphan
           if (prevNull && nextNull) {
             return '';
           }
           if (nextNull) {
             const curve =
-              this.#smooth && isLastDot && !prevNull
-                ? `C${controlPoint(this.getStagePoint(prev as number[]), point)},${point.join(' ')},${point.join(' ')}`
+              this.#smooth && isLastDot && !prevNull && !prevPrevNull
+                ? `C${controlPointFromPrev(
+                    this.getStagePoint(prevPrev as number[]),
+                    this.getStagePoint(prev as number[]),
+                    point,
+                    -1,
+                  )},${point.join(' ')},${point.join(' ')}`
                 : `L${point.join(' ')}`;
             return isArea ? `${curve}L${point[0]} ${this.stageHeight}` : `${curve}L${point.join(' ')}`;
           }
@@ -179,7 +197,11 @@ export class DuoyunAreaChartElement extends DuoyunChartBaseElement {
             return isArea ? `M${point[0]} ${this.stageHeight}L${point.join(' ')}` : `M${point.join(' ')}`;
           }
           return this.#smooth
-            ? `S${controlPointFromPrev(this.getStagePoint(next as number[]), point).join()} ${point.join(' ')}`
+            ? `S${controlPointFromPrev(
+                this.getStagePoint(prev as number[]),
+                point,
+                this.getStagePoint(next as number[]),
+              ).join()} ${point.join(' ')}`
             : `L${point.join(' ')}`;
         })
         .join('');
@@ -194,17 +216,24 @@ export class DuoyunAreaChartElement extends DuoyunChartBaseElement {
     this.memo(
       () => {
         const [start, stop] = this.range;
-        this.#sequencesWithoutStack = this.sequences?.map((e) => {
-          const newValues = e.values.slice(e.values.length * start, e.values.length * stop);
-          const firstTime = e.values[0]?.[0];
-          const needReverse = firstTime && newValues.find((e) => e[0] && e[0] < firstTime);
+        const values = this.sequences?.[0]?.values;
+
+        this.#needReverse = !!values && (values[0] || 0) > (values[values.length - 1] || 0);
+
+        this.#sequencesNormalize = this.#needReverse
+          ? this.sequences?.map((e) => ({ ...e, values: e.values.reverse() }))
+          : this.sequences;
+
+        this.#xValues = this.#sequencesNormalize?.[0]?.values.map((e) => e[0]);
+
+        this.#sequencesWithoutStack = this.#sequencesNormalize?.map((e) => {
           return {
             ...e,
-            values: needReverse ? newValues.reverse() : newValues,
+            values: e.values.slice(e.values.length * start, e.values.length * stop),
           };
         });
         if (!this.#sequencesWithoutStack?.[0]?.values.length && !this.#isDefaultRange) {
-          this.#sequencesWithoutStack = this.sequences;
+          this.#sequencesWithoutStack = this.#sequencesNormalize;
           this.zoom([0, 1]);
         }
         this.#sequences = this.stack
@@ -214,7 +243,7 @@ export class DuoyunAreaChartElement extends DuoyunChartBaseElement {
             }))
           : this.#sequencesWithoutStack;
         if (this.chartzoom) {
-          this.#totalValues = this.mergeValues(this.sequences?.map((e) => e.values));
+          this.#totalValues = this.mergeValues(this.#sequencesNormalize?.map((e) => e.values));
         }
       },
       () => [this.sequences, ...this.range],
@@ -257,7 +286,7 @@ export class DuoyunAreaChartElement extends DuoyunChartBaseElement {
   render = () => {
     if (this.loading) return this.renderLoading();
     if (this.noData) return this.renderNotData();
-    if (!this.contentRect.width || !this.#sequences) return html``;
+    if (!this.contentRect.width || !this.#sequences?.length) return html``;
     const areaOpacity = this.stack ? 1 : this.#gradient ? 0.3 : 0.15;
     const areaHighlightOpacity = this.#gradient ? 0.4 : 0.2;
 
