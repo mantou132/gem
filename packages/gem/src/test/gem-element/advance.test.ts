@@ -283,3 +283,18 @@ describe('gem element 继承', () => {
     expect(window.name).to.equal('21');
   });
 });
+@customElement('render-empty')
+class RenderEmpty extends GemElement {
+  render() {
+    return undefined;
+  }
+}
+describe('gem element render undefined', () => {
+  it('Render undefined', async () => {
+    const e: RenderEmpty = await fixture(html`<inherit-gem></inherit-gem>`);
+    const innerHTML = '<div></div>';
+    e.shadowRoot!.innerHTML = innerHTML;
+    e.update();
+    expect(e.shadowRoot!.innerHTML).to.equal(innerHTML);
+  });
+});

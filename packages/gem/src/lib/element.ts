@@ -332,7 +332,10 @@ export abstract class GemElement<T = Record<string, unknown>> extends HTMLElemen
               </style>
             `,
         )}`;
-    if (this.render) return html`${this.render()}${styles}`;
+    if (this.render) {
+      const r = this.render();
+      return r && html`${r}${styles}`;
+    }
     return this.#renderRoot === this ? undefined : html`<slot></slot>${styles}`;
   };
 
