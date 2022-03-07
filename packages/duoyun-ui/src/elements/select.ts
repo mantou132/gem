@@ -434,7 +434,7 @@ export class DuoyunSelectElement extends GemElement<State> {
                         ...this.dropdownStyle,
                         boxShadow: `0 0.3em 1em rgba(0, 0, 0, calc(${theme.maskAlpha} - 0.1))`,
                         position: 'fixed',
-                        zIndex: '99999999',
+                        zIndex: theme.popupZIndex,
                         left: `${left}px`,
                         top: `${top}px`,
                         maxHeight,
