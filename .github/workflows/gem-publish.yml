@@ -18,6 +18,7 @@ jobs:
         with:
           node-version: 14.x
 
+      - run: node -e "fs.writeFileSync('./packages/gem/src/lib/version.ts', 'export const version = \'' + require('./packages/gem/package.json').version + '\';\n')"
       - run: yarn
 
       - uses: JS-DevTools/npm-publish@v1

@@ -1,2 +1,2 @@
 // Do not modify manually
-export const version = '1.6.5';
+export const version = '0.0.0';
