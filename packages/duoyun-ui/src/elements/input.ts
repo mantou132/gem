@@ -103,6 +103,8 @@ const style = createCSSSheet(css`
  * @attr type
  * @attr disabled
  * @attr autofocus
+ * @attr clearable
+ * @attr alwayclearable
  * @attr rows
  * @attr step
  * @attr min
@@ -127,6 +129,7 @@ export class DuoyunInputElement extends GemElement {
   @boolattribute disabled: boolean;
   @boolattribute autofocus: boolean;
   @boolattribute clearable: boolean;
+  @boolattribute alwayclearable: boolean;
   @numattribute rows: number;
   @numattribute step: number;
   @numattribute min: number;
@@ -233,6 +236,7 @@ export class DuoyunInputElement extends GemElement {
   #onClear = (evt: Event) => {
     evt.stopPropagation();
     this.clear('');
+    this.focus();
   };
 
   #onKeyDown = (evt: KeyboardEvent) => {
@@ -319,7 +323,7 @@ export class DuoyunInputElement extends GemElement {
           ${this.dataList.map(({ value, label }) => html`<option value=${value ?? label}>${label}</option>`)}
         </datalist>
       `}
-      ${this.clearable && this.value
+      ${this.clearable && (this.alwayclearable || this.value)
         ? html`
             <dy-use
               tabindex="0"

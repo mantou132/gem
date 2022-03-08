@@ -16,6 +16,25 @@ export interface Sequence {
   values: (number | null)[][];
 }
 
+export interface SymbolRenderOption {
+  point: number[];
+  color: string;
+  isHover: boolean;
+  chart: DuoyunAreaChartElement;
+}
+
+export function defaultSymbolRender({ point, color, isHover, chart }: SymbolRenderOption) {
+  return svg`
+    <circle
+      class="symbol"
+      stroke=${color}
+      r=${chart.getSVGPixel(isHover ? 3 : 2)}
+      cx=${point[0]}
+      cy=${point[1]}
+    />
+  `;
+}
+
 /**
  * @customElement dy-area-chart
  */
@@ -25,6 +44,7 @@ export class DuoyunAreaChartElement extends DuoyunChartBaseElement {
   @property stroke = true;
   @property stack = false; // force to smooth, force to fill, prevent smooth
   @property symbol = false;
+  @property symbolRender = defaultSymbolRender;
   @property chartzoom = false;
   @property range = [0, 1];
   @property smooth = true;
@@ -47,6 +67,10 @@ export class DuoyunAreaChartElement extends DuoyunChartBaseElement {
 
   get #isDefaultRange() {
     return this.range[0] === 0 && this.range[1] === 1;
+  }
+
+  get #isEmpty() {
+    return this.noData || this.loading || !this.#sequences?.[0]?.values.length;
   }
 
   constructor() {
@@ -99,14 +123,14 @@ export class DuoyunAreaChartElement extends DuoyunChartBaseElement {
   };
 
   #onClick = (evt: MouseEvent) => {
-    if (this.noData || this.loading) return;
+    if (this.#isEmpty) return;
     const current = this.#preProcessEvent(evt);
     if (!current) return;
     this.indexclick(this.#needReverse ? this.sequences![0].values.length - 1 - current.index : current.index);
   };
 
   #onPointerMove = (evt: MouseEvent) => {
-    if (this.noData || this.loading) return;
+    if (this.#isEmpty) return;
     const current = this.#preProcessEvent(evt);
     if (!current) return;
     ChartTooltip.open(evt.x, evt.y, {
@@ -409,15 +433,12 @@ export class DuoyunAreaChartElement extends DuoyunChartBaseElement {
               ? this.#symbolSequences.map((dots, index) =>
                   dots.map((point, i) =>
                     point
-                      ? svg`
-                          <circle
-                            class="symbol"
-                            stroke=${this.colors[index]}
-                            r=${this.getSVGPixel(i === this.state.hoverIndex ? 3 : 2)}
-                            cx=${point[0]}
-                            cy=${point[1]}
-                          />
-                        `
+                      ? this.symbolRender({
+                          point,
+                          color: this.colors[index],
+                          isHover: i === this.state.hoverIndex,
+                          chart: this,
+                        })
                       : '',
                   ),
                 )

@@ -6,6 +6,7 @@ also includes some common modules that are somewhat being used in custom element
 - `animations`: Use [Web Animations API](https://developer.mozilla.org/en-US/docs/Web/API/Web_Animations_API) implement simple animation
 - `cache`: Provide a simple [LRU](<https://en.wikipedia.org/wiki/Cache_replacement_policies#Least_recently_used_(LRU)>) cache
 - `color`: Color space conversion; brightness, contrast calculation
+- `encode`: hash, base64 etc encode
 - `hotkeys`: Lightweight version of [hotkeys](https://github.com/greena13/react-hotkeys)
 - `icons`: Build-in icons
 - `image`: Compressed image; generate SVG

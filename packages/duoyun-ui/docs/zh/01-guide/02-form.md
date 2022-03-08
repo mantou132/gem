@@ -9,8 +9,8 @@ export class MyEleElement extends GemElement {
     name: '',
   };
 
-  #onChange = () => {
-    this.setState(this.shadowRoot.querySelect('dy-form').data);
+  #onChange = (evt) => {
+    this.setState(evt.detail);
   };
 
   render = () => {
@@ -38,8 +38,8 @@ export class MyEleElement extends GemElement {
     return this.shadowRoot.querySelect('dy-form');
   }
 
-  #onChange = () => {
-    this.setState(this.#formEle.data);
+  #onChange = (evt) => {
+    this.setState(evt.detail);
   };
 
   #onSubmit = async () => {
@@ -71,8 +71,8 @@ export class MyEleElement extends GemElement {
     return this.shadowRoot.querySelect('dy-form');
   }
 
-  #onChange = () => {
-    this.setState(this.#formEle.data);
+  #onChange = (evt) => {
+    this.setState(evt.detail);
   };
 
   #onSubmit = async () => {
@@ -106,7 +106,7 @@ export class MyEleElement extends GemElement {
 ## 自定义表单字段
 
 `<dy-form-item>` 默认支持 `text`, `number`, `checkbox`, `pick`, `radio`, `select`, `textarea`，如果这些不能满足你的需求，你可以使用自己的元素，
-只需要实现 `value` 属性 和全局 `change` 事件即可，然后你可以使用 [`<dy-form-item>`](../02-elements/form.md#dy-form-item-api) 的 `slot` 类型：
+只需要实现 `value` 属性 和可冒泡 `change` 事件即可，然后你可以使用 [`<dy-form-item>`](../02-elements/form.md#dy-form-item-api) 的 `slot` 类型：
 
 ```ts 14-16
 @customElement('my-ele')
@@ -115,8 +115,8 @@ export class MyEleElement extends GemElement {
     name: '',
   };
 
-  #onChange = () => {
-    this.setState(this.shadowRoot.querySelect('dy-form').data);
+  #onChange = (evt) => {
+    this.setState(evt.detail);
   };
 
   render = () => {
@@ -151,8 +151,14 @@ export class MyEleElement extends GemElement {
 
   render = () => {
     return html`
-      <dy-form @change=${this.#onChange}>
-        <dy-form-item .rules=${[]}>
+      <dy-form>
+        <dy-form-item
+          .rules=${
+            [
+              /** support validtor */
+            ]
+          }
+        >
           <dy-input-group>
             <dy-input .value=${this.state.name} @change=${this.#onChangeName}></dy-input>
             <dy-input .value=${this.state.type} @change=${this.#onChangeType}></dy-input>

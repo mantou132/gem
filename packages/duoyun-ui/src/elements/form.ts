@@ -7,6 +7,9 @@ import {
   refobject,
   RefObject,
   state,
+  part,
+  globalemitter,
+  Emitter,
 } from '@mantou/gem/lib/decorators';
 import { GemElement, html, TemplateResult } from '@mantou/gem/lib/element';
 import { createCSSSheet, css } from '@mantou/gem/lib/utils';
@@ -31,9 +34,38 @@ const formStyle = createCSSSheet(css`
   dy-form {
     display: block;
   }
+  dy-form[inline] {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1em;
+  }
+  dy-form[inline] dy-form-item {
+    position: relative;
+    gap: 0.5em;
+    align-items: center;
+    flex-direction: row;
+    flex-grow: 0;
+    margin-block-end: 0;
+  }
+  dy-form[inline] dy-form-item::part(label) {
+    margin-block-end: 0;
+  }
+  dy-form[inline] dy-form-item::part(input) {
+    width: 15em;
+  }
+  dy-form[inline] dy-form-item::part(input),
+  dy-form[inline] dy-form-item::part(add) {
+    margin-block-start: 0;
+  }
+  dy-form[inline] dy-form-item::part(tip) {
+    position: absolute;
+    width: 100%;
+    top: 100%;
+    left: 0;
+  }
   dy-form-item {
     flex-grow: 1;
-    margin-bottom: 1.8em;
+    margin-block-end: 1.8em;
   }
   dy-form-item[type='checkbox'] {
     flex-grow: 0;
@@ -54,10 +86,15 @@ const formStyle = createCSSSheet(css`
 
 /**
  * @customElement dy-form
+ * @attr inline
  */
 @customElement('dy-form')
 @adoptedStyle(formStyle)
 export class DuoyunFormElement<Data = Record<string, any>> extends GemElement {
+  @boolattribute inline: boolean;
+
+  @globalemitter change: Emitter<Data>;
+
   get items() {
     return [...this.querySelectorAll<DuoyunFormItemElement>('dy-form-item')];
   }
@@ -74,6 +111,11 @@ export class DuoyunFormElement<Data = Record<string, any>> extends GemElement {
   constructor() {
     super({ isLight: true });
     this.internals.role = 'form';
+    this.addEventListener('itemchange', (evt: CustomEvent<{ name: string; value: string }>) => {
+      evt.stopPropagation();
+      const { name, value } = evt.detail;
+      this.change({ ...this.data, [name]: value });
+    });
   }
 
   async valid() {
@@ -116,6 +158,9 @@ const formItemStyle = createCSSSheet(css`
     margin-bottom: 0.4em;
     color: ${theme.describeColor};
   }
+  .label:empty {
+    display: none;
+  }
   :host(:where(:--invalid, [data-invalid])) .input {
     border-color: ${theme.negativeColor};
   }
@@ -140,8 +185,6 @@ const formItemStyle = createCSSSheet(css`
 `);
 
 type FormItemState = {
-  value?: number | string | any[];
-  checked?: boolean;
   invalidMessage?: string;
 };
 
@@ -149,7 +192,7 @@ type FormItemRule = {
   message?: string;
   pattern?: string;
   required?: boolean;
-  validator?: (value: any) => Promise<void>;
+  validator?: (value: any) => void | Promise<void>;
 };
 
 /**
@@ -163,10 +206,16 @@ type FormItemRule = {
  * @attr checked
  * @attr disabled
  * @attr searchable
+ * @attr clearable
  */
 @customElement('dy-form-item')
 @adoptedStyle(formItemStyle)
 export class DuoyunFormItemElement extends GemElement<FormItemState> {
+  @part static label: string;
+  @part static tip: string;
+  @part static input: string;
+  @part static add: string;
+
   @attribute type:
     | 'text'
     | 'number'
@@ -185,6 +234,7 @@ export class DuoyunFormItemElement extends GemElement<FormItemState> {
   @boolattribute checked: boolean;
   @boolattribute disabled: boolean;
   @boolattribute searchable: boolean;
+  @boolattribute clearable: boolean;
 
   @state invalid: boolean;
 
@@ -194,6 +244,8 @@ export class DuoyunFormItemElement extends GemElement<FormItemState> {
   @property rules?: FormItemRule[];
 
   @property dataList?: DataList | Option[];
+
+  @globalemitter itemchange: Emitter<{ name: string; value: number | string | any[] | any }>;
 
   @refobject slotRef: RefObject<HTMLSlotElement>;
 
@@ -208,49 +260,61 @@ export class DuoyunFormItemElement extends GemElement<FormItemState> {
   }
 
   get data() {
-    const { value, checked } = this.state;
+    const { value, checked } = this;
     if (this.#type === 'checkbox') {
       return value ? (checked ? value : '') : checked;
     }
     return value;
   }
 
-  #onCheckboxChange = ({ detail }: CustomEvent<boolean>) => {
-    this.setState({ checked: detail });
-  };
-
-  #onChange = ({ detail }: CustomEvent<string | any | any[]>) => {
-    this.setState({ value: detail });
-  };
-
-  #onTextChangeWithIndex = ({ detail }: CustomEvent<string>, index: number) => {
-    const value = (this.state.value || []) as string[];
-    this.setState({
-      value: [...value.slice(0, index), detail, ...value.slice(index + 1)],
+  constructor() {
+    super();
+    this.addEventListener('change', (evt: CustomEvent) => {
+      if (this.#type === 'slot') {
+        evt.stopPropagation();
+        this.#change(evt.detail);
+      }
     });
+  }
+
+  #change = (value: number | string | any[] | any) => {
+    if (this.name) {
+      this.itemchange({ name: this.name, value });
+    }
+  };
+
+  #onChange = (evt: CustomEvent<any>) => {
+    evt.stopPropagation();
+    this.#change(evt.detail);
+  };
+
+  #onCheckboxChange = (evt: CustomEvent<boolean>) => {
+    evt.stopPropagation();
+    this.#change(this.value ? (evt.detail ? this.value : '') : evt.detail);
+  };
+
+  #onTextChangeWithIndex = (evt: CustomEvent<string>, index: number) => {
+    evt.stopPropagation();
+    const value = (this.value || []) as string[];
+    this.#change([...value.slice(0, index), evt.detail, ...value.slice(index + 1)]);
   };
 
   #onTextCleanWithIndex = async (index: number) => {
-    const value = (this.state.value || []) as string[];
-    this.setState({
-      value: [...value.slice(0, index), ...value.slice(index + 1)],
-    });
+    this.#change(((this.value || []) as string[]).filter((_, i) => i !== index));
   };
 
   #onTextAdd = async () => {
-    const value = (this.state.value || []) as string[];
-    this.setState({ value: [...value, ''] });
+    this.#change([...((this.value || []) as string[]), '']);
   };
 
   mounted = () => {
     this.effect(
-      ([value, checked]) => {
-        this.setState({ value, checked });
+      ([value]) => {
+        this.clearInvalidMessage();
         if (this.#type === 'slot') {
           const ele = this.#slotAssignedElement;
           if (ele) ele.value = value;
         }
-        this.clearInvalidMessage();
       },
       () => [this.value, this.checked],
     );
@@ -263,18 +327,21 @@ export class DuoyunFormItemElement extends GemElement<FormItemState> {
   };
 
   render = () => {
-    const { value, checked, invalidMessage } = this.state;
+    const { invalidMessage } = this.state;
     return html`
-      ${this.#type === 'checkbox' ? '' : html`<div class="label">${this.label}</div>`}
+      ${this.#type === 'checkbox'
+        ? ''
+        : html`<div class="label" part=${DuoyunFormItemElement.label}>${this.label}</div>`}
       ${this.#type === 'select'
         ? html`
             <dy-select
               ?disabled=${this.disabled}
               ?searchable=${this.searchable}
               class="input"
+              part=${DuoyunFormItemElement.input}
               @change=${this.#onChange}
               .multiple=${this.multiple}
-              .value=${value}
+              .value=${this.value}
               .placeholder=${this.placeholder}
               .options=${this.dataList}
               .renderLabel=${this.renderLabel}
@@ -285,9 +352,10 @@ export class DuoyunFormItemElement extends GemElement<FormItemState> {
             <dy-pick
               ?disabled=${this.disabled}
               class="input"
+              part=${DuoyunFormItemElement.input}
               @change=${this.#onChange}
               .multiple=${this.multiple}
-              .value=${value}
+              .value=${this.value}
               .fit=${true}
               .placeholder=${this.placeholder}
               .options=${this.dataList}
@@ -297,9 +365,9 @@ export class DuoyunFormItemElement extends GemElement<FormItemState> {
         ? html`
             <dy-checkbox
               @change=${this.#onCheckboxChange}
-              ?checked=${checked}
+              ?checked=${this.checked}
               ?disabled=${this.disabled}
-              .value=${value as string}
+              .value=${this.value as string}
             >
               ${this.label}
             </dy-checkbox>
@@ -327,31 +395,36 @@ export class DuoyunFormItemElement extends GemElement<FormItemState> {
         : this.name && this.#type !== 'slot'
         ? this.multiple
           ? html`
-              ${(value as string[]).map(
+              ${(this.value as string[])?.map(
                 (value, index) =>
                   html`
                     <dy-input
                       class="input"
+                      part=${DuoyunFormItemElement.input}
                       ?disabled=${this.disabled}
                       @change=${(evt: CustomEvent<string>) => this.#onTextChangeWithIndex(evt, index)}
                       @clear=${() => this.#onTextCleanWithIndex(index)}
                       .clearable=${true}
+                      .alwayclearable=${true}
                       .dataList=${this.dataList}
                       .value=${value}
                     ></dy-input>
                   `,
               )}
-              <div class="footer">
+              <div class="footer" part=${DuoyunFormItemElement.add}>
                 <dy-button .color=${'cancel'} @click=${this.#onTextAdd}>+</dy-button>
               </div>
             `
           : html`
               <dy-input
                 class="input"
+                part=${DuoyunFormItemElement.input}
                 type=${this.#type}
                 ?disabled=${this.disabled}
                 @change=${this.#onChange}
-                .value=${value as string}
+                @clear=${(evt: any) => evt.target.change('')}
+                .clearable=${this.clearable}
+                .value=${this.value as string}
                 .placeholder=${this.placeholder}
                 .required=${this.required}
                 .dataList=${this.dataList}
@@ -359,7 +432,13 @@ export class DuoyunFormItemElement extends GemElement<FormItemState> {
             `
         : ''}
       <slot ref=${this.slotRef.ref}></slot>
-      ${invalidMessage ? html`<dy-help-text class="tip" status="negative">${invalidMessage}</dy-help-text>` : ''}
+      ${invalidMessage
+        ? html`
+            <dy-help-text class="tip" part=${DuoyunFormItemElement.tip} status="negative">
+              ${invalidMessage}
+            </dy-help-text>
+          `
+        : ''}
     `;
   };
 
@@ -384,6 +463,8 @@ export class DuoyunFormItemElement extends GemElement<FormItemState> {
         } catch (err) {
           if (err instanceof Error) {
             invalidMessage = err.message;
+          } else {
+            invalidMessage = err;
           }
         }
       }

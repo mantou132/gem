@@ -298,7 +298,7 @@ export class DuoyunTableElement extends GemElement {
                 ${this.expandedRowRender && this.#expandedMap.get(this.#getKey(record))
                   ? html`
                       <tr>
-                        <td colspan=${columns.length}>
+                        <td style=${styleMap({ padding: `0 0 0 ${this.#iconColWidth}` })} colspan=${columns.length}>
                           ${this.expandedRowRender(record) || html`<dy-loading></dy-loading>`}
                         </td>
                       </tr>

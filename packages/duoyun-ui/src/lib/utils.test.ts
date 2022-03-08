@@ -9,8 +9,6 @@ import {
   comparer,
   ComparerType,
   isIncludesString,
-  arrayBufferToBase64,
-  base64ToArrayBuffer,
 } from './utils';
 
 it('`getCascaderDeep`', () => {
@@ -72,12 +70,6 @@ it('`comparer`', () => {
   expect(comparer([1, 2], ComparerType.Have, 1)).to.equal(true);
   expect(comparer([1, 2], ComparerType.Have, '1')).to.equal(false);
   expect(comparer('12', ComparerType.Have, '1')).to.equal(true);
-});
-
-it('`base64ToArrayBuffer`', () => {
-  const str = 'abcdefg';
-  const buffer = new TextEncoder().encode(str);
-  expect(new TextDecoder().decode(base64ToArrayBuffer(arrayBufferToBase64(buffer)))).to.equal(str);
 });
 
 it('`isIncludesString`', () => {

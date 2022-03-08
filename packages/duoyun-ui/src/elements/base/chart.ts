@@ -330,6 +330,7 @@ export class DuoyunChartBaseElement<_T = Record<string, unknown>> extends Duoyun
   findClosestIndex = (values: number[], v: number) => {
     let index = 0;
     let slice = values.slice();
+    if (values.length === 0) return -1;
     const check = () => {
       if (slice.length === 1) return;
       if (slice.length === 2) {

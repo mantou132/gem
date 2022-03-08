@@ -18,6 +18,8 @@ import { theme } from '../lib/theme';
 
 import './reflect';
 
+const offset = 12;
+
 const getAssignedElements = (ele: HTMLSlotElement): Element[] => {
   const es = ele!.assignedElements();
   if (es[0] instanceof HTMLSlotElement) {
@@ -118,6 +120,14 @@ export class DuoyunPopoverElement extends GemElement<PopoverState> {
     return this.trigger || 'hover';
   }
 
+  get #isClickTrigger() {
+    return this.#trigger === 'click';
+  }
+
+  get #role() {
+    return this.tagName.includes('TOOLTIP') ? 'tooltip' : 'region';
+  }
+
   state: PopoverState = {
     open: false,
     top: 0,
@@ -134,8 +144,8 @@ export class DuoyunPopoverElement extends GemElement<PopoverState> {
     if (position) this.position = position;
     if (ghostStyle) this.ghostStyle = ghostStyle;
     if (trigger) this.trigger = trigger;
-    this.addEventListener('mouseover', async () => {
-      if (this.#trigger === 'click') return;
+    this.addEventListener('mouseenter', async () => {
+      if (this.#isClickTrigger) return;
       this.#hover = true;
       await sleep(delay);
       if (!this.content) return;
@@ -143,14 +153,16 @@ export class DuoyunPopoverElement extends GemElement<PopoverState> {
       this.#open();
     });
 
-    this.addEventListener('mouseout', () => {
-      if (this.#trigger === 'click') return;
+    this.addEventListener('mouseleave', (evt) => {
+      if (this.#isClickTrigger) return;
+      if (evt.relatedTarget === this.wrapRef.element) return;
       this.#close();
     });
 
     this.addEventListener('click', () => {
-      if (this.#trigger === 'hover') return;
-      this.#open();
+      if (this.#isClickTrigger) {
+        this.#open();
+      }
     });
   }
 
@@ -193,7 +205,6 @@ export class DuoyunPopoverElement extends GemElement<PopoverState> {
 
   #genStyle = (position: Position): StyleObject => {
     const { top, left, right, bottom } = this.state;
-    const offset = 12;
     switch (position) {
       case 'top':
         return {
@@ -282,18 +293,19 @@ export class DuoyunPopoverElement extends GemElement<PopoverState> {
             <dy-reflect .target=${document.body}>
               <div
                 style=${styleMap({
-                  display: this.trigger === 'click' ? 'block' : 'none',
+                  display: this.#isClickTrigger ? 'block' : 'none',
                   position: 'absolute',
                   inset: '0',
                 })}
                 @click=${this.#close}
               ></div>
               <dy-popover-ghost
-                role=${this.tagName.includes('TOOLTIP') ? 'tooltip' : 'region'}
+                role=${this.#role}
                 ref=${this.wrapRef.ref}
                 data-position=${position}
-                style=${`${styleMap(style)}${styleMap(this.ghostStyle)}`}
+                style=${styleMap({ ...style, ...this.ghostStyle })}
                 @close=${this.#close}
+                @mouseleave=${this.#isClickTrigger ? undefined : this.#close}
               >
                 ${this.content}
               </dy-popover-ghost>
@@ -321,6 +333,43 @@ const ghostStyle = createCSSSheet(css`
     -moz-osx-font-smoothing: grayscale;
     -webkit-font-smoothing: antialiased;
     filter: drop-shadow(rgba(0, 0, 0, calc(${theme.maskAlpha})) 0px 0.6em 1em);
+  }
+  :host::after {
+    content: '';
+    position: absolute;
+    background: transparent;
+  }
+  :host([data-position='top'])::after,
+  :host([data-position='topRight'])::after,
+  :host([data-position='topLeft'])::after,
+  :host([data-position='bottom'])::after,
+  :host([data-position='bottomRight'])::after,
+  :host([data-position='bottomLeft'])::after {
+    left: 0;
+    height: ${offset}px;
+    width: 100%;
+  }
+  :host([data-position='top'])::after,
+  :host([data-position='topRight'])::after,
+  :host([data-position='topLeft'])::after {
+    top: 100%;
+  }
+  :host([data-position='bottom'])::after,
+  :host([data-position='bottomRight'])::after,
+  :host([data-position='bottomLeft'])::after {
+    bottom: 100%;
+  }
+  :host([data-position='left'])::after,
+  :host([data-position='right'])::after {
+    top: 0;
+    width: ${offset}px;
+    height: 100%;
+  }
+  :host([data-position='left'])::after {
+    left: 100%;
+  }
+  :host([data-position='right'])::after {
+    right: 100%;
   }
   :host::before {
     content: '';

@@ -110,8 +110,8 @@ export class DuoyunChartZoomElement extends GemElement<State> {
   #adjust = (detail: PanEventDetail, isStop: boolean) => {
     let [start, stop] = this.value;
     if (isStop) [stop, start] = [start, stop];
-    const movement = this.#getMovement(detail);
-    const newStart = clamp(0, start + movement, 1);
+    const { left, width } = this.getBoundingClientRect();
+    const newStart = clamp(0, (detail.clientX - left) / width, 1);
     const newValue = [Math.min(newStart, stop), Math.max(newStart, stop)];
     if (newValue[1] - newValue[0] < 0.01) return this.#panAdjust(this.value, detail);
     return newValue;

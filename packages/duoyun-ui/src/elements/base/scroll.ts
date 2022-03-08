@@ -4,6 +4,8 @@ import { createCSSSheet, css } from '@mantou/gem/lib/utils';
 
 import { DuoyunResizeBaseElement } from './resize';
 
+const PIXEL_DEVIATION = 0.1;
+
 const style = createCSSSheet(css`
   :host {
     display: block;
@@ -67,9 +69,9 @@ export class DuoyunScrollBaseElement<_T = Record<string, unknown>> extends Duoyu
     const scrollBottom = scrollHeight - contentHeight - scrollTop;
     const scrollLeft = this.scrollLeft;
     const scrollRight = scrollWidth - contentWidth - scrollLeft;
-    this.topOverflow = scrollTop > 0.1;
-    this.rightOverflow = scrollRight > 0.1;
-    this.bottomOverflow = scrollBottom > 0.1;
-    this.leftOverflow = scrollLeft > 0.1;
+    this.topOverflow = scrollTop > PIXEL_DEVIATION;
+    this.rightOverflow = scrollRight > PIXEL_DEVIATION;
+    this.bottomOverflow = scrollBottom > PIXEL_DEVIATION;
+    this.leftOverflow = scrollLeft > PIXEL_DEVIATION;
   };
 }

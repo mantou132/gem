@@ -5072,6 +5072,11 @@ electron-to-chromium@^1.4.17:
   resolved "https://registry.npmjs.org/electron-to-chromium/-/electron-to-chromium-1.4.54.tgz"
   integrity sha512-jRAoneRdSxnpRHO0ANpnEUtQHXxlgfVjrLOnQSisw1ryjXJXvS0pJaR/v2B7S++/tRjgEDp4Sjn5nmgb6uTySw==
 
+elkjs@^0.7.3-dev:
+  version "0.7.3-dev"
+  resolved "https://registry.yarnpkg.com/elkjs/-/elkjs-0.7.3-dev.tgz#baaf9ff607576e1ee043a23ac4b4a3b09a21c3e2"
+  integrity sha512-r8rOEyewdpEk60xfxzLjJBgZqdxr+RVBEPam71vF76h+15OF9zkI88HV7WzYl15eqTr0vRo2EwgX0Y8phFXGxQ==
+
 emoji-regex@^7.0.1:
   version "7.0.3"
   resolved "https://registry.npmjs.org/emoji-regex/-/emoji-regex-7.0.3.tgz"

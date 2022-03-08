@@ -6,6 +6,7 @@ const style = createCSSSheet(css`
   dy-space {
     display: inline-flex;
     flex-wrap: wrap;
+    align-items: center;
     gap: 0.4em;
   }
   dy-space[size='small'] {

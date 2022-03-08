@@ -10,8 +10,8 @@ export class MyEleElement extends GemElement {
     name: '',
   };
 
-  #onChange = () => {
-    this.setState(this.shadowRoot.querySelect('dy-form').data);
+  #onChange = (evt) => {
+    this.setState(evt.detail);
   };
 
   render = () => {
@@ -39,8 +39,8 @@ export class MyEleElement extends GemElement {
     return this.shadowRoot.querySelect('dy-form');
   }
 
-  #onChange = () => {
-    this.setState(this.#formEle.data);
+  #onChange = (evt) => {
+    this.setState(evt.detail);
   };
 
   #onSubmit = async () => {
@@ -72,8 +72,8 @@ export class MyEleElement extends GemElement {
     return this.shadowRoot.querySelect('dy-form');
   }
 
-  #onChange = () => {
-    this.setState(this.#formEle.data);
+  #onChange = (evt) => {
+    this.setState(evt.detail);
   };
 
   #onSubmit = async () => {
@@ -108,7 +108,7 @@ export class MyEleElement extends GemElement {
 
 `<dy-form-item>` default support `text`, `number`, `checkbox`, `pick`, `radio`, `select`, `textarea`,
 if them can't meet your needs, you can use your own elements,
-just implement the `value` attributes and global`change` event, then you can use [`<dy-form-item>`](../02-elements/form.md#dy-form-item-api) `slot` type:
+just implement the `value` attributes and bubble `change` event, then you can use [`<dy-form-item>`](../02-elements/form.md#dy-form-item-api) `slot` type:
 
 ```ts 14-16
 @customElement('my-ele')
@@ -117,8 +117,8 @@ export class MyEleElement extends GemElement {
     name: '',
   };
 
-  #onChange = () => {
-    this.setState(this.shadowRoot.querySelect('dy-form').data);
+  #onChange = (evt) => {
+    this.setState(evt.detail);
   };
 
   render = () => {
@@ -153,8 +153,14 @@ export class MyEleElement extends GemElement {
 
   render = () => {
     return html`
-      <dy-form @change=${this.#onChange}>
-        <dy-form-item .rules=${[]}>
+      <dy-form>
+        <dy-form-item
+          .rules=${
+            [
+              /** support validtor */
+            ]
+          }
+        >
           <dy-input-group>
             <dy-input .value=${this.state.name} @change=${this.#onChangeName}></dy-input>
             <dy-input .value=${this.state.type} @change=${this.#onChangeType}></dy-input>

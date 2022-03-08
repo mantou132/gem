@@ -120,22 +120,41 @@ export function sleep(ms = 3000) {
   return new Promise((res) => setTimeout(res, ms));
 }
 
-export function throttle<T extends (...args: any) => any>(fn: T, delay = 500) {
+export function throttle<T extends (...args: any) => any>(
+  fn: T,
+  wait = 500,
+  { leading = false, maxWait = Infinity }: { leading?: boolean; maxWait?: number } = {},
+) {
   let timer = 0;
+  let first = 0;
+  const exec = (...rest: Parameters<T>) => {
+    timer = window.setTimeout(() => (timer = 0), wait);
+    fn(...(rest as any));
+  };
   return (...rest: Parameters<T>) => {
-    clearTimeout(timer);
-    timer = window.setTimeout(() => fn(...(rest as any)), delay);
+    const now = Date.now();
+    if (!timer) first = now;
+    if (now - first > maxWait) {
+      first = now;
+      clearTimeout(timer);
+      exec(...rest);
+    } else if (leading && !timer) {
+      exec(...rest);
+    } else {
+      clearTimeout(timer);
+      timer = window.setTimeout(() => exec(...rest), wait);
+    }
   };
 }
 
-export function debounce<T extends (...args: any) => any>(fn: T, timeout = 500) {
+export function debounce<T extends (...args: any) => any>(fn: T, wait = 500) {
   let timer = 0;
   let result: any = undefined;
   return (...rest: Parameters<T>) => {
     if (!timer) {
       timer = window.setTimeout(() => {
         timer = 0;
-      }, timeout);
+      }, wait);
       result = fn(...(rest as any));
     }
     return result;
@@ -222,24 +241,6 @@ export function comparer(a: any, comparer: ComparerType, b: any) {
     default:
       return false;
   }
-}
-
-// https://github.com/tc39/proposal-arraybuffer-base64
-export function arrayBufferToBase64(arrayBuffer: ArrayBuffer) {
-  return btoa(String.fromCharCode(...new Uint8Array(arrayBuffer)));
-}
-
-export function base64ToArrayBuffer(s: string) {
-  return new Uint8Array([...atob(s)].map((char) => char.charCodeAt(0))).buffer;
-}
-
-export async function hash(strOrAb: string | ArrayBuffer, options?: 'string'): Promise<string>;
-export async function hash(strOrAb: string | ArrayBuffer, output: 'arrayBuffer'): Promise<ArrayBuffer>;
-export async function hash(strOrAb: string | ArrayBuffer, output: 'string' | 'arrayBuffer' = 'string') {
-  const ab = typeof strOrAb === 'string' ? new TextEncoder().encode(strOrAb) : strOrAb;
-  const buffer = await crypto.subtle.digest('SHA-1', ab);
-  if (output === 'arrayBuffer') return buffer;
-  return [...new Uint8Array(buffer)].map((e) => e.toString(16).padStart(2, '0')).join('');
 }
 
 export function isIncludesString(origin: string | TemplateResult, search: string, caseSensitive = false) {
