@@ -17,7 +17,7 @@ export function splice(rawValue: string, ...rest: (((s: string) => TemplateResul
     const str = result[matchStrIndex];
     const index = Number(result[1]) - 1;
     const arg = rest[index];
-    values.push(typeof arg === 'string' ? arg : arg(str));
+    values.push(typeof arg === 'function' ? arg(str) : arg);
   }
   return html(templateArr, ...values);
 }
