@@ -63,6 +63,7 @@ type GhostStyle = {
 
 type Option = {
   delay?: number;
+  unreachable?: boolean;
   content?: string | TemplateResult;
   position?: Position;
   ghostStyle?: GhostStyle;
@@ -80,12 +81,13 @@ type Option = {
 @adoptedStyle(style)
 export class DuoyunPopoverElement extends GemElement<PopoverState> {
   @boolattribute debug: boolean;
+  @boolattribute unreachable: boolean;
   @attribute trigger: 'click' | 'hover';
   @attribute position: Position | 'auto';
 
   @property content?: string | TemplateResult;
 
-  @refobject wrapRef: RefObject<HTMLDivElement>;
+  @refobject popoverRef: RefObject<DuoyunPopoverGhostElement>;
   @refobject slotRef: RefObject<HTMLSlotElement>;
   @emitter open: Emitter<null>;
   @emitter close: Emitter<null>;
@@ -100,11 +102,13 @@ export class DuoyunPopoverElement extends GemElement<PopoverState> {
       restoreInert?.();
       popover.remove();
     });
-    return () => {
+    const callback = () => {
       restoreInert?.();
       popover.close(null);
       popover.remove();
     };
+    callback.instance = popover;
+    return callback;
   };
 
   ghostStyle: GhostStyle = {
@@ -138,12 +142,13 @@ export class DuoyunPopoverElement extends GemElement<PopoverState> {
     position: 'top',
   };
 
-  constructor({ delay = 500, content, position, ghostStyle, trigger }: Option = {}) {
+  constructor({ delay = 500, content, position, ghostStyle, trigger, unreachable }: Option = {}) {
     super();
     if (content) this.content = content;
     if (position) this.position = position;
     if (ghostStyle) this.ghostStyle = ghostStyle;
     if (trigger) this.trigger = trigger;
+    if (unreachable) this.unreachable = unreachable;
     this.addEventListener('mouseenter', async () => {
       if (this.#isClickTrigger) return;
       this.#hover = true;
@@ -155,7 +160,7 @@ export class DuoyunPopoverElement extends GemElement<PopoverState> {
 
     this.addEventListener('mouseleave', (evt) => {
       if (this.#isClickTrigger) return;
-      if (evt.relatedTarget === this.wrapRef.element) return;
+      if (evt.relatedTarget === this.popover) return;
       this.#close();
     });
 
@@ -164,6 +169,10 @@ export class DuoyunPopoverElement extends GemElement<PopoverState> {
         this.#open();
       }
     });
+  }
+
+  get popover() {
+    return this.popoverRef.element;
   }
 
   #hover = false;
@@ -257,7 +266,7 @@ export class DuoyunPopoverElement extends GemElement<PopoverState> {
     this.effect(
       () => {
         if (this.state.open && this.#position === 'auto') {
-          const { top, left, right, bottom, height } = this.wrapRef.element!.getBoundingClientRect();
+          const { top, left, right, bottom, height } = this.popover!.getBoundingClientRect();
           let position: Position = 'top';
           if (right > innerWidth) {
             if (top < 0) {
@@ -301,9 +310,13 @@ export class DuoyunPopoverElement extends GemElement<PopoverState> {
               ></div>
               <dy-popover-ghost
                 role=${this.#role}
-                ref=${this.wrapRef.ref}
+                ref=${this.popoverRef.ref}
                 data-position=${position}
-                style=${styleMap({ ...style, ...this.ghostStyle })}
+                style=${styleMap({
+                  ...style,
+                  ...this.ghostStyle,
+                  pointerEvents: this.unreachable ? 'none' : undefined,
+                })}
                 @close=${this.#close}
                 @mouseleave=${this.#isClickTrigger ? undefined : this.#close}
               >

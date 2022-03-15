@@ -1,14 +1,20 @@
-import { adoptedStyle, customElement, property, part } from '@mantou/gem/lib/decorators';
-import { GemElement, html, svg, TemplateResult } from '@mantou/gem/lib/element';
+import { adoptedStyle, customElement, property, part, state, refobject, RefObject } from '@mantou/gem/lib/decorators';
+import { html, svg, TemplateResult } from '@mantou/gem/lib/element';
 import { createCSSSheet, css, styleMap, exportPartsMap } from '@mantou/gem/lib/utils';
-import type { ELK, ElkNode, ElkExtendedEdge, ElkEdgeSection, LayoutOptions, ElkShape } from 'elkjs';
+import type { ELK, ElkNode, ElkExtendedEdge, ElkEdgeSection, LayoutOptions, ElkShape, ElkPoint } from 'elkjs';
 
 import { Modify, isNullish, isNotNullish } from '../lib/types';
+import { forever } from '../lib/utils';
 import { formatToPrecision } from '../lib/number';
 import { theme } from '../lib/theme';
 import { utf8ToB64 } from '../lib/encode';
 
 import { DuoyunResizeBaseElement } from './base/resize';
+
+const elkPromise = forever(() => {
+  const url = 'https://cdn.skypack.dev/elkjs@0.7.1';
+  return import(/* @vite-ignore */ /* webpackIgnore: true */ `${url}?min`);
+});
 
 (window as any).g = null;
 
@@ -70,7 +76,7 @@ const defaultLayout: LayoutOptions = {
    *
    * @see https://www.eclipse.org/elk/reference/options/org-eclipse-elk-edgeRouting.html
    */
-  'org.eclipse.elk.edgeRouting': 'ORTHOGONAL',
+  'org.eclipse.elk.edgeRouting': 'SPLINES',
 
   /**
    * Adds bend points even if an edge does not change direction.
@@ -164,6 +170,7 @@ export type EdgeSection = Modify<
 export type Edge = Modify<
   ElkExtendedEdge,
   {
+    data?: any;
     sections?: EdgeSection[];
     label?: string;
     source?: string;
@@ -190,7 +197,9 @@ const canvasStyle = createCSSSheet(css`
     flex-shrink: 0;
   }
   .node {
+    height: 100%;
     border: 1px solid;
+    box-sizing: border-box;
     padding: 0.5em 1em;
     border-radius: ${theme.normalRound};
   }
@@ -223,37 +232,38 @@ export class DuoyunFlowCanvasElement extends DuoyunResizeBaseElement {
   @property elk?: ELK;
   @property graph?: Node;
   @property layout?: LayoutOptions;
-  @property renderEdge?: (section: EdgeSection) => TemplateResult;
-  @property renderEdgeLabel?: (label?: string) => string | TemplateResult;
-  @property renderNode?: (data: any) => string | TemplateResult;
-  @property renderNodeLabel?: (label?: any) => string | TemplateResult;
+  @property renderEdge?: (section: EdgeSection, edge: Edge) => TemplateResult;
+  @property renderEdgeLabel?: (label: string | undefined, edge: Edge) => string | TemplateResult;
+  @property renderNode?: (data: any, node: Node) => string | TemplateResult;
+  @property renderNodeLabel?: (label: string | undefined, node: Node) => string | TemplateResult;
   @property renderEndMarker?: () => undefined | TemplateResult;
   @property renderStartMarker?: () => undefined | TemplateResult;
 
   get #isReady() {
-    const edges = this.graph?.edges;
-    return edges?.length === 0 || edges?.[0]?.sections;
+    const node = this.graph?.children?.[0];
+    if (!node) return true;
+    return !!node.width && !!this.graph?.width;
   }
 
   constructor() {
     super({ throttle: false });
   }
 
-  #renderNode = (data: any) => {
+  #renderNode = (data: any, node: Node) => {
     return this.renderNode
-      ? this.renderNode(data)
+      ? this.renderNode(data, node)
       : html`<div class="node" part=${DuoyunFlowCanvasElement.node}>${data}</div>`;
   };
 
-  #renderNodeLabel = (label?: string) => {
+  #renderNodeLabel = (label: string | undefined, edge: Edge) => {
     return this.renderNodeLabel
-      ? this.renderNodeLabel(label)
+      ? this.renderNodeLabel(label, edge)
       : html`<div class="node-label" part=${DuoyunFlowCanvasElement.nodeLabel}>${label}</div>`;
   };
 
-  #renderEdge = (section: EdgeSection) => {
+  #renderEdge = (section: EdgeSection, edge: Edge) => {
     return this.renderEdge
-      ? this.renderEdge(section)
+      ? this.renderEdge(section, edge)
       : svg`
           <path
             class="edge"
@@ -265,9 +275,9 @@ export class DuoyunFlowCanvasElement extends DuoyunResizeBaseElement {
         `;
   };
 
-  #renderEdgeLabel = (label?: string) => {
+  #renderEdgeLabel = (label: string | undefined, edge: Edge) => {
     return this.renderEdgeLabel
-      ? this.renderEdgeLabel(label)
+      ? this.renderEdgeLabel(label, edge)
       : html`<div class="edge-label" part=${DuoyunFlowCanvasElement.edgeLabel}>${label}</div>`;
   };
 
@@ -316,16 +326,82 @@ export class DuoyunFlowCanvasElement extends DuoyunResizeBaseElement {
     this.update();
   };
 
-  #layout = async () => {
-    if (!this.graph || !this.elk) return;
-    await this.elk.layout(this.graph as any, { layoutOptions: { ...defaultLayout, ...(this.layout || {}) } });
-    this.graph.edges?.forEach((edge) => {
+  #distance = (p1: ElkPoint, p2: ElkPoint) => Math.sqrt((p1.x - p2.x) ** 2 + (p1.y - p2.y) ** 2);
+
+  #sortPoints = (points: ElkPoint[]) => {
+    const start = points[0];
+    return points.sort((a, b) => {
+      return this.#distance(a, start) - this.#distance(b, start);
+    });
+  };
+
+  #calcPath = (node?: Node): void => {
+    node?.edges?.forEach((edge) => {
       edge.sections?.forEach((section) => {
         const { startPoint, bendPoints, endPoint } = section;
-        const bend = bendPoints?.map(({ x, y }) => `L${x} ${y}`).join('');
-        section.d = `M${startPoint.x} ${startPoint.y}${bend || ''}L${endPoint.x} ${endPoint.y}`;
+        const joinPoint = (point: ElkPoint) => `${point.x + node!.x!},${point.y + node!.y!}`;
+        if (!bendPoints) {
+          section.d = `M${joinPoint(startPoint)}L${joinPoint(endPoint)}`;
+          return;
+        }
+        switch (node!.layoutOptions?.['org.eclipse.elk.edgeRouting']) {
+          case 'ORTHOGONAL': {
+            const bend = bendPoints.map((point) => `L${joinPoint(point)}`).join('');
+            section.d = `M${joinPoint(startPoint)}${bend || ''}L${joinPoint(endPoint)}`;
+            break;
+          }
+          default: {
+            const precision = node!.width! > 1500 ? 0 : 1;
+            const points = [startPoint, ...bendPoints, endPoint]
+              .map((e) => ({ x: formatToPrecision(e.x, precision), y: formatToPrecision(e.y, precision) }))
+              .filter((e, i, arr) => {
+                if (i === arr.length - 1) return true;
+                const nextPoint = arr[i + 1];
+                const isEqNextPoint = joinPoint(e) === joinPoint(nextPoint);
+                if (isEqNextPoint) return false;
+                if (i === 0) return true;
+                const prevPoint = arr[i - 1];
+                const nextDiffY = nextPoint.y - e.y;
+                const nextDiffX = nextPoint.x - e.x;
+                const prevDiffY = e.y - prevPoint.y;
+                const prevDiffX = e.x - prevPoint.x;
+                const isPointInLine = nextDiffY / nextDiffX === prevDiffY / prevDiffX;
+                const isSomeDirection =
+                  Math.sign(nextDiffY) === Math.sign(prevDiffY) && Math.sign(nextDiffX) === Math.sign(prevDiffX);
+                return !isSomeDirection || !isPointInLine;
+              });
+            if (points.length === 3) {
+              const controlPoint = joinPoint(points[1]);
+              section.d = `M${joinPoint(points[0])}C${controlPoint} ${controlPoint} ${joinPoint(points[2])}`;
+            } else if (points.length > 3 && (points.length - 5) % 3 === 0) {
+              const start = points.shift()!;
+              const end = points.pop()!;
+              let c = '';
+              for (let i = 0; i < points.length; i += 3) {
+                const [_, f, center] = this.#sortPoints([start, ...points.slice(i, i + 3), end]);
+                c += ` ${joinPoint(f)} ${joinPoint(center)}C${joinPoint(points[i + 2])} `;
+              }
+              section.d = `M${joinPoint(start)}C${joinPoint(start)}${c}${joinPoint(end)} ${joinPoint(end)}`;
+            } else {
+              this.#sortPoints(points);
+              const controlPoint = joinPoint(points[1]);
+              const end = points[points.length - 1];
+              section.d = `M${joinPoint(points[0])}C${controlPoint} ${controlPoint} ${joinPoint(end)}`;
+            }
+          }
+        }
       });
     });
+    node?.children?.forEach(this.#calcPath);
+  };
+
+  #layout = async () => {
+    try {
+      await this.elk?.layout(this.graph as any, { layoutOptions: { ...defaultLayout, ...(this.layout || {}) } });
+    } catch (err) {
+      //
+    }
+    this.#calcPath(this.graph);
     this.update();
   };
 
@@ -346,19 +422,41 @@ export class DuoyunFlowCanvasElement extends DuoyunResizeBaseElement {
     `;
   };
 
+  #renderChildren = (node: Node): TemplateResult => {
+    return html`
+      ${this.#renderWrap(
+        this.#genId(node.id),
+        node,
+        html`
+          <!-- children -->
+          ${node.children?.map(this.#renderChildren)}
+          <!-- node -->
+          ${this.#renderNode(node.data || node.id, node)}
+          <!-- label -->
+          ${node.labels?.map((label, index) =>
+            this.#renderWrap(this.#genLabelId(node.id, index), label, this.#renderNodeLabel(label.text, node)),
+          )}
+        `,
+      )}
+    `;
+  };
+
+  #renderChildrenEdge = (node: Node): TemplateResult => {
+    return html`
+      <!-- parent -->
+      ${node.edges?.map((edge) => edge.sections?.map((section) => this.#renderEdge(section, edge)))}
+      <!-- children -->
+      ${node.children?.map((node) => this.#renderChildrenEdge(node))}
+    `;
+  };
+
   mounted = () => {
     this.effect(async () => {
-      const node = this.graph?.children?.[0];
-      if (!node) return;
       if (this.#isReady) return;
-      if (isNullish(node?.width)) {
+      if (isNullish(this.graph?.children?.[0]?.width)) {
         this.#updateSize();
-      } else {
-        try {
-          await this.#layout();
-        } catch {
-          //
-        }
+      } else if (this.elk) {
+        await this.#layout();
       }
     });
   };
@@ -374,6 +472,7 @@ export class DuoyunFlowCanvasElement extends DuoyunResizeBaseElement {
           height: ${height ? `${height}px` : '100%'};
         }
       </style>
+      <!-- edge -->
       ${width && height
         ? svg`
             <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${width} ${height}">
@@ -381,27 +480,18 @@ export class DuoyunFlowCanvasElement extends DuoyunResizeBaseElement {
                 ${this.#renderEndMarker()}
                 ${this.#renderStartMarker()}
               </defs>
-              ${edges?.map(({ sections }) => sections?.map(this.#renderEdge))}
+              ${this.#renderChildrenEdge(this.graph)}
             </svg>
           `
         : ''}
+      <!-- node -->
+      ${children?.map(this.#renderChildren)}
+      <!-- edge labels -->
       ${edges?.map(
         (edge) =>
           html`${edge.labels?.map((label, index) =>
-            this.#renderWrap(this.#genLabelId(edge.id, index), label, this.#renderEdgeLabel(label.text)),
+            this.#renderWrap(this.#genLabelId(edge.id, index), label, this.#renderEdgeLabel(label.text, edge)),
           )}`,
-      )}
-      ${children?.map(
-        (node) =>
-          html`
-            ${this.#renderWrap(
-              this.#genId(node.id),
-              node,
-              html`${this.#renderNode(node.data || node.id)}${node.labels?.map((label, index) =>
-                this.#renderWrap(this.#genLabelId(node.id, index), label, this.#renderNodeLabel(label.text)),
-              )}`,
-            )}
-          `,
       )}
     `;
   };
@@ -426,7 +516,7 @@ const style = createCSSSheet(css`
  */
 @customElement('dy-flow')
 @adoptedStyle(style)
-export class DuoyunFlowElement extends GemElement<State> {
+export class DuoyunFlowElement extends DuoyunResizeBaseElement<State> {
   @part static node: string;
   @part static nodeLabel: string;
   @part static edge: string;
@@ -434,30 +524,39 @@ export class DuoyunFlowElement extends GemElement<State> {
 
   @property graph?: any;
   @property layout?: LayoutOptions;
-  @property renderEdge?: (data: any) => TemplateResult;
-  @property renderEdgeLabel?: (label?: string) => string | TemplateResult;
-  @property renderNode?: (data: any) => string | TemplateResult;
-  @property renderNodeLabel?: (label?: any) => string | TemplateResult;
+  @property renderEdge?: (section: EdgeSection, edge: Edge) => TemplateResult;
+  @property renderEdgeLabel?: (label: string | undefined, edge: Edge) => string | TemplateResult;
+  @property renderNode?: (data: any, node: Node) => string | TemplateResult;
+  @property renderNodeLabel?: (label: string | undefined, node: Node) => string | TemplateResult;
   @property renderEndMarker?: () => undefined | TemplateResult;
+
+  @state loaded: boolean;
+  @refobject canvasRef: RefObject<DuoyunFlowCanvasElement>;
 
   state: State = {};
 
+  #setScale = ({ width }: DuoyunFlowCanvasElement['contentRect']) => {
+    const rect = this.getBoundingClientRect();
+    const scale = Math.min(formatToPrecision(rect.width / width), 1);
+    this.setState({
+      scale,
+      marginBlock: ((scale - 1) / 2) * rect.height,
+    });
+  };
+
   #onCanvasResize = (evt: CustomEvent<DuoyunFlowCanvasElement>) => {
-    const { width, height } = evt.detail.contentRect;
-    if (width && height) {
-      const rect = this.getBoundingClientRect();
-      const scale = Math.min(formatToPrecision(rect.width / width), 1);
-      this.setState({
-        scale,
-        marginBlock: ((scale - 1) / 2) * rect.height,
-      });
+    const { contentRect } = evt.detail;
+    if (contentRect.width && contentRect.height && !this.loaded) {
+      this.#setScale(contentRect);
     }
   };
 
-  #normalizeGraph = (graph?: Node) => {
+  #normalizeGraph = () => {
+    const graph: Node = this.graph;
     if (!graph) return;
     const setLabels = (e: Node | Edge) => {
       if (e.label) e.labels = [{ text: e.label }];
+      if ('children' in e) e.children?.forEach((n) => setLabels(n));
     };
     graph.children?.forEach((e) => setLabels(e));
     graph.edges?.forEach((e) => {
@@ -473,15 +572,23 @@ export class DuoyunFlowElement extends GemElement<State> {
     this.memo(
       () => {
         this.setState({ scale: undefined, marginBlock: undefined });
-        this.#normalizeGraph(this.graph);
+        this.#normalizeGraph();
       },
       () => [this.graph],
     );
   };
 
   mounted = () => {
-    const url = 'https://cdn.skypack.dev/elkjs@0.7.1';
-    import(/* @vite-ignore */ /* webpackIgnore: true */ `${url}?min`).then((module) => {
+    this.effect(
+      () => {
+        if (this.loaded) {
+          this.#setScale(this.canvasRef.element!.contentRect);
+        }
+      },
+      () => [this.contentRect.width],
+    );
+
+    elkPromise.then((module) => {
       const elk: ELK = new module.default();
       this.setState({ elk });
     });
@@ -489,8 +596,10 @@ export class DuoyunFlowElement extends GemElement<State> {
 
   render = () => {
     const { elk, scale, marginBlock } = this.state;
+    this.loaded = !!scale;
     return html`
       <dy-flow-canvas
+        ref=${this.canvasRef.ref}
         exportparts=${exportPartsMap({
           [DuoyunFlowCanvasElement.node]: DuoyunFlowCanvasElement.node,
           [DuoyunFlowCanvasElement.nodeLabel]: DuoyunFlowCanvasElement.nodeLabel,
@@ -512,6 +621,7 @@ export class DuoyunFlowElement extends GemElement<State> {
         .graph=${this.graph}
         .layout=${this.layout}
       ></dy-flow-canvas>
+      <slot></slot>
     `;
   };
 }
