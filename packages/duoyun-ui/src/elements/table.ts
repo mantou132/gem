@@ -11,7 +11,7 @@ import {
   part,
 } from '@mantou/gem/lib/decorators';
 import { GemElement, html, TemplateResult } from '@mantou/gem/lib/element';
-import { createCSSSheet, css, styleMap, classMap, StyleObject } from '@mantou/gem/lib/utils';
+import { createCSSSheet, css, styleMap, classMap, StyleObject, isArrayChange } from '@mantou/gem/lib/utils';
 
 import { theme } from '../lib/theme';
 import { readProp } from '../lib/utils';
@@ -22,12 +22,14 @@ import { focusStyle } from '../lib/styles';
 
 import { DuoyunUseElement } from './use';
 import { MenuItem, ContextMenu } from './menu';
+import type { SelectionChange } from './selection-box';
 
 import './placeholder';
 import './empty';
 import './tooltip';
 import './loading';
 import './space';
+import './selection-box';
 
 const style = createCSSSheet(css`
   :host {
@@ -46,6 +48,12 @@ const style = createCSSSheet(css`
     table-layout: fixed;
     border-collapse: collapse;
   }
+  .selection:where(:--select, [data-select]) ~ table {
+    user-select: none;
+  }
+  .selection ~ table {
+    cursor: crosshair;
+  }
   thead {
     text-align: -webkit-match-parent;
     text-align: -moz-match-parent;
@@ -63,6 +71,17 @@ const style = createCSSSheet(css`
   td {
     position: relative;
   }
+  tr.selected td::after {
+    position: absolute;
+    display: block;
+    content: '';
+    top: 0px;
+    left: 0px;
+    width: 100%;
+    height: calc(100% + 1px);
+    opacity: 0.15;
+    background-color: ${theme.informativeColor};
+  }
   td.ellipsis {
     overflow: hidden;
     white-space: nowrap;
@@ -79,6 +98,7 @@ const style = createCSSSheet(css`
     width: 1em;
   }
   .action {
+    cursor: default;
     width: 1.5em;
     padding: 4px;
     border-radius: ${theme.normalRound};
@@ -113,6 +133,8 @@ export type Column<T> = {
 
 export type Columns<T> = Column<T>[];
 
+export type ItemContextMenuEventDetail = { data: any; selected: boolean; originEvent: MouseEvent };
+
 /**
  * @customElement dy-table
  */
@@ -121,12 +143,20 @@ export type Columns<T> = Column<T>[];
 @adoptedStyle(focusStyle)
 @connectStore(icons)
 export class DuoyunTableElement extends GemElement {
+  @part static table: string;
   @part static th: string;
   @part static td: string;
   @part static tr: string;
 
   @attribute caption: string;
   @boolattribute headless: boolean;
+
+  @boolattribute selectable: boolean;
+  @property selection?: any[];
+
+  @emitter select: Emitter<any[]>;
+  @emitter itemclick: Emitter<any>;
+  @emitter itemcontextmenu: Emitter<ItemContextMenuEventDetail>;
 
   @property columns: Column<any>[];
   @property data: (Record<string, unknown> | undefined)[] | undefined;
@@ -135,6 +165,60 @@ export class DuoyunTableElement extends GemElement {
   @property rowKey?: string | string[];
   @property expandedRowRender?: (record: any) => undefined | string | TemplateResult;
   @emitter expand: Emitter<any>;
+
+  #selectionSet = new Set<any>();
+
+  #onSelectionBoxChange = ({ detail: { rect, mode } }: CustomEvent<SelectionChange>) => {
+    const selection = new Set(mode === 'new' ? [] : this.#selectionSet);
+    const boxWidth = rect.width;
+    const boxHeight = rect.height;
+    const boxBottom = rect.bottom;
+    const boxRight = rect.right;
+    const boxLeft = rect.left;
+    const boxTop = rect.top;
+    const rects = [...this.shadowRoot!.querySelectorAll('tbody tr')].map((e) => e.getBoundingClientRect());
+    rects.forEach(({ width, height, bottom, top, left, right }, i) => {
+      // rowspan?
+      if (
+        Math.max(bottom, boxBottom) - Math.min(top, boxTop) < boxHeight + height &&
+        Math.max(right, boxRight) - Math.min(left, boxLeft) < boxWidth + width
+      ) {
+        const item = this.#getKey(this.data![i]);
+        if (mode === 'delete') {
+          selection.delete(item);
+        } else {
+          selection.add(item);
+        }
+      }
+    });
+    const selectionArr = [...selection];
+    if (isArrayChange(this.selection || [], selectionArr)) {
+      this.select(selectionArr);
+    }
+  };
+
+  #onItemClick = (record: any) => {
+    if (this.#selectionSet.size) {
+      const item = this.#getKey(record);
+      const selection = new Set(this.#selectionSet);
+      if (this.#selectionSet.has(item)) {
+        selection.delete(item);
+      } else {
+        selection.add(item);
+      }
+      this.select([...selection]);
+    } else {
+      this.itemclick(record);
+    }
+  };
+
+  #onItemContextMenu = (evt: MouseEvent, record: any) => {
+    this.itemcontextmenu({
+      data: record,
+      originEvent: evt,
+      selected: this.#selectionSet.has(this.#getKey(record)),
+    });
+  };
 
   #openActions = (evt: PointerEvent, menu: MenuItem[]) => {
     if (evt.target instanceof DuoyunUseElement) {
@@ -193,11 +277,23 @@ export class DuoyunTableElement extends GemElement {
     return width?.startsWith('0') ? { fontSize: '0' } : {};
   };
 
+  mounted = () => {
+    this.memo(
+      () => {
+        this.#selectionSet = new Set(this.selection);
+      },
+      () => this.selection || [],
+    );
+  };
+
   render = () => {
     const columns = this.expandedRowRender ? [this.#expandedColumn, ...this.columns] : this.columns;
     const rowSpanMemo = columns.map(() => 0);
     return html`
-      <table>
+      ${this.selectable
+        ? html`<dy-selection-box class="selection" @change=${this.#onSelectionBoxChange}></dy-selection-box>`
+        : ''}
+      <table part=${DuoyunTableElement.table}>
         ${this.caption
           ? html`
               <caption>
@@ -239,7 +335,13 @@ export class DuoyunTableElement extends GemElement {
           ${this.data?.map(
             (record, _rowIndex, _data, colSpanMemo = [0]) =>
               html`
-                <tr part=${DuoyunTableElement.tr} style=${this.getRowStyle ? styleMap(this.getRowStyle(record)) : ''}>
+                <tr
+                  @click=${() => this.#onItemClick(record)}
+                  @contextmenu=${(evt: MouseEvent) => this.#onItemContextMenu(evt, record)}
+                  part=${DuoyunTableElement.tr}
+                  class=${classMap({ selected: this.#selectionSet.has(this.#getKey(record)) })}
+                  style=${this.getRowStyle ? styleMap(this.getRowStyle(record)) : ''}
+                >
                   ${columns.map(
                     (
                       {
@@ -315,4 +417,16 @@ export class DuoyunTableElement extends GemElement {
         : ''}
     `;
   };
+
+  appendSelection(items: any[]) {
+    const selection = new Set(this.#selectionSet);
+    items.forEach((item) => selection.add(this.#getKey(item)));
+    this.select([...selection]);
+  }
+
+  removeSelection(items: any[]) {
+    const selection = new Set(this.#selectionSet);
+    items.forEach((item) => selection.delete(this.#getKey(item)));
+    this.select([...selection]);
+  }
 }

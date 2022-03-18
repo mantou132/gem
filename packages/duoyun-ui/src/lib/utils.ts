@@ -243,18 +243,19 @@ export function comparer(a: any, comparer: ComparerType, b: any) {
   }
 }
 
+export function getStringFromTemplate(o: TemplateResult | string): string {
+  if (o instanceof TemplateResult) {
+    const string = o.getTemplateElement().content.textContent || '';
+    return string + o.values.map((e) => getStringFromTemplate(e as string | TemplateResult)).join('');
+  }
+  return String(o);
+}
+
 export function isIncludesString(origin: string | TemplateResult, search: string, caseSensitive = false) {
-  const toString = (o: any): string => {
-    if (o instanceof TemplateResult) {
-      const string = o.getTemplateElement().content.textContent || '';
-      return string + o.values.map((e) => toString(e)).join('');
-    }
-    return String(o);
-  };
   const getStr = (s: string) => (caseSensitive ? s : s.toLowerCase()).trim();
-  const oString = getStr(toString(origin));
+  const oString = getStr(getStringFromTemplate(origin));
   const sString = getStr(search);
-  return sString.split(/(\s|\/)+/).some((s) => oString.includes(s));
+  return sString.split(/(?:\s|\/)+/).some((s) => oString.includes(s));
 }
 
 export function setBodyInert(modal: HTMLElement) {

@@ -180,7 +180,7 @@ export class DuoyunModalElement extends GemElement {
     const restoreInert = setBodyInert(modal);
     document.body.append(modal);
     // bubble close event close modal
-    await new Promise<T>((res, rej) => {
+    return new Promise<T>((res, rej) => {
       modal.addEventListener('close', () => {
         rej();
       });

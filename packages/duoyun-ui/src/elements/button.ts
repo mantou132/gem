@@ -120,9 +120,6 @@ const style = createCSSSheet(css`
 @adoptedStyle(focusStyle)
 @connectStore(icons)
 export class DuoyunButtonElement extends GemElement {
-  @part static button: string;
-  @part static dropdown: string;
-
   @attribute type: 'solid' | 'reverse';
   @attribute color: StringList<'normal' | 'danger' | 'cancel'>;
   @boolattribute small: boolean;
@@ -137,6 +134,9 @@ export class DuoyunButtonElement extends GemElement {
 
   @refobject dropdownRef: RefObject<DuoyunUseElement>;
   @refobject buttonRef: RefObject<HTMLDivElement>;
+
+  @part static button: string;
+  @part static dropdown: string;
 
   get #color() {
     return getSemanticColor(this.color) || theme.primaryColor;

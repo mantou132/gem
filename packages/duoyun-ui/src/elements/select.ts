@@ -72,12 +72,27 @@ const style = createCSSSheet(css`
   :host([borderless]) .value-wrap {
     width: auto;
   }
-  .placeholder {
+  .hasplaceholder {
     position: relative;
   }
-  .placeholder .value {
+  .hasplaceholder .value {
+    pointer-events: none;
     color: ${theme.describeColor};
     position: absolute;
+  }
+  .search {
+    width: 2em;
+    flex-grow: 1;
+    flex-shrink: 0;
+    border: none;
+    font-size: 1em;
+    margin-block: -1em;
+  }
+  .search::part(input) {
+    padding: 0;
+  }
+  .search:where(:--filled, [data-filled], :--composing, [data-composing]) + .value {
+    display: none;
   }
   .value {
     display: flex;
@@ -90,17 +105,6 @@ const style = createCSSSheet(css`
     --m: linear-gradient(to right, #000 calc(100% - 0.6em), #fff0 100%);
     -webkit-mask-image: var(--m);
     mask-image: var(--m);
-  }
-  .search {
-    width: 2em;
-    flex-grow: 1;
-    flex-shrink: 0;
-    border: none;
-    font-size: 1em;
-    margin-block: -1em;
-  }
-  .search::part(input) {
-    padding: 0;
   }
   .icon {
     flex-shrink: 0;
@@ -147,9 +151,11 @@ export class DuoyunSelectElement extends GemElement<State> {
   @boolattribute multiple: boolean;
   @boolattribute disabled: boolean;
   @boolattribute searchable: boolean;
+  @boolattribute keepsearch: boolean;
   @boolattribute inline: boolean;
   @attribute placeholder: string;
   @boolattribute borderless: boolean;
+  @boolattribute pinselected: boolean;
 
   @property dropdownStyle?: StyleObject;
   @property options?: Option[];
@@ -292,7 +298,9 @@ export class DuoyunSelectElement extends GemElement<State> {
       }
       this.setState({ open: false });
     }
-    this.setState({ search: '' });
+    if (!this.keepsearch) {
+      this.setState({ search: '' });
+    }
   };
 
   #onRemoveTag = ({ value, label }: Option) => {
@@ -356,36 +364,40 @@ export class DuoyunSelectElement extends GemElement<State> {
     );
   };
 
+  #getOptions = () => {
+    const { search } = this.state;
+    const options = this.#fiteredOptions?.map((option) => {
+      const { value, label, description, disabled } = option;
+      return {
+        label: this.renderLabel ? this.renderLabel(option) : label,
+        description,
+        tagIcon: this.#valueSet.has(value ?? label) ? icons.check : undefined,
+        onPointerUp: (e: Event) => e.stopPropagation(),
+        onClick: disabled ? undefined : () => this.#onChange(value ?? label),
+        disabled,
+      };
+    });
+    if (this.pinselected) {
+      options?.sort((a, b) => (a.tagIcon && !b.tagIcon ? -1 : 0));
+    }
+    return search && options?.length === 0
+      ? [{ label: locale.noData, disabled: true, onPointerUp: () => this.setState({ search: '' }) }]
+      : options;
+  };
+
   render = () => {
     const { open, left, top, width, maxHeight, transform, search } = this.state;
     const isEmpty = !this.#valueOptions?.length;
-    const getOptions = () => {
-      const options = this.#fiteredOptions?.map((option) => {
-        const { value, label, description, disabled } = option;
-        return {
-          label: this.renderLabel ? this.renderLabel(option) : label,
-          description,
-          tagIcon: this.#valueSet.has(value ?? label) ? icons.check : undefined,
-          onPointerUp: (e: Event) => e.stopPropagation(),
-          onClick: () => this.#onChange(value ?? label),
-          disabled,
-        };
-      });
-      return search && options?.length === 0
-        ? [{ label: locale.noData, disabled: true, onPointerUp: () => this.setState({ search: '' }) }]
-        : options;
-    };
     return html`
       ${this.inline
-        ? html`<dy-options class="inline-options" .options=${getOptions()}></dy-options>`
+        ? html`<dy-options class="inline-options" .options=${this.#getOptions()}></dy-options>`
         : html`
-            <div class=${classMap({ 'value-wrap': true, placeholder: isEmpty })}>
-              ${!isEmpty || (!search && this.placeholder)
-                ? html`
+            <div class=${classMap({ 'value-wrap': true, hasplaceholder: isEmpty })}>
+              ${isEmpty
+                ? ''
+                : html`
                     <div class="value">
-                      ${isEmpty
-                        ? this.placeholder
-                        : this.multiple
+                      ${this.multiple
                         ? html`
                             ${this.#valueOptions!.map(({ label }, index) =>
                               typeof label === 'string'
@@ -406,8 +418,7 @@ export class DuoyunSelectElement extends GemElement<State> {
                           `
                         : this.#valueOptions![0].label}
                     </div>
-                  `
-                : ''}
+                  `}
               ${this.#searchable
                 ? html`
                     <dy-input
@@ -420,6 +431,7 @@ export class DuoyunSelectElement extends GemElement<State> {
                     ></dy-input>
                   `
                 : ''}
+              ${isEmpty && this.placeholder ? html`<div class="value">${this.placeholder}</div>` : ``}
             </div>
             <dy-use class="icon" .element=${icons.expand}></dy-use>
             ${this.options && open
@@ -440,7 +452,7 @@ export class DuoyunSelectElement extends GemElement<State> {
                         maxHeight,
                         transform,
                       })}
-                      .options=${getOptions()}
+                      .options=${this.#getOptions()}
                     ></dy-options>
                   </dy-reflect>
                 `

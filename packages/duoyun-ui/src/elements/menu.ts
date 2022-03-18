@@ -240,6 +240,10 @@ export class DuoyunMenuElement extends GemElement {
     })(evt);
   };
 
+  #preventDefault = (evt: Event) => {
+    evt.preventDefault();
+  };
+
   #initPosition = async () => {
     // await `ContextMenu` content update
     await Promise.resolve();
@@ -252,9 +256,9 @@ export class DuoyunMenuElement extends GemElement {
     if (activeElement) {
       const { left, right, top, bottom } = activeElement.getBoundingClientRect();
       const showToLeft = openLeft ? left > width + this.#offset : innerWidth - left < width + this.#offset;
-      const showToTop = innerHeight - bottom < height + 2 * this.#offset && top > height + 2 * this.#offset;
+      const showToTop = innerHeight - bottom < height + 2 * this.#offset && top > innerHeight - bottom;
       const x = showToLeft ? right - width : left;
-      const y = showToTop ? top - height - 2 * this.#offset : bottom;
+      const y = showToTop ? Math.max(top - height - 2 * this.#offset, 0) : bottom;
       updateStore(menuStore, {
         maxHeight: maxHeight || `${showToTop ? top - 2 * this.#offset : innerHeight - bottom - 2 * this.#offset}px`,
         menuStack: [{ ...menu, x, y }],
@@ -270,9 +274,11 @@ export class DuoyunMenuElement extends GemElement {
     this.#menuEles.shift()?.focus();
     const restoreInert = setBodyInert(this);
     ContextMenu.instance = this;
+    addEventListener('contextmenu', this.#preventDefault);
     return () => {
       restoreInert();
       ContextMenu.instance = undefined;
+      removeEventListener('contextmenu', this.#preventDefault);
     };
   };
 

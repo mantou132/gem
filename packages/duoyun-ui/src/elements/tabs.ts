@@ -5,6 +5,7 @@ import {
   Emitter,
   property,
   boolattribute,
+  attribute,
   part,
 } from '@mantou/gem/lib/decorators';
 import { GemElement, html, TemplateResult } from '@mantou/gem/lib/element';
@@ -23,11 +24,19 @@ const style = createCSSSheet(css`
     display: flex;
     flex-direction: column;
   }
+  :host([orientation='vertical']) {
+    flex-direction: row;
+  }
   .tabs {
     display: flex;
     font-size: 0.875em;
     gap: 2em;
     flex-shrink: 0;
+    max-width: 100%;
+  }
+  :host([orientation='vertical']) .tabs {
+    flex-direction: column;
+    gap: 0;
   }
   .divider {
     flex-shrink: 0;
@@ -45,6 +54,9 @@ const style = createCSSSheet(css`
     gap: 0.3em;
     color: ${theme.describeColor};
   }
+  :host([orientation='vertical']) .tab {
+    padding-inline-end: 1em;
+  }
   .icon {
     width: 1.2em;
   }
@@ -54,14 +66,18 @@ const style = createCSSSheet(css`
   }
   .marker {
     position: absolute;
-    bottom: 0;
+    top: 100%;
     left: 0;
-    width: 100%;
-    transform: translateY(100%);
+    right: 0;
+  }
+  :host([orientation='vertical']) .marker {
+    top: 0;
+    left: 100%;
+    height: 100%;
   }
 `);
 export interface TabItem<T = any> {
-  tab: string;
+  tab: string | TemplateResult;
   value?: T;
   icon?: string | Element | DocumentFragment;
   getContent?: () => string | TemplateResult;
@@ -80,9 +96,14 @@ export class DuoyunTabsElement extends GemElement {
   @part static marker: string;
 
   @boolattribute center: boolean;
+  @attribute orientation: 'horizontal' | 'vertical';
   @property data?: TabItem[];
   @property value?: any;
   @emitter change: Emitter<any>;
+
+  get #orientation() {
+    return this.orientation || 'horizontal';
+  }
 
   constructor() {
     super();
@@ -111,6 +132,7 @@ export class DuoyunTabsElement extends GemElement {
                       part=${DuoyunTabsElement.marker}
                       class="marker"
                       size="medium"
+                      orientation=${this.#orientation}
                       .color=${theme.primaryColor}
                     ></dy-divider>
                   `
@@ -119,7 +141,7 @@ export class DuoyunTabsElement extends GemElement {
           `;
         })}
       </div>
-      <dy-divider class="divider" size="medium"></dy-divider>
+      <dy-divider class="divider" size="medium" orientation=${this.#orientation}></dy-divider>
       <dy-compartment .content=${currentContent}></dy-compartment>
     `;
   };

@@ -21,11 +21,46 @@ import { icons } from '../lib/icons';
 import { focusStyle } from '../lib/styles';
 import { commonHandle, hotkeys } from '../lib/hotkeys';
 import { clamp } from '../lib/number';
+import { throttle } from '../lib/utils';
 
 import './use';
 
 type DataListItem = { label: string | TemplateResult; value?: any };
 export type DataList = DataListItem[];
+
+class InputHistory {
+  current: number;
+  values: string[];
+  #input: DuoyunInputElement;
+
+  constructor(input: DuoyunInputElement) {
+    this.#input = input;
+    this.current = 0;
+    this.values = [''];
+  }
+
+  undo = () => {
+    if (this.current > 0) {
+      this.current--;
+      this.#input.change(this.values[this.current]);
+    }
+  };
+
+  redo = () => {
+    if (this.current < this.values.length - 1) {
+      this.current++;
+      this.#input.change(this.values[this.current]);
+    }
+  };
+
+  save = throttle(() => {
+    const { value } = this.#input;
+    if (value !== this.values[this.current]) {
+      this.values = [...this.values.slice(0, this.current + 1), value];
+      this.current++;
+    }
+  }, 300);
+}
 
 const style = createCSSSheet(css`
   :host {
@@ -139,6 +174,7 @@ export class DuoyunInputElement extends GemElement {
   @property icon?: string | Element | DocumentFragment;
 
   @state filled: boolean;
+  @state composing: boolean;
 
   get #spellcheck() {
     return this.spellcheck ? 'true' : 'false';
@@ -169,8 +205,6 @@ export class DuoyunInputElement extends GemElement {
     return this.hasAttribute('max') ? this.max : Infinity;
   }
 
-  #isComposing = false;
-
   #nextState = {
     value: '',
     selectionStart: 0,
@@ -194,7 +228,7 @@ export class DuoyunInputElement extends GemElement {
   #editing = false;
 
   #inputHandle = () => {
-    if (!this.#isComposing) {
+    if (!this.composing) {
       const { element } = this.inputRef;
       if (!element) return;
       const { value, selectionStart, selectionEnd } = element;
@@ -219,17 +253,20 @@ export class DuoyunInputElement extends GemElement {
       element.value = this.value;
       this.change(value);
       this.#editing = true;
-      setTimeout(() => (this.#editing = false));
+      setTimeout(() => {
+        this.#editing = false;
+        this.#history.save();
+      });
     }
   };
 
   #compositionstartHandle = () => {
-    this.#isComposing = true;
+    this.composing = true;
   };
 
   #compositionendHandle = () => {
     // https://bugs.chromium.org/p/chromium/issues/detail?id=1263817
-    this.#isComposing = false;
+    this.composing = false;
     this.#inputHandle();
   };
 
@@ -237,7 +274,10 @@ export class DuoyunInputElement extends GemElement {
     evt.stopPropagation();
     this.clear('');
     this.focus();
+    this.#history.save();
   };
+
+  #history = new InputHistory(this);
 
   #onKeyDown = (evt: KeyboardEvent) => {
     const nextValue = (n: number) => String(clamp(this.#min, Number(this.value || this.min) + n, this.#max));
@@ -257,6 +297,16 @@ export class DuoyunInputElement extends GemElement {
         },
       })(evt);
     }
+    hotkeys({
+      'ctrl+z,command+z': () => {
+        this.#history.undo();
+        prevent(evt);
+      },
+      'ctrl+shift+z,command+shift+z': () => {
+        this.#history.redo();
+        prevent(evt);
+      },
+    })(evt);
   };
 
   mounted = () => {
@@ -297,6 +347,7 @@ export class DuoyunInputElement extends GemElement {
               @input=${this.#inputHandle}
               @compositionstart=${this.#compositionstartHandle}
               @compositionend=${this.#compositionendHandle}
+              @keydown=${this.#onKeyDown}
               rows=${this.#rows}
             ></textarea>
           `

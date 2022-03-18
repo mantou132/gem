@@ -402,6 +402,7 @@ export class DuoyunFormItemElement extends GemElement<FormItemState> {
                       class="input"
                       part=${DuoyunFormItemElement.input}
                       ?disabled=${this.disabled}
+                      .placeholder=${this.placeholder}
                       @change=${(evt: CustomEvent<string>) => this.#onTextChangeWithIndex(evt, index)}
                       @clear=${() => this.#onTextCleanWithIndex(index)}
                       .clearable=${true}
