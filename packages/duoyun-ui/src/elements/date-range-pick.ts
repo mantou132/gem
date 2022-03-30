@@ -22,6 +22,7 @@ import { focusStyle } from '../lib/styles';
 
 import type { DuoyunButtonElement } from './button';
 import { ContextMenu } from './menu';
+import { pickerStyle } from './pick';
 
 import './use';
 import './date-range-panel';
@@ -29,25 +30,7 @@ import './button';
 
 const style = createCSSSheet(css`
   :host {
-    cursor: pointer;
-    display: inline-flex;
-    align-items: center;
-    border: 1px solid ${theme.borderColor};
-    border-radius: ${theme.normalRound};
-    line-height: 1.2;
-    padding: 0.5em;
-    gap: 0.5em;
-    font-size: 0.875em;
-    box-sizing: border-box;
     width: 18em;
-  }
-  :host(:where(:--active, [data-active])) {
-    background-color: ${theme.lightBackgroundColor};
-  }
-  :host([disabled]) {
-    cursor: not-allowed;
-    border-color: transparent;
-    background: ${theme.disabledColor};
   }
   .value {
     flex-grow: 1;
@@ -60,13 +43,6 @@ const style = createCSSSheet(css`
   }
   .icon {
     display: flex;
-  }
-  dy-use {
-    width: 1.2em;
-    color: ${theme.borderColor};
-  }
-  :host(:where(:hover, :--active, [data-active])) dy-use {
-    color: ${theme.textColor};
   }
   .close,
   .clearable:hover .date {
@@ -84,6 +60,7 @@ const style = createCSSSheet(css`
  */
 @customElement('dy-date-range-pick')
 @adoptedStyle(style)
+@adoptedStyle(pickerStyle)
 @adoptedStyle(focusStyle)
 export class DuoyunDateRangePickElement extends GemElement {
   @attribute placeholder: string;

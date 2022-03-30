@@ -21,19 +21,18 @@ import { ContextMenu, MenuItem } from './menu';
 
 import './use';
 
-const style = createCSSSheet(css`
+export const pickerStyle = createCSSSheet(css`
   :host {
-    font-size: 0.875em;
-    box-sizing: border-box;
-    width: 12em;
     cursor: pointer;
     display: inline-flex;
     align-items: center;
     border: 1px solid ${theme.borderColor};
     border-radius: ${theme.normalRound};
-    line-height: 1.2;
-    padding: 0.5em;
+    line-height: 2;
+    padding: 0.1em 0.5em;
     gap: 0.5em;
+    font-size: 0.875em;
+    box-sizing: border-box;
   }
   :host(:where(:--active, [data-active])) {
     background: ${theme.lightBackgroundColor};
@@ -47,6 +46,21 @@ const style = createCSSSheet(css`
     width: auto;
     border-color: transparent;
   }
+  dy-use {
+    flex-shrink: 0;
+    padding-block: 0.4em;
+    width: 1.2em;
+    color: ${theme.borderColor};
+  }
+  :host(:where(:hover, :--active, [data-active])) dy-use {
+    color: ${theme.textColor};
+  }
+`);
+
+const style = createCSSSheet(css`
+  :host {
+    width: 12em;
+  }
   .value {
     flex-grow: 1;
     overflow: hidden;
@@ -55,13 +69,6 @@ const style = createCSSSheet(css`
   }
   .placeholder {
     color: ${theme.describeColor};
-  }
-  .icon {
-    width: 1.2em;
-    color: ${theme.borderColor};
-  }
-  :host(:where(:hover, :--active, [data-active])) .icon {
-    color: ${theme.textColor};
   }
 `);
 
@@ -82,6 +89,7 @@ export interface Option<T = any> {
  */
 @customElement('dy-pick')
 @adoptedStyle(style)
+@adoptedStyle(pickerStyle)
 @adoptedStyle(focusStyle)
 @connectStore(icons)
 export class DuoyunPickElement extends GemElement {

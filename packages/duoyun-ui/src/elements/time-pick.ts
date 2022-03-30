@@ -1,5 +1,4 @@
 import {
-  connectStore,
   adoptedStyle,
   customElement,
   attribute,
@@ -10,7 +9,7 @@ import {
   boolattribute,
   state,
 } from '@mantou/gem/lib/decorators';
-import { GemElement, html, TemplateResult } from '@mantou/gem/lib/element';
+import { GemElement, html } from '@mantou/gem/lib/element';
 import { createCSSSheet, css, classMap } from '@mantou/gem/lib/utils';
 
 import { Time } from '../lib/time';
@@ -21,18 +20,16 @@ import { isNotNullish } from '../lib/types';
 import { commonHandle } from '../lib/hotkeys';
 import { focusStyle } from '../lib/styles';
 
-import type { DuoyunButtonElement } from './button';
-import type { DuoyunDatePanelElement } from './date-panel';
 import { ContextMenu } from './menu';
 import { pickerStyle } from './pick';
+import type { DuoyunButtonElement } from './button';
+import type { DuoyunTimePanelElement } from './time-panel';
 
-import './use';
-import './date-panel';
-import './button';
+import './time-panel';
 
 const style = createCSSSheet(css`
   :host {
-    width: 15em;
+    width: 10em;
   }
   .value {
     flex-grow: 1;
@@ -55,22 +52,15 @@ const style = createCSSSheet(css`
   }
 `);
 
-export interface Option {
-  label: string | TemplateResult;
-  value?: any;
-}
-
 /**
- * @customElement dy-date-pick
+ * @customElement dy-time-pick
  */
-@customElement('dy-date-pick')
-@adoptedStyle(pickerStyle)
+@customElement('dy-time-pick')
 @adoptedStyle(style)
+@adoptedStyle(pickerStyle)
 @adoptedStyle(focusStyle)
-@connectStore(icons)
-export class DuoyunDatePickElement extends GemElement {
+export class DuoyunTimePickElement extends GemElement {
   @attribute placeholder: string;
-  @boolattribute time: boolean;
   @boolattribute clearable: boolean;
   @boolattribute disabled: boolean;
 
@@ -84,7 +74,7 @@ export class DuoyunDatePickElement extends GemElement {
   }
 
   get #valueString() {
-    return this.#value && new Time(this.#value).format(this.time ? undefined : 'YYYY-MM-DD');
+    return this.#value && new Time(this.#value).format('HH:mm:ss');
   }
 
   constructor() {
@@ -95,18 +85,12 @@ export class DuoyunDatePickElement extends GemElement {
     this.internals.role = 'combobox';
   }
 
-  #onSubmit = ({ detail }: CustomEvent<number>) => {
-    this.change(detail);
-    ContextMenu.close();
-  };
-
   #onOpen = () => {
     if (this.disabled) return;
 
     let v: undefined | number = undefined;
     const onChange = ({ detail, target }: CustomEvent<number>) => {
-      const panel = target as DuoyunDatePanelElement;
-      panel.highlights = [];
+      const panel = target as DuoyunTimePanelElement;
       panel.value = detail;
       const root = panel.getRootNode() as ShadowRoot;
       const button = root.querySelector('dy-button') as DuoyunButtonElement;
@@ -121,30 +105,33 @@ export class DuoyunDatePickElement extends GemElement {
     };
     ContextMenu.open(
       html`
-        <dy-date-panel
-          style="border: none;"
-          .value=${this.#value}
-          ?time=${this.time}
-          @change=${this.time ? onChange : this.#onSubmit}
-        ></dy-date-panel>
-        ${this.time
-          ? html`
-              <style>
-                .footer {
-                  margin-block-start: 2em;
-                  display: flex;
-                  justify-content: flex-end;
-                }
-              </style>
-              <div class="footer">
-                <dy-button disabled @click=${onSubmit} small>${locale.ok}</dy-button>
-              </div>
-            `
-          : ''}
+        <div class="container">
+          <style>
+            .container {
+              display: flex;
+              flex-direction: column;
+              height: 46vh;
+            }
+            dy-time-panel {
+              box-sizing: border-box;
+              height: 0;
+              flex-grow: 1;
+            }
+            .footer {
+              flex-shrink: 0;
+              margin-block-start: 1em;
+              display: flex;
+              justify-content: flex-end;
+            }
+          </style>
+          <dy-time-panel .value=${this.value} @change=${onChange}></dy-time-panel>
+          <div class="footer">
+            <dy-button disabled @click=${onSubmit} small>${locale.ok}</dy-button>
+          </div>
+        </div>
       `,
       {
         activeElement: this,
-        width: this.time ? '30em' : undefined,
       },
     );
   };
@@ -162,7 +149,7 @@ export class DuoyunDatePickElement extends GemElement {
     return html`
       <div class=${classMap({ value: true, placeholder: !this.#value })}>${this.#valueString || this.placeholder}</div>
       <div class=${classMap({ iconwrap: true, clearable: this.clearable })}>
-        <dy-use class="date" .element=${icons.date}></dy-use>
+        <dy-use class="date" .element=${icons.schedule}></dy-use>
         <dy-use class="close" @click=${this.#onClear} .element=${icons.close}></dy-use>
       </div>
     `;

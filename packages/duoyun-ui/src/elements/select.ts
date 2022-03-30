@@ -22,6 +22,8 @@ import { hotkeys } from '../lib/hotkeys';
 import { isNotNullish } from '../lib/types';
 import { focusStyle } from '../lib/styles';
 
+import { pickerStyle } from './pick';
+
 import './reflect';
 import './use';
 import './options';
@@ -30,34 +32,16 @@ import './tag';
 
 const style = createCSSSheet(css`
   :host {
-    cursor: pointer;
-    display: inline-flex;
-    align-items: center;
-    border: 1px solid ${theme.borderColor};
-    border-radius: ${theme.normalRound};
-    line-height: 2;
-    padding: 0.1em 0.5em;
-    box-sizing: border-box;
-    gap: 0.5em;
-    font-size: 0.875em;
     width: 15em;
   }
   :host(:where(:hover, :--active, [data-active])) {
+    background: none;
     border-color: ${theme.textColor};
-  }
-  :host([borderless]) {
-    width: auto;
-    border-color: transparent;
   }
   :host([inline]) {
     display: contents;
     font-size: 1em;
     border-color: ${theme.textColor};
-  }
-  :host([disabled]) {
-    cursor: not-allowed;
-    border-color: transparent;
-    background: ${theme.disabledColor};
   }
   .inline-options {
     max-height: inherit;
@@ -106,15 +90,6 @@ const style = createCSSSheet(css`
     -webkit-mask-image: var(--m);
     mask-image: var(--m);
   }
-  .icon {
-    flex-shrink: 0;
-    width: 1.2em;
-    padding-block: 0.4em;
-    color: ${theme.borderColor};
-  }
-  :host(:where(:hover, :--active, [data-active])) .icon {
-    color: ${theme.textColor};
-  }
 `);
 
 export interface Option {
@@ -145,6 +120,7 @@ type State = {
  */
 @customElement('dy-select')
 @adoptedStyle(style)
+@adoptedStyle(pickerStyle)
 @adoptedStyle(focusStyle)
 @connectStore(icons)
 export class DuoyunSelectElement extends GemElement<State> {

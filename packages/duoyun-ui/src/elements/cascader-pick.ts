@@ -18,6 +18,7 @@ import { commonHandle } from '../lib/hotkeys';
 import { focusStyle } from '../lib/styles';
 
 import { ContextMenu } from './menu';
+import { pickerStyle } from './pick';
 import type { Option, DuoyunCascaderElement } from './cascader';
 
 import './use';
@@ -26,25 +27,7 @@ import './tag';
 
 const style = createCSSSheet(css`
   :host {
-    cursor: pointer;
-    display: inline-flex;
-    align-items: center;
-    border: 1px solid ${theme.borderColor};
-    border-radius: ${theme.normalRound};
-    line-height: 2;
-    padding: 0.1em 0.5em;
-    box-sizing: border-box;
-    gap: 0.5em;
-    font-size: 0.875em;
     width: 15em;
-  }
-  :host(:where(:--active, [data-active])) {
-    background: ${theme.lightBackgroundColor};
-  }
-  :host([disabled]) {
-    cursor: not-allowed;
-    border-color: transparent;
-    background: ${theme.disabledColor};
   }
   .value {
     flex-grow: 1;
@@ -57,15 +40,6 @@ const style = createCSSSheet(css`
   .placeholder {
     color: ${theme.describeColor};
   }
-  .icon {
-    flex-shrink: 0;
-    width: 1.2em;
-    padding-block: 0.4em;
-    color: ${theme.borderColor};
-  }
-  :host(:where(:hover, :--active, [data-active])) .icon {
-    color: ${theme.textColor};
-  }
 `);
 
 /**
@@ -73,6 +47,7 @@ const style = createCSSSheet(css`
  */
 @customElement('dy-cascader-pick')
 @adoptedStyle(style)
+@adoptedStyle(pickerStyle)
 @adoptedStyle(focusStyle)
 export class DuoyunCascaderPickElement extends GemElement {
   @attribute placeholder: string;
