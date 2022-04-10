@@ -38,7 +38,7 @@ export const lightTheme = {
   normalRound: '4px',
   smallRound: '2px',
   gridGutter: '24px',
-  popupZIndex: '9999999999999',
+  popupZIndex: '2147483646',
   timingFunction: 'cubic-bezier(0.4, 0, 0.2, 1)',
   timingEasingFunction: 'cubic-bezier(0.16, 1, 0.29, 0.99)',
 };

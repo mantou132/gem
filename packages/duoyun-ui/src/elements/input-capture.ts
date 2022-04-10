@@ -15,7 +15,7 @@ const style = createCSSSheet(css`
   .container,
   .circle {
     position: fixed;
-    z-index: ${theme.popupZIndex};
+    z-index: calc(${theme.popupZIndex} + 1);
     pointer-events: none;
   }
   .container {

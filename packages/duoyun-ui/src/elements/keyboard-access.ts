@@ -17,7 +17,7 @@ const style = createCSSSheet(css`
   }
   .contaner {
     position: fixed;
-    z-index: ${theme.popupZIndex};
+    z-index: calc(${theme.popupZIndex} + 1);
     pointer-events: none;
     inset: 0;
     margin: 0;
