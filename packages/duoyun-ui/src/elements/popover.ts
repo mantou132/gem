@@ -304,6 +304,7 @@ export class DuoyunPopoverElement extends GemElement<PopoverState> {
                 style=${styleMap({
                   display: this.#isClickTrigger ? 'block' : 'none',
                   position: 'absolute',
+                  zIndex: theme.popupZIndex,
                   inset: '0',
                 })}
                 @click=${this.#close}

@@ -103,12 +103,15 @@ export async function forever(callback: () => Promise<any>, interval = 1000) {
   }
 }
 
-export function polling(fn: (args?: any[]) => Promise<any>, delay: number) {
+export function polling(fn: (args?: any[]) => any, delay: number) {
   let timer = 0;
-  const poll = () => {
-    fn().finally(() => {
+  const poll = async () => {
+    try {
+      await fn();
+    } catch {
+    } finally {
       timer = window.setTimeout(poll, delay);
-    });
+    }
   };
   poll();
   return (haveNext = false) => {

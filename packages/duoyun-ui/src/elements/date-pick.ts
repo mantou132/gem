@@ -62,6 +62,12 @@ export interface Option {
 
 /**
  * @customElement dy-date-pick
+ * @attr placeholder
+ * @attr time
+ * @attr clearable
+ * @attr disabled
+ * @fires change
+ * @fires clear
  */
 @customElement('dy-date-pick')
 @adoptedStyle(pickerStyle)

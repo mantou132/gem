@@ -1,11 +1,4 @@
-import {
-  adoptedStyle,
-  customElement,
-  globalemitter,
-  Emitter,
-  property,
-  boolattribute,
-} from '@mantou/gem/lib/decorators';
+import { adoptedStyle, customElement, globalemitter, Emitter, property } from '@mantou/gem/lib/decorators';
 import { GemElement, html } from '@mantou/gem/lib/element';
 import { createCSSSheet, css } from '@mantou/gem/lib/utils';
 
@@ -42,14 +35,12 @@ type State = {
 
 /**
  * @customElement dy-date-range-panel
- * @attr time
  */
 @customElement('dy-date-range-panel')
 @adoptedStyle(style)
 export class DuoyunDateRangePanelElement extends GemElement<State> {
   @property value?: string | number[];
   @globalemitter change: Emitter<string | number[]>;
-  @boolattribute time: boolean;
 
   constructor() {
     super();
@@ -101,26 +92,21 @@ export class DuoyunDateRangePanelElement extends GemElement<State> {
       !isNullish(start) && highlightStop ? [[Math.min(start, highlightStop), Math.max(start, highlightStop)]] : [];
     const isSomeMonth = !isNullish(start) && !isNullish(stop) && new Time(start).isSome(stop, 'M');
     return html`
-      ${this.time
-        ? ''
-        : html`
-            <dy-date-panel
-              class="datepanel"
-              @change=${this.#onSelect}
-              @datehover=${this.#onDateHover}
-              .value=${start}
-              .highlights=${highlights}
-              .initValue=${isNullish(start)
-                ? new Time().subtract(1, 'M').valueOf()
-                : isSomeMonth
-                ? new Time(start).subtract(1, 'M').valueOf()
-                : undefined}
-            ></dy-date-panel>
-            <dy-divider class="separate" orientation="vertical"></dy-divider>
-          `}
       <dy-date-panel
         class="datepanel"
-        ?time=${this.time}
+        @change=${this.#onSelect}
+        @datehover=${this.#onDateHover}
+        .value=${start}
+        .highlights=${highlights}
+        .initValue=${isNullish(start)
+          ? new Time().subtract(1, 'M').valueOf()
+          : isSomeMonth
+          ? new Time(start).subtract(1, 'M').valueOf()
+          : undefined}
+      ></dy-date-panel>
+      <dy-divider class="separate" orientation="vertical"></dy-divider>
+      <dy-date-panel
+        class="datepanel"
         @change=${this.#onSelect}
         @datehover=${this.#onDateHover}
         .value=${stop}

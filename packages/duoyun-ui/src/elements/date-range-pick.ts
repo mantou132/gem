@@ -55,6 +55,10 @@ const style = createCSSSheet(css`
 
 /**
  * @customElement dy-date-range-pick
+ * @attr placeholder
+ * @attr clearable
+ * @attr disabled
+ * @attr time
  * @fires change
  * @fires clear
  */

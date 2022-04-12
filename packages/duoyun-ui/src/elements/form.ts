@@ -29,6 +29,8 @@ import './checkbox';
 import './radio';
 import './select';
 import './help-text';
+import './date-pick';
+import './date-range-pick';
 
 const formStyle = createCSSSheet(css`
   dy-form {
@@ -218,6 +220,9 @@ export class DuoyunFormItemElement extends GemElement<FormItemState> {
 
   @attribute type:
     | 'text'
+    | 'password'
+    | 'date'
+    | 'date-range'
     | 'number'
     | 'checkbox'
     | 'checkbox-group' // value is array
@@ -235,6 +240,7 @@ export class DuoyunFormItemElement extends GemElement<FormItemState> {
   @boolattribute disabled: boolean;
   @boolattribute searchable: boolean;
   @boolattribute clearable: boolean;
+  @boolattribute time: boolean;
 
   @state invalid: boolean;
 
@@ -270,8 +276,10 @@ export class DuoyunFormItemElement extends GemElement<FormItemState> {
   constructor() {
     super();
     this.addEventListener('change', (evt: CustomEvent) => {
-      if (this.#type === 'slot') {
+      if (!this.name) {
         evt.stopPropagation();
+      }
+      if (this.#type === 'slot') {
         this.#change(evt.detail);
       }
     });
@@ -346,6 +354,33 @@ export class DuoyunFormItemElement extends GemElement<FormItemState> {
               .options=${this.dataList}
               .renderLabel=${this.renderLabel}
             ></dy-select>
+          `
+        : this.#type === 'date'
+        ? html`
+            <dy-date-pick
+              class="input"
+              @change=${this.#onChange}
+              @clear=${(evt: any) => evt.target.change(undefined)}
+              ?disabled=${this.disabled}
+              .value=${this.value}
+              .time=${this.time}
+              .placeholder=${this.placeholder}
+              .clearable=${!this.required}
+            >
+            </dy-date-pick>
+          `
+        : this.#type === 'date-range'
+        ? html`
+            <dy-date-range-pick
+              class="input"
+              @change=${this.#onChange}
+              @clear=${(evt: any) => evt.target.change(undefined)}
+              ?disabled=${this.disabled}
+              .value=${this.value}
+              .placeholder=${this.placeholder}
+              .clearable=${!this.required}
+            >
+            </dy-date-range-pick>
           `
         : this.#type === 'pick'
         ? html`
