@@ -97,6 +97,7 @@ export interface Option {
   description?: string | TemplateResult;
   value?: any;
   disabled?: boolean;
+  style?: StyleObject;
 }
 
 type State = {
@@ -343,7 +344,7 @@ export class DuoyunSelectElement extends GemElement<State> {
   #getOptions = () => {
     const { search } = this.state;
     const options = this.#fiteredOptions?.map((option) => {
-      const { value, label, description, disabled } = option;
+      const { value, label, description, disabled, style } = option;
       return {
         label: this.renderLabel ? this.renderLabel(option) : label,
         description,
@@ -351,6 +352,7 @@ export class DuoyunSelectElement extends GemElement<State> {
         onPointerUp: (e: Event) => e.stopPropagation(),
         onClick: disabled ? undefined : () => this.#onChange(value ?? label),
         disabled,
+        style,
       };
     });
     if (this.pinselected) {

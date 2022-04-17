@@ -16,6 +16,7 @@ export function getSemanticColor(semantic?: string) {
 }
 
 export const lightTheme = {
+  colorScheme: 'light',
   primaryColor: '#000', // https://developer.mozilla.org/en-US/docs/Web/CSS/accent-color
   highlightColor: '#000', // title, etc
   textColor: '#4b4b4b',
@@ -44,6 +45,7 @@ export const lightTheme = {
 };
 
 export const darkTheme: Partial<typeof lightTheme> = {
+  colorScheme: 'dark',
   primaryColor: '#efefef',
   highlightColor: '#efefef',
   textColor: '#c8c8c8',

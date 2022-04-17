@@ -8,7 +8,7 @@ import {
   boolattribute,
 } from '@mantou/gem/lib/decorators';
 import { GemElement, html } from '@mantou/gem/lib/element';
-import { createCSSSheet, css } from '@mantou/gem/lib/utils';
+import { createCSSSheet, css, classMap } from '@mantou/gem/lib/utils';
 
 import { isNotNullish } from '../lib/types';
 import { theme } from '../lib/theme';
@@ -20,6 +20,7 @@ import { focusStyle } from '../lib/styles';
 import './use';
 import './calendar';
 import './divider';
+import './action-text';
 import './time-panel';
 
 const style = createCSSSheet(css`
@@ -50,8 +51,34 @@ const style = createCSSSheet(css`
   .button:hover {
     background-color: ${theme.hoverBackgroundColor};
   }
+  .container {
+    position: relative;
+  }
   .calendar {
     gap: 3px 1px;
+  }
+  .calendar.hidden {
+    visibility: hidden;
+  }
+  .list {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    grid: auto-flow / 1fr 1fr 1fr;
+  }
+  .item {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    outline: 1px solid transparent;
+    outline-offset: -0.5em;
+  }
+  .item.highlight {
+    z-index: 1;
+    outline-color: ${theme.highlightColor};
+  }
+  .item:hover {
+    background: ${theme.hoverBackgroundColor};
   }
   .separate {
     color: ${theme.lightBackgroundColor};
@@ -75,9 +102,18 @@ const style = createCSSSheet(css`
   }
 `);
 
+const modes = ['day', 'month', 'year'] as const;
+
+type Mode = typeof modes[number];
+
 type State = {
   year: number;
   month: number;
+  mode: Mode;
+  old?: {
+    year: number;
+    month: number;
+  };
 };
 
 /**
@@ -103,6 +139,11 @@ export class DuoyunDatePanelElement extends GemElement<State> {
     return new Time(`${this.state.year}-${String(this.state.month + 1).padStart(2, '0')}`);
   }
 
+  get #prevPosition() {
+    if (!this.state.old) return 0;
+    return new Time(`${this.state.old.year}-${String(this.state.old.month + 1).padStart(2, '0')}`);
+  }
+
   get #highlights() {
     const highlights = [...(this.highlights || [])];
     const value = this.value;
@@ -121,11 +162,27 @@ export class DuoyunDatePanelElement extends GemElement<State> {
   state: State = {
     year: 0,
     month: 0,
+    mode: 'day',
   };
 
   #increaseView = (number: number) => {
-    const date = this.#currentPosition.add(number, 'M');
+    const date = this.#currentPosition;
+    switch (this.state.mode) {
+      case 'day':
+        date.add(number, 'M');
+        break;
+      case 'month':
+        date.add(number, 'Y');
+        break;
+      case 'year':
+        date.add(number * 12, 'Y');
+        break;
+    }
     this.#initState(date.valueOf());
+  };
+
+  #onChangeView = (state: Partial<State>) => {
+    this.setState({ ...state, mode: 'day' });
   };
 
   #initState = (value: number) => {
@@ -152,8 +209,90 @@ export class DuoyunDatePanelElement extends GemElement<State> {
     this.change(evt.detail);
   };
 
+  #renderCurrentPostion = () => {
+    switch (this.state.mode) {
+      case 'day':
+        return html`${this.#currentPosition.formatToParts().map(({ type, value }) => {
+          if (modes.includes(type as any)) {
+            const mode = type as Mode;
+            return html`<dy-action-text @click=${() => this.setState({ mode })}>${value}</dy-action-text>`;
+          }
+          return value;
+        })}`;
+      default:
+        return html`
+          <dy-action-text @click=${() => this.setState({ mode: 'day' })}>
+            ${this.#currentPosition.format('YYYY-MM-DD')}
+          </dy-action-text>
+        `;
+    }
+  };
+
+  #renderMonthList = () => {
+    const start = new Time().startOf('Y');
+    const isCurrentYear = isNotNullish(this.value) && new Time(this.value).getFullYear() === this.state.year;
+    return html`
+      <div class="list">
+        ${Array.from({ length: 12 }).map(
+          (_, index) =>
+            html`
+              <span
+                class=${classMap({
+                  item: true,
+                  highlight: isCurrentYear && index === this.state.month,
+                })}
+                @click=${() => this.#onChangeView({ month: index })}
+              >
+                ${Object.fromEntries(
+                  new Time(start)
+                    .add(index, 'M')
+                    .formatToParts()
+                    .map(({ type, value }) => [type, value]),
+                ).month}
+              </span>
+            `,
+        )}
+      </div>
+    `;
+  };
+
+  #renderYearList = () => {
+    const currentYear = isNotNullish(this.value) && new Time(this.value).getFullYear();
+    return html`
+      <div class="list">
+        ${Array.from({ length: 12 }, (_, index) => this.state.year - 7 + index).map(
+          (year) =>
+            html`
+              <span
+                class=${classMap({
+                  item: true,
+                  highlight: currentYear === year,
+                })}
+                @click=${() => this.#onChangeView({ year })}
+              >
+                ${year}
+              </span>
+            `,
+        )}
+      </div>
+    `;
+  };
+
   willMount = () => {
     this.#initState(isNotNullish(this.value) ? this.value : this.initValue || Time.now());
+    this.memo(
+      () => {
+        if (this.state.mode !== 'day') {
+          this.state.old = {
+            month: this.state.month,
+            year: this.state.year,
+          };
+        } else {
+          this.state.old = undefined;
+        }
+      },
+      () => [this.state.mode],
+    );
   };
 
   mounted = () => {
@@ -166,6 +305,7 @@ export class DuoyunDatePanelElement extends GemElement<State> {
   };
 
   render = () => {
+    const { mode } = this.state;
     return html`
       <div class="datepanel">
         <div class="head">
@@ -177,7 +317,7 @@ export class DuoyunDatePanelElement extends GemElement<State> {
             @click=${() => this.#increaseView(-1)}
             .element=${icons.left}
           ></dy-use>
-          <div class="current">${this.#currentPosition.format({ year: 'numeric', month: 'long' })}</div>
+          <div class="current">${this.#renderCurrentPostion()}</div>
           <dy-use
             class="button"
             tabindex="0"
@@ -187,15 +327,18 @@ export class DuoyunDatePanelElement extends GemElement<State> {
             .element=${icons.right}
           ></dy-use>
         </div>
-        <dy-calendar
-          class="calendar"
-          borderless
-          today
-          .position=${this.#currentPosition.valueOf()}
-          .highlights=${this.#highlights}
-          @datehover=${({ detail }: CustomEvent<number>) => this.datehover(detail)}
-          @dateclick=${this.#onChange}
-        ></dy-calendar>
+        <div class="container">
+          <dy-calendar
+            class=${classMap({ calendar: true, hidden: mode !== 'day' })}
+            borderless
+            today
+            .position=${mode === 'day' ? this.#currentPosition.valueOf() : this.#prevPosition.valueOf()}
+            .highlights=${this.#highlights}
+            @datehover=${({ detail }: CustomEvent<number>) => this.datehover(detail)}
+            @dateclick=${this.#onChange}
+          ></dy-calendar>
+          ${mode === 'month' ? this.#renderMonthList() : ''} ${mode === 'year' ? this.#renderYearList() : ''}
+        </div>
       </div>
       ${this.time
         ? html`

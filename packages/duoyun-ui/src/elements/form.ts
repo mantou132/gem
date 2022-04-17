@@ -192,7 +192,7 @@ type FormItemState = {
 
 type FormItemRule = {
   message?: string;
-  pattern?: string;
+  pattern?: string | RegExp;
   required?: boolean;
   validator?: (value: any) => void | Promise<void>;
 };
@@ -249,7 +249,7 @@ export class DuoyunFormItemElement extends GemElement<FormItemState> {
 
   @property rules?: FormItemRule[];
 
-  @property dataList?: DataList | Option[];
+  @property dataList?: DataList | Option[] | SelectOption[];
 
   @globalemitter itemchange: Emitter<{ name: string; value: number | string | any[] | any }>;
 

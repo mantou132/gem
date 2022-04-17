@@ -119,6 +119,10 @@ export class Time extends Date {
   static #rtfCache = new Map<string, Intl.RelativeTimeFormat>();
   static #formatReg = /\[([^\]]+)]|Y{1,4}|M{1,4}|D{1,2}|H{1,2}|m{1,2}|s{1,2}/g;
 
+  formatToParts(opt: Intl.DateTimeFormatOptions = { year: 'numeric', month: 'short' }) {
+    return Intl.DateTimeFormat(locale.localeCode, opt).formatToParts(this);
+  }
+
   format(opt: string | Intl.DateTimeFormatOptions = 'YYYY-MM-DD HH:mm:ss') {
     if (typeof opt !== 'string') {
       return Intl.DateTimeFormat(locale.localeCode, opt).format(this);

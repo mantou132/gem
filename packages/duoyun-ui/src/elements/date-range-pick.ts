@@ -58,7 +58,6 @@ const style = createCSSSheet(css`
  * @attr placeholder
  * @attr clearable
  * @attr disabled
- * @attr time
  * @fires change
  * @fires clear
  */
@@ -70,7 +69,6 @@ export class DuoyunDateRangePickElement extends GemElement {
   @attribute placeholder: string;
   @boolattribute clearable: boolean;
   @boolattribute disabled: boolean;
-  @boolattribute time: boolean;
 
   @state active: boolean;
   @property value?: any;
@@ -113,7 +111,7 @@ export class DuoyunDateRangePickElement extends GemElement {
     };
     ContextMenu.open(
       html`
-        <dy-date-range-panel @change=${onChange} ?time=${this.time} .value=${this.value}></dy-date-range-panel>
+        <dy-date-range-panel @change=${onChange} .value=${this.value}></dy-date-range-panel>
         <style>
           .footer {
             margin-block-start: 2em;

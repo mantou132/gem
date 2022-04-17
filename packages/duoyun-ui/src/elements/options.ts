@@ -1,6 +1,6 @@
 import { adoptedStyle, customElement, property, boolattribute } from '@mantou/gem/lib/decorators';
 import { GemElement, html, TemplateResult } from '@mantou/gem/lib/element';
-import { createCSSSheet, css, classMap } from '@mantou/gem/lib/utils';
+import { createCSSSheet, css, classMap, StyleObject, styleMap } from '@mantou/gem/lib/utils';
 
 import { theme } from '../lib/theme';
 import { icons } from '../lib/icons';
@@ -96,6 +96,7 @@ export type Option = {
   danger?: boolean;
   highlight?: boolean;
   onClick?: (evt: MouseEvent) => void;
+  style?: StyleObject;
   onPointerEnter?: (evt: PointerEvent) => void;
   onPointerLeave?: (evt: PointerEvent) => void;
   onPointerDown?: (evt: PointerEvent) => void;
@@ -169,6 +170,7 @@ export class DuoyunOptionsElement extends GemElement<State> {
           onPointerDown,
           onPointerUp,
           onClick,
+          style,
         }) =>
           label === '---'
             ? html`<div class="separator"></div>`
@@ -184,6 +186,7 @@ export class DuoyunOptionsElement extends GemElement<State> {
                     danger: !!danger,
                     highlight: !!highlight,
                   })}
+                  style=${style ? styleMap(style) : ''}
                   @pointerenter=${onPointerEnter}
                   @focus=${onPointerEnter}
                   @pointerleave=${onPointerLeave}
