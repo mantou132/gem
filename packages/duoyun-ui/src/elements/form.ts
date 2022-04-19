@@ -21,6 +21,7 @@ import { locale } from '../lib/locale';
 import type { DataList } from './input';
 import type { Option } from './pick';
 import type { Option as SelectOption } from './select';
+import type { Adder } from './options';
 
 import './input';
 import './pick';
@@ -250,6 +251,7 @@ export class DuoyunFormItemElement extends GemElement<FormItemState> {
   @property rules?: FormItemRule[];
 
   @property dataList?: DataList | Option[] | SelectOption[];
+  @property adder?: Adder; // select
 
   @globalemitter itemchange: Emitter<{ name: string; value: number | string | any[] | any }>;
 
@@ -349,6 +351,7 @@ export class DuoyunFormItemElement extends GemElement<FormItemState> {
               part=${DuoyunFormItemElement.input}
               @change=${this.#onChange}
               .multiple=${this.multiple}
+              .adder=${this.adder}
               .value=${this.value}
               .placeholder=${this.placeholder}
               .options=${this.dataList}

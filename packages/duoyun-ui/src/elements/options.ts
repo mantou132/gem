@@ -1,12 +1,12 @@
 import { adoptedStyle, customElement, property, boolattribute } from '@mantou/gem/lib/decorators';
 import { GemElement, html, TemplateResult } from '@mantou/gem/lib/element';
-import { createCSSSheet, css, classMap, StyleObject, styleMap } from '@mantou/gem/lib/utils';
+import { createCSSSheet, css, classMap } from '@mantou/gem/lib/utils';
 
 import { theme } from '../lib/theme';
 import { icons } from '../lib/icons';
 import { isIncludesString } from '../lib/utils';
 import { locale } from '../lib/locale';
-import { commonHandle } from '../lib/hotkeys';
+import { commonHandle, hotkeys } from '../lib/hotkeys';
 import { focusStyle } from '../lib/styles';
 
 import './use';
@@ -59,9 +59,26 @@ const style = createCSSSheet(css`
   .highlight {
     color: ${theme.highlightColor};
   }
-  .item:hover,
+  .item:not(.add):hover,
   .highlight {
     background-color: ${theme.lightBackgroundColor};
+  }
+  .add {
+    padding-block: 0;
+  }
+  .delete:not(:hover) .icon.action {
+    display: none;
+  }
+  .add-input {
+    height: calc(1.5em + 2 * 0.4em);
+    font-size: 1em;
+    border: none;
+    padding: 0;
+    border-radius: 0;
+    width: 100%;
+  }
+  .add-input::part(input) {
+    padding: 0;
   }
   .danger {
     color: ${theme.negativeColor};
@@ -74,6 +91,12 @@ const style = createCSSSheet(css`
     flex-shrink: 0;
     position: relative;
     width: 1.2em;
+    padding: 0.3em;
+    margin: -0.3em;
+    border-radius: ${theme.normalRound};
+  }
+  .action:hover {
+    background: ${theme.hoverBackgroundColor};
   }
   .separator {
     background: ${theme.borderColor};
@@ -96,15 +119,21 @@ export type Option = {
   danger?: boolean;
   highlight?: boolean;
   onClick?: (evt: MouseEvent) => void;
-  style?: StyleObject;
+  onRemove?: (evt: MouseEvent) => void;
   onPointerEnter?: (evt: PointerEvent) => void;
   onPointerLeave?: (evt: PointerEvent) => void;
   onPointerDown?: (evt: PointerEvent) => void;
   onPointerUp?: (evt: PointerEvent) => void;
 };
 
+export type Adder = {
+  text?: string;
+  handle: (value: string) => any;
+};
+
 type State = {
   search: string;
+  addValue: string;
 };
 
 /**
@@ -118,9 +147,11 @@ export class DuoyunOptionsElement extends GemElement<State> {
   @boolattribute searchable: boolean;
 
   @property options?: Option[];
+  @property adder?: Adder;
 
   state: State = {
     search: '',
+    addValue: '',
   };
 
   constructor() {
@@ -132,6 +163,26 @@ export class DuoyunOptionsElement extends GemElement<State> {
   #onSearch = ({ detail }: CustomEvent<string>) => {
     this.setState({ search: detail });
   };
+
+  #onAdd = async () => {
+    if (this.state.addValue) {
+      await this.adder!.handle?.(this.state.addValue);
+      this.setState({ addValue: '' });
+    }
+  };
+
+  #onRemove = (evt: MouseEvent, onRemove: (evt: MouseEvent) => void) => {
+    evt.stopPropagation();
+    onRemove(evt);
+  };
+
+  #stopPropagation = (evt: Event) => evt.stopPropagation();
+
+  #onAdderKeyDown = hotkeys({
+    enter: this.#onAdd,
+    esc: () => ({}),
+    onUncapture: this.#stopPropagation,
+  });
 
   render = () => {
     const { search } = this.state;
@@ -155,6 +206,40 @@ export class DuoyunOptionsElement extends GemElement<State> {
             </div>
           `
         : ''}
+      ${this.adder
+        ? html`
+            <div
+              role="option"
+              tabindex="0"
+              class=${classMap({
+                item: true,
+                add: true,
+              })}
+              @pointerup=${this.#stopPropagation}
+              @keydown=${commonHandle}
+            >
+              <div class="value">
+                <div class="label">
+                  <dy-input
+                    class="add-input"
+                    .value=${this.state.addValue}
+                    .placeholder=${this.adder.text || locale.add}
+                    @change=${({ detail: addValue }: CustomEvent<string>) => this.setState({ addValue })}
+                    @keydown=${this.#onAdderKeyDown}
+                  ></dy-input>
+                </div>
+              </div>
+              <dy-use
+                role="button"
+                tabindex="0"
+                class="icon action"
+                .element=${icons.add}
+                @click=${this.#onAdd}
+                @keydown=${commonHandle}
+              ></dy-use>
+            </div>
+          `
+        : ''}
       ${(search && options?.length === 0 ? [{ label: locale.noData, disabled: true }] : options)?.map(
         ({
           label,
@@ -170,9 +255,9 @@ export class DuoyunOptionsElement extends GemElement<State> {
           onPointerDown,
           onPointerUp,
           onClick,
-          style,
-        }) =>
-          label === '---'
+          onRemove,
+        }) => {
+          return label === '---'
             ? html`<div class="separator"></div>`
             : html`
                 <div
@@ -185,8 +270,8 @@ export class DuoyunOptionsElement extends GemElement<State> {
                     disabled: !!disabled,
                     danger: !!danger,
                     highlight: !!highlight,
+                    delete: !!onRemove,
                   })}
-                  style=${style ? styleMap(style) : ''}
                   @pointerenter=${onPointerEnter}
                   @focus=${onPointerEnter}
                   @pointerleave=${onPointerLeave}
@@ -201,8 +286,19 @@ export class DuoyunOptionsElement extends GemElement<State> {
                     <div class="description">${description}</div>
                   </div>
                   ${tag}${tagIcon ? html`<dy-use class="icon" .element=${tagIcon}></dy-use>` : ''}
+                  ${onRemove
+                    ? html`
+                        <dy-use
+                          class="icon action"
+                          .element=${icons.delete}
+                          @pointerup=${this.#stopPropagation}
+                          @click=${(evt: MouseEvent) => this.#onRemove(evt, onRemove)}
+                        ></dy-use>
+                      `
+                    : ''}
                 </div>
-              `,
+              `;
+        },
       )}
       <slot></slot>
     `;

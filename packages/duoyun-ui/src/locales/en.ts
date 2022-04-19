@@ -17,6 +17,7 @@ export default {
 
   copySuccess: 'Copy success',
   copyFail: 'Copy fail',
+  add: 'Add',
   search: 'Search',
   ok: 'OK',
   cancel: 'Cancel',

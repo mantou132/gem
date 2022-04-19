@@ -11,10 +11,10 @@ const intlDigitFormatter = Intl.DateTimeFormat(undefined, {
 });
 
 export function parseDate(date?: number | Date) {
-  const parts = intlDigitFormatter.formatToParts(date);
+  const parts = isNaN(Number(date)) ? [] : intlDigitFormatter.formatToParts(date);
   const dateObj: Record<string, string> = {};
   parts.forEach(({ type, value }) => (dateObj[type] = value));
-  const { year, month, day, hour, minute, second } = dateObj;
+  const { year = '', month = '', day = '', hour = '', minute = '', second = '' } = dateObj;
   // https://bugs.chromium.org/p/chromium/issues/detail?id=1262801
   return { year, month, day, hour: hour === '24' ? '00' : hour, minute, second };
 }
@@ -119,12 +119,18 @@ export class Time extends Date {
   static #rtfCache = new Map<string, Intl.RelativeTimeFormat>();
   static #formatReg = /\[([^\]]+)]|Y{1,4}|M{1,4}|D{1,2}|H{1,2}|m{1,2}|s{1,2}/g;
 
+  get isInvalidTime() {
+    return isNaN(this.valueOf());
+  }
+
   formatToParts(opt: Intl.DateTimeFormatOptions = { year: 'numeric', month: 'short' }) {
+    if (this.isInvalidTime) return [];
     return Intl.DateTimeFormat(locale.localeCode, opt).formatToParts(this);
   }
 
   format(opt: string | Intl.DateTimeFormatOptions = 'YYYY-MM-DD HH:mm:ss') {
     if (typeof opt !== 'string') {
+      if (this.isInvalidTime) return '';
       return Intl.DateTimeFormat(locale.localeCode, opt).format(this);
     }
     const { year, month, day, hour, minute, second } = parseDate(this);

@@ -23,6 +23,7 @@ import { isNotNullish } from '../lib/types';
 import { focusStyle } from '../lib/styles';
 
 import { pickerStyle } from './pick';
+import type { Adder } from './options';
 
 import './reflect';
 import './use';
@@ -97,7 +98,7 @@ export interface Option {
   description?: string | TemplateResult;
   value?: any;
   disabled?: boolean;
-  style?: StyleObject;
+  onRemove?: (evt: MouseEvent) => void;
 }
 
 type State = {
@@ -136,6 +137,7 @@ export class DuoyunSelectElement extends GemElement<State> {
 
   @property dropdownStyle?: StyleObject;
   @property options?: Option[];
+  @property adder?: Adder;
   @property value?: any | any[];
   @property renderLabel: (e: Option) => string | TemplateResult;
   @property renderTag: (e: Option) => string | TemplateResult;
@@ -344,7 +346,7 @@ export class DuoyunSelectElement extends GemElement<State> {
   #getOptions = () => {
     const { search } = this.state;
     const options = this.#fiteredOptions?.map((option) => {
-      const { value, label, description, disabled, style } = option;
+      const { value, label, description, disabled, onRemove } = option;
       return {
         label: this.renderLabel ? this.renderLabel(option) : label,
         description,
@@ -352,7 +354,7 @@ export class DuoyunSelectElement extends GemElement<State> {
         onPointerUp: (e: Event) => e.stopPropagation(),
         onClick: disabled ? undefined : () => this.#onChange(value ?? label),
         disabled,
-        style,
+        onRemove,
       };
     });
     if (this.pinselected) {
@@ -368,7 +370,7 @@ export class DuoyunSelectElement extends GemElement<State> {
     const isEmpty = !this.#valueOptions?.length;
     return html`
       ${this.inline
-        ? html`<dy-options class="inline-options" .options=${this.#getOptions()}></dy-options>`
+        ? html`<dy-options class="inline-options" .options=${this.#getOptions()} .adder=${this.adder}></dy-options>`
         : html`
             <div class=${classMap({ 'value-wrap': true, hasplaceholder: isEmpty })}>
               ${isEmpty
@@ -431,6 +433,7 @@ export class DuoyunSelectElement extends GemElement<State> {
                         transform,
                       })}
                       .options=${this.#getOptions()}
+                      .adder=${this.adder}
                     ></dy-options>
                   </dy-reflect>
                 `
