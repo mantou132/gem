@@ -34,14 +34,12 @@ export class DyTextMaskElement extends GemElement {
           const { length } = mask.replaceAll(clearRegRxp, '');
           const templateArr: string[] = [];
           const values: (TemplateResult | string)[] = [];
-          let index = 0;
           mask.split(matchRegRxp).forEach((e) => {
             templateArr.push('');
             if (!e) {
               values.push('');
             } else if (e === this.#placeholder.repeat(e.length)) {
-              values.push(this.origin.slice(index, index + e.length));
-              index += e.length;
+              values.push(e);
             } else {
               values.push(html`<span>${e}</span>`);
             }
@@ -57,6 +55,16 @@ export class DyTextMaskElement extends GemElement {
   render = () => {
     const arg = this.#masks.get(this.origin.length);
     if (!arg) return html`${this.origin}`;
-    return html(arg[0] as unknown as TemplateStringsArray, ...arg[1]);
+
+    let index = 0;
+    const values = arg[1].map((e) => {
+      if (typeof e === 'string') {
+        const s = this.origin.slice(index, index + e.length);
+        index += e.length;
+        return s;
+      }
+      return e;
+    });
+    return html(arg[0] as unknown as TemplateStringsArray, ...values);
   };
 }
