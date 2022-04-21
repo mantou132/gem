@@ -17,7 +17,8 @@ export interface Axi {
 }
 
 export interface Tooltip {
-  formatter?: (value: number | string | null) => string;
+  titleFormatter?: (value: number | string | null) => string;
+  valueFormatter?: (value: number | null) => string;
   filter?: (data: DataItem) => boolean;
   render?: (data: Data) => TemplateResult;
 }

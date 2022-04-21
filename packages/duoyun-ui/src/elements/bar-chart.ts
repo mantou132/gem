@@ -54,7 +54,7 @@ export class DuoyunBarChartElement extends DuoyunChartBaseElement {
     ChartTooltip.open(evt.x, evt.y, {
       render: this.tooltip?.render,
       xValue: index,
-      title: this.tooltip?.formatter?.(this.series![index]) || String(this.series![index]),
+      title: this.tooltip?.titleFormatter?.(this.series![index]) || String(this.series![index]),
       values: values,
     });
   };

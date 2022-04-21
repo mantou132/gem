@@ -23,11 +23,11 @@ export class DuoyunScatterChartElement extends DuoyunChartBaseElement {
     if (this.tooltip?.render) {
       ChartTooltip.open(evt.x, evt.y, {
         render: this.tooltip?.render,
-        title: this.tooltip?.formatter?.(point[0]) || String(point[0]),
+        title: this.tooltip?.titleFormatter?.(point[0]) || String(point[0]),
         xValue: point[0],
         values: [
           {
-            value: this.yAxi?.formatter?.(point[1], 0) || String(point[1]),
+            value: this.tooltip?.valueFormatter?.(point[1]) || this.yAxi?.formatter?.(point[1], 0) || String(point[1]),
             originValue: point[1],
             color: this.colors[index],
             label: this.sequences![index].label,

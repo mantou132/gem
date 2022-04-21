@@ -42,7 +42,7 @@ export class DuoyunDonutChartElement extends DuoyunChartBaseElement {
         render: this.tooltip?.render,
         values: this.sequences!.map(({ label, value }, i) => ({
           highlight: index === i,
-          value: this.tooltip?.formatter?.(value) || String(value),
+          value: this.tooltip?.valueFormatter?.(value) || String(value),
           originValue: value,
           color: this.colors[i],
           label: label,

@@ -136,13 +136,13 @@ export class DuoyunAreaChartElement extends DuoyunChartBaseElement {
     ChartTooltip.open(evt.x, evt.y, {
       render: this.tooltip?.render,
       xValue: current.xValue,
-      title: this.tooltip?.formatter?.(current.xValue) || String(current.xValue),
+      title: this.tooltip?.titleFormatter?.(current.xValue) || String(current.xValue),
       values: this.#sequencesNormalize
         ?.map(({ values, label, value }, i) => {
           const [_, v] = values[current.index];
           return {
             label,
-            value: this.yAxi?.formatter?.(v, 0) || String(v),
+            value: this.tooltip?.valueFormatter?.(v) || this.yAxi?.formatter?.(v, 0) || String(v),
             color: this.colors[i],
             hidden: !!this.filtersSet.size && !this.filtersSet.has(value ?? label),
             highlight: this.state.hoverSequence === (value ?? label),
