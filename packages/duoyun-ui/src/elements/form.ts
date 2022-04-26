@@ -458,6 +458,7 @@ export class DuoyunFormItemElement extends GemElement<FormItemState> {
               <dy-input
                 class="input"
                 part=${DuoyunFormItemElement.input}
+                name=${this.name}
                 type=${this.#type}
                 ?disabled=${this.disabled}
                 @change=${this.#onChange}

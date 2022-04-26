@@ -134,6 +134,7 @@ const style = createCSSSheet(css`
 
 /**
  * @customElement dy-input
+ * @attr name
  * @attr value
  * @attr type
  * @attr disabled
@@ -156,6 +157,7 @@ export class DuoyunInputElement extends GemElement {
   @globalemitter change: Emitter<string>;
   @emitter clear: Emitter<string>;
 
+  @attribute name: string;
   @attribute value: string;
   @attribute type: 'search' | 'password' | 'email' | 'url' | 'tel' | 'text' | 'textarea' | 'number';
   @attribute placeholder: string;
@@ -358,6 +360,7 @@ export class DuoyunInputElement extends GemElement {
               class="input"
               part=${DuoyunInputElement.input}
               spellcheck=${this.#spellcheck}
+              name=${this.name}
               placeholder=${this.placeholder}
               ?disabled=${this.disabled}
               ?required=${this.required}

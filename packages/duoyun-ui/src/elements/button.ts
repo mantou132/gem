@@ -47,6 +47,7 @@ const style = createCSSSheet(css`
     border: 1px solid var(--bg);
   }
   .content {
+    flex-grow: 1;
     display: flex;
     align-items: center;
     justify-content: center;
