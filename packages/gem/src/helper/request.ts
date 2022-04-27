@@ -16,7 +16,7 @@ export async function request<T>(uri: string, options: RequestInit = {}): Promis
 }
 
 type ReqBody = Record<string, unknown> | BodyInit;
-const TypedArray = Object.getPrototypeOf(Object.getPrototypeOf(new Int8Array()));
+const TypedArray = Object.getPrototypeOf(Object.getPrototypeOf(new Int8Array())).constructor;
 
 function serializationBody(body?: ReqBody): BodyInit | undefined {
   if (
