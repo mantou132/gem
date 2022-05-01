@@ -4,6 +4,18 @@
 
 <gbp-example
   name="dy-button"
+  props='{"color": "danger"}'
+  html="Delete Post"
+  src="https://jspm.dev/duoyun-ui/elements/button"></gbp-example>
+
+<gbp-example
+  name="dy-button"
+  props='{"color": "danger", "disabled": true}'
+  html="Create Post"
+  src="https://jspm.dev/duoyun-ui/elements/button"></gbp-example>
+
+<gbp-example
+  name="dy-button"
   props='{"color": "danger", "type": "reverse", "small": true, "dropdown": [{"text": "Label 1"}, {"text": "Label 2"}]}'
   html="Create Post"
   src="https://jspm.dev/duoyun-ui/elements/button"></gbp-example>

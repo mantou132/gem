@@ -33,21 +33,21 @@ export class DuoyunLineChartElement extends DuoyunBarChartElement {
     if (!this.contentRect.width || !this.sequences || !this.series) return html``;
     return html`
       <style>
-        .line,
-        .symbol {
+        .line {
           pointer-events: none;
-        }
-        .hover:hover ~ .line {
-          stroke: ${theme.borderColor};
-          stroke-dasharray: ${`${this.getSVGPixel(4)} ${this.getSVGPixel(1.5)}`};
         }
         .symbol {
           stroke-width: ${this.getSVGPixel(1)};
-          r: ${this.getSVGPixel(2)};
           fill: ${theme.backgroundColor};
         }
-        .hover:hover ~ .symbol {
-          r: ${this.getSVGPixel(3)};
+        .serie:hover .line {
+          stroke: ${theme.borderColor};
+          stroke-dasharray: ${`${this.getSVGPixel(4)} ${this.getSVGPixel(1.5)}`};
+        }
+        .serie:hover .symbol {
+          transform-box: fill-box;
+          transform-origin: center;
+          transform: scale(1.5);
         }
       </style>
       ${svg`
@@ -68,11 +68,10 @@ export class DuoyunLineChartElement extends DuoyunBarChartElement {
           )}
           ${this.series.map(
             (_value, index, _, x = (index + 0.5) / this.xAxiUnit) => svg`
-              <g>
+              <g class="serie" @click=${() => this.indexclick(index)}>
                 <rect
                   @mousemove=${(evt: MouseEvent) => this.onMouseMove(index, evt, true)}
                   @mouseout=${this.onMouseOut}
-                  @click=${() => this.indexclick(index)}
                   class="hover"
                   fill="transparent"
                   x=${index / this.xAxiUnit}
@@ -85,8 +84,10 @@ export class DuoyunLineChartElement extends DuoyunBarChartElement {
                     ? ''
                     : svg`
                     <circle
+                      @mousemove=${(evt: MouseEvent) => this.onMouseMove(index, evt, true, i)}
                       class="symbol"
                       stroke=${this.colors[i]}
+                      r=${this.getSVGPixel(2)}
                       cx=${x}
                       cy=${this.stageHeight - (value + this.yAxiMin) / this.yAxiUnit}
                     />

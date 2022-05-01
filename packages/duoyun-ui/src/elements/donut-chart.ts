@@ -95,8 +95,9 @@ export class DuoyunDonutChartElement extends DuoyunChartBaseElement {
             (d, index) => svg`
               <path
                 class="path" 
-                @mousemove=${(evt: MouseEvent) => this.#onMouseMove(evt, index)}
-                @mouseout=${this.#onMouseOut}
+                @pointermove=${(evt: PointerEvent) => this.#onMouseMove(evt, index)}
+                @pointerout=${this.#onMouseOut}
+                @click=${() => this.indexclick(index)}
                 d=${d}
                 fill=${this.colors[index]}
                 stroke-width=${this.getSVGPixel(1)}
