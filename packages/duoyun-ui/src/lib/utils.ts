@@ -254,11 +254,15 @@ export function getStringFromTemplate(o: TemplateResult | string): string {
   return String(o);
 }
 
+export function splitString(s: string) {
+  return s.split(/(?:\s|\/)+/);
+}
+
 export function isIncludesString(origin: string | TemplateResult, search: string, caseSensitive = false) {
   const getStr = (s: string) => (caseSensitive ? s : s.toLowerCase()).trim();
   const oString = getStr(getStringFromTemplate(origin));
   const sString = getStr(search);
-  return sString.split(/(?:\s|\/)+/).some((s) => oString.includes(s));
+  return splitString(sString).some((s) => oString.includes(s));
 }
 
 export function setBodyInert(modal: HTMLElement) {

@@ -12,4 +12,8 @@ export const focusStyle = createCSSSheet(css`
     outline: 2px solid ${theme.focusColor};
     outline-offset: -2px;
   }
+  :host::highlight(search) {
+    color: white;
+    background: ${theme.informativeColor};
+  }
 `);
