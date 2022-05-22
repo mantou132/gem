@@ -5,6 +5,7 @@ import {
   property,
   boolattribute,
   numattribute,
+  part,
 } from '@mantou/gem/lib/decorators';
 import { GemElement, html } from '@mantou/gem/lib/element';
 import { createCSSSheet, css } from '@mantou/gem/lib/utils';
@@ -37,6 +38,8 @@ const style = createCSSSheet(css`
     width: 3.8em;
   }
   .content {
+    width: 100%;
+    aspect-ratio: 1;
     position: absolute;
     inset: 0;
     display: flex;
@@ -44,6 +47,7 @@ const style = createCSSSheet(css`
     align-items: center;
     border-radius: var(--radius);
     object-fit: cover;
+    background: ${theme.hoverBackgroundColor};
   }
   :host([status]:not([status=''])) .content {
     --m: radial-gradient(
@@ -79,10 +83,10 @@ const style = createCSSSheet(css`
 @customElement('dy-avatar')
 @adoptedStyle(style)
 export class DuoyunAvatarElement extends GemElement {
+  @part static avatar: string;
   @attribute src: string;
   @attribute alt: string;
   @attribute status: Status;
-  @attribute background: string;
   @attribute tooltip: string;
   @attribute size: 'small' | 'medium' | 'large';
   @boolattribute square: boolean;
@@ -94,13 +98,13 @@ export class DuoyunAvatarElement extends GemElement {
         :host {
           --status: ${status || 'inherit'};
         }
-        .content {
-          background: ${this.background || theme.hoverBackgroundColor};
-        }
       </style>
       <dy-tooltip .content=${this.tooltip}>
         <div class="content">
-          ${this.src && html`<img class="content" alt=${this.alt || this.src} src=${this.src}></img>`}
+          ${this.src &&
+          html`
+            <img class="content" alt=${this.alt || this.src} src=${this.src} part=${DuoyunAvatarElement.avatar} />
+          `}
           <slot></slot>
         </div>
       </dy-tooltip>
@@ -113,7 +117,6 @@ export type Avatar = {
   src?: string;
   alt?: string;
   status?: Status;
-  background?: string;
   tooltip?: string;
   square?: boolean;
 };
@@ -151,16 +154,9 @@ export class DuoyunAvatarGroupElement extends GemElement {
     this.internals.role = 'group';
   }
 
-  #renderAvatar = ({ src = '', tooltip = '', alt = '', background = '', status }: Avatar) => {
+  #renderAvatar = ({ src = '', tooltip = '', alt = '', status }: Avatar) => {
     return html`
-      <dy-avatar
-        class="item"
-        .src=${src}
-        .tooltip=${tooltip}
-        .alt=${alt}
-        .background=${background}
-        .status=${status as Status}
-      ></dy-avatar>
+      <dy-avatar class="item" .src=${src} .tooltip=${tooltip} .alt=${alt} .status=${status as Status}></dy-avatar>
     `;
   };
 

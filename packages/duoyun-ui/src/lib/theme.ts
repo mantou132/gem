@@ -12,6 +12,8 @@ export function getSemanticColor(semantic?: string) {
       return theme.informativeColor;
     case 'neutral':
       return theme.neutralColor;
+    case 'transparent':
+      return 'transparent';
   }
 }
 

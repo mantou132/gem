@@ -9,6 +9,7 @@ import {
   boolattribute,
   refobject,
   RefObject,
+  part,
 } from '@mantou/gem/lib/decorators';
 import { GemElement, html, TemplateResult } from '@mantou/gem/lib/element';
 import { createCSSSheet, css, styled } from '@mantou/gem/lib/utils';
@@ -35,9 +36,6 @@ const style = createCSSSheet(css`
   .absolute {
     position: absolute;
   }
-  .dialog {
-    outline: none;
-  }
   .mask {
     inset: 0;
     animation: showbg 0.1s ${theme.timingFunction} forwards;
@@ -55,6 +53,10 @@ const style = createCSSSheet(css`
     align-items: center;
     justify-content: center;
   }
+  .dialog {
+    outline: none;
+    animation: showdialog 0.1s ${theme.timingFunction} forwards;
+  }
   .main {
     box-sizing: border-box;
     display: flex;
@@ -67,10 +69,9 @@ const style = createCSSSheet(css`
     color: ${theme.textColor};
     padding: 1.5em 1.2em;
     box-shadow: 0 5px 10px rgba(0, 0, 0, calc(${theme.maskAlpha} - 0.15));
-    border-radius: 0.75em;
-    animation: showmain 0.1s ${theme.timingFunction} forwards;
+    border-radius: calc(${theme.normalRound} * 3);
   }
-  @keyframes showmain {
+  @keyframes showdialog {
     0% {
       transform: translate(0, 50%);
       opacity: 0;
@@ -156,6 +157,8 @@ export interface Options {
 @adoptedStyle(style2)
 @connectStore(locale)
 export class DuoyunModalElement extends GemElement {
+  @part static dialog: string;
+
   @boolattribute open: boolean;
   @boolattribute customize: boolean;
   @boolattribute maskCloseable: boolean;
@@ -172,7 +175,7 @@ export class DuoyunModalElement extends GemElement {
   @property header: string | TemplateResult;
   @property body?: string | TemplateResult;
 
-  @refobject bodyRef: RefObject<HTMLSlotElement>;
+  @refobject bodyRef: RefObject<HTMLElement>;
 
   // Cannot be used for dynamic forms
   static async open<T = Element>(options: Options) {
@@ -186,7 +189,10 @@ export class DuoyunModalElement extends GemElement {
       });
       modal.addEventListener('ok', () => {
         const { element } = modal.bodyRef;
-        element && res(element.children[0] as any);
+        if (element) {
+          const ele = element.children[0] as any;
+          res(ele instanceof HTMLSlotElement ? ele.assignedElements()[0] : ele);
+        }
       });
     }).finally(() => {
       restoreInert();
@@ -259,12 +265,25 @@ export class DuoyunModalElement extends GemElement {
       <div class="mask absolute" @click=${this.#onMaskClick}></div>
       ${this.customize
         ? html`
-            <div role="dialog" tabindex="0" aria-modal="true" class="dialog absolute" ref=${this.bodyRef.ref}>
-              ${this.body}
+            <div
+              part=${DuoyunModalElement.dialog}
+              role="dialog"
+              tabindex="0"
+              aria-modal="true"
+              class="dialog absolute"
+              ref=${this.bodyRef.ref}
+            >
+              ${this.body || html`<slot name="body"></slot>`}
             </div>
           `
         : html`
-            <div role="dialog" tabindex="0" aria-modal="true" class="dialog main absolute">
+            <div
+              part=${DuoyunModalElement.dialog}
+              role="dialog"
+              tabindex="0"
+              aria-modal="true"
+              class="dialog main absolute"
+            >
               ${this.header
                 ? html`
                     <div role="heading" aria-level="1" class="header">${this.header}</div>

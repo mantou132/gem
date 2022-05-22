@@ -38,6 +38,7 @@ type MenuStore = {
     menu: Menu;
     x: number;
     y: number;
+    header?: TemplateResult;
   }[];
 };
 
@@ -56,6 +57,8 @@ type OpenMenuOptions = {
   maxHeight?: string;
   /**only support first menu */
   searchable?: boolean;
+  /**only support first menu */
+  header?: TemplateResult;
 };
 
 export const menuStore = createStore<MenuStore>({
@@ -115,7 +118,7 @@ export class DuoyunMenuElement extends GemElement {
   static instance?: DuoyunMenuElement;
 
   static async open(menu: Menu, options: OpenMenuOptions = {}) {
-    const { activeElement, openLeft, x = 0, y = 0, width, maxHeight, searchable } = options;
+    const { activeElement, openLeft, x = 0, y = 0, width, maxHeight, searchable, header } = options;
     if (Array.isArray(menu) && menu.length === 0) throw new Error('menu length is 0');
     toggleActiveState(activeElement, true);
     updateStore(menuStore, {
@@ -123,7 +126,7 @@ export class DuoyunMenuElement extends GemElement {
       maxHeight,
       activeElement,
       openLeft,
-      menuStack: [{ x, y, menu, searchable }],
+      menuStack: [{ x, y, menu, searchable, header }],
     });
     if (ContextMenu.instance) {
       await ContextMenu.instance.#initPosition();
@@ -288,7 +291,7 @@ export class DuoyunMenuElement extends GemElement {
       <div class="mask" @click=${ContextMenu.close}></div>
       ${menuStack.map(
         (
-          { x, y, menu, searchable, openTop },
+          { x, y, menu, searchable, openTop, header },
           index,
           _,
           calcWidth = this.#width === 'auto' ? '0px' : this.#width,
@@ -330,7 +333,7 @@ export class DuoyunMenuElement extends GemElement {
               : undefined}
           >
             ${Array.isArray(menu)
-              ? ''
+              ? header
               : html`
                   <div class="menu-custom-container">
                     <dy-compartment .content=${menu}></dy-compartment>

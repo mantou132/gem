@@ -19,7 +19,7 @@ const style = createCSSSheet(css`
 @customElement('dy-help-text')
 @adoptedStyle(style)
 export class DuoyunHelpTextElement extends GemElement {
-  @attribute status: 'default' | 'neutral' | 'negative';
+  @attribute status: 'default' | 'neutral' | 'positive' | 'negative';
 
   get #status() {
     return this.status || 'neutral';

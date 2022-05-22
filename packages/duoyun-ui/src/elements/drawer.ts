@@ -4,18 +4,20 @@ import { createCSSSheet, css } from '@mantou/gem/lib/utils';
 import { DuoyunModalElement, Options } from './modal';
 
 const style = createCSSSheet(css`
-  .main {
-    padding: 1.2em;
+  .dialog {
     top: 0;
     left: auto;
     right: 0;
     height: 100%;
+  }
+  .main {
+    padding: 1.2em;
     min-width: 30em;
     min-height: none;
     max-height: none;
     border-radius: 0;
   }
-  @keyframes showmain {
+  @keyframes showdialog {
     0% {
       transform: translate(100%, 0);
     }

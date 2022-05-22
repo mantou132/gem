@@ -1,22 +1,17 @@
 import { adoptedStyle, customElement, property, part, state, refobject, RefObject } from '@mantou/gem/lib/decorators';
 import { html, svg, TemplateResult } from '@mantou/gem/lib/element';
 import { createCSSSheet, css, styleMap, exportPartsMap } from '@mantou/gem/lib/utils';
-import type { ELK, ElkNode, ElkExtendedEdge, ElkEdgeSection, LayoutOptions, ElkShape, ElkPoint } from 'elkjs';
+import type { ElkNode, ElkExtendedEdge, ElkEdgeSection, LayoutOptions, ElkShape, ElkPoint } from 'elkjs';
+import ELK from 'elkjs/lib/elk.bundled.js';
 
 import { Modify, isNullish, isNotNullish } from '../lib/types';
-import { forever } from '../lib/utils';
 import { formatToPrecision } from '../lib/number';
 import { theme } from '../lib/theme';
 import { utf8ToB64 } from '../lib/encode';
 
 import { DuoyunResizeBaseElement } from './base/resize';
 
-const elkPromise = forever(() => {
-  const url = 'https://cdn.skypack.dev/elkjs@0.7.1';
-  return import(/* @vite-ignore */ /* webpackIgnore: true */ `${url}?min`);
-});
-
-(window as any).g = null;
+const elk = new ELK();
 
 // https://github.com/reaviz/reaflow/blob/master/src/layout/elkLayout.ts
 const defaultLayout: LayoutOptions = {
@@ -229,7 +224,6 @@ export class DuoyunFlowCanvasElement extends DuoyunResizeBaseElement {
   @part static edge: string;
   @part static edgeLabel: string;
 
-  @property elk?: ELK;
   @property graph?: Node;
   @property layout?: LayoutOptions;
   @property renderEdge?: (section: EdgeSection, edge: Edge) => TemplateResult;
@@ -397,7 +391,7 @@ export class DuoyunFlowCanvasElement extends DuoyunResizeBaseElement {
 
   #layout = async () => {
     try {
-      await this.elk?.layout(this.graph as any, { layoutOptions: { ...defaultLayout, ...(this.layout || {}) } });
+      await elk.layout(this.graph as any, { layoutOptions: { ...defaultLayout, ...(this.layout || {}) } });
     } catch (err) {
       //
     }
@@ -455,7 +449,7 @@ export class DuoyunFlowCanvasElement extends DuoyunResizeBaseElement {
       if (this.#isReady) return;
       if (isNullish(this.graph?.children?.[0]?.width)) {
         this.#updateSize();
-      } else if (this.elk) {
+      } else {
         await this.#layout();
       }
     });
@@ -498,7 +492,6 @@ export class DuoyunFlowCanvasElement extends DuoyunResizeBaseElement {
 }
 
 type State = {
-  elk?: ELK;
   scale?: number;
   marginBlock?: number;
 };
@@ -555,7 +548,7 @@ export class DuoyunFlowElement extends DuoyunResizeBaseElement<State> {
     const graph: Node = this.graph;
     if (!graph) return;
     const setLabels = (e: Node | Edge) => {
-      if (e.label) e.labels = [{ text: e.label }];
+      if (e.label) e.labels = [{ id: '', text: e.label }];
       if ('children' in e) e.children?.forEach((n) => setLabels(n));
     };
     graph.children?.forEach((e) => setLabels(e));
@@ -587,15 +580,10 @@ export class DuoyunFlowElement extends DuoyunResizeBaseElement<State> {
       },
       () => [this.contentRect.width],
     );
-
-    elkPromise.then((module) => {
-      const elk: ELK = new module.default();
-      this.setState({ elk });
-    });
   };
 
   render = () => {
-    const { elk, scale, marginBlock } = this.state;
+    const { scale, marginBlock } = this.state;
     this.loaded = !!scale;
     return html`
       <dy-flow-canvas
@@ -617,7 +605,6 @@ export class DuoyunFlowElement extends DuoyunResizeBaseElement<State> {
         .renderNode=${this.renderNode}
         .renderNodeLabel=${this.renderNodeLabel}
         .renderEndMarker=${this.renderEndMarker}
-        .elk=${elk}
         .graph=${this.graph}
         .layout=${this.layout}
       ></dy-flow-canvas>

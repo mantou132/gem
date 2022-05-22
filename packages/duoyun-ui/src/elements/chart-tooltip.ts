@@ -24,7 +24,7 @@ const style = createCSSSheet(css`
     padding: 0.75em;
     color: ${theme.textColor};
     background-color: ${theme.backgroundColor};
-    border-radius: 0.75em;
+    border-radius: calc(${theme.normalRound} * 3);
     box-shadow: 0 0.5em 2em rgba(0, 0, 0, calc(${theme.maskAlpha} - 0.1));
   }
   .item {

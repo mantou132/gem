@@ -7,6 +7,7 @@ import {
   boolattribute,
   attribute,
   part,
+  state,
 } from '@mantou/gem/lib/decorators';
 import { GemElement, html, TemplateResult } from '@mantou/gem/lib/element';
 import { createCSSSheet, css, partMap, classMap } from '@mantou/gem/lib/utils';
@@ -94,6 +95,7 @@ export class DuoyunTabsElement extends GemElement {
   @part static currentTab: string;
   @part static icon: string;
   @part static marker: string;
+  @part static divider: string;
 
   @boolattribute center: boolean;
   @attribute orientation: 'horizontal' | 'vertical';
@@ -141,7 +143,12 @@ export class DuoyunTabsElement extends GemElement {
           `;
         })}
       </div>
-      <dy-divider class="divider" size="medium" orientation=${this.#orientation}></dy-divider>
+      <dy-divider
+        part=${DuoyunTabsElement.divider}
+        class="divider"
+        size="medium"
+        orientation=${this.#orientation}
+      ></dy-divider>
       <dy-compartment .content=${currentContent}></dy-compartment>
     `;
   };
@@ -155,6 +162,10 @@ const panelStyle = createCSSSheet(css`
     line-height: 1.5;
     margin-block-start: 1em;
   }
+  :host(:where(:--vertical, [data-vertical])) {
+    margin-inline-start: 1em;
+    margin-block-start: 0em;
+  }
 `);
 
 /**
@@ -163,8 +174,14 @@ const panelStyle = createCSSSheet(css`
 @customElement('dy-tab-panel')
 @adoptedStyle(panelStyle)
 export class DyTabPanelElement extends DuoyunScrollBaseElement {
+  @state vertical: boolean;
+
   constructor() {
     super();
     this.internals.role = 'tabpanel';
+    this.addEventListener('change', (e) => e.stopPropagation());
+    this.effect(() => {
+      this.vertical = this.closestElement(DuoyunTabsElement)?.orientation === 'vertical';
+    });
   }
 }

@@ -192,6 +192,7 @@ export class DuoyunOptionsElement extends GemElement<State> {
       : this.options;
 
     return html`
+      <slot></slot>
       ${this.searchable
         ? html`
             <div class="search">
@@ -300,7 +301,6 @@ export class DuoyunOptionsElement extends GemElement<State> {
               `;
         },
       )}
-      <slot></slot>
     `;
   };
 }

@@ -1,4 +1,12 @@
-import { adoptedStyle, customElement, attribute, property, boolattribute } from '@mantou/gem/lib/decorators';
+import {
+  adoptedStyle,
+  customElement,
+  attribute,
+  property,
+  boolattribute,
+  emitter,
+  Emitter,
+} from '@mantou/gem/lib/decorators';
 import { GemElement, html } from '@mantou/gem/lib/element';
 import { createCSSSheet, css, classMap } from '@mantou/gem/lib/utils';
 
@@ -86,6 +94,8 @@ export class DuoyunCopyElement extends GemElement<State> {
 
   @property content?: string;
 
+  @emitter copy: Emitter<boolean>;
+
   state: State = {
     status: 'none',
   };
@@ -102,6 +112,7 @@ export class DuoyunCopyElement extends GemElement<State> {
   }
 
   #showMessage = (isSuccess: boolean) => {
+    this.copy(isSuccess);
     if (!this.silent) {
       this.setState({ status: isSuccess ? 'success' : 'fail' });
       setTimeout(() => {

@@ -26,6 +26,9 @@ const style = createCSSSheet(css`
   * {
     cursor: pointer;
   }
+  .list {
+    margin: 0;
+  }
   .list li {
     display: contents;
   }
@@ -96,10 +99,9 @@ const style = createCSSSheet(css`
     position: absolute;
     left: 0;
     right: 0;
-    bottom: 0;
+    bottom: 0.5em;
     display: flex;
     justify-content: center;
-    margin-block: 1em;
   }
   .circle {
     width: 0.5em;
@@ -124,6 +126,7 @@ const style = createCSSSheet(css`
 
 type Item = {
   link: string;
+  onClick?: () => void;
   img: string;
   background?: string;
   tag?: string;
@@ -201,10 +204,9 @@ export class DuoyunCarouselElement extends GemElement<State> {
   };
 
   #pagevisibleChange = () => {
+    this.#clearTimer();
     if (document.visibilityState === 'visible') {
       this.#next();
-    } else {
-      this.#clearTimer();
     }
   };
 
@@ -223,7 +225,7 @@ export class DuoyunCarouselElement extends GemElement<State> {
       <dy-gesture @click=${this.#goLink} @swipe=${this.#onSwipe}>
         <ul class="list" role="region">
           ${this.data?.map(
-            ({ img, background, link, title, description, actionText, tag }, index) => html`
+            ({ img, background, link, title, description, actionText, tag, onClick }, index) => html`
               <li>
                 <dy-link
                   class="item"
@@ -231,7 +233,10 @@ export class DuoyunCarouselElement extends GemElement<State> {
                   href=${link}
                   style=${styleMap({ background, '--direction': `${direction}` } as any)}
                   ?inert=${currentIndex !== index}
-                  @click=${(evt: Event) => evt.stopPropagation()}
+                  @click=${(evt: Event) => {
+                    evt.stopPropagation();
+                    onClick?.();
+                  }}
                 >
                   <img class="img" alt=${title} src=${img} />
                   <div class="content">
