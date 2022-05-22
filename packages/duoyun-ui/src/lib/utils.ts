@@ -1,3 +1,4 @@
+import { createStore } from '@mantou/gem/lib/store';
 import { TemplateResult } from '@mantou/gem/lib/element';
 
 import { isNullish } from '../lib/types';
@@ -280,4 +281,33 @@ export function setBodyInert(modal: HTMLElement) {
     });
     modal.inert = true;
   };
+}
+
+export function createCacheStore<T extends Record<string, any>>(
+  storageKey: string,
+  initStore: T,
+  options?: { cacheExcludeKeys?: (keyof T)[]; prefix?: string },
+) {
+  const cacheExcludeKeys = new Set(options?.cacheExcludeKeys || []);
+  const key = options?.prefix ? `${options.prefix}@${storageKey}` : storageKey;
+
+  let storeCache: T | undefined = undefined;
+  try {
+    storeCache = JSON.parse(localStorage.getItem(key) || '{}');
+  } catch (err) {
+    //
+  }
+
+  const store = createStore<T>(storeCache ? { ...initStore, ...storeCache } : initStore);
+
+  const saveStore = () => {
+    localStorage.setItem(
+      key,
+      JSON.stringify(Object.fromEntries(Object.entries(store).filter(([key]) => !cacheExcludeKeys.has(key)))),
+    );
+  };
+
+  window.addEventListener('pagehide', saveStore);
+
+  return [store, saveStore] as const;
 }
