@@ -20,7 +20,7 @@ const style = createCSSSheet(css`
     text-decoration: underline;
   }
   :where(gem-link, dy-link):where(:lang(zh), :lang(ja), :lang(kr)) {
-    text-underline-offset: 2px;
+    text-underline-offset: 0.125em;
   }
   ul,
   ol {

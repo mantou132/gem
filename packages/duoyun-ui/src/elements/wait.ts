@@ -16,7 +16,7 @@ const style = createCSSSheet(css`
     width: 100%;
     height: 100%;
     left: 0;
-    top: env(titlebar-area-height, 0);
+    top: env(titlebar-area-height, var(--titlebar-area-height, 0px));
     color: white;
     background-color: rgba(0, 0, 0, ${theme.maskAlpha});
     justify-content: center;

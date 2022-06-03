@@ -112,21 +112,12 @@ interface OutputOption {
   /**Default: File */
   type?: 'url';
 }
-
-export function compressionImage(
-  origin: HTMLImageElement | File,
-  limit: LimitOption,
-  output: OutputOption & { type: 'url' },
-): Promise<string>;
-export function compressionImage(origin: HTMLImageElement | File, limit: LimitOption): Promise<File>;
-export async function compressionImage(
-  origin: HTMLImageElement | File,
-  limit: LimitOption,
-  { aspectRatio, type }: OutputOption = {},
-) {
+type Origin = (HTMLImageElement & { type?: string }) | File;
+export function compressionImage(origin: Origin, limit: LimitOption, output: OutputOption): Promise<string>;
+export function compressionImage(origin: Origin, limit: LimitOption): Promise<File>;
+export async function compressionImage(origin: Origin, limit: LimitOption, { aspectRatio, type }: OutputOption = {}) {
   const originIsFile = origin instanceof Blob;
   const outputDataURL = type === 'url';
-  if (!originIsFile && !outputDataURL) throw new Error('not support `HTMLImageElement` to `File`');
   const canvas = createCanvas();
   try {
     let img = new Image();
@@ -149,7 +140,7 @@ export async function compressionImage(
         const res = await fetch(origin.currentSrc);
         const blob = await res.blob();
         const type = res.headers.get('content-type');
-        file = new File([blob], 'temp', { type: type?.startsWith('image/') ? type : '' });
+        file = new File([blob], 'temp', { type: type?.startsWith('image/') ? type : origin.type || '' });
       }
     }
     const rate = Math.min(

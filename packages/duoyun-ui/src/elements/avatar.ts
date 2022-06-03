@@ -48,6 +48,7 @@ const style = createCSSSheet(css`
     border-radius: var(--radius);
     object-fit: cover;
     background: ${theme.hoverBackgroundColor};
+    box-sizing: border-box;
   }
   :host([status]:not([status=''])) .content {
     --m: radial-gradient(
@@ -135,6 +136,8 @@ const groupStyle = createCSSSheet(css`
   }
 `);
 
+type AvatarItem = Avatar & { onClick?: (evt: Event) => void };
+
 /**
  * @customElement dy-avatar-group
  */
@@ -143,7 +146,7 @@ const groupStyle = createCSSSheet(css`
 export class DuoyunAvatarGroupElement extends GemElement {
   @numattribute max: number;
 
-  @property data?: Avatar[];
+  @property data?: AvatarItem[];
 
   get #max() {
     return this.max || this.data?.length || 0;
@@ -154,9 +157,17 @@ export class DuoyunAvatarGroupElement extends GemElement {
     this.internals.role = 'group';
   }
 
-  #renderAvatar = ({ src = '', tooltip = '', alt = '', status }: Avatar) => {
+  #renderAvatar = ({ src = '', tooltip = '', alt = '', status, onClick }: AvatarItem) => {
     return html`
-      <dy-avatar class="item" .src=${src} .tooltip=${tooltip} .alt=${alt} .status=${status as Status}></dy-avatar>
+      <dy-avatar
+        exportparts=${DuoyunAvatarElement.avatar}
+        class="item"
+        .src=${src}
+        .tooltip=${tooltip}
+        .alt=${alt}
+        .status=${status as Status}
+        @click=${onClick}
+      ></dy-avatar>
     `;
   };
 
@@ -166,7 +177,11 @@ export class DuoyunAvatarGroupElement extends GemElement {
     return html`
       ${this.data.slice(0, this.#max).map((avatar) => this.#renderAvatar(avatar))}
       ${rest.length
-        ? html`<dy-avatar class="item" .tooltip=${rest.map((e) => e.alt).join()}>+${rest.length}</dy-avatar>`
+        ? html`
+            <dy-avatar exportparts=${DuoyunAvatarElement.avatar} class="item" .tooltip=${rest.map((e) => e.alt).join()}>
+              +${rest.length}
+            </dy-avatar>
+          `
         : ''}
     `;
   };

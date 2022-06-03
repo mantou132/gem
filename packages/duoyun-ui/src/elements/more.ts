@@ -1,4 +1,4 @@
-import { adoptedStyle, customElement, attribute, emitter, Emitter } from '@mantou/gem/lib/decorators';
+import { adoptedStyle, customElement, attribute, emitter, Emitter, boolattribute } from '@mantou/gem/lib/decorators';
 import { GemElement, html } from '@mantou/gem/lib/element';
 import { createCSSSheet, css, styleMap, classMap } from '@mantou/gem/lib/utils';
 
@@ -41,11 +41,14 @@ type State = {
 
 /**
  * @customElement dy-more
+ * @attr maxheight
+ * @attr expandless
  */
 @customElement('dy-more')
 @adoptedStyle(style)
 export class DuoyunMoreElement extends GemElement<State> {
-  @attribute maxHeight: string;
+  @attribute maxheight: string;
+  @boolattribute expandless: boolean;
 
   state: State = {
     bottomOverflow: false,
@@ -71,13 +74,13 @@ export class DuoyunMoreElement extends GemElement<State> {
         class="slot"
         style=${styleMap({
           marginBlockEnd: !bottomOverflow ? 'auto' : '1.2em',
-          maxHeight: expanded ? 'auto' : this.maxHeight || '6em',
+          maxHeight: expanded ? 'auto' : this.maxheight || '6em',
         })}
         @change=${({ detail }: CustomEvent<boolean>) => this.setState({ bottomOverflow: detail })}
       >
         <slot></slot>
       </dy-more-slot>
-      ${bottomOverflow || expanded
+      ${!this.expandless && (bottomOverflow || expanded)
         ? html`
             <dy-action-text
               class=${classMap({ action: true, absolute: !expanded })}

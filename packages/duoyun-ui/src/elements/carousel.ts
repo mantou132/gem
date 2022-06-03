@@ -1,5 +1,13 @@
-import { GemElement, html } from '@mantou/gem/lib/element';
-import { adoptedStyle, customElement, property, numattribute, refobject, RefObject } from '@mantou/gem/lib/decorators';
+import { GemElement, html, TemplateResult } from '@mantou/gem/lib/element';
+import {
+  adoptedStyle,
+  customElement,
+  property,
+  numattribute,
+  part,
+  emitter,
+  Emitter,
+} from '@mantou/gem/lib/decorators';
 import { createCSSSheet, css, styleMap, classMap } from '@mantou/gem/lib/utils';
 
 import { theme } from '../lib/theme';
@@ -7,46 +15,41 @@ import { icons } from '../lib/icons';
 import { commonHandle } from '../lib/hotkeys';
 import { focusStyle } from '../lib/styles';
 
-import type { SwipeEventDetail } from './gesture';
-import type { DouyunLinkElement } from './link';
-
-import './gesture';
 import './use';
-import './link';
 import './heading';
 import './paragraph';
 import './button';
+import './more';
 
 const style = createCSSSheet(css`
   :host {
     display: block;
+    width: 100%;
+    aspect-ratio: 20 / 7;
     position: relative;
     color: ${theme.highlightColor};
   }
-  * {
-    cursor: pointer;
-  }
-  .list {
+  .list,
+  .item,
+  .img {
     margin: 0;
-  }
-  .list li {
-    display: contents;
+    padding: 0;
+    width: 100%;
+    height: 100%;
   }
   .item {
+    list-style: none;
     position: relative;
-    display: block;
-    aspect-ratio: 20 / 7;
     overflow: hidden;
   }
   [inert] {
     display: none;
   }
   .img {
-    display: block;
-    width: 100%;
-    height: 100%;
+    position: absolute;
     object-fit: cover;
-    --m: linear-gradient(to right top, transparent, black 35%);
+    --mask-range: 35%;
+    --m: linear-gradient(to right top, transparent, black var(--mask-range));
     -webkit-mask-image: var(--m);
     mask-image: var(--m);
   }
@@ -77,9 +80,10 @@ const style = createCSSSheet(css`
   }
   .tag {
     font-style: italic;
-    background: yellow;
     padding: 0.2em 0.3em;
     margin-block-end: 0.5em;
+    background: yellow;
+    color: black;
   }
   .heading {
     margin-block-start: 0;
@@ -110,7 +114,7 @@ const style = createCSSSheet(css`
   .circle::before {
     transform: scale(0.99);
     content: '';
-    color: ${theme.primaryColor};
+    color: ${theme.highlightColor};
     display: block;
     aspect-ratio: 1;
     border: 1px solid;
@@ -124,15 +128,17 @@ const style = createCSSSheet(css`
   }
 `);
 
-type Item = {
-  link: string;
-  onClick?: () => void;
+export type Item = {
   img: string;
   background?: string;
-  tag?: string;
-  title: string;
-  description: string;
-  actionText?: string;
+  onClick?: () => void;
+  tag?: string | TemplateResult;
+  title?: string;
+  description?: string;
+  action?: {
+    text: string;
+    handle?: () => void;
+  };
 };
 
 type State = {
@@ -147,8 +153,14 @@ type State = {
 @adoptedStyle(style)
 @adoptedStyle(focusStyle)
 export class DuoyunCarouselElement extends GemElement<State> {
+  @part static img: string;
+  @part static title: string;
+  @part static content: string;
+  @part static description: string;
+  @part static nav: string;
+
   @numattribute interval: number;
-  @refobject currentLinkRef: RefObject<DouyunLinkElement>;
+  @emitter change: Emitter<number>;
 
   @property data?: Item[];
 
@@ -164,54 +176,44 @@ export class DuoyunCarouselElement extends GemElement<State> {
   #add = (direction: 1 | -1) => {
     const total = this.data!.length;
     this.setState({ currentIndex: (total + this.state.currentIndex + direction) % total, direction });
-  };
-
-  #jump = (index: number) => {
-    this.#clearTimer();
-    this.#next();
-    this.setState({ currentIndex: index, direction: 1 });
-  };
-
-  #onSwipe = ({ detail }: CustomEvent<SwipeEventDetail>) => {
-    this.#clickDisabled = true;
-    setTimeout(() => (this.#clickDisabled = false));
-    this.#clearTimer();
-    this.#next();
-
-    switch (detail.direction) {
-      case 'left':
-        return this.#add(1);
-      case 'right':
-        return this.#add(-1);
-    }
+    this.#reset();
   };
 
   #timer = 0;
-  #clickDisabled = false;
+  #waitLeave = Promise.resolve();
 
-  #next = () => {
-    this.#timer = window.setTimeout(() => {
+  #reset = () => {
+    this.#clearTimer();
+    this.#timer = window.setTimeout(async () => {
+      await this.#waitLeave;
       this.#add(1);
-      this.#next();
     }, this.#interval);
+  };
+
+  #oMouseEnter = (evt: Event) => {
+    this.#waitLeave = new Promise((res) =>
+      evt.target?.addEventListener('mouseleave', () => res(), {
+        once: true,
+      }),
+    );
   };
 
   #clearTimer = () => clearTimeout(this.#timer);
 
-  #goLink = () => {
-    if (this.#clickDisabled) return;
-    this.currentLinkRef.element?.click();
-  };
-
   #pagevisibleChange = () => {
-    this.#clearTimer();
     if (document.visibilityState === 'visible') {
-      this.#next();
+      this.#reset();
+    } else {
+      this.#clearTimer();
     }
   };
 
   mounted = () => {
-    this.#next();
+    this.#reset();
+    this.effect(
+      () => this.change(this.state.currentIndex),
+      () => [this.state.currentIndex],
+    );
     document.addEventListener('visibilitychange', this.#pagevisibleChange);
     return () => {
       document.removeEventListener('visibilitychange', this.#pagevisibleChange);
@@ -222,43 +224,55 @@ export class DuoyunCarouselElement extends GemElement<State> {
   render = () => {
     const { currentIndex, direction } = this.state;
     return html`
-      <dy-gesture @click=${this.#goLink} @swipe=${this.#onSwipe}>
-        <ul class="list" role="region">
-          ${this.data?.map(
-            ({ img, background, link, title, description, actionText, tag, onClick }, index) => html`
-              <li>
-                <dy-link
-                  class="item"
-                  ref=${currentIndex === index ? this.currentLinkRef.ref : ''}
-                  href=${link}
-                  style=${styleMap({ background, '--direction': `${direction}` } as any)}
-                  ?inert=${currentIndex !== index}
-                  @click=${(evt: Event) => {
-                    evt.stopPropagation();
-                    onClick?.();
-                  }}
-                >
-                  <img class="img" alt=${title} src=${img} />
-                  <div class="content">
-                    ${tag ? html`<div class="tag">${tag}</div>` : ''}
-                    <dy-heading class="heading" lv="2">${title}</dy-heading>
-                    <dy-paragraph class="paragraph">${description}</dy-paragraph>
-                    ${actionText
-                      ? html`
-                          <dy-button class="action">
-                            ${actionText}
-                            <dy-use class="forward" .element=${icons.forward}></dy-use>
-                          </dy-button>
-                        `
-                      : ''}
-                  </div>
-                </dy-link>
-              </li>
-            `,
-          )}
-        </ul>
-      </dy-gesture>
-      <div class="nav">
+      <ul class="list" role="region">
+        ${this.data?.map(
+          ({ img, background, title, description, action, tag, onClick }, index) => html`
+            ${currentIndex === index
+              ? html`
+                  <style>
+                    :host {
+                      background: ${background};
+                    }
+                  </style>
+                `
+              : ''}
+            <li
+              class="item"
+              style=${styleMap({ '--direction': `${direction}` })}
+              ?inert=${currentIndex !== index}
+              @click=${onClick}
+            >
+              <img part=${DuoyunCarouselElement.img} class="img" alt=${title || ''} src=${img} />
+              <div class="content" part=${DuoyunCarouselElement.content} @mouseenter=${this.#oMouseEnter}>
+                ${tag ? html`<div class="tag">${tag}</div>` : ''}
+                <dy-heading part=${DuoyunCarouselElement.title} class="heading" lv="2">${title}</dy-heading>
+                <dy-more expandless>
+                  <dy-paragraph part=${DuoyunCarouselElement.description} class="paragraph">
+                    ${description}
+                  </dy-paragraph>
+                </dy-more>
+                ${action
+                  ? html`
+                      <dy-button
+                        class="action"
+                        @click=${(evt: Event) => {
+                          if (action.handle) {
+                            evt.stopPropagation();
+                            action.handle();
+                          }
+                        }}
+                      >
+                        ${action.text}
+                        <dy-use class="forward" .element=${icons.forward}></dy-use>
+                      </dy-button>
+                    `
+                  : ''}
+              </div>
+            </li>
+          `,
+        )}
+      </ul>
+      <div part=${DuoyunCarouselElement.nav} class="nav">
         ${this.data?.map(
           (_, index) =>
             html`
@@ -266,12 +280,25 @@ export class DuoyunCarouselElement extends GemElement<State> {
                 tabindex="0"
                 role="button"
                 @keydown=${commonHandle}
-                @click=${() => this.#jump(index)}
+                @click=${() => this.jump(index)}
                 class=${classMap({ circle: true, current: index === currentIndex })}
               ></div>
             `,
         )}
       </div>
     `;
+  };
+
+  next = () => {
+    this.#add(1);
+  };
+
+  prev = () => {
+    this.#add(-1);
+  };
+
+  jump = (index: number) => {
+    this.setState({ currentIndex: index, direction: 1 });
+    this.#reset();
   };
 }

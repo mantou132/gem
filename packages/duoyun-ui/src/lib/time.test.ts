@@ -11,7 +11,7 @@ it('`D.format`', () => {
 it('`D.relativeTimeFormat`', () => {
   expect(new Time().relativeTimeFormat(new Time(), { min: 1, lang: 'zh' })).to.equal('此刻');
   expect(new Time(date1).relativeTimeFormat(new Time(date1).subtract(3, 's'), { min: 1, lang: 'zh' })).to.equal(
-    '3秒钟前',
+    '3秒前',
   );
   expect(new Time(date1).relativeTimeFormat(new Time(date1).subtract(25, 'h'), { min: 1, lang: 'zh' })).to.equal(
     '昨天',

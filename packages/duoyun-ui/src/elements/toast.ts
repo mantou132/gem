@@ -15,7 +15,7 @@ const style = createCSSSheet(css`
     align-items: center;
     flex-direction: column;
     gap: 1em;
-    top: calc(1em + env(titlebar-area-height, 0px));
+    top: calc(1em + env(titlebar-area-height, var(--titlebar-area-height, 0px)));
     left: 50%;
     transform: translateX(-50%);
     max-width: 90%;

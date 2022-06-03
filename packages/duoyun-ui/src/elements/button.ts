@@ -140,7 +140,7 @@ export class DuoyunButtonElement extends GemElement {
   @part static dropdown: string;
 
   get #color() {
-    return getSemanticColor(this.color) || theme.primaryColor;
+    return getSemanticColor(this.color) || this.color || theme.primaryColor;
   }
 
   constructor() {

@@ -230,6 +230,7 @@ export class DuoyunMenuElement extends GemElement {
   };
 
   #onKeydown = (evt: KeyboardEvent, menuStackIndex: number) => {
+    evt.stopPropagation();
     const focusPrevMenu = () => {
       updateStore(menuStore, {
         menuStack: menuStore.menuStack.slice(0, menuStackIndex),

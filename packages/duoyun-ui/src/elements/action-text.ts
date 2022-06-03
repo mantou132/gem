@@ -23,7 +23,7 @@ const style = createCSSSheet(css`
     text-decoration: underline;
   }
   :host(:where(:lang(zh), :lang(ja), :lang(kr))) {
-    text-underline-offset: 2px;
+    text-underline-offset: 0.125em;
   }
 `);
 

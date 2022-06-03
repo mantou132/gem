@@ -27,10 +27,10 @@ const style = createCSSSheet(css`
   :host {
     position: fixed;
     z-index: ${theme.popupZIndex};
-    top: env(titlebar-area-height, 0);
+    top: env(titlebar-area-height, var(--titlebar-area-height, 0px));
     left: 0;
     width: 100%;
-    height: calc(100% - env(titlebar-area-height, 0px));
+    height: calc(100% - env(titlebar-area-height, var(--titlebar-area-height, 0px)));
     display: none;
   }
   .absolute {
@@ -241,19 +241,30 @@ export class DuoyunModalElement extends GemElement {
     this.ok(null);
   };
 
+  #focus = () => {
+    this.shadowRoot!.querySelector<HTMLDivElement>('.dialog')?.focus();
+  };
+
   #onMaskClick = () => {
     if (this.maskCloseable) this.#close();
     this.maskclick(null);
+    this.#focus();
   };
 
-  #keydown = hotkeys({ esc: this.#close });
+  #keydown = (evt: KeyboardEvent) => {
+    evt.stopPropagation();
+    hotkeys({ esc: this.#close })(evt);
+  };
 
   mounted = () => {
-    this.effect(() => {
-      if (this.open) {
-        this.shadowRoot!.querySelector<HTMLDivElement>('.dialog')?.focus();
-      }
-    });
+    this.effect(
+      () => {
+        if (this.open && !this.shadowRoot?.activeElement) {
+          this.#focus();
+        }
+      },
+      () => [this.open],
+    );
     this.addEventListener('keydown', this.#keydown);
     return () => this.removeEventListener('keydown', this.#keydown);
   };

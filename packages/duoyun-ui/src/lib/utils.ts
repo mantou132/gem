@@ -1,5 +1,5 @@
 import { createStore } from '@mantou/gem/lib/store';
-import { TemplateResult } from '@mantou/gem/lib/element';
+import { render, TemplateResult } from '@mantou/gem/lib/element';
 
 import { isNullish } from '../lib/types';
 
@@ -247,10 +247,15 @@ export function comparer(a: any, comparer: ComparerType, b: any) {
   }
 }
 
-export function getStringFromTemplate(o: TemplateResult | string): string {
+export function getStringFromTemplate(o: TemplateResult | string, incorrect = false): string {
   if (o instanceof TemplateResult) {
-    const string = o.getTemplateElement().content.textContent || '';
-    return string + o.values.map((e) => getStringFromTemplate(e as string | TemplateResult)).join('');
+    if (incorrect) {
+      const string = o.getTemplateElement().content.textContent || '';
+      return string + ' ' + o.values.map((e) => getStringFromTemplate(e as string | TemplateResult)).join(' ');
+    }
+    const div = document.createElement('div');
+    render(o, div);
+    return div.textContent || '';
   }
   return String(o);
 }
@@ -261,7 +266,7 @@ export function splitString(s: string) {
 
 export function isIncludesString(origin: string | TemplateResult, search: string, caseSensitive = false) {
   const getStr = (s: string) => (caseSensitive ? s : s.toLowerCase()).trim();
-  const oString = getStr(getStringFromTemplate(origin));
+  const oString = getStr(getStringFromTemplate(origin, true));
   const sString = getStr(search);
   return splitString(sString).some((s) => oString.includes(s));
 }
