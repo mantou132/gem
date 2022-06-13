@@ -1,4 +1,4 @@
-import { adoptedStyle, customElement } from '@mantou/gem/lib/decorators';
+import { adoptedStyle, customElement, part } from '@mantou/gem/lib/decorators';
 import { GemElement, html } from '@mantou/gem/lib/element';
 import { createCSSSheet, css } from '@mantou/gem/lib/utils';
 
@@ -51,6 +51,9 @@ type State = {
 @customElement('dy-input-capture')
 @adoptedStyle(style)
 export class DuoyunInputCaptureElement extends GemElement<State> {
+  @part static container: string;
+  @part static kbd: string;
+
   state: State = {
     keys: [],
     mousePosition: null,
@@ -61,7 +64,7 @@ export class DuoyunInputCaptureElement extends GemElement<State> {
   }, 1000);
 
   #onKeydown = (evt: KeyboardEvent) => {
-    this.setState({ keys: [...this.state.keys, getDisplayKey(evt.code)] });
+    this.setState({ keys: [...this.state.keys.slice(-5), getDisplayKey(evt.code)] });
     this.#onClear();
   };
 
@@ -88,7 +91,11 @@ export class DuoyunInputCaptureElement extends GemElement<State> {
     const { keys, mousePosition } = this.state;
     return html`
       ${keys.length
-        ? html`<dy-paragraph class="container">${keys.map((key) => html`<kbd class="kbd">${key}</kbd>`)}</dy-paragraph>`
+        ? html`
+            <dy-paragraph part=${DuoyunInputCaptureElement.container} class="container">
+              ${keys.map((key) => html`<kbd part=${DuoyunInputCaptureElement.kbd} class="kbd">${key}</kbd>`)}
+            </dy-paragraph>
+          `
         : ''}
       ${mousePosition
         ? html`

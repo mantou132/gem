@@ -174,7 +174,8 @@ export class DuoyunCarouselElement extends GemElement<State> {
   };
 
   #add = (direction: 1 | -1) => {
-    const total = this.data!.length;
+    const total = this.data?.length;
+    if (!total) return;
     this.setState({ currentIndex: (total + this.state.currentIndex + direction) % total, direction });
     this.#reset();
   };
@@ -223,6 +224,7 @@ export class DuoyunCarouselElement extends GemElement<State> {
 
   render = () => {
     const { currentIndex, direction } = this.state;
+    debugger;
     return html`
       <ul class="list" role="region">
         ${this.data?.map(

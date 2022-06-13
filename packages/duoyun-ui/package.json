@@ -1,6 +1,6 @@
 {
   "name": "duoyun-ui",
-  "version": "0.0.33",
+  "version": "0.0.37",
   "description": "WebComponts UI",
   "exports": {
     "./elements/*": "./elements/*.js",
@@ -23,6 +23,7 @@
   },
   "dependencies": {
     "d3-geo": "^3.0.1",
+    "deep-query-selector": "^1.0.1",
     "elkjs": "^0.7.1"
   },
   "peerDependencies": {

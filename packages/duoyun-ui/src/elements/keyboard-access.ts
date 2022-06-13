@@ -1,5 +1,5 @@
 import { GemElement, html } from '@mantou/gem/lib/element';
-import { adoptedStyle, customElement } from '@mantou/gem/lib/decorators';
+import { adoptedStyle, customElement, attribute, part } from '@mantou/gem/lib/decorators';
 import { createCSSSheet, css, styleMap } from '@mantou/gem/lib/utils';
 
 import { hotkeys, HotKeyHandles, unlock } from '../lib/hotkeys';
@@ -8,6 +8,7 @@ import { theme } from '../lib/theme';
 
 import { Toast } from './toast';
 
+import 'deep-query-selector';
 import './paragraph';
 
 const style = createCSSSheet(css`
@@ -26,6 +27,7 @@ const style = createCSSSheet(css`
   .key {
     position: absolute;
     background: yellow;
+    color: black;
     border-color: #0002;
     text-transform: uppercase;
   }
@@ -41,7 +43,6 @@ type State = {
   active: boolean;
   waiting: boolean;
   keydownHandles: HotKeyHandles;
-  deepQuerySelectorAll?: (selector: string) => HTMLElement[];
   focusableElements?: FocusableElement[];
 };
 
@@ -56,10 +57,18 @@ function getChars(index: number) {
 
 /**
  * @customElement dy-keyboard-access
+ * Firefox cross origin open popup allow: about:config -> dom.popup_allowed_events add `keydown`
  */
 @customElement('dy-keyboard-access')
 @adoptedStyle(style)
 export class DuoyunKeyboardAccessElement extends GemElement<State> {
+  @part static kbd: string;
+  @attribute activekey: string;
+
+  get #activekey() {
+    return this.activekey || 'f';
+  }
+
   state: State = {
     active: false,
     waiting: false,
@@ -89,10 +98,12 @@ export class DuoyunKeyboardAccessElement extends GemElement<State> {
 
   #onActive = (evt: KeyboardEvent) => {
     if (this.#isInputTarget(evt)) return;
-    const { deepQuerySelectorAll, active } = this.state;
-    if (!deepQuerySelectorAll || active) return;
+    const { active } = this.state;
+    if (active) return;
 
-    const eles = deepQuerySelectorAll('>>> :is([tabindex],input,textarea,button,select,area,a[href])');
+    const eles = document.deepQuerySelectorAll(
+      '>>> :is([tabindex],input,textarea,button,select,area,a[href])',
+    ) as HTMLElement[];
     if (!eles.length) {
       Toast.open('default', 'Not found focusable element');
       return;
@@ -113,7 +124,6 @@ export class DuoyunKeyboardAccessElement extends GemElement<State> {
       keydownHandles,
       focusableElements: eles
         .map((element) => {
-          const root = element.getRootNode() as ShadowRoot | (Document & { host: undefined });
           const { top, left, right, bottom, width, height } = element.getBoundingClientRect();
           if (
             (element as any).disabeld ||
@@ -128,19 +138,12 @@ export class DuoyunKeyboardAccessElement extends GemElement<State> {
           ) {
             return;
           }
-          // Firefox Bug: https://bugzilla.mozilla.org/show_bug.cgi?id=1750907
-          const eleFromLeftTop = root.elementFromPoint(left + 2, top + 2);
-          const eleFromRightBottom = root.elementFromPoint(left + width - 2, top + height - 2);
-          if (
-            eleFromLeftTop !== element &&
-            eleFromRightBottom !== element &&
-            // https://bugs.chromium.org/p/chromium/issues/detail?id=1188919&q=elementFromPoint&can=2
-            eleFromLeftTop !== root.host &&
-            eleFromRightBottom !== root.host &&
-            // ligth dom
-            eleFromLeftTop?.parentElement !== element &&
-            eleFromRightBottom?.parentElement !== element
-          ) {
+          // https://bugzilla.mozilla.org/show_bug.cgi?id=1750907
+          // https://bugs.chromium.org/p/chromium/issues/detail?id=1188919&q=elementFromPoint&can=2
+          const root = element.getRootNode() as ShadowRoot | (Document & { host: undefined });
+          const elesFromLeftTop = root.elementsFromPoint(left + 2, top + 2);
+          const elesFromRightBottom = root.elementsFromPoint(left + width - 2, top + height - 2);
+          if (!elesFromLeftTop.includes(element) && !elesFromRightBottom.includes(element)) {
             return;
           }
 
@@ -176,7 +179,7 @@ export class DuoyunKeyboardAccessElement extends GemElement<State> {
   #onKeydown = (evt: KeyboardEvent) => {
     if (this.#isInputTarget(evt)) return;
     hotkeys({
-      f: this.#onActive,
+      [this.#activekey]: this.#onActive,
       j: () => document.body.scrollBy(0, -innerHeight / 3),
       k: () => document.body.scrollBy(0, innerHeight / 3),
       h: () => document.body.scrollBy(0, -innerHeight),
@@ -199,14 +202,6 @@ export class DuoyunKeyboardAccessElement extends GemElement<State> {
       },
       () => [this.state.active],
     );
-    this.effect(
-      async () => {
-        const url = 'https://cdn.skypack.dev/deep-query-selector@1.0.1';
-        const { deepQuerySelectorAll } = await import(/* @vite-ignore */ /* webpackIgnore: true */ `${url}?min`);
-        this.setState({ deepQuerySelectorAll });
-      },
-      () => [],
-    );
     addEventListener('keydown', this.#onKeydown, { capture: true });
     addEventListener('pointerdown', this.#onCancal);
     return () => {
@@ -224,6 +219,7 @@ export class DuoyunKeyboardAccessElement extends GemElement<State> {
           ({ key, left, top }) =>
             html`
               <kbd
+                part=${DuoyunKeyboardAccessElement.kbd}
                 class="key"
                 style=${styleMap({
                   left: `${left}px`,
