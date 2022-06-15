@@ -41,7 +41,8 @@ type HistoryParams = UpdateHistoryParams & { title: string; path: string; query:
 // TODO: WeakRef
 const paramsMap = new Map<string, HistoryParams>();
 
-function validData({ $key, $hasCloseHandle, $hasOpenHandle, $hasShouldCloseHandle }: any = {}) {
+function validData(data: any) {
+  const { $key, $hasCloseHandle, $hasOpenHandle, $hasShouldCloseHandle } = data || {};
   if (store.$key === $key) return;
   if ($key) throw new GemError('`$key` is not allowed');
   if ($hasCloseHandle) throw new GemError('`$hasCloseHandle` is not allowed');
