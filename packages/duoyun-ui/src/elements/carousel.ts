@@ -224,7 +224,6 @@ export class DuoyunCarouselElement extends GemElement<State> {
 
   render = () => {
     const { currentIndex, direction } = this.state;
-    debugger;
     return html`
       <ul class="list" role="region">
         ${this.data?.map(

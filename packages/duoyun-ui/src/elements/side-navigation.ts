@@ -18,6 +18,7 @@ interface Item {
   pattern?: string;
   params?: Record<string, string>;
   query?: QueryString | string;
+  hash?: string;
   children?: Item[];
 }
 
@@ -115,7 +116,7 @@ export class DuoyunSideNavigationElement extends DuoyunScrollBaseElement<State> 
     this.items.forEach(matchChildren);
   };
 
-  #renderItem = ({ pattern, title = '<No Title>', slot, params, query, children }: Item): TemplateResult => {
+  #renderItem = ({ pattern, title = '<No Title>', slot, params, query, hash, children }: Item): TemplateResult => {
     return html`
       <dy-active-link
         class="item"
@@ -125,6 +126,7 @@ export class DuoyunSideNavigationElement extends DuoyunScrollBaseElement<State> 
         doc-title=${title}
         path=${pattern ? createPath({ pattern }, { params }) : ''}
         query=${query ? query.toString() : ''}
+        hash=${hash || ''}
         pattern=${!pattern ? '' : pattern.endsWith('*') ? pattern : `${pattern}/*`}
       >
         <span>${title}</span>${slot}
