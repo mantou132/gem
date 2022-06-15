@@ -1,6 +1,6 @@
 {
   "name": "gem-book",
-  "version": "1.5.14",
+  "version": "1.5.15",
   "description": "Create your document website easily and quickly",
   "keywords": [
     "doc",
@@ -37,7 +37,7 @@
     "prepublishOnly": "yarn build"
   },
   "dependencies": {
-    "@mantou/gem": "^1.6.15",
+    "@mantou/gem": "^1.6.16",
     "commander": "^7.2.0",
     "copy-webpack-plugin": "^8.1.1",
     "front-matter": "^4.0.2",
@@ -72,7 +72,7 @@
     "@web/dev-server-esbuild": "^0.2.16",
     "@web/test-runner": "^0.13.22",
     "esbuild": "^0.14.14",
-    "gem-analyzer": "^1.6.15",
+    "gem-analyzer": "^1.6.16",
     "nodemon": "^2.0.7",
     "ts-morph": "^13.0.0",
     "webpack-cli": "^4.7.0",
