@@ -149,7 +149,16 @@ export class DuoyunTabsElement extends GemElement {
         size="medium"
         orientation=${this.#orientation}
       ></dy-divider>
-      <dy-compartment .content=${currentContent}></dy-compartment>
+      <dy-compartment
+        .content=${html`
+          <style>
+            dy-tab-panel::-webkit-scrollbar {
+              width: 0;
+            }
+          </style>
+          ${currentContent}
+        `}
+      ></dy-compartment>
     `;
   };
 }
