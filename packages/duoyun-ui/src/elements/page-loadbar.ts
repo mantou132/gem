@@ -12,7 +12,7 @@ const style = createCSSSheet(css`
     display: flex;
     justify-content: flex-end;
     align-items: flex-end;
-    top: 0;
+    top: env(titlebar-area-height, var(--titlebar-area-height, 0px));
     left: 0;
     height: 2px;
     transition: width 0.3s;
