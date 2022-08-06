@@ -80,6 +80,39 @@ const keys: Record<NormalizeKey, Key> = {
     alias: 'right',
     symbol: '→',
   },
+  minus: {
+    symbol: '-',
+  },
+  equal: {
+    symbol: '=',
+  },
+  period: {
+    symbol: '.',
+  },
+  comma: {
+    symbol: ',',
+  },
+  slash: {
+    symbol: '/',
+  },
+  backslash: {
+    symbol: '|',
+  },
+  bracketleft: {
+    symbol: '[',
+  },
+  bracketright: {
+    symbol: ']',
+  },
+  semicolon: {
+    symbol: ';',
+  },
+  quote: {
+    symbol: "'",
+  },
+  backquote: {
+    symbol: '`',
+  },
 };
 
 const map: Record<string, NormalizeKey> = proxyObject({});
@@ -114,7 +147,7 @@ const hotkeySplitter = /,(?!,)/;
 // const keySplitter = /(?<!\+)\+/;
 const keySplitter = /\+/;
 
-function matchHotKey(evt: KeyboardEvent, hotkey: string) {
+export function matchHotKey(evt: KeyboardEvent, hotkey: string) {
   const keys = hotkey.split(keySplitter).map((k) => map[k]);
 
   const targetKeyEvent = { ctrl: false, meta: false, shift: false, alt: false, namedKey: '' };
@@ -178,6 +211,7 @@ export function unlock() {
  */
 export function hotkeys(handles: HotKeyHandles) {
   return function (evt: KeyboardEvent) {
+    if (evt.isComposing) return;
     if (locked) return;
 
     let captured = false;
