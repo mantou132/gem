@@ -255,6 +255,9 @@ export class DuoyunColorPanelElement extends GemElement<State> {
     const color = rgbToHexColor([r, g, b, a]);
     this.setState({ commitValue: { h, str: color } });
     this.change(color);
+    if (color === this.value) {
+      this.setState({ h });
+    }
   };
 
   #onPanSV = ({ detail, target }: CustomEvent<PanEventDetail>) => {
@@ -275,11 +278,12 @@ export class DuoyunColorPanelElement extends GemElement<State> {
 
   #onPanA = ({ detail, target }: CustomEvent<PanEventDetail>) => {
     this.setState({ grabbingA: true });
-    const { r, g, b } = this.state;
+    const { h, s, l, sa } = this.state;
+    const [r, g, b] = hslToRgb([h, s, l]);
     const { top } = this.#getPosition(target as HTMLElement, detail);
     const a = 1 - top;
     const color = rgbToHexColor([r, g, b, a]);
-    this.setState({ commitValue: { str: color, a } });
+    this.setState({ commitValue: { str: color, h, a, sa } });
     this.change(color);
   };
 
