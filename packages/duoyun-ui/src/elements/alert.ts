@@ -3,7 +3,7 @@ import { adoptedStyle, customElement, attribute, property } from '@mantou/gem/li
 import { GemElement, html } from '@mantou/gem/lib/element';
 import { createCSSSheet, css } from '@mantou/gem/lib/utils';
 
-import { theme } from '../lib/theme';
+import { theme, getSemanticColor } from '../lib/theme';
 import { icons } from '../lib/icons';
 
 import './use';
@@ -11,22 +11,12 @@ import './action-text';
 
 const style = createCSSSheet(css`
   :host {
-    --color: ${theme.neutralColor};
     display: flex;
     flex-direction: column;
     padding: 1.2em 1.5em;
     gap: 0.8em;
     border: 2px solid var(--color);
     border-radius: ${theme.normalRound};
-  }
-  :host([status='positive']) {
-    --color: ${theme.positiveColor};
-  }
-  :host([status='notice']) {
-    --color: ${theme.noticeColor};
-  }
-  :host([status='negative']) {
-    --color: ${theme.negativeColor};
   }
   .header {
     display: flex;
@@ -52,7 +42,7 @@ const style = createCSSSheet(css`
   }
 `);
 
-type Status = 'positive' | 'notice' | 'negative' | 'default';
+type Status = 'positive' | 'notice' | 'negative' | 'informative' | 'default';
 
 /**
  * @customElement dy-alert
@@ -73,7 +63,13 @@ export class DuoyunAlertElement extends GemElement {
         return icons.warning;
       case 'negative':
         return icons.error;
+      case 'informative':
+        return icons.info;
     }
+  }
+
+  get #color() {
+    return getSemanticColor(this.status) || theme.neutralColor;
   }
 
   constructor() {
@@ -84,6 +80,11 @@ export class DuoyunAlertElement extends GemElement {
   render = () => {
     const icon = this.#icon;
     return html`
+      <style>
+        :host {
+          --color: ${this.#color};
+        }
+      </style>
       <div class="header">
         <div class="title">${this.header}</div>
         ${icon ? html`<dy-use class="icon" .element=${icon}></dy-use>` : ''}
