@@ -6,6 +6,7 @@ import {
   Emitter,
   property,
   boolattribute,
+  part,
 } from '@mantou/gem/lib/decorators';
 import { GemElement, html } from '@mantou/gem/lib/element';
 import { createCSSSheet, css } from '@mantou/gem/lib/utils';
@@ -63,6 +64,8 @@ const style = createCSSSheet(css`
 @adoptedStyle(style)
 @adoptedStyle(focusStyle)
 export class DuoyunShortcutRecordElement extends GemElement {
+  @part static kbd: string;
+
   @attribute placeholder: string;
   @attribute tooltip: string;
   @boolattribute disabled: number;
@@ -111,7 +114,9 @@ export class DuoyunShortcutRecordElement extends GemElement {
     return html`
       <dy-paragraph class="paragraph">
         ${this.value
-          ? html`${this.value.map((key) => html`<kbd>${getDisplayKey(key)}</kbd>`)}`
+          ? html`${this.value.map(
+              (key) => html`<kbd part=${DuoyunShortcutRecordElement.kbd}>${getDisplayKey(key)}</kbd>`,
+            )}`
           : html`
               <div class="placeholder">${this.placeholder}</div>
               <div class="tooltip">${this.#tooltip}</div>
