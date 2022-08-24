@@ -1,5 +1,6 @@
-import { createStore } from '@mantou/gem/lib/store';
+import { createStore, Store, connect, updateStore } from '@mantou/gem/lib/store';
 import { render, TemplateResult } from '@mantou/gem/lib/element';
+import { NonPrimitive, cleanObject } from '@mantou/gem/lib/utils';
 
 import { isNullish } from '../lib/types';
 
@@ -291,19 +292,41 @@ export function setBodyInert(modal: HTMLElement) {
 export function createCacheStore<T extends Record<string, any>>(
   storageKey: string,
   initStore: T,
-  options?: { cacheExcludeKeys?: (keyof T)[]; prefix?: string },
+  options?: {
+    cacheExcludeKeys?: (keyof T)[];
+    prefix?: string | (() => string | undefined);
+    depStore?: Store<NonPrimitive>;
+  },
 ) {
+  const getKey = () => {
+    const prefix = typeof options?.prefix === 'function' ? options.prefix() : options?.prefix;
+    return prefix ? `${prefix}@${storageKey}` : storageKey;
+  };
+
+  const getStoreStore = (key: string) => {
+    let storeCache: T | undefined = undefined;
+    try {
+      storeCache = JSON.parse(localStorage.getItem(key) || '{}');
+    } catch (err) {
+      //
+    }
+    return storeCache ? { ...initStore, ...storeCache } : initStore;
+  };
+
   const cacheExcludeKeys = new Set(options?.cacheExcludeKeys || []);
-  const key = options?.prefix ? `${options.prefix}@${storageKey}` : storageKey;
+  let key = getKey();
 
-  let storeCache: T | undefined = undefined;
-  try {
-    storeCache = JSON.parse(localStorage.getItem(key) || '{}');
-  } catch (err) {
-    //
+  const store = createStore<T>(getStoreStore(key));
+
+  if (options?.depStore) {
+    connect(options.depStore, () => {
+      const newKey = getKey();
+      if (newKey !== key) {
+        key = newKey;
+        updateStore(cleanObject(store), getStoreStore(newKey));
+      }
+    });
   }
-
-  const store = createStore<T>(storeCache ? { ...initStore, ...storeCache } : initStore);
 
   const saveStore = () => {
     localStorage.setItem(
