@@ -147,6 +147,7 @@ export class DuoyunTableElement extends GemElement {
   @part static th: string;
   @part static td: string;
   @part static tr: string;
+  @part static side: string;
 
   @attribute caption: string;
   @boolattribute headless: boolean;
@@ -161,6 +162,8 @@ export class DuoyunTableElement extends GemElement {
   @property columns: Column<any>[];
   @property data: (Record<string, unknown> | undefined)[] | undefined;
   @property getRowStyle?: (record: any) => StyleObject;
+
+  @property noData?: string | TemplateResult;
 
   @property rowKey?: string | string[];
   @property expandedRowRender?: (record: any) => undefined | string | TemplateResult;
@@ -411,9 +414,9 @@ export class DuoyunTableElement extends GemElement {
         </tbody>
       </table>
       ${!this.data
-        ? html`<div class="side"><dy-loading></dy-loading></div>`
+        ? html`<div class="side" part=${DuoyunTableElement.side}><dy-loading></dy-loading></div>`
         : this.data.length === 0
-        ? html`<div class="side"><dy-empty></dy-empty></div>`
+        ? html`<div class="side" part=${DuoyunTableElement.side}>${this.noData || html`<dy-empty></dy-empty>`}</div>`
         : ''}
     `;
   };
