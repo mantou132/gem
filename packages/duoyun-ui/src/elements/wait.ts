@@ -71,11 +71,13 @@ export class DuoyunWaitElement extends GemElement {
     this.internals.ariaBusy = 'true';
     this.internals.ariaLabel = this.#text;
     document.documentElement.append(this);
+    this.addEventListener('contextmenu', (e) => e.preventDefault());
   }
 
   #text = '';
 
   mounted = () => {
+    DuoyunWaitElement.instance?.remove();
     DuoyunWaitElement.instance = this;
     const restoreInert = setBodyInert(this);
     return () => {
