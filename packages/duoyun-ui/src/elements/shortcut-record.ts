@@ -30,6 +30,7 @@ const style = createCSSSheet(css`
     gap: 0.2em;
     border-radius: ${theme.normalRound};
     border: 1px solid ${theme.borderColor};
+    white-space: nowrap;
   }
   :host(:focus) {
     border-color: ${theme.textColor};
@@ -42,6 +43,8 @@ const style = createCSSSheet(css`
   .placeholder,
   .tooltip {
     color: ${theme.describeColor};
+    -webkit-user-select: none;
+    user-select: none;
   }
   :host(:focus) .placeholder {
     display: none;
