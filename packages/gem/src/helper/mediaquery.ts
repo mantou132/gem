@@ -33,8 +33,8 @@ export const mediaQuery = {
     return matche(this.WIDTHSCREEN);
   },
 
-  PHONE_LANDSCAPE: '(min-width: 479px) and (max-width: 767px) and (orientation: landscape)',
-  // PHONE_LANDSCAPE: '(min-width: 481px) and (max-width: 767px)',
+  PHONE_LANDSCAPE: '(min-width: 479px) and (max-width: 959px) and (orientation: landscape)',
+  // PHONE_LANDSCAPE: '(min-width: 481px) and (max-width: 959px)',
   get isPhoneLandscape() {
     return matche(this.PHONE_LANDSCAPE);
   },
