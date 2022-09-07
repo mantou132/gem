@@ -10,6 +10,7 @@ import { locale } from '../lib/locale';
 
 import { ContextMenu } from './menu';
 import { DuoyunVisibleBaseElement } from './base/visible';
+import { DuoyunWaitElement } from './wait';
 
 import './card';
 import './paragraph';
@@ -20,8 +21,9 @@ export type Tour = {
   description: string;
   before?: () => Promise<void> | void;
   preview?: string;
-  /**only last tour */
+  finishText?: string;
   finish?: () => Promise<void> | void;
+  skip?: () => Promise<void> | void;
 };
 let tourList: Tour[] = [];
 
@@ -41,28 +43,32 @@ export async function openTour(currentIndex = store.currentIndex) {
   updateStore(store, { opened: true, currentIndex });
 }
 
-export async function setTours(tours: Tour[], { opened = true, currentIndex = 0 }: Partial<Store> = {}) {
-  if (tours.length === 0) throw new Error('missing tours');
-  tourList = tours;
-  await openTour(currentIndex);
-  updateStore(store, { opened });
-}
-
-function closeTour() {
-  updateStore(store, { opened: false });
-}
-
-function nextTour() {
-  const isFinish = store.currentIndex === tourList.length - 1;
-  if (isFinish) {
-    updateStore(store, {
-      currentIndex: 0,
-      opened: false,
-    });
-    ContextMenu.close();
-    tourList[store.currentIndex].finish?.();
+export async function setTours(tours: Tour[] | Record<number, Tour>, options: Partial<Store> = {}) {
+  tourList = Object.assign([], tours);
+  const { opened = true, currentIndex = tourList.findIndex((e) => !!e) || 0 } = options;
+  if (opened) {
+    await openTour(currentIndex);
   } else {
-    openTour(store.currentIndex + 1);
+    updateStore(store, { opened });
+  }
+}
+
+async function closeTour() {
+  updateStore(store, { opened: false });
+  tourList[store.currentIndex].skip?.();
+}
+
+async function nextTour() {
+  updateStore(store, { opened: false });
+  ContextMenu.close();
+  const { currentIndex } = store;
+  const isFinish = currentIndex === tourList.length - 1;
+  if (isFinish) {
+    updateStore(store, { currentIndex: tourList.findIndex((e) => !!e) || 0 });
+  }
+  await tourList[currentIndex].finish?.();
+  if (!isFinish) {
+    openTour(currentIndex + 1);
   }
 }
 
@@ -154,10 +160,11 @@ export class DuoyunCoachMarkElement extends DuoyunVisibleBaseElement {
 
   #open = async () => {
     if (!this.#tour) return;
-    const { description, preview = '', title } = this.#tour;
+    const { description, preview = '', title, finishText } = this.#tour;
     const isFinish = store.currentIndex === tourList.length - 1;
     this.scrollIntoView({ block: 'nearest', inline: 'nearest' });
     if (!this.visibility) await new Promise((res) => this.addEventListener('visible', res, { once: true }));
+    DuoyunWaitElement.instance?.remove(); // avoid inert conflict
     ContextMenu.open(
       html`
         <dy-card
@@ -173,7 +180,9 @@ export class DuoyunCoachMarkElement extends DuoyunVisibleBaseElement {
             ${isFinish
               ? ''
               : html`<dy-button @click=${() => this.#skip()} small color="cancel">${locale.skipTour}</dy-button>`}
-            <dy-button @click=${() => nextTour()} small>${isFinish ? locale.finishTour : locale.nextTour}</dy-button>
+            <dy-button @click=${() => nextTour()} small>
+              ${finishText || (isFinish ? locale.finishTour : locale.nextTour)}
+            </dy-button>
           </div>
         </dy-card>
       `,

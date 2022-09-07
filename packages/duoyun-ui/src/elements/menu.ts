@@ -278,11 +278,10 @@ export class DuoyunMenuElement extends GemElement {
     this.#menuEles.shift()?.focus();
     const restoreInert = setBodyInert(this);
     ContextMenu.instance = this;
-    addEventListener('contextmenu', this.#preventDefault);
+    this.addEventListener('contextmenu', this.#preventDefault);
     return () => {
       restoreInert();
       ContextMenu.instance = undefined;
-      removeEventListener('contextmenu', this.#preventDefault);
     };
   };
 
