@@ -19,6 +19,7 @@ export interface MenuItem {
   text: string | TemplateResult;
   description?: string | TemplateResult;
   tag?: string | TemplateResult;
+  tagIcon?: string | DocumentFragment | Element;
   disabled?: boolean;
   danger?: boolean;
   selected?: boolean;
@@ -313,7 +314,7 @@ export class DuoyunMenuElement extends GemElement {
             .options=${Array.isArray(menu)
               ? menu.map(
                   (
-                    { text, description, tag, handle, disabled, selected, danger, menu: subMenu },
+                    { text, description, tag, tagIcon, handle, disabled, selected, danger, menu: subMenu },
                     _index,
                     __arr,
                     onPointerEnter = (evt: PointerEvent) => this.#onEnterMenu(evt, index, subMenu),
@@ -325,7 +326,7 @@ export class DuoyunMenuElement extends GemElement {
                     disabled,
                     danger,
                     highlight: !!(subMenu && subMenu === menuStack[index + 1]?.menu),
-                    tagIcon: subMenu ? icons.right : selected ? icons.check : undefined,
+                    tagIcon: subMenu ? icons.right : selected ? icons.check : tagIcon,
                     onClick: subMenu ? onPointerEnter : onClick,
                     onPointerEnter,
                   }),
