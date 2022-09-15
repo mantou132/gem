@@ -67,9 +67,9 @@ const style = createCSSSheet(css`
   }
   .img,
   .content {
-    animation: fadein ${theme.timingEasingFunction} 0.667s both;
+    animation: fadeIn ${theme.timingEasingFunction} 0.667s both;
   }
-  @keyframes fadein {
+  @keyframes fadeIn {
     0% {
       transform: translateX(calc(var(--direction) * 3em));
     }
@@ -201,7 +201,7 @@ export class DuoyunCarouselElement extends GemElement<State> {
 
   #clearTimer = () => clearTimeout(this.#timer);
 
-  #pagevisibleChange = () => {
+  #pageVisibleChange = () => {
     if (document.visibilityState === 'visible') {
       this.#reset();
     } else {
@@ -215,9 +215,9 @@ export class DuoyunCarouselElement extends GemElement<State> {
       () => this.change(this.state.currentIndex),
       () => [this.state.currentIndex],
     );
-    document.addEventListener('visibilitychange', this.#pagevisibleChange);
+    document.addEventListener('visibilitychange', this.#pageVisibleChange);
     return () => {
-      document.removeEventListener('visibilitychange', this.#pagevisibleChange);
+      document.removeEventListener('visibilitychange', this.#pageVisibleChange);
       this.#clearTimer();
     };
   };

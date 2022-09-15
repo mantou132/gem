@@ -20,7 +20,7 @@ const style = createCSSSheet(css`
 @customElement('dy-link')
 @adoptedStyle(style)
 @adoptedStyle(focusStyle)
-export class DouyunLinkElement extends GemLinkElement {
+export class DuoyunLinkElement extends GemLinkElement {
   constructor() {
     super();
     this.addEventListener('keydown', commonHandle);

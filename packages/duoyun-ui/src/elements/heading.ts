@@ -40,7 +40,7 @@ const style = createCSSSheet(css`
 @customElement('dy-heading')
 @adoptedStyle(style)
 @connectStore(history.store)
-export class DuoyunheadingElement extends GemElement {
+export class DuoyunHeadingElement extends GemElement {
   @attribute lv: '1' | '2' | '3' | '4';
 
   get #lv() {

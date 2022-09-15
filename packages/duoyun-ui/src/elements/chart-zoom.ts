@@ -47,7 +47,7 @@ const style = createCSSSheet(css`
     cursor: crosshair;
     height: 50%;
   }
-  .grabing {
+  .grabbing {
     cursor: grabbing;
   }
   .start,
@@ -72,7 +72,7 @@ const style = createCSSSheet(css`
 `);
 
 type State = {
-  grabing: boolean;
+  grabbing: boolean;
   newValue?: number[];
 };
 
@@ -87,7 +87,7 @@ export class DuoyunChartZoomElement extends GemElement<State> {
   @emitter change: Emitter<number[]>;
 
   state: State = {
-    grabing: false,
+    grabbing: false,
   };
 
   #getMovement = (detail: PanEventDetail) => {
@@ -144,7 +144,7 @@ export class DuoyunChartZoomElement extends GemElement<State> {
   };
 
   #onGrabStart = () => {
-    this.setState({ grabing: true });
+    this.setState({ grabbing: true });
   };
 
   #onPan = ({ detail }: CustomEvent<PanEventDetail>) => {
@@ -153,11 +153,11 @@ export class DuoyunChartZoomElement extends GemElement<State> {
   };
 
   #onGrabEnd = () => {
-    this.setState({ grabing: false });
+    this.setState({ grabbing: false });
   };
 
   render = () => {
-    const { grabing, newValue } = this.state;
+    const { grabbing, newValue } = this.state;
     const [start, stop] = this.value;
     return html`
       <dy-area-chart
@@ -181,11 +181,11 @@ export class DuoyunChartZoomElement extends GemElement<State> {
           : ''}
       </dy-gesture>
       <div
-        class=${classMap({ range: true, grabing })}
+        class=${classMap({ range: true, grabbing })}
         style=${styleMap({ left: `calc(${start * 100}% - 1px)`, right: `calc(${(1 - stop) * 100}% - 2px)` })}
       >
         <dy-gesture
-          class=${classMap({ grab: true, grabing })}
+          class=${classMap({ grab: true, grabbing })}
           @pointerdown=${this.#onGrabStart}
           @pan=${this.#onPan}
           @end=${this.#onGrabEnd}

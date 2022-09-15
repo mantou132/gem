@@ -38,9 +38,9 @@ const style = createCSSSheet(css`
   }
   .mask {
     inset: 0;
-    animation: showbg 0.1s ${theme.timingFunction} forwards;
+    animation: showMask 0.1s ${theme.timingFunction} forwards;
   }
-  @keyframes showbg {
+  @keyframes showMask {
     0% {
       background-color: transparent;
     }
@@ -55,7 +55,7 @@ const style = createCSSSheet(css`
   }
   .dialog {
     outline: none;
-    animation: showdialog 0.1s ${theme.timingFunction} forwards;
+    animation: showDialog 0.1s ${theme.timingFunction} forwards;
   }
   .main {
     box-sizing: border-box;
@@ -71,7 +71,7 @@ const style = createCSSSheet(css`
     box-shadow: 0 5px 10px rgba(0, 0, 0, calc(${theme.maskAlpha} - 0.15));
     border-radius: calc(${theme.normalRound} * 3);
   }
-  @keyframes showdialog {
+  @keyframes showDialog {
     0% {
       transform: translate(0, 50%);
       opacity: 0;
@@ -139,9 +139,9 @@ export interface Options {
   customize?: boolean;
   maskCloseable?: boolean;
   open?: boolean;
-  disableDefualtCancelBtn?: boolean;
-  disableDefualtOKBtn?: boolean;
-  dangerDefualtOkBtn?: boolean;
+  disableDefaultCancelBtn?: boolean;
+  disableDefaultOKBtn?: boolean;
+  dangerDefaultOkBtn?: boolean;
   cancelText?: string;
   okText?: string;
 }
@@ -157,16 +157,14 @@ export interface Options {
 @adoptedStyle(style2)
 @connectStore(locale)
 export class DuoyunModalElement extends GemElement {
-  @part static dialog: string;
-
   @boolattribute open: boolean;
   @boolattribute customize: boolean;
   @boolattribute maskCloseable: boolean;
   @attribute okText: string;
   @attribute cancelText: string;
-  @boolattribute disableDefualtCancelBtn: boolean;
-  @boolattribute disableDefualtOKBtn: boolean;
-  @boolattribute dangerDefualtOkBtn: boolean;
+  @boolattribute disableDefaultCancelBtn: boolean;
+  @boolattribute disableDefaultOKBtn: boolean;
+  @boolattribute dangerDefaultOkBtn: boolean;
 
   @emitter close: Emitter;
   @emitter ok: Emitter;
@@ -176,6 +174,12 @@ export class DuoyunModalElement extends GemElement {
   @property body?: string | TemplateResult;
 
   @refobject bodyRef: RefObject<HTMLElement>;
+
+  @part static dialog: string;
+  @part static heading: string;
+  @part static divider: string;
+  @part static body: string;
+  @part static footer: string;
 
   // Cannot be used for dynamic forms
   static async open<T = Element>(options: Options) {
@@ -216,9 +220,9 @@ export class DuoyunModalElement extends GemElement {
     cancelText,
     okText,
     body,
-    disableDefualtCancelBtn,
-    disableDefualtOKBtn,
-    dangerDefualtOkBtn,
+    disableDefaultCancelBtn,
+    disableDefaultOKBtn,
+    dangerDefaultOkBtn,
   }: Options = {}) {
     super();
     if (header) this.header = header;
@@ -227,9 +231,9 @@ export class DuoyunModalElement extends GemElement {
     if (open) this.open = open;
     if (cancelText) this.cancelText = cancelText;
     if (okText) this.okText = okText;
-    if (disableDefualtCancelBtn) this.disableDefualtCancelBtn = disableDefualtCancelBtn;
-    if (disableDefualtOKBtn) this.disableDefualtOKBtn = disableDefualtOKBtn;
-    if (dangerDefualtOkBtn) this.dangerDefualtOkBtn = dangerDefualtOkBtn;
+    if (disableDefaultCancelBtn) this.disableDefaultCancelBtn = disableDefaultCancelBtn;
+    if (disableDefaultOKBtn) this.disableDefaultOKBtn = disableDefaultOKBtn;
+    if (dangerDefaultOkBtn) this.dangerDefaultOkBtn = dangerDefaultOkBtn;
     if (body) this.body = body;
   }
 
@@ -297,21 +301,23 @@ export class DuoyunModalElement extends GemElement {
             >
               ${this.header
                 ? html`
-                    <div role="heading" aria-level="1" class="header">${this.header}</div>
-                    <dy-divider class="header-divider" size="medium"></dy-divider>
+                    <div part=${DuoyunModalElement.heading} role="heading" aria-level="1" class="header">
+                      ${this.header}
+                    </div>
+                    <dy-divider part=${DuoyunModalElement.divider} class="header-divider" size="medium"></dy-divider>
                   `
                 : ''}
-              <div class="body">
+              <div class="body" part=${DuoyunModalElement.body}>
                 <slot name="body" ref=${this.bodyRef.ref}>${this.body}</slot>
               </div>
-              <div class="footer">
+              <div class="footer" part=${DuoyunModalElement.footer}>
                 <slot name="footer">
-                  <dy-button ?hidden=${this.disableDefualtCancelBtn} @click=${this.#close} .color=${'cancel'}>
+                  <dy-button ?hidden=${this.disableDefaultCancelBtn} @click=${this.#close} .color=${'cancel'}>
                     ${this.cancelText || locale.cancel}
                   </dy-button>
                   <dy-button
-                    ?hidden=${this.disableDefualtOKBtn}
-                    .color=${this.dangerDefualtOkBtn ? 'danger' : 'normal'}
+                    ?hidden=${this.disableDefaultOKBtn}
+                    .color=${this.dangerDefaultOkBtn ? 'danger' : 'normal'}
                     @click=${this.#ok}
                     >${this.okText || locale.ok}</dy-button
                   >

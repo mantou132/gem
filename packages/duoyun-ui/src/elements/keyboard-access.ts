@@ -16,7 +16,7 @@ const style = createCSSSheet(css`
     display: contents;
     font-size: 0.75em;
   }
-  .contaner {
+  .container {
     position: fixed;
     z-index: calc(${theme.popupZIndex} + 1);
     pointer-events: none;
@@ -214,7 +214,7 @@ export class DuoyunKeyboardAccessElement extends GemElement<State> {
     const { active, focusableElements, waiting } = this.state;
     if (!active || !focusableElements) return html``;
     return html`
-      <dy-paragraph class="contaner">
+      <dy-paragraph class="container">
         ${focusableElements.map(
           ({ key, left, top }) =>
             html`

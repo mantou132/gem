@@ -4,7 +4,7 @@ import { createCSSSheet, css } from '@mantou/gem/lib/utils';
 
 import { sleep, setBodyInert } from '../lib/utils';
 import { theme } from '../lib/theme';
-import { commonAnimationOpions, fadeIn, fadeOut } from '../lib/animations';
+import { commonAnimationOptions, fadeIn, fadeOut } from '../lib/animations';
 
 import './loading';
 
@@ -40,7 +40,7 @@ export async function waitLoading<T>(promise: Promise<T>, { minDelay = 500, text
       const [result] = await Promise.all([
         promise,
         sleep(minDelay),
-        ele.animate(fadeIn, commonAnimationOpions).finished,
+        ele.animate(fadeIn, commonAnimationOptions).finished,
       ]);
       return result;
     } else {
@@ -48,7 +48,7 @@ export async function waitLoading<T>(promise: Promise<T>, { minDelay = 500, text
     }
   } finally {
     if (ele) {
-      await ele.animate(fadeOut, commonAnimationOpions).finished;
+      await ele.animate(fadeOut, commonAnimationOptions).finished;
       ele?.remove();
     }
   }

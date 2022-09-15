@@ -45,6 +45,12 @@ const style = createCSSSheet(css`
     flex-shrink: 1;
     min-width: 0;
   }
+  .tag {
+    flex-shrink: 0;
+  }
+  .tag > * {
+    margin: 0;
+  }
   .label,
   .description {
     overflow: hidden;
@@ -286,7 +292,8 @@ export class DuoyunOptionsElement extends GemElement<State> {
                     <div class="label">${label}</div>
                     <div class="description">${description}</div>
                   </div>
-                  ${tag}${tagIcon ? html`<dy-use class="icon" .element=${tagIcon}></dy-use>` : ''}
+                  ${tag ? html`<div class="tag">${tag}</div>` : ''}
+                  ${tagIcon ? html`<dy-use class="icon" .element=${tagIcon}></dy-use>` : ''}
                   ${onRemove
                     ? html`
                         <dy-use

@@ -186,7 +186,7 @@ export class DuoyunFilePickElement extends GemElement {
         case 'fail':
           return 'negative';
         default:
-          return 'detault';
+          return 'default';
       }
     };
     return html`

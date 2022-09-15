@@ -72,7 +72,7 @@ type Action = {
   handle: () => void;
 };
 
-export type ImageStatus = 'negative' | 'positive' | 'detault';
+export type ImageStatus = 'negative' | 'positive' | 'default';
 
 /**
  * @customElement dy-image-preview
@@ -89,7 +89,7 @@ export class DuoyunImagePreviewElement extends GemElement<State> {
   @property actions?: Action[];
 
   get #status() {
-    return this.status || 'detault';
+    return this.status || 'default';
   }
 
   get #color() {
@@ -152,7 +152,7 @@ export class DuoyunImagePreviewElement extends GemElement<State> {
             ></div>
             <div class="desc" role="progressbar">${Math.floor(this.progress)}%</div>
           `
-        : this.#status !== 'detault'
+        : this.#status !== 'default'
         ? html`
             <div class="mask status">
               <dy-use class="icon" .element=${this.#icon}></dy-use>

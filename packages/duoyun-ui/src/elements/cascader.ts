@@ -129,7 +129,7 @@ export class DuoyunCascaderElement extends GemElement<State> {
 
     obj[item.value ?? item.label] = generator(item);
 
-    // paser obj to array
+    // parse obj to array
     const value: (string | number)[][] = [];
     const parse = (obj: any, init: (string | number)[]) => {
       const keys = Object.keys(obj);

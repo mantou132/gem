@@ -39,10 +39,10 @@ export const structuredClone = (window as any).structuredClone || ((v: any) => J
 
 export function getCascaderDeep<T>(list: T[], cascaderKey: keyof T) {
   const getChildren = (t: T): number => {
-    const chilren = t[cascaderKey] as unknown as T[] | undefined;
-    if (Array.isArray(chilren)) {
+    const children = t[cascaderKey] as unknown as T[] | undefined;
+    if (Array.isArray(children)) {
       let l = 0;
-      chilren.forEach((e) => {
+      children.forEach((e) => {
         const ll = getChildren(e);
         if (ll > l) l = ll;
       });

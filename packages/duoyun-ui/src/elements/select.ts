@@ -151,7 +151,7 @@ export class DuoyunSelectElement extends GemElement<State> {
     return this.searchable && !this.disabled && !this.borderless;
   }
 
-  get #fiteredOptions() {
+  get #filteredOptions() {
     const { search } = this.state;
     return search
       ? this.options?.filter(({ label, description = '' }) => isIncludesString(html`${label}${description}`, search))
@@ -235,7 +235,7 @@ export class DuoyunSelectElement extends GemElement<State> {
     },
     esc: this.#onEsc,
     enter: (evt) => {
-      const options = this.#fiteredOptions;
+      const options = this.#filteredOptions;
       if (options?.length === 1) {
         const { value, label } = options[0];
         this.#onChange(value ?? label);
@@ -345,7 +345,7 @@ export class DuoyunSelectElement extends GemElement<State> {
 
   #getOptions = () => {
     const { search } = this.state;
-    const options = this.#fiteredOptions?.map((option) => {
+    const options = this.#filteredOptions?.map((option) => {
       const { value, label, description, disabled, onRemove } = option;
       return {
         label: this.renderLabel ? this.renderLabel(option) : label,

@@ -61,7 +61,7 @@ export class DuoyunLegendElement extends DuoyunScrollBaseElement {
   constructor() {
     super();
     this.addEventListener('wheel', this.#onWheel);
-    this.internals.ariaHidden = 'ture';
+    this.internals.ariaHidden = 'true';
   }
 
   #onWheel = (evt: WheelEvent) => {

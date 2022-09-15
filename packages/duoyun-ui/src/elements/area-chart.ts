@@ -77,7 +77,7 @@ export class DuoyunAreaChartElement extends DuoyunChartBaseElement {
     super();
     this.addEventListener('pointermove', this.#onPointerMove);
     this.addEventListener('pointerout', this.#onPointerOut);
-    this.addEventListener('pointerend', this.#onPointerOut);
+    this.addEventListener('pointercancel', this.#onPointerOut);
     this.addEventListener('click', this.#onClick);
   }
 
@@ -97,7 +97,7 @@ export class DuoyunAreaChartElement extends DuoyunChartBaseElement {
   #areas = [''];
   #symbolSequences: (number[] | null)[][] = [];
 
-  #isDisabeld = (value: string) => {
+  #isDisabled = (value: string) => {
     return !!this.filtersSet.size && !this.filtersSet.has(value);
   };
 
@@ -387,7 +387,7 @@ export class DuoyunAreaChartElement extends DuoyunChartBaseElement {
               revertIndex = arr.length - 1 - index,
               sequence = this.#sequences![revertIndex],
               value = sequence.value ?? sequence.label,
-              disabled = this.#isDisabeld(value),
+              disabled = this.#isDisabled(value),
             ) =>
               svg`
                 ${

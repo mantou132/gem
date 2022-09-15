@@ -1,6 +1,6 @@
 import { themeStore } from './theme';
 
-export const commonAnimationOpions: KeyframeAnimationOptions = {
+export const commonAnimationOptions: KeyframeAnimationOptions = {
   easing: themeStore.timingFunction,
   duration: 300,
 };

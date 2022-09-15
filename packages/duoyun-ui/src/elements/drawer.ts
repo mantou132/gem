@@ -17,7 +17,7 @@ const style = createCSSSheet(css`
     max-height: none;
     border-radius: 0;
   }
-  @keyframes showdialog {
+  @keyframes showDialog {
     0% {
       transform: translate(100%, 0);
     }

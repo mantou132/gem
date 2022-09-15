@@ -1,4 +1,4 @@
-function safaUrlToBase64Str(str: string) {
+function safeUrlToBase64Str(str: string) {
   return str.replaceAll('-', '+').replaceAll('_', '/');
 }
 
@@ -6,7 +6,7 @@ function safaUrlToBase64Str(str: string) {
 export function b64ToUtf8(str: string) {
   return decodeURIComponent(
     window
-      .atob(safaUrlToBase64Str(str))
+      .atob(safeUrlToBase64Str(str))
       .split('')
       .map((c) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
       .join(''),
@@ -14,7 +14,7 @@ export function b64ToUtf8(str: string) {
 }
 
 export function base64ToArrayBuffer(str: string) {
-  return new Uint8Array([...window.atob(safaUrlToBase64Str(str))].map((char) => char.charCodeAt(0))).buffer;
+  return new Uint8Array([...window.atob(safeUrlToBase64Str(str))].map((char) => char.charCodeAt(0))).buffer;
 }
 
 function base64ToSafeUrl(str: string) {
