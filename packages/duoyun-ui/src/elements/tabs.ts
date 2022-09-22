@@ -13,6 +13,8 @@ import { GemElement, html, TemplateResult } from '@mantou/gem/lib/element';
 import { createCSSSheet, css, partMap, classMap } from '@mantou/gem/lib/utils';
 
 import { theme } from '../lib/theme';
+import { commonHandle } from '../lib/hotkeys';
+import { focusStyle } from '../lib/styles';
 
 import { DuoyunScrollBaseElement } from './base/scroll';
 
@@ -89,6 +91,7 @@ export interface TabItem<T = any> {
  */
 @customElement('dy-tabs')
 @adoptedStyle(style)
+@adoptedStyle(focusStyle)
 export class DuoyunTabsElement extends GemElement {
   @part static tabs: string;
   @part static tab: string;
@@ -127,7 +130,8 @@ export class DuoyunTabsElement extends GemElement {
               part=${partMap({ [DuoyunTabsElement.tab]: true, [DuoyunTabsElement.currentTab]: isCurrent })}
               @click=${() => this.change(value ?? index)}
             >
-              ${icon ? html`<dy-use part=${DuoyunTabsElement.icon} class="icon" .element=${icon}></dy-use>` : ''}${tab}
+              ${icon ? html`<dy-use part=${DuoyunTabsElement.icon} class="icon" .element=${icon}></dy-use>` : ''}
+              <span tabindex="0" @keydown=${commonHandle}>${tab}</span>
               ${isCurrent
                 ? html`
                     <dy-divider

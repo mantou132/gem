@@ -22,6 +22,7 @@ const style = createCSSSheet(css`
     color: ${theme.textColor};
     background: ${theme.backgroundColor};
     border: 1px solid ${theme.borderColor};
+    box-sizing: border-box;
     border-radius: ${theme.normalRound};
     overflow: auto;
     scrollbar-width: thin;

@@ -155,6 +155,7 @@ type State = {
 export class DuoyunCarouselElement extends GemElement<State> {
   @part static img: string;
   @part static title: string;
+  @part static tag: string;
   @part static content: string;
   @part static description: string;
   @part static nav: string;
@@ -245,7 +246,7 @@ export class DuoyunCarouselElement extends GemElement<State> {
             >
               <img part=${DuoyunCarouselElement.img} class="img" alt=${title || ''} src=${img} />
               <div class="content" part=${DuoyunCarouselElement.content} @mouseenter=${this.#oMouseEnter}>
-                ${tag ? html`<div class="tag">${tag}</div>` : ''}
+                ${tag ? html`<div part=${DuoyunCarouselElement.tag} class="tag">${tag}</div>` : ''}
                 <dy-heading part=${DuoyunCarouselElement.title} class="heading" lv="2">${title}</dy-heading>
                 <dy-more expandless>
                   <dy-paragraph part=${DuoyunCarouselElement.description} class="paragraph">
