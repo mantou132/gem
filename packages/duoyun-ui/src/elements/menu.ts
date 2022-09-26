@@ -83,8 +83,9 @@ const style = createCSSSheet(css`
   :host {
     display: block;
     position: fixed;
-    z-index: ${theme.popupZIndex};
+    z-index: calc(${theme.popupZIndex} + 2);
     inset: 0;
+    top: env(titlebar-area-height, var(--titlebar-area-height, 0px));
     font-size: 0.875em;
     cursor: default;
     user-select: none;
@@ -98,7 +99,7 @@ const style = createCSSSheet(css`
   }
   .menu {
     outline: none;
-    position: absolute;
+    position: fixed;
     font-size: 1em;
     box-sizing: border-box;
     box-shadow: 0 0.3em 1em rgba(0, 0, 0, calc(${theme.maskAlpha} - 0.1));

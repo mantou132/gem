@@ -157,6 +157,7 @@ export class DuoyunCarouselElement extends GemElement<State> {
   @part static title: string;
   @part static tag: string;
   @part static content: string;
+  @part static button: string;
   @part static description: string;
   @part static nav: string;
 
@@ -257,6 +258,7 @@ export class DuoyunCarouselElement extends GemElement<State> {
                   ? html`
                       <dy-button
                         class="action"
+                        part=${DuoyunCarouselElement.button}
                         @click=${(evt: Event) => {
                           if (action.handle) {
                             evt.stopPropagation();

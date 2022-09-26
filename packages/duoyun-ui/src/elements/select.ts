@@ -10,6 +10,7 @@ import {
   refobject,
   RefObject,
   state,
+  part,
 } from '@mantou/gem/lib/decorators';
 import { GemElement, html, TemplateResult } from '@mantou/gem/lib/element';
 import { createCSSSheet, css, styleMap, classMap, StyleObject } from '@mantou/gem/lib/utils';
@@ -147,6 +148,9 @@ export class DuoyunSelectElement extends GemElement<State> {
   @refobject searchRef: RefObject<HTMLElement>;
   @refobject optionsRef: RefObject<HTMLElement>;
 
+  @part static tag: string;
+  @part static value: string;
+
   get #searchable() {
     return this.searchable && !this.disabled && !this.borderless;
   }
@@ -174,7 +178,7 @@ export class DuoyunSelectElement extends GemElement<State> {
       this.internals.ariaExpanded = String(this.state.open);
       this.internals.ariaReadOnly = String(this.disabled);
     });
-    this.addEventListener('click', this.#open);
+    this.addEventListener('click', this.open);
     this.addEventListener('keydown', this.#onKeydown);
   }
 
@@ -188,33 +192,33 @@ export class DuoyunSelectElement extends GemElement<State> {
     search: '',
   };
 
-  #open = () => {
+  open = () => {
     if (this.disabled) return;
     this.setState({ open: true });
   };
 
-  #close = () => {
+  close = () => {
     this.setState({ open: false });
   };
 
   #onKeydown = hotkeys({
     esc: (evt) => {
       if (this.state.open) {
-        this.#close();
+        this.close();
         if (!this.inline) {
           evt.stopPropagation();
         }
       }
     },
     'space,enter': (evt) => {
-      this.#open();
+      this.open();
       this.searchRef.element?.focus();
       evt.preventDefault();
     },
   });
 
   #onEsc = (evt: KeyboardEvent) => {
-    this.#close();
+    this.close();
     (this.searchRef.element || this).focus();
     evt.stopPropagation();
   };
@@ -320,11 +324,11 @@ export class DuoyunSelectElement extends GemElement<State> {
             maxHeight: isShowTop ? `${top - 8}px` : `calc(100vh - ${bottom + 8}px)`,
             transform: isShowTop ? `translateY(calc(-100% - 8px - ${height}px))` : 'none',
           });
-          addEventListener('pointerup', this.#close);
+          addEventListener('pointerup', this.close);
         } else {
           this.setState({ open: false });
         }
-        return () => removeEventListener('pointerup', this.#close);
+        return () => removeEventListener('pointerup', this.close);
       },
       () => [this.state.open],
     );
@@ -376,7 +380,7 @@ export class DuoyunSelectElement extends GemElement<State> {
               ${isEmpty
                 ? ''
                 : html`
-                    <div class="value">
+                    <div class="value" part=${DuoyunSelectElement.value}>
                       ${this.multiple
                         ? html`
                             ${this.#valueOptions!.map(({ label }, index) =>
@@ -384,6 +388,7 @@ export class DuoyunSelectElement extends GemElement<State> {
                                 ? html`
                                     <dy-tag
                                       small
+                                      part=${DuoyunSelectElement.tag}
                                       .closeable=${this.disabled ? false : true}
                                       @keydown=${(evt: KeyboardEvent) => evt.stopPropagation()}
                                       @close=${() => this.#onRemoveTag(this.#valueOptions![index])}
@@ -426,7 +431,7 @@ export class DuoyunSelectElement extends GemElement<State> {
                         ...this.dropdownStyle,
                         boxShadow: `0 0.3em 1em rgba(0, 0, 0, calc(${theme.maskAlpha} - 0.1))`,
                         position: 'fixed',
-                        zIndex: theme.popupZIndex,
+                        zIndex: `calc(${theme.popupZIndex} + 2)`,
                         left: `${left}px`,
                         top: `${top}px`,
                         maxHeight,
