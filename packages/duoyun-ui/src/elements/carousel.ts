@@ -4,6 +4,7 @@ import {
   customElement,
   property,
   numattribute,
+  attribute,
   part,
   emitter,
   Emitter,
@@ -161,6 +162,7 @@ export class DuoyunCarouselElement extends GemElement<State> {
   @part static description: string;
   @part static nav: string;
 
+  @attribute crossorigin: 'anonymous' | 'use-credentials';
   @numattribute interval: number;
   @emitter change: Emitter<number>;
 
@@ -229,7 +231,7 @@ export class DuoyunCarouselElement extends GemElement<State> {
     return html`
       <ul class="list" role="region">
         ${this.data?.map(
-          ({ img, background, title, description, action, tag, onClick }, index) => html`
+          ({ img, background = 'none', title, description, action, tag, onClick }, index) => html`
             ${currentIndex === index
               ? html`
                   <style>
@@ -245,7 +247,13 @@ export class DuoyunCarouselElement extends GemElement<State> {
               ?inert=${currentIndex !== index}
               @click=${onClick}
             >
-              <img part=${DuoyunCarouselElement.img} class="img" alt=${title || ''} src=${img} />
+              <img
+                part=${DuoyunCarouselElement.img}
+                class="img"
+                alt=${title || ''}
+                src=${img}
+                crossorigin=${this.crossorigin}
+              />
               <div class="content" part=${DuoyunCarouselElement.content} @mouseenter=${this.#oMouseEnter}>
                 ${tag ? html`<div part=${DuoyunCarouselElement.tag} class="tag">${tag}</div>` : ''}
                 <dy-heading part=${DuoyunCarouselElement.title} class="heading" lv="2">${title}</dy-heading>

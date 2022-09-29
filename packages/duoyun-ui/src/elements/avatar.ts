@@ -90,6 +90,7 @@ export class DuoyunAvatarElement extends GemElement {
   @attribute status: Status;
   @attribute tooltip: string;
   @attribute size: 'small' | 'medium' | 'large';
+  @attribute crossorigin: 'anonymous' | 'use-credentials';
   @boolattribute square: boolean;
 
   render = () => {
@@ -104,7 +105,13 @@ export class DuoyunAvatarElement extends GemElement {
         <div class="content">
           ${this.src &&
           html`
-            <img class="content" alt=${this.alt || this.src} src=${this.src} part=${DuoyunAvatarElement.avatar} />
+            <img
+              class="content"
+              alt=${this.alt || this.src}
+              src=${this.src}
+              part=${DuoyunAvatarElement.avatar}
+              crossorigin=${this.crossorigin}
+            />
           `}
           <slot></slot>
         </div>

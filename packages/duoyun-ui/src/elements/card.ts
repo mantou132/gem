@@ -109,6 +109,7 @@ export class DuoyunCardElement extends DuoyunLoadableBaseElement {
   @property detail?: string | TemplateResult;
   @property detailRight?: string | TemplateResult;
   @property actions?: ActionItem[];
+  @attribute crossorigin: 'anonymous' | 'use-credentials';
 
   constructor() {
     super();
@@ -126,10 +127,22 @@ export class DuoyunCardElement extends DuoyunLoadableBaseElement {
   render = () => {
     return html`
       ${this.preview
-        ? html`<img part=${DuoyunCardElement.preview} alt="preview" class="preview" src=${this.preview}></img>`
+        ? html`<img
+            part=${DuoyunCardElement.preview}
+            alt="preview"
+            class="preview"
+            src=${this.preview}
+            crossorigin=${this.crossorigin}
+          />`
         : ''}
       ${this.avatar
-        ? html`<img part=${DuoyunCardElement.avatar} alt="avatar" class="avatar" src=${this.avatar}></img>`
+        ? html`<img
+            part=${DuoyunCardElement.avatar}
+            alt="avatar"
+            class="avatar"
+            src=${this.avatar}
+            crossorigin=${this.crossorigin}
+          />`
         : ''}
       ${this.header
         ? html`
