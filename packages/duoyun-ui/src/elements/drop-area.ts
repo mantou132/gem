@@ -29,6 +29,7 @@ const style = createCSSSheet(css`
     opacity: 0.3;
   }
   .content {
+    z-index: 1;
     display: none;
     pointer-events: none;
   }

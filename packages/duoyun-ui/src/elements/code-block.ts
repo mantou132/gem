@@ -226,7 +226,7 @@ const style = createCSSSheet(css`
   }
   .code {
     display: block;
-    font-family: Consolas, Monaco, 'Andale Mono', 'Ubuntu Mono', monospace;
+    font-family: ${theme.codeFont};
     text-align: left;
     white-space: pre;
     tab-size: 2;
