@@ -21,7 +21,7 @@ function replaceStyle(style: HTMLStyleElement, theme: Record<string, unknown>) {
   const themeStore = themeStoreMap.get(theme);
   const themeProp = themePropMap.get(theme);
   const rules = Object.keys(themeStore).reduce((prev, key) => {
-    if (!themeStore[key]) return prev;
+    if (!themeStore[key] || !themeProp[key]) return prev;
     return prev + `${themeProp[key]}:${themeStore[key]};`;
   }, '');
   style.textContent = `:root, :host {${rules}}`;
