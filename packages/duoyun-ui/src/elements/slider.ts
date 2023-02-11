@@ -4,6 +4,7 @@ import {
   customElement,
   attribute,
   globalemitter,
+  emitter,
   Emitter,
   boolattribute,
   numattribute,
@@ -97,6 +98,10 @@ export class DuoyunSliderElement extends GemElement {
   @numattribute step: number;
 
   @globalemitter change: Emitter<number>;
+  /**
+   * Slider drop
+   */
+  @emitter end: Emitter<number>;
 
   get #orientation() {
     return this.orientation || 'horizontal';
@@ -123,7 +128,8 @@ export class DuoyunSliderElement extends GemElement {
       () => {
         this.internals.ariaDisabled = String(this.disabled);
         this.internals.ariaValueText = String(this.value);
-        this.#setPrecisionValue(this.value);
+        const position = this.#getValue(clamp(this.min, this.value, this.#max)) / this.#diff;
+        this.setState({ position, displayPosition: position });
       },
       () => [this.value, this.disabled],
     );
@@ -160,6 +166,11 @@ export class DuoyunSliderElement extends GemElement {
     this.change(value);
   };
 
+  #onEnd = () => {
+    this.setState({ start: false });
+    this.end(this.value);
+  };
+
   #setPrecisionValue = (precisionValue: number) => {
     const value = this.#getValue(clamp(this.min, precisionValue, this.#max));
     const position = value / this.#diff;
@@ -171,6 +182,11 @@ export class DuoyunSliderElement extends GemElement {
     up: () => this.#setPrecisionValue(this.value + 1),
     down: () => this.#setPrecisionValue(this.value - 1),
   });
+
+  #onInputChange = (evt: CustomEvent<number>) => {
+    evt.stopPropagation();
+    this.#setPrecisionValue(evt.detail);
+  };
 
   render = () => {
     const { displayPosition, start } = this.state;
@@ -194,7 +210,7 @@ export class DuoyunSliderElement extends GemElement {
           class=${classMap({ mark: true, start })}
           @pan=${this.#onPan}
           @pointerdown=${() => !this.disabled && this.setState({ start: true })}
-          @end=${() => this.setState({ start: false })}
+          @end=${this.#onEnd}
         ></dy-gesture>
         ${this.label
           ? html`
@@ -210,7 +226,7 @@ export class DuoyunSliderElement extends GemElement {
               class="input"
               type="number"
               value=${String(this.value)}
-              @change=${({ detail }: CustomEvent<number>) => this.#setPrecisionValue(detail)}
+              @change=${this.#onInputChange}
             ></dy-input>
           `
         : ''}
