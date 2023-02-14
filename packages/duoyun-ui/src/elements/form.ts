@@ -102,6 +102,15 @@ export class DuoyunFormElement<Data = Record<string, any>> extends GemElement {
     return [...this.querySelectorAll<DuoyunFormItemElement>('dy-form-item')];
   }
 
+  get elements() {
+    const target: Record<string, DuoyunFormItemElement | undefined> = {};
+    return new Proxy(target, {
+      get: (_, p: string) => {
+        return this.querySelector(`dy-form-item[name=${p}]`);
+      },
+    });
+  }
+
   get data() {
     const data = {} as Data;
     this.items.forEach((item) => {
@@ -207,6 +216,7 @@ type FormItemRule = {
  * @attr placeholder
  * @attr required
  * @attr checked
+ * @attr autofocus
  * @attr disabled
  * @attr searchable
  * @attr clearable
@@ -238,6 +248,7 @@ export class DuoyunFormItemElement extends GemElement<FormItemState> {
   @attribute placeholder: string;
   @boolattribute required: boolean;
   @boolattribute checked: boolean;
+  @boolattribute autofocus: boolean;
   @boolattribute disabled: boolean;
   @boolattribute searchable: boolean;
   @boolattribute clearable: boolean;
@@ -341,7 +352,7 @@ export class DuoyunFormItemElement extends GemElement<FormItemState> {
     return html`
       ${this.#type === 'checkbox'
         ? ''
-        : html`<div class="label" part=${DuoyunFormItemElement.label}>${this.label}</div>`}
+        : html`<div class="label" part=${DuoyunFormItemElement.label} @click=${() => this.focus()}>${this.label}</div>`}
       ${this.#type === 'select'
         ? html`
             <dy-select
@@ -443,6 +454,7 @@ export class DuoyunFormItemElement extends GemElement<FormItemState> {
                       .placeholder=${this.placeholder}
                       @change=${(evt: CustomEvent<string>) => this.#onTextChangeWithIndex(evt, index)}
                       @clear=${() => this.#onTextCleanWithIndex(index)}
+                      .autofocus=${this.autofocus}
                       .clearable=${true}
                       .alwayclearable=${true}
                       .dataList=${this.dataList}
@@ -463,6 +475,7 @@ export class DuoyunFormItemElement extends GemElement<FormItemState> {
                 ?disabled=${this.disabled}
                 @change=${this.#onChange}
                 @clear=${(evt: any) => evt.target.change('')}
+                .autofocus=${this.autofocus}
                 .clearable=${this.clearable}
                 .value=${this.value as string}
                 .placeholder=${this.placeholder}
@@ -481,6 +494,12 @@ export class DuoyunFormItemElement extends GemElement<FormItemState> {
         : ''}
     `;
   };
+
+  focus() {
+    const input: HTMLElement | null | undefined =
+      this.shadowRoot?.querySelector('dy-input') || (this.querySelector('dy-input') as HTMLElement);
+    input?.focus();
+  }
 
   clearInvalidMessage() {
     this.setState({ invalidMessage: undefined });

@@ -108,7 +108,7 @@ export abstract class GemElement<T = Record<string, unknown>> extends HTMLElemen
   #isAppendReason?: boolean;
   #isAsync?: boolean;
   #effectList?: EffectItem<any>[];
-  #momeList?: EffectItem<any>[];
+  #memoList?: EffectItem<any>[];
   #unmountCallback?: any;
 
   constructor({ isAsync, isLight, delegatesFocus }: GemElementOptions = {}) {
@@ -236,7 +236,7 @@ export abstract class GemElement<T = Record<string, unknown>> extends HTMLElemen
   };
 
   #execMemo = () => {
-    this.#exec(this.#momeList);
+    this.#exec(this.#memoList);
   };
 
   /**
@@ -286,8 +286,8 @@ export abstract class GemElement<T = Record<string, unknown>> extends HTMLElemen
    * ```
    * */
   memo = <T = any[] | undefined>(callback: EffectCallback<T>, getDep?: T extends any[] ? () => [...T] : undefined) => {
-    if (!this.#momeList) this.#momeList = [];
-    this.#momeList.push({
+    if (!this.#memoList) this.#memoList = [];
+    this.#memoList.push({
       callback,
       getDep,
       values: [Symbol()],
@@ -474,7 +474,7 @@ export abstract class GemElement<T = Record<string, unknown>> extends HTMLElemen
     this.#effectList?.forEach((effectItem) => {
       execCallback(effectItem.preCallback);
     });
-    this.#momeList = this.#momeList?.filter(({ initialized }) => !initialized);
+    this.#memoList = this.#memoList?.filter(({ initialized }) => !initialized);
   }
 }
 
