@@ -33,6 +33,12 @@ customElements.whenDefined('gem-book').then(() => {
       display: grid;
       grid-template: 'tabs tabs' 'code preview' / 50% 50%;
     }
+    @media (max-width: 700px) {
+      :host {
+        grid-template: 'tabs' 'code' 'preview' / 100%;
+        margin-inline: -1em;
+      }
+    }
     .header {
       grid-area: tabs;
       background: rgba(${theme.textColorRGB}, 0.05);
