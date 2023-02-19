@@ -11,6 +11,6 @@
     }
   ],
   "template": "docs/template.html",
-  "plugin": ["raw", "docsearch"],
+  "plugin": ["raw", "docsearch", "sandpack"],
   "debug": true
 }

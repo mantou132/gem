@@ -26,11 +26,9 @@ or use UNPKG:
 
 ## Start
 
-```html
-<my-element></my-element>
-```
+<gbp-sandpack>
 
-```js
+```js index.js
 import { GemElement, html } from '@mantou/gem';
 
 class MyElement extends GemElement {
@@ -42,7 +40,19 @@ class MyElement extends GemElement {
 customElements.define('my-element', MyElement);
 ```
 
-[![Edit `<my-element>`](https://codesandbox.io/static/img/play-codesandbox.svg)](https://codesandbox.io/s/hello-world-llky3?fontsize=14&hidenavigation=1&theme=dark)
+```html index.html
+<my-element></my-element>
+```
+
+```json package.json hidden
+{
+  "dependencies": {
+    "@mantou/gem": "latest"
+  }
+}
+```
+
+</gbp-sandpack>
 
 Use standard [customElements](https://developer.mozilla.org/en-US/docs/Web/API/Window/customElements) to define a custom element, and then use it in HTML in any way, of course, it can also be used in other custom element templates.
 

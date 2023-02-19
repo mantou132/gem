@@ -58,8 +58,10 @@ _`GemElement` extends from [`HTMLElement`](https://developer.mozilla.org/en-US/d
 
 ## Example
 
-```js
-// Omit import...
+<gbp-sandpack>
+
+```js index.js
+import { createStore, GemElement, updateStore, render, html } from '@mantou/gem';
 
 const store = createStore({
   count: 0,
@@ -70,21 +72,32 @@ class MyElement extends GemElement {
   static observedAttributes = ['name'];
   static observedPropertys = ['data'];
 
-  clickHandle = () => {
+  #onClick = () => {
     updateStore(store, { count: ++store.count });
   };
+
   render() {
     return html`
-      <button @click="${this.clickHandle}">Hello, ${this.name}</button>
-      <div>clicked clount: ${store.count}</div>
+      <button @click="${this.#onClick}">Hello, ${this.name}</button>
+      <div>clicked count: ${store.count}</div>
       <pre>${JSON.stringify(this.data)}</pre>
     `;
   }
 }
 customElements.define('my-element', MyElement);
+
+render(html`<my-element name="world" .data=${{ a: 1 }}></my-element>`, document.body);
 ```
 
-[![Edit reactive-element](https://codesandbox.io/static/img/play-codesandbox.svg)](https://codesandbox.io/s/reactive-element-chu75?fontsize=14&hidenavigation=1&theme=dark)
+```json package.json hidden
+{
+  "dependencies": {
+    "@mantou/gem": "latest"
+  }
+}
+```
+
+</gbp-sandpack>
 
 ## Life cycle
 

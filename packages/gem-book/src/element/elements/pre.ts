@@ -1,5 +1,12 @@
 // https://spectrum.adobe.com/page/code/
-import { adoptedStyle, customElement, attribute, refobject, RefObject } from '@mantou/gem/lib/decorators';
+import {
+  adoptedStyle,
+  customElement,
+  attribute,
+  refobject,
+  RefObject,
+  boolattribute,
+} from '@mantou/gem/lib/decorators';
 import { GemElement, html } from '@mantou/gem/lib/element';
 import { createCSSSheet, css, styleMap } from '@mantou/gem/lib/utils';
 
@@ -202,6 +209,9 @@ const langAliases: Record<string, string> = {
 };
 
 const style = createCSSSheet(css`
+  :host([hidden]) {
+    display: none;
+  }
   :host {
     position: relative;
     display: block;
@@ -226,6 +236,8 @@ const style = createCSSSheet(css`
     width: 100%;
   }
   .code {
+    height: 100%;
+    box-sizing: border-box;
     display: block;
     font-family: Consolas, Monaco, 'Andale Mono', 'Ubuntu Mono', monospace;
     text-align: left;
@@ -330,8 +342,19 @@ export class Pre extends GemElement {
   @attribute codelang: string;
   @attribute range: string;
   @attribute highlight: string;
+  @attribute filename: string;
+  @boolattribute hidden: boolean;
 
   @refobject codeRef: RefObject<HTMLElement>;
+
+  constructor() {
+    super();
+    new MutationObserver(() => this.update()).observe(this, {
+      childList: true,
+      characterData: true,
+      subtree: true,
+    });
+  }
 
   #getRanges(range: string) {
     const ranges = range.split(/,\s*/);
@@ -356,36 +379,35 @@ export class Pre extends GemElement {
   }
 
   mounted() {
-    this.effect(
-      async () => {
-        if (!this.codeRef.element) return;
-        await import(/* @vite-ignore */ /* webpackIgnore: true */ `${prismjs}?min`);
-        const { Prism } = window as any;
-        if (this.codelang && !Prism.languages[this.codelang]) {
-          const lang = langAliases[this.codelang] || this.codelang;
-          const langDeps = ([] as string[]).concat(langDependencies[lang] || []);
-          try {
-            await Promise.all(
-              langDeps.map((langDep) => {
-                if (!Prism.languages[langDep]) {
-                  return import(
-                    /* @vite-ignore */ /* webpackIgnore: true */ `${prismjs}/components/prism-${langDep}.min.js`
-                  );
-                }
-              }),
-            );
-            await import(/* @vite-ignore */ /* webpackIgnore: true */ `${prismjs}/components/prism-${lang}.min.js`);
-          } catch {
-            //
-          }
+    this.effect(async () => {
+      if (this.hidden) return;
+      if (!this.codeRef.element) return;
+      this.codeRef.element.innerHTML = this.innerHTML;
+      await import(/* @vite-ignore */ /* webpackIgnore: true */ `${prismjs}?min`);
+      const { Prism } = window as any;
+      if (this.codelang && !Prism.languages[this.codelang]) {
+        const lang = langAliases[this.codelang] || this.codelang;
+        const langDeps = ([] as string[]).concat(langDependencies[lang] || []);
+        try {
+          await Promise.all(
+            langDeps.map((langDep) => {
+              if (!Prism.languages[langDep]) {
+                return import(
+                  /* @vite-ignore */ /* webpackIgnore: true */ `${prismjs}/components/prism-${langDep}.min.js`
+                );
+              }
+            }),
+          );
+          await import(/* @vite-ignore */ /* webpackIgnore: true */ `${prismjs}/components/prism-${lang}.min.js`);
+        } catch {
+          //
         }
-        const content = Prism.languages[this.codelang]
-          ? Prism.highlight(this.textContent || '', Prism.languages[this.codelang], this.codelang)
-          : this.innerHTML;
-        this.codeRef.element.innerHTML = this.#getParts(content);
-      },
-      () => [],
-    );
+      }
+      const content = Prism.languages[this.codelang]
+        ? Prism.highlight(this.textContent || '', Prism.languages[this.codelang], this.codelang)
+        : this.innerHTML;
+      this.codeRef.element.innerHTML = this.#getParts(content);
+    });
   }
 
   render() {

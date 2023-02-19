@@ -16,4 +16,7 @@ export const focusStyle = createCSSSheet(css`
     color: white;
     background: ${theme.informativeColor};
   }
+  [hidden] {
+    display: none;
+  }
 `);

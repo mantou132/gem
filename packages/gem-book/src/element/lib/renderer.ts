@@ -16,8 +16,14 @@ export function getRenderer({ lang, link, displayRank }: { lang: string; link: s
   };
 
   renderer.code = (code, infostring) => {
-    const [lang, highlight = ''] = infostring?.split(/\s+/) || [];
-    return `<gem-book-pre codelang="${lang}" highlight="${highlight}">${escapeHTML(code)}</gem-book-pre>`;
+    const [lang, ...rest] = infostring?.split(/\s+/) || [];
+    const lastArg = rest.pop();
+    const lastArgIsHighlight = lastArg && /^([-]|\d|\s|,)+$/.test(lastArg);
+    const highlight = lastArgIsHighlight ? lastArg : '';
+    const [filename = '', status = ''] = lastArgIsHighlight ? rest : [...rest, lastArg];
+    return `<gem-book-pre codelang="${lang}" highlight="${highlight}" filename="${filename}" ${status}>${escapeHTML(
+      code,
+    )}</gem-book-pre>`;
   };
 
   renderer.image = (href, title, text) => {

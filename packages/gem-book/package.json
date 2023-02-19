@@ -58,6 +58,7 @@
     "yaml": "^1.10.2"
   },
   "devDependencies": {
+    "@codesandbox/sandpack-client": "^2.0.01",
     "@esm-bundle/chai": "^4.3.4-fix.0",
     "@gemjs/config": "^1.6.10",
     "@open-wc/testing": "^2.5.33",

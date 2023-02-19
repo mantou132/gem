@@ -4,7 +4,9 @@
 
 Gem 有一个内置元素 `<gem-use>`，来用替代 SVG Sprite：
 
-```js
+<gbp-sandpack>
+
+```js index.js
 import { html, render } from '@mantou/gem';
 
 import '@mantou/gem/elements/use';
@@ -24,6 +26,14 @@ render(
 );
 ```
 
-[![Edit svg-icon](https://codesandbox.io/static/img/play-codesandbox.svg)](https://codesandbox.io/s/gem-route-tb4v6?fontsize=14&hidenavigation=1&theme=dark)
+```json package.json hidden
+{
+  "dependencies": {
+    "@mantou/gem": "latest"
+  }
+}
+```
+
+</gbp-sandpack>
 
 _`<gem-use>` 由于是复制内容进行渲染，所以 `<svg>` 更新不能同步更新原先的 `<gem-use>` 实例_

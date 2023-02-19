@@ -30,11 +30,9 @@ import * as Gem from 'https://jspm.dev/@mantou/gem';
 
 ## 开始
 
-```html
-<my-element></my-element>
-```
+<gbp-sandpack>
 
-```js
+```js index.js
 import { GemElement, html } from '@mantou/gem';
 
 class MyElement extends GemElement {
@@ -46,7 +44,19 @@ class MyElement extends GemElement {
 customElements.define('my-element', MyElement);
 ```
 
-[![Edit `<my-element>`](https://codesandbox.io/static/img/play-codesandbox.svg)](https://codesandbox.io/s/hello-world-llky3?fontsize=14&hidenavigation=1&theme=dark)
+```html index.html
+<my-element></my-element>
+```
+
+```json package.json hidden
+{
+  "dependencies": {
+    "@mantou/gem": "latest"
+  }
+}
+```
+
+</gbp-sandpack>
 
 使用标准的 [customElements](https://developer.mozilla.org/en-US/docs/Web/API/Window/customElements) 定义一个自定义元素，
 然后以任何方式在 HTML 中使用他，当然也可以在其他自定义元素的模板中使用。

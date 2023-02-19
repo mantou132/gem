@@ -31,58 +31,130 @@ features:
 
 ## 待办事项 App
 
+<gbp-sandpack>
+
 ```ts
-import { customElement, GemElement, html, render, createStore, connectStore, updateStore } from '@mantou/gem';
+import { customElement, GemElement, html, render, connectStore } from '@mantou/gem';
 
-const todoData = createStore<{ items: string[] }>({
-  items: [],
-});
+import { todoData, addItem } from './store';
 
-const addItemAction = (item: string) => {
-  updateStore(todoData, { items: [...todoData.items, item] });
-};
+import 'duoyun-ui/elements/input';
+import 'duoyun-ui/elements/button';
+import 'duoyun-ui/elements/heading';
+import './todo-list';
+
+@customElement('todo-root')
+@connectStore(todoData)
+export class TodoRootElement extends GemElement {
+  state = {
+    input: '',
+  };
+
+  #onChange = (e: CustomEvent<string>) => {
+    this.setState({ input: e.detail });
+  };
+
+  #onSubmit = () => {
+    addItem(this.state.input);
+    this.setState({ input: '' });
+  };
+
+  render = () => {
+    return html`
+      <dy-heading>TODO LIST</dy-heading>
+      <todo-list></todo-list>
+      <dy-heading lv="3">What needs to be done?</dy-heading>
+      <dy-input-group>
+        <dy-input id="new-todo" @change=${this.#onChange} .value=${this.state.input}></dy-input>
+        <dy-button @click=${this.#onSubmit}>Add #${todoData.items.length + 1}</dy-button>
+      </dy-input-group>
+    `;
+  };
+}
+
+render(html`<todo-root></todo-root>`, document.body);
+```
+
+```ts todo-list.ts
+import { customElement, GemElement, html, render, connectStore, css, createCSSSheet, adoptedStyle } from '@mantou/gem';
+import { icons } from 'duoyun-ui/lib/icons';
+
+import { todoData, deleteItem } from './store';
+
+import 'duoyun-ui/elements/use';
+
+const style = createCSSSheet(css`
+  ul {
+    padding: 0;
+  }
+  li {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-top: 1px solid #eee;
+  }
+  li:last-child {
+    border-bottom: 1px solid #eee;
+  }
+  li:not(:hover) dy-use {
+    opacity: 0;
+  }
+  dy-use {
+    padding: 4px;
+  }
+  dy-use:hover {
+    background: #eee;
+  }
+`);
 
 @customElement('todo-list')
 @connectStore(todoData)
+@adoptedStyle(style)
 export class TodoListElement extends GemElement {
   render = () => {
     return html`
       <ul>
-        ${todoData.items.map((item) => html`<li>${item}</li>`)}
+        ${todoData.items.map(
+          (item) => html`
+            <li>
+              <span>${item}</span>
+              <dy-use .element=${icons.close} @click=${() => deleteItem(item)}></dy-use>
+            </li>
+          `,
+        )}
       </ul>
     `;
   };
 }
-
-@customElement('todo-root')
-export class TodoRootElement extends GemElement {
-  #inputValue = '';
-
-  #onInput = (e: InputEvent) => {
-    this.#inputValue = (e.target as HTMLInputElement).value;
-  };
-
-  #onSubmit = (e: Event) => {
-    e.preventDefault();
-    addItemAction(this.#inputValue);
-  };
-
-  render = () => {
-    return html`
-      <div>
-        <h3>TODO</h3>
-        <todo-list></todo-list>
-        <form @submit=${this.#onSubmit}>
-          <label for="new-todo"> What needs to be done? </label>
-          <input id="new-todo" @input=${this.#onInput} />
-          <button>Add #${todoData.items.length + 1}</button>
-        </form>
-      </div>
-    `;
-  };
-}
-
-render(html`<todo-root></todo-root>`, document.querySelector('#root') as Element);
 ```
 
-[![Edit on CodeSandbox](https://codesandbox.io/static/img/play-codesandbox.svg)](https://codesandbox.io/s/todoapp-cxsdv)
+```ts store.ts
+import { createStore, updateStore } from '@mantou/gem';
+
+type Store = {
+  items: string[];
+};
+
+export const todoData = createStore<Store>({
+  items: [],
+});
+
+export const addItem = (item: string) => {
+  updateStore(todoData, { items: [...todoData.items, item] });
+};
+
+export const deleteItem = (item: string) => {
+  updateStore(todoData, { items: todoData.items.filter((e) => e !== item) });
+};
+```
+
+```json package.json hidden
+{
+  "dependencies": {
+    "@mantou/gem": "latest",
+    "duoyun-ui": "latest"
+  }
+}
+```
+
+</gbp-sandpack>
