@@ -102,7 +102,14 @@ export function startBuilder(dir: string, options: Required<CliUniqueConfig>, bo
         patterns: [{ from: publicDir, to: outputDir }],
       }),
     ]
-      .concat(build ? new GenerateSW() : ([] as any))
+      .concat(
+        build
+          ? new GenerateSW({
+              skipWaiting: true,
+              clientsClaim: true,
+            })
+          : ([] as any),
+      )
       .concat(
         outputDir !== docsDir
           ? new CopyWebpackPlugin({
