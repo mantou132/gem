@@ -4,7 +4,7 @@ Because Gem uses ShadowDOM to organize elements, it prevents style conflicts and
 
 Gem has a built-in element `<gem-use>` to replace SVG Sprite:
 
-<gbp-sandpack>
+<gbp-sandpack dependencies="@mantou/gem">
 
 ```js index.js
 import { html, render } from '@mantou/gem';
@@ -24,14 +24,6 @@ render(
   `,
   document.body,
 );
-```
-
-```json package.json hidden
-{
-  "dependencies": {
-    "@mantou/gem": "latest"
-  }
-}
 ```
 
 </gbp-sandpack>

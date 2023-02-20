@@ -4,7 +4,7 @@
 
 Gem 有一个内置元素 `<gem-use>`，来用替代 SVG Sprite：
 
-<gbp-sandpack>
+<gbp-sandpack dependencies="@mantou/gem">
 
 ```js index.js
 import { html, render } from '@mantou/gem';
@@ -24,14 +24,6 @@ render(
   `,
   document.body,
 );
-```
-
-```json package.json hidden
-{
-  "dependencies": {
-    "@mantou/gem": "latest"
-  }
-}
 ```
 
 </gbp-sandpack>

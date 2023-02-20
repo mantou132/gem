@@ -18,7 +18,7 @@ class App extends GemElement {
 
 Gem 内置元素 `<gem-route>` 和 `<gem-link>` 就是这样工作。
 
-<gbp-sandpack>
+<gbp-sandpack dependencies="@mantou/gem">
 
 ```js index.js
 import { GemElement, html } from '@mantou/gem';
@@ -56,14 +56,6 @@ class App extends GemElement {
 customElements.define('app-root', App);
 
 document.body.append(new App());
-```
-
-```json package.json hidden
-{
-  "dependencies": {
-    "@mantou/gem": "latest"
-  }
-}
 ```
 
 </gbp-sandpack>

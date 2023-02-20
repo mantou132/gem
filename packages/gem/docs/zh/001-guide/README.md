@@ -30,7 +30,7 @@ import * as Gem from 'https://jspm.dev/@mantou/gem';
 
 ## 开始
 
-<gbp-sandpack>
+<gbp-sandpack dependencies="@mantou/gem">
 
 ```js index.js
 import { GemElement, html } from '@mantou/gem';
@@ -46,14 +46,6 @@ customElements.define('my-element', MyElement);
 
 ```html index.html
 <my-element></my-element>
-```
-
-```json package.json hidden
-{
-  "dependencies": {
-    "@mantou/gem": "latest"
-  }
-}
 ```
 
 </gbp-sandpack>

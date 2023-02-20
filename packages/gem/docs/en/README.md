@@ -31,7 +31,7 @@ features:
 
 ## TodoApp
 
-<gbp-sandpack>
+<gbp-sandpack dependencies="@mantou/gem, duoyun-ui">
 
 ```ts
 import { customElement, GemElement, html, render, connectStore } from '@mantou/gem';
@@ -146,15 +146,6 @@ export const addItem = (item: string) => {
 export const deleteItem = (item: string) => {
   updateStore(todoData, { items: todoData.items.filter((e) => e !== item) });
 };
-```
-
-```json package.json hidden
-{
-  "dependencies": {
-    "@mantou/gem": "latest",
-    "duoyun-ui": "latest"
-  }
-}
 ```
 
 </gbp-sandpack>

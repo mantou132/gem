@@ -58,7 +58,7 @@ _`GemElement` extends from [`HTMLElement`](https://developer.mozilla.org/en-US/d
 
 ## Example
 
-<gbp-sandpack>
+<gbp-sandpack dependencies="@mantou/gem">
 
 ```js index.js
 import { createStore, GemElement, updateStore, render, html } from '@mantou/gem';
@@ -87,14 +87,6 @@ class MyElement extends GemElement {
 customElements.define('my-element', MyElement);
 
 render(html`<my-element name="world" .data=${{ a: 1 }}></my-element>`, document.body);
-```
-
-```json package.json hidden
-{
-  "dependencies": {
-    "@mantou/gem": "latest"
-  }
-}
 ```
 
 </gbp-sandpack>

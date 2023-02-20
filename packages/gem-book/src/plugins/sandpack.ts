@@ -1,12 +1,12 @@
 import type { RefObject } from '@mantou/gem';
-import type { SandpackClient, SandpackBundlerFiles } from '@codesandbox/sandpack-client';
+import type { SandpackClient, SandpackBundlerFiles, ClientStatus } from '@codesandbox/sandpack-client';
 
 import type { GemBookElement } from '../element';
 import type { Pre } from '../element/elements/pre';
 
 const CSB_URL = 'https://codesandbox.io/api/v1/sandboxes/define?json=1';
-const sandpackClientSrc = 'https://esm.sh/@codesandbox/sandpack-client?bundle';
-const lzStringSrc = 'https://esm.sh/lz-string';
+const SANDPACK_CLIENT_ESM = 'https://esm.sh/@codesandbox/sandpack-client?bundle';
+const LZ_STRING_ESM = 'https://esm.sh/lz-string';
 
 type FileStatus = 'active' | 'hidden' | '';
 
@@ -20,6 +20,7 @@ type File = {
 type State = {
   files: File[];
   forking: boolean;
+  status: ClientStatus | 'initialization' | 'done';
 };
 
 customElements.whenDefined('gem-book').then(() => {
@@ -66,11 +67,15 @@ customElements.whenDefined('gem-book').then(() => {
       color: ${theme.primaryColor};
       border-bottom-color: currentColor;
     }
+    .actions {
+      display: flex;
+      gap: 0.5em;
+      white-space: nowrap;
+    }
     .btn {
+      flex-direction: row-reverse;
       cursor: pointer;
       padding: 0.5em;
-      white-space: nowrap;
-      flex-direction: row-reverse;
       gap: 0.3em;
     }
     ::slotted(*) {
@@ -79,11 +84,17 @@ customElements.whenDefined('gem-book').then(() => {
       margin: 0 !important;
     }
     .preview {
+      display: flex;
       grid-area: preview;
       padding: 1.5em;
       background: ${theme.borderColor};
     }
-    iframe {
+    .status {
+      line-height: 2;
+      padding: 0.5em;
+      text-transform: capitalize;
+    }
+    .sandbox {
       position: sticky;
       top: calc(${theme.headerHeight} + 1.5em);
       width: 100%;
@@ -99,10 +110,20 @@ customElements.whenDefined('gem-book').then(() => {
   class _GbpSandpackElement extends GemBookPluginElement<State> {
     @refobject iframeRef: RefObject<HTMLIFrameElement>;
     @attribute entry: string;
+    @attribute dependencies: string;
     @boolattribute hotreload: boolean;
 
     get #entry() {
       return this.entry || '.';
+    }
+
+    get #dependencies() {
+      const deps = this.dependencies.split(/\s*,\s*/);
+      return deps.reduce((p, c) => {
+        if (!c) return p;
+        const [name, version = 'latest'] = c.split(/(.+)@/).filter((e) => !!e);
+        return { ...p, [name]: version };
+      }, {} as Record<string, string>);
     }
 
     get #sandBoxConfigFile() {
@@ -118,30 +139,49 @@ customElements.whenDefined('gem-book').then(() => {
     state: State = {
       files: [],
       forking: false,
+      status: 'initialization',
     };
 
     constructor() {
       super();
-      new MutationObserver(() => {
+      new MutationObserver(async () => {
         const files = this.#parseContents();
         this.setState({ files });
-        this.#sandpackClient?.updateSandbox({
+        (await this.#sandpackClient)?.updateSandbox({
           files: {
             'sandbox.config.json': this.#sandBoxConfigFile,
             ...files.reduce((p, c) => ({ ...p, [c.filename]: { code: c.code } }), {} as SandpackBundlerFiles),
           },
           entry: this.#entry,
+          dependencies: this.#dependencies,
         });
       }).observe(this, {
         childList: true,
         characterData: true,
         subtree: true,
       });
+
+      new IntersectionObserver(async (entries) => {
+        const { intersectionRatio } = entries.pop()!;
+        if (intersectionRatio > 0 && !this.#sandpackClient) {
+          this.#sandpackClient = this.#initSandpackClient();
+          (await this.#sandpackClient).listen((msg) => {
+            switch (msg.type) {
+              case 'status':
+                this.setState({ status: msg.status });
+                break;
+              case 'done':
+                this.setState({ status: 'done' });
+                break;
+            }
+          });
+        }
+      }).observe(this);
     }
 
     #defaultEntryFilename = 'index.ts';
 
-    #sandpackClient?: SandpackClient;
+    #sandpackClient?: Promise<SandpackClient>;
 
     #parseContents = () => {
       return [...this.querySelectorAll<Pre>('gem-book-pre')].map(
@@ -155,12 +195,12 @@ customElements.whenDefined('gem-book').then(() => {
       );
     };
 
-    #init = async () => {
+    #initSandpackClient = async () => {
       const { loadSandpackClient } = (await import(
-        /* webpackIgnore: true */ sandpackClientSrc
+        /* webpackIgnore: true */ SANDPACK_CLIENT_ESM
       )) as typeof import('@codesandbox/sandpack-client');
 
-      this.#sandpackClient = await loadSandpackClient(
+      return await loadSandpackClient(
         this.iframeRef.element!,
         {
           files: {
@@ -171,7 +211,7 @@ customElements.whenDefined('gem-book').then(() => {
               {} as SandpackBundlerFiles,
             ),
           },
-          dependencies: {},
+          dependencies: this.#dependencies,
           entry: this.#entry,
         },
         {
@@ -190,6 +230,14 @@ customElements.whenDefined('gem-book').then(() => {
       });
     };
 
+    #onReset = async () => {
+      const client = await this.#sandpackClient;
+      if (client) {
+        this.setState({ status: 'initialization' });
+        client.dispatch({ type: 'refresh' });
+      }
+    };
+
     #onFork = async () => {
       if (this.state.forking) return;
       this.setState({ forking: true });
@@ -201,11 +249,17 @@ customElements.whenDefined('gem-book').then(() => {
         }),
         {
           'sandbox.config.json': { content: this.#sandBoxConfigFile.code },
+          'package.json': {
+            content: {
+              main: this.#entry,
+              dependencies: this.#dependencies,
+            },
+          },
         },
       );
 
       try {
-        const parameters = ((await import(/* webpackIgnore: true */ lzStringSrc)) as any)
+        const parameters = ((await import(/* webpackIgnore: true */ LZ_STRING_ESM)) as any)
           .compressToBase64(JSON.stringify({ files: normalizedFiles }))
           .replace(/\+/g, '-')
           .replace(/\//g, '_')
@@ -231,19 +285,17 @@ customElements.whenDefined('gem-book').then(() => {
       this.setState({ files: this.#parseContents() });
     };
 
-    mounted = () => {
-      this.#init();
-      return () => {
-        this.#sandpackClient?.destroy();
-      };
+    unmounted = async () => {
+      (await this.#sandpackClient)?.destroy();
     };
 
     render = () => {
-      const { files, forking } = this.state;
+      const { files, forking, status } = this.state;
+      if (!files.length) return;
       const currentFile = files.find(({ status }) => status === 'active');
 
       return html`
-        <div class="header" ?hidden=${files.length < 2}>
+        <div class="header">
           <ul class="tabs">
             ${files.map(
               ({ filename, status }) =>
@@ -258,9 +310,12 @@ customElements.whenDefined('gem-book').then(() => {
                 `,
             )}
           </ul>
-          <gem-use .root=${iconsContainer} selector="#link" class="btn" @click=${this.#onFork}>
-            Fork ${forking ? '...' : ''}
-          </gem-use>
+          <div class="actions">
+            <gem-use class="btn" @click=${this.#onReset}>Reset</gem-use>
+            <gem-use class="btn" .root=${iconsContainer} .selector=${forking ? '' : '#link'} @click=${this.#onFork}>
+              Fork ${forking ? '...' : ''}
+            </gem-use>
+          </div>
         </div>
         <slot></slot>
         <style>
@@ -269,7 +324,10 @@ customElements.whenDefined('gem-book').then(() => {
           }
         </style>
         <div class="preview">
-          <iframe ref=${this.iframeRef.ref}></iframe>
+          <div class="sandbox" ?hidden=${status === 'done'}>
+            <span class="status">${status.replace(/_|-/g, ' ')}...</span>
+          </div>
+          <iframe class="sandbox" ref=${this.iframeRef.ref} ?hidden=${status !== 'done'}></iframe>
         </div>
       `;
     };

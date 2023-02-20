@@ -31,7 +31,7 @@ features:
 
 ## 待办事项 App
 
-<gbp-sandpack>
+<gbp-sandpack dependencies="@mantou/gem, duoyun-ui">
 
 ```ts
 import { customElement, GemElement, html, render, connectStore } from '@mantou/gem';
@@ -61,12 +61,12 @@ export class TodoRootElement extends GemElement {
 
   render = () => {
     return html`
-      <dy-heading>TODO LIST</dy-heading>
+      <dy-heading>待办事项列表</dy-heading>
       <todo-list></todo-list>
-      <dy-heading lv="3">What needs to be done?</dy-heading>
+      <dy-heading lv="3">需要做什么？</dy-heading>
       <dy-input-group>
         <dy-input id="new-todo" @change=${this.#onChange} .value=${this.state.input}></dy-input>
-        <dy-button @click=${this.#onSubmit}>Add #${todoData.items.length + 1}</dy-button>
+        <dy-button @click=${this.#onSubmit}>添加 #${todoData.items.length + 1}</dy-button>
       </dy-input-group>
     `;
   };
@@ -146,15 +146,6 @@ export const addItem = (item: string) => {
 export const deleteItem = (item: string) => {
   updateStore(todoData, { items: todoData.items.filter((e) => e !== item) });
 };
-```
-
-```json package.json hidden
-{
-  "dependencies": {
-    "@mantou/gem": "latest",
-    "duoyun-ui": "latest"
-  }
-}
 ```
 
 </gbp-sandpack>
