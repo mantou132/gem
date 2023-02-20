@@ -60,8 +60,27 @@ customElements.whenDefined('gem-book').then(() => {
         .join('\n');
     };
 
+    #jsonStringify = (value: any) => {
+      let id = 0;
+      const replaceStr = new Map<string, string>();
+      const replacer = (_: string, val: any) => {
+        const str = JSON.stringify(val);
+        if (str.length < 50) {
+          const key = `__${id++}__`;
+          replaceStr.set(key, str);
+          return key;
+        }
+        return val;
+      };
+      let result = JSON.stringify(value, replacer, 2);
+      replaceStr.forEach((str, key) => {
+        result = result.replace(`"${key}"`, str);
+      });
+      return result;
+    };
+
     #renderPropValue = (key: string, value: string, isNewLine: boolean) => {
-      const vString = key.startsWith('@') ? value : JSON.stringify(value, null, 2);
+      const vString = key.startsWith('@') ? value : this.#jsonStringify(value);
       const kString = key.startsWith('@') ? key : `.${key}`;
       const hasMultipleLine = vString.includes('\n');
       const indentValue = hasMultipleLine ? `\n${this.#addIndentation(vString, 4)}\n` : vString;

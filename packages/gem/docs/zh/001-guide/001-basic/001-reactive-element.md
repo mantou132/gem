@@ -1,7 +1,7 @@
 # 反应性元素
 
 当你想要创建一个反应性的 WebApp 时，
-你需要元素能对不同的输入（attribute/property/[store](./003-global-state-management.md)）做出反应（重新渲染）。
+你需要元素能对不同的输入（attribute/property/[store](./003-global-state-management.md)）做出反应，即重新渲染。
 
 ## 定义
 
@@ -19,7 +19,7 @@ class MyElement extends GemElement {
 customElements.define('my-element', MyElement);
 ```
 
-`first-name` 属性经过“Observed”，他就能直接通过 property 进行访问，
+`first-name` 属性经过“Observe”，他就能直接通过元素属性进行访问，
 且会自动进行驼峰和烤串格式的转换，
 当 `first-name` 属性更改时，`MyElement` 的实例元素将重新渲染。
 
@@ -31,6 +31,7 @@ customElements.define('my-element', MyElement);
 class MyElement extends GemElement {
   static observedPropertys = ['data'];
   static observedStores = [store];
+
   render() {
     return html`${this.data.id} ${store.name}`;
   }
@@ -138,7 +139,7 @@ customElements.define('my-element', MyElement);
   +---------------------------------------+
 ```
 
-_父元素的 `constructor` 和 `unmounted` 于子元素先执行，但 `mounted` 后于子元素执行_
+_父元素的 `constructor` 和 `unmounted` 先于子元素执行，但 `mounted` 后于子元素执行_
 
 ## 使用 TypeScript
 

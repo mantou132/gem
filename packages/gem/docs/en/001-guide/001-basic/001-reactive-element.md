@@ -1,6 +1,6 @@
 # Reactive element
 
-When you want to create a reactive WebApp, you need elements that can react (re-render) to different inputs (attribute/property/[store](./003-global-state-management.md)).
+When you want to create a reactive WebApp, you need elements that can react(re-render) to different inputs (attribute/property/[store](./003-global-state-management.md)).
 
 ## Definition
 
@@ -18,7 +18,7 @@ class MyElement extends GemElement {
 customElements.define('my-element', MyElement);
 ```
 
-After the `first-name` attribute is "Observed", he can directly access it through property, and it will automatically convert the kebab-case and camelCase format, when the `first-name` property is changed, the instance element of `MyElement` will be re-rendered.
+After the `first-name` attribute is "Observe", he can directly access it through property, and it will automatically convert the kebab-case and camelCase format, when the `first-name` property is changed, the instance element of `MyElement` will be re-rendered.
 
 Similar to `observedAttributes`, GemElement also supports `observedPropertys`/`observedStores` to reflect the specified property/store:
 

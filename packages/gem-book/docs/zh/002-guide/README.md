@@ -23,7 +23,6 @@ npm install gem-book
 ### 快速开始
 
 ```bash
-
 # 创建文档
 mkdir docs && echo '# Hello <gem-book>!' > docs/readme.md
 

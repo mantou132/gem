@@ -4,7 +4,7 @@
 
 <gbp-example
   name="dy-avatar"
-  props='{"src": "https://joeschmoe.io/api/v1/random", "status": "positive", "size": "large", "square": true}'
+  props='{"src": "https://api.dicebear.com/5.x/bottts-neutral/svg", "status": "positive", "size": "large", "square": true}'
   src="https://jspm.dev/duoyun-ui/elements/avatar"></gbp-example>
 
 ## API

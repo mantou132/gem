@@ -18,13 +18,11 @@ class MyElement extends GemElement {
     return html`<input ref=${this.inputRef.ref} />`;
   }
 
-  mounted() {
-    console.log(this.inputRef.element.value);
+  focus() {
+    this.inputRef.element.focus();
   }
 }
 ```
-
-_不能和 `<gem-reflect>` 一起使用_
 
 ## 自定义事件
 
@@ -44,7 +42,7 @@ class MyElement extends GemElement {
 }
 ```
 
-接收自定义事件时，您仍然需要手写事件名称：
+添加自定义事件处理程序：
 
 ```ts
 html` <my-element @value-change=${console.log}></my-element>`;
@@ -77,7 +75,8 @@ class MyElement extends GemElement {
 
 ## Memo
 
-类似 Effect，`memo` 能在需要时执行回调函数：
+为了避免在重新渲染时执行一些复杂的计算，`memo` 能在指定依赖变更时执行回调函数，和 `effect` 不同的是，他在 `render` 之前执行，
+所以应该在 `constructor` / `willMount` 中注册：
 
 ```ts
 // 省略导入...

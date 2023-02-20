@@ -92,7 +92,7 @@ class MyElement extends GemElement {
 customElements.define('my-element', MyElement);
 ```
 
-还可以使用 [`:--xxx`](https://wicg.github.io/custom-state-pseudo-class/) 导出元素内部状态，供外部样式化当前状态:
+还可以使用 [`:--xxx`](https://wicg.github.io/custom-state-pseudo-class/) 导出元素内部状态，供外部对当前状态的元素样式化:
 
 ```ts
 // 省略导入...

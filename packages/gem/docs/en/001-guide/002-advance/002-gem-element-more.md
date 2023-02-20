@@ -17,13 +17,11 @@ class MyElement extends GemElement {
     return html`<input ref=${this.inputRef.ref} />`;
   }
 
-  mounted() {
-    console.log(this.inputRef.element.value);
+  focus() {
+    this.inputRef.element.focus();
   }
 }
 ```
-
-_Cannot be used with `<gem-reflect>`_
 
 ## Custom event
 
@@ -42,7 +40,7 @@ class MyElement extends GemElement {
 }
 ```
 
-When receiving custom events, you still need to handwrite the event name:
+Add custom event handler:
 
 ```ts
 html`<my-element @value-change=${console.log}></my-element>`;
@@ -74,7 +72,8 @@ Below is an example of `effect` that depends on child elements([Other implementa
 
 ## Memo
 
-Similar to Effect, `memo` can execute callback function when needed:
+In order to avoid performing some complex calculations when re-render, `memo` can execution of the callback when specified dependencies change, unlike the`effect`, `memo` execution before the `render`,
+so you should register in the `constructor` or `willMount`:
 
 ```ts
 // Omit import...

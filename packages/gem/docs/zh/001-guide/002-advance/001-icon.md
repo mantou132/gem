@@ -1,8 +1,7 @@
 # 使用 SVG 图标
 
-由于 Gem 使用 ShadowDOM 来组织元素，防止了样式冲突的同时也使得 [SVG Sprite](https://css-tricks.com/svg-sprites-use-better-icon-fonts/) 失效，SVG 引用不能穿透 ShadowDOM 边界。
-
-Gem 有一个内置元素 `<gem-use>`，来用替代 SVG Sprite：
+Gem 使用 [ShadowDOM](https://developer.mozilla.org/en-US/docs/Web/Web_Components/Using_shadow_DOM) 来防止了样式冲突,
+但也使得 [SVG Sprite](https://css-tricks.com/svg-sprites-use-better-icon-fonts/) 失效，SVG `href` 不能穿透 ShadowDOM 边界。因此，Gem 有一个内置元素 `<gem-use>`，来用替代 SVG Sprite：
 
 <gbp-sandpack dependencies="@mantou/gem">
 
@@ -10,6 +9,13 @@ Gem 有一个内置元素 `<gem-use>`，来用替代 SVG Sprite：
 import { html, render } from '@mantou/gem';
 
 import '@mantou/gem/elements/use';
+
+const icon = `
+  <svg width="24" height="24" viewBox="0 0 24 24">
+    <path d="M0 0h24v24H0z" fill="none" />
+    <path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z" />
+  </svg>
+`;
 
 render(
   html`
@@ -21,6 +27,7 @@ render(
     </template>
     <gem-use .root=${document.body} selector="#icon"></gem-use>
     <gem-use selector="#icon"></gem-use>
+    <gem-use .element=${icon}></gem-use>
   `,
   document.body,
 );

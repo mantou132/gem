@@ -1,6 +1,6 @@
 # Introduction
 
-Gem is a lightweight library that uses modern WebComponents technology to build WebApp. Essentially, you just create individual custom elements and let them work together. They are very flexible and can be easily extended, such as integrated gestures. In addition, you can also use Gem to build and publish only custom elements, which can be easily integrated with other library. So, you can use Gem to build UI component library(e.g [DuoyunUI](https://duoyun-ui.gemjs.org)).
+Gem is a lightweight library that uses modern WebComponents technology to build WebApp. Essentially, you just create individual custom elements and let them work together. They are very flexible and can be easily extended, such as integrated gestures. In addition to building WebApps, you can also use GEM to publish custom elements that can work independently(e.g [GemPanel](https://panel.gemjs.org/)). Custom elements can be easily used in other libraries, Therefore, Gem is also particularly suitable for building a UI component library(e.g [DuoyunUI](https://duoyun-ui.gemjs.org)).
 
 Before learning Gem, Hope you have a certain understanding of [WebComponents](https://developer.mozilla.org/en-US/docs/Web/Web_Components) technology.
 

@@ -87,7 +87,7 @@ class MyElement extends GemElement {
 customElements.define('my-element', MyElement);
 ```
 
-Also use [`:--xxx`](https://wicg.github.io/custom-state-pseudo-class/) to export the internal state of the element for current state of external styling:
+Also use [`:--xxx`](https://wicg.github.io/custom-state-pseudo-class/) to export element internal state, external styling this element for current state:
 
 ```ts
 // Omit import...

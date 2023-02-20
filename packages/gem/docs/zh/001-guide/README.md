@@ -1,9 +1,10 @@
 # 简介
 
 Gem 是一套使用现代 WebComponents 技术构建 WebApp 的轻量级库。
-本质上说，你只是创建一个个自定义元素，然后让他们协同工作，他们非常灵活，可以很容易的进行扩展，比如集成手势。
-另外，也可以使用 Gem 只构建并发布自定义元素，自定义元素很容易和其他库集成，
-所以，你可以使用 Gem 构建 UI 组件库（例如 [DuoyunUI](https://duoyun-ui.gemjs.org)）。
+本质上说，你只是创建许多自定义元素，然后让他们协同工作，他们非常灵活，可以很容易的进行扩展，比如集成手势。
+除了构建 WebApp，也可以利用 Gem 发布能独立工作的自定义元素（例如 [GemPanel](https://panel.gemjs.org/)），
+自定义元素很容易在其他库中使用。
+所以，Gem 也特别适用于构建 UI 组件库（例如 [DuoyunUI](https://duoyun-ui.gemjs.org)）。
 
 在学习 Gem 之前，
 希望你对 [WebComponents](https://developer.mozilla.org/en-US/docs/Web/Web_Components) 技术有一定的了解。
@@ -54,7 +55,7 @@ customElements.define('my-element', MyElement);
 然后以任何方式在 HTML 中使用他，当然也可以在其他自定义元素的模板中使用。
 
 在 `render` 方法中返回渲染模版。 Gem 将 [lit-html](https://github.com/Polymer/lit-html) 作为其模版引擎，
-他使用 ES6 的模版字符串来编写 HTML 模版，没有其他概念，也不需要编译时。
+他使用 ES6 的模版字符串来编写 HTML 模版，没有其他概念，不存在编译时。
 
 使用变量：
 
