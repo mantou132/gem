@@ -2,7 +2,7 @@ import { fixture, expect, nextFrame } from '@open-wc/testing';
 
 import { GemElement, html } from '../../lib/element';
 import { createStore, updateStore } from '../../lib/store';
-import { attribute, property, customElement, emitter, adoptedStyle } from '../../lib/decorators';
+import { attribute, property, customElement, emitter, adoptedStyle, refobject, RefObject } from '../../lib/decorators';
 import { createCSSSheet, css } from '../../lib/utils';
 
 const store = createStore({
@@ -66,14 +66,22 @@ describe('没有 Shadow DOM 的 gem 元素', () => {
   });
 });
 
-@customElement('lifecycle-gem-demo')
 class LifecycleGemElement extends GemElement {
   @attribute appTitle = 'default';
   @attribute appTitle2 = 'default2';
+  @refobject divRef: RefObject<HTMLElement>;
+  refInConstructor?: HTMLElement;
+
   constructor(appTitle: string, appTitle2: string) {
     super();
     this.appTitle = appTitle;
     this.appTitle2 = appTitle2;
+    this.effect(
+      () => {
+        this.refInConstructor = this.divRef.element;
+      },
+      () => [],
+    );
   }
   renderCount = 0;
   mountedCount = 0;
@@ -92,12 +100,15 @@ class LifecycleGemElement extends GemElement {
 
   render() {
     this.renderCount++;
-    return html``;
+    return html`<div ref=${this.divRef.ref}></div>`;
   }
 }
 describe('gem element 生命周期', () => {
   it('mounted/unmounted', async () => {
     const el: LifecycleGemElement = await fixture(html`<lifecycle-gem-demo></lifecycle-gem-demo>`);
+    // test #isMounted
+    customElements.define('lifecycle-gem-demo', LifecycleGemElement);
+    expect(!!el.refInConstructor).to.equal(true);
     expect(el.renderCount).to.equal(1);
     el.remove();
     expect(el.renderCount).to.equal(0);
@@ -247,7 +258,7 @@ describe('gem element Memo', () => {
     el.remove();
     await Promise.resolve();
     document.body.append(el);
-    expect(el.memoCount).to.equal(8);
+    expect(el.memoCount).to.equal(9);
   });
 });
 
@@ -269,6 +280,7 @@ describe('gem element 继承', () => {
     expect(InheritGem.observedAttributes).to.eql(['app-title', 'app-title', 'app-title2']);
   });
   it('attr/prop/emitter 继承', async () => {
+    const name = window.name;
     const el: InheritGem = await fixture(html`<inherit-gem></inherit-gem>`);
     expect(el.appTitle).to.equal('1');
     expect(el.appData.a).to.equal(1);
@@ -280,7 +292,7 @@ describe('gem element 继承', () => {
       window.name += '2';
     });
     el.sayHi();
-    expect(window.name).to.equal('21');
+    expect(window.name).to.equal(name + '21');
   });
 });
 @customElement('render-empty')

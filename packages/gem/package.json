@@ -26,7 +26,7 @@
     "build:lib": "vite build",
     "build": "yarn build:module && yarn build:lib",
     "start": "yarn build:module --watch",
-    "test": "wtr"
+    "test": "cross-env NODE_OPTIONS=--no-experimental-fetch wtr"
   },
   "keywords": [
     "web",
