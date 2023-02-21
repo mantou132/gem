@@ -84,18 +84,17 @@ export class Nav extends GemElement {
           align-items: center;
           position: relative;
           cursor: pointer;
+          overflow: hidden;
         }
         .item gem-use {
           margin-left: 0.3rem;
         }
         .i18n-select {
-          width: 100%;
+          -webkit-appearance: none;
+          appearance: none;
           cursor: pointer;
           position: absolute;
-          top: 0;
-          right: 0;
-          left: 0;
-          bottom: 0;
+          inset: 0;
           opacity: 0;
         }
         .internals {

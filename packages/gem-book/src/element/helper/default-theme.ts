@@ -1,5 +1,7 @@
 export const defaultTheme = {
   font: '-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Oxygen,Ubuntu,Cantarell,Fira Sans,Droid Sans,Helvetica Neue,sans-serif',
+  codeFont:
+    'Source Code Pro, ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, Liberation Mono, Courier New, monospace',
 
   sidebarWidth: '230px',
   mainWidth: '780px',

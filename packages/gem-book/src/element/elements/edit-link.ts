@@ -76,6 +76,7 @@ export class EditLink extends GemElement<State> {
       <style>
         :host {
           display: flex;
+          gap: 1rem;
           flex-wrap: wrap;
           padding: 2rem 0;
           justify-content: space-between;

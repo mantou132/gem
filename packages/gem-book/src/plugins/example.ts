@@ -160,16 +160,20 @@ customElements.whenDefined('gem-book').then(() => {
             justify-content: center;
             padding: 1em;
           }
+          .preview * {
+            max-width: 100%;
+          }
           .panel {
-            background: rgba(${theme.textColorRGB}, 0.02);
+            background: rgba(${theme.textColorRGB}, 0.03);
             padding: 1em;
           }
           .code {
             display: block;
-            font-family: Consolas, Monaco, 'Andale Mono', 'Ubuntu Mono', monospace;
+            font-family: ${theme.codeFont};
             text-align: left;
             white-space: pre;
             tab-size: 2;
+            line-height: 1.7;
             hyphens: none;
             overflow: auto;
             overflow-clip-box: content-box;

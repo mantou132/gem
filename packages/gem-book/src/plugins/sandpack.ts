@@ -34,15 +34,9 @@ customElements.whenDefined('gem-book').then(() => {
       display: grid;
       grid-template: 'tabs tabs' 'code preview' / 50% 50%;
     }
-    @media (max-width: 700px) {
-      :host {
-        grid-template: 'tabs' 'code' 'preview' / 100%;
-        margin-inline: -1em;
-      }
-    }
     .header {
       grid-area: tabs;
-      background: rgba(${theme.textColorRGB}, 0.05);
+      background: rgba(${theme.textColorRGB}, 0.03);
       border-bottom: 1px solid ${theme.borderColor};
       display: flex;
       align-items: center;
@@ -78,16 +72,20 @@ customElements.whenDefined('gem-book').then(() => {
       padding: 0.5em;
       gap: 0.3em;
     }
+    .btn::part(icon) {
+      width: 1em;
+    }
     ::slotted(*) {
       display: none;
       grid-area: code;
       margin: 0 !important;
+      background: rgba(${theme.textColorRGB}, 0.03);
     }
     .preview {
       display: flex;
       grid-area: preview;
       padding: 1.5em;
-      background: ${theme.borderColor};
+      background: rgba(${theme.textColorRGB}, 0.05);
     }
     .status {
       line-height: 2;
@@ -102,6 +100,17 @@ customElements.whenDefined('gem-book').then(() => {
       height: 50%;
       border: none;
       background: ${theme.backgroundColor};
+    }
+    @media (max-width: 700px) {
+      :host {
+        grid-template: 'tabs' 'code' 'preview' / 100%;
+      }
+      .preview {
+        padding: 0;
+      }
+      .sandbox {
+        background: transparent;
+      }
     }
   `);
 

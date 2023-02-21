@@ -239,7 +239,7 @@ const style = createCSSSheet(css`
     height: 100%;
     box-sizing: border-box;
     display: block;
-    font-family: Consolas, Monaco, 'Andale Mono', 'Ubuntu Mono', monospace;
+    font-family: ${theme.codeFont};
     text-align: left;
     white-space: pre;
     tab-size: 2;
@@ -412,7 +412,7 @@ export class Pre extends GemElement {
 
   render() {
     // Safari 精度问题
-    const lineHeight = 1.5;
+    const lineHeight = 1.7;
     const padding = 1;
     return html`
       ${this.highlight

@@ -177,6 +177,9 @@ export class GemBookElement extends GemElement {
           }
         }
         @media ${mediaQuery.PHONE} {
+          .nav-shadow {
+            box-shadow: none;
+          }
           .nav-shadow ~ gem-book-sidebar {
             margin-top: 0;
             height: auto;

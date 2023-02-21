@@ -22,7 +22,7 @@ render(
     >
       <path d="M1.4 8.56L4.67 5M1.4 1.23L4.66 4.7" stroke="currentColor" stroke-linecap="square"></path>
     </svg>
-    <svg id="link" aria-hidden="true" viewBox="0 0 100 100" width="15" height="15">
+    <svg id="link" part="icon" aria-hidden="true" viewBox="0 0 100 100" width="15" height="15">
       <path
         fill="currentColor"
         d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"

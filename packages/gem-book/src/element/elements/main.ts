@@ -216,7 +216,8 @@ export class Main extends GemElement {
           opacity: 1;
         }
         code {
-          font-family: Consolas, Monaco, 'Andale Mono', 'Ubuntu Mono', monospace;
+          font-family: Source Code Pro, ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, Liberation Mono,
+            Courier New, monospace;
           font-size: 90%;
           background: ${theme.inlineCodeBackground};
           padding: 0 3px;
@@ -234,7 +235,6 @@ export class Main extends GemElement {
           }
           @media screen {
             gem-book-pre {
-              margin: 1rem -1rem;
               border-radius: 0;
             }
           }

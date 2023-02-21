@@ -80,6 +80,7 @@ style.innerText = css`
     margin: 0;
     height: 100%;
     overflow: auto;
+    -webkit-overflow-scrolling: touch;
   }
 `;
 document.head.append(style);
