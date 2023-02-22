@@ -105,8 +105,13 @@ export function startBuilder(dir: string, options: Required<CliUniqueConfig>, bo
       .concat(
         build
           ? new GenerateSW({
-              skipWaiting: true,
-              clientsClaim: true,
+              navigationPreload: true,
+              runtimeCaching: [
+                {
+                  urlPattern: ({ request }) => request.mode === 'navigate',
+                  handler: 'NetworkFirst',
+                },
+              ],
             })
           : ([] as any),
       )
