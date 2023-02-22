@@ -14,6 +14,13 @@ import { theme } from '../helper/theme';
 
 const prismjs = 'https://cdn.skypack.dev/prismjs@v1.26.0';
 
+let contenteditableValue = 'true';
+(() => {
+  const div = document.createElement('div');
+  div.setAttribute('contenteditable', 'plaintext-only');
+  if (div.isContentEditable) contenteditableValue = 'plaintext-only';
+})();
+
 // https://github.com/PrismJS/prism/blob/master/plugins/autoloader/prism-autoloader.js
 const langDependencies: Record<string, string | string[]> = {
   javascript: 'clike',
@@ -243,6 +250,7 @@ const style = createCSSSheet(css`
     text-align: left;
     white-space: pre;
     tab-size: 2;
+    padding: 1em;
     hyphens: none;
     overflow: auto;
     overflow-clip-box: content-box;
@@ -250,6 +258,8 @@ const style = createCSSSheet(css`
     border: none;
     background: transparent;
     scrollbar-width: thin;
+    outline: none;
+    caret-color: ${theme.textColor};
   }
   .code::-webkit-scrollbar {
     height: 0.5em;
@@ -344,6 +354,7 @@ export class Pre extends GemElement {
   @attribute highlight: string;
   @attribute filename: string;
   @boolattribute hidden: boolean;
+  @boolattribute editable: boolean;
 
   @refobject codeRef: RefObject<HTMLElement>;
 
@@ -378,11 +389,76 @@ export class Pre extends GemElement {
     return parts.join('\n...\n\n');
   }
 
+  #composing = false;
+
+  #compositionstartHandle = () => {
+    this.#composing = true;
+  };
+
+  #compositionendHandle = (evt: CompositionEvent) => {
+    // https://bugs.chromium.org/p/chromium/issues/detail?id=1263817
+    this.#composing = false;
+    if (evt.data) {
+      this.#onInputHandle();
+    }
+  };
+
+  #onInput = (evt: InputEvent) => {
+    if (this.#composing) return;
+    // chrome compositionend
+    if (evt.inputType === 'insertCompositionText') return;
+    this.#onInputHandle();
+  };
+
+  #offset = 0;
+  #onInputHandle = () => {
+    const selection = 'getSelection' in this.shadowRoot! ? (this.shadowRoot as Window).getSelection() : getSelection();
+    if (!selection || selection.focusNode?.nodeType !== Node.TEXT_NODE) return;
+    this.#offset = 0;
+    const textNodeIterator = document.createNodeIterator(this.codeRef.element!, NodeFilter.SHOW_TEXT);
+    while (true) {
+      const textNode = textNodeIterator.nextNode();
+      if (textNode && textNode !== selection?.focusNode) {
+        this.#offset += textNode.nodeValue!.length;
+      } else {
+        this.#offset += selection.focusOffset;
+        break;
+      }
+    }
+    const content = this.codeRef.element!.textContent!;
+    this.textContent = content;
+  };
+
+  #setOffset = () => {
+    if (!this.editable || !this.#offset) return;
+    const textNodeIterator = document.createNodeIterator(this.codeRef.element!, NodeFilter.SHOW_TEXT);
+    let offset = this.#offset;
+    while (true) {
+      const textNode = textNodeIterator.nextNode();
+      if (!textNode) break;
+      if (textNode.nodeValue!.length < offset) {
+        offset -= textNode.nodeValue!.length;
+      } else {
+        const sel = window.getSelection();
+        if (!sel) break;
+        const range = document.createRange();
+        range.setStart(textNode, offset);
+        range.collapse(false);
+        sel.removeAllRanges();
+        sel.addRange(range);
+        break;
+      }
+    }
+  };
+
   mounted() {
     this.effect(async () => {
       if (this.hidden) return;
       if (!this.codeRef.element) return;
-      this.codeRef.element.innerHTML = this.innerHTML;
+      // first render
+      if (!this.codeRef.element.firstElementChild) {
+        this.codeRef.element.innerHTML = this.innerHTML;
+      }
       await import(/* @vite-ignore */ /* webpackIgnore: true */ `${prismjs}?min`);
       const { Prism } = window as any;
       if (this.codelang && !Prism.languages[this.codelang]) {
@@ -407,6 +483,7 @@ export class Pre extends GemElement {
         ? Prism.highlight(this.textContent || '', Prism.languages[this.codelang], this.codelang)
         : this.innerHTML;
       this.codeRef.element.innerHTML = this.#getParts(content);
+      this.#setOffset();
     });
   }
 
@@ -429,7 +506,15 @@ export class Pre extends GemElement {
               `,
           )
         : ''}
-      <code ref=${this.codeRef.ref} class="code">${this.#getParts(this.textContent || '')}</code>
+      <code
+        ref=${this.codeRef.ref}
+        class="code"
+        contenteditable=${this.editable ? contenteditableValue : false}
+        @compositionstart=${this.#compositionstartHandle}
+        @compositionend=${this.#compositionendHandle}
+        @input=${this.#onInput}
+        >${this.#getParts(this.textContent || '')}</code
+      >
       <style>
         code {
           padding: ${padding}em;

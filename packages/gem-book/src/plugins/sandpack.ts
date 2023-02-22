@@ -8,6 +8,17 @@ const CSB_URL = 'https://codesandbox.io/api/v1/sandboxes/define?json=1';
 const SANDPACK_CLIENT_ESM = 'https://esm.sh/@codesandbox/sandpack-client?bundle';
 const LZ_STRING_ESM = 'https://esm.sh/lz-string';
 
+function throttle<T extends (...args: any) => any>(fn: T, wait = 3000) {
+  let timer = 0;
+  return (...rest: Parameters<T>) => {
+    clearTimeout(timer);
+    timer = window.setTimeout(() => {
+      fn(...(rest as any));
+      timer = 0;
+    }, wait);
+  };
+}
+
 type FileStatus = 'active' | 'hidden' | '';
 
 type File = {
@@ -156,14 +167,7 @@ customElements.whenDefined('gem-book').then(() => {
       new MutationObserver(async () => {
         const files = this.#parseContents();
         this.setState({ files });
-        (await this.#sandpackClient)?.updateSandbox({
-          files: {
-            'sandbox.config.json': this.#sandBoxConfigFile,
-            ...files.reduce((p, c) => ({ ...p, [c.filename]: { code: c.code } }), {} as SandpackBundlerFiles),
-          },
-          entry: this.#entry,
-          dependencies: this.#dependencies,
-        });
+        this.#updateSandbox();
       }).observe(this, {
         childList: true,
         characterData: true,
@@ -173,17 +177,7 @@ customElements.whenDefined('gem-book').then(() => {
       new IntersectionObserver(async (entries) => {
         const { intersectionRatio } = entries.pop()!;
         if (intersectionRatio > 0 && !this.#sandpackClient) {
-          this.#sandpackClient = this.#initSandpackClient();
-          (await this.#sandpackClient).listen((msg) => {
-            switch (msg.type) {
-              case 'status':
-                this.setState({ status: msg.status });
-                break;
-              case 'done':
-                this.setState({ status: 'done' });
-                break;
-            }
-          });
+          this.#intoViewport();
         }
       }).observe(this);
     }
@@ -193,15 +187,29 @@ customElements.whenDefined('gem-book').then(() => {
     #sandpackClient?: Promise<SandpackClient>;
 
     #parseContents = () => {
-      return [...this.querySelectorAll<Pre>('gem-book-pre')].map(
-        (e) =>
-          ({
-            code: e.textContent,
-            filename: e.getAttribute('filename') || this.#defaultEntryFilename,
-            lang: e.getAttribute('codelang'),
-            status: e.hidden ? 'hidden' : 'active',
-          } as File),
-      );
+      return [...this.querySelectorAll<Pre>('gem-book-pre')].map((e) => {
+        e.setAttribute('editable', '');
+        return {
+          code: e.textContent,
+          filename: e.getAttribute('filename') || this.#defaultEntryFilename,
+          lang: e.getAttribute('codelang'),
+          status: e.hidden ? 'hidden' : 'active',
+        } as File;
+      });
+    };
+
+    #intoViewport = async () => {
+      this.#sandpackClient = this.#initSandpackClient();
+      (await this.#sandpackClient).listen((msg) => {
+        switch (msg.type) {
+          case 'status':
+            this.setState({ status: msg.status });
+            break;
+          case 'done':
+            this.setState({ status: 'done' });
+            break;
+        }
+      });
     };
 
     #initSandpackClient = async () => {
@@ -229,6 +237,17 @@ customElements.whenDefined('gem-book').then(() => {
         },
       );
     };
+
+    #updateSandbox = throttle(async () => {
+      (await this.#sandpackClient)?.updateSandbox({
+        files: {
+          'sandbox.config.json': this.#sandBoxConfigFile,
+          ...this.state.files.reduce((p, c) => ({ ...p, [c.filename]: { code: c.code } }), {} as SandpackBundlerFiles),
+        },
+        entry: this.#entry,
+        dependencies: this.#dependencies,
+      });
+    });
 
     #onClickTab = (filename: string) => {
       this.setState({
