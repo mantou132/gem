@@ -33,7 +33,7 @@
     "start": "concurrently npm:start:cli npm:start:docs",
     "build:website": "yarn build:cli && yarn docs --build --ga G-7X2Z4B2KV0",
     "build": "yarn build:cli && tsc -p ./tsconfig.build.json",
-    "test": "wtr",
+    "test": "cross-env NODE_OPTIONS=--no-experimental-fetch wtr",
     "prepublishOnly": "yarn build"
   },
   "dependencies": {

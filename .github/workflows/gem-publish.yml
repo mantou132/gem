@@ -16,7 +16,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v1
         with:
-          node-version: 14.x
+          node-version: 18.x
 
       - run: node -e "fs.writeFileSync('./packages/gem/src/lib/version.ts', 'export const version = \'' + require('./packages/gem/package.json').version + '\';\n')"
       - run: yarn
