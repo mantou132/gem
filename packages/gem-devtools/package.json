@@ -1,6 +1,6 @@
 {
   "name": "gem-devtools",
-  "version": "1.6.16",
+  "version": "1.6.18",
   "description": "Gem devtools",
   "scripts": {
     "update:version": "node ./scripts/update.js",
@@ -11,7 +11,7 @@
     "start": "concurrently npm:build:watch npm:browser"
   },
   "dependencies": {
-    "@mantou/gem": "^1.6.16",
+    "@mantou/gem": "^1.6.18",
     "webextension-polyfill": "^0.8.0"
   },
   "devDependencies": {
