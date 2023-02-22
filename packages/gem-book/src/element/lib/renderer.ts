@@ -1,6 +1,7 @@
 import { Renderer } from 'marked';
 
 import { anchorIcon, linkIcon } from '../elements/icons';
+import { CUSTOM_HEADING_REG } from '../../common/utils';
 
 import { getRemotePath, isSameOrigin, getUserLink, escapeHTML } from './utils';
 
@@ -9,7 +10,7 @@ export function getRenderer({ lang, link, displayRank }: { lang: string; link: s
   // https://github.com/markedjs/marked/blob/ed18cd58218ed4ab98d3457bec2872ba1f71230e/lib/marked.esm.js#L986
   renderer.heading = function (fullText, level, r, slugger) {
     // # heading {#custom-id}
-    const [, text, customId] = fullText.match(/^(.*?)\s*(?:{#(.*)})?$/s) as RegExpMatchArray;
+    const [, text, customId] = fullText.match(CUSTOM_HEADING_REG) as RegExpMatchArray;
     const tag = `h${level}`;
     const id = customId || `${this.options.headerPrefix}${slugger.slug(r)}`;
     return `<${tag} class="markdown-header" id="${id}"><a class="header-anchor" aria-hidden="true" href="#${id}">${anchorIcon}</a>${text}</${tag}>`;
@@ -21,7 +22,7 @@ export function getRenderer({ lang, link, displayRank }: { lang: string; link: s
     const lastArgIsHighlight = lastArg && /^([-]|\d|\s|,)+$/.test(lastArg);
     const highlight = lastArgIsHighlight ? lastArg : '';
     const [filename = '', status = ''] = lastArgIsHighlight ? rest : [...rest, lastArg];
-    return `<gem-book-pre codelang="${lang}" highlight="${highlight}" filename="${filename}" ${status}>${escapeHTML(
+    return `<gem-book-pre codelang="${lang}" highlight="${highlight}" filename="${filename}" status="${status}">${escapeHTML(
       code,
     )}</gem-book-pre>`;
   };

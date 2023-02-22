@@ -22,6 +22,7 @@ function throttle<T extends (...args: any) => any>(fn: T, wait = 3000) {
 type FileStatus = 'active' | 'hidden' | '';
 
 type File = {
+  element: Pre;
   lang: string;
   filename: string;
   status: FileStatus;
@@ -187,13 +188,14 @@ customElements.whenDefined('gem-book').then(() => {
     #sandpackClient?: Promise<SandpackClient>;
 
     #parseContents = () => {
-      return [...this.querySelectorAll<Pre>('gem-book-pre')].map((e) => {
-        e.setAttribute('editable', '');
+      return [...this.querySelectorAll<Pre>('gem-book-pre')].map((element) => {
+        element.setAttribute('editable', '');
         return {
-          code: e.textContent,
-          filename: e.getAttribute('filename') || this.#defaultEntryFilename,
-          lang: e.getAttribute('codelang'),
-          status: e.hidden ? 'hidden' : 'active',
+          element,
+          code: element.textContent,
+          filename: element.getAttribute('filename') || this.#defaultEntryFilename,
+          lang: element.getAttribute('codelang') || '',
+          status: element.getAttribute('status') || '',
         } as File;
       });
     };
@@ -249,12 +251,13 @@ customElements.whenDefined('gem-book').then(() => {
       });
     });
 
-    #onClickTab = (filename: string) => {
+    #onClickTab = (ele: Pre) => {
       this.setState({
-        files: this.state.files.map((e) => ({
-          ...e,
-          status: e.filename === filename ? 'active' : e.status === 'hidden' ? 'hidden' : '',
-        })),
+        files: this.state.files.map((file) => {
+          const status = file.element === ele ? 'active' : '';
+          file.element.status = status;
+          return { ...file, status };
+        }),
       });
     };
 
@@ -320,20 +323,20 @@ customElements.whenDefined('gem-book').then(() => {
     render = () => {
       const { files, forking, status } = this.state;
       if (!files.length) return;
-      const currentFile = files.find(({ status }) => status === 'active');
+      const currentFile = files.find(({ status }) => status === 'active') || files.find(({ status }) => status === '');
 
       return html`
         <div class="header">
           <ul class="tabs">
             ${files.map(
-              ({ filename, status }) =>
+              (file) =>
                 html`
                   <li
-                    class=${classMap({ tab: true, current: currentFile?.filename === filename })}
-                    ?hidden=${status === 'hidden'}
-                    @click=${() => this.#onClickTab(filename)}
+                    class=${classMap({ tab: true, current: currentFile?.filename === file.filename })}
+                    ?hidden=${file.status === 'hidden'}
+                    @click=${() => this.#onClickTab(file.element)}
                   >
-                    ${filename}
+                    ${file.filename}
                   </li>
                 `,
             )}

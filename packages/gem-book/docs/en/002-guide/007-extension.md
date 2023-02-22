@@ -1,21 +1,49 @@
 # Extension
 
-`<gem-book>` renders markdown and also extends the markdown syntax. In addition, some methods are provided for users to customize `<gem-book>`.
+`<gem-book>` renders Markdown and also extends the Markdown syntax. In addition, some methods are provided for users to customize `<gem-book>`.
 
 ## Markdown enhancement
 
-### Highlight code line
+### Code blocks info string
 
-_Different from programming language code highlight_
+Syntax:
 
-````md 4-5
-```md 3-4
-# title
-
-line 3
-line 4
+```md
+<language>? <filename>? <status>? <highlight>?
 ```
+
+Here is an example of writing code blocks in `<gbp-sandpack>` [plugin](#plugins):
+
+<gbp-sandpack dependencies="@mantou/gem">
+
+```js index.js
+import { render } from '@mantou/gem';
+
+render('This is `<gbp-sandpack>` example', document.body);
+```
+
+````md README.md active 12-13
+<gbp-sandpack dependencies="@mantou/gem">
+
+```js index.js
+import { render } from '@mantou/gem';
+
+render('This is `<gbp-sandpack>` example', document.body);
+```
+
+```md README.md active 3-4
+# `<gbp-sandpack>`
+
+- Code block represents a file in `<gbp-sandpack>`
+- The default state of the first file is `active`, if you manually specify the state, you must write the filename
+```
+
+</gbp-sandpack>
 ````
+
+</gbp-sandpack>
+
+_`filename` only work in `<gbp-sandpack>`; `highlight` does not refer to code syntax highlighting_
 
 ### Fixed heading anchor hash {#fixed-hash}
 
@@ -43,7 +71,7 @@ gem-book::part(homepage-hero) {
 <gem-book><div slot="sidebar-before">Hello</div></gem-book>
 ```
 
-## Plugins
+## Plugins {#plugins}
 
 `<gem-book>` uses custom elements as a plugin system, they can customize the rendering of Markdown content or enhance the ability of `<gem-book>`. The following is how to use the built-in plugin `<gbp-raw>`.
 

@@ -14,7 +14,7 @@ import Jimp from 'jimp/es';
 
 import { NavItem } from '../common/config';
 import { FrontMatter } from '../common/frontmatter';
-import { isIndexFile, parseFilename } from '../common/utils';
+import { isIndexFile, parseFilename, CUSTOM_HEADING_REG } from '../common/utils';
 
 export async function getGithubUrl() {
   const repoDir = process.cwd();
@@ -142,14 +142,14 @@ export function getMetadata(fullPath: string, displayRank: boolean | undefined):
       ...(attributes as FileMetadata),
       title: attributes.title || h1?.textContent || getTitle(),
       headings: h2s.length
-        ? [...h2s].map(
-            (heading) =>
-              ({
-                title: heading.textContent as string,
-                link: `#${heading.id}`,
-                type: 'heading',
-              } as NavItem),
-          )
+        ? [...h2s].map((heading) => {
+            const [, text, customId] = (heading.textContent as string).match(CUSTOM_HEADING_REG) as RegExpMatchArray;
+            return {
+              title: text,
+              link: `#${customId || heading.id}`,
+              type: 'heading',
+            } as NavItem;
+          })
         : undefined,
     };
   };

@@ -1,21 +1,49 @@
 # 扩展
 
-`<gem-book>` 渲染 markdown，同时也扩展了 markdown 语法。另外还提供一些方法让用户自定义 `<gem-book>`。
+`<gem-book>` 渲染 Markdown，同时也扩展了 Markdown 语法。另外还提供一些方法让用户自定义 `<gem-book>`。
 
 ## Markdown 增强
 
-### 高亮代码行
+### 代码块信息
 
-_并非指编程语言的代码高亮_
+语法：
 
-````md 4-5
-```md 3-4
-# 标题
-
-行 3
-行 4
+```md
+<语言>? <文件名>? <状态>? <高亮>?
 ```
+
+下面是在 `<gbp-sandpack>` [插件](#plugins)中写代码块的例子：
+
+<gbp-sandpack dependencies="@mantou/gem">
+
+```js index.js
+import { render } from '@mantou/gem';
+
+render('这是一个 `<gbp-sandpack>` 例子', document.body);
+```
+
+````md README.md active 12-13
+<gbp-sandpack dependencies="@mantou/gem">
+
+```js index.js
+import { render } from '@mantou/gem';
+
+render('这是一个 `<gbp-sandpack>` 例子', document.body);
+```
+
+```md README.md active 3-4
+# `<gbp-sandpack>`
+
+- `<gbp-sandpack>` 中的代码块代表一个文件
+- 默认第一个文件的状态为 `active`，如果手动指定状态，必须写文件名
+```
+
+</gbp-sandpack>
 ````
+
+</gbp-sandpack>
+
+_文件名只工作在 `<gbp-sandpack>` 中；高亮并非指代码语法高亮_
 
 ### 固定标题锚点 Hash {#fixed-hash}
 
@@ -43,7 +71,7 @@ gem-book::part(homepage-hero) {
 <gem-book><div slot="sidebar-before">Hello</div></gem-book>
 ```
 
-## 插件
+## 插件 {#plugins}
 
 `<gem-book>` 使用自定义元素作为插件系统，他们可以自定义渲染 Markdown 内容或者增强 `<gem-book>` 的能力。下面是内置插件 `<gbp-raw>` 的使用方式。
 

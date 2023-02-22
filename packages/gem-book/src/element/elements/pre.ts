@@ -216,7 +216,7 @@ const langAliases: Record<string, string> = {
 };
 
 const style = createCSSSheet(css`
-  :host([hidden]) {
+  :host([status='hidden']) {
     display: none;
   }
   :host {
@@ -234,7 +234,7 @@ const style = createCSSSheet(css`
     --keyword-color: var(--code-keyword-color, #93219e);
     --attribute-color: var(--code-attribute-color, #4646c6);
   }
-  .highlight {
+  .gem-highlight {
     display: block;
     position: absolute;
     pointer-events: none;
@@ -242,7 +242,7 @@ const style = createCSSSheet(css`
     opacity: 0.05;
     width: 100%;
   }
-  .code {
+  .gem-code {
     height: 100%;
     box-sizing: border-box;
     display: block;
@@ -261,10 +261,10 @@ const style = createCSSSheet(css`
     outline: none;
     caret-color: ${theme.textColor};
   }
-  .code::-webkit-scrollbar {
+  .gem-code::-webkit-scrollbar {
     height: 0.5em;
   }
-  .code::-webkit-scrollbar-thumb {
+  .gem-code::-webkit-scrollbar-thumb {
     border-radius: inherit;
   }
   .token.comment,
@@ -353,7 +353,7 @@ export class Pre extends GemElement {
   @attribute range: string;
   @attribute highlight: string;
   @attribute filename: string;
-  @boolattribute hidden: boolean;
+  @boolattribute status: 'hidden' | 'active' | '';
   @boolattribute editable: boolean;
 
   @refobject codeRef: RefObject<HTMLElement>;
@@ -453,7 +453,7 @@ export class Pre extends GemElement {
 
   mounted() {
     this.effect(async () => {
-      if (this.hidden) return;
+      if (this.status === 'hidden') return;
       if (!this.codeRef.element) return;
       // first render
       if (!this.codeRef.element.firstElementChild) {
@@ -497,7 +497,7 @@ export class Pre extends GemElement {
             ([start, end]) =>
               html`
                 <span
-                  class="highlight"
+                  class="gem-highlight"
                   style=${styleMap({
                     top: `${(start - 1) * lineHeight + padding}em`,
                     height: `${(end - start + 1) * lineHeight}em`,
@@ -508,7 +508,7 @@ export class Pre extends GemElement {
         : ''}
       <code
         ref=${this.codeRef.ref}
-        class="code"
+        class="gem-code"
         contenteditable=${this.editable ? contenteditableValue : false}
         @compositionstart=${this.#compositionstartHandle}
         @compositionend=${this.#compositionendHandle}
