@@ -1,6 +1,6 @@
 import { connectStore, adoptedStyle, customElement } from '@mantou/gem/lib/decorators';
 import { GemElement, html, TemplateResult } from '@mantou/gem/lib/element';
-import { createCSSSheet, css, styleMap } from '@mantou/gem/lib/utils';
+import { createCSSSheet, css, styleMap, classMap } from '@mantou/gem/lib/utils';
 import { createStore, updateStore } from '@mantou/gem/lib/store';
 
 import { icons } from '../lib/icons';
@@ -33,6 +33,7 @@ type MenuStore = {
   maxHeight?: string;
   activeElement?: HTMLElement | null;
   openLeft?: boolean;
+  maskCloseable?: boolean;
   menuStack: {
     searchable?: boolean;
     openTop?: boolean;
@@ -48,6 +49,7 @@ type OpenMenuOptions = {
   activeElement?: HTMLElement | null;
   /**only work `activeElement`, only support first menu   */
   openLeft?: boolean;
+  maskCloseable?: boolean;
   /**only work nothing `activeElement`  */
   x?: number;
   /**only work nothing `activeElement`  */
@@ -94,6 +96,9 @@ const style = createCSSSheet(css`
     position: absolute;
     inset: 0;
   }
+  .opaque {
+    background: rgba(0, 0, 0, ${theme.maskAlpha});
+  }
   .menu-custom-container {
     padding: 0.4em 1em;
   }
@@ -120,7 +125,17 @@ export class DuoyunMenuElement extends GemElement {
   static instance?: DuoyunMenuElement;
 
   static async open(menu: Menu, options: OpenMenuOptions = {}) {
-    const { activeElement, openLeft, x = 0, y = 0, width, maxHeight, searchable, header } = options;
+    const {
+      activeElement,
+      openLeft,
+      x = 0,
+      y = 0,
+      width,
+      maxHeight,
+      searchable,
+      header,
+      maskCloseable = true,
+    } = options;
     if (Array.isArray(menu) && menu.length === 0) throw new Error('menu length is 0');
     toggleActiveState(activeElement, true);
     updateStore(menuStore, {
@@ -128,6 +143,7 @@ export class DuoyunMenuElement extends GemElement {
       maxHeight,
       activeElement,
       openLeft,
+      maskCloseable,
       menuStack: [{ x, y, menu, searchable, header }],
     });
     if (ContextMenu.instance) {
@@ -275,6 +291,12 @@ export class DuoyunMenuElement extends GemElement {
     }
   };
 
+  #onMaskClick = () => {
+    if (menuStore.maskCloseable) {
+      ContextMenu.close();
+    }
+  };
+
   mounted = () => {
     this.#initPosition();
     this.#menuEles.shift()?.focus();
@@ -288,9 +310,9 @@ export class DuoyunMenuElement extends GemElement {
   };
 
   render = () => {
-    const { menuStack, maxHeight } = menuStore;
+    const { menuStack, maxHeight, maskCloseable } = menuStore;
     return html`
-      <div class="mask" @click=${ContextMenu.close}></div>
+      <div class=${classMap({ mask: true, opaque: !maskCloseable })} @click=${this.#onMaskClick}></div>
       ${menuStack.map(
         (
           { x, y, menu, searchable, openTop, header },

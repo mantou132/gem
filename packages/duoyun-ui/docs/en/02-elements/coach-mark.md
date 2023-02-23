@@ -2,33 +2,63 @@
 
 ## Example
 
-First define `Tours`:
+<gbp-sandpack dependencies="@mantou/gem,duoyun-ui">
 
 ```ts
-import { setTours } from '@duoyun-fe/duoyun-ui/elements/coach-mark';
+import { render, html } from '@mantou/gem';
+import { setTours } from 'duoyun-ui/elements/coach-mark';
 
-setTours([
+setTours(
+  [
+    {
+      title: 'starterTitle',
+      description: 'starterDesc',
+    },
+    {
+      preview: 'https://picsum.photos/400/300',
+      title: 'starterAnalyticsTitle',
+      description: 'starterAnalyticsDesc',
+      maskCloseable: false,
+    },
+    {
+      title: 'starterMenuTitle',
+      description: 'starterMenuDesc',
+    },
+  ],
   {
-    title: 'starterTitle',
-    description: 'starterDesc',
+    currentIndex: 1,
   },
-  {
-    preview: 'https://image.cloudfine.com/img/202201061900942.png',
-    title: 'starterAnalyticsTitle',
-    description: 'starterAnalyticsDesc',
-  },
-  {
-    title: 'starterMenuTitle',
-    description: 'starterMenuDesc',
-  },
-]);
+);
+
+render(
+  html`
+    <style>
+      .container {
+        position: relative;
+        width: 100px;
+        line-height: 2;
+        margin: 1em;
+        background: #eee;
+      }
+    </style>
+    <div class="container">
+      <dy-coach-mark index="0"></dy-coach-mark>
+      Tour1
+    </div>
+    <div class="container">
+      <dy-coach-mark index="1"></dy-coach-mark>
+      Tour2
+    </div>
+    <div class="container">
+      <dy-coach-mark index="2"></dy-coach-mark>
+      Tour3
+    </div>
+  `,
+  document.body,
+);
 ```
 
-Add `<dy-coach-mark>` in a DOM tree, add the `index` attribute, it will match the composite from the `Tours`, Tour while displaying the elements:
-
-```ts
-html`<div class="container"><dy-coach-mark index="0"></dy-coach-mark></div>`;
-```
+</gbp-sandpack>
 
 ## API
 

@@ -24,6 +24,7 @@ export type Tour = {
   finishText?: string;
   finish?: () => Promise<void> | void;
   skip?: () => Promise<void> | void;
+  maskCloseable?: boolean;
 };
 let tourList: Tour[] = [];
 
@@ -160,7 +161,7 @@ export class DuoyunCoachMarkElement extends DuoyunVisibleBaseElement {
 
   #open = async () => {
     if (!this.#tour) return;
-    const { description, preview = '', title, finishText } = this.#tour;
+    const { description, preview = '', title, finishText, maskCloseable } = this.#tour;
     const isFinish = store.currentIndex === tourList.length - 1;
     this.scrollIntoView({ block: 'nearest', inline: 'nearest' });
     if (!this.visibility) await new Promise((res) => this.addEventListener('visible', res, { once: true }));
@@ -187,6 +188,7 @@ export class DuoyunCoachMarkElement extends DuoyunVisibleBaseElement {
         </dy-card>
       `,
       {
+        maskCloseable,
         activeElement: this,
         width: this.#width,
       },
