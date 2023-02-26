@@ -21,15 +21,17 @@ function base64ToSafeUrl(str: string) {
   return str.replaceAll('+', '-').replaceAll('/', '_').replaceAll('=', '');
 }
 
-export function utf8ToB64(str: string) {
-  return base64ToSafeUrl(
-    window.btoa(encodeURIComponent(str).replace(/%([0-9A-F]{2})/g, (_, p1) => String.fromCharCode(Number(`0x${p1}`)))),
+export function utf8ToB64(str: string, isSafe: boolean) {
+  const base64 = window.btoa(
+    encodeURIComponent(str).replace(/%([0-9A-F]{2})/g, (_, p1) => String.fromCharCode(Number(`0x${p1}`))),
   );
+  return isSafe ? base64ToSafeUrl(base64) : base64;
 }
 
 // https://github.com/tc39/proposal-arraybuffer-base64
-export function arrayBufferToBase64(arrayBuffer: ArrayBuffer) {
-  return base64ToSafeUrl(window.btoa(String.fromCharCode(...new Uint8Array(arrayBuffer))));
+export function arrayBufferToBase64(arrayBuffer: ArrayBuffer, isSafe: boolean) {
+  const base64 = window.btoa(String.fromCharCode(...new Uint8Array(arrayBuffer)));
+  return isSafe ? base64ToSafeUrl(base64) : base64;
 }
 
 export async function hash(strOrAb: string | ArrayBuffer, options?: 'string'): Promise<string>;
