@@ -272,7 +272,7 @@ export function createCSSSheet<T extends StyledKeyValuePair>(rules: T | string, 
     style = rules;
   } else {
     Object.keys(rules).forEach((key: keyof T) => {
-      sheet[key] = `${key}-${randomStr()}`;
+      sheet[key] = `${key as string}-${randomStr()}`;
       style += rules[key].styledContent.replace(/&/g, sheet[key]);
     });
   }

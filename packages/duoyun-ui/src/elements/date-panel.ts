@@ -104,7 +104,7 @@ const style = createCSSSheet(css`
 
 const modes = ['day', 'month', 'year'] as const;
 
-type Mode = typeof modes[number];
+type Mode = (typeof modes)[number];
 
 type State = {
   year: number;

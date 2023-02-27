@@ -142,7 +142,7 @@ export class I18n<T = Record<string, Msg>> {
     const currentLanguagePack = this.resources[this.currentLanguage] as any;
     const fallbackLanguagePack = this.resources[this.fallbackLanguage] as any;
     const msg = currentLanguagePack[s] || fallbackLanguagePack[s];
-    const rawValue: string = msg?.message || msg || `[${s}]`;
+    const rawValue: string = msg?.message || msg || `[${s as string}]`;
     if (!rest.length) return rawValue;
     return splice(rawValue, ...rest);
   }

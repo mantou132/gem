@@ -254,10 +254,7 @@ export abstract class GemElement<T = Record<string, unknown>> extends HTMLElemen
    * }
    * ```
    * */
-  effect = <T = any[] | undefined>(
-    callback: EffectCallback<T>,
-    getDep?: T extends any[] ? () => [...T] : undefined,
-  ) => {
+  effect = <T = any[] | undefined>(callback: EffectCallback<T>, getDep?: T extends any[] ? () => T : undefined) => {
     if (!this.#effectList) this.#effectList = [];
     const effectItem: EffectItem<T> = {
       callback,
@@ -287,7 +284,7 @@ export abstract class GemElement<T = Record<string, unknown>> extends HTMLElemen
    * }
    * ```
    * */
-  memo = <T = any[] | undefined>(callback: EffectCallback<T>, getDep?: T extends any[] ? () => [...T] : undefined) => {
+  memo = <T = any[] | undefined>(callback: EffectCallback<T>, getDep?: T extends any[] ? () => T : undefined) => {
     if (!this.#memoList) this.#memoList = [];
     this.#memoList.push({
       callback,

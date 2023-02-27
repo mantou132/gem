@@ -38,7 +38,18 @@ const style = createCSSSheet(css`
   :host(:where(:--right-overflow, [data-rightoverflow])) {
     --mask-right: calc(100% - var(--mask-width));
   }
-  :host(:where(:--top-overflow, [data-topoverflow], :--bottom-overflow, [data-bottomoverflow], :--left-overflow, [data-leftoverflow], :--right-overflow, [data-rightoverflow])) {
+  :host(
+      :where(
+          :--top-overflow,
+          [data-topoverflow],
+          :--bottom-overflow,
+          [data-bottomoverflow],
+          :--left-overflow,
+          [data-leftoverflow],
+          :--right-overflow,
+          [data-rightoverflow]
+        )
+    ) {
     --m: linear-gradient(to var(--mask-dir), #fff0, #000 var(--mask-start), #000 var(--mask-end), #fff0 100%);
     -webkit-mask-image: var(--m);
     mask-image: var(--m);

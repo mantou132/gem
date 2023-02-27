@@ -127,13 +127,13 @@ class GemHistory {
     // 应用初始化的时候设置
     updateStore(gemBasePathStore, { basePath });
     // paramsMap 更新后 ui 才会更新
-    Object.assign(paramsMap.get(store.$key), { path: getInternalPath(location.pathname) });
+    Object.assign(paramsMap.get(store.$key)!, { path: getInternalPath(location.pathname) });
   }
   getParams() {
     return paramsMap.get(store.$key)!;
   }
   updateParams(params: UpdateHistoryParams) {
-    Object.assign(paramsMap.get(store.$key), params);
+    Object.assign(paramsMap.get(store.$key)!, params);
     updateStore(store, {});
   }
   push(params: UpdateHistoryParams) {

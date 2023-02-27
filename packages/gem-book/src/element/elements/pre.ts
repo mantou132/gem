@@ -412,7 +412,8 @@ export class Pre extends GemElement {
 
   #offset = 0;
   #onInputHandle = () => {
-    const selection = 'getSelection' in this.shadowRoot! ? (this.shadowRoot as Window).getSelection() : getSelection();
+    const selection =
+      'getSelection' in this.shadowRoot! ? (this.shadowRoot as unknown as Window).getSelection() : getSelection();
     if (!selection || selection.focusNode?.nodeType !== Node.TEXT_NODE) return;
     this.#offset = 0;
     const textNodeIterator = document.createNodeIterator(this.codeRef.element!, NodeFilter.SHOW_TEXT);
