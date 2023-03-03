@@ -2,7 +2,7 @@ import { html, svg } from '@mantou/gem/lib/element';
 import { customElement, emitter, Emitter, property } from '@mantou/gem/lib/decorators';
 import { classMap } from '@mantou/gem/lib/utils';
 
-import { isNullish } from '../lib/types';
+import { isNotNullish } from '../lib/types';
 import { theme } from '../lib/theme';
 
 import { DuoyunChartBaseElement } from './base/chart';
@@ -171,61 +171,55 @@ export class DuoyunAreaChartElement extends DuoyunChartBaseElement {
 
   #genPath = (sequences: Sequence[], isArea = false) => {
     this.#symbolSequences = [];
-    const controlPointFromPrev = (prev: number[], point: number[], next: number[], n = 1) => {
+    const controlPointFromPrev = (prev: number[], point: number[], next: number[], dir = 1) => {
       const t = (point[0] - prev[0]) / 2;
-      const x = point[0] - n * t;
+      const x = point[0] - dir * t;
       if ((point[1] > prev[1] && next[1] > point[1]) || (point[1] < prev[1] && next[1] < point[1])) {
         const slope1 = (next[1] - point[1]) / (next[0] - point[0]);
         const slope2 = (point[1] - prev[1]) / (point[0] - prev[0]);
         const slope = Math.abs(slope1) < Math.abs(slope2) ? slope1 : slope2;
-        return [x, point[1] - n * slope * t];
+        return [x, point[1] - dir * slope * t];
       }
       return [x, point[1]];
     };
-    const isEmpty = (prev: (number | null)[] | null) => isNullish(prev) || isNullish(prev[0]) || isNullish(prev[1]);
+    const isValidPoint = (point: null | (number | null)[]): point is number[] => {
+      return isNotNullish(point) && isNotNullish(point[0]) && isNotNullish(point[1]);
+    };
     return sequences.map(({ values }) => {
       const dots: (number[] | null)[] = [];
       const path = values
-        .map(([x, y], index, arr) => {
+        .map((origin, index, arr) => {
           const prevPrev = arr[index - 2];
           const prev = arr[index - 1];
           const next = arr[index + 1];
-          const currentNull = isNullish(x) || isNullish(y);
-          if (currentNull) {
+          if (!isValidPoint(origin)) {
             dots.push(null);
             return '';
           }
-          const point = this.getStagePoint([x, y]);
+          const point = this.getStagePoint(origin);
           dots.push(point);
           const isLastDot = index === arr.length - 1;
-          const prevPrevNull = isEmpty(prevPrev);
-          const prevNull = isEmpty(prev);
-          const nextNull = isEmpty(next);
+          const prevValid = isValidPoint(prev);
+          const nextValid = isValidPoint(next);
           // orphan
-          if (prevNull && nextNull) {
+          if (!prevValid && !nextValid) {
             return '';
           }
-          if (nextNull) {
+          if (!nextValid) {
+            const prevPrevValid = isValidPoint(prevPrev);
             const curve =
-              this.#smooth && isLastDot && !prevNull && !prevPrevNull
-                ? `C${controlPointFromPrev(
-                    this.getStagePoint(prevPrev as number[]),
-                    this.getStagePoint(prev as number[]),
-                    point,
-                    -1,
-                  )},${point.join(' ')},${point.join(' ')}`
+              this.#smooth && isLastDot && prevValid && prevPrevValid
+                ? `C${this.getStagePoint(controlPointFromPrev(prevPrev, prev, origin, -1))},${point.join(
+                    ' ',
+                  )},${point.join(' ')}`
                 : `L${point.join(' ')}`;
             return isArea ? `${curve}L${point[0]} ${this.stageHeight}` : `${curve}L${point.join(' ')}`;
           }
-          if (prevNull) {
+          if (!prevValid) {
             return isArea ? `M${point[0]} ${this.stageHeight}L${point.join(' ')}` : `M${point.join(' ')}`;
           }
           return this.#smooth
-            ? `S${controlPointFromPrev(
-                this.getStagePoint(prev as number[]),
-                point,
-                this.getStagePoint(next as number[]),
-              ).join()} ${point.join(' ')}`
+            ? `S${this.getStagePoint(controlPointFromPrev(prev, origin, next)).join()} ${point.join(' ')}`
             : `L${point.join(' ')}`;
         })
         .join('');
@@ -282,11 +276,11 @@ export class DuoyunAreaChartElement extends DuoyunChartBaseElement {
         let yMax = -Infinity;
         this.#sequences.forEach(({ values }) => {
           values.forEach(([x, y]) => {
-            if (!isNullish(x)) {
+            if (isNotNullish(x)) {
               xMin = Math.min(xMin, x);
               xMax = Math.max(xMax, x);
             }
-            if (!isNullish(y)) {
+            if (isNotNullish(y)) {
               yMin = Math.min(yMin, y);
               yMax = Math.max(yMax, y);
             }

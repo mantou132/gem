@@ -161,6 +161,7 @@ export class DuoyunChartZoomElement extends GemElement<State> {
     const [start, stop] = this.value;
     return html`
       <dy-area-chart
+        .smooth=${Number(this.values?.length) < 100}
         .stageHeight=${12}
         .colors=${[theme.informativeColor]}
         .xAxi=${null}

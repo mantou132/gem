@@ -10,8 +10,10 @@ it('`base64ToArrayBuffer`', () => {
 
 it('`utf8ToB64`', () => {
   expect(utf8ToB64('策划师')).to.equal('562W5YiS5biI');
-  expect(utf8ToB64('玩儿1')).to.equal('546p5YS_MQ');
-  expect(utf8ToB64('1234123')).to.equal('MTIzNDEyMw');
+  expect(utf8ToB64('玩儿1')).to.equal('546p5YS/MQ==');
+  expect(utf8ToB64('玩儿1', true)).to.equal('546p5YS_MQ');
+  expect(utf8ToB64('1234123')).to.equal('MTIzNDEyMw==');
+  expect(utf8ToB64('1234123', true)).to.equal('MTIzNDEyMw');
 });
 
 it('`base64ToUTF8`', () => {

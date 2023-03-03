@@ -293,7 +293,7 @@ export class DuoyunFlowCanvasElement extends DuoyunResizeBaseElement {
     return this.renderStartMarker ? this.renderStartMarker() : undefined;
   };
 
-  #genId = (str: string) => utf8ToB64(str || '.').replaceAll('=', '');
+  #genId = (str: string) => utf8ToB64(str || '.', true);
 
   #genLabelId = (parentId: string, id: string | number) => this.#genId(`label-${parentId}-${id}`);
 
