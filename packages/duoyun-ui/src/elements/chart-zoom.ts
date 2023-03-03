@@ -90,6 +90,11 @@ export class DuoyunChartZoomElement extends GemElement<State> {
     grabbing: false,
   };
 
+  constructor() {
+    super();
+    this.addEventListener('dblclick', () => this.change([0, 1]));
+  }
+
   #getMovement = (detail: PanEventDetail) => {
     const { left, right, width } = this.getBoundingClientRect();
     if (detail.clientX < left || detail.clientX > right) return 0;

@@ -17,6 +17,7 @@ import { icons } from '../lib/icons';
 import { theme } from '../lib/theme';
 import { commonHandle } from '../lib/hotkeys';
 import { focusStyle } from '../lib/styles';
+import { utf8ToB64 } from '../lib/encode';
 
 import type { ImageStatus } from './image-preview';
 
@@ -36,6 +37,7 @@ const style = createCSSSheet(css`
   .item {
     cursor: default;
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
     min-width: 0;
     gap: 0.5em;
@@ -50,6 +52,7 @@ const style = createCSSSheet(css`
     margin-block-start: 0.5em;
   }
   .name {
+    width: 4em;
     flex-grow: 1;
     overflow: hidden;
     white-space: nowrap;
@@ -95,6 +98,7 @@ const style = createCSSSheet(css`
   }
   :host([type='image']) .item.button .name {
     flex-grow: 0;
+    width: auto;
     max-width: 100%;
   }
 `);
@@ -116,6 +120,7 @@ export interface FileItem extends File {
 @adoptedStyle(focusStyle)
 export class DuoyunFilePickElement extends GemElement {
   @part static button: string;
+  @part static item: string;
 
   @attribute type: 'file' | 'image';
   @attribute accept: string;
@@ -163,9 +168,10 @@ export class DuoyunFilePickElement extends GemElement {
       }
     };
     return html`
-      <div role="listitem" class="item" style=${styleMap({ color: getColor() })}>
+      <div role="listitem" class="item" part=${DuoyunFilePickElement.item} style=${styleMap({ color: getColor() })}>
         <div class="name">${name}</div>
         ${progress ? html`<div role="progressbar">${Math.floor(progress)}%</div>` : ''}
+        <slot name=${utf8ToB64(name, true)}></slot>
         <dy-use
           role="button"
           tabindex="0"
@@ -193,6 +199,7 @@ export class DuoyunFilePickElement extends GemElement {
       <dy-image-preview
         role="listitem"
         class="item"
+        part=${DuoyunFilePickElement.item}
         .status=${getStatus()}
         .progress=${item.progress || 0}
         .file=${item}
