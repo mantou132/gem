@@ -70,6 +70,10 @@ const style = createCSSSheet(css`
   .content {
     animation: fadeIn ${theme.timingEasingFunction} 0.667s both;
   }
+  .paused :where(.img, .content) {
+    animation-play-state: paused;
+    animation-direction: reverse;
+  }
   @keyframes fadeIn {
     0% {
       transform: translateX(calc(var(--direction) * 3em));
@@ -132,7 +136,7 @@ const style = createCSSSheet(css`
 export type Item = {
   img: string;
   background?: string;
-  onClick?: () => void;
+  onClick?: (evt: PointerEvent) => void;
   tag?: string | TemplateResult;
   title?: string;
   description?: string;
@@ -185,12 +189,14 @@ export class DuoyunCarouselElement extends GemElement<State> {
   };
 
   #timer = 0;
+  #isFirstRender = true;
   #waitLeave = Promise.resolve();
 
   #reset = () => {
     this.#clearTimer();
     this.#timer = window.setTimeout(async () => {
       await this.#waitLeave;
+      this.#isFirstRender = false;
       this.#add(1);
     }, this.#interval);
   };
@@ -242,7 +248,7 @@ export class DuoyunCarouselElement extends GemElement<State> {
                 `
               : ''}
             <li
-              class="item"
+              class=${classMap({ item: true, paused: this.#isFirstRender })}
               style=${styleMap({ '--direction': `${direction}` })}
               ?inert=${currentIndex !== index}
               @click=${onClick}

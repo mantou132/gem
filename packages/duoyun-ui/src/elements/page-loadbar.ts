@@ -7,6 +7,7 @@ import { sleep } from '../lib/utils';
 
 const style = createCSSSheet(css`
   :host {
+    view-transition-name: dy-page-loadbar;
     z-index: ${theme.popupZIndex};
     position: fixed;
     display: flex;

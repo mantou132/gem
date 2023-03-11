@@ -1,18 +1,18 @@
 import { GemElement, html, TemplateResult } from '../../lib/element';
-import { property, connectStore, emitter, Emitter } from '../../lib/decorators';
+import { property, connectStore, emitter, Emitter, boolattribute } from '../../lib/decorators';
 import { createStore, updateStore, Store } from '../../lib/store';
 import { titleStore, history, UpdateHistoryParams } from '../../lib/history';
 import { QueryString } from '../../lib/utils';
 
-interface NamePostition {
+interface NamePosition {
   [index: string]: number;
 }
 
 // TODO: use `URLPattern`
 class ParamsRegExp extends RegExp {
-  namePosition: NamePostition;
+  namePosition: NamePosition;
   constructor(pattern: string) {
-    const namePosition: NamePostition = {};
+    const namePosition: NamePosition = {};
     let i = 0;
     super(
       `^${pattern
@@ -103,6 +103,7 @@ type State = {
  */
 @connectStore(history.store)
 export class GemRouteElement extends GemElement<State> {
+  @boolattribute transition: boolean;
   @property routes?: RouteItem[] | RoutesObject;
   /**
    * @example
@@ -172,9 +173,17 @@ export class GemRouteElement extends GemElement<State> {
     this.#lastLoader = undefined;
     this.currentRoute = route;
     this.currentParams = params;
-    this.setState({ content });
-    this.routechange(this.currentRoute);
-    this.#updateLocationStore();
+    const changeContent = () => {
+      this.setState({ content });
+      this.routechange(this.currentRoute);
+      this.#updateLocationStore();
+      return Promise.resolve();
+    };
+    if (this.transition && 'startViewTransition' in document) {
+      (document as any).startViewTransition(changeContent);
+    } else {
+      changeContent();
+    }
   };
 
   mounted() {

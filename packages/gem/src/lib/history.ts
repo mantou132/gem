@@ -50,13 +50,13 @@ function validData(data: any) {
   if ($hasShouldCloseHandle) throw new GemError('`$hasShouldCloseHandle` is not allowed');
 }
 
-function getUrlbarPath(internalPath: string) {
+function getUrlBarPath(internalPath: string) {
   return gemHistory.basePath ? gemHistory.basePath + internalPath : internalPath;
 }
 
-function getInternalPath(urlbarPath: string) {
-  if (urlbarPath === gemHistory.basePath) return '/';
-  return urlbarPath.replace(new RegExp(`^${gemHistory.basePath}/`), '/');
+function getInternalPath(urlBarPath: string) {
+  if (urlBarPath === gemHistory.basePath) return '/';
+  return urlBarPath.replace(new RegExp(`^${gemHistory.basePath}/`), '/');
 }
 
 function normalizeParams(params: UpdateHistoryParams): HistoryParams {
@@ -88,7 +88,7 @@ function updateHistory(p: UpdateHistoryParams, native: typeof nativeHistory.push
   };
   paramsMap.set(state.$key, params);
   updateStore(cleanObject(store), state);
-  const url = getUrlbarPath(path) + new QueryString(query) + hash;
+  const url = getUrlBarPath(path) + new QueryString(query) + hash;
   const prevHash = decodeURIComponent(location.hash);
   native(state, title, url);
   if (prevHash !== hash) window.dispatchEvent(new CustomEvent('hashchange'));
@@ -105,7 +105,7 @@ function updateHistoryByNative(data: any, title: string, originUrl: string, nati
   const params = normalizeParams({ path: pathname, query: new QueryString(search), hash, title, data });
   paramsMap.set(state.$key, params);
   updateStore(cleanObject(store), state);
-  const url = getUrlbarPath(pathname) + params.query + hash;
+  const url = getUrlBarPath(pathname) + params.query + hash;
   const prevHash = location.hash;
   native(state, title, url);
   // `location.hash` 和 `hash` 都已经进行了 url 编码，可以直接进行相等判断
@@ -257,8 +257,8 @@ if (!window._GEMHISTORY) {
 
     // url 变化前 historyItem
     const prevState = store;
-
-    if (parseFloat(newState.$key) > parseFloat(prevState.$key) && newState.$hasOpenHandle) {
+    const isForward = parseFloat(newState.$key) > parseFloat(prevState.$key);
+    if (isForward && newState.$hasOpenHandle) {
       // 返回键关闭的 modal 能前进键重新打开
       // 刷新后不能工作：刷新后 historyItem 中只有 url
       // 能在子 app 中工作

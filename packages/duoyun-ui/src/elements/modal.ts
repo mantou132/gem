@@ -25,6 +25,7 @@ import './divider';
 
 const style = createCSSSheet(css`
   :host {
+    view-transition-name: dy-modal;
     position: fixed;
     z-index: ${theme.popupZIndex};
     top: env(titlebar-area-height, var(--titlebar-area-height, 0px));

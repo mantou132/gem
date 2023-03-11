@@ -10,6 +10,7 @@ import './loading';
 
 const style = createCSSSheet(css`
   :host {
+    view-transition-name: dy-wait;
     position: fixed;
     z-index: ${theme.popupZIndex};
     display: flex;
