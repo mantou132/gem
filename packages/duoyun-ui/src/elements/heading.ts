@@ -30,6 +30,7 @@ const style = createCSSSheet(css`
   h4 {
     display: contents;
     font: inherit;
+    text-wrap: balance;
   }
 `);
 

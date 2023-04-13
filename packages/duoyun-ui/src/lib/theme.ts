@@ -47,7 +47,7 @@ export const lightTheme = {
   popupZIndex: '2147483644',
   timingFunction: 'cubic-bezier(0.4, 0, 0.2, 1)',
   timingEasingFunction: 'cubic-bezier(0.16, 1, 0.29, 0.99)',
-  codeFont: "Consolas, Monaco, 'Andale Mono', 'Ubuntu Mono', monospace",
+  codeFont: 'ui-monospace,SFMono-Regular,SF Mono,Consolas,Liberation Mono,monospace',
 };
 
 export const darkTheme: Partial<typeof lightTheme> = {

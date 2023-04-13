@@ -25,7 +25,7 @@ const style = createCSSSheet(css`
   .action {
     cursor: pointer;
     padding-block: 0.25em;
-    align-items: flex-start;
+    align-self: flex-start;
   }
   .action.absolute {
     position: absolute;

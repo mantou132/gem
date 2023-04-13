@@ -95,28 +95,33 @@ export function readProp(obj: Record<string, any>, paths: string | number | symb
   return Array.isArray(paths) ? paths.reduce((p, c) => p?.[c], obj) : obj[paths as string];
 }
 
-export async function forever(callback: () => Promise<any>, interval = 1000) {
+export async function forever<T>(callback: () => Promise<T>, interval = 1000): Promise<T> {
   try {
     return await callback();
-  } catch {
-    return new Promise((res) => {
-      setTimeout(() => res(forever(callback, interval)), interval);
-    });
+  } catch (err) {
+    // eslint-disable-next-line no-console
+    console.error(err);
+    await sleep(interval);
+    return forever(callback, interval);
   }
 }
 
 export function polling(fn: (args?: any[]) => any, delay: number) {
   let timer = 0;
+  let hasExit = false;
   const poll = async () => {
     try {
       await fn();
     } catch {
     } finally {
-      timer = window.setTimeout(poll, delay);
+      if (!hasExit) {
+        timer = window.setTimeout(poll, delay);
+      }
     }
   };
   poll();
   return (haveNext = false) => {
+    hasExit = true;
     haveNext ? setTimeout(() => clearTimeout(timer), delay) : clearTimeout(timer);
   };
 }
