@@ -222,19 +222,19 @@ class MemoGemDemo extends GemElement {
   constructor() {
     super();
     this.memo(
-      () => this.memoCount++,
+      () => (this.memoCount += 1),
       () => [this.attr, this.prop],
     );
   }
   willMount() {
     this.memo(
       (_arr) => {
-        this.memoCount++;
+        this.memoCount += 2;
       },
       () => [],
     );
     this.memo(() => {
-      this.memoCount++;
+      this.memoCount += 4;
     });
   }
 }
@@ -242,23 +242,23 @@ customElements.define('memo-gem-demo', MemoGemDemo);
 describe('gem element Memo', () => {
   it('依赖当前值', async () => {
     const el: MemoGemDemo = await fixture(html`<memo-gem-demo></memo-gem-demo>`);
-    expect(el.memoCount).to.equal(3);
+    expect(el.memoCount).to.equal(7);
     el.attr = 'b';
     el.prop = {};
     await nextFrame();
-    expect(el.memoCount).to.equal(5);
+    expect(el.memoCount).to.equal(12);
 
     el.update();
     await Promise.resolve();
-    expect(el.memoCount).to.equal(6);
+    expect(el.memoCount).to.equal(16);
 
     document.body.append(el);
-    expect(el.memoCount).to.equal(6);
+    expect(el.memoCount).to.equal(16);
 
     el.remove();
     await Promise.resolve();
     document.body.append(el);
-    expect(el.memoCount).to.equal(9);
+    expect(el.memoCount).to.equal(22);
   });
 });
 

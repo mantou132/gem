@@ -68,12 +68,14 @@ type GetDepFun<T> = () => T;
 type EffectCallback<T> = (depValues: T, oldDepValues?: T) => any;
 type EffectItem<T> = {
   callback: EffectCallback<T>;
-  initialized: boolean;
+  initialized?: boolean;
+  inConstructor?: boolean;
   values?: T;
   getDep?: GetDepFun<T>;
   preCallback?: () => void;
 };
 
+const constructorSymbol = Symbol('constructor');
 const initSymbol = Symbol('init');
 const updateSymbol = Symbol('update');
 
@@ -115,6 +117,7 @@ export abstract class GemElement<T = Record<string, unknown>> extends HTMLElemen
 
   constructor({ isAsync, isLight, delegatesFocus }: GemElementOptions = {}) {
     super();
+    (this as any)[constructorSymbol] = true;
 
     // 外部不可见，但允许类外面使用
     addMicrotask(() => ((this as any)[initSymbol] = false));
@@ -260,7 +263,8 @@ export abstract class GemElement<T = Record<string, unknown>> extends HTMLElemen
       callback,
       getDep,
       values: undefined,
-      initialized: !!this.#isMounted,
+      initialized: this.#isMounted,
+      inConstructor: (this as any)[constructorSymbol],
     };
     // 以挂载时立即执行副作用，未挂载时等挂载后执行
     if (this.#isMounted) {
@@ -290,8 +294,7 @@ export abstract class GemElement<T = Record<string, unknown>> extends HTMLElemen
       callback,
       getDep,
       values: [Symbol()],
-      // 是否是 `willMount` 中定义
-      initialized: !!this.#isMounted,
+      inConstructor: (this as any)[constructorSymbol],
     });
   };
 
@@ -397,6 +400,8 @@ export abstract class GemElement<T = Record<string, unknown>> extends HTMLElemen
   }
 
   #connectedCallback = () => {
+    // 似乎这是最早的判断不在 `constructor` 中的地方
+    (this as any)[constructorSymbol] = false;
     if (this.#isAppendReason) {
       this.#isAppendReason = false;
       return;
@@ -475,7 +480,8 @@ export abstract class GemElement<T = Record<string, unknown>> extends HTMLElemen
     this.#effectList?.forEach((effectItem) => {
       execCallback(effectItem.preCallback);
     });
-    this.#memoList = this.#memoList?.filter(({ initialized }) => !initialized);
+    this.#effectList = this.#effectList?.filter(({ inConstructor }) => inConstructor);
+    this.#memoList = this.#memoList?.filter(({ inConstructor }) => inConstructor);
   }
 }
 

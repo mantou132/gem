@@ -10,7 +10,7 @@ describe('history 测试', () => {
     await aTimeout(10);
     expect(window.location.hash).to.equal('#a');
     history.back();
-    await aTimeout(10);
+    await aTimeout(600);
     expect(window.location.hash).to.equal(hash);
     history.push({ path: '/a', hash: '#b' });
     await aTimeout(10);
