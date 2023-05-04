@@ -295,8 +295,8 @@ class InheritGem extends I {
 }
 describe('gem element 继承', () => {
   it('静态字段继承', async () => {
-    expect(I.observedAttributes).to.eql(['app-title']);
-    expect(InheritGem.observedAttributes).to.eql(['app-title', 'app-title', 'app-title2']);
+    new InheritGem(); // 触发装饰器自定义初始化函数
+    expect(InheritGem.observedAttributes).to.eql(['app-title', 'app-title2']);
   });
   it('attr/prop/emitter 继承', async () => {
     const name = window.name;
