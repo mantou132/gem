@@ -5,7 +5,9 @@
   "description": "gem examples",
   "scripts": {
     "build": "vite build",
-    "start": "vite serve"
+    "watch": "tsc --watch",
+    "serve": "vite serve",
+    "start": "concurrently npm:watch npm:serve"
   },
   "dependencies": {
     "@mantou/gem": "^1.7.12",

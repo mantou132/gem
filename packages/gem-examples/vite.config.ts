@@ -1,3 +1,6 @@
+// Wait: https://github.com/evanw/esbuild/issues/104
+// update .html entry, package scripts
+
 import fs from 'fs';
 
 import { defineConfig } from 'vite';

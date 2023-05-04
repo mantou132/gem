@@ -93,7 +93,7 @@ export abstract class GemElement<T = Record<string, unknown>> extends HTMLElemen
   static #final = Symbol();
 
   // 这里只是字段申明，不能赋值，否则子类会继承被共享该字段
-  static observedAttributes?: string[]; // WebAPI 中是实时检查这个列表
+  static observedAttributes?: string[]; // 必须在定义元素前指定
   static booleanAttributes?: Set<string>;
   static numberAttributes?: Set<string>;
   static observedProperties?: string[];
@@ -489,8 +489,9 @@ export abstract class GemElement<T = Record<string, unknown>> extends HTMLElemen
 }
 
 const gemElementProxyMap = new PropProxyMap<GemElement>();
+type GemElementPrototype = GemElement<any>;
 
-export function defineAttribute(target: GemElement, prop: string, attr: string) {
+export function defineAttribute(target: GemElementPrototype, prop: string, attr: string) {
   const { booleanAttributes, numberAttributes } = target.constructor as typeof GemElement;
   Object.defineProperty(target, prop, {
     configurable: true,
@@ -534,7 +535,7 @@ export function defineAttribute(target: GemElement, prop: string, attr: string) 
 
 const isEventHandleSymbol = Symbol('event handle');
 export function defineProperty(
-  target: GemElement,
+  target: GemElementPrototype,
   prop: string,
   event?: string,
   eventOptions?: Omit<CustomEventInit<unknown>, 'detail'>,
@@ -604,10 +605,13 @@ export function defineRef(target: GemElement, prop: string, ref: string) {
       }
       return refobject;
     },
+    set() {
+      //
+    },
   });
 }
 
-export function defineCSSState(target: GemElement, prop: string, state: string) {
+export function defineCSSState(target: GemElementPrototype, prop: string, state: string) {
   Object.defineProperty(target, prop, {
     configurable: true,
     get() {
