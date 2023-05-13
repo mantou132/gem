@@ -5,8 +5,8 @@ import type { GemBookElement } from '../element';
 import type { Pre } from '../element/elements/pre';
 
 const CSB_URL = 'https://codesandbox.io/api/v1/sandboxes/define?json=1';
-const SANDPACK_CLIENT_ESM = 'https://esm.sh/@codesandbox/sandpack-client?bundle';
-const LZ_STRING_ESM = 'https://esm.sh/lz-string';
+const SANDPACK_CLIENT_ESM = 'https://esm.sh/@codesandbox/sandpack-client@2.0?bundle';
+const LZ_STRING_ESM = 'https://esm.sh/lz-string@1.5.0';
 
 function throttle<T extends (...args: any) => any>(fn: T, wait = 3000) {
   let timer = 0;
