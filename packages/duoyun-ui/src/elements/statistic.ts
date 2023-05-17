@@ -1,4 +1,11 @@
-import { adoptedStyle, customElement, attribute, boolattribute, numattribute } from '@mantou/gem/lib/decorators';
+import {
+  adoptedStyle,
+  customElement,
+  attribute,
+  boolattribute,
+  numattribute,
+  property,
+} from '@mantou/gem/lib/decorators';
 import { GemElement, html, TemplateResult } from '@mantou/gem/lib/element';
 import { createCSSSheet, css, classMap } from '@mantou/gem/lib/utils';
 
@@ -60,7 +67,7 @@ export const formatFnMap: Record<StatisticType, (n: number) => { number: string;
 export class DuoyunStatisticElement extends GemElement {
   @attribute neutral: StatisticNeutral;
   @attribute type: StatisticType;
-  @attribute text: string | TemplateResult;
+  @property text: string | TemplateResult;
   @boolattribute loading: boolean;
   @numattribute value: number;
   @numattribute prevValue: number;

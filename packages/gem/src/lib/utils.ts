@@ -50,8 +50,8 @@ interface LinkedListItem<T> {
   next?: LinkedListItem<T>;
 }
 // work on nodejs
-export class LinkedList<T = any> extends (globalThis.EventTarget || Object) {
-  addEventListener: <K extends keyof LinkedListEventMap>(
+export class LinkedList<T = any> extends EventTarget {
+  declare addEventListener: <K extends keyof LinkedListEventMap>(
     type: K,
     listener: (this: LinkedList<T>, ev: LinkedListEventMap[K]) => any,
     options?: boolean | AddEventListenerOptions,
@@ -131,11 +131,6 @@ export class PropProxyMap<T extends NonPrimitive, V = unknown> extends WeakMap<T
   }
 }
 
-declare global {
-  interface URLSearchParams {
-    entries(): Iterable<readonly [string | number | symbol, any]>;
-  }
-}
 export class QueryString extends URLSearchParams {
   constructor(param?: any) {
     super(param);
@@ -216,22 +211,6 @@ export type Sheet<T> = {
   [P in keyof T]: P;
 } & { [SheetToken]: CSSStyleSheet };
 
-declare global {
-  interface CSSStyleSheet {
-    replaceSync: (str: string) => void;
-  }
-
-  interface CSSRuleList {
-    item(index: number): CSSStyleRule;
-  }
-  interface ShadowRoot {
-    adoptedStyleSheets: CSSStyleSheet[];
-  }
-  interface Document {
-    adoptedStyleSheets: CSSStyleSheet[];
-  }
-}
-
 export type StyledType = 'id' | 'class' | 'keyframes';
 export interface StyledValueObject {
   styledContent: string;
@@ -239,22 +218,6 @@ export interface StyledValueObject {
 }
 export interface StyledKeyValuePair {
   [key: string]: StyledValueObject;
-}
-
-// !!! 目前只有 Chrome/FirefoxNightly 支持
-// https://bugzilla.mozilla.org/show_bug.cgi?id=1520690
-// https://bugs.webkit.org/show_bug.cgi?id=228684
-export let useNativeCSSStyleSheet = true;
-let CSSStyleSheet = globalThis.CSSStyleSheet;
-try {
-  new (CSSStyleSheet as any)();
-} catch {
-  useNativeCSSStyleSheet = false;
-  CSSStyleSheet = class {
-    media = { mediaText: '' };
-    style = '';
-    replaceSync = (style: string) => (this.style = style);
-  } as any;
 }
 
 /**
@@ -293,6 +256,8 @@ export function randomStr(number = 5, origin = '0123456789abcdefghijklmnopqrstuv
 const nestingRuleRegExp = new RegExp('&.*{((.|\n)*)}', 'g');
 // 只支持一层嵌套
 // https://drafts.csswg.org/css-nesting-1/
+// https://bugzilla.mozilla.org/show_bug.cgi?id=1648037
+// https://bugs.webkit.org/show_bug.cgi?id=223497
 function flatStyled(style: string, type: StyledType): StyledValueObject {
   const nestingRules: string[] = [];
   let styledContent =

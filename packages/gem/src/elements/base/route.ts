@@ -9,6 +9,8 @@ interface NamePosition {
 }
 
 // TODO: use `URLPattern`
+// https://bugzilla.mozilla.org/show_bug.cgi?id=1731418
+// https://github.com/WebKit/standards-positions/issues/61
 class ParamsRegExp extends RegExp {
   namePosition: NamePosition;
   constructor(pattern: string) {

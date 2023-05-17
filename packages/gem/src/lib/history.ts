@@ -1,3 +1,5 @@
+// https://github.com/WICG/navigation-api#stakeholder-feedback
+
 import { createStore, updateStore, connect } from './store';
 import { QueryString, cleanObject, GemError, absoluteLocation } from './utils';
 
@@ -38,7 +40,6 @@ export interface UpdateHistoryParams {
 // 实际应用值
 type HistoryParams = UpdateHistoryParams & { title: string; path: string; query: QueryString; hash: string };
 
-// TODO: WeakRef
 const paramsMap = new Map<string, HistoryParams>();
 
 function validData(data: any) {

@@ -14,6 +14,12 @@ import {
   absoluteLocation,
 } from '../lib/utils';
 
+declare global {
+  interface CSSRuleList {
+    item(index: number): CSSStyleRule;
+  }
+}
+
 describe('utils 测试', () => {
   it('absoluteLocation', () => {
     expect(absoluteLocation('/a', '/a/b')).to.equal('/a/b');

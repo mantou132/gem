@@ -13,7 +13,6 @@ import {
   kebabToCamelCase,
   PropProxyMap,
   removeItems,
-  useNativeCSSStyleSheet,
 } from './utils';
 import * as GemExports from './element';
 import * as VersionExports from './version';
@@ -119,16 +118,16 @@ export abstract class GemElement<T = Record<string, unknown>> extends HTMLElemen
 
   constructor({ isAsync, isLight, delegatesFocus, slotAssignment }: GemElementOptions = {}) {
     super();
-    (this as any)[constructorSymbol] = true;
 
     // 外部不可见，但允许类外面使用
-    addMicrotask(() => ((this as any)[initSymbol] = false));
-    (this as any)[initSymbol] = true;
-    (this as any)[updateSymbol] = () => {
+    addMicrotask(() => Reflect.set(this, initSymbol, false));
+    Reflect.set(this, constructorSymbol, true);
+    Reflect.set(this, initSymbol, true);
+    Reflect.set(this, updateSymbol, () => {
       if (this.#isMounted) {
         addMicrotask(this.#update);
       }
-    };
+    });
 
     this.#isAsync = isAsync;
     this.#renderRoot = isLight ? this : this.attachShadow({ mode: 'open', delegatesFocus, slotAssignment });
@@ -142,34 +141,10 @@ export abstract class GemElement<T = Record<string, unknown>> extends HTMLElemen
         this.effect(
           () => {
             const root = this.getRootNode() as ShadowRoot | Document;
-            if (!useNativeCSSStyleSheet) {
-              const ele: any = root === document ? document.body : root;
-              ele._sheets = ele._sheets || {};
-              sheets.forEach(({ style, media }: any) => {
-                if (ele._sheets[style]) {
-                  ele._sheets[style].count++;
-                } else {
-                  const s = document.createElement('style');
-                  s.innerHTML = style;
-                  s.media = media.mediaText;
-                  ele.append(s);
-                  ele._sheets[style] = { ele: s, count: 1 };
-                }
-              });
-              return () => {
-                sheets.forEach(({ style }: any) => {
-                  ele._sheets[style].count--;
-                  if (!ele._sheets[style].count) {
-                    delete ele._sheets[style];
-                  }
-                });
-              };
-            } else {
-              root.adoptedStyleSheets = [...root.adoptedStyleSheets, ...sheets];
-              return () => {
-                root.adoptedStyleSheets = removeItems(root.adoptedStyleSheets, sheets);
-              };
-            }
+            root.adoptedStyleSheets = [...root.adoptedStyleSheets, ...sheets];
+            return () => {
+              root.adoptedStyleSheets = removeItems(root.adoptedStyleSheets, sheets);
+            };
           },
           () => [],
         );
@@ -320,20 +295,8 @@ export abstract class GemElement<T = Record<string, unknown>> extends HTMLElemen
 
   #render = () => {
     this.#execMemo();
-    const styles = useNativeCSSStyleSheet
-      ? ''
-      : html`${this.shadowRoot?.adoptedStyleSheets?.map(
-          (e: any) => html`
-            <style media=${e.media.mediaText}>
-              ${e.style}
-            </style>
-          `,
-        )}`;
-    if (this.render) {
-      const r = this.render();
-      return r && html`${r}${styles}`;
-    }
-    return this.#renderRoot === this ? undefined : html`<slot></slot>${styles}`;
+    if (this.render) return this.render();
+    return this.#renderRoot === this ? undefined : html`<slot></slot>`;
   };
 
   /**@lifecycle */
@@ -395,12 +358,14 @@ export abstract class GemElement<T = Record<string, unknown>> extends HTMLElemen
   }
 
   #connectedCallback = () => {
-    // 似乎这是最早的判断不在 `constructor` 中的地方
-    (this as any)[constructorSymbol] = false;
     if (this.#isAppendReason) {
       this.#isAppendReason = false;
       return;
     }
+
+    // 似乎这是最早的判断不在 `constructor` 中的地方
+    Reflect.set(this, constructorSymbol, false);
+
     this.willMount?.();
     const { observedStores, rootElement } = this.constructor as typeof GemElement;
     observedStores?.forEach((store) => {
@@ -503,7 +468,7 @@ export function defineAttribute(target: GemElement, prop: string, attr: string) 
     },
     set(v: string | null | undefined | number | boolean) {
       const that = this as GemElement;
-      const proxy = gemElementProxyMap.get(this) as any;
+      const proxy = gemElementProxyMap.get(this);
       const hasSet = proxy[prop];
       const value = that.getAttribute(attr);
       // https://github.com/whatwg/dom/issues/922
@@ -544,7 +509,7 @@ export function defineProperty(
     },
     set(v) {
       const that = this as GemElement;
-      const proxy = gemElementProxyMap.get(that) as any;
+      const proxy = gemElementProxyMap.get(that);
       if (v !== proxy[prop]) {
         if (event) {
           proxy[prop] = v?.[isEventHandleSymbol]
@@ -554,7 +519,7 @@ export function defineProperty(
                 that.dispatchEvent(evt);
                 v(detail, options);
               };
-          proxy[prop][isEventHandleSymbol] = true;
+          Reflect.set(proxy[prop]!, isEventHandleSymbol, true);
           // emitter 不触发元素更新
         } else {
           proxy[prop] = v;

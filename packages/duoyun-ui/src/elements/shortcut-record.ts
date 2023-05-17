@@ -71,7 +71,7 @@ export class DuoyunShortcutRecordElement extends GemElement {
 
   @attribute placeholder: string;
   @attribute tooltip: string;
-  @boolattribute disabled: number;
+  @boolattribute disabled: boolean;
   @globalemitter change: Emitter<string[]>;
 
   @property value?: string[];
