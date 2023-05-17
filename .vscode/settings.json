@@ -7,10 +7,13 @@
   "typescript.preferences.importModuleSpecifier": "non-relative",
   "typescript.tsdk": "node_modules/typescript/lib",
   "eslint.validate": ["typescript", "typescriptreact"],
-  "editor.formatOnSave": false,
+  "editor.formatOnSave": true,
   "editor.defaultFormatter": "esbenp.prettier-vscode",
   "[xml]": {
     "editor.defaultFormatter": null
+  },
+  "[typescript]": {
+    "editor.formatOnSave": false
   },
   "editor.codeActionsOnSave": {
     "source.fixAll": true
