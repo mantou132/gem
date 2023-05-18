@@ -15,21 +15,27 @@ const styles = createCSSSheet(css`
 `);
 
 class GemDemo extends GemElement {
-  /** @attr */ attr: string | null;
-  /** @attr */ disabled: boolean;
-  /** @attr */ count: number;
-  /** @attr long-attr*/ longAttr: string;
   static observedAttributes = ['attr', 'long-attr', 'disabled', 'count'];
   static booleanAttributes = new Set(['disabled']);
   static numberAttributes = new Set(['count']);
 
+  declare attr: string | null;
+  declare disabled: boolean;
+  declare count: number;
+  declare longAttr: string;
+  declare prop: { value: string };
+
   static observedStores = [store];
 
-  prop = { value: '' };
   static observedProperties = ['prop'];
 
   static adoptedStyleSheets = [styles];
   state = { value: '' };
+
+  constructor() {
+    super();
+    this.prop = { value: '' };
+  }
 
   renderCount = 0;
 
@@ -43,9 +49,9 @@ class GemDemo extends GemElement {
 customElements.define('gem-demo', GemDemo);
 
 class DeferGemElement extends GemElement {
-  /** @attr */ attr: string | null;
   static observedAttributes = ['attr'];
-  prop: { value: string };
+  declare attr: string | null;
+  declare prop: { value: string };
 }
 
 describe('基本 gem element 测试', () => {
@@ -78,13 +84,6 @@ describe('基本 gem element 测试', () => {
     expect(el.renderCount).to.equal(2);
   });
   it('读取 attr', async () => {
-    class G extends GemElement {
-      static observedAttributes = ['attr'];
-      attr!: string;
-      test = expect(this.attr).to.equal('attr');
-    }
-    customElements.define('temp-field-read-attr', G);
-    await fixture(html`<temp-field-read-attr attr="attr"></temp-field-read-attr>`);
     const el: GemDemo = await fixture(html`
       <gem-demo attr="attr" ?disabled=${true} count=${1} long-attr="hi"></gem-demo>
     `);
@@ -117,13 +116,6 @@ describe('基本 gem element 测试', () => {
   });
 
   it('读取 prop', async () => {
-    class G extends GemElement {
-      static observedPropertys = ['prop'];
-      prop!: any;
-      test = expect(this.prop).to.equal(undefined);
-    }
-    customElements.define('temp-field-read-prop', G);
-    await fixture(html`<temp-field-read-prop .prop=${{ value: 'prop' }}></temp-field-read-prop>`);
     const el: GemDemo = await fixture(html`<gem-demo .prop=${{ value: 'prop' }}></gem-demo>`);
     expect(el.prop).to.deep.equal({ value: 'prop' });
   });

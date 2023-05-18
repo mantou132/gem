@@ -21,7 +21,7 @@ export default defineConfig({
       pages: createPages(
         examples.map((name) => ({
           name,
-          entry: `/src/${name}/index.ts`,
+          entry: `/src/${name}/index.js`,
         })),
       ),
       rewrites: [{ from: /^\/$/, to: '/index.html' }],
