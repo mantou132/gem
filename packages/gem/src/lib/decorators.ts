@@ -1,10 +1,3 @@
-/**
- * 不能使用 tsc 的 `useDefineForClassFields`,
- * 该参数将在实例上创建字段，导致 proto 上的 getter/setter 失效
- *
- * 字段装饰器运行在 `constructor` 前
- */
-
 import { defineAttribute, defineCSSState, defineProperty, defineRef, GemElement, nativeDefineElement } from './element';
 import { Store } from './store';
 import { Sheet, camelToKebabCase, randomStr } from './utils';
@@ -21,10 +14,12 @@ function pushStaticField(
   isSet = false,
 ) {
   const cls = target.constructor as GemElementConstructor;
-  const current = cls[field];
   if (!cls.hasOwnProperty(field)) {
+    // 继承基类
+    const current = new Set<unknown>(cls[field]);
+    current.delete(member);
     Object.defineProperty(cls, field, {
-      value: isSet ? new Set<unknown>(current) : current ? Array.from<any>(current) : [],
+      value: isSet ? current : [...current],
     });
   }
 
@@ -60,6 +55,7 @@ export function refobject<T extends GemElement<any>, V extends HTMLElement>(
     if (!target.hasOwnProperty(prop)) {
       const ref = `${camelToKebabCase(prop)}-${randomStr()}`;
       pushStaticField(this, 'defineRefs', ref);
+      pushStaticField(this, 'fields', prop);
       defineRef(Object.getPrototypeOf(this), prop, ref);
     }
     return value;
@@ -81,6 +77,7 @@ function defineAttr(t: GemElement, prop: string, attr: string) {
   const target = Object.getPrototypeOf(t);
   if (!target.hasOwnProperty(prop)) {
     pushStaticField(target, 'observedAttributes', attr); // 没有 observe 的效果
+    pushStaticField(t, 'fields', prop);
     defineAttribute(target, prop, attr);
   }
 
@@ -96,6 +93,8 @@ function defineAttr(t: GemElement, prop: string, attr: string) {
     };
   }
   observedAttributes.set(target, attrSet);
+
+  return t.getAttribute(attr);
 }
 export function attribute<T extends GemElement<any>, V extends string>(
   _: undefined,
@@ -103,8 +102,7 @@ export function attribute<T extends GemElement<any>, V extends string>(
 ) {
   return function (this: T, value: V) {
     const prop = context.name as string;
-    defineAttr(this, prop, camelToKebabCase(prop));
-    return value;
+    return (defineAttr(this, prop, camelToKebabCase(prop)) as V) || value;
   };
 }
 export function boolattribute<T extends GemElement<any>>(
@@ -115,8 +113,7 @@ export function boolattribute<T extends GemElement<any>>(
     const prop = context.name as string;
     const attr = camelToKebabCase(prop);
     pushStaticField(this, 'booleanAttributes', attr, true);
-    defineAttr(this, prop, attr);
-    return value;
+    return (defineAttr(this, prop, attr) as unknown as boolean) || value;
   };
 }
 export function numattribute<T extends GemElement<any>>(_: undefined, context: ClassFieldDecoratorContext<T, number>) {
@@ -124,8 +121,7 @@ export function numattribute<T extends GemElement<any>>(_: undefined, context: C
     const prop = context.name as string;
     const attr = camelToKebabCase(prop);
     pushStaticField(this, 'numberAttributes', attr, true);
-    defineAttr(this, prop, attr);
-    return value;
+    return (defineAttr(this, prop, attr) as unknown as number) || value;
   };
 }
 
@@ -145,6 +141,7 @@ export function property<T extends GemElement<any>>(_: undefined, context: Class
     const target = Object.getPrototypeOf(this);
     if (!target.hasOwnProperty(prop)) {
       pushStaticField(this, 'observedProperties', prop);
+      pushStaticField(this, 'fields', prop);
       defineProperty(target, prop);
     }
     return value;
@@ -171,6 +168,7 @@ export function state<T extends GemElement<any>>(_: undefined, context: ClassFie
     if (!target.hasOwnProperty(prop)) {
       const attr = camelToKebabCase(prop);
       pushStaticField(this, 'defineCSSStates', attr);
+      pushStaticField(this, 'fields', prop);
       defineCSSState(Object.getPrototypeOf(this), prop, attr);
     }
     return this[prop as keyof T] as boolean;
@@ -258,6 +256,7 @@ function defineEmitter(t: GemElement, prop: string, options?: Omit<CustomEventIn
   if (!target.hasOwnProperty(prop)) {
     const event = camelToKebabCase(prop);
     pushStaticField(target, 'defineEvents', event);
+    pushStaticField(t, 'fields', prop);
     defineProperty(target, prop, event, options);
   }
 }

@@ -92,6 +92,8 @@ export abstract class GemElement<T = Record<string, unknown>> extends HTMLElemen
   // https://github.com/microsoft/TypeScript/issues/21388#issuecomment-934345226
   static #final = Symbol();
 
+  // 装饰器定义的 es2022 字段
+  static fields?: string[];
   // 这里只是字段申明，不能赋值，否则子类会继承被共享该字段
   static observedAttributes?: string[]; // 必须在定义元素前指定
   static booleanAttributes?: Set<string>;
@@ -404,11 +406,21 @@ export abstract class GemElement<T = Record<string, unknown>> extends HTMLElemen
       return;
     }
 
+    const { observedStores, rootElement, fields } = this.constructor as typeof GemElement;
+
     // 似乎这是最早的判断不在 `constructor` 中的地方
     Reflect.set(this, constructorSymbol, false);
+    // Bug: 只有插入文档才能清除元素上的字段， `new`/`cloneNode` 将不会触发
+    if (fields) {
+      for (const prop of fields) {
+        const desc = Reflect.getOwnPropertyDescriptor(this, prop);
+        if (!desc) break;
+        Reflect.deleteProperty(this, prop);
+        Reflect.set(this, prop, desc.value);
+      }
+    }
 
     this.willMount?.();
-    const { observedStores, rootElement } = this.constructor as typeof GemElement;
     this.#disconnectStore = observedStores?.map((store) => connect(store, this.#update));
     this.#render();
     this.#isMounted = true;
