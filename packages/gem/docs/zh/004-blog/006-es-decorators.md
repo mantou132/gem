@@ -45,12 +45,3 @@ let MyElement = (() => {
 
 - 对于反应性的 Attribute 在 DevTools 中修改时不能触发元素更新，因为原生的 `observedAttributes` 不能为动态添加的属性生效
 - 在执行 `@attribute` 的初始化函数时，需要进行一下 hack 工作，性能将会小幅度降低
-- 元素必须插入文档才能正确读取属性——只有插入文档才有[机会](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Classes/Public_class_fields#description)删除元素上的字段
-  > [!CAUTION]
-  >
-  > ```js
-  > const myEle = new MyElement();
-  > console.assert(myEle.src, undefined);
-  > myEle.connectedCallback();
-  > console.assert(myEle.src, '');
-  > ```
