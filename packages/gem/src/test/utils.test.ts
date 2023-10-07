@@ -16,6 +16,7 @@ import {
 
 declare global {
   interface CSSRuleList {
+    // only test style rule
     item(index: number): CSSStyleRule;
   }
 }
@@ -106,15 +107,22 @@ describe('utils 测试', () => {
       `,
       wrap: styled.id`
         position: fixed;
+        animation: 3s infinite alternate slideIn;
+      `,
+      slideIn: styled.keyframes`
+        from {
+          transform: translateX(0%);
+        }
       `,
     });
     expect(cssSheet.scroll.startsWith('scroll')).to.true;
     const rules = cssSheet[SheetToken].cssRules;
     expect(rules.item(0).selectorText.startsWith('.scroll')).to.true;
-    expect(rules.item(0).style.background.startsWith('red')).to.true;
-    expect(/\.scroll(-|\w)+:hover \*/.test(rules.item(1).selectorText)).to.true;
-    expect(rules.item(1).style.background.startsWith('blue')).to.true;
-    expect(rules.item(2).selectorText.startsWith('#wrap')).to.true;
+    expect(rules.item(0).style.background).to.equal('red');
+    expect(rules.item(0).cssRules.item(0).selectorText).to.equal('&:hover *');
+    expect(rules.item(0).cssRules.item(0).style.background).to.equal('blue');
+    expect(rules.item(1).selectorText.startsWith('#wrap')).to.true;
+    expect((rules.item(2) as any).name).to.equal('slideIn');
   });
   it('styleMap/classMap/exportPartsMap', () => {
     expect(styleMap({ '--x': '1px', fontSize: '14px', content: `'*'` })).to.equal(

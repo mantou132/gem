@@ -257,21 +257,29 @@ export interface StyledKeyValuePair {
 
 /**
  *
- * 创建 style sheet 用于 `adoptedStyleSheets`，不支持样式更新
- * @param rules string | Record<string, string> 不能动态更新的 css
- * @param mediaQuery string 媒体查询 StyleSheet.media.mediaText
+ * 创建 style sheet 用于 `adoptedStyleSheets`，不支持样式更新，只支持自定义 CSS 属性
+ * @param rules string | Record<string, string>
+ * @param media string 媒体查询
  */
-export function createCSSSheet<T extends StyledKeyValuePair>(rules: T | string, mediaQuery = ''): Sheet<T> {
-  const styleSheet = new CSSStyleSheet();
+export function createCSSSheet<T extends StyledKeyValuePair>(rules: T | string, media?: string): Sheet<T> {
+  const styleSheet = new CSSStyleSheet({ media });
   const sheet: any = {};
-  styleSheet.media.mediaText = mediaQuery;
   let style = '';
   if (typeof rules === 'string') {
     style = rules;
   } else {
     Object.keys(rules).forEach((key: keyof T) => {
       sheet[key] = `${key as string}-${randomStr()}`;
-      style += rules[key].styledContent.replace(/&/g, sheet[key]);
+      switch (rules[key].type) {
+        case 'class':
+          style += `.${sheet[key]} {${rules[key].styledContent}}`;
+          break;
+        case 'id':
+          style += `#${sheet[key]} {${rules[key].styledContent}}`;
+          break;
+        default:
+          style += `@keyframes ${key as string} {${rules[key].styledContent}}`;
+      }
     });
   }
   styleSheet.replaceSync(style);
@@ -285,24 +293,7 @@ export function randomStr(len = 5): string {
   return str;
 }
 
-const nestingRuleRegExp = new RegExp('&.*{((.|\n)*)}', 'g');
-// 只支持一层嵌套
-// https://drafts.csswg.org/css-nesting-1/
-// https://bugzilla.mozilla.org/show_bug.cgi?id=1648037
-// https://bugs.webkit.org/show_bug.cgi?id=223497
-function flatStyled(style: string, type: StyledType): StyledValueObject {
-  const nestingRules: string[] = [];
-  let styledContent =
-    `& {${style.replace(nestingRuleRegExp, (substr) => {
-      nestingRules.push(substr);
-      return '';
-    })}}` + nestingRules.join('');
-  styledContent = styledContent.replace(/&/g, type === 'class' ? '.&' : '#&');
-  return { styledContent, type };
-}
-
 // 写 css 文本，在 CSSStyleSheet 中使用，使用 styed-components 高亮
-// 暂时不支持 `at` 规则
 //
 // createCSSSheet({
 //   red: styled.class`
@@ -313,18 +304,14 @@ function flatStyled(style: string, type: StyledType): StyledValueObject {
 //   `,
 // });
 export const styled = {
-  class: (arr: TemplateStringsArray, ...args: any[]) => {
-    const style = raw(arr, ...args);
-    return flatStyled(style, 'class');
+  class: (arr: TemplateStringsArray, ...args: any[]): StyledValueObject => {
+    return { styledContent: raw(arr, ...args), type: 'class' };
   },
-  id: (arr: TemplateStringsArray, ...args: any[]) => {
-    const style = raw(arr, ...args);
-    return flatStyled(style, 'id');
+  id: (arr: TemplateStringsArray, ...args: any[]): StyledValueObject => {
+    return { styledContent: raw(arr, ...args), type: 'id' };
   },
   keyframes: (arr: TemplateStringsArray, ...args: any[]): StyledValueObject => {
-    const keyframesContent = raw(arr, ...args);
-    const styledContent = `@keyframes & {${keyframesContent}}`;
-    return { styledContent, type: 'keyframes' };
+    return { styledContent: raw(arr, ...args), type: 'keyframes' };
   },
 };
 
