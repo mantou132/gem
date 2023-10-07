@@ -4,6 +4,9 @@ import { esbuildPlugin } from '@web/dev-server-esbuild';
 // https://modern-web.dev/guides/test-runner/typescript/
 export default {
   coverage: true,
+  coverageConfig: {
+    exclude: ['**/node_modules/**', '**/__wds-outside-root__/**'],
+  },
   nodeResolve: true,
   files: ['./src/**/*.test.ts', './src/**/*.spec.ts'],
   plugins: [esbuildPlugin({ ts: true })],
