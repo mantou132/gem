@@ -353,7 +353,7 @@ export class Pre extends GemElement {
   @attribute range: string;
   @attribute highlight: string;
   @attribute filename: string;
-  @boolattribute status: 'hidden' | 'active' | '';
+  @attribute status: 'hidden' | 'active' | '';
   @boolattribute editable: boolean;
 
   @refobject codeRef: RefObject<HTMLElement>;

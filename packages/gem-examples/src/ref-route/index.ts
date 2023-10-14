@@ -42,8 +42,8 @@ export class RouteHome extends GemElement {
         }
       </style>
       current route: home page, current params: ${JSON.stringify(this.params)}, click navigation to /a page
-      <gem-active-link .route=${routes.a} .options=${{ params: { b: 1 } }}>
-        a page link, params: {a: 1}
+      <gem-active-link @click=${(e: Event) => e.stopPropagation()} .route=${routes.a} .options=${{ params: { b: 1 } }}>
+        a page link, params: {b: 1}
       </gem-active-link>
     `;
   };
@@ -63,8 +63,12 @@ export class RouteA extends GemElement {
         }
       </style>
       current route: /a/:b, current params: ${JSON.stringify(locationStore.params)}, click navigation to home page,
-      cuurent query: ${history.getParams().query.toString()}
-      <gem-active-link .route=${routes.a} .options=${{ params: { b: 1 }, query: '?a=1' }}>
+      current query: ${history.getParams().query.toString()}
+      <gem-active-link
+        @click=${(e: Event) => e.stopPropagation()}
+        .route=${routes.a}
+        .options=${{ params: { b: 1 }, query: '?a=1' }}
+      >
         a page link, query: ?a=1
       </gem-active-link>
     `;
@@ -75,7 +79,13 @@ export class RouteA extends GemElement {
 @connectStore(locationStore)
 export class App extends GemElement {
   @refobject routeRef: RefObject<GemRouteElement>;
-  onclick = () => {
+
+  constructor() {
+    super();
+    this.addEventListener('click', this.#onClick);
+  }
+
+  #onClick = () => {
     if (this.routeRef.element?.currentRoute === routes.home) {
       history.push(createHistoryParams(routes.a, { params: { b: String(Date.now()) } }));
     } else {

@@ -18,7 +18,7 @@ export class GemUseElement extends GemElement {
 
   @state active: boolean;
 
-  private getContent() {
+  #getContent = () => {
     const ele = this.element || (this.selector ? (this.root || document).querySelector(this.selector) : null);
     if (typeof ele === 'string') {
       let temp = eleCache.get(ele);
@@ -33,7 +33,7 @@ export class GemUseElement extends GemElement {
     } else {
       return ele?.cloneNode(true);
     }
-  }
+  };
 
   render() {
     return html`
@@ -48,7 +48,7 @@ export class GemUseElement extends GemElement {
           height: 100%;
         }
       </style>
-      ${this.getContent()}
+      ${this.#getContent()}
       <slot></slot>
     `;
   }

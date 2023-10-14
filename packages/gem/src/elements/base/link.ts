@@ -5,6 +5,31 @@ import { absoluteLocation } from '../../lib/utils';
 
 import { matchPath, RouteItem, RouteOptions, createHistoryParams, createPath } from './route';
 
+// 不包含 basePath
+function getPathInfo(ele: GemLinkElement) {
+  if (ele.route) {
+    const queryProp = ele.options?.query || '';
+    const hashProp = ele.options?.hash || '';
+    return createPath(ele.route, ele.options) + queryProp + hashProp;
+  } else {
+    const url = ele.href || ele.path + ele.query + ele.hash;
+    const { path, query } = history.getParams();
+    if (url.startsWith('#')) {
+      return `${path}${query}${url}`;
+    } else if (url.startsWith('?')) {
+      return `${path}${url}`;
+    } else if (url.startsWith('.')) {
+      return absoluteLocation(path, url);
+    } else {
+      return url;
+    }
+  }
+}
+
+function isExternal(pathInfo: string) {
+  return !pathInfo.startsWith('/');
+}
+
 /**
  * @attr href
  * @attr target
@@ -29,11 +54,11 @@ export class GemLinkElement extends GemElement {
   @attribute hint: 'on' | 'off';
 
   // 动态路由，根据 route.pattern 和 options.params 计算出 path
-  @property route: RouteItem | undefined;
+  @property route?: RouteItem;
   /**@deprecated */
-  @property options: RouteOptions | undefined;
-  @property routeOptions: RouteOptions | undefined;
-  @property prepare: (() => void | Promise<void>) | undefined;
+  @property options?: RouteOptions;
+  @property routeOptions?: RouteOptions;
+  @property prepare?: () => void | Promise<void>;
 
   @part link: string;
 
@@ -44,41 +69,16 @@ export class GemLinkElement extends GemElement {
   constructor() {
     super();
     this.tabIndex = 0;
-    this.addEventListener('click', this.clickHandle);
+    this.addEventListener('click', this.#clickHandle);
   }
 
-  // 不包含 basePath
-  getPathInfo() {
-    if (this.route) {
-      const queryProp = this.#routeOptions?.query || '';
-      const hashProp = this.#routeOptions?.hash || '';
-      return createPath(this.route, this.#routeOptions) + queryProp + hashProp;
-    } else {
-      const url = this.href || this.path + this.query + this.hash;
-      const { path, query } = history.getParams();
-      if (url.startsWith('#')) {
-        return `${path}${query}${url}`;
-      } else if (url.startsWith('?')) {
-        return `${path}${url}`;
-      } else if (url.startsWith('.')) {
-        return absoluteLocation(path, url);
-      } else {
-        return url;
-      }
-    }
-  }
-
-  isExternal(pathInfo: string) {
-    return !pathInfo.startsWith('/');
-  }
-
-  clickHandle = async (e: MouseEvent) => {
-    const pathInfo = this.getPathInfo();
+  #clickHandle = async () => {
+    const pathInfo = getPathInfo(this);
 
     if (!pathInfo) return;
 
     // 外部链接使用 `window.open`
-    if (this.isExternal(pathInfo)) {
+    if (isExternal(pathInfo)) {
       switch (this.target) {
         case '_self':
           window.location.href = pathInfo;
@@ -101,8 +101,6 @@ export class GemLinkElement extends GemElement {
       return;
     }
 
-    e.stopPropagation();
-
     await this.prepare?.();
 
     if (this.route) {
@@ -123,11 +121,11 @@ export class GemLinkElement extends GemElement {
     }
   };
 
-  preventDefault = (e: MouseEvent) => {
+  #preventDefault = (e: MouseEvent) => {
     e.preventDefault();
   };
 
-  render(pathInfo = this.getPathInfo()) {
+  render(pathInfo = getPathInfo(this)) {
     return html`
       <style>
         :host {
@@ -146,13 +144,13 @@ export class GemLinkElement extends GemElement {
       </style>
       <a
         part=${this.link}
-        @click=${this.preventDefault}
+        @click=${this.#preventDefault}
         href=${ifDefined(
           this.hint === 'off'
             ? undefined
-            : this.isExternal(pathInfo)
-            ? pathInfo
-            : new URL(history.basePath + pathInfo, location.origin).toString(),
+            : isExternal(pathInfo)
+              ? pathInfo
+              : new URL(history.basePath + pathInfo, location.origin).toString(),
         )}
       >
         <slot></slot>
@@ -173,7 +171,7 @@ export class GemActiveLinkElement extends GemLinkElement {
   render() {
     const { path, query, hash } = history.getParams();
     const isMatchPattern = this.pattern && matchPath(this.pattern, path);
-    const pathInfo = this.getPathInfo();
+    const pathInfo = getPathInfo(this);
     if (isMatchPattern || path + query + hash === pathInfo) {
       this.active = true;
     } else {

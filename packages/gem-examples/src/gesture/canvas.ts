@@ -31,12 +31,12 @@ export class AppCanvas extends GemElement {
         if (x > x1) return -1;
         return 1;
       })[0]?.x;
-      ctx.fillText(String(maxX), 0, 8);
+      ctx.fillText(`Max movementX: ${maxX}`, 0, 8);
       const maxY = [...this.data].sort(({ y }, { y: y1 }) => {
         if (y > y1) return -1;
         return 1;
       })[0]?.y;
-      ctx1.fillText(String(maxY), 0, 8);
+      ctx1.fillText(`Max movementY: ${maxY}`, 0, 8);
       console.log('x:', this.data.map(({ x }) => x).join());
       console.log('y:', this.data.map(({ y }) => y).join());
       console.log(

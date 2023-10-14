@@ -8,9 +8,6 @@ interface NamePosition {
   [index: string]: number;
 }
 
-// TODO: use `URLPattern`
-// https://bugzilla.mozilla.org/show_bug.cgi?id=1731418
-// https://github.com/WebKit/standards-positions/issues/61
 class ParamsRegExp extends RegExp {
   namePosition: NamePosition;
   constructor(pattern: string) {
@@ -30,10 +27,27 @@ class ParamsRegExp extends RegExp {
 }
 
 type Params = Record<string, string>;
+declare global {
+  interface Window {
+    // https://bugzilla.mozilla.org/show_bug.cgi?id=1731418
+    // https://github.com/WebKit/standards-positions/issues/61
+    URLPattern: any;
+  }
+}
 
-// `/a/b/:c/:d` `/a/b/1/2`
+// URLPattern 大小写敏感
 // 匹配成功时返回 params
+// `/a/b/:c/:d` `/a/b/1/2`
+// pattern 以 / 结尾时能匹配 2 中路径
+// `/a/b/:c/:d/` `/a/b/1/2`
+// `/a/b/:c/:d/` `/a/b/1/2/`
 export function matchPath(pattern: string, path: string) {
+  if (window.URLPattern) {
+    const urLPattern = new window.URLPattern({ pathname: pattern });
+    const matchResult = urLPattern.exec({ pathname: path }) || urLPattern.exec({ pathname: `${path}/` });
+    if (!matchResult) return null;
+    return matchResult.pathname.groups as Params;
+  }
   const reg = new ParamsRegExp(pattern);
   const matchResult = path.match(reg) || `${path}/`.match(reg);
   if (!matchResult) return null;
@@ -113,7 +127,7 @@ export class GemRouteElement extends GemElement<State> {
    * html`<gem-route .locationStore=${locationStore}>`
    */
   @property locationStore?: Store<{ path: string; params: Params; query: QueryString; data?: any }>;
-  @property key: any; // 除了 href 提供另外一种方式来更新，比如语言更新也需要刷新 <gem-route>
+  @property key?: any; // 除了 href 提供另外一种方式来更新，比如语言更新也需要刷新 <gem-route>
   @emitter routechange: Emitter<RouteItem | null>; // path 改变或者 key 改变，包含初始渲染
   @emitter loading: Emitter<RouteItem>;
   @emitter error: Emitter<any>;

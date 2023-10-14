@@ -1,12 +1,19 @@
-import { PanEventDetail, PinchEventDetail, RotateEventDetail, SwipeEventDetail } from '@mantou/gem/elements/gesture';
+import type {
+  PanEventDetail,
+  PinchEventDetail,
+  RotateEventDetail,
+  SwipeEventDetail,
+  GemGestureElement,
+} from '@mantou/gem/elements/gesture';
 import { render, GemElement, html, customElement, refobject, RefObject } from '@mantou/gem';
 
+import '@mantou/gem/elements/gesture';
 import '../elements/layout';
 import './canvas';
 
 @customElement('app-root')
 export class AppRoot extends GemElement {
-  @refobject gestureRef: RefObject<any>;
+  @refobject gestureRef: RefObject<GemGestureElement>;
   state = {
     x: 0,
     y: 0,
@@ -38,7 +45,7 @@ export class AppRoot extends GemElement {
       scale: 1,
       rotate: 0,
       swipe: '',
-      moves: [...this.gestureRef.element.movesMap.values().next().value],
+      moves: [...this.gestureRef.element!.movesMap.values().next().value],
     });
   };
   render() {

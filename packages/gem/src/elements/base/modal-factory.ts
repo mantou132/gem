@@ -13,6 +13,8 @@ const open = Symbol('open mark');
  * 模拟 top layer：https://github.com/whatwg/html/issues/4633.
  */
 export function createModalClass<T extends Record<string, unknown>>(options: T) {
+  const final = Symbol();
+
   return class extends GemElement {
     static inertStore: HTMLElement[] = [];
     static instance: GemElement | null = null;
@@ -56,6 +58,7 @@ export function createModalClass<T extends Record<string, unknown>>(options: T) 
           shouldClose: this.shouldClose.bind(this),
         });
       }, 100);
+      return final;
     }
 
     /**
@@ -64,6 +67,7 @@ export function createModalClass<T extends Record<string, unknown>>(options: T) 
      */
     static close() {
       history.back();
+      return final;
     }
 
     /**
@@ -74,6 +78,7 @@ export function createModalClass<T extends Record<string, unknown>>(options: T) 
       this.inertStore.forEach((e) => (e.inert = false));
       this.instance?.remove();
       updateStore(this.store, { [open]: false, ...options });
+      return final;
     }
 
     /**

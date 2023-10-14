@@ -191,7 +191,6 @@ export function adoptedStyle(style: Sheet<unknown>) {
  * ```
  */
 export function connectStore(store: Store<unknown>) {
-  // 这里的签名该怎么写？
   return function (cls: unknown) {
     const con = cls as GemElementConstructor;
     pushStaticField(con.prototype, 'observedStores', store);
@@ -203,7 +202,7 @@ export function connectStore(store: Store<unknown>) {
  *
  * For example
  * ```ts
- *  @rootElement(MyElement)
+ *  @rootElement('my-element')
  *  class App extends GemElement {}
  * ```
  */

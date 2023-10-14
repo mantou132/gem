@@ -2,9 +2,10 @@ import { GemElement } from '../../lib/element';
 import { attribute, state, connectStore } from '../../lib/decorators';
 import { history } from '../../lib/history';
 
+const final = Symbol();
+
 /**
  * 在模版中声明的 dialog，使用 `open` 方法 打开；
- * 如果要应用关闭动画，可以在动画执行完后设置 `hidden` 属性；
  * 模拟 top layer：https://github.com/whatwg/html/issues/4633.
  *
  * @attr label
@@ -16,14 +17,13 @@ export abstract class GemDialogBaseElement extends GemElement {
   @attribute label: string;
   @state opened: boolean;
 
-  inert = true;
-
   #nextSibling: ChildNode | null;
   #parentElement: Node | null;
   #inertStore: HTMLElement[] = [];
 
   constructor() {
     super();
+    this.inert = true;
     this.internals.role = 'dialog';
     this.internals.ariaModal = 'true';
   }
@@ -42,6 +42,7 @@ export abstract class GemDialogBaseElement extends GemElement {
     }
     this.dispatchEvent(new CustomEvent('close'));
     this.opened = false;
+    return final;
   };
 
   /**
@@ -58,6 +59,7 @@ export abstract class GemDialogBaseElement extends GemElement {
     document.body.append(this);
     this.dispatchEvent(new CustomEvent('open'));
     this.opened = true;
+    return final;
   };
 
   /**@final */
@@ -70,6 +72,7 @@ export abstract class GemDialogBaseElement extends GemElement {
       close: this.closeHandle,
       shouldClose: this.shouldClose,
     });
+    return final;
   };
 
   shouldClose() {
@@ -79,6 +82,7 @@ export abstract class GemDialogBaseElement extends GemElement {
   /**@final */
   close = () => {
     history.back();
+    return final;
   };
 
   /**
@@ -90,5 +94,6 @@ export abstract class GemDialogBaseElement extends GemElement {
   forceClose = () => {
     this.opened = false;
     setTimeout(this.close, 100);
+    return final;
   };
 }

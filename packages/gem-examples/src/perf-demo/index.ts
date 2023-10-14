@@ -16,12 +16,14 @@ customElements.define(
     static observedStores = [store];
     constructor() {
       super({ isAsync: true });
+      this.addEventListener('mouseenter', this.onMouseenter);
+      this.addEventListener('mouseleave', this.onMouseleave);
     }
 
-    onmouseenter = () => {
+    onMouseenter = () => {
       this.setState({ hover: true });
     };
-    onmouseleave = () => {
+    onMouseleave = () => {
       this.setState({ hover: false });
     };
 
@@ -94,7 +96,7 @@ customElements.define(
 
 class App extends GemElement {
   static observedProperties = ['elapsed'];
-  elapsed = 0;
+  declare elapsed: number;
   render() {
     const elapsed = this.elapsed;
     const t = (elapsed / 1000) % 10;

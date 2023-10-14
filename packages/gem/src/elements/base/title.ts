@@ -27,26 +27,23 @@ export class GemTitleElement extends GemElement {
   // 没有后缀的标题
   static title = document.title;
   static defaultTitle = document.title;
+  static defaultPrefix = `${document.title} | `;
   static defaultSuffix = ` - ${document.title}`;
 
   static setTitle(title: string) {
     updateStore(titleStore, { title });
   }
 
-  static updateTitle(str = '', suffix = '') {
-    const { title } = titleStore;
-    if (title && title !== GemTitleElement.defaultTitle) {
-      GemTitleElement.title = title;
-      document.title = GemTitleElement.title + suffix;
-    } else if (str) {
-      GemTitleElement.title = str;
-      document.title = GemTitleElement.title + suffix;
+  static updateTitle(title = titleStore.title, prefix = '', suffix = '') {
+    if (title === GemTitleElement.defaultTitle) {
+      document.title = GemTitleElement.title = title;
     } else {
-      GemTitleElement.title = GemTitleElement.defaultTitle;
-      document.title = GemTitleElement.title;
+      GemTitleElement.title = title;
+      document.title = prefix + GemTitleElement.title + suffix;
     }
   }
 
+  @attribute prefix: string;
   @attribute suffix: string;
 
   constructor() {
@@ -56,7 +53,7 @@ export class GemTitleElement extends GemElement {
 
   render() {
     // 多个 <gem-title> 时，最终 document.title 按执行顺序决定
-    GemTitleElement.updateTitle(this.textContent || '', this.suffix);
+    GemTitleElement.updateTitle(this.textContent || undefined, this.prefix, this.suffix);
 
     if (this.hidden) {
       return html``;

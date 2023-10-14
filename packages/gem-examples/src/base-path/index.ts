@@ -10,12 +10,12 @@ export class App extends GemElement {
   };
   constructor() {
     super();
-    this.onclick = () => {
+    this.addEventListener('click', () => {
       this.setState({ count: this.state.count - 1 });
       if (!this.state.count) {
         history.basePath = '/base-path';
       }
-    };
+    });
   }
   render() {
     return html`

@@ -87,6 +87,10 @@ export interface GemElementOptions {
 }
 
 export abstract class GemElement<T = Record<string, unknown>> extends HTMLElement {
+  // 禁止覆盖自定义元素原生生命周期方法
+  // https://github.com/microsoft/TypeScript/issues/21388#issuecomment-934345226
+  static #final = Symbol();
+
   // 这里只是字段申明，不能赋值，否则子类会继承被共享该字段
   static observedAttributes?: string[]; // WebAPI 中是实时检查这个列表
   static booleanAttributes?: Set<string>;
@@ -355,6 +359,7 @@ export abstract class GemElement<T = Record<string, unknown>> extends HTMLElemen
     if (this.#isMounted) {
       addMicrotask(this.#update);
     }
+    return GemElement.#final;
   }
 
   #connectedCallback = () => {
@@ -412,13 +417,16 @@ export abstract class GemElement<T = Record<string, unknown>> extends HTMLElemen
     } else {
       this.#connectedCallback();
     }
+    return GemElement.#final;
   }
 
   /**
    * @private
    * @final
    */
-  // adoptedCallback() {}
+  adoptedCallback() {
+    return GemElement.#final;
+  }
 
   /**
    * @private
@@ -442,6 +450,7 @@ export abstract class GemElement<T = Record<string, unknown>> extends HTMLElemen
     });
     this.#effectList = this.#effectList?.filter(({ inConstructor }) => inConstructor);
     this.#memoList = this.#memoList?.filter(({ inConstructor }) => inConstructor);
+    return GemElement.#final;
   }
 }
 
@@ -592,7 +601,7 @@ customElements.define = (name: string, cls: CustomElementConstructor, options?: 
     defineRefs?.forEach((ref) => defineRef(cls.prototype, kebabToCamelCase(ref), ref));
   }
 
-  nativeDefineElement(name, cls as CustomElementConstructor, options);
+  nativeDefineElement(name, cls, options);
 };
 
 declare global {

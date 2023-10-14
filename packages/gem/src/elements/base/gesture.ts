@@ -70,39 +70,39 @@ export class GemGestureElement extends GemElement {
 
   @attribute touchAction: string;
 
-  pressed = false; // 触发 press 之后不触发其他事件
-  pressTimer = 0;
-
-  startEventMap: Map<number, PointerEvent> = new Map();
-  movesMap: Map<number, PanEventDetail[]> = new Map();
-
   constructor() {
     super();
-    this.addEventListener('pointerdown', this.onStart);
-    this.addEventListener('pointermove', this.onMove);
-    this.addEventListener('pointerup', this.onEnd);
-    this.addEventListener('pointercancel', this.onEnd);
+    this.addEventListener('pointerdown', this.#onStart);
+    this.addEventListener('pointermove', this.#onMoveSet);
+    this.addEventListener('pointerup', this.#onEnd);
+    this.addEventListener('pointercancel', this.#onEnd);
     this.addEventListener('dragstart', (evt) => evt.preventDefault());
   }
 
-  getMoves(pointerId: number) {
+  #pressed = false; // 触发 press 之后不触发其他事件
+  #pressTimer = 0;
+
+  #startEventMap: Map<number, PointerEvent> = new Map();
+  movesMap: Map<number, PanEventDetail[]> = new Map();
+
+  #getMoves = (pointerId: number) => {
     return this.movesMap.get(pointerId) || [];
-  }
+  };
 
-  getStartEvent(pointerId: number) {
-    return this.startEventMap.get(pointerId) as PointerEvent;
-  }
+  #getStartEvent = (pointerId: number) => {
+    return this.#startEventMap.get(pointerId) as PointerEvent;
+  };
 
-  getOtherLastmove(pointerId: number) {
+  #getOtherLastMove = (pointerId: number) => {
     for (const id of this.movesMap.keys()) {
       if (id !== pointerId) {
-        const moves = this.getMoves(id);
-        return moves[moves.length - 1] || this.getStartEvent(id);
+        const moves = this.#getMoves(id);
+        return moves[moves.length - 1] || this.#getStartEvent(id);
       }
     }
-  }
+  };
 
-  getMovementX(x: number, y: number) {
+  #getMovementX = (x: number, y: number) => {
     const touchAction = this.touchAction;
     if (
       (touchAction.includes('pan-right') && x > 0) ||
@@ -116,9 +116,9 @@ export class GemGestureElement extends GemElement {
       return 0;
     }
     return x;
-  }
+  };
 
-  getMovementY(x: number, y: number) {
+  #getMovementY = (x: number, y: number) => {
     const touchAction = this.touchAction;
     if (
       (touchAction.includes('pan-down') && y > 0) ||
@@ -132,36 +132,35 @@ export class GemGestureElement extends GemElement {
       return 0;
     }
     return y;
-  }
+  };
 
-  onStart(evt: PointerEvent) {
+  #onStart = (evt: PointerEvent) => {
     evt.stopPropagation();
     this.setPointerCapture(evt.pointerId);
     this.movesMap.set(evt.pointerId, []);
-    this.startEventMap.set(evt.pointerId, evt);
+    this.#startEventMap.set(evt.pointerId, evt);
     if (evt.isPrimary) {
-      this.pressed = false;
-      this.pressTimer = window.setTimeout(() => {
+      this.#pressed = false;
+      this.#pressTimer = window.setTimeout(() => {
         this.press(null);
-        this.pressed = true;
+        this.#pressed = true;
       }, 251);
     }
-  }
+  };
 
-  onMove(evt: PointerEvent) {
-    evt.stopPropagation();
+  #onMove = (evt: PointerEvent) => {
     const { pointerId, clientX, clientY, isPrimary, pointerType, timeStamp } = evt;
-    if (!this.pressed && this.hasPointerCapture(pointerId)) {
-      const moves = this.getMoves(pointerId);
-      const startEvent = this.getStartEvent(pointerId);
+    if (!this.#pressed && this.hasPointerCapture(pointerId)) {
+      const moves = this.#getMoves(pointerId);
+      const startEvent = this.#getStartEvent(pointerId);
       const lastMove = moves[moves.length - 1] || startEvent;
       // https://bugs.webkit.org/show_bug.cgi?id=220194
       // https://bugs.chromium.org/p/chromium/issues/detail?id=1092358
       const movementX = clientX - lastMove.clientX;
       const movementY = clientY - lastMove.clientY;
       const move = {
-        x: this.getMovementX(movementX, movementY),
-        y: this.getMovementY(movementX, movementY),
+        x: this.#getMovementX(movementX, movementY),
+        y: this.#getMovementY(movementX, movementY),
         clientX,
         clientY,
         timeStamp,
@@ -172,7 +171,7 @@ export class GemGestureElement extends GemElement {
       this.pan(move);
 
       if (this.movesMap.size !== 1) {
-        const secondaryPoint = this.getOtherLastmove(pointerId) as PanEventDetail;
+        const secondaryPoint = this.#getOtherLastMove(pointerId) as PanEventDetail;
         const moveLen = Math.sqrt(movementX ** 2 + movementY ** 2);
         const distanceLen = Math.sqrt(
           (lastMove.clientX - secondaryPoint.clientX) ** 2 + (lastMove.clientY - secondaryPoint.clientY) ** 2,
@@ -193,23 +192,28 @@ export class GemGestureElement extends GemElement {
         Math.abs(move.clientX - startEvent.clientX) > accuracy ||
         Math.abs(move.clientY - startEvent.clientY) > accuracy
       ) {
-        window.clearTimeout(this.pressTimer);
+        window.clearTimeout(this.#pressTimer);
       }
     }
-  }
+  };
 
-  onEnd(evt: PointerEvent) {
+  #onMoveSet = (evt: PointerEvent) => {
+    evt.stopPropagation();
+    evt.getCoalescedEvents().forEach((evt) => this.#onMove(evt));
+  };
+
+  #onEnd = (evt: PointerEvent) => {
     evt.stopPropagation();
     const { pointerId } = evt;
-    window.clearTimeout(this.pressTimer);
+    window.clearTimeout(this.#pressTimer);
 
     if (this.movesMap.size === 1) {
       this.end(null);
     }
 
     // auto release: https://javascript.info/pointer-events#pointer-capturing
-    if (!this.pressed && this.hasPointerCapture(pointerId)) {
-      const moves = this.getMoves(pointerId);
+    if (!this.#pressed && this.hasPointerCapture(pointerId)) {
+      const moves = this.#getMoves(pointerId);
 
       if (moves.length > 2) {
         const { x, y, timeStamp, clientX, clientY } = moves[moves.length - 1];
@@ -238,8 +242,8 @@ export class GemGestureElement extends GemElement {
     }
 
     this.movesMap.delete(pointerId);
-    this.startEventMap.delete(pointerId);
-  }
+    this.#startEventMap.delete(pointerId);
+  };
 
   render() {
     return html`
