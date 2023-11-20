@@ -71,7 +71,7 @@ class Dialog extends GemDialogBaseElement {
         :host {
           display: none;
         }
-        :host(:where(:--opened, [data-opened])) {
+        :host(:where(:--opened, :state(opened))) {
           display: block;
         }
         .root {

@@ -2,7 +2,7 @@
  * 标题显示在：
  *
  * - 桌面端 Tab 的 title
- * - 移动端 Appbar 的 title
+ * - 移动端 AppBar 的 title
  *
  * 修改标题：
  *

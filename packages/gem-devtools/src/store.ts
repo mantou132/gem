@@ -17,7 +17,7 @@ export interface Item {
 export class PanelStore {
   isGemElement = true;
   observedAttributes: Item[] = [];
-  observedPropertys: Item[] = [];
+  observedProperties: Item[] = [];
   observedStores: Item[] = [];
   adoptedStyles: Item[] = [];
   state: Item[] = [];
@@ -28,7 +28,7 @@ export class PanelStore {
   refs: Item[] = [];
   lifecycleMethod: Item[] = [];
   method: Item[] = [];
-  propertys: Item[] = [];
+  properties: Item[] = [];
   attributes: Item[] = [];
   staticMember: Item[] = [];
 }

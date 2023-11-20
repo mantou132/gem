@@ -36,7 +36,7 @@ const style = createCSSSheet(css`
   :host {
     width: 15em;
   }
-  :host(:where(:hover, :--active, [data-active])) {
+  :host(:where(:hover, :--active, :state(active))) {
     background: none;
     border-color: ${theme.textColor};
   }
@@ -77,7 +77,7 @@ const style = createCSSSheet(css`
   .search::part(input) {
     padding: 0;
   }
-  .search:where(:--filled, [data-filled], :--composing, [data-composing]) + .value {
+  .search:where(:--filled, :state(filled), :--composing, :state(composing)) + .value {
     display: none;
   }
   .value {

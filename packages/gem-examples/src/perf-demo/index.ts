@@ -93,7 +93,7 @@ customElements.define(
 );
 
 class App extends GemElement {
-  static observedPropertys = ['elapsed'];
+  static observedProperties = ['elapsed'];
   elapsed = 0;
   render() {
     const elapsed = this.elapsed;

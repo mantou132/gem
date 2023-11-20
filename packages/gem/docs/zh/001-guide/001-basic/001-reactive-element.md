@@ -23,13 +23,13 @@ customElements.define('my-element', MyElement);
 且会自动进行驼峰和烤串格式的转换，
 当 `first-name` 属性更改时，`MyElement` 的实例元素将重新渲染。
 
-类似 `observedAttributes`，GemElement 还支持 `observedPropertys`/`observedStores` 用来反应指定的 property/store：
+类似 `observedAttributes`，GemElement 还支持 `observedProperties`/`observedStores` 用来反应指定的 property/store：
 
 ```js
 // 省略导入...
 
 class MyElement extends GemElement {
-  static observedPropertys = ['data'];
+  static observedProperties = ['data'];
   static observedStores = [store];
 
   render() {
@@ -75,7 +75,7 @@ const store = createStore({
 class MyElement extends GemElement {
   static observedStores = [store];
   static observedAttributes = ['name'];
-  static observedPropertys = ['data'];
+  static observedProperties = ['data'];
 
   #onClick = () => {
     updateStore(store, { count: ++store.count });

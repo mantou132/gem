@@ -18,7 +18,7 @@ const style = createCSSSheet(css`
     color: var(--color, inherit);
     border-radius: ${theme.normalRound};
   }
-  :host(:where(:hover, :--active, [data-active])) {
+  :host(:where(:hover, :--active, :state(active))) {
     color: var(--color, ${theme.primaryColor});
     text-decoration: underline;
   }

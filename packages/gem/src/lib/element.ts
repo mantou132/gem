@@ -24,11 +24,10 @@ export { guard } from 'lit-html/directives/guard';
 
 export { ifDefined } from 'lit-html/directives/if-defined';
 
-type CustomStateSet = Set<string>;
-
 declare global {
   interface ElementInternals extends ARIAMixin {
-    states: CustomStateSet;
+    // https://developer.mozilla.org/en-US/docs/Web/API/CustomStateSet
+    states?: Set<string>;
     // https://w3c.github.io/aria/#role_definitions
     role?: string;
   }
@@ -90,7 +89,7 @@ export abstract class GemElement<T = Record<string, unknown>> extends HTMLElemen
   static observedAttributes?: string[]; // WebAPI 中是实时检查这个列表
   static booleanAttributes?: Set<string>;
   static numberAttributes?: Set<string>;
-  static observedPropertys?: string[];
+  static observedProperties?: string[];
   static observedStores?: Store<unknown>[];
   static adoptedStyleSheets?: Sheet<unknown>[];
   static defineEvents?: string[];
@@ -177,27 +176,19 @@ export abstract class GemElement<T = Record<string, unknown>> extends HTMLElemen
 
   get internals() {
     if (!this.#internals) {
-      const getCustomStateSet = () => {
-        // https://wicg.github.io/custom-state-pseudo-class/
-        const getV = (v: string) => v.replace(/-/g, '');
-        return {
-          has: (v) => getV(v) in this.dataset,
-          add: (v) => {
-            this.dataset[getV(v)] = '';
-          },
-          delete: (v) => delete this.dataset[getV(v)],
-        } as CustomStateSet;
-      };
-      if (!this.attachInternals) {
-        // https://bugs.webkit.org/show_bug.cgi?id=197960
-        this.attachInternals = () => {
-          return { states: getCustomStateSet() } as any;
-        };
-      }
       this.#internals = this.attachInternals();
-      if (!this.#internals.states) {
-        // https://bugzilla.mozilla.org/show_bug.cgi?id=1588763
-        this.#internals.states = getCustomStateSet();
+      // https://groups.google.com/a/chromium.org/g/blink-dev/c/JvpHoUfhJYE?pli=1
+      try {
+        this.#internals.states?.add('foo');
+        this.#internals.states?.delete('foo');
+      } catch {
+        Reflect.defineProperty(this.#internals, 'states', {
+          value: new Proxy(this.#internals.states!, {
+            get(target: any, p) {
+              return (str: string) => target[p](`--${str}`);
+            },
+          }),
+        });
       }
     }
     return this.#internals;
@@ -584,7 +575,7 @@ export function defineRef(target: GemElement, prop: string, ref: string) {
             return ref;
           },
           get element() {
-            const gemReflects = ([...ele.querySelectorAll('[data-gemreflect]')] as GemReflectElement[]).map(
+            const gemReflects = ([...ele.querySelectorAll('[data-gem-reflect]')] as GemReflectElement[]).map(
               (e) => e.target,
             );
             for (const e of [ele, ...gemReflects]) {
@@ -606,15 +597,15 @@ export function defineCSSState(target: GemElement, prop: string, state: string) 
     get() {
       const that = this as GemElement;
       const { states } = that.internals;
-      return states.has?.(state);
+      return states?.has(state);
     },
     set(v: boolean) {
       const that = this as GemElement;
       const { states } = that.internals;
       if (v) {
-        states.add(state);
+        states?.add(state);
       } else {
-        states.delete(state);
+        states?.delete(state);
       }
     },
   });
@@ -623,12 +614,12 @@ export function defineCSSState(target: GemElement, prop: string, state: string) 
 export const nativeDefineElement = customElements.define.bind(customElements);
 customElements.define = (name: string, cls: CustomElementConstructor, options?: ElementDefinitionOptions) => {
   if (cls.prototype instanceof GemElement) {
-    const { observedAttributes, observedPropertys, defineEvents, defineCSSStates, defineRefs } =
+    const { observedAttributes, observedProperties, defineEvents, defineCSSStates, defineRefs } =
       cls as unknown as typeof GemElement;
     observedAttributes?.forEach((attr) => defineAttribute(cls.prototype, kebabToCamelCase(attr), attr));
-    observedPropertys?.forEach((prop) => defineProperty(cls.prototype, prop));
+    observedProperties?.forEach((prop) => defineProperty(cls.prototype, prop));
     defineEvents?.forEach((event) => defineProperty(cls.prototype, kebabToCamelCase(event), event));
-    defineCSSStates?.forEach((state) => defineCSSState(cls.prototype, kebabToCamelCase(state), `--${state}`));
+    defineCSSStates?.forEach((state) => defineCSSState(cls.prototype, kebabToCamelCase(state), state));
     defineRefs?.forEach((ref) => defineRef(cls.prototype, kebabToCamelCase(ref), ref));
   }
 

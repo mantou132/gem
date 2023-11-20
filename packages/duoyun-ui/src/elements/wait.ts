@@ -27,7 +27,7 @@ const style = createCSSSheet(css`
   dy-loading {
     padding: 1em;
   }
-  :host(:where(:--modal, [data-modal])) {
+  :host(:where(:--modal, :state(modal))) {
     pointer-events: all;
     background-color: rgba(0, 0, 0, ${theme.maskAlpha});
   }

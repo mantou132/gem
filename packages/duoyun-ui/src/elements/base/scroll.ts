@@ -21,33 +21,33 @@ const style = createCSSSheet(css`
     --mask-start: var(--mask-top);
     --mask-end: var(--mask-bottom);
   }
-  :host(:where(:--top-overflow, [data-topoverflow])) {
+  :host(:where(:--top-overflow, :state(top-overflow))) {
     --mask-top: var(--mask-width);
   }
-  :host(:where(:--bottom-overflow, [data-bottomoverflow])) {
+  :host(:where(:--bottom-overflow, :state(bottom-overflow))) {
     --mask-bottom: calc(100% - var(--mask-width));
   }
-  :host(:where(:--left-overflow, [data-leftoverflow], :--right-overflow, [data-rightoverflow])) {
+  :host(:where(:--left-overflow, :state(left-overflow), :--right-overflow, :state(right-overflow))) {
     --mask-dir: right;
     --mask-start: var(--mask-left);
     --mask-end: var(--mask-right);
   }
-  :host(:where(:--left-overflow, [data-leftoverflow])) {
+  :host(:where(:--left-overflow, :state(left-overflow))) {
     --mask-left: var(--mask-width);
   }
-  :host(:where(:--right-overflow, [data-rightoverflow])) {
+  :host(:where(:--right-overflow, :state(right-overflow))) {
     --mask-right: calc(100% - var(--mask-width));
   }
   :host(
       :where(
           :--top-overflow,
-          [data-topoverflow],
+          :state(top-overflow),
           :--bottom-overflow,
-          [data-bottomoverflow],
+          :state(bottom-overflow),
           :--left-overflow,
-          [data-leftoverflow],
+          :state(left-overflow),
           :--right-overflow,
-          [data-rightoverflow]
+          :state(right-overflow)
         )
     ) {
     --m: linear-gradient(to var(--mask-dir), #fff0, #000 var(--mask-start), #000 var(--mask-end), #fff0 100%);

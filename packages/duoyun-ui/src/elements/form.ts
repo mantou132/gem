@@ -73,7 +73,7 @@ const formStyle = createCSSSheet(css`
   dy-form-item[type='checkbox'] {
     flex-grow: 0;
   }
-  dy-form-item:where(:--invalid, [data-invalid]) * {
+  dy-form-item:where(:--invalid, :state(invalid)) * {
     border-color: ${theme.negativeColor};
   }
   dy-form-item-inline-group {
@@ -175,7 +175,7 @@ const formItemStyle = createCSSSheet(css`
   .label:empty {
     display: none;
   }
-  :host(:where(:--invalid, [data-invalid])) .input {
+  :host(:where(:--invalid, :state(invalid))) .input {
     border-color: ${theme.negativeColor};
   }
   .input {
@@ -190,11 +190,6 @@ const formItemStyle = createCSSSheet(css`
   :host([type='checkbox']) {
     flex-direction: row;
     align-items: center;
-  }
-  :host([type='checkbox']) .lable {
-    flex-direction: row;
-    align-items: center;
-    margin-bottom: 0;
   }
 `);
 
@@ -517,7 +512,7 @@ export class DuoyunFormItemElement extends GemElement<FormItemState> {
       if (rule.required && (!this.value || (Array.isArray(this.value) && !this.value.length))) {
         invalidMessage = rule.message || locale.requiredMeg;
       } else if (rule.pattern && !new RegExp(rule.pattern).test(String(this.value || ''))) {
-        invalidMessage = rule.message || locale.ptternMsg;
+        invalidMessage = rule.message || locale.patternMsg;
       } else if (rule.validator) {
         try {
           await rule.validator(this.value);

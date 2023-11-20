@@ -87,7 +87,7 @@ describe('装饰器', () => {
     expect(DecoratorGemElement.defineParts).to.eql(['header-part']);
     expect(DecoratorGemElement.defineSlots).to.eql(['body-slot']);
     expect(DecoratorGemElement.defineRefs?.[0].startsWith('input-ref-')).to.equal(true);
-    expect(DecoratorGemElement.observedPropertys).to.eql(['dataProp']);
+    expect(DecoratorGemElement.observedProperties).to.eql(['dataProp']);
     expect(el.rankAttr).to.equal('attr');
     expect(el.rankDisabled).to.equal(true);
     expect(el.rankCount).to.equal(2);

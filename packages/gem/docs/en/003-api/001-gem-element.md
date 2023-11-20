@@ -25,7 +25,7 @@ _The [`delegatesFocus`](https://developer.mozilla.org/en-US/docs/Web/API/Element
 | name                 | description                                                                   |
 | -------------------- | ----------------------------------------------------------------------------- |
 | `observedAttributes` | Observe the specified `attribute`, re-rendered by `attribute` changes         |
-| `observedPropertys`  | Observe the specified `property`, re-rendered by `property` changes           |
+| `observedProperties` | Observe the specified `property`, re-rendered by `property` changes           |
 | `observedStores`     | Observe the specified `Store`, re-rendered by `Store` changes                 |
 | `adoptedStyleSheets` | See [`DocumentOrShadowRoot.adoptedStyleSheets`][1]                            |
 | `booleanAttributes`  | Mark the type of the specified `attribute` as `boolean`                       |

@@ -47,9 +47,9 @@ class MyElement extends Component {
 customElements.define('my-element', MyElement);
 ```
 
-另外定义 `observedPropertys` 静态字段声明受“观察”的 Perpertys，并在构造函数中将他们定义成 `getter`/`setter`，使他们在更新时能像 `attributeChangedCallback` 一样有机会执行回调重新渲染内容。
+另外定义 `observedProperties` 静态字段声明受“观察”的 Properties，并在构造函数中将他们定义成 `getter`/`setter`，使他们在更新时能像 `attributeChangedCallback` 一样有机会执行回调重新渲染内容。
 
-除了 `observedPropertys` 还定义 `observedStores` 静态字段，它声明受观察的一些特殊对象(Store)，在构造函数中将元素实例的更新方法和 Store 绑定，在更新 Store 执行绑定的更新方法重新渲染元素内容。Store 即可用来组件间共享数据，进行集中式全局数据管理。
+除了 `observedProperties` 还定义 `observedStores` 静态字段，它声明受观察的一些特殊对象(Store)，在构造函数中将元素实例的更新方法和 Store 绑定，在更新 Store 执行绑定的更新方法重新渲染元素内容。Store 即可用来组件间共享数据，进行集中式全局数据管理。
 
 ## JS 实现
 
@@ -79,7 +79,7 @@ class MyElement extends Component {
     return ['name'];
   }
 
-  static get observedPropertys() {
+  static get observedProperties() {
     return ['data'];
   }
 

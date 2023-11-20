@@ -34,5 +34,5 @@ export default {
   currentOfTotal: '$1 of $2',
 
   requiredMeg: 'Please fill in the necessary field',
-  ptternMsg: 'Pattern does not match',
+  patternMsg: 'Pattern does not match',
 };

@@ -36,7 +36,7 @@ const lang: typeof en = {
   currentOfTotal: '$1 / $2',
 
   requiredMeg: '请填写必要字段',
-  ptternMsg: '格式不正确',
+  patternMsg: '格式不正确',
 };
 
 export default lang;

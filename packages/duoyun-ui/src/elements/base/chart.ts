@@ -37,7 +37,7 @@ const style = createCSSSheet(css`
     justify-content: center;
     font-size: 0.75em;
   }
-  :host(:where(:--loading, [data-loading], :--no-data, [data-nodata])) {
+  :host(:where(:--loading, :state(loading), :--no-data, :state(nodata))) {
     aspect-ratio: 2 / 1;
   }
   svg {

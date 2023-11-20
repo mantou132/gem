@@ -99,7 +99,10 @@ const style = createCSSSheet(css`
     resize: none;
   }
   .input::-webkit-calendar-picker-indicator,
-  .input::-webkit-search-cancel-button {
+  .input::-webkit-search-decoration,
+  .input::-webkit-search-cancel-button,
+  .input::-webkit-search-results-button,
+  .input::-webkit-search-results-decoration {
     display: none !important;
   }
   .icon,
@@ -408,7 +411,7 @@ const inputGroupStyle = createCSSSheet(css`
   dy-input-group {
     display: flex;
   }
-  dy-input-group :where(dy-input, dy-select):where(:focus, :focus-within, :hover, :--active, [data-active]) {
+  dy-input-group :where(dy-input, dy-select):where(:focus, :focus-within, :hover, :--active, :state(active)) {
     position: relative;
     z-index: 1;
   }

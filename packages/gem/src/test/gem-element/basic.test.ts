@@ -26,7 +26,7 @@ class GemDemo extends GemElement {
   static observedStores = [store];
 
   prop = { value: '' };
-  static observedPropertys = ['prop'];
+  static observedProperties = ['prop'];
 
   static adoptedStyleSheets = [styles];
   state = { value: '' };

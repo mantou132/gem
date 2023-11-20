@@ -47,9 +47,9 @@ class MyElement extends Component {
 customElements.define('my-element', MyElement);
 ```
 
-In addition, define the `observedPropertys` static fields to declare the Perpertys subject to "observe", and define them as `getter`/`setter` in the constructor, so that they can have the same opportunity to execute callbacks to re-render the content when they are updated like `attributeChangedCallback`.
+In addition, define the `observedProperties` static fields to declare the Properties subject to "observe", and define them as `getter`/`setter` in the constructor, so that they can have the same opportunity to execute callbacks to re-render the content when they are updated like `attributeChangedCallback`.
 
-In addition to `observedPropertys`, it also defines the `observedStores` static field, which declares some special objects(Store) to be observed, binds the update method of the element instance to the Store in the constructor, and executes the bound update method in the update Store to re-render Element content. Store can be used to share data between components and conduct centralized global data management.
+In addition to `observedProperties`, it also defines the `observedStores` static field, which declares some special objects(Store) to be observed, binds the update method of the element instance to the Store in the constructor, and executes the bound update method in the update Store to re-render Element content. Store can be used to share data between components and conduct centralized global data management.
 
 ## JS implementation
 
@@ -79,7 +79,7 @@ class MyElement extends Component {
     return ['name'];
   }
 
-  static get observedPropertys() {
+  static get observedProperties() {
     return ['data'];
   }
 

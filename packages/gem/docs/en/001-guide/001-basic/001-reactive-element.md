@@ -20,13 +20,13 @@ customElements.define('my-element', MyElement);
 
 After the `first-name` attribute is "Observe", he can directly access it through property, and it will automatically convert the kebab-case and camelCase format, when the `first-name` property is changed, the instance element of `MyElement` will be re-rendered.
 
-Similar to `observedAttributes`, GemElement also supports `observedPropertys`/`observedStores` to reflect the specified property/store:
+Similar to `observedAttributes`, GemElement also supports `observedProperties`/`observedStores` to reflect the specified property/store:
 
 ```js
 // Omit import...
 
 class MyElement extends GemElement {
-  static observedPropertys = ['data'];
+  static observedProperties = ['data'];
   static observedStores = [store];
   render() {
     return html`${this.data.id} ${store.name}`;
@@ -70,7 +70,7 @@ const store = createStore({
 class MyElement extends GemElement {
   static observedStores = [store];
   static observedAttributes = ['name'];
-  static observedPropertys = ['data'];
+  static observedProperties = ['data'];
 
   #onClick = () => {
     updateStore(store, { count: ++store.count });

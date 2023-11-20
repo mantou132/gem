@@ -111,11 +111,11 @@ export const getSelectedGem = function (data: PanelStore, gemElementSymbols: str
       buildIn: buildInAttribute.has(attr) ? 1 : 0,
     });
   });
-  tagClass.observedPropertys?.forEach((prop) => {
+  tagClass.observedProperties?.forEach((prop) => {
     member.delete(prop);
     const value = $0[prop];
     const type = value === null ? 'null' : typeof value;
-    data.observedPropertys.push({
+    data.observedProperties.push({
       name: prop,
       value: objectToString(value),
       type,
@@ -233,7 +233,7 @@ export const getSelectedGem = function (data: PanelStore, gemElementSymbols: str
       });
       return;
     }
-    data.propertys.push({
+    data.properties.push({
       name: key,
       value: objectToString($0[key]),
       type: typeof $0[key],
@@ -249,7 +249,7 @@ export const getSelectedGem = function (data: PanelStore, gemElementSymbols: str
     'observedAttributes',
     'booleanAttributes',
     'numberAttributes',
-    'observedPropertys',
+    'observedProperties',
     'observedStores',
     'adoptedStyleSheets',
     'defineEvents',

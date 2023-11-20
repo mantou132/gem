@@ -21,7 +21,7 @@ changeStore({
     { name: 'song-id', value: String(Date.now()), type: 'number' },
     { name: 'id', value: '', type: 'string' },
   ],
-  observedPropertys: [
+  observedProperties: [
     { name: 'list', value: '[1, 2]', type: 'object' },
     { name: 'config', value: '{a: "https://gemjs.org/#are-you-ready"}', type: 'object' },
   ],
@@ -29,7 +29,7 @@ changeStore({
   lifecycleMethod: [{ name: 'render', value: 'function ()', type: 'function' }],
   method: [{ name: 'click', value: 'function ()', type: 'function' }],
   state: [{ name: 'loaded', value: true, type: 'boolean' }],
-  propertys: [
+  properties: [
     { name: 'mute', value: 'true', type: 'boolean' },
     { name: 'data', value: 'null', type: 'object' },
   ],

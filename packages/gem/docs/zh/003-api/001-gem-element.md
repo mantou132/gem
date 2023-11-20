@@ -25,7 +25,7 @@ _暂时不支持 [`delegatesFocus`](https://developer.mozilla.org/en-US/docs/Web
 | 名称                 | 描述                                                                    |
 | -------------------- | ----------------------------------------------------------------------- |
 | `observedAttributes` | 监听指定的 `attribute`, 当被监听的 `attribute` 变化时元素将重新渲染     |
-| `observedPropertys`  | 监听指定的 `property`, 当被监听的 `property` 变化时元素将重新渲染       |
+| `observedProperties` | 监听指定的 `property`, 当被监听的 `property` 变化时元素将重新渲染       |
 | `observedStores`     | 监听指定的 `Store`, 当被监听的 `Store` 变化时元素将重新渲染             |
 | `adoptedStyleSheets` | 同 [`DocumentOrShadowRoot.adoptedStyleSheets`][1]                       |
 | `booleanAttributes`  | 将指定的 `attribute` 的类型标记为 `boolean`                             |
@@ -54,7 +54,7 @@ _在 TypeScript 中请使用[装饰器](./007-decorator.md)_
 | 名称               | 描述                                                   |
 | ------------------ | ------------------------------------------------------ |
 | `effect`           | 注册副作用，可以指定依赖                               |
-| `memo`             | 注册回调函数，可以指定依赖                               |
+| `memo`             | 注册回调函数，可以指定依赖                             |
 | `update`           | 手动更新元素                                           |
 | `state`/`setState` | 指定元素 `State`, 通过 `setState` 修改，修改后触发更新 |
 | `internals`        | 获取元素的 [ElementInternals][2] 对象                  |

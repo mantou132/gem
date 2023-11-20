@@ -34,7 +34,7 @@ export const pickerStyle = createCSSSheet(css`
     font-size: 0.875em;
     box-sizing: border-box;
   }
-  :host(:where(:--active, [data-active])) {
+  :host(:where(:--active, :state(active))) {
     background: ${theme.lightBackgroundColor};
   }
   :host([disabled]) {
@@ -52,7 +52,7 @@ export const pickerStyle = createCSSSheet(css`
     width: 1.2em;
     color: ${theme.borderColor};
   }
-  :host(:where(:hover, :--active, [data-active])) dy-use {
+  :host(:where(:hover, :--active, :state(active))) dy-use {
     color: ${theme.textColor};
   }
 `);

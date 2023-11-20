@@ -4,7 +4,7 @@ import { panelStore } from '../store';
 
 import './section';
 
-const TIP = 'Only works on GemElement written with TypeScript decorator, fallback to "Unobserved Propertys"';
+const TIP = 'Only works on GemElement written with TypeScript decorator, fallback to "Unobserved Properties"';
 
 @customElement('devtools-panel')
 @connectStore(panelStore)
@@ -33,7 +33,7 @@ export class Panel extends GemElement {
         }
       </style>
       <devtools-section name="Observed Attributes" .data=${panelStore.observedAttributes}></devtools-section>
-      <devtools-section name="Observed Propertys" .data=${panelStore.observedPropertys}></devtools-section>
+      <devtools-section name="Observed Properties" .data=${panelStore.observedProperties}></devtools-section>
       <devtools-section name="Observed Stores" .data=${panelStore.observedStores}></devtools-section>
       <devtools-section name="Adopted Styles" .data=${panelStore.adoptedStyles}></devtools-section>
       <devtools-section
@@ -49,7 +49,7 @@ export class Panel extends GemElement {
       <devtools-section name="Lifecycle Method" .data=${panelStore.lifecycleMethod}></devtools-section>
       <devtools-section name="Method" .data=${panelStore.method}></devtools-section>
       <devtools-section name="Unobserved Attributes" .data=${panelStore.attributes}></devtools-section>
-      <devtools-section name="Unobserved Propertys" .data=${panelStore.propertys}></devtools-section>
+      <devtools-section name="Unobserved Properties" .data=${panelStore.properties}></devtools-section>
       <devtools-section name="Class Static Member" .data=${panelStore.staticMember}></devtools-section>
     `;
   }

@@ -115,8 +115,8 @@ export const parseElement = (declaration: ClassDeclaration) => {
     }));
   }
 
-  const staticPropertieDeclarations = declaration.getStaticProperties();
-  for (const staticPropDeclaration of staticPropertieDeclarations) {
+  const staticPropertiesDeclarations = declaration.getStaticProperties();
+  for (const staticPropDeclaration of staticPropertiesDeclarations) {
     const staticPropName = staticPropDeclaration.getName();
     if (staticPropName.startsWith('#')) continue;
     const prop: StaticProperty = {
@@ -131,8 +131,8 @@ export const parseElement = (declaration: ClassDeclaration) => {
 
     let isPartOrSlot = false;
 
-    const staticPorpDecorators = staticPropDeclaration.getDecorators();
-    for (const decorator of staticPorpDecorators) {
+    const staticPropDecorators = staticPropDeclaration.getDecorators();
+    for (const decorator of staticPropDecorators) {
       const decoratorName = decorator.getName();
       if (slotDecoratorName.includes(decoratorName)) {
         isPartOrSlot = true;
@@ -185,8 +185,8 @@ export const parseElement = (declaration: ClassDeclaration) => {
     };
     detail.properties.push(prop);
 
-    const porpDecorators = propDeclaration.getDecorators();
-    for (const decorator of porpDecorators) {
+    const propDecorators = propDeclaration.getDecorators();
+    for (const decorator of propDecorators) {
       const decoratorName = decorator.getName();
       if (attrDecoratorName.includes(decoratorName)) {
         prop.reactive = true;
@@ -195,7 +195,7 @@ export const parseElement = (declaration: ClassDeclaration) => {
       } else if (propDecoratorName.includes(decoratorName)) {
         prop.reactive = true;
       } else if (stateDecoratorName.includes(decoratorName)) {
-        prop.cssState = `--${camelToKebabCase(propName)}`;
+        prop.cssState = camelToKebabCase(propName);
         detail.cssStates.push(prop.cssState);
       } else if (slotDecoratorName.includes(decoratorName)) {
         prop.slot = camelToKebabCase(propName);
@@ -249,13 +249,13 @@ export const parseElement = (declaration: ClassDeclaration) => {
 export const getElements = (file: SourceFile) => {
   const result: ElementDetail[] = [];
   for (const declaration of file.getClasses()) {
-    const elementDecoratior = declaration
+    const elementDeclaration = declaration
       .getDecorators()
       .find((decorator) => elementDecoratorName.includes(decorator.getName()));
-    if (elementDecoratior) {
+    if (elementDeclaration) {
       const detail = {
         ...parseElement(declaration),
-        name: elementDecoratior
+        name: elementDeclaration
           .getCallExpression()!
           .getArguments()[0]
           .getText()

@@ -48,7 +48,7 @@ const style = createCSSSheet(css`
     table-layout: fixed;
     border-collapse: collapse;
   }
-  .selection:where(:--select, [data-select]) ~ table {
+  .selection:where(:--select, :state(select)) ~ table {
     user-select: none;
   }
   .selection ~ table {
@@ -103,7 +103,7 @@ const style = createCSSSheet(css`
     padding: 4px;
     border-radius: ${theme.normalRound};
   }
-  .action:where(:hover, :--active, [data-active]) {
+  .action:where(:hover, :--active, :state(active)) {
     background-color: ${theme.hoverBackgroundColor};
   }
   .side {
