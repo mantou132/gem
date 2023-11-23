@@ -29,16 +29,13 @@ declare global {
   interface ElementInternals extends ARIAMixin {
     // https://developer.mozilla.org/en-US/docs/Web/API/CustomStateSet
     states: Set<string>;
-    role?: string | null;
   }
   // 用于 css 选择器选择元素，使用 @refobject 自动选择获取
   // 必须使用 attr 赋值
   /**
    * @attr ref
-   * @attr inert
    */
   interface HTMLElement {
-    inert: boolean;
     ref: string;
   }
 }

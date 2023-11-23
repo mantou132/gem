@@ -277,7 +277,7 @@ program
     await generateBookConfig(dir);
     if (!cliConfig.build) {
       fs.watch(dir, { recursive: true }, (type, filePath) => {
-        if (type === 'rename' || isDirConfigFile(filePath) || isMdFile(filePath)) {
+        if (type === 'rename' || (filePath && (isDirConfigFile(filePath) || isMdFile(filePath)))) {
           debounceCommand(dir);
         }
       });

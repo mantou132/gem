@@ -11,7 +11,7 @@ import { marked } from 'marked';
 import fm from 'front-matter';
 import YAML from 'yaml';
 import { startCase } from 'lodash';
-import Jimp from 'jimp/es';
+import Jimp from 'jimp';
 
 import { NavItem } from '../common/config';
 import { FrontMatter } from '../common/frontmatter';
