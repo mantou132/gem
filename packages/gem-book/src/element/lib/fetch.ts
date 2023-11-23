@@ -1,9 +1,9 @@
-import { getRemotePath } from './utils';
+import { getURL } from './utils';
 
 const cache = new Map<string, string>();
 
-export async function fetchDocument({ link, lang }: { link: string; lang: string }) {
-  const mdPath = getRemotePath(link, lang);
+export async function fetchDocument(link: string, lang: string, hash?: string) {
+  const mdPath = getURL(link, lang, hash);
   let md = cache.get(mdPath);
   if (!md) {
     md = await (await fetch(mdPath)).text();

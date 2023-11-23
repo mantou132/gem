@@ -1,7 +1,7 @@
 import { connectStore, customElement, GemElement, html, history } from '@mantou/gem';
 import { mediaQuery } from '@mantou/gem/helper/mediaquery';
 
-import { getAlternateUrl, getRemotePath } from '../lib/utils';
+import { getAlternateUrl, getURL } from '../lib/utils';
 import { bookStore } from '../store';
 
 import '@mantou/gem/elements/reflect';
@@ -27,7 +27,7 @@ export class Meta extends GemElement {
           ? null
           : links
               ?.filter((e) => e.type === 'file')
-              .map(({ originLink }) => html`<link rel="prefetch" href=${getRemotePath(originLink, lang)}></link>`)}
+              .map(({ originLink, hash }) => html`<link rel="prefetch" href=${getURL(originLink, lang, hash)}></link>`)}
 
         <!-- search engine -->
         <link rel="canonical" href=${canonicalLink} />

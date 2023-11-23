@@ -61,8 +61,8 @@ export class EditLink extends GemElement<State> {
     const link = links.find(({ originLink }) => getUserLink(originLink) === path);
     if (!link) return;
     const basePath = base ? `/${base}` : '';
-    const sroucePath = sourceDir ? `/${sourceDir}` : '';
-    return `${basePath}${sroucePath}${getRemotePath(link.originLink, lang)}`;
+    const sourcePath = sourceDir ? `/${sourceDir}` : '';
+    return `${basePath}${sourcePath}${getRemotePath(link.originLink, lang)}`;
   };
 
   render() {

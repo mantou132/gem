@@ -110,7 +110,7 @@ function getNavRoutes(nav: NavItem[]): RouteItem[] {
 function getRouter(links: NavItemWithLink[], title: string, lang: string, displayRank: boolean | undefined) {
   const routes: RouteItem<NavItemWithLink>[] = [];
   links.forEach((item) => {
-    const { title: pageTitle, link, userFullPath, originLink } = item;
+    const { title: pageTitle, link, userFullPath, originLink, hash } = item;
     const routeTitle = `${capitalize(pageTitle)}${pageTitle ? ' - ' : ''}${title}`;
 
     routes.push({
@@ -118,7 +118,7 @@ function getRouter(links: NavItemWithLink[], title: string, lang: string, displa
       pattern: link,
       async getContent() {
         const renderer = getRenderer({ lang, link: originLink, displayRank });
-        const content = await fetchDocument({ lang, link: originLink });
+        const content = await fetchDocument(originLink, lang, hash);
         return html`<gem-book-main role="article" .renderer=${renderer} .content=${content}></gem-book-main>`;
       },
       data: item,

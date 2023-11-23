@@ -2,6 +2,7 @@ import path from 'path';
 import { readFileSync, existsSync, statSync, readdirSync, lstatSync } from 'fs';
 import util from 'util';
 import { URL } from 'url';
+import { createHash } from 'crypto';
 
 import gitRemoteOriginUrl from 'git-remote-origin-url';
 import parseGithub from 'parse-github-url';
@@ -119,6 +120,13 @@ export function readDirConfig(fullPath: string) {
   }
 }
 
+export function getHash(fullPath: string) {
+  const hash = createHash('sha256');
+  const fileData = readFileSync(fullPath);
+  hash.update(fileData);
+  return hash.digest('hex').substring(0, 8);
+}
+
 type FileMetadata = FrontMatter & {
   title: string;
   headings?: NavItem[];
@@ -159,13 +167,13 @@ export function getMetadata(fullPath: string, displayRank: boolean | undefined):
       title: getTitle(),
       ...readDirConfig(fullPath),
     };
-  } else if (isMdfile(fullPath)) {
+  } else if (isMdFile(fullPath)) {
     return parseMd(fullPath);
   }
   return { title: '' };
 }
 
-export function isMdfile(filename: string) {
+export function isMdFile(filename: string) {
   return /\.md$/i.test(path.extname(filename));
 }
 

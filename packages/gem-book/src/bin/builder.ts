@@ -2,7 +2,7 @@ import path from 'path';
 import { writeFileSync, symlinkSync, renameSync } from 'fs';
 
 import webpack from 'webpack';
-import express from 'express';
+import serveStatic from 'serve-static';
 import WebpackDevServer from 'webpack-dev-server';
 import HtmlWebpackPlugin from 'html-webpack-plugin';
 import CopyWebpackPlugin from 'copy-webpack-plugin';
@@ -173,7 +173,7 @@ export function startBuilder(dir: string, options: Required<CliUniqueConfig>, bo
         historyApiFallback: true,
         open: process.env.PORT ? false : true,
         setupMiddlewares: (middlewares, devServer) => {
-          devServer.app!.use('/_assets/', express.static(process.cwd()));
+          devServer.app!.use('/_assets/', serveStatic(process.cwd()));
           return middlewares;
         },
         port: Number(process.env.PORT) || 8091,

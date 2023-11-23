@@ -5,6 +5,9 @@ export type NavItem = FrontMatter & {
   link: string;
   type?: 'dir' | 'file' | 'heading';
   children?: NavItem[];
+
+  // md file
+  hash?: string;
 };
 
 export type SidebarConfig = NavItem[] | { [lang: string]: { name: string; data: NavItem[] } };

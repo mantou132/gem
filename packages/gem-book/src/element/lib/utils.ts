@@ -23,9 +23,13 @@ export function flatNav(nav: NavItem[]): NavItemWithLink[] {
     .flat();
 }
 
-export function getRemotePath(originPath: string, lang?: string) {
-  const langPath = lang ? `/${lang}` : '';
+export function getRemotePath(originPath: string, lang = '') {
+  const langPath = lang && `/${lang}`;
   return `${langPath}${originPath}`;
+}
+
+export function getURL(originPath: string, lang = '', hash = '') {
+  return `${getRemotePath(originPath, lang)}?hash=${hash}`;
 }
 
 export function getAlternateUrl(lang: string, pathname?: string) {

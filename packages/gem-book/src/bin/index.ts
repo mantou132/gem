@@ -26,13 +26,14 @@ import {
   getBaseDir,
   isDirConfigFile,
   getMetadata,
-  isMdfile,
+  isMdFile,
   isSomeContent,
   inspectObject,
   getRepoTitle,
   checkRelativeLink,
   readDirConfig,
   getIconDataUrl,
+  getHash,
 } from './utils';
 import { startBuilder } from './builder';
 import lang from './lang.json'; // https://developers.google.com/search/docs/advanced/crawling/localized-versions#language-codes
@@ -100,12 +101,13 @@ function readDir(dir: string, link = '/') {
       const item: NavItem = { title: '', link: '' };
       const fullPath = path.join(dir, filename);
       if (fs.statSync(fullPath).isFile()) {
-        if (isMdfile(fullPath)) {
+        if (isMdFile(fullPath)) {
           if (cliConfig.debug) {
             checkRelativeLink(fullPath, docsRootDir);
           }
           item.type = 'file';
           item.link = `${link}${filename}`;
+          item.hash = getHash(fullPath);
           const {
             title,
             headings: children,
@@ -131,6 +133,7 @@ function readDir(dir: string, link = '/') {
 }
 
 async function generateBookConfig(dir: string) {
+  const t = Date.now();
   //icon path
   if (cliConfig.icon) {
     bookConfig.icon ??= await getIconDataUrl(cliConfig.icon);
@@ -183,7 +186,7 @@ async function generateBookConfig(dir: string) {
       fs.writeFileSync(configPath, configStr);
     }
   }
-  console.log(`${new Date().toISOString()} <gem-book> config file updated!`);
+  console.log(`${new Date().toISOString()} <gem-book> config file updated! ${Date.now() - t}ms`);
 }
 
 const debounceCommand = debounce(generateBookConfig, 300);
@@ -274,7 +277,7 @@ program
     await generateBookConfig(dir);
     if (!cliConfig.build) {
       fs.watch(dir, { recursive: true }, (type, filePath) => {
-        if (type === 'rename' || isDirConfigFile(filePath) || isMdfile(filePath)) {
+        if (type === 'rename' || isDirConfigFile(filePath) || isMdFile(filePath)) {
           debounceCommand(dir);
         }
       });
