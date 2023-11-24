@@ -19,7 +19,7 @@ features:
       GemElement’s simple, familiar development model makes it easier than ever to build Web Components.
 
 
-      Express your UI declaratively, as a function of state. No need to learn a custom templating language – you can use the full power of JavaScript in your templates. Elements update automatically when their properties change.
+      Express your UI declaratively, as a function of state. No need to learn a custom template language – you can use the full power of JavaScript in your templates. Elements update automatically when their properties change.
 
   - title: Observation
     desc: >
@@ -43,9 +43,9 @@ import 'duoyun-ui/elements/button';
 import 'duoyun-ui/elements/heading';
 import './todo-list';
 
-@customElement('todo-root')
+@customElement('app-root')
 @connectStore(todoData)
-export class TodoRootElement extends GemElement {
+export class AppRootElement extends GemElement {
   state = {
     input: '',
   };
@@ -71,8 +71,6 @@ export class TodoRootElement extends GemElement {
     `;
   };
 }
-
-render(html`<todo-root></todo-root>`, document.body);
 ```
 
 ```ts todo-list.ts

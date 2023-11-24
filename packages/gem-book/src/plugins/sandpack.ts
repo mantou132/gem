@@ -123,6 +123,9 @@ customElements.whenDefined('gem-book').then(() => {
       .sandbox {
         background: transparent;
       }
+      .fork.btn {
+        display: none;
+      }
     }
   `);
 
@@ -136,6 +139,27 @@ customElements.whenDefined('gem-book').then(() => {
 
     get #entry() {
       return this.entry || '.';
+    }
+
+    get #defaultEntryFilename() {
+      return 'index.ts';
+    }
+
+    get #template() {
+      const style = getComputedStyle(document.body);
+      return `
+<style>
+  body {
+    font: ${style.font};
+    -moz-osx-font-smoothing: grayscale;
+    -webkit-font-smoothing: antialiased;
+  }
+  app-root:not(:defined) {
+    display: block;
+  }
+</style>
+<app-root id=root></app-root>
+      `.trim();
     }
 
     get #dependencies() {
@@ -183,8 +207,6 @@ customElements.whenDefined('gem-book').then(() => {
       }).observe(this);
     }
 
-    #defaultEntryFilename = 'index.ts';
-
     #sandpackClient?: Promise<SandpackClient>;
 
     #parseContents = () => {
@@ -222,14 +244,11 @@ customElements.whenDefined('gem-book').then(() => {
       return await loadSandpackClient(
         this.iframeRef.element!,
         {
-          files: {
+          files: this.state.files.reduce((p, c) => ({ ...p, [c.filename]: { code: c.code } }), {
             'sandbox.config.json': this.#sandBoxConfigFile,
+            'index.html': { code: this.#template },
             [this.#defaultEntryFilename]: { code: '' },
-            ...this.state.files.reduce(
-              (p, c) => ({ ...p, [c.filename]: { code: c.code } }),
-              {} as SandpackBundlerFiles,
-            ),
-          },
+          } as SandpackBundlerFiles),
           dependencies: this.#dependencies,
           entry: this.#entry,
         },
@@ -242,10 +261,10 @@ customElements.whenDefined('gem-book').then(() => {
 
     #updateSandbox = throttle(async () => {
       (await this.#sandpackClient)?.updateSandbox({
-        files: {
+        files: this.state.files.reduce((p, c) => ({ ...p, [c.filename]: { code: c.code } }), {
           'sandbox.config.json': this.#sandBoxConfigFile,
-          ...this.state.files.reduce((p, c) => ({ ...p, [c.filename]: { code: c.code } }), {} as SandpackBundlerFiles),
-        },
+          'index.html': { code: this.#template },
+        } as SandpackBundlerFiles),
         entry: this.#entry,
         dependencies: this.#dependencies,
       });
@@ -280,6 +299,7 @@ customElements.whenDefined('gem-book').then(() => {
         }),
         {
           'sandbox.config.json': { content: this.#sandBoxConfigFile.code },
+          'index.html': { content: this.#template },
           'package.json': {
             content: {
               main: this.#entry,
@@ -343,7 +363,12 @@ customElements.whenDefined('gem-book').then(() => {
           </ul>
           <div class="actions">
             <gem-use class="btn" @click=${this.#onReset}>Reset</gem-use>
-            <gem-use class="btn" .root=${iconsContainer} .selector=${forking ? '' : '#link'} @click=${this.#onFork}>
+            <gem-use
+              class="btn fork"
+              .root=${iconsContainer}
+              .selector=${forking ? '' : '#link'}
+              @click=${this.#onFork}
+            >
               Fork ${forking ? '...' : ''}
             </gem-use>
           </div>

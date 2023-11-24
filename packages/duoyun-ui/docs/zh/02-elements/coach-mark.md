@@ -53,7 +53,7 @@ render(
       Tour3
     </div>
   `,
-  document.body,
+  document.getElementById('root'),
 );
 ```
 

@@ -31,7 +31,7 @@ const onClick = (e: MouseEvent) => {
   );
 };
 
-render(html`<dy-button @click=${onClick}>Open Menu</dy-button>`, document.body);
+render(html`<dy-button @click=${onClick}>Open Menu</dy-button>`, document.getElementById('root'));
 ```
 
 </gbp-sandpack>

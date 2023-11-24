@@ -4,7 +4,8 @@
 
 <gbp-example
   name="dy-text-mask"
-  props='{"masks": ["xxx-xxxx-xxxx"], "origin": "13198761234"}'
+  props='{"masks": ["☎️ xxx-****-xxxx"]}'
+  html="13198761234"
   src="https://jspm.dev/duoyun-ui/elements/text-mask"></gbp-example>
 
 ## API

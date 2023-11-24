@@ -23,7 +23,7 @@ render(
       <dy-button>当前时间</dy-button>
     </dy-popover>
   `,
-  document.body,
+  document.getElementById('root'),
 );
 ```
 

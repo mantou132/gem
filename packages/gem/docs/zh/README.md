@@ -43,9 +43,9 @@ import 'duoyun-ui/elements/button';
 import 'duoyun-ui/elements/heading';
 import './todo-list';
 
-@customElement('todo-root')
+@customElement('app-root')
 @connectStore(todoData)
-export class TodoRootElement extends GemElement {
+export class AppRootElement extends GemElement {
   state = {
     input: '',
   };
@@ -71,8 +71,6 @@ export class TodoRootElement extends GemElement {
     `;
   };
 }
-
-render(html`<todo-root></todo-root>`, document.body);
 ```
 
 ```ts todo-list.ts

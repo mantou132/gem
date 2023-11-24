@@ -19,7 +19,7 @@ Here is an example of writing code blocks in `<gbp-sandpack>` [plugin](#plugins)
 ```js index.js
 import { render } from '@mantou/gem';
 
-render('This is `<gbp-sandpack>` example', document.body);
+render('This is `<gbp-sandpack>` example', document.getElementById('root'));
 ```
 
 ````md README.md active 12-13
@@ -28,7 +28,7 @@ render('This is `<gbp-sandpack>` example', document.body);
 ```js index.js
 import { render } from '@mantou/gem';
 
-render('This is `<gbp-sandpack>` example', document.body);
+render('This is `<gbp-sandpack>` example', document.getElementById('root'));
 ```
 
 ```md README.md active 3-4

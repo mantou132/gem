@@ -91,7 +91,7 @@ class MyElement extends GemElement {
 }
 customElements.define('my-element', MyElement);
 
-render(html`<my-element name="world" .data=${{ a: 1 }}></my-element>`, document.body);
+render(html`<my-element name="world" .data=${{ a: 1 }}></my-element>`, document.getElementById('root'));
 ```
 
 </gbp-sandpack>

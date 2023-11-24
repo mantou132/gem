@@ -19,7 +19,7 @@
 ```js index.js
 import { render } from '@mantou/gem';
 
-render('这是一个 `<gbp-sandpack>` 例子', document.body);
+render('这是一个 `<gbp-sandpack>` 例子', document.getElementById('root'));
 ```
 
 ````md README.md active 12-13
@@ -28,7 +28,7 @@ render('这是一个 `<gbp-sandpack>` 例子', document.body);
 ```js index.js
 import { render } from '@mantou/gem';
 
-render('这是一个 `<gbp-sandpack>` 例子', document.body);
+render('这是一个 `<gbp-sandpack>` 例子', document.getElementById('root'));
 ```
 
 ```md README.md active 3-4

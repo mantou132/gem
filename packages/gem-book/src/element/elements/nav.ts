@@ -116,7 +116,7 @@ export class Nav extends GemElement {
           object-fit: contain;
           transform: translateX(-10%);
         }
-        .item + .item:not(.slot),
+        :where(.item + .item:not(.slot)),
         .slot::slotted(*) {
           margin-left: 1rem;
           display: block;

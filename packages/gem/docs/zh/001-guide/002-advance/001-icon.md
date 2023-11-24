@@ -29,7 +29,7 @@ render(
     <gem-use selector="#icon"></gem-use>
     <gem-use .element=${icon}></gem-use>
   `,
-  document.body,
+  document.getElementById('root'),
 );
 ```
 

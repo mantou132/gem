@@ -5,10 +5,13 @@ import { createCSSSheet, css, classMap } from '@mantou/gem/lib/utils';
 import { Time, parseDate } from '../lib/time';
 import { theme } from '../lib/theme';
 import { isNotNullish } from '../lib/types';
+import { locale } from '../lib/locale';
 
 const style = createCSSSheet(css`
   :host {
-    display: flex;
+    display: grid;
+    grid-template: 'hour minute second' / 1fr 1fr 1fr;
+    gap: 1px;
     text-align: center;
     line-height: 2;
   }
@@ -17,11 +20,15 @@ const style = createCSSSheet(css`
     overflow: auto;
     scrollbar-width: thin;
     scrollbar-gutter: both-edges;
+    scroll-snap-type: y proximity;
+  }
+  .cell {
+    scroll-snap-align: start;
   }
   .cell:where(:hover) {
     background: ${theme.lightBackgroundColor};
   }
-  .check {
+  .checked {
     background: ${theme.hoverBackgroundColor};
   }
 `);
@@ -59,15 +66,24 @@ export class DuoyunTimePanelElement extends GemElement {
     this.change(this.#time.setSeconds(n));
   };
 
+  mounted = () => {
+    this.shadowRoot?.querySelectorAll(`.checked`).forEach((e) => {
+      e.scrollIntoView({ block: 'center' });
+    });
+  };
+
   render = () => {
     const { hour, minute, second } = this.#parts;
     return html`
+      <div>${locale.hour}</div>
+      <div>${locale.minute}</div>
+      <div>${locale.second}</div>
       <div class="scrollbar">
         ${this.#toArr(24).map(
           (h) =>
             html`
               <div
-                class=${classMap({ cell: true, check: isNotNullish(h) && Number(hour) === h })}
+                class=${classMap({ cell: true, checked: isNotNullish(h) && Number(hour) === h })}
                 @click=${() => this.#onHourClick(h)}
               >
                 ${this.#toString(h)}
@@ -80,7 +96,7 @@ export class DuoyunTimePanelElement extends GemElement {
           (m) =>
             html`
               <div
-                class=${classMap({ cell: true, check: isNotNullish(m) && Number(minute) === m })}
+                class=${classMap({ cell: true, checked: isNotNullish(m) && Number(minute) === m })}
                 @click=${() => this.#onMinuteClick(m)}
               >
                 ${this.#toString(m)}
@@ -93,7 +109,7 @@ export class DuoyunTimePanelElement extends GemElement {
           (s) =>
             html`
               <div
-                class=${classMap({ cell: true, check: isNotNullish(s) && Number(second) === s })}
+                class=${classMap({ cell: true, checked: isNotNullish(s) && Number(second) === s })}
                 @click=${() => this.#onSecondClick(s)}
               >
                 ${this.#toString(s)}

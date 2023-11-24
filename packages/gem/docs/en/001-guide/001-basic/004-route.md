@@ -52,8 +52,6 @@ class App extends GemElement {
   }
 }
 customElements.define('app-root', App);
-
-document.body.append(new App());
 ```
 
 </gbp-sandpack>

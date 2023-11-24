@@ -16,7 +16,7 @@ render(
       <dy-button>当前时间</dy-button>
     </dy-tooltip>
   `,
-  document.body,
+  document.getElementById('root'),
 );
 ```
 

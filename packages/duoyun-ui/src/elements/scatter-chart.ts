@@ -7,7 +7,7 @@ import { isNullish } from '../lib/types';
 
 import { DuoyunChartBaseElement } from './base/chart';
 import { Sequence } from './area-chart';
-import { ChartTooltip } from './chart-tooltip';
+import { ChartTooltip, Data } from './chart-tooltip';
 
 /**
  * @customElement dy-scatter-chart
@@ -16,25 +16,26 @@ import { ChartTooltip } from './chart-tooltip';
 export class DuoyunScatterChartElement extends DuoyunChartBaseElement {
   @property sequences?: Sequence[];
 
-  #symbolSequences: number[][][] = [];
+  #symbolSequences: (number[] | undefined)[][] = [];
+
+  #tooltipRender = (data: Data) => {
+    return html`${data.xValue},${data.values![0].value}`;
+  };
 
   #onMouseMove = (evt: MouseEvent, index: number, point: number[]) => {
     if (this.noData || this.loading) return;
-    if (this.tooltip?.render) {
-      ChartTooltip.open(evt.x, evt.y, {
-        render: this.tooltip?.render,
-        title: this.tooltip?.titleFormatter?.(point[0]) || String(point[0]),
-        xValue: point[0],
-        values: [
-          {
-            value: this.tooltip?.valueFormatter?.(point[1]) || this.yAxi?.formatter?.(point[1], 0) || String(point[1]),
-            originValue: point[1],
-            color: this.colors[index],
-            label: this.sequences![index].label,
-          },
-        ],
-      });
-    }
+    ChartTooltip.open(evt.x, evt.y, {
+      render: this.tooltip?.render || this.#tooltipRender,
+      xValue: point[0],
+      values: [
+        {
+          value: this.tooltip?.valueFormatter?.(point[1]) || this.yAxi?.formatter?.(point[1], 0) || String(point[1]),
+          originValue: point[1],
+          color: this.colors[index],
+          label: this.sequences![index].label,
+        },
+      ],
+    });
   };
 
   #onMouseOut = () => {
@@ -66,15 +67,10 @@ export class DuoyunScatterChartElement extends DuoyunChartBaseElement {
         this.initYAxi(yMin, yMax);
         this.initViewBox();
 
-        this.#symbolSequences = [];
-        this.sequences.forEach(({ values }) => {
-          const dots: number[][] = [];
-          values.forEach(([x, y]) => {
-            if (!isNullish(x) && !isNullish(y)) {
-              dots.push(this.getStagePoint([x, y]));
-            }
+        this.#symbolSequences = this.sequences.map(({ values }) => {
+          return values.map(([x, y]) => {
+            return isNullish(x) || isNullish(y) ? undefined : this.getStagePoint([x, y]);
           });
-          this.#symbolSequences.push(dots);
         });
       },
       () => [this.sequences, this.contentRect.width],
@@ -110,12 +106,12 @@ export class DuoyunScatterChartElement extends DuoyunChartBaseElement {
         } xmlns="http://www.w3.org/2000/svg" viewBox=${this.viewBox.join(' ')}>
           ${this.renderXAxi({ grid: true })}
           ${this.renderYAxi()}
-          ${this.sequences.map(({ label, value }, index) =>
-            this.#symbolSequences[index].map((point) =>
+          ${this.sequences.map(({ label, value, values }, index) =>
+            this.#symbolSequences[index].map((point, pos) =>
               point
                 ? svg`
                     <circle
-                      @mousemove=${(evt: MouseEvent) => this.#onMouseMove(evt, index, point)}
+                      @mousemove=${(evt: MouseEvent) => this.#onMouseMove(evt, index, values[pos] as number[])}
                       @mouseout=${this.#onMouseOut}
                       class=${classMap({
                         symbol: true,

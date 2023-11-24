@@ -8,6 +8,9 @@ const style = createCSSSheet(css`
   }
 `);
 
+// other | placeholder | replacer
+type MaskParseValue = TemplateResult | string | number;
+
 /**
  * @customElement dy-text-mask
  */
@@ -16,30 +19,42 @@ const style = createCSSSheet(css`
 export class DyTextMaskElement extends GemElement {
   @attribute origin: string;
   @attribute placeholder: string;
+  @attribute replacer: string;
   @property masks?: string[];
 
   get #placeholder() {
     return this.placeholder || 'x';
   }
 
-  #masks: Map<number, [string[], (TemplateResult | string)[]]>;
+  get #replacer() {
+    return this.replacer || '*';
+  }
+
+  constructor() {
+    super();
+    new MutationObserver(() => this.update()).observe(this, { childList: true, characterData: true, subtree: true });
+  }
+
+  #masks: Map<number, [string[], MaskParseValue[]]>;
 
   willMount = () => {
     this.memo(
       () => {
-        const clearRegRxp = new RegExp(`[^${this.#placeholder}]`, 'g');
-        const matchRegRxp = new RegExp(`([${this.#placeholder}]+)`);
+        const clearRegRxp = new RegExp(`[^${this.#placeholder}${this.#replacer}]`, 'g');
+        const matchRegRxp = new RegExp(`([${this.#placeholder}]+|[${this.#replacer}]+)`);
         this.#masks = new Map();
         this.masks?.forEach((mask) => {
           const { length } = mask.replaceAll(clearRegRxp, '');
           const templateArr: string[] = [];
-          const values: (TemplateResult | string)[] = [];
+          const values: MaskParseValue[] = [];
           mask.split(matchRegRxp).forEach((e) => {
             templateArr.push('');
             if (!e) {
               values.push('');
             } else if (e === this.#placeholder.repeat(e.length)) {
               values.push(e);
+            } else if (e === this.#replacer.repeat(e.length)) {
+              values.push(e.length);
             } else {
               values.push(html`<span>${e}</span>`);
             }
@@ -53,17 +68,25 @@ export class DyTextMaskElement extends GemElement {
   };
 
   render = () => {
-    const arg = this.#masks.get(this.origin.length);
-    if (!arg) return html`${this.origin}`;
+    const origin = this.origin || this.textContent?.trim() || '';
+    const arg = this.#masks.get(origin.length);
+    if (!arg) return html`${origin}`;
 
     let index = 0;
     const values = arg[1].map((e) => {
-      if (typeof e === 'string') {
-        const s = this.origin.slice(index, index + e.length);
-        index += e.length;
-        return s;
+      switch (typeof e) {
+        case 'string': {
+          const s = origin.slice(index, index + e.length);
+          index += e.length;
+          return s;
+        }
+        case 'number': {
+          index += e;
+          return this.#replacer.repeat(e);
+        }
+        default:
+          return e;
       }
-      return e;
     });
     return html(arg[0] as unknown as TemplateStringsArray, ...values);
   };

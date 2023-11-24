@@ -31,15 +31,21 @@ const style = createCSSSheet(css`
   li {
     padding-inline-start: 0.5em;
   }
+  code,
   kbd {
     font-family: ${theme.codeFont};
     margin-inline: 0.2em;
     padding: 0.15em 0.4em 0.1em;
     font-size: 0.9em;
-    background: ${theme.lightBackgroundColor};
     border: 1px solid ${theme.borderColor};
-    border-bottom-width: 2px;
     border-radius: ${theme.smallRound};
+  }
+  code {
+    background: ${theme.hoverBackgroundColor};
+  }
+  kbd {
+    background: ${theme.lightBackgroundColor};
+    border-bottom-width: 2px;
   }
 `);
 
