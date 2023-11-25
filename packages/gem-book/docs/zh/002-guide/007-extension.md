@@ -53,6 +53,18 @@ _文件名只工作在 `<gbp-sandpack>` 中；高亮并非指代码语法高亮_
 ### 固定标题锚 Hash {#fixed-hash}
 ```
 
+### 高亮引用块
+
+```md
+> [!TIP]
+> 这是[高亮引用块](https://github.com/orgs/community/discussions/16925)
+```
+
+> [!TIP]
+> 这是[高亮引用块](https://github.com/orgs/community/discussions/16925)
+
+支持 `[!NOTE]`, `[!TIP]`, `[!IMPORTANT]`, `[!WARNING]` 和 `[!CAUTION]`。
+
 ## Parts
 
 [Part](https://developer.mozilla.org/en-US/docs/Web/HTML/Global_attributes/part) 能让你自定义 `<gem-book>` 的内部样式，例如：
@@ -81,7 +93,7 @@ gem-book::part(homepage-hero) {
 gem-book docs --plugin raw
 ```
 
-or
+或
 
 ```html
 <script type="module" src="https://unpkg.com/gem-book/plugins/raw.js"></script>

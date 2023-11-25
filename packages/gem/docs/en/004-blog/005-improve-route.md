@@ -31,22 +31,22 @@ html`
     @route-change=${onChange}
     @loading=${onLoading}
   ></gem-route>
-`
+`;
 ```
 
-> Tip:
+> [!Tip]
 >
 > `route-change`, `loading` events of `<gem-route>` allow you to add a progress bar for page loading
-> 
-Read URL parameters from `locationStore` in pages to prevent unnecessary updates to old pages that are not unloaded:
+>
+> Read URL parameters from `locationStore` in pages to prevent unnecessary updates to old pages that are not unloaded:
 
 ```ts
 @customElement('my-element')
 @connectStore(locationStore)
 class MyElement extends GemElement {
   render = () => {
-    return html`${locationStore.query}`
-  }
+    return html`${locationStore.query}`;
+  };
 }
 ```
 

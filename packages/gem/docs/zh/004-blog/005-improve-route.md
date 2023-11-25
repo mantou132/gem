@@ -31,10 +31,10 @@ html`
     @route-change=${onChange}
     @loading=${onLoading}
   ></gem-route>
-`
+`;
 ```
 
-> 提示：
+> [!TIP]
 >
 > `<gem-route>` 的 `route-change`, `loading` 事件允许你添加页面加载的进度条
 
@@ -45,8 +45,8 @@ html`
 @connectStore(locationStore)
 class MyElement extends GemElement {
   render = () => {
-    return html`${locationStore.query}`
-  }
+    return html`${locationStore.query}`;
+  };
 }
 ```
 

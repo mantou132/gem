@@ -3,8 +3,7 @@
 DuoyunUI has accessibility support: reference [ARIA 1.3](https://w3c.github.io/aria/#role_definitions) defines roles and status, use a semantic tag,
 in addition, there is also a keyboard access support, you can use the keyboard <kbd>Tab</kbd>, <kbd>Space</kbd>, <kbd>Esc</kbd> key to navigate, operate.
 
-> Shortcut support
->
+> [!Shortcut support]
 > DuoyunUI has a built-in simple [hotkeys](https://github.com/greena13/react-hotkeys) to implement keyboard access,
 > you can use it to make custom shortcut bindings:
 >
@@ -17,8 +16,7 @@ in addition, there is also a keyboard access support, you can use the keyboard <
 >
 > _If the global shortcut binding is performed in a custom element, remember to unbinding when the element is unmount!_
 
-> Vim mode support
->
+> [!Vim mode support]
 > DuoyunUI has a [`<dy-keyboard-access>`](../02-elements/keyboard-access.md) element, similar([Vimperator](http://vimperator.org/)),
 > <kbd>h</kbd>, <kbd>j</kbd>, <kbd>k</kbd>, <kbd>l</kbd> scroll page,<kbd>f</kbd> list all focusable elements, then press the corresponding key to focus on this element and click
 
@@ -53,9 +51,9 @@ when you click the pointer event, it is not necessary to display the focus ring,
 In DuoyunUI or other custom elements, this CSS is not always useful(not support ShadowDOM), so DuoyunUI provides a shared style, you can reference the style when you need the focus ring:
 
 ```ts
-import { fcousStyle } from 'duoyun-ui/lib/styles';
+import { focusStyle } from 'duoyun-ui/lib/styles';
 
 @customElement('my-ele')
-@adpotStyle(fcousStyle)
+@adoptedStyle(focusStyle)
 export class MyEleElement extends GemElement {}
 ```

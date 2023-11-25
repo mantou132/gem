@@ -16,8 +16,17 @@ export function getRenderer({ lang, link, displayRank }: { lang: string; link: s
     return `<${tag} class="markdown-header" id="${id}"><a class="header-anchor" aria-hidden="true" href="#${id}">${anchorIcon}</a>${text}</${tag}>`;
   };
 
-  renderer.code = (code, infostring) => {
-    const [lang, ...rest] = infostring?.split(/\s+/) || [];
+  renderer.blockquote = (quote) => {
+    let type = '';
+    const q = quote.replace(/^<p>\[!(.*)\]/, (_str, $1) => {
+      type = $1;
+      return `<p class="title">${$1}</p><p>`;
+    });
+    return `<blockquote class="${type.toLowerCase()}">${q}</blockquote>`;
+  };
+
+  renderer.code = (code, infoString) => {
+    const [lang, ...rest] = infoString?.split(/\s+/) || [];
     const lastArg = rest.pop();
     const lastArgIsHighlight = lastArg && /^([-]|\d|\s|,)+$/.test(lastArg);
     const highlight = lastArgIsHighlight ? lastArg : '';

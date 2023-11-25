@@ -53,6 +53,18 @@ By default, hash is generated based on the title text field, but sometimes you n
 ### Fixed heading anchor hash {#fixed-hash}
 ```
 
+### Highlight blockquote
+
+```md
+> [!TIP]
+> This is [highlight blockquote](https://github.com/orgs/community/discussions/16925)
+```
+
+> [!TIP]
+> This is [highlight blockquote](https://github.com/orgs/community/discussions/16925)
+
+Support for `[!NOTE]`, `[!TIP]`, `[!IMPORTANT]`, `[!WARNING]` and `[!CAUTION]`.
+
 ## Parts
 
 [Part](https://developer.mozilla.org/en-US/docs/Web/HTML/Global_attributes/part) allows you to customize the internal style of `<gem-book>`, for example:

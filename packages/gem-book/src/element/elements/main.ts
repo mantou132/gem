@@ -157,21 +157,36 @@ export class Main extends GemElement {
           max-width: 100%;
         }
         blockquote {
-          background: rgba(${theme.textColorRGB}, 0.05);
-          border-left: 0.5rem solid rgba(${theme.textColorRGB}, 0.05);
+          --highlight: ${theme.textColorRGB};
+          background: rgba(var(--highlight), 0.05);
+          border-left: 0.5rem solid rgba(var(--highlight), 0.05);
           margin: 1.2em 0;
           padding: 0.8em 1em;
         }
-        blockquote p {
+        blockquote.note {
+          --highlight: 9, 105, 218;
+        }
+        blockquote.tip {
+          --highlight: 26, 127, 55;
+        }
+        blockquote.important {
+          --highlight: 130, 80, 223;
+        }
+        blockquote.warning {
+          --highlight: 154, 103, 0;
+        }
+        blockquote.caution {
+          --highlight: 209, 36, 47;
+        }
+        blockquote > .title {
+          font-weight: bold;
+          color: rgb(var(--highlight));
+        }
+        blockquote > p {
           margin: 0.5em 0 0;
         }
         blockquote > :first-child {
           margin-top: 0;
-          font-weight: bold;
-        }
-        blockquote > :nth-child(n + 2),
-        blockquote > :last-child {
-          font-weight: normal;
         }
         kbd {
           font-family: monospace;
