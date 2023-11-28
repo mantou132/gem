@@ -214,50 +214,56 @@ export class DuoyunPopoverElement extends GemElement<PopoverState> {
 
   #genStyle = (position: Position): StyleObject => {
     const { top, left, right, bottom } = this.state;
+    const widthHalf = (right - left) / 2;
+    const heightHalf = (top - bottom) / 2;
     switch (position) {
       case 'top':
         return {
-          left: `${left + (right - left) / 2}px`,
+          left: `${left + widthHalf}px`,
           bottom: `${innerHeight - top + offset}px`,
           transform: `translateX(-50%)`,
         };
       case 'bottom':
         return {
-          left: `${left + (right - left) / 2}px`,
+          left: `${left + widthHalf}px`,
           top: `${bottom + offset}px`,
           transform: `translateX(-50%)`,
         };
       case 'left':
         return {
           right: `${innerWidth - left + offset}px`,
-          top: `${top + (bottom - top) / 2}px`,
+          top: `${top - heightHalf}px`,
           transform: `translateY(-50%)`,
         };
       case 'right':
         return {
           left: `${right + offset}px`,
-          top: `${top + (bottom - top) / 2}px`,
+          top: `${top - heightHalf}px`,
           transform: `translateY(-50%)`,
         };
       case 'bottomRight':
         return {
           right: `${innerWidth - right}px`,
           top: `${bottom + offset}px`,
+          '--arrow-offset': `min(2em, ${widthHalf}px)`,
         };
       case 'topRight':
         return {
           right: `${innerWidth - right}px`,
           bottom: `${innerHeight - top + offset}px`,
+          '--arrow-offset': `min(2em, ${widthHalf}px)`,
         };
       case 'bottomLeft':
         return {
           left: `${left}px`,
           top: `${bottom + offset}px`,
+          '--arrow-offset': `min(2em, ${widthHalf}px)`,
         };
       case 'topLeft':
         return {
           left: `${left}px`,
           bottom: `${innerHeight - top + offset}px`,
+          '--arrow-offset': `min(2em, ${widthHalf}px)`,
         };
     }
   };
@@ -402,11 +408,11 @@ const ghostStyle = createCSSSheet(css`
     transform: translateX(-50%);
   }
   :host([data-position='topRight'])::before {
-    right: 2em;
+    right: var(--arrow-offset);
     transform: translateX(50%);
   }
   :host([data-position='topLeft'])::before {
-    left: 2em;
+    left: var(--arrow-offset);
     transform: translateX(-50%);
   }
   :host([data-position='bottom'])::before,
@@ -421,11 +427,11 @@ const ghostStyle = createCSSSheet(css`
     transform: translateX(-50%);
   }
   :host([data-position='bottomRight'])::before {
-    right: 2em;
+    right: var(--arrow-offset);
     transform: translateX(50%);
   }
   :host([data-position='bottomLeft'])::before {
-    left: 2em;
+    left: var(--arrow-offset);
     transform: translateX(-50%);
   }
   :host([data-position='left'])::before {
