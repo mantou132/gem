@@ -164,19 +164,19 @@ export class Main extends GemElement {
           padding: 0.8em 1em;
         }
         blockquote.note {
-          --highlight: 9, 105, 218;
+          --highlight: ${theme.noteColor};
         }
         blockquote.tip {
-          --highlight: 26, 127, 55;
+          --highlight: ${theme.tipColor};
         }
         blockquote.important {
-          --highlight: 130, 80, 223;
+          --highlight: ${theme.importantColor};
         }
         blockquote.warning {
-          --highlight: 154, 103, 0;
+          --highlight: ${theme.warningColor};
         }
         blockquote.caution {
-          --highlight: 209, 36, 47;
+          --highlight: ${theme.cautionColor};
         }
         blockquote > .title {
           font-weight: bold;

@@ -8,7 +8,7 @@ fs.writeFileSync(
     `
 if (new URL(this.src).pathname.startsWith('/duoyun-ui/')) {
   await import(\`../../duoyun-ui/src/elements/\${this.src.split('/').pop()}\`);
-  this.#elementDefined();
+  this.setState({ loading: false, error: false });
   return;
 }
 const script = document.createElement('script');`,

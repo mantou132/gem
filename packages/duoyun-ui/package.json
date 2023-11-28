@@ -14,6 +14,7 @@
   ],
   "scripts": {
     "docs": "node scripts/hack-gbp-example && gem-book docs --plugin node_modules/gbp-example-hack",
+    "docs:remote": "gem-book docs --plugin example",
     "build:docs": "gem-book docs --build --plugin example",
     "clean": "node -e \"fs.readdirSync('src').map(dir => require('rimraf').sync(dir))\"",
     "build": "yarn clean && tsc -p tsconfig.build.json",

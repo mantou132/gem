@@ -1,14 +1,8 @@
 import type { GemBookElement } from '../element';
 
-type Value = {
-  props?: Record<string, string>;
-  innerHTML?: string;
-};
-
 type State = {
   loading: boolean;
   error?: any;
-  value: Value;
 };
 
 customElements.whenDefined('gem-book').then(() => {
@@ -24,17 +18,15 @@ customElements.whenDefined('gem-book').then(() => {
 
     state: State = {
       loading: true,
-      value: {},
     };
 
     #renderElement = () => {
-      const { value } = this.state;
       const Cls = customElements.get(this.name);
       if (!Cls) return html``;
       const ele = new Cls();
-      if (value.innerHTML) ele.innerHTML = value.innerHTML;
-      if (value.props) {
-        Object.entries(value.props).forEach(([key, value]) => {
+      if (this.html) ele.innerHTML = this.html;
+      if (this.#props) {
+        Object.entries(this.#props).forEach(([key, value]) => {
           if (key.startsWith('@')) {
             ele.addEventListener(key.slice(1), eval(value));
           } else if (key.startsWith('?')) {
@@ -91,8 +83,7 @@ customElements.whenDefined('gem-book').then(() => {
     };
 
     #renderProps = () => {
-      const { props } = this.state.value;
-      const propEntries = Object.entries(props || {});
+      const propEntries = Object.entries(this.#props);
       return html`${propEntries.map(([key, value]) => this.#renderPropValue(key, value, propEntries.length > 2))}`;
     };
 
@@ -104,22 +95,18 @@ customElements.whenDefined('gem-book').then(() => {
     };
 
     #renderInnerHTML = () => {
-      const { value } = this.state;
-      if (!value.innerHTML) return html``;
-      return `\n${this.#addIndentation(value.innerHTML)}\n`;
+      if (!this.html) return html``;
+      return `\n${this.#addIndentation(this.html)}\n`;
     };
 
     #renderCode = () => {
       return html`${this.#renderTag(this.name)}${this.#renderInnerHTML()}${this.#renderTag(this.name, true)}`;
     };
 
-    #elementDefined = () => {
-      this.setState({
-        value: {
-          innerHTML: this.html,
-          props: JSON.parse(this.props || '{}'),
-        },
-        loading: false,
+    #props: Record<string, string> = {};
+    willMount = () => {
+      this.memo(() => {
+        this.#props = JSON.parse(this.props || '{}');
       });
     };
 
@@ -130,19 +117,26 @@ customElements.whenDefined('gem-book').then(() => {
       script.src = this.src;
       script.crossOrigin = 'anonymous';
       script.onload = () => {
-        this.#elementDefined();
+        this.setState({ loading: false, error: false });
         script.remove();
       };
-      script.onerror = (evt: ErrorEvent) => this.setState({ error: evt.error });
+      script.onerror = (evt: ErrorEvent) => {
+        this.setState({ error: evt.error || 'Load Error!', loading: false });
+        script.remove();
+      };
       document.body.append(script);
     };
 
     render = () => {
       const { error, loading } = this.state;
-      if (error) return html`${error}`;
-      if (loading) return html`<div class="loading">Example loading...</div>`;
       return html`
-        <div class="preview">${this.#renderElement()}<slot></slot></div>
+        <div class="preview">
+          ${error
+            ? html`<div class="error">${error}</div>`
+            : loading
+            ? html`<div class="loading">Example Loading...</div>`
+            : html`${this.#renderElement()}<slot></slot>`}
+        </div>
         <div class="panel">
           <div class="code">${this.#renderCode()}</div>
         </div>
@@ -159,6 +153,12 @@ customElements.whenDefined('gem-book').then(() => {
             align-items: center;
             justify-content: center;
             padding: 1em;
+          }
+          .loading {
+            opacity: 0.5;
+          }
+          .error {
+            color: ${theme.cautionColor};
           }
           .preview * {
             max-width: 100%;
