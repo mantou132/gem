@@ -48,6 +48,7 @@ const theme = JSON.parse(String(process.env.THEME));
 const devRender = () => {
   const book = document.querySelector<GemBookElement>('gem-book') || new GemBookElement();
   book.src = `/${DEFAULT_FILE}`;
+  book.dev = true;
   if (theme) {
     fetch(`/${DEV_THEME_FILE}`)
       .then((res) => res.json())

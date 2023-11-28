@@ -231,8 +231,16 @@ export class Main extends GemElement {
           opacity: 1;
         }
         code {
-          font-family: Source Code Pro, ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, Liberation Mono,
-            Courier New, monospace;
+          font-family:
+            Source Code Pro,
+            ui-monospace,
+            SFMono-Regular,
+            Menlo,
+            Monaco,
+            Consolas,
+            Liberation Mono,
+            Courier New,
+            monospace;
           font-size: 90%;
           background: ${theme.inlineCodeBackground};
           padding: 0 3px;

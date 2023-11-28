@@ -160,7 +160,7 @@ export class DuoyunPopoverElement extends GemElement<PopoverState> {
 
     this.addEventListener('mouseleave', (evt) => {
       if (this.#isClickTrigger) return;
-      if (evt.relatedTarget === this.popover) return;
+      if (evt.relatedTarget === this.popoverElement) return;
       this.#close();
     });
 
@@ -171,7 +171,7 @@ export class DuoyunPopoverElement extends GemElement<PopoverState> {
     });
   }
 
-  get popover() {
+  get popoverElement() {
     return this.popoverRef.element;
   }
 
@@ -266,7 +266,7 @@ export class DuoyunPopoverElement extends GemElement<PopoverState> {
     this.effect(
       () => {
         if (this.state.open && this.#position === 'auto') {
-          const { top, left, right, bottom, height } = this.popover!.getBoundingClientRect();
+          const { top, left, right, bottom, height } = this.popoverElement!.getBoundingClientRect();
           let position: Position = 'top';
           if (right > innerWidth) {
             if (top < 0) {

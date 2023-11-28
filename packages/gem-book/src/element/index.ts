@@ -13,6 +13,7 @@ import {
   state,
   refobject,
   RefObject,
+  boolattribute,
 } from '@mantou/gem';
 import { GemLightRouteElement } from '@mantou/gem/elements/route';
 import { mediaQuery } from '@mantou/gem/helper/mediaquery';
@@ -22,6 +23,7 @@ import { BookConfig } from '../common/config';
 import { GemBookPluginElement } from './elements/plugin';
 import { theme, changeTheme, Theme } from './helper/theme';
 import { bookStore, updateBookConfig, locationStore } from './store';
+import { Loadbar } from './elements/loadbar';
 
 import '@mantou/gem/elements/title';
 import '@mantou/gem/elements/reflect';
@@ -47,6 +49,8 @@ export class GemBookElement extends GemElement {
   @refobject routeRef: RefObject<GemLightRouteElement>;
 
   @attribute src: string;
+  // process.env.DEV_MODE 只能用于 website 模式，不能用在单元素中
+  @boolattribute dev: boolean;
 
   @property config: BookConfig | undefined;
   @property theme: Partial<Theme> | undefined;
@@ -79,7 +83,12 @@ export class GemBookElement extends GemElement {
     return changeTheme(newTheme);
   }
 
+  #onLoading = () => {
+    Loadbar.start();
+  };
+
   #onRouteChange = (e: CustomEvent) => {
+    Loadbar.end();
     document.body.scroll(0, 0);
     this.routechange(e.detail);
   };
@@ -226,6 +235,7 @@ export class GemBookElement extends GemElement {
         }
       </style>
       <gem-book-meta aria-hidden="true"></gem-book-meta>
+
       ${hasNavbar
         ? html`
             <div class="nav-shadow" part=${this.navShadow}></div>
@@ -244,6 +254,7 @@ export class GemBookElement extends GemElement {
         .locationStore=${locationStore}
         .key=${lang}
         .routes=${routes}
+        @loading=${this.#onLoading}
         @routechange=${this.#onRouteChange}
       ></gem-light-route>
       <gem-book-edit-link role="complementary" part=${this.editLink}></gem-book-edit-link>

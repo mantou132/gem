@@ -1,6 +1,6 @@
 import { GemElement, connectStore } from '@mantou/gem';
 import * as Gem from '@mantou/gem';
-import marked from 'marked';
+import { marked } from 'marked';
 import { mediaQuery } from '@mantou/gem/helper/mediaquery';
 
 import { theme } from '../helper/theme';
@@ -10,7 +10,7 @@ import { container } from '../elements/icons';
 
 @connectStore(bookStore)
 export class GemBookPluginElement<T = any> extends GemElement<T> {
-  static devMode = process.env.DEV_MODE;
+  static devMode = bookStore.devMode;
   static marked = marked;
   static Gem = Gem;
   static theme = theme;

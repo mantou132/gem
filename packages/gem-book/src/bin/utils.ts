@@ -7,7 +7,7 @@ import { createHash } from 'crypto';
 import gitRemoteOriginUrl from 'git-remote-origin-url';
 import parseGithub from 'parse-github-url';
 import { JSDOM } from 'jsdom';
-import marked from 'marked';
+import { marked } from 'marked';
 import fm from 'front-matter';
 import YAML from 'yaml';
 import { startCase } from 'lodash';
@@ -15,7 +15,7 @@ import Jimp from 'jimp/es';
 
 import { NavItem } from '../common/config';
 import { FrontMatter } from '../common/frontmatter';
-import { isIndexFile, parseFilename, CUSTOM_HEADING_REG } from '../common/utils';
+import { isIndexFile, parseFilename, CUSTOM_HEADING_REG, normalizeId } from '../common/utils';
 
 export async function getGithubUrl() {
   const repoDir = process.cwd();
@@ -154,7 +154,7 @@ export function getMetadata(fullPath: string, displayRank: boolean | undefined):
             const [, text, customId] = (heading.textContent as string).match(CUSTOM_HEADING_REG) as RegExpMatchArray;
             return {
               title: text,
-              link: `#${customId || heading.id}`,
+              link: `#${normalizeId(customId || text)}`,
               type: 'heading',
             } as NavItem;
           })

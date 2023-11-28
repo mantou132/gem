@@ -134,8 +134,8 @@ customElements.whenDefined('gem-book').then(() => {
           ${error
             ? html`<div class="error">${error}</div>`
             : loading
-            ? html`<div class="loading">Example Loading...</div>`
-            : html`${this.#renderElement()}<slot></slot>`}
+              ? html`<div class="loading">Example Loading...</div>`
+              : html`${this.#renderElement()}<slot></slot>`}
         </div>
         <div class="panel">
           <div class="code">${this.#renderCode()}</div>

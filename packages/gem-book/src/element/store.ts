@@ -15,6 +15,7 @@ import './elements/main';
 import './elements/404';
 
 interface CurrentBookConfig {
+  devMode: boolean;
   config: BookConfig;
 
   links: NavItemWithLink[];
@@ -119,6 +120,7 @@ function getRouter(links: NavItemWithLink[], title: string, lang: string, displa
       async getContent() {
         const renderer = getRenderer({ lang, link: originLink, displayRank });
         const content = await fetchDocument(originLink, lang, hash);
+        if (bookStore.devMode) await new Promise((res) => setTimeout(res, 1000));
         return html`<gem-book-main role="article" .renderer=${renderer} .content=${content}></gem-book-main>`;
       },
       data: item,
@@ -227,6 +229,7 @@ export function updateBookConfig(config: BookConfig | undefined, gemBookElement?
   });
   if (gemBookElement) {
     updateStore(bookStore, {
+      devMode: gemBookElement.dev,
       getCurrentLink: () => {
         return gemBookElement?.routeRef.element?.currentRoute?.data as NavItemWithLink;
       },

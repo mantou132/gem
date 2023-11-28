@@ -73,3 +73,8 @@ export function escapeHTML(s: string) {
   div.textContent = s;
   return div.innerHTML;
 }
+
+export function textContent(s: string) {
+  div.innerHTML = s;
+  return div.textContent || '';
+}
