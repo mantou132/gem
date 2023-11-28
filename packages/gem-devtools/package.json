@@ -5,20 +5,22 @@
   "scripts": {
     "update:version": "node ./scripts/update.js",
     "build": "vite build",
-    "build:watch": "yarn build --watch",
-    "build:zip": "yarn build && web-ext --config web-ext.config.js build",
-    "browser": "web-ext --config web-ext.config.js run",
-    "start": "concurrently npm:build:watch npm:browser"
+    "build:firefox": "vite build && node ./scripts/to-mv2.js",
+    "watch": "yarn build --watch",
+    "build:zip": "yarn build && web-ext build",
+    "build:zip:firefox": "yarn build:firefox && web-ext build",
+    "browser": "web-ext run",
+    "start": "concurrently npm:watch npm:browser"
   },
   "dependencies": {
     "@mantou/gem": "^1.7.0",
-    "webextension-polyfill": "^0.8.0"
+    "webextension-polyfill": "^0.10.0"
   },
   "devDependencies": {
     "@gemjs/config": "^1.6.11",
-    "@types/webextension-polyfill": "^0.8.2",
+    "@types/webextension-polyfill": "^0.10.7",
     "vite": "^2.7.13",
-    "web-ext": "^6.6.0"
+    "web-ext": "^7.8.0"
   },
   "author": "mantou132",
   "license": "MIT",

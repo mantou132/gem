@@ -1,4 +1,15 @@
-import { attribute, customElement, Emitter, emitter, GemElement, html, property } from '@mantou/gem';
+import {
+  adoptedStyle,
+  attribute,
+  createCSSSheet,
+  css,
+  customElement,
+  Emitter,
+  GemElement,
+  globalemitter,
+  html,
+  property,
+} from '@mantou/gem';
 
 import { Item, Path, BuildIn } from '../store';
 import { theme } from '../theme';
@@ -6,17 +17,148 @@ import { theme } from '../theme';
 const maybeBuildInPrefix = '[[Gem?]] ';
 const buildInPrefix = '[[Gem]] ';
 
+export const style = createCSSSheet(css`
+  :host {
+    display: block;
+    line-height: 1.5;
+    cursor: default;
+  }
+  .inspect {
+    cursor: pointer;
+    display: inline-block;
+    font-family: monospace;
+    width: 1em;
+    text-align: center;
+    flex-shrink: 0;
+    user-select: none;
+  }
+  summary {
+    display: flex;
+    background: rgba(${theme.textColorRGB}, 0.075);
+    border-bottom: 1px solid rgba(${theme.backgroundColorRGB}, 1);
+    padding-right: 1em;
+    user-select: none;
+  }
+  summary:focus {
+    outline: none;
+  }
+  .summary {
+    flex-grow: 1;
+    display: flex;
+    align-items: center;
+  }
+  .tip {
+    cursor: help;
+    opacity: 0.3;
+    margin-left: 1em;
+    box-sizing: border-box;
+    padding: 0.2em;
+    background-clip: content-box;
+    background: currentColor;
+    -webkit-text-fill-color: rgba(${theme.backgroundColorRGB}, 1);
+    border-radius: 10em;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 2em;
+    width: 2em;
+    font-size: 0.5em;
+    font-weight: bolder;
+  }
+  summary:hover {
+    background: rgba(${theme.textColorRGB}, 0.15);
+  }
+  summary::marker {
+    content: '';
+  }
+  summary::-webkit-details-marker {
+    display: none;
+  }
+  summary::before {
+    content: '▸';
+    display: inline-block;
+    width: 1em;
+    text-align: center;
+  }
+  details[open] summary::before {
+    content: '▾';
+  }
+  .nodata {
+    color: ${theme.valueColor};
+    padding: 0 1em;
+    font-style: italic;
+  }
+  ul {
+    margin: 0;
+    padding: 0;
+    list-style-type: none;
+    font-family: monospace;
+  }
+  li {
+    display: flex;
+    padding: 0 1em;
+  }
+  li:hover {
+    background: rgba(${theme.textColorRGB}, 0.075);
+  }
+  .name {
+    white-space: nowrap;
+    color: ${theme.nameColor};
+  }
+  .name.highlight {
+    font-weight: bolder;
+  }
+  .name.ignore {
+    opacity: 0.5;
+  }
+  .sp {
+    padding: 0 0.2em;
+  }
+  .value {
+    flex-shrink: 1;
+    flex-grow: 1;
+    color: ${theme.valueColor};
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+  .string {
+    color: ${theme.stringValueColor};
+  }
+  .string:empty::after {
+    content: '<empty string>';
+    color: ${theme.valueColor};
+    font-style: italic;
+  }
+  .number {
+    color: ${theme.numberValueColor};
+  }
+  .boolean {
+    color: ${theme.booleanValueColor};
+  }
+  .object {
+    color: ${theme.objectValueColor};
+  }
+  .function {
+    color: ${theme.functionValueColor};
+  }
+  .element {
+    color: ${theme.elementValueColor};
+  }
+`);
+
 /**
  * @attr name
  * @attr tip
  */
 @customElement('devtools-section')
+@adoptedStyle(style)
 export class Section extends GemElement {
   @attribute name: string;
   @attribute tip: string;
   @property data: Item[] = [];
   @property path: Path | undefined;
-  @emitter valueclick: Emitter<Path>;
+  @globalemitter valueclick: Emitter<Path>;
 
   renderTip = () => {
     if (!this.tip) return '';
@@ -30,7 +172,7 @@ export class Section extends GemElement {
         class="inspect"
         title="Inspect"
         @click=${(e: Event) => {
-          this.valueclick(path, { composed: true, bubbles: true });
+          this.valueclick(path);
           e.preventDefault();
         }}
       >
@@ -70,126 +212,6 @@ export class Section extends GemElement {
   render() {
     const { name, data = [] } = this;
     return html`
-      <style>
-        :host {
-          display: block;
-          line-height: 1.5;
-          cursor: default;
-        }
-        .inspect {
-          cursor: pointer;
-          display: inline-block;
-          font-family: monospace;
-          width: 1em;
-          text-align: center;
-          flex-shrink: 0;
-          user-select: none;
-        }
-        summary {
-          display: flex;
-          background: rgba(${theme.textColorRGB}, 0.075);
-          border-bottom: 1px solid rgba(${theme.backgroundColorRGB}, 1);
-          padding-right: 1em;
-          user-select: none;
-        }
-        summary:focus {
-          outline: none;
-        }
-        .summary {
-          flex-grow: 1;
-          display: flex;
-          align-items: center;
-        }
-        .tip {
-          cursor: help;
-          opacity: 0.3;
-          margin-left: 1em;
-          box-sizing: border-box;
-          padding: 0.2em;
-          background-clip: content-box;
-          background: currentColor;
-          -webkit-text-fill-color: rgba(${theme.backgroundColorRGB}, 1);
-          border-radius: 10em;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          height: 2em;
-          width: 2em;
-          font-size: 0.5em;
-          font-weight: bolder;
-        }
-        summary:hover {
-          background: rgba(${theme.textColorRGB}, 0.15);
-        }
-        summary::marker {
-          content: '';
-        }
-        summary::-webkit-details-marker {
-          display: none;
-        }
-        summary::before {
-          content: '▸';
-          display: inline-block;
-          width: 1em;
-          text-align: center;
-        }
-        details[open] summary::before {
-          content: '▾';
-        }
-        .nodata {
-          color: ${theme.valueColor};
-          padding: 0 1em;
-          font-style: italic;
-        }
-        ul {
-          margin: 0;
-          padding: 0;
-          list-style-type: none;
-          font-family: monospace;
-        }
-        li {
-          display: flex;
-          padding: 0 1em;
-        }
-        .name {
-          white-space: nowrap;
-          color: ${theme.nameColor};
-        }
-        .sp {
-          padding: 0 0.2em;
-        }
-        .value {
-          flex-shrink: 1;
-          flex-grow: 1;
-          color: ${theme.valueColor};
-          overflow: hidden;
-          white-space: nowrap;
-          text-overflow: ellipsis;
-        }
-        .string {
-          color: ${theme.stringValueColor};
-        }
-        .string:empty::after {
-          content: '<empty string>';
-          color: ${theme.valueColor};
-          font-style: italic;
-        }
-        .number {
-          color: ${theme.numberValueColor};
-        }
-        .boolean {
-          color: ${theme.booleanValueColor};
-        }
-        .object {
-          color: ${theme.objectValueColor};
-        }
-        .function {
-          color: ${theme.functionValueColor};
-        }
-        .element {
-          color: ${theme.elementValueColor};
-        }
-      </style>
       <details open>
         <summary><span class="summary">${name}${this.renderTip()}</span>${this.renderInspect(this.path)}</summary>
         <div>${data.length ? this.renderItem(data) : html`<div class="nodata">no data</div>`}</div>

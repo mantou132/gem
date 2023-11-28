@@ -1,37 +1,61 @@
-import { connectStore, customElement, GemElement, html } from '@mantou/gem';
+import { adoptedStyle, connectStore, createCSSSheet, css, customElement, GemElement, html } from '@mantou/gem';
 
 import { panelStore } from '../store';
 
-import './section';
+import '../elements/section';
+import '../elements/statistics';
 
-const TIP = 'Only works on GemElement written with TypeScript decorator, fallback to "Unobserved Properties"';
+const TIP = 'Only works on GemElement written with Decorator, fallback to "Unobserved Properties"';
+
+const style = createCSSSheet(css`
+  :host {
+    display: block;
+    margin-bottom: 4em;
+    font-size: 12px;
+  }
+  .not-gem {
+    font-style: italic;
+    padding: 0.5em;
+    opacity: 0.5;
+  }
+`);
 
 @customElement('devtools-panel')
 @connectStore(panelStore)
+@adoptedStyle(style)
 export class Panel extends GemElement {
   render() {
     if (!panelStore.isGemElement) {
       return html`
-        <style>
-          :host {
-            display: block;
-            text-align: center;
-            font-style: italic;
-            padding: 0.5em;
-            opacity: 0.5;
-          }
-        </style>
-        Not is GemElement
+        <div class="not-gem">This not's GemElement, current page stat:</div>
+        <devtools-statistics name="Total Elements" ignore .value=${panelStore.elements}></devtools-statistics>
+        <devtools-statistics name="Total Custom Elements" .value=${panelStore.customElements}></devtools-statistics>
+        <devtools-statistics name="Total Gem Elements" .value=${panelStore.gemElements}></devtools-statistics>
+        <devtools-statistics
+          name="Defined Custom Elements"
+          type="con"
+          .value=${panelStore.definedCustomElements}
+          .highlight=${panelStore.usedDefinedCustomElements}
+        ></devtools-statistics>
+        <devtools-statistics
+          name="Defined Gem Elements"
+          type="con"
+          .value=${panelStore.definedGemElements}
+          .highlight=${panelStore.usedDefinedGemElements}
+        ></devtools-statistics>
+        <devtools-statistics
+          name="Used Defined Custom Elements"
+          type="con"
+          .value=${panelStore.usedDefinedCustomElements}
+        ></devtools-statistics>
+        <devtools-statistics
+          name="Used Defined Gem Elements"
+          type="con"
+          .value=${panelStore.usedDefinedGemElements}
+        ></devtools-statistics>
       `;
     }
     return html`
-      <style>
-        :host {
-          display: block;
-          margin-bottom: 4em;
-          font-size: 12px;
-        }
-      </style>
       <devtools-section name="Observed Attributes" .data=${panelStore.observedAttributes}></devtools-section>
       <devtools-section name="Observed Properties" .data=${panelStore.observedProperties}></devtools-section>
       <devtools-section name="Observed Stores" .data=${panelStore.observedStores}></devtools-section>

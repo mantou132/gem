@@ -1,11 +1,12 @@
 {
   "name": "Gem DevTools",
   "version": "0.0.0",
-  "manifest_version": 2,
+  "manifest_version": 3,
   "description": "Gem DevTools Extension to inspect and debug Gem elements",
   "devtools_page": "devtools.html",
   "content_scripts": [
     {
+      "world": "MAIN",
       "matches": ["<all_urls>"],
       "js": ["content.js"],
       "run_at": "document_start"

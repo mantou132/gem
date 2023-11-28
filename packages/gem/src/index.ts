@@ -3,10 +3,9 @@
  */
 import * as Gem from './';
 
-export type DevToolsHook = typeof Gem;
 declare global {
   interface Window {
-    __GEM_DEVTOOLS__HOOK__?: DevToolsHook;
+    __GEM_DEVTOOLS__HOOK__?: typeof Gem | Record<string, never>;
   }
 }
 

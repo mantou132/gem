@@ -22,14 +22,23 @@ jobs:
 
       - name: Build
         run: |
-          yarn update:version && yarn build:zip
           export VERSION=$(node -e "console.log(require('./package.json').version)")
+
           export ZIP_NAME=gem_devtools-${VERSION}.zip
           export ZIP_PATH=packages/gem-devtools/build/${ZIP_NAME}
-          echo "ZIP_NAME=${ZIP_NAME}" >> $GITHUB_ENV
-          echo "ZIP_PATH=${ZIP_PATH}" >> $GITHUB_ENV
-          echo ${ZIP_NAME}
           echo ${ZIP_PATH}
+          export ZIP_NAME_FIREFOX=gem_devtools-firefox-${VERSION}.zip
+          export ZIP_PATH_FIREFOX=packages/gem-devtools/build/${ZIP_NAME_FIREFOX}
+          echo ${ZIP_PATH_FIREFOX}
+
+          yarn update:version
+
+          yarn build:zip:firefox
+          # mv build/${ZIP_NAME} build/${ZIP_NAME_FIREFOX}
+          yarn build:zip
+
+          echo "ZIP_PATH=${ZIP_PATH}" >> $GITHUB_ENV
+          echo "ZIP_PATH_FIREFOX=${ZIP_PATH_FIREFOX}" >> $GITHUB_ENV
         working-directory: packages/gem-devtools
 
       - name: Upload to release
@@ -45,7 +54,7 @@ jobs:
       # - uses: trmcnvn/firefox-addon@v1
       #   with:
       #     uuid: ""
-      #     xpi: ${{ env.ZIP_PATH }}
+      #     xpi: ${{ env.ZIP_PATH_FIREFOX }}
       #     manifest: packages/gem-devtools/extension/manifest.json
       #     api-key: ${{ secrets.FIREFOX_API_KEY }}
       #     api-secret: ${{ secrets.FIREFOX_API_SECRET }}

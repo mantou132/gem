@@ -3,7 +3,8 @@ module.exports = {
   artifactsDir: 'build',
   verbose: true,
   run: {
-    firefox: 'nightly',
+    devtools: false,
+    firefox: 'firefox',
     startUrl: ['about:debugging', 'https://gemjs.org/'],
   },
   build: {

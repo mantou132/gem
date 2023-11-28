@@ -6,13 +6,18 @@ declare let $0: any;
 
 // 不要使用作用域外的变量
 export const getSelectedGem = function (data: PanelStore, gemElementSymbols: string[]): PanelStore | null {
-  // 依赖 `constructor`，如果 `constructor` 被破坏，则扩展不能工作
-  // 没有严格检查是否是 GemElement
   const tagClass = $0.constructor as typeof GemElement;
-  if (!($0 instanceof HTMLElement)) return null;
+  const devToolsHook = window.__GEM_DEVTOOLS__HOOK__;
+  if (devToolsHook) {
+    if (!devToolsHook.GemElement || !($0 instanceof devToolsHook.GemElement)) return null;
+  } else {
+    // 依赖 `constructor`，如果 `constructor` 被破坏，则扩展不能工作
+    // 没有严格检查是否是 GemElement
+    if (!($0 instanceof HTMLElement)) return null;
 
-  const elementSymbols = new Set(Object.getOwnPropertySymbols($0).map(String));
-  if (gemElementSymbols.some((symbol) => !elementSymbols.has(symbol))) return null;
+    const elementSymbols = new Set(Object.getOwnPropertySymbols($0).map(String));
+    if (gemElementSymbols.some((symbol) => !elementSymbols.has(symbol))) return null;
+  }
 
   const inspectable = (value: any) => {
     const type = typeof value;
