@@ -1,4 +1,4 @@
-import { GemElement, connectStore } from '@mantou/gem';
+import { GemElement, connectStore, globalemitter, Emitter } from '@mantou/gem';
 import * as Gem from '@mantou/gem';
 import { marked } from 'marked';
 import { mediaQuery } from '@mantou/gem/helper/mediaquery';
@@ -51,4 +51,5 @@ export class GemBookPluginElement<T = any> extends GemElement<T> {
   static get currentLink() {
     return bookStore.getCurrentLink?.();
   }
+  @globalemitter error: Emitter<ErrorEvent | Event>;
 }

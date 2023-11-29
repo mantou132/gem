@@ -8,8 +8,62 @@ type State = {
 customElements.whenDefined('gem-book').then(() => {
   const { GemBookPluginElement } = customElements.get('gem-book') as typeof GemBookElement;
   const { theme } = GemBookPluginElement;
-  const { html, customElement, attribute } = GemBookPluginElement.Gem;
+  const { html, customElement, attribute, createCSSSheet, css, adoptedStyle } = GemBookPluginElement.Gem;
+
+  const style = createCSSSheet(css`
+    :host {
+      display: flex;
+      flex-direction: column;
+      min-height: 25em;
+    }
+    .preview {
+      flex-grow: 1;
+      background: rgba(${theme.textColorRGB}, 0.05);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1em;
+    }
+    .loading {
+      opacity: 0.5;
+    }
+    .error {
+      color: ${theme.cautionColor};
+    }
+    .preview * {
+      max-width: 100%;
+    }
+    .panel {
+      background: rgba(${theme.textColorRGB}, 0.03);
+      padding: 1em;
+    }
+    .code {
+      display: block;
+      font-family: ${theme.codeFont};
+      text-align: left;
+      white-space: pre;
+      tab-size: 2;
+      line-height: 1.7;
+      hyphens: none;
+      overflow: auto;
+      overflow-clip-box: content-box;
+      box-shadow: none;
+      border: none;
+      background: transparent;
+      scrollbar-width: thin;
+    }
+    .token {
+      color: #757575;
+    }
+    .tag {
+      color: #c9252d;
+    }
+    .attribute {
+      color: #4646c6;
+    }
+  `);
   @customElement('gbp-example')
+  @adoptedStyle(style)
   class _GbpExampleElement extends GemBookPluginElement<State> {
     @attribute name: string;
     @attribute src: string;
@@ -122,6 +176,7 @@ customElements.whenDefined('gem-book').then(() => {
       };
       script.onerror = (evt: ErrorEvent) => {
         this.setState({ error: evt.error || 'Load Error!', loading: false });
+        this.error(evt);
         script.remove();
       };
       document.body.append(script);
@@ -140,58 +195,6 @@ customElements.whenDefined('gem-book').then(() => {
         <div class="panel">
           <div class="code">${this.#renderCode()}</div>
         </div>
-        <style>
-          :host {
-            display: flex;
-            flex-direction: column;
-            min-height: 25em;
-          }
-          .preview {
-            flex-grow: 1;
-            background: rgba(${theme.textColorRGB}, 0.05);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 1em;
-          }
-          .loading {
-            opacity: 0.5;
-          }
-          .error {
-            color: ${theme.cautionColor};
-          }
-          .preview * {
-            max-width: 100%;
-          }
-          .panel {
-            background: rgba(${theme.textColorRGB}, 0.03);
-            padding: 1em;
-          }
-          .code {
-            display: block;
-            font-family: ${theme.codeFont};
-            text-align: left;
-            white-space: pre;
-            tab-size: 2;
-            line-height: 1.7;
-            hyphens: none;
-            overflow: auto;
-            overflow-clip-box: content-box;
-            box-shadow: none;
-            border: none;
-            background: transparent;
-            scrollbar-width: thin;
-          }
-          .token {
-            color: #757575;
-          }
-          .tag {
-            color: #c9252d;
-          }
-          .attribute {
-            color: #4646c6;
-          }
-        </style>
       `;
     };
   }
