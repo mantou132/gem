@@ -23,8 +23,8 @@ function initDevToolsHook() {
   };
 }
 
-// only MV2
 if (navigator.userAgent.includes('Firefox')) {
+  // Page CSP
   const script = document.createElement('script');
   script.textContent = `(${initDevToolsHook.toString()})()`;
   document.documentElement.append(script);
