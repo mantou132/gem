@@ -12,6 +12,7 @@ import {
 import { GemElement, html, TemplateResult } from '@mantou/gem/lib/element';
 import { createCSSSheet, css, styleMap, StyleObject } from '@mantou/gem/lib/utils';
 
+import { toggleActiveState, getAssignedElements, getBoundingClientRect } from '../lib/element';
 import { sleep, setBodyInert } from '../lib/utils';
 import { hotkeys } from '../lib/hotkeys';
 import { theme } from '../lib/theme';
@@ -19,24 +20,6 @@ import { theme } from '../lib/theme';
 import './reflect';
 
 const offset = 12;
-
-const getAssignedElements = (ele: HTMLSlotElement): Element[] => {
-  const es = ele!.assignedElements();
-  if (es[0] instanceof HTMLSlotElement) {
-    return getAssignedElements(es[0]);
-  }
-  return es;
-};
-
-const getBoundingClientRect = (eles: Element[]) => {
-  const rects = eles.map((e) => e.getBoundingClientRect());
-  return {
-    top: Math.min(...rects.map((e) => e.top)),
-    left: Math.min(...rects.map((e) => e.left)),
-    right: Math.max(...rects.map((e) => e.right)),
-    bottom: Math.max(...rects.map((e) => e.bottom)),
-  };
-};
 
 const style = createCSSSheet(css`
   :host {
@@ -71,6 +54,11 @@ type Option = {
   trigger?: 'click' | 'hover';
 };
 
+type CloseCallback = {
+  (): void;
+  instance: DuoyunPopoverElement;
+};
+
 /**
  * @customElement dy-popover
  * @attr debug
@@ -92,24 +80,39 @@ export class DuoyunPopoverElement extends GemElement<PopoverState> {
   @emitter open: Emitter<null>;
   @emitter close: Emitter<null>;
 
-  static show = (x: number, y: number, option: Option) => {
+  static show(e: Element, option: Option): CloseCallback;
+  static show(x: number, y: number, option: Option): CloseCallback;
+  static show(xywh: number[], option: Option): CloseCallback;
+  static show(...args: any[]) {
+    const firstArg = args[0];
+    const option = args.pop();
+    const element = firstArg instanceof Element ? firstArg : null;
+    const { left, right, top, bottom } = element
+      ? element.getBoundingClientRect()
+      : firstArg instanceof Array
+        ? { left: firstArg[0], right: firstArg[0] + firstArg[2], top: firstArg[1], bottom: firstArg[1] + firstArg[3] }
+        : { left: firstArg, right: firstArg, top: args[1], bottom: args[1] };
+
+    toggleActiveState(element, true);
     const popover = new DuoyunPopoverElement(option);
     const restoreInert = option.trigger === 'click' ? setBodyInert(popover) : undefined;
     document.body.append(popover);
-    popover.#open({ left: x, right: x, top: y, bottom: y });
+    popover.#open({ left, right, top, bottom });
     // handle mask click
     popover.addEventListener('close', () => {
       restoreInert?.();
       popover.remove();
+      toggleActiveState(element, false);
     });
     const callback = () => {
       restoreInert?.();
       popover.close(null);
       popover.remove();
+      toggleActiveState(element, false);
     };
     callback.instance = popover;
     return callback;
-  };
+  }
 
   ghostStyle: GhostStyle = {
     '--bg': theme.backgroundColor,
@@ -309,7 +312,7 @@ export class DuoyunPopoverElement extends GemElement<PopoverState> {
               <div
                 style=${styleMap({
                   display: this.#isClickTrigger ? 'block' : 'none',
-                  position: 'absolute',
+                  position: 'fixed',
                   zIndex: theme.popupZIndex,
                   inset: '0',
                 })}

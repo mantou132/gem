@@ -45,7 +45,8 @@ const style = createCSSSheet(css`
     border-radius: ${theme.normalRound};
     border: 1px solid transparent;
   }
-  .item:where(:not(.disabled)):hover {
+  .item:where(:not(.disabled)):hover,
+  .item:where(:--active, :state(active)) {
     color: ${theme.highlightColor};
     background-color: ${theme.hoverBackgroundColor};
   }
@@ -112,8 +113,7 @@ export class DuoyunPaginationElement extends GemElement {
       close();
     };
     const openMore = (evt: Event) => {
-      const { width, top, left } = (evt.target as Element).getBoundingClientRect();
-      close = Popover.show(left + width / 2, top, {
+      close = Popover.show(evt.target as Element, {
         trigger: 'click',
         content: html`
           <dy-input-group style="width: 6em">
@@ -132,9 +132,14 @@ export class DuoyunPaginationElement extends GemElement {
       });
     };
     return html`
-      <div class="item more" role="combobox" tabindex="0" @click=${openMore} @keydown=${commonHandle}>
-        <dy-use class="icon" .element=${icons.more}></dy-use>
-      </div>
+      <dy-use
+        class="icon item more"
+        role="combobox"
+        tabindex="0"
+        @click=${openMore}
+        @keydown=${commonHandle}
+        .element=${icons.more}
+      ></dy-use>
     `;
   };
 

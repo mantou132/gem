@@ -8,6 +8,7 @@ import { locale } from '../lib/locale';
 import { setBodyInert } from '../lib/utils';
 import { hotkeys } from '../lib/hotkeys';
 import { theme } from '../lib/theme';
+import { toggleActiveState } from '../lib/element';
 
 import './compartment';
 import './button';
@@ -67,17 +68,6 @@ type OpenMenuOptions = {
 export const menuStore = createStore<MenuStore>({
   menuStack: [],
 });
-
-function toggleActiveState(ele: HTMLElement | undefined | null, active: boolean) {
-  if (!ele) return;
-  if (ele instanceof GemElement) {
-    if ((ele.constructor as typeof GemElement).defineCSSStates?.includes('active')) {
-      (ele as any).active = active;
-    }
-    // button/combobox
-    ele.internals.ariaExpanded = String(active);
-  }
-}
 
 let closeResolve: (value?: any) => void;
 
@@ -327,8 +317,8 @@ export class DuoyunMenuElement extends GemElement {
               maxHeight: openTop
                 ? '20em'
                 : maxHeight && index === 0
-                ? `${maxHeight}`
-                : `calc(100vh - 0.8em - ${y - this.#offset}px)`,
+                  ? `${maxHeight}`
+                  : `calc(100vh - 0.8em - ${y - this.#offset}px)`,
               [openTop ? 'bottom' : 'top']: `${y + this.#offset}px`,
               left: `min(${x}px, calc(100vw - ${calcWidth} - ${2 * this.#offset}px))`,
             })}
