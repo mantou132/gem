@@ -20,7 +20,7 @@ import { groupStyle, Option } from './radio';
 import './use';
 
 const style = createCSSSheet(css`
-  :host {
+  :host(:where(:not([hidden]))) {
     cursor: default;
     display: inline-flex;
     align-items: center;
@@ -141,16 +141,15 @@ export class DuoyunCheckboxGroupElement extends GemElement {
   render = () => {
     if (!this.options) return null;
     return html`${this.options.map(
-      ({ label, value }) =>
-        html`
-          <dy-checkbox
-            ?disabled=${this.disabled}
-            ?checked=${this.#valueSet.has(value ?? label)}
-            @change=${(evt: CustomEvent<boolean>) => this.#onChange(evt, value ?? label)}
-          >
-            ${label}
-          </dy-checkbox>
-        `,
+      ({ label, value }) => html`
+        <dy-checkbox
+          ?disabled=${this.disabled}
+          ?checked=${this.#valueSet.has(value ?? label)}
+          @change=${(evt: CustomEvent<boolean>) => this.#onChange(evt, value ?? label)}
+        >
+          ${label}
+        </dy-checkbox>
+      `,
     )}`;
   };
 }

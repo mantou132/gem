@@ -22,7 +22,7 @@ import './reflect';
 const offset = 12;
 
 const style = createCSSSheet(css`
-  :host {
+  :host(:where(:not([hidden]))) {
     display: contents;
   }
 `);

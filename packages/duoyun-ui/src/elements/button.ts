@@ -25,7 +25,7 @@ import { createHistoryParams, RouteItem } from './route';
 import { MenuItem, ContextMenu } from './menu';
 
 const style = createCSSSheet(css`
-  :host {
+  :host(:where(:not([hidden]))) {
     --color: ${theme.backgroundColor};
     display: inline-flex;
     align-items: stretch;
@@ -35,9 +35,6 @@ const style = createCSSSheet(css`
     font-size: 0.875em;
     border-radius: ${theme.normalRound};
     white-space: nowrap;
-  }
-  :host([hidden]) {
-    display: none;
   }
   .content,
   .dropdown {

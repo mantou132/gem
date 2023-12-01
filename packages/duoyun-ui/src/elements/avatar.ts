@@ -16,7 +16,7 @@ import { Status, getStatusColor } from './status-light';
 import './tooltip';
 
 const style = createCSSSheet(css`
-  :host {
+  :host(:where(:not([hidden]))) {
     cursor: default;
     display: inline-block;
     position: relative;
@@ -130,7 +130,7 @@ export type Avatar = {
 };
 
 const groupStyle = createCSSSheet(css`
-  :host {
+  :host(:where(:not([hidden]))) {
     display: flex;
   }
   .item:not(:first-child) {

@@ -200,7 +200,7 @@ const langAliases: Record<string, string> = {
 };
 
 const style = createCSSSheet(css`
-  :host {
+  :host(:where(:not([hidden]))) {
     position: relative;
     display: block;
     font-size: 0.875em;
@@ -394,16 +394,15 @@ export class DuoyunCodeBlockElement extends GemElement {
     return html`
       ${this.highlight
         ? this.#getRanges(this.highlight).map(
-            ([start, end]) =>
-              html`
-                <span
-                  class="highlight"
-                  style=${styleMap({
-                    top: `${(start - 1) * lineHeight + padding}em`,
-                    height: `${(end - start + 1) * lineHeight}em`,
-                  })}
-                ></span>
-              `,
+            ([start, end]) => html`
+              <span
+                class="highlight"
+                style=${styleMap({
+                  top: `${(start - 1) * lineHeight + padding}em`,
+                  height: `${(end - start + 1) * lineHeight}em`,
+                })}
+              ></span>
+            `,
           )
         : ''}
       <code ref=${this.codeRef.ref} class="code">${this.#getParts(this.textContent || '')}</code>

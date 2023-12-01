@@ -22,7 +22,7 @@ import { ContextMenu, MenuItem } from './menu';
 import './use';
 
 export const pickerStyle = createCSSSheet(css`
-  :host {
+  :host(:where(:not([hidden]))) {
     cursor: pointer;
     display: inline-flex;
     align-items: center;

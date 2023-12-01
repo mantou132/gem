@@ -26,7 +26,7 @@ import './button';
 import './pick';
 
 const style = createCSSSheet(css`
-  :host {
+  :host(:where(:not([hidden]))) {
     display: flex;
     align-items: center;
     font-size: 0.875em;

@@ -10,7 +10,7 @@ import { DuoyunScrollBaseElement } from './base/scroll';
 import './tooltip';
 
 const style = createCSSSheet(css`
-  :host {
+  :host(:where(:not([hidden]))) {
     --color: initial;
     display: flex;
     gap: 1em;
@@ -88,18 +88,17 @@ export class DuoyunLegendElement extends DuoyunScrollBaseElement {
     const currentValue = this.#currentValueSet;
     return html`
       ${this.legends?.map(
-        ({ value, label, tooltip }, index) =>
-          html`
-            <dy-tooltip .content=${tooltip}>
-              <div
-                class=${classMap({ item: true, unselect: !currentValue.has(value ?? label) })}
-                @click=${(e: MouseEvent) => this.#onChange(currentValue, value ?? label, e.metaKey || e.ctrlKey)}
-              >
-                <span style=${styleMap({ color: `var(--color, ${this.colors[index % this.colors.length]})` })}></span>
-                ${label}
-              </div>
-            </dy-tooltip>
-          `,
+        ({ value, label, tooltip }, index) => html`
+          <dy-tooltip .content=${tooltip}>
+            <div
+              class=${classMap({ item: true, unselect: !currentValue.has(value ?? label) })}
+              @click=${(e: MouseEvent) => this.#onChange(currentValue, value ?? label, e.metaKey || e.ctrlKey)}
+            >
+              <span style=${styleMap({ color: `var(--color, ${this.colors[index % this.colors.length]})` })}></span>
+              ${label}
+            </div>
+          </dy-tooltip>
+        `,
       )}
     `;
   };

@@ -10,7 +10,7 @@ import { DuoyunScrollBaseElement } from './base/scroll';
 import './use';
 
 const style = createCSSSheet(css`
-  :host {
+  :host(:where(:not([hidden]))) {
     --size: 1.5em;
     line-height: var(--size);
     display: block;

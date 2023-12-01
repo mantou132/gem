@@ -19,7 +19,7 @@ import './use';
 import './divider';
 
 const style = createCSSSheet(css`
-  :host {
+  :host(:where(:not([hidden]))) {
     display: flex;
     align-items: flex-start;
     background: ${theme.neutralColor};

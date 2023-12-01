@@ -244,7 +244,7 @@ export class GemGestureElement extends GemElement {
   render() {
     return html`
       <style>
-        :host {
+        :host(:where(:not([hidden]))) {
           display: block;
           user-select: none;
           touch-action: ${this.touchAction || 'none'};

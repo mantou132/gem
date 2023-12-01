@@ -25,7 +25,7 @@ import './gesture';
 import './input';
 
 const style = createCSSSheet(css`
-  :host {
+  :host(:where(:not([hidden]))) {
     font-size: 0.875em;
     width: 15em;
     --size: 1em;

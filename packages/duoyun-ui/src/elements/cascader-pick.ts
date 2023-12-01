@@ -133,8 +133,8 @@ export class DuoyunCascaderPickElement extends GemElement {
         ${isEmpty
           ? this.placeholder
           : this.multiple
-          ? this.#renderMultipleValue(this.value as (string | number)[][])
-          : this.#renderValue(this.value as (string | number)[])}
+            ? this.#renderMultipleValue(this.value as (string | number)[][])
+            : this.#renderValue(this.value as (string | number)[])}
       </div>
       <dy-use class="icon" .element=${icons.expand}></dy-use>
     `;

@@ -12,7 +12,7 @@ import './tooltip';
 import './action-text';
 
 const style = createCSSSheet(css`
-  :host {
+  :host(:where(:not([hidden]))) {
     display: flex;
     align-items: center;
     gap: 0.3em;

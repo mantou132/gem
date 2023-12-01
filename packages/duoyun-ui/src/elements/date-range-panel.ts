@@ -12,7 +12,7 @@ import './action-text';
 import './divider';
 
 const style = createCSSSheet(css`
-  :host {
+  :host(:where(:not([hidden]))) {
     display: flex;
     align-items: flex-start;
   }
@@ -101,8 +101,8 @@ export class DuoyunDateRangePanelElement extends GemElement<State> {
         .initValue=${isNullish(start)
           ? new Time().subtract(1, 'M').valueOf()
           : isSomeMonth
-          ? new Time(start).subtract(1, 'M').valueOf()
-          : undefined}
+            ? new Time(start).subtract(1, 'M').valueOf()
+            : undefined}
       ></dy-date-panel>
       <dy-divider class="separate" orientation="vertical"></dy-divider>
       <dy-date-panel

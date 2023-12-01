@@ -23,7 +23,7 @@ import './button';
 import './more';
 
 const style = createCSSSheet(css`
-  :host {
+  :host(:where(:not([hidden]))) {
     display: block;
     width: 100%;
     aspect-ratio: 20 / 7;
@@ -202,10 +202,11 @@ export class DuoyunCarouselElement extends GemElement<State> {
   };
 
   #oMouseEnter = (evt: Event) => {
-    this.#waitLeave = new Promise((res) =>
-      evt.target?.addEventListener('mouseleave', () => res(), {
-        once: true,
-      }),
+    this.#waitLeave = new Promise(
+      (res) =>
+        evt.target?.addEventListener('mouseleave', () => res(), {
+          once: true,
+        }),
     );
   };
 
@@ -292,16 +293,15 @@ export class DuoyunCarouselElement extends GemElement<State> {
       </ul>
       <div part=${DuoyunCarouselElement.nav} class="nav">
         ${this.data?.map(
-          (_, index) =>
-            html`
-              <div
-                tabindex="0"
-                role="button"
-                @keydown=${commonHandle}
-                @click=${() => this.jump(index)}
-                class=${classMap({ circle: true, current: index === currentIndex })}
-              ></div>
-            `,
+          (_, index) => html`
+            <div
+              tabindex="0"
+              role="button"
+              @keydown=${commonHandle}
+              @click=${() => this.jump(index)}
+              class=${classMap({ circle: true, current: index === currentIndex })}
+            ></div>
+          `,
         )}
       </div>
     `;

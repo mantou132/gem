@@ -8,7 +8,7 @@ import { isNotNullish } from '../lib/types';
 import { locale } from '../lib/locale';
 
 const style = createCSSSheet(css`
-  :host {
+  :host(:where(:not([hidden]))) {
     display: grid;
     grid-template: 'hour minute second' / 1fr 1fr 1fr;
     gap: 1px;
@@ -80,41 +80,38 @@ export class DuoyunTimePanelElement extends GemElement {
       <div>${locale.second}</div>
       <div class="scrollbar">
         ${this.#toArr(24).map(
-          (h) =>
-            html`
-              <div
-                class=${classMap({ cell: true, checked: isNotNullish(h) && Number(hour) === h })}
-                @click=${() => this.#onHourClick(h)}
-              >
-                ${this.#toString(h)}
-              </div>
-            `,
+          (h) => html`
+            <div
+              class=${classMap({ cell: true, checked: isNotNullish(h) && Number(hour) === h })}
+              @click=${() => this.#onHourClick(h)}
+            >
+              ${this.#toString(h)}
+            </div>
+          `,
         )}
       </div>
       <div class="scrollbar">
         ${this.#toArr(60).map(
-          (m) =>
-            html`
-              <div
-                class=${classMap({ cell: true, checked: isNotNullish(m) && Number(minute) === m })}
-                @click=${() => this.#onMinuteClick(m)}
-              >
-                ${this.#toString(m)}
-              </div>
-            `,
+          (m) => html`
+            <div
+              class=${classMap({ cell: true, checked: isNotNullish(m) && Number(minute) === m })}
+              @click=${() => this.#onMinuteClick(m)}
+            >
+              ${this.#toString(m)}
+            </div>
+          `,
         )}
       </div>
       <div class="scrollbar">
         ${this.#toArr(60).map(
-          (s) =>
-            html`
-              <div
-                class=${classMap({ cell: true, checked: isNotNullish(s) && Number(second) === s })}
-                @click=${() => this.#onSecondClick(s)}
-              >
-                ${this.#toString(s)}
-              </div>
-            `,
+          (s) => html`
+            <div
+              class=${classMap({ cell: true, checked: isNotNullish(s) && Number(second) === s })}
+              @click=${() => this.#onSecondClick(s)}
+            >
+              ${this.#toString(s)}
+            </div>
+          `,
         )}
       </div>
     `;

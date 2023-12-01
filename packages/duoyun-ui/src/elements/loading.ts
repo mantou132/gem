@@ -9,7 +9,7 @@ import { DuoyunVisibleBaseElement } from './base/visible';
 import './use';
 
 const style = createCSSSheet(css`
-  :host {
+  :host(:where(:not([hidden]))) {
     position: relative;
     display: inline-flex;
     align-items: center;

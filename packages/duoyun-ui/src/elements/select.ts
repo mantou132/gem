@@ -40,7 +40,7 @@ const style = createCSSSheet(css`
     background: none;
     border-color: ${theme.textColor};
   }
-  :host([inline]) {
+  :host(:where([inline]:not([hidden]))) {
     display: contents;
     font-size: 1em;
     border-color: ${theme.textColor};
@@ -166,8 +166,8 @@ export class DuoyunSelectElement extends GemElement<State> {
     return this.multiple && Array.isArray(this.value)
       ? this.value
       : isNotNullish(this.value)
-      ? [this.value]
-      : undefined;
+        ? [this.value]
+        : undefined;
   }
 
   constructor() {
@@ -397,8 +397,8 @@ export class DuoyunSelectElement extends GemElement<State> {
                                     </dy-tag>
                                   `
                                 : this.renderTag
-                                ? this.renderTag(this.#valueOptions![index])
-                                : label,
+                                  ? this.renderTag(this.#valueOptions![index])
+                                  : label,
                             )}
                           `
                         : this.#valueOptions![0].label}

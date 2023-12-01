@@ -30,7 +30,7 @@ export interface MarkLine {
 }
 
 const style = createCSSSheet(css`
-  :host {
+  :host(:where(:not([hidden]))) {
     display: flex;
     flex-direction: column;
     align-items: center;

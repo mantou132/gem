@@ -145,8 +145,8 @@ export class GemLinkElement extends GemElement {
           this.hint === 'off'
             ? undefined
             : this.isExternal(pathInfo)
-            ? pathInfo
-            : new URL(history.basePath + pathInfo, location.origin).toString(),
+              ? pathInfo
+              : new URL(history.basePath + pathInfo, location.origin).toString(),
         )}
       >
         <slot></slot>

@@ -13,7 +13,7 @@ import './use';
 import './input';
 
 const style = createCSSSheet(css`
-  :host {
+  :host(:where(:not([hidden]))) {
     cursor: default;
     font-size: 0.875em;
     display: flex;

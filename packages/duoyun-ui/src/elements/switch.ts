@@ -14,7 +14,7 @@ import { commonHandle } from '../lib/hotkeys';
 import { focusStyle } from '../lib/styles';
 
 const style = createCSSSheet(css`
-  :host {
+  :host(:where(:not([hidden]))) {
     --color: ${theme.borderColor};
     cursor: default;
     display: inline-flex;

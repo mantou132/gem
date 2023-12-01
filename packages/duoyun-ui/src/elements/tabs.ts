@@ -23,7 +23,7 @@ import './compartment';
 import './divider';
 
 const style = createCSSSheet(css`
-  :host {
+  :host(:where(:not([hidden]))) {
     display: flex;
     flex-direction: column;
   }
@@ -168,7 +168,7 @@ export class DuoyunTabsElement extends GemElement {
 }
 
 const panelStyle = createCSSSheet(css`
-  :host {
+  :host(:where(:not([hidden]))) {
     display: block;
     flex-shrink: 1;
     flex-grow: 1;

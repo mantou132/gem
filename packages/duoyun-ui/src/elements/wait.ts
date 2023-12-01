@@ -9,7 +9,7 @@ import { commonAnimationOptions, fadeIn, fadeOut } from '../lib/animations';
 import './loading';
 
 const style = createCSSSheet(css`
-  :host {
+  :host(:where(:not([hidden]))) {
     view-transition-name: dy-wait;
     position: fixed;
     z-index: ${theme.popupZIndex};

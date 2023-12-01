@@ -19,7 +19,7 @@ import './popover';
 import './color-panel';
 
 const style = createCSSSheet(css`
-  :host {
+  :host(:where(:not([hidden]))) {
     cursor: pointer;
     display: inline-flex;
     font-size: 0.875em;

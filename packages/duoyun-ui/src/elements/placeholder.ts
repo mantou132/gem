@@ -7,11 +7,11 @@ import { theme } from '../lib/theme';
 import { DuoyunVisibleBaseElement } from './base/visible';
 
 const style = createCSSSheet(css`
-  :host {
+  :host(:where(:not([hidden]))) {
     display: block;
     flex-grow: 1;
   }
-  :host(:not([mode='multi'])) {
+  :host(:where(:not([mode='multi']):not([hidden]))) {
     display: flex;
     align-content: center;
   }
@@ -70,17 +70,16 @@ export class DuoyunPlaceholderElement extends DuoyunVisibleBaseElement {
     return html`${Array(lineCount)
       .fill(null)
       .map(
-        (_, index) =>
-          html`
-            <div
-              class="content"
-              style=${styleMap({
-                width: index === lineCount - 1 ? this.width || `${50 + Math.random() * 50}%` : 'auto',
-              })}
-            >
-              &ZeroWidthSpace;
-            </div>
-          `,
+        (_, index) => html`
+          <div
+            class="content"
+            style=${styleMap({
+              width: index === lineCount - 1 ? this.width || `${50 + Math.random() * 50}%` : 'auto',
+            })}
+          >
+            &ZeroWidthSpace;
+          </div>
+        `,
       )}`;
   };
 }

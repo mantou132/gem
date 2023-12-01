@@ -83,7 +83,7 @@ export const shapes = [
 ];
 
 const style = createCSSSheet(css`
-  :host {
+  :host(:where(:not([hidden]))) {
     display: block;
     border-radius: ${theme.normalRound};
     background-color: ${theme.lightBackgroundColor};

@@ -17,7 +17,7 @@ import { commonHandle } from '../lib/hotkeys';
 import { focusStyle } from '../lib/styles';
 
 const style = createCSSSheet(css`
-  :host {
+  :host(:where(:not([hidden]))) {
     font-size: 0.875em;
     display: grid;
     gap: 1px;
@@ -176,57 +176,55 @@ export class DuoyunCalendarElement extends GemElement {
   render = () => {
     return html`
       ${this.#dates.slice(0, 7).map(
-        ({ date }, index) =>
-          html`
-            <div
-              class="head"
-              part=${partMap({
-                [DuoyunCalendarElement.headerRow]: true,
-                [DuoyunCalendarElement.headerLeftCell]: index === 0,
-                [DuoyunCalendarElement.headerRightCell]: index === 6,
-              })}
-            >
-              ${date.format({ weekday: 'narrow' })}
-            </div>
-          `,
+        ({ date }, index) => html`
+          <div
+            class="head"
+            part=${partMap({
+              [DuoyunCalendarElement.headerRow]: true,
+              [DuoyunCalendarElement.headerLeftCell]: index === 0,
+              [DuoyunCalendarElement.headerRightCell]: index === 6,
+            })}
+          >
+            ${date.format({ weekday: 'narrow' })}
+          </div>
+        `,
       )}
       ${this.#dates.map(
-        ({ date, isThisMonth, isToday }, index, arr) =>
-          html`
-            <div
-              tabindex="0"
-              role="button"
-              part=${partMap({
-                [DuoyunCalendarElement.dayCell]: true,
-                [DuoyunCalendarElement.todayCell]: !!isToday,
-                [DuoyunCalendarElement.otherDayCell]: !isThisMonth,
-                [DuoyunCalendarElement.leftTopCell]: index === 0,
-                [DuoyunCalendarElement.rightTopCell]: index === 6,
-                [DuoyunCalendarElement.leftBottomCell]: index === arr.length - 7,
-                [DuoyunCalendarElement.rightBottomCell]: index === arr.length - 1,
-              })}
-              class=${classMap({
-                day: true,
-                leftbottom: index === arr.length - 7,
-                ...(isThisMonth
-                  ? {
-                      today: this.today && !!isToday,
-                      start: !!this.highlights?.some(([d]) => date.isSome(d, 'd')),
-                      stop: !!this.highlights?.some((ds) => date.isSome(ds[ds.length - 1], 'd')),
-                      highlight: this.#isHighlight(date),
-                    }
-                  : {
-                      other: true,
-                    }),
-              })}
-              @click=${() => this.dateclick(date.valueOf())}
-              @mouseover=${() => this.datehover(date.valueOf())}
-              @keydown=${commonHandle}
-            >
-              <span part=${partMap({ date: true, todaydate: !!isToday })}>${date.getDate()}</span>
-              ${this.renderDate?.(date)}
-            </div>
-          `,
+        ({ date, isThisMonth, isToday }, index, arr) => html`
+          <div
+            tabindex="0"
+            role="button"
+            part=${partMap({
+              [DuoyunCalendarElement.dayCell]: true,
+              [DuoyunCalendarElement.todayCell]: !!isToday,
+              [DuoyunCalendarElement.otherDayCell]: !isThisMonth,
+              [DuoyunCalendarElement.leftTopCell]: index === 0,
+              [DuoyunCalendarElement.rightTopCell]: index === 6,
+              [DuoyunCalendarElement.leftBottomCell]: index === arr.length - 7,
+              [DuoyunCalendarElement.rightBottomCell]: index === arr.length - 1,
+            })}
+            class=${classMap({
+              day: true,
+              leftbottom: index === arr.length - 7,
+              ...(isThisMonth
+                ? {
+                    today: this.today && !!isToday,
+                    start: !!this.highlights?.some(([d]) => date.isSome(d, 'd')),
+                    stop: !!this.highlights?.some((ds) => date.isSome(ds[ds.length - 1], 'd')),
+                    highlight: this.#isHighlight(date),
+                  }
+                : {
+                    other: true,
+                  }),
+            })}
+            @click=${() => this.dateclick(date.valueOf())}
+            @mouseover=${() => this.datehover(date.valueOf())}
+            @keydown=${commonHandle}
+          >
+            <span part=${partMap({ date: true, todaydate: !!isToday })}>${date.getDate()}</span>
+            ${this.renderDate?.(date)}
+          </div>
+        `,
       )}
     `;
   };

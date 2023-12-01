@@ -18,7 +18,7 @@ export class GemUnsafeElement extends GemElement {
         if (this.shadowRoot) {
           this.shadowRoot.innerHTML = `
             <style>
-              :host {
+              :host(:where(:not([hidden]))) {
                 display: contents;
               }
               ${this.contentcss}

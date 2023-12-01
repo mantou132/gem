@@ -19,7 +19,7 @@ import { focusStyle } from '../lib/styles';
 import './paragraph';
 
 const style = createCSSSheet(css`
-  :host {
+  :host(:where(:not([hidden]))) {
     display: inline-flex;
     align-items: center;
     font-size: 0.875em;

@@ -72,7 +72,7 @@ export const menuStore = createStore<MenuStore>({
 let closeResolve: (value?: any) => void;
 
 const style = createCSSSheet(css`
-  :host {
+  :host(:where(:not([hidden]))) {
     display: block;
     position: fixed;
     z-index: calc(${theme.popupZIndex} + 2);

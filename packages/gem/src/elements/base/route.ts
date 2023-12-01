@@ -236,7 +236,7 @@ export class GemRouteElement extends GemElement<State> {
 
     return html`
       <style>
-        :host,
+        :host(:where(:not([hidden]))),
         :not(:defined) {
           display: contents;
         }

@@ -15,7 +15,7 @@ import { commonHandle } from '../lib/hotkeys';
 import { focusStyle } from '../lib/styles';
 
 const style = createCSSSheet(css`
-  :host {
+  :host(:where(:not([hidden]))) {
     cursor: default;
     display: inline-flex;
     align-items: center;
@@ -89,7 +89,7 @@ export class DuoyunRadioElement extends GemElement {
 }
 
 export const groupStyle = createCSSSheet(css`
-  :host {
+  :host(:where(:not([hidden]))) {
     display: flex;
     align-items: center;
     flex-wrap: wrap;
@@ -134,17 +134,16 @@ export class DuoyunRadioGroupElement extends GemElement {
   render = () => {
     if (!this.options) return null;
     return html`${this.options.map(
-      ({ label, value }) =>
-        html`
-          <dy-radio
-            ?disabled=${this.disabled}
-            .value=${value ?? label}
-            ?checked=${(value ?? label) === this.value}
-            @change=${this.#onChange}
-          >
-            ${label}
-          </dy-radio>
-        `,
+      ({ label, value }) => html`
+        <dy-radio
+          ?disabled=${this.disabled}
+          .value=${value ?? label}
+          ?checked=${(value ?? label) === this.value}
+          @change=${this.#onChange}
+        >
+          ${label}
+        </dy-radio>
+      `,
     )}`;
   };
 }

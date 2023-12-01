@@ -11,7 +11,7 @@ import { focusStyle } from '../lib/styles';
 import './use';
 
 const panelStyle = createCSSSheet(css`
-  :host {
+  :host(:where(:not([hidden]))) {
     display: block;
     border-block-start: 1px solid ${theme.borderColor};
   }
@@ -92,7 +92,7 @@ export class DuoyunCollapsePanelElement extends GemElement<State> {
 }
 
 const style = createCSSSheet(css`
-  dy-collapse {
+  dy-collapse:where(:not([hidden])) {
     display: block;
     overflow: hidden;
     border-radius: ${theme.normalRound};

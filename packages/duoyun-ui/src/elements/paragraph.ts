@@ -5,16 +5,15 @@ import { createCSSSheet, css } from '@mantou/gem/lib/utils';
 import { theme } from '../lib/theme';
 
 const style = createCSSSheet(css`
-  dy-paragraph {
+  :where(dy-paragraph:not([hidden])) {
     display: block;
     margin-block-end: 0.75em;
     line-height: 1.5;
   }
-  dy-paragraph:where(:lang(zh), :lang(ja), :lang(kr)) {
+  :where(dy-paragraph):where(:lang(zh), :lang(ja), :lang(kr)) {
     line-height: 1.7;
   }
-  gem-link,
-  dy-link {
+  :where(gem-link, dy-link):where(:not([hidden])) {
     display: inline-block;
     color: ${theme.primaryColor};
     text-decoration: underline;

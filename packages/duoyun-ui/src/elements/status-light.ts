@@ -6,7 +6,7 @@ import { theme, getSemanticColor } from '../lib/theme';
 import { StringList } from '../lib/types';
 
 const style = createCSSSheet(css`
-  :host {
+  :host(:where(:not([hidden]))) {
     display: inline-flex;
     align-items: center;
     gap: 0.6em;

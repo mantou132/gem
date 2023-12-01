@@ -7,7 +7,7 @@ import { DuoyunResizeBaseElement } from './resize';
 const PIXEL_DEVIATION = 0.1;
 
 const style = createCSSSheet(css`
-  :host {
+  :host(:where(:not([hidden]))) {
     display: block;
     overflow: auto;
     scrollbar-width: none;

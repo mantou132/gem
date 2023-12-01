@@ -20,7 +20,7 @@ import './use';
 import '../elements/tooltip';
 
 const style = createCSSSheet(css`
-  :host {
+  :host(:where(:not([hidden]))) {
     position: relative;
     display: flex;
     gap: 0.5em;

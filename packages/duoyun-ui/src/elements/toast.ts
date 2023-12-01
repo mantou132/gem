@@ -8,7 +8,7 @@ import { theme } from '../lib/theme';
 import './use';
 
 const style = createCSSSheet(css`
-  :host {
+  :host(:where(:not([hidden]))) {
     z-index: ${theme.popupZIndex};
     position: fixed;
     display: flex;

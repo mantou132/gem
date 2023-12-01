@@ -13,7 +13,7 @@ import { createCSSSheet, css } from '@mantou/gem/lib/utils';
 import { theme } from '../lib/theme';
 
 const style = createCSSSheet(css`
-  :host {
+  :host(:where(:not([hidden]))) {
     display: block;
     position: relative;
   }

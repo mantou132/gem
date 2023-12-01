@@ -24,7 +24,7 @@ import './action-text';
 import './time-panel';
 
 const style = createCSSSheet(css`
-  :host {
+  :host(:where(:not([hidden]))) {
     font-size: 0.875em;
     display: flex;
     border: 1px solid ${theme.borderColor};
@@ -234,23 +234,22 @@ export class DuoyunDatePanelElement extends GemElement<State> {
     return html`
       <div class="list">
         ${Array.from({ length: 12 }).map(
-          (_, index) =>
-            html`
-              <span
-                class=${classMap({
-                  item: true,
-                  highlight: isCurrentYear && index === this.state.month,
-                })}
-                @click=${() => this.#onChangeView({ month: index })}
-              >
-                ${Object.fromEntries(
-                  new Time(start)
-                    .add(index, 'M')
-                    .formatToParts()
-                    .map(({ type, value }) => [type, value]),
-                ).month}
-              </span>
-            `,
+          (_, index) => html`
+            <span
+              class=${classMap({
+                item: true,
+                highlight: isCurrentYear && index === this.state.month,
+              })}
+              @click=${() => this.#onChangeView({ month: index })}
+            >
+              ${Object.fromEntries(
+                new Time(start)
+                  .add(index, 'M')
+                  .formatToParts()
+                  .map(({ type, value }) => [type, value]),
+              ).month}
+            </span>
+          `,
         )}
       </div>
     `;
@@ -261,18 +260,17 @@ export class DuoyunDatePanelElement extends GemElement<State> {
     return html`
       <div class="list">
         ${Array.from({ length: 12 }, (_, index) => this.state.year - 7 + index).map(
-          (year) =>
-            html`
-              <span
-                class=${classMap({
-                  item: true,
-                  highlight: currentYear === year,
-                })}
-                @click=${() => this.#onChangeView({ year })}
-              >
-                ${year}
-              </span>
-            `,
+          (year) => html`
+            <span
+              class=${classMap({
+                item: true,
+                highlight: currentYear === year,
+              })}
+              @click=${() => this.#onChangeView({ year })}
+            >
+              ${year}
+            </span>
+          `,
         )}
       </div>
     `;

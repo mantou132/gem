@@ -41,7 +41,7 @@ export type TreeItem = {
 };
 
 const itemStyle = createCSSSheet(css`
-  :host {
+  :host(:where(:not([hidden]))) {
     display: flex;
     align-items: center;
     gap: 0.3em;
@@ -119,7 +119,7 @@ type State = {
 };
 
 const style = createCSSSheet(css`
-  :host {
+  :host(:where(:not([hidden]))) {
     display: block;
     font-size: 0.875em;
   }

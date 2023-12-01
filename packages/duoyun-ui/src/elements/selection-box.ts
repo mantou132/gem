@@ -7,7 +7,7 @@ import { theme } from '../lib/theme';
 import './reflect';
 
 const style = createCSSSheet(css`
-  :host {
+  :host(:where(:not([hidden]))) {
     display: contents;
   }
 `);

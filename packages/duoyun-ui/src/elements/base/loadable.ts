@@ -7,7 +7,7 @@ import { theme } from '../../lib/theme';
 import '../loading';
 
 const maskStyle = createCSSSheet(css`
-  :host {
+  :host(:where(:not([hidden]))) {
     position: absolute;
     z-index: ${theme.popupZIndex};
     inset: 0;
@@ -38,7 +38,7 @@ export class DuoyunLoadableMaskElement extends GemElement {
 }
 
 const style = createCSSSheet(css`
-  :host {
+  :host(:where(:not([hidden]))) {
     display: block;
     position: relative;
     z-index: 1;

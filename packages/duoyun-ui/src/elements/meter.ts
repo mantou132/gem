@@ -7,7 +7,7 @@ import { theme, getSemanticColor } from '../lib/theme';
 import type { StringList } from '../lib/types';
 
 const style = createCSSSheet(css`
-  :host {
+  :host(:where(:not([hidden]))) {
     font-size: 0.875em;
     width: 15em;
     display: inline-flex;

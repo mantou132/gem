@@ -25,7 +25,7 @@ import './use';
 import './image-preview';
 
 const style = createCSSSheet(css`
-  :host {
+  :host(:where(:not([hidden]))) {
     font-size: 0.875em;
     display: flex;
     flex-direction: column;
@@ -74,7 +74,7 @@ const style = createCSSSheet(css`
   .button:hover {
     border-color: ${theme.textColor};
   }
-  :host([type='image']) {
+  :host([type='image']:where(:not([hidden]))) {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(5em, 1fr));
     grid-template-rows: max-content;

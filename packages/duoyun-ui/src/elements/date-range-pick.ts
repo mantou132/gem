@@ -130,16 +130,15 @@ export class DuoyunDateRangePickElement extends GemElement {
         <div class="footer">
           <div class="quick">
             ${this.quickRanges?.map(
-              ({ label, value }) =>
-                html`
-                  <dy-action-text
-                    class=${classMap({ 'quick-item': true })}
-                    .active=${this.value === value}
-                    @click=${() => onQuick(value)}
-                  >
-                    ${label}
-                  </dy-action-text>
-                `,
+              ({ label, value }) => html`
+                <dy-action-text
+                  class=${classMap({ 'quick-item': true })}
+                  .active=${this.value === value}
+                  @click=${() => onQuick(value)}
+                >
+                  ${label}
+                </dy-action-text>
+              `,
             )}
           </div>
           <dy-button disabled @click=${onSubmit} small>${locale.ok}</dy-button>

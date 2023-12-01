@@ -65,7 +65,7 @@ export class DuoyunKeyboardAccessElement extends GemElement<State> {
   @part static kbd: string;
   @attribute activekey: string;
 
-  get #activekey() {
+  get #activeKey() {
     return this.activekey || 'f';
   }
 
@@ -126,7 +126,7 @@ export class DuoyunKeyboardAccessElement extends GemElement<State> {
         .map((element) => {
           const { top, left, right, bottom, width, height } = element.getBoundingClientRect();
           if (
-            (element as any).disabeld ||
+            (element as any).disabled ||
             element.inert ||
             element.tabIndex < 0 ||
             !width ||
@@ -164,13 +164,13 @@ export class DuoyunKeyboardAccessElement extends GemElement<State> {
     this.#preventEvent(evt);
   };
 
-  #onInavtive = (evt: KeyboardEvent) => {
+  #onInactive = (evt: KeyboardEvent) => {
     if (!this.state.active) return;
     this.setState({ active: false });
     this.#preventEvent(evt);
   };
 
-  #onCancal = () => {
+  #onCancel = () => {
     if (!this.state.active) return;
     unlock();
     this.setState({ active: false });
@@ -179,12 +179,12 @@ export class DuoyunKeyboardAccessElement extends GemElement<State> {
   #onKeydown = (evt: KeyboardEvent) => {
     if (this.#isInputTarget(evt)) return;
     hotkeys({
-      [this.#activekey]: this.#onActive,
+      [this.#activeKey]: this.#onActive,
       j: () => document.body.scrollBy(0, -innerHeight / 3),
       k: () => document.body.scrollBy(0, innerHeight / 3),
       h: () => document.body.scrollBy(0, -innerHeight),
       l: () => document.body.scrollBy(0, innerHeight),
-      esc: this.#onInavtive,
+      esc: this.#onInactive,
     })(evt);
   };
 
@@ -203,10 +203,10 @@ export class DuoyunKeyboardAccessElement extends GemElement<State> {
       () => [this.state.active],
     );
     addEventListener('keydown', this.#onKeydown, { capture: true });
-    addEventListener('pointerdown', this.#onCancal);
+    addEventListener('pointerdown', this.#onCancel);
     return () => {
       removeEventListener('keydown', this.#onKeydown, { capture: true });
-      removeEventListener('pointerdown', this.#onCancal);
+      removeEventListener('pointerdown', this.#onCancel);
     };
   };
 
@@ -216,20 +216,19 @@ export class DuoyunKeyboardAccessElement extends GemElement<State> {
     return html`
       <dy-paragraph class="container">
         ${focusableElements.map(
-          ({ key, left, top }) =>
-            html`
-              <kbd
-                part=${DuoyunKeyboardAccessElement.kbd}
-                class="key"
-                style=${styleMap({
-                  left: `${left}px`,
-                  top: `${top}px`,
-                  display: waiting && key.length === 1 ? 'none' : undefined,
-                })}
-              >
-                ${[...key].map((char, index) => (waiting && !index ? '' : html`<span>${char}</span>`))}
-              </kbd>
-            `,
+          ({ key, left, top }) => html`
+            <kbd
+              part=${DuoyunKeyboardAccessElement.kbd}
+              class="key"
+              style=${styleMap({
+                left: `${left}px`,
+                top: `${top}px`,
+                display: waiting && key.length === 1 ? 'none' : undefined,
+              })}
+            >
+              ${[...key].map((char, index) => (waiting && !index ? '' : html`<span>${char}</span>`))}
+            </kbd>
+          `,
         )}
       </dy-paragraph>
     `;

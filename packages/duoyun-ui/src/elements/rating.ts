@@ -21,7 +21,7 @@ import './use';
 const starUrl = createDataURLFromSVG(icons.star);
 
 const style = createCSSSheet(css`
-  :host {
+  :host(:where(:not([hidden]))) {
     display: inline-flex;
     flex-direction: row-reverse;
     align-items: center;
@@ -105,20 +105,19 @@ export class DuoyunRatingElement extends GemElement {
       </style>
       ${Array.from(
         { length: this.#total },
-        (_, index) =>
-          html`
-            <dy-use
-              class=${classMap({
-                icon: true,
-                fill: this.value >= this.#total - index,
-                mask: this.value < this.#total - index && this.value > this.#total - 1 - index,
-              })}
-              tabindex="0"
-              @keydown=${commonHandle}
-              @click=${() => this.#onClick(this.#total - index)}
-              .element=${icons.star}
-            ></dy-use>
-          `,
+        (_, index) => html`
+          <dy-use
+            class=${classMap({
+              icon: true,
+              fill: this.value >= this.#total - index,
+              mask: this.value < this.#total - index && this.value > this.#total - 1 - index,
+            })}
+            tabindex="0"
+            @keydown=${commonHandle}
+            @click=${() => this.#onClick(this.#total - index)}
+            .element=${icons.star}
+          ></dy-use>
+        `,
       )}
     `;
   };

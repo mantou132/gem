@@ -32,15 +32,12 @@ import './space';
 import './selection-box';
 
 const style = createCSSSheet(css`
-  :host {
+  :host(:where(:not([hidden]))) {
     display: block;
     overflow: auto;
     font-size: 0.875em;
     font-variant-numeric: tabular-nums;
     border-radius: ${theme.normalRound};
-  }
-  :host([hidden]) {
-    display: none;
   }
   table {
     cursor: default;
@@ -266,14 +263,13 @@ export class DuoyunTableElement extends GemElement {
   #expandedColumn: Column<any> = {
     title: '',
     width: this.#iconColWidth,
-    render: (record) =>
-      html`
-        <dy-use
-          class="action"
-          @click=${() => this.#toggleExpand(record)}
-          .element=${this.#expandedMap.get(this.#getKey(record)) ? icons.expand : icons.right}
-        ></dy-use>
-      `,
+    render: (record) => html`
+      <dy-use
+        class="action"
+        @click=${() => this.#toggleExpand(record)}
+        .element=${this.#expandedMap.get(this.#getKey(record)) ? icons.expand : icons.right}
+      ></dy-use>
+    `,
   };
 
   #getDefaultStyle = (width?: string): StyleObject => {
@@ -336,88 +332,87 @@ export class DuoyunTableElement extends GemElement {
             `}
         <tbody>
           ${this.data?.map(
-            (record, _rowIndex, _data, colSpanMemo = [0]) =>
-              html`
-                <tr
-                  @click=${() => this.#onItemClick(record)}
-                  @contextmenu=${(evt: MouseEvent) => this.#onItemContextMenu(evt, record)}
-                  part=${DuoyunTableElement.tr}
-                  class=${classMap({ selected: this.#selectionSet.has(this.#getKey(record)) })}
-                  style=${this.getRowStyle ? styleMap(this.getRowStyle(record)) : ''}
-                >
-                  ${columns.map(
-                    (
-                      {
-                        dataIndex,
-                        render,
-                        getActions,
-                        width,
-                        style = this.#getDefaultStyle(width),
-                        getRowspan,
-                        getColspan,
-                        ellipsis = false,
-                      },
-                      colIndex,
-                      _arr,
-                      rowShouldRender = this.#shouldRenderTd(rowSpanMemo, colIndex),
-                      rowSpan = rowShouldRender
-                        ? this.#getSpan(rowSpanMemo, colIndex, getRowspan?.(record, this.data!))
-                        : 1,
-                      colShouldRender = this.#shouldRenderTd(colSpanMemo, 0),
-                      colSpan = colShouldRender ? this.#getSpan(colSpanMemo, 0, getColspan?.(record, this.data!)) : 1,
-                    ) =>
-                      rowShouldRender && colShouldRender
-                        ? html`
-                            <td
-                              class=${classMap({ placeholder: !record, ellipsis })}
-                              style=${styleMap(style)}
-                              part=${DuoyunTableElement.td}
-                              rowspan=${rowSpan}
-                              colspan=${colSpan}
-                            >
-                              ${!record
-                                ? html`<dy-placeholder ?center=${style.textAlign === 'center'}></dy-placeholder>`
-                                : render
+            (record, _rowIndex, _data, colSpanMemo = [0]) => html`
+              <tr
+                @click=${() => this.#onItemClick(record)}
+                @contextmenu=${(evt: MouseEvent) => this.#onItemContextMenu(evt, record)}
+                part=${DuoyunTableElement.tr}
+                class=${classMap({ selected: this.#selectionSet.has(this.#getKey(record)) })}
+                style=${this.getRowStyle ? styleMap(this.getRowStyle(record)) : ''}
+              >
+                ${columns.map(
+                  (
+                    {
+                      dataIndex,
+                      render,
+                      getActions,
+                      width,
+                      style = this.#getDefaultStyle(width),
+                      getRowspan,
+                      getColspan,
+                      ellipsis = false,
+                    },
+                    colIndex,
+                    _arr,
+                    rowShouldRender = this.#shouldRenderTd(rowSpanMemo, colIndex),
+                    rowSpan = rowShouldRender
+                      ? this.#getSpan(rowSpanMemo, colIndex, getRowspan?.(record, this.data!))
+                      : 1,
+                    colShouldRender = this.#shouldRenderTd(colSpanMemo, 0),
+                    colSpan = colShouldRender ? this.#getSpan(colSpanMemo, 0, getColspan?.(record, this.data!)) : 1,
+                  ) =>
+                    rowShouldRender && colShouldRender
+                      ? html`
+                          <td
+                            class=${classMap({ placeholder: !record, ellipsis })}
+                            style=${styleMap(style)}
+                            part=${DuoyunTableElement.td}
+                            rowspan=${rowSpan}
+                            colspan=${colSpan}
+                          >
+                            ${!record
+                              ? html`<dy-placeholder ?center=${style.textAlign === 'center'}></dy-placeholder>`
+                              : render
                                 ? render(record)
                                 : getActions
-                                ? html`
-                                    <dy-use
-                                      class="action"
-                                      tabindex="0"
-                                      role="button"
-                                      aria-label="Actions"
-                                      .element=${icons.more}
-                                      @keydown=${commonHandle}
-                                      @click=${(evt: PointerEvent) =>
-                                        this.#openActions(evt, getActions(record, evt.target as HTMLElement))}
-                                    ></dy-use>
-                                  `
-                                : dataIndex
-                                ? readProp(record, dataIndex)
-                                : ''}
-                            </td>
-                          `
-                        : '',
-                  )}
-                </tr>
-                ${this.expandedRowRender && this.#expandedMap.get(this.#getKey(record))
-                  ? html`
-                      <tr>
-                        <td style=${styleMap({ padding: `0 0 0 ${this.#iconColWidth}` })} colspan=${columns.length}>
-                          ${this.expandedRowRender(record) || html`<dy-loading></dy-loading>`}
-                        </td>
-                      </tr>
-                    `
-                  : ''}
-              `,
+                                  ? html`
+                                      <dy-use
+                                        class="action"
+                                        tabindex="0"
+                                        role="button"
+                                        aria-label="Actions"
+                                        .element=${icons.more}
+                                        @keydown=${commonHandle}
+                                        @click=${(evt: PointerEvent) =>
+                                          this.#openActions(evt, getActions(record, evt.target as HTMLElement))}
+                                      ></dy-use>
+                                    `
+                                  : dataIndex
+                                    ? readProp(record, dataIndex)
+                                    : ''}
+                          </td>
+                        `
+                      : '',
+                )}
+              </tr>
+              ${this.expandedRowRender && this.#expandedMap.get(this.#getKey(record))
+                ? html`
+                    <tr>
+                      <td style=${styleMap({ padding: `0 0 0 ${this.#iconColWidth}` })} colspan=${columns.length}>
+                        ${this.expandedRowRender(record) || html`<dy-loading></dy-loading>`}
+                      </td>
+                    </tr>
+                  `
+                : ''}
+            `,
           )}
         </tbody>
       </table>
       ${!this.data
         ? html`<div class="side" part=${DuoyunTableElement.side}><dy-loading></dy-loading></div>`
         : this.data.length === 0
-        ? html`<div class="side" part=${DuoyunTableElement.side}>${this.noData || html`<dy-empty></dy-empty>`}</div>`
-        : ''}
+          ? html`<div class="side" part=${DuoyunTableElement.side}>${this.noData || html`<dy-empty></dy-empty>`}</div>`
+          : ''}
     `;
   };
 

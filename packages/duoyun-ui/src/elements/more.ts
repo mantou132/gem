@@ -10,7 +10,7 @@ import { DuoyunScrollBaseElement } from './base/scroll';
 import './action-text';
 
 const style = createCSSSheet(css`
-  :host {
+  :host(:where(:not([hidden]))) {
     position: relative;
     display: flex;
     flex-direction: column;

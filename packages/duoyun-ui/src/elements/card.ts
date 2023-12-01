@@ -14,7 +14,7 @@ import { MenuItem, ContextMenu } from './menu';
 import './use';
 
 const style = createCSSSheet(css`
-  :host {
+  :host(:where(:not([hidden]))) {
     display: flex;
     flex-direction: column;
     padding: 1em;

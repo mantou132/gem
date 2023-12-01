@@ -9,7 +9,7 @@ import { formatBandwidth, formatDecimal, formatPercentage, formatTraffic, format
 import './placeholder';
 
 const style = createCSSSheet(css`
-  :host {
+  :host(:where(:not([hidden]))) {
     display: block;
     font-size: 0.875em;
     line-height: 1.2;

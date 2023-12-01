@@ -9,7 +9,7 @@ import { throttle } from '../lib/utils';
 import './paragraph';
 
 const style = createCSSSheet(css`
-  :host {
+  :host(:where(:not([hidden]))) {
     display: contents;
   }
   .container,

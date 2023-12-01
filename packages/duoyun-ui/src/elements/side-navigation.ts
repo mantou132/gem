@@ -31,15 +31,19 @@ interface NavItemGroup {
 export type NavItems = (Item | NavItemGroup)[];
 
 const style = createCSSSheet(css`
-  :host {
+  :host(:where(:not([hidden]))) {
     user-select: none;
+    display: flex;
   }
   :host,
   .group-body,
   .children {
-    display: flex;
     flex-direction: column;
     gap: 3px;
+  }
+  .group-body,
+  .children {
+    display: flex;
   }
   .item {
     display: flex;

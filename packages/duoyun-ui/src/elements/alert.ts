@@ -10,7 +10,7 @@ import './use';
 import './action-text';
 
 const style = createCSSSheet(css`
-  :host {
+  :host(:where(:not([hidden]))) {
     display: flex;
     flex-direction: column;
     padding: 1.2em 1.5em;

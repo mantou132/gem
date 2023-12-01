@@ -19,7 +19,7 @@ import { focusStyle } from '../lib/styles';
 import './use';
 
 const style = createCSSSheet(css`
-  :host {
+  :host(:where(:not([hidden]))) {
     display: inline-flex;
     align-items: center;
     justify-content: center;

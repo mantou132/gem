@@ -153,29 +153,29 @@ export class DuoyunImagePreviewElement extends GemElement<State> {
             <div class="desc" role="progressbar">${Math.floor(this.progress)}%</div>
           `
         : this.#status !== 'default'
-        ? html`
-            <div class="mask status">
-              <dy-use class="icon" .element=${this.#icon}></dy-use>
-            </div>
-          `
-        : this.actions
-        ? html`
-            <div class="mask">
-              ${this.actions.map(
-                ({ icon, handle }) => html`
-                  <dy-use
-                    class="icon"
-                    .element=${icon}
-                    role="button"
-                    tabindex="0"
-                    @keydown=${commonHandle}
-                    @click=${() => handle()}
-                  ></dy-use>
-                `,
-              )}
-            </div>
-          `
-        : ''}
+          ? html`
+              <div class="mask status">
+                <dy-use class="icon" .element=${this.#icon}></dy-use>
+              </div>
+            `
+          : this.actions
+            ? html`
+                <div class="mask">
+                  ${this.actions.map(
+                    ({ icon, handle }) => html`
+                      <dy-use
+                        class="icon"
+                        .element=${icon}
+                        role="button"
+                        tabindex="0"
+                        @keydown=${commonHandle}
+                        @click=${() => handle()}
+                      ></dy-use>
+                    `,
+                  )}
+                </div>
+              `
+            : ''}
     `;
   };
 }

@@ -19,7 +19,7 @@ import './use';
 import './checkbox';
 
 const style = createCSSSheet(css`
-  :host {
+  :host(:where(:not([hidden]))) {
     display: flex;
     align-items: stretch;
   }
@@ -220,40 +220,39 @@ export class DuoyunCascaderElement extends GemElement<State> {
     const listStyle = styleMap({ width: this.fit ? `${100 / this.#deep}%` : undefined });
     return html`
       ${[this.options, ...selected.map((e) => e.children).filter(isNotNullish)].map(
-        (list, index) =>
-          html`
-            <ul part=${DuoyunCascaderElement.column} class="list" style=${listStyle}>
-              ${list.map(
-                (
-                  item,
-                  _i,
-                  _arr,
-                  status = readProp(
-                    this.#valueObj,
-                    [...selected.slice(0, index), item].map((e) => String(e.value ?? e.label)),
-                  ),
-                ) => html`
-                  <li
-                    class=${classMap({ item: true, selected: selected[index] === item })}
-                    @click=${() => this.#onClick(index, item)}
-                  >
-                    ${this.multiple
-                      ? html`
-                          <dy-checkbox
-                            class="checkbox"
-                            @change=${(evt: CustomEvent<boolean>) => this.#onChange(index, item, evt)}
-                            ?checked=${status === true || status?.[token] === 1}
-                            ?indeterminate=${status !== true && status?.[token] === 0}
-                          ></dy-checkbox>
-                        `
-                      : ''}
-                    <span class="label">${item.value ?? item.label}</span>
-                    <dy-use class="right" .element=${item.children && icons.right}></dy-use>
-                  </li>
-                `,
-              )}
-            </ul>
-          `,
+        (list, index) => html`
+          <ul part=${DuoyunCascaderElement.column} class="list" style=${listStyle}>
+            ${list.map(
+              (
+                item,
+                _i,
+                _arr,
+                status = readProp(
+                  this.#valueObj,
+                  [...selected.slice(0, index), item].map((e) => String(e.value ?? e.label)),
+                ),
+              ) => html`
+                <li
+                  class=${classMap({ item: true, selected: selected[index] === item })}
+                  @click=${() => this.#onClick(index, item)}
+                >
+                  ${this.multiple
+                    ? html`
+                        <dy-checkbox
+                          class="checkbox"
+                          @change=${(evt: CustomEvent<boolean>) => this.#onChange(index, item, evt)}
+                          ?checked=${status === true || status?.[token] === 1}
+                          ?indeterminate=${status !== true && status?.[token] === 0}
+                        ></dy-checkbox>
+                      `
+                    : ''}
+                  <span class="label">${item.value ?? item.label}</span>
+                  <dy-use class="right" .element=${item.children && icons.right}></dy-use>
+                </li>
+              `,
+            )}
+          </ul>
+        `,
       )}
     `;
   };

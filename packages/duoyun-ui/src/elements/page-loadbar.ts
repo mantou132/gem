@@ -6,7 +6,7 @@ import { theme } from '../lib/theme';
 import { sleep } from '../lib/utils';
 
 const style = createCSSSheet(css`
-  :host {
+  :host(:where(:not([hidden]))) {
     view-transition-name: dy-page-loadbar;
     z-index: ${theme.popupZIndex};
     position: fixed;

@@ -3,16 +3,16 @@ import { GemElement } from '@mantou/gem/lib/element';
 import { createCSSSheet, css } from '@mantou/gem/lib/utils';
 
 const style = createCSSSheet(css`
-  dy-space {
+  :where(dy-space:not([hidden])) {
     display: inline-flex;
     flex-wrap: wrap;
     align-items: center;
     gap: 0.4em;
   }
-  dy-space[size='small'] {
+  :where(dy-space[size='small']) {
     gap: 0.2em;
   }
-  dy-space[size='large'] {
+  :where(dy-space[size='large']) {
     gap: 0.8em;
   }
 `);

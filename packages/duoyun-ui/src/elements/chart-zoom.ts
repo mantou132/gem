@@ -11,7 +11,7 @@ import './gesture';
 import './area-chart';
 
 const style = createCSSSheet(css`
-  :host {
+  :host(:where(:not([hidden]))) {
     position: relative;
     display: block;
     border-radius: ${theme.normalRound};

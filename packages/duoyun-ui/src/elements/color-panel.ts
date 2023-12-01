@@ -34,7 +34,7 @@ import './input';
 import './select';
 
 const style = createCSSSheet(css`
-  :host {
+  :host(:where(:not([hidden]))) {
     display: flex;
     flex-direction: column;
     gap: 1em;

@@ -11,7 +11,7 @@ import { Toast } from './toast';
 import './use';
 
 const style = createCSSSheet(css`
-  :host {
+  :host(:where(:not([hidden]))) {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(6em, 1fr));
     gap: ${theme.gridGutter};

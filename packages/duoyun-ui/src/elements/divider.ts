@@ -6,7 +6,7 @@ import { createCSSSheet, css } from '@mantou/gem/lib/utils';
 import { theme, getSemanticColor } from '../lib/theme';
 
 const style = createCSSSheet(css`
-  :host {
+  :host(:where(:not([hidden]))) {
     display: block;
     border-radius: 10px;
     align-self: stretch;

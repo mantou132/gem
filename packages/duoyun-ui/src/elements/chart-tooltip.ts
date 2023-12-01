@@ -6,7 +6,7 @@ import { createStore, updateStore } from '@mantou/gem/lib/store';
 import { theme } from '../lib/theme';
 
 const style = createCSSSheet(css`
-  :host {
+  :host(:where(:not([hidden]))) {
     position: fixed;
     z-index: ${theme.popupZIndex};
     display: block;

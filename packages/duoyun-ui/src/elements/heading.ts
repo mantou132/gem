@@ -6,7 +6,7 @@ import { createCSSSheet, css } from '@mantou/gem/lib/utils';
 import { theme } from '../lib/theme';
 
 const style = createCSSSheet(css`
-  :host {
+  :host(:where(:not([hidden]))) {
     display: block;
     font-size: 2.5em;
     line-height: 1;

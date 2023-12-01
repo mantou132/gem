@@ -186,7 +186,7 @@ export type Node = Modify<
 >;
 
 const canvasStyle = createCSSSheet(css`
-  :host {
+  :host(:where(:not([hidden]))) {
     display: block;
     position: relative;
     flex-shrink: 0;
@@ -497,7 +497,7 @@ type State = {
 };
 
 const style = createCSSSheet(css`
-  :host {
+  :host(:where(:not([hidden]))) {
     display: flex;
     align-items: center;
     justify-content: center;

@@ -18,7 +18,7 @@ type Item = {
 };
 
 const style = createCSSSheet(css`
-  :host {
+  :host(:where(:not([hidden]))) {
     display: flex;
     flex-direction: column;
     gap: 0.5em;
@@ -42,17 +42,16 @@ export class DuoyunListElement extends GemElement {
 
   render = () => {
     return html`${this.data?.map(
-      (item) =>
-        html`
-          <dy-list-item .data=${item} .renderItem=${this.renderItem}></dy-list-item>
-          <dy-divider></dy-divider>
-        `,
+      (item) => html`
+        <dy-list-item .data=${item} .renderItem=${this.renderItem}></dy-list-item>
+        <dy-divider></dy-divider>
+      `,
     )}`;
   };
 }
 
 const itemStyle = createCSSSheet(css`
-  :host {
+  :host(:where(:not([hidden]))) {
     display: flex;
     align-items: center;
     gap: 1em;

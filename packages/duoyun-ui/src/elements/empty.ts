@@ -7,7 +7,7 @@ import { locale } from '../lib/locale';
 import './use';
 
 const style = createCSSSheet(css`
-  :host {
+  :host(:where(:not([hidden]))) {
     display: inline-flex;
     flex-direction: column;
     align-items: center;

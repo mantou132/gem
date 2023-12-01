@@ -38,10 +38,8 @@ export class GemUseElement extends GemElement {
   render() {
     return html`
       <style>
-        :host {
+        :host(:where(:not([hidden]))) {
           position: relative;
-        }
-        :host(:not([hidden])) {
           display: inline-flex;
           align-items: center;
         }
