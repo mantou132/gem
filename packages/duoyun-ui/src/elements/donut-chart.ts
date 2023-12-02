@@ -6,7 +6,7 @@ import { createCSSSheet, css } from '@mantou/gem/lib/utils';
 import { theme } from '../lib/theme';
 
 import { DuoyunChartBaseElement } from './base/chart';
-import { ChartTooltip } from './chart-tooltip';
+import { ChartTooltip, Data } from './chart-tooltip';
 
 const style = createCSSSheet(css`
   .path {
@@ -35,20 +35,24 @@ export class DuoyunDonutChartElement extends DuoyunChartBaseElement {
   #inside = 115;
   #paths?: string[];
 
+  #tooltipRender = (data: Data) => {
+    return html`${data.values![0].label},${data.values![0].value}`;
+  };
+
   #onMouseMove = (evt: MouseEvent, index: number) => {
     if (this.noData || this.loading) return;
-    if (this.tooltip?.render) {
-      ChartTooltip.open(evt.x, evt.y, {
-        render: this.tooltip?.render,
-        values: this.sequences!.map(({ label, value }, i) => ({
-          highlight: index === i,
+    const { label, value } = this.sequences![index];
+    ChartTooltip.open(evt.x, evt.y, {
+      render: this.tooltip?.render || this.#tooltipRender,
+      values: [
+        {
           value: this.tooltip?.valueFormatter?.(value) || String(value),
           originValue: value,
-          color: this.colors[i],
+          color: this.colors[index],
           label: label,
-        })),
-      });
-    }
+        },
+      ],
+    });
   };
 
   #onMouseOut = () => {
