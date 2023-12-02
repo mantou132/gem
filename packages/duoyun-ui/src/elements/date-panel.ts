@@ -344,7 +344,12 @@ export class DuoyunDatePanelElement extends GemElement<State> {
             <div class="timepanelwrap">
               <div class="time">${isNotNullish(this.value) ? new Time(this.value).format('HH:mm:ss') : ''}</div>
               <dy-divider class="separate"></dy-divider>
-              <dy-time-panel class="timepanel" .value=${this.value} @change=${this.#onTimeChange}></dy-time-panel>
+              <dy-time-panel
+                class="timepanel"
+                .value=${this.value}
+                @change=${this.#onTimeChange}
+                headerless
+              ></dy-time-panel>
             </div>
           `
         : ''}

@@ -1,4 +1,11 @@
-import { adoptedStyle, customElement, globalemitter, Emitter, property } from '@mantou/gem/lib/decorators';
+import {
+  adoptedStyle,
+  customElement,
+  globalemitter,
+  Emitter,
+  property,
+  boolattribute,
+} from '@mantou/gem/lib/decorators';
 import { GemElement, html } from '@mantou/gem/lib/element';
 import { createCSSSheet, css, classMap } from '@mantou/gem/lib/utils';
 
@@ -14,6 +21,12 @@ const style = createCSSSheet(css`
     gap: 1px;
     text-align: center;
     line-height: 2;
+  }
+  .header {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    padding-inline: 0.2em;
   }
   .scrollbar {
     flex-grow: 1;
@@ -39,6 +52,7 @@ const style = createCSSSheet(css`
 @customElement('dy-time-panel')
 @adoptedStyle(style)
 export class DuoyunTimePanelElement extends GemElement {
+  @boolattribute headerless: boolean;
   @globalemitter change: Emitter<number>;
 
   @property value?: number;
@@ -75,9 +89,13 @@ export class DuoyunTimePanelElement extends GemElement {
   render = () => {
     const { hour, minute, second } = this.#parts;
     return html`
-      <div>${locale.hour}</div>
-      <div>${locale.minute}</div>
-      <div>${locale.second}</div>
+      ${this.headerless
+        ? ''
+        : html`
+            <div class="header">${locale.hour}</div>
+            <div class="header">${locale.minute}</div>
+            <div class="header">${locale.second}</div>
+          `}
       <div class="scrollbar">
         ${this.#toArr(24).map(
           (h) => html`
