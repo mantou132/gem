@@ -66,6 +66,7 @@ export class DuoyunScrollBaseElement<_T = Record<string, unknown>> extends Duoyu
   constructor(options?: GemElementOptions) {
     super(options);
     this.addEventListener('scroll', this.#check);
+    this.addEventListener('scrollend', this.#check);
     this.effect(() => {
       this.#check();
     });

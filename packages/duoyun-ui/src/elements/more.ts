@@ -1,6 +1,6 @@
 import { adoptedStyle, customElement, attribute, emitter, Emitter, boolattribute } from '@mantou/gem/lib/decorators';
 import { GemElement, html } from '@mantou/gem/lib/element';
-import { createCSSSheet, css, styleMap, classMap } from '@mantou/gem/lib/utils';
+import { classMap, createCSSSheet, css, styleMap } from '@mantou/gem/lib/utils';
 
 import { locale } from '../lib/locale';
 import { commonHandle } from '../lib/hotkeys';
@@ -11,26 +11,19 @@ import './action-text';
 
 const style = createCSSSheet(css`
   :host(:where(:not([hidden]))) {
-    position: relative;
     display: flex;
     flex-direction: column;
+    align-items: flex-start;
   }
   .slot {
     text-align: left;
     overflow: hidden;
   }
-  .slot::-webkit-scrollbar {
-    width: 0;
+  .overflow {
+    margin-block-end: 0.5em;
   }
   .action {
     cursor: pointer;
-    padding-block: 0.25em;
-    align-self: flex-start;
-  }
-  .action.absolute {
-    position: absolute;
-    bottom: -0.5em;
-    left: 0;
   }
 `);
 
@@ -48,6 +41,8 @@ type State = {
 @adoptedStyle(style)
 export class DuoyunMoreElement extends GemElement<State> {
   @attribute maxheight: string;
+  @attribute more: string;
+  @attribute less: string;
   @boolattribute expandless: boolean;
 
   state: State = {
@@ -71,10 +66,9 @@ export class DuoyunMoreElement extends GemElement<State> {
     const { expanded, bottomOverflow } = this.state;
     return html`
       <dy-more-slot
-        class="slot"
+        class=${classMap({ slot: true, overflow: bottomOverflow })}
         style=${styleMap({
-          marginBlockEnd: !bottomOverflow ? 'auto' : '1.2em',
-          maxHeight: expanded ? 'auto' : this.maxheight || '6em',
+          maxHeight: expanded ? 'none' : this.maxheight || '3.8lh',
         })}
         @change=${({ detail }: CustomEvent<boolean>) => this.setState({ bottomOverflow: detail })}
       >
@@ -82,12 +76,8 @@ export class DuoyunMoreElement extends GemElement<State> {
       </dy-more-slot>
       ${!this.expandless && (bottomOverflow || expanded)
         ? html`
-            <dy-action-text
-              class=${classMap({ action: true, absolute: !expanded })}
-              @keydown=${commonHandle}
-              @click=${this.#onClick}
-            >
-              ${expanded ? locale.less : locale.more}
+            <dy-action-text class="action" @keydown=${commonHandle} @click=${this.#onClick}>
+              ${expanded ? this.less || locale.less : this.more || locale.more}
             </dy-action-text>
           `
         : ''}

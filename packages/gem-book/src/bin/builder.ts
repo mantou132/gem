@@ -164,6 +164,9 @@ export function startBuilder(dir: string, options: Required<CliUniqueConfig>, bo
     // https://github.com/webpack/webpack-dev-server/blob/master/examples/api/simple/server.js
     const server = new WebpackDevServer(
       {
+        client: {
+          overlay: false,
+        },
         static: {
           directory: outputDir,
         },
