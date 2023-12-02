@@ -7,8 +7,8 @@
     "build": "vite build",
     "watch": "yarn build --watch",
     "build:zip": "yarn build && web-ext build",
-    "browser": "web-ext run",
-    "start": "concurrently npm:watch npm:browser"
+    "browser": "web-ext run --target=chromium --target=firefox-desktop",
+    "start": "yarn build && concurrently -k npm:watch npm:browser"
   },
   "dependencies": {
     "@mantou/gem": "^1.7.0",

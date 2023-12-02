@@ -1,3 +1,8 @@
+// 作为静态资源输出
+import './manifest.json?url';
+// 实时更新
+import './manifest.json';
+
 type DevToolsHookStore = {
   customElementMap: Map<string, CustomElementConstructor>;
   currentElementsMap: Map<string, Element>;

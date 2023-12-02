@@ -214,7 +214,7 @@ export const getSelectedGem = function (data: PanelStore, gemElementSymbols: str
           data.state.push({
             name: k,
             value: objectToString(value),
-            type: 'boolean',
+            type: typeof value,
           });
         });
       return;

@@ -4,15 +4,18 @@ import {
   createCSSSheet,
   css,
   customElement,
-  Emitter,
   GemElement,
-  globalemitter,
   html,
+  kebabToCamelCase,
   property,
+  SheetToken,
 } from '@mantou/gem';
 
-import { Item, Path, BuildIn } from '../store';
+import { Item, Path, BuildIn, panelStore } from '../store';
 import { theme } from '../theme';
+import { inspectValue } from '../scripts/inspect-value';
+import { execution } from '../common';
+import { setValue } from '../scripts/set-value';
 
 const maybeBuildInPrefix = '[[Gem?]] ';
 const buildInPrefix = '[[Gem]] ';
@@ -121,20 +124,31 @@ export const style = createCSSSheet(css`
     overflow: hidden;
     white-space: nowrap;
     text-overflow: ellipsis;
+    padding: 0;
+    background: none;
+    border: none;
+    outline: none;
   }
   .string {
     color: ${theme.stringValueColor};
   }
-  .string:empty::after {
-    content: '<empty string>';
+  .string::placeholder {
     color: ${theme.valueColor};
     font-style: italic;
   }
   .number {
     color: ${theme.numberValueColor};
   }
+  .number::-webkit-inner-spin-button,
+  .number::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
   .boolean {
     color: ${theme.booleanValueColor};
+  }
+  .boolean:hover {
+    cursor: pointer;
   }
   .object {
     color: ${theme.objectValueColor};
@@ -158,7 +172,6 @@ export class Section extends GemElement {
   @attribute tip: string;
   @property data: Item[] = [];
   @property path: Path | undefined;
-  @globalemitter valueclick: Emitter<Path>;
 
   renderTip = () => {
     if (!this.tip) return '';
@@ -172,7 +185,7 @@ export class Section extends GemElement {
         class="inspect"
         title="Inspect"
         @click=${(e: Event) => {
-          this.valueclick(path);
+          execution(inspectValue, [path, String(SheetToken)]);
           e.preventDefault();
         }}
       >
@@ -191,19 +204,65 @@ export class Section extends GemElement {
     }
   };
 
+  renderItemValue = (item: Item) => {
+    const path =
+      this.data === panelStore.staticMember
+        ? ['constructor', item.name]
+        : this.data === panelStore.state
+          ? ['state', item.name]
+          : this.data === panelStore.observedAttributes || this.data === panelStore.cssStates
+            ? [kebabToCamelCase(item.name)]
+            : [item.name];
+    const onInput = (evt: Event) => {
+      execution(setValue, [path, (evt.target as HTMLInputElement).value]);
+    };
+    const onInputNumber = (evt: Event) => {
+      execution(setValue, [path, Number((evt.target as HTMLInputElement).value)]);
+    };
+    const toggleValue = (evt: MouseEvent) => {
+      execution(setValue, [path, (evt.target as HTMLInputElement).textContent?.trim() === 'true' ? false : true]);
+    };
+    switch (item.type) {
+      case 'string':
+        return html`
+          <input
+            class="value ${item.type}"
+            title="Click to edit"
+            placeholder="<empty string>"
+            @input=${onInput}
+            value=${item.value}
+          />
+        `;
+      case 'number':
+        return html`
+          <input
+            class="value ${item.type}"
+            title="Click to edit"
+            type="number"
+            @input=${onInputNumber}
+            value=${item.value}
+          />
+        `;
+      case 'boolean':
+        return html`
+          <span class="value ${item.type}" title="Click to toggle" @click=${toggleValue}>${item.value}</span>
+        `;
+      default:
+        return html`<span class="value ${item.type}" title=${item.value}>${item.value}</span>`;
+    }
+  };
+
   renderItem = (data: Item[]) => {
     return html`
       <ul>
         ${data.map(
-          (e) =>
-            html`
-              <li>
-                <span class="name">${this.renderBuildInMark(e.buildIn)}${e.name}</span>
-                <span class="sp">:</span>
-                <span class="value ${e.type}" title=${e.value}>${e.value}</span>
-                ${this.renderInspect(e.path)}
-              </li>
-            `,
+          (e) => html`
+            <li>
+              <span class="name">${this.renderBuildInMark(e.buildIn)}${e.name}</span>
+              <span class="sp">:</span>
+              ${this.renderItemValue(e)} ${this.renderInspect(e.path)}
+            </li>
+          `,
         )}
       </ul>
     `;

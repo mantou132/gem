@@ -1,6 +1,9 @@
-import type { DomStatInfo } from '../elements/statistics';
-
 declare function inspect(arg: any): void;
+
+export type DomStatInfo = {
+  type: 'ele' | 'con';
+  id: string;
+};
 
 export function inspectDom({ id, type }: DomStatInfo) {
   const { __GEM_DEVTOOLS__STORE__, __GEM_DEVTOOLS__HOOK__ } = window;

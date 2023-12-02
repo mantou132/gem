@@ -6,21 +6,15 @@ import {
   connectStore,
   attribute,
   property,
-  Emitter,
-  globalemitter,
   boolattribute,
   classMap,
 } from '@mantou/gem';
 
 import { panelStore } from '../store';
+import { DomStatInfo, inspectDom } from '../scripts/inspect-ele';
+import { execution } from '../common';
 
 import { style } from './section';
-
-type DomStatType = 'ele' | 'con';
-export type DomStatInfo = {
-  type: DomStatType;
-  id: string;
-};
 
 /**
  * @customElement devtools-statistics
@@ -31,11 +25,9 @@ export type DomStatInfo = {
 export class devtoolsStatisticsElement extends GemElement {
   @attribute name: string;
   @boolattribute ignore: boolean;
-  @attribute type: DomStatType = 'ele';
+  @attribute type: DomStatInfo['type'] = 'ele';
   @property value = new Array<string>();
   @property highlight?: Array<string>;
-
-  @globalemitter inspectdom: Emitter<DomStatInfo>;
 
   #parse = (v: string) => {
     // scripts/dom-stat
@@ -48,7 +40,7 @@ export class devtoolsStatisticsElement extends GemElement {
         class="inspect"
         title="Inspect"
         @click=${(e: Event) => {
-          this.inspectdom({ id, type: this.type });
+          execution(inspectDom, [{ id, type: this.type }]);
           e.preventDefault();
         }}
       >
@@ -92,8 +84,8 @@ export class devtoolsStatisticsElement extends GemElement {
           ${this.ignore
             ? html`<div class="nodata">ignore</div>`
             : value.length
-            ? this.renderItem(value)
-            : html`<div class="nodata">no data</div>`}
+              ? this.renderItem(value)
+              : html`<div class="nodata">no data</div>`}
         </div>
       </details>
     `;

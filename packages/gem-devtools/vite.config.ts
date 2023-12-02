@@ -6,6 +6,7 @@ export default defineConfig({
   root: 'src',
   publicDir: resolve(process.cwd(), 'public'),
   build: {
+    assetsInlineLimit: 0,
     polyfillModulePreload: false,
     target: 'es2020',
     rollupOptions: {
@@ -17,6 +18,7 @@ export default defineConfig({
         content: resolve(__dirname, 'src/content.ts'),
       },
       output: {
+        assetFileNames: '[name].[ext]',
         chunkFileNames(info) {
           return info.name + '.js';
         },
