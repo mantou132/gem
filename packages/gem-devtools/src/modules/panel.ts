@@ -4,6 +4,7 @@ import { panelStore } from '../store';
 
 import '../elements/section';
 import '../elements/statistics';
+import '../elements/header';
 
 const TIP = 'Only works on GemElement written with Decorator, fallback to "Unobserved Properties"';
 
@@ -12,11 +13,6 @@ const style = createCSSSheet(css`
     display: block;
     margin-bottom: 4em;
     font-size: 12px;
-  }
-  .not-gem {
-    font-style: italic;
-    padding: 0.5em;
-    opacity: 0.5;
   }
 `);
 
@@ -27,7 +23,7 @@ export class Panel extends GemElement {
   render() {
     if (!panelStore.isGemElement) {
       return html`
-        <div class="not-gem">This not's GemElement, current page stat:</div>
+        <devtools-header>This not's GemElement, page stat:</devtools-header>
         <devtools-statistics name="Total Elements" ignore .value=${panelStore.elements}></devtools-statistics>
         <devtools-statistics name="Total Custom Elements" .value=${panelStore.customElements}></devtools-statistics>
         <devtools-statistics name="Total Gem Elements" .value=${panelStore.gemElements}></devtools-statistics>
@@ -56,6 +52,7 @@ export class Panel extends GemElement {
       `;
     }
     return html`
+      <devtools-header></devtools-header>
       <devtools-section name="Observed Attributes" .data=${panelStore.observedAttributes}></devtools-section>
       <devtools-section name="Observed Properties" .data=${panelStore.observedProperties}></devtools-section>
       <devtools-section name="Observed Stores" .data=${panelStore.observedStores}></devtools-section>

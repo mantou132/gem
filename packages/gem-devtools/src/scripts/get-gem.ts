@@ -5,18 +5,20 @@ import type { PanelStore } from '../store';
 declare let $0: any;
 
 // 不要使用作用域外的变量
-export const getSelectedGem = function (data: PanelStore, gemElementSymbols: string[]): PanelStore | null {
+export const getSelectedGem = function (data: PanelStore, gemElementSymbols: string[]): PanelStore | string {
+  // https://github.com/bramus/scroll-driven-animations-debugger-extension/issues/19
+  if (!$0) return `Not Gem: $0 is ${$0}`;
   const tagClass = $0.constructor as typeof GemElement;
   const devToolsHook = window.__GEM_DEVTOOLS__HOOK__;
   if (devToolsHook) {
-    if (!devToolsHook.GemElement || !($0 instanceof devToolsHook.GemElement)) return null;
+    if (!devToolsHook.GemElement || !($0 instanceof devToolsHook.GemElement)) return 'Not Gem: gem hook';
   } else {
     // 依赖 `constructor`，如果 `constructor` 被破坏，则扩展不能工作
     // 没有严格检查是否是 GemElement
-    if (!($0 instanceof HTMLElement)) return null;
+    if (!($0 instanceof HTMLElement)) return 'Not Gem: not HTMLElement';
 
     const elementSymbols = new Set(Object.getOwnPropertySymbols($0).map(String));
-    if (gemElementSymbols.some((symbol) => !elementSymbols.has(symbol))) return null;
+    if (gemElementSymbols.some((symbol) => !elementSymbols.has(symbol))) return 'Not Gem: some symbol diff';
   }
 
   const inspectable = (value: any) => {

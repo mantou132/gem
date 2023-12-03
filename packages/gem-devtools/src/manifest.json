@@ -1,4 +1,5 @@
 {
+  "$schema": "https://raw.githubusercontent.com/extend-chrome/manifest-json-schema/main/schema/manifest.schema.json",
   "name": "Gem DevTools",
   "version": "0.0.0",
   "manifest_version": 3,
@@ -7,6 +8,8 @@
   "content_scripts": [
     {
       "world": "MAIN",
+      "all_frames": true,
+      "match_about_blank": true,
       "matches": ["<all_urls>"],
       "js": ["content.js"],
       "run_at": "document_start"

@@ -15,6 +15,9 @@ export interface Item {
 }
 
 export class PanelStore {
+  constructor(options?: Partial<PanelStore>) {
+    Object.assign(this, options);
+  }
   isGemElement = true;
   elements = new Array<string>();
   customElements = new Array<string>();
@@ -42,6 +45,17 @@ export class PanelStore {
 
 export const panelStore = createStore({ ...new PanelStore(), isGemElement: false });
 
-export function changeStore(newPanelData: PanelStore) {
+export class ConfigureStore {
+  currentFrameURL = '';
+  frames: string[] = [];
+}
+
+export const configureStore = createStore(new ConfigureStore());
+
+export function changePanelStore(newPanelData: PanelStore) {
   updateStore(panelStore, newPanelData);
+}
+
+export function changeConfigureStore(data: Partial<ConfigureStore>) {
+  updateStore(configureStore, data);
 }

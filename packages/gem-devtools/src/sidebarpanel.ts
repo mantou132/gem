@@ -2,7 +2,7 @@ import { devtools } from 'webextension-polyfill';
 import { customElement, GemElement, html, render } from '@mantou/gem';
 
 import { getSelectedGem } from './scripts/get-gem';
-import { changeStore, PanelStore } from './store';
+import { changePanelStore, PanelStore } from './store';
 import { getDomStat } from './scripts/dom-stat';
 import { theme } from './theme';
 import { execution } from './common';
@@ -13,13 +13,19 @@ import './modules/panel';
 class GemDiscover extends GemElement {}
 
 async function updateElementProperties() {
-  const initData = new PanelStore();
-  const data = await execution(getSelectedGem, [initData, Object.getOwnPropertySymbols(new GemDiscover()).map(String)]);
-  if (data) {
-    changeStore(data);
-  } else {
-    initData.isGemElement = false;
-    changeStore(await execution(getDomStat, [initData]));
+  try {
+    const result = await execution(getSelectedGem, [
+      new PanelStore(),
+      Object.getOwnPropertySymbols(new GemDiscover()).map(String),
+    ]);
+    if (typeof result !== 'string') {
+      changePanelStore(result);
+    } else {
+      changePanelStore(await execution(getDomStat, [new PanelStore({ isGemElement: false })]));
+    }
+  } catch (err) {
+    console.error(err);
+    changePanelStore(new PanelStore({ isGemElement: false }));
   }
 }
 
