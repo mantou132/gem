@@ -1,28 +1,9 @@
 import type { Path } from '../store';
 
-// https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/API/devtools/inspectedWindow/eval#helpers
-declare let $0: any;
 declare function inspect(arg: any): void;
 
 export const inspectValue = (path: Path, token: string) => {
-  // [["shadowRoot", ""], "querySelector", "[ref=child-ref]"]
-  // 只有 constructor 函数会当成对象读取
-  const value = path.reduce((p, c, index) => {
-    if (typeof p === 'function' && path[index - 1] !== 'constructor') {
-      if (Array.isArray(c)) {
-        return p(...c);
-      } else {
-        return p(c);
-      }
-    } else {
-      if (Array.isArray(c)) {
-        return c.reduce((pp, cc) => pp || (cc === '' ? p : p[cc]), undefined);
-      } else {
-        const value = p[c];
-        return typeof value === 'function' && c !== 'constructor' ? value.bind(p) : value;
-      }
-    }
-  }, $0);
+  const value = window.__GEM_DEVTOOLS__PRELOAD__.readProp(path);
   if (value instanceof Element) {
     let element = value;
     if (element instanceof HTMLSlotElement) {

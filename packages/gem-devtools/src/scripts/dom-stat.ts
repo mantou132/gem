@@ -14,10 +14,9 @@ export function getDomStat(data: PanelStore): PanelStore {
 
   currentElementsMap.clear();
   let n = 0;
-  const temp: Element[] = [document.documentElement];
-  while (!!temp.length) {
+
+  window.__GEM_DEVTOOLS__PRELOAD__.traverseDom((element) => {
     const id = String(++n);
-    const element = temp.pop()!;
     const tag = element.tagName.toLowerCase();
     const tagAndId = [tag, id].join();
 
@@ -34,11 +33,7 @@ export function getDomStat(data: PanelStore): PanelStore {
       gemElements.push(tagAndId);
       usedDefinedGemElements.add(tag);
     }
-
-    if (element.shadowRoot?.firstElementChild) temp.push(element.shadowRoot.firstElementChild);
-    if (element.firstElementChild) temp.push(element.firstElementChild);
-    if (element.nextElementSibling) temp.push(element.nextElementSibling);
-  }
+  });
 
   return {
     ...data,

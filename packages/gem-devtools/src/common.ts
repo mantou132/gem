@@ -1,6 +1,9 @@
 import { devtools } from 'webextension-polyfill';
 
 import { configureStore } from './store';
+import { preload } from './scripts/preload';
+
+const preloadSource = preload.toString();
 
 /**
  * execution script in page
@@ -14,7 +17,7 @@ export async function execution<Func extends (...rest: any) => any>(
 ): Promise<ReturnType<Func>> {
   const source = func.toString();
   const [data, errorInfo] = await devtools.inspectedWindow.eval(
-    `(${source}).apply(null, ${JSON.stringify(args)})`,
+    `(${preloadSource})();(${source}).apply(null, ${JSON.stringify(args)})`,
     // Firefox not support frameURL: undefined
     JSON.parse(
       JSON.stringify({
