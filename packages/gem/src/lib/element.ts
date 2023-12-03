@@ -318,12 +318,11 @@ export abstract class GemElement<T = Record<string, unknown>> extends HTMLElemen
     const styles = useNativeCSSStyleSheet
       ? ''
       : html`${this.shadowRoot?.adoptedStyleSheets?.map(
-          (e: any) =>
-            html`
-              <style media=${e.media.mediaText}>
-                ${e.style}
-              </style>
-            `,
+          (e: any) => html`
+            <style media=${e.media.mediaText}>
+              ${e.style}
+            </style>
+          `,
         )}`;
     if (this.render) {
       const r = this.render();

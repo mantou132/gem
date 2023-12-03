@@ -11,7 +11,6 @@ export const defaultTheme = {
   borderColor: '#eaeaea',
   textColor: 'rgb(40, 44, 52)',
   primaryColor: 'rgb(38, 192, 227)',
-  inlineCodeBackground: '#fffae0',
   noteColor: 'rgb(9, 105, 218)',
   tipColor: 'rgb(26, 127, 55)',
   importantColor: 'rgb(130, 80, 223)',

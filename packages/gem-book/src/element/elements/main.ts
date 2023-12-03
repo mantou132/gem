@@ -124,19 +124,19 @@ const style = createCSSSheet(css`
     padding: 0.8em 1em;
   }
   blockquote.note {
-    --highlight: ${theme.noteColor};
+    --highlight: ${theme.noteColorRGB};
   }
   blockquote.tip {
-    --highlight: ${theme.tipColor};
+    --highlight: ${theme.tipColorRGB};
   }
   blockquote.important {
-    --highlight: ${theme.importantColor};
+    --highlight: ${theme.importantColorRGB};
   }
   blockquote.warning {
-    --highlight: ${theme.warningColor};
+    --highlight: ${theme.warningColorRGB};
   }
   blockquote.caution {
-    --highlight: ${theme.cautionColor};
+    --highlight: ${theme.cautionColorRGB};
   }
   blockquote > .title {
     font-weight: bold;
@@ -201,9 +201,10 @@ const style = createCSSSheet(css`
       Liberation Mono,
       Courier New,
       monospace;
-    font-size: 90%;
-    background: ${theme.inlineCodeBackground};
-    padding: 0 3px;
+    padding: 0.15em 0.4em 0.1em;
+    font-size: 0.9em;
+    background: rgba(${theme.textColorRGB}, 0.05);
+    border-radius: 0.125em;
   }
   gem-book-pre {
     z-index: 2;
@@ -235,25 +236,19 @@ export class Main extends GemElement {
       display: inline-flex;
       align-items: center;
       gap: 0.2em;
-      color: inherit;
+      color: ${theme.primaryColor};
       text-decoration: none;
       line-height: 1.2;
-      background: rgba(${theme.primaryColorRGB}, 0.2);
-      border-bottom: 1px solid rgba(${theme.textColorRGB}, 0.4);
-    }
-    .link code {
-      background: transparent;
-      padding: 0;
+      border-bottom: 1px solid transparent;
     }
     .link:hover {
-      background: rgba(${theme.primaryColorRGB}, 0.4);
       border-color: currentColor;
     }
   `;
 
   #hashChangeHandle = () => {
     const { hash } = location;
-    const ele = hash && this.shadowRoot?.querySelector(decodeURIComponent(hash));
+    const ele = hash && this.shadowRoot?.querySelector(`[id="${decodeURIComponent(location.hash.slice(1))}"]`);
     if (!hash) {
       document.body.scroll(0, 0);
     } else if (ele) {

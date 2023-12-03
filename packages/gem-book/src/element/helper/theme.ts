@@ -17,6 +17,11 @@ function generateTheme(theme: Theme) {
   const colors = {
     textColorRGB: getRGB(theme.textColor),
     primaryColorRGB: getRGB(theme.primaryColor),
+    noteColorRGB: getRGB(theme.noteColor),
+    tipColorRGB: getRGB(theme.tipColor),
+    importantColorRGB: getRGB(theme.importantColor),
+    warningColorRGB: getRGB(theme.warningColor),
+    cautionColorRGB: getRGB(theme.cautionColor),
   };
   div.remove();
 

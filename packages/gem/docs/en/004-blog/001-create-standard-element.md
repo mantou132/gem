@@ -142,10 +142,32 @@ If you need to render many instances at once, you can use `isAsync` to create as
 @customElement('my-element')
 class MyElement extends GemElement {
   constructor() {
-    super({ isAsync: ture });
+    super({ isAsync: true });
   }
 }
 ```
+
+### Styling
+
+Suppose you use the `<my-element>` element defined above somewhere else, and for some reason add the `hidden` attribute in the hope of temporarily hiding it:
+
+```ts
+html`<my-element hidden>My content</my-element>`;
+```
+
+You will look that the `hidden` attribute does not take effect because the custom element's style `display: contents` will override the browser style `display: none`,
+so the `:host` style should be defined carefully to avoid making it difficult for external use, such as using [`:where`](https://developer.mozilla.org/en-US/docs/Web/CSS/:where):
+
+```css
+:host(:where(:not([hidden]))) {
+  display: contents;
+}
+```
+
+In addition, use [`@layer`](https://developer.mozilla.org/en-US/docs/Web/CSS/@layer) to solve the problem of [multi-state](https://developer.mozilla.org/en-US/docs/Web/API/CustomStateSet) style coverage of elements; use [CSS Nesting](https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_nesting) simplified stylesheets.
+
+> [!WARNING]
+> Chrome 中 `:host` 不能使用 CSS 嵌套, [Bug](https://bugs.chromium.org/p/chromium/issues/detail?id=1442408)
 
 ### Accessibility
 

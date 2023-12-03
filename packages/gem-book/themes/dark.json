@@ -1,6 +1,5 @@
 {
   "backgroundColor": "#1a1a1a",
   "borderColor": "rgb(102, 102, 102)",
-  "textColor": "rgb(240, 240, 240)",
-  "inlineCodeBackground": "#ffe56433"
+  "textColor": "rgb(240, 240, 240)"
 }

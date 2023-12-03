@@ -142,10 +142,32 @@ class MyElement extends GemElement {}
 @customElement('my-element')
 class MyElement extends GemElement {
   constructor() {
-    super({ isAsync: ture });
+    super({ isAsync: true });
   }
 }
 ```
+
+### 样式
+
+假设在其他地方使用上面定义的`<my-element>`元素，出于某种原因添加 `hidden` 属性希望暂时隐藏它：
+
+```ts
+html`<my-element hidden>My content</my-element>`;
+```
+
+会发现 `hidden` 属性没有生效，原因是自定义元素的样式 `display: contents` 将覆盖浏览器样式 `display: none`,
+所以应该小心定义 `:host` 样式避免为外部使用时增加难度，例如使用 [`:where`](https://developer.mozilla.org/en-US/docs/Web/CSS/:where)：
+
+```css
+:host(:where(:not([hidden]))) {
+  display: contents;
+}
+```
+
+此外，使用 [`@layer`](https://developer.mozilla.org/en-US/docs/Web/CSS/@layer) 解决元素[多状态](https://developer.mozilla.org/en-US/docs/Web/API/CustomStateSet)样式覆盖的问题；使用 [CSS 嵌套](https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_nesting) 简化样式表。
+
+> [!WARNING]
+> Chrome 中 `:host` 不能使用 CSS 嵌套, [Bug](https://bugs.chromium.org/p/chromium/issues/detail?id=1442408)
 
 ### 可访问性
 
