@@ -43,14 +43,14 @@ const style = createCSSSheet(css`
   .placeholder {
     color: ${theme.describeColor};
   }
-  .iconwrap {
+  .icon {
     display: flex;
   }
   .close,
-  .clearable:hover .date {
+  :host(:not([disabled])) .clearable:hover .date {
     display: none;
   }
-  .clearable:hover .close {
+  :host(:not([disabled])) .clearable:hover .close {
     display: inline-flex;
   }
 `);
@@ -167,7 +167,7 @@ export class DuoyunDatePickElement extends GemElement implements BasePickerEleme
   render = () => {
     return html`
       <div class=${classMap({ value: true, placeholder: !this.#value })}>${this.#valueString || this.placeholder}</div>
-      <div class=${classMap({ iconwrap: true, clearable: this.clearable })}>
+      <div class=${classMap({ icon: true, clearable: this.clearable })}>
         <dy-use class="date" .element=${icons.date}></dy-use>
         <dy-use class="close" @click=${this.#onClear} .element=${icons.close}></dy-use>
       </div>

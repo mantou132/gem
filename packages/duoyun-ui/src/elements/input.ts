@@ -118,7 +118,7 @@ const style = createCSSSheet(css`
     padding-inline: 0.35em;
     margin-inline-start: -0.35em;
   }
-  :host(:where(:not(:focus-within, :hover))) .clear {
+  :host(:where([disabled], :not(:focus-within, :hover))) .clear {
     display: none;
   }
   .clear:hover {

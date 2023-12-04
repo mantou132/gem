@@ -45,10 +45,10 @@ const style = createCSSSheet(css`
     display: flex;
   }
   .close,
-  .clearable:hover .date {
+  :host(:not([disabled])) .clearable:hover .date {
     display: none;
   }
-  .clearable:hover .close {
+  :host(:not([disabled])) .clearable:hover .close {
     display: inline-flex;
   }
 `);

@@ -42,6 +42,9 @@ export const pickerStyle = createCSSSheet(css`
     border-color: transparent;
     background: ${theme.disabledColor};
   }
+  :host([disabled]) dy-use {
+    pointer-events: none;
+  }
   :host([borderless]) {
     width: auto;
     border-color: transparent;
@@ -52,7 +55,7 @@ export const pickerStyle = createCSSSheet(css`
     width: 1.2em;
     color: ${theme.borderColor};
   }
-  :host(:where(:hover, :--active, :state(active))) dy-use {
+  :host(:not([disabled]):where(:hover, :--active, :state(active))) dy-use {
     color: ${theme.textColor};
   }
 `);
