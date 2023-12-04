@@ -77,7 +77,7 @@ export class DuoyunRatingElement extends GemElement {
   }
 
   constructor() {
-    super();
+    super({ delegatesFocus: true });
     this.internals.role = 'range';
     this.effect(() => {
       this.internals.ariaDisabled = String(this.disabled);

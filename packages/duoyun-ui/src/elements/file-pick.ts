@@ -20,6 +20,7 @@ import { focusStyle } from '../lib/styles';
 import { utf8ToB64 } from '../lib/encode';
 
 import type { ImageStatus } from './image-preview';
+import type { BasePickerElement } from './pick';
 
 import './use';
 import './image-preview';
@@ -118,7 +119,7 @@ export interface FileItem extends File {
 @customElement('dy-file-pick')
 @adoptedStyle(style)
 @adoptedStyle(focusStyle)
-export class DuoyunFilePickElement extends GemElement {
+export class DuoyunFilePickElement extends GemElement implements BasePickerElement {
   @part static button: string;
   @part static item: string;
 
@@ -142,6 +143,10 @@ export class DuoyunFilePickElement extends GemElement {
 
   get #placeholder() {
     return this.placeholder || 'Browse';
+  }
+
+  constructor() {
+    super({ delegatesFocus: true });
   }
 
   #onChange = () => {
@@ -227,7 +232,7 @@ export class DuoyunFilePickElement extends GemElement {
         part=${DuoyunFilePickElement.button}
         class="item button"
         @keydown=${commonHandle}
-        @click=${() => this.openFilePicker()}>
+        @click=${() => this.showPicker()}>
         <dy-use class="icon" .element=${icons.add}></dy-use>
         <span class="name">${this.#placeholder}</span>
       </div>
@@ -235,7 +240,7 @@ export class DuoyunFilePickElement extends GemElement {
     `;
   };
 
-  openFilePicker = () => {
+  showPicker = () => {
     this.inputRef.element!.click();
   };
 }

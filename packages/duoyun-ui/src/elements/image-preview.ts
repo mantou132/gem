@@ -105,6 +105,10 @@ export class DuoyunImagePreviewElement extends GemElement<State> {
     }
   }
 
+  constructor() {
+    super({ delegatesFocus: true });
+  }
+
   state: State = {
     previewUrl: '',
   };
@@ -127,7 +131,7 @@ export class DuoyunImagePreviewElement extends GemElement<State> {
   };
 
   render = () => {
-    if (!this.file) return;
+    if (!this.file) return html``;
     const { previewUrl } = this.state;
     const color = this.progress ? theme.informativeColor : this.#color;
     return html`

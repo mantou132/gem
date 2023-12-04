@@ -95,7 +95,7 @@ export class DuoyunPaginationElement extends GemElement {
   }
 
   constructor() {
-    super();
+    super({ delegatesFocus: true });
     this.internals.role = 'listbox';
     this.internals.ariaLabel = 'Pagination';
   }
@@ -113,7 +113,7 @@ export class DuoyunPaginationElement extends GemElement {
       close();
     };
     const openMore = (evt: Event) => {
-      close = Popover.show(evt.target as Element, {
+      close = Popover.open(evt.target as Element, {
         trigger: 'click',
         content: html`
           <dy-input-group style="width: 6em">

@@ -13,12 +13,12 @@ class GemElement<State> extends HTMLElement {
 
 ## 构造参数
 
-| 名称      | 描述                   |
-| --------- | ---------------------- |
-| `isLight` | 是否渲染成 Light DOM   |
-| `isAsync` | 是否使用非阻塞渲染模式 |
-
-_暂时不支持 [`delegatesFocus`](https://developer.mozilla.org/en-US/docs/Web/API/Element/attachShadow) 参数，你可以使用 [`:focus-within`](https://developer.mozilla.org/en-US/docs/Web/CSS/:focus-within)_
+| 名称             | 描述                                 |
+| ---------------- | ------------------------------------ |
+| `isLight`        | 是否渲染成 Light DOM                 |
+| `isAsync`        | 是否使用非阻塞渲染模式               |
+| `delegatesFocus` | 当元素尝试聚焦时自动代理到可聚焦部分 |
+| `slotAssignment` | 允许手动分配插槽                     |
 
 ## 静态属性
 

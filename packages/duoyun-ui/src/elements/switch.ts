@@ -79,7 +79,7 @@ export class DuoyunSwitchElement extends GemElement {
   }
 
   constructor() {
-    super();
+    super({ delegatesFocus: true });
     this.addEventListener('click', this.#onClick);
   }
 

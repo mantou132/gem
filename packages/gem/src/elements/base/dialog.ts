@@ -8,6 +8,8 @@ import { history } from '../../lib/history';
  * 模拟 top layer：https://github.com/whatwg/html/issues/4633.
  *
  * @attr label
+ * @fires open
+ * @fires close
  */
 @connectStore(history.store)
 export abstract class GemDialogBaseElement extends GemElement {

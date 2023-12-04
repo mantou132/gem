@@ -112,7 +112,7 @@ export class DuoyunCardElement extends DuoyunLoadableBaseElement {
   @attribute crossorigin: 'anonymous' | 'use-credentials';
 
   constructor() {
-    super();
+    super({ delegatesFocus: true });
     this.internals.role = 'group';
   }
 

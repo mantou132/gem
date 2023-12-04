@@ -81,7 +81,9 @@ const updateSymbol = Symbol('update');
 export interface GemElementOptions {
   isLight?: boolean;
   isAsync?: boolean;
+  // https://developer.mozilla.org/en-US/docs/Web/API/Element/attachShadow#options
   delegatesFocus?: boolean;
+  slotAssignment?: 'named' | 'manual';
 }
 
 export abstract class GemElement<T = Record<string, unknown>> extends HTMLElement {
@@ -114,7 +116,7 @@ export abstract class GemElement<T = Record<string, unknown>> extends HTMLElemen
   #memoList?: EffectItem<any>[];
   #unmountCallback?: any;
 
-  constructor({ isAsync, isLight, delegatesFocus }: GemElementOptions = {}) {
+  constructor({ isAsync, isLight, delegatesFocus, slotAssignment }: GemElementOptions = {}) {
     super();
     (this as any)[constructorSymbol] = true;
 
@@ -128,7 +130,7 @@ export abstract class GemElement<T = Record<string, unknown>> extends HTMLElemen
     };
 
     this.#isAsync = isAsync;
-    this.#renderRoot = isLight ? this : this.attachShadow({ mode: 'open', delegatesFocus });
+    this.#renderRoot = isLight ? this : this.attachShadow({ mode: 'open', delegatesFocus, slotAssignment });
 
     const { adoptedStyleSheets } = new.target;
     if (adoptedStyleSheets) {

@@ -80,10 +80,10 @@ export class DuoyunPopoverElement extends GemElement<PopoverState> {
   @emitter open: Emitter<null>;
   @emitter close: Emitter<null>;
 
-  static show(e: Element, option: Option): CloseCallback;
-  static show(x: number, y: number, option: Option): CloseCallback;
-  static show(xywh: number[], option: Option): CloseCallback;
-  static show(...args: any[]) {
+  static open(e: Element, option: Option): CloseCallback;
+  static open(x: number, y: number, option: Option): CloseCallback;
+  static open(xywh: number[], option: Option): CloseCallback;
+  static open(...args: any[]) {
     const firstArg = args[0];
     const option = args.pop();
     const element = firstArg instanceof Element ? firstArg : null;
@@ -146,7 +146,7 @@ export class DuoyunPopoverElement extends GemElement<PopoverState> {
   };
 
   constructor({ delay = 500, content, position, ghostStyle, trigger, unreachable }: Option = {}) {
-    super();
+    super({ delegatesFocus: true });
     if (content) this.content = content;
     if (position) this.position = position;
     if (ghostStyle) this.ghostStyle = ghostStyle;

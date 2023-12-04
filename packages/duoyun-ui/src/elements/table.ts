@@ -45,7 +45,7 @@ const style = createCSSSheet(css`
     table-layout: fixed;
     border-collapse: collapse;
   }
-  .selection:where(:--select, :state(select)) ~ table {
+  .selection:where(:--selecting, :state(selecting)) ~ table {
     user-select: none;
   }
   .selection ~ table {
@@ -123,8 +123,8 @@ export type Column<T> = {
   dataIndex?: keyof T | string[];
   render?: (record: T) => string | TemplateResult;
   getActions?: (record: T, evt: HTMLElement) => MenuItem[];
-  getColspan?: (record: T, arr: T[]) => number;
-  getRowspan?: (record: T, arr: T[]) => number;
+  getColSpan?: (record: T, arr: T[]) => number;
+  getRowSpan?: (record: T, arr: T[]) => number;
   data?: Record<string, unknown>;
 };
 
@@ -156,8 +156,8 @@ export class DuoyunTableElement extends GemElement {
   @emitter itemclick: Emitter<any>;
   @emitter itemcontextmenu: Emitter<ItemContextMenuEventDetail>;
 
-  @property columns: Column<any>[];
-  @property data: (Record<string, unknown> | undefined)[] | undefined;
+  @property columns?: Column<any>[];
+  @property data?: (Record<string, unknown> | undefined)[];
   @property getRowStyle?: (record: any) => StyleObject;
 
   @property noData?: string | TemplateResult;
@@ -167,6 +167,10 @@ export class DuoyunTableElement extends GemElement {
   @emitter expand: Emitter<any>;
 
   #selectionSet = new Set<any>();
+
+  constructor() {
+    super({ delegatesFocus: true });
+  }
 
   #onSelectionBoxChange = ({ detail: { rect, mode } }: CustomEvent<SelectionChange>) => {
     const selection = new Set(mode === 'new' ? [] : this.#selectionSet);
@@ -286,6 +290,7 @@ export class DuoyunTableElement extends GemElement {
   };
 
   render = () => {
+    if (!this.columns) return html``;
     const columns = this.expandedRowRender ? [this.#expandedColumn, ...this.columns] : this.columns;
     const rowSpanMemo = columns.map(() => 0);
     return html`
@@ -348,18 +353,18 @@ export class DuoyunTableElement extends GemElement {
                       getActions,
                       width,
                       style = this.#getDefaultStyle(width),
-                      getRowspan,
-                      getColspan,
+                      getRowSpan,
+                      getColSpan,
                       ellipsis = false,
                     },
                     colIndex,
                     _arr,
                     rowShouldRender = this.#shouldRenderTd(rowSpanMemo, colIndex),
                     rowSpan = rowShouldRender
-                      ? this.#getSpan(rowSpanMemo, colIndex, getRowspan?.(record, this.data!))
+                      ? this.#getSpan(rowSpanMemo, colIndex, getRowSpan?.(record, this.data!))
                       : 1,
                     colShouldRender = this.#shouldRenderTd(colSpanMemo, 0),
-                    colSpan = colShouldRender ? this.#getSpan(colSpanMemo, 0, getColspan?.(record, this.data!)) : 1,
+                    colSpan = colShouldRender ? this.#getSpan(colSpanMemo, 0, getColSpan?.(record, this.data!)) : 1,
                   ) =>
                     rowShouldRender && colShouldRender
                       ? html`

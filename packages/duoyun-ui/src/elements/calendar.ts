@@ -139,6 +139,10 @@ export class DuoyunCalendarElement extends GemElement {
   @property highlights?: number[][];
   @property renderDate?: (date: Time) => TemplateResult;
 
+  constructor() {
+    super({ delegatesFocus: true });
+  }
+
   #isHighlight = (date: Time) => {
     const t = date.valueOf();
     return !!this.highlights?.some(([start, stop]) => t >= start && t <= stop);

@@ -210,6 +210,10 @@ export class DuoyunInputElement extends GemElement {
     return this.hasAttribute('max') ? this.max : Infinity;
   }
 
+  constructor() {
+    super({ delegatesFocus: true });
+  }
+
   #nextState = {
     value: '',
     selectionStart: 0,
@@ -395,16 +399,6 @@ export class DuoyunInputElement extends GemElement {
         : ''}
     `;
   }
-
-  focus = () => {
-    this.inputRef.element?.focus();
-  };
-
-  blur = () => {
-    if (this.shadowRoot!.activeElement instanceof HTMLElement) {
-      this.shadowRoot!.activeElement.blur();
-    }
-  };
 }
 
 const inputGroupStyle = createCSSSheet(css`

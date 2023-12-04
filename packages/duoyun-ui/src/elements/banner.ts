@@ -82,7 +82,7 @@ type Status = 'positive' | 'notice' | 'negative' | 'default';
 @customElement('dy-banner')
 @adoptedStyle(style)
 export class DuoyunBannerElement extends GemElement {
-  @boolattribute closeable: boolean;
+  @boolattribute closable: boolean;
   @attribute status: Status;
 
   @property action?: { text: string; handle: () => void };
@@ -101,7 +101,7 @@ export class DuoyunBannerElement extends GemElement {
   }
 
   constructor() {
-    super();
+    super({ delegatesFocus: true });
     this.internals.role = 'banner';
   }
 
@@ -117,12 +117,13 @@ export class DuoyunBannerElement extends GemElement {
             <button class="action" @keydown=${commonHandle} @click=${this.action.handle}>${this.action.text}</button>
           `
         : ''}
-      ${this.closeable
+      ${this.closable
         ? html`
             <dy-divider class="divider" orientation="vertical"></dy-divider>
             <dy-use
               role="button"
               class="close"
+              tabindex="0"
               .element=${icons.close}
               @click=${() => this.close(null)}
               @keydown=${commonHandle}

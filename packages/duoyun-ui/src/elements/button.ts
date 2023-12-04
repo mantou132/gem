@@ -134,7 +134,6 @@ export class DuoyunButtonElement extends GemElement {
   @state active: boolean;
 
   @refobject dropdownRef: RefObject<DuoyunUseElement>;
-  @refobject buttonRef: RefObject<HTMLDivElement>;
 
   @part static button: string;
   @part static dropdown: string;
@@ -144,7 +143,7 @@ export class DuoyunButtonElement extends GemElement {
   }
 
   constructor() {
-    super();
+    super({ delegatesFocus: true });
     this.addEventListener('click', () => {
       if (this.disabled) return;
       if (this.route) {
@@ -184,7 +183,6 @@ export class DuoyunButtonElement extends GemElement {
         }
       </style>
       <div
-        ref=${this.buttonRef.ref}
         tabindex="0"
         role="button"
         aria-disabled=${this.disabled}
@@ -221,9 +219,5 @@ export class DuoyunButtonElement extends GemElement {
           `
         : ''}
     `;
-  };
-
-  focus = () => {
-    this.buttonRef.element!.focus();
   };
 }

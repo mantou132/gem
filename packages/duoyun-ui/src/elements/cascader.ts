@@ -81,7 +81,7 @@ const token = Symbol();
 export class DuoyunCascaderElement extends GemElement<State> {
   @part static column: string;
 
-  @property options: Option[];
+  @property options?: Option[];
   @boolattribute fit: boolean;
   @boolattribute multiple: boolean;
   @globalemitter change: Emitter<(string | number)[][] | (string | number)[]>;
@@ -158,12 +158,13 @@ export class DuoyunCascaderElement extends GemElement<State> {
   willMount = () => {
     this.memo(
       () => {
+        if (!this.options) return;
         this.#deep = getCascaderDeep(this.options, 'children');
         // init state
         if (!this.state.selected.length) {
           const selected: Option[] = [];
           this.#value?.[0]?.forEach((val, index) => {
-            const item = (index ? selected[selected.length - 1].children! : this.options).find(
+            const item = (index ? selected[selected.length - 1].children! : this.options!).find(
               (e) => val === (e.value ?? e.label),
             )!;
             selected.push(item);
@@ -209,13 +210,14 @@ export class DuoyunCascaderElement extends GemElement<State> {
             ? 1
             : 0;
         };
-        this.options.forEach((e) => check([], e));
+        this.options?.forEach((e) => check([], e));
       },
       () => [this.value],
     );
   };
 
   render = () => {
+    if (!this.options) return html``;
     const { selected } = this.state;
     const listStyle = styleMap({ width: this.fit ? `${100 / this.#deep}%` : undefined });
     return html`

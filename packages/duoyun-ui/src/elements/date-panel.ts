@@ -155,7 +155,7 @@ export class DuoyunDatePanelElement extends GemElement<State> {
   }
 
   constructor() {
-    super();
+    super({ delegatesFocus: true });
     this.internals.role = 'widget';
   }
 
@@ -209,7 +209,7 @@ export class DuoyunDatePanelElement extends GemElement<State> {
     this.change(evt.detail);
   };
 
-  #renderCurrentPostion = () => {
+  #renderCurrentPosition = () => {
     switch (this.state.mode) {
       case 'day':
         return html`${this.#currentPosition.formatToParts().map(({ type, value }) => {
@@ -315,7 +315,7 @@ export class DuoyunDatePanelElement extends GemElement<State> {
             @click=${() => this.#increaseView(-1)}
             .element=${icons.left}
           ></dy-use>
-          <div class="current">${this.#renderCurrentPostion()}</div>
+          <div class="current">${this.#renderCurrentPosition()}</div>
           <dy-use
             class="button"
             tabindex="0"
@@ -348,7 +348,7 @@ export class DuoyunDatePanelElement extends GemElement<State> {
                 class="timepanel"
                 .value=${this.value}
                 @change=${this.#onTimeChange}
-                headerless
+                headless
               ></dy-time-panel>
             </div>
           `

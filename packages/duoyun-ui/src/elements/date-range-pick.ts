@@ -22,7 +22,7 @@ import { focusStyle } from '../lib/styles';
 
 import type { DuoyunButtonElement } from './button';
 import { ContextMenu } from './menu';
-import { pickerStyle } from './pick';
+import { BasePickerElement, pickerStyle } from './pick';
 
 import './use';
 import './date-range-panel';
@@ -65,7 +65,7 @@ const style = createCSSSheet(css`
 @adoptedStyle(style)
 @adoptedStyle(pickerStyle)
 @adoptedStyle(focusStyle)
-export class DuoyunDateRangePickElement extends GemElement {
+export class DuoyunDateRangePickElement extends GemElement implements BasePickerElement {
   @attribute placeholder: string;
   @boolattribute clearable: boolean;
   @boolattribute disabled: boolean;
@@ -176,4 +176,6 @@ export class DuoyunDateRangePickElement extends GemElement {
       </div>
     `;
   };
+
+  showPicker = () => this.#onOpen();
 }

@@ -176,6 +176,10 @@ export class DuoyunCarouselElement extends GemElement<State> {
     return this.interval || 3000;
   }
 
+  constructor() {
+    super({ delegatesFocus: true });
+  }
+
   state: State = {
     currentIndex: 0,
     direction: 1,

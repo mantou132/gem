@@ -251,7 +251,7 @@ export class DuoyunFormItemElement extends GemElement<FormItemState> {
   @state invalid: boolean;
 
   @property value?: number | string | any[] | any;
-  @property renderLabel: (e: SelectOption) => string | TemplateResult;
+  @property renderLabel?: (e: SelectOption) => string | TemplateResult;
 
   @property rules?: FormItemRule[];
 

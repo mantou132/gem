@@ -34,7 +34,7 @@ type MenuStore = {
   maxHeight?: string;
   activeElement?: HTMLElement | null;
   openLeft?: boolean;
-  maskCloseable?: boolean;
+  maskClosable?: boolean;
   menuStack: {
     searchable?: boolean;
     openTop?: boolean;
@@ -50,7 +50,7 @@ type OpenMenuOptions = {
   activeElement?: HTMLElement | null;
   /**only work `activeElement`, only support first menu   */
   openLeft?: boolean;
-  maskCloseable?: boolean;
+  maskClosable?: boolean;
   /**only work nothing `activeElement`  */
   x?: number;
   /**only work nothing `activeElement`  */
@@ -124,7 +124,7 @@ export class DuoyunMenuElement extends GemElement {
       maxHeight,
       searchable,
       header,
-      maskCloseable = true,
+      maskClosable = true,
     } = options;
     if (Array.isArray(menu) && menu.length === 0) throw new Error('menu length is 0');
     toggleActiveState(activeElement, true);
@@ -133,7 +133,7 @@ export class DuoyunMenuElement extends GemElement {
       maxHeight,
       activeElement,
       openLeft,
-      maskCloseable,
+      maskClosable,
       menuStack: [{ x, y, menu, searchable, header }],
     });
     if (ContextMenu.instance) {
@@ -192,7 +192,7 @@ export class DuoyunMenuElement extends GemElement {
   }
 
   constructor() {
-    super();
+    super({ delegatesFocus: true });
     document.body.append(this);
   }
 
@@ -282,7 +282,7 @@ export class DuoyunMenuElement extends GemElement {
   };
 
   #onMaskClick = () => {
-    if (menuStore.maskCloseable) {
+    if (menuStore.maskClosable) {
       ContextMenu.close();
     }
   };
@@ -300,9 +300,9 @@ export class DuoyunMenuElement extends GemElement {
   };
 
   render = () => {
-    const { menuStack, maxHeight, maskCloseable } = menuStore;
+    const { menuStack, maxHeight, maskClosable } = menuStore;
     return html`
-      <div class=${classMap({ mask: true, opaque: !maskCloseable })} @click=${this.#onMaskClick}></div>
+      <div class=${classMap({ mask: true, opaque: !maskClosable })} @click=${this.#onMaskClick}></div>
       ${menuStack.map(
         (
           { x, y, menu, searchable, openTop, header },

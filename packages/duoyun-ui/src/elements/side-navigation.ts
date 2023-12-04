@@ -87,13 +87,13 @@ type State = Record<string, boolean>;
 @adoptedStyle(focusStyle)
 @connectStore(history.store)
 export class DuoyunSideNavigationElement extends DuoyunScrollBaseElement<State> {
-  @property items: NavItems = [];
+  @property items?: NavItems = [];
 
   // children open state
   state: State = {};
 
   constructor() {
-    super();
+    super({ delegatesFocus: true });
     this.internals.role = 'navigation';
     this.internals.ariaLabel = 'Side Navigation';
   }
@@ -117,7 +117,7 @@ export class DuoyunSideNavigationElement extends DuoyunScrollBaseElement<State> 
         return true;
       }
     };
-    this.items.forEach(matchChildren);
+    this.items?.forEach(matchChildren);
   };
 
   #renderItem = ({ pattern, title = '<No Title>', slot, params, query, hash, children }: Item): TemplateResult => {
@@ -147,7 +147,7 @@ export class DuoyunSideNavigationElement extends DuoyunScrollBaseElement<State> 
   };
 
   render = () => {
-    if (!this.items.length) return html``;
+    if (!this.items?.length) return html``;
     return html`${this.items.map((item) =>
       'group' in item
         ? html`

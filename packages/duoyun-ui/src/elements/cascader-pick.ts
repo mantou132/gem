@@ -18,7 +18,7 @@ import { commonHandle } from '../lib/hotkeys';
 import { focusStyle } from '../lib/styles';
 
 import { ContextMenu } from './menu';
-import { pickerStyle } from './pick';
+import { BasePickerElement, pickerStyle } from './pick';
 import type { Option, DuoyunCascaderElement } from './cascader';
 
 import './use';
@@ -49,9 +49,9 @@ const style = createCSSSheet(css`
 @adoptedStyle(style)
 @adoptedStyle(pickerStyle)
 @adoptedStyle(focusStyle)
-export class DuoyunCascaderPickElement extends GemElement {
+export class DuoyunCascaderPickElement extends GemElement implements BasePickerElement {
   @attribute placeholder: string;
-  @property options: Option[];
+  @property options?: Option[];
   @boolattribute fit: boolean;
   @boolattribute disabled: boolean;
   @boolattribute multiple: boolean;
@@ -78,7 +78,7 @@ export class DuoyunCascaderPickElement extends GemElement {
   };
 
   #onOpen = () => {
-    if (this.disabled || !this.options || !this.options.length) return;
+    if (this.disabled || !this.options?.length) return;
     ContextMenu.open(
       html`
         <dy-cascader
@@ -139,4 +139,6 @@ export class DuoyunCascaderPickElement extends GemElement {
       <dy-use class="icon" .element=${icons.expand}></dy-use>
     `;
   };
+
+  showPicker = () => this.#onOpen();
 }

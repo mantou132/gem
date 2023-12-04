@@ -13,6 +13,7 @@ import { Time, parseDate } from '../lib/time';
 import { theme } from '../lib/theme';
 import { isNotNullish } from '../lib/types';
 import { locale } from '../lib/locale';
+import { focusStyle } from '../lib/styles';
 
 const style = createCSSSheet(css`
   :host(:where(:not([hidden]))) {
@@ -51,8 +52,9 @@ const style = createCSSSheet(css`
  */
 @customElement('dy-time-panel')
 @adoptedStyle(style)
+@adoptedStyle(focusStyle)
 export class DuoyunTimePanelElement extends GemElement {
-  @boolattribute headerless: boolean;
+  @boolattribute headless: boolean;
   @globalemitter change: Emitter<number>;
 
   @property value?: number;
@@ -63,6 +65,10 @@ export class DuoyunTimePanelElement extends GemElement {
 
   get #parts() {
     return isNotNullish(this.value) ? parseDate(this.value) : ({} as Partial<ReturnType<typeof parseDate>>);
+  }
+
+  constructor() {
+    super({ delegatesFocus: true });
   }
 
   #toArr = (l: number) => Array.from({ length: l }, (_, index) => index);
@@ -89,7 +95,7 @@ export class DuoyunTimePanelElement extends GemElement {
   render = () => {
     const { hour, minute, second } = this.#parts;
     return html`
-      ${this.headerless
+      ${this.headless
         ? ''
         : html`
             <div class="header">${locale.hour}</div>

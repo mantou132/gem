@@ -60,7 +60,7 @@ export class DuoyunDropAreaElement extends GemElement {
 
   @state allowDrop: boolean;
   @globalemitter change: Emitter<File[]>;
-  @emitter omit: Emitter<File[]>;
+  @emitter ignore: Emitter<File[]>;
   @emitter nodata: Emitter<null>;
 
   get #tip() {
@@ -124,7 +124,7 @@ export class DuoyunDropAreaElement extends GemElement {
       if (validFiles.length) this.change(validFiles);
       const set = new Set(validFiles);
       const omitFiles = [...files].filter((file) => !set.has(file));
-      if (omitFiles.length) this.omit(omitFiles);
+      if (omitFiles.length) this.ignore(omitFiles);
       return;
     } else {
       const type = this.#findValidType(evt.dataTransfer.types);

@@ -91,14 +91,15 @@ class _DuoyunTreeItemElement extends GemElement {
   @boolattribute highlight: boolean;
   @boolattribute hastags: boolean;
 
-  @property item: TreeItem;
+  @property item?: TreeItem;
 
   constructor() {
-    super();
+    super({ delegatesFocus: true });
     this.internals.role = 'treeitem';
   }
 
   render = () => {
+    if (!this.item) return html``;
     const { label, children, icon, context, tags } = this.item;
     return html`
       <dy-use
@@ -146,7 +147,7 @@ export class DuoyunTreeElement extends GemElement<State> {
   };
 
   constructor() {
-    super();
+    super({ delegatesFocus: true });
     this.internals.role = 'tree';
   }
 

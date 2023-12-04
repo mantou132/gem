@@ -24,7 +24,7 @@ import { focusStyle } from '../lib/styles';
 import type { DuoyunButtonElement } from './button';
 import type { DuoyunDatePanelElement } from './date-panel';
 import { ContextMenu } from './menu';
-import { pickerStyle } from './pick';
+import { BasePickerElement, pickerStyle } from './pick';
 
 import './use';
 import './date-panel';
@@ -74,7 +74,7 @@ export interface Option {
 @adoptedStyle(style)
 @adoptedStyle(focusStyle)
 @connectStore(icons)
-export class DuoyunDatePickElement extends GemElement {
+export class DuoyunDatePickElement extends GemElement implements BasePickerElement {
   @attribute placeholder: string;
   @boolattribute time: boolean;
   @boolattribute clearable: boolean;
@@ -173,4 +173,6 @@ export class DuoyunDatePickElement extends GemElement {
       </div>
     `;
   };
+
+  showPicker = () => this.#onOpen();
 }

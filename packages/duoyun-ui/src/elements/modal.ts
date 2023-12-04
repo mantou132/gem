@@ -138,7 +138,7 @@ export interface Options {
   body?: string | TemplateResult;
   /**render body only */
   customize?: boolean;
-  maskCloseable?: boolean;
+  maskClosable?: boolean;
   open?: boolean;
   disableDefaultCancelBtn?: boolean;
   disableDefaultOKBtn?: boolean;
@@ -160,7 +160,7 @@ export interface Options {
 export class DuoyunModalElement extends GemElement {
   @boolattribute open: boolean;
   @boolattribute customize: boolean;
-  @boolattribute maskCloseable: boolean;
+  @boolattribute maskClosable: boolean;
   @attribute okText: string;
   @attribute cancelText: string;
   @boolattribute disableDefaultCancelBtn: boolean;
@@ -171,7 +171,7 @@ export class DuoyunModalElement extends GemElement {
   @emitter ok: Emitter;
   @emitter maskclick: Emitter;
 
-  @property header: string | TemplateResult;
+  @property header?: string | TemplateResult;
   @property body?: string | TemplateResult;
 
   @refobject bodyRef: RefObject<HTMLElement>;
@@ -217,7 +217,7 @@ export class DuoyunModalElement extends GemElement {
     header,
     open,
     customize,
-    maskCloseable,
+    maskClosable,
     cancelText,
     okText,
     body,
@@ -225,10 +225,10 @@ export class DuoyunModalElement extends GemElement {
     disableDefaultOKBtn,
     dangerDefaultOkBtn,
   }: Options = {}) {
-    super();
+    super({ delegatesFocus: true });
     if (header) this.header = header;
     if (customize) this.customize = customize;
-    if (maskCloseable) this.maskCloseable = maskCloseable;
+    if (maskClosable) this.maskClosable = maskClosable;
     if (open) this.open = open;
     if (cancelText) this.cancelText = cancelText;
     if (okText) this.okText = okText;
@@ -246,14 +246,10 @@ export class DuoyunModalElement extends GemElement {
     this.ok(null);
   };
 
-  #focus = () => {
-    this.shadowRoot!.querySelector<HTMLDivElement>('.dialog')?.focus();
-  };
-
   #onMaskClick = () => {
-    if (this.maskCloseable) this.#close();
+    if (this.maskClosable) this.#close();
     this.maskclick(null);
-    this.#focus();
+    this.focus();
   };
 
   #keydown = (evt: KeyboardEvent) => {
@@ -265,7 +261,7 @@ export class DuoyunModalElement extends GemElement {
     this.effect(
       () => {
         if (this.open && !this.shadowRoot?.activeElement) {
-          this.#focus();
+          this.focus();
         }
       },
       () => [this.open],

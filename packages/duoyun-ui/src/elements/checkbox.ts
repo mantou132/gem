@@ -72,7 +72,7 @@ export class DuoyunCheckboxElement extends GemElement {
   @attribute value: string;
 
   constructor() {
-    super();
+    super({ delegatesFocus: true });
     this.addEventListener('click', this.#onClick);
   }
 
@@ -112,7 +112,7 @@ export class DuoyunCheckboxGroupElement extends GemElement {
   @property options?: Option[];
 
   constructor() {
-    super();
+    super({ delegatesFocus: true });
     this.internals.role = 'group';
   }
 

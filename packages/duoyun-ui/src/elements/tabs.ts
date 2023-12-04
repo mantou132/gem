@@ -111,7 +111,7 @@ export class DuoyunTabsElement extends GemElement {
   }
 
   constructor() {
-    super();
+    super({ delegatesFocus: true });
     this.internals.role = 'tablist';
   }
 

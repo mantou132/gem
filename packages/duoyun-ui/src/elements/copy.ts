@@ -96,10 +96,6 @@ export class DuoyunCopyElement extends GemElement<State> {
 
   @emitter copy: Emitter<boolean>;
 
-  state: State = {
-    status: 'none',
-  };
-
   get #icon() {
     switch (this.state.status) {
       case 'success':
@@ -110,6 +106,14 @@ export class DuoyunCopyElement extends GemElement<State> {
         return icons.copy;
     }
   }
+
+  constructor() {
+    super({ delegatesFocus: true });
+  }
+
+  state: State = {
+    status: 'none',
+  };
 
   #showMessage = (isSuccess: boolean) => {
     this.copy(isSuccess);

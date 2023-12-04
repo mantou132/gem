@@ -61,7 +61,7 @@ export class DuoyunRadioElement extends GemElement {
   @attribute value: string;
 
   constructor() {
-    super();
+    super({ delegatesFocus: true });
     this.addEventListener('click', this.#onClick);
   }
 
@@ -122,7 +122,7 @@ export class DuoyunRadioGroupElement extends GemElement {
   @property options?: Option[];
 
   constructor() {
-    super();
+    super({ delegatesFocus: true });
     this.internals.role = 'radiogroup';
   }
 

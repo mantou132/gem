@@ -57,6 +57,10 @@ export const pickerStyle = createCSSSheet(css`
   }
 `);
 
+export abstract class BasePickerElement {
+  showPicker: () => void;
+}
+
 const style = createCSSSheet(css`
   :host {
     width: 12em;
@@ -92,7 +96,7 @@ export interface Option<T = any> {
 @adoptedStyle(pickerStyle)
 @adoptedStyle(focusStyle)
 @connectStore(icons)
-export class DuoyunPickElement extends GemElement {
+export class DuoyunPickElement extends GemElement implements BasePickerElement {
   @attribute placeholder: string;
   @boolattribute disabled: boolean;
   @boolattribute borderless: boolean;
@@ -170,4 +174,6 @@ export class DuoyunPickElement extends GemElement {
       <dy-use class="icon" .element=${icons.expand}></dy-use>
     `;
   };
+
+  showPicker = () => this.#onOpen();
 }

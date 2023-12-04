@@ -13,12 +13,12 @@ class GemElement<State> extends HTMLElement {
 
 ## Construction parameters
 
-| name      | description                                |
-| --------- | ------------------------------------------ |
-| `isLight` | Whether to render as Light DOM             |
-| `isAsync` | Whether to use non-blocking rendering mode |
-
-_The [`delegatesFocus`](https://developer.mozilla.org/en-US/docs/Web/API/Element/attachShadow) parameter is not supported temporarily, you can use [`:focus-within`](https://developer.mozilla.org/en-US/docs/Web/CSS/:focus-within)_
+| name             | description                                                               |
+| ---------------- | ------------------------------------------------------------------------- |
+| `isLight`        | Whether to render as Light DOM                                            |
+| `isAsync`        | Whether to use non-blocking rendering mode                                |
+| `delegatesFocus` | When the element attempts to focus, the automatic proxy to the focus part |
+| `slotAssignment` | Allow manual allocation of slot                                           |
 
 ## Static properties
 

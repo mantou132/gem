@@ -14,7 +14,7 @@ const style = createCSSSheet(css`
 @customElement('dy-compartment')
 @adoptedStyle(style)
 export class DuoyunCompartmentElement extends GemElement {
-  @property content: string | number | TemplateResult;
+  @property content?: string | number | TemplateResult;
   render = () => {
     return html`${this.content}`;
   };

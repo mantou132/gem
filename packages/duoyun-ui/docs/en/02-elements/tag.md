@@ -4,7 +4,7 @@
 
 <gbp-example
   name="dy-tag"
-  props='{"color": "positive", "small": true, "closeable": true}'
+  props='{"color": "positive", "small": true, "closable": true}'
   html="Tag"
   src="https://jspm.dev/duoyun-ui/elements/tag"></gbp-example>
 

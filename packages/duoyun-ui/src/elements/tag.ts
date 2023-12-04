@@ -56,7 +56,7 @@ export type PresetColor = 'positive' | 'informative' | 'negative' | 'notice' | '
 @adoptedStyle(focusStyle)
 @connectStore(icons)
 export class DuoyunTagElement extends GemElement {
-  @boolattribute closeable: boolean;
+  @boolattribute closable: boolean;
   @attribute color: StringList<PresetColor>;
   @attribute mode: 'solid' | 'reverse';
   @boolattribute small: boolean;
@@ -80,7 +80,7 @@ export class DuoyunTagElement extends GemElement {
   }
 
   constructor() {
-    super();
+    super({ delegatesFocus: true });
     this.internals.role = 'mark';
   }
 
@@ -102,7 +102,7 @@ export class DuoyunTagElement extends GemElement {
         }
       </style>
       <slot></slot>
-      ${this.closeable
+      ${this.closable
         ? html`
             <dy-use
               tabindex="0"

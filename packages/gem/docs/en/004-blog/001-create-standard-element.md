@@ -177,15 +177,18 @@ When users use custom elements, they can use the `role`,`aria-*` attributes to s
 html`<my-element role="region" aria-label="my profile"></my-element>`;
 ```
 
-Use [`ElementInternals`](https://html.spec.whatwg.org/multipage/custom-elements.html#elementinternals) to define the default semantics of custom elements, which is more convenient for users to use:
+Use [`ElementInternals`](https://html.spec.whatwg.org/multipage/custom-elements.html#elementinternals) to define the default semantics of custom elements, use [`delegatesFocus`](https://developer.mozilla.org/en-US/docs/Web/API/Element/attachShadow#delegatesfocus) or `tabIndex` focus:
 
 ```ts
 @customElement('my-element')
 class MyElement extends GemElement {
   constructor() {
-    super();
+    super({ delegatesFocus: true });
     this.internals.role = 'region';
     this.internals.ariaLabel = 'my profile';
+  }
+  render() {
+    return html`<div tabindex="0">Focusable</div>`;
   }
 }
 ```

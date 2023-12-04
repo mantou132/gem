@@ -18,7 +18,7 @@ setTours(
       preview: 'https://picsum.photos/400/300',
       title: 'starterAnalyticsTitle',
       description: 'starterAnalyticsDesc',
-      maskCloseable: false,
+      maskClosable: false,
     },
     {
       title: 'starterMenuTitle',

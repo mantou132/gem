@@ -42,7 +42,7 @@ export type SelectionChange = {
 @adoptedStyle(style)
 export class DuoyunSelectionBoxElement extends GemElement<State> {
   @emitter change: Emitter<SelectionChange>;
-  @state select: boolean;
+  @state selecting: boolean;
 
   state: State = {
     rect: {
@@ -65,7 +65,7 @@ export class DuoyunSelectionBoxElement extends GemElement<State> {
   #onPointerDown = (evt: PointerEvent) => {
     if (evt.altKey) return;
     document.getSelection()?.removeAllRanges();
-    this.select = true;
+    this.selecting = true;
     this.setState({ start: [evt.x, evt.y], mode: this.#getMode(evt) });
     addEventListener('pointermove', this.#onPointerMove);
     addEventListener('pointerup', this.#onPointerUp);
@@ -74,7 +74,7 @@ export class DuoyunSelectionBoxElement extends GemElement<State> {
   };
 
   #onPointerUp = () => {
-    this.select = false;
+    this.selecting = false;
     this.setState({ start: undefined, stop: undefined });
     removeEventListener('pointermove', this.#onPointerMove);
     removeEventListener('pointerup', this.#onPointerUp);

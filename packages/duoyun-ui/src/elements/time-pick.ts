@@ -21,7 +21,7 @@ import { commonHandle } from '../lib/hotkeys';
 import { focusStyle } from '../lib/styles';
 
 import { ContextMenu } from './menu';
-import { pickerStyle } from './pick';
+import { BasePickerElement, pickerStyle } from './pick';
 import type { DuoyunButtonElement } from './button';
 import type { DuoyunTimePanelElement } from './time-panel';
 
@@ -59,7 +59,7 @@ const style = createCSSSheet(css`
 @adoptedStyle(style)
 @adoptedStyle(pickerStyle)
 @adoptedStyle(focusStyle)
-export class DuoyunTimePickElement extends GemElement {
+export class DuoyunTimePickElement extends GemElement implements BasePickerElement {
   @attribute placeholder: string;
   @boolattribute clearable: boolean;
   @boolattribute disabled: boolean;
@@ -154,4 +154,6 @@ export class DuoyunTimePickElement extends GemElement {
       </div>
     `;
   };
+
+  showPicker = () => this.#onOpen();
 }
