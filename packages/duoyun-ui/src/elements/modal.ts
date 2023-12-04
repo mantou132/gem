@@ -10,6 +10,7 @@ import {
   refobject,
   RefObject,
   part,
+  state,
 } from '@mantou/gem/lib/decorators';
 import { GemElement, html, TemplateResult } from '@mantou/gem/lib/element';
 import { createCSSSheet, css, styled } from '@mantou/gem/lib/utils';
@@ -19,13 +20,13 @@ import { theme } from '../lib/theme';
 import { locale } from '../lib/locale';
 import { hotkeys } from '../lib/hotkeys';
 import { setBodyInert } from '../lib/utils';
+import { commonAnimationOptions, fadeOut } from '../lib/animations';
 
 import './button';
 import './divider';
 
 const style = createCSSSheet(css`
   :host {
-    view-transition-name: dy-modal;
     position: fixed;
     z-index: ${theme.popupZIndex};
     top: env(titlebar-area-height, var(--titlebar-area-height, 0px));
@@ -33,6 +34,11 @@ const style = createCSSSheet(css`
     width: 100%;
     height: calc(100% - env(titlebar-area-height, var(--titlebar-area-height, 0px)));
     display: none;
+    align-items: center;
+    justify-content: center;
+  }
+  :host(:not([hidden]):where([open], :where(:--closing, :state(closing)))) {
+    display: flex;
   }
   .absolute {
     position: absolute;
@@ -48,11 +54,6 @@ const style = createCSSSheet(css`
     100% {
       background-color: rgba(0, 0, 0, calc(${theme.maskAlpha} + 0.2));
     }
-  }
-  :host([open]) {
-    display: flex;
-    align-items: center;
-    justify-content: center;
   }
   .dialog {
     outline: none;
@@ -182,6 +183,8 @@ export class DuoyunModalElement extends GemElement {
   @part static body: string;
   @part static footer: string;
 
+  @state closing: boolean;
+
   // Cannot be used for dynamic forms
   static async open<T = Element>(options: Options) {
     const modal = new this({ ...options, open: true });
@@ -199,8 +202,9 @@ export class DuoyunModalElement extends GemElement {
           res(ele instanceof HTMLSlotElement ? ele.assignedElements()[0] : ele);
         }
       });
-    }).finally(() => {
+    }).finally(async () => {
       restoreInert();
+      await modal.animate(fadeOut, commonAnimationOptions).finished;
       modal.remove();
     });
   }
@@ -257,11 +261,24 @@ export class DuoyunModalElement extends GemElement {
     hotkeys({ esc: this.#close })(evt);
   };
 
+  willMount = () => {
+    this.memo(
+      () => (this.closing = !this.open),
+      () => [this.open],
+    );
+  };
+
+  #animation?: Animation;
   mounted = () => {
     this.effect(
-      () => {
-        if (this.open && !this.shadowRoot?.activeElement) {
-          this.focus();
+      async () => {
+        if (this.open) {
+          this.#animation?.cancel();
+          !this.shadowRoot?.activeElement && this.focus();
+        } else {
+          this.#animation = this.animate(fadeOut, commonAnimationOptions);
+          await this.#animation.finished;
+          this.closing = false;
         }
       },
       () => [this.open],
@@ -271,7 +288,7 @@ export class DuoyunModalElement extends GemElement {
   };
 
   render = () => {
-    if (!this.open) return html``;
+    if (!this.open && !this.closing) return html``;
 
     return html`
       <div class="mask absolute" @click=${this.#onMaskClick}></div>
