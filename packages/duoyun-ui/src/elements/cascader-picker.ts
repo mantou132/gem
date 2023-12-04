@@ -18,7 +18,7 @@ import { commonHandle } from '../lib/hotkeys';
 import { focusStyle } from '../lib/styles';
 
 import { ContextMenu } from './menu';
-import { BasePickerElement, pickerStyle } from './pick';
+import { BasePickerElement, pickerStyle } from './picker';
 import type { Option, DuoyunCascaderElement } from './cascader';
 
 import './use';
@@ -43,9 +43,9 @@ const style = createCSSSheet(css`
 `);
 
 /**
- * @customElement dy-cascader-pick
+ * @customElement dy-cascader-picker
  */
-@customElement('dy-cascader-pick')
+@customElement('dy-cascader-picker')
 @adoptedStyle(style)
 @adoptedStyle(pickerStyle)
 @adoptedStyle(focusStyle)

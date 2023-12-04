@@ -23,7 +23,7 @@ import { Popover } from './popover';
 import './use';
 import './input';
 import './button';
-import './pick';
+import './picker';
 
 const style = createCSSSheet(css`
   :host(:where(:not([hidden]))) {
@@ -123,7 +123,7 @@ export class DuoyunPaginationElement extends GemElement {
               step=${1}
               min=${1}
               max=${this.total}
-              value=${this.page}
+              value=${String(this.page)}
               @change=${({ detail, target }: CustomEvent<string>) => ((target as HTMLInputElement).value = detail)}
             ></dy-input>
             <dy-button small @click=${pageChange}> ${locale.ok} </dy-button>
@@ -186,7 +186,7 @@ export class DuoyunPaginationElement extends GemElement {
       </style>
       ${this.sizes
         ? html`
-            <dy-pick
+            <dy-picker
               class="size"
               fit
               selectmode
@@ -194,7 +194,7 @@ export class DuoyunPaginationElement extends GemElement {
               .options=${this.sizes.map((size) => ({ label: splice(locale.perPage, String(size)), value: size }))}
               .value=${this.size}
               @change=${({ detail }: CustomEvent<number>) => this.sizechange(detail)}
-            ></dy-pick>
+            ></dy-picker>
           `
         : ''}
       <div

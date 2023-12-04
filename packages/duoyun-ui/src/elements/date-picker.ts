@@ -24,7 +24,7 @@ import { focusStyle } from '../lib/styles';
 import type { DuoyunButtonElement } from './button';
 import type { DuoyunDatePanelElement } from './date-panel';
 import { ContextMenu } from './menu';
-import { BasePickerElement, pickerStyle } from './pick';
+import { BasePickerElement, pickerStyle } from './picker';
 
 import './use';
 import './date-panel';
@@ -61,7 +61,7 @@ export interface Option {
 }
 
 /**
- * @customElement dy-date-pick
+ * @customElement dy-date-picker
  * @attr placeholder
  * @attr time
  * @attr clearable
@@ -69,7 +69,7 @@ export interface Option {
  * @fires change
  * @fires clear
  */
-@customElement('dy-date-pick')
+@customElement('dy-date-picker')
 @adoptedStyle(pickerStyle)
 @adoptedStyle(style)
 @adoptedStyle(focusStyle)

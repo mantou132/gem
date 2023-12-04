@@ -20,7 +20,7 @@ import { focusStyle } from '../lib/styles';
 import { utf8ToB64 } from '../lib/encode';
 
 import type { ImageStatus } from './image-preview';
-import type { BasePickerElement } from './pick';
+import type { BasePickerElement } from './picker';
 
 import './use';
 import './image-preview';
@@ -114,9 +114,9 @@ export interface FileItem extends File {
 }
 
 /**
- * @customElement dy-file-pick
+ * @customElement dy-file-picker
  */
-@customElement('dy-file-pick')
+@customElement('dy-file-picker')
 @adoptedStyle(style)
 @adoptedStyle(focusStyle)
 export class DuoyunFilePickElement extends GemElement implements BasePickerElement {

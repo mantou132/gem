@@ -106,7 +106,7 @@ export class MyEleElement extends GemElement {
 
 ## Custom form field
 
-`<dy-form-item>` default support `text`, `number`, `checkbox`, `pick`, `radio`, `select`, `textarea`,
+`<dy-form-item>` default support `text`, `number`, `checkbox`, `picker`, `radio`, `select`, `textarea`,
 if them can't meet your needs, you can use your own elements,
 just implement the `value` attributes and bubble `change` event, then you can use [`<dy-form-item>`](../02-elements/form.md#dy-form-item-api) `slot` type:
 

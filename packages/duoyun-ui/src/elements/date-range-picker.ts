@@ -22,7 +22,7 @@ import { focusStyle } from '../lib/styles';
 
 import type { DuoyunButtonElement } from './button';
 import { ContextMenu } from './menu';
-import { BasePickerElement, pickerStyle } from './pick';
+import { BasePickerElement, pickerStyle } from './picker';
 
 import './use';
 import './date-range-panel';
@@ -54,14 +54,14 @@ const style = createCSSSheet(css`
 `);
 
 /**
- * @customElement dy-date-range-pick
+ * @customElement dy-date-range-picker
  * @attr placeholder
  * @attr clearable
  * @attr disabled
  * @fires change
  * @fires clear
  */
-@customElement('dy-date-range-pick')
+@customElement('dy-date-range-picker')
 @adoptedStyle(style)
 @adoptedStyle(pickerStyle)
 @adoptedStyle(focusStyle)

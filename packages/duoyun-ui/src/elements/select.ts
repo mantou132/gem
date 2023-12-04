@@ -23,7 +23,7 @@ import { hotkeys } from '../lib/hotkeys';
 import { isNotNullish } from '../lib/types';
 import { focusStyle } from '../lib/styles';
 
-import { BasePickerElement, pickerStyle } from './pick';
+import { BasePickerElement, pickerStyle } from './picker';
 import type { Adder } from './options';
 
 import './reflect';

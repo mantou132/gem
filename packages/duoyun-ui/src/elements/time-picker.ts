@@ -21,7 +21,7 @@ import { commonHandle } from '../lib/hotkeys';
 import { focusStyle } from '../lib/styles';
 
 import { ContextMenu } from './menu';
-import { BasePickerElement, pickerStyle } from './pick';
+import { BasePickerElement, pickerStyle } from './picker';
 import type { DuoyunButtonElement } from './button';
 import type { DuoyunTimePanelElement } from './time-panel';
 
@@ -53,9 +53,9 @@ const style = createCSSSheet(css`
 `);
 
 /**
- * @customElement dy-time-pick
+ * @customElement dy-time-picker
  */
-@customElement('dy-time-pick')
+@customElement('dy-time-picker')
 @adoptedStyle(style)
 @adoptedStyle(pickerStyle)
 @adoptedStyle(focusStyle)

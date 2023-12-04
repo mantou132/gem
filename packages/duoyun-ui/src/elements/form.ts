@@ -19,19 +19,19 @@ import { theme } from '../lib/theme';
 import { locale } from '../lib/locale';
 
 import type { DataList } from './input';
-import type { Option } from './pick';
+import type { Option } from './picker';
 import type { Option as SelectOption } from './select';
 import type { Adder } from './options';
 
 import './input';
-import './pick';
+import './picker';
 import './button';
 import './checkbox';
 import './radio';
 import './select';
 import './help-text';
-import './date-pick';
-import './date-range-pick';
+import './date-picker';
+import './date-range-picker';
 
 const formStyle = createCSSSheet(css`
   :where(dy-form:not([hidden])) {
@@ -231,12 +231,12 @@ export class DuoyunFormItemElement extends GemElement<FormItemState> {
     | 'number'
     | 'checkbox'
     | 'checkbox-group' // value is array
-    | 'pick'
+    | 'picker'
     | 'radio-group'
     | 'select'
     | 'textarea'
     | 'slot';
-  @boolattribute multiple: boolean; // pick/select/text
+  @boolattribute multiple: boolean; // picker/select/text
   @attribute name: string;
   @attribute label: string;
   @attribute placeholder: string;
@@ -365,7 +365,7 @@ export class DuoyunFormItemElement extends GemElement<FormItemState> {
           `
         : this.#type === 'date'
           ? html`
-              <dy-date-pick
+              <dy-date-picker
                 class="input"
                 @change=${this.#onChange}
                 @clear=${(evt: any) => evt.target.change(undefined)}
@@ -375,11 +375,11 @@ export class DuoyunFormItemElement extends GemElement<FormItemState> {
                 .placeholder=${this.placeholder}
                 .clearable=${!this.required}
               >
-              </dy-date-pick>
+              </dy-date-picker>
             `
           : this.#type === 'date-range'
             ? html`
-                <dy-date-range-pick
+                <dy-date-range-picker
                   class="input"
                   @change=${this.#onChange}
                   @clear=${(evt: any) => evt.target.change(undefined)}
@@ -388,11 +388,11 @@ export class DuoyunFormItemElement extends GemElement<FormItemState> {
                   .placeholder=${this.placeholder}
                   .clearable=${!this.required}
                 >
-                </dy-date-range-pick>
+                </dy-date-range-picker>
               `
-            : this.#type === 'pick'
+            : this.#type === 'picker'
               ? html`
-                  <dy-pick
+                  <dy-picker
                     ?disabled=${this.disabled}
                     class="input"
                     part=${DuoyunFormItemElement.input}
@@ -402,7 +402,7 @@ export class DuoyunFormItemElement extends GemElement<FormItemState> {
                     .fit=${true}
                     .placeholder=${this.placeholder}
                     .options=${this.dataList}
-                  ></dy-pick>
+                  ></dy-picker>
                 `
               : this.#type === 'checkbox'
                 ? html`

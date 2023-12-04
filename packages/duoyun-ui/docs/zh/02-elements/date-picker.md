@@ -1,12 +1,12 @@
-# `<dy-time-pick>`
+# `<dy-date-picker>`
 
 ## Example
 
 <gbp-example
-  name="dy-time-pick"
+  name="dy-date-picker"
   props='{"value": 1644475003294, "clearable": true, "@clear": "(evt) => evt.target.value = null", "@change": "(evt) => evt.target.value = evt.detail"}'
-  src="https://jspm.dev/duoyun-ui/elements/time-pick"></gbp-example>
+  src="https://jspm.dev/duoyun-ui/elements/date-picker"></gbp-example>
 
 ## API
 
-<gbp-api src="/src/elements/time-pick.ts"></gbp-api>
+<gbp-api src="/src/elements/date-picker.ts"></gbp-api>

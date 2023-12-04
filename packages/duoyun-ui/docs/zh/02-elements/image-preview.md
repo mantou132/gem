@@ -2,7 +2,7 @@
 
 ## Example
 
-See [`<dy-file-pick>`](./file-pick.md).
+See [`<dy-file-picker>`](./file-picker.md).
 
 ## API
 

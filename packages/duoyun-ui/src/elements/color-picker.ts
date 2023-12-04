@@ -17,7 +17,7 @@ import { theme } from '../lib/theme';
 import { commonHandle } from '../lib/hotkeys';
 import { focusStyle } from '../lib/styles';
 
-import type { BasePickerElement } from './pick';
+import type { BasePickerElement } from './picker';
 import type { DuoyunPopoverElement } from './popover';
 
 import './popover';
@@ -48,9 +48,9 @@ const style = createCSSSheet(css`
 `);
 
 /**
- * @customElement dy-color-pick
+ * @customElement dy-color-picker
  */
-@customElement('dy-color-pick')
+@customElement('dy-color-picker')
 @adoptedStyle(style)
 @adoptedStyle(focusStyle)
 export class DuoyunColorPickElement extends GemElement implements BasePickerElement {

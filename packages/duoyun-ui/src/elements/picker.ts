@@ -84,14 +84,14 @@ export interface Option<T = any> {
 }
 
 /**
- * @customElement dy-pick
+ * @customElement dy-picker
  * @attr disabled
  * @attr borderless
  * @attr selectmode
  * @attr fit
  * @attr multiple
  */
-@customElement('dy-pick')
+@customElement('dy-picker')
 @adoptedStyle(style)
 @adoptedStyle(pickerStyle)
 @adoptedStyle(focusStyle)

@@ -10,7 +10,7 @@ DuoyunUI 是使用 [Gem](https://gemjs.org/) 开发的桌面端中后台 Web UI 
 ## 元素分类
 
 - 表单元素
-  > [`<dy-cascader-pick>`](../02-elements/cascader-pick.md), [`<dy-cascader>`](../02-elements/cascader.md), [`<dy-checkbox>`](../02-elements/checkbox.md), [`<dy-color-panel>`](../02-elements/color-panel.md), [`<dy-color-pick>`](../02-elements/color-pick.md), [`<dy-date-panel>`](../02-elements/date-panel.md), [`<dy-date-pick>`](../02-elements/date-pick.md), [`<dy-date-range-panel>`](../02-elements/date-range-panel.md), [`<dy-date-range-pick>`](../02-elements/date-range-pick.md), [`<dy-drop-area>`](../02-elements/drop-area.md), [`<dy-file-pick>`](../02-elements/file-pick.md), [`<dy-form>`](../02-elements/form.md), [`<dy-input>`](../02-elements/input.md), [`<dy-pick>`](../02-elements/pick.md), [`<dy-radio>`](../02-elements/radio.md), [`<dy-rating>`](../02-elements/rating.md), [`<dy-select>`](../02-elements/select.md), [`<dy-shortcut-record>`](../02-elements/shortcut-record.md), [`<dy-slider>`](../02-elements/slider.md), [`<dy-switch>`](../02-elements/switch.md), [`<dy-time-panel>`](../02-elements/time-panel.md), [`<dy-time-pick>`](../02-elements/time-pick.md)
+  > [`<dy-cascader-picker>`](../02-elements/cascader-picker.md), [`<dy-cascader>`](../02-elements/cascader.md), [`<dy-checkbox>`](../02-elements/checkbox.md), [`<dy-color-panel>`](../02-elements/color-panel.md), [`<dy-color-picker>`](../02-elements/color-picker.md), [`<dy-date-panel>`](../02-elements/date-panel.md), [`<dy-date-picker>`](../02-elements/date-picker.md), [`<dy-date-range-panel>`](../02-elements/date-range-panel.md), [`<dy-date-range-picker>`](../02-elements/date-range-picker.md), [`<dy-drop-area>`](../02-elements/drop-area.md), [`<dy-file-picker>`](../02-elements/file-picker.md), [`<dy-form>`](../02-elements/form.md), [`<dy-input>`](../02-elements/input.md), [`<dy-picker>`](../02-elements/picker.md), [`<dy-radio>`](../02-elements/radio.md), [`<dy-rating>`](../02-elements/rating.md), [`<dy-select>`](../02-elements/select.md), [`<dy-shortcut-record>`](../02-elements/shortcut-record.md), [`<dy-slider>`](../02-elements/slider.md), [`<dy-switch>`](../02-elements/switch.md), [`<dy-time-panel>`](../02-elements/time-panel.md), [`<dy-time-picker>`](../02-elements/time-picker.md)
 - 动作元素
   > [`<dy-action-text>`](../02-elements/action-text.md), [`<dy-button>`](../02-elements/button.md), [`<dy-copy>`](../02-elements/copy.md), [`<dy-link>`](../02-elements/link.md), [`<dy-menu>`](../02-elements/menu.md), [`<dy-options>`](../02-elements/options.md)
 - 反馈元素
@@ -39,9 +39,9 @@ npm install duoyun-ui
 ```ts
 import { render } from '@mantou/gem';
 
-import 'duoyun-ui/elements/color-pick';
+import 'duoyun-ui/elements/color-picker';
 
-render(html`<dy-color-pick></dy-color-pick>`, document.body);
+render(html`<dy-color-picker></dy-color-picker>`, document.body);
 ```
 
 使用元素 API：
