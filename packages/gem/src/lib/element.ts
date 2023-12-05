@@ -15,6 +15,8 @@ import {
   removeItems,
   useNativeCSSStyleSheet,
 } from './utils';
+import * as GemExports from './element';
+import * as VersionExports from './version';
 
 export { html, svg, render, directive, TemplateResult, SVGTemplateResult } from 'lit-html';
 export { repeat } from 'lit-html/directives/repeat';
@@ -27,9 +29,8 @@ export { ifDefined } from 'lit-html/directives/if-defined';
 declare global {
   interface ElementInternals extends ARIAMixin {
     // https://developer.mozilla.org/en-US/docs/Web/API/CustomStateSet
-    states?: Set<string>;
-    // https://w3c.github.io/aria/#role_definitions
-    role?: string;
+    states: Set<string>;
+    role?: string | null;
   }
   // 用于 css 选择器选择元素，使用 @refobject 自动选择获取
   // 必须使用 attr 赋值
@@ -38,8 +39,8 @@ declare global {
    * @attr inert
    */
   interface HTMLElement {
-    attachInternals: () => ElementInternals;
     inert: boolean;
+    ref: string;
   }
 }
 
@@ -180,16 +181,18 @@ export abstract class GemElement<T = Record<string, unknown>> extends HTMLElemen
     if (!this.#internals) {
       this.#internals = this.attachInternals();
       // https://groups.google.com/a/chromium.org/g/blink-dev/c/JvpHoUfhJYE?pli=1
+      // https://bugs.webkit.org/show_bug.cgi?id=215911
+      // https://bugzilla.mozilla.org/show_bug.cgi?id=1588763
       try {
-        this.#internals.states?.add('foo');
-        this.#internals.states?.delete('foo');
+        this.#internals.states.add('foo');
+        this.#internals.states.delete('foo');
       } catch {
         Reflect.defineProperty(this.#internals, 'states', {
-          value: new Proxy(this.#internals.states!, {
-            get(target: any, p) {
-              return (str: string) => target[p](`--${str}`);
-            },
-          }),
+          value: {
+            has: (v: string) => kebabToCamelCase(v) in this.dataset,
+            add: (v: string) => (this.dataset[kebabToCamelCase(v)] = ''),
+            delete: (v: string) => delete this.dataset[kebabToCamelCase(v)],
+          },
         });
       }
     }
@@ -626,3 +629,13 @@ customElements.define = (name: string, cls: CustomElementConstructor, options?: 
 
   nativeDefineElement(name, cls as CustomElementConstructor, options);
 };
+
+declare global {
+  interface Window {
+    __GEM_DEVTOOLS__HOOK__?: (typeof GemExports & typeof VersionExports) | Record<string, never>;
+  }
+}
+
+if (window.__GEM_DEVTOOLS__HOOK__) {
+  Object.assign(window.__GEM_DEVTOOLS__HOOK__, { ...GemExports, ...VersionExports });
+}

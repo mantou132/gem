@@ -73,7 +73,7 @@ const formStyle = createCSSSheet(css`
   dy-form-item[type='checkbox'] {
     flex-grow: 0;
   }
-  dy-form-item:where(:--invalid, :state(invalid)) * {
+  dy-form-item:where([data-invalid], :state(invalid)) * {
     border-color: ${theme.negativeColor};
   }
   dy-form-item-inline-group {
@@ -172,7 +172,7 @@ const formItemStyle = createCSSSheet(css`
   .label:empty {
     display: none;
   }
-  :host(:where(:--invalid, :state(invalid))) .input {
+  :host(:where([data-invalid], :state(invalid))) .input {
     border-color: ${theme.negativeColor};
   }
   .input {

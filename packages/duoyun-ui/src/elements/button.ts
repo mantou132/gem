@@ -93,9 +93,9 @@ const style = createCSSSheet(css`
     --bg: ${theme.disabledColor};
   }
   :where(
-      :host(:where(:--active, :state(active))) .content,
+      :host(:where([data-active], :state(active))) .content,
       .content:where(:hover),
-      .dropdown:where(:hover, :--active, :state(active))
+      .dropdown:where(:hover, [data-active], :state(active))
     )::after {
     content: '';
     position: absolute;

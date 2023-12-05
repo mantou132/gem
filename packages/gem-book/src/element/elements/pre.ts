@@ -489,22 +489,21 @@ export class Pre extends GemElement {
   }
 
   render() {
-    // Safari 精度问题
-    const lineHeight = 1.7;
-    const padding = 1;
+    // Safari 精度问题所以使用整数像素单位
+    const lineHeight = '24px';
+    const padding = '1em';
     return html`
       ${this.highlight
         ? this.#getRanges(this.highlight).map(
-            ([start, end]) =>
-              html`
-                <span
-                  class="gem-highlight"
-                  style=${styleMap({
-                    top: `${(start - 1) * lineHeight + padding}em`,
-                    height: `${(end - start + 1) * lineHeight}em`,
-                  })}
-                ></span>
-              `,
+            ([start, end]) => html`
+              <span
+                class="gem-highlight"
+                style=${styleMap({
+                  top: `calc(${start - 1} * ${lineHeight} + ${padding})`,
+                  height: `calc(${end - start + 1} * ${lineHeight})`,
+                })}
+              ></span>
+            `,
           )
         : ''}
       <code
@@ -518,7 +517,7 @@ export class Pre extends GemElement {
       >
       <style>
         code {
-          padding: ${padding}em;
+          padding: ${padding};
           line-height: ${lineHeight};
         }
       </style>

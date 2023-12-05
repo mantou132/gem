@@ -36,7 +36,7 @@ const style = createCSSSheet(css`
   :host {
     width: 15em;
   }
-  :host(:where(:hover, :--active, :state(active))) {
+  :host(:where(:hover, [data-active], :state(active))) {
     background: none;
     border-color: ${theme.textColor};
   }
@@ -77,7 +77,7 @@ const style = createCSSSheet(css`
   .search::part(input) {
     padding: 0;
   }
-  .search:where(:--filled, :state(filled), :--composing, :state(composing)) + .value {
+  .search:where([data-filled], :state(filled), [data-composing], :state(composing)) + .value {
     display: none;
   }
   .value {
@@ -174,7 +174,7 @@ export class DuoyunSelectElement extends GemElement<State> implements BasePicker
     super();
     this.tabIndex = 0;
     this.effect(() => {
-      this.internals.role = this.inline ? undefined : 'combobox';
+      this.internals.role = this.inline ? null : 'combobox';
       this.internals.ariaExpanded = String(this.state.open);
       this.internals.ariaReadOnly = String(this.disabled);
     });

@@ -46,7 +46,7 @@ const style = createCSSSheet(css`
     border: 1px solid transparent;
   }
   .item:where(:not(.disabled)):hover,
-  .item:where(:--active, :state(active)) {
+  .item:where([data-active], :state(active)) {
     color: ${theme.highlightColor};
     background-color: ${theme.hoverBackgroundColor};
   }

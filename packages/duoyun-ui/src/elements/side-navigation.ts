@@ -59,7 +59,7 @@ const style = createCSSSheet(css`
   .children .item {
     padding-inline-start: calc(0.75em + 1em);
   }
-  .item:where(:hover, :--active, :state(active)) {
+  .item:where(:hover, [data-active], :state(active)) {
     background-color: ${theme.hoverBackgroundColor};
   }
   .group {

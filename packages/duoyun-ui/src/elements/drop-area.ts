@@ -33,7 +33,7 @@ const style = createCSSSheet(css`
     display: none;
     pointer-events: none;
   }
-  :host(:where(:--allow-drop, :state(allow-drop))) .content {
+  :host(:where([data-allow-drop], :state(allow-drop))) .content {
     display: block;
   }
   .tip {
