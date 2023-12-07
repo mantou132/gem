@@ -58,11 +58,20 @@ export function getCascaderDeep<T>(list: T[], cascaderKey: keyof T) {
   return 1 + l;
 }
 
+/**
+ * 从最底层开始获取值，和上层新值进行比较选择一个新的值，冒泡到顶层
+ */
 export function getCascaderBubbleWeakMap<
   T extends Record<string, any>,
   F extends (_: T) => any,
   K = Exclude<ReturnType<F>, undefined | null>,
->(list: T[] | undefined, cascaderKey: keyof T, getValue: F, comparerFn: (a: K, b: K) => K = (a) => a) {
+>(
+  list: T[] | undefined,
+  cascaderKey: keyof T,
+  getValue: F,
+  comparerFn: (bottomValue: K, topValue: K) => K = (a) => a,
+  callback?: (item: T, bubbleValue: K) => void,
+) {
   const map = new WeakMap<T, K>();
   const getItemValue = (e: T) => {
     const v = map.get(e) ?? getValue(e);
@@ -77,7 +86,10 @@ export function getCascaderBubbleWeakMap<
         const v = getItemValue(e);
         value = isNullish(value) ? v : comparerFn(v, value);
       });
-      if (!isNullish(value)) map.set(e, value);
+      if (!isNullish(value)) {
+        map.set(e, value);
+        callback?.(e, value);
+      }
     });
   check(list);
   return map;

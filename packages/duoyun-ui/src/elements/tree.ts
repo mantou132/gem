@@ -35,8 +35,9 @@ export type TreeItem = {
   context?: TemplateResult;
   children?: TreeItem[];
 
-  // infect parent
+  // infect parent, color
   status?: Status;
+  // infect parent, show dot
   tags?: string[];
 };
 
@@ -94,7 +95,8 @@ class _DuoyunTreeItemElement extends GemElement {
   @property item?: TreeItem;
 
   constructor() {
-    super({ delegatesFocus: true });
+    super();
+    this.tabIndex = 0;
     this.internals.role = 'treeitem';
   }
 
@@ -109,7 +111,7 @@ class _DuoyunTreeItemElement extends GemElement {
       ${icon ? html`<dy-use class="icon" .element=${icon}></dy-use>` : ''}
       ${context ? html`<div class="context">${context}</div>` : ''}
       <span class="label">${label}</span>
-      ${this.hastags ? html`<div class="tags children"></div>` : ''}
+      ${!tags && this.hastags ? html`<div class="tags children"></div>` : ''}
       ${tags ? html`<div class="tags">${tags.join(', ')}</div>` : ''}
     `;
   };
@@ -142,14 +144,14 @@ export class DuoyunTreeElement extends GemElement<State> {
 
   @emitter itemclick: Emitter;
 
-  state: State = {
-    expandItem: new Set(),
-  };
-
   constructor() {
     super({ delegatesFocus: true });
     this.internals.role = 'tree';
   }
+
+  state: State = {
+    expandItem: new Set(),
+  };
 
   #highlights: Set<any>;
   // folder
@@ -180,7 +182,6 @@ export class DuoyunTreeElement extends GemElement<State> {
     const expanded = this.state.expandItem.has(item.value ?? item.label);
     return html`
       <dy-tree-item
-        tabindex="0"
         @keydown=${commonHandle}
         @click=${() => this.#onClick(item)}
         part=${DuoyunTreeElement.item}
@@ -195,6 +196,8 @@ export class DuoyunTreeElement extends GemElement<State> {
   };
 
   willMount = () => {
+    // auto expend to highlights
+    this.expendToItems(this.highlights || []);
     this.memo(
       () => {
         this.#highlights = new Set(this.highlights);
@@ -220,8 +223,8 @@ export class DuoyunTreeElement extends GemElement<State> {
       () => {
         if (!this.data) return;
         const getExpandableValues = (list: TreeItem[]): any[] =>
-          list.map((e) => (e.children ? [e.label ?? e.value, ...getExpandableValues(e.children)] : undefined));
-        const newValue = new Set(getExpandableValues(this.data).flat());
+          list.map((e) => (e.children ? [e.value ?? e.label, ...getExpandableValues(e.children)] : []));
+        const newValue = new Set(getExpandableValues(this.data).flat(Infinity));
         this.state.expandItem.forEach((e) => {
           if (!newValue.has(e)) {
             this.state.expandItem.delete(e);
@@ -236,4 +239,43 @@ export class DuoyunTreeElement extends GemElement<State> {
   render = () => {
     return html`${this.data?.map((item) => this.#renderItem(item, 0))}`;
   };
+
+  get expandItems() {
+    return [...this.state.expandItem];
+  }
+
+  expendToItems(values: any[]) {
+    const set = new Set(values);
+    getCascaderBubbleWeakMap(
+      this.data,
+      'children',
+      (item) => set.has(item.value ?? item.label),
+      (a) => a,
+      (a, v) => a.children && v && this.state.expandItem.add(a.value ?? a.label),
+    );
+    this.update();
+  }
+
+  collapse(values: any[]) {
+    values.forEach((value) => {
+      this.state.expandItem.delete(value);
+    });
+    this.update();
+  }
+
+  collapseAllChild(value: any) {
+    let start = false;
+    const temp = this.data ? [...this.data] : [];
+    while (!!temp.length) {
+      const item = temp.pop()!;
+      const v = item.value ?? item.label;
+      if (v === value) {
+        temp.length = 0;
+        start = true;
+      }
+      if (start) this.state.expandItem.delete(v);
+      if (item.children) temp.push(...item.children);
+    }
+    this.update();
+  }
 }
