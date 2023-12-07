@@ -89,7 +89,7 @@ export class DuoyunColorPickElement extends GemElement implements BasePickerElem
     `;
   };
 
-  showPicker = () => {
+  showPicker() {
     this.popoverRef.element?.click();
-  };
+  }
 }

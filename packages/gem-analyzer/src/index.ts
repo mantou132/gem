@@ -93,26 +93,29 @@ export const parseElement = (declaration: ClassDeclaration) => {
   const appendElementDesc = (desc = '') =>
     (detail.description = (detail.description ? detail.description + '\n\n' : '') + desc);
   declaration.getJsDocs().forEach((jsDoc) => appendElementDesc(jsDoc.getCommentText()));
-  if (constructor && className && constructorExtendsName) {
-    const params: Record<string, string> = {};
-    const jsDocs = constructor.getJsDocs();
-    jsDocs.forEach((jsDoc) => {
-      appendElementDesc(jsDoc.getDescription());
-      jsDoc
-        .getTags()
-        .map((tag) => ({ tagName: tag.getTagName(), name: (tag as any).getName(), comment: tag.getCommentText() }))
-        .filter(({ tagName, comment, name }) => tagName === 'param' && comment && name)
-        .forEach(({ name, comment }) => {
-          params[name] = comment!;
-        });
-    });
+
+  if (className && constructorExtendsName) {
     detail.constructorName = className;
     detail.constructorExtendsName = constructorExtendsName;
-    detail.constructorParams = constructor.getParameters().map((param) => ({
-      name: param.getName(),
-      type: param.getType().getText(),
-      description: params[param.getName()],
-    }));
+    if (constructor) {
+      const params: Record<string, string> = {};
+      const jsDocs = constructor.getJsDocs();
+      jsDocs.forEach((jsDoc) => {
+        appendElementDesc(jsDoc.getDescription());
+        jsDoc
+          .getTags()
+          .map((tag) => ({ tagName: tag.getTagName(), name: (tag as any).getName(), comment: tag.getCommentText() }))
+          .filter(({ tagName, comment, name }) => tagName === 'param' && comment && name)
+          .forEach(({ name, comment }) => {
+            params[name] = comment!;
+          });
+      });
+      detail.constructorParams = constructor.getParameters().map((param) => ({
+        name: param.getName(),
+        type: param.getType().getText(),
+        description: params[param.getName()],
+      }));
+    }
   }
 
   const staticPropertiesDeclarations = declaration.getStaticProperties();

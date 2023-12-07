@@ -3,6 +3,7 @@
 # Compiler output
 /lib/
 /elements/
+/react/
 /locales/
 /coverage/
 

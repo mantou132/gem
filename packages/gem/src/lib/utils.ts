@@ -245,7 +245,7 @@ export interface StyledKeyValuePair {
 // https://bugzilla.mozilla.org/show_bug.cgi?id=1520690
 // https://bugs.webkit.org/show_bug.cgi?id=228684
 export let useNativeCSSStyleSheet = true;
-let CSSStyleSheet = window.CSSStyleSheet;
+let CSSStyleSheet = globalThis.CSSStyleSheet;
 try {
   new (CSSStyleSheet as any)();
 } catch {

@@ -121,7 +121,7 @@ export class DuoyunTabsElement extends GemElement {
     return html`
       <div part=${DuoyunTabsElement.tabs} class="tabs">
         ${this.data.map(({ value, tab, icon, getContent }, index) => {
-          const isCurrent = (value ?? index) === this.value;
+          const isCurrent: boolean = (value ?? index) === this.value;
           if (isCurrent) currentContent = getContent?.() || '';
           return html`
             <div
@@ -186,7 +186,7 @@ const panelStyle = createCSSSheet(css`
  */
 @customElement('dy-tab-panel')
 @adoptedStyle(panelStyle)
-export class DyTabPanelElement extends DuoyunScrollBaseElement {
+export class DuoyunTabPanelElement extends DuoyunScrollBaseElement {
   @state vertical: boolean;
 
   constructor() {

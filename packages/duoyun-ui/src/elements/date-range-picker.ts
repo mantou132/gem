@@ -177,5 +177,7 @@ export class DuoyunDateRangePickElement extends GemElement implements BasePicker
     `;
   };
 
-  showPicker = () => this.#onOpen();
+  showPicker() {
+    this.#onOpen();
+  }
 }

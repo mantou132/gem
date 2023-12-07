@@ -178,5 +178,7 @@ export class DuoyunPickElement extends GemElement implements BasePickerElement {
     `;
   };
 
-  showPicker = () => this.#onOpen();
+  showPicker() {
+    this.#onOpen();
+  }
 }

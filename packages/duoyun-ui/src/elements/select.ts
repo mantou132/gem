@@ -166,8 +166,8 @@ export class DuoyunSelectElement extends GemElement<State> implements BasePicker
     return this.multiple && Array.isArray(this.value)
       ? this.value
       : isNotNullish(this.value)
-        ? [this.value]
-        : undefined;
+      ? [this.value]
+      : undefined;
   }
 
   constructor() {
@@ -397,8 +397,8 @@ export class DuoyunSelectElement extends GemElement<State> implements BasePicker
                                     </dy-tag>
                                   `
                                 : this.renderTag
-                                  ? this.renderTag(this.#valueOptions![index])
-                                  : label,
+                                ? this.renderTag(this.#valueOptions![index])
+                                : label,
                             )}
                           `
                         : this.#valueOptions![0].label}
@@ -447,5 +447,7 @@ export class DuoyunSelectElement extends GemElement<State> implements BasePicker
     `;
   };
 
-  showPicker = () => this.#open();
+  showPicker() {
+    this.#open();
+  }
 }

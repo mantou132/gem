@@ -1,0 +1,41 @@
+{
+  "name": "gem-port",
+  "version": "0.0.1",
+  "description": "Export React component",
+  "keywords": [
+    "gem",
+    "react",
+    "generator"
+  ],
+  "bin": {
+    "gem-port": "bin/index.js"
+  },
+  "files": [
+    "/bin/"
+  ],
+  "scripts": {
+    "build": "esbuild ./src/index.ts --outdir=./bin --bundle --platform=node --external:typescript --external:ts-morph",
+    "start": "yarn build --watch",
+    "prepublishOnly": "yarn build"
+  },
+  "dependencies": {
+    "@gemjs/config": "^1.6.11",
+    "commander": "^7.2.0",
+    "gem-analyzer": "^1.7.0",
+    "ts-morph": "^13.0.0",
+    "typescript": "^4.5.0"
+  },
+  "devDependencies": {
+  },
+  "author": "mantou132",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mantou132/gem.git",
+    "directory": "packages/gem-port"
+  },
+  "bugs": {
+    "url": "https://github.com/mantou132/gem/issues"
+  },
+  "homepage": "https://github.com/mantou132/gem#readme"
+}

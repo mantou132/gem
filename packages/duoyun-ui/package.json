@@ -4,11 +4,13 @@
   "description": "WebComponts UI",
   "exports": {
     "./elements/*": "./elements/*.js",
+    "./react/*": "./react/*.js",
     "./lib/*": "./lib/*.js",
     "./locales/*": "./locales/*.js"
   },
   "files": [
     "/elements/",
+    "/react/",
     "/lib/",
     "/locales/"
   ],
@@ -16,11 +18,12 @@
     "docs": "node scripts/hack-gbp-example && gem-book docs --plugin node_modules/gbp-example-hack",
     "docs:remote": "gem-book docs --plugin example",
     "build:docs": "gem-book docs --build --plugin example",
+    "build:react": "gem-port src/elements",
     "clean": "node -e \"fs.readdirSync('src').map(dir => require('rimraf').sync(dir))\"",
     "build": "yarn clean && tsc -p tsconfig.build.json",
     "start": "yarn build --watch",
     "test": "cross-env NODE_OPTIONS=--no-experimental-fetch wtr",
-    "prepublishOnly": "yarn build"
+    "prepublishOnly": "yarn build && yarn build:react"
   },
   "dependencies": {
     "d3-geo": "^3.0.1",

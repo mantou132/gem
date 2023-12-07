@@ -6,7 +6,7 @@
     "lint": "lerna exec -- tsc --noEmit && eslint --ext .ts,.js",
     "test": "lerna exec --scope @mantou/gem --scope gem-book --scope duoyun-ui -- yarn test",
     "release": "lerna version",
-    "prepare": "husky install && yarn --cwd packages/gem build && yarn --cwd packages/gem-analyzer build && yarn --cwd packages/gem-book build && yarn --cwd packages/gem-book link"
+    "prepare": "husky install && yarn --cwd packages/gem build && yarn --cwd packages/gem-analyzer build && yarn --cwd packages/gem-book build && yarn --cwd packages/gem-book link && yarn --cwd packages/gem-port build && yarn --cwd packages/gem-port link"
   },
   "devDependencies": {
     "@types/node": "^18.14.2",

@@ -1,4 +1,5 @@
 packages/*/dist
+packages/*/react
 packages/*/bin
 packages/*/coverage
 packages/*/extension

@@ -14,7 +14,7 @@
 
 ## `<dy-avatar>` API
 
-<gbp-api src="/src/elements/avatar.ts"></gbp-api>
+<gbp-api name="dy-avatar" src="/src/elements/avatar.ts"></gbp-api>
 
 ## `<dy-avatar-group>` API
 

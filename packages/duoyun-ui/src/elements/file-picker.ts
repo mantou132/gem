@@ -240,7 +240,7 @@ export class DuoyunFilePickElement extends GemElement implements BasePickerEleme
     `;
   };
 
-  showPicker = () => {
+  showPicker() {
     this.inputRef.element!.click();
-  };
+  }
 }

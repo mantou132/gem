@@ -16,7 +16,7 @@ type MaskParseValue = TemplateResult | string | number;
  */
 @customElement('dy-text-mask')
 @adoptedStyle(style)
-export class DyTextMaskElement extends GemElement {
+export class DuoyunTextMaskElement extends GemElement {
   @attribute origin: string;
   @attribute placeholder: string;
   @attribute replacer: string;
