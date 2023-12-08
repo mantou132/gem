@@ -1,25 +1,28 @@
-import { resolve } from 'path';
 import fs from 'fs';
 
 import { defineConfig } from 'vite';
+import { createMpaPlugin, createPages } from 'vite-plugin-virtual-mpa';
 
 const examples = (fs.readdirSync('src') as string[]).filter(
-  (example) => example !== 'elements' && example !== 'index.html',
+  (example) => example !== 'elements' && !example.endsWith('.html') && !example.startsWith('.'),
 );
 
 export default defineConfig({
-  root: 'src',
   build: {
-    rollupOptions: {
-      input: {
-        index: resolve(__dirname, `src/index.html`),
-        ...Object.fromEntries(examples.map((name) => [name, resolve(__dirname, `src/${name}/index.html`)])),
-      },
-    },
-    outDir: resolve(process.cwd(), 'dist'),
     emptyOutDir: true,
     sourcemap: true,
   },
+  plugins: [
+    createMpaPlugin({
+      template: 'src/template.html',
+      pages: createPages(
+        examples.map((name) => ({
+          name,
+          entry: `/src/${name}/index.ts`,
+        })),
+      ),
+    }),
+  ],
   define: {
     'process.env.METADATA': JSON.stringify(
       Object.fromEntries(
@@ -35,7 +38,7 @@ export default defineConfig({
     'process.env.EXAMPLES': JSON.stringify(examples),
     'process.env.EXAMPLE': JSON.stringify('index'),
     'process.env.FILES': JSON.stringify([]),
-    'process.env.TAEGET': JSON.stringify('pages'),
+    'process.env.TARGET': JSON.stringify('pages'),
   },
   resolve: {
     alias: {
