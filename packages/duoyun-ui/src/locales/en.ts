@@ -19,6 +19,7 @@ export default {
   copyFail: 'Copy fail',
   add: 'Add',
   search: 'Search',
+  loading: 'Loading',
   ok: 'OK',
   cancel: 'Cancel',
   prevPage: 'Prev',

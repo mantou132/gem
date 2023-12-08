@@ -135,6 +135,7 @@ export class DuoyunSelectElement extends GemElement<State> implements BasePicker
   @attribute placeholder: string;
   @boolattribute borderless: boolean;
   @boolattribute pinselected: boolean;
+  @boolattribute loading: boolean;
 
   @property dropdownStyle?: StyleObject;
   @property options?: Option[];
@@ -144,6 +145,7 @@ export class DuoyunSelectElement extends GemElement<State> implements BasePicker
   @property renderTag?: (e: Option) => string | TemplateResult;
   @state active: boolean;
   @globalemitter change: Emitter<any | any[]>;
+  @globalemitter search: Emitter<string>;
 
   @refobject searchRef: RefObject<HTMLElement>;
   @refobject optionsRef: RefObject<HTMLElement>;
@@ -157,7 +159,7 @@ export class DuoyunSelectElement extends GemElement<State> implements BasePicker
 
   get #filteredOptions() {
     const { search } = this.state;
-    return search
+    return search && !this.#isLoading
       ? this.options?.filter(({ label, description = '' }) => isIncludesString(html`${label}${description}`, search))
       : this.options;
   }
@@ -180,6 +182,7 @@ export class DuoyunSelectElement extends GemElement<State> implements BasePicker
     });
     this.addEventListener('click', this.#open);
     this.addEventListener('keydown', this.#onKeydown);
+    this.addEventListener('pointerup', (e) => this.state.open && e.stopPropagation());
   }
 
   state = {
@@ -195,6 +198,7 @@ export class DuoyunSelectElement extends GemElement<State> implements BasePicker
   #open = () => {
     if (this.disabled) return;
     this.setState({ open: true });
+    this.searchRef.element?.focus();
   };
 
   #close = () => {
@@ -263,7 +267,12 @@ export class DuoyunSelectElement extends GemElement<State> implements BasePicker
 
   #onSearch = (evt: CustomEvent<string>) => {
     this.setState({ search: evt.detail, open: true });
+    this.search(evt.detail);
     evt.stopPropagation();
+  };
+
+  #onClear = () => {
+    this.setState({ search: '' });
   };
 
   #onChange = (value: any) => {
@@ -292,8 +301,12 @@ export class DuoyunSelectElement extends GemElement<State> implements BasePicker
 
   #valueSet: Set<any>;
   #valueOptions: Option[] | undefined;
+  #isLoading = false;
 
   willMount = () => {
+    this.memo(() => {
+      this.#isLoading = this.#isLoading || this.loading;
+    });
     this.memo(
       () => {
         const map = new Map<any, Option>();
@@ -349,6 +362,16 @@ export class DuoyunSelectElement extends GemElement<State> implements BasePicker
 
   #getOptions = () => {
     const { search } = this.state;
+    if (this.loading) {
+      return [
+        {
+          icon: icons.loading,
+          label: locale.loading,
+          disabled: true,
+          onPointerUp: (e: Event) => e.stopPropagation(),
+        },
+      ];
+    }
     const options = this.#filteredOptions?.map((option) => {
       const { value, label, description, disabled, onRemove } = option;
       return {
@@ -365,7 +388,7 @@ export class DuoyunSelectElement extends GemElement<State> implements BasePicker
       options?.sort((a, b) => (a.tagIcon && !b.tagIcon ? -1 : 0));
     }
     return search && options?.length === 0
-      ? [{ label: locale.noData, disabled: true, onPointerUp: () => this.setState({ search: '' }) }]
+      ? [{ label: locale.noData, disabled: true, onPointerUp: (e: Event) => e.stopPropagation() }]
       : options;
   };
 
@@ -418,7 +441,12 @@ export class DuoyunSelectElement extends GemElement<State> implements BasePicker
                 : ''}
               ${isEmpty && this.placeholder ? html`<div class="value">${this.placeholder}</div>` : ``}
             </div>
-            <dy-use class="icon" .element=${icons.expand}></dy-use>
+            <dy-use
+              class="icon"
+              @click=${this.#onClear}
+              .tabIndex=${search ? 0 : -1}
+              .element=${search ? icons.close : icons.expand}
+            ></dy-use>
             ${this.options && open
               ? html`
                   <dy-reflect .target=${document.body}>

@@ -21,6 +21,7 @@ const lang: typeof en = {
   copyFail: '复制失败',
   add: '新增',
   search: '搜索',
+  loading: '加载中',
   ok: '确认',
   cancel: '取消',
   prevPage: '上一页',

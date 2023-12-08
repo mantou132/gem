@@ -21,6 +21,7 @@ export default defineConfig({
           entry: `/src/${name}/index.ts`,
         })),
       ),
+      rewrites: [{ from: /^\/$/, to: '/index.html' }],
     }),
   ],
   define: {
