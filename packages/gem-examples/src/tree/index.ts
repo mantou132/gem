@@ -1,6 +1,10 @@
 import { connect, createStore, html, render, updateStore } from '@mantou/gem';
+import type { MouseEventDetail, TreeItem } from 'duoyun-ui/elements/tree';
+import { ContextMenu } from 'duoyun-ui/elements/menu';
+import { sleep } from 'duoyun-ui/lib/utils';
 
 import 'duoyun-ui/elements/tree';
+import 'duoyun-ui/elements/loading';
 
 import '../elements/layout';
 
@@ -22,14 +26,36 @@ const store = createStore({
         },
       ],
     },
-    { label: 'Item 4' },
+    {
+      label: 'Item 4',
+      value: { type: 'folder', path: 'Item 4' },
+      childrenPlaceholder: html`<dy-loading />`,
+    },
     { label: 'Item 5', value: { type: 'folder', path: 'Item 5' }, children: [{ label: 'Item 5.1' }] },
-  ],
+  ] as TreeItem[],
 });
 
-function onSelected({ detail }: CustomEvent) {
-  if (detail.type === 'folder') return;
-  updateStore(store, { selected: detail });
+async function onExpand({ detail }: CustomEvent<TreeItem>) {
+  await sleep(1000);
+  if (detail.label === 'Item 4') {
+    detail.children = Array(4)
+      .fill(null)
+      .map((_, index) => ({ label: `Item 4.${index + 1}` }));
+    updateStore(store, { data: [...store.data] });
+  }
+}
+
+function onClick({ detail }: CustomEvent<MouseEventDetail>) {
+  if (detail.value.type === 'folder') return;
+  updateStore(store, { selected: detail.value });
+}
+
+function onContextMenu({ detail }: CustomEvent<MouseEventDetail>) {
+  ContextMenu.open([{ text: 'Menu 1' }, { text: 'Menu 2' }, { text: 'Menu 3' }, { text: 'Menu 4' }], {
+    activeElement: detail.originEvent.target as HTMLElement,
+    x: detail.originEvent.x,
+    y: detail.originEvent.y,
+  });
 }
 
 function renderApp() {
@@ -38,7 +64,10 @@ function renderApp() {
       <gem-examples-layout>
         <div slot="main" style="display: flex">
           <dy-tree
-            @itemclick=${onSelected}
+            @contextmenu=${(e: MouseEvent) => e.preventDefault()}
+            @itemcontextmenu=${onContextMenu}
+            @itemclick=${onClick}
+            @expand=${onExpand}
             .highlights=${store.selected ? [store.selected] : undefined}
             .style=${'width: 240px;'}
             .data=${store.data}

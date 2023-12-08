@@ -1,13 +1,16 @@
 import { GemElement, html, customElement, version } from '@mantou/gem';
 
-import { MATADATA, EXAMPLES } from './env';
+import { METADATA, EXAMPLES } from './env';
 
 const getGitPageUrl = (name: string) => `../${name}/`;
 
-const getName = (name: string) => (MATADATA[name].name || name).replace('-', ' ');
+const getName = (name: string) => (METADATA[name].name || name).replace('-', ' ');
 
 @customElement('gem-examples-nav')
 export class Nav extends GemElement {
+  mounted = () => {
+    this.shadowRoot?.querySelector('.active')?.scrollIntoView({ block: 'center' });
+  };
   render() {
     return html`
       <style>
@@ -57,13 +60,13 @@ export class Nav extends GemElement {
         <div class="version">version: ${version}</div>
       </a>
       <ol>
-        ${EXAMPLES.sort((a, b) => ((MATADATA[a].order || 0) > (MATADATA[b].order || 0) ? 1 : -1)).map(
+        ${EXAMPLES.sort((a, b) => ((METADATA[a].order || 0) > (METADATA[b].order || 0) ? 1 : -1)).map(
           (name) =>
             html`
               <li>
                 <a class=${location.pathname.includes(name) ? 'active' : ''} href=${getGitPageUrl(name)}>
                   <div>${getName(name)}</div>
-                  <div>${MATADATA[name].desc}</div>
+                  <div>${METADATA[name].desc}</div>
                 </a>
               </li>
             `,

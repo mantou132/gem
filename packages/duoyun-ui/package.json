@@ -1,6 +1,6 @@
 {
   "name": "duoyun-ui",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "WebComponts UI",
   "exports": {
     "./elements/*": "./elements/*.js",
@@ -31,12 +31,12 @@
     "elkjs": "^0.7.1"
   },
   "peerDependencies": {
-    "@mantou/gem": "^1.7.0"
+    "@mantou/gem": "^1.7.1"
   },
   "devDependencies": {
     "@esm-bundle/chai": "^4.3.4-fix.0",
     "@gemjs/config": "^1.6.11",
-    "@mantou/gem": "^1.7.0",
+    "@mantou/gem": "^1.7.1",
     "@open-wc/testing": "^2.5.33",
     "@types/d3-geo": "^3.0.1",
     "@web/dev-server-esbuild": "^0.2.16",

@@ -14,6 +14,12 @@ const cliOptions = {
   outDir: './',
 };
 
+const validAttrType = new Set(['string', 'number', 'boolean']);
+
+function getValidAttrType(type = '') {
+  return validAttrType.has(type) ? type : 'string';
+}
+
 function createReactSourceFile(elementFilePath: string, outDir: string) {
   const content = readFileSync(elementFilePath, { encoding: 'utf-8' });
   const project = new Project({ useInMemoryFileSystem: true });
@@ -36,11 +42,17 @@ function createReactSourceFile(elementFilePath: string, outDir: string) {
         
           export type ${componentPropsName} = HTMLAttributes<HTMLDivElement> & RefAttributes<${constructorName}> & {
             ${properties
-              .map(({ name, attribute, reactive }) =>
-                !reactive ? '' : [name, attribute ? 'string' : 'any'].join('?:'),
+              .map(({ name, attribute, reactive, type }) =>
+                // TODO
+                !reactive ? '' : [name, attribute ? getValidAttrType(type) : 'any'].join('?:'),
               )
               .join(';')}
-            ${events.map((event) => [`on${event}`, `(arg: CustomEvent<any>) => any`].join('?:')).join(';')}
+            ${events
+              .map((event) =>
+                // TODO
+                [`on${event}`, `(arg: CustomEvent<any>) => any`].join('?:'),
+              )
+              .join(';')}
           };
 
           export type ${componentMethodsName} = {
@@ -85,7 +97,8 @@ function createSourceFiles(elementsDir: string, outDir: string) {
   readdirSync(elementsDir).forEach((filename) => {
     const elementFilePath = path.resolve(elementsDir, filename);
     if (statSync(elementFilePath).isFile()) {
-      // if (!elementFilePath.includes('avatar')) return;
+      // DEV
+      // if (!elementFilePath.includes('button')) return;
       Object.assign(fileSystem, createReactSourceFile(elementFilePath, outDir));
     }
   });
@@ -108,7 +121,15 @@ function compile(elementsDir: string): void {
     return originReadFile(filename);
   };
   const program = ts.createProgram(Object.keys(fileSystem), options, host);
-  program.emit();
+  program.emit().diagnostics.forEach((diagnostic) => {
+    if (diagnostic.file) {
+      const { line, character } = ts.getLineAndCharacterOfPosition(diagnostic.file, diagnostic.start!);
+      const message = ts.flattenDiagnosticMessageText(diagnostic.messageText, '\n');
+      console.warn(`${diagnostic.file.fileName} (${line + 1},${character + 1}): ${message}`);
+    } else {
+      console.warn(ts.flattenDiagnosticMessageText(diagnostic.messageText, '\n'));
+    }
+  });
 }
 
 program

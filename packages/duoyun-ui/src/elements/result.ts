@@ -43,7 +43,7 @@ const style = createCSSSheet(css`
  */
 @customElement('dy-result')
 @adoptedStyle(style)
-export class DyResultElement extends GemElement {
+export class DuoyunResultElement extends GemElement {
   @attribute status: Status;
 
   @property icon?: string | Element | DocumentFragment;

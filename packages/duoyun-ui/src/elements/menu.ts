@@ -46,15 +46,13 @@ type MenuStore = {
 };
 
 type OpenMenuOptions = {
+  x?: number;
+  y?: number;
   /**auto calc `x`/`y` via `activeElement` */
   activeElement?: HTMLElement | null;
   /**only work `activeElement`, only support first menu   */
   openLeft?: boolean;
   maskClosable?: boolean;
-  /**only work nothing `activeElement`  */
-  x?: number;
-  /**only work nothing `activeElement`  */
-  y?: number;
   /**work on all menu */
   width?: string;
   /**only support first menu */
@@ -187,7 +185,7 @@ export class DuoyunMenuElement extends GemElement {
     return menuStore.width || '15em';
   }
 
-  get #menuEles() {
+  get #menuElements() {
     return [...this.shadowRoot!.querySelectorAll<HTMLElement>('.menu')];
   }
 
@@ -243,12 +241,12 @@ export class DuoyunMenuElement extends GemElement {
       updateStore(menuStore, {
         menuStack: menuStore.menuStack.slice(0, menuStackIndex),
       });
-      this.#menuEles[menuStackIndex - 1]?.focus();
+      this.#menuElements[menuStackIndex - 1]?.focus();
     };
     hotkeys({
       esc: menuStackIndex === 0 ? ContextMenu.close : focusPrevMenu,
       left: focusPrevMenu,
-      right: () => this.#menuEles[menuStackIndex + 1]?.focus(),
+      right: () => this.#menuElements[menuStackIndex + 1]?.focus(),
     })(evt);
   };
 
@@ -259,13 +257,13 @@ export class DuoyunMenuElement extends GemElement {
   #initPosition = async () => {
     // await `ContextMenu` content update
     await Promise.resolve();
-    const element = this.#menuEles.shift();
+    const element = this.#menuElements.shift();
     const { activeElement, openLeft, menuStack, maxHeight } = menuStore;
     const { scrollHeight, clientHeight, clientWidth } = element!;
     const menu = menuStack[0];
     const height = scrollHeight + 2;
     const width = clientWidth + 2;
-    if (activeElement) {
+    if (activeElement && !menu.x && !menu.y) {
       const { left, right, top, bottom } = activeElement.getBoundingClientRect();
       const showToLeft = openLeft ? left > width + this.#offset : innerWidth - left < width + this.#offset;
       const showToTop = innerHeight - bottom < height + 2 * this.#offset && top > innerHeight - bottom;
@@ -289,7 +287,7 @@ export class DuoyunMenuElement extends GemElement {
 
   mounted = () => {
     this.#initPosition();
-    this.#menuEles.shift()?.focus();
+    this.#menuElements.shift()?.focus();
     const restoreInert = setBodyInert(this);
     ContextMenu.instance = this;
     this.addEventListener('contextmenu', this.#preventDefault);
@@ -317,8 +315,8 @@ export class DuoyunMenuElement extends GemElement {
               maxHeight: openTop
                 ? '20em'
                 : maxHeight && index === 0
-                  ? `${maxHeight}`
-                  : `calc(100vh - 0.8em - ${y - this.#offset}px)`,
+                ? `${maxHeight}`
+                : `calc(100vh - 0.8em - ${y - this.#offset}px)`,
               [openTop ? 'bottom' : 'top']: `${y + this.#offset}px`,
               left: `min(${x}px, calc(100vw - ${calcWidth} - ${2 * this.#offset}px))`,
             })}
