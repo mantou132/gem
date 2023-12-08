@@ -7,6 +7,7 @@ import {
   property,
   boolattribute,
   state,
+  emitter,
 } from '@mantou/gem/lib/decorators';
 import { GemElement, html } from '@mantou/gem/lib/element';
 import { createCSSSheet, css, classMap } from '@mantou/gem/lib/utils';
@@ -19,7 +20,9 @@ import { focusStyle } from '../lib/styles';
 
 import { ContextMenu } from './menu';
 import { BasePickerElement, pickerStyle } from './picker';
-import type { Option, DuoyunCascaderElement } from './cascader';
+import type { Option, DuoyunCascaderElement, OptionValue } from './cascader';
+
+export type { Option } from './cascader';
 
 import './use';
 import './cascader';
@@ -51,13 +54,16 @@ const style = createCSSSheet(css`
 @adoptedStyle(focusStyle)
 export class DuoyunCascaderPickElement extends GemElement implements BasePickerElement {
   @attribute placeholder: string;
-  @property options?: Option[];
   @boolattribute fit: boolean;
   @boolattribute disabled: boolean;
   @boolattribute multiple: boolean;
-  @globalemitter change: Emitter<(string | number)[][] | (string | number)[]>;
-  @property value?: (string | number)[][] | (string | number)[];
   @state active: boolean;
+
+  @property options?: Option[];
+  @property value?: OptionValue[][] | OptionValue[];
+
+  @globalemitter change: Emitter<OptionValue[][] | OptionValue[]>;
+  @emitter expand: Emitter<Option>;
 
   constructor() {
     super();
@@ -77,6 +83,11 @@ export class DuoyunCascaderPickElement extends GemElement implements BasePickerE
     }
   };
 
+  #onExpand = ({ detail, target }: CustomEvent) => {
+    this.#cascader = target as DuoyunCascaderElement;
+    this.expand(detail);
+  };
+
   #onOpen = () => {
     if (this.disabled || !this.options?.length) return;
     ContextMenu.open(
@@ -85,7 +96,8 @@ export class DuoyunCascaderPickElement extends GemElement implements BasePickerE
           style="margin: -0.4em -1em; min-height: 10em;"
           .options=${this.options}
           .value=${this.value}
-          @change=${(evt: CustomEvent) => this.#onChange(evt)}
+          @change=${this.#onChange}
+          @expand=${this.#onExpand}
           ?multiple=${this.multiple}
         >
           ${this.fit
@@ -106,11 +118,11 @@ export class DuoyunCascaderPickElement extends GemElement implements BasePickerE
     );
   };
 
-  #renderValue = (value: (string | number)[]) => {
+  #renderValue = (value: OptionValue[]) => {
     return html`${value.join(' / ')}`;
   };
 
-  #renderMultipleValue = (value: (string | number)[][]) => {
+  #renderMultipleValue = (value: OptionValue[][]) => {
     return html` ${value.map((e) => html`<dy-tag small>${e.join(' / ')}</dy-tag>`)} `;
   };
 
@@ -119,9 +131,10 @@ export class DuoyunCascaderPickElement extends GemElement implements BasePickerE
       () => {
         if (this.#cascader) {
           this.#cascader.value = this.value;
+          this.#cascader.options = this.options;
         }
       },
-      () => [this.value],
+      () => [this.value, this.options],
     );
     return () => this.active && ContextMenu.close();
   };
@@ -133,8 +146,8 @@ export class DuoyunCascaderPickElement extends GemElement implements BasePickerE
         ${isEmpty
           ? this.placeholder
           : this.multiple
-          ? this.#renderMultipleValue(this.value as (string | number)[][])
-          : this.#renderValue(this.value as (string | number)[])}
+          ? this.#renderMultipleValue(this.value as OptionValue[][])
+          : this.#renderValue(this.value as OptionValue[])}
       </div>
       <dy-use class="icon" .element=${icons.expand}></dy-use>
     `;

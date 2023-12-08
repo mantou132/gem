@@ -6,8 +6,9 @@ import {
   property,
   boolattribute,
   part,
+  emitter,
 } from '@mantou/gem/lib/decorators';
-import { GemElement, html } from '@mantou/gem/lib/element';
+import { GemElement, html, TemplateResult } from '@mantou/gem/lib/element';
 import { createCSSSheet, css, styleMap, classMap } from '@mantou/gem/lib/utils';
 
 import { icons } from '../lib/icons';
@@ -63,7 +64,18 @@ export type Option = {
   label: string | number;
   value?: string | number;
   children?: Option[];
+  childrenPlaceholder?: TemplateResult;
 };
+
+export type OptionValue = string | number;
+
+function getOptionValue(option: Option) {
+  return option.value ?? option.label;
+}
+
+function getOptionDisplayValue(option: Option) {
+  return String(getOptionValue(option));
+}
 
 type State = {
   selected: Option[];
@@ -75,6 +87,8 @@ const token = Symbol();
  * @customElement dy-cascader
  * @attr fit
  * @attr multiple
+ * @fires change
+ * @fires expand
  */
 @customElement('dy-cascader')
 @adoptedStyle(style)
@@ -84,9 +98,10 @@ export class DuoyunCascaderElement extends GemElement<State> {
   @property options?: Option[];
   @boolattribute fit: boolean;
   @boolattribute multiple: boolean;
-  @globalemitter change: Emitter<(string | number)[][] | (string | number)[]>;
+  @globalemitter change: Emitter<OptionValue[][] | OptionValue[]>;
+  @emitter expand: Emitter<Option>;
 
-  @property value?: (string | number)[][] | (string | number)[];
+  @property value?: OptionValue[][] | OptionValue[];
 
   state: State = {
     selected: [],
@@ -94,7 +109,7 @@ export class DuoyunCascaderElement extends GemElement<State> {
 
   get #value() {
     if (!this.value) return;
-    return (this.multiple ? this.value : [this.value]) as (string | number)[][];
+    return (this.multiple ? this.value : [this.value]) as OptionValue[][];
   }
 
   #deep = 1;
@@ -106,8 +121,7 @@ export class DuoyunCascaderElement extends GemElement<State> {
     let obj = valueClone;
     // set new value(select part)
     for (let i = 0; i < index; i++) {
-      const { value, label } = this.state.selected[i];
-      const k = value ?? label;
+      const k = getOptionValue(this.state.selected[i]);
       if (!obj[k]) obj[k] = {};
       obj = obj[k];
     }
@@ -117,7 +131,7 @@ export class DuoyunCascaderElement extends GemElement<State> {
       item.children
         ? item.children.reduce((p, c) => {
             const v = generator(c);
-            const k = c.value ?? c.label;
+            const k = getOptionValue(c);
             if (v === false) {
               delete p[k];
             } else {
@@ -127,11 +141,11 @@ export class DuoyunCascaderElement extends GemElement<State> {
           }, {} as any)
         : evt.detail;
 
-    obj[item.value ?? item.label] = generator(item);
+    obj[getOptionValue(item)] = generator(item);
 
     // parse obj to array
-    const value: (string | number)[][] = [];
-    const parse = (obj: any, init: (string | number)[]) => {
+    const value: OptionValue[][] = [];
+    const parse = (obj: any, init: OptionValue[]) => {
       const keys = Object.keys(obj);
       keys.forEach((key) => {
         if (obj[key] === true) {
@@ -149,9 +163,12 @@ export class DuoyunCascaderElement extends GemElement<State> {
     const clickValue = selected.slice(0, index).concat(item);
     if (selected[index] !== item) {
       this.setState({ selected: clickValue });
+      if (item.children || item.childrenPlaceholder) {
+        this.expand(item);
+      }
     }
     if (!this.multiple && !item.children) {
-      this.change(clickValue.map((e) => e.value ?? e.label));
+      this.change(clickValue.map((e) => getOptionValue(e)));
     }
   };
 
@@ -165,7 +182,7 @@ export class DuoyunCascaderElement extends GemElement<State> {
           const selected: Option[] = [];
           this.#value?.[0]?.forEach((val, index) => {
             const item = (index ? selected[selected.length - 1].children! : this.options!).find(
-              (e) => val === (e.value ?? e.label),
+              (e) => val === getOptionValue(e),
             )!;
             selected.push(item);
           });
@@ -192,21 +209,22 @@ export class DuoyunCascaderElement extends GemElement<State> {
 
         // append check status to obj via value(array)
         const check = (path: string[], item: Option) => {
-          const key = String(item.value ?? item.label);
+          const key = getOptionDisplayValue(item);
           const sub = readProp(this.#valueObj, [...path, key]);
           if (sub === true || !sub) return;
           const keys = Object.keys(sub);
           if (!keys.length) sub[token] = -1;
 
-          sub[token] = item.children?.every((e) => {
-            const k = String(e.value ?? e.label);
+          sub[token] = item.children?.reduce((p, e) => {
+            const k = getOptionDisplayValue(e);
             if (sub[k] === true) {
-              return true;
+              return p;
             } else {
               check([...path, key], e);
-              if (sub[k] && sub[k][token] === 1) return true;
+              if (sub[k] && sub[k][token] === 1) return p;
             }
-          })
+            return false;
+          }, true)
             ? 1
             : 0;
         };
@@ -221,40 +239,43 @@ export class DuoyunCascaderElement extends GemElement<State> {
     const { selected } = this.state;
     const listStyle = styleMap({ width: this.fit ? `${100 / this.#deep}%` : undefined });
     return html`
-      ${[this.options, ...selected.map((e) => e.children).filter(isNotNullish)].map(
-        (list, index) => html`
-          <ul part=${DuoyunCascaderElement.column} class="list" style=${listStyle}>
-            ${list.map(
-              (
-                item,
-                _i,
-                _arr,
-                status = readProp(
-                  this.#valueObj,
-                  [...selected.slice(0, index), item].map((e) => String(e.value ?? e.label)),
-                ),
-              ) => html`
-                <li
-                  class=${classMap({ item: true, selected: selected[index] === item })}
-                  @click=${() => this.#onClick(index, item)}
-                >
-                  ${this.multiple
-                    ? html`
-                        <dy-checkbox
-                          class="checkbox"
-                          @change=${(evt: CustomEvent<boolean>) => this.#onChange(index, item, evt)}
-                          ?checked=${status === true || status?.[token] === 1}
-                          ?indeterminate=${status !== true && status?.[token] === 0}
-                        ></dy-checkbox>
-                      `
-                    : ''}
-                  <span class="label">${item.value ?? item.label}</span>
-                  <dy-use class="right" .element=${item.children && icons.right}></dy-use>
-                </li>
-              `,
-            )}
-          </ul>
-        `,
+      ${[this.options, ...selected.map((e) => e.children || e.childrenPlaceholder).filter(isNotNullish)].map(
+        (list, index) =>
+          Array.isArray(list)
+            ? html`
+                <ul part=${DuoyunCascaderElement.column} class="list" style=${listStyle}>
+                  ${list.map(
+                    (
+                      item,
+                      _i,
+                      _arr,
+                      status = readProp(
+                        this.#valueObj,
+                        [...selected.slice(0, index), item].map((e) => getOptionDisplayValue(e)),
+                      ),
+                    ) => html`
+                      <li
+                        class=${classMap({ item: true, selected: selected[index] === item })}
+                        @click=${() => this.#onClick(index, item)}
+                      >
+                        ${this.multiple
+                          ? html`
+                              <dy-checkbox
+                                class="checkbox"
+                                @change=${(evt: CustomEvent<boolean>) => this.#onChange(index, item, evt)}
+                                ?checked=${status === true || status?.[token] === 1}
+                                ?indeterminate=${status !== true && status?.[token] === 0}
+                              ></dy-checkbox>
+                            `
+                          : ''}
+                        <span class="label">${getOptionDisplayValue(item)}</span>
+                        <dy-use class="right" .element=${item.children && icons.right}></dy-use>
+                      </li>
+                    `,
+                  )}
+                </ul>
+              `
+            : html`<div class="list">${list}</div>`,
       )}
     `;
   };
