@@ -20,7 +20,7 @@ import { theme } from '../lib/theme';
 import { locale } from '../lib/locale';
 
 import type { DataList } from './input';
-import type { Option } from './picker';
+import type { Option as PickerOption } from './picker';
 import type { Option as SelectOption } from './select';
 import type { Adder } from './options';
 
@@ -257,7 +257,9 @@ export class DuoyunFormItemElement extends GemElement<FormItemState> {
 
   @property rules?: FormItemRule[];
 
-  @property dataList?: DataList | Option[] | SelectOption[];
+  /**@deprecated */
+  @property dataList?: DataList | PickerOption[] | SelectOption[];
+  @property options?: DataList | PickerOption[] | SelectOption[];
   @property adder?: Adder; // select
 
   @globalemitter itemchange: Emitter<{ name: string; value: number | string | any[] | any }>;
@@ -268,20 +270,16 @@ export class DuoyunFormItemElement extends GemElement<FormItemState> {
 
   state: FormItemState = {};
 
+  get #options() {
+    return this.options || this.dataList;
+  }
+
   get #type() {
     return this.type || 'text';
   }
 
   get #slotAssignedElement() {
     return this.slotRef.element!.assignedElements()[0] as any;
-  }
-
-  get data() {
-    const { value, checked } = this;
-    if (this.#type === 'checkbox') {
-      return value ? (checked ? value : '') : checked;
-    }
-    return value;
   }
 
   constructor() {
@@ -365,7 +363,7 @@ export class DuoyunFormItemElement extends GemElement<FormItemState> {
               .adder=${this.adder}
               .value=${this.value}
               .placeholder=${this.placeholder}
-              .options=${this.dataList}
+              .options=${this.#options}
               .renderLabel=${this.renderLabel}
             ></dy-select>
           `
@@ -407,7 +405,7 @@ export class DuoyunFormItemElement extends GemElement<FormItemState> {
               .value=${this.value}
               .fit=${true}
               .placeholder=${this.placeholder}
-              .options=${this.dataList}
+              .options=${this.#options}
             ></dy-picker>
           `
         : this.#type === 'checkbox'
@@ -426,7 +424,7 @@ export class DuoyunFormItemElement extends GemElement<FormItemState> {
             <dy-radio-group
               @change=${this.#onChange}
               ?disabled=${this.disabled}
-              .options=${this.dataList}
+              .options=${this.#options}
               .value=${this.value}
             >
             </dy-radio-group>
@@ -436,7 +434,7 @@ export class DuoyunFormItemElement extends GemElement<FormItemState> {
             <dy-checkbox-group
               @change=${this.#onChange}
               ?disabled=${this.disabled}
-              .options=${this.dataList}
+              .options=${this.#options}
               .value=${this.value}
             >
             </dy-checkbox-group>
@@ -456,7 +454,7 @@ export class DuoyunFormItemElement extends GemElement<FormItemState> {
                     .autofocus=${this.autofocus}
                     .clearable=${true}
                     .alwayclearable=${true}
-                    .dataList=${this.dataList}
+                    .dataList=${this.#options}
                     .value=${value}
                   ></dy-input>
                 `,
@@ -479,7 +477,7 @@ export class DuoyunFormItemElement extends GemElement<FormItemState> {
                 .value=${this.value as string}
                 .placeholder=${this.placeholder}
                 .required=${this.required}
-                .dataList=${this.dataList}
+                .dataList=${this.#options}
               ></dy-input>
             `
         : ''}
@@ -493,6 +491,14 @@ export class DuoyunFormItemElement extends GemElement<FormItemState> {
         : ''}
     `;
   };
+
+  get data() {
+    const { value, checked } = this;
+    if (this.#type === 'checkbox') {
+      return value ? (checked ? value : '') : checked;
+    }
+    return value;
+  }
 
   focus() {
     const input: HTMLElement | null | undefined =

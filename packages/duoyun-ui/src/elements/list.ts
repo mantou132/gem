@@ -32,8 +32,14 @@ const style = createCSSSheet(css`
 @customElement('dy-list')
 @adoptedStyle(style)
 export class DuoyunListElement extends GemElement {
+  /**@deprecated */
   @property data?: Item[];
+  @property items?: Item[];
   @property renderItem?: (item: Item) => TemplateResult;
+
+  get #items() {
+    return this.items || this.data;
+  }
 
   constructor() {
     super();
@@ -41,9 +47,9 @@ export class DuoyunListElement extends GemElement {
   }
 
   render = () => {
-    return html`${this.data?.map(
+    return html`${this.#items?.map(
       (item) => html`
-        <dy-list-item .data=${item} .renderItem=${this.renderItem}></dy-list-item>
+        <dy-list-item .item=${item} .renderItem=${this.renderItem}></dy-list-item>
         <dy-divider></dy-divider>
       `,
     )}`;
@@ -82,7 +88,7 @@ const itemStyle = createCSSSheet(css`
 @customElement('dy-list-item')
 @adoptedStyle(itemStyle)
 export class DuoyunListItemElement extends GemElement {
-  @property data?: Item;
+  @property item?: Item;
   @property renderItem?: (item: Item) => TemplateResult;
 
   constructor() {
@@ -91,10 +97,10 @@ export class DuoyunListItemElement extends GemElement {
   }
 
   render = () => {
-    if (!this.data) return html``;
-    const { title, avatar, description, status } = this.data;
+    if (!this.item) return html``;
+    const { title, avatar, description, status } = this.item;
     return this.renderItem
-      ? this.renderItem(this.data)
+      ? this.renderItem(this.item)
       : html`
           ${!avatar
             ? ''

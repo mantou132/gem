@@ -133,7 +133,7 @@ const style = createCSSSheet(css`
   }
 `);
 
-export type Item = {
+export type CarouselItem = {
   img: string;
   background?: string;
   onClick?: (evt: PointerEvent) => void;
@@ -170,7 +170,13 @@ export class DuoyunCarouselElement extends GemElement<State> {
   @numattribute interval: number;
   @emitter change: Emitter<number>;
 
-  @property data?: Item[];
+  /**@deprecated */
+  @property data?: CarouselItem[];
+  @property items?: CarouselItem[];
+
+  get #items() {
+    return this.items || this.data;
+  }
 
   get #interval() {
     return this.interval || 3000;
@@ -186,7 +192,7 @@ export class DuoyunCarouselElement extends GemElement<State> {
   };
 
   #add = (direction: 1 | -1) => {
-    const total = this.data?.length;
+    const total = this.#items?.length;
     if (!total) return;
     this.setState({ currentIndex: (total + this.state.currentIndex + direction) % total, direction });
     this.#reset();
@@ -206,11 +212,10 @@ export class DuoyunCarouselElement extends GemElement<State> {
   };
 
   #oMouseEnter = (evt: Event) => {
-    this.#waitLeave = new Promise(
-      (res) =>
-        evt.target?.addEventListener('mouseleave', () => res(), {
-          once: true,
-        }),
+    this.#waitLeave = new Promise((res) =>
+      evt.target?.addEventListener('mouseleave', () => res(), {
+        once: true,
+      }),
     );
   };
 
@@ -241,7 +246,7 @@ export class DuoyunCarouselElement extends GemElement<State> {
     const { currentIndex, direction } = this.state;
     return html`
       <ul class="list" role="region">
-        ${this.data?.map(
+        ${this.#items?.map(
           ({ img, background = 'none', title, description, action, tag, onClick }, index) => html`
             ${currentIndex === index
               ? html`
@@ -296,7 +301,7 @@ export class DuoyunCarouselElement extends GemElement<State> {
         )}
       </ul>
       <div part=${DuoyunCarouselElement.nav} class="nav">
-        ${this.data?.map(
+        ${this.#items?.map(
           (_, index) => html`
             <div
               tabindex="0"

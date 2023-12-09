@@ -153,10 +153,16 @@ type AvatarItem = Avatar & { onClick?: (evt: Event) => void };
 export class DuoyunAvatarGroupElement extends GemElement {
   @numattribute max: number;
 
+  /**@deprecated */
   @property data?: AvatarItem[];
+  @property items?: AvatarItem[];
+
+  get #items() {
+    return this.items || this.data;
+  }
 
   get #max() {
-    return this.max || this.data?.length || 0;
+    return this.max || this.#items?.length || 0;
   }
 
   constructor() {
@@ -179,10 +185,10 @@ export class DuoyunAvatarGroupElement extends GemElement {
   };
 
   render = () => {
-    if (!this.data) return html``;
-    const rest = this.data.slice(this.#max);
+    if (!this.#items) return html``;
+    const rest = this.#items.slice(this.#max);
     return html`
-      ${this.data.slice(0, this.#max).map((avatar) => this.#renderAvatar(avatar))}
+      ${this.#items.slice(0, this.#max).map((avatar) => this.#renderAvatar(avatar))}
       ${rest.length
         ? html`
             <dy-avatar exportparts=${DuoyunAvatarElement.avatar} class="item" .tooltip=${rest.map((e) => e.alt).join()}>

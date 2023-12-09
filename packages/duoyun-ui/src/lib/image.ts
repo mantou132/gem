@@ -103,19 +103,19 @@ export function createDataURLFromBlob(blob: Blob) {
   });
 }
 
-interface LimitOption {
+interface LimitOptions {
   fileSize?: number;
   dimension?: { width: number; height: number };
 }
-interface OutputOption {
+interface OutputOptions {
   aspectRatio?: number;
   /**Default: File */
   type?: 'url';
 }
 type Origin = (HTMLImageElement & { type?: string }) | File;
-export function compressionImage(origin: Origin, limit: LimitOption, output: OutputOption): Promise<string>;
-export function compressionImage(origin: Origin, limit: LimitOption): Promise<File>;
-export async function compressionImage(origin: Origin, limit: LimitOption, { aspectRatio, type }: OutputOption = {}) {
+export function compressionImage(origin: Origin, limit: LimitOptions, output: OutputOptions): Promise<string>;
+export function compressionImage(origin: Origin, limit: LimitOptions): Promise<File>;
+export async function compressionImage(origin: Origin, limit: LimitOptions, { aspectRatio, type }: OutputOptions = {}) {
   const originIsFile = origin instanceof Blob;
   const outputDataURL = type === 'url';
   const canvas = createCanvas();

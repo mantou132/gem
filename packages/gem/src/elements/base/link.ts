@@ -30,10 +30,16 @@ export class GemLinkElement extends GemElement {
 
   // 动态路由，根据 route.pattern 和 options.params 计算出 path
   @property route: RouteItem | undefined;
+  /**@deprecated */
   @property options: RouteOptions | undefined;
+  @property routeOptions: RouteOptions | undefined;
   @property prepare: (() => void | Promise<void>) | undefined;
 
   @part link: string;
+
+  get #routeOptions() {
+    return this.routeOptions || this.options;
+  }
 
   constructor() {
     super();
@@ -44,9 +50,9 @@ export class GemLinkElement extends GemElement {
   // 不包含 basePath
   getPathInfo() {
     if (this.route) {
-      const queryProp = this.options?.query || '';
-      const hashProp = this.options?.hash || '';
-      return createPath(this.route, this.options) + queryProp + hashProp;
+      const queryProp = this.#routeOptions?.query || '';
+      const hashProp = this.#routeOptions?.hash || '';
+      return createPath(this.route, this.#routeOptions) + queryProp + hashProp;
     } else {
       const url = this.href || this.path + this.query + this.hash;
       const { path, query } = history.getParams();
@@ -101,7 +107,7 @@ export class GemLinkElement extends GemElement {
 
     if (this.route) {
       history.pushIgnoreCloseHandle({
-        ...createHistoryParams(this.route, this.options),
+        ...createHistoryParams(this.route, this.#routeOptions),
         title: this.route.title || this.docTitle,
       });
     } else if (this.href) {
@@ -145,8 +151,8 @@ export class GemLinkElement extends GemElement {
           this.hint === 'off'
             ? undefined
             : this.isExternal(pathInfo)
-              ? pathInfo
-              : new URL(history.basePath + pathInfo, location.origin).toString(),
+            ? pathInfo
+            : new URL(history.basePath + pathInfo, location.origin).toString(),
         )}
       >
         <slot></slot>

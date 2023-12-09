@@ -170,7 +170,7 @@ export const style = createCSSSheet(css`
 export class Section extends GemElement {
   @attribute name: string;
   @attribute tip: string;
-  @property data: Item[] = [];
+  @property items: Item[] = [];
   @property path: Path | undefined;
 
   renderTip = () => {
@@ -206,13 +206,13 @@ export class Section extends GemElement {
 
   renderItemValue = (item: Item) => {
     const path =
-      this.data === panelStore.staticMember
+      this.items === panelStore.staticMember
         ? ['constructor', item.name]
-        : this.data === panelStore.state
-          ? ['state', item.name]
-          : this.data === panelStore.observedAttributes || this.data === panelStore.cssStates
-            ? [kebabToCamelCase(item.name)]
-            : [item.name];
+        : this.items === panelStore.state
+        ? ['state', item.name]
+        : this.items === panelStore.observedAttributes || this.items === panelStore.cssStates
+        ? [kebabToCamelCase(item.name)]
+        : [item.name];
     const onInput = (evt: Event) => {
       execution(setValue, [path, (evt.target as HTMLInputElement).value]);
     };
@@ -269,11 +269,11 @@ export class Section extends GemElement {
   };
 
   render() {
-    const { name, data = [] } = this;
+    const { name, items = [] } = this;
     return html`
       <details open>
         <summary><span class="summary">${name}${this.renderTip()}</span>${this.renderInspect(this.path)}</summary>
-        <div>${data.length ? this.renderItem(data) : html`<div class="nodata">no data</div>`}</div>
+        <div>${items.length ? this.renderItem(items) : html`<div class="nodata">no data</div>`}</div>
       </details>
     `;
   }

@@ -45,7 +45,7 @@ type MenuStore = {
   }[];
 };
 
-type OpenMenuOptions = {
+type MenuOptions = {
   x?: number;
   y?: number;
   /**auto calc `x`/`y` via `activeElement` */
@@ -112,7 +112,7 @@ const style = createCSSSheet(css`
 export class DuoyunMenuElement extends GemElement {
   static instance?: DuoyunMenuElement;
 
-  static async open(menu: Menu, options: OpenMenuOptions = {}) {
+  static async open(menu: Menu, options: MenuOptions = {}) {
     const {
       activeElement,
       openLeft,
@@ -144,7 +144,7 @@ export class DuoyunMenuElement extends GemElement {
 
   static async confirm(
     text: string | TemplateResult,
-    options: OpenMenuOptions & { danger?: boolean; okText?: string | TemplateResult },
+    options: MenuOptions & { danger?: boolean; okText?: string | TemplateResult },
   ) {
     return new Promise((res, rej) => {
       const onClick = () => {

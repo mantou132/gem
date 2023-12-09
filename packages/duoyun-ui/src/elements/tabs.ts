@@ -102,9 +102,16 @@ export class DuoyunTabsElement extends GemElement {
 
   @boolattribute center: boolean;
   @attribute orientation: 'horizontal' | 'vertical';
+
+  /**@deprecated */
   @property data?: TabItem[];
+  @property items?: TabItem[];
   @property value?: any;
   @emitter change: Emitter<any>;
+
+  get #items() {
+    return this.items || this.data;
+  }
 
   get #orientation() {
     return this.orientation || 'horizontal';
@@ -116,11 +123,11 @@ export class DuoyunTabsElement extends GemElement {
   }
 
   render = () => {
-    if (!this.data) return html``;
+    if (!this.#items) return html``;
     let currentContent: TemplateResult | string = '';
     return html`
       <div part=${DuoyunTabsElement.tabs} class="tabs">
-        ${this.data.map(({ value, tab, icon, getContent }, index) => {
+        ${this.#items.map(({ value, tab, icon, getContent }, index) => {
           const isCurrent: boolean = (value ?? index) === this.value;
           if (isCurrent) currentContent = getContent?.() || '';
           return html`

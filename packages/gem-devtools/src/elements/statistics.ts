@@ -26,8 +26,9 @@ export class devtoolsStatisticsElement extends GemElement {
   @attribute name: string;
   @boolattribute ignore: boolean;
   @attribute type: DomStatInfo['type'] = 'ele';
-  @property value = new Array<string>();
   @property highlight?: Array<string>;
+
+  @property data = new Array<string>();
 
   #parse = (v: string) => {
     // scripts/dom-stat
@@ -49,10 +50,10 @@ export class devtoolsStatisticsElement extends GemElement {
     `;
   };
 
-  renderItem = (value: string[]) => {
+  renderItem = (data: string[]) => {
     return html`
       <ul>
-        ${value.map((e) => {
+        ${data.map((e) => {
           const [tag, id] = this.#parse(e);
           return html`
             <li>
@@ -71,21 +72,21 @@ export class devtoolsStatisticsElement extends GemElement {
   #highlight = new Set<string>();
   willMount = () => {
     this.memo(() => {
-      this.#highlight = new Set(this.highlight || this.value);
+      this.#highlight = new Set(this.highlight || this.data);
     });
   };
 
   render = () => {
-    const { name, value = [] } = this;
+    const { name, data = [] } = this;
     return html`
       <details>
-        <summary><span class="summary">${name}${value.length ? `(${value.length})` : ''}</span></summary>
+        <summary><span class="summary">${name}${data.length ? `(${data.length})` : ''}</span></summary>
         <div>
           ${this.ignore
             ? html`<div class="nodata">ignore</div>`
-            : value.length
-              ? this.renderItem(value)
-              : html`<div class="nodata">no data</div>`}
+            : data.length
+            ? this.renderItem(data)
+            : html`<div class="nodata">no data</div>`}
         </div>
       </details>
     `;

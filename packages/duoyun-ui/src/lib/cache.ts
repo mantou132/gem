@@ -1,6 +1,6 @@
 import { LinkedList } from '@mantou/gem/lib/utils';
 
-interface Options {
+interface CacheOptions {
   max?: number;
   maxAge?: number;
 }
@@ -18,7 +18,7 @@ export class Cache<T = any> {
   #reverseMap = new Map<T, string>();
   #linkedList = new LinkedList<T>();
 
-  constructor({ max = Infinity, maxAge = Infinity }: Options = {}) {
+  constructor({ max = Infinity, maxAge = Infinity }: CacheOptions = {}) {
     this.#max = max;
     this.#maxAge = maxAge;
   }

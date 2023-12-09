@@ -40,7 +40,7 @@ interface Resources<T> {
   [key: string]: Partial<T> | string;
 }
 
-interface Options<T> {
+interface I18nOptions<T> {
   resources: Resources<T>;
   fallbackLanguage: string;
   // 可以在构造函数中指定，但会被 URL 中的语言参数覆盖
@@ -107,13 +107,13 @@ export class I18n<T = Record<string, Msg>> {
     this.onChange?.(lang);
   }
 
-  constructor(options: Options<T>) {
+  constructor(options: I18nOptions<T>) {
     if (!options.resources[options.fallbackLanguage]) {
       throw new GemError('i18n: fallbackLanguage invalid');
     }
 
     this.store = createStore(this as any);
-    Object.assign<I18n<T>, Options<T>>(this as I18n<T>, options);
+    Object.assign<I18n<T>, I18nOptions<T>>(this as I18n<T>, options);
 
     let currentLanguage = this.#urlParamsLang || this.currentLanguage || this.#cacheLang;
 

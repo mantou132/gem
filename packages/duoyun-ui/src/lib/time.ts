@@ -31,7 +31,7 @@ type Unit = 'Y' | 'M' | 'w' | 'd' | 'h' | 'm' | 's' | 'ms';
 
 type RelativeTimeFormatUnit = Exclude<Unit, 'ms'>;
 
-type RelativeTimeFormatOption = {
+type RelativeTimeFormatOptions = {
   rtf?: Intl.RelativeTimeFormat;
   min?: number;
   lang?: string | string[];
@@ -221,7 +221,7 @@ export class Time extends Date {
    */
   relativeTimeFormat(
     date: Date | Time | number,
-    { min = 1, lang = locale.localeCode, rtf = Time.#rtfCache.get(String(lang)) }: RelativeTimeFormatOption = {},
+    { min = 1, lang = locale.localeCode, rtf = Time.#rtfCache.get(String(lang)) }: RelativeTimeFormatOptions = {},
   ) {
     if (!rtf) {
       rtf = new Intl.RelativeTimeFormat(lang, { style: 'short', numeric: 'auto' });

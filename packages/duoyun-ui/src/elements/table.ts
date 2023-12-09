@@ -378,23 +378,23 @@ export class DuoyunTableElement extends GemElement {
                             ${!record
                               ? html`<dy-placeholder ?center=${style.textAlign === 'center'}></dy-placeholder>`
                               : render
-                                ? render(record)
-                                : getActions
-                                  ? html`
-                                      <dy-use
-                                        class="action"
-                                        tabindex="0"
-                                        role="button"
-                                        aria-label="Actions"
-                                        .element=${icons.more}
-                                        @keydown=${commonHandle}
-                                        @click=${(evt: PointerEvent) =>
-                                          this.#openActions(evt, getActions(record, evt.target as HTMLElement))}
-                                      ></dy-use>
-                                    `
-                                  : dataIndex
-                                    ? readProp(record, dataIndex)
-                                    : ''}
+                              ? render(record)
+                              : getActions
+                              ? html`
+                                  <dy-use
+                                    class="action"
+                                    tabindex="0"
+                                    role="button"
+                                    aria-label="Actions"
+                                    .element=${icons.more}
+                                    @keydown=${commonHandle}
+                                    @click=${(evt: PointerEvent) =>
+                                      this.#openActions(evt, getActions(record, evt.target as HTMLElement))}
+                                  ></dy-use>
+                                `
+                              : dataIndex
+                              ? readProp(record, dataIndex)
+                              : ''}
                           </td>
                         `
                       : '',
@@ -416,8 +416,8 @@ export class DuoyunTableElement extends GemElement {
       ${!this.data
         ? html`<div class="side" part=${DuoyunTableElement.side}><dy-loading></dy-loading></div>`
         : this.data.length === 0
-          ? html`<div class="side" part=${DuoyunTableElement.side}>${this.noData || html`<dy-empty></dy-empty>`}</div>`
-          : ''}
+        ? html`<div class="side" part=${DuoyunTableElement.side}>${this.noData || html`<dy-empty></dy-empty>`}</div>`
+        : ''}
     `;
   };
 

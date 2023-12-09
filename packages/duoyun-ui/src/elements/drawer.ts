@@ -1,7 +1,7 @@
 import { adoptedStyle, customElement } from '@mantou/gem/lib/decorators';
 import { createCSSSheet, css } from '@mantou/gem/lib/utils';
 
-import { DuoyunModalElement, Options } from './modal';
+import { DuoyunModalElement, ModalOptions } from './modal';
 
 const style = createCSSSheet(css`
   .dialog {
@@ -33,7 +33,7 @@ const style = createCSSSheet(css`
 @customElement('dy-drawer')
 @adoptedStyle(style)
 export class DuoyunDrawerElement extends DuoyunModalElement {
-  constructor(options: Options) {
+  constructor(options: ModalOptions) {
     super(options);
     this.addEventListener('maskclick', () => this.close(null));
   }

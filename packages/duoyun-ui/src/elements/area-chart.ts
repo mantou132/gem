@@ -16,14 +16,14 @@ export interface Sequence {
   values: (number | null)[][];
 }
 
-export interface SymbolRenderOption {
+export interface SymbolRenderOptions {
   point: number[];
   color: string;
   isHover: boolean;
   chart: DuoyunAreaChartElement;
 }
 
-export function defaultSymbolRender({ point, color, isHover, chart }: SymbolRenderOption) {
+export function defaultSymbolRender({ point, color, isHover, chart }: SymbolRenderOptions) {
   return svg`
     <circle
       class="symbol"

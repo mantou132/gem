@@ -10,7 +10,7 @@ import {
   boolattribute,
   state,
 } from '@mantou/gem/lib/decorators';
-import { GemElement, html, TemplateResult } from '@mantou/gem/lib/element';
+import { GemElement, html } from '@mantou/gem/lib/element';
 import { createCSSSheet, css, classMap } from '@mantou/gem/lib/utils';
 
 import { Time } from '../lib/time';
@@ -54,11 +54,6 @@ const style = createCSSSheet(css`
     display: inline-flex;
   }
 `);
-
-export interface Option {
-  label: string | TemplateResult;
-  value?: any;
-}
 
 /**
  * @customElement dy-date-picker

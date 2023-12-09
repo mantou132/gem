@@ -38,7 +38,7 @@ class DecoratorGemElement extends GemElement {
   @attribute rankAttr: string;
   @boolattribute rankDisabled: boolean;
   @numattribute rankCount: number;
-  @property dataProp = { value: '' };
+  @property propData = { value: '' };
   @state openState: boolean;
   @part headerPart: string;
   @refobject inputRef: RefObject<HTMLElement>;
@@ -46,8 +46,8 @@ class DecoratorGemElement extends GemElement {
   renderCount = 0;
   render() {
     this.renderCount++;
-    const { rankAttr, rankDisabled, rankCount, dataProp } = this;
-    return html`attr: ${rankAttr}, disabled: ${rankDisabled}, count: ${rankCount}, prop: ${dataProp.value}`;
+    const { rankAttr, rankDisabled, rankCount, propData } = this;
+    return html`attr: ${rankAttr}, disabled: ${rankDisabled}, count: ${rankCount}, prop: ${propData.value}`;
   }
 }
 
@@ -70,7 +70,7 @@ describe('装饰器', () => {
     const el: DecoratorGemElement = await fixture(html`
       <decorator-gem-demo
         @say-hi=${(e: CustomEvent) => (a = e.detail)}
-        .dataProp=${{ value: 'prop' }}
+        .propData=${{ value: 'prop' }}
         rank-attr="attr"
         rank-disabled
         rank-count="2"
@@ -87,11 +87,11 @@ describe('装饰器', () => {
     expect(DecoratorGemElement.defineParts).to.eql(['header-part']);
     expect(DecoratorGemElement.defineSlots).to.eql(['body-slot']);
     expect(DecoratorGemElement.defineRefs?.[0].startsWith('input-ref-')).to.equal(true);
-    expect(DecoratorGemElement.observedProperties).to.eql(['dataProp']);
+    expect(DecoratorGemElement.observedProperties).to.eql(['propData']);
     expect(el.rankAttr).to.equal('attr');
     expect(el.rankDisabled).to.equal(true);
     expect(el.rankCount).to.equal(2);
-    expect(el.dataProp).to.eql({ value: 'prop' });
+    expect(el.propData).to.eql({ value: 'prop' });
     expect(el.openState).to.equal(false);
     expect(el.headerPart).to.equal('header-part');
     expect(el.inputRef.ref.startsWith('input-ref-')).to.equal(true);

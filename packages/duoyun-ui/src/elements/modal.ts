@@ -134,7 +134,7 @@ const style2 = createCSSSheet({
   `,
 });
 
-export interface Options {
+export interface ModalOptions {
   header?: string | TemplateResult;
   body?: string | TemplateResult;
   /**render body only */
@@ -186,7 +186,7 @@ export class DuoyunModalElement extends GemElement {
   @state closing: boolean;
 
   // Cannot be used for dynamic forms
-  static async open<T = Element>(options: Options) {
+  static async open<T = Element>(options: ModalOptions) {
     const modal = new this({ ...options, open: true });
     const restoreInert = setBodyInert(modal);
     document.body.append(modal);
@@ -209,7 +209,7 @@ export class DuoyunModalElement extends GemElement {
     });
   }
 
-  static confirm(body: string | TemplateResult | Record<string, unknown>, options?: Options) {
+  static confirm(body: string | TemplateResult | Record<string, unknown>, options?: ModalOptions) {
     const content =
       typeof body === 'string' || body instanceof TemplateResult
         ? html`<div class=${style2.c}>${body}</div>`
@@ -228,7 +228,7 @@ export class DuoyunModalElement extends GemElement {
     disableDefaultCancelBtn,
     disableDefaultOKBtn,
     dangerDefaultOkBtn,
-  }: Options = {}) {
+  }: ModalOptions = {}) {
     super({ delegatesFocus: true });
     if (header) this.header = header;
     if (customize) this.customize = customize;

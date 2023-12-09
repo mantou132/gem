@@ -56,14 +56,14 @@ const style = createCSSSheet(css`
 
 type Type = 'success' | 'warning' | 'error' | 'default';
 
-interface Item {
+interface ToastItem {
   type: Type;
   content: string | TemplateResult;
 }
 
-const itemMap = new Map<Item, number>();
+const itemMap = new Map<ToastItem, number>();
 
-interface Option {
+interface ToastOptions {
   duration?: number;
   debug?: boolean;
 }
@@ -74,13 +74,13 @@ interface Option {
 @customElement('dy-toast')
 @adoptedStyle(style)
 export class DuoyunToastElement extends GemElement {
-  @property data?: Item[];
+  @property items?: ToastItem[];
 
   static instance?: DuoyunToastElement;
 
-  static open(type: Type, content: string | TemplateResult, { debug, duration = 3000 }: Option = {}) {
+  static open(type: Type, content: string | TemplateResult, { debug, duration = 3000 }: ToastOptions = {}) {
     const toast = Toast.instance || new Toast();
-    const item = toast.data?.find((e) => {
+    const item = toast.items?.find((e) => {
       if (e.type !== type) return false;
       // support simple `TemplateResult`
       return e.content instanceof TemplateResult && content instanceof TemplateResult
@@ -89,16 +89,16 @@ export class DuoyunToastElement extends GemElement {
         : e.content === content;
     }) || { type, content };
     clearTimeout(itemMap.get(item));
-    toast.data = [...(toast.data || []).filter((e) => e !== item), item];
+    toast.items = [...(toast.items || []).filter((e) => e !== item), item];
     itemMap.set(
       item,
       window.setTimeout(
         async () => {
           await toast.#over;
-          if (!toast.data) return;
+          if (!toast.items) return;
           itemMap.delete(item);
-          toast.data = toast.data.filter((e) => e !== item);
-          if (toast.data.length === 0) toast.remove();
+          toast.items = toast.items.filter((e) => e !== item);
+          if (toast.items.length === 0) toast.remove();
         },
         debug ? 1000000 : duration,
       ),
@@ -140,7 +140,7 @@ export class DuoyunToastElement extends GemElement {
 
   render = () => {
     return html`
-      ${this.data?.map(
+      ${this.items?.map(
         ({ type, content }) => html`
           <div class=${classMap({ item: true, [type]: true })}>
             <dy-use class="icon" .element=${this.#getIcon(type)}></dy-use>

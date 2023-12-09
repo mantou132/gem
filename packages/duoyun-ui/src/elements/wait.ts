@@ -33,13 +33,13 @@ const style = createCSSSheet(css`
   }
 `);
 
-interface Option {
+interface WaitOptions {
   minDelay?: number;
 }
 
 let totalPromise: Promise<any> = Promise.resolve();
 
-export async function waitLoading<T>(promise: Promise<T>, options: Option & Partial<State> = {}): Promise<T> {
+export async function waitLoading<T>(promise: Promise<T>, options: WaitOptions & Partial<State> = {}): Promise<T> {
   const { minDelay = 500 } = options;
   const isLongPromise = Symbol();
   const r = await Promise.any<typeof isLongPromise | T>([sleep(16).then(() => isLongPromise), promise]);
