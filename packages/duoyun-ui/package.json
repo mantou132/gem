@@ -19,6 +19,7 @@
     "docs:remote": "gem-book docs --plugin example",
     "build:docs": "gem-book docs --build --plugin example",
     "build:react": "gem-port src/elements",
+    "build:dev": "MODE=dev nodemon -w ../gem-port/bin --exec gem-port src/elements",
     "clean": "node -e \"fs.readdirSync('src').map(dir => require('rimraf').sync(dir))\"",
     "build": "yarn clean && tsc -p tsconfig.build.json",
     "start": "yarn build --watch",
