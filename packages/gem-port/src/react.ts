@@ -1,6 +1,4 @@
-import * as ts from 'typescript';
-
-import { getElementPathList, getFileElements, getComponentName, getRelativePath } from './common';
+import { getElementPathList, getFileElements, getComponentName, getRelativePath, compile } from './common';
 
 function createReactSourceFile(elementFilePath: string, outDir: string) {
   const elementDetailList = getFileElements(elementFilePath);
@@ -22,7 +20,7 @@ function createReactSourceFile(elementFilePath: string, outDir: string) {
             ${properties
               .map(({ name, reactive, event }) =>
                 event
-                  ? [`'on${event}'`, `(arg: CustomEvent<Parameters<${constructorName}['${name}']>[0]>) => void`].join(
+                  ? [`'on${event}'`, `(event: CustomEvent<Parameters<${constructorName}['${name}']>[0]>) => void`].join(
                       '?:',
                     )
                   : reactive
@@ -83,36 +81,10 @@ function createReactSourceFile(elementFilePath: string, outDir: string) {
   );
 }
 
-function createReactSourceFiles(elementsDir: string, outDir: string) {
+export function compileReact(elementsDir: string, outDir: string): void {
   const fileSystem: Record<string, string> = {};
   getElementPathList(elementsDir).forEach((elementFilePath) => {
     Object.assign(fileSystem, createReactSourceFile(elementFilePath, outDir));
   });
-  return fileSystem;
-}
-
-export function compileReact(elementsDir: string, outDir: string): void {
-  const options: ts.CompilerOptions = {
-    jsx: ts.JsxEmit.React,
-    target: ts.ScriptTarget.ES2020,
-    declaration: true,
-    outDir,
-  };
-  const fileSystem = createReactSourceFiles(elementsDir, outDir);
-  const host = ts.createCompilerHost(options);
-  const originReadFile = host.readFile;
-  host.readFile = (filename: string) => {
-    if (filename in fileSystem) return fileSystem[filename];
-    return originReadFile(filename);
-  };
-  const program = ts.createProgram(Object.keys(fileSystem), options, host);
-  program.emit().diagnostics.forEach((diagnostic) => {
-    if (diagnostic.file) {
-      const { line, character } = ts.getLineAndCharacterOfPosition(diagnostic.file, diagnostic.start!);
-      const message = ts.flattenDiagnosticMessageText(diagnostic.messageText, '\n');
-      console.warn(`${diagnostic.file.fileName} (${line + 1},${character + 1}): ${message}`);
-    } else {
-      console.warn(ts.flattenDiagnosticMessageText(diagnostic.messageText, '\n'));
-    }
-  });
+  compile(outDir, fileSystem);
 }

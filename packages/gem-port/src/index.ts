@@ -7,7 +7,8 @@ import program from 'commander';
 import { name, description, version } from '../package.json';
 
 import { compileReact } from './react';
-import { compileVue } from './vue';
+import { generateVue } from './vue';
+import { compileSvelte } from './svelte';
 
 const cliOptions = {
   outDir: './',
@@ -21,7 +22,8 @@ program
   .arguments('<dir>')
   .action((dir: string) => {
     compileReact(dir, path.resolve(cliOptions.outDir, 'react'));
-    compileVue(dir, path.resolve(cliOptions.outDir, 'vue'));
+    generateVue(dir, path.resolve(cliOptions.outDir, 'vue'));
+    compileSvelte(dir, path.resolve(cliOptions.outDir, 'svelte'));
     process.exit(0);
   });
 

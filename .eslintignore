@@ -1,5 +1,6 @@
 packages/*/dist
 packages/*/react
+packages/*/svelte
 packages/*/bin
 packages/*/coverage
 packages/*/extension

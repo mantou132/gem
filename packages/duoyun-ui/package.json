@@ -6,6 +6,7 @@
     "./elements/*": "./elements/*.js",
     "./react/*": "./react/*.js",
     "./vue/*": "./vue/*",
+    "./svelte/*": "./svelte/*.js",
     "./lib/*": "./lib/*.js",
     "./locales/*": "./locales/*.js"
   },
@@ -13,6 +14,7 @@
     "/elements/",
     "/react/",
     "/vue/",
+    "/svelte/",
     "/lib/",
     "/locales/"
   ],

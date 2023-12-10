@@ -27,7 +27,7 @@ declare module '@vue/runtime-dom' {
 }
  */
 
-export function compileVue(elementsDir: string, outDir: string): void {
+export function generateVue(elementsDir: string, outDir: string): void {
   mkdirSync(outDir, { recursive: true });
   getElementPathList(elementsDir).forEach((elementFilePath) => {
     getFileElements(elementFilePath).forEach(({ name: tag, properties, constructorName, methods, events }) => {
