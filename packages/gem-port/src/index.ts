@@ -7,6 +7,7 @@ import program from 'commander';
 import { name, description, version } from '../package.json';
 
 import { compileReact } from './react';
+import { compileVue } from './vue';
 
 const cliOptions = {
   outDir: './',
@@ -20,6 +21,7 @@ program
   .arguments('<dir>')
   .action((dir: string) => {
     compileReact(dir, path.resolve(cliOptions.outDir, 'react'));
+    compileVue(dir, path.resolve(cliOptions.outDir, 'vue'));
     process.exit(0);
   });
 

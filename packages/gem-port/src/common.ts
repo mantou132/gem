@@ -36,11 +36,6 @@ export function getFileElements(elementFilePath: string) {
   );
 }
 
-const validAttrType = new Set(['string', 'number', 'boolean']);
-export function getValidAttrType(type = '') {
-  return validAttrType.has(type) ? type : 'string';
-}
-
 export function getComponentName(tag: string) {
   return tag.replace(/(^|-)(\w)/g, (_, __, $1: string) => $1.toUpperCase());
 }

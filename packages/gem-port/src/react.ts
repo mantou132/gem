@@ -1,34 +1,33 @@
 import * as ts from 'typescript';
 
-import { getValidAttrType, getElementPathList, getFileElements, getComponentName, getRelativePath } from './common';
+import { getElementPathList, getFileElements, getComponentName, getRelativePath } from './common';
 
 function createReactSourceFile(elementFilePath: string, outDir: string) {
   const elementDetailList = getFileElements(elementFilePath);
   return Object.fromEntries(
-    elementDetailList.map(({ name: tag, constructorName, properties, methods, events }) => {
+    elementDetailList.map(({ name: tag, constructorName, properties, methods }) => {
       const componentName = getComponentName(tag);
       const componentPropsName = `${componentName}Props`;
       const componentMethodsName = `${componentName}Methods`;
+      const relativePath = getRelativePath(elementFilePath, outDir);
       return [
         componentName + '.tsx',
         `
           import React, { HTMLAttributes, RefAttributes } from 'react';
           import React, { ForwardRefExoticComponent, forwardRef, useImperativeHandle, useRef, useState, useEffect } from 'react';
-          import { TemplateResult } from '@mantou/gem/lib/element';
-          import { ${constructorName} } from '${getRelativePath(elementFilePath, outDir)}';
-          export { ${constructorName} };
+          import { ${constructorName} } from '${relativePath}';
+          export * from '${relativePath}';
         
           export type ${componentPropsName} = HTMLAttributes<HTMLDivElement> & RefAttributes<${constructorName}> & {
             ${properties
-              .map(({ name, attribute, reactive, type }) =>
-                // TODO
-                !reactive ? '' : [name, attribute ? getValidAttrType(type) : 'any'].join('?:'),
-              )
-              .join(';')}
-            ${events
-              .map((event) =>
-                // TODO
-                [`'on${event}'`, `(arg: CustomEvent<any>) => any`].join('?:'),
+              .map(({ name, reactive, event }) =>
+                event
+                  ? [`'on${event}'`, `(arg: CustomEvent<Parameters<${constructorName}['${name}']>[0]>) => void`].join(
+                      '?:',
+                    )
+                  : reactive
+                  ? [name, `${constructorName}['${name}']`].join('?:')
+                  : '',
               )
               .join(';')}
           };
