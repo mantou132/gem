@@ -30,8 +30,8 @@ export function compileSvelte(elementsDir: string, outDir: string): void {
                         `(event: CustomEvent<Parameters<${constructorName}['${name}']>[0]>) => void`,
                       ].join('?:')
                     : reactive
-                    ? [name, `${constructorName}['${name}']`].join('?:')
-                    : '',
+                      ? [name, `${constructorName}['${name}']`].join('?:')
+                      : '',
                 )
                 .join(';')}
             };

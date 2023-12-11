@@ -61,15 +61,14 @@ export class Nav extends GemElement {
       </a>
       <ol>
         ${EXAMPLES.sort((a, b) => ((METADATA[a].order || 0) > (METADATA[b].order || 0) ? 1 : -1)).map(
-          (name) =>
-            html`
-              <li>
-                <a class=${location.pathname.includes(name) ? 'active' : ''} href=${getGitPageUrl(name)}>
-                  <div>${getName(name)}</div>
-                  <div>${METADATA[name].desc}</div>
-                </a>
-              </li>
-            `,
+          (name) => html`
+            <li>
+              <a class=${location.pathname.includes(name) ? 'active' : ''} href=${getGitPageUrl(name)}>
+                <div>${getName(name)}</div>
+                <div>${METADATA[name].desc}</div>
+              </a>
+            </li>
+          `,
         )}
       </ol>
     `;

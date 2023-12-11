@@ -94,8 +94,8 @@ export function generateVue(elementsDir: string, outDir: string): void {
         
         <template>
           <${tag} ref="elementRef" ${props.length ? 'v-bind="props"' : ''} ${events
-          .map((event) => [`@${event}`, `"e => emit('change', e)"`].join('='))
-          .join(' ')}>
+            .map((event) => [`@${event}`, `"e => emit('change', e)"`].join('='))
+            .join(' ')}>
             <slot />
           </${tag}>
         </template>

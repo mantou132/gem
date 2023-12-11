@@ -212,10 +212,11 @@ export class DuoyunCarouselElement extends GemElement<State> {
   };
 
   #oMouseEnter = (evt: Event) => {
-    this.#waitLeave = new Promise((res) =>
-      evt.target?.addEventListener('mouseleave', () => res(), {
-        once: true,
-      }),
+    this.#waitLeave = new Promise(
+      (res) =>
+        evt.target?.addEventListener('mouseleave', () => res(), {
+          once: true,
+        }),
     );
   };
 

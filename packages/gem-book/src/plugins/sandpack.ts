@@ -164,11 +164,14 @@ customElements.whenDefined('gem-book').then(() => {
 
     get #dependencies() {
       const deps = this.dependencies.split(/\s*,\s*/);
-      return deps.reduce((p, c) => {
-        if (!c) return p;
-        const [name, version = 'latest'] = c.split(/(.+)@/).filter((e) => !!e);
-        return { ...p, [name]: version };
-      }, {} as Record<string, string>);
+      return deps.reduce(
+        (p, c) => {
+          if (!c) return p;
+          const [name, version = 'latest'] = c.split(/(.+)@/).filter((e) => !!e);
+          return { ...p, [name]: version };
+        },
+        {} as Record<string, string>,
+      );
     }
 
     get #sandBoxConfigFile() {
@@ -349,16 +352,15 @@ customElements.whenDefined('gem-book').then(() => {
         <div class="header">
           <ul class="tabs">
             ${files.map(
-              (file) =>
-                html`
-                  <li
-                    class=${classMap({ tab: true, current: currentFile?.filename === file.filename })}
-                    ?hidden=${file.status === 'hidden'}
-                    @click=${() => this.#onClickTab(file.element)}
-                  >
-                    ${file.filename}
-                  </li>
-                `,
+              (file) => html`
+                <li
+                  class=${classMap({ tab: true, current: currentFile?.filename === file.filename })}
+                  ?hidden=${file.status === 'hidden'}
+                  @click=${() => this.#onClickTab(file.element)}
+                >
+                  ${file.filename}
+                </li>
+              `,
             )}
           </ul>
           <div class="actions">

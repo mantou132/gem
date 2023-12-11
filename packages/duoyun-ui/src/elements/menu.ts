@@ -315,8 +315,8 @@ export class DuoyunMenuElement extends GemElement {
               maxHeight: openTop
                 ? '20em'
                 : maxHeight && index === 0
-                ? `${maxHeight}`
-                : `calc(100vh - 0.8em - ${y - this.#offset}px)`,
+                  ? `${maxHeight}`
+                  : `calc(100vh - 0.8em - ${y - this.#offset}px)`,
               [openTop ? 'bottom' : 'top']: `${y + this.#offset}px`,
               left: `min(${x}px, calc(100vw - ${calcWidth} - ${2 * this.#offset}px))`,
             })}

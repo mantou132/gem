@@ -209,10 +209,10 @@ export class Section extends GemElement {
       this.items === panelStore.staticMember
         ? ['constructor', item.name]
         : this.items === panelStore.state
-        ? ['state', item.name]
-        : this.items === panelStore.observedAttributes || this.items === panelStore.cssStates
-        ? [kebabToCamelCase(item.name)]
-        : [item.name];
+          ? ['state', item.name]
+          : this.items === panelStore.observedAttributes || this.items === panelStore.cssStates
+            ? [kebabToCamelCase(item.name)]
+            : [item.name];
     const onInput = (evt: Event) => {
       execution(setGemPropValue, [path, (evt.target as HTMLInputElement).value]);
     };

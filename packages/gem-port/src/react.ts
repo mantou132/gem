@@ -24,8 +24,8 @@ function createReactSourceFile(elementFilePath: string, outDir: string) {
                       '?:',
                     )
                   : reactive
-                  ? [name, `${constructorName}['${name}']`].join('?:')
-                  : '',
+                    ? [name, `${constructorName}['${name}']`].join('?:')
+                    : '',
               )
               .join(';')}
           };

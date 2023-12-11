@@ -1,4 +1,9 @@
+// flat config: https://eslint.org/docs/latest/use/configure/configuration-files-new
+// https://github.com/antfu/eslint-config-flat-gitignore
+const { readGitignoreFiles } = require('eslint-gitignore');
+
 module.exports = {
+  ignorePatterns: readGitignoreFiles({ cwd: __dirname }),
   parser: '@typescript-eslint/parser',
   extends: [
     'plugin:import/errors',

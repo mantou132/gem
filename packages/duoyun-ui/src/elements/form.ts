@@ -368,119 +368,119 @@ export class DuoyunFormItemElement extends GemElement<FormItemState> {
             ></dy-select>
           `
         : this.#type === 'date'
-        ? html`
-            <dy-date-picker
-              class="input"
-              @change=${this.#onChange}
-              @clear=${(evt: any) => evt.target.change(undefined)}
-              ?disabled=${this.disabled}
-              .value=${this.value}
-              .time=${this.time}
-              .placeholder=${this.placeholder}
-              .clearable=${!this.required}
-            >
-            </dy-date-picker>
-          `
-        : this.#type === 'date-range'
-        ? html`
-            <dy-date-range-picker
-              class="input"
-              @change=${this.#onChange}
-              @clear=${(evt: any) => evt.target.change(undefined)}
-              ?disabled=${this.disabled}
-              .value=${this.value}
-              .placeholder=${this.placeholder}
-              .clearable=${!this.required}
-            >
-            </dy-date-range-picker>
-          `
-        : this.#type === 'picker'
-        ? html`
-            <dy-picker
-              ?disabled=${this.disabled}
-              class="input"
-              part=${DuoyunFormItemElement.input}
-              @change=${this.#onChange}
-              .multiple=${this.multiple}
-              .value=${this.value}
-              .fit=${true}
-              .placeholder=${this.placeholder}
-              .options=${this.#options}
-            ></dy-picker>
-          `
-        : this.#type === 'checkbox'
-        ? html`
-            <dy-checkbox
-              @change=${this.#onCheckboxChange}
-              ?checked=${this.checked}
-              ?disabled=${this.disabled}
-              .value=${this.value as string}
-            >
-              ${this.label}
-            </dy-checkbox>
-          `
-        : this.#type === 'radio-group'
-        ? html`
-            <dy-radio-group
-              @change=${this.#onChange}
-              ?disabled=${this.disabled}
-              .options=${this.#options}
-              .value=${this.value}
-            >
-            </dy-radio-group>
-          `
-        : this.#type === 'checkbox-group'
-        ? html`
-            <dy-checkbox-group
-              @change=${this.#onChange}
-              ?disabled=${this.disabled}
-              .options=${this.#options}
-              .value=${this.value}
-            >
-            </dy-checkbox-group>
-          `
-        : this.name && this.#type !== 'slot'
-        ? this.multiple
           ? html`
-              ${(this.value as string[])?.map(
-                (value, index) => html`
-                  <dy-input
+              <dy-date-picker
+                class="input"
+                @change=${this.#onChange}
+                @clear=${(evt: any) => evt.target.change(undefined)}
+                ?disabled=${this.disabled}
+                .value=${this.value}
+                .time=${this.time}
+                .placeholder=${this.placeholder}
+                .clearable=${!this.required}
+              >
+              </dy-date-picker>
+            `
+          : this.#type === 'date-range'
+            ? html`
+                <dy-date-range-picker
+                  class="input"
+                  @change=${this.#onChange}
+                  @clear=${(evt: any) => evt.target.change(undefined)}
+                  ?disabled=${this.disabled}
+                  .value=${this.value}
+                  .placeholder=${this.placeholder}
+                  .clearable=${!this.required}
+                >
+                </dy-date-range-picker>
+              `
+            : this.#type === 'picker'
+              ? html`
+                  <dy-picker
+                    ?disabled=${this.disabled}
                     class="input"
                     part=${DuoyunFormItemElement.input}
-                    ?disabled=${this.disabled}
+                    @change=${this.#onChange}
+                    .multiple=${this.multiple}
+                    .value=${this.value}
+                    .fit=${true}
                     .placeholder=${this.placeholder}
-                    @change=${(evt: CustomEvent<string>) => this.#onTextChangeWithIndex(evt, index)}
-                    @clear=${() => this.#onTextCleanWithIndex(index)}
-                    .autofocus=${this.autofocus}
-                    .clearable=${true}
-                    .alwayclearable=${true}
-                    .dataList=${this.#options}
-                    .value=${value}
-                  ></dy-input>
-                `,
-              )}
-              <div class="footer" part=${DuoyunFormItemElement.add}>
-                <dy-button .color=${'cancel'} @click=${this.#onTextAdd}>+</dy-button>
-              </div>
-            `
-          : html`
-              <dy-input
-                class="input"
-                part=${DuoyunFormItemElement.input}
-                name=${this.name}
-                type=${this.#type}
-                ?disabled=${this.disabled}
-                @change=${this.#onChange}
-                @clear=${(evt: any) => evt.target.change('')}
-                .autofocus=${this.autofocus}
-                .clearable=${this.clearable}
-                .value=${this.value as string}
-                .placeholder=${this.placeholder}
-                .required=${this.required}
-                .dataList=${this.#options}
-              ></dy-input>
-            `
-        : ''}
+                    .options=${this.#options}
+                  ></dy-picker>
+                `
+              : this.#type === 'checkbox'
+                ? html`
+                    <dy-checkbox
+                      @change=${this.#onCheckboxChange}
+                      ?checked=${this.checked}
+                      ?disabled=${this.disabled}
+                      .value=${this.value as string}
+                    >
+                      ${this.label}
+                    </dy-checkbox>
+                  `
+                : this.#type === 'radio-group'
+                  ? html`
+                      <dy-radio-group
+                        @change=${this.#onChange}
+                        ?disabled=${this.disabled}
+                        .options=${this.#options}
+                        .value=${this.value}
+                      >
+                      </dy-radio-group>
+                    `
+                  : this.#type === 'checkbox-group'
+                    ? html`
+                        <dy-checkbox-group
+                          @change=${this.#onChange}
+                          ?disabled=${this.disabled}
+                          .options=${this.#options}
+                          .value=${this.value}
+                        >
+                        </dy-checkbox-group>
+                      `
+                    : this.name && this.#type !== 'slot'
+                      ? this.multiple
+                        ? html`
+                            ${(this.value as string[])?.map(
+                              (value, index) => html`
+                                <dy-input
+                                  class="input"
+                                  part=${DuoyunFormItemElement.input}
+                                  ?disabled=${this.disabled}
+                                  .placeholder=${this.placeholder}
+                                  @change=${(evt: CustomEvent<string>) => this.#onTextChangeWithIndex(evt, index)}
+                                  @clear=${() => this.#onTextCleanWithIndex(index)}
+                                  .autofocus=${this.autofocus}
+                                  .clearable=${true}
+                                  .alwayclearable=${true}
+                                  .dataList=${this.#options}
+                                  .value=${value}
+                                ></dy-input>
+                              `,
+                            )}
+                            <div class="footer" part=${DuoyunFormItemElement.add}>
+                              <dy-button .color=${'cancel'} @click=${this.#onTextAdd}>+</dy-button>
+                            </div>
+                          `
+                        : html`
+                            <dy-input
+                              class="input"
+                              part=${DuoyunFormItemElement.input}
+                              name=${this.name}
+                              type=${this.#type}
+                              ?disabled=${this.disabled}
+                              @change=${this.#onChange}
+                              @clear=${(evt: any) => evt.target.change('')}
+                              .autofocus=${this.autofocus}
+                              .clearable=${this.clearable}
+                              .value=${this.value as string}
+                              .placeholder=${this.placeholder}
+                              .required=${this.required}
+                              .dataList=${this.#options}
+                            ></dy-input>
+                          `
+                      : ''}
       <slot ref=${this.slotRef.ref}></slot>
       ${invalidMessage
         ? html`

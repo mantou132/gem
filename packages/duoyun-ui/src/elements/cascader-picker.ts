@@ -146,8 +146,8 @@ export class DuoyunCascaderPickElement extends GemElement implements BasePickerE
         ${isEmpty
           ? this.placeholder
           : this.multiple
-          ? this.#renderMultipleValue(this.value as OptionValue[][])
-          : this.#renderValue(this.value as OptionValue[])}
+            ? this.#renderMultipleValue(this.value as OptionValue[][])
+            : this.#renderValue(this.value as OptionValue[])}
       </div>
       <dy-use class="icon" .element=${icons.expand}></dy-use>
     `;

@@ -85,8 +85,8 @@ export class devtoolsStatisticsElement extends GemElement {
           ${this.ignore
             ? html`<div class="nodata">ignore</div>`
             : data.length
-            ? this.renderItem(data)
-            : html`<div class="nodata">no data</div>`}
+              ? this.renderItem(data)
+              : html`<div class="nodata">no data</div>`}
         </div>
       </details>
     `;

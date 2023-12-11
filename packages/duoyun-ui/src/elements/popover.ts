@@ -90,8 +90,8 @@ export class DuoyunPopoverElement extends GemElement<PopoverState> {
     const { left, right, top, bottom } = element
       ? element.getBoundingClientRect()
       : firstArg instanceof Array
-      ? { left: firstArg[0], right: firstArg[0] + firstArg[2], top: firstArg[1], bottom: firstArg[1] + firstArg[3] }
-      : { left: firstArg, right: firstArg, top: args[1], bottom: args[1] };
+        ? { left: firstArg[0], right: firstArg[0] + firstArg[2], top: firstArg[1], bottom: firstArg[1] + firstArg[3] }
+        : { left: firstArg, right: firstArg, top: args[1], bottom: args[1] };
 
     toggleActiveState(element, true);
     const popover = new DuoyunPopoverElement(options);

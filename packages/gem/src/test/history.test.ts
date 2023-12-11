@@ -6,11 +6,13 @@ describe('history 测试', () => {
   it('hash', async () => {
     const historyLength = window.history.length;
     const hash = window.location.hash;
+    // 等待浏览器就绪
+    await aTimeout(1000);
     history.push({ path: '/a', hash: '#a' });
     await aTimeout(10);
     expect(window.location.hash).to.equal('#a');
     history.back();
-    await aTimeout(600);
+    await aTimeout(10);
     expect(window.location.hash).to.equal(hash);
     history.push({ path: '/a', hash: '#b' });
     await aTimeout(10);
