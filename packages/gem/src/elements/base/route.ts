@@ -132,8 +132,9 @@ export class GemRouteElement extends GemElement<State> {
   @emitter loading: Emitter<RouteItem>;
   @emitter error: Emitter<any>;
 
+  /**当前使用的路由对象 */
   currentRoute: RouteItem | null;
-  // 当前匹配的路由的 params
+  /**当前匹配的路由的 params */
   currentParams: Params = {};
 
   #lastLoader?: Promise<TemplateResult>;

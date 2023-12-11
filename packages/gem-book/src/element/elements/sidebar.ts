@@ -10,6 +10,7 @@ import { container } from './icons';
 
 import '@mantou/gem/elements/link';
 import '@mantou/gem/elements/use';
+import './side-link';
 
 @customElement('gem-book-sidebar')
 @connectStore(bookStore)
@@ -41,13 +42,13 @@ export class SideBar extends GemElement {
       `;
     } else {
       return html`
-        <gem-active-link
+        <gem-book-side-link
           class=${classMap({ item: true, link: true, single: isTop, [type]: true })}
           pattern=${children ? new URL(link, location.origin).pathname : link}
           href=${link}
         >
           ${type === 'heading' ? '# ' : ''} ${title ? capitalize(title) : 'No title'}
-        </gem-active-link>
+        </gem-book-side-link>
         ${children ? html`<div class="links item hash">${children.map((item) => this.renderItem(item))}</div>` : null}
       `;
     }
@@ -98,7 +99,7 @@ export class SideBar extends GemElement {
         .file:where(:state(active), [data-active]) {
           font-weight: bolder;
         }
-        .link:where(:state(active), [data-active]) + .hash {
+        .link:where(:state(match), [data-match]) + .hash {
           display: block;
         }
         .heading:not(:where(:state(active), [data-active])):not(:hover),

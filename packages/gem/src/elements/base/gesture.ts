@@ -83,6 +83,8 @@ export class GemGestureElement extends GemElement {
   #pressTimer = 0;
 
   #startEventMap: Map<number, PointerEvent> = new Map();
+
+  /** 指针移动事件记录 */
   movesMap: Map<number, PanEventDetail[]> = new Map();
 
   #getMoves = (pointerId: number) => {

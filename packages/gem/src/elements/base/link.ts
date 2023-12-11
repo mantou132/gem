@@ -5,29 +5,8 @@ import { absoluteLocation } from '../../lib/utils';
 
 import { matchPath, RouteItem, RouteOptions, createHistoryParams, createPath } from './route';
 
-// 不包含 basePath
-function getPathInfo(ele: GemLinkElement) {
-  if (ele.route) {
-    const queryProp = ele.options?.query || '';
-    const hashProp = ele.options?.hash || '';
-    return createPath(ele.route, ele.options) + queryProp + hashProp;
-  } else {
-    const url = ele.href || ele.path + ele.query + ele.hash;
-    const { path, query } = history.getParams();
-    if (url.startsWith('#')) {
-      return `${path}${query}${url}`;
-    } else if (url.startsWith('?')) {
-      return `${path}${url}`;
-    } else if (url.startsWith('.')) {
-      return absoluteLocation(path, url);
-    } else {
-      return url;
-    }
-  }
-}
-
-function isExternal(pathInfo: string) {
-  return !pathInfo.startsWith('/');
+function isExternal(path: string) {
+  return !path.startsWith('/');
 }
 
 /**
@@ -66,37 +45,41 @@ export class GemLinkElement extends GemElement {
     return this.routeOptions || this.options;
   }
 
+  get #hint() {
+    return this.hint || 'on';
+  }
+
   constructor() {
     super();
     this.tabIndex = 0;
-    this.addEventListener('click', this.#clickHandle);
+    this.addEventListener('click', this.#onClick);
   }
 
-  #clickHandle = async () => {
-    const pathInfo = getPathInfo(this);
+  #onClick = async () => {
+    const locationString = this.getLocationString();
 
-    if (!pathInfo) return;
+    if (!locationString) return;
 
     // 外部链接使用 `window.open`
-    if (isExternal(pathInfo)) {
+    if (isExternal(locationString)) {
       switch (this.target) {
         case '_self':
-          window.location.href = pathInfo;
+          window.location.href = locationString;
           return;
         case '_parent':
-          window.parent.location.href = pathInfo;
+          window.parent.location.href = locationString;
           return;
         case '_top':
-          window.top!.location.href = pathInfo;
+          window.top!.location.href = locationString;
           return;
         default:
-          window.open(pathInfo);
+          window.open(locationString);
           return;
       }
     }
 
     const { path, query, hash } = history.getParams();
-    if (path + query + hash === pathInfo) {
+    if (path + query + hash === locationString) {
       // 点击当前路由链接时，什么也没做
       return;
     }
@@ -109,7 +92,7 @@ export class GemLinkElement extends GemElement {
         title: this.route.title || this.docTitle,
       });
     } else if (this.href) {
-      const { pathname, search, hash } = new URL(pathInfo, location.origin);
+      const { pathname, search, hash } = new URL(locationString, location.origin);
       history.pushIgnoreCloseHandle({
         path: pathname,
         query: search,
@@ -125,7 +108,14 @@ export class GemLinkElement extends GemElement {
     e.preventDefault();
   };
 
-  render(pathInfo = getPathInfo(this)) {
+  #getHint = () => {
+    const locationString = this.getLocationString();
+    return isExternal(locationString)
+      ? locationString
+      : new URL(history.basePath + locationString, location.origin).toString();
+  };
+
+  render() {
     return html`
       <style>
         :host {
@@ -145,17 +135,34 @@ export class GemLinkElement extends GemElement {
       <a
         part=${this.link}
         @click=${this.#preventDefault}
-        href=${ifDefined(
-          this.hint === 'off'
-            ? undefined
-            : isExternal(pathInfo)
-              ? pathInfo
-              : new URL(history.basePath + pathInfo, location.origin).toString(),
-        )}
+        href=${ifDefined(this.#hint === 'off' ? undefined : this.#getHint())}
       >
         <slot></slot>
       </a>
     `;
+  }
+
+  /**
+   * 如果该元素是外部链接返回 URL，否则返回路径（不包含 basePath）
+   */
+  getLocationString() {
+    if (this.route) {
+      const queryProp = this.#routeOptions?.query || '';
+      const hashProp = this.#routeOptions?.hash || '';
+      return createPath(this.route, this.#routeOptions) + queryProp + hashProp;
+    } else {
+      const url = this.href || this.path + this.query + this.hash;
+      const { path, query } = history.getParams();
+      if (url.startsWith('#')) {
+        return `${path}${query}${url}`;
+      } else if (url.startsWith('?')) {
+        return `${path}${url}`;
+      } else if (url.startsWith('.')) {
+        return absoluteLocation(path, url);
+      } else {
+        return url;
+      }
+    }
   }
 }
 
@@ -168,15 +175,12 @@ export class GemActiveLinkElement extends GemLinkElement {
   @attribute pattern: string; // 使用匹配模式设定 active
   @state active: boolean;
 
-  render() {
-    const { path, query, hash } = history.getParams();
-    const isMatchPattern = this.pattern && matchPath(this.pattern, path);
-    const pathInfo = getPathInfo(this);
-    if (isMatchPattern || path + query + hash === pathInfo) {
-      this.active = true;
-    } else {
-      this.active = false;
-    }
-    return super.render(pathInfo);
+  constructor() {
+    super();
+    this.effect(() => {
+      const { path, query, hash } = history.getParams();
+      const isMatchPattern = this.pattern && matchPath(this.pattern, path);
+      this.active = !!isMatchPattern || path + query + hash === this.getLocationString();
+    });
   }
 }
