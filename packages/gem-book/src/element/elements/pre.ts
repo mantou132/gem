@@ -381,7 +381,7 @@ export class Pre extends GemElement {
       ? this.#getRanges(this.range).map(([start, end]) => {
           let result = '';
           for (let i = start - 1; i < (end || lines.length); i++) {
-            result += lines[i] + '\n';
+            result += (lines[i] || '') + '\n';
           }
           return result;
         })

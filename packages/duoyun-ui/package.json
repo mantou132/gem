@@ -1,6 +1,6 @@
 {
   "name": "duoyun-ui",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "WebComponts UI",
   "exports": {
     "./elements/*": "./elements/*.js",

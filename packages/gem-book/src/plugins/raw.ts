@@ -1,26 +1,63 @@
 import type { GemBookElement } from '../element';
 
+type State = {
+  content: string;
+  error?: any;
+};
+
 customElements.whenDefined('gem-book').then(() => {
   const { GemBookPluginElement } = customElements.get('gem-book') as typeof GemBookElement;
-  const { config, Gem, devMode } = GemBookPluginElement;
-  const { attribute, customElement } = Gem;
+  const { config, Gem, devMode, theme } = GemBookPluginElement;
+  const { attribute, customElement, html, createCSSSheet, css, adoptedStyle } = Gem;
+
+  const style = createCSSSheet(css`
+    :host {
+      display: contents;
+    }
+    .loading,
+    .error {
+      display: flex;
+      place-items: center;
+      place-content: center;
+      min-height: 20em;
+      background: rgba(${theme.textColorRGB}, 0.05);
+    }
+    .loading {
+      opacity: 0.5;
+    }
+    .error {
+      color: ${theme.cautionColor};
+    }
+    @keyframes display {
+      0% {
+        opacity: 0;
+      }
+      100% {
+        opacity: 1;
+      }
+    }
+    gem-book-pre {
+      animation: display 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+    }
+  `);
 
   @customElement('gbp-raw')
-  class _GbpRawElement extends GemBookPluginElement {
+  @adoptedStyle(style)
+  class _GbpRawElement extends GemBookPluginElement<State> {
     @attribute src: string;
     @attribute codelang: string;
     @attribute range: string;
     @attribute highlight: string;
 
-    mounted() {
-      this.#renderContent();
+    state: State = {
+      content: '',
+    };
+
+    get #codelang() {
+      return this.codelang || this.src.split('.').pop() || '';
     }
 
-    updated() {
-      this.#renderContent();
-    }
-
-    #getRemoteUrl() {
+    get #url() {
       if (!this.src) return '';
 
       let url = this.src;
@@ -35,19 +72,33 @@ customElements.whenDefined('gem-book').then(() => {
       return url;
     }
 
-    async #renderContent() {
-      if (!this.src) return;
-      this.innerHTML = 'Loading...';
+    mounted() {
+      this.effect(
+        async () => {
+          if (!this.src) return;
+          this.setState({ error: false });
+          try {
+            const resp = await fetch(this.#url);
+            if (resp.status === 404) throw new Error(resp.statusText || 'Not Found');
+            this.setState({ content: await resp.text() });
+          } catch (error) {
+            this.setState({ error });
+          }
+        },
+        () => [this.src],
+      );
+    }
 
-      const text = await (await fetch(this.#getRemoteUrl())).text();
-      const div = document.createElement('div');
-      div.textContent = text;
-      const content = div.innerHTML;
+    render() {
+      const { content, error } = this.state;
+      if (error) return html`<div class="error">${error}</div>`;
+      if (!content) return html`<div class="loading">Loading...</div>`;
 
-      const extension = this.src.split('.').pop() || '';
-      this.innerHTML = `<gem-book-pre codelang="${this.codelang || extension}" highlight="${this.highlight}" range="${
-        this.range
-      }">${content}</gem-book-pre>`;
+      return html`
+        <gem-book-pre codelang=${this.#codelang} highlight=${this.highlight} range=${this.range}
+          >${content}</gem-book-pre
+        >
+      `;
     }
   }
 });

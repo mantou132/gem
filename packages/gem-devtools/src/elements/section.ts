@@ -15,7 +15,7 @@ import { Item, Path, BuildIn, panelStore } from '../store';
 import { theme } from '../theme';
 import { inspectValue } from '../scripts/inspect-value';
 import { execution } from '../common';
-import { setValue } from '../scripts/set-value';
+import { setGemPropValue } from '../scripts/set-value';
 
 const maybeBuildInPrefix = '[[Gem?]] ';
 const buildInPrefix = '[[Gem]] ';
@@ -214,13 +214,16 @@ export class Section extends GemElement {
         ? [kebabToCamelCase(item.name)]
         : [item.name];
     const onInput = (evt: Event) => {
-      execution(setValue, [path, (evt.target as HTMLInputElement).value]);
+      execution(setGemPropValue, [path, (evt.target as HTMLInputElement).value]);
     };
     const onInputNumber = (evt: Event) => {
-      execution(setValue, [path, Number((evt.target as HTMLInputElement).value)]);
+      execution(setGemPropValue, [path, Number((evt.target as HTMLInputElement).value) || 0]);
     };
     const toggleValue = (evt: MouseEvent) => {
-      execution(setValue, [path, (evt.target as HTMLInputElement).textContent?.trim() === 'true' ? false : true]);
+      execution(setGemPropValue, [
+        path,
+        (evt.target as HTMLInputElement).textContent?.trim() === 'true' ? false : true,
+      ]);
     };
     switch (item.type) {
       case 'string':

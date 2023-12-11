@@ -191,15 +191,7 @@ const style = createCSSSheet(css`
     opacity: 1;
   }
   code {
-    font-family:
-      Source Code Pro,
-      ui-monospace,
-      SFMono-Regular,
-      Menlo,
-      Monaco,
-      Consolas,
-      Liberation Mono,
-      Courier New,
+    font-family: Source Code Pro, ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, Liberation Mono, Courier New,
       monospace;
     padding: 0.15em 0.4em 0.1em;
     font-size: 0.9em;
@@ -243,6 +235,9 @@ export class Main extends GemElement {
     }
     .link:hover {
       border-color: currentColor;
+    }
+    .link svg:last-child {
+      margin-inline-end: 0.2em;
     }
   `;
 

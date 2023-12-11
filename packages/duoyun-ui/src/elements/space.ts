@@ -24,7 +24,7 @@ const style = createCSSSheet(css`
 @customElement('dy-space')
 @adoptedStyle(style)
 export class DuoyunSpaceElement extends GemElement {
-  @attribute size: 'nomal' | 'small' | 'large';
+  @attribute size: 'normal' | 'small' | 'large';
 
   constructor() {
     super({ isLight: true });
