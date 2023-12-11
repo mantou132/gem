@@ -456,10 +456,6 @@ export class Pre extends GemElement {
     this.effect(async () => {
       if (this.status === 'hidden') return;
       if (!this.codeRef.element) return;
-      // first render
-      if (!this.codeRef.element.firstElementChild) {
-        this.codeRef.element.innerHTML = this.innerHTML;
-      }
       await import(/* @vite-ignore */ /* webpackIgnore: true */ `${prismjs}?min`);
       const { Prism } = window as any;
       if (this.codelang && !Prism.languages[this.codelang]) {

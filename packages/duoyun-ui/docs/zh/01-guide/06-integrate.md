@@ -25,7 +25,7 @@ DuoyunUI 也导出了 Vue 组件，使用和 React 一样，唯一的区别是�
 }
 ```
 
-在 Vue 中也支持直接写自定义元素，但是要[区分](../02-elements/card#api)是 Attribute 还是 Property：
+在 Vue 中也支持直接写自定义元素，但是要[区分](../02-elements/card.md#api)是 Attribute 还是 Property：
 
 <gbp-raw codelang="html" range="34-45" src="https://raw.githubusercontent.com/mantou132/nuxtjs-learn/main/pages/test.vue"></gbp-raw>
 

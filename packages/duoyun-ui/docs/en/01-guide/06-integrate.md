@@ -25,7 +25,7 @@ in addition, custom elements need to be specified in the Vue configuration file:
 }
 ```
 
-In the Vue project, it also supports directly writing custom elements, but [distinguish](../02-elements/card#api) is it Attribute or Property:
+In the Vue project, it also supports directly writing custom elements, but [distinguish](../02-elements/card.md) is it Attribute or Property:
 
 <gbp-raw codelang="html" range="34-45" src="https://raw.githubusercontent.com/mantou132/nuxtjs-learn/main/pages/test.vue"></gbp-raw>
 
