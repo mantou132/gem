@@ -251,9 +251,9 @@ export class DuoyunModalElement extends GemElement {
   };
 
   #onMaskClick = () => {
-    if (this.maskClosable) this.#close();
-    this.maskclick(null);
     this.focus();
+    this.maskclick(null);
+    if (this.maskClosable) this.#close();
   };
 
   #keydown = (evt: KeyboardEvent) => {
