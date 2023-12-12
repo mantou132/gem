@@ -12,11 +12,18 @@ import './pre';
 const parser = new DOMParser();
 
 const style = createCSSSheet(css`
+  :not(:defined) {
+    display: block;
+    font-size: 0;
+  }
+  :not(:defined) * {
+    display: none;
+  }
   :not(:defined)::before {
+    font-size: 1rem;
     display: block;
     content: 'The element is not defined';
     padding: 1em;
-    border-radius: 0.25rem;
     text-align: center;
     background: ${theme.borderColor};
   }
@@ -31,6 +38,28 @@ const style = createCSSSheet(css`
   }
   :host > :first-child {
     margin-top: 0;
+  }
+  details {
+    border: 1px dashed ${theme.borderColor};
+    padding: 0.5em 1em;
+  }
+  details p:first-of-type {
+    margin-block-start: 0;
+  }
+  details p:first-of-type {
+    margin-block-end: 0;
+  }
+  details[open] summary {
+    margin-block-end: 0.5em;
+    background: rgba(${theme.textColorRGB}, 0.02);
+    border-bottom: 1px dashed ${theme.borderColor};
+  }
+  summary {
+    margin: -0.5em -1em;
+    padding: 0.5em 1em;
+  }
+  summary:hover {
+    background: rgba(${theme.textColorRGB}, 0.02);
   }
   a > img + svg {
     display: none;
@@ -157,7 +186,6 @@ const style = createCSSSheet(css`
     background: rgba(${theme.textColorRGB}, 0.05);
     border: 1px solid ${theme.borderColor};
     border-bottom-width: 2px;
-    border-radius: 2px;
   }
   hr {
     height: 1px;
@@ -204,7 +232,6 @@ const style = createCSSSheet(css`
     padding: 0.15em 0.4em 0.1em;
     font-size: 0.9em;
     background: rgba(${theme.textColorRGB}, 0.05);
-    border-radius: 0.125em;
   }
   gem-book-pre {
     z-index: 2;
@@ -216,11 +243,6 @@ const style = createCSSSheet(css`
     }
     h1 {
       font-size: 2.5rem;
-    }
-    @media screen {
-      gem-book-pre {
-        border-radius: 0;
-      }
     }
   }
 `);

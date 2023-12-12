@@ -261,12 +261,6 @@ const style = createCSSSheet(css`
     outline: none;
     caret-color: ${theme.textColor};
   }
-  .gem-code::-webkit-scrollbar {
-    height: 0.5em;
-  }
-  .gem-code::-webkit-scrollbar-thumb {
-    border-radius: inherit;
-  }
   .token.comment,
   .token.prolog,
   .token.doctype,
