@@ -58,6 +58,9 @@ const style = createCSSSheet(css`
     margin: -0.5em -1em;
     padding: 0.5em 1em;
   }
+  summary p {
+    display: contents;
+  }
   summary:hover {
     background: rgba(${theme.textColorRGB}, 0.02);
   }

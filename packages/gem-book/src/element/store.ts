@@ -108,7 +108,22 @@ function getNavRoutes(nav: NavItem[]): RouteItem[] {
     .map(({ link, children }) => ({ pattern: link, redirect: children?.[0].link }));
 }
 
-function getRouter(links: NavItemWithLink[], title: string, lang: string, displayRank: boolean | undefined) {
+function getRedirectRoutes(redirects: Record<string, string>, displayRank?: boolean): RouteItem[] {
+  const list = Object.entries(redirects);
+  return list
+    .map(([link, redirect]) => ({
+      pattern: getLinkPath(link, true),
+      redirect: getLinkPath(redirect, displayRank),
+    }))
+    .concat(
+      list.map(([link, redirect]) => ({
+        pattern: getLinkPath(link, false),
+        redirect: getLinkPath(redirect, displayRank),
+      })),
+    );
+}
+
+function getLinkRouters(links: NavItemWithLink[], title: string, lang: string, displayRank?: boolean) {
   const routes: RouteItem<NavItemWithLink>[] = [];
   links.forEach((item) => {
     const { title: pageTitle, link, userFullPath, originLink, hash } = item;
@@ -204,12 +219,16 @@ function getHomePage(links: RouteItem[]) {
   return link.redirect || link.pattern;
 }
 
-export function updateBookConfig(config: BookConfig | undefined, gemBookElement?: GemBookElement) {
+export function updateBookConfig(config?: BookConfig, gemBookElement?: GemBookElement) {
   const { sidebar, lang, langList, languagechangeHandle } = getI18nSidebar(config);
   const sidebarResult = processSidebar(sidebar, config?.displayRank);
   const links = flatNav(sidebarResult);
   const nav = getNav(sidebarResult, config?.nav || []);
-  const routes = [...getNavRoutes(nav), ...getRouter(links, config?.title || '', lang, config?.displayRank)];
+  const routes = [
+    ...getRedirectRoutes(config?.redirects || {}, config?.displayRank),
+    ...getNavRoutes(nav),
+    ...getLinkRouters(links, config?.title || '', lang, config?.displayRank),
+  ];
   const currentSidebar = getCurrentSidebar(sidebarResult);
   const homePage = getHomePage(routes);
   const currentLinks = flatNav(currentSidebar).filter(

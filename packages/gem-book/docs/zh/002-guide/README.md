@@ -45,7 +45,12 @@ gem-book docs -t MyApp -i logo.png --home-mode --build
 
 更多参数请查看[选项](./003-cli.md)。
 
-### 使用 `<gem-book>`
+<details>
+<summary>
+
+使用 `<gem-book>` 元素
+
+</summary>
 
 上面的命令使用 `webpack` 打包完整的前端项目，但你也可以直接在 HTML 中使用 `<gem-book>` 元素。
 
@@ -68,6 +73,8 @@ render(html`<gem-book .config=${config}></gem-book>`, document.body);
 ```
 
 你可以在任何框架中使用 `<gem-book>` 元素。
+
+</details>
 
 ### 渲染规则
 

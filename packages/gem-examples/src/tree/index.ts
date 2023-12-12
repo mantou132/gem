@@ -1,6 +1,6 @@
 import { connect, createStore, html, render, updateStore } from '@mantou/gem';
 import type { MouseEventDetail, TreeItem } from 'duoyun-ui/elements/tree';
-import { ContextMenu } from 'duoyun-ui/elements/menu';
+import { ContextMenu } from 'duoyun-ui/elements/contextmenu';
 import { sleep } from 'duoyun-ui/lib/utils';
 
 import 'duoyun-ui/elements/tree';

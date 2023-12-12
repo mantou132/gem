@@ -20,7 +20,7 @@ import { isNotNullish } from '../lib/types';
 import { commonHandle } from '../lib/hotkeys';
 import { focusStyle } from '../lib/styles';
 
-import { ContextMenu } from './menu';
+import { ContextMenu } from './contextmenu';
 import { BasePickerElement, pickerStyle } from './picker';
 import type { DuoyunButtonElement } from './button';
 import type { DuoyunTimePanelElement } from './time-panel';

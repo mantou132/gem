@@ -18,7 +18,7 @@ import { getCascaderDeep } from '../lib/utils';
 import { commonHandle } from '../lib/hotkeys';
 import { focusStyle } from '../lib/styles';
 
-import { ContextMenu } from './menu';
+import { ContextMenu } from './contextmenu';
 import { BasePickerElement, pickerStyle } from './picker';
 import type { Option, DuoyunCascaderElement, OptionValue } from './cascader';
 

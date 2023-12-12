@@ -14,8 +14,8 @@ import './compartment';
 import './button';
 import './options';
 
-export type Menu = MenuItem[] | TemplateResult;
-export interface MenuItem {
+type Menu = ContextMenuItem[] | TemplateResult;
+export interface ContextMenuItem {
   /**`---` is separator */
   text: string | TemplateResult;
   description?: string | TemplateResult;
@@ -28,7 +28,7 @@ export interface MenuItem {
   menu?: Menu;
 }
 
-type MenuStore = {
+type ContextMenuStore = {
   // support `auto`
   width?: string;
   maxHeight?: string;
@@ -45,7 +45,7 @@ type MenuStore = {
   }[];
 };
 
-type MenuOptions = {
+type ContextMenuOptions = {
   x?: number;
   y?: number;
   /**auto calc `x`/`y` via `activeElement` */
@@ -63,7 +63,7 @@ type MenuOptions = {
   header?: TemplateResult;
 };
 
-export const menuStore = createStore<MenuStore>({
+const contextmenuStore = createStore<ContextMenuStore>({
   menuStack: [],
 });
 
@@ -104,15 +104,15 @@ const style = createCSSSheet(css`
 `);
 
 /**
- * @customElement dy-menu
+ * @customElement dy-contextmenu
  */
-@customElement('dy-menu')
-@connectStore(menuStore)
+@customElement('dy-contextmenu')
+@connectStore(contextmenuStore)
 @adoptedStyle(style)
-export class DuoyunMenuElement extends GemElement {
-  static instance?: DuoyunMenuElement;
+export class DuoyunContextMenuElement extends GemElement {
+  static instance?: DuoyunContextMenuElement;
 
-  static async open(menu: Menu, options: MenuOptions = {}) {
+  static async open(contextmenu: Menu, options: ContextMenuOptions = {}) {
     const {
       activeElement,
       openLeft,
@@ -124,15 +124,15 @@ export class DuoyunMenuElement extends GemElement {
       header,
       maskClosable = true,
     } = options;
-    if (Array.isArray(menu) && menu.length === 0) throw new Error('menu length is 0');
+    if (Array.isArray(contextmenu) && contextmenu.length === 0) throw new Error('menu length is 0');
     toggleActiveState(activeElement, true);
-    updateStore(menuStore, {
+    updateStore(contextmenuStore, {
       width,
       maxHeight,
       activeElement,
       openLeft,
       maskClosable,
-      menuStack: [{ x, y, menu, searchable, header }],
+      menuStack: [{ x, y, menu: contextmenu, searchable, header }],
     });
     if (ContextMenu.instance) {
       await ContextMenu.instance.#initPosition();
@@ -144,7 +144,7 @@ export class DuoyunMenuElement extends GemElement {
 
   static async confirm(
     text: string | TemplateResult,
-    options: MenuOptions & { danger?: boolean; okText?: string | TemplateResult },
+    options: ContextMenuOptions & { danger?: boolean; okText?: string | TemplateResult },
   ) {
     return new Promise((res, rej) => {
       const onClick = () => {
@@ -173,16 +173,16 @@ export class DuoyunMenuElement extends GemElement {
 
   static close() {
     if (!ContextMenu.instance) return;
-    toggleActiveState(menuStore.activeElement, false);
+    toggleActiveState(contextmenuStore.activeElement, false);
     closeResolve();
     ContextMenu.instance.remove();
     // specify keyboard navigation location
-    menuStore.activeElement?.focus();
-    menuStore.activeElement?.blur();
+    contextmenuStore.activeElement?.focus();
+    contextmenuStore.activeElement?.blur();
   }
 
   get #width() {
-    return menuStore.width || '15em';
+    return contextmenuStore.width || '15em';
   }
 
   get #menuElements() {
@@ -197,7 +197,7 @@ export class DuoyunMenuElement extends GemElement {
   #offset = 4;
 
   #onEnterMenu = (evt: PointerEvent, menuStackIndex: number, subMenu?: Menu) => {
-    const { menuStack, openLeft } = menuStore;
+    const { menuStack, openLeft } = contextmenuStore;
     if (subMenu) {
       const itemEle = evt.currentTarget as HTMLDivElement;
       const { left, right, top, bottom, width } = itemEle.getBoundingClientRect();
@@ -210,7 +210,7 @@ export class DuoyunMenuElement extends GemElement {
           openLeft ||
           (menuStackIndex > 0 && menuStack[menuStackIndex].x < menuStack[menuStackIndex - 1].x)) &&
         left > 300;
-      updateStore(menuStore, {
+      updateStore(contextmenuStore, {
         menuStack: [
           ...menuStack.slice(0, menuStackIndex + 1),
           {
@@ -222,7 +222,7 @@ export class DuoyunMenuElement extends GemElement {
         ],
       });
     } else {
-      updateStore(menuStore, {
+      updateStore(contextmenuStore, {
         menuStack: menuStack.slice(0, menuStackIndex + 1),
       });
     }
@@ -238,8 +238,8 @@ export class DuoyunMenuElement extends GemElement {
   #onKeydown = (evt: KeyboardEvent, menuStackIndex: number) => {
     evt.stopPropagation();
     const focusPrevMenu = () => {
-      updateStore(menuStore, {
-        menuStack: menuStore.menuStack.slice(0, menuStackIndex),
+      updateStore(contextmenuStore, {
+        menuStack: contextmenuStore.menuStack.slice(0, menuStackIndex),
       });
       this.#menuElements[menuStackIndex - 1]?.focus();
     };
@@ -258,7 +258,7 @@ export class DuoyunMenuElement extends GemElement {
     // await `ContextMenu` content update
     await Promise.resolve();
     const element = this.#menuElements.shift();
-    const { activeElement, openLeft, menuStack, maxHeight } = menuStore;
+    const { activeElement, openLeft, menuStack, maxHeight } = contextmenuStore;
     const { scrollHeight, clientHeight, clientWidth } = element!;
     const menu = menuStack[0];
     const height = scrollHeight + 2;
@@ -269,18 +269,18 @@ export class DuoyunMenuElement extends GemElement {
       const showToTop = innerHeight - bottom < height + 2 * this.#offset && top > innerHeight - bottom;
       const x = showToLeft ? right - width : left;
       const y = showToTop ? Math.max(top - height - 2 * this.#offset, 0) : bottom;
-      updateStore(menuStore, {
+      updateStore(contextmenuStore, {
         maxHeight: maxHeight || `${showToTop ? top - 2 * this.#offset : innerHeight - bottom - 2 * this.#offset}px`,
         menuStack: [{ ...menu, x, y }],
       });
     } else {
       const y = innerHeight - menu.y > width ? menu.y : Math.max(0, menu.y - (scrollHeight - clientHeight));
-      updateStore(menuStore, { menuStack: [{ ...menu, y }] });
+      updateStore(contextmenuStore, { menuStack: [{ ...menu, y }] });
     }
   };
 
   #onMaskClick = () => {
-    if (menuStore.maskClosable) {
+    if (contextmenuStore.maskClosable) {
       ContextMenu.close();
     }
   };
@@ -298,7 +298,7 @@ export class DuoyunMenuElement extends GemElement {
   };
 
   render = () => {
-    const { menuStack, maxHeight, maskClosable } = menuStore;
+    const { menuStack, maxHeight, maskClosable } = contextmenuStore;
     return html`
       <div class=${classMap({ mask: true, opaque: !maskClosable })} @click=${this.#onMaskClick}></div>
       ${menuStack.map(
@@ -358,4 +358,4 @@ export class DuoyunMenuElement extends GemElement {
   };
 }
 
-export const ContextMenu = DuoyunMenuElement;
+export const ContextMenu = DuoyunContextMenuElement;

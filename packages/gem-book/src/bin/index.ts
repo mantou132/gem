@@ -116,9 +116,16 @@ function readDir(dir: string, link = '/') {
             sidebarIgnore,
             hero,
             features,
+            redirect,
           } = getMetadata(fullPath, bookConfig.displayRank);
           Object.assign(item, { title, children, isNav, navTitle, sidebarIgnore, hero, features });
-          result.push(item);
+          if (redirect) {
+            bookConfig.redirects = Object.assign(bookConfig.redirects || {}, {
+              [item.link]: new URL(redirect, `file:${item.link}`).pathname,
+            });
+          } else {
+            result.push(item);
+          }
         }
       } else {
         item.type = 'dir';

@@ -47,7 +47,12 @@ gem-book docs -t MyApp -i logo.png --home-mode --build
 
 More [options](./003-cli.md).
 
-### Use `<gem-book>`
+<details>
+<summary>
+
+Use `<gem-book>`
+
+</summary>
 
 The above command uses `webpack` to package a complete front-end project, but you can also use the `<gem-book>` element directly in HTML.
 
@@ -70,6 +75,8 @@ render(html`<gem-book .config=${config}></gem-book>`, document.body);
 ```
 
 You can use the `<gem-book>` element in any framework.
+
+</details>
 
 ### Rendering rules
 

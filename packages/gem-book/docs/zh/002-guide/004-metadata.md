@@ -13,12 +13,24 @@ sidebarIgnore: true
 # Markdown 标题
 ```
 
-此外，首页还支持 `hero` `features`，例如：
+## 首页
+
+首页还支持 `hero` `features`，例如：
 
 <gbp-raw src="docs/en/README.md" range="-19"></gbp-raw>
 
-完整定义：
+你也可以使用 `config.yml` 为文件夹指定元数据。
+
+## 重定向
+
+如果文档移动或者重命名，可以使用重定向防止链接失效：
+
+```md
+---
+redirect: ./new.md
+---
+```
+
+## 完整定义
 
 <gbp-raw src="src/common/frontmatter.ts"></gbp-raw>
-
-你也可以使用 `config.yml` 为文件夹指定元数据。

@@ -22,7 +22,7 @@ import { focusStyle } from '../lib/styles';
 
 import { DuoyunUseElement } from './use';
 import { createHistoryParams, RouteItem } from './route';
-import { MenuItem, ContextMenu } from './menu';
+import { ContextMenuItem, ContextMenu } from './contextmenu';
 
 const style = createCSSSheet(css`
   :host(:where(:not([hidden]))) {
@@ -126,7 +126,7 @@ export class DuoyunButtonElement extends GemElement {
   @boolattribute small: boolean;
   @boolattribute disabled: boolean;
 
-  @property dropdown?: MenuItem[] | null;
+  @property dropdown?: ContextMenuItem[] | null;
   @property route?: RouteItem;
   @property params?: Record<string, string>;
   @property query?: Record<string, string>;

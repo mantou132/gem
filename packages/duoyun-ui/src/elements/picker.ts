@@ -17,7 +17,7 @@ import { icons } from '../lib/icons';
 import { commonHandle } from '../lib/hotkeys';
 import { focusStyle } from '../lib/styles';
 
-import { ContextMenu, MenuItem } from './menu';
+import { ContextMenu, ContextMenuItem } from './contextmenu';
 
 import './use';
 
@@ -124,7 +124,7 @@ export class DuoyunPickElement extends GemElement implements BasePickerElement {
     return this.multiple ? (this.value as any[]).includes(value) : this.value === value;
   };
 
-  #genMenu = ({ label, description, value, children }: Option): MenuItem => {
+  #genMenu = ({ label, description, value, children }: Option): ContextMenuItem => {
     const v = value ?? label;
     return {
       text: label,

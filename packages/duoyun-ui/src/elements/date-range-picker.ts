@@ -21,7 +21,7 @@ import { commonHandle } from '../lib/hotkeys';
 import { focusStyle } from '../lib/styles';
 
 import type { DuoyunButtonElement } from './button';
-import { ContextMenu } from './menu';
+import { ContextMenu } from './contextmenu';
 import { BasePickerElement, pickerStyle } from './picker';
 
 import './use';

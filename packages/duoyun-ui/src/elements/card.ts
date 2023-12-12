@@ -9,7 +9,7 @@ import { commonHandle } from '../lib/hotkeys';
 import { focusStyle } from '../lib/styles';
 
 import { DuoyunLoadableBaseElement } from './base/loadable';
-import { MenuItem, ContextMenu } from './menu';
+import { ContextMenuItem, ContextMenu } from './contextmenu';
 
 import './use';
 
@@ -86,7 +86,7 @@ const style = createCSSSheet(css`
   }
 `);
 
-export type ActionItem = Omit<MenuItem, 'handle'> & { handle: (rest: HTMLElement) => void | Promise<void> };
+export type ActionItem = Omit<ContextMenuItem, 'handle'> & { handle: (rest: HTMLElement) => void | Promise<void> };
 
 /**
  * @customElement dy-card

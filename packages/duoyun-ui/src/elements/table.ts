@@ -21,7 +21,7 @@ import { commonHandle } from '../lib/hotkeys';
 import { focusStyle } from '../lib/styles';
 
 import { DuoyunUseElement } from './use';
-import { MenuItem, ContextMenu } from './menu';
+import { ContextMenuItem, ContextMenu } from './contextmenu';
 import type { SelectionChange } from './selection-box';
 
 import './placeholder';
@@ -122,7 +122,7 @@ export type Column<T> = {
   tooltip?: string;
   dataIndex?: keyof T | string[];
   render?: (record: T) => string | TemplateResult;
-  getActions?: (record: T, evt: HTMLElement) => MenuItem[];
+  getActions?: (record: T, evt: HTMLElement) => ContextMenuItem[];
   getColSpan?: (record: T, arr: T[]) => number;
   getRowSpan?: (record: T, arr: T[]) => number;
   data?: Record<string, unknown>;
@@ -224,7 +224,7 @@ export class DuoyunTableElement extends GemElement {
     });
   };
 
-  #openActions = (evt: PointerEvent, menu: MenuItem[]) => {
+  #openActions = (evt: PointerEvent, menu: ContextMenuItem[]) => {
     if (evt.target instanceof DuoyunUseElement) {
       ContextMenu.open(menu, {
         activeElement: evt.target as HTMLElement,

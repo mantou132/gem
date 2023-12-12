@@ -9,7 +9,7 @@
   },
   "dependencies": {
     "@mantou/gem": "^1.7.1",
-    "duoyun-ui": "^1.0.2"
+    "duoyun-ui": "^1.1.0"
   },
   "devDependencies": {
     "@gemjs/config": "^1.6.11",

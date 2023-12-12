@@ -11,6 +11,7 @@ export interface Feature {
 }
 
 export interface FrontMatter {
+  redirect?: string;
   title?: string;
   isNav?: boolean;
   navTitle?: string;

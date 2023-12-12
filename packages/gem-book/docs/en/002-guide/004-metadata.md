@@ -13,12 +13,24 @@ sidebarIgnore: true
 # Markdown title
 ```
 
-In addition, the homepage also supports `hero` and `features`, for example:
+## Homepage
+
+The homepage also supports `hero` and `features`, for example:
 
 <gbp-raw src="docs/en/README.md" range="-19"></gbp-raw>
 
-Full definition:
+You can also use `config.yml` to specify metadata for the folder.
+
+## Redirect
+
+Use redirects to prevent links from breaking if the document is moved or renamed:
+
+```md
+---
+redirect: ./new.md
+---
+```
+
+## Definition
 
 <gbp-raw src="src/common/frontmatter.ts"></gbp-raw>
-
-You can also use `config.yml` to specify metadata for the folder.

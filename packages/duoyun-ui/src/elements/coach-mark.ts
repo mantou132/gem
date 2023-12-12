@@ -8,7 +8,7 @@ import { splice } from '@mantou/gem/helper/i18n';
 import { theme, getSemanticColor } from '../lib/theme';
 import { locale } from '../lib/locale';
 
-import { ContextMenu } from './menu';
+import { ContextMenu } from './contextmenu';
 import { DuoyunVisibleBaseElement } from './base/visible';
 import { DuoyunWaitElement } from './wait';
 
