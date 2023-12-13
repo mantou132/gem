@@ -2,15 +2,32 @@
 
 ## Example
 
-<gbp-example
-  name="dy-avatar"
-  props='{"src": "https://api.dicebear.com/5.x/bottts-neutral/svg", "status": "positive", "size": "large", "square": true}'
-  src="https://jspm.dev/duoyun-ui/elements/avatar"></gbp-example>
+<gbp-example name="dy-avatar"  src="https://jspm.dev/duoyun-ui/elements/avatar">
 
-<gbp-example
-  name="dy-avatar-group"
-  props='{"data": [{"src": "https://api.dicebear.com/5.x/bottts-neutral/svg", "status": "positive", "size": "large", "square": true},{"src": "https://api.dicebear.com/5.x/thumbs/svg", "status": "positive", "size": "large", "square": true},{"src": "https://api.dicebear.com/5.x/buster/svg", "status": "positive", "size": "large", "square": true}]}'
-  src="https://jspm.dev/duoyun-ui/elements/avatar"></gbp-example>
+```json
+{
+  "src": "https://api.dicebear.com/5.x/bottts-neutral/svg",
+  "status": "positive",
+  "size": "large",
+  "square": true
+}
+```
+
+</gbp-example>
+
+<gbp-example name="dy-avatar-group" src="https://jspm.dev/duoyun-ui/elements/avatar">
+
+```json
+{
+  "items": [
+    { "src": "https://api.dicebear.com/5.x/bottts-neutral/svg", "status": "positive" },
+    { "src": "https://api.dicebear.com/5.x/thumbs/svg", "status": "positive" },
+    { "src": "https://api.dicebear.com/5.x/buster/svg", "status": "positive" }
+  ]
+}
+```
+
+</gbp-example>
 
 ## `<dy-avatar>` API
 

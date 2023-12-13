@@ -121,7 +121,7 @@ export class DuoyunPickElement extends GemElement implements BasePickerElement {
   }
 
   #isContain = (value: any) => {
-    return this.multiple ? (this.value as any[]).includes(value) : this.value === value;
+    return this.multiple ? this.value?.includes(value) : this.value === value;
   };
 
   #genMenu = ({ label, description, value, children }: Option): ContextMenuItem => {

@@ -5,24 +5,28 @@ type State = {
   error?: any;
 };
 
+type Props = Record<string, string>;
+
 customElements.whenDefined('gem-book').then(() => {
   const { GemBookPluginElement } = customElements.get('gem-book') as typeof GemBookElement;
   const { theme } = GemBookPluginElement;
-  const { html, customElement, attribute, createCSSSheet, css, adoptedStyle } = GemBookPluginElement.Gem;
+  const { html, customElement, attribute, createCSSSheet, css, adoptedStyle, styleMap } = GemBookPluginElement.Gem;
 
   const style = createCSSSheet(css`
     :host {
       display: flex;
       flex-direction: column;
-      min-height: 25em;
+      margin-block-end: 1em;
     }
     .preview {
       flex-grow: 1;
       background: rgba(${theme.textColorRGB}, 0.05);
       display: flex;
+      flex-wrap: wrap;
       align-items: center;
       justify-content: center;
-      padding: 1em;
+      padding: 2em 1em;
+      gap: 1em;
     }
     .loading {
       opacity: 0.5;
@@ -69,18 +73,22 @@ customElements.whenDefined('gem-book').then(() => {
     @attribute src: string;
     @attribute html: string;
     @attribute props: string;
+    @attribute direction: 'row' | 'column';
+
+    get #direction() {
+      return this.direction || 'row';
+    }
 
     state: State = {
       loading: true,
     };
 
-    #renderElement = () => {
+    #renderElement = (props: Props) => {
       const Cls = customElements.get(this.name);
       if (!Cls) return html``;
       const ele = new Cls();
-      if (this.html) ele.innerHTML = this.html;
-      if (this.#props) {
-        Object.entries(this.#props).forEach(([key, value]) => {
+      if (props) {
+        Object.entries(props).forEach(([key, value]) => {
           if (key.startsWith('@')) {
             ele.addEventListener(key.slice(1), eval(value));
           } else if (key.startsWith('?')) {
@@ -126,6 +134,7 @@ customElements.whenDefined('gem-book').then(() => {
     };
 
     #renderPropValue = (key: string, value: string, isNewLine: boolean) => {
+      if (key === 'innerHTML') return '';
       const vString = key.startsWith('@') ? value : this.#jsonStringify(value);
       const kString = key.startsWith('@') ? key : `.${key}`;
       const hasMultipleLine = vString.includes('\n');
@@ -136,36 +145,54 @@ customElements.whenDefined('gem-book').then(() => {
           : ''}}`}`;
     };
 
-    #renderProps = () => {
-      const propEntries = Object.entries(this.#props);
-      return html`${propEntries.map(([key, value]) => this.#renderPropValue(key, value, propEntries.length > 2))}`;
+    #renderProps = (props: Props) => {
+      const propEntries = Object.entries(props);
+      const isNewLine = propEntries.length > ('innerHTML' in props ? 3 : 2);
+      return html`${propEntries.map(([key, value]) => this.#renderPropValue(key, value, isNewLine))}`;
     };
 
-    #renderTag = (tag: string, close?: boolean) => {
+    #renderTag = (tag: string, props: Props, close?: boolean) => {
       const openToken = '<' + (close ? '/' : '');
       const closeToken = '>';
-      return html`${this.#renderToken(openToken)}<span class="tag">${tag}${close ? '' : this.#renderProps()}</span
+      return html`${this.#renderToken(openToken)}<span class="tag">${tag}${close ? '' : this.#renderProps(props)}</span
         >${this.#renderToken(closeToken)}`;
     };
 
-    #renderInnerHTML = () => {
-      if (!this.html) return html``;
-      return `\n${this.#addIndentation(this.html)}\n`;
+    #renderInnerHTML = (props: Props) => {
+      if (!props.innerHTML) return html``;
+      return `\n${this.#addIndentation(props.innerHTML)}\n`;
     };
 
-    #renderCode = () => {
-      return html`${this.#renderTag(this.name)}${this.#renderInnerHTML()}${this.#renderTag(this.name, true)}`;
+    #renderCode = (props: Props) => {
+      return html`${this.#renderTag(this.name, props)}${this.#renderInnerHTML(props)}${this.#renderTag(
+        this.name,
+        props,
+        true,
+      )}`;
     };
 
-    #props: Record<string, string> = {};
+    #propsList: Props[] = [];
+    #textContentIsProps = false;
     willMount = () => {
       this.memo(() => {
-        this.#props = JSON.parse(this.props || '{}');
+        try {
+          const obj = JSON.parse(this.textContent!) as Props | Props[];
+          this.#propsList = Array.isArray(obj) ? obj : [obj];
+          this.#textContentIsProps = true;
+        } catch {
+          const props = JSON.parse(this.props || '{}');
+          if (this.html) props.innerHTML = this.html;
+          this.#propsList = [props];
+          this.#textContentIsProps = false;
+        }
       });
     };
 
+    /**
+     * hack from duoyun-ui
+     * @link packages/duoyun-ui/scripts/hack-gbp-example.js
+     */
     mounted = async () => {
-      // hack from duoyun-ui
       const script = document.createElement('script');
       script.type = 'module';
       script.src = this.src;
@@ -184,16 +211,18 @@ customElements.whenDefined('gem-book').then(() => {
 
     render = () => {
       const { error, loading } = this.state;
+      const code = this.#propsList.map((props, index) => html`${index ? '\n' : ''}${this.#renderCode(props)}`);
+      const slot = this.#textContentIsProps ? '' : html`<slot></slot>`;
       return html`
-        <div class="preview">
+        <div class="preview" style=${styleMap({ flexDirection: this.#direction })}>
           ${error
             ? html`<div class="error">${error}</div>`
             : loading
               ? html`<div class="loading">Example Loading...</div>`
-              : html`${this.#renderElement()}<slot></slot>`}
+              : html`${this.#propsList.map((props) => this.#renderElement(props))}${slot}`}
         </div>
         <div class="panel">
-          <div class="code">${this.#renderCode()}</div>
+          <div class="code">${code}</div>
         </div>
       `;
     };

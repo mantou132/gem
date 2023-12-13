@@ -2,10 +2,28 @@
 
 ## Example
 
-<gbp-example
-  name="dy-file-picker"
-  props='{"style": "width: 100%; align-self: flex-start;", "multiple": true, "type": "image", "@change": "(evt) => evt.target.value = evt.detail"}'
-  src="https://jspm.dev/duoyun-ui/elements/file-picker"></gbp-example>
+<gbp-example name="dy-file-picker" src="https://jspm.dev/duoyun-ui/elements/file-picker">
+
+```json
+[
+  {
+    "style": "width: 100%;",
+    "innerHTML": "Upload Directory",
+    "multiple": true,
+    "directory": true,
+    "@change": "(evt) => evt.target.value = evt.detail"
+  },
+  {
+    "style": "width: 100%;",
+    "innerHTML": "Upload Image",
+    "multiple": true,
+    "type": "image",
+    "@change": "(evt) => evt.target.value = evt.detail"
+  }
+]
+```
+
+</gbp-example>
 
 ## API
 

@@ -2,11 +2,29 @@
 
 ## Example
 
-<gbp-example
-  name="dy-heading"
-  props='{"lv": 3}'
-  html='Heading 3'
-  src="https://jspm.dev/duoyun-ui/elements/heading"></gbp-example>
+<gbp-example name="dy-heading" html='Heading 3' src="https://jspm.dev/duoyun-ui/elements/heading">
+
+```json
+[
+  {
+    "style": "width: 100%; margin-top: 0",
+    "innerHTML": "Heading 1",
+    "lv": 1
+  },
+  {
+    "style": "width: 100%",
+    "innerHTML": "Heading 2",
+    "lv": 2
+  },
+  {
+    "style": "width: 100%",
+    "innerHTML": "Heading 3",
+    "lv": 3
+  }
+]
+```
+
+</gbp-example>
 
 ## API
 

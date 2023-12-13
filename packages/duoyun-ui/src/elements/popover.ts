@@ -62,6 +62,8 @@ type CloseCallback = {
 /**
  * @customElement dy-popover
  * @attr debug
+ * @attr unreachable
+ * @attr disabled
  * @attr position
  * @attr trigger
  */
@@ -70,6 +72,7 @@ type CloseCallback = {
 export class DuoyunPopoverElement extends GemElement<PopoverState> {
   @boolattribute debug: boolean;
   @boolattribute unreachable: boolean;
+  @boolattribute disabled: boolean;
   @attribute trigger: 'click' | 'hover';
   @attribute position: Position | 'auto';
 
@@ -145,6 +148,8 @@ export class DuoyunPopoverElement extends GemElement<PopoverState> {
     position: 'top',
   };
 
+  #hover = false;
+
   constructor({ delay = 500, content, position, ghostStyle, trigger, unreachable }: PopoverOptions = {}) {
     super({ delegatesFocus: true });
     if (content) this.content = content;
@@ -163,6 +168,7 @@ export class DuoyunPopoverElement extends GemElement<PopoverState> {
 
     this.addEventListener('mouseleave', (evt) => {
       if (this.#isClickTrigger) return;
+      this.#hover = false;
       if (evt.relatedTarget === this.popoverElement) return;
       this.#close();
     });
@@ -178,9 +184,8 @@ export class DuoyunPopoverElement extends GemElement<PopoverState> {
     return this.popoverRef.element;
   }
 
-  #hover = false;
-
   #open = (targetRect?: { top: number; right: number; bottom: number; left: number }) => {
+    if (this.disabled) return;
     if (this.state.open) return;
     let rect = targetRect;
     if (!rect) {
@@ -193,7 +198,6 @@ export class DuoyunPopoverElement extends GemElement<PopoverState> {
       }
       rect = getBoundingClientRect(eles);
     }
-    this.open(null);
     const { top, right, bottom, left } = rect;
     this.setState({
       open: true,
@@ -207,12 +211,13 @@ export class DuoyunPopoverElement extends GemElement<PopoverState> {
       position,
       style: this.#genStyle(position),
     });
+    this.open(null);
   };
 
   #close = () => {
-    this.close(null);
+    if (!this.state.open) return;
     this.setState({ open: this.debug || false });
-    this.#hover = false;
+    if (!this.state.open) this.close(null);
   };
 
   #genStyle = (position: Position): StyleObject => {

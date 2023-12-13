@@ -65,7 +65,7 @@ class InputHistory {
 const style = createCSSSheet(css`
   :host(:where(:not([hidden]))) {
     font-size: 0.875em;
-    width: 15em;
+    inline-size: 15em;
     position: relative;
     display: inline-flex;
     align-items: stretch;
@@ -92,7 +92,7 @@ const style = createCSSSheet(css`
     font: inherit;
     line-height: 1.5;
     color: inherit;
-    width: 100%;
+    inline-size: 100%;
     padding-inline: 0.5em;
     border: none;
     background-color: transparent;
@@ -107,11 +107,11 @@ const style = createCSSSheet(css`
   }
   .icon,
   .clear {
-    width: 1.25em;
+    inline-size: 1.25em;
     flex-shrink: 0;
   }
   .icon {
-    margin-left: 0.5em;
+    margin-inline-start: 0.5em;
   }
   .clear {
     opacity: 0.2;

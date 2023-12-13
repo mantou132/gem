@@ -2,11 +2,23 @@
 
 ## Example
 
-<gbp-example
-  name="dy-text-mask"
-  props='{"masks": ["☎️ xxx-****-xxxx"]}'
-  html="13198761234"
-  src="https://jspm.dev/duoyun-ui/elements/text-mask"></gbp-example>
+<gbp-example name="dy-text-mask" src="https://jspm.dev/duoyun-ui/elements/text-mask">
+
+```json
+[
+  {
+    "innerHTML": "13198761234",
+    "masks": ["☎️ xxx-****-xxxx"]
+  },
+  {
+    "innerHTML": "13198761234",
+    "masks": ["☎️ ###-####-xxxx"],
+    "replacer": "#"
+  }
+]
+```
+
+</gbp-example>
 
 ## API
 

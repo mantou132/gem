@@ -39,6 +39,9 @@ const style = createCSSSheet(css`
       )
       top left / 1.2em 1.2em repeat;
   }
+  :host([disabled]) {
+    cursor: not-allowed;
+  }
   .picker {
     width: 100%;
     height: calc(2.2em + 2px);
@@ -57,6 +60,7 @@ export class DuoyunColorPickElement extends GemElement implements BasePickerElem
   @attribute value: HexColor;
   @boolattribute alpha: boolean;
   @refobject popoverRef: RefObject<DuoyunPopoverElement>;
+  @boolattribute disabled: boolean;
 
   @globalemitter change: Emitter<HexColor>;
 
@@ -69,6 +73,7 @@ export class DuoyunColorPickElement extends GemElement implements BasePickerElem
       <dy-popover
         trigger="click"
         ref=${this.popoverRef.ref}
+        .disabled=${this.disabled}
         .content=${html`
           <dy-color-panel
             style=${styleMap({ marginBlock: '.6em' })}

@@ -2,10 +2,19 @@
 
 ## Example
 
-<gbp-example
-  name="dy-color-picker"
-  props='{"alpha": true, "value": "#e5e", "@change": "(evt) => evt.target.value = evt.detail"}'
-  src="https://jspm.dev/duoyun-ui/elements/color-picker"></gbp-example>
+<gbp-example name="dy-color-picker" src="https://jspm.dev/duoyun-ui/elements/color-picker">
+
+```json
+[
+  {
+    "alpha": true,
+    "value": "#e5e",
+    "@change": "(evt) => evt.target.value = evt.detail"
+  }
+]
+```
+
+</gbp-example>
 
 ## API
 

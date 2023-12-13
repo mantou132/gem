@@ -91,7 +91,7 @@ export function parseNarrowRelativeTime(str: string | null | undefined): Time | 
 export function parseNarrowRelativeTime(str: string | null | undefined): Time | undefined {
   if (!str) return;
   const r = str.match(/^(?<number>-?\d+)(?<unit>\w)$/);
-  if (r?.groups && r.groups?.unit in unitMap) {
+  if (r?.groups && r.groups.unit in unitMap) {
     const number = Number(r.groups.number);
     const unit = r.groups.unit as RelativeTimeFormatUnit;
     return new Time().add(number, unit);

@@ -21,6 +21,7 @@ import { commonHandle } from '../lib/hotkeys';
 import { focusStyle } from '../lib/styles';
 
 import type { DuoyunButtonElement } from './button';
+import type { DateRangeValue } from './date-range-panel';
 import { ContextMenu } from './contextmenu';
 import { BasePickerElement, pickerStyle } from './picker';
 
@@ -71,9 +72,9 @@ export class DuoyunDateRangePickElement extends GemElement implements BasePicker
   @boolattribute disabled: boolean;
 
   @state active: boolean;
-  @property value?: any;
-  @property quickRanges?: { label: string; value: any }[];
-  @globalemitter change: Emitter<any | number[]>;
+  @property value?: DateRangeValue;
+  @property quickRanges?: { label: string; value: DateRangeValue }[];
+  @globalemitter change: Emitter<DateRangeValue>;
   @emitter clear: Emitter;
 
   constructor() {
@@ -92,7 +93,7 @@ export class DuoyunDateRangePickElement extends GemElement implements BasePicker
   #onOpen = () => {
     if (this.disabled) return;
 
-    let v: undefined | number[] = undefined;
+    let v: undefined | DateRangeValue = undefined;
     const onChange = ({ detail, target }: CustomEvent<number[]>) => {
       const root = (target as HTMLElement).getRootNode() as ShadowRoot;
       const button = root.querySelector('dy-button') as DuoyunButtonElement;
@@ -105,7 +106,7 @@ export class DuoyunDateRangePickElement extends GemElement implements BasePicker
         ContextMenu.close();
       }
     };
-    const onQuick = (value: any) => {
+    const onQuick = (value: DateRangeValue) => {
       this.change(value);
       ContextMenu.close();
     };
@@ -151,12 +152,12 @@ export class DuoyunDateRangePickElement extends GemElement implements BasePicker
     );
   };
 
-  #getCurrentLabel = (value: any) => {
-    if (Array.isArray(value)) {
+  #getCurrentLabel = () => {
+    if (Array.isArray(this.value)) {
       return this.value.map((t: number) => new Time(t).format('YYYY-MM-DD')).join(' ~ ');
     }
     if (this.quickRanges) {
-      const range = this.quickRanges.find((e) => value === e.value);
+      const range = this.quickRanges.find((e) => this.value === e.value);
       return range?.label;
     }
   };
@@ -168,7 +169,7 @@ export class DuoyunDateRangePickElement extends GemElement implements BasePicker
   render = () => {
     return html`
       <div class=${classMap({ value: true, placeholder: !this.value })}>
-        ${this.value ? this.#getCurrentLabel(this.value) : this.placeholder}
+        ${this.value ? this.#getCurrentLabel() : this.placeholder}
       </div>
       <div class=${classMap({ icon: true, clearable: this.clearable })}>
         <dy-use class="date" .element=${icons.date}></dy-use>

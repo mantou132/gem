@@ -2,10 +2,24 @@
 
 ## Example
 
-<gbp-example
-  name="dy-table"
-  props='{"columns": [{"title": "Name", "dataIndex": "name"}, {"title": "Email", "dataIndex": "email"}], "data": [{"name": "Foo", "email": "foo@bar.com"}, {"name": "Bar", "email": "bar@foo.com"}]}'
-  src="https://jspm.dev/duoyun-ui/elements/table"></gbp-example>
+<gbp-example name="dy-table" src="https://jspm.dev/duoyun-ui/elements/table">
+
+```json
+{
+  "columns": [
+    { "title": "Name", "dataIndex": "name", "width": "20%" },
+    { "title": "Email", "dataIndex": "email", "tooltip": "Tooltip" }
+  ],
+  "data": [
+    { "name": "Foo", "email": "foo@bar.com" },
+    { "name": "Bar", "email": "bar@foo.com" }
+  ],
+  "selectable": true,
+  "@select": "(evt) => evt.target.selection = evt.detail"
+}
+```
+
+</gbp-example>
 
 ## API
 

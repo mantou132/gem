@@ -80,6 +80,7 @@ const style = createCSSSheet(css`
  * @attr tooltip
  * @attr size
  * @attr square
+ * @attr crossorigin
  */
 @customElement('dy-avatar')
 @adoptedStyle(style)
@@ -121,14 +122,6 @@ export class DuoyunAvatarElement extends GemElement {
   };
 }
 
-export type Avatar = {
-  src?: string;
-  alt?: string;
-  status?: Status;
-  tooltip?: string;
-  square?: boolean;
-};
-
 const groupStyle = createCSSSheet(css`
   :host(:where(:not([hidden]))) {
     display: flex;
@@ -136,14 +129,36 @@ const groupStyle = createCSSSheet(css`
   .item:not(:first-child) {
     margin-inline-start: -0.4em;
   }
-  .item:not(:last-child) {
-    --m: radial-gradient(circle at calc(150% - 0.4em) center, #0000 37%, #fff calc(37% + 0.5px));
+  .item {
+    --gap: 0.4em;
+    --gradient: #0000 37%, #fff calc(37% + 0.5px);
+    --m-left: radial-gradient(circle at calc(-50% + var(--gap)) center, var(--gradient));
+    --m-right: radial-gradient(circle at calc(150% - var(--gap)) center, var(--gradient));
+    --m: none;
     -webkit-mask-image: var(--m);
     mask-image: var(--m);
+    -webkit-mask-composite: intersect;
+    mask-composite: intersect;
+  }
+  .item:not(:last-child, :hover) {
+    --m: var(--m-right);
+  }
+  .item:hover + .item {
+    --m: var(--m-left), var(--m-right);
+  }
+  .item:hover + .item:last-child {
+    --m: var(--m-left);
   }
 `);
 
-type AvatarItem = Avatar & { onClick?: (evt: Event) => void };
+export type AvatarItem = {
+  src?: string;
+  alt?: string;
+  status?: Status;
+  tooltip?: string;
+  square?: boolean;
+  onClick?: (evt: Event) => void;
+};
 
 /**
  * @customElement dy-avatar-group
@@ -152,6 +167,8 @@ type AvatarItem = Avatar & { onClick?: (evt: Event) => void };
 @adoptedStyle(groupStyle)
 export class DuoyunAvatarGroupElement extends GemElement {
   @numattribute max: number;
+  @attribute size: 'small' | 'medium' | 'large';
+  @attribute crossorigin: 'anonymous' | 'use-credentials';
 
   /**@deprecated */
   @property data?: AvatarItem[];
@@ -179,6 +196,8 @@ export class DuoyunAvatarGroupElement extends GemElement {
         .tooltip=${tooltip}
         .alt=${alt}
         .status=${status as Status}
+        size=${this.size}
+        crossorigin=${this.crossorigin}
         @click=${onClick}
       ></dy-avatar>
     `;

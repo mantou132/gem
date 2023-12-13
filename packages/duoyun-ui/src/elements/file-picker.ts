@@ -125,6 +125,7 @@ export class DuoyunFilePickElement extends GemElement implements BasePickerEleme
 
   @attribute type: 'file' | 'image';
   @attribute accept: string;
+  /**@deprecated */
   @attribute placeholder: string;
   @boolattribute directory: boolean;
   @boolattribute multiple: boolean;
@@ -139,10 +140,6 @@ export class DuoyunFilePickElement extends GemElement implements BasePickerEleme
 
   get #accept() {
     return this.accept || (this.#type === 'image' ? 'image/*' : '*');
-  }
-
-  get #placeholder() {
-    return this.placeholder || 'Browse';
   }
 
   constructor() {
@@ -234,7 +231,7 @@ export class DuoyunFilePickElement extends GemElement implements BasePickerEleme
         @keydown=${commonHandle}
         @click=${() => this.showPicker()}>
         <dy-use class="icon" .element=${icons.add}></dy-use>
-        <span class="name">${this.#placeholder}</span>
+        <span class="name"><slot>${this.placeholder || 'Browse'}</slot></span>
       </div>
       ${this.value ? html`<div role="list" class="list">${repeat(this.value, (e) => e, renderItem)}</div>` : ''}
     `;

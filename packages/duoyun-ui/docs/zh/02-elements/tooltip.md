@@ -2,11 +2,25 @@
 
 ## Example
 
-<gbp-example
-  name="dy-tooltip"
-  html="<button>x</button>"
-  props='{"content":"Tooltip text", "position": "topRight", "unreachable": true}'
-  src="https://jspm.dev/duoyun-ui/elements/tooltip"></gbp-example>
+<gbp-example name="dy-tooltip" src="https://jspm.dev/duoyun-ui/elements/tooltip">
+
+```json
+[
+  {
+    "innerHTML": "<button>Hover</button>",
+    "content": "Tooltip text",
+    "unreachable": true
+  },
+  {
+    "innerHTML": "<button>Click</button>",
+    "content": "Tooltip text",
+    "position": "topRight",
+    "trigger": "click"
+  }
+]
+```
+
+</gbp-example>
 
 ## API
 

@@ -11,6 +11,8 @@ import './button';
 import './action-text';
 import './divider';
 
+export type DateRangeValue = string | number[];
+
 const style = createCSSSheet(css`
   :host(:where(:not([hidden]))) {
     display: flex;
@@ -39,8 +41,8 @@ type State = {
 @customElement('dy-date-range-panel')
 @adoptedStyle(style)
 export class DuoyunDateRangePanelElement extends GemElement<State> {
-  @property value?: string | number[];
-  @globalemitter change: Emitter<string | number[]>;
+  @property value?: DateRangeValue;
+  @globalemitter change: Emitter<number[]>;
 
   constructor() {
     super();

@@ -2,11 +2,16 @@
 
 ## Example
 
-<gbp-example
-  name="dy-help-text"
-  props='{"status": "negative"}'
-  html='Help Text'
-  src="https://jspm.dev/duoyun-ui/elements/help-text"></gbp-example>
+<gbp-example name="dy-help-text" html='Help Text' src="https://jspm.dev/duoyun-ui/elements/help-text">
+
+```json
+[
+  { "innerHTML": "Help Text", "status": "negative" },
+  { "innerHTML": "Help Text", "status": "neutral" }
+]
+```
+
+</gbp-example>
 
 ## API
 

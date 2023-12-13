@@ -2,11 +2,25 @@
 
 ## Example
 
-<gbp-example
-  name="dy-checkbox"
-  props='{"indeterminate": true, "checked": false, "@change": "(evt) => {evt.target.indeterminate = false;evt.target.checked = evt.detail;}"}'
-  html="Checkbox Label"
-  src="https://jspm.dev/duoyun-ui/elements/checkbox"></gbp-example>
+<gbp-example name="dy-checkbox" src="https://jspm.dev/duoyun-ui/elements/checkbox">
+
+```json
+[
+  {
+    "innerHTML": "Checkbox Label",
+    "indeterminate": true,
+    "checked": false,
+    "@change": "(evt) => {evt.target.indeterminate = false;evt.target.checked = evt.detail;}"
+  },
+  {
+    "innerHTML": "Checkbox Label",
+    "disabled": true,
+    "checked": true
+  }
+]
+```
+
+</gbp-example>
 
 <gbp-example
   name="dy-checkbox-group"

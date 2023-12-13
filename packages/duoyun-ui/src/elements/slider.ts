@@ -27,23 +27,27 @@ import './input';
 const style = createCSSSheet(css`
   :host(:where(:not([hidden]))) {
     font-size: 0.875em;
-    width: 15em;
+    inline-size: 15em;
     --size: 1em;
     --c: calc(var(--size) / 2 + 6px);
     display: inline-flex;
     align-items: center;
     gap: 1em;
-    height: calc(2.2em + 2px);
+    block-size: calc(2.2em + 2px);
+  }
+  :host([orientation='vertical']) {
+    writing-mode: vertical-lr;
+    transform: rotate(180deg);
   }
   .slider {
     flex-grow: 1;
     position: relative;
-    height: 2px;
+    block-size: 2px;
     border-radius: 1px;
   }
   .mark {
     position: absolute;
-    top: 50%;
+    inset-block-start: 50%;
     transform: translate(-50%, -50%);
     border-radius: 10em;
     box-sizing: border-box;
@@ -68,14 +72,14 @@ const style = createCSSSheet(css`
   .value {
     position: absolute;
     font-size: 0.875em;
-    bottom: calc(50% + var(--size) / 2 + 0.5em);
+    inset-block-end: calc(50% + var(--size) / 2 + 0.5em);
     color: ${theme.describeColor};
   }
   .value {
-    right: 0;
+    inset-inline-end: 0;
   }
   .input {
-    width: 50px;
+    inline-size: 50px;
   }
 `);
 
@@ -105,6 +109,10 @@ export class DuoyunSliderElement extends GemElement {
 
   get #orientation() {
     return this.orientation || 'horizontal';
+  }
+
+  get #isVertical() {
+    return this.#orientation === 'vertical';
   }
 
   get #max() {
@@ -151,7 +159,7 @@ export class DuoyunSliderElement extends GemElement {
     if (this.disabled) return;
     const { width, height } = this.sliderRef.element!.getBoundingClientRect();
     const { left, right, top, bottom, width: w, height: h } = (target as Element).getBoundingClientRect();
-    const isV = this.#orientation === 'vertical';
+    const isV = this.#isVertical;
     const totalLength = isV ? height - h : width - w;
     const center = (isV ? top + bottom : left + right) / 2;
     const current = isV ? detail.clientY : detail.clientX;
@@ -159,7 +167,7 @@ export class DuoyunSliderElement extends GemElement {
 
     if (movement < 0 && current > center) return;
     if (movement > 0 && current < center) return;
-    const position = clamp(0, this.state.position + movement / totalLength, 1);
+    const position = clamp(0, this.state.position + ((isV ? -1 : 1) * movement) / totalLength, 1);
     const precisionValue = position * this.#diff;
     const value = this.#getValue(precisionValue);
     this.setState({ position });
@@ -195,14 +203,14 @@ export class DuoyunSliderElement extends GemElement {
       <style>
         .slider {
           background: radial-gradient(
-            circle at ${position},
+            circle at ${this.#isVertical ? '0 ' : ''}${position},
             transparent,
             transparent var(--c),
             ${theme.borderColor} var(--c)
           );
         }
         .mark {
-          left: ${position};
+          inset-inline-start: ${position};
         }
       </style>
       <div class="slider" ref=${this.sliderRef.ref}>

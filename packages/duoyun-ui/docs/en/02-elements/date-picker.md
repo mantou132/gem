@@ -2,10 +2,27 @@
 
 ## Example
 
-<gbp-example
-  name="dy-date-picker"
-  props='{"value": 1644475003294, "clearable": true, "@clear": "(evt) => evt.target.value = null", "@change": "(evt) => evt.target.value = evt.detail"}'
-  src="https://jspm.dev/duoyun-ui/elements/date-picker"></gbp-example>
+<gbp-example name="dy-date-picker" src="https://jspm.dev/duoyun-ui/elements/date-picker">
+
+```json
+[
+  {
+    "value": 1644475003294,
+    "placeholder": "Placeholder",
+    "clearable": true,
+    "@clear": "(evt) => evt.target.value = null",
+    "@change": "(evt) => evt.target.value = evt.detail"
+  },
+  {
+    "value": 1644475003294,
+    "time": true,
+    "@clear": "(evt) => evt.target.value = null",
+    "@change": "(evt) => evt.target.value = evt.detail"
+  }
+]
+```
+
+</gbp-example>
 
 ## API
 

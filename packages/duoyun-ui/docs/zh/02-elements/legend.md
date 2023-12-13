@@ -2,10 +2,16 @@
 
 ## Example
 
-<gbp-example
-  name="dy-legend"
-  props='{"legends": [{"label": "Label 1"}, {"label": "Label 2"}, {"label": "Label 3"}]}'
-  src="https://jspm.dev/duoyun-ui/elements/legend"></gbp-example>
+<gbp-example name="dy-legend" src="https://jspm.dev/duoyun-ui/elements/legend">
+
+```json
+{
+  "legends": [{ "label": "Label 1" }, { "label": "Label 2" }, { "label": "Label 3" }],
+  "@change": "(evt) => evt.target.value = evt.detail"
+}
+```
+
+</gbp-example>
 
 ## API
 

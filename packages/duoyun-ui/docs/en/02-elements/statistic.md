@@ -2,10 +2,29 @@
 
 ## Example
 
-<gbp-example
-  name="dy-statistic"
-  props='{"style": "width: 200px; border: 1px solid; border-radius: 4px; padding: 1em;", "type": "duration", "text": "Title", "value": 12000, "prevValue": 9000}'
-  src="https://jspm.dev/duoyun-ui/elements/statistic"></gbp-example>
+<gbp-example name="dy-statistic" src="https://jspm.dev/duoyun-ui/elements/statistic">
+
+```json
+[
+  {
+    "style": "width: 200px; border: 1px solid; border-radius: 4px; padding: 1em;",
+    "type": "traffic",
+    "text": "Saving",
+    "value": 12000,
+    "prevValue": 9000
+  },
+  {
+    "style": "width: 200px; border: 1px solid; border-radius: 4px; padding: 1em;",
+    "type": "duration",
+    "text": "Delay",
+    "neutral": "negative",
+    "value": 12,
+    "prevValue": 9
+  }
+]
+```
+
+</gbp-example>
 
 ## API
 

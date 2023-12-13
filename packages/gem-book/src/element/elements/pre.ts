@@ -448,6 +448,7 @@ export class Pre extends GemElement {
 
   mounted() {
     this.effect(async () => {
+      if (!this.getBoundingClientRect().width) return;
       if (this.status === 'hidden') return;
       if (!this.codeRef.element) return;
       await import(/* @vite-ignore */ /* webpackIgnore: true */ `${prismjs}?min`);
