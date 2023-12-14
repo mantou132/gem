@@ -1,6 +1,13 @@
 import path from 'path';
 
-import { compile, getComponentName, getElementPathList, getFileElements, getRelativePath } from './common';
+import {
+  compile,
+  getComponentName,
+  getElementPathList,
+  getFileElements,
+  getJsDocDescName,
+  getRelativePath,
+} from './common';
 
 export function compileSvelte(elementsDir: string, outDir: string): void {
   const fileSystem: Record<string, string> = {};
@@ -23,17 +30,17 @@ export function compileSvelte(elementsDir: string, outDir: string): void {
 
             interface ${componentPropsName} extends HTMLAttributes<HTMLElement> {
               ${properties
-                .map(({ name, reactive, event }) =>
+                .map(({ name, reactive, event, deprecated }) =>
                   event
                     ? [
-                        `'on:${event}'`,
+                        getJsDocDescName(`'on:${event}'`, deprecated),
                         `(event: CustomEvent<Parameters<${constructorName}['${name}']>[0]>) => void`,
                       ].join('?:')
                     : reactive
-                      ? [name, `${constructorName}['${name}']`].join('?:')
+                      ? [getJsDocDescName(name, deprecated), `${constructorName}['${name}']`].join('?:')
                       : '',
                 )
-                .join(';')}
+                .join(';\n')}
             };
 
             declare module "svelte/elements" {

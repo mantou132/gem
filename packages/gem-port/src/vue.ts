@@ -1,7 +1,7 @@
 import { mkdirSync, writeFileSync } from 'fs';
 import { resolve } from 'path';
 
-import { getComponentName, getElementPathList, getFileElements, getRelativePath } from './common';
+import { getComponentName, getElementPathList, getFileElements, getJsDocDescName, getRelativePath } from './common';
 
 /**
  * 只用 ts 声明，有两个问题：
@@ -34,7 +34,7 @@ export function generateVue(elementsDir: string, outDir: string): void {
       const componentName = getComponentName(tag);
       const componentMethodsName = `${componentName}Methods`;
       const relativePath = getRelativePath(elementFilePath, outDir);
-      const props = properties.filter(({ reactive }) => !!reactive);
+      const reactiveProps = properties.filter(({ reactive }) => !!reactive);
       writeFileSync(
         resolve(outDir, componentName + '.vue'),
         `
@@ -45,10 +45,14 @@ export function generateVue(elementsDir: string, outDir: string): void {
         const elementRef = ref<${constructorName}>();
         
         ${
-          props.length
+          reactiveProps.length
             ? `
         const props = defineProps<{
-          ${props.map(({ name }) => [name, `${constructorName}['${name}']`].join('?: ')).join(',\n')}
+          ${reactiveProps
+            .map(({ name, deprecated }) =>
+              [getJsDocDescName(name, deprecated), `${constructorName}['${name}']`].join('?: '),
+            )
+            .join(',\n')}
         }>();
         `
             : ''
@@ -57,12 +61,21 @@ export function generateVue(elementsDir: string, outDir: string): void {
         const emit = defineEmits<{
           ${properties
             .filter(({ event }) => !!event)
-            .map(({ name }) => [name, `[event: CustomEvent<Parameters<${constructorName}['${name}']>[0]>]`].join(': '))
+            .map(({ name, deprecated }) =>
+              [
+                getJsDocDescName(name, deprecated),
+                `[event: CustomEvent<Parameters<${constructorName}['${name}']>[0]>]`,
+              ].join(': '),
+            )
             .join(',\n')}
         }>()
 
         type ${componentMethodsName} = {
-          ${methods.map(({ name }) => [name, `typeof ${constructorName}.prototype.${name}`].join(': ')).join(';')}
+          ${methods
+            .map(({ name, deprecated }) =>
+              [getJsDocDescName(name, deprecated), `typeof ${constructorName}.prototype.${name}`].join(': '),
+            )
+            .join(';\n')}
         }
         
         defineExpose<${componentMethodsName}>({
@@ -93,7 +106,7 @@ export function generateVue(elementsDir: string, outDir: string): void {
         </script>
         
         <template>
-          <${tag} ref="elementRef" ${props.length ? 'v-bind="props"' : ''} ${events
+          <${tag} ref="elementRef" ${reactiveProps.length ? 'v-bind="props"' : ''} ${events
             .map((event) => [`@${event}`, `"e => emit('change', e)"`].join('='))
             .join(' ')}>
             <slot />

@@ -1,8 +1,11 @@
 import type { SourceFile, ClassDeclaration } from 'ts-morph';
 import { camelToKebabCase } from '@mantou/gem/lib/utils';
 
+import { getJsDoc } from './lib/utils';
+
 interface StaticProperty {
   name: string;
+  deprecated?: boolean;
   slot?: string;
   part?: string;
   type?: string;
@@ -11,6 +14,7 @@ interface StaticProperty {
 
 interface StaticMethod {
   name: string;
+  deprecated?: boolean;
   type?: string;
   description?: string;
 }
@@ -18,6 +22,7 @@ interface StaticMethod {
 interface Property {
   name: string;
   reactive: boolean;
+  deprecated?: boolean;
   attribute?: string;
   slot?: string;
   part?: string;
@@ -31,6 +36,7 @@ interface Property {
 
 interface Method {
   name: string;
+  deprecated?: boolean;
   event?: string;
   isGlobalEvent?: boolean;
   type?: string;
@@ -125,11 +131,7 @@ export const parseElement = (declaration: ClassDeclaration) => {
     const prop: StaticProperty = {
       name: staticPropName,
       type: staticPropDeclaration.getType().getText(),
-      description:
-        staticPropDeclaration
-          .getJsDocs()
-          .map((jsDoc) => jsDoc.getCommentText())
-          .join('\n\n') || undefined,
+      ...getJsDoc(staticPropDeclaration),
     };
 
     let isPartOrSlot = false;
@@ -160,11 +162,7 @@ export const parseElement = (declaration: ClassDeclaration) => {
     const method: StaticMethod = {
       name: staticMethodName,
       type: staticMethodDeclaration.getType().getText(),
-      description:
-        staticMethodDeclaration
-          .getJsDocs()
-          .map((jsDoc) => jsDoc.getCommentText())
-          .join('\n\n') || undefined,
+      ...getJsDoc(staticMethodDeclaration),
     };
     detail.staticMethods.push(method);
   }
@@ -178,13 +176,7 @@ export const parseElement = (declaration: ClassDeclaration) => {
       name: propName,
       reactive: false,
       type: propDeclaration.getType().getText(),
-      description:
-        ('getJsDocs' in propDeclaration &&
-          propDeclaration
-            .getJsDocs()
-            .map((jsDoc) => jsDoc.getCommentText())
-            .join('\n\n')) ||
-        undefined,
+      ...getJsDoc(propDeclaration),
     };
     detail.properties.push(prop);
 
@@ -226,11 +218,7 @@ export const parseElement = (declaration: ClassDeclaration) => {
     const method: Method = {
       name: methodName,
       type: methodDeclaration.getType().getText(),
-      description:
-        methodDeclaration
-          .getJsDocs()
-          .map((jsDoc) => jsDoc.getCommentText())
-          .join('\n\n') || undefined,
+      ...getJsDoc(methodDeclaration),
     };
     detail.methods.push(method);
 

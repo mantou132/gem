@@ -1,9 +1,10 @@
 {
   "name": "gem-analyzer",
-  "version": "1.7.0",
+  "version": "1.7.1",
   "description": "gem analyzer",
   "main": "index.js",
   "files": [
+    "/lib",
     "/index.*"
   ],
   "scripts": {

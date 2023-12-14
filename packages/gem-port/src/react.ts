@@ -1,4 +1,11 @@
-import { getElementPathList, getFileElements, getComponentName, getRelativePath, compile } from './common';
+import {
+  getElementPathList,
+  getFileElements,
+  getComponentName,
+  getRelativePath,
+  compile,
+  getJsDocDescName,
+} from './common';
 
 function createReactSourceFile(elementFilePath: string, outDir: string) {
   const elementDetailList = getFileElements(elementFilePath);
@@ -18,16 +25,17 @@ function createReactSourceFile(elementFilePath: string, outDir: string) {
         
           export type ${componentPropsName} = HTMLAttributes<HTMLDivElement> & RefAttributes<${constructorName}> & {
             ${properties
-              .map(({ name, reactive, event }) =>
+              .map(({ name, reactive, event, deprecated }) =>
                 event
-                  ? [`'on${event}'`, `(event: CustomEvent<Parameters<${constructorName}['${name}']>[0]>) => void`].join(
-                      '?:',
-                    )
+                  ? [
+                      getJsDocDescName(`'on${event}'`, deprecated),
+                      `(event: CustomEvent<Parameters<${constructorName}['${name}']>[0]>) => void`,
+                    ].join('?:')
                   : reactive
-                    ? [name, `${constructorName}['${name}']`].join('?:')
+                    ? [getJsDocDescName(name, deprecated), `${constructorName}['${name}']`].join('?:')
                     : '',
               )
-              .join(';')}
+              .join(';\n')}
           };
         
           declare global {
@@ -41,7 +49,11 @@ function createReactSourceFile(elementFilePath: string, outDir: string) {
           // 下面的以后可以删除，直接使用原生
 
           export type ${componentMethodsName} = {
-            ${methods.map(({ name }) => [name, `typeof ${constructorName}.prototype.${name}`].join(': ')).join(';')}
+            ${methods
+              .map(({ name, deprecated }) =>
+                [getJsDocDescName(name, deprecated), `typeof ${constructorName}.prototype.${name}`].join(': '),
+              )
+              .join(';\n')}
           }
         
           const ${componentName}: ForwardRefExoticComponent<Omit<${componentPropsName}, "ref"> & RefAttributes<${componentMethodsName}>> = forwardRef<${componentMethodsName}, ${componentPropsName}>(function (props, ref): JSX.Element {

@@ -41,6 +41,10 @@ export function getComponentName(tag: string) {
   return tag.replace(/(^|-)(\w)/g, (_, __, $1: string) => $1.toUpperCase());
 }
 
+export function getJsDocDescName(name: string, deprecated?: boolean) {
+  return `${deprecated ? '/**@deprecated */\n' : ''}${name}`;
+}
+
 export function getRelativePath(elementFilePath: string, outDir: string) {
   const basename = path.basename(elementFilePath, path.extname(elementFilePath));
   // FIXME
