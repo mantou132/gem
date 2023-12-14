@@ -42,6 +42,36 @@ class PortalModuleProfileElement extends GemElement {
 }
 ```
 
+When necessary, both Attribute and Property can be supported for a single field:
+
+```ts
+@customElement('portal-module-profile')
+class PortalModuleProfileElement extends GemElement {
+  @attribute name: string;
+  @property nameHTML?: TemplateResult;
+
+  get #name() {
+    return this.nameHTML || this.name;
+  }
+}
+```
+
+> [!TIP]
+> Backwards compatibility can be ensured in the same way when deprecating properties:
+>
+> ```ts
+> @customElement('portal-module-profile')
+> class PortalModuleProfileElement extends GemElement {
+>   /**@deprecated */
+>   @property data?: Item[];
+>   @property items?: Item[];
+>
+>   get #items() {
+>     return this.items || this.data;
+>   }
+> }
+> ```
+
 ### Public or Private
 
 When using TypeScript to write Gem elements, their fields and methods are all `public` by default. Although you can use the `private` modifier to mark them as private, they are still public in JavaScript and can be accessed outside the element. In order to prevent users from accidentally using these fields and methods, you should use [Private Fields](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Classes/Private_class_fields) in JavaScript:

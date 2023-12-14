@@ -42,6 +42,36 @@ class PortalModuleProfileElement extends GemElement {
 }
 ```
 
+必要时可以同时为一个属性支持 Attribute 和 Property：
+
+```ts
+@customElement('portal-module-profile')
+class PortalModuleProfileElement extends GemElement {
+  @attribute name: string;
+  @property nameHTML?: TemplateResult;
+
+  get #name() {
+    return this.nameHTML || this.name;
+  }
+}
+```
+
+> [!TIP]
+> 当弃用属性时可以用同样的方式确保向后兼容：
+>
+> ```ts
+> @customElement('portal-module-profile')
+> class PortalModuleProfileElement extends GemElement {
+>   /**@deprecated */
+>   @property data?: Item[];
+>   @property items?: Item[];
+>
+>   get #items() {
+>     return this.items || this.data;
+>   }
+> }
+> ```
+
 ### Public or Private
 
 使用 TypeScript 编写 Gem 元素时，其字段和方法默认都是 `public` 的，你固然可以使用 `private` 修饰符来标记为私有，但是在 JavaScript 中看来他们还是公开的，可以在元素外部访问，为了防止用户意外使用这些字段和方法，应该使用 JavaScript 中的[私有字段](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Classes/Private_class_fields)：
