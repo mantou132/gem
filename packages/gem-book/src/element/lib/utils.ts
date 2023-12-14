@@ -78,3 +78,13 @@ export function textContent(s: string) {
   div.innerHTML = s;
   return div.textContent || '';
 }
+
+export function checkBuiltInPlugin(container: HTMLElement | ShadowRoot) {
+  const tagSet = new Set([...container.querySelectorAll(`:not(:defined)`)].map((e) => e.tagName.toLowerCase()));
+  tagSet.forEach((tag) => {
+    const [namespace, name] = tag.split('-');
+    if (namespace === 'gbp' && name) {
+      window.dispatchEvent(new CustomEvent('plugin', { detail: name }));
+    }
+  });
+}

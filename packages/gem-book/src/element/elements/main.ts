@@ -3,6 +3,7 @@ import { Renderer, parse } from 'marked';
 import { mediaQuery } from '@mantou/gem/helper/mediaquery';
 
 import { theme } from '../helper/theme';
+import { checkBuiltInPlugin } from '../lib/utils';
 
 import '@mantou/gem/elements/unsafe';
 import '@mantou/gem/elements/link';
@@ -299,6 +300,7 @@ export class Main extends GemElement {
   mounted() {
     this.effect(
       () => {
+        checkBuiltInPlugin(this.shadowRoot!);
         this.#hashChangeHandle();
         window.addEventListener('hashchange', this.#hashChangeHandle);
         return () => {
@@ -314,12 +316,12 @@ export class Main extends GemElement {
   }
 
   unsafeRenderHTML(s: string, style = '') {
-    const htmlstr = parse(s, { renderer: this.renderer });
-    const cssstr = css`
+    const htmlStr = parse(s, { renderer: this.renderer });
+    const cssStr = css`
       ${this.#linkStyle}
       ${style}
     `;
-    return html`<gem-unsafe content=${htmlstr} contentcss=${cssstr}></gem-unsafe>`;
+    return html`<gem-unsafe content=${htmlStr} contentcss=${cssStr}></gem-unsafe>`;
   }
 }
 

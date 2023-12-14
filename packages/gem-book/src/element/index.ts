@@ -24,6 +24,7 @@ import { GemBookPluginElement } from './elements/plugin';
 import { theme, changeTheme, Theme } from './helper/theme';
 import { bookStore, updateBookConfig, locationStore } from './store';
 import { Loadbar } from './elements/loadbar';
+import { checkBuiltInPlugin } from './lib/utils';
 
 import '@mantou/gem/elements/title';
 import '@mantou/gem/elements/reflect';
@@ -77,6 +78,8 @@ export class GemBookElement extends GemElement {
     super();
     this.config = config;
     this.theme = theme;
+    new MutationObserver(() => checkBuiltInPlugin(this)).observe(this, { childList: true });
+    document.currentScript?.addEventListener('load', () => checkBuiltInPlugin(this));
   }
 
   changeTheme(newTheme?: Partial<Theme>) {

@@ -31,7 +31,7 @@ if (process.env.GA_ID) {
   script.remove();
 }
 
-(JSON.parse(String(process.env.PLUGINS)) as string[]).forEach((plugin) => {
+function loadPlugin(plugin: string) {
   if (/^(https?:)?\/\//.test(plugin)) {
     const script = document.createElement('script');
     script.src = plugin;
@@ -40,6 +40,17 @@ if (process.env.GA_ID) {
   } else {
     import(/* webpackInclude: /(?<!\.d)\.t|js$/ */ `../plugins/${plugin}`);
   }
+}
+
+const pluginSet = new Set(JSON.parse(String(process.env.PLUGINS)) as string[]);
+
+pluginSet.forEach(loadPlugin);
+
+addEventListener('plugin', ({ detail }: CustomEvent) => {
+  if (pluginSet.has(detail)) return;
+  // eslint-disable-next-line no-console
+  console.info('GemBook auto load plugin:', detail);
+  loadPlugin(detail);
 });
 
 const config = JSON.parse(String(process.env.BOOK_CONFIG));
