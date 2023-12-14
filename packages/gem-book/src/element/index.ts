@@ -156,7 +156,6 @@ export class GemBookElement extends GemElement {
         slot[name='${this.mainBefore}'],
         slot[name='${this.mainAfter}'] {
           display: block;
-          grid-area: auto / content;
         }
         slot[name='${this.mainBefore}'] {
           margin-top: 3rem;
@@ -175,6 +174,7 @@ export class GemBookElement extends GemElement {
           gem-book-homepage {
             grid-area: auto / left / auto / right;
           }
+          slot[name='${this.mainBefore}'],
           gem-light-route,
           gem-book-footer {
             grid-area: auto / aside / auto / content;

@@ -2,6 +2,7 @@ import { history } from '@mantou/gem';
 
 import { NavItem } from '../../common/config';
 import { isIndexFile, parseFilename } from '../../common/utils';
+import { bookStore } from '../store';
 
 export type NavItemWithLink = NavItem & {
   originLink: string;
@@ -26,6 +27,14 @@ export function flatNav(nav: NavItem[]): NavItemWithLink[] {
 export function getRemotePath(originPath: string, lang = '') {
   const langPath = lang && `/${lang}`;
   return `${langPath}${originPath}`;
+}
+
+export function getGithubPath(link: string) {
+  const { config, lang } = bookStore;
+  const { sourceDir, base } = config || {};
+  const basePath = base ? `/${base}` : '';
+  const sourcePath = sourceDir ? `/${sourceDir}` : '';
+  return `${basePath}${sourcePath}${getRemotePath(link, lang)}`;
 }
 
 export function getURL(originPath: string, lang = '', hash = '') {

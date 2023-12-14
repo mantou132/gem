@@ -32,4 +32,4 @@ npx gem-book docs --build
 
 ## 反馈与共建
 
-请访问 [GitHub](https://github.com/mantou132/gem-book)
+请访问 [GitHub](https://github.com/mantou132/gem)

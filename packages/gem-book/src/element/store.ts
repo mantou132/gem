@@ -184,6 +184,7 @@ function getLinkRouters(links: NavItemWithLink[], title: string, lang: string, d
 function getCurrentSidebar(sidebar: NavItemWithLink[]) {
   const { path } = history.getParams();
 
+  let currentLink: NavItemWithLink | undefined;
   let currentNavNode: NavItemWithLink | undefined;
   let resultNavNode: NavItemWithLink | undefined;
   const resultWithoutNav: NavItemWithLink[] = [];
@@ -191,8 +192,11 @@ function getCurrentSidebar(sidebar: NavItemWithLink[]) {
   const traverseSidebar = (items: NavItemWithLink[], result: NavItemWithLink[]) => {
     items.forEach((item) => {
       let tempNode: NavItemWithLink | undefined;
-      if (!resultNavNode && currentNavNode && item.link === path && item.type === 'file') {
-        resultNavNode = currentNavNode;
+      if (item.link === path) {
+        currentLink = item;
+        if (!resultNavNode && currentNavNode && item.type === 'file') {
+          resultNavNode = currentNavNode;
+        }
       }
       if (item.isNav && item.type === 'dir') {
         currentNavNode = item;
@@ -210,7 +214,7 @@ function getCurrentSidebar(sidebar: NavItemWithLink[]) {
     return items;
   };
   traverseSidebar(sidebar, resultWithoutNav);
-  return resultNavNode ? resultNavNode.children || [] : resultWithoutNav;
+  return !currentLink ? [] : resultNavNode ? resultNavNode.children || [] : resultWithoutNav;
 }
 
 function getHomePage(links: RouteItem[]) {
