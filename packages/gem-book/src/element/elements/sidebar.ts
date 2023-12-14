@@ -143,28 +143,44 @@ export class SideBar extends GemElement {
     if (sidebarIgnore || (homeMode && homePage === link)) {
       return html`<!-- No need to render homepage item -->`;
     }
-    if (type === 'dir') {
-      if (!children?.length) {
-        return html`<!-- No need for an empty directory -->`;
+    switch (type) {
+      case 'dir': {
+        if (!children?.length) {
+          return html`<!-- No need for an empty directory -->`;
+        }
+        return html`
+          <div class="item" @click=${this.#toggleLinks}>
+            <gem-use class="arrow" selector="#arrow" .root=${container}></gem-use>
+            ${capitalize(title)}
+          </div>
+          <div class="links item">${children.map((item) => this.#renderItem(item))}</div>
+        `;
       }
-      return html`
-        <div class="item" @click=${this.#toggleLinks}>
-          <gem-use class="arrow" selector="#arrow" .root=${container}></gem-use>
-          ${capitalize(title)}
-        </div>
-        <div class="links item">${children.map((item) => this.#renderItem(item))}</div>
-      `;
-    } else {
-      return html`
-        <gem-book-side-link
-          class=${classMap({ item: true, link: true, single: isTop, [type]: true })}
-          pattern=${children ? new URL(link, location.origin).pathname : link}
-          href=${link}
-        >
-          ${type === 'heading' ? '# ' : ''} ${title ? capitalize(title) : 'No title'}
-        </gem-book-side-link>
-        ${children ? html`<div class="links item hash">${children.map((item) => this.#renderItem(item))}</div>` : null}
-      `;
+      case 'file': {
+        return html`
+          <gem-book-side-link
+            class=${classMap({ item: true, link: true, single: isTop, [type]: true })}
+            pattern=${children ? new URL(link, location.origin).pathname : link}
+            href=${link}
+          >
+            ${title ? capitalize(title) : 'No title'}
+          </gem-book-side-link>
+          ${children
+            ? html`<div class="links item hash">${children.map((item) => this.#renderItem(item))}</div>`
+            : null}
+        `;
+      }
+      case 'heading': {
+        return html`
+          <gem-book-side-link
+            class=${classMap({ item: true, link: true, single: isTop, [type]: true })}
+            hash=${link}
+            href=${link}
+          >
+            # ${title ? capitalize(title) : 'No title'}
+          </gem-book-side-link>
+        `;
+      }
     }
   };
 
