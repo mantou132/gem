@@ -83,27 +83,51 @@ gem-book::part(homepage-hero) {
 <gem-book><div slot="sidebar-before">Hello</div></gem-book>
 ```
 
+_Can use `--template` specified template file_
+
 ## Plugins {#plugins}
+
+### Use plugin
 
 `<gem-book>` uses custom elements as a plugin system, they can customize the rendering of Markdown content or enhance the ability of `<gem-book>`. The following is how to use the built-in plugin `<gbp-raw>`.
 
 import plugin:
 
-```bash
+<gbp-code-group>
+
+```bash CLI
 gem-book docs --plugin raw
 ```
 
-or
-
-```html
+```html HTML
 <script type="module" src="https://unpkg.com/gem-book/plugins/raw.js"></script>
 ```
+
+</gbp-code-group>
 
 Then use it in Markdown to render files in the warehouse:
 
 ```md
 <gbp-raw src="/src/plugins/raw.ts"></gbp-raw>
 ```
+
+> [!TIP]
+> Attribute should not be line break when using a plugin in Markdown,
+> otherwise it will be interrupted by the `<p>` tag as the inline element.
+
+Some plugin need to be used with slots, such as the built-in plugin `<gbp-comment>`, which uses [Gitalk](https://github.com/gitalk/gitalk) to bring comments to the website:
+
+```html
+<gem-book>
+  <gbp-comment slot="main-after" client-id="xxx" client-secret="xxx"></gbp-comment>
+</gem-book>
+```
+
+> [!NOTE]
+> GemBook built-in plugin supports automatic import,
+> the disadvantage is that it will be loaded after rendering documents. It is possible that the page will flash
+
+### Plugin development
 
 Any element can be used as a plugin, but if you want to read the data of `<gem-book>` like `<gbp-raw>`, you need to use `GemBookPluginElement`, which extends from [`GemElement`](https://gemjs.org/api/), obtain `GemBookPluginElement` and read `<gem-book>` configuration in the following way.
 
@@ -120,13 +144,3 @@ customElements.whenDefined('gem-book').then(({ GemBookPluginElement }) => {
   );
 });
 ```
-
-Some plugin need to be used with slots, such as the built-in plugin `<gbp-comment>`, which uses [Gitalk](https://github.com/gitalk/gitalk) to bring comments to the website:
-
-```html
-<gem-book>
-  <gbp-comment slot="main-after" client-id="xxx" client-secret="xxx"></gbp-comment>
-</gem-book>
-```
-
-_Can use `--template` specified template file_

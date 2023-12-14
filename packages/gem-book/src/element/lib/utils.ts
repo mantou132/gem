@@ -82,9 +82,9 @@ export function textContent(s: string) {
 export function checkBuiltInPlugin(container: HTMLElement | ShadowRoot) {
   const tagSet = new Set([...container.querySelectorAll(`:not(:defined)`)].map((e) => e.tagName.toLowerCase()));
   tagSet.forEach((tag) => {
-    const [namespace, name] = tag.split('-');
-    if (namespace === 'gbp' && name) {
-      window.dispatchEvent(new CustomEvent('plugin', { detail: name }));
+    const [namespace, ...rest] = tag.split('-');
+    if (namespace === 'gbp' && rest.length) {
+      window.dispatchEvent(new CustomEvent('plugin', { detail: rest.join('-') }));
     }
   });
 }

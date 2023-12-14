@@ -13,7 +13,9 @@ export function getRenderer({ lang, link, displayRank }: { lang: string; link: s
     const [, text, customId] = textContent(fullText).match(CUSTOM_HEADING_REG) as RegExpMatchArray;
     const tag = `h${level}`;
     const id = normalizeId(customId || text);
-    return `<${tag} class="markdown-header" id="${id}"><a class="header-anchor" aria-hidden="true" href="#${id}">${anchorIcon}</a>${fullText}</${tag}>`;
+    return `<${tag} class="markdown-header" id="${id}"><a class="header-anchor" aria-hidden="true" href="#${id}">${anchorIcon}</a>${escapeHTML(
+      text,
+    )}</${tag}>`;
   };
 
   renderer.blockquote = (quote) => {

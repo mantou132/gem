@@ -56,6 +56,7 @@ const style = createCSSSheet(css`
     border-bottom: 1px dashed ${theme.borderColor};
   }
   summary {
+    cursor: pointer;
     margin: -0.5em -1em;
     padding: 0.5em 1em;
   }

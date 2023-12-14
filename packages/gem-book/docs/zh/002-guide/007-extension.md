@@ -83,27 +83,49 @@ gem-book::part(homepage-hero) {
 <gem-book><div slot="sidebar-before">Hello</div></gem-book>
 ```
 
+_可以使用 `--template` 指定模板文件_
+
 ## 插件 {#plugins}
+
+### 使用插件
 
 `<gem-book>` 使用自定义元素作为插件系统，他们可以自定义渲染 Markdown 内容或者增强 `<gem-book>` 的能力。下面是内置插件 `<gbp-raw>` 的使用方式。
 
 引入插件：
 
-```bash
+<gbp-code-group>
+
+```bash CLI
 gem-book docs --plugin raw
 ```
 
-或
-
-```html
+```html HTML
 <script type="module" src="https://unpkg.com/gem-book/plugins/raw.js"></script>
 ```
+
+</gbp-code-group>
 
 然后在 Markdown 中使用它来渲染仓库中的文件：
 
 ```md
 <gbp-raw src="/src/plugins/raw.ts"></gbp-raw>
 ```
+
+> [!TIP]
+> 在 MarkDown 中使用插件时 Attribute 不应该换行，否则会作为内联元素被 `<p>` 标签打断。
+
+有些插件需要配合插槽使用，比如内置插件 `<gbp-comment>`，它使用 [Gitalk](https://github.com/gitalk/gitalk) 为网站带来评论功能：
+
+```html
+<gem-book>
+  <gbp-comment slot="main-after" client-id="xxx" client-secret="xxx"></gbp-comment>
+</gem-book>
+```
+
+> [!NOTE]
+> GemBook 内置插件支持自动导入，缺点是渲染文档后才会加载，有可能页面会闪烁。
+
+### 开发插件
 
 任意元素都可以作为插件，但如果你想像 `<gbp-raw>` 一样读取 `<gem-book>` 的数据，就需要使用 `GemBookPluginElement`, 他扩展自 [`GemElement`](https://gemjs.org/api/)，通过下面这种方式获取 `GemBookPluginElement` 和读取 `<gem-book>` 配置。
 
@@ -120,13 +142,3 @@ customElements.whenDefined('gem-book').then(({ GemBookPluginElement }) => {
   );
 });
 ```
-
-有些插件需要配合插槽使用，比如内置插件 `<gbp-comment>`，它使用 [Gitalk](https://github.com/gitalk/gitalk) 为网站带来评论功能：
-
-```html
-<gem-book>
-  <gbp-comment slot="main-after" client-id="xxx" client-secret="xxx"></gbp-comment>
-</gem-book>
-```
-
-_可以使用 `--template` 指定模板文件_
