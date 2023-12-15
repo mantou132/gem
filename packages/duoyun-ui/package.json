@@ -36,7 +36,7 @@
     "elkjs": "^0.7.1"
   },
   "peerDependencies": {
-    "@mantou/gem": "^1.7.1"
+    "@mantou/gem": "^1.7.2"
   },
   "devDependencies": {
     "@esm-bundle/chai": "^4.3.4-fix.0",

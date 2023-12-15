@@ -65,9 +65,13 @@ export const darkTheme: Partial<typeof lightTheme> = {
 };
 
 export const theme = createTheme({ ...lightTheme });
+export const themeStore = getThemeStore(theme);
 
 export const updateTheme = (tm: Partial<typeof lightTheme>) => {
   changeTheme(theme, tm);
 };
 
-export const themeStore = getThemeStore(theme);
+export function extendTheme<T extends Record<string, string>>(tm: Partial<typeof lightTheme> & T) {
+  changeTheme(theme, tm);
+  return theme as unknown as typeof lightTheme & T;
+}

@@ -43,13 +43,13 @@ customElements.whenDefined('gem-book').then(async () => {
     }
 
     mounted = async () => {
-      const [text, { default: docsearch }] = await Promise.all([
+      const [text, { default: docSearch }] = await Promise.all([
         (await fetch(styleLink)).text(),
         await import(/* webpackIgnore: true */ moduleLink),
       ]);
       this.setState({ style: text });
       const style = document.createElement('style');
-      style.innerText =
+      style.textContent =
         text +
         css`
           :root {
@@ -61,7 +61,7 @@ customElements.whenDefined('gem-book').then(async () => {
           }
         `;
       document.head.append(style);
-      docsearch({
+      docSearch({
         appId: this.appId || undefined,
         apiKey: this.apiKey,
         indexName: this.indexName,

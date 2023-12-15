@@ -13,7 +13,7 @@
     "prepublishOnly": "yarn build"
   },
   "dependencies": {
-    "@mantou/gem": "^1.7.1"
+    "@mantou/gem": "^1.7.2"
   },
   "devDependencies": {
     "@gemjs/config": "^1.6.11",

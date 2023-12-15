@@ -8,7 +8,7 @@
     "start": "vite serve"
   },
   "dependencies": {
-    "@mantou/gem": "^1.7.1",
+    "@mantou/gem": "^1.7.2",
     "duoyun-ui": "^1.1.0"
   },
   "devDependencies": {

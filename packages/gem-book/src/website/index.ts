@@ -80,7 +80,7 @@ const buildRender = () => {
 process.env.DEV_MODE ? devRender() : buildRender();
 
 const style = document.createElement('style');
-style.innerText = css`
+style.textContent = css`
   :where(html) {
     height: 100%;
     overflow: hidden;

@@ -1,4 +1,4 @@
-import { adoptedStyle, connectStore, createCSSSheet, css, customElement, GemElement, history, html } from '@mantou/gem';
+import { connectStore, customElement, GemElement, history, html } from '@mantou/gem';
 
 import { getGithubPath, getUserLink } from '../lib/utils';
 import { bookStore } from '../store';
@@ -9,30 +9,8 @@ import { container } from './icons';
 
 import '@mantou/gem/elements/reflect';
 
-const style = createCSSSheet(css`
-  :host {
-    text-align: center;
-  }
-  gem-link {
-    border-bottom: 1px solid rgba(${theme.textColorRGB}, 0.3);
-    color: inherit;
-    text-decoration: none;
-    display: inline-flex;
-    align-items: center;
-  }
-  gem-link:hover {
-    border-bottom: 1px solid;
-  }
-  gem-use {
-    width: 18px;
-    height: 18px;
-    margin-right: 10px;
-  }
-`);
-
 @customElement('gem-book-404')
 @connectStore(selfI18n.store)
-@adoptedStyle(style)
 export class Meta extends GemElement {
   #getMdFullPath = () => {
     const { links = [] } = bookStore;
@@ -53,10 +31,28 @@ export class Meta extends GemElement {
 
     return html`
       <style>
+        :host {
+          text-align: center;
+        }
         h1 {
           font-size: 2em;
           font-weight: bold;
           margin: 0;
+        }
+        gem-link {
+          border-bottom: 1px solid rgba(${theme.textColorRGB}, 0.3);
+          color: inherit;
+          text-decoration: none;
+          display: inline-flex;
+          align-items: center;
+        }
+        gem-link:hover {
+          border-bottom: 1px solid;
+        }
+        gem-use {
+          width: 18px;
+          height: 18px;
+          margin-right: 10px;
         }
       </style>
       <h1>404 - Not found</h1>

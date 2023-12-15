@@ -10,7 +10,7 @@ import '@mantou/gem/elements/reflect';
 @connectStore(bookStore)
 export class Meta extends GemElement {
   render() {
-    const { links, langList, lang = '', routes, homePage, getCurrentLink } = bookStore;
+    const { langList, lang = '', routes, homePage, getCurrentLink, currentLinks } = bookStore;
     const { path } = history.getParams();
     const route = routes?.find((route) => route.pattern === path && route.redirect);
     const canonicalLink = getAlternateUrl(
@@ -25,7 +25,7 @@ export class Meta extends GemElement {
         ${description ? html`<meta name="description" content=${description} />` : ''}
         ${mediaQuery.isDataReduce
           ? null
-          : links
+          : currentLinks
               ?.filter((e) => e.type === 'file')
               .map(({ originLink, hash }) => html`<link rel="prefetch" href=${getURL(originLink, lang, hash)}></link>`)}
 

@@ -37,7 +37,7 @@
     "prepublishOnly": "yarn build"
   },
   "dependencies": {
-    "@mantou/gem": "^1.7.1",
+    "@mantou/gem": "^1.7.2",
     "commander": "^7.2.0",
     "copy-webpack-plugin": "^11.0.0",
     "front-matter": "^4.0.2",

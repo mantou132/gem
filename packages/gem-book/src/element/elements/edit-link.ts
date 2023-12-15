@@ -1,7 +1,7 @@
-import { html, GemElement, customElement, history, connectStore, adoptedStyle, createCSSSheet, css } from '@mantou/gem';
+import { html, GemElement, customElement, history, connectStore } from '@mantou/gem';
 import { mediaQuery } from '@mantou/gem/helper/mediaquery';
 
-import { getUserLink, getGithubPath } from '../lib/utils';
+import { getGithubPath } from '../lib/utils';
 import { selfI18n } from '../helper/i18n';
 import { theme } from '../helper/theme';
 import { bookStore } from '../store';
@@ -25,44 +25,8 @@ const fetchData = async (api: string) => {
   return commit;
 };
 
-const style = createCSSSheet(css`
-  :host {
-    display: flex;
-    gap: 1rem;
-    flex-wrap: wrap;
-    padding: 2rem 0;
-    justify-content: space-between;
-    line-height: 1.5;
-  }
-  gem-link {
-    border-bottom: 1px solid rgba(${theme.textColorRGB}, 0.3);
-    color: inherit;
-    text-decoration: none;
-    display: inline-flex;
-    align-items: center;
-  }
-  gem-link:hover {
-    border-bottom: 1px solid;
-  }
-  gem-use {
-    width: 18px;
-    height: 18px;
-    margin-right: 10px;
-  }
-  .last-updated span {
-    opacity: 0.5;
-  }
-  @media ${mediaQuery.PHONE} {
-    gem-link,
-    .last-updated {
-      white-space: nowrap;
-    }
-  }
-`);
-
 @customElement('gem-book-edit-link')
 @connectStore(selfI18n.store)
-@adoptedStyle(style)
 export class EditLink extends GemElement<State> {
   state = {
     lastUpdated: '',
@@ -86,9 +50,7 @@ export class EditLink extends GemElement<State> {
   }
 
   #getMdFullPath = () => {
-    const { links = [] } = bookStore;
-    const { path } = history.getParams();
-    const link = links.find(({ originLink }) => getUserLink(originLink) === path);
+    const link = bookStore.getCurrentLink?.();
     if (!link) return;
     return getGithubPath(link.originLink);
   };
@@ -101,6 +63,40 @@ export class EditLink extends GemElement<State> {
     const fullPath = this.#getMdFullPath();
     if (!github || !sourceBranch || !fullPath) return;
     return html`
+      <style>
+        :host {
+          display: flex;
+          gap: 1rem;
+          flex-wrap: wrap;
+          padding: 2rem 0;
+          justify-content: space-between;
+          line-height: 1.5;
+        }
+        gem-link {
+          border-bottom: 1px solid rgba(${theme.textColorRGB}, 0.3);
+          color: inherit;
+          text-decoration: none;
+          display: inline-flex;
+          align-items: center;
+        }
+        gem-link:hover {
+          border-bottom: 1px solid;
+        }
+        gem-use {
+          width: 18px;
+          height: 18px;
+          margin-right: 10px;
+        }
+        .last-updated span {
+          opacity: 0.5;
+        }
+        @media ${mediaQuery.PHONE} {
+          gem-link,
+          .last-updated {
+            white-space: nowrap;
+          }
+        }
+      </style>
       <gem-link class="edit" href=${`${github}/edit/${sourceBranch}${fullPath}`}>
         <gem-use selector="#compose" .root=${container}></gem-use>
         <span>${selfI18n.get('editOnGithub')}</span>

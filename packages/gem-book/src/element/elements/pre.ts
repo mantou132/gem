@@ -1,14 +1,6 @@
-// https://spectrum.adobe.com/page/code/
-import {
-  adoptedStyle,
-  customElement,
-  attribute,
-  refobject,
-  RefObject,
-  boolattribute,
-} from '@mantou/gem/lib/decorators';
+import { customElement, attribute, refobject, RefObject, boolattribute } from '@mantou/gem/lib/decorators';
 import { GemElement, html } from '@mantou/gem/lib/element';
-import { createCSSSheet, css, styleMap } from '@mantou/gem/lib/utils';
+import { styleMap } from '@mantou/gem/lib/utils';
 
 import { theme } from '../helper/theme';
 
@@ -215,133 +207,10 @@ const langAliases: Record<string, string> = {
   yml: 'yaml',
 };
 
-const style = createCSSSheet(css`
-  :host([status='hidden']) {
-    display: none;
-  }
-  :host {
-    position: relative;
-    display: block;
-    font-size: 0.875em;
-    background: rgba(${theme.textColorRGB}, 0.05);
-    --comment-color: var(--code-comment-color, #6e6e6e);
-    --section-color: var(--code-section-color, #c9252d);
-    --title-color: var(--code-title-color, #4646c6);
-    --variable-color: var(--code-variable-color, #ae0e66);
-    --literal-color: var(--code-literal-color, #6f38b1);
-    --string-color: var(--code-string-color, #12805c);
-    --function-color: var(--code-function-color, #0d66d0);
-    --keyword-color: var(--code-keyword-color, #93219e);
-    --attribute-color: var(--code-attribute-color, #4646c6);
-  }
-  .gem-highlight {
-    display: block;
-    position: absolute;
-    pointer-events: none;
-    background: black;
-    opacity: 0.05;
-    width: 100%;
-  }
-  .gem-code {
-    height: 100%;
-    box-sizing: border-box;
-    display: block;
-    font-family: ${theme.codeFont};
-    text-align: left;
-    white-space: pre;
-    tab-size: 2;
-    padding: 1em;
-    hyphens: none;
-    overflow: auto;
-    overflow-clip-box: content-box;
-    box-shadow: none;
-    border: none;
-    background: transparent;
-    scrollbar-width: thin;
-    outline: none;
-    caret-color: ${theme.textColor};
-  }
-  .token.comment,
-  .token.prolog,
-  .token.doctype,
-  .token.cdata {
-    color: var(--comment-color);
-    font-style: italic;
-  }
-  .token.punctuation {
-    color: var(--title-color);
-  }
-  .token.tag .punctuation {
-    color: ${theme.textColor};
-  }
-  .token.tag,
-  .token.tag .class-name,
-  .token.property,
-  .token.constant,
-  .token.symbol,
-  .token.deleted,
-  .token.operator,
-  .token.entity {
-    color: var(--section-color);
-  }
-  .token.url,
-  .language-css .token.string,
-  .style .token.string,
-  .token.variable {
-    color: var(--variable-color);
-  }
-  .token.boolean,
-  .token.number {
-    color: var(--literal-color);
-  }
-  .token.attr-value,
-  .token.string,
-  .token.char,
-  .token.builtin,
-  .token.inserted {
-    color: var(--string-color);
-  }
-  .token.atrule,
-  .token.function,
-  .token.class-name {
-    color: var(--function-color);
-  }
-  .token.keyword {
-    color: var(--keyword-color);
-  }
-  .token.selector,
-  .token.attr-name,
-  .token.regex,
-  .token.important {
-    color: var(--attribute-color);
-  }
-  .token.important,
-  .token.bold {
-    font-weight: bold;
-  }
-  .token.italic {
-    font-style: italic;
-  }
-  .token.entity {
-    cursor: help;
-  }
-  @media print {
-    code {
-      border-left: 5px solid ${theme.borderColor};
-      white-space: pre-wrap;
-      word-break: break-word;
-    }
-    .highlight {
-      display: none;
-    }
-  }
-`);
-
 /**
  * @customElement gem-book-pre
  */
 @customElement('gem-book-pre')
-@adoptedStyle(style)
 export class Pre extends GemElement {
   @attribute codelang: string;
   @attribute range: string;
@@ -484,6 +353,127 @@ export class Pre extends GemElement {
     const lineHeight = '24px';
     const padding = '1em';
     return html`
+      <style>
+        :host([status='hidden']) {
+          display: none;
+        }
+        :host {
+          position: relative;
+          display: block;
+          font-size: 0.875em;
+          background: rgba(${theme.textColorRGB}, 0.05);
+          --comment-color: var(--code-comment-color, #6e6e6e);
+          --section-color: var(--code-section-color, #c9252d);
+          --title-color: var(--code-title-color, #4646c6);
+          --variable-color: var(--code-variable-color, #ae0e66);
+          --literal-color: var(--code-literal-color, #6f38b1);
+          --string-color: var(--code-string-color, #12805c);
+          --function-color: var(--code-function-color, #0d66d0);
+          --keyword-color: var(--code-keyword-color, #93219e);
+          --attribute-color: var(--code-attribute-color, #4646c6);
+        }
+        .gem-highlight {
+          display: block;
+          position: absolute;
+          pointer-events: none;
+          background: black;
+          opacity: 0.05;
+          width: 100%;
+        }
+        .gem-code {
+          height: 100%;
+          box-sizing: border-box;
+          display: block;
+          font-family: ${theme.codeFont};
+          text-align: left;
+          white-space: pre;
+          tab-size: 2;
+          padding: 1em;
+          hyphens: none;
+          overflow: auto;
+          overflow-clip-box: content-box;
+          box-shadow: none;
+          border: none;
+          background: transparent;
+          scrollbar-width: thin;
+          outline: none;
+          caret-color: ${theme.textColor};
+        }
+        .token.comment,
+        .token.prolog,
+        .token.doctype,
+        .token.cdata {
+          color: var(--comment-color);
+          font-style: italic;
+        }
+        .token.punctuation {
+          color: var(--title-color);
+        }
+        .token.tag .punctuation {
+          color: ${theme.textColor};
+        }
+        .token.tag,
+        .token.tag .class-name,
+        .token.property,
+        .token.constant,
+        .token.symbol,
+        .token.deleted,
+        .token.operator,
+        .token.entity {
+          color: var(--section-color);
+        }
+        .token.url,
+        .language-css .token.string,
+        .style .token.string,
+        .token.variable {
+          color: var(--variable-color);
+        }
+        .token.boolean,
+        .token.number {
+          color: var(--literal-color);
+        }
+        .token.attr-value,
+        .token.string,
+        .token.char,
+        .token.builtin,
+        .token.inserted {
+          color: var(--string-color);
+        }
+        .token.atrule,
+        .token.function,
+        .token.class-name {
+          color: var(--function-color);
+        }
+        .token.keyword {
+          color: var(--keyword-color);
+        }
+        .token.selector,
+        .token.attr-name,
+        .token.regex,
+        .token.important {
+          color: var(--attribute-color);
+        }
+        .token.important,
+        .token.bold {
+          font-weight: bold;
+        }
+        .token.italic {
+          font-style: italic;
+        }
+        .token.entity {
+          cursor: help;
+        }
+        @media print {
+          code {
+            border-left: 5px solid ${theme.borderColor};
+            white-space: pre-wrap;
+            word-break: break-word;
+          }
+          .highlight {
+            display: none;
+          }
+        }
+      </style>
       ${this.highlight
         ? this.#getRanges(this.highlight).map(
             ([start, end]) => html`

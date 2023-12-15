@@ -1,37 +1,12 @@
-import { adoptedStyle, customElement } from '@mantou/gem/lib/decorators';
+import { customElement } from '@mantou/gem/lib/decorators';
 import { GemElement, html } from '@mantou/gem/lib/element';
-import { createCSSSheet, css } from '@mantou/gem/lib/utils';
 
 import { theme } from '../helper/theme';
-
-const style = createCSSSheet(css`
-  :host {
-    z-index: 22222222;
-    position: fixed;
-    display: flex;
-    justify-content: flex-end;
-    align-items: flex-end;
-    top: 0;
-    left: 0;
-    height: 2px;
-    transition: width 0.3s;
-    background-color: ${theme.primaryColor};
-  }
-  .head {
-    width: 300px;
-    height: 400%;
-    background-color: inherit;
-    border-start-start-radius: 50%;
-    border-end-start-radius: 50%;
-    filter: drop-shadow(0 0 4px ${theme.primaryColor});
-  }
-`);
 
 /**
  * @customElement gem-book-loadbar
  */
 @customElement('gem-book-loadbar')
-@adoptedStyle(style)
 export class GemBookLoadbarElement extends GemElement {
   static instance?: GemBookLoadbarElement;
   static timer = 0;
@@ -76,7 +51,25 @@ export class GemBookLoadbarElement extends GemElement {
     return html`
       <style>
         :host {
+          z-index: 22222222;
+          position: fixed;
+          display: flex;
+          justify-content: flex-end;
+          align-items: flex-end;
+          top: 0;
+          left: 0;
           width: ${this.state.progress}%;
+          height: 2px;
+          transition: width 0.3s;
+          background-color: ${theme.primaryColor};
+        }
+        .head {
+          width: 300px;
+          height: 400%;
+          background-color: inherit;
+          border-start-start-radius: 50%;
+          border-end-start-radius: 50%;
+          filter: drop-shadow(0 0 4px ${theme.primaryColor});
         }
       </style>
       <div class="head"></div>

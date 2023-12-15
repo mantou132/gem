@@ -44,6 +44,14 @@ import { updateTheme } from 'duoyun-ui/lib/theme';
 updateTheme({ primaryColor: 'blue' });
 ```
 
+Extend theme:
+
+```ts
+import { extendTheme } from 'duoyun-ui/lib/theme';
+
+export const theme = extendTheme({ myColor: '#f00' });
+```
+
 ## Customize icon
 
 Currently DuoyunUI uses [Material Icon](https://fonts.google.com/icons?selected=Material+Icons), modify icon:

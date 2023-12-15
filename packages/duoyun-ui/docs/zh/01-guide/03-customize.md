@@ -1,7 +1,6 @@
 # 自定义 DuoyunUI
 
-DuoyunUI 自带主题（包含一套暗黑主题）、图标（例如 [`<dy-loading>`](../02-elements/loading.md)）、文本（例如 [`<dy-pagination>`](../02-elements/pagination.md)）都能轻松使用和修改，
-在你的应用中，你可以这样使用它们：
+DuoyunUI 自带主题、图标、文本，在应用中可以这样使用它们：
 
 ```ts
 import { createCSSSheet, css, adoptedStyle, customElement, GemElement, html } from '@mantou/gem';
@@ -26,6 +25,8 @@ export class MyEleElement extends GemElement {
 }
 ```
 
+可以轻松修改或扩展它们。
+
 ## 自定义主题
 
 使用自带暗黑主题：
@@ -42,6 +43,14 @@ updateTheme(darkTheme);
 import { updateTheme } from 'duoyun-ui/lib/theme';
 
 updateTheme({ primaryColor: 'blue' });
+```
+
+扩展主题：
+
+```ts
+import { extendTheme } from 'duoyun-ui/lib/theme';
+
+export const theme = extendTheme({ myColor: '#f00' });
 ```
 
 ## 自定义图标
