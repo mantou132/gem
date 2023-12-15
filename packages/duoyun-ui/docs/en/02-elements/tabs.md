@@ -2,10 +2,19 @@
 
 ## Example
 
-<gbp-example
-  name="dy-tabs"
-  props='{"style": "width: 240px", "center": true, "value": 0, "data": [{"tab": "Tab 1"}, {"tab": "Tab 2"}, {"tab": "Tab 3"}], "@change": "(evt) => evt.target.value = evt.detail"}'
-  src="https://jspm.dev/duoyun-ui/elements/tabs"></gbp-example>
+<gbp-example name="dy-tabs" src="https://jspm.dev/duoyun-ui/elements/tabs">
+
+```json
+{
+  "style": "width: 240px",
+  "center": true,
+  "value": 0,
+  "items": [{ "label": "Tab 1" }, { "label": "Tab 2" }, { "label": "Tab 3" }],
+  "@change": "(evt) => evt.target.value = evt.detail"
+}
+```
+
+</gbp-example>
 
 ## API
 

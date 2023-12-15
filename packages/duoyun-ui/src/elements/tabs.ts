@@ -79,8 +79,9 @@ const style = createCSSSheet(css`
     height: 100%;
   }
 `);
+
 export interface TabItem<T = any> {
-  tab: string | TemplateResult;
+  label: string | TemplateResult;
   value?: T;
   icon?: string | Element | DocumentFragment;
   getContent?: () => string | TemplateResult;
@@ -103,15 +104,9 @@ export class DuoyunTabsElement extends GemElement {
   @boolattribute center: boolean;
   @attribute orientation: 'horizontal' | 'vertical';
 
-  /**@deprecated */
-  @property data?: TabItem[];
   @property items?: TabItem[];
   @property value?: any;
   @emitter change: Emitter<any>;
-
-  get #items() {
-    return this.items || this.data;
-  }
 
   get #orientation() {
     return this.orientation || 'horizontal';
@@ -123,12 +118,12 @@ export class DuoyunTabsElement extends GemElement {
   }
 
   render = () => {
-    if (!this.#items) return html``;
+    if (!this.items) return html``;
     let currentContent: TemplateResult | string = '';
     return html`
       <div part=${DuoyunTabsElement.tabs} class="tabs">
-        ${this.#items.map(({ value, tab, icon, getContent }, index) => {
-          const isCurrent: boolean = (value ?? index) === this.value;
+        ${this.items.map(({ value, label, icon, getContent }, index) => {
+          const isCurrent = (value ?? index) === this.value;
           if (isCurrent) currentContent = getContent?.() || '';
           return html`
             <div
@@ -138,7 +133,7 @@ export class DuoyunTabsElement extends GemElement {
               @click=${() => this.change(value ?? index)}
             >
               ${icon ? html`<dy-use part=${DuoyunTabsElement.icon} class="icon" .element=${icon}></dy-use>` : ''}
-              <span tabindex="0" @keydown=${commonHandle}>${tab}</span>
+              <span tabindex="0" @keydown=${commonHandle}>${label}</span>
               ${isCurrent
                 ? html`
                     <dy-divider

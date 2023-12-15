@@ -85,8 +85,10 @@ customElements.whenDefined('gem-book').then(() => {
       return '#'.repeat(headingLevel + this.#headingLevel - 1);
     };
 
-    #renderCode = (s?: string) => {
-      return s ? `\`${s.replace(/\|/g, '\\|').replace(/\n/g, ' ')}\`` : '';
+    #renderCode = (s = '', deprecated?: boolean) => {
+      if (!s) return '';
+      const code = `\`${s.replace(/\|/g, '\\|').replace(/\n/g, ' ')}\``;
+      return deprecated ? `~~${code}~~` : code;
     };
 
     #renderTable = <T>(list: T[], headers: string[], fields: ((data: T) => string)[]) => {
@@ -139,7 +141,7 @@ customElements.whenDefined('gem-book').then(() => {
           staticProperties,
           ['Property', 'Type'].concat(constructorParams.some((e) => e.description) ? 'Description' : []),
           [
-            ({ name }) => this.#renderCode(name),
+            ({ name, deprecated }) => this.#renderCode(name, deprecated),
             ({ type }) => this.#renderCode(type),
             ({ description = '' }) => description.replaceAll('\n', '<br>'),
           ],
@@ -151,7 +153,7 @@ customElements.whenDefined('gem-book').then(() => {
           staticMethods,
           ['Method', 'Type'].concat(constructorParams.some((e) => e.description) ? 'Description' : []),
           [
-            ({ name }) => this.#renderCode(name),
+            ({ name, deprecated }) => this.#renderCode(name, deprecated),
             ({ type }) => this.#renderCode(type),
             ({ description = '' }) => description.replaceAll('\n', '<br>'),
           ],
@@ -165,7 +167,8 @@ customElements.whenDefined('gem-book').then(() => {
             innerWidth > 600 && constructorParams.some((e) => e.description) ? 'Description' : [],
           ),
           [
-            ({ name, attribute }) => this.#renderCode(name) + (attribute ? `(${this.#renderCode(attribute)})` : ''),
+            ({ name, attribute, deprecated }) =>
+              this.#renderCode(name, deprecated) + (attribute ? `(${this.#renderCode(attribute)})` : ''),
             ({ reactive }) => (reactive ? 'Yes' : ''),
             ({ type }) => this.#renderCode(type),
             ({ description = '' }) => description.replaceAll('\n', '<br>'),
@@ -179,7 +182,7 @@ customElements.whenDefined('gem-book').then(() => {
           methods.filter(({ event }) => !event),
           ['Method', 'Type'].concat(constructorParams.some((e) => e.description) ? 'Description' : []),
           [
-            ({ name }) => this.#renderCode(name),
+            ({ name, deprecated }) => this.#renderCode(name, deprecated),
             ({ type }) => this.#renderCode(type),
             ({ description = '' }) => description.replaceAll('\n', '<br>'),
           ],
@@ -205,7 +208,10 @@ customElements.whenDefined('gem-book').then(() => {
         this.#renderTable(
           exports.filter(({ kindName }) => kindName === 'FunctionDeclaration' || kindName === 'ClassDeclaration'),
           ['Name', 'Description'],
-          [({ name }) => this.#renderCode(name), ({ description = '' }) => description.replaceAll('\n', '<br>')],
+          [
+            ({ name, deprecated }) => this.#renderCode(name, deprecated),
+            ({ description = '' }) => description.replaceAll('\n', '<br>'),
+          ],
         ),
       );
     };

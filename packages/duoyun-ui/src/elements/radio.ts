@@ -103,10 +103,10 @@ export const groupStyle = createCSSSheet(css`
   }
 `);
 
-export type Option = {
+export interface Option<T = any> {
   label: string | TemplateResult;
-  value?: any;
-};
+  value?: T;
+}
 
 /**
  * @customElement dy-radio-group
