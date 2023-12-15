@@ -10,7 +10,6 @@ import { container } from '../elements/icons';
 
 @connectStore(bookStore)
 export class GemBookPluginElement<T = any> extends GemElement<T> {
-  static devMode = bookStore.devMode;
   static marked = marked;
   static Gem = Gem;
   static theme = theme;
@@ -24,6 +23,9 @@ export class GemBookPluginElement<T = any> extends GemElement<T> {
       },
     },
   );
+  static get devMode() {
+    return bookStore.devMode;
+  }
   static get links() {
     return bookStore.links;
   }

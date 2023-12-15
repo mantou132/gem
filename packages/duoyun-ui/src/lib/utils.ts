@@ -4,6 +4,7 @@ import { NonPrimitive, cleanObject } from '@mantou/gem/lib/utils';
 
 import { isNullish } from '../lib/types';
 
+/**Similar `lodash.keyBy` */
 export function convertToMap<T extends Record<string, any>, V = T>(list: (T | null)[], key: keyof T): Record<string, V>;
 export function convertToMap<T extends Record<string, any>, V = string>(
   list: (T | null)[],
@@ -37,6 +38,7 @@ export function convertToMap<T extends Record<string, any>, V = string>(
 // https://developer.mozilla.org/en-US/docs/Web/API/structuredClone
 export const structuredClone = (window as any).structuredClone || ((v: any) => JSON.parse(JSON.stringify(v)));
 
+/**Get Cascader/Tree max deep*/
 export function getCascaderDeep<T>(list: T[], cascaderKey: keyof T) {
   const getChildren = (t: T): number => {
     const children = t[cascaderKey] as unknown as T[] | undefined;
@@ -59,7 +61,8 @@ export function getCascaderDeep<T>(list: T[], cascaderKey: keyof T) {
 }
 
 /**
- * 从最底层开始获取值，和上层新值进行比较选择一个新的值，冒泡到顶层
+ * Get the value from the bottom layer,
+ * compare the new value of the upper layer to choose a new value, bubbling to the top layer
  */
 export function getCascaderBubbleWeakMap<
   T extends Record<string, any>,
@@ -70,7 +73,7 @@ export function getCascaderBubbleWeakMap<
   cascaderKey: keyof T,
   getValue: F,
   comparerFn: (bottomValue: K, topValue: K) => K = (a) => a,
-  callback?: (item: T, bubbleValue: K) => void,
+  setValueCallback?: (item: T, bubbleValue: K) => void,
 ) {
   const map = new WeakMap<T, K>();
   const getItemValue = (e: T) => {
@@ -88,13 +91,14 @@ export function getCascaderBubbleWeakMap<
       });
       if (!isNullish(value)) {
         map.set(e, value);
-        callback?.(e, value);
+        setValueCallback?.(e, value);
       }
     });
   check(list);
   return map;
 }
 
+/**Simple proxy object, use prop name as a fallback when reading prop */
 export function proxyObject(object: Record<string | symbol | number, any>) {
   return new Proxy(object, {
     get: (target, prop) => {
@@ -103,10 +107,12 @@ export function proxyObject(object: Record<string | symbol | number, any>) {
   });
 }
 
+/**Deep read prop */
 export function readProp(obj: Record<string, any>, paths: string | number | symbol | string[]) {
   return Array.isArray(paths) ? paths.reduce((p, c) => p?.[c], obj) : obj[paths as string];
 }
 
+/**Until the callback function resolve */
 export async function forever<T>(callback: () => Promise<T>, interval = 1000): Promise<T> {
   try {
     return await callback();
@@ -196,6 +202,7 @@ export function once<T extends (...args: any) => any>(fn: T) {
   };
 }
 
+/**Ignore the first call */
 export function omitOnce<T extends (...args: any) => any>(fn: T) {
   let timer = 0;
   return (...rest: Parameters<T>) => {
@@ -207,6 +214,7 @@ export function omitOnce<T extends (...args: any) => any>(fn: T) {
   };
 }
 
+/**Only let the last add Promise take effect, don’t care about the order of Resolve */
 export class OrderlyPromisePool {
   pool: any[] = [];
   add<T>(promise: Promise<T>, callback: (r: T) => void) {
@@ -239,6 +247,8 @@ export enum ComparerType {
   Miss = 'miss',
   Have = 'have',
 }
+
+/**Serialize comparer */
 export function comparer(a: any, comparer: ComparerType, b: any) {
   const aNum = Number(a);
   const bNum = Number(b);
@@ -282,6 +292,7 @@ export function splitString(s: string) {
   return s.split(/(?:\s|\/)+/);
 }
 
+/**Search */
 export function isIncludesString(origin: string | TemplateResult, search: string, caseSensitive = false) {
   const getStr = (s: string) => (caseSensitive ? s : s.toLowerCase()).trim();
   const oString = getStr(getStringFromTemplate(origin, true));
@@ -289,6 +300,7 @@ export function isIncludesString(origin: string | TemplateResult, search: string
   return splitString(sString).some((s) => oString.includes(s));
 }
 
+/**In addition to the parameter element, set the `inert` attribute for all element */
 export function setBodyInert(modal: HTMLElement) {
   const map = new Map<HTMLElement, boolean>();
   [...document.body.children].forEach((e) => {
@@ -306,6 +318,7 @@ export function setBodyInert(modal: HTMLElement) {
   };
 }
 
+/**Create auto cache(localStorage) Store */
 export function createCacheStore<T extends Record<string, any>>(
   storageKey: string,
   initStore: T,

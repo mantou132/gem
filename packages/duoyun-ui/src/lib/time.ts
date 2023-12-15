@@ -10,6 +10,7 @@ const intlDigitFormatter = Intl.DateTimeFormat(undefined, {
   hour12: false,
 });
 
+/**Parse Date/number to object */
 export function parseDate(date?: number | Date) {
   const parts = isNaN(Number(date)) ? [] : intlDigitFormatter.formatToParts(date);
   const dateObj: Record<string, string> = {};
@@ -115,6 +116,9 @@ function getDuration(unit: Unit) {
   }
 }
 
+/**
+ * Provide some convenient operation methods for Date/Time
+ */
 export class Time extends Date {
   static #rtfCache = new Map<string, Intl.RelativeTimeFormat>();
   static #formatReg = /\[([^\]]+)]|Y{1,4}|M{1,4}|D{1,2}|H{1,2}|m{1,2}|s{1,2}/g;
@@ -240,6 +244,7 @@ export class Time extends Date {
   }
 }
 
+/**Parse timestamp to Duration object */
 export function parseDuration(ms: number) {
   if (ms >= DY) {
     return { number: Math.ceil(ms / DY).toString(), unit: locale.year };
@@ -265,7 +270,7 @@ export function parseDuration(ms: number) {
   return { number: Math.ceil(ms).toString(), unit: locale.millisecond };
 }
 
-// https://github.com/tc39/proposal-intl-duration-format
+// https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/DurationFormat
 export function formatDuration(ms: number, numeric?: boolean) {
   if (numeric) {
     const sec = Math.ceil(ms / 1000);

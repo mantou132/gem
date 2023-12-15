@@ -1,7 +1,6 @@
 # Customize
 
-DuoyunUI comes with the theme (including a dark theme), icon(such as [`<dy-loading>`](../02-elements/loading.md)), text (eg, [`<dy-pagination>`](../02-elements/pagination.md)) can be easily used and modified,
-in your application, you can use them like this:
+DuoyunUI comes with themes, icons, texts, and can be used in the application:
 
 ```ts
 import { createCSSSheet, css, adoptedStyle, customElement, GemElement, html } from '@mantou/gem';
@@ -25,6 +24,8 @@ export class MyEleElement extends GemElement {
   };
 }
 ```
+
+Can be easily modified or extended.
 
 ## Customize theme
 
@@ -57,19 +58,20 @@ export const theme = extendTheme({ myColor: '#f00' });
 Currently DuoyunUI uses [Material Icon](https://fonts.google.com/icons?selected=Material+Icons), modify icon:
 
 ```ts
-import { setIcons } from 'duoyun-ui/lib/icons';
+import { extendIcons } from 'duoyun-ui/lib/icons';
 
-setIcons({
+const icons = extendIcons({
   more: `
     <svg part="icon" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 0 24 24" width="24px" fill="currentColor">
       <path d="M0 0h24v24H0z" fill="none" stroke="none"></path>
       <path d="M6 10c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm12 0c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm-6 0c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"></path>
     </svg>
   `,
+  myIcon: ``,
 });
 ```
 
-## Customize language
+## Customize text
 
 DuoyunUI defaults English, specifying Chinese and modifying a text:
 
@@ -95,7 +97,7 @@ export const i18n = new I18n<typeof zhCN>({
     'zh-CN': zhCN,
     en: enURI,
   },
-  onChange: async (code: keyof typeof langNames) => {
+  onChange: (code: keyof typeof langNames) => {
     switch (code) {
       case 'en':
         return updateLocale(import('duoyun-ui/locales/en'));

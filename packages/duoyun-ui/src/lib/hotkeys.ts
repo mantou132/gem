@@ -12,6 +12,7 @@ export type Key = {
 type NormalizeKey = string;
 
 /**
+ * @see
  * https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/code/code_values
  */
 export function normalizeKey(code: string): NormalizeKey {
@@ -121,6 +122,7 @@ appendToMap(keys);
 
 export const isMac = navigator.platform.includes('Mac');
 
+/**Get the platform button */
 export function getDisplayKey(code: string, type?: keyof Key) {
   const key = normalizeKey(code);
   const keyObj = keys[key];
@@ -136,7 +138,7 @@ export function getDisplayKey(code: string, type?: keyof Key) {
   return result.replace(/^(.)/, (_substr, $1: string) => $1.toUpperCase());
 }
 
-// custom key map
+/**Custom key map */
 export function setKeys(keysRecord: Record<NormalizeKey, Key>) {
   Object.assign(keys, keysRecord);
   appendToMap(keysRecord);
@@ -147,6 +149,7 @@ const hotkeySplitter = /,(?!,)/;
 // const keySplitter = /(?<!\+)\+/;
 const keySplitter = /\+/;
 
+/**Detect whether the current keyboard event matches the specified button */
 export function matchHotKey(evt: KeyboardEvent, hotkey: string) {
   const keys = hotkey.split(keySplitter).map((k) => map[k]);
 
@@ -198,6 +201,7 @@ export type HotKeyHandles = {
 let locked = false;
 const unlockCallback = new Set<() => void>();
 
+/**Release the lock state of the continuous button, see `hotkeys` */
 export function unlock() {
   locked = false;
   unlockCallback.forEach((callback) => callback());
@@ -205,9 +209,9 @@ export function unlock() {
 }
 
 /**
- * must have non-control character;
- * not case sensitive;
- * support `a-b`, press `a`, hotkeys be locked, wait next `keydown` event, allow call `unlock`
+ * Must have non-control character;
+ * Not case sensitive;
+ * Support `a-b`, press `a`, hotkeys be locked, wait next `keydown` event, allow call `unlock`
  */
 export function hotkeys(handles: HotKeyHandles) {
   return function (evt: KeyboardEvent) {
@@ -267,7 +271,7 @@ export function hotkeys(handles: HotKeyHandles) {
 }
 
 /**
- * support space,enter
+ * Support space,enter
  */
 export const commonHandle = hotkeys({
   'space,enter': (evt) => {

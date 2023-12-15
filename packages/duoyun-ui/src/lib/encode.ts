@@ -21,6 +21,7 @@ function base64ToSafeUrl(str: string) {
   return str.replaceAll('+', '-').replaceAll('/', '_').replaceAll('=', '');
 }
 
+/**Converted string to Base64, `isSafe` indicates URL safe */
 export function utf8ToB64(str: string, isSafe?: boolean) {
   const base64 = window.btoa(
     encodeURIComponent(str).replace(/%([0-9A-F]{2})/g, (_, p1) => String.fromCharCode(Number(`0x${p1}`))),
@@ -34,6 +35,7 @@ export function arrayBufferToBase64(arrayBuffer: ArrayBuffer, isSafe?: boolean) 
   return isSafe ? base64ToSafeUrl(base64) : base64;
 }
 
+/**Must be async */
 export async function hash(strOrAb: string | ArrayBuffer, options?: 'string'): Promise<string>;
 export async function hash(strOrAb: string | ArrayBuffer, output: 'arrayBuffer'): Promise<ArrayBuffer>;
 export async function hash(strOrAb: string | ArrayBuffer, output: 'string' | 'arrayBuffer' = 'string') {

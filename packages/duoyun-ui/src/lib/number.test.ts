@@ -44,10 +44,10 @@ it('`formatNumber` 默认选项', () => {
 it('`formatNumber` 小数点', () => {
   expect(formatNumber(1, { dotAfterCount: 0 })).include({ number: '1', unit: '' });
   expect(formatNumber(10, { dotAfterCount: 1 })).include({ number: '10', unit: '' });
-  expect(formatNumber(10, { dotAfterCount: 1, autoOmitFract: false })).include({ number: '10.0', unit: '' });
-  expect(formatNumber(10.02, { dotAfterCount: 1, autoOmitFract: false })).include({ number: '10.0', unit: '' });
-  expect(formatNumber(10.09, { dotAfterCount: 1, autoOmitFract: false })).include({ number: '10.1', unit: '' });
-  expect(formatNumber(10000, { dotAfterCount: 3, autoOmitFract: false })).include({
+  expect(formatNumber(10, { dotAfterCount: 1, autoOmitFraction: false })).include({ number: '10.0', unit: '' });
+  expect(formatNumber(10.02, { dotAfterCount: 1, autoOmitFraction: false })).include({ number: '10.0', unit: '' });
+  expect(formatNumber(10.09, { dotAfterCount: 1, autoOmitFraction: false })).include({ number: '10.1', unit: '' });
+  expect(formatNumber(10000, { dotAfterCount: 3, autoOmitFraction: false })).include({
     number: '10,000.000',
     unit: '',
   });

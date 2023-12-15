@@ -1,7 +1,7 @@
 /**
  * TODO: support json
  */
-import type { ElementDetail } from 'gem-analyzer';
+import type { ElementDetail, ExportDetail } from 'gem-analyzer';
 
 import type { Main } from '../element/elements/main';
 import type { GemBookElement } from '../element';
@@ -9,11 +9,11 @@ import type { GemBookElement } from '../element';
 const tsMorph = 'https://esm.sh/ts-morph@13.0.3';
 const gemAnalyzer = 'https://jspm.dev/gem-analyzer';
 
-type State = { elements?: ElementDetail[]; error?: any };
+type State = { elements?: ElementDetail[]; exports?: ExportDetail[]; error?: any };
 
 customElements.whenDefined('gem-book').then(() => {
   const { GemBookPluginElement } = customElements.get('gem-book') as typeof GemBookElement;
-  const { Gem, config, devMode, theme } = GemBookPluginElement;
+  const { Gem, config, theme } = GemBookPluginElement;
   const { html, customElement, attribute, numattribute, createCSSSheet, css, adoptedStyle } = Gem;
   const MainElement = customElements.get('gem-book-main') as typeof Main;
   const parser = new MainElement();
@@ -64,22 +64,25 @@ customElements.whenDefined('gem-book').then(() => {
         const repo = new URL(config.github).pathname;
         const src = `${this.src.startsWith('/') ? '' : '/'}${this.src}`;
         const basePath = config.base ? `/${config.base}` : '';
-        url = devMode ? `/_assets${src}` : `${rawOrigin}${repo}/${config.sourceBranch}${basePath}${src}`;
+        url = GemBookPluginElement.devMode
+          ? `/_assets${src}`
+          : `${rawOrigin}${repo}/${config.sourceBranch}${basePath}${src}`;
       }
       return url;
     };
 
-    #parseElements = async (text: string) => {
+    #parseFile = async (text: string) => {
       const { Project } = (await import(/* webpackIgnore: true */ tsMorph)) as typeof import('ts-morph');
-      const { getElements } = (await import(/* webpackIgnore: true */ gemAnalyzer)) as typeof import('gem-analyzer');
-      // const { getElements } = await import('gem-analyzer');
+      const { getElements, getExports } = GemBookPluginElement.devMode
+        ? await import('gem-analyzer')
+        : ((await import(/* webpackIgnore: true */ gemAnalyzer)) as typeof import('gem-analyzer'));
       const project = new Project({ useInMemoryFileSystem: true });
       const file = project.createSourceFile(this.src, text);
-      return getElements(file);
+      return { elements: getElements(file), exports: getExports(file) };
     };
 
-    #renderHeader = (headinglevel: number) => {
-      return '#'.repeat(headinglevel + this.#headingLevel - 1);
+    #renderHeader = (headingLevel: number) => {
+      return '#'.repeat(headingLevel + this.#headingLevel - 1);
     };
 
     #renderCode = (s?: string) => {
@@ -126,7 +129,7 @@ customElements.whenDefined('gem-book').then(() => {
           [
             ({ name }) => this.#renderCode(name),
             ({ type }) => this.#renderCode(type),
-            ({ description = '' }) => description,
+            ({ description = '' }) => description.replaceAll('\n', '<br>'),
           ],
         );
       }
@@ -138,7 +141,7 @@ customElements.whenDefined('gem-book').then(() => {
           [
             ({ name }) => this.#renderCode(name),
             ({ type }) => this.#renderCode(type),
-            ({ description = '' }) => description,
+            ({ description = '' }) => description.replaceAll('\n', '<br>'),
           ],
         );
       }
@@ -150,7 +153,7 @@ customElements.whenDefined('gem-book').then(() => {
           [
             ({ name }) => this.#renderCode(name),
             ({ type }) => this.#renderCode(type),
-            ({ description = '' }) => description,
+            ({ description = '' }) => description.replaceAll('\n', '<br>'),
           ],
         );
       }
@@ -165,7 +168,7 @@ customElements.whenDefined('gem-book').then(() => {
             ({ name, attribute }) => this.#renderCode(name) + (attribute ? `(${this.#renderCode(attribute)})` : ''),
             ({ reactive }) => (reactive ? 'Yes' : ''),
             ({ type }) => this.#renderCode(type),
-            ({ description = '' }) => description,
+            ({ description = '' }) => description.replaceAll('\n', '<br>'),
           ],
         );
       }
@@ -178,7 +181,7 @@ customElements.whenDefined('gem-book').then(() => {
           [
             ({ name }) => this.#renderCode(name),
             ({ type }) => this.#renderCode(type),
-            ({ description = '' }) => description,
+            ({ description = '' }) => description.replaceAll('\n', '<br>'),
           ],
         );
       }
@@ -197,11 +200,22 @@ customElements.whenDefined('gem-book').then(() => {
       return parser.parseMarkdown(text);
     };
 
+    #renderExports = (exports: ExportDetail[]) => {
+      return parser.parseMarkdown(
+        this.#renderTable(
+          exports.filter(({ kindName }) => kindName === 'FunctionDeclaration' || kindName === 'ClassDeclaration'),
+          ['Name', 'Description'],
+          [({ name }) => this.#renderCode(name), ({ description = '' }) => description.replaceAll('\n', '<br>')],
+        ),
+      );
+    };
+
     render = () => {
-      const { elements, error } = this.state;
+      const { elements, exports, error } = this.state;
       if (error) return html`<div class="error">${error}</div>`;
       if (!elements) return html`<div class="loading">API Loading...</div>`;
       const renderElements = this.name ? elements.filter(({ name }) => this.name === name) : elements;
+      if (!renderElements.length && exports) return html`${this.#renderExports(exports)}`;
       return html`${renderElements.map(this.#renderElement)}`;
     };
 
@@ -215,8 +229,8 @@ customElements.whenDefined('gem-book').then(() => {
             const resp = await fetch(url);
             if (resp.status === 404) throw new Error(resp.statusText || 'Not Found');
             const text = await resp.text();
-            const elements = await this.#parseElements(text);
-            this.setState({ elements, error: false });
+            const { elements, exports } = await this.#parseFile(text);
+            this.setState({ elements, exports, error: false });
           } catch (error) {
             this.error(error);
             this.setState({ error });

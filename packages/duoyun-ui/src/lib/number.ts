@@ -2,6 +2,7 @@
 
 import { locale } from '../lib/locale';
 
+/**Use a comma to separate numbers */
 export function splitInt(int: string | number, comma = 3) {
   if (comma === 0) return int;
   return String(int).replace(new RegExp(`(\\d)(?=(\\d{${comma}})+$)`, 'g'), '$1,');
@@ -17,15 +18,19 @@ interface FormatNumberOptions {
   // 使用逗号分割，指定分割位，默认 3
   comma?: number;
   // 如果没有进行进制转换的整数将不带小数，例如 `1` 显示成 `1` 而不是 `1.00`， 默认为 `true`
-  autoOmitFract?: boolean;
+  autoOmitFraction?: boolean;
   // 指定输出单位级别
   level?: number;
 }
 
+/**
+ * Format number, generator object
+ * Need to be combined as a strings on after
+ */
 export function formatNumber(value: number | undefined | null, option: FormatNumberOptions) {
   if (value !== 0 && !value) return { number: '-', unit: '' };
 
-  const { dotAfterCount = 2, unitSize = 10, units = [''], comma = 3, autoOmitFract = true, level } = option;
+  const { dotAfterCount = 2, unitSize = 10, units = [''], comma = 3, autoOmitFraction = true, level } = option;
 
   let l = 0;
   let n = value;
@@ -44,7 +49,7 @@ export function formatNumber(value: number | undefined | null, option: FormatNum
 
   const oint = Math.trunc(n);
   const fract = n - oint;
-  const onlyInt = autoOmitFract && l === 0 && Math.trunc(value) === value;
+  const onlyInt = autoOmitFraction && l === 0 && Math.trunc(value) === value;
   const fractPart = fract.toFixed(dotAfterCount);
   const fractPartStr = fractPart.slice(2);
   const int = fractPart.startsWith('1') ? oint + 1 : oint;
@@ -105,10 +110,15 @@ export function formatToPrecision(value: number, count = 2) {
   return Math.round(value * i) / i;
 }
 
+/**Similar CSS clamp */
 export function clamp(min: number, value: number, max: number) {
   return Math.max(min, Math.min(value, max));
 }
 
+/**
+ * Calculate the friendly range based on the maximum and minimum value,
+ * e.g: [0, 100], [0,500]
+ */
 export function adjustRange([min, max]: number[], stepCount: number, units?: number[]) {
   const getRatio = (d: number) => {
     if (d > 10) return 1;

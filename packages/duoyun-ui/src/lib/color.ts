@@ -73,7 +73,7 @@ export function parseHexColor(str: HexColor): RGBA {
 }
 
 /**
- * note: ignore alpha
+ * Note: ignore alpha
  */
 export function luminance([r, g, b]: RGB | RGBA) {
   const a = [r, g, b].map((v) => {
@@ -84,7 +84,7 @@ export function luminance([r, g, b]: RGB | RGBA) {
 }
 
 /**
- * note: ignore alpha
+ * Note: ignore alpha
  */
 export function contrast(rgb1: RGB | RGBA, rgb2: RGB | RGBA) {
   const l1 = luminance([rgb1[0], rgb1[1], rgb1[2]]) + 0.05;
@@ -93,8 +93,10 @@ export function contrast(rgb1: RGB | RGBA, rgb2: RGB | RGBA) {
 }
 
 /**
- * note: ignore alpha
- * edit for https://stackoverflow.com/questions/8022885/rgb-to-hsv-color-in-javascript
+ * Note: ignore alpha
+ *
+ * @see
+ * https://stackoverflow.com/questions/8022885/rgb-to-hsv-color-in-javascript
  */
 export function rgbToHsl(rgb: RGB | RGBA): HSL {
   const [r, g, b] = rgb.map((e) => e / 255);

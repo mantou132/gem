@@ -259,3 +259,40 @@ export const getElements = (file: SourceFile) => {
   }
   return result;
 };
+
+export interface ExportDetail {
+  name: string;
+  kindName: string;
+  type: string;
+  deprecated?: boolean;
+  description?: string;
+}
+
+export const getExports = (file: SourceFile) => {
+  const result: ExportDetail[] = [];
+
+  for (const [name, declarations] of file.getExportedDeclarations()) {
+    let deprecated = false;
+    let description = '';
+    declarations.forEach((declaration) => {
+      // 只支持 1 份有效的 jsDoc
+      const jsDoc = getJsDoc(declaration);
+      if (jsDoc?.deprecated || jsDoc?.description) {
+        deprecated = jsDoc.deprecated;
+        description = jsDoc.description;
+      }
+    });
+
+    result.push({
+      name,
+      kindName: declarations[0].getKindName(),
+      type: declarations
+        .map((declaration) => declaration.getType().getText())
+        .filter((e) => !!e)
+        .join(';'),
+      deprecated,
+      description,
+    });
+  }
+  return result;
+};

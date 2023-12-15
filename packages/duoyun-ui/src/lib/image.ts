@@ -16,6 +16,7 @@ export function createDataURLFromSVG(raw: string) {
 }
 
 // if `bg` is't `HexColor`, text fill color error
+/**Create SVG according to the text, the text will rotate some angles randomly */
 export function createSVGFromText(text: string, backgroundColor?: string) {
   const hslRange = [
     [0, 1],
@@ -35,7 +36,7 @@ export function createSVGFromText(text: string, backgroundColor?: string) {
   const getTranslate = () => Math.random() / 5;
   const getRotate = () => (Math.random() - 0.5) * 45;
 
-  const strs = [...text].map(
+  const strings = [...text].map(
     (char) => `<text
       x="50%"
       y="50%"
@@ -51,7 +52,7 @@ export function createSVGFromText(text: string, backgroundColor?: string) {
       height="300"
       viewBox="0 0 1 1"
       style="background: ${bg}; fill: ${color}; font: 1px sans-serif">
-      ${strs.join('')}
+      ${strings.join('')}
     </svg>
   `;
 }
@@ -113,6 +114,8 @@ interface OutputOptions {
   type?: 'url';
 }
 type Origin = (HTMLImageElement & { type?: string }) | File;
+
+/**Compression `HTMLImageElement`/`File` to DataURL/`File` */
 export function compressionImage(origin: Origin, limit: LimitOptions, output: OutputOptions): Promise<string>;
 export function compressionImage(origin: Origin, limit: LimitOptions): Promise<File>;
 export async function compressionImage(origin: Origin, limit: LimitOptions, { aspectRatio, type }: OutputOptions = {}) {

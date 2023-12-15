@@ -55,22 +55,24 @@ export const theme = extendTheme({ myColor: '#f00' });
 
 ## 自定义图标
 
-目前 DuoyunUI 使用 [Material Icon](https://fonts.google.com/icons?selected=Material+Icons)，修改 Icon：
+目前 DuoyunUI 使用 [Material Icon](https://fonts.google.com/icons?selected=Material+Icons)，
+修改和扩展 Icon：
 
 ```ts
-import { setIcons } from 'duoyun-ui/lib/icons';
+import { extendIcons } from 'duoyun-ui/lib/icons';
 
-setIcons({
+const icons = extendIcons({
   more: `
     <svg part="icon" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 0 24 24" width="24px" fill="currentColor">
       <path d="M0 0h24v24H0z" fill="none" stroke="none"></path>
       <path d="M6 10c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm12 0c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm-6 0c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"></path>
     </svg>
   `,
+  myIcon: ``,
 });
 ```
 
-## 自定义语言
+## 自定义文本
 
 DuoyunUI 默认使用英语，指定成中文并修改某个文本：
 
@@ -96,7 +98,7 @@ export const i18n = new I18n<typeof zhCN>({
     'zh-CN': zhCN,
     en: enURI,
   },
-  onChange: async (code: keyof typeof langNames) => {
+  onChange: (code: keyof typeof langNames) => {
     switch (code) {
       case 'en':
         return updateLocale(import('duoyun-ui/locales/en'));
