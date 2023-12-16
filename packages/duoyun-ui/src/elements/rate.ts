@@ -54,12 +54,12 @@ const style = createCSSSheet(css`
 `);
 
 /**
- * @customElement dy-rating
+ * @customElement dy-rate
  */
-@customElement('dy-rating')
+@customElement('dy-rate')
 @adoptedStyle(style)
 @adoptedStyle(focusStyle)
-export class DuoyunRatingElement extends GemElement {
+export class DuoyunRateElement extends GemElement {
   @numattribute value: number;
   @numattribute total: number;
   @boolattribute disabled: boolean;
