@@ -2,10 +2,18 @@
 
 ## Example
 
-<gbp-example
-  name="dy-placeholder"
-  props='{"style": "width: 100%;", "mode": "multi", "minLine": 4, "maxLine": 10}'
-  src="https://jspm.dev/duoyun-ui/elements/placeholder"></gbp-example>
+<gbp-example name="dy-placeholder" src="https://jspm.dev/duoyun-ui/elements/placeholder">
+
+```json
+{
+  "style": "width: 100%;",
+  "type": "multi",
+  "minLine": 3,
+  "maxLine": 6
+}
+```
+
+</gbp-example>
 
 ## API
 

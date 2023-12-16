@@ -8,7 +8,7 @@ import {
   part,
 } from '@mantou/gem/lib/decorators';
 import { GemElement, html } from '@mantou/gem/lib/element';
-import { createCSSSheet, css } from '@mantou/gem/lib/utils';
+import { createCSSSheet, css, exportPartsMap } from '@mantou/gem/lib/utils';
 
 import { theme } from '../lib/theme';
 
@@ -166,6 +166,8 @@ export type AvatarItem = {
 @customElement('dy-avatar-group')
 @adoptedStyle(groupStyle)
 export class DuoyunAvatarGroupElement extends GemElement {
+  @part static avatar: string;
+
   @numattribute max: number;
   @attribute size: 'small' | 'medium' | 'large';
   @attribute crossorigin: 'anonymous' | 'use-credentials';
@@ -187,10 +189,12 @@ export class DuoyunAvatarGroupElement extends GemElement {
     this.internals.role = 'group';
   }
 
+  #parts = exportPartsMap({ [DuoyunAvatarElement.avatar]: DuoyunAvatarGroupElement.avatar });
+
   #renderAvatar = ({ src = '', tooltip = '', alt = '', status, onClick }: AvatarItem) => {
     return html`
       <dy-avatar
-        exportparts=${DuoyunAvatarElement.avatar}
+        exportparts=${this.#parts}
         class="item"
         .src=${src}
         .tooltip=${tooltip}

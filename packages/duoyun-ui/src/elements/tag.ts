@@ -58,7 +58,9 @@ export type PresetColor = 'positive' | 'informative' | 'negative' | 'notice' | '
 export class DuoyunTagElement extends GemElement {
   @boolattribute closable: boolean;
   @attribute color: StringList<PresetColor>;
+  /**@deprecated */
   @attribute mode: 'solid' | 'reverse';
+  @attribute type: 'solid' | 'reverse';
   @boolattribute small: boolean;
 
   @emitter close: Emitter<null>;
@@ -75,8 +77,8 @@ export class DuoyunTagElement extends GemElement {
     }
   }
 
-  get #mode() {
-    return this.mode || 'solid';
+  get #type() {
+    return this.type || this.mode || 'solid';
   }
 
   constructor() {
@@ -90,7 +92,7 @@ export class DuoyunTagElement extends GemElement {
   };
 
   render = () => {
-    const isSolid = this.#mode === 'solid';
+    const isSolid = this.#type === 'solid';
     const isDefault = this.color === 'default' || this.color === '';
 
     return html`

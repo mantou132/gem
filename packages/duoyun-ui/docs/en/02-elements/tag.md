@@ -16,7 +16,7 @@
     "innerHTML": "Tag",
     "color": "negative",
     "small": true,
-    "mode": "reverse"
+    "type": "reverse"
   }
 ]
 ```

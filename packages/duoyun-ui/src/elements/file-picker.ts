@@ -125,7 +125,7 @@ export class DuoyunFilePickElement extends GemElement implements BasePickerEleme
 
   @attribute type: 'file' | 'image';
   @attribute accept: string;
-  /**@deprecated */
+  /**@deprecated Use children*/
   @attribute placeholder: string;
   @boolattribute directory: boolean;
   @boolattribute multiple: boolean;

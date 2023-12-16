@@ -589,10 +589,10 @@ export class DuoyunFlowElement extends DuoyunResizeBaseElement<State> {
       <dy-flow-canvas
         ref=${this.canvasRef.ref}
         exportparts=${exportPartsMap({
-          [DuoyunFlowCanvasElement.node]: DuoyunFlowCanvasElement.node,
-          [DuoyunFlowCanvasElement.nodeLabel]: DuoyunFlowCanvasElement.nodeLabel,
-          [DuoyunFlowCanvasElement.edge]: DuoyunFlowCanvasElement.edge,
-          [DuoyunFlowCanvasElement.edgeLabel]: DuoyunFlowCanvasElement.edgeLabel,
+          [DuoyunFlowCanvasElement.node]: DuoyunFlowElement.node,
+          [DuoyunFlowCanvasElement.nodeLabel]: DuoyunFlowElement.nodeLabel,
+          [DuoyunFlowCanvasElement.edge]: DuoyunFlowElement.edge,
+          [DuoyunFlowCanvasElement.edgeLabel]: DuoyunFlowElement.edgeLabel,
         })}
         @resize=${this.#onCanvasResize}
         style=${styleMap({

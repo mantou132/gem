@@ -11,7 +11,7 @@ const style = createCSSSheet(css`
     display: block;
     flex-grow: 1;
   }
-  :host(:where(:not([mode='multi']):not([hidden]))) {
+  :host(:where(:not([hidden], [type='multi'], [mode='multi']))) {
     display: flex;
     align-content: center;
   }
@@ -37,11 +37,11 @@ const style = createCSSSheet(css`
 @customElement('dy-placeholder')
 @adoptedStyle(style)
 export class DuoyunPlaceholderElement extends DuoyunVisibleBaseElement {
+  /**@deprecated */
   @attribute mode: 'single' | 'multi';
-  @boolattribute center: boolean; // mode: 'single'
-  /**
-   * %
-   */
+  @attribute type: 'single' | 'multi';
+  @boolattribute center: boolean; // only type 'single'
+  /**% */
   @attribute width: string;
   @attribute color: string;
   @numattribute maxLine: number;
@@ -51,8 +51,8 @@ export class DuoyunPlaceholderElement extends DuoyunVisibleBaseElement {
     return this.color || theme.lightBackgroundColor;
   }
 
-  get #mode() {
-    return this.mode || 'single';
+  get #type() {
+    return this.type || this.mode || 'single';
   }
 
   get #maxLine() {
@@ -71,7 +71,7 @@ export class DuoyunPlaceholderElement extends DuoyunVisibleBaseElement {
 
   render = () => {
     const lineCount =
-      this.#mode === 'single' ? 1 : Math.round(this.#minLine + Math.random() * (this.#maxLine - this.#minLine));
+      this.#type === 'single' ? 1 : Math.round(this.#minLine + Math.random() * (this.#maxLine - this.#minLine));
     return html`
       <style>
         :host {

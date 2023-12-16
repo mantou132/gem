@@ -168,7 +168,7 @@ customElements.whenDefined('gem-book').then(() => {
           ),
           [
             ({ name, attribute, deprecated }) =>
-              this.#renderCode(name, deprecated) + (attribute ? `(${this.#renderCode(attribute)})` : ''),
+              this.#renderCode(name, deprecated) + (attribute ? `(${this.#renderCode(attribute, deprecated)})` : ''),
             ({ reactive }) => (reactive ? 'Yes' : ''),
             ({ type }) => this.#renderCode(type),
             ({ description = '' }) => description.replaceAll('\n', '<br>'),

@@ -369,6 +369,9 @@ export function classMap(object: Record<string, boolean>) {
 
 export const partMap = classMap;
 
-export function exportPartsMap(object: Record<string, string | undefined>) {
-  return objectMapToString(object, ',', (key, value) => (value !== undefined ? `${key}:${value}` : ''));
+// https://developer.mozilla.org/en-US/docs/Web/HTML/Global_attributes/exportparts
+export function exportPartsMap(object: Record<string, string | undefined | boolean>) {
+  return objectMapToString(object, ',', (key, value) =>
+    value === true || key === value ? key : value ? `${key}:${value}` : '',
+  );
 }

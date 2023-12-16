@@ -107,6 +107,7 @@ describe('utils 测试', () => {
       `;--x:1px;font-size:14px;content:'*';`,
     );
     expect(classMap({ foo: true, content: false })).to.equal(` foo `);
-    expect(exportPartsMap({ foo: 'bar', content: 'content' })).to.equal(`,foo:bar,content:content,`);
+    expect(exportPartsMap({ foo: 'bar', content: 'content', false: false })).to.equal(`,foo:bar,content,`);
+    expect(exportPartsMap({ foo: 'bar', content: true })).to.equal(`,foo:bar,content,`);
   });
 });
