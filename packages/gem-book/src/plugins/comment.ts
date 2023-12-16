@@ -1,6 +1,7 @@
 import type { GemBookElement } from '../element';
 
-const url = 'https://jspm.dev/gitalk@1.7.2';
+const gitalkUrl = 'https://esm.sh/gitalk@1.7.2';
+const gitalkCSSUrl = 'https://esm.sh/gitalk@1.7.2/dist/gitalk.css';
 
 customElements.whenDefined('gem-book').then(async () => {
   const { GemBookPluginElement } = customElements.get('gem-book') as typeof GemBookElement;
@@ -17,7 +18,7 @@ customElements.whenDefined('gem-book').then(async () => {
 
     render() {
       return html`
-        <link rel="stylesheet" href="${url}/dist/gitalk.css" />
+        <link rel="stylesheet" href=${gitalkCSSUrl} />
         <div id="comment"></div>
         <style>
           :host {
@@ -70,7 +71,7 @@ customElements.whenDefined('gem-book').then(async () => {
       const ele = this.shadowRoot?.querySelector('#comment');
       if (!ele) return;
       ele.innerHTML = '';
-      const { default: Gitalk } = await import(/* webpackIgnore: true */ url);
+      const { default: Gitalk } = await import(/* webpackIgnore: true */ gitalkUrl);
       const [_, owner, repo] = github ? new URL(github).pathname.split('/') : [];
       new Gitalk({
         clientID: this.clientID,

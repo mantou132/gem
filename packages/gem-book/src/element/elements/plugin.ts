@@ -23,9 +23,6 @@ export class GemBookPluginElement<T = any> extends GemElement<T> {
       },
     },
   );
-  static get devMode() {
-    return bookStore.devMode;
-  }
   static get links() {
     return bookStore.links;
   }
@@ -49,6 +46,9 @@ export class GemBookPluginElement<T = any> extends GemElement<T> {
   }
   static get currentLinks() {
     return bookStore.currentLinks;
+  }
+  static get devMode() {
+    return bookStore.isDevMode?.();
   }
   static get currentLink() {
     return bookStore.getCurrentLink?.();

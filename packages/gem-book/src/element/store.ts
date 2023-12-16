@@ -15,7 +15,6 @@ import './elements/main';
 import './elements/404';
 
 interface CurrentBookConfig {
-  devMode: boolean;
   config: BookConfig;
 
   links: NavItemWithLink[];
@@ -29,6 +28,7 @@ interface CurrentBookConfig {
   homePage: string;
   currentLinks: NavItemWithLink[];
   getCurrentLink: () => NavItemWithLink;
+  isDevMode: () => boolean;
 }
 
 export const bookStore = createStore<Partial<CurrentBookConfig>>({});
@@ -135,7 +135,7 @@ function getLinkRouters(links: NavItemWithLink[], title: string, lang: string, d
       async getContent() {
         const renderer = getRenderer({ lang, link: originLink, displayRank });
         const content = await fetchDocument(originLink, lang, hash);
-        if (bookStore.devMode) await new Promise((res) => setTimeout(res, 500));
+        if (bookStore.isDevMode?.()) await new Promise((res) => setTimeout(res, 500));
         return html`<gem-book-main role="article" .renderer=${renderer} .content=${content}></gem-book-main>`;
       },
       data: item,
@@ -252,7 +252,7 @@ export function updateBookConfig(config?: BookConfig, gemBookElement?: GemBookEl
   });
   if (gemBookElement) {
     updateStore(bookStore, {
-      devMode: gemBookElement.dev,
+      isDevMode: () => gemBookElement.dev,
       getCurrentLink: () => {
         return gemBookElement?.routeRef.element?.currentRoute?.data as NavItemWithLink;
       },

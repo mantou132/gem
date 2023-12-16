@@ -2,8 +2,8 @@ import type { RefObject } from '@mantou/gem';
 
 import type { GemBookElement } from '../element';
 
-const moduleLink = 'https://cdn.skypack.dev/@docsearch/js@3.0.0-alpha.50';
-const styleLink = 'https://unpkg.com/@docsearch/css@3.0.0-alpha.50/dist/style.css';
+const moduleLink = 'https://esm.sh/@docsearch/js@3.0.0-alpha.50';
+const styleLink = 'https://esm.sh/@docsearch/css@3.0.0-alpha.50/dist/style.css';
 
 customElements.whenDefined('gem-book').then(async () => {
   const { GemBookPluginElement } = customElements.get('gem-book') as typeof GemBookElement;

@@ -20,7 +20,7 @@ npm install @mantou/gem
 或者使用 ESM：
 
 ```js
-import * as Gem from 'https://jspm.dev/@mantou/gem';
+import * as Gem from 'https://esm.sh/@mantou/gem';
 ```
 
 或者使用 UNPKG：

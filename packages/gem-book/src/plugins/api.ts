@@ -7,7 +7,7 @@ import type { Main } from '../element/elements/main';
 import type { GemBookElement } from '../element';
 
 const tsMorph = 'https://esm.sh/ts-morph@13.0.3';
-const gemAnalyzer = 'https://jspm.dev/gem-analyzer';
+const gemAnalyzer = 'https://esm.sh/gem-analyzer';
 
 type State = { elements?: ElementDetail[]; exports?: ExportDetail[]; error?: any };
 
@@ -73,9 +73,10 @@ customElements.whenDefined('gem-book').then(() => {
 
     #parseFile = async (text: string) => {
       const { Project } = (await import(/* webpackIgnore: true */ tsMorph)) as typeof import('ts-morph');
-      const { getElements, getExports } = GemBookPluginElement.devMode
-        ? await import('gem-analyzer')
-        : ((await import(/* webpackIgnore: true */ gemAnalyzer)) as typeof import('gem-analyzer'));
+      const { getElements, getExports } =
+        config.github === 'https://github.com/mantou132/gem'
+          ? await import('gem-analyzer')
+          : ((await import(/* webpackIgnore: true */ gemAnalyzer)) as typeof import('gem-analyzer'));
       const project = new Project({ useInMemoryFileSystem: true });
       const file = project.createSourceFile(this.src, text);
       return { elements: getElements(file), exports: getExports(file) };

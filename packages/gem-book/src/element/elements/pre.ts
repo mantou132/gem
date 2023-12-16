@@ -4,7 +4,7 @@ import { styleMap } from '@mantou/gem/lib/utils';
 
 import { theme } from '../helper/theme';
 
-const prismjs = 'https://cdn.skypack.dev/prismjs@v1.26.0';
+const prismjs = 'https://esm.sh/prismjs@v1.26.0';
 
 let contenteditableValue = 'true';
 (() => {
@@ -320,7 +320,7 @@ export class Pre extends GemElement {
       if (!this.getBoundingClientRect().width) return;
       if (this.status === 'hidden') return;
       if (!this.codeRef.element) return;
-      await import(/* @vite-ignore */ /* webpackIgnore: true */ `${prismjs}?min`);
+      await import(/* @vite-ignore */ /* webpackIgnore: true */ prismjs);
       const { Prism } = window as any;
       if (this.codelang && !Prism.languages[this.codelang]) {
         const lang = langAliases[this.codelang] || this.codelang;

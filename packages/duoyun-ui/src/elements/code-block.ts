@@ -5,6 +5,8 @@ import { createCSSSheet, css, styleMap } from '@mantou/gem/lib/utils';
 
 import { theme } from '../lib/theme';
 
+const prismjs = 'https://esm.sh/prismjs@v1.26.0';
+
 // https://github.com/PrismJS/prism/blob/master/plugins/autoloader/prism-autoloader.js
 const langDependencies: Record<string, string | string[]> = {
   javascript: 'clike',
@@ -358,8 +360,7 @@ export class DuoyunCodeBlockElement extends GemElement {
     this.effect(
       async () => {
         if (!this.codeRef.element) return;
-        const esmHost = 'https://cdn.skypack.dev/prismjs@v1.26.0';
-        await import(/* @vite-ignore */ /* webpackIgnore: true */ `${esmHost}?min`);
+        await import(/* @vite-ignore */ /* webpackIgnore: true */ prismjs);
         const { Prism } = window as any;
         if (this.codelang && !Prism.languages[this.codelang]) {
           const lang = langAliases[this.codelang] || this.codelang;
@@ -369,12 +370,12 @@ export class DuoyunCodeBlockElement extends GemElement {
               langDeps.map((langDep) => {
                 if (!Prism.languages[langDep]) {
                   return import(
-                    /* @vite-ignore */ /* webpackIgnore: true */ `${esmHost}/components/prism-${langDep}.min.js`
+                    /* @vite-ignore */ /* webpackIgnore: true */ `${prismjs}/components/prism-${langDep}.min.js`
                   );
                 }
               }),
             );
-            await import(/* @vite-ignore */ /* webpackIgnore: true */ `${esmHost}/components/prism-${lang}.min.js`);
+            await import(/* @vite-ignore */ /* webpackIgnore: true */ `${prismjs}/components/prism-${lang}.min.js`);
           } catch {
             //
           }
