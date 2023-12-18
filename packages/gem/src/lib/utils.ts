@@ -115,7 +115,7 @@ export class LinkedList<T = any> extends EventTarget {
   get(): T | undefined {
     const firstItem = this.#firstItem;
     if (!firstItem) return;
-    this.#delete(firstItem.value);
+    this.delete(firstItem.value);
     return firstItem.value;
   }
 }

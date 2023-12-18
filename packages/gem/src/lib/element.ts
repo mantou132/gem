@@ -265,6 +265,7 @@ export abstract class GemElement<T = Record<string, unknown>> extends HTMLElemen
     this.#memoList.push({
       callback,
       getDep,
+      // 这里为什么跟 effect 不同？？？
       values: [Symbol()],
       inConstructor: (this as any)[constructorSymbol],
     });
@@ -442,13 +443,16 @@ export abstract class GemElement<T = Record<string, unknown>> extends HTMLElemen
     });
     execCallback(this.#unmountCallback);
     this.unmounted?.();
-    this.#effectList?.forEach((effectItem) => {
-      execCallback(effectItem.preCallback);
-    });
-    this.#effectList = this.#effectList?.filter(({ inConstructor }) => inConstructor);
-    this.#memoList = this.#memoList?.filter(({ inConstructor }) => inConstructor);
+    this.#effectList?.forEach(({ preCallback }) => execCallback(preCallback));
+    this.#effectList = this.#effectList?.filter(this.#filterEffect);
+    this.#memoList = this.#memoList?.filter(this.#filterEffect);
     return GemElement.#final;
   }
+
+  #filterEffect = (e: EffectItem<any>) => {
+    e.initialized = false;
+    return e.inConstructor;
+  };
 }
 
 const gemElementProxyMap = new PropProxyMap<GemElement>();

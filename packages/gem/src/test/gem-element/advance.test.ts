@@ -158,12 +158,17 @@ describe('gem element 生命周期', () => {
 class EffectGemDemo extends GemElement {
   @attribute attr = 'a';
   @property prop = {};
-  effectCount = 0;
+  effectCallCount = 0;
+  hasConstructorEffect = false;
   compareCount = 0;
   constructor() {
     super();
     this.effect(
-      () => this.effectCount++,
+      () => {
+        this.hasConstructorEffect = true;
+        this.effectCallCount++;
+        return () => (this.hasConstructorEffect = false);
+      },
       () => {
         this.compareCount++;
         return [this.attr, this.prop];
@@ -173,13 +178,13 @@ class EffectGemDemo extends GemElement {
   mounted() {
     this.effect(
       (_arr) => {
-        this.effectCount++;
-        return () => (this.effectCount = 0);
+        this.effectCallCount++;
+        return () => (this.effectCallCount = 0);
       },
       () => [],
     );
     this.effect(() => {
-      this.effectCount++;
+      this.effectCallCount++;
     });
   }
 }
@@ -188,11 +193,11 @@ describe('gem element 副作用', () => {
   it('依赖当前值', async () => {
     const el: EffectGemDemo = await fixture(html`<effect-gem-demo></effect-gem-demo>`);
     expect(el.compareCount).to.equal(1);
-    expect(el.effectCount).to.equal(3);
+    expect(el.effectCallCount).to.equal(3);
     el.attr = 'b';
     el.prop = {};
     await nextFrame();
-    expect(el.effectCount).to.equal(5);
+    expect(el.effectCallCount).to.equal(5);
 
     let oldV: string | undefined = '';
     let newV: string | undefined = '';
@@ -211,7 +216,10 @@ describe('gem element 副作用', () => {
     expect(newV).to.equal('n');
 
     el.remove();
-    expect(el.effectCount).to.equal(0);
+    expect(el.effectCallCount).to.equal(0);
+    expect(el.hasConstructorEffect).to.equal(false);
+    document.body.append(el);
+    expect(el.hasConstructorEffect).to.equal(true);
   });
 });
 
