@@ -9,13 +9,15 @@ export class DuoyunResizeBaseElement<_T = Record<string, unknown>> extends GemEl
   constructor(options: GemElementOptions & { throttle?: boolean } = {}) {
     super(options);
     const { throttle: needThrottle = true } = options;
-    const callback = ([entry]: ResizeObserverEntry[]) => {
-      this.contentRect = entry.contentRect;
-      this.borderBoxSize = entry.borderBoxSize?.[0]
-        ? entry.borderBoxSize[0]
-        : { blockSize: this.contentRect.height, inlineSize: this.contentRect.width };
-      this.update();
-      this.resize(this);
+    const callback = (entryList: ResizeObserverEntry[]) => {
+      entryList.forEach((entry) => {
+        this.contentRect = entry.contentRect;
+        this.borderBoxSize = entry.borderBoxSize?.[0]
+          ? entry.borderBoxSize[0]
+          : { blockSize: this.contentRect.height, inlineSize: this.contentRect.width };
+        this.update();
+        this.resize(this);
+      });
     };
     const throttleCallback = needThrottle ? throttle(callback, 300, { leading: true }) : callback;
     this.effect(

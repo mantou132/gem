@@ -189,14 +189,15 @@ export class DuoyunPopoverElement extends GemElement<PopoverState> {
     if (this.state.open) return;
     let rect = targetRect;
     if (!rect) {
-      let eles = getAssignedElements(this.slotRef.element!);
-      if (!eles.length) {
-        eles = [this];
+      // self is `display: contents`
+      let elements = getAssignedElements(this.slotRef.element!);
+      if (!elements.length) {
+        elements = [this];
         this.style.display = 'inline';
       } else {
         this.removeAttribute('style');
       }
-      rect = getBoundingClientRect(eles);
+      rect = getBoundingClientRect(elements);
     }
     const { top, right, bottom, left } = rect;
     this.setState({

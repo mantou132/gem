@@ -8,8 +8,8 @@ export function getAssignedElements(ele: HTMLSlotElement): Element[] {
   return es;
 }
 
-export function getBoundingClientRect(eles: Element[]) {
-  const rects = eles.map((e) => e.getBoundingClientRect());
+export function getBoundingClientRect(eleList: Element[]) {
+  const rects = eleList.map((e) => e.getBoundingClientRect());
   return {
     top: Math.min(...rects.map((e) => e.top)),
     left: Math.min(...rects.map((e) => e.left)),
@@ -25,5 +25,17 @@ export function toggleActiveState(ele: Element | undefined | null, active: boole
     }
     // button/combobox
     ele.internals.ariaExpanded = String(active);
+  }
+}
+
+/**Y axis */
+export function findScrollContainer(startElement?: HTMLElement | null) {
+  let element = startElement;
+  while (element) {
+    const { overflowY } = getComputedStyle(element);
+    if (overflowY === 'auto' || overflowY === 'scroll') {
+      return element;
+    }
+    element = element.parentElement || ((element.getRootNode() as ShadowRoot)?.host as HTMLElement);
   }
 }

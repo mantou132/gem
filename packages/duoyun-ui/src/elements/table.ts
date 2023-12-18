@@ -162,7 +162,9 @@ export class DuoyunTableElement extends GemElement {
 
   @property noData?: string | TemplateResult;
 
+  /**@deprecated */
   @property rowKey?: string | string[];
+  @property getKey?: (record: any) => string | number;
   @property expandedRowRender?: (record: any) => undefined | string | TemplateResult;
   @emitter expand: Emitter<any>;
 
@@ -252,7 +254,7 @@ export class DuoyunTableElement extends GemElement {
 
   #expandedMap = new Map<any, boolean>();
 
-  #getKey = (record: any) => (this.rowKey ? readProp(record, this.rowKey) : record);
+  #getKey = (record: any) => (this.getKey ? this.getKey(record) : this.rowKey ? readProp(record, this.rowKey) : record);
 
   #toggleExpand = (record: any) => {
     const key = this.#getKey(record);

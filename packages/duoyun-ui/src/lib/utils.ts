@@ -124,6 +124,7 @@ export async function forever<T>(callback: () => Promise<T>, interval = 1000): P
   }
 }
 
+/**Polling calls until cancel */
 export function polling(fn: (args?: any[]) => any, delay: number) {
   let timer = 0;
   let hasExit = false;
@@ -189,12 +190,16 @@ export function debounce<T extends (...args: any) => any>(fn: T, wait = 500) {
   };
 }
 
-export function once<T extends (...args: any) => any>(fn: T) {
-  let timer = 0;
-  let result: ReturnType<T>;
+export function invokeByCount<T extends (...args: any) => any>(
+  fn: T,
+  condition: (tryCount: number, prevInvokeSuccessTimestamp: number) => boolean,
+) {
+  let count = 0;
+  let result: ReturnType<T> | undefined;
+  let timestamp = 0;
   return (...rest: Parameters<T>) => {
-    if (!timer) {
-      timer = 1;
+    if (condition(count++, timestamp)) {
+      timestamp = performance.now();
       result = fn(...(rest as any));
       return result;
     }
@@ -202,16 +207,14 @@ export function once<T extends (...args: any) => any>(fn: T) {
   };
 }
 
-/**Ignore the first call */
+/**Only invoke first */
+export function once<T extends (...args: any) => any>(fn: T) {
+  return invokeByCount(fn, (count) => count === 0) as T;
+}
+
+/**Ignore the first invoke */
 export function omitOnce<T extends (...args: any) => any>(fn: T) {
-  let timer = 0;
-  return (...rest: Parameters<T>) => {
-    if (timer) {
-      fn(...(rest as any));
-    } else {
-      timer = 1;
-    }
-  };
+  return invokeByCount(fn, (count) => count !== 0);
 }
 
 /**Only let the last add Promise take effect, don’t care about the order of Resolve */
@@ -275,6 +278,7 @@ export function comparer(a: any, comparer: ComparerType, b: any) {
   }
 }
 
+/**Serialized `TemplateResult` */
 export function getStringFromTemplate(o: TemplateResult | string, incorrect = false): string {
   if (o instanceof TemplateResult) {
     if (incorrect) {
@@ -288,6 +292,7 @@ export function getStringFromTemplate(o: TemplateResult | string, incorrect = fa
   return String(o);
 }
 
+/**Segmentation search word */
 export function splitString(s: string) {
   return s.split(/(?:\s|\/)+/);
 }

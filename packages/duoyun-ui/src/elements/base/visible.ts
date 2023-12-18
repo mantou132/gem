@@ -1,5 +1,24 @@
-import { emitter, Emitter, state } from '@mantou/gem/lib/decorators';
+import { emitter, Emitter, property, state } from '@mantou/gem/lib/decorators';
 import { GemElement, GemElementOptions } from '@mantou/gem/lib/element';
+
+export function visibilityObserver(ele: DuoyunVisibleBaseElement) {
+  const io = new IntersectionObserver(
+    (entries) => {
+      entries.forEach(({ intersectionRatio }) => {
+        if (intersectionRatio > 0) {
+          ele.visible = true;
+          ele.show(null);
+        } else {
+          ele.visible = false;
+          ele.hide(null);
+        }
+      });
+    },
+    { root: ele.intersectionRoot },
+  );
+  io.observe(ele);
+  return () => io.disconnect();
+}
 
 /**
  * @fires show
@@ -11,17 +30,13 @@ export class DuoyunVisibleBaseElement<_T = Record<string, unknown>> extends GemE
 
   @state visible: boolean;
 
+  @property intersectionRoot?: Element | Document;
+
   constructor(options?: GemElementOptions) {
     super(options);
-    new IntersectionObserver((entries) => {
-      const { intersectionRatio } = entries.pop()!;
-      if (intersectionRatio > 0) {
-        this.visible = true;
-        this.show(null);
-      } else {
-        this.visible = false;
-        this.hide(null);
-      }
-    }).observe(this);
+    this.effect(
+      () => visibilityObserver(this),
+      () => [this.intersectionRoot],
+    );
   }
 }

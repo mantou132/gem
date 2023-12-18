@@ -83,6 +83,10 @@ customElements.whenDefined('gem-book').then(() => {
       loading: true,
     };
 
+    #isFunction(value: string) {
+      return /^\((\w|,|\s)*\)\s*=>/.test(value);
+    }
+
     #renderElement = (props: Props) => {
       const Cls = customElements.get(this.name);
       if (!Cls) return html``;
@@ -94,9 +98,9 @@ customElements.whenDefined('gem-book').then(() => {
           } else if (key.startsWith('?')) {
             (ele as any)[key.slice(1)] = true;
           } else if (key.startsWith('.')) {
-            (ele as any)[key.slice(1)] = JSON.parse(value);
+            (ele as any)[key.slice(1)] = this.#isFunction(value) ? eval(value) : JSON.parse(value);
           } else {
-            (ele as any)[key] = value;
+            (ele as any)[key] = this.#isFunction(value) ? eval(value) : value;
           }
         });
       }
@@ -135,7 +139,7 @@ customElements.whenDefined('gem-book').then(() => {
 
     #renderPropValue = (key: string, value: string, isNewLine: boolean) => {
       if (key === 'innerHTML') return '';
-      const vString = key.startsWith('@') ? value : this.#jsonStringify(value);
+      const vString = key.startsWith('@') || this.#isFunction(value) ? value : this.#jsonStringify(value);
       const kString = key.startsWith('@') ? key : `.${key}`;
       const hasMultipleLine = vString.includes('\n');
       const indentValue = hasMultipleLine ? `\n${this.#addIndentation(vString, 4)}\n` : vString;
