@@ -7,6 +7,7 @@ import {
   property,
   boolattribute,
   part,
+  emitter,
 } from '@mantou/gem/lib/decorators';
 import { GemElement, html } from '@mantou/gem/lib/element';
 import { createCSSSheet, css } from '@mantou/gem/lib/utils';
@@ -15,29 +16,37 @@ import { theme } from '../lib/theme';
 import { isNotNullish } from '../lib/types';
 import { normalizeKey, getDisplayKey } from '../lib/hotkeys';
 import { focusStyle } from '../lib/styles';
+import { icons } from '../lib/icons';
 
 import './paragraph';
+import './use';
 
 const style = createCSSSheet(css`
   :host(:where(:not([hidden]))) {
     display: inline-flex;
-    align-items: center;
     font-size: 0.875em;
     box-sizing: border-box;
     width: 15em;
     height: calc(2.2em + 2px);
-    padding-inline: 0.4em;
-    gap: 0.2em;
     border-radius: ${theme.normalRound};
     border: 1px solid ${theme.borderColor};
-    white-space: nowrap;
   }
   :host(:focus) {
     border-color: ${theme.textColor};
     background-color: ${theme.lightBackgroundColor};
   }
+  :host([disabled]) {
+    cursor: not-allowed;
+    border-color: transparent;
+    background: ${theme.disabledColor};
+  }
   .paragraph {
-    display: contents;
+    display: flex;
+    align-items: center;
+    flex-grow: 1;
+    gap: 0.2em;
+    padding-inline: 0.4em;
+    margin: 0;
     line-height: 1.2;
   }
   .placeholder,
@@ -54,6 +63,24 @@ const style = createCSSSheet(css`
   }
   :host(:not(:focus)) .tooltip {
     display: none;
+  }
+  .clear {
+    inline-size: 1.25em;
+    flex-shrink: 0;
+    opacity: 0.2;
+    padding-inline: 0.35em;
+    margin-inline-start: -0.35em;
+  }
+  :host(:where([disabled], :not(:focus-within, :hover))) .clear {
+    display: none;
+  }
+  .clear:hover {
+    opacity: 0.4;
+  }
+  @media (hover: none) {
+    .clear {
+      display: block;
+    }
   }
 `);
 
@@ -72,7 +99,9 @@ export class DuoyunShortcutRecordElement extends GemElement {
   @attribute placeholder: string;
   @attribute tooltip: string;
   @boolattribute disabled: boolean;
+  @boolattribute clearable: boolean;
   @globalemitter change: Emitter<string[]>;
+  @emitter clear: Emitter;
 
   @property value?: string[];
 
@@ -113,6 +142,11 @@ export class DuoyunShortcutRecordElement extends GemElement {
     evt.preventDefault();
   };
 
+  #onClear = () => {
+    this.clear(null);
+    this.focus();
+  };
+
   render = () => {
     return html`
       <dy-paragraph class="paragraph">
@@ -125,6 +159,9 @@ export class DuoyunShortcutRecordElement extends GemElement {
               <div class="tooltip">${this.#tooltip}</div>
             `}
       </dy-paragraph>
+      ${this.clearable
+        ? html`<dy-use class="clear" role="button" @click=${this.#onClear} .element=${icons.close}></dy-use>`
+        : ''}
     `;
   };
 }

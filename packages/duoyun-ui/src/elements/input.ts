@@ -158,7 +158,7 @@ export class DuoyunInputElement extends GemElement {
 
   @refobject inputRef: RefObject<HTMLInputElement>;
   @globalemitter change: Emitter<string>;
-  @emitter clear: Emitter<string>;
+  @emitter clear: Emitter;
 
   @attribute name: string;
   @attribute value: string;
@@ -281,7 +281,7 @@ export class DuoyunInputElement extends GemElement {
 
   #onClear = (evt: Event) => {
     evt.stopPropagation();
-    this.clear('');
+    this.clear(null);
     this.focus();
     this.#history.save();
   };
