@@ -36,6 +36,9 @@ const style = createCSSSheet(css`
     border-radius: ${theme.normalRound};
     white-space: nowrap;
   }
+  :host([round]) {
+    border-radius: 10em;
+  }
   .content,
   .dropdown {
     position: relative;
@@ -55,7 +58,9 @@ const style = createCSSSheet(css`
   }
   .dropdown {
     display: flex;
-    border-radius: 0 ${theme.normalRound} ${theme.normalRound} 0;
+    border-radius: inherit;
+    border-end-start-radius: 0;
+    border-start-start-radius: 0;
     margin-inline-start: -1px;
     padding-inline: 0.2em;
     width: 1.4em;
@@ -70,7 +75,12 @@ const style = createCSSSheet(css`
     min-width: auto;
     padding: 0.5em 0.8em;
   }
-  :host([small]) .dropdown {
+  :host([small]) .content {
+    min-width: auto;
+    padding: 0.5em 0.8em;
+  }
+  :host([square]) .content {
+    min-width: auto;
     padding: 0.5em;
   }
   :host([type='reverse']) :where(.content, .dropdown) {
@@ -124,6 +134,8 @@ export class DuoyunButtonElement extends GemElement {
   @attribute type: 'solid' | 'reverse';
   @attribute color: StringList<'normal' | 'danger' | 'cancel'>;
   @boolattribute small: boolean;
+  @boolattribute round: boolean;
+  @boolattribute square: boolean;
   @boolattribute disabled: boolean;
 
   @property dropdown?: ContextMenuItem[] | null;

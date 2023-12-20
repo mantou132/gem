@@ -12,8 +12,13 @@
     "innerHTML": "Create Post",
     "color": "danger",
     "type": "reverse",
-    "small": true,
     "dropdown": [{ "text": "Label 1" }, { "text": "Label 2" }]
+  },
+  {
+    "icon": "icons.add",
+    "color": "informative",
+    "square": true,
+    "round": true
   }
 ]
 ```

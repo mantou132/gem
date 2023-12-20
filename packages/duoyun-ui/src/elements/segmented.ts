@@ -26,7 +26,8 @@ const style = createCSSSheet(css`
     line-height: 1.2;
     border-radius: ${theme.normalRound};
     background: ${theme.hoverBackgroundColor};
-    padding: 2px;
+    --padding: 2px;
+    padding: var(--padding);
   }
   :host([small]) {
     font-size: 0.75em;
@@ -43,7 +44,7 @@ const style = createCSSSheet(css`
     display: flex;
     justify-content: center;
     gap: 0.3em;
-    padding: calc(0.5em - 1px) 1em;
+    padding: calc(0.5em - var(--padding) + 1px) 1em;
     border-radius: inherit;
     min-width: 5em;
   }

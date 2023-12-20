@@ -17,6 +17,7 @@ import { theme } from '../lib/theme';
 import { icons } from '../lib/icons';
 import { commonHandle } from '../lib/hotkeys';
 import { focusStyle } from '../lib/styles';
+import { middle } from '../lib/number';
 
 import { Popover } from './popover';
 
@@ -102,7 +103,7 @@ export class DuoyunPaginationElement extends GemElement {
 
   #offset = 2;
 
-  #renderMore = () => {
+  #renderMore = (value: number) => {
     let close: () => void;
     const pageChange = ({ target }: Event) => {
       const { value } = (target as HTMLElement).previousElementSibling as HTMLInputElement;
@@ -123,7 +124,7 @@ export class DuoyunPaginationElement extends GemElement {
               step=${1}
               min=${1}
               max=${this.total}
-              value=${String(this.page)}
+              value=${String(value)}
               @change=${({ detail, target }: CustomEvent<string>) => ((target as HTMLInputElement).value = detail)}
             ></dy-input>
             <dy-button small @click=${pageChange}> ${locale.ok} </dy-button>
@@ -147,14 +148,14 @@ export class DuoyunPaginationElement extends GemElement {
   #renderItem(page: number) {
     if (page > 1 && page < this.page - this.#offset) {
       if (page === 2) {
-        return this.#renderMore();
+        return this.#renderMore(middle(1, this.page - this.#offset));
       } else {
         return html``;
       }
     }
-    if (page < this.total && page > this.page + this.#offset) {
+    if (page > this.page + this.#offset && page < this.total) {
       if (page === this.total - 1) {
-        return this.#renderMore();
+        return this.#renderMore(middle(this.page + this.#offset, this.total));
       } else {
         return html``;
       }
@@ -176,8 +177,8 @@ export class DuoyunPaginationElement extends GemElement {
   render = () => {
     if (this.total <= 1) return html``;
 
-    const prevable = this.page > 1;
-    const nextable = this.page < this.total;
+    const prevAble = this.page > 1;
+    const nextAble = this.page < this.total;
     return html`
       <style>
         :host {
@@ -199,11 +200,11 @@ export class DuoyunPaginationElement extends GemElement {
         : ''}
       <div
         role="option"
-        aria-disabled=${!prevable}
+        aria-disabled=${!prevAble}
         tabindex="0"
         @keydown=${commonHandle}
-        class=${classMap({ item: true, disabled: !prevable })}
-        @click=${() => prevable && this.pagechange(this.page - 1)}
+        class=${classMap({ item: true, disabled: !prevAble })}
+        @click=${() => prevAble && this.pagechange(this.page - 1)}
       >
         ${locale.prevPage}
       </div>
@@ -212,11 +213,11 @@ export class DuoyunPaginationElement extends GemElement {
         .map((_, index) => this.#renderItem(index + 1))}
       <div
         role="option"
-        aria-disabled=${!nextable}
+        aria-disabled=${!nextAble}
         tabindex="0"
         @keydown=${commonHandle}
-        class=${classMap({ item: true, disabled: !nextable })}
-        @click=${() => nextable && this.pagechange(this.page + 1)}
+        class=${classMap({ item: true, disabled: !nextAble })}
+        @click=${() => nextAble && this.pagechange(this.page + 1)}
       >
         ${locale.nextPage}
       </div>

@@ -115,6 +115,10 @@ export function clamp(min: number, value: number, max: number) {
   return Math.max(min, Math.min(value, max));
 }
 
+export function middle(x: number, y: number) {
+  return Math.floor((x + y) / 2);
+}
+
 /**
  * Calculate the friendly range based on the maximum and minimum value,
  * e.g: [0, 100], [0,500]

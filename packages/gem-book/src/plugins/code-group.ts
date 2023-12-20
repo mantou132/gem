@@ -16,7 +16,7 @@ type State = {
 
 customElements.whenDefined('gem-book').then(() => {
   const { GemBookPluginElement } = customElements.get('gem-book') as typeof GemBookElement;
-  const { theme, iconsContainer } = GemBookPluginElement;
+  const { theme, icons } = GemBookPluginElement;
   const { html, customElement, adoptedStyle, css, createCSSSheet, classMap } = GemBookPluginElement.Gem;
 
   const style = createCSSSheet(css`
@@ -137,12 +137,7 @@ customElements.whenDefined('gem-book').then(() => {
             )}
           </ul>
           <div class="actions">
-            <gem-use
-              class="btn"
-              .root=${iconsContainer}
-              .selector=${copyEnd ? '#check' : '#copy'}
-              @click=${this.#onCopy}
-            ></gem-use>
+            <gem-use class="btn" .element=${copyEnd ? icons.check : icons.copy} @click=${this.#onCopy}></gem-use>
           </div>
         </div>
         <slot></slot>

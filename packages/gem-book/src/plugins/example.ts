@@ -5,11 +5,13 @@ type State = {
   error?: any;
 };
 
-type Props = Record<string, string>;
+type PropValue = string | number | boolean;
+
+type Props = Record<string, PropValue>;
 
 customElements.whenDefined('gem-book').then(() => {
   const { GemBookPluginElement } = customElements.get('gem-book') as typeof GemBookElement;
-  const { theme } = GemBookPluginElement;
+  const { theme, icons } = GemBookPluginElement;
   const { html, customElement, attribute, createCSSSheet, css, adoptedStyle, styleMap } = GemBookPluginElement.Gem;
 
   const style = createCSSSheet(css`
@@ -83,8 +85,12 @@ customElements.whenDefined('gem-book').then(() => {
       loading: true,
     };
 
-    #isFunction(value: string) {
-      return /^\((\w|,|\s)*\)\s*=>/.test(value);
+    #isFunction(value: string | number | boolean) {
+      return /^\((\w|,|\s)*\)\s*=>/.test(String(value));
+    }
+
+    #getIcon(value: string | number | boolean) {
+      return String(value).startsWith('icons.') ? String(value).split('.') : undefined;
     }
 
     #renderElement = (props: Props) => {
@@ -93,14 +99,23 @@ customElements.whenDefined('gem-book').then(() => {
       const ele = new Cls();
       if (props) {
         Object.entries(props).forEach(([key, value]) => {
+          const isIcon = this.#getIcon(value);
           if (key.startsWith('@')) {
-            ele.addEventListener(key.slice(1), eval(value));
+            ele.addEventListener(key.slice(1), eval(String(value)));
           } else if (key.startsWith('?')) {
             (ele as any)[key.slice(1)] = true;
           } else if (key.startsWith('.')) {
-            (ele as any)[key.slice(1)] = this.#isFunction(value) ? eval(value) : JSON.parse(value);
+            (ele as any)[key.slice(1)] = isIcon
+              ? icons[isIcon[1] as keyof typeof icons]
+              : this.#isFunction(value)
+                ? eval(String(value))
+                : JSON.parse(String(value));
           } else {
-            (ele as any)[key] = this.#isFunction(value) ? eval(value) : value;
+            (ele as any)[key] = isIcon
+              ? icons[isIcon[1] as keyof typeof icons]
+              : this.#isFunction(value)
+                ? eval(String(value))
+                : value;
           }
         });
       }
@@ -137,9 +152,14 @@ customElements.whenDefined('gem-book').then(() => {
       return result;
     };
 
-    #renderPropValue = (key: string, value: string, isNewLine: boolean) => {
+    #renderPropValue = (key: string, value: PropValue, isNewLine: boolean) => {
       if (key === 'innerHTML') return '';
-      const vString = key.startsWith('@') || this.#isFunction(value) ? value : this.#jsonStringify(value);
+      const icon = this.#getIcon(value);
+      const vString = icon
+        ? icon.join('.')
+        : key.startsWith('@') || this.#isFunction(value)
+          ? String(value)
+          : this.#jsonStringify(value);
       const kString = key.startsWith('@') ? key : `.${key}`;
       const hasMultipleLine = vString.includes('\n');
       const indentValue = hasMultipleLine ? `\n${this.#addIndentation(vString, 4)}\n` : vString;
@@ -164,7 +184,7 @@ customElements.whenDefined('gem-book').then(() => {
 
     #renderInnerHTML = (props: Props) => {
       if (!props.innerHTML) return html``;
-      return `\n${this.#addIndentation(props.innerHTML)}\n`;
+      return `\n${this.#addIndentation(String(props.innerHTML))}\n`;
     };
 
     #renderCode = (props: Props) => {

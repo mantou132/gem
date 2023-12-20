@@ -14,6 +14,7 @@ import { theme } from '../lib/theme';
 import { formatBandwidth, formatDecimal, formatPercentage, formatTraffic, formatCurrency } from '../lib/number';
 
 import './placeholder';
+import './use';
 
 const style = createCSSSheet(css`
   :host(:where(:not([hidden]))) {
@@ -21,8 +22,20 @@ const style = createCSSSheet(css`
     font-size: 0.875em;
     line-height: 1.2;
   }
-  .title {
+  .header {
+    display: flex;
+    justify-content: space-between;
+    gap: 1em;
     margin-block-end: 1em;
+  }
+  .title {
+    overflow: hidden;
+    flex-shrink: 1;
+    white-space: nowrap;
+  }
+  .icon {
+    width: 1em;
+    flex-shrink: 0;
   }
   .values {
     display: flex;
@@ -68,6 +81,7 @@ export class DuoyunStatisticElement extends GemElement {
   @attribute neutral: StatisticNeutral;
   @attribute type: StatisticType;
   @property text: string | TemplateResult;
+  @property icon: string | Element | DocumentFragment;
   @boolattribute loading: boolean;
   @numattribute value: number;
   @numattribute prevValue: number;
@@ -96,7 +110,10 @@ export class DuoyunStatisticElement extends GemElement {
       this.#neutral === 'positive' ? [diffValue > 0, diffValue < 0] : [diffValue < 0, diffValue > 0];
 
     return html`
-      <div class="title">${this.loading ? html`<dy-placeholder width="5em"></dy-placeholder>` : this.text}</div>
+      <div class="header">
+        <span class="title">${this.loading ? html`<dy-placeholder width="5em"></dy-placeholder>` : this.text}</span>
+        <dy-use class="icon" .element=${this.icon}></dy-use>
+      </div>
       <div class="values">
         <div class="value">
           <span class="number">${this.loading ? html`<dy-placeholder width="6em"></dy-placeholder>` : number}</span>

@@ -150,8 +150,9 @@ export class DuoyunPopoverElement extends GemElement<PopoverState> {
 
   #hover = false;
 
-  constructor({ delay = 500, content, position, ghostStyle, trigger, unreachable }: PopoverOptions = {}) {
+  constructor(options: PopoverOptions = {}) {
     super({ delegatesFocus: true });
+    const { delay = 500, content, position, ghostStyle, trigger, unreachable } = options;
     if (content) this.content = content;
     if (position) this.position = position;
     if (ghostStyle) this.ghostStyle = ghostStyle;

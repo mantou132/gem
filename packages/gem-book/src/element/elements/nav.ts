@@ -6,7 +6,7 @@ import { theme } from '../helper/theme';
 import { capitalize, isSameOrigin } from '../lib/utils';
 import { bookStore } from '../store';
 
-import { container } from './icons';
+import { icons } from './icons';
 
 import '@mantou/gem/elements/link';
 import '@mantou/gem/elements/use';
@@ -30,7 +30,7 @@ export class Nav extends GemElement {
       return html`
         <div class="item">
           ${mediaQuery.isPhone ? '' : name || lang}
-          <gem-use @click=${() => this.i18nRef.element?.click()} .root=${container} selector="#i18n"></gem-use>
+          <gem-use @click=${() => this.i18nRef.element?.click()} .element=${icons.i18n}></gem-use>
           <select
             class="i18n-select"
             aria-label="language select"
@@ -49,7 +49,7 @@ export class Nav extends GemElement {
       return html`
         <gem-link class="external item" href=${link}>
           ${capitalize(navTitle || title)}
-          <gem-use .root=${container} selector="#link"></gem-use>
+          <gem-use .element=${icons.link}></gem-use>
         </gem-link>
       `;
     }

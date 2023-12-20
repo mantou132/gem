@@ -6,14 +6,14 @@ import { mediaQuery } from '@mantou/gem/helper/mediaquery';
 import { theme } from '../helper/theme';
 import { bookStore } from '../store';
 import { BookConfig } from '../../common/config';
-import { container } from '../elements/icons';
+import { icons } from '../elements/icons';
 
 @connectStore(bookStore)
 export class GemBookPluginElement<T = any> extends GemElement<T> {
   static marked = marked;
   static Gem = Gem;
   static theme = theme;
-  static iconsContainer = container;
+  static icons = icons;
   static mediaQuery = mediaQuery;
   static config = new Proxy<Partial<BookConfig>>(
     {},

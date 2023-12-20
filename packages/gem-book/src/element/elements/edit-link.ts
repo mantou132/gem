@@ -6,7 +6,7 @@ import { selfI18n } from '../helper/i18n';
 import { theme } from '../helper/theme';
 import { bookStore } from '../store';
 
-import { container } from './icons';
+import { icons } from './icons';
 
 import '@mantou/gem/elements/link';
 import '@mantou/gem/elements/use';
@@ -98,7 +98,7 @@ export class EditLink extends GemElement<State> {
         }
       </style>
       <gem-link class="edit" href=${`${github}/edit/${sourceBranch}${fullPath}`}>
-        <gem-use selector="#compose" .root=${container}></gem-use>
+        <gem-use .element=${icons.compose}></gem-use>
         <span>${selfI18n.get('editOnGithub')}</span>
       </gem-link>
       ${lastUpdated &&

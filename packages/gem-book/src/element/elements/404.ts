@@ -5,7 +5,7 @@ import { bookStore } from '../store';
 import { selfI18n } from '../helper/i18n';
 import { theme } from '../helper/theme';
 
-import { container } from './icons';
+import { icons } from './icons';
 
 import '@mantou/gem/elements/reflect';
 
@@ -60,7 +60,7 @@ export class Meta extends GemElement {
         ? ''
         : html`
             <gem-link href=${`${github}/new/${sourceBranch}${fullPath}`}>
-              <gem-use selector="#compose" .root=${container}></gem-use>
+              <gem-use .element=${icons.compose}></gem-use>
               <span>${selfI18n.get('createOnGithub')}</span>
             </gem-link>
           `}

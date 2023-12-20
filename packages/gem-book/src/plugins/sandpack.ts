@@ -37,7 +37,7 @@ type State = {
 
 customElements.whenDefined('gem-book').then(() => {
   const { GemBookPluginElement } = customElements.get('gem-book') as typeof GemBookElement;
-  const { theme, iconsContainer } = GemBookPluginElement;
+  const { theme, icons } = GemBookPluginElement;
   const { html, customElement, refobject, attribute, boolattribute, adoptedStyle, css, createCSSSheet, classMap } =
     GemBookPluginElement.Gem;
 
@@ -365,12 +365,7 @@ customElements.whenDefined('gem-book').then(() => {
           </ul>
           <div class="actions">
             <gem-use class="btn" @click=${this.#onReset}>Reset</gem-use>
-            <gem-use
-              class="btn fork"
-              .root=${iconsContainer}
-              .selector=${forking ? '' : '#link'}
-              @click=${this.#onFork}
-            >
+            <gem-use class="btn fork" .element=${forking ? '' : icons.link} @click=${this.#onFork}>
               Fork ${forking ? '...' : ''}
             </gem-use>
           </div>

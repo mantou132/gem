@@ -1,6 +1,6 @@
 import { Renderer } from 'marked';
 
-import { anchorIcon, linkIcon } from '../elements/icons';
+import { icons } from '../elements/icons';
 import { normalizeId, CUSTOM_HEADING_REG } from '../../common/utils';
 
 import { getRemotePath, isSameOrigin, getUserLink, escapeHTML, textContent } from './utils';
@@ -13,9 +13,9 @@ export function getRenderer({ lang, link, displayRank }: { lang: string; link: s
     const [, text, customId] = textContent(fullText).match(CUSTOM_HEADING_REG) as RegExpMatchArray;
     const tag = `h${level}`;
     const id = normalizeId(customId || text);
-    return `<${tag} class="markdown-header" id="${id}"><a class="header-anchor" aria-hidden="true" href="#${id}">${anchorIcon}</a>${escapeHTML(
-      text,
-    )}</${tag}>`;
+    return `<${tag} class="markdown-header" id="${id}"><a class="header-anchor" aria-hidden="true" href="#${id}">${
+      icons.anchor
+    }</a>${escapeHTML(text)}</${tag}>`;
   };
 
   renderer.blockquote = (quote) => {
@@ -61,7 +61,7 @@ export function getRenderer({ lang, link, displayRank }: { lang: string; link: s
         ${internal ? '' : `ref="noreferrer" target="_blank"`}
         href="${href || ''}"
         title="${title || ''}"
-      >${text}${internal ? '' : linkIcon}</a>`;
+      >${text}${internal ? '' : icons.link}</a>`;
   };
   return renderer;
 }

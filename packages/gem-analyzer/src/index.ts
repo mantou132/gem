@@ -272,6 +272,8 @@ export const getExports = (file: SourceFile) => {
   const result: ExportDetail[] = [];
 
   for (const [name, declarations] of file.getExportedDeclarations()) {
+    // reexport
+    if (!declarations.length) return;
     let deprecated = false;
     let description = '';
     declarations.forEach((declaration) => {

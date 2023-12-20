@@ -6,7 +6,7 @@ import { capitalize } from '../lib/utils';
 import { theme } from '../helper/theme';
 import { bookStore } from '../store';
 
-import { container } from './icons';
+import { icons } from './icons';
 
 import '@mantou/gem/elements/link';
 import '@mantou/gem/elements/use';
@@ -36,7 +36,7 @@ export class SideBar extends GemElement {
         }
         return html`
           <div class="item" @click=${this.#toggleLinks}>
-            <gem-use class="arrow" selector="#arrow" .root=${container}></gem-use>
+            <gem-use class="arrow" .element=${icons.arrow}></gem-use>
             ${capitalize(title)}
           </div>
           <div class="links item">${children.map((item) => this.#renderItem(item))}</div>

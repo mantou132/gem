@@ -9,6 +9,7 @@
   {
     "style": "width: 200px; border: 1px solid; border-radius: 4px; padding: 1em;",
     "type": "traffic",
+    "icon": "icons.forward",
     "text": "Saving",
     "value": 12000,
     "prevValue": 9000

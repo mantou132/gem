@@ -5,7 +5,7 @@ import { theme } from '../helper/theme';
 import { getRemotePath, getUserLink, NavItemWithLink } from '../lib/utils';
 import { bookStore } from '../store';
 
-import { container } from './icons';
+import { icons } from './icons';
 import { mdRender } from './main';
 
 import '@mantou/gem/elements/link';
@@ -88,7 +88,7 @@ export class Homepage extends GemElement {
             ${actions?.map(
               ({ link, text }, index) =>
                 html`<gem-link href=${getUserLink(link)}>
-                  ${text}${index ? html`<gem-use .root=${container} selector="#arrow"></gem-use>` : ''}
+                  ${text}${index ? html`<gem-use .element=${icons.arrow}></gem-use>` : ''}
                 </gem-link>`,
             )}
           </div>
