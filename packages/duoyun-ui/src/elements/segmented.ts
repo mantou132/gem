@@ -7,6 +7,7 @@ import {
   emitter,
   part,
   property,
+  state,
 } from '@mantou/gem/lib/decorators';
 import { classMap, createCSSSheet, css, partMap } from '@mantou/gem/lib/utils';
 
@@ -19,6 +20,7 @@ import './use';
 
 const style = createCSSSheet(css`
   :host(:where(:not([hidden]))) {
+    position: relative;
     display: flex;
     cursor: default;
     user-select: none;
@@ -28,6 +30,7 @@ const style = createCSSSheet(css`
     background: ${theme.hoverBackgroundColor};
     --padding: 2px;
     padding: var(--padding);
+    gap: var(--padding);
   }
   :host([small]) {
     font-size: 0.75em;
@@ -39,16 +42,17 @@ const style = createCSSSheet(css`
     opacity: 0.5;
   }
   .segment {
+    z-index: 0;
     width: 0;
     flex-grow: 1;
     display: flex;
     justify-content: center;
     gap: 0.3em;
     padding: calc(0.5em - var(--padding) + 1px) 1em;
-    border-radius: inherit;
+    border-radius: calc(${theme.normalRound} - 1px);
     min-width: 5em;
   }
-  :host(:where(:not([disabled]))) .segment:hover {
+  :host(:where(:not([disabled], :where([data-animating], :state(animating))))) .segment:hover {
     background: ${theme.borderColor};
   }
   :host .segment.current {
@@ -63,6 +67,19 @@ const style = createCSSSheet(css`
     text-overflow: ellipsis;
     overflow: hidden;
   }
+  @supports (anchor-name: --foo) {
+    :host .segment.current {
+      background: none;
+    }
+    .ghost {
+      transition: inset 0.3s ${theme.timingFunction};
+      border-radius: calc(${theme.normalRound} - 1px);
+      position: absolute;
+      top: anchor(--anchor-0 top);
+      bottom: anchor(--anchor-0 bottom);
+      background: ${theme.backgroundColor};
+    }
+  }
 `);
 
 export interface SegmentedOption<T = any> extends Option<T> {
@@ -76,11 +93,14 @@ export interface SegmentedOption<T = any> extends Option<T> {
 @adoptedStyle(style)
 export class DuoyunSegmentedElement extends GemElement {
   @part static segment: string;
-  @part static currentSegment: string;
   @part static icon: string;
+  @part static ghost: string;
+  @part static current: string;
 
   @boolattribute disabled: boolean;
   @boolattribute small: boolean;
+
+  @state animating: boolean;
 
   @property options?: SegmentedOption[];
   @property value?: any;
@@ -93,22 +113,30 @@ export class DuoyunSegmentedElement extends GemElement {
 
   #onClick = (v: any) => {
     if (this.disabled) return;
+    this.animating = true;
+    setTimeout(() => (this.animating = false), 300);
     this.change(v);
   };
 
   render = () => {
     if (!this.options) return html``;
+    const currentIndex = this.options.findIndex(({ value }, index) => (value ?? index) === this.value);
     return html`
+      <span
+        class="ghost"
+        part=${DuoyunSegmentedElement.ghost}
+        style=${`left:anchor(--anchor-${currentIndex} left);right:anchor(--anchor-${currentIndex} right);`}
+      ></span>
       ${this.options.map(({ value, label, icon }, index) => {
-        const isCurrent = (value ?? index) === this.value;
         return html`
           <div
             role="radio"
             tabindex="0"
-            class=${classMap({ segment: true, current: isCurrent })}
+            style=${`anchor-name: --anchor-${index}`}
+            class=${classMap({ segment: true, current: index === currentIndex })}
             part=${partMap({
               [DuoyunSegmentedElement.segment]: true,
-              [DuoyunSegmentedElement.currentSegment]: isCurrent,
+              [DuoyunSegmentedElement.current]: index === currentIndex,
             })}
             @keydown=${commonHandle}
             @click=${() => this.#onClick(value ?? index)}
