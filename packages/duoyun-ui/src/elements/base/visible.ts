@@ -14,7 +14,10 @@ export function visibilityObserver(ele: DuoyunVisibleBaseElement) {
         }
       });
     },
-    { root: ele.intersectionRoot },
+    {
+      root: ele.intersectionRoot,
+      rootMargin: ele.intersectionRootMargin,
+    },
   );
   io.observe(ele);
   return () => io.disconnect();
@@ -31,6 +34,7 @@ export class DuoyunVisibleBaseElement<_T = Record<string, unknown>> extends GemE
   @state visible: boolean;
 
   @property intersectionRoot?: Element | Document;
+  @property intersectionRootMargin?: string;
 
   constructor(options?: GemElementOptions) {
     super(options);

@@ -35,10 +35,10 @@
 ```json
 {
   "style": "overflow:auto;height:300px;width:100%;overscroll-behavior:contain;",
-  "items": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+  "items": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
   "infinite": true,
   "getKey": "(item) => item",
-  "@backward": "({target})=>setTimeout(()=>target.items=[...target.items,...Array.from({length:150},(_,i)=>target.items.length+i)],100)"
+  "@backward": "({target})=>target.items=[...target.items,...Array.from({length:150},(_,i)=>target.items.length+i)]"
 }
 ```
 
@@ -48,13 +48,14 @@
 
 ```json
 {
-  "style": "overflow:auto;height:300px;width:100%;overscroll-behavior:contain;",
-  "items": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+  "style": "overflow:auto;height:300px;width:100%;overscroll-behavior:contain;display:grid;grid-template-columns:repeat(auto-fill,minmax(12em,1fr));",
+  "items": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
   "infinite": true,
+  "debug": true,
   "getKey": "(item) => item",
   "renderItem": "(item) => item",
-  "@backward": "({target})=>setTimeout(()=>target.items=[...target.items,...Array.from({length:150},(_,i)=>target.items.length+i)],100)",
-  "innerHTML": "<style>dy-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(12em,1fr));}::part(before-outside){grid-column:1/-1;}::part(item){aspect-ratio:1;border:1px solid gainsboro;display:flex;place-content:center;place-items:center;}</style>"
+  "@backward": "({target})=>target.items=[...target.items,...Array.from({length:150},(_,i)=>target.items.length+i)]",
+  "innerHTML": "<style>::part(item){font-size:3em;font-weight:bolder;aspect-ratio:1;border:1px solid gainsboro;display:flex;place-content:center;place-items:center;}</style>"
 }
 ```
 

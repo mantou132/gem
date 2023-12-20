@@ -58,7 +58,13 @@ export type BreadcrumbsItem = {
 export class DuoyunBreadcrumbsElement extends GemElement {
   @boolattribute compact: boolean;
 
+  /**@deprecated */
   @property list?: BreadcrumbsItem[];
+  @property items?: BreadcrumbsItem[];
+
+  get #items() {
+    return this.items || this.list;
+  }
 
   constructor() {
     super();
@@ -67,7 +73,7 @@ export class DuoyunBreadcrumbsElement extends GemElement {
 
   render = () => {
     return html`
-      ${this.list?.map(
+      ${this.#items?.map(
         ({ title, tooltip, handle, icon }, index, arr, isLast = arr.length - 1 === index) => html`
           <dy-tooltip .content=${tooltip}>
             ${icon

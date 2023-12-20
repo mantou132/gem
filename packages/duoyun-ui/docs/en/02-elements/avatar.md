@@ -22,7 +22,7 @@
   "items": [
     { "src": "https://api.dicebear.com/5.x/bottts-neutral/svg", "status": "positive" },
     { "src": "https://api.dicebear.com/5.x/thumbs/svg", "status": "positive" },
-    { "src": "https://api.dicebear.com/5.x/buster/svg", "status": "positive" }
+    { "src": "https://api.dicebear.com/7.x/avataaars-neutral/svg?seed=Lola", "status": "positive" }
   ]
 }
 ```
