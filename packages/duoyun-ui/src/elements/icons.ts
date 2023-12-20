@@ -42,7 +42,7 @@ const style = createCSSSheet(css`
 export class DuoyunIconsElement extends GemElement {
   #onCopy = async (name: string) => {
     await navigator.clipboard.writeText(`<dy-use .element=\${icons.${name}}></dy-use>`);
-    Toast.open('success', locale.copySuccess, {
+    Toast.open('success', `${locale.copySuccess}: ${name}`, {
       duration: 1000,
     });
   };

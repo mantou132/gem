@@ -2,6 +2,30 @@
 
 ## Example
 
+<gbp-example name="dy-toast" src="https://jspm.dev/duoyun-ui/elements/toast">
+
+```json
+{
+  "style": "width: 100%; position: relative; top: 0; z-index: auto;",
+  "items": [
+    {
+      "type": "success",
+      "content": "This is success"
+    },
+    {
+      "type": "warning",
+      "content": "This is warning"
+    },
+    {
+      "type": "error",
+      "content": "This is error"
+    }
+  ]
+}
+```
+
+</gbp-example>
+
 <gbp-sandpack dependencies="@mantou/gem, duoyun-ui">
 
 ```ts
