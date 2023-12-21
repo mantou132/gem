@@ -1,5 +1,5 @@
 // https://spectrum.adobe.com/page/cards/
-import { adoptedStyle, customElement, attribute, property, part } from '@mantou/gem/lib/decorators';
+import { adoptedStyle, customElement, attribute, property, part, slot } from '@mantou/gem/lib/decorators';
 import { html, TemplateResult } from '@mantou/gem/lib/element';
 import { createCSSSheet, css } from '@mantou/gem/lib/utils';
 
@@ -102,6 +102,9 @@ export class DuoyunCardElement extends DuoyunLoadableBaseElement {
   @part static preview: string;
   @part static avatar: string;
 
+  @slot static body: string;
+  @slot static footer: string;
+
   @attribute avatar: string;
   @attribute preview: string;
 
@@ -165,9 +168,9 @@ export class DuoyunCardElement extends DuoyunLoadableBaseElement {
             </div>
           `
         : ''}
-      <slot name="body"></slot>
+      <slot name=${DuoyunCardElement.body}></slot>
       <slot></slot>
-      <slot name="footer"></slot>
+      <slot name=${DuoyunCardElement.footer}></slot>
     `;
   };
 }

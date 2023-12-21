@@ -11,6 +11,7 @@ import {
   RefObject,
   part,
   state,
+  slot,
 } from '@mantou/gem/lib/decorators';
 import { GemElement, html, TemplateResult } from '@mantou/gem/lib/element';
 import { createCSSSheet, css, styled } from '@mantou/gem/lib/utils';
@@ -45,19 +46,23 @@ const style = createCSSSheet(css`
   }
   .mask {
     inset: 0;
-    animation: showMask 0.1s ${theme.timingFunction} forwards;
+    background-color: rgba(0, 0, 0, calc(${theme.maskAlpha} + 0.2));
+    animation: showMask 0.15s ${theme.timingFunction} forwards;
   }
   @keyframes showMask {
-    0% {
-      background-color: transparent;
-    }
-    100% {
-      background-color: rgba(0, 0, 0, calc(${theme.maskAlpha} + 0.2));
+    from {
+      opacity: 0;
     }
   }
   .dialog {
     outline: none;
-    animation: showDialog 0.1s ${theme.timingFunction} forwards;
+    animation: showDialog 0.15s ${theme.timingFunction} forwards;
+  }
+  @keyframes showDialog {
+    from {
+      transform: translate(0, 50%);
+      opacity: 0;
+    }
   }
   .main {
     box-sizing: border-box;
@@ -72,16 +77,6 @@ const style = createCSSSheet(css`
     padding: 1.5em 1.2em;
     box-shadow: 0 5px 10px rgba(0, 0, 0, calc(${theme.maskAlpha} - 0.15));
     border-radius: calc(${theme.normalRound} * 3);
-  }
-  @keyframes showDialog {
-    0% {
-      transform: translate(0, 50%);
-      opacity: 0;
-    }
-    100% {
-      transform: translate(0);
-      opacity: 1;
-    }
   }
   .header {
     font-size: 1.125em;
@@ -180,8 +175,8 @@ export class DuoyunModalElement extends GemElement {
   @part static dialog: string;
   @part static heading: string;
   @part static divider: string;
-  @part static body: string;
-  @part static footer: string;
+  @part @slot static body: string;
+  @part @slot static footer: string;
 
   @state closing: boolean;
 
@@ -204,7 +199,7 @@ export class DuoyunModalElement extends GemElement {
       });
     }).finally(async () => {
       restoreInert();
-      await modal.animate(fadeOut, commonAnimationOptions).finished;
+      await modal.#closeAnimate().finished;
       modal.remove();
     });
   }
@@ -217,19 +212,20 @@ export class DuoyunModalElement extends GemElement {
     return Modal.open({ ...options, body: content });
   }
 
-  constructor({
-    header,
-    open,
-    customize,
-    maskClosable,
-    cancelText,
-    okText,
-    body,
-    disableDefaultCancelBtn,
-    disableDefaultOKBtn,
-    dangerDefaultOkBtn,
-  }: ModalOptions = {}) {
+  constructor(options: ModalOptions = {}) {
     super({ delegatesFocus: true });
+    const {
+      header,
+      open,
+      customize,
+      maskClosable,
+      cancelText,
+      okText,
+      body,
+      disableDefaultCancelBtn,
+      disableDefaultOKBtn,
+      dangerDefaultOkBtn,
+    } = options;
     if (header) this.header = header;
     if (customize) this.customize = customize;
     if (maskClosable) this.maskClosable = maskClosable;
@@ -268,17 +264,15 @@ export class DuoyunModalElement extends GemElement {
     );
   };
 
-  #animation?: Animation;
+  #closeAnimate = () => this.animate(fadeOut, commonAnimationOptions);
+
   mounted = () => {
     this.effect(
-      async () => {
+      () => {
         if (this.open) {
-          this.#animation?.cancel();
           !this.shadowRoot?.activeElement && this.focus();
         } else {
-          this.#animation = this.animate(fadeOut, commonAnimationOptions);
-          await this.#animation.finished;
-          this.closing = false;
+          this.#closeAnimate().finished.then(() => (this.closing = false));
         }
       },
       () => [this.open],
@@ -302,7 +296,7 @@ export class DuoyunModalElement extends GemElement {
               class="dialog absolute"
               ref=${this.bodyRef.ref}
             >
-              ${this.body || html`<slot name="body"></slot>`}
+              ${this.body || html`<slot name=${DuoyunModalElement.body}></slot>`}
             </div>
           `
         : html`
@@ -322,10 +316,10 @@ export class DuoyunModalElement extends GemElement {
                   `
                 : ''}
               <div class="body" part=${DuoyunModalElement.body}>
-                <slot name="body" ref=${this.bodyRef.ref}>${this.body}</slot>
+                <slot name=${DuoyunModalElement.body} ref=${this.bodyRef.ref}>${this.body}</slot>
               </div>
               <div class="footer" part=${DuoyunModalElement.footer}>
-                <slot name="footer">
+                <slot name=${DuoyunModalElement.footer}>
                   <dy-button ?hidden=${this.disableDefaultCancelBtn} @click=${this.#close} .color=${'cancel'}>
                     ${this.cancelText || locale.cancel}
                   </dy-button>

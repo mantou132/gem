@@ -18,11 +18,8 @@ const style = createCSSSheet(css`
     border-radius: 0;
   }
   @keyframes showDialog {
-    0% {
+    from {
       transform: translate(100%, 0);
-    }
-    100% {
-      transform: translate(0);
     }
   }
 `);

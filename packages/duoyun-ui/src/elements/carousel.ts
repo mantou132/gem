@@ -261,7 +261,7 @@ export class DuoyunCarouselElement extends GemElement<State> {
             <li
               class=${classMap({ item: true, paused: this.#isFirstRender })}
               style=${styleMap({ '--direction': `${direction}` })}
-              ?inert=${currentIndex !== index}
+              .inert=${currentIndex !== index}
               @click=${onClick}
             >
               <img

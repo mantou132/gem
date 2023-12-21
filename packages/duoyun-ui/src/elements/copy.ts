@@ -6,6 +6,7 @@ import {
   boolattribute,
   emitter,
   Emitter,
+  slot,
 } from '@mantou/gem/lib/decorators';
 import { GemElement, html } from '@mantou/gem/lib/element';
 import { createCSSSheet, css, classMap } from '@mantou/gem/lib/utils';
@@ -88,6 +89,8 @@ type State = {
 @adoptedStyle(style)
 @adoptedStyle(focusStyle)
 export class DuoyunCopyElement extends GemElement<State> {
+  @slot static after: string;
+
   @boolattribute silent: boolean;
   @boolattribute block: boolean;
   @attribute tooltip: string;
@@ -157,7 +160,7 @@ export class DuoyunCopyElement extends GemElement<State> {
               `}
         </dy-use>
       </dy-tooltip>
-      <slot name="after"></slot>
+      <slot name=${DuoyunCopyElement.after}></slot>
     `;
   };
 }
