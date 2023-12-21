@@ -40,6 +40,7 @@ const style = createCSSSheet(css`
     border: 1px solid ${theme.primaryColor};
     border-radius: ${theme.smallRound};
     transform: scale(1.001);
+    transition: background 0.1s;
   }
   .checkbox::part(icon) {
     stroke-width: 1px;

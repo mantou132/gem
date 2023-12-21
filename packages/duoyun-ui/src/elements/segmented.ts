@@ -53,7 +53,10 @@ const style = createCSSSheet(css`
     min-width: 5em;
   }
   :host(:where(:not([disabled], :where([data-animating], :state(animating))))) .segment:hover {
-    background: ${theme.borderColor};
+    background: color-mix(in srgb, ${theme.hoverBackgroundColor}, currentColor 6%);
+    &:active {
+      background: color-mix(in srgb, ${theme.hoverBackgroundColor}, currentColor 10%);
+    }
   }
   :host .segment.current {
     background: ${theme.backgroundColor};
@@ -67,11 +70,15 @@ const style = createCSSSheet(css`
     text-overflow: ellipsis;
     overflow: hidden;
   }
+  .marker {
+    display: none;
+  }
   @supports (anchor-name: --foo) {
     :host .segment.current {
       background: none;
     }
-    .ghost {
+    .marker {
+      display: block;
       transition: inset 0.3s ${theme.timingFunction};
       border-radius: calc(${theme.normalRound} - 1px);
       position: absolute;
@@ -94,7 +101,7 @@ export interface SegmentedOption<T = any> extends Option<T> {
 export class DuoyunSegmentedElement extends GemElement {
   @part static segment: string;
   @part static icon: string;
-  @part static ghost: string;
+  @part static marker: string;
   @part static current: string;
 
   @boolattribute disabled: boolean;
@@ -122,11 +129,15 @@ export class DuoyunSegmentedElement extends GemElement {
     if (!this.options) return html``;
     const currentIndex = this.options.findIndex(({ value }, index) => (value ?? index) === this.value);
     return html`
-      <span
-        class="ghost"
-        part=${DuoyunSegmentedElement.ghost}
-        style=${`left:anchor(--anchor-${currentIndex} left);right:anchor(--anchor-${currentIndex} right);`}
-      ></span>
+      ${currentIndex !== -1
+        ? html`
+            <span
+              class="marker"
+              part=${DuoyunSegmentedElement.marker}
+              style=${`left:anchor(--anchor-${currentIndex} left);right:anchor(--anchor-${currentIndex} right);`}
+            ></span>
+          `
+        : ''}
       ${this.options.map(({ value, label, icon }, index) => {
         return html`
           <div

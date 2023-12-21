@@ -1,4 +1,4 @@
-import { adoptedStyle, customElement, attribute, boolattribute, numattribute } from '@mantou/gem/lib/decorators';
+import { adoptedStyle, customElement, attribute, boolattribute, numattribute, part } from '@mantou/gem/lib/decorators';
 import { html } from '@mantou/gem/lib/element';
 import { createCSSSheet, css, styleMap } from '@mantou/gem/lib/utils';
 
@@ -37,6 +37,8 @@ const style = createCSSSheet(css`
 @customElement('dy-placeholder')
 @adoptedStyle(style)
 export class DuoyunPlaceholderElement extends DuoyunVisibleBaseElement {
+  @part static line: string;
+
   /**@deprecated */
   @attribute mode: 'single' | 'multi';
   @attribute type: 'single' | 'multi';
@@ -84,6 +86,7 @@ export class DuoyunPlaceholderElement extends DuoyunVisibleBaseElement {
           (_, index) => html`
             <div
               class="content"
+              part=${DuoyunPlaceholderElement.line}
               style=${styleMap({
                 width: index === lineCount - 1 ? this.width || `${50 + Math.random() * 50}%` : 'auto',
               })}

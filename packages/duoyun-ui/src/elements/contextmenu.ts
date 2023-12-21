@@ -1,5 +1,5 @@
-import { connectStore, adoptedStyle, customElement } from '@mantou/gem/lib/decorators';
-import { GemElement, html, TemplateResult } from '@mantou/gem/lib/element';
+import { connectStore, adoptedStyle, customElement, refobject, RefObject } from '@mantou/gem/lib/decorators';
+import { html, GemElement, TemplateResult } from '@mantou/gem/lib/element';
 import { createCSSSheet, css, styleMap, classMap } from '@mantou/gem/lib/utils';
 import { createStore, updateStore } from '@mantou/gem/lib/store';
 
@@ -9,6 +9,8 @@ import { setBodyInert } from '../lib/utils';
 import { hotkeys } from '../lib/hotkeys';
 import { theme } from '../lib/theme';
 import { toggleActiveState } from '../lib/element';
+
+import type { DuoyunOptionsElement } from './options';
 
 import './compartment';
 import './button';
@@ -33,6 +35,7 @@ type ContextMenuStore = {
   width?: string;
   maxHeight?: string;
   activeElement?: HTMLElement | null;
+  onlyActive?: boolean;
   openLeft?: boolean;
   maskClosable?: boolean;
   menuStack: {
@@ -46,13 +49,14 @@ type ContextMenuStore = {
 };
 
 type ContextMenuOptions = {
-  x?: number;
-  y?: number;
   /**auto calc `x`/`y` via `activeElement` */
   activeElement?: HTMLElement | null;
   /**only work `activeElement`, only support first menu   */
   openLeft?: boolean;
   maskClosable?: boolean;
+  /**priority is higher than `activeElement`  */
+  x?: number;
+  y?: number;
   /**work on all menu */
   width?: string;
   /**only support first menu */
@@ -110,6 +114,8 @@ const style = createCSSSheet(css`
 @connectStore(contextmenuStore)
 @adoptedStyle(style)
 export class DuoyunContextMenuElement extends GemElement {
+  @refobject optionsRef: RefObject<DuoyunOptionsElement>;
+
   static instance?: DuoyunContextMenuElement;
 
   static async open(contextmenu: Menu, options: ContextMenuOptions = {}) {
@@ -130,15 +136,12 @@ export class DuoyunContextMenuElement extends GemElement {
       width,
       maxHeight,
       activeElement,
+      onlyActive: !!x || !!y,
       openLeft,
       maskClosable,
       menuStack: [{ x, y, menu: contextmenu, searchable, header }],
     });
-    if (ContextMenu.instance) {
-      await ContextMenu.instance.#initPosition();
-    } else {
-      new ContextMenu();
-    }
+    if (!ContextMenu.instance) new ContextMenu();
     await new Promise((res) => (closeResolve = res));
   }
 
@@ -254,16 +257,14 @@ export class DuoyunContextMenuElement extends GemElement {
     evt.preventDefault();
   };
 
-  #initPosition = async () => {
-    // await `ContextMenu` content update
-    await Promise.resolve();
+  #initPosition = () => {
     const element = this.#menuElements.shift();
-    const { activeElement, openLeft, menuStack, maxHeight } = contextmenuStore;
+    const { activeElement, onlyActive, openLeft, menuStack, maxHeight } = contextmenuStore;
     const { scrollHeight, clientHeight, clientWidth } = element!;
     const menu = menuStack[0];
     const height = scrollHeight + 2;
     const width = clientWidth + 2;
-    if (activeElement && !menu.x && !menu.y) {
+    if (activeElement && !onlyActive) {
       const { left, right, top, bottom } = activeElement.getBoundingClientRect();
       const showToLeft = openLeft ? left > width + this.#offset : innerWidth - left < width + this.#offset;
       const showToTop = innerHeight - bottom < height + 2 * this.#offset && top > innerHeight - bottom;
@@ -286,12 +287,15 @@ export class DuoyunContextMenuElement extends GemElement {
   };
 
   mounted = () => {
-    this.#initPosition();
     this.#menuElements.shift()?.focus();
     const restoreInert = setBodyInert(this);
     ContextMenu.instance = this;
     this.addEventListener('contextmenu', this.#preventDefault);
+    const ob = new ResizeObserver(this.#initPosition);
+    const optionsElement = this.optionsRef.element;
+    if (optionsElement) ob.observe(optionsElement);
     return () => {
+      if (optionsElement) ob.disconnect();
       restoreInert();
       ContextMenu.instance = undefined;
     };
@@ -310,6 +314,7 @@ export class DuoyunContextMenuElement extends GemElement {
         ) => html`
           <dy-options
             class="menu"
+            ref=${this.optionsRef.ref}
             style=${styleMap({
               width: this.#width,
               maxHeight: openTop

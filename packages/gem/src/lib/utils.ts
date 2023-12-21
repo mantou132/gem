@@ -44,7 +44,7 @@ interface LinkedListEventMap {
   start: Event;
   end: Event;
 }
-interface LinkedListItem<T> {
+export interface LinkedListItem<T> {
   value: T;
   prev?: LinkedListItem<T>;
   next?: LinkedListItem<T>;
@@ -83,6 +83,18 @@ export class LinkedList<T = any> extends EventTarget {
     return this.#map.size;
   }
 
+  get first() {
+    return this.#firstItem;
+  }
+
+  get last() {
+    return this.#lastItem;
+  }
+
+  find(value: T) {
+    return this.#map.get(value);
+  }
+
   // 添加到尾部，已存在时会删除老的项目
   // 如果是添加第一个，start 事件会在添加前触发，避免处理事件重复的逻辑
   add(value: T) {
@@ -112,6 +124,7 @@ export class LinkedList<T = any> extends EventTarget {
   }
 
   // 获取头部元素
+  // 会从链表删除
   get(): T | undefined {
     const firstItem = this.#firstItem;
     if (!firstItem) return;
@@ -363,7 +376,7 @@ export function styleMap(object: StyleObject) {
   );
 }
 
-export function classMap(object: Record<string, boolean>) {
+export function classMap(object: Record<string, boolean | string | number | undefined>) {
   return objectMapToString(object, ' ', (key, value) => (value ? key : ''));
 }
 

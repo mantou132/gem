@@ -6,9 +6,10 @@ import {
   Emitter,
   property,
   boolattribute,
+  part,
 } from '@mantou/gem/lib/decorators';
 import { GemElement, html } from '@mantou/gem/lib/element';
-import { createCSSSheet, css, classMap } from '@mantou/gem/lib/utils';
+import { createCSSSheet, css, classMap, exportPartsMap } from '@mantou/gem/lib/utils';
 
 import { isNotNullish } from '../lib/types';
 import { theme } from '../lib/theme';
@@ -17,8 +18,9 @@ import { icons } from '../lib/icons';
 import { commonHandle } from '../lib/hotkeys';
 import { focusStyle } from '../lib/styles';
 
+import { DuoyunCalendarElement } from './calendar';
+
 import './use';
-import './calendar';
 import './divider';
 import './action-text';
 import './time-panel';
@@ -30,6 +32,7 @@ const style = createCSSSheet(css`
     border: 1px solid ${theme.borderColor};
     border-radius: ${theme.normalRound};
     gap: 0.5em;
+    overflow: hidden;
   }
   .datepanel {
     width: 0;
@@ -46,7 +49,12 @@ const style = createCSSSheet(css`
     text-align: center;
   }
   .button {
-    max-width: 10%;
+    aspect-ratio: 1;
+    height: 100%;
+    border-radius: ${theme.smallRound};
+  }
+  .button::part(icon) {
+    padding: 17%;
   }
   .button:hover {
     background-color: ${theme.hoverBackgroundColor};
@@ -59,6 +67,17 @@ const style = createCSSSheet(css`
   }
   .calendar.hidden {
     visibility: hidden;
+  }
+  .calendar::part(no-highlight-cell):hover {
+    border-radius: ${theme.smallRound};
+  }
+  .calendar::part(start-highlight-cell) {
+    border-start-start-radius: ${theme.smallRound};
+    border-end-start-radius: ${theme.smallRound};
+  }
+  .calendar::part(stop-highlight-cell) {
+    border-start-end-radius: ${theme.smallRound};
+    border-end-end-radius: ${theme.smallRound};
   }
   .list {
     position: absolute;
@@ -86,7 +105,7 @@ const style = createCSSSheet(css`
   }
   .timepanelwrap {
     width: 0;
-    flex-grow: 10;
+    flex-grow: 14;
     display: flex;
     flex-direction: column;
   }
@@ -126,6 +145,8 @@ type State = {
 @adoptedStyle(style)
 @adoptedStyle(focusStyle)
 export class DuoyunDatePanelElement extends GemElement<State> {
+  @part static dayCell: string;
+
   @boolattribute time: boolean;
   @globalemitter change: Emitter<number>;
   @emitter datehover: Emitter<number>;
@@ -330,6 +351,7 @@ export class DuoyunDatePanelElement extends GemElement<State> {
             class=${classMap({ calendar: true, hidden: mode !== 'day' })}
             borderless
             today
+            exportparts=${exportPartsMap({ [DuoyunDatePanelElement.dayCell]: DuoyunCalendarElement.dayCell })}
             .position=${mode === 'day' ? this.#currentPosition.valueOf() : this.#prevPosition.valueOf()}
             .highlights=${this.#highlights}
             @datehover=${({ detail }: CustomEvent<number>) => this.datehover(detail)}
@@ -342,7 +364,7 @@ export class DuoyunDatePanelElement extends GemElement<State> {
         ? html`
             <dy-divider class="separate" orientation="vertical"></dy-divider>
             <div class="timepanelwrap">
-              <div class="time">${isNotNullish(this.value) ? new Time(this.value).format('HH:mm:ss') : ''}</div>
+              <div class="time">${isNotNullish(this.value) ? new Time(this.value).format('HH:mm:ss') : '-:-:-'}</div>
               <dy-divider class="separate"></dy-divider>
               <dy-time-panel
                 class="timepanel"

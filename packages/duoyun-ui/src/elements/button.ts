@@ -113,6 +113,10 @@ const style = createCSSSheet(css`
     background-color: currentColor;
     border-radius: inherit;
     opacity: 0.1;
+    transition: opacity 0.1s;
+  }
+  :active::after {
+    opacity: 0.18;
   }
   :host([disabled]) ::after {
     content: none;

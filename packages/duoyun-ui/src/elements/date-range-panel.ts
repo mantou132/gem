@@ -1,4 +1,4 @@
-import { adoptedStyle, customElement, globalemitter, Emitter, property } from '@mantou/gem/lib/decorators';
+import { adoptedStyle, customElement, globalemitter, Emitter, property, part } from '@mantou/gem/lib/decorators';
 import { GemElement, html } from '@mantou/gem/lib/element';
 import { createCSSSheet, css } from '@mantou/gem/lib/utils';
 
@@ -18,10 +18,13 @@ const style = createCSSSheet(css`
     display: flex;
     align-items: flex-start;
   }
-  .datepanel {
+  .panel {
     width: 100%;
     flex-shrink: 1;
     border: none;
+  }
+  .panel::part(day-cell) {
+    transition: none;
   }
   .separate {
     color: ${theme.lightBackgroundColor};
@@ -41,6 +44,8 @@ type State = {
 @customElement('dy-date-range-panel')
 @adoptedStyle(style)
 export class DuoyunDateRangePanelElement extends GemElement<State> {
+  @part static panel: string;
+
   @property value?: DateRangeValue;
   @globalemitter change: Emitter<number[]>;
 
@@ -95,7 +100,8 @@ export class DuoyunDateRangePanelElement extends GemElement<State> {
     const isSomeMonth = !isNullish(start) && !isNullish(stop) && new Time(start).isSome(stop, 'M');
     return html`
       <dy-date-panel
-        class="datepanel"
+        class="panel"
+        part=${DuoyunDateRangePanelElement.panel}
         @change=${this.#onSelect}
         @datehover=${this.#onDateHover}
         .value=${start}
@@ -108,7 +114,8 @@ export class DuoyunDateRangePanelElement extends GemElement<State> {
       ></dy-date-panel>
       <dy-divider class="separate" orientation="vertical"></dy-divider>
       <dy-date-panel
-        class="datepanel"
+        class="panel"
+        part=${DuoyunDateRangePanelElement.panel}
         @change=${this.#onSelect}
         @datehover=${this.#onDateHover}
         .value=${stop}

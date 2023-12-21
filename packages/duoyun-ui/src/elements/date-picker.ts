@@ -123,7 +123,7 @@ export class DuoyunDatePickElement extends GemElement implements BasePickerEleme
     ContextMenu.open(
       html`
         <dy-date-panel
-          style="border: none;"
+          style="border: none; border-radius: 0; margin: -0.4em;"
           .value=${this.#value}
           ?time=${this.time}
           @change=${this.time ? onChange : this.#onSubmit}

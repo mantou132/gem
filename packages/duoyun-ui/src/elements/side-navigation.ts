@@ -1,4 +1,4 @@
-import { connectStore, adoptedStyle, customElement, property } from '@mantou/gem/lib/decorators';
+import { connectStore, adoptedStyle, customElement, property, part } from '@mantou/gem/lib/decorators';
 import { html, TemplateResult } from '@mantou/gem/lib/element';
 import { history } from '@mantou/gem/lib/history';
 import { createCSSSheet, css, QueryString } from '@mantou/gem/lib/utils';
@@ -61,6 +61,9 @@ const style = createCSSSheet(css`
   }
   .item:where(:hover, [data-active], :state(active)) {
     background-color: ${theme.hoverBackgroundColor};
+    &:active {
+      background: color-mix(in srgb, ${theme.hoverBackgroundColor}, currentColor 3%);
+    }
   }
   .group {
     margin-block: 1.2em;
@@ -87,6 +90,11 @@ type State = Record<string, boolean>;
 @adoptedStyle(focusStyle)
 @connectStore(history.store)
 export class DuoyunSideNavigationElement extends DuoyunScrollBaseElement<State> {
+  @part static item: string;
+  @part static group: string;
+  @part static groupTitle: string;
+  @part static groupBody: string;
+
   @property items?: NavItems = [];
 
   // children open state
@@ -125,6 +133,7 @@ export class DuoyunSideNavigationElement extends DuoyunScrollBaseElement<State> 
       <dy-active-link
         class="item"
         tabindex="0"
+        part=${DuoyunSideNavigationElement.item}
         @keydown=${commonHandle}
         @click=${children && (() => this.#onClickChildren(title))}
         doc-title=${title}
@@ -151,9 +160,11 @@ export class DuoyunSideNavigationElement extends DuoyunScrollBaseElement<State> 
     return html`${this.items.map((item) =>
       'group' in item
         ? html`
-            <div class="group" role="group">
-              <div class="group-title">${item.title}${item.slot}</div>
-              <div class="group-body">${item.group.map((e) => this.#renderItem(e))}</div>
+            <div class="group" role="group" part=${DuoyunSideNavigationElement.group}>
+              <div class="group-title" part=${DuoyunSideNavigationElement.groupTitle}>${item.title}${item.slot}</div>
+              <div class="group-body" part=${DuoyunSideNavigationElement.groupBody}>
+                ${item.group.map((e) => this.#renderItem(e))}
+              </div>
             </div>
           `
         : this.#renderItem(item),

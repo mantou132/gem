@@ -6,6 +6,7 @@ import {
   Emitter,
   boolattribute,
   numattribute,
+  part,
 } from '@mantou/gem/lib/decorators';
 import { GemElement, html } from '@mantou/gem/lib/element';
 import { createCSSSheet, css, classMap } from '@mantou/gem/lib/utils';
@@ -60,6 +61,8 @@ const style = createCSSSheet(css`
 @adoptedStyle(style)
 @adoptedStyle(focusStyle)
 export class DuoyunRateElement extends GemElement {
+  @part static star: string;
+
   @numattribute value: number;
   @numattribute total: number;
   @boolattribute disabled: boolean;
@@ -107,6 +110,7 @@ export class DuoyunRateElement extends GemElement {
         { length: this.#total },
         (_, index) => html`
           <dy-use
+            part=${DuoyunRateElement.star}
             class=${classMap({
               icon: true,
               fill: this.value >= this.#total - index,

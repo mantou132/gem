@@ -35,6 +35,7 @@ const style = createCSSSheet(css`
     padding: 2px;
     border-radius: 10em;
     transform: scale(1.001);
+    transition: background 0.1s;
   }
   :host(:where(:hover, [checked])) .radio {
     color: ${theme.primaryColor};

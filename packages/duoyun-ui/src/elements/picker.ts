@@ -174,7 +174,7 @@ export class DuoyunPickElement extends GemElement implements BasePickerElement {
       <div class=${classMap({ value: true, placeholder: isEmpty })}>
         ${isEmpty ? this.placeholder : typeof currentLabels[0] === 'object' ? currentLabels : currentLabels.join()}
       </div>
-      <dy-use class="icon" .element=${icons.expand}></dy-use>
+      <dy-use .element=${icons.expand}></dy-use>
     `;
   };
 

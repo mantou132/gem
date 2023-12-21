@@ -26,8 +26,8 @@ const style = createCSSSheet(css`
     display: inline-flex;
     font-size: 0.875em;
     box-sizing: border-box;
-    width: 15em;
-    height: calc(2.2em + 2px);
+    inline-size: 15em;
+    block-size: calc(2.2em + 2px);
     border-radius: ${theme.normalRound};
     border: 1px solid ${theme.borderColor};
   }
@@ -70,6 +70,7 @@ const style = createCSSSheet(css`
     opacity: 0.2;
     padding-inline: 0.35em;
     margin-inline-start: -0.35em;
+    transition: opacity 0.1s;
   }
   :host(:where([disabled], :not(:focus-within, :hover))) .clear {
     display: none;

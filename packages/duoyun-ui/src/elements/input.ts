@@ -117,6 +117,7 @@ const style = createCSSSheet(css`
     opacity: 0.2;
     padding-inline: 0.35em;
     margin-inline-start: -0.35em;
+    transition: opacity 0.1s;
   }
   :host(:where([disabled], :not(:focus-within, :hover))) .clear {
     display: none;

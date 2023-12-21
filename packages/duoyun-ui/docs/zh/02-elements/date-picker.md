@@ -16,6 +16,7 @@
   {
     "value": 1644475003294,
     "time": true,
+    "clearable": true,
     "@clear": "(evt) => evt.target.value = null",
     "@change": "(evt) => evt.target.value = evt.detail"
   }

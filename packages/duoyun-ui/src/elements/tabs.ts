@@ -10,7 +10,7 @@ import {
   state,
 } from '@mantou/gem/lib/decorators';
 import { GemElement, html, TemplateResult } from '@mantou/gem/lib/element';
-import { createCSSSheet, css, partMap, classMap } from '@mantou/gem/lib/utils';
+import { createCSSSheet, css, partMap, classMap, styleMap } from '@mantou/gem/lib/utils';
 
 import { theme } from '../lib/theme';
 import { commonHandle } from '../lib/hotkeys';
@@ -31,6 +31,7 @@ const style = createCSSSheet(css`
     flex-direction: row;
   }
   .tabs {
+    position: relative;
     display: flex;
     font-size: 0.875em;
     gap: 2em;
@@ -64,7 +65,9 @@ const style = createCSSSheet(css`
     width: 1.2em;
   }
   .tab:hover,
-  .current {
+  .current,
+  .marker,
+  .animate-marker {
     color: ${theme.primaryColor};
   }
   .marker {
@@ -77,6 +80,19 @@ const style = createCSSSheet(css`
     top: 0;
     left: 100%;
     height: 100%;
+  }
+  .animate-marker {
+    display: none;
+  }
+  @supports (anchor-name: --foo) {
+    .marker {
+      background: none;
+    }
+    .animate-marker {
+      display: block;
+      position: absolute;
+      transition: inset 0.3s ${theme.timingFunction};
+    }
   }
 `);
 
@@ -96,7 +112,7 @@ export interface TabItem<T = any> {
 export class DuoyunTabsElement extends GemElement {
   @part static tabs: string;
   @part static tab: string;
-  @part static currentTab: string;
+  @part static current: string;
   @part static icon: string;
   @part static marker: string;
   @part static divider: string;
@@ -117,19 +133,46 @@ export class DuoyunTabsElement extends GemElement {
     this.internals.role = 'tablist';
   }
 
+  #getMarkerStyle = (index: number) => {
+    return this.#orientation === 'horizontal'
+      ? styleMap({
+          top: `anchor(--anchor-0 bottom)`,
+          left: `anchor(--anchor-${index} left)`,
+          right: `anchor(--anchor-${index} right)`,
+        })
+      : styleMap({
+          left: `anchor(--anchor-0 right)`,
+          top: `anchor(--anchor-${index} top)`,
+          bottom: `anchor(--anchor-${index} bottom)`,
+        });
+  };
+
   render = () => {
     if (!this.items) return html``;
     let currentContent: TemplateResult | string = '';
+    const currentIndex = this.items.findIndex(({ value }, index) => (value ?? index) === this.value);
     return html`
       <div part=${DuoyunTabsElement.tabs} class="tabs">
+        ${currentIndex !== -1
+          ? html`
+              <dy-divider
+                part=${DuoyunTabsElement.marker}
+                class="animate-marker"
+                size="medium"
+                orientation=${this.#orientation}
+                style=${this.#getMarkerStyle(currentIndex)}
+              ></dy-divider>
+            `
+          : ''}
         ${this.items.map(({ value, label, icon, getContent }, index) => {
-          const isCurrent = (value ?? index) === this.value;
+          const isCurrent = currentIndex === index;
           if (isCurrent) currentContent = getContent?.() || '';
           return html`
             <div
               role="tab"
+              style=${`anchor-name: --anchor-${index}`}
               class=${classMap({ tab: true, current: isCurrent })}
-              part=${partMap({ [DuoyunTabsElement.tab]: true, [DuoyunTabsElement.currentTab]: isCurrent })}
+              part=${partMap({ [DuoyunTabsElement.tab]: true, [DuoyunTabsElement.current]: isCurrent })}
               @click=${() => this.change(value ?? index)}
             >
               ${icon ? html`<dy-use part=${DuoyunTabsElement.icon} class="icon" .element=${icon}></dy-use>` : ''}
@@ -141,7 +184,6 @@ export class DuoyunTabsElement extends GemElement {
                       class="marker"
                       size="medium"
                       orientation=${this.#orientation}
-                      .color=${theme.primaryColor}
                     ></dy-divider>
                   `
                 : ''}

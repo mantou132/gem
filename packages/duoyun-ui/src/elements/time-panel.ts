@@ -38,6 +38,8 @@ const style = createCSSSheet(css`
   }
   .cell {
     scroll-snap-align: start;
+    border-radius: ${theme.smallRound};
+    transition: background 0.1s;
   }
   .cell:where(:hover) {
     background: ${theme.lightBackgroundColor};

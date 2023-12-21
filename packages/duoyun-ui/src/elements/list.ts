@@ -12,7 +12,7 @@ import {
   boolattribute,
 } from '@mantou/gem/lib/decorators';
 import { GemElement, html, TemplateResult } from '@mantou/gem/lib/element';
-import { createCSSSheet, css, styled, styleMap } from '@mantou/gem/lib/utils';
+import { createCSSSheet, css, LinkedList, LinkedListItem, styled, styleMap } from '@mantou/gem/lib/utils';
 
 import { theme } from '../lib/theme';
 import { blockContainer } from '../lib/styles';
@@ -125,8 +125,6 @@ export class DuoyunListElement extends GemElement<State> {
     this.debug && console.log(...args);
   };
 
-  #getId = (key: Key) => `id_${key}`;
-
   #isEnd = (direction: 0 | -1) => {
     const item = this.#items?.at(direction);
     const key = this.state.renderList.at(direction);
@@ -146,7 +144,7 @@ export class DuoyunListElement extends GemElement<State> {
     const { beforeHeight, afterHeight, renderList } = this.state;
     // 初始状态
     if (!renderList.length && !beforeHeight && !afterHeight) {
-      this.#appendAfter(this.#itemLinked.firstElementChild);
+      this.#appendAfter(this.#itemLinked.first);
       return;
     }
 
@@ -161,11 +159,10 @@ export class DuoyunListElement extends GemElement<State> {
     let beforeHeightSum = 0;
     let renderHeightSum = 0;
     let afterHeightSum = 0;
-    let node = this.#itemLinked.firstElementChild;
+    let node = this.#itemLinked.first;
     let count = 0;
     while (node) {
-      const key = this.#nodeKeyMap.get(node)!;
-      const ele = this.#getElement(key);
+      const ele = this.#getElement(node.value);
 
       const blockSize = this.#isLeftItem(count) ? ele.borderBoxSize.blockSize : 0;
       const y = firstElementY + beforeHeightSum + renderHeightSum;
@@ -173,13 +170,13 @@ export class DuoyunListElement extends GemElement<State> {
       if (y > containerRect.bottom + safeHeight) {
         afterHeightSum += blockSize;
       } else if (y + blockSize > containerRect.top - safeHeight) {
-        list.push(key);
+        list.push(node.value);
         renderHeightSum += blockSize;
       } else {
         beforeHeightSum += blockSize;
       }
       count++;
-      node = node.nextElementSibling;
+      node = node.next;
 
       // 让没有渲染过的项目至少存在一个，预留一点滚动空间
       if (!ele.borderBoxSize.blockSize) {
@@ -233,19 +230,18 @@ export class DuoyunListElement extends GemElement<State> {
     }
 
     // 显示前面的
-    this.#appendBefore(this.#itemLinked.getElementById(this.#getId(newRenderedFirstKey))?.previousElementSibling);
+    this.#appendBefore(this.#itemLinked.find(newRenderedFirstKey)?.prev);
   };
 
-  #appendBefore = (startNode?: Element | null) => {
+  #appendBefore = (startNode?: LinkedListItem<Key>) => {
     const appendList: Key[] = [];
     let node = startNode;
     let beforeHeight = 0;
     for (let i = 0; i < this.#appendCount; i++) {
       if (!node) break;
-      const key = this.#nodeKeyMap.get(node)!;
-      if (this.#isLeftItem(i)) beforeHeight += this.#getElement(key).borderBoxSize.blockSize;
-      appendList.unshift(key);
-      node = node.previousElementSibling;
+      if (this.#isLeftItem(i)) beforeHeight += this.#getElement(node.value).borderBoxSize.blockSize;
+      appendList.unshift(node.value);
+      node = node.prev;
     }
     this.#setState({
       renderList: appendList.concat(this.state.renderList),
@@ -290,18 +286,17 @@ export class DuoyunListElement extends GemElement<State> {
     }
 
     // 显示后面的
-    this.#appendAfter(this.#itemLinked.getElementById(this.#getId(newRenderedLastKey))?.nextElementSibling);
+    this.#appendAfter(this.#itemLinked.find(newRenderedLastKey)?.next);
   };
 
-  #appendAfter = (node?: Element | null) => {
+  #appendAfter = (node?: LinkedListItem<Key>) => {
     const appendList: Key[] = [];
     let afterHeight = 0;
     for (let i = 0; i < this.#appendCount; i++) {
       if (!node) break;
-      const key = this.#nodeKeyMap.get(node)!;
-      appendList.push(key);
-      if (this.#isLeftItem(i)) afterHeight += this.#getElement(key).borderBoxSize.blockSize;
-      node = node.nextElementSibling;
+      appendList.push(node.value);
+      if (this.#isLeftItem(i)) afterHeight += this.#getElement(node.value).borderBoxSize.blockSize;
+      node = node.next;
     }
     this.#setState({
       renderList: this.state.renderList.concat(appendList),
@@ -341,7 +336,6 @@ export class DuoyunListElement extends GemElement<State> {
       ele.setAttribute('part', DuoyunListElement.item);
       ele.addEventListener('resize', this.#onItemResize);
       ele.addEventListener('show', () => this.itemshow(this.#keyItemMap.get(key)));
-      ele.id = this.#getId(String(key));
       ele.intersectionRoot = this.scrollContainer;
       ele.borderBoxSize.blockSize = this.#itemHeight;
       this.#keyElementMap.set(key, ele);
@@ -357,22 +351,22 @@ export class DuoyunListElement extends GemElement<State> {
     if (this.#afterVisible) this.#onAfterItemVisible();
   };
 
+  // 用于保证渲染内容，但不应该运行太频繁
   #onScroll = throttle(
     () => {
       const { renderList } = this.state;
-      if (renderList.length && renderList.every((c) => !this.#getElement(c).visible)) {
+      if (renderList.length && renderList.every((key) => !this.#getElement(key).visible)) {
         this.#reLayout();
       } else {
         // 防止只显示半屏
         this.#reCheck();
       }
     },
-    30,
-    { maxWait: 100 },
+    110,
+    { maxWait: 120 },
   );
 
-  #itemLinked = new DocumentFragment();
-  #nodeKeyMap = new WeakMap<Element, Key>();
+  #itemLinked = new LinkedList<Key>();
   #keyItemMap = new Map<Key, any>();
 
   #initState?: PersistentState;
@@ -404,14 +398,12 @@ export class DuoyunListElement extends GemElement<State> {
           }
 
           // TODO: Improve performance
-          this.#itemLinked = new DocumentFragment();
+          this.#itemLinked = new LinkedList();
+          this.#keyItemMap = new Map();
           items.forEach((item) => {
             const key = this.getKey!(item);
-            const ele = document.createElement('div');
-            ele.id = this.#getId(String(key));
-            this.#nodeKeyMap.set(ele, key);
             this.#keyItemMap.set(key, item);
-            this.#itemLinked.append(ele);
+            this.#itemLinked.add(key);
           });
         }
       },

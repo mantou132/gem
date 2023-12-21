@@ -18,6 +18,7 @@ import { focusStyle } from '../lib/styles';
 
 const style = createCSSSheet(css`
   :host(:where(:not([hidden]))) {
+    cursor: default;
     font-size: 0.875em;
     display: grid;
     gap: 1px;
@@ -48,11 +49,12 @@ const style = createCSSSheet(css`
   .day {
     position: relative;
     z-index: 1;
+    transition: background 0.1s;
   }
   .day:where(:hover) {
     background: ${theme.hoverBackgroundColor};
   }
-  .leftbottom {
+  .leftBottom {
     border-end-start-radius: inherit;
   }
   .day:last-of-type {
@@ -88,14 +90,6 @@ const style = createCSSSheet(css`
     background: ${theme.primaryColor};
     color: ${theme.backgroundColor};
   }
-  .start {
-    border-start-start-radius: ${theme.smallRound};
-    border-end-start-radius: ${theme.smallRound};
-  }
-  .stop {
-    border-start-end-radius: ${theme.smallRound};
-    border-end-end-radius: ${theme.smallRound};
-  }
   :host([borderless]) {
     border: none;
     padding: 1px;
@@ -129,6 +123,12 @@ export class DuoyunCalendarElement extends GemElement {
   @part static rightTopCell: string;
   @part static leftBottomCell: string;
   @part static rightBottomCell: string;
+  @part static highlightCell: string;
+  @part static noHighlightCell: string;
+  @part static startHighlightCell: string;
+  @part static stopHighlightCell: string;
+  @part static date: string;
+  @part static todayDate: string;
 
   @emitter datehover: Emitter<number>;
   @emitter dateclick: Emitter<number>;
@@ -143,9 +143,17 @@ export class DuoyunCalendarElement extends GemElement {
     super({ delegatesFocus: true });
   }
 
-  #isHighlight = (date: Time) => {
+  #isHighlightRange = (date: Time) => {
     const t = date.valueOf();
     return !!this.highlights?.some(([start, stop]) => t >= start && t <= stop);
+  };
+
+  #isStartHighlight = (date: Time) => {
+    return !!this.highlights?.some(([d]) => date.isSome(d, 'd'));
+  };
+
+  #isStopHighlight = (date: Time) => {
+    return !!this.highlights?.some((ds) => date.isSome(ds[ds.length - 1], 'd'));
   };
 
   #dates: Day[];
@@ -194,7 +202,16 @@ export class DuoyunCalendarElement extends GemElement {
         `,
       )}
       ${this.#dates.map(
-        ({ date, isThisMonth, isToday }, index, arr) => html`
+        (
+          { date, isThisMonth, isToday },
+          index,
+          arr,
+          leftBottomCell = index === arr.length - 7,
+          rightBottomCell = index === arr.length - 1,
+          start = !!isThisMonth && this.#isStartHighlight(date),
+          stop = !!isThisMonth && this.#isStopHighlight(date),
+          highlight = !!isThisMonth && (start || stop || this.#isHighlightRange(date)),
+        ) => html`
           <div
             tabindex="0"
             role="button"
@@ -204,28 +221,32 @@ export class DuoyunCalendarElement extends GemElement {
               [DuoyunCalendarElement.otherDayCell]: !isThisMonth,
               [DuoyunCalendarElement.leftTopCell]: index === 0,
               [DuoyunCalendarElement.rightTopCell]: index === 6,
-              [DuoyunCalendarElement.leftBottomCell]: index === arr.length - 7,
-              [DuoyunCalendarElement.rightBottomCell]: index === arr.length - 1,
+              [DuoyunCalendarElement.leftBottomCell]: leftBottomCell,
+              [DuoyunCalendarElement.rightBottomCell]: rightBottomCell,
+              [DuoyunCalendarElement.startHighlightCell]: start,
+              [DuoyunCalendarElement.stopHighlightCell]: stop,
+              [DuoyunCalendarElement.highlightCell]: highlight,
+              [DuoyunCalendarElement.noHighlightCell]: !highlight,
             })}
             class=${classMap({
               day: true,
-              leftbottom: index === arr.length - 7,
-              ...(isThisMonth
-                ? {
-                    today: this.today && !!isToday,
-                    start: !!this.highlights?.some(([d]) => date.isSome(d, 'd')),
-                    stop: !!this.highlights?.some((ds) => date.isSome(ds[ds.length - 1], 'd')),
-                    highlight: this.#isHighlight(date),
-                  }
-                : {
-                    other: true,
-                  }),
+              highlight,
+              leftBottom: leftBottomCell,
+              today: this.today && !!isToday,
+              other: !isThisMonth,
             })}
             @click=${() => this.dateclick(date.valueOf())}
             @mouseover=${() => this.datehover(date.valueOf())}
             @keydown=${commonHandle}
           >
-            <span part=${partMap({ date: true, todaydate: !!isToday })}>${date.getDate()}</span>
+            <span
+              part=${partMap({
+                [DuoyunCalendarElement.date]: true,
+                [DuoyunCalendarElement.todayDate]: !!isToday,
+              })}
+            >
+              ${date.getDate()}
+            </span>
             ${this.renderDate?.(date)}
           </div>
         `,

@@ -114,6 +114,12 @@ export class DuoyunDateRangePickElement extends GemElement implements BasePicker
       html`
         <dy-date-range-panel @change=${onChange} .value=${this.value}></dy-date-range-panel>
         <style>
+          dy-date-range-panel {
+            margin-inline: -0.4em;
+          }
+          dy-date-range-panel::part(panel) {
+            border-radius: 0;
+          }
           .footer {
             margin-block-start: 2em;
             display: flex;

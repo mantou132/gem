@@ -61,6 +61,7 @@ const style = createCSSSheet(css`
   }
   tr {
     border-block-end: 1px solid ${theme.borderColor};
+    transition: background 0.1s;
   }
   tbody tr:hover {
     background-color: ${theme.lightBackgroundColor};
