@@ -27,7 +27,9 @@ import './button';
 import './divider';
 
 const style = createCSSSheet(css`
+  /* modal 可能会在刷新前后保持打开 */
   :host {
+    view-transition-name: dy-modal;
     position: fixed;
     z-index: ${theme.popupZIndex};
     top: env(titlebar-area-height, var(--titlebar-area-height, 0px));
@@ -259,7 +261,7 @@ export class DuoyunModalElement extends GemElement {
 
   willMount = () => {
     this.memo(
-      () => (this.closing = !this.open),
+      (_, oldDeps) => oldDeps && (this.closing = !this.open),
       () => [this.open],
     );
   };
@@ -268,11 +270,13 @@ export class DuoyunModalElement extends GemElement {
 
   mounted = () => {
     this.effect(
-      () => {
+      async () => {
         if (this.open) {
           !this.shadowRoot?.activeElement && this.focus();
-        } else {
-          this.#closeAnimate().finished.then(() => (this.closing = false));
+        } else if (this.closing) {
+          await this.#closeAnimate().finished;
+          this.closing = false;
+          this.update();
         }
       },
       () => [this.open],

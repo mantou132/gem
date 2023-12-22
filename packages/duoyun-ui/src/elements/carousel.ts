@@ -29,6 +29,9 @@ const style = createCSSSheet(css`
     aspect-ratio: 20 / 7;
     position: relative;
     color: ${theme.highlightColor};
+    /** use prevImg */
+    background-size: cover;
+    background-position: center;
   }
   .list,
   .item,
@@ -49,10 +52,6 @@ const style = createCSSSheet(css`
   .img {
     position: absolute;
     object-fit: cover;
-    --mask-range: 35%;
-    --m: linear-gradient(to right top, transparent, black var(--mask-range));
-    -webkit-mask-image: var(--m);
-    mask-image: var(--m);
   }
   .content {
     position: absolute;
@@ -63,7 +62,6 @@ const style = createCSSSheet(css`
     inset: 0;
     padding-inline: 4em;
     max-width: 35%;
-    opacity: 0;
     animation-duration: 1.3s;
   }
   .img,
@@ -75,12 +73,9 @@ const style = createCSSSheet(css`
     animation-direction: reverse;
   }
   @keyframes fadeIn {
-    0% {
+    from {
+      opacity: 0;
       transform: translateX(calc(var(--direction) * 3em));
-    }
-    100% {
-      transform: translateX(0);
-      opacity: 1;
     }
   }
   .tag {
@@ -206,7 +201,6 @@ export class DuoyunCarouselElement extends GemElement<State> {
     this.#clearTimer();
     this.#timer = window.setTimeout(async () => {
       await this.#waitLeave;
-      this.#isFirstRender = false;
       this.#add(1);
     }, this.#interval);
   };
@@ -230,6 +224,19 @@ export class DuoyunCarouselElement extends GemElement<State> {
     }
   };
 
+  #prevImg?: string;
+  willMount() {
+    this.memo(
+      (_, oldDeps) => {
+        if (oldDeps) {
+          this.#prevImg = this.#items?.[oldDeps[0]]?.img;
+          this.#isFirstRender = false;
+        }
+      },
+      () => [this.state.currentIndex],
+    );
+  }
+
   mounted = () => {
     this.#reset();
     this.effect(
@@ -245,19 +252,16 @@ export class DuoyunCarouselElement extends GemElement<State> {
 
   render = () => {
     const { currentIndex, direction } = this.state;
+
     return html`
+      <style>
+        :host {
+          background-image: ${this.#prevImg ? `url(${this.#prevImg})` : 'none'};
+        }
+      </style>
       <ul class="list" role="region">
         ${this.#items?.map(
-          ({ img, background = 'none', title, description, action, tag, onClick }, index) => html`
-            ${currentIndex === index
-              ? html`
-                  <style>
-                    :host {
-                      background: ${background};
-                    }
-                  </style>
-                `
-              : ''}
+          ({ img, title, background, description, action, tag, onClick }, index) => html`
             <li
               class=${classMap({ item: true, paused: this.#isFirstRender })}
               style=${styleMap({ '--direction': `${direction}` })}
@@ -267,6 +271,7 @@ export class DuoyunCarouselElement extends GemElement<State> {
               <img
                 part=${DuoyunCarouselElement.img}
                 class="img"
+                style=${styleMap({ background })}
                 alt=${title || ''}
                 src=${img}
                 crossorigin=${this.crossorigin}
@@ -326,7 +331,7 @@ export class DuoyunCarouselElement extends GemElement<State> {
   };
 
   jump = (index: number) => {
-    this.setState({ currentIndex: index, direction: 1 });
+    this.setState({ currentIndex: index, direction: index > this.state.currentIndex ? 1 : -1 });
     this.#reset();
   };
 }
