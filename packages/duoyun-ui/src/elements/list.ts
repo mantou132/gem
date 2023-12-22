@@ -45,20 +45,21 @@ export type PersistentState = State & {
   scrollTop: number;
 };
 
-const outsideStyle = createCSSSheet(css`
-  :host {
-    grid-column: 1/-1;
-  }
-`);
-
 @customElement('dy-list-outside')
 @adoptedStyle(blockContainer)
-@adoptedStyle(outsideStyle)
 export class DuoyunOutsideElement extends DuoyunVisibleBaseElement {}
 
 const style = createCSSSheet(css`
   :host([infinite]) {
     overflow-anchor: none;
+  }
+  .list {
+    display: contents;
+  }
+  dy-list-outside,
+  .placeholder,
+  ::slotted(*) {
+    grid-column: 1/-1;
   }
 `);
 
@@ -69,6 +70,7 @@ const style = createCSSSheet(css`
 @adoptedStyle(style)
 @adoptedStyle(blockContainer)
 export class DuoyunListElement extends GemElement<State> {
+  @part static list: string;
   @part static item: string;
   @part static beforeOutside: string;
   @part static afterOutside: string;
@@ -91,6 +93,7 @@ export class DuoyunListElement extends GemElement<State> {
   @emitter itemshow: Emitter<any>;
   @refobject beforeItemRef: RefObject<DuoyunOutsideElement>;
   @refobject afterItemRef: RefObject<DuoyunOutsideElement>;
+  @refobject listRef: RefObject<HTMLDivElement>;
 
   get #items() {
     return this.items || this.data;
@@ -131,6 +134,8 @@ export class DuoyunListElement extends GemElement<State> {
     return (item === undefined && key === undefined) || key === this.getKey!(item);
   };
 
+  #getElementRowHeight = (ele: DuoyunListItemElement) => ele.borderBoxSize.blockSize + this.#rowGap;
+
   #setState = (state: Partial<State>) => {
     this.#log(state);
     this.setState(state);
@@ -161,19 +166,25 @@ export class DuoyunListElement extends GemElement<State> {
     let afterHeightSum = 0;
     let node = this.#itemLinked.first;
     let count = 0;
+    let pushed = false;
     while (node) {
       const ele = this.#getElement(node.value);
+      const isLeft = this.#isLeftItem(count);
+      const currentItemHeight = this.#getElementRowHeight(ele);
 
-      const blockSize = this.#isLeftItem(count) ? ele.borderBoxSize.blockSize : 0;
       const y = firstElementY + beforeHeightSum + renderHeightSum;
 
-      if (y > containerRect.bottom + safeHeight) {
-        afterHeightSum += blockSize;
-      } else if (y + blockSize > containerRect.top - safeHeight) {
+      const realY = isLeft ? y + currentItemHeight : y;
+
+      const appendHeight = isLeft ? currentItemHeight : 0;
+      if (pushed || realY > containerRect.bottom + safeHeight) {
+        pushed = true;
+        afterHeightSum += appendHeight;
+      } else if (realY > containerRect.top - safeHeight) {
         list.push(node.value);
-        renderHeightSum += blockSize;
+        renderHeightSum += appendHeight;
       } else {
-        beforeHeightSum += blockSize;
+        beforeHeightSum += appendHeight;
       }
       count++;
       node = node.next;
@@ -212,7 +223,7 @@ export class DuoyunListElement extends GemElement<State> {
     for (let i = len - 1; i >= 0; i--) {
       const ele = this.#getElement(this.state.renderList[i]);
       if (!ele.visible) {
-        if (this.#isLeftItem(count)) afterHeight += ele.borderBoxSize.blockSize;
+        if (this.#isLeftItem(count)) afterHeight += this.#getElementRowHeight(ele);
         len--;
       }
       count++;
@@ -239,7 +250,7 @@ export class DuoyunListElement extends GemElement<State> {
     let beforeHeight = 0;
     for (let i = 0; i < this.#appendCount; i++) {
       if (!node) break;
-      if (this.#isLeftItem(i)) beforeHeight += this.#getElement(node.value).borderBoxSize.blockSize;
+      if (this.#isLeftItem(i)) beforeHeight += this.#getElementRowHeight(this.#getElement(node.value));
       appendList.unshift(node.value);
       node = node.prev;
     }
@@ -267,7 +278,7 @@ export class DuoyunListElement extends GemElement<State> {
       const ele = this.#getElement(key);
       if (!ele.visible) {
         len++;
-        if (this.#isLeftItem(count)) beforeHeight += ele.borderBoxSize.blockSize;
+        if (this.#isLeftItem(count)) beforeHeight += this.#getElementRowHeight(ele);
       }
       count++;
     }
@@ -295,7 +306,7 @@ export class DuoyunListElement extends GemElement<State> {
     for (let i = 0; i < this.#appendCount; i++) {
       if (!node) break;
       appendList.push(node.value);
-      if (this.#isLeftItem(i)) afterHeight += this.#getElement(node.value).borderBoxSize.blockSize;
+      if (this.#isLeftItem(i)) afterHeight += this.#getElementRowHeight(this.#getElement(node.value));
       node = node.next;
     }
     this.#setState({
@@ -311,6 +322,8 @@ export class DuoyunListElement extends GemElement<State> {
 
   #itemHeight = 0;
   #itemColumnCount = 1;
+  #rowGap = 0;
+  #columnGap = 0;
   // 跟用户初始 Items 长度相同会触发两次 backward 事件，用户配置？
   #itemCountPerScreen = 19;
   #onItemResize = throttle(
@@ -319,10 +332,17 @@ export class DuoyunListElement extends GemElement<State> {
       if (ele?.borderBoxSize.blockSize) {
         this.#initCheckOnce(this.items!.length > this.#itemCountPerScreen);
 
-        this.#itemColumnCount = Math.floor(this.scrollContainer.clientWidth / ele.borderBoxSize.inlineSize);
+        const style = getComputedStyle(this.listRef.element!);
+        const thisGrid = getComputedStyle(this);
+        this.#rowGap = parseFloat(style.rowGap) || parseFloat(thisGrid.rowGap) || 0;
+        this.#columnGap = parseFloat(style.columnGap) || parseFloat(thisGrid.columnGap) || 0;
+
+        this.#itemColumnCount = Math.round(
+          this.scrollContainer.clientWidth / (ele.borderBoxSize.inlineSize + this.#columnGap),
+        );
         this.#itemHeight = ele.borderBoxSize.blockSize;
         this.#itemCountPerScreen =
-          Math.ceil(this.scrollContainer.clientHeight / this.#itemHeight) * this.#itemColumnCount;
+          Math.ceil(this.scrollContainer.clientHeight / this.#getElementRowHeight(ele)) * this.#itemColumnCount;
       }
     },
     1000,
@@ -382,7 +402,7 @@ export class DuoyunListElement extends GemElement<State> {
             let beforeHeight = 0;
             for (let i = 0; i < items.length; i++) {
               if (this.getKey!(items[i]) === this.getKey!(oldDeps[0][0])) break;
-              if (this.#isLeftItem(i)) beforeHeight += this.#itemHeight;
+              if (this.#isLeftItem(i)) beforeHeight += this.#itemHeight + this.#rowGap;
             }
             if (beforeHeight) {
               this.#setState({ beforeHeight: this.state.beforeHeight + beforeHeight });
@@ -439,7 +459,9 @@ export class DuoyunListElement extends GemElement<State> {
               @show=${this.#onBeforeItemVisible}
               style=${styleMap({ height: `${beforeHeight}px` })}
             ></dy-list-outside>
-            ${renderList.map((key) => this.#getElement(key))}
+            <div ref=${this.listRef.ref} class="list" part=${DuoyunListElement.list}>
+              ${renderList.map((key) => this.#getElement(key))}
+            </div>
             <dy-list-outside
               ref=${this.afterItemRef.ref}
               part=${DuoyunListElement.afterOutside}
@@ -456,7 +478,7 @@ export class DuoyunListElement extends GemElement<State> {
           )}
       <slot name=${DuoyunListElement.after}>
         <!-- 无限滚动时避免找不到 "dy-list-outside", e.g: dy-list docs -->
-        <div slot="after" style="height: 1px"></div>
+        <div class="placeholder" style="height: 1px"></div>
       </slot>
     `;
   };
