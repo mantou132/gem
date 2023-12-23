@@ -122,6 +122,8 @@ export class GemRouteElement extends GemElement<State> {
   @boolattribute transition: boolean;
   @property routes?: RouteItem[] | RoutesObject;
   /**
+   * 不要多个 `<gem-route>` 共享，因为那样会导致后面的元素卸载前触发更新
+   *
    * @example
    * const locationStore = GemRouteElement.createLocationStore()
    * html`<gem-route .locationStore=${locationStore}>`
@@ -194,10 +196,13 @@ export class GemRouteElement extends GemElement<State> {
       this.setState({ content });
       this.routechange(this.currentRoute);
       this.#updateLocationStore();
-      return Promise.resolve();
     };
     if (this.transition && 'startViewTransition' in document) {
-      (document as any).startViewTransition(changeContent);
+      (document as any).startViewTransition(() => {
+        changeContent();
+        // 等待路由渲染
+        return Promise.resolve();
+      });
     } else {
       changeContent();
     }

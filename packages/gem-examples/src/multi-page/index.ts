@@ -1,5 +1,5 @@
 import { GemElement, html, render } from '@mantou/gem';
-import { GemTitleElement } from '@mantou/gem/elements/title';
+import '@mantou/gem/elements/title';
 import '@mantou/gem/elements/route';
 import '@mantou/gem/elements/link';
 
@@ -54,7 +54,7 @@ class App extends GemElement {
           text-decoration: underline;
         }
       </style>
-      <header><gem-title prefix=${GemTitleElement.defaultPrefix}>AppName</gem-title></header>
+      <header><gem-title prefix=${'😊'}>AppName</gem-title></header>
       <nav>
         <gem-link path="/">Home</gem-link>
         <gem-link path="/a">PageA</gem-link>

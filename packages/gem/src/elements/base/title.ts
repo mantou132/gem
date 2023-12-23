@@ -4,7 +4,7 @@
  * - 桌面端 Tab 的 title
  * - 移动端 AppBar 的 title
  *
- * 修改标题：
+ * 修改标题：titleStore 的 title 优先级高，比如 history 添加的 dialog Title
  *
  * - `<gem-route>` 匹配路由时自动设置 `route.title`
  * - `<gem-link>` 的 `doc-title` 属性和 `route.title`
@@ -18,42 +18,55 @@ import { attribute, connectStore } from '../../lib/decorators';
 import { updateStore, connect } from '../../lib/store';
 import { titleStore } from '../../lib/history';
 
+const defaultTitle = document.title;
+
+function updateTitle(str?: string | null, prefix = '', suffix = '') {
+  const title = titleStore.title || str;
+  if (title && title !== defaultTitle) {
+    GemTitleElement.title = title;
+    document.title = prefix + GemTitleElement.title + suffix;
+  } else {
+    GemTitleElement.title = defaultTitle;
+    document.title = GemTitleElement.title;
+  }
+}
+
+export const PREFIX = `${defaultTitle} | `;
+export const SUFFIX = ` - ${defaultTitle}`;
+
 /**
  * 允许声明式设置 `document.title`
+ * @attr prefix
  * @attr suffix
  */
 @connectStore(titleStore)
 export class GemTitleElement extends GemElement {
-  // 没有后缀的标题
+  @attribute prefix: string;
+  @attribute suffix: string;
+
+  // 没有后缀的当前标题
   static title = document.title;
-  static defaultTitle = document.title;
-  static defaultPrefix = `${document.title} | `;
-  static defaultSuffix = ` - ${document.title}`;
+
+  /**@deprecated */
+  static defaultPrefix = PREFIX;
+  /**@deprecated */
+  static defaultSuffix = SUFFIX;
 
   static setTitle(title: string) {
     updateStore(titleStore, { title });
   }
 
-  static updateTitle(title = titleStore.title, prefix = '', suffix = '') {
-    if (title === GemTitleElement.defaultTitle) {
-      document.title = GemTitleElement.title = title;
-    } else {
-      GemTitleElement.title = title;
-      document.title = prefix + GemTitleElement.title + suffix;
-    }
-  }
-
-  @attribute prefix: string;
-  @attribute suffix: string;
-
   constructor() {
     super();
-    new MutationObserver(() => this.update()).observe(this, { childList: true, characterData: true, subtree: true });
+    new MutationObserver(() => this.update()).observe(this, {
+      characterData: true,
+      subtree: true,
+    });
   }
 
   render() {
     // 多个 <gem-title> 时，最终 document.title 按执行顺序决定
-    GemTitleElement.updateTitle(this.textContent || undefined, this.prefix, this.suffix);
+    updateTitle(this.textContent, this.prefix, this.suffix);
 
     if (this.hidden) {
       return html``;
@@ -62,4 +75,4 @@ export class GemTitleElement extends GemElement {
   }
 }
 
-connect(titleStore, GemTitleElement.updateTitle);
+connect(titleStore, updateTitle);

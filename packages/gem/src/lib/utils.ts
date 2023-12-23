@@ -91,6 +91,18 @@ export class LinkedList<T = any> extends EventTarget {
     return this.#lastItem;
   }
 
+  isSuperLinkOf(subLink: LinkedList<T>) {
+    let subItem = subLink.first;
+    if (!subItem) return true;
+    let item = this.find(subItem.value);
+    while (item && item.value === subItem.value) {
+      subItem = subItem.next;
+      if (!subItem) return true;
+      item = item.next;
+    }
+    return false;
+  }
+
   find(value: T) {
     return this.#map.get(value);
   }

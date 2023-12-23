@@ -3,16 +3,24 @@ import { GemElement, GemElementOptions } from '@mantou/gem/lib/element';
 
 import { throttle } from '../../lib/utils';
 
+export type ResizeDetail = {
+  contentRect: DuoyunResizeBaseElement['contentRect'];
+  borderBoxSize: DuoyunResizeBaseElement['borderBoxSize'];
+};
+
 export function resizeObserver(ele: DuoyunResizeBaseElement, options: { throttle?: boolean } = {}) {
   const { throttle: needThrottle = true } = options;
   const callback = (entryList: ResizeObserverEntry[]) => {
     entryList.forEach((entry) => {
-      ele.contentRect = entry.contentRect;
-      ele.borderBoxSize = entry.borderBoxSize?.[0]
-        ? entry.borderBoxSize[0]
-        : { blockSize: ele.contentRect.height, inlineSize: ele.contentRect.width };
+      const oldDetail = { contentRect: ele.contentRect, borderBoxSize: ele.borderBoxSize };
+      const { x, y, width, height } = entry.contentRect;
+      // 只支持一个
+      // https://developer.mozilla.org/en-US/docs/Web/API/ResizeObserverEntry/borderBoxSize
+      const { blockSize, inlineSize } = entry.borderBoxSize[0];
+      ele.contentRect = { x, y, width, height };
+      ele.borderBoxSize = { blockSize, inlineSize };
       ele.update();
-      ele.resize(ele);
+      ele.resize(oldDetail);
     });
   };
   const throttleCallback = needThrottle ? throttle(callback, 300, { leading: true }) : callback;
@@ -22,7 +30,7 @@ export function resizeObserver(ele: DuoyunResizeBaseElement, options: { throttle
 }
 
 export class DuoyunResizeBaseElement<_T = Record<string, unknown>> extends GemElement {
-  @emitter resize: Emitter<DuoyunResizeBaseElement>;
+  @emitter resize: Emitter<ResizeDetail>;
 
   constructor(options: GemElementOptions & { throttle?: boolean } = {}) {
     super(options);
@@ -38,6 +46,8 @@ export class DuoyunResizeBaseElement<_T = Record<string, unknown>> extends GemEl
   };
 
   contentRect = {
+    x: 0,
+    y: 0,
     height: 0,
     width: 0,
   };
