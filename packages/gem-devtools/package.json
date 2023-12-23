@@ -1,6 +1,6 @@
 {
   "name": "gem-devtools",
-  "version": "1.7.2",
+  "version": "1.7.3",
   "description": "Gem devtools",
   "scripts": {
     "update:version": "node ./scripts/update.js",
@@ -11,7 +11,7 @@
     "start": "yarn build && concurrently -k npm:watch npm:browser"
   },
   "dependencies": {
-    "@mantou/gem": "^1.7.4",
+    "@mantou/gem": "^1.7.5",
     "webextension-polyfill": "^0.10.0"
   },
   "devDependencies": {
