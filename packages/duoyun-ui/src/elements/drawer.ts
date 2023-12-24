@@ -1,6 +1,8 @@
 import { adoptedStyle, customElement } from '@mantou/gem/lib/decorators';
 import { createCSSSheet, css } from '@mantou/gem/lib/utils';
 
+import { slideInLeft, slideOutRight } from '../lib/animations';
+
 import { DuoyunModalElement, ModalOptions } from './modal';
 
 const style = createCSSSheet(css`
@@ -17,11 +19,6 @@ const style = createCSSSheet(css`
     max-height: none;
     border-radius: 0;
   }
-  @keyframes showDialog {
-    from {
-      transform: translate(100%, 0);
-    }
-  }
 `);
 
 /**
@@ -33,6 +30,8 @@ export class DuoyunDrawerElement extends DuoyunModalElement {
   constructor(options: ModalOptions) {
     super(options);
     this.addEventListener('maskclick', () => this.close(null));
+    this.openAnimation = slideInLeft;
+    this.closeAnimation = slideOutRight;
   }
 }
 

@@ -21,7 +21,7 @@ import { theme } from '../lib/theme';
 import { locale } from '../lib/locale';
 import { hotkeys } from '../lib/hotkeys';
 import { setBodyInert } from '../lib/utils';
-import { commonAnimationOptions, fadeOut } from '../lib/animations';
+import { commonAnimationOptions, fadeIn, fadeOut, slideInUp } from '../lib/animations';
 
 import './button';
 import './divider';
@@ -49,22 +49,9 @@ const style = createCSSSheet(css`
   .mask {
     inset: 0;
     background-color: rgba(0, 0, 0, calc(${theme.maskAlpha} + 0.2));
-    animation: showMask 0.15s ${theme.timingFunction} forwards;
-  }
-  @keyframes showMask {
-    from {
-      opacity: 0;
-    }
   }
   .dialog {
     outline: none;
-    animation: showDialog 0.15s ${theme.timingFunction} forwards;
-  }
-  @keyframes showDialog {
-    from {
-      transform: translate(0, 50%);
-      opacity: 0;
-    }
   }
   .main {
     box-sizing: border-box;
@@ -171,7 +158,11 @@ export class DuoyunModalElement extends GemElement {
 
   @property header?: string | TemplateResult;
   @property body?: string | TemplateResult;
+  @property openAnimation: PropertyIndexedKeyframes | Keyframe[] = slideInUp;
+  @property closeAnimation: PropertyIndexedKeyframes | Keyframe[] = fadeOut;
 
+  @refobject maskRef: RefObject<HTMLElement>;
+  @refobject dialogRef: RefObject<HTMLElement>;
   @refobject bodyRef: RefObject<HTMLElement>;
 
   @part static dialog: string;
@@ -201,7 +192,7 @@ export class DuoyunModalElement extends GemElement {
       });
     }).finally(async () => {
       restoreInert();
-      await modal.#closeAnimate().finished;
+      await modal.#closeAnimate();
       modal.remove();
     });
   }
@@ -266,15 +257,25 @@ export class DuoyunModalElement extends GemElement {
     );
   };
 
-  #closeAnimate = () => this.animate(fadeOut, commonAnimationOptions);
+  #openAnimate = () => {
+    this.maskRef.element?.animate(fadeIn, commonAnimationOptions);
+    (this.dialogRef.element || this.bodyRef.element)?.animate(this.openAnimation, commonAnimationOptions);
+  };
+
+  #closeAnimate = () =>
+    Promise.all([
+      this.maskRef.element?.animate(fadeOut, commonAnimationOptions).finished,
+      (this.dialogRef.element || this.bodyRef.element)?.animate(this.closeAnimation, commonAnimationOptions).finished,
+    ]);
 
   mounted = () => {
     this.effect(
       async () => {
         if (this.open) {
           !this.shadowRoot?.activeElement && this.focus();
+          this.#openAnimate();
         } else if (this.closing) {
-          await this.#closeAnimate().finished;
+          await this.#closeAnimate();
           this.closing = false;
           this.update();
         }
@@ -289,22 +290,23 @@ export class DuoyunModalElement extends GemElement {
     if (!this.open && !this.closing) return html``;
 
     return html`
-      <div class="mask absolute" @click=${this.#onMaskClick}></div>
+      <div class="mask absolute" ref=${this.maskRef.ref} @click=${this.#onMaskClick}></div>
       ${this.customize
         ? html`
             <div
+              ref=${this.bodyRef.ref}
               part=${DuoyunModalElement.dialog}
               role="dialog"
               tabindex="0"
               aria-modal="true"
               class="dialog absolute"
-              ref=${this.bodyRef.ref}
             >
               ${this.body || html`<slot name=${DuoyunModalElement.body}></slot>`}
             </div>
           `
         : html`
             <div
+              ref=${this.dialogRef.ref}
               part=${DuoyunModalElement.dialog}
               role="dialog"
               tabindex="0"
