@@ -3,14 +3,9 @@ import { GemElement, html } from '@mantou/gem/lib/element';
 import { createCSSSheet, css, styleMap } from '@mantou/gem/lib/utils';
 
 import { theme } from '../lib/theme';
+import { contentsContainer } from '../lib/styles';
 
 import './reflect';
-
-const style = createCSSSheet(css`
-  :host(:where(:not([hidden]))) {
-    display: contents;
-  }
-`);
 
 type SelectionMode = 'new' | 'append' | 'delete';
 
@@ -39,7 +34,7 @@ export type SelectionChange = {
  * @customElement dy-selection-box
  */
 @customElement('dy-selection-box')
-@adoptedStyle(style)
+@adoptedStyle(contentsContainer)
 export class DuoyunSelectionBoxElement extends GemElement<State> {
   @emitter change: Emitter<SelectionChange>;
   @state selecting: boolean;

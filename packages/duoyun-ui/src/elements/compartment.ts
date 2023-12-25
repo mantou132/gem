@@ -1,18 +1,13 @@
 import { adoptedStyle, customElement, property } from '@mantou/gem/lib/decorators';
 import { GemElement, html, TemplateResult } from '@mantou/gem/lib/element';
-import { createCSSSheet, css } from '@mantou/gem/lib/utils';
 
-const style = createCSSSheet(css`
-  :host(:where(:not([hidden]))) {
-    display: contents;
-  }
-`);
+import { contentsContainer } from '../lib/styles';
 
 /**
  * @customElement dy-compartment
  */
 @customElement('dy-compartment')
-@adoptedStyle(style)
+@adoptedStyle(contentsContainer)
 export class DuoyunCompartmentElement extends GemElement {
   @property content?: string | number | TemplateResult;
   render = () => {

@@ -6,9 +6,8 @@ fs.writeFileSync(
   fs.readFileSync(path.resolve(__dirname, '../../gem-book/src/plugins/example.ts'), { encoding: 'utf-8' }).replace(
     `const script = document.createElement('script');`,
     `
-if (new URL(this.src).pathname.startsWith('/duoyun-ui/')) {
-  await import(\`../../duoyun-ui/src/elements/\${this.src.split('/').pop()}\`);
-  this.setState({ loading: false, error: false });
+if (new URL(src).pathname.startsWith('/duoyun-ui/')) {
+  res(import(\`../../duoyun-ui/src/elements/\${src.split('/').pop()}\`));
   return;
 }
 const script = document.createElement('script');`,

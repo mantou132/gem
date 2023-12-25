@@ -63,16 +63,7 @@ export class DuoyunResultElement extends GemElement {
 
   render = () => {
     return html`
-      ${this.icon
-        ? html`
-            <style>
-              .icon {
-                color: ${this.#color};
-              }
-            </style>
-            <dy-use class="icon" .element=${this.icon}></dy-use>
-          `
-        : ''}
+      ${this.icon ? html`<dy-use class="icon" style="color:${this.#color}" .element=${this.icon}></dy-use>` : ''}
       ${this.illustrator ? html`<dy-use class="illustrator" .element=${this.illustrator}></dy-use>` : ''}
       ${this.header ? html`<dy-heading lv="2" class="header">${this.header}</dy-heading>` : ''}
       ${this.description ? html`<dy-paragraph class="description">${this.description}</dy-paragraph>` : ''}

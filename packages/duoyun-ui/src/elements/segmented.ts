@@ -9,7 +9,7 @@ import {
   property,
   state,
 } from '@mantou/gem/lib/decorators';
-import { classMap, createCSSSheet, css, partMap } from '@mantou/gem/lib/utils';
+import { classMap, createCSSSheet, css, partMap, styleMap } from '@mantou/gem/lib/utils';
 
 import { commonHandle } from '../lib/hotkeys';
 import { theme } from '../lib/theme';
@@ -18,9 +18,10 @@ import type { Option } from './radio';
 
 import './use';
 
+const getAnchorName = (index: number) => `--anchor-${index}`;
+
 const style = createCSSSheet(css`
   :host(:where(:not([hidden]))) {
-    position: relative;
     display: flex;
     cursor: default;
     user-select: none;
@@ -83,8 +84,9 @@ const style = createCSSSheet(css`
       transition: inset 0.3s ${theme.timingFunction};
       border-radius: var(--inner-radius);
       position: absolute;
-      top: anchor(--anchor-0 top);
-      bottom: anchor(--anchor-0 bottom);
+      anchor-default: ${getAnchorName(0)};
+      top: anchor(top);
+      bottom: anchor(bottom);
       background: ${theme.backgroundColor};
     }
   }
@@ -135,7 +137,10 @@ export class DuoyunSegmentedElement extends GemElement {
             <span
               class="marker"
               part=${DuoyunSegmentedElement.marker}
-              style=${`left:anchor(--anchor-${currentIndex} left);right:anchor(--anchor-${currentIndex} right);`}
+              style=${styleMap({
+                left: `anchor(${getAnchorName(currentIndex)} left)`,
+                right: `anchor(${getAnchorName(currentIndex)} right)`,
+              })}
             ></span>
           `
         : ''}
@@ -144,7 +149,7 @@ export class DuoyunSegmentedElement extends GemElement {
           <div
             role="radio"
             tabindex="0"
-            style=${`anchor-name: --anchor-${index}`}
+            style=${styleMap({ anchorName: getAnchorName(index) })}
             class=${classMap({ segment: true, current: index === currentIndex })}
             part=${partMap({
               [DuoyunSegmentedElement.segment]: true,

@@ -5,13 +5,11 @@ import { createCSSSheet, css } from '@mantou/gem/lib/utils';
 import { theme } from '../lib/theme';
 import { getDisplayKey } from '../lib/hotkeys';
 import { throttle } from '../lib/utils';
+import { contentsContainer } from '../lib/styles';
 
 import './paragraph';
 
 const style = createCSSSheet(css`
-  :host(:where(:not([hidden]))) {
-    display: contents;
-  }
   .container,
   .circle {
     position: fixed;
@@ -50,6 +48,7 @@ type State = {
  */
 @customElement('dy-input-capture')
 @adoptedStyle(style)
+@adoptedStyle(contentsContainer)
 export class DuoyunInputCaptureElement extends GemElement<State> {
   @part static container: string;
   @part static kbd: string;

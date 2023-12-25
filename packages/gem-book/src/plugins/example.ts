@@ -195,6 +195,23 @@ customElements.whenDefined('gem-book').then(() => {
       )}`;
     };
 
+    #loadResource = (src: string) => {
+      return new Promise<null>((res, rej) => {
+        /**
+         * hack from duoyun-ui
+         * @link packages/duoyun-ui/scripts/hack-gbp-example.js
+         */
+        const script = document.createElement('script');
+        script.type = 'module';
+        script.src = src;
+        script.crossOrigin = 'anonymous';
+        script.onload = () => res(null);
+        script.onerror = (evt: ErrorEvent) => rej(evt);
+        document.body.append(script);
+        script.remove();
+      });
+    };
+
     #propsList: Props[] = [];
     #textContentIsProps = false;
     willMount = () => {
@@ -212,25 +229,15 @@ customElements.whenDefined('gem-book').then(() => {
       });
     };
 
-    /**
-     * hack from duoyun-ui
-     * @link packages/duoyun-ui/scripts/hack-gbp-example.js
-     */
-    mounted = async () => {
-      const script = document.createElement('script');
-      script.type = 'module';
-      script.src = this.src;
-      script.crossOrigin = 'anonymous';
-      script.onload = () => {
-        this.setState({ loading: false, error: false });
-        script.remove();
-      };
-      script.onerror = (evt: ErrorEvent) => {
-        this.setState({ error: evt.error || 'Load Error!', loading: false });
-        this.error(evt);
-        script.remove();
-      };
-      document.body.append(script);
+    mounted = () => {
+      Promise.all(this.src.split(',').map((src) => this.#loadResource(src)))
+        .then(() => {
+          this.setState({ loading: false, error: false });
+        })
+        .catch((evt: ErrorEvent) => {
+          this.setState({ error: evt.error || 'Load Error!', loading: false });
+          this.error(evt);
+        });
     };
 
     render = () => {

@@ -29,3 +29,9 @@ export const flexContainer = createCSSSheet(css`
     display: flex;
   }
 `);
+
+export const contentsContainer = createCSSSheet(css`
+  :host(:where(:not([hidden]))) {
+    display: contents;
+  }
+`);

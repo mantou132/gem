@@ -61,12 +61,7 @@ export class DuoyunStatusLightElement extends GemElement {
 
   render = () => {
     return html`
-      <style>
-        .light {
-          color: ${getStatusColor(this.#status)};
-        }
-      </style>
-      <div class="light"></div>
+      <div class="light" style="color:${getStatusColor(this.#status)}"></div>
       <slot></slot>
     `;
   };

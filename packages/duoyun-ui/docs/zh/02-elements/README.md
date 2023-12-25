@@ -6,6 +6,7 @@
 | [`<dy-alert>`](./alert.md)                         | [`<Alert>`][antd-alert]                     | [`<ele-alert>`][ele-alert]               |
 | [`<dy-area-chart>`](./area-chart.md)               |                                             |                                          |
 | [`<dy-avatar>`](./avatar.md)                       | [`<Avatar>`][antd-avatar]                   | [`<ele-avatar>`][ele-avatar]             |
+| [`<dy-badge>`](./badge.md)                         | [`<Badge>`][antd-badge]                     | [`<ele-badge>`][ele-badge]               |
 | [`<dy-banner>`](./banner.md)                       |                                             |                                          |
 | [`<dy-bar-chart>`](./bar-chart.md)                 |                                             |                                          |
 | [`<dy-breadcrumbs>`](./breadcrumbs.md)             | [`<Breadcrumb>`][antd-breadcrumb]           | [`<ele-breadcrumb>`][ele-breadcrumb]     |

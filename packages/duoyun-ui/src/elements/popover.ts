@@ -16,16 +16,11 @@ import { toggleActiveState, getAssignedElements, getBoundingClientRect } from '.
 import { sleep, setBodyInert } from '../lib/utils';
 import { hotkeys } from '../lib/hotkeys';
 import { theme } from '../lib/theme';
+import { contentsContainer } from '../lib/styles';
 
 import './reflect';
 
 const offset = 12;
-
-const style = createCSSSheet(css`
-  :host(:where(:not([hidden]))) {
-    display: contents;
-  }
-`);
 
 export type PopoverState = {
   open: boolean;
@@ -68,7 +63,7 @@ type CloseCallback = {
  * @attr trigger
  */
 @customElement('dy-popover')
-@adoptedStyle(style)
+@adoptedStyle(contentsContainer)
 export class DuoyunPopoverElement extends GemElement<PopoverState> {
   @boolattribute debug: boolean;
   @boolattribute unreachable: boolean;

@@ -5,6 +5,7 @@ import { createCSSSheet, css, styleMap } from '@mantou/gem/lib/utils';
 import { hotkeys, HotKeyHandles, unlock } from '../lib/hotkeys';
 import { isNotNullish } from '../lib/types';
 import { theme } from '../lib/theme';
+import { contentsContainer } from '../lib/styles';
 
 import { Toast } from './toast';
 
@@ -13,7 +14,6 @@ import './paragraph';
 
 const style = createCSSSheet(css`
   :host {
-    display: contents;
     font-size: 0.75em;
   }
   .container {
@@ -61,6 +61,7 @@ function getChars(index: number) {
  */
 @customElement('dy-keyboard-access')
 @adoptedStyle(style)
+@adoptedStyle(contentsContainer)
 export class DuoyunKeyboardAccessElement extends GemElement<State> {
   @part static kbd: string;
   @attribute activekey: string;

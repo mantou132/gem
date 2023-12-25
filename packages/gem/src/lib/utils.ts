@@ -377,7 +377,8 @@ export function objectMapToString<T = any>(
   return result;
 }
 
-type StyleProp = keyof CSSStyleDeclaration | `--${string}`;
+// Wait: Typescript lib dom CSSStyleDeclaration anchor position
+type StyleProp = keyof CSSStyleDeclaration | `--${string}` | 'anchorDefault' | 'anchorName';
 
 export type StyleObject = Partial<Record<StyleProp, string | number | undefined | null>>;
 
