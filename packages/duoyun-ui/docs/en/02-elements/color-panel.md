@@ -5,7 +5,7 @@
 <gbp-example
   name="dy-color-panel"
   props='{"alpha": true, "value": "#e5e", "@change": "(evt) => evt.target.value = evt.detail"}'
-  src="https://jspm.dev/duoyun-ui/elements/color-panel"></gbp-example>
+  src="https://esm.sh/duoyun-ui/elements/color-panel"></gbp-example>
 
 ## API
 

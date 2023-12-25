@@ -6,7 +6,7 @@
   name="dy-status-light"
   props='{"status": "informative"}'
   html="Building..."
-  src="https://jspm.dev/duoyun-ui/elements/status-light"></gbp-example>
+  src="https://esm.sh/duoyun-ui/elements/status-light"></gbp-example>
 
 ## API
 

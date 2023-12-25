@@ -2,7 +2,7 @@
 
 ## Example
 
-<gbp-example name="dy-color-picker" src="https://jspm.dev/duoyun-ui/elements/color-picker">
+<gbp-example name="dy-color-picker" src="https://esm.sh/duoyun-ui/elements/color-picker">
 
 ```json
 [

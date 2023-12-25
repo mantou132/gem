@@ -2,6 +2,16 @@
   "name": "@mantou/gem",
   "version": "1.7.5",
   "description": "💎 使用自定义元素的轻量级 WebApp 开发框架",
+  "keywords": [
+    "frontend",
+    "web components",
+    "custom elements",
+    "global state management",
+    "framework"
+  ],
+  "esm.sh": {
+    "bundle": false
+  },
   "main": "index.js",
   "module": "index.js",
   "exports": {
@@ -28,12 +38,6 @@
     "start": "yarn build:module --watch",
     "test": "cross-env NODE_OPTIONS=--no-experimental-fetch wtr"
   },
-  "keywords": [
-    "web",
-    "webcomponents",
-    "global state management",
-    "web framework"
-  ],
   "dependencies": {
     "lit-html": "^1.4.1"
   },

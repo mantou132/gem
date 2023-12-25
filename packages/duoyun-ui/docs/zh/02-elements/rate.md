@@ -5,7 +5,7 @@
 <gbp-example
   name="dy-rate"
   props='{"value": 3.5, "total": 6, "@change": "(evt) => evt.target.value = evt.detail"}'
-  src="https://jspm.dev/duoyun-ui/elements/rate"></gbp-example>
+  src="https://esm.sh/duoyun-ui/elements/rate"></gbp-example>
 
 ## API
 

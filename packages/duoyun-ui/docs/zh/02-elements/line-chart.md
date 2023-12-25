@@ -2,7 +2,7 @@
 
 ## Example
 
-<gbp-example name="dy-line-chart" src="https://jspm.dev/duoyun-ui/elements/line-chart">
+<gbp-example name="dy-line-chart" src="https://esm.sh/duoyun-ui/elements/line-chart">
 
 ```json
 {

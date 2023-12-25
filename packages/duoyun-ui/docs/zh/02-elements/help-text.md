@@ -2,7 +2,7 @@
 
 ## Example
 
-<gbp-example name="dy-help-text" html='Help Text' src="https://jspm.dev/duoyun-ui/elements/help-text">
+<gbp-example name="dy-help-text" html='Help Text' src="https://esm.sh/duoyun-ui/elements/help-text">
 
 ```json
 [

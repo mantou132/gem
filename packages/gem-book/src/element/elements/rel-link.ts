@@ -1,4 +1,5 @@
 import { html, GemElement, customElement, connectStore, property } from '@mantou/gem';
+import { mediaQuery } from '@mantou/gem/helper/mediaquery';
 
 import { NavItem } from '../../common/config';
 import { theme } from '../helper/theme';
@@ -28,19 +29,38 @@ export class RelLink extends GemElement {
           padding: 2rem 0;
           line-height: 1.5;
           border-top: 1px solid ${theme.borderColor};
+          gap: 1rem;
         }
         gem-link {
-          border-bottom: 1px solid rgba(${theme.textColorRGB}, 0.3);
+          padding: 2rem;
+          background-color: rgba(${theme.textColorRGB}, 0.05);
           color: inherit;
           text-decoration: none;
+          border-radius: ${theme.normalRound};
+          display: flex;
+          gap: 1.5rem;
+          transition: all 0.1s;
+          width: 45%;
+          align-items: center;
+          box-sizing: border-box;
+        }
+        .next {
+          flex-direction: row-reverse;
         }
         gem-link:hover {
-          border-bottom: 1px solid;
+          background-color: rgba(${theme.textColorRGB}, 0.07);
+          gap: 2rem;
+          padding: 2rem 1.5rem;
+        }
+        @media ${mediaQuery.PHONE} {
+          gem-link {
+            width: 100%;
+          }
         }
       </style>
-      ${prev ? html`<gem-link path=${prev.link}>← ${capitalize(prev.title)}</gem-link>` : null}
+      ${prev ? html`<gem-link path=${prev.link}>←<span>${capitalize(prev.title)}</span></gem-link>` : null}
       <div></div>
-      ${next ? html`<gem-link path=${next.link}>${capitalize(next.title)} →</gem-link>` : null}
+      ${next ? html`<gem-link class="next" path=${next.link}>→<span>${capitalize(next.title)}</span></gem-link>` : null}
     `;
   }
 }

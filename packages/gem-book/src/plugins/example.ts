@@ -18,7 +18,9 @@ customElements.whenDefined('gem-book').then(() => {
     :host {
       display: flex;
       flex-direction: column;
-      margin-block-end: 1em;
+      margin: 2rem 0px;
+      border-radius: ${theme.normalRound};
+      overflow: hidden;
     }
     .preview {
       flex-grow: 1;

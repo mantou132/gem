@@ -2,17 +2,17 @@
 
 ## Example
 
-<gbp-example name="dy-tooltip" src="https://jspm.dev/duoyun-ui/elements/tooltip">
+<gbp-example name="dy-tooltip" src="https://esm.sh/duoyun-ui/elements/tooltip,https://esm.sh/duoyun-ui/elements/button">
 
 ```json
 [
   {
-    "innerHTML": "<button>Hover</button>",
+    "innerHTML": "<dy-button>Hover</dy-button>",
     "content": "Tooltip text",
     "unreachable": true
   },
   {
-    "innerHTML": "<button>Click</button>",
+    "innerHTML": "<dy-button>Click</dy-button>",
     "content": "Tooltip text",
     "position": "topRight",
     "trigger": "click"

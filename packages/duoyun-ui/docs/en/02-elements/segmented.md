@@ -2,7 +2,7 @@
 
 ## Example
 
-<gbp-example name="dy-segmented" direction="column" src="https://jspm.dev/duoyun-ui/elements/segmented">
+<gbp-example name="dy-segmented" direction="column" src="https://esm.sh/duoyun-ui/elements/segmented">
 
 ```json
 [

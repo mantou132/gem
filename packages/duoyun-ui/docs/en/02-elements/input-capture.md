@@ -4,7 +4,7 @@
 
 <gbp-example
   name="dy-input-capture"
-  src="https://jspm.dev/duoyun-ui/elements/input-capture">Try click or keypress</gbp-example>
+  src="https://esm.sh/duoyun-ui/elements/input-capture">Try click or keypress</gbp-example>
 
 ## API
 

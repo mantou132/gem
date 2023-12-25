@@ -2,7 +2,7 @@
 
 ## Example
 
-<gbp-example name="dy-date-picker" src="https://jspm.dev/duoyun-ui/elements/date-picker">
+<gbp-example name="dy-date-picker" src="https://esm.sh/duoyun-ui/elements/date-picker">
 
 ```json
 [

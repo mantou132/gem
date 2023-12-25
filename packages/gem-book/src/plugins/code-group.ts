@@ -22,6 +22,9 @@ customElements.whenDefined('gem-book').then(() => {
   const style = createCSSSheet(css`
     :host {
       display: block;
+      border-radius: ${theme.normalRound};
+      margin: 2rem 0px;
+      overflow: hidden;
     }
     .header {
       background: rgba(${theme.textColorRGB}, 0.03);

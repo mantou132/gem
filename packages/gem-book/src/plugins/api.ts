@@ -16,13 +16,9 @@ customElements.whenDefined('gem-book').then(() => {
   const { Gem, config, theme } = GemBookPluginElement;
   const { html, customElement, attribute, numattribute, createCSSSheet, css, adoptedStyle } = Gem;
   const MainElement = customElements.get('gem-book-main') as typeof Main;
-  const parser = new MainElement();
 
   const style = createCSSSheet(css`
     gbp-api table {
-      td {
-        word-break: break-word;
-      }
       tr td:first-of-type {
         white-space: nowrap;
       }
@@ -82,8 +78,11 @@ customElements.whenDefined('gem-book').then(() => {
       return { elements: getElements(file), exports: getExports(file) };
     };
 
-    #renderHeader = (headingLevel: number) => {
-      return '#'.repeat(headingLevel + this.#headingLevel - 1);
+    #renderHeader = (headingLevel: number, text: string, name: string) => {
+      return `${'#'.repeat(headingLevel + this.#headingLevel - 1)} ${text} {#${`${name}-${text}`.replaceAll(
+        ' ',
+        '-',
+      )}}\n\n`;
     };
 
     #renderCode = (s = '', deprecated?: boolean) => {
@@ -116,6 +115,7 @@ customElements.whenDefined('gem-book').then(() => {
         cssStates,
         parts,
         slots,
+        name,
       } = detail;
       let text = '';
 
@@ -125,7 +125,7 @@ customElements.whenDefined('gem-book').then(() => {
       }
 
       if (constructorName && constructorParams.length) {
-        text += `${this.#renderHeader(1)} Constructor \`${constructorName}()\`\n\n`;
+        text += this.#renderHeader(1, `Constructor \`${constructorName}()\``, name);
         text += this.#renderTable(
           constructorParams,
           ['Params', 'Type'].concat(constructorParams.some((e) => e.description) ? 'Description' : []),
@@ -137,7 +137,7 @@ customElements.whenDefined('gem-book').then(() => {
         );
       }
       if (staticProperties.length) {
-        text += `${this.#renderHeader(1)} Static Properties\n\n`;
+        text += this.#renderHeader(1, 'Static Properties', name);
         text += this.#renderTable(
           staticProperties,
           ['Property', 'Type'].concat(constructorParams.some((e) => e.description) ? 'Description' : []),
@@ -149,7 +149,7 @@ customElements.whenDefined('gem-book').then(() => {
         );
       }
       if (staticMethods.length) {
-        text += `${this.#renderHeader(1)} Static Methods\n\n`;
+        text += this.#renderHeader(1, 'Static Methods', name);
         text += this.#renderTable(
           staticMethods,
           ['Method', 'Type'].concat(constructorParams.some((e) => e.description) ? 'Description' : []),
@@ -161,7 +161,7 @@ customElements.whenDefined('gem-book').then(() => {
         );
       }
       if (properties.length) {
-        text += `${this.#renderHeader(1)} Instance Properties\n\n`;
+        text += this.#renderHeader(1, 'Instance Properties', name);
         text += this.#renderTable(
           properties.filter(({ slot, cssState, part, isRef }) => !slot && !cssState && !part && !isRef),
           ['Property(Attribute)', 'Reactive', 'Type'].concat(
@@ -178,7 +178,7 @@ customElements.whenDefined('gem-book').then(() => {
       }
 
       if (methods.length) {
-        text += `${this.#renderHeader(1)} Instance Methods\n\n`;
+        text += this.#renderHeader(1, 'Instance Methods', name);
         text += this.#renderTable(
           methods.filter(({ event }) => !event),
           ['Method', 'Type'].concat(constructorParams.some((e) => e.description) ? 'Description' : []),
@@ -190,7 +190,7 @@ customElements.whenDefined('gem-book').then(() => {
         );
       }
 
-      text += `${this.#renderHeader(1)} Other\n\n`;
+      text += this.#renderHeader(1, 'Other', name);
       text += this.#renderTable(
         [
           { type: 'Event', value: events },
@@ -201,11 +201,11 @@ customElements.whenDefined('gem-book').then(() => {
         ['Type', 'Value'],
         [({ type }) => type, ({ value }) => value.map((e) => this.#renderCode(e)).join(', ')],
       );
-      return parser.parseMarkdown(text);
+      return MainElement.parseMarkdown(text);
     };
 
     #renderExports = (exports: ExportDetail[]) => {
-      return parser.parseMarkdown(
+      return MainElement.parseMarkdown(
         this.#renderTable(
           exports.filter(({ kindName }) => kindName === 'FunctionDeclaration' || kindName === 'ClassDeclaration'),
           ['Name', 'Description'],
@@ -227,6 +227,13 @@ customElements.whenDefined('gem-book').then(() => {
     };
 
     mounted = () => {
+      this.effect(() => {
+        if (this.state.elements && !this.state.error && location.hash) {
+          this.querySelector(`[id="${decodeURIComponent(location.hash.slice(1))}"]`)?.scrollIntoView({
+            block: 'start',
+          });
+        }
+      });
       this.effect(
         async () => {
           const url = this.#getRemoteUrl();

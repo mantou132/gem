@@ -5,7 +5,7 @@
 <gbp-example
   name="dy-scatter-chart"
   props='{"style": "width: 100%;", "sequences": [{"label": "Label", "values": [[100, 1], [200, 3], [1000, 5]] }] }'
-  src="https://jspm.dev/duoyun-ui/elements/scatter-chart"></gbp-example>
+  src="https://esm.sh/duoyun-ui/elements/scatter-chart"></gbp-example>
 
 ## API
 

@@ -5,7 +5,7 @@ import { selfI18n } from '../helper/i18n';
 import { theme } from '../helper/theme';
 import { bookStore } from '../store';
 
-import { mdRender } from './main';
+import { Main } from './main';
 
 import '@mantou/gem/elements/link';
 
@@ -19,29 +19,23 @@ export class Footer extends GemElement {
       <style>
         :host {
           display: block;
-          padding: 2rem 0;
-          margin-top: 6rem;
+          padding-block: 2rem;
+          box-sizing: border-box;
           border-top: 1px solid ${theme.borderColor};
           font-style: italic;
           line-height: 1.5;
           color: rgba(${theme.textColorRGB}, 0.5);
         }
-        @media ${mediaQuery.PHONE} {
-          :host {
-            margin: 0;
-          }
-        }
         gem-link {
           color: ${theme.textColor};
-          border-bottom: 1px solid rgba(${theme.textColorRGB}, 0.3);
           text-decoration: none;
         }
         gem-link:hover {
-          border-bottom: 1px solid;
+          opacity: 0.8;
         }
       </style>
       ${config?.footer
-        ? mdRender.unsafeRenderHTML(
+        ? Main.unsafeRenderHTML(
             config.footer,
             css`
               p {

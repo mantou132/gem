@@ -6,7 +6,7 @@
   name="dy-action-text"
   html="Action Text"
   props='{"tooltip":"Tooltip text", "color": "negative"}'
-  src="https://jspm.dev/duoyun-ui/elements/action-text"></gbp-example>
+  src="https://esm.sh/duoyun-ui/elements/action-text"></gbp-example>
 
 ## API
 

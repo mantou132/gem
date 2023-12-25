@@ -1,4 +1,4 @@
-import { adoptedStyle, customElement } from '@mantou/gem/lib/decorators';
+import { adoptedStyle, customElement, slot } from '@mantou/gem/lib/decorators';
 import { GemElement } from '@mantou/gem/lib/element';
 import { createCSSSheet, css } from '@mantou/gem/lib/utils';
 
@@ -54,6 +54,8 @@ const style = createCSSSheet(css`
 @customElement('dy-paragraph')
 @adoptedStyle(style)
 export class DuoyunParagraphElement extends GemElement {
+  @slot static unnamed: string;
+
   constructor() {
     super({ isLight: true });
     this.internals.role = 'paragraph';

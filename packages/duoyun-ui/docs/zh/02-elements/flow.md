@@ -2,7 +2,7 @@
 
 ## Example
 
-<gbp-example name="dy-flow" src="https://jspm.dev/duoyun-ui/elements/flow">
+<gbp-example name="dy-flow" src="https://esm.sh/duoyun-ui/elements/flow">
 
 ```json
 {

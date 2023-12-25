@@ -2,7 +2,7 @@
 
 ## Example
 
-<gbp-example name="dy-timeline" src="https://jspm.dev/duoyun-ui/elements/timeline">
+<gbp-example name="dy-timeline" src="https://esm.sh/duoyun-ui/elements/timeline">
 
 ```json
 {

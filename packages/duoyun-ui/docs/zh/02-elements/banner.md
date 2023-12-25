@@ -6,7 +6,7 @@
   name="dy-banner"
   props='{"style": "width: 100%", "closable": true, "status": "positive", "action": {"text": "View"}}'
   html="This is banner"
-  src="https://jspm.dev/duoyun-ui/elements/banner"></gbp-example>
+  src="https://esm.sh/duoyun-ui/elements/banner"></gbp-example>
 
 ## API
 

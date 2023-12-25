@@ -2,7 +2,7 @@
 
 ## Example
 
-<gbp-example name="dy-slider" direction="column" src="https://jspm.dev/duoyun-ui/elements/slider">
+<gbp-example name="dy-slider" direction="column" src="https://esm.sh/duoyun-ui/elements/slider">
 
 ```json
 [

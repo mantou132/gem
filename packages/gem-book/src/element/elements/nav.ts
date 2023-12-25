@@ -1,4 +1,13 @@
-import { html, GemElement, customElement, refobject, RefObject, globalemitter, connectStore } from '@mantou/gem';
+import {
+  html,
+  GemElement,
+  customElement,
+  refobject,
+  RefObject,
+  globalemitter,
+  connectStore,
+  boolattribute,
+} from '@mantou/gem';
 import { mediaQuery } from '@mantou/gem/helper/mediaquery';
 
 import { NavItem } from '../../common/config';
@@ -10,6 +19,7 @@ import { icons } from './icons';
 
 import '@mantou/gem/elements/link';
 import '@mantou/gem/elements/use';
+import './nav-logo';
 
 /**
  * @attr tl
@@ -19,6 +29,8 @@ import '@mantou/gem/elements/use';
 @customElement('gem-book-nav')
 @connectStore(bookStore)
 export class Nav extends GemElement {
+  @boolattribute logo: boolean;
+
   @globalemitter languagechange = (v: string) => bookStore.languagechangeHandle?.(v);
 
   @refobject i18nRef: RefObject<HTMLSelectElement>;
@@ -32,7 +44,6 @@ export class Nav extends GemElement {
           ${mediaQuery.isPhone ? '' : name || lang}
           <gem-use @click=${() => this.i18nRef.element?.click()} .element=${icons.i18n}></gem-use>
           <select
-            class="i18n-select"
             aria-label="language select"
             ref=${this.i18nRef.ref}
             @change=${(e: any) => this.languagechange(e.target.value)}
@@ -67,7 +78,7 @@ export class Nav extends GemElement {
 
   render() {
     const { config, nav = [] } = bookStore;
-    const { github = '', icon = '', title = '' } = config || {};
+    const { github = '' } = config || {};
     const githubLink = config ? this.renderExternalItem({ title: 'github', link: github }) : null;
     const internals = nav?.filter((e) => isSameOrigin(e.link)) || [];
     const externals = nav?.filter((e) => !isSameOrigin(e.link)) || [];
@@ -75,9 +86,13 @@ export class Nav extends GemElement {
     return html`
       <style>
         :host {
-          --height: ${theme.headerHeight};
           display: flex;
-          line-height: var(--height);
+          box-sizing: border-box;
+          height: ${theme.headerHeight};
+          border-bottom: 1px solid ${theme.borderColor};
+        }
+        gem-book-nav-logo + .item {
+          margin-left: 3rem;
         }
         .item {
           display: flex;
@@ -89,7 +104,7 @@ export class Nav extends GemElement {
         .item gem-use {
           margin-left: 0.3rem;
         }
-        .i18n-select {
+        .item select {
           -webkit-appearance: none;
           appearance: none;
           cursor: pointer;
@@ -101,20 +116,8 @@ export class Nav extends GemElement {
           flex-grow: 1;
           display: flex;
         }
-        .homelink {
-          margin-right: 3rem;
-          font-size: 1.2rem;
-          font-weight: 700;
-        }
-        .homelink ~ .item {
-          font-weight: 300;
+        .internals .item {
           padding: 0 1rem;
-        }
-        .internals img {
-          height: calc(0.8 * var(--height));
-          min-width: calc(0.8 * var(--height));
-          object-fit: contain;
-          transform: translateX(-10%);
         }
         :where(.item + .item:not(.slot)),
         .slot::slotted(*) {
@@ -143,17 +146,13 @@ export class Nav extends GemElement {
           width: 100%;
         }
         gem-use {
-          width: 15px;
-          height: 15px;
+          width: 1em;
         }
         @media ${mediaQuery.PHONE} {
-          :host {
-            --height: calc(0.875 * ${theme.headerHeight});
+          gem-book-nav-logo + .item {
+            margin-left: 0;
           }
-          .homelink {
-            margin-right: 0;
-          }
-          .homelink ~ .item {
+          .internals .item {
             padding: 0 0.3rem;
           }
           .external {
@@ -162,11 +161,7 @@ export class Nav extends GemElement {
         }
       </style>
       <div class="internals">
-        <gem-link class="item homelink" path="/">
-          ${icon ? html`<img alt=${title} src=${icon} aria-hidden="true" />` : null}
-          ${mediaQuery.isPhone && icon && Number(nav?.length) >= 2 ? '' : title}
-        </gem-link>
-        ${internals.map(this.renderInternalItem)}
+        ${this.logo ? html`<gem-book-nav-logo></gem-book-nav-logo>` : ''} ${internals.map(this.renderInternalItem)}
       </div>
       ${externals.map(this.renderExternalItem)} ${githubLink} ${this.renderI18nSelect()}
       <slot class="slot item"></slot>

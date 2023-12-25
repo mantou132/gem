@@ -6,6 +6,7 @@ import {
   Emitter,
   property,
   boolattribute,
+  slot,
 } from '@mantou/gem/lib/decorators';
 import { GemElement, html, TemplateResult } from '@mantou/gem/lib/element';
 import { createCSSSheet, css } from '@mantou/gem/lib/utils';
@@ -55,6 +56,8 @@ const style = createCSSSheet(css`
 @adoptedStyle(style)
 @adoptedStyle(focusStyle)
 export class DuoyunRadioElement extends GemElement {
+  @slot static unnamed: string;
+
   @boolattribute checked: boolean;
   @boolattribute disabled: boolean;
   @globalemitter change: Emitter<string>;

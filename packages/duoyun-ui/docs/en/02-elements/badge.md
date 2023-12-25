@@ -4,7 +4,7 @@ Dependence on [anchor positioning](//www.w3.org/TR/css-anchor-position-1)
 
 ## Example
 
-<gbp-example name="dy-badge"  src="https://jspm.dev/duoyun-ui/elements/badge,https://jspm.dev/duoyun-ui/elements/avatar">
+<gbp-example name="dy-badge"  src="https://esm.sh/duoyun-ui/elements/badge,https://esm.sh/duoyun-ui/elements/avatar">
 
 ```json
 [

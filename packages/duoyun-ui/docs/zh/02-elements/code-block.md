@@ -17,7 +17,7 @@
 &amp;lt;/html&amp;gt;
 Test'
   props='{"style": "width: 100%", "codelang": "html", "range": "-11", "highlight": "8"}'
-  src="https://jspm.dev/duoyun-ui/elements/code-block"></gbp-example>
+  src="https://esm.sh/duoyun-ui/elements/code-block"></gbp-example>
 
 ## API
 

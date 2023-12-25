@@ -1,5 +1,11 @@
 # 元素索引
 
+<style>
+  a, gem-link {
+    text-wrap: nowrap;
+  }
+</style>
+
 | DuoyunUI                                           | AntD                                        | Element Plus                             |
 | -------------------------------------------------- | ------------------------------------------- | ---------------------------------------- |
 | [`<dy-action-text>`](./action-text.md)             | [`<Button>`][antd-button]                   | [`<ele-button>`][ele-button]             |

@@ -2,7 +2,7 @@
 
 ## Example
 
-<gbp-example name="dy-input" direction="column" src="https://jspm.dev/duoyun-ui/elements/input">
+<gbp-example name="dy-input" direction="column" src="https://esm.sh/duoyun-ui/elements/input">
 
 ```json
 [

@@ -3,7 +3,6 @@ import { mediaQuery } from '@mantou/gem/helper/mediaquery';
 
 import { getGithubPath } from '../lib/utils';
 import { selfI18n } from '../helper/i18n';
-import { theme } from '../helper/theme';
 import { bookStore } from '../store';
 
 import { icons } from './icons';
@@ -68,19 +67,19 @@ export class EditLink extends GemElement<State> {
           display: flex;
           gap: 1rem;
           flex-wrap: wrap;
-          padding: 2rem 0;
+          padding-block: 6rem 2rem;
+          box-sizing: border-box;
           justify-content: space-between;
           line-height: 1.5;
         }
         gem-link {
-          border-bottom: 1px solid rgba(${theme.textColorRGB}, 0.3);
           color: inherit;
           text-decoration: none;
           display: inline-flex;
           align-items: center;
         }
         gem-link:hover {
-          border-bottom: 1px solid;
+          opacity: 0.8;
         }
         gem-use {
           width: 18px;

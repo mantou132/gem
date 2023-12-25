@@ -2,7 +2,7 @@
 
 ## Example
 
-<gbp-example name="dy-carousel" src="https://jspm.dev/duoyun-ui/elements/carousel">
+<gbp-example name="dy-carousel" src="https://esm.sh/duoyun-ui/elements/carousel">
 
 ```json
 {

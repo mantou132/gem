@@ -4,7 +4,7 @@
 
 <gbp-example
   name="dy-empty"
-  src="https://jspm.dev/duoyun-ui/elements/empty"></gbp-example>
+  src="https://esm.sh/duoyun-ui/elements/empty"></gbp-example>
 
 ## API
 

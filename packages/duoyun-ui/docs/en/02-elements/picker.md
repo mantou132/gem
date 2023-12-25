@@ -2,7 +2,7 @@
 
 ## Example
 
-<gbp-example name="dy-picker" direction="column" src="https://jspm.dev/duoyun-ui/elements/picker">
+<gbp-example name="dy-picker" direction="column" src="https://esm.sh/duoyun-ui/elements/picker">
 
 ```json
 [

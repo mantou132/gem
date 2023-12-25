@@ -5,7 +5,7 @@
 <gbp-example
   name="dy-breadcrumbs"
   props='{"list": [{"title": "Level 1"}, {"title": "Level 2"}]}'
-  src="https://jspm.dev/duoyun-ui/elements/breadcrumbs"></gbp-example>
+  src="https://esm.sh/duoyun-ui/elements/breadcrumbs"></gbp-example>
 
 ## API
 

@@ -33,14 +33,14 @@ customElements.whenDefined('gem-book').then(() => {
 
     #detectType(): MediaType {
       // https://developer.mozilla.org/en-US/docs/Web/Media/Formats
-      const ext = this.src.split('.').pop() || '';
-      if (/a?png|jpe?g|gif|webp|avif|svg/.test(ext)) {
+      const ext = this.src.split('?')[0].split('.').pop() || '';
+      if (/(a?png|jpe?g|gif|webp|avif|svg)$/.test(ext)) {
         return 'img';
       }
-      if (/mp4|webm|av1/.test(ext)) {
+      if (/(mp4|webm|av1)$/.test(ext)) {
         return 'video';
       }
-      if (/mp3|ogg/.test(ext)) {
+      if (/(mp3|ogg)$/.test(ext)) {
         return 'img';
       }
       return 'unknown';
@@ -56,6 +56,7 @@ customElements.whenDefined('gem-book').then(() => {
             border-radius: 4px;
             text-align: center;
             background: ${theme.borderColor};
+            border-radius: ${theme.normalRound};
           }
         </style>
       `;
@@ -92,9 +93,15 @@ customElements.whenDefined('gem-book').then(() => {
         <style>
           :host {
             display: block;
+            overflow: hidden;
+            margin: 2rem 0px;
+            border-radius: ${theme.normalRound};
           }
-          * {
+          img,
+          audio,
+          video {
             width: 100%;
+            display: block;
           }
         </style>
         ${this.#renderContent()}

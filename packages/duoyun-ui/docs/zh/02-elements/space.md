@@ -6,7 +6,7 @@
   name="dy-space"
   props='{"size": "large"}'
   html="<div>Button1</div><div>Button2</div><div>Button3</div>"
-  src="https://jspm.dev/duoyun-ui/elements/space"></gbp-example>
+  src="https://esm.sh/duoyun-ui/elements/space"></gbp-example>
 
 ## API
 

@@ -2,7 +2,7 @@
 
 ## Example
 
-<gbp-example name="dy-collapse" src="https://jspm.dev/duoyun-ui/elements/collapse">
+<gbp-example name="dy-collapse" src="https://esm.sh/duoyun-ui/elements/collapse">
 
 ```json
 {

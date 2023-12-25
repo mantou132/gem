@@ -45,6 +45,9 @@ customElements.whenDefined('gem-book').then(() => {
     :host {
       display: grid;
       grid-template: 'tabs tabs' 'code preview' / 50% 50%;
+      border-radius: ${theme.normalRound};
+      overflow: hidden;
+      margin: 2rem 0px;
     }
     .header {
       grid-area: tabs;
@@ -112,6 +115,7 @@ customElements.whenDefined('gem-book').then(() => {
       height: 50%;
       border: none;
       background: ${theme.backgroundColor};
+      border-radius: ${theme.normalRound};
     }
     @media (max-width: 700px) {
       :host {

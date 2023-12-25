@@ -2,7 +2,7 @@
 
 ## Example
 
-<gbp-example name="dy-checkbox" src="https://jspm.dev/duoyun-ui/elements/checkbox">
+<gbp-example name="dy-checkbox" src="https://esm.sh/duoyun-ui/elements/checkbox">
 
 ```json
 [
@@ -25,7 +25,7 @@
 <gbp-example
   name="dy-checkbox-group"
   props='{"orientation": "vertical", "options": [{"label": "Option 1"}, {"label": "Option 2"}, {"label": "Option 3"}], "value": ["Option 1"], "@change": "(evt) => evt.currentTarget.value = evt.detail"}'
-  src="https://jspm.dev/duoyun-ui/elements/checkbox"></gbp-example>
+  src="https://esm.sh/duoyun-ui/elements/checkbox"></gbp-example>
 
 ## `<dy-checkbox>` API
 

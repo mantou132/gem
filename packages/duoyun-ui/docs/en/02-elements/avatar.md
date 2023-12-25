@@ -2,7 +2,7 @@
 
 ## Example
 
-<gbp-example name="dy-avatar"  src="https://jspm.dev/duoyun-ui/elements/avatar">
+<gbp-example name="dy-avatar"  src="https://esm.sh/duoyun-ui/elements/avatar">
 
 ```json
 {
@@ -15,7 +15,7 @@
 
 </gbp-example>
 
-<gbp-example name="dy-avatar-group" src="https://jspm.dev/duoyun-ui/elements/avatar">
+<gbp-example name="dy-avatar-group" src="https://esm.sh/duoyun-ui/elements/avatar">
 
 ```json
 {

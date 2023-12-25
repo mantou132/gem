@@ -35,6 +35,7 @@ import './elements/footer';
 import './elements/edit-link';
 import './elements/rel-link';
 import './elements/meta';
+import './elements/toc';
 
 /**
  * @custom-element gem-book
@@ -59,7 +60,6 @@ export class GemBookElement extends GemElement {
   @globalemitter routechange: Emitter<null>;
 
   @part nav: string;
-  @part navShadow: string;
   @part sidebar: string;
   @part main: string;
   @part editLink: string;
@@ -111,73 +111,74 @@ export class GemBookElement extends GemElement {
       <style>
         :host {
           display: grid;
-          grid-template-areas: 'left aside content right';
-          grid-template-columns: auto ${theme.sidebarWidth} minmax(0, ${theme.mainWidth}) auto;
+          grid-template-areas: 'aside content toc';
+          grid-template-columns: ${theme.sidebarWidth} 1fr minmax(0, ${theme.sidebarWidth});
           grid-template-rows: repeat(44, auto);
-          grid-column-gap: 3rem;
           text-rendering: optimizeLegibility;
-          font: 16px/1.7 ${theme.font};
+          font: 16px/1.8 ${theme.font};
           color: ${theme.textColor};
           -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
           background: ${theme.backgroundColor};
         }
-        .nav-shadow {
-          grid-area: 1 / left / 2 / right;
-          background: ${theme.backgroundColor};
-          border-bottom: 1px solid ${theme.borderColor};
-          box-shadow: 0 0 1.5rem #00000015;
-        }
-        .nav-shadow,
         gem-book-nav {
           position: sticky;
           top: 0;
           z-index: 3;
-        }
-        .nav-shadow ~ gem-book-sidebar {
-          margin-top: ${theme.headerHeight};
-          top: ${theme.headerHeight};
-          max-height: calc(100vh - ${theme.headerHeight});
+          grid-area: 1 / content / 2 / toc;
+          background: ${theme.backgroundColor};
+          padding-inline: 2rem;
         }
         gem-book-sidebar {
           grid-area: 1 / aside / -1 / aside;
-          max-height: 100vh;
         }
-        gem-book-nav {
-          grid-area: 1 / aside / 2 / content;
-        }
-        gem-light-route,
-        gem-book-edit-link,
-        gem-book-rel-link,
-        gem-book-footer,
-        slot[name='${this.mainBefore}'],
-        slot[name='${this.mainAfter}'] {
+        main {
+          display: flex;
+          flex-direction: column;
+          width: min(100%, ${theme.maxMainWidth});
+          margin: auto;
+          min-width: 0;
           grid-area: auto / content;
+          box-sizing: border-box;
+          padding-inline: 2rem;
         }
         slot[name='${this.mainBefore}'],
         slot[name='${this.mainAfter}'] {
           display: block;
         }
         slot[name='${this.mainBefore}'] {
-          margin-top: 3rem;
+          margin-block-start: 2rem;
+        }
+        :where(
+            slot[name='${this.mainBefore}'],
+            slot[name='${this.mainAfter}'],
+            slot[name='${this.sidebarBefore}']
+          )::slotted(*) {
+          margin-block-end: 2rem;
         }
         gem-light-route {
           min-height: 100vh;
         }
+        gem-book-toc {
+          grid-area: auto / toc;
+        }
+        @media not ${`(${mediaQuery.DESKTOP})`} {
+          gem-book-toc {
+            display: none;
+          }
+        }
+        @media ${mediaQuery.TABLET} {
+          main {
+            grid-area: auto / content / auto / toc;
+          }
+        }
         @media ${renderFullWidth ? 'all' : 'not all'} {
-          gem-light-route {
-            display: flex;
-            justify-content: center;
+          gem-book-nav {
+            grid-area: 1 / aside / 2 / toc;
+            box-shadow: 0 0 1.5rem #00000015;
           }
-          gem-book-main {
-            max-width: min(calc(${theme.sidebarWidth} + ${theme.mainWidth}), 100vw);
-          }
-          gem-book-homepage {
-            grid-area: auto / left / auto / right;
-          }
-          slot[name='${this.mainBefore}'],
-          gem-light-route,
-          gem-book-footer {
-            grid-area: auto / aside / auto / content;
+          gem-book-homepage,
+          main {
+            grid-area: auto / aside / auto / toc;
           }
           gem-book-sidebar,
           gem-book-edit-link,
@@ -189,31 +190,20 @@ export class GemBookElement extends GemElement {
           }
         }
         @media ${mediaQuery.PHONE} {
-          .nav-shadow {
-            box-shadow: none;
+          :host {
+            display: block;
           }
-          .nav-shadow ~ gem-book-sidebar {
+          gem-book-nav,
+          main {
+            padding-inline: 1rem;
+          }
+          gem-book-nav ~ gem-book-sidebar {
             margin-top: 0;
             height: auto;
             max-height: none;
           }
           slot[name='${this.mainBefore}'] {
             margin-top: 1rem;
-          }
-          :host {
-            grid-column-gap: 1rem;
-            grid-template-areas: 'left content right';
-            grid-template-columns: 0 minmax(0, 1fr) auto;
-          }
-          gem-book-sidebar,
-          gem-book-edit-link,
-          gem-book-rel-link,
-          gem-book-footer,
-          gem-light-route {
-            grid-area: auto / content;
-          }
-          gem-book-nav {
-            grid-area: 1 / content / 2 / content;
           }
           gem-book-footer {
             text-align: left;
@@ -223,7 +213,9 @@ export class GemBookElement extends GemElement {
           :host {
             display: block;
           }
-          .nav-shadow,
+          main {
+            width: 100%;
+          }
           gem-book-nav,
           gem-book-sidebar,
           gem-book-edit-link,
@@ -232,41 +224,39 @@ export class GemBookElement extends GemElement {
           slot[name] {
             display: none;
           }
-          gem-light-route {
-            grid-area: auto / left / auto / right;
-          }
         }
       </style>
       <gem-book-meta aria-hidden="true"></gem-book-meta>
 
       ${hasNavbar
         ? html`
-            <div class="nav-shadow" part=${this.navShadow}></div>
-            <gem-book-nav role="navigation" part=${this.nav}>
+            <gem-book-nav role="navigation" part=${this.nav} .logo=${!!renderFullWidth}>
               <slot name=${this.navInside}></slot>
             </gem-book-nav>
           `
         : null}
-      ${renderHomePage
-        ? html`<gem-book-homepage exportparts="hero: ${this.homepageHero}"></gem-book-homepage>`
-        : html`<slot name=${this.mainBefore}></slot>`}
-      <gem-light-route
-        ref=${this.routeRef.ref}
-        role="main"
-        part=${this.main}
-        .locationStore=${locationStore}
-        .key=${lang}
-        .routes=${routes}
-        @loading=${this.#onLoading}
-        @routechange=${this.#onRouteChange}
-      ></gem-light-route>
-      <gem-book-edit-link role="complementary" part=${this.editLink}></gem-book-edit-link>
       <gem-book-sidebar role="navigation" part=${this.sidebar}>
         <slot name=${this.sidebarBefore}></slot>
       </gem-book-sidebar>
-      <gem-book-rel-link role="navigation" part=${this.relLink}></gem-book-rel-link>
-      ${renderHomePage ? '' : html`<slot name=${this.mainAfter}></slot>`}
-      <gem-book-footer role="contentinfo" part=${this.footer}></gem-book-footer>
+      ${renderHomePage ? html`<gem-book-homepage exportparts="hero: ${this.homepageHero}"></gem-book-homepage>` : ''}
+      <main>
+        ${renderHomePage ? '' : html`<slot name=${this.mainBefore}></slot>`}
+        <gem-light-route
+          ref=${this.routeRef.ref}
+          role="main"
+          part=${this.main}
+          .locationStore=${locationStore}
+          .key=${lang}
+          .routes=${routes}
+          @loading=${this.#onLoading}
+          @routechange=${this.#onRouteChange}
+        ></gem-light-route>
+        <gem-book-edit-link role="complementary" part=${this.editLink}></gem-book-edit-link>
+        <gem-book-rel-link role="navigation" part=${this.relLink}></gem-book-rel-link>
+        ${renderHomePage ? '' : html`<slot name=${this.mainAfter}></slot>`}
+        <gem-book-footer role="contentinfo" part=${this.footer}></gem-book-footer>
+      </main>
+      <gem-book-toc></gem-book-toc>
     `;
   }
 

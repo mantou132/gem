@@ -94,6 +94,11 @@ style.textContent = css`
     overflow: auto;
     -webkit-overflow-scrolling: touch;
   }
+  @media print {
+    body {
+      overflow: visible;
+    }
+  }
 `;
 document.head.append(style);
 

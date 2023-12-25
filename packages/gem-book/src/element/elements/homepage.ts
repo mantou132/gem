@@ -1,4 +1,4 @@
-import { html, GemElement, customElement, part, connectStore } from '@mantou/gem';
+import { html, GemElement, customElement, part, connectStore, css } from '@mantou/gem';
 import { mediaQuery } from '@mantou/gem/helper/mediaquery';
 
 import { theme } from '../helper/theme';
@@ -6,7 +6,7 @@ import { getRemotePath, getUserLink, NavItemWithLink } from '../lib/utils';
 import { bookStore } from '../store';
 
 import { icons } from './icons';
-import { mdRender } from './main';
+import { Main } from './main';
 
 import '@mantou/gem/elements/link';
 import '@mantou/gem/elements/use';
@@ -24,9 +24,9 @@ export class Homepage extends GemElement {
         .hero {
           text-align: center;
           padding: 3.5rem 1rem;
-          --tcolor: rgba(${theme.textColorRGB}, 0.03);
-          --pcolor: rgba(${theme.primaryColorRGB}, 0.02);
-          background: linear-gradient(var(--tcolor), var(--tcolor)), linear-gradient(var(--pcolor), var(--pcolor));
+          --tColor: rgba(${theme.textColorRGB}, 0.03);
+          --pColor: rgba(${theme.primaryColorRGB}, 0.02);
+          background: linear-gradient(var(--tColor), var(--tColor)), linear-gradient(var(--pColor), var(--pColor));
         }
         .title {
           margin: 0;
@@ -36,6 +36,7 @@ export class Homepage extends GemElement {
         }
         .desc {
           opacity: 0.6;
+          text-wrap: balance;
         }
         .actions {
           display: flex;
@@ -49,6 +50,7 @@ export class Homepage extends GemElement {
           color: ${theme.primaryColor};
           text-decoration: none;
           transition: all 0.3s;
+          border-radius: ${theme.normalRound};
         }
         gem-link:first-of-type {
           padding: 0.5rem 2rem;
@@ -58,6 +60,9 @@ export class Homepage extends GemElement {
         }
         gem-link:hover {
           filter: brightness(1.1);
+        }
+        gem-link:active {
+          filter: brightness(1.2);
         }
         gem-use {
           margin-left: 0.3rem;
@@ -83,7 +88,7 @@ export class Homepage extends GemElement {
       <div class="hero" part=${this.hero} role="banner">
         <div class="body">
           ${!title ? '' : html`<h1 class="title">${title}</h1>`}
-          ${!desc ? '' : html`<p class="desc">${mdRender.unsafeRenderHTML(desc)}</p>`}
+          ${!desc ? '' : html`<p class="desc">${Main.unsafeRenderHTML(desc)}</p>`}
           <div class="actions">
             ${actions?.map(
               ({ link, text }, index) =>
@@ -106,34 +111,44 @@ export class Homepage extends GemElement {
         .features .body {
           display: grid;
           grid-template-columns: repeat(3, 1fr);
-          grid-column-gap: 1rem;
+          gap: 1rem;
+          text-align: center;
+        }
+        .feature:not(.has-icon) {
+          border: 1px solid ${theme.borderColor};
+          border-radius: ${theme.normalRound};
+          padding: 1.5rem 1rem;
+        }
+        .feature.has-icon {
+          width: max(20em, 80%);
+          max-width: 100%;
+          margin: 0 auto 1rem;
         }
         .icon {
           width: 30%;
+          margin-block-end: 1rem;
           object-fit: contain;
         }
-        .has-icon {
-          text-align: center;
-        }
         .feat-title {
-          margin: 1rem 0;
+          margin-block-end: 1rem;
           font-size: 1.5em;
           line-height: 1;
-          font-weight: 300;
-          opacity: 0.6;
         }
         .feat-desc {
           line-height: 1.5;
-          margin: 1rem 0;
+          margin: 1rem 0 0;
           letter-spacing: 0.05em;
-          font-weight: 300;
+          opacity: 0.6;
         }
         @media ${mediaQuery.PHONE}, print {
           .features {
             padding: 3rem 1rem;
           }
           .features .body {
-            display: block;
+            grid-template-columns: auto;
+          }
+          .feature:not(.has-icon) {
+            text-align: left;
           }
           .icon {
             width: 5rem;
@@ -157,7 +172,16 @@ export class Homepage extends GemElement {
                     />`
                   : ''}
                 <dt class="feat-title">${feature.title}</dt>
-                <dd class="feat-desc">${mdRender.unsafeRenderHTML(feature.desc)}</dd>
+                <dd class="feat-desc">
+                  ${Main.unsafeRenderHTML(
+                    feature.desc,
+                    css`
+                      p:last-of-type {
+                        margin-block-end: 0;
+                      }
+                    `,
+                  )}
+                </dd>
               </div>
             `,
           )}
@@ -177,7 +201,7 @@ export class Homepage extends GemElement {
         .body {
           margin: auto;
           width: 100%;
-          max-width: calc(${theme.sidebarWidth} + ${theme.mainWidth});
+          max-width: calc(${theme.sidebarWidth} + ${theme.maxMainWidth});
         }
         @media print {
           :host {

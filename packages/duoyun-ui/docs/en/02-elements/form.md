@@ -11,7 +11,7 @@
 <dy-form-item name="phone" label="Phone"></dy-form-item>
 <dy-form-item name="date" label="Date" type="date" time></dy-form-item>
 <dy-form-item name="range" label="Date Range" type="date-range" time></dy-form-item>'
-  src="https://jspm.dev/duoyun-ui/elements/form"></gbp-example>
+  src="https://esm.sh/duoyun-ui/elements/form"></gbp-example>
 
 <gbp-example
   name="dy-form"
@@ -19,7 +19,7 @@
   html='<dy-form-item name="name" label="Name" multiple></dy-form-item>
 <dy-form-item name="email" label="Email"></dy-form-item>
 <dy-form-item name="phone" label="Phone"></dy-form-item>'
-  src="https://jspm.dev/duoyun-ui/elements/form"></gbp-example>
+  src="https://esm.sh/duoyun-ui/elements/form"></gbp-example>
 
 ## `<dy-form>` API
 

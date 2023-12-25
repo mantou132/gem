@@ -13,9 +13,9 @@ export function getRenderer({ lang, link, displayRank }: { lang: string; link: s
     const [, text, customId] = textContent(fullText).match(CUSTOM_HEADING_REG) as RegExpMatchArray;
     const tag = `h${level}`;
     const id = normalizeId(customId || text);
-    return `<${tag} class="markdown-header" id="${id}"><a class="header-anchor" aria-hidden="true" href="#${id}">${
-      icons.anchor
-    }</a>${escapeHTML(text)}</${tag}>`;
+    return `<${tag} class="markdown-header" id="${id}">${escapeHTML(
+      text,
+    )}<a class="header-anchor" aria-hidden="true" href="#${id}"></a></${tag}>`;
   };
 
   renderer.blockquote = (quote) => {
@@ -25,6 +25,11 @@ export function getRenderer({ lang, link, displayRank }: { lang: string; link: s
       return `<p class="title">${$1}</p><p>`;
     });
     return `<blockquote class="${type.toLowerCase()}">${q}</blockquote>`;
+  };
+
+  const table = renderer.table;
+  renderer.table = (header: string, body: string) => {
+    return `<div class="table-wrap">${table(header, body)}</div>`;
   };
 
   renderer.code = (code, infoString) => {
@@ -58,10 +63,10 @@ export function getRenderer({ lang, link, displayRank }: { lang: string; link: s
     const internal = isSameOrigin(href || '');
     return `<a
         class="link"
-        ${internal ? '' : `ref="noreferrer" target="_blank"`}
+        ${internal ? '' : `target="_blank"`}
         href="${href || ''}"
         title="${title || ''}"
-      >${text}${internal ? '' : icons.link}</a>`;
+      >${text}${internal ? '' : icons.link.trim()}</a>`;
   };
   return renderer;
 }

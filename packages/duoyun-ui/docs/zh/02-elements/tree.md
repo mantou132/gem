@@ -2,7 +2,7 @@
 
 ## Example
 
-<gbp-example name="dy-tree" src="https://jspm.dev/duoyun-ui/elements/tree">
+<gbp-example name="dy-tree" src="https://esm.sh/duoyun-ui/elements/tree">
 
 ```json
 {

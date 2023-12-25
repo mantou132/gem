@@ -2,7 +2,7 @@
 
 ## Example
 
-<gbp-example name="dy-pagination" src="https://jspm.dev/duoyun-ui/elements/pagination">
+<gbp-example name="dy-pagination" src="https://esm.sh/duoyun-ui/elements/pagination">
 
 ```json
 {

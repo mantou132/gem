@@ -2,7 +2,7 @@
 
 ## Example
 
-<gbp-example name="dy-list" src="https://jspm.dev/duoyun-ui/elements/list">
+<gbp-example name="dy-list" src="https://esm.sh/duoyun-ui/elements/list">
 
 ```json
 {
@@ -30,7 +30,7 @@
 
 ## Infinite Scroll Example
 
-<gbp-example name="dy-list" src="https://jspm.dev/duoyun-ui/elements/list">
+<gbp-example name="dy-list" src="https://esm.sh/duoyun-ui/elements/list">
 
 ```json
 {
@@ -45,7 +45,7 @@
 
 </gbp-example>
 
-<gbp-example name="dy-list" src="https://jspm.dev/duoyun-ui/elements/list">
+<gbp-example name="dy-list" src="https://esm.sh/duoyun-ui/elements/list">
 
 ```json
 {

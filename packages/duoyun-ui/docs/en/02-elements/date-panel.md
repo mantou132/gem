@@ -5,7 +5,7 @@
 <gbp-example
   name="dy-date-panel"
   props='{"style": "width: 300px;"}'
-  src="https://jspm.dev/duoyun-ui/elements/date-panel"></gbp-example>
+  src="https://esm.sh/duoyun-ui/elements/date-panel"></gbp-example>
 
 ## API
 

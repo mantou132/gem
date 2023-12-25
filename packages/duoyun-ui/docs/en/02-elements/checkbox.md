@@ -2,7 +2,7 @@
 
 ## Example
 
-<gbp-example name="dy-checkbox" src="https://jspm.dev/duoyun-ui/elements/checkbox">
+<gbp-example name="dy-checkbox" src="https://esm.sh/duoyun-ui/elements/checkbox">
 
 ```json
 [

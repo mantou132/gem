@@ -2,7 +2,7 @@
 
 ## Example
 
-<gbp-example name="dy-text-mask" src="https://jspm.dev/duoyun-ui/elements/text-mask">
+<gbp-example name="dy-text-mask" src="https://esm.sh/duoyun-ui/elements/text-mask">
 
 ```json
 [

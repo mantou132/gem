@@ -2,7 +2,7 @@
 
 ## Example
 
-<gbp-example name="dy-file-picker" src="https://jspm.dev/duoyun-ui/elements/file-picker">
+<gbp-example name="dy-file-picker" src="https://esm.sh/duoyun-ui/elements/file-picker">
 
 ```json
 [

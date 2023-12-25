@@ -5,7 +5,7 @@
 <gbp-example
   name="dy-loading"
   html="Loading..."
-  src="https://jspm.dev/duoyun-ui/elements/loading"></gbp-example>
+  src="https://esm.sh/duoyun-ui/elements/loading"></gbp-example>
 
 ## API
 

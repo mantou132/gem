@@ -21,9 +21,11 @@ import { commonHandle } from '../lib/hotkeys';
 import { StringList } from '../lib/types';
 import { focusStyle } from '../lib/styles';
 
-import { DuoyunUseElement } from './use';
+import type { DuoyunUseElement } from './use';
 import { createHistoryParams, RouteItem } from './route';
 import { ContextMenuItem, ContextMenu } from './contextmenu';
+
+import './use';
 
 const style = createCSSSheet(css`
   :host(:where(:not([hidden]))) {

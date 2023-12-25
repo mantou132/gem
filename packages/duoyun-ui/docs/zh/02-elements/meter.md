@@ -2,7 +2,7 @@
 
 ## Example
 
-<gbp-example name="dy-meter" direction="column" src="https://jspm.dev/duoyun-ui/elements/meter">
+<gbp-example name="dy-meter" direction="column" src="https://esm.sh/duoyun-ui/elements/meter">
 
 ```json
 [

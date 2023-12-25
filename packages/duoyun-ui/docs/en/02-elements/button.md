@@ -2,7 +2,7 @@
 
 ## Example
 
-<gbp-example name="dy-button" src="https://jspm.dev/duoyun-ui/elements/button">
+<gbp-example name="dy-button" src="https://esm.sh/duoyun-ui/elements/button">
 
 ```json
 [

@@ -4,7 +4,7 @@
 
 <gbp-example
   name="dy-keyboard-access"
-  src="https://jspm.dev/duoyun-ui/elements/keyboard-access">Try press <kbd>f</kbd></gbp-example>
+  src="https://esm.sh/duoyun-ui/elements/keyboard-access">Try press <kbd>f</kbd></gbp-example>
 
 ## API
 

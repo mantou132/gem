@@ -20,10 +20,10 @@ import { icons } from '../lib/icons';
 import { commonHandle } from '../lib/hotkeys';
 import { focusStyle } from '../lib/styles';
 
-import { DuoyunUseElement } from './use';
 import { ContextMenuItem, ContextMenu } from './contextmenu';
 import type { SelectionChange } from './selection-box';
 
+import './use';
 import './placeholder';
 import './empty';
 import './tooltip';
@@ -228,13 +228,11 @@ export class DuoyunTableElement extends GemElement {
   };
 
   #openActions = (evt: PointerEvent, menu: ContextMenuItem[]) => {
-    if (evt.target instanceof DuoyunUseElement) {
-      ContextMenu.open(menu, {
-        activeElement: evt.target as HTMLElement,
-        searchable: menu.length > 20,
-        maxHeight: '30em',
-      });
-    }
+    ContextMenu.open(menu, {
+      activeElement: evt.target as HTMLElement,
+      searchable: menu.length > 20,
+      maxHeight: '30em',
+    });
   };
 
   #shouldRenderTd = (spanMemo: number[], index: number) => {

@@ -2,7 +2,7 @@
 
 ## Example
 
-<gbp-example name="dy-placeholder" src="https://jspm.dev/duoyun-ui/elements/placeholder">
+<gbp-example name="dy-placeholder" src="https://esm.sh/duoyun-ui/elements/placeholder">
 
 ```json
 {

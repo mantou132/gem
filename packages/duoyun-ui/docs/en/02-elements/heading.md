@@ -2,7 +2,7 @@
 
 ## Example
 
-<gbp-example name="dy-heading" html='Heading 3' src="https://jspm.dev/duoyun-ui/elements/heading">
+<gbp-example name="dy-heading" html='Heading 3' src="https://esm.sh/duoyun-ui/elements/heading">
 
 ```json
 [

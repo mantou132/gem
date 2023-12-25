@@ -11,6 +11,7 @@ import { icons } from './icons';
 import '@mantou/gem/elements/link';
 import '@mantou/gem/elements/use';
 import './side-link';
+import './nav-logo';
 
 @customElement('gem-book-sidebar')
 @connectStore(bookStore)
@@ -74,16 +75,30 @@ export class SideBar extends GemElement {
     return html`
       <style>
         :host {
-          display: block;
-          overflow: auto;
-          overscroll-behavior: contain;
-          box-sizing: border-box;
+          display: flex;
+          flex-direction: column;
+          height: 100vh;
+        }
+        :host,
+        gem-book-nav-logo {
           position: sticky;
           top: 0;
-          padding: 3rem 1rem 0;
-          margin: 0 -1rem;
+        }
+        gem-book-nav-logo {
+          border-block-end: 1px solid ${theme.borderColor};
+        }
+        gem-book-nav-logo,
+        .nav {
+          padding-inline: 1.5rem;
+        }
+        .nav {
+          border-inline-end: 1px solid ${theme.borderColor};
+          padding-block: 2rem;
           font-size: 0.875rem;
+          flex-grow: 1;
+          overflow: auto;
           scrollbar-width: thin;
+          overscroll-behavior: contain;
         }
         @media ${mediaQuery.PHONE} {
           :host {
@@ -92,13 +107,12 @@ export class SideBar extends GemElement {
             margin: 0;
             padding: 0;
             overflow: visible;
-            border-bottom: 1px solid ${theme.borderColor};
+            border-inline-end: none;
+            border-block-end: 1px solid ${theme.borderColor};
           }
-        }
-        :host::after {
-          content: '';
-          display: block;
-          height: 2rem;
+          gem-book-nav-logo {
+            display: none;
+          }
         }
         .link {
           display: block;
@@ -111,8 +125,10 @@ export class SideBar extends GemElement {
         .file:where(:state(active), [data-active]) {
           font-weight: bolder;
         }
-        .link:where(:state(match), [data-match]) + .hash {
-          display: block;
+        @media not ${`(${mediaQuery.DESKTOP})`} {
+          .link:where(:state(match), [data-match]) + .hash {
+            display: block;
+          }
         }
         .heading:not(:where(:state(active), [data-active])):not(:hover),
         .file:not(:where(:state(active), [data-active])):hover {
@@ -174,8 +190,11 @@ export class SideBar extends GemElement {
           margin-top: 0.5rem;
         }
       </style>
-      <slot></slot>
-      ${bookStore.currentSidebar?.map((item) => this.#renderItem(item, true))}
+      <gem-book-nav-logo></gem-book-nav-logo>
+      <div class="nav">
+        <slot></slot>
+        ${bookStore.currentSidebar?.map((item) => this.#renderItem(item, true))}
+      </div>
     `;
   }
 

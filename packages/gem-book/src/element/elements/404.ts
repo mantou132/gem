@@ -3,7 +3,6 @@ import { connectStore, customElement, GemElement, history, html } from '@mantou/
 import { getGithubPath, getUserLink } from '../lib/utils';
 import { bookStore } from '../store';
 import { selfI18n } from '../helper/i18n';
-import { theme } from '../helper/theme';
 
 import { icons } from './icons';
 
@@ -40,14 +39,13 @@ export class Meta extends GemElement {
           margin: 0;
         }
         gem-link {
-          border-bottom: 1px solid rgba(${theme.textColorRGB}, 0.3);
           color: inherit;
           text-decoration: none;
           display: inline-flex;
           align-items: center;
         }
         gem-link:hover {
-          border-bottom: 1px solid;
+          opacity: 0.8;
         }
         gem-use {
           width: 18px;
@@ -59,10 +57,12 @@ export class Meta extends GemElement {
       ${noGithub
         ? ''
         : html`
-            <gem-link href=${`${github}/new/${sourceBranch}${fullPath}`}>
-              <gem-use .element=${icons.compose}></gem-use>
-              <span>${selfI18n.get('createOnGithub')}</span>
-            </gem-link>
+            <div>
+              <gem-link href=${`${github}/new/${sourceBranch}${fullPath}`}>
+                <gem-use .element=${icons.compose}></gem-use>
+                <span>${selfI18n.get('createOnGithub')}</span>
+              </gem-link>
+            </div>
           `}
       <gem-reflect>
         <meta name="robots" content="noindex" />

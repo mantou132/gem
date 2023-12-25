@@ -32,6 +32,7 @@ function generateTheme(theme: Theme) {
 }
 
 export const theme = createTheme(generateTheme(defaultTheme));
+export const themeStore = getThemeStore(theme);
 
 export function changeTheme(newTheme?: Partial<Theme>) {
   if (newTheme) {

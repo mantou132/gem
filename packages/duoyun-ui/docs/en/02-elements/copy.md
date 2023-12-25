@@ -6,7 +6,7 @@
   name="dy-copy"
   props='{"style": "width: 100%; align-self: flex-start;"}'
   html="Hover Text Copy!"
-  src="https://jspm.dev/duoyun-ui/elements/copy"></gbp-example>
+  src="https://esm.sh/duoyun-ui/elements/copy"></gbp-example>
 
 ## API
 

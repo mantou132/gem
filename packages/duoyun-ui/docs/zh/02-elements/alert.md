@@ -6,7 +6,7 @@
   name="dy-alert"
   props='{"style": "width: 300px", "status": "negative", "header": "This is alert title", "action": {"text": "View"}}'
   html="Occaecat tempor amet fugiat ad fugiat sunt irure veniam consequat aute."
-  src="https://jspm.dev/duoyun-ui/elements/alert"></gbp-example>
+  src="https://esm.sh/duoyun-ui/elements/alert"></gbp-example>
 
 ## API
 

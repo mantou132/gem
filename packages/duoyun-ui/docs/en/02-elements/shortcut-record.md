@@ -2,7 +2,7 @@
 
 ## Example
 
-<gbp-example name="dy-shortcut-record" src="https://jspm.dev/duoyun-ui/elements/shortcut-record">
+<gbp-example name="dy-shortcut-record" src="https://esm.sh/duoyun-ui/elements/shortcut-record">
 
 ```json
 {
