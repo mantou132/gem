@@ -6,6 +6,7 @@ import {
   emitter,
   Emitter,
   boolattribute,
+  slot,
 } from '@mantou/gem/lib/decorators';
 import { GemElement, html } from '@mantou/gem/lib/element';
 import { createCSSSheet, css } from '@mantou/gem/lib/utils';
@@ -56,6 +57,8 @@ export type PresetColor = 'positive' | 'informative' | 'negative' | 'notice' | '
 @adoptedStyle(focusStyle)
 @connectStore(icons)
 export class DuoyunTagElement extends GemElement {
+  @slot static unnamed: string;
+
   @boolattribute closable: boolean;
   @attribute color: StringList<PresetColor>;
   /**@deprecated */

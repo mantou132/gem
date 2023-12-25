@@ -4,7 +4,7 @@ declare function inspect(arg: any): void;
 
 export const inspectValue = (path: Path, token: string) => {
   const value = window.__GEM_DEVTOOLS__PRELOAD__.readProp(path);
-  if (value instanceof Element) {
+  if (value instanceof Element || value instanceof CharacterData) {
     let element = value;
     if (element instanceof HTMLSlotElement) {
       // 只支持 inspect 第一个分配的元素

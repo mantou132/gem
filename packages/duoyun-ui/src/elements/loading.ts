@@ -1,4 +1,4 @@
-import { adoptedStyle, customElement } from '@mantou/gem/lib/decorators';
+import { adoptedStyle, customElement, slot } from '@mantou/gem/lib/decorators';
 import { html } from '@mantou/gem/lib/element';
 import { createCSSSheet, css } from '@mantou/gem/lib/utils';
 
@@ -29,6 +29,8 @@ const style = createCSSSheet(css`
 @customElement('dy-loading')
 @adoptedStyle(style)
 export class DuoyunLoadingElement extends DuoyunVisibleBaseElement {
+  @slot static unnamed: string;
+
   render = () => {
     return html`
       <dy-use class="icon" .element=${icons.loading}></dy-use>

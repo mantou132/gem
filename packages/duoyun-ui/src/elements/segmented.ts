@@ -28,9 +28,10 @@ const style = createCSSSheet(css`
     line-height: 1.2;
     border-radius: ${theme.normalRound};
     background: ${theme.hoverBackgroundColor};
-    --padding: 2px;
+    --padding: 3px;
     padding: var(--padding);
     gap: var(--padding);
+    --inner-radius: max(calc(${theme.normalRound} - var(--padding)), ${theme.smallRound});
   }
   :host([small]) {
     font-size: 0.75em;
@@ -49,7 +50,7 @@ const style = createCSSSheet(css`
     justify-content: center;
     gap: 0.3em;
     padding: calc(0.5em - var(--padding) + 1px) 1em;
-    border-radius: calc(${theme.normalRound} - 1px);
+    border-radius: var(--inner-radius);
     min-width: 5em;
   }
   :host(:where(:not([disabled], :where([data-animating], :state(animating))))) .segment:hover {
@@ -80,7 +81,7 @@ const style = createCSSSheet(css`
     .marker {
       display: block;
       transition: inset 0.3s ${theme.timingFunction};
-      border-radius: calc(${theme.normalRound} - 1px);
+      border-radius: var(--inner-radius);
       position: absolute;
       top: anchor(--anchor-0 top);
       bottom: anchor(--anchor-0 bottom);

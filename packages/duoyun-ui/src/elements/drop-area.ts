@@ -6,6 +6,7 @@ import {
   emitter,
   Emitter,
   state,
+  slot,
 } from '@mantou/gem/lib/decorators';
 import { GemElement, html } from '@mantou/gem/lib/element';
 import { createCSSSheet, css } from '@mantou/gem/lib/utils';
@@ -53,6 +54,8 @@ const style = createCSSSheet(css`
 @customElement('dy-drop-area')
 @adoptedStyle(style)
 export class DuoyunDropAreaElement extends GemElement {
+  @slot static unnamed: string;
+
   @attribute tip: string;
   /**file type */
   @attribute accept: string;

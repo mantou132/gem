@@ -9,6 +9,7 @@ import {
   refobject,
   RefObject,
   part,
+  slot,
 } from '@mantou/gem/lib/decorators';
 import { GemElement, html, repeat } from '@mantou/gem/lib/element';
 import { createCSSSheet, css, styleMap } from '@mantou/gem/lib/utils';
@@ -122,6 +123,8 @@ export interface FileItem extends File {
 export class DuoyunFilePickElement extends GemElement implements BasePickerElement {
   @part static button: string;
   @part static item: string;
+
+  @slot static unnamed: string;
 
   @attribute type: 'file' | 'image';
   @attribute accept: string;

@@ -1,5 +1,5 @@
 // https://spectrum.adobe.com/page/in-line-alert/
-import { adoptedStyle, customElement, attribute, property } from '@mantou/gem/lib/decorators';
+import { adoptedStyle, customElement, attribute, property, slot } from '@mantou/gem/lib/decorators';
 import { GemElement, html } from '@mantou/gem/lib/element';
 import { createCSSSheet, css } from '@mantou/gem/lib/utils';
 
@@ -50,6 +50,8 @@ type Status = 'positive' | 'notice' | 'negative' | 'informative' | 'default';
 @customElement('dy-alert')
 @adoptedStyle(style)
 export class DuoyunAlertElement extends GemElement {
+  @slot static unnamed: string;
+
   @attribute header: string;
   @attribute status: Status;
 

@@ -1,5 +1,5 @@
 import { GemElement, html } from '@mantou/gem/lib/element';
-import { adoptedStyle, customElement, attribute, state } from '@mantou/gem/lib/decorators';
+import { adoptedStyle, customElement, attribute, state, slot } from '@mantou/gem/lib/decorators';
 import { createCSSSheet, css } from '@mantou/gem/lib/utils';
 
 import { theme, getSemanticColor } from '../lib/theme';
@@ -34,6 +34,8 @@ const style = createCSSSheet(css`
 @adoptedStyle(style)
 @adoptedStyle(focusStyle)
 export class DuoyunActionTextElement extends GemElement {
+  @slot static unnamed: string;
+
   @attribute tooltip: string;
   @attribute color: string;
   @state active: boolean;

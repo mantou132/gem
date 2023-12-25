@@ -89,6 +89,7 @@ type State = {
 @adoptedStyle(style)
 @adoptedStyle(focusStyle)
 export class DuoyunCopyElement extends GemElement<State> {
+  @slot static unnamed: string;
   @slot static after: string;
 
   @boolattribute silent: boolean;

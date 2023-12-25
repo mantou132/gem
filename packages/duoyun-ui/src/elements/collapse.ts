@@ -12,6 +12,7 @@ import {
   property,
   emitter,
   Emitter,
+  slot,
 } from '@mantou/gem/lib/decorators';
 import { GemElement, TemplateResult, html, ifDefined } from '@mantou/gem/lib/element';
 import { createCSSSheet, css, classMap, exportPartsMap } from '@mantou/gem/lib/utils';
@@ -85,6 +86,7 @@ export class DuoyunCollapsePanelElement extends GemElement<State> {
 
   @emitter toggle: Emitter<boolean>;
 
+  @slot static unnamed: string;
   @part static summary: string;
   @part static detail: string;
 

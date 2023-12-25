@@ -1,4 +1,4 @@
-import { adoptedStyle, customElement, property, boolattribute } from '@mantou/gem/lib/decorators';
+import { adoptedStyle, customElement, property, boolattribute, slot } from '@mantou/gem/lib/decorators';
 import { GemElement, html, TemplateResult } from '@mantou/gem/lib/element';
 import { createCSSSheet, css, classMap } from '@mantou/gem/lib/utils';
 
@@ -151,6 +151,8 @@ type State = {
 @adoptedStyle(style)
 @adoptedStyle(focusStyle)
 export class DuoyunOptionsElement extends GemElement<State> {
+  @slot static unnamed: string;
+
   @boolattribute searchable: boolean;
 
   @property options?: Option[];

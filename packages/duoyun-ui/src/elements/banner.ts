@@ -7,6 +7,7 @@ import {
   Emitter,
   property,
   boolattribute,
+  slot,
 } from '@mantou/gem/lib/decorators';
 import { GemElement, html } from '@mantou/gem/lib/element';
 import { createCSSSheet, css } from '@mantou/gem/lib/utils';
@@ -82,6 +83,8 @@ type Status = 'positive' | 'notice' | 'negative' | 'default';
 @customElement('dy-banner')
 @adoptedStyle(style)
 export class DuoyunBannerElement extends GemElement {
+  @slot static unnamed: string;
+
   @boolattribute closable: boolean;
   @attribute status: Status;
 

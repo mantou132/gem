@@ -9,6 +9,7 @@ import {
   RefObject,
   state,
   part,
+  slot,
 } from '@mantou/gem/lib/decorators';
 import { GemElement, html } from '@mantou/gem/lib/element';
 import { history } from '@mantou/gem/lib/history';
@@ -88,6 +89,9 @@ const style = createCSSSheet(css`
     border-color: var(--bg);
     background: transparent;
   }
+  :host([borderless]) :where(.content, .dropdown) {
+    border-color: transparent;
+  }
   :host([color='normal']) {
     --bg: ${theme.primaryColor};
   }
@@ -135,12 +139,15 @@ const style = createCSSSheet(css`
 @adoptedStyle(focusStyle)
 @connectStore(icons)
 export class DuoyunButtonElement extends GemElement {
+  @slot static unnamed: string;
+
   @attribute type: 'solid' | 'reverse';
   @attribute color: StringList<'normal' | 'danger' | 'cancel'>;
   @boolattribute small: boolean;
   @boolattribute round: boolean;
   @boolattribute square: boolean;
   @boolattribute disabled: boolean;
+  @boolattribute borderless: boolean;
 
   @property dropdown?: ContextMenuItem[] | null;
   @property route?: RouteItem;

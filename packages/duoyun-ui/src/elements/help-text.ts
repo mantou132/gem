@@ -1,4 +1,4 @@
-import { adoptedStyle, customElement, attribute } from '@mantou/gem/lib/decorators';
+import { adoptedStyle, customElement, attribute, slot } from '@mantou/gem/lib/decorators';
 import { GemElement, html } from '@mantou/gem/lib/element';
 import { createCSSSheet, css } from '@mantou/gem/lib/utils';
 
@@ -19,6 +19,8 @@ const style = createCSSSheet(css`
 @customElement('dy-help-text')
 @adoptedStyle(style)
 export class DuoyunHelpTextElement extends GemElement {
+  @slot static unnamed: string;
+
   @attribute status: 'default' | 'neutral' | 'positive' | 'negative';
 
   get #status() {

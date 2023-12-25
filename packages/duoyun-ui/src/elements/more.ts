@@ -1,4 +1,12 @@
-import { adoptedStyle, customElement, attribute, emitter, Emitter, boolattribute } from '@mantou/gem/lib/decorators';
+import {
+  adoptedStyle,
+  customElement,
+  attribute,
+  emitter,
+  Emitter,
+  boolattribute,
+  slot,
+} from '@mantou/gem/lib/decorators';
 import { GemElement, html } from '@mantou/gem/lib/element';
 import { classMap, createCSSSheet, css, styleMap } from '@mantou/gem/lib/utils';
 
@@ -40,6 +48,8 @@ type State = {
 @customElement('dy-more')
 @adoptedStyle(style)
 export class DuoyunMoreElement extends GemElement<State> {
+  @slot static unnamed: string;
+
   @attribute maxheight: string;
   @attribute more: string;
   @attribute less: string;

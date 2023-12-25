@@ -537,8 +537,8 @@ export class DuoyunFlowElement extends DuoyunResizeBaseElement<State> {
     });
   };
 
-  #onCanvasResize = (evt: CustomEvent<DuoyunFlowCanvasElement>) => {
-    const { contentRect } = evt.detail;
+  #onCanvasResize = (evt: CustomEvent) => {
+    const { contentRect } = evt.target as DuoyunFlowCanvasElement;
     if (contentRect.width && contentRect.height && !this.loaded) {
       this.#setScale(contentRect);
     }
@@ -608,7 +608,6 @@ export class DuoyunFlowElement extends DuoyunResizeBaseElement<State> {
         .graph=${this.graph}
         .layout=${this.layout}
       ></dy-flow-canvas>
-      <slot></slot>
     `;
   };
 }

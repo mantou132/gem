@@ -1,5 +1,5 @@
 import { GemElement, html, TemplateResult } from '@mantou/gem/lib/element';
-import { adoptedStyle, customElement, property, attribute } from '@mantou/gem/lib/decorators';
+import { adoptedStyle, customElement, property, attribute, slot } from '@mantou/gem/lib/decorators';
 import { createCSSSheet, css } from '@mantou/gem/lib/utils';
 
 import { theme } from '../lib/theme';
@@ -44,6 +44,8 @@ const style = createCSSSheet(css`
 @customElement('dy-result')
 @adoptedStyle(style)
 export class DuoyunResultElement extends GemElement {
+  @slot static unnamed: string;
+
   @attribute status: Status;
 
   @property icon?: string | Element | DocumentFragment;

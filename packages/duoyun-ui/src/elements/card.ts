@@ -103,6 +103,7 @@ export class DuoyunCardElement extends DuoyunLoadableBaseElement {
   @part static avatar: string;
 
   @slot static body: string;
+  @slot static unnamed: string;
   @slot static footer: string;
 
   @attribute avatar: string;

@@ -37,20 +37,22 @@ const style = createCSSSheet(css`
   :host([size='large']) {
     width: 3.8em;
   }
-  .content {
+  .img {
+    display: block;
     width: 100%;
     aspect-ratio: 1;
-    position: absolute;
-    inset: 0;
-    display: flex;
-    justify-content: center;
-    align-items: center;
     border-radius: var(--radius);
     object-fit: cover;
     background: ${theme.hoverBackgroundColor};
     box-sizing: border-box;
   }
-  :host([status]:not([status=''])) .content {
+  .img::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-color: inherit;
+  }
+  :host([status]:not([status=''])) .img {
     --m: radial-gradient(
       circle at calc(100% - var(--offset)) var(--offset),
       #0000 var(--mask),
@@ -103,19 +105,13 @@ export class DuoyunAvatarElement extends GemElement {
         }
       </style>
       <dy-tooltip .content=${this.tooltip}>
-        <div class="content">
-          ${this.src &&
-          html`
-            <img
-              class="content"
-              alt=${this.alt || this.src}
-              src=${this.src}
-              part=${DuoyunAvatarElement.avatar}
-              crossorigin=${this.crossorigin}
-            />
-          `}
-          <slot></slot>
-        </div>
+        <img
+          class="img"
+          alt=${this.alt || this.src}
+          src=${this.src}
+          part=${DuoyunAvatarElement.avatar}
+          crossorigin=${this.crossorigin}
+        />
       </dy-tooltip>
       ${this.status ? html`<div class="status"></div>` : ''}
     `;

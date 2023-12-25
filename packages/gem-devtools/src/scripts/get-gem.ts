@@ -61,6 +61,8 @@ export const getSelectedGem = function (data: PanelStore, gemElementSymbols: str
           } catch {
             // element prototype
           }
+        } else if (arg instanceof Node) {
+          return `${arg.nodeName} ${arg.nodeValue}`;
         } else if (window.CSSStyleSheet && arg instanceof CSSStyleSheet) {
           return arg.cssRules
             ? Array.from(arg.cssRules)
@@ -156,21 +158,23 @@ export const getSelectedGem = function (data: PanelStore, gemElementSymbols: str
     });
   });
   tagClass.defineSlots?.forEach((slot) => {
+    const isUnnamed = slot === 'unnamed';
     const prop = kebabToCamelCase(slot);
     if (!$0.constructor[prop]) {
       member.delete(prop);
     }
     const selector = `[slot=${slot}]`;
-    let element = $0.querySelector(selector);
+    let element = isUnnamed ? $0.firstChild : $0.querySelector(selector);
     if (element instanceof HTMLSlotElement) {
       // 只支持 inspect 第一个分配的元素
       element = element.assignedElements()[0] || element;
     }
+    const isNode = element && !(element instanceof Element);
     data.slots.push({
       name: slot,
       value: objectToString(element),
       type: element ? 'element' : 'null',
-      path: element ? ['querySelector', selector] : undefined,
+      path: isNode ? ['firstChild'] : element ? ['querySelector', selector] : undefined,
     });
   });
   tagClass.defineParts?.forEach((part) => {
