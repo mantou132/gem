@@ -296,10 +296,11 @@ export class Main extends GemElement {
         gem-book-pre {
           z-index: 2;
           margin: 2rem 0px;
+          border-radius: ${theme.normalRound};
         }
         @media ${mediaQuery.PHONE} {
           .header-anchor {
-            display: none;
+            opacity: 1;
           }
           h1 {
             font-size: 2.5rem;

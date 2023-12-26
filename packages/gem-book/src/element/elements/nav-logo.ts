@@ -1,4 +1,5 @@
 import { GemElement, html, adoptedStyle, customElement, createCSSSheet, css, connectStore } from '@mantou/gem';
+import { mediaQuery } from '@mantou/gem/helper/mediaquery';
 
 import { bookStore } from '../store';
 import { theme } from '../helper/theme';
@@ -14,7 +15,9 @@ const style = createCSSSheet(css`
     flex-shrink: 0;
   }
   gem-link {
-    display: contents;
+    display: flex;
+    align-items: center;
+    height: 100%;
     text-decoration: none;
     color: inherit;
   }
@@ -24,8 +27,12 @@ const style = createCSSSheet(css`
     object-fit: contain;
     transform: translateX(-10%);
   }
+  @media ${mediaQuery.PHONE} {
+    span {
+      display: none;
+    }
+  }
 `);
-
 /**
  * @customElement gem-book-nav-logo
  */
@@ -38,7 +45,8 @@ export class GemBookNavLogoElement extends GemElement {
     const { icon = '', title = '' } = config || {};
     return html`
       <gem-link path="/">
-        ${icon ? html`<img alt=${title} src=${icon} aria-hidden="true" />` : null} ${title}
+        ${icon ? html`<img alt=${title} src=${icon} aria-hidden="true" />` : null}
+        <span>${title}</span>
       </gem-link>
     `;
   };

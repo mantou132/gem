@@ -85,6 +85,7 @@ function updateHistory(p: UpdateHistoryParams, native: typeof nativeHistory.push
     $hasOpenHandle: !!open,
     $hasShouldCloseHandle: !!shouldClose,
     $key: getKey(),
+    $title: title,
     ...data,
   };
   paramsMap.set(state.$key, params);
@@ -100,6 +101,7 @@ function updateHistoryByNative(data: any, title: string, originUrl: string, nati
   validData(data);
   const state = {
     $key: getKey(),
+    $title: title,
     ...(data || {}),
   };
   const { pathname, search, hash } = new URL(originUrl, location.origin + location.pathname);
@@ -251,7 +253,7 @@ if (!window._GEMHISTORY) {
         path: pathname,
         query: new QueryString(search),
         hash,
-        title: document.title, // 浏览器缓存的 title
+        title: newState.$title, // document.title 是导航前的
         data: newState,
       });
     }

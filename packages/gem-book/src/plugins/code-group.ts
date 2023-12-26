@@ -69,8 +69,9 @@ customElements.whenDefined('gem-book').then(() => {
     }
     ::slotted(*) {
       display: none;
-      margin: 0 !important;
       background: rgba(${theme.textColorRGB}, 0.03);
+      margin: 0 !important;
+      border-radius: 0 !important;
     }
   `);
 

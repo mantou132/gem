@@ -92,9 +92,11 @@ customElements.whenDefined('gem-book').then(() => {
     }
     ::slotted(*) {
       display: none;
+      max-height: 60vh;
       grid-area: code;
-      margin: 0 !important;
       background: rgba(${theme.textColorRGB}, 0.03);
+      margin: 0 !important;
+      border-radius: 0 !important;
     }
     .preview {
       display: flex;
@@ -127,7 +129,7 @@ customElements.whenDefined('gem-book').then(() => {
       .sandbox {
         background: transparent;
       }
-      .fork.btn {
+      .actions {
         display: none;
       }
     }
@@ -369,7 +371,7 @@ customElements.whenDefined('gem-book').then(() => {
           </ul>
           <div class="actions">
             <gem-use class="btn" @click=${this.#onReset}>Reset</gem-use>
-            <gem-use class="btn fork" .element=${forking ? '' : icons.link} @click=${this.#onFork}>
+            <gem-use class="btn" .element=${forking ? '' : icons.link} @click=${this.#onFork}>
               Fork ${forking ? '...' : ''}
             </gem-use>
           </div>

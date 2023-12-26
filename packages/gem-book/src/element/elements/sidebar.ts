@@ -1,8 +1,21 @@
-import { html, GemElement, customElement, TemplateResult, connectStore, classMap } from '@mantou/gem';
+import {
+  html,
+  GemElement,
+  customElement,
+  TemplateResult,
+  connectStore,
+  classMap,
+  state,
+  createStore,
+  connect,
+  updateStore,
+  history,
+  disconnect,
+} from '@mantou/gem';
 import { mediaQuery } from '@mantou/gem/helper/mediaquery';
 
 import { NavItem } from '../../common/config';
-import { capitalize } from '../lib/utils';
+import { capitalize, isSameOrigin } from '../lib/utils';
 import { theme } from '../helper/theme';
 import { bookStore } from '../store';
 
@@ -13,9 +26,17 @@ import '@mantou/gem/elements/use';
 import './side-link';
 import './nav-logo';
 
+export const sidebarStore = createStore({ open: false });
+
+const closeSidebar = () => updateStore(sidebarStore, { open: false });
+export const toggleSidebar = () => updateStore(sidebarStore, { open: !sidebarStore.open });
+
 @customElement('gem-book-sidebar')
 @connectStore(bookStore)
+@connectStore(sidebarStore)
 export class SideBar extends GemElement {
+  @state open: boolean;
+
   #toggleLinks = (e: MouseEvent) => {
     const ele = e.target as HTMLDivElement;
     ele.classList.toggle('close');
@@ -72,6 +93,8 @@ export class SideBar extends GemElement {
   };
 
   render() {
+    this.open = sidebarStore.open;
+    const topNavList = bookStore.nav?.filter((e) => isSameOrigin(e.link));
     return html`
       <style>
         :host {
@@ -100,19 +123,22 @@ export class SideBar extends GemElement {
           scrollbar-width: thin;
           overscroll-behavior: contain;
         }
-        @media ${mediaQuery.PHONE} {
-          :host {
-            position: static;
-            height: auto;
-            margin: 0;
-            padding: 0;
-            overflow: visible;
-            border-inline-end: none;
-            border-block-end: 1px solid ${theme.borderColor};
-          }
-          gem-book-nav-logo {
-            display: none;
-          }
+        .top-nav {
+          display: flex;
+          gap: 1em;
+          margin-block-end: 2rem;
+        }
+        .top-nav gem-active-link {
+          display: inline-block;
+          color: inherit;
+          text-decoration: none;
+          line-height: 2;
+          padding: 0 1em;
+          border-radius: 10em;
+          background: rgba(${theme.primaryColorRGB}, 0.1);
+        }
+        .top-nav gem-active-link:where(:state(active), [data-active]) {
+          color: ${theme.primaryColor};
         }
         .link {
           display: block;
@@ -120,15 +146,9 @@ export class SideBar extends GemElement {
           text-decoration: none;
           line-height: 1.5;
           padding: 0.15em 0;
-          color: inherit;
         }
         .file:where(:state(active), [data-active]) {
           font-weight: bolder;
-        }
-        @media not ${`(${mediaQuery.DESKTOP})`} {
-          .link:where(:state(match), [data-match]) + .hash {
-            display: block;
-          }
         }
         .heading:not(:where(:state(active), [data-active])):not(:hover),
         .file:not(:where(:state(active), [data-active])):hover {
@@ -189,9 +209,46 @@ export class SideBar extends GemElement {
         .item + .item {
           margin-top: 0.5rem;
         }
+        @media not ${`(${mediaQuery.DESKTOP})`} {
+          .link:where(:state(match), [data-match]) + .hash {
+            display: block;
+          }
+        }
+        @media ${mediaQuery.PHONE} {
+          :host {
+            position: fixed;
+            background: ${theme.backgroundColor};
+            width: 100%;
+            height: calc(100vh - ${theme.headerHeight});
+            top: ${theme.headerHeight};
+            z-index: 3;
+          }
+          :host(:not(:where([data-open], :state(open)))) {
+            display: none;
+          }
+          .nav {
+            border-inline-end: none;
+          }
+          gem-book-nav-logo {
+            display: none;
+          }
+        }
       </style>
       <gem-book-nav-logo></gem-book-nav-logo>
       <div class="nav">
+        ${mediaQuery.isPhone && topNavList?.length
+          ? html`
+              <div class="top-nav">
+                ${topNavList.map(
+                  ({ link, navTitle, title }) => html`
+                    <gem-active-link href=${link} pattern="${link}*">
+                      ${capitalize(navTitle || title)}
+                    </gem-active-link>
+                  `,
+                )}
+              </div>
+            `
+          : ''}
         <slot></slot>
         ${bookStore.currentSidebar?.map((item) => this.#renderItem(item, true))}
       </div>
@@ -207,5 +264,10 @@ export class SideBar extends GemElement {
       }
     };
     removeCloseClass(activeEle);
+  }
+
+  mounted() {
+    connect(history.store, closeSidebar);
+    return () => disconnect(history.store, closeSidebar);
   }
 }

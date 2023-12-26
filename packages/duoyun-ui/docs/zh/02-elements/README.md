@@ -2,7 +2,7 @@
 
 <style>
   a, gem-link {
-    text-wrap: nowrap;
+    white-space: nowrap;
   }
 </style>
 

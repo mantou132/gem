@@ -31,6 +31,13 @@ features:
 
 ## TodoApp
 
+<style>
+:host {
+  width: clamp(100%, 90vw, 1024px);
+  margin-left: calc((clamp(100%, 90vw, 1024px) - 100%) / -2);
+}
+</style>
+
 <gbp-sandpack dependencies="@mantou/gem, duoyun-ui">
 
 ```ts

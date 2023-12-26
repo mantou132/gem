@@ -1,6 +1,23 @@
 import { raw } from '@mantou/gem';
 
 export const icons = {
+  github: raw`
+    <svg width="16" height="16" viewBox="0 0 16 16">
+      <path fill="currentColor" d="M8 0a8.1 8.1 0 0 0-8 8.2c0 3.63 2.3 6.7 5.47 7.79l.14.01c.3 0 .4-.22.4-.4v-1.4c-.3.06-.57.1-.81.1-1.54 0-1.89-1.2-1.89-1.2-.36-.95-.89-1.2-.89-1.2-.7-.5 0-.5.05-.5.8.06 1.23.84 1.23.84.4.7.94.9 1.41.9.38 0 .72-.12.92-.21.07-.53.28-.9.5-1.1-1.77-.2-3.64-.91-3.64-4.05 0-.9.31-1.63.82-2.2-.08-.21-.35-1.05.08-2.18l.18-.01c.3 0 .94.1 2.02.86a7.5 7.5 0 0 1 4.01 0c1.08-.75 1.73-.86 2.02-.86l.18.01c.44 1.13.16 1.97.08 2.18.5.57.82 1.3.82 2.2 0 3.15-1.87 3.84-3.65 4.04.28.25.54.75.54 1.52l-.01 2.25c0 .2.1.41.4.41l.15-.01A8.19 8.19 0 0 0 16 8.2 8.1 8.1 0 0 0 8 0Z"/>
+    </svg>
+  `,
+  menu: raw`
+    <svg part="icon" aria-hidden="true" height="24px" viewBox="0 0 24 24" width="24px" fill="currentColor">
+      <path d="M0 0h24v24H0z" fill="none" stroke="none"></path>
+      <path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"></path>
+    </svg>
+  `,
+  close: raw`
+    <svg part="icon" aria-hidden="true" height="24px" viewBox="0 0 24 24" width="24px" fill="currentColor">
+      <path d="M0 0h24v24H0z" fill="none" stroke="none"></path>
+      <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"></path>
+    </svg>
+  `,
   i18n: raw`
     <svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24">
       <path d="M0 0h24v24H0z" fill="none"></path>

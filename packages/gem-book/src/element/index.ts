@@ -171,6 +171,7 @@ export class GemBookElement extends GemElement {
             grid-area: auto / content / auto / toc;
           }
         }
+        /* 404, homepage */
         @media ${renderFullWidth ? 'all' : 'not all'} {
           gem-book-nav {
             grid-area: 1 / aside / 2 / toc;
@@ -180,13 +181,15 @@ export class GemBookElement extends GemElement {
           main {
             grid-area: auto / aside / auto / toc;
           }
-          gem-book-sidebar,
           gem-book-edit-link,
           gem-book-rel-link {
             display: none;
           }
           gem-book-footer {
             text-align: center;
+          }
+          gem-book-toc {
+            display: none;
           }
         }
         @media ${mediaQuery.PHONE} {
@@ -196,11 +199,6 @@ export class GemBookElement extends GemElement {
           gem-book-nav,
           main {
             padding-inline: 1rem;
-          }
-          gem-book-nav ~ gem-book-sidebar {
-            margin-top: 0;
-            height: auto;
-            max-height: none;
           }
           slot[name='${this.mainBefore}'] {
             margin-top: 1rem;
@@ -230,14 +228,18 @@ export class GemBookElement extends GemElement {
 
       ${hasNavbar
         ? html`
-            <gem-book-nav role="navigation" part=${this.nav} .logo=${!!renderFullWidth}>
+            <gem-book-nav role="navigation" part=${this.nav} .logo=${mediaQuery.isPhone || !!renderFullWidth}>
               <slot name=${this.navInside}></slot>
             </gem-book-nav>
           `
         : null}
-      <gem-book-sidebar role="navigation" part=${this.sidebar}>
-        <slot name=${this.sidebarBefore}></slot>
-      </gem-book-sidebar>
+      ${mediaQuery.isPhone || !renderFullWidth
+        ? html`
+            <gem-book-sidebar role="navigation" part=${this.sidebar}>
+              <slot name=${this.sidebarBefore}></slot>
+            </gem-book-sidebar>
+          `
+        : null}
       ${renderHomePage ? html`<gem-book-homepage exportparts="hero: ${this.homepageHero}"></gem-book-homepage>` : ''}
       <main>
         ${renderHomePage ? '' : html`<slot name=${this.mainBefore}></slot>`}

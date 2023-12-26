@@ -7,7 +7,7 @@ const styleLink = 'https://esm.sh/@docsearch/css@3.0.0-alpha.50/dist/style.css';
 
 customElements.whenDefined('gem-book').then(async () => {
   const { GemBookPluginElement } = customElements.get('gem-book') as typeof GemBookElement;
-  const { Gem, theme } = GemBookPluginElement;
+  const { Gem, theme, mediaQuery } = GemBookPluginElement;
   const { css, html, customElement, attribute, refobject } = Gem;
 
   @customElement('gbp-docsearch')
@@ -36,6 +36,12 @@ customElements.whenDefined('gem-book').then(async () => {
           }
           .DocSearch-Button {
             margin: 0;
+          }
+          @media ${mediaQuery.PHONE} {
+            .DocSearch-Button {
+              background: none;
+              opacity: 0.6;
+            }
           }
         </style>
         <div ref=${this.searchRef.ref}></div>

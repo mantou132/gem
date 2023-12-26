@@ -362,7 +362,6 @@ export class Pre extends GemElement {
           display: block;
           font-size: 0.875em;
           background: rgba(${theme.textColorRGB}, 0.05);
-          border-radius: ${theme.normalRound};
           --comment-color: var(--code-comment-color, #6e6e6e);
           --section-color: var(--code-section-color, #c9252d);
           --title-color: var(--code-title-color, #4646c6);

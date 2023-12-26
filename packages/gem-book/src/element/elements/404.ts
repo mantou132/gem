@@ -7,6 +7,7 @@ import { selfI18n } from '../helper/i18n';
 import { icons } from './icons';
 
 import '@mantou/gem/elements/reflect';
+import '@mantou/gem/elements/title';
 
 @customElement('gem-book-404')
 @connectStore(selfI18n.store)
@@ -53,7 +54,7 @@ export class Meta extends GemElement {
           margin-right: 10px;
         }
       </style>
-      <h1>404 - Not found</h1>
+      <h1><gem-title inert>Not Found</gem-title></h1>
       ${noGithub
         ? ''
         : html`

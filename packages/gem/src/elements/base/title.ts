@@ -14,13 +14,13 @@
  */
 
 import { GemElement, html } from '../../lib/element';
-import { attribute, connectStore } from '../../lib/decorators';
-import { updateStore, connect } from '../../lib/store';
+import { attribute, boolattribute } from '../../lib/decorators';
+import { updateStore, connect, disconnect } from '../../lib/store';
 import { titleStore } from '../../lib/history';
 
 const defaultTitle = document.title;
 
-function updateTitle(str?: string | null, prefix = '', suffix = '') {
+function setDocumentTitle(str?: string | null, prefix = '', suffix = '') {
   const title = titleStore.title || str;
   if (title && title !== defaultTitle) {
     GemTitleElement.title = title;
@@ -31,18 +31,20 @@ function updateTitle(str?: string | null, prefix = '', suffix = '') {
   }
 }
 
+connect(titleStore, setDocumentTitle);
+
 export const PREFIX = `${defaultTitle} | `;
 export const SUFFIX = ` - ${defaultTitle}`;
 
 /**
- * 允许声明式设置 `document.title`
+ * 映射到 `document.title`
  * @attr prefix
  * @attr suffix
  */
-@connectStore(titleStore)
 export class GemTitleElement extends GemElement {
   @attribute prefix: string;
   @attribute suffix: string;
+  @boolattribute inert: boolean;
 
   // 没有后缀的当前标题
   static title = document.title;
@@ -64,15 +66,19 @@ export class GemTitleElement extends GemElement {
     });
   }
 
+  mounted = () => {
+    this.effect(
+      () => {
+        if (!this.inert) connect(titleStore, this.update);
+        return () => disconnect(titleStore, this.update);
+      },
+      () => [this.inert],
+    );
+  };
+
   render() {
     // 多个 <gem-title> 时，最终 document.title 按执行顺序决定
-    updateTitle(this.textContent, this.prefix, this.suffix);
-
-    if (this.hidden) {
-      return html``;
-    }
+    setDocumentTitle(this.textContent?.trim(), this.prefix, this.suffix);
     return html`${GemTitleElement.title}`;
   }
 }
-
-connect(titleStore, updateTitle);

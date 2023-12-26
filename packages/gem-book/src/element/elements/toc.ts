@@ -20,6 +20,7 @@ export const tocStore = createStore<{ elements: HTMLHeadingElement[] }>({
 
 const style = createCSSSheet(css`
   :host {
+    font-size: 0.875rem;
     padding: 2rem 1.5rem;
     box-sizing: border-box;
     height: min-content;
@@ -109,6 +110,7 @@ export class GemBookTocElement extends GemElement<State> {
   };
 
   render = () => {
+    if (!tocStore.elements.length) return html``;
     return html`
       <h2>CONTENTS</h2>
       <ul>

@@ -38,6 +38,7 @@ customElements.whenDefined('gem-book').then(() => {
     }
     gem-book-pre {
       margin: 2rem 0px;
+      border-radius: ${theme.normalRound};
       animation: display 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
     }
   `);
