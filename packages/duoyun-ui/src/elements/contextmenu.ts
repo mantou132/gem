@@ -1,7 +1,7 @@
 import { connectStore, adoptedStyle, customElement, refobject, RefObject } from '@mantou/gem/lib/decorators';
 import { html, GemElement, TemplateResult } from '@mantou/gem/lib/element';
 import { createCSSSheet, css, styleMap, classMap } from '@mantou/gem/lib/utils';
-import { createStore, updateStore } from '@mantou/gem/lib/store';
+import { useStore } from '@mantou/gem/lib/store';
 
 import { icons } from '../lib/icons';
 import { locale } from '../lib/locale';
@@ -67,7 +67,7 @@ type ContextMenuOptions = {
   header?: TemplateResult;
 };
 
-const contextmenuStore = createStore<ContextMenuStore>({
+const [contextmenuStore, update] = useStore<ContextMenuStore>({
   menuStack: [],
 });
 
@@ -132,7 +132,7 @@ export class DuoyunContextMenuElement extends GemElement {
     } = options;
     if (Array.isArray(contextmenu) && contextmenu.length === 0) throw new Error('menu length is 0');
     toggleActiveState(activeElement, true);
-    updateStore(contextmenuStore, {
+    update({
       width,
       maxHeight,
       activeElement,
@@ -213,7 +213,7 @@ export class DuoyunContextMenuElement extends GemElement {
           openLeft ||
           (menuStackIndex > 0 && menuStack[menuStackIndex].x < menuStack[menuStackIndex - 1].x)) &&
         left > 300;
-      updateStore(contextmenuStore, {
+      update({
         menuStack: [
           ...menuStack.slice(0, menuStackIndex + 1),
           {
@@ -225,7 +225,7 @@ export class DuoyunContextMenuElement extends GemElement {
         ],
       });
     } else {
-      updateStore(contextmenuStore, {
+      update({
         menuStack: menuStack.slice(0, menuStackIndex + 1),
       });
     }
@@ -241,7 +241,7 @@ export class DuoyunContextMenuElement extends GemElement {
   #onKeydown = (evt: KeyboardEvent, menuStackIndex: number) => {
     evt.stopPropagation();
     const focusPrevMenu = () => {
-      updateStore(contextmenuStore, {
+      update({
         menuStack: contextmenuStore.menuStack.slice(0, menuStackIndex),
       });
       this.#menuElements[menuStackIndex - 1]?.focus();
@@ -270,13 +270,13 @@ export class DuoyunContextMenuElement extends GemElement {
       const showToTop = innerHeight - bottom < height + 2 * this.#offset && top > innerHeight - bottom;
       const x = showToLeft ? right - width : left;
       const y = showToTop ? Math.max(top - height - 2 * this.#offset, 0) : bottom;
-      updateStore(contextmenuStore, {
+      update({
         maxHeight: maxHeight || `${showToTop ? top - 2 * this.#offset : innerHeight - bottom - 2 * this.#offset}px`,
         menuStack: [{ ...menu, x, y }],
       });
     } else {
       const y = innerHeight - menu.y > width ? menu.y : Math.max(0, menu.y - (scrollHeight - clientHeight));
-      updateStore(contextmenuStore, { menuStack: [{ ...menu, y }] });
+      update({ menuStack: [{ ...menu, y }] });
     }
   };
 

@@ -15,7 +15,7 @@
 
 import { GemElement, html } from '../../lib/element';
 import { attribute, boolattribute } from '../../lib/decorators';
-import { updateStore, connect, disconnect } from '../../lib/store';
+import { updateStore, connect } from '../../lib/store';
 import { titleStore } from '../../lib/history';
 
 const defaultTitle = document.title;
@@ -68,10 +68,7 @@ export class GemTitleElement extends GemElement {
 
   mounted = () => {
     this.effect(
-      () => {
-        if (!this.inert) connect(titleStore, this.update);
-        return () => disconnect(titleStore, this.update);
-      },
+      () => !this.inert && connect(titleStore, this.update),
       () => [this.inert],
     );
   };

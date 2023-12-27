@@ -359,6 +359,7 @@ export abstract class GemElement<T = Record<string, unknown>> extends HTMLElemen
     return GemElement.#final;
   }
 
+  #disconnectStore?: (() => void)[];
   #connectedCallback = () => {
     if (this.#isAppendReason) {
       this.#isAppendReason = false;
@@ -370,9 +371,7 @@ export abstract class GemElement<T = Record<string, unknown>> extends HTMLElemen
 
     this.willMount?.();
     const { observedStores, rootElement } = this.constructor as typeof GemElement;
-    observedStores?.forEach((store) => {
-      connect(store, this.#update);
-    });
+    this.#disconnectStore = observedStores?.map((store) => connect(store, this.#update));
     const temp = this.#render();
     temp !== undefined && render(temp, this.#renderRoot);
     this.#isMounted = true;
@@ -436,10 +435,7 @@ export abstract class GemElement<T = Record<string, unknown>> extends HTMLElemen
       return;
     }
     this.#isMounted = false;
-    const { observedStores } = this.constructor as typeof GemElement;
-    observedStores?.forEach((store) => {
-      disconnect(store, this.#update);
-    });
+    this.#disconnectStore?.forEach((disconnect) => disconnect());
     execCallback(this.#unmountCallback);
     this.unmounted?.();
     this.#effectList?.forEach(({ preCallback }) => execCallback(preCallback));

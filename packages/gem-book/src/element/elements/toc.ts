@@ -6,15 +6,15 @@ import {
   createCSSSheet,
   css,
   connectStore,
-  createStore,
   classMap,
+  useStore,
 } from '@mantou/gem';
 
 import { theme, themeStore } from '../helper/theme';
 
 import '@mantou/gem/elements/link';
 
-export const tocStore = createStore<{ elements: HTMLHeadingElement[] }>({
+export const [tocStore, updateTocStore] = useStore<{ elements: HTMLHeadingElement[] }>({
   elements: [],
 });
 

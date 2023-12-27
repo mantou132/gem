@@ -1,7 +1,7 @@
 import { connectStore, adoptedStyle, customElement } from '@mantou/gem/lib/decorators';
 import { GemElement, html, TemplateResult } from '@mantou/gem/lib/element';
 import { createCSSSheet, css, styleMap, classMap } from '@mantou/gem/lib/utils';
-import { createStore, updateStore } from '@mantou/gem/lib/store';
+import { useStore } from '@mantou/gem/lib/store';
 
 import { theme } from '../lib/theme';
 
@@ -81,7 +81,7 @@ type Store = {
   debug: boolean;
 };
 
-const store = createStore<Store>({
+const [store, update] = useStore<Store>({
   data: {},
   x: 0,
   y: 0,
@@ -98,7 +98,7 @@ export class DuoyunChartTooltipElement extends GemElement {
   static instance: DuoyunChartTooltipElement | null = null;
 
   static open = (x: number, y: number, data: Data) => {
-    updateStore(store, { x, y, data });
+    update({ x, y, data });
     if (!ChartTooltip.instance) {
       ChartTooltip.instance = new ChartTooltip();
       document.body.append(ChartTooltip.instance);

@@ -7,12 +7,14 @@ type SomeType<T> = {
 
 const themeStoreMap = new WeakMap();
 
+/**获取主题原始值 */
 export function getThemeStore<T>(theme: SomeType<T>) {
   return themeStoreMap.get(theme) as Store<T>;
 }
 
 const themePropsMap = new WeakMap();
 
+/**获取 css 变量名 */
 export function getThemeProps<T>(theme: SomeType<T>) {
   return themePropsMap.get(theme) as SomeType<T>;
 }
@@ -61,4 +63,9 @@ export function createTheme<T extends Record<string, unknown>>(themeObj: T) {
 export function updateTheme<T = Record<string, unknown>>(theme: SomeType<T>, newThemeObj: Partial<T>) {
   updateStore(getThemeStore(theme), newThemeObj);
   setThemeFnMap.get(theme)();
+}
+
+export function useTheme<T extends Record<string, unknown>>(themeObj: T) {
+  const theme = createTheme(themeObj);
+  return [theme, (newThemeObj: Partial<T>) => updateTheme(theme, newThemeObj)] as const;
 }

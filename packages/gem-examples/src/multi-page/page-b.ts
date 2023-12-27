@@ -1,13 +1,13 @@
 import { GemElement, html } from '@mantou/gem';
 
-import storeSet from './store';
+import { pageB } from './store';
 
 customElements.define(
   'app-page-b',
   class extends GemElement {
-    static observedStores = [storeSet.pageB];
+    static observedStores = [pageB];
     render() {
-      return html`<slot></slot> ${storeSet.pageB.text}`;
+      return html`<slot></slot> ${pageB.text}`;
     }
   },
 );

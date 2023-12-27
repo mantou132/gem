@@ -17,7 +17,7 @@ import { capitalize, isSameOrigin } from '../lib/utils';
 import { bookStore } from '../store';
 
 import { icons } from './icons';
-import { sidebarStore, toggleSidebar } from './sidebar';
+import { sidebarStore, updateSidebarStore } from './sidebar';
 
 import '@mantou/gem/elements/link';
 import '@mantou/gem/elements/use';
@@ -171,7 +171,11 @@ export class Nav extends GemElement {
           }
         }
       </style>
-      <gem-use class="menu" @click=${toggleSidebar} .element=${sidebarStore.open ? icons.close : icons.menu}></gem-use>
+      <gem-use
+        class="menu"
+        @click=${() => updateSidebarStore({ open: !sidebarStore.open })}
+        .element=${sidebarStore.open ? icons.close : icons.menu}
+      ></gem-use>
       ${this.logo ? html`<gem-book-nav-logo></gem-book-nav-logo>` : ''}
       <div class="left">
         ${internals.map((item) => this.renderInternalItem(item))}

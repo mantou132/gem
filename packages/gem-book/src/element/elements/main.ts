@@ -1,11 +1,11 @@
-import { html, GemElement, customElement, css, property, createCSSSheet, adoptedStyle, updateStore } from '@mantou/gem';
+import { html, GemElement, customElement, css, property, createCSSSheet, adoptedStyle } from '@mantou/gem';
 import { Renderer, parse } from 'marked';
 import { mediaQuery } from '@mantou/gem/helper/mediaquery';
 
 import { theme } from '../helper/theme';
 import { checkBuiltInPlugin } from '../lib/utils';
 
-import { tocStore } from './toc';
+import { updateTocStore } from './toc';
 
 import '@mantou/gem/elements/unsafe';
 import '@mantou/gem/elements/link';
@@ -89,7 +89,7 @@ export class Main extends GemElement {
   };
 
   #updateToc = () =>
-    updateStore(tocStore, {
+    updateTocStore({
       elements: [...this.shadowRoot!.querySelectorAll<HTMLHeadingElement>('.markdown-header')].slice(1),
     });
 
@@ -303,7 +303,7 @@ export class Main extends GemElement {
             opacity: 1;
           }
           h1 {
-            font-size: 2.5rem;
+            font-size: 2.3rem;
           }
         }
       </style>

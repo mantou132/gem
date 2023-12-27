@@ -63,6 +63,18 @@ const style = createCSSSheet(css`
       anchor-name: --anchor;
     }
   }
+  @supports not (anchor-name: --foo) {
+    :host(:not([hidden])) {
+      display: inline;
+      position: relative;
+    }
+    :host(:not(:empty)) .badge {
+      position: absolute;
+      transform: translate(50%, -50%);
+      top: 0;
+      right: 0;
+    }
+  }
 `);
 
 /**

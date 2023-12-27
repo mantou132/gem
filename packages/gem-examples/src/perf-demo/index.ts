@@ -1,13 +1,13 @@
-import { GemElement, createStore, updateStore, html, render } from '@mantou/gem';
+import { GemElement, html, render, useStore } from '@mantou/gem';
 
 import '../elements/layout';
 
-const store = createStore({
+const [store, update] = useStore({
   number: 1,
 });
 
 setInterval(() => {
-  updateStore(store, { number: (store.number % 10) + 1 });
+  update({ number: (store.number % 10) + 1 });
 }, 1000);
 
 customElements.define(
@@ -139,8 +139,8 @@ render(
 );
 
 const start = Date.now();
-function update() {
+function tick() {
   app.elapsed = Date.now() - start;
-  requestAnimationFrame(update);
+  requestAnimationFrame(tick);
 }
-requestAnimationFrame(update);
+requestAnimationFrame(tick);

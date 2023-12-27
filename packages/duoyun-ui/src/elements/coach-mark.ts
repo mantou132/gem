@@ -2,7 +2,7 @@
 import { connectStore, adoptedStyle, customElement, attribute, numattribute } from '@mantou/gem/lib/decorators';
 import { html } from '@mantou/gem/lib/element';
 import { createCSSSheet, css } from '@mantou/gem/lib/utils';
-import { createStore, updateStore } from '@mantou/gem/lib/store';
+import { useStore } from '@mantou/gem/lib/store';
 import { splice } from '@mantou/gem/helper/i18n';
 
 import { theme, getSemanticColor } from '../lib/theme';
@@ -33,7 +33,7 @@ type Store = {
   opened: boolean;
 };
 
-const store = createStore<Store>({
+const [store, update] = useStore<Store>({
   currentIndex: 0,
   opened: false,
 });
@@ -41,7 +41,7 @@ const store = createStore<Store>({
 export async function openTour(currentIndex = store.currentIndex) {
   if (!tourList[currentIndex]) throw new Error('missing tours');
   await tourList[currentIndex].before?.();
-  updateStore(store, { opened: true, currentIndex });
+  update({ opened: true, currentIndex });
 }
 
 export async function setTours(tours: Tour[] | Record<number, Tour>, options: Partial<Store> = {}) {
@@ -50,22 +50,22 @@ export async function setTours(tours: Tour[] | Record<number, Tour>, options: Pa
   if (opened) {
     await openTour(currentIndex);
   } else {
-    updateStore(store, { opened });
+    update({ opened });
   }
 }
 
 async function closeTour() {
-  updateStore(store, { opened: false });
+  update({ opened: false });
   tourList[store.currentIndex].skip?.();
 }
 
 async function nextTour() {
-  updateStore(store, { opened: false });
+  update({ opened: false });
   ContextMenu.close();
   const { currentIndex } = store;
   const isFinish = currentIndex === tourList.length - 1;
   if (isFinish) {
-    updateStore(store, { currentIndex: tourList.findIndex((e) => !!e) || 0 });
+    update({ currentIndex: tourList.findIndex((e) => !!e) || 0 });
   }
   await tourList[currentIndex].finish?.();
   if (!isFinish) {

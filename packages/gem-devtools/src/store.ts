@@ -1,4 +1,4 @@
-import { createStore, updateStore } from '@mantou/gem';
+import { useStore } from '@mantou/gem';
 
 const types = typeof ('' as any);
 type Type = typeof types | 'element' | 'null';
@@ -43,19 +43,11 @@ export class PanelStore {
   staticMember = new Array<Item>();
 }
 
-export const panelStore = createStore({ ...new PanelStore(), isGemElement: false });
+export const [panelStore, changePanelStore] = useStore({ ...new PanelStore(), isGemElement: false });
 
 export class ConfigureStore {
   currentFrameURL = '';
   frames: string[] = [];
 }
 
-export const configureStore = createStore(new ConfigureStore());
-
-export function changePanelStore(newPanelData: PanelStore) {
-  updateStore(panelStore, newPanelData);
-}
-
-export function changeConfigureStore(data: Partial<ConfigureStore>) {
-  updateStore(configureStore, data);
-}
+export const [configureStore, changeConfigureStore] = useStore(new ConfigureStore());

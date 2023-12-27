@@ -1,4 +1,4 @@
-import { createStore, updateStore } from '@mantou/gem/lib/store';
+import { useStore } from '@mantou/gem/lib/store';
 import { raw } from '@mantou/gem/lib/utils';
 
 // 24x24, single path
@@ -108,9 +108,12 @@ const defaultIcons = {
   ),
 };
 
-export const icons = createStore(defaultIcons);
+export const [icons, updateIcons] = useStore(defaultIcons);
 
 export function extendIcons<T extends Record<string, string>>(customIcons: Partial<typeof defaultIcons> & T) {
-  updateStore(icons, customIcons);
-  return icons as unknown as typeof defaultIcons & T;
+  updateIcons(customIcons);
+  return [
+    icons as unknown as typeof defaultIcons & T,
+    updateIcons as (customIcons: Partial<typeof defaultIcons> & T) => void,
+  ] as const;
 }

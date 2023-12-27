@@ -13,32 +13,22 @@ export function createStore<T extends NonPrimitive>(originStore: T) {
   return originStore as Store<T>;
 }
 
-interface StoreObjectSet {
-  [store: string]: NonPrimitive;
-}
-export type StoreSet<T> = {
-  [P in keyof T]: T[P] & Store<T[P]>;
-};
-export function createStoreSet<T extends StoreObjectSet>(originStoreSet: T) {
-  const keys = Object.keys(originStoreSet);
-  keys.forEach((key) => {
-    createStore(originStoreSet[key]);
-  });
-
-  return originStoreSet as StoreSet<T>;
-}
-
 export function updateStore<T extends NonPrimitive>(store: Store<T>, value?: Partial<T>) {
   Object.assign(store, value);
-  const listeners = StoreListenerMap.get(store);
-  listeners?.forEach((func) => {
+  StoreListenerMap.get(store)?.forEach((func) => {
     addMicrotask(func);
   });
+}
+
+export function useStore<T extends NonPrimitive>(originStore: T) {
+  const store = createStore(originStore);
+  return [store, (value?: Partial<T>) => updateStore(store, value)] as const;
 }
 
 export function connect<T extends NonPrimitive>(store: Store<T>, func: () => void) {
   const listeners = StoreListenerMap.get(store);
   listeners?.add(func);
+  return () => listeners?.delete(func);
 }
 
 export function disconnect<T extends NonPrimitive>(store: Store<T>, func: () => void) {

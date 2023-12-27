@@ -1,6 +1,4 @@
 import {
-  createStore,
-  updateStore,
   createCSSSheet,
   GemElement,
   html,
@@ -12,6 +10,7 @@ import {
   adoptedStyle,
   css,
   render,
+  useStore,
 } from '@mantou/gem';
 
 import '../elements/layout';
@@ -23,7 +22,7 @@ interface GlobalState {
   now: Date;
 }
 
-const store = createStore<GlobalState>({
+const [store, update] = useStore<GlobalState>({
   msg: [1, 2],
   now: new Date(),
 });
@@ -57,7 +56,7 @@ export class App extends GemElement {
 
   onSayHi = () => {
     const [foo, bar] = store.msg;
-    updateStore(store, {
+    update({
       msg: [bar, foo],
       now: new Date(),
     });

@@ -6,11 +6,9 @@ import {
   connectStore,
   classMap,
   state,
-  createStore,
   connect,
-  updateStore,
   history,
-  disconnect,
+  useStore,
 } from '@mantou/gem';
 import { mediaQuery } from '@mantou/gem/helper/mediaquery';
 
@@ -26,10 +24,7 @@ import '@mantou/gem/elements/use';
 import './side-link';
 import './nav-logo';
 
-export const sidebarStore = createStore({ open: false });
-
-const closeSidebar = () => updateStore(sidebarStore, { open: false });
-export const toggleSidebar = () => updateStore(sidebarStore, { open: !sidebarStore.open });
+export const [sidebarStore, updateSidebarStore] = useStore({ open: false });
 
 @customElement('gem-book-sidebar')
 @connectStore(bookStore)
@@ -219,7 +214,7 @@ export class SideBar extends GemElement {
             position: fixed;
             background: ${theme.backgroundColor};
             width: 100%;
-            height: calc(100vh - ${theme.headerHeight});
+            height: calc(100dvh - ${theme.headerHeight});
             top: ${theme.headerHeight};
             z-index: 3;
           }
@@ -267,7 +262,6 @@ export class SideBar extends GemElement {
   }
 
   mounted() {
-    connect(history.store, closeSidebar);
-    return () => disconnect(history.store, closeSidebar);
+    return connect(history.store, () => updateSidebarStore({ open: false }));
   }
 }

@@ -1,4 +1,4 @@
-import { createStore, Store, connect, updateStore } from '@mantou/gem/lib/store';
+import { Store, connect, updateStore, useStore } from '@mantou/gem/lib/store';
 import { render, TemplateResult } from '@mantou/gem/lib/element';
 import { NonPrimitive, cleanObject } from '@mantou/gem/lib/utils';
 
@@ -324,12 +324,13 @@ export function setBodyInert(modal: HTMLElement) {
 }
 
 /**Create auto cache(localStorage) Store */
-export function createCacheStore<T extends Record<string, any>>(
+export function useCacheStore<T extends Record<string, any>>(
   storageKey: string,
   initStore: T,
   options?: {
     cacheExcludeKeys?: (keyof T)[];
     prefix?: string | (() => string | undefined);
+    // 重新初始化 store，例如切换用户
     depStore?: Store<NonPrimitive>;
   },
 ) {
@@ -351,7 +352,7 @@ export function createCacheStore<T extends Record<string, any>>(
   const cacheExcludeKeys = new Set(options?.cacheExcludeKeys || []);
   let key = getKey();
 
-  const store = createStore<T>(getStoreStore(key));
+  const [store, updater] = useStore<T>(getStoreStore(key));
 
   if (options?.depStore) {
     connect(options.depStore, () => {
@@ -372,5 +373,11 @@ export function createCacheStore<T extends Record<string, any>>(
 
   window.addEventListener('pagehide', saveStore);
 
-  return [store, saveStore] as const;
+  return [store, updater, saveStore] as const;
 }
+
+/**@deprecated use `useCacheStore` */
+export const createCacheStore = (...args: Parameters<typeof useCacheStore>) => {
+  const [store, , save] = useCacheStore(...args);
+  return [store, save] as const;
+};

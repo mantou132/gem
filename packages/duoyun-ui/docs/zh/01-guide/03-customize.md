@@ -50,7 +50,7 @@ updateTheme({ primaryColor: 'blue' });
 ```ts
 import { extendTheme } from 'duoyun-ui/lib/theme';
 
-export const theme = extendTheme({ myColor: '#f00' });
+export const [theme, updateTheme] = extendTheme({ myColor: '#f00' });
 ```
 
 ## 自定义图标
@@ -61,7 +61,7 @@ export const theme = extendTheme({ myColor: '#f00' });
 ```ts
 import { extendIcons } from 'duoyun-ui/lib/icons';
 
-const icons = extendIcons({
+const [icons, updateIcons] = extendIcons({
   more: `
     <svg part="icon" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 0 24 24" width="24px" fill="currentColor">
       <path d="M0 0h24v24H0z" fill="none" stroke="none"></path>

@@ -1,10 +1,10 @@
-import { render, GemElement, createStore, updateStore, html } from '@mantou/gem';
+import { render, GemElement, html, useStore } from '@mantou/gem';
 import { connectStore, customElement } from '@mantou/gem/lib/decorators';
 
 import '../elements/layout';
 
 // 新建全局数据对象
-const store = createStore({
+const [store, update] = useStore({
   a: 1,
 });
 
@@ -13,7 +13,7 @@ const store = createStore({
 @connectStore(store)
 export class HelloWorld extends GemElement {
   clickHandle = () => {
-    updateStore(store, { a: ++store.a });
+    update({ a: ++store.a });
   };
   render() {
     return html`

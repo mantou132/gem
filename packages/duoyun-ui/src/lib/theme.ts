@@ -1,4 +1,4 @@
-import { createTheme, getThemeStore, updateTheme as changeTheme } from '@mantou/gem/helper/theme';
+import { getThemeStore, useTheme } from '@mantou/gem/helper/theme';
 
 export function getSemanticColor(semantic?: string) {
   switch (semantic) {
@@ -64,14 +64,10 @@ export const darkTheme: Partial<typeof lightTheme> = {
   maskAlpha: '0.4',
 };
 
-export const theme = createTheme({ ...lightTheme });
+export const [theme, updateTheme] = useTheme({ ...lightTheme });
 export const themeStore = getThemeStore(theme);
 
-export const updateTheme = (tm: Partial<typeof lightTheme>) => {
-  changeTheme(theme, tm);
-};
-
 export function extendTheme<T extends Record<string, string>>(tm: Partial<typeof lightTheme> & T) {
-  changeTheme(theme, tm);
-  return theme as unknown as typeof lightTheme & T;
+  updateTheme(tm);
+  return [theme as typeof lightTheme & T, updateTheme as (tm: Partial<typeof lightTheme> & T) => void] as const;
 }

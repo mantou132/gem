@@ -1,10 +1,9 @@
-import { createStoreSet } from '@mantou/gem';
+import { useStore } from '@mantou/gem';
 
-export default createStoreSet({
-  pageA: {
-    text: 'this is page A',
-  },
-  pageB: {
-    text: 'this is page B',
-  },
+export const [pageA, updatePageA] = useStore({
+  text: 'this is page A',
+});
+
+export const [pageB, updatePageB] = useStore({
+  text: 'this is page B',
 });

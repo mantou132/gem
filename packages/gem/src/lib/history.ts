@@ -1,6 +1,6 @@
 // https://github.com/WICG/navigation-api#stakeholder-feedback
 
-import { createStore, updateStore, connect } from './store';
+import { connect, useStore } from './store';
 import { QueryString, cleanObject, GemError, absoluteLocation } from './utils';
 
 const nativeHistory = window.history;
@@ -18,7 +18,7 @@ export interface HistoryState {
   [index: string]: any;
 }
 
-const store = createStore<HistoryState>({
+const [store, updateHistoryStore] = useStore<HistoryState>({
   $hasCloseHandle: false,
   $hasOpenHandle: false,
   $hasShouldCloseHandle: false,
@@ -89,7 +89,8 @@ function updateHistory(p: UpdateHistoryParams, native: typeof nativeHistory.push
     ...data,
   };
   paramsMap.set(state.$key, params);
-  updateStore(cleanObject(store), state);
+  cleanObject(store);
+  updateHistoryStore(state);
   const url = getUrlBarPath(path) + new QueryString(query) + hash;
   const prevHash = decodeURIComponent(location.hash);
   native(state, title, url);
@@ -107,7 +108,8 @@ function updateHistoryByNative(data: any, title: string, originUrl: string, nati
   const { pathname, search, hash } = new URL(originUrl, location.origin + location.pathname);
   const params = normalizeParams({ path: pathname, query: new QueryString(search), hash, title, data });
   paramsMap.set(state.$key, params);
-  updateStore(cleanObject(store), state);
+  cleanObject(store);
+  updateHistoryStore(state);
   const url = getUrlBarPath(pathname) + params.query + hash;
   const prevHash = location.hash;
   native(state, title, url);
@@ -115,7 +117,7 @@ function updateHistoryByNative(data: any, title: string, originUrl: string, nati
   if (prevHash !== hash) window.dispatchEvent(new CustomEvent('hashchange'));
 }
 
-const gemBasePathStore = createStore({
+const [gemBasePathStore, updateBasePathStore] = useStore({
   basePath: '',
 });
 
@@ -128,7 +130,7 @@ class GemHistory {
   }
   set basePath(basePath: string) {
     // 应用初始化的时候设置
-    updateStore(gemBasePathStore, { basePath });
+    updateBasePathStore({ basePath });
     // paramsMap 更新后 ui 才会更新
     Object.assign(paramsMap.get(store.$key)!, { path: getInternalPath(location.pathname) });
   }
@@ -137,7 +139,7 @@ class GemHistory {
   }
   updateParams(params: UpdateHistoryParams) {
     Object.assign(paramsMap.get(store.$key)!, params);
-    updateStore(store, {});
+    updateHistoryStore();
   }
   push(params: UpdateHistoryParams) {
     updateHistory(params, nativePushState);
@@ -164,7 +166,7 @@ class GemHistory {
 // `<gem-**>` 只读写父应用 `basePath`
 const gemHistory = new GemHistory();
 
-const gemTitleStore = createStore({ title: '' });
+const [gemTitleStore, updateTitleStore] = useStore({ title: '' });
 
 const _GEMHISTORY = { history: gemHistory, titleStore: gemTitleStore, basePathStore: gemBasePathStore };
 
@@ -197,7 +199,7 @@ if (!window._GEMHISTORY) {
     const { pathname, search, hash } = location;
     gemHistory.replace({ path: pathname, query: search, hash });
   } else if (nativeHistory.state.$hasCloseHandle) {
-    updateStore(store, nativeHistory.state);
+    updateHistoryStore(nativeHistory.state);
     const params = normalizeParams({ title: document.title });
     paramsMap.set(store.$key, params);
     // 有 handle 返回键的页面刷新需要清除返回 handler
@@ -205,7 +207,7 @@ if (!window._GEMHISTORY) {
   } else {
     // 有 gem 历史的正常普通刷新, 储存 params
     const params = normalizeParams({ title: document.title, hash: location.hash });
-    updateStore(store, {
+    updateHistoryStore({
       $key: getKey(),
       ...(nativeHistory.state || {}),
     });
@@ -222,7 +224,7 @@ if (!window._GEMHISTORY) {
   connect(store, () => {
     const { title } = gemHistory.getParams();
     if (title !== gemTitleStore.title) {
-      updateStore(gemTitleStore, { title });
+      updateTitleStore({ title });
     }
   });
 
@@ -290,7 +292,8 @@ if (!window._GEMHISTORY) {
       }
     }
 
-    updateStore(cleanObject(store), newState);
+    cleanObject(store);
+    updateHistoryStore(newState);
   });
 }
 
