@@ -141,7 +141,10 @@ export class DuoyunContextMenuElement extends GemElement {
       maskClosable,
       menuStack: [{ x, y, menu: contextmenu, searchable, header }],
     });
-    if (!ContextMenu.instance) new ContextMenu();
+    if (!ContextMenu.instance) {
+      const ele = new ContextMenu();
+      document.body.append(ele);
+    }
     await new Promise((res) => (closeResolve = res));
   }
 
@@ -194,7 +197,6 @@ export class DuoyunContextMenuElement extends GemElement {
 
   constructor() {
     super({ delegatesFocus: true });
-    document.body.append(this);
   }
 
   #offset = 4;

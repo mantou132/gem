@@ -109,6 +109,7 @@ export class DuoyunToastElement extends GemElement {
 
   static open(type: Type, content: string | TemplateResult, { debug, duration = 3000 }: ToastOptions = {}) {
     const toast = Toast.instance || new Toast();
+    document.body.append(toast);
     const key = type + getStringFromTemplate(content);
     const item = toast.items?.find((e) => e.key === key) || { key, type, content };
     // 如何 item 正在执行删除动画，这里会导致一点小瑕疵
@@ -125,7 +126,6 @@ export class DuoyunToastElement extends GemElement {
     this.internals.role = 'alert';
     this.internals.ariaLive = 'polite';
     if (Toast.instance) throw new Error('Single instance component');
-    document.body.append(this);
     this.addEventListener('mouseover', () => {
       this.#over = new Promise((res) => {
         this.addEventListener('mouseout', () => res(), { once: true });

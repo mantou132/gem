@@ -42,6 +42,7 @@ export class DuoyunPageLoadbarElement extends GemElement {
     clearInterval(Loadbar.timer);
     Loadbar.timer = window.setTimeout(() => {
       const instance = Loadbar.instance || new Loadbar();
+      document.body.append(instance);
       instance.setState({ progress: 0 });
       Loadbar.timer = window.setInterval(() => {
         instance.setState({ progress: instance.state.progress + (95 - instance.state.progress) * 0.1 });
@@ -61,7 +62,6 @@ export class DuoyunPageLoadbarElement extends GemElement {
 
   constructor() {
     super();
-    document.body.append(this);
     this.internals.role = 'progressbar';
   }
 

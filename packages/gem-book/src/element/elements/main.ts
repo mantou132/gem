@@ -1,9 +1,10 @@
-import { html, GemElement, customElement, css, property, createCSSSheet, adoptedStyle } from '@mantou/gem';
+import { html, GemElement, customElement, css, property, createCSSSheet, adoptedStyle, history } from '@mantou/gem';
 import { Renderer, parse } from 'marked';
 import { mediaQuery } from '@mantou/gem/helper/mediaquery';
 
 import { theme } from '../helper/theme';
 import { checkBuiltInPlugin } from '../lib/utils';
+import { locationStore } from '../store';
 
 import { updateTocStore } from './toc';
 
@@ -77,12 +78,10 @@ export class Main extends GemElement {
   }
 
   #hashChangeHandle = () => {
-    const { hash } = location;
-    const ele = hash && this.shadowRoot?.querySelector(`[id="${decodeURIComponent(hash.slice(1))}"]`);
-    if (!hash) {
-      document.body.scroll(0, 0);
-    } else if (ele) {
-      ele.scrollIntoView({
+    const { hash, path } = history.getParams();
+    // 确保是页内跳转或者新页（mounted）跳转
+    if (hash && path === locationStore.path) {
+      this.shadowRoot?.querySelector(`[id="${decodeURIComponent(hash.slice(1))}"]`)?.scrollIntoView({
         block: 'start',
       });
     }

@@ -6,7 +6,7 @@
 
 ```json
 {
-  "@click": "()=>customElements.get('dy-wait').wait(new Promise(res => setTimeout(res, 1500)))",
+  "@click": "()=>customElements.get('dy-wait').wait(new Promise(res => setTimeout(res, 1500)),{position:'center', text: 'Loading', color: 'black'})",
   "innerHTML": "Click"
 }
 ```
@@ -17,7 +17,11 @@
 import { waitLoading } from '@duoyun-fe/duoyun-ui/elements/wait';
 
 function onClick() {
-  waitLoading(new Promise((res) => setTimeout(res, 1500)));
+  waitLoading(new Promise((res) => setTimeout(res, 1500)), {
+    position: 'center',
+    text: 'Loading',
+    color: 'black',
+  });
 }
 ```
 

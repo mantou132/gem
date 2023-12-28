@@ -20,8 +20,6 @@ const style = createCSSSheet(css`
     width: 100%;
     height: calc(100% - var(--top));
     box-sizing: border-box;
-    color: white;
-    justify-content: center;
     pointer-events: none;
   }
   dy-loading {
@@ -46,7 +44,9 @@ export async function waitLoading<T>(promise: Promise<T>, options: WaitOptions &
   if (r === isLongPromise) {
     let animate: Promise<any> = Promise.resolve();
     if (!DuoyunWaitElement.instance) {
-      animate = new DuoyunWaitElement(options).animate(fadeIn, commonAnimationOptions).finished;
+      const ele = new DuoyunWaitElement(options);
+      document.documentElement.append(ele);
+      animate = ele.animate(fadeIn, commonAnimationOptions).finished;
     } else {
       changeLoading(options);
     }
@@ -79,10 +79,13 @@ export const changeLoading = (state: Partial<State>) => {
   DuoyunWaitElement.instance?.setState(state);
 };
 
+type Position = 'start' | 'center' | 'end';
+
 type State = {
   text?: string;
   transparent?: boolean;
-  position?: 'start' | 'center' | 'end';
+  color?: string;
+  position?: Position | `${Position} ${Position}`;
 };
 
 /**
@@ -103,7 +106,6 @@ export class DuoyunWaitElement extends GemElement<State> {
     this.state = state;
     this.internals.role = 'alert';
     this.internals.ariaBusy = 'true';
-    document.documentElement.append(this);
     this.addEventListener('contextmenu', (e) => e.preventDefault());
   }
 
@@ -127,18 +129,22 @@ export class DuoyunWaitElement extends GemElement<State> {
   };
 
   render = () => {
-    const { text, transparent, position } = this.state;
+    const { text, transparent, position, color } = this.state;
     this.internals.ariaLabel = text || '';
     this.modal = !transparent;
+
+    const [align, justify] = position?.split(' ') || [];
 
     return html`
       <style>
         :host {
-          align-items: ${this.state.position || 'flex-start'};
-          padding-bottom: ${position === 'center' ? '10vh' : 0};
+          color: ${color || 'white'};
+          align-items: ${align || 'flex-start'};
+          justify-content: ${justify || 'center'};
+          padding-bottom: ${align === 'center' ? '10vh' : 0};
         }
       </style>
-      <dy-loading>${this.state.text}</dy-loading>
+      <dy-loading>${text}</dy-loading>
     `;
   };
 }

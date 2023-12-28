@@ -5,7 +5,7 @@ type State = {
   error?: any;
 };
 
-type PropValue = string | number | boolean;
+type PropValue = string | number | boolean | Record<string, unknown>;
 
 type Props = Record<string, PropValue>;
 
@@ -69,6 +69,9 @@ customElements.whenDefined('gem-book').then(() => {
     .attribute {
       color: #4646c6;
     }
+    .inner {
+      color: #515151;
+    }
   `);
   @customElement('gbp-example')
   @adoptedStyle(style)
@@ -87,37 +90,38 @@ customElements.whenDefined('gem-book').then(() => {
       loading: true,
     };
 
-    #isFunction(value: string | number | boolean) {
+    #isFunction(value: PropValue) {
       return /^\((\w|,|\s)*\)\s*=>/.test(String(value));
     }
 
-    #getIcon(value: string | number | boolean) {
+    #getIcon(value: PropValue) {
       return String(value).startsWith('icons.') ? String(value).split('.') : undefined;
     }
 
+    #parseValue(value: PropValue) {
+      return JSON.parse(JSON.stringify({ value }), (_, v) => {
+        if (typeof v !== 'string') return v;
+        const isIcon = this.#getIcon(v);
+        return isIcon ? icons[isIcon[1] as keyof typeof icons] : this.#isFunction(v) ? eval(String(v)) : v;
+      }).value;
+    }
+
     #renderElement = (props: Props) => {
-      const Cls = customElements.get(this.name);
-      if (!Cls) return html``;
-      const ele = new Cls();
+      const tag = (props.tagName as string) || this.name;
+      if (!tag) throw new Error('missing tag name');
+      const ele = tag.includes('-') ? new (customElements.get(tag)!)() : document.createElement(tag);
       if (props) {
         Object.entries(props).forEach(([key, value]) => {
-          const isIcon = this.#getIcon(value);
+          if (key === 'innerHTML') return (ele.innerHTML = String(value));
+          if (key === 'tagName') return;
           if (key.startsWith('@')) {
             ele.addEventListener(key.slice(1), eval(String(value)));
           } else if (key.startsWith('?')) {
             (ele as any)[key.slice(1)] = true;
           } else if (key.startsWith('.')) {
-            (ele as any)[key.slice(1)] = isIcon
-              ? icons[isIcon[1] as keyof typeof icons]
-              : this.#isFunction(value)
-                ? eval(String(value))
-                : JSON.parse(String(value));
+            (ele as any)[key.slice(1)] = this.#parseValue(value);
           } else {
-            (ele as any)[key] = isIcon
-              ? icons[isIcon[1] as keyof typeof icons]
-              : this.#isFunction(value)
-                ? eval(String(value))
-                : value;
+            (ele as any)[key] = this.#parseValue(value);
           }
         });
       }
@@ -128,34 +132,59 @@ customElements.whenDefined('gem-book').then(() => {
       return html`<span class="token">${token}</span>`;
     };
 
-    #addIndentation = (str: string, indentation = 2) => {
-      return str
-        .split('\n')
-        .map((s) => `${' '.repeat(indentation)}${s}`)
-        .join('\n');
+    #addIndentation = (str: string | string[], indentation = 2) => {
+      return (Array.isArray(str) ? str : str.split('\n')).map((s) => `${' '.repeat(indentation)}${s}`).join('\n');
     };
 
-    #jsonStringify = (value: any) => {
+    #jsonReplace = (value: any, indent: number, getValue: (v: any) => [boolean, string]) => {
       let id = 0;
       const replaceStr = new Map<string, string>();
-      const replacer = (_: string, val: any) => {
-        const str = JSON.stringify(val);
-        if (str.length < 50) {
-          const key = `__${id++}__`;
-          replaceStr.set(key, str);
-          return key;
+      const replacer = (key: string, val: any) => {
+        const [needReplace, v] = getValue(val);
+        // 用来将字符串替换成 v，例如函数
+        if (needReplace) {
+          const replaceContent = `__${id++}__`;
+          replaceStr.set(replaceContent, v);
+          return replaceContent;
         }
         return val;
       };
-      let result = JSON.stringify(value, replacer, 2);
-      replaceStr.forEach((str, key) => {
-        result = result.replace(`"${key}"`, str);
+      let result = JSON.stringify(value, replacer, indent);
+      replaceStr.forEach((replaceContent, content) => {
+        result = result.replace(`"${content}"`, replaceContent);
       });
       return result;
     };
 
+    #jsonStringify = (value: any) => {
+      return this.#jsonReplace(value, 2, (val) => {
+        const hasIconOrFn =
+          typeof val === 'object' &&
+          val &&
+          Object.values(val).some((e: any) => this.#isFunction(e) || this.#getIcon(e));
+        if (hasIconOrFn) {
+          return [
+            true,
+            // 包含 icon/fn 的对象
+            this.#jsonReplace(val, JSON.stringify(val).length < 50 ? 0 : 2, (v) => {
+              const isIconOrFn = this.#isFunction(v) || this.#getIcon(v);
+              return [!!isIconOrFn, ` ${v}`] as const;
+            }),
+          ] as const;
+        }
+
+        const str = JSON.stringify(val);
+        if (str.length < 50) {
+          return [true, str] as const;
+        }
+
+        return [false, ''] as const;
+      });
+    };
+
     #renderPropValue = (key: string, value: PropValue, isNewLine: boolean) => {
       if (key === 'innerHTML') return '';
+      if (key === 'tagName') return '';
       const icon = this.#getIcon(value);
       const vString = icon
         ? icon.join('.')
@@ -175,7 +204,10 @@ customElements.whenDefined('gem-book').then(() => {
 
     #renderProps = (props: Props) => {
       const propEntries = Object.entries(props);
-      const isNewLine = propEntries.length > ('innerHTML' in props ? 3 : 2);
+      let maxLength = 2;
+      if ('innerHTML' in props) maxLength++;
+      if ('tagName' in props) maxLength++;
+      const isNewLine = propEntries.length > maxLength;
       return html`${propEntries.map(([key, value]) => this.#renderPropValue(key, value, isNewLine))}`;
     };
 
@@ -187,16 +219,21 @@ customElements.whenDefined('gem-book').then(() => {
     };
 
     #renderInnerHTML = (props: Props) => {
-      if (!props.innerHTML) return html``;
-      return `\n${this.#addIndentation(String(props.innerHTML))}\n`;
+      if (!props.innerHTML) return ``;
+      let text = '';
+      if (props.tagName === 'style') {
+        const style = new CSSStyleSheet();
+        style.replaceSync(props.innerHTML as string);
+        text = '\n' + this.#addIndentation([...style.cssRules].map((rule) => rule.cssText)) + '\n';
+      } else {
+        text = '\n' + this.#addIndentation(String(props.innerHTML)) + '\n';
+      }
+      return html`<span class="inner">${text}</span>`;
     };
 
     #renderCode = (props: Props) => {
-      return html`${this.#renderTag(this.name, props)}${this.#renderInnerHTML(props)}${this.#renderTag(
-        this.name,
-        props,
-        true,
-      )}`;
+      const tag = (props.tagName as string) || this.name;
+      return html`${this.#renderTag(tag, props)}${this.#renderInnerHTML(props)}${this.#renderTag(tag, props, true)}`;
     };
 
     #loadResource = (src: string) => {

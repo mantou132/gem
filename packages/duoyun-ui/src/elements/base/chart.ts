@@ -204,7 +204,8 @@ export class DuoyunChartBaseElement<_T = Record<string, unknown>> extends Duoyun
 
   renderXAxi = ({ centerLabel, grid }: { centerLabel?: boolean; grid?: boolean } = {}) => {
     const offset = centerLabel ? 0.5 * (this.xAxiStepUnit / this.xAxiUnit) : 0;
-    return this.xAxi !== null
+    // zoom 选择范围太小时，xAxiUnit 为 0
+    return this.xAxi !== null && this.xAxiUnit
       ? svg`
         <path 
           stroke=${theme.borderColor}

@@ -2,7 +2,7 @@ import { html, render, TemplateResult } from 'lit-html';
 
 import type { GemReflectElement } from '../elements/reflect';
 
-import { connect, disconnect, Store } from './store';
+import { connect, Store } from './store';
 import {
   LinkedList,
   addMicrotask,

@@ -122,7 +122,7 @@ const style = createCSSSheet(css`
     transition: opacity 0.1s;
   }
   :active::after {
-    opacity: 0.18;
+    opacity: 0.13;
   }
   :host([disabled]) ::after {
     content: none;

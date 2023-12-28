@@ -9,9 +9,13 @@ See [`<gem-link>`](https://gemjs.org/zh/api/built-in-element)
 ```json
 [
   {
+    "tagName": "style",
+    "innerHTML": "dy-active-link:where([data-active],:state(active)){color: red})"
+  },
+  {
     "path": "/test/test",
     "pattern": "/test/*",
-    "innerHTML": "This link not match current route\n<style>dy-active-link:where([data-active],:state(active)){color: red})</style>"
+    "innerHTML": "This link not match current route"
   },
   {
     "path": "/",

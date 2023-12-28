@@ -56,11 +56,8 @@ export const getSelectedGem = function (data: PanelStore, gemElementSymbols: str
         return funcToString(arg);
       case 'object': {
         if (arg instanceof Element) {
-          try {
-            return (arg.cloneNode() as Element).outerHTML.replace('><', '>...<');
-          } catch {
-            // element prototype
-          }
+          const tag = arg.tagName.toLowerCase();
+          return `<${tag}${[...arg.attributes].map((e) => ` ${e.name}="${e.value}"`).join('')}>...</${tag}>`;
         } else if (arg instanceof Node) {
           return `${arg.nodeName} ${arg.nodeValue}`;
         } else if (window.CSSStyleSheet && arg instanceof CSSStyleSheet) {

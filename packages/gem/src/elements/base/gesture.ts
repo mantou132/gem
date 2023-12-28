@@ -75,6 +75,7 @@ export class GemGestureElement extends GemElement {
     this.addEventListener('pointerdown', this.#onStart);
     this.addEventListener('pointermove', this.#onMoveSet);
     this.addEventListener('pointerup', this.#onEnd);
+    this.addEventListener('pointerleave', this.#onEnd); // 有时候 up 没有触发？
     this.addEventListener('pointercancel', this.#onEnd);
     this.addEventListener('dragstart', (evt) => evt.preventDefault());
   }
