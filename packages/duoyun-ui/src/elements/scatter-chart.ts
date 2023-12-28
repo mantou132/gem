@@ -73,7 +73,7 @@ export class DuoyunScatterChartElement extends DuoyunChartBaseElement {
           });
         });
       },
-      () => [this.sequences, this.contentRect.width],
+      () => [this.sequences, this.contentRect.width, this.aspectRatio],
     );
   };
 

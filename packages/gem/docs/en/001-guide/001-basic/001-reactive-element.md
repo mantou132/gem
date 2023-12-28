@@ -9,39 +9,44 @@ Define reactive attributes, using standard static property [observedAttributes](
 ```js
 // Omit import...
 
+@customElement('my-element')
 class MyElement extends GemElement {
-  static observedAttributes = ['first-name'];
+  @attribute firstName;
   render() {
     return html`${this.firstName}`;
   }
 }
-customElements.define('my-element', MyElement);
 ```
 
-After the `first-name` attribute is "Observe", he can directly access it through property, and it will automatically convert the kebab-case and camelCase format, when the `first-name` property is changed, the instance element of `MyElement` will be re-rendered.
+In the above example, the field `firstName` of `MyElement` is declared as a reactive property.
+When this property change, the mounted instance of `MyElement` will re-render,
+additionally, this field maps to the element's `first-name` Attribute.
 
-Similar to `observedAttributes`, GemElement also supports `observedProperties`/`observedStores` to reflect the specified property/store:
+Similar to `@attribute`, GemElement also supports `@property`/`@connectStore` to reflect the specified Property/Store:
 
 ```js
 // Omit import...
 
+@customElement('my-element')
+@connectStore(store)
 class MyElement extends GemElement {
-  static observedProperties = ['data'];
-  static observedStores = [store];
+  @property data;
+
   render() {
     return html`${this.data.id} ${store.name}`;
   }
 }
-customElements.define('my-element', MyElement);
 ```
 
-_Do not modify prop/attr within the element, they should be passed in one-way by the parent element, just like native elements_
+> [!TIP]
+> Do not modify prop/attr within the element, they should be passed in one-way by the parent element, just like native elements
 
 In addition, `GemElement` provides React-like `state`/`setState` API to manage the state of the element itself. an element re-rendered is triggered whenever `setState` is called:
 
 ```js
 // Omit import...
 
+@customElement('my-element')
 class MyElement extends GemElement {
   state = { id: 1 };
   clicked() {
@@ -51,29 +56,29 @@ class MyElement extends GemElement {
     return html`${this.state.id}`;
   }
 }
-customElements.define('my-element', MyElement);
 ```
 
-_`GemElement` extends from [`HTMLElement`](https://developer.mozilla.org/en-US/docs/Web/API/HTMLElement), don’t override the attribute/property/method/event, use [private fields](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Classes/Private_class_fields) to avoid overwriting the property/methods of `GemElement`/`HTMLElement`_
+> [!TIP] `GemElement` extends from [`HTMLElement`](https://developer.mozilla.org/en-US/docs/Web/API/HTMLElement), don’t override the attribute/property/method/event, use [private fields](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Classes/Private_class_fields) to avoid overwriting the property/methods of `GemElement`/`HTMLElement`
 
 ## Example
 
 <gbp-sandpack dependencies="@mantou/gem">
 
 ```js index.js
-import { createStore, GemElement, updateStore, render, html } from '@mantou/gem';
+import { useStore, GemElement, render, html, attribute, property, connectStore, customElement } from '@mantou/gem';
 
-const store = createStore({
+const [store, update] = useStore({
   count: 0,
 });
 
+@customElement('my-element')
+@connectStore(store)
 class MyElement extends GemElement {
-  static observedStores = [store];
-  static observedAttributes = ['name'];
-  static observedProperties = ['data'];
+  @attribute name;
+  @property data;
 
   #onClick = () => {
-    updateStore(store, { count: ++store.count });
+    update({ count: ++store.count });
   };
 
   render() {
@@ -84,7 +89,6 @@ class MyElement extends GemElement {
     `;
   }
 }
-customElements.define('my-element', MyElement);
 
 render(html`<my-element name="world" .data=${{ a: 1 }}></my-element>`, document.getElementById('root'));
 ```
@@ -98,12 +102,12 @@ You can specify life cycle functions for GemElement. Sometimes they are useful, 
 ```js
 // Omit import...
 
+@customElement('my-element')
 class MyElement extends GemElement {
   mounted() {
     console.log('element mounted!');
   }
 }
-customElements.define('my-element', MyElement);
 ```
 
 Complete life cycle:
@@ -134,25 +138,5 @@ Complete life cycle:
   +---------------------------------------+
 ```
 
-_The `constructor` and `unmounted` of the parent element are executed before the child element, but the `mounted` is executed after the child element_
-
-## Use TypeScript
-
-When using TypeScript, you can use decorators to make reactive declarations while declaring fields:
-
-```ts
-// Omit import...
-
-const store = createStore({
-  count: 0,
-});
-
-@customElement('my-element')
-@connectStore(store)
-class MyElement extends GemElement {
-  @attribute name: string;
-  @boolattribute disabled: boolean;
-  @numattribute count: number;
-  @property data: Data | undefined; // property has no default value
-}
-```
+> [!NOTE]
+> The `constructor` and `unmounted` of the parent element are executed before the child element, but the `mounted` is executed after the child element

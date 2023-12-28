@@ -42,11 +42,13 @@ export class Homepage extends GemElement {
           display: flex;
           flex-wrap: wrap;
           margin: 2rem;
-          gap: 1rem;
+          gap: 1rem 2.5rem;
           justify-content: center;
           align-items: center;
         }
         gem-link {
+          display: flex;
+          gap: 1rem;
           color: ${theme.primaryColor};
           text-decoration: none;
           transition: all 0.3s;
@@ -74,9 +76,6 @@ export class Homepage extends GemElement {
           }
           .title {
             font-size: 2rem;
-          }
-          gem-link:first-of-type {
-            padding: 0.3rem 1rem;
           }
         }
         @media print {

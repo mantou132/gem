@@ -8,7 +8,7 @@
 
 ## Getting started
 
-```ts
+```js
 import { createTheme } from '@mantou/gem/helper/theme';
 
 const theme = createTheme({
@@ -33,14 +33,14 @@ class App extends GemElement {
 
 As can be seen from the above usage, once an object is created as a theme, the fields read from the theme are CSS variables:
 
-```ts
+```js
 console.log(theme.primaryColor);
 // => var(--primary-color-xxxxx)
 ```
 
 Sometimes you may need to read the original object, such as printing the subject to the element:
 
-```ts 7,10,19
+```js 7,10,19
 import { createTheme, getThemeStore } from '@mantou/gem/helper/theme';
 
 const theme = createTheme({
@@ -69,10 +69,10 @@ class App extends GemElement {
 
 If you want to support dark mode, you can use [`matchMedia`](https://developer.mozilla.org/en-US/docs/Web/API/Window/matchMedia) for media queries, and then use different themes, E.g:
 
-```ts 11
+```js 11
 import { createTheme } from '@mantou/gem/helper/theme';
 
-const ligthTheme = {
+const lightTheme = {
   primaryColor: '#333',
 };
 

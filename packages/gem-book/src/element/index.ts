@@ -15,7 +15,7 @@ import {
   RefObject,
   boolattribute,
 } from '@mantou/gem';
-import { GemLightRouteElement } from '@mantou/gem/elements/route';
+import { GemLightRouteElement, matchPath } from '@mantou/gem/elements/route';
 import { mediaQuery } from '@mantou/gem/helper/mediaquery';
 
 import { BookConfig } from '../common/config';
@@ -101,11 +101,15 @@ export class GemBookElement extends GemElement {
     if (!config) return null;
 
     const { icon = '', title = '', homeMode } = config;
+    const { path } = history.getParams();
     const hasNavbar = icon || title || nav.length;
-    this.isHomePage = homePage === history.getParams().path;
-    const renderHomePage = homeMode && this.isHomePage;
+    const renderHomePage = homeMode && homePage === path;
     const missSidebar = homeMode ? currentSidebar?.every((e) => e.link === homePage) : !currentSidebar?.length;
-    const renderFullWidth = renderHomePage || missSidebar;
+    // 首次渲染
+    const isRedirectRoute = routes.find(({ pattern }) => matchPath(pattern, path))?.redirect;
+    const renderFullWidth = renderHomePage || (missSidebar && !isRedirectRoute);
+
+    this.isHomePage = !!renderHomePage;
 
     return html`
       <style>

@@ -55,9 +55,9 @@ export const getSelectedGem = function (data: PanelStore, gemElementSymbols: str
       case 'function':
         return funcToString(arg);
       case 'object': {
-        if (arg instanceof HTMLElement) {
+        if (arg instanceof Element) {
           try {
-            return (arg.cloneNode() as HTMLElement).outerHTML.replace('><', '>...<');
+            return (arg.cloneNode() as Element).outerHTML.replace('><', '>...<');
           } catch {
             // element prototype
           }

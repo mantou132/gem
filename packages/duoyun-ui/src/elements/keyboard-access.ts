@@ -102,10 +102,10 @@ export class DuoyunKeyboardAccessElement extends GemElement<State> {
     const { active } = this.state;
     if (active) return;
 
-    const eles = document.deepQuerySelectorAll(
+    const elements = document.deepQuerySelectorAll(
       '>>> :is([tabindex],input,textarea,button,select,area,a[href])',
     ) as HTMLElement[];
-    if (!eles.length) {
+    if (!elements.length) {
       Toast.open('default', 'Not found focusable element');
       return;
     }
@@ -123,7 +123,7 @@ export class DuoyunKeyboardAccessElement extends GemElement<State> {
       active: true,
       waiting: false,
       keydownHandles,
-      focusableElements: eles
+      focusableElements: elements
         .map((element) => {
           const { top, left, right, bottom, width, height } = element.getBoundingClientRect();
           if (
@@ -142,9 +142,9 @@ export class DuoyunKeyboardAccessElement extends GemElement<State> {
           // https://bugzilla.mozilla.org/show_bug.cgi?id=1750907
           // https://bugs.chromium.org/p/chromium/issues/detail?id=1188919&q=elementFromPoint&can=2
           const root = element.getRootNode() as ShadowRoot | (Document & { host: undefined });
-          const elesFromLeftTop = root.elementsFromPoint(left + 2, top + 2);
-          const elesFromRightBottom = root.elementsFromPoint(left + width - 2, top + height - 2);
-          if (!elesFromLeftTop.includes(element) && !elesFromRightBottom.includes(element)) {
+          const elementsFromLeftTop = root.elementsFromPoint(left + 2, top + 2);
+          const elementsFromRightBottom = root.elementsFromPoint(left + width - 2, top + height - 2);
+          if (!elementsFromLeftTop.includes(element) && !elementsFromRightBottom.includes(element)) {
             return;
           }
 
@@ -153,8 +153,12 @@ export class DuoyunKeyboardAccessElement extends GemElement<State> {
           // `a-b`
           keydownHandles[[...key].join('-')] = (evt: KeyboardEvent) => {
             this.setState({ active: false });
-            element.focus();
-            element.click();
+            if ('showPicker' in element) {
+              (element as HTMLInputElement).showPicker();
+            } else {
+              element.focus();
+              element.click();
+            }
             this.#preventEvent(evt);
           };
           index++;

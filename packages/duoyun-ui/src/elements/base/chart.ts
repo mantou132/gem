@@ -56,6 +56,7 @@ const style = createCSSSheet(css`
 export class DuoyunChartBaseElement<_T = Record<string, unknown>> extends DuoyunResizeBaseElement {
   @part static chart: string;
 
+  @property aspectRatio?: number;
   @property filters?: string[];
   @property colors = commonColors;
   @property xAxi?: Axi | null;
@@ -74,15 +75,18 @@ export class DuoyunChartBaseElement<_T = Record<string, unknown>> extends Duoyun
   @state loading: boolean;
   @state noData: boolean;
 
+  get #aspectRatio() {
+    return this.aspectRatio || 2;
+  }
+
   constructor(options?: GemElementOptions) {
     super(options);
     this.internals.role = 'img';
     this.memo(
-      () => {
-        this.filtersSet = new Set(this.filters);
-      },
+      () => (this.filtersSet = new Set(this.filters)),
       () => [this.filters],
     );
+    this.memo(() => (this.stageHeight = this.stageWidth / this.#aspectRatio));
   }
 
   stageWidth = 300;

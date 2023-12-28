@@ -2,7 +2,7 @@
 
 在开发移动 WebApp 时，手势是常用的交互方式，但是 Web 中并未支持支持手势事件，你可能需要使用第三方库(例如：[Hammer.js](https://hammerjs.github.io/))来支持手势操作，Gem 内置 `<gem-gesture>` 来完成简单的手势支持。
 
-## PointerEvent
+## `PointerEvent`
 
 很久以前，Web 只支持 [MouseEvent](https://developer.mozilla.org/en-US/docs/Web/API/MouseEvent)，随着移动时代的带来，Web 添加了 [TouchEvent](https://developer.mozilla.org/en-US/docs/Web/API/TouchEvent)，现在，除了鼠标以及触摸屏外，可能还有其他的指针设备，比如手写笔。为此，Web 引入了 [PointerEvent](https://developer.mozilla.org/en-US/docs/Web/API/PointerEvent)，它为各种指针设备提供了一组通用事件，为了方便迁移，`PointerEvent` 类似 `MouseEvent` 提供了 `pointerdown`, `pointerup`, `pointermove` 等事件。
 

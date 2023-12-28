@@ -160,10 +160,3 @@ import('https://esm.sh/duoyun-ui/elements/input-capture').then(({ DuoyunInputCap
   document.body.append(new DuoyunInputCaptureElement()),
 );
 ```
-
-## 路线图
-
-- Logo 设计
-- 完善现有元素，规范化 API
-- 添加缺失元素和功能
-- 添加更多的语言支持

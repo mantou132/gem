@@ -1,7 +1,5 @@
 # Create controlled elements
 
-> It is recommended to use TypeScript to write, the examples in this article also use TypeScript
-
 In React, form elements are [controlled](https://reactjs.org/docs/forms.html#controlled-components) by default, and components need to be used to pass data to form elements to modify the value of form elements. Many benefits:
 
 - Single source of data

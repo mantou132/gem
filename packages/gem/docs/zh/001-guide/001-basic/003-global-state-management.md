@@ -10,15 +10,17 @@ Gem 使用发布订阅模式，让多个元素共享数据，并且数据更新�
 // 省略导入...
 
 // 创建 store
-const store = createStore({ a: 1 });
+const [store, update] = useStore({ a: 1 });
 
 // 连接 store
-connect(store, function () {
+const disconnect = connect(store, function () {
   // store 更新时执行
 });
 
 // 更新 store
-updateStore(store, { a: 2 });
+update({ a: 2 });
+
+disconnect();
 ```
 
 前一节有提到，使用 `static observedStores`/`@connectStore` 来连接 `Store`，
@@ -34,10 +36,10 @@ updateStore(store, { a: 2 });
 ```js
 // 省略导入...
 
-const posts = createStore({ ... });
-const users = createStore({ ... });
-const photos = createStore({ ... });
-const profiles = createStore({ ... });
+const [posts] = useStore({ ... });
+const [users] = useStore({ ... });
+const [photos] = useStore({ ... });
+const [profiles] = useStore({ ... });
 
 // ...
 ```
@@ -54,10 +56,10 @@ const profiles = createStore({ ... });
 
 const isSavingMode = () => document.visibilityState !== 'visible';
 
-const store = createStore({ savingMode: isSavingMode() });
+const [store, update] = useStore({ savingMode: isSavingMode() });
 
 document.addEventListener('visibilitychange', () => {
-  updateStore({ savingMode: isSavingMode() });
+  update({ savingMode: isSavingMode() });
 });
 
 @customElement('my-element')

@@ -145,7 +145,7 @@ class MyElement extends GemElement {
 }
 ```
 
-## 实现 Web 开发中常见的其他需求
+## 实现其他需求
 
 - [内置自定义元素](../003-api/005-built-in-element.md)：Gem 内置 `<gem-route>`、`<gem-link>`、`<gem-title>`、`<gem-use>`、`<gem-unsafe>` 和 `<gem-reflect>`
 - 国际化支持

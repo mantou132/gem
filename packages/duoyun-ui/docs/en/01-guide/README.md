@@ -161,10 +161,3 @@ import('https://esm.sh/duoyun-ui/elements/input-capture').then(({ DuoyunInputCap
   document.body.append(new DuoyunInputCaptureElement()),
 );
 ```
-
-## Roadmap
-
-- Logo design
-- Improve existing elements, standardize API
-- Add missing elements and features
-- Add more language support

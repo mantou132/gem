@@ -83,8 +83,18 @@ type State = {
 @adoptedStyle(style)
 export class DuoyunChartZoomElement extends GemElement<State> {
   @property values?: (number | null)[][];
-  @property value = [0, 1];
+  @property value?: number[];
+  @property aspectRatio?: number;
   @emitter change: Emitter<number[]>;
+
+  #defaultValue = [0, 1];
+  get #value() {
+    return this.value || this.#defaultValue;
+  }
+
+  get #aspectRatio() {
+    return this.aspectRatio || 25;
+  }
 
   state: State = {
     grabbing: false,
@@ -113,12 +123,12 @@ export class DuoyunChartZoomElement extends GemElement<State> {
   };
 
   #adjust = (detail: PanEventDetail, isStop: boolean) => {
-    let [start, stop] = this.value;
+    let [start, stop] = this.#value;
     if (isStop) [stop, start] = [start, stop];
     const { left, width } = this.getBoundingClientRect();
     const newStart = clamp(0, (detail.clientX - left) / width, 1);
     const newValue = [Math.min(newStart, stop), Math.max(newStart, stop)];
-    if (newValue[1] - newValue[0] < 0.01) return this.#panAdjust(this.value, detail);
+    if (newValue[1] - newValue[0] < 0.01) return this.#panAdjust(this.#value, detail);
     return newValue;
   };
 
@@ -153,7 +163,7 @@ export class DuoyunChartZoomElement extends GemElement<State> {
   };
 
   #onPan = ({ detail }: CustomEvent<PanEventDetail>) => {
-    const newValue = this.#panAdjust(this.value, detail);
+    const newValue = this.#panAdjust(this.#value, detail);
     this.change(newValue);
   };
 
@@ -163,11 +173,11 @@ export class DuoyunChartZoomElement extends GemElement<State> {
 
   render = () => {
     const { grabbing, newValue } = this.state;
-    const [start, stop] = this.value;
+    const [start, stop] = this.#value;
     return html`
       <dy-area-chart
         .smooth=${Number(this.values?.length) < 100}
-        .stageHeight=${12}
+        .aspectRatio=${this.#aspectRatio}
         .colors=${[theme.informativeColor]}
         .xAxi=${null}
         .yAxi=${null}

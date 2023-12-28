@@ -377,7 +377,11 @@ export abstract class GemElement<T = Record<string, unknown>> extends HTMLElemen
     this.#isMounted = true;
     this.#unmountCallback = this.mounted?.();
     this.#initEffect();
-    if (rootElement && (this.getRootNode() as ShadowRoot).host?.tagName !== rootElement.toUpperCase()) {
+    if (
+      rootElement &&
+      this.isConnected &&
+      (this.getRootNode() as ShadowRoot).host?.tagName !== rootElement.toUpperCase()
+    ) {
       throw new GemError(`not allow current root type`);
     }
   };
@@ -405,10 +409,10 @@ export abstract class GemElement<T = Record<string, unknown>> extends HTMLElemen
   /**
    * @private
    * @final
-   * use `mounted`
+   * use `mounted`; 允许手动调用 `connectedCallback` 以清除装饰器定义的字段
    */
   connectedCallback() {
-    if (this.#isAsync) {
+    if (this.isConnected && this.#isAsync) {
       asyncRenderTaskList.add(this.#connectedCallback);
     } else {
       this.#connectedCallback();

@@ -160,7 +160,9 @@ customElements.whenDefined('gem-book').then(() => {
       const vString = icon
         ? icon.join('.')
         : key.startsWith('@') || this.#isFunction(value)
-          ? String(value)
+          ? String(value).includes('customElements.get')
+            ? key.replace(/@(\w)/, (_, c) => 'on' + c.toUpperCase())
+            : String(value)
           : this.#jsonStringify(value);
       const kString = key.startsWith('@') ? key : `.${key}`;
       const hasMultipleLine = vString.includes('\n');

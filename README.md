@@ -23,6 +23,18 @@ Create custom elements, bind data, route switching, and quickly develop WebApps 
 - [Guide](https://gemjs.org/guide/)
 - [API](https://gemjs.org/api/)
 
+## Project Packages
+
+| Package                                        | Description                                                      |
+| ---------------------------------------------- | ---------------------------------------------------------------- |
+| [packages/gem](packages/gem)                   | Gem core                                                         |
+| [packages/gem-devtools](packages/gem-devtools) | Browser debugging tool for Gem                                   |
+| [packages/gem-analyzer](packages/gem-analyzer) | Gem element analyzer, which can automatically generate documents |
+| [packages/gem-book](packages/gem-book)         | Documentation site builder created using Gem                     |
+| [packages/duoyun-ui](packages/duoyun-ui)       | UI library created using Gem                                     |
+| [packages/gem-port](packages/gem-port)         | Export Gem elements as React/Vue/Svelte components               |
+| [packages/gem-examples](packages/gem-examples) | Gem and DuoyunUI examples                                        |
+
 ## Contribution
 
 Fork repo, submit PR

@@ -2,7 +2,7 @@
 
 When developing a mobile WebApp, gestures are a common way of interaction, but the web does not support gesture events, you may need to use a third-party library (for example: [Hammer.js](https://hammerjs.github.io/)) To support gesture operations, Gem built-in `<gem-gesture>` to complete simple gesture support.
 
-## PointerEvent
+## `PointerEvent`
 
 A long time ago, the Web only supported [MouseEvent](https://developer.mozilla.org/en-US/docs/Web/API/MouseEvent). With the advent of the mobile era, the Web added [TouchEvent](https://developer.mozilla.org/en-US/docs/Web/API/TouchEvent), now, in addition to the mouse and touch screen, there may be other pointing devices, such as a stylus. For this reason, the Web introduced [PointerEvent](https://developer.mozilla.org/en-US/docs/Web/API/PointerEvent), which provides a set of common events for various pointing devices. In order to facilitate migration, `PointerEvent` is similar to `MouseEvent` and provides events such as `pointerdown`, `pointerup`, `pointermove` and so on.
 

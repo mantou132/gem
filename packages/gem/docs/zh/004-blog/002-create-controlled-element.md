@@ -1,7 +1,5 @@
 # 创建受控元素
 
-> 推荐使用 TypeScript 来编写，本文的示例也使用 TypeScript
-
 在 React 中，表单元素默认是[受控](https://reactjs.org/docs/forms.html#controlled-components)的，需要使用组件传递数据给表单元素以修改表单元素的值，这有许多的好处：
 
 - 单一数据来源

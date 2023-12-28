@@ -293,7 +293,7 @@ export class DuoyunAreaChartElement extends DuoyunChartBaseElement {
         this.#paths = this.#genPath(this.#sequences);
         this.#areas = this.#genPath(this.#sequences, true);
       },
-      () => [this.#sequences, this.#smooth, this.contentRect.width],
+      () => [this.#sequences, this.#smooth, this.contentRect.width, this.aspectRatio],
     );
   };
 

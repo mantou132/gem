@@ -8,15 +8,17 @@ Sharing data between elements (also called "components") is a basic capability o
 // Omit import...
 
 // create store
-const store = createStore({ a: 1 });
+const [store, update] = useStore({ a: 1 });
 
 // connect store
-connect(store, function () {
+const disconnect = connect(store, function () {
   // Execute when store is updated
 });
 
-// pulish update
-updateStore(store, { a: 2 });
+// publish update
+update({ a: 2 });
+
+disconnect();
 ```
 
 As mentioned in the previous section, use `static observedStores`/`@connectStore` to connect to `Store`, in fact, their role is only to register the `update` method of the`GemElement` instance, therefore, when the `Store` is updated, the instance of the `GemElement` connected to the `Store` will call `update` to achieve automatic update.
@@ -28,10 +30,10 @@ You may have noticed that every time the `Store` is updated, the Gem element con
 ```js
 // Omit import...
 
-const posts = createStore({ ... });
-const users = createStore({ ... });
-const photos = createStore({ ... });
-const profiles = createStore({ ... });
+const [posts] = useStore({ ... });
+const [users] = useStore({ ... });
+const [photos] = useStore({ ... });
+const [profiles] = useStore({ ... });
 
 // ...
 ```
@@ -48,10 +50,10 @@ If this logic needs to be shared among many elements, you can use `Store` to eas
 
 const isSavingMode = () => document.visibilityState !== 'visible';
 
-const store = createStore({ savingMode: isSavingMode() });
+const [store, update] = useStore({ savingMode: isSavingMode() });
 
 document.addEventListener('visibilitychange', () => {
-  updateStore({ savingMode: isSavingMode() });
+  update({ savingMode: isSavingMode() });
 });
 
 @customElement('my-element')

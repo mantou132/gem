@@ -2,42 +2,37 @@
 
 ## Example
 
-<gbp-example name="dy-toast" src="https://esm.sh/duoyun-ui/elements/toast">
+<gbp-example name="dy-button" src="https://esm.sh/duoyun-ui/elements/toast,https://esm.sh/duoyun-ui/elements/button">
 
 ```json
-{
-  "style": "width: 100%; position: relative; top: 0; z-index: auto;",
-  "items": [
-    {
-      "type": "success",
-      "content": "This is success"
-    },
-    {
-      "type": "warning",
-      "content": "This is warning"
-    },
-    {
-      "type": "error",
-      "content": "This is error"
-    }
-  ]
-}
+[
+  {
+    "innerHTML": "Success",
+    "color": "positive",
+    "@click": "()=>customElements.get('dy-toast').open('success', '这是一条消息')"
+  },
+  {
+    "innerHTML": "Warning",
+    "color": "notice",
+    "@click": "()=>customElements.get('dy-toast').open('warning', '这是一条消息')"
+  },
+  {
+    "innerHTML": "Error",
+    "color": "negative",
+    "@click": "()=>customElements.get('dy-toast').open('error', '这是一条消息')"
+  }
+]
 ```
 
 </gbp-example>
 
-<gbp-sandpack dependencies="@mantou/gem, duoyun-ui">
-
 ```ts
-import { render, html } from '@mantou/gem';
 import { Toast } from 'duoyun-ui/elements/toast';
 
-const success = () => Toast.open('success', new Date().toLocaleString());
-
-render(html`<button @click=${success}>打开吐司</button>`, document.getElementById('root'));
+function onClick() {
+  Toast.open('success', '这是一条消息');
+}
 ```
-
-</gbp-sandpack>
 
 ## API
 

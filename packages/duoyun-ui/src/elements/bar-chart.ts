@@ -99,7 +99,7 @@ export class DuoyunBarChartElement extends DuoyunChartBaseElement {
         this.initYAxi(yMin, yMax);
         this.initViewBox();
       },
-      () => [this.sequences, this.contentRect.width],
+      () => [this.sequences, this.contentRect.width, this.aspectRatio],
     );
   };
 

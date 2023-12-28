@@ -6,38 +6,35 @@ Before learning Gem, Hope you have a certain understanding of [WebComponents](ht
 
 ## Installation
 
-use NPM:
+<gbp-code-group>
 
-```bash
+```bash npm
 npm install @mantou/gem
 ```
 
-or use ESM:
-
-```js
+```js esm.sh
 import * as Gem from 'https://esm.sh/@mantou/gem';
 ```
 
-or use UNPKG:
-
-```html
+```html unpkg.com
 <script src="https://unpkg.com/@mantou/gem/dist/gem.umd.js"></script>
 ```
+
+</gbp-code-group>
 
 ## Start
 
 <gbp-sandpack dependencies="@mantou/gem">
 
 ```js index.js
-import { GemElement, html } from '@mantou/gem';
+import { GemElement, html, customElement } from '@mantou/gem';
 
+@customElement('my-element')
 class MyElement extends GemElement {
   render() {
     return html`hello world`;
   }
 }
-
-customElements.define('my-element', MyElement);
 ```
 
 ```html index.html

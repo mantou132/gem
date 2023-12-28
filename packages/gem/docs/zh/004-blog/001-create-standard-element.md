@@ -1,10 +1,8 @@
 # 创建标准可靠的自定义元素
 
-> 推荐使用 TypeScript 来编写，本文的示例也使用 TypeScript
-
 创建的自定义元素可以用在任何框架中，可以使用多种方法创建，当你要公开自己的自定义元素时，需要精心设计。
 
-### 元素名称
+## 元素名称
 
 创建自定义元素首先要考虑的是定义一个合适的元素名称，因为整个文档中不允许有重复的元素名称。所以你应该在你的项目中定义一种明确的命名方式：
 
@@ -27,7 +25,7 @@ new PortalPageUserElement();
 new PortalModuleProfileElement();
 ```
 
-### Attribute or Property
+## Attribute or Property
 
 使用 Gem 创建自定义元素时，可以定义 Attribute 和 Property，他们都能传递数据给元素，并且都能让他们具备“观察性”，即改变他们的值时会触发元素更新。但是 Attribute 是可以用 Markup 表示的，机器可读，在浏览器 DevTools 也可以直接编辑，并且 Attribute 都有默认值，在元素内部使用时非常方便，所以如果能用 Attribute 表示的数据时尽量使用 Attribute，Attribute 不支持的数据类型才使用 Property。
 
@@ -72,7 +70,7 @@ class PortalModuleProfileElement extends GemElement {
 > }
 > ```
 
-### Public or Private
+## Public or Private
 
 使用 TypeScript 编写 Gem 元素时，其字段和方法默认都是 `public` 的，你固然可以使用 `private` 修饰符来标记为私有，但是在 JavaScript 中看来他们还是公开的，可以在元素外部访问，为了防止用户意外使用这些字段和方法，应该使用 JavaScript 中的[私有字段](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Classes/Private_class_fields)：
 
@@ -88,7 +86,7 @@ class MyElement extends GemElement {
 
 使用私有字段的另一个好处是不会和 `GemElement`/`HTMLelement` 属性或者方法重名，这对开发复杂元素时有很高的收益。
 
-### `addEventListener` or `onclick`
+## `addEventListener` or `onclick`
 
 在元素内部添加原生 DOM 事件监听器时可以使用事件处理器属性：
 
@@ -115,7 +113,7 @@ class MyElement extends GemElement {
 }
 ```
 
-### 处理元素错误
+## 处理元素错误
 
 当元素内发生错误时，应该以事件当方式传播该错误，以便外部使用事件监听器处理错误：
 
@@ -134,7 +132,7 @@ class MyElement extends GemElement {
 }
 ```
 
-### 性能
+## 性能
 
 使用 Gem 编写自定义元素时默认使用 ShadowDOM，它有隔离 CSS 的优异特性
 
@@ -177,7 +175,7 @@ class MyElement extends GemElement {
 }
 ```
 
-### 样式
+## 样式
 
 假设在其他地方使用上面定义的`<my-element>`元素，出于某种原因添加 `hidden` 属性希望暂时隐藏它：
 
@@ -199,7 +197,7 @@ html`<my-element hidden>My content</my-element>`;
 > [!WARNING]
 > Chrome 中 `:host` 不能使用 CSS 嵌套, [Bug](https://bugs.chromium.org/p/chromium/issues/detail?id=1442408)
 
-### 可访问性
+## 可访问性
 
 在用户使用自定义元素时，他们可以用 `role`,`aria-*` 属性指定元素的语义:
 

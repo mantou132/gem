@@ -36,4 +36,4 @@ render(
 
 </gbp-sandpack>
 
-_`<gem-use>` since the content is copied for rendering, the update of `<svg>` cannot update the original `<gem-use>` instance_
+> [!NOTE] `<gem-use>` since the content is copied for rendering, the update of `<svg>` cannot update the original `<gem-use>` instance

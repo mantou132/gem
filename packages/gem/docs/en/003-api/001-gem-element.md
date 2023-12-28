@@ -36,7 +36,7 @@ class GemElement<State> extends HTMLElement {
 
 [1]: https://developer.mozilla.org/en-US/docs/Web/API/DocumentOrShadowRoot/adoptedStyleSheets
 
-_Please use [decorator](./007-decorator.md) in TypeScript_
+_Use the [decorator](./007-decorator.md) to instead_
 
 ## Lifecycle hook
 

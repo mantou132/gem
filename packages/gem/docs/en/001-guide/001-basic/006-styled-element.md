@@ -8,27 +8,14 @@ Since styles cannot penetrate ShadowDOM, global style sheets cannot be used to i
 
 ```js 11
 import { GemElement } from '@mantou/gem';
-import { createCSSSheet, css } from '@mantou/gem';
+import { adoptedStyle, customElement } from '@mantou/gem';
 
-// Create a style sheet using Constructable Stylesheet
-const styles = createCSSSheet(css`
+// 使用 Constructable Stylesheet 创建样式表
+const styles = createCSSSheet(`
   h1 {
     text-decoration: underline;
   }
 `);
-class MyElement extends GemElement {
-  static adoptedStyleSheets = [styles];
-}
-customElements.define('my-element', MyElement);
-```
-
-Just like connecting to the Store, there is a similar Typescript decorator available: `@adoptedStyle`.
-
-```ts 6
-import { GemElement } from '@mantou/gem';
-import { adoptedStyle, customElement } from '@mantou/gem';
-
-// Omit the styles definition...
 
 @adoptedStyle(styles)
 @customElement('my-element')
@@ -39,12 +26,11 @@ class MyElement extends GemElement {}
 
 You can reference CSS selectors in JS:
 
-```ts 18
+```js 17
 import { GemElement, html } from '@mantou/gem';
 import { createCSSSheet, styled, adoptedStyle, customElement } from '@mantou/gem';
 
 const styles = createCSSSheet({
-  // This is temporarily designed as `styled.class` in order to be compatible with the syntax highlighting of `styled-component`
   header: styled.class`
     text-decoration: underline;
     &:hover {
@@ -66,7 +52,7 @@ class MyElement extends GemElement {
 
 Use [`::part`](https://drafts.csswg.org/css-shadow-parts-1/#part) to export the internal content of the element, allowing external custom styles:
 
-```ts 13
+```js 13
 /**
  * The following code has the same effect as `<div part="header"></div>`,
  * But Gem recommends using decorators to define parts, so that IDE integration can be done well in the future
@@ -76,22 +62,22 @@ Use [`::part`](https://drafts.csswg.org/css-shadow-parts-1/#part) to export the 
 
 @customElement('my-element')
 class MyElement extends GemElement {
-  @part header: string;
+  @part static header;
 
   render() {
-    return html`<div part=${this.header}></div>`;
+    return html`<div part=${MyElement.header}></div>`;
   }
 }
 ```
 
 Also use [`ElementInternals.states`](https://developer.mozilla.org/en-US/docs/Web/API/ElementInternals/states) to export element internal state, external styling this element for current state:
 
-```ts
+```js
 // Omit import...
 
 @customElement('my-element')
 class MyElement extends GemElement {
-  @state opened: boolean;
+  @state opened;
 
   open() {
     // Can be selected by the selector `:state(opened)`
@@ -101,7 +87,8 @@ class MyElement extends GemElement {
 }
 ```
 
-_Note the difference with `state`/`setState`._
+> [!NOTE]
+> Note the difference with `state`/`setState`
 
 > [!TIP]
 > Can also customize element styles using hack, for example:

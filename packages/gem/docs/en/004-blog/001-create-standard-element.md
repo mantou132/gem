@@ -1,10 +1,8 @@
 # Create standard and reliable custom elements
 
-> It is recommended to use TypeScript to write, the examples in this article also use TypeScript
-
 The custom elements created can be used in any framework and can be created in a variety of ways. When you want to expose your custom elements, you need to design carefully.
 
-### Element name
+## Element name
 
 The first thing to consider when creating a custom element is to define a suitable element name, because duplicate element names are not allowed in the entire document. So you should define a clear naming method in your project:
 
@@ -27,7 +25,7 @@ new PortalPageUserElement();
 new PortalModuleProfileElement();
 ```
 
-### Attribute or Property
+## Attribute or Property
 
 When using Gem to create a custom element, you can define Attribute and Property. Both of them can pass data to the element, and both can make them "observable", that is, when their values are changed, they will trigger element updates. But Attribute can be expressed by Markup, machine readable, and can be directly edited in the browser DevTools, and Attribute has default values, which is very convenient when used inside the element, so if you can use the data represented by Attribute, try to use Attribute. Property is only used for data types not supported by Attribute.
 
@@ -72,7 +70,7 @@ class PortalModuleProfileElement extends GemElement {
 > }
 > ```
 
-### Public or Private
+## Public or Private
 
 When using TypeScript to write Gem elements, their fields and methods are all `public` by default. Although you can use the `private` modifier to mark them as private, they are still public in JavaScript and can be accessed outside the element. In order to prevent users from accidentally using these fields and methods, you should use [Private Fields](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Classes/Private_class_fields) in JavaScript:
 
@@ -88,7 +86,7 @@ class MyElement extends GemElement {
 
 Another advantage of using private fields is that they won't have the same name as `GemElement`/`HTMLelement` attributes or methods, which has high benefits when developing complex elements.
 
-### `addEventListener` or `onclick`
+## `addEventListener` or `onclick`
 
 You can use event handler property when adding native DOM event listeners inside elements:
 
@@ -115,7 +113,7 @@ class MyElement extends GemElement {
 }
 ```
 
-### Handling element errors
+## Handling element errors
 
 When an error occurs in an element, the error should be propagated in an event mode, so that the external event listener can be used to handle the error:
 
@@ -134,7 +132,7 @@ class MyElement extends GemElement {
 }
 ```
 
-### Performance
+## Performance
 
 When using Gem to write custom elements, ShadowDOM is used by default, which has the excellent feature of isolating CSS:
 
@@ -177,7 +175,7 @@ class MyElement extends GemElement {
 }
 ```
 
-### Styling
+## Styling
 
 Suppose you use the `<my-element>` element defined above somewhere else, and for some reason add the `hidden` attribute in the hope of temporarily hiding it:
 
@@ -199,7 +197,7 @@ In addition, use [`@layer`](https://developer.mozilla.org/en-US/docs/Web/CSS/@la
 > [!WARNING]
 > Chrome 中 `:host` 不能使用 CSS 嵌套, [Bug](https://bugs.chromium.org/p/chromium/issues/detail?id=1442408)
 
-### Accessibility
+## Accessibility
 
 When users use custom elements, they can use the `role`,`aria-*` attributes to specify the semantics of the element:
 

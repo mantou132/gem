@@ -8,12 +8,10 @@
 import { render, html } from '@mantou/gem';
 import { setTours } from 'duoyun-ui/elements/coach-mark';
 
+import 'duoyun-ui/elements/side-navigation';
+
 setTours(
   [
-    {
-      title: 'starterTitle',
-      description: 'starterDesc',
-    },
     {
       preview: 'https://picsum.photos/400/300',
       title: 'starterAnalyticsTitle',
@@ -26,34 +24,28 @@ setTours(
     },
   ],
   {
-    currentIndex: 1,
+    currentIndex: 0,
   },
 );
 
+const items = [
+  {
+    pattern: '/',
+    title: 'Nav 1',
+    slot: html`<dy-coach-mark index="0"></dy-coach-mark>`,
+  },
+  {
+    pattern: '/test',
+    title: 'Nav 2',
+    slot: html`<dy-coach-mark index="1"></dy-coach-mark>`,
+  },
+  {
+    title: 'Nav 3',
+  },
+];
+
 render(
-  html`
-    <style>
-      .container {
-        position: relative;
-        width: 100px;
-        line-height: 2;
-        margin: 1em;
-        background: #eee;
-      }
-    </style>
-    <div class="container">
-      <dy-coach-mark index="0"></dy-coach-mark>
-      Tour1
-    </div>
-    <div class="container">
-      <dy-coach-mark index="1"></dy-coach-mark>
-      Tour2
-    </div>
-    <div class="container">
-      <dy-coach-mark index="2"></dy-coach-mark>
-      Tour3
-    </div>
-  `,
+  html`<dy-side-navigation style="width: 50%" .items=${items}></dy-side-navigation>`,
   document.getElementById('root'),
 );
 ```

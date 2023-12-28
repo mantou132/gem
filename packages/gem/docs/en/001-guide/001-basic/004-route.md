@@ -19,31 +19,31 @@ Gem built-in elements `<gem-route>` and `<gem-link>` work like this.
 <gbp-sandpack dependencies="@mantou/gem">
 
 ```js index.js
-import { GemElement, html } from '@mantou/gem';
+import { GemElement, html, customElement } from '@mantou/gem';
 import '@mantou/gem/elements/link';
 import '@mantou/gem/elements/route';
 
 const routes = {
   home: {
     pattern: '/',
-    getContent() {
-      return html`home page`;
-    },
+    content: html`home page`,
   },
-  a: {
-    pattern: '/a/:b',
-    getContent() {
-      return html`about page`;
+  page: {
+    pattern: '/page/:b',
+    async getContent(params) {
+      await new Promise((res) => setTimeout(res, 1000));
+      return html`about page: params ${params.b}`;
     },
   },
 };
 
+@customElement('app-root')
 class App extends GemElement {
   render() {
     return html`
       <nav style="display: flex; gap: 1em">
-        <gem-link path="/">Home</gem-link>
-        <gem-link path="/a/1">About</gem-link>
+        <gem-link .route=${routes.home}>Home</gem-link>
+        <gem-link .route=${routes.page} .routeOptions=${{ params: { b: '1' } }}>About</gem-link>
       </nav>
       <main>
         <gem-route .routes=${routes}></gem-route>
@@ -51,7 +51,6 @@ class App extends GemElement {
     `;
   }
 }
-customElements.define('app-root', App);
 ```
 
 </gbp-sandpack>

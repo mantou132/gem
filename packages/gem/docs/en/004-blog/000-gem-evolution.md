@@ -145,7 +145,7 @@ class MyElement extends GemElement {
 }
 ```
 
-## Implement other common requirements in web development
+## Implement other requirements
 
 - [Built-in custom elements](../003-api/005-built-in-element.md): Gem built-in `<gem-route>`, `<gem-link>`, `<gem-title> `, `<gem-use>`, `<gem-unsafe>` and `<gem-reflect>`
 - Internationalization support

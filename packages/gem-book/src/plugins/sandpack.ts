@@ -92,7 +92,7 @@ customElements.whenDefined('gem-book').then(() => {
     }
     ::slotted(*) {
       display: none;
-      max-height: 60vh;
+      max-height: 70vh;
       grid-area: code;
       background: rgba(${theme.textColorRGB}, 0.03);
       margin: 0 !important;
@@ -132,6 +132,9 @@ customElements.whenDefined('gem-book').then(() => {
       .actions {
         display: none;
       }
+      ::slotted(*) {
+        max-height: 60vh;
+      }
     }
   `);
 
@@ -161,7 +164,7 @@ customElements.whenDefined('gem-book').then(() => {
     -webkit-font-smoothing: antialiased;
   }
   app-root:not(:defined) {
-    display: block;
+    display: contents;
   }
 </style>
 <app-root id=root></app-root>

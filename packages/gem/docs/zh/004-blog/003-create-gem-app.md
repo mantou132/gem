@@ -1,4 +1,4 @@
-# 使用 `create-gem-app` 搭建前端项目
+# 使用 CGA 搭建前端项目
 
 [`create-gem-app`](https://github.com/mantou132/create-gem-app) 是一个命令行工具，可以快速基于模版仓库搭建你的前端项目：
 
@@ -7,7 +7,7 @@ npx create-gem-app my-app
 code my-app
 ```
 
-### 目录结构
+## 目录结构
 
 ```
 src
@@ -22,7 +22,7 @@ src
 └── logo.svg
 ```
 
-### 使用绝对路径导入依赖
+## 使用绝对路径导入依赖
 
 利用 [`tsconfig-paths-webpack-plugin`](https://github.com/dividab/tsconfig-paths-webpack-plugin) 让你能在模块中使用绝对路径导入依赖：
 
@@ -34,11 +34,11 @@ import routes from 'src/routes';
 
 使用绝对路径能让你更加清楚依赖的内容。
 
-### PWA 支持
+## PWA 支持
 
 项目使用 [`workbox-webpack-plugin`](https://github.com/GoogleChrome/workbox) 和 [`webpack-pwa-manifest`](https://github.com/arthurbergmz/webpack-pwa-manifest) 添加了 PWA 的支持，可以在 `webpack.config.json` 中根据你的项目自定义细节。
 
-### Mock API
+## Mock API
 
 项目自带 Mock API 的功能，使用下面的命令启用 Mock 功能：
 
@@ -74,7 +74,7 @@ const proxy = {
 };
 ```
 
-### 其他模版
+## 其他模版
 
 `create-gem-app` 默认使用 [`gem-boilerplate`](https://github.com/mantou132/gem-boilerplate) 作为模版，实际上，它还支持其他使用 Gem 的模版：
 

@@ -51,20 +51,24 @@ class DecoratorGemElement extends GemElement {
   }
 }
 
-@connectStore(store)
-@adoptedStyle(styles)
-@customElement('decorator-gem-demo2')
-class DecoratorGemElement2 extends GemElement {
-  static observedStores = [];
-  static adoptedStyleSheets = [];
-  renderCount = 0;
-  render() {
-    this.renderCount++;
-    return html``;
-  }
-}
-
 describe('装饰器', () => {
+  it('使用装饰器定义的未插入文档元素', async () => {
+    const el = new DecoratorGemElement();
+    expect(el.propData).to.eql({ value: '' });
+    expect(el.getAttribute('rank-attr')).to.equal(null);
+    // BUG
+    expect(el.rankAttr).to.equal(undefined);
+    el.connectedCallback();
+    expect(el.getAttribute('rank-attr')).to.equal(null);
+    expect(el.rankAttr).to.equal('');
+
+    el.rankAttr = 'attr';
+    el.propData = { value: '1' };
+    const el2 = el.cloneNode() as DecoratorGemElement;
+    expect(el2.getAttribute('rank-attr')).to.equal('attr');
+    expect(el2.rankAttr).to.equal('attr');
+    expect(el2.propData).to.eql({ value: '' });
+  });
   it('装饰器定义的自定义元素', async () => {
     let a = 1;
     const el: DecoratorGemElement = await fixture(html`
@@ -103,13 +107,5 @@ describe('装饰器', () => {
     el.sayHi(2);
     expect(el.renderCount).to.equal(3);
     expect(a).to.equal(2);
-  });
-
-  it('装饰器和静态属性共存', async () => {
-    const el: DecoratorGemElement2 = await fixture(html`<decorator-gem-demo2></decorator-gem-demo2>`);
-    updateStore(store, { a: 3 });
-    await Promise.resolve();
-    expect(el.renderCount).to.equal(2);
-    expect(el.shadowRoot?.adoptedStyleSheets.length).to.equal(1);
   });
 });

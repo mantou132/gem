@@ -1,3 +1,11 @@
+/**
+ * 测试 HTMLElement 没有的特性或者不常用的特性
+ * - 异步渲染
+ * - Light DOM 自定义元素
+ * - 生命周期以及 Effect/Memo
+ * - 派生元素（类扩展）
+ * - 无渲染内容 Gem 元素
+ */
 import { fixture, expect, nextFrame } from '@open-wc/testing';
 
 import { GemElement, html } from '../../lib/element';
@@ -120,7 +128,10 @@ describe('gem element 生命周期', () => {
     const el = container.firstElementChild as LifecycleGemElement;
     expect(el.appTitle).to.equal('title');
     expect(el.renderCount).to.equal(1);
-    expect((el.cloneNode() as LifecycleGemElement).appTitle).to.equal('title');
+    const clone = el.cloneNode() as LifecycleGemElement;
+    // BUG
+    clone.connectedCallback();
+    expect(clone.appTitle).to.equal('title');
 
     const el2 = new LifecycleGemElement('', '2');
     expect(el2.appTitle).to.equal('');

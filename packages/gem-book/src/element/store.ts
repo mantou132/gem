@@ -25,6 +25,7 @@ interface CurrentBookConfig {
   langList: { code: string; name: string }[];
   languagechangeHandle: (_: string) => void;
   currentSidebar: NavItemWithLink[];
+  // 当没有提供 readme 或者 index 时，homePage 是第一个有效页面
   homePage: string;
   currentLinks: NavItemWithLink[];
   getCurrentLink: () => NavItemWithLink;

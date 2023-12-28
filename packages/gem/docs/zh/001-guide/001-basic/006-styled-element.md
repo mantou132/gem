@@ -13,27 +13,14 @@
 
 ```js 11
 import { GemElement } from '@mantou/gem';
-import { createCSSSheet, css } from '@mantou/gem';
+import { adoptedStyle, customElement } from '@mantou/gem';
 
 // 使用 Constructable Stylesheet 创建样式表
-const styles = createCSSSheet(css`
+const styles = createCSSSheet(`
   h1 {
     text-decoration: underline;
   }
 `);
-class MyElement extends GemElement {
-  static adoptedStyleSheets = [styles];
-}
-customElements.define('my-element', MyElement);
-```
-
-像连接 `Store` 一样，也有一个类似的 Typescript 装饰器可用：`@adoptedStyle`。
-
-```ts 6
-import { GemElement } from '@mantou/gem';
-import { adoptedStyle, customElement } from '@mantou/gem';
-
-// Omit the styles definition...
 
 @adoptedStyle(styles)
 @customElement('my-element')
@@ -44,12 +31,11 @@ class MyElement extends GemElement {}
 
 可以在 JS 中引用 CSS 选择器：
 
-```js 18
+```js 17
 import { GemElement, html } from '@mantou/gem';
 import { createCSSSheet, styled, adoptedStyle, customElement } from '@mantou/gem';
 
 const styles = createCSSSheet({
-  // This is temporarily designed as `styled.class` in order to be compatible with the syntax highlighting of `styled-component`
   header: styled.class`
     text-decoration: underline;
     &:hover {
@@ -71,7 +57,7 @@ class MyElement extends GemElement {
 
 可以使用 [`::part`](https://drafts.csswg.org/css-shadow-parts-1/#part) 导出元素内部内容，允许外部进行自定义样式：
 
-```ts 13
+```js 13
 /**
  * 下面的代码跟 `<div part="header"></div>` 效果一样，
  * 但是 Gem 推荐使用装饰器来定义 part，这样在将来能很好的进行 IDE 集成
@@ -81,22 +67,22 @@ class MyElement extends GemElement {
 
 @customElement('my-element')
 class MyElement extends GemElement {
-  @part header: string;
+  @part static header;
 
   render() {
-    return html`<div part=${this.header}></div>`;
+    return html`<div part=${MyElement.header}></div>`;
   }
 }
 ```
 
 还可以使用 [`ElementInternals.states`](https://developer.mozilla.org/en-US/docs/Web/API/ElementInternals/states) 导出元素内部状态，供外部对当前状态的元素样式化:
 
-```ts
+```js
 // 省略导入...
 
 @customElement('my-element')
 class MyElement extends GemElement {
-  @state opened: boolean;
+  @state opened;
 
   open() {
     // 可被选择器 `:state(opened)` 选中
@@ -119,7 +105,8 @@ class MyElement extends GemElement {
 > ];
 > ```
 
-_注意跟 `state`/`setState` 的区别。_
+> [!NOTE]
+> 注意跟 `state`/`setState` 的区别
 
 ## 自定义元素外部样式
 

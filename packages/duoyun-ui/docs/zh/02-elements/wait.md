@@ -2,10 +2,23 @@
 
 ## Example
 
+<gbp-example name="dy-button" src="https://esm.sh/duoyun-ui/elements/wait,https://esm.sh/duoyun-ui/elements/button">
+
+```json
+{
+  "@click": "()=>customElements.get('dy-wait').wait(new Promise(res => setTimeout(res, 1500)))",
+  "innerHTML": "点击"
+}
+```
+
+</gbp-example>
+
 ```ts
 import { waitLoading } from '@duoyun-fe/duoyun-ui/elements/wait';
 
-waitLoading(fetch('/'));
+function onClick() {
+  waitLoading(new Promise((res) => setTimeout(res, 1500)));
+}
 ```
 
 ## API

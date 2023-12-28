@@ -1,17 +1,17 @@
 # GemElement more
 
-Features other than attr/prop/store/state.
+Features other than Attribute/Property/Store/State.
 
 ## Reference DOM
 
 If you want to manipulate the DOM content within an element, such as reading the value of `<input>`, you can use `querySelector` to get the element you want, in order to get the type support of TypeScript, GemElement provides a way to complete this work:
 
-```ts
+```js
 // Omit import...
 
 @customElement('my-element')
 class MyElement extends GemElement {
-  @refobject inputRef: RefObject<HTMLInputElement>;
+  @refobject inputRef;
 
   render() {
     return html`<input ref=${this.inputRef.ref} />`;
@@ -27,12 +27,12 @@ class MyElement extends GemElement {
 
 Custom event is a method of transferring data. It can be easily done by using `dispatch(new CustomEvent('event'))`. Also in order to obtain TypeScript type support, GemElement allows you to quickly define methods to emit custom events:
 
-```ts
+```js
 // Omit import...
 
 @customElement('my-element')
 class MyElement extends GemElement {
-  @emitter valueChange: Emitter<string>;
+  @emitter valueChange;
 
   render() {
     return html`<input @change=${(e) => this.valueChange(e.target.value)} />`;
@@ -42,7 +42,7 @@ class MyElement extends GemElement {
 
 Add custom event handler:
 
-```ts
+```js
 html`<my-element @value-change=${console.log}></my-element>`;
 ```
 
@@ -50,12 +50,12 @@ html`<my-element @value-change=${console.log}></my-element>`;
 
 In many cases, elements need to perform some side effects based on certain attributes, such as network requests, and finally update the document. This is where `GemElement.effect` comes in handy. It can check dependencies every time the element is `updated` and execute a callback if the dependencies change.
 
-```ts
+```js
 // Omit import...
 
 @customElement('my-element')
 class MyElement extends GemElement {
-  @attribute src: string;
+  @attribute src;
 
   mounted() {
     this.effect(
@@ -75,14 +75,14 @@ Below is an example of `effect` that depends on child elements([Other implementa
 In order to avoid performing some complex calculations when re-render, `memo` can execution of the callback when specified dependencies change, unlike the`effect`, `memo` execution before the `render`,
 so you should register in the `constructor` or `willMount`:
 
-```ts
+```js
 // Omit import...
 
 @customElement('my-element')
 class MyElement extends GemElement {
-  @attribute src: string;
+  @attribute src;
 
-  #href: string;
+  #href;
 
   willMount() {
     this.memo(

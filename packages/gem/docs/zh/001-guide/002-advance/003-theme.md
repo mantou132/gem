@@ -8,7 +8,7 @@
 
 ## 开始
 
-```ts
+```js
 import { createTheme } from '@mantou/gem/helper/theme';
 
 const theme = createTheme({
@@ -33,14 +33,14 @@ class App extends GemElement {
 
 从上面的用法可以看出，一旦一个对象被创建成主题，从主题中读取的字段即为 CSS 变量：
 
-```ts
+```js
 console.log(theme.primaryColor);
 // => var(--primary-color-xxxxx)
 ```
 
 有时候可能需要读取原始对象，比如将主题打印到元素中：
 
-```ts 7,10,19
+```js 7,10,19
 import { createTheme, getThemeStore } from '@mantou/gem/helper/theme';
 
 const theme = createTheme({
@@ -69,10 +69,10 @@ class App extends GemElement {
 
 如果想要支持暗模式，你可以利用 [`matchMedia`](https://developer.mozilla.org/en-US/docs/Web/API/Window/matchMedia) 进行媒体查询，然后使用不同的主题，例如：
 
-```ts 11
+```js 11
 import { createTheme } from '@mantou/gem/helper/theme';
 
-const ligthTheme = {
+const lightTheme = {
   primaryColor: '#333',
 };
 

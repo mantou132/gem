@@ -10,36 +10,37 @@
 ```js
 // 省略导入...
 
+@customElement('my-element')
 class MyElement extends GemElement {
-  static observedAttributes = ['first-name'];
+  @attribute firstName;
   render() {
     return html`${this.firstName}`;
   }
 }
-customElements.define('my-element', MyElement);
 ```
 
-`first-name` 属性经过“Observe”，他就能直接通过元素属性进行访问，
-且会自动进行驼峰和烤串格式的转换，
-当 `first-name` 属性更改时，`MyElement` 的实例元素将重新渲染。
+上述例子中 `MyElement` 的字段 `firstName` 被声明成反应性属性，
+当属性更改时，`MyElement` 的已经挂载实例将重新渲染，
+此外，该字段映射到元素的 `first-name` Attribute。
 
-类似 `observedAttributes`，GemElement 还支持 `observedProperties`/`observedStores` 用来反应指定的 property/store：
+类似 `@attribute`，GemElement 还支持 `@property`/`@connectStore` 用来反应指定的 Property/Store：
 
 ```js
 // 省略导入...
 
+@customElement('my-element')
+@connectStore(store)
 class MyElement extends GemElement {
-  static observedProperties = ['data'];
-  static observedStores = [store];
+  @property data;
 
   render() {
     return html`${this.data.id} ${store.name}`;
   }
 }
-customElements.define('my-element', MyElement);
 ```
 
-_不要在元素内修改 prop/attr，他们应该由父元素单向传递进来，就像原生元素一样_
+> [!TIP]
+> 不要在元素内修改 prop/attr，他们应该由父元素单向传递进来，就像原生元素一样
 
 另外 `GemElement` 提供了类似 React 的 `state`/`setState` API 来管理元素自身的状态，
 每当调用 `setState` 时触发元素重新渲染：
@@ -47,6 +48,7 @@ _不要在元素内修改 prop/attr，他们应该由父元素单向传递进来
 ```js
 // 省略导入...
 
+@customElement('my-element')
 class MyElement extends GemElement {
   state = { id: 1 };
   clicked() {
@@ -56,29 +58,29 @@ class MyElement extends GemElement {
     return html`${this.state.id}`;
   }
 }
-customElements.define('my-element', MyElement);
 ```
 
-_`GemElement` 扩展自 [`HTMLElement`](https://developer.mozilla.org/en-US/docs/Web/API/HTMLElement)，不要覆盖 `HTMLElement` 的 attribute/property/method/event，使用[私有字段](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Classes/Private_class_fields)来避免 `GemElement`/`HTMLElement` 的属性方法被覆盖_
+> [!TIP] `GemElement` 扩展自 [`HTMLElement`](https://developer.mozilla.org/en-US/docs/Web/API/HTMLElement)，不要覆盖 `HTMLElement` 的 attribute/property/method/event，使用[私有字段](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Classes/Private_class_fields)来避免 `GemElement`/`HTMLElement` 的属性方法被覆盖
 
 ## 例子
 
 <gbp-sandpack dependencies="@mantou/gem">
 
 ```js index.js
-import { createStore, GemElement, updateStore, render, html } from '@mantou/gem';
+import { useStore, GemElement, render, html, attribute, property, connectStore, customElement } from '@mantou/gem';
 
-const store = createStore({
+const [store, update] = useStore({
   count: 0,
 });
 
+@customElement('my-element')
+@connectStore(store)
 class MyElement extends GemElement {
-  static observedStores = [store];
-  static observedAttributes = ['name'];
-  static observedProperties = ['data'];
+  @attribute name;
+  @property data;
 
   #onClick = () => {
-    updateStore(store, { count: ++store.count });
+    update({ count: ++store.count });
   };
 
   render() {
@@ -89,7 +91,6 @@ class MyElement extends GemElement {
     `;
   }
 }
-customElements.define('my-element', MyElement);
 
 render(html`<my-element name="world" .data=${{ a: 1 }}></my-element>`, document.getElementById('root'));
 ```
@@ -103,12 +104,12 @@ render(html`<my-element name="world" .data=${{ a: 1 }}></my-element>`, document.
 ```js
 // 省略导入...
 
+@customElement('my-element')
 class MyElement extends GemElement {
   mounted() {
     console.log('element mounted!');
   }
 }
-customElements.define('my-element', MyElement);
 ```
 
 完整的生命周期：
@@ -139,25 +140,5 @@ customElements.define('my-element', MyElement);
   +---------------------------------------+
 ```
 
-_父元素的 `constructor` 和 `unmounted` 先于子元素执行，但 `mounted` 后于子元素执行_
-
-## 使用 TypeScript
-
-当使用 TypeScript 时，可以在声明字段的同时使用装饰器进行反应性声明：
-
-```ts
-// 省略导入...
-
-const store = createStore({
-  count: 0,
-});
-
-@customElement('my-element')
-@connectStore(store)
-class MyElement extends GemElement {
-  @attribute name: string;
-  @boolattribute disabled: boolean;
-  @numattribute count: number;
-  @property data: Data | undefined; // property 没有默认值
-}
-```
+> [!NOTE]
+> 父元素的 `constructor` 和 `unmounted` 先于子元素执行，但 `mounted` 后于子元素执行

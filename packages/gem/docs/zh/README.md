@@ -105,6 +105,7 @@ const style = createCSSSheet(css`
     opacity: 0;
   }
   dy-use {
+    width: 1.3em;
     padding: 4px;
   }
   dy-use:hover {
@@ -134,22 +135,22 @@ export class TodoListElement extends GemElement {
 ```
 
 ```ts store.ts
-import { createStore, updateStore } from '@mantou/gem';
+import { useStore } from '@mantou/gem';
 
 type Store = {
   items: string[];
 };
 
-export const todoData = createStore<Store>({
+export const [todoData, update] = useStore<Store>({
   items: [],
 });
 
 export const addItem = (item: string) => {
-  updateStore(todoData, { items: [...todoData.items, item] });
+  update({ items: [...todoData.items, item] });
 };
 
 export const deleteItem = (item: string) => {
-  updateStore(todoData, { items: todoData.items.filter((e) => e !== item) });
+  update({ items: todoData.items.filter((e) => e !== item) });
 };
 ```
 

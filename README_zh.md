@@ -22,12 +22,24 @@
   [这里](https://rawgit.com/krausest/js-framework-benchmark/master/webdriver-ts-results/table.html)是 lit-html 和 React，Vue 的性能比较；
 
 - **异步渲染：**
-  连续渲染（例如创建列表）该类元素时会避免长时间阻塞主线程，提供流畅的用户体验；
+  连续渲染（例如列表项）类元素时会避免长时间阻塞主线程，提供流畅的用户体验；
 
 ## 文档
 
 - [Guide](https://gemjs.org/guide/)
 - [API](https://gemjs.org/api/)
+
+## 项目结构
+
+| 目录                                           | 描述                                    |
+| ---------------------------------------------- | --------------------------------------- |
+| [packages/gem](packages/gem)                   | Gem 核心                                |
+| [packages/gem-devtools](packages/gem-devtools) | Gem 的浏览器调试工具                    |
+| [packages/gem-analyzer](packages/gem-analyzer) | Gem 元素分析器，能自动生成文档          |
+| [packages/gem-book](packages/gem-book)         | 使用 Gem 创建的文档站生成器             |
+| [packages/duoyun-ui](packages/duoyun-ui)       | 使用 Gem 创建的 UI 库                   |
+| [packages/gem-port](packages/gem-port)         | 将 Gem 元素导出为 React/Vue/Svelte 组件 |
+| [packages/gem-examples](packages/gem-examples) | 一些 Gem 和 DuoyunUI 示例               |
 
 ## 贡献
 

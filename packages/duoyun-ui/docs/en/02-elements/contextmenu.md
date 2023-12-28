@@ -2,13 +2,19 @@
 
 ## Example
 
-<gbp-sandpack dependencies="@mantou/gem, duoyun-ui">
+<gbp-example name="dy-button" src="https://esm.sh/duoyun-ui/elements/contextmenu,https://esm.sh/duoyun-ui/elements/button">
+
+```json
+{
+  "@click": "(e)=>{customElements.get('dy-contextmenu').open([{text:'Add',},{text:'Edit',},{text:'---',},{text:'Delete',danger:true,},],{activeElement:e.target});}",
+  "innerHTML": "Open ContextMenu"
+}
+```
+
+</gbp-example>
 
 ```ts
-import { render, html } from '@mantou/gem';
 import { ContextMenu } from 'duoyun-ui/elements/contextmenu';
-
-import 'duoyun-ui/elements/button';
 
 const onClick = (e: MouseEvent) => {
   ContextMenu.open(
@@ -30,11 +36,7 @@ const onClick = (e: MouseEvent) => {
     { activeElement: e.target },
   );
 };
-
-render(html`<dy-button @click=${onClick}>Open ContextMenu</dy-button>`, document.getElementById('root'));
 ```
-
-</gbp-sandpack>
 
 ## API
 
