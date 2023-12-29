@@ -1,2 +1,111 @@
 title: 元素
 isNav: true
+
+groups:
+  - title:
+    members:
+      - README.md
+  - title: 表单元素
+    members:
+      - cascader-picker.md
+      - cascader.md
+      - checkbox.md
+      - color-panel.md
+      - color-picker.md
+      - date-panel.md
+      - date-picker.md
+      - date-range-panel.md
+      - date-range-picker.md
+      - drop-area.md
+      - file-picker.md
+      - form.md
+      - input.md
+      - picker.md
+      - radio.md
+      - rate.md
+      - select.md
+      - shortcut-record.md
+      - slider.md
+      - switch.md
+      - time-panel.md
+      - time-picker.md
+  - title: 动作元素
+    members:
+      - action-text.md
+      - button.md
+      - copy.md
+      - link.md
+      - contextmenu.md
+  - title: 反馈元素
+    members:
+      - alert.md
+      - coach-mark.md
+      - drawer.md
+      - help-text.md
+      - input-capture.md
+      - keyboard-access.md
+      - loading.md
+      - modal.md
+      - page-loadbar.md
+      - placeholder.md
+      - popover.md
+      - progress.md
+      - toast.md
+      - tooltip.md
+      - wait.md
+  - title: 导航元素
+    members:
+      - breadcrumbs.md
+      - pagination.md
+      - side-navigation.md
+  - title: 内容展示元素
+    members:
+      - avatar.md
+      - badge.md
+      - banner.md
+      - calendar.md
+      - card.md
+      - carousel.md
+      - code-block.md
+      - collapse.md
+      - compartment.md
+      - empty.md
+      - heading.md
+      - image-preview.md
+      - list.md
+      - meter.md
+      - more.md
+      - paragraph.md
+      - options.md
+      - result.md
+      - segmented.md
+      - statistic.md
+      - status-light.md
+      - table.md
+      - tabs.md
+      - tag.md
+      - text-mask.md
+      - timeline.md
+      - tree.md
+  - title: 图表元素
+    members:
+      - area-chart.md
+      - bar-chart.md
+      - chart-tooltip.md
+      - chart-zoom.md
+      - donut-chart.md
+      - flow.md
+      - legend.md
+      - line-chart.md
+      - map.md
+      - scatter-chart.md
+  - title: 布局元素
+    members:
+      - divider.md
+      - space.md
+  - title: 基类（可派生）
+    members:
+      - 001-loadable-base.md
+      - 002-resize-base.md
+      - 003-scroll-base.md
+      - 004-visible-base.md

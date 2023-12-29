@@ -6,11 +6,11 @@
 
 ### 代码块信息
 
-语法：
-
-```md
-<语言>? <文件名>? <状态>? <高亮>?
+````md
+```<语言>? <文件名>? <状态>? <高亮>?
+...
 ```
+````
 
 下面是在 `<gbp-sandpack>` [插件](#plugins)中写代码块的例子：
 
@@ -43,8 +43,6 @@ render('这是一个 `<gbp-sandpack>` 例子', document.getElementById('root'));
 
 </gbp-sandpack>
 
-_文件名只工作在 `<gbp-sandpack>` 中；高亮并非指代码语法高亮_
-
 ### 固定标题锚点 Hash {#fixed-hash}
 
 默认会根据标题文本字段生成 hash，但有时你需要固定 hash，比如国际化时。
@@ -65,33 +63,20 @@ _文件名只工作在 `<gbp-sandpack>` 中；高亮并非指代码语法高亮_
 
 支持 `[!NOTE]`, `[!TIP]`, `[!IMPORTANT]`, `[!WARNING]` 和 `[!CAUTION]`。
 
-## Parts
-
-[Part](https://developer.mozilla.org/en-US/docs/Web/HTML/Global_attributes/part) 能让你自定义 `<gem-book>` 的内部样式，例如：
-
-```css
-gem-book::part(homepage-hero) {
-  background: #eee;
-}
-```
-
 ## 插槽
 
-[插槽](https://developer.mozilla.org/en-US/docs/Web/HTML/Global_attributes/slot)能让你自定义 `<gem-book>` 的内容，目前支持的插槽有 `sidebar-before`, `main-before`, `main-after`, `nav-inside`。
+[插槽](https://developer.mozilla.org/en-US/docs/Web/HTML/Global_attributes/slot)能让你自定义 `<gem-book>` 的内容，目前支持的插槽有 `sidebar-before`, `main-before`, `main-after`, `nav-inside`, `logo-after`。
 
-```html
-<gem-book><div slot="sidebar-before">Hello</div></gem-book>
-```
+<gbp-raw src="docs/template.html" range="8--3"></gbp-raw>
 
-_可以使用 `--template` 指定模板文件_
+> [!NOTE]
+> 可以使用 `--template` 指定模板文件
 
 ## 插件 {#plugins}
 
 ### 使用插件
 
-`<gem-book>` 使用自定义元素作为插件系统，他们可以自定义渲染 Markdown 内容或者增强 `<gem-book>` 的能力。下面是内置插件 `<gbp-raw>` 的使用方式。
-
-引入插件：
+`<gem-book>` 使用自定义元素作为插件系统，他们可以自定义渲染 Markdown 内容或者增强 `<gem-book>` 的能力。下面是内置插件 `<gbp-raw>` 的使用方式：
 
 <gbp-code-group>
 
@@ -111,18 +96,10 @@ gem-book docs --plugin raw
 <gbp-raw src="/src/plugins/raw.ts"></gbp-raw>
 ```
 
+在[这里](../003-plugins.md)查看所有内置插件。
+
 > [!TIP]
 > 在 MarkDown 中使用插件时 Attribute 不应该换行，否则会作为内联元素被 `<p>` 标签打断。
-
-有些插件需要配合插槽使用，比如内置插件 `<gbp-comment>`，它使用 [Gitalk](https://github.com/gitalk/gitalk) 为网站带来评论功能：
-
-```html
-<gem-book>
-  <gbp-comment slot="main-after" client-id="xxx" client-secret="xxx"></gbp-comment>
-</gem-book>
-```
-
-> [!NOTE]
 > GemBook 内置插件支持自动导入，缺点是渲染文档后才会加载，有可能页面会闪烁。
 
 ### 开发插件

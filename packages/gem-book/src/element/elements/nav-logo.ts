@@ -28,6 +28,7 @@ export class GemBookNavLogoElement extends GemElement {
           font-size: 1.2rem;
           font-weight: 700;
           display: flex;
+          gap: 0.6rem;
           align-items: center;
           box-sizing: border-box;
           flex-shrink: 0;
@@ -46,7 +47,8 @@ export class GemBookNavLogoElement extends GemElement {
           transform: translateX(-10%);
         }
         @media ${mediaQuery.PHONE} {
-          span {
+          span,
+          ::slotted(*) {
             display: none;
           }
         }
@@ -55,6 +57,7 @@ export class GemBookNavLogoElement extends GemElement {
         ${icon ? html`<img alt=${title} src=${icon} aria-hidden="true" />` : null}
         <span>${title}</span>
       </gem-link>
+      <slot></slot>
     `;
   };
 }

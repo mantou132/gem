@@ -230,10 +230,26 @@ export class Pre extends GemElement {
     });
   }
 
+  #getStartIndex(start: number, arr: any[]) {
+    return start < 0 ? arr.length + start + 1 : start;
+  }
+
+  #getEndIndex(end: number, arr: any[]) {
+    return end < 0 ? arr.length + end + 1 : end || arr.length;
+  }
+
   #getRanges(range: string) {
     const ranges = range.split(/,\s*/);
     return ranges.map((range) => {
-      const [start, end = start] = range.split('-');
+      // 第二位可以省略，第一位不行
+      // 3-4
+      // 2 => 2-2
+      // 2- => 2-max
+      // -2 => (-2)-(-2)
+      // -2- => (-2)-max
+      // 2--2 => 2-(-2)
+      // -3--2 => (-3)-(-2)
+      const [start, end = start] = range.split(/(?<!-|^)-/);
       return [parseInt(start) || 1, parseInt(end) || 0];
     });
   }
@@ -243,7 +259,7 @@ export class Pre extends GemElement {
     const parts = this.range
       ? this.#getRanges(this.range).map(([start, end]) => {
           let result = '';
-          for (let i = start - 1; i < (end || lines.length); i++) {
+          for (let i = this.#getStartIndex(start, lines) - 1; i < this.#getEndIndex(end, lines); i++) {
             result += (lines[i] || '') + '\n';
           }
           return result;

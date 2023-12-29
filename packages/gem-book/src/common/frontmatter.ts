@@ -1,3 +1,21 @@
+export interface FrontMatter {
+  title?: string;
+  isNav?: boolean;
+  navTitle?: string;
+  sidebarIgnore?: boolean;
+
+  /** only file */
+  redirect?: string;
+
+  /** only dir */
+  reverse?: boolean;
+  groups?: { title: string; members: string[] }[];
+
+  /** below only homepage */
+  hero?: Hero;
+  features?: Feature[];
+}
+
 export interface Hero {
   title?: string;
   desc?: string;
@@ -8,19 +26,4 @@ export interface Feature {
   icon?: string;
   title: string;
   desc: string;
-}
-
-export interface FrontMatter {
-  redirect?: string;
-  title?: string;
-  isNav?: boolean;
-  navTitle?: string;
-  sidebarIgnore?: boolean;
-
-  // dir config
-  reverse?: boolean;
-
-  /** The following is the homepage options */
-  hero?: Hero;
-  features?: Feature[];
 }

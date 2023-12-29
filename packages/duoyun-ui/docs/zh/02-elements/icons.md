@@ -1,6 +1,6 @@
-# `<dy-icons>`
+# 内置图标
 
-所有内置 Icon，点击复制。
+所有内置图标，点击复制。
 
 ## Example
 
@@ -8,7 +8,3 @@
   name="dy-icons"
   props='{"style": "width: 100%;"}'
   src="https://esm.sh/duoyun-ui/elements/icons"></gbp-example>
-
-## API
-
-<gbp-api src="/src/elements/icons.ts"></gbp-api>

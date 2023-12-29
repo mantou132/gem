@@ -85,7 +85,9 @@ export function resolveTheme(p?: string) {
 export function checkRelativeLink(fullPath: string, docsRootDir: string) {
   const md = readFileSync(fullPath, 'utf8');
   const lines = md.split('\n');
+  // 获取所有链接
   const results = [...md.matchAll(/\[.*?\]\((.*?)(\s+.*?)?\)/g)];
+  // 提取相对目录
   const links = results.map(([, link], index) => ({ link, index })).filter(({ link }) => /^\.?\.?\/[^/]/.test(link));
   links.forEach(({ link, index }) => {
     const linkWithoutHash = link.replace(/#.*/, '');

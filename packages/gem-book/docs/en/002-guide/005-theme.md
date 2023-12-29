@@ -11,18 +11,20 @@ The `<gem-book>` element provides the theme API, which can be very convenient to
 You can directly use the cli options to provide the theme file path in `json`/`CommonJs` format or [build-in theme](https://github.com/mantou132/gem/tree/master/packages/gem-book/themes) name:
 
 ```bash
-gem-book docs --theme my-theme
+gem-book docs --theme path/my-theme
 gem-book docs --theme dark
 ```
 
 Of course, you can also set the theme directly using the DOM API of `<gem-book>`.
 
-```js
+<gbp-code-group>
+
+```js DOM
 new GemBookElement(config, theme);
 ```
 
-or
-
-```js
+```js Lit
 html`<gem-book .config=${config} .theme=${theme}></gem-book>`;
 ```
+
+</gbp-code-group>

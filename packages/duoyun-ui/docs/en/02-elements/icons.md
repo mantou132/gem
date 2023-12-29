@@ -1,6 +1,6 @@
-# `<dy-icons>`
+# Built-in Icons
 
-All build-in icons, click copy code.
+All built-in icons, click copy code.
 
 ## Example
 
@@ -8,7 +8,3 @@ All build-in icons, click copy code.
   name="dy-icons"
   props='{"style": "width: 100%;"}'
   src="https://esm.sh/duoyun-ui/elements/icons"></gbp-example>
-
-## API
-
-<gbp-api src="/src/elements/icons.ts"></gbp-api>

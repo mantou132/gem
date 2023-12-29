@@ -20,17 +20,17 @@ import { mediaQuery } from '@mantou/gem/helper/mediaquery';
 
 import { BookConfig } from '../common/config';
 
-import { GemBookPluginElement } from './elements/plugin';
 import { theme, changeTheme, Theme } from './helper/theme';
 import { bookStore, updateBookConfig, locationStore } from './store';
-import { Loadbar } from './elements/loadbar';
 import { checkBuiltInPlugin } from './lib/utils';
+import { GemBookPluginElement } from './elements/plugin';
+import { Loadbar } from './elements/loadbar';
+import { Homepage } from './elements/homepage';
 
 import '@mantou/gem/elements/title';
 import '@mantou/gem/elements/reflect';
 import './elements/nav';
 import './elements/sidebar';
-import './elements/homepage';
 import './elements/footer';
 import './elements/edit-link';
 import './elements/rel-link';
@@ -59,18 +59,20 @@ export class GemBookElement extends GemElement {
 
   @globalemitter routechange: Emitter<null>;
 
-  @part nav: string;
-  @part sidebar: string;
-  @part main: string;
-  @part editLink: string;
-  @part relLink: string;
-  @part footer: string;
-  @part homepageHero: string;
+  @part static nav: string;
+  @part static sidebar: string;
+  @part static main: string;
+  @part static editLink: string;
+  @part static relLink: string;
+  @part static footer: string;
+  @part static homepageHero: string;
 
-  @slot sidebarBefore: string;
-  @slot mainBefore: string;
-  @slot mainAfter: string;
-  @slot navInside: string;
+  @slot static sidebarBefore: string;
+  @slot static mainBefore: string;
+  @slot static mainAfter: string;
+  @slot static navInside: string;
+  /**仅侧边栏中 */
+  @slot static logoAfter: string;
 
   @state isHomePage: boolean;
 
@@ -145,17 +147,17 @@ export class GemBookElement extends GemElement {
           box-sizing: border-box;
           padding-inline: 2rem;
         }
-        slot[name='${this.mainBefore}'],
-        slot[name='${this.mainAfter}'] {
+        slot[name='${GemBookElement.mainBefore}'],
+        slot[name='${GemBookElement.mainAfter}'] {
           display: block;
         }
-        slot[name='${this.mainBefore}'] {
+        slot[name='${GemBookElement.mainBefore}'] {
           margin-block-start: 2rem;
         }
         :where(
-            slot[name='${this.mainBefore}'],
-            slot[name='${this.mainAfter}'],
-            slot[name='${this.sidebarBefore}']
+            slot[name='${GemBookElement.mainBefore}'],
+            slot[name='${GemBookElement.mainAfter}'],
+            slot[name='${GemBookElement.sidebarBefore}']
           )::slotted(*) {
           margin-block-end: 2rem;
         }
@@ -204,7 +206,7 @@ export class GemBookElement extends GemElement {
           main {
             padding-inline: 1rem;
           }
-          slot[name='${this.mainBefore}'] {
+          slot[name='${GemBookElement.mainBefore}'] {
             margin-top: 1rem;
           }
           gem-book-footer {
@@ -232,35 +234,38 @@ export class GemBookElement extends GemElement {
 
       ${hasNavbar
         ? html`
-            <gem-book-nav role="navigation" part=${this.nav} .logo=${mediaQuery.isPhone || !!renderFullWidth}>
-              <slot name=${this.navInside}></slot>
+            <gem-book-nav role="navigation" part=${GemBookElement.nav} .logo=${mediaQuery.isPhone || !!renderFullWidth}>
+              <slot name=${GemBookElement.navInside}></slot>
             </gem-book-nav>
           `
         : null}
       ${mediaQuery.isPhone || !renderFullWidth
         ? html`
-            <gem-book-sidebar role="navigation" part=${this.sidebar}>
-              <slot name=${this.sidebarBefore}></slot>
+            <gem-book-sidebar role="navigation" part=${GemBookElement.sidebar}>
+              <slot slot=${GemBookElement.logoAfter} name=${GemBookElement.logoAfter}></slot>
+              <slot name=${GemBookElement.sidebarBefore}></slot>
             </gem-book-sidebar>
           `
         : null}
-      ${renderHomePage ? html`<gem-book-homepage exportparts="hero: ${this.homepageHero}"></gem-book-homepage>` : ''}
+      ${renderHomePage
+        ? html`<gem-book-homepage exportparts="${Homepage.hero}: ${GemBookElement.homepageHero}"></gem-book-homepage>`
+        : ''}
       <main>
-        ${renderHomePage ? '' : html`<slot name=${this.mainBefore}></slot>`}
+        ${renderHomePage ? '' : html`<slot name=${GemBookElement.mainBefore}></slot>`}
         <gem-light-route
           ref=${this.routeRef.ref}
           role="main"
-          part=${this.main}
+          part=${GemBookElement.main}
           .locationStore=${locationStore}
           .key=${lang}
           .routes=${routes}
           @loading=${this.#onLoading}
           @routechange=${this.#onRouteChange}
         ></gem-light-route>
-        <gem-book-edit-link role="complementary" part=${this.editLink}></gem-book-edit-link>
-        <gem-book-rel-link role="navigation" part=${this.relLink}></gem-book-rel-link>
-        ${renderHomePage ? '' : html`<slot name=${this.mainAfter}></slot>`}
-        <gem-book-footer role="contentinfo" part=${this.footer}></gem-book-footer>
+        <gem-book-edit-link role="complementary" part=${GemBookElement.editLink}></gem-book-edit-link>
+        <gem-book-rel-link role="navigation" part=${GemBookElement.relLink}></gem-book-rel-link>
+        ${renderHomePage ? '' : html`<slot name=${GemBookElement.mainAfter}></slot>`}
+        <gem-book-footer role="contentinfo" part=${GemBookElement.footer}></gem-book-footer>
       </main>
       <gem-book-toc></gem-book-toc>
     `;

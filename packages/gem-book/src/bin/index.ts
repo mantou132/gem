@@ -20,6 +20,7 @@ import { version } from '../../package.json';
 import { BookConfig, CliConfig, CliUniqueConfig, NavItem, SidebarConfig } from '../common/config';
 import { DEFAULT_FILE, DEFAULT_CLI_FILE, DEFAULT_SOURCE_BRANCH } from '../common/constant';
 import { isIndexFile, parseFilename } from '../common/utils';
+import { FrontMatter } from '../common/frontmatter';
 
 import {
   getGithubUrl,
@@ -77,17 +78,9 @@ function readConfig(configPath: string) {
   Object.assign(bookConfig, obj);
 }
 
-function readDir(dir: string, link = '/') {
+function readFiles(filenames: string[], dir: string, link: string, config?: FrontMatter) {
   const result: NavItem[] = [];
-  const filenames = fs.readdirSync(dir);
-  const filenameWithoutRankNumberList = filenames.map((filename) => {
-    const { title } = parseFilename(filename);
-    return title;
-  });
-  if (!bookConfig.displayRank && new Set(filenameWithoutRankNumberList).size !== filenames.length) {
-    throw new Error('After removing the rank number, duplicate file names are found, use `--display-rank`');
-  }
-  const config = readDirConfig(dir);
+
   filenames
     .sort((filename1, filename2) => {
       const { rank: rank1 } = parseFilename(filename1);
@@ -98,16 +91,12 @@ function readDir(dir: string, link = '/') {
       return -1 * reverse;
     })
     .forEach((filename) => {
-      const item: NavItem = { title: '', link: '' };
       const fullPath = path.join(dir, filename);
       if (fs.statSync(fullPath).isFile()) {
         if (isMdFile(fullPath)) {
           if (cliConfig.debug) {
             checkRelativeLink(fullPath, docsRootDir);
           }
-          item.type = 'file';
-          item.link = `${link}${filename}`;
-          item.hash = getHash(fullPath);
           const {
             title,
             headings: children,
@@ -118,7 +107,18 @@ function readDir(dir: string, link = '/') {
             features,
             redirect,
           } = getMetadata(fullPath, bookConfig.displayRank);
-          Object.assign(item, { title, children, isNav, navTitle, sidebarIgnore, hero, features });
+          const item: NavItem = {
+            title,
+            type: 'file',
+            link: `${link}${filename}`,
+            hash: getHash(fullPath),
+            children,
+            isNav,
+            navTitle,
+            sidebarIgnore,
+            hero,
+            features,
+          };
           if (redirect) {
             bookConfig.redirects = Object.assign(bookConfig.redirects || {}, {
               [item.link]: new URL(redirect, `file:${item.link}`).pathname,
@@ -128,15 +128,49 @@ function readDir(dir: string, link = '/') {
           }
         }
       } else {
-        item.type = 'dir';
-        item.link = `${link}${filename}/`;
-        item.children = readDir(fullPath, path.posix.join(link, filename) + '/');
-        const { title, isNav, navTitle, sidebarIgnore } = getMetadata(fullPath, false);
-        Object.assign(item, { title, isNav, navTitle, sidebarIgnore });
-        result.push(item);
+        const { title, isNav, navTitle, sidebarIgnore, groups } = getMetadata(fullPath, false);
+        const newDir = fullPath;
+        const newLink = path.join(link, filename) + '/';
+        const subFilenameSet = new Set([...fs.readdirSync(fullPath)]);
+        result.push({
+          type: 'dir',
+          link: `${link}${filename}/`,
+          title,
+          children: groups
+            ? groups
+                .map(({ title, members }) => {
+                  members.forEach((filename) => subFilenameSet.delete(filename));
+                  const children = readFiles(members, newDir, newLink, config);
+                  if (!title) return children;
+                  return {
+                    type: 'dir',
+                    link: `${link}${filename}/`,
+                    title,
+                    children,
+                  } as NavItem;
+                })
+                .flat()
+                .concat(readFiles([...subFilenameSet], newDir, newLink, config))
+            : readDir(newDir, newLink),
+          isNav,
+          navTitle,
+          sidebarIgnore,
+        });
       }
     });
   return result;
+}
+
+function readDir(dir: string, link = '/') {
+  const filenames = fs.readdirSync(dir);
+  const filenameWithoutRankNumberList = filenames.map((filename) => {
+    const { title } = parseFilename(filename);
+    return title;
+  });
+  if (!bookConfig.displayRank && new Set(filenameWithoutRankNumberList).size !== filenames.length) {
+    throw new Error('After removing the rank number, duplicate file names are found, use `--display-rank`');
+  }
+  return readFiles(filenames, dir, link, readDirConfig(dir));
 }
 
 async function generateBookConfig(dir: string) {

@@ -27,6 +27,7 @@ export type { Option } from './cascader';
 import './use';
 import './cascader';
 import './tag';
+import './scroll-box';
 
 const style = createCSSSheet(css`
   :host {
@@ -34,8 +35,6 @@ const style = createCSSSheet(css`
   }
   .value {
     flex-grow: 1;
-    overflow: hidden;
-    text-overflow: ellipsis;
     white-space: nowrap;
     display: flex;
     gap: 0.5em;
@@ -142,13 +141,13 @@ export class DuoyunCascaderPickElement extends GemElement implements BasePickerE
   render = () => {
     const isEmpty = this.multiple ? !this.value?.length : !this.value;
     return html`
-      <div class=${classMap({ value: true, placeholder: isEmpty })}>
+      <dy-scroll-box class=${classMap({ value: true, placeholder: isEmpty })}>
         ${isEmpty
           ? this.placeholder
           : this.multiple
             ? this.#renderMultipleValue(this.value as OptionValue[][])
             : this.#renderValue(this.value as OptionValue[])}
-      </div>
+      </dy-scroll-box>
       <dy-use class="icon" .element=${icons.expand}></dy-use>
     `;
   };

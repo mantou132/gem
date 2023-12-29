@@ -14,7 +14,7 @@ import '@mantou/gem/elements/use';
 @customElement('gem-book-homepage')
 @connectStore(bookStore)
 export class Homepage extends GemElement {
-  @part hero: string;
+  @part static hero: string;
 
   renderHero({ hero }: NavItemWithLink) {
     if (!hero) return null;
@@ -84,7 +84,7 @@ export class Homepage extends GemElement {
           }
         }
       </style>
-      <div class="hero" part=${this.hero} role="banner">
+      <div class="hero" part=${Homepage.hero} role="banner">
         <div class="body">
           ${!title ? '' : html`<h1 class="title">${title}</h1>`}
           ${!desc ? '' : html`<p class="desc">${Main.unsafeRenderHTML(desc)}</p>`}

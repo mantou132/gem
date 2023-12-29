@@ -1,4 +1,5 @@
 import { createCSSSheet, css } from '@mantou/gem/lib/utils';
+import { html } from '@mantou/gem/lib/element';
 
 import { theme } from '../lib/theme';
 
@@ -35,3 +36,11 @@ export const contentsContainer = createCSSSheet(css`
     display: contents;
   }
 `);
+
+export const noneTemplate = html`
+  <style>
+    :host {
+      display: none;
+    }
+  </style>
+`;

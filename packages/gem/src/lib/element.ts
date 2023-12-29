@@ -289,15 +289,19 @@ export abstract class GemElement<T = Record<string, unknown>> extends HTMLElemen
 
   /**
    * @lifecycle
-   * 返回 null 时渲染 lit-html 定义的空内容
-   * 返回 undefined 时不会调用 `render()`
+   *
+   * - 不提供 `render` 时显示子内容
+   * - 返回 `null` 时渲染空内容
+   * - 返回 `undefined` 时不会调用 `render()`, 也就是不会更新以前的内容
    * */
   render?(): TemplateResult | null | undefined;
 
   #render = () => {
     this.#execMemo();
-    if (this.render) return this.render();
-    return this.#renderRoot === this ? undefined : html`<slot></slot>`;
+    const isLight = this.#renderRoot === this;
+    const temp = this.render ? this.render() : isLight ? undefined : html`<slot></slot>`;
+    if (temp === undefined) return;
+    render(temp, this.#renderRoot);
   };
 
   /**@lifecycle */
@@ -311,8 +315,7 @@ export abstract class GemElement<T = Record<string, unknown>> extends HTMLElemen
 
   #updateCallback = () => {
     if (this.#isMounted && this.#shouldUpdate()) {
-      const temp = this.#render();
-      temp !== undefined && render(temp, this.#renderRoot);
+      this.#render();
       addMicrotask(this.#updated);
       addMicrotask(this.#execEffect);
     }
@@ -372,8 +375,7 @@ export abstract class GemElement<T = Record<string, unknown>> extends HTMLElemen
     this.willMount?.();
     const { observedStores, rootElement } = this.constructor as typeof GemElement;
     this.#disconnectStore = observedStores?.map((store) => connect(store, this.#update));
-    const temp = this.#render();
-    temp !== undefined && render(temp, this.#renderRoot);
+    this.#render();
     this.#isMounted = true;
     this.#unmountCallback = this.mounted?.();
     this.#initEffect();

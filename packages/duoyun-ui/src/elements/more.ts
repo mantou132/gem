@@ -112,8 +112,4 @@ export class DuoyunMoreSlotElement extends DuoyunScrollBaseElement {
       this.change(this.bottomOverflow);
     });
   };
-
-  render = () => {
-    return html`<slot></slot>`;
-  };
 }

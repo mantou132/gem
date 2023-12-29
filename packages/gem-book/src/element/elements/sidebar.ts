@@ -7,15 +7,17 @@ import {
   classMap,
   state,
   connect,
-  history,
   useStore,
+  refobject,
+  RefObject,
 } from '@mantou/gem';
 import { mediaQuery } from '@mantou/gem/helper/mediaquery';
 
 import { NavItem } from '../../common/config';
 import { capitalize, isSameOrigin } from '../lib/utils';
 import { theme } from '../helper/theme';
-import { bookStore } from '../store';
+import { bookStore, locationStore } from '../store';
+import { GemBookElement } from '..';
 
 import { icons } from './icons';
 
@@ -30,11 +32,28 @@ export const [sidebarStore, updateSidebarStore] = useStore({ open: false });
 @connectStore(bookStore)
 @connectStore(sidebarStore)
 export class SideBar extends GemElement {
+  @refobject navRef: RefObject<HTMLElement>;
+
   @state open: boolean;
+
+  get #currentLink() {
+    return this.shadowRoot?.querySelector(':where(:state(active), [data-active])');
+  }
+
+  #closeSidebar = () => updateSidebarStore({ open: false });
 
   #toggleLinks = (e: MouseEvent) => {
     const ele = e.target as HTMLDivElement;
     ele.classList.toggle('close');
+  };
+
+  #expandToCurrentLink = () => {
+    const removeCloseClass = (ele: Element | null | undefined) => {
+      if (!ele) return;
+      ele.classList.remove('close');
+      removeCloseClass(ele.parentElement?.previousElementSibling);
+    };
+    removeCloseClass(this.#currentLink);
   };
 
   #renderItem = (
@@ -52,11 +71,11 @@ export class SideBar extends GemElement {
           return html`<!-- No need for an empty directory -->`;
         }
         return html`
-          <div class="item" @click=${this.#toggleLinks}>
+          <div class="item dir-title" @click=${this.#toggleLinks}>
             <gem-use class="arrow" .element=${icons.arrow}></gem-use>
             ${capitalize(title)}
           </div>
-          <div class="links item">${children.map((item) => this.#renderItem(item))}</div>
+          <div class="links item dir">${children.map((item) => this.#renderItem(item))}</div>
         `;
       }
       case 'file': {
@@ -103,6 +122,8 @@ export class SideBar extends GemElement {
           top: 0;
         }
         gem-book-nav-logo {
+          /**挡住橡皮条效果下面的线 */
+          background: ${theme.backgroundColor};
           border-block-end: 1px solid ${theme.borderColor};
         }
         gem-book-nav-logo,
@@ -139,20 +160,20 @@ export class SideBar extends GemElement {
           display: block;
           color: inherit;
           text-decoration: none;
-          line-height: 1.5;
-          padding: 0.15em 0;
+          line-height: 2;
         }
         .file:where(:state(active), [data-active]) {
-          font-weight: bolder;
+          color: ${theme.primaryColor};
         }
         .heading:not(:where(:state(active), [data-active])):not(:hover),
         .file:not(:where(:state(active), [data-active])):hover {
+          transition: opacity 0.1s;
           opacity: 0.6;
         }
         .arrow {
           width: 6px;
           height: 10px;
-          margin-right: calc(1em - 6px);
+          margin-right: calc(1rem - 6px);
         }
         .close + .links {
           display: none;
@@ -173,6 +194,10 @@ export class SideBar extends GemElement {
         .item {
           cursor: pointer;
         }
+        .dir-title {
+          font-size: 1rem;
+          font-weight: bolder;
+        }
         .item:not(.links) {
           display: flex;
           align-items: center;
@@ -188,7 +213,7 @@ export class SideBar extends GemElement {
           height: 4px;
           border-radius: 50%;
           background: currentColor;
-          margin-right: calc(1em - 4px);
+          margin-right: calc(1rem - 4px);
           opacity: 0.6;
           flex-shrink: 0;
         }
@@ -203,6 +228,13 @@ export class SideBar extends GemElement {
         }
         .item + .item {
           margin-top: 0.5rem;
+        }
+        .item + .dir-title {
+          margin-top: 2rem;
+        }
+        .links.dir,
+        .dir-title.close {
+          margin-bottom: 2rem;
         }
         @media not ${`(${mediaQuery.DESKTOP})`} {
           .link:where(:state(match), [data-match]) + .hash {
@@ -229,8 +261,10 @@ export class SideBar extends GemElement {
           }
         }
       </style>
-      <gem-book-nav-logo></gem-book-nav-logo>
-      <div class="nav">
+      <gem-book-nav-logo>
+        <slot name=${GemBookElement.logoAfter}></slot>
+      </gem-book-nav-logo>
+      <div class="nav" ref=${this.navRef.ref}>
         ${mediaQuery.isPhone && topNavList?.length
           ? html`
               <div class="top-nav">
@@ -250,18 +284,21 @@ export class SideBar extends GemElement {
     `;
   }
 
-  updated() {
-    const activeEle = this.shadowRoot?.querySelector(':where(:state(active), [data-active])');
-    const removeCloseClass = (e: Element | null | undefined) => {
-      if (e) {
-        e.classList.remove('close');
-        removeCloseClass(e.parentElement?.previousElementSibling);
-      }
-    };
-    removeCloseClass(activeEle);
-  }
-
   mounted() {
-    return connect(history.store, () => updateSidebarStore({ open: false }));
+    this.effect(
+      () => this.#expandToCurrentLink(),
+      () => [locationStore.path],
+    );
+
+    this.#currentLink?.scrollIntoView({ block: 'center' });
+
+    addEventListener('hashchange', this.#closeSidebar);
+
+    const disconnect = connect(locationStore, this.#closeSidebar);
+
+    return () => {
+      removeEventListener('hashchange', this.#closeSidebar);
+      disconnect();
+    };
   }
 }

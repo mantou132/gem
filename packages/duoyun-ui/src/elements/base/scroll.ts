@@ -67,6 +67,10 @@ export class DuoyunScrollBaseElement<_T = Record<string, unknown>> extends Duoyu
     super(options);
     this.addEventListener('scroll', this.#check);
     this.addEventListener('scrollend', this.#check);
+    new MutationObserver(this.#check).observe(this, {
+      subtree: true,
+      childList: true,
+    });
     this.effect(() => {
       this.#check();
     });

@@ -17,13 +17,10 @@ features:
 ## Getting Started
 
 ```bash
-# Install gem-book
-npm i gem-book
-
 # Create docs
 mkdir docs && echo '# Hello <gem-book>!' > docs/readme.md
 
-# Preview docs
+# Serve the documentation site in the local server
 npx gem-book docs
 
 # Build

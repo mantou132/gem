@@ -103,10 +103,29 @@ function getNav(sidebar: NavItem[], origin: NavItem[]) {
   return nav.concat(origin);
 }
 
-function getNavRoutes(nav: NavItem[]): RouteItem[] {
-  return nav
-    .filter(({ type, link, children }) => type === 'dir' && link !== children?.[0].link)
-    .map(({ link, children }) => ({ pattern: link, redirect: children?.[0].link }));
+function getNavRoutes(nav: NavItem[]) {
+  const routes: RouteItem[] = [];
+  const getFirstLink = (item: NavItem) => {
+    const list = [item];
+    while (list.length) {
+      const item = list.shift();
+      switch (item?.type) {
+        case 'file':
+          return item.link;
+        case 'dir':
+          item.children && list.unshift(...item.children);
+      }
+    }
+  };
+  nav.forEach((nav) => {
+    if (nav.type === 'dir') {
+      const firstLink = getFirstLink(nav);
+      if (nav.link !== firstLink) {
+        routes.push({ pattern: nav.link, redirect: firstLink });
+      }
+    }
+  });
+  return routes;
 }
 
 function getRedirectRoutes(redirects: Record<string, string>, displayRank?: boolean): RouteItem[] {
@@ -263,6 +282,7 @@ export function updateBookConfig(config?: BookConfig, gemBookElement?: GemBookEl
 
 export const locationStore = GemLightRouteElement.createLocationStore();
 
+// 每个页面的侧边栏可能不一样
 connect(locationStore, () => {
   updateBookConfig(bookStore.config);
 });

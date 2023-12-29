@@ -1,4 +1,4 @@
-import { GemElement, connectStore, globalemitter, Emitter } from '@mantou/gem';
+import { GemElement, connectStore, globalemitter, Emitter, customElement } from '@mantou/gem';
 import * as Gem from '@mantou/gem';
 import { marked } from 'marked';
 import { mediaQuery } from '@mantou/gem/helper/mediaquery';
@@ -9,6 +9,7 @@ import { BookConfig } from '../../common/config';
 import { icons } from '../elements/icons';
 
 @connectStore(bookStore)
+@customElement('gem-book-plugin')
 export class GemBookPluginElement<T = any> extends GemElement<T> {
   static marked = marked;
   static Gem = Gem;

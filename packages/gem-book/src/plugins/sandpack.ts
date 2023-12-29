@@ -356,7 +356,10 @@ customElements.whenDefined('gem-book').then(() => {
       const { files, forking, status } = this.state;
       if (!files.length) return;
       const currentFile = files.find(({ status }) => status === 'active') || files.find(({ status }) => status === '');
-
+      const currentFileSelector =
+        currentFile?.filename === this.#defaultEntryFilename
+          ? `::slotted([filename='']),::slotted([filename='${currentFile?.filename}'])`
+          : `::slotted([filename='${currentFile?.filename}'])`;
       return html`
         <div class="header">
           <ul class="tabs">
@@ -381,7 +384,7 @@ customElements.whenDefined('gem-book').then(() => {
         </div>
         <slot></slot>
         <style>
-          ::slotted([filename='${currentFile?.filename === this.#defaultEntryFilename ? '' : currentFile?.filename}']) {
+          ${currentFileSelector} {
             display: block;
           }
         </style>

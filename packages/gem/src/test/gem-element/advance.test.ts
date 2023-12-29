@@ -129,7 +129,7 @@ describe('gem element 生命周期', () => {
     expect(el.appTitle).to.equal('title');
     expect(el.renderCount).to.equal(1);
     const clone = el.cloneNode() as LifecycleGemElement;
-    // BUG
+    // v2 BUG
     clone.connectedCallback();
     expect(clone.appTitle).to.equal('title');
 

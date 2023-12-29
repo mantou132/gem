@@ -108,8 +108,9 @@ export class Main extends GemElement {
         }
         details {
           border-radius: ${theme.normalRound};
-          border: 1px dashed ${theme.borderColor};
+          border: 1px solid ${theme.borderColor};
           padding: 0.5em 1em;
+          margin: 2rem 0;
         }
         details p:first-of-type {
           margin-block-start: 0;
@@ -120,7 +121,7 @@ export class Main extends GemElement {
         details[open] summary {
           margin-block-end: 0.5em;
           background: rgba(${theme.textColorRGB}, 0.02);
-          border-bottom: 1px dashed ${theme.borderColor};
+          border-bottom: 1px solid ${theme.borderColor};
         }
         summary {
           cursor: pointer;

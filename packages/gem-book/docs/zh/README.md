@@ -17,13 +17,10 @@ features:
 ## 轻松上手
 
 ```bash
-# 安装 gem-book
-npm i gem-book
-
 # 创建文档
 mkdir docs && echo '# Hello <gem-book>!' > docs/readme.md
 
-# 预览文档
+# 启动本地服务打开文档站，修改文档将自动刷新
 npx gem-book docs
 
 # 构建前端资源

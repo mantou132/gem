@@ -7,6 +7,7 @@ import { splice } from '@mantou/gem/helper/i18n';
 
 import { theme, getSemanticColor } from '../lib/theme';
 import { locale } from '../lib/locale';
+import { noneTemplate } from '../lib/styles';
 
 import { ContextMenu } from './contextmenu';
 import { DuoyunVisibleBaseElement } from './base/visible';
@@ -206,15 +207,7 @@ export class DuoyunCoachMarkElement extends DuoyunVisibleBaseElement {
   };
 
   render = () => {
-    if (!this.#tour) {
-      return html`
-        <style>
-          :host {
-            display: none;
-          }
-        </style>
-      `;
-    }
+    if (!this.#tour) return noneTemplate;
     return html`
       <style>
         :host {
