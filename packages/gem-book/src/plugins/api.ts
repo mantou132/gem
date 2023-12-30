@@ -13,7 +13,7 @@ type State = { elements?: ElementDetail[]; exports?: ExportDetail[]; error?: any
 
 customElements.whenDefined('gem-book').then(() => {
   const { GemBookPluginElement } = customElements.get('gem-book') as typeof GemBookElement;
-  const { Gem, config, theme } = GemBookPluginElement;
+  const { Gem, theme } = GemBookPluginElement;
   const { html, customElement, attribute, numattribute, createCSSSheet, css, adoptedStyle } = Gem;
   const MainElement = customElements.get('gem-book-main') as typeof Main;
 
@@ -53,9 +53,11 @@ customElements.whenDefined('gem-book').then(() => {
     #parseFile = async (text: string) => {
       const { Project } = (await import(/* webpackIgnore: true */ tsMorph)) as typeof import('ts-morph');
       const { getElements, getExports } =
-        config.github === 'https://github.com/mantou132/gem'
-          ? await import('gem-analyzer')
-          : ((await import(/* webpackIgnore: true */ gemAnalyzer)) as typeof import('gem-analyzer'));
+        // 如何在当前项目使用本地依赖？
+        // webpackIgnore.config.github === 'https://github.com/mantou132/gem'
+        //   ? require('gem-analyzer')
+        //   :
+        (await import(/* webpackIgnore: true */ gemAnalyzer)) as typeof import('gem-analyzer');
       const project = new Project({ useInMemoryFileSystem: true });
       const file = project.createSourceFile(this.src, text);
       return { elements: getElements(file), exports: getExports(file) };

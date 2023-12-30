@@ -150,6 +150,7 @@ export function startBuilder(dir: string, options: Required<CliUniqueConfig>, bo
 
       if (stats.hasErrors()) {
         console.error(info.errors);
+        process.exit(1);
       }
 
       if (stats.hasWarnings()) {

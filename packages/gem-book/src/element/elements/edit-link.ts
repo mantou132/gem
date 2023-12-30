@@ -1,9 +1,9 @@
-import { html, GemElement, customElement, history, connectStore } from '@mantou/gem';
+import { html, GemElement, customElement, connectStore } from '@mantou/gem';
 import { mediaQuery } from '@mantou/gem/helper/mediaquery';
 
 import { getGithubPath } from '../lib/utils';
 import { selfI18n } from '../helper/i18n';
-import { bookStore } from '../store';
+import { bookStore, locationStore } from '../store';
 
 import { icons } from './icons';
 
@@ -26,6 +26,7 @@ const fetchData = async (api: string) => {
 
 @customElement('gem-book-edit-link')
 @connectStore(selfI18n.store)
+@connectStore(locationStore)
 export class EditLink extends GemElement<State> {
   state = {
     lastUpdated: '',
@@ -50,7 +51,7 @@ export class EditLink extends GemElement<State> {
 
   #getMdFullPath = () => {
     const link = bookStore.getCurrentLink?.();
-    if (!link) return;
+    if (!link) return '';
     return getGithubPath(link.originLink);
   };
 
@@ -59,8 +60,7 @@ export class EditLink extends GemElement<State> {
     const { message, commitUrl } = this.state;
     const { config } = bookStore;
     const { github, sourceBranch = '' } = config || {};
-    const fullPath = this.#getMdFullPath();
-    if (!github || !sourceBranch || !fullPath) return;
+    if (!github || !sourceBranch || !this.#fullPath) return;
     return html`
       <style>
         :host {
@@ -96,7 +96,7 @@ export class EditLink extends GemElement<State> {
           }
         }
       </style>
-      <gem-link class="edit" href=${`${github}/edit/${sourceBranch}${fullPath}`}>
+      <gem-link class="edit" href=${`${github}/edit/${sourceBranch}${this.#fullPath}`}>
         <gem-use .element=${icons.compose}></gem-use>
         <span>${selfI18n.get('editOnGithub')}</span>
       </gem-link>
@@ -110,17 +110,22 @@ export class EditLink extends GemElement<State> {
     `;
   }
 
+  #fullPath = '';
+
   mounted() {
+    this.memo(() => {
+      this.#fullPath = this.#getMdFullPath();
+    });
+
     this.effect(
       async () => {
         const { config } = bookStore;
         const { github, sourceBranch = '' } = config || {};
         if (!github) return;
         const repo = new URL(github).pathname;
-        const path = this.#getMdFullPath();
-        if (!path) return;
+        if (!this.#fullPath) return;
         const query = new URLSearchParams({
-          path,
+          path: this.#fullPath,
           page: '1',
           per_page: '1',
           sha: sourceBranch,
@@ -138,7 +143,7 @@ export class EditLink extends GemElement<State> {
           this.setState({ lastUpdated: '' });
         }
       },
-      () => [history.getParams().path],
+      () => [this.#fullPath],
     );
   }
 }

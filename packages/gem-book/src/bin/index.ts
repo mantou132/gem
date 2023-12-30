@@ -76,6 +76,13 @@ function readConfig(configPath: string) {
       }
     }
   });
+  obj.nav = obj.nav?.filter((e) => {
+    if (e.title?.toLowerCase() === 'github') {
+      bookConfig.github = e.link;
+    } else {
+      return true;
+    }
+  });
   Object.assign(bookConfig, obj);
 }
 
@@ -276,7 +283,11 @@ program
     bookConfig.nav ||= [];
     const [title, link] = item.split(',');
     if (!link) throw new Error('nav options error');
-    bookConfig.nav.push({ title, link });
+    if (title.toLowerCase() === 'github') {
+      bookConfig.github = link;
+    } else {
+      bookConfig.nav.push({ title, link });
+    }
   })
   .option('--plugin <name or path>', 'load plugin', (name: string) => {
     cliConfig.plugin.push(name);
