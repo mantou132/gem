@@ -48,7 +48,7 @@ export class Homepage extends GemElement {
         }
         gem-link {
           display: flex;
-          gap: 1rem;
+          gap: 0.7rem;
           color: ${theme.primaryColor};
           text-decoration: none;
           transition: all 0.3s;
@@ -67,6 +67,7 @@ export class Homepage extends GemElement {
           filter: brightness(1.2);
         }
         gem-use {
+          width: 1.2rem;
           margin-left: 0.3rem;
           transform: scale(1.3);
         }
@@ -92,7 +93,7 @@ export class Homepage extends GemElement {
             ${actions?.map(
               ({ link, text }, index) =>
                 html`<gem-link href=${getUserLink(link)}>
-                  ${text}${index ? html`<gem-use .element=${icons.arrow}></gem-use>` : ''}
+                  ${text}${index ? html`<gem-use .element=${icons.forward}></gem-use>` : ''}
                 </gem-link>`,
             )}
           </div>

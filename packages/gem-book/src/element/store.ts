@@ -100,7 +100,7 @@ function getNav(sidebar: NavItem[], origin: NavItem[]) {
     });
   };
   traverseSidebar(sidebar);
-  return nav.concat(origin);
+  return nav.concat(origin).sort(({ navOrder: ao = 100 }, { navOrder: bo = 100 }) => ao - bo);
 }
 
 function getNavRoutes(nav: NavItem[]) {
@@ -234,7 +234,8 @@ function getCurrentSidebar(sidebar: NavItemWithLink[]) {
     return items;
   };
   traverseSidebar(sidebar, resultWithoutNav);
-  return !currentLink ? [] : resultNavNode ? resultNavNode.children || [] : resultWithoutNav;
+  const result = !currentLink ? [] : resultNavNode ? resultNavNode.children || [] : resultWithoutNav;
+  return result.filter((e) => !e.sidebarIgnore && (!e.children || e.children.length !== 0));
 }
 
 function getHomePage(links: RouteItem[]) {

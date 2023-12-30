@@ -20,7 +20,7 @@ import { mediaQuery } from '@mantou/gem/helper/mediaquery';
 
 import { BookConfig } from '../common/config';
 
-import { theme, changeTheme, Theme } from './helper/theme';
+import { theme, changeTheme, Theme, themeProps } from './helper/theme';
 import { bookStore, updateBookConfig, locationStore } from './store';
 import { checkBuiltInPlugin } from './lib/utils';
 import { GemBookPluginElement } from './elements/plugin';
@@ -168,6 +168,9 @@ export class GemBookElement extends GemElement {
           grid-area: auto / toc;
         }
         @media not ${`(${mediaQuery.DESKTOP})`} {
+          :host {
+            ${`${themeProps.sidebarWidth}: ${theme.sidebarWidthSmall}`};
+          }
           gem-book-toc {
             display: none;
           }
@@ -297,3 +300,5 @@ export class GemBookElement extends GemElement {
     );
   }
 }
+
+export { GemBookPluginElement } from './elements/plugin';

@@ -50,23 +50,6 @@ customElements.whenDefined('gem-book').then(() => {
 
     state: State = {};
 
-    #getRemoteUrl = () => {
-      if (!this.src) return '';
-
-      let url = this.src;
-      if (!/^(https?:)?\/\//.test(this.src)) {
-        if (!config.github || !config.sourceBranch) return '';
-        const rawOrigin = 'https://raw.githubusercontent.com';
-        const repo = new URL(config.github).pathname;
-        const src = `${this.src.startsWith('/') ? '' : '/'}${this.src}`;
-        const basePath = config.base ? `/${config.base}` : '';
-        url = GemBookPluginElement.devMode
-          ? `/_assets${src}`
-          : `${rawOrigin}${repo}/${config.sourceBranch}${basePath}${src}`;
-      }
-      return url;
-    };
-
     #parseFile = async (text: string) => {
       const { Project } = (await import(/* webpackIgnore: true */ tsMorph)) as typeof import('ts-morph');
       const { getElements, getExports } =
@@ -236,7 +219,7 @@ customElements.whenDefined('gem-book').then(() => {
       });
       this.effect(
         async () => {
-          const url = this.#getRemoteUrl();
+          const url = this.getRemoteURL(this.src);
           if (!url) return;
 
           try {

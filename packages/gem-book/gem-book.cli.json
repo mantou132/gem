@@ -4,7 +4,7 @@
   "i18n": true,
   "homeMode": true,
   "sourceBranch": "docs",
-  "plugin": ["raw", "docsearch", "api", "sandpack", "code-group"],
+  "plugin": ["raw", "docsearch", "api", "sandpack", "code-group", "import"],
   "template": "docs/template.html",
   "ga": "G-PZYZ441YD3",
   "debug": true

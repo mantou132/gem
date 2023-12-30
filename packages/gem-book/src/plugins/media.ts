@@ -4,7 +4,7 @@ type MediaType = 'img' | 'video' | 'audio' | 'unknown';
 
 customElements.whenDefined('gem-book').then(() => {
   const { GemBookPluginElement } = customElements.get('gem-book') as typeof GemBookElement;
-  const { Gem, config, theme } = GemBookPluginElement;
+  const { Gem, theme } = GemBookPluginElement;
   const { html, customElement, attribute } = Gem;
 
   @customElement('gbp-media')
@@ -13,23 +13,6 @@ customElements.whenDefined('gem-book').then(() => {
     @attribute type: MediaType;
     @attribute width: string;
     @attribute height: string;
-
-    #getRemoteUrl() {
-      if (!this.src) return '';
-
-      let url = this.src;
-      if (!/^(https?:)?\/\//.test(this.src)) {
-        if (!config.github || !config.sourceBranch) return '';
-        const rawOrigin = 'https://raw.githubusercontent.com';
-        const repo = new URL(config.github).pathname;
-        const src = `${this.src.startsWith('/') ? '' : '/'}${this.src}`;
-        const basePath = config.base ? `/${config.base}` : '';
-        url = GemBookPluginElement.devMode
-          ? `/_assets${src}`
-          : `${rawOrigin}${repo}/${config.sourceBranch}${basePath}${src}`;
-      }
-      return url;
-    }
 
     #detectType(): MediaType {
       // https://developer.mozilla.org/en-US/docs/Web/Media/Formats
@@ -63,15 +46,15 @@ customElements.whenDefined('gem-book').then(() => {
     }
 
     #renderImage() {
-      return html`<img width=${this.width} height=${this.height} src=${this.#getRemoteUrl()} />`;
+      return html`<img width=${this.width} height=${this.height} src=${this.getRemoteURL(this.src)} />`;
     }
 
     #renderVideo() {
-      return html`<video width=${this.width} height=${this.height} src=${this.#getRemoteUrl()}></video>`;
+      return html`<video width=${this.width} height=${this.height} src=${this.getRemoteURL(this.src)}></video>`;
     }
 
     #renderAudio() {
-      return html`<audio src=${this.#getRemoteUrl()}></audio>`;
+      return html`<audio src=${this.getRemoteURL(this.src)}></audio>`;
     }
 
     #renderContent() {

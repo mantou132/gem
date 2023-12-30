@@ -59,7 +59,7 @@ export class Nav extends GemElement {
   renderExternalItem = ({ navTitle, title, link }: NavItem, icon?: string | Element | DocumentFragment) => {
     if (link) {
       return html`
-        <gem-link class=${classMap({ item: true, icon: !!icon })} href=${link} title=${title}>
+        <gem-link class=${classMap({ item: true, icon: !!icon, external: true })} href=${link} title=${title}>
           <span>${capitalize(navTitle || title)}</span>
           <gem-use .element=${icon || icons.link}></gem-use>
         </gem-link>
@@ -83,6 +83,8 @@ export class Nav extends GemElement {
     const githubLink = config ? this.renderExternalItem({ title: 'github', link: github }, icons.github) : null;
     const internals = nav?.filter((e) => isSameOrigin(e.link)) || [];
     const externals = nav?.filter((e) => !isSameOrigin(e.link)) || [];
+    const textExternals = externals.filter((e) => !(e.title.toLowerCase() in icons));
+    const iconExternals = externals?.filter((e) => e.title.toLowerCase() in icons) || [];
 
     return html`
       <style>
@@ -100,10 +102,13 @@ export class Nav extends GemElement {
           align-items: center;
           position: relative;
           cursor: pointer;
-          overflow: hidden;
         }
         :where(.item + .item) {
           margin-left: 1rem;
+        }
+        .external:not(.icon) gem-use {
+          width: 1em;
+          margin-left: 0.3rem;
         }
         .item select {
           -webkit-appearance: none;
@@ -141,19 +146,18 @@ export class Nav extends GemElement {
           background: currentColor;
           width: 100%;
         }
-        .item:not(.icon) gem-use {
-          width: 1em;
-          margin-left: 0.3rem;
+        .icon {
+          padding-left: 0.5rem;
+          opacity: 0.6;
+        }
+        .icon:hover {
+          opacity: 0.8;
         }
         .icon span {
           display: none;
         }
         .icon gem-use {
-          opacity: 0.6;
           width: 1.5em;
-        }
-        .icon:hover gem-use {
-          opacity: 0.8;
         }
         .menu {
           display: none;
@@ -161,6 +165,11 @@ export class Nav extends GemElement {
           width: 1.5em;
           padding-inline: 1rem;
           margin-inline-start: -1rem;
+        }
+        @media not ${`(${mediaQuery.DESKTOP})`} {
+          .external:not(.icon) {
+            display: none;
+          }
         }
         @media ${mediaQuery.PHONE} {
           .menu {
@@ -179,10 +188,12 @@ export class Nav extends GemElement {
       ${this.logo ? html`<gem-book-nav-logo></gem-book-nav-logo>` : ''}
       <div class="left">
         ${internals.map((item) => this.renderInternalItem(item))}
-        ${externals.map((item) => this.renderExternalItem(item))}
+        ${textExternals.map((item) => this.renderExternalItem(item))}
       </div>
       <slot class="item"></slot>
-      ${this.renderI18nSelect()} ${githubLink}
+      ${this.renderI18nSelect()}
+      ${iconExternals.map((item) => this.renderExternalItem(item, (icons as any)[item.title.toLowerCase()]))}
+      ${githubLink}
     `;
   }
 

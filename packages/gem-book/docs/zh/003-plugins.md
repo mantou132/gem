@@ -54,6 +54,20 @@ yarn add gem-book
 <gbp-media src="/preview.png"></gbp-media>
 ```
 
+## `<gbp-import>`
+
+动态导入模块，这可以用来按需加载插件。
+
+```md
+<gbp-import src="docs/hello.ts"></gbp-import>
+
+<my-plugin-hello></my-plugin-hello>
+```
+
+<gbp-import src="docs/hello.ts"></gbp-import>
+
+<my-plugin-hello></my-plugin-hello>
+
 ## `<gbp-docsearch>`
 
 使用 [DocSearch](https://docsearch.algolia.com/) 为网站提供搜索，只需要实例化一次，可以使用[插槽](./002-guide/007-extension.md#插槽)放在想要放置的位置：

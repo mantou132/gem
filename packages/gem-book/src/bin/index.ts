@@ -55,6 +55,7 @@ const cliConfig: Required<CliUniqueConfig> = {
   build: false,
   json: false,
   debug: false,
+  onlyFile: false,
 };
 
 function readConfig(configPath: string) {
@@ -97,25 +98,20 @@ function readFiles(filenames: string[], dir: string, link: string, config?: Fron
           if (cliConfig.debug) {
             checkRelativeLink(fullPath, docsRootDir);
           }
-          const {
-            title,
-            headings: children,
-            isNav,
-            navTitle,
-            sidebarIgnore,
-            hero,
-            features,
-            redirect,
-          } = getMetadata(fullPath, bookConfig.displayRank);
+          const { title, headings, isNav, navTitle, navOrder, sidebarIgnore, hero, features, redirect } = getMetadata(
+            fullPath,
+            bookConfig.displayRank,
+          );
           const item: NavItem = {
             title,
             type: 'file',
             link: `${link}${filename}`,
             hash: getHash(fullPath),
-            children,
+            children: cliConfig.onlyFile ? undefined : headings,
             isNav,
             navTitle,
             sidebarIgnore,
+            navOrder,
             hero,
             features,
           };
@@ -128,7 +124,7 @@ function readFiles(filenames: string[], dir: string, link: string, config?: Fron
           }
         }
       } else {
-        const { title, isNav, navTitle, sidebarIgnore, groups } = getMetadata(fullPath, false);
+        const { title, isNav, navTitle, navOrder, sidebarIgnore, groups } = getMetadata(fullPath, false);
         const newDir = fullPath;
         const newLink = path.join(link, filename) + '/';
         const subFilenameSet = new Set([...fs.readdirSync(fullPath)]);
@@ -136,9 +132,10 @@ function readFiles(filenames: string[], dir: string, link: string, config?: Fron
           type: 'dir',
           link: `${link}${filename}/`,
           title,
-          children: groups
+          children: groups?.map
             ? groups
                 .map(({ title, members }) => {
+                  if (!members?.forEach) return [];
                   members.forEach((filename) => subFilenameSet.delete(filename));
                   const children = readFiles(members, newDir, newLink, config);
                   if (!title) return children;
@@ -154,6 +151,7 @@ function readFiles(filenames: string[], dir: string, link: string, config?: Fron
             : readDir(newDir, newLink),
           isNav,
           navTitle,
+          navOrder,
           sidebarIgnore,
         });
       }
@@ -297,6 +295,9 @@ program
   })
   .option('--json', `only output \`${DEFAULT_FILE}\``, () => {
     cliConfig.json = true;
+  })
+  .option('--only-file', 'not include heading navigation', () => {
+    cliConfig.debug = true;
   })
   .option('--debug', 'enabled debug mode', () => {
     cliConfig.debug = true;

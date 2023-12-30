@@ -44,6 +44,7 @@ export interface CliUniqueConfig {
   theme?: string;
   build?: boolean;
   json?: boolean;
+  onlyFile?: boolean;
   debug?: boolean;
 }
 

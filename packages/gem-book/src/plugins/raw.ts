@@ -7,7 +7,7 @@ type State = {
 
 customElements.whenDefined('gem-book').then(() => {
   const { GemBookPluginElement } = customElements.get('gem-book') as typeof GemBookElement;
-  const { config, Gem, theme } = GemBookPluginElement;
+  const { Gem, theme } = GemBookPluginElement;
   const { attribute, customElement, html, createCSSSheet, css, adoptedStyle } = Gem;
 
   const style = createCSSSheet(css`
@@ -59,30 +59,14 @@ customElements.whenDefined('gem-book').then(() => {
       return this.codelang || this.src.split('.').pop() || '';
     }
 
-    get #url() {
-      if (!this.src) return '';
-
-      let url = this.src;
-      if (!/^(https?:)?\/\//.test(this.src)) {
-        if (!config.github || !config.sourceBranch) return '';
-        const rawOrigin = 'https://raw.githubusercontent.com';
-        const repo = new URL(config.github).pathname;
-        const src = `${this.src.startsWith('/') ? '' : '/'}${this.src}`;
-        const basePath = config.base ? `/${config.base}` : '';
-        url = GemBookPluginElement.devMode
-          ? `/_assets${src}`
-          : `${rawOrigin}${repo}/${config.sourceBranch}${basePath}${src}`;
-      }
-      return url;
-    }
-
     mounted() {
       this.effect(
         async () => {
-          if (!this.src) return;
+          const url = this.getRemoteURL(this.src);
+          if (!url) return;
           this.setState({ error: false });
           try {
-            const resp = await fetch(this.#url);
+            const resp = await fetch(url);
             if (resp.status === 404) throw new Error(resp.statusText || 'Not Found');
             this.setState({ content: await resp.text() });
           } catch (error) {

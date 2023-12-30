@@ -150,7 +150,7 @@ export function getMetadata(fullPath: string, displayRank: boolean | undefined):
     const h2s = window.document.querySelectorAll('h2');
     return {
       ...(attributes as FileMetadata),
-      title: attributes.title || h1?.textContent || getTitle(),
+      title: (attributes.title || h1?.textContent || getTitle()).match(CUSTOM_HEADING_REG)![1],
       headings: h2s.length
         ? [...h2s].map((heading) => {
             const [, text, customId] = (heading.textContent as string).match(CUSTOM_HEADING_REG) as RegExpMatchArray;
@@ -204,12 +204,15 @@ export function inspectObject(obj: any) {
   console.log(util.inspect(obj, { colors: true, depth: null }));
 }
 
-export async function getIconDataUrl(path: string) {
+export async function getIconDataUrl(filePath: string) {
+  if (filePath.endsWith('.svg')) {
+    return `data:image/svg+xml;base64,${btoa(readFileSync(path.resolve(process.cwd(), filePath), 'utf-8'))}`;
+  }
   try {
-    const image = await Jimp.read(path);
+    const image = await Jimp.read(filePath);
     return await image.clone().resize(Jimp.AUTO, 100).getBase64Async(Jimp.MIME_PNG);
   } catch (err) {
-    if (isURL(path)) return path;
+    if (isURL(filePath)) return filePath;
     throw err;
   }
 }

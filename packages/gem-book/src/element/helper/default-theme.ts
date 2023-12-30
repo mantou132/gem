@@ -3,7 +3,9 @@ export const defaultTheme = {
   codeFont:
     'Source Code Pro, ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, Liberation Mono, Courier New, monospace',
 
-  sidebarWidth: '280px',
+  sidebarWidthSmall: '270px',
+
+  sidebarWidth: '304px',
   maxMainWidth: '46rem',
   headerHeight: '56px',
   normalRound: '0.5rem',

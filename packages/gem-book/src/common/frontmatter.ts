@@ -2,6 +2,7 @@ export interface FrontMatter {
   title?: string;
   isNav?: boolean;
   navTitle?: string;
+  navOrder?: number;
   sidebarIgnore?: boolean;
 
   /** only file */

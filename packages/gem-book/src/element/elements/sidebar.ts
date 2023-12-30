@@ -141,6 +141,7 @@ export class SideBar extends GemElement {
         }
         .top-nav {
           display: flex;
+          flex-wrap: wrap;
           gap: 1em;
           margin-block-end: 2rem;
         }
@@ -160,7 +161,8 @@ export class SideBar extends GemElement {
           display: block;
           color: inherit;
           text-decoration: none;
-          line-height: 2;
+          line-height: 1.5;
+          padding: 0.25em 0;
         }
         .file:where(:state(active), [data-active]) {
           color: ${theme.primaryColor};
@@ -227,7 +229,7 @@ export class SideBar extends GemElement {
           margin-left: 1rem;
         }
         .item + .item {
-          margin-top: 0.5rem;
+          margin-top: 0.25rem;
         }
         .item + .dir-title {
           margin-top: 2rem;

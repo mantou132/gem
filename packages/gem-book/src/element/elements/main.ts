@@ -89,7 +89,7 @@ export class Main extends GemElement {
 
   #updateToc = () =>
     updateTocStore({
-      elements: [...this.shadowRoot!.querySelectorAll<HTMLHeadingElement>('.markdown-header')].slice(1),
+      elements: [...this.shadowRoot!.querySelectorAll<HTMLHeadingElement>('h2,h3')],
     });
 
   render() {
@@ -155,7 +155,7 @@ export class Main extends GemElement {
         }
         h1 {
           font-size: 3rem;
-          margin: 0 0 1.4rem;
+          margin: 0 0 3rem;
         }
         h2 {
           font-size: 2rem;
@@ -177,7 +177,7 @@ export class Main extends GemElement {
         p {
           margin: 1rem 0;
         }
-        li > p {
+        li > p:first-of-type {
           margin: 0;
         }
         .table-wrap {
@@ -304,6 +304,7 @@ export class Main extends GemElement {
           }
           h1 {
             font-size: 2.3rem;
+            margin: 0 0 1rem;
           }
         }
       </style>
