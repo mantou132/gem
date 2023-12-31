@@ -207,6 +207,8 @@ const langAliases: Record<string, string> = {
   yml: 'yaml',
 };
 
+const IGNORE_LINE = 2;
+
 /**
  * @customElement gem-book-pre
  */
@@ -218,8 +220,17 @@ export class Pre extends GemElement {
   @attribute filename: string;
   @attribute status: 'hidden' | 'active' | '';
   @boolattribute editable: boolean;
+  @boolattribute linenumber: boolean;
 
   @refobject codeRef: RefObject<HTMLElement>;
+
+  get #range() {
+    return this.range || '1-';
+  }
+
+  get #linenumber() {
+    return !!this.range || this.linenumber;
+  }
 
   constructor() {
     super();
@@ -230,15 +241,8 @@ export class Pre extends GemElement {
     });
   }
 
-  #getStartIndex(start: number, arr: any[]) {
-    return start < 0 ? arr.length + start + 1 : start;
-  }
-
-  #getEndIndex(end: number, arr: any[]) {
-    return end < 0 ? arr.length + end + 1 : end || arr.length;
-  }
-
-  #getRanges(range: string) {
+  #getRanges(range: string, lines: string[]) {
+    const len = lines.length;
     const ranges = range.split(/,\s*/);
     return ranges.map((range) => {
       // 第二位可以省略，第一位不行
@@ -249,23 +253,32 @@ export class Pre extends GemElement {
       // -2- => (-2)-max
       // 2--2 => 2-(-2)
       // -3--2 => (-3)-(-2)
-      const [start, end = start] = range.split(/(?<!-|^)-/);
-      return [parseInt(start) || 1, parseInt(end) || 0];
+      const [startStr, endStr = startStr] = range.split(/(?<!-|^)-/);
+      const [start, end] = [parseInt(startStr) || 1, parseInt(endStr) || 0];
+      // 包含首尾
+      return [start < 0 ? len + start + 1 : start, end < 0 ? len + end + 1 : end || len];
     });
   }
 
   #getParts(s: string) {
     const lines = s.split(/\n|\r\n/);
-    const parts = this.range
-      ? this.#getRanges(this.range).map(([start, end]) => {
-          let result = '';
-          for (let i = this.#getStartIndex(start, lines) - 1; i < this.#getEndIndex(end, lines); i++) {
-            result += (lines[i] || '') + '\n';
-          }
-          return result;
-        })
-      : [s];
-    return parts.join('\n...\n\n');
+    const ranges = this.#getRanges(this.#range, lines);
+    const highlightLineSet = new Set(
+      this.highlight
+        ? this.#getRanges(this.highlight, lines)
+            .map(([start, end]) => Array.from({ length: end - start + 1 }, (_, i) => start + i))
+            .flat()
+        : [],
+    );
+    const lineNumbersParts = Array.from<unknown, number[]>(ranges, () => []);
+    const parts = ranges.map(([start, end], index) => {
+      return Array.from({ length: end - start + 1 }, (_, i) => {
+        const j = start + i - 1;
+        lineNumbersParts[index].push(j + 1);
+        return lines[j];
+      }).join('\n');
+    });
+    return { parts, ranges, lineNumbersParts, highlightLineSet };
   }
 
   #composing = false;
@@ -359,12 +372,21 @@ export class Pre extends GemElement {
       const content = Prism.languages[this.codelang]
         ? Prism.highlight(this.textContent || '', Prism.languages[this.codelang], this.codelang)
         : this.innerHTML;
-      this.codeRef.element.innerHTML = this.#getParts(content);
+      const { parts, lineNumbersParts } = this.#getParts(content);
+      this.codeRef.element.innerHTML = parts.reduce(
+        (p, c, i) =>
+          p +
+          `<span class="code-ignore token comment">  @@ ${lineNumbersParts[i - 1].at(-1)! + 1}-${
+            lineNumbersParts[i].at(0)! - 1
+          } @@</span>` +
+          c,
+      );
       this.#setOffset();
     });
   }
 
   render() {
+    const { parts, lineNumbersParts, highlightLineSet } = this.#getParts(this.textContent || '');
     // Safari 精度问题所以使用整数像素单位
     const lineHeight = '24px';
     const padding = '1em';
@@ -374,9 +396,14 @@ export class Pre extends GemElement {
           display: none;
         }
         :host {
+          overflow-y: auto;
+          scrollbar-width: thin;
+          scrollbar-color: currentColor;
           position: relative;
-          display: block;
+          display: flex;
           font-size: 0.875em;
+          font-family: ${theme.codeFont};
+          line-height: ${lineHeight};
           background: rgba(${theme.textColorRGB}, 0.05);
           --comment-color: var(--code-comment-color, #6e6e6e);
           --section-color: var(--code-section-color, #c9252d);
@@ -388,32 +415,73 @@ export class Pre extends GemElement {
           --keyword-color: var(--code-keyword-color, #93219e);
           --attribute-color: var(--code-attribute-color, #4646c6);
         }
-        .gem-highlight {
-          display: block;
-          position: absolute;
-          pointer-events: none;
-          background: black;
-          opacity: 0.05;
-          width: 100%;
+        .gem-code,
+        .linenumber {
+          box-sizing: border-box;
+          min-height: 100%;
+          height: max-content;
         }
         .gem-code {
-          height: 100%;
+          overflow-x: auto;
+          scrollbar-width: thin;
+          scrollbar-color: currentColor;
+          font-family: inherit;
+          flex-grow: 1;
           box-sizing: border-box;
           display: block;
-          font-family: ${theme.codeFont};
           text-align: left;
           white-space: pre;
           tab-size: 2;
-          padding: 1em;
+          padding: ${padding};
           hyphens: none;
-          overflow: auto;
           overflow-clip-box: content-box;
           box-shadow: none;
           border: none;
           background: transparent;
-          scrollbar-width: thin;
           outline: none;
           caret-color: ${theme.textColor};
+        }
+        .linenumber {
+          display: inline-flex;
+          flex-direction: column;
+          flex-shrink: 0;
+          padding: 1em;
+          min-width: 1em;
+          text-align: right;
+          border-right: 1px solid ${theme.borderColor};
+          color: rgba(${theme.textColorRGB}, 0.5);
+          user-select: none;
+        }
+        .linenumber-ignore,
+        .code-ignore {
+          display: flex;
+          place-items: center;
+          height: calc(${IGNORE_LINE} * ${lineHeight});
+          user-select: none;
+        }
+        .code-ignore {
+          place-content: start;
+        }
+        .linenumber-ignore {
+          place-content: center;
+        }
+        .linenumber-ignore::before {
+          content: '';
+          width: 2px;
+          height: 2px;
+          background: currentColor;
+          border-radius: 1em;
+          box-shadow:
+            0 0.34em,
+            0 -0.34em;
+        }
+        .gem-highlight {
+          display: block;
+          position: absolute;
+          pointer-events: none;
+          background: rgba(${theme.textColorRGB}, 0.05);
+          width: 100%;
+          height: ${lineHeight};
         }
         .token.comment,
         .token.prolog,
@@ -490,18 +558,32 @@ export class Pre extends GemElement {
           }
         }
       </style>
-      ${this.highlight
-        ? this.#getRanges(this.highlight).map(
-            ([start, end]) => html`
-              <span
-                class="gem-highlight"
-                style=${styleMap({
-                  top: `calc(${start - 1} * ${lineHeight} + ${padding})`,
-                  height: `calc(${end - start + 1} * ${lineHeight})`,
-                })}
-              ></span>
-            `,
-          )
+      ${lineNumbersParts
+        .reduce((p, c) => p.concat(Array(IGNORE_LINE)).concat(c))
+        .map((linenumber, index) =>
+          highlightLineSet.has(linenumber)
+            ? html`
+                <span
+                  class="gem-highlight"
+                  style=${styleMap({
+                    top: `calc(${index} * ${lineHeight} + ${padding})`,
+                  })}
+                ></span>
+              `
+            : '',
+        )}
+      ${this.#linenumber
+        ? html`
+            <div class="linenumber">
+              ${lineNumbersParts.map(
+                (numbers, index, arr) => html`
+                  ${numbers.map((n) => html`<span>${n}</span>`)}${arr.length - 1 !== index
+                    ? html`<span class="linenumber-ignore"></span>`
+                    : ''}
+                `,
+              )}
+            </div>
+          `
         : ''}
       <code
         ref=${this.codeRef.ref}
@@ -510,14 +592,8 @@ export class Pre extends GemElement {
         @compositionstart=${this.#compositionstartHandle}
         @compositionend=${this.#compositionendHandle}
         @input=${this.#onInput}
-        >${this.#getParts(this.textContent || '')}</code
+        >${parts.join('\n'.repeat(IGNORE_LINE + 1))}</code
       >
-      <style>
-        code {
-          padding: ${padding};
-          line-height: ${lineHeight};
-        }
-      </style>
     `;
   }
 }

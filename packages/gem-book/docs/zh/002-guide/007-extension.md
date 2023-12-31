@@ -67,7 +67,7 @@ render('这是一个 `<gbp-sandpack>` 例子', document.getElementById('root'));
 
 [插槽](https://developer.mozilla.org/en-US/docs/Web/HTML/Global_attributes/slot)能让你自定义 `<gem-book>` 的内容，目前支持的插槽有 `sidebar-before`, `main-before`, `main-after`, `nav-inside`, `logo-after`。
 
-<gbp-raw src="docs/template.html" range="8--3"></gbp-raw>
+<gbp-raw src="docs/template.html" range="8--4"></gbp-raw>
 
 > [!NOTE]
 > 可以使用 `--template` 指定模板文件

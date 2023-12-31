@@ -38,12 +38,12 @@ yarn add gem-book
 
 用于显示远端代码，如果提供的 `src` 只包含路径，则会从当前项目的 GitHub 上读取内容（受 [`sourceDir`](./002-guide/003-cli.md#--source-dir)，[`sourceBranch`](./002-guide/003-cli.md#--source-branch) 影响），比如：
 
-<gbp-raw src="package.json" range="2-3,-6--4"><gbp-raw>
+<gbp-raw src="package.json" range="2-3,-6--4" highlight="89"><gbp-raw>
 
 ```md
 <!-- `range` 指定显示的范围，支持使用负数 -->
 
-<gbp-raw src="package.json" range="2-3,-6--4"><gbp-raw>
+<gbp-raw src="package.json" range="2-3,-6--4" highlight="89"><gbp-raw>
 ```
 
 ## `<gbp-media>`
@@ -56,17 +56,17 @@ yarn add gem-book
 
 ## `<gbp-import>`
 
-动态导入模块，这可以用来按需加载插件。
+动态导入模块，这可以用来按需加载插件，比如下面这个自定义元素是动态编译并加载的：
+
+<gbp-import src="docs/hello.ts"></gbp-import>
+
+<my-plugin-hello></my-plugin-hello>
 
 ```md
 <gbp-import src="docs/hello.ts"></gbp-import>
 
 <my-plugin-hello></my-plugin-hello>
 ```
-
-<gbp-import src="docs/hello.ts"></gbp-import>
-
-<my-plugin-hello></my-plugin-hello>
 
 ## `<gbp-docsearch>`
 

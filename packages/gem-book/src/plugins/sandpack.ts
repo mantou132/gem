@@ -91,7 +91,6 @@ customElements.whenDefined('gem-book').then(() => {
       width: 1em;
     }
     ::slotted(*) {
-      display: none;
       max-height: 70vh;
       grid-area: code;
       background: rgba(${theme.textColorRGB}, 0.03);
@@ -119,21 +118,24 @@ customElements.whenDefined('gem-book').then(() => {
       background: ${theme.backgroundColor};
       border-radius: ${theme.normalRound};
     }
-    @media (max-width: 700px) {
+    @container (max-width: 700px) {
       :host {
         grid-template: 'tabs' 'code' 'preview' / 100%;
       }
       .preview {
         padding: 0;
+        border-top: 1px solid ${theme.borderColor};
       }
       .sandbox {
+        min-height: auto;
+        height: 35vh;
         background: transparent;
       }
       .actions {
         display: none;
       }
       ::slotted(*) {
-        max-height: 60vh;
+        height: 35vh;
       }
     }
   `);
@@ -224,6 +226,7 @@ customElements.whenDefined('gem-book').then(() => {
     #parseContents = () => {
       return [...this.querySelectorAll<Pre>('gem-book-pre')].map((element) => {
         element.setAttribute('editable', '');
+        element.setAttribute('linenumber', '');
         return {
           element,
           code: element.textContent,
@@ -358,8 +361,8 @@ customElements.whenDefined('gem-book').then(() => {
       const currentFile = files.find(({ status }) => status === 'active') || files.find(({ status }) => status === '');
       const currentFileSelector =
         currentFile?.filename === this.#defaultEntryFilename
-          ? `::slotted([filename='']),::slotted([filename='${currentFile?.filename}'])`
-          : `::slotted([filename='${currentFile?.filename}'])`;
+          ? `::slotted(:not([filename=''], [filename='${currentFile?.filename}']))`
+          : `::slotted(:not([filename='${currentFile?.filename}']))`;
       return html`
         <div class="header">
           <ul class="tabs">
@@ -385,7 +388,7 @@ customElements.whenDefined('gem-book').then(() => {
         <slot></slot>
         <style>
           ${currentFileSelector} {
-            display: block;
+            display: none;
           }
         </style>
         <div class="preview">
