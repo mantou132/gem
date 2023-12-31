@@ -61,6 +61,7 @@ export const pickerStyle = createCSSSheet(css`
 `);
 
 export abstract class BasePickerElement {
+  disabled: boolean;
   showPicker: () => void;
 }
 
@@ -99,7 +100,7 @@ export interface Option<T = any> {
 @adoptedStyle(pickerStyle)
 @adoptedStyle(focusStyle)
 @connectStore(icons)
-export class DuoyunPickElement extends GemElement implements BasePickerElement {
+export class DuoyunPickerElement extends GemElement implements BasePickerElement {
   @attribute placeholder: string;
   @boolattribute disabled: boolean;
   @boolattribute borderless: boolean;
@@ -113,10 +114,9 @@ export class DuoyunPickElement extends GemElement implements BasePickerElement {
   @globalemitter change: Emitter<any>;
 
   constructor() {
-    super();
+    super({ focusable: true });
     this.addEventListener('click', this.#onOpen);
     this.addEventListener('keydown', commonHandle);
-    this.tabIndex = 0;
     this.internals.role = 'combobox';
   }
 

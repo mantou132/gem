@@ -66,7 +66,7 @@ const style = createCSSSheet(css`
 @adoptedStyle(style)
 @adoptedStyle(pickerStyle)
 @adoptedStyle(focusStyle)
-export class DuoyunDateRangePickElement extends GemElement implements BasePickerElement {
+export class DuoyunDateRangePickerElement extends GemElement implements BasePickerElement {
   @attribute placeholder: string;
   @boolattribute clearable: boolean;
   @boolattribute disabled: boolean;
@@ -78,10 +78,9 @@ export class DuoyunDateRangePickElement extends GemElement implements BasePicker
   @emitter clear: Emitter;
 
   constructor() {
-    super();
+    super({ focusable: true });
     this.addEventListener('click', this.#onOpen);
     this.addEventListener('keydown', commonHandle);
-    this.tabIndex = 0;
     this.internals.role = 'combobox';
   }
 

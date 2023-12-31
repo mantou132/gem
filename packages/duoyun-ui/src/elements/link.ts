@@ -4,6 +4,7 @@ import { GemLinkElement, GemActiveLinkElement } from '@mantou/gem/elements/base/
 
 import { commonHandle } from '../lib/hotkeys';
 import { focusStyle } from '../lib/styles';
+import { theme } from '../lib/theme';
 
 export * from '@mantou/gem/elements/base/link';
 
@@ -11,6 +12,7 @@ const style = createCSSSheet(css`
   :host {
     color: inherit;
     text-decoration: inherit;
+    border-radius: ${theme.normalRound};
   }
 `);
 

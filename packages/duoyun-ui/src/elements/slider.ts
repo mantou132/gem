@@ -128,18 +128,16 @@ export class DuoyunSliderElement extends GemElement {
   }
 
   constructor() {
-    super();
-    this.tabIndex = 0;
-    this.addEventListener('keydown', this.#onKeydown);
+    super({ focusable: true });
     this.internals.role = 'slider';
+    this.addEventListener('keydown', this.#onKeydown);
     this.effect(
       () => {
-        this.internals.ariaDisabled = String(this.disabled);
         this.internals.ariaValueText = String(this.value);
         const position = this.#getValue(clamp(this.min, this.value, this.#max)) / this.#diff;
         this.setState({ position, displayPosition: position });
       },
-      () => [this.value, this.disabled],
+      () => [this.value],
     );
   }
 

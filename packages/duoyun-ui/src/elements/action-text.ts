@@ -41,8 +41,7 @@ export class DuoyunActionTextElement extends GemElement {
   @state active: boolean;
 
   constructor() {
-    super();
-    this.tabIndex = 0;
+    super({ focusable: true });
     this.internals.role = 'button';
     this.addEventListener('keydown', commonHandle);
   }

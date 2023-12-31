@@ -80,11 +80,11 @@ export class DuoyunRadioElement extends GemElement {
     return html`
       <div
         role="radio"
-        tabindex="0"
         @keydown=${commonHandle}
-        aria-labelledby="label"
+        tabindex=${-Number(this.disabled)}
         aria-disabled=${this.disabled}
         aria-checked=${this.checked}
+        aria-labelledby="label"
         class="radio"
       ></div>
       <slot id="label"></slot>

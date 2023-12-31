@@ -388,8 +388,9 @@ export class DuoyunInputElement extends GemElement {
       ${this.clearable && (this.alwayclearable || this.value)
         ? html`
             <dy-use
-              tabindex="0"
               role="button"
+              tabindex=${-Number(this.disabled)}
+              aria-disabled=${this.disabled}
               @keydown=${commonHandle}
               @click=${this.#onClear}
               part=${DuoyunInputElement.clear}

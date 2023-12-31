@@ -101,7 +101,7 @@ export class DuoyunWaitElement extends GemElement<State> {
 
   @state modal: boolean;
 
-  constructor(state: State) {
+  constructor(state: State = {}) {
     super();
     this.state = state;
     this.internals.role = 'alert';

@@ -17,18 +17,24 @@ import { GemElement, html } from '../../lib/element';
 import { attribute, boolattribute } from '../../lib/decorators';
 import { updateStore, connect } from '../../lib/store';
 import { titleStore } from '../../lib/history';
+import { addMicrotask } from '../../lib/utils';
 
 const defaultTitle = document.title;
+
+let documentTitle = '';
+const setTitle = () => (document.title = documentTitle);
 
 function setDocumentTitle(str?: string | null, prefix = '', suffix = '') {
   const title = titleStore.title || str;
   if (title && title !== defaultTitle) {
     GemTitleElement.title = title;
-    document.title = prefix + GemTitleElement.title + suffix;
+    documentTitle = prefix + GemTitleElement.title + suffix;
   } else {
     GemTitleElement.title = defaultTitle;
-    document.title = GemTitleElement.title;
+    documentTitle = GemTitleElement.title;
   }
+  // 避免重定向时的中间状态
+  addMicrotask(setTitle);
 }
 
 connect(titleStore, setDocumentTitle);

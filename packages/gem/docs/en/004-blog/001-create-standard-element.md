@@ -205,23 +205,27 @@ When users use custom elements, they can use the `role`,`aria-*` attributes to s
 html`<my-element role="region" aria-label="my profile"></my-element>`;
 ```
 
-Use [`ElementInternals`](https://html.spec.whatwg.org/multipage/custom-elements.html#elementinternals) to define the default semantics of custom elements, use [`delegatesFocus`](https://developer.mozilla.org/en-US/docs/Web/API/Element/attachShadow#delegatesfocus) or `tabIndex` focus:
+Use [`ElementInternals`](https://html.spec.whatwg.org/multipage/custom-elements.html#elementinternals) to define the default semantics of custom elements, use [`delegatesFocus`](https://developer.mozilla.org/en-US/docs/Web/API/Element/attachShadow#delegatesfocus) or `focusable` focus:
 
 ```ts
 @customElement('my-element')
 class MyElement extends GemElement {
+  @boolattribute disabled: boolean;
   constructor() {
+    // or super({ focusable: true });
     super({ delegatesFocus: true });
     this.internals.role = 'region';
     this.internals.ariaLabel = 'my profile';
   }
   render() {
-    return html`<div tabindex="0">Focusable</div>`;
+    return html`<div tabindex=${-Number(this.disabled)}>Focusable</div>`;
   }
 }
 ```
 
-Resources:
+> [!NOTE] `delegatesFocus` or `focusable` elements with the `disabled` attribute will not trigger the `click` event just like [native elements](https://github.com/whatwg/html/issues/5886).
+>
+> Resources:
 
 - https://w3c.github.io/html-aria
 - https://w3c.github.io/using-aria/

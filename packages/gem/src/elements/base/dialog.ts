@@ -23,7 +23,10 @@ export abstract class GemDialogBaseElement extends GemElement {
 
   constructor() {
     super();
-    this.inert = true;
+    this.effect(
+      () => (this.inert = true),
+      () => [],
+    );
     this.internals.role = 'dialog';
     this.internals.ariaModal = 'true';
   }

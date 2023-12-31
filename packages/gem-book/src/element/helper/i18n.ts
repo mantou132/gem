@@ -18,4 +18,6 @@ export const Resources = {
 export const selfI18n = new I18n<typeof Resources.en>({
   fallbackLanguage: 'en',
   resources: Resources,
+  // 默认是自动识别，如果不是多语言版本使用 `--template` 模版指定语言
+  currentLanguage: document.documentElement.lang,
 });

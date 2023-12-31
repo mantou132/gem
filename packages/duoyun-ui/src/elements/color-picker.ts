@@ -56,7 +56,7 @@ const style = createCSSSheet(css`
 @customElement('dy-color-picker')
 @adoptedStyle(style)
 @adoptedStyle(focusStyle)
-export class DuoyunColorPickElement extends GemElement implements BasePickerElement {
+export class DuoyunColorPickerElement extends GemElement implements BasePickerElement {
   @attribute value: HexColor;
   @boolattribute alpha: boolean;
   @refobject popoverRef: RefObject<DuoyunPopoverElement>;
@@ -85,7 +85,8 @@ export class DuoyunColorPickElement extends GemElement implements BasePickerElem
       >
         <div
           role="combobox"
-          tabindex="0"
+          tabindex=${-Number(this.disabled)}
+          aria-disabled=${this.disabled}
           @keydown=${commonHandle}
           class="picker"
           style=${styleMap({ backgroundColor: this.value })}

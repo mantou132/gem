@@ -116,7 +116,8 @@ export class DuoyunRateElement extends GemElement {
               fill: this.value >= this.#total - index,
               mask: this.value < this.#total - index && this.value > this.#total - 1 - index,
             })}
-            tabindex="0"
+            tabindex=${-Number(this.disabled)}
+            aria-disabled=${this.disabled}
             @keydown=${commonHandle}
             @click=${() => this.#onClick(this.#total - index)}
             .element=${icons.star}

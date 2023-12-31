@@ -17,6 +17,7 @@ class GemElement<State> extends HTMLElement {
 | ---------------- | ------------------------------------ |
 | `isLight`        | 是否渲染成 Light DOM                 |
 | `isAsync`        | 是否使用非阻塞渲染模式               |
+| `focusable`      | 使用 `tabIndex` 让元素可聚焦         |
 | `delegatesFocus` | 当元素尝试聚焦时自动代理到可聚焦部分 |
 | `slotAssignment` | 允许手动分配插槽                     |
 

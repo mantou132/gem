@@ -13,6 +13,7 @@ import {
   kebabToCamelCase,
   PropProxyMap,
   removeItems,
+  addListener,
 } from './utils';
 import * as GemExports from './element';
 import * as VersionExports from './version';
@@ -75,12 +76,10 @@ const constructorSymbol = Symbol('constructor');
 const initSymbol = Symbol('init');
 const updateSymbol = Symbol('update');
 
-export interface GemElementOptions {
+export interface GemElementOptions extends Partial<ShadowRootInit> {
   isLight?: boolean;
   isAsync?: boolean;
-  // https://developer.mozilla.org/en-US/docs/Web/API/Element/attachShadow#options
-  delegatesFocus?: boolean;
-  slotAssignment?: 'named' | 'manual';
+  focusable?: boolean;
 }
 
 export abstract class GemElement<T = Record<string, unknown>> extends HTMLElement {
@@ -117,7 +116,7 @@ export abstract class GemElement<T = Record<string, unknown>> extends HTMLElemen
   #memoList?: EffectItem<any>[];
   #unmountCallback?: any;
 
-  constructor({ isAsync, isLight, delegatesFocus, slotAssignment }: GemElementOptions = {}) {
+  constructor(options: GemElementOptions = {}) {
     super();
 
     // 外部不可见，但允许类外面使用
@@ -130,8 +129,37 @@ export abstract class GemElement<T = Record<string, unknown>> extends HTMLElemen
       }
     });
 
-    this.#isAsync = isAsync;
-    this.#renderRoot = isLight ? this : this.attachShadow({ mode: 'open', delegatesFocus, slotAssignment });
+    this.#isAsync = options.isAsync;
+    this.#renderRoot = options.isLight
+      ? this
+      : this.attachShadow({
+          mode: options.mode || 'open',
+          delegatesFocus: options.delegatesFocus,
+          slotAssignment: options.slotAssignment,
+        });
+
+    // https://stackoverflow.com/questions/43836886/failed-to-construct-customelement-error-when-javascript-file-is-placed-in-head
+    // focusable 元素一般同时具备 disabled 属性
+    // 和原生元素行为保持一致，disabled 时不触发 click 事件
+    let hasInitTabIndex: boolean | undefined;
+    this.effect(
+      ([disabled = false]) => {
+        if (hasInitTabIndex === undefined) hasInitTabIndex = this.hasAttribute('tabindex');
+
+        this.internals.ariaDisabled = String(disabled);
+
+        if (options.focusable && !hasInitTabIndex) {
+          this.tabIndex = -Number(disabled);
+        }
+
+        if ((options.focusable || options.delegatesFocus) && disabled) {
+          return addListener(this, 'click', (e: Event) => e.isTrusted && e.stopImmediatePropagation(), {
+            capture: true,
+          });
+        }
+      },
+      () => [Reflect.get(this, 'disabled')],
+    );
 
     const { adoptedStyleSheets } = new.target;
     if (adoptedStyleSheets) {
@@ -555,9 +583,7 @@ export function defineRef(target: GemElement, prop: string, ref: string) {
             return ref;
           },
           get element() {
-            const gemReflects = ([...ele.querySelectorAll('[data-gem-reflect]')] as GemReflectElement[]).map(
-              (e) => e.target,
-            );
+            const gemReflects = [...ele.querySelectorAll<GemReflectElement>('[data-gem-reflect]')].map((e) => e.target);
             for (const e of [ele, ...gemReflects]) {
               const result = e.querySelector(`[ref=${ref}]`);
               if (result) return result;

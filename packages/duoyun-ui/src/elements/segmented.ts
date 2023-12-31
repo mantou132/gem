@@ -148,7 +148,8 @@ export class DuoyunSegmentedElement extends GemElement {
         return html`
           <div
             role="radio"
-            tabindex="0"
+            tabindex=${-Number(this.disabled)}
+            aria-disabled=${this.disabled}
             style=${styleMap({ anchorName: getAnchorName(index) })}
             class=${classMap({ segment: true, current: index === currentIndex })}
             part=${partMap({

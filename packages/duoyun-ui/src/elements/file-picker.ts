@@ -120,7 +120,7 @@ export interface FileItem extends File {
 @customElement('dy-file-picker')
 @adoptedStyle(style)
 @adoptedStyle(focusStyle)
-export class DuoyunFilePickElement extends GemElement implements BasePickerElement {
+export class DuoyunFilePickerElement extends GemElement implements BasePickerElement {
   @part static button: string;
   @part static item: string;
 
@@ -131,6 +131,7 @@ export class DuoyunFilePickElement extends GemElement implements BasePickerEleme
   /**@deprecated Use children*/
   @attribute placeholder: string;
   @boolattribute directory: boolean;
+  @boolattribute disabled: boolean;
   @boolattribute multiple: boolean;
   @globalemitter change: Emitter<FileItem[]>;
   @refobject inputRef: RefObject<HTMLInputElement>;
@@ -173,13 +174,14 @@ export class DuoyunFilePickElement extends GemElement implements BasePickerEleme
       }
     };
     return html`
-      <div role="listitem" class="item" part=${DuoyunFilePickElement.item} style=${styleMap({ color: getColor() })}>
+      <div role="listitem" class="item" part=${DuoyunFilePickerElement.item} style=${styleMap({ color: getColor() })}>
         <div class="name">${name}</div>
         ${progress ? html`<div role="progressbar">${Math.floor(progress)}%</div>` : ''}
         <slot name=${utf8ToB64(name, true)}></slot>
         <dy-use
           role="button"
-          tabindex="0"
+          tabindex=${-Number(this.disabled)}
+          aria-disabled=${this.disabled}
           @keydown=${commonHandle}
           class="icon"
           .element=${icons.delete}
@@ -204,7 +206,7 @@ export class DuoyunFilePickElement extends GemElement implements BasePickerEleme
       <dy-image-preview
         role="listitem"
         class="item"
-        part=${DuoyunFilePickElement.item}
+        part=${DuoyunFilePickerElement.item}
         .status=${getStatus()}
         .progress=${item.progress || 0}
         .file=${item}
@@ -221,15 +223,17 @@ export class DuoyunFilePickElement extends GemElement implements BasePickerEleme
         hidden
         type="file"
         ?multiple=${this.multiple}
+        ?disabled=${this.disabled}
         ref=${this.inputRef.ref}
         @change=${this.#onChange}
         .webkitdirectory=${this.directory}
         accept=${this.#accept}>
       </input>
       <div
-        tabindex="0"
         role="button"
-        part=${DuoyunFilePickElement.button}
+        tabindex=${-Number(this.disabled)}
+        aria-disabled=${this.disabled}
+        part=${DuoyunFilePickerElement.button}
         class="item button"
         @keydown=${commonHandle}
         @click=${() => this.showPicker()}>

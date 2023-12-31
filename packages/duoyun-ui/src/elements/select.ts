@@ -173,8 +173,7 @@ export class DuoyunSelectElement extends GemElement<State> implements BasePicker
   }
 
   constructor() {
-    super();
-    this.tabIndex = 0;
+    super({ focusable: true });
     this.effect(() => {
       this.internals.role = this.inline ? null : 'combobox';
       this.internals.ariaExpanded = String(this.state.open);

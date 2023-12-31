@@ -113,10 +113,10 @@ const style = createCSSSheet(css`
 @customElement('dy-contextmenu')
 @connectStore(contextmenuStore)
 @adoptedStyle(style)
-export class DuoyunContextMenuElement extends GemElement {
+export class DuoyunContextmenuElement extends GemElement {
   @refobject optionsRef: RefObject<DuoyunOptionsElement>;
 
-  static instance?: DuoyunContextMenuElement;
+  static instance?: DuoyunContextmenuElement;
 
   static async open(contextmenu: Menu, options: ContextMenuOptions = {}) {
     const {
@@ -365,4 +365,4 @@ export class DuoyunContextMenuElement extends GemElement {
   };
 }
 
-export const ContextMenu = DuoyunContextMenuElement;
+export const ContextMenu = DuoyunContextmenuElement;

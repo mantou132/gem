@@ -89,12 +89,12 @@ export class DuoyunCheckboxElement extends GemElement {
     return html`
       <dy-use
         role="checkbox"
-        tabindex="0"
-        @keydown=${commonHandle}
+        tabindex=${-Number(this.disabled)}
         aria-disabled=${this.disabled}
         aria-labelledby="label"
         aria-checked=${this.indeterminate ? 'mixed' : this.checked}
         class="checkbox"
+        @keydown=${commonHandle}
         .element=${this.checked ? icons.check : undefined}
       ></dy-use>
       <slot id="label"></slot>

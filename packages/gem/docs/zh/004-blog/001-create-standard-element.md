@@ -205,21 +205,25 @@ html`<my-element hidden>My content</my-element>`;
 html`<my-element role="region" aria-label="my profile"></my-element>`;
 ```
 
-使用 [`ElementInternals`](https://html.spec.whatwg.org/multipage/custom-elements.html#elementinternals) 可以定义自定义元素的默认语义，用 [`delegatesFocus`](https://developer.mozilla.org/en-US/docs/Web/API/Element/attachShadow#delegatesfocus) 或者 `tabIndex` 处理聚焦：
+使用 [`ElementInternals`](https://html.spec.whatwg.org/multipage/custom-elements.html#elementinternals) 可以定义自定义元素的默认语义，用 [`delegatesFocus`](https://developer.mozilla.org/en-US/docs/Web/API/Element/attachShadow#delegatesfocus) 或者 `focusable` 处理聚焦：
 
 ```ts
 @customElement('my-element')
 class MyElement extends GemElement {
+  @boolattribute disabled: boolean;
   constructor() {
+    // or super({ focusable: true });
     super({ delegatesFocus: true });
     this.internals.role = 'region';
     this.internals.ariaLabel = 'my profile';
   }
   render() {
-    return html`<div tabindex="0">Focusable</div>`;
+    return html`<div tabindex=${-Number(this.disabled)}>Focusable</div>`;
   }
 }
 ```
+
+> [!NOTE] `delegatesFocus` 或者 `focusable` 元素当有 `disabled` 属性时会像[原生元素](https://github.com/whatwg/html/issues/5886)一样不会触发 `click` 事件
 
 资源：
 

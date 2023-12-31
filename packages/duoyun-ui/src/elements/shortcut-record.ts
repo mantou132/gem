@@ -111,17 +111,9 @@ export class DuoyunShortcutRecordElement extends GemElement {
   }
 
   constructor() {
-    super();
+    super({ focusable: true });
     this.internals.role = 'input';
     this.addEventListener('keydown', this.#onKeydown);
-    this.effect(() => {
-      if (this.disabled) {
-        this.removeAttribute('tabindex');
-      } else {
-        this.tabIndex = 0;
-      }
-      this.internals.ariaDisabled = String(this.disabled);
-    });
   }
 
   #onKeydown = (evt: KeyboardEvent) => {

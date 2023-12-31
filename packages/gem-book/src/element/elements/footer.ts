@@ -1,5 +1,4 @@
 import { html, GemElement, customElement, connectStore, css } from '@mantou/gem';
-import { mediaQuery } from '@mantou/gem/helper/mediaquery';
 
 import { selfI18n } from '../helper/i18n';
 import { theme } from '../helper/theme';

@@ -101,9 +101,9 @@ export class DuoyunSwitchElement extends GemElement {
       </style>
       <div
         class="switch"
-        role="switch"
-        tabindex="0"
         @keydown=${commonHandle}
+        role="switch"
+        tabindex=${-Number(this.disabled)}
         aria-disabled=${this.disabled}
         aria-labelledby="label"
         aria-checked=${this.checked}

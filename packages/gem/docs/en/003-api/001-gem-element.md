@@ -17,6 +17,7 @@ class GemElement<State> extends HTMLElement {
 | ---------------- | ------------------------------------------------------------------------- |
 | `isLight`        | Whether to render as Light DOM                                            |
 | `isAsync`        | Whether to use non-blocking rendering mode                                |
+| `focusable`      | Make elements focusable using `tabIndex`                                  |
 | `delegatesFocus` | When the element attempts to focus, the automatic proxy to the focus part |
 | `slotAssignment` | Allow manual allocation of slot                                           |
 

@@ -2,7 +2,10 @@
 // @ts-nocheck
 if (typeof window === 'undefined') {
   const getAny = () => {
-    const anonymous = () => getAny();
+    // constructable
+    function anonymous() {
+      return getAny();
+    }
     Object.defineProperties(anonymous, {
       length: { writable: true },
       name: { writable: true },
@@ -16,14 +19,21 @@ if (typeof window === 'undefined') {
   };
   const any = getAny();
 
+  globalThis.window = globalThis;
+  globalThis.location = new URL('about:blank');
+  globalThis.HTMLElement = null;
+
   globalThis.document = any;
   globalThis.addEventListener = any;
   globalThis.history = any;
   globalThis.navigator = any;
   globalThis.customElements = any;
-  globalThis.HTMLElement = null;
-  globalThis.location = new URL('about:blank');
-  globalThis.window = globalThis;
+
+  // duoyun-ui
+  globalThis.CSSStyleSheet = any;
+  globalThis.Document = any;
+  globalThis.Element = any;
+  globalThis.MutationObserver = any;
 }
 
 export {};

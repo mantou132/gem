@@ -208,8 +208,8 @@ export class DuoyunButtonElement extends GemElement {
         }
       </style>
       <div
-        tabindex="0"
         role="button"
+        tabindex=${-Number(this.disabled)}
         aria-disabled=${this.disabled}
         @keydown=${commonHandle}
         class="content"
@@ -234,9 +234,9 @@ export class DuoyunButtonElement extends GemElement {
               ref=${this.dropdownRef.ref}
               class="dropdown"
               part=${DuoyunButtonElement.dropdown}
-              tabindex="0"
               @keydown=${commonHandle}
               role="button"
+              tabindex=${-Number(this.disabled)}
               aria-disabled=${this.disabled}
               @click=${this.#onClickDropdown}
               .element=${icons.expand}

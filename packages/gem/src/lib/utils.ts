@@ -40,6 +40,16 @@ export function absoluteLocation(currentPath = '', relativePath = '') {
 // eslint-disable-next-line @typescript-eslint/ban-types
 export type NonPrimitive = object;
 
+export function addListener<T extends EventTarget, A extends Parameters<T['addEventListener']>>(
+  target: T,
+  type: A[0],
+  listener: A[1],
+  options?: A[2],
+) {
+  target.addEventListener(type, listener, options);
+  return () => target.removeEventListener(type, listener, options);
+}
+
 interface LinkedListEventMap {
   start: Event;
   end: Event;
@@ -49,7 +59,7 @@ export interface LinkedListItem<T> {
   prev?: LinkedListItem<T>;
   next?: LinkedListItem<T>;
 }
-// work on nodejs
+
 export class LinkedList<T = any> extends EventTarget {
   declare addEventListener: <K extends keyof LinkedListEventMap>(
     type: K,

@@ -27,7 +27,7 @@ const style = createCSSSheet(css`
 @customElement('dy-drawer')
 @adoptedStyle(style)
 export class DuoyunDrawerElement extends DuoyunModalElement {
-  constructor(options: ModalOptions) {
+  constructor(options: ModalOptions = {}) {
     super(options);
     this.addEventListener('maskclick', () => this.close(null));
     this.openAnimation = slideInLeft;

@@ -111,8 +111,7 @@ class _DuoyunTreeItemElement extends GemElement {
   @state active: boolean;
 
   constructor() {
-    super();
-    this.tabIndex = 0;
+    super({ focusable: true });
     this.internals.role = 'treeitem';
   }
 

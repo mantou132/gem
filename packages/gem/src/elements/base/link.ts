@@ -50,8 +50,7 @@ export class GemLinkElement extends GemElement {
   }
 
   constructor() {
-    super();
-    this.tabIndex = 0;
+    super({ focusable: true });
     this.addEventListener('click', this.#onClick);
   }
 

@@ -164,8 +164,7 @@ export class DuoyunOptionsElement extends GemElement<State> {
   };
 
   constructor() {
-    super();
-    this.tabIndex = 0;
+    super({ focusable: true });
     this.internals.role = 'listbox';
   }
 
