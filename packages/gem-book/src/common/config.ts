@@ -31,6 +31,7 @@ export type BookConfig = {
   sidebar: SidebarConfig;
   // navbar icon absolute path
   icon?: string;
+  onlyFile?: boolean;
 } & CommonConfig;
 
 export interface CliUniqueConfig {
@@ -44,7 +45,6 @@ export interface CliUniqueConfig {
   theme?: string;
   build?: boolean;
   json?: boolean;
-  onlyFile?: boolean;
   debug?: boolean;
 }
 

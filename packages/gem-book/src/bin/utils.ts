@@ -129,12 +129,7 @@ export function getHash(fullPath: string) {
   return hash.digest('hex').substring(0, 8);
 }
 
-type FileMetadata = FrontMatter & {
-  title: string;
-  headings?: NavItem[];
-};
-
-export function getMetadata(fullPath: string, displayRank: boolean | undefined): FileMetadata {
+export function getMetadata(fullPath: string, displayRank: boolean | undefined) {
   const getTitle = () => {
     const basename = path.basename(fullPath);
     if (isIndexFile(basename)) return '';
@@ -143,24 +138,13 @@ export function getMetadata(fullPath: string, displayRank: boolean | undefined):
   };
   const parseMd = (fullPath: string) => {
     const md = readFileSync(fullPath, 'utf8');
-    const { attributes, body } = fm<FileMetadata>(md);
+    const { attributes, body } = fm<FrontMatter>(md);
     const html = marked(body);
     const { window } = new JSDOM(html);
     const h1 = window.document.querySelector('h1');
-    const h2s = window.document.querySelectorAll('h2');
     return {
-      ...(attributes as FileMetadata),
+      ...(attributes as FrontMatter),
       title: (attributes.title || h1?.textContent || getTitle()).match(CUSTOM_HEADING_REG)![1],
-      headings: h2s.length
-        ? [...h2s].map((heading) => {
-            const [, text, customId] = (heading.textContent as string).match(CUSTOM_HEADING_REG) as RegExpMatchArray;
-            return {
-              title: text,
-              link: `#${normalizeId(customId || text)}`,
-              type: 'heading',
-            } as NavItem;
-          })
-        : undefined,
     };
   };
 

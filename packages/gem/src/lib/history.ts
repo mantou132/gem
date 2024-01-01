@@ -72,7 +72,7 @@ function normalizeParams(params: UpdateHistoryParams): HistoryParams {
   const title = params.title || (pathChanged ? '' : document.title);
   const statusChanged = params.close || params.data || params.open || params.shouldClose;
   // 没提供 hash 又没有改变 URL 又不是状态更新时使用当前 hash
-  const hash = params.hash || (!pathChanged && statusChanged ? decodeURIComponent(location.hash) : '');
+  const hash = decodeURIComponent(params.hash ? params.hash : !pathChanged && statusChanged ? location.hash : '');
   return { ...params, title, path, query, hash };
 }
 
@@ -190,7 +190,7 @@ if (!window._GEMHISTORY) {
   // 点击 `<a>`
   window.addEventListener('hashchange', ({ isTrusted }) => {
     if (isTrusted) {
-      gemHistory.replace({ hash: decodeURIComponent(location.hash) });
+      gemHistory.replace({ hash: location.hash });
     }
   });
 
@@ -254,7 +254,7 @@ if (!window._GEMHISTORY) {
       paramsMap.set(newState.$key, {
         path: pathname,
         query: new QueryString(search),
-        hash,
+        hash: encodeURIComponent(hash),
         title: newState.$title, // document.title 是导航前的
         data: newState,
       });

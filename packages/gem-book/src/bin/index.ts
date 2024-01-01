@@ -55,7 +55,6 @@ const cliConfig: Required<CliUniqueConfig> = {
   build: false,
   json: false,
   debug: false,
-  onlyFile: false,
 };
 
 function readConfig(configPath: string) {
@@ -105,7 +104,7 @@ function readFiles(filenames: string[], dir: string, link: string, config?: Fron
           if (cliConfig.debug) {
             checkRelativeLink(fullPath, docsRootDir);
           }
-          const { title, headings, isNav, navTitle, navOrder, sidebarIgnore, hero, features, redirect } = getMetadata(
+          const { title, isNav, navTitle, navOrder, sidebarIgnore, hero, features, redirect } = getMetadata(
             fullPath,
             bookConfig.displayRank,
           );
@@ -114,7 +113,6 @@ function readFiles(filenames: string[], dir: string, link: string, config?: Fron
             type: 'file',
             link: `${link}${filename}`,
             hash: getHash(fullPath),
-            children: cliConfig.onlyFile ? undefined : headings,
             isNav,
             navTitle,
             sidebarIgnore,
@@ -308,7 +306,7 @@ program
     cliConfig.json = true;
   })
   .option('--only-file', 'not include heading navigation', () => {
-    cliConfig.debug = true;
+    bookConfig.onlyFile = true;
   })
   .option('--debug', 'enabled debug mode', () => {
     cliConfig.debug = true;

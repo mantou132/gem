@@ -4,8 +4,8 @@ import { theme, themeStore } from '../helper/theme';
 
 import '@mantou/gem/elements/link';
 
-export const [tocStore, updateTocStore] = useStore<{ elements: HTMLHeadingElement[] }>({
-  elements: [],
+export const [tocStore, updateTocStore] = useStore({
+  elements: [] as HTMLHeadingElement[],
 });
 
 type State = {

@@ -95,11 +95,16 @@ export class GemLinkElement extends GemElement {
       history.pushIgnoreCloseHandle({
         path: pathname,
         query: search,
-        hash: hash,
+        hash,
         title: this.docTitle,
       });
     } else {
-      history.pushIgnoreCloseHandle({ path: this.path, query: this.query, hash: this.hash, title: this.docTitle });
+      history.pushIgnoreCloseHandle({
+        path: this.path,
+        query: this.query,
+        hash: this.hash,
+        title: this.docTitle,
+      });
     }
   };
 

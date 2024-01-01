@@ -32,9 +32,10 @@ export function addMicrotaskToStack(func: () => void) {
   microtaskStack.push(func);
 }
 
+// 不编码 hash 用于比较
 export function absoluteLocation(currentPath = '', relativePath = '') {
   const { pathname, search, hash } = new URL(relativePath, location.origin + currentPath);
-  return pathname + search + hash;
+  return pathname + search + decodeURIComponent(hash);
 }
 
 // eslint-disable-next-line @typescript-eslint/ban-types

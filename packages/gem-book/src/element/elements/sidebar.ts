@@ -10,6 +10,7 @@ import {
   useStore,
   refobject,
   RefObject,
+  history,
 } from '@mantou/gem';
 import { mediaQuery } from '@mantou/gem/helper/mediaquery';
 
@@ -20,6 +21,7 @@ import { bookStore, locationStore } from '../store';
 import { GemBookElement } from '..';
 
 import { icons } from './icons';
+import { tocStore } from './toc';
 
 import '@mantou/gem/elements/link';
 import '@mantou/gem/elements/use';
@@ -31,6 +33,7 @@ export const [sidebarStore, updateSidebarStore] = useStore({ open: false });
 @customElement('gem-book-sidebar')
 @connectStore(bookStore)
 @connectStore(sidebarStore)
+@connectStore(tocStore)
 export class SideBar extends GemElement {
   @refobject navRef: RefObject<HTMLElement>;
 
@@ -60,8 +63,9 @@ export class SideBar extends GemElement {
     { type = 'file', link, title, children, sidebarIgnore }: NavItem,
     isTop = false,
   ): TemplateResult | null => {
+    const { path } = history.getParams();
     const { homePage, config } = bookStore;
-    const homeMode = config?.homeMode;
+    const { homeMode, onlyFile } = config || {};
     if (sidebarIgnore || (homeMode && homePage === link)) {
       return html`<!-- No need to render homepage item -->`;
     }
@@ -82,23 +86,29 @@ export class SideBar extends GemElement {
         return html`
           <gem-book-side-link
             class=${classMap({ item: true, link: true, single: isTop, [type]: true })}
-            pattern=${children ? new URL(link, location.origin).pathname : link}
+            pattern=${link}
             href=${link}
           >
             ${title ? capitalize(title) : 'No title'}
           </gem-book-side-link>
-          ${children
-            ? html`<div class="links item hash">${children.map((item) => this.#renderItem(item))}</div>`
+          ${!onlyFile && path === link
+            ? html`<div class="links item hash">
+                ${tocStore.elements
+                  .filter((e) => e.tagName === 'H2')
+                  .map((h) =>
+                    this.#renderItem({
+                      type: 'heading',
+                      title: h.textContent || '',
+                      link: `#${h.id}`,
+                    }),
+                  )}
+              </div>`
             : null}
         `;
       }
       case 'heading': {
         return html`
-          <gem-book-side-link
-            class=${classMap({ item: true, link: true, single: isTop, [type]: true })}
-            hash=${link}
-            href=${link}
-          >
+          <gem-book-side-link class=${classMap({ item: true, link: true, single: isTop, [type]: true })} hash=${link}>
             # ${title ? capitalize(title) : 'No title'}
           </gem-book-side-link>
         `;
