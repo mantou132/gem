@@ -5,9 +5,8 @@ import { I18n } from '@mantou/gem/helper/i18n';
 import { BookConfig, NavItem } from '../common/config';
 
 import { selfI18n } from './helper/i18n';
-import { getLinkPath, getUserLink, NavItemWithLink, flatNav, capitalize } from './lib/utils';
+import { getLinkPath, getUserLink, NavItemWithLink, flatNav, capitalize, getURL } from './lib/utils';
 import { getRenderer } from './lib/renderer';
-import { fetchDocument } from './lib/fetch';
 
 import { GemBookElement } from '.';
 
@@ -34,35 +33,34 @@ interface CurrentBookConfig {
 
 export const [bookStore, updateBookStore] = useStore<Partial<CurrentBookConfig>>({});
 
-function getI18nSidebar(config: BookConfig | undefined) {
+function getI18nSidebar(config: BookConfig = {}) {
   let sidebar: NavItem[] = [];
   let lang = '';
   let langList: { code: string; name: string }[] = [];
   let languagechangeHandle = (_lang: string) => {
     //
   };
-  if (config) {
-    if (config.sidebar instanceof Array) {
-      sidebar = config.sidebar;
-    } else {
-      const sidebarConfig = config.sidebar;
-      langList = Object.keys(config.sidebar).map((code) => ({ code, name: sidebarConfig[code].name }));
-      const fallbackLanguage = langList[0].code;
-      // detect language
-      const i18n = new I18n<any>({ fallbackLanguage, resources: sidebarConfig, cache: true, urlParamsType: 'path' });
-      lang = i18n.currentLanguage;
+
+  const sidebarConfig = config.sidebar || [];
+  if (sidebarConfig instanceof Array) {
+    sidebar = sidebarConfig;
+  } else {
+    langList = Object.keys(sidebarConfig).map((code) => ({ code, name: sidebarConfig[code].name }));
+    const fallbackLanguage = langList[0].code;
+    // detect language
+    const i18n = new I18n<any>({ fallbackLanguage, resources: sidebarConfig, cache: true, urlParamsType: 'path' });
+    lang = i18n.currentLanguage;
+    history.basePath = `/${lang}`;
+    sidebar = sidebarConfig[lang].data;
+    languagechangeHandle = async (lang: string) => {
+      const { path, query, hash } = history.getParams();
+      // will modify `history.getParams()`
       history.basePath = `/${lang}`;
-      sidebar = sidebarConfig[lang].data;
-      languagechangeHandle = async (lang: string) => {
-        const { path, query, hash } = history.getParams();
-        // will modify `history.getParams()`
-        history.basePath = `/${lang}`;
-        await i18n.setLanguage(lang);
-        // Use custom anchors id to ensure that the hash is correct after i18n switching
-        history.replace({ path, query, hash });
-        updateBookConfig(bookStore.config);
-      };
-    }
+      await i18n.setLanguage(lang);
+      // Use custom anchors id to ensure that the hash is correct after i18n switching
+      history.replace({ path, query, hash });
+      updateBookConfig(bookStore.config);
+    };
   }
 
   if (lang) {
@@ -154,9 +152,9 @@ function getLinkRouters(links: NavItemWithLink[], title: string, lang: string, d
       pattern: link,
       async getContent() {
         const renderer = getRenderer({ lang, link: originLink, displayRank });
-        const content = await fetchDocument(originLink, lang, hash);
+        const content = await (await fetch(getURL(originLink, lang, hash))).text();
         if (bookStore.isDevMode?.()) await new Promise((res) => setTimeout(res, 500));
-        return html`<gem-book-main role="article" .renderer=${renderer} .content=${content}></gem-book-main>`;
+        return html`<gem-book-main role="article" .renderer=${renderer as any} .content=${content}></gem-book-main>`;
       },
       data: item,
     });

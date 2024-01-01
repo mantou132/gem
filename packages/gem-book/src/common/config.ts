@@ -27,15 +27,14 @@ interface CommonConfig {
 }
 
 export type BookConfig = {
-  redirects: Record<string, string>;
-  sidebar: SidebarConfig;
+  redirects?: Record<string, string>;
+  sidebar?: SidebarConfig;
   // navbar icon absolute path
   icon?: string;
   onlyFile?: boolean;
 } & CommonConfig;
 
 export interface CliUniqueConfig {
-  // relative path
   icon?: string;
   output?: string;
   i18n?: boolean;
@@ -46,6 +45,7 @@ export interface CliUniqueConfig {
   build?: boolean;
   json?: boolean;
   debug?: boolean;
+  config?: string;
 }
 
 export type CliConfig = CliUniqueConfig & CommonConfig;

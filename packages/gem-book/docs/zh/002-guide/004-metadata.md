@@ -7,6 +7,7 @@
 title: 侧边栏标题
 isNav: true
 navTitle: 导航栏标题
+navOrder: 2 # 导航栏位置
 sidebarIgnore: true
 ---
 
@@ -32,7 +33,7 @@ redirect: ./new.md
 > [!WARNING]
 > 不支持为文件夹指定重定向
 
-## 文件夹配置
+## 文件夹配置 {#dir}
 
 文件夹有时候也需要指定名称（例如[多语言情况下的标题](./002-i18n.md)）和在侧边栏/导航栏中的显示方式，可以在该文件夹中添加 `config.yml` 来完成，例如：
 

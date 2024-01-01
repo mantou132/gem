@@ -41,7 +41,13 @@ features:
 <gbp-sandpack dependencies="@mantou/gem, duoyun-ui">
 
 ```ts
-import { customElement, GemElement, html, render, connectStore } from '@mantou/gem';
+import {
+  customElement,
+  GemElement,
+  html,
+  render,
+  connectStore,
+} from '@mantou/gem';
 
 import { todoData, addItem } from './store';
 
@@ -72,8 +78,14 @@ export class AppRootElement extends GemElement {
       <todo-list></todo-list>
       <dy-heading lv="3">What needs to be done?</dy-heading>
       <dy-input-group>
-        <dy-input id="new-todo" @change=${this.#onChange} .value=${this.state.input}></dy-input>
-        <dy-button @click=${this.#onSubmit}>Add #${todoData.items.length + 1}</dy-button>
+        <dy-input
+          id="new-todo"
+          @change=${this.#onChange}
+          .value=${this.state.input}
+        ></dy-input>
+        <dy-button @click=${this.#onSubmit}
+          >Add #${todoData.items.length + 1}</dy-button
+        >
       </dy-input-group>
     `;
   };
@@ -81,7 +93,16 @@ export class AppRootElement extends GemElement {
 ```
 
 ```ts todo-list.ts
-import { customElement, GemElement, html, render, connectStore, css, createCSSSheet, adoptedStyle } from '@mantou/gem';
+import {
+  customElement,
+  GemElement,
+  html,
+  render,
+  connectStore,
+  css,
+  createCSSSheet,
+  adoptedStyle,
+} from '@mantou/gem';
 import { icons } from 'duoyun-ui/lib/icons';
 
 import { todoData, deleteItem } from './store';
@@ -124,7 +145,10 @@ export class TodoListElement extends GemElement {
           (item) => html`
             <li>
               <span>${item}</span>
-              <dy-use .element=${icons.close} @click=${() => deleteItem(item)}></dy-use>
+              <dy-use
+                .element=${icons.close}
+                @click=${() => deleteItem(item)}
+              ></dy-use>
             </li>
           `,
         )}

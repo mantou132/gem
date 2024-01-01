@@ -19,13 +19,15 @@ import { GemLightRouteElement, matchPath } from '@mantou/gem/elements/route';
 import { mediaQuery } from '@mantou/gem/helper/mediaquery';
 
 import { BookConfig } from '../common/config';
+import { UPDATE_EVENT } from '../common/constant';
 
 import { theme, changeTheme, Theme, themeProps } from './helper/theme';
 import { bookStore, updateBookConfig, locationStore } from './store';
-import { checkBuiltInPlugin } from './lib/utils';
+import { checkBuiltInPlugin, getRemotePath } from './lib/utils';
 import { GemBookPluginElement } from './elements/plugin';
 import { Loadbar } from './elements/loadbar';
 import { Homepage } from './elements/homepage';
+import type { Main } from './elements/main';
 
 import '@mantou/gem/elements/title';
 import '@mantou/gem/elements/reflect';
@@ -82,6 +84,27 @@ export class GemBookElement extends GemElement {
     this.theme = theme;
     new MutationObserver(() => checkBuiltInPlugin(this)).observe(this, { childList: true });
     document.currentScript?.addEventListener('load', () => checkBuiltInPlugin(this));
+    this.addEventListener('message', ({ detail }: CustomEvent) => {
+      const event = JSON.parse(detail);
+      if (typeof event.data !== 'object') return;
+      const { filePath, content, config, theme, reload } = event.data;
+      if (event.type !== UPDATE_EVENT) return;
+      const routeELement = this.routeRef.element!;
+      if (reload) {
+        location.reload();
+      } else if (theme) {
+        this.theme = theme;
+      } else if (config) {
+        this.config = config;
+        // 等待路由更新
+        queueMicrotask(() => routeELement.update());
+      } else if (routeELement.currentRoute?.pattern === '*') {
+        routeELement.update();
+      } else if (getRemotePath(bookStore.getCurrentLink?.().originLink || '', bookStore.lang) === '/' + filePath) {
+        const firstElementChild = routeELement.firstElementChild! as Main;
+        firstElementChild.content = content;
+      }
+    });
   }
 
   changeTheme(newTheme?: Partial<Theme>) {

@@ -34,7 +34,7 @@ redirect: ./new.md
 > [!WARNING]
 > Specifying redirection for folders is not supported
 
-## Folder
+## Folder {#dir}
 
 Folders sometimes need to specify a name (e.g: [i18n](./002-i18n.md)) and a display method in the sidebar/navigation bar. You can add `config.yml` to the folder, for example:
 

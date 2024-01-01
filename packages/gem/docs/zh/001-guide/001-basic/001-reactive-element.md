@@ -67,7 +67,16 @@ class MyElement extends GemElement {
 <gbp-sandpack dependencies="@mantou/gem">
 
 ```js index.js
-import { useStore, GemElement, render, html, attribute, property, connectStore, customElement } from '@mantou/gem';
+import {
+  useStore,
+  GemElement,
+  render,
+  html,
+  attribute,
+  property,
+  connectStore,
+  customElement,
+} from '@mantou/gem';
 
 const [store, update] = useStore({
   count: 0,
@@ -92,7 +101,10 @@ class MyElement extends GemElement {
   }
 }
 
-render(html`<my-element name="world" .data=${{ a: 1 }}></my-element>`, document.getElementById('root'));
+render(
+  html`<my-element name="world" .data=${{ a: 1 }}></my-element>`,
+  document.getElementById('root'),
+);
 ```
 
 </gbp-sandpack>

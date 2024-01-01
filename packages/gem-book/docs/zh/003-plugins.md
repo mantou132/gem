@@ -6,7 +6,7 @@ isNav: true
 
 ## `<gbp-code-group>`
 
-用于显示几段相似的代码：
+用于显示几段相似功能的代码：
 
 <gbp-code-group>
 
@@ -56,7 +56,7 @@ yarn add gem-book
 
 ## `<gbp-import>`
 
-动态导入模块，这可以用来按需加载插件，比如下面这个自定义元素是动态编译并加载的：
+动态导入模块，这可以用来按需加载插件，比如下面这个自定义元素是动态（`.ts` 文件会使用 [esm.sh](https://esm.sh/) 编译 ）加载的：
 
 <gbp-import src="docs/hello.ts"></gbp-import>
 
@@ -83,7 +83,11 @@ yarn add gem-book
 
 ```html
 <gem-book>
-  <gbp-comment slot="main-after" client-id="xxx" client-secret="xxx"></gbp-comment>
+  <gbp-comment
+    slot="main-after"
+    client-id="xxx"
+    client-secret="xxx"
+  ></gbp-comment>
 </gem-book>
 ```
 
@@ -98,7 +102,10 @@ import { render, html } from '@mantou/gem';
 
 import 'duoyun-ui/elements/button';
 
-render(html`<dy-button>Time: ${new Date().toLocaleString()}</dy-button>`, document.getElementById('root'));
+render(
+  html`<dy-button>Time: ${new Date().toLocaleString()}</dy-button>`,
+  document.getElementById('root'),
+);
 ```
 
 </gbp-sandpack>
@@ -111,7 +118,10 @@ import { render, html } from '@mantou/gem';
 
 import 'duoyun-ui/elements/button';
 
-render(html`<dy-button>Time: ${new Date().toLocaleString()}</dy-button>`, document.getElementById('root'));
+render(
+  html`<dy-button>Time: ${new Date().toLocaleString()}</dy-button>`,
+  document.getElementById('root'),
+);
 ```
 
 </gbp-sandpack>

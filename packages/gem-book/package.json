@@ -1,6 +1,6 @@
 {
   "name": "gem-book",
-  "version": "1.5.26",
+  "version": "1.5.28",
   "description": "Create your document website easily and quickly",
   "keywords": [
     "doc",
@@ -16,6 +16,7 @@
   },
   "typings": "index.d.ts",
   "files": [
+    "schema.json",
     "/bin/",
     "/common/",
     "/element/",
@@ -26,10 +27,11 @@
     "/index.*"
   ],
   "scripts": {
-    "build:cli": "esbuild ./src/bin/index.ts --outdir=./bin --bundle --platform=node --minify --sourcemap --external:ts-loader --external:jsdom --external:webpack --external:webpack-dev-server --external:html-webpack-plugin --external:workbox-webpack-plugin",
+    "schema": "npx ts-json-schema-generator -p src/common/config.ts -t CliConfig -o schema.json",
+    "build:cli": "esbuild ./src/bin/index.ts --outdir=./bin --platform=node --sourcemap --bundle --external:jsdom --external:lodash --external:yaml --external:front-matter --external:commander --external:webpack --external:ts-loader --external:typescript --external:webpack-dev-server --external:html-webpack-plugin --external:copy-webpack-plugin --external:workbox-webpack-plugin",
     "start:cli": "yarn build:cli --watch",
     "docs": "node ./bin docs",
-    "start:docs": "cross-env PORT=8090 GEM_BOOK_DEV=true nodemon --watch bin --watch gem-book.cli.json --exec \"yarn docs\"",
+    "start:docs": "cross-env PORT=8090 GEM_BOOK_DEV=true nodemon --watch bin --exec \"yarn docs\"",
     "start": "concurrently npm:start:cli npm:start:docs",
     "build:website": "yarn build:cli && yarn docs --build --ga G-7X2Z4B2KV0",
     "build": "yarn build:cli && tsc -p ./tsconfig.build.json",

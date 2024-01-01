@@ -216,34 +216,9 @@ export class GemRouteElement extends GemElement<State> {
           this.#updateLocationStore();
           return;
         }
-        const { route, params = {} } = GemRouteElement.findRoute(this.routes, path);
-        const { redirect, content, getContent } = route || {};
-        if (redirect) {
-          history.replace({ path: redirect });
-          return;
-        }
-        const title = route?.title;
-        if (title) updateStore(titleStore, { title });
-        const contentOrLoader = content || getContent?.(params);
-        if (contentOrLoader instanceof Promise) {
-          this.loading(route!);
-          this.#lastLoader = contentOrLoader;
-          const isSomeLoader = () => this.#lastLoader === contentOrLoader;
-          contentOrLoader
-            .then((content) => {
-              if (isSomeLoader()) this.#setContent(route, params, content);
-            })
-            .catch((err) => {
-              if (isSomeLoader()) this.error(err);
-            });
-          return;
-        }
-        this.#setContent(route, params, contentOrLoader);
+        this.update();
       },
-      () => {
-        const { path } = history.getParams();
-        return [this.key, path, location.search];
-      },
+      () => [this.key, history.getParams().path, location.search],
     );
   }
 
@@ -266,6 +241,31 @@ export class GemRouteElement extends GemElement<State> {
       ${content ?? html`<slot></slot>`}
     `;
   }
+
+  update = () => {
+    const { route, params = {} } = GemRouteElement.findRoute(this.routes, history.getParams().path);
+    const { redirect, content, getContent } = route || {};
+    if (redirect) {
+      history.replace({ path: redirect });
+      return;
+    }
+    updateStore(titleStore, { title: route?.title });
+    const contentOrLoader = content || getContent?.(params);
+    if (contentOrLoader instanceof Promise) {
+      this.loading(route!);
+      this.#lastLoader = contentOrLoader;
+      const isSomeLoader = () => this.#lastLoader === contentOrLoader;
+      contentOrLoader
+        .then((content) => {
+          if (isSomeLoader()) this.#setContent(route, params, content);
+        })
+        .catch((err) => {
+          if (isSomeLoader()) this.error(err);
+        });
+      return;
+    }
+    this.#setContent(route, params, contentOrLoader);
+  };
 }
 
 export class GemLightRouteElement extends GemRouteElement {

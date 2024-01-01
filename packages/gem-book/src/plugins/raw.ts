@@ -55,7 +55,7 @@ customElements.whenDefined('gem-book').then(() => {
       content: '',
     };
 
-    get #codelang() {
+    get #codeLang() {
       return this.codelang || this.src.split('.').pop() || '';
     }
 
@@ -83,7 +83,7 @@ customElements.whenDefined('gem-book').then(() => {
       if (!content) return html`<div class="loading">Loading...</div>`;
 
       return html`
-        <gem-book-pre codelang=${this.#codelang} highlight=${this.highlight} range=${this.range}
+        <gem-book-pre codelang=${this.#codeLang} highlight=${this.highlight} range=${this.range}
           >${content}</gem-book-pre
         >
       `;

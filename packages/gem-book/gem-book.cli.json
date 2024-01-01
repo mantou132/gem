@@ -1,5 +1,6 @@
 {
-  "title": "Gem-book",
+  "$schema": "./schema.json",
+  "title": "GemBook",
   "icon": "../../logo.png",
   "i18n": true,
   "homeMode": true,

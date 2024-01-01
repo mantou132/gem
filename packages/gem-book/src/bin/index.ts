@@ -1,8 +1,6 @@
 #!/usr/bin/env node
 
 /**
- * Automatically generate configuration from directory
- *
  * @example
  * gem-book -c gem-book.cli.json docs
  * gem-book -t documentTitle docs
@@ -14,11 +12,11 @@ import fs from 'fs';
 import program from 'commander';
 import mkdirp from 'mkdirp';
 import getRepoInfo from 'git-repo-info';
-import { debounce } from 'lodash';
+import { throttle } from 'lodash';
 
 import { version } from '../../package.json';
 import { BookConfig, CliConfig, CliUniqueConfig, NavItem, SidebarConfig } from '../common/config';
-import { DEFAULT_FILE, DEFAULT_CLI_FILE, DEFAULT_SOURCE_BRANCH } from '../common/constant';
+import { DEFAULT_FILE, DEFAULT_CLI_FILE, DEFAULT_SOURCE_BRANCH, UPDATE_EVENT } from '../common/constant';
 import { isIndexFile, parseFilename } from '../common/utils';
 import { FrontMatter } from '../common/frontmatter';
 
@@ -35,16 +33,20 @@ import {
   readDirConfig,
   getIconDataUrl,
   getHash,
+  getFile,
+  resolveTheme,
+  requireObject,
 } from './utils';
 import { startBuilder } from './builder';
 import lang from './lang.json'; // https://developers.google.com/search/docs/advanced/crawling/localized-versions#language-codes
 
+export const devServerEventTarget = new EventTarget();
+
 program.version(version, '-v, --version');
 
 let docsRootDir = '';
-let useConfig = false;
-const bookConfig: Partial<BookConfig> = {};
-const cliConfig: Required<CliUniqueConfig> = {
+let bookConfig: BookConfig = {};
+let cliConfig: Required<CliUniqueConfig> = {
   icon: '',
   output: '',
   i18n: false,
@@ -55,11 +57,11 @@ const cliConfig: Required<CliUniqueConfig> = {
   build: false,
   json: false,
   debug: false,
+  config: '',
 };
 
-function readConfig(configPath: string) {
-  const obj = require(path.resolve(process.cwd(), configPath)) as Partial<CliConfig & BookConfig>;
-  useConfig = true;
+function readConfig(fullPath: string) {
+  const obj = requireObject<CliConfig & BookConfig>(fullPath) || {};
   Object.keys(cliConfig).forEach((key: keyof CliUniqueConfig) => {
     if (key in obj) {
       const value = obj[key];
@@ -69,7 +71,7 @@ function readConfig(configPath: string) {
 
       // Overriding command line options is not allowed
       if (Array.isArray(cliConfigValue)) {
-        cliConfigValue.splice(cliConfigValue.length, 0, ...(value as any[]));
+        Object.assign(cliConfig, { [key]: [...new Set([...cliConfigValue, ...(value as any[])])] });
       } else if (!cliConfigValue) {
         Object.assign(cliConfig, { [key]: value });
       }
@@ -219,36 +221,23 @@ async function generateBookConfig(dir: string) {
     bookConfig.sidebar = readDir(docsRootDir);
   }
 
-  // create file
-  const configPath = path.resolve(cliConfig.output || dir, cliConfig.output.endsWith('.json') ? '' : DEFAULT_FILE);
-  const configStr = JSON.stringify(bookConfig, null, 2) + '\n';
-  // buildMode: embeds the configuration into front-end resources
-  if (!(!cliConfig.json && cliConfig.build)) {
+  if (cliConfig.json) {
+    const configPath = path.resolve(cliConfig.output || dir, cliConfig.output.endsWith('.json') ? '' : DEFAULT_FILE);
+    const configStr = JSON.stringify(bookConfig, null, 2) + '\n';
     if (!isSomeContent(configPath, configStr)) {
       mkdirp.sync(path.dirname(configPath));
       // Trigger rename event
       fs.writeFileSync(configPath, configStr);
     }
   }
+  // eslint-disable-next-line no-console
   console.log(`${new Date().toISOString()} <gem-book> config file updated! ${Date.now() - t}ms`);
 }
-
-const debounceCommand = debounce(generateBookConfig, 300);
 
 program
   .option('-t, --title <title>', 'document title', (title: string) => {
     bookConfig.title = title;
   })
-  .option('-i, --icon <path>', 'project icon path or url', (path: string) => {
-    cliConfig.icon = path;
-  })
-  .option(
-    '-o, --output <path>',
-    `output file or directory, default use docs dir, generate an \`${DEFAULT_FILE}\` file if only JSON is generated`,
-    (dir: string) => {
-      cliConfig.output = dir;
-    },
-  )
   .option('-d, --source-dir <dir>', 'github source dir, default use docs dir', (sourceDir: string) => {
     bookConfig.sourceDir = sourceDir;
   })
@@ -268,14 +257,14 @@ program
   .option('--footer <string>', 'footer content, support markdown format', (footer: string) => {
     bookConfig.footer = footer;
   })
-  .option('--i18n', 'enabled i18n', () => {
-    cliConfig.i18n = true;
-  })
   .option('--display-rank', 'sorting number is not displayed in the link', () => {
     bookConfig.displayRank = true;
   })
   .option('--home-mode', 'use homepage mode', () => {
     bookConfig.homeMode = true;
+  })
+  .option('--only-file', 'not include heading navigation', () => {
+    bookConfig.onlyFile = true;
   })
   .option('--nav <title,link>', 'attach a nav item', (item: string) => {
     bookConfig.nav ||= [];
@@ -287,6 +276,19 @@ program
       bookConfig.nav.push({ title, link });
     }
   })
+  .option('-i, --icon <path>', 'project icon path or url', (path: string) => {
+    cliConfig.icon = path;
+  })
+  .option(
+    '-o, --output <path>',
+    `output file or directory, default use docs dir, generate an \`${DEFAULT_FILE}\` file if only JSON is generated`,
+    (dir: string) => {
+      cliConfig.output = dir;
+      if (path.extname(dir) === '.json') {
+        cliConfig.json = true;
+      }
+    },
+  )
   .option('--plugin <name or path>', 'load plugin', (name: string) => {
     cliConfig.plugin.push(name);
   })
@@ -299,43 +301,128 @@ program
   .option('--theme <name or path>', 'theme path', (path) => {
     cliConfig.theme = path;
   })
-  .option('--build', `output all front-end assets or \`${DEFAULT_FILE}\``, () => {
+  .option('--build', `output all front-end assets`, () => {
     cliConfig.build = true;
+  })
+  .option('--i18n', 'enabled i18n', () => {
+    cliConfig.i18n = true;
   })
   .option('--json', `only output \`${DEFAULT_FILE}\``, () => {
     cliConfig.json = true;
-  })
-  .option('--only-file', 'not include heading navigation', () => {
-    bookConfig.onlyFile = true;
   })
   .option('--debug', 'enabled debug mode', () => {
     cliConfig.debug = true;
   })
   .option('--config <path>', `specify config file, default use \`${DEFAULT_CLI_FILE}\``, (configPath: string) => {
-    readConfig(configPath);
+    cliConfig.config = configPath;
   })
   .arguments('<dir>')
   .action(async (dir: string) => {
-    if (!useConfig) {
-      try {
-        readConfig(DEFAULT_CLI_FILE);
-      } catch {
-        //
-      }
-    }
+    const initCliOptions = structuredClone(cliConfig);
+    const initBookConfig = structuredClone(bookConfig);
 
     docsRootDir = path.resolve(process.cwd(), dir);
+
+    const configPath = path.resolve(process.cwd(), cliConfig.config || DEFAULT_CLI_FILE);
+    readConfig(configPath);
+
+    const updateBookConfig = throttle(
+      async () => {
+        await generateBookConfig(dir);
+        devServerEventTarget.dispatchEvent(
+          Object.assign(new Event(UPDATE_EVENT), {
+            detail: { config: bookConfig },
+          }),
+        );
+      },
+      100,
+      { trailing: true },
+    );
+
+    const watchTheme = () => {
+      const themePath = resolveTheme(cliConfig.theme);
+      if (themePath) {
+        return fs.watch(
+          themePath,
+          throttle(
+            () => {
+              devServerEventTarget.dispatchEvent(
+                Object.assign(new Event(UPDATE_EVENT), {
+                  detail: { theme: requireObject(themePath) },
+                }),
+              );
+            },
+            100,
+            { trailing: true },
+          ),
+        );
+      }
+    };
+
     await generateBookConfig(dir);
-    if (!cliConfig.build) {
-      fs.watch(dir, { recursive: true }, (type, filePath) => {
-        if (type === 'rename' || (filePath && (isDirConfigFile(filePath) || isMdFile(filePath)))) {
-          debounceCommand(dir);
+
+    if (cliConfig.debug) inspectObject(cliConfig);
+
+    let server = cliConfig.json ? undefined : startBuilder(dir, cliConfig, bookConfig);
+    let themeWatcher = watchTheme();
+
+    if (server) {
+      devServerEventTarget.addEventListener(UPDATE_EVENT, ({ detail }: CustomEvent<string>) => {
+        server?.sendMessage(server.webSocketServer?.clients || [], UPDATE_EVENT, detail);
+      });
+
+      if (configPath) {
+        fs.watch(
+          configPath,
+          throttle(
+            async () => {
+              cliConfig = structuredClone(initCliOptions);
+              bookConfig = structuredClone(initBookConfig);
+              readConfig(configPath);
+              await generateBookConfig(dir);
+              server!.stopCallback(() => {
+                server = startBuilder(dir, cliConfig, bookConfig);
+                devServerEventTarget.dispatchEvent(
+                  Object.assign(new Event(UPDATE_EVENT), {
+                    detail: { config: bookConfig },
+                  }),
+                );
+                themeWatcher?.close();
+                themeWatcher = watchTheme();
+              });
+            },
+            100,
+            { trailing: true },
+          ),
+        );
+      }
+
+      fs.watch(dir, { recursive: true }, async (type, filePath) => {
+        if (filePath && !isDirConfigFile(filePath) && !isMdFile(filePath)) {
+          devServerEventTarget.dispatchEvent(
+            Object.assign(new Event(UPDATE_EVENT), {
+              detail: { reload: true },
+            }),
+          );
+        }
+
+        if (type === 'rename' || !filePath || isDirConfigFile(filePath)) {
+          return updateBookConfig();
+        }
+
+        const { content, metadataChanged } = getFile(path.resolve(dir, filePath), bookConfig.displayRank);
+        // hot reload
+        // https://nodejs.org/api/events.html#class-customevent
+        devServerEventTarget.dispatchEvent(
+          Object.assign(new Event(UPDATE_EVENT), {
+            detail: { filePath, content },
+          }),
+        );
+
+        if (metadataChanged) {
+          updateBookConfig();
         }
       });
-    }
-    if (!cliConfig.json) {
-      if (cliConfig.debug) inspectObject(cliConfig);
-      startBuilder(dir, cliConfig, bookConfig);
     }
   });
 

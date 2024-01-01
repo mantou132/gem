@@ -119,7 +119,11 @@ Some plugin need to be used with slots, such as the built-in plugin `<gbp-commen
 
 ```html
 <gem-book>
-  <gbp-comment slot="main-after" client-id="xxx" client-secret="xxx"></gbp-comment>
+  <gbp-comment
+    slot="main-after"
+    client-id="xxx"
+    client-secret="xxx"
+  ></gbp-comment>
 </gem-book>
 ```
 

@@ -46,7 +46,7 @@ export class Footer extends GemElement {
               }
             `,
           )
-        : selfI18n.get('footer', (t) => html`<gem-link href="https://book.gemjs.org">&lt;${t}&gt;</gem-link>`)}
+        : selfI18n.get('footer', (t) => html`<gem-link href="https://book.gemjs.org">${t}</gem-link>`)}
     `;
   }
 }

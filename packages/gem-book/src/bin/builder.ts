@@ -9,9 +9,9 @@ import CopyWebpackPlugin from 'copy-webpack-plugin';
 import { GenerateSW } from 'workbox-webpack-plugin';
 
 import { BookConfig, CliUniqueConfig } from '../common/config';
-import { DEV_THEME_FILE, STATS_FILE } from '../common/constant';
+import { STATS_FILE } from '../common/constant';
 
-import { resolveLocalPlugin, resolveTheme, isURL } from './utils';
+import { resolveLocalPlugin, resolveTheme, isURL, requireObject } from './utils';
 
 const publicDir = path.resolve(__dirname, '../public');
 const entryDir = path.resolve(__dirname, process.env.GEM_BOOK_DEV ? '../src/website' : '../website');
@@ -20,10 +20,6 @@ const pluginDir = path.resolve(__dirname, process.env.GEM_BOOK_DEV ? '../src/plu
 // dev mode uses memory file system
 export function startBuilder(dir: string, options: Required<CliUniqueConfig>, bookConfig: Partial<BookConfig>) {
   const { debug, build, theme, template, output, icon, plugin, ga } = options;
-
-  if (path.extname(output) === '.json') {
-    return;
-  }
 
   const plugins = [...plugin];
 
@@ -42,7 +38,8 @@ export function startBuilder(dir: string, options: Required<CliUniqueConfig>, bo
   const isRemoteIcon = isURL(icon);
   const docsDir = path.resolve(dir);
   const outputDir = output ? path.resolve(output) : docsDir;
-  const { themeObject, resolveThemePath } = resolveTheme(theme);
+  const themePath = resolveTheme(theme);
+
   const compiler = webpack({
     mode: build ? 'production' : 'development',
     entry: [entryDir],
@@ -90,12 +87,10 @@ export function startBuilder(dir: string, options: Required<CliUniqueConfig>, bo
         },
       }),
       new webpack.DefinePlugin({
-        // dev mode
         'process.env.DEV_MODE': !build,
-        // build mode
-        'process.env.BOOK_CONFIG': JSON.stringify(JSON.stringify(bookConfig)),
-        'process.env.THEME': JSON.stringify(JSON.stringify(themeObject)),
-        'process.env.PLUGINS': JSON.stringify(JSON.stringify(plugins)),
+        'process.env.BOOK_CONFIG': JSON.stringify(bookConfig),
+        'process.env.THEME': JSON.stringify(requireObject(themePath)),
+        'process.env.PLUGINS': JSON.stringify(plugins),
         'process.env.GA_ID': JSON.stringify(ga),
       }),
       new CopyWebpackPlugin({
@@ -119,19 +114,6 @@ export function startBuilder(dir: string, options: Required<CliUniqueConfig>, bo
         outputDir !== docsDir
           ? new CopyWebpackPlugin({
               patterns: [{ from: docsDir, to: outputDir }],
-            })
-          : ([] as any),
-      )
-      .concat(
-        !build && resolveThemePath
-          ? new CopyWebpackPlugin({
-              patterns: [
-                {
-                  from: resolveThemePath,
-                  to: path.resolve(outputDir, DEV_THEME_FILE),
-                  transform: () => JSON.stringify(themeObject),
-                },
-              ],
             })
           : ([] as any),
       ),
@@ -165,8 +147,11 @@ export function startBuilder(dir: string, options: Required<CliUniqueConfig>, bo
     // https://github.com/webpack/webpack-dev-server/blob/master/examples/api/simple/server.js
     const server = new WebpackDevServer(
       {
+        hot: true,
+        liveReload: false,
         client: {
           overlay: false,
+          webSocketTransport: require.resolve('../public/custom-ws-client'),
         },
         static: {
           directory: outputDir,
@@ -186,8 +171,11 @@ export function startBuilder(dir: string, options: Required<CliUniqueConfig>, bo
     );
     server.startCallback((err) => {
       if (err) {
+        // eslint-disable-next-line no-console
         console.error(err);
       }
     });
+
+    return server;
   }
 }

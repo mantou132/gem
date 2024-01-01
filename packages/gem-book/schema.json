@@ -1,0 +1,213 @@
+{
+  "$ref": "#/definitions/CliConfig",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "definitions": {
+    "CliConfig": {
+      "additionalProperties": false,
+      "properties": {
+        "base": {
+          "type": "string"
+        },
+        "build": {
+          "type": "boolean"
+        },
+        "config": {
+          "type": "string"
+        },
+        "debug": {
+          "type": "boolean"
+        },
+        "displayRank": {
+          "type": "boolean"
+        },
+        "footer": {
+          "type": "string"
+        },
+        "ga": {
+          "type": "string"
+        },
+        "github": {
+          "type": "string"
+        },
+        "homeMode": {
+          "type": "boolean"
+        },
+        "i18n": {
+          "type": "boolean"
+        },
+        "icon": {
+          "type": "string"
+        },
+        "json": {
+          "type": "boolean"
+        },
+        "nav": {
+          "items": {
+            "$ref": "#/definitions/NavItem"
+          },
+          "type": "array"
+        },
+        "output": {
+          "type": "string"
+        },
+        "plugin": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "sourceBranch": {
+          "type": "string"
+        },
+        "sourceDir": {
+          "type": "string"
+        },
+        "template": {
+          "type": "string"
+        },
+        "theme": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "Feature": {
+      "additionalProperties": false,
+      "properties": {
+        "desc": {
+          "type": "string"
+        },
+        "icon": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "title",
+        "desc"
+      ],
+      "type": "object"
+    },
+    "Hero": {
+      "additionalProperties": false,
+      "properties": {
+        "actions": {
+          "items": {
+            "additionalProperties": false,
+            "properties": {
+              "link": {
+                "type": "string"
+              },
+              "text": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "text",
+              "link"
+            ],
+            "type": "object"
+          },
+          "type": "array"
+        },
+        "desc": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "NavItem": {
+      "additionalProperties": false,
+      "properties": {
+        "children": {
+          "items": {
+            "$ref": "#/definitions/NavItem"
+          },
+          "type": "array"
+        },
+        "features": {
+          "items": {
+            "$ref": "#/definitions/Feature"
+          },
+          "type": "array"
+        },
+        "groups": {
+          "items": {
+            "additionalProperties": false,
+            "properties": {
+              "members": {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              "title": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "title",
+              "members"
+            ],
+            "type": "object"
+          },
+          "type": "array"
+        },
+        "hash": {
+          "type": "string"
+        },
+        "hero": {
+          "$ref": "#/definitions/Hero",
+          "description": "below only homepage"
+        },
+        "isNav": {
+          "type": "boolean"
+        },
+        "link": {
+          "type": "string"
+        },
+        "navOrder": {
+          "type": "number"
+        },
+        "navTitle": {
+          "type": "string"
+        },
+        "redirect": {
+          "description": "only file",
+          "type": "string"
+        },
+        "reverse": {
+          "description": "only dir",
+          "type": "boolean"
+        },
+        "sidebarIgnore": {
+          "type": "boolean"
+        },
+        "title": {
+          "type": "string"
+        },
+        "type": {
+          "enum": [
+            "dir",
+            "file",
+            "heading"
+          ],
+          "type": "string"
+        }
+      },
+      "required": [
+        "link",
+        "title"
+      ],
+      "type": "object"
+    }
+  }
+}

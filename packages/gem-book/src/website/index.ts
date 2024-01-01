@@ -1,12 +1,18 @@
 import { css, history } from '@mantou/gem';
 
-import { DEFAULT_FILE, DEV_THEME_FILE } from '../common/constant';
 import { GemBookElement } from '../element';
+import { BookConfig } from '../common/config';
 import { theme as defaultTheme } from '../element/helper/theme';
 
-if (process.env.GA_ID) {
+const gaId = process.env.GA_ID;
+const dev = process.env.DEV_MODE as unknown as boolean;
+const config = process.env.BOOK_CONFIG as unknown as BookConfig;
+const theme = process.env.THEME as unknown as Record<string, string>;
+const plugins = process.env.PLUGINS as unknown as string[];
+
+if (gaId) {
   const script = document.createElement('script');
-  script.src = `https://www.googletagmanager.com/gtag/js?id=${process.env.GA_ID}`;
+  script.src = `https://www.googletagmanager.com/gtag/js?id=${gaId}`;
   script.onload = () => {
     function gtag(..._rest: any): any {
       // eslint-disable-next-line prefer-rest-params
@@ -22,7 +28,7 @@ if (process.env.GA_ID) {
       });
     }
     gtag('js', new Date());
-    gtag('config', process.env.GA_ID, { send_page_view: false });
+    gtag('config', gaId, { send_page_view: false });
     send();
     // https://book.gemjs.org/en/api/event
     window.addEventListener('routechange', send);
@@ -42,42 +48,19 @@ function loadPlugin(plugin: string) {
   }
 }
 
-const pluginSet = new Set(JSON.parse(String(process.env.PLUGINS)) as string[]);
-
-pluginSet.forEach(loadPlugin);
-
+plugins.forEach(loadPlugin);
 addEventListener('plugin', ({ detail }: CustomEvent) => {
-  if (pluginSet.has(detail)) return;
+  if (plugins.includes(detail)) return;
   // eslint-disable-next-line no-console
   console.info('GemBook auto load plugin:', detail);
   loadPlugin(detail);
 });
 
-const config = JSON.parse(String(process.env.BOOK_CONFIG));
-const theme = JSON.parse(String(process.env.THEME));
-
-const devRender = () => {
-  const book = document.querySelector<GemBookElement>('gem-book') || new GemBookElement();
-  book.src = `/${DEFAULT_FILE}`;
-  book.dev = true;
-  if (theme) {
-    fetch(`/${DEV_THEME_FILE}`)
-      .then((res) => res.json())
-      .then((e) => {
-        book.theme = e;
-      });
-  }
-  document.body.append(book);
-};
-
-const buildRender = () => {
-  const book = document.querySelector<GemBookElement>('gem-book') || new GemBookElement();
-  book.config = config;
-  book.theme = theme;
-  document.body.append(book);
-};
-
-process.env.DEV_MODE ? devRender() : buildRender();
+const book = document.querySelector<GemBookElement>('gem-book') || new GemBookElement();
+book.config = config;
+book.theme = theme;
+book.dev = dev;
+document.body.append(book);
 
 const style = document.createElement('style');
 style.textContent = css`
@@ -92,7 +75,7 @@ style.textContent = css`
     margin: 0;
     height: 100%;
     overflow: auto;
-    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: none;
   }
   @media print {
     body {
@@ -102,7 +85,7 @@ style.textContent = css`
 `;
 document.head.append(style);
 
-if (!process.env.DEV_MODE) {
+if (!dev) {
   window.addEventListener('load', () => {
     navigator.serviceWorker?.register('/service-worker.js');
   });

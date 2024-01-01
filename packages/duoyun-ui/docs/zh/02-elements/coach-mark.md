@@ -45,7 +45,10 @@ const items = [
 ];
 
 render(
-  html`<dy-side-navigation style="width: 50%" .items=${items}></dy-side-navigation>`,
+  html`<dy-side-navigation
+    style="width: 50%"
+    .items=${items}
+  ></dy-side-navigation>`,
   document.getElementById('root'),
 );
 ```

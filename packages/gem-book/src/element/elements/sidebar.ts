@@ -132,8 +132,6 @@ export class SideBar extends GemElement {
           top: 0;
         }
         gem-book-nav-logo {
-          /**挡住橡皮条效果下面的线 */
-          background: ${theme.backgroundColor};
           border-block-end: 1px solid ${theme.borderColor};
         }
         gem-book-nav-logo,

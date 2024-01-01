@@ -3,7 +3,7 @@ import type { GemBookElement } from '../element';
 const esmBuilder = 'https://esm.sh/build';
 
 customElements.whenDefined('gem-book').then(async () => {
-  const { build } = await import(/* webpackIgnore: true */ esmBuilder);
+  const esmBuilderPromise = import(/* webpackIgnore: true */ esmBuilder);
 
   const { GemBookPluginElement } = customElements.get('gem-book') as typeof GemBookElement;
   const { Gem } = GemBookPluginElement;
@@ -35,7 +35,12 @@ customElements.whenDefined('gem-book').then(async () => {
             const resp = await fetch(url);
             if (resp.status === 404) throw new Error(resp.statusText || 'Not Found');
             const content = await resp.text();
-            const ret = await build({
+            if (new URL(url, location.origin).pathname.endsWith('.js')) {
+              return await import(/* webpackIgnore: true */ url);
+            }
+            const ret = await (
+              await esmBuilderPromise
+            ).build({
               dependencies: this.#dependencies,
               code: `
                 const GemBookPluginElement = customElements.get('gem-book').GemBookPluginElement;

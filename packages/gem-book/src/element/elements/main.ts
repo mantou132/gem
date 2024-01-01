@@ -75,7 +75,14 @@ export class Main extends GemElement {
   constructor() {
     super();
     Main.instance = this;
+    this.memo(() => {
+      const [, , _sToken, _frontmatter, _eToken, mdBody] =
+        this.content.match(/^(([\r\n\s]*---\s*(?:\r\n|\n))(.*?)((?:\r\n|\n)---\s*(?:\r\n|\n)?))?(.*)$/s) || [];
+      this.#content = mdBody;
+    });
   }
+
+  #content = '';
 
   #hashChangeHandle = () => {
     const { hash, path } = history.getParams();
@@ -309,7 +316,7 @@ export class Main extends GemElement {
           }
         }
       </style>
-      ${Main.parseMarkdown(this.content)}
+      ${Main.parseMarkdown(this.#content)}
       <style>
         ${linkStyle}
       </style>

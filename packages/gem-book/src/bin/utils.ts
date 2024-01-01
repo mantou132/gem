@@ -13,9 +13,8 @@ import YAML from 'yaml';
 import { startCase } from 'lodash';
 import Jimp from 'jimp';
 
-import { NavItem } from '../common/config';
 import { FrontMatter } from '../common/frontmatter';
-import { isIndexFile, parseFilename, CUSTOM_HEADING_REG, normalizeId } from '../common/utils';
+import { isIndexFile, parseFilename, CUSTOM_HEADING_REG } from '../common/utils';
 
 export async function getGithubUrl() {
   const repoDir = process.cwd();
@@ -58,28 +57,36 @@ export function resolveLocalPlugin(p: string) {
     if (inTheDir(pluginDir, plugin) && !lstatSync(plugin).isSymbolicLink()) {
       return;
     }
-  } catch {
-    //
-  }
+  } catch {}
   for (const ext of ['', '.js', '.ts']) {
     try {
       return require.resolve(path.resolve(process.cwd(), `${p}${ext}`));
-    } catch {
-      //
-    }
+    } catch {}
   }
 }
 
 // Prefer built-in
-export function resolveTheme(p?: string) {
-  if (!p) return { resolveThemePath: p, themeObject: null };
-  let resolveThemePath = '';
+export function resolveTheme(p: string) {
+  if (!p) return;
+
   try {
-    resolveThemePath = require.resolve(path.resolve(__dirname, `../themes/${p}`));
+    return require.resolve(path.resolve(__dirname, `../themes/${p}`));
   } catch {
-    resolveThemePath = require.resolve(path.resolve(process.cwd(), p));
+    try {
+      return require.resolve(path.resolve(process.cwd(), p));
+    } catch {}
   }
-  return { resolveThemePath, themeObject: require(resolveThemePath) };
+}
+
+export function requireObject<T>(fullPath?: string) {
+  if (!fullPath) return;
+  delete require.cache[fullPath];
+  try {
+    return require(fullPath) as T;
+  } catch (err) {
+    // eslint-disable-next-line no-console
+    console.error(err);
+  }
 }
 
 export function checkRelativeLink(fullPath: string, docsRootDir: string) {
@@ -109,6 +116,7 @@ export function checkRelativeLink(fullPath: string, docsRootDir: string) {
         currentNum += line.length + 1;
       }
       const position = `(${lineNum},${colNum})`;
+      // eslint-disable-next-line no-console
       console.warn(`\x1b[33m[${new Date().toISOString()}]: ${fullPath}${position} link warn: ${link}'\x1b[0m`);
     }
   });
@@ -129,6 +137,18 @@ export function getHash(fullPath: string) {
   return hash.digest('hex').substring(0, 8);
 }
 
+export function getFile(fullPath: string, displayRank: boolean | undefined) {
+  const content = fullPath ? readFileSync(fullPath, 'utf-8') : '';
+  return {
+    content,
+    metadataChanged: isMdFile(fullPath)
+      ? JSON.stringify(metadataRecord[fullPath]) !== JSON.stringify(getMetadata(fullPath, displayRank))
+      : false,
+  };
+}
+
+const metadataRecord: Record<string, FrontMatter> = {};
+
 export function getMetadata(fullPath: string, displayRank: boolean | undefined) {
   const getTitle = () => {
     const basename = path.basename(fullPath);
@@ -148,15 +168,20 @@ export function getMetadata(fullPath: string, displayRank: boolean | undefined) 
     };
   };
 
+  let metadata: (FrontMatter & { title: string }) | undefined;
   if (statSync(fullPath).isDirectory()) {
-    return {
+    metadata = {
       title: getTitle(),
       ...readDirConfig(fullPath),
     };
   } else if (isMdFile(fullPath)) {
-    return parseMd(fullPath);
+    metadata = parseMd(fullPath);
+  } else {
+    metadata = { title: '' };
   }
-  return { title: '' };
+
+  metadataRecord[fullPath] = metadata;
+  return metadata;
 }
 
 export function isMdFile(filename: string) {
@@ -185,6 +210,7 @@ export function isSomeContent(filePath: string, content: string) {
 }
 
 export function inspectObject(obj: any) {
+  // eslint-disable-next-line no-console
   console.log(util.inspect(obj, { colors: true, depth: null }));
 }
 

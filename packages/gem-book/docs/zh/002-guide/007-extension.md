@@ -1,6 +1,6 @@
 # 扩展
 
-`<gem-book>` 渲染 Markdown，同时也扩展了 Markdown 语法。另外还提供一些方法让用户自定义 `<gem-book>`。
+GemBook 使用 [`marked`](https://github.com/markedjs/marked) 渲染 Markdown，默认支持 [CommonMark](http://spec.commonmark.org/0.30/) 和 [GitHub Flavored Markdown](https://github.github.com/gfm/)，GemBook 扩展了 Markdown 语法，另外还提供一些方法让用户自定义 GemBook。
 
 ## Markdown 增强
 
@@ -12,36 +12,17 @@
 ```
 ````
 
-下面是在 `<gbp-sandpack>` [插件](#plugins)中写代码块的例子：
+例如使用高亮：
 
-<gbp-sandpack dependencies="@mantou/gem">
+````md 1
+# 代码块信息
 
-```js index.js
-import { render } from '@mantou/gem';
+```md 1
+# 代码块信息
 
-render('这是一个 `<gbp-sandpack>` 例子', document.getElementById('root'));
+...
 ```
-
-````md README.md active 12-13
-<gbp-sandpack dependencies="@mantou/gem">
-
-```js index.js
-import { render } from '@mantou/gem';
-
-render('这是一个 `<gbp-sandpack>` 例子', document.getElementById('root'));
-```
-
-```md README.md active 3-4
-# `<gbp-sandpack>`
-
-- `<gbp-sandpack>` 中的代码块代表一个文件
-- 默认第一个文件的状态为 `active`，如果手动指定状态，必须写文件名
-```
-
-</gbp-sandpack>
 ````
-
-</gbp-sandpack>
 
 ### 固定标题锚点 Hash {#fixed-hash}
 
@@ -70,13 +51,13 @@ render('这是一个 `<gbp-sandpack>` 例子', document.getElementById('root'));
 <gbp-raw src="docs/template.html" range="8--4"></gbp-raw>
 
 > [!NOTE]
-> 可以使用 `--template` 指定模板文件
+> 使用 `--template` 指定模板文件才能使用插槽
 
 ## 插件 {#plugins}
 
 ### 使用插件
 
-`<gem-book>` 使用自定义元素作为插件系统，他们可以自定义渲染 Markdown 内容或者增强 `<gem-book>` 的能力。下面是内置插件 `<gbp-raw>` 的使用方式：
+GemBook 使用自定义元素作为插件系统，他们可以自定义渲染 Markdown 内容或者增强 GemBook 的能力。下面是内置插件 `<gbp-raw>` 的使用方式：
 
 <gbp-code-group>
 
@@ -99,7 +80,7 @@ gem-book docs --plugin raw
 在[这里](../003-plugins.md)查看所有内置插件。
 
 > [!TIP]
-> 在 MarkDown 中使用插件时 Attribute 不应该换行，否则会作为内联元素被 `<p>` 标签打断。
+> 在 Markdown 中使用插件时 Attribute 不应该换行，否则会作为内联元素被 `<p>` 标签打断。
 > GemBook 内置插件支持自动导入，缺点是渲染文档后才会加载，有可能页面会闪烁。
 
 ### 开发插件

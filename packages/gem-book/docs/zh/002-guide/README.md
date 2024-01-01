@@ -5,11 +5,11 @@ navTitle: 指南
 
 # 简介
 
-`gem-book` 将 [Markdown](https://zh.wikipedia.org/wiki/Markdown) 内容渲染成网站，根据目录结构生成页面。`gem-book` 是为 [Gem](https://github.com/mantou132/gem) 创建的文档生成工具，其本身也是使用 Gem 编写，和 Gem 是共生关系，它使用自定义元素 `<gem-book>` 渲染内容。
+GemBook 将 [Markdown](https://zh.wikipedia.org/wiki/Markdown) 内容渲染成网站，根据目录结构生成页面。GemBook 是为 [Gem](https://github.com/mantou132/gem) 创建的文档生成工具，其本身也是使用 Gem 编写，和 Gem 是共生关系，它使用自定义元素 `<gem-book>` 渲染内容。
 
 ## 快速开始
 
-> [!NOTE] `gem-book` 依赖 [Node.js v14+](https://nodejs.org/)，请确保 `node -v` 命令能够执行
+> [!WARNING] GemBook 依赖 [Node.js v18+](https://nodejs.org/)，请确保 `node -v` 命令能够执行
 
 ```bash
 # 创建文档
@@ -28,7 +28,7 @@ npx gem-book docs -t MyApp -i logo.png
 npx gem-book docs -t MyApp -i logo.png --home-mode
 
 # 构建前端资源
-npx gem-book docs -t MyApp -i logo.png --home-mode --build
+npx gem-book docs -t MyApp -i logo.png --home-mode --build --output dist
 
 ```
 

@@ -15,7 +15,9 @@ render(
     <dy-popover
       trigger="click"
       .content=${html`
-        <div style="width: 200px; height: 100px; display: flex; place-items: center; place-content: center;">
+        <div
+          style="width: 200px; height: 100px; display: flex; place-items: center; place-content: center;"
+        >
           ${new Date().toLocaleString()}
         </div>
       `}
