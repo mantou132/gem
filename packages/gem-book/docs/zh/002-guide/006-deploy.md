@@ -1,6 +1,6 @@
 # 部署
 
-只需要使用 `--build` 构建前端资源（`index.html`，`gem-book.json`...），然后为输出目录提供静态服务即可。
+只需要使用 `--build` 构建前端资源（`index.html`，`*.js`...），然后为输出目录提供静态服务即可。
 
 > [!WARNING]
 > 由于 `<gem-book>` 使用了 [History API](https://developer.mozilla.org/en-US/docs/Web/API/History)，所以默认不支持 Github Pages

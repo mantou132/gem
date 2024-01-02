@@ -28,6 +28,11 @@ customElements.whenDefined('gem-book').then(() => {
     .error {
       color: ${theme.cautionColor};
     }
+    gem-book-pre {
+      margin: 2rem 0px;
+      border-radius: ${theme.normalRound};
+      animation: display 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+    }
     @keyframes display {
       0% {
         opacity: 0;
@@ -35,11 +40,6 @@ customElements.whenDefined('gem-book').then(() => {
       100% {
         opacity: 1;
       }
-    }
-    gem-book-pre {
-      margin: 2rem 0px;
-      border-radius: ${theme.normalRound};
-      animation: display 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
     }
   `);
 
@@ -83,7 +83,7 @@ customElements.whenDefined('gem-book').then(() => {
       if (!content) return html`<div class="loading">Loading...</div>`;
 
       return html`
-        <gem-book-pre codelang=${this.#codeLang} highlight=${this.highlight} range=${this.range}
+        <gem-book-pre codelang=${this.#codeLang} highlight=${this.highlight} filename=${this.src} range=${this.range}
           >${content}</gem-book-pre
         >
       `;

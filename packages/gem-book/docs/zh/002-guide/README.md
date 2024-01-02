@@ -15,7 +15,7 @@ GemBook 将 [Markdown](https://zh.wikipedia.org/wiki/Markdown) 内容渲染成�
 # 创建文档
 mkdir docs && echo '# Hello <gem-book>!' > docs/readme.md
 
-# 启动本地服务打开文档站，修改文档将自动刷新
+# 启动本地服务打开文档站，修改文档将自动更新
 npx gem-book docs
 
 # 指定标题

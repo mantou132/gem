@@ -221,6 +221,7 @@ export class Pre extends GemElement {
   @attribute status: 'hidden' | 'active' | '';
   @boolattribute editable: boolean;
   @boolattribute linenumber: boolean;
+  @boolattribute headless: boolean;
 
   @refobject codeRef: RefObject<HTMLElement>;
 
@@ -230,6 +231,10 @@ export class Pre extends GemElement {
 
   get #linenumber() {
     return !!this.range || this.linenumber;
+  }
+
+  get #headless() {
+    return !this.filename || this.headless;
   }
 
   constructor() {
@@ -243,7 +248,7 @@ export class Pre extends GemElement {
 
   #getRanges(range: string, lines: string[]) {
     const len = lines.length;
-    const ranges = range.split(/,\s*/);
+    const ranges = range.trim().split(/\s*,\s*/);
     return ranges.map((range) => {
       // 第二位可以省略，第一位不行
       // 3-4
@@ -256,7 +261,7 @@ export class Pre extends GemElement {
       const [startStr, endStr = startStr] = range.split(/(?<!-|^)-/);
       const [start, end] = [parseInt(startStr) || 1, parseInt(endStr) || 0];
       // 包含首尾
-      return [start < 0 ? len + start + 1 : start, end < 0 ? len + end + 1 : end || len];
+      return [start < 0 ? len + start + 1 : start, end < 0 ? len + end + 1 : end || len].sort((a, b) => a - b);
     });
   }
 
@@ -396,15 +401,29 @@ export class Pre extends GemElement {
           display: none;
         }
         :host {
+          display: block;
+          font-family: ${theme.codeFont};
+          background: rgba(${theme.textColorRGB}, 0.05);
+        }
+        .filename {
+          font-size: 0.75em;
+          padding: 1rem;
+          line-height: 1;
+          border-bottom: 1px solid ${theme.borderColor};
+          text-overflow: ellipsis;
+          overflow: hidden;
+          white-space: nowrap;
+          color: rgba(${theme.textColorRGB}, 0.5);
+        }
+        .container {
+          height: 100%;
           overflow-y: auto;
           scrollbar-width: thin;
           scrollbar-color: currentColor;
           position: relative;
           display: flex;
           font-size: 0.875em;
-          font-family: ${theme.codeFont};
           line-height: ${lineHeight};
-          background: rgba(${theme.textColorRGB}, 0.05);
           --comment-color: var(--code-comment-color, #6e6e6e);
           --section-color: var(--code-section-color, #c9252d);
           --title-color: var(--code-title-color, #4646c6);
@@ -417,6 +436,7 @@ export class Pre extends GemElement {
         }
         .gem-code,
         .linenumber {
+          padding: ${padding};
           box-sizing: border-box;
           min-height: 100%;
           height: max-content;
@@ -427,12 +447,9 @@ export class Pre extends GemElement {
           scrollbar-color: currentColor;
           font-family: inherit;
           flex-grow: 1;
-          box-sizing: border-box;
-          display: block;
           text-align: left;
           white-space: pre;
           tab-size: 2;
-          padding: ${padding};
           hyphens: none;
           overflow-clip-box: content-box;
           box-shadow: none;
@@ -445,8 +462,7 @@ export class Pre extends GemElement {
           display: inline-flex;
           flex-direction: column;
           flex-shrink: 0;
-          padding: 1em;
-          min-width: 1em;
+          min-width: 3.5em;
           text-align: right;
           border-right: 1px solid ${theme.borderColor};
           color: rgba(${theme.textColorRGB}, 0.5);
@@ -558,42 +574,45 @@ export class Pre extends GemElement {
           }
         }
       </style>
-      ${lineNumbersParts
-        .reduce((p, c) => p.concat(Array(IGNORE_LINE)).concat(c))
-        .map((linenumber, index) =>
-          highlightLineSet.has(linenumber)
-            ? html`
-                <span
-                  class="gem-highlight"
-                  style=${styleMap({
-                    top: `calc(${index} * ${lineHeight} + ${padding})`,
-                  })}
-                ></span>
-              `
-            : '',
-        )}
-      ${this.#linenumber
-        ? html`
-            <div class="linenumber">
-              ${lineNumbersParts.map(
-                (numbers, index, arr) => html`
-                  ${numbers.map((n) => html`<span>${n}</span>`)}${arr.length - 1 !== index
-                    ? html`<span class="linenumber-ignore"></span>`
-                    : ''}
-                `,
-              )}
-            </div>
-          `
-        : ''}
-      <code
-        ref=${this.codeRef.ref}
-        class="gem-code"
-        contenteditable=${this.editable ? contenteditableValue : false}
-        @compositionstart=${this.#compositionstartHandle}
-        @compositionend=${this.#compositionendHandle}
-        @input=${this.#onInput}
-        >${parts.join('\n'.repeat(IGNORE_LINE + 1))}</code
-      >
+      ${!this.#headless ? html`<div class="filename">${this.filename}</div>` : ''}
+      <div class="container">
+        ${lineNumbersParts
+          .reduce((p, c) => p.concat(Array(IGNORE_LINE)).concat(c))
+          .map((linenumber, index) =>
+            highlightLineSet.has(linenumber)
+              ? html`
+                  <span
+                    class="gem-highlight"
+                    style=${styleMap({
+                      top: `calc(${index} * ${lineHeight} + ${padding})`,
+                    })}
+                  ></span>
+                `
+              : '',
+          )}
+        ${this.#linenumber
+          ? html`
+              <div class="linenumber">
+                ${lineNumbersParts.map(
+                  (numbers, index, arr) => html`
+                    ${numbers.map((n) => html`<span>${n}</span>`)}${arr.length - 1 !== index
+                      ? html`<span class="linenumber-ignore"></span>`
+                      : ''}
+                  `,
+                )}
+              </div>
+            `
+          : ''}
+        <code
+          ref=${this.codeRef.ref}
+          class="gem-code"
+          contenteditable=${this.editable ? contenteditableValue : false}
+          @compositionstart=${this.#compositionstartHandle}
+          @compositionend=${this.#compositionendHandle}
+          @input=${this.#onInput}
+          >${parts.join('\n'.repeat(IGNORE_LINE + 1))}</code
+        >
+      </div>
     `;
   }
 }

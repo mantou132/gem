@@ -43,11 +43,15 @@ customElements.whenDefined('gem-book').then(() => {
 
   const style = createCSSSheet(css`
     :host {
+      display: block;
+      container-type: inline-size;
+      margin: 2rem 0px;
+    }
+    .container {
       display: grid;
       grid-template: 'tabs tabs' 'code preview' / 50% 50%;
       border-radius: ${theme.normalRound};
       overflow: hidden;
-      margin: 2rem 0px;
     }
     .header {
       grid-area: tabs;
@@ -119,7 +123,7 @@ customElements.whenDefined('gem-book').then(() => {
       border-radius: ${theme.normalRound};
     }
     @container (max-width: 700px) {
-      :host {
+      .container {
         grid-template: 'tabs' 'code' 'preview' / 100%;
       }
       .preview {
@@ -225,12 +229,15 @@ customElements.whenDefined('gem-book').then(() => {
 
     #parseContents = () => {
       return [...this.querySelectorAll<Pre>('gem-book-pre')].map((element) => {
+        const filename = element.getAttribute('filename') || this.#defaultEntryFilename;
+        element.dataset.filename = filename;
+        element.setAttribute('headless', '');
         element.setAttribute('editable', '');
         element.setAttribute('linenumber', '');
         return {
           element,
+          filename,
           code: element.textContent,
-          filename: element.getAttribute('filename') || this.#defaultEntryFilename,
           lang: element.getAttribute('codelang') || '',
           status: element.getAttribute('status') || '',
         } as File;
@@ -359,43 +366,41 @@ customElements.whenDefined('gem-book').then(() => {
       const { files, forking, status } = this.state;
       if (!files.length) return;
       const currentFile = files.find(({ status }) => status === 'active') || files.find(({ status }) => status === '');
-      const currentFileSelector =
-        currentFile?.filename === this.#defaultEntryFilename
-          ? `::slotted(:not([filename=''], [filename='${currentFile?.filename}']))`
-          : `::slotted(:not([filename='${currentFile?.filename}']))`;
       return html`
-        <div class="header">
-          <ul class="tabs">
-            ${files.map(
-              (file) => html`
-                <li
-                  class=${classMap({ tab: true, current: currentFile?.filename === file.filename })}
-                  ?hidden=${file.status === 'hidden'}
-                  @click=${() => this.#onClickTab(file.element)}
-                >
-                  ${file.filename}
-                </li>
-              `,
-            )}
-          </ul>
-          <div class="actions">
-            <gem-use class="btn" @click=${this.#onReset}>Reset</gem-use>
-            <gem-use class="btn" .element=${forking ? '' : icons.link} @click=${this.#onFork}>
-              Fork ${forking ? '...' : ''}
-            </gem-use>
+        <div class="container">
+          <div class="header">
+            <ul class="tabs">
+              ${files.map(
+                (file) => html`
+                  <li
+                    class=${classMap({ tab: true, current: currentFile?.filename === file.filename })}
+                    ?hidden=${file.status === 'hidden'}
+                    @click=${() => this.#onClickTab(file.element)}
+                  >
+                    ${file.filename}
+                  </li>
+                `,
+              )}
+            </ul>
+            <div class="actions">
+              <gem-use class="btn" @click=${this.#onReset}>Reset</gem-use>
+              <gem-use class="btn" .element=${forking ? '' : icons.link} @click=${this.#onFork}>
+                Fork ${forking ? '...' : ''}
+              </gem-use>
+            </div>
           </div>
-        </div>
-        <slot></slot>
-        <style>
-          ${currentFileSelector} {
-            display: none;
-          }
-        </style>
-        <div class="preview">
-          <div class="sandbox" ?hidden=${status === 'done'}>
-            <span class="status">${status.replace(/_|-/g, ' ')}...</span>
+          <slot></slot>
+          <style>
+            ::slotted(:not([data-filename='${currentFile?.filename}'])) {
+              display: none;
+            }
+          </style>
+          <div class="preview">
+            <div class="sandbox" ?hidden=${status === 'done'}>
+              <span class="status">${status.replace(/_|-/g, ' ')}...</span>
+            </div>
+            <iframe class="sandbox" ref=${this.iframeRef.ref} ?hidden=${status !== 'done'}></iframe>
           </div>
-          <iframe class="sandbox" ref=${this.iframeRef.ref} ?hidden=${status !== 'done'}></iframe>
         </div>
       `;
     };

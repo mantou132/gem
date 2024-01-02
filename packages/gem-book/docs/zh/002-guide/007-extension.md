@@ -74,7 +74,7 @@ gem-book docs --plugin raw
 然后在 Markdown 中使用它来渲染仓库中的文件：
 
 ```md
-<gbp-raw src="/src/plugins/raw.ts"></gbp-raw>
+<gbp-raw src="src/plugins/raw.ts"></gbp-raw>
 ```
 
 在[这里](../003-plugins.md)查看所有内置插件。

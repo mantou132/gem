@@ -18,7 +18,7 @@ sidebarIgnore: true
 
 [首页](./003-cli.md#--home-mode)还支持 `hero` `features`，例如：
 
-<gbp-raw src="docs/en/README.md" range="1-19"></gbp-raw>
+<gbp-raw src="docs/zh/README.md" range="1-19"></gbp-raw>
 
 ## 重定向
 

@@ -271,7 +271,12 @@ customElements.whenDefined('gem-book').then(() => {
     };
 
     mounted = () => {
-      Promise.all(this.src.split(',').map((src) => this.#loadResource(src)))
+      Promise.all(
+        this.src
+          .trim()
+          .split(/\s*,\s*/)
+          .map((src) => this.#loadResource(src)),
+      )
         .then(() => {
           this.setState({ loading: false, error: false });
         })

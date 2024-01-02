@@ -58,7 +58,7 @@ export class GemBookPluginElement<T = any> extends GemElement<T> {
   @globalemitter error: Emitter<ErrorEvent | Event> = console.error;
 
   /**获取资源的远端 GitHub raw 地址，如果使用 `DEV_MODE`，则返回本机服务的 URL */
-  getRemoteURL(originSrc = '') {
+  getRemoteURL(originSrc = '', dev = GemBookPluginElement.devMode) {
     const config = GemBookPluginElement.config;
     let url = originSrc;
     if (originSrc && !/^(https?:)?\/\//.test(originSrc)) {
@@ -67,9 +67,7 @@ export class GemBookPluginElement<T = any> extends GemElement<T> {
       const repo = new URL(config.github).pathname;
       const src = `${originSrc.startsWith('/') ? '' : '/'}${originSrc}`;
       const basePath = config.base ? `/${config.base}` : '';
-      url = GemBookPluginElement.devMode
-        ? `/_assets${src}`
-        : `${rawOrigin}${repo}/${config.sourceBranch}${basePath}${src}`;
+      url = dev ? `/_assets${src}` : `${rawOrigin}${repo}/${config.sourceBranch}${basePath}${src}`;
     }
     return url;
   }

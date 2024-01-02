@@ -68,7 +68,6 @@ customElements.whenDefined('gem-book').then(() => {
       width: 1em;
     }
     ::slotted(*) {
-      display: none;
       background: rgba(${theme.textColorRGB}, 0.03);
       margin: 0 !important;
       border-radius: 0 !important;
@@ -90,10 +89,13 @@ customElements.whenDefined('gem-book').then(() => {
 
     #parseContents = () => {
       return [...this.querySelectorAll<Pre>('gem-book-pre')].map((element) => {
+        const filename = element.getAttribute('filename') || '';
+        element.dataset.filename = filename;
+        element.setAttribute('headless', '');
         return {
           element,
+          filename,
           code: element.textContent,
-          filename: element.getAttribute('filename') || '',
           lang: element.getAttribute('codelang') || '',
           status: element.getAttribute('status') || '',
         } as File;
@@ -146,8 +148,8 @@ customElements.whenDefined('gem-book').then(() => {
         </div>
         <slot></slot>
         <style>
-          ::slotted([filename='${currentFile?.filename}']) {
-            display: block;
+          ::slotted(:not([data-filename='${currentFile?.filename}'])) {
+            display: none;
           }
         </style>
       `;

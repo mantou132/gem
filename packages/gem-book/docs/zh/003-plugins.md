@@ -38,12 +38,12 @@ yarn add gem-book
 
 用于显示远端代码，如果提供的 `src` 只包含路径，则会从当前项目的 GitHub 上读取内容（受 [`sourceDir`](./002-guide/003-cli.md#--source-dir)，[`sourceBranch`](./002-guide/003-cli.md#--source-branch) 影响），比如：
 
-<gbp-raw src="package.json" range="2-3,-6--4" highlight="89"><gbp-raw>
+<gbp-raw src="package.json" range="2-3,-4--6" highlight="-5"><gbp-raw>
 
 ```md
 <!-- `range` 指定显示的范围，支持使用负数 -->
 
-<gbp-raw src="package.json" range="2-3,-6--4" highlight="89"><gbp-raw>
+<gbp-raw src="package.json" range="2-3,-4--6" highlight="-5"><gbp-raw>
 ```
 
 ## `<gbp-media>`
@@ -51,7 +51,7 @@ yarn add gem-book
 显示远端多媒体内容，比如图片，视频，获取资源方式和 `<gbp-raw>` 一样：
 
 ```md
-<gbp-media src="/preview.png"></gbp-media>
+<gbp-media src="preview.png"></gbp-media>
 ```
 
 ## `<gbp-import>`

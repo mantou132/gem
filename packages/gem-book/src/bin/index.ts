@@ -77,6 +77,9 @@ function readConfig(fullPath: string) {
       }
     }
   });
+
+  if (cliConfig.debug) inspectObject(cliConfig);
+
   obj.nav = obj.nav?.filter((e) => {
     if (e.title?.toLowerCase() === 'github') {
       bookConfig.github = e.link;
@@ -231,7 +234,7 @@ async function generateBookConfig(dir: string) {
     }
   }
   // eslint-disable-next-line no-console
-  console.log(`${new Date().toISOString()} <gem-book> config file updated! ${Date.now() - t}ms`);
+  console.log(`${new Date().toISOString()} book config updated! ${Date.now() - t}ms`);
 }
 
 program
@@ -361,16 +364,14 @@ program
 
     await generateBookConfig(dir);
 
-    if (cliConfig.debug) inspectObject(cliConfig);
-
     let server = cliConfig.json ? undefined : startBuilder(dir, cliConfig, bookConfig);
-    let themeWatcher = watchTheme();
 
-    if (server) {
+    if (!cliConfig.build) {
       devServerEventTarget.addEventListener(UPDATE_EVENT, ({ detail }: CustomEvent<string>) => {
         server?.sendMessage(server.webSocketServer?.clients || [], UPDATE_EVENT, detail);
       });
 
+      let themeWatcher = watchTheme();
       if (configPath) {
         fs.watch(
           configPath,
@@ -380,7 +381,7 @@ program
               bookConfig = structuredClone(initBookConfig);
               readConfig(configPath);
               await generateBookConfig(dir);
-              server!.stopCallback(() => {
+              server?.stopCallback(() => {
                 server = startBuilder(dir, cliConfig, bookConfig);
                 devServerEventTarget.dispatchEvent(
                   Object.assign(new Event(UPDATE_EVENT), {
@@ -391,7 +392,7 @@ program
                 themeWatcher = watchTheme();
               });
             },
-            100,
+            300,
             { trailing: true },
           ),
         );

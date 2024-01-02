@@ -109,7 +109,6 @@ export class Main extends GemElement {
           width: 100%;
           box-sizing: border-box;
           z-index: 1;
-          container-type: inline-size;
         }
         :host > :first-child {
           margin-top: 0;
