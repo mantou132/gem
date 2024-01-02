@@ -11,14 +11,14 @@ import { GenerateSW } from 'workbox-webpack-plugin';
 import { BookConfig, CliUniqueConfig } from '../common/config';
 import { STATS_FILE } from '../common/constant';
 
-import { resolveLocalPlugin, resolveTheme, isURL, requireObject } from './utils';
+import { resolveLocalPlugin, resolveTheme, isURL, importObject } from './utils';
 
 const publicDir = path.resolve(__dirname, '../public');
 const entryDir = path.resolve(__dirname, process.env.GEM_BOOK_DEV ? '../src/website' : '../website');
 const pluginDir = path.resolve(__dirname, process.env.GEM_BOOK_DEV ? '../src/plugins' : '../plugins');
 
 // dev mode uses memory file system
-export function startBuilder(dir: string, options: Required<CliUniqueConfig>, bookConfig: Partial<BookConfig>) {
+export async function startBuilder(dir: string, options: Required<CliUniqueConfig>, bookConfig: BookConfig) {
   const { debug, build, theme, template, output, icon, plugin, ga } = options;
 
   const plugins = [...plugin];
@@ -89,7 +89,7 @@ export function startBuilder(dir: string, options: Required<CliUniqueConfig>, bo
       new webpack.DefinePlugin({
         'process.env.DEV_MODE': !build,
         'process.env.BOOK_CONFIG': JSON.stringify(bookConfig),
-        'process.env.THEME': JSON.stringify(requireObject(themePath)),
+        'process.env.THEME': JSON.stringify(await importObject(themePath)),
         'process.env.PLUGINS': JSON.stringify(plugins),
         'process.env.GA_ID': JSON.stringify(ga),
       }),

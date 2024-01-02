@@ -49,6 +49,11 @@ export function getRepoTitle() {
   }
 }
 
+// dir2 is in dir
+export function inTheDir(dir: string, dir2: string) {
+  return !path.relative(dir, dir2).startsWith('.');
+}
+
 // Prefer built-in
 export function resolveLocalPlugin(p: string) {
   try {
@@ -65,23 +70,27 @@ export function resolveLocalPlugin(p: string) {
   }
 }
 
-// Prefer built-in
-export function resolveTheme(p: string) {
+export function resolveModule(p?: string, builtInDirs: string[] = []) {
   if (!p) return;
 
-  try {
-    return require.resolve(path.resolve(__dirname, `../themes/${p}`));
-  } catch {
-    try {
-      return require.resolve(path.resolve(process.cwd(), p));
-    } catch {}
-  }
+  return [...builtInDirs.map((dir) => path.resolve(__dirname, `${dir}${p}`)), path.resolve(process.cwd(), p)]
+    .map((p) => ['', '.js', '.json', '.mjs'].map((ext) => p + ext))
+    .flat()
+    .find((e) => existsSync(e));
 }
 
-export function requireObject<T>(fullPath?: string) {
+// Prefer built-in
+export function resolveTheme(p: string) {
+  return resolveModule(p, ['../themes/']);
+}
+
+export async function importObject<T>(fullPath?: string) {
   if (!fullPath) return;
-  delete require.cache[fullPath];
   try {
+    if (fullPath.endsWith('.mjs')) {
+      return (await import(`${fullPath}?v=${performance.now()}`)).default;
+    }
+    delete require.cache[fullPath];
     return require(fullPath) as T;
   } catch (err) {
     // eslint-disable-next-line no-console
@@ -200,21 +209,18 @@ export function isURL(s: string) {
   }
 }
 
-// dir2 is in dir
-export function inTheDir(dir: string, dir2: string) {
-  return !path.relative(dir, dir2).startsWith('.');
-}
-
 export function isSomeContent(filePath: string, content: string) {
   return existsSync(filePath) && content === readFileSync(filePath, 'utf-8');
 }
 
-export function inspectObject(obj: any) {
+export function inspectObject(obj: any, depth = 0) {
   // eslint-disable-next-line no-console
-  console.log(util.inspect(obj, { colors: true, depth: null }));
+  console.log(util.inspect(obj, { colors: true, depth: depth || null }));
 }
 
 export async function getIconDataUrl(filePath: string) {
+  if (isURL(filePath)) return filePath;
+  if (filePath.startsWith('data:')) return filePath;
   if (filePath.endsWith('.svg')) {
     return `data:image/svg+xml;base64,${btoa(readFileSync(path.resolve(process.cwd(), filePath), 'utf-8'))}`;
   }
@@ -222,7 +228,8 @@ export async function getIconDataUrl(filePath: string) {
     const image = await Jimp.read(filePath);
     return await image.clone().resize(Jimp.AUTO, 100).getBase64Async(Jimp.MIME_PNG);
   } catch (err) {
-    if (isURL(filePath)) return filePath;
-    throw err;
+    // eslint-disable-next-line no-console
+    console.error(err);
+    return '';
   }
 }

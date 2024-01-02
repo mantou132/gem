@@ -35,12 +35,13 @@ import {
   getHash,
   getFile,
   resolveTheme,
-  requireObject,
+  importObject,
+  resolveModule,
 } from './utils';
 import { startBuilder } from './builder';
 import lang from './lang.json'; // https://developers.google.com/search/docs/advanced/crawling/localized-versions#language-codes
 
-export const devServerEventTarget = new EventTarget();
+const devServerEventTarget = new EventTarget();
 
 program.version(version, '-v, --version');
 
@@ -60,8 +61,9 @@ let cliConfig: Required<CliUniqueConfig> = {
   config: '',
 };
 
-function readConfig(fullPath: string) {
-  const obj = requireObject<CliConfig & BookConfig>(fullPath) || {};
+// 将配置文件和 cli 选项合并，并将 book 选项同步到 bookConfig
+async function syncConfig(fullPath?: string) {
+  const obj: CliConfig = (await importObject(resolveModule(fullPath))) || {};
   Object.keys(cliConfig).forEach((key: keyof CliUniqueConfig) => {
     if (key in obj) {
       const value = obj[key];
@@ -69,7 +71,6 @@ function readConfig(fullPath: string) {
 
       const cliConfigValue = cliConfig[key];
 
-      // Overriding command line options is not allowed
       if (Array.isArray(cliConfigValue)) {
         Object.assign(cliConfig, { [key]: [...new Set([...cliConfigValue, ...(value as any[])])] });
       } else if (!cliConfigValue) {
@@ -233,6 +234,8 @@ async function generateBookConfig(dir: string) {
       fs.writeFileSync(configPath, configStr);
     }
   }
+
+  if (cliConfig.debug) inspectObject(bookConfig, 2);
   // eslint-disable-next-line no-console
   console.log(`${new Date().toISOString()} book config updated! ${Date.now() - t}ms`);
 }
@@ -316,9 +319,13 @@ program
   .option('--debug', 'enabled debug mode', () => {
     cliConfig.debug = true;
   })
-  .option('--config <path>', `specify config file, default use \`${DEFAULT_CLI_FILE}\``, (configPath: string) => {
-    cliConfig.config = configPath;
-  })
+  .option(
+    '--config <path>',
+    `specify config file, default use \`${DEFAULT_CLI_FILE}\`.{js|json|mjs}`,
+    (configPath: string) => {
+      cliConfig.config = configPath;
+    },
+  )
   .arguments('<dir>')
   .action(async (dir: string) => {
     const initCliOptions = structuredClone(cliConfig);
@@ -326,8 +333,9 @@ program
 
     docsRootDir = path.resolve(process.cwd(), dir);
 
-    const configPath = path.resolve(process.cwd(), cliConfig.config || DEFAULT_CLI_FILE);
-    readConfig(configPath);
+    const configPath = resolveModule(cliConfig.config || DEFAULT_CLI_FILE);
+    await syncConfig(configPath);
+    await generateBookConfig(dir);
 
     const updateBookConfig = throttle(
       async () => {
@@ -348,10 +356,10 @@ program
         return fs.watch(
           themePath,
           throttle(
-            () => {
+            async () => {
               devServerEventTarget.dispatchEvent(
                 Object.assign(new Event(UPDATE_EVENT), {
-                  detail: { theme: requireObject(themePath) },
+                  detail: { theme: await importObject(themePath) },
                 }),
               );
             },
@@ -362,9 +370,7 @@ program
       }
     };
 
-    await generateBookConfig(dir);
-
-    let server = cliConfig.json ? undefined : startBuilder(dir, cliConfig, bookConfig);
+    let server = cliConfig.json ? undefined : await startBuilder(dir, cliConfig, bookConfig);
 
     if (!cliConfig.build) {
       devServerEventTarget.addEventListener(UPDATE_EVENT, ({ detail }: CustomEvent<string>) => {
@@ -379,18 +385,17 @@ program
             async () => {
               cliConfig = structuredClone(initCliOptions);
               bookConfig = structuredClone(initBookConfig);
-              readConfig(configPath);
+              await syncConfig(configPath);
               await generateBookConfig(dir);
-              server?.stopCallback(() => {
-                server = startBuilder(dir, cliConfig, bookConfig);
-                devServerEventTarget.dispatchEvent(
-                  Object.assign(new Event(UPDATE_EVENT), {
-                    detail: { config: bookConfig },
-                  }),
-                );
-                themeWatcher?.close();
-                themeWatcher = watchTheme();
-              });
+              await server?.stop();
+              server = await startBuilder(dir, cliConfig, bookConfig);
+              devServerEventTarget.dispatchEvent(
+                Object.assign(new Event(UPDATE_EVENT), {
+                  detail: { config: bookConfig },
+                }),
+              );
+              themeWatcher?.close();
+              themeWatcher = watchTheme();
             },
             300,
             { trailing: true },

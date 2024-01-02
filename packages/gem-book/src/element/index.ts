@@ -87,6 +87,8 @@ export class GemBookElement extends GemElement {
     this.addEventListener('message', ({ detail }: CustomEvent) => {
       const event = JSON.parse(detail);
       if (typeof event.data !== 'object') return;
+      // eslint-disable-next-line no-console
+      if (this.dev) console.log('Event data', event.data);
       const { filePath, content, config, theme, reload } = event.data;
       if (event.type !== UPDATE_EVENT) return;
       const routeELement = this.routeRef.element!;
@@ -323,5 +325,3 @@ export class GemBookElement extends GemElement {
     );
   }
 }
-
-export { GemBookPluginElement } from './elements/plugin';
