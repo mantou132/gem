@@ -1,6 +1,6 @@
 import { GemElement, html, TemplateResult } from '../../lib/element';
-import { property, connectStore, emitter, Emitter, boolattribute } from '../../lib/decorators';
-import { createStore, updateStore, Store } from '../../lib/store';
+import { property, emitter, Emitter, boolattribute } from '../../lib/decorators';
+import { createStore, updateStore, Store, connect } from '../../lib/store';
 import { titleStore, history, UpdateHistoryParams } from '../../lib/history';
 import { QueryString } from '../../lib/utils';
 
@@ -111,13 +111,18 @@ type State = {
   content?: TemplateResult;
 };
 
+export type RouteTrigger = {
+  store: Store<any>;
+  replace: (arg: { path: string }) => void;
+  getParams: () => { path: string; query: any };
+};
+
 /**
  * @attr inert 暂停路由更新
  * @fires routechange
  * @fires error
  * @fires loading
  */
-@connectStore(history.store)
 export class GemRouteElement extends GemElement<State> {
   @boolattribute transition: boolean;
   @property routes?: RouteItem[] | RoutesObject;
@@ -133,6 +138,8 @@ export class GemRouteElement extends GemElement<State> {
   @emitter routechange: Emitter<RouteItem | null>; // path 改变或者 key 改变，包含初始渲染
   @emitter loading: Emitter<RouteItem>;
   @emitter error: Emitter<any>;
+
+  @property trigger: RouteTrigger = history;
 
   /**当前使用的路由对象 */
   currentRoute: RouteItem | null;
@@ -210,6 +217,12 @@ export class GemRouteElement extends GemElement<State> {
 
   mounted() {
     this.effect(
+      // 触发 this.#update
+      () => connect(this.trigger.store, () => this.setState({})),
+      () => [this.trigger],
+    );
+
+    this.effect(
       ([key, path], old) => {
         // 只有查询参数改变
         if (old && key === old[0] && path === old[1]) {
@@ -218,7 +231,10 @@ export class GemRouteElement extends GemElement<State> {
         }
         this.update();
       },
-      () => [this.key, history.getParams().path, location.search],
+      () => {
+        const { path, query } = this.trigger.getParams();
+        return [this.key, path + query];
+      },
     );
   }
 
@@ -243,13 +259,15 @@ export class GemRouteElement extends GemElement<State> {
   }
 
   update = () => {
-    const { route, params = {} } = GemRouteElement.findRoute(this.routes, history.getParams().path);
+    const { route, params = {} } = GemRouteElement.findRoute(this.routes, this.trigger.getParams().path);
     const { redirect, content, getContent } = route || {};
     if (redirect) {
-      history.replace({ path: redirect });
+      this.trigger.replace({ path: redirect });
       return;
     }
-    updateStore(titleStore, { title: route?.title });
+    if (this.trigger === history) {
+      updateStore(titleStore, { title: route?.title });
+    }
     const contentOrLoader = content || getContent?.(params);
     if (contentOrLoader instanceof Promise) {
       this.loading(route!);

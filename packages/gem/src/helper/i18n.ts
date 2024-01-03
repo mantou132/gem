@@ -1,6 +1,7 @@
 import { createStore, updateStore, Store } from '../lib/store';
 import { html, TemplateResult } from '../lib/element';
 import { GemError } from '../lib/utils';
+import type { RouteTrigger } from '../elements/base/route';
 
 import { logger } from './logger';
 
@@ -61,7 +62,7 @@ interface I18nOptions<T> {
   onChange?: (currentLanguage: string) => void;
 }
 
-export class I18n<T = Record<string, Msg>> {
+export class I18n<T = Record<string, Msg>> implements RouteTrigger {
   resources: Resources<T>;
   fallbackLanguage: string;
   currentLanguage: string;
@@ -72,6 +73,12 @@ export class I18n<T = Record<string, Msg>> {
   onChange?: (currentLanguage: string) => void;
 
   store: Store<any>;
+
+  replace = ({ path }: { path: string }) => {
+    this.setLanguage(path);
+  };
+
+  getParams = () => ({ path: this.currentLanguage, query: '' });
 
   get #cacheCurrentKey() {
     return `${this.cachePrefix}:current`;

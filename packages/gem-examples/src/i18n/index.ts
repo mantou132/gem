@@ -1,6 +1,8 @@
 import { GemElement, html, connectStore, customElement, render } from '@mantou/gem';
 import { I18n } from '@mantou/gem/helper/i18n';
+import type { RouteItem } from 'duoyun-ui/elements/route';
 
+import 'duoyun-ui/elements/route';
 import '../elements/layout';
 
 const en = {
@@ -29,6 +31,27 @@ const i18nModule = i18n.createSubModule<typeof en>('test', {
   zh: 'data:text/plain;base64,eyJ0aXRsZSI6Iui/meaYr0kxOG4ifQ==',
 });
 
+const localizeRoutes: RouteItem[] = [
+  {
+    pattern: 'en',
+    getContent() {
+      return html`en element`;
+    },
+  },
+  {
+    pattern: 'de',
+    getContent() {
+      return html`de element`;
+    },
+  },
+  {
+    pattern: '*',
+    getContent() {
+      return html`other element`;
+    },
+  },
+];
+
 @connectStore(i18n.store)
 @connectStore(i18nModule.store)
 @customElement('app-root')
@@ -48,6 +71,9 @@ export class App extends GemElement {
       <p>${i18nModule.get('title')}</p>
       <p>${i18nModule.get('hello', 'World', 'reverse')}</p>
       <p>${i18nModule.get('detail', (s) => html`<a href="#">${s}</a>`)}</p>
+
+      <h2>localize content</h2>
+      <dy-route .trigger=${i18n} .routes=${localizeRoutes}></dy-route>
     `;
   }
 }
