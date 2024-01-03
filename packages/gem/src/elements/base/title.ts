@@ -68,6 +68,7 @@ export class GemTitleElement extends GemElement {
     super();
     new MutationObserver(() => this.update()).observe(this, {
       characterData: true,
+      childList: true,
       subtree: true,
     });
   }

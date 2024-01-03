@@ -29,7 +29,7 @@ export interface UpdateHistoryParams {
   title?: string;
   path?: string; // 不包括 basePath，只有根目录储存末尾斜杠
   query?: string | QueryString; // 包含 `?`
-  hash?: string; // 包含 `#`
+  hash?: string; // 包含 `#`，不进行编码，方便比较
   // 以下为看不见的状态
   open?: () => void; // 按下前进键时执行
   close?: () => void; // 按下返回键时执行
@@ -254,7 +254,7 @@ if (!window._GEMHISTORY) {
       paramsMap.set(newState.$key, {
         path: pathname,
         query: new QueryString(search),
-        hash: encodeURIComponent(hash),
+        hash: decodeURIComponent(hash),
         title: newState.$title, // document.title 是导航前的
         data: newState,
       });

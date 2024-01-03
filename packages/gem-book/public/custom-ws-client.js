@@ -9,7 +9,6 @@ export default class WebSocketClient {
   constructor(url) {
     this.client = new WebSocket(url);
     this.client.onerror = (error) => {
-      // eslint-disable-next-line no-console
       console.error(error);
     };
   }

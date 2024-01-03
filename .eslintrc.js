@@ -48,4 +48,19 @@ module.exports = {
       },
     ],
   },
+  overrides: [
+    {
+      files: [
+        '**/*.js',
+        '**/*.test.ts',
+        'packages/gem-port/src/**/*.ts',
+        'packages/gem-examples/src/**/*.ts',
+        'packages/gem-devtools/src/scripts/*.ts',
+        'packages/gem/src/helper/logger.ts',
+      ],
+      rules: {
+        'no-console': 'off',
+      },
+    },
+  ],
 };

@@ -1,4 +1,5 @@
 import { css, history } from '@mantou/gem';
+import { logger } from '@mantou/gem/helper/logger';
 
 import { GemBookElement } from '../element';
 import { BookConfig } from '../common/config';
@@ -14,9 +15,8 @@ if (gaId) {
   const script = document.createElement('script');
   script.src = `https://www.googletagmanager.com/gtag/js?id=${gaId}`;
   script.onload = () => {
-    function gtag(..._rest: any): any {
-      // eslint-disable-next-line prefer-rest-params
-      (window as any).dataLayer.push(arguments);
+    function gtag(...args: any) {
+      (window as any).dataLayer.push(args);
     }
     function send() {
       // https://gemjs.org/en/api/history
@@ -51,8 +51,7 @@ function loadPlugin(plugin: string) {
 plugins.forEach(loadPlugin);
 addEventListener('plugin', ({ detail }: CustomEvent) => {
   if (plugins.includes(detail)) return;
-  // eslint-disable-next-line no-console
-  console.info('GemBook auto load plugin:', detail);
+  logger.info('GemBook auto load plugin:', detail);
   loadPlugin(detail);
 });
 

@@ -1,6 +1,7 @@
 /**只要元素显示在屏幕内，屏幕就不会自动熄灭 */
 
 import { GemElementOptions } from '@mantou/gem/lib/element';
+import { logger } from '@mantou/gem/helper/logger';
 
 import { DuoyunVisibleBaseElement } from './visible';
 
@@ -13,11 +14,9 @@ export function wakeLock(ele: DuoyunWakeLockBaseElement) {
 
       // log
       wakeLockPromise?.then((wakeLock) => {
-        // eslint-disable-next-line no-console
-        console.info('wake lock created!');
+        logger.info('wake lock created!');
         wakeLock.addEventListener('release', () => {
-          // eslint-disable-next-line no-console
-          console.info('wake lock released!');
+          logger.info('wake lock released!');
         });
       });
     } else {

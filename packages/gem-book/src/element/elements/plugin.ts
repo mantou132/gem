@@ -2,6 +2,7 @@ import { GemElement, connectStore, globalemitter, Emitter, customElement } from 
 import * as Gem from '@mantou/gem';
 import { marked } from 'marked';
 import { mediaQuery } from '@mantou/gem/helper/mediaquery';
+import { logger } from '@mantou/gem/helper/logger';
 
 import { theme } from '../helper/theme';
 import { bookStore } from '../store';
@@ -55,7 +56,7 @@ export class GemBookPluginElement<T = any> extends GemElement<T> {
     return bookStore.getCurrentLink?.();
   }
 
-  @globalemitter error: Emitter<ErrorEvent | Event> = console.error;
+  @globalemitter error: Emitter<ErrorEvent | Event> = logger.error;
 
   /**获取资源的远端 GitHub raw 地址，如果使用 `DEV_MODE`，则返回本机服务的 URL */
   getRemoteURL(originSrc = '', dev = GemBookPluginElement.devMode) {

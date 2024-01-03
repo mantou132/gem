@@ -17,6 +17,7 @@ import {
 } from '@mantou/gem';
 import { GemLightRouteElement, matchPath } from '@mantou/gem/elements/route';
 import { mediaQuery } from '@mantou/gem/helper/mediaquery';
+import { logger } from '@mantou/gem/helper/logger';
 
 import { BookConfig } from '../common/config';
 import { UPDATE_EVENT } from '../common/constant';
@@ -87,8 +88,7 @@ export class GemBookElement extends GemElement {
     this.addEventListener('message', ({ detail }: CustomEvent) => {
       const event = JSON.parse(detail);
       if (typeof event.data !== 'object') return;
-      // eslint-disable-next-line no-console
-      if (this.dev) console.log('Event data', event.data);
+      if (this.dev) logger.info('Event data', event.data);
       const { filePath, content, config, theme, reload } = event.data;
       if (event.type !== UPDATE_EVENT) return;
       const routeELement = this.routeRef.element!;

@@ -3,7 +3,7 @@
   "name": "root",
   "version": "1.6.5",
   "scripts": {
-    "lint": "lerna exec -- tsc --noEmit && eslint . --ext .ts,.js",
+    "lint": "lerna exec --ignore @gemjs/config -- tsc --noEmit && eslint . --ext .ts,.js",
     "test": "lerna exec --concurrency=1 --scope '{@mantou/gem,gem-book,duoyun-ui}' -- yarn test",
     "release": "lerna version",
     "prepare:build": "yarn --cwd packages/gem build && lerna exec --scope '{gem-analyzer,duoyun-ui,gem-book,gem-port}' -- yarn build",

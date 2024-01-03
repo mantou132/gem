@@ -2,6 +2,8 @@ import { createStore, updateStore, Store } from '../lib/store';
 import { html, TemplateResult } from '../lib/element';
 import { GemError } from '../lib/utils';
 
+import { logger } from './logger';
+
 // Hello, $1
 // See $1<detail>
 // 嵌套模版中用到 $ < > 时使用 &dollar; &lt;  &gt;  替代
@@ -164,8 +166,7 @@ export class I18n<T = Record<string, Msg>> {
     let pack: Partial<T>;
     const data = this.resources[lang];
     if (!data) {
-      // eslint-disable-next-line no-console
-      console.warn(`${this.cachePrefix}: not found \`${lang}\``);
+      logger.warn(`${this.cachePrefix}: not found \`${lang}\``);
       return this.resetLanguage();
     }
 

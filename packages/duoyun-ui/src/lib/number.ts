@@ -159,7 +159,6 @@ export function adjustRange([min, max]: number[], stepCount: number, units?: num
     let u = unit;
     for (let i = 0; ; i++) {
       if (i > 100) {
-        // console.warn([min, max]);
         break;
       }
 

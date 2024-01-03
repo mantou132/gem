@@ -13,6 +13,7 @@ import {
 } from '@mantou/gem/lib/decorators';
 import { GemElement, html, TemplateResult } from '@mantou/gem/lib/element';
 import { createCSSSheet, css, LinkedList, LinkedListItem, styled, styleMap } from '@mantou/gem/lib/utils';
+import { logger } from '@mantou/gem/helper/logger';
 
 import { theme } from '../lib/theme';
 import { blockContainer } from '../lib/styles';
@@ -129,8 +130,7 @@ export class DuoyunListElement extends GemElement<State> {
   };
 
   #log = (...args: any) => {
-    // eslint-disable-next-line no-console
-    this.debug && console.log(...args);
+    this.debug && logger.info(...args);
   };
 
   #isEnd = (direction: 0 | -1) => {

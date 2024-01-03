@@ -1,5 +1,6 @@
 import { devtools } from 'webextension-polyfill';
 import { customElement, GemElement, html, render } from '@mantou/gem';
+import { logger } from '@mantou/gem/helper/logger';
 
 import { getSelectedGem } from './scripts/get-gem';
 import { changePanelStore, PanelStore } from './store';
@@ -24,7 +25,7 @@ async function updateElementProperties() {
       changePanelStore(await execution(getDomStat, [new PanelStore({ isGemElement: false })]));
     }
   } catch (err) {
-    console.error(err);
+    logger.error(err);
     changePanelStore(new PanelStore({ isGemElement: false }));
   }
 }

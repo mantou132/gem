@@ -7,11 +7,12 @@ import WebpackDevServer from 'webpack-dev-server';
 import HtmlWebpackPlugin from 'html-webpack-plugin';
 import CopyWebpackPlugin from 'copy-webpack-plugin';
 import { GenerateSW } from 'workbox-webpack-plugin';
+import chalk from 'chalk';
 
 import { BookConfig, CliUniqueConfig } from '../common/config';
 import { STATS_FILE } from '../common/constant';
 
-import { resolveLocalPlugin, resolveTheme, isURL, importObject } from './utils';
+import { resolveLocalPlugin, resolveTheme, isURL, importObject, print } from './utils';
 
 const publicDir = path.resolve(__dirname, '../public');
 const entryDir = path.resolve(__dirname, process.env.GEM_BOOK_DEV ? '../src/website' : '../website');
@@ -41,6 +42,7 @@ export async function startBuilder(dir: string, options: Required<CliUniqueConfi
   const themePath = resolveTheme(theme);
 
   const compiler = webpack({
+    stats: build ? 'normal' : 'errors-warnings',
     mode: build ? 'production' : 'development',
     entry: [entryDir],
     module: {
@@ -122,7 +124,7 @@ export async function startBuilder(dir: string, options: Required<CliUniqueConfi
   if (build) {
     compiler.run((err, stats) => {
       if (err) {
-        console.error(err.stack || err);
+        print(err);
         return;
       }
 
@@ -131,12 +133,12 @@ export async function startBuilder(dir: string, options: Required<CliUniqueConfi
       const info = stats.toJson();
 
       if (stats.hasErrors()) {
-        console.error(info.errors);
+        info.errors?.forEach((error) => print(Object.assign(new Error(error.message), { stack: error.stack })));
         process.exit(1);
       }
 
       if (stats.hasWarnings()) {
-        console.warn(info.warnings);
+        info.errors?.forEach((warning) => print(warning.message));
       }
 
       if (debug) {
@@ -171,8 +173,7 @@ export async function startBuilder(dir: string, options: Required<CliUniqueConfi
     );
     server.startCallback((err) => {
       if (err) {
-        // eslint-disable-next-line no-console
-        console.error(err);
+        print(err);
       }
     });
 

@@ -25,6 +25,8 @@ describe('utils 测试', () => {
     expect(absoluteLocation('/a', '/a/b')).to.equal('/a/b');
     expect(absoluteLocation('/a/c', './b')).to.equal('/a/b');
     expect(absoluteLocation('/a/c/d', '../b')).to.equal('/a/b');
+    expect(absoluteLocation('/a/c/d', '../b?a=a#a')).to.equal('/a/b?a=a#a');
+    expect(absoluteLocation('/a/c/d', '../b?a=测试#测试#')).to.equal('/a/b?a=%E6%B5%8B%E8%AF%95#测试#');
   });
   it('LinkedList', () => {
     const linkedList = new LinkedList<() => void>();
@@ -36,6 +38,18 @@ describe('utils 测试', () => {
     const fun2 = () => 2;
     linkedList.add(fun1);
     linkedList.add(fun2);
+    expect(linkedList.first?.value).to.equal(fun1);
+    expect(linkedList.last?.value).to.equal(fun2);
+    expect(linkedList.find(fun1)).to.equal(linkedList.first);
+    expect(linkedList.find(fun2)).to.equal(linkedList.last);
+    expect(linkedList.find(fun1)?.next).to.equal(linkedList.last);
+    const subLinked = new LinkedList();
+    subLinked.add(fun1);
+    subLinked.add(fun2);
+    expect(linkedList.isSuperLinkOf(subLinked)).to.equal(true);
+    expect(new LinkedList().isSuperLinkOf(subLinked)).to.equal(false);
+    expect(subLinked.isSuperLinkOf(new LinkedList())).to.equal(true);
+
     linkedList.delete(fun2);
     expect(linkedList.size).to.equal(1);
     linkedList.add(fun2);

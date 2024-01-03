@@ -38,7 +38,6 @@ export function absoluteLocation(currentPath = '', relativePath = '') {
   return pathname + search + decodeURIComponent(hash);
 }
 
-// eslint-disable-next-line @typescript-eslint/ban-types
 export type NonPrimitive = object;
 
 export function addListener<T extends EventTarget, A extends Parameters<T['addEventListener']>>(

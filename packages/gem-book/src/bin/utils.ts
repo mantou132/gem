@@ -12,6 +12,7 @@ import fm from 'front-matter';
 import YAML from 'yaml';
 import { startCase } from 'lodash';
 import Jimp from 'jimp';
+import chalk from 'chalk';
 
 import { FrontMatter } from '../common/frontmatter';
 import { isIndexFile, parseFilename, CUSTOM_HEADING_REG } from '../common/utils';
@@ -68,15 +69,24 @@ export function resolveLocalPlugin(p: string) {
       return require.resolve(path.resolve(process.cwd(), `${p}${ext}`));
     } catch {}
   }
+
+  if (p) print(chalk.red(`Plugin not found:`), p);
 }
 
 export function resolveModule(p?: string, builtInDirs: string[] = []) {
   if (!p) return;
 
-  return [...builtInDirs.map((dir) => path.resolve(__dirname, `${dir}${p}`)), path.resolve(process.cwd(), p)]
+  const modulePath = [
+    ...builtInDirs.map((dir) => path.resolve(__dirname, `${dir}${p}`)),
+    path.resolve(process.cwd(), p),
+  ]
     .map((p) => ['', '.js', '.json', '.mjs'].map((ext) => p + ext))
     .flat()
     .find((e) => existsSync(e));
+
+  if (!modulePath) print(chalk.red(`Module not found:`), p);
+
+  return modulePath;
 }
 
 // Prefer built-in
@@ -93,8 +103,7 @@ export async function importObject<T>(fullPath?: string) {
     delete require.cache[fullPath];
     return require(fullPath) as T;
   } catch (err) {
-    // eslint-disable-next-line no-console
-    console.error(err);
+    print(err);
   }
 }
 
@@ -125,8 +134,7 @@ export function checkRelativeLink(fullPath: string, docsRootDir: string) {
         currentNum += line.length + 1;
       }
       const position = `(${lineNum},${colNum})`;
-      // eslint-disable-next-line no-console
-      console.warn(`\x1b[33m[${new Date().toISOString()}]: ${fullPath}${position} link warn: ${link}'\x1b[0m`);
+      print(chalk.yellow(`[${new Date().toISOString()}]: ${fullPath}${position} link warn: ${link}`));
     }
   });
 }
@@ -213,9 +221,16 @@ export function isSomeContent(filePath: string, content: string) {
   return existsSync(filePath) && content === readFileSync(filePath, 'utf-8');
 }
 
-export function inspectObject(obj: any, depth = 0) {
-  // eslint-disable-next-line no-console
-  console.log(util.inspect(obj, { colors: true, depth: depth || null }));
+export function print(...args: any) {
+  for (const obj of args) {
+    // eslint-disable-next-line no-console
+    console.log(
+      typeof obj === 'string'
+        ? obj
+        : (obj instanceof Error ? chalk.red(`ERROR\n`) : '') +
+            util.inspect(obj, { colors: true, maxStringLength: 100, depth: 2 }),
+    );
+  }
 }
 
 export async function getIconDataUrl(filePath: string) {
@@ -228,8 +243,7 @@ export async function getIconDataUrl(filePath: string) {
     const image = await Jimp.read(filePath);
     return await image.clone().resize(Jimp.AUTO, 100).getBase64Async(Jimp.MIME_PNG);
   } catch (err) {
-    // eslint-disable-next-line no-console
-    console.error(err);
+    print(err);
     return '';
   }
 }

@@ -1,6 +1,7 @@
 import { GemElement, html } from '@mantou/gem/lib/element';
 import { adoptedStyle, customElement, attribute, part } from '@mantou/gem/lib/decorators';
 import { createCSSSheet, css, styleMap } from '@mantou/gem/lib/utils';
+import { logger } from '@mantou/gem/helper/logger';
 
 import { hotkeys, HotKeyHandles, unlock } from '../lib/hotkeys';
 import { isNotNullish } from '../lib/types';
@@ -115,8 +116,7 @@ export class DuoyunKeyboardAccessElement extends GemElement<State> {
     const keydownHandles: HotKeyHandles = {
       onLock: () => this.setState({ waiting: true }),
       onUnlock: () => this.setState({ waiting: false }),
-      // eslint-disable-next-line no-console
-      onUncapture: () => console.warn('Un Capture!'),
+      onUncapture: () => logger.warn('Un Capture!'),
     };
 
     this.setState({

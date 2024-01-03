@@ -10,9 +10,10 @@ import path from 'path';
 import fs from 'fs';
 
 import program from 'commander';
-import mkdirp from 'mkdirp';
+import { sync } from 'mkdirp';
 import getRepoInfo from 'git-repo-info';
 import { throttle } from 'lodash';
+import chalk from 'chalk';
 
 import { version } from '../../package.json';
 import { BookConfig, CliConfig, CliUniqueConfig, NavItem, SidebarConfig } from '../common/config';
@@ -27,7 +28,7 @@ import {
   getMetadata,
   isMdFile,
   isSomeContent,
-  inspectObject,
+  print,
   getRepoTitle,
   checkRelativeLink,
   readDirConfig,
@@ -79,7 +80,7 @@ async function syncConfig(fullPath?: string) {
     }
   });
 
-  if (cliConfig.debug) inspectObject(cliConfig);
+  if (cliConfig.debug) print(cliConfig);
 
   obj.nav = obj.nav?.filter((e) => {
     if (e.title?.toLowerCase() === 'github') {
@@ -229,15 +230,14 @@ async function generateBookConfig(dir: string) {
     const configPath = path.resolve(cliConfig.output || dir, cliConfig.output.endsWith('.json') ? '' : DEFAULT_FILE);
     const configStr = JSON.stringify(bookConfig, null, 2) + '\n';
     if (!isSomeContent(configPath, configStr)) {
-      mkdirp.sync(path.dirname(configPath));
+      sync(path.dirname(configPath));
       // Trigger rename event
       fs.writeFileSync(configPath, configStr);
     }
   }
 
-  if (cliConfig.debug) inspectObject(bookConfig, 2);
-  // eslint-disable-next-line no-console
-  console.log(`${new Date().toISOString()} book config updated! ${Date.now() - t}ms`);
+  if (cliConfig.debug) print(bookConfig);
+  print(chalk.green(`[${new Date().toISOString()}]: book config updated! ${Date.now() - t}ms`));
 }
 
 program
@@ -337,35 +337,27 @@ program
     await syncConfig(configPath);
     await generateBookConfig(dir);
 
-    const updateBookConfig = throttle(
-      async () => {
-        await generateBookConfig(dir);
-        devServerEventTarget.dispatchEvent(
-          Object.assign(new Event(UPDATE_EVENT), {
-            detail: { config: bookConfig },
-          }),
-        );
-      },
-      100,
-      { trailing: true },
-    );
+    const updateBookConfig = throttle(async () => {
+      await generateBookConfig(dir);
+      devServerEventTarget.dispatchEvent(
+        Object.assign(new Event(UPDATE_EVENT), {
+          detail: { config: bookConfig },
+        }),
+      );
+    }, 100);
 
     const watchTheme = () => {
       const themePath = resolveTheme(cliConfig.theme);
       if (themePath) {
         return fs.watch(
           themePath,
-          throttle(
-            async () => {
-              devServerEventTarget.dispatchEvent(
-                Object.assign(new Event(UPDATE_EVENT), {
-                  detail: { theme: await importObject(themePath) },
-                }),
-              );
-            },
-            100,
-            { trailing: true },
-          ),
+          throttle(async () => {
+            devServerEventTarget.dispatchEvent(
+              Object.assign(new Event(UPDATE_EVENT), {
+                detail: { theme: await importObject(themePath) },
+              }),
+            );
+          }, 100),
         );
       }
     };
@@ -381,25 +373,21 @@ program
       if (configPath) {
         fs.watch(
           configPath,
-          throttle(
-            async () => {
-              cliConfig = structuredClone(initCliOptions);
-              bookConfig = structuredClone(initBookConfig);
-              await syncConfig(configPath);
-              await generateBookConfig(dir);
-              await server?.stop();
-              server = await startBuilder(dir, cliConfig, bookConfig);
-              devServerEventTarget.dispatchEvent(
-                Object.assign(new Event(UPDATE_EVENT), {
-                  detail: { config: bookConfig },
-                }),
-              );
-              themeWatcher?.close();
-              themeWatcher = watchTheme();
-            },
-            300,
-            { trailing: true },
-          ),
+          throttle(async () => {
+            cliConfig = structuredClone(initCliOptions);
+            bookConfig = structuredClone(initBookConfig);
+            await syncConfig(configPath);
+            await generateBookConfig(dir);
+            await server?.stop();
+            server = await startBuilder(dir, cliConfig, bookConfig);
+            devServerEventTarget.dispatchEvent(
+              Object.assign(new Event(UPDATE_EVENT), {
+                detail: { config: bookConfig },
+              }),
+            );
+            themeWatcher?.close();
+            themeWatcher = watchTheme();
+          }, 100),
         );
       }
 

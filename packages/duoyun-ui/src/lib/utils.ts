@@ -1,6 +1,7 @@
 import { Store, connect, updateStore, useStore } from '@mantou/gem/lib/store';
 import { render, TemplateResult } from '@mantou/gem/lib/element';
 import { NonPrimitive, cleanObject } from '@mantou/gem/lib/utils';
+import { logger } from '@mantou/gem/helper/logger';
 
 import { isNullish } from '../lib/types';
 
@@ -117,8 +118,7 @@ export async function forever<T>(callback: () => Promise<T>, interval = 1000): P
   try {
     return await callback();
   } catch (err) {
-    // eslint-disable-next-line no-console
-    console.error(err);
+    logger.error(err);
     await sleep(interval);
     return forever(callback, interval);
   }
