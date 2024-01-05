@@ -78,7 +78,7 @@ export class I18n<T = Record<string, Msg>> implements RouteTrigger {
     this.setLanguage(path);
   };
 
-  getParams = () => ({ path: this.currentLanguage, query: '' });
+  getParams = () => ({ path: this.currentLanguage });
 
   get #cacheCurrentKey() {
     return `${this.cachePrefix}:current`;

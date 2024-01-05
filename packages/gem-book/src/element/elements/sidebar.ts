@@ -10,7 +10,6 @@ import {
   useStore,
   refobject,
   RefObject,
-  history,
 } from '@mantou/gem';
 import { mediaQuery } from '@mantou/gem/helper/mediaquery';
 
@@ -18,7 +17,6 @@ import { NavItem } from '../../common/config';
 import { capitalize, isSameOrigin } from '../lib/utils';
 import { theme } from '../helper/theme';
 import { bookStore, locationStore } from '../store';
-import { GemBookElement } from '..';
 
 import { icons } from './icons';
 import { tocStore } from './toc';
@@ -63,7 +61,6 @@ export class SideBar extends GemElement {
     { type = 'file', link, title, children, sidebarIgnore }: NavItem,
     isTop = false,
   ): TemplateResult | null => {
-    const { path } = history.getParams();
     const { homePage, config } = bookStore;
     const { homeMode, onlyFile } = config || {};
     if (sidebarIgnore || (homeMode && homePage === link)) {
@@ -91,7 +88,7 @@ export class SideBar extends GemElement {
           >
             ${title ? capitalize(title) : 'No title'}
           </gem-book-side-link>
-          ${!onlyFile && path === link
+          ${!onlyFile && locationStore.path === link
             ? html`<div class="links item hash">
                 ${tocStore.elements
                   .filter((e) => e.tagName === 'H2')
@@ -272,7 +269,7 @@ export class SideBar extends GemElement {
         }
       </style>
       <gem-book-nav-logo>
-        <slot name=${GemBookElement.logoAfter}></slot>
+        <slot name="logo-after"></slot>
       </gem-book-nav-logo>
       <div class="nav" ref=${this.navRef.ref}>
         ${mediaQuery.isPhone && topNavList?.length

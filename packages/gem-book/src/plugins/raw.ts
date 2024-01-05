@@ -51,6 +51,11 @@ customElements.whenDefined('gem-book').then(() => {
     @attribute range: string;
     @attribute highlight: string;
 
+    constructor() {
+      super();
+      this.cacheState(() => [this.src]);
+    }
+
     state: State = {
       content: '',
     };

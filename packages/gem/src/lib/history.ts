@@ -38,7 +38,12 @@ export interface UpdateHistoryParams {
 }
 
 // 实际应用值
-type HistoryParams = UpdateHistoryParams & { title: string; path: string; query: QueryString; hash: string };
+type HistoryParams = Omit<UpdateHistoryParams, 'query'> & {
+  title: string;
+  path: string;
+  query: QueryString;
+  hash: string;
+};
 
 const paramsMap = new Map<string, HistoryParams>();
 
@@ -60,19 +65,26 @@ function getInternalPath(urlBarPath: string) {
   return urlBarPath.replace(new RegExp(`^${gemHistory.basePath}/`), '/');
 }
 
+function dispatchBeforeChangeEvent() {
+  gemHistory.dispatchEvent(new CustomEvent('beforechange'));
+}
+
 function normalizeParams(params: UpdateHistoryParams): HistoryParams {
-  const current = paramsMap.get(store.$key) || ({} as HistoryParams);
+  const current =
+    paramsMap.get(store.$key) ||
+    ({ path: getInternalPath(location.pathname), query: new QueryString() } as HistoryParams);
   // 没提供 path 使用当前 path
   const path = params.path ? absoluteLocation(current.path, params.path) : getInternalPath(location.pathname);
   // 没提供 query 又没有提供 path 时使用当前 search
-  const query = new QueryString(params.query || (params.path ? '' : location.search));
-  const pathChanged =
-    (params.path && params.path !== current.path) || (params.query && String(params.query) !== String(current.query));
+  const newQueryObject = new QueryString(params.query ?? (params.path ? '' : location.search));
+  const queryChanged = String(newQueryObject) !== String(current.query);
+  const query = queryChanged ? newQueryObject : current.query;
+  const urlChanged = path !== current.path || queryChanged;
   // 没提供 title 又没有改变 URL 时使用当前 document.title
-  const title = params.title || (pathChanged ? '' : document.title);
+  const title = params.title || (urlChanged ? '' : document.title);
   const statusChanged = params.close || params.data || params.open || params.shouldClose;
-  // 没提供 hash 又没有改变 URL 又不是状态更新时使用当前 hash
-  const hash = decodeURIComponent(params.hash ? params.hash : !pathChanged && statusChanged ? location.hash : '');
+  // 没提供 hash 又没有改变 URL 仅仅是状态更新时使用当前 hash
+  const hash = decodeURIComponent(params.hash ?? (!urlChanged && statusChanged ? location.hash : ''));
   return { ...params, title, path, query, hash };
 }
 
@@ -89,6 +101,7 @@ function updateHistory(p: UpdateHistoryParams, native: typeof nativeHistory.push
     ...data,
   };
   paramsMap.set(state.$key, params);
+  dispatchBeforeChangeEvent();
   cleanObject(store);
   updateHistoryStore(state);
   const url = getUrlBarPath(path) + new QueryString(query) + hash;
@@ -108,6 +121,7 @@ function updateHistoryByNative(data: any, title: string, originUrl: string, nati
   const { pathname, search, hash } = new URL(originUrl, location.origin + location.pathname);
   const params = normalizeParams({ path: pathname, query: new QueryString(search), hash, title, data });
   paramsMap.set(state.$key, params);
+  dispatchBeforeChangeEvent();
   cleanObject(store);
   updateHistoryStore(state);
   const url = getUrlBarPath(pathname) + params.query + hash;
@@ -121,9 +135,12 @@ const [gemBasePathStore, updateBasePathStore] = useStore({
   basePath: '',
 });
 
-class GemHistory {
+class GemHistory extends EventTarget {
   get store() {
     return store;
+  }
+  get currentKey() {
+    return store.$key;
   }
   get basePath() {
     return gemBasePathStore.basePath;
@@ -292,6 +309,7 @@ if (!window._GEMHISTORY) {
       }
     }
 
+    dispatchBeforeChangeEvent();
     cleanObject(store);
     updateHistoryStore(newState);
   });

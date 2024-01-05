@@ -1,18 +1,25 @@
-import { connectStore, customElement, GemElement, html, history } from '@mantou/gem';
+import { connectStore, customElement, GemElement, html } from '@mantou/gem';
 import { mediaQuery } from '@mantou/gem/helper/mediaquery';
 
-import { getAlternateUrl, getURL } from '../lib/utils';
-import { bookStore } from '../store';
+import { getRemotePath, getURL } from '../lib/utils';
+import { bookStore, locationStore } from '../store';
 
 import '@mantou/gem/elements/reflect';
+
+function getAlternateUrl(lang: string, pathname?: string) {
+  const { origin } = location;
+  const { path, query, hash } = locationStore;
+  const fullPath = getRemotePath(pathname || path, lang);
+  if (pathname) return `${origin}${fullPath}`;
+  return `${origin}${fullPath}${query}${hash}`;
+}
 
 @customElement('gem-book-meta')
 @connectStore(bookStore)
 export class Meta extends GemElement {
   render() {
     const { langList, lang = '', routes, homePage, getCurrentLink, currentLinks } = bookStore;
-    const { path } = history.getParams();
-    const route = routes?.find((route) => route.pattern === path && route.redirect);
+    const route = routes?.find((route) => route.pattern === locationStore.path && route.redirect);
     const canonicalLink = getAlternateUrl(
       lang && langList && !location.pathname.startsWith(`/${lang}`) ? langList[0].code : lang,
       route?.redirect,

@@ -473,15 +473,17 @@ export abstract class GemElement<T = Record<string, unknown>> extends HTMLElemen
     this.#disconnectStore?.forEach((disconnect) => disconnect());
     execCallback(this.#unmountCallback);
     this.unmounted?.();
-    this.#effectList?.forEach(({ preCallback }) => execCallback(preCallback));
-    this.#effectList = this.#effectList?.filter(this.#filterEffect);
-    this.#memoList = this.#memoList?.filter(this.#filterEffect);
+    this.#effectList = this.#clearEffect(this.#effectList);
+    this.#memoList = this.#clearEffect(this.#memoList);
     return GemElement.#final;
   }
 
-  #filterEffect = (e: EffectItem<any>) => {
-    e.initialized = false;
-    return e.inConstructor;
+  #clearEffect = (list?: EffectItem<any>[]) => {
+    return list?.filter((e) => {
+      execCallback(e.preCallback);
+      e.initialized = false;
+      return e.inConstructor;
+    });
   };
 }
 

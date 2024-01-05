@@ -14,10 +14,11 @@ This way, we won't see a white screen and improve the user experience.
 
 After adopting this strategy, two points need to be paid attention to:
 
-1. The old page will not be unloaded immediately, when the URL changes, it is necessary to prohibit the old page from updating according to the URL
+1. The old page will not be unloaded immediately, when the URL changes, old pages may respond to URL changes by reading the wrong URL parameters
 2. If the network speed is a bit slow, when switching routes multiple times in a row, it is necessary to ensure that the final correct page is rendered.
+3. The scroll bar position should be reset after a new page is loaded. The scroll bar position should be restored after using the browser "Forward" and "Back".
 
-## Use `<gem-route>`
+## Read URL parameters
 
 `GemRouteElement` has a `createLocationStore` method, which creates a [Store](../001-guide/001-basic/003-global-state-management.md) containing the URL parameters and then provides it to ` <gem-route>` to get updates after a new page loads, for example:
 
@@ -28,26 +29,49 @@ html`
   <gem-route
     .routes=${routes}
     .locationStore=${locationStore}
-    @route-change=${onChange}
+    @routechange=${onRouteChange}
     @loading=${onLoading}
   ></gem-route>
 `;
-```
 
-> [!Tip]
->
-> `route-change`, `loading` events of `<gem-route>` allow you to add a progress bar for page loading
->
-> Read URL parameters from `locationStore` in pages to prevent unnecessary updates to old pages that are not unloaded:
-
-```ts
-@customElement('my-element')
+@customElement('page-about')
 @connectStore(locationStore)
-class MyElement extends GemElement {
+class PageAboutElement extends GemElement {
   render = () => {
     return html`${locationStore.query}`;
   };
 }
 ```
 
-Now you have a better user experience for your app routing switch.
+## Restore scrollbar
+
+`<gem-route>` can automatically restore the scrollbar position. It is called immediately after the route is rendered:
+
+```ts 5
+html`
+  <gem-route
+    .routes=${routes}
+    .locationStore=${locationStore}
+    .scrollContainer=${document.body}
+    @routechange=${onRouteChange}
+    @loading=${onLoading}
+  ></gem-route>
+`;
+```
+
+> [!NOTE]
+> Scroll based on `hash` requires additional logic, for example:
+>
+> ```ts
+> this.effect(
+>   ([hash]) => {
+>     if (!hash) return;
+>     this.shadowRoot
+>       ?.querySelector(`[id="${hash.slice(1)}"]`)
+>       ?.scrollIntoView({
+>         block: 'start',
+>       });
+>   },
+>   () => [locationStore.hash],
+> );
+> ```

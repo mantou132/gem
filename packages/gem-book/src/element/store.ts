@@ -8,10 +8,7 @@ import { selfI18n } from './helper/i18n';
 import { getLinkPath, getUserLink, NavItemWithLink, flatNav, capitalize, getURL } from './lib/utils';
 import { getRenderer } from './lib/renderer';
 
-import { GemBookElement } from '.';
-
-import './elements/main';
-import './elements/404';
+import type { GemBookElement } from '.';
 
 interface CurrentBookConfig {
   config: BookConfig;
@@ -151,6 +148,7 @@ function getLinkRouters(links: NavItemWithLink[], title: string, lang: string, d
       title: routeTitle,
       pattern: link,
       async getContent() {
+        await import('./elements/main');
         const renderer = getRenderer({ lang, link: originLink, displayRank });
         const content = await (await fetch(getURL(originLink, lang, hash))).text();
         if (bookStore.isDevMode?.()) await new Promise((res) => setTimeout(res, 500));
@@ -191,7 +189,10 @@ function getLinkRouters(links: NavItemWithLink[], title: string, lang: string, d
 
   routes.push({
     pattern: '*',
-    content: html`<gem-book-404 role="region" aria-label="not found"></gem-book-404>`,
+    async getContent() {
+      await import('./elements/404');
+      return html`<gem-book-404 role="region" aria-label="not found"></gem-book-404>`;
+    },
   });
 
   return routes;
@@ -200,8 +201,6 @@ function getLinkRouters(links: NavItemWithLink[], title: string, lang: string, d
 // 如果当前路径不在 isNav 目录中，则返回除所有 isNav 目录的内容
 // 不考虑嵌套 isNav 目录
 function getCurrentSidebar(sidebar: NavItemWithLink[]) {
-  const { path } = history.getParams();
-
   let currentLink: NavItemWithLink | undefined;
   let currentNavNode: NavItemWithLink | undefined;
   let resultNavNode: NavItemWithLink | undefined;
@@ -210,7 +209,7 @@ function getCurrentSidebar(sidebar: NavItemWithLink[]) {
   const traverseSidebar = (items: NavItemWithLink[], result: NavItemWithLink[]) => {
     items.forEach((item) => {
       let tempNode: NavItemWithLink | undefined;
-      if (item.link === path) {
+      if (item.link === locationStore.path) {
         currentLink = item;
         if (!resultNavNode && currentNavNode && item.type === 'file') {
           resultNavNode = currentNavNode;

@@ -1,4 +1,4 @@
-import { createTheme, getThemeProps, getThemeStore, updateTheme } from '@mantou/gem/helper/theme';
+import { getThemeProps, getThemeStore, useTheme } from '@mantou/gem/helper/theme';
 
 import { defaultTheme } from './default-theme';
 
@@ -31,12 +31,10 @@ function generateTheme(theme: Theme) {
   };
 }
 
-export const theme = createTheme(generateTheme(defaultTheme));
+export const [theme, updateTheme] = useTheme(generateTheme(defaultTheme));
 export const themeStore = getThemeStore(theme);
 export const themeProps = getThemeProps(theme);
 
-export function changeTheme(newTheme?: Partial<Theme>) {
-  if (newTheme) {
-    updateTheme(theme, generateTheme({ ...getThemeStore(theme), ...newTheme }));
-  }
+export function changeTheme(newTheme: Partial<Theme> = {}) {
+  updateTheme(generateTheme({ ...getThemeStore(theme), ...newTheme }));
 }

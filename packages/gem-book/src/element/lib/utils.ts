@@ -1,5 +1,3 @@
-import { history } from '@mantou/gem';
-
 import { NavItem } from '../../common/config';
 import { isIndexFile, parseFilename } from '../../common/utils';
 import { bookStore } from '../store';
@@ -39,14 +37,6 @@ export function getGithubPath(link: string) {
 
 export function getURL(originPath: string, lang = '', hash = '') {
   return `${getRemotePath(originPath, lang)}?hash=${hash}`;
-}
-
-export function getAlternateUrl(lang: string, pathname?: string) {
-  const { origin } = location;
-  const { path, query, hash } = history.getParams();
-  const fullPath = getRemotePath(pathname || path, lang);
-  if (pathname) return `${origin}${fullPath}`;
-  return `${origin}${fullPath}${query}${hash}`;
 }
 
 export function isSameOrigin(link: string) {

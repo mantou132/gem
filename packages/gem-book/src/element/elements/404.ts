@@ -1,7 +1,7 @@
-import { connectStore, customElement, GemElement, history, html } from '@mantou/gem';
+import { connectStore, customElement, GemElement, html } from '@mantou/gem';
 
 import { getGithubPath, getUserLink } from '../lib/utils';
-import { bookStore } from '../store';
+import { bookStore, locationStore } from '../store';
 import { selfI18n } from '../helper/i18n';
 
 import { icons } from './icons';
@@ -14,8 +14,7 @@ import '@mantou/gem/elements/title';
 export class Meta extends GemElement {
   #getMdFullPath = () => {
     const { links = [] } = bookStore;
-    const { path } = history.getParams();
-    const parts = path.replace(/\/$/, '').split('/');
+    const parts = locationStore.path.replace(/\/$/, '').split('/');
     const newFile = parts.pop();
     const parentPath = parts.join('/');
     const link = links.find(({ originLink }) => getUserLink(originLink).startsWith(parentPath));

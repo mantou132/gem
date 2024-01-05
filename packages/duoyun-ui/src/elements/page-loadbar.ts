@@ -38,6 +38,7 @@ export class DuoyunPageLoadbarElement extends GemElement {
   static instance?: DuoyunPageLoadbarElement;
   static timer = 0;
 
+  /**在延时时间内结束将不会显示加载条 */
   static async start({ delay = 100 }: { delay?: number } = {}) {
     clearInterval(Loadbar.timer);
     Loadbar.timer = window.setTimeout(() => {
@@ -51,6 +52,7 @@ export class DuoyunPageLoadbarElement extends GemElement {
   }
 
   static async end() {
+    // 能同时取消 setTimeout ID
     clearInterval(Loadbar.timer);
     const instance = Loadbar.instance;
     if (instance) {

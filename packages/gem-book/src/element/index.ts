@@ -5,7 +5,6 @@ import {
   property,
   attribute,
   connectStore,
-  history,
   Emitter,
   part,
   slot,
@@ -109,18 +108,13 @@ export class GemBookElement extends GemElement {
     });
   }
 
-  changeTheme(newTheme?: Partial<Theme>) {
-    return changeTheme(newTheme);
-  }
-
   #onLoading = () => {
     Loadbar.start();
   };
 
-  #onRouteChange = (e: CustomEvent) => {
+  #onRouteChange = () => {
     Loadbar.end();
-    document.body.scroll(0, 0);
-    this.routechange(e.detail);
+    this.routechange(null);
   };
 
   render() {
@@ -128,12 +122,11 @@ export class GemBookElement extends GemElement {
     if (!config) return null;
 
     const { icon = '', title = '', homeMode } = config;
-    const { path } = history.getParams();
     const hasNavbar = icon || title || nav.length;
-    const renderHomePage = homeMode && homePage === path;
+    const renderHomePage = homeMode && homePage === locationStore.path;
     const missSidebar = homeMode ? currentSidebar?.every((e) => e.link === homePage) : !currentSidebar?.length;
     // 首次渲染
-    const isRedirectRoute = routes.find(({ pattern }) => matchPath(pattern, path))?.redirect;
+    const isRedirectRoute = routes.find(({ pattern }) => matchPath(pattern, locationStore.path))?.redirect;
     const renderFullWidth = renderHomePage || (missSidebar && !isRedirectRoute);
 
     this.isHomePage = !!renderHomePage;
@@ -287,6 +280,7 @@ export class GemBookElement extends GemElement {
           .locationStore=${locationStore}
           .key=${lang}
           .routes=${routes}
+          .scrollContainer=${document.body}
           @loading=${this.#onLoading}
           @routechange=${this.#onRouteChange}
         ></gem-light-route>
@@ -302,26 +296,21 @@ export class GemBookElement extends GemElement {
   mounted() {
     this.effect(
       async () => {
-        if (this.src) {
-          const config = await (await fetch(this.src)).json();
-          updateBookConfig(config, this);
-        }
+        if (!this.src) return;
+        const config = await (await fetch(this.src)).json();
+        updateBookConfig(config, this);
       },
       () => [this.src],
     );
     this.effect(
-      () => {
-        if (this.config) {
-          updateBookConfig(this.config, this);
-        }
-      },
+      () => updateBookConfig(this.config, this),
       () => [this.config],
     );
     this.effect(
-      () => {
-        changeTheme(this.theme);
-      },
+      () => changeTheme(this.theme),
       () => [this.theme],
     );
   }
+
+  changeTheme = changeTheme;
 }

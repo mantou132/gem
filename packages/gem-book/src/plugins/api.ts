@@ -46,6 +46,7 @@ customElements.whenDefined('gem-book').then(() => {
 
     constructor() {
       super({ isLight: true });
+      this.cacheState(() => [this.name, this.src]);
     }
 
     state: State = {};

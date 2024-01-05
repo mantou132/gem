@@ -377,7 +377,15 @@ export function useCacheStore<T extends Record<string, any>>(
 }
 
 /**@deprecated use `useCacheStore` */
-export const createCacheStore = (...args: Parameters<typeof useCacheStore>) => {
-  const [store, , save] = useCacheStore(...args);
+export function createCacheStore<T extends Record<string, any>>(
+  storageKey: string,
+  initStore: T,
+  options?: {
+    cacheExcludeKeys?: (keyof T)[];
+    prefix?: string | (() => string | undefined);
+    depStore?: Store<NonPrimitive>;
+  },
+) {
+  const [store, , save] = useCacheStore(storageKey, initStore, options);
   return [store, save] as const;
-};
+}

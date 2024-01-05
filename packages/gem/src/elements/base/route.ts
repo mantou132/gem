@@ -2,7 +2,7 @@ import { GemElement, html, TemplateResult } from '../../lib/element';
 import { property, emitter, Emitter, boolattribute } from '../../lib/decorators';
 import { createStore, updateStore, Store, connect } from '../../lib/store';
 import { titleStore, history, UpdateHistoryParams } from '../../lib/history';
-import { QueryString } from '../../lib/utils';
+import { addListener, QueryString } from '../../lib/utils';
 
 interface NamePosition {
   [index: string]: number;
@@ -114,8 +114,10 @@ type State = {
 export type RouteTrigger = {
   store: Store<any>;
   replace: (arg: { path: string }) => void;
-  getParams: () => { path: string; query: any };
+  getParams: () => { path: string; query?: string | QueryString; hash?: string };
 };
+
+const scrollPositionMap = new Map<string, number>();
 
 /**
  * @attr inert 暂停路由更新
@@ -127,17 +129,23 @@ export class GemRouteElement extends GemElement<State> {
   @boolattribute transition: boolean;
   @property routes?: RouteItem[] | RoutesObject;
   /**
-   * 不要多个 `<gem-route>` 共享，因为那样会导致后面的元素卸载前触发更新
+   * 路由更新后更新的 store，能从中读取到安全的路由数据
    *
    * @example
    * const locationStore = GemRouteElement.createLocationStore()
    * html`<gem-route .locationStore=${locationStore}>`
    */
-  @property locationStore?: Store<{ path: string; params: Params; query: QueryString; data?: any }>;
+  @property locationStore?: ReturnType<(typeof GemRouteElement)['createLocationStore']>;
   @property key?: any; // 除了 href 提供另外一种方式来更新，比如语言更新也需要刷新 <gem-route>
+  @emitter loading: Emitter<RouteItem | null>;
+  @emitter beforeroutechange: Emitter<RouteItem | null>;
   @emitter routechange: Emitter<RouteItem | null>; // path 改变或者 key 改变，包含初始渲染
-  @emitter loading: Emitter<RouteItem>;
   @emitter error: Emitter<any>;
+
+  /**自动让滚动容器恢复滚动位置 */
+  @property scrollContainer?: HTMLElement | (() => HTMLElement);
+  /**默认当有 `hash` 时不进行滚动 */
+  @property scrollIgnoreHash?: boolean;
 
   @property trigger: RouteTrigger = history;
 
@@ -148,9 +156,10 @@ export class GemRouteElement extends GemElement<State> {
 
   #lastLoader?: Promise<TemplateResult>;
 
+  /**不要多个 `<gem-route>` 共享，因为那样会导致后面的元素卸载前触发更新 */
   static createLocationStore = () => {
-    const { path, query, data } = history.getParams();
-    return createStore({ path, query, data, params: {} as Record<string, string> });
+    const { path, query, hash, data } = history.getParams();
+    return createStore({ path, query, hash, data, params: {} as Params });
   };
 
   static findRoute = (target: RouteItem[] | RoutesObject = [], path: string) => {
@@ -174,6 +183,10 @@ export class GemRouteElement extends GemElement<State> {
     return { route: defaultRoute };
   };
 
+  get #scrollContainer() {
+    return typeof this.scrollContainer === 'function' ? this.scrollContainer() : this.scrollContainer;
+  }
+
   constructor({ isLight, routes }: ConstructorOptions = {}) {
     super({ isLight });
     this.routes = routes;
@@ -184,38 +197,59 @@ export class GemRouteElement extends GemElement<State> {
   };
 
   #updateLocationStore = () => {
-    if (this.locationStore) {
-      const { path, query, data } = history.getParams();
-      updateStore(this.locationStore, {
-        path,
-        params: this.currentParams,
-        query,
-        data,
-      });
+    if (!this.locationStore) return;
+    const { path, query, hash, data } = history.getParams();
+    updateStore(this.locationStore, {
+      path,
+      params: this.currentParams,
+      query,
+      hash,
+      data,
+    });
+  };
+
+  #updateScrollContainerPosition = () => {
+    if (!this.#scrollContainer) return;
+    const scrollTop = scrollPositionMap.get(history.currentKey);
+    if (scrollTop) {
+      this.#scrollContainer.scroll(0, scrollTop);
+    } else if (this.scrollIgnoreHash || !history.getParams().hash) {
+      this.#scrollContainer.scroll(0, 0);
     }
   };
 
   #setContent = (route: RouteItem | null, params: Params, content?: TemplateResult) => {
+    this.beforeroutechange(route);
     this.#lastLoader = undefined;
     this.currentRoute = route;
     this.currentParams = params;
-    const changeContent = () => {
+    const changeContent = async () => {
       this.setState({ content });
-      this.routechange(this.currentRoute);
+      // 要确保新页面能读取到新路由数据
       this.#updateLocationStore();
+      // 等待页面渲染完成
+      await Promise.resolve();
+      this.#updateScrollContainerPosition();
+      this.routechange(this.currentRoute);
     };
     if (this.transition && 'startViewTransition' in document) {
-      (document as any).startViewTransition(() => {
-        changeContent();
-        // 等待路由渲染
-        return Promise.resolve();
-      });
+      (document as any).startViewTransition(() => changeContent());
     } else {
       changeContent();
     }
   };
 
   mounted() {
+    this.effect(
+      () => {
+        if (!this.#scrollContainer) return;
+        return addListener(history, 'beforechange', () =>
+          scrollPositionMap.set(history.currentKey, this.#scrollContainer!.scrollTop),
+        );
+      },
+      () => [this.scrollContainer],
+    );
+
     this.effect(
       // 触发 this.#update
       () => connect(this.trigger.store, () => this.setState({})),
@@ -232,15 +266,14 @@ export class GemRouteElement extends GemElement<State> {
         this.update();
       },
       () => {
-        const { path, query } = this.trigger.getParams();
-        return [this.key, path + query];
+        const { path, query, hash } = this.trigger.getParams();
+        return [this.key, path, query, hash] as const;
       },
     );
   }
 
   shouldUpdate() {
-    if (this.inert) return false;
-    return true;
+    return this.inert ? false : true;
   }
 
   render() {
@@ -269,8 +302,8 @@ export class GemRouteElement extends GemElement<State> {
       updateStore(titleStore, { title: route?.title });
     }
     const contentOrLoader = content || getContent?.(params);
+    this.loading(route);
     if (contentOrLoader instanceof Promise) {
-      this.loading(route!);
       this.#lastLoader = contentOrLoader;
       const isSomeLoader = () => this.#lastLoader === contentOrLoader;
       contentOrLoader

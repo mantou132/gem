@@ -99,7 +99,7 @@ export class App extends GemElement {
         <gem-route
           ref=${this.routeRef.ref}
           @loading=${console.log}
-          @route-change=${console.log}
+          @routechange=${console.log}
           @error=${console.error}
           .routes=${routes}
           .locationStore=${locationStore}

@@ -279,12 +279,9 @@ export function createCSSSheet<T extends StyledKeyValuePair>(rules: T | string, 
   return sheet as Sheet<T>;
 }
 
-export function randomStr(number = 5, origin = '0123456789abcdefghijklmnopqrstuvwxyz') {
-  const len = origin.length;
-  let str = '';
-  for (let i = 0; i < number; i++) {
-    str += origin[Math.floor(Math.random() * len)];
-  }
+export function randomStr(len = 5): string {
+  const str = Math.random().toString(36).slice(2).slice(0, len);
+  if (str.length < len) return str + randomStr(len - str.length);
   return str;
 }
 

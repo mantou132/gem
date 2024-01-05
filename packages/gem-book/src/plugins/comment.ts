@@ -5,10 +5,11 @@ const gitalkCSSUrl = 'https://esm.sh/gitalk@1.7.2/dist/gitalk.css';
 
 customElements.whenDefined('gem-book').then(async () => {
   const { GemBookPluginElement } = customElements.get('gem-book') as typeof GemBookElement;
-  const { config, Gem, theme } = GemBookPluginElement;
-  const { html, customElement, attribute, history } = Gem;
+  const { config, Gem, theme, locationStore } = GemBookPluginElement;
+  const { html, customElement, attribute, connectStore } = Gem;
 
   @customElement('gbp-comment')
+  @connectStore(locationStore)
   class _GbpCommentElement extends GemBookPluginElement {
     @attribute clientID: string;
     @attribute clientSecret: string;
@@ -79,18 +80,17 @@ customElements.whenDefined('gem-book').then(async () => {
         repo: this.repo || repo,
         owner: this.owner || owner,
         admin: [owner].concat(this.admin.split(',')),
-        id: `${location.origin}${history.getParams().path}`,
+        id: `${location.origin}${locationStore.path}`,
         distractionFreeMode: false,
         language: GemBookPluginElement.lang,
       }).render(ele);
     }
 
     mounted() {
-      this.init();
-    }
-
-    updated() {
-      this.init();
+      this.effect(
+        () => this.init(),
+        () => [locationStore.path],
+      );
     }
   }
 });

@@ -5,7 +5,7 @@ import { mediaQuery } from '@mantou/gem/helper/mediaquery';
 import { logger } from '@mantou/gem/helper/logger';
 
 import { theme } from '../helper/theme';
-import { bookStore } from '../store';
+import { bookStore, locationStore } from '../store';
 import { BookConfig } from '../../common/config';
 import { icons } from '../elements/icons';
 
@@ -17,6 +17,7 @@ export class GemBookPluginElement<T = any> extends GemElement<T> {
   static theme = theme;
   static icons = icons;
   static mediaQuery = mediaQuery;
+  static locationStore = locationStore;
   static config = new Proxy<Partial<BookConfig>>(
     {},
     {
@@ -54,6 +55,21 @@ export class GemBookPluginElement<T = any> extends GemElement<T> {
   }
   static get currentLink() {
     return bookStore.getCurrentLink?.();
+  }
+
+  static caches?: Map<string, any>;
+
+  cacheState(getDeps: () => string[]) {
+    if (!this.state) throw new Error('Only cache state');
+    const cons = this.constructor as typeof GemBookPluginElement;
+    const caches = cons.caches || (cons.caches = new Map());
+    this.memo(
+      () => {
+        Object.assign(this.state!, caches.get(getDeps().join()));
+        return () => caches.set(getDeps().join(), this.state);
+      },
+      () => getDeps(),
+    );
   }
 
   @globalemitter error: Emitter<ErrorEvent | Event> = logger.error;

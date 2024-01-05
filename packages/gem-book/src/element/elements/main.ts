@@ -1,4 +1,13 @@
-import { html, GemElement, customElement, css, property, createCSSSheet, adoptedStyle, history } from '@mantou/gem';
+import {
+  html,
+  GemElement,
+  customElement,
+  css,
+  property,
+  createCSSSheet,
+  adoptedStyle,
+  connectStore,
+} from '@mantou/gem';
 import { Renderer, parse } from 'marked';
 import { mediaQuery } from '@mantou/gem/helper/mediaquery';
 
@@ -52,9 +61,10 @@ const linkStyle = css`
 
 @customElement('gem-book-main')
 @adoptedStyle(style)
+@connectStore(locationStore)
 export class Main extends GemElement {
-  @property content: string;
-  @property renderer: Renderer;
+  @property content?: string;
+  @property renderer?: Renderer;
 
   // homepage/footer 等内置元素渲染在 main 前面，不能使用自定义渲染器
   static instance?: Main;
@@ -75,29 +85,23 @@ export class Main extends GemElement {
   constructor() {
     super();
     Main.instance = this;
-    this.memo(() => {
-      const [, , _sToken, _frontmatter, _eToken, mdBody] =
-        this.content.match(/^(([\r\n\s]*---\s*(?:\r\n|\n))(.*?)((?:\r\n|\n)---\s*(?:\r\n|\n)?))?(.*)$/s) || [];
-      this.#content = mdBody;
-    });
+    this.memo(
+      () => {
+        const [, , _sToken, _frontmatter, _eToken, mdBody = ''] =
+          this.content?.match(/^(([\r\n\s]*---\s*(?:\r\n|\n))(.*?)((?:\r\n|\n)---\s*(?:\r\n|\n)?))?(.*)$/s) || [];
+        this.#content = Main.parseMarkdown(mdBody);
+      },
+      () => [this.content],
+    );
   }
 
-  #content = '';
+  #content: Element[] = [];
 
-  #hashChangeHandle = () => {
-    const { hash, path } = history.getParams();
-    // 确保是页内跳转或者新页（mounted）跳转
-    if (hash && path === locationStore.path) {
-      this.shadowRoot?.querySelector(`[id="${decodeURIComponent(hash.slice(1))}"]`)?.scrollIntoView({
-        block: 'start',
-      });
-    }
-  };
-
-  #updateToc = () =>
+  #updateToc = () => {
     updateTocStore({
       elements: [...this.shadowRoot!.querySelectorAll<HTMLHeadingElement>('h2,h3')],
     });
+  };
 
   render() {
     return html`
@@ -315,7 +319,7 @@ export class Main extends GemElement {
           }
         }
       </style>
-      ${Main.parseMarkdown(this.#content)}
+      ${this.#content}
       <style>
         ${linkStyle}
       </style>
@@ -325,23 +329,30 @@ export class Main extends GemElement {
   mounted() {
     this.effect(
       () => {
+        checkBuiltInPlugin(this.shadowRoot!);
+
         this.#updateToc();
+
         const mo = new MutationObserver(this.#updateToc);
         mo.observe(this.shadowRoot!, {
           childList: true,
           subtree: true,
         });
 
-        checkBuiltInPlugin(this.shadowRoot!);
-        this.#hashChangeHandle();
-        window.addEventListener('hashchange', this.#hashChangeHandle);
-
-        return () => {
-          window.removeEventListener('hashchange', this.#hashChangeHandle);
-          mo.disconnect();
-        };
+        return () => mo.disconnect();
       },
       () => [this.content],
+    );
+
+    this.effect(
+      ([hash]) => {
+        if (hash) {
+          this.shadowRoot?.querySelector(`[id="${hash.slice(1)}"]`)?.scrollIntoView({
+            block: 'start',
+          });
+        }
+      },
+      () => [locationStore.hash],
     );
   }
 }
