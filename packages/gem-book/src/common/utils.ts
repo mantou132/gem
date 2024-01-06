@@ -1,4 +1,7 @@
-export const CUSTOM_HEADING_REG = /^(.*?)\s*(?:{#(.*)})?$/s;
+export function parseTitle(fullText: string) {
+  const [, text, customId] = fullText.match(/^(.*?)\s*(?:{#(.*)})?$/s)!;
+  return { text, customId };
+}
 
 export function normalizeId(text: string) {
   return text.trim().toLowerCase().replace(/\s+/g, '-').replaceAll('<', '').replaceAll('>', '');

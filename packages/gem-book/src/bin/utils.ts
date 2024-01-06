@@ -10,12 +10,11 @@ import { JSDOM } from 'jsdom';
 import { marked } from 'marked';
 import fm from 'front-matter';
 import YAML from 'yaml';
-import { startCase } from 'lodash';
 import Jimp from 'jimp';
 import chalk from 'chalk';
 
 import { FrontMatter } from '../common/frontmatter';
-import { isIndexFile, parseFilename, CUSTOM_HEADING_REG } from '../common/utils';
+import { isIndexFile, parseFilename, parseTitle } from '../common/utils';
 
 export async function getGithubUrl() {
   const repoDir = process.cwd();
@@ -46,7 +45,7 @@ export function getRepoTitle() {
     if (!repoPkg.title) throw 'no title';
     return repoPkg.title;
   } catch {
-    return startCase(path.basename(process.cwd()));
+    return path.basename(process.cwd()).replace(/^./, ($1) => $1.toUpperCase());
   }
 }
 
@@ -73,7 +72,10 @@ export function resolveLocalPlugin(p: string) {
   if (p) print(chalk.red(`Plugin not found:`), p);
 }
 
-export function resolveModule(p?: string, builtInDirs: string[] = []) {
+export function resolveModule(
+  p?: string,
+  { builtInDirs = [], silent = false }: { builtInDirs?: string[]; silent?: boolean } = {},
+) {
   if (!p) return;
 
   const modulePath = [
@@ -84,14 +86,14 @@ export function resolveModule(p?: string, builtInDirs: string[] = []) {
     .flat()
     .find((e) => existsSync(e));
 
-  if (!modulePath) print(chalk.red(`Module not found:`), p);
+  if (!silent && !modulePath) print(chalk.red(`Module not found:`), p);
 
   return modulePath;
 }
 
 // Prefer built-in
 export function resolveTheme(p: string) {
-  return resolveModule(p, ['../themes/']);
+  return resolveModule(p, { builtInDirs: ['../themes/'] });
 }
 
 export async function importObject<T>(fullPath?: string) {
@@ -154,13 +156,10 @@ export function getHash(fullPath: string) {
   return hash.digest('hex').substring(0, 8);
 }
 
-export function getFile(fullPath: string, displayRank: boolean | undefined) {
-  const content = fullPath ? readFileSync(fullPath, 'utf-8') : '';
+export function getMdFile(fullPath: string, displayRank: boolean | undefined) {
   return {
-    content,
-    metadataChanged: isMdFile(fullPath)
-      ? JSON.stringify(metadataRecord[fullPath]) !== JSON.stringify(getMetadata(fullPath, displayRank))
-      : false,
+    content: readFileSync(fullPath, 'utf-8'),
+    metadataChanged: JSON.stringify(metadataRecord[fullPath]) !== JSON.stringify(getMetadata(fullPath, displayRank)),
   };
 }
 
@@ -181,7 +180,7 @@ export function getMetadata(fullPath: string, displayRank: boolean | undefined) 
     const h1 = window.document.querySelector('h1');
     return {
       ...(attributes as FrontMatter),
-      title: (attributes.title || h1?.textContent || getTitle()).match(CUSTOM_HEADING_REG)![1],
+      title: parseTitle(attributes.title || h1?.textContent || getTitle()).text,
     };
   };
 

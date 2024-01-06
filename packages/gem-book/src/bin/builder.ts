@@ -7,7 +7,6 @@ import WebpackDevServer from 'webpack-dev-server';
 import HtmlWebpackPlugin from 'html-webpack-plugin';
 import CopyWebpackPlugin from 'copy-webpack-plugin';
 import { GenerateSW } from 'workbox-webpack-plugin';
-import chalk from 'chalk';
 
 import { BookConfig, CliUniqueConfig } from '../common/config';
 import { STATS_FILE } from '../common/constant';
@@ -38,7 +37,8 @@ export async function startBuilder(dir: string, options: Required<CliUniqueConfi
 
   const isRemoteIcon = isURL(icon);
   const docsDir = path.resolve(dir);
-  const outputDir = output ? path.resolve(output) : docsDir;
+  // 开发模式时使用 docsDir 避免不必要的复制
+  const outputDir = build && output ? path.resolve(output) : docsDir;
   const themePath = resolveTheme(theme);
 
   const compiler = webpack({

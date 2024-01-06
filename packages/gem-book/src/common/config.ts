@@ -41,6 +41,7 @@ export interface CliUniqueConfig {
   plugin?: string[];
   ga?: string;
   template?: string;
+  ignored?: string[];
   theme?: string;
   build?: boolean;
   json?: boolean;

@@ -479,15 +479,12 @@ export class Pre extends GemElement {
           place-content: start;
         }
         .linenumber-ignore {
-          place-content: center;
+          place-content: flex-end;
         }
         .linenumber-ignore::before {
-          content: '';
-          width: 2px;
-          height: 2px;
-          background: currentColor;
+          content: '·';
           border-radius: 1em;
-          box-shadow:
+          text-shadow:
             0 0.34em,
             0 -0.34em;
         }

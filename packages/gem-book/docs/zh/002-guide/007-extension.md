@@ -1,8 +1,8 @@
 # 扩展
 
-GemBook 使用 [`marked`](https://github.com/markedjs/marked) 渲染 Markdown，默认支持 [CommonMark](http://spec.commonmark.org/0.30/) 和 [GitHub Flavored Markdown](https://github.github.com/gfm/)，GemBook 扩展了 Markdown 语法，另外还提供一些方法让用户自定义 GemBook。
-
 ## Markdown 增强
+
+GemBook 使用 [`marked`](https://github.com/markedjs/marked) 渲染 Markdown，默认支持 [CommonMark](http://spec.commonmark.org/0.30/) 和 [GitHub Flavored Markdown](https://github.github.com/gfm/)，GemBook 扩展了 Markdown 语法。
 
 ### 代码块信息
 
@@ -35,14 +35,24 @@ GemBook 使用 [`marked`](https://github.com/markedjs/marked) 渲染 Markdown，
 ### 高亮引用块
 
 ```md
-> [!TIP]
-> 这是[高亮引用块](https://github.com/orgs/community/discussions/16925)
+> [!NOTE]
+> 这是 [高亮引用块](https://github.com/orgs/community/discussions/16925)
 ```
 
-> [!TIP]
-> 这是[高亮引用块](https://github.com/orgs/community/discussions/16925)
+> [!NOTE]
+> 这是 `[!NOTE]`
 
-支持 `[!NOTE]`, `[!TIP]`, `[!IMPORTANT]`, `[!WARNING]` 和 `[!CAUTION]`。
+> [!TIP]
+> 这是 `[!TIP]`
+
+> [!IMPORTANT]
+> 这是 `[!IMPORTANT]`
+
+> [!WARNING]
+> 这是 `[!WARNING]`
+
+> [!CAUTION]
+> 这是 `[!CAUTION]`
 
 ## 插槽
 
@@ -51,7 +61,7 @@ GemBook 使用 [`marked`](https://github.com/markedjs/marked) 渲染 Markdown，
 <gbp-raw src="docs/template.html" range="8--4"></gbp-raw>
 
 > [!NOTE]
-> 使用 `--template` 指定模板文件才能使用插槽
+> 使用 [`--template`](./003-cli.md#--template-path) 指定模板文件才能使用插槽
 
 ## 插件 {#plugins}
 

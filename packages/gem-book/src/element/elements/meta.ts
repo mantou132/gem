@@ -2,6 +2,7 @@ import { connectStore, customElement, GemElement, html } from '@mantou/gem';
 import { mediaQuery } from '@mantou/gem/helper/mediaquery';
 
 import { getRemotePath, getURL } from '../lib/utils';
+import { themeStore } from '../helper/theme';
 import { bookStore, locationStore } from '../store';
 
 import '@mantou/gem/elements/reflect';
@@ -29,6 +30,7 @@ export class Meta extends GemElement {
     const description = isHomePage && navItem?.hero?.desc;
     return html`
       <gem-reflect>
+        <meta name="theme-color" content=${themeStore.backgroundColor} />
         ${description ? html`<meta name="description" content=${description} />` : ''}
         ${mediaQuery.isDataReduce
           ? null

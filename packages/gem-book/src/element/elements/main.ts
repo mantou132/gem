@@ -118,32 +118,28 @@ export class Main extends GemElement {
           margin-top: 0;
         }
         details {
+          background: rgba(${theme.noteColorRGB}, 0.05);
           border-radius: ${theme.normalRound};
-          border: 1px solid ${theme.borderColor};
-          padding: 0.5em 1em;
+          padding: 1rem;
           margin: 2rem 0;
         }
         details p:first-of-type {
           margin-block-start: 0;
         }
-        details p:first-of-type {
+        details p:last-of-type {
           margin-block-end: 0;
         }
         details[open] summary {
-          margin-block-end: 0.5em;
-          background: rgba(${theme.textColorRGB}, 0.02);
-          border-bottom: 1px solid ${theme.borderColor};
+          margin-block-end: 0;
         }
         summary {
+          font-weight: bolder;
           cursor: pointer;
-          margin: -0.5em -1em;
-          padding: 0.5em 1em;
+          margin: -1rem;
+          padding: 1rem;
         }
         summary p {
           display: contents;
-        }
-        summary:hover {
-          background: rgba(${theme.textColorRGB}, 0.02);
         }
         a > img + svg {
           display: none;
@@ -315,7 +311,7 @@ export class Main extends GemElement {
           }
           h1 {
             font-size: 2.3rem;
-            margin: 0 0 1rem;
+            margin: 1rem 0 2rem;
           }
         }
       </style>

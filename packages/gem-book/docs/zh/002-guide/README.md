@@ -9,6 +9,8 @@ GemBook 将 [Markdown](https://zh.wikipedia.org/wiki/Markdown) 内容渲染成�
 
 ## 快速开始
 
+可以直接在 [StackBlitz](https://stackblitz.com/edit/node-c7iw5d?file=README.md) 上进行在线尝试。
+
 > [!WARNING] GemBook 依赖 [Node.js v18+](https://nodejs.org/)，请确保 `node -v` 命令能够执行
 
 ```bash
@@ -44,19 +46,17 @@ npx gem-book docs -t MyApp -i logo.png --home-mode --build --output dist
 上面的命令使用 `webpack` 打包完整的前端项目，但你也可以直接在 HTML 中使用 `<gem-book>` 元素。
 
 ```bash
-# 仅生成 <gem-book> 需要的 json 文件
-npx gem-book docs -t MyApp -i logo.png --home-mode --build --json
-
 # 安装成依赖
 npm install gem-book
+
+# 仅生成 <gem-book> 需要的 json 文件
+npx gem-book docs -t MyApp -i logo.png --home-mode --build --json
 ```
 
 然后在你的项目中使用 `<gem-book>`：
 
 ```js
 import { html, render } from '@mantou/gem';
-
-// 导入 <gem-book>
 import 'gem-book';
 
 import config from './gem-book.json';

@@ -20,6 +20,7 @@ export class RelLink extends GemElement {
     const index = currentLinks.findIndex((item) => currentLink.originLink === item.originLink);
     const prev = currentLinks[index - 1];
     const next = currentLinks[index + 1];
+    if (!prev && !next) return null;
     return html`
       <style>
         :host {

@@ -1,7 +1,7 @@
 import { Renderer } from 'marked';
 
 import { icons } from '../elements/icons';
-import { normalizeId, CUSTOM_HEADING_REG } from '../../common/utils';
+import { normalizeId, parseTitle } from '../../common/utils';
 
 import { getRemotePath, isSameOrigin, getUserLink, escapeHTML, textContent } from './utils';
 
@@ -10,7 +10,7 @@ export function getRenderer({ lang, link, displayRank }: { lang: string; link: s
   // https://marked.js.org/using_pro#renderer
   renderer.heading = function (fullText, level) {
     // # heading {#custom-id}
-    const [, text, customId] = textContent(fullText).match(CUSTOM_HEADING_REG) as RegExpMatchArray;
+    const { text, customId } = parseTitle(textContent(fullText));
     const tag = `h${level}`;
     const id = normalizeId(customId || text);
     return `<${tag} class="markdown-header" id="${id}">${escapeHTML(
