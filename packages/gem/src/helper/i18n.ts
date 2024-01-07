@@ -210,7 +210,7 @@ export class I18n<T = Record<string, Msg>> implements RouteTrigger {
       pack = data;
     }
     this.resources[lang] = pack;
-    updateStore(this.store, {});
+    updateStore(this.store);
     if (lang !== this.currentLanguage) {
       this.#lang = lang;
     }

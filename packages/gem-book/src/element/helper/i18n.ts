@@ -1,6 +1,6 @@
 import { I18n } from '@mantou/gem/helper/i18n';
 
-export const Resources = {
+const resources = {
   en: {
     editOnGithub: 'Edit this page on GitHub',
     createOnGithub: 'Create on GitHub',
@@ -15,9 +15,9 @@ export const Resources = {
   },
 };
 
-export const selfI18n = new I18n<typeof Resources.en>({
-  fallbackLanguage: 'en',
-  resources: Resources,
-  // 默认是自动识别，如果不是多语言版本使用 `--template` 模版指定语言
-  currentLanguage: document.documentElement.lang,
+export const fallbackLanguage = document.documentElement.lang;
+
+export const selfI18n = new I18n<typeof resources.en>({
+  fallbackLanguage: fallbackLanguage in resources ? fallbackLanguage : 'en',
+  resources,
 });

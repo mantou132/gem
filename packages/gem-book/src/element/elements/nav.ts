@@ -8,13 +8,14 @@ import {
   connectStore,
   boolattribute,
   classMap,
+  history,
 } from '@mantou/gem';
 import { mediaQuery } from '@mantou/gem/helper/mediaquery';
 
 import { NavItem } from '../../common/config';
 import { theme } from '../helper/theme';
 import { capitalize, isSameOrigin } from '../lib/utils';
-import { bookStore } from '../store';
+import { bookStore, updateBookConfig } from '../store';
 
 import { icons } from './icons';
 import { sidebarStore, updateSidebarStore } from './sidebar';
@@ -34,7 +35,12 @@ import './nav-logo';
 export class Nav extends GemElement {
   @boolattribute logo: boolean;
 
-  @globalemitter languagechange = (v: string) => bookStore.languagechangeHandle?.(v);
+  @globalemitter languagechange = (lang: string) => {
+    const { path, query, hash } = history.getParams();
+    history.basePath = `/${lang}`;
+    history.replace({ path, query, hash });
+    updateBookConfig(bookStore.config);
+  };
 
   @refobject i18nRef: RefObject<HTMLSelectElement>;
 

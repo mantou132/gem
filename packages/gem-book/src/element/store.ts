@@ -4,7 +4,7 @@ import { I18n } from '@mantou/gem/helper/i18n';
 
 import { BookConfig, NavItem } from '../common/config';
 
-import { selfI18n } from './helper/i18n';
+import { fallbackLanguage, selfI18n } from './helper/i18n';
 import { getLinkPath, getUserLink, NavItemWithLink, flatNav, capitalize, getURL } from './lib/utils';
 import { getRenderer } from './lib/renderer';
 
@@ -19,7 +19,6 @@ interface CurrentBookConfig {
 
   lang: string;
   langList: { code: string; name: string }[];
-  languagechangeHandle: (_: string) => void;
   currentSidebar: NavItemWithLink[];
   // 当没有提供 readme 或者 index 时，homePage 是第一个有效页面
   homePage: string;
@@ -34,36 +33,29 @@ function getI18nSidebar(config: BookConfig = {}) {
   let sidebar: NavItem[] = [];
   let lang = '';
   let langList: { code: string; name: string }[] = [];
-  let languagechangeHandle = (_lang: string) => {
-    //
-  };
 
   const sidebarConfig = config.sidebar || [];
   if (sidebarConfig instanceof Array) {
     sidebar = sidebarConfig;
   } else {
     langList = Object.keys(sidebarConfig).map((code) => ({ code, name: sidebarConfig[code].name }));
-    const fallbackLanguage = langList[0].code;
-    // detect language
-    const i18n = new I18n<any>({ fallbackLanguage, resources: sidebarConfig, cache: true, urlParamsType: 'path' });
-    lang = i18n.currentLanguage;
+    const { currentLanguage } = new I18n<any>({
+      fallbackLanguage: fallbackLanguage in sidebarConfig ? fallbackLanguage : langList[0]?.code,
+      resources: sidebarConfig,
+      cache: true,
+      urlParamsType: 'path',
+    });
+    lang = currentLanguage;
     history.basePath = `/${lang}`;
     sidebar = sidebarConfig[lang].data;
-    languagechangeHandle = async (lang: string) => {
-      const { path, query, hash } = history.getParams();
-      // will modify `history.getParams()`
-      history.basePath = `/${lang}`;
-      await i18n.setLanguage(lang);
-      // Use custom anchors id to ensure that the hash is correct after i18n switching
-      history.replace({ path, query, hash });
-      updateBookConfig(bookStore.config);
-    };
+    // 初始页面需要立即更新才能读取到
+    locationStore.path = history.getParams().path;
+    if (lang !== selfI18n.currentLanguage) {
+      selfI18n.setLanguage(lang);
+    }
   }
 
-  if (lang) {
-    selfI18n.setLanguage(lang in selfI18n.resources ? lang : selfI18n.fallbackLanguage);
-  }
-  return { sidebar, lang, langList, languagechangeHandle };
+  return { sidebar, lang, langList };
 }
 
 function processSidebar(sidebar: NavItem[], displayRank: boolean | undefined) {
@@ -242,7 +234,7 @@ function getHomePage(links: RouteItem[]) {
 }
 
 export function updateBookConfig(config?: BookConfig, gemBookElement?: GemBookElement) {
-  const { sidebar, lang, langList, languagechangeHandle } = getI18nSidebar(config);
+  const { sidebar, lang, langList } = getI18nSidebar(config);
   const sidebarResult = processSidebar(sidebar, config?.displayRank);
   const links = flatNav(sidebarResult);
   const nav = getNav(sidebarResult, config?.nav || []);
@@ -263,7 +255,6 @@ export function updateBookConfig(config?: BookConfig, gemBookElement?: GemBookEl
     routes,
     lang,
     langList,
-    languagechangeHandle,
     homePage,
     currentSidebar,
     currentLinks,
