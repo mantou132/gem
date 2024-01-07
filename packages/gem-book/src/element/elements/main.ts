@@ -69,8 +69,27 @@ export class Main extends GemElement {
   // homepage/footer 等内置元素渲染在 main 前面，不能使用自定义渲染器
   static instance?: Main;
 
+  static detailsStateCache = new Map<string, boolean>();
+
   static parseMarkdown(mdBody: string) {
-    return [...parser.parseFromString(parse(mdBody, { renderer: Main.instance?.renderer }), 'text/html').body.children];
+    const elements = [
+      ...parser.parseFromString(
+        parse(mdBody, {
+          renderer: Main.instance?.renderer,
+        }),
+        'text/html',
+      ).body.children,
+    ];
+    elements.forEach((detailsEle) => {
+      if (detailsEle instanceof HTMLDetailsElement) {
+        const html = locationStore.path + detailsEle.innerHTML;
+        detailsEle.open = !!Main.detailsStateCache.get(html);
+        detailsEle.addEventListener('toggle', () => {
+          Main.detailsStateCache.set(html, detailsEle.open);
+        });
+      }
+    });
+    return elements;
   }
 
   static unsafeRenderHTML(s: string, style = '') {

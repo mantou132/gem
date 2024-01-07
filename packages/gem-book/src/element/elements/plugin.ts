@@ -57,16 +57,17 @@ export class GemBookPluginElement<T = any> extends GemElement<T> {
     return bookStore.getCurrentLink?.();
   }
 
-  static caches?: Map<string, any>;
+  static caches = new Map<typeof GemBookPluginElement, Map<string, any>>();
 
   cacheState(getDeps: () => string[]) {
     if (!this.state) throw new Error('Only cache state');
     const cons = this.constructor as typeof GemBookPluginElement;
-    const caches = cons.caches || (cons.caches = new Map());
+    const cache = cons.caches.get(cons) || new Map();
+    cons.caches.set(cons, cache);
     this.memo(
       () => {
-        Object.assign(this.state!, caches.get(getDeps().join()));
-        return () => caches.set(getDeps().join(), this.state);
+        Object.assign(this.state!, cache.get(getDeps().join()));
+        return () => cache.set(getDeps().join(), this.state);
       },
       () => getDeps(),
     );

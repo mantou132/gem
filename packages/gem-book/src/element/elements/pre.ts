@@ -349,45 +349,57 @@ export class Pre extends GemElement {
     }
   };
 
-  mounted() {
-    this.effect(async () => {
-      if (!this.getBoundingClientRect().width) return;
-      if (this.status === 'hidden') return;
-      if (!this.codeRef.element) return;
-      await import(/* @vite-ignore */ /* webpackIgnore: true */ prismjs);
-      const { Prism } = window as any;
-      if (this.codelang && !Prism.languages[this.codelang]) {
-        const lang = langAliases[this.codelang] || this.codelang;
-        const langDeps = ([] as string[]).concat(langDependencies[lang] || []);
-        try {
-          await Promise.all(
-            langDeps.map((langDep) => {
-              if (!Prism.languages[langDep]) {
-                return import(
-                  /* @vite-ignore */ /* webpackIgnore: true */ `${prismjs}/components/prism-${langDep}.min.js`
-                );
-              }
-            }),
-          );
-          await import(/* @vite-ignore */ /* webpackIgnore: true */ `${prismjs}/components/prism-${lang}.min.js`);
-        } catch {
-          //
-        }
+  #updateHtml = async () => {
+    if (this.status === 'hidden') return;
+    if (!this.codeRef.element) return;
+    await import(/* @vite-ignore */ /* webpackIgnore: true */ prismjs);
+    const { Prism } = window as any;
+    if (this.codelang && !Prism.languages[this.codelang]) {
+      const lang = langAliases[this.codelang] || this.codelang;
+      const langDeps = ([] as string[]).concat(langDependencies[lang] || []);
+      try {
+        await Promise.all(
+          langDeps.map((langDep) => {
+            if (!Prism.languages[langDep]) {
+              return import(
+                /* @vite-ignore */ /* webpackIgnore: true */ `${prismjs}/components/prism-${langDep}.min.js`
+              );
+            }
+          }),
+        );
+        await import(/* @vite-ignore */ /* webpackIgnore: true */ `${prismjs}/components/prism-${lang}.min.js`);
+      } catch {
+        //
       }
-      const content = Prism.languages[this.codelang]
-        ? Prism.highlight(this.textContent || '', Prism.languages[this.codelang], this.codelang)
-        : this.innerHTML;
-      const { parts, lineNumbersParts } = this.#getParts(content);
-      this.codeRef.element.innerHTML = parts.reduce(
-        (p, c, i) =>
-          p +
-          `<span class="code-ignore token comment">  @@ ${lineNumbersParts[i - 1].at(-1)! + 1}-${
-            lineNumbersParts[i].at(0)! - 1
-          } @@</span>` +
-          c,
-      );
-      this.#setOffset();
+    }
+    const content = Prism.languages[this.codelang]
+      ? Prism.highlight(this.textContent || '', Prism.languages[this.codelang], this.codelang)
+      : this.innerHTML;
+    const { parts, lineNumbersParts } = this.#getParts(content);
+    this.codeRef.element.innerHTML = parts.reduce(
+      (p, c, i) =>
+        p +
+        `<span class="code-ignore token comment">  @@ ${lineNumbersParts[i - 1].at(-1)! + 1}-${
+          lineNumbersParts[i].at(0)! - 1
+        } @@</span>` +
+        c,
+    );
+    this.#setOffset();
+  };
+
+  mounted() {
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach(({ intersectionRatio }) => {
+        if (intersectionRatio === 0) return;
+        io.disconnect();
+        this.effect(
+          () => this.#updateHtml(),
+          () => [this.textContent, this.codelang],
+        );
+      });
     });
+    io.observe(this);
+    return () => io.disconnect();
   }
 
   render() {
