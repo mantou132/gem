@@ -225,10 +225,6 @@ export class Pre extends GemElement {
 
   @refobject codeRef: RefObject<HTMLElement>;
 
-  get #range() {
-    return this.range || '1-';
-  }
-
   get #linenumber() {
     return !!this.range || this.linenumber;
   }
@@ -237,6 +233,9 @@ export class Pre extends GemElement {
     return !this.filename || this.headless;
   }
 
+  #ranges: number[][];
+  #highlightLineSet: Set<number>;
+
   constructor() {
     super();
     new MutationObserver(() => this.update()).observe(this, {
@@ -244,13 +243,27 @@ export class Pre extends GemElement {
       characterData: true,
       subtree: true,
     });
+    this.memo(
+      () => {
+        const lines = (this.textContent || '').split(/\n|\r\n/);
+        this.#ranges = this.#getRanges(this.range, lines);
+        this.#highlightLineSet = new Set(
+          this.highlight
+            ? this.#getRanges(this.highlight, lines)
+                .map(([start, end]) => Array.from({ length: end - start + 1 }, (_, i) => start + i))
+                .flat()
+            : [],
+        );
+      },
+      () => [this.textContent, this.range, this.highlight],
+    );
   }
 
   #getRanges(range: string, lines: string[]) {
     const len = lines.length;
-    const ranges = range.trim().split(/\s*,\s*/);
-    return ranges.map((range) => {
-      // 第二位可以省略，第一位不行
+    const findLineNumber = (str: string) => (!str.trim() ? 0 : lines.findIndex((line) => line.includes(str)) + 1);
+    const ranges = range.split(',').map((range) => {
+      // 第二位可以省略，第一位不行，0 无意义，解析数字忽略空格，字符匹配包含空格
       // 3-4
       // 2 => 2-2
       // 2- => 2-max
@@ -259,31 +272,39 @@ export class Pre extends GemElement {
       // 2--2 => 2-(-2)
       // -3--2 => (-3)-(-2)
       const [startStr, endStr = startStr] = range.split(/(?<!-|^)-/);
-      const [start, end] = [parseInt(startStr) || 1, parseInt(endStr) || 0];
+      const [start, end] = [
+        Number(startStr) || findLineNumber(startStr) || 1,
+        Number(endStr) || findLineNumber(endStr) || -1,
+      ];
       // 包含首尾
       return [start < 0 ? len + start + 1 : start, end < 0 ? len + end + 1 : end || len].sort((a, b) => a - b);
     });
+    const result: number[][] = [];
+    ranges
+      .sort((a, b) => a[0] - b[0])
+      .forEach((range, index, arr) => {
+        const prev = arr[index - 1];
+        // 连号时并入前一个 range
+        if (prev && prev[1] + 1 === range[0]) {
+          prev[1] = range[1];
+        } else {
+          result.push(range);
+        }
+      });
+    return result;
   }
 
   #getParts(s: string) {
     const lines = s.split(/\n|\r\n/);
-    const ranges = this.#getRanges(this.#range, lines);
-    const highlightLineSet = new Set(
-      this.highlight
-        ? this.#getRanges(this.highlight, lines)
-            .map(([start, end]) => Array.from({ length: end - start + 1 }, (_, i) => start + i))
-            .flat()
-        : [],
-    );
-    const lineNumbersParts = Array.from<unknown, number[]>(ranges, () => []);
-    const parts = ranges.map(([start, end], index) => {
+    const lineNumbersParts = Array.from<unknown, number[]>(this.#ranges, () => []);
+    const parts = this.#ranges.map(([start, end], index) => {
       return Array.from({ length: end - start + 1 }, (_, i) => {
         const j = start + i - 1;
         lineNumbersParts[index].push(j + 1);
         return lines[j];
       }).join('\n');
     });
-    return { parts, ranges, lineNumbersParts, highlightLineSet };
+    return { parts, lineNumbersParts };
   }
 
   #composing = false;
@@ -403,7 +424,7 @@ export class Pre extends GemElement {
   }
 
   render() {
-    const { parts, lineNumbersParts, highlightLineSet } = this.#getParts(this.textContent || '');
+    const { parts, lineNumbersParts } = this.#getParts(this.textContent || '');
     // Safari 精度问题所以使用整数像素单位
     const lineHeight = '24px';
     const padding = '1em';
@@ -588,7 +609,7 @@ export class Pre extends GemElement {
         ${lineNumbersParts
           .reduce((p, c) => p.concat(Array(IGNORE_LINE)).concat(c))
           .map((linenumber, index) =>
-            highlightLineSet.has(linenumber)
+            this.#highlightLineSet.has(linenumber)
               ? html`
                   <span
                     class="gem-highlight"

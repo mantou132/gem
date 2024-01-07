@@ -208,7 +208,8 @@ export class Main extends GemElement {
         }
         .table-wrap {
           margin: 2rem 0;
-          width: 100%;
+          width: max-content;
+          max-width: 100%;
           border: 1px solid ${theme.borderColor};
           border-radius: ${theme.normalRound};
           overflow: auto;
@@ -217,18 +218,19 @@ export class Main extends GemElement {
           min-width: 100%;
           border-collapse: collapse;
         }
-        table tr {
-          border-bottom: 1px solid ${theme.borderColor};
+        table :where(td, th):not(:last-of-type) {
+          border-right: 1px solid ${theme.borderColor};
         }
-        tbody tr:last-of-type {
-          border-bottom: none;
+        table tr:not(:last-of-type) {
+          border-bottom: 1px solid ${theme.borderColor};
         }
         tbody tr:hover {
           background: rgba(${theme.textColorRGB}, 0.02);
         }
-        table td,
-        table th {
-          padding: 0.875em 0.75em;
+        table :where(td, th) {
+          padding: 0.75em 1em;
+        }
+        table :where(td, th):not([align]) {
           text-align: left;
         }
         thead {

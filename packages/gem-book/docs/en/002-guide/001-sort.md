@@ -14,11 +14,13 @@ src/docs/
 Output sidebar:
 
 ```
-├── <README.md Level 1 heading>
-├── Guide
-│   ├── <README.md Level 1 heading>
-│   └── <installation.md Level 1 heading>
-└── <about.me Level 1 heading>
+• README
+
+˅ Guide
+│ README
+│ Installation
+
+• About
 ```
 
-By default, this number will not be displayed in the URL. If your file name already has a prefix in the same format, you can use [`displayRank`](./003-cli.md#--display-rank) option to display them.
+By default, this number will not be displayed in the URL. If your file name already has a prefix in the same format, you can use [`--display-rank`](./003-cli.md#--display-rank) option to display them.

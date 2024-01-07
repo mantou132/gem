@@ -10,7 +10,7 @@
 
 跟使用其他 React 组件库一样使用 DuoyunUI：
 
-<gbp-raw range="3-19,31-" src="https://raw.githubusercontent.com/mantou132/nextjs-learn/main/pages/ce-test.tsx"></gbp-raw>
+<gbp-raw range="import DyCard,<DyCard-</DyCard>" src="https://raw.githubusercontent.com/mantou132/nextjs-learn/main/pages/ce-test.tsx"></gbp-raw>
 
 ## Vue
 

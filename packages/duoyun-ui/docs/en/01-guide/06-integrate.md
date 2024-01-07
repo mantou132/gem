@@ -10,7 +10,7 @@ However, there is no [type hint](https://code.visualstudio.com/docs/editor/intel
 
 Use DuoyunUI like any other React component library:
 
-<gbp-raw range="3-19,31-" src="https://raw.githubusercontent.com/mantou132/nextjs-learn/main/pages/ce-test.tsx"></gbp-raw>
+<gbp-raw range="import DyCard,<DyCard-</DyCard>" src="https://raw.githubusercontent.com/mantou132/nextjs-learn/main/pages/ce-test.tsx"></gbp-raw>
 
 ## Vue
 
