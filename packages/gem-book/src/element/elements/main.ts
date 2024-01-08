@@ -26,19 +26,23 @@ const parser = new DOMParser();
 
 // https://github.com/w3c/csswg-drafts/issues/9712
 const style = createCSSSheet(css`
-  :not(:defined) {
-    display: block;
+  :not(gbp-var):not(:defined) {
+    display: contents;
+    color: transparent;
+    /* maybe browser limit */
     font-size: 0;
   }
-  :not(:defined) * {
+  :not(gbp-var):not(:defined) * {
     display: none;
   }
-  :not(:defined)::before {
+  :not(gbp-var):not(:defined)::before {
     font-size: 1rem;
     display: block;
     content: 'The element is not defined';
-    padding: 1em;
+    padding: 2rem;
+    margin-block: 2rem;
     text-align: center;
+    color: ${theme.textColor};
     background: ${theme.borderColor};
     border-radius: ${theme.normalRound};
   }
@@ -350,7 +354,10 @@ export class Main extends GemElement {
 
         this.#updateToc();
 
-        const mo = new MutationObserver(this.#updateToc);
+        const mo = new MutationObserver(() => {
+          checkBuiltInPlugin(this.shadowRoot!);
+          this.#updateToc();
+        });
         mo.observe(this.shadowRoot!, {
           childList: true,
           subtree: true,

@@ -2,9 +2,8 @@ import type { GemBookElement } from '../element';
 
 type MediaType = 'img' | 'video' | 'audio' | 'unknown';
 
-customElements.whenDefined('gem-book').then(() => {
-  const { GemBookPluginElement } = customElements.get('gem-book') as typeof GemBookElement;
-  const { Gem, theme } = GemBookPluginElement;
+customElements.whenDefined('gem-book').then(({ GemBookPluginElement }: typeof GemBookElement) => {
+  const { Gem, theme, Utils } = GemBookPluginElement;
   const { html, customElement, attribute } = Gem;
 
   @customElement('gbp-media')
@@ -46,15 +45,15 @@ customElements.whenDefined('gem-book').then(() => {
     }
 
     #renderImage() {
-      return html`<img width=${this.width} height=${this.height} src=${this.getRemoteURL(this.src)} />`;
+      return html`<img width=${this.width} height=${this.height} src=${Utils.getRemoteURL(this.src)} />`;
     }
 
     #renderVideo() {
-      return html`<video width=${this.width} height=${this.height} src=${this.getRemoteURL(this.src)}></video>`;
+      return html`<video width=${this.width} height=${this.height} src=${Utils.getRemoteURL(this.src)}></video>`;
     }
 
     #renderAudio() {
-      return html`<audio src=${this.getRemoteURL(this.src)}></audio>`;
+      return html`<audio src=${Utils.getRemoteURL(this.src)}></audio>`;
     }
 
     #renderContent() {

@@ -12,6 +12,56 @@ export function capitalize(s: string) {
   return s.replace(/^\w/, (s: string) => s.toUpperCase());
 }
 
+export function getRanges(range: string, lines: string[]) {
+  const len = lines.length;
+  const findLineNumber = (str: string, start = 1) => {
+    if (!str.trim()) return 0;
+    return lines.findIndex((line, index) => index >= start - 1 && line.includes(str)) + 1;
+  };
+  const ranges = range.split(',').map((range) => {
+    // 第二位可以省略，第一位不行，0 无意义，解析数字忽略空格，字符匹配包含空格
+    // 3-4
+    // 2 => 2-2
+    // 2-2 => 2-2 // 使用字符串搜索时 end 大于 start
+    // 2- => 2-max
+    // -2 => (-2)-(-2)
+    // -2- => (-2)-max
+    // 2--2 => 2-(-2)
+    // -3--2 => (-3)-(-2)
+    const [startStr, endStr = startStr] = range.split(/(?<!-|^)-/);
+    const start = Number(startStr) || findLineNumber(startStr) || 1;
+    // 如果使用字符匹配，认为输入是严格顺序的，所以结束是在 start 后搜索
+    const end = Number(endStr) || findLineNumber(endStr, endStr === startStr ? start : start + 1) || -1;
+    // 包含首尾
+    return [start < 0 ? len + start + 1 : start, end < 0 ? len + end + 1 : end || len].sort((a, b) => a - b);
+  });
+  const result: number[][] = [];
+  ranges
+    .sort((a, b) => a[0] - b[0])
+    .forEach((range, index, arr) => {
+      const prev = arr[index - 1];
+      // 连号时并入前一个 range
+      if (prev && prev[1] + 1 === range[0]) {
+        prev[1] = range[1];
+      } else {
+        result.push(range);
+      }
+    });
+  return result;
+}
+
+export function getParts(lines: string[], ranges: number[][]) {
+  const lineNumbersParts = Array.from<unknown, number[]>(ranges, () => []);
+  const parts = ranges.map(([start, end], index) => {
+    return Array.from({ length: end - start + 1 }, (_, i) => {
+      const j = start + i - 1;
+      lineNumbersParts[index].push(j + 1);
+      return lines[j];
+    }).join('\n');
+  });
+  return { parts, lineNumbersParts };
+}
+
 // type error
 export function flatNav(nav: NavItem[]): NavItemWithLink[] {
   return nav
@@ -22,21 +72,21 @@ export function flatNav(nav: NavItem[]): NavItemWithLink[] {
     .flat();
 }
 
-export function getRemotePath(originPath: string, lang = '') {
-  const langPath = lang && `/${lang}`;
-  return `${langPath}${originPath}`;
+export function joinPath(...paths: (string | undefined)[]) {
+  const toPath = (base: string) => (base.startsWith('/') ? base : base ? `/${base}` : '');
+  return paths.reduce<string>((base = '', path = '') => {
+    return `${toPath(base)}${toPath(path)}`;
+  }, '');
 }
 
 export function getGithubPath(link: string) {
   const { config, lang } = bookStore;
   const { sourceDir, base } = config || {};
-  const basePath = base ? `/${base}` : '';
-  const sourcePath = sourceDir ? `/${sourceDir}` : '';
-  return `${basePath}${sourcePath}${getRemotePath(link, lang)}`;
+  return joinPath(base, sourceDir, lang, link);
 }
 
-export function getURL(originPath: string, lang = '', hash = '') {
-  return `${getRemotePath(originPath, lang)}?hash=${hash}`;
+export function getURL(originPath: string, hash = '') {
+  return `${originPath}?hash=${hash}`;
 }
 
 export function isSameOrigin(link: string) {

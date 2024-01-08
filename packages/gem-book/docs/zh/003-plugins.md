@@ -10,11 +10,11 @@ isNav: true
 
 <gbp-code-group>
 
-```bash NPM
+```bash npm
 npm i gem-book
 ```
 
-```bash YARN
+```bash yarn
 yarn add gem-book
 ```
 
@@ -23,11 +23,11 @@ yarn add gem-book
 ````md
 <gbp-code-group>
 
-```bash NPM
+```bash npm
 npm i gem-book
 ```
 
-```bash YARN
+```bash yarn
 yarn add gem-book
 ```
 
@@ -36,15 +36,25 @@ yarn add gem-book
 
 ## `<gbp-raw>`
 
-用于显示远端代码，如果提供的 `src` 只包含路径，则会从当前项目的 GitHub 上读取内容（受 [`sourceDir`](./002-guide/003-cli.md#--source-dir)，[`sourceBranch`](./002-guide/003-cli.md#--source-branch) 影响），比如：
+用于显示远端代码，如果提供的 `src` 只包含路径，则会从当前项目的 GitHub 上读取内容（受 [`sourceDir`](./002-guide/003-cli.md#--source-dir)，[`sourceBranch`](./002-guide/003-cli.md#--source-branch) 影响），例如：
 
-<gbp-raw src="package.json" range="2-3,-4--6" highlight="-5"></gbp-raw>
+<gbp-raw src="package.json" range="2-3,-4--6,author-license" highlight="-5,author"></gbp-raw>
 
 ```md
-<!-- `range` 指定显示的范围，支持使用负数 -->
+<!-- `range` 指定显示的范围，支持使用负数、字符串匹配，`highlight` 格式一样 -->
 
-<gbp-raw src="package.json" range="2-3,-4--6" highlight="-5"></gbp-raw>
+<gbp-raw src="package.json" range="2-3,-4--6,author-license" highlight="-5,author"></gbp-raw>
 ```
+
+## `<gbp-var>`
+
+引用全局变量：<gbp-var>hello</gbp-var>
+
+```md
+<gbp-var>hello</gbp-var>
+```
+
+变量需要在[配置文件](./002-guide/003-cli.md)中定义。
 
 ## `<gbp-media>`
 
@@ -52,6 +62,18 @@ yarn add gem-book
 
 ```md
 <gbp-media src="preview.png"></gbp-media>
+```
+
+## `<gbp-include>`
+
+动态加载显示 MarkDown 片段：
+
+<gbp-include src="./002-guide/007-extension.md" range="[!NOTE]->"></gbp-include>
+
+```md
+<!-- `range` 语法和 `<gbp-raw>` 一样，这里的 `range` 使用字符串匹配 -->
+
+<gbp-include src="./002-guide/007-extension.md" range="[!NOTE]->"></gbp-include>
 ```
 
 ## `<gbp-import>`

@@ -23,7 +23,7 @@ import { UPDATE_EVENT } from '../common/constant';
 
 import { theme, changeTheme, Theme, themeProps } from './helper/theme';
 import { bookStore, updateBookConfig, locationStore } from './store';
-import { checkBuiltInPlugin, getRemotePath } from './lib/utils';
+import { checkBuiltInPlugin, joinPath } from './lib/utils';
 import { GemBookPluginElement } from './elements/plugin';
 import { Loadbar } from './elements/loadbar';
 import { Homepage } from './elements/homepage';
@@ -101,7 +101,7 @@ export class GemBookElement extends GemElement {
         queueMicrotask(() => routeELement.update());
       } else if (routeELement.currentRoute?.pattern === '*') {
         routeELement.update();
-      } else if (getRemotePath(bookStore.getCurrentLink?.().originLink || '', bookStore.lang) === '/' + filePath) {
+      } else if (joinPath(bookStore.lang, bookStore.getCurrentLink?.().originLink) === `/${filePath}`) {
         const firstElementChild = routeELement.firstElementChild! as Main;
         firstElementChild.content = content;
       }

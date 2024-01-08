@@ -2,11 +2,10 @@ import type { GemBookElement } from '../element';
 
 const esmBuilder = 'https://esm.sh/build';
 
-customElements.whenDefined('gem-book').then(async () => {
+customElements.whenDefined('gem-book').then(({ GemBookPluginElement }: typeof GemBookElement) => {
   const esmBuilderPromise = import(/* webpackIgnore: true */ esmBuilder);
 
-  const { GemBookPluginElement } = customElements.get('gem-book') as typeof GemBookElement;
-  const { Gem } = GemBookPluginElement;
+  const { Gem, Utils } = GemBookPluginElement;
   const { html, customElement, attribute } = Gem;
 
   @customElement('gbp-import')
@@ -29,7 +28,7 @@ customElements.whenDefined('gem-book').then(async () => {
     mounted() {
       this.effect(
         async () => {
-          const url = this.getRemoteURL(this.src);
+          const url = Utils.getRemoteURL(this.src);
           if (!url) return;
           try {
             const resp = await fetch(url);

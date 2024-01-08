@@ -3,8 +3,7 @@ import type { GemBookElement } from '../element';
 const gitalkUrl = 'https://esm.sh/gitalk@1.7.2';
 const gitalkCSSUrl = 'https://esm.sh/gitalk@1.7.2/dist/gitalk.css';
 
-customElements.whenDefined('gem-book').then(async () => {
-  const { GemBookPluginElement } = customElements.get('gem-book') as typeof GemBookElement;
+customElements.whenDefined('gem-book').then(async ({ GemBookPluginElement }: typeof GemBookElement) => {
   const { config, Gem, theme, locationStore } = GemBookPluginElement;
   const { html, customElement, attribute, connectStore } = Gem;
 

@@ -24,6 +24,7 @@ interface CommonConfig {
   displayRank?: boolean;
   homeMode?: boolean;
   footer?: string;
+  global?: any;
 }
 
 export type BookConfig = {

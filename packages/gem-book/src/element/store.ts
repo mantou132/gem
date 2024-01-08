@@ -5,7 +5,7 @@ import { I18n } from '@mantou/gem/helper/i18n';
 import { BookConfig, NavItem } from '../common/config';
 
 import { fallbackLanguage, selfI18n } from './helper/i18n';
-import { getLinkPath, getUserLink, NavItemWithLink, flatNav, capitalize, getURL } from './lib/utils';
+import { getLinkPath, getUserLink, NavItemWithLink, flatNav, capitalize, getURL, joinPath } from './lib/utils';
 import { getRenderer } from './lib/renderer';
 
 import type { GemBookElement } from '.';
@@ -142,7 +142,7 @@ function getLinkRouters(links: NavItemWithLink[], title: string, lang: string, d
       async getContent() {
         await import('./elements/main');
         const renderer = getRenderer({ lang, link: originLink, displayRank });
-        const content = await (await fetch(getURL(originLink, lang, hash))).text();
+        const content = await (await fetch(getURL(joinPath(lang, originLink), hash))).text();
         if (bookStore.isDevMode?.()) await new Promise((res) => setTimeout(res, 500));
         return html`<gem-book-main role="article" .renderer=${renderer as any} .content=${content}></gem-book-main>`;
       },

@@ -1,9 +1,5 @@
-/**
- * TODO: support json
- */
 import type { ElementDetail, ExportDetail } from 'gem-analyzer';
 
-import type { Main } from '../element/elements/main';
 import type { GemBookElement } from '../element';
 
 const tsMorph = 'https://esm.sh/ts-morph@13.0.3';
@@ -11,11 +7,9 @@ const gemAnalyzer = 'https://esm.sh/gem-analyzer';
 
 type State = { elements?: ElementDetail[]; exports?: ExportDetail[]; error?: any };
 
-customElements.whenDefined('gem-book').then(() => {
-  const { GemBookPluginElement } = customElements.get('gem-book') as typeof GemBookElement;
-  const { Gem, theme } = GemBookPluginElement;
+customElements.whenDefined('gem-book').then(({ GemBookPluginElement }: typeof GemBookElement) => {
+  const { Gem, theme, Utils } = GemBookPluginElement;
   const { html, customElement, attribute, numattribute, createCSSSheet, css, adoptedStyle } = Gem;
-  const MainElement = customElements.get('gem-book-main') as typeof Main;
 
   const style = createCSSSheet(css`
     gbp-api table {
@@ -187,11 +181,11 @@ customElements.whenDefined('gem-book').then(() => {
         ['Type', 'Value'],
         [({ type }) => type, ({ value }) => value.map((e) => this.#renderCode(e)).join(', ')],
       );
-      return MainElement.parseMarkdown(text);
+      return Utils.parseMarkdown(text);
     };
 
     #renderExports = (exports: ExportDetail[]) => {
-      return MainElement.parseMarkdown(
+      return Utils.parseMarkdown(
         this.#renderTable(
           exports.filter(({ kindName }) => kindName === 'FunctionDeclaration' || kindName === 'ClassDeclaration'),
           ['Name', 'Description'],
@@ -222,7 +216,7 @@ customElements.whenDefined('gem-book').then(() => {
       });
       this.effect(
         async () => {
-          const url = this.getRemoteURL(this.src);
+          const url = Utils.getRemoteURL(this.src);
           if (!url) return;
 
           try {

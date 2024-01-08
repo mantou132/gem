@@ -2,7 +2,7 @@ import { html, GemElement, customElement, part, connectStore, css } from '@manto
 import { mediaQuery } from '@mantou/gem/helper/mediaquery';
 
 import { theme } from '../helper/theme';
-import { getRemotePath, getUserLink, NavItemWithLink } from '../lib/utils';
+import { getUserLink, joinPath, NavItemWithLink } from '../lib/utils';
 import { bookStore } from '../store';
 
 import { icons } from './icons';
@@ -167,8 +167,7 @@ export class Homepage extends GemElement {
                 ${feature.icon
                   ? html`<img
                       class="icon"
-                      src=${new URL(feature.icon, `${location.origin}${getRemotePath(originLink, bookStore.lang)}`)
-                        .href}
+                      src=${new URL(feature.icon, `${location.origin}${joinPath(bookStore.lang, originLink)}`).href}
                     />`
                   : ''}
                 <dt class="feat-title">${feature.title}</dt>

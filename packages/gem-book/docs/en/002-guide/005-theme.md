@@ -19,11 +19,11 @@ Of course, you can also set the theme directly using the DOM API of `<gem-book>`
 
 <gbp-code-group>
 
-```js DOM
+```js vanilla.js
 new GemBookElement(config, theme);
 ```
 
-```js Lit
+```js lit
 html`<gem-book .config=${config} .theme=${theme}></gem-book>`;
 ```
 

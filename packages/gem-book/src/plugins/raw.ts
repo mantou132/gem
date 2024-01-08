@@ -5,9 +5,8 @@ type State = {
   error?: any;
 };
 
-customElements.whenDefined('gem-book').then(() => {
-  const { GemBookPluginElement } = customElements.get('gem-book') as typeof GemBookElement;
-  const { Gem, theme } = GemBookPluginElement;
+customElements.whenDefined('gem-book').then(({ GemBookPluginElement }: typeof GemBookElement) => {
+  const { Gem, theme, Utils } = GemBookPluginElement;
   const { attribute, customElement, html, createCSSSheet, css, adoptedStyle } = Gem;
 
   const style = createCSSSheet(css`
@@ -67,7 +66,7 @@ customElements.whenDefined('gem-book').then(() => {
     mounted() {
       this.effect(
         async () => {
-          const url = this.getRemoteURL(this.src);
+          const url = Utils.getRemoteURL(this.src);
           if (!url) return;
           this.setState({ error: false });
           try {

@@ -14,10 +14,9 @@ type State = {
   copyEnd: boolean;
 };
 
-customElements.whenDefined('gem-book').then(() => {
-  const { GemBookPluginElement } = customElements.get('gem-book') as typeof GemBookElement;
-  const { theme, icons } = GemBookPluginElement;
-  const { html, customElement, adoptedStyle, css, createCSSSheet, classMap } = GemBookPluginElement.Gem;
+customElements.whenDefined('gem-book').then(({ GemBookPluginElement }: typeof GemBookElement) => {
+  const { Gem, theme, icons } = GemBookPluginElement;
+  const { html, customElement, adoptedStyle, css, createCSSSheet, classMap } = Gem;
 
   const style = createCSSSheet(css`
     :host {
@@ -77,6 +76,11 @@ customElements.whenDefined('gem-book').then(() => {
   @customElement('gbp-code-group')
   @adoptedStyle(style)
   class _GbpCodeGroupElement extends GemBookPluginElement<State> {
+    constructor() {
+      super();
+      this.cacheState(() => [this.textContent]);
+    }
+
     state: State = {
       files: [],
       copyEnd: false,

@@ -29,6 +29,7 @@
         "github": {
           "type": "string"
         },
+        "global": {},
         "homeMode": {
           "type": "boolean"
         },
@@ -37,6 +38,12 @@
         },
         "icon": {
           "type": "string"
+        },
+        "ignored": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
         },
         "json": {
           "type": "boolean"

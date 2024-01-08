@@ -3,7 +3,7 @@ import { Renderer } from 'marked';
 import { icons } from '../elements/icons';
 import { normalizeId, parseTitle } from '../../common/utils';
 
-import { getRemotePath, isSameOrigin, getUserLink, escapeHTML, textContent } from './utils';
+import { isSameOrigin, getUserLink, escapeHTML, textContent, joinPath } from './utils';
 
 export function getRenderer({ lang, link, displayRank }: { lang: string; link: string; displayRank?: boolean }) {
   const renderer = new Renderer();
@@ -45,7 +45,7 @@ export function getRenderer({ lang, link, displayRank }: { lang: string; link: s
 
   renderer.image = (href, title, text) => {
     if (href === null) return text;
-    const url = new URL(href, `${location.origin}${getRemotePath(link, lang)}`);
+    const url = new URL(href, `${location.origin}${joinPath(lang, link)}`);
     return `<img src="${url.href}" alt="${text}" title="${title || ''}"/>`;
   };
 

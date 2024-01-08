@@ -35,8 +35,7 @@ type State = {
   status: ClientStatus | 'initialization' | 'done';
 };
 
-customElements.whenDefined('gem-book').then(() => {
-  const { GemBookPluginElement } = customElements.get('gem-book') as typeof GemBookElement;
+customElements.whenDefined('gem-book').then(({ GemBookPluginElement }: typeof GemBookElement) => {
   const { theme, icons } = GemBookPluginElement;
   const { html, customElement, refobject, attribute, boolattribute, adoptedStyle, css, createCSSSheet, classMap } =
     GemBookPluginElement.Gem;
@@ -207,7 +206,7 @@ customElements.whenDefined('gem-book').then(() => {
 
     constructor() {
       super();
-      new MutationObserver(async () => {
+      new MutationObserver(() => {
         const files = this.#parseContents();
         this.setState({ files });
         this.#updateSandbox();

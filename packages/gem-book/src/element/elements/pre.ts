@@ -3,6 +3,7 @@ import { GemElement, html } from '@mantou/gem/lib/element';
 import { styleMap } from '@mantou/gem/lib/utils';
 
 import { theme } from '../helper/theme';
+import { getParts, getRanges } from '../lib/utils';
 
 const prismjs = 'https://esm.sh/prismjs@v1.26.0';
 
@@ -246,10 +247,10 @@ export class Pre extends GemElement {
     this.memo(
       () => {
         const lines = (this.textContent || '').split(/\n|\r\n/);
-        this.#ranges = this.#getRanges(this.range, lines);
+        this.#ranges = getRanges(this.range, lines);
         this.#highlightLineSet = new Set(
           this.highlight
-            ? this.#getRanges(this.highlight, lines)
+            ? getRanges(this.highlight, lines)
                 .map(([start, end]) => Array.from({ length: end - start + 1 }, (_, i) => start + i))
                 .flat()
             : [],
@@ -259,52 +260,8 @@ export class Pre extends GemElement {
     );
   }
 
-  #getRanges(range: string, lines: string[]) {
-    const len = lines.length;
-    const findLineNumber = (str: string) => (!str.trim() ? 0 : lines.findIndex((line) => line.includes(str)) + 1);
-    const ranges = range.split(',').map((range) => {
-      // 第二位可以省略，第一位不行，0 无意义，解析数字忽略空格，字符匹配包含空格
-      // 3-4
-      // 2 => 2-2
-      // 2- => 2-max
-      // -2 => (-2)-(-2)
-      // -2- => (-2)-max
-      // 2--2 => 2-(-2)
-      // -3--2 => (-3)-(-2)
-      const [startStr, endStr = startStr] = range.split(/(?<!-|^)-/);
-      const [start, end] = [
-        Number(startStr) || findLineNumber(startStr) || 1,
-        Number(endStr) || findLineNumber(endStr) || -1,
-      ];
-      // 包含首尾
-      return [start < 0 ? len + start + 1 : start, end < 0 ? len + end + 1 : end || len].sort((a, b) => a - b);
-    });
-    const result: number[][] = [];
-    ranges
-      .sort((a, b) => a[0] - b[0])
-      .forEach((range, index, arr) => {
-        const prev = arr[index - 1];
-        // 连号时并入前一个 range
-        if (prev && prev[1] + 1 === range[0]) {
-          prev[1] = range[1];
-        } else {
-          result.push(range);
-        }
-      });
-    return result;
-  }
-
   #getParts(s: string) {
-    const lines = s.split(/\n|\r\n/);
-    const lineNumbersParts = Array.from<unknown, number[]>(this.#ranges, () => []);
-    const parts = this.#ranges.map(([start, end], index) => {
-      return Array.from({ length: end - start + 1 }, (_, i) => {
-        const j = start + i - 1;
-        lineNumbersParts[index].push(j + 1);
-        return lines[j];
-      }).join('\n');
-    });
-    return { parts, lineNumbersParts };
+    return getParts(s.split(/\n|\r\n/), this.#ranges);
   }
 
   #composing = false;
@@ -393,10 +350,10 @@ export class Pre extends GemElement {
         //
       }
     }
-    const content = Prism.languages[this.codelang]
+    const html = Prism.languages[this.codelang]
       ? Prism.highlight(this.textContent || '', Prism.languages[this.codelang], this.codelang)
       : this.innerHTML;
-    const { parts, lineNumbersParts } = this.#getParts(content);
+    const { parts, lineNumbersParts } = this.#getParts(html);
     this.codeRef.element.innerHTML = parts.reduce(
       (p, c, i) =>
         p +

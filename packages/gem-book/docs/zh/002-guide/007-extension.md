@@ -71,11 +71,11 @@ GemBook 使用自定义元素作为插件系统，他们可以自定义渲染 Ma
 
 <gbp-code-group>
 
-```bash CLI
+```bash cli
 gem-book docs --plugin raw
 ```
 
-```html HTML
+```html html
 <script type="module" src="https://unpkg.com/gem-book/plugins/raw.js"></script>
 ```
 
@@ -90,8 +90,15 @@ gem-book docs --plugin raw
 在[这里](../003-plugins.md)查看所有内置插件。
 
 > [!TIP]
-> 在 Markdown 中使用插件时 Attribute 不应该换行，否则会作为内联元素被 `<p>` 标签打断。
-> GemBook 内置插件支持自动导入，缺点是渲染文档后才会加载，有可能页面会闪烁。
+>
+> 1. 在 Markdown 中使用插件时 Attribute 不应该换行，否则会作为内联元素被 `<p>` 标签打断。
+> 2. GemBook 内置插件支持自动导入，缺点是渲染文档后才会加载，有可能页面会闪烁。
+> 3. VSCode 默认不能在 MarkDown 文件中使用 [Emmet](https://code.visualstudio.com/docs/editor/emmet)，你可以通过设置启用：
+>
+>    ```json
+>    "emmet.excludeLanguages": [],
+>    "emmet.includeLanguages": {"markdown": "html"},
+>    ```
 
 ### 开发插件
 

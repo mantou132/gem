@@ -95,11 +95,11 @@ import plugin:
 
 <gbp-code-group>
 
-```bash CLI
+```bash cli
 gem-book docs --plugin raw
 ```
 
-```html HTML
+```html html
 <script type="module" src="https://unpkg.com/gem-book/plugins/raw.js"></script>
 ```
 

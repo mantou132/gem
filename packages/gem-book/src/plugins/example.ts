@@ -9,10 +9,9 @@ type PropValue = string | number | boolean | Record<string, unknown>;
 
 type Props = Record<string, PropValue>;
 
-customElements.whenDefined('gem-book').then(() => {
-  const { GemBookPluginElement } = customElements.get('gem-book') as typeof GemBookElement;
-  const { theme, icons } = GemBookPluginElement;
-  const { html, customElement, attribute, createCSSSheet, css, adoptedStyle, styleMap } = GemBookPluginElement.Gem;
+customElements.whenDefined('gem-book').then(({ GemBookPluginElement }: typeof GemBookElement) => {
+  const { Gem, theme, icons } = GemBookPluginElement;
+  const { html, customElement, attribute, createCSSSheet, css, adoptedStyle, styleMap } = Gem;
 
   const style = createCSSSheet(css`
     :host {
