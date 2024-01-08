@@ -194,75 +194,79 @@ export class DuoyunSelectElement extends GemElement<State> implements BasePicker
     search: '',
   };
 
-  #open = () => {
+  #open = async () => {
     if (this.disabled) return;
+    if (this.state.open) return;
     this.setState({ open: true });
+    // safari auto focus
+    await Promise.resolve();
     this.searchRef.element?.focus();
   };
 
   #close = () => {
+    if (!this.state.open) return;
     this.setState({ open: false });
   };
 
-  #onKeydown = hotkeys({
-    esc: (evt) => {
-      if (this.state.open) {
-        this.#close();
-        if (!this.inline) {
-          evt.stopPropagation();
-        }
-      }
-    },
-    'space,enter': (evt) => {
-      this.#open();
-      this.searchRef.element?.focus();
-      evt.preventDefault();
-    },
-  });
-
-  #onEsc = (evt: KeyboardEvent) => {
-    this.#close();
-    (this.searchRef.element || this).focus();
-    evt.stopPropagation();
+  #onKeydown = (evt: KeyboardEvent) => {
+    if (this.inline) return;
+    hotkeys(
+      {
+        esc: this.#close,
+        'space,enter': this.#open,
+      },
+      { stopPropagation: true },
+    )(evt);
   };
 
-  #onSearchKeydown = hotkeys({
-    backspace: () => {
-      if (!this.state.search && this.#valueOptions?.length) {
-        if (this.multiple) {
-          this.#onRemoveTag(this.#valueOptions[this.#valueOptions.length - 1]);
-        } else {
-          this.change(undefined);
-        }
-      }
-    },
-    tab: (evt) => {
-      this.optionsRef.element?.focus();
-      evt.preventDefault();
-    },
-    esc: this.#onEsc,
-    enter: (evt) => {
-      const options = this.#filteredOptions;
-      if (options?.length === 1) {
-        const { value, label } = options[0];
-        this.#onChange(value ?? label);
-      }
-      evt.stopPropagation();
-    },
-    space: (evt) => {
-      evt.stopPropagation();
-    },
-  });
+  #onEsc = () => {
+    this.#close();
+    (this.searchRef.element || this).focus();
+  };
 
-  #onOptionsKeydown = hotkeys({
-    esc: this.#onEsc,
-    'shift+tab': (evt) => {
-      if (!this.optionsRef.element?.shadowRoot?.activeElement) {
-        (this.searchRef.element || this).focus();
+  #onSearchKeydown = hotkeys(
+    {
+      backspace: () => {
+        if (!this.state.search && this.#valueOptions?.length) {
+          if (this.multiple) {
+            this.#onRemoveTag(this.#valueOptions[this.#valueOptions.length - 1]);
+          } else {
+            this.change(undefined);
+          }
+        }
+      },
+      tab: (evt) => {
+        if (!this.state.open) return;
+        this.optionsRef.element?.focus();
         evt.preventDefault();
-      }
+      },
+      esc: this.#onEsc,
+      enter: () => {
+        const options = this.#filteredOptions;
+        if (options?.length === 1) {
+          const { value, label } = options[0];
+          this.#onChange(value ?? label);
+        }
+      },
+      space: () => {
+        // Used hotkey options
+      },
     },
-  });
+    { preventDefault: false, stopPropagation: true },
+  );
+
+  #onOptionsKeydown = hotkeys(
+    {
+      esc: this.#onEsc,
+      'shift+tab': (evt) => {
+        if (!this.optionsRef.element?.shadowRoot?.activeElement) {
+          (this.searchRef.element || this).focus();
+          evt.preventDefault();
+        }
+      },
+    },
+    { preventDefault: false, stopPropagation: true },
+  );
 
   #onSearch = (evt: CustomEvent<string>) => {
     this.setState({ search: evt.detail, open: true });

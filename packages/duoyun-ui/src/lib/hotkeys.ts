@@ -208,12 +208,18 @@ export function unlock() {
   unlockCallback.clear();
 }
 
+type HotkeysOptions = {
+  stopPropagation?: boolean;
+  preventDefault?: boolean;
+};
+
 /**
  * Must have non-control character;
  * Not case sensitive;
  * Support `a-b`, press `a`, hotkeys be locked, wait next `keydown` event, allow call `unlock`
  */
-export function hotkeys(handles: HotKeyHandles) {
+export function hotkeys(handles: HotKeyHandles, options: HotkeysOptions = {}) {
+  const { stopPropagation, preventDefault = true } = options;
   return function (evt: KeyboardEvent) {
     if (evt.isComposing) return;
     if (locked) return;
@@ -229,6 +235,8 @@ export function hotkeys(handles: HotKeyHandles) {
       const matchResult = shortcuts.map((hotkey) => matchHotKey(evt, hotkey));
       if (matchResult.some((r) => r === true)) {
         captured = true;
+        if (preventDefault) evt.preventDefault();
+        if (stopPropagation) evt.stopPropagation();
         handle(evt);
       }
       matchResult.filter(isNotBoolean).forEach((key) => {
@@ -274,12 +282,6 @@ export function hotkeys(handles: HotKeyHandles) {
  * Support space,enter
  */
 export const commonHandle = hotkeys({
-  'space,enter': (evt) => {
-    (evt.target as HTMLElement).click();
-    evt.preventDefault();
-  },
-  esc: (evt) => {
-    (evt.target as HTMLElement).blur();
-    evt.preventDefault();
-  },
+  'space,enter': (evt) => (evt.target as HTMLElement).click(),
+  esc: (evt) => (evt.target as HTMLElement).blur(),
 });

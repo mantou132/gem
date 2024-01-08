@@ -35,6 +35,8 @@ const style = createCSSSheet(css`
     box-sizing: border-box;
     width: 1em;
     aspect-ratio: 1;
+    /* webkit bug */
+    height: 1em;
     background-clip: content-box;
     padding: 0;
     color: ${theme.backgroundColor};

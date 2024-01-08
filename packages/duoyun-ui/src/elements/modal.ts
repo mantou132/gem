@@ -14,7 +14,7 @@ import {
   slot,
 } from '@mantou/gem/lib/decorators';
 import { GemElement, html, TemplateResult } from '@mantou/gem/lib/element';
-import { createCSSSheet, css, styled } from '@mantou/gem/lib/utils';
+import { addListener, createCSSSheet, css, styled } from '@mantou/gem/lib/utils';
 import { mediaQuery } from '@mantou/gem/helper/mediaquery';
 
 import { theme } from '../lib/theme';
@@ -282,8 +282,7 @@ export class DuoyunModalElement extends GemElement {
       },
       () => [this.open],
     );
-    this.addEventListener('keydown', this.#keydown);
-    return () => this.removeEventListener('keydown', this.#keydown);
+    return addListener(this, 'keydown', this.#keydown);
   };
 
   render = () => {

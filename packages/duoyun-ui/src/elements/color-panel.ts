@@ -92,6 +92,10 @@ const style = createCSSSheet(css`
     border: 1px solid #0008;
     transform: translate(-50%, -50%);
   }
+  .current {
+    /* webkit bug */
+    height: 1.2em;
+  }
   .current span {
     left: 50%;
     top: 50%;

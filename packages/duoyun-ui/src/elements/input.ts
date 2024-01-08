@@ -291,32 +291,22 @@ export class DuoyunInputElement extends GemElement {
 
   #onKeyDown = (evt: KeyboardEvent) => {
     const nextValue = (n: number) => String(clamp(this.#min, Number(this.value || this.min) + n, this.#max));
-    const prevent = (evt: Event) => {
-      evt.stopPropagation();
-      evt.preventDefault();
-    };
     if (this.type === 'number') {
-      hotkeys({
-        up: () => {
-          this.change(nextValue(this.#step));
-          prevent(evt);
+      hotkeys(
+        {
+          up: () => this.change(nextValue(this.#step)),
+          down: () => this.change(nextValue(-this.#step)),
         },
-        down: () => {
-          this.change(nextValue(-this.#step));
-          prevent(evt);
-        },
-      })(evt);
+        { stopPropagation: true },
+      )(evt);
     }
-    hotkeys({
-      'ctrl+z,command+z': () => {
-        this.#history.undo();
-        prevent(evt);
+    hotkeys(
+      {
+        'ctrl+z,command+z': () => this.#history.undo(),
+        'ctrl+shift+z,command+shift+z': () => this.#history.redo(),
       },
-      'ctrl+shift+z,command+shift+z': () => {
-        this.#history.redo();
-        prevent(evt);
-      },
-    })(evt);
+      { stopPropagation: true },
+    )(evt);
   };
 
   mounted = () => {

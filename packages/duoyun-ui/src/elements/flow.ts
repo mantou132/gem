@@ -1,3 +1,5 @@
+// webkit marker arrow bug: https://duoyun-ui.gemjs.org/zh/elements/flow
+
 import { adoptedStyle, customElement, property, part, state, refobject, RefObject } from '@mantou/gem/lib/decorators';
 import { html, svg, TemplateResult } from '@mantou/gem/lib/element';
 import { createCSSSheet, css, styleMap, exportPartsMap } from '@mantou/gem/lib/utils';

@@ -12,7 +12,7 @@ import {
   boolattribute,
 } from '@mantou/gem/lib/decorators';
 import { GemElement, html, TemplateResult } from '@mantou/gem/lib/element';
-import { createCSSSheet, css, LinkedList, LinkedListItem, styled, styleMap } from '@mantou/gem/lib/utils';
+import { addListener, createCSSSheet, css, LinkedList, LinkedListItem, styled, styleMap } from '@mantou/gem/lib/utils';
 import { logger } from '@mantou/gem/helper/logger';
 
 import { theme } from '../lib/theme';
@@ -484,10 +484,8 @@ export class DuoyunListElement extends GemElement<State> {
     if (this.#initState) this.scrollContainer.scrollTo(0, this.#initState.scrollTop);
 
     this.effect(() => {
-      this.infinite && this.scrollContainer.addEventListener('scroll', this.#onScroll);
-      return () => {
-        this.scrollContainer.removeEventListener('scroll', this.#onScroll);
-      };
+      if (!this.infinite) return;
+      return addListener(this.scrollContainer, 'scroll', this.#onScroll);
     });
 
     // 已经等到新值需要检查

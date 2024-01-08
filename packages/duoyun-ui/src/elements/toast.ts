@@ -69,6 +69,7 @@ const style = createCSSSheet(css`
     background: ${theme.negativeColor};
   }
   .icon {
+    flex-shrink: 0;
     width: var(--item-icon-height);
   }
   .body {
@@ -109,10 +110,10 @@ export class DuoyunToastElement extends GemElement {
 
   static open(type: Type, content: string | TemplateResult, { debug, duration = 3000 }: ToastOptions = {}) {
     const toast = Toast.instance || new Toast();
-    document.body.append(toast);
+    if (!toast.isConnected) document.body.append(toast);
     const key = type + getStringFromTemplate(content);
     const item = toast.items?.find((e) => e.key === key) || { key, type, content };
-    // 如何 item 正在执行删除动画，这里会导致一点小瑕疵
+    // 如果 item 正在执行删除动画，这里会导致一点小瑕疵
     toast.items = [...(toast.items || []).filter((e) => e !== item), item];
     // 取消正在执行移除动画的删除定时器
     removedSet.delete(item);

@@ -34,6 +34,9 @@ const style = createCSSSheet(css`
     align-items: center;
     gap: 1em;
     block-size: calc(2.2em + 2px);
+    border-radius: ${theme.normalRound};
+    box-sizing: border-box;
+    padding-inline: 2px;
   }
   :host([orientation='vertical']) {
     writing-mode: vertical-lr;
@@ -185,8 +188,8 @@ export class DuoyunSliderElement extends GemElement {
   };
 
   #onKeydown = hotkeys({
-    up: () => this.#setPrecisionValue(this.value + 1),
-    down: () => this.#setPrecisionValue(this.value - 1),
+    up: () => this.#setPrecisionValue(this.value + this.#step),
+    down: () => this.#setPrecisionValue(this.value - this.#step),
   });
 
   #onInputChange = (evt: CustomEvent<number>) => {
@@ -231,6 +234,7 @@ export class DuoyunSliderElement extends GemElement {
               ?disabled=${this.disabled}
               class="input"
               type="number"
+              step=${this.step}
               value=${String(this.value)}
               @change=${this.#onInputChange}
             ></dy-input>

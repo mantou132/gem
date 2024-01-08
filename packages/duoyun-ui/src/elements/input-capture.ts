@@ -1,6 +1,6 @@
 import { adoptedStyle, customElement, part } from '@mantou/gem/lib/decorators';
 import { GemElement, html } from '@mantou/gem/lib/element';
-import { createCSSSheet, css } from '@mantou/gem/lib/utils';
+import { addListener, createCSSSheet, css } from '@mantou/gem/lib/utils';
 
 import { theme } from '../lib/theme';
 import { getDisplayKey } from '../lib/hotkeys';
@@ -72,17 +72,17 @@ export class DuoyunInputCaptureElement extends GemElement<State> {
   #onPointerup = () => this.setState({ mousePosition: null });
 
   mounted = () => {
-    addEventListener('keydown', this.#onKeydown, { capture: true });
-    addEventListener('pointerdown', this.#onPointerdown, { capture: true });
-    addEventListener('pointermove', this.#onPointermove, { capture: true });
-    addEventListener('pointerup', this.#onPointerup, { capture: true });
-    addEventListener('pointercancel', this.#onPointerup, { capture: true });
+    const removeKeydownListener = addListener(window, 'keydown', this.#onKeydown, { capture: true });
+    const removePointerdownListener = addListener(window, 'pointerdown', this.#onPointerdown, { capture: true });
+    const removePointermoveListener = addListener(window, 'pointermove', this.#onPointermove, { capture: true });
+    const removePointerupListener = addListener(window, 'pointerup', this.#onPointerup, { capture: true });
+    const removePointercancelListener = addListener(window, 'pointercancel', this.#onPointerup, { capture: true });
     () => {
-      removeEventListener('keydown', this.#onKeydown, { capture: true });
-      removeEventListener('pointerdown', this.#onPointerdown, { capture: true });
-      removeEventListener('pointermove', this.#onPointermove, { capture: true });
-      removeEventListener('pointerup', this.#onPointerup, { capture: true });
-      removeEventListener('pointercancel', this.#onPointerup, { capture: true });
+      removeKeydownListener();
+      removePointerdownListener();
+      removePointermoveListener();
+      removePointerupListener();
+      removePointercancelListener();
     };
   };
 

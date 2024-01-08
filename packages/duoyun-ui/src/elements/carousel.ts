@@ -9,7 +9,7 @@ import {
   emitter,
   Emitter,
 } from '@mantou/gem/lib/decorators';
-import { createCSSSheet, css, styleMap, classMap } from '@mantou/gem/lib/utils';
+import { createCSSSheet, css, styleMap, classMap, addListener } from '@mantou/gem/lib/utils';
 
 import { theme } from '../lib/theme';
 import { icons } from '../lib/icons';
@@ -243,9 +243,9 @@ export class DuoyunCarouselElement extends GemElement<State> {
       () => this.change(this.state.currentIndex),
       () => [this.state.currentIndex],
     );
-    document.addEventListener('visibilitychange', this.#pageVisibleChange);
+    const removeListener = addListener(document, 'visibilitychange', this.#pageVisibleChange);
     return () => {
-      document.removeEventListener('visibilitychange', this.#pageVisibleChange);
+      removeListener();
       this.#clearTimer();
     };
   };

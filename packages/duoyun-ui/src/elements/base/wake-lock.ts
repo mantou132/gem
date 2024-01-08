@@ -2,6 +2,7 @@
 
 import { GemElementOptions } from '@mantou/gem/lib/element';
 import { logger } from '@mantou/gem/helper/logger';
+import { addListener } from '@mantou/gem/lib/utils';
 
 import { DuoyunVisibleBaseElement } from './visible';
 
@@ -25,13 +26,13 @@ export function wakeLock(ele: DuoyunWakeLockBaseElement) {
   };
 
   // 当页面处于非活动状态时该锁自动失效
-  document.addEventListener('visibilitychange', listener);
-  ele.addEventListener('show', listener);
-  ele.addEventListener('hide', listener);
+  const removeListener = addListener(document, 'visibilitychange', listener);
+  const removeShowListener = addListener(ele, 'show', listener);
+  const removeHideListener = addListener(ele, 'hide', listener);
   return async () => {
-    document.removeEventListener('visibilitychange', listener);
-    ele.removeEventListener('show', listener);
-    ele.removeEventListener('hide', listener);
+    removeListener();
+    removeShowListener();
+    removeHideListener();
 
     (await wakeLockPromise)?.release();
   };

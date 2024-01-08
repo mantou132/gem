@@ -2,10 +2,18 @@
 
 ## Example
 
-<gbp-example
-  name="dy-result"
-  props='{"status": "positive", "header": "Complete!", "description": "Do non amet sunt nostrud excepteur ut nostrud veniam aliquip commodo incididunt."}'
-  src="https://esm.sh/duoyun-ui/elements/result"></gbp-example>
+<gbp-example name="dy-result" src="https://esm.sh/duoyun-ui/elements/result">
+
+```json
+{
+  "icon": "icons.check",
+  "status": "positive",
+  "header": "Complete!",
+  "description": "Do non amet sunt nostrud excepteur ut nostrud veniam aliquip commodo incididunt."
+}
+```
+
+</gbp-example>
 
 ## API
 

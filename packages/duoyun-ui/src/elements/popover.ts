@@ -10,7 +10,7 @@ import {
   RefObject,
 } from '@mantou/gem/lib/decorators';
 import { GemElement, html, TemplateResult } from '@mantou/gem/lib/element';
-import { createCSSSheet, css, styleMap, StyleObject } from '@mantou/gem/lib/utils';
+import { addListener, createCSSSheet, css, styleMap, StyleObject } from '@mantou/gem/lib/utils';
 
 import { toggleActiveState, getAssignedElements, getBoundingClientRect } from '../lib/element';
 import { sleep, setBodyInert } from '../lib/utils';
@@ -466,7 +466,6 @@ export class DuoyunPopoverGhostElement extends GemElement {
   #onKeyDown = hotkeys({ esc: () => this.close(null) });
 
   mounted = () => {
-    addEventListener('keydown', this.#onKeyDown);
-    return () => removeEventListener('keydown', this.#onKeyDown);
+    return addListener(window, 'keydown', this.#onKeyDown);
   };
 }

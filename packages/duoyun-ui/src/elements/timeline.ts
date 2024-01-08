@@ -14,6 +14,7 @@ const style = createCSSSheet(css`
     --size: 1.5em;
     line-height: var(--size);
     display: block;
+    overscroll-behavior: auto;
   }
   .item {
     position: relative;

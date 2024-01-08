@@ -78,6 +78,8 @@ export class DuoyunSelectionBoxElement extends GemElement<State> {
   };
 
   #onPointerMove = (evt: PointerEvent) => {
+    // disabled text select
+    evt.preventDefault();
     const start = this.state.start!;
     const x = evt.x === start[0] ? evt.x + 0.01 : evt.x;
     const y = evt.y === start[1] ? evt.y + 0.01 : evt.y;

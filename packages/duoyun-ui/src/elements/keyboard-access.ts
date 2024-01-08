@@ -1,6 +1,6 @@
 import { GemElement, html } from '@mantou/gem/lib/element';
-import { adoptedStyle, customElement, attribute, part } from '@mantou/gem/lib/decorators';
-import { createCSSSheet, css, styleMap } from '@mantou/gem/lib/utils';
+import { adoptedStyle, customElement, attribute, part, property } from '@mantou/gem/lib/decorators';
+import { addListener, createCSSSheet, css, styleMap } from '@mantou/gem/lib/utils';
 import { logger } from '@mantou/gem/helper/logger';
 
 import { hotkeys, HotKeyHandles, unlock } from '../lib/hotkeys';
@@ -67,24 +67,20 @@ export class DuoyunKeyboardAccessElement extends GemElement<State> {
   @part static kbd: string;
   @attribute activekey: string;
 
+  @property scrollContainer?: HTMLElement;
+
   get #activeKey() {
     return this.activekey || 'f';
+  }
+
+  get #container() {
+    return this.scrollContainer || document.body;
   }
 
   state: State = {
     active: false,
     waiting: false,
     keydownHandles: {},
-  };
-
-  #preventEvent = (evt: Event) => {
-    evt.stopPropagation();
-    evt.preventDefault();
-  };
-
-  #handler = (evt: KeyboardEvent) => {
-    hotkeys(this.state.keydownHandles)(evt);
-    this.#preventEvent(evt);
   };
 
   #isInputTarget(evt: Event) {
@@ -114,6 +110,7 @@ export class DuoyunKeyboardAccessElement extends GemElement<State> {
     let index = 0;
 
     const keydownHandles: HotKeyHandles = {
+      esc: this.#onInactive,
       onLock: () => this.setState({ waiting: true }),
       onUnlock: () => this.setState({ waiting: false }),
       onUncapture: () => logger.warn('Un Capture!'),
@@ -151,7 +148,7 @@ export class DuoyunKeyboardAccessElement extends GemElement<State> {
           const key = getChars(index);
           if (!key) return;
           // `a-b`
-          keydownHandles[[...key].join('-')] = (evt: KeyboardEvent) => {
+          keydownHandles[[...key].join('-')] = () => {
             this.setState({ active: false });
             if ('showPicker' in element) {
               (element as HTMLInputElement).showPicker();
@@ -159,20 +156,17 @@ export class DuoyunKeyboardAccessElement extends GemElement<State> {
               element.focus();
               element.click();
             }
-            this.#preventEvent(evt);
           };
           index++;
           return { key, top, left };
         })
         .filter(isNotNullish),
     });
-    this.#preventEvent(evt);
   };
 
-  #onInactive = (evt: KeyboardEvent) => {
+  #onInactive = () => {
     if (!this.state.active) return;
     this.setState({ active: false });
-    this.#preventEvent(evt);
   };
 
   #onCancel = () => {
@@ -182,15 +176,18 @@ export class DuoyunKeyboardAccessElement extends GemElement<State> {
   };
 
   #onKeydown = (evt: KeyboardEvent) => {
+    if (this.state.active) return;
     if (this.#isInputTarget(evt)) return;
-    hotkeys({
-      [this.#activeKey]: this.#onActive,
-      j: () => document.body.scrollBy(0, -innerHeight / 3),
-      k: () => document.body.scrollBy(0, innerHeight / 3),
-      h: () => document.body.scrollBy(0, -innerHeight),
-      l: () => document.body.scrollBy(0, innerHeight),
-      esc: this.#onInactive,
-    })(evt);
+    hotkeys(
+      {
+        [this.#activeKey]: this.#onActive,
+        j: () => this.#container.scrollBy(0, -innerHeight / 3),
+        k: () => this.#container.scrollBy(0, innerHeight / 3),
+        h: () => this.#container.scrollBy(0, -innerHeight),
+        l: () => this.#container.scrollBy(0, innerHeight),
+      },
+      { stopPropagation: true },
+    )(evt);
   };
 
   mounted = () => {
@@ -198,20 +195,25 @@ export class DuoyunKeyboardAccessElement extends GemElement<State> {
       () => {
         if (this.state.active) {
           document.body.style.pointerEvents = 'none';
-          addEventListener('keydown', this.#handler, { capture: true });
+          const removeListener = addListener(
+            window,
+            'keydown',
+            hotkeys(this.state.keydownHandles, { stopPropagation: true }),
+            { capture: true },
+          );
           return () => {
             document.body.style.pointerEvents = 'auto';
-            removeEventListener('keydown', this.#handler, { capture: true });
+            removeListener();
           };
         }
       },
       () => [this.state.active],
     );
-    addEventListener('keydown', this.#onKeydown, { capture: true });
-    addEventListener('pointerdown', this.#onCancel);
+    const removeKeydownListener = addListener(window, 'keydown', this.#onKeydown, { capture: true });
+    const removePointerdown = addListener(window, 'pointerdown', this.#onCancel);
     return () => {
-      removeEventListener('keydown', this.#onKeydown, { capture: true });
-      removeEventListener('pointerdown', this.#onCancel);
+      removeKeydownListener();
+      removePointerdown();
     };
   };
 
