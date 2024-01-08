@@ -5,7 +5,7 @@
   "i18n": true,
   "homeMode": true,
   "sourceBranch": "docs",
-  "plugin": ["raw", "docsearch", "api", "sandpack", "code-group", "import"],
+  "plugin": ["raw", "docsearch", "api", "sandpack", "code-group", "import", "include", "var", "example"],
   "template": "docs/template.html",
   "ga": "G-PZYZ441YD3",
   "debug": true,

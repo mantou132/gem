@@ -14,6 +14,7 @@ import { Main } from './main';
 /**
  * 获取资源的远端 GitHub raw 地址，如果使用 `DEV_MODE`，则返回本机服务的 URL
  *
+ * - 优先使用 markdown 文件
  * - 支持相对路径
  * - `/docs/readme.md` 和 `docs/readme.md` 等效
  */
@@ -29,7 +30,9 @@ function getRemoteURL(originSrc = '', dev = GemBookPluginElement.devMode) {
     let src = originSrc.startsWith('/') ? originSrc : `/${originSrc}`;
     if (originSrc.startsWith('.')) {
       const absPath = new URL(originSrc, `${location.origin}${originLink}`).pathname;
-      const link = links?.find(({ originLink }) => originLink === absPath);
+      const link = links?.find(({ originLink, link, userFullPath }) =>
+        [originLink, link, userFullPath].some((path) => path === absPath || `${path}.md` === absPath),
+      );
       if (link) return getURL(joinPath(lang, link.originLink), link.hash);
       src = new URL(originSrc, `${location.origin}${joinPath(sourceDir, lang, originLink)}`).pathname;
     }

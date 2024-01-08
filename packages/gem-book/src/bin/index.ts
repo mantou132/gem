@@ -414,6 +414,7 @@ program
         }
 
         const filePath = path.relative(dir, filePathWithDir);
+        const fullPath = path.join(docsRootDir, filePath);
 
         if (!isDirConfigFile(filePath) && !isMdFile(filePath)) {
           devServerEventTarget.dispatchEvent(
@@ -428,7 +429,11 @@ program
           return updateBookConfig();
         }
 
-        const { content, metadataChanged } = getMdFile(path.join(docsRootDir, filePath), bookConfig.displayRank);
+        if (cliConfig.debug) {
+          checkRelativeLink(fullPath, docsRootDir);
+        }
+
+        const { content, metadataChanged } = getMdFile(fullPath, bookConfig.displayRank);
         devServerEventTarget.dispatchEvent(
           Object.assign(new Event(UPDATE_EVENT), {
             detail: { filePath, content },

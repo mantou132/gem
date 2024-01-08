@@ -20,4 +20,6 @@ export const fallbackLanguage = document.documentElement.lang;
 export const selfI18n = new I18n<typeof resources.en>({
   fallbackLanguage: fallbackLanguage in resources ? fallbackLanguage : 'en',
   resources,
+  // 没有启动 i18n 时由 `html[lang]` 定义语言
+  currentLanguage: fallbackLanguage,
 });

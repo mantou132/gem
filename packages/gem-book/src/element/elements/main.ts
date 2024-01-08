@@ -27,7 +27,8 @@ const parser = new DOMParser();
 // https://github.com/w3c/csswg-drafts/issues/9712
 const style = createCSSSheet(css`
   :not(gbp-var):not(:defined) {
-    display: contents;
+    display: block;
+    margin-block: 2rem;
     color: transparent;
     /* maybe browser limit */
     font-size: 0;
@@ -40,7 +41,6 @@ const style = createCSSSheet(css`
     display: block;
     content: 'The element is not defined';
     padding: 2rem;
-    margin-block: 2rem;
     text-align: center;
     color: ${theme.textColor};
     background: ${theme.borderColor};

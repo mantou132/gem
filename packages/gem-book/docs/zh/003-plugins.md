@@ -66,7 +66,7 @@ yarn add gem-book
 
 ## `<gbp-include>`
 
-动态加载显示 MarkDown 片段：
+动态加载 Markdown 片段：
 
 <gbp-include src="./002-guide/007-extension.md" range="[!NOTE]->"></gbp-include>
 
