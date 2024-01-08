@@ -9,6 +9,7 @@ import {
   boolattribute,
   classMap,
   history,
+  state,
 } from '@mantou/gem';
 import { mediaQuery } from '@mantou/gem/helper/mediaquery';
 
@@ -42,6 +43,8 @@ export class Nav extends GemElement {
     updateBookConfig(bookStore.config);
   };
 
+  @state compact: boolean;
+  @refobject spaceRef: RefObject<HTMLDivElement>;
   @refobject i18nRef: RefObject<HTMLSelectElement>;
 
   renderI18nSelect = () => {
@@ -112,10 +115,6 @@ export class Nav extends GemElement {
         :where(.item + .item) {
           margin-left: 1rem;
         }
-        .external:not(.icon) gem-use {
-          width: 1em;
-          margin-left: 0.3rem;
-        }
         .item select {
           -webkit-appearance: none;
           appearance: none;
@@ -130,6 +129,19 @@ export class Nav extends GemElement {
         }
         .left .item {
           padding: 0 1rem;
+        }
+        .external:not(.icon) {
+          padding-inline-end: 0;
+        }
+        .external:not(.icon) gem-use {
+          width: 1em;
+          margin-left: 0.3rem;
+        }
+        :host(:where([data-compact], :state(compact))) .external:not(.icon) {
+          display: none;
+        }
+        :host(:where([data-compact], :state(compact))) .left .item {
+          padding: 0 0.5rem;
         }
         gem-link,
         gem-active-link {
@@ -172,11 +184,6 @@ export class Nav extends GemElement {
           padding-inline: 1rem;
           margin-inline-start: -1rem;
         }
-        @media not ${`(${mediaQuery.DESKTOP})`} {
-          .external:not(.icon) {
-            display: none;
-          }
-        }
         @media ${mediaQuery.PHONE} {
           .menu {
             display: block;
@@ -195,6 +202,7 @@ export class Nav extends GemElement {
       <div class="left">
         ${internals.map((item) => this.renderInternalItem(item))}
         ${textExternals.map((item) => this.renderExternalItem(item))}
+        <div ref=${this.spaceRef.ref} style="flex-grow: 1;"></div>
       </div>
       <slot class="item"></slot>
       ${this.renderI18nSelect()}
@@ -203,10 +211,12 @@ export class Nav extends GemElement {
     `;
   }
 
-  updated() {
-    if (this.i18nRef.element && bookStore.lang) {
-      // browser history back
-      this.i18nRef.element.value = bookStore.lang;
-    }
-  }
+  mounted = () => {
+    this.effect(() => {
+      if (this.i18nRef.element) {
+        this.i18nRef.element.value = bookStore.lang!;
+      }
+      this.compact ||= this.spaceRef.element!.getBoundingClientRect().width < 100;
+    });
+  };
 }

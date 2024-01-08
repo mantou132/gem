@@ -18,7 +18,7 @@ const entryDir = path.resolve(__dirname, process.env.GEM_BOOK_DEV ? '../src/webs
 const pluginDir = path.resolve(__dirname, process.env.GEM_BOOK_DEV ? '../src/plugins' : '../plugins');
 
 // dev mode uses memory file system
-export async function startBuilder(dir: string, options: Required<CliUniqueConfig>, bookConfig: BookConfig) {
+export async function build(dir: string, options: Required<CliUniqueConfig>, bookConfig: BookConfig) {
   const { debug, build, theme, template, output, icon, plugin, ga } = options;
 
   const plugins = [...plugin];
@@ -162,7 +162,6 @@ export async function startBuilder(dir: string, options: Required<CliUniqueConfi
           'Cache-Control': 'no-store',
         },
         historyApiFallback: true,
-        open: process.env.PORT ? false : true,
         setupMiddlewares: (middlewares, devServer) => {
           devServer.app!.use('/_assets/', serveStatic(process.cwd()));
           return middlewares;
@@ -171,11 +170,6 @@ export async function startBuilder(dir: string, options: Required<CliUniqueConfi
       },
       compiler,
     );
-    server.startCallback((err) => {
-      if (err) {
-        print(err);
-      }
-    });
 
     return server;
   }

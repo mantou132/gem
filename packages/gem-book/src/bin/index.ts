@@ -46,7 +46,7 @@ import {
   importObject,
   resolveModule,
 } from './utils';
-import { startBuilder } from './builder';
+import { build } from './builder';
 import lang from './lang.json'; // https://developers.google.com/search/docs/advanced/crawling/localized-versions#language-codes
 
 const devServerEventTarget = new EventTarget();
@@ -90,13 +90,16 @@ async function syncConfig(fullPath?: string) {
 
   if (cliConfig.debug) print(cliConfig);
 
-  obj.nav = obj.nav?.filter((e) => {
-    if (e.title?.toLowerCase() === 'github') {
-      bookConfig.github = e.link;
-    } else {
-      return true;
-    }
-  });
+  if (obj.nav) {
+    obj.nav = obj.nav?.filter((e) => {
+      if (e.title?.toLowerCase() === 'github') {
+        bookConfig.github = e.link;
+      } else {
+        return true;
+      }
+    });
+  }
+
   Object.assign(bookConfig, obj);
 }
 
@@ -251,27 +254,64 @@ async function generateBookConfig(dir: string) {
   print(chalk.green(`[${new Date().toISOString()}]: book config updated! ${Date.now() - t}ms`));
 }
 
+let updateBookTimer: ReturnType<typeof setTimeout>;
+const updateBookConfig = (dir: string) => {
+  clearTimeout(updateBookTimer);
+  updateBookTimer = setTimeout(async () => {
+    await generateBookConfig(dir);
+    devServerEventTarget.dispatchEvent(
+      Object.assign(new Event(UPDATE_EVENT), {
+        detail: { config: bookConfig },
+      }),
+    );
+  }, 100);
+};
+
+const watchTheme = () => {
+  const themePath = resolveTheme(cliConfig.theme);
+  if (themePath) {
+    return watch(themePath).on('change', async () => {
+      devServerEventTarget.dispatchEvent(
+        Object.assign(new Event(UPDATE_EVENT), {
+          detail: { theme: await importObject(themePath) },
+        }),
+      );
+    });
+  }
+};
+
+const startBuild = async (dir: string) => {
+  const devServer = await build(dir, cliConfig, bookConfig);
+  if (!devServer) return;
+
+  await devServer.start();
+  devServer.webSocketServer?.implementation.on('connection', (client) => {
+    devServer.sendMessage([client], UPDATE_EVENT, { config: bookConfig });
+  });
+  return devServer;
+};
+
 program
-  .option('-t, --title <title>', 'document title', (title: string) => {
+  .option('-t, --title <title>', 'document title', (title) => {
     bookConfig.title = title;
   })
-  .option('-d, --source-dir <dir>', 'github source dir, default use docs dir', (sourceDir: string) => {
+  .option('-d, --source-dir <dir>', 'github source dir, default use docs dir', (sourceDir) => {
     bookConfig.sourceDir = sourceDir;
   })
   .option(
     '-b, --source-branch <branch>',
     `github source branch, default \`${DEFAULT_SOURCE_BRANCH}\``,
-    (sourceBranch: string) => {
+    (sourceBranch) => {
       bookConfig.sourceBranch = sourceBranch;
     },
   )
-  .option('--base <dir>', 'github base dir', (base: string) => {
+  .option('--base <dir>', 'github base dir', (base) => {
     bookConfig.base = base;
   })
-  .option('--github <url>', 'project github url', (link: string) => {
+  .option('--github <url>', 'project github url', (link) => {
     bookConfig.github = link;
   })
-  .option('--footer <string>', 'footer content, support markdown format', (footer: string) => {
+  .option('--footer <string>', 'footer content, support markdown format', (footer) => {
     bookConfig.footer = footer;
   })
   .option('--display-rank', 'sorting number is not displayed in the link', () => {
@@ -283,36 +323,39 @@ program
   .option('--only-file', 'not include heading navigation', () => {
     bookConfig.onlyFile = true;
   })
-  .option('--nav <title,link>', 'attach a nav item', (item: string) => {
+  .option('--nav <title,link>', 'attach a nav item', (item) => {
     bookConfig.nav ||= [];
     const [title, link] = item.split(',');
-    if (!link) throw new Error('nav options error');
+    if (!link) {
+      print(chalk.red('nav options error'));
+      process.exit(1);
+    }
     if (title.toLowerCase() === 'github') {
       bookConfig.github = link;
     } else {
       bookConfig.nav.push({ title, link });
     }
   })
-  .option('-i, --icon <path>', 'project icon path or url', (path: string) => {
+  .option('-i, --icon <path>', 'project icon path or url', (path) => {
     cliConfig.icon = path;
   })
   .option(
     '-o, --output <path>',
     `output file or directory, default use docs dir, generate an \`${DEFAULT_FILE}\` file if only JSON is generated`,
-    (dir: string) => {
+    (dir) => {
       cliConfig.output = dir;
       if (path.extname(dir) === '.json') {
         cliConfig.json = true;
       }
     },
   )
-  .option('--plugin <name or path>', 'load plugin', (name: string) => {
+  .option('--plugin <name or path>', 'load plugin', (name) => {
     cliConfig.plugin.push(name);
   })
-  .option('--ignored <path>', 'html template path', (path) => {
-    cliConfig.ignored.push(path);
+  .option('--ignored <string>', 'ignore file or dir', (str) => {
+    cliConfig.ignored.push(str);
   })
-  .option('--ga <id>', 'google analytics ID', (id: string) => {
+  .option('--ga <id>', 'google analytics ID', (id) => {
     cliConfig.ga = id;
   })
   .option('--template <path>', 'html template path', (path) => {
@@ -333,13 +376,9 @@ program
   .option('--debug', 'enabled debug mode', () => {
     cliConfig.debug = true;
   })
-  .option(
-    '--config <path>',
-    `specify config file, default use \`${DEFAULT_CLI_FILE}\`.{js|json|mjs}`,
-    (configPath: string) => {
-      cliConfig.config = configPath;
-    },
-  )
+  .option('--config <path>', `specify config file, default use \`${DEFAULT_CLI_FILE}\`.{js|json|mjs}`, (configPath) => {
+    cliConfig.config = configPath;
+  })
   .arguments('<dir>')
   .action(async (dir: string) => {
     const initCliOptions = structuredClone(cliConfig);
@@ -353,38 +392,14 @@ program
     await syncConfig(configPath);
     await generateBookConfig(dir);
 
-    let updateBookTimer: ReturnType<typeof setTimeout>;
-    const updateBookConfig = () => {
-      clearTimeout(updateBookTimer);
-      updateBookTimer = setTimeout(async () => {
-        await generateBookConfig(dir);
-        devServerEventTarget.dispatchEvent(
-          Object.assign(new Event(UPDATE_EVENT), {
-            detail: { config: bookConfig },
-          }),
-        );
-      }, 100);
-    };
-
-    const watchTheme = () => {
-      const themePath = resolveTheme(cliConfig.theme);
-      if (themePath) {
-        return watch(themePath).on('change', async () => {
-          devServerEventTarget.dispatchEvent(
-            Object.assign(new Event(UPDATE_EVENT), {
-              detail: { theme: await importObject(themePath) },
-            }),
-          );
-        });
-      }
-    };
-
-    let server = cliConfig.json ? undefined : await startBuilder(dir, cliConfig, bookConfig);
+    let devServer = cliConfig.json ? undefined : await startBuild(dir);
 
     if (!cliConfig.build) {
       devServerEventTarget.addEventListener(UPDATE_EVENT, ({ detail }: CustomEvent) => {
-        server?.sendMessage(server.webSocketServer?.clients || [], UPDATE_EVENT, detail);
+        devServer?.sendMessage(devServer.webSocketServer?.clients || [], UPDATE_EVENT, detail);
       });
+
+      // start server
 
       let themeWatcher = watchTheme();
       if (configPath) {
@@ -393,13 +408,8 @@ program
           bookConfig = structuredClone(initBookConfig);
           await syncConfig(configPath);
           await generateBookConfig(dir);
-          await server?.stop();
-          server = await startBuilder(dir, cliConfig, bookConfig);
-          devServerEventTarget.dispatchEvent(
-            Object.assign(new Event(UPDATE_EVENT), {
-              detail: { config: bookConfig },
-            }),
-          );
+          await devServer?.stop();
+          devServer = await startBuild(dir);
           await themeWatcher?.close();
           themeWatcher = watchTheme();
         });
@@ -410,7 +420,7 @@ program
         ignored: cliConfig.ignored || undefined,
       }).on('all', (type, filePathWithDir) => {
         if (type !== 'change') {
-          return updateBookConfig();
+          return updateBookConfig(dir);
         }
 
         const filePath = path.relative(dir, filePathWithDir);
@@ -426,7 +436,7 @@ program
         }
 
         if (isDirConfigFile(filePath)) {
-          return updateBookConfig();
+          return updateBookConfig(dir);
         }
 
         if (cliConfig.debug) {
@@ -441,7 +451,7 @@ program
         );
 
         if (metadataChanged) {
-          updateBookConfig();
+          updateBookConfig(dir);
         }
       });
     }
