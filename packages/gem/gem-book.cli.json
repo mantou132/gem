@@ -3,6 +3,7 @@
   "icon": "../../logo.png",
   "i18n": true,
   "homeMode": true,
+  "site": "https://gemjs.org",
   "sourceBranch": "docs",
   "nav": [
     {

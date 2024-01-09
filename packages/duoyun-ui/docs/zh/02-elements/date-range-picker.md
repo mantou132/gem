@@ -1,6 +1,6 @@
 # `<dy-date-range-picker>`
 
-## Example
+## `<dy-date-range-picker>` Example
 
 <gbp-example name="dy-date-range-picker" src="https://esm.sh/duoyun-ui/elements/date-range-picker">
 
@@ -21,6 +21,17 @@
 
 </gbp-example>
 
-## API
+## `<dy-date-range-picker>` API
 
 <gbp-api src="/src/elements/date-range-picker.ts"></gbp-api>
+
+## `<dy-date-range-panel>` Example
+
+<gbp-example
+  name="dy-date-range-panel"
+  props='{"style": "width: 360px;"}'
+  src="https://esm.sh/duoyun-ui/elements/date-range-panel"></gbp-example>
+
+## `<dy-date-range-panel>` API
+
+<gbp-api src="/src/elements/date-range-panel.ts"></gbp-api>

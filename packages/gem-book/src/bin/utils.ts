@@ -6,7 +6,7 @@ import { createHash } from 'crypto';
 
 import gitRemoteOriginUrl from 'git-remote-origin-url';
 import parseGithub from 'parse-github-url';
-import { JSDOM } from 'jsdom';
+import { load } from 'cheerio';
 import { marked } from 'marked';
 import fm from 'front-matter';
 import YAML from 'yaml';
@@ -145,7 +145,12 @@ export function readDirConfig(fullPath: string) {
   const files = readdirSync(fullPath);
   const configFile = files.find(isDirConfigFile);
   if (configFile) {
-    return YAML.parse(readFileSync(path.join(fullPath, configFile), 'utf-8')) as FrontMatter;
+    const configPath = path.join(fullPath, configFile);
+    try {
+      return YAML.parse(readFileSync(configPath, 'utf-8')) as FrontMatter;
+    } catch (error) {
+      print(chalk.red(`Parse error: ${configPath}`));
+    }
   }
 }
 
@@ -175,12 +180,9 @@ export function getMetadata(fullPath: string, displayRank: boolean | undefined) 
   const parseMd = (fullPath: string) => {
     const md = readFileSync(fullPath, 'utf8');
     const { attributes, body } = fm<FrontMatter>(md);
-    const html = marked(body);
-    const { window } = new JSDOM(html);
-    const h1 = window.document.querySelector('h1');
     return {
       ...(attributes as FrontMatter),
-      title: parseTitle(attributes.title || h1?.textContent || getTitle()).text,
+      title: parseTitle(attributes.title || load(marked(body))('h1').text() || getTitle()).text,
     };
   };
 

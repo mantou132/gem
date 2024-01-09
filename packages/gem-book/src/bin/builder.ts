@@ -6,16 +6,41 @@ import serveStatic from 'serve-static';
 import WebpackDevServer from 'webpack-dev-server';
 import HtmlWebpackPlugin from 'html-webpack-plugin';
 import CopyWebpackPlugin from 'copy-webpack-plugin';
+import SitemapPlugin from 'sitemap-webpack-plugin';
 import { GenerateSW } from 'workbox-webpack-plugin';
 
-import { BookConfig, CliUniqueConfig } from '../common/config';
+import { BookConfig, CliUniqueConfig, NavItem } from '../common/config';
 import { STATS_FILE } from '../common/constant';
+import { getLinkPath } from '../common/utils';
 
 import { resolveLocalPlugin, resolveTheme, isURL, importObject, print } from './utils';
 
 const publicDir = path.resolve(__dirname, '../public');
 const entryDir = path.resolve(__dirname, process.env.GEM_BOOK_DEV ? '../src/website' : '../website');
 const pluginDir = path.resolve(__dirname, process.env.GEM_BOOK_DEV ? '../src/plugins' : '../plugins');
+
+function genPaths(bookConfig: BookConfig) {
+  const result: string[] = [];
+  const gen = (sidebar: NavItem[], lang = '') => {
+    const temp = [...sidebar];
+    while (temp.length) {
+      const item = temp.pop()!;
+      if (item.sidebarIgnore) continue;
+      if (item.children) temp.push(...item.children);
+      if (item.type === 'file') {
+        result.push(`${lang ? `/${lang}` : ''}${getLinkPath(item.link, bookConfig.displayRank)}`);
+      }
+    }
+  };
+  if (Array.isArray(bookConfig.sidebar)) {
+    gen(bookConfig.sidebar);
+  } else {
+    Object.entries(bookConfig.sidebar || {}).forEach(([lang, { data }]) => {
+      gen(data, lang);
+    });
+  }
+  return result;
+}
 
 // dev mode uses memory file system
 export async function build(dir: string, options: Required<CliUniqueConfig>, bookConfig: BookConfig) {
@@ -78,6 +103,7 @@ export async function build(dir: string, options: Required<CliUniqueConfig>, boo
         chunks: 'all',
       },
     },
+    devtool: debug && 'source-map',
     plugins: [
       new HtmlWebpackPlugin({
         title: bookConfig.title || 'Gem-book App',
@@ -98,28 +124,22 @@ export async function build(dir: string, options: Required<CliUniqueConfig>, boo
       new CopyWebpackPlugin({
         patterns: [{ from: publicDir, to: outputDir }],
       }),
-    ]
-      .concat(
-        build
-          ? new GenerateSW({
-              navigationPreload: true,
-              runtimeCaching: [
-                {
-                  urlPattern: ({ request }) => request.mode === 'navigate',
-                  handler: 'NetworkFirst',
-                },
-              ],
-            })
-          : ([] as any),
-      )
-      .concat(
-        outputDir !== docsDir
-          ? new CopyWebpackPlugin({
-              patterns: [{ from: docsDir, to: outputDir }],
-            })
-          : ([] as any),
-      ),
-    devtool: debug && 'source-map',
+      options.site && new SitemapPlugin({ base: options.site, paths: genPaths(bookConfig) }),
+      build &&
+        new GenerateSW({
+          navigationPreload: true,
+          runtimeCaching: [
+            {
+              urlPattern: ({ request }) => request.mode === 'navigate',
+              handler: 'NetworkFirst',
+            },
+          ],
+        }),
+      outputDir !== docsDir &&
+        new CopyWebpackPlugin({
+          patterns: [{ from: docsDir, to: outputDir }],
+        }),
+    ],
   });
   if (build) {
     compiler.run((err, stats) => {

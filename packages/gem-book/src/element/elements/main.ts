@@ -141,10 +141,14 @@ export class Main extends GemElement {
           margin-top: 0;
         }
         details {
-          background: rgba(${theme.noteColorRGB}, 0.05);
           border-radius: ${theme.normalRound};
           padding: 1rem;
           margin: 2rem 0;
+        }
+        details,
+        details code,
+        details gem-book-pre {
+          background: rgba(${theme.noteColorRGB}, 0.05);
         }
         details p:first-of-type {
           margin-block-start: 0;
@@ -255,11 +259,15 @@ export class Main extends GemElement {
         }
         blockquote {
           --highlight: ${theme.textColorRGB};
-          background: rgba(var(--highlight), 0.05);
           border-left: ${theme.normalRound} solid rgba(var(--highlight), 0.05);
           border-radius: ${theme.normalRound};
           margin: 2rem 0px;
           padding: 0.8em 1em;
+        }
+        blockquote,
+        blockquote code,
+        blockquote gem-book-pre {
+          background: rgba(var(--highlight), 0.05);
         }
         blockquote.note {
           --highlight: ${theme.noteColorRGB};

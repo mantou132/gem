@@ -4,25 +4,22 @@ import { createStore, updateStore, Store, connect } from '../../lib/store';
 import { titleStore, history, UpdateHistoryParams } from '../../lib/history';
 import { addListener, QueryString } from '../../lib/utils';
 
-interface NamePosition {
-  [index: string]: number;
-}
+const UNNAMED_PARAM_PREFIX = '_';
 
+// '/test/:a' /^\/test\/(?<a>[^/]+)$/i
+// '/test/:a/b' /^\/test\/?<a>([^/]+)\/b$/i
+// '/test/*' /^\/test\/(?<_0>.*)$/i
+// '/test/:a/*' /^\/test\/(?<a>[^/]+)\/(?<_0>.*)$/i
+// '/test/*/:b /^\/test\/(?<_0>.*)\/(?<a>[^/]+)$/i
 class ParamsRegExp extends RegExp {
-  namePosition: NamePosition;
   constructor(pattern: string) {
-    const namePosition: NamePosition = {};
     let i = 0;
     super(
-      `^${pattern
-        .replace(/:([^/$]+)/g, (_m, name: string) => {
-          namePosition[name] = i++;
-          return `([^/]+)`;
-        })
-        .replace('*', '.*')}$`,
-      'i',
+      `^${pattern.replace(/((:[^/$]+)|(\*))/g, (_m, name: string) => {
+        if (name === '*') return `(?<${UNNAMED_PARAM_PREFIX}${i++}>.*)`;
+        return `(?<${name.slice(1)}>[^/]+)`;
+      })}$`,
     );
-    this.namePosition = namePosition;
   }
 }
 
@@ -35,12 +32,19 @@ declare global {
   }
 }
 
-// URLPattern 大小写敏感
-// 匹配成功时返回 params
-// `/a/b/:c/:d` `/a/b/1/2`
-// pattern 以 / 结尾时能匹配 2 中路径
-// `/a/b/:c/:d/` `/a/b/1/2`
-// `/a/b/:c/:d/` `/a/b/1/2/`
+/**
+ * - 大小写敏感
+ * - 匹配成功时返回 params
+ * - 以 `/` 结尾时能不带 `/` 结尾的路径
+ * - `*` 匹配到的 params 名称为数字
+ *
+ * @example
+ * ```js
+ * matchPath(`/a/b/:c/:d`,`/a/b/1/2`);
+ * matchPath(`/a/b/:c/:d`,`/a/b/1/2/`);
+ * matchPath(`/a/b/*`,`/a/b/1/2/`);
+ * ```
+ */
 export function matchPath(pattern: string, path: string) {
   if (window.URLPattern) {
     const urLPattern = new window.URLPattern({ pathname: pattern });
@@ -52,9 +56,9 @@ export function matchPath(pattern: string, path: string) {
   const matchResult = path.match(reg) || `${path}/`.match(reg);
   if (!matchResult) return null;
   const params: Params = {};
-  if (matchResult) {
-    Object.keys(reg.namePosition).forEach((name) => {
-      params[name] = matchResult[reg.namePosition[name] + 1];
+  if (matchResult.groups) {
+    Object.entries(matchResult.groups).forEach(([key, value]) => {
+      params[key.startsWith(UNNAMED_PARAM_PREFIX) ? key.slice(1) : key] = value;
     });
   }
   return params;
@@ -295,7 +299,9 @@ export class GemRouteElement extends GemElement<State> {
     const { route, params = {} } = GemRouteElement.findRoute(this.routes, this.trigger.getParams().path);
     const { redirect, content, getContent } = route || {};
     if (redirect) {
-      this.trigger.replace({ path: redirect });
+      this.trigger.replace({
+        path: createPath({ pattern: redirect }, { params }),
+      });
       return;
     }
     if (this.trigger === history) {

@@ -2,7 +2,7 @@
 isNav: true
 ---
 
-# 内置插件
+# 官方插件
 
 ## `<gbp-code-group>`
 
@@ -36,7 +36,7 @@ yarn add gem-book
 
 ## `<gbp-raw>`
 
-用于显示远端代码，如果提供的 `src` 只包含路径，则会从当前项目的 GitHub 上读取内容（受 [`sourceDir`](./002-guide/003-cli.md#--source-dir)，[`sourceBranch`](./002-guide/003-cli.md#--source-branch) 影响），例如：
+用于显示远端代码，如果提供的 `src` 只包含路径，则会从当前项目的 GitHub 上读取内容（受 [`sourceDir`](./002-cli.md#--source-dir)，[`sourceBranch`](./002-cli.md#--source-branch) 影响），例如：
 
 <gbp-raw src="package.json" range="2-3,-4--6,author-license" highlight="-5,author"></gbp-raw>
 
@@ -54,7 +54,7 @@ yarn add gem-book
 <gbp-var>hello</gbp-var>
 ```
 
-变量需要在[配置文件](./002-guide/003-cli.md)中定义。
+变量需要在[配置文件](./002-cli.md)中定义。
 
 ## `<gbp-media>`
 
@@ -68,12 +68,12 @@ yarn add gem-book
 
 动态加载 Markdown 片段：
 
-<gbp-include src="./002-guide/007-extension.md" range="[!NOTE]->"></gbp-include>
+<gbp-include src="./guide/007-extension.md" range="[!NOTE]->"></gbp-include>
 
 ```md
 <!-- `range` 语法和 `<gbp-raw>` 一样，这里的 `range` 使用字符串匹配 -->
 
-<gbp-include src="./002-guide/007-extension.md" range="[!NOTE]->"></gbp-include>
+<gbp-include src="./guide/007-extension.md" range="[!NOTE]->"></gbp-include>
 ```
 
 ## `<gbp-import>`
@@ -92,12 +92,15 @@ yarn add gem-book
 
 ## `<gbp-docsearch>`
 
-使用 [DocSearch](https://docsearch.algolia.com/) 为网站提供搜索，只需要实例化一次，可以使用[插槽](./002-guide/007-extension.md#插槽)放在想要放置的位置：
+使用 [DocSearch](https://docsearch.algolia.com/) 为网站提供搜索，只需要实例化一次，可以使用[插槽](./guide/007-extension.md#插槽)放在想要放置的位置：
 
-<gbp-raw src="docs/template.html" range="13--6,-4"></gbp-raw>
+<gbp-raw src="docs/template.html" range="13--4"></gbp-raw>
 
 > [!WARNING]
-> DocSearch 以前[不支持](https://github.com/algolia/renderscript/pull/555) ShadowDOM，需要使用自定义抓取器抓取内容，不知道现在有没有更改
+>
+> - DocSearch Crawler [配置](https://crawler.algolia.com/admin/crawlers)中必须启用 `renderJavaScript`
+> - 全文搜索需要等待 DocSearch [支持](https://github.com/algolia/renderscript/pull/555) ShadowDOM，
+>   可以使用 [`--site`](./002-cli.md#--site-url) 暂时为网站添加标题搜索（DocSearch Crawler 配置修改 `sitemaps` 字段）
 
 ## `<gbp-comment>`
 

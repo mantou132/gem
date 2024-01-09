@@ -16,6 +16,7 @@ import { Main } from './main';
  *
  * - 优先使用 markdown 文件
  * - 支持相对路径
+ * - 支持查询字符串
  * - `/docs/readme.md` 和 `docs/readme.md` 等效
  */
 function getRemoteURL(originSrc = '', dev = GemBookPluginElement.devMode) {

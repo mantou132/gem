@@ -67,7 +67,7 @@ customElements.whenDefined('gem-book').then(({ GemBookPluginElement }: typeof Ge
       display: flex;
       list-style: none;
       margin: 0;
-      padding: 0;
+      padding: 0 0 0 1em;
     }
     .tab {
       padding: 0.5em 1em;

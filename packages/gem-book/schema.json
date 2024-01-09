@@ -63,6 +63,9 @@
           },
           "type": "array"
         },
+        "site": {
+          "type": "string"
+        },
         "sourceBranch": {
           "type": "string"
         },
@@ -188,11 +191,10 @@
           "type": "string"
         },
         "redirect": {
-          "description": "only file",
           "type": "string"
         },
         "reverse": {
-          "description": "only dir",
+          "description": "below only dir",
           "type": "boolean"
         },
         "sidebarIgnore": {

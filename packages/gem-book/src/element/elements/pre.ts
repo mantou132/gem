@@ -5,7 +5,7 @@ import { styleMap } from '@mantou/gem/lib/utils';
 import { theme } from '../helper/theme';
 import { getParts, getRanges } from '../lib/utils';
 
-const prismjs = 'https://esm.sh/prismjs@v1.26.0';
+const prismjs = 'https://esm.sh/prismjs@v1.29.0';
 
 let contenteditableValue = 'true';
 (() => {
@@ -28,6 +28,8 @@ const langDependencies: Record<string, string | string[]> = {
   cpp: 'c',
   cfscript: 'clike',
   chaiscript: ['clike', 'cpp'],
+  cilkc: 'c',
+  cilkcpp: 'cpp',
   coffeescript: 'javascript',
   crystal: 'ruby',
   'css-extras': 'css',
@@ -44,6 +46,7 @@ const langDependencies: Record<string, string | string[]> = {
   gml: 'clike',
   glsl: 'c',
   go: 'clike',
+  gradle: 'clike',
   groovy: 'clike',
   haml: 'ruby',
   handlebars: 'markup-templating',
@@ -63,7 +66,8 @@ const langDependencies: Record<string, string | string[]> = {
   less: 'css',
   lilypond: 'scheme',
   liquid: 'markup-templating',
-  markdown: 'markup',
+  // https://github.com/PrismJS/prism/issues/3283#issuecomment-1001532061
+  markdown: ['markup', 'yaml'],
   'markup-templating': 'markup',
   mongodb: 'javascript',
   n4js: 'javascript',
@@ -98,6 +102,7 @@ const langDependencies: Record<string, string | string[]> = {
   sparql: 'turtle',
   sqf: 'clike',
   squirrel: 'clike',
+  stata: ['mata', 'java', 'python'],
   't4-cs': ['t4-templating', 'csharp'],
   't4-vb': ['t4-templating', 'vbnet'],
   tap: 'yaml',
@@ -125,9 +130,13 @@ const langAliases: Record<string, string> = {
   js: 'javascript',
   g4: 'antlr4',
   ino: 'arduino',
+  'arm-asm': 'armasm',
+  art: 'arturo',
   adoc: 'asciidoc',
   avs: 'avisynth',
   avdl: 'avro-idl',
+  gawk: 'awk',
+  sh: 'bash',
   shell: 'bash',
   shortcode: 'bbcode',
   rbnf: 'bnf',
@@ -135,6 +144,9 @@ const langAliases: Record<string, string> = {
   cs: 'csharp',
   dotnet: 'csharp',
   cfc: 'cfscript',
+  'cilk-c': 'cilkc',
+  'cilk-cpp': 'cilkcpp',
+  cilk: 'cilkcpp',
   coffee: 'coffeescript',
   conc: 'concurnas',
   jinja2: 'django',
@@ -145,9 +157,12 @@ const langAliases: Record<string, string> = {
   xlsx: 'excel-formula',
   xls: 'excel-formula',
   gamemakerlanguage: 'gml',
+  po: 'gettext',
   gni: 'gn',
+  ld: 'linker-script',
   'go-mod': 'go-module',
   hbs: 'handlebars',
+  mustache: 'handlebars',
   hs: 'haskell',
   idr: 'idris',
   gitignore: 'ignore',
@@ -172,6 +187,7 @@ const langAliases: Record<string, string> = {
   objectpascal: 'pascal',
   px: 'pcaxis',
   pcode: 'peoplecode',
+  plantuml: 'plant-uml',
   pq: 'powerquery',
   mscript: 'powerquery',
   pbfasm: 'purebasic',
@@ -181,6 +197,7 @@ const langAliases: Record<string, string> = {
   rkt: 'racket',
   razor: 'cshtml',
   rpy: 'renpy',
+  res: 'rescript',
   robot: 'robotframework',
   rb: 'ruby',
   'sh-session': 'shell-session',
@@ -189,6 +206,7 @@ const langAliases: Record<string, string> = {
   sol: 'solidity',
   sln: 'solution-file',
   rq: 'sparql',
+  sclang: 'supercollider',
   t4: 't4-cs',
   trickle: 'tremor',
   troy: 'tremor',
@@ -333,19 +351,13 @@ export class Pre extends GemElement {
     await import(/* @vite-ignore */ /* webpackIgnore: true */ prismjs);
     const { Prism } = window as any;
     if (this.codelang && !Prism.languages[this.codelang]) {
-      const lang = langAliases[this.codelang] || this.codelang;
-      const langDeps = ([] as string[]).concat(langDependencies[lang] || []);
+      const codelang = langAliases[this.codelang] || this.codelang;
+      const langDeps = ([] as string[]).concat(langDependencies[codelang] || []);
+      const load = (lang: string) =>
+        import(/* @vite-ignore */ /* webpackIgnore: true */ `${prismjs}/components/prism-${lang}.min.js`);
       try {
-        await Promise.all(
-          langDeps.map((langDep) => {
-            if (!Prism.languages[langDep]) {
-              return import(
-                /* @vite-ignore */ /* webpackIgnore: true */ `${prismjs}/components/prism-${langDep}.min.js`
-              );
-            }
-          }),
-        );
-        await import(/* @vite-ignore */ /* webpackIgnore: true */ `${prismjs}/components/prism-${lang}.min.js`);
+        await Promise.all(langDeps.map((langDep) => !Prism.languages[langDep] && load(langDep)));
+        await load(codelang);
       } catch {
         //
       }
@@ -409,7 +421,6 @@ export class Pre extends GemElement {
           height: 100%;
           overflow-y: auto;
           scrollbar-width: thin;
-          scrollbar-color: currentColor;
           position: relative;
           display: flex;
           font-size: 0.875em;
@@ -434,7 +445,6 @@ export class Pre extends GemElement {
         .gem-code {
           overflow-x: auto;
           scrollbar-width: thin;
-          scrollbar-color: currentColor;
           font-family: inherit;
           flex-grow: 1;
           text-align: left;

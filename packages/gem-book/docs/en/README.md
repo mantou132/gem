@@ -1,10 +1,10 @@
 ---
 hero:
-  title: <gem-book>
+  title: GemBook
   desc: Create your document website easily and quickly
   actions:
     - text: Getting Started
-      link: ./002-guide/README.md
+      link: ./guide/README.md
 features:
   - title: Out of the box
     desc: Just run the command line to pack all front-end resources, so that all attention can be paid to document writing
@@ -16,16 +16,7 @@ features:
 
 ## Getting Started
 
-```bash
-# Create docs
-mkdir docs && echo '# Hello <gem-book>!' > docs/readme.md
-
-# Serve the documentation site in the local server
-npx gem-book docs
-
-# Build
-npx gem-book docs --build
-```
+<gbp-include src="./snippets/start.md"></gbp-include>
 
 ## Feedback
 

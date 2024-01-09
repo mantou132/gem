@@ -1,5 +1,5 @@
 import { NavItem } from '../../common/config';
-import { isIndexFile, parseFilename } from '../../common/utils';
+import { getLinkPath, isIndexFile } from '../../common/utils';
 import { bookStore } from '../store';
 
 export type NavItemWithLink = NavItem & {
@@ -92,17 +92,6 @@ export function getURL(originPath: string, hash = '') {
 export function isSameOrigin(link: string) {
   const { origin } = new URL(link, location.origin);
   return origin === location.origin;
-}
-
-// 001-xxx.md => /xxx
-export function getLinkPath(originPath: string, displayRank?: boolean) {
-  const path = encodeURI(originPath.replace(/\.md$/i, ''));
-  return displayRank
-    ? path
-    : path
-        .split('/')
-        .map((part) => parseFilename(part).title)
-        .join('/');
 }
 
 // /001-xxx.md => /xxx

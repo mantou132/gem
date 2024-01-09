@@ -11,7 +11,7 @@ The `<gem-book>` element provides the theme API, which can be very convenient to
 You can directly use the cli options to provide the theme file path in `json`/`CommonJs` format or [build-in theme](https://github.com/mantou132/gem/tree/master/packages/gem-book/themes) name:
 
 ```bash
-gem-book docs --theme path/my-theme
+gem-book docs --theme path/my-theme.mjs
 gem-book docs --theme dark
 ```
 

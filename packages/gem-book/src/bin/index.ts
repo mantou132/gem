@@ -64,6 +64,7 @@ let cliConfig: Required<CliUniqueConfig> = {
   template: '',
   theme: '',
   build: false,
+  site: '',
   ignored: ['**/node_modules/**'],
   json: false,
   debug: false,
@@ -105,20 +106,34 @@ async function syncConfig(fullPath?: string) {
 
 function readFiles(filenames: string[], dir: string, link: string, config?: FrontMatter) {
   const result: NavItem[] = [];
-
+  const getStat = (filename: string) => fs.statSync(path.join(dir, filename));
   filenames
     .sort((filename1, filename2) => {
-      const { rank: rank1 } = parseFilename(filename1);
-      const { rank: rank2 } = parseFilename(filename2);
-      const reverse = config?.reverse ? -1 : 1;
+      const { rank: rank1, title: title1 } = parseFilename(filename1);
+      const { rank: rank2, title: title2 } = parseFilename(filename2);
       if (isIndexFile(filename1)) return -1;
-      if (parseInt(rank1) > parseInt(rank2) || !rank2) return 1 * reverse;
-      return -1 * reverse;
+
+      const reverse = config?.reverse ? -1 : 1;
+      if (rank1 && rank2) return (parseInt(rank1) - parseInt(rank2)) * reverse;
+
+      // 文件夹排前面
+      const isDir1 = getStat(filename1).isDirectory();
+      const isDir2 = getStat(filename2).isDirectory();
+      if (isDir1 && !isDir2) return -1 * reverse;
+      if (!isDir1 && isDir2) return 1 * reverse;
+
+      // 有编号的排前面
+      if (rank1 && !rank2) return -1 * reverse;
+      if (!rank1 && rank2) return 1 * reverse;
+
+      return (title1 > title2 ? 1 : -1) * reverse;
     })
     .forEach((filename) => {
       const fullPath = path.join(dir, filename);
       if (anymatch(cliConfig.ignored, fullPath)) return;
-      if (fs.statSync(fullPath).isFile()) {
+
+      const stat = getStat(filename);
+      if (stat.isFile()) {
         if (isMdFile(fullPath)) {
           if (cliConfig.debug) {
             checkRelativeLink(fullPath, docsRootDir);
@@ -140,44 +155,49 @@ function readFiles(filenames: string[], dir: string, link: string, config?: Fron
             features,
           };
           if (redirect) {
-            bookConfig.redirects = Object.assign(bookConfig.redirects || {}, {
-              [item.link]: new URL(redirect, `file:${item.link}`).pathname,
-            });
+            (bookConfig.redirects ||= {})[item.link] = new URL(redirect, `file:${item.link}`).pathname;
           } else {
             result.push(item);
           }
         }
-      } else {
-        const { title, isNav, navTitle, navOrder, sidebarIgnore, groups } = getMetadata(fullPath, false);
+      }
+      if (stat.isDirectory()) {
+        const { title, isNav, navTitle, navOrder, sidebarIgnore, groups, redirect } = getMetadata(fullPath, false);
         const newDir = fullPath;
         const newLink = path.join(link, filename) + '/';
-        const subFilenameSet = new Set([...fs.readdirSync(fullPath)]);
-        result.push({
-          type: 'dir',
-          link: `${link}${filename}/`,
-          title,
-          children: groups?.map
-            ? groups
-                .map(({ title, members }) => {
-                  if (!members?.forEach) return [];
-                  members.forEach((filename) => subFilenameSet.delete(filename));
-                  const children = readFiles(members, newDir, newLink, config);
-                  if (!title) return children;
-                  return {
-                    type: 'dir',
-                    link: `${link}${filename}/`,
-                    title,
-                    children,
-                  } as NavItem;
-                })
-                .flat()
-                .concat(readFiles([...subFilenameSet], newDir, newLink, config))
-            : readDir(newDir, newLink),
-          isNav,
-          navTitle,
-          navOrder,
-          sidebarIgnore,
-        });
+        if (redirect) {
+          const pattern = `${newLink}*`;
+          const redirectPath = new URL(redirect, `file:${pattern}`).pathname;
+          (bookConfig.redirects ||= {})[pattern] = `${redirectPath}${redirectPath.endsWith('/') ? ':0' : ''}`;
+        } else {
+          const subFilenameSet = new Set([...fs.readdirSync(fullPath)]);
+          result.push({
+            type: 'dir',
+            link: `${link}${filename}/`,
+            title,
+            children: groups?.map
+              ? groups
+                  .map(({ title, members }) => {
+                    if (!members?.forEach) return [];
+                    members.forEach((filename) => subFilenameSet.delete(filename));
+                    const children = readFiles(members, newDir, newLink, config);
+                    if (!title) return children;
+                    return {
+                      type: 'dir',
+                      link: `${link}${filename}/`,
+                      title,
+                      children,
+                    } as NavItem;
+                  })
+                  .flat()
+                  .concat(readFiles([...subFilenameSet], newDir, newLink, config))
+              : readDir(newDir, newLink),
+            isNav,
+            navTitle,
+            navOrder,
+            sidebarIgnore,
+          });
+        }
       }
     });
   return result;
@@ -366,6 +386,9 @@ program
   })
   .option('--build', `output all front-end assets`, () => {
     cliConfig.build = true;
+  })
+  .option('--site <url>', `output \`sitemap.xml\``, (url) => {
+    cliConfig.site = url;
   })
   .option('--i18n', 'enabled i18n', () => {
     cliConfig.i18n = true;

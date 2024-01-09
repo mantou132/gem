@@ -91,6 +91,7 @@ export class GemBookElement extends GemElement {
       const { filePath, content, config, theme, reload } = event.data;
       if (event.type !== UPDATE_EVENT) return;
       const routeELement = this.routeRef.element!;
+      const mainElement = routeELement.firstElementChild! as Main;
       if (reload) {
         location.reload();
       } else if (theme) {
@@ -102,8 +103,13 @@ export class GemBookElement extends GemElement {
       } else if (routeELement.currentRoute?.pattern === '*') {
         routeELement.update();
       } else if (joinPath(bookStore.lang, bookStore.getCurrentLink?.().originLink) === `/${filePath}`) {
-        const firstElementChild = routeELement.firstElementChild! as Main;
-        firstElementChild.content = content;
+        mainElement.content = content;
+      } else {
+        const filename = filePath?.split('/').pop();
+        // 支持非所有 [src=*.md] 元素
+        mainElement.shadowRoot?.querySelectorAll(`[src*="${filename}"]`).forEach((ele) => {
+          (ele as any).src += `?`;
+        });
       }
     });
   }

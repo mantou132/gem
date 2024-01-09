@@ -15,3 +15,14 @@ export function parseFilename(filename: string) {
 export function isIndexFile(filename: string) {
   return /^(index|readme)\.md$/i.test(filename);
 }
+
+// 001-xxx.md => /xxx
+export function getLinkPath(originPath: string, displayRank?: boolean) {
+  const path = encodeURI(originPath.replace(/\.md$/i, ''));
+  return displayRank
+    ? path
+    : path
+        .split('/')
+        .map((part) => parseFilename(part).title)
+        .join('/');
+}

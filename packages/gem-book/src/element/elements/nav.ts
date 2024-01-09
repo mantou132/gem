@@ -112,6 +112,9 @@ export class Nav extends GemElement {
           position: relative;
           cursor: pointer;
         }
+        slot.item {
+          gap: 1rem;
+        }
         :where(.item + .item) {
           margin-left: 1rem;
         }
@@ -159,7 +162,7 @@ export class Nav extends GemElement {
           content: '';
           position: absolute;
           left: 0;
-          bottom: 0;
+          bottom: -1px;
           height: 3px;
           background: currentColor;
           width: 100%;

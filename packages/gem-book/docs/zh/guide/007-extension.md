@@ -19,8 +19,6 @@ GemBook 使用 [`marked`](https://github.com/markedjs/marked) 渲染 Markdown，
 
 ```md 1
 # 代码块信息
-
-...
 ```
 ````
 
@@ -61,11 +59,9 @@ GemBook 使用 [`marked`](https://github.com/markedjs/marked) 渲染 Markdown，
 <gbp-raw src="docs/template.html" range="8--4"></gbp-raw>
 
 > [!NOTE]
-> 使用 [`--template`](./003-cli.md#--template-path) 指定模板文件才能使用插槽
+> 使用 [`--template`](../002-cli.md#--template-path) 指定模板文件才能使用插槽
 
 ## 插件 {#plugins}
-
-### 使用插件
 
 GemBook 使用自定义元素作为插件系统，他们可以自定义渲染 Markdown 内容或者增强 GemBook 的能力。下面是内置插件 `<gbp-raw>` 的使用方式：
 
@@ -87,7 +83,7 @@ gem-book docs --plugin raw
 <gbp-raw src="src/plugins/raw.ts"></gbp-raw>
 ```
 
-在[这里](../003-plugins.md)查看所有内置插件。
+在[这里](../003-plugins.md)查看所有官方插件。
 
 > [!TIP]
 >
@@ -102,7 +98,8 @@ gem-book docs --plugin raw
 
 ### 开发插件
 
-任意元素都可以作为插件，但如果你想像 `<gbp-raw>` 一样读取 `<gem-book>` 的数据，就需要使用 `GemBookPluginElement`, 他扩展自 [`GemElement`](https://gemjs.org/api/)，通过下面这种方式获取 `GemBookPluginElement` 和读取 `<gem-book>` 配置。
+GemBook 公开一个类 `GemBookPluginElement`, 他扩展自 [`GemElement`](https://gemjs.org/api/)，
+[包含](../004-api.md#gem-book-plugin-api) 许多内部方法和属性，通过下面这种方式获取 `GemBookPluginElement` 和读取 `<gem-book>` 配置：
 
 ```js
 customElements.whenDefined('gem-book').then(({ GemBookPluginElement }) => {

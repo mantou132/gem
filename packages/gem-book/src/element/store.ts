@@ -3,9 +3,10 @@ import { RouteItem, GemLightRouteElement } from '@mantou/gem/elements/route';
 import { I18n } from '@mantou/gem/helper/i18n';
 
 import { BookConfig, NavItem } from '../common/config';
+import { getLinkPath } from '../common/utils';
 
-import { fallbackLanguage, selfI18n } from './helper/i18n';
-import { getLinkPath, getUserLink, NavItemWithLink, flatNav, capitalize, getURL, joinPath } from './lib/utils';
+import { originDocLang, selfI18n } from './helper/i18n';
+import { getUserLink, NavItemWithLink, flatNav, capitalize, getURL, joinPath } from './lib/utils';
 import { getRenderer } from './lib/renderer';
 
 import type { GemBookElement } from '.';
@@ -40,7 +41,7 @@ function getI18nSidebar(config: BookConfig = {}) {
   } else {
     langList = Object.keys(sidebarConfig).map((code) => ({ code, name: sidebarConfig[code].name }));
     const { currentLanguage } = new I18n<any>({
-      fallbackLanguage: fallbackLanguage in sidebarConfig ? fallbackLanguage : langList[0]?.code,
+      fallbackLanguage: originDocLang in sidebarConfig ? originDocLang : langList[0]?.code,
       resources: sidebarConfig,
       cache: true,
       urlParamsType: 'path',
@@ -73,7 +74,7 @@ function processSidebar(sidebar: NavItem[], displayRank: boolean | undefined) {
   return sidebar.map(process);
 }
 
-function getNav(sidebar: NavItem[], origin: NavItem[]) {
+function getNav(sidebar: NavItem[], origin: NavItem[] = []) {
   const nav: NavItem[] = [];
   const traverseSidebar = (items: NavItem[]) => {
     items.forEach((item) => {
@@ -108,29 +109,37 @@ function getNavRoutes(nav: NavItem[]) {
     if (nav.type === 'dir') {
       const firstLink = getFirstLink(nav);
       if (nav.link !== firstLink) {
-        routes.push({ pattern: nav.link, redirect: firstLink });
+        routes.push({
+          pattern: nav.link,
+          redirect: firstLink,
+        });
       }
     }
   });
   return routes;
 }
 
-function getRedirectRoutes(redirects: Record<string, string>, displayRank?: boolean): RouteItem[] {
+function getRedirectRoutes(redirects: Record<string, string> = {}, displayRank?: boolean) {
   const list = Object.entries(redirects);
-  return list
-    .map(([link, redirect]) => ({
-      pattern: getLinkPath(link, true),
+  const routes: RouteItem[] = [];
+  list.forEach(([link, redirect]) => {
+    const patternWithRank = getLinkPath(link, true);
+    const patternWithoutRank = getLinkPath(link, false);
+    routes.push({
+      pattern: patternWithRank,
       redirect: getLinkPath(redirect, displayRank),
-    }))
-    .concat(
-      list.map(([link, redirect]) => ({
-        pattern: getLinkPath(link, false),
+    });
+    if (patternWithoutRank !== patternWithRank) {
+      routes.push({
+        pattern: patternWithoutRank,
         redirect: getLinkPath(redirect, displayRank),
-      })),
-    );
+      });
+    }
+  });
+  return routes;
 }
 
-function getLinkRouters(links: NavItemWithLink[], title: string, lang: string, displayRank?: boolean) {
+function getLinkRouters(links: NavItemWithLink[], title = '', lang: string, displayRank?: boolean) {
   const routes: RouteItem<NavItemWithLink>[] = [];
   links.forEach((item) => {
     const { title: pageTitle, link, userFullPath, originLink, hash } = item;
@@ -202,7 +211,9 @@ function getCurrentSidebar(sidebar: NavItemWithLink[]) {
     items.forEach((item) => {
       let tempNode: NavItemWithLink | undefined;
       if (item.link === locationStore.path) {
-        currentLink = item;
+        if (item.type === 'file' || item.isNav) {
+          currentLink = item;
+        }
         if (!resultNavNode && currentNavNode && item.type === 'file') {
           resultNavNode = currentNavNode;
         }
@@ -237,11 +248,11 @@ export function updateBookConfig(config?: BookConfig, gemBookElement?: GemBookEl
   const { sidebar, lang, langList } = getI18nSidebar(config);
   const sidebarResult = processSidebar(sidebar, config?.displayRank);
   const links = flatNav(sidebarResult);
-  const nav = getNav(sidebarResult, config?.nav || []);
+  const nav = getNav(sidebarResult, config?.nav);
   const routes = [
-    ...getRedirectRoutes(config?.redirects || {}, config?.displayRank),
+    ...getRedirectRoutes(config?.redirects, config?.displayRank),
     ...getNavRoutes(nav),
-    ...getLinkRouters(links, config?.title || '', lang, config?.displayRank),
+    ...getLinkRouters(links, config?.title, lang, config?.displayRank),
   ];
   const currentSidebar = getCurrentSidebar(sidebarResult);
   const homePage = getHomePage(routes);

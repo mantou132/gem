@@ -4,11 +4,9 @@ export interface FrontMatter {
   navTitle?: string;
   navOrder?: number;
   sidebarIgnore?: boolean;
-
-  /** only file */
   redirect?: string;
 
-  /** only dir */
+  /** below only dir */
   reverse?: boolean;
   groups?: { title: string; members: string[] }[];
 

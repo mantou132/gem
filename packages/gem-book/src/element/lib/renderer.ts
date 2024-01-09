@@ -35,7 +35,7 @@ export function getRenderer({ lang, link, displayRank }: { lang: string; link: s
   renderer.code = (code, infoString) => {
     const [lang, ...rest] = infoString?.split(/\s+/) || [];
     const lastArg = rest.pop();
-    const lastArgIsHighlight = lastArg && /^([-]|\d|\s|,)+$/.test(lastArg);
+    const lastArgIsHighlight = lastArg && /^(-|\d|,)+$/.test(lastArg);
     const highlight = lastArgIsHighlight ? lastArg : '';
     const [filename = '', status = ''] = lastArgIsHighlight ? rest : [...rest, lastArg];
     return `<gem-book-pre codelang="${lang}" highlight="${highlight}" filename="${filename}" status="${status}">${escapeHTML(

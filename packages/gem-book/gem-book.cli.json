@@ -4,6 +4,7 @@
   "icon": "../../logo.png",
   "i18n": true,
   "homeMode": true,
+  "site": "https://book.gemjs.org",
   "sourceBranch": "docs",
   "plugin": ["raw", "docsearch", "api", "sandpack", "code-group", "import", "include", "var", "example"],
   "template": "docs/template.html",

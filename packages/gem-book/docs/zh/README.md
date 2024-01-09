@@ -4,7 +4,7 @@ hero:
   desc: 简单、快速创建你的文档网站
   actions:
     - text: 快速开始
-      link: ./002-guide/README.md
+      link: ./guide/README.md
 features:
   - title: 开箱即用
     desc: 只需运行一条命令就能构建所有前端资源，让所有注意力都能放在文档编写上。
@@ -16,16 +16,7 @@ features:
 
 ## 轻松上手
 
-```bash
-# 创建文档
-mkdir docs && echo '# Hello GemBook!' > docs/readme.md
-
-# 启动本地服务打开文档站，修改文档将自动更新
-npx gem-book docs
-
-# 构建前端资源
-npx gem-book docs --build --output dist
-```
+<gbp-include src="./snippets/start.md"></gbp-include>
 
 ## 反馈与共建
 

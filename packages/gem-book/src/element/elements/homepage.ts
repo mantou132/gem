@@ -23,10 +23,8 @@ export class Homepage extends GemElement {
       <style>
         .hero {
           text-align: center;
-          padding: 3.5rem 1rem;
-          --tColor: rgba(${theme.textColorRGB}, 0.03);
-          --pColor: rgba(${theme.primaryColorRGB}, 0.02);
-          background: linear-gradient(var(--tColor), var(--tColor)), linear-gradient(var(--pColor), var(--pColor));
+          padding: 3.5rem 1rem 5rem;
+          background-color: var(--background-color);
         }
         .title {
           margin: 0;
@@ -35,6 +33,9 @@ export class Homepage extends GemElement {
           font-weight: bold;
         }
         .desc {
+          margin: auto;
+          max-width: ${theme.maxMainWidth};
+          font-size: 1.5em;
           opacity: 0.6;
           text-wrap: balance;
         }
@@ -57,7 +58,7 @@ export class Homepage extends GemElement {
         gem-link:first-of-type {
           padding: 0.5rem 2rem;
           text-decoration: none;
-          color: #fff;
+          color: ${theme.backgroundColor};
           background: ${theme.primaryColor};
         }
         gem-link:hover {
@@ -77,6 +78,9 @@ export class Homepage extends GemElement {
           }
           .title {
             font-size: 2rem;
+          }
+          .desc {
+            font-size: 1.2em;
           }
         }
         @media print {
@@ -110,23 +114,28 @@ export class Homepage extends GemElement {
         }
         .features .body {
           display: grid;
-          grid-template-columns: repeat(3, 1fr);
+          grid-template-columns: repeat(${features?.length || 3}, 1fr);
           gap: 1rem;
-          text-align: center;
         }
-        .feature:not(.has-icon) {
-          border: 1px solid ${theme.borderColor};
+        .feature,
+        .icon {
           border-radius: ${theme.normalRound};
-          padding: 1.5rem 1rem;
+          background-color: var(--background-color);
         }
-        .feature.has-icon {
-          width: max(20em, 80%);
-          max-width: 100%;
-          margin: 0 auto 1rem;
+        .feature {
+          padding: 1.5rem;
         }
         .icon {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 2.5em;
+          line-height: 1;
           width: 30%;
-          margin-block-end: 1rem;
+          aspect-ratio: 1;
+          padding: 0.5rem;
+          box-sizing: border-box;
+          margin-block-end: 2rem;
           object-fit: contain;
         }
         .feat-title {
@@ -140,15 +149,18 @@ export class Homepage extends GemElement {
           letter-spacing: 0.05em;
           opacity: 0.6;
         }
+        @media ${mediaQuery.DESKTOP} {
+          .feature {
+            max-width: 100%;
+            padding: 2rem;
+          }
+        }
         @media ${mediaQuery.PHONE}, print {
           .features {
             padding: 3rem 1rem;
           }
           .features .body {
             grid-template-columns: auto;
-          }
-          .feature:not(.has-icon) {
-            text-align: left;
           }
           .icon {
             width: 5rem;
@@ -164,12 +176,14 @@ export class Homepage extends GemElement {
           ${features?.map(
             (feature) => html`
               <div class="feature ${feature.icon ? 'has-icon' : ''}">
-                ${feature.icon
-                  ? html`<img
-                      class="icon"
-                      src=${new URL(feature.icon, `${location.origin}${joinPath(bookStore.lang, originLink)}`).href}
-                    />`
-                  : ''}
+                ${!feature.icon
+                  ? ''
+                  : [...feature.icon].length === 1
+                    ? html`<span class="icon">${feature.icon}</span>`
+                    : html`<img
+                        class="icon"
+                        src=${new URL(feature.icon, `${location.origin}${joinPath(bookStore.lang, originLink)}`).href}
+                      />`}
                 <dt class="feat-title">${feature.title}</dt>
                 <dd class="feat-desc">
                   ${Main.unsafeRenderHTML(
@@ -196,6 +210,7 @@ export class Homepage extends GemElement {
       <style>
         :host {
           overflow: hidden;
+          --background-color: color-mix(in srgb, ${theme.textColor} 3%, ${theme.primaryColor} 2%);
         }
         .body {
           margin: auto;
