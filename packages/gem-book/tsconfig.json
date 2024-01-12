@@ -2,10 +2,8 @@
   "extends": "@gemjs/config/tsconfig",
   "compilerOptions": {
     "outDir": "./",
-    "declaration": false,
-    "declarationMap": false,
-    "module": "commonjs"
+    "module": "ES2022"
   },
   "include": ["src"],
-  "exclude": []
+  "exclude": ["src/bin", "./src/**/*.test.ts", "./src/**/*.spec.ts"]
 }

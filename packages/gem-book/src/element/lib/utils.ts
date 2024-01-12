@@ -1,5 +1,4 @@
 import { NavItem } from '../../common/config';
-import { getLinkPath, isIndexFile } from '../../common/utils';
 import { bookStore } from '../store';
 
 export type NavItemWithLink = NavItem & {
@@ -92,18 +91,6 @@ export function getURL(originPath: string, hash = '') {
 export function isSameOrigin(link: string) {
   const { origin } = new URL(link, location.origin);
   return origin === location.origin;
-}
-
-// /001-xxx.md => /xxx
-// /readme.md => /
-export function getUserLink(originPath: string, displayRank?: boolean) {
-  const parts = originPath.split('/');
-  const filename = parts.pop() || '';
-  if (isIndexFile(filename)) {
-    return getLinkPath(parts.join('/') + '/', displayRank);
-  } else {
-    return getLinkPath(originPath, displayRank);
-  }
 }
 
 const div = document.createElement('div');

@@ -1,9 +1,13 @@
 import type { RefObject } from '@mantou/gem';
 
 import type { GemBookElement } from '../element';
+import type { MdDocument } from '../bin/builder';
 
 const moduleLink = 'https://esm.sh/@docsearch/js@3.5.2';
 const styleLink = 'https://esm.sh/@docsearch/css@3.5.2/dist/style.css';
+const minisearchLink = 'https://esm.sh/minisearch@6.3.0';
+
+const IS_LOCAL = new URL(import.meta.url).searchParams.has('local');
 
 // https://vitepress.dev/zh/reference/default-theme-search#algolia-search-i18n
 const zh = {
@@ -51,7 +55,7 @@ const zh = {
 type Locales = Record<string, typeof zh | undefined>;
 
 customElements.whenDefined('gem-book').then(({ GemBookPluginElement }: typeof GemBookElement) => {
-  const { Gem, theme, mediaQuery } = GemBookPluginElement;
+  const { Gem, theme, mediaQuery, config, Utils } = GemBookPluginElement;
   const { html, customElement, attribute, refobject, addListener, property } = Gem;
 
   @customElement('gbp-docsearch')
@@ -106,6 +110,9 @@ customElements.whenDefined('gem-book').then(({ GemBookPluginElement }: typeof Ge
             .DocSearch-Container * {
               outline-offset: -2px;
               outline-color: ${theme.primaryColor};
+            }
+            .DocSearch-Container a {
+              color: ${theme.primaryColor};
             }
             .DocSearch-Commands-Key {
               padding: 0;
@@ -174,7 +181,79 @@ customElements.whenDefined('gem-book').then(({ GemBookPluginElement }: typeof Ge
       history.pushState(null, '', url.replace(new RegExp(`/${GemBookPluginElement.lang}(/?)`), '$1'));
     };
 
+    #miniSearch?: Promise<any>;
+
+    #search = Utils.debounce(async (query: string): Promise<Res> => {
+      const miniSearch = await this.#miniSearch;
+      const result: IndexObject[] = miniSearch?.search(query, { fuzzy: 0.2 }) || [];
+      if (result.length > 20) result.length = 20;
+      return getRes(query, result);
+    }, 500);
+
     mounted = () => {
+      this.effect(
+        async () => {
+          if (!IS_LOCAL) return;
+          const [{ default: MiniSearch }, res] = await Promise.all([
+            import(/* webpackIgnore: true */ minisearchLink) as any,
+            fetch(
+              `/${['documents', GemBookPluginElement.lang, 'json'].filter((e) => !!e).join('.')}?version=${
+                config.version
+              }`,
+            ),
+          ]);
+          const segmenter = Intl.Segmenter && new Intl.Segmenter(GemBookPluginElement.lang, { granularity: 'word' });
+
+          const documents: MdDocument[] = await res.json();
+          // https://github.com/lucaong/minisearch/
+          const miniSearch = new MiniSearch({
+            fields: ['title', 'content'],
+            storeFields: ['title', 'content', 'titles', 'type'],
+            processTerm: (term: string) => {
+              if (!segmenter) return term;
+              const tokens: string[] = [];
+              for (const seg of segmenter.segment(term)) {
+                tokens.push(seg.segment);
+              }
+              return tokens;
+            },
+          });
+
+          const record = Object.fromEntries(documents.map((document) => [document.id, document.title]));
+          documents.forEach(async (document) => {
+            if (!document.text) return;
+            await new Promise((res) => (requestIdleCallback || setTimeout)(res));
+
+            const df = new DocumentFragment();
+            df.append(...Utils.parseMarkdown(document.text));
+            const titles = [record[document.id]];
+            const parts = document.id.split('/');
+            while (parts.length) {
+              const part = parts.pop();
+              if (!part) continue;
+              const parentId = parts.join('/');
+              const parent = record[parentId + '/'];
+              if (!parent) continue;
+              titles.unshift(parent);
+            }
+
+            getSections(df, titles).forEach(({ hash, content, titles }) => {
+              if (titles.length < 2) titles.unshift(config.title || 'Documentation');
+
+              miniSearch.add({
+                id: document.id + hash,
+                title: titles.at(-1),
+                content: Utils.escapeHTML(content),
+                titles: titles.map((title, index) => (index === 0 ? title : Utils.escapeHTML(title))),
+                type: hash ? 'content' : `lvl${titles.length - 1}`,
+              } as IndexObject);
+            });
+          });
+          this.#miniSearch = miniSearch;
+        },
+        () => [GemBookPluginElement.lang],
+      );
+
       this.effect(
         async () => {
           const [text, { default: docSearch }] = await Promise.all([
@@ -200,6 +279,21 @@ customElements.whenDefined('gem-book').then(({ GemBookPluginElement }: typeof Ge
                 this.#navigator(new URL(item.itemUrl, location.origin).href);
               },
             },
+            getMissingResultsUrl: config.github
+              ? ({ query }: { query: string }) => {
+                  return `${config.github}/issues/new?title=${query}`;
+                }
+              : undefined,
+            transformSearchClient: (searchClient: any) => {
+              return {
+                ...searchClient,
+                // https://github.com/algolia/docsearch/blob/874e16a5d42e8657e6ab2653e9638cd2282ba408/packages/docsearch-react/src/DocSearchModal.tsx#L227C36-L227C36
+                search: async ([queryObject]: any) => {
+                  if (IS_LOCAL) return this.#search(queryObject.query);
+                  return searchClient.search([queryObject]);
+                },
+              };
+            },
           });
         },
         () => [GemBookPluginElement.lang, this.appId, this.apiKey, this.indexName],
@@ -221,3 +315,163 @@ customElements.whenDefined('gem-book').then(({ GemBookPluginElement }: typeof Ge
     };
   }
 });
+
+type IndexObject = {
+  id: string;
+  title: string;
+  content: string;
+  titles: string[];
+  type: ContentType;
+};
+
+type Section = {
+  hash: string;
+  content: string;
+  titles: string[];
+};
+
+function getSections(df: DocumentFragment, titles: string[]) {
+  const result: Section[] = [];
+  [...df.children].forEach((ele) => {
+    if (ele.tagName === 'H1') {
+      return result.push({
+        hash: '',
+        titles,
+        content: '',
+      });
+    }
+    if (ele.tagName === 'H2') {
+      return result.push({
+        hash: `#${encodeURIComponent(ele.id)}`,
+        titles: [...titles, ele.textContent!],
+        content: '',
+      });
+    }
+    const last = result.at(-1);
+    if (last) {
+      last.content += ele.textContent || '';
+    }
+  });
+  return result;
+}
+
+function getHit(query: string, { id, titles, type, content }: IndexObject): DocSearchHit {
+  const start = content.indexOf(query);
+  const prefix = content.slice(0, start);
+  const forward = prefix.length - prefix.lastIndexOf('\n');
+  const snippet = content.slice(Math.max(start - forward, 0));
+  return {
+    objectID: id,
+    url: id,
+    content,
+    type,
+    hierarchy: Object.fromEntries(titles.map((title, index) => [`lvl${index}`, title])) as DocSearchHit['hierarchy'],
+    _snippetResult: content
+      ? {
+          content: {
+            value: snippet.replaceAll(query, `<mark>${query}</mark>`),
+            matchLevel: 'full',
+          },
+        }
+      : undefined,
+  };
+}
+
+function getRes(query: string, result: IndexObject[]): Res {
+  const record: Record<string, number> = {};
+  const sortedResult: IndexObject[][] = result.map((obj, index) => {
+    record[obj.id] = index;
+    if (obj.type !== 'content') {
+      return [obj];
+    }
+    return [];
+  });
+  result.forEach((obj, index) => {
+    if (obj.type === 'content') {
+      const parentIndex = record[obj.id.split('#').shift()!];
+      if (parentIndex !== undefined) {
+        sortedResult[parentIndex].push(obj);
+      } else {
+        sortedResult[index].push(obj);
+      }
+    }
+  });
+  return {
+    results: [
+      {
+        hits: sortedResult.flat().map((index) => getHit(query, index)),
+        nbHits: 1,
+        page: 0,
+        nbPages: 1,
+        hitsPerPage: result.length,
+        processingTimeMS: 0,
+        exhaustiveNbHits: true,
+        params: '',
+        query,
+      },
+    ],
+  };
+}
+
+// https://github.com/algolia/docsearch/blob/874e16a5d42e8657e6ab2653e9638cd2282ba408/packages/docsearch-react/src/__tests__/api.test.tsx#L15
+type Result = {
+  hits: DocSearchHit[];
+  nbHits: number;
+  page: number;
+  nbPages: number;
+  hitsPerPage: number;
+  processingTimeMS: number;
+  exhaustiveNbHits: boolean;
+  params: string;
+  query: string;
+} & Record<string, any>;
+
+type Res = { results: Result[] };
+
+// https://github.com/algolia/docsearch/blob/874e16a5d42e8657e6ab2653e9638cd2282ba408/packages/docsearch-react/src/types/DocSearchHit.ts#L45
+type ContentType = 'content' | 'lvl0' | 'lvl1' | 'lvl2' | 'lvl3' | 'lvl4' | 'lvl5' | 'lvl6';
+
+interface DocSearchHitAttributeHighlightResult {
+  value: string;
+  matchLevel: 'full' | 'none' | 'partial';
+  matchedWords?: string[];
+  fullyHighlighted?: boolean;
+}
+
+interface DocSearchHitHighlightResultHierarchy {
+  lvl0: DocSearchHitAttributeHighlightResult;
+  lvl1: DocSearchHitAttributeHighlightResult;
+  lvl2: DocSearchHitAttributeHighlightResult;
+  lvl3: DocSearchHitAttributeHighlightResult;
+  lvl4: DocSearchHitAttributeHighlightResult;
+  lvl5: DocSearchHitAttributeHighlightResult;
+  lvl6: DocSearchHitAttributeHighlightResult;
+}
+
+interface DocSearchHitAttributeSnippetResult {
+  value: string;
+  matchLevel: 'full' | 'none' | 'partial';
+}
+
+interface DocSearchHitSnippetResult {
+  content: DocSearchHitAttributeSnippetResult;
+  hierarchy?: DocSearchHitHighlightResultHierarchy;
+  hierarchy_camel?: DocSearchHitHighlightResultHierarchy[];
+}
+
+export declare type DocSearchHit = {
+  objectID: string;
+  content: string | null;
+  url: string;
+  type: ContentType;
+  hierarchy: {
+    lvl0: string;
+    lvl1: string;
+    lvl2: string | null;
+    lvl3: string | null;
+    lvl4: string | null;
+    lvl5: string | null;
+    lvl6: string | null;
+  };
+  _snippetResult?: DocSearchHitSnippetResult;
+};

@@ -1,9 +1,0 @@
-{
-  "extends": "@gemjs/config/tsconfig",
-  "compilerOptions": {
-    "outDir": "./",
-    "module": "ES2020"
-  },
-  "include": ["src"],
-  "exclude": ["src/bin", "./src/**/*.test.ts", "./src/**/*.spec.ts"]
-}

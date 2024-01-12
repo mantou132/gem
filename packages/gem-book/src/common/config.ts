@@ -28,6 +28,7 @@ interface CommonConfig {
 }
 
 export type BookConfig = {
+  version?: string;
   redirects?: Record<string, string>;
   sidebar?: SidebarConfig;
   // navbar icon absolute path

@@ -3,8 +3,7 @@ import { html, GemElement, customElement, connectStore, css } from '@mantou/gem'
 import { selfI18n } from '../helper/i18n';
 import { theme } from '../helper/theme';
 import { bookStore } from '../store';
-
-import { Main } from './main';
+import { unsafeRenderHTML } from '../lib/renderer';
 
 import '@mantou/gem/elements/link';
 
@@ -34,7 +33,7 @@ export class Footer extends GemElement {
         }
       </style>
       ${config?.footer
-        ? Main.unsafeRenderHTML(
+        ? unsafeRenderHTML(
             config.footer,
             css`
               p {

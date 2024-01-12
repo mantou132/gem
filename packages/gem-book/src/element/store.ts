@@ -3,11 +3,10 @@ import { RouteItem, GemLightRouteElement } from '@mantou/gem/elements/route';
 import { I18n } from '@mantou/gem/helper/i18n';
 
 import { BookConfig, NavItem } from '../common/config';
-import { getLinkPath } from '../common/utils';
+import { getLinkPath, getUserLink } from '../common/utils';
 
 import { originDocLang, selfI18n } from './helper/i18n';
-import { getUserLink, NavItemWithLink, flatNav, capitalize, getURL, joinPath } from './lib/utils';
-import { getRenderer } from './lib/renderer';
+import { NavItemWithLink, flatNav, capitalize, getURL, joinPath } from './lib/utils';
 
 import type { GemBookElement } from '.';
 
@@ -24,7 +23,7 @@ interface CurrentBookConfig {
   // 当没有提供 readme 或者 index 时，homePage 是第一个有效页面
   homePage: string;
   currentLinks: NavItemWithLink[];
-  getCurrentLink: () => NavItemWithLink;
+  getCurrentLink: () => NavItemWithLink | undefined;
   isDevMode: () => boolean;
 }
 
@@ -150,10 +149,9 @@ function getLinkRouters(links: NavItemWithLink[], title = '', lang: string, disp
       pattern: link,
       async getContent() {
         await import('./elements/main');
-        const renderer = getRenderer({ lang, link: originLink, displayRank });
         const content = await (await fetch(getURL(joinPath(lang, originLink), hash))).text();
         if (bookStore.isDevMode?.()) await new Promise((res) => setTimeout(res, 500));
-        return html`<gem-book-main role="article" .renderer=${renderer as any} .content=${content}></gem-book-main>`;
+        return html`<gem-book-main role="article" .content=${content}></gem-book-main>`;
       },
       data: item,
     });
@@ -274,7 +272,7 @@ export function updateBookConfig(config?: BookConfig, gemBookElement?: GemBookEl
     updateBookStore({
       isDevMode: () => gemBookElement.dev,
       getCurrentLink: () => {
-        return gemBookElement?.routeRef.element?.currentRoute?.data as NavItemWithLink;
+        return gemBookElement?.routeRef.element?.currentRoute?.data as NavItemWithLink | undefined;
       },
     });
   }

@@ -102,7 +102,7 @@ export class GemBookElement extends GemElement {
         queueMicrotask(() => routeELement.update());
       } else if (routeELement.currentRoute?.pattern === '*') {
         routeELement.update();
-      } else if (joinPath(bookStore.lang, bookStore.getCurrentLink?.().originLink) === `/${filePath}`) {
+      } else if (joinPath(bookStore.lang, bookStore.getCurrentLink?.()?.originLink) === `/${filePath}`) {
         mainElement.content = content;
       } else {
         const filename = filePath?.split('/').pop();

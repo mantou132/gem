@@ -92,15 +92,15 @@ yarn add gem-book
 
 ## `<gbp-docsearch>`
 
-使用 [DocSearch](https://docsearch.algolia.com/) 为网站提供搜索，只需要实例化一次，可以使用[插槽](./guide/007-extension.md#插槽)放在想要放置的位置：
+使用 [Algolia DocSearch](https://docsearch.algolia.com/) 为网站提供搜索，只需要实例化一次，可以使用[插槽](./guide/007-extension.md#插槽)放在想要放置的位置：
 
 <gbp-raw src="docs/template.html" range="13--4"></gbp-raw>
 
 > [!WARNING]
 >
-> - DocSearch Crawler [配置](https://crawler.algolia.com/admin/crawlers)中必须启用 `renderJavaScript`
-> - 全文搜索需要等待 DocSearch [支持](https://github.com/algolia/renderscript/pull/555) ShadowDOM，
->   可以使用 [`--site`](./002-cli.md#--site-url) 暂时为网站添加标题搜索（DocSearch Crawler 配置修改 `sitemaps` 字段）
+> Algolia DocSearch Crawler [配置](https://crawler.algolia.com/admin/crawlers)中必须启用 `renderJavaScript`
+
+使用 `docsearch?local` 可以提供本地搜索服务（感谢 [MiniSearch](https://github.com/lucaong/minisearch/)），[例子](https://duoyun-ui.gemjs.org)。
 
 ## `<gbp-comment>`
 

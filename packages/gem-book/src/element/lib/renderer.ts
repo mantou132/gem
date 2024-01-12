@@ -1,11 +1,36 @@
-import { Renderer } from 'marked';
+import { html, css, connect } from '@mantou/gem';
+import { Renderer, parse } from 'marked';
 
 import { icons } from '../elements/icons';
-import { normalizeId, parseTitle } from '../../common/utils';
+import { normalizeId, getUserLink, parseTitle } from '../../common/utils';
+import { theme } from '../helper/theme';
+import { bookStore } from '../store';
 
-import { isSameOrigin, getUserLink, escapeHTML, textContent, joinPath } from './utils';
+import { isSameOrigin, escapeHTML, textContent, joinPath } from './utils';
 
-export function getRenderer({ lang, link, displayRank }: { lang: string; link: string; displayRank?: boolean }) {
+import '@mantou/gem/elements/unsafe';
+
+function getRenderOption() {
+  return {
+    lang: bookStore.lang || '',
+    link: bookStore.getCurrentLink?.()?.originLink || '/',
+    displayRank: bookStore.config?.displayRank,
+  };
+}
+
+let currentRendererKey = '';
+let currentRenderer = genRenderer();
+
+function genRenderer(): Renderer {
+  const { lang, link, displayRank } = getRenderOption();
+
+  const currentKey = lang + link + displayRank;
+  if (currentRendererKey === currentKey) {
+    return currentRenderer;
+  }
+
+  currentRendererKey = currentKey;
+
   const renderer = new Renderer();
   // https://marked.js.org/using_pro#renderer
   renderer.heading = function (fullText, level) {
@@ -69,4 +94,38 @@ export function getRenderer({ lang, link, displayRank }: { lang: string; link: s
       >${text}${internal ? '' : icons.link.trim()}</a>`;
   };
   return renderer;
+}
+
+connect(bookStore, () => {
+  currentRenderer = genRenderer();
+});
+
+const parser = new DOMParser();
+
+export function parseMarkdown(mdBody: string) {
+  return [...parser.parseFromString(parse(mdBody, { renderer: currentRenderer }), 'text/html').body.children];
+}
+
+export const linkStyle = css`
+  .link {
+    color: ${theme.primaryColor};
+    text-decoration: none;
+    border-bottom: 1px solid transparent;
+  }
+  .link:hover {
+    border-color: currentColor;
+  }
+  .link svg:last-child {
+    vertical-align: -0.1em;
+    margin-inline: 0.2em;
+  }
+`;
+
+export function unsafeRenderHTML(s: string, style = '') {
+  const htmlStr = parse(s, { renderer: currentRenderer });
+  const cssStr = css`
+    ${linkStyle}
+    ${style}
+  `;
+  return html`<gem-unsafe content=${htmlStr} contentcss=${cssStr}></gem-unsafe>`;
 }

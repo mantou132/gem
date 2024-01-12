@@ -8,11 +8,12 @@ import {
   adoptedStyle,
   connectStore,
 } from '@mantou/gem';
-import { Renderer, parse } from 'marked';
 import { mediaQuery } from '@mantou/gem/helper/mediaquery';
 
 import { theme } from '../helper/theme';
 import { checkBuiltInPlugin } from '../lib/utils';
+import { getBody } from '../../common/utils';
+import { parseMarkdown, linkStyle } from '../lib/renderer';
 import { locationStore } from '../store';
 
 import { updateTocStore } from './toc';
@@ -21,8 +22,6 @@ import '@mantou/gem/elements/unsafe';
 import '@mantou/gem/elements/link';
 import '@mantou/gem/elements/reflect';
 import './pre';
-
-const parser = new DOMParser();
 
 // https://github.com/w3c/csswg-drafts/issues/9712
 const style = createCSSSheet(css`
@@ -48,77 +47,38 @@ const style = createCSSSheet(css`
   }
 `);
 
-const linkStyle = css`
-  .link {
-    color: ${theme.primaryColor};
-    text-decoration: none;
-    border-bottom: 1px solid transparent;
-  }
-  .link:hover {
-    border-color: currentColor;
-  }
-  .link svg:last-child {
-    vertical-align: -0.1em;
-    margin-inline: 0.2em;
-  }
-`;
-
 @customElement('gem-book-main')
 @adoptedStyle(style)
 @connectStore(locationStore)
 export class Main extends GemElement {
   @property content?: string;
-  @property renderer?: Renderer;
-
-  // homepage/footer 等内置元素渲染在 main 前面，不能使用自定义渲染器
-  static instance?: Main;
 
   static detailsStateCache = new Map<string, boolean>();
 
-  static parseMarkdown(mdBody: string) {
-    const elements = [
-      ...parser.parseFromString(
-        parse(mdBody, {
-          renderer: Main.instance?.renderer,
-        }),
-        'text/html',
-      ).body.children,
-    ];
-    elements.forEach((detailsEle) => {
-      if (detailsEle instanceof HTMLDetailsElement) {
-        const html = locationStore.path + detailsEle.innerHTML;
-        detailsEle.open = !!Main.detailsStateCache.get(html);
-        detailsEle.addEventListener('toggle', () => {
-          Main.detailsStateCache.set(html, detailsEle.open);
-        });
-      }
-    });
-    return elements;
-  }
-
-  static unsafeRenderHTML(s: string, style = '') {
-    const htmlStr = parse(s, { renderer: Main.instance?.renderer });
-    const cssStr = css`
-      ${linkStyle}
-      ${style}
-    `;
-    return html`<gem-unsafe content=${htmlStr} contentcss=${cssStr}></gem-unsafe>`;
-  }
-
   constructor() {
     super();
-    Main.instance = this;
     this.memo(
       () => {
-        const [, , _sToken, _frontmatter, _eToken, mdBody = ''] =
-          this.content?.match(/^(([\r\n\s]*---\s*(?:\r\n|\n))(.*?)((?:\r\n|\n)---\s*(?:\r\n|\n)?))?(.*)$/s) || [];
-        this.#content = Main.parseMarkdown(mdBody);
+        const mdBody = getBody(this.content);
+        this.#content = parseMarkdown(mdBody).map((detailsEle) => {
+          if (detailsEle instanceof HTMLDetailsElement) {
+            const html = locationStore.path + detailsEle.innerHTML;
+            detailsEle.open = !!Main.detailsStateCache.get(html);
+            detailsEle.addEventListener('toggle', () => {
+              Main.detailsStateCache.set(html, detailsEle.open);
+            });
+          }
+          return detailsEle;
+        });
+        // https://github.com/algolia/renderscript/pull/555
+        this.#docsearch = parseMarkdown(mdBody);
       },
       () => [this.content],
     );
   }
 
   #content: Element[] = [];
+  #docsearch: Element[] = [];
 
   #updateToc = () => {
     updateTocStore({
@@ -349,6 +309,11 @@ export class Main extends GemElement {
         }
       </style>
       ${this.#content}
+      <gem-reflect .target=${document.body}>
+        <main hidden>
+          <template>${this.#docsearch}</template>
+        </main>
+      </gem-reflect>
       <style>
         ${linkStyle}
       </style>

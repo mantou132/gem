@@ -1,3 +1,9 @@
+export function getBody(md = '') {
+  const [, , _sToken, _frontmatter, _eToken, mdBody = ''] =
+    md.match(/^(([\r\n\s]*---\s*(?:\r\n|\n))(.*?)((?:\r\n|\n)---\s*(?:\r\n|\n)?))?(.*)$/s) || [];
+  return mdBody;
+}
+
 export function parseTitle(fullText: string) {
   const [, text, customId] = fullText.match(/^(.*?)\s*(?:{#(.*)})?$/s)!;
   return { text, customId };
@@ -25,4 +31,33 @@ export function getLinkPath(originPath: string, displayRank?: boolean) {
         .split('/')
         .map((part) => parseFilename(part).title)
         .join('/');
+}
+
+// /001-xxx.md => /xxx
+// /readme.md => /
+export function getUserLink(originPath: string, displayRank?: boolean) {
+  const parts = originPath.split('/');
+  const filename = parts.pop() || '';
+  if (isIndexFile(filename)) {
+    return getLinkPath(parts.join('/') + '/', displayRank);
+  } else {
+    return getLinkPath(originPath, displayRank);
+  }
+}
+
+export function debounce<T extends (...args: any) => any>(func: T, wait = 100) {
+  let lastTimeout: ReturnType<typeof setTimeout> | null = null;
+  return function (...args: Parameters<T>) {
+    return new Promise<Awaited<ReturnType<typeof func>>>((resolve, reject) => {
+      if (lastTimeout) {
+        clearTimeout(lastTimeout);
+      }
+      lastTimeout = setTimeout(() => {
+        lastTimeout = null;
+        Promise.resolve(func(...(args as any)))
+          .then(resolve)
+          .catch(reject);
+      }, wait);
+    });
+  };
 }

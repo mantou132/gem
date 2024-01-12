@@ -1,8 +1,9 @@
 import { connectStore, customElement, GemElement, html } from '@mantou/gem';
 
-import { getGithubPath, getUserLink } from '../lib/utils';
+import { getGithubPath } from '../lib/utils';
 import { bookStore, locationStore } from '../store';
 import { selfI18n } from '../helper/i18n';
+import { getUserLink } from '../../common/utils';
 
 import { icons } from './icons';
 

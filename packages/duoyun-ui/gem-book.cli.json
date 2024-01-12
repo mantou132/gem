@@ -1,8 +1,10 @@
 {
+  "$schema": "../gem-book/schema.json",
+  "template": "docs/template.html",
   "title": "DuoyunUI",
   "icon": "../../logo.png",
   "i18n": true,
   "sourceBranch": "docs",
-  "plugin": ["media", "api", "sandpack", "raw"],
+  "plugin": ["media", "api", "sandpack", "raw", "docsearch?local"],
   "debug": true
 }

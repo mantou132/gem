@@ -1,13 +1,7 @@
 #!/usr/bin/env node
 
-/**
- * @example
- * gem-book -c gem-book.cli.json docs
- * gem-book -t documentTitle docs
- */
-
 import path from 'path';
-import fs from 'fs';
+import { readdirSync, statSync, writeFileSync } from 'fs';
 
 import program from 'commander';
 import getRepoInfo from 'git-repo-info';
@@ -15,6 +9,8 @@ import chalk from 'chalk';
 import anymatch from 'anymatch';
 import { sync } from 'mkdirp';
 import { watch } from 'chokidar';
+import express from 'express';
+import serveStatic from 'serve-static';
 
 import { version } from '../../package.json';
 import { BookConfig, CliConfig, CliUniqueConfig, NavItem, SidebarConfig } from '../common/config';
@@ -24,8 +20,9 @@ import {
   DEFAULT_SOURCE_BRANCH,
   UPDATE_EVENT,
   DEFAULT_OUTPUT,
+  DEFAULT_DOCS_DIR,
 } from '../common/constant';
-import { isIndexFile, parseFilename } from '../common/utils';
+import { isIndexFile, parseFilename, debounce } from '../common/utils';
 import { FrontMatter } from '../common/frontmatter';
 
 import {
@@ -34,27 +31,25 @@ import {
   isDirConfigFile,
   getMetadata,
   isMdFile,
-  isSomeContent,
   print,
   getRepoTitle,
   checkRelativeLink,
   readDirConfig,
   getIconDataUrl,
-  getHash,
-  getMdFile,
+  getLatestMdFile,
   resolveTheme,
   importObject,
   resolveModule,
+  getMdFile,
 } from './utils';
 import { build } from './builder';
 import lang from './lang.json'; // https://developers.google.com/search/docs/advanced/crawling/localized-versions#language-codes
 
 const devServerEventTarget = new EventTarget();
 
-program.version(version, '-v, --version');
-
-let docsRootDir = '';
-let bookConfig: BookConfig = {};
+let bookConfig: BookConfig = {
+  version: Date.now().toString(),
+};
 let cliConfig: Required<CliUniqueConfig> = {
   icon: '',
   output: DEFAULT_OUTPUT,
@@ -74,7 +69,8 @@ let cliConfig: Required<CliUniqueConfig> = {
 // 将配置文件和 cli 选项合并，并将 book 选项同步到 bookConfig
 async function syncConfig(fullPath?: string) {
   const obj: CliConfig = (await importObject(fullPath)) || {};
-  Object.keys(cliConfig).forEach((key: keyof CliUniqueConfig) => {
+  Object.keys(cliConfig).forEach((k) => {
+    const key = k as keyof CliUniqueConfig;
     if (key in obj) {
       const value = obj[key];
       delete obj[key];
@@ -104,9 +100,9 @@ async function syncConfig(fullPath?: string) {
   Object.assign(bookConfig, obj);
 }
 
-function readFiles(filenames: string[], dir: string, link: string, config?: FrontMatter) {
+function readFiles(filenames: string[], docsRootDir: string, dir: string, link: string, config?: FrontMatter) {
   const result: NavItem[] = [];
-  const getStat = (filename: string) => fs.statSync(path.join(dir, filename));
+  const getStat = (filename: string) => statSync(path.join(dir, filename));
   filenames
     .sort((filename1, filename2) => {
       const { rank: rank1, title: title1 } = parseFilename(filename1);
@@ -146,7 +142,7 @@ function readFiles(filenames: string[], dir: string, link: string, config?: Fron
             title,
             type: 'file',
             link: `${link}${filename}`,
-            hash: getHash(fullPath),
+            hash: getMdFile(fullPath).hash,
             isNav,
             navTitle,
             sidebarIgnore,
@@ -170,7 +166,7 @@ function readFiles(filenames: string[], dir: string, link: string, config?: Fron
           const redirectPath = new URL(redirect, `file:${pattern}`).pathname;
           (bookConfig.redirects ||= {})[pattern] = `${redirectPath}${redirectPath.endsWith('/') ? ':0' : ''}`;
         } else {
-          const subFilenameSet = new Set([...fs.readdirSync(fullPath)]);
+          const subFilenameSet = new Set([...readdirSync(fullPath)]);
           result.push({
             type: 'dir',
             link: `${link}${filename}/`,
@@ -180,7 +176,7 @@ function readFiles(filenames: string[], dir: string, link: string, config?: Fron
                   .map(({ title, members }) => {
                     if (!members?.forEach) return [];
                     members.forEach((filename) => subFilenameSet.delete(filename));
-                    const children = readFiles(members, newDir, newLink, config);
+                    const children = readFiles(members, docsRootDir, newDir, newLink, config);
                     if (!title) return children;
                     return {
                       type: 'dir',
@@ -190,8 +186,8 @@ function readFiles(filenames: string[], dir: string, link: string, config?: Fron
                     } as NavItem;
                   })
                   .flat()
-                  .concat(readFiles([...subFilenameSet], newDir, newLink, config))
-              : readDir(newDir, newLink),
+                  .concat(readFiles([...subFilenameSet], docsRootDir, newDir, newLink, config))
+              : readDir(docsRootDir, newDir, newLink),
             isNav,
             navTitle,
             navOrder,
@@ -203,8 +199,8 @@ function readFiles(filenames: string[], dir: string, link: string, config?: Fron
   return result;
 }
 
-function readDir(dir: string, link = '/') {
-  const filenames = fs.readdirSync(dir);
+function readDir(docsRootDir: string, dir: string, link: string) {
+  const filenames = readdirSync(dir);
   const filenameWithoutRankNumberList = filenames.map((filename) => {
     const { title } = parseFilename(filename);
     return title;
@@ -212,10 +208,11 @@ function readDir(dir: string, link = '/') {
   if (!bookConfig.displayRank && new Set(filenameWithoutRankNumberList).size !== filenames.length) {
     throw new Error('After removing the rank number, duplicate file names are found, use `--display-rank`');
   }
-  return readFiles(filenames, dir, link, readDirConfig(dir));
+  return readFiles(filenames, docsRootDir, dir, link, readDirConfig(dir));
 }
 
 async function generateBookConfig(dir: string) {
+  const docsRootDir = path.resolve(process.cwd(), dir);
   const t = Date.now();
   //icon path
   if (cliConfig.icon) {
@@ -240,12 +237,12 @@ async function generateBookConfig(dir: string) {
 
   if (cliConfig.i18n) {
     const sidebarConfig: SidebarConfig = {};
-    fs.readdirSync(docsRootDir).forEach((code) => {
+    readdirSync(docsRootDir).forEach((code) => {
       const fullPath = path.join(docsRootDir, code);
-      if (fs.statSync(fullPath).isDirectory()) {
+      if (statSync(fullPath).isDirectory()) {
         if (code in lang) {
           sidebarConfig[code] = {
-            data: readDir(path.join(docsRootDir, code)),
+            data: readDir(docsRootDir, path.join(docsRootDir, code), '/'),
             name: lang[code as keyof typeof lang],
           };
         } else {
@@ -257,35 +254,27 @@ async function generateBookConfig(dir: string) {
   } else {
     // recursive scan dir
     // fill sidebar
-    bookConfig.sidebar = readDir(docsRootDir);
+    bookConfig.sidebar = readDir(docsRootDir, docsRootDir, '/');
   }
 
   if (cliConfig.json) {
-    const configPath = path.resolve(cliConfig.output || dir, cliConfig.output.endsWith('.json') ? '' : DEFAULT_FILE);
-    const configStr = JSON.stringify(bookConfig, null, 2) + '\n';
-    if (!isSomeContent(configPath, configStr)) {
-      sync(path.dirname(configPath));
-      // Trigger rename event
-      fs.writeFileSync(configPath, configStr);
-    }
+    const jsonPath = path.resolve(cliConfig.output || dir, cliConfig.output.endsWith('.json') ? '' : DEFAULT_FILE);
+    sync(path.dirname(jsonPath));
+    writeFileSync(jsonPath, JSON.stringify(bookConfig, null, 2) + '\n');
   }
 
   if (cliConfig.debug) print(bookConfig);
   print(chalk.green(`[${new Date().toISOString()}]: book config updated! ${Date.now() - t}ms`));
 }
 
-let updateBookTimer: ReturnType<typeof setTimeout>;
-const updateBookConfig = (dir: string) => {
-  clearTimeout(updateBookTimer);
-  updateBookTimer = setTimeout(async () => {
-    await generateBookConfig(dir);
-    devServerEventTarget.dispatchEvent(
-      Object.assign(new Event(UPDATE_EVENT), {
-        detail: { config: bookConfig },
-      }),
-    );
-  }, 100);
-};
+const updateBookConfig = debounce(async (dir: string) => {
+  await generateBookConfig(dir);
+  devServerEventTarget.dispatchEvent(
+    Object.assign(new Event(UPDATE_EVENT), {
+      detail: { config: bookConfig },
+    }),
+  );
+});
 
 const watchTheme = () => {
   const themePath = resolveTheme(cliConfig.theme);
@@ -310,6 +299,84 @@ const startBuild = async (dir: string) => {
   });
   return devServer;
 };
+
+const handleAction = async (dir = DEFAULT_DOCS_DIR) => {
+  const initCliOptions = structuredClone(cliConfig);
+  const initBookConfig = structuredClone(bookConfig);
+  const docsRootDir = path.resolve(process.cwd(), dir);
+
+  const configPath = resolveModule(cliConfig.config || DEFAULT_CLI_FILE, { silent: !cliConfig.config });
+  if (cliConfig.config && !configPath) process.exit(1);
+
+  await syncConfig(configPath);
+  await generateBookConfig(dir);
+
+  let devServer = cliConfig.json ? undefined : await startBuild(dir);
+
+  if (!cliConfig.build) {
+    devServerEventTarget.addEventListener(UPDATE_EVENT, (evt) => {
+      devServer?.sendMessage(devServer.webSocketServer?.clients || [], UPDATE_EVENT, (evt as CustomEvent).detail);
+    });
+
+    // start server
+
+    let themeWatcher = watchTheme();
+    if (configPath) {
+      watch(configPath).on('change', async () => {
+        cliConfig = structuredClone(initCliOptions);
+        bookConfig = structuredClone(initBookConfig);
+        await syncConfig(configPath);
+        await generateBookConfig(dir);
+        await devServer?.stop();
+        devServer = await startBuild(dir);
+        await themeWatcher?.close();
+        themeWatcher = watchTheme();
+      });
+    }
+
+    watch(dir, {
+      ignoreInitial: true,
+      ignored: cliConfig.ignored || undefined,
+    }).on('all', (type, filePathWithDir) => {
+      if (type !== 'change') {
+        return updateBookConfig(dir);
+      }
+
+      const filePath = path.relative(dir, filePathWithDir);
+      const fullPath = path.join(docsRootDir, filePath);
+
+      if (!isDirConfigFile(filePath) && !isMdFile(filePath)) {
+        devServerEventTarget.dispatchEvent(
+          Object.assign(new Event(UPDATE_EVENT), {
+            detail: { reload: true },
+          }),
+        );
+        return;
+      }
+
+      if (isDirConfigFile(filePath)) {
+        return updateBookConfig(dir);
+      }
+
+      if (cliConfig.debug) {
+        checkRelativeLink(fullPath, docsRootDir);
+      }
+
+      const { content, metadataChanged } = getLatestMdFile(fullPath, bookConfig.displayRank);
+      devServerEventTarget.dispatchEvent(
+        Object.assign(new Event(UPDATE_EVENT), {
+          detail: { filePath, content },
+        }),
+      );
+
+      if (metadataChanged) {
+        updateBookConfig(dir);
+      }
+    });
+  }
+};
+
+program.version(version, '-v, --version');
 
 program
   .option('-t, --title <title>', 'document title', (title) => {
@@ -401,83 +468,34 @@ program
   })
   .option('--config <path>', `specify config file, default use \`${DEFAULT_CLI_FILE}\`.{js|json|mjs}`, (configPath) => {
     cliConfig.config = configPath;
-  })
-  .arguments('<dir>')
-  .action(async (dir: string) => {
-    const initCliOptions = structuredClone(cliConfig);
-    const initBookConfig = structuredClone(bookConfig);
+  });
 
-    docsRootDir = path.resolve(process.cwd(), dir);
+program
+  .command('dev [dir]', { isDefault: true })
+  .description('start a local dev server with instant hot updates')
+  .action(handleAction);
 
-    const configPath = resolveModule(cliConfig.config || DEFAULT_CLI_FILE, { silent: !cliConfig.config });
-    if (cliConfig.config && !configPath) process.exit(1);
+program
+  .command('build [dir]')
+  .description('output all front-end assets, equal `--build`')
+  .action((dir = DEFAULT_DOCS_DIR) => {
+    cliConfig.build = true;
+    handleAction(dir);
+  });
 
-    await syncConfig(configPath);
-    await generateBookConfig(dir);
+program
+  .command('serve [dir]')
+  .description('build the docs and start static file server')
+  .action(async (dir = DEFAULT_DOCS_DIR) => {
+    await handleAction(dir);
 
-    let devServer = cliConfig.json ? undefined : await startBuild(dir);
-
-    if (!cliConfig.build) {
-      devServerEventTarget.addEventListener(UPDATE_EVENT, ({ detail }: CustomEvent) => {
-        devServer?.sendMessage(devServer.webSocketServer?.clients || [], UPDATE_EVENT, detail);
+    const port = Number(process.env.PORT) || 8091;
+    express()
+      .use('/', serveStatic(path.resolve(cliConfig.output || dir), { immutable: true }))
+      .get('*', (_, res) => res.sendFile(path.resolve(cliConfig.output || dir, 'index.html')))
+      .listen(port, () => {
+        print(chalk.green(`Project is running at:`) + `http://localhost:${port}`);
       });
-
-      // start server
-
-      let themeWatcher = watchTheme();
-      if (configPath) {
-        watch(configPath).on('change', async () => {
-          cliConfig = structuredClone(initCliOptions);
-          bookConfig = structuredClone(initBookConfig);
-          await syncConfig(configPath);
-          await generateBookConfig(dir);
-          await devServer?.stop();
-          devServer = await startBuild(dir);
-          await themeWatcher?.close();
-          themeWatcher = watchTheme();
-        });
-      }
-
-      watch(dir, {
-        ignoreInitial: true,
-        ignored: cliConfig.ignored || undefined,
-      }).on('all', (type, filePathWithDir) => {
-        if (type !== 'change') {
-          return updateBookConfig(dir);
-        }
-
-        const filePath = path.relative(dir, filePathWithDir);
-        const fullPath = path.join(docsRootDir, filePath);
-
-        if (!isDirConfigFile(filePath) && !isMdFile(filePath)) {
-          devServerEventTarget.dispatchEvent(
-            Object.assign(new Event(UPDATE_EVENT), {
-              detail: { reload: true },
-            }),
-          );
-          return;
-        }
-
-        if (isDirConfigFile(filePath)) {
-          return updateBookConfig(dir);
-        }
-
-        if (cliConfig.debug) {
-          checkRelativeLink(fullPath, docsRootDir);
-        }
-
-        const { content, metadataChanged } = getMdFile(fullPath, bookConfig.displayRank);
-        devServerEventTarget.dispatchEvent(
-          Object.assign(new Event(UPDATE_EVENT), {
-            detail: { filePath, content },
-          }),
-        );
-
-        if (metadataChanged) {
-          updateBookConfig(dir);
-        }
-      });
-    }
   });
 
 program.parse(process.argv);

@@ -1,4 +1,5 @@
 {
+  "$schema": "../gem-book/schema.json",
   "title": "Gem",
   "icon": "../../logo.png",
   "i18n": true,

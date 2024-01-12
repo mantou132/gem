@@ -28,13 +28,13 @@
   ],
   "scripts": {
     "schema": "npx ts-json-schema-generator -p src/common/config.ts -t CliConfig -o schema.json",
-    "build:cli": "esbuild ./src/bin/index.ts --outdir=./bin --platform=node --sourcemap --bundle --external:anymatch --external:cheerio --external:chokidar --external:jimp --external:marked --external:yaml --external:front-matter --external:commander --external:webpack --external:ts-loader --external:typescript --external:webpack-dev-server --external:html-webpack-plugin --external:copy-webpack-plugin --external:workbox-webpack-plugin",
+    "build:cli": "esbuild ./src/bin/index.ts --tsconfig=./tsconfig.cli.json --outdir=./bin --platform=node --sourcemap --bundle --external:anymatch --external:cheerio --external:chokidar --external:jimp --external:marked --external:yaml --external:front-matter --external:commander --external:webpack --external:ts-loader --external:typescript --external:webpack-dev-server --external:html-webpack-plugin --external:copy-webpack-plugin --external:workbox-webpack-plugin",
     "start:cli": "yarn build:cli --watch",
     "docs": "node ./bin docs",
     "start:docs": "cross-env PORT=8090 GEM_BOOK_DEV=true nodemon --watch bin --exec \"yarn docs\"",
     "start": "concurrently npm:start:cli npm:start:docs",
     "build:website": "yarn build:cli && yarn docs --build --ga G-7X2Z4B2KV0",
-    "build": "yarn build:cli && tsc -p ./tsconfig.build.json",
+    "build": "yarn build:cli && tsc",
     "test": "cross-env NODE_OPTIONS=--no-experimental-fetch wtr",
     "prepublishOnly": "yarn build"
   },
@@ -45,6 +45,7 @@
     "chokidar": "^3.5.3",
     "commander": "^7.2.0",
     "copy-webpack-plugin": "^11.0.0",
+    "express": "^4.17.3",
     "front-matter": "^4.0.2",
     "git-remote-origin-url": "^3.1.0",
     "git-repo-info": "^2.1.1",

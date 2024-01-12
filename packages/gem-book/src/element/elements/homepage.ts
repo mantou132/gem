@@ -1,12 +1,13 @@
 import { html, GemElement, customElement, part, connectStore, css } from '@mantou/gem';
 import { mediaQuery } from '@mantou/gem/helper/mediaquery';
 
+import { getUserLink } from '../../common/utils';
 import { theme } from '../helper/theme';
-import { getUserLink, joinPath, NavItemWithLink } from '../lib/utils';
+import { joinPath, NavItemWithLink } from '../lib/utils';
 import { bookStore } from '../store';
+import { unsafeRenderHTML } from '../lib/renderer';
 
 import { icons } from './icons';
-import { Main } from './main';
 
 import '@mantou/gem/elements/link';
 import '@mantou/gem/elements/use';
@@ -92,7 +93,7 @@ export class Homepage extends GemElement {
       <div class="hero" part=${Homepage.hero} role="banner">
         <div class="body">
           ${!title ? '' : html`<h1 class="title">${title}</h1>`}
-          ${!desc ? '' : html`<p class="desc">${Main.unsafeRenderHTML(desc)}</p>`}
+          ${!desc ? '' : html`<p class="desc">${unsafeRenderHTML(desc)}</p>`}
           <div class="actions">
             ${actions?.map(
               ({ link, text }, index) =>
@@ -186,7 +187,7 @@ export class Homepage extends GemElement {
                       />`}
                 <dt class="feat-title">${feature.title}</dt>
                 <dd class="feat-desc">
-                  ${Main.unsafeRenderHTML(
+                  ${unsafeRenderHTML(
                     feature.desc,
                     css`
                       p:last-of-type {

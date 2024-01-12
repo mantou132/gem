@@ -60,12 +60,12 @@ export function resolveLocalPlugin(p: string) {
     const pluginDir = path.resolve(__dirname, `../plugins`);
     const plugin = require.resolve(path.resolve(pluginDir, p));
     if (inTheDir(pluginDir, plugin) && !lstatSync(plugin).isSymbolicLink()) {
-      return;
+      return { builtIn: plugin };
     }
   } catch {}
   for (const ext of ['', '.js', '.ts']) {
     try {
-      return require.resolve(path.resolve(process.cwd(), `${p}${ext}`));
+      return { custom: require.resolve(path.resolve(process.cwd(), `${p}${ext}`)) };
     } catch {}
   }
 
@@ -110,7 +110,7 @@ export async function importObject<T>(fullPath?: string) {
 }
 
 export function checkRelativeLink(fullPath: string, docsRootDir: string) {
-  const md = readFileSync(fullPath, 'utf8');
+  const md = getMdFile(fullPath).content;
   const lines = md.split('\n');
   // 获取所有链接
   const results = [...md.matchAll(/\[.*?\]\((.*?)(\s+.*?)?\)/g)];
@@ -154,17 +154,31 @@ export function readDirConfig(fullPath: string) {
   }
 }
 
-export function getHash(fullPath: string) {
-  const hash = createHash('sha256');
-  const fileData = readFileSync(fullPath);
-  hash.update(fileData);
-  return hash.digest('hex').substring(0, 8);
+const mdFileRecord = new Map<string, { buffer: Buffer; content: string; hash: string }>();
+
+export function getMdFile(fullPath: string) {
+  let res = mdFileRecord.get(fullPath);
+  if (!res) {
+    const hash = createHash('sha256');
+    const buffer = readFileSync(fullPath);
+    hash.update(buffer);
+    res = {
+      buffer,
+      content: buffer.toString(),
+      hash: hash.digest('hex').substring(0, 8),
+    };
+    mdFileRecord.set(fullPath, res);
+  }
+  return res;
 }
 
-export function getMdFile(fullPath: string, displayRank: boolean | undefined) {
+export function getLatestMdFile(fullPath: string, displayRank: boolean | undefined) {
+  mdFileRecord.delete(fullPath);
+  const oldMetadata = metadataRecord[fullPath];
+  const newMetadata = getMetadata(fullPath, displayRank);
   return {
-    content: readFileSync(fullPath, 'utf-8'),
-    metadataChanged: JSON.stringify(metadataRecord[fullPath]) !== JSON.stringify(getMetadata(fullPath, displayRank)),
+    content: getMdFile(fullPath).content,
+    metadataChanged: JSON.stringify(oldMetadata) !== JSON.stringify(newMetadata),
   };
 }
 
@@ -178,7 +192,7 @@ export function getMetadata(fullPath: string, displayRank: boolean | undefined) 
     return displayRank ? filename : parseFilename(filename).title;
   };
   const parseMd = (fullPath: string) => {
-    const md = readFileSync(fullPath, 'utf8');
+    const md = getMdFile(fullPath).content;
     const { attributes, body } = fm<FrontMatter>(md);
     return {
       ...(attributes as FrontMatter),
@@ -216,10 +230,6 @@ export function isURL(s: string) {
   } catch {
     return false;
   }
-}
-
-export function isSomeContent(filePath: string, content: string) {
-  return existsSync(filePath) && content === readFileSync(filePath, 'utf-8');
 }
 
 export function print(...args: any) {

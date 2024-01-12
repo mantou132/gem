@@ -1,7 +1,6 @@
 import { connectStore, customElement, GemElement, html } from '@mantou/gem';
-import { mediaQuery } from '@mantou/gem/helper/mediaquery';
 
-import { getURL, joinPath } from '../lib/utils';
+import { joinPath } from '../lib/utils';
 import { themeStore } from '../helper/theme';
 import { bookStore, locationStore } from '../store';
 
@@ -19,7 +18,7 @@ function getAlternateUrl(lang: string, pathname?: string) {
 @connectStore(bookStore)
 export class Meta extends GemElement {
   render() {
-    const { langList, lang = '', routes, homePage, getCurrentLink, currentLinks } = bookStore;
+    const { langList, lang = '', routes, homePage, getCurrentLink } = bookStore;
     const route = routes?.find((route) => route.pattern === locationStore.path && route.redirect);
     const canonicalLink = getAlternateUrl(
       lang && langList && !location.pathname.startsWith(`/${lang}`) ? langList[0].code : lang,
@@ -32,14 +31,6 @@ export class Meta extends GemElement {
       <gem-reflect>
         <meta name="theme-color" content=${themeStore.backgroundColor} />
         ${description ? html`<meta name="description" content=${description} />` : ''}
-        ${mediaQuery.isDataReduce
-          ? null
-          : currentLinks
-              ?.filter((e) => e.type === 'file')
-              .map(
-                ({ originLink, hash }) =>
-                  html`<link rel="prefetch" href=${getURL(joinPath(lang, originLink), hash)}></link>`,
-              )}
 
         <!-- search engine -->
         <link rel="canonical" href=${canonicalLink} />

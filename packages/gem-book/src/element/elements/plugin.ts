@@ -6,10 +6,10 @@ import { logger } from '@mantou/gem/helper/logger';
 import { theme } from '../helper/theme';
 import { bookStore, locationStore } from '../store';
 import { BookConfig } from '../../common/config';
+import { debounce } from '../../common/utils';
 import { icons } from '../elements/icons';
-import { getRanges, getParts, joinPath, getURL } from '../lib/utils';
-
-import { Main } from './main';
+import { getRanges, getParts, joinPath, getURL, escapeHTML } from '../lib/utils';
+import { parseMarkdown, unsafeRenderHTML } from '../lib/renderer';
 
 /**
  * 获取资源的远端 GitHub raw 地址，如果使用 `DEV_MODE`，则返回本机服务的 URL
@@ -47,12 +47,13 @@ function getRemoteURL(originSrc = '', dev = GemBookPluginElement.devMode) {
 export class GemBookPluginElement<T = any> extends GemElement<T> {
   static Gem = Gem;
   static Utils = {
+    escapeHTML,
+    debounce,
     getRanges,
     getParts,
     getRemoteURL,
-    parseMarkdown(md: string) {
-      return Main.parseMarkdown(md);
-    },
+    parseMarkdown,
+    unsafeRenderHTML,
   };
 
   static caches = new Map<typeof GemBookPluginElement, Map<string, any>>();
@@ -79,7 +80,7 @@ export class GemBookPluginElement<T = any> extends GemElement<T> {
     return bookStore.routes;
   }
   static get lang() {
-    return bookStore.lang;
+    return bookStore.lang || '';
   }
   static get langList() {
     return bookStore.langList;
