@@ -117,7 +117,7 @@ type State = {
 
 export type RouteTrigger = {
   store: Store<any>;
-  replace: (arg: { path: string }) => void;
+  replace: (arg: UpdateHistoryParams) => void;
   getParams: () => { path: string; query?: string | QueryString; hash?: string };
 };
 
@@ -296,11 +296,14 @@ export class GemRouteElement extends GemElement<State> {
   }
 
   update = () => {
-    const { route, params = {} } = GemRouteElement.findRoute(this.routes, this.trigger.getParams().path);
+    const { path, hash, query } = this.trigger.getParams();
+    const { route, params = {} } = GemRouteElement.findRoute(this.routes, path);
     const { redirect, content, getContent } = route || {};
     if (redirect) {
       this.trigger.replace({
         path: createPath({ pattern: redirect }, { params }),
+        query,
+        hash,
       });
       return;
     }

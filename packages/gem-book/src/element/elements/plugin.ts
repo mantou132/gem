@@ -8,7 +8,7 @@ import { bookStore, locationStore } from '../store';
 import { BookConfig } from '../../common/config';
 import { debounce } from '../../common/utils';
 import { icons } from '../elements/icons';
-import { getRanges, getParts, joinPath, getURL, escapeHTML } from '../lib/utils';
+import { getRanges, getParts, joinPath, getURL, escapeHTML, capitalize } from '../lib/utils';
 import { parseMarkdown, unsafeRenderHTML } from '../lib/renderer';
 
 /**
@@ -48,6 +48,7 @@ export class GemBookPluginElement<T = any> extends GemElement<T> {
   static Gem = Gem;
   static Utils = {
     escapeHTML,
+    capitalize,
     debounce,
     getRanges,
     getParts,

@@ -33,13 +33,16 @@ function genDocuments(docsDir: string, bookConfig: BookConfig) {
     const temp = [...sidebar];
     while (temp.length) {
       const item = temp.pop()!;
-      if (addedLinks.has(item.link)) continue;
       if (item.sidebarIgnore) continue;
       if (item.children) temp.push(...item.children);
+
+      if (addedLinks.has(item.link)) continue;
       if (item.type === 'file' || item.type === 'dir') {
         addedLinks.add(item.link);
         const fullPath = path.join(docsDir, lang, item.link);
         documents.push({
+          // 通过路径来识别文件和目录，以获取父级 title，例如：
+          // `/guide/readme` 的父级 title 是 `/guide/` 的目录 title
           id: getLinkPath(item.link, bookConfig.displayRank),
           text: item.type === 'file' ? getBody(getMdFile(fullPath).content) : '',
           title: getMetadata(fullPath, bookConfig.displayRank).title,

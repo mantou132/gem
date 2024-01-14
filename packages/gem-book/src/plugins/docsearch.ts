@@ -178,7 +178,8 @@ customElements.whenDefined('gem-book').then(({ GemBookPluginElement }: typeof Ge
     }
 
     #navigator = (url: string) => {
-      history.pushState(null, '', url.replace(new RegExp(`/${GemBookPluginElement.lang}(/?)`), '$1'));
+      // route 中会更新 title
+      history.pushState(null, document.title, url.replace(new RegExp(`/${GemBookPluginElement.lang}(/?)`), '$1'));
     };
 
     #miniSearch?: Promise<any>;
@@ -244,7 +245,7 @@ customElements.whenDefined('gem-book').then(({ GemBookPluginElement }: typeof Ge
                 id: document.id + hash,
                 title: titles.at(-1),
                 content: Utils.escapeHTML(content),
-                titles: titles.map((title, index) => (index === 0 ? title : Utils.escapeHTML(title))),
+                titles: titles.map((title, index) => Utils.capitalize(index === 0 ? title : Utils.escapeHTML(title))),
                 type: hash ? 'content' : `lvl${titles.length - 1}`,
               } as IndexObject);
             });

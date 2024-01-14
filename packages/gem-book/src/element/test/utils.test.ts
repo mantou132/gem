@@ -1,6 +1,7 @@
 import { expect } from '@open-wc/testing';
 
-import { capitalize, flatNav, getUserLink } from '../lib/utils';
+import { capitalize, flatNav } from '../lib/utils';
+import { getUserLink } from '../../common/utils';
 
 describe('lib/utils', () => {
   it('capitalize', () => {

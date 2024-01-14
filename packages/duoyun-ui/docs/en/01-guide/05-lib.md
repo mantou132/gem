@@ -45,7 +45,7 @@ Some common functions.
 
 <gbp-api src="/src/lib/utils.ts"></gbp-api>
 
-## 其他
+## Other
 
 - `animations`: Use [Web Animations API](https://developer.mozilla.org/en-US/docs/Web/API/Web_Animations_API) implement simple animation
 - `cache`: Provide a simple [LRU](<https://en.wikipedia.org/wiki/Cache_replacement_policies#Least_recently_used_(LRU)>) cache

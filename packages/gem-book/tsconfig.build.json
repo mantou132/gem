@@ -4,5 +4,5 @@
     "outDir": "./"
   },
   "include": ["src"],
-  "exclude": []
+  "exclude": ["src/bin", "./src/**/*.test.ts", "./src/**/*.spec.ts"]
 }

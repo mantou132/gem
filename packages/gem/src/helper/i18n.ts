@@ -74,10 +74,8 @@ export class I18n<T = Record<string, Msg>> implements RouteTrigger {
 
   store: Store<any>;
 
-  replace = ({ path }: { path: string }) => {
-    this.setLanguage(path);
-  };
-
+  // 兼容 `<gem-route>`
+  replace = ({ path }: { path: string }) => this.setLanguage(path);
   getParams = () => ({ path: this.currentLanguage });
 
   get #cacheCurrentKey() {
