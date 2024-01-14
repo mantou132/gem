@@ -1,6 +1,6 @@
 {
   "name": "duoyun-ui",
-  "version": "1.1.9",
+  "version": "1.1.10",
   "description": "A lightweight desktop UI component library, implemented using Gem",
   "keywords": [
     "frontend",
@@ -52,7 +52,7 @@
   },
   "devDependencies": {
     "@esm-bundle/chai": "^4.3.4-fix.0",
-    "@gemjs/config": "^1.6.11",
+    "@gemjs/config": "^1.6.12",
     "@open-wc/testing": "^2.5.33",
     "@types/d3-geo": "^3.0.1",
     "@web/dev-server-esbuild": "^0.2.16",
