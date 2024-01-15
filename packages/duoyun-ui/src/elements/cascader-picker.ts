@@ -10,7 +10,7 @@ import {
   emitter,
 } from '@mantou/gem/lib/decorators';
 import { GemElement, html } from '@mantou/gem/lib/element';
-import { createCSSSheet, css, classMap } from '@mantou/gem/lib/utils';
+import { createCSSSheet, css } from '@mantou/gem/lib/utils';
 
 import { theme } from '../lib/theme';
 import { icons } from '../lib/icons';
@@ -32,15 +32,25 @@ import './scroll-box';
 const style = createCSSSheet(css`
   :host {
     width: 15em;
+    white-space: nowrap;
   }
+  .placeholder,
   .value {
     flex-grow: 1;
-    white-space: nowrap;
-    display: flex;
-    gap: 0.5em;
+    text-overflow: ellipsis;
+    overflow: hidden;
   }
   .placeholder {
     color: ${theme.describeColor};
+  }
+  .values {
+    flex-grow: 1;
+    display: flex;
+    gap: 0.5em;
+    margin-inline-start: -0.2em;
+  }
+  dy-tag {
+    border-radius: ${theme.smallRound};
   }
 `);
 
@@ -116,14 +126,6 @@ export class DuoyunCascaderPickerElement extends GemElement implements BasePicke
     );
   };
 
-  #renderValue = (value: OptionValue[]) => {
-    return html`${value.join(' / ')}`;
-  };
-
-  #renderMultipleValue = (value: OptionValue[][]) => {
-    return html` ${value.map((e) => html`<dy-tag small>${e.join(' / ')}</dy-tag>`)} `;
-  };
-
   mounted = () => {
     this.effect(
       () => {
@@ -140,13 +142,15 @@ export class DuoyunCascaderPickerElement extends GemElement implements BasePicke
   render = () => {
     const isEmpty = this.multiple ? !this.value?.length : !this.value;
     return html`
-      <dy-scroll-box class=${classMap({ value: true, placeholder: isEmpty })}>
-        ${isEmpty
-          ? this.placeholder
-          : this.multiple
-            ? this.#renderMultipleValue(this.value as OptionValue[][])
-            : this.#renderValue(this.value as OptionValue[])}
-      </dy-scroll-box>
+      ${isEmpty
+        ? html`<div class="placeholder">${this.placeholder}</div>`
+        : this.multiple
+          ? html`
+              <dy-scroll-box class="values">
+                ${(this.value as OptionValue[][]).map((e) => html`<dy-tag small>${e.join(' / ')}</dy-tag>`)}
+              </dy-scroll-box>
+            `
+          : html`<div class="value">${(this.value as OptionValue[]).join(' / ')}</div>`}
       <dy-use class="icon" .element=${icons.expand}></dy-use>
     `;
   };

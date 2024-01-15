@@ -1,8 +1,13 @@
+import type { TemplateResult } from '@mantou/gem/';
+
 import type { GemBookElement } from '../element';
 
 type State = {
   loading: boolean;
   error?: any;
+  code?: TemplateResult[];
+  textContentIsProps?: boolean;
+  elements?: HTMLElement[];
 };
 
 type PropValue = string | number | boolean | Record<string, unknown>;
@@ -252,23 +257,6 @@ customElements.whenDefined('gem-book').then(({ GemBookPluginElement }: typeof Ge
       });
     };
 
-    #propsList: Props[] = [];
-    #textContentIsProps = false;
-    willMount = () => {
-      this.memo(() => {
-        try {
-          const obj = JSON.parse(this.textContent!) as Props | Props[];
-          this.#propsList = Array.isArray(obj) ? obj : [obj];
-          this.#textContentIsProps = true;
-        } catch {
-          const props = JSON.parse(this.props || '{}');
-          if (this.html) props.innerHTML = this.html;
-          this.#propsList = [props];
-          this.#textContentIsProps = false;
-        }
-      });
-    };
-
     mounted = () => {
       Promise.all(
         this.src
@@ -277,7 +265,25 @@ customElements.whenDefined('gem-book').then(({ GemBookPluginElement }: typeof Ge
           .map((src) => this.#loadResource(src)),
       )
         .then(() => {
-          this.setState({ loading: false, error: false });
+          let propsList: Props[] = [];
+          let textContentIsProps = false;
+          try {
+            const obj = JSON.parse(this.textContent!) as Props | Props[];
+            propsList = Array.isArray(obj) ? obj : [obj];
+            textContentIsProps = true;
+          } catch {
+            const props = JSON.parse(this.props || '{}');
+            if (this.html) props.innerHTML = this.html;
+            propsList = [props];
+            textContentIsProps = false;
+          }
+          this.setState({
+            loading: false,
+            error: false,
+            code: propsList?.map((props, index) => html`${index ? '\n' : ''}${this.#renderCode(props)}`),
+            textContentIsProps,
+            elements: propsList.map((props) => this.#renderElement(props)),
+          });
         })
         .catch((evt: ErrorEvent) => {
           this.setState({ error: evt.error || 'Load Error!', loading: false });
@@ -286,16 +292,15 @@ customElements.whenDefined('gem-book').then(({ GemBookPluginElement }: typeof Ge
     };
 
     render = () => {
-      const { error, loading } = this.state;
-      const code = this.#propsList.map((props, index) => html`${index ? '\n' : ''}${this.#renderCode(props)}`);
-      const slot = this.#textContentIsProps ? '' : html`<slot></slot>`;
+      const { error, loading, code, elements, textContentIsProps } = this.state;
+      const slot = textContentIsProps ? '' : html`<slot></slot>`;
       return html`
         <div class="preview" style=${styleMap({ flexDirection: this.#direction })}>
           ${error
             ? html`<div class="error">${error}</div>`
             : loading
               ? html`<div class="loading">Example Loading...</div>`
-              : html`${this.#propsList.map((props) => this.#renderElement(props))}${slot}`}
+              : html`${elements}${slot}`}
         </div>
         <div class="panel">
           <div class="code">${code}</div>

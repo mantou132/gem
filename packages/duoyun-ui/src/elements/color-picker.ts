@@ -29,6 +29,7 @@ const style = createCSSSheet(css`
     display: inline-flex;
     font-size: 0.875em;
     width: 4em;
+    height: calc(2.2em + 2px);
     overflow: hidden;
     border-radius: ${theme.normalRound};
     background: conic-gradient(
@@ -42,10 +43,14 @@ const style = createCSSSheet(css`
   :host([disabled]) {
     cursor: not-allowed;
   }
+  dy-popover,
+  dy-popover::part(slot),
+  .picker {
+    border-radius: inherit;
+  }
   .picker {
     width: 100%;
-    height: calc(2.2em + 2px);
-    border-radius: ${theme.normalRound};
+    height: 100%;
     box-shadow: inset 0 0 0 1px #0002;
   }
 `);

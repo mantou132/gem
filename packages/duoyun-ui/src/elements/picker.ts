@@ -10,7 +10,7 @@ import {
   state,
 } from '@mantou/gem/lib/decorators';
 import { GemElement, html, TemplateResult } from '@mantou/gem/lib/element';
-import { createCSSSheet, css, classMap } from '@mantou/gem/lib/utils';
+import { createCSSSheet, css } from '@mantou/gem/lib/utils';
 
 import { theme } from '../lib/theme';
 import { icons } from '../lib/icons';
@@ -20,6 +20,7 @@ import { focusStyle } from '../lib/styles';
 import { ContextMenu, ContextMenuItem } from './contextmenu';
 
 import './use';
+import './scroll-box';
 
 export const pickerStyle = createCSSSheet(css`
   :host(:where(:not([hidden]))) {
@@ -68,12 +69,17 @@ export abstract class BasePickerElement {
 const style = createCSSSheet(css`
   :host {
     width: 12em;
-  }
-  .value {
-    flex-grow: 1;
-    overflow: hidden;
-    text-overflow: ellipsis;
     white-space: nowrap;
+  }
+  .placeholder,
+  .value,
+  .values {
+    flex-grow: 1;
+  }
+  .placeholder,
+  .value {
+    text-overflow: ellipsis;
+    overflow: hidden;
   }
   .placeholder {
     color: ${theme.describeColor};
@@ -171,9 +177,15 @@ export class DuoyunPickerElement extends GemElement implements BasePickerElement
     const currentLabels = currents?.map((e) => e.label);
     const isEmpty = !currentLabels?.length;
     return html`
-      <div class=${classMap({ value: true, placeholder: isEmpty })}>
-        ${isEmpty ? this.placeholder : typeof currentLabels[0] === 'object' ? currentLabels : currentLabels.join()}
-      </div>
+      ${isEmpty
+        ? html`<div class="placeholder">${this.placeholder}</div>`
+        : !this.multiple
+          ? html`<div class="value">${currentLabels}</div>`
+          : html`
+              <dy-scroll-box class="values">
+                ${typeof currentLabels[0] === 'object' ? currentLabels : currentLabels.join(', ')}
+              </dy-scroll-box>
+            `}
       <dy-use .element=${icons.expand}></dy-use>
     `;
   };

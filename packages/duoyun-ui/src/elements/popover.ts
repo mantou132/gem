@@ -8,6 +8,7 @@ import {
   boolattribute,
   refobject,
   RefObject,
+  part,
 } from '@mantou/gem/lib/decorators';
 import { GemElement, html, TemplateResult } from '@mantou/gem/lib/element';
 import { addListener, createCSSSheet, css, styleMap, StyleObject } from '@mantou/gem/lib/utils';
@@ -65,6 +66,9 @@ type CloseCallback = {
 @customElement('dy-popover')
 @adoptedStyle(contentsContainer)
 export class DuoyunPopoverElement extends GemElement<PopoverState> {
+  // 用于非继承样式通过 `inherit` 继承
+  @part static slot: string;
+
   @boolattribute debug: boolean;
   @boolattribute unreachable: boolean;
   @boolattribute disabled: boolean;
@@ -316,9 +320,13 @@ export class DuoyunPopoverElement extends GemElement<PopoverState> {
                   display: this.#isClickTrigger ? 'block' : 'none',
                   position: 'fixed',
                   zIndex: theme.popupZIndex,
-                  inset: '0',
+                  inset: 0,
                 })}
-                @click=${this.#close}
+                @pointerup=${
+                  // `pointerup` 防止指针被其他元素锁定后也关闭，例如 `dy-color-picker`
+                  // `setTimeout` 防止 Firefox 选择文本
+                  () => setTimeout(this.#close)
+                }
               ></div>
               <dy-popover-ghost
                 role=${this.#role}
@@ -337,7 +345,7 @@ export class DuoyunPopoverElement extends GemElement<PopoverState> {
             </dy-reflect>
           `
         : ''}
-      <slot ref=${this.slotRef.ref}></slot>
+      <slot ref=${this.slotRef.ref} part=${DuoyunPopoverElement.slot}></slot>
     `;
   };
 }
@@ -357,7 +365,8 @@ const ghostStyle = createCSSSheet(css`
     hyphens: auto;
     -moz-osx-font-smoothing: grayscale;
     -webkit-font-smoothing: antialiased;
-    filter: drop-shadow(rgba(0, 0, 0, calc(${theme.maskAlpha})) 0px 0.6em 1em);
+    filter: drop-shadow(${theme.borderColor} 0px 0px 1px)
+      drop-shadow(rgba(0, 0, 0, calc(${theme.maskAlpha})) 0px 7px 14px);
   }
   :host::after {
     content: '';

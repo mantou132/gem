@@ -15,7 +15,10 @@
     "placeholder": "Select Option",
     "borderless": true,
     "multiple": true,
-    "options": [{ "label": "Option 1" }, { "label": "Option 2", "children": [{ "label": "Option 3" }] }],
+    "options": [
+      { "label": "Option 1" },
+      { "label": "Option 2", "children": [{ "label": "Option 3" }] }
+    ],
     "@change": "(evt) => evt.target.value = evt.detail"
   }
 ]

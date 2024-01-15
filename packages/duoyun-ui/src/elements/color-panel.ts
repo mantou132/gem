@@ -77,44 +77,41 @@ const style = createCSSSheet(css`
     box-shadow: inset 0 0 0 1px #0002;
   }
   .current {
-    transition: transform 0.1s;
-    background: radial-gradient(transparent 50%, white 50%);
-  }
-  .current.grabbing {
-    transform: translate(-50%, -50%) scale(1.3);
-  }
-  .current,
-  .current span {
     position: absolute;
     width: 1.2em;
-    aspect-ratio: 1;
-    border-radius: 10em;
-    border: 1px solid #0008;
-    transform: translate(-50%, -50%);
-  }
-  .current {
-    /* webkit bug */
+    /* webkit bug: aspect-ratio */
     height: 1.2em;
+    border-radius: 10em;
+    color: #0008;
+    border: 1px solid;
+    transform: translate(-50%, -50%);
+    transition: font-size 0.1s;
   }
-  .current span {
-    left: 50%;
-    top: 50%;
-    width: 66%;
-    background-clip: content-box;
+  .current.grabbing {
+    font-size: 1.2em;
   }
-  .area .current span {
+  .current::after {
+    content: '';
+    position: absolute;
+    inset: 0px;
+    border-radius: inherit;
+    border: 2px solid white;
+    box-shadow: inset 0 0 0 1px;
+  }
+  .area .current {
     background-color: var(--hsl);
   }
-  .hue-bar .current span {
+  .hue-bar .current {
     background-color: var(--hue);
   }
-  .alpha-bar .current span {
+  .alpha-bar .current {
     background-color: transparent;
   }
   .input {
     display: flex;
     align-items: center;
     gap: 0.5em;
+    font-feature-settings: 'tnum';
   }
   .type {
     width: 5em;
@@ -134,8 +131,8 @@ const style = createCSSSheet(css`
     flex-shrink: 1;
   }
   .alpha {
-    width: 3em;
-    margin-inline-end: 2em;
+    width: 3.2em;
+    margin-inline-end: 1.8em;
   }
   .hidden {
     pointer-events: none;
@@ -367,17 +364,13 @@ export class DuoyunColorPanelElement extends GemElement<State> {
           <div
             class=${classMap({ current: true, grabbing: grabbingSV })}
             style=${styleMap({ left: `${sa * 100}%`, top: `${(1 - v) * 100}%` })}
-          >
-            <span></span>
-          </div>
+          ></div>
         </dy-gesture>
         <dy-gesture class="hue-bar" @pan=${this.#onPanHue} @end=${this.#onPanEnd}>
           <div
             class=${classMap({ current: true, grabbing: grabbingHue })}
             style=${styleMap({ top: `${(1 - h) * 100}%`, left: '50%' })}
-          >
-            <span></span>
-          </div>
+          ></div>
         </dy-gesture>
         ${this.alpha
           ? html`
@@ -385,9 +378,7 @@ export class DuoyunColorPanelElement extends GemElement<State> {
                 <div
                   class=${classMap({ current: true, grabbing: grabbingA })}
                   style=${styleMap({ top: `${(1 - a) * 100}%`, left: '50%' })}
-                >
-                  <span></span>
-                </div>
+                ></div>
               </dy-gesture>
             `
           : ''}

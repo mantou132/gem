@@ -13,7 +13,7 @@ import {
   part,
 } from '@mantou/gem/lib/decorators';
 import { GemElement, html, TemplateResult } from '@mantou/gem/lib/element';
-import { createCSSSheet, css, styleMap, classMap, StyleObject } from '@mantou/gem/lib/utils';
+import { createCSSSheet, css, styleMap, StyleObject } from '@mantou/gem/lib/utils';
 
 import { theme } from '../lib/theme';
 import { icons } from '../lib/icons';
@@ -31,6 +31,7 @@ import './use';
 import './options';
 import './input';
 import './tag';
+import './scroll-box';
 
 const style = createCSSSheet(css`
   :host {
@@ -54,17 +55,34 @@ const style = createCSSSheet(css`
     flex-grow: 1;
     display: flex;
     align-items: center;
+    gap: 0.5em;
+    white-space: nowrap;
+    position: relative;
   }
   :host([borderless]) .value-wrap {
     width: auto;
   }
-  .hasplaceholder {
-    position: relative;
-  }
-  .hasplaceholder .value {
+  .placeholder {
     pointer-events: none;
     color: ${theme.describeColor};
+  }
+  :host(:not([borderless])) .placeholder {
     position: absolute;
+    width: 100%;
+  }
+  .value,
+  .placeholder {
+    text-overflow: ellipsis;
+    overflow: hidden;
+  }
+  .values {
+    display: flex;
+    align-items: center;
+    gap: 0.5em;
+    margin-inline-start: -0.2em;
+  }
+  dy-tag {
+    border-radius: ${theme.smallRound};
   }
   .search {
     width: 2em;
@@ -77,20 +95,8 @@ const style = createCSSSheet(css`
   .search::part(input) {
     padding: 0;
   }
-  .search:where([data-filled], :state(filled), [data-composing], :state(composing)) + .value {
+  .search:where([data-filled], :state(filled), [data-composing], :state(composing)) + .placeholder {
     display: none;
-  }
-  .value {
-    display: flex;
-    align-items: center;
-    gap: 0.5em;
-    overflow: hidden;
-    white-space: nowrap;
-    text-overflow: ellipsis;
-    padding-inline-end: 0.4em;
-    --m: linear-gradient(to right, #000 calc(100% - 0.6em), #fff0 100%);
-    -webkit-mask-image: var(--m);
-    mask-image: var(--m);
   }
 `);
 
@@ -398,83 +404,80 @@ export class DuoyunSelectElement extends GemElement<State> implements BasePicker
   render = () => {
     const { open, left, top, width, maxHeight, transform, search } = this.state;
     const isEmpty = !this.#valueOptions?.length;
+    if (this.inline) {
+      return html`<dy-options class="inline-options" .options=${this.#getOptions()} .adder=${this.adder}></dy-options>`;
+    }
     return html`
-      ${this.inline
-        ? html`<dy-options class="inline-options" .options=${this.#getOptions()} .adder=${this.adder}></dy-options>`
-        : html`
-            <div class=${classMap({ 'value-wrap': true, hasplaceholder: isEmpty })}>
-              ${isEmpty
-                ? ''
-                : html`
-                    <div class="value" part=${DuoyunSelectElement.value}>
-                      ${this.multiple
-                        ? html`
-                            ${this.#valueOptions!.map(({ label }, index) =>
-                              typeof label === 'string'
-                                ? html`
-                                    <dy-tag
-                                      small
-                                      part=${DuoyunSelectElement.tag}
-                                      .closable=${this.disabled ? false : true}
-                                      @keydown=${(evt: KeyboardEvent) => evt.stopPropagation()}
-                                      @close=${() => this.#onRemoveTag(this.#valueOptions![index])}
-                                    >
-                                      ${label}
-                                    </dy-tag>
-                                  `
-                                : this.renderTag
-                                  ? this.renderTag(this.#valueOptions![index])
-                                  : label,
-                            )}
-                          `
-                        : this.#valueOptions![0].label}
-                    </div>
-                  `}
-              ${this.#searchable
-                ? html`
-                    <dy-input
-                      ref=${this.searchRef.ref}
-                      class="search"
-                      type="search"
-                      value=${search}
-                      @keydown=${this.#onSearchKeydown}
-                      @change=${this.#onSearch}
-                    ></dy-input>
-                  `
-                : ''}
-              ${isEmpty && this.placeholder ? html`<div class="value">${this.placeholder}</div>` : ``}
-            </div>
-            <dy-use
-              class="icon"
-              @click=${this.#onClear}
-              .tabIndex=${search ? 0 : -1}
-              .element=${search ? icons.close : icons.expand}
-            ></dy-use>
-            ${this.options && open
-              ? html`
-                  <dy-reflect .target=${document.body}>
-                    <dy-options
-                      ref=${this.optionsRef.ref}
-                      @keydown=${this.#onOptionsKeydown}
-                      aria-multiselectable=${this.multiple}
-                      style=${styleMap({
-                        width: `${Math.max(120, width)}px`,
-                        ...this.dropdownStyle,
-                        boxShadow: `0 0.3em 1em rgba(0, 0, 0, calc(${theme.maskAlpha} - 0.1))`,
-                        position: 'fixed',
-                        zIndex: `calc(${theme.popupZIndex} + 2)`,
-                        left: `${left}px`,
-                        top: `${top}px`,
-                        maxHeight,
-                        transform,
-                      })}
-                      .options=${this.#getOptions()}
-                      .adder=${this.adder}
-                    ></dy-options>
-                  </dy-reflect>
-                `
-              : ''}
-          `}
+      <div class="value-wrap">
+        ${isEmpty
+          ? ''
+          : this.multiple
+            ? html`
+                <dy-scroll-box class="values" part=${DuoyunSelectElement.value}>
+                  ${this.#valueOptions!.map(({ label }, index) =>
+                    typeof label === 'string'
+                      ? html`
+                          <dy-tag
+                            small
+                            part=${DuoyunSelectElement.tag}
+                            .closable=${this.disabled ? false : true}
+                            @keydown=${(evt: KeyboardEvent) => evt.stopPropagation()}
+                            @close=${() => this.#onRemoveTag(this.#valueOptions![index])}
+                          >
+                            ${label}
+                          </dy-tag>
+                        `
+                      : this.renderTag
+                        ? this.renderTag(this.#valueOptions![index])
+                        : label,
+                  )}
+                </dy-scroll-box>
+              `
+            : html`<div class="value">${this.#valueOptions![0].label}</div>`}
+        ${this.#searchable
+          ? html`
+              <dy-input
+                ref=${this.searchRef.ref}
+                class="search"
+                type="search"
+                value=${search}
+                @keydown=${this.#onSearchKeydown}
+                @change=${this.#onSearch}
+              ></dy-input>
+            `
+          : ''}
+        ${isEmpty && this.placeholder ? html`<div class="placeholder">${this.placeholder}</div>` : ``}
+      </div>
+      <dy-use
+        class="icon"
+        @click=${this.#onClear}
+        .tabIndex=${search ? 0 : -1}
+        .element=${search ? icons.close : icons.expand}
+      ></dy-use>
+      ${this.options && open
+        ? html`
+            <dy-reflect .target=${document.body}>
+              <dy-options
+                ref=${this.optionsRef.ref}
+                @keydown=${this.#onOptionsKeydown}
+                aria-multiselectable=${this.multiple}
+                style=${styleMap({
+                  width: `${Math.max(120, width)}px`,
+                  ...this.dropdownStyle,
+                  boxShadow: `0 7px 14px rgba(0, 0, 0, calc(${theme.maskAlpha} - 0.1))`,
+                  position: 'fixed',
+                  zIndex: `calc(${theme.popupZIndex} + 2)`,
+                  left: `${left}px`,
+                  top: `${top}px`,
+                  maxHeight,
+                  transform,
+                })}
+                .options=${this.#getOptions()}
+                .adder=${this.adder}
+              ></dy-options>
+            </dy-reflect>
+          `
+        : ''}
     `;
   };
 

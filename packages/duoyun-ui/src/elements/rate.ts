@@ -46,6 +46,10 @@ const style = createCSSSheet(css`
     stroke-width: 2px;
     -webkit-mask: url(${starUrl}) center / 100%;
     mask: url(${starUrl}) center / 100%;
+    transition: transform 0.1s ${theme.timingFunction};
+  }
+  .icon:active::part(icon) {
+    transform: scale(1.2);
   }
   :host(:where(:not(:hover), [readonly])) .fill::part(icon),
   :host(:not([readonly])) .icon:hover::part(icon),

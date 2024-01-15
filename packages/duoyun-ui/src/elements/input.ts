@@ -90,6 +90,7 @@ const style = createCSSSheet(css`
   .input {
     outline: none;
     font: inherit;
+    text-align: inherit;
     line-height: 1.5;
     color: inherit;
     inline-size: 100%;

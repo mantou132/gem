@@ -99,7 +99,7 @@ const style = createCSSSheet(css`
     position: fixed;
     font-size: 1em;
     box-sizing: border-box;
-    box-shadow: 0 0.3em 1em rgba(0, 0, 0, calc(${theme.maskAlpha} - 0.1));
+    box-shadow: 0 7px 14px rgba(0, 0, 0, calc(${theme.maskAlpha} - 0.1));
     scrollbar-width: none;
   }
   .menu::-webkit-scrollbar {

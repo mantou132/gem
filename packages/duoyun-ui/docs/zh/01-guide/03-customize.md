@@ -3,7 +3,14 @@
 DuoyunUI 自带主题、图标、文本，在应用中可以这样使用它们：
 
 ```ts
-import { createCSSSheet, css, adoptedStyle, customElement, GemElement, html } from '@mantou/gem';
+import {
+  createCSSSheet,
+  css,
+  adoptedStyle,
+  customElement,
+  GemElement,
+  html,
+} from '@mantou/gem';
 import { theme } from 'duoyun-ui/lib/theme';
 import { icons } from 'duoyun-ui/lib/icons';
 import { locale } from 'duoyun-ui/lib/locale';
@@ -108,3 +115,5 @@ export const i18n = new I18n<typeof zhCN>({
   },
 });
 ```
+
+[查看](https://github.com/mantou132/gem/tree/main/packages/duoyun-ui/src/locales)当前支持的语言。

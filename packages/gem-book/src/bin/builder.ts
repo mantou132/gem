@@ -181,20 +181,14 @@ export async function build(dir: string, options: Required<CliUniqueConfig>, boo
       isLocalSearch && {
         apply(compiler: Compiler) {
           compiler.hooks.compilation.tap('json-webpack-plugin', (compilation) => {
-            compilation.hooks.processAssets.tapPromise(
-              {
-                name: 'json-webpack-plugin',
-                stage: Compilation.PROCESS_ASSETS_STAGE_ADDITIONAL,
-              },
-              async () => {
-                Object.entries(genDocuments(docsDir, bookConfig)).forEach(([lang, documents]) => {
-                  compilation.emitAsset(
-                    ['documents', lang, 'json'].filter((e) => !!e).join('.'),
-                    new sources.RawSource(JSON.stringify(documents)),
-                  );
-                });
-              },
-            );
+            compilation.hooks.processAssets.tapPromise('json-webpack-plugin', async () => {
+              Object.entries(genDocuments(docsDir, bookConfig)).forEach(([lang, documents]) => {
+                compilation.emitAsset(
+                  ['documents', lang, 'json'].filter((e) => !!e).join('.'),
+                  new sources.RawSource(JSON.stringify(documents)),
+                );
+              });
+            });
           });
         },
       },

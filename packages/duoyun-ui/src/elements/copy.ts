@@ -56,7 +56,7 @@ const style = createCSSSheet(css`
     padding: 0.4em 0.6em;
     border-radius: ${theme.normalRound};
     white-space: nowrap;
-    filter: drop-shadow(rgba(0, 0, 0, calc(${theme.maskAlpha})) 0px 0.6em 1em);
+    filter: drop-shadow(rgba(0, 0, 0, calc(${theme.maskAlpha})) 0px 7px 14px);
   }
   .text {
     color: ${theme.backgroundColor};

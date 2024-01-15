@@ -3,7 +3,14 @@
 DuoyunUI comes with themes, icons, texts, and can be used in the application:
 
 ```ts
-import { createCSSSheet, css, adoptedStyle, customElement, GemElement, html } from '@mantou/gem';
+import {
+  createCSSSheet,
+  css,
+  adoptedStyle,
+  customElement,
+  GemElement,
+  html,
+} from '@mantou/gem';
 import { theme } from 'duoyun-ui/lib/theme';
 import { icons } from 'duoyun-ui/lib/icons';
 import { locale } from 'duoyun-ui/lib/locale';
@@ -71,6 +78,8 @@ const [icons, updateIcons] = extendIcons({
 });
 ```
 
+<!-- TODO: 使用第三方 svg 图标库示例 -->
+
 ## Customize text
 
 DuoyunUI defaults English, specifying Chinese and modifying a text:
@@ -107,3 +116,5 @@ export const i18n = new I18n<typeof zhCN>({
   },
 });
 ```
+
+[View](https://github.com/mantou132/gem/tree/main/packages/duoyun-ui/src/locales) current support languages.
