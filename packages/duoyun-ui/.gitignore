@@ -3,6 +3,8 @@
 # Compiler output
 /lib/
 /elements/
+/patterns/
+/helper/
 /react/
 /vue/
 /svelte/

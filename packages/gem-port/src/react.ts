@@ -46,12 +46,10 @@ function createReactSourceFile(elementFilePath: string, outDir: string) {
             }
           }
 
-          // 下面的以后可以删除，直接使用原生
-
           export type ${componentMethodsName} = {
             ${methods
               .map(({ name, deprecated }) =>
-                [getJsDocDescName(name, deprecated), `typeof ${constructorName}.prototype.${name}`].join(': '),
+                [getJsDocDescName(name, deprecated), `${constructorName}['${name}']`].join(': '),
               )
               .join(';\n')}
           }

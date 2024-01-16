@@ -88,7 +88,10 @@ export interface RouteOptions extends Omit<UpdateHistoryParams, 'path'> {
 // 从路由创建路径
 // 不包含 basePath
 export function createPath(route: RouteItem, options?: RouteOptions) {
-  let path = route.pattern;
+  // /a/* /a/:0
+  // /a/*/:b/* /a/:0/:b/:1
+  let i = 0;
+  let path = route.pattern.replaceAll('*', () => `:${i++}`);
   const params = options?.params;
   if (params) {
     Object.keys(params).forEach((key) => {

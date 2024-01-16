@@ -16,6 +16,8 @@
   },
   "exports": {
     "./elements/*": "./elements/*.js",
+    "./patterns/*": "./patterns/*.js",
+    "./helper/*": "./helper/*.js",
     "./react/*": "./react/*.js",
     "./vue/*": "./vue/*",
     "./svelte/*": "./svelte/*.js",
@@ -24,6 +26,8 @@
   },
   "files": [
     "/elements/",
+    "/patterns/",
+    "/helper/",
     "/react/",
     "/vue/",
     "/svelte/",
@@ -34,7 +38,7 @@
     "docs": "node scripts/hack-gbp-example && gem-book docs --plugin node_modules/gbp-example-hack",
     "docs:remote": "gem-book docs --plugin example",
     "build:docs": "gem-book docs --build --plugin example",
-    "build:components": "gem-port src/elements",
+    "build:components": "gem-port src/elements && gem-port src/patterns --svelte-ns=pat",
     "build:dev": "MODE=dev nodemon -w ../gem-port/bin --exec gem-port src/elements",
     "clean": "node -e \"fs.readdirSync('src').map(dir => require('rimraf').sync(dir))\"",
     "build": "yarn clean && tsc -p tsconfig.build.json",

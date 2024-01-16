@@ -298,6 +298,11 @@ export class Main extends GemElement {
           margin: 2rem 0px;
           border-radius: ${theme.normalRound};
         }
+        iframe {
+          width: 100%;
+          height: 60vh;
+          border: none;
+        }
         @media ${mediaQuery.PHONE} {
           .header-anchor {
             opacity: 1;

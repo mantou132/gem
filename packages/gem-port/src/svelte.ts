@@ -9,7 +9,7 @@ import {
   getRelativePath,
 } from './common';
 
-export function compileSvelte(elementsDir: string, outDir: string): void {
+export function compileSvelte(elementsDir: string, outDir: string, ns = ''): void {
   const fileSystem: Record<string, string> = {};
   getElementPathList(elementsDir).forEach((elementFilePath) => {
     const elementDetailList = getFileElements(elementFilePath);
@@ -22,7 +22,7 @@ export function compileSvelte(elementsDir: string, outDir: string): void {
           const relativePath = getRelativePath(elementFilePath, outDir);
           const basename = path.basename(relativePath);
           return [
-            basename + '.ts',
+            [ns, basename].filter((e) => !!e).join('-') + '.ts',
             `
             import type { HTMLAttributes } from "svelte/elements";
             import { ${constructorName} } from '${relativePath}';

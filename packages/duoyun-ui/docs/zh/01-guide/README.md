@@ -38,15 +38,21 @@ Toast.open('error', '发生了一个错误');
 DuoyunUI 支持以 ESM 的方法独立使用某一个元素，例如为你的网站添加键盘访问（按下 <kbd>f</kbd> 列出所有可聚焦元素）：
 
 ```ts
-import('https://esm.sh/duoyun-ui/elements/keyboard-access').then(({ DuoyunKeyboardAccessElement }) =>
-  document.body.append(new DuoyunKeyboardAccessElement()),
+import('https://esm.sh/duoyun-ui/elements/keyboard-access').then(
+  ({ DuoyunKeyboardAccessElement }) =>
+    document.body.append(new DuoyunKeyboardAccessElement()),
 );
 ```
 
 例如启用录屏模式：
 
 ```ts
-import('https://esm.sh/duoyun-ui/elements/input-capture').then(({ DuoyunInputCaptureElement }) =>
-  document.body.append(new DuoyunInputCaptureElement()),
+import('https://esm.sh/duoyun-ui/elements/input-capture').then(
+  ({ DuoyunInputCaptureElement }) =>
+    document.body.append(new DuoyunInputCaptureElement()),
 );
 ```
+
+## 改进 DuoyunUI
+
+请访问 [GitHub](https://github.com/mantou132/gem)

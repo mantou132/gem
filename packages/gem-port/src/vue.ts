@@ -73,7 +73,7 @@ export function generateVue(elementsDir: string, outDir: string): void {
         type ${componentMethodsName} = {
           ${methods
             .map(({ name, deprecated }) =>
-              [getJsDocDescName(name, deprecated), `typeof ${constructorName}.prototype.${name}`].join(': '),
+              [getJsDocDescName(name, deprecated), `${constructorName}['${name}']`].join(': '),
             )
             .join(';\n')}
         }

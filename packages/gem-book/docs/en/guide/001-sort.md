@@ -13,7 +13,8 @@ src/docs/
 ├── guide
 │   ├── README.md
 │   └── installation.md
-├── 003-about.md
+├── 300-faq.md
+├── 400-about.md
 └── README.md
 ```
 
@@ -26,10 +27,12 @@ Output sidebar:
 │ README
 │ Installation
 
+• FAQ
 • About
 ```
 
 > [!TIP]
+> The digital serial number in the file name can reserve a certain space, which is convenient for subsequent inserting documents between files.
 > Use [`reverse`](./004-metadata.md#dir) to reverse sort.
 > In addition, it is allowed to use links in documents without these weight numbers, but this will lose IDE support, so it is not recommended.
 
