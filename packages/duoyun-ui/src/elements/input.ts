@@ -142,6 +142,7 @@ const style = createCSSSheet(css`
  * @attr name
  * @attr value
  * @attr type
+ * @attr placeholder
  * @attr disabled
  * @attr autofocus
  * @attr clearable
@@ -160,7 +161,7 @@ export class DuoyunInputElement extends GemElement {
 
   @refobject inputRef: RefObject<HTMLInputElement>;
   @globalemitter change: Emitter<string>;
-  @emitter clear: Emitter;
+  @emitter clear: Emitter<string>;
 
   @attribute name: string;
   @attribute value: string;
@@ -283,7 +284,7 @@ export class DuoyunInputElement extends GemElement {
 
   #onClear = (evt: Event) => {
     evt.stopPropagation();
-    this.clear(null);
+    this.clear('');
     this.focus();
     this.#history.save();
   };

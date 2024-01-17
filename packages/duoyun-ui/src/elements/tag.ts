@@ -50,6 +50,7 @@ export type PresetColor = 'positive' | 'informative' | 'negative' | 'notice' | '
 /**
  * @customElement dy-tag
  * @attr small
+ * @attr closable
  * @fires close
  */
 @customElement('dy-tag')

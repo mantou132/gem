@@ -1,3 +1,5 @@
+import { pseudoRandom } from './number';
+
 function safeUrlToBase64Str(str: string) {
   return str.replaceAll('-', '+').replaceAll('_', '/');
 }
@@ -43,4 +45,20 @@ export async function hash(strOrAb: string | ArrayBuffer, output: 'string' | 'ar
   const buffer = await crypto.subtle.digest('SHA-1', ab);
   if (output === 'arrayBuffer') return buffer;
   return [...new Uint8Array(buffer)].map((e) => e.toString(16).padStart(2, '0')).join('');
+}
+
+// https://en.wikipedia.org/wiki/Fowler%E2%80%93Noll%E2%80%93Vo_hash_function
+/**output int */
+export function fnv1a(str: string) {
+  const FNV_OFFSET_BASIS = 2166136261;
+  const FNV_PRIME = 16777619;
+
+  let hash = FNV_OFFSET_BASIS;
+  for (let i = 0; i < str.length; i++) {
+    hash ^= str.charCodeAt(i);
+    hash *= FNV_PRIME;
+  }
+
+  // 减少连续性
+  return pseudoRandom(Math.abs(hash))();
 }

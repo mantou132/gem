@@ -28,7 +28,7 @@ const style = createCSSSheet(css`
     justify-content: center;
     font-size: 0.75em;
     white-space: nowrap;
-    border: 2px solid currentColor;
+    box-shadow: 0px 0px 0px 2px;
     border-radius: 100em;
     color: ${theme.backgroundColor};
     height: 1.5em;
@@ -48,7 +48,7 @@ const style = createCSSSheet(css`
     width: 1em;
   }
   @supports (anchor-name: --foo) {
-    .badge {
+    :host(:not(:where([data-inline], :state(inline)))) .badge {
       position: absolute;
       anchor-default: --anchor;
       top: anchor(top);
@@ -89,7 +89,7 @@ export class DuoyunBadgeElement extends GemElement {
   @part static badge: string;
 
   @attribute color: StringList<'positive' | 'informative' | 'notice'>;
-  @numattribute count: number;
+  @attribute count: number | string;
   @boolattribute dot: boolean;
   @boolattribute small: boolean;
   @numattribute max: number;
@@ -109,13 +109,14 @@ export class DuoyunBadgeElement extends GemElement {
   }
 
   mounted = () => {
+    this.inline = !this.childNodes.length;
     this.slotRef.element?.addEventListener('slotchange', () => {
       this.inline = !getAssignedElements(this.slotRef.element!).length;
     });
   };
 
   render = () => {
-    const value = this.count > this.#max ? `${this.#max}+` : `${this.count}`;
+    const value = Number(this.count) > this.#max ? `${this.#max}+` : `${this.count}`;
     return html`
       <slot ref=${this.slotRef.ref}></slot>
       ${this.count || this.icon || this.dot

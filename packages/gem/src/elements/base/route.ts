@@ -78,7 +78,7 @@ export interface RouteItem<T = unknown> {
   data?: T;
 }
 
-export type RoutesObject = Record<string, RouteItem>;
+export type RoutesObject<T = unknown> = Record<string, RouteItem<T>>;
 
 // params 中的成员不会验证
 export interface RouteOptions extends Omit<UpdateHistoryParams, 'path'> {

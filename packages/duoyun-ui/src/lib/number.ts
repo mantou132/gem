@@ -180,3 +180,20 @@ export function adjustRange([min, max]: number[], stepCount: number, units?: num
   const adjustedMax = adjustedMin + getTotal(unit);
   return [adjustedMin / scale, adjustedMax / scale];
 }
+
+export function pseudoRandom(seed: number) {
+  const MULTIPLIER = 48271;
+  const MODULUS = 2147483647;
+
+  let current = seed;
+
+  return () => {
+    current = (current * MULTIPLIER) % MODULUS;
+    return current;
+  };
+}
+
+/**output 0-1 */
+export function normalizeNumber(n: number) {
+  return parseFloat(`0.${[...Math.abs(n).toString()].reverse().join('')}`);
+}

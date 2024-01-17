@@ -2,9 +2,11 @@ import { html, render } from '@mantou/gem/lib/element';
 import { history } from '@mantou/gem/lib/history';
 import { Toast } from 'duoyun-ui/elements/toast';
 import { sleep } from 'duoyun-ui/lib/utils';
-import type { Menus, Routes, UserInfo, NavItems } from 'duoyun-ui/patterns/console';
+import { type Menus, type Routes, type UserInfo, type NavItems } from 'duoyun-ui/patterns/console';
 
 import 'duoyun-ui/patterns/console';
+import 'duoyun-ui/elements/badge';
+import 'duoyun-ui/elements/code-block';
 
 history.basePath = '/console';
 
@@ -12,35 +14,39 @@ const routes: Routes = {
   home: {
     pattern: '/',
     title: 'Home Page',
-    content: html`Home`,
+    getContent() {
+      import('./home');
+      return html`<console-page-home></console-page-home>`;
+    },
   },
   item1: {
     pattern: '/items/:id',
-    title: 'Item 1 in Group 1',
-    async getContent(params) {
+    title: 'Items Page',
+    async getContent() {
       await sleep(3000);
-      return html`Random Item, ID: ${JSON.stringify(params)}`;
+      import('./item');
+      return html`<console-page-item></console-page-item>`;
     },
   },
   item2: {
     pattern: '/item2',
-    title: 'Item 2 in Group 1',
-    content: html`Item 2`,
+    title: 'Page 2 in Group 1',
+    content: html`Page 2`,
   },
   item3: {
     pattern: '/item3',
-    title: 'Item 3 in Group 1',
-    content: html`Item 3`,
+    title: 'Page 3 in Group 1',
+    content: html`Page 3`,
   },
   item4: {
     pattern: '/item4',
-    title: 'Item 4 in Group 2',
-    content: html`Item 4`,
+    title: 'Page 4 in Group 2',
+    content: html`Page 4`,
   },
   item5: {
     pattern: '/item5',
-    title: 'Item 5 in Group 2',
-    content: html`Item 5`,
+    title: 'Page 5 in Group 2',
+    content: html`Page 5`,
   },
   about: {
     pattern: '/about',
@@ -57,6 +63,7 @@ const navItems: NavItems = [
       {
         ...routes.item1,
         params: { id: crypto.randomUUID() },
+        slot: html`<dy-badge small count="New"></dy-badge>`,
       },
       routes.item2,
       routes.item3,
@@ -104,26 +111,6 @@ const userInfo: UserInfo = {
 
 render(
   html`
-    <style>
-      :root {
-        font-family: -apple-system, system-ui, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial,
-          'Noto Sans', 'PingFang SC', sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol',
-          'Noto Color Emoji';
-        -moz-osx-font-smoothing: grayscale;
-        -webkit-font-smoothing: antialiased;
-      }
-      html {
-        height: 100%;
-        overflow: hidden;
-      }
-      body {
-        height: 100%;
-        overflow: auto;
-        scrollbar-width: thin;
-        margin: 0;
-        padding: 0;
-      }
-    </style>
     <dy-pat-console
       name="DuoyunUI"
       logo="https://duoyun-ui.gemjs.org/logo.png"
@@ -132,6 +119,7 @@ render(
       .menus=${menus}
       .userInfo=${userInfo}
       .keyboardAccess=${true}
+      .responsive=${true}
     ></dy-pat-console>
   `,
   document.body,

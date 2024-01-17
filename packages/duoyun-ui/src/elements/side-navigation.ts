@@ -1,4 +1,4 @@
-import { connectStore, adoptedStyle, customElement, property, part } from '@mantou/gem/lib/decorators';
+import { connectStore, adoptedStyle, customElement, property, part, state } from '@mantou/gem/lib/decorators';
 import { html, TemplateResult } from '@mantou/gem/lib/element';
 import { history } from '@mantou/gem/lib/history';
 import { createCSSSheet, css, QueryString } from '@mantou/gem/lib/utils';
@@ -6,13 +6,30 @@ import { createCSSSheet, css, QueryString } from '@mantou/gem/lib/utils';
 import { theme } from '../lib/theme';
 import { commonHandle } from '../lib/hotkeys';
 import { focusStyle } from '../lib/styles';
+import { createSVGFromText } from '../lib/image';
+import { commonColors } from '../lib/color';
 
 import { createPath, matchPath } from './route';
 import { DuoyunScrollBaseElement } from './base/scroll';
 
 import './link';
+import './use';
+
+const cache = new Map<string, string>();
+function getIcon(title: string) {
+  const icon =
+    cache.get(title) ||
+    createSVGFromText(title.replaceAll(/[^\w]/g, ''), {
+      translate: [0, 0],
+      rotate: 0,
+      colors: commonColors,
+    });
+  cache.set(title, icon);
+  return icon;
+}
 
 interface Item {
+  icon?: string | Element | DocumentFragment;
   title?: string;
   slot?: TemplateResult;
   pattern?: string;
@@ -47,7 +64,9 @@ const style = createCSSSheet(css`
   }
   .item {
     display: flex;
+    gap: 1em;
     justify-content: space-between;
+    align-items: center;
     position: relative;
     padding: 0.5em 0.75em;
     font-size: 0.875em;
@@ -56,7 +75,23 @@ const style = createCSSSheet(css`
     text-decoration: none;
     line-height: 1.2;
   }
-  .children .item {
+  .title-wrap {
+    display: flex;
+    align-items: center;
+    gap: 1em;
+    width: 0;
+    flex-grow: 1;
+  }
+  .icon {
+    flex-shrink: 0;
+    width: 1.2em;
+  }
+  .title {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  :host(:not(:where([data-compact], :state(:compact)))) .children .item {
     padding-inline-start: calc(0.75em + 1em);
   }
   .item:where(:hover, [data-active], :state(active)) {
@@ -78,6 +113,12 @@ const style = createCSSSheet(css`
     font-size: 0.7em;
     color: ${theme.describeColor};
   }
+  :host(:where([data-compact], :state(:compact))) :where(.group-title, .title, .title-wrap + *) {
+    display: none;
+  }
+  :host(:where([data-compact], :state(:compact))) :where(.item, .title-wrap) {
+    justify-content: center;
+  }
 `);
 
 type State = Record<string, boolean>;
@@ -96,6 +137,8 @@ export class DuoyunSideNavigationElement extends DuoyunScrollBaseElement<State> 
   @part static groupBody: string;
 
   @property items?: NavItems = [];
+
+  @state compact: boolean;
 
   // children open state
   state: State = {};
@@ -128,7 +171,17 @@ export class DuoyunSideNavigationElement extends DuoyunScrollBaseElement<State> 
     this.items?.forEach(matchChildren);
   };
 
-  #renderItem = ({ pattern, title = '<No Title>', slot, params, query, hash, children }: Item): TemplateResult => {
+  #renderItem = ({
+    pattern,
+    title = '<No Title>',
+    slot,
+    params,
+    query,
+    hash,
+    children,
+    icon,
+  }: Item): TemplateResult => {
+    const ico = icon || (this.compact && getIcon(title));
     return html`
       <dy-active-link
         class="item"
@@ -142,7 +195,11 @@ export class DuoyunSideNavigationElement extends DuoyunScrollBaseElement<State> 
         hash=${hash || ''}
         pattern=${!pattern ? '' : pattern.endsWith('*') ? pattern : `${pattern}/*`}
       >
-        <span>${title}</span>${slot}
+        <div class="title-wrap">
+          ${ico ? html`<dy-use class="icon" .element=${ico}></dy-use>` : ''}
+          <span class="title">${title}</span>
+        </div>
+        ${slot}
       </dy-active-link>
       ${children && this.state[title] ? html`<div class="children">${children.map(this.#renderItem)}</div>` : ''}
     `;
@@ -157,6 +214,7 @@ export class DuoyunSideNavigationElement extends DuoyunScrollBaseElement<State> 
 
   render = () => {
     if (!this.items?.length) return html``;
+    this.compact = this.contentRect.width < 100;
     return html`${this.items.map((item) =>
       'group' in item
         ? html`

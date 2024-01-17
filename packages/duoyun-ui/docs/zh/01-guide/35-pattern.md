@@ -2,7 +2,6 @@
 
 DuoyunUI 提供一些比较复杂的元素，通常由多个 DuoyunUI 元素组成，使用它们可以快速完成一些通用需求，比如创建一个落地页、控制后台，它们有一些独特的特点：
 
-- 内容渲染成 Light DOM
 - 元素名称为 `<dy-pat-*>`
 - 元素类名为 `DyPat*Element`
 
@@ -29,8 +28,6 @@ render(
 
 > [!NOTE]
 >
-> - 不要尝试在模式元素中添加子元素
-> - 避免使用通用 CSS 选择器以防止意外的样式化模式元素内容
 > - [使用 React 组件](./60-integrate.md)时无需指定 `pattern` 路径，模式元素和其他 DuoyunUI 输出在同一个目录中：
 >   ```js
 >   import 'duoyun-ui/react/DyPatConsole';
@@ -39,28 +36,6 @@ render(
 >   ```js
 >   import 'duoyun-ui/svelte/pat-console';
 >   ```
-
-## 自定义模式元素
-
-要对模式元素的内容进行一些样式定制，可以通过外部 `<style>` 来进行，这得益于模式元素使用 Light DOM，例如：
-
-```js
-import 'duoyun-ui/patterns/console';
-
-render(
-  html`
-    <style>
-      dy-pat-console .sidebar {
-        width: 21em;
-      }
-    </style>
-    <dy-pat-console></dy-pat-console>
-  `,
-  document.body,
-);
-```
-
-当然，更强大的方式是复制粘贴。
 
 ## 例子
 

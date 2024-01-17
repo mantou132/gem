@@ -21,7 +21,7 @@ import '../elements/link';
 
 export const locationStore = DuoyunRouteElement.createLocationStore();
 
-export type Routes = RoutesObject | RouteItem[];
+export type Routes<T = unknown> = RoutesObject<T> | RouteItem<T>[];
 export type { NavItems } from '../elements/side-navigation';
 export type Menus = ContextMenuItem[];
 export type UserInfo = {
@@ -31,7 +31,7 @@ export type UserInfo = {
   profile?: string;
 };
 
-const style = createCSSSheet(css`
+const rules = css`
   dy-pat-console {
     display: flex;
     color: ${theme.textColor};
@@ -51,11 +51,11 @@ const style = createCSSSheet(css`
   }
   dy-pat-console .logo {
     display: block;
-    height: 5em;
+    height: 4em;
     width: max-content;
     /* logo must padding */
     margin-inline-start: -0.2em;
-    margin-block: 0em 1em;
+    margin-block: 0em 2em;
   }
   dy-pat-console .navigation {
     flex-grow: 1;
@@ -112,6 +112,64 @@ const style = createCSSSheet(css`
     padding: calc(2 * ${theme.gridGutter});
     max-width: 80em;
   }
+  dy-pat-console[responsive] {
+    @media ${mediaQuery.PHONE_LANDSCAPE} {
+      .sidebar {
+        width: 4.5em;
+        padding: 2em 1em 1em;
+      }
+      .navigation {
+        font-size: 1.3em;
+        margin-block-end: 2em;
+      }
+      .user-info {
+        justify-content: center;
+      }
+      :is(.logo, .avatar, .user) {
+        display: none;
+      }
+    }
+  }
+`;
+
+// https://bugzilla.mozilla.org/show_bug.cgi?id=1830512
+const style = createCSSSheet(
+  'CSSScopeRule' in window
+    ? `
+        @scope (body) to (dy-light-route) {
+          ${rules}
+        }
+      `
+    : rules,
+);
+
+const globalStyle = createCSSSheet(css`
+  ::selection,
+  ::target-text {
+    color: white;
+    background: ${theme.primaryColor};
+  }
+  ::highlight(search) {
+    color: white;
+    background: ${theme.informativeColor};
+  }
+  :root {
+    font-family: -apple-system, system-ui, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans',
+      'PingFang SC', sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+    -moz-osx-font-smoothing: grayscale;
+    -webkit-font-smoothing: antialiased;
+  }
+  html {
+    height: 100%;
+    overflow: hidden;
+  }
+  body {
+    height: 100%;
+    overflow: auto;
+    scrollbar-width: thin;
+    margin: 0;
+    padding: 0;
+  }
 `);
 
 /**
@@ -119,9 +177,11 @@ const style = createCSSSheet(css`
  */
 @customElement('dy-pat-console')
 @adoptedStyle(style)
+@adoptedStyle(globalStyle)
 export class DyPatConsoleElement extends GemElement {
   @boolattribute keyboardAccess: boolean;
   @boolattribute screencastMode: boolean;
+  @boolattribute responsive: boolean;
   @attribute logo: string;
   @attribute name: string;
 

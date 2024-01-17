@@ -1,6 +1,8 @@
 import { raw } from '@mantou/gem/lib/utils';
 
 import { luminance, hslToRgb, HSL, HexColor, rgbToHexColor, parseHexColor } from './color';
+import { fnv1a } from './encode';
+import { pseudoRandom, normalizeNumber } from './number';
 
 export function createCanvas(width?: number, height?: number) {
   const canvas = document.createElement('canvas');
@@ -16,33 +18,48 @@ export function createDataURLFromSVG(raw: string) {
 }
 
 // if `bg` is't `HexColor`, text fill color error
-/**Create SVG according to the text, the text will rotate some angles randomly */
-export function createSVGFromText(text: string, backgroundColor?: string) {
+/**Create SVG according to the text */
+export function createSVGFromText(
+  text: string,
+  options: {
+    /**background color */
+    color?: HexColor;
+    colors?: HexColor[];
+    showLen?: number;
+    rotate?: number;
+    translate?: number[];
+  } = {},
+) {
+  const genRandom = pseudoRandom(fnv1a(text));
+  const random = () => normalizeNumber(genRandom());
   const hslRange = [
     [0, 1],
     [0.2, 0.7],
     [0.3, 0.6],
   ];
-  const rgb = backgroundColor?.startsWith('#')
-    ? parseHexColor(backgroundColor as HexColor)
-    : hslToRgb(
-        Array.from({ length: 3 }, (_, i) => {
-          const total = Math.floor(Math.random() * 256) / 255;
-          return hslRange[i][0] + total * (hslRange[i][1] - hslRange[i][0]);
-        }) as unknown as HSL,
-      );
-  const bg = backgroundColor || rgbToHexColor(rgb);
+  const rgb = options.color
+    ? parseHexColor(options.color)
+    : options.colors
+      ? parseHexColor(options.colors[Math.floor(random() * options.colors.length)])
+      : hslToRgb(
+          Array.from({ length: 3 }, (_, i) => {
+            const total = Math.floor(random() * 256) / 255;
+            return hslRange[i][0] + total * (hslRange[i][1] - hslRange[i][0]);
+          }) as unknown as HSL,
+        );
+  const bg = rgbToHexColor(rgb);
   const color = luminance(rgb) < 0.2 ? '#fff4' : '#0004';
-  const getTranslate = () => Math.random() / 5;
-  const getRotate = () => (Math.random() - 0.5) * 45;
+  const getTranslate = () => options.translate ?? [random() / 5, random() / 5];
+  const getRotate = () => options.rotate ?? (random() - 0.5) * 45;
 
-  const strings = [...text].map(
+  const strings = [...text].slice(0, options?.showLen || 1).map(
     (char) => `<text
       x="50%"
       y="50%"
-      dominant-baseline="middle"
+      dominant-baseline="central"
       text-anchor="middle"
-      transform="translate(${getTranslate()}, ${getTranslate()}) rotate(${getRotate()})"
+      transform-origin="center"
+      transform="translate(${getTranslate().join()}) rotate(${getRotate()})"
     >${char}</text>`,
   );
   return raw`

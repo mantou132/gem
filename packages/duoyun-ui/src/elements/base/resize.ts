@@ -29,10 +29,11 @@ export function resizeObserver(ele: DuoyunResizeBaseElement, options: { throttle
   return () => ro.disconnect();
 }
 
+export type DuoyunResizeBaseElementOptions = GemElementOptions & { throttle?: boolean };
 export class DuoyunResizeBaseElement<_T = Record<string, unknown>> extends GemElement {
   @emitter resize: Emitter<ResizeDetail>;
 
-  constructor(options: GemElementOptions & { throttle?: boolean } = {}) {
+  constructor(options: DuoyunResizeBaseElementOptions = {}) {
     super(options);
     this.effect(
       () => resizeObserver(this, options),

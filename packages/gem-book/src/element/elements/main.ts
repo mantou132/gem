@@ -300,8 +300,10 @@ export class Main extends GemElement {
         }
         iframe {
           width: 100%;
-          height: 60vh;
-          border: none;
+          box-sizing: border-box;
+          height: max(35em, 60vh);
+          border: 1px solid ${theme.borderColor};
+          border-radius: ${theme.normalRound};
         }
         @media ${mediaQuery.PHONE} {
           .header-anchor {

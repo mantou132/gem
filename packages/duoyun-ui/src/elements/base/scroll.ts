@@ -1,8 +1,7 @@
 import { adoptedStyle, state } from '@mantou/gem/lib/decorators';
-import { GemElementOptions } from '@mantou/gem/lib/element';
 import { createCSSSheet, css } from '@mantou/gem/lib/utils';
 
-import { DuoyunResizeBaseElement } from './resize';
+import { DuoyunResizeBaseElement, DuoyunResizeBaseElementOptions } from './resize';
 
 const PIXEL_DEVIATION = 0.1;
 
@@ -63,7 +62,7 @@ export class DuoyunScrollBaseElement<_T = Record<string, unknown>> extends Duoyu
   @state bottomOverflow: boolean;
   @state leftOverflow: boolean;
 
-  constructor(options?: GemElementOptions) {
+  constructor(options?: DuoyunResizeBaseElementOptions) {
     super(options);
     this.addEventListener('scroll', this.#check);
     this.addEventListener('scrollend', this.#check);
