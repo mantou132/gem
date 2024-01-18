@@ -6,12 +6,12 @@ import { theme } from '../lib/theme';
 // global style: `::selection`, `::target-text`, `::highlight`
 // https://bugzilla.mozilla.org/show_bug.cgi?id=1868009
 export const focusStyle = createCSSSheet(css`
-  :host(:focus),
-  :focus {
+  :host(:where(:focus)),
+  :where(:focus) {
     outline: none;
   }
-  :host(:focus-visible),
-  :focus-visible {
+  :host(:where(:focus-visible)),
+  :where(:focus-visible) {
     outline: 2px solid ${theme.focusColor};
     outline-offset: -2px;
   }

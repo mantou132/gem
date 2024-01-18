@@ -389,3 +389,8 @@ export function createCacheStore<T extends Record<string, any>>(
   const [store, , save] = useCacheStore(storageKey, initStore, options);
   return [store, save] as const;
 }
+
+// 是链接需要使用 img 渲染
+export function isRemoteIcon(icon: string | Element | DocumentFragment): icon is string {
+  return typeof icon === 'string' && !!icon.trim().match(/^(http|[./])/);
+}

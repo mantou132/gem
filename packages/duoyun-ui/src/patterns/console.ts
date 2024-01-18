@@ -12,6 +12,7 @@ import type { NavItems } from '../elements/side-navigation';
 import type { DuoyunUseElement } from '../elements/use';
 import { DuoyunRouteElement, RouteItem, RoutesObject } from '../elements/route';
 import { ContextMenu, ContextMenuItem } from '../elements/contextmenu';
+import { isRemoteIcon } from '../lib/utils';
 
 import '../elements/title';
 import '../elements/use';
@@ -142,7 +143,8 @@ const style = createCSSSheet(
     : rules,
 );
 
-const globalStyle = createCSSSheet(css`
+// 禁止向皮条
+const consoleStyle = createCSSSheet(css`
   ::selection,
   ::target-text {
     color: white;
@@ -152,22 +154,19 @@ const globalStyle = createCSSSheet(css`
     color: white;
     background: ${theme.informativeColor};
   }
-  :root {
+  :where(:root) {
     font-family: -apple-system, system-ui, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans',
       'PingFang SC', sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
     -moz-osx-font-smoothing: grayscale;
     -webkit-font-smoothing: antialiased;
-  }
-  html {
     height: 100%;
     overflow: hidden;
   }
-  body {
+  :where(body) {
     height: 100%;
     overflow: auto;
-    scrollbar-width: thin;
+    overscroll-behavior: none;
     margin: 0;
-    padding: 0;
   }
 `);
 
@@ -176,14 +175,14 @@ const globalStyle = createCSSSheet(css`
  */
 @customElement('dy-pat-console')
 @adoptedStyle(style)
-@adoptedStyle(globalStyle)
+@adoptedStyle(consoleStyle)
 export class DyPatConsoleElement extends GemElement {
   @boolattribute keyboardAccess: boolean;
   @boolattribute screencastMode: boolean;
   @boolattribute responsive: boolean;
-  @attribute logo: string;
   @attribute name: string;
 
+  @property logo: string | Element | DocumentFragment;
   @property routes?: Routes;
   @property navItems?: NavItems;
   @property contextMenus?: ContextMenus;
@@ -224,7 +223,7 @@ export class DyPatConsoleElement extends GemElement {
     return html`
       <dy-title hidden .suffix=${mediaQuery.isPWA ? '' : this.name && ` - ${this.name}`}></dy-title>
       <div class="sidebar">
-        ${this.logo.trim().match(/^(http|[./])/)
+        ${isRemoteIcon(this.logo)
           ? html`<img class="logo" alt="Logo" src=${this.logo}></img>`
           : html`<dy-use class="logo" .element=${this.logo}></dy-use>`}
         <dy-side-navigation class="navigation" .items=${this.navItems}></dy-side-navigation>

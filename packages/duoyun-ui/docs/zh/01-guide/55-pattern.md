@@ -17,7 +17,7 @@ render(
   html`
     <dy-pat-console
       name="DuoyunUI"
-      logo="https://duoyun-ui.gemjs.org/logo.png"
+      .logo=${'https://duoyun-ui.gemjs.org/logo.png'}
       .routes=${routes}
       .navItems=${navItems}
       .contextMenus=${contextMenus}

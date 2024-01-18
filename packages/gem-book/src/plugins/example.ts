@@ -260,6 +260,23 @@ customElements.whenDefined('gem-book').then(({ GemBookPluginElement }: typeof Ge
     };
 
     mounted = () => {
+      let propsList: Props[] = [];
+      let textContentIsProps = false;
+      try {
+        const obj = JSON.parse(this.textContent!) as Props | Props[];
+        propsList = Array.isArray(obj) ? obj : [obj];
+        textContentIsProps = true;
+      } catch {
+        const props = JSON.parse(this.props || '{}');
+        if (this.html) props.innerHTML = this.html;
+        propsList = [props];
+        textContentIsProps = false;
+      }
+      this.setState({
+        textContentIsProps,
+        code: propsList?.map((props, index) => html`${index ? '\n' : ''}${this.#renderCode(props)}`),
+      });
+
       Promise.all(
         this.src
           .trim()
@@ -267,29 +284,18 @@ customElements.whenDefined('gem-book').then(({ GemBookPluginElement }: typeof Ge
           .map((src) => this.#loadResource(src)),
       )
         .then(() => {
-          let propsList: Props[] = [];
-          let textContentIsProps = false;
-          try {
-            const obj = JSON.parse(this.textContent!) as Props | Props[];
-            propsList = Array.isArray(obj) ? obj : [obj];
-            textContentIsProps = true;
-          } catch {
-            const props = JSON.parse(this.props || '{}');
-            if (this.html) props.innerHTML = this.html;
-            propsList = [props];
-            textContentIsProps = false;
-          }
           if (this.hidden) return;
           this.setState({
             loading: false,
             error: false,
-            code: propsList?.map((props, index) => html`${index ? '\n' : ''}${this.#renderCode(props)}`),
-            textContentIsProps,
             elements: propsList.map((props) => this.#renderElement(props)),
           });
         })
         .catch((evt: ErrorEvent) => {
-          this.setState({ error: evt.error || 'Load Error!', loading: false });
+          this.setState({
+            error: evt.error || 'Load Error!',
+            loading: false,
+          });
           this.error(evt);
         });
     };

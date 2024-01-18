@@ -1,0 +1,278 @@
+import { GemElement, html } from '@mantou/gem/lib/element';
+import { Emitter, adoptedStyle, customElement, globalemitter, property } from '@mantou/gem/lib/decorators';
+import { createCSSSheet, css } from '@mantou/gem/lib/utils';
+import { mediaQuery } from '@mantou/gem/helper/mediaquery';
+
+import { theme } from '../lib/theme';
+import { icons } from '../lib/icons';
+import { isRemoteIcon } from '../lib/utils';
+import { focusStyle } from '../lib/styles';
+
+import '../elements/link';
+import '../elements/use';
+import '../elements/divider';
+
+type Link = {
+  label: string;
+  href: string;
+};
+
+type SocialItem = {
+  icon: string | Element | DocumentFragment;
+} & Link;
+
+export type Social = {
+  label: string;
+  items: SocialItem[];
+};
+
+export type Links = {
+  label: string;
+  href?: string;
+  items?: Link[];
+}[];
+
+export type Terms = Link[];
+
+export type Help = Link;
+
+export type Languages = {
+  current: string;
+  /**language code -> display name */
+  names: Record<string, string>;
+};
+
+const style = createCSSSheet(css`
+  dy-pat-footer {
+    display: block;
+    background: ${theme.lightBackgroundColor};
+    line-height: 1.7;
+  }
+  dy-pat-footer dy-link {
+    outline-offset: 0;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5em;
+  }
+  dy-pat-footer .outward {
+    width: 1.2em;
+  }
+  dy-pat-footer footer {
+    container-type: inline-size;
+    max-width: 80em;
+    margin: auto;
+  }
+  @container (width < 80em) {
+    dy-pat-footer :is(.social, .links, .terms-wrap) {
+      padding-inline: 2em;
+    }
+    dy-pat-footer .outward {
+      display: none;
+    }
+  }
+  dy-pat-footer ul {
+    display: contents;
+    padding: 0;
+    margin: 0;
+  }
+  dy-pat-footer li {
+    list-style: none;
+  }
+  dy-pat-footer :is(.terms, .social) {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 2em;
+  }
+  dy-pat-footer :is(.terms-nav, .help, .social ul) {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 1.5em;
+  }
+  dy-pat-footer :is(.links, .terms-nav, .help) :where(dy-link, select):not(:hover) {
+    opacity: 0.65;
+  }
+  dy-pat-footer .social {
+    padding-block: 1.5em;
+  }
+  dy-pat-footer .social li {
+    display: contents;
+  }
+  dy-pat-footer h3 {
+    margin: 0;
+    font-weight: 500;
+    font-size: 1em;
+  }
+  dy-pat-footer .icon {
+    width: 2em;
+  }
+  dy-pat-footer .links {
+    padding-block: 2.5em;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1em;
+  }
+  dy-pat-footer .column {
+    width: 0;
+    min-width: 10em;
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.6em;
+  }
+  dy-pat-footer h4 {
+    font-weight: 500;
+    margin-block: 0 1em;
+    font-size: 1em;
+  }
+  dy-pat-footer .terms-wrap {
+    display: flex;
+    gap: 2em;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    padding-block: 1.5em 3em;
+  }
+  dy-pat-footer .logo {
+    height: 4em;
+  }
+  dy-pat-footer .languages {
+    min-width: 10em;
+    font-size: 1em;
+    border: none;
+    border-bottom: 1px solid;
+    background: transparent;
+    padding-block: 0.25em;
+  }
+`);
+
+const mobileStyle = createCSSSheet(
+  css`
+    dy-pat-footer .column {
+      width: 100%;
+    }
+    dy-pat-footer .column + .column {
+      border-block-start: 1px solid ${theme.borderColor};
+      padding-block-start: 1em;
+    }
+  `,
+  mediaQuery.PHONE,
+);
+
+/**
+ * @customElement dy-pat-footer
+ */
+@customElement('dy-pat-footer')
+@adoptedStyle(mobileStyle)
+@adoptedStyle(style)
+@adoptedStyle(focusStyle)
+export class DyPatFooterElement extends GemElement {
+  @property social?: Social;
+  @property links?: Links;
+
+  @property logo?: string | Element | DocumentFragment;
+  @property terms?: Terms;
+
+  @property help?: Help;
+  @property languages?: Languages;
+
+  @globalemitter languagechange: Emitter<string>;
+
+  constructor() {
+    super({ isLight: true });
+  }
+
+  #isOutwardLink(href: string) {
+    return new URL(href, location.origin).origin !== location.origin;
+  }
+
+  #onChange = (evt: Event) => {
+    evt.stopPropagation();
+    this.languagechange((evt.target as HTMLSelectElement).value);
+  };
+
+  #renderIcon({ icon, label }: Omit<SocialItem, 'href'>, className = '') {
+    return isRemoteIcon(icon)
+      ? html`<img title=${label} class=${className} src=${icon}></img>`
+      : html`<dy-use title=${label} class=${className} .element=${icon}></dy-use>`;
+  }
+
+  #renderLinks(items: Link[] | SocialItem[], renderOutward = false) {
+    return html`
+      <ul>
+        ${items.map(
+          (item) => html`
+            <li>
+              <dy-link href=${item.href}>
+                ${'icon' in item
+                  ? this.#renderIcon(item, 'icon')
+                  : html`
+                      ${item.label}
+                      ${renderOutward && this.#isOutwardLink(item.href)
+                        ? html`<dy-use class="outward" .element=${icons.outward}></dy-use>`
+                        : ''}
+                    `}
+              </dy-link>
+            </li>
+          `,
+        )}
+      </ul>
+    `;
+  }
+
+  render = () => {
+    return html`
+      <footer>
+        ${this.social
+          ? html`
+              <div class="social">
+                <h3>${this.social.label}</h3>
+                ${this.#renderLinks(this.social.items)}
+              </div>
+              <dy-divider size="small"></dy-divider>
+            `
+          : ''}
+
+        <nav class="links">
+          ${this.links?.map(
+            ({ label, items }) => html`
+              <div class="column">
+                <h4>${label}</h4>
+                ${items && this.#renderLinks(items, true)}
+              </div>
+            `,
+          )}
+        </nav>
+
+        <dy-divider size="small"></dy-divider>
+
+        <div class="terms-wrap">
+          <div class="terms">
+            ${this.logo ? html`<div>${this.#renderIcon({ icon: this.logo, label: 'Logo' }, 'logo')}</div>` : ''}
+            ${this.terms ? html`<nav class="terms-nav">${this.#renderLinks(this.terms)}</nav>` : ''}
+          </div>
+          <div class="help">
+            ${this.help
+              ? html`
+                  <dy-link href=${this.help.href}>
+                    <dy-use .element=${icons.help} style="gap: 0.5em">${this.help.label}</dy-use>
+                  </dy-link>
+                `
+              : ''}
+            ${this.languages
+              ? html`
+                  <select class="languages" @change=${this.#onChange}>
+                    ${Object.entries(this.languages.names).map(
+                      ([lang, name]) => html`
+                        <option ?selected=${this.languages?.current === lang} value=${lang}>${name}</option>
+                      `,
+                    )}
+                  </select>
+                `
+              : ``}
+          </div>
+        </div>
+      </footer>
+    `;
+  };
+}
