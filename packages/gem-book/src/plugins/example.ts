@@ -19,7 +19,7 @@ customElements.whenDefined('gem-book').then(({ GemBookPluginElement }: typeof Ge
   const { html, customElement, attribute, createCSSSheet, css, adoptedStyle, styleMap } = Gem;
 
   const style = createCSSSheet(css`
-    :host {
+    :host(:where(:not([hidden]))) {
       display: flex;
       flex-direction: column;
       margin: 2rem 0px;
@@ -277,6 +277,7 @@ customElements.whenDefined('gem-book').then(({ GemBookPluginElement }: typeof Ge
             propsList = [props];
             textContentIsProps = false;
           }
+          if (this.hidden) return;
           this.setState({
             loading: false,
             error: false,
@@ -293,6 +294,7 @@ customElements.whenDefined('gem-book').then(({ GemBookPluginElement }: typeof Ge
 
     render = () => {
       const { error, loading, code, elements, textContentIsProps } = this.state;
+      if (this.hidden) return html``;
       const slot = textContentIsProps ? '' : html`<slot></slot>`;
       return html`
         <div class="preview" style=${styleMap({ flexDirection: this.#direction })}>

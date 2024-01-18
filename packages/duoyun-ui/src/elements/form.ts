@@ -228,6 +228,7 @@ export class DuoyunFormItemElement extends GemElement<FormItemState> {
     | 'text'
     | 'password'
     | 'date'
+    | 'date-time'
     | 'date-range'
     | 'number'
     | 'checkbox'
@@ -247,7 +248,6 @@ export class DuoyunFormItemElement extends GemElement<FormItemState> {
   @boolattribute disabled: boolean;
   @boolattribute searchable: boolean;
   @boolattribute clearable: boolean;
-  @boolattribute time: boolean;
   @boolattribute loading: boolean;
 
   @state invalid: boolean;
@@ -367,7 +367,7 @@ export class DuoyunFormItemElement extends GemElement<FormItemState> {
               .renderLabel=${this.renderLabel}
             ></dy-select>
           `
-        : this.#type === 'date'
+        : this.#type === 'date' || this.#type === 'date-time'
           ? html`
               <dy-date-picker
                 class="input"
@@ -375,7 +375,7 @@ export class DuoyunFormItemElement extends GemElement<FormItemState> {
                 @clear=${(evt: any) => evt.target.change(undefined)}
                 ?disabled=${this.disabled}
                 .value=${this.value}
-                .time=${this.time}
+                .time=${this.#type === 'date-time'}
                 .placeholder=${this.placeholder}
                 .clearable=${!this.required}
               >

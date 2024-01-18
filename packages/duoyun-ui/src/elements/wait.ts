@@ -37,7 +37,7 @@ interface WaitOptions {
 
 let totalPromise: Promise<any> = Promise.resolve();
 
-export async function waitLoading<T>(promise: Promise<T>, options: WaitOptions & Partial<State> = {}): Promise<T> {
+export async function waitLoading<T>(promise: Promise<T> | T, options: WaitOptions & Partial<State> = {}): Promise<T> {
   const { minDelay = 500 } = options;
   const isLongPromise = Symbol();
   const r = await Promise.any<typeof isLongPromise | T>([sleep(16).then(() => isLongPromise), promise]);
@@ -124,8 +124,10 @@ export class DuoyunWaitElement extends GemElement<State> {
     );
   };
 
+  #removedResolve?: (_?: unknown) => void;
   unmounted = () => {
     DuoyunWaitElement.instance = undefined;
+    this.#removedResolve?.();
   };
 
   render = () => {
@@ -147,4 +149,8 @@ export class DuoyunWaitElement extends GemElement<State> {
       <dy-loading>${text}</dy-loading>
     `;
   };
+
+  // 多个 promise 可能共享同一个 wait 元素，只能通过实例来判断是否结束
+  // 和其他 modal 元素一起使用时需通过 instance 来判断，避免 inert 设置错误
+  removed = new Promise((res) => (this.#removedResolve = res));
 }

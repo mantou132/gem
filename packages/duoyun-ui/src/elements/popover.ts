@@ -13,7 +13,7 @@ import {
 import { GemElement, html, TemplateResult } from '@mantou/gem/lib/element';
 import { addListener, createCSSSheet, css, styleMap, StyleObject } from '@mantou/gem/lib/utils';
 
-import { toggleActiveState, getAssignedElements, getBoundingClientRect } from '../lib/element';
+import { toggleActiveState, getBoundingClientRect } from '../lib/element';
 import { sleep, setBodyInert } from '../lib/utils';
 import { hotkeys } from '../lib/hotkeys';
 import { theme } from '../lib/theme';
@@ -190,7 +190,7 @@ export class DuoyunPopoverElement extends GemElement<PopoverState> {
     let rect = targetRect;
     if (!rect) {
       // self is `display: contents`
-      let elements = getAssignedElements(this.slotRef.element!);
+      let elements = this.slotRef.element!.assignedElements({ flatten: true });
       if (!elements.length) {
         elements = [this];
         this.style.display = 'inline';

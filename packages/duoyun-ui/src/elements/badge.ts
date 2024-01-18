@@ -17,7 +17,6 @@ import { classMap, createCSSSheet, css } from '@mantou/gem/lib/utils';
 import { contentsContainer } from '../lib/styles';
 import { getSemanticColor, theme } from '../lib/theme';
 import { StringList } from '../lib/types';
-import { getAssignedElements } from '../lib/element';
 
 import './use';
 
@@ -111,7 +110,7 @@ export class DuoyunBadgeElement extends GemElement {
   mounted = () => {
     this.inline = !this.childNodes.length;
     this.slotRef.element?.addEventListener('slotchange', () => {
-      this.inline = !getAssignedElements(this.slotRef.element!).length;
+      this.inline = !this.slotRef.element!.assignedElements({ flatten: true }).length;
     });
   };
 

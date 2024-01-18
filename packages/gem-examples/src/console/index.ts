@@ -2,15 +2,17 @@ import { html, render } from '@mantou/gem/lib/element';
 import { history } from '@mantou/gem/lib/history';
 import { Toast } from 'duoyun-ui/elements/toast';
 import { sleep } from 'duoyun-ui/lib/utils';
-import { type Menus, type Routes, type UserInfo, type NavItems } from 'duoyun-ui/patterns/console';
+import { type ContextMenus, type Routes, type UserInfo, type NavItems } from 'duoyun-ui/patterns/console';
 
 import 'duoyun-ui/patterns/console';
 import 'duoyun-ui/elements/badge';
 import 'duoyun-ui/elements/code-block';
 
+import 'duoyun-ui/helper/error';
+
 history.basePath = '/console';
 
-const routes: Routes = {
+const routes = {
   home: {
     pattern: '/',
     title: 'Home Page',
@@ -19,12 +21,12 @@ const routes: Routes = {
       return html`<console-page-home></console-page-home>`;
     },
   },
-  item1: {
+  item: {
     pattern: '/items/:id',
-    title: 'Items Page',
+    title: 'Item Page',
     async getContent() {
-      await sleep(3000);
-      import('./item');
+      await sleep(500);
+      await import('./item');
       return html`<console-page-item></console-page-item>`;
     },
   },
@@ -53,7 +55,7 @@ const routes: Routes = {
     title: `About`,
     content: html`About`,
   },
-};
+} satisfies Routes;
 
 const navItems: NavItems = [
   routes.home,
@@ -61,7 +63,7 @@ const navItems: NavItems = [
     title: 'Group 1',
     group: [
       {
-        ...routes.item1,
+        ...routes.item,
         params: { id: crypto.randomUUID() },
         slot: html`<dy-badge small count="New"></dy-badge>`,
       },
@@ -76,29 +78,29 @@ const navItems: NavItems = [
   routes.about,
 ];
 
-const menus: Menus = [
+const contextMenus: ContextMenus = [
   {
-    text: 'Test',
-    handle: () => Toast.open('default', 'Click Menu Test'),
+    text: 'Command',
+    handle: () => Toast.open('default', 'Click Menu Command'),
   },
   {
-    text: 'Test 1',
-    handle: () => Toast.open('default', 'Click Menu Test 1'),
+    text: 'Command 1',
+    handle: () => Toast.open('default', 'Click Menu Command 1'),
   },
   {
-    text: 'Test 2',
-    handle: () => Toast.open('default', 'Click Menu Test 2'),
+    text: 'Command 2',
+    handle: () => Toast.open('default', 'Click Menu Command 2'),
   },
   {
-    text: 'Test 3',
-    handle: () => Toast.open('default', 'Click Menu Test 3'),
+    text: 'Command 3',
+    handle: () => Toast.open('default', 'Click Menu Command 3'),
   },
   {
     text: '---',
   },
   {
-    text: 'Test 4',
-    handle: () => Toast.open('error', 'Click Menu Test 4'),
+    text: 'Logout',
+    handle: () => Toast.open('error', 'No Implement!'),
     danger: true,
   },
 ];
@@ -116,7 +118,7 @@ render(
       logo="https://duoyun-ui.gemjs.org/logo.png"
       .routes=${routes}
       .navItems=${navItems}
-      .menus=${menus}
+      .contextMenus=${contextMenus}
       .userInfo=${userInfo}
       .keyboardAccess=${true}
       .responsive=${true}

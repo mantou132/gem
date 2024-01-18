@@ -1,13 +1,5 @@
 import { GemElement } from '@mantou/gem/lib/element';
 
-export function getAssignedElements(ele: HTMLSlotElement): Element[] {
-  const es = ele!.assignedElements();
-  if (es[0] instanceof HTMLSlotElement) {
-    return getAssignedElements(es[0]);
-  }
-  return es;
-}
-
 export function getBoundingClientRect(eleList: Element[]) {
   const rects = eleList.map((e) => e.getBoundingClientRect());
   return {

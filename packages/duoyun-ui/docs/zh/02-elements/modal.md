@@ -5,7 +5,7 @@
 <gbp-example
   name="dy-modal"
   props='{"header": "Title", "open": true, "@ok": "(evt) => evt.target.open = false", "@close": "(evt) => evt.target.open = false", "@maskclick": "(evt) => evt.target.open = false"}'
-  html='<div slot="body">Modal</div>'
+  html='Modal'
   src="https://esm.sh/duoyun-ui/elements/modal">Current page auto open modal, <a href="./modal">refresh</a></gbp-example>
 
 ## API

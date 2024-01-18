@@ -23,7 +23,7 @@ export const locationStore = DuoyunRouteElement.createLocationStore();
 
 export type Routes<T = unknown> = RoutesObject<T> | RouteItem<T>[];
 export type { NavItems } from '../elements/side-navigation';
-export type Menus = ContextMenuItem[];
+export type ContextMenus = ContextMenuItem[];
 export type UserInfo = {
   username: string;
   org?: string;
@@ -50,9 +50,8 @@ const rules = css`
     padding: ${theme.gridGutter};
   }
   dy-pat-console .logo {
-    display: block;
+    align-self: flex-start;
     height: 4em;
-    width: max-content;
     /* logo must padding */
     margin-inline-start: -0.2em;
     margin-block: 0em 2em;
@@ -185,9 +184,9 @@ export class DyPatConsoleElement extends GemElement {
   @attribute logo: string;
   @attribute name: string;
 
-  @property routes?: RoutesObject | RouteItem[];
+  @property routes?: Routes;
   @property navItems?: NavItems;
-  @property menus?: ContextMenuItem[];
+  @property contextMenus?: ContextMenus;
   @property userInfo?: UserInfo;
 
   constructor() {
@@ -204,7 +203,7 @@ export class DyPatConsoleElement extends GemElement {
 
   #openMenu = ({ target }: MouseEvent) => {
     const btn = target as DuoyunUseElement;
-    ContextMenu.open([...(this.menus || [])].filter(isNotNullish), {
+    ContextMenu.open([...(this.contextMenus || [])].filter(isNotNullish), {
       activeElement: btn,
       width: '16em',
     });
@@ -242,7 +241,7 @@ export class DyPatConsoleElement extends GemElement {
                   role="button"
                   aria-label="Preference"
                   class="menu"
-                  ?hidden=${!this.menus}
+                  ?hidden=${!this.contextMenus}
                   @click=${this.#openMenu}
                   @keydown=${commonHandle}
                   .element=${icons.more}

@@ -1,11 +1,13 @@
-import { GemElement, html } from '@mantou/gem/lib/element';
+import { GemElement, TemplateResult, html } from '@mantou/gem/lib/element';
 import { QueryString, createCSSSheet, css } from '@mantou/gem/lib/utils';
 import {
+  Emitter,
   RefObject,
   adoptedStyle,
   boolattribute,
   connectStore,
   customElement,
+  emitter,
   numattribute,
   property,
   refobject,
@@ -32,6 +34,7 @@ import { Time, formatDuration } from '../lib/time';
 import type { DuoyunButtonElement } from '../elements/button';
 import { locale } from '../lib/locale';
 import { icons } from '../lib/icons';
+import { isNotBoolean } from '../lib/types';
 
 import { locationStore } from './console';
 import type { FilterableOptions, FilterableType } from './filter-form';
@@ -41,10 +44,11 @@ import '../elements/button';
 import '../elements/tag';
 import '../elements/table';
 import '../elements/pagination';
+import '../elements/scroll-box';
 
 import './filter-form';
 
-export type FilterableColumn<T = any> = Column<T> & {
+export type FilterableColumn<T> = Column<T> & {
   data?: FilterableOptions & {
     field?: keyof T | string[];
     getSearchText?: (e: T) => string;
@@ -56,20 +60,6 @@ export const queryKeys = {
   PAGINATION_SIZE: 'size',
   SEARCH: 'search',
   FILTERS: 'filters',
-};
-
-const createChangeFunction = (key: string, defaultValue: number) => {
-  return ({ detail }: CustomEvent<number>) => {
-    const p = history.getParams();
-    const query = new QueryString(p.query);
-    if (detail === defaultValue) {
-      query.delete(key);
-    } else {
-      query.set(key, String(detail));
-    }
-    history.push({ ...p, query });
-    findScrollContainer(this)?.scrollTo(0, 0);
-  };
 };
 
 type Filter = {
@@ -94,8 +84,12 @@ const style = createCSSSheet(css`
   .search {
     border-width: 2px;
   }
-  .filter-form {
-    width: 30em;
+  .filters {
+    display: flex;
+    flex-grow: 1;
+    gap: 1em;
+    width: 0;
+    white-space: nowrap;
   }
   .comparer {
     color: ${theme.primaryColor};
@@ -111,9 +105,10 @@ const style = createCSSSheet(css`
 @customElement('dy-pat-table')
 @adoptedStyle(style)
 @adoptedStyle(blockContainer)
+// 只有使用 dy-pat-console 才起作用
 @connectStore(locationStore)
-export class DyPatTableElement extends GemElement<State> {
-  @refobject tableRef: RefObject<DuoyunTableElement>;
+export class DyPatTableElement<T = any> extends GemElement<State> {
+  @refobject tableRef: RefObject<DuoyunTableElement<T>>;
 
   @boolattribute filterable: boolean;
   @boolattribute selectable: boolean;
@@ -121,12 +116,19 @@ export class DyPatTableElement extends GemElement<State> {
   @numattribute pagesize: number;
   @property sizes?: number[];
 
-  @property data?: (Record<string, unknown> | undefined)[];
-  @property rowKey?: string | string[];
-  @property getRowStyle?: (record: any) => Partial<CSSStyleDeclaration>;
-  @property getSelectedActions?: (selections: any[]) => ContextMenuItem[];
+  @boolattribute lazy: boolean;
+  @numattribute total: number;
 
-  @property columns: FilterableColumn<any>[] = [];
+  @property data?: T[] | (T | undefined)[];
+  @property rowKey?: string | string[];
+  @property getRowStyle?: (record: T) => Partial<CSSStyleDeclaration>;
+  @property getSelectedActions?: (selections: any[]) => ContextMenuItem[];
+  @property expandedRowRender?: (record: T) => undefined | string | TemplateResult;
+
+  @emitter expand: Emitter<T>;
+  @emitter change: Emitter<State>;
+
+  @property columns: FilterableColumn<T>[] = [];
 
   @property getText: (
     key:
@@ -140,23 +142,21 @@ export class DyPatTableElement extends GemElement<State> {
   ) => string = (e) => e.replace(/[A-Z]/g, ' $1').replace(/^\w/, ($1) => $1.toUpperCase());
 
   get #pagesize() {
-    return this.pagesize || 20;
+    return this.pagesize || this.sizes?.[0] || 20;
   }
 
   get #page() {
     return 1;
   }
 
-  state: State = {
-    selection: [],
-    search: '',
-    filters: [],
-  };
+  state: State = (() => {
+    const p = history.getParams();
+    const search = p.query.get(queryKeys.SEARCH) || '';
+    const filters = p.query.getAnyAll(queryKeys.FILTERS);
+    return { search, filters, selection: [] };
+  })();
 
-  #data?: (Record<string, unknown> | undefined)[] = [];
-
-  #onPageChange = createChangeFunction(queryKeys.PAGINATION_PAGE, this.#page);
-  #onSizeChange = createChangeFunction(queryKeys.PAGINATION_SIZE, this.#pagesize);
+  #data?: (T | undefined)[] = [];
 
   #getRanges = (root: Node, text: string) => {
     const reg = new RegExp([...text].map((c) => `\\u{${c.codePointAt(0)!.toString(16)}}`).join(''), 'gui');
@@ -190,11 +190,11 @@ export class DyPatTableElement extends GemElement<State> {
 
   #onSelect = (evt: CustomEvent) => this.setState({ selection: evt.detail });
 
-  #onItemContextMenu = (evt: CustomEvent<ItemContextMenuEventDetail>) => {
+  #onItemContextMenu = (evt: CustomEvent<ItemContextMenuEventDetail<T>>) => {
     if (!this.selectable) return;
     const { selection } = this.state;
     const { data, originEvent, selected } = evt.detail;
-    const table = evt.target as DuoyunTableElement;
+    const table = evt.target as DuoyunTableElement<T>;
     originEvent.preventDefault();
     const unSelectionMenu: ContextMenuItem[] = [
       selected
@@ -210,11 +210,11 @@ export class DyPatTableElement extends GemElement<State> {
         text: this.getText('addPageAllSelection'),
         handle: () => table.appendSelection(this.#getPageData().data || []),
       },
-      {
+      !this.lazy && {
         text: this.getText('addAllSelection'),
         handle: () => table.appendSelection(this.data || []),
       },
-    ];
+    ].filter(isNotBoolean);
     ContextMenu.open(
       selection.length
         ? [
@@ -247,10 +247,28 @@ export class DyPatTableElement extends GemElement<State> {
     const page = Number(query.get(queryKeys.PAGINATION_PAGE)) || this.#page;
     const size = Number(query.get(queryKeys.PAGINATION_SIZE)) || this.#pagesize;
 
-    const total = this.#data ? Math.ceil(this.#data.length / size) : 0;
-    const data = this.#data?.slice((page - 1) * size, page * size);
+    const total = this.lazy ? this.total : this.#data ? Math.ceil(this.#data.length / size) : 0;
+    const data = this.lazy ? this.#data : this.#data?.slice((page - 1) * size, page * size);
     return { total, data, size, page };
   };
+
+  #createChangeFunction = (key: string, defaultValue: number) => {
+    return ({ detail }: CustomEvent<number>) => {
+      const p = history.getParams();
+      const query = new QueryString(p.query);
+      if (detail === defaultValue) {
+        query.delete(key);
+      } else {
+        query.set(key, String(detail));
+      }
+      history.push({ ...p, query });
+      findScrollContainer(this)?.scrollTo(0, 0);
+      this.change(this.state);
+    };
+  };
+
+  #onPageChange = this.#createChangeFunction(queryKeys.PAGINATION_PAGE, this.#page);
+  #onSizeChange = this.#createChangeFunction(queryKeys.PAGINATION_SIZE, this.#pagesize);
 
   #changeQuery = () => {
     const p = history.getParams();
@@ -260,13 +278,15 @@ export class DyPatTableElement extends GemElement<State> {
     query.delete(queryKeys.PAGINATION_PAGE);
     query.delete(queryKeys.PAGINATION_SIZE);
     history.replace({ ...p, query, hash: '' });
+    this.change(this.state);
   };
 
   #changeQueryThrottle = throttle(this.#changeQuery, 120);
 
-  #onSearch = ({ detail }: CustomEvent<string>) => {
-    this.setState({ search: detail });
+  #onSearch = (evt: CustomEvent<string>) => {
+    this.setState({ search: evt.detail });
     this.#changeQueryThrottle();
+    evt.stopPropagation();
   };
 
   #onAddFilter = (data: Filter) => {
@@ -298,6 +318,10 @@ export class DyPatTableElement extends GemElement<State> {
     );
   };
 
+  #filterFieldLabelMap: Record<string, string> = {};
+  #filterFieldTypeMap: Record<string, FilterableType | undefined> = {};
+  #filterFieldEnumMap: Record<string, Record<string, string>> = {};
+
   #getValueFromField = (field: string, value: any | any[]) => {
     return [].concat(value).map((e) => {
       switch (this.#filterFieldTypeMap[field]) {
@@ -311,20 +335,8 @@ export class DyPatTableElement extends GemElement<State> {
     });
   };
 
-  #filterFieldLabelMap: Record<string, string> = {};
-  #filterFieldTypeMap: Record<string, FilterableType | undefined> = {};
-  #filterFieldEnumMap: Record<string, Record<string, string>> = {};
-
   willMount = () => {
-    this.memo(
-      () => {
-        const p = history.getParams();
-        const search = p.query.get(queryKeys.SEARCH) || '';
-        const filters = p.query.getAnyAll(queryKeys.FILTERS);
-        this.setState({ search, filters });
-      },
-      () => [location.href],
-    );
+    // 显示正确的过滤器文本
     this.memo(
       () => {
         this.columns.forEach(({ title, dataIndex, data }) => {
@@ -339,9 +351,11 @@ export class DyPatTableElement extends GemElement<State> {
       },
       () => [this.columns],
     );
+    // 搜索和过滤，如果是 lazy，则由用户处理
     this.memo(
       ([query]) => {
         this.#data = this.data;
+        if (this.lazy) return;
         if (!this.#data) return;
         const search = query.get(queryKeys.SEARCH);
         if (search) {
@@ -386,6 +400,7 @@ export class DyPatTableElement extends GemElement<State> {
   };
 
   mounted = () => {
+    // 高亮搜索词
     this.effect(
       async ([search]) => {
         await sleep(1);
@@ -404,7 +419,7 @@ export class DyPatTableElement extends GemElement<State> {
         });
         highlights.set('search', highlight);
       },
-      () => [history.getParams().query.get(queryKeys.SEARCH)],
+      () => [this.state.search],
     );
   };
 
@@ -412,7 +427,7 @@ export class DyPatTableElement extends GemElement<State> {
     const { data, page, size, total } = this.#getPageData();
 
     return html`
-      <div class="searchbar">
+      <div class="searchbar" part="searchbar">
         <dy-input
           class="search"
           type="search"
@@ -429,32 +444,37 @@ export class DyPatTableElement extends GemElement<State> {
               </dy-button>
             `
           : ''}
-        ${this.state.filters.map(
-          ({ field, value, comparer }, index) => html`
-            <dy-tag @close=${() => this.#onRemoveFilter(index)} closable>
-              <span>${this.#filterFieldLabelMap[field]}</span>
-              <span class="comparer">${this.getText(comparer)}</span>
-              <span>"${this.#getValueFromField(field, value).join(', ')}"</span>
-            </dy-tag>
-          `,
-        )}
+        <dy-scroll-box class="filters" part="filters">
+          ${this.state.filters.map(
+            ({ field, value, comparer }, index) => html`
+              <dy-tag @close=${() => this.#onRemoveFilter(index)} closable>
+                <span>${this.#filterFieldLabelMap[field]}</span>
+                <span class="comparer">${this.getText(comparer)}</span>
+                <span>"${this.#getValueFromField(field, value).join(', ')}"</span>
+              </dy-tag>
+            `,
+          )}
+        </dy-scroll-box>
+        <slot></slot>
       </div>
-      <slot></slot>
       <dy-table
         ref=${this.tableRef.ref}
         part="table-wrap"
         exportparts="table,tr,td,th"
         .getRowStyle=${this.getRowStyle}
+        .expandedRowRender=${this.expandedRowRender}
         .data=${data}
         .columns=${this.columns}
         .selectable=${this.selectable}
         .rowKey=${this.rowKey}
         .selection=${this.state.selection}
         @select=${this.#onSelect}
+        @expand=${(evt: CustomEvent) => this.expand(evt.detail)}
         @itemcontextmenu=${this.#onItemContextMenu}
       ></dy-table>
       <dy-pagination
         class="pagination"
+        part="pagination"
         @pagechange=${this.#onPageChange}
         @sizechange=${this.#onSizeChange}
         .page=${page}

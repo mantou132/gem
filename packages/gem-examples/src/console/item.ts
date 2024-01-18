@@ -3,10 +3,15 @@ import { get } from '@mantou/gem/helper/request';
 import { connectStore, customElement } from '@mantou/gem/lib/decorators';
 import { locationStore } from 'duoyun-ui/patterns/console';
 import { Time } from 'duoyun-ui/lib/time';
+import { ContextMenu } from 'duoyun-ui/elements/contextmenu';
+import { FormItem, createForm } from 'duoyun-ui/patterns/form';
+import { sleep } from 'duoyun-ui/lib/utils';
 import type { FilterableColumn } from 'duoyun-ui/patterns/table';
 
 import 'duoyun-ui/patterns/table';
+import 'duoyun-ui/elements/button';
 
+// 这个只是用来推断类型的
 const EXAMPLE = {
   id: 1,
   name: 'Leanne Graham',
@@ -34,6 +39,19 @@ const EXAMPLE = {
 
 type Item = typeof EXAMPLE;
 
+const initItem = {
+  username: 'Mantou',
+  name: '',
+  company: {
+    name: '',
+    catchPhrase: '',
+    bs: '',
+  },
+  updated: Date.now(),
+};
+
+type NewItem = typeof initItem;
+
 type State = {
   list?: Item[];
 };
@@ -43,6 +61,49 @@ type State = {
 export class ConsolePageItemElement extends GemElement<State> {
   state: State = {};
 
+  // 定义表单
+  #formItems: FormItem<NewItem>[] = [
+    [
+      {
+        type: 'text',
+        field: 'username',
+        label: 'Username',
+        required: true,
+      },
+      {
+        type: 'text',
+        field: 'name',
+        label: 'Name',
+      },
+    ],
+    {
+      label: 'Company Info',
+      group: [
+        {
+          type: 'text',
+          field: ['company', 'name'],
+          label: 'Company name',
+        },
+        {
+          type: 'text',
+          field: ['company', 'catchPhrase'],
+          label: 'Company Catch phrase',
+        },
+        {
+          type: 'text',
+          field: ['company', 'bs'],
+          label: 'Company bs',
+        },
+      ],
+    },
+    {
+      type: 'date-time',
+      field: 'updated',
+      label: 'Last Updated',
+    },
+  ];
+
+  // 定义表格
   #columns: FilterableColumn<Item>[] = [
     {
       title: 'No',
@@ -93,19 +154,68 @@ export class ConsolePageItemElement extends GemElement<State> {
         type: 'time',
       },
     },
+    {
+      title: '',
+      getActions: (r, activeElement) => [
+        {
+          text: 'Edit',
+          handle: () => {
+            createForm<NewItem>({
+              data: r,
+              header: `Edit: ${r.id}`,
+              formItems: this.#formItems,
+              preOk: async (data) => {
+                await sleep(1000);
+                console.log(data);
+                throw new Error('No implement!');
+              },
+            }).catch((data) => {
+              console.log(data);
+            });
+          },
+        },
+        { text: '---' },
+        {
+          text: 'Delete',
+          danger: true,
+          handle: async () => {
+            await ContextMenu.confirm(`Confirm delete ${r.username}?`, { activeElement, danger: true });
+            console.log('Delete: ', r);
+          },
+        },
+      ],
+    },
   ];
+
+  #onCreate = () => {
+    createForm<NewItem>({
+      type: 'modal',
+      data: initItem,
+      header: `Create`,
+      formItems: this.#formItems,
+      preOk: async (data) => {
+        await sleep(1000);
+        console.log(data);
+        throw new Error('No implement!');
+      },
+    }).catch((data) => {
+      console.log(data);
+    });
+  };
 
   mounted = () => {
     console.log(locationStore.params.id);
     get(`https://jsonplaceholder.typicode.com/users`).then((list: Item[]) => {
-      list.forEach((e) => (e.updated = Date.now() - 30 * 24 * 60 * 60 * 1000 * Math.random()));
+      list.forEach((e, i) => (e.updated = new Time().subtract(i + 1, 'd').getTime()));
       this.setState({ list });
     });
   };
 
   render = () => {
     return html`
-      <dy-pat-table filterable .data=${this.state.list} .pagesize=${5} .columns=${this.#columns}></dy-pat-table>
+      <dy-pat-table filterable .pagesize=${5} .data=${this.state.list} .columns=${this.#columns}>
+        <dy-button @click=${this.#onCreate}>Add</dy-button>
+      </dy-pat-table>
       <style>
         dy-pat-table::part(table) {
           min-width: 40em;

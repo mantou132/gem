@@ -15,7 +15,7 @@ const style = createCSSSheet(css`
   .main {
     padding: 1.2em;
     min-width: 30em;
-    min-height: none;
+    min-height: 0;
     max-height: none;
     border-radius: 0;
   }

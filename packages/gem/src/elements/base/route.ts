@@ -72,7 +72,11 @@ export interface RouteItem<T = unknown> {
   pattern: string;
   redirect?: string;
   content?: TemplateResult;
-  getContent?: (params: Params) => TemplateResult | Promise<TemplateResult>;
+  // 返回 `undefined` 意味着不会执行 `render`， 支持 React 等组件挂载到 `<gem-route>` 元素下
+  getContent?: (
+    params: Params,
+    renderRoot: DocumentOrShadowRoot | GemLightRouteElement,
+  ) => TemplateResult | Promise<TemplateResult> | undefined;
   title?: string;
   // 用来传递数据
   data?: T;
@@ -113,6 +117,8 @@ interface ConstructorOptions {
   isLight?: boolean;
   routes?: RouteItem[] | RoutesObject;
 }
+
+const INIT_CONTENT = html``;
 
 type State = {
   content?: TemplateResult;
@@ -200,7 +206,7 @@ export class GemRouteElement extends GemElement<State> {
   }
 
   state: State = {
-    content: undefined,
+    content: INIT_CONTENT,
   };
 
   #updateLocationStore = () => {
@@ -285,7 +291,12 @@ export class GemRouteElement extends GemElement<State> {
 
   render() {
     const { content } = this.state;
-    if (!this.shadowRoot) return html`${content}`;
+    if (content === undefined) return;
+
+    if (!this.shadowRoot) {
+      if (content === INIT_CONTENT) return;
+      return html`${content}`;
+    }
 
     return html`
       <style>
@@ -294,7 +305,7 @@ export class GemRouteElement extends GemElement<State> {
           display: contents;
         }
       </style>
-      ${content ?? html`<slot></slot>`}
+      ${content === INIT_CONTENT ? html`<slot></slot>` : content}
     `;
   }
 
@@ -313,7 +324,7 @@ export class GemRouteElement extends GemElement<State> {
     if (this.trigger === history) {
       updateStore(titleStore, { title: route?.title });
     }
-    const contentOrLoader = content || getContent?.(params);
+    const contentOrLoader = content || getContent?.(params, this.shadowRoot || this);
     this.loading(route);
     if (contentOrLoader instanceof Promise) {
       this.#lastLoader = contentOrLoader;

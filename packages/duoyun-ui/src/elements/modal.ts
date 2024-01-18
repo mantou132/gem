@@ -25,6 +25,7 @@ import { commonAnimationOptions, fadeIn, fadeOut, slideInUp } from '../lib/anima
 
 import './button';
 import './divider';
+import './scroll-box';
 
 const style = createCSSSheet(css`
   /* modal 可能会在刷新前后保持打开 */
@@ -132,6 +133,11 @@ export interface ModalOptions {
   okText?: string;
 }
 
+export interface ModalOpenOptions<T> {
+  preClose?: (ele: T) => void | Promise<void>;
+  preOk?: (ele: T) => void | Promise<void>;
+}
+
 /**
  * @customElement dy-modal
  * @fires ok
@@ -168,27 +174,34 @@ export class DuoyunModalElement extends GemElement {
   @part static dialog: string;
   @part static heading: string;
   @part static divider: string;
-  @part @slot static body: string;
+  @part static body: string;
   @part @slot static footer: string;
+  // break change: body -> unnamed
+  @slot static unnamed: string;
 
   @state closing: boolean;
 
   // Cannot be used for dynamic forms
-  static async open<T = Element>(options: ModalOptions) {
+  // 错误必须处理，不然会被默认通过 Toast 显示
+  static async open<T = Element>(options: ModalOptions & ModalOpenOptions<T>) {
     const modal = new this({ ...options, open: true });
     const restoreInert = setBodyInert(modal);
     document.body.append(modal);
     // bubble close event close modal
     return new Promise<T>((res, rej) => {
-      modal.addEventListener('close', () => {
-        rej();
+      const getBodyEle = () => {
+        const ele = modal.bodyRef.element?.children[0] as any;
+        return ele instanceof HTMLSlotElement ? ele.assignedElements()[0] : ele;
+      };
+      modal.addEventListener('close', async () => {
+        const ele = getBodyEle();
+        await options.preClose?.(ele);
+        rej(ele);
       });
-      modal.addEventListener('ok', () => {
-        const { element } = modal.bodyRef;
-        if (element) {
-          const ele = element.children[0] as any;
-          res(ele instanceof HTMLSlotElement ? ele.assignedElements()[0] : ele);
-        }
+      modal.addEventListener('ok', async () => {
+        const ele = getBodyEle();
+        await options.preOk?.(ele);
+        res(ele);
       });
     }).finally(async () => {
       restoreInert();
@@ -202,7 +215,9 @@ export class DuoyunModalElement extends GemElement {
       typeof body === 'string' || body instanceof TemplateResult
         ? html`<div class=${style2.c}>${body}</div>`
         : html`<pre class=${style2.p}>${JSON.stringify(body, null, 2)}</pre>`;
-    return Modal.open({ ...options, body: content });
+    return Modal.open({ ...options, body: content }).catch(() => {
+      throw null;
+    });
   }
 
   constructor(options: ModalOptions = {}) {
@@ -300,7 +315,7 @@ export class DuoyunModalElement extends GemElement {
               aria-modal="true"
               class="dialog absolute"
             >
-              ${this.body || html`<slot name=${DuoyunModalElement.body}></slot>`}
+              ${this.body || html`<slot></slot>`}
             </div>
           `
         : html`
@@ -320,9 +335,9 @@ export class DuoyunModalElement extends GemElement {
                     <dy-divider part=${DuoyunModalElement.divider} class="header-divider" size="medium"></dy-divider>
                   `
                 : ''}
-              <div class="body" part=${DuoyunModalElement.body}>
-                <slot name=${DuoyunModalElement.body} ref=${this.bodyRef.ref}>${this.body}</slot>
-              </div>
+              <dy-scroll-box class="body" part=${DuoyunModalElement.body}>
+                <slot ref=${this.bodyRef.ref}>${this.body}</slot>
+              </dy-scroll-box>
               <div class="footer" part=${DuoyunModalElement.footer}>
                 <slot name=${DuoyunModalElement.footer}>
                   <dy-button ?hidden=${this.disableDefaultCancelBtn} @click=${this.#close} .color=${'cancel'}>

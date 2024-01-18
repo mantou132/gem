@@ -387,16 +387,16 @@ export function objectMapToString<T = any>(
 // Wait: Typescript lib dom CSSStyleDeclaration anchor position
 type StyleProp = keyof CSSStyleDeclaration | `--${string}` | 'anchorDefault' | 'anchorName';
 
-export type StyleObject = Partial<Record<StyleProp, string | number | undefined | null>>;
+export type StyleObject = Partial<Record<StyleProp, string | number | false | undefined | null>>;
 
 // 不支持 webkit 属性
 export function styleMap(object: StyleObject) {
   return objectMapToString(object, ';', (key, value) =>
-    value !== undefined && value !== null ? `${camelToKebabCase(key)}:${value}` : '',
+    value || value === 0 ? `${camelToKebabCase(key)}:${value}` : '',
   );
 }
 
-export function classMap(object: Record<string, boolean | string | number | undefined | null>) {
+export function classMap(object: Record<string, string | number | boolean | undefined | null>) {
   return objectMapToString(object, ' ', (key, value) => (value ? key : ''));
 }
 

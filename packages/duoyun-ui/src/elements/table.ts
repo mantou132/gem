@@ -1,4 +1,4 @@
-// TODO: fixed row/column
+// TODO: sticky row/column
 import {
   connectStore,
   adoptedStyle,
@@ -131,7 +131,11 @@ export type Column<T> = {
 
 export type Columns<T> = Column<T>[];
 
-export type ItemContextMenuEventDetail = { data: any; selected: boolean; originEvent: MouseEvent };
+export type ItemContextMenuEventDetail<T> = {
+  data: T;
+  selected: boolean;
+  originEvent: MouseEvent;
+};
 
 /**
  * @customElement dy-table
@@ -140,7 +144,7 @@ export type ItemContextMenuEventDetail = { data: any; selected: boolean; originE
 @adoptedStyle(style)
 @adoptedStyle(focusStyle)
 @connectStore(icons)
-export class DuoyunTableElement extends GemElement {
+export class DuoyunTableElement<T = any, K = any> extends GemElement {
   @part static table: string;
   @part static th: string;
   @part static td: string;
@@ -151,25 +155,25 @@ export class DuoyunTableElement extends GemElement {
   @boolattribute headless: boolean;
 
   @boolattribute selectable: boolean;
-  @property selection?: any[];
+  @property selection?: K[];
 
-  @emitter select: Emitter<any[]>;
-  @emitter itemclick: Emitter<any>;
-  @emitter itemcontextmenu: Emitter<ItemContextMenuEventDetail>;
+  @emitter select: Emitter<K[]>;
+  @emitter itemclick: Emitter<T>;
+  @emitter itemcontextmenu: Emitter<ItemContextMenuEventDetail<T>>;
 
-  @property columns?: Column<any>[];
-  @property data?: (Record<string, unknown> | undefined)[];
-  @property getRowStyle?: (record: any) => StyleObject;
+  @property columns?: Column<T>[];
+  @property data?: T[] | (T | undefined)[];
+  @property getRowStyle?: (record: T) => StyleObject;
 
   @property noData?: string | TemplateResult;
 
   /**@deprecated */
   @property rowKey?: string | string[];
-  @property getKey?: (record: any) => string | number;
-  @property expandedRowRender?: (record: any) => undefined | string | TemplateResult;
-  @emitter expand: Emitter<any>;
+  @property getKey?: (record: T) => K;
+  @property expandedRowRender?: (record: T) => undefined | string | TemplateResult;
+  @emitter expand: Emitter<T>;
 
-  #selectionSet = new Set<any>();
+  #selectionSet = new Set<K>();
 
   constructor() {
     super({ delegatesFocus: true });
@@ -190,11 +194,13 @@ export class DuoyunTableElement extends GemElement {
         Math.max(bottom, boxBottom) - Math.min(top, boxTop) < boxHeight + height &&
         Math.max(right, boxRight) - Math.min(left, boxLeft) < boxWidth + width
       ) {
-        const item = this.#getKey(this.data![i]);
+        const item = this.data![i];
+        if (!item) return;
+        const itemKey = this.#getKey(item);
         if (mode === 'delete') {
-          selection.delete(item);
+          selection.delete(itemKey);
         } else {
-          selection.add(item);
+          selection.add(itemKey);
         }
       }
     });
@@ -204,7 +210,7 @@ export class DuoyunTableElement extends GemElement {
     }
   };
 
-  #onItemClick = (record: any) => {
+  #onItemClick = (record: T) => {
     if (this.#selectionSet.size) {
       const item = this.#getKey(record);
       const selection = new Set(this.#selectionSet);
@@ -219,7 +225,7 @@ export class DuoyunTableElement extends GemElement {
     }
   };
 
-  #onItemContextMenu = (evt: MouseEvent, record: any) => {
+  #onItemContextMenu = (evt: MouseEvent, record: T) => {
     this.itemcontextmenu({
       data: record,
       originEvent: evt,
@@ -251,11 +257,15 @@ export class DuoyunTableElement extends GemElement {
     return span;
   };
 
-  #expandedMap = new Map<any, boolean>();
+  #expandedMap = new Map<K, boolean>();
 
-  #getKey = (record: any) => (this.getKey ? this.getKey(record) : this.rowKey ? readProp(record, this.rowKey) : record);
+  #getKey = (record: T) => {
+    return this.getKey ? this.getKey(record) : this.rowKey ? readProp(record!, this.rowKey) : record;
+  };
 
-  #toggleExpand = (record: any) => {
+  #iconColWidth = '50px';
+
+  #toggleExpand = (record: T) => {
     const key = this.#getKey(record);
     const expanded = !!this.#expandedMap.get(key);
     this.#expandedMap.set(key, !expanded);
@@ -263,16 +273,14 @@ export class DuoyunTableElement extends GemElement {
     this.update();
   };
 
-  #iconColWidth = '50px';
-
-  #expandedColumn: Column<any> = {
+  #expandedColumn: Column<T> = {
     title: '',
     width: this.#iconColWidth,
     render: (record) => html`
       <dy-use
         class="action"
-        @click=${() => this.#toggleExpand(record)}
-        .element=${this.#expandedMap.get(this.#getKey(record)) ? icons.expand : icons.right}
+        @click=${() => record && this.#toggleExpand(record)}
+        .element=${record && this.#expandedMap.get(this.#getKey(record)) ? icons.expand : icons.right}
       ></dy-use>
     `,
   };
@@ -340,11 +348,11 @@ export class DuoyunTableElement extends GemElement {
           ${this.data?.map(
             (record, _rowIndex, _data, colSpanMemo = [0]) => html`
               <tr
-                @click=${() => this.#onItemClick(record)}
-                @contextmenu=${(evt: MouseEvent) => this.#onItemContextMenu(evt, record)}
+                @click=${() => record && this.#onItemClick(record)}
+                @contextmenu=${(evt: MouseEvent) => record && this.#onItemContextMenu(evt, record)}
                 part=${DuoyunTableElement.tr}
-                class=${classMap({ selected: this.#selectionSet.has(this.#getKey(record)) })}
-                style=${this.getRowStyle ? styleMap(this.getRowStyle(record)) : ''}
+                class=${classMap({ selected: record && this.#selectionSet.has(this.#getKey(record)) })}
+                style=${record && this.getRowStyle ? styleMap(this.getRowStyle(record)) : ''}
               >
                 ${columns.map(
                   (
@@ -361,11 +369,13 @@ export class DuoyunTableElement extends GemElement {
                     colIndex,
                     _arr,
                     rowShouldRender = this.#shouldRenderTd(rowSpanMemo, colIndex),
-                    rowSpan = rowShouldRender
-                      ? this.#getSpan(rowSpanMemo, colIndex, getRowSpan?.(record, this.data!))
+                    rowSpan = rowShouldRender && record
+                      ? this.#getSpan(rowSpanMemo, colIndex, getRowSpan?.(record, this.data as T[]))
                       : 1,
                     colShouldRender = this.#shouldRenderTd(colSpanMemo, 0),
-                    colSpan = colShouldRender ? this.#getSpan(colSpanMemo, 0, getColSpan?.(record, this.data!)) : 1,
+                    colSpan = colShouldRender && record
+                      ? this.#getSpan(colSpanMemo, 0, getColSpan?.(record, this.data as T[]))
+                      : 1,
                   ) =>
                     rowShouldRender && colShouldRender
                       ? html`
@@ -401,7 +411,7 @@ export class DuoyunTableElement extends GemElement {
                       : '',
                 )}
               </tr>
-              ${this.expandedRowRender && this.#expandedMap.get(this.#getKey(record))
+              ${this.expandedRowRender && record && this.#expandedMap.get(this.#getKey(record))
                 ? html`
                     <tr>
                       <td style=${styleMap({ padding: `0 0 0 ${this.#iconColWidth}` })} colspan=${columns.length}>
@@ -422,15 +432,15 @@ export class DuoyunTableElement extends GemElement {
     `;
   };
 
-  appendSelection(items: any[]) {
+  appendSelection(items: (T | undefined)[]) {
     const selection = new Set(this.#selectionSet);
-    items.forEach((item) => selection.add(this.#getKey(item)));
+    items.forEach((item) => item && selection.add(this.#getKey(item)));
     this.select([...selection]);
   }
 
-  removeSelection(items: any[]) {
+  removeSelection(items: (T | undefined)[]) {
     const selection = new Set(this.#selectionSet);
-    items.forEach((item) => selection.delete(this.#getKey(item)));
+    items.forEach((item) => item && selection.delete(this.#getKey(item)));
     this.select([...selection]);
   }
 }

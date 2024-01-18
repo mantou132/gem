@@ -9,6 +9,7 @@ const getName = (name: string) => (METADATA[name].name || name).replace('-', ' '
 @customElement('gem-examples-nav')
 export class Nav extends GemElement {
   mounted = () => {
+    if (window.top !== window) return;
     this.shadowRoot?.querySelector('.active')?.scrollIntoView({ block: 'center' });
   };
   render() {
