@@ -193,7 +193,15 @@ export function getMetadata(fullPath: string, displayRank: boolean | undefined) 
   };
   const parseMd = (fullPath: string) => {
     const md = getMdFile(fullPath).content;
-    const { attributes, body } = fm<FrontMatter>(md);
+    let attributes: FrontMatter = {};
+    let body = '';
+    try {
+      const fmd = fm<FrontMatter>(md);
+      attributes = fmd.attributes;
+      body = fmd.body;
+    } catch {
+      print(chalk.red(`Parse frontmatter error: ${fullPath}`));
+    }
     return {
       ...(attributes as FrontMatter),
       title: parseTitle(attributes.title || load(marked(body))('h1').text() || getTitle()).text,

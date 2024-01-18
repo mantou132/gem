@@ -90,6 +90,21 @@ yarn add gem-book
 <my-plugin-hello></my-plugin-hello>
 ```
 
+## `<gbp-content>`
+
+将内容插入 `<gem-book>`，这允许在特定页面自定义 `<gem-book>` 内容，例如自定义侧边栏：
+
+```md
+<gbp-content>
+  <div slot="sidebar-before">Test</div>
+  <style>
+    gem-book::part(sidebar-content) {
+      display: none;
+    }
+  </style>
+</gbp-content>
+```
+
 ## `<gbp-docsearch>`
 
 使用 [Algolia DocSearch](https://docsearch.algolia.com/) 为网站提供搜索，只需要实例化一次，可以使用[插槽](./guide/007-extension.md#插槽)放在想要放置的位置：

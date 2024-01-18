@@ -1,7 +1,7 @@
 import path from 'path';
 import { writeFileSync, symlinkSync, renameSync } from 'fs';
 
-import webpack, { DefinePlugin, Compilation, Compiler, sources } from 'webpack';
+import webpack, { DefinePlugin, Compiler, sources } from 'webpack';
 import serveStatic from 'serve-static';
 import WebpackDevServer from 'webpack-dev-server';
 import HtmlWebpackPlugin from 'html-webpack-plugin';
@@ -158,7 +158,7 @@ export async function build(dir: string, options: Required<CliUniqueConfig>, boo
     devtool: debug && 'source-map',
     plugins: [
       new HtmlWebpackPlugin({
-        title: bookConfig.title || 'Gem-book App',
+        title: bookConfig.title || 'GemBook App',
         ...(template ? { template: path.resolve(process.cwd(), template) } : undefined),
         // Automatically copied to the output directory
         favicon: !isRemoteIcon && icon,
@@ -167,10 +167,15 @@ export async function build(dir: string, options: Required<CliUniqueConfig>, boo
         },
       }),
       new DefinePlugin({
-        'import.meta.url': DefinePlugin.runtimeValue(({ module }) =>
+        // 插件 query 参数传递
+        'import.meta.url': DefinePlugin.runtimeValue(({ module }) => {
           // 如果是符号链接返回的是原始路径
-          JSON.stringify(pluginRecord[module.resource]?.url),
-        ),
+          const plugin =
+            pluginRecord[module.resource] ||
+            // 如果是 GemBook 本身 GEM_BOOK_DEV 模式，路径是 src
+            pluginRecord[module.resource.replace(/\/src\/plugins\/(\w*)\.ts/, '/plugins/$1.js')];
+          return JSON.stringify(plugin ? plugin.url : '');
+        }),
         'process.env.DEV_MODE': !build,
         'process.env.BOOK_CONFIG': JSON.stringify(bookConfig),
         'process.env.THEME': JSON.stringify(await importObject(themePath)),

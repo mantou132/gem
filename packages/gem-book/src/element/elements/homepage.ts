@@ -24,8 +24,7 @@ export class Homepage extends GemElement {
       <style>
         .hero {
           text-align: center;
-          padding: 3.5rem 1rem 5rem;
-          background-color: var(--background-color);
+          padding: 6rem 1rem;
         }
         .title {
           margin: 0;
@@ -43,7 +42,7 @@ export class Homepage extends GemElement {
         .actions {
           display: flex;
           flex-wrap: wrap;
-          margin: 2rem;
+          margin-block-start: 2rem;
           gap: 1rem 2.5rem;
           justify-content: center;
           align-items: center;
@@ -74,9 +73,6 @@ export class Homepage extends GemElement {
           transform: scale(1.3);
         }
         @media ${mediaQuery.PHONE} {
-          .hero {
-            padding: 2rem 1rem;
-          }
           .title {
             font-size: 2rem;
           }
@@ -121,33 +117,31 @@ export class Homepage extends GemElement {
         .feature,
         .icon {
           border-radius: ${theme.normalRound};
-          background-color: var(--background-color);
+          background-color: rgba(${theme.textColorRGB}, 0.03);
         }
         .feature {
           padding: 1.5rem;
         }
         .icon {
-          display: inline-flex;
-          align-items: center;
-          justify-content: center;
-          font-size: 2.5em;
+          display: grid;
+          place-items: center;
           line-height: 1;
-          width: 30%;
           aspect-ratio: 1;
-          padding: 0.5rem;
-          box-sizing: border-box;
-          margin-block-end: 2rem;
+          width: 3rem;
+          font-size: 2.4rem;
+          padding: 0.3rem;
+          margin-block-end: 1.5rem;
           object-fit: contain;
         }
         .feat-title {
           margin-block-end: 1rem;
-          font-size: 1.5em;
+          font-size: 1.15em;
+          font-weight: 500;
           line-height: 1;
         }
         .feat-desc {
-          line-height: 1.5;
+          line-height: 1.7;
           margin: 1rem 0 0;
-          letter-spacing: 0.05em;
           opacity: 0.6;
         }
         @media ${mediaQuery.DESKTOP} {
@@ -163,9 +157,6 @@ export class Homepage extends GemElement {
           .features .body {
             grid-template-columns: auto;
           }
-          .icon {
-            width: 5rem;
-          }
           .feat-title,
           .feat-desc {
             margin: 0;
@@ -179,7 +170,7 @@ export class Homepage extends GemElement {
               <div class="feature ${feature.icon ? 'has-icon' : ''}">
                 ${!feature.icon
                   ? ''
-                  : [...feature.icon].length === 1
+                  : [...feature.icon].length <= 3
                     ? html`<span class="icon">${feature.icon}</span>`
                     : html`<img
                         class="icon"
@@ -211,7 +202,6 @@ export class Homepage extends GemElement {
       <style>
         :host {
           overflow: hidden;
-          --background-color: color-mix(in srgb, ${theme.textColor} 3%, ${theme.primaryColor} 2%);
         }
         .body {
           margin: auto;

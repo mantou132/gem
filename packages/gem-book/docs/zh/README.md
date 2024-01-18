@@ -7,10 +7,13 @@ hero:
       link: ./guide/README.md
 features:
   - title: 开箱即用
+    icon: 📝
     desc: 只需运行一条命令就能构建所有前端资源，让所有注意力都能放在文档编写上。
   - title: 高性能
+    icon: /logo.png
     desc: 没有多余的依赖，整个应用将使用精简的代码流畅的运行。
   - title: 可插拔可扩展
+    icon: 👩‍🎨
     desc: 能将自定义元素插入已有的网站中；使用自定义元素也能非常方便的自定义展示文档。
 ---
 

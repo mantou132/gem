@@ -7,7 +7,7 @@
  * 比如 duoyun-ui 文档站加载示例元素时把 GemReflectElement 渲染的元素清除
  */
 import { GemElement } from '../../lib/element';
-import { property } from '../../lib/decorators';
+import { attribute, property } from '../../lib/decorators';
 
 const START = 'gem-reflect-start';
 const END = 'gem-reflect-end';
@@ -26,7 +26,13 @@ const getReflectFragment = (startNode: Comment) => {
 };
 
 export class GemReflectElement extends GemElement {
+  @attribute method: 'prepend' | 'append';
+
   @property target: HTMLElement = document.head;
+
+  get #method() {
+    return this.method || 'append';
+  }
 
   constructor() {
     super({ isLight: true });
@@ -45,11 +51,14 @@ export class GemReflectElement extends GemElement {
 
     this.effect(
       () => {
-        if (!childNodes) {
-          [startNode, ...this.childNodes, endNode].forEach((node) => this.target.append(node));
-        } else {
-          childNodes.forEach((node) => this.target.append(node));
-        }
+        (childNodes || [startNode, ...this.childNodes, endNode]).forEach((node, index, arr) => {
+          const prev = arr[index - 1];
+          if (prev) {
+            prev.after(node);
+          } else {
+            this.target[this.#method](node);
+          }
+        });
         return () => {
           childNodes = getReflectFragment(startNode);
           childNodes.forEach((node) => node.remove());

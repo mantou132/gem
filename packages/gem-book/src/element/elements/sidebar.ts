@@ -10,6 +10,7 @@ import {
   useStore,
   refobject,
   RefObject,
+  part,
 } from '@mantou/gem';
 import { mediaQuery } from '@mantou/gem/helper/mediaquery';
 
@@ -33,6 +34,9 @@ export const [sidebarStore, updateSidebarStore] = useStore({ open: false });
 @connectStore(sidebarStore)
 @connectStore(tocStore)
 export class SideBar extends GemElement {
+  @part static content: string;
+  @part static logo: string;
+
   @refobject navRef: RefObject<HTMLElement>;
 
   @state open: boolean;
@@ -65,6 +69,9 @@ export class SideBar extends GemElement {
     const { homeMode, onlyFile } = config || {};
     if (sidebarIgnore || (homeMode && homePage === link)) {
       return html`<!-- No need to render homepage item -->`;
+    }
+    if (!title && !bookStore.isDevMode) {
+      return html``;
     }
     switch (type) {
       case 'dir': {
@@ -268,7 +275,7 @@ export class SideBar extends GemElement {
           }
         }
       </style>
-      <gem-book-nav-logo>
+      <gem-book-nav-logo part=${SideBar.logo}>
         <slot name="logo-after"></slot>
       </gem-book-nav-logo>
       <div class="nav" ref=${this.navRef.ref}>
@@ -286,7 +293,7 @@ export class SideBar extends GemElement {
             `
           : ''}
         <slot></slot>
-        ${bookStore.currentSidebar?.map((item) => this.#renderItem(item, true))}
+        <div part=${SideBar.content}>${bookStore.currentSidebar?.map((item) => this.#renderItem(item, true))}</div>
       </div>
     `;
   }

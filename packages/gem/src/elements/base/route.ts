@@ -196,7 +196,7 @@ export class GemRouteElement extends GemElement<State> {
 
   constructor({ isLight, routes }: ConstructorOptions = {}) {
     super({ isLight });
-    this.routes = routes;
+    this.routes = this.routes || routes;
   }
 
   state: State = {

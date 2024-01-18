@@ -13,6 +13,7 @@ import {
   refobject,
   RefObject,
   boolattribute,
+  exportPartsMap,
 } from '@mantou/gem';
 import { GemLightRouteElement, matchPath } from '@mantou/gem/elements/route';
 import { mediaQuery } from '@mantou/gem/helper/mediaquery';
@@ -27,12 +28,12 @@ import { checkBuiltInPlugin, joinPath } from './lib/utils';
 import { GemBookPluginElement } from './elements/plugin';
 import { Loadbar } from './elements/loadbar';
 import { Homepage } from './elements/homepage';
+import { SideBar } from './elements/sidebar';
 import type { Main } from './elements/main';
 
 import '@mantou/gem/elements/title';
 import '@mantou/gem/elements/reflect';
 import './elements/nav';
-import './elements/sidebar';
 import './elements/footer';
 import './elements/edit-link';
 import './elements/rel-link';
@@ -68,6 +69,8 @@ export class GemBookElement extends GemElement {
   @part static relLink: string;
   @part static footer: string;
   @part static homepageHero: string;
+  @part static sidebarContent: string;
+  @part static sidebarLogo: string;
 
   @slot static sidebarBefore: string;
   @slot static mainBefore: string;
@@ -208,7 +211,6 @@ export class GemBookElement extends GemElement {
         @media ${renderFullWidth ? 'all' : 'not all'} {
           gem-book-nav {
             grid-area: 1 / aside / 2 / toc;
-            box-shadow: 0 0 1.5rem #00000015;
           }
           gem-book-homepage,
           main {
@@ -268,14 +270,27 @@ export class GemBookElement extends GemElement {
         : null}
       ${mediaQuery.isPhone || !renderFullWidth
         ? html`
-            <gem-book-sidebar role="navigation" part=${GemBookElement.sidebar}>
+            <gem-book-sidebar
+              role="navigation"
+              exportparts=${exportPartsMap({
+                [SideBar.content]: GemBookElement.sidebarContent,
+                [SideBar.logo]: GemBookElement.sidebarLogo,
+              })}
+              part=${GemBookElement.sidebar}
+            >
               <slot slot=${GemBookElement.logoAfter} name=${GemBookElement.logoAfter}></slot>
               <slot name=${GemBookElement.sidebarBefore}></slot>
             </gem-book-sidebar>
           `
         : null}
       ${renderHomePage
-        ? html`<gem-book-homepage exportparts="${Homepage.hero}: ${GemBookElement.homepageHero}"></gem-book-homepage>`
+        ? html`
+            <gem-book-homepage
+              exportparts=${exportPartsMap({
+                [Homepage.hero]: GemBookElement.homepageHero,
+              })}
+            ></gem-book-homepage>
+          `
         : ''}
       <main>
         ${renderHomePage ? '' : html`<slot name=${GemBookElement.mainBefore}></slot>`}
