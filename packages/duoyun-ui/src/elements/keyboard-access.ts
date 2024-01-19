@@ -150,12 +150,9 @@ export class DuoyunKeyboardAccessElement extends GemElement<State> {
           // `a-b`
           keydownHandles[[...key].join('-')] = () => {
             this.setState({ active: false });
-            if ('showPicker' in element) {
-              (element as HTMLInputElement).showPicker();
-            } else {
-              element.focus();
-              element.click();
-            }
+            // BasePickerElement 的 `showPicker` 一样支持通过 `click` 触发
+            element.focus();
+            element.click();
           };
           index++;
           return { key, top, left };

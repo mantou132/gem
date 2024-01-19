@@ -219,7 +219,7 @@ export class DuoyunFilePickerElement extends GemElement implements BasePickerEle
     const renderItem = this.#type === 'file' ? this.#renderFileItem : this.#renderImageItem;
 
     return html`
-    <input
+      <input
         hidden
         type="file"
         ?multiple=${this.multiple}

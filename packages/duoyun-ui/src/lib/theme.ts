@@ -43,7 +43,10 @@ export const lightTheme = {
   gridGutter: '24px',
   // +1 user titleBar
   // +2 menu
-  // +3 input-capture
+  // +3 input-capture/keyboard-access
+  // max: 2**31 - 1 = 2147483647
+  // Firefox 似乎有 Bug？+3 的元素不能覆盖 +2 的元素
+  // https://bugzilla.mozilla.org/show_bug.cgi?id=1875557
   popupZIndex: '2147483644',
   timingFunction: 'cubic-bezier(0.4, 0, 0.2, 1)',
   timingEasingFunction: 'cubic-bezier(0.16, 1, 0.29, 0.99)',

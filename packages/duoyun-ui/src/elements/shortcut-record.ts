@@ -137,7 +137,7 @@ export class DuoyunShortcutRecordElement extends GemElement {
 
   #onClear = () => {
     this.clear(null);
-    this.focus();
+    // 由于 target 不能聚集，所以会自动聚焦到 this 上
   };
 
   render = () => {

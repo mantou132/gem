@@ -282,17 +282,25 @@ export class DuoyunInputElement extends GemElement {
     this.#inputHandle();
   };
 
-  #onClear = (evt: Event) => {
+  #onClear = async (evt: Event) => {
     evt.stopPropagation();
     this.clear('');
-    this.focus();
     this.#history.save();
+    // click handle 之后会聚焦到 target 上
+    await Promise.resolve();
+    this.focus();
   };
 
   #history = new InputHistory(this);
 
   #onKeyDown = (evt: KeyboardEvent) => {
     const nextValue = (n: number) => String(clamp(this.#min, Number(this.value || this.min) + n, this.#max));
+    hotkeys({
+      esc: () => {
+        // Chrome： 当在 search 输入框上 esc 时，会触发输入为 '' 的事件
+        // 这里阻止默认行为
+      },
+    })(evt);
     if (this.type === 'number') {
       hotkeys(
         {

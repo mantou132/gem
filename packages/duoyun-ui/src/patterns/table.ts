@@ -35,6 +35,7 @@ import type { DuoyunButtonElement } from '../elements/button';
 import { locale } from '../lib/locale';
 import { icons } from '../lib/icons';
 import { isNotBoolean } from '../lib/types';
+import { hotkeys } from '../lib/hotkeys';
 
 import { locationStore } from './console';
 import type { FilterableOptions, FilterableType } from './filter-form';
@@ -289,6 +290,15 @@ export class DyPatTableElement<T = any> extends GemElement<State> {
     evt.stopPropagation();
   };
 
+  #onKeydown = (evt: KeyboardEvent) => {
+    hotkeys({
+      esc: () => {
+        this.setState({ search: '' });
+        this.#changeQueryThrottle();
+      },
+    })(evt);
+  };
+
   #onAddFilter = (data: Filter) => {
     ContextMenu.close();
     this.setState({ filters: [...this.state.filters, data] });
@@ -435,6 +445,7 @@ export class DyPatTableElement<T = any> extends GemElement<State> {
           clearable
           @clear=${this.#onSearch}
           @change=${this.#onSearch}
+          @keydown=${this.#onKeydown}
           .value=${this.state.search}
         ></dy-input>
         ${this.filterable

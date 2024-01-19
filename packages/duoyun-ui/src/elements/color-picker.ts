@@ -18,7 +18,6 @@ import { commonHandle } from '../lib/hotkeys';
 import { focusStyle } from '../lib/styles';
 
 import type { BasePickerElement } from './picker';
-import type { DuoyunPopoverElement } from './popover';
 
 import './popover';
 import './color-panel';
@@ -64,7 +63,7 @@ const style = createCSSSheet(css`
 export class DuoyunColorPickerElement extends GemElement implements BasePickerElement {
   @attribute value: HexColor;
   @boolattribute alpha: boolean;
-  @refobject popoverRef: RefObject<DuoyunPopoverElement>;
+  @refobject divRef: RefObject<HTMLDivElement>;
   @boolattribute disabled: boolean;
 
   @globalemitter change: Emitter<HexColor>;
@@ -77,7 +76,6 @@ export class DuoyunColorPickerElement extends GemElement implements BasePickerEl
     return html`
       <dy-popover
         trigger="click"
-        ref=${this.popoverRef.ref}
         .disabled=${this.disabled}
         .content=${html`
           <dy-color-panel
@@ -90,6 +88,7 @@ export class DuoyunColorPickerElement extends GemElement implements BasePickerEl
       >
         <div
           role="combobox"
+          ref=${this.divRef.ref}
           tabindex=${-Number(this.disabled)}
           aria-disabled=${this.disabled}
           @keydown=${commonHandle}
@@ -101,6 +100,6 @@ export class DuoyunColorPickerElement extends GemElement implements BasePickerEl
   };
 
   showPicker() {
-    this.popoverRef.element?.click();
+    this.divRef.element?.click();
   }
 }
