@@ -1,6 +1,6 @@
 # 使用模式创建 CRUD 应用
 
-DuoyunUI 的[模式元素](../01-guide/55-pattern.md)和帮助模块能让你快速创建一个 CRUD 应用（[示例](https://examples.gemjs.org/console/)），这篇文章将使用：
+DuoyunUI 的[模式元素](../01-guide/55-pattern.md)和帮助模块能让你快速创建一个 CRUD 应用（[示例](https://examples.gemjs.org/console/)，[React 示例](https://stackblitz.com/edit/stackblitz-starters-vyqlvr?file=src%2Findex.tsx&view=editor)），这篇文章将使用：
 
 - `<dy-pat-console>` 创建 App 基本布局
 - `<dy-pat-table>` 创建表格页面
@@ -68,7 +68,7 @@ const navItems: NavItems = [
 ];
 ```
 
-```jsx React
+```tsx React
 import { createRoot } from 'react-dom/client';
 import type { Routes, NavItems } from 'duoyun-ui/patterns/console';
 
@@ -76,7 +76,7 @@ const routes = {
   home: {
     pattern: '/',
     title: 'Home',
-    getContent(_, ele): {
+    getContent(_, ele) {
       createRoot(ele).render(<>Home</>);
     },
   },
@@ -107,7 +107,7 @@ const navItems: NavItems = [
 
 ```js
 import { Toast } from 'duoyun-ui/elements/toast';
-import type { ContextMenus } from 'duoyun-ui/patterns/console';
+import type { ContextMenus, UserInfo } from 'duoyun-ui/patterns/console';
 
 const contextMenus: ContextMenus = [
   {
@@ -153,7 +153,7 @@ render(
 );
 ```
 
-```jsx React
+```tsx React
 createRoot(document.body).render(
   <DyPatConsole
     name="DuoyunUI"
@@ -190,9 +190,10 @@ export class ConsolePageItemElement extends GemElement {
 }
 ```
 
-```jsx React
+```tsx React
+import { useState, useEffect } from 'react';
 import { connect } from '@mantou/gem';
-import { locationStore } from 'duoyun-ui/patterns/console';
+import { locationStore } from 'duoyun-ui/react/DyPatConsole';
 import DyPatTable from 'duoyun-ui/react/DyPatTable';
 
 export function Item() {
@@ -257,9 +258,6 @@ export class ConsolePageItemElement extends GemElement {
     {
       title: 'No',
       dataIndex: 'id',
-      data: {
-        type: 'number',
-      },
     }
   ];
 
@@ -274,7 +272,7 @@ export class ConsolePageItemElement extends GemElement {
 }
 ```
 
-```jsx React
+```tsx React
 import { connect } from '@mantou/gem';
 import { get } from '@mantou/gem/helper/request';
 import { locationStore } from 'duoyun-ui/patterns/console';
@@ -285,22 +283,20 @@ export function Item() {
   useEffect(() => connect(locationStore, () => update(i + 1)), []);
 
   const [data, updateData] = useState();
-  useEffect(async () => {
-    const list = await get(`https://jsonplaceholder.typicode.com/users`);
-    updateData(list);
+  useEffect(() => {
+    get(`https://jsonplaceholder.typicode.com/users`).then(updateData);
   }, []);
 
   const columns: FilterableColumn[] = [
     {
       title: 'No',
       dataIndex: 'id',
-      data: {
-        type: 'number',
-      },
-    }
+    },
   ];
 
-  return <DyPatTable filterable={true} columns={columns} data={data}></DyPatTable>;
+  return (
+    <DyPatTable filterable={true} columns={columns} data={data}></DyPatTable>
+  );
 }
 ```
 
@@ -311,6 +307,8 @@ export function Item() {
 只需添加带有 `getActions` 的列：
 
 ```js
+import { ContextMenu } from 'duoyun-ui/elements/contextmenu';
+
 const columns: FilterableColumn[] = [
   // ...
   {
@@ -340,6 +338,8 @@ const columns: FilterableColumn[] = [
 首先需要像定义表格一样定义表单：
 
 ```js
+import type { FormItem } from 'duoyun-ui/patterns/form';
+
 const formItems: FormItem[] = [
   {
     type: 'text',
@@ -353,12 +353,14 @@ const formItems: FormItem[] = [
 接着实现 `onCreate` 和 `onUpdate`，并在页面中添加 `Create` 按钮：
 
 ```js
+import { createForm } from 'duoyun-ui/patterns/form';
+
 function onUpdate(r) {
   createForm({
     data: r,
     header: `Update: ${r.id}`,
     formItems: formItems,
-    preOk: async (data) => {
+    prepareOk: async (data) => {
       console.log(data);
     },
   }).catch((data) => {
@@ -372,7 +374,7 @@ function onCreate() {
     data: {},
     header: `Create`,
     formItems: formItems,
-    preOk: async (data) => {
+    prepareOk: async (data) => {
       console.log(data);
     },
   }).catch((data) => {
@@ -384,6 +386,8 @@ function onCreate() {
 <gbp-code-group>
 
 ```js Gem
+// ...
+
 html`
   <dy-pat-table filterable .data=${this.state.data} .columns=${this.#columns}>
     <dy-button @click=${onCreate}>Create</dy-button>
@@ -391,7 +395,9 @@ html`
 `;
 ```
 
-```jsx React
+```tsx React
+// ...
+
 <DyPatTable filterable={true} columns={columns} data={data}>
   <DyButton onClick={onCreate}>Create</DyButton>
 </DyPatTable>

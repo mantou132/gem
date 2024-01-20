@@ -164,7 +164,7 @@ export class ConsolePageItemElement extends GemElement<State> {
               data: r,
               header: `Edit: ${r.id}`,
               formItems: this.#formItems,
-              preOk: async (data) => {
+              prepareOk: async (data) => {
                 await sleep(1000);
                 console.log(data);
                 throw new Error('No implement!');
@@ -193,7 +193,7 @@ export class ConsolePageItemElement extends GemElement<State> {
       data: initItem,
       header: `Create`,
       formItems: this.#formItems,
-      preOk: async (data) => {
+      prepareOk: async (data) => {
         await sleep(1000);
         console.log(data);
         throw new Error('No implement!');

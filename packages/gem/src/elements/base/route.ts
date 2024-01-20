@@ -75,8 +75,8 @@ export interface RouteItem<T = unknown> {
   // 返回 `undefined` 意味着不会执行 `render`， 支持 React 等组件挂载到 `<gem-route>` 元素下
   getContent?: (
     params: Params,
-    renderRoot: DocumentOrShadowRoot | GemLightRouteElement,
-  ) => TemplateResult | Promise<TemplateResult> | undefined;
+    renderRoot: DocumentFragment | GemLightRouteElement,
+  ) => TemplateResult | Promise<TemplateResult> | undefined | Promise<undefined>;
   title?: string;
   // 用来传递数据
   data?: T;
@@ -133,6 +133,7 @@ export type RouteTrigger = {
 const scrollPositionMap = new Map<string, number>();
 
 /**
+ * @customElement gem-route
  * @attr inert 暂停路由更新
  * @fires routechange
  * @fires error
@@ -167,7 +168,7 @@ export class GemRouteElement extends GemElement<State> {
   /**当前匹配的路由的 params */
   currentParams: Params = {};
 
-  #lastLoader?: Promise<TemplateResult>;
+  #lastLoader?: Promise<TemplateResult | undefined>;
 
   /**不要多个 `<gem-route>` 共享，因为那样会导致后面的元素卸载前触发更新 */
   static createLocationStore = () => {
@@ -342,6 +343,9 @@ export class GemRouteElement extends GemElement<State> {
   };
 }
 
+/**
+ * @customElement gem-light-route
+ */
 export class GemLightRouteElement extends GemRouteElement {
   constructor(options: ConstructorOptions = {}) {
     super({ ...options, isLight: true });

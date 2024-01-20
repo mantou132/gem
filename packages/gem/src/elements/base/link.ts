@@ -10,6 +10,7 @@ function isExternal(path: string) {
 }
 
 /**
+ * @customElement gem-link
  * @attr href
  * @attr target
  * @attr doc-title
@@ -171,6 +172,7 @@ export class GemLinkElement extends GemElement {
 }
 
 /**
+ * @customElement gem-active-link
  * @attr pattern
  * @state active
  */

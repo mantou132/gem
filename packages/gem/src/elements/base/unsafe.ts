@@ -2,8 +2,7 @@ import { GemElement } from '../../lib/element';
 import { attribute } from '../../lib/decorators';
 
 /**
- * 直接写会被解释成固定属性，需要使用变量赋值
- *
+ * @customElement gem-unsafe
  * @attr content
  * @attr contentcss
  */

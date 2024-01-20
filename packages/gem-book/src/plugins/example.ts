@@ -243,8 +243,7 @@ customElements.whenDefined('gem-book').then(({ GemBookPluginElement }: typeof Ge
     #loadResource = (src: string) => {
       return new Promise<null>((res, rej) => {
         /**
-         * hack from duoyun-ui
-         * @link packages/duoyun-ui/scripts/hack-gbp-example.js
+         * @link packages/gem-book/scripts/hack-plugins.js
          */
         const script = document.createElement('script');
         script.type = 'module';

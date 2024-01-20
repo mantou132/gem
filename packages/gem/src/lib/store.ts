@@ -28,7 +28,9 @@ export function useStore<T extends NonPrimitive>(originStore: T) {
 export function connect<T extends NonPrimitive>(store: Store<T>, func: () => void) {
   const listeners = StoreListenerMap.get(store);
   listeners?.add(func);
-  return () => listeners?.delete(func);
+  return () => {
+    listeners?.delete(func);
+  };
 }
 
 export function disconnect<T extends NonPrimitive>(store: Store<T>, func: () => void) {

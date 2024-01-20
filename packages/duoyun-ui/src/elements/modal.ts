@@ -134,8 +134,8 @@ export interface ModalOptions {
 }
 
 export interface ModalOpenOptions<T> {
-  preClose?: (ele: T) => void | Promise<void>;
-  preOk?: (ele: T) => void | Promise<void>;
+  prepareClose?: (ele: T) => void | Promise<void>;
+  prepareOk?: (ele: T) => void | Promise<void>;
 }
 
 /**
@@ -195,12 +195,12 @@ export class DuoyunModalElement extends GemElement {
       };
       modal.addEventListener('close', async () => {
         const ele = getBodyEle();
-        await options.preClose?.(ele);
+        await options.prepareClose?.(ele);
         rej(ele);
       });
       modal.addEventListener('ok', async () => {
         const ele = getBodyEle();
-        await options.preOk?.(ele);
+        await options.prepareOk?.(ele);
         res(ele);
       });
     }).finally(async () => {

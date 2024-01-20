@@ -46,11 +46,9 @@ function angleAB(
 /**
  * 块级元素，如果要设置成 `contents`，则内容块要设置 `touch-action: none`
  * https://javascript.info/pointer-events#event-pointercancel
- *
  * 在移动端上，必须设置 `touch-action` 以允许滚动等原生动作
  *
- * 为什么空白区域会自动触发 `pointercancel`?
- *
+ * @customElement gem-gesture
  * @event pan
  * @event pinch
  * @event rotate
@@ -76,7 +74,9 @@ export class GemGestureElement extends GemElement {
     this.addEventListener('pointermove', this.#onMoveSet);
     this.addEventListener('pointerup', this.#onEnd);
     this.addEventListener('pointerleave', this.#onEnd); // 有时候 up 没有触发？
+    // 为什么空白区域会自动触发 `pointercancel`?
     this.addEventListener('pointercancel', this.#onEnd);
+
     this.addEventListener('dragstart', (evt) => evt.preventDefault());
   }
 

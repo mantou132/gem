@@ -48,10 +48,9 @@ customElements.whenDefined('gem-book').then(({ GemBookPluginElement }: typeof Ge
     #parseFile = async (text: string) => {
       const { Project } = (await import(/* webpackIgnore: true */ tsMorph)) as typeof import('ts-morph');
       const { getElements, getExports } =
-        // 如何在当前项目使用本地依赖？
-        // webpackIgnore.config.github === 'https://github.com/mantou132/gem'
-        //   ? require('gem-analyzer')
-        //   :
+        /**
+         * @link packages/gem-book/scripts/hack-plugins.js
+         */
         (await import(/* webpackIgnore: true */ gemAnalyzer)) as typeof import('gem-analyzer');
       const project = new Project({ useInMemoryFileSystem: true });
       const file = project.createSourceFile(this.src, text);
@@ -170,17 +169,21 @@ customElements.whenDefined('gem-book').then(({ GemBookPluginElement }: typeof Ge
         );
       }
 
-      text += this.#renderHeader(1, 'Other', name);
-      text += this.#renderTable(
-        [
-          { type: 'Event', value: events },
-          { type: 'Slot', value: slots },
-          { type: 'Part', value: parts },
-          { type: 'CSS State', value: cssStates },
-        ],
-        ['Type', 'Value'],
-        [({ type }) => type, ({ value }) => value.map((e) => this.#renderCode(e)).join(', ')],
-      );
+      const otherRows = [
+        { type: 'Event', value: events },
+        { type: 'Slot', value: slots },
+        { type: 'Part', value: parts },
+        { type: 'CSS State', value: cssStates },
+      ];
+      if (otherRows.some(({ value }) => !!value.length)) {
+        text += this.#renderHeader(1, 'Other', name);
+        text += this.#renderTable(
+          otherRows.filter(({ value }) => !!value.length),
+          ['Type', 'Value'],
+          [({ type }) => type, ({ value }) => value.map((e) => this.#renderCode(e)).join(', ')],
+        );
+      }
+
       return Utils.parseMarkdown(text);
     };
 

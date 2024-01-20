@@ -43,7 +43,7 @@ export const PREFIX = `${defaultTitle} | `;
 export const SUFFIX = ` - ${defaultTitle}`;
 
 /**
- * 映射到 `document.title`
+ * @customElement gem-title
  * @attr prefix
  * @attr suffix
  */

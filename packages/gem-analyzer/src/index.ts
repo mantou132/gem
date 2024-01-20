@@ -243,14 +243,22 @@ export const getElements = (file: SourceFile) => {
     const elementDeclaration = declaration
       .getDecorators()
       .find((decorator) => elementDecoratorName.includes(decorator.getName()));
-    if (elementDeclaration) {
+    const elementTag =
+      elementDeclaration
+        ?.getCallExpression()!
+        .getArguments()[0]
+        .getText()
+        .replace(/('|"|`)?(\S*)\1/, '$2') ||
+      declaration
+        .getJsDocs()
+        .map((jsDoc) => jsDoc.getTags())
+        .flat()
+        .find((e) => e.getTagName() === 'customElement')
+        ?.getCommentText();
+    if (elementTag) {
       const detail = {
         ...parseElement(declaration),
-        name: elementDeclaration
-          .getCallExpression()!
-          .getArguments()[0]
-          .getText()
-          .replace(/('|"|`)?(\S*)\1/, '$2'),
+        name: elementTag,
       };
       if (!detail.constructorName.startsWith('_')) {
         result.push(detail);

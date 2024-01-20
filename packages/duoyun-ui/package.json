@@ -35,7 +35,7 @@
     "/locales/"
   ],
   "scripts": {
-    "docs": "node scripts/hack-gbp-example && gem-book docs --plugin node_modules/gbp-example-hack",
+    "docs": "node ../gem-book/scripts/hack-plugins && gem-book docs --plugin node_modules/gbp-example-hack",
     "docs:remote": "gem-book docs --plugin example",
     "build:docs": "gem-book docs --build --plugin example",
     "build:components": "gem-port src/elements && gem-port src/patterns --svelte-ns=pat",

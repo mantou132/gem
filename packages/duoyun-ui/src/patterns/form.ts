@@ -181,11 +181,11 @@ export function createForm<T = Record<string, unknown>>(options: CreateFormOptio
           .data=${options.data}
         ></dy-pat-form>
       `,
-      preClose: (ele) => options.preClose?.(ele.state),
-      preOk: async (ele) => {
+      prepareClose: (ele) => options.prepareClose?.(ele.state),
+      prepareOk: async (ele) => {
         const valid = await ele.valid();
         if (!valid) throw null;
-        await waitLoading(options.preOk?.(ele.state));
+        await waitLoading(options.prepareOk?.(ele.state));
         await DuoyunWaitElement.instance?.removed;
       },
     })

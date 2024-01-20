@@ -25,6 +25,9 @@ const getReflectFragment = (startNode: Comment) => {
   return result;
 };
 
+/**
+ * @customElement gem-reflect
+ */
 export class GemReflectElement extends GemElement {
   @attribute method: 'prepend' | 'append';
 
