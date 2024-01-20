@@ -50,9 +50,11 @@ const devServerEventTarget = new EventTarget();
 let bookConfig: BookConfig = {
   version: Date.now().toString(),
 };
+
+// 代表 cli options，不能被 config 覆盖，所以除了数组字段，不要设置初始值
 let cliConfig: Required<CliUniqueConfig> = {
   icon: '',
-  output: DEFAULT_OUTPUT,
+  output: '',
   i18n: false,
   plugin: [],
   ga: '',
@@ -63,10 +65,11 @@ let cliConfig: Required<CliUniqueConfig> = {
   ignored: ['**/node_modules/**'],
   json: false,
   debug: false,
+  port: 0,
   config: '',
 };
 
-// 将配置文件和 cli 选项合并，并将 book 选项同步到 bookConfig
+// 将配置文件和 cli options 合并，并将 book 选项同步到 bookConfig
 async function syncConfig(fullPath?: string) {
   const obj: CliConfig = (await importObject(fullPath)) || {};
   Object.keys(cliConfig).forEach((k) => {
@@ -84,6 +87,10 @@ async function syncConfig(fullPath?: string) {
       }
     }
   });
+
+  // 初始化 cliConfig
+  cliConfig.output ||= DEFAULT_OUTPUT;
+  cliConfig.port ||= 8091;
 
   if (cliConfig.debug) print(cliConfig);
 
@@ -466,6 +473,9 @@ program
   .option('--debug', 'enabled debug mode', () => {
     cliConfig.debug = true;
   })
+  .option('--port <port>', 'serve port', (port: string) => {
+    cliConfig.port = Number(port);
+  })
   .option('--config <path>', `specify config file, default use \`${DEFAULT_CLI_FILE}\`.{js|json|mjs}`, (configPath) => {
     cliConfig.config = configPath;
   });
@@ -487,14 +497,14 @@ program
   .command('serve [dir]')
   .description('build the docs and start static file server')
   .action(async (dir = DEFAULT_DOCS_DIR) => {
+    cliConfig.build = true;
     await handleAction(dir);
 
-    const port = Number(process.env.PORT) || 8091;
     express()
       .use('/', serveStatic(path.resolve(cliConfig.output || dir), { immutable: true }))
       .get('*', (_, res) => res.sendFile(path.resolve(cliConfig.output || dir, 'index.html')))
-      .listen(port, () => {
-        print(chalk.green(`Project is running at:`) + `http://localhost:${port}`);
+      .listen(cliConfig.port, () => {
+        print(chalk.green(`Project is running at:`) + `http://localhost:${cliConfig.port}`);
       });
   });
 

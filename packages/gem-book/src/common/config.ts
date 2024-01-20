@@ -46,6 +46,7 @@ export interface CliUniqueConfig {
   ignored?: string[];
   theme?: string;
   build?: boolean;
+  port?: number;
   site?: string;
   json?: boolean;
   debug?: boolean;

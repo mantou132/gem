@@ -83,9 +83,9 @@ function genPaths(bookConfig: BookConfig) {
   return result;
 }
 
-function getPluginRecord(options: Required<CliUniqueConfig>) {
+function getPluginRecord(plugin: string[]) {
   return Object.fromEntries<{ name: string; url: string }>(
-    options.plugin.map((plugin) => {
+    plugin.map((plugin) => {
       const [base, ...rest] = plugin.split(/(\?)/);
       const search = rest.join('');
       const pluginPath = resolveLocalPlugin(base);
@@ -106,12 +106,12 @@ function getPluginRecord(options: Required<CliUniqueConfig>) {
 
 // dev mode uses memory file system
 export async function build(dir: string, options: Required<CliUniqueConfig>, bookConfig: BookConfig) {
-  const { debug, build, theme, template, output, icon, ga } = options;
+  const { debug, build, theme, template, output, icon, ga, site, port, plugin } = options;
   const isRemoteIcon = isURL(icon);
   const docsDir = path.resolve(dir);
   // 开发模式时使用 docsDir 避免不必要的复制
   const outputDir = build && output ? path.resolve(output) : docsDir;
-  const pluginRecord = getPluginRecord(options);
+  const pluginRecord = getPluginRecord(plugin);
   const plugins = Object.values(pluginRecord);
   const themePath = resolveTheme(theme);
 
@@ -124,6 +124,15 @@ export async function build(dir: string, options: Required<CliUniqueConfig>, boo
     entry: [entryDir],
     module: {
       rules: [
+        process.env.GEM_BOOK_REPLACE && {
+          test: /\.j|ts$/,
+          include: /plugins/,
+          loader: require.resolve('string-replace-loader'),
+          options: {
+            search: /\/\*\*\s*GEM_BOOK_REPLACE\s*(\*\/)?/gm,
+            replace: '',
+          },
+        },
         {
           test: /\.ts$/,
           use: [
@@ -186,7 +195,7 @@ export async function build(dir: string, options: Required<CliUniqueConfig>, boo
       isLocalSearch && {
         apply(compiler: Compiler) {
           compiler.hooks.compilation.tap('json-webpack-plugin', (compilation) => {
-            compilation.hooks.processAssets.tapPromise('json-webpack-plugin', async () => {
+            compilation.hooks.processAssets.tap('json-webpack-plugin', () => {
               Object.entries(genDocuments(docsDir, bookConfig)).forEach(([lang, documents]) => {
                 compilation.emitAsset(
                   ['documents', lang, 'json'].filter((e) => !!e).join('.'),
@@ -197,7 +206,7 @@ export async function build(dir: string, options: Required<CliUniqueConfig>, boo
           });
         },
       },
-      options.site && new SitemapPlugin({ base: options.site, paths: genPaths(bookConfig) }),
+      site && new SitemapPlugin({ base: site, paths: genPaths(bookConfig) }),
       build &&
         new GenerateSW({
           navigationPreload: true,
@@ -259,7 +268,7 @@ export async function build(dir: string, options: Required<CliUniqueConfig>, boo
           devServer.app!.use('/_assets/', serveStatic(process.cwd()));
           return middlewares;
         },
-        port: Number(process.env.PORT) || 8091,
+        port,
       },
       compiler,
     );

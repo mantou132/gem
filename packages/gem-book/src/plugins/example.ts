@@ -242,9 +242,12 @@ customElements.whenDefined('gem-book').then(({ GemBookPluginElement }: typeof Ge
 
     #loadResource = (src: string) => {
       return new Promise<null>((res, rej) => {
-        /**
-         * @link packages/gem-book/scripts/hack-plugins.js
-         */
+        /** GEM_BOOK_REPLACE
+        if (new URL(src).pathname.startsWith('/duoyun-ui/')) {
+          res(import(`../../duoyun-ui/src/elements/${src.split('/').pop()}`));
+          return;
+        }
+        /** GEM_BOOK_REPLACE */
         const script = document.createElement('script');
         script.type = 'module';
         script.src = src;

@@ -35,9 +35,9 @@
     "/locales/"
   ],
   "scripts": {
-    "docs": "node ../gem-book/scripts/hack-plugins && gem-book docs --plugin node_modules/gbp-example-hack",
-    "docs:remote": "gem-book docs --plugin example",
-    "build:docs": "gem-book docs --build --plugin example",
+    "docs": "GEM_BOOK_REPLACE=true gem-book docs",
+    "docs:remote": "gem-book docs",
+    "build:docs": "gem-book docs --build",
     "build:components": "gem-port src/elements && gem-port src/patterns --svelte-ns=pat",
     "build:dev": "MODE=dev nodemon -w ../gem-port/bin --exec gem-port src/elements",
     "clean": "node -e \"fs.readdirSync('src').map(dir => require('rimraf').sync(dir))\"",

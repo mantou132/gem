@@ -10,6 +10,7 @@
   "template": "docs/template.html",
   "ga": "G-PZYZ441YD3",
   "debug": true,
+  "port": 8090,
   "global": {
     "hello": "Hello World!"
   }

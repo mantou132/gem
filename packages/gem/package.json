@@ -30,9 +30,9 @@
   ],
   "typings": "index.d.ts",
   "scripts": {
-    "docs": "node ../gem-book/scripts/hack-plugins && gem-book docs --plugin node_modules/gbp-api-hack",
-    "docs:remote": "yarn docs --plugin api",
-    "build:docs": "yarn docs --build --plugin api",
+    "docs": "GEM_BOOK_REPLACE=true gem-book docs",
+    "docs:remote": "yarn docs",
+    "build:docs": "yarn docs --build",
     "build:module": "tsc -p tsconfig.build.json",
     "build:lib": "vite build",
     "build": "yarn build:module && yarn build:lib",

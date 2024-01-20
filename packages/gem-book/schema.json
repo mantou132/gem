@@ -63,6 +63,9 @@
           },
           "type": "array"
         },
+        "port": {
+          "type": "number"
+        },
         "site": {
           "type": "string"
         },

@@ -48,9 +48,9 @@ customElements.whenDefined('gem-book').then(({ GemBookPluginElement }: typeof Ge
     #parseFile = async (text: string) => {
       const { Project } = (await import(/* webpackIgnore: true */ tsMorph)) as typeof import('ts-morph');
       const { getElements, getExports } =
-        /**
-         * @link packages/gem-book/scripts/hack-plugins.js
-         */
+        /** GEM_BOOK_REPLACE
+        (await import('gem-analyzer')) ||
+        /** GEM_BOOK_REPLACE */
         (await import(/* webpackIgnore: true */ gemAnalyzer)) as typeof import('gem-analyzer');
       const project = new Project({ useInMemoryFileSystem: true });
       const file = project.createSourceFile(this.src, text);

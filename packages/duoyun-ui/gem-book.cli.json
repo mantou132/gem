@@ -5,6 +5,6 @@
   "icon": "../../logo.png",
   "i18n": true,
   "sourceBranch": "docs",
-  "plugin": ["media", "api", "sandpack", "raw", "docsearch?local"],
+  "plugin": ["media", "api", "sandpack", "raw", "docsearch?local", "example"],
   "debug": true
 }
