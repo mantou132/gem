@@ -6,7 +6,8 @@ import { Time } from 'duoyun-ui/lib/time';
 import { ContextMenu } from 'duoyun-ui/elements/contextmenu';
 import { FormItem, createForm } from 'duoyun-ui/patterns/form';
 import { sleep } from 'duoyun-ui/lib/utils';
-import type { FilterableColumn } from 'duoyun-ui/patterns/table';
+import { PaginationReq, createPaginationStore } from 'duoyun-ui/helper/store';
+import type { FetchEventDetail, FilterableColumn } from 'duoyun-ui/patterns/table';
 
 import 'duoyun-ui/patterns/table';
 import 'duoyun-ui/elements/button';
@@ -39,6 +40,12 @@ const EXAMPLE = {
 
 type Item = typeof EXAMPLE;
 
+const { store, updatePage } = createPaginationStore<Item>({
+  storageKey: 'users',
+  cacheItems: true,
+  pageContainItem: true,
+});
+
 const initItem = {
   username: 'Mantou',
   name: '',
@@ -52,15 +59,9 @@ const initItem = {
 
 type NewItem = typeof initItem;
 
-type State = {
-  list?: Item[];
-};
-
 @customElement('console-page-item')
 @connectStore(locationStore)
-export class ConsolePageItemElement extends GemElement<State> {
-  state: State = {};
-
+export class ConsolePageItemElement extends GemElement {
   // 定义表单
   #formItems: FormItem<NewItem>[] = [
     [
@@ -203,19 +204,31 @@ export class ConsolePageItemElement extends GemElement<State> {
     });
   };
 
+  #fetchList = (args: PaginationReq) => {
+    return get(`https://jsonplaceholder.typicode.com/users`).then((list: Item[]) => {
+      list.forEach((e, i) => {
+        e.updated = new Time().subtract(i + 1, 'd').getTime();
+        e.id += 10 * (args.page - 1);
+      });
+      return { list, count: list.length * 3 };
+    });
+  };
+
+  #onFetch = ({ detail }: CustomEvent<FetchEventDetail>) => {
+    console.log(detail);
+    updatePage(this.#fetchList, detail);
+  };
+
   mounted = () => {
     console.log(locationStore.params.id);
-    get(`https://jsonplaceholder.typicode.com/users`).then((list: Item[]) => {
-      list.forEach((e, i) => (e.updated = new Time().subtract(i + 1, 'd').getTime()));
-      this.setState({ list });
-    });
   };
 
   render = () => {
     return html`
-      <dy-pat-table filterable .pagesize=${5} .data=${this.state.list} .columns=${this.#columns}>
+      <dy-pat-table filterable .columns=${this.#columns} .paginationStore=${store} @fetch=${this.#onFetch}>
         <dy-button @click=${this.#onCreate}>Add</dy-button>
       </dy-pat-table>
+
       <style>
         dy-pat-table::part(table) {
           min-width: 40em;

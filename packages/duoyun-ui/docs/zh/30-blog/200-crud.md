@@ -4,6 +4,7 @@ DuoyunUI 的[模式元素](../01-guide/55-pattern.md)和帮助模块能让你快
 
 - `<dy-pat-console>` 创建 App 基本布局
 - `<dy-pat-table>` 创建表格页面
+- `helper/store` 创建分页数据管理器
 - `helper/error` 显示错误信息
 
 <gbp-media src="/preview.png"></gbp-media>
@@ -14,14 +15,14 @@ DuoyunUI 的[模式元素](../01-guide/55-pattern.md)和帮助模块能让你快
 
 <gbp-code-group>
 
-```js Gem
+```ts Gem
 import { render, html } from '@mantou/gem';
 import 'duoyun-ui/patterns/console';
 
 render(html`<dy-pat-console></dy-pat-console>`, document.body);
 ```
 
-```js React
+```tsx React
 import { createRoot } from 'react-dom/client';
 import DyPatConsole from 'duoyun-ui/react/DyPatConsole';
 
@@ -37,7 +38,7 @@ createRoot(document.body).render(<DyPatConsole />);
 
 <gbp-code-group>
 
-```js Gem
+```ts Gem
 import { html } from '@mantou/gem';
 import type { Routes, NavItems } from 'duoyun-ui/patterns/console';
 
@@ -54,7 +55,9 @@ const routes = {
     title: 'Item Page',
     async getContent(params) {
       // import('./item');
-      return html`<console-page-item>${JSON.stringify(params)}</console-page-item>`;
+      return html`
+        <console-page-item>${JSON.stringify(params)}</console-page-item>
+      `;
     },
   },
 } satisfies Routes;
@@ -105,7 +108,7 @@ const navItems: NavItems = [
 
 之后，可以指定用户信息用来标识用户，还可以定义一些全局命令，比如切换语言、退出登录：
 
-```js
+```ts
 import { Toast } from 'duoyun-ui/elements/toast';
 import type { ContextMenus, UserInfo } from 'duoyun-ui/patterns/console';
 
@@ -135,7 +138,7 @@ const userInfo: UserInfo = {
 
 <gbp-code-group>
 
-```js Gem
+```ts Gem
 render(
   html`
     <dy-pat-console
@@ -176,7 +179,7 @@ createRoot(document.body).render(
 
 <gbp-code-group>
 
-```js Gem
+```ts Gem
 import { html, GemElement, connectStore, customElement } from '@mantou/gem';
 import { locationStore } from 'duoyun-ui/patterns/console';
 import 'duoyun-ui/patterns/table';
@@ -242,7 +245,7 @@ export function Item() {
 
 <gbp-code-group>
 
-```js Gem
+```ts Gem
 import { html, GemElement, connectStore, customElement } from '@mantou/gem';
 import { get } from '@mantou/gem/helper/request';
 import { locationStore } from 'duoyun-ui/patterns/console';
@@ -252,13 +255,13 @@ import 'duoyun-ui/patterns/table';
 @customElement('console-page-item')
 @connectStore(locationStore)
 export class ConsolePageItemElement extends GemElement {
-  state = {}
+  state = {};
 
   #columns: FilterableColumn[] = [
     {
       title: 'No',
       dataIndex: 'id',
-    }
+    },
   ];
 
   mounted = async () => {
@@ -267,7 +270,13 @@ export class ConsolePageItemElement extends GemElement {
   };
 
   render = () => {
-    return html`<dy-pat-table filterable .columns=${this.#columns} .data=${this.state.data}></dy-pat-table>`;
+    return html`
+      <dy-pat-table
+        filterable
+        .columns=${this.#columns}
+        .data=${this.state.data}
+      ></dy-pat-table>
+    `;
   };
 }
 ```
@@ -306,7 +315,7 @@ export function Item() {
 
 只需添加带有 `getActions` 的列：
 
-```js
+```ts
 import { ContextMenu } from 'duoyun-ui/elements/contextmenu';
 
 const columns: FilterableColumn[] = [
@@ -317,14 +326,17 @@ const columns: FilterableColumn[] = [
       {
         text: 'Edit',
         handle: () => {
-          onUpdate(r)
+          onUpdate(r);
         },
       },
       {
         text: 'Delete',
         danger: true,
         handle: async () => {
-          await ContextMenu.confirm(`Confirm delete ${r.username}?`, { activeElement, danger: true });
+          await ContextMenu.confirm(`Confirm delete ${r.username}?`, {
+            activeElement,
+            danger: true,
+          });
           console.log('Delete: ', r);
         },
       },
@@ -337,7 +349,7 @@ const columns: FilterableColumn[] = [
 
 首先需要像定义表格一样定义表单：
 
-```js
+```ts
 import type { FormItem } from 'duoyun-ui/patterns/form';
 
 const formItems: FormItem[] = [
@@ -346,13 +358,13 @@ const formItems: FormItem[] = [
     field: 'username',
     label: 'Username',
     required: true,
-  }
-]
+  },
+];
 ```
 
 接着实现 `onCreate` 和 `onUpdate`，并在页面中添加 `Create` 按钮：
 
-```js
+```ts
 import { createForm } from 'duoyun-ui/patterns/form';
 
 function onUpdate(r) {
@@ -385,11 +397,11 @@ function onCreate() {
 
 <gbp-code-group>
 
-```js Gem
+```ts Gem
 // ...
 
 html`
-  <dy-pat-table filterable .data=${this.state.data} .columns=${this.#columns}>
+  <dy-pat-table filterable .columns=${this.#columns} .data=${this.state.data}>
     <dy-button @click=${onCreate}>Create</dy-button>
   </dy-pat-table>
 `;
@@ -405,17 +417,82 @@ html`
 
 </gbp-code-group>
 
+## 步骤3：服务端分页（可选）
+
+到目前为止，应用虽然有分页、搜索、过滤功能，但这都是通过客户端实现的，意味着需要一次性为 `<dy-pat-table>` 提供所有数据。
+在真实生产环境中，通常由服务端进行分页、搜索、过滤，只需要小的修改即可实现：
+
+<gbp-code-group>
+
+```ts Gem 7-8
+// ...
+
+html`
+  <dy-pat-table
+    filterable
+    .columns=${this.#columns}
+    .paginationStore=${store}
+    @fetch=${this.#onFetch}
+  >
+    <dy-button @click=${onCreate}>Create</dy-button>
+  </dy-pat-table>
+`;
+```
+
+```tsx React 6-7
+// ...
+
+<DyPatTable
+  filterable={true}
+  columns={columns}
+  paginationStore={store}
+  onfetch={onFetch}
+>
+  <DyButton onClick={onCreate}>Create</DyButton>
+</DyPatTable>
+```
+
+</gbp-code-group>
+
+其中，`store` 是使用 `createPaginationStore` 创建的分页数据：
+
+```ts
+import { Time } from 'duoyun-ui/lib/time';
+import { PaginationReq, createPaginationStore } from 'duoyun-ui/helper/store';
+import type { ChangeEventDetail } from 'duoyun-ui/patterns/table';
+
+const { store, updatePage } = createPaginationStore({
+  storageKey: 'users',
+  cacheItems: true,
+  pageContainItem: true,
+});
+
+// 模拟真实 API
+const fetchList = (args: PaginationReq) => {
+  return get(`https://jsonplaceholder.typicode.com/users`).then((list) => {
+    list.forEach((e, i) => {
+      e.updated = new Time().subtract(i + 1, 'd').getTime();
+      e.id += 10 * (args.page - 1);
+    });
+    return { list, count: list.length * 3 };
+  });
+};
+
+const onFetch = ({ detail }: CustomEvent<ChangeEventDetail>) => {
+  updatePage(fetchList, detail);
+};
+```
+
 > [!TIP] `<dy-pat-table>` 还支持：
 >
 > - 使用 `expandedRowRender` 展开行，`@expand` 获取展开事件
-> - 使用 `lazy` 和 `@change` 来处理分页信息（默认认为 `data` 是所有数据）
 > - 使用 `selectable` 让表格可以框选，使用 `getSelectedActions` 添加选择项命令
 
-## 步骤3：处理错误
+## 步骤4：处理错误
 
 在主文件开头引入 `helper/error`，它通过 `Toast` 显示错误信息，它也能显示未处理但被拒绝的 Promise：
 
-```js
+```ts
 import 'duoyun-ui/helper/error';
 ```
 

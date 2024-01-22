@@ -323,16 +323,19 @@ export function setBodyInert(modal: HTMLElement) {
   };
 }
 
+export type UseCacheStoreOptions<T> = {
+  cacheExcludeKeys?: (keyof T)[];
+  // 指定缓存 key 前缀
+  prefix?: string | (() => string | undefined);
+  // 重新初始化 store，例如切换用户
+  depStore?: Store<NonPrimitive>;
+};
+
 /**Create auto cache(localStorage) Store */
 export function useCacheStore<T extends Record<string, any>>(
   storageKey: string,
   initStore: T,
-  options?: {
-    cacheExcludeKeys?: (keyof T)[];
-    prefix?: string | (() => string | undefined);
-    // 重新初始化 store，例如切换用户
-    depStore?: Store<NonPrimitive>;
-  },
+  options?: UseCacheStoreOptions<T>,
 ) {
   const getKey = () => {
     const prefix = typeof options?.prefix === 'function' ? options.prefix() : options?.prefix;
@@ -380,11 +383,7 @@ export function useCacheStore<T extends Record<string, any>>(
 export function createCacheStore<T extends Record<string, any>>(
   storageKey: string,
   initStore: T,
-  options?: {
-    cacheExcludeKeys?: (keyof T)[];
-    prefix?: string | (() => string | undefined);
-    depStore?: Store<NonPrimitive>;
-  },
+  options?: UseCacheStoreOptions<T>,
 ) {
   const [store, , save] = useCacheStore(storageKey, initStore, options);
   return [store, save] as const;
