@@ -1,6 +1,6 @@
 import { UseCacheStoreOptions, useCacheStore } from '../lib/utils';
 
-export type PaginationReq = {
+type PaginationReq = {
   page: number;
   size: number;
 };
@@ -63,19 +63,22 @@ export function createPaginationStore<T extends Record<string, any>>(options: Pa
     update();
   };
 
-  const updatePage = async (request: (args: PaginationReq) => Promise<PaginationRes<any>>, args: PaginationReq) => {
-    changePage(args.page, { loading: true });
+  const updatePage = async <Req extends PaginationReq>(
+    request: (req: Req) => Promise<PaginationRes<any>>,
+    req: Req,
+  ) => {
+    changePage(req.page, { loading: true });
     try {
-      const result = await request(args);
-      changePage(args.page, { ids: result.list.map((e) => e[idKey]) });
+      const result = await request(req);
+      changePage(req.page, { ids: result.list.map((e) => e[idKey]) });
 
       if (pageContainItem) {
         result.list.forEach((e) => (store.items[e[idKey]] = e));
       }
 
-      update({ total: 'total' in result ? result.total : Math.ceil(result.count / args.size) });
+      update({ total: 'total' in result ? result.total : Math.ceil(result.count / req.size) });
     } finally {
-      changePage(args.page, { loading: false });
+      changePage(req.page, { loading: false });
     }
   };
 

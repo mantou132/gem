@@ -200,8 +200,8 @@ import { locationStore } from 'duoyun-ui/react/DyPatConsole';
 import DyPatTable from 'duoyun-ui/react/DyPatTable';
 
 export function Item() {
-  const [i, update] = useState(0);
-  useEffect(() => connect(locationStore, () => update(i + 1)), []);
+  const [_, update] = useState({});
+  useEffect(() => connect(locationStore, () => update({})), []);
   return <DyPatTable></DyPatTable>;
 }
 ```
@@ -257,7 +257,7 @@ import 'duoyun-ui/patterns/table';
 export class ConsolePageItemElement extends GemElement {
   state = {};
 
-  #columns: FilterableColumn[] = [
+  #columns: FilterableColumn<any>[] = [
     {
       title: 'No',
       dataIndex: 'id',
@@ -282,21 +282,22 @@ export class ConsolePageItemElement extends GemElement {
 ```
 
 ```tsx React
+import { useState, useEffect } from 'react';
 import { connect } from '@mantou/gem';
 import { get } from '@mantou/gem/helper/request';
 import { locationStore } from 'duoyun-ui/patterns/console';
-import { DyPatTable, FilterableColumn } from 'duoyun-ui/patterns/table';
+import DyPatTable, { FilterableColumn } from 'duoyun-ui/react/DyPatTable';
 
 export function Item() {
-  const [i, update] = useState(0);
-  useEffect(() => connect(locationStore, () => update(i + 1)), []);
+  const [_, update] = useState({});
+  useEffect(() => connect(locationStore, () => update({})), []);
 
   const [data, updateData] = useState();
   useEffect(() => {
     get(`https://jsonplaceholder.typicode.com/users`).then(updateData);
   }, []);
 
-  const columns: FilterableColumn[] = [
+  const columns: FilterableColumn<any>[] = [
     {
       title: 'No',
       dataIndex: 'id',
@@ -318,7 +319,7 @@ export function Item() {
 ```ts
 import { ContextMenu } from 'duoyun-ui/elements/contextmenu';
 
-const columns: FilterableColumn[] = [
+const columns: FilterableColumn<any>[] = [
   // ...
   {
     title: '',
@@ -352,7 +353,7 @@ const columns: FilterableColumn[] = [
 ```ts
 import type { FormItem } from 'duoyun-ui/patterns/form';
 
-const formItems: FormItem[] = [
+const formItems: FormItem<any>[] = [
   {
     type: 'text',
     field: 'username',
@@ -458,8 +459,8 @@ html`
 
 ```ts
 import { Time } from 'duoyun-ui/lib/time';
-import { PaginationReq, createPaginationStore } from 'duoyun-ui/helper/store';
-import type { ChangeEventDetail } from 'duoyun-ui/patterns/table';
+import { createPaginationStore } from 'duoyun-ui/helper/store';
+import type { FetchEventDetail } from 'duoyun-ui/patterns/table';
 
 const { store, updatePage } = createPaginationStore({
   storageKey: 'users',
@@ -468,7 +469,7 @@ const { store, updatePage } = createPaginationStore({
 });
 
 // 模拟真实 API
-const fetchList = (args: PaginationReq) => {
+const fetchList = (args: FetchEventDetail) => {
   return get(`https://jsonplaceholder.typicode.com/users`).then((list) => {
     list.forEach((e, i) => {
       e.updated = new Time().subtract(i + 1, 'd').getTime();
@@ -478,7 +479,7 @@ const fetchList = (args: PaginationReq) => {
   });
 };
 
-const onFetch = ({ detail }: CustomEvent<ChangeEventDetail>) => {
+const onFetch = ({ detail }: CustomEvent<FetchEventDetail>) => {
   updatePage(fetchList, detail);
 };
 ```

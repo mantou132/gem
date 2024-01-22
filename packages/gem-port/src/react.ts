@@ -70,17 +70,6 @@ function createReactSourceFile(elementFilePath: string, outDir: string) {
               };
             }, []);
             
-            // React Bug
-            const [mounted, update] = useState(false);
-            useEffect(() => update(true), []);
-            if (!mounted) {
-              return <${tag}
-                    ${properties
-                      .map(({ attribute, name }) => (attribute ? `${attribute}={props.${name}}` : ''))
-                      .join(' ')}
-                    ></${tag}>;
-            }
-            
             return <${tag} ref={elementRef} {...props}></${tag}>;
           })
 

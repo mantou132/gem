@@ -6,7 +6,7 @@ import { Time } from 'duoyun-ui/lib/time';
 import { ContextMenu } from 'duoyun-ui/elements/contextmenu';
 import { FormItem, createForm } from 'duoyun-ui/patterns/form';
 import { sleep } from 'duoyun-ui/lib/utils';
-import { PaginationReq, createPaginationStore } from 'duoyun-ui/helper/store';
+import { createPaginationStore } from 'duoyun-ui/helper/store';
 import type { FetchEventDetail, FilterableColumn } from 'duoyun-ui/patterns/table';
 
 import 'duoyun-ui/patterns/table';
@@ -204,7 +204,7 @@ export class ConsolePageItemElement extends GemElement {
     });
   };
 
-  #fetchList = (args: PaginationReq) => {
+  #fetchList = (args: FetchEventDetail) => {
     return get(`https://jsonplaceholder.typicode.com/users`).then((list: Item[]) => {
       list.forEach((e, i) => {
         e.updated = new Time().subtract(i + 1, 'd').getTime();
