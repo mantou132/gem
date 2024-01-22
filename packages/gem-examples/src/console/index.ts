@@ -16,8 +16,9 @@ const routes = {
   home: {
     pattern: '/',
     title: 'Home Page',
-    getContent() {
-      import('./home');
+    async getContent() {
+      await sleep(100);
+      await import('./home');
       return html`<console-page-home></console-page-home>`;
     },
   },

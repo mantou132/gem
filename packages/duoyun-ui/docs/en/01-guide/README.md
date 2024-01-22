@@ -39,15 +39,21 @@ Toast.open('error', 'An error occurred');
 DuoyunUI supports an ESM method independently uses an element, such as adding a keyboard access to your website(press <kbd>f</kbd> list all focusable elements):
 
 ```ts
-import('https://esm.sh/duoyun-ui/elements/keyboard-access').then(({ DuoyunKeyboardAccessElement }) =>
-  document.body.append(new DuoyunKeyboardAccessElement()),
+import('https://esm.sh/duoyun-ui/elements/keyboard-access').then(
+  ({ DuoyunKeyboardAccessElement }) =>
+    document.body.append(new DuoyunKeyboardAccessElement()),
 );
 ```
 
 For example, enable input recording mode:
 
 ```ts
-import('https://esm.sh/duoyun-ui/elements/input-capture').then(({ DuoyunInputCaptureElement }) =>
-  document.body.append(new DuoyunInputCaptureElement()),
+import('https://esm.sh/duoyun-ui/elements/input-capture').then(
+  ({ DuoyunInputCaptureElement }) =>
+    document.body.append(new DuoyunInputCaptureElement()),
 );
 ```
+
+## Feedback DuoyunUI
+
+Please visit [GitHub](https://github.com/mantou132/gem)

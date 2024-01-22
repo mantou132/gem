@@ -1,6 +1,7 @@
 import { html, GemElement, TemplateResult } from '@mantou/gem/lib/element';
 import { adoptedStyle, customElement, property, refobject, RefObject } from '@mantou/gem/lib/decorators';
 import { StyleObject, createCSSSheet, css, styleMap } from '@mantou/gem/lib/utils';
+import { history } from '@mantou/gem/lib/history';
 
 import { icons } from '../lib/icons';
 import { blockContainer } from '../lib/styles';
@@ -165,12 +166,21 @@ export class DyPatFormElement<T = Record<string, unknown>> extends GemElement<T>
   valid = () => this.formRef.element!.valid();
 }
 
-type CreateFormOptions<T> = { type?: 'modal' | 'drawer'; style?: StyleObject } & ModalOptions &
+type CreateFormOptions<T> = {
+  type?: 'modal' | 'drawer';
+  style?: StyleObject;
+  query?: [string, any];
+} & ModalOptions &
   ModalOpenOptions<T> &
   Pick<DyPatFormElement<T>, 'formItems' | 'data'>;
 
 export function createForm<T = Record<string, unknown>>(options: CreateFormOptions<T>) {
   const containerType = options.type === 'modal' ? Modal : Drawer;
+  const { query } = history.getParams();
+  if (options.query) {
+    query.setAny(options.query[0], options.query[1]);
+    history.replace({ query });
+  }
   return containerType
     .open<DyPatFormElement<T>>({
       header: options.header,
@@ -192,5 +202,11 @@ export function createForm<T = Record<string, unknown>>(options: CreateFormOptio
     .then((ele) => ele.state)
     .catch((ele) => {
       throw ele.state;
+    })
+    .finally(() => {
+      if (options.query) {
+        query.delete(options.query[0]);
+        history.replace({ query });
+      }
     });
 }

@@ -1,7 +1,6 @@
 import { html, GemElement } from '@mantou/gem/lib/element';
 import { get } from '@mantou/gem/helper/request';
-import { connectStore, customElement } from '@mantou/gem/lib/decorators';
-import { locationStore } from 'duoyun-ui/patterns/console';
+import { customElement } from '@mantou/gem/lib/decorators';
 import { Time } from 'duoyun-ui/lib/time';
 import { ContextMenu } from 'duoyun-ui/elements/contextmenu';
 import { FormItem, createForm } from 'duoyun-ui/patterns/form';
@@ -40,7 +39,19 @@ const EXAMPLE = {
 
 type Item = typeof EXAMPLE;
 
-const { store, updatePage } = createPaginationStore<Item>({
+// 模拟真实 API
+const fetchList = (args: FetchEventDetail) => {
+  console.log(args);
+  return get(`https://jsonplaceholder.typicode.com/users`).then((list: Item[]) => {
+    list.forEach((e, i) => {
+      e.updated = new Time().subtract(i + 1, 'd').getTime();
+      e.id += 10 * (args.page - 1);
+    });
+    return { list, count: list.length * 3 };
+  });
+};
+
+const pagination = createPaginationStore<Item>({
   storageKey: 'users',
   cacheItems: true,
   pageContainItem: true,
@@ -60,8 +71,12 @@ const initItem = {
 type NewItem = typeof initItem;
 
 @customElement('console-page-item')
-@connectStore(locationStore)
 export class ConsolePageItemElement extends GemElement {
+  state = {
+    pagination: pagination,
+    paginationMap: new Map([['', pagination]]),
+  };
+
   // 定义表单
   #formItems: FormItem<NewItem>[] = [
     [
@@ -160,20 +175,7 @@ export class ConsolePageItemElement extends GemElement {
       getActions: (r, activeElement) => [
         {
           text: 'Edit',
-          handle: () => {
-            createForm<NewItem>({
-              data: r,
-              header: `Edit: ${r.id}`,
-              formItems: this.#formItems,
-              prepareOk: async (data) => {
-                await sleep(1000);
-                console.log(data);
-                throw new Error('No implement!');
-              },
-            }).catch((data) => {
-              console.log(data);
-            });
-          },
+          handle: () => this.#onUpdate(r),
         },
         { text: '---' },
         {
@@ -188,11 +190,28 @@ export class ConsolePageItemElement extends GemElement {
     },
   ];
 
+  #onUpdate = (r: Item) => {
+    createForm<Item>({
+      data: r,
+      header: `Edit: ${r.id}`,
+      query: ['id', r.id],
+      formItems: this.#formItems,
+      prepareOk: async (data) => {
+        await sleep(1000);
+        console.log(data);
+        this.state.pagination.updateItem(data);
+      },
+    }).catch((data) => {
+      console.log(data);
+    });
+  };
+
   #onCreate = () => {
     createForm<NewItem>({
       type: 'modal',
       data: initItem,
       header: `Create`,
+      query: ['new', true],
       formItems: this.#formItems,
       prepareOk: async (data) => {
         await sleep(1000);
@@ -204,28 +223,27 @@ export class ConsolePageItemElement extends GemElement {
     });
   };
 
-  #fetchList = (args: FetchEventDetail) => {
-    return get(`https://jsonplaceholder.typicode.com/users`).then((list: Item[]) => {
-      list.forEach((e, i) => {
-        e.updated = new Time().subtract(i + 1, 'd').getTime();
-        e.id += 10 * (args.page - 1);
-      });
-      return { list, count: list.length * 3 };
-    });
-  };
-
   #onFetch = ({ detail }: CustomEvent<FetchEventDetail>) => {
-    console.log(detail);
-    updatePage(this.#fetchList, detail);
-  };
-
-  mounted = () => {
-    console.log(locationStore.params.id);
+    let pagination = this.state.paginationMap.get(detail.searchAndFilterKey);
+    if (!pagination) {
+      pagination = createPaginationStore<Item>({
+        cacheItems: true,
+        pageContainItem: true,
+      });
+      this.state.paginationMap.set(detail.searchAndFilterKey, pagination);
+    }
+    this.setState({ pagination });
+    pagination.updatePage(fetchList, detail);
   };
 
   render = () => {
     return html`
-      <dy-pat-table filterable .columns=${this.#columns} .paginationStore=${store} @fetch=${this.#onFetch}>
+      <dy-pat-table
+        filterable
+        .columns=${this.#columns}
+        .paginationStore=${this.state.pagination.store}
+        @fetch=${this.#onFetch}
+      >
         <dy-button @click=${this.#onCreate}>Add</dy-button>
       </dy-pat-table>
 

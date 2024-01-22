@@ -1,3 +1,3 @@
 ---
-redirect: time-picker.md
+redirect: ./time-picker.md
 ---

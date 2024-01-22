@@ -10,6 +10,7 @@ import {
   emitter,
   Emitter,
   boolattribute,
+  attribute,
 } from '@mantou/gem/lib/decorators';
 import { GemElement, html, TemplateResult } from '@mantou/gem/lib/element';
 import { addListener, createCSSSheet, css, LinkedList, LinkedListItem, styled, styleMap } from '@mantou/gem/lib/utils';
@@ -87,6 +88,7 @@ export class DuoyunListElement extends GemElement<State> {
   @property key?: any; // 除了 items 提供另外一种方式来更新
   @property renderItem?: (item: any) => TemplateResult;
   @boolattribute debug: boolean;
+  @attribute itemexportparts: string;
 
   /**enable infinite scroll, virtualization render */
   @boolattribute infinite: boolean;
@@ -274,10 +276,13 @@ export class DuoyunListElement extends GemElement<State> {
 
   #appendItems = (items: any[], oldItems?: any[]) => {
     if (!oldItems) return;
+    const oldFirst = oldItems.at(0);
     let beforeHeight = 0;
-    for (let i = 0; i < items.length; i++) {
-      if (this.getKey!(items[i]) === this.getKey!(oldItems[0])) break;
-      if (this.#isLeftItem(i)) beforeHeight += this.#getRowHeight();
+    if (oldFirst) {
+      for (let i = 0; i < items.length; i++) {
+        if (this.getKey!(items[i]) === this.getKey!(oldFirst)) break;
+        if (this.#isLeftItem(i)) beforeHeight += this.#getRowHeight();
+      }
     }
     if (beforeHeight) {
       // 有向前（上）加载数据，必须是列数的倍数
@@ -398,6 +403,7 @@ export class DuoyunListElement extends GemElement<State> {
     if (!this.#keyElementMap.has(key)) {
       const ele = new DuoyunListItemElement();
       ele.setAttribute('part', DuoyunListElement.item);
+      ele.setAttribute('exportparts', this.itemexportparts);
       ele.addEventListener('resize', this.#onItemResize);
       ele.addEventListener('show', () => this.itemshow(this.#keyItemMap.get(key)));
       ele.intersectionRoot = this.scrollContainer;

@@ -44,6 +44,8 @@ const style = createCSSSheet(css`
     width: 100%;
     table-layout: fixed;
     border-collapse: collapse;
+    /* 为啥用户代理在 localhost 下是 normal，但在 StackBlitz 下没有设置？ */
+    font-size: inherit;
   }
   .selection:where([data-selecting], :state(selecting)) ~ table {
     user-select: none;

@@ -21,6 +21,7 @@ const style = createCSSSheet(css`
     display: inline-flex;
     align-items: center;
     gap: 0.5em;
+    line-height: 2;
   }
   :host([disabled]) {
     cursor: not-allowed;
@@ -98,7 +99,7 @@ export const groupStyle = createCSSSheet(css`
     align-items: center;
     flex-wrap: wrap;
   }
-  :host([orientation='horizontal']) {
+  :host(:not([orientation='vertical'])) {
     gap: 1em;
   }
   :host([orientation='vertical']) {

@@ -30,7 +30,7 @@ import {
 } from '../lib/utils';
 import type { Column, ItemContextMenuEventDetail, DuoyunTableElement } from '../elements/table';
 import { blockContainer } from '../lib/styles';
-import { findScrollContainer } from '../lib/element';
+import { findRanges, findScrollContainer } from '../lib/element';
 import { Time, formatDuration } from '../lib/time';
 import type { DuoyunButtonElement } from '../elements/button';
 import { locale } from '../lib/locale';
@@ -38,6 +38,7 @@ import { icons } from '../lib/icons';
 import { isNotBoolean } from '../lib/types';
 import { hotkeys } from '../lib/hotkeys';
 import { PaginationStore } from '../helper/store';
+import { DuoyunRouteElement } from '../elements/route';
 
 import { locationStore } from './console';
 import type { FilterableOptions, FilterableType } from './filter-form';
@@ -48,6 +49,7 @@ import '../elements/tag';
 import '../elements/table';
 import '../elements/pagination';
 import '../elements/scroll-box';
+import '../elements/loading';
 
 import './filter-form';
 
@@ -58,11 +60,12 @@ export type FilterableColumn<T> = Column<T> & {
   };
 };
 
-export const queryKeys = {
-  PAGINATION_PAGE: 'page',
-  PAGINATION_SIZE: 'size',
-  SEARCH: 'search',
-  FILTERS: 'filters',
+// 不能和外部冲突
+const queryKeys = {
+  PAGINATION_PAGE: '_dy_page',
+  PAGINATION_SIZE: '_dy_size',
+  SEARCH: '_dy_search',
+  FILTERS: '_dy_filters',
 };
 
 type Filter = {
@@ -73,14 +76,19 @@ type Filter = {
 
 type State = {
   selection: any[];
-
-  page: number;
-  size: number;
   search: string;
   filters: Filter[];
 };
 
-export type FetchEventDetail = State;
+type LocationStore = Store<ReturnType<(typeof DuoyunRouteElement)['createLocationStore']>>;
+
+export type FetchEventDetail = LocationStore & {
+  page: number;
+  size: number;
+  search: string;
+  filters: Filter[];
+  searchAndFilterKey: string;
+};
 
 const style = createCSSSheet(css`
   .searchbar {
@@ -105,6 +113,11 @@ const style = createCSSSheet(css`
   .pagination {
     margin-block-start: ${theme.gridGutter};
   }
+  .updating {
+    position: fixed;
+    right: 1rem;
+    bottom: 1rem;
+  }
 `);
 
 /**
@@ -113,7 +126,6 @@ const style = createCSSSheet(css`
 @customElement('dy-pat-table')
 @adoptedStyle(style)
 @adoptedStyle(blockContainer)
-// 只有使用 dy-pat-console 才起作用
 @connectStore(locationStore)
 export class DyPatTableElement<T = any> extends GemElement<State> {
   @refobject tableRef: RefObject<DuoyunTableElement<T>>;
@@ -127,6 +139,9 @@ export class DyPatTableElement<T = any> extends GemElement<State> {
 
   @property data?: T[] | (T | undefined)[];
   @property paginationStore?: Store<PaginationStore<T>>;
+
+  // 如果不在 dy-pat-console 中，则需要提供 `locationStore`
+  @property locationStore?: LocationStore;
 
   @property rowKey?: string | string[];
   @property getRowStyle?: (record: T) => Partial<CSSStyleDeclaration>;
@@ -148,7 +163,7 @@ export class DyPatTableElement<T = any> extends GemElement<State> {
       | 'addAllSelection'
       | 'removeAllSelection'
       | ComparerType,
-  ) => string = (e) => e.replace(/[A-Z]/g, ' $1').replace(/^\w/, ($1) => $1.toUpperCase());
+  ) => string = (e) => e.replace(/([A-Z])/g, ' $1').replace(/^\w/, ($1) => $1.toUpperCase());
 
   get #defaultPagesize() {
     return this.pagesize || this.sizes?.[0] || 20;
@@ -158,46 +173,29 @@ export class DyPatTableElement<T = any> extends GemElement<State> {
     return 1;
   }
 
-  state: State = (() => {
-    const p = history.getParams();
-    const page = Number(p.query.get(queryKeys.PAGINATION_PAGE)) || this.#defaultPage;
-    const size = Number(p.query.get(queryKeys.PAGINATION_SIZE)) || this.#defaultPagesize;
-    const search = p.query.get(queryKeys.SEARCH) || '';
-    const filters = p.query.getAnyAll(queryKeys.FILTERS);
-    return { search, filters, selection: [], page, size };
-  })();
+  get #page() {
+    return Number(history.getParams().query.get(queryKeys.PAGINATION_PAGE)) || this.#defaultPage;
+  }
+
+  get #size() {
+    return Number(history.getParams().query.get(queryKeys.PAGINATION_SIZE)) || this.#defaultPagesize;
+  }
+
+  get #search() {
+    return history.getParams().query.get(queryKeys.SEARCH) || '';
+  }
+
+  get #filters() {
+    return history.getParams().query.getAnyAll(queryKeys.FILTERS);
+  }
+
+  state: State = {
+    selection: [],
+    search: this.#search,
+    filters: this.#filters,
+  };
 
   #data?: (T | undefined)[] = [];
-
-  #getRanges = (root: Node, text: string) => {
-    const reg = new RegExp([...text].map((c) => `\\u{${c.codePointAt(0)!.toString(16)}}`).join(''), 'gui');
-    const ranges: Range[] = [];
-    const nodes: Node[] = [root];
-    while (!!nodes.length) {
-      const node = nodes.pop()!;
-      switch (node.nodeType) {
-        case Node.TEXT_NODE:
-          const matched = node.nodeValue?.matchAll(reg);
-          if (matched) {
-            for (const arr of matched) {
-              if (arr.index !== undefined) {
-                const range = new Range();
-                range.setStart(node, arr.index);
-                range.setEnd(node, arr.index + text.length);
-                ranges.push(range);
-              }
-            }
-          }
-          break;
-        case Node.ELEMENT_NODE:
-          if ((node as Element).shadowRoot) nodes.push((node as Element).shadowRoot as Node);
-          break;
-      }
-      if (node.childNodes[0]) nodes.push(node.childNodes[0]);
-      if (node.nextSibling) nodes.push(node.nextSibling);
-    }
-    return ranges;
-  };
 
   #onSelect = (evt: CustomEvent) => this.setState({ selection: evt.detail });
 
@@ -223,7 +221,7 @@ export class DyPatTableElement<T = any> extends GemElement<State> {
       },
       !this.paginationStore && {
         text: this.getText('addAllSelection'),
-        handle: () => table.appendSelection(this.data || []),
+        handle: () => table.appendSelection(this.#data || []),
       },
     ].filter(isNotBoolean);
     ContextMenu.open(
@@ -254,22 +252,26 @@ export class DyPatTableElement<T = any> extends GemElement<State> {
   };
 
   #getPageData = () => {
-    const { query } = history.getParams();
-    const page = Number(query.get(queryKeys.PAGINATION_PAGE)) || this.#defaultPage;
-    const size = Number(query.get(queryKeys.PAGINATION_SIZE)) || this.#defaultPagesize;
+    const page = this.#page;
+    const size = this.#size;
 
     const total = this.paginationStore
       ? this.paginationStore.total
       : this.#data
         ? Math.ceil(this.#data.length / size)
         : 0;
-    const data = this.paginationStore
-      ? this.paginationStore.pagination[page]?.ids?.map((id) => this.paginationStore!.items[id])
+    const pageData = this.paginationStore?.pagination[page];
+
+    const data = pageData
+      ? pageData?.ids?.map((id) => this.paginationStore!.items[id])
       : this.#data?.slice((page - 1) * size, page * size);
-    return { total, data, size, page };
+
+    const updating = data && pageData?.loading;
+
+    return { total, data, size, page, updating };
   };
 
-  #createChangeFunction = (key: string, getDefaultValue: () => number, updateState: (v: number) => void) => {
+  #createChangeFunction = (key: string, getDefaultValue: () => number) => {
     return ({ detail }: CustomEvent<number>) => {
       const p = history.getParams();
       const query = new QueryString(p.query);
@@ -278,23 +280,13 @@ export class DyPatTableElement<T = any> extends GemElement<State> {
       } else {
         query.set(key, String(detail));
       }
-      updateState(detail);
       history.push({ ...p, query });
       findScrollContainer(this)?.scrollTo(0, 0);
-      this.fetch(this.state);
     };
   };
 
-  #onPageChange = this.#createChangeFunction(
-    queryKeys.PAGINATION_PAGE,
-    () => this.#defaultPage,
-    (v) => this.setState({ page: v }),
-  );
-  #onSizeChange = this.#createChangeFunction(
-    queryKeys.PAGINATION_SIZE,
-    () => this.#defaultPagesize,
-    (v) => this.setState({ size: v }),
-  );
+  #onPageChange = this.#createChangeFunction(queryKeys.PAGINATION_PAGE, () => this.#defaultPage);
+  #onSizeChange = this.#createChangeFunction(queryKeys.PAGINATION_SIZE, () => this.#defaultPagesize);
 
   #changeQuery = () => {
     const p = history.getParams();
@@ -303,9 +295,7 @@ export class DyPatTableElement<T = any> extends GemElement<State> {
     query.setAny(queryKeys.FILTERS, this.state.filters);
     query.delete(queryKeys.PAGINATION_PAGE);
     query.delete(queryKeys.PAGINATION_SIZE);
-    this.setState({ page: this.#defaultPage, size: this.#defaultPagesize });
     history.replace({ ...p, query, hash: '' });
-    this.fetch(this.state);
   };
 
   #changeQueryThrottle = throttle(this.#changeQuery, 120);
@@ -372,10 +362,6 @@ export class DyPatTableElement<T = any> extends GemElement<State> {
   };
 
   willMount = () => {
-    this.effect(
-      () => this.paginationStore && connect(this.paginationStore, this.update),
-      () => [this.paginationStore],
-    );
     // 显示正确的过滤器文本
     this.memo(
       () => {
@@ -391,13 +377,13 @@ export class DyPatTableElement<T = any> extends GemElement<State> {
       },
       () => [this.columns],
     );
-    // 搜索和过滤，如果是 lazy，则由用户处理
+    // 搜索和过滤数据，如果服务端分页，则跳过
     this.memo(
-      ([query]) => {
+      () => {
         this.#data = this.data;
         if (this.paginationStore) return;
         if (!this.#data) return;
-        const search = query.get(queryKeys.SEARCH);
+        const { search, filters } = this.state;
         if (search) {
           this.#data = this.#data.filter((e) => {
             if (!e) return true;
@@ -416,7 +402,6 @@ export class DyPatTableElement<T = any> extends GemElement<State> {
             return isIncludesString(str, search);
           });
         }
-        const filters = query.getAnyAll(queryKeys.FILTERS) as Filter[];
         filters.forEach(() => {
           this.#data = this.#data?.filter((e) => {
             return filters.every(({ field, comparer: comparerType, value }) => {
@@ -435,16 +420,55 @@ export class DyPatTableElement<T = any> extends GemElement<State> {
           });
         });
       },
-      () => [locationStore.query, this.columns, this.data] as const,
+      () => [(this.locationStore || locationStore).query, this.columns, this.data],
     );
   };
 
   mounted = () => {
-    this.fetch(this.state);
+    this.effect(
+      () => this.paginationStore && connect(this.paginationStore, this.update),
+      () => [this.paginationStore],
+    );
+    this.effect(
+      () => this.locationStore && connect(this.locationStore, this.update),
+      () => [this.locationStore],
+    );
+    this.effect(
+      () => {
+        const { search, filters } = this.state;
+        this.fetch({
+          search,
+          filters,
+          page: this.#page,
+          size: this.#size,
+          ...locationStore,
+          ...this.locationStore,
+          searchAndFilterKey:
+            search || filters.length
+              ? `${search}-${filters
+                  .sort((a, b) => (a.field > b.field ? 1 : 0))
+                  .map(({ field, comparer, value }) => `${field}-${comparer}-${value}`)
+                  .join()}`
+              : '',
+        });
+      },
+      () => {
+        const { path, query } = this.locationStore || locationStore;
+        return [
+          this.paginationStore?.updatedItem,
+          query.get(queryKeys.PAGINATION_PAGE),
+          query.get(queryKeys.PAGINATION_SIZE),
+          query.get(queryKeys.FILTERS),
+          query.get(queryKeys.SEARCH),
+          path,
+        ];
+      },
+    );
     // 高亮搜索词
     this.effect(
-      async ([search]) => {
+      async () => {
         await sleep(1);
+        const { search } = this.state;
         const Highlight = (window as any).Highlight;
         const highlights = (CSS as any).highlights;
         if (!Highlight || !highlights) return;
@@ -456,16 +480,17 @@ export class DyPatTableElement<T = any> extends GemElement<State> {
 
         const highlight = new Highlight();
         splitString(search).forEach((s) => {
-          this.#getRanges(tbody, s).forEach((range) => highlight.add(range));
+          findRanges(tbody, s).forEach((range) => highlight.add(range));
         });
         highlights.set('search', highlight);
       },
-      () => [this.state.search],
+      // search 进行了节流，所以是依赖 query
+      () => [this.paginationStore ? this.paginationStore.pagination[this.#page]?.ids : this.#search],
     );
   };
 
   render = () => {
-    const { data, page, size, total } = this.#getPageData();
+    const { data, page, size, total, updating } = this.#getPageData();
 
     return html`
       <div class="searchbar" part="searchbar">
@@ -514,6 +539,7 @@ export class DyPatTableElement<T = any> extends GemElement<State> {
         @expand=${(evt: CustomEvent) => this.expand(evt.detail)}
         @itemcontextmenu=${this.#onItemContextMenu}
       ></dy-table>
+      <dy-loading class="updating" ?hidden=${!updating}></dy-loading>
       <dy-pagination
         class="pagination"
         part="pagination"

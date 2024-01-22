@@ -31,3 +31,33 @@ export function findScrollContainer(startElement?: HTMLElement | null) {
     element = element.parentElement || ((element.getRootNode() as ShadowRoot)?.host as HTMLElement);
   }
 }
+
+export function findRanges(root: Node, text: string) {
+  const reg = new RegExp([...text].map((c) => `\\u{${c.codePointAt(0)!.toString(16)}}`).join(''), 'gui');
+  const ranges: Range[] = [];
+  const nodes: Node[] = [root];
+  while (!!nodes.length) {
+    const node = nodes.pop()!;
+    switch (node.nodeType) {
+      case Node.TEXT_NODE:
+        const matched = node.nodeValue?.matchAll(reg);
+        if (matched) {
+          for (const arr of matched) {
+            if (arr.index !== undefined) {
+              const range = new Range();
+              range.setStart(node, arr.index);
+              range.setEnd(node, arr.index + text.length);
+              ranges.push(range);
+            }
+          }
+        }
+        break;
+      case Node.ELEMENT_NODE:
+        if ((node as Element).shadowRoot) nodes.push((node as Element).shadowRoot as Node);
+        break;
+    }
+    if (node.childNodes[0]) nodes.push(node.childNodes[0]);
+    if (node.nextSibling) nodes.push(node.nextSibling);
+  }
+  return ranges;
+}

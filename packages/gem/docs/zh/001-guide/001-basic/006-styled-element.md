@@ -33,7 +33,12 @@ class MyElement extends GemElement {}
 
 ```js 17
 import { GemElement, html } from '@mantou/gem';
-import { createCSSSheet, styled, adoptedStyle, customElement } from '@mantou/gem';
+import {
+  createCSSSheet,
+  styled,
+  adoptedStyle,
+  customElement,
+} from '@mantou/gem';
 
 const styles = createCSSSheet({
   header: styled.class`
@@ -92,6 +97,9 @@ class MyElement extends GemElement {
 }
 ```
 
+> [!NOTE]
+> 注意跟 `state`/`setState` 的区别
+
 > [!TIP]
 > 还可以使用比较 Hack 的方式自定义元素样式，例如：
 >
@@ -104,9 +112,6 @@ class MyElement extends GemElement {
 >   `),
 > ];
 > ```
-
-> [!NOTE]
-> 注意跟 `state`/`setState` 的区别
 
 ## 自定义元素外部样式
 

@@ -26,6 +26,7 @@ const style = createCSSSheet(css`
     display: inline-flex;
     align-items: center;
     gap: 0.5em;
+    line-height: 2;
   }
   :host([disabled]) {
     cursor: not-allowed;

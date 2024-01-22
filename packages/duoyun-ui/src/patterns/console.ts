@@ -143,7 +143,7 @@ const style = createCSSSheet(
     : rules,
 );
 
-// 禁止向皮条
+// 禁止橡皮条
 const consoleStyle = createCSSSheet(css`
   ::selection,
   ::target-text {

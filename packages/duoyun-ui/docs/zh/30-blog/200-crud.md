@@ -54,7 +54,6 @@ const routes = {
     pattern: '/items/:id',
     title: 'Item Page',
     async getContent(params) {
-      // import('./item');
       return html`
         <console-page-item>${JSON.stringify(params)}</console-page-item>
       `;
@@ -80,15 +79,18 @@ const routes = {
     pattern: '/',
     title: 'Home',
     getContent(_, ele) {
-      createRoot(ele).render(<>Home</>);
+      ele.react?.unmount();
+      ele.react = createRoot(ele);
+      ele.react.render(<>Home</>);
     },
   },
   item: {
     pattern: '/items/:id',
     title: 'Item Page',
     async getContent(params, ele) {
-      // await import('./item');
-      createRoot(ele).render(<>{JSON.stringify(params)}</>);
+      ele.react?.unmount();
+      ele.react = createRoot(ele);
+      ele.react.render(<>{JSON.stringify(params)}</>);
     },
   },
 } satisfies Routes;
@@ -103,6 +105,9 @@ const navItems: NavItems = [
 ```
 
 </gbp-code-group>
+
+> [!WARNING]
+> 使用 React 渲染页面时，为了更好的和 Gem 兼容，需要先卸载以挂载的 Root 节点，再重新创建 React Root 并渲染。
 
 ### 定义用户信息和全局菜单
 
@@ -181,11 +186,9 @@ createRoot(document.body).render(
 
 ```ts Gem
 import { html, GemElement, connectStore, customElement } from '@mantou/gem';
-import { locationStore } from 'duoyun-ui/patterns/console';
 import 'duoyun-ui/patterns/table';
 
 @customElement('console-page-item')
-@connectStore(locationStore)
 export class ConsolePageItemElement extends GemElement {
   render = () => {
     return html`<dy-pat-table></dy-pat-table>`;
@@ -196,12 +199,9 @@ export class ConsolePageItemElement extends GemElement {
 ```tsx React
 import { useState, useEffect } from 'react';
 import { connect } from '@mantou/gem';
-import { locationStore } from 'duoyun-ui/react/DyPatConsole';
 import DyPatTable from 'duoyun-ui/react/DyPatTable';
 
 export function Item() {
-  const [_, update] = useState({});
-  useEffect(() => connect(locationStore, () => update({})), []);
   return <DyPatTable></DyPatTable>;
 }
 ```
@@ -216,7 +216,6 @@ export function Item() {
     pattern: '/items/:id',
     title: 'Item Page',
     async getContent() {
--     // await import('./item');
 +     await import('./item');
       return html`<console-page-item></console-page-item>`;
     },
@@ -230,7 +229,6 @@ export function Item() {
     pattern: '/items/:id',
     title: 'Item Page',
     async getContent(params, ele) {
--      // import('./item');
 -      createRoot(ele).render(<>{JSON.stringify(params)}</>);
 +      const { Item } = await import('./item');
 +      createRoot(ele).render(<Item />);
@@ -242,6 +240,9 @@ export function Item() {
 </gbp-code-group>
 
 ### 读取列表并渲染表格
+
+接下来从后端获取数据并填充表格，URL 参数比如 `id` 可以从 `locationStore` 读取，它由 `<dy-pat-console>` 创建，以响应 App 路由更新，它不会从[正在加载但还未显示的页面](https://gemjs.org/zh/blog/improve-route)中获取更新。
+需要将它和页面绑定，以保证 `id` 改变时页面响应变化。
 
 <gbp-code-group>
 
@@ -264,9 +265,14 @@ export class ConsolePageItemElement extends GemElement {
     },
   ];
 
-  mounted = async () => {
-    const data = await get(`https://jsonplaceholder.typicode.com/users`);
-    this.setState({ data });
+  mounted = () => {
+    this.effect(
+      async ([id]) => {
+        const data = await get(`https://jsonplaceholder.typicode.com/users`);
+        this.setState({ data });
+      },
+      () => [locationStore.params.id],
+    );
   };
 
   render = () => {
@@ -294,8 +300,9 @@ export function Item() {
 
   const [data, updateData] = useState();
   useEffect(() => {
+    // const id = locationStore.params.id;
     get(`https://jsonplaceholder.typicode.com/users`).then(updateData);
-  }, []);
+  }, [locationStore.params.id]);
 
   const columns: FilterableColumn<any>[] = [
     {
@@ -432,7 +439,7 @@ html`
   <dy-pat-table
     filterable
     .columns=${this.#columns}
-    .paginationStore=${store}
+    .paginationStore=${pagination.store}
     @fetch=${this.#onFetch}
   >
     <dy-button @click=${onCreate}>Create</dy-button>
@@ -446,7 +453,7 @@ html`
 <DyPatTable
   filterable={true}
   columns={columns}
-  paginationStore={store}
+  paginationStore={pagination.store}
   onfetch={onFetch}
 >
   <DyButton onClick={onCreate}>Create</DyButton>
@@ -462,7 +469,7 @@ import { Time } from 'duoyun-ui/lib/time';
 import { createPaginationStore } from 'duoyun-ui/helper/store';
 import type { FetchEventDetail } from 'duoyun-ui/patterns/table';
 
-const { store, updatePage } = createPaginationStore({
+const pagination = createPaginationStore({
   storageKey: 'users',
   cacheItems: true,
   pageContainItem: true,
@@ -480,9 +487,39 @@ const fetchList = (args: FetchEventDetail) => {
 };
 
 const onFetch = ({ detail }: CustomEvent<FetchEventDetail>) => {
-  updatePage(fetchList, detail);
+  pagination.updatePage(fetchList, detail);
 };
 ```
+
+<details>
+  <summary>优化搜索结果展示（可选）</summary>
+  
+  当在有搜索词和无搜索词之间切换时，页面不能立刻切换到新列表，可以为搜索词分配独立的 `pagination`：
+
+```ts
+@customElement('console-page-item')
+export class ConsolePageItemElement extends GemElement {
+  state = {
+    pagination: pagination,
+    paginationMap: new Map([['', pagination]]),
+  };
+
+  #onFetch = ({ detail }: CustomEvent<FetchEventDetail>) => {
+    let pagination = this.state.paginationMap.get(detail.searchAndFilterKey);
+    if (!pagination) {
+      pagination = createPaginationStore<Item>({
+        cacheItems: true,
+        pageContainItem: true,
+      });
+      this.state.paginationMap.set(detail.searchAndFilterKey, pagination);
+    }
+    this.setState({ pagination });
+    pagination.updatePage(fetchList, detail);
+  };
+}
+```
+
+</details>
 
 > [!TIP] `<dy-pat-table>` 还支持：
 >
