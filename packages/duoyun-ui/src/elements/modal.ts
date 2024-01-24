@@ -20,7 +20,7 @@ import { mediaQuery } from '@mantou/gem/helper/mediaquery';
 import { theme } from '../lib/theme';
 import { locale } from '../lib/locale';
 import { hotkeys } from '../lib/hotkeys';
-import { setBodyInert } from '../lib/utils';
+import { DyPromise, setBodyInert } from '../lib/utils';
 import { commonAnimationOptions, fadeIn, fadeOut, slideInUp } from '../lib/animations';
 
 import './button';
@@ -183,27 +183,30 @@ export class DuoyunModalElement extends GemElement {
 
   // Cannot be used for dynamic forms
   // 错误必须处理，不然会被默认通过 Toast 显示
-  static async open<T = Element>(options: ModalOptions & ModalOpenOptions<T>) {
+  static open<T = Element>(options: ModalOptions & ModalOpenOptions<T>) {
     const modal = new this({ ...options, open: true });
     const restoreInert = setBodyInert(modal);
     document.body.append(modal);
     // bubble close event close modal
-    return new Promise<T>((res, rej) => {
-      const getBodyEle = () => {
-        const ele = modal.bodyRef.element?.children[0] as any;
-        return ele instanceof HTMLSlotElement ? ele.assignedElements()[0] : ele;
-      };
-      modal.addEventListener('close', async () => {
-        const ele = getBodyEle();
-        await options.prepareClose?.(ele);
-        rej(ele);
-      });
-      modal.addEventListener('ok', async () => {
-        const ele = getBodyEle();
-        await options.prepareOk?.(ele);
-        res(ele);
-      });
-    }).finally(async () => {
+    return DyPromise.new<T, { modal: DuoyunModalElement }>(
+      (res, rej) => {
+        const getBodyEle = () => {
+          const ele = modal.bodyRef.element?.children[0] as any;
+          return ele instanceof HTMLSlotElement ? ele.assignedElements()[0] : ele;
+        };
+        modal.addEventListener('close', async () => {
+          const ele = getBodyEle();
+          await options.prepareClose?.(ele);
+          rej(ele);
+        });
+        modal.addEventListener('ok', async () => {
+          const ele = getBodyEle();
+          await options.prepareOk?.(ele);
+          res(ele);
+        });
+      },
+      { modal },
+    ).finally(async () => {
       restoreInert();
       await modal.#closeAnimate();
       modal.remove();

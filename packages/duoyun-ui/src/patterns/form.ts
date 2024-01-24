@@ -4,8 +4,9 @@ import { StyleObject, createCSSSheet, css, styleMap } from '@mantou/gem/lib/util
 import { history } from '@mantou/gem/lib/history';
 
 import { icons } from '../lib/icons';
-import { blockContainer } from '../lib/styles';
+import { blockContainer, focusStyle } from '../lib/styles';
 import { readProp } from '../lib/utils';
+import { theme } from '../lib/theme';
 import { Drawer } from '../elements/drawer';
 import { Modal, ModalOpenOptions, ModalOptions } from '../elements/modal';
 import { DuoyunWaitElement, waitLoading } from '../elements/wait';
@@ -27,7 +28,7 @@ type FormItemProps<T = unknown> = {
   required?: boolean;
   rules?: DuoyunFormItemElement['rules'];
 
-  slot?: TemplateResult;
+  slot?: TemplateResult | HTMLElement | HTMLElement[];
 };
 
 export type FormItem<T = unknown> =
@@ -50,6 +51,7 @@ const style = createCSSSheet(css`
     display: flex;
     align-items: center;
     gap: 1px;
+    border-radius: ${theme.normalRound};
   }
   summary dy-use {
     width: 1.2em;
@@ -68,6 +70,7 @@ const style = createCSSSheet(css`
  */
 @customElement('dy-pat-form')
 @adoptedStyle(blockContainer)
+@adoptedStyle(focusStyle)
 @adoptedStyle(style)
 export class DyPatFormElement<T = Record<string, unknown>> extends GemElement<T> {
   @refobject formRef: RefObject<DuoyunFormElement>;

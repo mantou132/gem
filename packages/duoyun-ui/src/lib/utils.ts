@@ -176,17 +176,25 @@ export function throttle<T extends (...args: any) => any>(
   };
 }
 
-export function debounce<T extends (...args: any) => any>(fn: T, wait = 500) {
+export function debounce<T extends (...args: any) => any>(
+  fn: T,
+  wait = 500,
+  { leading = false }: { leading?: boolean } = {},
+) {
   let timer = 0;
-  let result: any = undefined;
-  return (...rest: Parameters<T>) => {
-    if (!timer) {
-      timer = window.setTimeout(() => {
-        timer = 0;
-      }, wait);
-      result = fn(...(rest as any));
-    }
-    return result;
+  return function (...args: Parameters<T>) {
+    return new Promise<Awaited<ReturnType<typeof fn>>>((resolve, reject) => {
+      clearTimeout(timer);
+      timer = window.setTimeout(
+        () => {
+          timer = window.setTimeout(() => (timer = 0), wait);
+          Promise.resolve(fn(...(args as any)))
+            .then(resolve)
+            .catch(reject);
+        },
+        leading && !timer ? 0 : wait,
+      );
+    });
   };
 }
 
@@ -392,4 +400,34 @@ export function createCacheStore<T extends Record<string, any>>(
 // 是链接需要使用 img 渲染
 export function isRemoteIcon(icon: string | Element | DocumentFragment): icon is string {
   return typeof icon === 'string' && !!icon.trim().match(/^(http|[./])/);
+}
+
+/**
+ * Pass additional fields
+ *
+ * not support async function
+ */
+export class DyPromise<T, E extends Record<string, unknown>> extends Promise<T> {
+  static new<T, E extends Record<string, unknown>>(
+    executor: (resolve: (value: T | PromiseLike<T>) => void, reject: (reason?: any) => void) => void,
+    props: E,
+  ) {
+    const instance = new DyPromise<T, E>(executor);
+    return Object.assign(instance, props);
+  }
+  then<TResult1 = T, TResult2 = never>(
+    onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null,
+    onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null,
+  ) {
+    const result = super.then<TResult1, TResult2>(onfulfilled, onrejected);
+    return Object.assign(result, this) as unknown as DyPromise<TResult1 | TResult2, E> & E;
+  }
+  catch<TResult>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null) {
+    const result = super.catch(onrejected);
+    return Object.assign(result, this) as unknown as DyPromise<TResult | T, E> & E;
+  }
+  finally(onfinally?: (() => void) | null | undefined) {
+    const result = super.finally(onfinally);
+    return Object.assign(result, this) as unknown as DyPromise<T, E> & E;
+  }
 }

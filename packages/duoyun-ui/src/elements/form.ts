@@ -285,43 +285,38 @@ export class DuoyunFormItemElement extends GemElement<FormItemState> {
   constructor() {
     super();
     this.addEventListener('change', (evt: CustomEvent) => {
-      if (!this.name) {
-        evt.stopPropagation();
-      }
+      evt.stopPropagation();
       if (this.#type === 'slot') {
-        this.#change(evt.detail);
+        this.#itemchange(evt.detail);
       }
     });
   }
 
-  #change = (value: number | string | any[] | any) => {
+  #itemchange = (value: number | string | any[] | any) => {
     if (this.name) {
       this.itemchange({ name: this.name, value });
     }
   };
 
   #onChange = (evt: CustomEvent<any>) => {
-    evt.stopPropagation();
-    this.#change(evt.detail);
+    this.#itemchange(evt.detail);
   };
 
   #onCheckboxChange = (evt: CustomEvent<boolean>) => {
-    evt.stopPropagation();
-    this.#change(this.value ? (evt.detail ? this.value : '') : evt.detail);
+    this.#itemchange(this.value ? (evt.detail ? this.value : '') : evt.detail);
   };
 
   #onTextChangeWithIndex = (evt: CustomEvent<string>, index: number) => {
-    evt.stopPropagation();
     const value = (this.value || []) as string[];
-    this.#change([...value.slice(0, index), evt.detail, ...value.slice(index + 1)]);
+    this.#itemchange([...value.slice(0, index), evt.detail, ...value.slice(index + 1)]);
   };
 
   #onTextCleanWithIndex = async (index: number) => {
-    this.#change(((this.value || []) as string[]).filter((_, i) => i !== index));
+    this.#itemchange(((this.value || []) as string[]).filter((_, i) => i !== index));
   };
 
   #onTextAdd = async () => {
-    this.#change([...((this.value || []) as string[]), '']);
+    this.#itemchange([...((this.value || []) as string[]), '']);
   };
 
   mounted = () => {

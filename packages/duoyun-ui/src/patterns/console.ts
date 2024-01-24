@@ -147,11 +147,11 @@ const style = createCSSSheet(
 const consoleStyle = createCSSSheet(css`
   ::selection,
   ::target-text {
-    color: white;
+    color: ${theme.backgroundColor};
     background: ${theme.primaryColor};
   }
   ::highlight(search) {
-    color: white;
+    color: ${theme.backgroundColor};
     background: ${theme.informativeColor};
   }
   :where(:root) {

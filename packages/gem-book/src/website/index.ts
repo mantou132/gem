@@ -63,6 +63,15 @@ document.body.append(book);
 
 const style = document.createElement('style');
 style.textContent = css`
+  ::selection,
+  ::target-text {
+    color: ${defaultTheme.backgroundColor};
+    background: ${defaultTheme.primaryColor};
+  }
+  ::highlight(search) {
+    color: ${defaultTheme.backgroundColor};
+    background: ${defaultTheme.noteColor};
+  }
   :where(html) {
     height: 100%;
     overflow: hidden;

@@ -68,7 +68,7 @@ const style = createCSSSheet(css`
   .calendar.hidden {
     visibility: hidden;
   }
-  .calendar::part(no-highlight-cell):hover {
+  .calendar::part(no-highlight-cell) {
     border-radius: ${theme.smallRound};
   }
   .calendar::part(start-highlight-cell) {
@@ -86,15 +86,17 @@ const style = createCSSSheet(css`
     grid: auto-flow / 1fr 1fr 1fr;
   }
   .item {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    outline: 1px solid transparent;
-    outline-offset: -0.5em;
+    position: relative;
+    display: grid;
+    place-items: center;
+    border-radius: ${theme.smallRound};
   }
-  .item.highlight {
-    z-index: 1;
-    outline-color: ${theme.highlightColor};
+  .item.highlight::after {
+    content: '';
+    position: absolute;
+    border-radius: inherit;
+    inset: 0.5em;
+    border: 1px solid ${theme.highlightColor};
   }
   .item:hover {
     background: ${theme.hoverBackgroundColor};
@@ -110,9 +112,8 @@ const style = createCSSSheet(css`
     flex-direction: column;
   }
   .time {
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    display: grid;
+    place-items: center;
     height: 3em;
   }
   .timepanel {
@@ -243,7 +244,7 @@ export class DuoyunDatePanelElement extends GemElement<State> {
       default:
         return html`
           <dy-action-text @click=${() => this.setState({ mode: 'day' })}>
-            ${this.#currentPosition.format('YYYY-MM-DD')}
+            ${this.#currentPosition.format('YYYY')}
           </dy-action-text>
         `;
     }

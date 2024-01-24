@@ -21,6 +21,7 @@ import './use';
 
 const style = createCSSSheet(css`
   :host(:where(:not([hidden]))) {
+    cursor: default;
     display: inline-flex;
     align-items: center;
     justify-content: center;
