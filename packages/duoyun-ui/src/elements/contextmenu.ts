@@ -227,9 +227,7 @@ export class DuoyunContextmenuElement extends GemElement {
         ],
       });
     } else {
-      update({
-        menuStack: menuStack.slice(0, menuStackIndex + 1),
-      });
+      update({ menuStack: menuStack.slice(0, menuStackIndex + 1) });
     }
   };
 
@@ -242,16 +240,11 @@ export class DuoyunContextmenuElement extends GemElement {
 
   #onKeydown = (evt: KeyboardEvent, menuStackIndex: number) => {
     evt.stopPropagation();
-    const focusPrevMenu = () => {
-      update({
-        menuStack: contextmenuStore.menuStack.slice(0, menuStackIndex),
-      });
-      this.#menuElements[menuStackIndex - 1]?.focus();
-    };
     hotkeys({
-      esc: menuStackIndex === 0 ? ContextMenu.close : focusPrevMenu,
-      left: focusPrevMenu,
-      right: () => this.#menuElements[menuStackIndex + 1]?.focus(),
+      esc:
+        menuStackIndex === 0
+          ? ContextMenu.close
+          : () => update({ menuStack: contextmenuStore.menuStack.slice(0, menuStackIndex) }),
     })(evt);
   };
 
@@ -289,7 +282,10 @@ export class DuoyunContextmenuElement extends GemElement {
   };
 
   mounted = () => {
-    this.#menuElements.shift()?.focus();
+    this.effect(
+      () => this.#menuElements.at(-1)?.focus(),
+      () => [contextmenuStore.menuStack.length],
+    );
     const restoreInert = setBodyInert(this);
     ContextMenu.instance = this;
     this.addEventListener('contextmenu', this.#preventDefault);

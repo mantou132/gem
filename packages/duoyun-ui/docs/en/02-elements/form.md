@@ -6,7 +6,7 @@
   name="dy-form"
   props='{"style": "width: 100%;", "@change": "(evt) => {Object.keys(evt.detail).forEach(key => evt.target.querySelector(`[name=${key}]`).value = evt.detail[key])}"}'
   html='<dy-form-item name="name" label="Name" multiple></dy-form-item>
-<dy-form-item name="password" label="password" type="password"></dy-form-item>
+<dy-form-item name="password" label="Password" type="password"></dy-form-item>
 <dy-form-item name="email" label="Email" autofocus></dy-form-item>
 <dy-form-item name="phone" label="Phone"></dy-form-item>
 <dy-form-item name="date" label="Date" type="date-time"></dy-form-item>

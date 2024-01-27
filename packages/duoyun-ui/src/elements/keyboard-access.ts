@@ -1,5 +1,5 @@
 import { GemElement, html } from '@mantou/gem/lib/element';
-import { adoptedStyle, customElement, attribute, part, property } from '@mantou/gem/lib/decorators';
+import { adoptedStyle, customElement, attribute, part, property, emitter, Emitter } from '@mantou/gem/lib/decorators';
 import { addListener, createCSSSheet, css, styleMap } from '@mantou/gem/lib/utils';
 import { logger } from '@mantou/gem/helper/logger';
 
@@ -7,11 +7,45 @@ import { hotkeys, HotKeyHandles, unlock } from '../lib/hotkeys';
 import { isNotNullish } from '../lib/types';
 import { theme } from '../lib/theme';
 import { contentsContainer } from '../lib/styles';
+import { closestElement, findActiveElement, isInputElement } from '../lib/element';
 
 import { Toast } from './toast';
+import { DuoyunLinkElement } from './link';
 
 import 'deep-query-selector';
 import './paragraph';
+
+const getFocusableElements = () => {
+  const get = (root: Document | Element) =>
+    root
+      .deepQuerySelectorAll('>>> :is(input,textarea,button,select,area,summary,audio,video,[tabindex],a[href])')
+      .map((element) => {
+        // details 内容 Chrome 能检测到尺寸，Bug？
+        if (element.checkVisibility && !element.checkVisibility({ checkVisibilityCSS: true, checkOpacity: true })) {
+          return;
+        }
+        if (
+          (element as unknown as HTMLOrSVGElement).tabIndex < 0 ||
+          (element as any).disabled ||
+          (element as GemElement).internals?.ariaDisabled === 'true' ||
+          (element as GemElement).internals?.ariaHidden === 'true' ||
+          closestElement(element, ':is([inert],[disabled],[aria-disabled=true],[aria-hidden=true])')
+        ) {
+          return;
+        }
+        const rect = element.getBoundingClientRect();
+        if (!rect.width || !rect.height) {
+          return;
+        }
+        return { rect, element };
+      })
+      .filter(isNotNullish);
+
+  const elements = get(document);
+  return elements.filter(({ element }) => {
+    return get(element).length === 0;
+  });
+};
 
 const style = createCSSSheet(css`
   :host {
@@ -38,6 +72,7 @@ type FocusableElement = {
   key: string;
   top: number;
   left: number;
+  element: Element;
 };
 
 type State = {
@@ -47,14 +82,7 @@ type State = {
   focusableElements?: FocusableElement[];
 };
 
-/**
- * a,b,b...,y,za,zb...,zy
- */
-function getChars(index: number) {
-  if (index > 50) return;
-  const prefix = index >= 25 ? 'z' : '';
-  return prefix + String.fromCharCode(97 + (index % 25));
-}
+export type NavigationDirection = 'up' | 'down' | 'left' | 'right';
 
 /**
  * @customElement dy-keyboard-access
@@ -68,6 +96,8 @@ export class DuoyunKeyboardAccessElement extends GemElement<State> {
   @attribute activekey: string;
 
   @property scrollContainer?: HTMLElement;
+
+  @emitter navigation: Emitter<NavigationDirection>;
 
   get #activeKey() {
     return this.activekey || 'f';
@@ -83,31 +113,42 @@ export class DuoyunKeyboardAccessElement extends GemElement<State> {
     keydownHandles: {},
   };
 
-  #isInputTarget(evt: Event) {
-    const originElement = evt.composedPath()[0] as HTMLElement;
-    if (
-      originElement.isContentEditable ||
-      originElement instanceof HTMLInputElement ||
-      originElement instanceof HTMLTextAreaElement
-    ) {
-      return true;
-    }
-  }
+  #onActive = () => {
+    const focusableElements = getFocusableElements()
+      .map(({ rect, element }) => {
+        const { top, left, right, bottom, width, height } = rect;
+        if (right < 0 || bottom < 0 || left > innerWidth || top > innerHeight) {
+          return;
+        }
+        // https://bugzilla.mozilla.org/show_bug.cgi?id=1750907
+        // https://bugs.chromium.org/p/chromium/issues/detail?id=1188919&q=elementFromPoint&can=2
+        const root = element.getRootNode() as ShadowRoot | Document;
+        const elementsFromLeftTop = root.elementsFromPoint(left + 2, top + 2);
+        const elementsFromRightBottom = root.elementsFromPoint(left + width - 2, top + height - 2);
+        // `elementsFromPoint` 不包含 SVG a 元素，不知道原因
+        const elements = [...elementsFromLeftTop, ...elementsFromRightBottom].map((e) =>
+          e instanceof SVGElement ? e.closest('a') : e,
+        );
+        if (!elements.includes(element)) {
+          return;
+        }
 
-  #onActive = (evt: KeyboardEvent) => {
-    if (this.#isInputTarget(evt)) return;
-    const { active } = this.state;
-    if (active) return;
+        return { key: '', top, left, element };
+      })
+      .filter(isNotNullish)
+      .map((e, index) => {
+        // a,b,c...,y,za,zb...,zy
+        if (index >= 50) return;
+        const prefix = index >= 25 ? 'z' : '';
+        e.key = prefix + String.fromCharCode(97 + (index % 25));
+        return e;
+      })
+      .filter(isNotNullish);
 
-    const elements = document.deepQuerySelectorAll(
-      '>>> :is([tabindex],input,textarea,button,select,area,a[href])',
-    ) as HTMLElement[];
-    if (!elements.length) {
+    if (!focusableElements.length) {
       Toast.open('default', 'Not found focusable element');
       return;
     }
-
-    let index = 0;
 
     const keydownHandles: HotKeyHandles = {
       esc: this.#onInactive,
@@ -116,48 +157,27 @@ export class DuoyunKeyboardAccessElement extends GemElement<State> {
       onUncapture: () => logger.warn('Un Capture!'),
     };
 
+    focusableElements.forEach(({ key, element }) => {
+      // `a-b`
+      keydownHandles[[...key].join('-')] = () => {
+        this.setState({ active: false });
+        if (element instanceof HTMLElement) {
+          // BasePickerElement 的 `showPicker` 一样支持通过 `click` 触发
+          element.focus();
+          element.click();
+        } else if (element instanceof SVGAElement) {
+          const link = new DuoyunLinkElement();
+          link.href = element.getAttribute('href')!;
+          link.click();
+        }
+      };
+    });
+
     this.setState({
       active: true,
       waiting: false,
       keydownHandles,
-      focusableElements: elements
-        .map((element) => {
-          const { top, left, right, bottom, width, height } = element.getBoundingClientRect();
-          if (
-            (element as any).disabled ||
-            element.inert ||
-            element.tabIndex < 0 ||
-            !width ||
-            !height ||
-            right < 0 ||
-            bottom < 0 ||
-            left > innerWidth ||
-            top > innerHeight
-          ) {
-            return;
-          }
-          // https://bugzilla.mozilla.org/show_bug.cgi?id=1750907
-          // https://bugs.chromium.org/p/chromium/issues/detail?id=1188919&q=elementFromPoint&can=2
-          const root = element.getRootNode() as ShadowRoot | (Document & { host: undefined });
-          const elementsFromLeftTop = root.elementsFromPoint(left + 2, top + 2);
-          const elementsFromRightBottom = root.elementsFromPoint(left + width - 2, top + height - 2);
-          if (!elementsFromLeftTop.includes(element) && !elementsFromRightBottom.includes(element)) {
-            return;
-          }
-
-          const key = getChars(index);
-          if (!key) return;
-          // `a-b`
-          keydownHandles[[...key].join('-')] = () => {
-            this.setState({ active: false });
-            // BasePickerElement 的 `showPicker` 一样支持通过 `click` 触发
-            element.focus();
-            element.click();
-          };
-          index++;
-          return { key, top, left };
-        })
-        .filter(isNotNullish),
+      focusableElements,
     });
   };
 
@@ -172,9 +192,56 @@ export class DuoyunKeyboardAccessElement extends GemElement<State> {
     this.setState({ active: false });
   };
 
+  #onNavigation = (dir: NavigationDirection) => {
+    const activeElement = findActiveElement();
+    const focusableElements = getFocusableElements();
+    const current = focusableElements.find(({ element }) => activeElement === element);
+    const currentRect = current?.rect || {
+      left: 0,
+      right: 0,
+      top: 0,
+      bottom: 0,
+    };
+    const elements = focusableElements
+      .filter((ele) => {
+        return ele !== current;
+      })
+      .filter(({ rect }) => {
+        if (!current) return true;
+        switch (dir) {
+          case 'down':
+            return rect.bottom > currentRect.bottom;
+          case 'up':
+            return rect.top < currentRect.top;
+          case 'right':
+            return rect.right > currentRect.right;
+          case 'left':
+            return rect.left < currentRect.left;
+        }
+      })
+      .sort((a, b) => {
+        const getPoint = (rect: typeof currentRect) => [(rect.left + rect.right) / 2, (rect.top + rect.bottom) / 2];
+        const originPoint = getPoint(currentRect);
+        const getDistance = (rect: typeof currentRect) => {
+          const point = getPoint(rect);
+          const isHorizontal = dir === 'left' || dir === 'right';
+          const weights = [isHorizontal ? 1 : 100, !isHorizontal ? 1 : 100];
+          return Math.sqrt(
+            (point[0] - originPoint[0]) ** 2 * weights[0] + (point[1] - originPoint[1]) ** 2 * weights[1],
+          );
+        };
+        return getDistance(a.rect) - getDistance(b.rect);
+      });
+
+    if (elements.length) {
+      (elements[0].element as any).focus?.();
+      this.navigation(dir);
+    }
+  };
+
   #onKeydown = (evt: KeyboardEvent) => {
     if (this.state.active) return;
-    if (this.#isInputTarget(evt)) return;
+    if (isInputElement(evt.composedPath()[0] as HTMLElement)) return;
     hotkeys(
       {
         [this.#activeKey]: this.#onActive,
@@ -182,6 +249,10 @@ export class DuoyunKeyboardAccessElement extends GemElement<State> {
         k: () => this.#container.scrollBy(0, innerHeight / 3),
         h: () => this.#container.scrollBy(0, -innerHeight),
         l: () => this.#container.scrollBy(0, innerHeight),
+        down: () => this.#onNavigation('down'),
+        up: () => this.#onNavigation('up'),
+        left: () => this.#onNavigation('left'),
+        right: () => this.#onNavigation('right'),
       },
       { stopPropagation: true },
     )(evt);

@@ -282,7 +282,6 @@ export class DuoyunOptionsElement extends GemElement<State> {
                     delete: !!onRemove,
                   })}
                   @pointerenter=${onPointerEnter}
-                  @focus=${onPointerEnter}
                   @pointerleave=${onPointerLeave}
                   @pointerdown=${onPointerDown}
                   @pointerup=${onPointerUp}

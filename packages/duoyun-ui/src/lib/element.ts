@@ -61,3 +61,41 @@ export function findRanges(root: Node, text: string) {
   }
   return ranges;
 }
+
+export function findActiveElement() {
+  let element = document.activeElement;
+  while (element) {
+    if (!element.shadowRoot?.activeElement) break;
+    element = element.shadowRoot.activeElement;
+  }
+  return element;
+}
+
+export function isInputElement(originElement: HTMLElement) {
+  if (
+    originElement.isContentEditable ||
+    originElement instanceof HTMLInputElement ||
+    originElement instanceof HTMLTextAreaElement
+  ) {
+    return true;
+  }
+}
+
+export function closestElement(ele: Element, selector: string) {
+  let node: Element | null = ele;
+  while (node) {
+    const e = node.closest(selector);
+    if (e) return e;
+    node = (node.getRootNode() as ShadowRoot).host;
+  }
+  return null;
+}
+
+export function containsElement(ele: Element, other: Element) {
+  let node: Element | null = other;
+  while (node) {
+    if (ele.contains(node)) return true;
+    node = (node.getRootNode() as ShadowRoot).host;
+  }
+  return false;
+}

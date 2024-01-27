@@ -258,6 +258,9 @@ export class DuoyunDatePanelElement extends GemElement<State> {
         ${Array.from({ length: 12 }).map(
           (_, index) => html`
             <span
+              tabindex="0"
+              role="button"
+              @keydown=${commonHandle}
               class=${classMap({
                 item: true,
                 highlight: isCurrentYear && index === this.state.month,
@@ -284,6 +287,9 @@ export class DuoyunDatePanelElement extends GemElement<State> {
         ${Array.from({ length: 12 }, (_, index) => this.state.year - 7 + index).map(
           (year) => html`
             <span
+              tabindex="0"
+              role="button"
+              @keydown=${commonHandle}
               class=${classMap({
                 item: true,
                 highlight: currentYear === year,

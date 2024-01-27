@@ -38,6 +38,9 @@ const formStyle = createCSSSheet(css`
   :where(dy-form:not([hidden])) {
     display: block;
   }
+  dy-form:not([inline]) dy-form-item {
+    margin-block-end: 1.8em;
+  }
   :where(dy-form[inline]:not([hidden])) {
     display: flex;
     flex-wrap: wrap;
@@ -67,19 +70,18 @@ const formStyle = createCSSSheet(css`
     top: 100%;
     left: 0;
   }
-  dy-form-item {
-    flex-grow: 1;
-    margin-block-end: 1.8em;
-  }
-  dy-form-item[type='checkbox'] {
-    flex-grow: 0;
-  }
   dy-form-item:where([data-invalid], :state(invalid)) * {
     border-color: ${theme.negativeColor};
   }
-  dy-form-item-inline-group {
-    display: flex;
-    gap: 1em;
+  @media not ${mediaQuery.PHONE} {
+    dy-form-item-inline-group {
+      display: flex;
+      gap: 1em;
+    }
+    dy-form:not([inline]) dy-form-item-inline-group > dy-form-item {
+      width: 0;
+      flex-grow: 1;
+    }
   }
   @media ${mediaQuery.PHONE} {
     dy-form-item-inline-group {
@@ -161,10 +163,15 @@ const formItemStyle = createCSSSheet(css`
     display: flex;
     flex-direction: column;
   }
+  :host([type='checkbox']) {
+    flex-direction: row;
+    align-items: center;
+  }
   :host([required]) .label::after {
     content: '＊';
   }
   .label {
+    cursor: default;
     font-size: 0.875em;
     line-height: 1.2;
     margin-bottom: 0.4em;
@@ -178,16 +185,10 @@ const formItemStyle = createCSSSheet(css`
   }
   .input {
     width: 100%;
-    flex-grow: 1;
-    flex-shrink: 1;
   }
   .input + .input,
   .footer {
-    margin-top: 10px;
-  }
-  :host([type='checkbox']) {
-    flex-direction: row;
-    align-items: center;
+    margin-top: 0.7em;
   }
 `);
 

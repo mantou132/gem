@@ -47,7 +47,7 @@ const style = createCSSSheet(css`
     margin-block-end: 1.8em;
   }
   summary {
-    cursor: default;
+    cursor: pointer;
     display: flex;
     align-items: center;
     gap: 1px;
