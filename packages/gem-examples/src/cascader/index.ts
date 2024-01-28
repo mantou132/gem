@@ -1,6 +1,6 @@
 import { connect, html, render, useStore } from '@mantou/gem';
 import type { Option } from 'duoyun-ui/elements/cascader-picker';
-import { sleep } from 'duoyun-ui/lib/utils';
+import { sleep } from 'duoyun-ui/lib/timer';
 
 import 'duoyun-ui/elements/cascader-picker';
 import 'duoyun-ui/elements/loading';

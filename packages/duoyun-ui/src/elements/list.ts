@@ -19,7 +19,7 @@ import { logger } from '@mantou/gem/helper/logger';
 import { theme } from '../lib/theme';
 import { blockContainer } from '../lib/styles';
 import { findScrollContainer } from '../lib/element';
-import { once, throttle } from '../lib/utils';
+import { throttle, once } from '../lib/timer';
 
 import type { Status } from './status-light';
 import { DuoyunVisibleBaseElement, visibilityObserver } from './base/visible';

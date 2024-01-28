@@ -39,6 +39,9 @@ const style = createCSSSheet(css`
       )
       top left / 1.2em 1.2em repeat;
   }
+  :host(:not([disabled])) {
+    box-shadow: ${theme.controlShadow};
+  }
   :host([disabled]) {
     cursor: not-allowed;
   }

@@ -48,7 +48,7 @@ export async function hash(strOrAb: string | ArrayBuffer, output: 'string' | 'ar
 }
 
 // https://en.wikipedia.org/wiki/Fowler%E2%80%93Noll%E2%80%93Vo_hash_function
-/**output int */
+/**Simple hash, output int */
 export function fnv1a(str: string) {
   const FNV_OFFSET_BASIS = 2166136261;
   const FNV_PRIME = 16777619;

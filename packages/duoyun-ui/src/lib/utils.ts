@@ -1,7 +1,6 @@
 import { Store, connect, updateStore, useStore } from '@mantou/gem/lib/store';
 import { render, TemplateResult } from '@mantou/gem/lib/element';
 import { NonPrimitive, cleanObject } from '@mantou/gem/lib/utils';
-import { logger } from '@mantou/gem/helper/logger';
 
 import { isNullish } from '../lib/types';
 
@@ -35,9 +34,6 @@ export function convertToMap<T extends Record<string, any>, V = string>(
     },
   });
 }
-
-// https://developer.mozilla.org/en-US/docs/Web/API/structuredClone
-export const structuredClone = (window as any).structuredClone || ((v: any) => JSON.parse(JSON.stringify(v)));
 
 /**Get Cascader/Tree max deep*/
 export function getCascaderDeep<T>(list: T[], cascaderKey: keyof T) {
@@ -111,118 +107,6 @@ export function proxyObject(object: Record<string | symbol | number, any>) {
 /**Deep read prop */
 export function readProp(obj: Record<string, any>, paths: string | number | symbol | string[]) {
   return Array.isArray(paths) ? paths.reduce((p, c) => p?.[c], obj) : obj[paths as string];
-}
-
-/**Until the callback function resolve */
-export async function forever<T>(callback: () => Promise<T>, interval = 1000): Promise<T> {
-  try {
-    return await callback();
-  } catch (err) {
-    logger.error(err);
-    await sleep(interval);
-    return forever(callback, interval);
-  }
-}
-
-/**Polling calls until cancel */
-export function polling(fn: (args?: any[]) => any, delay: number) {
-  let timer = 0;
-  let hasExit = false;
-  const poll = async () => {
-    try {
-      await fn();
-    } catch {
-    } finally {
-      if (!hasExit) {
-        timer = window.setTimeout(poll, delay);
-      }
-    }
-  };
-  poll();
-  return (haveNext = false) => {
-    hasExit = true;
-    haveNext ? setTimeout(() => clearTimeout(timer), delay) : clearTimeout(timer);
-  };
-}
-
-export function sleep(ms = 3000) {
-  return new Promise((res) => setTimeout(res, ms));
-}
-
-export function throttle<T extends (...args: any) => any>(
-  fn: T,
-  wait = 500,
-  { leading = false, maxWait = Infinity }: { leading?: boolean; maxWait?: number } = {},
-) {
-  let timer = 0;
-  let first = 0;
-  const exec = (...rest: Parameters<T>) => {
-    timer = window.setTimeout(() => (timer = 0), wait);
-    fn(...(rest as any));
-  };
-  return (...rest: Parameters<T>) => {
-    const now = Date.now();
-    if (!timer) first = now;
-    if (now - first > maxWait) {
-      first = now;
-      clearTimeout(timer);
-      exec(...rest);
-    } else if (leading && !timer) {
-      exec(...rest);
-    } else {
-      clearTimeout(timer);
-      timer = window.setTimeout(() => exec(...rest), wait);
-    }
-  };
-}
-
-export function debounce<T extends (...args: any) => any>(
-  fn: T,
-  wait = 500,
-  { leading = false }: { leading?: boolean } = {},
-) {
-  let timer = 0;
-  return function (...args: Parameters<T>) {
-    return new Promise<Awaited<ReturnType<typeof fn>>>((resolve, reject) => {
-      clearTimeout(timer);
-      timer = window.setTimeout(
-        () => {
-          timer = window.setTimeout(() => (timer = 0), wait);
-          Promise.resolve(fn(...(args as any)))
-            .then(resolve)
-            .catch(reject);
-        },
-        leading && !timer ? 0 : wait,
-      );
-    });
-  };
-}
-
-export function invokeByCount<T extends (...args: any) => any>(
-  fn: T,
-  condition: (tryCount: number, prevInvokeSuccessTimestamp: number) => boolean,
-) {
-  let count = 0;
-  let result: ReturnType<T> | undefined;
-  let timestamp = 0;
-  return (...rest: Parameters<T>) => {
-    if (condition(count++, timestamp)) {
-      timestamp = performance.now();
-      result = fn(...(rest as any));
-      return result;
-    }
-    return result;
-  };
-}
-
-/**Only invoke first */
-export function once<T extends (...args: any) => any>(fn: T) {
-  return invokeByCount(fn, (count) => count === 0) as T;
-}
-
-/**Ignore the first invoke */
-export function omitOnce<T extends (...args: any) => any>(fn: T) {
-  return invokeByCount(fn, (count) => count !== 0);
 }
 
 /**Only let the last add Promise take effect, don’t care about the order of Resolve */
@@ -311,24 +195,6 @@ export function isIncludesString(origin: string | TemplateResult, search: string
   const oString = getStr(getStringFromTemplate(origin, true));
   const sString = getStr(search);
   return splitString(sString).some((s) => oString.includes(s));
-}
-
-/**In addition to the parameter element, set the `inert` attribute for all element */
-export function setBodyInert(modal: HTMLElement) {
-  const map = new Map<HTMLElement, boolean>();
-  [...document.body.children].forEach((e) => {
-    if (e instanceof HTMLElement) {
-      map.set(e, e.inert);
-      e.inert = true;
-    }
-  });
-  modal.inert = false;
-  return () => {
-    map.forEach((inert, ele) => {
-      ele.inert = inert;
-    });
-    modal.inert = true;
-  };
 }
 
 export type UseCacheStoreOptions<T> = {

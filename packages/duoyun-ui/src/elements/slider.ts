@@ -60,6 +60,9 @@ const style = createCSSSheet(css`
     transition: border-width 0.1s;
     opacity: 0.8;
   }
+  :host(:not([disabled])) .mark {
+    box-shadow: ${theme.controlShadow};
+  }
   .mark:hover {
     opacity: 1;
   }

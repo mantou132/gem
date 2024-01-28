@@ -39,6 +39,9 @@ const style = createCSSSheet(css`
     border-radius: ${theme.normalRound};
     white-space: nowrap;
   }
+  :host(:not([borderless], [disabled])) {
+    box-shadow: ${theme.controlShadow};
+  }
   :host([round]) {
     border-radius: 10em;
   }

@@ -71,10 +71,10 @@ const style = createCSSSheet(css`
   .button {
     cursor: pointer;
     border-radius: ${theme.normalRound};
-    border: 1px dashed ${theme.borderColor};
+    border: 1px solid ${theme.borderColor};
   }
-  .button:hover {
-    border-color: ${theme.textColor};
+  :host(:not([disabled])) .button {
+    box-shadow: ${theme.controlShadow};
   }
   :host([type='image']:where(:not([hidden]))) {
     display: grid;

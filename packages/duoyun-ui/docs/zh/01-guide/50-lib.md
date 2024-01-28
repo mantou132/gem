@@ -9,9 +9,9 @@ DuoyunUI 除了提供许多自定义元素、具有某些特定功能的基类�
 
 <gbp-api src="/src/lib/color.ts"></gbp-api>
 
-## Encode/Decode
+## Encode
 
-hash, base64 等编码。
+hash, base64 等编码/解码。
 
 <gbp-api src="/src/lib/encode.ts"></gbp-api>
 
@@ -33,11 +33,17 @@ hash, base64 等编码。
 
 <gbp-api src="/src/lib/number.ts"></gbp-api>
 
-## Date/Time
+## Time
 
 轻量版的日期时间处理库。
 
 <gbp-api src="/src/lib/time.ts"></gbp-api>
+
+## Timer
+
+一些定时器函数。
+
+<gbp-api src="/src/lib/timer.ts"></gbp-api>
 
 ## Utils
 

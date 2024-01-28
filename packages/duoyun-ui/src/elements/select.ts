@@ -18,7 +18,8 @@ import { createCSSSheet, css, styleMap, StyleObject } from '@mantou/gem/lib/util
 import { theme } from '../lib/theme';
 import { icons } from '../lib/icons';
 import { locale } from '../lib/locale';
-import { isIncludesString, setBodyInert } from '../lib/utils';
+import { isIncludesString } from '../lib/utils';
+import { setBodyInert } from '../lib/element';
 import { hotkeys } from '../lib/hotkeys';
 import { isNotNullish } from '../lib/types';
 import { focusStyle } from '../lib/styles';
@@ -91,6 +92,7 @@ const style = createCSSSheet(css`
     border: none;
     font-size: 1em;
     margin-block: -1em;
+    box-shadow: none;
   }
   .search::part(input) {
     padding: 0;

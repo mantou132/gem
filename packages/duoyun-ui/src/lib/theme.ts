@@ -29,6 +29,7 @@ export const lightTheme = {
   borderColor: '#e1e1e1',
   disabledColor: '#eaeaea',
   maskAlpha: '0.2',
+  controlShadow: '0 1px 2px #0000000d',
 
   // same of light/dark
   // https://spectrum.adobe.com/page/color/#Semantic-colors

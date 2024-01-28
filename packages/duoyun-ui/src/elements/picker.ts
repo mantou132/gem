@@ -35,6 +35,9 @@ export const pickerStyle = createCSSSheet(css`
     font-size: 0.875em;
     box-sizing: border-box;
   }
+  :host(:not([borderless], [disabled])) {
+    box-shadow: ${theme.controlShadow};
+  }
   :host(:where([data-active], :state(active))) {
     background: ${theme.lightBackgroundColor};
   }

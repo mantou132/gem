@@ -4,7 +4,7 @@ import { customElement } from '@mantou/gem/lib/decorators';
 import { Time } from 'duoyun-ui/lib/time';
 import { ContextMenu } from 'duoyun-ui/elements/contextmenu';
 import { FormItem, createForm } from 'duoyun-ui/patterns/form';
-import { sleep } from 'duoyun-ui/lib/utils';
+import { sleep } from 'duoyun-ui/lib/timer';
 import { createPaginationStore } from 'duoyun-ui/helper/store';
 import type { FetchEventDetail, FilterableColumn } from 'duoyun-ui/patterns/table';
 

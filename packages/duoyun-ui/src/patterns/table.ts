@@ -22,12 +22,11 @@ import {
   readProp,
   isIncludesString,
   splitString,
-  sleep,
   ComparerType,
   getStringFromTemplate,
   convertToMap,
-  throttle,
 } from '../lib/utils';
+import { sleep, throttle } from '../lib/timer';
 import type { Column, ItemContextMenuEventDetail, DuoyunTableElement } from '../elements/table';
 import { blockContainer } from '../lib/styles';
 import { findRanges, findScrollContainer } from '../lib/element';

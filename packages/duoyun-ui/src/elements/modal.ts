@@ -20,7 +20,8 @@ import { mediaQuery } from '@mantou/gem/helper/mediaquery';
 import { theme } from '../lib/theme';
 import { locale } from '../lib/locale';
 import { hotkeys } from '../lib/hotkeys';
-import { DyPromise, setBodyInert } from '../lib/utils';
+import { DyPromise } from '../lib/utils';
+import { setBodyInert } from '../lib/element';
 import { commonAnimationOptions, fadeIn, fadeOut, slideInUp } from '../lib/animations';
 
 import './button';

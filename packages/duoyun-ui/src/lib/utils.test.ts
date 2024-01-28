@@ -1,15 +1,6 @@
 import { expect } from '@open-wc/testing';
 
-import {
-  getCascaderDeep,
-  getCascaderBubbleWeakMap,
-  readProp,
-  once,
-  omitOnce,
-  comparer,
-  ComparerType,
-  isIncludesString,
-} from './utils';
+import { getCascaderDeep, getCascaderBubbleWeakMap, readProp, comparer, ComparerType, isIncludesString } from './utils';
 
 it('`getCascaderDeep`', () => {
   expect(getCascaderDeep([{ a: 1, children: undefined }], 'children')).to.equal(1);
@@ -38,27 +29,6 @@ it('`readProp`', () => {
   expect(readProp({ a: { b: { c: 1 } } }, ['a', 'b', 'c'])).to.equal(1);
   expect(readProp({ a: { b: { c: 1 } } }, ['a', 'b', 'c', 'd', 'e'])).to.equal(undefined);
   expect(readProp({ a: { b: { c: 1 } } }, ['f'])).to.equal(undefined);
-});
-
-it('`once`', () => {
-  let count = 1;
-  const fn = () => count++;
-  const onceFn = once(fn);
-  onceFn();
-  expect(count).to.equal(2);
-  onceFn();
-  expect(count).to.equal(2);
-});
-
-it('`omitOnce`', () => {
-  let count = 1;
-  const fn = () => count++;
-  const omitOnceFn = omitOnce(fn);
-  omitOnceFn();
-  expect(count).to.equal(1);
-  omitOnceFn();
-  omitOnceFn();
-  expect(count).to.equal(3);
 });
 
 it('`comparer`', () => {

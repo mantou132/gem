@@ -21,7 +21,7 @@ import { icons } from '../lib/icons';
 import { focusStyle } from '../lib/styles';
 import { commonHandle, hotkeys } from '../lib/hotkeys';
 import { clamp } from '../lib/number';
-import { throttle } from '../lib/utils';
+import { throttle } from '../lib/timer';
 
 import './use';
 
@@ -76,6 +76,9 @@ const style = createCSSSheet(css`
     border-radius: ${theme.normalRound};
     outline: none;
   }
+  :host(:not([disabled])) {
+    box-shadow: ${theme.controlShadow};
+  }
   :host(:not([type='textarea'])) {
     block-size: calc(2.2em + 2px);
   }
@@ -89,6 +92,7 @@ const style = createCSSSheet(css`
   }
   .input {
     outline: none;
+    cursor: inherit;
     font: inherit;
     text-align: inherit;
     line-height: 1.5;

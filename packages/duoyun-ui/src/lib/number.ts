@@ -181,6 +181,7 @@ export function adjustRange([min, max]: number[], stepCount: number, units?: num
   return [adjustedMin / scale, adjustedMax / scale];
 }
 
+/**Generate a pseudo -random function */
 export function pseudoRandom(seed: number) {
   const MULTIPLIER = 48271;
   const MODULUS = 2147483647;
@@ -193,7 +194,7 @@ export function pseudoRandom(seed: number) {
   };
 }
 
-/**output 0-1 */
+/**Random large integer normalization, output 0-1 */
 export function normalizeNumber(n: number) {
   return parseFloat(`0.${[...Math.abs(n).toString()].reverse().join('')}`);
 }

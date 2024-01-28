@@ -4,7 +4,7 @@ import { addListener, createCSSSheet, css } from '@mantou/gem/lib/utils';
 
 import { theme } from '../lib/theme';
 import { getDisplayKey } from '../lib/hotkeys';
-import { throttle } from '../lib/utils';
+import { throttle } from '../lib/timer';
 import { contentsContainer } from '../lib/styles';
 
 import './paragraph';

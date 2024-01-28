@@ -99,3 +99,21 @@ export function containsElement(ele: Element, other: Element) {
   }
   return false;
 }
+
+/**In addition to the parameter element, set the `inert` attribute for all element */
+export function setBodyInert(modal: HTMLElement) {
+  const map = new Map<HTMLElement, boolean>();
+  [...document.body.children].forEach((e) => {
+    if (e instanceof HTMLElement) {
+      map.set(e, e.inert);
+      e.inert = true;
+    }
+  });
+  modal.inert = false;
+  return () => {
+    map.forEach((inert, ele) => {
+      ele.inert = inert;
+    });
+    modal.inert = true;
+  };
+}

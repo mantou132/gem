@@ -122,6 +122,7 @@ const style = createCSSSheet(css`
     border-radius: 0;
     border-top-color: transparent;
     border-inline: none;
+    box-shadow: none;
   }
   :where(.value, .alpha)::part(input) {
     padding-inline: 0;

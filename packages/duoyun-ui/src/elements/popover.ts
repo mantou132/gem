@@ -13,8 +13,8 @@ import {
 import { GemElement, html, TemplateResult } from '@mantou/gem/lib/element';
 import { addListener, createCSSSheet, css, styleMap, StyleObject } from '@mantou/gem/lib/utils';
 
-import { toggleActiveState, getBoundingClientRect } from '../lib/element';
-import { sleep, setBodyInert } from '../lib/utils';
+import { toggleActiveState, getBoundingClientRect, setBodyInert } from '../lib/element';
+import { sleep } from '../lib/timer';
 import { hotkeys } from '../lib/hotkeys';
 import { theme } from '../lib/theme';
 import { contentsContainer } from '../lib/styles';

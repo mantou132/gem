@@ -63,6 +63,9 @@ const style = createCSSSheet(css`
   :host .segment.current {
     background: ${theme.backgroundColor};
   }
+  :host(:not([disabled])) .segment.current {
+    box-shadow: ${theme.controlShadow};
+  }
   .icon {
     flex-shrink: 0;
     width: 1.2em;
@@ -78,6 +81,10 @@ const style = createCSSSheet(css`
   @supports (anchor-name: --foo) {
     :host .segment.current {
       background: none;
+      box-shadow: none;
+    }
+    :host(:not([disabled])) .segment.current {
+      box-shadow: none;
     }
     .marker {
       display: block;
@@ -88,6 +95,9 @@ const style = createCSSSheet(css`
       top: anchor(top);
       bottom: anchor(bottom);
       background: ${theme.backgroundColor};
+    }
+    :host(:not([disabled])) .marker {
+      box-shadow: ${theme.controlShadow};
     }
   }
 `);

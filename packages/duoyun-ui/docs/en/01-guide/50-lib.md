@@ -9,9 +9,9 @@ Color space conversion; brightness, contrast calculation.
 
 <gbp-api src="/src/lib/color.ts"></gbp-api>
 
-## Encode/Decode
+## Encode
 
-hash, base64 etc encode.
+hash, base64 etc encode/decode.
 
 <gbp-api src="/src/lib/encode.ts"></gbp-api>
 
@@ -33,11 +33,17 @@ Format numbers, range adjustments.
 
 <gbp-api src="/src/lib/number.ts"></gbp-api>
 
-## Date/Time
+## Time
 
 Lightweight version of the date time process library.
 
 <gbp-api src="/src/lib/time.ts"></gbp-api>
+
+## Timer
+
+Some timer functions.
+
+<gbp-api src="/src/lib/timer.ts"></gbp-api>
 
 ## Utils
 

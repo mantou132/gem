@@ -39,6 +39,9 @@ const style = createCSSSheet(css`
     transform: scale(1.001);
     transition: background 0.1s;
   }
+  :host(:not([disabled])) .radio {
+    box-shadow: ${theme.controlShadow};
+  }
   :host(:where(:hover, [checked])) .radio {
     color: ${theme.primaryColor};
   }

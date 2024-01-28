@@ -12,7 +12,7 @@ import { GemElement, html, TemplateResult } from '@mantou/gem/lib/element';
 import { createCSSSheet, css, styleMap, classMap } from '@mantou/gem/lib/utils';
 
 import { icons } from '../lib/icons';
-import { structuredClone, getCascaderDeep, readProp } from '../lib/utils';
+import { getCascaderDeep, readProp } from '../lib/utils';
 import { theme } from '../lib/theme';
 import { isNotNullish } from '../lib/types';
 

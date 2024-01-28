@@ -1,7 +1,7 @@
 import { html, render } from '@mantou/gem/lib/element';
 import { history } from '@mantou/gem/lib/history';
 import { Toast } from 'duoyun-ui/elements/toast';
-import { sleep } from 'duoyun-ui/lib/utils';
+import { sleep } from 'duoyun-ui/lib/timer';
 import { type ContextMenus, type Routes, type UserInfo, type NavItems } from 'duoyun-ui/patterns/console';
 
 import 'duoyun-ui/patterns/console';

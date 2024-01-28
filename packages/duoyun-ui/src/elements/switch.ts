@@ -42,6 +42,9 @@ const style = createCSSSheet(css`
   :host([checked]) .switch {
     background: var(--color);
   }
+  :host(:not([disabled])) .switch {
+    box-shadow: ${theme.controlShadow};
+  }
   .switch::before {
     content: '';
     display: block;
@@ -49,8 +52,12 @@ const style = createCSSSheet(css`
     height: calc(100% - 4px);
     aspect-ratio: 1;
     border-radius: inherit;
-    border: 2px solid var(--color);
+    border: 2px solid transparent;
     background: ${theme.lightBackgroundColor};
+    background-clip: content-box;
+  }
+  :host(:not([disabled])) .switch::before {
+    filter: drop-shadow(${theme.controlShadow});
   }
   :host([checked]) .switch::before {
     margin-inline-start: calc(100% * 4 / 9);

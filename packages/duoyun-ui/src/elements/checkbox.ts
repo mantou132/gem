@@ -46,6 +46,9 @@ const style = createCSSSheet(css`
     transform: scale(1.001);
     transition: background 0.1s;
   }
+  :host(:not([disabled])) .checkbox {
+    box-shadow: ${theme.controlShadow};
+  }
   .checkbox::part(icon) {
     stroke-width: 1px;
     stroke: white;

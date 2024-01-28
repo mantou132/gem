@@ -5,10 +5,9 @@ import { useStore } from '@mantou/gem/lib/store';
 
 import { icons } from '../lib/icons';
 import { locale } from '../lib/locale';
-import { setBodyInert } from '../lib/utils';
+import { setBodyInert, toggleActiveState } from '../lib/element';
 import { hotkeys } from '../lib/hotkeys';
 import { theme } from '../lib/theme';
-import { toggleActiveState } from '../lib/element';
 
 import type { DuoyunOptionsElement } from './options';
 

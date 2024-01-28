@@ -31,6 +31,9 @@ const style = createCSSSheet(css`
     border-radius: ${theme.normalRound};
     border: 1px solid ${theme.borderColor};
   }
+  :host(:not([disabled])) {
+    box-shadow: ${theme.controlShadow};
+  }
   :host(:focus) {
     border-color: ${theme.textColor};
     background-color: ${theme.lightBackgroundColor};

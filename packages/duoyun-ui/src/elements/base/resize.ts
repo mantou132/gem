@@ -1,7 +1,7 @@
 import { emitter, Emitter } from '@mantou/gem/lib/decorators';
 import { GemElement, GemElementOptions } from '@mantou/gem/lib/element';
 
-import { throttle } from '../../lib/utils';
+import { throttle } from '../../lib/timer';
 
 export type ResizeDetail = {
   contentRect: DuoyunResizeBaseElement['contentRect'];

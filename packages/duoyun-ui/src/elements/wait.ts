@@ -2,7 +2,8 @@ import { adoptedStyle, customElement, state } from '@mantou/gem/lib/decorators';
 import { GemElement, html } from '@mantou/gem/lib/element';
 import { createCSSSheet, css } from '@mantou/gem/lib/utils';
 
-import { sleep, setBodyInert } from '../lib/utils';
+import { sleep } from '../lib/timer';
+import { setBodyInert } from '../lib/element';
 import { theme } from '../lib/theme';
 import { commonAnimationOptions, fadeIn, fadeOut } from '../lib/animations';
 

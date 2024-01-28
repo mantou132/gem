@@ -1,7 +1,7 @@
 import { connect, html, render, useStore } from '@mantou/gem';
 import type { MouseEventDetail, TreeItem } from 'duoyun-ui/elements/tree';
 import { ContextMenu } from 'duoyun-ui/elements/contextmenu';
-import { sleep } from 'duoyun-ui/lib/utils';
+import { sleep } from 'duoyun-ui/lib/timer';
 
 import 'duoyun-ui/elements/tree';
 import 'duoyun-ui/elements/loading';
@@ -70,7 +70,7 @@ function renderApp() {
             @expand=${onExpand}
             .highlights=${store.selected ? [store.selected] : undefined}
             .style=${'width: 240px;'}
-            .data=${store.data}
+            .items=${store.data}
           ></dy-tree>
           <pre style="flex-grow: 1; background: #eee; margin: 0; padding: 1em; font-size: 2em;">${store.selected}</pre>
         </div>

@@ -3,7 +3,7 @@ import { GemElement, html } from '@mantou/gem/lib/element';
 import { createCSSSheet, css } from '@mantou/gem/lib/utils';
 
 import { theme } from '../lib/theme';
-import { sleep } from '../lib/utils';
+import { sleep } from '../lib/timer';
 
 const style = createCSSSheet(css`
   :host(:where(:not([hidden]))) {
