@@ -44,12 +44,3 @@ let MyElement = (() => {
 
 - For reactive Attributes, element updates cannot be triggered when modified in DevTools, because the native `observedAttributes` cannot take effect for dynamically added attributes.
 - When executing the initialization function of `@attribute`, some hacking work is required, and the performance will be slightly reduced
-- The element must be inserted into the document for the properties to be read correctly - only the document is inserted before there is any [chance](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Classes/Public_class_fields#description) of removing the fields on the element
-  > [!CAUTION]
-  >
-  > ```js
-  > const myEle = new MyElement();
-  > console.assert(myEle.src, undefined);
-  > myEle.connectedCallback();
-  > console.assert(myEle.src, '');
-  > ```
