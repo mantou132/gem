@@ -129,8 +129,6 @@ describe('gem element 生命周期', () => {
     expect(el.appTitle).to.equal('title');
     expect(el.renderCount).to.equal(1);
     const clone = el.cloneNode() as LifecycleGemElement;
-    // v2 BUG
-    clone.connectedCallback();
     expect(clone.appTitle).to.equal('title');
 
     const el2 = new LifecycleGemElement('', '2');
@@ -298,7 +296,6 @@ describe('gem element 继承', () => {
   it('静态字段继承', async () => {
     new I();
     new InheritGem(); // 触发装饰器自定义初始化函数
-    expect(InheritGem.fields).to.eql(['appTitle', 'appData', 'sayHi', 'appTitle2']);
     expect(InheritGem.observedAttributes).to.eql(['app-title', 'app-title2']);
   });
   it('attr/prop/emitter 继承', async () => {

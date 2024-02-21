@@ -56,10 +56,6 @@ describe('装饰器', () => {
     const el = new DecoratorGemElement();
     expect(el.propData).to.eql({ value: '' });
     expect(el.getAttribute('rank-attr')).to.equal(null);
-    // v2 BUG
-    expect(el.rankAttr).to.equal('');
-    el.connectedCallback();
-    expect(el.getAttribute('rank-attr')).to.equal(null);
     expect(el.rankAttr).to.equal('');
 
     el.rankAttr = 'attr';

@@ -26,6 +26,12 @@ function pushStaticField(
   (cls[field] as any)[isSet ? 'add' : 'push'](member);
 }
 
+function clearField<T extends GemElement<any>>(instance: T, prop: string) {
+  const desc = Reflect.getOwnPropertyDescriptor(instance, prop)!;
+  Reflect.deleteProperty(instance, prop);
+  Reflect.set(instance, prop, desc.value);
+}
+
 export type RefObject<T = HTMLElement> = { ref: string; element: T | undefined; elements: T[] };
 
 /**
@@ -49,17 +55,16 @@ export function refobject<T extends GemElement<any>, V extends HTMLElement>(
   _: undefined,
   context: ClassFieldDecoratorContext<T, RefObject<V>>,
 ) {
-  return function (this: T, value: RefObject<V>) {
+  context.addInitializer(function (this: T) {
     const target = Object.getPrototypeOf(this);
     const prop = context.name as string;
     if (!target.hasOwnProperty(prop)) {
       const ref = `${camelToKebabCase(prop)}-${randomStr()}`;
       pushStaticField(this, 'defineRefs', ref);
-      pushStaticField(this, 'fields', prop);
-      defineRef(Object.getPrototypeOf(this), prop, ref);
+      defineRef(target, prop, ref);
     }
-    return value;
-  };
+    clearField(this, prop);
+  });
 }
 
 /**
@@ -73,56 +78,52 @@ export function refobject<T extends GemElement<any>, V extends HTMLElement>(
  * ```
  */
 const observedAttributes = new WeakMap<GemElementPrototype, Set<string>>();
-function defineAttr(t: GemElement, prop: string, attr: string) {
+function defineAttr(t: GemElement, prop: string, attrType?: StaticField) {
   const target = Object.getPrototypeOf(t);
   if (!target.hasOwnProperty(prop)) {
+    const attr = camelToKebabCase(prop);
     pushStaticField(target, 'observedAttributes', attr); // 没有 observe 的效果
-    pushStaticField(t, 'fields', prop);
+    attrType && pushStaticField(target, attrType, attr, true);
     defineAttribute(target, prop, attr);
-  }
 
-  // hack `observedAttributes`
-  // 不在 Devtools 中工作 https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/Content_scripts#dom_access
-  const attrSet = observedAttributes.get(target) || new Set(target.constructor.observedAttributes);
-  attrSet.add(attr);
-  if (!observedAttributes.has(target)) {
-    const setAttribute = Element.prototype.setAttribute;
-    target.setAttribute = function (n: string, v: string) {
-      setAttribute.apply(this, [n, v]);
-      if (attrSet.has(n)) this.attributeChangedCallback();
-    };
+    // hack `observedAttributes`
+    // 不在 Devtools 中工作 https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/Content_scripts#dom_access
+    const attrSet = observedAttributes.get(target) || new Set(target.constructor.observedAttributes);
+    attrSet.add(attr);
+    if (!observedAttributes.has(target)) {
+      const setAttribute = Element.prototype.setAttribute;
+      target.setAttribute = function (n: string, v: string) {
+        setAttribute.apply(this, [n, v]);
+        if (attrSet.has(n)) this.attributeChangedCallback();
+      };
+    }
+    observedAttributes.set(target, attrSet);
   }
-  observedAttributes.set(target, attrSet);
-
-  return t.getAttribute(attr);
+  clearField(t, prop);
 }
 export function attribute<T extends GemElement<any>, V extends string>(
   _: undefined,
   context: ClassFieldDecoratorContext<T, V>,
 ) {
-  return function (this: T, value: V) {
+  context.addInitializer(function (this: T) {
     const prop = context.name as string;
-    return (defineAttr(this, prop, camelToKebabCase(prop)) as V) || value;
-  };
+    defineAttr(this, prop);
+  });
 }
 export function boolattribute<T extends GemElement<any>>(
   _: undefined,
   context: ClassFieldDecoratorContext<T, boolean>,
 ) {
-  return function (this: T, value: boolean) {
+  context.addInitializer(function (this: T) {
     const prop = context.name as string;
-    const attr = camelToKebabCase(prop);
-    pushStaticField(this, 'booleanAttributes', attr, true);
-    return (defineAttr(this, prop, attr) as unknown as boolean) || value;
-  };
+    defineAttr(this, prop, 'booleanAttributes');
+  });
 }
 export function numattribute<T extends GemElement<any>>(_: undefined, context: ClassFieldDecoratorContext<T, number>) {
-  return function (this: T, value: number) {
+  context.addInitializer(function (this: T) {
     const prop = context.name as string;
-    const attr = camelToKebabCase(prop);
-    pushStaticField(this, 'numberAttributes', attr, true);
-    return (defineAttr(this, prop, attr) as unknown as number) || value;
-  };
+    defineAttr(this, prop, 'numberAttributes');
+  });
 }
 
 /**
@@ -136,16 +137,15 @@ export function numattribute<T extends GemElement<any>>(_: undefined, context: C
  * ```
  */
 export function property<T extends GemElement<any>>(_: undefined, context: ClassFieldDecoratorContext<T>) {
-  return function (this: T, value: any) {
+  context.addInitializer(function (this: T) {
     const prop = context.name as string;
     const target = Object.getPrototypeOf(this);
     if (!target.hasOwnProperty(prop)) {
       pushStaticField(this, 'observedProperties', prop);
-      pushStaticField(this, 'fields', prop);
       defineProperty(target, prop);
     }
-    return value;
-  };
+    clearField(this, prop);
+  });
 }
 
 /**
@@ -162,17 +162,16 @@ export function property<T extends GemElement<any>>(_: undefined, context: Class
  * ```
  */
 export function state<T extends GemElement<any>>(_: undefined, context: ClassFieldDecoratorContext<T, boolean>) {
-  return function (this: T, _value: boolean) {
+  context.addInitializer(function (this: T) {
     const target = Object.getPrototypeOf(this);
     const prop = context.name as string;
     if (!target.hasOwnProperty(prop)) {
       const attr = camelToKebabCase(prop);
       pushStaticField(this, 'defineCSSStates', attr);
-      pushStaticField(this, 'fields', prop);
-      defineCSSState(Object.getPrototypeOf(this), prop, attr);
+      defineCSSState(target, prop, attr);
     }
-    return this[prop as keyof T] as boolean;
-  };
+    clearField(this, prop);
+  });
 }
 
 /**
@@ -237,28 +236,26 @@ export type Emitter<T = any> = (detail?: T, options?: Omit<CustomEventInit<unkno
  * ```
  */
 export function emitter<T extends GemElement<any>>(_: undefined, context: ClassFieldDecoratorContext<T, Emitter>) {
-  return function (this: T, value: Emitter) {
+  context.addInitializer(function (this: T) {
     defineEmitter(this, context.name as string);
-    return value;
-  };
+  });
 }
 export function globalemitter<T extends GemElement<any>>(
   _: undefined,
   context: ClassFieldDecoratorContext<T, Emitter>,
 ) {
-  return function (this: T, value: Emitter) {
+  context.addInitializer(function (this: T) {
     defineEmitter(this, context.name as string, { bubbles: true, composed: true });
-    return value;
-  };
+  });
 }
 function defineEmitter(t: GemElement, prop: string, options?: Omit<CustomEventInit<unknown>, 'detail'>) {
   const target = Object.getPrototypeOf(t);
   if (!target.hasOwnProperty(prop)) {
     const event = camelToKebabCase(prop);
     pushStaticField(target, 'defineEvents', event);
-    pushStaticField(t, 'fields', prop);
     defineProperty(target, prop, event, options);
   }
+  clearField(t, prop);
 }
 
 /**
