@@ -55,8 +55,8 @@ hash, base64 等编码/解码。
 
 - `animations`：使用 [Web Animations API](https://developer.mozilla.org/en-US/docs/Web/API/Web_Animations_API) 运行简单动画
 - `cache`：提供简单的缓存方案，比如 [LRU](<https://en.wikipedia.org/wiki/Cache_replacement_policies#Least_recently_used_(LRU)>) 缓存
-- `icons`：内置图标，[另见](./03-customize.md#自定义图标)
-- `locale`：切换、修改语言，[另见](./03-customize.md#自定义文本)
+- `icons`：内置图标，[另见](./30-customize.md#自定义图标)
+- `locale`：切换、修改语言，[另见](./30-customize.md#自定义文本)
 - `styles`：一些可全局共享的样式
-- `theme`：内置主题，[另见](./03-customize.md#自定义主题)
+- `theme`：内置主题，[另见](./30-customize.md#自定义主题)
 - `types`：方便 Typescript 类型推导的帮助函数

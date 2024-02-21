@@ -55,8 +55,8 @@ Some common functions.
 
 - `animations`: Use [Web Animations API](https://developer.mozilla.org/en-US/docs/Web/API/Web_Animations_API) implement simple animation
 - `cache`: Provide a simple [LRU](<https://en.wikipedia.org/wiki/Cache_replacement_policies#Least_recently_used_(LRU)>) cache
-- `icons`: Build-in icons, [see](./03-customize.md#customize-icon)
-- `locale`: Switch, modify the language, [see](./03-customize.md#customize-text)
+- `icons`: Build-in icons, [see](./30-customize.md#customize-icon)
+- `locale`: Switch, modify the language, [see](./30-customize.md#customize-text)
 - `styles`: Some styles that can be shared globally
-- `theme`: Build-in theme, [see](./03-customize.md#customize-theme)
+- `theme`: Build-in theme, [see](./30-customize.md#customize-theme)
 - `types`: Convenient TypeScript type infer help function

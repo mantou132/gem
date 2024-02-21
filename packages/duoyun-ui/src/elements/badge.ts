@@ -88,7 +88,8 @@ export class DuoyunBadgeElement extends GemElement {
   @part static badge: string;
 
   @attribute color: StringList<'positive' | 'informative' | 'notice'>;
-  @attribute count: number | string;
+  /**Support number and string */
+  @attribute count: string;
   @boolattribute dot: boolean;
   @boolattribute small: boolean;
   @numattribute max: number;
