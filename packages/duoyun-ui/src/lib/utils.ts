@@ -297,3 +297,7 @@ export class DyPromise<T, E extends Record<string, unknown>> extends Promise<T> 
     return Object.assign(result, this) as unknown as DyPromise<T, E> & E;
   }
 }
+
+// 不应该以发生错误的方式来处理拒绝的 Promise
+// 缺点：同时有个相同原因的 Promise 需要用错误处理时会被忽略
+export const ignoredPromiseReasonSet = new WeakSet();

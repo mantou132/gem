@@ -1,4 +1,5 @@
 import { Toast } from '../elements/toast';
+import { ignoredPromiseReasonSet } from '../lib/utils';
 
 let unloading = false;
 addEventListener('beforeunload', () => {
@@ -21,6 +22,10 @@ function printError(err: Error | ErrorEvent | DOMException) {
 }
 
 function handleRejection({ reason }: PromiseRejectionEvent) {
+  if (ignoredPromiseReasonSet.has(reason)) {
+    ignoredPromiseReasonSet.delete(reason);
+    return;
+  }
   if (reason) {
     const errors = reason.errors || reason;
     if (Array.isArray(errors)) {
