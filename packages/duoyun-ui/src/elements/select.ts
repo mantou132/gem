@@ -278,7 +278,6 @@ export class DuoyunSelectElement extends GemElement<State> implements BasePicker
 
   #onSearch = (evt: CustomEvent<string>) => {
     this.setState({ search: evt.detail, open: true });
-    this.search(evt.detail);
     evt.stopPropagation();
   };
 
@@ -358,9 +357,9 @@ export class DuoyunSelectElement extends GemElement<State> implements BasePicker
     );
     this.effect(
       () => {
-        if (this.state.open && !this.searchable && !this.inline) {
-          const restoreInert = setBodyInert(this.optionsRef.element!);
-          this.optionsRef.element?.focus();
+        if (this.state.open && !this.searchable && !this.inline && this.optionsRef.element) {
+          const restoreInert = setBodyInert(this.optionsRef.element);
+          this.optionsRef.element.focus();
           return () => {
             restoreInert();
             this.focus();
@@ -368,6 +367,10 @@ export class DuoyunSelectElement extends GemElement<State> implements BasePicker
         }
       },
       () => [this.state.open],
+    );
+    this.effect(
+      ([search]) => this.search(search),
+      () => [this.state.search],
     );
   };
 

@@ -20,6 +20,7 @@ type FormItemProps<T = unknown> = {
   field: keyof T | string[];
 
   options?: DuoyunFormItemElement['options'];
+  getOptions?: (input: string) => Promise<DuoyunFormItemElement['options']>;
   multiple?: boolean;
   placeholder?: string;
   searchable?: boolean;
@@ -29,6 +30,8 @@ type FormItemProps<T = unknown> = {
   rules?: DuoyunFormItemElement['rules'];
 
   slot?: TemplateResult | HTMLElement | HTMLElement[];
+
+  isHidden?: (data: T) => boolean;
 };
 
 export type FormItem<T = unknown> =
@@ -65,6 +68,16 @@ const style = createCSSSheet(css`
   }
 `);
 
+type OptionsRecord = {
+  loading: boolean;
+  options?: DuoyunFormItemElement['options'];
+};
+
+type State<T> = {
+  data: T;
+  optionsRecord: Partial<Record<string, OptionsRecord>>;
+};
+
 /**
  * @customElement dy-pat-form
  */
@@ -72,17 +85,20 @@ const style = createCSSSheet(css`
 @adoptedStyle(blockContainer)
 @adoptedStyle(focusStyle)
 @adoptedStyle(style)
-export class DyPatFormElement<T = Record<string, unknown>> extends GemElement<T> {
+export class DyPatFormElement<T = Record<string, unknown>> extends GemElement<State<T>> {
   @refobject formRef: RefObject<DuoyunFormElement>;
 
   @property data?: T;
   @property formItems?: FormItem<T>[];
 
-  state: T = {} as T;
+  state: State<T> = {
+    data: {} as T,
+    optionsRecord: {},
+  };
 
   #onChange = ({ detail }: CustomEvent<any>) => {
-    this.setState(
-      Object.keys(detail).reduce((p, c) => {
+    this.setState({
+      data: Object.keys(detail).reduce((p, c) => {
         const keys = c.split(',');
         if (keys.length === 1) {
           p[c] = detail[c];
@@ -92,37 +108,47 @@ export class DyPatFormElement<T = Record<string, unknown>> extends GemElement<T>
           a[lastKey] = detail[c];
         }
         return p;
-      }, this.state as any),
-    );
+      }, this.state.data as any),
+    });
   };
 
-  #renderItem = <T>({
-    label,
-    field,
-    type,
-    clearable,
-    multiple,
-    placeholder,
-    required,
-    rules,
-    options,
-    searchable,
-    slot,
-  }: FormItemProps<T>) => {
+  #onOptionsChange = async <T>(props: FormItemProps<T>, input: string) => {
+    if (!props.getOptions) return;
+    const options = (this.state.optionsRecord[String(props.field)] ||= {} as OptionsRecord);
+    options.loading = true;
+    this.update();
+    try {
+      options.options = await props.getOptions(input);
+    } finally {
+      options.loading = false;
+      this.update();
+    }
+  };
+
+  #renderItem = <T>(props: FormItemProps<T>) => {
+    const { optionsRecord, data } = this.state;
+    const name = String(props.field);
+    const onChange = (evt: CustomEvent) => props.type === 'text' && this.#onOptionsChange(props, evt.detail);
+    const onSearch = (evt: CustomEvent) => props.type === 'select' && this.#onOptionsChange(props, evt.detail);
     return html`
       <dy-form-item
-        .label=${label}
-        .value=${readProp(this.state!, field)}
-        .name=${String(field)}
-        .type=${type}
-        .placeholder=${placeholder || ''}
-        .rules=${rules}
-        .options=${options}
-        ?multiple=${multiple}
-        ?clearable=${clearable}
-        ?searchable=${searchable}
-        ?required=${required}
-        >${slot}</dy-form-item
+        ?hidden=${props.isHidden?.(data as unknown as T)}
+        .label=${props.label}
+        .value=${readProp(this.state.data!, props.field)}
+        .name=${name}
+        .type=${props.type}
+        .placeholder=${props.placeholder || ''}
+        .rules=${props.rules}
+        .loading=${!!optionsRecord[name]?.loading}
+        .options=${props.options || optionsRecord[name]?.options}
+        ?multiple=${props.multiple}
+        ?clearable=${props.clearable}
+        ?searchable=${props.searchable || !!props.getOptions}
+        ?required=${props.required}
+        @change=${onChange}
+        @clear=${onChange}
+        @search=${onSearch}
+        >${props.slot}</dy-form-item
       >
     `;
   };
@@ -141,7 +167,7 @@ export class DyPatFormElement<T = Record<string, unknown>> extends GemElement<T>
     this.memo(
       () => {
         if (this.data) {
-          this.state = structuredClone(this.data);
+          this.state.data = structuredClone(this.data);
         }
       },
       () => [this.data],
@@ -194,17 +220,17 @@ export function createForm<T = Record<string, unknown>>(options: CreateFormOptio
           .data=${options.data}
         ></dy-pat-form>
       `,
-      prepareClose: (ele) => options.prepareClose?.(ele.state),
+      prepareClose: (ele) => options.prepareClose?.(ele.state.data),
       prepareOk: async (ele) => {
         const valid = await ele.valid();
         if (!valid) throw null;
-        await waitLoading(options.prepareOk?.(ele.state));
+        await waitLoading(options.prepareOk?.(ele.state.data));
         await DuoyunWaitElement.instance?.removed;
       },
     })
-    .then((ele) => ele.state)
+    .then((ele) => ele.state.data)
     .catch((ele) => {
-      throw ele.state;
+      throw ele.state.data;
     })
     .finally(() => {
       if (options.query) {

@@ -54,7 +54,7 @@ function createReactSourceFile(elementFilePath: string, outDir: string) {
               .join(';\n')}
           }
         
-          const ${componentName}: ForwardRefExoticComponent<Omit<${componentPropsName}, "ref"> & RefAttributes<${componentMethodsName}>> = forwardRef<${componentMethodsName}, ${componentPropsName}>(function (props, ref): JSX.Element {
+          export const ${componentName}: ForwardRefExoticComponent<Omit<${componentPropsName}, "ref"> & RefAttributes<${componentMethodsName}>> = forwardRef<${componentMethodsName}, ${componentPropsName}>(function (props, ref): JSX.Element {
             const elementRef = useRef<${constructorName}>(null);
             useImperativeHandle(ref, () => {
               return {

@@ -85,11 +85,20 @@ export class ConsolePageItemElement extends GemElement {
         field: 'username',
         label: 'Username',
         required: true,
+        async getOptions(input) {
+          await sleep(300);
+          return Array(4)
+            .fill(null)
+            .map((_, index) => ({ label: `${input}-${index}` }));
+        },
       },
       {
         type: 'text',
         field: 'name',
         label: 'Name',
+        isHidden(data) {
+          return !data.username;
+        },
       },
     ],
     {
