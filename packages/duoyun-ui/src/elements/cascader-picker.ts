@@ -101,7 +101,7 @@ export class DuoyunCascaderPickerElement extends GemElement implements BasePicke
     ContextMenu.open(
       html`
         <dy-cascader
-          style="margin: -0.4em -1em; min-height: 10em;"
+          style="margin: -0.4em -1em; min-height: 10em; max-height: calc(50vh - 3em);"
           .options=${this.options}
           .value=${this.value}
           @change=${this.#onChange}

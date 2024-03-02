@@ -10,13 +10,13 @@ import '../elements/layout';
 const [store, update] = useStore({
   selected: [['Item 3', 'Item 3.3', 'Item 3.3.1']],
   options: [
-    { label: 'Item 1' },
-    { label: 'Item 2' },
+    { label: 'Item 1', disabled: true },
+    { label: 'Item 2', childrenPlaceholder: html`<dy-loading />` },
     {
       label: 'Item 3',
       children: [
         { label: 'Item 3.1' },
-        { label: 'Item 3.2' },
+        { label: 'Item 3.2', childrenPlaceholder: html`<dy-loading />` },
         {
           label: 'Item 3.3',
           children: [{ label: 'Item 3.3.1' }],
@@ -31,11 +31,19 @@ const [store, update] = useStore({
 function onChange({ detail }: CustomEvent) {
   update({ selected: detail });
 }
-
+let i = 10;
 async function onExpand({ detail }: CustomEvent<Option>) {
   await sleep(1000);
+  if (detail.label === 'Item 2') {
+    detail.children = [];
+    update({ options: [...store.options] });
+  }
+  if (detail.label === 'Item 3.2') {
+    detail.children = [];
+    update({ options: [...store.options] });
+  }
   if (detail.label === 'Item 4') {
-    detail.children = Array(4)
+    detail.children = Array(i++)
       .fill(null)
       .map((_, index) => ({ label: `Item 4.${index + 1}` }));
     update({ options: [...store.options] });

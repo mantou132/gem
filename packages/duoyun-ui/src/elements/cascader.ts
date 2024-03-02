@@ -15,6 +15,7 @@ import { icons } from '../lib/icons';
 import { getCascaderDeep, readProp } from '../lib/utils';
 import { theme } from '../lib/theme';
 import { isNotNullish } from '../lib/types';
+import { locale } from '../lib/locale';
 
 import './use';
 import './checkbox';
@@ -30,6 +31,9 @@ const style = createCSSSheet(css`
     padding: 0.2em 0;
     width: 12em;
     overflow: auto;
+  }
+  .list.none {
+    padding: 0.5em;
   }
   .list + .list {
     border-inline-start: 1px solid ${theme.borderColor};
@@ -55,6 +59,9 @@ const style = createCSSSheet(css`
     text-overflow: ellipsis;
     white-space: nowrap;
   }
+  .disabled {
+    color: ${theme.disabledColor};
+  }
   .right {
     width: 1.2em;
   }
@@ -63,6 +70,9 @@ const style = createCSSSheet(css`
 export type Option = {
   label: string | number;
   value?: string | number;
+  // 全支持不知道如何切换
+  /**Only top level */
+  disabled?: boolean;
   children?: Option[];
   childrenPlaceholder?: TemplateResult;
 };
@@ -73,6 +83,10 @@ function getOptionValue(option: Option) {
   return option.value ?? option.label;
 }
 
+function hasChildren(option: Option) {
+  return option.children || option.childrenPlaceholder;
+}
+
 function getOptionDisplayValue(option: Option) {
   return String(getOptionValue(option));
 }
@@ -81,7 +95,12 @@ type State = {
   selected: Option[];
 };
 
-const token = Symbol();
+const checkboxStatusToken = Symbol();
+
+enum CheckboxStatus {
+  Checked,
+  Indeterminate,
+}
 
 /**
  * @customElement dy-cascader
@@ -127,19 +146,21 @@ export class DuoyunCascaderElement extends GemElement<State> {
     }
 
     // set new value(children part)
-    const generator = (item: Option): any =>
-      item.children
-        ? item.children.reduce((p, c) => {
-            const v = generator(c);
-            const k = getOptionValue(c);
-            if (v === false) {
-              delete p[k];
-            } else {
-              p[k] = generator(c);
-            }
-            return p;
-          }, {} as any)
-        : evt.detail;
+    const generator = (item: Option): any => {
+      if (!item.children?.length) {
+        return evt.detail;
+      }
+      return item.children.reduce((p, c) => {
+        const v = generator(c);
+        const k = getOptionValue(c);
+        if (v === false) {
+          delete p[k];
+        } else {
+          p[k] = generator(c);
+        }
+        return p;
+      }, {} as any);
+    };
 
     obj[getOptionValue(item)] = generator(item);
 
@@ -158,12 +179,13 @@ export class DuoyunCascaderElement extends GemElement<State> {
     this.change(value);
   };
 
-  #onClick = (index: number, item: Option) => {
+  #onClick = (level: number, item: Option) => {
+    if (item.disabled) return;
     const { selected } = this.state;
-    const clickValue = selected.slice(0, index).concat(item);
-    if (selected[index] !== item) {
+    const clickValue = selected.slice(0, level).concat(item);
+    if (selected[level] !== item) {
       this.setState({ selected: clickValue });
-      if (item.children || item.childrenPlaceholder) {
+      if (hasChildren(item)) {
         this.expand(item);
       }
     }
@@ -180,12 +202,15 @@ export class DuoyunCascaderElement extends GemElement<State> {
         // init state
         if (!this.state.selected.length) {
           const selected: Option[] = [];
-          this.#value?.[0]?.forEach((val, index) => {
+          const firstValue = this.#value?.[0] || [];
+          for (let index = 0; index < firstValue.length; index++) {
+            const val = firstValue[index];
             const item = (index ? selected[selected.length - 1].children! : this.options!).find(
               (e) => val === getOptionValue(e),
             )!;
+            if (item.disabled) break;
             selected.push(item);
-          });
+          }
           this.setState({ selected });
         }
       },
@@ -212,25 +237,22 @@ export class DuoyunCascaderElement extends GemElement<State> {
           const key = getOptionDisplayValue(item);
           const sub = readProp(this.#valueObj, [...path, key]);
           if (sub === true || !sub) return;
-          const keys = Object.keys(sub);
-          if (!keys.length) sub[token] = -1;
 
-          sub[token] = item.children?.reduce((p, e) => {
+          const isAll = item.children?.reduce((p, e) => {
             const k = getOptionDisplayValue(e);
             if (sub[k] === true) {
               return p;
             } else {
               check([...path, key], e);
-              if (sub[k] && sub[k][token] === 1) return p;
+              if (sub[k] && sub[k][checkboxStatusToken] === CheckboxStatus.Checked) return p;
             }
             return false;
-          }, true)
-            ? 1
-            : 0;
+          }, true);
+          sub[checkboxStatusToken] = isAll ? CheckboxStatus.Checked : CheckboxStatus.Indeterminate;
         };
         this.options?.forEach((e) => check([], e));
       },
-      () => [this.value],
+      () => [this.value, this.options],
     );
   };
 
@@ -238,44 +260,55 @@ export class DuoyunCascaderElement extends GemElement<State> {
     if (!this.options) return html``;
     const { selected } = this.state;
     const listStyle = styleMap({ width: this.fit ? `${100 / this.#deep}%` : undefined });
+    const contents = [
+      this.options,
+      ...selected.map((item) => item.children || item.childrenPlaceholder).filter(isNotNullish),
+    ];
     return html`
-      ${[this.options, ...selected.map((e) => e.children || e.childrenPlaceholder).filter(isNotNullish)].map(
-        (list, index) =>
-          Array.isArray(list)
-            ? html`
+      ${contents.map((list, level) =>
+        !Array.isArray(list)
+          ? html`<div class="list none">${list}</div>`
+          : !list.length
+            ? html`<div class="list none">${locale.noData}</div>`
+            : html`
                 <ul part=${DuoyunCascaderElement.column} class="list" style=${listStyle}>
                   ${list.map(
                     (
                       item,
                       _i,
                       _arr,
+                      disabled = level === 0 && item.disabled,
                       status = readProp(
                         this.#valueObj,
-                        [...selected.slice(0, index), item].map((e) => getOptionDisplayValue(e)),
+                        [...selected.slice(0, level), item].map((e) => getOptionDisplayValue(e)),
                       ),
                     ) => html`
                       <li
-                        class=${classMap({ item: true, selected: selected[index] === item })}
-                        @click=${() => this.#onClick(index, item)}
+                        class=${classMap({ item: true, selected: selected[level] === item })}
+                        @click=${() => this.#onClick(level, item)}
                       >
                         ${this.multiple
                           ? html`
                               <dy-checkbox
                                 class="checkbox"
-                                @change=${(evt: CustomEvent<boolean>) => this.#onChange(index, item, evt)}
-                                ?checked=${status === true || status?.[token] === 1}
-                                ?indeterminate=${status !== true && status?.[token] === 0}
+                                @change=${(evt: CustomEvent<boolean>) => this.#onChange(level, item, evt)}
+                                ?disabled=${disabled}
+                                ?checked=${status === true || status?.[checkboxStatusToken] === CheckboxStatus.Checked}
+                                ?indeterminate=${status !== true &&
+                                status?.[checkboxStatusToken] === CheckboxStatus.Indeterminate}
                               ></dy-checkbox>
                             `
                           : ''}
-                        <span class="label">${getOptionDisplayValue(item)}</span>
-                        <dy-use class="right" .element=${item.children && icons.right}></dy-use>
+                        <span class=${classMap({ label: true, disabled })}>${getOptionDisplayValue(item)}</span>
+                        <dy-use
+                          class=${classMap({ right: true, disabled })}
+                          .element=${hasChildren(item) && icons.right}
+                        ></dy-use>
                       </li>
                     `,
                   )}
                 </ul>
-              `
-            : html`<div class="list">${list}</div>`,
+              `,
       )}
     `;
   };
