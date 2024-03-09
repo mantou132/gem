@@ -320,12 +320,14 @@ export class DuoyunSelectElement extends GemElement<State> implements BasePicker
     this.memo(
       () => {
         const map = new Map<any, Option>();
-        this.options?.forEach((option) => {
+        const forEach = (option: Option) => {
           const { value, label } = option;
           map.set(value ?? label, option);
-        });
+        };
+        this.#valueOptions?.forEach(forEach);
+        this.options?.forEach(forEach);
         this.#valueSet = new Set(this.#value);
-        this.#valueOptions = this.#value?.map((value) => map.get(value)).filter(isNotNullish);
+        this.#valueOptions = this.#value?.map((value) => map.get(value) || { value, label: value });
       },
       () => [this.value, this.options],
     );

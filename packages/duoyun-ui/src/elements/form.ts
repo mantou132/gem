@@ -11,6 +11,7 @@ import {
   globalemitter,
   Emitter,
   emitter,
+  numattribute,
 } from '@mantou/gem/lib/decorators';
 import { GemElement, html, TemplateResult } from '@mantou/gem/lib/element';
 import { createCSSSheet, css } from '@mantou/gem/lib/utils';
@@ -99,6 +100,7 @@ const formStyle = createCSSSheet(css`
 export class DuoyunFormElement<Data = Record<string, any>> extends GemElement {
   @boolattribute inline: boolean;
 
+  /**event order: change, itemchange */
   @globalemitter change: Emitter<Data>;
 
   get items() {
@@ -185,6 +187,7 @@ const formItemStyle = createCSSSheet(css`
   }
   .input {
     width: 100%;
+    field-sizing: inherit;
   }
   .input + .input,
   .footer {
@@ -255,6 +258,13 @@ export class DuoyunFormItemElement extends GemElement<FormItemState> {
 
   @property value?: number | string | any[] | any;
   @property renderLabel?: (e: SelectOption) => string | TemplateResult;
+
+  // textarea
+  @numattribute rows: number;
+  // number
+  @numattribute step: number;
+  @numattribute min: number;
+  @numattribute max: number;
 
   @property rules?: FormItemRule[];
 
@@ -468,6 +478,10 @@ export class DuoyunFormItemElement extends GemElement<FormItemState> {
                               ?disabled=${this.disabled}
                               @change=${this.#onChange}
                               @clear=${(evt: any) => evt.target.change('')}
+                              .rows=${this.rows}
+                              .step=${this.step}
+                              .min=${this.min}
+                              .max=${this.max}
                               .autofocus=${this.autofocus}
                               .clearable=${this.clearable}
                               .value=${this.value as string}

@@ -110,7 +110,8 @@ export class ConsolePageItemElement extends GemElement {
           label: 'Company name',
         },
         {
-          type: 'text',
+          type: 'textarea',
+          rows: 0,
           field: ['company', 'catchPhrase'],
           label: 'Company Catch phrase',
         },
@@ -125,6 +126,12 @@ export class ConsolePageItemElement extends GemElement {
       type: 'date-time',
       field: 'updated',
       label: 'Last Updated',
+      dependencies: ['username'],
+      getInitValue(data) {
+        if (data.username === 'now') {
+          return Date.now();
+        }
+      },
     },
   ];
 

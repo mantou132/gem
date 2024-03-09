@@ -102,6 +102,10 @@ const style = createCSSSheet(css`
     border: none;
     background-color: transparent;
     resize: none;
+    field-sizing: inherit;
+  }
+  textarea {
+    min-height: 5em;
   }
   .input::-webkit-calendar-picker-indicator,
   .input::-webkit-search-decoration,

@@ -1,4 +1,4 @@
-import { html, GemElement, TemplateResult } from '@mantou/gem/lib/element';
+import { html, GemElement, TemplateResult, ifDefined } from '@mantou/gem/lib/element';
 import { adoptedStyle, customElement, property, refobject, RefObject } from '@mantou/gem/lib/decorators';
 import { StyleObject, createCSSSheet, css, styleMap } from '@mantou/gem/lib/utils';
 import { history } from '@mantou/gem/lib/history';
@@ -20,17 +20,29 @@ type FormItemProps<T = unknown> = {
   field: keyof T | string[];
 
   options?: DuoyunFormItemElement['options'];
-  getOptions?: (input: string) => Promise<DuoyunFormItemElement['options']>;
+  dependencies?: (keyof T | string[])[];
+  /**dependencies change, text change, text clear select search */
+  getOptions?: (search: string, data: T) => Promise<DuoyunFormItemElement['options']>;
+  /**dependencies change, this.data change */
+  getInitValue?: (data: T) => any;
   multiple?: boolean;
   placeholder?: string;
   searchable?: boolean;
   clearable?: boolean;
+
+  // textarea
+  rows?: number;
+  // number input
+  step?: number;
+  min?: number;
+  max?: number;
 
   required?: boolean;
   rules?: DuoyunFormItemElement['rules'];
 
   slot?: TemplateResult | HTMLElement | HTMLElement[];
 
+  /**all change */
   isHidden?: (data: T) => boolean;
 };
 
@@ -45,6 +57,9 @@ export type FormItem<T = unknown> =
 const style = createCSSSheet(css`
   dy-form {
     width: 100%;
+  }
+  dy-form-item[rows='0'] {
+    field-sizing: content;
   }
   details {
     margin-block-end: 1.8em;
@@ -98,41 +113,44 @@ export class DyPatFormElement<T = Record<string, unknown>> extends GemElement<St
 
   #onChange = ({ detail }: CustomEvent<any>) => {
     this.setState({
-      data: Object.keys(detail).reduce((p, c) => {
-        const keys = c.split(',');
-        if (keys.length === 1) {
-          p[c] = detail[c];
+      data: Object.keys(detail).reduce((data, key) => {
+        const val = detail[key];
+        const path = key.split(',');
+        if (path.length === 1) {
+          data[key] = val;
         } else {
-          const lastKey = keys.pop()!;
-          const a = keys.reduce((p, c) => (p[c] ||= {}), p);
-          a[lastKey] = detail[c];
+          const lastKey = path.pop()!;
+          const wrapObj = path.reduce((obj, key) => (obj[key] ||= {}), data);
+          wrapObj[lastKey] = val;
         }
-        return p;
-      }, this.state.data as any),
+        return data;
+      }, {} as any),
     });
   };
 
-  #onOptionsChange = async <T>(props: FormItemProps<T>, input: string) => {
+  #onOptionsChange = async (props: FormItemProps<T>, input: string) => {
     if (!props.getOptions) return;
-    const options = (this.state.optionsRecord[String(props.field)] ||= {} as OptionsRecord);
+    const { optionsRecord, data } = this.state;
+    const options = (optionsRecord[String(props.field)] ||= {} as OptionsRecord);
     options.loading = true;
     this.update();
     try {
-      options.options = await props.getOptions(input);
+      options.options = await props.getOptions(input, data);
     } finally {
       options.loading = false;
       this.update();
     }
   };
 
-  #renderItem = <T>(props: FormItemProps<T>) => {
+  #renderItem = (props: FormItemProps<T>) => {
     const { optionsRecord, data } = this.state;
+    if (props.isHidden?.(data as unknown as T)) return html``;
+
     const name = String(props.field);
     const onChange = (evt: CustomEvent) => props.type === 'text' && this.#onOptionsChange(props, evt.detail);
     const onSearch = (evt: CustomEvent) => props.type === 'select' && this.#onOptionsChange(props, evt.detail);
     return html`
       <dy-form-item
-        ?hidden=${props.isHidden?.(data as unknown as T)}
         .label=${props.label}
         .value=${readProp(this.state.data!, props.field)}
         .name=${name}
@@ -145,6 +163,10 @@ export class DyPatFormElement<T = Record<string, unknown>> extends GemElement<St
         ?clearable=${props.clearable}
         ?searchable=${props.searchable || !!props.getOptions}
         ?required=${props.required}
+        rows=${ifDefined(props.rows)}
+        step=${ifDefined(props.step)}
+        min=${ifDefined(props.min)}
+        max=${ifDefined(props.max)}
         @change=${onChange}
         @clear=${onChange}
         @search=${onSearch}
@@ -153,7 +175,7 @@ export class DyPatFormElement<T = Record<string, unknown>> extends GemElement<St
     `;
   };
 
-  #renderItems = <T>(items: FormItemProps<T> | FormItemProps<T>[]) => {
+  #renderItems = (items: FormItemProps<T> | FormItemProps<T>[]) => {
     if (Array.isArray(items)) {
       return html`
         <dy-form-item-inline-group>${items.map((item) => this.#renderItem(item))}</dy-form-item-inline-group>
@@ -161,6 +183,37 @@ export class DyPatFormElement<T = Record<string, unknown>> extends GemElement<St
     } else {
       return this.#renderItem(items);
     }
+  };
+
+  #setStateInitValue = (props: FormItemProps<T>) => {
+    const { data } = this.state;
+    const { field } = props;
+    const initValue = props.getInitValue?.(data) ?? readProp(this.data || {}, field);
+    if (Array.isArray(field)) {
+      readProp(data!, field.slice(0, field.length - 1))[field.at(-1)!] = initValue;
+    } else {
+      data[field] = initValue;
+    }
+  };
+
+  #deps = new Map<string, Set<FormItemProps<T>>>();
+  #onItemChange = ({ detail: { name } }: CustomEvent<{ name: string }>) => {
+    this.#deps.get(name)?.forEach((props) => {
+      this.#setStateInitValue(props);
+      this.update();
+      this.#onOptionsChange(props, '');
+    });
+  };
+
+  #forEachFormItems = (process: (props: FormItemProps<T>) => void) => {
+    const each = (items: FormItemProps<T> | FormItemProps<T>[]) => [items].flat().forEach(process);
+    this.formItems?.forEach((item) => {
+      if ('group' in item) {
+        item.group.forEach(each);
+      } else {
+        each(item);
+      }
+    });
   };
 
   willMount() {
@@ -172,11 +225,24 @@ export class DyPatFormElement<T = Record<string, unknown>> extends GemElement<St
       },
       () => [this.data],
     );
+    this.memo(
+      () => {
+        this.#forEachFormItems((props) => {
+          props.dependencies?.forEach((field) => {
+            const key = String(field);
+            const set = this.#deps.get(key) || new Set();
+            set.add(props);
+            this.#deps.set(key, set);
+          });
+        });
+      },
+      () => [this.formItems],
+    );
   }
 
   render = () => {
     return html`
-      <dy-form @change=${this.#onChange} ref=${this.formRef.ref}>
+      <dy-form @change=${this.#onChange} @itemchange=${this.#onItemChange} ref=${this.formRef.ref}>
         ${this.formItems?.map((item) => {
           if ('group' in item) {
             return html`
