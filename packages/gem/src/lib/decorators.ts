@@ -19,7 +19,7 @@ function pushStaticField(target: GemElementPrototype, field: StaticField, member
   (cls[field] as any)[isSet ? 'add' : 'push'](member);
 }
 
-export type RefObject<T = HTMLElement> = { ref: string; element: T | undefined };
+export type RefObject<T = HTMLElement> = { ref: string; element: T | undefined; elements: T[] };
 
 /**
  * 引用元素，只有第一个标记 ref 的元素有效

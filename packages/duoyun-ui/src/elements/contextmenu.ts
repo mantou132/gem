@@ -13,11 +13,11 @@ import type { DuoyunOptionsElement } from './options';
 
 import './compartment';
 import './button';
-import './options';
+
+export { SEPARATOR } from './options';
 
 type Menu = ContextMenuItem[] | TemplateResult;
 export interface ContextMenuItem {
-  /**`---` is separator */
   text: string | TemplateResult;
   description?: string | TemplateResult;
   tag?: string | TemplateResult;
@@ -44,6 +44,8 @@ type ContextMenuStore = {
     x: number;
     y: number;
     header?: TemplateResult;
+    causeEle?: HTMLDivElement;
+    causeMask?: TemplateResult;
   }[];
 };
 
@@ -203,12 +205,14 @@ export class DuoyunContextmenuElement extends GemElement {
   #onEnterMenu = (evt: PointerEvent, menuStackIndex: number, subMenu?: Menu) => {
     const { menuStack, openLeft } = contextmenuStore;
     if (subMenu) {
-      const itemEle = evt.currentTarget as HTMLDivElement;
-      const { left, right, top, bottom, width } = itemEle.getBoundingClientRect();
+      const causeEle = evt.currentTarget as HTMLDivElement;
+      if (causeEle === menuStack.at(menuStackIndex + 1)?.causeEle) return;
+      const { left, right, top, bottom, width } = causeEle.getBoundingClientRect();
       const em = parseFloat(getComputedStyle(this).fontSize);
       const expectX = right - 0.75 * em;
       const expectY = top - 0.4 * em;
-      const openTop = expectY > innerHeight - 150;
+      const predictSubMenuHeight = 240;
+      const openTop = expectY > innerHeight - predictSubMenuHeight;
       const isToLeft =
         (right + width > innerWidth ||
           openLeft ||
@@ -218,6 +222,7 @@ export class DuoyunContextmenuElement extends GemElement {
         menuStack: [
           ...menuStack.slice(0, menuStackIndex + 1),
           {
+            causeEle,
             openTop,
             x: isToLeft ? left - width + 0.75 * em : expectX,
             y: openTop ? innerHeight - bottom - 0.4 * em : expectY,
@@ -274,6 +279,36 @@ export class DuoyunContextmenuElement extends GemElement {
     }
   };
 
+  #genMask = async () => {
+    // wait `<dy-options>` update
+    await Promise.resolve();
+    const causeEle = contextmenuStore.menuStack.at(-1)?.causeEle;
+    const optionsEle = this.optionsRef.elements.at(-1)!;
+    if (!causeEle) return;
+    const causeEleRect = causeEle.getBoundingClientRect();
+    const optionsEleRect = optionsEle.getBoundingClientRect();
+    const isRight = optionsEleRect.right > causeEleRect.right;
+    const startPointX = isRight ? causeEleRect.right : causeEleRect.left;
+    const startPoint = [startPointX + 50 * (isRight ? -1 : 1), (causeEleRect.top + causeEleRect.bottom) / 2];
+    const secondPointX = isRight ? optionsEleRect.left : optionsEleRect.right;
+    const secondPoint = [secondPointX, optionsEleRect.top];
+    const thirdPoint = [secondPointX, optionsEleRect.bottom];
+    contextmenuStore.menuStack.at(-1)!.causeMask = html`
+      <div
+        style=${styleMap({
+          // background: 'rgba(0, 0, 0, 0.1)',
+          position: 'absolute',
+          width: `100vw`,
+          height: `100vh`,
+          clipPath: `polygon(${[startPoint, secondPoint, thirdPoint].map((point) =>
+            point.map((e) => `${e}px`).join(' '),
+          )})`,
+        })}
+      ></div>
+    `;
+    update();
+  };
+
   #onMaskClick = () => {
     if (contextmenuStore.maskClosable) {
       ContextMenu.close();
@@ -284,6 +319,10 @@ export class DuoyunContextmenuElement extends GemElement {
     this.effect(
       () => this.#menuElements.at(-1)?.focus(),
       () => [contextmenuStore.menuStack.length],
+    );
+    this.effect(
+      () => this.#genMask(),
+      () => [contextmenuStore.menuStack.at(-1)?.menu],
     );
     const restoreInert = setBodyInert(this);
     ContextMenu.instance = this;
@@ -304,21 +343,18 @@ export class DuoyunContextmenuElement extends GemElement {
       <div class=${classMap({ mask: true, opaque: !maskClosable })} @click=${this.#onMaskClick}></div>
       ${menuStack.map(
         (
-          { x, y, menu, searchable, openTop, header },
+          { x, y, menu, searchable, openTop, header, causeMask },
           index,
           _,
           calcWidth = this.#width === 'auto' ? '0px' : this.#width,
         ) => html`
+          ${causeMask}
           <dy-options
             class="menu"
             ref=${this.optionsRef.ref}
             style=${styleMap({
               width: this.#width,
-              maxHeight: openTop
-                ? '20em'
-                : maxHeight && index === 0
-                  ? `${maxHeight}`
-                  : `calc(100vh - 0.8em - ${y - this.#offset}px)`,
+              maxHeight: maxHeight && index === 0 ? maxHeight : `calc(100vh - 0.8em - ${y - this.#offset}px)`,
               [openTop ? 'bottom' : 'top']: `${y + this.#offset}px`,
               left: `min(${x}px, calc(100vw - ${calcWidth} - ${2 * this.#offset}px))`,
             })}
@@ -338,7 +374,7 @@ export class DuoyunContextmenuElement extends GemElement {
                     tag,
                     disabled,
                     danger,
-                    highlight: !!(subMenu && subMenu === menuStack[index + 1]?.menu),
+                    highlight: subMenu && subMenu === menuStack[index + 1]?.menu,
                     tagIcon: subMenu ? icons.right : selected ? icons.check : tagIcon,
                     onClick: subMenu ? onPointerEnter : onClick,
                     onPointerEnter,

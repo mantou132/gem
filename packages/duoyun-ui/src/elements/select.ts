@@ -13,7 +13,7 @@ import {
   part,
 } from '@mantou/gem/lib/decorators';
 import { GemElement, html, TemplateResult } from '@mantou/gem/lib/element';
-import { createCSSSheet, css, styleMap, StyleObject } from '@mantou/gem/lib/utils';
+import { addListener, createCSSSheet, css, styleMap, StyleObject } from '@mantou/gem/lib/utils';
 
 import { theme } from '../lib/theme';
 import { icons } from '../lib/icons';
@@ -50,6 +50,7 @@ const style = createCSSSheet(css`
   .inline-options {
     max-height: inherit;
     padding-block: 0;
+    overscroll-behavior: auto;
   }
   .value-wrap {
     width: 0;
@@ -349,11 +350,10 @@ export class DuoyunSelectElement extends GemElement<State> implements BasePicker
             maxHeight: isShowTop ? `${top - 8}px` : `calc(100vh - ${bottom + 8}px)`,
             transform: isShowTop ? `translateY(calc(-100% - 8px - ${height}px))` : 'none',
           });
-          addEventListener('pointerup', this.#close);
+          return addListener(window, 'pointerup', this.#close);
         } else {
           this.setState({ open: false });
         }
-        return () => removeEventListener('pointerup', this.#close);
       },
       () => [this.state.open],
     );

@@ -567,7 +567,11 @@ export function defineProperty(
   });
 }
 
+const getReflectTargets = (ele: ShadowRoot | GemElement) =>
+  [...ele.querySelectorAll<GemReflectElement>('[data-gem-reflect]')].map((e) => e.target);
+
 export function defineRef(target: GemElement, prop: string, ref: string) {
+  const refSelector = `[ref=${ref}]`;
   Object.defineProperty(target, prop, {
     configurable: true,
     get() {
@@ -581,11 +585,13 @@ export function defineRef(target: GemElement, prop: string, ref: string) {
             return ref;
           },
           get element() {
-            const gemReflects = [...ele.querySelectorAll<GemReflectElement>('[data-gem-reflect]')].map((e) => e.target);
-            for (const e of [ele, ...gemReflects]) {
-              const result = e.querySelector(`[ref=${ref}]`);
+            for (const e of [ele, ...getReflectTargets(ele)]) {
+              const result = e.querySelector(refSelector);
               if (result) return result;
             }
+          },
+          get elements() {
+            return [ele, ...getReflectTargets(ele)].map((e) => [...e.querySelectorAll(refSelector)]).flat();
           },
         };
         proxy[prop] = refobject;

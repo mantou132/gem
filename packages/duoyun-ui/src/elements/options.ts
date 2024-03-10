@@ -138,6 +138,8 @@ export type Adder = {
   handle: (value: string) => any;
 };
 
+export const SEPARATOR = '---';
+
 type State = {
   search: string;
   addValue: string;
@@ -266,7 +268,7 @@ export class DuoyunOptionsElement extends GemElement<State> {
           onClick,
           onRemove,
         }) => {
-          return label === '---'
+          return label === SEPARATOR
             ? html`<div class="separator"></div>`
             : html`
                 <div
