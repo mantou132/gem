@@ -97,7 +97,7 @@ export class DuoyunDateRangePanelElement extends GemElement<State> {
     const highlightStop = stop || hover;
     const highlights: number[][] =
       !isNullish(start) && highlightStop ? [[Math.min(start, highlightStop), Math.max(start, highlightStop)]] : [];
-    const isSomeMonth = !isNullish(start) && !isNullish(stop) && new Time(start).isSome(stop, 'M');
+    const isSomeMonth = !isNullish(start) && !isNullish(stop) && new Time(start).isSame(stop, 'M');
     return html`
       <dy-date-panel
         class="panel"

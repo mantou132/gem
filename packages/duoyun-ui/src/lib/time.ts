@@ -101,10 +101,6 @@ export function parseNarrowRelativeTime(str: string | null | undefined): Time | 
 
 function getDuration(unit: Unit) {
   switch (unit) {
-    case 'w':
-      return Dw;
-    case 'd':
-      return Dd;
     case 'h':
       return Dh;
     case 'm':
@@ -157,6 +153,12 @@ export class Time extends Date {
       case 'M':
         this.setMonth(this.getMonth() - number);
         break;
+      case 'w':
+        this.setDate(this.getDate() - 7 * number);
+        break;
+      case 'd':
+        this.setDate(this.getDate() - number);
+        break;
       default:
         this.setTime(this.getTime() - number * getDuration(unit));
     }
@@ -195,7 +197,7 @@ export class Time extends Date {
     return this;
   }
 
-  isSome<T extends Date>(d: T | number, unit: Unit) {
+  isSame<T extends Date>(d: T | number, unit: Unit) {
     let result = true;
     const targetDate = new Time(d);
     switch (unit) {
@@ -219,6 +221,9 @@ export class Time extends Date {
     }
     return result;
   }
+
+  /**@deprecated */
+  isSome = this.isSame;
 
   /**
    * new D().relativeTimeFormat(new D().add(40, 'd'), { unitLimit: 2, lang: 'zh' }) => '40天后'

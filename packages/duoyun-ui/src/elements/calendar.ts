@@ -149,11 +149,11 @@ export class DuoyunCalendarElement extends GemElement {
   };
 
   #isStartHighlight = (date: Time) => {
-    return !!this.highlights?.some(([d]) => date.isSome(d, 'd'));
+    return !!this.highlights?.some(([d]) => date.isSame(d, 'd'));
   };
 
   #isStopHighlight = (date: Time) => {
-    return !!this.highlights?.some((ds) => date.isSome(ds[ds.length - 1], 'd'));
+    return !!this.highlights?.some((ds) => date.isSame(ds[ds.length - 1], 'd'));
   };
 
   #dates: Day[];
@@ -173,7 +173,7 @@ export class DuoyunCalendarElement extends GemElement {
         }
         let s = start;
         while (s.valueOf() < stop.valueOf()) {
-          dates.push({ date: new Time(s), isThisMonth: true, isToday: today.isSome(s, 'd') });
+          dates.push({ date: new Time(s), isThisMonth: true, isToday: today.isSame(s, 'd') });
           s = new Time(s).add(1, 'd');
         }
         for (let i = 1; i < 7 - stopDay; i++) {
