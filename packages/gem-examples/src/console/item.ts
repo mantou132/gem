@@ -1,5 +1,5 @@
 import { html, GemElement } from '@mantou/gem/lib/element';
-import { get } from '@mantou/gem/helper/request';
+import { request } from '@mantou/gem/helper/request';
 import { customElement } from '@mantou/gem/lib/decorators';
 import { Time } from 'duoyun-ui/lib/time';
 import { ContextMenu } from 'duoyun-ui/elements/contextmenu';
@@ -42,7 +42,7 @@ type Item = typeof EXAMPLE;
 // 模拟真实 API
 const fetchList = (args: FetchEventDetail) => {
   console.log(args);
-  return get(`https://jsonplaceholder.typicode.com/users`).then((list: Item[]) => {
+  return request(`https://jsonplaceholder.typicode.com/users`).then((list: Item[]) => {
     list.forEach((e, i) => {
       e.updated = new Time().subtract(i + 1, 'd').getTime();
       e.id += 10 * (args.page - 1);
