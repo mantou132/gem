@@ -30,6 +30,7 @@ export type PaginationStore<T> = {
   items: Partial<{ [id: string]: T }>;
   // 正在加载，避免重复请求
   loader: Partial<Record<string, Promise<T>>>;
+  // 用来触发 `<dy-pro-table>` fetch 事件
   updatedItem?: T;
 };
 
@@ -47,7 +48,7 @@ type PaginationStoreOptions<T> = {
 export function createPaginationStore<T extends Record<string, any>>(options: PaginationStoreOptions<T>) {
   const { idKey = 'id', storageKey, cacheItems, pageContainItem, ...rest } = options;
 
-  const cacheExcludeKeys: (keyof PaginationStore<T>)[] = ['loader'];
+  const cacheExcludeKeys: (keyof PaginationStore<T>)[] = ['loader', 'updatedItem'];
   if (!cacheItems) cacheExcludeKeys.push('items');
 
   const initStore: PaginationStore<T> = {

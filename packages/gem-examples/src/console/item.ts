@@ -77,64 +77,6 @@ export class ConsolePageItemElement extends GemElement {
     paginationMap: new Map([['', pagination]]),
   };
 
-  // 定义表单
-  #formItems: FormItem<NewItem>[] = [
-    [
-      {
-        type: 'text',
-        field: 'username',
-        label: 'Username',
-        required: true,
-        async getOptions(input) {
-          await sleep(300);
-          return Array(4)
-            .fill(null)
-            .map((_, index) => ({ label: `${input}-${index}` }));
-        },
-      },
-      {
-        type: 'text',
-        field: 'name',
-        label: 'Name',
-        isHidden(data) {
-          return !data.username;
-        },
-      },
-    ],
-    {
-      label: 'Company Info',
-      group: [
-        {
-          type: 'text',
-          field: ['company', 'name'],
-          label: 'Company name',
-        },
-        {
-          type: 'textarea',
-          rows: 0,
-          field: ['company', 'catchPhrase'],
-          label: 'Company Catch phrase',
-        },
-        {
-          type: 'text',
-          field: ['company', 'bs'],
-          label: 'Company bs',
-        },
-      ],
-    },
-    {
-      type: 'date-time',
-      field: 'updated',
-      label: 'Last Updated',
-      dependencies: ['username'],
-      getInitValue(data) {
-        if (data.username === 'now') {
-          return Date.now();
-        }
-      },
-    },
-  ];
-
   // 定义表格
   #columns: FilterableColumn<Item>[] = [
     {
@@ -206,12 +148,76 @@ export class ConsolePageItemElement extends GemElement {
     },
   ];
 
+  // 定义表单
+  #getFormItems = (isEdit?: boolean): FormItem<NewItem>[] => [
+    [
+      {
+        type: 'text',
+        field: 'username',
+        label: 'Username',
+        required: true,
+        disabled: isEdit,
+        style: {
+          flexGrow: 5,
+        },
+        async getOptions(input) {
+          await sleep(300);
+          return Array(4)
+            .fill(null)
+            .map((_, index) => ({ label: `${input}-${index}` }));
+        },
+      },
+      {
+        type: 'text',
+        field: 'name',
+        label: 'Username',
+        disabled: isEdit,
+        placeholder: 'Please input name',
+        update(data) {
+          return { ignore: !data.username };
+        },
+      },
+    ],
+    {
+      label: 'Company Info',
+      fieldset: [
+        {
+          type: 'text',
+          field: ['company', 'name'],
+          label: 'Company name',
+        },
+        {
+          type: 'textarea',
+          rows: 0,
+          field: ['company', 'catchPhrase'],
+          label: 'Company Catch phrase',
+        },
+        {
+          type: 'text',
+          field: ['company', 'bs'],
+          label: 'Company bs',
+        },
+      ],
+    },
+    {
+      type: 'date-time',
+      field: 'updated',
+      label: 'Last Updated',
+      dependencies: ['username'],
+      getInitValue(data) {
+        if (data.username === 'now') {
+          return Date.now();
+        }
+      },
+    },
+  ];
+
   #onUpdate = (r: Item) => {
     createForm<Item>({
       data: r,
       header: `Edit: ${r.id}`,
       query: ['id', r.id],
-      formItems: this.#formItems,
+      formItems: this.#getFormItems(true),
       prepareOk: async (data) => {
         await sleep(1000);
         console.log(data);
@@ -228,7 +234,7 @@ export class ConsolePageItemElement extends GemElement {
       data: initItem,
       header: `Create`,
       query: ['new', true],
-      formItems: this.#formItems,
+      formItems: this.#getFormItems(),
       prepareOk: async (data) => {
         await sleep(1000);
         console.log(data);

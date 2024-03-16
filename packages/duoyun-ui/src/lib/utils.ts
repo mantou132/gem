@@ -104,9 +104,23 @@ export function proxyObject(object: Record<string | symbol | number, any>) {
   });
 }
 
+type ReadPropOptions = {
+  fill?: boolean;
+  onlyFillIntermediate?: boolean;
+};
 /**Deep read prop */
-export function readProp(obj: Record<string, any>, paths: string | number | symbol | string[]) {
-  return Array.isArray(paths) ? paths.reduce((p, c) => p?.[c], obj) : obj[paths as string];
+export function readProp(
+  obj: Record<string, any>,
+  paths: string | number | symbol | string[],
+  options: ReadPropOptions = {},
+) {
+  if (!Array.isArray(paths)) return obj[paths as string];
+  const len = paths.length;
+  return paths.reduce((p, c, i) => {
+    if (!options.fill) return p?.[c];
+    if (options.onlyFillIntermediate && i === len - 1) return p[c];
+    return (p[c] ||= {});
+  }, obj);
 }
 
 /**Only let the last add Promise take effect, don’t care about the order of Resolve */

@@ -420,7 +420,8 @@ const inputGroupStyle = createCSSSheet(css`
     z-index: 1;
   }
   dy-input-group > * {
-    flex-grow: 1;
+    flex-grow: 10;
+    width: 0;
   }
   dy-input-group > :not(:last-child) {
     border-top-right-radius: 0;

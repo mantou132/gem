@@ -219,6 +219,10 @@ type FormItemRule = {
  * @attr disabled
  * @attr searchable
  * @attr clearable
+ * @attr rows
+ * @attr step
+ * @attr min
+ * @attr max
  */
 @customElement('dy-form-item')
 @adoptedStyle(formItemStyle)
@@ -241,7 +245,7 @@ export class DuoyunFormItemElement extends GemElement<FormItemState> {
     | 'radio-group'
     | 'select'
     | 'textarea'
-    | 'slot';
+    | 'slot'; // need value and change custom event
   @boolattribute multiple: boolean; // picker/select/text
   @attribute name: string;
   @attribute label: string;
@@ -265,8 +269,6 @@ export class DuoyunFormItemElement extends GemElement<FormItemState> {
   @numattribute step: number;
   @numattribute min: number;
   @numattribute max: number;
-
-  @property rules?: FormItemRule[];
 
   /**@deprecated */
   @property dataList?: DataList | PickerOption[] | SelectOption[];
@@ -299,6 +301,10 @@ export class DuoyunFormItemElement extends GemElement<FormItemState> {
       evt.stopPropagation();
       if (this.#type === 'slot') {
         this.#itemchange(evt.detail);
+      }
+      // `dy-input-group` 触发
+      if (!this.name && this.value === undefined) {
+        this.clearInvalidMessage();
       }
     });
   }
@@ -520,7 +526,12 @@ export class DuoyunFormItemElement extends GemElement<FormItemState> {
     this.setState({ invalidMessage: undefined });
   }
 
+  rules?: FormItemRule[];
+
+  // 不绑定 `value` 将只支持 `validator`
   async valid() {
+    if (this.hidden) return true;
+
     const rules = [...(this.rules || [])];
     if (this.required && !rules.find((e) => 'required' in e)) {
       rules.push({ required: true });

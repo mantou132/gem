@@ -155,7 +155,7 @@ export class MyEleElement extends GemElement {
         <dy-form-item
           .rules=${
             [
-              /** support validtor */
+              /** support validator */
             ]
           }
         >

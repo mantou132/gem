@@ -169,7 +169,6 @@ export class DuoyunTableElement<T = any, K = any> extends GemElement {
 
   @property noData?: string | TemplateResult;
 
-  /**@deprecated */
   @property rowKey?: string | string[];
   @property getKey?: (record: T) => K;
   @property expandedRowRender?: (record: T) => undefined | string | TemplateResult;
