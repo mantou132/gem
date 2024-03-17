@@ -10,7 +10,7 @@ import {
   boolattribute,
   part,
 } from '@mantou/gem/lib/decorators';
-import { GemElement, html, TemplateResult } from '@mantou/gem/lib/element';
+import { html, TemplateResult } from '@mantou/gem/lib/element';
 import { createCSSSheet, css, styleMap, classMap, StyleObject, isArrayChange } from '@mantou/gem/lib/utils';
 
 import { theme } from '../lib/theme';
@@ -21,6 +21,7 @@ import { commonHandle } from '../lib/hotkeys';
 import { focusStyle } from '../lib/styles';
 
 import { ContextMenuItem, ContextMenu } from './contextmenu';
+import { DuoyunScrollBoxElement } from './scroll-box';
 import type { SelectionChange } from './selection-box';
 
 import './use';
@@ -38,6 +39,8 @@ const style = createCSSSheet(css`
     font-size: 0.875em;
     font-variant-numeric: tabular-nums;
     border-radius: ${theme.normalRound};
+    overscroll-behavior: auto;
+    container-type: inline-size;
   }
   table {
     cursor: default;
@@ -112,6 +115,12 @@ const style = createCSSSheet(css`
     justify-content: center;
     height: 20em;
   }
+  caption {
+    caption-side: bottom;
+    padding: 0.5em;
+    margin-block-start: 0.5em;
+    font-weight: bold;
+  }
 `);
 
 export type Column<T> = {
@@ -122,6 +131,8 @@ export type Column<T> = {
   ellipsis?: boolean;
   // 0 is hidden
   width?: string;
+  // not support `getColSpan`
+  visibleWidth?: string;
   tooltip?: string;
   dataIndex?: keyof T | string[];
   render?: (record: T) => string | TemplateResult;
@@ -146,7 +157,7 @@ export type ItemContextMenuEventDetail<T> = {
 @adoptedStyle(style)
 @adoptedStyle(focusStyle)
 @connectStore(icons)
-export class DuoyunTableElement<T = any, K = any> extends GemElement {
+export class DuoyunTableElement<T = any, K = any> extends DuoyunScrollBoxElement {
   @part static table: string;
   @part static th: string;
   @part static td: string;
@@ -264,7 +275,7 @@ export class DuoyunTableElement<T = any, K = any> extends GemElement {
     return this.getKey ? this.getKey(record) : this.rowKey ? readProp(record!, this.rowKey) : record;
   };
 
-  #iconColWidth = '50px';
+  #iconColWidth = '4em'; // 56px
 
   #toggleExpand = (record: T) => {
     const key = this.#getKey(record);
@@ -307,6 +318,21 @@ export class DuoyunTableElement<T = any, K = any> extends GemElement {
       ${this.selectable
         ? html`<dy-selection-box class="selection" @change=${this.#onSelectionBoxChange}></dy-selection-box>`
         : ''}
+      ${columns.map(({ visibleWidth }, index) =>
+        // `visibility: collapse;` 不完美
+        visibleWidth
+          ? html`
+              <style>
+                @container (width <= ${visibleWidth}) {
+                  :where(th, td, col):nth-of-type(${index + 1}) {
+                    width: 0 !important;
+                    font-size: 0;
+                  }
+                }
+              </style>
+            `
+          : '',
+      )}
       <table part=${DuoyunTableElement.table}>
         ${this.caption
           ? html`
@@ -317,8 +343,8 @@ export class DuoyunTableElement<T = any, K = any> extends GemElement {
           : ''}
         <colgroup>
           ${columns.map(
-            ({ width = 'auto', render, getActions }) =>
-              html`<col style=${styleMap({ width: !render && getActions ? this.#iconColWidth : width })}></col>`,
+            ({ width = 'auto', getActions }) =>
+              html`<col style=${styleMap({ width: getActions ? this.#iconColWidth : width })} /> `,
           )}
         </colgroup>
         ${this.headless

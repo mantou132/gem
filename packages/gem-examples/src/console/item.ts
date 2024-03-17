@@ -90,11 +90,30 @@ export class ConsolePageItemElement extends GemElement {
     {
       title: 'Username',
       dataIndex: 'username',
-      width: '7em',
+      width: '8em',
       ellipsis: true,
     },
     {
+      title: 'Phone',
+      dataIndex: 'phone',
+      width: '12em',
+      ellipsis: true,
+    },
+    {
+      title: 'Email',
+      dataIndex: 'email',
+      width: '15em',
+    },
+    {
+      title: 'Address',
+      dataIndex: ['address', 'street'],
+      width: '15em',
+      visibleWidth: '57em',
+    },
+    {
       title: 'Company',
+      width: '10em',
+      visibleWidth: '67em',
       render: (r) => r.company.name,
       data: {
         field: ['company', 'name'],
@@ -116,13 +135,9 @@ export class ConsolePageItemElement extends GemElement {
       },
     },
     {
-      title: 'Phone',
-      dataIndex: 'phone',
-      ellipsis: true,
-    },
-    {
       title: 'Updated',
-      width: '7em',
+      width: '8em',
+      visibleWidth: '75em',
       render: (r) => new Time().relativeTimeFormat(new Time(r.updated)),
       data: {
         field: 'updated',
