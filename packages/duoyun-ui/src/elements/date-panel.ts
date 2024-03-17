@@ -34,7 +34,7 @@ const style = createCSSSheet(css`
     gap: 0.5em;
     overflow: hidden;
   }
-  .datepanel {
+  .date-panel {
     width: 0;
     flex-grow: 20;
   }
@@ -105,7 +105,7 @@ const style = createCSSSheet(css`
     color: ${theme.lightBackgroundColor};
     margin-inline: 0.5em;
   }
-  .timepanelwrap {
+  .time-panel-wrap {
     width: 0;
     flex-grow: 14;
     display: flex;
@@ -116,7 +116,7 @@ const style = createCSSSheet(css`
     place-items: center;
     height: 3em;
   }
-  .timepanel {
+  .time-panel {
     height: 0;
     flex-grow: 1;
   }
@@ -200,14 +200,14 @@ export class DuoyunDatePanelElement extends GemElement<State> {
         date.add(number * 12, 'Y');
         break;
     }
-    this.#initState(date.valueOf());
+    this.#setState(date.valueOf());
   };
 
   #onChangeView = (state: Partial<State>) => {
     this.setState({ ...state, mode: 'day' });
   };
 
-  #initState = (value: number) => {
+  #setState = (value: number) => {
     const d = new Time(value);
     this.setState({ year: d.getFullYear(), month: d.getMonth() });
   };
@@ -221,13 +221,13 @@ export class DuoyunDatePanelElement extends GemElement<State> {
       v.setMinutes(t.getMinutes());
       v.setSeconds(t.getSeconds());
     }
-    this.#initState(v.valueOf());
+    this.#setState(v.valueOf());
     this.change(v.valueOf());
   };
 
   #onTimeChange = (evt: CustomEvent<number>) => {
     evt.stopPropagation();
-    this.#initState(evt.detail);
+    this.#setState(evt.detail);
     this.change(evt.detail);
   };
 
@@ -305,7 +305,7 @@ export class DuoyunDatePanelElement extends GemElement<State> {
   };
 
   willMount = () => {
-    this.#initState(isNotNullish(this.value) ? this.value : this.initValue || Time.now());
+    this.#setState(isNotNullish(this.value) ? this.value : this.initValue || Time.now());
     this.memo(
       () => {
         if (this.state.mode !== 'day') {
@@ -324,7 +324,7 @@ export class DuoyunDatePanelElement extends GemElement<State> {
   mounted = () => {
     this.effect(
       () => {
-        if (isNotNullish(this.initValue)) this.#initState(this.initValue);
+        if (isNotNullish(this.initValue)) this.#setState(this.initValue);
       },
       () => [this.initValue],
     );
@@ -333,7 +333,7 @@ export class DuoyunDatePanelElement extends GemElement<State> {
   render = () => {
     const { mode } = this.state;
     return html`
-      <div class="datepanel">
+      <div class="date-panel">
         <div class="head">
           <dy-use
             class="button"
@@ -370,11 +370,11 @@ export class DuoyunDatePanelElement extends GemElement<State> {
       ${this.time
         ? html`
             <dy-divider class="separate" orientation="vertical"></dy-divider>
-            <div class="timepanelwrap">
+            <div class="time-panel-wrap">
               <div class="time">${isNotNullish(this.value) ? new Time(this.value).format('HH:mm:ss') : '-:-:-'}</div>
               <dy-divider class="separate"></dy-divider>
               <dy-time-panel
-                class="timepanel"
+                class="time-panel"
                 .value=${this.value}
                 @change=${this.#onTimeChange}
                 headless

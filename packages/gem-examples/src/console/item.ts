@@ -99,8 +99,8 @@ export class ConsolePageItemElement extends GemElement {
       data: {
         field: ['company', 'name'],
         type: 'enum',
-        getOptions: () =>
-          [
+        getOptions: () => {
+          return [
             'Romaguera-Crona',
             'Deckow-Crist',
             'Romaguera-Jacobson',
@@ -111,7 +111,8 @@ export class ConsolePageItemElement extends GemElement {
             'Abernathy Group',
             'Yost and Sons',
             'Hoeger LLC',
-          ].map((label) => ({ label })),
+          ].map((label) => ({ label }));
+        },
       },
     },
     {
@@ -125,7 +126,7 @@ export class ConsolePageItemElement extends GemElement {
       render: (r) => new Time().relativeTimeFormat(new Time(r.updated)),
       data: {
         field: 'updated',
-        type: 'time',
+        type: 'date-time',
       },
     },
     {

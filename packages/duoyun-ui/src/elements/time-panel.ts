@@ -51,6 +51,8 @@ const style = createCSSSheet(css`
 
 /**
  * @customElement dy-time-panel
+ * @attr headless
+ * @emits change
  */
 @customElement('dy-time-panel')
 @adoptedStyle(style)
@@ -62,7 +64,7 @@ export class DuoyunTimePanelElement extends GemElement {
   @property value?: number;
 
   get #time() {
-    return isNotNullish(this.value) ? new Time(this.value) : new Time();
+    return isNotNullish(this.value) ? new Time(this.value) : new Time().startOf('d');
   }
 
   get #parts() {

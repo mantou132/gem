@@ -28,7 +28,9 @@ const Dw = Dd * 7;
 const DM = Dd * 31;
 const DY = Dd * 366;
 
-type Unit = 'Y' | 'M' | 'w' | 'd' | 'h' | 'm' | 's' | 'ms';
+type CalculateUnit = 'h' | 'm' | 's' | 'ms';
+
+type Unit = 'Y' | 'M' | 'w' | 'd' | CalculateUnit;
 
 type RelativeTimeFormatUnit = Exclude<Unit, 'ms'>;
 
@@ -49,6 +51,8 @@ const durationList: [RelativeTimeFormatUnit, number][] = [
   ['m', Dm],
   ['s', Ds],
 ];
+
+const durationMap = Object.fromEntries(durationList) as Record<RelativeTimeFormatUnit, number>;
 
 const unitMap: Record<RelativeTimeFormatUnit, Intl.RelativeTimeFormatUnit> = {
   Y: 'year',
@@ -99,7 +103,7 @@ export function parseNarrowRelativeTime(str: string | null | undefined): Time | 
   }
 }
 
-function getDuration(unit: Unit) {
+function getDuration(unit: CalculateUnit) {
   switch (unit) {
     case 'h':
       return Dh;
@@ -224,6 +228,12 @@ export class Time extends Date {
 
   /**@deprecated */
   isSome = this.isSame;
+
+  diff<T extends Date>(d: T | number, unit: Unit = 'ms') {
+    const diff = this.valueOf() - d.valueOf();
+    if (unit === 'ms') return diff;
+    return diff / durationMap[unit];
+  }
 
   /**
    * new D().relativeTimeFormat(new D().add(40, 'd'), { unitLimit: 2, lang: 'zh' }) => '40天后'

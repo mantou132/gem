@@ -1,6 +1,7 @@
 import { GemElement, html } from '@mantou/gem/lib/element';
 import { createCSSSheet, css } from '@mantou/gem/lib/utils';
 import { adoptedStyle, connectStore, customElement, emitter, Emitter, property } from '@mantou/gem/lib/decorators';
+import { Store, connect } from '@mantou/gem/lib/store';
 
 import { ComparerType, isIncludesString } from '../lib/utils';
 import { Time } from '../lib/time';
@@ -12,16 +13,18 @@ import type { Option } from '../elements/select';
 import '../elements/radio';
 import '../elements/button';
 import '../elements/date-panel';
+import '../elements/time-panel';
 import '../elements/select';
 import '../elements/input';
 
-export type FilterableType = 'string' | 'number' | 'time' | 'duration' | 'enum';
+export type FilterableType = 'string' | 'number' | 'date' | 'date-time' | 'time' | 'duration' | 'enum';
 
 export type FilterableOptions = {
   type?: FilterableType;
   // enum
-  getOptions?: (provider: string) => Option[] | undefined;
+  getOptions?: (provider?: string) => Option[] | undefined;
   getProviders?: () => Option[] | undefined;
+  connectStores?: Store<any>[];
 };
 
 const style = createCSSSheet(css`
@@ -29,14 +32,15 @@ const style = createCSSSheet(css`
   dy-select {
     width: 100%;
   }
-  dy-input-group.duration dy-select {
-    width: 120px;
-  }
+  dy-input-group.duration dy-select,
   dy-input-group.filter dy-select {
-    width: 50%;
+    flex-grow: 5;
   }
   dy-select {
     max-height: 13.2em;
+  }
+  dy-time-panel {
+    height: 15em;
   }
   .line {
     margin-block-end: 1em;
@@ -46,6 +50,11 @@ const style = createCSSSheet(css`
   }
 `);
 
+const durationUnitList = [
+  { label: locale.minute, value: 1000 * 60 },
+  { label: locale.hour, value: 1000 * 60 * 60 },
+];
+
 type State = {
   comparer: ComparerType;
   value: string | number | string[];
@@ -53,13 +62,16 @@ type State = {
   durationUnit: number;
   /**enum*/
   search: string;
-  provider: string;
+  provider?: string;
 };
 
-const durationUnitList = [
-  { label: locale.minute, value: 1000 * 60 },
-  { label: locale.hour, value: 1000 * 60 * 60 },
-];
+const defaultState: State = {
+  comparer: ComparerType.Eq,
+  value: '',
+  durationUnit: durationUnitList[0].value,
+  search: '',
+  provider: undefined,
+};
 
 /**
  * @customElement dy-pat-filter-form
@@ -84,14 +96,12 @@ export class DyPatFilterFormElement extends GemElement<State> {
 
   get #comparerList(): ComparerType[] {
     switch (this.#type) {
-      case 'duration':
-      case 'time':
-      case 'number':
-        return [ComparerType.Lte, ComparerType.Gte];
       case 'enum':
         return [ComparerType.Have, ComparerType.Miss];
-      default:
+      case 'string':
         return [ComparerType.Have, ComparerType.Miss, ComparerType.Eq];
+      default:
+        return [ComparerType.Lte, ComparerType.Gte];
     }
   }
 
@@ -100,21 +110,12 @@ export class DyPatFilterFormElement extends GemElement<State> {
     switch (this.#type) {
       case 'enum':
         return !Array.isArray(value) || !value.length;
-      case 'time':
-      case 'duration':
-      case 'number':
       default:
         return !value;
     }
   }
 
-  state: State = {
-    comparer: ComparerType.Eq,
-    value: '',
-    durationUnit: durationUnitList[0].value,
-    search: '',
-    provider: '',
-  };
+  state: State = { ...defaultState };
 
   #onSubmit = () => {
     if (this.#disabled) return;
@@ -129,6 +130,12 @@ export class DyPatFilterFormElement extends GemElement<State> {
   #onChangeDataValue = ({ detail }: CustomEvent<number>) => {
     this.setState({
       value: String(this.state.comparer === ComparerType.Lte ? new Time(detail).endOf('d').valueOf() : detail),
+    });
+  };
+
+  #onChangeTimeValue = ({ detail }: CustomEvent<number>) => {
+    this.setState({
+      value: String(new Time(detail).diff(new Time(detail).startOf('d'))),
     });
   };
 
@@ -148,12 +155,21 @@ export class DyPatFilterFormElement extends GemElement<State> {
 
   #renderInput = () => {
     switch (this.#type) {
-      case 'time':
+      case 'date':
+      case 'date-time':
         return html`
           <dy-date-panel
-            @change=${this.#onChangeDataValue}
+            ?time=${this.#type === 'date-time'}
+            @change=${this.#type === 'date' ? this.#onChangeDataValue : this.#onChangeValue}
             .value=${this.state.value === '' ? undefined : Number(this.state.value)}
           ></dy-date-panel>
+        `;
+      case 'time':
+        return html`
+          <dy-time-panel
+            @change=${this.#onChangeTimeValue}
+            .value=${this.state.value === '' ? undefined : Number(this.state.value) + new Time().startOf('d').valueOf()}
+          ></dy-time-panel>
         `;
       case 'enum':
         const getProviders = this.options?.getProviders;
@@ -172,6 +188,7 @@ export class DyPatFilterFormElement extends GemElement<State> {
                           @change=${({ detail }: CustomEvent<string>) => this.setState({ provider: detail })}
                           .value=${this.state.provider}
                           .options=${getProviders()}
+                          .placeholder=${locale.filter}
                         ></dy-select>
                       `
                     : ''}
@@ -226,10 +243,24 @@ export class DyPatFilterFormElement extends GemElement<State> {
     }
   };
 
+  willMount = () => {
+    this.memo(
+      () => {
+        this.state = { ...defaultState, comparer: this.#comparerList[0] };
+      },
+      () => [this.options],
+    );
+    this.memo(
+      () => Object.assign(this.state || {}, this.initValue),
+      () => [],
+    );
+  };
+
   mounted = () => {
     this.effect(
       () => {
-        this.setState({ comparer: this.#comparerList[0], value: '' });
+        const disconnects = this.options?.connectStores?.map((e) => connect(e, this.update));
+        return () => disconnects?.forEach((disconnect) => disconnect());
       },
       () => [this.options],
     );
@@ -251,4 +282,6 @@ export class DyPatFilterFormElement extends GemElement<State> {
       <dy-button ?disabled=${this.#disabled} @click=${this.#onSubmit}>${locale.ok}</dy-button>
     `;
   };
+
+  initValue?: Partial<Pick<State, 'comparer' | 'value'>>;
 }

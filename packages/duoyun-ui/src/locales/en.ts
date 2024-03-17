@@ -19,6 +19,7 @@ export default {
   copyFail: 'Copy fail',
   add: 'Add',
   search: 'Search',
+  filter: 'Filter',
   loading: 'Loading',
   ok: 'OK',
   cancel: 'Cancel',

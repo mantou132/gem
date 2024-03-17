@@ -38,9 +38,11 @@ import { isNotBoolean } from '../lib/types';
 import { hotkeys } from '../lib/hotkeys';
 import { PaginationStore } from '../helper/store';
 import { DuoyunRouteElement } from '../elements/route';
+import type { DuoyunTagElement } from '../elements/tag';
+import type { DuoyunScrollBoxElement } from '../elements/scroll-box';
 
 import { locationStore } from './console';
-import type { FilterableOptions, FilterableType } from './filter-form';
+import type { FilterableOptions } from './filter-form';
 
 import '../elements/input';
 import '../elements/button';
@@ -55,7 +57,12 @@ import './filter-form';
 export type FilterableColumn<T> = Column<T> & {
   data?: FilterableOptions & {
     field?: keyof T | string[];
+    /**menu width */
+    width?: string;
+    /**local search */
     getSearchText?: (e: T) => string;
+    /**local compare */
+    getCompareValue?: (e: T) => any;
   };
 };
 
@@ -68,7 +75,7 @@ const queryKeys = {
 };
 
 type Filter = {
-  field: string;
+  field: string | string[];
   comparer: ComparerType;
   value: any;
 };
@@ -100,6 +107,7 @@ const style = createCSSSheet(css`
     border-width: 2px;
   }
   .filters {
+    position: relative;
     display: flex;
     flex-grow: 1;
     gap: 1em;
@@ -325,33 +333,82 @@ export class DyPatTableElement<T = any> extends GemElement<State> {
     this.#changeQuery();
   };
 
-  #onOpenFilter = (e: MouseEvent) => {
+  #onModifyFilter = (index: number, data: Filter) => {
+    ContextMenu.close();
+    this.state.filters.splice(index, 1, data);
+    this.#changeQuery();
+  };
+
+  #getMenuWidth = ({ data }: FilterableColumn<T>) => {
+    if (data?.width) return data?.width;
+    switch (data?.type) {
+      case 'date-time':
+        return '26em';
+      default:
+        return '15em';
+    }
+  };
+
+  #getFilterField = ({ data, dataIndex }: FilterableColumn<T>) => {
+    return data?.field || dataIndex;
+  };
+
+  #onClickFilter = (evt: PointerEvent, index: number) => {
+    const { field, comparer, value } = this.state.filters[index];
+    const column = this.columns.find((column) => String(this.#getFilterField(column)) === String(field))!;
+    const tagEle = evt.currentTarget as DuoyunTagElement;
+    const offsetEle = tagEle.offsetParent as DuoyunScrollBoxElement;
     ContextMenu.open(
-      this.columns
-        .filter(({ title, dataIndex, data }) => title && (data?.field || dataIndex))
-        .map(({ title, dataIndex, data }) => ({
-          text: getStringFromTemplate(title),
-          menu: html`
-            <dy-pat-filter-form
-              .getText=${this.getText}
-              .options=${data}
-              @submit=${({ detail }: CustomEvent) => this.#onAddFilter({ ...detail, field: data?.field || dataIndex })}
-            ></dy-pat-filter-form>
-          `,
-        })),
-      { activeElement: e.target as DuoyunButtonElement },
+      html`
+        <dy-pat-filter-form
+          .getText=${this.getText}
+          .options=${column.data}
+          .initValue=${{ comparer, value }}
+          @submit=${({ detail }: CustomEvent) => this.#onModifyFilter(index, { ...detail, field })}
+        ></dy-pat-filter-form>
+      `,
+      {
+        activeElement: tagEle.offsetLeft > offsetEle.scrollLeft ? tagEle : offsetEle,
+        width: this.#getMenuWidth(column),
+      },
     );
   };
 
+  #onOpenFilter = (e: PointerEvent) => {
+    ContextMenu.open(
+      this.columns
+        .filter((column) => column.title && this.#getFilterField(column))
+        .map((column) => ({
+          text: getStringFromTemplate(column.title),
+          menu: {
+            width: this.#getMenuWidth(column),
+            menu: html`
+              <dy-pat-filter-form
+                .getText=${this.getText}
+                .options=${column.data}
+                @submit=${({ detail }: CustomEvent) =>
+                  this.#onAddFilter({ ...detail, field: this.#getFilterField(column) })}
+              ></dy-pat-filter-form>
+            `,
+          },
+        })),
+      { activeElement: e.currentTarget as DuoyunButtonElement },
+    );
+  };
+
+  #filterFieldDataMap: Record<string, FilterableColumn<T>['data']> = {};
   #filterFieldLabelMap: Record<string, string> = {};
-  #filterFieldTypeMap: Record<string, FilterableType | undefined> = {};
   #filterFieldEnumMap: Record<string, Record<string, string>> = {};
 
   #getValueFromField = (field: string, value: any | any[]) => {
     return [].concat(value).map((e) => {
-      switch (this.#filterFieldTypeMap[field]) {
-        case 'time':
+      switch (this.#filterFieldDataMap[field]?.type) {
+        case 'date':
           return new Time(Number(e)).format('YYYY-MM-DD');
+        case 'date-time':
+          return new Time(Number(e)).format();
+        case 'time':
+          return formatDuration(e, true);
         case 'duration':
           return formatDuration(e);
         default:
@@ -364,10 +421,11 @@ export class DyPatTableElement<T = any> extends GemElement<State> {
     // 显示正确的过滤器文本
     this.memo(
       () => {
-        this.columns.forEach(({ title, dataIndex, data }) => {
-          const field = String(data?.field || dataIndex);
+        this.columns.forEach((column) => {
+          const { title, data } = column;
+          const field = String(this.#getFilterField(column));
+          this.#filterFieldDataMap[field] = data;
           this.#filterFieldLabelMap[field] = typeof title === 'string' ? title : getStringFromTemplate(title);
-          this.#filterFieldTypeMap[field] = data?.type;
           const enums = data?.getOptions?.('');
           if (enums) {
             this.#filterFieldEnumMap[field] = convertToMap(enums, 'value', 'label');
@@ -401,21 +459,16 @@ export class DyPatTableElement<T = any> extends GemElement<State> {
             return isIncludesString(str, search);
           });
         }
-        filters.forEach(() => {
-          this.#data = this.#data?.filter((e) => {
-            return filters.every(({ field, comparer: comparerType, value }) => {
-              if (!e) return true;
-              if (Array.isArray(value)) {
-                const fieldValue = readProp(e, field);
-                if (Array.isArray(fieldValue)) return fieldValue.some((e) => comparer(value, comparerType, e));
-                return comparer(value, comparerType, fieldValue);
-              }
-              return comparer(
-                String(readProp(e, field) || '').toLowerCase(),
-                comparerType,
-                String(value || '').toLowerCase(),
-              );
-            });
+        this.#data = this.#data?.filter((e) => {
+          return filters.every(({ field, comparer: comparerType, value }) => {
+            if (!e) return true;
+            const fieldData = this.#filterFieldDataMap[String(field)];
+            const fieldValue = fieldData?.getCompareValue ? fieldData.getCompareValue(e) : readProp(e, field);
+            if (Array.isArray(value)) {
+              if (Array.isArray(fieldValue)) return fieldValue.some((e) => comparer(value, comparerType, e));
+              return comparer(value, comparerType, fieldValue);
+            }
+            return comparer(String(fieldValue || '').toLowerCase(), comparerType, String(value || '').toLowerCase());
           });
         });
       },
@@ -513,10 +566,15 @@ export class DyPatTableElement<T = any> extends GemElement<State> {
         <dy-scroll-box class="filters" part="filters">
           ${this.state.filters.map(
             ({ field, value, comparer }, index) => html`
-              <dy-tag @close=${() => this.#onRemoveFilter(index)} closable>
-                <span>${this.#filterFieldLabelMap[field]}</span>
+              <dy-tag
+                @pointerdown=${(evt: Event) => evt.preventDefault()}
+                @click=${(evt: PointerEvent) => this.#onClickFilter(evt, index)}
+                @close=${() => this.#onRemoveFilter(index)}
+                closable
+              >
+                <span>${this.#filterFieldLabelMap[String(field)]}</span>
                 <span class="comparer">${this.getText(comparer)}</span>
-                <span>"${this.#getValueFromField(field, value).join(', ')}"</span>
+                <span>"${this.#getValueFromField(String(field), value).join(', ')}"</span>
               </dy-tag>
             `,
           )}
