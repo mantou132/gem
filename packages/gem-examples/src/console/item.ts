@@ -1,7 +1,7 @@
 import { html, GemElement } from '@mantou/gem/lib/element';
 import { customElement } from '@mantou/gem/lib/decorators';
 import { Time } from 'duoyun-ui/lib/time';
-import { ContextMenu } from 'duoyun-ui/elements/contextmenu';
+import { ContextMenu, ContextMenuItem } from 'duoyun-ui/elements/contextmenu';
 import { FormItem, createForm } from 'duoyun-ui/patterns/form';
 import { sleep } from 'duoyun-ui/lib/timer';
 import { createPaginationStore } from 'duoyun-ui/helper/store';
@@ -72,12 +72,12 @@ export class ConsolePageItemElement extends GemElement {
       title: 'Address',
       dataIndex: ['address', 'street'],
       width: '15em',
-      visibleWidth: '58em',
+      visibleWidth: 'auto',
     },
     {
       title: 'Company',
       width: '10em',
-      visibleWidth: '68em',
+      visibleWidth: 'auto',
       render: (r) => r.company.name,
       filterOptions: {
         field: ['company', 'name'],
@@ -101,30 +101,28 @@ export class ConsolePageItemElement extends GemElement {
     {
       title: 'Updated',
       width: '8em',
-      visibleWidth: '76em',
+      visibleWidth: 'auto',
       render: (r) => new Time().relativeTimeFormat(new Time(r.updated)),
       filterOptions: {
         field: 'updated',
         type: 'date-time',
       },
     },
+  ];
+
+  getActions = (r: Item, activeElement: HTMLElement): ContextMenuItem[] => [
     {
-      title: '',
-      getActions: (r, activeElement) => [
-        {
-          text: 'Edit',
-          handle: () => this.onUpdate(r),
-        },
-        { text: '---' },
-        {
-          text: 'Delete',
-          danger: true,
-          handle: async () => {
-            await ContextMenu.confirm(`Confirm delete ${r.username}?`, { activeElement, danger: true });
-            console.log('Delete: ', r);
-          },
-        },
-      ],
+      text: 'Edit',
+      handle: () => this.onUpdate(r),
+    },
+    { text: '---' },
+    {
+      text: 'Delete',
+      danger: true,
+      handle: async () => {
+        await ContextMenu.confirm(`Confirm delete ${r.username}?`, { activeElement, danger: true });
+        console.log('Delete: ', r);
+      },
     },
   ];
 
@@ -249,6 +247,7 @@ export class ConsolePageItemElement extends GemElement {
         filterable
         .columns=${this.columns}
         .paginationStore=${this.state.pagination.store}
+        .getActions=${this.getActions}
         @fetch=${this.#onFetch}
       >
         <dy-button @click=${this.onCreate}>Add</dy-button>

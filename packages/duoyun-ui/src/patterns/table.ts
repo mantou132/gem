@@ -173,10 +173,11 @@ export class DyPatTableElement<T = any> extends GemElement<State> {
   // 如果不在 dy-pat-console 中，则需要提供 `locationStore`
   @property locationStore?: LocationStore;
 
-  @property rowKey?: string | string[];
-  @property getRowStyle?: (record: T) => Partial<CSSStyleDeclaration>;
+  @property rowKey?: DuoyunTableElement['rowKey'];
+  @property getRowStyle?: DuoyunTableElement['getRowStyle'];
+  @property expandedRowRender?: DuoyunTableElement['expandedRowRender'];
+  @property getActions?: DuoyunTableElement['getActions'];
   @property getSelectedActions?: (selections: any[]) => ContextMenuItem[];
-  @property expandedRowRender?: (record: T) => undefined | string | TemplateResult;
 
   @emitter expand: Emitter<T>;
 
@@ -689,6 +690,7 @@ export class DyPatTableElement<T = any> extends GemElement<State> {
         part="table-wrap"
         exportparts="table,tr,td,th"
         .getRowStyle=${this.getRowStyle}
+        .getActions=${this.getActions}
         .expandedRowRender=${this.expandedRowRender}
         .data=${data}
         .columns=${this.#columns}

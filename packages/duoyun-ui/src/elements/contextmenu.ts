@@ -25,7 +25,7 @@ type MenuOptions = {
   searchable?: boolean;
 };
 type MenuObject = MenuOptions & { menu: Menu };
-type MenuOrMenuObject = Menu | MenuObject;
+export type MenuOrMenuObject = Menu | MenuObject;
 
 export interface ContextMenuItem {
   text: string | TemplateResult;

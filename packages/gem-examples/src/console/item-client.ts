@@ -26,7 +26,13 @@ export class ConsolePageItemClientElement extends ConsolePageItemElement {
   }
   render = () => {
     return html`
-      <dy-pat-table filterable .columns=${this.columns} .pagesize=${5} .data=${store.getData()}>
+      <dy-pat-table
+        filterable
+        .getActions=${this.getActions}
+        .columns=${this.columns}
+        .pagesize=${5}
+        .data=${store.getData()}
+      >
         <dy-button @click=${this.onCreate}>Add</dy-button>
       </dy-pat-table>
 

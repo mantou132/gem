@@ -20,7 +20,7 @@ import { icons } from '../lib/icons';
 import { commonHandle } from '../lib/hotkeys';
 import { focusStyle } from '../lib/styles';
 
-import { ContextMenuItem, ContextMenu } from './contextmenu';
+import { ContextMenu, MenuOrMenuObject } from './contextmenu';
 import { DuoyunScrollBoxElement } from './scroll-box';
 import type { SelectionChange } from './selection-box';
 
@@ -136,7 +136,6 @@ export type Column<T> = {
   tooltip?: string;
   dataIndex?: keyof T | string[];
   render?: (record: T) => string | TemplateResult;
-  getActions?: (record: T, evt: HTMLElement) => ContextMenuItem[];
   getColSpan?: (record: T, arr: T[]) => number;
   getRowSpan?: (record: T, arr: T[]) => number;
   data?: Record<string, unknown>;
@@ -183,6 +182,7 @@ export class DuoyunTableElement<T = any, K = any> extends DuoyunScrollBoxElement
   @property rowKey?: string | string[];
   @property getKey?: (record: T) => K;
   @property expandedRowRender?: (record: T) => undefined | string | TemplateResult;
+  @property getActions?: (record: T, activeElement: HTMLElement) => MenuOrMenuObject;
   @emitter expand: Emitter<T>;
 
   #selectionSet = new Set<K>();
@@ -245,12 +245,9 @@ export class DuoyunTableElement<T = any, K = any> extends DuoyunScrollBoxElement
     });
   };
 
-  #openActions = (evt: PointerEvent, menu: ContextMenuItem[]) => {
-    ContextMenu.open(menu, {
-      activeElement: evt.target as HTMLElement,
-      searchable: menu.length > 20,
-      maxHeight: '30em',
-    });
+  #openActions = (evt: PointerEvent, record: T) => {
+    const activeElement = evt.target as HTMLElement;
+    ContextMenu.open(this.getActions!(record, activeElement), { activeElement });
   };
 
   #shouldRenderTd = (spanMemo: number[], index: number) => {
@@ -297,8 +294,92 @@ export class DuoyunTableElement<T = any, K = any> extends DuoyunScrollBoxElement
     `,
   };
 
+  #actionsColumn: Column<T> = {
+    title: '',
+    width: this.#iconColWidth,
+    render: (record) => html`
+      <dy-use
+        class="action"
+        tabindex="0"
+        role="button"
+        aria-label="Actions"
+        .element=${icons.more}
+        @keydown=${commonHandle}
+        @click=${(evt: PointerEvent) => this.#openActions(evt, record)}
+      ></dy-use>
+    `,
+  };
+
   #getDefaultStyle = (width?: string): StyleObject => {
     return width?.startsWith('0') ? { fontSize: '0' } : {};
+  };
+
+  #columns?: Column<T>[];
+  #sidePart?: TemplateResult;
+  #headerPart?: TemplateResult;
+  willMount = () => {
+    this.memo(
+      () => {
+        this.#columns = this.expandedRowRender && this.columns ? [this.#expandedColumn, ...this.columns] : this.columns;
+        if (!this.#columns) return;
+        if (this.getActions) this.#columns.push(this.#actionsColumn);
+
+        this.#headerPart = html`
+          <colgroup>
+            ${this.#columns.map(({ width = 'auto' }) => html`<col style=${styleMap({ width })} /> `)}
+          </colgroup>
+          ${this.headless
+            ? ''
+            : html`
+                <thead>
+                  <tr>
+                    ${this.#columns.map(
+                      ({ title = '', width, style = this.#getDefaultStyle(width), tooltip }) => html`
+                        <th part=${DuoyunTableElement.th} style=${styleMap(style)}>
+                          <dy-space size="small">
+                            ${title}
+                            ${tooltip
+                              ? html`
+                                  <dy-tooltip .content=${tooltip}>
+                                    <dy-use class="tooltip" .element=${icons.help}></dy-use>
+                                  </dy-tooltip>
+                                `
+                              : ''}
+                          </dy-space>
+                        </th>
+                      `,
+                    )}
+                  </tr>
+                </thead>
+              `}
+        `;
+
+        let sum = this.#columns
+          .filter(({ visibleWidth }) => visibleWidth !== 'auto')
+          .map(({ width }) => width || '15em')
+          .join(' + ');
+
+        this.#sidePart = html`
+          ${this.#columns.map(({ visibleWidth, width }, index) => {
+            if (!visibleWidth) return '';
+
+            sum = `${sum} + ${width}`;
+            // `visibility: collapse;` 不完美
+            return html`
+              <style>
+                @container (width <= ${visibleWidth === 'auto' ? `calc(${sum})` : visibleWidth}) {
+                  :where(th, td, col):nth-of-type(${index + 1}) {
+                    width: 0 !important;
+                    font-size: 0;
+                  }
+                }
+              </style>
+            `;
+          })}
+        `;
+      },
+      () => [this.columns, this.headless, this.getActions, this.expandedRowRender],
+    );
   };
 
   mounted = () => {
@@ -311,28 +392,11 @@ export class DuoyunTableElement<T = any, K = any> extends DuoyunScrollBoxElement
   };
 
   render = () => {
-    if (!this.columns) return html``;
-    const columns = this.expandedRowRender ? [this.#expandedColumn, ...this.columns] : this.columns;
+    const columns = this.#columns;
+    if (!columns) return html``;
+
     const rowSpanMemo = columns.map(() => 0);
     return html`
-      ${this.selectable
-        ? html`<dy-selection-box class="selection" @change=${this.#onSelectionBoxChange}></dy-selection-box>`
-        : ''}
-      ${columns.map(({ visibleWidth }, index) =>
-        // `visibility: collapse;` 不完美
-        visibleWidth
-          ? html`
-              <style>
-                @container (width <= ${visibleWidth}) {
-                  :where(th, td, col):nth-of-type(${index + 1}) {
-                    width: 0 !important;
-                    font-size: 0;
-                  }
-                }
-              </style>
-            `
-          : '',
-      )}
       <table part=${DuoyunTableElement.table}>
         ${this.caption
           ? html`
@@ -341,36 +405,7 @@ export class DuoyunTableElement<T = any, K = any> extends DuoyunScrollBoxElement
               </caption>
             `
           : ''}
-        <colgroup>
-          ${columns.map(
-            ({ width = 'auto', getActions }) =>
-              html`<col style=${styleMap({ width: getActions ? this.#iconColWidth : width })} /> `,
-          )}
-        </colgroup>
-        ${this.headless
-          ? ''
-          : html`
-              <thead>
-                <tr>
-                  ${columns.map(
-                    ({ title = '', width, style = this.#getDefaultStyle(width), tooltip }) => html`
-                      <th part=${DuoyunTableElement.th} style=${styleMap(style)}>
-                        <dy-space size="small">
-                          ${title}
-                          ${tooltip
-                            ? html`
-                                <dy-tooltip .content=${tooltip}>
-                                  <dy-use class="tooltip" .element=${icons.help}></dy-use>
-                                </dy-tooltip>
-                              `
-                            : ''}
-                        </dy-space>
-                      </th>
-                    `,
-                  )}
-                </tr>
-              </thead>
-            `}
+        ${this.#headerPart}
         <tbody>
           ${this.data?.map(
             (record, _rowIndex, _data, colSpanMemo = [0]) => html`
@@ -386,7 +421,6 @@ export class DuoyunTableElement<T = any, K = any> extends DuoyunScrollBoxElement
                     {
                       dataIndex,
                       render,
-                      getActions,
                       width,
                       style = this.#getDefaultStyle(width),
                       getRowSpan,
@@ -417,22 +451,9 @@ export class DuoyunTableElement<T = any, K = any> extends DuoyunScrollBoxElement
                               ? html`<dy-placeholder ?center=${style.textAlign === 'center'}></dy-placeholder>`
                               : render
                                 ? render(record)
-                                : getActions
-                                  ? html`
-                                      <dy-use
-                                        class="action"
-                                        tabindex="0"
-                                        role="button"
-                                        aria-label="Actions"
-                                        .element=${icons.more}
-                                        @keydown=${commonHandle}
-                                        @click=${(evt: PointerEvent) =>
-                                          this.#openActions(evt, getActions(record, evt.target as HTMLElement))}
-                                      ></dy-use>
-                                    `
-                                  : dataIndex
-                                    ? readProp(record, dataIndex)
-                                    : ''}
+                                : dataIndex
+                                  ? readProp(record, dataIndex)
+                                  : ''}
                           </td>
                         `
                       : '',
@@ -451,6 +472,10 @@ export class DuoyunTableElement<T = any, K = any> extends DuoyunScrollBoxElement
           )}
         </tbody>
       </table>
+      ${this.#sidePart}
+      ${this.selectable
+        ? html`<dy-selection-box class="selection" @change=${this.#onSelectionBoxChange}></dy-selection-box>`
+        : ''}
       ${!this.data
         ? html`<div class="side" part=${DuoyunTableElement.side}><dy-loading></dy-loading></div>`
         : this.data.length === 0
