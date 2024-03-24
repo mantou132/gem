@@ -33,8 +33,11 @@ const routes = {
   },
   item2: {
     pattern: '/item2',
-    title: 'Page 2 in Group 1',
-    content: html`Page 2`,
+    title: 'Item Page(Client)',
+    async getContent() {
+      await import('./item-client');
+      return html`<console-page-item-client></console-page-item-client>`;
+    },
   },
   item3: {
     pattern: '/item3',

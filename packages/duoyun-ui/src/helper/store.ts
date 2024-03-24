@@ -2,12 +2,12 @@ import { useStore } from '@mantou/gem/lib/store';
 
 import { UseCacheStoreOptions, useCacheStore } from '../lib/utils';
 
-type PaginationReq = {
+export type PaginationReq = {
   page: number;
   size: number;
 };
 
-type PaginationRes<T> =
+export type PaginationRes<T> =
   | {
       list: T[];
       // 总项目数
@@ -19,7 +19,7 @@ type PaginationRes<T> =
       total: number;
     };
 
-type PageInit = { ids?: string[]; loading?: boolean };
+export type PageInit = { ids?: string[]; loading?: boolean };
 
 export type PaginationStore<T> = {
   // 总页数
@@ -32,9 +32,12 @@ export type PaginationStore<T> = {
   loader: Partial<Record<string, Promise<T>>>;
   // 用来触发 `<dy-pro-table>` fetch 事件
   updatedItem?: T;
+  // 不被缓存的便捷方法
+  getData: (page?: number) => (T | undefined)[] | undefined;
+  isLoading: (page?: number) => boolean;
 };
 
-type PaginationStoreOptions<T> = {
+export type PaginationStoreOptions<T> = {
   // 持久化缓存 key, 不提供则不进行持久化缓存
   storageKey?: string;
   // 指定 item 的唯一 key
@@ -56,6 +59,12 @@ export function createPaginationStore<T extends Record<string, any>>(options: Pa
     pagination: {},
     items: {},
     loader: {},
+    getData(page = 1) {
+      return store.pagination[page]?.ids?.map((id) => store.items[id]);
+    },
+    isLoading(page = 1) {
+      return !!store.pagination[page]?.loading;
+    },
   };
   const [store, update, saveStore = () => {}] = storageKey
     ? useCacheStore<PaginationStore<T>>(storageKey, initStore, {
@@ -70,10 +79,8 @@ export function createPaginationStore<T extends Record<string, any>>(options: Pa
   };
 
   // 指定 API 函数和参数来更新 Store
-  const updatePage = async <Req extends PaginationReq>(
-    request: (req: Req) => Promise<PaginationRes<any>>,
-    req: Req,
-  ) => {
+  const updatePage = async <Req extends PaginationReq>(request: (q: Req) => Promise<PaginationRes<any>>, q?: Req) => {
+    const req = q || ({ page: 1, size: 10_000 } as Req);
     changePage(req.page, { loading: true });
     try {
       const result = await request(req);

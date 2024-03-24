@@ -267,13 +267,17 @@ export class DyPatTableElement<T = any> extends GemElement<State> {
       : this.#data
         ? Math.ceil(this.#data.length / size)
         : 0;
-    const pageData = this.paginationStore?.pagination[page];
 
-    const data = pageData
-      ? pageData?.ids?.map((id) => this.paginationStore!.items[id])
+    const data = this.paginationStore
+      ? this.paginationStore.getData(page)
       : this.#data?.slice((page - 1) * size, page * size);
 
-    const updating = data && pageData?.loading;
+    const updating =
+      data &&
+      (this.paginationStore
+        ? this.paginationStore.isLoading(page)
+        : // 只有一个全局数据请求，简单起见，不显示更新标识
+          false);
 
     return { total, data, size, page, updating };
   };

@@ -1,5 +1,4 @@
 import { html, GemElement } from '@mantou/gem/lib/element';
-import { request } from '@mantou/gem/helper/request';
 import { customElement } from '@mantou/gem/lib/decorators';
 import { Time } from 'duoyun-ui/lib/time';
 import { ContextMenu } from 'duoyun-ui/elements/contextmenu';
@@ -8,48 +7,10 @@ import { sleep } from 'duoyun-ui/lib/timer';
 import { createPaginationStore } from 'duoyun-ui/helper/store';
 import type { FetchEventDetail, FilterableColumn } from 'duoyun-ui/patterns/table';
 
+import { Item, fetchItemsWithArgs } from './api';
+
 import 'duoyun-ui/patterns/table';
 import 'duoyun-ui/elements/button';
-
-// 这个只是用来推断类型的
-const EXAMPLE = {
-  id: 1,
-  name: 'Leanne Graham',
-  username: 'Bret',
-  email: 'Sincere@april.biz',
-  address: {
-    street: 'Kulas Light',
-    suite: 'Apt. 556',
-    city: 'Gwenborough',
-    zipcode: '92998-3874',
-    geo: {
-      lat: '-37.3159',
-      lng: '81.1496',
-    },
-  },
-  phone: '1-770-736-8031 x56442',
-  website: 'hildegard.org',
-  company: {
-    name: 'Romaguera-Crona',
-    catchPhrase: 'Multi-layered client-server neural-net',
-    bs: 'harness real-time e-markets',
-  },
-  updated: 0,
-};
-
-type Item = typeof EXAMPLE;
-
-// 模拟真实 API
-const fetchList = (args: FetchEventDetail) => {
-  console.log(args);
-  return request(`https://jsonplaceholder.typicode.com/users`).then((list: Item[]) => {
-    list.forEach((e, i) => {
-      e.updated = new Time().subtract(i + 1, 'd').getTime();
-      e.id += 10 * (args.page - 1);
-    });
-    return { list, count: list.length * 3 };
-  });
-};
 
 const pagination = createPaginationStore<Item>({
   storageKey: 'users',
@@ -78,7 +39,7 @@ export class ConsolePageItemElement extends GemElement {
   };
 
   // 定义表格
-  #columns: FilterableColumn<Item>[] = [
+  columns: FilterableColumn<Item>[] = [
     {
       title: 'No',
       dataIndex: 'id',
@@ -149,7 +110,7 @@ export class ConsolePageItemElement extends GemElement {
       getActions: (r, activeElement) => [
         {
           text: 'Edit',
-          handle: () => this.#onUpdate(r),
+          handle: () => this.onUpdate(r),
         },
         { text: '---' },
         {
@@ -165,7 +126,7 @@ export class ConsolePageItemElement extends GemElement {
   ];
 
   // 定义表单
-  #getFormItems = (isEdit?: boolean): FormItem<NewItem>[] => [
+  getFormItems = (isEdit?: boolean): FormItem<NewItem>[] => [
     [
       {
         type: 'text',
@@ -228,12 +189,12 @@ export class ConsolePageItemElement extends GemElement {
     },
   ];
 
-  #onUpdate = (r: Item) => {
+  onUpdate = (r: Item) => {
     createForm<Item>({
       data: r,
       header: `Edit: ${r.id}`,
       query: ['id', r.id],
-      formItems: this.#getFormItems(true),
+      formItems: this.getFormItems(true),
       prepareOk: async (data) => {
         await sleep(1000);
         console.log(data);
@@ -244,13 +205,13 @@ export class ConsolePageItemElement extends GemElement {
     });
   };
 
-  #onCreate = () => {
+  onCreate = () => {
     createForm<NewItem>({
       type: 'modal',
       data: initItem,
       header: `Create`,
       query: ['new', true],
-      formItems: this.#getFormItems(),
+      formItems: this.getFormItems(),
       prepareOk: async (data) => {
         await sleep(1000);
         console.log(data);
@@ -261,6 +222,11 @@ export class ConsolePageItemElement extends GemElement {
     });
   };
 
+  /**
+   * 将搜索/过滤结果储存进内存 `PaginationStore`
+   * 被根据 `searchAndFilterKey` 进行缓存
+   * 这里使用页面级缓存，切换页面后将被清除
+   */
   #onFetch = ({ detail }: CustomEvent<FetchEventDetail>) => {
     let pagination = this.state.paginationMap.get(detail.searchAndFilterKey);
     if (!pagination) {
@@ -271,18 +237,18 @@ export class ConsolePageItemElement extends GemElement {
       this.state.paginationMap.set(detail.searchAndFilterKey, pagination);
     }
     this.setState({ pagination });
-    pagination.updatePage(fetchList, detail);
+    pagination.updatePage(fetchItemsWithArgs, detail);
   };
 
   render = () => {
     return html`
       <dy-pat-table
         filterable
-        .columns=${this.#columns}
+        .columns=${this.columns}
         .paginationStore=${this.state.pagination.store}
         @fetch=${this.#onFetch}
       >
-        <dy-button @click=${this.#onCreate}>Add</dy-button>
+        <dy-button @click=${this.onCreate}>Add</dy-button>
       </dy-pat-table>
 
       <style>
