@@ -5,7 +5,7 @@ import { ContextMenu } from 'duoyun-ui/elements/contextmenu';
 import { FormItem, createForm } from 'duoyun-ui/patterns/form';
 import { sleep } from 'duoyun-ui/lib/timer';
 import { createPaginationStore } from 'duoyun-ui/helper/store';
-import type { FetchEventDetail, FilterableColumn } from 'duoyun-ui/patterns/table';
+import type { FetchEventDetail, PatTableColumn } from 'duoyun-ui/patterns/table';
 
 import { Item, fetchItemsWithArgs } from './api';
 
@@ -39,12 +39,13 @@ export class ConsolePageItemElement extends GemElement {
   };
 
   // 定义表格
-  columns: FilterableColumn<Item>[] = [
+  columns: PatTableColumn<Item>[] = [
     {
       title: 'No',
       dataIndex: 'id',
-      width: '3em',
-      data: {
+      width: '4em',
+      sortable: true,
+      filterOptions: {
         type: 'number',
       },
     },
@@ -59,24 +60,26 @@ export class ConsolePageItemElement extends GemElement {
       dataIndex: 'phone',
       width: '12em',
       ellipsis: true,
+      filterOptions: false,
     },
     {
       title: 'Email',
       dataIndex: 'email',
       width: '15em',
+      sortable: true,
     },
     {
       title: 'Address',
       dataIndex: ['address', 'street'],
       width: '15em',
-      visibleWidth: '57em',
+      visibleWidth: '58em',
     },
     {
       title: 'Company',
       width: '10em',
-      visibleWidth: '67em',
+      visibleWidth: '68em',
       render: (r) => r.company.name,
-      data: {
+      filterOptions: {
         field: ['company', 'name'],
         type: 'enum',
         getOptions: () => {
@@ -98,9 +101,9 @@ export class ConsolePageItemElement extends GemElement {
     {
       title: 'Updated',
       width: '8em',
-      visibleWidth: '75em',
+      visibleWidth: '76em',
       render: (r) => new Time().relativeTimeFormat(new Time(r.updated)),
-      data: {
+      filterOptions: {
         field: 'updated',
         type: 'date-time',
       },
@@ -228,13 +231,13 @@ export class ConsolePageItemElement extends GemElement {
    * 这里使用页面级缓存，切换页面后将被清除
    */
   #onFetch = ({ detail }: CustomEvent<FetchEventDetail>) => {
-    let pagination = this.state.paginationMap.get(detail.searchAndFilterKey);
+    let pagination = this.state.paginationMap.get(detail.pageKey);
     if (!pagination) {
       pagination = createPaginationStore<Item>({
         cacheItems: true,
         pageContainItem: true,
       });
-      this.state.paginationMap.set(detail.searchAndFilterKey, pagination);
+      this.state.paginationMap.set(detail.pageKey, pagination);
     }
     this.setState({ pagination });
     pagination.updatePage(fetchItemsWithArgs, detail);

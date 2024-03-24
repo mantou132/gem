@@ -468,6 +468,11 @@ type CreateFormOptions<T> = {
   ModalOpenOptions<T> &
   Pick<DyPatFormElement<T>, 'formItems' | 'data'>;
 
+/**
+ * !WARNING
+ *
+ * form field not contain `,`
+ */
 export function createForm<T = Record<string, unknown>>(options: CreateFormOptions<T>) {
   const containerType = options.type === 'modal' ? Modal : Drawer;
   const { query } = history.getParams();

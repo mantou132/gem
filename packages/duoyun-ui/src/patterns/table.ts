@@ -1,5 +1,5 @@
 import { GemElement, TemplateResult, html } from '@mantou/gem/lib/element';
-import { QueryString, createCSSSheet, css } from '@mantou/gem/lib/utils';
+import { QueryString, createCSSSheet, css, styleMap } from '@mantou/gem/lib/utils';
 import {
   Emitter,
   RefObject,
@@ -54,16 +54,19 @@ import '../elements/loading';
 
 import './filter-form';
 
-export type FilterableColumn<T> = Column<T> & {
-  data?: FilterableOptions & {
-    field?: keyof T | string[];
-    /**menu width */
-    width?: string;
-    /**local search */
-    getSearchText?: (e: T) => string;
-    /**local compare */
-    getCompareValue?: (e: T) => any;
-  };
+export type PatTableColumn<T> = Column<T> & {
+  sortable?: boolean;
+  filterOptions?:
+    | false
+    | (FilterableOptions & {
+        field?: keyof T | string[];
+        /**menu width */
+        width?: string;
+        /**local search */
+        getSearchText?: (e: T) => string;
+        /**local compare */
+        getCompareValue?: (e: T) => any;
+      });
 };
 
 // 不能和外部冲突
@@ -72,18 +75,33 @@ const queryKeys = {
   PAGINATION_SIZE: '_dy_size',
   SEARCH: '_dy_search',
   FILTERS: '_dy_filters',
+  SORT: '_dy_sort',
 };
 
 type Filter = {
-  field: string | string[];
+  field: string;
   comparer: ComparerType;
   value: any;
 };
+
+type Sort = 'asc' | 'des';
+
+function getNextSort(current?: Sort): Sort | undefined {
+  switch (current) {
+    case 'asc':
+      return 'des';
+    case 'des':
+      return;
+    default:
+      return 'asc';
+  }
+}
 
 type State = {
   selection: any[];
   search: string;
   filters: Filter[];
+  sort: Record<string, Sort | undefined>;
 };
 
 type LocationStore = Store<ReturnType<(typeof DuoyunRouteElement)['createLocationStore']>>;
@@ -93,7 +111,8 @@ export type FetchEventDetail = LocationStore & {
   size: number;
   search: string;
   filters: Filter[];
-  searchAndFilterKey: string;
+  pageKey: string;
+  sort: Record<string, Sort | undefined>;
 };
 
 const style = createCSSSheet(css`
@@ -129,6 +148,10 @@ const style = createCSSSheet(css`
 
 /**
  * @customElement dy-pat-table
+ *
+ * !WARNING
+ *
+ * field not contain `,`, `filters` field and `sort` key use `,` split
  */
 @customElement('dy-pat-table')
 @adoptedStyle(style)
@@ -159,7 +182,7 @@ export class DyPatTableElement<T = any> extends GemElement<State> {
 
   @emitter fetch: Emitter<FetchEventDetail>;
 
-  @property columns: FilterableColumn<T>[] = [];
+  @property columns: PatTableColumn<T>[] = [];
 
   @property getText: (
     key:
@@ -196,10 +219,15 @@ export class DyPatTableElement<T = any> extends GemElement<State> {
     return history.getParams().query.getAnyAll(queryKeys.FILTERS);
   }
 
+  get #sort() {
+    return history.getParams().query.getAny(queryKeys.SORT) || {};
+  }
+
   state: State = {
     selection: [],
     search: this.#search,
     filters: this.#filters,
+    sort: this.#sort,
   };
 
   #data?: (T | undefined)[] = [];
@@ -326,6 +354,21 @@ export class DyPatTableElement<T = any> extends GemElement<State> {
     })(evt);
   };
 
+  #onSwitchSort = (field: string) => {
+    const { sort } = this.state;
+    const newSort = { ...sort };
+    delete newSort[field];
+    this.setState({ sort: { ...newSort, [field]: getNextSort(sort[field]) } });
+    const p = history.getParams();
+    const query = new QueryString(p.query);
+    if (JSON.stringify(this.state.sort) === '{}') {
+      query.delete(queryKeys.SORT);
+    } else {
+      query.setAny(queryKeys.SORT, this.state.sort);
+    }
+    history.replace({ ...p, query });
+  };
+
   #onAddFilter = (data: Filter) => {
     ContextMenu.close();
     this.setState({ filters: [...this.state.filters, data] });
@@ -343,9 +386,10 @@ export class DyPatTableElement<T = any> extends GemElement<State> {
     this.#changeQuery();
   };
 
-  #getMenuWidth = ({ data }: FilterableColumn<T>) => {
-    if (data?.width) return data?.width;
-    switch (data?.type) {
+  #getMenuWidth = ({ filterOptions }: PatTableColumn<T>) => {
+    if (filterOptions === false) return;
+    if (filterOptions?.width) return filterOptions?.width;
+    switch (filterOptions?.type) {
       case 'date-time':
         return '26em';
       default:
@@ -353,20 +397,20 @@ export class DyPatTableElement<T = any> extends GemElement<State> {
     }
   };
 
-  #getFilterField = ({ data, dataIndex }: FilterableColumn<T>) => {
-    return data?.field || dataIndex;
+  #getFilterField = ({ filterOptions, dataIndex }: PatTableColumn<T>) => {
+    return filterOptions === false ? '' : String(filterOptions?.field || dataIndex);
   };
 
   #onClickFilter = (evt: PointerEvent, index: number) => {
     const { field, comparer, value } = this.state.filters[index];
-    const column = this.columns.find((column) => String(this.#getFilterField(column)) === String(field))!;
+    const column = this.columns.find((column) => this.#getFilterField(column) === field)!;
     const tagEle = evt.currentTarget as DuoyunTagElement;
     const offsetEle = tagEle.offsetParent as DuoyunScrollBoxElement;
     ContextMenu.open(
       html`
         <dy-pat-filter-form
           .getText=${this.getText}
-          .options=${column.data}
+          .options=${column.filterOptions || undefined}
           .initValue=${{ comparer, value }}
           @submit=${({ detail }: CustomEvent) => this.#onModifyFilter(index, { ...detail, field })}
         ></dy-pat-filter-form>
@@ -381,7 +425,7 @@ export class DyPatTableElement<T = any> extends GemElement<State> {
   #onOpenFilter = (e: PointerEvent) => {
     ContextMenu.open(
       this.columns
-        .filter((column) => column.title && this.#getFilterField(column))
+        .filter((column) => column.title && !!this.#getFilterField(column))
         .map((column) => ({
           text: getStringFromTemplate(column.title),
           menu: {
@@ -389,7 +433,7 @@ export class DyPatTableElement<T = any> extends GemElement<State> {
             menu: html`
               <dy-pat-filter-form
                 .getText=${this.getText}
-                .options=${column.data}
+                .options=${column.filterOptions || undefined}
                 @submit=${({ detail }: CustomEvent) =>
                   this.#onAddFilter({ ...detail, field: this.#getFilterField(column) })}
               ></dy-pat-filter-form>
@@ -400,13 +444,14 @@ export class DyPatTableElement<T = any> extends GemElement<State> {
     );
   };
 
-  #filterFieldDataMap: Record<string, FilterableColumn<T>['data']> = {};
+  #filterFieldOptionsMap: Record<string, PatTableColumn<T>['filterOptions']> = {};
   #filterFieldLabelMap: Record<string, string> = {};
   #filterFieldEnumMap: Record<string, Record<string, string>> = {};
 
   #getValueFromField = (field: string, value: any | any[]) => {
     return [].concat(value).map((e) => {
-      switch (this.#filterFieldDataMap[field]?.type) {
+      const filterOptions = this.#filterFieldOptionsMap[field];
+      switch (filterOptions && filterOptions?.type) {
         case 'date':
           return new Time(Number(e)).format('YYYY-MM-DD');
         case 'date-time':
@@ -421,16 +466,52 @@ export class DyPatTableElement<T = any> extends GemElement<State> {
     });
   };
 
+  #columns: PatTableColumn<T>[] = [];
   willMount = () => {
+    this.memo(
+      () => {
+        const { sort } = this.state;
+        this.#columns = this.columns.map(
+          (column, _index, _arr, field = String(column.dataIndex), status = sort[field]) => ({
+            ...column,
+            title:
+              column.sortable && column.title && column.dataIndex
+                ? html`
+                    <div
+                      style=${styleMap({ cursor: 'pointer', display: 'flex', gap: '.3em' })}
+                      @click=${() => this.#onSwitchSort(field)}
+                    >
+                      ${column.title}
+                      <dy-use style="width: 1em" .element=${icons.sort}>
+                        <style>
+                          @scope {
+                            :scope::part(up),
+                            :scope::part(down) {
+                              opacity: 0.2;
+                            }
+                            :scope::part(${!status ? '' : status === 'asc' ? 'up' : 'down'}) {
+                              opacity: 1;
+                            }
+                          }
+                        </style>
+                      </dy-use>
+                    </div>
+                  `
+                : column.title,
+          }),
+        );
+      },
+      () => [this.columns, this.state.sort],
+    );
     // 显示正确的过滤器文本
     this.memo(
       () => {
         this.columns.forEach((column) => {
-          const { title, data } = column;
-          const field = String(this.#getFilterField(column));
-          this.#filterFieldDataMap[field] = data;
+          const { title, filterOptions } = column;
+          const field = this.#getFilterField(column);
+          this.#filterFieldOptionsMap[field] = filterOptions;
           this.#filterFieldLabelMap[field] = typeof title === 'string' ? title : getStringFromTemplate(title);
-          const enums = data?.getOptions?.('');
+          const enums = filterOptions && filterOptions.getOptions?.('');
           if (enums) {
             this.#filterFieldEnumMap[field] = convertToMap(enums, 'value', 'label');
           }
@@ -444,14 +525,14 @@ export class DyPatTableElement<T = any> extends GemElement<State> {
         this.#data = this.data;
         if (this.paginationStore) return;
         if (!this.#data) return;
-        const { search, filters } = this.state;
+        const { search, filters, sort } = this.state;
         if (search) {
           this.#data = this.#data.filter((e) => {
             if (!e) return true;
             const str = this.columns
               .filter(({ title }) => !!title)
-              .map(({ dataIndex, render, data }) => {
-                if (data?.getSearchText) return data.getSearchText(e);
+              .map(({ dataIndex, render, filterOptions }) => {
+                if (filterOptions && filterOptions.getSearchText) return filterOptions.getSearchText(e);
                 if (dataIndex) return readProp(e, dataIndex);
                 if (render) {
                   const result = render(e);
@@ -466,13 +547,25 @@ export class DyPatTableElement<T = any> extends GemElement<State> {
         this.#data = this.#data?.filter((e) => {
           return filters.every(({ field, comparer: comparerType, value }) => {
             if (!e) return true;
-            const fieldData = this.#filterFieldDataMap[String(field)];
-            const fieldValue = fieldData?.getCompareValue ? fieldData.getCompareValue(e) : readProp(e, field);
+            const filterOptions = this.#filterFieldOptionsMap[field];
+            const fieldValue =
+              filterOptions && filterOptions.getCompareValue
+                ? filterOptions.getCompareValue(e)
+                : readProp(e, field.split(','));
             if (Array.isArray(value)) {
               if (Array.isArray(fieldValue)) return fieldValue.some((e) => comparer(value, comparerType, e));
               return comparer(value, comparerType, fieldValue);
             }
             return comparer(String(fieldValue || '').toLowerCase(), comparerType, String(value || '').toLowerCase());
+          });
+        });
+        Object.entries(sort).forEach(([field, sortType]) => {
+          if (!sortType) return;
+          this.#data?.sort((a, b) => {
+            if (!a || !b) return 0;
+            const [aa, bb] = sortType === 'asc' ? [a, b] : [b, a];
+            const dataIndex = field.split(',');
+            return comparer(readProp(aa, dataIndex), ComparerType.Gte, readProp(bb, dataIndex)) ? 1 : -1;
           });
         });
       },
@@ -491,19 +584,24 @@ export class DyPatTableElement<T = any> extends GemElement<State> {
     );
     this.effect(
       () => {
-        const { search, filters } = this.state;
+        const { search, filters, sort } = this.state;
+        const sorts = Object.entries(sort).filter(([_, v]) => v);
         this.fetch({
+          sort,
           search,
           filters,
           page: this.#page,
           size: this.#size,
           ...locationStore,
           ...this.locationStore,
-          searchAndFilterKey:
-            search || filters.length
+          pageKey:
+            search || filters.length || sorts.length
               ? `${search}-${filters
                   .sort((a, b) => (a.field > b.field ? 1 : 0))
                   .map(({ field, comparer, value }) => `${field}-${comparer}-${value}`)
+                  .join()}-${sorts
+                  .sort(([k], [kk]) => (k > kk ? 1 : 0))
+                  .map((e) => e.join('-'))
                   .join()}`
               : '',
         });
@@ -515,6 +613,7 @@ export class DyPatTableElement<T = any> extends GemElement<State> {
           query.get(queryKeys.PAGINATION_PAGE),
           query.get(queryKeys.PAGINATION_SIZE),
           query.get(queryKeys.FILTERS),
+          query.get(queryKeys.SORT),
           query.get(queryKeys.SEARCH),
           path,
         ];
@@ -576,9 +675,9 @@ export class DyPatTableElement<T = any> extends GemElement<State> {
                 @close=${() => this.#onRemoveFilter(index)}
                 closable
               >
-                <span>${this.#filterFieldLabelMap[String(field)]}</span>
+                <span>${this.#filterFieldLabelMap[field]}</span>
                 <span class="comparer">${this.getText(comparer)}</span>
-                <span>"${this.#getValueFromField(String(field), value).join(', ')}"</span>
+                <span>"${this.#getValueFromField(field, value).join(', ')}"</span>
               </dy-tag>
             `,
           )}
@@ -592,7 +691,7 @@ export class DyPatTableElement<T = any> extends GemElement<State> {
         .getRowStyle=${this.getRowStyle}
         .expandedRowRender=${this.expandedRowRender}
         .data=${data}
-        .columns=${this.columns}
+        .columns=${this.#columns}
         .selectable=${this.selectable}
         .rowKey=${this.rowKey}
         .selection=${this.state.selection}

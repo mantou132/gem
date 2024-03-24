@@ -74,6 +74,13 @@ const defaultIcons = {
   right: genIcon(`M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z`),
   left: genIcon(`M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z`),
   expand: genIcon(`M16.59 8.59L12 13.17 7.41 8.59 6 10l6 6 6-6z`),
+  sort: genIcon(
+    '',
+    raw`
+      <path part="up" d="M8 13v-7.175L5.425 8.4l-1.425-1.4 5-5 5 5-1.425 1.4-2.575-2.575v7.175h-2Z"></path>
+      <path part="down" d="M15 22 10 17l1.425-1.4 2.575 2.575v-7.175h2v7.175l2.575-2.575 1.425 1.4L15 22Z"></path>
+    `,
+  ),
   rollup: genIcon(`M12 8l-6 6 1.41 1.41L12 10.83l4.59 4.58L18 14l-6-6z`),
   check: genIcon(`M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z`),
   date: genIcon(

@@ -31,11 +31,11 @@ const EXAMPLE = {
 export type Item = typeof EXAMPLE;
 
 export async function fetchItemsWithArgs(args: FetchEventDetail): Promise<PaginationRes<Item>> {
-  console.log(args);
+  console.log('args:', args);
   const list: any[] = await request(`https://jsonplaceholder.typicode.com/users`);
   list.forEach((e, i) => {
     e.updated = new Time().subtract(i + 1, 'd').getTime();
-    e.id += 10 * (args.page - 1);
+    e.id += args.size * (args.page - 1);
   });
   return { list, count: 30 };
 }

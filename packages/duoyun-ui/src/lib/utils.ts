@@ -158,7 +158,7 @@ export enum ComparerType {
 }
 
 /**Serialize comparer */
-export function comparer(a: any, comparer: ComparerType, b: any) {
+export function comparer(a: any, comparer: ComparerType, b: any): boolean {
   const aNum = Number(a);
   const bNum = Number(b);
   const isNumber = !isNaN(aNum) && !isNaN(aNum);
