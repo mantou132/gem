@@ -1,4 +1,4 @@
-import { GemElement, TemplateResult, html } from '@mantou/gem/lib/element';
+import { GemElement, html } from '@mantou/gem/lib/element';
 import { QueryString, createCSSSheet, css, styleMap } from '@mantou/gem/lib/utils';
 import {
   Emitter,

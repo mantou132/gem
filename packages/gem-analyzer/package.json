@@ -18,7 +18,7 @@
   "devDependencies": {
     "@gemjs/config": "^1.6.13",
     "ts-morph": "^13.0.0",
-    "typescript": "^5.3.2"
+    "typescript": "^5.4.3"
   },
   "peerDependencies": {
     "ts-morph": "^13.0.0"

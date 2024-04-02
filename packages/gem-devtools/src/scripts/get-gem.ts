@@ -15,7 +15,7 @@ export const getSelectedGem = function (data: PanelStore, gemElementSymbols: str
   } else {
     // 依赖 `constructor`，如果 `constructor` 被破坏，则扩展不能工作
     // 没有严格检查是否是 GemElement
-    if (!($0 instanceof HTMLElement)) return 'Not Gem: not HTMLElement';
+    if (!(($0 as any) instanceof HTMLElement)) return 'Not Gem: not HTMLElement';
 
     const elementSymbols = new Set(Object.getOwnPropertySymbols($0).map(String));
     if (gemElementSymbols.some((symbol) => !elementSymbols.has(symbol))) return 'Not Gem: some symbol diff';
@@ -108,8 +108,9 @@ export const getSelectedGem = function (data: PanelStore, gemElementSymbols: str
       type: typeof value,
     });
   });
+  // 已有的未观测 attribute
   attrs.forEach((attr) => {
-    const value = $0.getAttribute(attr);
+    const value = $0.getAttribute(attr)!;
     data.attributes.push({
       name: attr,
       value: value,
