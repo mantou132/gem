@@ -146,7 +146,7 @@ export class DuoyunKeyboardAccessElement extends GemElement<State> {
       .filter(isNotNullish);
 
     if (!focusableElements.length) {
-      Toast.open('default', 'Not found focusable element');
+      Toast.open('info', 'Not found focusable element');
       return;
     }
 

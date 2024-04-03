@@ -120,7 +120,7 @@ import type { ContextMenus, UserInfo } from 'duoyun-ui/patterns/console';
 const contextMenus: ContextMenus = [
   {
     text: 'Languages',
-    handle: () => Toast.open('default', 'No Implement!'),
+    handle: () => Toast.open('info', 'No Implement!'),
   },
   { text: '---' },
   {

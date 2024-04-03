@@ -25,25 +25,27 @@ import './pre';
 
 // https://github.com/w3c/csswg-drafts/issues/9712
 const style = createCSSSheet(css`
-  :not(gbp-var):not(:defined) {
-    display: block;
-    margin-block: 2rem;
-    color: transparent;
-    /* maybe browser limit */
-    font-size: 0;
-  }
-  :not(gbp-var):not(:defined) * {
-    display: none;
-  }
-  :not(gbp-var):not(:defined)::before {
-    font-size: 1rem;
-    display: block;
-    content: 'The element is not defined';
-    padding: 2rem;
-    text-align: center;
-    color: ${theme.textColor};
-    background: ${theme.borderColor};
-    border-radius: ${theme.normalRound};
+  :host :not(gbp-var, :defined) {
+    & {
+      display: block;
+      margin-block: 2rem;
+      color: transparent;
+      /* maybe browser limit */
+      font-size: 0;
+    }
+    & * {
+      display: none;
+    }
+    &::before {
+      font-size: 1rem;
+      display: block;
+      content: 'The element is not defined';
+      padding: 2rem;
+      text-align: center;
+      color: ${theme.textColor};
+      background: ${theme.borderColor};
+      border-radius: ${theme.normalRound};
+    }
   }
 `);
 

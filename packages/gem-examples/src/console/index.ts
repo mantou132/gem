@@ -85,19 +85,19 @@ const navItems: NavItems = [
 const contextMenus: ContextMenus = [
   {
     text: 'Command',
-    handle: () => Toast.open('default', 'Click Menu Command'),
+    handle: () => Toast.open('info', 'Click Menu Command'),
   },
   {
     text: 'Command 1',
-    handle: () => Toast.open('default', 'Click Menu Command 1'),
+    handle: () => Toast.open('info', 'Click Menu Command 1'),
   },
   {
     text: 'Command 2',
-    handle: () => Toast.open('default', 'Click Menu Command 2'),
+    handle: () => Toast.open('info', 'Click Menu Command 2'),
   },
   {
     text: 'Command 3',
-    handle: () => Toast.open('default', 'Click Menu Command 3'),
+    handle: () => Toast.open('info', 'Click Menu Command 3'),
   },
   {
     text: '---',
