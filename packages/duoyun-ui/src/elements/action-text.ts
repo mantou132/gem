@@ -14,7 +14,6 @@ const style = createCSSSheet(css`
     text-overflow: ellipsis;
     cursor: default;
     line-height: 1.5;
-    --color: initial;
     color: var(--color, inherit);
     border-radius: ${theme.normalRound};
   }
@@ -29,6 +28,8 @@ const style = createCSSSheet(css`
 
 /**
  * @customElement dy-action-text
+ * @attr color
+ * @attr tooltip
  */
 @customElement('dy-action-text')
 @adoptedStyle(style)
