@@ -1,6 +1,6 @@
 {
   "name": "gem-analyzer",
-  "version": "1.7.8",
+  "version": "1.7.9",
   "description": "gem analyzer",
   "main": "index.js",
   "files": [
@@ -13,10 +13,10 @@
     "prepublishOnly": "yarn build"
   },
   "dependencies": {
-    "@mantou/gem": "^1.7.11"
+    "@mantou/gem": "^1.7.12"
   },
   "devDependencies": {
-    "@gemjs/config": "^1.6.13",
+    "@gemjs/config": "^1.6.14",
     "ts-morph": "^13.0.0",
     "typescript": "^5.4.3"
   },

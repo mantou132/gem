@@ -1,6 +1,6 @@
 {
   "name": "gem-port",
-  "version": "0.0.8",
+  "version": "0.0.9",
   "description": "Export React component",
   "keywords": [
     "gem",
@@ -19,9 +19,9 @@
     "prepublishOnly": "yarn build"
   },
   "dependencies": {
-    "@gemjs/config": "^1.6.13",
+    "@gemjs/config": "^1.6.14",
     "commander": "^7.2.0",
-    "gem-analyzer": "^1.7.8",
+    "gem-analyzer": "^1.7.9",
     "ts-morph": "^13.0.0",
     "typescript": "^5.4.3"
   },
