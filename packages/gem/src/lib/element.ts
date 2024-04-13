@@ -39,6 +39,11 @@ declare global {
   interface HTMLElement {
     ref: string;
   }
+  // https://dom.spec.whatwg.org/#shadowroot-clonable
+  interface ShadowRootInit {
+    clonable?: boolean;
+    serializable?: boolean;
+  }
 }
 
 function emptyFunction() {
@@ -134,6 +139,7 @@ export abstract class GemElement<T = Record<string, unknown>> extends HTMLElemen
       ? this
       : this.attachShadow({
           mode: options.mode || 'open',
+          serializable: options.serializable ?? true,
           delegatesFocus: options.delegatesFocus,
           slotAssignment: options.slotAssignment,
         });
