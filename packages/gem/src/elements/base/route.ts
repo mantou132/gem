@@ -125,7 +125,7 @@ type State = {
 };
 
 export type RouteTrigger = {
-  store: Store<any>;
+  store?: Store<any>;
   replace: (arg: UpdateHistoryParams) => void;
   getParams: () => { path: string; query?: string | QueryString; hash?: string };
 };

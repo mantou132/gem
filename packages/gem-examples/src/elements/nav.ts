@@ -61,7 +61,7 @@ export class Nav extends GemElement {
         <div class="version">version: ${version}</div>
       </a>
       <ol>
-        ${EXAMPLES.sort((a, b) => ((METADATA[a].order || 0) > (METADATA[b].order || 0) ? 1 : -1)).map(
+        ${EXAMPLES.sort((a, b) => (METADATA[a].order || 0) - (METADATA[b].order || 0)).map(
           (name) => html`
             <li>
               <a class=${location.pathname.includes(name) ? 'active' : ''} href=${getGitPageUrl(name)}>

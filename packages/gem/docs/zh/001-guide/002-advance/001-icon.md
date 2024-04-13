@@ -25,8 +25,8 @@ render(
         <path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z" />
       </svg>
     </template>
-    <gem-use .root=${document.body} selector="#icon"></gem-use>
     <gem-use selector="#icon"></gem-use>
+    <gem-use .root=${document.body} selector="#icon"></gem-use>
     <gem-use .element=${icon}></gem-use>
   `,
   document.getElementById('root'),
@@ -36,3 +36,12 @@ render(
 </gbp-sandpack>
 
 > [!NOTE] `<gem-use>` 由于是复制内容进行渲染，所以 `<svg>` 更新不能同步更新原先的 `<gem-use>` 实例
+
+有许多开源图标库可以直接在你的项目中使用：
+
+- [Lucide](https://lucide.dev/)
+- [Radix](https://github.com/radix-ui/icons)
+- [Feather](https://github.com/feathericons/feather)
+- [Fluent](https://github.com/microsoft/fluentui-system-icons)
+- [Material](https://material.io/resources/icons)
+- [Tabler](http://tablericons.com/)

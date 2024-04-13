@@ -1,7 +1,7 @@
 # Use SVG icons
 
-GEM uses [ShadowDom](https://developer.mozilla.org/en-s/docs/web_components/usion_shadow_dom) to prevent style conflict,
-but it also makes [SVG Sprite](https://css-tricks.com/svg-sprites-use-better-icon-fonts/) can't work, SVG `href` cannot penetrate the ShadowDom boundary.
+Gem uses [ShadowDOM](https://developer.mozilla.org/en-s/docs/web_components/usion_shadow_dom) to prevent style conflict,
+but it also makes [SVG Sprite](https://css-tricks.com/svg-sprites-use-better-icon-fonts/) can't work, SVG `href` cannot penetrate the ShadowDOM boundary.
 Therefore, Gem has a built-in element `<gem-use>` to replace SVG Sprite:
 
 <gbp-sandpack dependencies="@mantou/gem">
@@ -26,8 +26,8 @@ render(
         <path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z" />
       </svg>
     </template>
-    <gem-use .root=${document.body} selector="#icon"></gem-use>
     <gem-use selector="#icon"></gem-use>
+    <gem-use .root=${document.body} selector="#icon"></gem-use>
     <gem-use .element=${icon}></gem-use>
   `,
   document.getElementById('root'),
@@ -37,3 +37,12 @@ render(
 </gbp-sandpack>
 
 > [!NOTE] `<gem-use>` since the content is copied for rendering, the update of `<svg>` cannot update the original `<gem-use>` instance
+
+There are many open source icon libraries that can be used directly in your projects:
+
+- [Lucide](https://lucide.dev/)
+- [Radix](https://github.com/radix-ui/icons)
+- [Feather](https://github.com/feathericons/feather)
+- [Fluent](https://github.com/microsoft/fluentui-system-icons)
+- [Material](https://material.io/resources/icons)
+- [Tabler](http://tablericons.com/)

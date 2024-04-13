@@ -1,4 +1,4 @@
-import { createStore, updateStore, Store } from '../lib/store';
+import { UpdateHistoryParams } from '../lib/history';
 import { html, TemplateResult } from '../lib/element';
 import { GemError } from '../lib/utils';
 import type { RouteTrigger } from '../elements/base/route';
@@ -72,10 +72,8 @@ export class I18n<T = Record<string, Msg>> implements RouteTrigger {
   urlParamsName?: string;
   onChange?: (currentLanguage: string) => void;
 
-  store: Store<any>;
-
   // 兼容 `<gem-route>`
-  replace = ({ path }: { path: string }) => this.setLanguage(path);
+  replace = ({ path }: UpdateHistoryParams) => this.setLanguage(path!);
   getParams = () => ({ path: this.currentLanguage });
 
   get #cacheCurrentKey() {
@@ -119,7 +117,6 @@ export class I18n<T = Record<string, Msg>> implements RouteTrigger {
       throw new GemError('i18n: fallbackLanguage invalid');
     }
 
-    this.store = createStore(this as any);
     Object.assign<I18n<T>, I18nOptions<T>>(this as I18n<T>, options);
 
     let currentLanguage = this.#urlParamsLang || this.currentLanguage || this.#cacheLang;
@@ -208,7 +205,17 @@ export class I18n<T = Record<string, Msg>> implements RouteTrigger {
       pack = data;
     }
     this.resources[lang] = pack;
-    updateStore(this.store);
+
+    // update all element
+    const temp: Element[] = [document.documentElement];
+    while (!!temp.length) {
+      const element = temp.pop()!;
+      if ('attributeChangedCallback' in element) (element as any).attributeChangedCallback();
+      if (element.shadowRoot?.firstElementChild) temp.push(element.shadowRoot.firstElementChild);
+      if (element.firstElementChild) temp.push(element.firstElementChild);
+      if (element.nextElementSibling) temp.push(element.nextElementSibling);
+    }
+
     if (lang !== this.currentLanguage) {
       this.#lang = lang;
     }
@@ -251,8 +258,6 @@ export class I18n<T = Record<string, Msg>> implements RouteTrigger {
   }
 
   /**
-   * prepare: @connectStore(i18n.store)
-   *
    * @example
    *
    * html`

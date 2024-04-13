@@ -1,4 +1,4 @@
-import { GemElement, html, connectStore, customElement, render } from '@mantou/gem';
+import { GemElement, html, customElement, render } from '@mantou/gem';
 import { I18n } from '@mantou/gem/helper/i18n';
 import type { RouteItem } from 'duoyun-ui/elements/route';
 
@@ -52,8 +52,6 @@ const localizeRoutes: RouteItem[] = [
   },
 ];
 
-@connectStore(i18n.store)
-@connectStore(i18nModule.store)
 @customElement('app-root')
 export class App extends GemElement {
   render() {

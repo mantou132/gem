@@ -25,7 +25,6 @@ const fetchData = async (api: string) => {
 };
 
 @customElement('gem-book-edit-link')
-@connectStore(selfI18n.store)
 @connectStore(locationStore)
 export class EditLink extends GemElement<State> {
   state = {

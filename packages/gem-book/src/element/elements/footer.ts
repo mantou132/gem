@@ -8,7 +8,6 @@ import { unsafeRenderHTML } from '../lib/renderer';
 import '@mantou/gem/elements/link';
 
 @customElement('gem-book-footer')
-@connectStore(selfI18n.store)
 @connectStore(bookStore)
 export class Footer extends GemElement {
   render() {
