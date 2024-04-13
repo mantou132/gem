@@ -47,19 +47,19 @@ const style = createCSSSheet(css`
     width: 1em;
   }
   @supports (anchor-name: --foo) {
-    :host(:not(:where([data-inline], :state(inline)))) .badge {
-      position: absolute;
-      anchor-default: --anchor;
-      top: anchor(top);
-      right: anchor(right);
-      transform: translate(50%, -50%);
-    }
     :host(:where(:where([data-inline], :state(inline)):not([hidden]))) {
       display: inline;
       anchor-name: --anchor;
     }
     ::slotted(*) {
       anchor-name: --anchor;
+    }
+    :host(:not(:empty)) .badge {
+      position: absolute;
+      transform: translate(50%, -50%);
+      position-anchor: --anchor;
+      top: anchor(top);
+      right: anchor(right);
     }
   }
   @supports not (anchor-name: --foo) {

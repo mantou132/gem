@@ -91,7 +91,7 @@ const style = createCSSSheet(css`
       transition: inset 0.3s ${theme.timingFunction};
       border-radius: var(--inner-radius);
       position: absolute;
-      anchor-default: ${getAnchorName(0)};
+      position-anchor: ${getAnchorName(0)};
       top: anchor(top);
       bottom: anchor(bottom);
       background: ${theme.backgroundColor};

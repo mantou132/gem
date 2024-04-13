@@ -9,6 +9,9 @@ Dependence on [anchor positioning](//www.w3.org/TR/css-anchor-position-1)
 ```json
 [
   {
+    "count": "New"
+  },
+  {
     "dot": true,
     "innerHTML": "This is Link"
   },

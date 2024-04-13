@@ -9,6 +9,9 @@
 ```json
 [
   {
+    "count": "New"
+  },
+  {
     "dot": true,
     "innerHTML": "This is Link"
   },
