@@ -38,7 +38,7 @@ type Position = 'top' | 'bottom' | 'right' | 'left' | 'topLeft' | 'topRight' | '
 type GhostStyle = {
   '--bg': string;
   '--color': string;
-};
+} & StyleObject;
 
 type PopoverOptions = {
   delay?: number;
@@ -116,10 +116,12 @@ export class DuoyunPopoverElement extends GemElement<PopoverState> {
     return callback;
   }
 
-  ghostStyle: GhostStyle = {
+  static ghostStyle: GhostStyle = {
     '--bg': theme.backgroundColor,
     '--color': theme.highlightColor,
   };
+
+  ghostStyle?: GhostStyle;
 
   get #position() {
     return this.position || 'auto';
@@ -334,6 +336,7 @@ export class DuoyunPopoverElement extends GemElement<PopoverState> {
                 data-position=${position}
                 style=${styleMap({
                   ...style,
+                  ...(this.constructor as unknown as DuoyunPopoverElement).ghostStyle,
                   ...this.ghostStyle,
                   pointerEvents: this.unreachable ? 'none' : undefined,
                 })}

@@ -9,9 +9,9 @@ import { DuoyunPopoverElement } from './popover';
  */
 @customElement('dy-tooltip')
 export class DuoyunTooltipElement extends DuoyunPopoverElement {
-  ghostStyle = {
+  static ghostStyle: (typeof DuoyunPopoverElement)['ghostStyle'] = {
     '--bg': theme.highlightColor,
     '--color': theme.backgroundColor,
-    'max-width': '15em',
+    maxWidth: '15em',
   };
 }
