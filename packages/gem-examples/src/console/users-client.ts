@@ -2,7 +2,7 @@ import { html } from '@mantou/gem/lib/element';
 import { connectStore, customElement } from '@mantou/gem/lib/decorators';
 import { createPaginationStore } from 'duoyun-ui/helper/store';
 
-import { ConsolePageItemElement } from './item';
+import { ConsolePageItemElement } from './users';
 import { Item, fetchAllItems } from './api';
 
 import 'duoyun-ui/patterns/table';
@@ -14,7 +14,7 @@ const { store, updatePage } = createPaginationStore<Item>({
   pageContainItem: true,
 });
 
-@customElement('console-page-item-client')
+@customElement('console-page-users-client')
 @connectStore(store)
 export class ConsolePageItemClientElement extends ConsolePageItemElement {
   constructor() {

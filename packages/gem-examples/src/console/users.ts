@@ -31,7 +31,7 @@ const initItem = {
 
 type NewItem = typeof initItem;
 
-@customElement('console-page-item')
+@customElement('console-page-users')
 export class ConsolePageItemElement extends GemElement {
   state = {
     pagination: pagination,

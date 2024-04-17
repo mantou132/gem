@@ -6,11 +6,80 @@ However, there is no [type hint](https://code.visualstudio.com/docs/editor/intel
 ## React
 
 > [!NOTE]
-> Only the experimental version of React supports custom elements. Use `npm install react@experimental react-dom@experimental` to install the experimental version of React.
+> Only the React 19 supports custom elements. Use `npm install react@canary react-dom@canary` to install the React 19.
 
 Use DuoyunUI like any other React component library:
 
 <gbp-raw range="import DyCard,<DyCard-</DyCard>" src="https://raw.githubusercontent.com/mantou132/nextjs-learn/main/pages/ce-test.tsx"></gbp-raw>
+
+### Use React Component in `<dy-route>`
+
+`<dy-route>` only supports rendering `TemplateResult`:
+
+```ts
+const routes = {
+  about: {
+    pattern: '/about',
+    title: `About`,
+    getContent(_, ele) {
+      return html`<p-about></p-about>`;
+    },
+  },
+} satisfies RoutesObject;
+```
+
+To render the React component, need to manually mount it onto the `<dy-route>`:
+
+```ts
+function renderReactNode(ele: any, node: ReactNode) {
+  ele.react?.unmount();
+  ele.react = createRoot(ele);
+  ele.react.render(node);
+}
+
+const routes = {
+  about: {
+    pattern: '/about',
+    title: `About`,
+    getContent(_, ele) {
+      renderReactNode(ele, <About />);
+    },
+  },
+} satisfies RoutesObject;
+```
+
+### Using the React component as Property
+
+Some elements support custom rendering content, such as the `header` of `<dy-card>`:
+
+```ts
+function Page() {
+  return <DyCard header={html`<div>No.</div>`}></DyCard>;
+}
+```
+
+If want to render the React component, need to first mount it to the `HTMLElement`, which can be achieved through custom Hooks:
+
+```tsx
+function useReactNode(node: ReactNode) {
+  const ref = useRef<{ root: Root; container: HTMLElement }>();
+  useEffect(() => () => ref.current?.root.unmount(), []);
+  if (ref.current) {
+    ref.current.root.render(node);
+    return ref.current.container;
+  }
+  const container = document.createElement('div');
+  container.style.display = 'contents';
+  const root = createRoot(container);
+  ref.current = { root, container };
+  root.render(node);
+  return container;
+}
+
+function Page() {
+  return <DyCard header={useReactNode(<>No</>)}></DyCard>;
+}
+```
 
 ## Vue
 
@@ -33,7 +102,7 @@ In the Vue project, it also supports directly writing custom elements, but [dist
 
 DuoyunUI does not re-export as a Svelte component, and you can use the custom element directly:
 
-<gbp-raw codelang="html" range="2-9,46-57" src="https://raw.githubusercontent.com/mantou132/sveltekit-learn/main/src/routes/ce-test/+page.svelte"></gbp-raw>
+<gbp-raw codelang="html" range="2-9,44-55" src="https://raw.githubusercontent.com/mantou132/sveltekit-learn/main/src/routes/ce-test/+page.svelte"></gbp-raw>
 
 > [!NOTE]
 > Use the `Sveltekit`, please make sure the `Svelte` is installed as a `dependencies` instead of `DevDependenCies`, otherwise the type cannot be import successfully;

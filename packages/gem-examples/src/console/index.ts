@@ -6,7 +6,8 @@ import { type ContextMenus, type Routes, type UserInfo, type NavItems } from 'du
 
 import 'duoyun-ui/patterns/console';
 import 'duoyun-ui/elements/badge';
-import 'duoyun-ui/elements/code-block';
+import 'duoyun-ui/elements/paragraph';
+import 'duoyun-ui/elements/card';
 
 import 'duoyun-ui/helper/error';
 
@@ -22,27 +23,30 @@ const routes = {
       return html`<console-page-home></console-page-home>`;
     },
   },
-  item: {
-    pattern: '/items/:id',
-    title: 'Item Page',
+  users: {
+    pattern: '/users',
+    title: 'API Pagination',
     async getContent() {
       await sleep(500);
-      await import('./item');
-      return html`<console-page-item></console-page-item>`;
+      await import('./users');
+      return html`<console-page-users></console-page-users>`;
     },
   },
-  item2: {
-    pattern: '/item2',
-    title: 'Item Page(Client)',
+  usersClient: {
+    pattern: '/users-client',
+    title: 'Client Pagination',
     async getContent() {
-      await import('./item-client');
-      return html`<console-page-item-client></console-page-item-client>`;
+      await import('./users-client');
+      return html`<console-page-users-client></console-page-users-client>`;
     },
   },
   item3: {
-    pattern: '/item3',
-    title: 'Page 3 in Group 1',
-    content: html`Page 3`,
+    pattern: '/item3/:id',
+    title: 'Dynamic Params',
+    async getContent(params) {
+      await import('./dynamic');
+      return html`<console-page-dynamic id=${params.id}></console-page-dynamic>`;
+    },
   },
   item4: {
     pattern: '/item4',
@@ -57,7 +61,13 @@ const routes = {
   about: {
     pattern: '/about',
     title: `About`,
-    content: html`About`,
+    content: html`
+      <dy-card style="width: 240px" .header=${'About'}>
+        <dy-paragraph>
+          Elit aute excepteur dolore occaecat esse <kbd>F</kbd> aliqua mollit duis culpa aliqua adipisicing culpa.
+        </dy-paragraph>
+      </dy-card>
+    `,
   },
 } satisfies Routes;
 
@@ -66,13 +76,9 @@ const navItems: NavItems = [
   {
     title: 'Group 1',
     group: [
-      {
-        ...routes.item,
-        params: { id: crypto.randomUUID() },
-        slot: html`<dy-badge small count="New"></dy-badge>`,
-      },
-      routes.item2,
-      routes.item3,
+      { ...routes.users, slot: html`<dy-badge small count="New"></dy-badge>` },
+      routes.usersClient,
+      { ...routes.item3, params: { id: crypto.randomUUID() } },
     ],
   },
   {

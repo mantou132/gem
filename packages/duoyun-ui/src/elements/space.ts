@@ -9,6 +9,9 @@ const style = createCSSSheet(css`
     align-items: center;
     gap: 0.4em;
   }
+  :where(dy-space[orientation='vertical']) {
+    flex-direction: column;
+  }
   :where(dy-space[size='small']) {
     gap: 0.2em;
   }
@@ -25,6 +28,7 @@ const style = createCSSSheet(css`
 @adoptedStyle(style)
 export class DuoyunSpaceElement extends GemElement {
   @attribute size: 'normal' | 'small' | 'large';
+  @attribute orientation: 'horizontal' | 'vertical';
 
   constructor() {
     super({ isLight: true });

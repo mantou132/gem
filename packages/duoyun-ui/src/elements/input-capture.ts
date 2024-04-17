@@ -24,6 +24,7 @@ const style = createCSSSheet(css`
     text-align: center;
     white-space: nowrap;
     background: rgba(0, 0, 0, calc(${theme.maskAlpha} + 0.4));
+    line-height: 2;
   }
   .kbd {
     background: transparent;

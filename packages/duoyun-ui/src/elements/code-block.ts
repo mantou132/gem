@@ -334,6 +334,15 @@ export class DuoyunCodeBlockElement extends GemElement {
 
   @refobject codeRef: RefObject<HTMLElement>;
 
+  constructor() {
+    super();
+    new MutationObserver(() => this.update()).observe(this, {
+      childList: true,
+      characterData: true,
+      subtree: true,
+    });
+  }
+
   #getRanges(range: string) {
     const ranges = range.split(/,\s*/);
     return ranges.map((range) => {
@@ -356,37 +365,41 @@ export class DuoyunCodeBlockElement extends GemElement {
     return parts.join('\n...\n\n');
   }
 
+  #updateHtml = async () => {
+    if (!this.codeRef.element) return;
+    await import(/* @vite-ignore */ /* webpackIgnore: true */ prismjs);
+    const { Prism } = window as any;
+    if (this.codelang && !Prism.languages[this.codelang]) {
+      const codelang = langAliases[this.codelang] || this.codelang;
+      const langDeps = ([] as string[]).concat(langDependencies[codelang] || []);
+      const load = (lang: string) =>
+        import(/* @vite-ignore */ /* webpackIgnore: true */ `${prismjs}/components/prism-${lang}.min.js`);
+      try {
+        await Promise.all(langDeps.map((langDep) => !Prism.languages[langDep] && load(langDep)));
+        await load(codelang);
+      } catch {
+        //
+      }
+    }
+    const html = Prism.languages[this.codelang]
+      ? Prism.highlight(this.textContent || '', Prism.languages[this.codelang], this.codelang)
+      : this.innerHTML;
+    this.codeRef.element.innerHTML = this.#getParts(html);
+  };
+
   mounted() {
-    this.effect(
-      async () => {
-        if (!this.codeRef.element) return;
-        await import(/* @vite-ignore */ /* webpackIgnore: true */ prismjs);
-        const { Prism } = window as any;
-        if (this.codelang && !Prism.languages[this.codelang]) {
-          const lang = langAliases[this.codelang] || this.codelang;
-          const langDeps = ([] as string[]).concat(langDependencies[lang] || []);
-          try {
-            await Promise.all(
-              langDeps.map((langDep) => {
-                if (!Prism.languages[langDep]) {
-                  return import(
-                    /* @vite-ignore */ /* webpackIgnore: true */ `${prismjs}/components/prism-${langDep}.min.js`
-                  );
-                }
-              }),
-            );
-            await import(/* @vite-ignore */ /* webpackIgnore: true */ `${prismjs}/components/prism-${lang}.min.js`);
-          } catch {
-            //
-          }
-        }
-        const content = Prism.languages[this.codelang]
-          ? Prism.highlight(this.textContent || '', Prism.languages[this.codelang], this.codelang)
-          : this.innerHTML;
-        this.codeRef.element.innerHTML = this.#getParts(content);
-      },
-      () => [],
-    );
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach(({ intersectionRatio }) => {
+        if (intersectionRatio === 0) return;
+        io.disconnect();
+        this.effect(
+          () => this.#updateHtml(),
+          () => [this.textContent, this.codelang],
+        );
+      });
+    });
+    io.observe(this);
+    return () => io.disconnect();
   }
 
   render() {

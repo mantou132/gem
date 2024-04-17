@@ -71,7 +71,8 @@ const style = createCSSSheet(css`
   .actions:where(:hover, [data-active], :state(active)) {
     background-color: ${theme.hoverBackgroundColor};
   }
-  slot[name='body']::slotted(*) {
+  slot[name='body']::slotted(*),
+  slot:not([name])::slotted(*) {
     hyphens: auto;
     margin-block-end: 0em !important;
   }

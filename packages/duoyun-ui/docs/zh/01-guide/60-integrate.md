@@ -6,11 +6,80 @@
 ## React
 
 > [!NOTE]
-> React 的实验版才支持自定义元素，使用 `npm install react@experimental react-dom@experimental` 安装 React 实验版。
+> React 19 才支持自定义元素，当前使用 `npm install react@canary react-dom@canary` 安装 React 19。
 
 跟使用其他 React 组件库一样使用 DuoyunUI：
 
 <gbp-raw range="import DyCard,<DyCard-</DyCard>" src="https://raw.githubusercontent.com/mantou132/nextjs-learn/main/pages/ce-test.tsx"></gbp-raw>
+
+### 在 `<dy-route>` 中使用 React 组件
+
+`<dy-route>` 只支持渲染 `TemplateResult`：
+
+```ts
+const routes = {
+  about: {
+    pattern: '/about',
+    title: `About`,
+    getContent(_, ele) {
+      return html`<p-about></p-about>`;
+    },
+  },
+} satisfies RoutesObject;
+```
+
+要渲染 React 组件需要手动挂载到 `<dy-route>` 上:
+
+```ts
+function renderReactNode(ele: any, node: ReactNode) {
+  ele.react?.unmount();
+  ele.react = createRoot(ele);
+  ele.react.render(node);
+}
+
+const routes = {
+  about: {
+    pattern: '/about',
+    title: `About`,
+    getContent(_, ele) {
+      renderReactNode(ele, <About />);
+    },
+  },
+} satisfies RoutesObject;
+```
+
+### 在 Property 上使用 React 组件
+
+一些元素支持自定义渲染内容，例如 `<dy-card>` 的 `header`：
+
+```ts
+function Page() {
+  return <DyCard header={html`<div>No.</div>`}></DyCard>;
+}
+```
+
+如果要渲染 React 组件，则需要先渲染到 `HTMLElement` 上，可以通过自定义 Hooks 实现：
+
+```tsx
+function useReactNode(node: ReactNode) {
+  const ref = useRef<{ root: Root; container: HTMLElement }>();
+  useEffect(() => () => ref.current?.root.unmount(), []);
+  if (ref.current) {
+    ref.current.root.render(node);
+    return ref.current.container;
+  }
+  const container = document.createElement('div');
+  container.style.display = 'contents';
+  const root = createRoot(container);
+  ref.current = { root, container };
+  root.render(node);
+  return container;
+}
+
+function Page() {
+  return <DyCard header={useReactNode(<>No</>)}></DyCard>;
+}
+```
 
 ## Vue
 
@@ -33,7 +102,7 @@ DuoyunUI 也导出了 Vue 组件，使用和 React 一样，唯一的区别是�
 
 DuoyunUI 没有重导出为 Svelte 组件，直接使用自定义元素即可：
 
-<gbp-raw codelang="html" range="2-9,46-57" src="https://raw.githubusercontent.com/mantou132/sveltekit-learn/main/src/routes/ce-test/+page.svelte"></gbp-raw>
+<gbp-raw codelang="html" range="2-9,44-55" src="https://raw.githubusercontent.com/mantou132/sveltekit-learn/main/src/routes/ce-test/+page.svelte"></gbp-raw>
 
 > [!NOTE]
 > 使用 `SvelteKit` 请确保 `svelte` 安装成 `dependencies` 而非 `devDependencies`，否则类型不能成功导入；
