@@ -118,7 +118,7 @@ export class DuoyunPopoverElement extends GemElement<PopoverState> {
 
   static ghostStyle: GhostStyle = {
     '--bg': theme.backgroundColor,
-    '--color': theme.highlightColor,
+    '--color': theme.textColor,
   };
 
   ghostStyle?: GhostStyle;

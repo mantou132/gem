@@ -59,6 +59,9 @@ export const pickerStyle = createCSSSheet(css`
     width: 1.2em;
     color: ${theme.borderColor};
   }
+  :host(:not([disabled], [borderless]):where(:hover, [data-active], :state(active))) {
+    border-color: ${theme.primaryColor};
+  }
   :host(:not([disabled]):where(:hover, [data-active], :state(active))) dy-use {
     color: ${theme.textColor};
   }

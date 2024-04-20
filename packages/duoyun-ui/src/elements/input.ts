@@ -74,6 +74,7 @@ const style = createCSSSheet(css`
     box-sizing: border-box;
     border: 1px solid ${theme.borderColor};
     border-radius: ${theme.normalRound};
+    caret-color: ${theme.primaryColor};
     outline: none;
   }
   :host(:not([disabled])) {
@@ -83,7 +84,7 @@ const style = createCSSSheet(css`
     block-size: calc(2.2em + 2px);
   }
   :host(:where(:focus-within, :hover)) {
-    border-color: ${theme.textColor};
+    border-color: ${theme.primaryColor};
   }
   :host([disabled]) {
     cursor: not-allowed;

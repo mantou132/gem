@@ -46,7 +46,7 @@ const style = createCSSSheet(css`
     border-radius: ${theme.normalRound};
     border: 1px solid transparent;
   }
-  .item:where(:not(.disabled)):hover,
+  .item:where(:not(.disabled, .current)):hover,
   .item:where([data-active], :state(active)) {
     color: ${theme.highlightColor};
     background-color: ${theme.hoverBackgroundColor};
@@ -60,8 +60,8 @@ const style = createCSSSheet(css`
     opacity: 0.7;
   }
   .item.current {
-    color: ${theme.backgroundColor};
-    background-color: ${theme.highlightColor};
+    color: ${theme.primaryColor};
+    border-color: currentColor;
   }
   .icon {
     width: 1em;

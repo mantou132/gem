@@ -115,6 +115,16 @@ export class ConsolePageItemElement extends GemElement {
       text: 'Edit',
       handle: () => this.onUpdate(r),
     },
+    {
+      text: 'VIP',
+      selected: true,
+      disabled: true,
+      handle: console.log,
+    },
+    {
+      text: 'Disable',
+      handle: console.log,
+    },
     { text: '---' },
     {
       text: 'Delete',

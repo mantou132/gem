@@ -108,23 +108,21 @@ const style = createCSSSheet(css`
     justify-content: center;
   }
   .circle {
-    width: 0.5em;
-    padding: 0.2em;
-  }
-  .circle::before {
-    transform: scale(0.99);
-    content: '';
-    color: ${theme.highlightColor};
-    display: block;
-    aspect-ratio: 1;
-    border: 1px solid;
+    width: 1em;
+    height: 0.3em;
     border-radius: 10em;
+    padding: 0.3em;
+    background-clip: content-box;
+    background-color: currentColor;
+    opacity: 0.3;
+    transition: width 0.2s;
   }
-  .circle:where(:hover)::before {
-    background: ${theme.describeColor};
+  .circle:where(:hover) {
+    opacity: 0.6;
   }
-  .current::before {
-    background: currentColor;
+  .circle.current {
+    width: 1.5em;
+    opacity: 1;
   }
 `);
 

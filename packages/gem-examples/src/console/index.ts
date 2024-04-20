@@ -1,15 +1,15 @@
+import 'duoyun-ui/helper/error';
 import { html, render } from '@mantou/gem/lib/element';
 import { history } from '@mantou/gem/lib/history';
 import { Toast } from 'duoyun-ui/elements/toast';
 import { sleep } from 'duoyun-ui/lib/timer';
+import { updateTheme, darkTheme, lightTheme } from 'duoyun-ui/lib/theme';
 import { type ContextMenus, type Routes, type UserInfo, type NavItems } from 'duoyun-ui/patterns/console';
 
 import 'duoyun-ui/patterns/console';
 import 'duoyun-ui/elements/badge';
 import 'duoyun-ui/elements/paragraph';
 import 'duoyun-ui/elements/card';
-
-import 'duoyun-ui/helper/error';
 
 history.basePath = '/console';
 
@@ -102,8 +102,12 @@ const contextMenus: ContextMenus = [
     handle: () => Toast.open('info', 'Click Menu Command 2'),
   },
   {
-    text: 'Command 3',
-    handle: () => Toast.open('info', 'Click Menu Command 3'),
+    text: 'Switch to Light',
+    handle: () => updateTheme(lightTheme),
+  },
+  {
+    text: 'Switch to Dark',
+    handle: () => updateTheme(darkTheme),
   },
   {
     text: '---',

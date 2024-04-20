@@ -17,7 +17,7 @@ const style = createCSSSheet(css`
     left: 0;
     height: 2px;
     transition: width 0.3s;
-    background-color: ${theme.informativeColor};
+    background-color: ${theme.primaryColor};
   }
   .head {
     width: 300px;
@@ -25,7 +25,7 @@ const style = createCSSSheet(css`
     background-color: inherit;
     border-start-start-radius: 50%;
     border-end-start-radius: 50%;
-    filter: drop-shadow(0 0 4px ${theme.informativeColor});
+    filter: drop-shadow(0 0 4px ${theme.primaryColor});
   }
 `);
 

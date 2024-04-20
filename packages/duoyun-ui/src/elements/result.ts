@@ -19,7 +19,7 @@ const style = createCSSSheet(css`
     justify-content: center;
   }
   .header {
-    margin-block-start: 1em;
+    margin-block: 1em 0.5em;
     color: ${theme.textColor};
   }
   .icon {

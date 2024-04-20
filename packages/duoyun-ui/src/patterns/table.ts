@@ -134,7 +134,7 @@ const style = createCSSSheet(css`
     white-space: nowrap;
   }
   .comparer {
-    color: ${theme.primaryColor};
+    color: ${theme.highlightColor};
   }
   .pagination {
     margin-block-start: ${theme.gridGutter};

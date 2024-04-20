@@ -34,8 +34,10 @@ const style = createCSSSheet(css`
   :host(:not([disabled])) {
     box-shadow: ${theme.controlShadow};
   }
+  :host(:where(:focus, :hover)) {
+    border-color: ${theme.primaryColor};
+  }
   :host(:focus) {
-    border-color: ${theme.textColor};
     background-color: ${theme.lightBackgroundColor};
   }
   :host([disabled]) {
@@ -134,6 +136,7 @@ export class DuoyunShortcutRecordElement extends GemElement {
       ),
     ];
     this.change(keys);
+    this.focus({ focusVisible: false });
     evt.stopPropagation();
     evt.preventDefault();
   };

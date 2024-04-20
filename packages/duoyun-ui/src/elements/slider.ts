@@ -56,7 +56,7 @@ const style = createCSSSheet(css`
     box-sizing: border-box;
     width: var(--size);
     height: var(--size);
-    border: 2px solid;
+    border: 2px solid ${theme.primaryColor};
     transition: border-width 0.1s;
     opacity: 0.8;
   }

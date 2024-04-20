@@ -26,6 +26,7 @@ const style = createCSSSheet(css`
     display: inline-flex;
     flex-direction: row-reverse;
     align-items: center;
+    color: ${theme.noticeColor};
   }
   :host([disabled]) {
     color: ${theme.disabledColor};
