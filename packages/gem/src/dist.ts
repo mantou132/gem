@@ -11,9 +11,10 @@ export * from './elements/reflect';
 export * from './elements/base/modal-factory';
 export * from './elements/base/dialog';
 
-export * from './helper/theme';
 export * from './helper/i18n';
-export * from './helper/request';
+export * from './helper/logger';
 export * from './helper/mediaquery';
+export * from './helper/request';
+export * from './helper/theme';
 
 export * from '.';
