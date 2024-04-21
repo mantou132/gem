@@ -143,15 +143,23 @@ function getLinkRouters(links: NavItemWithLink[], title = '', lang: string, disp
   links.forEach((item) => {
     const { title: pageTitle, link, userFullPath, originLink, hash } = item;
     const routeTitle = `${capitalize(pageTitle)}${pageTitle ? ' - ' : ''}${title}`;
-
+    const fetchContent = async (l: string) => await (await fetch(getURL(joinPath(l, originLink), hash))).text();
     routes.push({
       title: routeTitle,
       pattern: link,
       async getContent() {
         await import('./elements/main');
-        const content = await (await fetch(getURL(joinPath(lang, originLink), hash))).text();
+        const fmAndH1Reg = /.*?# .*?(\n|$)+/s;
+        let content = await fetchContent(lang);
+        let useLang = lang;
+        if (originDocLang && !content.replace(fmAndH1Reg, '').trim()) {
+          content +=
+            `<gbp-trans-status></gbp-trans-status>` +
+            (await fetchContent(originDocLang)).replace(fmAndH1Reg, '').trimStart();
+          useLang = originDocLang;
+        }
         if (bookStore.isDevMode?.()) await new Promise((res) => setTimeout(res, 500));
-        return html`<gem-book-main role="article" .content=${content}></gem-book-main>`;
+        return html`<gem-book-main lang=${useLang} role="article" .content=${content}></gem-book-main>`;
       },
       data: item,
     });

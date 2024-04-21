@@ -56,6 +56,7 @@ let cliConfig: Required<CliUniqueConfig> = {
   icon: '',
   output: '',
   i18n: false,
+  fallbackLanguage: '',
   plugin: [],
   ga: '',
   template: '',

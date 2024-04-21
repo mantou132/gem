@@ -1,5 +1,7 @@
 import { I18n } from '@mantou/gem/helper/i18n';
 
+import { SupportLang } from '../../common/config';
+
 const resources = {
   en: {
     editOnGithub: 'Edit this page on GitHub',
@@ -13,7 +15,7 @@ const resources = {
     footer: '通过 $1<GemBook> 生成',
     lastUpdated: '上次更新',
   },
-};
+} satisfies Record<SupportLang, unknown>;
 
 export const originDocLang = document.documentElement.lang;
 

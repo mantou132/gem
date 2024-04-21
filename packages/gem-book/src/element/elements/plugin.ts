@@ -10,6 +10,7 @@ import { debounce } from '../../common/utils';
 import { icons } from '../elements/icons';
 import { getRanges, getParts, joinPath, getURL, escapeHTML, capitalize } from '../lib/utils';
 import { parseMarkdown, unsafeRenderHTML } from '../lib/renderer';
+import { originDocLang, selfI18n } from '../helper/i18n';
 
 /**
  * 获取资源的远端 GitHub raw 地址，如果使用 `DEV_MODE`，则返回本机服务的 URL
@@ -60,6 +61,8 @@ export class GemBookPluginElement<T = any> extends GemElement<T> {
   static caches = new Map<typeof GemBookPluginElement, Map<string, any>>();
   static theme = theme;
   static icons = icons;
+  static selfI18n = selfI18n;
+  static originDocLang = originDocLang;
   static mediaQuery = mediaQuery;
   static locationStore = locationStore;
   static config = new Proxy<Partial<BookConfig>>(

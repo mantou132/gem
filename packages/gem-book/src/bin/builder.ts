@@ -111,7 +111,12 @@ export async function build(dir: string, options: Required<CliUniqueConfig>, boo
   const docsDir = path.resolve(dir);
   // 开发模式时使用 docsDir 避免不必要的复制
   const outputDir = build && output ? path.resolve(output) : docsDir;
-  const pluginRecord = getPluginRecord(plugin);
+  const pluginRecord = getPluginRecord(
+    plugin
+      // 自动加载
+      .concat(options.fallbackLanguage && 'trans-status')
+      .filter((e) => !!e),
+  );
   const plugins = Object.values(pluginRecord);
   const themePath = resolveTheme(theme);
 
@@ -168,13 +173,24 @@ export async function build(dir: string, options: Required<CliUniqueConfig>, boo
     plugins: [
       new HtmlWebpackPlugin({
         title: bookConfig.title || 'GemBook App',
-        ...(template ? { template: path.resolve(process.cwd(), template) } : undefined),
+        template: template ? path.resolve(process.cwd(), template) : undefined,
         // Automatically copied to the output directory
         favicon: !isRemoteIcon && icon,
         meta: {
           viewport: 'width=device-width, initial-scale=1, shrink-to-fit=no',
         },
       }),
+      {
+        apply(compiler: Compiler) {
+          options.fallbackLanguage &&
+            compiler.hooks.compilation.tap('htmlWebpackInjectAttributesPlugin', (compilation) => {
+              HtmlWebpackPlugin.getHooks(compilation).afterTemplateExecution.tapAsync('MyPlugin', (data, cb) => {
+                data.html = data.html.replace('<html>', `<html lang="${options.fallbackLanguage}">`);
+                cb(null, data);
+              });
+            });
+        },
+      },
       new DefinePlugin({
         // 插件 query 参数传递
         'import.meta.url': DefinePlugin.runtimeValue(({ module }) => {

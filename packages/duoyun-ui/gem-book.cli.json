@@ -4,6 +4,7 @@
   "title": "DuoyunUI",
   "icon": "../../logo.png",
   "i18n": true,
+  "fallbackLanguage": "zh",
   "sourceBranch": "docs",
   "plugin": ["media", "api", "sandpack", "raw", "docsearch?local", "example"],
   "debug": true

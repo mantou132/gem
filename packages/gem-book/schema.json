@@ -20,6 +20,14 @@
         "displayRank": {
           "type": "boolean"
         },
+        "fallbackLanguage": {
+          "enum": [
+            "zh",
+            "en",
+            ""
+          ],
+          "type": "string"
+        },
         "footer": {
           "type": "string"
         },

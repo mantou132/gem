@@ -36,10 +36,14 @@ export type BookConfig = {
   onlyFile?: boolean;
 } & CommonConfig;
 
+export type SupportLang = 'zh' | 'en';
+
 export interface CliUniqueConfig {
   icon?: string;
   output?: string;
   i18n?: boolean;
+  // packages/gem-book/src/element/helper/i18n.ts
+  fallbackLanguage?: SupportLang | '';
   plugin?: string[];
   ga?: string;
   template?: string;
