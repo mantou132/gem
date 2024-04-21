@@ -13,7 +13,7 @@
   },
   "devDependencies": {
     "@gemjs/config": "^1.6.14",
-    "vite": "^4.5.2",
+    "vite": "^5.2.10",
     "vite-plugin-virtual-mpa": "^1.9.3"
   }
 }
