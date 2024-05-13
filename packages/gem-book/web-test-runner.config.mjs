@@ -10,5 +10,5 @@ export default {
   coverageConfig: { exclude: ['**/__wds-outside-root__/**'] },
   nodeResolve: true,
   files: ['./src/**/*.test.ts', './src/**/*.spec.ts'],
-  plugins: [esbuildPlugin({ ts: true, tsconfig: './tsconfig.json' })],
+  plugins: [esbuildPlugin({ ts: true, tsconfig: './tsconfig.json', target: 'es2022' })],
 };

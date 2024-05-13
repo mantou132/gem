@@ -5,6 +5,9 @@ import { defineConfig } from 'vite';
 export default defineConfig({
   root: 'src',
   publicDir: resolve(process.cwd(), 'public'),
+  esbuild: {
+    target: 'es2022',
+  },
   build: {
     assetsInlineLimit: 0,
     polyfillModulePreload: false,
@@ -33,7 +36,6 @@ export default defineConfig({
     outDir: resolve(process.cwd(), 'extension'),
     emptyOutDir: false,
     sourcemap: true,
-    brotliSize: false,
     minify: false,
   },
   resolve: {

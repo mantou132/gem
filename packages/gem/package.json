@@ -37,7 +37,7 @@
     "build:lib": "vite build",
     "build": "yarn build:module && yarn build:lib",
     "start": "yarn build:module --watch",
-    "test": "yarn build:module && cross-env NODE_OPTIONS=--no-experimental-fetch wtr"
+    "test": "cross-env NODE_OPTIONS=--no-experimental-fetch wtr"
   },
   "dependencies": {
     "lit-html": "^1.4.1"

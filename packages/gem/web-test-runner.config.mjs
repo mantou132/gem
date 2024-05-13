@@ -1,5 +1,3 @@
-// Wait: https://github.com/evanw/esbuild/issues/104
-
 import { esbuildPlugin } from '@web/dev-server-esbuild';
 
 // https://modern-web.dev/docs/test-runner/cli-and-configuration/
@@ -10,6 +8,6 @@ import { esbuildPlugin } from '@web/dev-server-esbuild';
 export default {
   coverage: true,
   nodeResolve: true,
-  files: ['./test/**/*.test.js', './test/**/*.spec.js'],
-  plugins: [esbuildPlugin({ ts: true, tsconfig: './tsconfig.json' })],
+  files: ['./src/**/*.test.ts', './src/**/*.spec.ts'],
+  plugins: [esbuildPlugin({ ts: true, tsconfig: './tsconfig.json', target: 'es2022' })],
 };

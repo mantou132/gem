@@ -1,6 +1,3 @@
-// Wait: https://github.com/evanw/esbuild/issues/104
-// update .html entry, package scripts
-
 import fs from 'fs';
 
 import { defineConfig } from 'vite';
@@ -15,13 +12,16 @@ export default defineConfig({
     emptyOutDir: true,
     sourcemap: true,
   },
+  esbuild: {
+    target: 'es2022',
+  },
   plugins: [
     createMpaPlugin({
       template: 'src/template.html',
       pages: createPages(
         examples.map((name) => ({
           name,
-          entry: `/src/${name}/index.js`,
+          entry: `/src/${name}/index.ts`,
         })),
       ),
       rewrites: [{ from: /^\/$/, to: '/index.html' }],

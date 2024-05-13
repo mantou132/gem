@@ -12,5 +12,5 @@ export default {
   },
   nodeResolve: true,
   files: ['./src/**/*.test.ts', './src/**/*.spec.ts'],
-  plugins: [esbuildPlugin({ ts: true, tsconfig: './tsconfig.json' })],
+  plugins: [esbuildPlugin({ ts: true, tsconfig: './tsconfig.json', target: 'es2022' })],
 };
