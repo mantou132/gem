@@ -20,7 +20,7 @@ const htmlStr = `
 `;
 
 const app = html`
-  <div slot="main">
+  <div>
     <gem-unsafe content="${svgStr}" contentcss="${svgStyle}"></gem-unsafe>
     <gem-unsafe content="${htmlStr}"></gem-unsafe>
   </div>

@@ -324,9 +324,8 @@ export function kebabToCamelCase(str: string) {
 }
 
 export function cleanObject<T extends Record<string, unknown>>(o: T) {
-  Object.keys(o).forEach((key: string) => {
-    const k = key as keyof T;
-    delete o[k];
+  Object.keys(o).forEach((key: keyof T) => {
+    delete o[key];
   });
   return o;
 }
@@ -377,6 +376,7 @@ type StyleProp =
   | `--${string}`
   | 'scrollbarWidth'
   | 'scrollbarColor'
+  | 'positionAnchor'
   | 'anchorDefault'
   | 'anchorName';
 

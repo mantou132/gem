@@ -91,9 +91,7 @@ const style = createCSSSheet(css`
       transition: inset 0.3s ${theme.timingFunction};
       border-radius: var(--inner-radius);
       position: absolute;
-      position-anchor: ${getAnchorName(0)};
-      top: anchor(top);
-      bottom: anchor(bottom);
+      inset: anchor(top) anchor(right) anchor(bottom) anchor(left);
       background: ${theme.backgroundColor};
     }
     :host(:not([disabled])) .marker {
@@ -147,10 +145,7 @@ export class DuoyunSegmentedElement extends GemElement {
             <span
               class="marker"
               part=${DuoyunSegmentedElement.marker}
-              style=${styleMap({
-                left: `anchor(${getAnchorName(currentIndex)} left)`,
-                right: `anchor(${getAnchorName(currentIndex)} right)`,
-              })}
+              style=${styleMap({ positionAnchor: getAnchorName(currentIndex) })}
             ></span>
           `
         : ''}

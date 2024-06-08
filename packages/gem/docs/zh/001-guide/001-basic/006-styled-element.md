@@ -104,13 +104,13 @@ class MyElement extends GemElement {
 > 还可以使用比较 Hack 的方式自定义元素样式，例如：
 >
 > ```js
-> GemLinkElement.adoptedStyleSheets = [
+> GemLinkElement.adoptedStyleSheets.push(
 >   createCSSSheet(css`
 >     :host {
 >       font-style: italic;
 >     }
 >   `),
-> ];
+> );
 > ```
 
 ## 自定义元素外部样式

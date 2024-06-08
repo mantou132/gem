@@ -96,7 +96,7 @@ render(
       }
     </style>
     <gem-examples-layout>
-      <app-root slot="main"></app-root>
+      <app-root></app-root>
     </gem-examples-layout>
   `,
   document.body,

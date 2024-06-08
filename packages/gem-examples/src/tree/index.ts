@@ -62,7 +62,7 @@ function renderApp() {
   render(
     html`
       <gem-examples-layout>
-        <div slot="main" style="display: flex">
+        <div style="display: flex">
           <dy-tree
             @contextmenu=${(e: MouseEvent) => e.preventDefault()}
             @itemcontextmenu=${onContextMenu}

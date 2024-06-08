@@ -101,7 +101,7 @@ document.addEventListener('say-hi', (e: CustomEvent) => {
 render(
   html`
     <gem-examples-layout>
-      <app-root app-title="I'm Title" slot="main"></app-root>
+      <app-root app-title="I'm Title"></app-root>
     </gem-examples-layout>
   `,
   document.body,

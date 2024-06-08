@@ -54,7 +54,7 @@ function renderApp() {
   render(
     html`
       <gem-examples-layout>
-        <div slot="main">
+        <div>
           <dy-cascader-picker
             multiple
             .options=${store.options}

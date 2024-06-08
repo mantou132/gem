@@ -26,6 +26,14 @@ class MyElement extends GemElement {
 }
 ```
 
+> [!NOTE]
+>
+> - `esbuild >= 0.21.2`, `target` don't use the default `esnext`
+> - `vite >= 5.3`
+> - `typescript >= 5.0`
+> - Chrome [bug track](https://issues.chromium.org/issues/42202709)
+> - Firefox [bug track](https://bugzilla.mozilla.org/show_bug.cgi?id=1781212)
+
 ## Differences from TypeScript Decorator
 
 TypeScript's field decorator is executed immediately after the class definition, making it easy to define accessor properties on the prototype object.
@@ -42,5 +50,4 @@ let MyElement = (() => {
 
 ## Pitfalls of using ES Decorators
 
-- For reactive Attributes, element updates cannot be triggered when modified in DevTools, because the native `observedAttributes` cannot take effect for dynamically added attributes.
-- When executing the initialization function of `@attribute`, some hacking work is required, and the performance will be slightly reduced
+`@attribute` no longer work through the`observedAttributes`, but intercept the `setAttribute`. Do not use the modified` setAttribute` in Devtools, so modify the element attribute in Devtools cannot trigger the element update.

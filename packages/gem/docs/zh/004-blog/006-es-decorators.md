@@ -26,10 +26,18 @@ class MyElement extends GemElement {
 }
 ```
 
+> [!NOTE]
+>
+> - `esbuild >= 0.21.2`, `target` 不要使用默认 `esnext`
+> - `vite >= 5.3`
+> - `typescript >= 5.0`
+> - Chrome [bug track](https://issues.chromium.org/issues/42202709)
+> - Firefox [bug track](https://bugzilla.mozilla.org/show_bug.cgi?id=1781212)
+
 ## 和 TS 装饰器的差异
 
 TS 的字段装饰器在类定义之后立即执行，能很方便的在原型对象上定义访问器属性。
-而 ES 的装饰器必须使用 `accessor` 才能达到类似的效果，就算使用 `accessor` 也将使 Gem 丧失部分功能。
+而 ES 的字段装饰器必须使用 `accessor` 才能达到类似的效果，就算使用 `accessor` 也将使 Gem 丧失部分功能。
 所以 Gem 使用了特殊的方式来现实，使他看起来和 TS 装饰器没有任何区别,
 实际上，这些装器返回的初始化函数将在每次实例化 `MyElement` 时运行，可以检查 `tsc` 编译后的代码：
 
@@ -43,5 +51,4 @@ let MyElement = (() => {
 
 ## 使用 ES 装饰器的缺陷
 
-- 对于反应性的 Attribute 在 DevTools 中修改时不能触发元素更新，因为原生的 `observedAttributes` 不能为动态添加的属性生效
-- 在执行 `@attribute` 的初始化函数时，需要进行一下 hack 工作，性能将会小幅度降低
+`@attribute` 不再通过 `observedAttributes` 进行工作，而是拦截 `setAttribute`，在 DevTools 中修改时不使用修改后的 `setAttribute`，所以在 DevTools 中修改元素 Attribute 不能触发元素更新。

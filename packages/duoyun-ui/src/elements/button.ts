@@ -103,7 +103,7 @@ const style = createCSSSheet(css`
   :host([color='danger']) {
     --bg: ${theme.negativeColor};
   }
-  :host([color='cancel']) {
+  :host([color='cancel']:not([disabled])) {
     --bg: ${theme.hoverBackgroundColor};
     --color: ${theme.textColor};
   }

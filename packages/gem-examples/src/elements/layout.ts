@@ -1,5 +1,5 @@
 import { GemElement, html } from '@mantou/gem/lib/element';
-import { customElement, slot } from '@mantou/gem/lib/decorators';
+import { customElement } from '@mantou/gem/lib/decorators';
 
 import '@mantou/gem/elements/reflect';
 import '@mantou/gem/elements/title';
@@ -8,8 +8,6 @@ import './nav';
 
 @customElement('gem-examples-layout')
 export class Layout extends GemElement {
-  @slot main: string;
-
   render() {
     return html`
       <gem-title suffix=" - Gem Examples" hidden>${location.pathname}</gem-title>
@@ -46,7 +44,7 @@ export class Layout extends GemElement {
         }
       </style>
       <gem-examples-nav></gem-examples-nav>
-      <slot name=${this.main}></slot>
+      <slot></slot>
     `;
   }
 }

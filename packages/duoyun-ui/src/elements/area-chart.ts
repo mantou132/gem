@@ -45,13 +45,19 @@ export class DuoyunAreaChartElement extends DuoyunChartBaseElement {
   @property stack = false; // force to smooth, force to fill, prevent smooth
   @property symbol = false;
   @property symbolRender = defaultSymbolRender;
+  /**@deprecated */
   @property chartzoom = false;
+  @property chartZoom = false;
   @property range = [0, 1];
   @property smooth = true;
   @property gradient = true;
   @property sequences?: Sequence[];
 
   @emitter zoom: Emitter<number[]>;
+
+  get #chartZoom() {
+    return this.chartZoom || this.chartzoom;
+  }
 
   get #smooth() {
     return this.stack || this.smooth;
@@ -74,7 +80,7 @@ export class DuoyunAreaChartElement extends DuoyunChartBaseElement {
   }
 
   constructor() {
-    super();
+    super({ isLight: false });
     this.addEventListener('pointermove', this.#onPointerMove);
     this.addEventListener('pointerout', this.#onPointerOut);
     this.addEventListener('pointercancel', this.#onPointerOut);
@@ -260,7 +266,7 @@ export class DuoyunAreaChartElement extends DuoyunChartBaseElement {
               values: this.mergeValues(this.#sequencesWithoutStack!.slice(0, index + 1).map((e) => e.values))!,
             }))
           : this.#sequencesWithoutStack;
-        if (this.chartzoom) {
+        if (this.#chartZoom) {
           this.#totalValues = this.mergeValues(this.#sequencesNormalize?.map((e) => e.values));
         }
       },
@@ -447,7 +453,7 @@ export class DuoyunAreaChartElement extends DuoyunChartBaseElement {
             stroke-dasharray=${`${this.getSVGPixel(4)} ${this.getSVGPixel(1.5)}`}>
           </path>
         </svg>
-      `} ${this.chartzoom
+      `} ${this.#chartZoom
         ? html`
             <dy-chart-zoom
               @change=${({ detail }: CustomEvent) => this.zoom(detail)}

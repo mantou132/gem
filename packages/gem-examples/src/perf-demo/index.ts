@@ -126,7 +126,7 @@ const app = new App();
 render(
   html`
     <gem-examples-layout>
-      <div slot="main">
+      <div>
         <ul>
           <li><a href="https://stencil-fiber-demo.firebaseapp.com/perf.html">stencil-fiber-demo</a></li>
           <li><a href="https://claudiopro.github.io/react-fiber-vs-stack-demo/fiber.html">react-fiber-demo</a></li>

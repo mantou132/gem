@@ -28,7 +28,12 @@ You can reference CSS selectors in JS:
 
 ```js 17
 import { GemElement, html } from '@mantou/gem';
-import { createCSSSheet, styled, adoptedStyle, customElement } from '@mantou/gem';
+import {
+  createCSSSheet,
+  styled,
+  adoptedStyle,
+  customElement,
+} from '@mantou/gem';
 
 const styles = createCSSSheet({
   header: styled.class`
@@ -94,13 +99,13 @@ class MyElement extends GemElement {
 > Can also customize element styles using hack, for example:
 >
 > ```js
-> GemLinkElement.adoptedStyleSheets = [
+> GemLinkElement.adoptedStyleSheets.push(
 >   createCSSSheet(css`
 >     :host {
 >       font-style: italic;
 >     }
 >   `),
-> ];
+> );
 > ```
 
 ## Custom element external style

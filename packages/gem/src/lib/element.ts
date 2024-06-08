@@ -176,7 +176,7 @@ export abstract class GemElement<T = Record<string, unknown>> extends HTMLElemen
         this.effect(
           () => {
             const root = this.getRootNode() as ShadowRoot | Document;
-            root.adoptedStyleSheets = [...root.adoptedStyleSheets, ...sheets];
+            root.adoptedStyleSheets.push(...sheets);
             return () => {
               root.adoptedStyleSheets = removeItems(root.adoptedStyleSheets, sheets);
             };

@@ -10,7 +10,7 @@
   "fill": true,
   "aspectRatio": 4,
   "smooth": true,
-  "chartzoom": true,
+  "chartZoom": true,
   "yMax": 10,
   "xAxi": { "formatter": "(value) => value.toFixed(2)" },
   "yAxi": { "formatter": "(value) => value.toFixed(1)" },

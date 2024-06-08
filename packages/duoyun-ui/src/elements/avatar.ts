@@ -182,7 +182,7 @@ export class DuoyunAvatarGroupElement extends GemElement {
 
   constructor() {
     super();
-    this.internals.role = 'group';
+    this.internals.role = 'list';
   }
 
   #parts = exportPartsMap({ [DuoyunAvatarElement.avatar]: DuoyunAvatarGroupElement.avatar });
@@ -192,6 +192,7 @@ export class DuoyunAvatarGroupElement extends GemElement {
       <dy-avatar
         exportparts=${this.#parts}
         class="item"
+        role="listitem"
         .src=${src}
         .tooltip=${tooltip}
         .alt=${alt}
@@ -210,7 +211,12 @@ export class DuoyunAvatarGroupElement extends GemElement {
       ${this.#items.slice(0, this.#max).map((avatar) => this.#renderAvatar(avatar))}
       ${rest.length
         ? html`
-            <dy-avatar exportparts=${DuoyunAvatarElement.avatar} class="item" .tooltip=${rest.map((e) => e.alt).join()}>
+            <dy-avatar
+              exportparts=${DuoyunAvatarElement.avatar}
+              class="item"
+              role="listitem"
+              .tooltip=${rest.map((e) => e.alt).join()}
+            >
               +${rest.length}
             </dy-avatar>
           `
