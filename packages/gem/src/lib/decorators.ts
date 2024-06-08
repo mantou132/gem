@@ -78,6 +78,20 @@ export function refobject<T extends GemElement<any>, V extends HTMLElement>(
  * ```
  */
 const observedAttributes = new WeakMap<GemElementPrototype, Set<string>>();
+const hackMethods = ['setAttribute', 'removeAttribute', 'toggleAttribute'] as const;
+function hackObservedAttribute(target: any, attr: string) {
+  const attrSet = observedAttributes.get(target) || new Set(target.constructor.observedAttributes);
+  attrSet.add(attr);
+  if (!observedAttributes.has(target)) {
+    hackMethods.forEach((key) => {
+      target[key] = function (n: string, v: string) {
+        Element.prototype[key].apply(this, [n, v]);
+        if (attrSet.has(n)) this.attributeChangedCallback();
+      };
+    });
+  }
+  observedAttributes.set(target, attrSet);
+}
 function defineAttr(t: GemElement, prop: string, attrType?: StaticField) {
   const target = Object.getPrototypeOf(t);
   if (!target.hasOwnProperty(prop)) {
@@ -85,19 +99,8 @@ function defineAttr(t: GemElement, prop: string, attrType?: StaticField) {
     pushStaticField(target, 'observedAttributes', attr); // 没有 observe 的效果
     attrType && pushStaticField(target, attrType, attr, true);
     defineAttribute(target, prop, attr);
-
-    // hack `observedAttributes`
     // 不在 Devtools 中工作 https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/Content_scripts#dom_access
-    const attrSet = observedAttributes.get(target) || new Set(target.constructor.observedAttributes);
-    attrSet.add(attr);
-    if (!observedAttributes.has(target)) {
-      const setAttribute = Element.prototype.setAttribute;
-      target.setAttribute = function (n: string, v: string) {
-        setAttribute.apply(this, [n, v]);
-        if (attrSet.has(n)) this.attributeChangedCallback();
-      };
-    }
-    observedAttributes.set(target, attrSet);
+    hackObservedAttribute(target, attr);
   }
   clearField(t, prop);
 }
