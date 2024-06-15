@@ -1,6 +1,6 @@
-import { defineAttribute, defineCSSState, defineProperty, defineRef, GemElement, nativeDefineElement } from './element';
-import { Store } from './store';
+import { defineAttribute, defineCSSState, defineProperty, defineRef, GemElement } from './element';
 import { Sheet, camelToKebabCase, randomStr } from './utils';
+import { Store } from './store';
 
 type GemElementPrototype = GemElement<any>;
 type GemElementConstructor = typeof GemElement;
@@ -67,6 +67,26 @@ export function refobject<T extends GemElement<any>, V extends HTMLElement>(
   });
 }
 
+const observedTargetAttributes = new WeakMap<GemElementPrototype, Set<string>>();
+const hackMethods = ['setAttribute', 'removeAttribute', 'toggleAttribute'] as const;
+function hackObservedAttribute(target: any, attr: string) {
+  const attrSet = observedTargetAttributes.get(target) || new Set(target.constructor.observedAttributes);
+  attrSet.add(attr);
+  if (!observedTargetAttributes.has(target)) {
+    const proto = Element.prototype;
+    hackMethods.forEach((key) => {
+      target[key] = function (n: string, v?: string | boolean) {
+        const oldV = proto.getAttribute.call(this, n);
+        proto[key].call(this, n, v);
+        if (attrSet.has(n) && oldV !== proto.getAttribute.call(this, n)) {
+          this.attributeChangedCallback();
+        }
+      };
+    });
+  }
+  observedTargetAttributes.set(target, attrSet);
+}
+
 /**
  * 定义一个响应式的 attribute，驼峰字段名将自动映射到烤串 attribute，默认值为空字符串
  *
@@ -77,21 +97,6 @@ export function refobject<T extends GemElement<any>, V extends HTMLElement>(
  *  }
  * ```
  */
-const observedAttributes = new WeakMap<GemElementPrototype, Set<string>>();
-const hackMethods = ['setAttribute', 'removeAttribute', 'toggleAttribute'] as const;
-function hackObservedAttribute(target: any, attr: string) {
-  const attrSet = observedAttributes.get(target) || new Set(target.constructor.observedAttributes);
-  attrSet.add(attr);
-  if (!observedAttributes.has(target)) {
-    hackMethods.forEach((key) => {
-      target[key] = function (n: string, v: string) {
-        Element.prototype[key].apply(this, [n, v]);
-        if (attrSet.has(n)) this.attributeChangedCallback();
-      };
-    });
-  }
-  observedAttributes.set(target, attrSet);
-}
 function defineAttr(t: GemElement, prop: string, attrType?: StaticField) {
   const target = Object.getPrototypeOf(t);
   if (!target.hasOwnProperty(prop)) {
@@ -140,8 +145,8 @@ export function numattribute<T extends GemElement<any>>(_: undefined, context: C
  * ```
  */
 export function property<T extends GemElement<any>>(_: undefined, context: ClassFieldDecoratorContext<T>) {
+  const prop = context.name as string;
   context.addInitializer(function (this: T) {
-    const prop = context.name as string;
     const target = Object.getPrototypeOf(this);
     if (!target.hasOwnProperty(prop)) {
       pushStaticField(this, 'observedProperties', prop);
@@ -149,6 +154,10 @@ export function property<T extends GemElement<any>>(_: undefined, context: Class
     }
     clearField(this, prop);
   });
+  // 延时定义的元素需要继承原实例属性值
+  return function (this: any, initValue: any) {
+    return this[prop] ?? initValue;
+  };
 }
 
 /**
@@ -320,6 +329,6 @@ export function rootElement(rootType: string) {
  */
 export function customElement(name: string) {
   return function (cls: new (...args: any) => any, _: ClassDecoratorContext) {
-    nativeDefineElement(name, cls);
+    customElements.define(name, cls);
   };
 }

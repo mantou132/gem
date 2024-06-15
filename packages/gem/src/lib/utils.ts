@@ -288,7 +288,9 @@ export function createCSSSheet<T extends StyledKeyValuePair>(rules: T | string, 
 }
 
 export function randomStr(len = 5): string {
-  const str = Math.random().toString(36).slice(2).slice(0, len);
+  const str = Math.random()
+    .toString(36)
+    .slice(2, 2 + len);
   if (str.length < len) return str + randomStr(len - str.length);
   return str;
 }

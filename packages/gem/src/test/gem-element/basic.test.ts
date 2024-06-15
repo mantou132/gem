@@ -3,6 +3,15 @@ import { fixture, expect, nextFrame } from '@open-wc/testing';
 import { GemElement, html } from '../../lib/element';
 import { createStore, updateStore } from '../../lib/store';
 import { createCSSSheet, css } from '../../lib/utils';
+import {
+  adoptedStyle,
+  attribute,
+  boolattribute,
+  connectStore,
+  customElement,
+  numattribute,
+  property,
+} from '../../lib/decorators';
 
 const store = createStore({
   a: 1,
@@ -14,28 +23,17 @@ const styles = createCSSSheet(css`
   }
 `);
 
+@connectStore(store)
+@adoptedStyle(styles)
+@customElement('gem-demo')
 class GemDemo extends GemElement {
-  static observedAttributes = ['attr', 'long-attr', 'disabled', 'count'];
-  static booleanAttributes = new Set(['disabled']);
-  static numberAttributes = new Set(['count']);
+  @attribute longAttr: string;
+  @attribute attr: string;
+  @boolattribute disabled: boolean;
+  @numattribute count: number;
+  @property prop = { value: '' };
 
-  declare attr: string | null;
-  declare disabled: boolean;
-  declare count: number;
-  declare longAttr: string;
-  declare prop: { value: string };
-
-  static observedStores = [store];
-
-  static observedProperties = ['prop'];
-
-  static adoptedStyleSheets = [styles];
   state = { value: '' };
-
-  constructor() {
-    super();
-    this.prop = { value: '' };
-  }
 
   renderCount = 0;
 
@@ -46,12 +44,9 @@ class GemDemo extends GemElement {
   }
 }
 
-customElements.define('gem-demo', GemDemo);
-
 class DeferGemElement extends GemElement {
-  static observedAttributes = ['attr'];
-  declare attr: string | null;
-  declare prop: { value: string };
+  @attribute attr: string;
+  @property prop: { value: string };
 }
 
 describe('基本 gem element 测试', () => {
@@ -101,6 +96,7 @@ describe('基本 gem element 测试', () => {
     el.disabled = true;
     el.count = 2;
     await Promise.resolve();
+    // 相同值不触发更新
     el.attr = 'value';
     el.disabled = true;
     el.count = 2;
@@ -110,6 +106,8 @@ describe('基本 gem element 测试', () => {
     expect(el.disabled).to.equal(true);
     expect(el.count).to.equal(2);
     expect(el).shadowDom.to.equal('attr: value, disabled: true, count: 2, prop: , state: ');
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
     el.attr = null;
     await Promise.resolve();
     expect(el.hasAttribute('attr')).to.equal(false);

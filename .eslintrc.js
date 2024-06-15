@@ -26,6 +26,8 @@ module.exports = {
   rules: {
     'no-console': 1,
     'sort-imports': 0,
+    'no-shadow': 1,
+    'import/no-extraneous-dependencies': 2,
     'import/no-named-as-default': 0,
     // https://github.com/benmosher/eslint-plugin-import/blob/HEAD/docs/rules/order.md
     'import/order': ['error', { 'newlines-between': 'always' }],

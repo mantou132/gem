@@ -92,21 +92,21 @@ export abstract class GemElement<T = Record<string, unknown>> extends HTMLElemen
   // https://github.com/microsoft/TypeScript/issues/21388#issuecomment-934345226
   static #final = Symbol();
 
-  // 这里只是字段申明，不能赋值，否则子类会继承被共享该字段
+  // 指定 root 元素类型
+  static rootElement?: string;
+  // 实例化时使用到
+  static observedStores?: Store<unknown>[];
+  static adoptedStyleSheets?: Sheet<unknown>[];
+  // 以下静态字段仅供外部读取，没有实际作用
+  static observedProperties?: string[];
   static observedAttributes?: string[]; // 必须在定义元素前指定
   static booleanAttributes?: Set<string>;
   static numberAttributes?: Set<string>;
-  static observedProperties?: string[];
-  static observedStores?: Store<unknown>[];
-  static adoptedStyleSheets?: Sheet<unknown>[];
   static defineEvents?: string[];
   static defineCSSStates?: string[];
   static defineRefs?: string[];
-  // 以下静态字段仅供外部读取，没有实际作用
   static defineParts?: string[];
   static defineSlots?: string[];
-  // 指定 root 元素类型
-  static rootElement?: string;
 
   // 定义当前元素的状态，和 attr/prop 的本质区别是不为外部输入
   readonly state?: T;
@@ -264,9 +264,9 @@ export abstract class GemElement<T = Record<string, unknown>> extends HTMLElemen
    * }
    * ```
    * */
-  effect = <T = any[] | undefined>(callback: EffectCallback<T>, getDep?: T extends any[] ? () => T : undefined) => {
+  effect = <K = any[] | undefined>(callback: EffectCallback<K>, getDep?: K extends any[] ? () => K : undefined) => {
     if (!this.#effectList) this.#effectList = [];
-    const effectItem: EffectItem<T> = {
+    const effectItem: EffectItem<K> = {
       callback,
       getDep,
       initialized: this.#isMounted,
@@ -274,7 +274,7 @@ export abstract class GemElement<T = Record<string, unknown>> extends HTMLElemen
     };
     // 以挂载时立即执行副作用，未挂载时等挂载后执行
     if (this.#isMounted) {
-      effectItem.values = getDep?.() as T;
+      effectItem.values = getDep?.() as K;
       effectItem.preCallback = callback(effectItem.values);
     }
     this.#effectList.push(effectItem);
@@ -296,7 +296,7 @@ export abstract class GemElement<T = Record<string, unknown>> extends HTMLElemen
    * }
    * ```
    * */
-  memo = <T = any[] | undefined>(callback: EffectCallback<T>, getDep?: T extends any[] ? () => T : undefined) => {
+  memo = <K = any[] | undefined>(callback: EffectCallback<K>, getDep?: K extends any[] ? () => K : undefined) => {
     if (!this.#memoList) this.#memoList = [];
     this.#memoList.push({
       callback,
@@ -551,21 +551,20 @@ export function defineProperty(
     set(v) {
       const that = this as GemElement;
       const proxy = gemElementProxyMap.get(that);
-      if (v !== proxy[prop]) {
-        if (event) {
-          proxy[prop] = v?.[isEventHandleSymbol]
-            ? v
-            : (detail: any, options: any) => {
-                const evt = new CustomEvent(event, { ...options, ...eventOptions, detail });
-                that.dispatchEvent(evt);
-                v(detail, options);
-              };
-          Reflect.set(proxy[prop]!, isEventHandleSymbol, true);
-          // emitter 不触发元素更新
-        } else {
-          proxy[prop] = v;
-          this[updateSymbol]();
-        }
+      if (v === proxy[prop]) return;
+      if (event) {
+        proxy[prop] = v?.[isEventHandleSymbol]
+          ? v
+          : (detail: any, options: any) => {
+              const evt = new CustomEvent(event, { ...options, ...eventOptions, detail });
+              that.dispatchEvent(evt);
+              v(detail, options);
+            };
+        Reflect.set(proxy[prop]!, isEventHandleSymbol, true);
+        // emitter 不触发元素更新
+      } else {
+        proxy[prop] = v;
+        this[updateSymbol]();
       }
     },
   });
@@ -627,21 +626,6 @@ export function defineCSSState(target: GemElementPrototype, prop: string, state:
     },
   });
 }
-
-export const nativeDefineElement = customElements.define.bind(customElements);
-customElements.define = (name: string, cls: CustomElementConstructor, options?: ElementDefinitionOptions) => {
-  if (cls.prototype instanceof GemElement) {
-    const { observedAttributes, observedProperties, defineEvents, defineCSSStates, defineRefs } =
-      cls as unknown as typeof GemElement;
-    observedAttributes?.forEach((attr) => defineAttribute(cls.prototype, kebabToCamelCase(attr), attr));
-    observedProperties?.forEach((prop) => defineProperty(cls.prototype, prop));
-    defineEvents?.forEach((event) => defineProperty(cls.prototype, kebabToCamelCase(event), event));
-    defineCSSStates?.forEach((state) => defineCSSState(cls.prototype, kebabToCamelCase(state), state));
-    defineRefs?.forEach((ref) => defineRef(cls.prototype, kebabToCamelCase(ref), ref));
-  }
-
-  nativeDefineElement(name, cls, options);
-};
 
 declare global {
   interface Window {

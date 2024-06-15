@@ -1,17 +1,15 @@
-import { GemElement, html } from '@mantou/gem';
+import { GemElement, connectStore, customElement, html } from '@mantou/gem';
 
 import api from './api';
 import { pageA } from './store';
 
-customElements.define(
-  'app-page-a',
-  class extends GemElement {
-    static observedStores = [pageA];
-    mounted() {
-      api.getData();
-    }
-    render() {
-      return html`<slot></slot> ${pageA.text}`;
-    }
-  },
-);
+@connectStore(pageA)
+@customElement('app-page-a')
+export class App extends GemElement {
+  mounted() {
+    api.getData();
+  }
+  render() {
+    return html`<slot></slot> ${pageA.text}`;
+  }
+}

@@ -1,4 +1,4 @@
-import { GemElement, html, render, useStore } from '@mantou/gem';
+import { GemElement, connectStore, customElement, html, property, render, useStore } from '@mantou/gem';
 
 import '../elements/layout';
 
@@ -10,93 +10,90 @@ setInterval(() => {
   update({ number: (store.number % 10) + 1 });
 }, 1000);
 
-customElements.define(
-  'fiber-dot',
-  class extends GemElement {
-    static observedStores = [store];
-    constructor() {
-      super({ isAsync: true });
-      this.addEventListener('mouseenter', this.onMouseenter);
-      this.addEventListener('mouseleave', this.onMouseleave);
-    }
+@customElement('fiber-dot')
+@connectStore(store)
+export class Dot extends GemElement {
+  constructor() {
+    super({ isAsync: true });
+    this.addEventListener('mouseenter', this.onMouseenter);
+    this.addEventListener('mouseleave', this.onMouseleave);
+  }
 
-    onMouseenter = () => {
-      this.setState({ hover: true });
-    };
-    onMouseleave = () => {
-      this.setState({ hover: false });
-    };
+  onMouseenter = () => {
+    this.setState({ hover: true });
+  };
+  onMouseleave = () => {
+    this.setState({ hover: false });
+  };
 
-    size: number;
-    x: number;
-    y: number;
+  size: number;
+  x: number;
+  y: number;
 
-    state = { hover: false };
+  state = { hover: false };
 
-    render() {
-      const s = this.size * 1.3;
-      Object.assign(this.style, {
-        width: s + 'px',
-        height: s + 'px',
-        left: this.x + 'px',
-        top: this.y + 'px',
-        borderRadius: s / 2 + 'px',
-        lineHeight: s + 'px',
-        background: this.state.hover ? '#ff0' : '#61dafb',
-      });
-      return html`
-        <style>
-          :host {
-            position: absolute;
-            font: normal 15px sans-serif;
-            text-align: center;
-            cursor: pointer;
-            display: block;
-          }
-        </style>
-        ${this.state.hover ? '**' + store.number + '**' : store.number}
-      `;
-    }
-  },
-);
+  render() {
+    const s = this.size * 1.3;
+    Object.assign(this.style, {
+      width: s + 'px',
+      height: s + 'px',
+      left: this.x + 'px',
+      top: this.y + 'px',
+      borderRadius: s / 2 + 'px',
+      lineHeight: s + 'px',
+      background: this.state.hover ? '#ff0' : '#61dafb',
+    });
+    return html`
+      <style>
+        :host {
+          position: absolute;
+          font: normal 15px sans-serif;
+          text-align: center;
+          cursor: pointer;
+          display: block;
+        }
+      </style>
+      ${this.state.hover ? '**' + store.number + '**' : store.number}
+    `;
+  }
+}
 
 const targetSize = 25;
-customElements.define(
-  'fiber-triangle',
-  class extends GemElement {
-    x: number;
-    y: number;
-    s: number;
-    seconds: number;
 
-    render() {
-      let s = this.s;
-      if (s <= targetSize) {
-        return html`
-          <fiber-dot .x=${this.x - targetSize / 2} .y=${this.y - targetSize / 2} .size=${targetSize}></fiber-dot>
-        `;
-      }
-      s = s / 2;
+@customElement('fiber-triangle')
+export class Triangle extends GemElement {
+  x: number;
+  y: number;
+  s: number;
+  seconds: number;
 
-      const slowDown = true;
-      if (slowDown) {
-        const e = performance.now() + 0.8;
-        while (performance.now() < e) {
-          // Artificially long execution time.
-        }
-      }
+  render() {
+    let s = this.s;
+    if (s <= targetSize) {
       return html`
-        <fiber-triangle .x=${this.x} .y=${this.y - s / 2} .s=${s}></fiber-triangle>
-        <fiber-triangle .x=${this.x - s} .y=${this.y + s / 2} .s=${s}></fiber-triangle>
-        <fiber-triangle .x=${this.x + s} .y=${this.y + s / 2} .s=${s}></fiber-triangle>
+        <fiber-dot .x=${this.x - targetSize / 2} .y=${this.y - targetSize / 2} .size=${targetSize}></fiber-dot>
       `;
     }
-  },
-);
+    s = s / 2;
 
+    const slowDown = true;
+    if (slowDown) {
+      const e = performance.now() + 0.8;
+      while (performance.now() < e) {
+        // Artificially long execution time.
+      }
+    }
+    return html`
+      <fiber-triangle .x=${this.x} .y=${this.y - s / 2} .s=${s}></fiber-triangle>
+      <fiber-triangle .x=${this.x - s} .y=${this.y + s / 2} .s=${s}></fiber-triangle>
+      <fiber-triangle .x=${this.x + s} .y=${this.y + s / 2} .s=${s}></fiber-triangle>
+    `;
+  }
+}
+
+@customElement('app-root')
 class App extends GemElement {
-  static observedProperties = ['elapsed'];
-  declare elapsed: number;
+  @property elapsed: number;
   render() {
     const elapsed = this.elapsed;
     const t = (elapsed / 1000) % 10;
@@ -120,7 +117,6 @@ class App extends GemElement {
     `;
   }
 }
-customElements.define('app-root', App);
 
 const app = new App();
 render(

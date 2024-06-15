@@ -1,4 +1,4 @@
-import { GemElement, html, styled, createCSSSheet, render } from '@mantou/gem';
+import { GemElement, html, styled, createCSSSheet, render, adoptedStyle, customElement } from '@mantou/gem';
 
 import '../elements/layout';
 
@@ -17,8 +17,9 @@ const styles = createCSSSheet({
   `,
 });
 
-class App extends GemElement {
-  static adoptedStyleSheets = [styles];
+@adoptedStyle(styles)
+@customElement('app-root')
+export class App extends GemElement {
   render() {
     return html`
       <h1 class=${styles.h1}>Header 1</h1>
@@ -26,8 +27,6 @@ class App extends GemElement {
     `;
   }
 }
-
-customElements.define('app-root', App);
 
 render(
   html`
