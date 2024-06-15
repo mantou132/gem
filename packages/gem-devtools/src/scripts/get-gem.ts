@@ -256,8 +256,6 @@ export const getSelectedGem = function (data: PanelStore, gemElementSymbols: str
     'name',
     'prototype',
     'observedAttributes',
-    'booleanAttributes',
-    'numberAttributes',
     'observedProperties',
     'observedStores',
     'adoptedStyleSheets',

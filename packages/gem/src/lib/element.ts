@@ -77,8 +77,6 @@ type EffectItem<T> = {
   preCallback?: () => void;
 };
 
-const constructorSymbol = Symbol('constructor');
-const initSymbol = Symbol('init');
 const updateSymbol = Symbol('update');
 
 export interface GemElementOptions extends Partial<ShadowRootInit> {
@@ -100,8 +98,6 @@ export abstract class GemElement<T = Record<string, unknown>> extends HTMLElemen
   // 以下静态字段仅供外部读取，没有实际作用
   static observedProperties?: string[];
   static observedAttributes?: string[]; // 必须在定义元素前指定
-  static booleanAttributes?: Set<string>;
-  static numberAttributes?: Set<string>;
   static defineEvents?: string[];
   static defineCSSStates?: string[];
   static defineRefs?: string[];
@@ -116,23 +112,20 @@ export abstract class GemElement<T = Record<string, unknown>> extends HTMLElemen
   #isAppendReason?: boolean;
   // 和 isConnected 有区别
   #isMounted?: boolean;
+  #isConnected?: boolean;
   #isAsync?: boolean;
   #effectList?: EffectItem<any>[];
   #memoList?: EffectItem<any>[];
   #unmountCallback?: any;
 
+  [updateSymbol]() {
+    if (this.#isMounted) {
+      addMicrotask(this.#update);
+    }
+  }
+
   constructor(options: GemElementOptions = {}) {
     super();
-
-    // 外部不可见，但允许类外面使用
-    addMicrotask(() => Reflect.set(this, initSymbol, false));
-    Reflect.set(this, constructorSymbol, true);
-    Reflect.set(this, initSymbol, true);
-    Reflect.set(this, updateSymbol, () => {
-      if (this.#isMounted) {
-        addMicrotask(this.#update);
-      }
-    });
 
     this.#isAsync = options.isAsync;
     this.#renderRoot = options.isLight
@@ -270,7 +263,7 @@ export abstract class GemElement<T = Record<string, unknown>> extends HTMLElemen
       callback,
       getDep,
       initialized: this.#isMounted,
-      inConstructor: (this as any)[constructorSymbol],
+      inConstructor: !this.#isConnected,
     };
     // 以挂载时立即执行副作用，未挂载时等挂载后执行
     if (this.#isMounted) {
@@ -301,7 +294,7 @@ export abstract class GemElement<T = Record<string, unknown>> extends HTMLElemen
     this.#memoList.push({
       callback,
       getDep,
-      inConstructor: (this as any)[constructorSymbol],
+      inConstructor: !this.#isConnected,
     });
   };
 
@@ -406,9 +399,7 @@ export abstract class GemElement<T = Record<string, unknown>> extends HTMLElemen
 
     const { observedStores, rootElement } = this.constructor as typeof GemElement;
 
-    // 似乎这是最早的判断不在 `constructor` 中的地方
-    Reflect.set(this, constructorSymbol, false);
-
+    this.#isConnected = true;
     this.willMount?.();
     this.#disconnectStore = observedStores?.map((store) => connect(store, this.#update));
     this.#render();
@@ -488,69 +479,40 @@ export abstract class GemElement<T = Record<string, unknown>> extends HTMLElemen
 const gemElementProxyMap = new PropProxyMap<GemElement>();
 type GemElementPrototype = GemElement<any>;
 
-export function defineAttribute(target: GemElementPrototype, prop: string, attr: string) {
-  const { booleanAttributes, numberAttributes } = target.constructor as typeof GemElement;
-  Object.defineProperty(target, prop, {
-    configurable: true,
-    get() {
-      // fix karma test
-      // 判断是否是自定义元素实例
-      if (!(initSymbol in this)) return;
-      const that = this as GemElement;
-      // 不能从 proxy 对象中读取值
-      const value = that.getAttribute(attr);
-      if (booleanAttributes?.has(attr)) {
-        return value === null ? false : true;
-      }
-      if (numberAttributes?.has(attr)) {
-        return Number(value);
-      }
-      return value || '';
-    },
-    set(v: string | null | undefined | number | boolean) {
-      const that = this as GemElement;
-      const proxy = gemElementProxyMap.get(this);
-      const hasSet = proxy[prop];
-      const value = that.getAttribute(attr);
-      // https://github.com/whatwg/dom/issues/922
-      if (this[initSymbol] && value !== null && !hasSet) return;
-      // 字段和构造函数中都有对 attr 设置时会执行多次
-      // Firefox WebConsole 中不知道为什么在构造函数中 this[initSymbol] 已经为 false
-      proxy[prop] = true;
-      const isBool = booleanAttributes?.has(attr);
-      if (v === null || v === undefined) {
-        that.removeAttribute(attr);
-      } else if (isBool) {
-        // 当 attr 存在且 !!v 为 true 时，toggleAttribute 不会造成 Attribute 改变
-        that.toggleAttribute(attr, !!v);
-      } else {
-        if (value !== String(v)) that.setAttribute(attr, String(v));
-      }
-    },
-  });
-}
-
+type DefinePropertyOptions = {
+  attr?: string;
+  attrType?: (v?: any) => any;
+  event?: string;
+  eventOptions?: Omit<CustomEventInit<unknown>, 'detail'>;
+};
 const isEventHandleSymbol = Symbol('event handle');
 export function defineProperty(
   target: GemElementPrototype,
   prop: string,
-  event?: string,
-  eventOptions?: Omit<CustomEventInit<unknown>, 'detail'>,
+  { attr, attrType, event, eventOptions }: DefinePropertyOptions = {},
 ) {
   Object.defineProperty(target, prop, {
     configurable: true,
     get() {
       const value = gemElementProxyMap.get(this)[prop];
-      if (value || !event) {
-        return value;
-      } else {
+      if (event && !value) {
         this[prop] = emptyFunction;
         return this[prop];
       }
+      return value;
     },
     set(v) {
       const that = this as GemElement;
       const proxy = gemElementProxyMap.get(that);
+      if (attr) {
+        const { removeAttribute, setAttribute } = Element.prototype;
+        v = attrType === Boolean && v === '' ? true : attrType!(v || '');
+        if (!v) {
+          removeAttribute.call(this, attr);
+        } else {
+          setAttribute.call(this, attr, attrType === Boolean ? '' : v);
+        }
+      }
       if (v === proxy[prop]) return;
       if (event) {
         proxy[prop] = v?.[isEventHandleSymbol]

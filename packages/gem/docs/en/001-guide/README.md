@@ -1,8 +1,6 @@
 # Introduction
 
-Gem is a lightweight library that uses modern WebComponents technology to build WebApp. Essentially, you just create individual custom elements and let them work together. They are very flexible and can be easily extended, such as integrated gestures. In addition to building WebApps, you can also use Gem to publish custom elements that can work independently(e.g [GemPanel](https://panel.gemjs.org/)). Custom elements can be easily used in other libraries, Therefore, Gem is also particularly suitable for building a UI component library(e.g [DuoyunUI](https://duoyun-ui.gemjs.org)).
-
-Before learning Gem, Hope you have a certain understanding of [WebComponents](https://developer.mozilla.org/en-US/docs/Web/Web_Components) technology.
+Gem is a lightweight library that uses modern [WebComponents](https://developer.mozilla.org/en-US/docs/Web/Web_Components) technology to build WebApp. Essentially, you just create individual custom elements and let them work together. They are very flexible and can be easily extended, such as integrated gestures. In addition to building WebApps, you can also use Gem to publish custom elements that can work independently(e.g [GemPanel](https://panel.gemjs.org/)). Custom elements can be easily used in other libraries, Therefore, Gem is also particularly suitable for building a UI component library(e.g [DuoyunUI](https://duoyun-ui.gemjs.org)).
 
 ## Installation
 
@@ -43,7 +41,7 @@ class MyElement extends GemElement {
 
 </gbp-sandpack>
 
-Use standard [customElements](https://developer.mozilla.org/en-US/docs/Web/API/Window/customElements) to define a custom element, and then use it in HTML in any way, of course, it can also be used in other custom element templates.
+Decorator `@customElement` use standard [API](https://developer.mozilla.org/en-US/docs/Web/API/Window/customElements) to define a custom element, and then use it in HTML in any way, of course, it can also be used in other custom element templates.
 
 Return the rendering template in the `render` method. Gem uses [lit-html](https://github.com/Polymer/lit-html) as its template engine. He uses ES6 template strings to write HTML templates. There are no other concepts and no compile-time.
 

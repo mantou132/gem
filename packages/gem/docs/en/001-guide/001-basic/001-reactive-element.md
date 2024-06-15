@@ -4,7 +4,7 @@ When you want to create a reactive WebApp, you need elements that can react(re-r
 
 ## Definition
 
-Define reactive attributes, using standard static property [observedAttributes](https://developer.mozilla.org/en-US/docs/Web/Web_Components/Using_custom_elements#Using_the_lifecycle_callbacks):
+Define reactive attributes, using decorator `@attribute`:
 
 ```js
 // Omit import...

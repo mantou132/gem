@@ -5,7 +5,7 @@
 
 ## 定义
 
-定义具备反应性的 attribute，使用标准的 [observedAttributes](https://developer.mozilla.org/en-US/docs/Web/Web_Components/Using_custom_elements#Using_the_lifecycle_callbacks) 静态属性：
+定义具备反应性的 attribute，使用装饰器 `@attribute`：
 
 ```js
 // 省略导入...

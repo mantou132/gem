@@ -1,4 +1,4 @@
-import { defineAttribute, defineCSSState, defineProperty, defineRef, GemElement } from './element';
+import { defineCSSState, defineProperty, defineRef, GemElement } from './element';
 import { Sheet, camelToKebabCase, randomStr } from './utils';
 import { Store } from './store';
 
@@ -7,23 +7,18 @@ type GemElementConstructor = typeof GemElement;
 type StaticField = Exclude<keyof GemElementConstructor, 'prototype' | 'rootElement'>;
 type StaticFieldMember = string | Store<unknown> | Sheet<unknown>;
 
-function pushStaticField(
-  target: GemElement | GemElementPrototype,
-  field: StaticField,
-  member: StaticFieldMember,
-  isSet = false,
-) {
+function pushStaticField(target: GemElement | GemElementPrototype, field: StaticField, member: StaticFieldMember) {
   const cls = target.constructor as GemElementConstructor;
   if (!cls.hasOwnProperty(field)) {
     // 继承基类
     const current = new Set<unknown>(cls[field]);
     current.delete(member);
     Object.defineProperty(cls, field, {
-      value: isSet ? current : [...current],
+      value: [...current],
     });
   }
 
-  (cls[field] as any)[isSet ? 'add' : 'push'](member);
+  cls[field]!.push(member as any);
 }
 
 function clearField<T extends GemElement<any>>(instance: T, prop: string) {
@@ -67,28 +62,57 @@ export function refobject<T extends GemElement<any>, V extends HTMLElement>(
   });
 }
 
-const observedTargetAttributes = new WeakMap<GemElementPrototype, Set<string>>();
-const hackMethods = ['setAttribute', 'removeAttribute', 'toggleAttribute'] as const;
-function hackObservedAttribute(target: any, attr: string) {
-  const attrSet = observedTargetAttributes.get(target) || new Set(target.constructor.observedAttributes);
-  attrSet.add(attr);
+type AttrType = BooleanConstructor | NumberConstructor | StringConstructor;
+const observedTargetAttributes = new WeakMap<GemElementPrototype, Map<string, string>>();
+function hackObservedAttribute(target: any, prop: string, attr: string) {
+  const attrMap = observedTargetAttributes.get(target) || new Map<string, string>();
+  attrMap.set(attr, prop);
   if (!observedTargetAttributes.has(target)) {
-    const proto = Element.prototype;
-    hackMethods.forEach((key) => {
-      target[key] = function (n: string, v?: string | boolean) {
-        const oldV = proto.getAttribute.call(this, n);
-        proto[key].call(this, n, v);
-        if (attrSet.has(n) && oldV !== proto.getAttribute.call(this, n)) {
-          this.attributeChangedCallback();
-        }
-      };
-    });
+    const { setAttribute, toggleAttribute, removeAttribute } = Element.prototype;
+    target.setAttribute = function (n: string, v: string) {
+      const p = attrMap.get(n);
+      if (!p) return setAttribute.call(this, n, v);
+      this[p] = v;
+    };
+    target.removeAttribute = function (n: string) {
+      const p = attrMap.get(n);
+      if (!p) return removeAttribute.call(this, n);
+      this[p] = null;
+    };
+    target.toggleAttribute = function (n: string, force?: boolean) {
+      const p = attrMap.get(n);
+      if (!p) return toggleAttribute.call(this, n, force);
+      return (this[p] = force ?? !this.hasAttribute(n));
+    };
   }
-  observedTargetAttributes.set(target, attrSet);
+  observedTargetAttributes.set(target, attrMap);
+}
+
+function defineAttr(t: GemElement, prop: string, attr: string, attrType: AttrType) {
+  const target = Object.getPrototypeOf(t);
+  if (!target.hasOwnProperty(prop)) {
+    pushStaticField(target, 'observedAttributes', attr); // 没有 observe 的效果
+    defineProperty(target, prop, { attr, attrType });
+    // 不在 Devtools 中工作 https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/Content_scripts#dom_access
+    hackObservedAttribute(target, prop, attr);
+  }
+  clearField(t, prop);
+}
+
+function decoratorAttr<T extends GemElement<any>>(context: ClassFieldDecoratorContext<T>, attrType: AttrType) {
+  const prop = context.name as string;
+  const attr = camelToKebabCase(prop);
+  context.addInitializer(function (this: T) {
+    defineAttr(this, prop, attr, attrType);
+  });
+  // 延时定义的元素需要继承原实例属性值
+  return function (this: any, initValue: any) {
+    return this.getAttribute(attr) ?? initValue;
+  };
 }
 
 /**
- * 定义一个响应式的 attribute，驼峰字段名将自动映射到烤串 attribute，默认值为空字符串
+ * 定义一个响应式的 attribute，驼峰字段名将自动映射到烤串 attribute，默认值为空字符串；不要覆盖定义
  *
  * For example
  * ```ts
@@ -97,45 +121,21 @@ function hackObservedAttribute(target: any, attr: string) {
  *  }
  * ```
  */
-function defineAttr(t: GemElement, prop: string, attrType?: StaticField) {
-  const target = Object.getPrototypeOf(t);
-  if (!target.hasOwnProperty(prop)) {
-    const attr = camelToKebabCase(prop);
-    pushStaticField(target, 'observedAttributes', attr); // 没有 observe 的效果
-    attrType && pushStaticField(target, attrType, attr, true);
-    defineAttribute(target, prop, attr);
-    // 不在 Devtools 中工作 https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/Content_scripts#dom_access
-    hackObservedAttribute(target, attr);
-  }
-  clearField(t, prop);
-}
-export function attribute<T extends GemElement<any>, V extends string>(
-  _: undefined,
-  context: ClassFieldDecoratorContext<T, V>,
-) {
-  context.addInitializer(function (this: T) {
-    const prop = context.name as string;
-    defineAttr(this, prop);
-  });
+export function attribute<T extends GemElement<any>>(_: undefined, context: ClassFieldDecoratorContext<T, string>) {
+  return decoratorAttr(context, String);
 }
 export function boolattribute<T extends GemElement<any>>(
   _: undefined,
   context: ClassFieldDecoratorContext<T, boolean>,
 ) {
-  context.addInitializer(function (this: T) {
-    const prop = context.name as string;
-    defineAttr(this, prop, 'booleanAttributes');
-  });
+  return decoratorAttr(context, Boolean);
 }
 export function numattribute<T extends GemElement<any>>(_: undefined, context: ClassFieldDecoratorContext<T, number>) {
-  context.addInitializer(function (this: T) {
-    const prop = context.name as string;
-    defineAttr(this, prop, 'numberAttributes');
-  });
+  return decoratorAttr(context, Number);
 }
 
 /**
- * 定义一个响应式的 property，注意值可能为 `undefined`
+ * 定义一个响应式的 property，注意值可能为 `undefined`；不要覆盖定义
  *
  * For example
  * ```ts
@@ -260,12 +260,12 @@ export function globalemitter<T extends GemElement<any>>(
     defineEmitter(this, context.name as string, { bubbles: true, composed: true });
   });
 }
-function defineEmitter(t: GemElement, prop: string, options?: Omit<CustomEventInit<unknown>, 'detail'>) {
+function defineEmitter(t: GemElement, prop: string, eventOptions?: Omit<CustomEventInit<unknown>, 'detail'>) {
   const target = Object.getPrototypeOf(t);
   if (!target.hasOwnProperty(prop)) {
     const event = camelToKebabCase(prop);
     pushStaticField(target, 'defineEvents', event);
-    defineProperty(target, prop, event, options);
+    defineProperty(target, prop, { event, eventOptions });
   }
   clearField(t, prop);
 }

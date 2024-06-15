@@ -1,6 +1,6 @@
 # Stylized elements
 
-Because of the use of ShadowDOM, there is no longer a need for [CSS Modules](https://css-tricks.com/css-modules-part-3-react/) similar solutions, in addition, browser compatibility has improved in recent years, and vendor private prefixes have also been cancelled. Can use native CSS features to complete daily work, e.g: [CSS Nesting](https://drafts.csswg.org/css-nesting-1/), [`@layer`](https://developer.mozilla.org/en-US/docs/Web/CSS/@layer).
+Because of the use of ShadowDOM, there is no longer a need for [CSS Modules](https://css-tricks.com/css-modules-part-3-react/) similar solutions, in addition, browser compatibility has improved in recent years, and vendor private prefixes have also been cancelled. Can use native CSS features to complete daily work, e.g: [CSS Nesting](https://drafts.csswg.org/css-nesting-1/), [`@layer`](https://developer.mozilla.org/en-US/docs/Web/CSS/@layer), [`@scope`](https://developer.mozilla.org/en-US/docs/Web/CSS/@scope).
 
 ## Shared style
 

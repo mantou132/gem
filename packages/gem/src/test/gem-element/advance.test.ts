@@ -82,8 +82,9 @@ class LifecycleGemElement extends GemElement {
 
   constructor(appTitle: string, appTitle2: string) {
     super();
-    this.appTitle = appTitle;
-    this.appTitle2 = appTitle2;
+    // 字段优先执行于构造函数
+    this.appTitle = appTitle ?? this.appTitle;
+    this.appTitle2 = appTitle2 ?? this.appTitle2;
     this.effect(
       () => {
         this.refInConstructor = this.divRef.element;
@@ -301,7 +302,15 @@ describe('gem element 继承', () => {
   it('attr/prop/emitter 继承', async () => {
     const name = window.name;
     const el: InheritGem = await fixture(html`<inherit-gem></inherit-gem>`);
-    expect(el.appTitle).to.equal('1');
+    /**
+     * NOTE: 默认值不能覆盖，可以在 `constructor` 中重新定义默认值
+     *
+     * 原因：
+     *
+     * 1. 执行装饰器时必须保留之前设置的 prop 值，所以 prop 的字段默认值不能覆盖，统一 attr 和 prop 的行为
+     * 2. 很难区分是基类中设置的 attr 还是模版中指定的 attr
+     */
+    expect(el.appTitle).to.equal('string');
     expect(el.appTitle2).to.equal('2');
     expect(el.appData.a).to.equal(1);
     el.appTitle = 'b';

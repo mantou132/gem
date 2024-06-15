@@ -21,7 +21,7 @@ function isExternal(path: string) {
  * @attr hint
  * @part link
  *
- * print bug: https://github.com/mantou132/gem/issues/36
+ * Bug: print `<link>` https://github.com/mantou132/gem/issues/36
  */
 @connectStore(basePathStore)
 export class GemLinkElement extends GemElement {

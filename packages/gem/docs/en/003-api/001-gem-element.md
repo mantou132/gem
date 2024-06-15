@@ -29,8 +29,6 @@ class GemElement<State> extends HTMLElement {
 | `observedProperties` | Observe the specified `property`, re-rendered by `property` changes           |
 | `observedStores`     | Observe the specified `Store`, re-rendered by `Store` changes                 |
 | `adoptedStyleSheets` | See [`DocumentOrShadowRoot.adoptedStyleSheets`][1]                            |
-| `booleanAttributes`  | Mark the type of the specified `attribute` as `boolean`                       |
-| `numberAttributes`   | Mark the type of the specified `attribute` as `number`                        |
 | `defineEvents`       | Define events, execute trigger events                                         |
 | `defineCSSStates`    | Define CSS State                                                              |
 | `defineRefs`         | Define DOM reference, [see](../001-guide/002-advance/002-gem-element-more.md) |
