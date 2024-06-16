@@ -50,4 +50,7 @@ let MyElement = (() => {
 
 ## Pitfalls of using ES Decorators
 
-`@attribute` no longer work through the`observedAttributes`, but intercept the `setAttribute`. Do not use the modified` setAttribute` in Devtools, so modify the element attribute in Devtools cannot trigger the element update.
+`@attribute` no longer work through the`observedAttributes`, but intercept the `setAttribute`. Do not use the modified` setAttribute` in DevTools, so modify the element attribute in DevTools cannot trigger the element update.
+
+> [!NOTE]
+> Installing the browser extension [Gem DevTools](https://chrome.google.com/webstore/detail/gem-devtools/lgfpciakeemopebkmjajengljoakjfle) will solve this problem

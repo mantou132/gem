@@ -52,3 +52,6 @@ let MyElement = (() => {
 ## 使用 ES 装饰器的缺陷
 
 `@attribute` 不再通过 `observedAttributes` 进行工作，而是拦截 `setAttribute`，在 DevTools 中修改时不使用修改后的 `setAttribute`，所以在 DevTools 中修改元素 Attribute 不能触发元素更新。
+
+> [!NOTE]
+> 安装浏览器扩展 [Gem DevTools](https://chrome.google.com/webstore/detail/gem-devtools/lgfpciakeemopebkmjajengljoakjfle) 将解决这一问题

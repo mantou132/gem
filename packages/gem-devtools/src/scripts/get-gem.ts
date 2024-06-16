@@ -91,16 +91,24 @@ export const getSelectedGem = function (data: PanelStore, gemElementSymbols: str
 
   const kebabToCamelCase = (str: string) => str.replace(/-(.)/g, (_substr, $1: string) => $1.toUpperCase());
   const attrs: Set<string> = $0.attributes ? new Set([...$0.attributes].map((attr) => attr.nodeName)) : new Set();
+  const elementMethod = new Set([
+    'connectedCallback',
+    'attributeChangedCallback',
+    'adoptedCallback',
+    'disconnectedCallback',
+    'setAttribute',
+    'removeAttribute',
+    'toggleAttribute',
+  ]);
   const lifecycleMethod = new Set(['willMount', 'render', 'mounted', 'shouldUpdate', 'updated', 'unmounted']);
-  const buildInLifecycleMethod = new Set(['connectedCallback', 'attributeChangedCallback', 'disconnectedCallback']);
   const buildInMethod = new Set(['update', 'setState', 'effect', 'memo', 'closestElement']);
   const buildInProperty = new Set(['internals']);
   const buildInAttribute = new Set(['ref']);
-  const member = getProps($0);
+  const memberSet = getProps($0);
   tagClass.observedAttributes?.forEach((attr) => {
     const prop = kebabToCamelCase(attr);
     const value = $0[prop];
-    member.delete(prop);
+    memberSet.delete(prop);
     attrs.delete(attr);
     data.observedAttributes.push({
       name: attr,
@@ -119,7 +127,7 @@ export const getSelectedGem = function (data: PanelStore, gemElementSymbols: str
     });
   });
   tagClass.observedProperties?.forEach((prop) => {
-    member.delete(prop);
+    memberSet.delete(prop);
     const value = $0[prop];
     const type = value === null ? 'null' : typeof value;
     data.observedProperties.push({
@@ -131,7 +139,7 @@ export const getSelectedGem = function (data: PanelStore, gemElementSymbols: str
   });
   tagClass.definedEvents?.forEach((event) => {
     const prop = kebabToCamelCase(event);
-    member.delete(prop);
+    memberSet.delete(prop);
     data.emitters.push({
       name: event,
       value: objectToString($0[prop]),
@@ -159,7 +167,7 @@ export const getSelectedGem = function (data: PanelStore, gemElementSymbols: str
     const isUnnamed = slot === 'unnamed';
     const prop = kebabToCamelCase(slot);
     if (!$0.constructor[prop]) {
-      member.delete(prop);
+      memberSet.delete(prop);
     }
     const selector = `[slot=${slot}]`;
     let element = isUnnamed ? $0.firstChild : $0.querySelector(selector);
@@ -178,7 +186,7 @@ export const getSelectedGem = function (data: PanelStore, gemElementSymbols: str
   tagClass.definedParts?.forEach((part) => {
     const prop = kebabToCamelCase(part);
     if (!$0.constructor[prop]) {
-      member.delete(prop);
+      memberSet.delete(prop);
     }
     const selector = `[part~=${part}],[exportparts*=${part}]`;
     data.parts.push({
@@ -190,7 +198,7 @@ export const getSelectedGem = function (data: PanelStore, gemElementSymbols: str
   });
   tagClass.definedRefs?.forEach((ref) => {
     const prop = kebabToCamelCase(ref.replace(/-\w+$/, ''));
-    member.delete(prop);
+    memberSet.delete(prop);
     data.refs.push({
       name: ref,
       value: objectToString($0[prop].element),
@@ -200,17 +208,17 @@ export const getSelectedGem = function (data: PanelStore, gemElementSymbols: str
   });
   tagClass.definedCSSStates?.forEach((state) => {
     const prop = kebabToCamelCase(state);
-    member.delete(prop);
+    memberSet.delete(prop);
     data.cssStates.push({
       name: state,
       value: $0[prop],
       type: 'boolean',
     });
   });
-  member.forEach((key) => {
-    member.delete(key);
+  memberSet.forEach((key) => {
+    memberSet.delete(key);
     // GemElement 不允许覆盖内置生命周期，所以不考虑
-    if (buildInLifecycleMethod.has(key)) return;
+    if (elementMethod.has(key)) return;
     if (key === 'state') {
       $0.state &&
         Object.keys($0.state).forEach((k) => {
@@ -265,6 +273,7 @@ export const getSelectedGem = function (data: PanelStore, gemElementSymbols: str
     'definedParts',
     'definedSlots',
   ]);
+  const buildInShowStaticMember = new Set(['rootElement']);
   const getStaticMember = (cls: any, set = new Set<string>()) => {
     Object.getOwnPropertyNames(cls).forEach((key) => {
       if (
@@ -287,6 +296,7 @@ export const getSelectedGem = function (data: PanelStore, gemElementSymbols: str
       type: typeof value,
       value: objectToString(value),
       path: inspectable(value) ? ['constructor', key] : undefined,
+      buildIn: buildInShowStaticMember.has(key) ? 1 : 0,
     });
   });
   // `Class` self

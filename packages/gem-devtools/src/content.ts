@@ -8,6 +8,7 @@ import './manifest.json';
 type DevToolsHookStore = {
   customElementMap: Map<string, CustomElementConstructor>;
   currentElementsMap: Map<string, Element>;
+  domAttrMutation?: MutationObserver;
 };
 declare global {
   interface Window {

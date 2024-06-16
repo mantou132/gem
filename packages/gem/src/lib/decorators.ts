@@ -62,48 +62,42 @@ export function refobject<T extends GemElement<any>, V extends HTMLElement>(
   });
 }
 
-type AttrType = BooleanConstructor | NumberConstructor | StringConstructor;
 const observedTargetAttributes = new WeakMap<GemElementPrototype, Map<string, string>>();
-function hackObservedAttribute(target: any, prop: string, attr: string) {
-  const attrMap = observedTargetAttributes.get(target) || new Map<string, string>();
-  attrMap.set(attr, prop);
-  if (!observedTargetAttributes.has(target)) {
-    const { setAttribute, toggleAttribute, removeAttribute } = Element.prototype;
-    target.setAttribute = function (n: string, v: string) {
-      const p = attrMap.get(n);
-      if (!p) return setAttribute.call(this, n, v);
-      this[p] = v;
-    };
-    target.removeAttribute = function (n: string) {
-      const p = attrMap.get(n);
-      if (!p) return removeAttribute.call(this, n);
-      this[p] = null;
-    };
-    target.toggleAttribute = function (n: string, force?: boolean) {
-      const p = attrMap.get(n);
-      if (!p) return toggleAttribute.call(this, n, force);
-      return (this[p] = force ?? !this.hasAttribute(n));
-    };
-  }
-  observedTargetAttributes.set(target, attrMap);
-}
+// hack 修改 attribute 行为，如果是观察的，就使用 `setter`
+// 不在 Devtools 中工作 https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/Content_scripts#dom_access
+// 使用 Gem DevTools 注入脚本监听 attribute 变化
+const { setAttribute, toggleAttribute, removeAttribute } = Element.prototype;
+GemElement.prototype.setAttribute = function (n: string, v: string) {
+  const prop = observedTargetAttributes.get(Object.getPrototypeOf(this))?.get(n);
+  if (!prop) return setAttribute.call(this, n, v);
+  (this as any)[prop] = v;
+};
+GemElement.prototype.removeAttribute = function (n: string) {
+  const prop = observedTargetAttributes.get(Object.getPrototypeOf(this))?.get(n);
+  if (!prop) return removeAttribute.call(this, n);
+  (this as any)[prop] = null;
+};
+GemElement.prototype.toggleAttribute = function (n: string, force?: boolean) {
+  const prop = observedTargetAttributes.get(Object.getPrototypeOf(this))?.get(n);
+  if (!prop) return toggleAttribute.call(this, n, force);
+  return ((this as any)[prop] = force ?? !this.hasAttribute(n));
+};
 
-function defineAttr(t: GemElement, prop: string, attr: string, attrType: AttrType) {
-  const target = Object.getPrototypeOf(t);
-  if (!target.hasOwnProperty(prop)) {
-    pushStaticField(target, 'observedAttributes', attr); // 没有 observe 的效果
-    defineProperty(target, prop, { attr, attrType });
-    // 不在 Devtools 中工作 https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/Content_scripts#dom_access
-    hackObservedAttribute(target, prop, attr);
-  }
-  clearField(t, prop);
-}
-
+type AttrType = BooleanConstructor | NumberConstructor | StringConstructor;
 function decoratorAttr<T extends GemElement<any>>(context: ClassFieldDecoratorContext<T>, attrType: AttrType) {
   const prop = context.name as string;
   const attr = camelToKebabCase(prop);
   context.addInitializer(function (this: T) {
-    defineAttr(this, prop, attr, attrType);
+    const target = Object.getPrototypeOf(this);
+    if (!target.hasOwnProperty(prop)) {
+      pushStaticField(target, 'observedAttributes', attr); // 没有 observe 的效果
+      defineProperty(target, prop, { attr, attrType });
+      // 记录观察的 attribute
+      const attrMap = observedTargetAttributes.get(target) || new Map<string, string>();
+      attrMap.set(attr, prop);
+      observedTargetAttributes.set(target, attrMap);
+    }
+    clearField(this, prop);
   });
   // 延时定义的元素需要继承原实例属性值
   return function (this: any, initValue: any) {
