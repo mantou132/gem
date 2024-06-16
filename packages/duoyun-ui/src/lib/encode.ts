@@ -53,12 +53,12 @@ export function fnv1a(str: string) {
   const FNV_OFFSET_BASIS = 2166136261;
   const FNV_PRIME = 16777619;
 
-  let hash = FNV_OFFSET_BASIS;
+  let v = FNV_OFFSET_BASIS;
   for (let i = 0; i < str.length; i++) {
-    hash ^= str.charCodeAt(i);
-    hash *= FNV_PRIME;
+    v ^= str.charCodeAt(i);
+    v *= FNV_PRIME;
   }
 
   // 减少连续性
-  return pseudoRandom(Math.abs(hash))();
+  return pseudoRandom(Math.abs(v))();
 }

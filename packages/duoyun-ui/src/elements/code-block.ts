@@ -343,8 +343,8 @@ export class DuoyunCodeBlockElement extends GemElement {
     });
   }
 
-  #getRanges(range: string) {
-    const ranges = range.split(/,\s*/);
+  #getRanges(str: string) {
+    const ranges = str.split(/,\s*/);
     return ranges.map((range) => {
       const [start, end = start] = range.split('-');
       return [parseInt(start) || 1, parseInt(end) || 0];
@@ -381,10 +381,10 @@ export class DuoyunCodeBlockElement extends GemElement {
         //
       }
     }
-    const html = Prism.languages[this.codelang]
+    const htmlStr = Prism.languages[this.codelang]
       ? Prism.highlight(this.textContent || '', Prism.languages[this.codelang], this.codelang)
       : this.innerHTML;
-    this.codeRef.element.innerHTML = this.#getParts(html);
+    this.codeRef.element.innerHTML = this.#getParts(htmlStr);
   };
 
   mounted() {

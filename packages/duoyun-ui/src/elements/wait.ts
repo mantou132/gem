@@ -76,8 +76,8 @@ export const closeLoading = async () => {
   DuoyunWaitElement.instance?.remove();
 };
 
-export const changeLoading = (state: Partial<State>) => {
-  DuoyunWaitElement.instance?.setState(state);
+export const changeLoading = (newState: Partial<State>) => {
+  DuoyunWaitElement.instance?.setState(newState);
 };
 
 type Position = 'start' | 'center' | 'end';
@@ -102,9 +102,9 @@ export class DuoyunWaitElement extends GemElement<State> {
 
   @state modal: boolean;
 
-  constructor(state: State = {}) {
+  constructor(initState: State = {}) {
     super();
-    this.state = state;
+    this.state = initState;
     this.internals.role = 'alert';
     this.internals.ariaBusy = 'true';
     this.addEventListener('contextmenu', (e) => e.preventDefault());

@@ -129,7 +129,7 @@ export const getSelectedGem = function (data: PanelStore, gemElementSymbols: str
       path: inspectable(value) ? [prop] : undefined,
     });
   });
-  tagClass.defineEvents?.forEach((event) => {
+  tagClass.definedEvents?.forEach((event) => {
     const prop = kebabToCamelCase(event);
     member.delete(prop);
     data.emitters.push({
@@ -155,7 +155,7 @@ export const getSelectedGem = function (data: PanelStore, gemElementSymbols: str
       path: ['constructor', 'observedStores', String(index)],
     });
   });
-  tagClass.defineSlots?.forEach((slot) => {
+  tagClass.definedSlots?.forEach((slot) => {
     const isUnnamed = slot === 'unnamed';
     const prop = kebabToCamelCase(slot);
     if (!$0.constructor[prop]) {
@@ -175,7 +175,7 @@ export const getSelectedGem = function (data: PanelStore, gemElementSymbols: str
       path: isNode ? ['firstChild'] : element ? ['querySelector', selector] : undefined,
     });
   });
-  tagClass.defineParts?.forEach((part) => {
+  tagClass.definedParts?.forEach((part) => {
     const prop = kebabToCamelCase(part);
     if (!$0.constructor[prop]) {
       member.delete(prop);
@@ -188,7 +188,7 @@ export const getSelectedGem = function (data: PanelStore, gemElementSymbols: str
       path: [['shadowRoot', ''], 'querySelector', selector],
     });
   });
-  tagClass.defineRefs?.forEach((ref) => {
+  tagClass.definedRefs?.forEach((ref) => {
     const prop = kebabToCamelCase(ref.replace(/-\w+$/, ''));
     member.delete(prop);
     data.refs.push({
@@ -198,7 +198,7 @@ export const getSelectedGem = function (data: PanelStore, gemElementSymbols: str
       path: [['shadowRoot', ''], 'querySelector', `[ref=${$0[prop].ref}]`],
     });
   });
-  tagClass.defineCSSStates?.forEach((state) => {
+  tagClass.definedCSSStates?.forEach((state) => {
     const prop = kebabToCamelCase(state);
     member.delete(prop);
     data.cssStates.push({
@@ -259,18 +259,18 @@ export const getSelectedGem = function (data: PanelStore, gemElementSymbols: str
     'observedProperties',
     'observedStores',
     'adoptedStyleSheets',
-    'defineEvents',
-    'defineCSSStates',
-    'defineRefs',
-    'defineParts',
-    'defineSlots',
+    'definedEvents',
+    'definedCSSStates',
+    'definedRefs',
+    'definedParts',
+    'definedSlots',
   ]);
   const getStaticMember = (cls: any, set = new Set<string>()) => {
     Object.getOwnPropertyNames(cls).forEach((key) => {
       if (
         !buildInStaticMember.has(key) &&
-        !tagClass.defineParts?.includes(cls[key]) &&
-        !tagClass.defineSlots?.includes(cls[key])
+        !tagClass.definedParts?.includes(cls[key]) &&
+        !tagClass.definedSlots?.includes(cls[key])
       ) {
         set.add(key);
       }

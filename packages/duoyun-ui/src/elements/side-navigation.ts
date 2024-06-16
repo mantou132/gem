@@ -155,16 +155,16 @@ export class DuoyunSideNavigationElement extends DuoyunScrollBaseElement<State> 
 
   #checkGroupStatus = () => {
     const { path } = history.getParams();
-    const matchChildren = (e: Item | NavItemGroup) => {
-      if ('group' in e) {
-        e.group.forEach(matchChildren);
+    const matchChildren = (item: Item | NavItemGroup) => {
+      if ('group' in item) {
+        item.group.forEach(matchChildren);
         return;
       }
-      const has = e.children?.some((e) =>
+      const has = item.children?.some((e) =>
         e.pattern ? matchPath(e.pattern, path) : e.children ? e.children.some(matchChildren) : false,
       );
-      if (has && e.title) {
-        this.setState({ [e.title]: true });
+      if (has && item.title) {
+        this.setState({ [item.title]: true });
         return true;
       }
     };

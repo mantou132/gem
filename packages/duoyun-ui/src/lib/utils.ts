@@ -82,8 +82,8 @@ export function getCascaderBubbleWeakMap<
     l?.forEach((e) => {
       check(e[cascaderKey]);
       let value: K | undefined | null = getItemValue(e);
-      e[cascaderKey]?.forEach((e: T) => {
-        const v = getItemValue(e);
+      e[cascaderKey]?.forEach((i: T) => {
+        const v = getItemValue(i);
         value = isNullish(value) ? v : comparerFn(v, value);
       });
       if (!isNullish(value)) {
@@ -158,11 +158,11 @@ export enum ComparerType {
 }
 
 /**Serialize comparer */
-export function comparer(a: any, comparer: ComparerType, b: any): boolean {
+export function comparer(a: any, comparerType: ComparerType, b: any): boolean {
   const aNum = Number(a);
   const bNum = Number(b);
   const isNumber = !isNaN(aNum) && !isNaN(aNum);
-  switch (comparer) {
+  switch (comparerType) {
     case ComparerType.Eq:
       return a == b;
     case ComparerType.Ne:
@@ -258,7 +258,7 @@ export function useCacheStore<T extends Record<string, any>>(
   const saveStore = () => {
     localStorage.setItem(
       key,
-      JSON.stringify(Object.fromEntries(Object.entries(store).filter(([key]) => !cacheExcludeKeys.has(key)))),
+      JSON.stringify(Object.fromEntries(Object.entries(store).filter(([k]) => !cacheExcludeKeys.has(k)))),
     );
   };
 
@@ -288,11 +288,11 @@ export function isRemoteIcon(icon: string | Element | DocumentFragment): icon is
  * not support async function
  */
 export class DyPromise<T, E extends Record<string, unknown>> extends Promise<T> {
-  static new<T, E extends Record<string, unknown>>(
-    executor: (resolve: (value: T | PromiseLike<T>) => void, reject: (reason?: any) => void) => void,
-    props: E,
+  static new<V, U extends Record<string, unknown>>(
+    executor: (resolve: (value: V | PromiseLike<V>) => void, reject: (reason?: any) => void) => void,
+    props: U,
   ) {
-    const instance = new DyPromise<T, E>(executor);
+    const instance = new DyPromise<V, U>(executor);
     return Object.assign(instance, props);
   }
   then<TResult1 = T, TResult2 = never>(

@@ -19,7 +19,7 @@ function getAlternateUrl(lang: string, pathname?: string) {
 export class Meta extends GemElement {
   render() {
     const { langList, lang = '', routes, homePage, getCurrentLink } = bookStore;
-    const route = routes?.find((route) => route.pattern === locationStore.path && route.redirect);
+    const route = routes?.find((e) => e.pattern === locationStore.path && e.redirect);
     const canonicalLink = getAlternateUrl(
       lang && langList && !location.pathname.startsWith(`/${lang}`) ? langList[0].code : lang,
       route?.redirect,

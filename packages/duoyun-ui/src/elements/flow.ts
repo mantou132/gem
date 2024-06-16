@@ -442,7 +442,7 @@ export class DuoyunFlowCanvasElement extends DuoyunResizeBaseElement {
       <!-- parent -->
       ${node.edges?.map((edge) => edge.sections?.map((section) => this.#renderEdge(section, edge)))}
       <!-- children -->
-      ${node.children?.map((node) => this.#renderChildrenEdge(node))}
+      ${node.children?.map((childrenNode) => this.#renderChildrenEdge(childrenNode))}
     `;
   };
 

@@ -32,7 +32,7 @@ import './loading';
 import './space';
 import './selection-box';
 
-const style = createCSSSheet(css`
+const styles = createCSSSheet(css`
   :host(:where(:not([hidden]))) {
     display: block;
     width: 100%;
@@ -155,7 +155,7 @@ export type ItemContextMenuEventDetail<T> = {
  * @customElement dy-table
  */
 @customElement('dy-table')
-@adoptedStyle(style)
+@adoptedStyle(styles)
 @adoptedStyle(focusStyle)
 @connectStore(icons)
 export class DuoyunTableElement<T = any, K = any> extends DuoyunScrollBoxElement {

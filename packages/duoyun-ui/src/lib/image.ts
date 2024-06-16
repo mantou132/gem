@@ -13,8 +13,8 @@ export function createCanvas(width?: number, height?: number) {
   return canvas;
 }
 
-export function createDataURLFromSVG(raw: string) {
-  return `data:image/svg+xml;base64,${window.btoa(raw)}`;
+export function createDataURLFromSVG(rawStr: string) {
+  return `data:image/svg+xml;base64,${window.btoa(rawStr)}`;
 }
 
 // if `bg` is't `HexColor`, text fill color error
@@ -159,8 +159,8 @@ export async function compressionImage(origin: Origin, limit: LimitOptions, { as
       if (limit.fileSize) {
         const res = await fetch(origin.currentSrc);
         const blob = await res.blob();
-        const type = res.headers.get('content-type');
-        file = new File([blob], 'temp', { type: type?.startsWith('image/') ? type : origin.type || '' });
+        const contentType = res.headers.get('content-type');
+        file = new File([blob], 'temp', { type: contentType?.startsWith('image/') ? contentType : origin.type || '' });
       }
     }
     const rate = Math.min(

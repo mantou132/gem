@@ -51,7 +51,7 @@ export type PersistentState = State & {
 @adoptedStyle(blockContainer)
 export class DuoyunOutsideElement extends DuoyunVisibleBaseElement {}
 
-const style = createCSSSheet(css`
+const styles = createCSSSheet(css`
   :host([infinite]),
   * {
     overflow-anchor: none;
@@ -70,7 +70,7 @@ const style = createCSSSheet(css`
  * @customElement dy-list
  */
 @customElement('dy-list')
-@adoptedStyle(style)
+@adoptedStyle(styles)
 @adoptedStyle(blockContainer)
 export class DuoyunListElement extends GemElement<State> {
   @part static list: string;
@@ -144,9 +144,9 @@ export class DuoyunListElement extends GemElement<State> {
   #getRowHeight = (ele?: DuoyunListItemElement) =>
     (ele ? ele.borderBoxSize.blockSize : this.#itemHeight) + this.#rowGap;
 
-  #setState = (state: Partial<State>) => {
-    this.#log(state);
-    this.setState(state);
+  #setState = (newState: Partial<State>) => {
+    this.#log(newState);
+    this.setState(newState);
   };
 
   #isLeftItem = (count: number) => !(count % this.#itemColumnCount);

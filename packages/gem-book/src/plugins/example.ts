@@ -18,7 +18,7 @@ customElements.whenDefined('gem-book').then(({ GemBookPluginElement }: typeof Ge
   const { Gem, theme, icons } = GemBookPluginElement;
   const { html, customElement, attribute, createCSSSheet, css, adoptedStyle, styleMap } = Gem;
 
-  const style = createCSSSheet(css`
+  const styles = createCSSSheet(css`
     :host(:where(:not([hidden]))) {
       display: flex;
       flex-direction: column;
@@ -78,7 +78,7 @@ customElements.whenDefined('gem-book').then(({ GemBookPluginElement }: typeof Ge
     }
   `);
   @customElement('gbp-example')
-  @adoptedStyle(style)
+  @adoptedStyle(styles)
   class _GbpExampleElement extends GemBookPluginElement<State> {
     @attribute name: string;
     @attribute src: string;

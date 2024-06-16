@@ -64,10 +64,10 @@ export class Main extends GemElement {
         const mdBody = getBody(this.content);
         this.#content = parseMarkdown(mdBody).map((detailsEle) => {
           if (detailsEle instanceof HTMLDetailsElement) {
-            const html = locationStore.path + detailsEle.innerHTML;
-            detailsEle.open = !!Main.detailsStateCache.get(html);
+            const key = locationStore.path + detailsEle.innerHTML;
+            detailsEle.open = !!Main.detailsStateCache.get(key);
             detailsEle.addEventListener('toggle', () => {
-              Main.detailsStateCache.set(html, detailsEle.open);
+              Main.detailsStateCache.set(key, detailsEle.open);
             });
           }
           return detailsEle;

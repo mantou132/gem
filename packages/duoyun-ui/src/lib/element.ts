@@ -12,7 +12,7 @@ export function getBoundingClientRect(eleList: Element[]) {
 
 export function toggleActiveState(ele: Element | undefined | null, active: boolean) {
   if (ele instanceof GemElement) {
-    if ((ele.constructor as typeof GemElement).defineCSSStates?.includes('active')) {
+    if ((ele.constructor as typeof GemElement).definedCSSStates?.includes('active')) {
       (ele as any).active = active;
     }
     // button/combobox

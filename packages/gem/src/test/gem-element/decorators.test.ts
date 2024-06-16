@@ -80,11 +80,11 @@ describe('装饰器', () => {
     await Promise.resolve();
     expect(DecoratorGemElement.observedStores).to.eql([{ a: 1 }]);
     expect(DecoratorGemElement.observedAttributes).to.eql(['rank-attr', 'rank-disabled', 'rank-count']);
-    expect(DecoratorGemElement.defineEvents).to.eql(['say-hi']);
-    expect(DecoratorGemElement.defineCSSStates).to.eql(['open-state']);
-    expect(DecoratorGemElement.defineParts).to.eql(['header-part']);
-    expect(DecoratorGemElement.defineSlots).to.eql(['body-slot']);
-    expect(DecoratorGemElement.defineRefs?.[0].startsWith('input-ref-')).to.equal(true);
+    expect(DecoratorGemElement.definedEvents).to.eql(['say-hi']);
+    expect(DecoratorGemElement.definedCSSStates).to.eql(['open-state']);
+    expect(DecoratorGemElement.definedParts).to.eql(['header-part']);
+    expect(DecoratorGemElement.definedSlots).to.eql(['body-slot']);
+    expect(DecoratorGemElement.definedRefs?.[0].startsWith('input-ref-')).to.equal(true);
     expect(DecoratorGemElement.observedProperties).to.eql(['propData']);
     expect(el.rankAttr).to.equal('attr');
     expect(el.rankDisabled).to.equal(true);

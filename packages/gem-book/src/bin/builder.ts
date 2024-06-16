@@ -2,7 +2,7 @@ import path from 'path';
 import { writeFileSync, symlinkSync, renameSync } from 'fs';
 
 import webpack, { DefinePlugin, Compiler, sources } from 'webpack';
-import serveStatic from 'serve-static';
+import { static as serveStatic } from 'express';
 import WebpackDevServer from 'webpack-dev-server';
 import HtmlWebpackPlugin from 'html-webpack-plugin';
 import CopyWebpackPlugin from 'copy-webpack-plugin';
@@ -83,9 +83,9 @@ function genPaths(bookConfig: BookConfig) {
   return result;
 }
 
-function getPluginRecord(plugin: string[]) {
+function getPluginRecord(pluginList: string[]) {
   return Object.fromEntries<{ name: string; url: string }>(
-    plugin.map((plugin) => {
+    pluginList.map((plugin) => {
       const [base, ...rest] = plugin.split(/(\?)/);
       const search = rest.join('');
       const pluginPath = resolveLocalPlugin(base);
@@ -105,7 +105,7 @@ function getPluginRecord(plugin: string[]) {
 }
 
 // dev mode uses memory file system
-export async function build(dir: string, options: Required<CliUniqueConfig>, bookConfig: BookConfig) {
+export async function buildApp(dir: string, options: Required<CliUniqueConfig>, bookConfig: BookConfig) {
   const { debug, build, theme, template, output, icon, ga, site, port, plugin } = options;
   const isRemoteIcon = isURL(icon);
   const docsDir = path.resolve(dir);
@@ -123,7 +123,7 @@ export async function build(dir: string, options: Required<CliUniqueConfig>, boo
   const docSearchPlugin = plugins.find((e) => e.name === 'docsearch')?.url;
   const isLocalSearch = docSearchPlugin && new URL(docSearchPlugin).searchParams.has('local');
 
-  const compiler = webpack({
+  const webpackCompiler = webpack({
     stats: build ? 'normal' : 'errors-warnings',
     mode: build ? 'production' : 'development',
     entry: [entryDir],
@@ -195,11 +195,11 @@ export async function build(dir: string, options: Required<CliUniqueConfig>, boo
         // 插件 query 参数传递
         'import.meta.url': DefinePlugin.runtimeValue(({ module }) => {
           // 如果是符号链接返回的是原始路径
-          const plugin =
+          const pluginInfo =
             pluginRecord[module.resource] ||
             // 如果是 GemBook 本身 GEM_BOOK_DEV 模式，路径是 src
             pluginRecord[module.resource.replace(/\/src\/plugins\/(\w*)\.ts/, '/plugins/$1.js')];
-          return JSON.stringify(plugin ? plugin.url : '');
+          return JSON.stringify(pluginInfo ? pluginInfo.url : '');
         }),
         'process.env.DEV_MODE': !build,
         'process.env.BOOK_CONFIG': JSON.stringify(bookConfig),
@@ -240,7 +240,7 @@ export async function build(dir: string, options: Required<CliUniqueConfig>, boo
     ],
   });
   if (build) {
-    compiler.run((err, stats) => {
+    webpackCompiler.run((err, stats) => {
       if (err) {
         print(err);
         return;
@@ -286,7 +286,7 @@ export async function build(dir: string, options: Required<CliUniqueConfig>, boo
         },
         port,
       },
-      compiler,
+      webpackCompiler,
     );
 
     return server;

@@ -40,11 +40,11 @@ export class DuoyunLineChartElement extends DuoyunBarChartElement {
           stroke-width: ${this.getSVGPixel(1)};
           fill: ${theme.backgroundColor};
         }
-        .serie:hover .line {
+        .col:hover .line {
           stroke: ${theme.borderColor};
           stroke-dasharray: ${`${this.getSVGPixel(4)} ${this.getSVGPixel(1.5)}`};
         }
-        .serie:hover .symbol {
+        .col:hover .symbol {
           transform-box: fill-box;
           transform-origin: center;
           transform: scale(1.5);
@@ -68,7 +68,7 @@ export class DuoyunLineChartElement extends DuoyunBarChartElement {
           )}
           ${this.series.map(
             (_value, index, _, x = (index + 0.5) / this.xAxiUnit) => svg`
-              <g class="serie" @click=${() => this.indexclick(index)}>
+              <g class="col" @click=${() => this.indexclick(index)}>
                 <rect
                   @mousemove=${(evt: MouseEvent) => this.onMouseMove(index, evt, true)}
                   @mouseout=${this.onMouseOut}
@@ -79,7 +79,7 @@ export class DuoyunLineChartElement extends DuoyunBarChartElement {
                   width=${1 / this.xAxiUnit}
                   height=${this.stageHeight}
                 />
-                ${this.sequences!.map(({ values }, i, _, value = values[index]) =>
+                ${this.sequences!.map(({ values }, i, __, value = values[index]) =>
                   isNullish(value)
                     ? ''
                     : svg`

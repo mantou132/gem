@@ -90,10 +90,10 @@ function getNav(sidebar: NavItem[], origin: NavItem[] = []) {
   return nav.concat(origin).sort(({ navOrder: ao = 100 }, { navOrder: bo = 100 }) => ao - bo);
 }
 
-function getNavRoutes(nav: NavItem[]) {
+function getNavRoutes(navList: NavItem[]) {
   const routes: RouteItem[] = [];
-  const getFirstLink = (item: NavItem) => {
-    const list = [item];
+  const getFirstLink = (navItem: NavItem) => {
+    const list = [navItem];
     while (list.length) {
       const item = list.shift();
       switch (item?.type) {
@@ -104,7 +104,7 @@ function getNavRoutes(nav: NavItem[]) {
       }
     }
   };
-  nav.forEach((nav) => {
+  navList.forEach((nav) => {
     if (nav.type === 'dir') {
       const firstLink = getFirstLink(nav);
       if (nav.link !== firstLink) {

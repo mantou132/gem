@@ -32,7 +32,7 @@ function appendToMap(keys: Record<NormalizeKey, Key>) {
   });
 }
 
-const keys: Record<NormalizeKey, Key> = {
+const keysInfo: Record<NormalizeKey, Key> = {
   ctrl: {
     alias: 'control',
     macSymbol: '⌃',
@@ -118,14 +118,14 @@ const keys: Record<NormalizeKey, Key> = {
 
 const map: Record<string, NormalizeKey> = proxyObject({});
 
-appendToMap(keys);
+appendToMap(keysInfo);
 
 export const isMac = navigator.platform.includes('Mac');
 
 /**Get the platform button */
 export function getDisplayKey(code: string, type?: keyof Key) {
   const key = normalizeKey(code);
-  const keyObj = keys[key];
+  const keyObj = keysInfo[key];
   let result: string | undefined = undefined;
   if (!keyObj) {
     result = key;
@@ -140,7 +140,7 @@ export function getDisplayKey(code: string, type?: keyof Key) {
 
 /**Custom key map */
 export function setKeys(keysRecord: Record<NormalizeKey, Key>) {
-  Object.assign(keys, keysRecord);
+  Object.assign(keysInfo, keysRecord);
   appendToMap(keysRecord);
 }
 
@@ -220,8 +220,8 @@ type HotkeysOptions = {
  */
 export function hotkeys(handles: HotKeyHandles, options: HotkeysOptions = {}) {
   const { stopPropagation, preventDefault = true } = options;
-  return function (evt: KeyboardEvent) {
-    if (evt.isComposing) return;
+  return function (event: KeyboardEvent) {
+    if (event.isComposing) return;
     if (locked) return;
 
     let captured = false;
@@ -232,12 +232,12 @@ export function hotkeys(handles: HotKeyHandles, options: HotkeysOptions = {}) {
       if (!handle) break;
 
       const shortcuts = str.split(hotkeySplitter).map((e) => e.trim());
-      const matchResult = shortcuts.map((hotkey) => matchHotKey(evt, hotkey));
+      const matchResult = shortcuts.map((hotkey) => matchHotKey(event, hotkey));
       if (matchResult.some((r) => r === true)) {
         captured = true;
-        if (preventDefault) evt.preventDefault();
-        if (stopPropagation) evt.stopPropagation();
-        handle(evt);
+        if (preventDefault) event.preventDefault();
+        if (stopPropagation) event.stopPropagation();
+        handle(event);
       }
       matchResult.filter(isNotBoolean).forEach((key) => {
         const set = nextKeyHandleSet.get(key) || new Set<(evt: KeyboardEvent) => void>();
@@ -249,7 +249,7 @@ export function hotkeys(handles: HotKeyHandles, options: HotkeysOptions = {}) {
     if (nextKeyHandleSet.size) {
       captured = true;
       unlockCallback.clear();
-      handles.onLock?.(evt);
+      handles.onLock?.(event);
       locked = true;
 
       const nextKeyHandle = (evt: KeyboardEvent) => {
@@ -274,7 +274,7 @@ export function hotkeys(handles: HotKeyHandles, options: HotkeysOptions = {}) {
       addEventListener('keydown', nextKeyHandle, { once: true, capture: true });
     }
 
-    if (!captured) handles.onUncapture?.(evt);
+    if (!captured) handles.onUncapture?.(event);
   };
 }
 

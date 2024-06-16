@@ -23,7 +23,6 @@ import { originDocLang, selfI18n } from '../helper/i18n';
 function getRemoteURL(originSrc = '', dev = GemBookPluginElement.devMode) {
   const { currentLink, lang, config, links } = GemBookPluginElement;
   const { github, sourceBranch, sourceDir, base } = config;
-  const { originLink } = currentLink!;
   let url = originSrc;
   if (originSrc && !/^(https?:)?\/\//.test(originSrc)) {
     if (!github || !sourceBranch) return '';
@@ -31,12 +30,12 @@ function getRemoteURL(originSrc = '', dev = GemBookPluginElement.devMode) {
     const repo = new URL(github).pathname;
     let src = originSrc.startsWith('/') ? originSrc : `/${originSrc}`;
     if (originSrc.startsWith('.')) {
-      const absPath = new URL(originSrc, `${location.origin}${originLink}`).pathname;
-      const link = links?.find(({ originLink, link, userFullPath }) =>
+      const absPath = new URL(originSrc, `${location.origin}${currentLink!.originLink}`).pathname;
+      const linkItem = links?.find(({ originLink, link, userFullPath }) =>
         [originLink, link, userFullPath].some((path) => path === absPath || `${path}.md` === absPath),
       );
-      if (link) return getURL(joinPath(lang, link.originLink), link.hash);
-      src = new URL(originSrc, `${location.origin}${joinPath(sourceDir, lang, originLink)}`).pathname;
+      if (linkItem) return getURL(joinPath(lang, linkItem.originLink), linkItem.hash);
+      src = new URL(originSrc, `${location.origin}${joinPath(sourceDir, lang, currentLink!.originLink)}`).pathname;
     }
     url = dev ? `/_assets${src}` : `${rawOrigin}${repo}/${sourceBranch}${joinPath(base, src)}`;
   }

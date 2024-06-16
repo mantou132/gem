@@ -141,8 +141,8 @@ export class I18n<T = Record<string, Msg>> implements RouteTrigger {
   }
 
   get(s: keyof T): string;
-  get(s: keyof T, ...rest: (((s: string) => TemplateResult) | string)[]): TemplateResult;
-  get(s: keyof T, ...rest: (((s: string) => TemplateResult) | string)[]) {
+  get(s: keyof T, ...rest: (((str: string) => TemplateResult) | string)[]): TemplateResult;
+  get(s: keyof T, ...rest: (((str: string) => TemplateResult) | string)[]) {
     const currentLanguagePack = this.resources[this.currentLanguage] as any;
     const fallbackLanguagePack = this.resources[this.fallbackLanguage] as any;
     const msg = currentLanguagePack[s] || fallbackLanguagePack[s];
@@ -178,7 +178,7 @@ export class I18n<T = Record<string, Msg>> implements RouteTrigger {
       const localPackString = localStorage.getItem(localKey);
 
       const fetchPack = async () => {
-        const pack = await (await fetch(data)).json();
+        const pkg = await (await fetch(data)).json();
         if (this.cache) {
           // 移除之前的版本缓存
           for (let i = 0; i < localStorage.length; i++) {
@@ -187,9 +187,9 @@ export class I18n<T = Record<string, Msg>> implements RouteTrigger {
               localStorage.removeItem(key);
             }
           }
-          localStorage.setItem(localKey, JSON.stringify(pack));
+          localStorage.setItem(localKey, JSON.stringify(pkg));
         }
-        return pack;
+        return pkg;
       };
 
       if (localPackString) {

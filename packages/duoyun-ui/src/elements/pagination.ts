@@ -105,9 +105,8 @@ export class DuoyunPaginationElement extends GemElement {
 
   #renderMore = (value: number) => {
     let close: () => void;
-    const pageChange = ({ target }: Event) => {
-      const { value } = (target as HTMLElement).previousElementSibling as HTMLInputElement;
-      const page = Number(value);
+    const pageChange = ({ target }: MouseEvent) => {
+      const page = Number(((target as HTMLElement).previousElementSibling as HTMLInputElement).value);
       if (!isNaN(page)) {
         this.pagechange(Math.round(page < 0 ? Math.max(1, this.total + 1 + page) : Math.min(page, this.total)));
       }

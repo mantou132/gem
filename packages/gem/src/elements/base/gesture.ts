@@ -204,7 +204,7 @@ export class GemGestureElement extends GemElement {
     evt.stopPropagation();
     // https://bugs.webkit.org/show_bug.cgi?id=210454
     if ('getCoalescedEvents' in evt) {
-      evt.getCoalescedEvents().forEach((evt) => this.#onMove(evt));
+      evt.getCoalescedEvents().forEach((event) => this.#onMove(event));
     } else {
       this.#onMove(evt);
     }

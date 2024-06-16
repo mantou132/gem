@@ -11,7 +11,7 @@ customElements.whenDefined('gem-book').then(({ GemBookPluginElement }: typeof Ge
   const { Gem, theme, Utils } = GemBookPluginElement;
   const { html, customElement, attribute, numattribute, createCSSSheet, css, adoptedStyle } = Gem;
 
-  const style = createCSSSheet(css`
+  const styles = createCSSSheet(css`
     gbp-api table {
       tr td:first-of-type {
         white-space: nowrap;
@@ -28,7 +28,7 @@ customElements.whenDefined('gem-book').then(({ GemBookPluginElement }: typeof Ge
   `);
 
   @customElement('gbp-api')
-  @adoptedStyle(style)
+  @adoptedStyle(styles)
   class _GbpApiElement extends GemBookPluginElement<State> {
     @attribute src: string;
     @attribute name: string;
@@ -74,15 +74,16 @@ customElements.whenDefined('gem-book').then(({ GemBookPluginElement }: typeof Ge
       let text = '';
       text += headers.reduce((p, c, index) => p + `${headers[index]} |`, '|') + '\n';
       text += headers.reduce((p) => p + `--- |`, '|') + '\n';
-      text += list.reduce((p, c, dataIndex) => {
-        return p + headers.reduce((p, c, index) => p + `${fields[index](list[dataIndex])} |`, '|') + '\n';
+      text += list.reduce((prev, c, dataIndex) => {
+        return prev + headers.reduce((p, _, index) => p + `${fields[index](list[dataIndex])} |`, '|') + '\n';
       }, '');
       return text;
     };
 
     #renderElement = (detail: ElementDetail) => {
       const {
-        description = '',
+        name: eleName,
+        description: eleDescription = '',
         constructorName,
         constructorExtendsName,
         constructorParams,
@@ -94,17 +95,16 @@ customElements.whenDefined('gem-book').then(({ GemBookPluginElement }: typeof Ge
         cssStates,
         parts,
         slots,
-        name,
       } = detail;
       let text = '';
 
-      text += description + '\n\n';
+      text += eleDescription + '\n\n';
       if (constructorExtendsName) {
         text += `Extends ${this.#renderCode(constructorExtendsName)}\n\n`;
       }
 
       if (constructorName && constructorParams.length) {
-        text += this.#renderHeader(1, `Constructor \`${constructorName}()\``, name);
+        text += this.#renderHeader(1, `Constructor \`${constructorName}()\``, eleName);
         text += this.#renderTable(
           constructorParams,
           ['Params', 'Type'].concat(constructorParams.some((e) => e.description) ? 'Description' : []),
@@ -116,7 +116,7 @@ customElements.whenDefined('gem-book').then(({ GemBookPluginElement }: typeof Ge
         );
       }
       if (staticProperties.length) {
-        text += this.#renderHeader(1, 'Static Properties', name);
+        text += this.#renderHeader(1, 'Static Properties', eleName);
         text += this.#renderTable(
           staticProperties,
           ['Property', 'Type'].concat(constructorParams.some((e) => e.description) ? 'Description' : []),
@@ -128,7 +128,7 @@ customElements.whenDefined('gem-book').then(({ GemBookPluginElement }: typeof Ge
         );
       }
       if (staticMethods.length) {
-        text += this.#renderHeader(1, 'Static Methods', name);
+        text += this.#renderHeader(1, 'Static Methods', eleName);
         text += this.#renderTable(
           staticMethods,
           ['Method', 'Type'].concat(constructorParams.some((e) => e.description) ? 'Description' : []),
@@ -140,15 +140,15 @@ customElements.whenDefined('gem-book').then(({ GemBookPluginElement }: typeof Ge
         );
       }
       if (properties.length) {
-        text += this.#renderHeader(1, 'Instance Properties', name);
+        text += this.#renderHeader(1, 'Instance Properties', eleName);
         text += this.#renderTable(
           properties.filter(({ slot, cssState, part, isRef }) => !slot && !cssState && !part && !isRef),
           ['Property(Attribute)', 'Reactive', 'Type'].concat(
             innerWidth > 600 && constructorParams.some((e) => e.description) ? 'Description' : [],
           ),
           [
-            ({ name, attribute, deprecated }) =>
-              this.#renderCode(name, deprecated) + (attribute ? `(${this.#renderCode(attribute, deprecated)})` : ''),
+            ({ name, attribute: attr, deprecated }) =>
+              this.#renderCode(name, deprecated) + (attr ? `(${this.#renderCode(attr, deprecated)})` : ''),
             ({ reactive }) => (reactive ? 'Yes' : ''),
             ({ type }) => this.#renderCode(type),
             ({ description = '' }) => description.replaceAll('\n', '<br>'),
@@ -157,7 +157,7 @@ customElements.whenDefined('gem-book').then(({ GemBookPluginElement }: typeof Ge
       }
 
       if (methods.length) {
-        text += this.#renderHeader(1, 'Instance Methods', name);
+        text += this.#renderHeader(1, 'Instance Methods', eleName);
         text += this.#renderTable(
           methods.filter(({ event }) => !event),
           ['Method', 'Type'].concat(constructorParams.some((e) => e.description) ? 'Description' : []),
@@ -176,7 +176,7 @@ customElements.whenDefined('gem-book').then(({ GemBookPluginElement }: typeof Ge
         { type: 'CSS State', value: cssStates },
       ];
       if (otherRows.some(({ value }) => !!value.length)) {
-        text += this.#renderHeader(1, 'Other', name);
+        text += this.#renderHeader(1, 'Other', eleName);
         text += this.#renderTable(
           otherRows.filter(({ value }) => !!value.length),
           ['Type', 'Value'],

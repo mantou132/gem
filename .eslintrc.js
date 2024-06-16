@@ -26,12 +26,12 @@ module.exports = {
   rules: {
     'no-console': 1,
     'sort-imports': 0,
-    'no-shadow': 1,
     'import/no-extraneous-dependencies': 2,
     'import/no-named-as-default': 0,
     // https://github.com/benmosher/eslint-plugin-import/blob/HEAD/docs/rules/order.md
     'import/order': ['error', { 'newlines-between': 'always' }],
     'import/newline-after-import': 'error',
+    '@typescript-eslint/no-shadow': 1,
     '@typescript-eslint/no-non-null-assertion': 'off',
     '@typescript-eslint/no-var-requires': 'off',
     '@typescript-eslint/explicit-member-accessibility': 'off',

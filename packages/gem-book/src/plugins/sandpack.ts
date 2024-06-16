@@ -40,7 +40,7 @@ customElements.whenDefined('gem-book').then(({ GemBookPluginElement }: typeof Ge
   const { html, customElement, refobject, attribute, boolattribute, adoptedStyle, css, createCSSSheet, classMap } =
     GemBookPluginElement.Gem;
 
-  const style = createCSSSheet(css`
+  const styles = createCSSSheet(css`
     :host {
       display: block;
       container-type: inline-size;
@@ -144,7 +144,7 @@ customElements.whenDefined('gem-book').then(({ GemBookPluginElement }: typeof Ge
   `);
 
   @customElement('gbp-sandpack')
-  @adoptedStyle(style)
+  @adoptedStyle(styles)
   class _GbpSandpackElement extends GemBookPluginElement<State> {
     @refobject iframeRef: RefObject<HTMLIFrameElement>;
     @attribute entry: string;
@@ -364,7 +364,7 @@ customElements.whenDefined('gem-book').then(({ GemBookPluginElement }: typeof Ge
     render = () => {
       const { files, forking, status } = this.state;
       if (!files.length) return;
-      const currentFile = files.find(({ status }) => status === 'active') || files.find(({ status }) => status === '');
+      const currentFile = files.find((e) => e.status === 'active') || files.find((e) => e.status === '');
       return html`
         <div class="container">
           <div class="header">

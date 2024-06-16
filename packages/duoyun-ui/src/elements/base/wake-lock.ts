@@ -14,9 +14,9 @@ export function wakeLock(ele: DuoyunWakeLockBaseElement) {
       wakeLockPromise = navigator.wakeLock?.request('screen');
 
       // log
-      wakeLockPromise?.then((wakeLock) => {
+      wakeLockPromise?.then((lock) => {
         logger.info('wake lock created!');
-        wakeLock.addEventListener('release', () => {
+        lock.addEventListener('release', () => {
           logger.info('wake lock released!');
         });
       });

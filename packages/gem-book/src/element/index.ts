@@ -81,26 +81,26 @@ export class GemBookElement extends GemElement {
 
   @state isHomePage: boolean;
 
-  constructor(config?: BookConfig, theme?: Partial<Theme>) {
+  constructor(config?: BookConfig, customTheme?: Partial<Theme>) {
     super();
     this.config = config;
-    this.theme = theme;
+    this.theme = customTheme;
     new MutationObserver(() => checkBuiltInPlugin(this)).observe(this, { childList: true });
     document.currentScript?.addEventListener('load', () => checkBuiltInPlugin(this));
     this.addEventListener('message', ({ detail }: CustomEvent) => {
       const event = JSON.parse(detail);
       if (typeof event.data !== 'object') return;
       if (this.dev) logger.info('Event data', event.data);
-      const { filePath, content, config, theme, reload } = event.data;
+      const { filePath, content, config: newConfig, theme: newTheme, reload } = event.data;
       if (event.type !== UPDATE_EVENT) return;
       const routeELement = this.routeRef.element!;
       const mainElement = routeELement.firstElementChild! as Main;
       if (reload) {
         location.reload();
-      } else if (theme) {
-        this.theme = theme;
-      } else if (config) {
-        this.config = config;
+      } else if (newTheme) {
+        this.theme = newTheme;
+      } else if (newConfig) {
+        this.config = newConfig;
         // 等待路由更新
         queueMicrotask(() => routeELement.update());
       } else if (routeELement.currentRoute?.pattern === '*') {

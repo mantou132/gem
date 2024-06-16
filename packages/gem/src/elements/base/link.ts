@@ -92,11 +92,11 @@ export class GemLinkElement extends GemElement {
         title: this.route.title || this.docTitle,
       });
     } else if (this.href) {
-      const { pathname, search, hash } = new URL(locationString, location.origin);
+      const url = new URL(locationString, location.origin);
       history.pushIgnoreCloseHandle({
-        path: pathname,
-        query: search,
-        hash,
+        path: url.pathname,
+        query: url.search,
+        hash: url.hash,
         title: this.docTitle,
       });
     } else {

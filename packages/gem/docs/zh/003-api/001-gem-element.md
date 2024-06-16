@@ -23,19 +23,14 @@ class GemElement<State> extends HTMLElement {
 
 ## 静态属性
 
-| 名称                 | 描述                                                                    |
-| -------------------- | ----------------------------------------------------------------------- |
-| `observedAttributes` | 监听指定的 `attribute`, 当被监听的 `attribute` 变化时元素将重新渲染     |
-| `observedProperties` | 监听指定的 `property`, 当被监听的 `property` 变化时元素将重新渲染       |
-| `observedStores`     | 监听指定的 `Store`, 当被监听的 `Store` 变化时元素将重新渲染             |
-| `adoptedStyleSheets` | 同 [`DocumentOrShadowRoot.adoptedStyleSheets`][1]                       |
-| `defineEvents`       | 定义事件，执行触发事件                                                  |
-| `defineCSSStates`    | 定义 CSS State                                                          |
-| `defineRefs`         | 定义 DOM 引用，[使用](../001-guide/002-advance/002-gem-element-more.md) |
+| 名称                 | 描述                                                        |
+| -------------------- | ----------------------------------------------------------- |
+| `observedStores`     | 监听指定的 `Store`, 当被监听的 `Store` 变化时元素将重新渲染 |
+| `adoptedStyleSheets` | 同 [`DocumentOrShadowRoot.adoptedStyleSheets`][1]           |
 
 [1]: https://developer.mozilla.org/en-US/docs/Web/API/DocumentOrShadowRoot/adoptedStyleSheets
 
-_使用等效的[装饰器](./007-decorator.md)替代_
+_可以使用等效的[装饰器](./007-decorator.md)替代_
 
 ## 生命周期钩子
 

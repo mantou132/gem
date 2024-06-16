@@ -98,11 +98,11 @@ export abstract class GemElement<T = Record<string, unknown>> extends HTMLElemen
   // 以下静态字段仅供外部读取，没有实际作用
   static observedProperties?: string[];
   static observedAttributes?: string[]; // 必须在定义元素前指定
-  static defineEvents?: string[];
-  static defineCSSStates?: string[];
-  static defineRefs?: string[];
-  static defineParts?: string[];
-  static defineSlots?: string[];
+  static definedEvents?: string[];
+  static definedCSSStates?: string[];
+  static definedRefs?: string[];
+  static definedParts?: string[];
+  static definedSlots?: string[];
 
   // 定义当前元素的状态，和 attr/prop 的本质区别是不为外部输入
   readonly state?: T;

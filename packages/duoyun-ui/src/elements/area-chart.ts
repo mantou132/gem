@@ -261,8 +261,8 @@ export class DuoyunAreaChartElement extends DuoyunChartBaseElement {
           this.zoom([0, 1]);
         }
         this.#sequences = this.stack
-          ? this.#sequencesWithoutStack?.map((e, index) => ({
-              ...e,
+          ? this.#sequencesWithoutStack?.map((seq, index) => ({
+              ...seq,
               values: this.mergeValues(this.#sequencesWithoutStack!.slice(0, index + 1).map((e) => e.values))!,
             }))
           : this.#sequencesWithoutStack;

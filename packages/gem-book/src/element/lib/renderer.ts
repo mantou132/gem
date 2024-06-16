@@ -58,12 +58,12 @@ function genRenderer(): Renderer {
   };
 
   renderer.code = (code, infoString) => {
-    const [lang, ...rest] = infoString?.split(/\s+/) || [];
+    const [codelang, ...rest] = infoString?.split(/\s+/) || [];
     const lastArg = rest.pop();
     const lastArgIsHighlight = lastArg && /^(-|\d|,)+$/.test(lastArg);
     const highlight = lastArgIsHighlight ? lastArg : '';
     const [filename = '', status = ''] = lastArgIsHighlight ? rest : [...rest, lastArg];
-    return `<gem-book-pre codelang="${lang}" highlight="${highlight}" filename="${filename}" status="${status}">${escapeHTML(
+    return `<gem-book-pre codelang="${codelang}" highlight="${highlight}" filename="${filename}" status="${status}">${escapeHTML(
       code,
     )}</gem-book-pre>`;
   };

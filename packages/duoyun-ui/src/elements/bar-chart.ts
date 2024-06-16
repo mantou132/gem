@@ -13,7 +13,7 @@ export interface Sequence {
 }
 
 const style = createCSSSheet(css`
-  .serie:hover .rect {
+  .col:hover .rect {
     fill: ${theme.hoverBackgroundColor};
     opacity: 0.2;
   }
@@ -40,7 +40,7 @@ export class DuoyunBarChartElement extends DuoyunChartBaseElement {
   #stackSequences?: number[][];
 
   onMouseMove = (index: number, evt: MouseEvent, sort: boolean, seqIndex = -1) => {
-    let values: DataItem[] | undefined = this.sequences?.map(({ values, label }, i) => {
+    let tooltipValues: DataItem[] | undefined = this.sequences?.map(({ values, label }, i) => {
       return {
         label,
         value: this.yAxi?.formatter?.(values[index], 0) || String(values[index]),
@@ -50,13 +50,13 @@ export class DuoyunBarChartElement extends DuoyunChartBaseElement {
       };
     });
     if (this.stack) {
-      values = values?.reverse();
+      tooltipValues = tooltipValues?.reverse();
     }
     if (this.tooltip?.filter) {
-      values = values?.filter(this.tooltip.filter);
+      tooltipValues = tooltipValues?.filter(this.tooltip.filter);
     }
     if (sort) {
-      values = values?.sort((a, b) => {
+      tooltipValues = tooltipValues?.sort((a, b) => {
         const an = Number(a.originValue);
         const bn = Number(b.originValue);
         if (isNaN(an)) return 1;
@@ -68,7 +68,7 @@ export class DuoyunBarChartElement extends DuoyunChartBaseElement {
       render: this.tooltip?.render,
       xValue: index,
       title: this.tooltip?.titleFormatter?.(this.series![index]) || String(this.series![index]),
-      values: values,
+      values: tooltipValues,
     });
   };
 
@@ -82,13 +82,13 @@ export class DuoyunBarChartElement extends DuoyunChartBaseElement {
         if (!this.contentRect.width) return;
         if (!this.sequences?.length) return;
         if (!this.series?.length) return;
-        const seqs = this.sequences.map((e) => e.values);
-        this.#stackSequences = seqs.map((_, index) => this.mergeNumberValues(seqs.slice(0, index + 1))!);
+        const seqList = this.sequences.map((e) => e.values);
+        this.#stackSequences = seqList.map((_, index) => this.mergeNumberValues(seqList.slice(0, index + 1))!);
         const xMin = 0;
         const xMax = this.series.length;
         let yMin = Infinity;
         let yMax = -Infinity;
-        (this.stack ? this.#stackSequences : seqs).forEach((values) => {
+        (this.stack ? this.#stackSequences : seqList).forEach((values) => {
           values.forEach((y) => {
             yMin = Math.min(yMin, y ?? Infinity);
             yMax = Math.max(yMax, y ?? -Infinity);
@@ -116,7 +116,7 @@ export class DuoyunBarChartElement extends DuoyunChartBaseElement {
           ${this.renderYAxi()}
           ${this.series.map(
             (_value, i, _, width = 1) => svg`
-              <g class="serie" @click=${() => this.indexclick(i)} @pointerout=${this.onMouseOut}>
+              <g class="col" @click=${() => this.indexclick(i)} @pointerout=${this.onMouseOut}>
                 <rect
                   @pointermove=${(evt: PointerEvent) => this.onMouseMove(i, evt, false)}
                   class="rect"

@@ -239,16 +239,16 @@ export class ConsolePageItemElement extends GemElement {
    * 这里使用页面级缓存，切换页面后将被清除
    */
   #onFetch = ({ detail }: CustomEvent<FetchEventDetail>) => {
-    let pagination = this.state.paginationMap.get(detail.pageKey);
-    if (!pagination) {
-      pagination = createPaginationStore<Item>({
+    let newPagination = this.state.paginationMap.get(detail.pageKey);
+    if (!newPagination) {
+      newPagination = createPaginationStore<Item>({
         cacheItems: true,
         pageContainItem: true,
       });
-      this.state.paginationMap.set(detail.pageKey, pagination);
+      this.state.paginationMap.set(detail.pageKey, newPagination);
     }
-    this.setState({ pagination });
-    pagination.updatePage(fetchItemsWithArgs, detail);
+    this.setState({ pagination: newPagination });
+    newPagination.updatePage(fetchItemsWithArgs, detail);
   };
 
   render = () => {

@@ -23,15 +23,10 @@ class GemElement<State> extends HTMLElement {
 
 ## Static properties
 
-| name                 | description                                                                   |
-| -------------------- | ----------------------------------------------------------------------------- |
-| `observedAttributes` | Observe the specified `attribute`, re-rendered by `attribute` changes         |
-| `observedProperties` | Observe the specified `property`, re-rendered by `property` changes           |
-| `observedStores`     | Observe the specified `Store`, re-rendered by `Store` changes                 |
-| `adoptedStyleSheets` | See [`DocumentOrShadowRoot.adoptedStyleSheets`][1]                            |
-| `defineEvents`       | Define events, execute trigger events                                         |
-| `defineCSSStates`    | Define CSS State                                                              |
-| `defineRefs`         | Define DOM reference, [see](../001-guide/002-advance/002-gem-element-more.md) |
+| name                 | description                                                   |
+| -------------------- | ------------------------------------------------------------- |
+| `observedStores`     | Observe the specified `Store`, re-rendered by `Store` changes |
+| `adoptedStyleSheets` | See [`DocumentOrShadowRoot.adoptedStyleSheets`][1]            |
 
 [1]: https://developer.mozilla.org/en-US/docs/Web/API/DocumentOrShadowRoot/adoptedStyleSheets
 

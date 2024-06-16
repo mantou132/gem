@@ -362,10 +362,10 @@ export class Pre extends GemElement {
         //
       }
     }
-    const html = Prism.languages[this.codelang]
+    const htmlStr = Prism.languages[this.codelang]
       ? Prism.highlight(this.textContent || '', Prism.languages[this.codelang], this.codelang)
       : this.innerHTML;
-    const { parts, lineNumbersParts } = this.#getParts(html);
+    const { parts, lineNumbersParts } = this.#getParts(htmlStr);
     this.codeRef.element.innerHTML = parts.reduce(
       (p, c, i) =>
         p +

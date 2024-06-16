@@ -331,8 +331,8 @@ export class GemRouteElement extends GemElement<State> {
       this.#lastLoader = contentOrLoader;
       const isSomeLoader = () => this.#lastLoader === contentOrLoader;
       contentOrLoader
-        .then((content) => {
-          if (isSomeLoader()) this.#setContent(route, params, content);
+        .then((newContent) => {
+          if (isSomeLoader()) this.#setContent(route, params, newContent);
         })
         .catch((err) => {
           if (isSomeLoader()) this.error(err);

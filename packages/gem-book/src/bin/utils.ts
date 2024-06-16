@@ -73,20 +73,20 @@ export function resolveLocalPlugin(p: string) {
 }
 
 export function resolveModule(
-  p?: string,
+  pathname?: string,
   { builtInDirs = [], silent = false }: { builtInDirs?: string[]; silent?: boolean } = {},
 ) {
-  if (!p) return;
+  if (!pathname) return;
 
   const modulePath = [
-    ...builtInDirs.map((dir) => path.resolve(__dirname, `${dir}${p}`)),
-    path.resolve(process.cwd(), p),
+    ...builtInDirs.map((dir) => path.resolve(__dirname, `${dir}${pathname}`)),
+    path.resolve(process.cwd(), pathname),
   ]
     .map((p) => ['', '.js', '.json', '.mjs'].map((ext) => p + ext))
     .flat()
     .find((e) => existsSync(e));
 
-  if (!silent && !modulePath) print(chalk.red(`Module not found:`), p);
+  if (!silent && !modulePath) print(chalk.red(`Module not found:`), pathname);
 
   return modulePath;
 }
@@ -191,8 +191,8 @@ export function getMetadata(fullPath: string, displayRank: boolean | undefined) 
     const filename = basename.replace(/\.[^.]*$/, '');
     return displayRank ? filename : parseFilename(filename).title;
   };
-  const parseMd = (fullPath: string) => {
-    const md = getMdFile(fullPath).content;
+  const parseMd = (p: string) => {
+    const md = getMdFile(p).content;
     let attributes: FrontMatter = {};
     let body = '';
     try {
@@ -200,7 +200,7 @@ export function getMetadata(fullPath: string, displayRank: boolean | undefined) 
       attributes = fmd.attributes;
       body = fmd.body;
     } catch {
-      print(chalk.red(`Parse frontmatter error: ${fullPath}`));
+      print(chalk.red(`Parse frontmatter error: ${p}`));
     }
     return {
       ...(attributes as FrontMatter),

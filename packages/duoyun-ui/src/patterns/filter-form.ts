@@ -56,7 +56,7 @@ const durationUnitList = [
 ];
 
 type State = {
-  comparer: ComparerType;
+  comparerType: ComparerType;
   value: string | number | string[];
   /**duration */
   durationUnit: number;
@@ -65,8 +65,10 @@ type State = {
   provider?: string;
 };
 
+export type SubmitValue = Pick<State, 'comparerType' | 'value'>;
+
 const defaultState: State = {
-  comparer: ComparerType.Eq,
+  comparerType: ComparerType.Eq,
   value: '',
   durationUnit: durationUnitList[0].value,
   search: '',
@@ -84,7 +86,7 @@ export class DyPatFilterFormElement extends GemElement<State> {
   @property options?: FilterableOptions;
   @property getText?: (text: ComparerType) => string;
 
-  @emitter submit: Emitter<any>;
+  @emitter submit: Emitter<SubmitValue>;
 
   get #type() {
     return this.options?.type || 'string';
@@ -119,8 +121,8 @@ export class DyPatFilterFormElement extends GemElement<State> {
 
   #onSubmit = () => {
     if (this.#disabled) return;
-    const { comparer, value } = this.state;
-    this.submit({ comparer, value });
+    const { comparerType, value } = this.state;
+    this.submit({ comparerType, value });
   };
 
   #onChangeValue = ({ detail }: CustomEvent<string>) => {
@@ -129,7 +131,7 @@ export class DyPatFilterFormElement extends GemElement<State> {
 
   #onChangeDataValue = ({ detail }: CustomEvent<number>) => {
     this.setState({
-      value: String(this.state.comparer === ComparerType.Lte ? new Time(detail).endOf('d').valueOf() : detail),
+      value: String(this.state.comparerType === ComparerType.Lte ? new Time(detail).endOf('d').valueOf() : detail),
     });
   };
 
@@ -246,7 +248,7 @@ export class DyPatFilterFormElement extends GemElement<State> {
   willMount = () => {
     this.memo(
       () => {
-        this.state = { ...defaultState, comparer: this.#comparerList[0] };
+        this.state = { ...defaultState, comparerType: this.#comparerList[0] };
       },
       () => [this.options],
     );
@@ -267,21 +269,21 @@ export class DyPatFilterFormElement extends GemElement<State> {
   };
 
   render = () => {
-    const { comparer } = this.state;
+    const { comparerType } = this.state;
     return html`
       ${this.#comparerList.map(
         (e) => html`
           <div class="line">
-            <dy-radio ?checked=${e === comparer} @change=${() => this.setState({ comparer: e, value: '' })}>
+            <dy-radio ?checked=${e === comparerType} @change=${() => this.setState({ comparerType: e, value: '' })}>
               ${this.getText?.(e) || e}
             </dy-radio>
           </div>
-          <div class="line">${e === comparer ? this.#renderInput() : ''}</div>
+          <div class="line">${e === comparerType ? this.#renderInput() : ''}</div>
         `,
       )}
       <dy-button ?disabled=${this.#disabled} @click=${this.#onSubmit}>${locale.ok}</dy-button>
     `;
   };
 
-  initValue?: Partial<Pick<State, 'comparer' | 'value'>>;
+  initValue?: Partial<SubmitValue>;
 }

@@ -7,17 +7,17 @@ export type NavItemWithLink = NavItem & {
   children?: NavItemWithLink[];
 };
 
-export function capitalize(s: string) {
-  return s.replace(/^\w/, (s: string) => s.toUpperCase());
+export function capitalize(str: string) {
+  return str.replace(/^\w/, (s: string) => s.toUpperCase());
 }
 
-export function getRanges(range: string, lines: string[]) {
+export function getRanges(str: string, lines: string[]) {
   const len = lines.length;
-  const findLineNumber = (str: string, start = 1) => {
-    if (!str.trim()) return 0;
-    return lines.findIndex((line, index) => index >= start - 1 && line.includes(str)) + 1;
+  const findLineNumber = (s: string, start = 1) => {
+    if (!s.trim()) return 0;
+    return lines.findIndex((line, index) => index >= start - 1 && line.includes(s)) + 1;
   };
-  const ranges = range.split(',').map((range) => {
+  const ranges = str.split(',').map((range) => {
     // 第二位可以省略，第一位不行，0 无意义，解析数字忽略空格，字符匹配包含空格
     // 3-4
     // 2 => 2-2

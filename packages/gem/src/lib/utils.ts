@@ -4,7 +4,7 @@ export function addMicrotask(func: () => void) {
   if (!microtaskSet.size) {
     // delayed execution callback after updating store
     globalThis.queueMicrotask(() => {
-      microtaskSet.forEach((func) => func());
+      microtaskSet.forEach((f) => f());
       microtaskSet.clear();
     });
   }

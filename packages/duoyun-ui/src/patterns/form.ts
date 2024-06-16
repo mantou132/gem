@@ -143,11 +143,11 @@ export class DyPatFormElement<T = Record<string, unknown>> extends GemElement<St
   };
 
   #onChange = ({ detail }: CustomEvent<any>) => {
-    const data = Object.keys(detail).reduce((data, key) => {
+    const data = Object.keys(detail).reduce((prev, key) => {
       const val = detail[key];
       const path = key.split(',');
-      Reflect.set(readProp(data, path.slice(0, -1), { fill: true }), path.at(-1)!, val);
-      return data;
+      Reflect.set(readProp(prev, path.slice(0, -1), { fill: true }), path.at(-1)!, val);
+      return prev;
     }, {} as any);
     this.setState({ data });
 
@@ -269,10 +269,10 @@ export class DyPatFormElement<T = Record<string, unknown>> extends GemElement<St
       )}
     `;
     const items = this.#filterVisibleItems(allItems);
-    const rules = items.map(({ rules = [] }) => rules).flat();
+    const flatRules = items.map(({ rules = [] }) => rules).flat();
     const requiredItems = items.filter(({ required }) => required);
     if (requiredItems.length) {
-      rules.push({
+      flatRules.push({
         async validator() {
           const isInvalid = requiredItems.some((e) => {
             const value = readProp(data!, e.field);
@@ -286,7 +286,7 @@ export class DyPatFormElement<T = Record<string, unknown>> extends GemElement<St
       ${shadowFormItems}
       ${items.length
         ? html`
-            <dy-form-item .label=${items[0].label} .rules=${rules}>
+            <dy-form-item .label=${items[0].label} .rules=${flatRules}>
               <dy-input-group>
                 ${items.map((props) => {
                   const name = String(props.field);

@@ -42,7 +42,7 @@ import type { DuoyunTagElement } from '../elements/tag';
 import type { DuoyunScrollBoxElement } from '../elements/scroll-box';
 
 import { locationStore } from './console';
-import type { FilterableOptions } from './filter-form';
+import type { FilterableOptions, SubmitValue } from './filter-form';
 
 import '../elements/input';
 import '../elements/button';
@@ -80,7 +80,7 @@ const queryKeys = {
 
 type Filter = {
   field: string;
-  comparer: ComparerType;
+  cType: ComparerType;
   value: any;
 };
 
@@ -403,8 +403,8 @@ export class DyPatTableElement<T = any> extends GemElement<State> {
   };
 
   #onClickFilter = (evt: PointerEvent, index: number) => {
-    const { field, comparer, value } = this.state.filters[index];
-    const column = this.columns.find((column) => this.#getFilterField(column) === field)!;
+    const { field, cType, value } = this.state.filters[index];
+    const column = this.columns.find((col) => this.#getFilterField(col) === field)!;
     const tagEle = evt.currentTarget as DuoyunTagElement;
     const offsetEle = tagEle.offsetParent as DuoyunScrollBoxElement;
     ContextMenu.open(
@@ -412,8 +412,9 @@ export class DyPatTableElement<T = any> extends GemElement<State> {
         <dy-pat-filter-form
           .getText=${this.getText}
           .options=${column.filterOptions || undefined}
-          .initValue=${{ comparer, value }}
-          @submit=${({ detail }: CustomEvent) => this.#onModifyFilter(index, { ...detail, field })}
+          .initValue=${{ comparerType: cType, value }}
+          @submit=${({ detail }: CustomEvent<SubmitValue>) =>
+            this.#onModifyFilter(index, { cType: detail.comparerType, value: detail.value, field })}
         ></dy-pat-filter-form>
       `,
       {
@@ -435,8 +436,12 @@ export class DyPatTableElement<T = any> extends GemElement<State> {
               <dy-pat-filter-form
                 .getText=${this.getText}
                 .options=${column.filterOptions || undefined}
-                @submit=${({ detail }: CustomEvent) =>
-                  this.#onAddFilter({ ...detail, field: this.#getFilterField(column) })}
+                @submit=${({ detail }: CustomEvent<SubmitValue>) =>
+                  this.#onAddFilter({
+                    cType: detail.comparerType,
+                    value: detail.value,
+                    field: this.#getFilterField(column),
+                  })}
               ></dy-pat-filter-form>
             `,
           },
@@ -545,19 +550,19 @@ export class DyPatTableElement<T = any> extends GemElement<State> {
             return isIncludesString(str, search);
           });
         }
-        this.#data = this.#data?.filter((e) => {
-          return filters.every(({ field, comparer: comparerType, value }) => {
-            if (!e) return true;
+        this.#data = this.#data?.filter((filter) => {
+          return filters.every(({ field, cType, value }) => {
+            if (!filter) return true;
             const filterOptions = this.#filterFieldOptionsMap[field];
             const fieldValue =
               filterOptions && filterOptions.getCompareValue
-                ? filterOptions.getCompareValue(e)
-                : readProp(e, field.split(','));
+                ? filterOptions.getCompareValue(filter)
+                : readProp(filter, field.split(','));
             if (Array.isArray(value)) {
-              if (Array.isArray(fieldValue)) return fieldValue.some((e) => comparer(value, comparerType, e));
-              return comparer(value, comparerType, fieldValue);
+              if (Array.isArray(fieldValue)) return fieldValue.some((e) => comparer(value, cType, e));
+              return comparer(value, cType, fieldValue);
             }
-            return comparer(String(fieldValue || '').toLowerCase(), comparerType, String(value || '').toLowerCase());
+            return comparer(String(fieldValue || '').toLowerCase(), cType, String(value || '').toLowerCase());
           });
         });
         Object.entries(sort).forEach(([field, sortType]) => {
@@ -599,7 +604,7 @@ export class DyPatTableElement<T = any> extends GemElement<State> {
             search || filters.length || sorts.length
               ? `${search}-${filters
                   .sort((a, b) => (a.field > b.field ? 1 : 0))
-                  .map(({ field, comparer, value }) => `${field}-${comparer}-${value}`)
+                  .map(({ field, cType, value }) => `${field}-${cType}-${value}`)
                   .join()}-${sorts
                   .sort(([k], [kk]) => (k > kk ? 1 : 0))
                   .map((e) => e.join('-'))
@@ -669,7 +674,7 @@ export class DyPatTableElement<T = any> extends GemElement<State> {
           : ''}
         <dy-scroll-box class="filters" part="filters">
           ${this.state.filters.map(
-            ({ field, value, comparer }, index) => html`
+            ({ field, value, cType }, index) => html`
               <dy-tag
                 @pointerdown=${(evt: Event) => evt.preventDefault()}
                 @click=${(evt: PointerEvent) => this.#onClickFilter(evt, index)}
@@ -677,7 +682,7 @@ export class DyPatTableElement<T = any> extends GemElement<State> {
                 closable
               >
                 <span>${this.#filterFieldLabelMap[field]}</span>
-                <span class="comparer">${this.getText(comparer)}</span>
+                <span class="comparer">${this.getText(cType)}</span>
                 <span>"${this.#getValueFromField(field, value).join(', ')}"</span>
               </dy-tag>
             `,

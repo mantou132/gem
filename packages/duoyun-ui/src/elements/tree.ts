@@ -229,7 +229,7 @@ export class DuoyunTreeElement extends GemElement<State> {
         ? ''
         : !item.children
           ? item.childrenPlaceholder
-          : item.children.map((item) => this.#renderItem(item, level + 1))}
+          : item.children.map((e) => this.#renderItem(e, level + 1))}
     `;
   };
 

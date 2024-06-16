@@ -9,8 +9,7 @@ import chalk from 'chalk';
 import anymatch from 'anymatch';
 import { sync } from 'mkdirp';
 import { watch } from 'chokidar';
-import express from 'express';
-import serveStatic from 'serve-static';
+import express, { static as serveStatic } from 'express';
 
 import { version } from '../../package.json';
 import { BookConfig, CliConfig, CliUniqueConfig, NavItem, SidebarConfig } from '../common/config';
@@ -42,7 +41,7 @@ import {
   resolveModule,
   getMdFile,
 } from './utils';
-import { build } from './builder';
+import { buildApp } from './builder';
 import lang from './lang.json'; // https://developers.google.com/search/docs/advanced/crawling/localized-versions#language-codes
 
 const devServerEventTarget = new EventTarget();
@@ -181,15 +180,15 @@ function readFiles(filenames: string[], docsRootDir: string, dir: string, link: 
             title,
             children: groups?.map
               ? groups
-                  .map(({ title, members }) => {
+                  .map(({ title: groupTitle, members }) => {
                     if (!members?.forEach) return [];
-                    members.forEach((filename) => subFilenameSet.delete(filename));
+                    members.forEach((member) => subFilenameSet.delete(member));
                     const children = readFiles(members, docsRootDir, newDir, newLink, config);
-                    if (!title) return children;
+                    if (!groupTitle) return children;
                     return {
                       type: 'dir',
                       link: `${link}${filename}/`,
-                      title,
+                      title: groupTitle,
                       children,
                     } as NavItem;
                   })
@@ -298,7 +297,7 @@ const watchTheme = () => {
 };
 
 const startBuild = async (dir: string) => {
-  const devServer = await build(dir, cliConfig, bookConfig);
+  const devServer = await buildApp(dir, cliConfig, bookConfig);
   if (!devServer) return;
 
   await devServer.start();
@@ -431,8 +430,8 @@ program
       bookConfig.nav.push({ title, link });
     }
   })
-  .option('-i, --icon <path>', 'project icon path or url', (path) => {
-    cliConfig.icon = path;
+  .option('-i, --icon <path>', 'project icon path or url', (iconPath) => {
+    cliConfig.icon = iconPath;
   })
   .option(
     '-o, --output <path>',
@@ -453,11 +452,11 @@ program
   .option('--ga <id>', 'google analytics ID', (id) => {
     cliConfig.ga = id;
   })
-  .option('--template <path>', 'html template path', (path) => {
-    cliConfig.template = path;
+  .option('--template <path>', 'html template path', (templatePath) => {
+    cliConfig.template = templatePath;
   })
-  .option('--theme <name or path>', 'theme path', (path) => {
-    cliConfig.theme = path;
+  .option('--theme <name or path>', 'theme path', (themePath) => {
+    cliConfig.theme = themePath;
   })
   .option('--build', `output all front-end assets`, () => {
     cliConfig.build = true;

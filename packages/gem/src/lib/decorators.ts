@@ -55,7 +55,7 @@ export function refobject<T extends GemElement<any>, V extends HTMLElement>(
     const prop = context.name as string;
     if (!target.hasOwnProperty(prop)) {
       const ref = `${camelToKebabCase(prop)}-${randomStr()}`;
-      pushStaticField(this, 'defineRefs', ref);
+      pushStaticField(this, 'definedRefs', ref);
       defineRef(target, prop, ref);
     }
     clearField(this, prop);
@@ -179,7 +179,7 @@ export function state<T extends GemElement<any>>(_: undefined, context: ClassFie
     const prop = context.name as string;
     if (!target.hasOwnProperty(prop)) {
       const attr = camelToKebabCase(prop);
-      pushStaticField(this, 'defineCSSStates', attr);
+      pushStaticField(this, 'definedCSSStates', attr);
       defineCSSState(target, prop, attr);
     }
     clearField(this, prop);
@@ -204,7 +204,7 @@ export function slot(_: undefined, context: ClassFieldDecoratorContext<any, stri
     const attr = camelToKebabCase(prop);
     if (!target.hasOwnProperty(prop)) {
       defineProperty(target, prop);
-      pushStaticField(target, 'defineSlots', attr);
+      pushStaticField(target, 'definedSlots', attr);
     }
     return value || attr;
   };
@@ -228,7 +228,7 @@ export function part(_: undefined, context: ClassFieldDecoratorContext<any, stri
     const attr = camelToKebabCase(prop);
     if (!target.hasOwnProperty(prop)) {
       defineProperty(target, prop);
-      pushStaticField(target, 'defineParts', attr);
+      pushStaticField(target, 'definedParts', attr);
     }
     return value || attr;
   };
@@ -264,7 +264,7 @@ function defineEmitter(t: GemElement, prop: string, eventOptions?: Omit<CustomEv
   const target = Object.getPrototypeOf(t);
   if (!target.hasOwnProperty(prop)) {
     const event = camelToKebabCase(prop);
-    pushStaticField(target, 'defineEvents', event);
+    pushStaticField(target, 'definedEvents', event);
     defineProperty(target, prop, { event, eventOptions });
   }
   clearField(t, prop);

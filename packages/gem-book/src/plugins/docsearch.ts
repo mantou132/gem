@@ -223,11 +223,11 @@ customElements.whenDefined('gem-book').then(({ GemBookPluginElement }: typeof Ge
           const record = Object.fromEntries(documents.map((document) => [document.id, document.title]));
           documents.forEach(async (document) => {
             if (!document.text) return;
-            await new Promise((res) => (requestIdleCallback || setTimeout)(res));
+            await new Promise((resolve) => (window.requestIdleCallback || setTimeout)(resolve));
 
             const df = new DocumentFragment();
             df.append(...Utils.parseMarkdown(document.text));
-            const titles = [record[document.id]];
+            const titleList = [record[document.id]];
             const parts = document.id.split('/');
             while (parts.length) {
               const part = parts.pop();
@@ -235,10 +235,10 @@ customElements.whenDefined('gem-book').then(({ GemBookPluginElement }: typeof Ge
               const parentId = parts.join('/');
               const parent = record[parentId + '/'];
               if (!parent) continue;
-              titles.unshift(parent);
+              titleList.unshift(parent);
             }
 
-            getSections(df, titles).forEach(({ hash, content, titles }) => {
+            getSections(df, titleList).forEach(({ hash, content, titles }) => {
               if (titles.length < 2) titles.unshift(config.title || 'Documentation');
 
               miniSearch.add({

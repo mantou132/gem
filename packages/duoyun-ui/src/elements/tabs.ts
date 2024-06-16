@@ -22,6 +22,8 @@ import './use';
 import './compartment';
 import './divider';
 
+const getAnchorName = (index: number) => `--anchor-${index}`;
+
 const style = createCSSSheet(css`
   :host(:where(:not([hidden]))) {
     display: flex;
@@ -91,7 +93,11 @@ const style = createCSSSheet(css`
     .animate-marker {
       display: block;
       position: absolute;
+      inset: anchor(bottom) anchor(right) auto anchor(left);
       transition: inset 0.3s ${theme.timingFunction};
+    }
+    :host([orientation='vertical']) .animate-marker {
+      inset: anchor(top) auto anchor(bottom) anchor(right);
     }
   }
 `);
@@ -133,20 +139,6 @@ export class DuoyunTabsElement extends GemElement {
     this.internals.role = 'tablist';
   }
 
-  #getMarkerStyle = (index: number) => {
-    return this.#orientation === 'horizontal'
-      ? styleMap({
-          top: `anchor(--anchor-0 bottom)`,
-          left: `anchor(--anchor-${index} left)`,
-          right: `anchor(--anchor-${index} right)`,
-        })
-      : styleMap({
-          left: `anchor(--anchor-0 right)`,
-          top: `anchor(--anchor-${index} top)`,
-          bottom: `anchor(--anchor-${index} bottom)`,
-        });
-  };
-
   render = () => {
     if (!this.items) return html``;
     let currentContent: TemplateResult | string = '';
@@ -160,7 +152,7 @@ export class DuoyunTabsElement extends GemElement {
                 class="animate-marker"
                 size="medium"
                 orientation=${this.#orientation}
-                style=${this.#getMarkerStyle(currentIndex)}
+                style=${styleMap({ positionAnchor: getAnchorName(currentIndex) })}
               ></dy-divider>
             `
           : ''}
@@ -170,7 +162,7 @@ export class DuoyunTabsElement extends GemElement {
           return html`
             <div
               role="tab"
-              style=${`anchor-name: --anchor-${index}`}
+              style=${styleMap({ anchorName: getAnchorName(index) })}
               class=${classMap({ tab: true, current: isCurrent })}
               part=${partMap({ [DuoyunTabsElement.tab]: true, [DuoyunTabsElement.current]: isCurrent })}
               @click=${() => this.change(value ?? index)}

@@ -43,6 +43,10 @@ export interface Legend {
   tooltip?: string;
 }
 
+function getValue(legend: Legend) {
+  return legend.value ?? legend.label;
+}
+
 /**
  * @customElement dy-legend
  */
@@ -55,7 +59,7 @@ export class DuoyunLegendElement extends DuoyunScrollBaseElement {
   @emitter change: Emitter<string[]>;
 
   get #currentValueSet() {
-    return new Set(this.value ?? this.legends?.map(({ value, label }) => value ?? label));
+    return new Set(this.value ?? this.legends?.map((legend) => getValue(legend)));
   }
 
   constructor() {
@@ -76,7 +80,7 @@ export class DuoyunLegendElement extends DuoyunScrollBaseElement {
     }
     if (currentValue.has(value)) {
       if (currentValue.size === 1) {
-        return this.change(this.legends!.map(({ label, value }) => value ?? label));
+        return this.change(this.legends!.map((legend) => getValue(legend)));
       } else {
         return this.change([...currentValue].filter((e) => e !== value));
       }
@@ -85,17 +89,17 @@ export class DuoyunLegendElement extends DuoyunScrollBaseElement {
   };
 
   render = () => {
-    const currentValue = this.#currentValueSet;
+    const valueSet = this.#currentValueSet;
     return html`
       ${this.legends?.map(
-        ({ value, label, tooltip }, index) => html`
-          <dy-tooltip .content=${tooltip}>
+        (legend, index) => html`
+          <dy-tooltip .content=${legend.tooltip}>
             <div
-              class=${classMap({ item: true, unselect: !currentValue.has(value ?? label) })}
-              @click=${(e: MouseEvent) => this.#onChange(currentValue, value ?? label, e.metaKey || e.ctrlKey)}
+              class=${classMap({ item: true, unselect: !valueSet.has(getValue(legend)) })}
+              @click=${(evt: MouseEvent) => this.#onChange(valueSet, getValue(legend), evt.metaKey || evt.ctrlKey)}
             >
               <span style=${styleMap({ color: `var(--color, ${this.colors[index % this.colors.length]})` })}></span>
-              ${label}
+              ${legend.label}
             </div>
           </dy-tooltip>
         `,

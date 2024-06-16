@@ -146,11 +146,11 @@ export class DuoyunCascaderElement extends GemElement<State> {
     }
 
     // set new value(children part)
-    const generator = (item: Option): any => {
-      if (!item.children?.length) {
+    const generator = (i: Option): any => {
+      if (!i.children?.length) {
         return evt.detail;
       }
-      return item.children.reduce((p, c) => {
+      return i.children.reduce((p, c) => {
         const v = generator(c);
         const k = getOptionValue(c);
         if (v === false) {
@@ -166,13 +166,13 @@ export class DuoyunCascaderElement extends GemElement<State> {
 
     // parse obj to array
     const value: OptionValue[][] = [];
-    const parse = (obj: any, init: OptionValue[]) => {
-      const keys = Object.keys(obj);
+    const parse = (o: any, init: OptionValue[]) => {
+      const keys = Object.keys(o);
       keys.forEach((key) => {
-        if (obj[key] === true) {
+        if (o[key] === true) {
           value.push([...init, key]);
         }
-        parse(obj[key], [...init, key]);
+        parse(o[key], [...init, key]);
       });
     };
     parse(valueClone, []);
