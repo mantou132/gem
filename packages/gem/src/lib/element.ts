@@ -252,9 +252,9 @@ export abstract class GemElement<T = Record<string, unknown>> extends HTMLElemen
 
   /**
    * @helper
-   * 记录副作用回调和值，在 `constructor`/`mounted` 中使用
-   * 回调到返回值如果是函数将再卸载时执行
-   * 第一次执行时 `oldDeps` 为空
+   * 记录副作用回调和值，在 `constructor`/`mounted` 中使用；
+   * 回调到返回值如果是函数将再卸载时执行；
+   * 第一次执行时 `oldDeps` 为空；
    *
    * ```js
    * class App extends GemElement {
@@ -282,9 +282,9 @@ export abstract class GemElement<T = Record<string, unknown>> extends HTMLElemen
 
   /**
    * @helper
-   * 在 `render` 前执行回调，不要在里面使用 `setState`
+   * 在 `render` 前执行回调，不要在里面使用 `setState`；
    * 和 `effect` 一样接受依赖数组参数，在 `constructor`/`willMount` 中使用;
-   * 第一次执行时 `oldDeps` 为空
+   * 第一次执行时 `oldDeps` 为空；
    *
    * ```js
    * class App extends GemElement {
