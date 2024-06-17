@@ -93,7 +93,6 @@ export const getSelectedGem = function (data: PanelStore, gemElementSymbols: str
   const attrs: Set<string> = $0.attributes ? new Set([...$0.attributes].map((attr) => attr.nodeName)) : new Set();
   const elementMethod = new Set([
     'connectedCallback',
-    'attributeChangedCallback',
     'adoptedCallback',
     'disconnectedCallback',
     'setAttribute',

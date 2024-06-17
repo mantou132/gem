@@ -77,7 +77,7 @@ type EffectItem<T> = {
   preCallback?: () => void;
 };
 
-const updateSymbol = Symbol('update');
+export const updateSymbol = Symbol('update');
 
 export interface GemElementOptions extends Partial<ShadowRootInit> {
   isLight?: boolean;
@@ -118,14 +118,11 @@ export abstract class GemElement<T = Record<string, unknown>> extends HTMLElemen
   #memoList?: EffectItem<any>[];
   #unmountCallback?: any;
 
-  [updateSymbol]() {
-    if (this.#isMounted) {
-      addMicrotask(this.#update);
-    }
-  }
-
   constructor(options: GemElementOptions = {}) {
     super();
+
+    // expose private Methods
+    Reflect.set(this, updateSymbol, this.#asyncUpdate);
 
     this.#isAsync = options.isAsync;
     this.#renderRoot = options.isLight
@@ -357,6 +354,12 @@ export abstract class GemElement<T = Record<string, unknown>> extends HTMLElemen
     }
   };
 
+  #asyncUpdate = () => {
+    if (this.#isMounted) {
+      addMicrotask(this.#update);
+    }
+  };
+
   /**
    * @helper
    * async
@@ -377,18 +380,6 @@ export abstract class GemElement<T = Record<string, unknown>> extends HTMLElemen
    * 卸载元素，但不一定会被垃圾回收，所以事件监听器需要手动清除，以免重复注册
    */
   unmounted?(): void | Promise<void>;
-
-  /**
-   * @private
-   * @final
-   * use `effect`
-   */
-  attributeChangedCallback() {
-    if (this.#isMounted) {
-      addMicrotask(this.#update);
-    }
-    return GemElement.#final;
-  }
 
   #disconnectStore?: (() => void)[];
   #connectedCallback = () => {
