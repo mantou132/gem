@@ -1,3 +1,6 @@
+/**
+ * TODO: auto add `@scope` to light dom custom element
+ */
 import { GemElement, adoptedStyle, createCSSSheet, css, customElement, html, render } from '@mantou/gem';
 
 import '../elements/layout';

@@ -3,6 +3,8 @@ import fs from 'fs';
 import { defineConfig } from 'vite';
 import { createMpaPlugin, createPages } from 'vite-plugin-virtual-mpa';
 
+import { version } from '../gem/package.json';
+
 const examples = (fs.readdirSync('src') as string[]).filter(
   (example) => example !== 'elements' && !example.endsWith('.html') && !example.startsWith('.'),
 );
@@ -28,21 +30,16 @@ export default defineConfig({
     }),
   ],
   define: {
-    'process.env.METADATA': JSON.stringify(
-      Object.fromEntries(
-        examples.map((example) => {
-          try {
-            return [example, require(`./src/${example}/manifest.json`)];
-          } catch {
-            return [example, {}];
-          }
-        }),
-      ),
+    'process.env.VERSION': JSON.stringify(version),
+    'process.env.EXAMPLES': JSON.stringify(
+      examples.map((example) => {
+        try {
+          return { name: example, ...require(`./src/${example}/manifest.json`) };
+        } catch {
+          return { name: example };
+        }
+      }),
     ),
-    'process.env.EXAMPLES': JSON.stringify(examples),
-    'process.env.EXAMPLE': JSON.stringify('index'),
-    'process.env.FILES': JSON.stringify([]),
-    'process.env.TARGET': JSON.stringify('pages'),
   },
   resolve: {
     alias: {
