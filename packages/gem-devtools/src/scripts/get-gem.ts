@@ -35,7 +35,7 @@ export const getSelectedGem = function (data: PanelStore, gemElementSymbols: str
     }
   };
 
-  const objToString = (arg: string) => {
+  const objToString = (arg: any) => {
     if (arg === null) return 'null';
     switch (typeof arg) {
       case 'function':
@@ -68,12 +68,24 @@ export const getSelectedGem = function (data: PanelStore, gemElementSymbols: str
             : '';
         } else if (Array.isArray(arg)) {
           return `[${arg.map(objToString)}]`;
+        } else if (arg instanceof ArrayBuffer) {
+          return `ArrayBuffer[${new Uint8Array(arg).slice(0, 5).join()}${arg.byteLength > 5 ? ',...' : ''}]`;
+        } else if (arg instanceof Object.getPrototypeOf(Uint8Array.prototype).constructor) {
+          return `${arg.constructor.name}[${arg.slice(0, 5).join()}${arg.length > 5 ? ',...' : ''}]`;
+        } else if (arg instanceof WeakMap || arg instanceof WeakSet) {
+          return `${arg.constructor.name} {...}`;
+        } else if (arg instanceof Map || arg instanceof Set) {
+          const body = [...arg].reduce((p, key, index) => {
+            const kv = Array.isArray(key) ? [key[0], objToString(key[1])] : [key];
+            return (p += `${index ? ',' : ''} ${kv.join(' -> ')}`);
+          }, '');
+          return `${arg.constructor.name} {${body} }`;
         }
 
         const body = Object.keys(arg).reduce((p, key, index) => {
           return (p += `${index ? ',' : ''} ${key}: ${objToString(arg[key])}`);
         }, '');
-        return `{${body}}`;
+        return `{${body} }`;
       }
       default:
         return String(arg);
