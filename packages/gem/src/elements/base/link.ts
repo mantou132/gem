@@ -1,7 +1,8 @@
-import { GemElement, html, ifDefined } from '../../lib/element';
+import { GemElement, html } from '../../lib/element';
 import { attribute, property, state, part, connectStore } from '../../lib/decorators';
 import { history, basePathStore } from '../../lib/history';
 import { absoluteLocation } from '../../lib/utils';
+import { ifDefined } from '../../lib/directives';
 
 import { matchPath, RouteItem, RouteOptions, createHistoryParams, createPath } from './route';
 

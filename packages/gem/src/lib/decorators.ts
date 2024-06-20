@@ -1,11 +1,19 @@
-import { defineCSSState, defineProperty, defineRef, GemElement } from './element';
-import { Sheet, camelToKebabCase, randomStr } from './utils';
+import type { GemReflectElement } from '../elements/reflect';
+
+import { GemElement, gemSymbols } from './element';
+import { Sheet, camelToKebabCase, randomStr, PropProxyMap } from './utils';
 import { Store } from './store';
+import * as elementExports from './element';
+import * as decoratorsExports from './decorators';
+import * as storeExports from './store';
+import * as versionExports from './version';
 
 type GemElementPrototype = GemElement<any>;
 type GemElementConstructor = typeof GemElement;
 type StaticField = Exclude<keyof GemElementConstructor, 'prototype' | 'rootElement'>;
 type StaticFieldMember = string | Store<unknown> | Sheet<unknown>;
+
+const gemElementProxyMap = new PropProxyMap<GemElement>();
 
 function pushStaticField(target: GemElement | GemElementPrototype, field: StaticField, member: StaticFieldMember) {
   const cls = target.constructor as GemElementConstructor;
@@ -25,6 +33,43 @@ function clearField<T extends GemElement<any>>(instance: T, prop: string) {
   const desc = Reflect.getOwnPropertyDescriptor(instance, prop)!;
   Reflect.deleteProperty(instance, prop);
   Reflect.set(instance, prop, desc.value);
+}
+
+const getReflectTargets = (ele: ShadowRoot | GemElement) =>
+  [...ele.querySelectorAll<GemReflectElement>('[data-gem-reflect]')].map((e) => e.target);
+
+function defineRef(target: GemElement, prop: string, ref: string) {
+  const refSelector = `[ref=${ref}]`;
+  Object.defineProperty(target, prop, {
+    configurable: true,
+    get() {
+      const proxy = gemElementProxyMap.get(this);
+      let obj = proxy[prop];
+      if (!obj) {
+        const that = this as GemElement;
+        const ele = that.shadowRoot || that;
+        obj = {
+          get ref() {
+            return ref;
+          },
+          get element() {
+            for (const e of [ele, ...getReflectTargets(ele)]) {
+              const result = e.querySelector(refSelector);
+              if (result) return result;
+            }
+          },
+          get elements() {
+            return [ele, ...getReflectTargets(ele)].map((e) => [...e.querySelectorAll(refSelector)]).flat();
+          },
+        };
+        proxy[prop] = obj;
+      }
+      return obj;
+    },
+    set() {
+      //
+    },
+  });
 }
 
 export type RefObject<T = HTMLElement> = { ref: string; element: T | undefined; elements: T[] };
@@ -82,6 +127,62 @@ GemElement.prototype.toggleAttribute = function (n: string, force?: boolean) {
   if (!prop) return toggleAttribute.call(this, n, force);
   return ((this as any)[prop] = force ?? !this.hasAttribute(n));
 };
+
+function emptyFunction() {
+  // 用于占位的空函数
+}
+
+type DefinePropertyOptions = {
+  attr?: string;
+  attrType?: (v?: any) => any;
+  event?: string;
+  eventOptions?: Omit<CustomEventInit<unknown>, 'detail'>;
+};
+const isEventHandleSymbol = Symbol('event handle');
+function defineProperty(
+  target: GemElementPrototype,
+  prop: string,
+  { attr, attrType, event, eventOptions }: DefinePropertyOptions = {},
+) {
+  Object.defineProperty(target, prop, {
+    configurable: true,
+    get() {
+      const value = gemElementProxyMap.get(this)[prop];
+      if (event && !value) {
+        this[prop] = emptyFunction;
+        return this[prop];
+      }
+      return value;
+    },
+    set(v) {
+      const that = this as GemElement;
+      const proxy = gemElementProxyMap.get(that);
+      if (attr) {
+        v = attrType === Boolean && v === '' ? true : attrType!(v || '');
+        if (!v) {
+          removeAttribute.call(this, attr);
+        } else {
+          setAttribute.call(this, attr, attrType === Boolean ? '' : v);
+        }
+      }
+      if (v === proxy[prop]) return;
+      if (event) {
+        proxy[prop] = v?.[isEventHandleSymbol]
+          ? v
+          : (detail: any, options: any) => {
+              const evt = new CustomEvent(event, { ...options, ...eventOptions, detail });
+              that.dispatchEvent(evt);
+              v(detail, options);
+            };
+        Reflect.set(proxy[prop]!, isEventHandleSymbol, true);
+        // emitter 不触发元素更新
+      } else {
+        proxy[prop] = v;
+        this[gemSymbols.update]();
+      }
+    },
+  });
+}
 
 type AttrType = BooleanConstructor | NumberConstructor | StringConstructor;
 function decoratorAttr<T extends GemElement<any>>(context: ClassFieldDecoratorContext<T>, attrType: AttrType) {
@@ -152,6 +253,26 @@ export function property<T extends GemElement<any>>(_: undefined, context: Class
   return function (this: any, initValue: any) {
     return this[prop] ?? initValue;
   };
+}
+
+function defineCSSState(target: GemElementPrototype, prop: string, stateStr: string) {
+  Object.defineProperty(target, prop, {
+    configurable: true,
+    get() {
+      const that = this as GemElement;
+      const { states } = that.internals;
+      return states?.has(stateStr);
+    },
+    set(v: boolean) {
+      const that = this as GemElement;
+      const { states } = that.internals;
+      if (v) {
+        states?.add(stateStr);
+      } else {
+        states?.delete(stateStr);
+      }
+    },
+  });
 }
 
 /**
@@ -325,4 +446,21 @@ export function customElement(name: string) {
   return function (cls: new (...args: any) => any, _: ClassDecoratorContext) {
     customElements.define(name, cls);
   };
+}
+
+declare global {
+  interface Window {
+    __GEM_DEVTOOLS__HOOK__?:
+      | (typeof elementExports & typeof decoratorsExports & typeof storeExports & typeof versionExports)
+      | Record<string, never>;
+  }
+}
+
+if (window.__GEM_DEVTOOLS__HOOK__) {
+  Object.assign(window.__GEM_DEVTOOLS__HOOK__, {
+    ...elementExports,
+    ...decoratorsExports,
+    ...storeExports,
+    ...versionExports,
+  });
 }

@@ -14,8 +14,9 @@ import {
   Emitter,
   slot,
 } from '@mantou/gem/lib/decorators';
-import { GemElement, TemplateResult, html, ifDefined } from '@mantou/gem/lib/element';
+import { GemElement, TemplateResult, html } from '@mantou/gem/lib/element';
 import { createCSSSheet, css, classMap, exportPartsMap } from '@mantou/gem/lib/utils';
+import { ifDefined } from '@mantou/gem/lib/directives';
 
 import { icons } from '../lib/icons';
 import { theme } from '../lib/theme';

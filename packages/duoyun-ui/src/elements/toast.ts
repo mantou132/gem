@@ -1,6 +1,7 @@
 import { adoptedStyle, customElement, property } from '@mantou/gem/lib/decorators';
-import { GemElement, html, repeat, TemplateResult } from '@mantou/gem/lib/element';
+import { GemElement, html, TemplateResult } from '@mantou/gem/lib/element';
 import { createCSSSheet, css, classMap } from '@mantou/gem/lib/utils';
+import { repeat } from '@mantou/gem/lib/directives';
 
 import { icons } from '../lib/icons';
 import { theme } from '../lib/theme';

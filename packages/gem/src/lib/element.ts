@@ -1,7 +1,5 @@
 import { html, render, TemplateResult } from 'lit-html';
 
-import type { GemReflectElement } from '../elements/reflect';
-
 import { connect, Store } from './store';
 import {
   LinkedList,
@@ -11,20 +9,11 @@ import {
   isArrayChange,
   GemError,
   kebabToCamelCase,
-  PropProxyMap,
   removeItems,
   addListener,
 } from './utils';
-import * as GemExports from './element';
-import * as VersionExports from './version';
 
 export { html, svg, render, directive, TemplateResult, SVGTemplateResult } from 'lit-html';
-export { repeat } from 'lit-html/directives/repeat';
-
-// https://github.com/Polymer/lit-html/issues/1048
-export { guard } from 'lit-html/directives/guard';
-
-export { ifDefined } from 'lit-html/directives/if-defined';
 
 declare global {
   interface ElementInternals extends ARIAMixin {
@@ -44,10 +33,6 @@ declare global {
     clonable?: boolean;
     serializable?: boolean;
   }
-}
-
-function emptyFunction() {
-  // 用于占位的空函数
 }
 
 function execCallback(fun: any) {
@@ -77,7 +62,9 @@ type EffectItem<T> = {
   preCallback?: () => void;
 };
 
-export const updateSymbol = Symbol('update');
+export const gemSymbols = {
+  update: Symbol('update'),
+};
 
 export interface GemElementOptions extends Partial<ShadowRootInit> {
   isLight?: boolean;
@@ -122,7 +109,7 @@ export abstract class GemElement<T = Record<string, unknown>> extends HTMLElemen
     super();
 
     // expose private Methods
-    Reflect.set(this, updateSymbol, this.#asyncUpdate);
+    Reflect.set(this, gemSymbols.update, this.#asyncUpdate);
 
     this.#isAsync = options.isAsync;
     this.#renderRoot = options.isLight
@@ -465,127 +452,4 @@ export abstract class GemElement<T = Record<string, unknown>> extends HTMLElemen
       return e.inConstructor;
     });
   };
-}
-
-const gemElementProxyMap = new PropProxyMap<GemElement>();
-type GemElementPrototype = GemElement<any>;
-
-type DefinePropertyOptions = {
-  attr?: string;
-  attrType?: (v?: any) => any;
-  event?: string;
-  eventOptions?: Omit<CustomEventInit<unknown>, 'detail'>;
-};
-const isEventHandleSymbol = Symbol('event handle');
-export function defineProperty(
-  target: GemElementPrototype,
-  prop: string,
-  { attr, attrType, event, eventOptions }: DefinePropertyOptions = {},
-) {
-  Object.defineProperty(target, prop, {
-    configurable: true,
-    get() {
-      const value = gemElementProxyMap.get(this)[prop];
-      if (event && !value) {
-        this[prop] = emptyFunction;
-        return this[prop];
-      }
-      return value;
-    },
-    set(v) {
-      const that = this as GemElement;
-      const proxy = gemElementProxyMap.get(that);
-      if (attr) {
-        const { removeAttribute, setAttribute } = Element.prototype;
-        v = attrType === Boolean && v === '' ? true : attrType!(v || '');
-        if (!v) {
-          removeAttribute.call(this, attr);
-        } else {
-          setAttribute.call(this, attr, attrType === Boolean ? '' : v);
-        }
-      }
-      if (v === proxy[prop]) return;
-      if (event) {
-        proxy[prop] = v?.[isEventHandleSymbol]
-          ? v
-          : (detail: any, options: any) => {
-              const evt = new CustomEvent(event, { ...options, ...eventOptions, detail });
-              that.dispatchEvent(evt);
-              v(detail, options);
-            };
-        Reflect.set(proxy[prop]!, isEventHandleSymbol, true);
-        // emitter 不触发元素更新
-      } else {
-        proxy[prop] = v;
-        this[updateSymbol]();
-      }
-    },
-  });
-}
-
-const getReflectTargets = (ele: ShadowRoot | GemElement) =>
-  [...ele.querySelectorAll<GemReflectElement>('[data-gem-reflect]')].map((e) => e.target);
-
-export function defineRef(target: GemElement, prop: string, ref: string) {
-  const refSelector = `[ref=${ref}]`;
-  Object.defineProperty(target, prop, {
-    configurable: true,
-    get() {
-      const proxy = gemElementProxyMap.get(this);
-      let refobject = proxy[prop];
-      if (!refobject) {
-        const that = this as GemElement;
-        const ele = that.shadowRoot || that;
-        refobject = {
-          get ref() {
-            return ref;
-          },
-          get element() {
-            for (const e of [ele, ...getReflectTargets(ele)]) {
-              const result = e.querySelector(refSelector);
-              if (result) return result;
-            }
-          },
-          get elements() {
-            return [ele, ...getReflectTargets(ele)].map((e) => [...e.querySelectorAll(refSelector)]).flat();
-          },
-        };
-        proxy[prop] = refobject;
-      }
-      return refobject;
-    },
-    set() {
-      //
-    },
-  });
-}
-
-export function defineCSSState(target: GemElementPrototype, prop: string, state: string) {
-  Object.defineProperty(target, prop, {
-    configurable: true,
-    get() {
-      const that = this as GemElement;
-      const { states } = that.internals;
-      return states?.has(state);
-    },
-    set(v: boolean) {
-      const that = this as GemElement;
-      const { states } = that.internals;
-      if (v) {
-        states?.add(state);
-      } else {
-        states?.delete(state);
-      }
-    },
-  });
-}
-
-declare global {
-  interface Window {
-    __GEM_DEVTOOLS__HOOK__?: (typeof GemExports & typeof VersionExports) | Record<string, never>;
-  }
-}
-
-if (window.__GEM_DEVTOOLS__HOOK__) {
-  Object.assign(window.__GEM_DEVTOOLS__HOOK__, { ...GemExports, ...VersionExports });
 }

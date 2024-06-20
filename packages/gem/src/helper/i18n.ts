@@ -1,5 +1,5 @@
 import { UpdateHistoryParams } from '../lib/history';
-import { html, TemplateResult, updateSymbol } from '../lib/element';
+import { html, TemplateResult, gemSymbols } from '../lib/element';
 import { GemError } from '../lib/utils';
 import type { RouteTrigger } from '../elements/base/route';
 
@@ -210,7 +210,7 @@ export class I18n<T = Record<string, Msg>> implements RouteTrigger {
     const temp: Element[] = [document.documentElement];
     while (!!temp.length) {
       const element = temp.pop()!;
-      (element as any)[updateSymbol]?.();
+      (element as any)[gemSymbols.update]?.();
       if (element.shadowRoot?.firstElementChild) temp.push(element.shadowRoot.firstElementChild);
       if (element.firstElementChild) temp.push(element.firstElementChild);
       if (element.nextElementSibling) temp.push(element.nextElementSibling);

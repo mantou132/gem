@@ -1,6 +1,7 @@
-import { GemElement, html, ifDefined } from '@mantou/gem/lib/element';
+import { GemElement, html } from '@mantou/gem/lib/element';
 import { adoptedStyle, attribute, boolattribute, customElement, property } from '@mantou/gem/lib/decorators';
 import { createCSSSheet, css } from '@mantou/gem/lib/utils';
+import { ifDefined } from '@mantou/gem/lib/directives';
 import { mediaQuery } from '@mantou/gem/helper/mediaquery';
 
 import { theme } from '../lib/theme';
