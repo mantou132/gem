@@ -47,7 +47,7 @@ jobs:
       # https://github.com/trmcnvn/firefox-addon
       # - uses: trmcnvn/firefox-addon@v1
       #   with:
-      #     uuid: ""
+      #     uuid: "{2af13fd2-a726-41de-b3a1-4bf2cb91c105}"
       #     xpi: ${{ env.ZIP_PATH }}
       #     manifest: packages/gem-devtools/extension/manifest.json
       #     api-key: ${{ secrets.FIREFOX_API_KEY }}

@@ -5,6 +5,11 @@
   "manifest_version": 3,
   "description": "Gem DevTools Extension to inspect and debug Gem elements",
   "devtools_page": "devtools.html",
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "{2af13fd2-a726-41de-b3a1-4bf2cb91c105}"
+    }
+  },
   "content_scripts": [
     {
       "world": "MAIN",
