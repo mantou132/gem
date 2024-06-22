@@ -5,6 +5,7 @@
   "description": "gem examples",
   "scripts": {
     "build": "vite build",
+    "preview": "vite preview",
     "start": "vite serve"
   },
   "dependencies": {
