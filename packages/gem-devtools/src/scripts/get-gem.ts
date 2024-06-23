@@ -1,25 +1,30 @@
-import type { GemElement, SheetToken } from '@mantou/gem';
+import type { GemElement, SheetToken, Sheet, Store } from '@mantou/gem';
 
 import type { PanelStore } from '../store';
 
 declare let $0: any;
 
 // 不要使用作用域外的变量
-export const getSelectedGem = function (data: PanelStore, gemElementSymbols: string[]): PanelStore | string {
+export const getSelectedGem = function (data: PanelStore): PanelStore | string {
   // https://github.com/bramus/scroll-driven-animations-debugger-extension/issues/19
   if (!$0) return `Not Gem: $0 is ${$0}`;
-  const tagClass = $0.constructor as typeof GemElement;
-  const devToolsHook = window.__GEM_DEVTOOLS__HOOK__;
-  if (devToolsHook) {
-    if (!devToolsHook.GemElement || !($0 instanceof devToolsHook.GemElement)) return 'Not Gem: gem hook';
+  const { __GEM_DEVTOOLS__HOOK__ } = window;
+  if (__GEM_DEVTOOLS__HOOK__) {
+    const { GemElement } = __GEM_DEVTOOLS__HOOK__;
+    if (!GemElement || !($0 instanceof GemElement)) return 'Not Gem: gem hook';
   } else {
-    // 依赖 `constructor`，如果 `constructor` 被破坏，则扩展不能工作
     // 没有严格检查是否是 GemElement
     if (!(($0 as any) instanceof HTMLElement)) return 'Not Gem: not HTMLElement';
-
-    const elementSymbols = new Set(Object.getOwnPropertySymbols($0).map(String));
-    if (gemElementSymbols.some((symbol) => !elementSymbols.has(symbol))) return 'Not Gem: some symbol diff';
   }
+
+  const tagClass = $0.constructor as typeof GemElement;
+  const { get } = Reflect;
+  // support v1
+  const gemSymbols = new Proxy(get(__GEM_DEVTOOLS__HOOK__ || {}, 'gemSymbols') || {}, {
+    get(target, p) {
+      return get(target, p) || p;
+    },
+  });
 
   const inspectable = (value: any) => {
     const type = typeof value;
@@ -116,7 +121,7 @@ export const getSelectedGem = function (data: PanelStore, gemElementSymbols: str
   const buildInProperty = new Set(['internals']);
   const buildInAttribute = new Set(['ref']);
   const memberSet = getProps($0);
-  tagClass.observedAttributes?.forEach((attr) => {
+  get(tagClass, gemSymbols.observedAttributes)?.forEach((attr: string) => {
     const prop = kebabToCamelCase(attr);
     const value = $0[prop];
     memberSet.delete(prop);
@@ -137,7 +142,7 @@ export const getSelectedGem = function (data: PanelStore, gemElementSymbols: str
       buildIn: buildInAttribute.has(attr) ? 1 : 0,
     });
   });
-  tagClass.observedProperties?.forEach((prop) => {
+  get(tagClass, gemSymbols.observedProperties)?.forEach((prop: string) => {
     memberSet.delete(prop);
     const value = $0[prop];
     const type = value === null ? 'null' : typeof value;
@@ -148,7 +153,7 @@ export const getSelectedGem = function (data: PanelStore, gemElementSymbols: str
       path: inspectable(value) ? [prop] : undefined,
     });
   });
-  tagClass.definedEvents?.forEach((event) => {
+  get(tagClass, gemSymbols.definedEvents)?.forEach((event: string) => {
     const prop = kebabToCamelCase(event);
     memberSet.delete(prop);
     data.emitters.push({
@@ -158,23 +163,23 @@ export const getSelectedGem = function (data: PanelStore, gemElementSymbols: str
       path: [prop],
     });
   });
-  tagClass.adoptedStyleSheets?.forEach((sheet, index) => {
+  get(tagClass, gemSymbols.adoptedStyleSheets)?.forEach((sheet: Sheet<unknown>, index: number) => {
     data.adoptedStyles.push({
       name: `StyleSheet${index + 1}`,
       value: objectToString(sheet[Object.getOwnPropertySymbols(sheet)[0] as typeof SheetToken]),
       type: 'object',
-      path: ['constructor', 'adoptedStyleSheets', String(index)],
+      path: ['constructor', 'gem@adoptedStyleSheets', String(index)],
     });
   });
-  tagClass.observedStores?.forEach((store, index) => {
+  get(tagClass, gemSymbols.observedStores)?.forEach((store: Store<unknown>, index: number) => {
     data.observedStores.push({
       name: `Store${index + 1}`,
       value: objectToString(store),
       type: 'object',
-      path: ['constructor', 'observedStores', String(index)],
+      path: ['constructor', 'gem@observedStores', String(index)],
     });
   });
-  tagClass.definedSlots?.forEach((slot) => {
+  get(tagClass, gemSymbols.definedSlots)?.forEach((slot: string) => {
     const isUnnamed = slot === 'unnamed';
     const prop = kebabToCamelCase(slot);
     if (!$0.constructor[prop]) {
@@ -194,7 +199,7 @@ export const getSelectedGem = function (data: PanelStore, gemElementSymbols: str
       path: isNode ? ['firstChild'] : element ? ['querySelector', selector] : undefined,
     });
   });
-  tagClass.definedParts?.forEach((part) => {
+  get(tagClass, gemSymbols.definedParts)?.forEach((part: string) => {
     const prop = kebabToCamelCase(part);
     if (!$0.constructor[prop]) {
       memberSet.delete(prop);
@@ -207,7 +212,7 @@ export const getSelectedGem = function (data: PanelStore, gemElementSymbols: str
       path: [['shadowRoot', ''], 'querySelector', selector],
     });
   });
-  tagClass.definedRefs?.forEach((ref) => {
+  get(tagClass, gemSymbols.definedRefs)?.forEach((ref: string) => {
     const prop = kebabToCamelCase(ref.replace(/-\w+$/, ''));
     memberSet.delete(prop);
     data.refs.push({
@@ -217,7 +222,7 @@ export const getSelectedGem = function (data: PanelStore, gemElementSymbols: str
       path: [['shadowRoot', ''], 'querySelector', `[ref=${$0[prop].ref}]`],
     });
   });
-  tagClass.definedCSSStates?.forEach((state) => {
+  get(tagClass, gemSymbols.definedCSSStates)?.forEach((state: string) => {
     const prop = kebabToCamelCase(state);
     memberSet.delete(prop);
     data.cssStates.push({
@@ -270,27 +275,13 @@ export const getSelectedGem = function (data: PanelStore, gemElementSymbols: str
     });
   });
 
-  const buildInStaticMember = new Set([
-    'length',
-    'name',
-    'prototype',
-    'observedAttributes',
-    'observedProperties',
-    'observedStores',
-    'adoptedStyleSheets',
-    'definedEvents',
-    'definedCSSStates',
-    'definedRefs',
-    'definedParts',
-    'definedSlots',
-  ]);
-  const buildInShowStaticMember = new Set(['rootElement']);
+  const buildInStaticMember = new Set(['length', 'name', 'prototype']);
   const getStaticMember = (cls: any, set = new Set<string>()) => {
     Object.getOwnPropertyNames(cls).forEach((key) => {
       if (
         !buildInStaticMember.has(key) &&
-        !tagClass.definedParts?.includes(cls[key]) &&
-        !tagClass.definedSlots?.includes(cls[key])
+        !get(tagClass, gemSymbols.definedParts)?.includes(cls[key]) &&
+        !get(tagClass, gemSymbols.definedSlots)?.includes(cls[key])
       ) {
         set.add(key);
       }
@@ -307,7 +298,7 @@ export const getSelectedGem = function (data: PanelStore, gemElementSymbols: str
       type: typeof value,
       value: objectToString(value),
       path: inspectable(value) ? ['constructor', key] : undefined,
-      buildIn: buildInShowStaticMember.has(key) ? 1 : 0,
+      buildIn: 0,
     });
   });
   // `Class` self
@@ -317,5 +308,6 @@ export const getSelectedGem = function (data: PanelStore, gemElementSymbols: str
     value: objectToString(tagClass),
     path: ['constructor'],
   });
+  data.gemVersion = __GEM_DEVTOOLS__HOOK__?.version ? `v${__GEM_DEVTOOLS__HOOK__.version}` : '';
   return data;
 };

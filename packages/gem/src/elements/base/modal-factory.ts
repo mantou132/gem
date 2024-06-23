@@ -1,5 +1,5 @@
-import { GemElement } from '../../lib/element';
-import { createStore, updateStore } from '../../lib/store';
+import { GemElement, gemSymbols } from '../../lib/element';
+import { connect, createStore, updateStore } from '../../lib/store';
 import { history } from '../../lib/history';
 
 const open = Symbol('open mark');
@@ -13,8 +13,6 @@ const open = Symbol('open mark');
  * 模拟 top layer：https://github.com/whatwg/html/issues/4633.
  */
 export function createModalClass<T extends Record<string, unknown>>(options: T) {
-  const final = Symbol();
-
   return class extends GemElement {
     static inertStore: HTMLElement[] = [];
     static instance: GemElement | null = null;
@@ -30,11 +28,6 @@ export function createModalClass<T extends Record<string, unknown>>(options: T) 
     /**@final */
     static get isOpen() {
       return this.store[open];
-    }
-
-    /**@final */
-    static get observedStores() {
-      return [history.store, this.store];
     }
 
     /**
@@ -58,7 +51,7 @@ export function createModalClass<T extends Record<string, unknown>>(options: T) 
           shouldClose: this.shouldClose.bind(this),
         });
       }, 100);
-      return final;
+      return gemSymbols.final;
     }
 
     /**
@@ -67,7 +60,7 @@ export function createModalClass<T extends Record<string, unknown>>(options: T) 
      */
     static close() {
       history.back();
-      return final;
+      return gemSymbols.final;
     }
 
     /**
@@ -78,7 +71,7 @@ export function createModalClass<T extends Record<string, unknown>>(options: T) 
       this.inertStore.forEach((e) => (e.inert = false));
       this.instance?.remove();
       updateStore(this.store, { [open]: false, ...options });
-      return final;
+      return gemSymbols.final;
     }
 
     /**
@@ -92,6 +85,15 @@ export function createModalClass<T extends Record<string, unknown>>(options: T) 
       super();
       this.internals.role = 'alertdialog';
       this.internals.ariaModal = 'true';
+
+      this.effect(
+        () => connect(history.store, this.update),
+        () => [],
+      );
+      this.effect(
+        () => connect(new.target.store, this.update),
+        () => [],
+      );
     }
 
     label = '';

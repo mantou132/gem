@@ -2,8 +2,6 @@ import { GemElement, html, customElement } from '@mantou/gem';
 
 import { EXAMPLES, VERSION } from './env';
 
-const getGitPageUrl = (name: string) => `../${name}/`;
-
 @customElement('gem-examples-nav')
 export class Nav extends GemElement {
   mounted = () => {
@@ -78,9 +76,9 @@ export class Nav extends GemElement {
               <div class="group-title"><span>${group}</span></div>
               <ol>
                 ${(examples as typeof EXAMPLES).map(
-                  ({ name = '' }) => html`
+                  ({ path = '', name = '' }) => html`
                     <li>
-                      <a class=${location.pathname.includes(name) ? 'active' : ''} href=${getGitPageUrl(name)}>
+                      <a class=${location.pathname.includes(path) ? 'active' : ''} href=${`../${path}/`}>
                         <div>${name.replace('-', ' ')}</div>
                       </a>
                     </li>

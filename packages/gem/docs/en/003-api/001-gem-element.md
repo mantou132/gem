@@ -21,17 +21,6 @@ class GemElement<State> extends HTMLElement {
 | `delegatesFocus` | When the element attempts to focus, the automatic proxy to the focus part |
 | `slotAssignment` | Allow manual allocation of slot                                           |
 
-## Static properties
-
-| name                 | description                                                   |
-| -------------------- | ------------------------------------------------------------- |
-| `observedStores`     | Observe the specified `Store`, re-rendered by `Store` changes |
-| `adoptedStyleSheets` | See [`DocumentOrShadowRoot.adoptedStyleSheets`][1]            |
-
-[1]: https://developer.mozilla.org/en-US/docs/Web/API/DocumentOrShadowRoot/adoptedStyleSheets
-
-_Use the [decorator](./007-decorator.md) to instead_
-
 ## Lifecycle hook
 
 | name           | description                                                                               |

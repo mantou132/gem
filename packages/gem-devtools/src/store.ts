@@ -19,6 +19,7 @@ export class PanelStore {
     Object.assign(this, options);
   }
   isGemElement = true;
+  gemVersion = '';
   elements = new Array<string>();
   customElements = new Array<string>();
   gemElements = new Array<string>();

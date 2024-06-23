@@ -15,6 +15,8 @@ import {
 
 export { html, svg, render, directive, TemplateResult, SVGTemplateResult } from 'lit-html';
 
+const { get, defineProperty } = Reflect;
+
 declare global {
   interface ElementInternals extends ARIAMixin {
     // https://developer.mozilla.org/en-US/docs/Web/API/CustomStateSet
@@ -63,7 +65,24 @@ type EffectItem<T> = {
 };
 
 export const gemSymbols = {
-  update: Symbol('update'),
+  // 禁止覆盖自定义元素原生生命周期方法
+  // https://github.com/microsoft/TypeScript/issues/21388#issuecomment-934345226
+  final: Symbol(),
+  update: Symbol(),
+  // 指定 root 元素类型
+  rootElement: Symbol(),
+  // 实例化时使用到，DevTools 需要读取
+  observedStores: Symbol.for('gem@observedStores'),
+  adoptedStyleSheets: Symbol.for('gem@adoptedStyleSheets'),
+  sheetToken: SheetToken,
+  // 以下静态字段仅供外部读取，没有实际作用
+  observedProperties: Symbol(),
+  observedAttributes: Symbol(), // 必须在定义元素前指定
+  definedEvents: Symbol(),
+  definedCSSStates: Symbol(),
+  definedRefs: Symbol(),
+  definedParts: Symbol(),
+  definedSlots: Symbol(),
 };
 
 export interface GemElementOptions extends Partial<ShadowRootInit> {
@@ -73,24 +92,6 @@ export interface GemElementOptions extends Partial<ShadowRootInit> {
 }
 
 export abstract class GemElement<T = Record<string, unknown>> extends HTMLElement {
-  // 禁止覆盖自定义元素原生生命周期方法
-  // https://github.com/microsoft/TypeScript/issues/21388#issuecomment-934345226
-  static #final = Symbol();
-
-  // 指定 root 元素类型
-  static rootElement?: string;
-  // 实例化时使用到
-  static observedStores?: Store<unknown>[];
-  static adoptedStyleSheets?: Sheet<unknown>[];
-  // 以下静态字段仅供外部读取，没有实际作用
-  static observedProperties?: string[];
-  static observedAttributes?: string[]; // 必须在定义元素前指定
-  static definedEvents?: string[];
-  static definedCSSStates?: string[];
-  static definedRefs?: string[];
-  static definedParts?: string[];
-  static definedSlots?: string[];
-
   // 定义当前元素的状态，和 attr/prop 的本质区别是不为外部输入
   readonly state?: T;
 
@@ -105,11 +106,14 @@ export abstract class GemElement<T = Record<string, unknown>> extends HTMLElemen
   #memoList?: EffectItem<any>[];
   #unmountCallback?: any;
 
+  [gemSymbols.update]() {
+    if (this.#isMounted) {
+      addMicrotask(this.#update);
+    }
+  }
+
   constructor(options: GemElementOptions = {}) {
     super();
-
-    // expose private Methods
-    Reflect.set(this, gemSymbols.update, this.#asyncUpdate);
 
     this.#isAsync = options.isAsync;
     this.#renderRoot = options.isLight
@@ -141,10 +145,10 @@ export abstract class GemElement<T = Record<string, unknown>> extends HTMLElemen
           });
         }
       },
-      () => [Reflect.get(this, 'disabled')],
+      () => [get(this, 'disabled')],
     );
 
-    const { adoptedStyleSheets } = new.target;
+    const adoptedStyleSheets = get(new.target, gemSymbols.adoptedStyleSheets) as Sheet<unknown>[] | undefined;
     if (adoptedStyleSheets) {
       const sheets = adoptedStyleSheets.map((item) => item[SheetToken] || item);
       if (this.shadowRoot) {
@@ -174,7 +178,7 @@ export abstract class GemElement<T = Record<string, unknown>> extends HTMLElemen
         this.#internals.states.add('foo');
         this.#internals.states.delete('foo');
       } catch {
-        Reflect.defineProperty(this.#internals, 'states', {
+        defineProperty(this.#internals, 'states', {
           value: {
             has: (v: string) => kebabToCamelCase(v) in this.dataset,
             add: (v: string) => (this.dataset[kebabToCamelCase(v)] = ''),
@@ -341,12 +345,6 @@ export abstract class GemElement<T = Record<string, unknown>> extends HTMLElemen
     }
   };
 
-  #asyncUpdate = () => {
-    if (this.#isMounted) {
-      addMicrotask(this.#update);
-    }
-  };
-
   /**
    * @helper
    * async
@@ -375,7 +373,8 @@ export abstract class GemElement<T = Record<string, unknown>> extends HTMLElemen
       return;
     }
 
-    const { observedStores, rootElement } = this.constructor as typeof GemElement;
+    const observedStores = get(this.constructor, gemSymbols.observedStores) as Store<unknown>[] | undefined;
+    const rootElement = get(this.constructor, gemSymbols.rootElement) as string | undefined;
 
     this.#isConnected = true;
     this.willMount?.();
@@ -400,7 +399,7 @@ export abstract class GemElement<T = Record<string, unknown>> extends HTMLElemen
     } else {
       this.#connectedCallback();
     }
-    return GemElement.#final;
+    return gemSymbols.final;
   }
 
   /**
@@ -408,7 +407,7 @@ export abstract class GemElement<T = Record<string, unknown>> extends HTMLElemen
    * @final
    */
   adoptedCallback() {
-    return GemElement.#final;
+    return gemSymbols.final;
   }
 
   /**
@@ -427,7 +426,7 @@ export abstract class GemElement<T = Record<string, unknown>> extends HTMLElemen
     this.unmounted?.();
     this.#effectList = this.#clearEffect(this.#effectList);
     this.#memoList = this.#clearEffect(this.#memoList);
-    return GemElement.#final;
+    return gemSymbols.final;
   }
 
   #clearEffect = (list?: EffectItem<any>[]) => {

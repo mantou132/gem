@@ -34,9 +34,9 @@ export default defineConfig({
     'process.env.EXAMPLES': JSON.stringify(
       examples.map((example) => {
         try {
-          return { name: example, ...require(`./src/${example}/manifest.json`) };
+          return { name: example, ...require(`./src/${example}/manifest.json`), path: example };
         } catch {
-          return { name: example };
+          return { path: example, name: example };
         }
       }),
     ),

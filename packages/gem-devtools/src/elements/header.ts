@@ -17,6 +17,7 @@ const style = createCSSSheet(css`
   :host {
     display: flex;
     line-height: 1.5;
+    padding-inline: 0.5em;
   }
   .title {
     font-style: italic;

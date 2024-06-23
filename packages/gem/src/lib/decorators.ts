@@ -10,23 +10,23 @@ import * as versionExports from './version';
 
 type GemElementPrototype = GemElement<any>;
 type GemElementConstructor = typeof GemElement;
-type StaticField = Exclude<keyof GemElementConstructor, 'prototype' | 'rootElement'>;
 type StaticFieldMember = string | Store<unknown> | Sheet<unknown>;
 
+const { get, set } = Reflect;
 const gemElementProxyMap = new PropProxyMap<GemElement>();
 
-function pushStaticField(target: GemElement | GemElementPrototype, field: StaticField, member: StaticFieldMember) {
+function pushStaticField(target: GemElement | GemElementPrototype, field: symbol, member: StaticFieldMember) {
   const cls = target.constructor as GemElementConstructor;
   if (!cls.hasOwnProperty(field)) {
     // 继承基类
-    const current = new Set<unknown>(cls[field]);
+    const current = new Set<unknown>(get(cls, field));
     current.delete(member);
     Object.defineProperty(cls, field, {
       value: [...current],
     });
   }
 
-  cls[field]!.push(member as any);
+  get(cls, field)!.push(member as any);
 }
 
 function clearField<T extends GemElement<any>>(instance: T, prop: string) {
@@ -100,7 +100,7 @@ export function refobject<T extends GemElement<any>, V extends HTMLElement>(
     const prop = context.name as string;
     if (!target.hasOwnProperty(prop)) {
       const ref = `${camelToKebabCase(prop)}-${randomStr()}`;
-      pushStaticField(this, 'definedRefs', ref);
+      pushStaticField(this, gemSymbols.definedRefs, ref);
       defineRef(target, prop, ref);
     }
     clearField(this, prop);
@@ -191,7 +191,7 @@ function decoratorAttr<T extends GemElement<any>>(context: ClassFieldDecoratorCo
   context.addInitializer(function (this: T) {
     const target = Object.getPrototypeOf(this);
     if (!target.hasOwnProperty(prop)) {
-      pushStaticField(target, 'observedAttributes', attr); // 没有 observe 的效果
+      pushStaticField(target, gemSymbols.observedAttributes, attr); // 没有 observe 的效果
       defineProperty(target, prop, { attr, attrType });
       // 记录观察的 attribute
       const attrMap = observedTargetAttributes.get(target) || new Map<string, string>();
@@ -244,7 +244,7 @@ export function property<T extends GemElement<any>>(_: undefined, context: Class
   context.addInitializer(function (this: T) {
     const target = Object.getPrototypeOf(this);
     if (!target.hasOwnProperty(prop)) {
-      pushStaticField(this, 'observedProperties', prop);
+      pushStaticField(this, gemSymbols.observedProperties, prop);
       defineProperty(target, prop);
     }
     clearField(this, prop);
@@ -294,7 +294,7 @@ export function state<T extends GemElement<any>>(_: undefined, context: ClassFie
     const prop = context.name as string;
     if (!target.hasOwnProperty(prop)) {
       const attr = camelToKebabCase(prop);
-      pushStaticField(this, 'definedCSSStates', attr);
+      pushStaticField(this, gemSymbols.definedCSSStates, attr);
       defineCSSState(target, prop, attr);
     }
     clearField(this, prop);
@@ -304,7 +304,7 @@ export function state<T extends GemElement<any>>(_: undefined, context: ClassFie
 function defineStaticField(
   context: ClassFieldDecoratorContext<any, string>,
   target: any,
-  field: StaticField,
+  field: symbol,
   value: string,
 ) {
   const prop = context.name as string;
@@ -335,7 +335,7 @@ function defineStaticField(
  */
 export function slot(_: undefined, context: ClassFieldDecoratorContext<any, string>) {
   return function (this: any, value: string) {
-    return defineStaticField(context, this, 'definedSlots', value);
+    return defineStaticField(context, this, gemSymbols.definedSlots, value);
   };
 }
 
@@ -352,7 +352,7 @@ export function slot(_: undefined, context: ClassFieldDecoratorContext<any, stri
  */
 export function part(_: undefined, context: ClassFieldDecoratorContext<any, string>) {
   return function (this: any, value: string) {
-    return defineStaticField(context, this, 'definedParts', value);
+    return defineStaticField(context, this, gemSymbols.definedParts, value);
   };
 }
 
@@ -386,7 +386,7 @@ function defineEmitter(t: GemElement, prop: string, eventOptions?: Omit<CustomEv
   const target = Object.getPrototypeOf(t);
   if (!target.hasOwnProperty(prop)) {
     const event = camelToKebabCase(prop);
-    pushStaticField(target, 'definedEvents', event);
+    pushStaticField(target, gemSymbols.definedEvents, event);
     defineProperty(target, prop, { event, eventOptions });
   }
   clearField(t, prop);
@@ -404,7 +404,7 @@ function defineEmitter(t: GemElement, prop: string, eventOptions?: Omit<CustomEv
 export function adoptedStyle(style: Sheet<unknown>) {
   return function (cls: unknown, _: ClassDecoratorContext) {
     const con = cls as GemElementConstructor;
-    pushStaticField(con.prototype, 'adoptedStyleSheets', style);
+    pushStaticField(con.prototype, gemSymbols.adoptedStyleSheets, style);
   };
 }
 
@@ -420,7 +420,7 @@ export function adoptedStyle(style: Sheet<unknown>) {
 export function connectStore(store: Store<unknown>) {
   return function (cls: unknown, _: ClassDecoratorContext) {
     const con = cls as GemElementConstructor;
-    pushStaticField(con.prototype, 'observedStores', store);
+    pushStaticField(con.prototype, gemSymbols.observedStores, store);
   };
 }
 
@@ -434,9 +434,8 @@ export function connectStore(store: Store<unknown>) {
  * ```
  */
 export function rootElement(rootType: string) {
-  return function (cls: unknown, _: ClassDecoratorContext) {
-    const con = cls as GemElementConstructor;
-    con.rootElement = rootType;
+  return function (cls: any, _: ClassDecoratorContext) {
+    set(cls, gemSymbols.rootElement, rootType);
   };
 }
 

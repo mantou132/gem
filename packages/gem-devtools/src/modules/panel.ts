@@ -52,7 +52,7 @@ export class Panel extends GemElement {
       `;
     }
     return html`
-      <devtools-header></devtools-header>
+      <devtools-header>${panelStore.gemVersion}</devtools-header>
       <devtools-section name="Observed Attributes" .items=${panelStore.observedAttributes}></devtools-section>
       <devtools-section name="Observed Properties" .items=${panelStore.observedProperties}></devtools-section>
       <devtools-section name="Observed Stores" .items=${panelStore.observedStores}></devtools-section>

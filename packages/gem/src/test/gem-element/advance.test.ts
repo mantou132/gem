@@ -8,17 +8,26 @@
  */
 import { fixture, expect, nextFrame } from '@open-wc/testing';
 
-import { GemElement, html } from '../../lib/element';
+import { GemElement, gemSymbols, html } from '../../lib/element';
 import { createStore, updateStore } from '../../lib/store';
-import { attribute, property, customElement, emitter, adoptedStyle, refobject, RefObject } from '../../lib/decorators';
+import {
+  attribute,
+  property,
+  customElement,
+  emitter,
+  adoptedStyle,
+  refobject,
+  RefObject,
+  connectStore,
+} from '../../lib/decorators';
 import { createCSSSheet, css } from '../../lib/utils';
 
 const store = createStore({
   a: 1,
 });
 
+@connectStore(store)
 class AsyncGemDemo extends GemElement {
-  static observedStores = [store];
   constructor() {
     super({ isAsync: true });
   }
@@ -297,7 +306,7 @@ describe('gem element 继承', () => {
   it('静态字段继承', async () => {
     new I();
     new InheritGem(); // 触发装饰器自定义初始化函数
-    expect(InheritGem.observedAttributes).to.eql(['app-title', 'app-title2']);
+    expect(Reflect.get(InheritGem, gemSymbols.observedAttributes)).to.eql(['app-title', 'app-title2']);
   });
   it('attr/prop/emitter 继承', async () => {
     const name = window.name;

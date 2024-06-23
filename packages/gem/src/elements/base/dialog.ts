@@ -1,8 +1,6 @@
-import { GemElement } from '../../lib/element';
+import { GemElement, gemSymbols } from '../../lib/element';
 import { attribute, state, connectStore } from '../../lib/decorators';
 import { history } from '../../lib/history';
-
-const final = Symbol();
 
 /**
  * 在模版中声明的 dialog，使用 `open` 方法 打开；
@@ -32,10 +30,9 @@ export abstract class GemDialogBaseElement extends GemElement {
   }
 
   /**
-   * @final
    * 进入关闭状态
    */
-  closeHandle = () => {
+  #closeHandle = () => {
     this.inert = true;
     this.#inertStore.forEach((e) => (e.inert = false));
     if (this.#nextSibling) {
@@ -45,14 +42,12 @@ export abstract class GemDialogBaseElement extends GemElement {
     }
     this.dispatchEvent(new CustomEvent('close'));
     this.opened = false;
-    return final;
   };
 
   /**
-   * @final
    * 进入打开状态
    */
-  openHandle = () => {
+  #openHandle = () => {
     this.hidden = false;
     this.inert = false;
     this.#nextSibling = this.nextSibling;
@@ -62,20 +57,19 @@ export abstract class GemDialogBaseElement extends GemElement {
     document.body.append(this);
     this.dispatchEvent(new CustomEvent('open'));
     this.opened = true;
-    return final;
   };
 
   /**@final */
   open = () => {
     if (this.opened) return;
-    this.openHandle();
+    this.#openHandle();
     history.push({
       title: this.label,
-      open: this.openHandle,
-      close: this.closeHandle,
+      open: this.#openHandle,
+      close: this.#closeHandle,
       shouldClose: this.shouldClose,
     });
-    return final;
+    return gemSymbols.final;
   };
 
   shouldClose() {
@@ -85,7 +79,7 @@ export abstract class GemDialogBaseElement extends GemElement {
   /**@final */
   close = () => {
     history.back();
-    return final;
+    return gemSymbols.final;
   };
 
   /**
@@ -97,6 +91,6 @@ export abstract class GemDialogBaseElement extends GemElement {
   forceClose = () => {
     this.opened = false;
     setTimeout(this.close, 100);
-    return final;
+    return gemSymbols.final;
   };
 }

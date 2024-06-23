@@ -23,7 +23,7 @@ update({ a: 2 });
 disconnect();
 ```
 
-前一节有提到，使用 `static observedStores`/`@connectStore` 来连接 `Store`，
+前一节有提到，使用 `@connectStore` 来连接 `Store`，
 实际上，他们的作用只是注册 `GemElement` 实例的 `update` 方法，
 所以，当 `Store` 更新时，连接 `Store` 的 `GemElement` 的实例会调用 `update`，从而实现自动更新。
 

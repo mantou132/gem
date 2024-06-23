@@ -21,17 +21,6 @@ class GemElement<State> extends HTMLElement {
 | `delegatesFocus` | 当元素尝试聚焦时自动代理到可聚焦部分 |
 | `slotAssignment` | 允许手动分配插槽                     |
 
-## 静态属性
-
-| 名称                 | 描述                                                        |
-| -------------------- | ----------------------------------------------------------- |
-| `observedStores`     | 监听指定的 `Store`, 当被监听的 `Store` 变化时元素将重新渲染 |
-| `adoptedStyleSheets` | 同 [`DocumentOrShadowRoot.adoptedStyleSheets`][1]           |
-
-[1]: https://developer.mozilla.org/en-US/docs/Web/API/DocumentOrShadowRoot/adoptedStyleSheets
-
-_可以使用等效的[装饰器](./007-decorator.md)替代_
-
 ## 生命周期钩子
 
 | 名称           | 描述                                        |

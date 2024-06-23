@@ -1,5 +1,5 @@
 import { devtools } from 'webextension-polyfill';
-import { customElement, GemElement, html, render } from '@mantou/gem';
+import { html, render } from '@mantou/gem';
 import { logger } from '@mantou/gem/helper/logger';
 
 import { getSelectedGem } from './scripts/get-gem';
@@ -10,15 +10,9 @@ import { execution } from './common';
 
 import './modules/panel';
 
-@customElement('devtools-gem-discover')
-class GemDiscover extends GemElement {}
-
 async function updateElementProperties() {
   try {
-    const result = await execution(getSelectedGem, [
-      new PanelStore(),
-      Object.getOwnPropertySymbols(new GemDiscover()).map(String),
-    ]);
+    const result = await execution(getSelectedGem, [new PanelStore()]);
     if (typeof result !== 'string') {
       changePanelStore(result);
     } else {

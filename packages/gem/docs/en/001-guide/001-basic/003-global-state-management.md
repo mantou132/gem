@@ -21,7 +21,7 @@ update({ a: 2 });
 disconnect();
 ```
 
-As mentioned in the previous section, use `static observedStores`/`@connectStore` to connect to `Store`, in fact, their role is only to register the `update` method of the`GemElement` instance, therefore, when the `Store` is updated, the instance of the `GemElement` connected to the `Store` will call `update` to achieve automatic update.
+As mentioned in the previous section, use `@connectStore` to connect to `Store`, in fact, their role is only to register the `update` method of the`GemElement` instance, therefore, when the `Store` is updated, the instance of the `GemElement` connected to the `Store` will call `update` to achieve automatic update.
 
 ## Planning the store
 

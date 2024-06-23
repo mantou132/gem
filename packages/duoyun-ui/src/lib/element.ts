@@ -1,4 +1,4 @@
-import { GemElement } from '@mantou/gem/lib/element';
+import { GemElement, gemSymbols } from '@mantou/gem/lib/element';
 
 export function getBoundingClientRect(eleList: Element[]) {
   const rects = eleList.map((e) => e.getBoundingClientRect());
@@ -13,7 +13,7 @@ export function getBoundingClientRect(eleList: Element[]) {
 export function toggleActiveState(ele: Element | undefined | null, active: boolean) {
   if (!ele) return;
   if (ele instanceof GemElement) {
-    if ((ele.constructor as typeof GemElement).definedCSSStates?.includes('active')) {
+    if (Reflect.get(ele.constructor, gemSymbols.definedCSSStates)?.includes('active')) {
       (ele as any).active = active;
     }
     if (['button', 'combobox'].includes(ele.role || ele.internals.role || '')) {
