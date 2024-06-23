@@ -68,7 +68,7 @@ const style = createCSSSheet(css`
     border-radius: ${theme.normalRound};
     align-self: center;
   }
-  .actions:where(:hover, [data-active], :state(active)) {
+  .actions:where(:hover, :state(active)) {
     background-color: ${theme.hoverBackgroundColor};
   }
   slot[name='body']::slotted(*),

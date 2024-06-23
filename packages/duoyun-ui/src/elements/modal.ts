@@ -42,7 +42,7 @@ const style = createCSSSheet(css`
     align-items: center;
     justify-content: center;
   }
-  :host(:not([hidden]):where([open], :where([data-closing], :state(closing)))) {
+  :host(:not([hidden]):where([open], :state(closing))) {
     display: flex;
   }
   .absolute {

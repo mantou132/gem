@@ -38,7 +38,7 @@ export const pickerStyle = createCSSSheet(css`
   :host(:not([borderless], [disabled])) {
     box-shadow: ${theme.controlShadow};
   }
-  :host(:where([data-active], :state(active))) {
+  :host(:state(active)) {
     background: ${theme.lightBackgroundColor};
   }
   :host([disabled]) {
@@ -59,10 +59,10 @@ export const pickerStyle = createCSSSheet(css`
     width: 1.2em;
     color: ${theme.borderColor};
   }
-  :host(:not([disabled], [borderless]):where(:hover, [data-active], :state(active))) {
+  :host(:not([disabled], [borderless]):where(:hover, :state(active))) {
     border-color: ${theme.primaryColor};
   }
-  :host(:not([disabled]):where(:hover, [data-active], :state(active))) dy-use {
+  :host(:not([disabled]):where(:hover, :state(active))) dy-use {
     color: ${theme.textColor};
   }
 `);

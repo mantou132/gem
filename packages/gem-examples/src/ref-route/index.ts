@@ -37,7 +37,7 @@ export class RouteHome extends GemElement {
         gem-active-link {
           display: block;
         }
-        gem-active-link:where([data-active], :state(active)) {
+        gem-active-link:state(active) {
           color: inherit;
         }
       </style>
@@ -58,7 +58,7 @@ export class RouteA extends GemElement {
         gem-active-link {
           display: block;
         }
-        gem-active-link:where([data-active], :state(active)) {
+        gem-active-link:state(active) {
           color: inherit;
         }
       </style>

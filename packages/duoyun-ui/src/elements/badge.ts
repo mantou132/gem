@@ -47,7 +47,7 @@ const style = createCSSSheet(css`
     width: 1em;
   }
   @supports (anchor-name: --foo) {
-    :host(:where(:where([data-inline], :state(inline)):not([hidden]))) {
+    :host(:where(:state(inline):not([hidden]))) {
       display: inline;
       anchor-name: --anchor;
     }

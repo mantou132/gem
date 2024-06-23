@@ -91,10 +91,10 @@ const style = createCSSSheet(css`
     overflow: hidden;
     text-overflow: ellipsis;
   }
-  :host(:not(:where([data-compact], :state(:compact)))) .children .item {
+  :host(:not(:state(compact))) .children .item {
     padding-inline-start: calc(0.75em + 1em);
   }
-  .item:where(:hover, [data-active], :state(active)) {
+  .item:where(:hover, :state(active)) {
     background-color: ${theme.hoverBackgroundColor};
     &:active {
       background: color-mix(in srgb, ${theme.hoverBackgroundColor}, currentColor 3%);
@@ -113,10 +113,10 @@ const style = createCSSSheet(css`
     font-size: 0.7em;
     color: ${theme.describeColor};
   }
-  :host(:where([data-compact], :state(:compact))) :where(.group-title, .title, .title-wrap + *) {
+  :host(:state(compact)) :where(.group-title, .title, .title-wrap + *) {
     display: none;
   }
-  :host(:where([data-compact], :state(:compact))) :where(.item, .title-wrap) {
+  :host(:state(compact)) :where(.item, .title-wrap) {
     justify-content: center;
   }
 `);

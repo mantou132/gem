@@ -57,7 +57,7 @@ const itemStyle = createCSSSheet(css`
     line-height: 2;
     user-select: none;
   }
-  :host(:where(:hover, [data-active], :state(active))) {
+  :host(:where(:hover, :state(active))) {
     background-color: ${theme.lightBackgroundColor};
   }
   :host([highlight]) {

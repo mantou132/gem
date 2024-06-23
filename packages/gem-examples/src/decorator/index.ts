@@ -73,7 +73,7 @@ export class App extends GemElement {
     console.log('parent render');
     return html`
       <style>
-        app-children:where([data-odd], :state(odd))::part(${Children.paragraph}) {
+        app-children:state(odd)::part(${Children.paragraph}) {
           color: red;
         }
       </style>

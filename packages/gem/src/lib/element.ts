@@ -8,14 +8,13 @@ import {
   SheetToken,
   isArrayChange,
   GemError,
-  kebabToCamelCase,
   removeItems,
   addListener,
 } from './utils';
 
 export { html, svg, render, directive, TemplateResult, SVGTemplateResult } from 'lit-html';
 
-const { get, defineProperty } = Reflect;
+const { get } = Reflect;
 
 declare global {
   interface ElementInternals extends ARIAMixin {
@@ -171,21 +170,6 @@ export abstract class GemElement<T = Record<string, unknown>> extends HTMLElemen
   get internals() {
     if (!this.#internals) {
       this.#internals = this.attachInternals();
-      // https://groups.google.com/a/chromium.org/g/blink-dev/c/JvpHoUfhJYE?pli=1
-      // https://bugs.webkit.org/show_bug.cgi?id=215911
-      // https://bugzilla.mozilla.org/show_bug.cgi?id=1588763
-      try {
-        this.#internals.states.add('foo');
-        this.#internals.states.delete('foo');
-      } catch {
-        defineProperty(this.#internals, 'states', {
-          value: {
-            has: (v: string) => kebabToCamelCase(v) in this.dataset,
-            add: (v: string) => (this.dataset[kebabToCamelCase(v)] = ''),
-            delete: (v: string) => delete this.dataset[kebabToCamelCase(v)],
-          },
-        });
-      }
     }
     return this.#internals;
   }

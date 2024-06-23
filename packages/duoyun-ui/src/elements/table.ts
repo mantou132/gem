@@ -105,7 +105,7 @@ const styles = createCSSSheet(css`
     padding: 4px;
     border-radius: ${theme.normalRound};
   }
-  .action:where(:hover, [data-active], :state(active)) {
+  .action:where(:hover, :state(active)) {
     background-color: ${theme.hoverBackgroundColor};
   }
   .side {

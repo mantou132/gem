@@ -1,6 +1,6 @@
 import { history } from '@mantou/gem/lib/history';
 import { GemElement, TemplateResult, html, render } from '@mantou/gem/lib/element';
-import { adoptedStyle, attribute, connectStore, customElement, property } from '@mantou/gem/lib/decorators';
+import { adoptedStyle, attribute, connectStore, customElement, property, state } from '@mantou/gem/lib/decorators';
 import { addListener, classMap, createCSSSheet, css } from '@mantou/gem/lib/utils';
 import { mediaQuery } from '@mantou/gem/helper/mediaquery';
 
@@ -90,7 +90,7 @@ const style = createCSSSheet(css`
     filter: drop-shadow(${theme.borderColor} 0px 0px 1px)
       drop-shadow(rgba(0, 0, 0, calc(${theme.maskAlpha} - 0.1)) 0px 7px 10px);
   }
-  dy-pat-nav:where(:not([data-switching])) :where(.navbar-item-wrap:where(:hover, :focus-within)) .dropdown {
+  dy-pat-nav:where(:not(:state(switching))) :where(.navbar-item-wrap:where(:hover, :focus-within)) .dropdown {
     display: flex;
   }
   dy-pat-nav .dropdown dy-link {
@@ -195,13 +195,15 @@ export class DyPatNavElement extends GemElement<State> {
   @property logo?: string | Element | DocumentFragment;
   @property renderSlot?: (ele: Element) => TemplateResult | undefined;
 
+  @state switching: boolean;
+
   constructor() {
     super({ isLight: true });
     const blur = () => {
       this.setState({ drawerOpen: false });
       (this.getRootNode() as any).activeElement?.blur();
-      this.dataset.switching = '';
-      setTimeout(() => delete this.dataset.switching, 60);
+      this.switching = true;
+      setTimeout(() => (this.switching = false), 60);
     };
     this.effect(
       () => blur(),

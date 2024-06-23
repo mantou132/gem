@@ -86,7 +86,6 @@ class MyElement extends GemElement {
 
   open() {
     // Can be selected by the selector `:state(opened)`
-    // Consider compatibility can be used `:where(:state(opened), [data-opened])`
     this.opened = true;
   }
 }

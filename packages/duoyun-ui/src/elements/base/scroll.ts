@@ -20,35 +20,24 @@ const style = createCSSSheet(css`
     --mask-start: var(--mask-top);
     --mask-end: var(--mask-bottom);
   }
-  :host(:where([data-top-overflow], :state(top-overflow))) {
+  :host(:state(top-overflow)) {
     --mask-top: var(--mask-width);
   }
-  :host(:where([data-bottom-overflow], :state(bottom-overflow))) {
+  :host(:state(bottom-overflow)) {
     --mask-bottom: calc(100% - var(--mask-width));
   }
-  :host(:where([data-left-overflow], :state(left-overflow), [data-right-overflow], :state(right-overflow))) {
+  :host(:where(:state(left-overflow), :state(right-overflow))) {
     --mask-dir: right;
     --mask-start: var(--mask-left);
     --mask-end: var(--mask-right);
   }
-  :host(:where([data-left-overflow], :state(left-overflow))) {
+  :host(:state(left-overflow)) {
     --mask-left: var(--mask-width);
   }
-  :host(:where([data-right-overflow], :state(right-overflow))) {
+  :host(:state(right-overflow)) {
     --mask-right: calc(100% - var(--mask-width));
   }
-  :host(
-      :where(
-          [data-top-overflow],
-          :state(top-overflow),
-          [data-bottom-overflow],
-          :state(bottom-overflow),
-          [data-left-overflow],
-          :state(left-overflow),
-          [data-right-overflow],
-          :state(right-overflow)
-        )
-    ) {
+  :host(:where(:state(top-overflow), :state(bottom-overflow), :state(left-overflow), :state(right-overflow))) {
     --m: linear-gradient(to var(--mask-dir), #fff0, #000 var(--mask-start), #000 var(--mask-end), #fff0 100%);
     -webkit-mask-image: var(--m);
     mask-image: var(--m);

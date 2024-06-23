@@ -140,10 +140,10 @@ export class Nav extends GemElement {
           width: 1em;
           margin-left: 0.3rem;
         }
-        :host(:where([data-compact], :state(compact))) .external:not(.icon) {
+        :host(:state(compact)) .external:not(.icon) {
           display: none;
         }
-        :host(:where([data-compact], :state(compact))) .left .item {
+        :host(:state(compact)) .left .item {
           padding: 0 0.5rem;
         }
         gem-link,
@@ -155,10 +155,10 @@ export class Nav extends GemElement {
           background: rgba(${theme.primaryColorRGB}, 0.1);
         }
         gem-active-link:not(.icon):hover,
-        gem-active-link:where(:state(active), [data-active]) {
+        gem-active-link:state(active) {
           color: ${theme.primaryColor};
         }
-        gem-active-link:where(:state(active), [data-active])::after {
+        gem-active-link:state(active)::after {
           content: '';
           position: absolute;
           left: 0;

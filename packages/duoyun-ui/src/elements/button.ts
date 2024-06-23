@@ -111,11 +111,7 @@ const style = createCSSSheet(css`
     cursor: not-allowed;
     --bg: ${theme.disabledColor};
   }
-  :where(
-      :host(:where([data-active], :state(active))) .content,
-      .content:where(:hover),
-      .dropdown:where(:hover, [data-active], :state(active))
-    )::after {
+  :where(:host(:state(active)) .content, .content:where(:hover), .dropdown:where(:hover, :state(active)))::after {
     content: '';
     position: absolute;
     inset: -1px;

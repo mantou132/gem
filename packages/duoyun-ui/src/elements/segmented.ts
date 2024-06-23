@@ -54,7 +54,7 @@ const style = createCSSSheet(css`
     border-radius: var(--inner-radius);
     min-width: 5em;
   }
-  :host(:where(:not([disabled], :where([data-animating], :state(animating))))) .segment:hover {
+  :host(:where(:not([disabled], :state(animating)))) .segment:hover {
     background: color-mix(in srgb, ${theme.hoverBackgroundColor}, currentColor 6%);
     &:active {
       background: color-mix(in srgb, ${theme.hoverBackgroundColor}, currentColor 10%);

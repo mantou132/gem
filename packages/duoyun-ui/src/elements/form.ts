@@ -71,7 +71,7 @@ const formStyle = createCSSSheet(css`
     top: 100%;
     left: 0;
   }
-  dy-form-item:where([data-invalid], :state(invalid)) * {
+  dy-form-item:state(invalid) * {
     border-color: ${theme.negativeColor};
   }
   @media not ${mediaQuery.PHONE} {
@@ -182,7 +182,7 @@ const formItemStyle = createCSSSheet(css`
   .label:empty {
     display: none;
   }
-  :host(:where([data-invalid], :state(invalid))) .input {
+  :host(:state(invalid)) .input {
     border-color: ${theme.negativeColor};
   }
   .input {

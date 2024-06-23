@@ -212,7 +212,7 @@ const panelStyle = createCSSSheet(css`
     line-height: 1.5;
     margin-block-start: 1em;
   }
-  :host(:where([data-vertical], :state(vertical))) {
+  :host(:state(vertical)) {
     margin-inline-start: 1em;
     margin-block-start: 0em;
   }

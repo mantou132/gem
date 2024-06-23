@@ -98,7 +98,7 @@ const rules = css`
     padding: 4px;
     border-radius: ${theme.normalRound};
   }
-  dy-pat-console .menu:where(:hover, :state(active), [data-active]) {
+  dy-pat-console .menu:where(:hover, :state(active)) {
     background-color: ${theme.hoverBackgroundColor};
   }
   dy-pat-console .main-container {

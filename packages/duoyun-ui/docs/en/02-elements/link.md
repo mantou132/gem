@@ -10,7 +10,7 @@ See [`<gem-link>`](https://gemjs.org/zh/api/built-in-element)
 [
   {
     "tagName": "style",
-    "innerHTML": "dy-active-link:where([data-active],:state(active)){color: red})"
+    "innerHTML": "dy-active-link:state(active){color: red})"
   },
   {
     "path": "/test/test",

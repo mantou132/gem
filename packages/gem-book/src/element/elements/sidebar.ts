@@ -42,7 +42,7 @@ export class SideBar extends GemElement {
   @state open: boolean;
 
   get #currentLink() {
-    return this.shadowRoot?.querySelector(':where(:state(active), [data-active])');
+    return this.shadowRoot?.querySelector(':state(active)');
   }
 
   #closeSidebar = () => updateSidebarStore({ open: false });
@@ -166,7 +166,7 @@ export class SideBar extends GemElement {
           border-radius: 10em;
           background: rgba(${theme.primaryColorRGB}, 0.1);
         }
-        .top-nav gem-active-link:where(:state(active), [data-active]) {
+        .top-nav gem-active-link:state(active) {
           color: ${theme.primaryColor};
         }
         .link {
@@ -176,11 +176,11 @@ export class SideBar extends GemElement {
           line-height: 1.5;
           padding: 0.25em 0;
         }
-        .file:where(:state(active), [data-active]) {
+        .file:state(active) {
           color: ${theme.primaryColor};
         }
-        .heading:not(:where(:state(active), [data-active])):not(:hover),
-        .file:not(:where(:state(active), [data-active])):hover {
+        .heading:not(:state(active)):not(:hover),
+        .file:not(:state(active)):hover {
           transition: opacity 0.1s;
           opacity: 0.6;
         }
@@ -251,7 +251,7 @@ export class SideBar extends GemElement {
           margin-bottom: 2rem;
         }
         @media not ${`(${mediaQuery.DESKTOP})`} {
-          .link:where(:state(match), [data-match]) + .hash {
+          .link:state(match) + .hash {
             display: block;
           }
         }
@@ -264,7 +264,7 @@ export class SideBar extends GemElement {
             top: ${theme.headerHeight};
             z-index: 3;
           }
-          :host(:not(:where([data-open], :state(open)))) {
+          :host(:not(:state(open))) {
             display: none;
           }
           .nav {

@@ -416,7 +416,7 @@ const inputGroupStyle = createCSSSheet(css`
   dy-input-group {
     display: flex;
   }
-  dy-input-group :where(dy-input, dy-select):where(:focus, :focus-within, :hover, [data-active], :state(active)) {
+  dy-input-group :where(dy-input, dy-select):where(:focus, :focus-within, :hover, :state(active)) {
     position: relative;
     z-index: 1;
   }

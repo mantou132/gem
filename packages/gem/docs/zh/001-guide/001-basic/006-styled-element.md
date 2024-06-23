@@ -91,7 +91,6 @@ class MyElement extends GemElement {
 
   open() {
     // 可被选择器 `:state(opened)` 选中
-    // 考虑兼容性可以使用 `:where(:state(opened), [data-opened])`
     this.opened = true;
   }
 }
