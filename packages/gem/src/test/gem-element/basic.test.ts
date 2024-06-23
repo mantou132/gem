@@ -64,11 +64,6 @@ describe('基本 gem element 测试', () => {
     const el = await fixture(html`<gem-demo attr="attr" .prop=${{ value: 'prop' }}></gem-demo>`);
     expect(window.getComputedStyle(el).backgroundColor).to.equal('rgb(255, 0, 0)');
   });
-  it('closestElement 方法', async () => {
-    const el: GemDemo = await fixture(html`<gem-demo attr="attr" .prop=${{ value: 'prop' }}></gem-demo>`);
-    expect(el.closestElement('body')).to.equal(document.body);
-    expect(el.closestElement(HTMLBodyElement)).to.equal(document.body);
-  });
   it('渲染 gem element', async () => {
     const el: GemDemo = await fixture(html`<gem-demo attr="attr" .prop=${{ value: 'prop' }}></gem-demo>`);
     expect(el).shadowDom.to.equal('attr: attr, disabled: false, count: 0, prop: prop, state: ');

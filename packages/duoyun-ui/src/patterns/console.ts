@@ -105,13 +105,13 @@ const rules = css`
     flex-grow: 1;
     min-width: 0;
   }
-  dy-pat-console dy-light-route {
-    display: contents;
-  }
   dy-pat-console .main {
     margin: auto;
     padding: calc(2 * ${theme.gridGutter});
     max-width: 80em;
+  }
+  dy-pat-console dy-light-route {
+    display: contents;
   }
   dy-pat-console[responsive] {
     @media ${mediaQuery.PHONE_LANDSCAPE} {
@@ -250,8 +250,8 @@ export class DyPatConsoleElement extends GemElement {
             `
           : ''}
       </div>
-      <div class="main-container">
-        <main class="main" aria-label="Content">
+      <main class="main-container">
+        <div class="main" aria-label="Content">
           <dy-light-route
             @loading=${this.#onLoading}
             @routechange=${this.#onChange}
@@ -259,8 +259,8 @@ export class DyPatConsoleElement extends GemElement {
             .locationStore=${locationStore}
             .scrollContainer=${document.body}
           ></dy-light-route>
-        </main>
-      </div>
+        </div>
+      </main>
       ${this.keyboardAccess ? html`<dy-keyboard-access></dy-keyboard-access>` : ''}
       ${this.screencastMode ? html`<dy-input-capture></dy-input-capture>` : ''}
     `;

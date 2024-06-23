@@ -30,7 +30,8 @@ export class ConsolePageItemClientElement extends ConsolePageItemElement {
         filterable
         .getActions=${this.getActions}
         .columns=${this.columns}
-        .pagesize=${5}
+        .selectable=${true}
+        .pagesize=${9}
         .data=${store.getData()}
       >
         <dy-button @click=${this.onCreate}>Add</dy-button>

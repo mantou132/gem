@@ -389,21 +389,6 @@ export abstract class GemElement<T = Record<string, unknown>> extends HTMLElemen
     }
   };
 
-  closestElement<K extends keyof HTMLElementTagNameMap>(tag: K): HTMLElementTagNameMap[K] | null;
-  closestElement<K extends abstract new (...args: any) => any>(constructor: K): InstanceType<K> | null;
-  closestElement<K extends abstract new (...args: any) => any>(constructorOrTag: K | string) {
-    const isConstructor = typeof constructorOrTag === 'function';
-    const tagName = typeof constructorOrTag === 'string' && constructorOrTag.toUpperCase();
-    const is = (ele: Element) => (isConstructor ? ele.constructor === constructorOrTag : ele.tagName === tagName);
-    // eslint-disable-next-line @typescript-eslint/no-this-alias
-    let node: Element | null = this;
-    while (node) {
-      if (is(node)) break;
-      node = node.parentElement || (node.getRootNode() as ShadowRoot).host;
-    }
-    return node;
-  }
-
   /**
    * @private
    * @final

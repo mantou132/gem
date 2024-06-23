@@ -112,7 +112,7 @@ export const getSelectedGem = function (data: PanelStore, gemElementSymbols: str
     'toggleAttribute',
   ]);
   const lifecycleMethod = new Set(['willMount', 'render', 'mounted', 'shouldUpdate', 'updated', 'unmounted']);
-  const buildInMethod = new Set(['update', 'setState', 'effect', 'memo', 'closestElement']);
+  const buildInMethod = new Set(['update', 'setState', 'effect', 'memo']);
   const buildInProperty = new Set(['internals']);
   const buildInAttribute = new Set(['ref']);
   const memberSet = getProps($0);

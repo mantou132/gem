@@ -34,6 +34,10 @@ const styles = createCSSSheet(css`
 @adoptedStyle(styles)
 @customElement('decorator-gem-demo')
 class DecoratorGemElement extends GemElement {
+  // 测试同名
+  @part static sayHi: string;
+  @slot static rankAttr: string;
+
   @emitter sayHi: Emitter;
   @attribute rankAttr: string;
   @boolattribute rankDisabled: boolean;
@@ -82,10 +86,12 @@ describe('装饰器', () => {
     expect(DecoratorGemElement.observedAttributes).to.eql(['rank-attr', 'rank-disabled', 'rank-count']);
     expect(DecoratorGemElement.definedEvents).to.eql(['say-hi']);
     expect(DecoratorGemElement.definedCSSStates).to.eql(['open-state']);
-    expect(DecoratorGemElement.definedParts).to.eql(['header-part']);
-    expect(DecoratorGemElement.definedSlots).to.eql(['body-slot']);
+    expect(DecoratorGemElement.definedParts).to.eql(['say-hi', 'header-part']);
+    expect(DecoratorGemElement.definedSlots).to.eql(['rank-attr', 'body-slot']);
     expect(DecoratorGemElement.definedRefs?.[0].startsWith('input-ref-')).to.equal(true);
     expect(DecoratorGemElement.observedProperties).to.eql(['propData']);
+    expect(DecoratorGemElement.sayHi).to.equal('say-hi');
+    expect(DecoratorGemElement.rankAttr).to.equal('rank-attr');
     expect(el.rankAttr).to.equal('attr');
     expect(el.rankDisabled).to.equal(true);
     expect(el.rankCount).to.equal(2);

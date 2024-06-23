@@ -11,12 +11,18 @@ export function getBoundingClientRect(eleList: Element[]) {
 }
 
 export function toggleActiveState(ele: Element | undefined | null, active: boolean) {
+  if (!ele) return;
   if (ele instanceof GemElement) {
     if ((ele.constructor as typeof GemElement).definedCSSStates?.includes('active')) {
       (ele as any).active = active;
     }
-    // button/combobox
-    ele.internals.ariaExpanded = String(active);
+    if (['button', 'combobox'].includes(ele.role || ele.internals.role || '')) {
+      ele.internals.ariaExpanded = String(active);
+    }
+  }
+  const closestEle = closestElement(ele, '[data-state-active]');
+  if (closestEle instanceof HTMLElement) {
+    closestEle.dataset.stateActive = active ? '?1' : '';
   }
 }
 
@@ -81,12 +87,28 @@ export function isInputElement(originElement: HTMLElement) {
   }
 }
 
-export function closestElement(ele: Element, selector: string) {
+export function closestElement<K extends keyof HTMLElementTagNameMap>(
+  ele: Element,
+  tag: K,
+): HTMLElementTagNameMap[K] | null;
+export function closestElement<K extends abstract new (...args: any) => any>(
+  ele: Element,
+  constructor: K,
+): InstanceType<K> | null;
+export function closestElement<K extends Element>(ele: Element, tag: string): K | null;
+export function closestElement<K extends abstract new (...args: any) => any>(ele: Element, selector: K | string) {
   let node: Element | null = ele;
-  while (node) {
-    const e = node.closest(selector);
-    if (e) return e;
-    node = (node.getRootNode() as ShadowRoot).host;
+  if (typeof selector === 'function') {
+    while (node) {
+      if (node instanceof selector) return node;
+      node = node.parentElement || (node.getRootNode() as ShadowRoot).host;
+    }
+  } else {
+    while (node) {
+      const e = node.closest(selector);
+      if (e) return e;
+      node = (node.getRootNode() as ShadowRoot).host;
+    }
   }
   return null;
 }

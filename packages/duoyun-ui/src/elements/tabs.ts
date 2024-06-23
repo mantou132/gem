@@ -15,6 +15,7 @@ import { createCSSSheet, css, partMap, classMap, styleMap } from '@mantou/gem/li
 import { theme } from '../lib/theme';
 import { commonHandle } from '../lib/hotkeys';
 import { focusStyle } from '../lib/styles';
+import { closestElement } from '../lib/element';
 
 import { DuoyunScrollBaseElement } from './base/scroll';
 
@@ -230,7 +231,7 @@ export class DuoyunTabPanelElement extends DuoyunScrollBaseElement {
     this.internals.role = 'tabpanel';
     this.addEventListener('change', (e) => e.stopPropagation());
     this.effect(() => {
-      this.vertical = this.closestElement(DuoyunTabsElement)?.orientation === 'vertical';
+      this.vertical = closestElement(this, DuoyunTabsElement)?.orientation === 'vertical';
     });
   }
 }

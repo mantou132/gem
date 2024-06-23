@@ -52,6 +52,5 @@ _可以使用等效的[装饰器](./007-decorator.md)替代_
 | `update`           | 手动更新元素                                           |
 | `state`/`setState` | 指定元素 `State`, 通过 `setState` 修改，修改后触发更新 |
 | `internals`        | 获取元素的 [ElementInternals][2] 对象                  |
-| `closestElement`   | 获取符合条件最近的祖先元素                             |
 
 [2]: https://html.spec.whatwg.org/multipage/custom-elements.html#the-elementinternals-interface

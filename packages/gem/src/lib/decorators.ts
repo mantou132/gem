@@ -301,6 +301,27 @@ export function state<T extends GemElement<any>>(_: undefined, context: ClassFie
   });
 }
 
+function defineStaticField(
+  context: ClassFieldDecoratorContext<any, string>,
+  target: any,
+  field: StaticField,
+  value: string,
+) {
+  const prop = context.name as string;
+  const attr = camelToKebabCase(prop);
+  if (context.static) {
+    pushStaticField(target.prototype, field, attr);
+  } else {
+    const proto = Object.getPrototypeOf(target);
+    if (!proto[prop]) {
+      proto[prop] = attr;
+      pushStaticField(proto, field, attr);
+    }
+    // NOTE: 未清除实例上的字段
+  }
+  return value || attr;
+}
+
 /**
  * 定义一个内部 slot，默认值即为字段名，不能使用全局属性 `slot`
  *
@@ -314,14 +335,7 @@ export function state<T extends GemElement<any>>(_: undefined, context: ClassFie
  */
 export function slot(_: undefined, context: ClassFieldDecoratorContext<any, string>) {
   return function (this: any, value: string) {
-    const target = context.static ? this.prototype : Object.getPrototypeOf(this);
-    const prop = context.name as string;
-    const attr = camelToKebabCase(prop);
-    if (!target.hasOwnProperty(prop)) {
-      defineProperty(target, prop);
-      pushStaticField(target, 'definedSlots', attr);
-    }
-    return value || attr;
+    return defineStaticField(context, this, 'definedSlots', value);
   };
 }
 
@@ -338,14 +352,7 @@ export function slot(_: undefined, context: ClassFieldDecoratorContext<any, stri
  */
 export function part(_: undefined, context: ClassFieldDecoratorContext<any, string>) {
   return function (this: any, value: string) {
-    const target = context.static ? this.prototype : Object.getPrototypeOf(this);
-    const prop = context.name as string;
-    const attr = camelToKebabCase(prop);
-    if (!target.hasOwnProperty(prop)) {
-      defineProperty(target, prop);
-      pushStaticField(target, 'definedParts', attr);
-    }
-    return value || attr;
+    return defineStaticField(context, this, 'definedParts', value);
   };
 }
 

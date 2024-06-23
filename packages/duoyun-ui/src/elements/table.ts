@@ -39,7 +39,6 @@ const styles = createCSSSheet(css`
     overflow: auto;
     font-size: 0.875em;
     font-variant-numeric: tabular-nums;
-    border-radius: ${theme.normalRound};
     overscroll-behavior: auto;
     container-type: inline-size;
   }
@@ -51,12 +50,6 @@ const styles = createCSSSheet(css`
     color: ${theme.textColor};
     /* 为啥用户代理在 localhost 下是 normal，但在 StackBlitz 下没有设置？ */
     font-size: inherit;
-  }
-  .selection:where([data-selecting], :state(selecting)) ~ table {
-    user-select: none;
-  }
-  .selection ~ table {
-    cursor: crosshair;
   }
   thead {
     text-align: -webkit-match-parent;
@@ -70,22 +63,26 @@ const styles = createCSSSheet(css`
     border-block-end: 1px solid ${theme.borderColor};
     transition: background 0.1s;
   }
-  tbody tr:hover {
+  tbody tr:where(:hover, [data-state-active='?1']) {
     background-color: ${theme.lightBackgroundColor};
   }
   td {
     position: relative;
   }
-  tr.selected td::after {
+  table.selection td::after {
     position: absolute;
     display: block;
     content: '';
-    top: 0px;
-    left: 0px;
-    width: 100%;
-    height: calc(100% + 1px);
+    /* ellipsis 单元格覆盖不到边框 */
+    inset: 0;
     opacity: 0.15;
+    cursor: copy;
+  }
+  tr.selected td::after {
     background-color: ${theme.informativeColor};
+  }
+  tr.selected td::after {
+    cursor: crosshair;
   }
   td.ellipsis {
     overflow: hidden;
@@ -170,6 +167,7 @@ export class DuoyunTableElement<T = any, K = any> extends DuoyunScrollBoxElement
 
   @boolattribute selectable: boolean;
   @property selection?: K[];
+  @property selectionContainer?: HTMLElement;
 
   @emitter select: Emitter<K[]>;
   @emitter itemclick: Emitter<T>;
@@ -399,7 +397,7 @@ export class DuoyunTableElement<T = any, K = any> extends DuoyunScrollBoxElement
 
     const rowSpanMemo = columns.map(() => 0);
     return html`
-      <table part=${DuoyunTableElement.table}>
+      <table part=${DuoyunTableElement.table} class=${classMap({ selection: this.#selectionSet.size })}>
         ${this.caption
           ? html`
               <caption>
@@ -412,6 +410,7 @@ export class DuoyunTableElement<T = any, K = any> extends DuoyunScrollBoxElement
           ${this.data?.map(
             (record, _rowIndex, _data, colSpanMemo = [0]) => html`
               <tr
+                data-state-active
                 @click=${() => record && this.#onItemClick(record)}
                 @contextmenu=${(evt: MouseEvent) => record && this.#onItemContextMenu(evt, record)}
                 part=${DuoyunTableElement.tr}
@@ -476,7 +475,13 @@ export class DuoyunTableElement<T = any, K = any> extends DuoyunScrollBoxElement
       </table>
       ${this.#sidePart}
       ${this.selectable
-        ? html`<dy-selection-box class="selection" @change=${this.#onSelectionBoxChange}></dy-selection-box>`
+        ? html`
+            <dy-selection-box
+              class="selection"
+              .container=${this.selectionContainer}
+              @change=${this.#onSelectionBoxChange}
+            ></dy-selection-box>
+          `
         : ''}
       ${!this.data
         ? html`<div class="side" part=${DuoyunTableElement.side}><dy-loading></dy-loading></div>`

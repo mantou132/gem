@@ -1,5 +1,5 @@
 import { GemElement, html } from '@mantou/gem/lib/element';
-import { QueryString, createCSSSheet, css, styleMap } from '@mantou/gem/lib/utils';
+import { QueryString, addListener, createCSSSheet, css, styleMap } from '@mantou/gem/lib/utils';
 import {
   Emitter,
   RefObject,
@@ -29,7 +29,7 @@ import {
 import { sleep, throttle } from '../lib/timer';
 import type { Column, ItemContextMenuEventDetail, DuoyunTableElement } from '../elements/table';
 import { blockContainer } from '../lib/styles';
-import { findRanges, findScrollContainer } from '../lib/element';
+import { closestElement, findRanges, findScrollContainer } from '../lib/element';
 import { Time, formatDuration } from '../lib/time';
 import type { DuoyunButtonElement } from '../elements/button';
 import { locale } from '../lib/locale';
@@ -68,6 +68,8 @@ export type PatTableColumn<T> = Column<T> & {
         getCompareValue?: (e: T) => any;
       });
 };
+
+export type SelectedActions<T> = (ContextMenuItem & { handle?: (data?: T) => void | Promise<void> })[];
 
 // 不能和外部冲突
 const queryKeys = {
@@ -177,7 +179,7 @@ export class DyPatTableElement<T = any> extends GemElement<State> {
   @property getRowStyle?: DuoyunTableElement['getRowStyle'];
   @property expandedRowRender?: DuoyunTableElement['expandedRowRender'];
   @property getActions?: DuoyunTableElement['getActions'];
-  @property getSelectedActions?: (selections: any[]) => ContextMenuItem[];
+  @property getSelectedActions?: (selections: any[]) => SelectedActions<T>;
 
   @emitter expand: Emitter<T>;
 
@@ -188,11 +190,11 @@ export class DyPatTableElement<T = any> extends GemElement<State> {
   @property getText: (
     key:
       | 'filter'
-      | 'removeSelection'
-      | 'addSelection'
-      | 'addPageAllSelection'
-      | 'addAllSelection'
+      | 'removeItemFromSelection'
       | 'removeAllSelection'
+      | 'addToSelection'
+      | 'addPageAllToSelection'
+      | 'addAllToSelection'
       | ComparerType,
   ) => string = (e) => e.replace(/([A-Z])/g, ' $1').replace(/^\w/, ($1) => $1.toUpperCase());
 
@@ -235,31 +237,39 @@ export class DyPatTableElement<T = any> extends GemElement<State> {
 
   #onSelect = (evt: CustomEvent) => this.setState({ selection: evt.detail });
 
-  #onItemContextMenu = (evt: CustomEvent<ItemContextMenuEventDetail<T>>) => {
+  #onContextMenu = (originEvent: MouseEvent, currentRowData?: T, selected?: boolean) => {
+    if (originEvent.altKey) return;
     if (!this.selectable) return;
+    const table = this.tableRef.element!;
     const { selection } = this.state;
-    const { data, originEvent, selected } = evt.detail;
-    const table = evt.target as DuoyunTableElement<T>;
+    originEvent.stopPropagation();
     originEvent.preventDefault();
+    const currentRowMenu: ContextMenuItem[] = !currentRowData
+      ? []
+      : [
+          selected
+            ? {
+                text: this.getText('removeItemFromSelection'),
+                handle: () => table.removeSelection([currentRowData]),
+              }
+            : {
+                text: this.getText('addToSelection'),
+                handle: () => table.appendSelection([currentRowData]),
+              },
+        ];
     const unSelectionMenu: ContextMenuItem[] = [
-      selected
-        ? {
-            text: this.getText('removeSelection'),
-            handle: () => table.removeSelection([data]),
-          }
-        : {
-            text: this.getText('addSelection'),
-            handle: () => table.appendSelection([data]),
-          },
+      ...currentRowMenu,
       {
-        text: this.getText('addPageAllSelection'),
+        text: this.getText('addPageAllToSelection'),
         handle: () => table.appendSelection(this.#getPageData().data || []),
       },
       !this.paginationStore && {
-        text: this.getText('addAllSelection'),
+        text: this.getText('addAllToSelection'),
         handle: () => table.appendSelection(this.#data || []),
       },
     ].filter(isNotBoolean);
+    const userCustomMenu = this.getSelectedActions?.(selection);
+
     ContextMenu.open(
       selection.length
         ? [
@@ -267,24 +277,27 @@ export class DyPatTableElement<T = any> extends GemElement<State> {
               text: this.getText('removeAllSelection'),
               handle: () => this.setState({ selection: [] }),
             },
-            ...unSelectionMenu,
-            {
-              text: '---',
-            },
-            ...(this.getSelectedActions?.(selection) || []).map((item) => ({
+            ...currentRowMenu,
+            ...(userCustomMenu ? [{ text: '---' }, ...userCustomMenu] : []).map((item) => ({
               ...item,
               handle: async () => {
-                await item.handle?.();
+                await item.handle?.(currentRowData);
                 this.setState({ selection: [] });
               },
             })),
           ]
         : unSelectionMenu,
       {
+        activeElement: originEvent.target as HTMLTableRowElement,
         x: originEvent.x,
         y: originEvent.y,
       },
     );
+  };
+
+  #onItemContextMenu = (evt: CustomEvent<ItemContextMenuEventDetail<T>>) => {
+    const { data, originEvent, selected } = evt.detail;
+    this.#onContextMenu(originEvent, data, selected);
   };
 
   #getPageData = () => {
@@ -472,8 +485,15 @@ export class DyPatTableElement<T = any> extends GemElement<State> {
     });
   };
 
+  #selectionContainer?: HTMLElement;
   #columns: PatTableColumn<T>[] = [];
   willMount = () => {
+    this.memo(
+      () => {
+        this.#selectionContainer = (this.selectable && closestElement(this, 'main')) || undefined;
+      },
+      () => [this.selectable],
+    );
     this.memo(
       () => {
         const { sort } = this.state;
@@ -580,6 +600,14 @@ export class DyPatTableElement<T = any> extends GemElement<State> {
   };
 
   mounted = () => {
+    this.effect(
+      () => {
+        if (this.#selectionContainer) {
+          return addListener(this.#selectionContainer, 'contextmenu', this.#onContextMenu);
+        }
+      },
+      () => [this.selectable],
+    );
     this.effect(
       () => this.paginationStore && connect(this.paginationStore, this.update),
       () => [this.paginationStore],
@@ -702,6 +730,7 @@ export class DyPatTableElement<T = any> extends GemElement<State> {
         .selectable=${this.selectable}
         .rowKey=${this.rowKey}
         .selection=${this.state.selection}
+        .selectionContainer=${this.#selectionContainer}
         @select=${this.#onSelect}
         @expand=${(evt: CustomEvent) => this.expand(evt.detail)}
         @itemcontextmenu=${this.#onItemContextMenu}

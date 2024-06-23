@@ -1,9 +1,10 @@
-import { adoptedStyle, customElement, emitter, Emitter, state } from '@mantou/gem/lib/decorators';
+import { adoptedStyle, customElement, emitter, Emitter, property } from '@mantou/gem/lib/decorators';
 import { GemElement, html } from '@mantou/gem/lib/element';
-import { createCSSSheet, css, styleMap } from '@mantou/gem/lib/utils';
+import { addListener, createCSSSheet, css, styleMap } from '@mantou/gem/lib/utils';
 
 import { theme } from '../lib/theme';
 import { contentsContainer } from '../lib/styles';
+import { isInputElement } from '../lib/element';
 
 import './reflect';
 
@@ -36,8 +37,13 @@ export type SelectionChange = {
 @customElement('dy-selection-box')
 @adoptedStyle(contentsContainer)
 export class DuoyunSelectionBoxElement extends GemElement<State> {
+  @property container?: HTMLElement;
+
   @emitter change: Emitter<SelectionChange>;
-  @state selecting: boolean;
+
+  get #container() {
+    return this.container || ((this.getRootNode() as ShadowRoot).host as HTMLElement | undefined) || document.body;
+  }
 
   state: State = {
     rect: {
@@ -57,10 +63,29 @@ export class DuoyunSelectionBoxElement extends GemElement<State> {
     return 'delete';
   };
 
+  #getCursor = () => {
+    switch (this.state.mode) {
+      case 'append':
+        return 'copy';
+      case 'delete':
+        return 'crosshair';
+      default:
+        return 'cell';
+    }
+  };
+
+  #restoreContainerStyle: () => void;
+
   #onPointerDown = (evt: PointerEvent) => {
     if (evt.altKey) return;
+    const target = evt.composedPath()[0];
+    if (target instanceof HTMLElement && isInputElement(target)) return;
     document.getSelection()?.removeAllRanges();
-    this.selecting = true;
+    const container = this.#container;
+    const containerStyle = container.getAttribute('style');
+    this.#restoreContainerStyle = () =>
+      containerStyle ? container.setAttribute('style', containerStyle) : container.removeAttribute('style');
+    container.style.userSelect = 'none';
     this.setState({ start: [evt.x, evt.y], mode: this.#getMode(evt) });
     addEventListener('pointermove', this.#onPointerMove);
     addEventListener('pointerup', this.#onPointerUp);
@@ -69,7 +94,7 @@ export class DuoyunSelectionBoxElement extends GemElement<State> {
   };
 
   #onPointerUp = () => {
-    this.selecting = false;
+    this.#restoreContainerStyle();
     this.setState({ start: undefined, stop: undefined });
     removeEventListener('pointermove', this.#onPointerMove);
     removeEventListener('pointerup', this.#onPointerUp);
@@ -78,8 +103,6 @@ export class DuoyunSelectionBoxElement extends GemElement<State> {
   };
 
   #onPointerMove = (evt: PointerEvent) => {
-    // disabled text select
-    evt.preventDefault();
     const start = this.state.start!;
     const x = evt.x === start[0] ? evt.x + 0.01 : evt.x;
     const y = evt.y === start[1] ? evt.y + 0.01 : evt.y;
@@ -97,11 +120,10 @@ export class DuoyunSelectionBoxElement extends GemElement<State> {
   };
 
   mounted = () => {
-    const root = this.getRootNode();
-    root.addEventListener('pointerdown', this.#onPointerDown);
-    return () => {
-      root.removeEventListener('pointerdown', this.#onPointerDown);
-    };
+    this.effect(
+      () => addListener(this.#container, 'pointerdown', this.#onPointerDown),
+      () => [this.container],
+    );
   };
 
   render = () => {
@@ -118,6 +140,7 @@ export class DuoyunSelectionBoxElement extends GemElement<State> {
             top: top + 'px',
             width: width + 'px',
             height: height + 'px',
+            cursor: this.#getCursor(),
           })}
         ></dy-selection-box-mask>
       </dy-reflect>
@@ -125,7 +148,7 @@ export class DuoyunSelectionBoxElement extends GemElement<State> {
   };
 }
 
-const borderWidth = 10;
+const borderWidth = 100;
 const maskStyle = createCSSSheet(css`
   :host {
     position: fixed;
