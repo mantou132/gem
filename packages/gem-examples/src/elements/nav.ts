@@ -65,29 +65,35 @@ export class Nav extends GemElement {
         <div class="version">version: ${VERSION}</div>
       </a>
       <ol>
-        ${Object.entries(
+        ${Object.entries<typeof EXAMPLES>(
           (Object as any).groupBy(
             EXAMPLES.sort((a, b) => (a.order ?? 0) - (b.order ?? 0)),
             (e: any) => e.group || '',
           ),
-        ).map(
-          ([group, examples]) => html`
-            <li>
-              <div class="group-title"><span>${group}</span></div>
-              <ol>
-                ${(examples as typeof EXAMPLES).map(
-                  ({ path = '', name = '' }) => html`
-                    <li>
-                      <a class=${location.pathname.includes(path) ? 'active' : ''} href=${`../${path}/`}>
-                        <div>${name.replace('-', ' ')}</div>
-                      </a>
-                    </li>
-                  `,
-                )}
-              </ol>
-            </li>
-          `,
-        )}
+        )
+          .map(
+            ([group, examples]) =>
+              [group, examples, group === '' ? -100 : Math.max(...examples.map((e) => e.order || 0))] as const,
+          )
+          .sort((a, b) => a[2] - b[2])
+          .map(
+            ([group, examples]) => html`
+              <li>
+                <div class="group-title"><span>${group}</span></div>
+                <ol>
+                  ${examples.map(
+                    ({ path = '', name = '' }) => html`
+                      <li>
+                        <a class=${location.pathname.includes(path) ? 'active' : ''} href=${`../${path}/`}>
+                          <div>${name.replace('-', ' ')}</div>
+                        </a>
+                      </li>
+                    `,
+                  )}
+                </ol>
+              </li>
+            `,
+          )}
       </ol>
     `;
   }

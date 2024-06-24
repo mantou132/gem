@@ -1,7 +1,8 @@
-import { GemElement, html, render } from '@mantou/gem';
+import { GemElement, customElement, html, render } from '@mantou/gem';
 
 import '../elements/layout';
 
+@customElement('app-root')
 export class App extends GemElement {
   state = { now: 0 };
   constructor() {
@@ -18,8 +19,6 @@ export class App extends GemElement {
     `;
   }
 }
-
-customElements.define('app-root', App);
 
 render(
   html`

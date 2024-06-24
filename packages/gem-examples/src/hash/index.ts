@@ -1,9 +1,10 @@
-import { GemElement, render, html } from '@mantou/gem';
+import { GemElement, render, html, customElement } from '@mantou/gem';
 import '@mantou/gem/elements/link';
 
 import '../elements/layout';
 
-class Article extends GemElement {
+@customElement('app-article')
+class _Article extends GemElement {
   constructor() {
     super();
     window.addEventListener('hashchange', this.checkHash);
@@ -29,9 +30,9 @@ class Article extends GemElement {
     return html`<div style="height: 1000px"><slot></slot></div>`;
   }
 }
-customElements.define('app-article', Article);
 
-class App extends GemElement {
+@customElement('app-root')
+class _App extends GemElement {
   render() {
     return html`
       <a href="#article-1">${'<a href="#article-1">'}</a>
@@ -43,7 +44,6 @@ class App extends GemElement {
     `;
   }
 }
-customElements.define('app-root', App);
 
 render(
   html`

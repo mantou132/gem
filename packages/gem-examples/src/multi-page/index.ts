@@ -1,4 +1,4 @@
-import { GemElement, html, render } from '@mantou/gem';
+import { GemElement, customElement, html, render } from '@mantou/gem';
 import '@mantou/gem/elements/title';
 import '@mantou/gem/elements/route';
 import '@mantou/gem/elements/link';
@@ -37,7 +37,8 @@ const routes = [
   },
 ];
 
-class App extends GemElement {
+@customElement('app-root')
+class _App extends GemElement {
   render() {
     return html`
       <style>
@@ -65,8 +66,6 @@ class App extends GemElement {
     `;
   }
 }
-
-customElements.define('app-root', App);
 
 render(
   html`

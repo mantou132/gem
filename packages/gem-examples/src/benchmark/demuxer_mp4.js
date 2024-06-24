@@ -2,17 +2,17 @@
 
 /* eslint-disable import/no-unresolved */
 // vite 在生产模式下将 url import 编译成 IIFE，所以使用这个已知的变量名
-import dump from 'https://esm.sh/mp4box';
+import atob from 'https://esm.sh/mp4box';
 
 try {
   importScripts('https://w3c.github.io/webcodecs/samples/third_party/mp4boxjs/mp4box.all.min.js');
-  dump.createFile = globalThis.MP4Box.createFile;
-  dump.DataStream = globalThis.DataStream;
+  atob.createFile = globalThis.MP4Box.createFile;
+  atob.DataStream = globalThis.DataStream;
 } catch {
   //
 }
 
-const { createFile, DataStream } = dump;
+const { createFile, DataStream } = atob;
 
 // Wraps an MP4Box File as a WritableStream underlying sink.
 class MP4FileSink {

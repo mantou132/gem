@@ -1,4 +1,4 @@
-import { GemElement, html } from '@mantou/gem';
+import { GemElement, customElement, html } from '@mantou/gem';
 import '@mantou/gem/elements/route';
 import '@mantou/gem/elements/link';
 
@@ -19,22 +19,20 @@ const routes = [
   },
 ];
 
-customElements.define(
-  'app-page-c',
-  class extends GemElement {
-    render() {
-      return html`
-        <style>
-          gem-link + gem-link {
-            margin-left: 0.5em;
-          }
-        </style>
-        <gem-link path="./d">Page c/d</gem-link>
-        <gem-link path="./e">Page c/e</gem-link>
-        <gem-route .routes=${routes}></gem-route>
-        inert route:
-        <gem-route ?inert=${true} .routes=${routes}></gem-route>
-      `;
-    }
-  },
-);
+@customElement('app-page-c')
+class _AppPageC extends GemElement {
+  render() {
+    return html`
+      <style>
+        gem-link + gem-link {
+          margin-left: 0.5em;
+        }
+      </style>
+      <gem-link path="./d">Page c/d</gem-link>
+      <gem-link path="./e">Page c/e</gem-link>
+      <gem-route .routes=${routes}></gem-route>
+      inert route:
+      <gem-route ?inert=${true} .routes=${routes}></gem-route>
+    `;
+  }
+}

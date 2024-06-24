@@ -1,3 +1,5 @@
+/* eslint-disable no-fallthrough */
+
 import { locale } from './locale';
 
 const intlDigitFormatter = Intl.DateTimeFormat(undefined, {

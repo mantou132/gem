@@ -24,6 +24,7 @@ module.exports = {
     },
   },
   rules: {
+    'no-fallthrough': 2,
     'no-console': 1,
     'sort-imports': 0,
     'import/no-extraneous-dependencies': 2,

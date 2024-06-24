@@ -142,6 +142,7 @@ export class GemLinkElement extends GemElement {
         part=${this.link}
         @click=${this.#preventDefault}
         href=${ifDefined(this.#hint === 'off' ? undefined : this.#getHint())}
+        tabindex="-1"
       >
         <slot></slot>
       </a>
