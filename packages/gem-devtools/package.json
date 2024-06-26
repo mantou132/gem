@@ -4,6 +4,7 @@
   "description": "Gem devtools",
   "scripts": {
     "update:version": "node ./scripts/update.js",
+    "serve": "vite",
     "build": "vite build",
     "watch": "yarn build --watch",
     "build:zip": "yarn build && web-ext build",

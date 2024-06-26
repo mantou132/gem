@@ -1,1 +1,30 @@
+<head>
+  <meta name="viewport" content="width=device-width,initial-scale=1,shrink-to-fit=no" />
+</head>
+<script>
+  const getAny = () => {
+    // constructable
+    function anonymous() {
+      return getAny();
+    }
+    Object.defineProperties(anonymous, {
+      length: { writable: true },
+      name: { writable: true },
+    });
+    return new Proxy(anonymous, {
+      get(target, key) {
+        if (key === Symbol.toPrimitive) return () => '';
+        return target[key] || (target[key] = getAny());
+      },
+    });
+  };
+  globalThis.chrome = globalThis.browser = new Proxy(
+    {},
+    {
+      get(target, key) {
+        return getAny();
+      },
+    },
+  );
+</script>
 <script type="module" src="./test.ts"></script>

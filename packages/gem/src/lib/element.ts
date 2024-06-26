@@ -404,6 +404,8 @@ export abstract class GemElement<T = Record<string, unknown>> extends HTMLElemen
       this.#isAppendReason = true;
       return;
     }
+    asyncRenderTaskList.delete(this.#connectedCallback);
+    asyncRenderTaskList.delete(this.#updateCallback);
     this.#isMounted = false;
     this.#disconnectStore?.forEach((disconnect) => disconnect());
     execCallback(this.#unmountCallback);

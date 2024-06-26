@@ -11,12 +11,11 @@ export class Post extends GemElement {
     super({ isAsync: true });
   }
 
-  // TODO: 如何取消？
   render() {
     console.log(`render ${this.index}`);
 
     const startTime = performance.now();
-    while (performance.now() - startTime < 1) {
+    while (performance.now() - startTime < 2) {
       // Do nothing for 1 ms per item to emulate extremely slow code
     }
     return html`Post #${this.index + 1}`;

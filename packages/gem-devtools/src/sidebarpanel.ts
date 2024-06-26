@@ -34,6 +34,9 @@ setInterval(updateElementProperties, 300);
 render(
   html`
     <style>
+      html {
+        scrollbar-width: thin;
+      }
       body {
         margin: 0;
         font-family: sans-serif;
