@@ -1,5 +1,5 @@
 import { GemElement, html } from '@mantou/gem/lib/element';
-import { Emitter, adoptedStyle, customElement, globalemitter, property } from '@mantou/gem/lib/decorators';
+import { Emitter, adoptedStyle, customElement, globalemitter, property, shadow } from '@mantou/gem/lib/decorators';
 import { createCSSSheet, css } from '@mantou/gem/lib/utils';
 import { mediaQuery } from '@mantou/gem/helper/mediaquery';
 
@@ -166,6 +166,7 @@ const mobileStyle = createCSSSheet(
 @adoptedStyle(mobileStyle)
 @adoptedStyle(style)
 @adoptedStyle(focusStyle)
+@shadow({ mode: null })
 export class DyPatFooterElement extends GemElement {
   @property social?: Social;
   @property links?: Links;
@@ -177,10 +178,6 @@ export class DyPatFooterElement extends GemElement {
   @property languages?: Languages;
 
   @globalemitter languagechange: Emitter<string>;
-
-  constructor() {
-    super({ isLight: true });
-  }
 
   #isOutwardLink(href: string) {
     return new URL(href, location.origin).origin !== location.origin;

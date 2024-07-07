@@ -19,7 +19,7 @@ export function preload() {
     // 只有 constructor 函数会当成对象读取
     readProp(path) {
       return path.reduce((p, k, index) => {
-        const c = typeof k === 'string' && k.startsWith('gem@') ? Symbol.for(k) : k;
+        const c = typeof k === 'string' && (k.startsWith('gem@') || k.startsWith('Symbol.')) ? Symbol.for(k) : k;
         if (typeof p === 'function' && path[index - 1] !== 'constructor') {
           if (Array.isArray(c)) {
             return p(...c);

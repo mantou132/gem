@@ -1,6 +1,6 @@
 import type { GemReflectElement } from '../elements/reflect';
 
-import { GemElement, gemSymbols } from './element';
+import { GemElement, UpdateToken, Metadata } from './element';
 import { Sheet, camelToKebabCase, randomStr, PropProxyMap } from './utils';
 import { Store } from './store';
 import * as elementExports from './element';
@@ -9,30 +9,35 @@ import * as storeExports from './store';
 import * as versionExports from './version';
 
 type GemElementPrototype = GemElement<any>;
-type GemElementConstructor = typeof GemElement;
+type StaticField = Exclude<keyof Metadata, keyof ShadowRootInit | 'aria' | 'rootElement' | 'noBlocking' | 'focusable'>;
 type StaticFieldMember = string | Store<unknown> | Sheet<unknown>;
 
-const { get, set } = Reflect;
+const { set, deleteProperty, getOwnPropertyDescriptor, defineProperty } = Reflect;
+const { getPrototypeOf } = Object;
 const gemElementProxyMap = new PropProxyMap<GemElement>();
 
-function pushStaticField(target: GemElement | GemElementPrototype, field: symbol, member: StaticFieldMember) {
-  const cls = target.constructor as GemElementConstructor;
-  if (!cls.hasOwnProperty(field)) {
+function pushStaticField(
+  context: ClassFieldDecoratorContext | ClassDecoratorContext,
+  field: StaticField,
+  member: StaticFieldMember,
+) {
+  const metadata = context.metadata as Metadata;
+  if (!getOwnPropertyDescriptor(metadata, field)) {
     // 继承基类
-    const current = new Set<unknown>(get(cls, field));
+    const current = new Set<unknown>(metadata[field]);
     current.delete(member);
-    Object.defineProperty(cls, field, {
+    defineProperty(metadata, field, {
       value: [...current],
     });
   }
 
-  get(cls, field)!.push(member as any);
+  metadata[field]!.push(member as any);
 }
 
 function clearField<T extends GemElement<any>>(instance: T, prop: string) {
-  const desc = Reflect.getOwnPropertyDescriptor(instance, prop)!;
-  Reflect.deleteProperty(instance, prop);
-  Reflect.set(instance, prop, desc.value);
+  const desc = getOwnPropertyDescriptor(instance, prop)!;
+  deleteProperty(instance, prop);
+  set(instance, prop, desc.value);
 }
 
 const getReflectTargets = (ele: ShadowRoot | GemElement) =>
@@ -40,7 +45,7 @@ const getReflectTargets = (ele: ShadowRoot | GemElement) =>
 
 function defineRef(target: GemElement, prop: string, ref: string) {
   const refSelector = `[ref=${ref}]`;
-  Object.defineProperty(target, prop, {
+  defineProperty(target, prop, {
     configurable: true,
     get() {
       const proxy = gemElementProxyMap.get(this);
@@ -96,11 +101,11 @@ export function refobject<T extends GemElement<any>, V extends HTMLElement>(
   context: ClassFieldDecoratorContext<T, RefObject<V>>,
 ) {
   context.addInitializer(function (this: T) {
-    const target = Object.getPrototypeOf(this);
+    const target = getPrototypeOf(this);
     const prop = context.name as string;
     if (!target.hasOwnProperty(prop)) {
       const ref = `${camelToKebabCase(prop)}-${randomStr()}`;
-      pushStaticField(this, gemSymbols.definedRefs, ref);
+      pushStaticField(context, 'definedRefs', ref);
       defineRef(target, prop, ref);
     }
     clearField(this, prop);
@@ -113,17 +118,17 @@ const observedTargetAttributes = new WeakMap<GemElementPrototype, Map<string, st
 // 使用 Gem DevTools 注入脚本监听 attribute 变化
 const { setAttribute, toggleAttribute, removeAttribute } = Element.prototype;
 GemElement.prototype.setAttribute = function (n: string, v: string) {
-  const prop = observedTargetAttributes.get(Object.getPrototypeOf(this))?.get(n);
+  const prop = observedTargetAttributes.get(getPrototypeOf(this))?.get(n);
   if (!prop) return setAttribute.call(this, n, v);
   (this as any)[prop] = v;
 };
 GemElement.prototype.removeAttribute = function (n: string) {
-  const prop = observedTargetAttributes.get(Object.getPrototypeOf(this))?.get(n);
+  const prop = observedTargetAttributes.get(getPrototypeOf(this))?.get(n);
   if (!prop) return removeAttribute.call(this, n);
   (this as any)[prop] = null;
 };
 GemElement.prototype.toggleAttribute = function (n: string, force?: boolean) {
-  const prop = observedTargetAttributes.get(Object.getPrototypeOf(this))?.get(n);
+  const prop = observedTargetAttributes.get(getPrototypeOf(this))?.get(n);
   if (!prop) return toggleAttribute.call(this, n, force);
   return ((this as any)[prop] = force ?? !this.hasAttribute(n));
 };
@@ -132,19 +137,19 @@ function emptyFunction() {
   // 用于占位的空函数
 }
 
-type DefinePropertyOptions = {
+type DefinePropOptions = {
   attr?: string;
   attrType?: (v?: any) => any;
   event?: string;
   eventOptions?: Omit<CustomEventInit<unknown>, 'detail'>;
 };
 const isEventHandleSymbol = Symbol('event handle');
-function defineProperty(
+function defineProp(
   target: GemElementPrototype,
   prop: string,
-  { attr, attrType, event, eventOptions }: DefinePropertyOptions = {},
+  { attr, attrType, event, eventOptions }: DefinePropOptions = {},
 ) {
-  Object.defineProperty(target, prop, {
+  defineProperty(target, prop, {
     configurable: true,
     get() {
       const value = gemElementProxyMap.get(this)[prop];
@@ -174,11 +179,11 @@ function defineProperty(
               that.dispatchEvent(evt);
               v(detail, options);
             };
-        Reflect.set(proxy[prop]!, isEventHandleSymbol, true);
+        set(proxy[prop]!, isEventHandleSymbol, true);
         // emitter 不触发元素更新
       } else {
         proxy[prop] = v;
-        this[gemSymbols.update]();
+        this[UpdateToken]();
       }
     },
   });
@@ -189,10 +194,10 @@ function decoratorAttr<T extends GemElement<any>>(context: ClassFieldDecoratorCo
   const prop = context.name as string;
   const attr = camelToKebabCase(prop);
   context.addInitializer(function (this: T) {
-    const target = Object.getPrototypeOf(this);
+    const target = getPrototypeOf(this);
     if (!target.hasOwnProperty(prop)) {
-      pushStaticField(target, gemSymbols.observedAttributes, attr); // 没有 observe 的效果
-      defineProperty(target, prop, { attr, attrType });
+      pushStaticField(context, 'observedAttributes', attr); // 没有 observe 的效果
+      defineProp(target, prop, { attr, attrType });
       // 记录观察的 attribute
       const attrMap = observedTargetAttributes.get(target) || new Map<string, string>();
       attrMap.set(attr, prop);
@@ -242,10 +247,10 @@ export function numattribute<T extends GemElement<any>>(_: undefined, context: C
 export function property<T extends GemElement<any>>(_: undefined, context: ClassFieldDecoratorContext<T>) {
   const prop = context.name as string;
   context.addInitializer(function (this: T) {
-    const target = Object.getPrototypeOf(this);
+    const target = getPrototypeOf(this);
     if (!target.hasOwnProperty(prop)) {
-      pushStaticField(this, gemSymbols.observedProperties, prop);
-      defineProperty(target, prop);
+      pushStaticField(context, 'observedProperties', prop);
+      defineProp(target, prop);
     }
     clearField(this, prop);
   });
@@ -256,7 +261,7 @@ export function property<T extends GemElement<any>>(_: undefined, context: Class
 }
 
 function defineCSSState(target: GemElementPrototype, prop: string, stateStr: string) {
-  Object.defineProperty(target, prop, {
+  defineProperty(target, prop, {
     configurable: true,
     get() {
       const that = this as GemElement;
@@ -290,11 +295,11 @@ function defineCSSState(target: GemElementPrototype, prop: string, stateStr: str
  */
 export function state<T extends GemElement<any>>(_: undefined, context: ClassFieldDecoratorContext<T, boolean>) {
   context.addInitializer(function (this: T) {
-    const target = Object.getPrototypeOf(this);
+    const target = getPrototypeOf(this);
     const prop = context.name as string;
     if (!target.hasOwnProperty(prop)) {
       const attr = camelToKebabCase(prop);
-      pushStaticField(this, gemSymbols.definedCSSStates, attr);
+      pushStaticField(context, 'definedCSSStates', attr);
       defineCSSState(target, prop, attr);
     }
     clearField(this, prop);
@@ -304,18 +309,18 @@ export function state<T extends GemElement<any>>(_: undefined, context: ClassFie
 function defineStaticField(
   context: ClassFieldDecoratorContext<any, string>,
   target: any,
-  field: symbol,
+  field: StaticField,
   value: string,
 ) {
   const prop = context.name as string;
   const attr = camelToKebabCase(prop);
   if (context.static) {
-    pushStaticField(target.prototype, field, attr);
+    pushStaticField(context, field, attr);
   } else {
-    const proto = Object.getPrototypeOf(target);
+    const proto = getPrototypeOf(target);
     if (!proto[prop]) {
       proto[prop] = attr;
-      pushStaticField(proto, field, attr);
+      pushStaticField(context, field, attr);
     }
     // NOTE: 未清除实例上的字段
   }
@@ -335,7 +340,7 @@ function defineStaticField(
  */
 export function slot(_: undefined, context: ClassFieldDecoratorContext<any, string>) {
   return function (this: any, value: string) {
-    return defineStaticField(context, this, gemSymbols.definedSlots, value);
+    return defineStaticField(context, this, 'definedSlots', value);
   };
 }
 
@@ -352,7 +357,7 @@ export function slot(_: undefined, context: ClassFieldDecoratorContext<any, stri
  */
 export function part(_: undefined, context: ClassFieldDecoratorContext<any, string>) {
   return function (this: any, value: string) {
-    return defineStaticField(context, this, gemSymbols.definedParts, value);
+    return defineStaticField(context, this, 'definedParts', value);
   };
 }
 
@@ -371,7 +376,7 @@ export type Emitter<T = any> = (detail?: T, options?: Omit<CustomEventInit<unkno
  */
 export function emitter<T extends GemElement<any>>(_: undefined, context: ClassFieldDecoratorContext<T, Emitter>) {
   context.addInitializer(function (this: T) {
-    defineEmitter(this, context.name as string);
+    defineEmitter(context, this, context.name as string);
   });
 }
 export function globalemitter<T extends GemElement<any>>(
@@ -379,15 +384,20 @@ export function globalemitter<T extends GemElement<any>>(
   context: ClassFieldDecoratorContext<T, Emitter>,
 ) {
   context.addInitializer(function (this: T) {
-    defineEmitter(this, context.name as string, { bubbles: true, composed: true });
+    defineEmitter(context, this, context.name as string, { bubbles: true, composed: true });
   });
 }
-function defineEmitter(t: GemElement, prop: string, eventOptions?: Omit<CustomEventInit<unknown>, 'detail'>) {
-  const target = Object.getPrototypeOf(t);
+function defineEmitter(
+  context: ClassFieldDecoratorContext,
+  t: GemElement,
+  prop: string,
+  eventOptions?: Omit<CustomEventInit<unknown>, 'detail'>,
+) {
+  const target = getPrototypeOf(t);
   if (!target.hasOwnProperty(prop)) {
     const event = camelToKebabCase(prop);
-    pushStaticField(target, gemSymbols.definedEvents, event);
-    defineProperty(target, prop, { event, eventOptions });
+    pushStaticField(context, 'definedEvents', event);
+    defineProp(target, prop, { event, eventOptions });
   }
   clearField(t, prop);
 }
@@ -402,9 +412,8 @@ function defineEmitter(t: GemElement, prop: string, eventOptions?: Omit<CustomEv
  * ```
  */
 export function adoptedStyle(style: Sheet<unknown>) {
-  return function (cls: unknown, _: ClassDecoratorContext) {
-    const con = cls as GemElementConstructor;
-    pushStaticField(con.prototype, gemSymbols.adoptedStyleSheets, style);
+  return function (_: unknown, context: ClassDecoratorContext) {
+    pushStaticField(context, 'adoptedStyleSheets', style);
   };
 }
 
@@ -418,9 +427,8 @@ export function adoptedStyle(style: Sheet<unknown>) {
  * ```
  */
 export function connectStore(store: Store<unknown>) {
-  return function (cls: unknown, _: ClassDecoratorContext) {
-    const con = cls as GemElementConstructor;
-    pushStaticField(con.prototype, gemSymbols.observedStores, store);
+  return function (_: unknown, context: ClassDecoratorContext) {
+    pushStaticField(context, 'observedStores', store);
   };
 }
 
@@ -434,8 +442,42 @@ export function connectStore(store: Store<unknown>) {
  * ```
  */
 export function rootElement(rootType: string) {
-  return function (cls: any, _: ClassDecoratorContext) {
-    set(cls, gemSymbols.rootElement, rootType);
+  return function (_: any, context: ClassDecoratorContext) {
+    const metadata = context.metadata as Metadata;
+    metadata.rootElement = rootType;
+  };
+}
+
+export function shadow({
+  mode = 'open',
+  serializable = true,
+  delegatesFocus = true,
+  slotAssignment,
+}: Partial<Omit<ShadowRootInit, 'mode'> & { mode?: null | ShadowRootMode }> = {}) {
+  return function (_: any, context: ClassDecoratorContext) {
+    const metadata = context.metadata as Metadata;
+    Object.assign(metadata, { mode, serializable, delegatesFocus, slotAssignment });
+  };
+}
+
+export function async() {
+  return function (_: any, context: ClassDecoratorContext) {
+    const metadata = context.metadata as Metadata;
+    metadata.noBlocking = true;
+  };
+}
+
+export function focusable() {
+  return function (_: any, context: ClassDecoratorContext) {
+    const metadata = context.metadata as Metadata;
+    metadata.focusable = true;
+  };
+}
+
+export function aria(info: Partial<ARIAMixin>) {
+  return function (_: any, context: ClassDecoratorContext) {
+    const metadata = context.metadata as Metadata;
+    metadata.aria = { ...metadata.aria, ...info };
   };
 }
 

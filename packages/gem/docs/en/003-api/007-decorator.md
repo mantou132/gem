@@ -18,6 +18,10 @@ In order to integrate TypeScript more conveniently, Gem has many built-in decora
 | `@slot`          | Field decorator, [`slot`][2] that defines the element                        |
 | `@part`          | Field decorator, [`part`][3] that defines the element                        |
 | `@rootElement`   | Specify the [root element][9] name                                           |
+| `@shadow`        | Use [ShadowDOM](10)                                                          |
+| `@async`         | Use no blocking render                                                       |
+| `@aria`          | Specify the [accessibility](11) info                                         |
+| `@focusable`     | Specify element is focusable                                                 |
 
 [1]: https://github.com/w3c/webcomponents/blob/gh-pages/proposals/custom-states-and-state-pseudo-class.md
 [2]: https://developer.mozilla.org/en-US/docs/Web/HTML/Global_attributes/slot
@@ -28,6 +32,8 @@ In order to integrate TypeScript more conveniently, Gem has many built-in decora
 [7]: https://developer.mozilla.org/en-US/docs/Web/API/Event/composed
 [8]: https://developer.mozilla.org/en-US/docs/Web/API/Event/bubbles
 [9]: https://developer.mozilla.org/en-US/docs/Web/API/Node/getRootNode
+[10]: https://developer.mozilla.org/en-US/docs/Web/API/Web_components/Using_shadow_DOM
+[11]: https://developer.mozilla.org/en-US/docs/Web/API/ElementInternals#instance_properties_included_from_aria
 
 _Except for `@property`, all fields decorated by decorators have default values, `@attribute`/`@boolattribute`/`@numattribute`/`@state`/`@slot`/`@part` the value of the decorated field will be automatically converted to kebab-case. Please use the kebab-case value when you use it outside the element outside_
 

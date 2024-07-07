@@ -6,6 +6,7 @@ import {
   property,
   boolattribute,
   part,
+  shadow,
 } from '@mantou/gem/lib/decorators';
 import { GemElement, html, TemplateResult } from '@mantou/gem/lib/element';
 import { createCSSSheet, css, classMap, partMap } from '@mantou/gem/lib/utils';
@@ -112,6 +113,7 @@ interface Day {
 @customElement('dy-calendar')
 @adoptedStyle(style)
 @adoptedStyle(focusStyle)
+@shadow()
 export class DuoyunCalendarElement extends GemElement {
   @part static headerRow: string;
   @part static headerLeftCell: string;
@@ -140,7 +142,7 @@ export class DuoyunCalendarElement extends GemElement {
   @property renderDate?: (date: Time) => TemplateResult;
 
   constructor() {
-    super({ delegatesFocus: true });
+    super();
   }
 
   #isHighlightRange = (date: Time) => {

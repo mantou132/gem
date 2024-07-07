@@ -1,4 +1,12 @@
-import { adoptedStyle, customElement, attribute, boolattribute, numattribute, part } from '@mantou/gem/lib/decorators';
+import {
+  adoptedStyle,
+  customElement,
+  attribute,
+  boolattribute,
+  numattribute,
+  part,
+  aria,
+} from '@mantou/gem/lib/decorators';
 import { html } from '@mantou/gem/lib/element';
 import { createCSSSheet, css, styleMap } from '@mantou/gem/lib/utils';
 
@@ -36,6 +44,7 @@ const style = createCSSSheet(css`
  */
 @customElement('dy-placeholder')
 @adoptedStyle(style)
+@aria({ role: 'progressbar', ariaBusy: 'true' })
 export class DuoyunPlaceholderElement extends DuoyunVisibleBaseElement {
   @part static line: string;
 
@@ -63,12 +72,6 @@ export class DuoyunPlaceholderElement extends DuoyunVisibleBaseElement {
 
   get #minLine() {
     return this.minLine || 1;
-  }
-
-  constructor() {
-    super();
-    this.internals.role = 'progressbar';
-    this.internals.ariaBusy = 'true';
   }
 
   render = () => {

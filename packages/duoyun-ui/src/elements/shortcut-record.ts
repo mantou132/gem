@@ -8,6 +8,8 @@ import {
   boolattribute,
   part,
   emitter,
+  focusable,
+  aria,
 } from '@mantou/gem/lib/decorators';
 import { GemElement, html } from '@mantou/gem/lib/element';
 import { createCSSSheet, css } from '@mantou/gem/lib/utils';
@@ -99,6 +101,8 @@ const style = createCSSSheet(css`
 @customElement('dy-shortcut-record')
 @adoptedStyle(style)
 @adoptedStyle(focusStyle)
+@focusable()
+@aria({ role: 'input' })
 export class DuoyunShortcutRecordElement extends GemElement {
   @part static kbd: string;
 
@@ -116,8 +120,7 @@ export class DuoyunShortcutRecordElement extends GemElement {
   }
 
   constructor() {
-    super({ focusable: true });
-    this.internals.role = 'input';
+    super();
     this.addEventListener('keydown', this.#onKeydown);
   }
 

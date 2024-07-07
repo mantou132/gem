@@ -1,4 +1,13 @@
-import { connectStore, adoptedStyle, customElement, property, part, state } from '@mantou/gem/lib/decorators';
+import {
+  connectStore,
+  adoptedStyle,
+  customElement,
+  property,
+  part,
+  state,
+  aria,
+  shadow,
+} from '@mantou/gem/lib/decorators';
 import { html, TemplateResult } from '@mantou/gem/lib/element';
 import { history } from '@mantou/gem/lib/history';
 import { createCSSSheet, css, QueryString } from '@mantou/gem/lib/utils';
@@ -130,6 +139,8 @@ type State = Record<string, boolean>;
 @adoptedStyle(style)
 @adoptedStyle(focusStyle)
 @connectStore(history.store)
+@shadow()
+@aria({ role: 'navigation', ariaLabel: 'Side Navigation' })
 export class DuoyunSideNavigationElement extends DuoyunScrollBaseElement<State> {
   @part static item: string;
   @part static group: string;
@@ -142,12 +153,6 @@ export class DuoyunSideNavigationElement extends DuoyunScrollBaseElement<State> 
 
   // children open state
   state: State = {};
-
-  constructor() {
-    super({ delegatesFocus: true });
-    this.internals.role = 'navigation';
-    this.internals.ariaLabel = 'Side Navigation';
-  }
 
   #onClickChildren = (title: string) => {
     this.setState({ [title]: !this.state[title] });

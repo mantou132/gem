@@ -1,5 +1,5 @@
 import { GemElement, html } from '@mantou/gem/lib/element';
-import { adoptedStyle, attribute, boolattribute, customElement, property } from '@mantou/gem/lib/decorators';
+import { adoptedStyle, attribute, boolattribute, customElement, property, shadow } from '@mantou/gem/lib/decorators';
 import { createCSSSheet, css } from '@mantou/gem/lib/utils';
 import { ifDefined } from '@mantou/gem/lib/directives';
 import { mediaQuery } from '@mantou/gem/helper/mediaquery';
@@ -177,6 +177,7 @@ const consoleStyle = createCSSSheet(css`
 @customElement('dy-pat-console')
 @adoptedStyle(style)
 @adoptedStyle(consoleStyle)
+@shadow({ mode: null })
 export class DyPatConsoleElement extends GemElement {
   @boolattribute keyboardAccess: boolean;
   @boolattribute screencastMode: boolean;
@@ -188,10 +189,6 @@ export class DyPatConsoleElement extends GemElement {
   @property navItems?: NavItems;
   @property contextMenus?: ContextMenus;
   @property userInfo?: UserInfo;
-
-  constructor() {
-    super({ isLight: true });
-  }
 
   #onLoading = () => {
     Loadbar.start();

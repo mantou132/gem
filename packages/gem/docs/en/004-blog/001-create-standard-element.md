@@ -164,15 +164,12 @@ const style = createCSSSheet(css`
 class MyElement extends GemElement {}
 ```
 
-If you need to render many instances at once, you can use `isAsync` to create asynchronous rendering elements, which can avoid blocking the main thread during rendering and guarantee 60fps:
+If you need to render many instances at once, you can use `@async` to create asynchronous rendering elements, which can avoid blocking the main thread during rendering and guarantee 60fps:
 
 ```ts
 @customElement('my-element')
-class MyElement extends GemElement {
-  constructor() {
-    super({ isAsync: true });
-  }
-}
+@async()
+class MyElement extends GemElement {}
 ```
 
 ## Styling
@@ -205,18 +202,15 @@ When users use custom elements, they can use the `role`,`aria-*` attributes to s
 html`<my-element role="region" aria-label="my profile"></my-element>`;
 ```
 
-Use [`ElementInternals`](https://html.spec.whatwg.org/multipage/custom-elements.html#elementinternals) to define the default semantics of custom elements, use [`delegatesFocus`](https://developer.mozilla.org/en-US/docs/Web/API/Element/attachShadow#delegatesfocus) or `focusable` focus:
+Use [`ElementInternals`](https://html.spec.whatwg.org/multipage/custom-elements.html#elementinternals) to define the default semantics of custom elements, use [`delegatesFocus`](https://developer.mozilla.org/en-US/docs/Web/API/Element/attachShadow#delegatesfocus) or `@focusable` focus:
 
 ```ts
 @customElement('my-element')
+@focusable()
+@aria({ role: 'region', ariaLabel: 'my profile' })
 class MyElement extends GemElement {
   @boolattribute disabled: boolean;
-  constructor() {
-    // or super({ focusable: true });
-    super({ delegatesFocus: true });
-    this.internals.role = 'region';
-    this.internals.ariaLabel = 'my profile';
-  }
+
   render() {
     return html`<div tabindex=${-Number(this.disabled)}>Focusable</div>`;
   }

@@ -8,6 +8,8 @@ import {
   attribute,
   part,
   state,
+  shadow,
+  aria,
 } from '@mantou/gem/lib/decorators';
 import { GemElement, html, TemplateResult } from '@mantou/gem/lib/element';
 import { createCSSSheet, css, partMap, classMap, styleMap } from '@mantou/gem/lib/utils';
@@ -116,6 +118,8 @@ export interface TabItem<T = any> {
 @customElement('dy-tabs')
 @adoptedStyle(style)
 @adoptedStyle(focusStyle)
+@shadow()
+@aria({ role: 'tablist' })
 export class DuoyunTabsElement extends GemElement {
   @part static tabs: string;
   @part static tab: string;
@@ -133,11 +137,6 @@ export class DuoyunTabsElement extends GemElement {
 
   get #orientation() {
     return this.orientation || 'horizontal';
-  }
-
-  constructor() {
-    super({ delegatesFocus: true });
-    this.internals.role = 'tablist';
   }
 
   render = () => {
@@ -223,12 +222,12 @@ const panelStyle = createCSSSheet(css`
  */
 @customElement('dy-tab-panel')
 @adoptedStyle(panelStyle)
+@aria({ role: 'tabpanel' })
 export class DuoyunTabPanelElement extends DuoyunScrollBaseElement {
   @state vertical: boolean;
 
   constructor() {
     super();
-    this.internals.role = 'tabpanel';
     this.addEventListener('change', (e) => e.stopPropagation());
     this.effect(() => {
       this.vertical = closestElement(this, DuoyunTabsElement)?.orientation === 'vertical';

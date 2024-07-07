@@ -1,4 +1,4 @@
-import { adoptedStyle, customElement, property } from '@mantou/gem/lib/decorators';
+import { adoptedStyle, aria, customElement, property } from '@mantou/gem/lib/decorators';
 import { GemElement, html, TemplateResult } from '@mantou/gem/lib/element';
 import { createCSSSheet, css, classMap } from '@mantou/gem/lib/utils';
 import { repeat } from '@mantou/gem/lib/directives';
@@ -113,6 +113,7 @@ const removedSet = new WeakSet<ToastItem>();
  */
 @customElement('dy-toast')
 @adoptedStyle(style)
+@aria({ role: 'alert', ariaLive: 'polite' })
 export class DuoyunToastElement extends GemElement {
   @property items?: ToastItem[];
 
@@ -143,8 +144,6 @@ export class DuoyunToastElement extends GemElement {
 
   constructor() {
     super();
-    this.internals.role = 'alert';
-    this.internals.ariaLive = 'polite';
     if (Toast.instance) throw new Error('Single instance component');
     this.addEventListener('mouseover', () => {
       this.#over = new Promise((res) => {

@@ -8,6 +8,8 @@ import {
   property,
   boolattribute,
   state,
+  focusable,
+  aria,
 } from '@mantou/gem/lib/decorators';
 import { GemElement, html, TemplateResult } from '@mantou/gem/lib/element';
 import { createCSSSheet, css } from '@mantou/gem/lib/utils';
@@ -112,6 +114,8 @@ export interface Option<T = any> {
 @adoptedStyle(pickerStyle)
 @adoptedStyle(focusStyle)
 @connectStore(icons)
+@focusable()
+@aria({ role: 'combobox' })
 export class DuoyunPickerElement extends GemElement implements BasePickerElement {
   @attribute placeholder: string;
   @boolattribute disabled: boolean;
@@ -126,10 +130,9 @@ export class DuoyunPickerElement extends GemElement implements BasePickerElement
   @globalemitter change: Emitter<any>;
 
   constructor() {
-    super({ focusable: true });
+    super();
     this.addEventListener('click', this.#onOpen);
     this.addEventListener('keydown', commonHandle);
-    this.internals.role = 'combobox';
   }
 
   #isContain = (value: any) => {

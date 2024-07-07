@@ -7,6 +7,8 @@ import {
   Emitter,
   boolattribute,
   slot,
+  shadow,
+  aria,
 } from '@mantou/gem/lib/decorators';
 import { GemElement, html } from '@mantou/gem/lib/element';
 import { createCSSSheet, css } from '@mantou/gem/lib/utils';
@@ -58,6 +60,8 @@ export type PresetColor = 'positive' | 'informative' | 'negative' | 'notice' | '
 @adoptedStyle(style)
 @adoptedStyle(focusStyle)
 @connectStore(icons)
+@shadow()
+@aria({ role: 'mark' })
 export class DuoyunTagElement extends GemElement {
   @slot static unnamed: string;
 
@@ -84,11 +88,6 @@ export class DuoyunTagElement extends GemElement {
 
   get #type() {
     return this.type || this.mode || 'solid';
-  }
-
-  constructor() {
-    super({ delegatesFocus: true });
-    this.internals.role = 'mark';
   }
 
   #onClose = (e: MouseEvent) => {

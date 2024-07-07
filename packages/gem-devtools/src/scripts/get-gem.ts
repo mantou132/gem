@@ -1,4 +1,4 @@
-import type { GemElement, SheetToken, Sheet, Store } from '@mantou/gem';
+import type { GemElement, SheetToken, Metadata } from '@mantou/gem';
 
 import type { PanelStore } from '../store';
 
@@ -18,13 +18,8 @@ export const getSelectedGem = function (data: PanelStore): PanelStore | string {
   }
 
   const tagClass = $0.constructor as typeof GemElement;
-  const { get } = Reflect;
-  // support v1
-  const gemSymbols = new Proxy(get(__GEM_DEVTOOLS__HOOK__ || {}, 'gemSymbols') || {}, {
-    get(target, p) {
-      return get(target, p) || p;
-    },
-  });
+  // Partial supports V1
+  const metadata = (Reflect.get(tagClass, Symbol.for('Symbol.metadata')) || tagClass) as Metadata;
 
   const inspectable = (value: any) => {
     const type = typeof value;
@@ -121,7 +116,7 @@ export const getSelectedGem = function (data: PanelStore): PanelStore | string {
   const buildInProperty = new Set(['internals']);
   const buildInAttribute = new Set(['ref']);
   const memberSet = getProps($0);
-  get(tagClass, gemSymbols.observedAttributes)?.forEach((attr: string) => {
+  metadata.observedAttributes?.forEach((attr) => {
     const prop = kebabToCamelCase(attr);
     const value = $0[prop];
     memberSet.delete(prop);
@@ -142,7 +137,7 @@ export const getSelectedGem = function (data: PanelStore): PanelStore | string {
       buildIn: buildInAttribute.has(attr) ? 1 : 0,
     });
   });
-  get(tagClass, gemSymbols.observedProperties)?.forEach((prop: string) => {
+  metadata.observedProperties?.forEach((prop) => {
     memberSet.delete(prop);
     const value = $0[prop];
     const type = value === null ? 'null' : typeof value;
@@ -153,7 +148,7 @@ export const getSelectedGem = function (data: PanelStore): PanelStore | string {
       path: inspectable(value) ? [prop] : undefined,
     });
   });
-  get(tagClass, gemSymbols.definedEvents)?.forEach((event: string) => {
+  metadata.definedEvents?.forEach((event) => {
     const prop = kebabToCamelCase(event);
     memberSet.delete(prop);
     data.emitters.push({
@@ -163,23 +158,23 @@ export const getSelectedGem = function (data: PanelStore): PanelStore | string {
       path: [prop],
     });
   });
-  get(tagClass, gemSymbols.adoptedStyleSheets)?.forEach((sheet: Sheet<unknown>, index: number) => {
+  metadata.adoptedStyleSheets?.forEach((sheet, index) => {
     data.adoptedStyles.push({
       name: `StyleSheet${index + 1}`,
       value: objectToString(sheet[Object.getOwnPropertySymbols(sheet)[0] as typeof SheetToken]),
       type: 'object',
-      path: ['constructor', 'gem@adoptedStyleSheets', String(index)],
+      path: ['constructor', 'Symbol.metadata', 'adoptedStyleSheets', String(index)],
     });
   });
-  get(tagClass, gemSymbols.observedStores)?.forEach((store: Store<unknown>, index: number) => {
+  metadata.observedStores?.forEach((store, index) => {
     data.observedStores.push({
       name: `Store${index + 1}`,
       value: objectToString(store),
       type: 'object',
-      path: ['constructor', 'gem@observedStores', String(index)],
+      path: ['constructor', 'Symbol.metadata', 'observedStores', String(index)],
     });
   });
-  get(tagClass, gemSymbols.definedSlots)?.forEach((slot: string) => {
+  metadata.definedSlots?.forEach((slot) => {
     const isUnnamed = slot === 'unnamed';
     const prop = kebabToCamelCase(slot);
     if (!$0.constructor[prop]) {
@@ -199,7 +194,7 @@ export const getSelectedGem = function (data: PanelStore): PanelStore | string {
       path: isNode ? ['firstChild'] : element ? ['querySelector', selector] : undefined,
     });
   });
-  get(tagClass, gemSymbols.definedParts)?.forEach((part: string) => {
+  metadata.definedParts?.forEach((part) => {
     const prop = kebabToCamelCase(part);
     if (!$0.constructor[prop]) {
       memberSet.delete(prop);
@@ -212,7 +207,7 @@ export const getSelectedGem = function (data: PanelStore): PanelStore | string {
       path: [['shadowRoot', ''], 'querySelector', selector],
     });
   });
-  get(tagClass, gemSymbols.definedRefs)?.forEach((ref: string) => {
+  metadata.definedRefs?.forEach((ref) => {
     const prop = kebabToCamelCase(ref.replace(/-\w+$/, ''));
     memberSet.delete(prop);
     data.refs.push({
@@ -222,7 +217,7 @@ export const getSelectedGem = function (data: PanelStore): PanelStore | string {
       path: [['shadowRoot', ''], 'querySelector', `[ref=${$0[prop].ref}]`],
     });
   });
-  get(tagClass, gemSymbols.definedCSSStates)?.forEach((state: string) => {
+  metadata.definedCSSStates?.forEach((state) => {
     const prop = kebabToCamelCase(state);
     memberSet.delete(prop);
     data.cssStates.push({
@@ -280,8 +275,8 @@ export const getSelectedGem = function (data: PanelStore): PanelStore | string {
     Object.getOwnPropertyNames(cls).forEach((key) => {
       if (
         !buildInStaticMember.has(key) &&
-        !get(tagClass, gemSymbols.definedParts)?.includes(cls[key]) &&
-        !get(tagClass, gemSymbols.definedSlots)?.includes(cls[key])
+        !metadata.definedParts?.includes(cls[key]) &&
+        !metadata.definedSlots?.includes(cls[key])
       ) {
         set.add(key);
       }

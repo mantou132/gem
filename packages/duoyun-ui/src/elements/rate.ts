@@ -7,6 +7,8 @@ import {
   boolattribute,
   numattribute,
   part,
+  shadow,
+  aria,
 } from '@mantou/gem/lib/decorators';
 import { GemElement, html } from '@mantou/gem/lib/element';
 import { createCSSSheet, css, classMap } from '@mantou/gem/lib/utils';
@@ -65,6 +67,8 @@ const style = createCSSSheet(css`
 @customElement('dy-rate')
 @adoptedStyle(style)
 @adoptedStyle(focusStyle)
+@shadow()
+@aria({ role: 'range' })
 export class DuoyunRateElement extends GemElement {
   @part static star: string;
 
@@ -85,8 +89,7 @@ export class DuoyunRateElement extends GemElement {
   }
 
   constructor() {
-    super({ delegatesFocus: true });
-    this.internals.role = 'range';
+    super();
     this.effect(() => {
       this.internals.ariaDisabled = String(this.disabled);
       this.internals.ariaLabel = `${this.value}/${this.total}`;

@@ -8,7 +8,7 @@
  */
 import { fixture, expect, nextFrame } from '@open-wc/testing';
 
-import { GemElement, gemSymbols, html } from '../../lib/element';
+import { GemElement, html, Metadata } from '../../lib/element';
 import { createStore, updateStore } from '../../lib/store';
 import {
   attribute,
@@ -19,6 +19,8 @@ import {
   refobject,
   RefObject,
   connectStore,
+  async,
+  shadow,
 } from '../../lib/decorators';
 import { createCSSSheet, css } from '../../lib/utils';
 
@@ -27,10 +29,8 @@ const store = createStore({
 });
 
 @connectStore(store)
+@async()
 class AsyncGemDemo extends GemElement {
-  constructor() {
-    super({ isAsync: true });
-  }
   state = { a: 0 };
   renderCount = 0;
   render() {
@@ -61,10 +61,8 @@ const lightStyle = createCSSSheet(css`
 
 @customElement('light-gem-demo')
 @adoptedStyle(lightStyle)
+@shadow({ mode: null })
 class LightGemDemo extends GemElement {
-  constructor() {
-    super({ isLight: true });
-  }
   render() {
     return html`<div>hi</div>`;
   }
@@ -306,7 +304,8 @@ describe('gem element 继承', () => {
   it('静态字段继承', async () => {
     new I();
     new InheritGem(); // 触发装饰器自定义初始化函数
-    expect(Reflect.get(InheritGem, gemSymbols.observedAttributes)).to.eql(['app-title', 'app-title2']);
+    const metadata: Metadata = Reflect.get(InheritGem, Symbol.metadata);
+    expect(metadata.observedAttributes).to.eql(['app-title', 'app-title2']);
   });
   it('attr/prop/emitter 继承', async () => {
     const name = window.name;

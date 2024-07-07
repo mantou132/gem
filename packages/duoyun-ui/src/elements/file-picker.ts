@@ -10,6 +10,7 @@ import {
   RefObject,
   part,
   slot,
+  shadow,
 } from '@mantou/gem/lib/decorators';
 import { GemElement, html } from '@mantou/gem/lib/element';
 import { createCSSSheet, css, styleMap } from '@mantou/gem/lib/utils';
@@ -121,6 +122,7 @@ export interface FileItem extends File {
 @customElement('dy-file-picker')
 @adoptedStyle(style)
 @adoptedStyle(focusStyle)
+@shadow()
 export class DuoyunFilePickerElement extends GemElement implements BasePickerElement {
   @part static button: string;
   @part static item: string;
@@ -145,10 +147,6 @@ export class DuoyunFilePickerElement extends GemElement implements BasePickerEle
 
   get #accept() {
     return this.accept || (this.#type === 'image' ? 'image/*' : '*');
-  }
-
-  constructor() {
-    super({ delegatesFocus: true });
   }
 
   #onChange = () => {

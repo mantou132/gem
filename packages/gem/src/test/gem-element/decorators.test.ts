@@ -1,6 +1,6 @@
 import { fixture, expect } from '@open-wc/testing';
 
-import { GemElement, gemSymbols, html } from '../../lib/element';
+import { GemElement, html, Metadata } from '../../lib/element';
 import { createStore, updateStore } from '../../lib/store';
 import { createCSSSheet, css } from '../../lib/utils';
 import {
@@ -82,18 +82,15 @@ describe('装饰器', () => {
     `);
     updateStore(store, { a: 1 });
     await Promise.resolve();
-    expect(Reflect.get(DecoratorGemElement, gemSymbols.observedStores)).to.eql([{ a: 1 }]);
-    expect(Reflect.get(DecoratorGemElement, gemSymbols.observedAttributes)).to.eql([
-      'rank-attr',
-      'rank-disabled',
-      'rank-count',
-    ]);
-    expect(Reflect.get(DecoratorGemElement, gemSymbols.definedEvents)).to.eql(['say-hi']);
-    expect(Reflect.get(DecoratorGemElement, gemSymbols.definedCSSStates)).to.eql(['open-state']);
-    expect(Reflect.get(DecoratorGemElement, gemSymbols.definedParts)).to.eql(['say-hi', 'header-part']);
-    expect(Reflect.get(DecoratorGemElement, gemSymbols.definedSlots)).to.eql(['rank-attr', 'body-slot']);
-    expect(Reflect.get(DecoratorGemElement, gemSymbols.definedRefs)?.[0].startsWith('input-ref-')).to.equal(true);
-    expect(Reflect.get(DecoratorGemElement, gemSymbols.observedProperties)).to.eql(['propData']);
+    const metadata: Metadata = Reflect.get(DecoratorGemElement, Symbol.metadata);
+    expect(metadata.observedStores).to.eql([{ a: 1 }]);
+    expect(metadata.observedAttributes).to.eql(['rank-attr', 'rank-disabled', 'rank-count']);
+    expect(metadata.definedEvents).to.eql(['say-hi']);
+    expect(metadata.definedCSSStates).to.eql(['open-state']);
+    expect(metadata.definedParts).to.eql(['say-hi', 'header-part']);
+    expect(metadata.definedSlots).to.eql(['rank-attr', 'body-slot']);
+    expect(metadata.definedRefs?.[0].startsWith('input-ref-')).to.equal(true);
+    expect(metadata.observedProperties).to.eql(['propData']);
     expect(DecoratorGemElement.sayHi).to.equal('say-hi');
     expect(DecoratorGemElement.rankAttr).to.equal('rank-attr');
     expect(el.rankAttr).to.equal('attr');

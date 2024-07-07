@@ -1,4 +1,4 @@
-import { adoptedStyle, customElement } from '@mantou/gem/lib/decorators';
+import { adoptedStyle, aria, customElement } from '@mantou/gem/lib/decorators';
 import { GemElement, html } from '@mantou/gem/lib/element';
 import { createCSSSheet, css } from '@mantou/gem/lib/utils';
 
@@ -34,6 +34,7 @@ const style = createCSSSheet(css`
  */
 @customElement('dy-page-loadbar')
 @adoptedStyle(style)
+@aria({ role: 'progressbar' })
 export class DuoyunPageLoadbarElement extends GemElement {
   static instance?: DuoyunPageLoadbarElement;
   static timer = 0;
@@ -60,11 +61,6 @@ export class DuoyunPageLoadbarElement extends GemElement {
       await sleep(300);
       instance.remove();
     }
-  }
-
-  constructor() {
-    super();
-    this.internals.role = 'progressbar';
   }
 
   state = {

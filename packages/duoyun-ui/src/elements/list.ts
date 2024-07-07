@@ -11,6 +11,8 @@ import {
   Emitter,
   boolattribute,
   attribute,
+  shadow,
+  aria,
 } from '@mantou/gem/lib/decorators';
 import { GemElement, html, TemplateResult } from '@mantou/gem/lib/element';
 import { addListener, createCSSSheet, css, LinkedList, LinkedListItem, styled, styleMap } from '@mantou/gem/lib/utils';
@@ -72,6 +74,8 @@ const styles = createCSSSheet(css`
 @customElement('dy-list')
 @adoptedStyle(styles)
 @adoptedStyle(blockContainer)
+@shadow()
+@aria({ role: 'list' })
 export class DuoyunListElement extends GemElement<State> {
   @part static list: string;
   @part static item: string;
@@ -118,11 +122,6 @@ export class DuoyunListElement extends GemElement<State> {
   // 防止网格布局渲染不是整数行
   get #appendCount() {
     return this.#itemCountPerScreen - (this.state.renderList.length % this.#itemColumnCount);
-  }
-
-  constructor() {
-    super({ delegatesFocus: true });
-    this.internals.role = 'list';
   }
 
   state: State = {
@@ -595,6 +594,8 @@ const itemStyle = createCSSSheet({
 @customElement('dy-list-item')
 @adoptedStyle(blockContainer)
 @adoptedStyle(itemStyle)
+@shadow()
+@aria({ role: 'listitem' })
 export class DuoyunListItemElement extends DuoyunResizeBaseElement implements DuoyunVisibleBaseElement {
   @emitter show: Emitter;
   @emitter hide: Emitter;
@@ -608,8 +609,7 @@ export class DuoyunListItemElement extends DuoyunResizeBaseElement implements Du
   @property key?: any; // 提供另外一种方式来更新
 
   constructor() {
-    super({ delegatesFocus: true });
-    this.internals.role = 'listitem';
+    super();
     this.effect(
       () => visibilityObserver(this),
       () => [this.intersectionRoot],

@@ -1,4 +1,4 @@
-import { adoptedStyle, customElement, state } from '@mantou/gem/lib/decorators';
+import { adoptedStyle, aria, customElement, state } from '@mantou/gem/lib/decorators';
 import { GemElement, html } from '@mantou/gem/lib/element';
 import { createCSSSheet, css } from '@mantou/gem/lib/utils';
 
@@ -94,6 +94,7 @@ type State = {
  */
 @customElement('dy-wait')
 @adoptedStyle(style)
+@aria({ role: 'alert', ariaBusy: 'true' })
 export class DuoyunWaitElement extends GemElement<State> {
   static instance?: DuoyunWaitElement;
   static wait = waitLoading;
@@ -105,8 +106,6 @@ export class DuoyunWaitElement extends GemElement<State> {
   constructor(initState: State = {}) {
     super();
     this.state = initState;
-    this.internals.role = 'alert';
-    this.internals.ariaBusy = 'true';
     this.addEventListener('contextmenu', (e) => e.preventDefault());
   }
 

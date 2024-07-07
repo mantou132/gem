@@ -1,5 +1,5 @@
 // https://spectrum.adobe.com/page/cards/
-import { adoptedStyle, customElement, attribute, property, part, slot } from '@mantou/gem/lib/decorators';
+import { adoptedStyle, customElement, attribute, property, part, slot, shadow, aria } from '@mantou/gem/lib/decorators';
 import { html, TemplateResult } from '@mantou/gem/lib/element';
 import { createCSSSheet, css } from '@mantou/gem/lib/utils';
 
@@ -99,6 +99,8 @@ export type ActionItem = Omit<ContextMenuItem, 'handle'> & { handle: (rest: HTML
 @customElement('dy-card')
 @adoptedStyle(style)
 @adoptedStyle(focusStyle)
+@shadow()
+@aria({ role: 'group' })
 export class DuoyunCardElement extends DuoyunLoadableBaseElement {
   @part static preview: string;
   @part static avatar: string;
@@ -115,11 +117,6 @@ export class DuoyunCardElement extends DuoyunLoadableBaseElement {
   @property detailRight?: string | TemplateResult;
   @property actions?: ActionItem[];
   @attribute crossorigin: 'anonymous' | 'use-credentials';
-
-  constructor() {
-    super({ delegatesFocus: true });
-    this.internals.role = 'group';
-  }
 
   #onOpenMenu = (evt: MouseEvent) => {
     const target = evt.target as HTMLElement;

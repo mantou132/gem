@@ -1,6 +1,8 @@
-import { GemElement, gemSymbols } from '../../lib/element';
-import { attribute, state, connectStore } from '../../lib/decorators';
+import { GemElement } from '../../lib/element';
+import { attribute, state, connectStore, aria } from '../../lib/decorators';
 import { history } from '../../lib/history';
+
+const final = Symbol();
 
 /**
  * 在模版中声明的 dialog，使用 `open` 方法 打开；
@@ -11,6 +13,7 @@ import { history } from '../../lib/history';
  * @fires close
  */
 @connectStore(history.store)
+@aria({ role: 'dialog', ariaModal: 'true' })
 export abstract class GemDialogBaseElement extends GemElement {
   @attribute label: string;
   @state opened: boolean;
@@ -25,8 +28,6 @@ export abstract class GemDialogBaseElement extends GemElement {
       () => (this.inert = true),
       () => [],
     );
-    this.internals.role = 'dialog';
-    this.internals.ariaModal = 'true';
   }
 
   /**
@@ -69,7 +70,7 @@ export abstract class GemDialogBaseElement extends GemElement {
       close: this.#closeHandle,
       shouldClose: this.shouldClose,
     });
-    return gemSymbols.final;
+    return final;
   };
 
   shouldClose() {
@@ -79,7 +80,7 @@ export abstract class GemDialogBaseElement extends GemElement {
   /**@final */
   close = () => {
     history.back();
-    return gemSymbols.final;
+    return final;
   };
 
   /**
@@ -91,6 +92,6 @@ export abstract class GemDialogBaseElement extends GemElement {
   forceClose = () => {
     this.opened = false;
     setTimeout(this.close, 100);
-    return gemSymbols.final;
+    return final;
   };
 }

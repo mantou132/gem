@@ -18,6 +18,10 @@
 | `@slot`          | 字段装饰器，定义元素的 [`slot`][2]                           |
 | `@part`          | 字段装饰器，定义元素的 [`part`][3]                           |
 | `@rootElement`   | 指定[根元素][9]名称                                          |
+| `@shadow`        | 使用 [ShadowDOM](10)                                         |
+| `@async`         | 使用非阻塞渲染                                               |
+| `@aria`          | 指定[可访问性](11)信息                                       |
+| `@focusable`     | 指定元素为可聚焦                                             |
 
 [1]: https://github.com/w3c/webcomponents/blob/gh-pages/proposals/custom-states-and-state-pseudo-class.md
 [2]: https://developer.mozilla.org/en-US/docs/Web/HTML/Global_attributes/slot
@@ -28,6 +32,8 @@
 [7]: https://developer.mozilla.org/en-US/docs/Web/API/Event/composed
 [8]: https://developer.mozilla.org/en-US/docs/Web/API/Event/bubbles
 [9]: https://developer.mozilla.org/en-US/docs/Web/API/Node/getRootNode
+[10]: https://developer.mozilla.org/en-US/docs/Web/API/Web_components/Using_shadow_DOM
+[11]: https://developer.mozilla.org/en-US/docs/Web/API/ElementInternals#instance_properties_included_from_aria
 
 _除 `@property` 外其他装饰器装饰的字段都有默认值，`@attribute`/`@boolattribute`/`@numattribute`/`@state`/`@slot`/`@part` 装饰的字段的值都将自动进行烤串式转换，在元素外部使用时请使用对应的烤串式值_
 

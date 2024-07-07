@@ -1,5 +1,5 @@
 // https://spectrum.adobe.com/page/breadcrumbs/
-import { adoptedStyle, customElement, property, boolattribute, part } from '@mantou/gem/lib/decorators';
+import { adoptedStyle, customElement, property, boolattribute, part, aria } from '@mantou/gem/lib/decorators';
 import { GemElement, html } from '@mantou/gem/lib/element';
 import { createCSSSheet, css, classMap } from '@mantou/gem/lib/utils';
 
@@ -55,6 +55,7 @@ export type BreadcrumbsItem = {
  */
 @customElement('dy-breadcrumbs')
 @adoptedStyle(style)
+@aria({ ariaLabel: 'breadcrumbs' })
 export class DuoyunBreadcrumbsElement extends GemElement {
   @part static item: string;
 
@@ -66,11 +67,6 @@ export class DuoyunBreadcrumbsElement extends GemElement {
 
   get #items() {
     return this.items || this.list;
-  }
-
-  constructor() {
-    super();
-    this.internals.ariaLabel = 'breadcrumbs';
   }
 
   render = () => {

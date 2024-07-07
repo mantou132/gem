@@ -240,7 +240,6 @@ export function css(arr: TemplateStringsArray, ...args: any[]) {
 }
 
 // 跨多个 gem 工作
-// TODO: move to `gemSymbols`
 export const SheetToken = Symbol.for('gem@sheetToken');
 
 export type Sheet<T> = {

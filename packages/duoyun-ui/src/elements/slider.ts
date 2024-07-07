@@ -10,6 +10,8 @@ import {
   numattribute,
   refobject,
   RefObject,
+  focusable,
+  aria,
 } from '@mantou/gem/lib/decorators';
 import { GemElement, html } from '@mantou/gem/lib/element';
 import { createCSSSheet, css, classMap } from '@mantou/gem/lib/utils';
@@ -95,6 +97,8 @@ const style = createCSSSheet(css`
 @customElement('dy-slider')
 @adoptedStyle(style)
 @adoptedStyle(focusStyle)
+@focusable()
+@aria({ role: 'slider' })
 export class DuoyunSliderElement extends GemElement {
   @attribute label: string;
   @attribute orientation: 'horizontal' | 'vertical';
@@ -134,8 +138,7 @@ export class DuoyunSliderElement extends GemElement {
   }
 
   constructor() {
-    super({ focusable: true });
-    this.internals.role = 'slider';
+    super();
     this.addEventListener('keydown', this.#onKeydown);
     this.effect(
       () => {

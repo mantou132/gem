@@ -7,6 +7,8 @@ import {
   boolattribute,
   property,
   slot,
+  shadow,
+  aria,
 } from '@mantou/gem/lib/decorators';
 import { GemElement, html } from '@mantou/gem/lib/element';
 import { createCSSSheet, css } from '@mantou/gem/lib/utils';
@@ -72,6 +74,7 @@ const style = createCSSSheet(css`
 @customElement('dy-checkbox')
 @adoptedStyle(style)
 @adoptedStyle(focusStyle)
+@shadow()
 export class DuoyunCheckboxElement extends GemElement {
   @slot static unnamed: string;
 
@@ -82,7 +85,7 @@ export class DuoyunCheckboxElement extends GemElement {
   @attribute value: string;
 
   constructor() {
-    super({ delegatesFocus: true });
+    super();
     this.addEventListener('click', this.#onClick);
   }
 
@@ -114,17 +117,14 @@ export class DuoyunCheckboxElement extends GemElement {
  */
 @customElement('dy-checkbox-group')
 @adoptedStyle(groupStyle)
+@shadow()
+@aria({ role: 'group' })
 export class DuoyunCheckboxGroupElement extends GemElement {
   @attribute orientation: 'horizontal' | 'vertical';
   @boolattribute disabled: boolean;
   @globalemitter change: Emitter<any[]>;
   @property value?: any[];
   @property options?: Option[];
-
-  constructor() {
-    super({ delegatesFocus: true });
-    this.internals.role = 'group';
-  }
 
   #valueSet: Set<any>;
 

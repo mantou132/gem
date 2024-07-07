@@ -6,6 +6,7 @@ import {
   Emitter,
   boolattribute,
   slot,
+  shadow,
 } from '@mantou/gem/lib/decorators';
 import { GemElement, html } from '@mantou/gem/lib/element';
 import { createCSSSheet, css } from '@mantou/gem/lib/utils';
@@ -73,6 +74,7 @@ const style = createCSSSheet(css`
 @customElement('dy-switch')
 @adoptedStyle(style)
 @adoptedStyle(focusStyle)
+@shadow()
 export class DuoyunSwitchElement extends GemElement {
   @slot static unnamed: string;
 
@@ -89,7 +91,7 @@ export class DuoyunSwitchElement extends GemElement {
   }
 
   constructor() {
-    super({ delegatesFocus: true });
+    super();
     this.addEventListener('click', this.#onClick);
   }
 

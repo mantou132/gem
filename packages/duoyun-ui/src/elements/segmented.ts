@@ -2,11 +2,13 @@ import { GemElement, html } from '@mantou/gem/lib/element';
 import {
   Emitter,
   adoptedStyle,
+  aria,
   boolattribute,
   customElement,
   emitter,
   part,
   property,
+  shadow,
   state,
 } from '@mantou/gem/lib/decorators';
 import { classMap, createCSSSheet, css, partMap, styleMap } from '@mantou/gem/lib/utils';
@@ -109,6 +111,8 @@ export interface SegmentedOption<T = any> extends Option<T> {
  */
 @customElement('dy-segmented')
 @adoptedStyle(style)
+@shadow()
+@aria({ role: 'group' })
 export class DuoyunSegmentedElement extends GemElement {
   @part static segment: string;
   @part static icon: string;
@@ -123,11 +127,6 @@ export class DuoyunSegmentedElement extends GemElement {
   @property options?: SegmentedOption[];
   @property value?: any;
   @emitter change: Emitter<any>;
-
-  constructor() {
-    super({ delegatesFocus: true });
-    this.internals.role = 'group';
-  }
 
   #onClick = (v: any) => {
     if (this.disabled) return;

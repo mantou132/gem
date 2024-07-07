@@ -1,5 +1,5 @@
 import { adoptedStyle, customElement, boolattribute } from '@mantou/gem/lib/decorators';
-import { GemElement, html, GemElementOptions } from '@mantou/gem/lib/element';
+import { GemElement, html } from '@mantou/gem/lib/element';
 import { createCSSSheet, css } from '@mantou/gem/lib/utils';
 
 import { theme } from '../../lib/theme';
@@ -53,8 +53,8 @@ const style = createCSSSheet(css`
 export class DuoyunLoadableBaseElement<T = Record<string, unknown>> extends GemElement<T> {
   @boolattribute loading: boolean;
 
-  constructor(options?: GemElementOptions) {
-    super(options);
+  constructor() {
+    super();
     const mask = new DuoyunLoadableMaskElement();
     this.effect(() => {
       this.internals.ariaBusy = String(this.loading);

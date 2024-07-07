@@ -1,4 +1,4 @@
-import { customElement } from '@mantou/gem/lib/decorators';
+import { aria, customElement } from '@mantou/gem/lib/decorators';
 import { GemElement, html } from '@mantou/gem/lib/element';
 
 import { theme } from '../helper/theme';
@@ -7,6 +7,7 @@ import { theme } from '../helper/theme';
  * @customElement gem-book-loadbar
  */
 @customElement('gem-book-loadbar')
+@aria({ role: 'progressbar' })
 export class GemBookLoadbarElement extends GemElement {
   static instance?: GemBookLoadbarElement;
   static timer = 0;
@@ -15,6 +16,7 @@ export class GemBookLoadbarElement extends GemElement {
     clearInterval(Loadbar.timer);
     Loadbar.timer = window.setTimeout(() => {
       const instance = Loadbar.instance || new Loadbar();
+      if (!instance.isConnected) document.body.append(instance);
       instance.setState({ progress: 0 });
       Loadbar.timer = window.setInterval(() => {
         instance.setState({ progress: instance.state.progress + (95 - instance.state.progress) * 0.1 });
@@ -30,12 +32,6 @@ export class GemBookLoadbarElement extends GemElement {
       await new Promise((res) => setTimeout(res, 300));
       instance.remove();
     }
-  }
-
-  constructor() {
-    super();
-    document.body.append(this);
-    this.internals.role = 'progressbar';
   }
 
   state = {

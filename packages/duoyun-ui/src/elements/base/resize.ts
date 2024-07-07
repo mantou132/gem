@@ -1,5 +1,5 @@
 import { emitter, Emitter } from '@mantou/gem/lib/decorators';
-import { GemElement, GemElementOptions } from '@mantou/gem/lib/element';
+import { GemElement } from '@mantou/gem/lib/element';
 
 import { throttle } from '../../lib/timer';
 
@@ -8,7 +8,9 @@ export type ResizeDetail = {
   borderBoxSize: DuoyunResizeBaseElement['borderBoxSize'];
 };
 
-export function resizeObserver(ele: DuoyunResizeBaseElement, options: { throttle?: boolean } = {}) {
+export type DuoyunResizeBaseElementOptions = { throttle?: boolean };
+
+export function resizeObserver(ele: DuoyunResizeBaseElement, options: DuoyunResizeBaseElementOptions = {}) {
   const { throttle: needThrottle = true } = options;
   const callback = (entryList: ResizeObserverEntry[]) => {
     entryList.forEach((entry) => {
@@ -29,12 +31,11 @@ export function resizeObserver(ele: DuoyunResizeBaseElement, options: { throttle
   return () => ro.disconnect();
 }
 
-export type DuoyunResizeBaseElementOptions = GemElementOptions & { throttle?: boolean };
 export class DuoyunResizeBaseElement<_T = Record<string, unknown>> extends GemElement {
   @emitter resize: Emitter<ResizeDetail>;
 
   constructor(options: DuoyunResizeBaseElementOptions = {}) {
-    super(options);
+    super();
     this.effect(
       () => resizeObserver(this, options),
       () => [],

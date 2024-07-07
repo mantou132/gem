@@ -7,6 +7,8 @@ import {
   Emitter,
   property,
   numattribute,
+  shadow,
+  aria,
 } from '@mantou/gem/lib/decorators';
 import { GemElement, html } from '@mantou/gem/lib/element';
 import { createCSSSheet, css, classMap } from '@mantou/gem/lib/utils';
@@ -80,6 +82,8 @@ const style = createCSSSheet(css`
 @adoptedStyle(style)
 @adoptedStyle(focusStyle)
 @connectStore(locale)
+@shadow()
+@aria({ role: 'listbox', ariaLabel: 'Pagination' })
 export class DuoyunPaginationElement extends GemElement {
   @attribute align: 'left' | 'start' | 'right' | 'end' | 'center';
   @numattribute page: number;
@@ -93,12 +97,6 @@ export class DuoyunPaginationElement extends GemElement {
 
   get #align() {
     return this.align || 'flex-end';
-  }
-
-  constructor() {
-    super({ delegatesFocus: true });
-    this.internals.role = 'listbox';
-    this.internals.ariaLabel = 'Pagination';
   }
 
   #offset = 2;

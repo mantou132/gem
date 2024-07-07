@@ -13,6 +13,8 @@ import {
   emitter,
   Emitter,
   slot,
+  shadow,
+  aria,
 } from '@mantou/gem/lib/decorators';
 import { GemElement, TemplateResult, html } from '@mantou/gem/lib/element';
 import { createCSSSheet, css, classMap, exportPartsMap } from '@mantou/gem/lib/utils';
@@ -78,6 +80,7 @@ type State = {
 @customElement('dy-collapse-panel')
 @adoptedStyle(panelStyle)
 @adoptedStyle(focusStyle)
+@aria({ role: 'listitem' })
 export class DuoyunCollapsePanelElement extends GemElement<State> {
   @refobject contentRef: RefObject<HTMLDivElement>;
 
@@ -90,11 +93,6 @@ export class DuoyunCollapsePanelElement extends GemElement<State> {
   @slot static unnamed: string;
   @part static summary: string;
   @part static detail: string;
-
-  constructor() {
-    super();
-    this.internals.role = 'listitem';
-  }
 
   state: State = {
     preExpand: false,
@@ -173,6 +171,8 @@ type CollapseItem = {
  */
 @customElement('dy-collapse')
 @adoptedStyle(style)
+@shadow()
+@aria({ role: 'list' })
 export class DuoyunCollapseElement extends GemElement {
   @part static panel: string;
   @part static summary: string;
@@ -184,11 +184,6 @@ export class DuoyunCollapseElement extends GemElement {
 
   get #type() {
     return this.type || 'multi';
-  }
-
-  constructor() {
-    super({ delegatesFocus: true });
-    this.internals.role = 'list';
   }
 
   #onToggle = (evt: CustomEvent<boolean>) => {

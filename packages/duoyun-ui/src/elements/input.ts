@@ -12,6 +12,8 @@ import {
   RefObject,
   state,
   part,
+  shadow,
+  aria,
 } from '@mantou/gem/lib/decorators';
 import { GemElement, html, TemplateResult } from '@mantou/gem/lib/element';
 import { createCSSSheet, css } from '@mantou/gem/lib/utils';
@@ -164,6 +166,7 @@ const style = createCSSSheet(css`
 @customElement('dy-input')
 @adoptedStyle(style)
 @adoptedStyle(focusStyle)
+@shadow()
 export class DuoyunInputElement extends GemElement {
   @part static input: string;
   @part static clear: string;
@@ -220,10 +223,6 @@ export class DuoyunInputElement extends GemElement {
 
   get #max() {
     return this.hasAttribute('max') ? this.max : Infinity;
-  }
-
-  constructor() {
-    super({ delegatesFocus: true });
   }
 
   #nextState = {
@@ -442,9 +441,6 @@ const inputGroupStyle = createCSSSheet(css`
  */
 @customElement('dy-input-group')
 @adoptedStyle(inputGroupStyle)
-export class DuoyunInputGroupElement extends GemElement {
-  constructor() {
-    super({ isLight: true });
-    this.internals.role = 'group';
-  }
-}
+@shadow({ mode: null })
+@aria({ role: 'group' })
+export class DuoyunInputGroupElement extends GemElement {}

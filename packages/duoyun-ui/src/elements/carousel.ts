@@ -8,6 +8,7 @@ import {
   part,
   emitter,
   Emitter,
+  shadow,
 } from '@mantou/gem/lib/decorators';
 import { createCSSSheet, css, styleMap, classMap, addListener } from '@mantou/gem/lib/utils';
 
@@ -150,6 +151,7 @@ type State = {
 @customElement('dy-carousel')
 @adoptedStyle(style)
 @adoptedStyle(focusStyle)
+@shadow()
 export class DuoyunCarouselElement extends GemElement<State> {
   @part static img: string;
   @part static title: string;
@@ -173,10 +175,6 @@ export class DuoyunCarouselElement extends GemElement<State> {
 
   get #interval() {
     return this.interval || 3000;
-  }
-
-  constructor() {
-    super({ delegatesFocus: true });
   }
 
   state: State = {

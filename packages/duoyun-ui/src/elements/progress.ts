@@ -1,4 +1,4 @@
-import { customElement, numattribute } from '@mantou/gem/lib/decorators';
+import { aria, customElement, numattribute } from '@mantou/gem/lib/decorators';
 
 import { theme } from '../lib/theme';
 
@@ -8,6 +8,7 @@ import { DuoyunMeterElement } from './meter';
  * @customElement dy-progress
  */
 @customElement('dy-progress')
+@aria({ role: 'progressbar' })
 export class DuoyunProgressElement extends DuoyunMeterElement {
   /**ms */
   @numattribute estimate: number;
@@ -15,7 +16,6 @@ export class DuoyunProgressElement extends DuoyunMeterElement {
   constructor() {
     super();
     this.#setNextValue();
-    this.internals.role = 'progressbar';
   }
 
   #setNextValue = () => {

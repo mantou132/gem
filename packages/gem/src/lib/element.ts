@@ -17,10 +17,6 @@ export { html, svg, render, directive, TemplateResult, SVGTemplateResult } from 
 const { get } = Reflect;
 
 declare global {
-  interface ElementInternals extends ARIAMixin {
-    // https://developer.mozilla.org/en-US/docs/Web/API/CustomStateSet
-    states: Set<string>;
-  }
   // 用于 css 选择器选择元素，使用 @refobject 自动选择获取
   // 必须使用 attr 赋值
   /**
@@ -29,28 +25,29 @@ declare global {
   interface HTMLElement {
     ref: string;
   }
-  // https://dom.spec.whatwg.org/#shadowroot-clonable
-  interface ShadowRootInit {
-    clonable?: boolean;
-    serializable?: boolean;
+  interface SymbolConstructor {
+    metadata: symbol;
   }
 }
+
+// https://github.com/tc39/proposal-decorator-metadata
+Symbol.metadata = Symbol.for('Symbol.metadata');
 
 function execCallback(fun: any) {
   typeof fun === 'function' && fun();
 }
 
 // global render task pool
-const asyncRenderTaskList = new LinkedList<() => void>();
+const noBlockingTaskList = new LinkedList<() => void>();
 const tick = (timeStamp = performance.now()) => {
   if (performance.now() > timeStamp + 16) return requestAnimationFrame(tick);
-  const task = asyncRenderTaskList.get();
+  const task = noBlockingTaskList.get();
   if (task) {
     task();
     tick(timeStamp);
   }
 };
-asyncRenderTaskList.addEventListener('start', () => addMicrotask(tick));
+noBlockingTaskList.addEventListener('start', () => addMicrotask(tick));
 
 type GetDepFun<T> = () => T;
 type EffectCallback<T> = (depValues: T, oldDepValues?: T) => any;
@@ -63,34 +60,35 @@ type EffectItem<T> = {
   preCallback?: () => void;
 };
 
-export const gemSymbols = {
-  // 禁止覆盖自定义元素原生生命周期方法
-  // https://github.com/microsoft/TypeScript/issues/21388#issuecomment-934345226
-  final: Symbol(),
-  update: Symbol(),
+// proto prop
+export const UpdateToken = Symbol.for('gem@update');
+// fix modal-factory type error
+const updateTokenAlias = UpdateToken;
+
+export type Metadata = Partial<ShadowRootInit> & {
+  noBlocking?: boolean;
+  focusable?: boolean;
+  aria?: Partial<ARIAMixin>;
   // 指定 root 元素类型
-  rootElement: Symbol(),
+  rootElement?: string;
   // 实例化时使用到，DevTools 需要读取
-  observedStores: Symbol.for('gem@observedStores'),
-  adoptedStyleSheets: Symbol.for('gem@adoptedStyleSheets'),
-  sheetToken: SheetToken,
+  observedStores: Store<unknown>[];
+  adoptedStyleSheets?: Sheet<unknown>[];
   // 以下静态字段仅供外部读取，没有实际作用
-  observedProperties: Symbol(),
-  observedAttributes: Symbol(), // 必须在定义元素前指定
-  definedEvents: Symbol(),
-  definedCSSStates: Symbol(),
-  definedRefs: Symbol(),
-  definedParts: Symbol(),
-  definedSlots: Symbol(),
+  observedProperties?: string[];
+  observedAttributes?: string[];
+  definedEvents?: string[];
+  definedCSSStates?: string[];
+  definedRefs?: string[];
+  definedParts?: string[];
+  definedSlots?: string[];
 };
 
-export interface GemElementOptions extends Partial<ShadowRootInit> {
-  isLight?: boolean;
-  isAsync?: boolean;
-  focusable?: boolean;
-}
-
 export abstract class GemElement<T = Record<string, unknown>> extends HTMLElement {
+  // 禁止覆盖自定义元素原生生命周期方法
+  // https://github.com/microsoft/TypeScript/issues/21388#issuecomment-934345226
+  static #final = Symbol();
+
   // 定义当前元素的状态，和 attr/prop 的本质区别是不为外部输入
   readonly state?: T;
 
@@ -100,29 +98,30 @@ export abstract class GemElement<T = Record<string, unknown>> extends HTMLElemen
   // 和 isConnected 有区别
   #isMounted?: boolean;
   #isConnected?: boolean;
-  #isAsync?: boolean;
   #effectList?: EffectItem<any>[];
   #memoList?: EffectItem<any>[];
   #unmountCallback?: any;
 
-  [gemSymbols.update]() {
+  [updateTokenAlias]() {
     if (this.#isMounted) {
       addMicrotask(this.#update);
     }
   }
 
-  constructor(options: GemElementOptions = {}) {
+  constructor() {
     super();
 
-    this.#isAsync = options.isAsync;
-    this.#renderRoot = options.isLight
-      ? this
-      : this.attachShadow({
-          mode: options.mode || 'open',
-          serializable: options.serializable ?? true,
-          delegatesFocus: options.delegatesFocus,
-          slotAssignment: options.slotAssignment,
-        });
+    const {
+      mode = 'open',
+      serializable,
+      delegatesFocus,
+      slotAssignment,
+      focusable,
+      adoptedStyleSheets,
+      aria,
+    } = this.#metadata;
+
+    this.#renderRoot = !mode ? this : this.attachShadow({ mode, serializable, delegatesFocus, slotAssignment });
 
     // https://stackoverflow.com/questions/43836886/failed-to-construct-customelement-error-when-javascript-file-is-placed-in-head
     // focusable 元素一般同时具备 disabled 属性
@@ -134,11 +133,11 @@ export abstract class GemElement<T = Record<string, unknown>> extends HTMLElemen
 
         this.internals.ariaDisabled = String(disabled);
 
-        if (options.focusable && !hasInitTabIndex) {
+        if (focusable && !hasInitTabIndex) {
           this.tabIndex = -Number(disabled);
         }
 
-        if ((options.focusable || options.delegatesFocus) && disabled) {
+        if ((focusable || delegatesFocus) && disabled) {
           return addListener(this, 'click', (e: Event) => e.isTrusted && e.stopImmediatePropagation(), {
             capture: true,
           });
@@ -147,7 +146,8 @@ export abstract class GemElement<T = Record<string, unknown>> extends HTMLElemen
       () => [get(this, 'disabled')],
     );
 
-    const adoptedStyleSheets = get(new.target, gemSymbols.adoptedStyleSheets) as Sheet<unknown>[] | undefined;
+    Object.assign(this.internals, aria);
+
     if (adoptedStyleSheets) {
       const sheets = adoptedStyleSheets.map((item) => item[SheetToken] || item);
       if (this.shadowRoot) {
@@ -165,6 +165,11 @@ export abstract class GemElement<T = Record<string, unknown>> extends HTMLElemen
         );
       }
     }
+  }
+
+  get #metadata(): Metadata {
+    // BUG? 为啥会是空
+    return (this.constructor as any)[Symbol.metadata] || {};
   }
 
   get internals() {
@@ -322,8 +327,8 @@ export abstract class GemElement<T = Record<string, unknown>> extends HTMLElemen
   };
 
   #update = () => {
-    if (this.#isAsync) {
-      asyncRenderTaskList.add(this.#updateCallback);
+    if (this.#metadata.noBlocking) {
+      noBlockingTaskList.add(this.#updateCallback);
     } else {
       this.#updateCallback();
     }
@@ -357,8 +362,7 @@ export abstract class GemElement<T = Record<string, unknown>> extends HTMLElemen
       return;
     }
 
-    const observedStores = get(this.constructor, gemSymbols.observedStores) as Store<unknown>[] | undefined;
-    const rootElement = get(this.constructor, gemSymbols.rootElement) as string | undefined;
+    const { observedStores, rootElement } = this.#metadata;
 
     this.#isConnected = true;
     this.willMount?.();
@@ -378,12 +382,12 @@ export abstract class GemElement<T = Record<string, unknown>> extends HTMLElemen
    * use `mounted`
    */
   connectedCallback() {
-    if (this.#isAsync) {
-      asyncRenderTaskList.add(this.#connectedCallback);
+    if (this.#metadata.noBlocking) {
+      noBlockingTaskList.add(this.#connectedCallback);
     } else {
       this.#connectedCallback();
     }
-    return gemSymbols.final;
+    return GemElement.#final;
   }
 
   /**
@@ -391,7 +395,7 @@ export abstract class GemElement<T = Record<string, unknown>> extends HTMLElemen
    * @final
    */
   adoptedCallback() {
-    return gemSymbols.final;
+    return GemElement.#final;
   }
 
   /**
@@ -404,15 +408,15 @@ export abstract class GemElement<T = Record<string, unknown>> extends HTMLElemen
       this.#isAppendReason = true;
       return;
     }
-    asyncRenderTaskList.delete(this.#connectedCallback);
-    asyncRenderTaskList.delete(this.#updateCallback);
+    noBlockingTaskList.delete(this.#connectedCallback);
+    noBlockingTaskList.delete(this.#updateCallback);
     this.#isMounted = false;
     this.#disconnectStore?.forEach((disconnect) => disconnect());
     execCallback(this.#unmountCallback);
     this.unmounted?.();
     this.#effectList = this.#clearEffect(this.#effectList);
     this.#memoList = this.#clearEffect(this.#memoList);
-    return gemSymbols.final;
+    return GemElement.#final;
   }
 
   #clearEffect = (list?: EffectItem<any>[]) => {

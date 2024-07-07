@@ -1,5 +1,5 @@
 import { GemElement, html, TemplateResult } from '../../lib/element';
-import { property, emitter, Emitter, boolattribute } from '../../lib/decorators';
+import { property, emitter, Emitter, boolattribute, shadow } from '../../lib/decorators';
 import { createStore, updateStore, Store, connect } from '../../lib/store';
 import { titleStore, history, UpdateHistoryParams } from '../../lib/history';
 import { addListener, QueryString } from '../../lib/utils';
@@ -139,6 +139,7 @@ const scrollPositionMap = new Map<string, number>();
  * @fires error
  * @fires loading
  */
+@shadow({ mode: null })
 export class GemRouteElement extends GemElement<State> {
   @boolattribute transition: boolean;
   @property routes?: RouteItem[] | RoutesObject;
@@ -201,8 +202,8 @@ export class GemRouteElement extends GemElement<State> {
     return typeof this.scrollContainer === 'function' ? this.scrollContainer() : this.scrollContainer;
   }
 
-  constructor({ isLight, routes }: ConstructorOptions = {}) {
-    super({ isLight });
+  constructor({ routes }: ConstructorOptions = {}) {
+    super();
     this.routes = this.routes || routes;
   }
 
@@ -346,8 +347,5 @@ export class GemRouteElement extends GemElement<State> {
 /**
  * @customElement gem-light-route
  */
-export class GemLightRouteElement extends GemRouteElement {
-  constructor(options: ConstructorOptions = {}) {
-    super({ ...options, isLight: true });
-  }
-}
+@shadow({ mode: null })
+export class GemLightRouteElement extends GemRouteElement {}

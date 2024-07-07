@@ -7,6 +7,7 @@ import {
   emitter,
   Emitter,
   slot,
+  shadow,
 } from '@mantou/gem/lib/decorators';
 import { GemElement, html } from '@mantou/gem/lib/element';
 import { createCSSSheet, css, classMap } from '@mantou/gem/lib/utils';
@@ -88,6 +89,7 @@ type State = {
 @customElement('dy-copy')
 @adoptedStyle(style)
 @adoptedStyle(focusStyle)
+@shadow()
 export class DuoyunCopyElement extends GemElement<State> {
   @slot static unnamed: string;
   @slot static after: string;
@@ -109,10 +111,6 @@ export class DuoyunCopyElement extends GemElement<State> {
       default:
         return icons.copy;
     }
-  }
-
-  constructor() {
-    super({ delegatesFocus: true });
   }
 
   state: State = {

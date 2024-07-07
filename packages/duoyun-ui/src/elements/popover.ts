@@ -9,6 +9,7 @@ import {
   refobject,
   RefObject,
   part,
+  shadow,
 } from '@mantou/gem/lib/decorators';
 import { GemElement, html, TemplateResult } from '@mantou/gem/lib/element';
 import { addListener, createCSSSheet, css, styleMap, StyleObject } from '@mantou/gem/lib/utils';
@@ -65,6 +66,7 @@ type CloseCallback = {
  */
 @customElement('dy-popover')
 @adoptedStyle(contentsContainer)
+@shadow()
 export class DuoyunPopoverElement extends GemElement<PopoverState> {
   // 用于非继承样式通过 `inherit` 继承
   @part static slot: string;
@@ -152,7 +154,7 @@ export class DuoyunPopoverElement extends GemElement<PopoverState> {
   #hover = false;
 
   constructor(options: PopoverOptions = {}) {
-    super({ delegatesFocus: true });
+    super();
     const { delay = 500, content, position, ghostStyle, trigger, unreachable } = options;
     if (content) this.content = content;
     if (position) this.position = position;

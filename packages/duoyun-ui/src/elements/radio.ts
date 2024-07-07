@@ -7,6 +7,8 @@ import {
   property,
   boolattribute,
   slot,
+  shadow,
+  aria,
 } from '@mantou/gem/lib/decorators';
 import { GemElement, html, TemplateResult } from '@mantou/gem/lib/element';
 import { createCSSSheet, css } from '@mantou/gem/lib/utils';
@@ -59,6 +61,7 @@ const style = createCSSSheet(css`
 @customElement('dy-radio')
 @adoptedStyle(style)
 @adoptedStyle(focusStyle)
+@shadow()
 export class DuoyunRadioElement extends GemElement {
   @slot static unnamed: string;
 
@@ -69,7 +72,7 @@ export class DuoyunRadioElement extends GemElement {
   @attribute value: string;
 
   constructor() {
-    super({ delegatesFocus: true });
+    super();
     this.addEventListener('click', this.#onClick);
   }
 
@@ -122,17 +125,14 @@ export interface Option<T = any> {
  */
 @customElement('dy-radio-group')
 @adoptedStyle(groupStyle)
+@shadow()
+@aria({ role: 'radiogroup' })
 export class DuoyunRadioGroupElement extends GemElement {
   @attribute orientation: 'horizontal' | 'vertical';
   @boolattribute disabled: boolean;
   @globalemitter change: Emitter<any>;
   @property value?: any;
   @property options?: Option[];
-
-  constructor() {
-    super({ delegatesFocus: true });
-    this.internals.role = 'radiogroup';
-  }
 
   #onChange = (evt: CustomEvent<string>) => {
     evt.stopPropagation();

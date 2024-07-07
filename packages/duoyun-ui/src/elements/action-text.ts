@@ -1,5 +1,5 @@
 import { GemElement, html } from '@mantou/gem/lib/element';
-import { adoptedStyle, customElement, attribute, state, slot } from '@mantou/gem/lib/decorators';
+import { adoptedStyle, customElement, attribute, state, slot, focusable, aria } from '@mantou/gem/lib/decorators';
 import { createCSSSheet, css } from '@mantou/gem/lib/utils';
 
 import { theme, getSemanticColor } from '../lib/theme';
@@ -34,6 +34,8 @@ const style = createCSSSheet(css`
 @customElement('dy-action-text')
 @adoptedStyle(style)
 @adoptedStyle(focusStyle)
+@focusable()
+@aria({ role: 'button' })
 export class DuoyunActionTextElement extends GemElement {
   @slot static unnamed: string;
 
@@ -42,8 +44,7 @@ export class DuoyunActionTextElement extends GemElement {
   @state active: boolean;
 
   constructor() {
-    super({ focusable: true });
-    this.internals.role = 'button';
+    super();
     this.addEventListener('keydown', commonHandle);
   }
 

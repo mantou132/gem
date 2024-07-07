@@ -1,4 +1,4 @@
-import { connectStore, adoptedStyle, customElement, refobject, RefObject } from '@mantou/gem/lib/decorators';
+import { connectStore, adoptedStyle, customElement, refobject, RefObject, shadow } from '@mantou/gem/lib/decorators';
 import { html, GemElement, TemplateResult } from '@mantou/gem/lib/element';
 import { createCSSSheet, css, styleMap, classMap } from '@mantou/gem/lib/utils';
 import { useStore } from '@mantou/gem/lib/store';
@@ -119,6 +119,7 @@ const style = createCSSSheet(css`
 @customElement('dy-contextmenu')
 @connectStore(contextmenuStore)
 @adoptedStyle(style)
+@shadow()
 export class DuoyunContextmenuElement extends GemElement {
   @refobject optionsRef: RefObject<DuoyunOptionsElement>;
 
@@ -193,10 +194,6 @@ export class DuoyunContextmenuElement extends GemElement {
 
   get #menuElements() {
     return [...this.shadowRoot!.querySelectorAll<HTMLElement>('.menu')];
-  }
-
-  constructor() {
-    super({ delegatesFocus: true });
   }
 
   #offset = 4;

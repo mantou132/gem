@@ -7,6 +7,7 @@ import {
   Emitter,
   state,
   slot,
+  aria,
 } from '@mantou/gem/lib/decorators';
 import { GemElement, html } from '@mantou/gem/lib/element';
 import { createCSSSheet, css } from '@mantou/gem/lib/utils';
@@ -53,6 +54,7 @@ const style = createCSSSheet(css`
  */
 @customElement('dy-drop-area')
 @adoptedStyle(style)
+@aria({ role: 'region' })
 export class DuoyunDropAreaElement extends GemElement {
   @slot static unnamed: string;
 
@@ -87,7 +89,6 @@ export class DuoyunDropAreaElement extends GemElement {
     this.addEventListener('dragover', this.#onDragover);
     this.addEventListener('dragleave', this.#onDragleave);
     this.addEventListener('drop', this.#onDrop);
-    this.internals.role = 'region';
   }
 
   #getValidFiles = (types: readonly string[], list: FileList) => {

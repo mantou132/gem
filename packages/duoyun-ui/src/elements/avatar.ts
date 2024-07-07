@@ -6,6 +6,7 @@ import {
   boolattribute,
   numattribute,
   part,
+  aria,
 } from '@mantou/gem/lib/decorators';
 import { GemElement, html } from '@mantou/gem/lib/element';
 import { createCSSSheet, css, exportPartsMap } from '@mantou/gem/lib/utils';
@@ -161,6 +162,7 @@ export type AvatarItem = {
  */
 @customElement('dy-avatar-group')
 @adoptedStyle(groupStyle)
+@aria({ role: 'list' })
 export class DuoyunAvatarGroupElement extends GemElement {
   @part static avatar: string;
 
@@ -178,11 +180,6 @@ export class DuoyunAvatarGroupElement extends GemElement {
 
   get #max() {
     return this.max || this.#items?.length || 0;
-  }
-
-  constructor() {
-    super();
-    this.internals.role = 'list';
   }
 
   #parts = exportPartsMap({ [DuoyunAvatarElement.avatar]: DuoyunAvatarGroupElement.avatar });

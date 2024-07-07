@@ -6,6 +6,7 @@ import {
   Emitter,
   boolattribute,
   slot,
+  aria,
 } from '@mantou/gem/lib/decorators';
 import { GemElement, html } from '@mantou/gem/lib/element';
 import { classMap, createCSSSheet, css, styleMap } from '@mantou/gem/lib/utils';
@@ -47,6 +48,7 @@ type State = {
  */
 @customElement('dy-more')
 @adoptedStyle(style)
+@aria({ role: 'combobox' })
 export class DuoyunMoreElement extends GemElement<State> {
   @slot static unnamed: string;
 
@@ -62,7 +64,6 @@ export class DuoyunMoreElement extends GemElement<State> {
 
   constructor() {
     super();
-    this.internals.role = 'combobox';
     this.effect(() => {
       this.internals.ariaExpanded = String(this.state.expanded);
     });
@@ -99,13 +100,9 @@ export class DuoyunMoreElement extends GemElement<State> {
  * @customElement dy-more-slot
  */
 @customElement('dy-more-slot')
+@aria({ role: 'paragraph' })
 export class DuoyunMoreSlotElement extends DuoyunScrollBaseElement {
   @emitter change: Emitter<boolean>;
-
-  constructor() {
-    super();
-    this.internals.role = 'paragraph';
-  }
 
   mounted = () => {
     this.effect(() => {

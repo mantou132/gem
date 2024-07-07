@@ -7,6 +7,8 @@ import {
   property,
   boolattribute,
   part,
+  shadow,
+  aria,
 } from '@mantou/gem/lib/decorators';
 import { GemElement, html } from '@mantou/gem/lib/element';
 import { createCSSSheet, css, classMap, exportPartsMap } from '@mantou/gem/lib/utils';
@@ -145,6 +147,8 @@ type State = {
 @customElement('dy-date-panel')
 @adoptedStyle(style)
 @adoptedStyle(focusStyle)
+@shadow()
+@aria({ role: 'widget' })
 export class DuoyunDatePanelElement extends GemElement<State> {
   @part static dayCell: string;
 
@@ -174,11 +178,6 @@ export class DuoyunDatePanelElement extends GemElement<State> {
       highlights.push([t.startOf('d').valueOf(), t.endOf('d').valueOf()]);
     }
     return highlights;
-  }
-
-  constructor() {
-    super({ delegatesFocus: true });
-    this.internals.role = 'widget';
   }
 
   state: State = {

@@ -1,4 +1,12 @@
-import { adoptedStyle, customElement, property, boolattribute, slot } from '@mantou/gem/lib/decorators';
+import {
+  adoptedStyle,
+  customElement,
+  property,
+  boolattribute,
+  slot,
+  focusable,
+  aria,
+} from '@mantou/gem/lib/decorators';
 import { GemElement, html, TemplateResult } from '@mantou/gem/lib/element';
 import { createCSSSheet, css, classMap } from '@mantou/gem/lib/utils';
 
@@ -152,6 +160,8 @@ type State = {
 @customElement('dy-options')
 @adoptedStyle(style)
 @adoptedStyle(focusStyle)
+@focusable()
+@aria({ role: 'listbox' })
 export class DuoyunOptionsElement extends GemElement<State> {
   @slot static unnamed: string;
 
@@ -164,11 +174,6 @@ export class DuoyunOptionsElement extends GemElement<State> {
     search: '',
     addValue: '',
   };
-
-  constructor() {
-    super({ focusable: true });
-    this.internals.role = 'listbox';
-  }
 
   #onSearch = ({ detail }: CustomEvent<string>) => {
     this.setState({ search: detail });

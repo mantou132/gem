@@ -11,6 +11,7 @@ import {
   RefObject,
   state,
   part,
+  focusable,
 } from '@mantou/gem/lib/decorators';
 import { GemElement, html, TemplateResult } from '@mantou/gem/lib/element';
 import { addListener, createCSSSheet, css, styleMap, StyleObject } from '@mantou/gem/lib/utils';
@@ -135,6 +136,7 @@ type State = {
 @adoptedStyle(pickerStyle)
 @adoptedStyle(focusStyle)
 @connectStore(icons)
+@focusable()
 export class DuoyunSelectElement extends GemElement<State> implements BasePickerElement {
   @boolattribute multiple: boolean;
   @boolattribute disabled: boolean;
@@ -182,7 +184,7 @@ export class DuoyunSelectElement extends GemElement<State> implements BasePicker
   }
 
   constructor() {
-    super({ focusable: true });
+    super();
     this.effect(() => {
       this.internals.role = this.inline ? null : 'combobox';
       this.internals.ariaExpanded = String(this.state.open);

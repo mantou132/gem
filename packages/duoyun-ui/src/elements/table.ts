@@ -9,6 +9,7 @@ import {
   property,
   boolattribute,
   part,
+  shadow,
 } from '@mantou/gem/lib/decorators';
 import { html, TemplateResult } from '@mantou/gem/lib/element';
 import { createCSSSheet, css, styleMap, classMap, StyleObject, isArrayChange } from '@mantou/gem/lib/utils';
@@ -155,6 +156,7 @@ export type ItemContextMenuEventDetail<T> = {
 @adoptedStyle(styles)
 @adoptedStyle(focusStyle)
 @connectStore(icons)
+@shadow()
 export class DuoyunTableElement<T = any, K = any> extends DuoyunScrollBoxElement {
   @part static table: string;
   @part static th: string;
@@ -186,10 +188,6 @@ export class DuoyunTableElement<T = any, K = any> extends DuoyunScrollBoxElement
   @emitter expand: Emitter<T>;
 
   #selectionSet = new Set<K>();
-
-  constructor() {
-    super({ delegatesFocus: true });
-  }
 
   #onSelectionBoxChange = ({ detail: { rect, mode } }: CustomEvent<SelectionChange>) => {
     const selection = new Set(mode === 'new' ? [] : this.#selectionSet);

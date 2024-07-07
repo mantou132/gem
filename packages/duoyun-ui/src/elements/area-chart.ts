@@ -80,7 +80,7 @@ export class DuoyunAreaChartElement extends DuoyunChartBaseElement {
   }
 
   constructor() {
-    super({ isLight: false });
+    super();
     this.addEventListener('pointermove', this.#onPointerMove);
     this.addEventListener('pointerout', this.#onPointerOut);
     this.addEventListener('pointercancel', this.#onPointerOut);

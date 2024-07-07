@@ -1,6 +1,5 @@
 /**只要元素显示在屏幕内，屏幕就不会自动熄灭 */
 
-import { GemElementOptions } from '@mantou/gem/lib/element';
 import { logger } from '@mantou/gem/helper/logger';
 import { addListener } from '@mantou/gem/lib/utils';
 
@@ -39,8 +38,8 @@ export function wakeLock(ele: DuoyunWakeLockBaseElement) {
 }
 
 export class DuoyunWakeLockBaseElement<_T = Record<string, unknown>> extends DuoyunVisibleBaseElement {
-  constructor(options?: GemElementOptions) {
-    super(options);
+  constructor() {
+    super();
     this.effect(
       () => wakeLock(this),
       () => [],

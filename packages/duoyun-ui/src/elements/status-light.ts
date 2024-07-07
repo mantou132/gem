@@ -1,4 +1,4 @@
-import { adoptedStyle, customElement, attribute, slot } from '@mantou/gem/lib/decorators';
+import { adoptedStyle, customElement, attribute, slot, aria } from '@mantou/gem/lib/decorators';
 import { GemElement, html } from '@mantou/gem/lib/element';
 import { createCSSSheet, css } from '@mantou/gem/lib/utils';
 
@@ -45,15 +45,11 @@ export function getStatusColor(status: Status) {
  */
 @customElement('dy-status-light')
 @adoptedStyle(style)
+@aria({ role: 'status' })
 export class DuoyunStatusLightElement extends GemElement {
   @slot static unnamed: string;
 
   @attribute status: Status;
-
-  constructor() {
-    super();
-    this.internals.role = 'status';
-  }
 
   get #status() {
     return this.status || 'default';

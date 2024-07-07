@@ -1,4 +1,4 @@
-import { adoptedStyle, customElement, emitter, Emitter, property } from '@mantou/gem/lib/decorators';
+import { adoptedStyle, aria, customElement, emitter, Emitter, property } from '@mantou/gem/lib/decorators';
 import { html } from '@mantou/gem/lib/element';
 import { createCSSSheet, css, styleMap, classMap } from '@mantou/gem/lib/utils';
 
@@ -52,6 +52,7 @@ function getValue(legend: Legend) {
  */
 @customElement('dy-legend')
 @adoptedStyle(style)
+@aria({ ariaHidden: 'true' })
 export class DuoyunLegendElement extends DuoyunScrollBaseElement {
   @property colors = commonColors;
   @property legends?: Legend[] = [];
@@ -65,7 +66,6 @@ export class DuoyunLegendElement extends DuoyunScrollBaseElement {
   constructor() {
     super();
     this.addEventListener('wheel', this.#onWheel);
-    this.internals.ariaHidden = 'true';
   }
 
   #onWheel = (evt: WheelEvent) => {

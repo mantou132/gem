@@ -1,6 +1,14 @@
 import { history } from '@mantou/gem/lib/history';
 import { GemElement, TemplateResult, html, render } from '@mantou/gem/lib/element';
-import { adoptedStyle, attribute, connectStore, customElement, property, state } from '@mantou/gem/lib/decorators';
+import {
+  adoptedStyle,
+  attribute,
+  connectStore,
+  customElement,
+  property,
+  state,
+  shadow,
+} from '@mantou/gem/lib/decorators';
 import { addListener, classMap, createCSSSheet, css } from '@mantou/gem/lib/utils';
 import { mediaQuery } from '@mantou/gem/helper/mediaquery';
 
@@ -189,6 +197,7 @@ type State = {
 @adoptedStyle(style)
 @adoptedStyle(focusStyle)
 @connectStore(history.store)
+@shadow({ mode: null })
 export class DyPatNavElement extends GemElement<State> {
   @attribute name: string;
   @property links?: Links;
@@ -198,7 +207,7 @@ export class DyPatNavElement extends GemElement<State> {
   @state switching: boolean;
 
   constructor() {
-    super({ isLight: true });
+    super();
     const blur = () => {
       this.setState({ drawerOpen: false });
       (this.getRootNode() as any).activeElement?.blur();

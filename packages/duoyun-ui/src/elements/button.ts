@@ -10,6 +10,7 @@ import {
   state,
   part,
   slot,
+  shadow,
 } from '@mantou/gem/lib/decorators';
 import { GemElement, html } from '@mantou/gem/lib/element';
 import { history } from '@mantou/gem/lib/history';
@@ -139,6 +140,7 @@ const style = createCSSSheet(css`
 @adoptedStyle(style)
 @adoptedStyle(focusStyle)
 @connectStore(icons)
+@shadow()
 export class DuoyunButtonElement extends GemElement {
   @slot static unnamed: string;
 
@@ -167,7 +169,7 @@ export class DuoyunButtonElement extends GemElement {
   }
 
   constructor() {
-    super({ delegatesFocus: true });
+    super();
     this.addEventListener('click', () => {
       if (this.disabled) return;
       if (this.route) {

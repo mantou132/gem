@@ -8,6 +8,8 @@ import {
   property,
   boolattribute,
   state,
+  focusable,
+  aria,
 } from '@mantou/gem/lib/decorators';
 import { GemElement, html } from '@mantou/gem/lib/element';
 import { createCSSSheet, css, classMap } from '@mantou/gem/lib/utils';
@@ -66,6 +68,8 @@ const style = createCSSSheet(css`
 @adoptedStyle(style)
 @adoptedStyle(pickerStyle)
 @adoptedStyle(focusStyle)
+@focusable()
+@aria({ role: 'combobox' })
 export class DuoyunDateRangePickerElement extends GemElement implements BasePickerElement {
   @attribute placeholder: string;
   @boolattribute clearable: boolean;
@@ -78,10 +82,9 @@ export class DuoyunDateRangePickerElement extends GemElement implements BasePick
   @emitter clear: Emitter;
 
   constructor() {
-    super({ focusable: true });
+    super();
     this.addEventListener('click', this.#onOpen);
     this.addEventListener('keydown', commonHandle);
-    this.internals.role = 'combobox';
   }
 
   #onClear = (e: Event) => {

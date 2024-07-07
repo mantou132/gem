@@ -1,4 +1,4 @@
-import { GemElement, connectStore, customElement, html, property, render, useStore } from '@mantou/gem';
+import { GemElement, async, connectStore, customElement, html, property, render, useStore } from '@mantou/gem';
 
 import '../elements/layout';
 
@@ -12,9 +12,10 @@ setInterval(() => {
 
 @customElement('fiber-dot')
 @connectStore(store)
+@async()
 export class Dot extends GemElement {
   constructor() {
-    super({ isAsync: true });
+    super();
     this.addEventListener('mouseenter', this.onMouseenter);
     this.addEventListener('mouseleave', this.onMouseleave);
   }

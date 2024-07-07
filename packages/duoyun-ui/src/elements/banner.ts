@@ -8,6 +8,8 @@ import {
   property,
   boolattribute,
   slot,
+  shadow,
+  aria,
 } from '@mantou/gem/lib/decorators';
 import { GemElement, html } from '@mantou/gem/lib/element';
 import { createCSSSheet, css } from '@mantou/gem/lib/utils';
@@ -82,6 +84,8 @@ type Status = 'positive' | 'notice' | 'negative' | 'default';
  */
 @customElement('dy-banner')
 @adoptedStyle(style)
+@shadow()
+@aria({ role: 'banner' })
 export class DuoyunBannerElement extends GemElement {
   @slot static unnamed: string;
 
@@ -101,11 +105,6 @@ export class DuoyunBannerElement extends GemElement {
       case 'negative':
         return icons.error;
     }
-  }
-
-  constructor() {
-    super({ delegatesFocus: true });
-    this.internals.role = 'banner';
   }
 
   render = () => {

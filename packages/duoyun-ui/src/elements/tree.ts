@@ -9,6 +9,9 @@ import {
   part,
   state,
   numattribute,
+  shadow,
+  aria,
+  focusable,
 } from '@mantou/gem/lib/decorators';
 import { GemElement, html, TemplateResult } from '@mantou/gem/lib/element';
 import { createCSSSheet, css, styleMap } from '@mantou/gem/lib/utils';
@@ -100,6 +103,8 @@ const itemStyle = createCSSSheet(css`
  */
 @customElement('dy-tree-item')
 @adoptedStyle(itemStyle)
+@focusable()
+@aria({ role: 'treeitem' })
 class _DuoyunTreeItemElement extends GemElement {
   @boolattribute expanded: boolean;
   @boolattribute highlight: boolean;
@@ -109,11 +114,6 @@ class _DuoyunTreeItemElement extends GemElement {
   @property item?: TreeItem;
 
   @state active: boolean;
-
-  constructor() {
-    super({ focusable: true });
-    this.internals.role = 'treeitem';
-  }
 
   render = () => {
     if (!this.item) return html``;
@@ -156,6 +156,8 @@ export type MouseEventDetail = { value: any; item: TreeItem; originEvent: MouseE
 @customElement('dy-tree')
 @adoptedStyle(style)
 @adoptedStyle(focusStyle)
+@shadow()
+@aria({ role: 'tree' })
 export class DuoyunTreeElement extends GemElement<State> {
   @part static item: string;
 
@@ -172,11 +174,6 @@ export class DuoyunTreeElement extends GemElement<State> {
 
   get #items() {
     return this.items || this.data;
-  }
-
-  constructor() {
-    super({ delegatesFocus: true });
-    this.internals.role = 'tree';
   }
 
   state: State = {

@@ -8,6 +8,7 @@ import {
   boolattribute,
   refobject,
   RefObject,
+  shadow,
 } from '@mantou/gem/lib/decorators';
 import { GemElement, html } from '@mantou/gem/lib/element';
 import { createCSSSheet, css, styleMap } from '@mantou/gem/lib/utils';
@@ -63,6 +64,7 @@ const style = createCSSSheet(css`
 @customElement('dy-color-picker')
 @adoptedStyle(style)
 @adoptedStyle(focusStyle)
+@shadow()
 export class DuoyunColorPickerElement extends GemElement implements BasePickerElement {
   @attribute value: HexColor;
   @boolattribute alpha: boolean;
@@ -70,10 +72,6 @@ export class DuoyunColorPickerElement extends GemElement implements BasePickerEl
   @boolattribute disabled: boolean;
 
   @globalemitter change: Emitter<HexColor>;
-
-  constructor() {
-    super({ delegatesFocus: true });
-  }
 
   render = () => {
     return html`

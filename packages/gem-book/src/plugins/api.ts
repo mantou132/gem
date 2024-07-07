@@ -9,7 +9,7 @@ type State = { elements?: ElementDetail[]; exports?: ExportDetail[]; error?: any
 
 customElements.whenDefined('gem-book').then(({ GemBookPluginElement }: typeof GemBookElement) => {
   const { Gem, theme, Utils } = GemBookPluginElement;
-  const { html, customElement, attribute, numattribute, createCSSSheet, css, adoptedStyle } = Gem;
+  const { html, customElement, attribute, numattribute, createCSSSheet, css, adoptedStyle, shadow } = Gem;
 
   const styles = createCSSSheet(css`
     gbp-api table {
@@ -29,6 +29,7 @@ customElements.whenDefined('gem-book').then(({ GemBookPluginElement }: typeof Ge
 
   @customElement('gbp-api')
   @adoptedStyle(styles)
+  @shadow({ mode: null })
   class _GbpApiElement extends GemBookPluginElement<State> {
     @attribute src: string;
     @attribute name: string;
@@ -39,7 +40,7 @@ customElements.whenDefined('gem-book').then(({ GemBookPluginElement }: typeof Ge
     }
 
     constructor() {
-      super({ isLight: true });
+      super();
       this.cacheState(() => [this.name, this.src]);
     }
 

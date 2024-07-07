@@ -12,6 +12,7 @@ import {
   part,
   state,
   slot,
+  shadow,
 } from '@mantou/gem/lib/decorators';
 import { GemElement, html, TemplateResult } from '@mantou/gem/lib/element';
 import { addListener, createCSSSheet, css, styled } from '@mantou/gem/lib/utils';
@@ -149,6 +150,7 @@ export interface ModalOpenOptions<T> {
 @adoptedStyle(style)
 @adoptedStyle(style2)
 @connectStore(locale)
+@shadow()
 export class DuoyunModalElement extends GemElement {
   @boolattribute open: boolean;
   @boolattribute customize: boolean;
@@ -225,7 +227,7 @@ export class DuoyunModalElement extends GemElement {
   }
 
   constructor(options: ModalOptions = {}) {
-    super({ delegatesFocus: true });
+    super();
     const {
       header,
       open,

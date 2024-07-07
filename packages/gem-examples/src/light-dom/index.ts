@@ -1,12 +1,13 @@
-import { GemElement, customElement, html, render } from '@mantou/gem';
+import { GemElement, customElement, html, render, shadow } from '@mantou/gem';
 
 import '../elements/layout';
 
 @customElement('app-root')
+@shadow({ mode: null })
 export class App extends GemElement {
   state = { now: 0 };
   constructor() {
-    super({ isLight: true });
+    super();
     setInterval(() => {
       this.setState({ now: Date.now() });
     }, 1000);

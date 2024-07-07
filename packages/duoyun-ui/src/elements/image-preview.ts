@@ -1,4 +1,4 @@
-import { adoptedStyle, customElement, attribute, property, numattribute } from '@mantou/gem/lib/decorators';
+import { adoptedStyle, customElement, attribute, property, numattribute, shadow } from '@mantou/gem/lib/decorators';
 import { GemElement, html } from '@mantou/gem/lib/element';
 import { createCSSSheet, css, styleMap } from '@mantou/gem/lib/utils';
 
@@ -80,6 +80,7 @@ export type ImageStatus = 'negative' | 'positive' | 'default';
 @customElement('dy-image-preview')
 @adoptedStyle(style)
 @adoptedStyle(focusStyle)
+@shadow()
 export class DuoyunImagePreviewElement extends GemElement<State> {
   @attribute status: ImageStatus;
   /**0-100 */
@@ -103,10 +104,6 @@ export class DuoyunImagePreviewElement extends GemElement<State> {
       case 'positive':
         return icons.check;
     }
-  }
-
-  constructor() {
-    super({ delegatesFocus: true });
   }
 
   state: State = {

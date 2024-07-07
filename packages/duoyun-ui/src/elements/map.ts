@@ -1,4 +1,4 @@
-import { adoptedStyle, customElement, emitter, Emitter, property, state, part } from '@mantou/gem/lib/decorators';
+import { adoptedStyle, customElement, emitter, Emitter, property, state, part, aria } from '@mantou/gem/lib/decorators';
 import { html, svg } from '@mantou/gem/lib/element';
 import { createCSSSheet, css, styleMap, classMap } from '@mantou/gem/lib/utils';
 import { geoProjection, geoMercatorRaw, geoEquirectangularRaw, GeoRawProjection, geoPath } from 'd3-geo';
@@ -155,6 +155,7 @@ export type AreaEventDetail = { name: string; originEvent: MouseEvent };
  */
 @customElement('dy-map')
 @adoptedStyle(style)
+@aria({ role: 'img' })
 export class DuoyunMapElement extends DuoyunLoadableBaseElement<State> {
   @part static map: string;
 
@@ -179,11 +180,6 @@ export class DuoyunMapElement extends DuoyunLoadableBaseElement<State> {
   @emitter areahover: Emitter<AreaEventDetail>;
   @emitter arealeave: Emitter<AreaEventDetail>;
   @emitter areaclick: Emitter<AreaEventDetail>;
-
-  constructor() {
-    super();
-    this.internals.role = 'img';
-  }
 
   state: State = {};
 

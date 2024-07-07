@@ -12,6 +12,8 @@ import {
   Emitter,
   emitter,
   numattribute,
+  shadow,
+  aria,
 } from '@mantou/gem/lib/decorators';
 import { GemElement, html, TemplateResult } from '@mantou/gem/lib/element';
 import { createCSSSheet, css } from '@mantou/gem/lib/utils';
@@ -97,6 +99,8 @@ const formStyle = createCSSSheet(css`
  */
 @customElement('dy-form')
 @adoptedStyle(formStyle)
+@shadow({ mode: null })
+@aria({ role: 'form' })
 export class DuoyunFormElement<Data = Record<string, any>> extends GemElement {
   @boolattribute inline: boolean;
 
@@ -128,8 +132,7 @@ export class DuoyunFormElement<Data = Record<string, any>> extends GemElement {
   }
 
   constructor() {
-    super({ isLight: true });
-    this.internals.role = 'form';
+    super();
     this.addEventListener('itemchange', (evt: CustomEvent<{ name: string; value: string }>) => {
       evt.stopPropagation();
       const { name, value } = evt.detail;
@@ -154,11 +157,8 @@ export class DuoyunFormElement<Data = Record<string, any>> extends GemElement {
  * @customElement dy-form-item-inline-group
  */
 @customElement('dy-form-item-inline-group')
-export class DuoyunFormItemInlineGroupElement extends GemElement {
-  constructor() {
-    super({ isLight: true });
-  }
-}
+@shadow({ mode: null })
+export class DuoyunFormItemInlineGroupElement extends GemElement {}
 
 const formItemStyle = createCSSSheet(css`
   :host(:where(:not([hidden]))) {

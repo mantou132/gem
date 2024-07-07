@@ -1,5 +1,5 @@
 // https://spectrum.adobe.com/page/meter/
-import { adoptedStyle, customElement, attribute, property, numattribute } from '@mantou/gem/lib/decorators';
+import { adoptedStyle, customElement, attribute, property, numattribute, aria } from '@mantou/gem/lib/decorators';
 import { GemElement, html, TemplateResult } from '@mantou/gem/lib/element';
 import { createCSSSheet, css, styleMap } from '@mantou/gem/lib/utils';
 
@@ -48,6 +48,7 @@ const style = createCSSSheet(css`
  */
 @customElement('dy-meter')
 @adoptedStyle(style)
+@aria({ role: 'meter' })
 export class DuoyunMeterElement extends GemElement {
   /**range: 0-100 */
   @numattribute value: number;
@@ -92,7 +93,6 @@ export class DuoyunMeterElement extends GemElement {
 
   constructor() {
     super();
-    this.internals.role = 'meter';
     this.effect(() => {
       this.internals.ariaValueMin = String(this.min);
       this.internals.ariaValueMax = String(this.#max);

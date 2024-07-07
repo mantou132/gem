@@ -1,15 +1,21 @@
-import { GemElement, adoptedStyle, createCSSSheet, customElement, html, numattribute, render } from '@mantou/gem';
+import {
+  GemElement,
+  adoptedStyle,
+  async,
+  createCSSSheet,
+  customElement,
+  html,
+  numattribute,
+  render,
+} from '@mantou/gem';
 
 import '../elements/layout';
 
 @adoptedStyle(createCSSSheet(`:host {display: block}`))
 @customElement('app-post')
+@async()
 export class Post extends GemElement {
   @numattribute index: number;
-
-  constructor() {
-    super({ isAsync: true });
-  }
 
   render() {
     console.log(`render ${this.index}`);

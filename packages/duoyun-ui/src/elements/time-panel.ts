@@ -5,6 +5,7 @@ import {
   Emitter,
   property,
   boolattribute,
+  shadow,
 } from '@mantou/gem/lib/decorators';
 import { GemElement, html } from '@mantou/gem/lib/element';
 import { createCSSSheet, css, classMap } from '@mantou/gem/lib/utils';
@@ -57,6 +58,7 @@ const style = createCSSSheet(css`
 @customElement('dy-time-panel')
 @adoptedStyle(style)
 @adoptedStyle(focusStyle)
+@shadow()
 export class DuoyunTimePanelElement extends GemElement {
   @boolattribute headless: boolean;
   @globalemitter change: Emitter<number>;
@@ -69,10 +71,6 @@ export class DuoyunTimePanelElement extends GemElement {
 
   get #parts() {
     return isNotNullish(this.value) ? parseDate(this.value) : ({} as Partial<ReturnType<typeof parseDate>>);
-  }
-
-  constructor() {
-    super({ delegatesFocus: true });
   }
 
   #toArr = (l: number) => Array.from({ length: l }, (_, index) => index);
