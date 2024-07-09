@@ -141,10 +141,14 @@ export class App extends GemElement<State> {
         () => html`<canvas ref=${this.canvasRef.ref} width=${width / ratio} height=${height / ratio}></canvas>`,
       )}
       <div class="grid">
-        ${this.#pixelsPosition.map((index) => {
-          const color = pixels.slice(index, index + 4) as unknown as RGBA;
-          return html`<app-pixel ratio=${ratio} color=${rgbToRgbColor(color)}></app-pixel>`;
-        })}
+        ${repeat(
+          this.#pixelsPosition,
+          (_, i) => i,
+          (index) => {
+            const color = pixels.slice(index, index + 4) as unknown as RGBA;
+            return html`<app-pixel ratio=${ratio} color=${rgbToRgbColor(color)}></app-pixel>`;
+          },
+        )}
       </div>
     `;
   }
