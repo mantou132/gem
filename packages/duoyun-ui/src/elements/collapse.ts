@@ -171,7 +171,7 @@ type CollapseItem = {
  */
 @customElement('dy-collapse')
 @adoptedStyle(style)
-@shadow()
+@shadow({ delegatesFocus: true })
 @aria({ role: 'list' })
 export class DuoyunCollapseElement extends GemElement {
   @part static panel: string;

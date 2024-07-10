@@ -84,7 +84,7 @@ type Status = 'positive' | 'notice' | 'negative' | 'default';
  */
 @customElement('dy-banner')
 @adoptedStyle(style)
-@shadow()
+@shadow({ delegatesFocus: true })
 @aria({ role: 'banner' })
 export class DuoyunBannerElement extends GemElement {
   @slot static unnamed: string;

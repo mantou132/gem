@@ -89,7 +89,7 @@ function getPluginRecord(pluginList: string[]) {
       const [base, ...rest] = plugin.split(/(\?)/);
       const search = rest.join('');
       const pluginPath = resolveLocalPlugin(base);
-      if (!pluginPath) return [plugin, { name: plugin, url: 'file:' + plugin }];
+      if (!pluginPath) return [plugin, { name: plugin, url: 'gbp:' + plugin }];
       if (pluginPath.custom) {
         const filename = path.basename(pluginPath.custom);
         const uniqueFilename = filename + Date.now();
@@ -97,9 +97,9 @@ function getPluginRecord(pluginList: string[]) {
         symlinkSync(pluginPath.custom, path.resolve(pluginDir, uniqueFilename));
         // 替换内置文件
         renameSync(path.resolve(pluginDir, uniqueFilename), symLinkPath);
-        return [pluginPath.custom, { name: filename, url: 'file:' + filename + search }];
+        return [pluginPath.custom, { name: filename, url: 'gbp:' + filename + search }];
       }
-      return [pluginPath.builtIn!, { name: base, url: 'file:' + base + search }];
+      return [pluginPath.builtIn!, { name: base, url: 'gbp:' + base + search }];
     }),
   );
 }

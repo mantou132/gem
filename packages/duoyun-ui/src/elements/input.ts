@@ -166,7 +166,7 @@ const style = createCSSSheet(css`
 @customElement('dy-input')
 @adoptedStyle(style)
 @adoptedStyle(focusStyle)
-@shadow()
+@shadow({ delegatesFocus: true })
 export class DuoyunInputElement extends GemElement {
   @part static input: string;
   @part static clear: string;

@@ -85,7 +85,7 @@ export class EditLink extends GemElement<State> {
           height: 18px;
           margin-right: 10px;
         }
-        .last-updated span {
+        .last-updated gem-link {
           opacity: 0.5;
         }
         @media ${mediaQuery.PHONE} {
@@ -95,15 +95,15 @@ export class EditLink extends GemElement<State> {
           }
         }
       </style>
-      <gem-link class="edit" href=${`${github}/edit/${sourceBranch}${this.#fullPath}`}>
+      <gem-link href=${`${github}/edit/${sourceBranch}${this.#fullPath}`}>
         <gem-use .element=${icons.compose}></gem-use>
         <span>${selfI18n.get('editOnGithub')}</span>
       </gem-link>
       ${lastUpdated &&
       html`
         <div class="last-updated">
-          <gem-link class="edit" href=${commitUrl} title=${message}>${selfI18n.get('lastUpdated')}:</gem-link>
-          <span>${lastUpdated}</span>
+          <span>${selfI18n.get('lastUpdated')}:</span>
+          <gem-link href=${commitUrl} title=${message}>${lastUpdated}</gem-link>
         </div>
       `}
     `;

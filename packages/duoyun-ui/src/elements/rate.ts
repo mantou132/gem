@@ -67,7 +67,7 @@ const style = createCSSSheet(css`
 @customElement('dy-rate')
 @adoptedStyle(style)
 @adoptedStyle(focusStyle)
-@shadow()
+@shadow({ delegatesFocus: true })
 @aria({ role: 'range' })
 export class DuoyunRateElement extends GemElement {
   @part static star: string;

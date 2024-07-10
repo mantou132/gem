@@ -64,7 +64,7 @@ const style = createCSSSheet(css`
 @customElement('dy-color-picker')
 @adoptedStyle(style)
 @adoptedStyle(focusStyle)
-@shadow()
+@shadow({ delegatesFocus: true })
 export class DuoyunColorPickerElement extends GemElement implements BasePickerElement {
   @attribute value: HexColor;
   @boolattribute alpha: boolean;

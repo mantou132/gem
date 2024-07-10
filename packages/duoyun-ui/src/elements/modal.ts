@@ -150,7 +150,7 @@ export interface ModalOpenOptions<T> {
 @adoptedStyle(style)
 @adoptedStyle(style2)
 @connectStore(locale)
-@shadow()
+@shadow({ delegatesFocus: true })
 export class DuoyunModalElement extends GemElement {
   @boolattribute open: boolean;
   @boolattribute customize: boolean;

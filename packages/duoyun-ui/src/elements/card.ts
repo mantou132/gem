@@ -99,7 +99,7 @@ export type ActionItem = Omit<ContextMenuItem, 'handle'> & { handle: (rest: HTML
 @customElement('dy-card')
 @adoptedStyle(style)
 @adoptedStyle(focusStyle)
-@shadow()
+@shadow({ delegatesFocus: true })
 @aria({ role: 'group' })
 export class DuoyunCardElement extends DuoyunLoadableBaseElement {
   @part static preview: string;

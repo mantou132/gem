@@ -158,7 +158,7 @@ function readFiles(filenames: string[], docsRootDir: string, dir: string, link: 
             features,
           };
           if (redirect) {
-            (bookConfig.redirects ||= {})[item.link] = new URL(redirect, `file:${item.link}`).pathname;
+            (bookConfig.redirects ||= {})[item.link] = new URL(redirect, `gbp:${item.link}`).pathname;
           } else {
             result.push(item);
           }
@@ -170,7 +170,7 @@ function readFiles(filenames: string[], docsRootDir: string, dir: string, link: 
         const newLink = path.join(link, filename) + '/';
         if (redirect) {
           const pattern = `${newLink}*`;
-          const redirectPath = new URL(redirect, `file:${pattern}`).pathname;
+          const redirectPath = new URL(redirect, `gbp:${pattern}`).pathname;
           (bookConfig.redirects ||= {})[pattern] = `${redirectPath}${redirectPath.endsWith('/') ? ':0' : ''}`;
         } else {
           const subFilenameSet = new Set([...readdirSync(fullPath)]);

@@ -58,7 +58,7 @@ const style = createCSSSheet(css`
 @customElement('dy-time-panel')
 @adoptedStyle(style)
 @adoptedStyle(focusStyle)
-@shadow()
+@shadow({ delegatesFocus: true })
 export class DuoyunTimePanelElement extends GemElement {
   @boolattribute headless: boolean;
   @globalemitter change: Emitter<number>;

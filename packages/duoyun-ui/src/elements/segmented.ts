@@ -111,7 +111,7 @@ export interface SegmentedOption<T = any> extends Option<T> {
  */
 @customElement('dy-segmented')
 @adoptedStyle(style)
-@shadow()
+@shadow({ delegatesFocus: true })
 @aria({ role: 'group' })
 export class DuoyunSegmentedElement extends GemElement {
   @part static segment: string;

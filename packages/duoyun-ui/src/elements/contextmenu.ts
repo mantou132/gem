@@ -119,7 +119,7 @@ const style = createCSSSheet(css`
 @customElement('dy-contextmenu')
 @connectStore(contextmenuStore)
 @adoptedStyle(style)
-@shadow()
+@shadow({ delegatesFocus: true })
 export class DuoyunContextmenuElement extends GemElement {
   @refobject optionsRef: RefObject<DuoyunOptionsElement>;
 

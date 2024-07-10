@@ -139,7 +139,7 @@ type State = Record<string, boolean>;
 @adoptedStyle(style)
 @adoptedStyle(focusStyle)
 @connectStore(history.store)
-@shadow()
+@shadow({ delegatesFocus: true })
 @aria({ role: 'navigation', ariaLabel: 'Side Navigation' })
 export class DuoyunSideNavigationElement extends DuoyunScrollBaseElement<State> {
   @part static item: string;

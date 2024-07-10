@@ -140,7 +140,7 @@ const style = createCSSSheet(css`
 @adoptedStyle(style)
 @adoptedStyle(focusStyle)
 @connectStore(icons)
-@shadow()
+@shadow({ delegatesFocus: true })
 export class DuoyunButtonElement extends GemElement {
   @slot static unnamed: string;
 

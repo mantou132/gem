@@ -66,7 +66,7 @@ type CloseCallback = {
  */
 @customElement('dy-popover')
 @adoptedStyle(contentsContainer)
-@shadow()
+@shadow({ delegatesFocus: true })
 export class DuoyunPopoverElement extends GemElement<PopoverState> {
   // 用于非继承样式通过 `inherit` 继承
   @part static slot: string;

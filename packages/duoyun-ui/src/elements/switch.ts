@@ -74,7 +74,7 @@ const style = createCSSSheet(css`
 @customElement('dy-switch')
 @adoptedStyle(style)
 @adoptedStyle(focusStyle)
-@shadow()
+@shadow({ delegatesFocus: true })
 export class DuoyunSwitchElement extends GemElement {
   @slot static unnamed: string;
 

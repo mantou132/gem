@@ -61,7 +61,7 @@ const style = createCSSSheet(css`
 @customElement('dy-radio')
 @adoptedStyle(style)
 @adoptedStyle(focusStyle)
-@shadow()
+@shadow({ delegatesFocus: true })
 export class DuoyunRadioElement extends GemElement {
   @slot static unnamed: string;
 
@@ -125,7 +125,7 @@ export interface Option<T = any> {
  */
 @customElement('dy-radio-group')
 @adoptedStyle(groupStyle)
-@shadow()
+@shadow({ delegatesFocus: true })
 @aria({ role: 'radiogroup' })
 export class DuoyunRadioGroupElement extends GemElement {
   @attribute orientation: 'horizontal' | 'vertical';

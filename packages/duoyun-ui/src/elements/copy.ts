@@ -89,7 +89,7 @@ type State = {
 @customElement('dy-copy')
 @adoptedStyle(style)
 @adoptedStyle(focusStyle)
-@shadow()
+@shadow({ delegatesFocus: true })
 export class DuoyunCopyElement extends GemElement<State> {
   @slot static unnamed: string;
   @slot static after: string;

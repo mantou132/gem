@@ -151,7 +151,7 @@ type State = {
 @customElement('dy-carousel')
 @adoptedStyle(style)
 @adoptedStyle(focusStyle)
-@shadow()
+@shadow({ delegatesFocus: true })
 export class DuoyunCarouselElement extends GemElement<State> {
   @part static img: string;
   @part static title: string;

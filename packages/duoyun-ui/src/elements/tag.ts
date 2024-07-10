@@ -60,7 +60,7 @@ export type PresetColor = 'positive' | 'informative' | 'negative' | 'notice' | '
 @adoptedStyle(style)
 @adoptedStyle(focusStyle)
 @connectStore(icons)
-@shadow()
+@shadow({ delegatesFocus: true })
 @aria({ role: 'mark' })
 export class DuoyunTagElement extends GemElement {
   @slot static unnamed: string;

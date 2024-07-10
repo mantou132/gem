@@ -122,7 +122,7 @@ export interface FileItem extends File {
 @customElement('dy-file-picker')
 @adoptedStyle(style)
 @adoptedStyle(focusStyle)
-@shadow()
+@shadow({ delegatesFocus: true })
 export class DuoyunFilePickerElement extends GemElement implements BasePickerElement {
   @part static button: string;
   @part static item: string;

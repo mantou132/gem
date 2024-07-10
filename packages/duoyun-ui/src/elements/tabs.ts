@@ -118,7 +118,7 @@ export interface TabItem<T = any> {
 @customElement('dy-tabs')
 @adoptedStyle(style)
 @adoptedStyle(focusStyle)
-@shadow()
+@shadow({ delegatesFocus: true })
 @aria({ role: 'tablist' })
 export class DuoyunTabsElement extends GemElement {
   @part static tabs: string;

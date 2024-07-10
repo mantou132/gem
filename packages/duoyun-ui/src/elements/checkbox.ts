@@ -74,7 +74,7 @@ const style = createCSSSheet(css`
 @customElement('dy-checkbox')
 @adoptedStyle(style)
 @adoptedStyle(focusStyle)
-@shadow()
+@shadow({ delegatesFocus: true })
 export class DuoyunCheckboxElement extends GemElement {
   @slot static unnamed: string;
 
@@ -117,7 +117,7 @@ export class DuoyunCheckboxElement extends GemElement {
  */
 @customElement('dy-checkbox-group')
 @adoptedStyle(groupStyle)
-@shadow()
+@shadow({ delegatesFocus: true })
 @aria({ role: 'group' })
 export class DuoyunCheckboxGroupElement extends GemElement {
   @attribute orientation: 'horizontal' | 'vertical';

@@ -82,7 +82,7 @@ const style = createCSSSheet(css`
 @adoptedStyle(style)
 @adoptedStyle(focusStyle)
 @connectStore(locale)
-@shadow()
+@shadow({ delegatesFocus: true })
 @aria({ role: 'listbox', ariaLabel: 'Pagination' })
 export class DuoyunPaginationElement extends GemElement {
   @attribute align: 'left' | 'start' | 'right' | 'end' | 'center';

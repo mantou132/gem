@@ -80,7 +80,7 @@ export type ImageStatus = 'negative' | 'positive' | 'default';
 @customElement('dy-image-preview')
 @adoptedStyle(style)
 @adoptedStyle(focusStyle)
-@shadow()
+@shadow({ delegatesFocus: true })
 export class DuoyunImagePreviewElement extends GemElement<State> {
   @attribute status: ImageStatus;
   /**0-100 */

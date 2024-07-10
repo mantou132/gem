@@ -113,7 +113,7 @@ interface Day {
 @customElement('dy-calendar')
 @adoptedStyle(style)
 @adoptedStyle(focusStyle)
-@shadow()
+@shadow({ delegatesFocus: true })
 export class DuoyunCalendarElement extends GemElement {
   @part static headerRow: string;
   @part static headerLeftCell: string;

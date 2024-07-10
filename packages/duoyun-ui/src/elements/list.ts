@@ -74,7 +74,7 @@ const styles = createCSSSheet(css`
 @customElement('dy-list')
 @adoptedStyle(styles)
 @adoptedStyle(blockContainer)
-@shadow()
+@shadow({ delegatesFocus: true })
 @aria({ role: 'list' })
 export class DuoyunListElement extends GemElement<State> {
   @part static list: string;
@@ -594,7 +594,7 @@ const itemStyle = createCSSSheet({
 @customElement('dy-list-item')
 @adoptedStyle(blockContainer)
 @adoptedStyle(itemStyle)
-@shadow()
+@shadow({ delegatesFocus: true })
 @aria({ role: 'listitem' })
 export class DuoyunListItemElement extends DuoyunResizeBaseElement implements DuoyunVisibleBaseElement {
   @emitter show: Emitter;

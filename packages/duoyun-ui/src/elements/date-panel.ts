@@ -147,7 +147,7 @@ type State = {
 @customElement('dy-date-panel')
 @adoptedStyle(style)
 @adoptedStyle(focusStyle)
-@shadow()
+@shadow({ delegatesFocus: true })
 @aria({ role: 'widget' })
 export class DuoyunDatePanelElement extends GemElement<State> {
   @part static dayCell: string;

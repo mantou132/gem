@@ -156,7 +156,7 @@ export type MouseEventDetail = { value: any; item: TreeItem; originEvent: MouseE
 @customElement('dy-tree')
 @adoptedStyle(style)
 @adoptedStyle(focusStyle)
-@shadow()
+@shadow({ delegatesFocus: true })
 @aria({ role: 'tree' })
 export class DuoyunTreeElement extends GemElement<State> {
   @part static item: string;

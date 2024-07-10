@@ -156,7 +156,7 @@ export type ItemContextMenuEventDetail<T> = {
 @adoptedStyle(styles)
 @adoptedStyle(focusStyle)
 @connectStore(icons)
-@shadow()
+@shadow({ delegatesFocus: true })
 export class DuoyunTableElement<T = any, K = any> extends DuoyunScrollBoxElement {
   @part static table: string;
   @part static th: string;

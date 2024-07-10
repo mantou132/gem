@@ -8,7 +8,6 @@ import {
   boolattribute,
   state,
   emitter,
-  shadow,
   focusable,
   aria,
 } from '@mantou/gem/lib/decorators';
@@ -64,7 +63,6 @@ const style = createCSSSheet(css`
 @adoptedStyle(style)
 @adoptedStyle(pickerStyle)
 @adoptedStyle(focusStyle)
-@shadow()
 @focusable()
 @aria({ role: 'combobox' })
 export class DuoyunCascaderPickerElement extends GemElement implements BasePickerElement {

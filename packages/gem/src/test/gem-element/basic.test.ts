@@ -44,18 +44,17 @@ class GemDemo extends GemElement {
   }
 }
 
-class DeferGemElement extends GemElement {
-  @attribute attr: string;
-  @property prop: { value: string };
-}
-
 describe('基本 gem element 测试', () => {
   it('后定义元素', async () => {
     const el: DeferGemElement = await fixture(html`
       <defer-gem-demo attr="attr" .prop=${{ value: 'prop' }}></defer-gem-demo>
     `);
     expect(el.prop.value).to.equal('prop');
-    customElements.define('defer-gem-demo', DeferGemElement);
+    @customElement('defer-gem-demo')
+    class DeferGemElement extends GemElement {
+      @attribute attr: string;
+      @property prop: { value: string };
+    }
     await nextFrame();
     expect(el.prop.value).to.equal('prop');
     expect(el.attr).to.equal('attr');

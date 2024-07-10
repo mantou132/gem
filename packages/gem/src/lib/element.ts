@@ -168,8 +168,7 @@ export abstract class GemElement<T = Record<string, unknown>> extends HTMLElemen
   }
 
   get #metadata(): Metadata {
-    // BUG? 为啥会是空
-    return (this.constructor as any)[Symbol.metadata] || {};
+    return (this.constructor as any)[Symbol.metadata];
   }
 
   get internals() {

@@ -451,7 +451,7 @@ export function rootElement(rootType: string) {
 export function shadow({
   mode = 'open',
   serializable = true,
-  delegatesFocus = true,
+  delegatesFocus,
   slotAssignment,
 }: Partial<Omit<ShadowRootInit, 'mode'> & { mode?: null | ShadowRootMode }> = {}) {
   return function (_: any, context: ClassDecoratorContext) {
@@ -491,8 +491,10 @@ export function aria(info: Partial<ARIAMixin>) {
  * ```
  */
 export function customElement(name: string) {
-  return function (cls: new (...args: any) => any, _: ClassDecoratorContext) {
-    customElements.define(name, cls);
+  return function (cls: new (...args: any) => any, { addInitializer }: ClassDecoratorContext) {
+    addInitializer(function () {
+      customElements.define(name, cls);
+    });
   };
 }
 
