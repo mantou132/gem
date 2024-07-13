@@ -10,17 +10,12 @@ import * as versionExports from './version';
 
 type GemElementPrototype = GemElement<any>;
 type StaticField = Exclude<keyof Metadata, keyof ShadowRootInit | 'aria' | 'rootElement' | 'noBlocking' | 'focusable'>;
-type StaticFieldMember = string | Store<unknown> | Sheet<unknown>;
 
-const { set, deleteProperty, getOwnPropertyDescriptor, defineProperty } = Reflect;
-const { getPrototypeOf } = Object;
+const { deleteProperty, getOwnPropertyDescriptor, defineProperty } = Reflect;
+const { getPrototypeOf, assign } = Object;
 const gemElementProxyMap = new PropProxyMap<GemElement>();
 
-function pushStaticField(
-  context: ClassFieldDecoratorContext | ClassDecoratorContext,
-  field: StaticField,
-  member: StaticFieldMember,
-) {
+function pushStaticField(context: ClassFieldDecoratorContext | ClassDecoratorContext, field: StaticField, member: any) {
   const metadata = context.metadata as Metadata;
   if (!getOwnPropertyDescriptor(metadata, field)) {
     // 继承基类
@@ -31,20 +26,45 @@ function pushStaticField(
     });
   }
 
-  metadata[field]!.push(member as any);
+  metadata[field]!.push(member);
 }
 
 function clearField<T extends GemElement<any>>(instance: T, prop: string) {
-  const desc = getOwnPropertyDescriptor(instance, prop)!;
+  const { value } = getOwnPropertyDescriptor(instance, prop)!;
   deleteProperty(instance, prop);
-  set(instance, prop, desc.value);
+  (instance as any)[prop] = value;
 }
 
 const getReflectTargets = (ele: ShadowRoot | GemElement) =>
   [...ele.querySelectorAll<GemReflectElement>('[data-gem-reflect]')].map((e) => e.target);
 
+export class RefObject<T = HTMLElement> {
+  refSelector: string;
+  ele: GemElement | ShadowRoot;
+  ref: string;
+
+  constructor(ele: GemElement | ShadowRoot, ref: string) {
+    this.refSelector = `[ref=${ref}]`;
+    this.ele = ele;
+    this.ref = ref;
+  }
+  get element() {
+    for (const e of [this.ele, ...getReflectTargets(this.ele)]) {
+      const result = e.querySelector(this.refSelector);
+      if (result) return result as T;
+    }
+  }
+  get elements() {
+    return [this.ele, ...getReflectTargets(this.ele)]
+      .map((e) => [...e.querySelectorAll(this.refSelector)] as T[])
+      .flat();
+  }
+  toString() {
+    return this.ref;
+  }
+}
+
 function defineRef(target: GemElement, prop: string, ref: string) {
-  const refSelector = `[ref=${ref}]`;
   defineProperty(target, prop, {
     configurable: true,
     get() {
@@ -52,21 +72,7 @@ function defineRef(target: GemElement, prop: string, ref: string) {
       let obj = proxy[prop];
       if (!obj) {
         const that = this as GemElement;
-        const ele = that.shadowRoot || that;
-        obj = {
-          get ref() {
-            return ref;
-          },
-          get element() {
-            for (const e of [ele, ...getReflectTargets(ele)]) {
-              const result = e.querySelector(refSelector);
-              if (result) return result;
-            }
-          },
-          get elements() {
-            return [ele, ...getReflectTargets(ele)].map((e) => [...e.querySelectorAll(refSelector)]).flat();
-          },
-        };
+        obj = new RefObject(that.shadowRoot || that, ref);
         proxy[prop] = obj;
       }
       return obj;
@@ -76,8 +82,6 @@ function defineRef(target: GemElement, prop: string, ref: string) {
     },
   });
 }
-
-export type RefObject<T = HTMLElement> = { ref: string; element: T | undefined; elements: T[] };
 
 /**
  * 引用元素，只有第一个标记 ref 的元素有效
@@ -179,7 +183,7 @@ function defineProp(
               that.dispatchEvent(evt);
               v(detail, options);
             };
-        set(proxy[prop]!, isEventHandleSymbol, true);
+        (proxy[prop] as any)[isEventHandleSymbol] = true;
         // emitter 不触发元素更新
       } else {
         proxy[prop] = v;
@@ -257,6 +261,63 @@ export function property<T extends GemElement<any>>(_: undefined, context: Class
   // 延时定义的元素需要继承原实例属性值
   return function (this: any, initValue: any) {
     return this[prop] ?? initValue;
+  };
+}
+
+/**
+ * 依赖 `GemElement.memo`
+ * 不能设置私有字段 https://github.com/tc39/proposal-decorators/issues/509
+ *
+ * For example
+ * ```ts
+ *  class App extends GemElement {
+ *    @memo(() => [])
+ *    get data() {
+ *      return 1;
+ *    }
+ *  }
+ * ```
+ */
+export function memo<T extends GemElement<any>, V = any, K = any[] | undefined>(
+  getDep: K extends any[] ? (instance: T) => K : undefined,
+) {
+  return function (_: any, { addInitializer, name, access }: ClassGetterDecoratorContext<T, V>) {
+    addInitializer(function (this: T) {
+      this.memo(
+        () => defineProperty(this, name, { configurable: true, value: access.get(this) }),
+        getDep && (() => getDep(this) as any),
+      );
+    });
+  };
+}
+
+/**
+ * 依赖 `GemElement.effect`
+ * 方法执行在字段前面
+ * 暂时不确定是否能使用私有名称 https://github.com/tc39/proposal-decorators/issues/536
+ *
+ * For example
+ * ```ts
+ *  class App extends GemElement {
+ *    @memo(() => [])
+ *    #fetchData() {
+ *      console.log('fetch')
+ *    }
+ *  }
+ * ```
+ */
+export function effect<
+  T extends GemElement<any>,
+  V extends (depValues: K, oldDepValues?: K) => any,
+  K = any[] | undefined,
+>(getDep?: K extends any[] ? (instance: T) => K : undefined) {
+  return function (
+    _: any,
+    { addInitializer, access }: ClassFieldDecoratorContext<T, V> | ClassMethodDecoratorContext<T, V>,
+  ) {
+    addInitializer(function (this: T) {
+      this.effect(access.get(this).bind(this) as any, getDep && (() => getDep(this) as any));
+    });
   };
 }
 
@@ -456,10 +517,14 @@ export function shadow({
 }: Partial<Omit<ShadowRootInit, 'mode'> & { mode?: null | ShadowRootMode }> = {}) {
   return function (_: any, context: ClassDecoratorContext) {
     const metadata = context.metadata as Metadata;
-    Object.assign(metadata, { mode, serializable, delegatesFocus, slotAssignment });
+    assign(metadata, { mode, serializable, delegatesFocus, slotAssignment });
   };
 }
 
+/**
+ * 将元素标记为可中断异步渲染
+ * 例如：https://examples.gemjs.org/async
+ */
 export function async() {
   return function (_: any, context: ClassDecoratorContext) {
     const metadata = context.metadata as Metadata;
@@ -467,6 +532,9 @@ export function async() {
   };
 }
 
+/**
+ * 自动添加 tabIndex；支持 `disabled` 属性
+ */
 export function focusable() {
   return function (_: any, context: ClassDecoratorContext) {
     const metadata = context.metadata as Metadata;
@@ -474,6 +542,9 @@ export function focusable() {
   };
 }
 
+/**
+ * 定义元素的可访问性属性
+ */
 export function aria(info: Partial<ARIAMixin>) {
   return function (_: any, context: ClassDecoratorContext) {
     const metadata = context.metadata as Metadata;
@@ -507,7 +578,7 @@ declare global {
 }
 
 if (window.__GEM_DEVTOOLS__HOOK__) {
-  Object.assign(window.__GEM_DEVTOOLS__HOOK__, {
+  assign(window.__GEM_DEVTOOLS__HOOK__, {
     ...elementExports,
     ...decoratorsExports,
     ...storeExports,

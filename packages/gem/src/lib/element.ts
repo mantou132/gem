@@ -14,8 +14,6 @@ import {
 
 export { html, svg, render, directive, TemplateResult, SVGTemplateResult } from 'lit-html';
 
-const { get } = Reflect;
-
 declare global {
   // 用于 css 选择器选择元素，使用 @refobject 自动选择获取
   // 必须使用 attr 赋值
@@ -84,13 +82,13 @@ export type Metadata = Partial<ShadowRootInit> & {
   definedSlots?: string[];
 };
 
-export abstract class GemElement<T = Record<string, unknown>> extends HTMLElement {
+export abstract class GemElement<State = Record<string, unknown>> extends HTMLElement {
   // 禁止覆盖自定义元素原生生命周期方法
   // https://github.com/microsoft/TypeScript/issues/21388#issuecomment-934345226
   static #final = Symbol();
 
   // 定义当前元素的状态，和 attr/prop 的本质区别是不为外部输入
-  readonly state?: T;
+  readonly state?: State;
 
   #renderRoot: HTMLElement | ShadowRoot;
   #internals?: ElementInternals;
@@ -99,6 +97,7 @@ export abstract class GemElement<T = Record<string, unknown>> extends HTMLElemen
   #isMounted?: boolean;
   #isConnected?: boolean;
   #effectList?: EffectItem<any>[];
+  #rendering?: boolean;
   #memoList?: EffectItem<any>[];
   #unmountCallback?: any;
 
@@ -143,27 +142,27 @@ export abstract class GemElement<T = Record<string, unknown>> extends HTMLElemen
           });
         }
       },
-      () => [get(this, 'disabled')],
+      () => [(this as any).disabled],
     );
 
     Object.assign(this.internals, aria);
 
-    if (adoptedStyleSheets) {
-      const sheets = adoptedStyleSheets.map((item) => item[SheetToken] || item);
-      if (this.shadowRoot) {
-        this.shadowRoot.adoptedStyleSheets = sheets;
-      } else {
-        this.effect(
-          () => {
-            const root = this.getRootNode() as ShadowRoot | Document;
-            root.adoptedStyleSheets.push(...sheets);
-            return () => {
-              root.adoptedStyleSheets = removeItems(root.adoptedStyleSheets, sheets);
-            };
-          },
-          () => [],
-        );
-      }
+    const sheets = adoptedStyleSheets?.map((item) => item[SheetToken] || item) || [];
+    if (this.shadowRoot) {
+      this.shadowRoot.adoptedStyleSheets = sheets;
+    } else {
+      this.effect(
+        () => {
+          // 阻止其他元素应用样式到当前元素
+          this.dataset.styleScope = '';
+          const root = this.getRootNode() as ShadowRoot | Document;
+          root.adoptedStyleSheets.push(...sheets);
+          return () => {
+            root.adoptedStyleSheets = removeItems(root.adoptedStyleSheets, sheets);
+          };
+        },
+        () => [],
+      );
     }
   }
 
@@ -190,10 +189,11 @@ export abstract class GemElement<T = Record<string, unknown>> extends HTMLElemen
    * }
    * ```
    * */
-  setState = (payload: Partial<T>) => {
+  setState = (payload: Partial<State>) => {
     if (!this.state) throw new GemError('`state` not initialized');
     Object.assign(this.state, payload);
-    addMicrotask(this.#update);
+    // 避免无限刷新
+    if (!this.#rendering) addMicrotask(this.#update);
   };
 
   #exec = (list?: EffectItem<any>[]) => {
@@ -251,7 +251,7 @@ export abstract class GemElement<T = Record<string, unknown>> extends HTMLElemen
 
   /**
    * @helper
-   * 在 `render` 前执行回调，不要在里面使用 `setState`；
+   * 在 `render` 前执行回调；
    * 和 `effect` 一样接受依赖数组参数，在 `constructor`/`willMount` 中使用;
    * 第一次执行时 `oldDeps` 为空；
    *
@@ -288,7 +288,9 @@ export abstract class GemElement<T = Record<string, unknown>> extends HTMLElemen
     });
   };
 
-  /**@lifecycle */
+  /**
+   * @lifecycle
+   */
   willMount?(): void | Promise<void>;
 
   /**
@@ -301,17 +303,23 @@ export abstract class GemElement<T = Record<string, unknown>> extends HTMLElemen
   render?(): TemplateResult | null | undefined;
 
   #render = () => {
+    this.#rendering = true;
     this.#execMemo();
     const isLight = this.#renderRoot === this;
     const temp = this.render ? this.render() : isLight ? undefined : html`<slot></slot>`;
+    this.#rendering = false;
     if (temp === undefined) return;
     render(temp, this.#renderRoot);
   };
 
-  /**@lifecycle */
+  /**
+   * @lifecycle
+   */
   mounted?(): void | (() => void) | Promise<void>;
 
-  /**@lifecycle */
+  /**
+   * @lifecycle
+   */
   shouldUpdate?(): boolean;
   #shouldUpdate = () => {
     return this.shouldUpdate ? this.shouldUpdate() : true;
@@ -341,7 +349,9 @@ export abstract class GemElement<T = Record<string, unknown>> extends HTMLElemen
     addMicrotask(this.#update);
   };
 
-  /**@lifecycle */
+  /**
+   * @lifecycle
+   */
   updated?(): void | Promise<void>;
   #updated = () => {
     this.updated?.();
