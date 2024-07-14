@@ -1,4 +1,4 @@
-import { GemElement, html, customElement, connectStore, classMap, useStore } from '@mantou/gem';
+import { GemElement, html, customElement, connectStore, classMap, useStore, shadow } from '@mantou/gem';
 
 import { theme, themeStore } from '../helper/theme';
 
@@ -17,6 +17,7 @@ type State = {
  */
 @customElement('gem-book-toc')
 @connectStore(tocStore)
+@shadow()
 export class GemBookTocElement extends GemElement<State> {
   state: State = {};
 

@@ -1,5 +1,5 @@
 import { render, html, GemElement } from '@mantou/gem/lib/element';
-import { customElement, shadow } from '@mantou/gem/lib/decorators';
+import { customElement } from '@mantou/gem/lib/decorators';
 import { history } from '@mantou/gem/lib/history';
 import type { Help, Links, Social, Terms, Languages } from 'duoyun-ui/patterns/footer';
 import { I18n } from '@mantou/gem/helper/i18n';
@@ -18,7 +18,6 @@ const i18n = new I18n({
 });
 
 @customElement('my-homepage')
-@shadow({ mode: null })
 export class MyHomepage extends GemElement {
   #social: Social = {
     label: 'Follow us',

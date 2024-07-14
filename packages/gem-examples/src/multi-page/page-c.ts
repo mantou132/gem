@@ -1,4 +1,4 @@
-import { GemElement, customElement, html } from '@mantou/gem';
+import { GemElement, customElement, html, shadow } from '@mantou/gem';
 import '@mantou/gem/elements/route';
 import '@mantou/gem/elements/link';
 
@@ -20,6 +20,7 @@ const routes = [
 ];
 
 @customElement('app-page-c')
+@shadow()
 class _AppPageC extends GemElement {
   render() {
     return html`

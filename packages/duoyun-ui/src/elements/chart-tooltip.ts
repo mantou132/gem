@@ -1,4 +1,4 @@
-import { connectStore, adoptedStyle, customElement } from '@mantou/gem/lib/decorators';
+import { connectStore, adoptedStyle, customElement, shadow } from '@mantou/gem/lib/decorators';
 import { GemElement, html, TemplateResult } from '@mantou/gem/lib/element';
 import { createCSSSheet, css, styleMap, classMap } from '@mantou/gem/lib/utils';
 import { useStore } from '@mantou/gem/lib/store';
@@ -94,6 +94,7 @@ const [store, update] = useStore<Store>({
 @customElement('dy-chart-tooltip')
 @adoptedStyle(style)
 @connectStore(store)
+@shadow()
 export class DuoyunChartTooltipElement extends GemElement {
   static instance: DuoyunChartTooltipElement | null = null;
 

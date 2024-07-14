@@ -1,5 +1,5 @@
 import { html, GemElement, TemplateResult } from '@mantou/gem/lib/element';
-import { adoptedStyle, customElement, property, refobject, RefObject } from '@mantou/gem/lib/decorators';
+import { adoptedStyle, customElement, property, refobject, RefObject, shadow } from '@mantou/gem/lib/decorators';
 import { GemError, StyleObject, createCSSSheet, css, styleMap } from '@mantou/gem/lib/utils';
 import { history } from '@mantou/gem/lib/history';
 import { ifDefined } from '@mantou/gem/lib/directives';
@@ -131,6 +131,7 @@ type State<T> = {
 @adoptedStyle(blockContainer)
 @adoptedStyle(focusStyle)
 @adoptedStyle(style)
+@shadow()
 export class DyPatFormElement<T = Record<string, unknown>> extends GemElement<State<T>> {
   @refobject formRef: RefObject<DuoyunFormElement>;
 

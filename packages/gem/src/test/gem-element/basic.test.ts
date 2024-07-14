@@ -11,6 +11,7 @@ import {
   customElement,
   numattribute,
   property,
+  shadow,
 } from '../../lib/decorators';
 
 const store = createStore({
@@ -26,6 +27,7 @@ const styles = createCSSSheet(css`
 @connectStore(store)
 @adoptedStyle(styles)
 @customElement('gem-demo')
+@shadow()
 class GemDemo extends GemElement {
   @attribute longAttr: string;
   @attribute attr: string;

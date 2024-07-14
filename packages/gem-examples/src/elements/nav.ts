@@ -1,8 +1,9 @@
-import { GemElement, html, customElement } from '@mantou/gem';
+import { GemElement, html, customElement, shadow } from '@mantou/gem';
 
 import { EXAMPLES, VERSION } from './env';
 
 @customElement('gem-examples-nav')
+@shadow()
 export class Nav extends GemElement {
   mounted = () => {
     if (window.top !== window) return;

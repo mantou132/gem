@@ -1,6 +1,15 @@
 // webkit marker arrow bug: https://duoyun-ui.gemjs.org/zh/elements/flow
 
-import { adoptedStyle, customElement, property, part, state, refobject, RefObject } from '@mantou/gem/lib/decorators';
+import {
+  adoptedStyle,
+  customElement,
+  property,
+  part,
+  state,
+  refobject,
+  RefObject,
+  shadow,
+} from '@mantou/gem/lib/decorators';
 import { html, svg, TemplateResult } from '@mantou/gem/lib/element';
 import { createCSSSheet, css, styleMap, exportPartsMap } from '@mantou/gem/lib/utils';
 import type { ElkNode, ElkExtendedEdge, ElkEdgeSection, LayoutOptions, ElkShape, ElkPoint } from 'elkjs';
@@ -220,6 +229,7 @@ const canvasStyle = createCSSSheet(css`
  */
 @customElement('dy-flow-canvas')
 @adoptedStyle(canvasStyle)
+@shadow()
 export class DuoyunFlowCanvasElement extends DuoyunResizeBaseElement {
   @part static node: string;
   @part static nodeLabel: string;
@@ -511,6 +521,7 @@ const style = createCSSSheet(css`
  */
 @customElement('dy-flow')
 @adoptedStyle(style)
+@shadow()
 export class DuoyunFlowElement extends DuoyunResizeBaseElement<State> {
   @part static node: string;
   @part static nodeLabel: string;

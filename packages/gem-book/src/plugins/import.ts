@@ -6,9 +6,10 @@ customElements.whenDefined('gem-book').then(({ GemBookPluginElement }: typeof Ge
   const esmBuilderPromise = import(/* webpackIgnore: true */ esmBuilder);
 
   const { Gem, Utils } = GemBookPluginElement;
-  const { html, customElement, attribute } = Gem;
+  const { html, customElement, attribute, shadow } = Gem;
 
   @customElement('gbp-import')
+  @shadow()
   class _GbpImportElement extends GemBookPluginElement {
     @attribute src: string;
     @attribute dependencies: string;
@@ -37,11 +38,10 @@ customElements.whenDefined('gem-book').then(({ GemBookPluginElement }: typeof Ge
             if (new URL(url, location.origin).pathname.endsWith('.js')) {
               return await import(/* webpackIgnore: true */ url);
             }
-            const ret = await (
-              await esmBuilderPromise
-            ).build({
+            const { build } = await esmBuilderPromise;
+            const ret = await build({
               dependencies: this.#dependencies,
-              code: `
+              source: `
                 const GemBookPluginElement = customElements.get('gem-book').GemBookPluginElement;
                 ${content}
               `,

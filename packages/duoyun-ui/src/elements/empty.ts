@@ -1,4 +1,4 @@
-import { connectStore, adoptedStyle, customElement, property } from '@mantou/gem/lib/decorators';
+import { connectStore, adoptedStyle, customElement, property, shadow } from '@mantou/gem/lib/decorators';
 import { GemElement, html, TemplateResult } from '@mantou/gem/lib/element';
 import { createCSSSheet, css } from '@mantou/gem/lib/utils';
 
@@ -25,6 +25,7 @@ const style = createCSSSheet(css`
 @customElement('dy-empty')
 @adoptedStyle(style)
 @connectStore(locale)
+@shadow()
 export class DuoyunEmptyElement extends GemElement {
   @property icon?: string | Element | DocumentFragment;
   @property description?: string | TemplateResult;

@@ -474,6 +474,7 @@ const ghostStyle = createCSSSheet(css`
  */
 @customElement('dy-popover-ghost')
 @adoptedStyle(ghostStyle)
+@shadow()
 export class DuoyunPopoverGhostElement extends GemElement {
   @emitter close: Emitter;
 

@@ -30,6 +30,8 @@ const store = createStore({
 
 @connectStore(store)
 @async()
+@shadow()
+@customElement('async-gem-demo')
 class AsyncGemDemo extends GemElement {
   state = { a: 0 };
   renderCount = 0;
@@ -38,7 +40,6 @@ class AsyncGemDemo extends GemElement {
     return null;
   }
 }
-customElements.define('async-gem-demo', AsyncGemDemo);
 
 describe('异步 gem element 测试', () => {
   it('异步 gem element 更新', async () => {
@@ -61,7 +62,6 @@ const lightStyle = createCSSSheet(css`
 
 @customElement('light-gem-demo')
 @adoptedStyle(lightStyle)
-@shadow({ mode: null })
 class LightGemDemo extends GemElement {
   render() {
     return html`<div>hi</div>`;
@@ -172,6 +172,7 @@ describe('gem element 生命周期', () => {
   });
 });
 
+@customElement('effect-gem-demo')
 class EffectGemDemo extends GemElement {
   @attribute attr = 'a';
   @property prop = {};
@@ -205,7 +206,6 @@ class EffectGemDemo extends GemElement {
     });
   }
 }
-customElements.define('effect-gem-demo', EffectGemDemo);
 describe('gem element 副作用', () => {
   it('依赖当前值', async () => {
     const el: EffectGemDemo = await fixture(html`<effect-gem-demo></effect-gem-demo>`);
@@ -240,6 +240,7 @@ describe('gem element 副作用', () => {
   });
 });
 
+@customElement('memo-gem-demo')
 class MemoGemDemo extends GemElement {
   @attribute attr = 'a';
   @property prop = {};
@@ -263,7 +264,6 @@ class MemoGemDemo extends GemElement {
     });
   }
 }
-customElements.define('memo-gem-demo', MemoGemDemo);
 describe('gem element Memo', () => {
   it('依赖当前值', async () => {
     const el: MemoGemDemo = await fixture(html`<memo-gem-demo></memo-gem-demo>`);
@@ -288,6 +288,7 @@ describe('gem element Memo', () => {
 });
 
 @customElement('i-gem')
+@shadow()
 class I extends GemElement {
   @attribute appTitle = 'string';
   @property appData = { a: 1 };
@@ -333,6 +334,7 @@ describe('gem element 继承', () => {
   });
 });
 @customElement('render-empty')
+@shadow()
 class RenderEmpty extends GemElement {
   render() {
     return undefined;

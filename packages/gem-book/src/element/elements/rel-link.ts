@@ -1,4 +1,4 @@
-import { html, GemElement, customElement, connectStore, property } from '@mantou/gem';
+import { html, GemElement, customElement, connectStore, property, shadow } from '@mantou/gem';
 import { mediaQuery } from '@mantou/gem/helper/mediaquery';
 
 import { NavItem } from '../../common/config';
@@ -10,6 +10,7 @@ import '@mantou/gem/elements/link';
 
 @customElement('gem-book-rel-link')
 @connectStore(bookStore)
+@shadow()
 export class RelLink extends GemElement {
   @property links: NavItem[];
 

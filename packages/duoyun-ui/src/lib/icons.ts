@@ -58,7 +58,7 @@ const defaultIcons = {
   outward: genIcon(
     '',
     raw`
-      <polygon points="6,6 6,8 14.59,8 5,17.59 6.41,19 16,9.41 16,18 18,18 18,6" />
+      <polygon points="6,6 6,8 14.59,8 5,17.59 6.41,19 16,9.41 16,18 18,18 18,6"></polygon>
     `,
   ),
   menu: genIcon(`M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z`),

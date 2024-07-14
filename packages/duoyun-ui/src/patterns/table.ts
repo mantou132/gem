@@ -11,6 +11,7 @@ import {
   numattribute,
   property,
   refobject,
+  shadow,
 } from '@mantou/gem/lib/decorators';
 import { history } from '@mantou/gem/lib/history';
 import { Store, connect } from '@mantou/gem/lib/store';
@@ -159,6 +160,7 @@ const style = createCSSSheet(css`
 @adoptedStyle(style)
 @adoptedStyle(blockContainer)
 @connectStore(locationStore)
+@shadow()
 export class DyPatTableElement<T = any> extends GemElement<State> {
   @refobject tableRef: RefObject<DuoyunTableElement<T>>;
 

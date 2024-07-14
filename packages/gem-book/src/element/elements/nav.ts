@@ -10,6 +10,7 @@ import {
   classMap,
   history,
   state,
+  shadow,
 } from '@mantou/gem';
 import { mediaQuery } from '@mantou/gem/helper/mediaquery';
 
@@ -33,6 +34,7 @@ import './nav-logo';
 @customElement('gem-book-nav')
 @connectStore(bookStore)
 @connectStore(sidebarStore)
+@shadow()
 export class Nav extends GemElement {
   @boolattribute logo: boolean;
 

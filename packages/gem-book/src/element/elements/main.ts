@@ -7,6 +7,7 @@ import {
   createCSSSheet,
   adoptedStyle,
   connectStore,
+  shadow,
 } from '@mantou/gem';
 import { mediaQuery } from '@mantou/gem/helper/mediaquery';
 
@@ -52,6 +53,7 @@ const style = createCSSSheet(css`
 @customElement('gem-book-main')
 @adoptedStyle(style)
 @connectStore(locationStore)
+@shadow()
 export class Main extends GemElement {
   @property content?: string;
 

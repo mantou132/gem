@@ -1,7 +1,7 @@
 import type { GemReflectElement } from '../elements/reflect';
 
 import { GemElement, UpdateToken, Metadata } from './element';
-import { Sheet, camelToKebabCase, randomStr, PropProxyMap } from './utils';
+import { Sheet, camelToKebabCase, randomStr, PropProxyMap, GemError } from './utils';
 import { Store } from './store';
 import * as elementExports from './element';
 import * as decoratorsExports from './decorators';
@@ -50,6 +50,7 @@ export class RefObject<T = HTMLElement> {
   }
   get element() {
     for (const e of [this.ele, ...getReflectTargets(this.ele)]) {
+      // 在 LightDOM 中可能工作很慢？
       const result = e.querySelector(this.refSelector);
       if (result) return result as T;
     }
@@ -383,7 +384,6 @@ function defineStaticField(
       proto[prop] = attr;
       pushStaticField(context, field, attr);
     }
-    // NOTE: 未清除实例上的字段
   }
   return value || attr;
 }
@@ -401,6 +401,7 @@ function defineStaticField(
  */
 export function slot(_: undefined, context: ClassFieldDecoratorContext<any, string>) {
   return function (this: any, value: string) {
+    if (!context.metadata.mode) throw new GemError(`not's shadow dom`);
     return defineStaticField(context, this, 'definedSlots', value);
   };
 }
@@ -418,6 +419,7 @@ export function slot(_: undefined, context: ClassFieldDecoratorContext<any, stri
  */
 export function part(_: undefined, context: ClassFieldDecoratorContext<any, string>) {
   return function (this: any, value: string) {
+    if (!context.metadata.mode) throw new GemError(`not's shadow dom`);
     return defineStaticField(context, this, 'definedParts', value);
   };
 }
@@ -514,7 +516,7 @@ export function shadow({
   serializable = true,
   delegatesFocus,
   slotAssignment,
-}: Partial<Omit<ShadowRootInit, 'mode'> & { mode?: null | ShadowRootMode }> = {}) {
+}: Partial<ShadowRootInit> = {}) {
   return function (_: any, context: ClassDecoratorContext) {
     const metadata = context.metadata as Metadata;
     assign(metadata, { mode, serializable, delegatesFocus, slotAssignment });

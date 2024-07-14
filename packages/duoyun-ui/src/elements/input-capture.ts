@@ -1,4 +1,4 @@
-import { adoptedStyle, customElement, part } from '@mantou/gem/lib/decorators';
+import { adoptedStyle, customElement, part, shadow } from '@mantou/gem/lib/decorators';
 import { GemElement, html } from '@mantou/gem/lib/element';
 import { addListener, createCSSSheet, css } from '@mantou/gem/lib/utils';
 
@@ -50,6 +50,7 @@ type State = {
 @customElement('dy-input-capture')
 @adoptedStyle(style)
 @adoptedStyle(contentsContainer)
+@shadow()
 export class DuoyunInputCaptureElement extends GemElement<State> {
   @part static container: string;
   @part static kbd: string;

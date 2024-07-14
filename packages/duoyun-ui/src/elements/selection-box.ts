@@ -1,4 +1,4 @@
-import { adoptedStyle, customElement, emitter, Emitter, property } from '@mantou/gem/lib/decorators';
+import { adoptedStyle, customElement, emitter, Emitter, property, shadow } from '@mantou/gem/lib/decorators';
 import { GemElement, html } from '@mantou/gem/lib/element';
 import { addListener, createCSSSheet, css, styleMap } from '@mantou/gem/lib/utils';
 
@@ -36,6 +36,7 @@ export type SelectionChange = {
  */
 @customElement('dy-selection-box')
 @adoptedStyle(contentsContainer)
+@shadow()
 export class DuoyunSelectionBoxElement extends GemElement<State> {
   @property container?: HTMLElement;
 
@@ -178,4 +179,5 @@ const maskStyle = createCSSSheet(css`
  */
 @customElement('dy-selection-box-mask')
 @adoptedStyle(maskStyle)
+@shadow()
 export class DuoyunSelectionBoxMaskElement extends GemElement {}

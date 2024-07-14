@@ -1,4 +1,13 @@
-import { adoptedStyle, customElement, globalemitter, Emitter, property, part, aria } from '@mantou/gem/lib/decorators';
+import {
+  adoptedStyle,
+  customElement,
+  globalemitter,
+  Emitter,
+  property,
+  part,
+  aria,
+  shadow,
+} from '@mantou/gem/lib/decorators';
 import { GemElement, html } from '@mantou/gem/lib/element';
 import { createCSSSheet, css } from '@mantou/gem/lib/utils';
 
@@ -44,6 +53,7 @@ type State = {
 @customElement('dy-date-range-panel')
 @adoptedStyle(style)
 @aria({ role: 'widget' })
+@shadow()
 export class DuoyunDateRangePanelElement extends GemElement<State> {
   @part static panel: string;
 

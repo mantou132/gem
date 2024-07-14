@@ -48,6 +48,10 @@ let MyElement = (() => {
 })();
 ```
 
+## Use Decorator Metadata
+
+`v1.x` uses many static attributes to record other characteristics of the style of elements. They will increase learning costs, so `v2` uses them [`Decorator Metadata`](https://github.com/tc39/proposal-decorator-metadata) instead. When you need to obtain these features(such as Gem Devtools), can use the `Symbol.metadata`.
+
 ## Pitfalls of using ES Decorators
 
 `@attribute` no longer work through the`observedAttributes`, but intercept the `setAttribute`. Do not use the modified` setAttribute` in DevTools, so modify the element attribute in DevTools cannot trigger the element update.

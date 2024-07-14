@@ -99,7 +99,6 @@ const formStyle = createCSSSheet(css`
  */
 @customElement('dy-form')
 @adoptedStyle(formStyle)
-@shadow({ mode: null })
 @aria({ role: 'form' })
 export class DuoyunFormElement<Data = Record<string, any>> extends GemElement {
   @boolattribute inline: boolean;
@@ -157,7 +156,6 @@ export class DuoyunFormElement<Data = Record<string, any>> extends GemElement {
  * @customElement dy-form-item-inline-group
  */
 @customElement('dy-form-item-inline-group')
-@shadow({ mode: null })
 export class DuoyunFormItemInlineGroupElement extends GemElement {}
 
 const formItemStyle = createCSSSheet(css`
@@ -226,6 +224,7 @@ type FormItemRule = {
  */
 @customElement('dy-form-item')
 @adoptedStyle(formItemStyle)
+@shadow()
 export class DuoyunFormItemElement extends GemElement<FormItemState> {
   @part static label: string;
   @part static tip: string;

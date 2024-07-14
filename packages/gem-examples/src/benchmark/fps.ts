@@ -7,6 +7,7 @@ import {
   css,
   connectStore,
   useStore,
+  shadow,
 } from '@mantou/gem';
 
 export const fpsStyle = createCSSSheet(css`
@@ -59,6 +60,7 @@ const tick = () => {
 @customElement('nesbox-fps')
 @adoptedStyle(fpsStyle)
 @connectStore(store)
+@shadow()
 export class NesboxFpsElement extends GemElement {
   static instanceSet: Set<NesboxFpsElement> = new Set();
 

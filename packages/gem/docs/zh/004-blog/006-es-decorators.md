@@ -49,6 +49,10 @@ let MyElement = (() => {
 })();
 ```
 
+## 使用装饰器元数据
+
+`v1.x` 使用了许多静态属性来记录元素的样式等其他特性，它们会增加学习成本，所以 `v2` 将它们使用 [`Decorator Metadata`](https://github.com/tc39/proposal-decorator-metadata) 代替。当外部需要获取元素的这些特性时（例如 Gem Devtools），可以使用 `Symbol.metadata` 进行访问。
+
 ## 使用 ES 装饰器的缺陷
 
 `@attribute` 不再通过 `observedAttributes` 进行工作，而是拦截 `setAttribute`，在 DevTools 中修改时不使用修改后的 `setAttribute`，所以在 DevTools 中修改元素 Attribute 不能触发元素更新。

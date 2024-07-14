@@ -1,4 +1,4 @@
-import { customElement, GemElement, html } from '@mantou/gem';
+import { customElement, GemElement, html, shadow } from '@mantou/gem';
 
 import { getGithubPath } from '../lib/utils';
 import { bookStore, locationStore } from '../store';
@@ -12,6 +12,7 @@ import '@mantou/gem/elements/title';
 import '@mantou/gem/elements/use';
 
 @customElement('gem-book-404')
+@shadow()
 export class Meta extends GemElement {
   #getMdFullPath = () => {
     const { links = [] } = bookStore;

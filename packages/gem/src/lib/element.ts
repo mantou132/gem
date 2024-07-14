@@ -110,15 +110,7 @@ export abstract class GemElement<State = Record<string, unknown>> extends HTMLEl
   constructor() {
     super();
 
-    const {
-      mode = 'open',
-      serializable,
-      delegatesFocus,
-      slotAssignment,
-      focusable,
-      adoptedStyleSheets,
-      aria,
-    } = this.#metadata;
+    const { mode, serializable, delegatesFocus, slotAssignment, focusable, adoptedStyleSheets, aria } = this.#metadata;
 
     this.#renderRoot = !mode ? this : this.attachShadow({ mode, serializable, delegatesFocus, slotAssignment });
 

@@ -11,6 +11,7 @@ import {
   refobject,
   RefObject,
   part,
+  shadow,
 } from '@mantou/gem';
 import { mediaQuery } from '@mantou/gem/helper/mediaquery';
 
@@ -33,6 +34,7 @@ export const [sidebarStore, updateSidebarStore] = useStore({ open: false });
 @connectStore(bookStore)
 @connectStore(sidebarStore)
 @connectStore(tocStore)
+@shadow()
 export class SideBar extends GemElement {
   @part static content: string;
   @part static logo: string;

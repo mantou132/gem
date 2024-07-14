@@ -4,9 +4,10 @@ type MediaType = 'img' | 'video' | 'audio' | 'unknown';
 
 customElements.whenDefined('gem-book').then(({ GemBookPluginElement }: typeof GemBookElement) => {
   const { Gem, theme, Utils } = GemBookPluginElement;
-  const { html, customElement, attribute } = Gem;
+  const { html, customElement, attribute, shadow } = Gem;
 
   @customElement('gbp-media')
+  @shadow()
   class _GbpMediaElement extends GemBookPluginElement {
     @attribute src: string;
     @attribute type: MediaType;

@@ -1,4 +1,4 @@
-import { connectStore, adoptedStyle, customElement, attribute, slot } from '@mantou/gem/lib/decorators';
+import { connectStore, adoptedStyle, customElement, attribute, slot, shadow } from '@mantou/gem/lib/decorators';
 import { GemElement, html } from '@mantou/gem/lib/element';
 import { history } from '@mantou/gem/lib/history';
 import { createCSSSheet, css } from '@mantou/gem/lib/utils';
@@ -41,6 +41,7 @@ const style = createCSSSheet(css`
 @customElement('dy-heading')
 @adoptedStyle(style)
 @connectStore(history.store)
+@shadow()
 export class DuoyunHeadingElement extends GemElement {
   @slot static unnamed: string;
 

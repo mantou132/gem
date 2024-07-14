@@ -6,6 +6,7 @@ import {
   numattribute,
   part,
   aria,
+  shadow,
 } from '@mantou/gem/lib/decorators';
 import { html } from '@mantou/gem/lib/element';
 import { createCSSSheet, css, styleMap } from '@mantou/gem/lib/utils';
@@ -45,6 +46,7 @@ const style = createCSSSheet(css`
 @customElement('dy-placeholder')
 @adoptedStyle(style)
 @aria({ role: 'progressbar', ariaBusy: 'true' })
+@shadow()
 export class DuoyunPlaceholderElement extends DuoyunVisibleBaseElement {
   @part static line: string;
 

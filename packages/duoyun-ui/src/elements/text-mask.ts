@@ -1,4 +1,4 @@
-import { adoptedStyle, customElement, property, attribute } from '@mantou/gem/lib/decorators';
+import { adoptedStyle, customElement, property, attribute, shadow } from '@mantou/gem/lib/decorators';
 import { GemElement, html, TemplateResult } from '@mantou/gem/lib/element';
 import { createCSSSheet, css } from '@mantou/gem/lib/utils';
 
@@ -16,6 +16,7 @@ type MaskParseValue = TemplateResult | string | number;
  */
 @customElement('dy-text-mask')
 @adoptedStyle(style)
+@shadow()
 export class DuoyunTextMaskElement extends GemElement {
   @attribute origin: string;
   @attribute placeholder: string;

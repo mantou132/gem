@@ -1,5 +1,5 @@
 import { GemElement, html } from '../../lib/element';
-import { attribute, property, state, part, connectStore, focusable } from '../../lib/decorators';
+import { attribute, property, state, part, connectStore, focusable, shadow } from '../../lib/decorators';
 import { history, basePathStore } from '../../lib/history';
 import { absoluteLocation } from '../../lib/utils';
 import { ifDefined } from '../../lib/directives';
@@ -26,6 +26,7 @@ function isExternal(path: string) {
  */
 @connectStore(basePathStore)
 @focusable()
+@shadow()
 export class GemLinkElement extends GemElement {
   @attribute href: string;
   @attribute target: string;

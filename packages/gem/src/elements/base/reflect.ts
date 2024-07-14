@@ -7,7 +7,7 @@
  * 比如 duoyun-ui 文档站加载示例元素时把 GemReflectElement 渲染的元素清除
  */
 import { GemElement } from '../../lib/element';
-import { attribute, property, shadow } from '../../lib/decorators';
+import { attribute, property } from '../../lib/decorators';
 
 const START = 'gem-reflect-start';
 const END = 'gem-reflect-end';
@@ -28,7 +28,6 @@ const getReflectFragment = (startNode: Comment) => {
 /**
  * @customElement gem-reflect
  */
-@shadow({ mode: null })
 export class GemReflectElement extends GemElement {
   @attribute method: 'prepend' | 'append';
 

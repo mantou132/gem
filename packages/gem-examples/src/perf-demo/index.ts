@@ -1,4 +1,4 @@
-import { GemElement, async, connectStore, customElement, html, property, render, useStore } from '@mantou/gem';
+import { GemElement, async, connectStore, customElement, html, property, render, shadow, useStore } from '@mantou/gem';
 
 import '../elements/layout';
 
@@ -13,6 +13,7 @@ setInterval(() => {
 @customElement('fiber-dot')
 @connectStore(store)
 @async()
+@shadow()
 export class Dot extends GemElement {
   constructor() {
     super();
@@ -62,6 +63,7 @@ export class Dot extends GemElement {
 const targetSize = 25;
 
 @customElement('fiber-triangle')
+@shadow()
 export class Triangle extends GemElement {
   x: number;
   y: number;
@@ -93,6 +95,7 @@ export class Triangle extends GemElement {
 }
 
 @customElement('app-root')
+@shadow()
 class App extends GemElement {
   @property elapsed: number;
   render() {

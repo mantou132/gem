@@ -18,6 +18,7 @@ import {
   refobject,
   slot,
   state,
+  shadow,
 } from '../../lib/decorators';
 
 const store = createStore({
@@ -33,6 +34,7 @@ const styles = createCSSSheet(css`
 @connectStore(store)
 @adoptedStyle(styles)
 @customElement('decorator-gem-demo')
+@shadow()
 class DecoratorGemElement extends GemElement {
   // 测试同名
   @part static sayHi: string;

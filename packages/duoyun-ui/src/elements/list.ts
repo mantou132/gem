@@ -51,6 +51,7 @@ export type PersistentState = State & {
 
 @customElement('dy-list-outside')
 @adoptedStyle(blockContainer)
+@shadow()
 export class DuoyunOutsideElement extends DuoyunVisibleBaseElement {}
 
 const styles = createCSSSheet(css`

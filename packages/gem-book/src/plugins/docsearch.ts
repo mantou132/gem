@@ -56,9 +56,10 @@ type Locales = Record<string, typeof zh | undefined>;
 
 customElements.whenDefined('gem-book').then(({ GemBookPluginElement }: typeof GemBookElement) => {
   const { Gem, theme, mediaQuery, config, Utils } = GemBookPluginElement;
-  const { html, customElement, attribute, refobject, addListener, property } = Gem;
+  const { html, customElement, attribute, refobject, addListener, property, shadow } = Gem;
 
   @customElement('gbp-docsearch')
+  @shadow()
   class _GbpDocsearchElement extends GemBookPluginElement {
     static defaultLocales: Locales = { zh };
 

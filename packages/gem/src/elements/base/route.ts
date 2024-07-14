@@ -133,14 +133,13 @@ export type RouteTrigger = {
 const scrollPositionMap = new Map<string, number>();
 
 /**
- * @customElement gem-route
+ * @customElement gem-light-route
  * @attr inert 暂停路由更新
  * @fires routechange
  * @fires error
  * @fires loading
  */
-@shadow({ mode: null })
-export class GemRouteElement extends GemElement<State> {
+export class GemLightRouteElement extends GemElement<State> {
   @boolattribute transition: boolean;
   @property routes?: RouteItem[] | RoutesObject;
   /**
@@ -345,7 +344,7 @@ export class GemRouteElement extends GemElement<State> {
 }
 
 /**
- * @customElement gem-light-route
+ * @customElement gem-route
  */
-@shadow({ mode: null })
-export class GemLightRouteElement extends GemRouteElement {}
+@shadow()
+export class GemRouteElement extends GemLightRouteElement {}

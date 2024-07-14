@@ -1,7 +1,7 @@
 /**
  * TODO: auto add `@scope` to light dom custom element
  */
-import { GemElement, adoptedStyle, createCSSSheet, css, customElement, html, render, shadow } from '@mantou/gem';
+import { GemElement, adoptedStyle, createCSSSheet, css, customElement, html, render } from '@mantou/gem';
 
 import '../elements/layout';
 
@@ -18,7 +18,6 @@ const style = createCSSSheet(css`
 
 @customElement('app-root')
 @adoptedStyle(style)
-@shadow({ mode: null })
 export class App extends GemElement {
   render() {
     return html`

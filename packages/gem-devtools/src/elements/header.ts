@@ -7,6 +7,7 @@ import {
   css,
   connectStore,
   styleMap,
+  shadow,
 } from '@mantou/gem';
 
 import { changeConfigureStore, configureStore } from '../store';
@@ -43,6 +44,7 @@ const style = createCSSSheet(css`
 @customElement('devtools-header')
 @adoptedStyle(style)
 @connectStore(configureStore)
+@shadow()
 export class DevtoolsHeaderElement extends GemElement {
   #onChange = (evt: Event) => {
     changeConfigureStore({ currentFrameURL: (evt.target as HTMLSelectElement).value });

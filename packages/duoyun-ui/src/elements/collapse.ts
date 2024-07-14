@@ -81,6 +81,7 @@ type State = {
 @adoptedStyle(panelStyle)
 @adoptedStyle(focusStyle)
 @aria({ role: 'listitem' })
+@shadow()
 export class DuoyunCollapsePanelElement extends GemElement<State> {
   @refobject contentRef: RefObject<HTMLDivElement>;
 

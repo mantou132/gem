@@ -12,6 +12,7 @@ import {
   RefObject,
   focusable,
   aria,
+  shadow,
 } from '@mantou/gem/lib/decorators';
 import { GemElement, html } from '@mantou/gem/lib/element';
 import { createCSSSheet, css, classMap } from '@mantou/gem/lib/utils';
@@ -99,6 +100,7 @@ const style = createCSSSheet(css`
 @adoptedStyle(focusStyle)
 @focusable()
 @aria({ role: 'slider' })
+@shadow()
 export class DuoyunSliderElement extends GemElement {
   @attribute label: string;
   @attribute orientation: 'horizontal' | 'vertical';

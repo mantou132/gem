@@ -12,6 +12,7 @@ import {
   refobject,
   RefObject,
   repeat,
+  shadow,
 } from '@mantou/gem';
 import { RGBA, rgbToRgbColor } from 'duoyun-ui/lib/color';
 import { formatTraffic } from 'duoyun-ui/lib/number';
@@ -24,6 +25,7 @@ import '../elements/layout';
 import './fps';
 
 @customElement('app-pixel')
+@shadow()
 export class Pixel extends GemElement {
   @attribute color: string;
   @numattribute ratio: number;
@@ -69,6 +71,7 @@ type State = { canvasKey: number; pixels: Uint8ClampedArray; width: number; heig
 
 @customElement('app-root')
 @adoptedStyle(style)
+@shadow()
 export class App extends GemElement<State> {
   @refobject canvasRef: RefObject<HTMLCanvasElement>;
 

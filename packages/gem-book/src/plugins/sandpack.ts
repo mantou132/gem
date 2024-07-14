@@ -37,8 +37,18 @@ type State = {
 
 customElements.whenDefined('gem-book').then(({ GemBookPluginElement }: typeof GemBookElement) => {
   const { theme, icons } = GemBookPluginElement;
-  const { html, customElement, refobject, attribute, boolattribute, adoptedStyle, css, createCSSSheet, classMap } =
-    GemBookPluginElement.Gem;
+  const {
+    html,
+    customElement,
+    refobject,
+    attribute,
+    boolattribute,
+    adoptedStyle,
+    css,
+    createCSSSheet,
+    classMap,
+    shadow,
+  } = GemBookPluginElement.Gem;
 
   const styles = createCSSSheet(css`
     :host {
@@ -145,6 +155,7 @@ customElements.whenDefined('gem-book').then(({ GemBookPluginElement }: typeof Ge
 
   @customElement('gbp-sandpack')
   @adoptedStyle(styles)
+  @shadow()
   class _GbpSandpackElement extends GemBookPluginElement<State> {
     @refobject iframeRef: RefObject<HTMLIFrameElement>;
     @attribute entry: string;

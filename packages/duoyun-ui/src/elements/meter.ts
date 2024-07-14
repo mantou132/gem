@@ -1,5 +1,13 @@
 // https://spectrum.adobe.com/page/meter/
-import { adoptedStyle, customElement, attribute, property, numattribute, aria } from '@mantou/gem/lib/decorators';
+import {
+  adoptedStyle,
+  customElement,
+  attribute,
+  property,
+  numattribute,
+  aria,
+  shadow,
+} from '@mantou/gem/lib/decorators';
 import { GemElement, html, TemplateResult } from '@mantou/gem/lib/element';
 import { createCSSSheet, css, styleMap } from '@mantou/gem/lib/utils';
 
@@ -49,6 +57,7 @@ const style = createCSSSheet(css`
 @customElement('dy-meter')
 @adoptedStyle(style)
 @aria({ role: 'meter' })
+@shadow()
 export class DuoyunMeterElement extends GemElement {
   /**range: 0-100 */
   @numattribute value: number;

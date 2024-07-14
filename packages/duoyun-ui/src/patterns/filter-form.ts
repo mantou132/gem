@@ -1,6 +1,14 @@
 import { GemElement, html } from '@mantou/gem/lib/element';
 import { createCSSSheet, css } from '@mantou/gem/lib/utils';
-import { adoptedStyle, connectStore, customElement, emitter, Emitter, property } from '@mantou/gem/lib/decorators';
+import {
+  adoptedStyle,
+  connectStore,
+  customElement,
+  emitter,
+  Emitter,
+  property,
+  shadow,
+} from '@mantou/gem/lib/decorators';
 import { Store, connect } from '@mantou/gem/lib/store';
 
 import { ComparerType, isIncludesString } from '../lib/utils';
@@ -82,6 +90,7 @@ const defaultState: State = {
 @adoptedStyle(style)
 @adoptedStyle(blockContainer)
 @connectStore(locale)
+@shadow()
 export class DyPatFilterFormElement extends GemElement<State> {
   @property options?: FilterableOptions;
   @property getText?: (text: ComparerType) => string;

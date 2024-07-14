@@ -11,6 +11,7 @@ import {
   state,
   focusable,
   aria,
+  shadow,
 } from '@mantou/gem/lib/decorators';
 import { GemElement, html } from '@mantou/gem/lib/element';
 import { createCSSSheet, css, classMap } from '@mantou/gem/lib/utils';
@@ -73,6 +74,7 @@ const style = createCSSSheet(css`
 @connectStore(icons)
 @focusable()
 @aria({ role: 'combobox' })
+@shadow()
 export class DuoyunDatePickerElement extends GemElement implements BasePickerElement {
   @attribute placeholder: string;
   @boolattribute time: boolean;

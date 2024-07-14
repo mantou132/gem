@@ -1,5 +1,5 @@
 import { GemElement, html } from '../../lib/element';
-import { attribute, property, state } from '../../lib/decorators';
+import { attribute, property, shadow, state } from '../../lib/decorators';
 
 const eleCache = new Map<string, HTMLTemplateElement>();
 /**
@@ -11,6 +11,7 @@ const eleCache = new Map<string, HTMLTemplateElement>();
  * @customElement gem-use
  * @attr selector
  */
+@shadow()
 export class GemUseElement extends GemElement {
   @attribute selector: string; // CSS 选择器
   @property root?: HTMLElement | Document | ShadowRoot;

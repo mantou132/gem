@@ -18,7 +18,7 @@ import { locale } from 'duoyun-ui/lib/locale';
 import '@mantou/gem';
 
 const style = createCSSSheet(css`
-  :host {
+  gem-use {
     color: ${theme.positiveColor};
   }
 `);

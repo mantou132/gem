@@ -7,9 +7,10 @@ type State = {
 
 customElements.whenDefined('gem-book').then(({ GemBookPluginElement }: typeof GemBookElement) => {
   const { Gem, config } = GemBookPluginElement;
-  const { customElement, html } = Gem;
+  const { customElement, html, shadow } = Gem;
 
   @customElement('gbp-var')
+  @shadow()
   class _GbpVarElement extends GemBookPluginElement<State> {
     mounted() {
       new MutationObserver(() => this.update()).observe(this, {

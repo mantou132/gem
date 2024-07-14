@@ -1,5 +1,5 @@
 // https://ant.design/components/timeline/
-import { adoptedStyle, aria, customElement, property } from '@mantou/gem/lib/decorators';
+import { adoptedStyle, aria, customElement, property, shadow } from '@mantou/gem/lib/decorators';
 import { html, TemplateResult } from '@mantou/gem/lib/element';
 import { createCSSSheet, css, styleMap, classMap } from '@mantou/gem/lib/utils';
 
@@ -67,6 +67,7 @@ type Item = {
 @customElement('dy-timeline')
 @adoptedStyle(style)
 @aria({ role: 'list' })
+@shadow()
 export class DuoyunTimelineElement extends DuoyunScrollBaseElement {
   @property events?: Item[];
 

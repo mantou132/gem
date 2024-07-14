@@ -7,6 +7,7 @@ import {
   boolattribute,
   slot,
   aria,
+  shadow,
 } from '@mantou/gem/lib/decorators';
 import { GemElement, html } from '@mantou/gem/lib/element';
 import { classMap, createCSSSheet, css, styleMap } from '@mantou/gem/lib/utils';
@@ -49,6 +50,7 @@ type State = {
 @customElement('dy-more')
 @adoptedStyle(style)
 @aria({ role: 'combobox' })
+@shadow()
 export class DuoyunMoreElement extends GemElement<State> {
   @slot static unnamed: string;
 

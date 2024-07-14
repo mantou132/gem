@@ -1,5 +1,5 @@
 // https://spectrum.adobe.com/page/code/
-import { adoptedStyle, customElement, attribute, refobject, RefObject } from '@mantou/gem/lib/decorators';
+import { adoptedStyle, customElement, attribute, refobject, RefObject, shadow } from '@mantou/gem/lib/decorators';
 import { GemElement, html } from '@mantou/gem/lib/element';
 import { createCSSSheet, css, styleMap } from '@mantou/gem/lib/utils';
 
@@ -327,6 +327,7 @@ const style = createCSSSheet(css`
  */
 @customElement('dy-code-block')
 @adoptedStyle(style)
+@shadow()
 export class DuoyunCodeBlockElement extends GemElement {
   @attribute codelang: string;
   @attribute range: string;

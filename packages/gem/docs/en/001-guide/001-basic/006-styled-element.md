@@ -1,10 +1,10 @@
 # Stylized elements
 
-Because of the use of ShadowDOM, there is no longer a need for [CSS Modules](https://css-tricks.com/css-modules-part-3-react/) similar solutions, in addition, browser compatibility has improved in recent years, and vendor private prefixes have also been cancelled. Can use native CSS features to complete daily work, e.g: [CSS Nesting](https://drafts.csswg.org/css-nesting-1/), [`@layer`](https://developer.mozilla.org/en-US/docs/Web/CSS/@layer), [`@scope`](https://developer.mozilla.org/en-US/docs/Web/CSS/@scope).
+Benefit from ShadowDOM, [CSS Nesting](https://drafts.csswg.org/css-nesting-1/), [`@layer`](https://developer.mozilla.org/en-US/docs/Web/CSS/@layer), [`@scope`](https://developer.mozilla.org/en-US/docs/Web/CSS/@scope), in addition, browser compatibility has improved in recent years, and vendor private prefixes have also been cancelled, there is no longer a need for [CSS Modules](https://css-tricks.com/css-modules-part-3-react/) similar solutions.
 
 ## Shared style
 
-Since styles cannot penetrate ShadowDOM, global style sheets cannot be used to implement shared styles. But you can use [`<link>`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/link) and [CSS variables](https://developer.mozilla.org/en-US/docs/Web/CSS/--*) to achieve the same effect, it’s more convenient to use [Constructable Stylesheet](https://wicg.github.io/construct-stylesheets/).
+Use the `createcssSheet` to create a shared style table, use `@adoptedStyle` to apply to the required elements.
 
 ```js 11
 import { GemElement } from '@mantou/gem';
@@ -21,6 +21,9 @@ const styles = createCSSSheet(`
 @customElement('my-element')
 class MyElement extends GemElement {}
 ```
+
+Because the style cannot penetrate the ShadowDOM, the global style table cannot be used to achieve sharing styles.
+But you can use [CSS variables](https://developer.mozilla.org/en-US/docs/Web/CSS/--*) to achieve the same effect.
 
 ## CSS in JS
 
@@ -55,7 +58,7 @@ class MyElement extends GemElement {
 
 ## Customize the style outside the element
 
-Use [`::part`](https://drafts.csswg.org/css-shadow-parts-1/#part) to export the internal content of the element, allowing external custom styles:
+Use [`::part`](https://drafts.csswg.org/css-shadow-parts-1/#part)(only ShadowDOM) to export the internal content of the element, allowing external custom styles:
 
 ```js 13
 /**
@@ -100,7 +103,7 @@ class MyElement extends GemElement {
 > ```js
 > GemLinkElement.adoptedStyleSheets.push(
 >   createCSSSheet(css`
->     :host {
+>     * {
 >       font-style: italic;
 >     }
 >   `),

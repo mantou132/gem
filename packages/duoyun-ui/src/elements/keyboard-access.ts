@@ -1,5 +1,14 @@
 import { GemElement, html } from '@mantou/gem/lib/element';
-import { adoptedStyle, customElement, attribute, part, property, emitter, Emitter } from '@mantou/gem/lib/decorators';
+import {
+  adoptedStyle,
+  customElement,
+  attribute,
+  part,
+  property,
+  emitter,
+  Emitter,
+  shadow,
+} from '@mantou/gem/lib/decorators';
 import { addListener, createCSSSheet, css, styleMap } from '@mantou/gem/lib/utils';
 import { logger } from '@mantou/gem/helper/logger';
 
@@ -91,6 +100,7 @@ export type NavigationDirection = 'up' | 'down' | 'left' | 'right';
 @customElement('dy-keyboard-access')
 @adoptedStyle(style)
 @adoptedStyle(contentsContainer)
+@shadow()
 export class DuoyunKeyboardAccessElement extends GemElement<State> {
   @part static kbd: string;
   @attribute activekey: string;

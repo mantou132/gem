@@ -1,5 +1,4 @@
-import { aria, customElement } from '@mantou/gem/lib/decorators';
-import { GemElement, html } from '@mantou/gem/lib/element';
+import { aria, customElement, shadow, GemElement, html } from '@mantou/gem';
 
 import { theme } from '../helper/theme';
 
@@ -8,6 +7,7 @@ import { theme } from '../helper/theme';
  */
 @customElement('gem-book-loadbar')
 @aria({ role: 'progressbar' })
+@shadow()
 export class GemBookLoadbarElement extends GemElement {
   static instance?: GemBookLoadbarElement;
   static timer = 0;

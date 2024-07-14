@@ -1,5 +1,4 @@
-import { customElement, attribute, refobject, RefObject, boolattribute } from '@mantou/gem/lib/decorators';
-import { GemElement, html } from '@mantou/gem/lib/element';
+import { customElement, attribute, refobject, RefObject, boolattribute, shadow, GemElement, html } from '@mantou/gem';
 import { styleMap } from '@mantou/gem/lib/utils';
 
 import { theme } from '../helper/theme';
@@ -232,6 +231,7 @@ const IGNORE_LINE = 2;
  * @customElement gem-book-pre
  */
 @customElement('gem-book-pre')
+@shadow()
 export class Pre extends GemElement {
   @attribute codelang: string;
   @attribute range: string;

@@ -12,6 +12,7 @@ import {
   numattribute,
   boolattribute,
   rootElement,
+  shadow,
 } from '@mantou/gem';
 
 export type Message = number[];
@@ -29,6 +30,7 @@ export type Message = number[];
  */
 @customElement('app-children')
 @rootElement('app-root')
+@shadow()
 export class Children extends GemElement {
   @slot static light: string;
   @part static paragraph: string;

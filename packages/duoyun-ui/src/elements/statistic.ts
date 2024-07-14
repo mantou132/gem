@@ -6,6 +6,7 @@ import {
   numattribute,
   property,
   aria,
+  shadow,
 } from '@mantou/gem/lib/decorators';
 import { GemElement, html, TemplateResult } from '@mantou/gem/lib/element';
 import { createCSSSheet, css, classMap } from '@mantou/gem/lib/utils';
@@ -79,6 +80,7 @@ export const formatFnMap: Record<StatisticType, (n: number) => { number: string;
 @customElement('dy-statistic')
 @adoptedStyle(style)
 @aria({ role: 'group' })
+@shadow()
 export class DuoyunStatisticElement extends GemElement {
   @attribute neutral: StatisticNeutral;
   @attribute type: StatisticType;

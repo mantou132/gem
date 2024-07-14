@@ -1,5 +1,5 @@
 import { GemElement, html } from '@mantou/gem/lib/element';
-import { customElement } from '@mantou/gem/lib/decorators';
+import { customElement, shadow } from '@mantou/gem/lib/decorators';
 
 import '@mantou/gem/elements/reflect';
 import '@mantou/gem/elements/title';
@@ -7,6 +7,7 @@ import '@mantou/gem/elements/title';
 import './nav';
 
 @customElement('gem-examples-layout')
+@shadow()
 export class Layout extends GemElement {
   render() {
     return html`

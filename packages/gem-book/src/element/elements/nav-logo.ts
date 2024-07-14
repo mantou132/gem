@@ -1,4 +1,4 @@
-import { GemElement, html, customElement, connectStore } from '@mantou/gem';
+import { GemElement, html, customElement, connectStore, shadow } from '@mantou/gem';
 import { mediaQuery } from '@mantou/gem/helper/mediaquery';
 
 import { bookStore } from '../store';
@@ -9,6 +9,7 @@ import { theme } from '../helper/theme';
  */
 @customElement('gem-book-nav-logo')
 @connectStore(bookStore)
+@shadow()
 export class GemBookNavLogoElement extends GemElement {
   render = () => {
     const { config } = bookStore;

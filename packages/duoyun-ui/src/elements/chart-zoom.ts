@@ -1,4 +1,4 @@
-import { adoptedStyle, customElement, emitter, Emitter, property } from '@mantou/gem/lib/decorators';
+import { adoptedStyle, customElement, emitter, Emitter, property, shadow } from '@mantou/gem/lib/decorators';
 import { GemElement, html } from '@mantou/gem/lib/element';
 import { createCSSSheet, css, styleMap, classMap } from '@mantou/gem/lib/utils';
 
@@ -81,6 +81,7 @@ type State = {
  */
 @customElement('dy-chart-zoom')
 @adoptedStyle(style)
+@shadow()
 export class DuoyunChartZoomElement extends GemElement<State> {
   @property values?: (number | null)[][];
   @property value?: number[];

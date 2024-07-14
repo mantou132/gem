@@ -1,4 +1,4 @@
-import { adoptedStyle, aria, customElement, property } from '@mantou/gem/lib/decorators';
+import { adoptedStyle, aria, customElement, property, shadow } from '@mantou/gem/lib/decorators';
 import { GemElement, html, TemplateResult } from '@mantou/gem/lib/element';
 import { createCSSSheet, css, classMap } from '@mantou/gem/lib/utils';
 import { repeat } from '@mantou/gem/lib/directives';
@@ -114,6 +114,7 @@ const removedSet = new WeakSet<ToastItem>();
 @customElement('dy-toast')
 @adoptedStyle(style)
 @aria({ role: 'alert', ariaLive: 'polite' })
+@shadow()
 export class DuoyunToastElement extends GemElement {
   @property items?: ToastItem[];
 

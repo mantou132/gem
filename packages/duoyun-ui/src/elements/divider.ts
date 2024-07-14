@@ -1,5 +1,5 @@
 // https://spectrum.adobe.com/page/divider/
-import { adoptedStyle, customElement, attribute, aria } from '@mantou/gem/lib/decorators';
+import { adoptedStyle, customElement, attribute, aria, shadow } from '@mantou/gem/lib/decorators';
 import { GemElement, html } from '@mantou/gem/lib/element';
 import { createCSSSheet, css } from '@mantou/gem/lib/utils';
 
@@ -22,6 +22,7 @@ const style = createCSSSheet(css`
 @customElement('dy-divider')
 @adoptedStyle(style)
 @aria({ role: 'separator' })
+@shadow()
 export class DuoyunDividerElement extends GemElement {
   @attribute size: 'small' | 'medium' | 'large';
   @attribute color: string;

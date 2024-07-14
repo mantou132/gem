@@ -441,6 +441,5 @@ const inputGroupStyle = createCSSSheet(css`
  */
 @customElement('dy-input-group')
 @adoptedStyle(inputGroupStyle)
-@shadow({ mode: null })
 @aria({ role: 'group' })
 export class DuoyunInputGroupElement extends GemElement {}

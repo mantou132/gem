@@ -8,6 +8,7 @@ import {
   html,
   kebabToCamelCase,
   property,
+  shadow,
   SheetToken,
 } from '@mantou/gem';
 
@@ -167,6 +168,7 @@ export const style = createCSSSheet(css`
  */
 @customElement('devtools-section')
 @adoptedStyle(style)
+@shadow()
 export class Section extends GemElement {
   @attribute name: string;
   @attribute tip: string;

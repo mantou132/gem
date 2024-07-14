@@ -1,4 +1,4 @@
-import { connectStore, customElement, state } from '@mantou/gem';
+import { connectStore, customElement, shadow, state } from '@mantou/gem';
 import { GemActiveLinkElement } from '@mantou/gem/elements/link';
 
 import { locationStore } from '../store';
@@ -8,6 +8,7 @@ import { locationStore } from '../store';
  */
 @customElement('gem-book-side-link')
 @connectStore(locationStore)
+@shadow()
 export class GemBookSideLinkElement extends GemActiveLinkElement {
   @state match: boolean;
 

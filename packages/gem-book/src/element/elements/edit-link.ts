@@ -1,4 +1,4 @@
-import { html, GemElement, customElement, connectStore } from '@mantou/gem';
+import { html, GemElement, customElement, connectStore, shadow } from '@mantou/gem';
 import { mediaQuery } from '@mantou/gem/helper/mediaquery';
 
 import { getGithubPath } from '../lib/utils';
@@ -26,6 +26,7 @@ const fetchData = async (api: string) => {
 
 @customElement('gem-book-edit-link')
 @connectStore(locationStore)
+@shadow()
 export class EditLink extends GemElement<State> {
   state = {
     lastUpdated: '',

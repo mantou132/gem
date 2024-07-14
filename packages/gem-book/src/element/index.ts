@@ -14,6 +14,7 @@ import {
   RefObject,
   boolattribute,
   exportPartsMap,
+  shadow,
 } from '@mantou/gem';
 import { GemLightRouteElement, matchPath } from '@mantou/gem/elements/route';
 import { mediaQuery } from '@mantou/gem/helper/mediaquery';
@@ -48,6 +49,7 @@ import './elements/toc';
  */
 @customElement('gem-book')
 @connectStore(bookStore)
+@shadow()
 export class GemBookElement extends GemElement {
   static GemBookPluginElement = GemBookPluginElement;
 

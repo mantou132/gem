@@ -7,6 +7,7 @@ import {
   boolattribute,
   part,
   emitter,
+  shadow,
 } from '@mantou/gem/lib/decorators';
 import { GemElement, html, TemplateResult } from '@mantou/gem/lib/element';
 import { createCSSSheet, css, styleMap, classMap } from '@mantou/gem/lib/utils';
@@ -111,6 +112,7 @@ enum CheckboxStatus {
  */
 @customElement('dy-cascader')
 @adoptedStyle(style)
+@shadow()
 export class DuoyunCascaderElement extends GemElement<State> {
   @part static column: string;
 

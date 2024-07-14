@@ -1,5 +1,5 @@
 // https://spectrum.adobe.com/page/coach-mark/
-import { connectStore, adoptedStyle, customElement, attribute, numattribute } from '@mantou/gem/lib/decorators';
+import { connectStore, adoptedStyle, customElement, attribute, numattribute, shadow } from '@mantou/gem/lib/decorators';
 import { html } from '@mantou/gem/lib/element';
 import { createCSSSheet, css } from '@mantou/gem/lib/utils';
 import { useStore } from '@mantou/gem/lib/store';
@@ -134,6 +134,7 @@ const style = createCSSSheet(css`
 @adoptedStyle(style)
 @connectStore(store)
 @connectStore(locale)
+@shadow()
 export class DuoyunCoachMarkElement extends DuoyunVisibleBaseElement {
   @numattribute index: number;
   @attribute width: string;

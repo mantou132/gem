@@ -1,4 +1,4 @@
-import { adoptedStyle, state } from '@mantou/gem/lib/decorators';
+import { adoptedStyle, shadow, state } from '@mantou/gem/lib/decorators';
 import { createCSSSheet, css } from '@mantou/gem/lib/utils';
 
 import { DuoyunResizeBaseElement, DuoyunResizeBaseElementOptions } from './resize';
@@ -45,6 +45,7 @@ const style = createCSSSheet(css`
 `);
 
 @adoptedStyle(style)
+@shadow()
 export class DuoyunScrollBaseElement<_T = Record<string, unknown>> extends DuoyunResizeBaseElement {
   @state topOverflow: boolean;
   @state rightOverflow: boolean;

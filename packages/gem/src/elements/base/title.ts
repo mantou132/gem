@@ -14,7 +14,7 @@
  */
 
 import { GemElement, html } from '../../lib/element';
-import { attribute, boolattribute } from '../../lib/decorators';
+import { attribute, boolattribute, shadow } from '../../lib/decorators';
 import { updateStore, connect } from '../../lib/store';
 import { titleStore } from '../../lib/history';
 import { addMicrotask } from '../../lib/utils';
@@ -47,6 +47,7 @@ export const SUFFIX = ` - ${defaultTitle}`;
  * @attr prefix
  * @attr suffix
  */
+@shadow()
 export class GemTitleElement extends GemElement {
   @attribute prefix: string;
   @attribute suffix: string;
@@ -54,11 +55,6 @@ export class GemTitleElement extends GemElement {
 
   // 没有后缀的当前标题
   static title = document.title;
-
-  /**@deprecated */
-  static defaultPrefix = PREFIX;
-  /**@deprecated */
-  static defaultSuffix = SUFFIX;
 
   static setTitle(title: string) {
     updateStore(titleStore, { title });

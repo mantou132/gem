@@ -1,4 +1,4 @@
-import { adoptedStyle, customElement, property } from '@mantou/gem/lib/decorators';
+import { adoptedStyle, customElement, property, shadow } from '@mantou/gem/lib/decorators';
 import { GemElement, html, TemplateResult } from '@mantou/gem/lib/element';
 
 import { contentsContainer } from '../lib/styles';
@@ -8,6 +8,7 @@ import { contentsContainer } from '../lib/styles';
  */
 @customElement('dy-compartment')
 @adoptedStyle(contentsContainer)
+@shadow()
 export class DuoyunCompartmentElement extends GemElement {
   @property content?: string | number | TemplateResult;
   render = () => {

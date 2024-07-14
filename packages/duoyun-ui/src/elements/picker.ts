@@ -10,6 +10,7 @@ import {
   state,
   focusable,
   aria,
+  shadow,
 } from '@mantou/gem/lib/decorators';
 import { GemElement, html, TemplateResult } from '@mantou/gem/lib/element';
 import { createCSSSheet, css } from '@mantou/gem/lib/utils';
@@ -116,6 +117,7 @@ export interface Option<T = any> {
 @connectStore(icons)
 @focusable()
 @aria({ role: 'combobox' })
+@shadow()
 export class DuoyunPickerElement extends GemElement implements BasePickerElement {
   @attribute placeholder: string;
   @boolattribute disabled: boolean;

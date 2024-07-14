@@ -105,6 +105,7 @@ const itemStyle = createCSSSheet(css`
 @adoptedStyle(itemStyle)
 @focusable()
 @aria({ role: 'treeitem' })
+@shadow()
 class _DuoyunTreeItemElement extends GemElement {
   @boolattribute expanded: boolean;
   @boolattribute highlight: boolean;

@@ -8,6 +8,7 @@ import {
   state,
   slot,
   aria,
+  shadow,
 } from '@mantou/gem/lib/decorators';
 import { GemElement, html } from '@mantou/gem/lib/element';
 import { createCSSSheet, css } from '@mantou/gem/lib/utils';
@@ -55,6 +56,7 @@ const style = createCSSSheet(css`
 @customElement('dy-drop-area')
 @adoptedStyle(style)
 @aria({ role: 'region' })
+@shadow()
 export class DuoyunDropAreaElement extends GemElement {
   @slot static unnamed: string;
 

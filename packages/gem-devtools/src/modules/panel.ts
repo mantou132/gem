@@ -1,4 +1,4 @@
-import { adoptedStyle, connectStore, createCSSSheet, css, customElement, GemElement, html } from '@mantou/gem';
+import { adoptedStyle, connectStore, createCSSSheet, css, customElement, GemElement, html, shadow } from '@mantou/gem';
 
 import { panelStore } from '../store';
 
@@ -19,6 +19,7 @@ const style = createCSSSheet(css`
 @customElement('devtools-panel')
 @connectStore(panelStore)
 @adoptedStyle(style)
+@shadow()
 export class Panel extends GemElement {
   render() {
     if (!panelStore.isGemElement) {

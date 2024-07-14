@@ -1,4 +1,4 @@
-import { adoptedStyle, customElement, attribute, shadow } from '@mantou/gem/lib/decorators';
+import { adoptedStyle, customElement, attribute } from '@mantou/gem/lib/decorators';
 import { GemElement } from '@mantou/gem/lib/element';
 import { createCSSSheet, css } from '@mantou/gem/lib/utils';
 
@@ -26,7 +26,6 @@ const style = createCSSSheet(css`
  */
 @customElement('dy-space')
 @adoptedStyle(style)
-@shadow({ mode: null })
 export class DuoyunSpaceElement extends GemElement {
   @attribute size: 'normal' | 'small' | 'large';
   @attribute orientation: 'horizontal' | 'vertical';

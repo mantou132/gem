@@ -8,6 +8,7 @@ import {
   property,
   boolattribute,
   classMap,
+  shadow,
 } from '@mantou/gem';
 
 import { panelStore } from '../store';
@@ -22,6 +23,7 @@ import { style } from './section';
 @customElement('devtools-statistics')
 @adoptedStyle(style)
 @connectStore(panelStore)
+@shadow()
 export class devtoolsStatisticsElement extends GemElement {
   @attribute name: string;
   @boolattribute ignore: boolean;

@@ -1,4 +1,4 @@
-import { html, GemElement, customElement, connectStore, css } from '@mantou/gem';
+import { html, GemElement, customElement, connectStore, css, shadow } from '@mantou/gem';
 
 import { selfI18n } from '../helper/i18n';
 import { theme } from '../helper/theme';
@@ -9,6 +9,7 @@ import '@mantou/gem/elements/link';
 
 @customElement('gem-book-footer')
 @connectStore(bookStore)
+@shadow()
 export class Footer extends GemElement {
   render() {
     const { config } = bookStore;

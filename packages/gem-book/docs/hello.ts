@@ -5,11 +5,13 @@ customElements.whenDefined('gem-book').then(() => {
   const { Gem, theme } = GemBookPluginElement;
   const { html } = Gem;
 
+  // esm.sh 动态渲染还不支持装饰器
+
   class MyPlugin extends GemBookPluginElement {
     render() {
       return html`
         <style>
-          :host {
+          my-plugin-hello {
             display: block;
             border-radius: ${theme.normalRound};
             background: rgba(${theme.textColorRGB}, 0.05);

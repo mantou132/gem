@@ -1,15 +1,10 @@
 # 样式化元素
 
-由于使用 ShadowDOM，所以不再需要 [CSS Modules](https://css-tricks.com/css-modules-part-3-react/) 类似的方案，
-另外浏览器的兼容性近年来已经好转，供应商私有前缀也纷纷被取消，
-可以使用原生 CSS 功能来完成日常工作，例如 [CSS 嵌套](https://drafts.csswg.org/css-nesting-1/)、[`@layer`](https://developer.mozilla.org/en-US/docs/Web/CSS/@layer)、[`@scope`](https://developer.mozilla.org/en-US/docs/Web/CSS/@scope)。
+得益于 ShadowDOM、[CSS 嵌套](https://drafts.csswg.org/css-nesting-1/)、[`@layer`](https://developer.mozilla.org/en-US/docs/Web/CSS/@layer)、[`@scope`](https://developer.mozilla.org/en-US/docs/Web/CSS/@scope)，另外浏览器的兼容性近年来已经好转，供应商私有前缀也纷纷被取消，所以不再需要 [CSS Modules](https://css-tricks.com/css-modules-part-3-react/) 类似的方案。
 
 ## 共享样式
 
-由于样式不能穿透 ShadowDOM，所以不能使用全局样式表来实现共享样式。
-但是可以使用 [`<link>`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/link) 和
-[CSS variables](https://developer.mozilla.org/en-US/docs/Web/CSS/--*) 来达到同样的效果，
-使用 [Constructable Stylesheet](https://wicg.github.io/construct-stylesheets/) 更加方便。
+使用 `createCSSSheet` 能创建可供共享的样式表，再使用 `@adoptedStyle` 应用到需要的元素即可。
 
 ```js 11
 import { GemElement } from '@mantou/gem';
@@ -26,6 +21,9 @@ const styles = createCSSSheet(`
 @customElement('my-element')
 class MyElement extends GemElement {}
 ```
+
+由于样式不能穿透 ShadowDOM，所以不能使用全局样式表来实现共享样式。
+但是可以使用 [CSS variables](https://developer.mozilla.org/en-US/docs/Web/CSS/--*) 来达到同样的效果。
 
 ## CSS in JS
 
@@ -60,7 +58,7 @@ class MyElement extends GemElement {
 
 ## 在元素外自定义样式
 
-可以使用 [`::part`](https://drafts.csswg.org/css-shadow-parts-1/#part) 导出元素内部内容，允许外部进行自定义样式：
+可以使用 [`::part`](https://drafts.csswg.org/css-shadow-parts-1/#part)(仅限于 ShadowDOM) 导出元素内部内容，允许外部进行自定义样式：
 
 ```js 13
 /**
@@ -105,7 +103,7 @@ class MyElement extends GemElement {
 > ```js
 > GemLinkElement.adoptedStyleSheets.push(
 >   createCSSSheet(css`
->     :host {
+>     * {
 >       font-style: italic;
 >     }
 >   `),

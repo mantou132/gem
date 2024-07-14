@@ -16,7 +16,7 @@ type State = {
 
 customElements.whenDefined('gem-book').then(({ GemBookPluginElement }: typeof GemBookElement) => {
   const { Gem, theme, icons } = GemBookPluginElement;
-  const { html, customElement, adoptedStyle, css, createCSSSheet, classMap } = Gem;
+  const { html, customElement, adoptedStyle, css, createCSSSheet, classMap, shadow } = Gem;
 
   const style = createCSSSheet(css`
     :host {
@@ -74,6 +74,7 @@ customElements.whenDefined('gem-book').then(({ GemBookPluginElement }: typeof Ge
 
   @customElement('gbp-code-group')
   @adoptedStyle(style)
+  @shadow()
   class _GbpCodeGroupElement extends GemBookPluginElement<State> {
     constructor() {
       super();

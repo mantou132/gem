@@ -10,6 +10,7 @@ import {
   refobject,
   RefObject,
   state,
+  shadow,
 } from '@mantou/gem/lib/decorators';
 import { GemElement, html } from '@mantou/gem/lib/element';
 import { classMap, createCSSSheet, css } from '@mantou/gem/lib/utils';
@@ -82,6 +83,7 @@ const style = createCSSSheet(css`
 @customElement('dy-badge')
 @adoptedStyle(style)
 @adoptedStyle(contentsContainer)
+@shadow()
 export class DuoyunBadgeElement extends GemElement {
   @slot static unnamed: string;
 

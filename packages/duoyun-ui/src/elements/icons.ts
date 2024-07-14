@@ -1,4 +1,4 @@
-import { adoptedStyle, customElement } from '@mantou/gem/lib/decorators';
+import { adoptedStyle, customElement, shadow } from '@mantou/gem/lib/decorators';
 import { GemElement, html } from '@mantou/gem/lib/element';
 import { createCSSSheet, css } from '@mantou/gem/lib/utils';
 
@@ -39,6 +39,7 @@ const style = createCSSSheet(css`
  */
 @customElement('dy-icons')
 @adoptedStyle(style)
+@shadow()
 export class DuoyunIconsElement extends GemElement {
   #onCopy = async (name: string) => {
     await navigator.clipboard.writeText(`<dy-use .element=\${icons.${name}}></dy-use>`);

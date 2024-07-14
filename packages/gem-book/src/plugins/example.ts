@@ -16,7 +16,7 @@ type Props = Record<string, PropValue>;
 
 customElements.whenDefined('gem-book').then(({ GemBookPluginElement }: typeof GemBookElement) => {
   const { Gem, theme, icons } = GemBookPluginElement;
-  const { html, customElement, attribute, createCSSSheet, css, adoptedStyle, styleMap } = Gem;
+  const { html, customElement, attribute, createCSSSheet, css, adoptedStyle, styleMap, shadow } = Gem;
 
   const styles = createCSSSheet(css`
     :host(:where(:not([hidden]))) {
@@ -79,6 +79,7 @@ customElements.whenDefined('gem-book').then(({ GemBookPluginElement }: typeof Ge
   `);
   @customElement('gbp-example')
   @adoptedStyle(styles)
+  @shadow()
   class _GbpExampleElement extends GemBookPluginElement<State> {
     @attribute name: string;
     @attribute src: string;

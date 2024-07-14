@@ -1,4 +1,4 @@
-import { adoptedStyle, emitter, Emitter, property, state, part, aria } from '@mantou/gem/lib/decorators';
+import { adoptedStyle, emitter, Emitter, property, state, part, aria, shadow } from '@mantou/gem/lib/decorators';
 import { html, svg, TemplateResult } from '@mantou/gem/lib/element';
 import { createCSSSheet, css, randomStr } from '@mantou/gem/lib/utils';
 
@@ -54,6 +54,7 @@ const style = createCSSSheet(css`
 
 @adoptedStyle(style)
 @aria({ role: 'img' })
+@shadow()
 export class DuoyunChartBaseElement<_T = Record<string, unknown>> extends DuoyunResizeBaseElement {
   @part static chart: string;
 

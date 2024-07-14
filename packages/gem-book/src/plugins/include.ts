@@ -7,10 +7,9 @@ type State = {
 
 customElements.whenDefined('gem-book').then(({ GemBookPluginElement }: typeof GemBookElement) => {
   const { Gem, theme, Utils } = GemBookPluginElement;
-  const { attribute, customElement, html, shadow } = Gem;
+  const { attribute, customElement, html } = Gem;
 
   @customElement('gbp-include')
-  @shadow({ mode: null })
   class _GbpIncludeElement extends GemBookPluginElement<State> {
     @attribute src: string;
     @attribute range: string;

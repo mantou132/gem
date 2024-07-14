@@ -1,5 +1,5 @@
 import { GemElement, html } from '../../lib/element';
-import { attribute, emitter, Emitter } from '../../lib/decorators';
+import { attribute, emitter, Emitter, shadow } from '../../lib/decorators';
 
 export type PanEventDetail = {
   // movement
@@ -58,6 +58,7 @@ function angleAB(
  *
  * @attr touch-action
  */
+@shadow()
 export class GemGestureElement extends GemElement {
   @emitter pan: Emitter<PanEventDetail>;
   @emitter pinch: Emitter<PinchEventDetail>;

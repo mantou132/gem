@@ -5,10 +5,11 @@ const gitalkCSSUrl = 'https://esm.sh/gitalk@1.7.2/dist/gitalk.css';
 
 customElements.whenDefined('gem-book').then(async ({ GemBookPluginElement }: typeof GemBookElement) => {
   const { config, Gem, theme, locationStore } = GemBookPluginElement;
-  const { html, customElement, attribute, connectStore } = Gem;
+  const { html, customElement, attribute, connectStore, shadow } = Gem;
 
   @customElement('gbp-comment')
   @connectStore(locationStore)
+  @shadow()
   class _GbpCommentElement extends GemBookPluginElement {
     @attribute clientID: string;
     @attribute clientSecret: string;

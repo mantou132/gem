@@ -7,6 +7,7 @@ import {
   Emitter,
   boolattribute,
   aria,
+  shadow,
 } from '@mantou/gem/lib/decorators';
 import { GemElement, html } from '@mantou/gem/lib/element';
 import { createCSSSheet, css, styleMap, classMap } from '@mantou/gem/lib/utils';
@@ -185,6 +186,7 @@ type State = {
 @customElement('dy-color-panel')
 @adoptedStyle(style)
 @aria({ role: 'widget' })
+@shadow()
 export class DuoyunColorPanelElement extends GemElement<State> {
   @attribute value: HexColor;
   @boolattribute alpha: boolean;

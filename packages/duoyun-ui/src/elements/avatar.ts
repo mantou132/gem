@@ -7,6 +7,7 @@ import {
   numattribute,
   part,
   aria,
+  shadow,
 } from '@mantou/gem/lib/decorators';
 import { GemElement, html } from '@mantou/gem/lib/element';
 import { createCSSSheet, css, exportPartsMap } from '@mantou/gem/lib/utils';
@@ -87,6 +88,7 @@ const style = createCSSSheet(css`
  */
 @customElement('dy-avatar')
 @adoptedStyle(style)
+@shadow()
 export class DuoyunAvatarElement extends GemElement {
   @part static avatar: string;
   @attribute src: string;
@@ -163,6 +165,7 @@ export type AvatarItem = {
 @customElement('dy-avatar-group')
 @adoptedStyle(groupStyle)
 @aria({ role: 'list' })
+@shadow()
 export class DuoyunAvatarGroupElement extends GemElement {
   @part static avatar: string;
 

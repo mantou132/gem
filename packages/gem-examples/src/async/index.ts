@@ -1,17 +1,7 @@
-import {
-  GemElement,
-  adoptedStyle,
-  async,
-  createCSSSheet,
-  customElement,
-  html,
-  numattribute,
-  render,
-} from '@mantou/gem';
+import { GemElement, async, customElement, html, numattribute, render } from '@mantou/gem';
 
 import '../elements/layout';
 
-@adoptedStyle(createCSSSheet(`:host {display: block}`))
 @customElement('app-post')
 @async()
 export class Post extends GemElement {
@@ -24,7 +14,7 @@ export class Post extends GemElement {
     while (performance.now() - startTime < 2) {
       // Do nothing for 1 ms per item to emulate extremely slow code
     }
-    return html`Post #${this.index + 1}`;
+    return html`<div>Post #${this.index + 1}</div>`;
   }
 }
 

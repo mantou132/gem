@@ -1,9 +1,10 @@
-import { GemElement, render, html, customElement } from '@mantou/gem';
+import { GemElement, render, html, customElement, shadow } from '@mantou/gem';
 import '@mantou/gem/elements/link';
 
 import '../elements/layout';
 
 @customElement('app-article')
+@shadow()
 class _Article extends GemElement {
   constructor() {
     super();

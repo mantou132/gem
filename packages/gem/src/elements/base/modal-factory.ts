@@ -1,6 +1,7 @@
 import { GemElement } from '../../lib/element';
 import { connect, createStore, updateStore } from '../../lib/store';
 import { history } from '../../lib/history';
+import { shadow } from '../../lib/decorators';
 
 const open = Symbol('open mark');
 
@@ -14,7 +15,9 @@ const open = Symbol('open mark');
  */
 export function createModalClass<T extends Record<string, unknown>>(options: T) {
   const final = Symbol();
-  return class extends GemElement {
+
+  return @shadow()
+  class extends GemElement {
     static inertStore: HTMLElement[] = [];
     static instance: GemElement | null = null;
     /**

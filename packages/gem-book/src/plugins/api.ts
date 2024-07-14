@@ -29,7 +29,6 @@ customElements.whenDefined('gem-book').then(({ GemBookPluginElement }: typeof Ge
 
   @customElement('gbp-api')
   @adoptedStyle(styles)
-  @shadow({ mode: null })
   class _GbpApiElement extends GemBookPluginElement<State> {
     @attribute src: string;
     @attribute name: string;

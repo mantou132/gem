@@ -6,6 +6,7 @@ import {
   slot,
   focusable,
   aria,
+  shadow,
 } from '@mantou/gem/lib/decorators';
 import { GemElement, html, TemplateResult } from '@mantou/gem/lib/element';
 import { createCSSSheet, css, classMap } from '@mantou/gem/lib/utils';
@@ -162,6 +163,7 @@ type State = {
 @adoptedStyle(focusStyle)
 @focusable()
 @aria({ role: 'listbox' })
+@shadow()
 export class DuoyunOptionsElement extends GemElement<State> {
   @slot static unnamed: string;
 
