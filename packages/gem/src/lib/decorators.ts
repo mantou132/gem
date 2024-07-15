@@ -466,7 +466,7 @@ function defineEmitter(
 }
 
 /**
- * 分配一个构造的样式表，如果元素是 lightDOM，则将样式表挂载到 RootNode 上
+ * 分配一个构造的样式表，前面的优先级越高（因为装饰器是越近越早执行）
  *
  * For example
  * ```ts

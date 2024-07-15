@@ -348,17 +348,6 @@ export function isArrayChange(newValues: any[], oldValues: any[]) {
   return false;
 }
 
-export function removeItems(target: any[], items: any[]) {
-  const set = new Set(items);
-  return target.filter((e) => {
-    if (set.has(e)) {
-      set.delete(e);
-      return false;
-    }
-    return true;
-  });
-}
-
 export function objectMapToString<T = any>(
   object: Record<string, T>,
   separate: string,

@@ -1,16 +1,7 @@
 import { html, render, TemplateResult } from 'lit-html';
 
 import { connect, Store } from './store';
-import {
-  LinkedList,
-  addMicrotask,
-  Sheet,
-  SheetToken,
-  isArrayChange,
-  GemError,
-  removeItems,
-  addListener,
-} from './utils';
+import { LinkedList, addMicrotask, Sheet, SheetToken, isArrayChange, GemError, addListener } from './utils';
 
 export { html, svg, render, directive, TemplateResult, SVGTemplateResult } from 'lit-html';
 
@@ -46,6 +37,43 @@ const tick = (timeStamp = performance.now()) => {
   }
 };
 noBlockingTaskList.addEventListener('start', () => addMicrotask(tick));
+
+const rootStyleSheetInfo = new WeakMap<Document | ShadowRoot, Map<CSSStyleSheet, number>>();
+const rootUpdateFnMap = new WeakMap<Map<CSSStyleSheet, number>, () => void>();
+
+const updateStyleSheets = (map: Map<CSSStyleSheet, number>, sheets: CSSStyleSheet[], value: number) => {
+  let needUpdate = false;
+  sheets.forEach((e) => {
+    const count = map.get(e) || 0;
+    needUpdate ||= (value === 1 && count === 0) || (value === -1 && count === 1);
+    // count 为 0 时不立即删除，以便更新时识别是否外部样式
+    // 但是只要挂载 document 的样式表就不会被 GC 了, 是否要在闲时 GC？
+    map.set(e, count + value);
+  });
+  if (needUpdate) {
+    // 避免重复更新，例如 list 元素增删，全 light dom 时 document 更新
+    addMicrotask(rootUpdateFnMap.get(map)!);
+  }
+};
+
+export function appleCSSStyleSheet(ele: HTMLElement, sheets: CSSStyleSheet[]) {
+  const root = ele.getRootNode() as ShadowRoot | Document;
+  if (!rootStyleSheetInfo.has(root)) {
+    const map = new Map<CSSStyleSheet, number>();
+    rootStyleSheetInfo.set(root, map);
+    rootUpdateFnMap.set(map, () => {
+      // 先找到外部样式表
+      const newSheets = root.adoptedStyleSheets.filter((e) => !map.has(e));
+      map.forEach((count, sheet) => count && newSheets.push(sheet));
+      root.adoptedStyleSheets = newSheets;
+    });
+  }
+
+  const map = rootStyleSheetInfo.get(root)!;
+
+  updateStyleSheets(map, sheets, 1);
+  return () => updateStyleSheets(map, sheets, -1);
+}
 
 type GetDepFun<T> = () => T;
 type EffectCallback<T> = (depValues: T, oldDepValues?: T) => any;
@@ -147,11 +175,7 @@ export abstract class GemElement<State = Record<string, unknown>> extends HTMLEl
         () => {
           // 阻止其他元素应用样式到当前元素
           this.dataset.styleScope = '';
-          const root = this.getRootNode() as ShadowRoot | Document;
-          root.adoptedStyleSheets.push(...sheets);
-          return () => {
-            root.adoptedStyleSheets = removeItems(root.adoptedStyleSheets, sheets);
-          };
+          return appleCSSStyleSheet(this, sheets);
         },
         () => [],
       );

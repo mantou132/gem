@@ -32,7 +32,7 @@ const setThemeFnMap = new WeakMap();
  */
 export function createTheme<T extends Record<string, unknown>>(themeObj: T) {
   const salt = randomStr();
-  const style = document.createElement('style');
+  const style = new CSSStyleSheet();
   const store = createStore<T>(themeObj);
   const theme: Record<string, string> = {};
   const props: Record<string, string> = {};
@@ -48,10 +48,10 @@ export function createTheme<T extends Record<string, unknown>>(themeObj: T) {
   setTheme();
   const getStyle = () =>
     `:root, :host {${Object.keys(store).reduce((prev, key) => prev + `${props[key]}:${store[key]};`, '')}}`;
-  const replace = () => (style.textContent = getStyle());
+  const replace = () => style.replaceSync(getStyle());
   connect(store, replace);
   replace();
-  (document.head || document.documentElement).append(style);
+  document.adoptedStyleSheets.push(style);
   return theme as SomeType<T>;
 }
 

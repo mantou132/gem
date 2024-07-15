@@ -1,4 +1,4 @@
-import { GemElement, html, render, customElement, connectStore } from '@mantou/gem';
+import { GemElement, html, render, customElement, connectStore, createCSSSheet, css, adoptedStyle } from '@mantou/gem';
 import { createTheme, getThemeStore, updateTheme } from '@mantou/gem/helper/theme';
 import { mediaQuery } from '@mantou/gem/helper/mediaquery';
 
@@ -25,24 +25,29 @@ document.onclick = () => {
   });
 };
 
+const style = createCSSSheet(css`
+  div {
+    color: rgba(${theme.color}, 0.5);
+    border: 2px solid ${theme.primaryColor};
+  }
+`);
+
+const style1 = createCSSSheet(
+  css`
+    div {
+      border: 2px solid ${printTheme.primaryColor};
+    }
+  `,
+  mediaQuery.PRINT,
+);
+
 @customElement('app-root')
 @connectStore(themeStore)
+@adoptedStyle(style1)
+@adoptedStyle(style)
 export class App extends GemElement {
   render() {
-    return html`
-      <style>
-        div {
-          color: rgba(${theme.color}, 0.5);
-          border: 2px solid ${theme.primaryColor};
-        }
-        @media ${mediaQuery.PRINT} {
-          div {
-            border: 2px solid ${printTheme.primaryColor};
-          }
-        }
-      </style>
-      <div>color: ${themeStore.primaryColor}</div>
-    `;
+    return html`<div>color: ${themeStore.primaryColor}</div>`;
   }
 }
 
