@@ -5,14 +5,15 @@ import { GemElement, adoptedStyle, createCSSSheet, css, customElement, html, ren
 
 import '../elements/layout';
 
+@customElement('other-element')
+class _OtherElement extends GemElement {}
+
 const style = createCSSSheet(css`
-  @scope (app-root) to ([ref]) {
-    :scope {
-      font-style: italic;
-    }
-    p {
-      text-decoration: underline;
-    }
+  :scope {
+    font-style: italic;
+  }
+  p {
+    text-decoration: underline;
   }
 `);
 
@@ -24,9 +25,9 @@ export class App extends GemElement {
       Text
       <header><h1>Header</h1></header>
       <p>Content</p>
-      <gem-element ref="">
+      <other-element>
         <p>Other Content</p>
-      </gem-element>
+      </other-element>
       <article>
         <p>Content</p>
       </article>

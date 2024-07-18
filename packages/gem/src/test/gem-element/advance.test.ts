@@ -55,7 +55,7 @@ describe('异步 gem element 测试', () => {
 });
 
 const lightStyle = createCSSSheet(css`
-  body {
+  div {
     font-size: 18.1px;
   }
 `);
@@ -69,15 +69,20 @@ class LightGemDemo extends GemElement {
 }
 describe('没有 Shadow DOM 的 gem 元素', () => {
   it('渲染没有 Shadow DOM 的 gem 元素', async () => {
+    const el0: LightGemDemo = await fixture(html`<div></div>`);
     const el1: LightGemDemo = await fixture(html`<light-gem-demo></light-gem-demo>`);
     const el2: LightGemDemo = await fixture(html`<light-gem-demo></light-gem-demo>`);
     expect(el1.shadowRoot).to.equal(null);
     expect(el1.innerHTML.includes('hi')).to.equal(true);
-    expect(getComputedStyle(document.body).fontSize).to.equal('18.1px');
+    expect(getComputedStyle(el0).fontSize).not.to.equal('18.1px');
+    expect(getComputedStyle(el2.firstElementChild!).fontSize).to.equal('18.1px');
     el1.remove();
-    expect(getComputedStyle(document.body).fontSize).to.equal('18.1px');
+    await Promise.resolve();
+    expect(getComputedStyle(el2.firstElementChild!).fontSize).to.equal('18.1px');
     el2.remove();
-    expect(getComputedStyle(document.body).fontSize).not.to.equal('18.1px');
+    // 样式在队列末尾执行
+    await Promise.resolve();
+    expect(getComputedStyle(el0).fontSize).not.to.equal('18.1px');
   });
 });
 

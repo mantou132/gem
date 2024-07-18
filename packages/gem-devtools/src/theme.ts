@@ -1,5 +1,5 @@
 import { devtools } from 'webextension-polyfill';
-import { createTheme, updateTheme } from '@mantou/gem/helper/theme';
+import { useTheme } from '@mantou/gem/helper/theme';
 
 const lightTheme = {
   backgroundColorRGB: '255,255,255',
@@ -18,11 +18,11 @@ const darkTheme = {
   textColorRGB: '225,225,225',
 };
 
-export const theme = createTheme(lightTheme);
+export const [theme, updateTheme] = useTheme(lightTheme);
 
 const update = () => {
   const isDark = devtools.panels.themeName === 'dark';
-  updateTheme(theme, isDark ? darkTheme : lightTheme);
+  updateTheme(isDark ? darkTheme : lightTheme);
 };
 
 update();

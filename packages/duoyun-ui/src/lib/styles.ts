@@ -17,29 +17,31 @@ export const focusStyle = createCSSSheet(css`
   }
 `);
 
-// support `hidden` attribute
 export const blockContainer = createCSSSheet(css`
-  :host(:where(:not([hidden]))) {
+  :host(:where(:not([hidden]))),
+  :where(:scope:not([hidden])) {
     display: block;
   }
 `);
 
-// support `hidden` attribute
 export const flexContainer = createCSSSheet(css`
-  :host(:where(:not([hidden]))) {
+  :host(:where(:not([hidden]))),
+  :where(:scope:not([hidden])) {
     display: flex;
   }
 `);
 
 export const contentsContainer = createCSSSheet(css`
-  :host(:where(:not([hidden]))) {
+  :host(:where(:not([hidden]))),
+  :where(:scope:not([hidden])) {
     display: contents;
   }
 `);
 
 export const noneTemplate = html`
   <style>
-    :host {
+    :host,
+    :scope {
       display: none;
     }
   </style>

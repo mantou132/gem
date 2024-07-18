@@ -43,77 +43,78 @@ export type Languages = {
 };
 
 const style = createCSSSheet(css`
-  dy-pat-footer {
+  :scope {
     display: block;
     background: ${theme.lightBackgroundColor};
     line-height: 1.7;
   }
-  dy-pat-footer dy-link {
+
+  dy-link {
     outline-offset: 0;
     display: inline-flex;
     align-items: center;
     gap: 0.5em;
   }
-  dy-pat-footer .outward {
+  .outward {
     width: 1.2em;
   }
-  dy-pat-footer footer {
+  footer {
     container-type: inline-size;
     max-width: 80em;
     margin: auto;
   }
   @container (width < 80em) {
-    dy-pat-footer :is(.social, .links, .terms-wrap) {
-      padding-inline: 2em;
+    :is(.social, .links, .terms-wrap) {
+      padding-inline: 1em;
     }
-    dy-pat-footer .outward {
+    .outward {
       display: none;
     }
   }
-  dy-pat-footer ul {
+  ul {
     display: contents;
     padding: 0;
     margin: 0;
   }
-  dy-pat-footer li {
+  li {
     list-style: none;
   }
-  dy-pat-footer :is(.terms, .social) {
+  :is(.terms, .social) {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
     gap: 2em;
   }
-  dy-pat-footer :is(.terms-nav, .help, .social ul) {
+  :is(.terms-nav, .help, .social ul) {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
     gap: 1.5em;
   }
-  dy-pat-footer :is(.links, .terms-nav, .help) :where(dy-link, select):not(:hover) {
+  :is(.links, .terms-nav, .help) :where(dy-link, select):not(:hover) {
     opacity: 0.65;
   }
-  dy-pat-footer .social {
+  .social {
     padding-block: 1.5em;
   }
-  dy-pat-footer .social li {
+  .social li {
     display: contents;
   }
-  dy-pat-footer h3 {
+  h3 {
     margin: 0;
     font-weight: 500;
     font-size: 1em;
   }
-  dy-pat-footer .icon {
+  .icon {
     width: 2em;
   }
-  dy-pat-footer .links {
+  .links {
     padding-block: 2.5em;
     display: flex;
     flex-wrap: wrap;
     gap: 1em;
   }
-  dy-pat-footer .column {
+  .column {
     width: 0;
     min-width: 10em;
     flex-grow: 1;
@@ -121,22 +122,22 @@ const style = createCSSSheet(css`
     flex-direction: column;
     gap: 0.6em;
   }
-  dy-pat-footer h4 {
+  h4 {
     font-weight: 500;
     margin-block: 0 1em;
     font-size: 1em;
   }
-  dy-pat-footer .terms-wrap {
+  .terms-wrap {
     display: flex;
     gap: 2em;
     justify-content: space-between;
     flex-wrap: wrap;
     padding-block: 1.5em 3em;
   }
-  dy-pat-footer .logo {
+  .logo {
     height: 4em;
   }
-  dy-pat-footer .languages {
+  .languages {
     min-width: 10em;
     font-size: 1em;
     border: none;
@@ -147,16 +148,18 @@ const style = createCSSSheet(css`
 `);
 
 const mobileStyle = createCSSSheet(
+  mediaQuery.PHONE,
   css`
-    dy-pat-footer .column {
-      width: 100%;
-    }
-    dy-pat-footer .column + .column {
-      border-block-start: 1px solid ${theme.borderColor};
-      padding-block-start: 1em;
+    :scope {
+      .column {
+        width: 100%;
+      }
+      .column + .column {
+        border-block-start: 1px solid ${theme.borderColor};
+        padding-block-start: 1em;
+      }
     }
   `,
-  mediaQuery.PHONE,
 );
 
 /**

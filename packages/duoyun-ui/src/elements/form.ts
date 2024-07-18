@@ -38,40 +38,45 @@ import './date-picker';
 import './date-range-picker';
 
 const formStyle = createCSSSheet(css`
-  :where(dy-form:not([hidden])) {
+  :where(:scope:not([inline], [hidden])) {
     display: block;
   }
-  dy-form:not([inline]) dy-form-item {
-    margin-block-end: 1.8em;
-  }
-  :where(dy-form[inline]:not([hidden])) {
+  :where(:scope[inline]:not([hidden])) {
     display: flex;
+  }
+  :scope:not([inline]) {
+    dy-form-item {
+      margin-block-end: 1.8em;
+    }
+  }
+  :scope[inline] {
     flex-wrap: wrap;
     gap: 1em;
-  }
-  dy-form[inline] dy-form-item {
-    position: relative;
-    gap: 0.5em;
-    align-items: center;
-    flex-direction: row;
-    flex-grow: 0;
-    margin-block-end: 0;
-  }
-  dy-form[inline] dy-form-item::part(label) {
-    margin-block-end: 0;
-  }
-  dy-form[inline] dy-form-item::part(input) {
-    width: 15em;
-  }
-  dy-form[inline] dy-form-item::part(input),
-  dy-form[inline] dy-form-item::part(add) {
-    margin-block-start: 0;
-  }
-  dy-form[inline] dy-form-item::part(tip) {
-    position: absolute;
-    width: 100%;
-    top: 100%;
-    left: 0;
+
+    dy-form-item {
+      position: relative;
+      gap: 0.5em;
+      align-items: center;
+      flex-direction: row;
+      flex-grow: 0;
+      margin-block-end: 0;
+    }
+    dy-form-item::part(label) {
+      margin-block-end: 0;
+    }
+    dy-form-item::part(input) {
+      width: 15em;
+    }
+    dy-form-item::part(input),
+    dy-form-item::part(add) {
+      margin-block-start: 0;
+    }
+    dy-form-item::part(tip) {
+      position: absolute;
+      width: 100%;
+      top: 100%;
+      left: 0;
+    }
   }
   dy-form-item:state(invalid) * {
     border-color: ${theme.negativeColor};
@@ -81,7 +86,7 @@ const formStyle = createCSSSheet(css`
       display: flex;
       gap: 1em;
     }
-    dy-form:not([inline]) dy-form-item-inline-group > dy-form-item {
+    :scope:not([inline]) dy-form-item-inline-group > dy-form-item {
       width: 0;
       flex-grow: 1;
     }
@@ -382,6 +387,7 @@ export class DuoyunFormItemElement extends GemElement<FormItemState> {
           ? html`
               <dy-date-picker
                 class="input"
+                part=${DuoyunFormItemElement.input}
                 @change=${this.#onChange}
                 @clear=${(evt: any) => evt.target.change(undefined)}
                 ?disabled=${this.disabled}
@@ -396,6 +402,7 @@ export class DuoyunFormItemElement extends GemElement<FormItemState> {
             ? html`
                 <dy-date-range-picker
                   class="input"
+                  part=${DuoyunFormItemElement.input}
                   @change=${this.#onChange}
                   @clear=${(evt: any) => evt.target.change(undefined)}
                   ?disabled=${this.disabled}

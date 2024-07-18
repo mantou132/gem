@@ -16,53 +16,53 @@ import '../elements/use';
 export type { Links } from './footer';
 
 const style = createCSSSheet(css`
-  dy-pat-nav {
+  :scope {
     display: flex;
     align-items: center;
     gap: 2em;
     background: ${theme.backgroundColor};
     box-shadow: rgba(0, 0, 0, calc(${theme.maskAlpha} - 0.1)) 0px 0px 8px;
   }
-  dy-pat-nav,
-  dy-pat-nav .drawer-brand {
+  :scope,
+  .drawer-brand {
     padding: 0.6em 1em;
   }
-  dy-pat-nav .drawer-brand {
+  .drawer-brand {
     display: none;
   }
-  dy-pat-nav li {
+  li {
     list-style: none;
   }
-  dy-pat-nav dy-use:not(.menu) {
+  dy-use:not(.menu) {
     width: 1.2em;
   }
-  dy-pat-nav .menu {
+  .menu {
     display: none;
   }
-  dy-pat-nav :where(.brand, .navbar, .navbar-top-link, dy-link) {
+  :where(.brand, .navbar, .navbar-top-link, dy-link) {
     display: flex;
     align-items: center;
   }
-  dy-pat-nav .brand {
+  .brand {
     gap: 0.5em;
   }
-  dy-pat-nav .logo {
+  .logo {
     height: 2.6em;
   }
-  dy-pat-nav .name {
+  .name {
     font-size: 1.35em;
     opacity: 0.65;
   }
-  dy-pat-nav .navbar {
+  .navbar {
     gap: 0.5em;
   }
-  dy-pat-nav :where(.nav-list) {
+  :where(.nav-list) {
     display: contents;
   }
-  dy-pat-nav .navbar-item-wrap {
+  .navbar-item-wrap {
     position: relative;
   }
-  dy-pat-nav .navbar-top-link {
+  .navbar-top-link {
     cursor: pointer;
     gap: 0.3em;
     padding-inline: 0.5em;
@@ -70,10 +70,10 @@ const style = createCSSSheet(css`
     border-radius: ${theme.normalRound};
     opacity: 0.65;
   }
-  dy-pat-nav .navbar-item-wrap:hover .navbar-top-link {
+  .navbar-item-wrap:hover .navbar-top-link {
     background: ${theme.lightBackgroundColor};
   }
-  dy-pat-nav .dropdown {
+  .dropdown {
     display: none;
     position: absolute;
     flex-direction: column;
@@ -90,26 +90,27 @@ const style = createCSSSheet(css`
     filter: drop-shadow(${theme.borderColor} 0px 0px 1px)
       drop-shadow(rgba(0, 0, 0, calc(${theme.maskAlpha} - 0.1)) 0px 7px 10px);
   }
-  dy-pat-nav:where(:not(:state(switching))) :where(.navbar-item-wrap:where(:hover, :focus-within)) .dropdown {
+  :scope:where(:not(:state(switching))) :where(.navbar-item-wrap:where(:hover, :focus-within)) .dropdown {
     display: flex;
   }
-  dy-pat-nav .dropdown dy-link {
+  .dropdown dy-link {
     border-radius: ${theme.normalRound};
     padding: 0.5em;
     gap: 0.3em;
     opacity: 0.65;
   }
-  dy-pat-nav .dropdown dy-link:hover {
+  .dropdown dy-link:hover {
     background: ${theme.lightBackgroundColor};
   }
 `);
 
 const mobileStyle = createCSSSheet(
+  `${mediaQuery.PHONE}`,
   css`
-    dy-pat-nav {
+    :scope {
       gap: 1em;
     }
-    dy-pat-nav .drawer-brand {
+    .drawer-brand {
       display: block;
       position: sticky;
       top: 0;
@@ -118,24 +119,24 @@ const mobileStyle = createCSSSheet(
       border-block-end: 1px solid ${theme.borderColor};
       margin-block-end: 1em;
     }
-    dy-pat-nav .menu {
+    .menu {
       display: block;
       width: 1.5em;
       padding: 0.5em;
       margin: -0.5em;
       border-radius: 10em;
     }
-    dy-pat-nav .navbar:not(.open) {
+    .navbar:not(.open) {
       display: none;
     }
-    dy-pat-nav .navbar {
+    .navbar {
       position: fixed;
       z-index: ${theme.popupZIndex};
       inset: 0;
       background: rgba(0, 0, 0, calc(${theme.maskAlpha}));
       align-items: stretch;
     }
-    dy-pat-nav .nav-list {
+    .nav-list {
       display: block;
       width: 20em;
       height: 100%;
@@ -145,17 +146,17 @@ const mobileStyle = createCSSSheet(
       overflow: auto;
       overscroll-behavior: none;
     }
-    dy-pat-nav .nav-list > li {
+    .nav-list > li {
       padding-inline: 1em;
     }
-    dy-pat-nav .nav-list > li:last-of-type {
+    .nav-list > li:last-of-type {
       margin-block-end: 3em;
     }
-    dy-pat-nav .open-dropdown + .dropdown {
+    .open-dropdown + .dropdown {
       display: block;
       padding-inline-start: 2em;
     }
-    dy-pat-nav .dropdown {
+    .dropdown {
       position: relative;
       display: none;
       width: 100%;
@@ -164,7 +165,7 @@ const mobileStyle = createCSSSheet(
       min-width: auto;
       filter: none;
     }
-    dy-pat-nav .dropdown::before {
+    .dropdown::before {
       position: absolute;
       content: '';
       width: 1px;
@@ -174,7 +175,6 @@ const mobileStyle = createCSSSheet(
       background: ${theme.borderColor};
     }
   `,
-  `${mediaQuery.PHONE}`,
 );
 
 type State = {

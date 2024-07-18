@@ -33,13 +33,13 @@ export type UserInfo = {
   profile?: string;
 };
 
-const rules = css`
-  dy-pat-console {
+const style = createCSSSheet(css`
+  :scope {
     display: flex;
     color: ${theme.textColor};
     background-color: ${theme.backgroundColor};
   }
-  dy-pat-console .sidebar {
+  .sidebar {
     position: sticky;
     top: 0;
     flex-shrink: 0;
@@ -51,28 +51,28 @@ const rules = css`
     background-color: ${theme.lightBackgroundColor};
     padding: ${theme.gridGutter};
   }
-  dy-pat-console .logo {
+  .logo {
     align-self: flex-start;
     height: 4em;
     /* logo must padding */
     margin-inline-start: -0.2em;
     margin-block: 0em 2em;
   }
-  dy-pat-console .navigation {
+  .navigation {
     flex-grow: 1;
     margin-block-end: 3em;
   }
-  dy-pat-console .user-info {
+  .user-info {
     font-size: 0.875em;
     display: flex;
     align-items: center;
     gap: 0.5em;
   }
-  dy-pat-console .avatar,
-  dy-pat-console .menu {
+  .avatar,
+  .menu {
     flex-shrink: 0;
   }
-  dy-pat-console .user {
+  .user {
     min-width: 0;
     flex-grow: 1;
     flex-shrink: 1;
@@ -80,40 +80,40 @@ const rules = css`
     flex-direction: column;
     line-height: 1.2;
   }
-  dy-pat-console .user:not([href]) {
+  .user:not([href]) {
     pointer-events: none;
   }
-  dy-pat-console .username {
+  .username {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
   }
-  dy-pat-console .org {
+  .org {
     font-size: 0.75em;
     font-style: italic;
     color: ${theme.describeColor};
   }
-  dy-pat-console .menu {
+  .menu {
     width: 1.5em;
     padding: 4px;
     border-radius: ${theme.normalRound};
   }
-  dy-pat-console .menu:where(:hover, :state(active)) {
+  .menu:where(:hover, :state(active)) {
     background-color: ${theme.hoverBackgroundColor};
   }
-  dy-pat-console .main-container {
+  .main-container {
     flex-grow: 1;
     min-width: 0;
   }
-  dy-pat-console .main {
+  .main {
     margin: auto;
     padding: calc(2 * ${theme.gridGutter});
     max-width: 80em;
   }
-  dy-pat-console dy-light-route {
+  dy-light-route {
     display: contents;
   }
-  dy-pat-console[responsive] {
+  :scope[responsive] {
     @media ${mediaQuery.PHONE_LANDSCAPE} {
       .sidebar {
         width: 4.5em;
@@ -131,44 +131,6 @@ const rules = css`
       }
     }
   }
-`;
-
-// https://bugzilla.mozilla.org/show_bug.cgi?id=1830512
-const style = createCSSSheet(
-  'CSSScopeRule' in window
-    ? `
-        @scope (body) to (dy-light-route) {
-          ${rules}
-        }
-      `
-    : rules,
-);
-
-// 禁止橡皮条
-const consoleStyle = createCSSSheet(css`
-  ::selection,
-  ::target-text {
-    color: ${theme.backgroundColor};
-    background: ${theme.primaryColor};
-  }
-  ::highlight(search) {
-    color: ${theme.backgroundColor};
-    background: ${theme.informativeColor};
-  }
-  :where(:root) {
-    font-family: -apple-system, system-ui, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans',
-      'PingFang SC', sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
-    -moz-osx-font-smoothing: grayscale;
-    -webkit-font-smoothing: antialiased;
-    height: 100%;
-    overflow: hidden;
-  }
-  :where(body) {
-    height: 100%;
-    overflow: auto;
-    overscroll-behavior: none;
-    margin: 0;
-  }
 `);
 
 /**
@@ -176,7 +138,6 @@ const consoleStyle = createCSSSheet(css`
  */
 @customElement('dy-pat-console')
 @adoptedStyle(style)
-@adoptedStyle(consoleStyle)
 export class DyPatConsoleElement extends GemElement {
   @boolattribute keyboardAccess: boolean;
   @boolattribute screencastMode: boolean;
@@ -259,6 +220,33 @@ export class DyPatConsoleElement extends GemElement {
       </main>
       ${this.keyboardAccess ? html`<dy-keyboard-access></dy-keyboard-access>` : ''}
       ${this.screencastMode ? html`<dy-input-capture></dy-input-capture>` : ''}
+
+      <style>
+        ::selection,
+        ::target-text {
+          color: ${theme.backgroundColor};
+          background: ${theme.primaryColor};
+        }
+        ::highlight(search) {
+          color: ${theme.backgroundColor};
+          background: ${theme.informativeColor};
+        }
+        :where(:root) {
+          font-family: -apple-system, system-ui, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial,
+            'Noto Sans', 'PingFang SC', sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol',
+            'Noto Color Emoji';
+          -moz-osx-font-smoothing: grayscale;
+          -webkit-font-smoothing: antialiased;
+          height: 100%;
+          overflow: hidden;
+        }
+        :where(body) {
+          height: 100%;
+          overflow: auto;
+          overscroll-behavior: none;
+          margin: 0;
+        }
+      </style>
     `;
   };
 }

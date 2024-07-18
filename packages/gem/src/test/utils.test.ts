@@ -84,13 +84,17 @@ describe('utils 测试', () => {
   });
   it('createCSSSheet', () => {
     const cssSheet = createCSSSheet(css`
-      body {
+      div {
         background: red;
       }
     `);
-    const rules = cssSheet[SheetToken].cssRules;
-    expect(rules.item(0).selectorText).to.equal('body');
+    const rules = cssSheet[SheetToken].getStyle().cssRules;
+    expect(rules.item(0).selectorText).to.equal('div');
     expect(rules.item(0).style.background).to.equal('red');
+    const bodyStyleSheet = cssSheet[SheetToken].getStyle(document.body);
+    expect(bodyStyleSheet.cssRules.item(0).cssText.startsWith('@scope (body)')).to.true;
+    expect(bodyStyleSheet).to.equal(bodyStyleSheet);
+    expect(bodyStyleSheet).not.to.equal(cssSheet[SheetToken].getStyle(document.documentElement));
   });
   it('raw/css', () => {
     const title: any = undefined;
@@ -99,30 +103,21 @@ describe('utils 测试', () => {
   });
   it('styled', () => {
     const cssSheet = createCSSSheet({
+      $: styled.class``,
       scroll: styled.class`
         background: red;
         &:hover * {
           background: blue;
         }
       `,
-      wrap: styled.id`
-        position: fixed;
-        animation: 3s infinite alternate slideIn;
-      `,
-      slideIn: styled.keyframes`
-        from {
-          transform: translateX(0%);
-        }
-      `,
     });
     expect(cssSheet.scroll.startsWith('scroll')).to.true;
-    const rules = cssSheet[SheetToken].cssRules;
-    expect(rules.item(0).selectorText.startsWith('.scroll')).to.true;
-    expect(rules.item(0).style.background).to.equal('red');
-    expect(rules.item(0).cssRules.item(0).selectorText).to.equal('&:hover *');
-    expect(rules.item(0).cssRules.item(0).style.background).to.equal('blue');
-    expect(rules.item(1).selectorText.startsWith('#wrap')).to.true;
-    expect((rules.item(2) as any).name).to.equal('slideIn');
+    const rules = cssSheet[SheetToken].getStyle().cssRules;
+    expect(rules.item(0).selectorText).to.equal(':scope, :host');
+    expect(rules.item(1).selectorText.startsWith('.scroll')).to.true;
+    expect(rules.item(1).style.background).to.equal('red');
+    expect(rules.item(1).cssRules.item(0).selectorText).to.equal('&:hover *');
+    expect(rules.item(1).cssRules.item(0).style.background).to.equal('blue');
   });
   it('styleMap/classMap/exportPartsMap', () => {
     expect(styleMap({ '--x': '1px', fontSize: '14px', content: `'*'` })).to.equal(

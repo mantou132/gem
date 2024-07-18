@@ -12,18 +12,16 @@ customElements.whenDefined('gem-book').then(({ GemBookPluginElement }: typeof Ge
   const { html, customElement, attribute, numattribute, createCSSSheet, css, adoptedStyle, shadow } = Gem;
 
   const styles = createCSSSheet(css`
-    gbp-api table {
+    table {
       tr td:first-of-type {
         white-space: nowrap;
       }
     }
-    gbp-api {
-      .loading {
-        opacity: 0.5;
-      }
-      .error {
-        color: ${theme.cautionColor};
-      }
+    .loading {
+      opacity: 0.5;
+    }
+    .error {
+      color: ${theme.cautionColor};
     }
   `);
 

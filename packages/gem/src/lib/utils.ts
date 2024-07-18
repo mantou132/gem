@@ -235,55 +235,89 @@ export function raw(arr: TemplateStringsArray, ...args: any[]) {
 }
 
 // 写 css 文本，在 CSSStyleSheet 中使用
-export function css(arr: TemplateStringsArray, ...args: any[]) {
-  return raw(arr, ...args);
-}
+export const css = raw;
 
 // 跨多个 gem 工作
 export const SheetToken = Symbol.for('gem@sheetToken');
 
+export class GemCSSSheet {
+  #content = '';
+  #media = '';
+  constructor(media = '') {
+    this.#media = media;
+  }
+  setContent(v: string) {
+    this.#content = v;
+  }
+
+  // 不需要 GC
+  #record = new Map<any, CSSStyleSheet>();
+  #applyd = new Map<CSSStyleSheet, string>();
+  getStyle(host?: HTMLElement) {
+    const isLight = host && !host.shadowRoot;
+
+    // 对同一类 dom 只使用同一个样式表
+    const key = isLight ? host.constructor : this;
+    if (!this.#record.has(key)) {
+      const sheet = new CSSStyleSheet({ media: this.#media });
+      this.#record.set(key, sheet);
+    }
+
+    const sheet = this.#record.get(key)!;
+
+    // 只执行一次
+    if (!this.#applyd.has(sheet)) {
+      let style = this.#content;
+      let scope = '';
+      if (isLight) {
+        scope = `@scope (${host.tagName}) to ([data-style-scope])`;
+        style = `${scope}{${style}}`;
+      }
+      sheet.replaceSync(style);
+      this.#applyd.set(sheet, scope);
+    }
+
+    return sheet;
+  }
+
+  // 一般用于主题更新
+  updateStyle() {
+    this.#applyd.forEach((scope, sheet) => {
+      sheet.replaceSync(scope ? `${scope}{${this.#content}}` : this.#content);
+    });
+  }
+}
+
 export type Sheet<T> = {
   [P in keyof T]: P;
-} & { [SheetToken]: CSSStyleSheet };
-
-export type StyledType = 'id' | 'class' | 'keyframes';
-export interface StyledValueObject {
-  styledContent: string;
-  type: StyledType;
-}
-export interface StyledKeyValuePair {
-  [key: string]: StyledValueObject;
-}
+} & { [SheetToken]: GemCSSSheet };
 
 /**
  *
- * 创建 style sheet 用于 `adoptedStyleSheets`，不支持样式更新，只支持自定义 CSS 属性
- * @param rules string | Record<string, string>
- * @param media string 媒体查询
+ * 创建 style sheet 用于 `@adoptedStyle`，不支持样式更新，只支持自定义 CSS 属性
  */
-export function createCSSSheet<T extends StyledKeyValuePair>(rules: T | string, media?: string): Sheet<T> {
-  const styleSheet = new CSSStyleSheet({ media });
-  const sheet: any = {};
+export function createCSSSheet<T extends Record<string, string>>(media: string, rules: T | string): Sheet<T>;
+export function createCSSSheet<T extends Record<string, string>>(rules: T | string): Sheet<T>;
+export function createCSSSheet<T extends Record<string, string>>(
+  mediaOrRules: T | string,
+  rulesValue?: T | string,
+): Sheet<T> {
+  const media = rulesValue ? (mediaOrRules as string) : '';
+  const rules = rulesValue || mediaOrRules;
+  const styleSheet = new GemCSSSheet(media);
+  const sheet: any = { [SheetToken]: styleSheet };
   let style = '';
   if (typeof rules === 'string') {
     style = rules;
   } else {
-    Object.keys(rules).forEach((key: keyof T) => {
-      sheet[key] = `${key as string}-${randomStr()}`;
-      switch (rules[key].type) {
-        case 'class':
-          style += `.${sheet[key]} {${rules[key].styledContent}}`;
-          break;
-        case 'id':
-          style += `#${sheet[key]} {${rules[key].styledContent}}`;
-          break;
-        default:
-          style += `@keyframes ${key as string} {${rules[key].styledContent}}`;
-      }
+    Object.keys(rules).forEach((key) => {
+      const isScope = key === '$';
+      // 对于已经有 `-` 的保留原始 key，支持覆盖修改
+      sheet[key] = isScope || key.includes('-') ? key : `${key}-${randomStr()}`;
+      style += `${isScope ? ':scope,:host' : `.${sheet[key]}`} {${rules[key]}}`;
     });
   }
-  styleSheet.replaceSync(style);
-  sheet[SheetToken] = styleSheet;
+  styleSheet.setContent(style);
   return sheet as Sheet<T>;
 }
 
@@ -305,17 +339,7 @@ export function randomStr(len = 5): string {
 //     }
 //   `,
 // });
-export const styled = {
-  class: (arr: TemplateStringsArray, ...args: any[]): StyledValueObject => {
-    return { styledContent: raw(arr, ...args), type: 'class' };
-  },
-  id: (arr: TemplateStringsArray, ...args: any[]): StyledValueObject => {
-    return { styledContent: raw(arr, ...args), type: 'id' };
-  },
-  keyframes: (arr: TemplateStringsArray, ...args: any[]): StyledValueObject => {
-    return { styledContent: raw(arr, ...args), type: 'keyframes' };
-  },
-};
+export const styled = { class: raw };
 
 export function camelToKebabCase(str: string) {
   return str.replace(/[A-Z]/g, ($1: string) => '-' + $1.toLowerCase());

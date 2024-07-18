@@ -1,29 +1,34 @@
-import { GemElement, html, styled, createCSSSheet, render, adoptedStyle, customElement } from '@mantou/gem';
+import { GemElement, html, styled, createCSSSheet, render, adoptedStyle, customElement, SheetToken } from '@mantou/gem';
 
 import '../elements/layout';
 
 const styles = createCSSSheet({
-  h1: styled.class`
-    color: yellow;
+  $: styled.class`
+    font-style: italic;
+  `,
+  div: styled.class`
+    color: blue;
     &:hover {
       color: red;
     }
   `,
-  h2: styled.id`
-    background: yellow;
-    &:hover {
-      background: red;
-    }
+});
+
+const styles2 = createCSSSheet({
+  [styles.div]: styled.class`
+    font-weight: bold;
+    font-size: 2em;
   `,
 });
 
 @adoptedStyle(styles)
+@adoptedStyle(styles2)
 @customElement('app-root')
 export class App extends GemElement {
   render() {
     return html`
-      <h1 class=${styles.h1}>Header 1</h1>
-      <h2 id=${styles.h2}>Header 2</h2>
+      <div class=${styles.div}>Header 1</div>
+      ${[styles, styles2].map((styles) => html`<pre>${styles[SheetToken].getStyle(this).cssRules[0].cssText}</pre>`)}
     `;
   }
 }

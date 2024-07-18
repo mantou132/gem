@@ -1,71 +1,63 @@
-import { connect, createStore, updateStore, Store } from '../lib/store';
-import { camelToKebabCase, randomStr } from '../lib/utils';
+import { connect, Store, useStore } from '../lib/store';
+import { camelToKebabCase, randomStr, Sheet, SheetToken, GemCSSSheet } from '../lib/utils';
 
-type SomeType<T> = {
-  [P in keyof T]: string;
-};
+export type Theme<T> = Sheet<T>;
 
 const themeStoreMap = new WeakMap();
+const themePropsMap = new WeakMap();
 
 /**获取主题原始值 */
-export function getThemeStore<T>(theme: SomeType<T>) {
+export function getThemeStore<T>(theme: Theme<T>) {
   return themeStoreMap.get(theme) as Store<T>;
 }
 
-const themePropsMap = new WeakMap();
-
 /**获取 css 变量名 */
-export function getThemeProps<T>(theme: SomeType<T>) {
-  return themePropsMap.get(theme) as SomeType<T>;
+export function getThemeProps<T>(theme: Theme<T>) {
+  return themePropsMap.get(theme) as Theme<T>;
 }
 
-const setThemeFnMap = new WeakMap();
-
-/**
- * 创建主题，插入 `document.head`
- * https://github.com/mantou132/gem/issues/33
- *
- * @example
- * createTheme({
- *   primaryColor: '#eee',
- * });
- */
-export function createTheme<T extends Record<string, unknown>>(themeObj: T) {
+function useThemeFromProps<T extends Record<string, unknown>>(themeObj: T, props: Record<string, string> = {}) {
   const salt = randomStr();
-  const style = new CSSStyleSheet();
-  const store = createStore<T>(themeObj);
-  const theme: Record<string, string> = {};
-  const props: Record<string, string> = {};
+  const styleSheet = new GemCSSSheet();
+  const [store, updateStore] = useStore<T>(themeObj);
+  const theme: any = { [SheetToken]: styleSheet };
   themePropsMap.set(theme, props);
   themeStoreMap.set(theme, store);
-  const setTheme = () =>
+
+  const updateContent = () => {
+    let rules = '';
     Object.keys(store).forEach((key) => {
-      if (props[key]) return;
-      props[key] = `--${camelToKebabCase(key)}-${salt}`;
-      theme[key] = `var(${props[key]})`;
+      if (!props[key]) {
+        props[key] = `--${camelToKebabCase(key)}-${salt}`;
+        theme[key] = `var(${props[key]})`;
+      }
+      rules += `${props[key]}:${store[key]};`;
     });
-  setThemeFnMap.set(theme, setTheme);
-  setTheme();
-  const getStyle = () =>
-    `:root, :host {${Object.keys(store).reduce((prev, key) => prev + `${props[key]}:${store[key]};`, '')}}`;
-  const replace = () => style.replaceSync(getStyle());
-  connect(store, replace);
-  replace();
-  document.adoptedStyleSheets.push(style);
-  return theme as SomeType<T>;
+    styleSheet.setContent(`:scope,:host{${rules}}`);
+  };
+  updateContent();
+  connect(store, () => {
+    updateContent();
+    styleSheet.updateStyle();
+  });
+  return [theme as Theme<T>, updateStore] as const;
 }
 
 /**
- * 更新主题
- * @param theme 主题
- * @param newThemeObj 新主题
+ * 用于 `@adoptedStyle(theme)`，类似 `createCSSSheet`
  */
-export function updateTheme<T = Record<string, unknown>>(theme: SomeType<T>, newThemeObj: Partial<T>) {
-  updateStore(getThemeStore(theme), newThemeObj);
-  setThemeFnMap.get(theme)();
+export function useScopedTheme<T extends Record<string, unknown>>(themeObj: T) {
+  return useThemeFromProps(themeObj);
 }
 
+/**全局主题 */
 export function useTheme<T extends Record<string, unknown>>(themeObj: T) {
-  const theme = createTheme(themeObj);
-  return [theme, (newThemeObj: Partial<T>) => updateTheme(theme, newThemeObj)] as const;
+  const result = useScopedTheme(themeObj);
+  document.adoptedStyleSheets.push(result[0][SheetToken].getStyle());
+  return result;
+}
+
+/**用来覆盖全局主题 */
+export function useOverrideTheme<T extends Record<string, unknown>>(theme: Theme<T>, themeObj: Partial<T>) {
+  return useThemeFromProps(themeObj, getThemeProps(theme));
 }

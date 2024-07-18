@@ -412,27 +412,28 @@ export class DuoyunInputElement extends GemElement {
 }
 
 const inputGroupStyle = createCSSSheet(css`
-  dy-input-group {
+  :scope {
     display: flex;
-  }
-  dy-input-group :where(dy-input, dy-select):where(:focus, :focus-within, :hover, :state(active)) {
-    position: relative;
-    z-index: 1;
-  }
-  dy-input-group > * {
-    flex-grow: 10;
-    width: 0;
-  }
-  dy-input-group > :not(:last-child) {
-    border-top-right-radius: 0;
-    border-bottom-right-radius: 0;
-  }
-  dy-input-group > :nth-child(n + 2),
-  /* dy-input-group > dy-tooltip > dy-button */
-  dy-input-group > dy-tooltip:last-child > * {
-    margin-inline-start: -1px;
-    border-top-left-radius: 0;
-    border-bottom-left-radius: 0;
+
+    :where(dy-input, dy-select):where(:focus, :focus-within, :hover, :state(active)) {
+      position: relative;
+      z-index: 1;
+    }
+    > * {
+      flex-grow: 10;
+      width: 0;
+    }
+    > :not(:last-child) {
+      border-top-right-radius: 0;
+      border-bottom-right-radius: 0;
+    }
+    > :nth-child(n + 2),
+    /* > dy-tooltip > dy-button */
+    > dy-tooltip:last-child > * {
+      margin-inline-start: -1px;
+      border-top-left-radius: 0;
+      border-bottom-left-radius: 0;
+    }
   }
 `);
 

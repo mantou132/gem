@@ -1,26 +1,30 @@
-import { adoptedStyle, aria, customElement, slot } from '@mantou/gem/lib/decorators';
+import { adoptedStyle, aria, customElement } from '@mantou/gem/lib/decorators';
 import { GemElement } from '@mantou/gem/lib/element';
 import { createCSSSheet, css } from '@mantou/gem/lib/utils';
 
 import { theme } from '../lib/theme';
 
 const style = createCSSSheet(css`
-  :where(dy-paragraph:not([hidden])) {
+  :where(:scope:not([hidden])) {
     display: block;
     margin-block-end: 0.75em;
     line-height: 1.5;
-  }
-  :where(dy-paragraph):where(:lang(zh), :lang(ja), :lang(kr)) {
-    line-height: 1.7;
-  }
-  :where(dy-paragraph) {
-    :where(gem-link, dy-link):where(:not([hidden])) {
-      display: inline-block;
+
+    &:where(:lang(zh), :lang(ja), :lang(kr)) {
+      line-height: 1.7;
+
+      :where(gem-link, dy-link, a[href]) {
+        text-underline-offset: 0.125em;
+      }
+    }
+
+    :where(gem-link, dy-link, a[href]) {
       color: ${theme.primaryColor};
       text-decoration: underline;
-    }
-    :where(gem-link, dy-link):where(:lang(zh), :lang(ja), :lang(kr)) {
-      text-underline-offset: 0.125em;
+
+      &:where(:not([hidden])) {
+        display: inline-block;
+      }
     }
     code,
     kbd {

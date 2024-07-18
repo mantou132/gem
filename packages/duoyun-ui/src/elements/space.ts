@@ -3,19 +3,19 @@ import { GemElement } from '@mantou/gem/lib/element';
 import { createCSSSheet, css } from '@mantou/gem/lib/utils';
 
 const style = createCSSSheet(css`
-  :where(dy-space:not([hidden])) {
+  :where(:scope:not([hidden])) {
     display: inline-flex;
     flex-wrap: wrap;
     align-items: center;
     gap: 0.4em;
   }
-  :where(dy-space[orientation='vertical']) {
+  :where(:scope[orientation='vertical']) {
     flex-direction: column;
   }
-  :where(dy-space[size='small']) {
+  :where(:scope[size='small']) {
     gap: 0.2em;
   }
-  :where(dy-space[size='large']) {
+  :where(:scope[size='large']) {
     gap: 0.8em;
   }
 `);
