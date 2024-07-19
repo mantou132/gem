@@ -114,7 +114,7 @@ export const getSelectedGem = function (data: PanelStore): PanelStore | string {
   const lifecycleMethod = new Set(['willMount', 'render', 'mounted', 'shouldUpdate', 'updated', 'unmounted']);
   const buildInMethod = new Set(['update', 'setState', 'effect', 'memo']);
   const buildInProperty = new Set(['internals']);
-  const buildInAttribute = new Set(['ref']);
+  const buildInAttribute = new Set(['ref', 'data-style-scope']);
   const memberSet = getProps($0);
   metadata.observedAttributes?.forEach((attr) => {
     const prop = kebabToCamelCase(attr);
@@ -266,7 +266,7 @@ export const getSelectedGem = function (data: PanelStore): PanelStore | string {
       value: objectToString($0[key]),
       type: typeof $0[key],
       path: [key],
-      buildIn: buildInProperty.has(key) ? 2 : 0,
+      buildIn: buildInProperty.has(key) ? 1 : 0,
     });
   });
 

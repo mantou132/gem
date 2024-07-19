@@ -28,7 +28,9 @@ export class App extends GemElement {
   render() {
     return html`
       <div class=${styles.div}>Header 1</div>
-      ${[styles, styles2].map((styles) => html`<pre>${styles[SheetToken].getStyle(this).cssRules[0].cssText}</pre>`)}
+      ${[styles, styles2].map(
+        (gemStyles) => html`<pre>${gemStyles[SheetToken].getStyle(this).cssRules[0].cssText}</pre>`,
+      )}
     `;
   }
 }

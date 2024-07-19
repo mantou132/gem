@@ -254,7 +254,8 @@ export class GemCSSSheet {
   #record = new Map<any, CSSStyleSheet>();
   #applyd = new Map<CSSStyleSheet, string>();
   getStyle(host?: HTMLElement) {
-    const isLight = host && !host.shadowRoot;
+    // GemElement.internals
+    const isLight = host && !(host as any).internals?.shadowRoot;
 
     // 对同一类 dom 只使用同一个样式表
     const key = isLight ? host.constructor : this;

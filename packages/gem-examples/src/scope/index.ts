@@ -1,9 +1,20 @@
-/**
- * TODO: auto add `@scope` to light dom custom element
- */
-import { GemElement, adoptedStyle, createCSSSheet, css, customElement, html, render } from '@mantou/gem';
+import { GemElement, adoptedStyle, createCSSSheet, css, customElement, html, render, shadow } from '@mantou/gem';
 
 import '../elements/layout';
+
+const closedStyles = createCSSSheet(css`
+  div {
+    color: red;
+  }
+`);
+@shadow({ mode: 'closed' })
+@adoptedStyle(closedStyles)
+@customElement('app-closed')
+class _Closed extends GemElement {
+  render() {
+    return html`<div>Closed shadow</div>`;
+  }
+}
 
 @customElement('other-element')
 class _OtherElement extends GemElement {}
@@ -31,6 +42,7 @@ export class App extends GemElement {
       <article>
         <p>Content</p>
       </article>
+      <app-closed></app-closed>
     `;
   }
 }

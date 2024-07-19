@@ -168,8 +168,8 @@ export abstract class GemElement<State = Record<string, unknown>> extends HTMLEl
     Object.assign(this.internals, aria);
 
     const sheets = adoptedStyleSheets?.map((item) => item[SheetToken].getStyle(this)) || [];
-    if (this.shadowRoot) {
-      this.shadowRoot.adoptedStyleSheets = sheets;
+    if (this.#renderRoot instanceof ShadowRoot) {
+      this.#renderRoot.adoptedStyleSheets = sheets;
     } else {
       this.effect(
         () => {

@@ -1,7 +1,11 @@
 import { connect, Store, useStore } from '../lib/store';
 import { camelToKebabCase, randomStr, Sheet, SheetToken, GemCSSSheet } from '../lib/utils';
 
-export type Theme<T> = Sheet<T>;
+export type Theme<T> = Sheet<T> & {
+  [K in keyof T as K extends `${string}Color`
+    ? `${string & K}${'' | 100 | 200 | 300 | 400 | 500 | 600 | 700 | 800 | 900}`
+    : K]: T[K];
+};
 
 const themeStoreMap = new WeakMap();
 const themePropsMap = new WeakMap();
@@ -20,7 +24,18 @@ function useThemeFromProps<T extends Record<string, unknown>>(themeObj: T, props
   const salt = randomStr();
   const styleSheet = new GemCSSSheet();
   const [store, updateStore] = useStore<T>(themeObj);
-  const theme: any = { [SheetToken]: styleSheet };
+  const theme: any = new Proxy(
+    { [SheetToken]: styleSheet },
+    {
+      get(target: any, key: string) {
+        if (!target[key]) {
+          const [_, origin, weight] = key.match(/^(\w*Color)(\d+)$/) || [];
+          if (origin) target[key] = `oklch(from ${target[origin]} calc(l - ${(Number(weight) - 400) / 1000}) c h)`;
+        }
+        return target[key];
+      },
+    },
+  );
   themePropsMap.set(theme, props);
   themeStoreMap.set(theme, store);
 
