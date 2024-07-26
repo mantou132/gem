@@ -40,9 +40,13 @@ export const contentsContainer = createCSSSheet(css`
 
 export const noneTemplate = html`
   <style>
-    :host,
-    :scope {
+    :host {
       display: none;
+    }
+    @scope {
+      :scope {
+        display: none;
+      }
     }
   </style>
 `;

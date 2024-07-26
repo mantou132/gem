@@ -14,13 +14,20 @@ declare global {
   interface HTMLElement {
     ref: string;
   }
+  interface DOMStringMap {
+    // 手动设置 'false' 让自定义元素不作为样式边界
+    styleScope?: 'false' | '';
+    gemReflect?: '';
+    [name: string]: string | undefined;
+  }
+  // https://github.com/tc39/proposal-decorator-metadata
   interface SymbolConstructor {
-    metadata: symbol;
+    readonly metadata: symbol;
   }
 }
+const { assign, defineProperty } = Object;
 
-// https://github.com/tc39/proposal-decorator-metadata
-Symbol.metadata = Symbol.for('Symbol.metadata');
+defineProperty(Symbol, 'metadata', { value: Symbol.for('Symbol.metadata') });
 
 function execCallback(fun: any) {
   typeof fun === 'function' && fun();
@@ -65,7 +72,8 @@ export function appleCSSStyleSheet(ele: HTMLElement, sheets: CSSStyleSheet[]) {
       // 先找到外部样式表
       const newSheets = root.adoptedStyleSheets.filter((e) => !map.has(e));
       map.forEach((count, sheet) => count && newSheets.push(sheet));
-      root.adoptedStyleSheets = newSheets;
+      // 外层元素的样式要放到最后，以提升优先级，但是只考虑第一次出现样式表的位置
+      root.adoptedStyleSheets = newSheets.reverse();
     });
   }
 
@@ -119,7 +127,7 @@ export abstract class GemElement<State = Record<string, unknown>> extends HTMLEl
   readonly state?: State;
 
   #renderRoot: HTMLElement | ShadowRoot;
-  #internals?: ElementInternals;
+  #internals: ElementInternals;
   #isAppendReason?: boolean;
   // 和 isConnected 有区别
   #isMounted?: boolean;
@@ -128,6 +136,7 @@ export abstract class GemElement<State = Record<string, unknown>> extends HTMLEl
   #rendering?: boolean;
   #memoList?: EffectItem<any>[];
   #unmountCallback?: any;
+  #clearStyle?: any;
 
   [updateTokenAlias]() {
     if (this.#isMounted) {
@@ -138,9 +147,10 @@ export abstract class GemElement<State = Record<string, unknown>> extends HTMLEl
   constructor() {
     super();
 
-    const { mode, serializable, delegatesFocus, slotAssignment, focusable, adoptedStyleSheets, aria } = this.#metadata;
+    const { mode, serializable, delegatesFocus, slotAssignment, focusable, aria } = this.#metadata;
 
     this.#renderRoot = !mode ? this : this.attachShadow({ mode, serializable, delegatesFocus, slotAssignment });
+    this.#internals = this.attachInternals();
 
     // https://stackoverflow.com/questions/43836886/failed-to-construct-customelement-error-when-javascript-file-is-placed-in-head
     // focusable 元素一般同时具备 disabled 属性
@@ -150,7 +160,7 @@ export abstract class GemElement<State = Record<string, unknown>> extends HTMLEl
       ([disabled = false]) => {
         if (hasInitTabIndex === undefined) hasInitTabIndex = this.hasAttribute('tabindex');
 
-        this.internals.ariaDisabled = String(disabled);
+        this.#internals.ariaDisabled = String(disabled);
 
         if (focusable && !hasInitTabIndex) {
           this.tabIndex = -Number(disabled);
@@ -165,21 +175,7 @@ export abstract class GemElement<State = Record<string, unknown>> extends HTMLEl
       () => [(this as any).disabled],
     );
 
-    Object.assign(this.internals, aria);
-
-    const sheets = adoptedStyleSheets?.map((item) => item[SheetToken].getStyle(this)) || [];
-    if (this.#renderRoot instanceof ShadowRoot) {
-      this.#renderRoot.adoptedStyleSheets = sheets;
-    } else {
-      this.effect(
-        () => {
-          // 阻止其他元素应用样式到当前元素
-          this.dataset.styleScope = '';
-          return appleCSSStyleSheet(this, sheets);
-        },
-        () => [],
-      );
-    }
+    assign(this.#internals, aria);
   }
 
   get #metadata(): Metadata {
@@ -187,9 +183,6 @@ export abstract class GemElement<State = Record<string, unknown>> extends HTMLEl
   }
 
   get internals() {
-    if (!this.#internals) {
-      this.#internals = this.attachInternals();
-    }
     return this.#internals;
   }
 
@@ -207,7 +200,7 @@ export abstract class GemElement<State = Record<string, unknown>> extends HTMLEl
    * */
   setState = (payload: Partial<State>) => {
     if (!this.state) throw new GemError('`state` not initialized');
-    Object.assign(this.state, payload);
+    assign(this.state, payload);
     // 避免无限刷新
     if (!this.#rendering) addMicrotask(this.#update);
   };
@@ -313,7 +306,7 @@ export abstract class GemElement<State = Record<string, unknown>> extends HTMLEl
    * @lifecycle
    *
    * - 不提供 `render` 时显示子内容
-   * - 返回 `null` 时渲染空内容
+   * - 返回 `null` 时渲染空的子内容
    * - 返回 `undefined` 时不会调用 `render()`, 也就是不会更新以前的内容
    * */
   render?(): TemplateResult | null | undefined;
@@ -380,8 +373,23 @@ export abstract class GemElement<State = Record<string, unknown>> extends HTMLEl
    */
   unmounted?(): void | Promise<void>;
 
+  #prepareStyle = () => {
+    const { adoptedStyleSheets } = this.#metadata;
+
+    const { shadowRoot } = this.#internals;
+    // 阻止其他元素应用样式到当前元素
+    if (!shadowRoot && !this.dataset.styleScope) this.dataset.styleScope = '';
+    // 依赖 `dataset.styleScope`
+    const sheets = adoptedStyleSheets?.map((item) => item[SheetToken].getStyle(this)) || [];
+    if (shadowRoot) {
+      shadowRoot.adoptedStyleSheets = sheets;
+    } else {
+      return appleCSSStyleSheet(this, sheets);
+    }
+  };
+
   #disconnectStore?: (() => void)[];
-  #connectedCallback = () => {
+  #connectedCallback = async () => {
     if (this.#isAppendReason) {
       this.#isAppendReason = false;
       return;
@@ -394,6 +402,10 @@ export abstract class GemElement<State = Record<string, unknown>> extends HTMLEl
     this.#disconnectStore = observedStores?.map((store) => connect(store, this.#update));
     this.#render();
     this.#isMounted = true;
+    this.#clearStyle = this.#prepareStyle();
+    // 等待所有元素的样式被应用，再执行回调
+    // 这让 mounted 和 effect 回调和其他回调一样保持一样的异步行为
+    await Promise.resolve();
     this.#unmountCallback = this.mounted?.();
     this.#initEffect();
     if (rootElement && (this.getRootNode() as ShadowRoot).host?.tagName !== rootElement.toUpperCase()) {
@@ -437,10 +449,12 @@ export abstract class GemElement<State = Record<string, unknown>> extends HTMLEl
     noBlockingTaskList.delete(this.#updateCallback);
     this.#isMounted = false;
     this.#disconnectStore?.forEach((disconnect) => disconnect());
+    // 是否要异步执行回调？
     execCallback(this.#unmountCallback);
     this.unmounted?.();
     this.#effectList = this.#clearEffect(this.#effectList);
     this.#memoList = this.#clearEffect(this.#memoList);
+    execCallback(this.#clearStyle);
     return GemElement.#final;
   }
 

@@ -266,7 +266,7 @@ export const getSelectedGem = function (data: PanelStore): PanelStore | string {
       value: objectToString($0[key]),
       type: typeof $0[key],
       path: [key],
-      buildIn: buildInProperty.has(key) ? 1 : 0,
+      buildIn: buildInProperty.has(key) ? 2 : 0,
     });
   });
 

@@ -254,8 +254,8 @@ export class GemCSSSheet {
   #record = new Map<any, CSSStyleSheet>();
   #applyd = new Map<CSSStyleSheet, string>();
   getStyle(host?: HTMLElement) {
-    // GemElement.internals
-    const isLight = host && !(host as any).internals?.shadowRoot;
+    // GemElement Metadata, 支持 closed 模式
+    const isLight = host && !(host as any).constructor[Symbol.metadata]?.mode;
 
     // 对同一类 dom 只使用同一个样式表
     const key = isLight ? host.constructor : this;
@@ -270,9 +270,13 @@ export class GemCSSSheet {
     if (!this.#applyd.has(sheet)) {
       let style = this.#content;
       let scope = '';
-      if (isLight) {
-        scope = `@scope (${host.tagName}) to ([data-style-scope])`;
-        style = `${scope}{${style}}`;
+      if (isLight && host.dataset.styleScope !== 'false') {
+        // light dom 嵌套时需要选择子元素
+        // `> *` 实际上是多范围？是否存在性能问题
+        scope = `@scope (${host.tagName}) to ([data-style-scope=''] > *)`;
+        // 不能使用 @layer，两个 @layer 不能覆盖，只有顺序起作用
+        // 所以外部不能通过元素名称选择器来覆盖样式，除非样式在之前插入（会自动反转应用到尾部， see `appleCSSStyleSheet`）
+        style = `${scope}{ ${style} }`;
       }
       sheet.replaceSync(style);
       this.#applyd.set(sheet, scope);

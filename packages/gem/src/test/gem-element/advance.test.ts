@@ -129,6 +129,7 @@ describe('gem element 生命周期', () => {
     const el: LifecycleGemElement = await fixture(html`<lifecycle-gem-demo></lifecycle-gem-demo>`);
     // test #isMounted
     customElements.define('lifecycle-gem-demo', LifecycleGemElement);
+    await Promise.resolve();
     expect(!!el.refInConstructor).to.equal(true);
     expect(el.renderCount).to.equal(1);
     el.remove();
@@ -153,12 +154,14 @@ describe('gem element 生命周期', () => {
 
     // disconnectedCallback, connectedCallback
     container.append(el2);
+    await Promise.resolve();
     expect(el2.mountedCount).to.equal(1);
     expect(el2.renderCount).to.equal(1);
     el2.remove();
     expect(el2.mountedCount).to.equal(1);
     expect(el2.renderCount).to.equal(0);
     container.append(el2);
+    await Promise.resolve();
     expect(el2.mountedCount).to.equal(2);
     expect(el2.renderCount).to.equal(1);
     expect(el2.updatedCount).to.equal(0);
@@ -241,6 +244,7 @@ describe('gem element 副作用', () => {
     expect(el.effectCallCount).to.equal(0);
     expect(el.hasConstructorEffect).to.equal(false);
     document.body.append(el);
+    await Promise.resolve();
     expect(el.hasConstructorEffect).to.equal(true);
   });
 });

@@ -22,7 +22,7 @@ const maybeBuildInPrefix = '[[Gem?]] ';
 const buildInPrefix = '[[Gem]] ';
 
 export const style = createCSSSheet(css`
-  :host {
+  :host(:not([hidden])) {
     display: block;
     line-height: 1.5;
     cursor: default;
