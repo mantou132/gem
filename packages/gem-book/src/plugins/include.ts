@@ -24,6 +24,7 @@ customElements.whenDefined('gem-book').then(({ GemBookPluginElement }: typeof Ge
     };
 
     mounted() {
+      this.dataset.styleScope = 'false';
       this.effect(
         async () => {
           const url = Utils.getRemoteURL(this.src);
@@ -48,7 +49,7 @@ customElements.whenDefined('gem-book').then(({ GemBookPluginElement }: typeof Ge
     render() {
       const { content, error } = this.state;
       if (error) return html`<div style="color: ${theme.cautionColor};">${error}</div>`;
-      if (!content) return html`<div style="opacity: 0.5;">Loading...</div>`;
+      if (!content) return html`<div style="color: rgb(from ${theme.textColor} r g b / 0.6);">Loading...</div>`;
 
       return html`${content}`;
     }

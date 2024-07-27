@@ -25,6 +25,14 @@ interface CurrentBookConfig {
   currentLinks: NavItemWithLink[];
   getCurrentLink: () => NavItemWithLink | undefined;
   isDevMode: () => boolean;
+
+  slots: {
+    sidebarBefore?: Element | null;
+    mainBefore?: Element | null;
+    mainAfter?: Element | null;
+    navInside?: Element | null;
+    logoAfter?: Element | null;
+  };
 }
 
 export const [bookStore, updateBookStore] = useStore<Partial<CurrentBookConfig>>({});

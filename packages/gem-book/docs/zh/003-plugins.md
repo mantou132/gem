@@ -95,10 +95,10 @@ yarn add gem-book
 将内容插入 `<gem-book>`，这允许在特定页面自定义 `<gem-book>` 内容，例如自定义侧边栏：
 
 ```md
-<gbp-content>
-  <div slot="sidebar-before">Test</div>
+<gbp-content slot="sidebar-before">
+  <div>Test</div>
   <style>
-    gem-book::part(sidebar-content) {
+    gem-book [part=sidebar-content] {
       display: none;
     }
   </style>

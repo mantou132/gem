@@ -6,10 +6,9 @@ customElements.whenDefined('gem-book').then(({ GemBookPluginElement }: typeof Ge
   const esmBuilderPromise = import(/* webpackIgnore: true */ esmBuilder);
 
   const { Gem, Utils } = GemBookPluginElement;
-  const { html, customElement, attribute, shadow } = Gem;
+  const { customElement, attribute } = Gem;
 
   @customElement('gbp-import')
-  @shadow()
   class _GbpImportElement extends GemBookPluginElement {
     @attribute src: string;
     @attribute dependencies: string;
@@ -53,16 +52,6 @@ customElements.whenDefined('gem-book').then(({ GemBookPluginElement }: typeof Ge
         },
         () => [this.src],
       );
-    }
-
-    render() {
-      return html`
-        <style>
-          :host {
-            display: none;
-          }
-        </style>
-      `;
     }
   }
 });

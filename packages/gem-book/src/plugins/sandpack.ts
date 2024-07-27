@@ -64,7 +64,7 @@ customElements.whenDefined('gem-book').then(({ GemBookPluginElement }: typeof Ge
     }
     .header {
       grid-area: tabs;
-      background: rgba(${theme.textColorRGB}, 0.03);
+      background: rgb(from ${theme.textColor} r g b / 0.03);
       border-bottom: 1px solid ${theme.borderColor};
       display: flex;
       align-items: center;
@@ -106,7 +106,7 @@ customElements.whenDefined('gem-book').then(({ GemBookPluginElement }: typeof Ge
     ::slotted(*) {
       max-height: 70vh;
       grid-area: code;
-      background: rgba(${theme.textColorRGB}, 0.03);
+      background: rgb(from ${theme.textColor} r g b / 0.03);
       margin: 0 !important;
       border-radius: 0 !important;
     }
@@ -114,7 +114,7 @@ customElements.whenDefined('gem-book').then(({ GemBookPluginElement }: typeof Ge
       display: flex;
       grid-area: preview;
       padding: 1.5em;
-      background: rgba(${theme.textColorRGB}, 0.05);
+      background: rgb(from ${theme.textColor} r g b / 0.05);
     }
     .status {
       line-height: 2;

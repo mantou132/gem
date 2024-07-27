@@ -1,4 +1,4 @@
-import { customElement, GemElement, html, shadow } from '@mantou/gem';
+import { adoptedStyle, createCSSSheet, css, customElement, GemElement, html } from '@mantou/gem';
 
 import { getGithubPath } from '../lib/utils';
 import { bookStore, locationStore } from '../store';
@@ -11,8 +11,32 @@ import '@mantou/gem/elements/reflect';
 import '@mantou/gem/elements/title';
 import '@mantou/gem/elements/use';
 
+const styles = createCSSSheet(css`
+  :scope {
+    text-align: center;
+  }
+  h1 {
+    font-size: 2em;
+    font-weight: bold;
+    margin: 0;
+  }
+  gem-link {
+    color: inherit;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+  }
+  gem-link:hover {
+    opacity: 0.8;
+  }
+  gem-use {
+    width: 18px;
+    height: 18px;
+    margin-right: 10px;
+  }
+`);
 @customElement('gem-book-404')
-@shadow()
+@adoptedStyle(styles)
 export class Meta extends GemElement {
   #getMdFullPath = () => {
     const { links = [] } = bookStore;
@@ -31,30 +55,6 @@ export class Meta extends GemElement {
     const noGithub = !github || !sourceBranch || !fullPath;
 
     return html`
-      <style>
-        :host {
-          text-align: center;
-        }
-        h1 {
-          font-size: 2em;
-          font-weight: bold;
-          margin: 0;
-        }
-        gem-link {
-          color: inherit;
-          text-decoration: none;
-          display: inline-flex;
-          align-items: center;
-        }
-        gem-link:hover {
-          opacity: 0.8;
-        }
-        gem-use {
-          width: 18px;
-          height: 18px;
-          margin-right: 10px;
-        }
-      </style>
       <h1><gem-title inert>Not Found</gem-title></h1>
       ${noGithub
         ? ''

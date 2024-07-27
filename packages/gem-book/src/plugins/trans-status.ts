@@ -26,6 +26,10 @@ customElements.whenDefined('gem-book').then(({ GemBookPluginElement }: typeof Ge
       return this.status || 'none';
     }
 
+    mounted() {
+      this.dataset.styleScope = 'false';
+    }
+
     render() {
       const langPkg = locales[GemBookPluginElement.lang || selfI18n.fallbackLanguage];
       return html`${Utils.parseMarkdown(

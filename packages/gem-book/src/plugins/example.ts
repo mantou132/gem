@@ -28,7 +28,7 @@ customElements.whenDefined('gem-book').then(({ GemBookPluginElement }: typeof Ge
     }
     .preview {
       flex-grow: 1;
-      background: rgba(${theme.textColorRGB}, 0.05);
+      background: rgb(from ${theme.textColor} r g b / 0.05);
       display: flex;
       flex-wrap: wrap;
       align-items: center;
@@ -37,7 +37,7 @@ customElements.whenDefined('gem-book').then(({ GemBookPluginElement }: typeof Ge
       gap: 1em;
     }
     .loading {
-      opacity: 0.5;
+      color: rgb(from ${theme.textColor} r g b / 0.6);
     }
     .error {
       color: ${theme.cautionColor};
@@ -46,7 +46,7 @@ customElements.whenDefined('gem-book').then(({ GemBookPluginElement }: typeof Ge
       max-width: 100%;
     }
     .panel {
-      background: rgba(${theme.textColorRGB}, 0.03);
+      background: rgb(from ${theme.textColor} r g b / 0.03);
       padding: 1em;
     }
     .code {

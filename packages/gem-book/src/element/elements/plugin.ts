@@ -9,7 +9,7 @@ import { BookConfig } from '../../common/config';
 import { debounce } from '../../common/utils';
 import { icons } from '../elements/icons';
 import { getRanges, getParts, joinPath, getURL, escapeHTML, capitalize } from '../lib/utils';
-import { parseMarkdown, unsafeRenderHTML } from '../lib/renderer';
+import { linkStyle, parseMarkdown, tableStyle, unsafeRenderHTML } from '../lib/renderer';
 import { originDocLang, selfI18n } from '../helper/i18n';
 
 /**
@@ -55,6 +55,10 @@ export class GemBookPluginElement<T = any> extends GemElement<T> {
     getRemoteURL,
     parseMarkdown,
     unsafeRenderHTML,
+  };
+  static shaderStyles = {
+    tableStyle,
+    linkStyle,
   };
 
   static caches = new Map<typeof GemBookPluginElement, Map<string, any>>();

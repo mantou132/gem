@@ -1,4 +1,4 @@
-import { html, GemElement, customElement, connectStore, css, shadow } from '@mantou/gem';
+import { html, GemElement, customElement, connectStore, css, createCSSSheet, adoptedStyle } from '@mantou/gem';
 
 import { selfI18n } from '../helper/i18n';
 import { theme } from '../helper/theme';
@@ -7,31 +7,32 @@ import { unsafeRenderHTML } from '../lib/renderer';
 
 import '@mantou/gem/elements/link';
 
+const styles = createCSSSheet(css`
+  :scope {
+    display: block;
+    padding-block: 2rem;
+    box-sizing: border-box;
+    border-top: 1px solid ${theme.borderColor};
+    font-style: italic;
+    line-height: 1.5;
+    color: rgb(from ${theme.textColor} r g b / 0.5);
+  }
+  gem-link {
+    color: ${theme.textColor};
+    text-decoration: none;
+  }
+  gem-link:hover {
+    opacity: 0.8;
+  }
+`);
+
 @customElement('gem-book-footer')
 @connectStore(bookStore)
-@shadow()
+@adoptedStyle(styles)
 export class Footer extends GemElement {
   render() {
     const { config } = bookStore;
     return html`
-      <style>
-        :host {
-          display: block;
-          padding-block: 2rem;
-          box-sizing: border-box;
-          border-top: 1px solid ${theme.borderColor};
-          font-style: italic;
-          line-height: 1.5;
-          color: rgba(${theme.textColorRGB}, 0.5);
-        }
-        gem-link {
-          color: ${theme.textColor};
-          text-decoration: none;
-        }
-        gem-link:hover {
-          opacity: 0.8;
-        }
-      </style>
       ${config?.footer
         ? unsafeRenderHTML(
             config.footer,

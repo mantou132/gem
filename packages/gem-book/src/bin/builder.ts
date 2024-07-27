@@ -237,7 +237,7 @@ export async function buildApp(dir: string, options: Required<CliUniqueConfig>, 
         new CopyWebpackPlugin({
           patterns: [{ from: docsDir, to: outputDir }],
         }),
-    ],
+    ].filter((e) => !!e),
   });
   if (build) {
     webpackCompiler.run((err, stats) => {

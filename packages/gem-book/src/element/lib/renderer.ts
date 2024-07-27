@@ -106,6 +106,103 @@ export function parseMarkdown(mdBody: string) {
   return [...parser.parseFromString(parse(mdBody, { renderer: currentRenderer }), 'text/html').body.children];
 }
 
+export const blockquoteStyle = css`
+  blockquote {
+    --highlight: ${theme.textColor};
+    border-left: ${theme.normalRound} solid rgb(from var(--highlight) r g b / 0.05);
+    border-radius: ${theme.normalRound};
+    margin: 2rem 0px;
+    padding: 0.8em 1em;
+    break-inside: avoid;
+
+    &,
+    & code,
+    & gem-book-pre {
+      background: rgb(from var(--highlight) r g b / 0.05);
+    }
+    &.note {
+      --highlight: ${theme.noteColor};
+    }
+    &.tip {
+      --highlight: ${theme.tipColor};
+    }
+    &.important {
+      --highlight: ${theme.importantColor};
+    }
+    &.warning {
+      --highlight: ${theme.warningColor};
+    }
+    &.caution {
+      --highlight: ${theme.cautionColor};
+    }
+    & > .title {
+      font-weight: bold;
+      color: rgb(var(--highlight));
+    }
+    & > p {
+      margin: 0.5em 0 0;
+    }
+    & > :first-child {
+      margin-top: 0;
+    }
+  }
+`;
+
+export const haedingStyle = css`
+  .header-anchor {
+    font-size: 0.75em;
+    margin-inline-start: 0.25em;
+    opacity: 0;
+    border-bottom: none;
+    text-decoration: none;
+    &::before {
+      content: '#';
+    }
+  }
+  .header-anchor:focus,
+  .markdown-header:hover .header-anchor {
+    opacity: 1;
+  }
+`;
+
+export const tableStyle = css`
+  .table-wrap {
+    margin: 2rem 0;
+    width: max-content;
+    max-width: 100%;
+    border: 1px solid ${theme.borderColor};
+    border-radius: ${theme.normalRound};
+    overflow: auto;
+  }
+  table {
+    min-width: 100%;
+    border-collapse: collapse;
+
+    :where(td, th):not(:last-of-type) {
+      border-right: 1px solid ${theme.borderColor};
+    }
+    tr:not(:last-of-type) {
+      border-bottom: 1px solid ${theme.borderColor};
+    }
+    tbody tr:hover {
+      background: rgb(from ${theme.textColor} r g b / 0.02);
+    }
+    :where(td, th) {
+      padding: 0.75em 1em;
+    }
+    :where(td, th):not([align]) {
+      text-align: left;
+    }
+    thead {
+      color: ${theme.textColor};
+      background: rgb(from ${theme.textColor} r g b / 0.05);
+    }
+    thead th {
+      font-weight: normal;
+    }
+  }
+`;
+
 export const linkStyle = css`
   .link {
     color: ${theme.primaryColor};
@@ -123,6 +220,7 @@ export const linkStyle = css`
 
 export function unsafeRenderHTML(s: string, style = '') {
   const htmlStr = parse(s, { renderer: currentRenderer });
+  // 只包含链接样式
   const cssStr = css`
     ${linkStyle}
     ${style}

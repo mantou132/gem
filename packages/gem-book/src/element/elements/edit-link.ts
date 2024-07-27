@@ -1,4 +1,4 @@
-import { html, GemElement, customElement, connectStore, shadow } from '@mantou/gem';
+import { html, GemElement, customElement, connectStore, css, adoptedStyle, createCSSSheet } from '@mantou/gem';
 import { mediaQuery } from '@mantou/gem/helper/mediaquery';
 
 import { getGithubPath } from '../lib/utils';
@@ -9,6 +9,41 @@ import { icons } from './icons';
 
 import '@mantou/gem/elements/link';
 import '@mantou/gem/elements/use';
+
+const styles = createCSSSheet(css`
+  :scope {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+    padding-block: 6rem 2rem;
+    box-sizing: border-box;
+    justify-content: space-between;
+    line-height: 1.5;
+  }
+  gem-link {
+    color: inherit;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+  }
+  gem-link:hover {
+    opacity: 0.8;
+  }
+  gem-use {
+    width: 18px;
+    height: 18px;
+    margin-right: 10px;
+  }
+  .last-updated gem-link {
+    opacity: 0.5;
+  }
+  @media ${mediaQuery.PHONE} {
+    gem-link,
+    .last-updated {
+      white-space: nowrap;
+    }
+  }
+`);
 
 interface State {
   lastUpdated: string;
@@ -26,7 +61,7 @@ const fetchData = async (api: string) => {
 
 @customElement('gem-book-edit-link')
 @connectStore(locationStore)
-@shadow()
+@adoptedStyle(styles)
 export class EditLink extends GemElement<State> {
   state = {
     lastUpdated: '',
@@ -62,40 +97,6 @@ export class EditLink extends GemElement<State> {
     const { github, sourceBranch = '' } = config || {};
     if (!github || !sourceBranch || !this.#fullPath) return;
     return html`
-      <style>
-        :host {
-          display: flex;
-          gap: 1rem;
-          flex-wrap: wrap;
-          padding-block: 6rem 2rem;
-          box-sizing: border-box;
-          justify-content: space-between;
-          line-height: 1.5;
-        }
-        gem-link {
-          color: inherit;
-          text-decoration: none;
-          display: inline-flex;
-          align-items: center;
-        }
-        gem-link:hover {
-          opacity: 0.8;
-        }
-        gem-use {
-          width: 18px;
-          height: 18px;
-          margin-right: 10px;
-        }
-        .last-updated gem-link {
-          opacity: 0.5;
-        }
-        @media ${mediaQuery.PHONE} {
-          gem-link,
-          .last-updated {
-            white-space: nowrap;
-          }
-        }
-      </style>
       <gem-link href=${`${github}/edit/${sourceBranch}${this.#fullPath}`}>
         <gem-use .element=${icons.compose}></gem-use>
         <span>${selfI18n.get('editOnGithub')}</span>

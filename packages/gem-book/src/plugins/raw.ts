@@ -7,22 +7,23 @@ type State = {
 
 customElements.whenDefined('gem-book').then(({ GemBookPluginElement }: typeof GemBookElement) => {
   const { Gem, theme, Utils } = GemBookPluginElement;
-  const { attribute, customElement, html, createCSSSheet, css, adoptedStyle, shadow } = Gem;
+  const { attribute, customElement, html, createCSSSheet, css, adoptedStyle } = Gem;
 
   const style = createCSSSheet(css`
-    :host {
+    :scope {
       display: contents;
     }
     .loading,
     .error {
       display: flex;
+      border-radius: ${theme.normalRound};
       place-items: center;
       place-content: center;
       min-height: 20em;
-      background: rgba(${theme.textColorRGB}, 0.05);
+      background: rgb(from ${theme.textColor} r g b / 0.05);
     }
     .loading {
-      opacity: 0.5;
+      color: rgb(from ${theme.textColor} r g b / 0.6);
     }
     .error {
       color: ${theme.cautionColor};
@@ -44,7 +45,6 @@ customElements.whenDefined('gem-book').then(({ GemBookPluginElement }: typeof Ge
 
   @customElement('gbp-raw')
   @adoptedStyle(style)
-  @shadow()
   class _GbpRawElement extends GemBookPluginElement<State> {
     @attribute src: string;
     @attribute codelang: string;

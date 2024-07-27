@@ -104,7 +104,7 @@ export function textContent(s: string) {
   return div.textContent || '';
 }
 
-export function checkBuiltInPlugin(container: HTMLElement | ShadowRoot) {
+export function checkBuiltInPlugin(container: HTMLElement) {
   const tagSet = new Set([...container.querySelectorAll(`:not(:defined)`)].map((e) => e.tagName.toLowerCase()));
   tagSet.forEach((tag) => {
     const [namespace, ...rest] = tag.split('-');

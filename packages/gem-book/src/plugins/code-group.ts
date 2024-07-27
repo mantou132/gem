@@ -26,7 +26,7 @@ customElements.whenDefined('gem-book').then(({ GemBookPluginElement }: typeof Ge
       overflow: hidden;
     }
     .header {
-      background: rgba(${theme.textColorRGB}, 0.03);
+      background: rgb(from ${theme.textColor} r g b / 0.03);
       border-bottom: 1px solid ${theme.borderColor};
       display: flex;
       align-items: center;

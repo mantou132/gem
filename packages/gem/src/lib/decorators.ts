@@ -1,7 +1,7 @@
 import type { GemReflectElement } from '../elements/reflect';
 
 import { GemElement, UpdateToken, Metadata } from './element';
-import { Sheet, camelToKebabCase, randomStr, PropProxyMap, GemError } from './utils';
+import { Sheet, camelToKebabCase, randomStr, PropProxyMap } from './utils';
 import { Store } from './store';
 import * as elementExports from './element';
 import * as decoratorsExports from './decorators';
@@ -401,7 +401,6 @@ function defineStaticField(
  */
 export function slot(_: undefined, context: ClassFieldDecoratorContext<any, string>) {
   return function (this: any, value: string) {
-    if (!context.metadata.mode) throw new GemError(`not's shadow dom`);
     return defineStaticField(context, this, 'definedSlots', value);
   };
 }
@@ -419,7 +418,6 @@ export function slot(_: undefined, context: ClassFieldDecoratorContext<any, stri
  */
 export function part(_: undefined, context: ClassFieldDecoratorContext<any, string>) {
   return function (this: any, value: string) {
-    if (!context.metadata.mode) throw new GemError(`not's shadow dom`);
     return defineStaticField(context, this, 'definedParts', value);
   };
 }

@@ -12,7 +12,10 @@ customElements.whenDefined('gem-book').then(({ GemBookPluginElement }: typeof Ge
     render() {
       const bookEle = document.querySelector<GemBookElement>('gem-book');
       return html`
-        <gem-reflect .method=${this.method} .target=${bookEle}>
+        <gem-reflect
+          .method=${this.method}
+          .target=${bookEle?.querySelector<HTMLSlotElement>(`slot[name=${this.slot}]`) || document.head}
+        >
           ${[...this.children].map((e) => e.cloneNode(true))}
         </gem-reflect>
       `;

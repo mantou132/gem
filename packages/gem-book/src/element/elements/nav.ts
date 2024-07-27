@@ -10,7 +10,9 @@ import {
   classMap,
   history,
   state,
-  shadow,
+  createCSSSheet,
+  css,
+  adoptedStyle,
 } from '@mantou/gem';
 import { mediaQuery } from '@mantou/gem/helper/mediaquery';
 
@@ -26,6 +28,107 @@ import '@mantou/gem/elements/link';
 import '@mantou/gem/elements/use';
 import './nav-logo';
 
+const styles = createCSSSheet(css`
+  :scope {
+    display: flex;
+    box-sizing: border-box;
+    height: ${theme.headerHeight};
+    border-bottom: 1px solid ${theme.borderColor};
+  }
+  gem-book-nav-logo {
+    margin-right: 3rem;
+  }
+  .item {
+    display: flex;
+    align-items: center;
+    position: relative;
+    cursor: pointer;
+  }
+  slot.item {
+    gap: 1rem;
+  }
+  :where(.item + .item) {
+    margin-left: 1rem;
+  }
+  .item select {
+    -webkit-appearance: none;
+    appearance: none;
+    cursor: pointer;
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+  }
+  .left {
+    flex-grow: 1;
+    display: flex;
+  }
+  .left .item {
+    padding: 0 1rem;
+  }
+  .external:not(.icon) {
+    padding-inline-end: 0;
+  }
+  .external:not(.icon) gem-use {
+    width: 1em;
+    margin-left: 0.3rem;
+  }
+  :scope(:state(compact)) .external:not(.icon) {
+    display: none;
+  }
+  :scope(:state(compact)) .left .item {
+    padding: 0 0.5rem;
+  }
+  gem-link,
+  gem-active-link {
+    text-decoration: none;
+    color: inherit;
+  }
+  gem-active-link:not(.icon):active {
+    background: rgb(from ${theme.primaryColor} r g b / 0.1);
+  }
+  gem-active-link:not(.icon):hover,
+  gem-active-link:state(active) {
+    color: ${theme.primaryColor};
+  }
+  gem-active-link:state(active)::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    bottom: -1px;
+    height: 3px;
+    background: currentColor;
+    width: 100%;
+  }
+  .icon {
+    padding-left: 0.5rem;
+    color: rgb(from ${theme.textColor} r g b / 0.6);
+  }
+  .icon:hover {
+    color: rgb(from ${theme.textColor} r g b / 0.8);
+  }
+  .icon span {
+    display: none;
+  }
+  .icon gem-use {
+    width: 1.5em;
+  }
+  .menu {
+    display: none;
+    color: rgb(from ${theme.textColor} r g b / 0.8);
+    width: 1.5em;
+    padding-inline: 1rem;
+    margin-inline-start: -1rem;
+  }
+  @media ${mediaQuery.PHONE} {
+    .menu {
+      display: block;
+    }
+    .left * {
+      display: none;
+    }
+  }
+`);
+
 /**
  * @attr tl
  * @attr icon
@@ -34,7 +137,7 @@ import './nav-logo';
 @customElement('gem-book-nav')
 @connectStore(bookStore)
 @connectStore(sidebarStore)
-@shadow()
+@adoptedStyle(styles)
 export class Nav extends GemElement {
   @boolattribute logo: boolean;
 
@@ -98,106 +201,6 @@ export class Nav extends GemElement {
     const iconExternals = externals?.filter((e) => e.title.toLowerCase() in icons) || [];
 
     return html`
-      <style>
-        :host {
-          display: flex;
-          box-sizing: border-box;
-          height: ${theme.headerHeight};
-          border-bottom: 1px solid ${theme.borderColor};
-        }
-        gem-book-nav-logo {
-          margin-right: 3rem;
-        }
-        .item {
-          display: flex;
-          align-items: center;
-          position: relative;
-          cursor: pointer;
-        }
-        slot.item {
-          gap: 1rem;
-        }
-        :where(.item + .item) {
-          margin-left: 1rem;
-        }
-        .item select {
-          -webkit-appearance: none;
-          appearance: none;
-          cursor: pointer;
-          position: absolute;
-          inset: 0;
-          opacity: 0;
-        }
-        .left {
-          flex-grow: 1;
-          display: flex;
-        }
-        .left .item {
-          padding: 0 1rem;
-        }
-        .external:not(.icon) {
-          padding-inline-end: 0;
-        }
-        .external:not(.icon) gem-use {
-          width: 1em;
-          margin-left: 0.3rem;
-        }
-        :host(:state(compact)) .external:not(.icon) {
-          display: none;
-        }
-        :host(:state(compact)) .left .item {
-          padding: 0 0.5rem;
-        }
-        gem-link,
-        gem-active-link {
-          text-decoration: none;
-          color: inherit;
-        }
-        gem-active-link:not(.icon):active {
-          background: rgba(${theme.primaryColorRGB}, 0.1);
-        }
-        gem-active-link:not(.icon):hover,
-        gem-active-link:state(active) {
-          color: ${theme.primaryColor};
-        }
-        gem-active-link:state(active)::after {
-          content: '';
-          position: absolute;
-          left: 0;
-          bottom: -1px;
-          height: 3px;
-          background: currentColor;
-          width: 100%;
-        }
-        .icon {
-          padding-left: 0.5rem;
-          opacity: 0.6;
-        }
-        .icon:hover {
-          opacity: 0.8;
-        }
-        .icon span {
-          display: none;
-        }
-        .icon gem-use {
-          width: 1.5em;
-        }
-        .menu {
-          display: none;
-          opacity: 0.8;
-          width: 1.5em;
-          padding-inline: 1rem;
-          margin-inline-start: -1rem;
-        }
-        @media ${mediaQuery.PHONE} {
-          .menu {
-            display: block;
-          }
-          .left * {
-            display: none;
-          }
-        }
-      </style>
       <gem-use
         class="menu"
         @click=${() => updateSidebarStore({ open: !sidebarStore.open })}
@@ -209,7 +212,7 @@ export class Nav extends GemElement {
         ${textExternals.map((item) => this.renderExternalItem(item))}
         <div ref=${this.spaceRef.ref} style="flex-grow: 1;"></div>
       </div>
-      <slot class="item"></slot>
+      <slot class="item">${bookStore.slots?.navInside}</slot>
       ${this.renderI18nSelect()}
       ${iconExternals.map((item) => this.renderExternalItem(item, (icons as any)[item.title.toLowerCase()]))}
       ${githubLink}

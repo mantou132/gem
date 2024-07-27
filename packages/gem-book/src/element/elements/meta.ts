@@ -1,4 +1,4 @@
-import { connectStore, customElement, GemElement, html, shadow } from '@mantou/gem';
+import { connectStore, customElement, GemElement, html } from '@mantou/gem';
 
 import { joinPath } from '../lib/utils';
 import { themeStore } from '../helper/theme';
@@ -16,7 +16,6 @@ function getAlternateUrl(lang: string, pathname?: string) {
 
 @customElement('gem-book-meta')
 @connectStore(bookStore)
-@shadow()
 export class Meta extends GemElement {
   render() {
     const { langList, lang = '', routes, homePage, getCurrentLink } = bookStore;

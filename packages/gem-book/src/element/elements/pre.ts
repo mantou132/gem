@@ -1,5 +1,17 @@
-import { customElement, attribute, refobject, RefObject, boolattribute, shadow, GemElement, html } from '@mantou/gem';
-import { styleMap } from '@mantou/gem/lib/utils';
+import {
+  customElement,
+  attribute,
+  refobject,
+  RefObject,
+  boolattribute,
+  shadow,
+  GemElement,
+  html,
+  adoptedStyle,
+  createCSSSheet,
+  css,
+  styleMap,
+} from '@mantou/gem';
 
 import { theme } from '../helper/theme';
 import { getParts, getRanges } from '../lib/utils';
@@ -226,11 +238,189 @@ const langAliases: Record<string, string> = {
 };
 
 const IGNORE_LINE = 2;
+// Safari 精度问题所以使用整数像素单位
+const LINE_HEIGHT = '24px';
+const PADDING = '1em';
+
+const styles = createCSSSheet(css`
+  :host([status='hidden']) {
+    display: none;
+  }
+  :host {
+    display: block;
+    font-family: ${theme.codeFont};
+    background: rgb(from ${theme.textColor} r g b / 0.05);
+  }
+  .filename {
+    font-size: 0.75em;
+    padding: 1rem;
+    line-height: 1;
+    border-bottom: 1px solid ${theme.borderColor};
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
+    color: rgb(from ${theme.textColor} r g b / 0.5);
+  }
+  .container {
+    height: 100%;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    position: relative;
+    display: flex;
+    font-size: 0.875em;
+    line-height: ${LINE_HEIGHT};
+    --comment-color: var(--code-comment-color, #6e6e6e);
+    --section-color: var(--code-section-color, #c9252d);
+    --title-color: var(--code-title-color, #4646c6);
+    --variable-color: var(--code-variable-color, #ae0e66);
+    --literal-color: var(--code-literal-color, #6f38b1);
+    --string-color: var(--code-string-color, #12805c);
+    --function-color: var(--code-function-color, #0d66d0);
+    --keyword-color: var(--code-keyword-color, #93219e);
+    --attribute-color: var(--code-attribute-color, #4646c6);
+  }
+  .gem-code,
+  .linenumber {
+    padding: ${PADDING};
+    box-sizing: border-box;
+    min-height: 100%;
+    height: max-content;
+  }
+  .gem-code {
+    overflow-x: auto;
+    scrollbar-width: thin;
+    font-family: inherit;
+    flex-grow: 1;
+    text-align: left;
+    white-space: pre;
+    tab-size: 2;
+    hyphens: none;
+    overflow-clip-box: content-box;
+    box-shadow: none;
+    border: none;
+    background: transparent;
+    outline: none;
+    caret-color: ${theme.textColor};
+  }
+  .linenumber {
+    display: inline-flex;
+    flex-direction: column;
+    flex-shrink: 0;
+    min-width: 3.5em;
+    text-align: right;
+    border-right: 1px solid ${theme.borderColor};
+    color: rgb(from ${theme.textColor} r g b / 0.5);
+    user-select: none;
+  }
+  .linenumber-ignore,
+  .code-ignore {
+    display: flex;
+    place-items: center;
+    height: calc(${IGNORE_LINE} * ${LINE_HEIGHT});
+    user-select: none;
+  }
+  .code-ignore {
+    place-content: start;
+  }
+  .linenumber-ignore {
+    place-content: flex-end;
+  }
+  .linenumber-ignore::before {
+    content: '·';
+    border-radius: 1em;
+    text-shadow:
+      0 0.34em,
+      0 -0.34em;
+  }
+  .gem-highlight {
+    display: block;
+    position: absolute;
+    pointer-events: none;
+    background: rgb(from ${theme.textColor} r g b / 0.05);
+    width: 100%;
+    height: ${LINE_HEIGHT};
+  }
+  .token.comment,
+  .token.prolog,
+  .token.doctype,
+  .token.cdata {
+    color: var(--comment-color);
+    font-style: italic;
+  }
+  .token.punctuation {
+    color: var(--title-color);
+  }
+  .token.tag .punctuation {
+    color: ${theme.textColor};
+  }
+  .token.tag,
+  .token.tag .class-name,
+  .token.property,
+  .token.constant,
+  .token.symbol,
+  .token.deleted,
+  .token.operator,
+  .token.entity {
+    color: var(--section-color);
+  }
+  .token.url,
+  .language-css .token.string,
+  .style .token.string,
+  .token.variable {
+    color: var(--variable-color);
+  }
+  .token.boolean,
+  .token.number {
+    color: var(--literal-color);
+  }
+  .token.attr-value,
+  .token.string,
+  .token.char,
+  .token.builtin,
+  .token.inserted {
+    color: var(--string-color);
+  }
+  .token.atrule,
+  .token.function,
+  .token.class-name {
+    color: var(--function-color);
+  }
+  .token.keyword {
+    color: var(--keyword-color);
+  }
+  .token.selector,
+  .token.attr-name,
+  .token.regex,
+  .token.important {
+    color: var(--attribute-color);
+  }
+  .token.important,
+  .token.bold {
+    font-weight: bold;
+  }
+  .token.italic {
+    font-style: italic;
+  }
+  .token.entity {
+    cursor: help;
+  }
+  @media print {
+    code {
+      border-left: 5px solid ${theme.borderColor};
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+    .highlight {
+      display: none;
+    }
+  }
+`);
 
 /**
  * @customElement gem-book-pre
  */
 @customElement('gem-book-pre')
+@adoptedStyle(styles)
 @shadow()
 export class Pre extends GemElement {
   @attribute codelang: string;
@@ -394,183 +584,7 @@ export class Pre extends GemElement {
 
   render() {
     const { parts, lineNumbersParts } = this.#getParts(this.textContent || '');
-    // Safari 精度问题所以使用整数像素单位
-    const lineHeight = '24px';
-    const padding = '1em';
     return html`
-      <style>
-        :host([status='hidden']) {
-          display: none;
-        }
-        :host {
-          display: block;
-          font-family: ${theme.codeFont};
-          background: rgba(${theme.textColorRGB}, 0.05);
-        }
-        .filename {
-          font-size: 0.75em;
-          padding: 1rem;
-          line-height: 1;
-          border-bottom: 1px solid ${theme.borderColor};
-          text-overflow: ellipsis;
-          overflow: hidden;
-          white-space: nowrap;
-          color: rgba(${theme.textColorRGB}, 0.5);
-        }
-        .container {
-          height: 100%;
-          overflow-y: auto;
-          scrollbar-width: thin;
-          position: relative;
-          display: flex;
-          font-size: 0.875em;
-          line-height: ${lineHeight};
-          --comment-color: var(--code-comment-color, #6e6e6e);
-          --section-color: var(--code-section-color, #c9252d);
-          --title-color: var(--code-title-color, #4646c6);
-          --variable-color: var(--code-variable-color, #ae0e66);
-          --literal-color: var(--code-literal-color, #6f38b1);
-          --string-color: var(--code-string-color, #12805c);
-          --function-color: var(--code-function-color, #0d66d0);
-          --keyword-color: var(--code-keyword-color, #93219e);
-          --attribute-color: var(--code-attribute-color, #4646c6);
-        }
-        .gem-code,
-        .linenumber {
-          padding: ${padding};
-          box-sizing: border-box;
-          min-height: 100%;
-          height: max-content;
-        }
-        .gem-code {
-          overflow-x: auto;
-          scrollbar-width: thin;
-          font-family: inherit;
-          flex-grow: 1;
-          text-align: left;
-          white-space: pre;
-          tab-size: 2;
-          hyphens: none;
-          overflow-clip-box: content-box;
-          box-shadow: none;
-          border: none;
-          background: transparent;
-          outline: none;
-          caret-color: ${theme.textColor};
-        }
-        .linenumber {
-          display: inline-flex;
-          flex-direction: column;
-          flex-shrink: 0;
-          min-width: 3.5em;
-          text-align: right;
-          border-right: 1px solid ${theme.borderColor};
-          color: rgba(${theme.textColorRGB}, 0.5);
-          user-select: none;
-        }
-        .linenumber-ignore,
-        .code-ignore {
-          display: flex;
-          place-items: center;
-          height: calc(${IGNORE_LINE} * ${lineHeight});
-          user-select: none;
-        }
-        .code-ignore {
-          place-content: start;
-        }
-        .linenumber-ignore {
-          place-content: flex-end;
-        }
-        .linenumber-ignore::before {
-          content: '·';
-          border-radius: 1em;
-          text-shadow:
-            0 0.34em,
-            0 -0.34em;
-        }
-        .gem-highlight {
-          display: block;
-          position: absolute;
-          pointer-events: none;
-          background: rgba(${theme.textColorRGB}, 0.05);
-          width: 100%;
-          height: ${lineHeight};
-        }
-        .token.comment,
-        .token.prolog,
-        .token.doctype,
-        .token.cdata {
-          color: var(--comment-color);
-          font-style: italic;
-        }
-        .token.punctuation {
-          color: var(--title-color);
-        }
-        .token.tag .punctuation {
-          color: ${theme.textColor};
-        }
-        .token.tag,
-        .token.tag .class-name,
-        .token.property,
-        .token.constant,
-        .token.symbol,
-        .token.deleted,
-        .token.operator,
-        .token.entity {
-          color: var(--section-color);
-        }
-        .token.url,
-        .language-css .token.string,
-        .style .token.string,
-        .token.variable {
-          color: var(--variable-color);
-        }
-        .token.boolean,
-        .token.number {
-          color: var(--literal-color);
-        }
-        .token.attr-value,
-        .token.string,
-        .token.char,
-        .token.builtin,
-        .token.inserted {
-          color: var(--string-color);
-        }
-        .token.atrule,
-        .token.function,
-        .token.class-name {
-          color: var(--function-color);
-        }
-        .token.keyword {
-          color: var(--keyword-color);
-        }
-        .token.selector,
-        .token.attr-name,
-        .token.regex,
-        .token.important {
-          color: var(--attribute-color);
-        }
-        .token.important,
-        .token.bold {
-          font-weight: bold;
-        }
-        .token.italic {
-          font-style: italic;
-        }
-        .token.entity {
-          cursor: help;
-        }
-        @media print {
-          code {
-            border-left: 5px solid ${theme.borderColor};
-            white-space: pre-wrap;
-            word-break: break-word;
-          }
-          .highlight {
-            display: none;
-          }
-        }
-      </style>
       ${!this.#headless ? html`<div class="filename">${this.filename}</div>` : ''}
       <div class="container">
         ${lineNumbersParts
@@ -581,7 +595,7 @@ export class Pre extends GemElement {
                   <span
                     class="gem-highlight"
                     style=${styleMap({
-                      top: `calc(${index} * ${lineHeight} + ${padding})`,
+                      top: `calc(${index} * ${LINE_HEIGHT} + ${PADDING})`,
                     })}
                   ></span>
                 `

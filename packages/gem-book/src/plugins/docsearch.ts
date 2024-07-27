@@ -7,7 +7,7 @@ const moduleLink = 'https://esm.sh/@docsearch/js@3.5.2';
 const styleLink = 'https://esm.sh/@docsearch/css@3.5.2/dist/style.css';
 const minisearchLink = 'https://esm.sh/minisearch@6.3.0';
 
-const IS_LOCAL = new URL(import.meta.url).searchParams.has('local');
+const IS_LOCAL = (URL as any).parse(import.meta.url)?.searchParams.has('local');
 
 // https://vitepress.dev/zh/reference/default-theme-search#algolia-search-i18n
 const zh = {
@@ -88,15 +88,15 @@ customElements.whenDefined('gem-book').then(({ GemBookPluginElement }: typeof Ge
             :root {
               --docsearch-logo-color: ${theme.primaryColor};
               --docsearch-primary-color: ${theme.primaryColor};
-              --docsearch-text-color: ${theme.textColorRGB};
-              --docsearch-muted-color: rgba(${theme.textColorRGB}, 0.6);
+              --docsearch-text-color: ${theme.textColor};
+              --docsearch-muted-color: rgb(from ${theme.textColor} r g b / 0.6);
               --docsearch-container-background: rgba(101, 108, 133, 0.8);
               --docsearch-modal-background: ${theme.backgroundColor};
               --docsearch-modal-shadow: 0 3px 8px 0 #555a64;
-              --docsearch-searchbox-background: rgba(${theme.textColorRGB}, 0.05);
-              --docsearch-searchbox-focus-background: rgba(${theme.textColorRGB}, 0.05);
-              --docsearch-hit-color: rgba(${theme.textColorRGB}, 0.6);
-              --docsearch-hit-background: rgba(${theme.textColorRGB}, 0.05);
+              --docsearch-searchbox-background: rgb(from ${theme.textColor} r g b / 0.05);
+              --docsearch-searchbox-focus-background: rgb(from ${theme.textColor} r g b / 0.05);
+              --docsearch-hit-color: rgb(from ${theme.textColor} r g b / 0.6);
+              --docsearch-hit-background: rgb(from ${theme.textColor} r g b / 0.05);
               --docsearch-hit-active-color: #fff;
               --docsearch-hit-shadow: none;
               --docsearch-footer-background: ${theme.backgroundColor};
@@ -131,11 +131,11 @@ customElements.whenDefined('gem-book').then(({ GemBookPluginElement }: typeof Ge
           .DocSearch-Button,
           .DocSearch-Button:hover,
           .DocSearch-Button .DocSearch-Search-Icon {
-            color: rgba(${theme.textColorRGB}, 0.5);
+            color: rgb(from ${theme.textColor} r g b / 0.5);
           }
           .DocSearch-Button,
           .DocSearch-Button:hover {
-            background: rgba(${theme.textColorRGB}, 0.05);
+            background: rgb(from ${theme.textColor} r g b / 0.05);
           }
           .DocSearch-Button .DocSearch-Search-Icon {
             width: 1.2em;

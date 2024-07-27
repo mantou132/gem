@@ -8,17 +8,18 @@ const gemAnalyzer = 'https://esm.sh/gem-analyzer';
 type State = { elements?: ElementDetail[]; exports?: ExportDetail[]; error?: any };
 
 customElements.whenDefined('gem-book').then(({ GemBookPluginElement }: typeof GemBookElement) => {
-  const { Gem, theme, Utils } = GemBookPluginElement;
-  const { html, customElement, attribute, numattribute, createCSSSheet, css, adoptedStyle, shadow } = Gem;
+  const { Gem, theme, Utils, shaderStyles } = GemBookPluginElement;
+  const { html, customElement, attribute, numattribute, createCSSSheet, css, adoptedStyle } = Gem;
 
   const styles = createCSSSheet(css`
+    ${shaderStyles.tableStyle}
     table {
       tr td:first-of-type {
         white-space: nowrap;
       }
     }
     .loading {
-      opacity: 0.5;
+      color: rgb(from ${theme.textColor} r g b / 0.6);
     }
     .error {
       color: ${theme.cautionColor};

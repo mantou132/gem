@@ -13,8 +13,10 @@ import {
   refobject,
   RefObject,
   boolattribute,
-  exportPartsMap,
-  shadow,
+  css,
+  adoptedStyle,
+  createCSSSheet,
+  kebabToCamelCase,
 } from '@mantou/gem';
 import { GemLightRouteElement, matchPath } from '@mantou/gem/elements/route';
 import { mediaQuery } from '@mantou/gem/helper/mediaquery';
@@ -24,22 +26,131 @@ import { BookConfig } from '../common/config';
 import { UPDATE_EVENT } from '../common/constant';
 
 import { theme, changeTheme, Theme, themeProps } from './helper/theme';
-import { bookStore, updateBookConfig, locationStore } from './store';
+import { bookStore, updateBookConfig, locationStore, updateBookStore } from './store';
 import { checkBuiltInPlugin, joinPath } from './lib/utils';
 import { GemBookPluginElement } from './elements/plugin';
 import { Loadbar } from './elements/loadbar';
-import { Homepage } from './elements/homepage';
-import { SideBar } from './elements/sidebar';
 import type { Main } from './elements/main';
 
 import '@mantou/gem/elements/title';
 import '@mantou/gem/elements/reflect';
+import './elements/homepage';
+import './elements/sidebar';
 import './elements/nav';
 import './elements/footer';
 import './elements/edit-link';
 import './elements/rel-link';
 import './elements/meta';
 import './elements/toc';
+
+const styles = createCSSSheet(css`
+  :scope {
+    display: grid;
+    grid-template-areas: 'aside content toc';
+    grid-template-columns: ${theme.sidebarWidth} 1fr minmax(0, ${theme.sidebarWidth});
+    grid-template-rows: repeat(44, auto);
+    text-rendering: optimizeLegibility;
+    font: 16px/1.8 ${theme.font};
+    color: ${theme.textColor};
+    -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+    background: ${theme.backgroundColor};
+  }
+  gem-book-nav {
+    position: sticky;
+    top: 0;
+    z-index: 3;
+    grid-area: 1 / content / 2 / toc;
+    background: ${theme.backgroundColor};
+    padding-inline: 2rem;
+  }
+  gem-book-sidebar {
+    grid-area: 1 / aside / -1 / aside;
+  }
+  main {
+    display: flex;
+    flex-direction: column;
+    width: min(100%, ${theme.maxMainWidth});
+    margin: auto;
+    padding: 2rem 2rem 0;
+    min-width: 0;
+    grid-area: auto / content;
+    box-sizing: border-box;
+  }
+  slot {
+    display: block;
+  }
+  slot > * {
+    margin-block-end: 2rem;
+  }
+  gem-light-route {
+    min-height: 100vh;
+  }
+  gem-book-toc {
+    grid-area: auto / toc;
+  }
+  @media not ${`(${mediaQuery.DESKTOP})`} {
+    :scope {
+      ${`${themeProps.sidebarWidth}: ${theme.sidebarWidthSmall}`};
+    }
+    gem-book-toc {
+      display: none;
+    }
+  }
+  @media ${mediaQuery.TABLET} {
+    main {
+      grid-area: auto / content / auto / toc;
+    }
+  }
+  /* 404, homepage */
+  :scope:state(render-full-width) {
+    gem-book-nav {
+      grid-area: 1 / aside / 2 / toc;
+    }
+    gem-book-homepage,
+    main {
+      grid-area: auto / aside / auto / toc;
+    }
+    gem-book-edit-link,
+    gem-book-rel-link {
+      display: none;
+    }
+    gem-book-footer {
+      text-align: center;
+    }
+    gem-book-toc {
+      display: none;
+    }
+  }
+  @media ${mediaQuery.PHONE} {
+    :scope {
+      display: block;
+    }
+    gem-book-nav,
+    main {
+      padding-inline: 1rem;
+    }
+    gem-book-footer {
+      text-align: left;
+    }
+  }
+  @media print {
+    :scope {
+      display: block;
+
+      main {
+        width: 100%;
+      }
+      gem-book-nav,
+      gem-book-sidebar,
+      gem-book-edit-link,
+      gem-book-rel-link,
+      gem-book-footer,
+      slot {
+        display: none;
+      }
+    }
+  }
+`);
 
 /**
  * @custom-element gem-book
@@ -49,7 +160,7 @@ import './elements/toc';
  */
 @customElement('gem-book')
 @connectStore(bookStore)
-@shadow()
+@adoptedStyle(styles)
 export class GemBookElement extends GemElement {
   static GemBookPluginElement = GemBookPluginElement;
 
@@ -82,6 +193,7 @@ export class GemBookElement extends GemElement {
   @slot static logoAfter: string;
 
   @state isHomePage: boolean;
+  @state renderFullWidth: boolean;
 
   constructor(config?: BookConfig, customTheme?: Partial<Theme>) {
     super();
@@ -112,7 +224,7 @@ export class GemBookElement extends GemElement {
       } else {
         const filename = filePath?.split('/').pop();
         // 支持非所有 [src=*.md] 元素
-        mainElement.shadowRoot?.querySelectorAll(`[src*="${filename}"]`).forEach((ele) => {
+        mainElement.querySelectorAll(`[src*="${filename}"]`).forEach((ele) => {
           (ele as any).src += `?`;
         });
       }
@@ -128,174 +240,46 @@ export class GemBookElement extends GemElement {
     this.routechange(null);
   };
 
+  willMount() {
+    updateBookStore({
+      slots: Object.fromEntries(
+        [...this.querySelectorAll(':scope > [slot]')].map((ele: Element) => [kebabToCamelCase(ele.slot), ele]),
+      ),
+    });
+  }
+
   render() {
     const { config, nav = [], routes = [], lang = '', homePage = '', currentSidebar } = bookStore;
     if (!config) return null;
 
     const { icon = '', title = '', homeMode } = config;
     const hasNavbar = icon || title || nav.length;
-    const renderHomePage = homeMode && homePage === locationStore.path;
-    const missSidebar = homeMode ? currentSidebar?.every((e) => e.link === homePage) : !currentSidebar?.length;
+    const renderHomePage = !!homeMode && homePage === locationStore.path;
+    const missSidebar = homeMode ? !!currentSidebar?.every((e) => e.link === homePage) : !currentSidebar?.length;
     // 首次渲染
     const isRedirectRoute = routes.find(({ pattern }) => matchPath(pattern, locationStore.path))?.redirect;
-    const renderFullWidth = renderHomePage || (missSidebar && !isRedirectRoute);
 
+    this.renderFullWidth = renderHomePage || (missSidebar && !isRedirectRoute);
     this.isHomePage = !!renderHomePage;
 
     return html`
-      <style>
-        :host {
-          display: grid;
-          grid-template-areas: 'aside content toc';
-          grid-template-columns: ${theme.sidebarWidth} 1fr minmax(0, ${theme.sidebarWidth});
-          grid-template-rows: repeat(44, auto);
-          text-rendering: optimizeLegibility;
-          font: 16px/1.8 ${theme.font};
-          color: ${theme.textColor};
-          -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
-          background: ${theme.backgroundColor};
-        }
-        gem-book-nav {
-          position: sticky;
-          top: 0;
-          z-index: 3;
-          grid-area: 1 / content / 2 / toc;
-          background: ${theme.backgroundColor};
-          padding-inline: 2rem;
-        }
-        gem-book-sidebar {
-          grid-area: 1 / aside / -1 / aside;
-        }
-        main {
-          display: flex;
-          flex-direction: column;
-          width: min(100%, ${theme.maxMainWidth});
-          margin: auto;
-          min-width: 0;
-          grid-area: auto / content;
-          box-sizing: border-box;
-          padding-inline: 2rem;
-        }
-        slot[name='${GemBookElement.mainBefore}'],
-        slot[name='${GemBookElement.mainAfter}'] {
-          display: block;
-        }
-        slot[name='${GemBookElement.mainBefore}'] {
-          margin-block-start: 2rem;
-        }
-        :where(
-            slot[name='${GemBookElement.mainBefore}'],
-            slot[name='${GemBookElement.mainAfter}'],
-            slot[name='${GemBookElement.sidebarBefore}']
-          )::slotted(*) {
-          margin-block-end: 2rem;
-        }
-        gem-light-route {
-          min-height: 100vh;
-        }
-        gem-book-toc {
-          grid-area: auto / toc;
-        }
-        @media not ${`(${mediaQuery.DESKTOP})`} {
-          :host {
-            ${`${themeProps.sidebarWidth}: ${theme.sidebarWidthSmall}`};
-          }
-          gem-book-toc {
-            display: none;
-          }
-        }
-        @media ${mediaQuery.TABLET} {
-          main {
-            grid-area: auto / content / auto / toc;
-          }
-        }
-        /* 404, homepage */
-        @media ${renderFullWidth ? 'all' : 'not all'} {
-          gem-book-nav {
-            grid-area: 1 / aside / 2 / toc;
-          }
-          gem-book-homepage,
-          main {
-            grid-area: auto / aside / auto / toc;
-          }
-          gem-book-edit-link,
-          gem-book-rel-link {
-            display: none;
-          }
-          gem-book-footer {
-            text-align: center;
-          }
-          gem-book-toc {
-            display: none;
-          }
-        }
-        @media ${mediaQuery.PHONE} {
-          :host {
-            display: block;
-          }
-          gem-book-nav,
-          main {
-            padding-inline: 1rem;
-          }
-          slot[name='${GemBookElement.mainBefore}'] {
-            margin-top: 1rem;
-          }
-          gem-book-footer {
-            text-align: left;
-          }
-        }
-        @media print {
-          :host {
-            display: block;
-          }
-          main {
-            width: 100%;
-          }
-          gem-book-nav,
-          gem-book-sidebar,
-          gem-book-edit-link,
-          gem-book-rel-link,
-          gem-book-footer,
-          slot[name] {
-            display: none;
-          }
-        }
-      </style>
       <gem-book-meta aria-hidden="true"></gem-book-meta>
 
       ${hasNavbar
         ? html`
-            <gem-book-nav role="navigation" part=${GemBookElement.nav} .logo=${mediaQuery.isPhone || !!renderFullWidth}>
-              <slot name=${GemBookElement.navInside}></slot>
-            </gem-book-nav>
-          `
-        : null}
-      ${mediaQuery.isPhone || !renderFullWidth
-        ? html`
-            <gem-book-sidebar
+            <gem-book-nav
               role="navigation"
-              exportparts=${exportPartsMap({
-                [SideBar.content]: GemBookElement.sidebarContent,
-                [SideBar.logo]: GemBookElement.sidebarLogo,
-              })}
-              part=${GemBookElement.sidebar}
-            >
-              <slot slot=${GemBookElement.logoAfter} name=${GemBookElement.logoAfter}></slot>
-              <slot name=${GemBookElement.sidebarBefore}></slot>
-            </gem-book-sidebar>
+              part=${GemBookElement.nav}
+              .logo=${mediaQuery.isPhone || this.renderFullWidth}
+            ></gem-book-nav>
           `
         : null}
-      ${renderHomePage
-        ? html`
-            <gem-book-homepage
-              exportparts=${exportPartsMap({
-                [Homepage.hero]: GemBookElement.homepageHero,
-              })}
-            ></gem-book-homepage>
-          `
-        : ''}
+      ${mediaQuery.isPhone || !this.renderFullWidth
+        ? html`<gem-book-sidebar role="navigation" part=${GemBookElement.sidebar}></gem-book-sidebar>`
+        : null}
+      ${renderHomePage ? html`<gem-book-homepage></gem-book-homepage>` : ''}
       <main>
-        ${renderHomePage ? '' : html`<slot name=${GemBookElement.mainBefore}></slot>`}
+        ${renderHomePage ? '' : html`<slot name=${GemBookElement.mainBefore}>${bookStore.slots?.mainBefore}</slot>`}
         <gem-light-route
           ref=${this.routeRef.ref}
           role="main"
@@ -309,7 +293,7 @@ export class GemBookElement extends GemElement {
         ></gem-light-route>
         <gem-book-edit-link role="complementary" part=${GemBookElement.editLink}></gem-book-edit-link>
         <gem-book-rel-link role="navigation" part=${GemBookElement.relLink}></gem-book-rel-link>
-        ${renderHomePage ? '' : html`<slot name=${GemBookElement.mainAfter}></slot>`}
+        ${renderHomePage ? '' : html`<slot name=${GemBookElement.mainAfter}>${bookStore.slots?.mainAfter}</slot>`}
         <gem-book-footer role="contentinfo" part=${GemBookElement.footer}></gem-book-footer>
       </main>
       <gem-book-toc></gem-book-toc>
