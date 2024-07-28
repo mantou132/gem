@@ -1,13 +1,4 @@
-import {
-  adoptedStyle,
-  customElement,
-  property,
-  boolattribute,
-  slot,
-  focusable,
-  aria,
-  shadow,
-} from '@mantou/gem/lib/decorators';
+import { adoptedStyle, customElement, property, boolattribute, slot, aria, shadow } from '@mantou/gem/lib/decorators';
 import { GemElement, html, TemplateResult, createCSSSheet } from '@mantou/gem/lib/element';
 import { css, classMap } from '@mantou/gem/lib/utils';
 
@@ -161,9 +152,8 @@ type State = {
 @customElement('dy-options')
 @adoptedStyle(style)
 @adoptedStyle(focusStyle)
-@focusable()
-@aria({ role: 'listbox' })
 @shadow()
+@aria({ focusable: true, role: 'listbox' })
 export class DuoyunOptionsElement extends GemElement<State> {
   @slot static unnamed: string;
 

@@ -11,7 +11,6 @@ import {
   numattribute,
   shadow,
   aria,
-  focusable,
 } from '@mantou/gem/lib/decorators';
 import { createCSSSheet, GemElement, html, TemplateResult } from '@mantou/gem/lib/element';
 import { css, styleMap } from '@mantou/gem/lib/utils';
@@ -103,9 +102,8 @@ const itemStyle = createCSSSheet(css`
  */
 @customElement('dy-tree-item')
 @adoptedStyle(itemStyle)
-@focusable()
-@aria({ role: 'treeitem' })
 @shadow()
+@aria({ focusable: true, role: 'treeitem' })
 class _DuoyunTreeItemElement extends GemElement {
   @boolattribute expanded: boolean;
   @boolattribute highlight: boolean;

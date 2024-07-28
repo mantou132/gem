@@ -202,22 +202,21 @@ When users use custom elements, they can use the `role`,`aria-*` attributes to s
 html`<my-element role="region" aria-label="my profile"></my-element>`;
 ```
 
-Use [`ElementInternals`](https://html.spec.whatwg.org/multipage/custom-elements.html#elementinternals) to define the default semantics of custom elements, use [`delegatesFocus`](https://developer.mozilla.org/en-US/docs/Web/API/Element/attachShadow#delegatesfocus) or `@focusable` focus:
+Use [`ElementInternals`](https://html.spec.whatwg.org/multipage/custom-elements.html#elementinternals) to define the default semantics of custom elements, use [`delegatesFocus`](https://developer.mozilla.org/en-US/docs/Web/API/Element/attachShadow#delegatesfocus) or `@aria` focusable:
 
 ```ts
 @customElement('my-element')
-@focusable()
-@aria({ role: 'region', ariaLabel: 'my profile' })
+@aria({ focusable: true, role: 'region', ariaLabel: 'my profile' })
 class MyElement extends GemElement {
   @boolattribute disabled: boolean;
 
   render() {
-    return html`<div tabindex=${-Number(this.disabled)}>Focusable</div>`;
+    return html`<div>Focusable</div>`;
   }
 }
 ```
 
-> [!NOTE] `delegatesFocus` or `focusable` elements with the `disabled` attribute will not trigger the `click` event just like [native elements](https://github.com/whatwg/html/issues/5886).
+> [!NOTE] `delegatesFocus` or `@aria.focusable` elements with the `disabled` attribute will not trigger the `click` event just like [native elements](https://github.com/whatwg/html/issues/5886).
 >
 > Resources:
 

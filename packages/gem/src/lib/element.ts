@@ -27,29 +27,21 @@ const { assign, defineProperty } = Object;
 
 defineProperty(Symbol, 'metadata', { value: Symbol.for('Symbol.metadata') });
 
-function execCallback(fun: any) {
-  typeof fun === 'function' && fun();
-}
+const execCallback = (fun: any) => typeof fun === 'function' && fun();
 
-// global render task pool
-const noBlockingTaskList = new LinkedList<() => void>();
-const tick = (timeStamp = performance.now()) => {
-  if (performance.now() > timeStamp + 16) return requestAnimationFrame(tick);
-  const task = noBlockingTaskList.get();
-  if (task) {
-    task();
-    tick(timeStamp);
-  }
-};
-noBlockingTaskList.addEventListener('start', () => addMicrotask(tick));
+// 跨多个 gem 工作
+export const SheetToken = Symbol.for('gem@sheetToken');
+// proto prop
+export const UpdateToken = Symbol.for('gem@update');
+
+const scopedToken = 'gem-style-scope';
+// fix modal-factory type error
+const updateTokenAlias = UpdateToken;
 
 const rootStyleSheetInfo = new WeakMap<Document | ShadowRoot, Map<CSSStyleSheet, number>>();
 const rootUpdateFnMap = new WeakMap<Map<CSSStyleSheet, number>, () => void>();
 
-// 跨多个 gem 工作
-export const SheetToken = Symbol.for('gem@sheetToken');
-
-export class GemCSSSheet {
+class GemCSSSheet {
   #content = '';
   #media = '';
   constructor(media = '') {
@@ -87,7 +79,7 @@ export class GemCSSSheet {
       if (isLight && metadate.scoped !== false) {
         // light dom 嵌套时需要选择子元素
         // `> *` 实际上是多范围？是否存在性能问题
-        scope = `@scope (${host.tagName}) to (:state(gem-style-scope) > *)`;
+        scope = `@scope (${host.tagName}) to (:state(${scopedToken}) > *)`;
         // 不能使用 @layer，两个 @layer 不能覆盖，只有顺序起作用
         // 所以外部不能通过元素名称选择器来覆盖样式，除非样式在之前插入（会自动反转应用到尾部， see `appleCSSStyleSheet`）
         style = `${scope}{ ${style} }`;
@@ -99,7 +91,7 @@ export class GemCSSSheet {
     return sheet;
   }
 
-  // 一般用于主题更新
+  // 一般用于主题更新，不支持 layer
   updateStyle() {
     this.#applyd.forEach((scope, sheet) => {
       sheet.replaceSync(scope ? `${scope}{${this.#content}}` : this.#content);
@@ -107,9 +99,7 @@ export class GemCSSSheet {
   }
 }
 
-export type Sheet<T> = {
-  [P in keyof T]: P;
-} & { [SheetToken]: GemCSSSheet };
+export type Sheet<T> = { [P in keyof T]: P } & { [SheetToken]: GemCSSSheet };
 
 /**
  *
@@ -155,7 +145,7 @@ const updateStyleSheets = (map: Map<CSSStyleSheet, number>, sheets: CSSStyleShee
   }
 };
 
-export function appleCSSStyleSheet(ele: HTMLElement, sheets: CSSStyleSheet[]) {
+const appleCSSStyleSheet = (ele: HTMLElement, sheets: CSSStyleSheet[]) => {
   const root = ele.getRootNode() as ShadowRoot | Document;
   if (!rootStyleSheetInfo.has(root)) {
     const map = new Map<CSSStyleSheet, number>();
@@ -173,7 +163,7 @@ export function appleCSSStyleSheet(ele: HTMLElement, sheets: CSSStyleSheet[]) {
 
   updateStyleSheets(map, sheets, 1);
   return () => updateStyleSheets(map, sheets, -1);
-}
+};
 
 type GetDepFun<T> = () => T;
 type EffectCallback<T> = (depValues: T, oldDepValues?: T) => any;
@@ -186,20 +176,17 @@ type EffectItem<T> = {
   preCallback?: () => void;
 };
 
-// proto prop
-export const UpdateToken = Symbol.for('gem@update');
-// fix modal-factory type error
-const updateTokenAlias = UpdateToken;
-
 export type Metadata = Partial<ShadowRootInit> & {
   // 手动设置 `false` 让自定义元素不作为样式边界，只工作于 light dom
   scoped?: boolean;
   layer?: string;
   noBlocking?: boolean;
-  focusable?: boolean;
-  aria?: Partial<ARIAMixin>;
-  // 指定 root 元素类型
-  rootElement?: string;
+  aria?: Partial<
+    ARIAMixin & {
+      //  自动添加 tabIndex；支持 `disabled` 属性
+      focusable: boolean;
+    }
+  >;
   // 实例化时使用到，DevTools 需要读取
   observedStores: Store<unknown>[];
   adoptedStyleSheets?: Sheet<unknown>[];
@@ -212,6 +199,18 @@ export type Metadata = Partial<ShadowRootInit> & {
   definedParts?: string[];
   definedSlots?: string[];
 };
+
+// global render task pool
+const noBlockingTaskList = new LinkedList<() => void>();
+const tick = (timeStamp = performance.now()) => {
+  if (performance.now() > timeStamp + 16) return requestAnimationFrame(tick);
+  const task = noBlockingTaskList.get();
+  if (task) {
+    task();
+    tick(timeStamp);
+  }
+};
+noBlockingTaskList.addEventListener('start', () => addMicrotask(tick));
 
 export abstract class GemElement<State = Record<string, unknown>> extends HTMLElement {
   // 禁止覆盖自定义元素原生生命周期方法
@@ -242,13 +241,14 @@ export abstract class GemElement<State = Record<string, unknown>> extends HTMLEl
   constructor() {
     super();
 
-    const { mode, serializable, delegatesFocus, slotAssignment, focusable, aria, scoped } = this.#metadata;
+    const { mode, serializable, delegatesFocus, slotAssignment, aria, scoped } = this.#metadata;
+    const { focusable, ...internalsAria } = aria || {};
 
     this.#renderRoot = !mode ? this : this.attachShadow({ mode, serializable, delegatesFocus, slotAssignment });
     this.#internals = this.attachInternals();
 
-    assign(this.#internals, aria);
-    if (!mode && scoped !== false) this.#internals.states.add('gem-style-scope');
+    assign(this.#internals, internalsAria);
+    if (!mode && scoped !== false) this.#internals.states.add(scopedToken);
 
     // https://stackoverflow.com/questions/43836886/failed-to-construct-customelement-error-when-javascript-file-is-placed-in-head
     // focusable 元素一般同时具备 disabled 属性
@@ -488,7 +488,7 @@ export abstract class GemElement<State = Record<string, unknown>> extends HTMLEl
       return;
     }
 
-    const { observedStores, rootElement } = this.#metadata;
+    const { observedStores } = this.#metadata;
 
     this.#isConnected = true;
     this.willMount?.();
@@ -501,9 +501,6 @@ export abstract class GemElement<State = Record<string, unknown>> extends HTMLEl
     await Promise.resolve();
     this.#unmountCallback = this.mounted?.();
     this.#initEffect();
-    if (rootElement && (this.getRootNode() as ShadowRoot).host?.tagName !== rootElement.toUpperCase()) {
-      throw new GemError(`not allow current root type`);
-    }
   };
 
   /**

@@ -11,8 +11,8 @@ import {
   RefObject,
   state,
   part,
-  focusable,
   shadow,
+  aria,
 } from '@mantou/gem/lib/decorators';
 import { createCSSSheet, GemElement, html, TemplateResult } from '@mantou/gem/lib/element';
 import { addListener, css, styleMap, StyleObject } from '@mantou/gem/lib/utils';
@@ -137,8 +137,8 @@ type State = {
 @adoptedStyle(pickerStyle)
 @adoptedStyle(focusStyle)
 @connectStore(icons)
-@focusable()
 @shadow()
+@aria({ focusable: true })
 export class DuoyunSelectElement extends GemElement<State> implements BasePickerElement {
   @boolattribute multiple: boolean;
   @boolattribute disabled: boolean;

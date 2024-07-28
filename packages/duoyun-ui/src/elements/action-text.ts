@@ -1,14 +1,5 @@
 import { GemElement, html, createCSSSheet } from '@mantou/gem/lib/element';
-import {
-  adoptedStyle,
-  customElement,
-  attribute,
-  state,
-  slot,
-  focusable,
-  aria,
-  shadow,
-} from '@mantou/gem/lib/decorators';
+import { adoptedStyle, customElement, attribute, state, slot, aria, shadow } from '@mantou/gem/lib/decorators';
 import { css } from '@mantou/gem/lib/utils';
 
 import { theme, getSemanticColor } from '../lib/theme';
@@ -43,9 +34,8 @@ const style = createCSSSheet(css`
 @customElement('dy-action-text')
 @adoptedStyle(style)
 @adoptedStyle(focusStyle)
-@focusable()
-@aria({ role: 'button' })
 @shadow()
+@aria({ focusable: true, role: 'button' })
 export class DuoyunActionTextElement extends GemElement {
   @slot static unnamed: string;
 

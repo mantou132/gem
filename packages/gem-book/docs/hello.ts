@@ -14,7 +14,7 @@ customElements.whenDefined('gem-book').then(() => {
           my-plugin-hello {
             display: block;
             border-radius: ${theme.normalRound};
-            background: rgba(${theme.textColorRGB}, 0.05);
+            background: rgb(from ${theme.textColor} r g b / 0.05);
             padding: 1rem;
           }
         </style>

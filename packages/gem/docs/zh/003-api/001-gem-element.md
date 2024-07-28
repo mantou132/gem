@@ -10,6 +10,7 @@ class GemElement<State> extends HTMLElement {
   // ...
 }
 ```
+
 ## 装饰器
 
 | 名称             | 描述                                                         |
@@ -17,6 +18,9 @@ class GemElement<State> extends HTMLElement {
 | `@customElement` | 类装饰器，定义自定义元素                                     |
 | `@connectStore`  | 类装饰器，绑定 `Store`                                       |
 | `@adoptedStyle`  | 类装饰器，附加样式表                                         |
+| `@shadow`        | 类装饰器，使用 [ShadowDOM][10]                               |
+| `@async`         | 类装饰器，使用非阻塞渲染                                     |
+| `@aria`          | 类装饰器，指定[可访问性][11]信息                             |
 | `@attribute`     | 字段装饰器，定义 `string` 类型反应性 [`Attribute`][5]        |
 | `@boolattribute` | 字段装饰器，定义 `boolean` 类型反应性 [`Attribute`]          |
 | `@numattribute`  | 字段装饰器，定义 `number` 类型反应性 [`Attribute`]           |
@@ -27,25 +31,9 @@ class GemElement<State> extends HTMLElement {
 | `@state`         | 字段装饰器，定义元素内部 [`state`][1]                        |
 | `@slot`          | 字段装饰器，定义元素的 [`slot`][2]                           |
 | `@part`          | 字段装饰器，定义元素的 [`part`][3]                           |
-| `@rootElement`   | 指定[根元素][9]名称                                          |
-| `@shadow`        | 使用 [ShadowDOM](10)                                         |
-| `@async`         | 使用非阻塞渲染                                               |
-| `@aria`          | 指定[可访问性](11)信息                                       |
-| `@focusable`     | 指定元素为可聚焦                                             |
 
-[1]: https://github.com/w3c/webcomponents/blob/gh-pages/proposals/custom-states-and-state-pseudo-class.md
-[2]: https://developer.mozilla.org/en-US/docs/Web/HTML/Global_attributes/slot
-[3]: https://developer.mozilla.org/en-US/docs/Web/HTML/Global_attributes/part
-[4]: https://developer.mozilla.org/en-US/docs/Web/API/HTMLElement/click
-[5]: https://developer.mozilla.org/en-US/docs/Glossary/Attribute
-[6]: https://developer.mozilla.org/en-US/docs/Glossary/property/JavaScript
-[7]: https://developer.mozilla.org/en-US/docs/Web/API/Event/composed
-[8]: https://developer.mozilla.org/en-US/docs/Web/API/Event/bubbles
-[9]: https://developer.mozilla.org/en-US/docs/Web/API/Node/getRootNode
-[10]: https://developer.mozilla.org/en-US/docs/Web/API/Web_components/Using_shadow_DOM
-[11]: https://developer.mozilla.org/en-US/docs/Web/API/ElementInternals#instance_properties_included_from_aria
-
-_除 `@property` 外其他装饰器装饰的字段都有默认值，`@attribute`/`@boolattribute`/`@numattribute`/`@state`/`@slot`/`@part` 装饰的字段的值都将自动进行烤串式转换，在元素外部使用时请使用对应的烤串式值_
+> [!NOTE]
+> 除 `@property` 外其他装饰器装饰的字段都有默认值，`@attribute`/`@boolattribute`/`@numattribute`/`@state`/`@slot`/`@part` 装饰的字段的值都将自动进行烤串式转换，在元素外部使用时请使用对应的烤串式值\_
 
 配合装饰器的 Type
 
@@ -73,6 +61,16 @@ _除 `@property` 外其他装饰器装饰的字段都有默认值，`@attribute`
 | `memo`             | 注册回调函数，可以指定依赖                             |
 | `update`           | 手动更新元素                                           |
 | `state`/`setState` | 指定元素 `State`, 通过 `setState` 修改，修改后触发更新 |
-| `internals`        | 获取元素的 [ElementInternals][2] 对象                  |
+| `internals`        | 获取元素的 [ElementInternals][12] 对象                 |
 
-[2]: https://html.spec.whatwg.org/multipage/custom-elements.html#the-elementinternals-interface
+[1]: https://github.com/w3c/webcomponents/blob/gh-pages/proposals/custom-states-and-state-pseudo-class.md
+[2]: https://developer.mozilla.org/en-US/docs/Web/HTML/Global_attributes/slot
+[3]: https://developer.mozilla.org/en-US/docs/Web/HTML/Global_attributes/part
+[4]: https://developer.mozilla.org/en-US/docs/Web/API/HTMLElement/click
+[5]: https://developer.mozilla.org/en-US/docs/Glossary/Attribute
+[6]: https://developer.mozilla.org/en-US/docs/Glossary/property/JavaScript
+[7]: https://developer.mozilla.org/en-US/docs/Web/API/Event/composed
+[8]: https://developer.mozilla.org/en-US/docs/Web/API/Event/bubbles
+[10]: https://developer.mozilla.org/en-US/docs/Web/API/Web_components/Using_shadow_DOM
+[11]: https://developer.mozilla.org/en-US/docs/Web/API/ElementInternals#instance_properties_included_from_aria
+[12]: https://html.spec.whatwg.org/multipage/custom-elements.html#the-elementinternals-interface

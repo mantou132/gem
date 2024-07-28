@@ -56,10 +56,61 @@ type Locales = Record<string, typeof zh | undefined>;
 
 customElements.whenDefined('gem-book').then(({ GemBookPluginElement }: typeof GemBookElement) => {
   const { Gem, theme, mediaQuery, config, Utils } = GemBookPluginElement;
-  const { html, customElement, attribute, refobject, addListener, property, shadow } = Gem;
+  const { html, customElement, attribute, refobject, addListener, property, createCSSSheet, css, adoptedStyle } = Gem;
+
+  const styles = createCSSSheet(css`
+    :scope {
+      display: block;
+    }
+    .DocSearch-Button,
+    .DocSearch-Button:hover,
+    .DocSearch-Button .DocSearch-Search-Icon {
+      color: rgb(from ${theme.textColor} r g b / 0.5);
+    }
+    .DocSearch-Button,
+    .DocSearch-Button:hover {
+      background: rgb(from ${theme.textColor} r g b / 0.05);
+    }
+    .DocSearch-Button .DocSearch-Search-Icon {
+      width: 1.2em;
+      margin-inline: 0.35em;
+    }
+    .DocSearch-Button {
+      width: 100%;
+      margin: 0;
+      border-radius: ${theme.normalRound};
+      font-weight: normal;
+    }
+    .DocSearch-Button-Keys {
+      justify-content: center;
+      border-radius: ${theme.smallRound};
+      border: 1px solid ${theme.borderColor};
+      min-width: auto;
+      padding-inline: 0.3em;
+    }
+    .DocSearch-Button-Key {
+      position: static;
+      margin: 0;
+      padding: 0;
+      width: 1em;
+      font-family: ${theme.codeFont};
+    }
+    @media ${mediaQuery.PHONE} {
+      .DocSearch-Button,
+      .DocSearch-Button:hover,
+      .DocSearch-Button .DocSearch-Search-Icon {
+        padding: 0;
+        background: transparent;
+      }
+      .DocSearch-Button .DocSearch-Search-Icon {
+        width: 1.5rem;
+        margin-inline: 0;
+      }
+    }
+  `);
 
   @customElement('gbp-docsearch')
-  @shadow()
+  @adoptedStyle(styles)
   class _GbpDocsearchElement extends GemBookPluginElement {
     static defaultLocales: Locales = { zh };
 
@@ -74,104 +125,47 @@ customElements.whenDefined('gem-book').then(({ GemBookPluginElement }: typeof Ge
       return { ..._GbpDocsearchElement.defaultLocales, ...this.locales };
     }
 
-    state = {
-      style: '',
-    };
+    state = { style: '' };
 
     render() {
       return html`
-        <gem-reflect>
-          <style>
-            ${this.state.style}
-          </style>
-          <style>
-            :root {
-              --docsearch-logo-color: ${theme.primaryColor};
-              --docsearch-primary-color: ${theme.primaryColor};
-              --docsearch-text-color: ${theme.textColor};
-              --docsearch-muted-color: rgb(from ${theme.textColor} r g b / 0.6);
-              --docsearch-container-background: rgba(101, 108, 133, 0.8);
-              --docsearch-modal-background: ${theme.backgroundColor};
-              --docsearch-modal-shadow: 0 3px 8px 0 #555a64;
-              --docsearch-searchbox-background: rgb(from ${theme.textColor} r g b / 0.05);
-              --docsearch-searchbox-focus-background: rgb(from ${theme.textColor} r g b / 0.05);
-              --docsearch-hit-color: rgb(from ${theme.textColor} r g b / 0.6);
-              --docsearch-hit-background: rgb(from ${theme.textColor} r g b / 0.05);
-              --docsearch-hit-active-color: #fff;
-              --docsearch-hit-shadow: none;
-              --docsearch-footer-background: ${theme.backgroundColor};
-              --docsearch-footer-shadow: 0 -1px 0 0 ${theme.borderColor};
-              --docsearch-key-gradient: transparent;
-              --docsearch-key-shadow: none;
-            }
-            .DocSearch {
-              color: ${theme.textColor};
-              font-family: ${theme.font};
-            }
-            .DocSearch-Container * {
-              outline-offset: -2px;
-              outline-color: ${theme.primaryColor};
-            }
-            .DocSearch-Container a {
-              color: ${theme.primaryColor};
-            }
-            .DocSearch-Commands-Key {
-              padding: 0;
-              width: 1em;
-            }
-          </style>
-        </gem-reflect>
         <style>
           ${this.state.style}
         </style>
         <style>
-          :host {
-            display: block;
+          :root {
+            --docsearch-logo-color: ${theme.primaryColor};
+            --docsearch-primary-color: ${theme.primaryColor};
+            --docsearch-text-color: ${theme.textColor};
+            --docsearch-muted-color: rgb(from ${theme.textColor} r g b / 0.6);
+            --docsearch-container-background: rgba(101, 108, 133, 0.8);
+            --docsearch-modal-background: ${theme.backgroundColor};
+            --docsearch-modal-shadow: 0 3px 8px 0 #555a64;
+            --docsearch-searchbox-background: rgb(from ${theme.textColor} r g b / 0.05);
+            --docsearch-searchbox-focus-background: rgb(from ${theme.textColor} r g b / 0.05);
+            --docsearch-hit-color: rgb(from ${theme.textColor} r g b / 0.6);
+            --docsearch-hit-background: rgb(from ${theme.textColor} r g b / 0.05);
+            --docsearch-hit-active-color: #fff;
+            --docsearch-hit-shadow: none;
+            --docsearch-footer-background: ${theme.backgroundColor};
+            --docsearch-footer-shadow: 0 -1px 0 0 ${theme.borderColor};
+            --docsearch-key-gradient: transparent;
+            --docsearch-key-shadow: none;
           }
-          .DocSearch-Button,
-          .DocSearch-Button:hover,
-          .DocSearch-Button .DocSearch-Search-Icon {
-            color: rgb(from ${theme.textColor} r g b / 0.5);
+          .DocSearch {
+            color: ${theme.textColor};
+            font-family: ${theme.font};
           }
-          .DocSearch-Button,
-          .DocSearch-Button:hover {
-            background: rgb(from ${theme.textColor} r g b / 0.05);
+          .DocSearch-Container * {
+            outline-offset: -2px;
+            outline-color: ${theme.primaryColor};
           }
-          .DocSearch-Button .DocSearch-Search-Icon {
-            width: 1.2em;
-            margin-inline: 0.35em;
+          .DocSearch-Container a {
+            color: ${theme.primaryColor};
           }
-          .DocSearch-Button {
-            width: 100%;
-            margin: 0;
-            border-radius: ${theme.normalRound};
-            font-weight: normal;
-          }
-          .DocSearch-Button-Keys {
-            justify-content: center;
-            border-radius: ${theme.smallRound};
-            border: 1px solid ${theme.borderColor};
-            min-width: auto;
-            padding-inline: 0.3em;
-          }
-          .DocSearch-Button-Key {
-            position: static;
-            margin: 0;
+          .DocSearch-Commands-Key {
             padding: 0;
             width: 1em;
-            font-family: ${theme.codeFont};
-          }
-          @media ${mediaQuery.PHONE} {
-            .DocSearch-Button,
-            .DocSearch-Button:hover,
-            .DocSearch-Button .DocSearch-Search-Icon {
-              padding: 0;
-              background: transparent;
-            }
-            .DocSearch-Button .DocSearch-Search-Icon {
-              width: 1.5rem;
-              margin-inline: 0;
-            }
           }
         </style>
         <div ref=${this.searchRef.ref}></div>

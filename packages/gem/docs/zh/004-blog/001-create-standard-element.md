@@ -202,22 +202,21 @@ html`<my-element hidden>My content</my-element>`;
 html`<my-element role="region" aria-label="my profile"></my-element>`;
 ```
 
-使用 [`ElementInternals`](https://html.spec.whatwg.org/multipage/custom-elements.html#elementinternals) 可以定义自定义元素的默认语义，用 [`delegatesFocus`](https://developer.mozilla.org/en-US/docs/Web/API/Element/attachShadow#delegatesfocus) 或者 `@focusable` 处理聚焦：
+使用 [`ElementInternals`](https://html.spec.whatwg.org/multipage/custom-elements.html#elementinternals) 可以定义自定义元素的默认语义，用 [`delegatesFocus`](https://developer.mozilla.org/en-US/docs/Web/API/Element/attachShadow#delegatesfocus) 或者 `@aria.focusable` 处理聚焦：
 
 ```ts
 @customElement('my-element')
-@focusable()
-@aria({ role: 'region', ariaLabel: 'my profile' })
+@aria({ focusable: true, role: 'region', ariaLabel: 'my profile' })
 class MyElement extends GemElement {
   @boolattribute disabled: boolean;
 
   render() {
-    return html`<div tabindex=${-Number(this.disabled)}>Focusable</div>`;
+    return html`<div>Focusable</div>`;
   }
 }
 ```
 
-> [!NOTE] `delegatesFocus` 或者 `focusable` 元素当有 `disabled` 属性时会像[原生元素](https://github.com/whatwg/html/issues/5886)一样不会触发 `click` 事件
+> [!NOTE] `delegatesFocus` 或者 `@aria.focusable` 元素当有 `disabled` 属性时会像[原生元素](https://github.com/whatwg/html/issues/5886)一样不会触发 `click` 事件
 
 资源：
 

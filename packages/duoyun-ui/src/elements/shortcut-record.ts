@@ -8,7 +8,6 @@ import {
   boolattribute,
   part,
   emitter,
-  focusable,
   aria,
   shadow,
 } from '@mantou/gem/lib/decorators';
@@ -102,9 +101,8 @@ const style = createCSSSheet(css`
 @customElement('dy-shortcut-record')
 @adoptedStyle(style)
 @adoptedStyle(focusStyle)
-@focusable()
-@aria({ role: 'input' })
 @shadow()
+@aria({ focusable: true, role: 'input' })
 export class DuoyunShortcutRecordElement extends GemElement {
   @part static kbd: string;
 

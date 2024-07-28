@@ -1,5 +1,5 @@
 import { GemElement, html } from '../../lib/element';
-import { attribute, property, state, part, connectStore, focusable, shadow } from '../../lib/decorators';
+import { attribute, property, state, part, connectStore, shadow, aria } from '../../lib/decorators';
 import { history, basePathStore } from '../../lib/history';
 import { absoluteLocation } from '../../lib/utils';
 import { ifDefined } from '../../lib/directives';
@@ -25,8 +25,8 @@ function isExternal(path: string) {
  * Bug: print `<link>` https://github.com/mantou132/gem/issues/36
  */
 @connectStore(basePathStore)
-@focusable()
 @shadow()
+@aria({ focusable: true })
 export class GemLinkElement extends GemElement {
   @attribute href: string;
   @attribute target: string;

@@ -1,6 +1,6 @@
 import type { GemReflectElement } from '../elements/reflect';
 
-import { Sheet, GemElement, UpdateToken, Metadata } from './element';
+import { createCSSSheet, GemElement, UpdateToken, Metadata } from './element';
 import { camelToKebabCase, randomStr, PropProxyMap } from './utils';
 import { Store } from './store';
 import * as elementExports from './element';
@@ -9,10 +9,7 @@ import * as storeExports from './store';
 import * as versionExports from './version';
 
 type GemElementPrototype = GemElement<any>;
-type StaticField = Exclude<
-  keyof Metadata,
-  keyof ShadowRootInit | 'aria' | 'rootElement' | 'noBlocking' | 'focusable' | 'scoped' | 'layer'
->;
+type StaticField = Exclude<keyof Metadata, keyof ShadowRootInit | 'aria' | 'noBlocking' | 'scoped' | 'layer'>;
 
 const { deleteProperty, getOwnPropertyDescriptor, defineProperty } = Reflect;
 const { getPrototypeOf, assign } = Object;
@@ -475,7 +472,7 @@ function defineEmitter(
  *  class App extends GemElement {}
  * ```
  */
-export function adoptedStyle(sheet: Sheet<unknown>) {
+export function adoptedStyle(sheet: ReturnType<typeof createCSSSheet>) {
   return function (_: unknown, context: ClassDecoratorContext) {
     pushStaticField(context, 'adoptedStyleSheets', sheet);
   };
@@ -493,22 +490,6 @@ export function adoptedStyle(sheet: Sheet<unknown>) {
 export function connectStore(store: Store<unknown>) {
   return function (_: unknown, context: ClassDecoratorContext) {
     pushStaticField(context, 'observedStores', store);
-  };
-}
-
-/**
- * 限制元素的 root 节点类型
- *
- * For example
- * ```ts
- *  @rootElement('my-element')
- *  class App extends GemElement {}
- * ```
- */
-export function rootElement(rootType: string) {
-  return function (_: any, context: ClassDecoratorContext) {
-    const metadata = context.metadata as Metadata;
-    metadata.rootElement = rootType;
   };
 }
 
@@ -536,19 +517,9 @@ export function async() {
 }
 
 /**
- * 自动添加 tabIndex；支持 `disabled` 属性
- */
-export function focusable() {
-  return function (_: any, context: ClassDecoratorContext) {
-    const metadata = context.metadata as Metadata;
-    metadata.focusable = true;
-  };
-}
-
-/**
  * 定义元素的可访问性属性
  */
-export function aria(info: Partial<ARIAMixin>) {
+export function aria(info: Metadata['aria']) {
   return function (_: any, context: ClassDecoratorContext) {
     const metadata = context.metadata as Metadata;
     metadata.aria = { ...metadata.aria, ...info };

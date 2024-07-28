@@ -8,7 +8,6 @@ import {
   property,
   boolattribute,
   state,
-  focusable,
   aria,
   shadow,
 } from '@mantou/gem/lib/decorators';
@@ -115,9 +114,8 @@ export interface Option<T = any> {
 @adoptedStyle(pickerStyle)
 @adoptedStyle(focusStyle)
 @connectStore(icons)
-@focusable()
-@aria({ role: 'combobox' })
 @shadow()
+@aria({ focusable: true, role: 'combobox' })
 export class DuoyunPickerElement extends GemElement implements BasePickerElement {
   @attribute placeholder: string;
   @boolattribute disabled: boolean;

@@ -11,13 +11,16 @@ class GemElement<State> extends HTMLElement {
 }
 ```
 
-# Decorator
+## Decorator
 
 | name             | description                                                                  |
 | ---------------- | ---------------------------------------------------------------------------- |
 | `@customElement` | Class decorator, define custom elements                                      |
 | `@connectStore`  | Class decorator, bound to `Store`                                            |
 | `@adoptedStyle`  | Class decorator, additional style sheet                                      |
+| `@shadow`        | Class decorator, Use [ShadowDOM][10]                                         |
+| `@async`         | Class decorator, Use no blocking render                                      |
+| `@aria`          | Class decorator, Specify the [accessibility][11] info                        |
 | `@attribute`     | Field decorator, defining `string` type reactivity [`Attribute`][5]          |
 | `@boolattribute` | Field decorator, defining `boolean` type reactivity [`Attribute`][5]         |
 | `@numattribute`  | Field decorator, defining `number` type reactivity [`Attribute`][5]          |
@@ -28,25 +31,9 @@ class GemElement<State> extends HTMLElement {
 | `@state`         | Field decorator, define the inside of the element css [`state`][1]           |
 | `@slot`          | Field decorator, [`slot`][2] that defines the element                        |
 | `@part`          | Field decorator, [`part`][3] that defines the element                        |
-| `@rootElement`   | Specify the [root element][9] name                                           |
-| `@shadow`        | Use [ShadowDOM](10)                                                          |
-| `@async`         | Use no blocking render                                                       |
-| `@aria`          | Specify the [accessibility](11) info                                         |
-| `@focusable`     | Specify element is focusable                                                 |
 
-[1]: https://github.com/w3c/webcomponents/blob/gh-pages/proposals/custom-states-and-state-pseudo-class.md
-[2]: https://developer.mozilla.org/en-US/docs/Web/HTML/Global_attributes/slot
-[3]: https://developer.mozilla.org/en-US/docs/Web/HTML/Global_attributes/part
-[4]: https://developer.mozilla.org/en-US/docs/Web/API/HTMLElement/click
-[5]: https://developer.mozilla.org/en-US/docs/Glossary/Attribute
-[6]: https://developer.mozilla.org/en-US/docs/Glossary/property/JavaScript
-[7]: https://developer.mozilla.org/en-US/docs/Web/API/Event/composed
-[8]: https://developer.mozilla.org/en-US/docs/Web/API/Event/bubbles
-[9]: https://developer.mozilla.org/en-US/docs/Web/API/Node/getRootNode
-[10]: https://developer.mozilla.org/en-US/docs/Web/API/Web_components/Using_shadow_DOM
-[11]: https://developer.mozilla.org/en-US/docs/Web/API/ElementInternals#instance_properties_included_from_aria
-
-_Except for `@property`, all fields decorated by decorators have default values, `@attribute`/`@boolattribute`/`@numattribute`/`@state`/`@slot`/`@part` the value of the decorated field will be automatically converted to kebab-case. Please use the kebab-case value when you use it outside the element outside_
+> [!NOTE]
+> Except for `@property`, all fields decorated by decorators have default values, `@attribute`/`@boolattribute`/`@numattribute`/`@state`/`@slot`/`@part` the value of the decorated field will be automatically converted to kebab-case. Please use the kebab-case value when you use it outside the element outside
 
 Type with decorator
 
@@ -74,6 +61,16 @@ Type with decorator
 | `memo`             | Register callback, you can specify dependencies      |
 | `update`           | Update elements manually                             |
 | `state`/`setState` | Specify the element `State`, modify it by `setState` |
-| `internals`        | Get the element's [ElementInternals][2] object       |
+| `internals`        | Get the element's [ElementInternals][12] object      |
 
-[2]: https://html.spec.whatwg.org/multipage/custom-elements.html#the-elementinternals-interface
+[1]: https://github.com/w3c/webcomponents/blob/gh-pages/proposals/custom-states-and-state-pseudo-class.md
+[2]: https://developer.mozilla.org/en-US/docs/Web/HTML/Global_attributes/slot
+[3]: https://developer.mozilla.org/en-US/docs/Web/HTML/Global_attributes/part
+[4]: https://developer.mozilla.org/en-US/docs/Web/API/HTMLElement/click
+[5]: https://developer.mozilla.org/en-US/docs/Glossary/Attribute
+[6]: https://developer.mozilla.org/en-US/docs/Glossary/property/JavaScript
+[7]: https://developer.mozilla.org/en-US/docs/Web/API/Event/composed
+[8]: https://developer.mozilla.org/en-US/docs/Web/API/Event/bubbles
+[10]: https://developer.mozilla.org/en-US/docs/Web/API/Web_components/Using_shadow_DOM
+[11]: https://developer.mozilla.org/en-US/docs/Web/API/ElementInternals#instance_properties_included_from_aria
+[12]: https://html.spec.whatwg.org/multipage/custom-elements.html#the-elementinternals-interface

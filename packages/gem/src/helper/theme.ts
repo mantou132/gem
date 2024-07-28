@@ -1,8 +1,8 @@
 import { connect, Store, useStore } from '../lib/store';
 import { camelToKebabCase, randomStr } from '../lib/utils';
-import { Sheet, SheetToken, GemCSSSheet } from '../lib/element';
+import { SheetToken, createCSSSheet } from '../lib/element';
 
-export type Theme<T> = Sheet<T> & {
+export type Theme<T> = ReturnType<typeof createCSSSheet> & {
   [K in keyof T as K extends `${string}Color`
     ? `${string & K}${'' | 100 | 200 | 300 | 400 | 500 | 600 | 700 | 800 | 900}`
     : K]: T[K];
@@ -23,7 +23,7 @@ export function getThemeProps<T>(theme: Theme<T>) {
 
 function useThemeFromProps<T extends Record<string, unknown>>(themeObj: T, props: Record<string, string> = {}) {
   const salt = randomStr();
-  const styleSheet = new GemCSSSheet();
+  const styleSheet = createCSSSheet({})[SheetToken];
   const [store, updateStore] = useStore<T>(themeObj);
   const theme: any = new Proxy(
     { [SheetToken]: styleSheet },
