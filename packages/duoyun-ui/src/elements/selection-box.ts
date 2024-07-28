@@ -1,6 +1,6 @@
 import { adoptedStyle, customElement, emitter, Emitter, property, shadow } from '@mantou/gem/lib/decorators';
-import { GemElement, html } from '@mantou/gem/lib/element';
-import { addListener, createCSSSheet, css, styleMap } from '@mantou/gem/lib/utils';
+import { createCSSSheet, GemElement, html } from '@mantou/gem/lib/element';
+import { addListener, css, styleMap } from '@mantou/gem/lib/utils';
 
 import { theme } from '../lib/theme';
 import { contentsContainer } from '../lib/styles';

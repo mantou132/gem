@@ -12,8 +12,8 @@ import {
   state,
   shadow,
 } from '@mantou/gem/lib/decorators';
-import { GemElement, html } from '@mantou/gem/lib/element';
-import { classMap, createCSSSheet, css } from '@mantou/gem/lib/utils';
+import { createCSSSheet, GemElement, html } from '@mantou/gem/lib/element';
+import { classMap, css } from '@mantou/gem/lib/utils';
 
 import { contentsContainer } from '../lib/styles';
 import { getSemanticColor, theme } from '../lib/theme';

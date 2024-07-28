@@ -1,6 +1,6 @@
 import { adoptedStyle, customElement, attribute, property, numattribute, shadow } from '@mantou/gem/lib/decorators';
-import { GemElement, html } from '@mantou/gem/lib/element';
-import { createCSSSheet, css, styleMap } from '@mantou/gem/lib/utils';
+import { createCSSSheet, GemElement, html } from '@mantou/gem/lib/element';
+import { css, styleMap } from '@mantou/gem/lib/utils';
 
 import { theme, getSemanticColor } from '../lib/theme';
 import { compressionImage } from '../lib/image';

@@ -1,6 +1,6 @@
 import { adoptedStyle, customElement, property, attribute, shadow } from '@mantou/gem/lib/decorators';
-import { GemElement, html, TemplateResult } from '@mantou/gem/lib/element';
-import { createCSSSheet, css } from '@mantou/gem/lib/utils';
+import { GemElement, html, TemplateResult, createCSSSheet } from '@mantou/gem/lib/element';
+import { css } from '@mantou/gem/lib/utils';
 
 const style = createCSSSheet(css`
   span {

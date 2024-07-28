@@ -1,7 +1,7 @@
 // https://spectrum.adobe.com/page/in-line-alert/
 import { adoptedStyle, customElement, attribute, property, slot, aria, shadow } from '@mantou/gem/lib/decorators';
-import { GemElement, html } from '@mantou/gem/lib/element';
-import { createCSSSheet, css } from '@mantou/gem/lib/utils';
+import { GemElement, html, createCSSSheet } from '@mantou/gem/lib/element';
+import { css } from '@mantou/gem/lib/utils';
 
 import { theme, getSemanticColor } from '../lib/theme';
 import { icons } from '../lib/icons';

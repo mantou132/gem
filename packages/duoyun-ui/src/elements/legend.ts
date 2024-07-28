@@ -1,6 +1,6 @@
 import { adoptedStyle, aria, customElement, emitter, Emitter, property } from '@mantou/gem/lib/decorators';
-import { html } from '@mantou/gem/lib/element';
-import { createCSSSheet, css, styleMap, classMap } from '@mantou/gem/lib/utils';
+import { createCSSSheet, html } from '@mantou/gem/lib/element';
+import { css, styleMap, classMap } from '@mantou/gem/lib/utils';
 
 import { theme } from '../lib/theme';
 import { commonColors } from '../lib/color';

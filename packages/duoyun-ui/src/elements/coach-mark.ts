@@ -1,7 +1,7 @@
 // https://spectrum.adobe.com/page/coach-mark/
 import { connectStore, adoptedStyle, customElement, attribute, numattribute, shadow } from '@mantou/gem/lib/decorators';
-import { html } from '@mantou/gem/lib/element';
-import { createCSSSheet, css } from '@mantou/gem/lib/utils';
+import { html, createCSSSheet } from '@mantou/gem/lib/element';
+import { css } from '@mantou/gem/lib/utils';
 import { useStore } from '@mantou/gem/lib/store';
 import { splice } from '@mantou/gem/helper/i18n';
 

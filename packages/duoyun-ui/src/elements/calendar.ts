@@ -8,8 +8,8 @@ import {
   part,
   shadow,
 } from '@mantou/gem/lib/decorators';
-import { GemElement, html, TemplateResult } from '@mantou/gem/lib/element';
-import { createCSSSheet, css, classMap, partMap } from '@mantou/gem/lib/utils';
+import { createCSSSheet, GemElement, html, TemplateResult } from '@mantou/gem/lib/element';
+import { css, classMap, partMap } from '@mantou/gem/lib/utils';
 
 import { isNotNullish } from '../lib/types';
 import { Time } from '../lib/time';

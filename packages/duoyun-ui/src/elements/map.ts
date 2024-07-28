@@ -1,6 +1,6 @@
 import { adoptedStyle, customElement, emitter, Emitter, property, state, part, aria } from '@mantou/gem/lib/decorators';
-import { html, svg } from '@mantou/gem/lib/element';
-import { createCSSSheet, css, styleMap, classMap } from '@mantou/gem/lib/utils';
+import { createCSSSheet, html, svg } from '@mantou/gem/lib/element';
+import { css, styleMap, classMap } from '@mantou/gem/lib/utils';
 import { geoProjection, geoMercatorRaw, geoEquirectangularRaw, GeoRawProjection, geoPath } from 'd3-geo';
 
 import { theme } from '../lib/theme';

@@ -14,8 +14,8 @@ import {
   slot,
   shadow,
 } from '@mantou/gem/lib/decorators';
-import { GemElement, html, TemplateResult } from '@mantou/gem/lib/element';
-import { addListener, createCSSSheet, css, styled } from '@mantou/gem/lib/utils';
+import { createCSSSheet, GemElement, html, TemplateResult } from '@mantou/gem/lib/element';
+import { addListener, css, styled } from '@mantou/gem/lib/utils';
 import { mediaQuery } from '@mantou/gem/helper/mediaquery';
 
 import { theme } from '../lib/theme';

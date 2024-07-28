@@ -7,9 +7,10 @@ type State = {
 
 customElements.whenDefined('gem-book').then(({ GemBookPluginElement }: typeof GemBookElement) => {
   const { Gem, theme, Utils } = GemBookPluginElement;
-  const { attribute, customElement, html } = Gem;
+  const { attribute, customElement, html, style } = Gem;
 
   @customElement('gbp-include')
+  @style({ scoped: false })
   class _GbpIncludeElement extends GemBookPluginElement<State> {
     @attribute src: string;
     @attribute range: string;
@@ -24,7 +25,6 @@ customElements.whenDefined('gem-book').then(({ GemBookPluginElement }: typeof Ge
     };
 
     mounted() {
-      this.dataset.styleScope = 'false';
       this.effect(
         async () => {
           const url = Utils.getRemoteURL(this.src);

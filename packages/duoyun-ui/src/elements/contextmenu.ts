@@ -1,6 +1,6 @@
 import { connectStore, adoptedStyle, customElement, refobject, RefObject, shadow } from '@mantou/gem/lib/decorators';
-import { html, GemElement, TemplateResult } from '@mantou/gem/lib/element';
-import { createCSSSheet, css, styleMap, classMap } from '@mantou/gem/lib/utils';
+import { createCSSSheet, html, GemElement, TemplateResult } from '@mantou/gem/lib/element';
+import { css, styleMap, classMap } from '@mantou/gem/lib/utils';
 import { useStore } from '@mantou/gem/lib/store';
 
 import { icons } from '../lib/icons';

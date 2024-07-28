@@ -16,8 +16,8 @@ import {
   shadow,
   aria,
 } from '@mantou/gem/lib/decorators';
-import { GemElement, TemplateResult, html } from '@mantou/gem/lib/element';
-import { createCSSSheet, css, classMap, exportPartsMap } from '@mantou/gem/lib/utils';
+import { createCSSSheet, GemElement, TemplateResult, html } from '@mantou/gem/lib/element';
+import { css, classMap, exportPartsMap } from '@mantou/gem/lib/utils';
 import { ifDefined } from '@mantou/gem/lib/directives';
 
 import { icons } from '../lib/icons';

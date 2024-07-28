@@ -11,8 +11,8 @@ import {
   shadow,
   aria,
 } from '@mantou/gem/lib/decorators';
-import { GemElement, html, TemplateResult } from '@mantou/gem/lib/element';
-import { createCSSSheet, css, partMap, classMap, styleMap } from '@mantou/gem/lib/utils';
+import { createCSSSheet, GemElement, html, TemplateResult } from '@mantou/gem/lib/element';
+import { css, partMap, classMap, styleMap } from '@mantou/gem/lib/utils';
 
 import { theme } from '../lib/theme';
 import { commonHandle } from '../lib/hotkeys';

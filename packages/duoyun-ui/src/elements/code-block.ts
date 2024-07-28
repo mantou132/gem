@@ -1,7 +1,7 @@
 // https://spectrum.adobe.com/page/code/
 import { adoptedStyle, customElement, attribute, refobject, RefObject, shadow } from '@mantou/gem/lib/decorators';
-import { GemElement, html } from '@mantou/gem/lib/element';
-import { createCSSSheet, css, styleMap } from '@mantou/gem/lib/utils';
+import { createCSSSheet, GemElement, html } from '@mantou/gem/lib/element';
+import { css, styleMap } from '@mantou/gem/lib/utils';
 
 import { theme } from '../lib/theme';
 

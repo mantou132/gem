@@ -11,8 +11,8 @@ import {
   part,
   shadow,
 } from '@mantou/gem/lib/decorators';
-import { GemElement, html, TemplateResult } from '@mantou/gem/lib/element';
-import { addListener, createCSSSheet, css, styleMap, StyleObject } from '@mantou/gem/lib/utils';
+import { createCSSSheet, GemElement, html, TemplateResult } from '@mantou/gem/lib/element';
+import { addListener, css, styleMap, StyleObject } from '@mantou/gem/lib/utils';
 
 import { toggleActiveState, getBoundingClientRect, setBodyInert } from '../lib/element';
 import { sleep } from '../lib/timer';

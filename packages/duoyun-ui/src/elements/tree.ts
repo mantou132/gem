@@ -13,8 +13,8 @@ import {
   aria,
   focusable,
 } from '@mantou/gem/lib/decorators';
-import { GemElement, html, TemplateResult } from '@mantou/gem/lib/element';
-import { createCSSSheet, css, styleMap } from '@mantou/gem/lib/utils';
+import { createCSSSheet, GemElement, html, TemplateResult } from '@mantou/gem/lib/element';
+import { css, styleMap } from '@mantou/gem/lib/utils';
 
 import { icons } from '../lib/icons';
 import { commonHandle } from '../lib/hotkeys';

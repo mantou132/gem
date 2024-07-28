@@ -1,6 +1,6 @@
-import { GemElement, html, TemplateResult } from '@mantou/gem/lib/element';
+import { GemElement, html, TemplateResult, createCSSSheet } from '@mantou/gem/lib/element';
 import { adoptedStyle, customElement, property, attribute, slot, shadow } from '@mantou/gem/lib/decorators';
-import { createCSSSheet, css } from '@mantou/gem/lib/utils';
+import { css } from '@mantou/gem/lib/utils';
 
 import { theme } from '../lib/theme';
 

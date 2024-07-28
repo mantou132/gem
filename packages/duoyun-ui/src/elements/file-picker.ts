@@ -12,8 +12,8 @@ import {
   slot,
   shadow,
 } from '@mantou/gem/lib/decorators';
-import { GemElement, html } from '@mantou/gem/lib/element';
-import { createCSSSheet, css, styleMap } from '@mantou/gem/lib/utils';
+import { createCSSSheet, GemElement, html } from '@mantou/gem/lib/element';
+import { css, styleMap } from '@mantou/gem/lib/utils';
 import { repeat } from '@mantou/gem/lib/directives';
 
 import { icons } from '../lib/icons';

@@ -14,8 +14,8 @@ import {
   focusable,
   shadow,
 } from '@mantou/gem/lib/decorators';
-import { GemElement, html, TemplateResult } from '@mantou/gem/lib/element';
-import { addListener, createCSSSheet, css, styleMap, StyleObject } from '@mantou/gem/lib/utils';
+import { createCSSSheet, GemElement, html, TemplateResult } from '@mantou/gem/lib/element';
+import { addListener, css, styleMap, StyleObject } from '@mantou/gem/lib/utils';
 
 import { theme } from '../lib/theme';
 import { icons } from '../lib/icons';

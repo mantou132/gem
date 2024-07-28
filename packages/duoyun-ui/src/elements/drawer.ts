@@ -1,5 +1,6 @@
 import { adoptedStyle, customElement } from '@mantou/gem/lib/decorators';
-import { createCSSSheet, css } from '@mantou/gem/lib/utils';
+import { createCSSSheet } from '@mantou/gem/lib/element';
+import { css } from '@mantou/gem/lib/utils';
 
 import { slideInLeft, slideOutRight } from '../lib/animations';
 

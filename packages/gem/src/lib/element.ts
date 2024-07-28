@@ -1,7 +1,7 @@
 import { html, render, TemplateResult } from 'lit-html';
 
 import { connect, Store } from './store';
-import { LinkedList, addMicrotask, Sheet, SheetToken, isArrayChange, GemError, addListener } from './utils';
+import { LinkedList, addMicrotask, isArrayChange, GemError, addListener, randomStr } from './utils';
 
 export { html, svg, render, directive, TemplateResult, SVGTemplateResult } from 'lit-html';
 
@@ -15,8 +15,6 @@ declare global {
     ref: string;
   }
   interface DOMStringMap {
-    // 手动设置 'false' 让自定义元素不作为样式边界
-    styleScope?: 'false' | '';
     gemReflect?: '';
     [name: string]: string | undefined;
   }
@@ -47,6 +45,100 @@ noBlockingTaskList.addEventListener('start', () => addMicrotask(tick));
 
 const rootStyleSheetInfo = new WeakMap<Document | ShadowRoot, Map<CSSStyleSheet, number>>();
 const rootUpdateFnMap = new WeakMap<Map<CSSStyleSheet, number>, () => void>();
+
+// 跨多个 gem 工作
+export const SheetToken = Symbol.for('gem@sheetToken');
+
+export class GemCSSSheet {
+  #content = '';
+  #media = '';
+  constructor(media = '') {
+    this.#media = media;
+  }
+  setContent(v: string) {
+    this.#content = v;
+  }
+
+  // 不需要 GC
+  #record = new Map<any, CSSStyleSheet>();
+  #applyd = new Map<CSSStyleSheet, string>();
+  getStyle(host?: HTMLElement) {
+    // GemElement Metadata, 支持 closed 模式
+    const metadate = host && ((host as any).constructor[Symbol.metadata] || {});
+    const isLight = metadate && !metadate.mode;
+    const layer = metadate?.layer;
+
+    // 对同一类 dom 只使用同一个样式表
+    const key = isLight ? host.constructor : this;
+    if (!this.#record.has(key)) {
+      const sheet = new CSSStyleSheet({ media: this.#media });
+      this.#record.set(key, sheet);
+    }
+
+    const sheet = this.#record.get(key)!;
+
+    // 只执行一次
+    if (!this.#applyd.has(sheet)) {
+      let style = this.#content;
+      let scope = '';
+      if (layer !== undefined) {
+        style = `@layer ${layer} {${style}}`;
+      }
+      if (isLight && metadate.scoped !== false) {
+        // light dom 嵌套时需要选择子元素
+        // `> *` 实际上是多范围？是否存在性能问题
+        scope = `@scope (${host.tagName}) to (:state(gem-style-scope) > *)`;
+        // 不能使用 @layer，两个 @layer 不能覆盖，只有顺序起作用
+        // 所以外部不能通过元素名称选择器来覆盖样式，除非样式在之前插入（会自动反转应用到尾部， see `appleCSSStyleSheet`）
+        style = `${scope}{ ${style} }`;
+      }
+      sheet.replaceSync(style);
+      this.#applyd.set(sheet, scope);
+    }
+
+    return sheet;
+  }
+
+  // 一般用于主题更新
+  updateStyle() {
+    this.#applyd.forEach((scope, sheet) => {
+      sheet.replaceSync(scope ? `${scope}{${this.#content}}` : this.#content);
+    });
+  }
+}
+
+export type Sheet<T> = {
+  [P in keyof T]: P;
+} & { [SheetToken]: GemCSSSheet };
+
+/**
+ *
+ * 创建 style sheet 用于 `@adoptedStyle`，不支持样式更新，只支持自定义 CSS 属性
+ */
+export function createCSSSheet<T extends Record<string, string>>(media: string, rules: T | string): Sheet<T>;
+export function createCSSSheet<T extends Record<string, string>>(rules: T | string): Sheet<T>;
+export function createCSSSheet<T extends Record<string, string>>(
+  mediaOrRules: T | string,
+  rulesValue?: T | string,
+): Sheet<T> {
+  const media = rulesValue ? (mediaOrRules as string) : '';
+  const rules = rulesValue || mediaOrRules;
+  const styleSheet = new GemCSSSheet(media);
+  const sheet: any = { [SheetToken]: styleSheet };
+  let style = '';
+  if (typeof rules === 'string') {
+    style = rules;
+  } else {
+    Object.keys(rules).forEach((key) => {
+      const isScope = key === '$';
+      // 对于已经有 `-` 的保留原始 key，支持覆盖修改
+      sheet[key] = isScope || key.includes('-') ? key : `${key}-${randomStr()}`;
+      style += `${isScope ? ':scope,:host' : `.${sheet[key]}`} {${rules[key]}}`;
+    });
+  }
+  styleSheet.setContent(style);
+  return sheet as Sheet<T>;
+}
 
 const updateStyleSheets = (map: Map<CSSStyleSheet, number>, sheets: CSSStyleSheet[], value: number) => {
   let needUpdate = false;
@@ -100,6 +192,9 @@ export const UpdateToken = Symbol.for('gem@update');
 const updateTokenAlias = UpdateToken;
 
 export type Metadata = Partial<ShadowRootInit> & {
+  // 手动设置 `false` 让自定义元素不作为样式边界，只工作于 light dom
+  scoped?: boolean;
+  layer?: string;
   noBlocking?: boolean;
   focusable?: boolean;
   aria?: Partial<ARIAMixin>;
@@ -147,10 +242,13 @@ export abstract class GemElement<State = Record<string, unknown>> extends HTMLEl
   constructor() {
     super();
 
-    const { mode, serializable, delegatesFocus, slotAssignment, focusable, aria } = this.#metadata;
+    const { mode, serializable, delegatesFocus, slotAssignment, focusable, aria, scoped } = this.#metadata;
 
     this.#renderRoot = !mode ? this : this.attachShadow({ mode, serializable, delegatesFocus, slotAssignment });
     this.#internals = this.attachInternals();
+
+    assign(this.#internals, aria);
+    if (!mode && scoped !== false) this.#internals.states.add('gem-style-scope');
 
     // https://stackoverflow.com/questions/43836886/failed-to-construct-customelement-error-when-javascript-file-is-placed-in-head
     // focusable 元素一般同时具备 disabled 属性
@@ -174,8 +272,6 @@ export abstract class GemElement<State = Record<string, unknown>> extends HTMLEl
       },
       () => [(this as any).disabled],
     );
-
-    assign(this.#internals, aria);
   }
 
   get #metadata(): Metadata {
@@ -374,13 +470,10 @@ export abstract class GemElement<State = Record<string, unknown>> extends HTMLEl
   unmounted?(): void | Promise<void>;
 
   #prepareStyle = () => {
-    const { adoptedStyleSheets } = this.#metadata;
-
+    const { adoptedStyleSheets = [] } = this.#metadata;
     const { shadowRoot } = this.#internals;
-    // 阻止其他元素应用样式到当前元素
-    if (!shadowRoot && !this.dataset.styleScope) this.dataset.styleScope = '';
-    // 依赖 `dataset.styleScope`
-    const sheets = adoptedStyleSheets?.map((item) => item[SheetToken].getStyle(this)) || [];
+
+    const sheets = adoptedStyleSheets.map((item) => item[SheetToken].getStyle(this));
     if (shadowRoot) {
       shadowRoot.adoptedStyleSheets = sheets;
     } else {

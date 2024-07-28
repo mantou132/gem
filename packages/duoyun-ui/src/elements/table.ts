@@ -11,8 +11,8 @@ import {
   part,
   shadow,
 } from '@mantou/gem/lib/decorators';
-import { html, TemplateResult } from '@mantou/gem/lib/element';
-import { createCSSSheet, css, styleMap, classMap, StyleObject, isArrayChange } from '@mantou/gem/lib/utils';
+import { createCSSSheet, html, TemplateResult } from '@mantou/gem/lib/element';
+import { css, styleMap, classMap, StyleObject, isArrayChange } from '@mantou/gem/lib/utils';
 
 import { theme } from '../lib/theme';
 import { readProp } from '../lib/utils';

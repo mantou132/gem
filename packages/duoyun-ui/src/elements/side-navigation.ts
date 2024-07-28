@@ -8,9 +8,9 @@ import {
   aria,
   shadow,
 } from '@mantou/gem/lib/decorators';
-import { html, TemplateResult } from '@mantou/gem/lib/element';
+import { createCSSSheet, html, TemplateResult } from '@mantou/gem/lib/element';
 import { history } from '@mantou/gem/lib/history';
-import { createCSSSheet, css, QueryString } from '@mantou/gem/lib/utils';
+import { css, QueryString } from '@mantou/gem/lib/utils';
 
 import { theme } from '../lib/theme';
 import { commonHandle } from '../lib/hotkeys';

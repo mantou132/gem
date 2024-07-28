@@ -1,4 +1,4 @@
-import { GemElement, html } from '@mantou/gem/lib/element';
+import { GemElement, html, createCSSSheet } from '@mantou/gem/lib/element';
 import {
   adoptedStyle,
   customElement,
@@ -9,7 +9,7 @@ import {
   aria,
   shadow,
 } from '@mantou/gem/lib/decorators';
-import { createCSSSheet, css } from '@mantou/gem/lib/utils';
+import { css } from '@mantou/gem/lib/utils';
 
 import { theme, getSemanticColor } from '../lib/theme';
 import { commonHandle } from '../lib/hotkeys';

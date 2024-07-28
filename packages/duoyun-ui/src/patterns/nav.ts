@@ -1,7 +1,7 @@
 import { history } from '@mantou/gem/lib/history';
-import { GemElement, TemplateResult, html, render } from '@mantou/gem/lib/element';
+import { createCSSSheet, GemElement, TemplateResult, html, render } from '@mantou/gem/lib/element';
 import { adoptedStyle, attribute, connectStore, customElement, property, state } from '@mantou/gem/lib/decorators';
-import { addListener, classMap, createCSSSheet, css } from '@mantou/gem/lib/utils';
+import { addListener, classMap, css } from '@mantou/gem/lib/utils';
 import { mediaQuery } from '@mantou/gem/helper/mediaquery';
 
 import { isRemoteIcon } from '../lib/utils';

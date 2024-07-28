@@ -1,4 +1,4 @@
-import { GemElement, html, TemplateResult } from '@mantou/gem/lib/element';
+import { createCSSSheet, GemElement, html, TemplateResult } from '@mantou/gem/lib/element';
 import {
   adoptedStyle,
   customElement,
@@ -10,7 +10,7 @@ import {
   Emitter,
   shadow,
 } from '@mantou/gem/lib/decorators';
-import { createCSSSheet, css, styleMap, classMap, addListener } from '@mantou/gem/lib/utils';
+import { css, styleMap, classMap, addListener } from '@mantou/gem/lib/utils';
 
 import { theme } from '../lib/theme';
 import { icons } from '../lib/icons';

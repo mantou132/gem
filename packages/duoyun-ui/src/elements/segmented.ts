@@ -1,4 +1,4 @@
-import { GemElement, html } from '@mantou/gem/lib/element';
+import { createCSSSheet, GemElement, html } from '@mantou/gem/lib/element';
 import {
   Emitter,
   adoptedStyle,
@@ -11,7 +11,7 @@ import {
   shadow,
   state,
 } from '@mantou/gem/lib/decorators';
-import { classMap, createCSSSheet, css, partMap, styleMap } from '@mantou/gem/lib/utils';
+import { classMap, css, partMap, styleMap } from '@mantou/gem/lib/utils';
 
 import { commonHandle } from '../lib/hotkeys';
 import { theme } from '../lib/theme';

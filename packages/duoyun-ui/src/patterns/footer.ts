@@ -1,6 +1,6 @@
-import { GemElement, html } from '@mantou/gem/lib/element';
+import { GemElement, html, createCSSSheet } from '@mantou/gem/lib/element';
 import { Emitter, adoptedStyle, customElement, globalemitter, property } from '@mantou/gem/lib/decorators';
-import { createCSSSheet, css } from '@mantou/gem/lib/utils';
+import { css } from '@mantou/gem/lib/utils';
 import { mediaQuery } from '@mantou/gem/helper/mediaquery';
 
 import { theme } from '../lib/theme';

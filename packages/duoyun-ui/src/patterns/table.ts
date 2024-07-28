@@ -1,5 +1,5 @@
-import { GemElement, html } from '@mantou/gem/lib/element';
-import { QueryString, addListener, createCSSSheet, css, styleMap } from '@mantou/gem/lib/utils';
+import { createCSSSheet, GemElement, html } from '@mantou/gem/lib/element';
+import { QueryString, addListener, css, styleMap } from '@mantou/gem/lib/utils';
 import {
   Emitter,
   RefObject,

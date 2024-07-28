@@ -1,6 +1,6 @@
-import { html, GemElement, TemplateResult } from '@mantou/gem/lib/element';
+import { createCSSSheet, html, GemElement, TemplateResult } from '@mantou/gem/lib/element';
 import { adoptedStyle, customElement, property, refobject, RefObject, shadow } from '@mantou/gem/lib/decorators';
-import { GemError, StyleObject, createCSSSheet, css, styleMap } from '@mantou/gem/lib/utils';
+import { GemError, StyleObject, css, styleMap } from '@mantou/gem/lib/utils';
 import { history } from '@mantou/gem/lib/history';
 import { ifDefined } from '@mantou/gem/lib/directives';
 

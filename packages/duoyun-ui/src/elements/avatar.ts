@@ -9,8 +9,8 @@ import {
   aria,
   shadow,
 } from '@mantou/gem/lib/decorators';
-import { GemElement, html } from '@mantou/gem/lib/element';
-import { createCSSSheet, css, exportPartsMap } from '@mantou/gem/lib/utils';
+import { createCSSSheet, GemElement, html } from '@mantou/gem/lib/element';
+import { css, exportPartsMap } from '@mantou/gem/lib/utils';
 
 import { theme } from '../lib/theme';
 

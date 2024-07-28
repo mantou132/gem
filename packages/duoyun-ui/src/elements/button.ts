@@ -12,9 +12,9 @@ import {
   slot,
   shadow,
 } from '@mantou/gem/lib/decorators';
-import { GemElement, html } from '@mantou/gem/lib/element';
+import { createCSSSheet, GemElement, html } from '@mantou/gem/lib/element';
 import { history } from '@mantou/gem/lib/history';
-import { createCSSSheet, css, QueryString } from '@mantou/gem/lib/utils';
+import { css, QueryString } from '@mantou/gem/lib/utils';
 
 import { theme, getSemanticColor } from '../lib/theme';
 import { icons } from '../lib/icons';

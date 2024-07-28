@@ -1,6 +1,6 @@
 import { customElement, property, adoptedStyle } from '@mantou/gem/lib/decorators';
-import { html, svg } from '@mantou/gem/lib/element';
-import { css, createCSSSheet } from '@mantou/gem/lib/utils';
+import { createCSSSheet, html, svg } from '@mantou/gem/lib/element';
+import { css } from '@mantou/gem/lib/utils';
 
 import { theme } from '../lib/theme';
 

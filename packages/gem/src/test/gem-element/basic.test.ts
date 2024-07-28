@@ -1,8 +1,8 @@
 import { fixture, expect, nextFrame } from '@open-wc/testing';
 
-import { GemElement, html } from '../../lib/element';
+import { createCSSSheet, GemElement, html } from '../../lib/element';
 import { createStore, updateStore } from '../../lib/store';
-import { createCSSSheet, css } from '../../lib/utils';
+import { css } from '../../lib/utils';
 import {
   adoptedStyle,
   attribute,

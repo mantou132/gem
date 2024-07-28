@@ -1,13 +1,12 @@
 import { expect } from '@open-wc/testing';
 
+import { createCSSSheet, SheetToken } from '../lib/element';
 import {
   LinkedList,
   QueryString,
   css,
   raw,
-  createCSSSheet,
   styled,
-  SheetToken,
   styleMap,
   classMap,
   exportPartsMap,

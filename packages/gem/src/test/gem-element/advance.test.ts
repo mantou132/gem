@@ -8,7 +8,7 @@
  */
 import { fixture, expect, nextFrame } from '@open-wc/testing';
 
-import { GemElement, html, Metadata } from '../../lib/element';
+import { createCSSSheet, GemElement, html, Metadata } from '../../lib/element';
 import { createStore, updateStore } from '../../lib/store';
 import {
   attribute,
@@ -22,7 +22,7 @@ import {
   async,
   shadow,
 } from '../../lib/decorators';
-import { createCSSSheet, css } from '../../lib/utils';
+import { css } from '../../lib/utils';
 
 const store = createStore({
   a: 1,

@@ -1,7 +1,7 @@
 import { connectStore, adoptedStyle, customElement, attribute, slot, shadow } from '@mantou/gem/lib/decorators';
-import { GemElement, html } from '@mantou/gem/lib/element';
+import { GemElement, html, createCSSSheet } from '@mantou/gem/lib/element';
 import { history } from '@mantou/gem/lib/history';
-import { createCSSSheet, css } from '@mantou/gem/lib/utils';
+import { css } from '@mantou/gem/lib/utils';
 
 import { theme } from '../lib/theme';
 

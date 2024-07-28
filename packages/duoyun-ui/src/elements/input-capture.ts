@@ -1,6 +1,6 @@
 import { adoptedStyle, customElement, part, shadow } from '@mantou/gem/lib/decorators';
-import { GemElement, html } from '@mantou/gem/lib/element';
-import { addListener, createCSSSheet, css } from '@mantou/gem/lib/utils';
+import { createCSSSheet, GemElement, html } from '@mantou/gem/lib/element';
+import { addListener, css } from '@mantou/gem/lib/utils';
 
 import { theme } from '../lib/theme';
 import { getDisplayKey } from '../lib/hotkeys';

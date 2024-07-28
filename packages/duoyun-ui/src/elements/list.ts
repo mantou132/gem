@@ -14,8 +14,8 @@ import {
   shadow,
   aria,
 } from '@mantou/gem/lib/decorators';
-import { GemElement, html, TemplateResult } from '@mantou/gem/lib/element';
-import { addListener, createCSSSheet, css, LinkedList, LinkedListItem, styled, styleMap } from '@mantou/gem/lib/utils';
+import { createCSSSheet, GemElement, html, TemplateResult } from '@mantou/gem/lib/element';
+import { addListener, css, LinkedList, LinkedListItem, styled, styleMap } from '@mantou/gem/lib/utils';
 import { logger } from '@mantou/gem/helper/logger';
 
 import { theme } from '../lib/theme';

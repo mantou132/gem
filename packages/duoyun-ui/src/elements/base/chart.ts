@@ -1,6 +1,6 @@
 import { adoptedStyle, emitter, Emitter, property, state, part, aria, shadow } from '@mantou/gem/lib/decorators';
-import { html, svg, TemplateResult } from '@mantou/gem/lib/element';
-import { createCSSSheet, css, randomStr } from '@mantou/gem/lib/utils';
+import { createCSSSheet, html, svg, TemplateResult } from '@mantou/gem/lib/element';
+import { css, randomStr } from '@mantou/gem/lib/utils';
 
 import { theme } from '../../lib/theme';
 import { Data, DataItem } from '../chart-tooltip';

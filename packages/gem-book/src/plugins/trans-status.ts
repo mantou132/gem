@@ -16,18 +16,15 @@ const locales: Record<string, Record<Status, string>> = {
 
 customElements.whenDefined('gem-book').then(({ GemBookPluginElement }: typeof GemBookElement) => {
   const { Gem, Utils, selfI18n } = GemBookPluginElement;
-  const { html, customElement, attribute } = Gem;
+  const { html, customElement, attribute, style } = Gem;
 
   @customElement('gbp-trans-status')
+  @style({ scoped: false })
   class _GbpTransStatusElement extends GemBookPluginElement {
     @attribute status: Status;
 
     get #status() {
       return this.status || 'none';
-    }
-
-    mounted() {
-      this.dataset.styleScope = 'false';
     }
 
     render() {

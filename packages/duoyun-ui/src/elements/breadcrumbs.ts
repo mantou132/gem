@@ -1,7 +1,7 @@
 // https://spectrum.adobe.com/page/breadcrumbs/
 import { adoptedStyle, customElement, property, boolattribute, part, aria, shadow } from '@mantou/gem/lib/decorators';
-import { GemElement, html } from '@mantou/gem/lib/element';
-import { createCSSSheet, css, classMap } from '@mantou/gem/lib/utils';
+import { createCSSSheet, GemElement, html } from '@mantou/gem/lib/element';
+import { css, classMap } from '@mantou/gem/lib/utils';
 
 import { icons } from '../lib/icons';
 import { theme } from '../lib/theme';

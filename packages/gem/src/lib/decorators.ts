@@ -1,7 +1,7 @@
 import type { GemReflectElement } from '../elements/reflect';
 
-import { GemElement, UpdateToken, Metadata } from './element';
-import { Sheet, camelToKebabCase, randomStr, PropProxyMap } from './utils';
+import { Sheet, GemElement, UpdateToken, Metadata } from './element';
+import { camelToKebabCase, randomStr, PropProxyMap } from './utils';
 import { Store } from './store';
 import * as elementExports from './element';
 import * as decoratorsExports from './decorators';
@@ -9,7 +9,10 @@ import * as storeExports from './store';
 import * as versionExports from './version';
 
 type GemElementPrototype = GemElement<any>;
-type StaticField = Exclude<keyof Metadata, keyof ShadowRootInit | 'aria' | 'rootElement' | 'noBlocking' | 'focusable'>;
+type StaticField = Exclude<
+  keyof Metadata,
+  keyof ShadowRootInit | 'aria' | 'rootElement' | 'noBlocking' | 'focusable' | 'scoped' | 'layer'
+>;
 
 const { deleteProperty, getOwnPropertyDescriptor, defineProperty } = Reflect;
 const { getPrototypeOf, assign } = Object;
@@ -472,9 +475,9 @@ function defineEmitter(
  *  class App extends GemElement {}
  * ```
  */
-export function adoptedStyle(style: Sheet<unknown>) {
+export function adoptedStyle(sheet: Sheet<unknown>) {
   return function (_: unknown, context: ClassDecoratorContext) {
-    pushStaticField(context, 'adoptedStyleSheets', style);
+    pushStaticField(context, 'adoptedStyleSheets', sheet);
   };
 }
 
@@ -549,6 +552,14 @@ export function aria(info: Partial<ARIAMixin>) {
   return function (_: any, context: ClassDecoratorContext) {
     const metadata = context.metadata as Metadata;
     metadata.aria = { ...metadata.aria, ...info };
+  };
+}
+
+export function style(info: Pick<Metadata, 'scoped' | 'layer'>) {
+  return function (_: any, context: ClassDecoratorContext) {
+    const metadata = context.metadata as Metadata;
+    metadata.scoped = info.scoped;
+    metadata.layer = info.layer;
   };
 }
 

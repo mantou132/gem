@@ -8,8 +8,8 @@ import {
   aria,
   shadow,
 } from '@mantou/gem/lib/decorators';
-import { html } from '@mantou/gem/lib/element';
-import { createCSSSheet, css, styleMap } from '@mantou/gem/lib/utils';
+import { createCSSSheet, html } from '@mantou/gem/lib/element';
+import { css, styleMap } from '@mantou/gem/lib/utils';
 
 import { theme } from '../lib/theme';
 
