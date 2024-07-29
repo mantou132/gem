@@ -1,5 +1,18 @@
-import { GemElement, html } from '../../lib/element';
-import { attribute, property, shadow, state } from '../../lib/decorators';
+import { createCSSSheet, GemElement, html } from '../../lib/element';
+import { adoptedStyle, attribute, property, shadow, state } from '../../lib/decorators';
+import { css } from '../../lib/utils';
+
+const styles = createCSSSheet(css`
+  :host(:where(:not([hidden]))) {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+  }
+  svg {
+    width: 100%;
+    height: 100%;
+  }
+`);
 
 const eleCache = new Map<string, HTMLTemplateElement>();
 /**
@@ -12,6 +25,7 @@ const eleCache = new Map<string, HTMLTemplateElement>();
  * @attr selector
  */
 @shadow()
+@adoptedStyle(styles)
 export class GemUseElement extends GemElement {
   @attribute selector: string; // CSS 选择器
   @property root?: HTMLElement | Document | ShadowRoot;
@@ -38,17 +52,6 @@ export class GemUseElement extends GemElement {
 
   render() {
     return html`
-      <style>
-        :host(:where(:not([hidden]))) {
-          position: relative;
-          display: inline-flex;
-          align-items: center;
-        }
-        svg {
-          width: 100%;
-          height: 100%;
-        }
-      </style>
       ${this.#getContent()}
       <slot></slot>
     `;

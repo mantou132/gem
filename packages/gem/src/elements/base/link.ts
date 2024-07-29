@@ -1,7 +1,7 @@
-import { GemElement, html } from '../../lib/element';
-import { attribute, property, state, part, connectStore, shadow, aria } from '../../lib/decorators';
+import { createCSSSheet, GemElement, html } from '../../lib/element';
+import { attribute, property, state, part, connectStore, shadow, aria, adoptedStyle } from '../../lib/decorators';
 import { history, basePathStore } from '../../lib/history';
-import { absoluteLocation } from '../../lib/utils';
+import { absoluteLocation, css } from '../../lib/utils';
 import { ifDefined } from '../../lib/directives';
 
 import { matchPath, RouteItem, RouteOptions, createHistoryParams, createPath } from './route';
@@ -9,6 +9,22 @@ import { matchPath, RouteItem, RouteOptions, createHistoryParams, createPath } f
 function isExternal(path: string) {
   return !path.startsWith('/');
 }
+
+const styles = createCSSSheet(css`
+  :host {
+    /* link default style */
+    cursor: pointer;
+    color: blue;
+    text-decoration: underline;
+  }
+  a {
+    all: unset;
+    display: contents;
+  }
+  a:visited {
+    color: unset;
+  }
+`);
 
 /**
  * @customElement gem-link
@@ -25,6 +41,7 @@ function isExternal(path: string) {
  * Bug: print `<link>` https://github.com/mantou132/gem/issues/36
  */
 @connectStore(basePathStore)
+@adoptedStyle(styles)
 @shadow()
 @aria({ focusable: true })
 export class GemLinkElement extends GemElement {
@@ -125,21 +142,6 @@ export class GemLinkElement extends GemElement {
 
   render() {
     return html`
-      <style>
-        :host {
-          /* link default style */
-          cursor: pointer;
-          color: blue;
-          text-decoration: underline;
-        }
-        a {
-          all: unset;
-          display: contents;
-        }
-        a:visited {
-          color: unset;
-        }
-      </style>
       <a
         part=${this.link}
         @click=${this.#preventDefault}
