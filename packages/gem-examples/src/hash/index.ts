@@ -1,4 +1,4 @@
-import { GemElement, render, html, customElement, shadow } from '@mantou/gem';
+import { GemElement, render, html, customElement, shadow, addListener } from '@mantou/gem';
 import '@mantou/gem/elements/link';
 
 import '../elements/layout';
@@ -6,19 +6,11 @@ import '../elements/layout';
 @customElement('app-article')
 @shadow()
 class _Article extends GemElement {
-  constructor() {
-    super();
-    window.addEventListener('hashchange', this.checkHash);
-  }
-
   mounted = () => {
     // 在当前页面刷新浏览器会保留滚动位置
     // 开新窗口测试带 hash 链接
     this.checkHash();
-  };
-
-  unmounted = () => {
-    window.removeEventListener('hashchange', this.checkHash);
+    return addListener(window, 'hashchange', this.checkHash);
   };
 
   checkHash = () => {

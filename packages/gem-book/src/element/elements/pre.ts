@@ -250,6 +250,8 @@ const styles = createCSSSheet(css`
     display: block;
     font-family: ${theme.codeFont};
     background: rgb(from ${theme.textColor} r g b / 0.05);
+    border-radius: ${theme.normalRound};
+    overflow: hidden;
   }
   .filename {
     font-size: 0.75em;

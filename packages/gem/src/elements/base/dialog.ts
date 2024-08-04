@@ -1,5 +1,5 @@
 import { GemElement } from '../../lib/element';
-import { attribute, state, connectStore, aria } from '../../lib/decorators';
+import { attribute, state, connectStore, aria, willMount } from '../../lib/decorators';
 import { history } from '../../lib/history';
 
 const final = Symbol();
@@ -21,14 +21,6 @@ export abstract class GemDialogBaseElement extends GemElement {
   #nextSibling: ChildNode | null;
   #parentElement: Node | null;
   #inertStore: HTMLElement[] = [];
-
-  constructor() {
-    super();
-    this.effect(
-      () => (this.inert = true),
-      () => [],
-    );
-  }
 
   /**
    * 进入关闭状态
@@ -59,6 +51,9 @@ export abstract class GemDialogBaseElement extends GemElement {
     this.dispatchEvent(new CustomEvent('open'));
     this.opened = true;
   };
+
+  @willMount()
+  #init = () => (this.inert = true);
 
   /**@final */
   open = () => {

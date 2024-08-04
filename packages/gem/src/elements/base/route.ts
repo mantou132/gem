@@ -1,5 +1,14 @@
-import { GemElement, html, TemplateResult } from '../../lib/element';
-import { property, emitter, Emitter, boolattribute, shadow } from '../../lib/decorators';
+import { BoundaryCSSState, createState, GemElement, html, TemplateResult } from '../../lib/element';
+import {
+  property,
+  emitter,
+  Emitter,
+  boolattribute,
+  shadow,
+  effect,
+  renderTemplate,
+  willMount,
+} from '../../lib/decorators';
 import { createStore, updateStore, Store, connect } from '../../lib/store';
 import { titleStore, history, UpdateHistoryParams } from '../../lib/history';
 import { addListener, QueryString } from '../../lib/utils';
@@ -113,11 +122,6 @@ export function createHistoryParams(route: RouteItem, options?: RouteOptions): U
   };
 }
 
-interface ConstructorOptions {
-  isLight?: boolean;
-  routes?: RouteItem[] | RoutesObject;
-}
-
 const INIT_CONTENT = html``;
 
 type State = {
@@ -139,7 +143,7 @@ const scrollPositionMap = new Map<string, number>();
  * @fires error
  * @fires loading
  */
-export class GemLightRouteElement extends GemElement<State> {
+export class GemLightRouteElement extends GemElement {
   @boolattribute transition: boolean;
   @property routes?: RouteItem[] | RoutesObject;
   /**
@@ -167,8 +171,6 @@ export class GemLightRouteElement extends GemElement<State> {
   currentRoute: RouteItem | null;
   /**当前匹配的路由的 params */
   currentParams: Params = {};
-
-  #lastLoader?: Promise<TemplateResult | undefined>;
 
   /**不要多个 `<gem-route>` 共享，因为那样会导致后面的元素卸载前触发更新 */
   static createLocationStore = () => {
@@ -201,14 +203,7 @@ export class GemLightRouteElement extends GemElement<State> {
     return typeof this.scrollContainer === 'function' ? this.scrollContainer() : this.scrollContainer;
   }
 
-  constructor({ routes }: ConstructorOptions = {}) {
-    super();
-    this.routes = this.routes || routes;
-  }
-
-  state: State = {
-    content: INIT_CONTENT,
-  };
+  #state = createState<State>({ content: INIT_CONTENT });
 
   #updateLocationStore = () => {
     if (!this.locationStore) return;
@@ -232,13 +227,14 @@ export class GemLightRouteElement extends GemElement<State> {
     }
   };
 
+  #lastLoader?: Promise<TemplateResult | undefined>;
   #setContent = (route: RouteItem | null, params: Params, content?: TemplateResult) => {
     this.beforeroutechange(route);
     this.#lastLoader = undefined;
     this.currentRoute = route;
     this.currentParams = params;
     const changeContent = async () => {
-      this.setState({ content });
+      this.#state({ content });
       // 要确保新页面能读取到新路由数据
       this.#updateLocationStore();
       // 等待页面渲染完成
@@ -253,45 +249,39 @@ export class GemLightRouteElement extends GemElement<State> {
     }
   };
 
-  mounted() {
-    this.effect(
-      () => {
-        if (!this.#scrollContainer) return;
-        return addListener(history, 'beforechange', () =>
-          scrollPositionMap.set(history.currentKey, this.#scrollContainer!.scrollTop),
-        );
-      },
-      () => [this.scrollContainer],
+  @willMount()
+  #unBoundary = () => this.internals.states.delete(BoundaryCSSState);
+
+  @effect((i) => [i.scrollContainer])
+  #rememberScrollPosition = () => {
+    if (!this.#scrollContainer) return;
+    return addListener(history, 'beforechange', () =>
+      scrollPositionMap.set(history.currentKey, this.#scrollContainer!.scrollTop),
     );
+  };
 
-    this.effect(
-      // 触发 this.#update
-      () => connect(this.trigger.store, () => this.setState({})),
-      () => [this.trigger],
-    );
+  // history or i18n
+  @effect((i) => [i.scrollContainer])
+  #connectTriggerStore = () => connect(this.trigger.store, () => this.#state({}));
 
-    this.effect(
-      ([key, path], old) => {
-        // 只有查询参数改变
-        if (old && key === old[0] && path === old[1]) {
-          this.#updateLocationStore();
-          return;
-        }
-        this.update();
-      },
-      () => {
-        const { path, query, hash } = this.trigger.getParams();
-        return [this.key, path, query, hash] as const;
-      },
-    );
-  }
+  #updateContentDep = () => {
+    const { path, query, hash } = this.trigger.getParams();
+    return [this.key, path, query, hash] as const;
+  };
 
-  shouldUpdate() {
-    return this.inert ? false : true;
-  }
+  @effect((i) => i.#updateContentDep())
+  #updateContent = ([key, path]: any, old: any) => {
+    // 只有查询参数改变
+    if (old && key === old[0] && path === old[1]) {
+      this.#updateLocationStore();
+      return;
+    }
+    this.update();
+  };
 
-  render() {
-    const { content } = this.state;
+  @renderTemplate((i) => !i.inert)
+  #render = () => {
+    const { content } = this.#state;
     if (content === undefined) return;
 
     if (!this.shadowRoot) {
@@ -308,8 +298,9 @@ export class GemLightRouteElement extends GemElement<State> {
       </style>
       ${content === INIT_CONTENT ? html`<slot></slot>` : content}
     `;
-  }
+  };
 
+  // 重写 `update`，并暴露为公共字段
   update = () => {
     const { path, hash, query } = this.trigger.getParams();
     const { route, params = {} } = GemRouteElement.findRoute(this.routes, path);

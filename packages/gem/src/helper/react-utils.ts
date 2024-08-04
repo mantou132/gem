@@ -18,15 +18,13 @@ export function renderReactNode(ele: any, node: ReactNode) {
   // async
   ele.react.render(node);
 
-  // override
   const routeEle = ele instanceof HTMLElement ? ele : ele.host;
-  const originUnmounted = routeEle.unmounted;
-  if (!originUnmounted?.react) {
-    routeEle.unmounted = () => {
-      originUnmounted?.apply(routeEle);
-      ele.react.unmount();
-    };
-    routeEle.unmounted.react = true;
+  if (!routeEle.reactCallback) {
+    routeEle.effect(
+      () => () => ele.react.unmount(),
+      () => [],
+    );
+    routeEle.reactCallback = true;
   }
 }
 

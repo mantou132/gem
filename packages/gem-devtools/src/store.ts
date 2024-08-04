@@ -32,6 +32,7 @@ export class PanelStore {
   observedStores = new Array<Item>();
   adoptedStyles = new Array<Item>();
   state = new Array<Item>();
+  stateList = new Array<Item[]>();
   emitters = new Array<Item>();
   slots = new Array<Item>();
   cssStates = new Array<Item>();

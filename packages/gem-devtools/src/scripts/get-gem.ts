@@ -226,12 +226,25 @@ export const getSelectedGem = function (data: PanelStore): PanelStore | string {
       type: 'boolean',
     });
   });
+  $0.internals?.stateList?.forEach((state: any) => {
+    data.stateList.push(
+      Object.keys(state).map((k) => {
+        const value = state[k];
+        return {
+          name: k,
+          value: objectToString(value),
+          type: typeof value,
+        };
+      }),
+    );
+  });
   memberSet.forEach((key) => {
     memberSet.delete(key);
     // GemElement 不允许覆盖内置生命周期，所以不考虑
     if (elementMethod.has(key)) return;
     if (key === 'state') {
       $0.state &&
+        $0.setState &&
         Object.keys($0.state).forEach((k) => {
           const value = $0.state[k];
           data.state.push({

@@ -1,5 +1,5 @@
 import { GemElement, html } from '../../lib/element';
-import { attribute, emitter, Emitter, shadow } from '../../lib/decorators';
+import { attribute, emitter, Emitter, mounted, shadow } from '../../lib/decorators';
 
 export type PanEventDetail = {
   // movement
@@ -68,18 +68,6 @@ export class GemGestureElement extends GemElement {
   @emitter end: Emitter<null>;
 
   @attribute touchAction: string;
-
-  constructor() {
-    super();
-    this.addEventListener('pointerdown', this.#onStart);
-    this.addEventListener('pointermove', this.#onMoveSet);
-    this.addEventListener('pointerup', this.#onEnd);
-    this.addEventListener('pointerleave', this.#onEnd); // 有时候 up 没有触发？
-    // 为什么空白区域会自动触发 `pointercancel`?
-    this.addEventListener('pointercancel', this.#onEnd);
-
-    this.addEventListener('dragstart', (evt) => evt.preventDefault());
-  }
 
   #pressed = false; // 触发 press 之后不触发其他事件
   #pressTimer = 0;
@@ -252,6 +240,18 @@ export class GemGestureElement extends GemElement {
 
     this.movesMap.delete(pointerId);
     this.#startEventMap.delete(pointerId);
+  };
+
+  @mounted()
+  #init = () => {
+    this.addEventListener('pointerdown', this.#onStart);
+    this.addEventListener('pointermove', this.#onMoveSet);
+    this.addEventListener('pointerup', this.#onEnd);
+    this.addEventListener('pointerleave', this.#onEnd); // 有时候 up 没有触发？
+    // 为什么空白区域会自动触发 `pointercancel`?
+    this.addEventListener('pointercancel', this.#onEnd);
+
+    this.addEventListener('dragstart', (evt) => evt.preventDefault());
   };
 
   render() {

@@ -1,5 +1,16 @@
 import { createCSSSheet, GemElement, html } from '../../lib/element';
-import { attribute, property, state, part, connectStore, shadow, aria, adoptedStyle } from '../../lib/decorators';
+import {
+  attribute,
+  property,
+  state,
+  part,
+  connectStore,
+  shadow,
+  aria,
+  adoptedStyle,
+  mounted,
+  effect,
+} from '../../lib/decorators';
 import { history, basePathStore } from '../../lib/history';
 import { absoluteLocation, css } from '../../lib/utils';
 import { ifDefined } from '../../lib/directives';
@@ -70,11 +81,6 @@ export class GemLinkElement extends GemElement {
     return this.hint || 'on';
   }
 
-  constructor() {
-    super();
-    this.addEventListener('click', this.#onClick);
-  }
-
   #onClick = async () => {
     const locationString = this.getLocationString();
 
@@ -140,6 +146,11 @@ export class GemLinkElement extends GemElement {
       : new URL(history.basePath + locationString, location.origin).toString();
   };
 
+  @mounted()
+  #init() {
+    this.addEventListener('click', this.#onClick);
+  }
+
   render() {
     return html`
       <a
@@ -187,12 +198,10 @@ export class GemActiveLinkElement extends GemLinkElement {
   @attribute pattern: string; // 使用匹配模式设定 active
   @state active: boolean;
 
-  constructor() {
-    super();
-    this.effect(() => {
-      const { path, query, hash } = history.getParams();
-      const isMatchPattern = this.pattern && matchPath(this.pattern, path);
-      this.active = !!isMatchPattern || path + query + hash === this.getLocationString();
-    });
-  }
+  @effect()
+  #updateState = () => {
+    const { path, query, hash } = history.getParams();
+    const isMatchPattern = this.pattern && matchPath(this.pattern, path);
+    this.active = !!isMatchPattern || path + query + hash === this.getLocationString();
+  };
 }

@@ -1,5 +1,6 @@
 import { GemElement } from '../../lib/element';
 import { attribute, shadow } from '../../lib/decorators';
+import { raw } from '../../lib/utils';
 
 /**
  * @customElement gem-unsafe
@@ -11,27 +12,16 @@ export class GemUnsafeElement extends GemElement {
   @attribute content: string;
   @attribute contentcss: string;
 
-  constructor() {
-    super();
-    this.effect(
-      () => {
-        if (this.shadowRoot) {
-          this.shadowRoot.innerHTML = `
-            <style>
-              :host(:where(:not([hidden]))) {
-                display: contents;
-              }
-              ${this.contentcss}
-            </style>
-            ${this.content}
-          `;
-        }
-      },
-      () => [this.content, this.contentcss],
-    );
-  }
-
   render() {
+    this.shadowRoot!.innerHTML = raw`
+      <style>
+        :host(:where(:not([hidden]))) {
+          display: contents;
+        }
+        ${this.contentcss}
+      </style>
+      ${this.content}
+    `;
     return undefined;
   }
 }

@@ -7,7 +7,7 @@
  * 比如 duoyun-ui 文档站加载示例元素时把 GemReflectElement 渲染的元素清除
  */
 import { GemElement } from '../../lib/element';
-import { attribute, property } from '../../lib/decorators';
+import { attribute, effect, property, willMount } from '../../lib/decorators';
 
 const START = 'gem-reflect-start';
 const END = 'gem-reflect-end';
@@ -37,37 +37,29 @@ export class GemReflectElement extends GemElement {
     return this.method || 'append';
   }
 
-  constructor() {
-    super();
+  @willMount()
+  #init = () => {
+    this.hidden = true;
+    this.dataset.gemReflect = '';
+  };
 
-    this.effect(
-      () => {
-        this.hidden = true;
-        this.dataset.gemReflect = '';
-      },
-      () => [],
-    );
+  #startNode = createReflectFragmentTag(START);
+  #endNode = createReflectFragmentTag(END);
+  #childNodes: undefined | ChildNode[];
 
-    const startNode = createReflectFragmentTag(START);
-    const endNode = createReflectFragmentTag(END);
-    let childNodes: undefined | ChildNode[];
-
-    this.effect(
-      () => {
-        (childNodes || [startNode, ...this.childNodes, endNode]).forEach((node, index, arr) => {
-          const prev = arr[index - 1];
-          if (prev) {
-            prev.after(node);
-          } else {
-            this.target[this.#method](node);
-          }
-        });
-        return () => {
-          childNodes = getReflectFragment(startNode);
-          childNodes.forEach((node) => node.remove());
-        };
-      },
-      () => [this.target],
-    );
-  }
+  @effect((i) => [i.target])
+  #changeTarget = () => {
+    (this.#childNodes || [this.#startNode, ...this.childNodes, this.#endNode]).forEach((node, index, arr) => {
+      const prev = arr[index - 1];
+      if (prev) {
+        prev.after(node);
+      } else {
+        this.target[this.#method](node);
+      }
+    });
+    return () => {
+      this.#childNodes = getReflectFragment(this.#startNode);
+      this.#childNodes.forEach((node) => node.remove());
+    };
+  };
 }

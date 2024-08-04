@@ -181,9 +181,7 @@ const style = createCSSSheet(css`
     border-radius: ${theme.smallRound};
   }
   gem-book-pre {
-    z-index: 2;
     margin: 2rem 0px;
-    border-radius: ${theme.normalRound};
   }
   iframe {
     width: 100%;

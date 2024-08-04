@@ -1,7 +1,7 @@
 import type { GemReflectElement } from '../elements/reflect';
 
-import { createCSSSheet, GemElement, UpdateToken, Metadata } from './element';
-import { camelToKebabCase, randomStr, PropProxyMap } from './utils';
+import { createCSSSheet, GemElement, UpdateToken, Metadata, TemplateResult } from './element';
+import { camelToKebabCase, randomStr, PropProxyMap, GemError } from './utils';
 import { Store } from './store';
 import * as elementExports from './element';
 import * as decoratorsExports from './decorators';
@@ -9,7 +9,7 @@ import * as storeExports from './store';
 import * as versionExports from './version';
 
 type GemElementPrototype = GemElement<any>;
-type StaticField = Exclude<keyof Metadata, keyof ShadowRootInit | 'aria' | 'noBlocking' | 'scoped' | 'layer'>;
+type StaticField = Exclude<keyof Metadata, keyof ShadowRootInit | 'aria' | 'noBlocking'>;
 
 const { deleteProperty, getOwnPropertyDescriptor, defineProperty } = Reflect;
 const { getPrototypeOf, assign } = Object;
@@ -267,7 +267,6 @@ export function property<T extends GemElement<any>>(_: undefined, context: Class
 
 /**
  * 依赖 `GemElement.memo`
- * 不能设置私有字段 https://github.com/tc39/proposal-decorators/issues/509
  *
  * For example
  * ```ts
@@ -280,14 +279,22 @@ export function property<T extends GemElement<any>>(_: undefined, context: Class
  * ```
  */
 export function memo<T extends GemElement<any>, V = any, K = any[] | undefined>(
-  getDep: K extends any[] ? (instance: T) => K : undefined,
+  getDep: K extends readonly any[] ? (instance: T) => K : undefined,
 ) {
-  return function (_: any, { addInitializer, name, access }: ClassGetterDecoratorContext<T, V>) {
+  return function (
+    _: any,
+    context: ClassGetterDecoratorContext<T, V> | ClassFieldDecoratorContext<T> | ClassMethodDecoratorContext<T>,
+  ) {
+    const { addInitializer, name, access, kind } = context;
     addInitializer(function (this: T) {
-      this.memo(
-        () => defineProperty(this, name, { configurable: true, value: access.get(this) }),
-        getDep && (() => getDep(this) as any),
-      );
+      const dep = getDep && (() => getDep(this) as any);
+      if (kind === 'getter') {
+        // 不能设置私有字段 https://github.com/tc39/proposal-decorators/issues/509
+        if (context.private) throw new GemError('not support');
+        this.memo(() => defineProperty(this, name, { configurable: true, value: access.get(this) }), dep);
+      } else {
+        this.memo((access.get(this) as any).bind(this) as any, dep);
+      }
     });
   };
 }
@@ -295,12 +302,11 @@ export function memo<T extends GemElement<any>, V = any, K = any[] | undefined>(
 /**
  * 依赖 `GemElement.effect`
  * 方法执行在字段前面
- * 暂时不确定是否能使用私有名称 https://github.com/tc39/proposal-decorators/issues/536
  *
  * For example
  * ```ts
  *  class App extends GemElement {
- *    @memo(() => [])
+ *    @effect(() => [])
  *    #fetchData() {
  *      console.log('fetch')
  *    }
@@ -311,13 +317,52 @@ export function effect<
   T extends GemElement<any>,
   V extends (depValues: K, oldDepValues?: K) => any,
   K = any[] | undefined,
->(getDep?: K extends any[] ? (instance: T) => K : undefined) {
+>(getDep?: K extends readonly any[] ? (instance: T) => K : undefined) {
   return function (
     _: any,
     { addInitializer, access }: ClassFieldDecoratorContext<T, V> | ClassMethodDecoratorContext<T, V>,
   ) {
     addInitializer(function (this: T) {
       this.effect(access.get(this).bind(this) as any, getDep && (() => getDep(this) as any));
+    });
+  };
+}
+
+export function unmounted<T extends GemElement<any>, V extends () => any>() {
+  return function (
+    _: any,
+    { addInitializer, access }: ClassFieldDecoratorContext<T, V> | ClassMethodDecoratorContext<T, V>,
+  ) {
+    addInitializer(function (this: T) {
+      this.effect(
+        () => access.get(this).bind(this) as any,
+        () => [],
+      );
+    });
+  };
+}
+
+/**`@memo` 别名 */
+export function willMount() {
+  return memo(() => []);
+}
+
+/**`@effect` 别名 */
+export function mounted() {
+  return effect(() => []);
+}
+
+export function renderTemplate<T extends GemElement<any>, V extends () => TemplateResult | null | undefined>(
+  /**当返回 `false` 时不进行更新，包括 `memo` */
+  shouldRender?: (instance: T) => boolean,
+) {
+  return function (
+    _: any,
+    { addInitializer, access }: ClassFieldDecoratorContext<T, V> | ClassMethodDecoratorContext<T, V>,
+  ) {
+    addInitializer(function (this: T) {
+      if (shouldRender) this.shouldUpdate = () => shouldRender(this);
+      this.render = access.get(this).bind(this);
     });
   };
 }
@@ -523,14 +568,6 @@ export function aria(info: Metadata['aria']) {
   return function (_: any, context: ClassDecoratorContext) {
     const metadata = context.metadata as Metadata;
     metadata.aria = { ...metadata.aria, ...info };
-  };
-}
-
-export function style(info: Pick<Metadata, 'scoped' | 'layer'>) {
-  return function (_: any, context: ClassDecoratorContext) {
-    const metadata = context.metadata as Metadata;
-    metadata.scoped = info.scoped;
-    metadata.layer = info.layer;
   };
 }
 

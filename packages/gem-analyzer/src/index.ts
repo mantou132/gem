@@ -50,6 +50,7 @@ interface ConstructorParam {
 }
 
 export interface ElementDetail {
+  shadow: boolean;
   name: string;
   constructorName: string;
   constructorExtendsName: string;
@@ -66,6 +67,7 @@ export interface ElementDetail {
   cssStates: string[];
 }
 
+const shadowDecoratorName = ['shadow'];
 const elementDecoratorName = ['customElement'];
 const attrDecoratorName = ['attribute', 'boolattribute', 'numattribute'];
 const propDecoratorName = ['property'];
@@ -80,6 +82,7 @@ const lifecyclePopsOrMethods = ['state', 'willMount', 'render', 'mounted', 'shou
 export const parseElement = (declaration: ClassDeclaration) => {
   const detail: ElementDetail = {
     name: '',
+    shadow: false,
     constructorName: '',
     constructorExtendsName: '',
     constructorParams: [],
@@ -240,9 +243,12 @@ export const parseElement = (declaration: ClassDeclaration) => {
 export const getElements = (file: SourceFile) => {
   const result: ElementDetail[] = [];
   for (const declaration of file.getClasses()) {
-    const elementDeclaration = declaration
-      .getDecorators()
-      .find((decorator) => elementDecoratorName.includes(decorator.getName()));
+    // need support other decorators?
+    const elementDecorators = declaration.getDecorators();
+    const elementDeclaration = elementDecorators.find((decorator) =>
+      elementDecoratorName.includes(decorator.getName()),
+    );
+    const shadowDeclaration = elementDecorators.find((decorator) => shadowDecoratorName.includes(decorator.getName()));
     const elementTag =
       elementDeclaration
         ?.getCallExpression()!
@@ -256,9 +262,10 @@ export const getElements = (file: SourceFile) => {
         .find((e) => e.getTagName() === 'customElement')
         ?.getCommentText();
     if (elementTag) {
-      const detail = {
+      const detail: ElementDetail = {
         ...parseElement(declaration),
         name: elementTag,
+        shadow: !!shadowDeclaration,
       };
       if (!detail.constructorName.startsWith('_')) {
         result.push(detail);

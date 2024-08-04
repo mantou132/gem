@@ -31,7 +31,8 @@ export function preload() {
             return c.reduce((pp, cc) => pp || (cc === '' ? p : p[cc]), undefined);
           } else {
             const value = p[c];
-            return typeof value === 'function' && c !== 'constructor' ? value.bind(p) : value;
+            // 支持 state 函数
+            return value instanceof Function && c !== 'constructor' ? value.bind(p) : value;
           }
         }
       }, $0);

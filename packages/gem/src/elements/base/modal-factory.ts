@@ -1,7 +1,7 @@
 import { GemElement } from '../../lib/element';
 import { connect, createStore, updateStore } from '../../lib/store';
 import { history } from '../../lib/history';
-import { shadow } from '../../lib/decorators';
+import { aria, mounted, shadow } from '../../lib/decorators';
 
 const open = Symbol('open mark');
 
@@ -16,8 +16,9 @@ const open = Symbol('open mark');
 export function createModalClass<T extends Record<string, unknown>>(options: T) {
   const final = Symbol();
 
-  return @shadow()
-  class extends GemElement {
+  @shadow()
+  @aria({ role: 'alertdialog', ariaModal: 'true' })
+  class ModalElement extends GemElement {
     static inertStore: HTMLElement[] = [];
     static instance: GemElement | null = null;
     /**
@@ -85,21 +86,14 @@ export function createModalClass<T extends Record<string, unknown>>(options: T) 
       return true;
     }
 
-    constructor() {
-      super();
-      this.internals.role = 'alertdialog';
-      this.internals.ariaModal = 'true';
-
-      this.effect(
-        () => connect(history.store, this.update),
-        () => [],
-      );
-      this.effect(
-        () => connect(new.target.store, this.update),
-        () => [],
-      );
-    }
-
     label = '';
-  };
+
+    @mounted()
+    #connectHistory = () => connect(history.store, this.update);
+
+    @mounted()
+    #connectStore = () => connect(ModalElement.store, this.update);
+  }
+
+  return ModalElement;
 }

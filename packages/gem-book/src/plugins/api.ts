@@ -8,11 +8,10 @@ const gemAnalyzer = 'https://esm.sh/gem-analyzer';
 type State = { elements?: ElementDetail[]; exports?: ExportDetail[]; error?: any };
 
 customElements.whenDefined('gem-book').then(({ GemBookPluginElement }: typeof GemBookElement) => {
-  const { Gem, theme, Utils, shaderStyles } = GemBookPluginElement;
-  const { html, customElement, attribute, numattribute, createCSSSheet, css, adoptedStyle } = Gem;
+  const { Gem, theme, Utils } = GemBookPluginElement;
+  const { html, customElement, attribute, numattribute, createCSSSheet, css, adoptedStyle, BoundaryCSSState } = Gem;
 
   const styles = createCSSSheet(css`
-    ${shaderStyles.tableStyle}
     table {
       tr td:first-of-type {
         white-space: nowrap;
@@ -40,6 +39,7 @@ customElements.whenDefined('gem-book').then(({ GemBookPluginElement }: typeof Ge
     constructor() {
       super();
       this.cacheState(() => [this.name, this.src]);
+      this.internals.states.delete(BoundaryCSSState);
     }
 
     state: State = {};
@@ -81,6 +81,7 @@ customElements.whenDefined('gem-book').then(({ GemBookPluginElement }: typeof Ge
 
     #renderElement = (detail: ElementDetail) => {
       const {
+        shadow,
         name: eleName,
         description: eleDescription = '',
         constructorName,
@@ -99,6 +100,9 @@ customElements.whenDefined('gem-book').then(({ GemBookPluginElement }: typeof Ge
 
       text += eleDescription + '\n\n';
       if (constructorExtendsName) {
+        if (shadow) {
+          text += `Shadow DOM; `;
+        }
         text += `Extends ${this.#renderCode(constructorExtendsName)}\n\n`;
       }
 

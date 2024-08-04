@@ -14,7 +14,7 @@
  */
 
 import { GemElement, html } from '../../lib/element';
-import { attribute, boolattribute, shadow } from '../../lib/decorators';
+import { attribute, boolattribute, effect, shadow } from '../../lib/decorators';
 import { updateStore, connect } from '../../lib/store';
 import { titleStore } from '../../lib/history';
 import { addMicrotask } from '../../lib/utils';
@@ -60,21 +60,17 @@ export class GemTitleElement extends GemElement {
     updateStore(titleStore, { title });
   }
 
-  constructor() {
-    super();
+  @effect(() => [])
+  #mounted = () => {
     new MutationObserver(() => this.update()).observe(this, {
       characterData: true,
       childList: true,
       subtree: true,
     });
-  }
-
-  mounted = () => {
-    this.effect(
-      () => !this.inert && connect(titleStore, this.update),
-      () => [this.inert],
-    );
   };
+
+  @effect((i) => [i.inert])
+  #connectStore = () => !this.inert && connect(titleStore, this.update);
 
   render() {
     // 多个 <gem-title> 时，最终 document.title 按执行顺序决定

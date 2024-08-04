@@ -1,5 +1,5 @@
 import { history } from '@mantou/gem/lib/history';
-import { createCSSSheet, GemElement, TemplateResult, html, render } from '@mantou/gem/lib/element';
+import { createCSSSheet, GemElement, TemplateResult, html } from '@mantou/gem/lib/element';
 import { adoptedStyle, attribute, connectStore, customElement, property, state } from '@mantou/gem/lib/decorators';
 import { addListener, classMap, css } from '@mantou/gem/lib/utils';
 import { mediaQuery } from '@mantou/gem/helper/mediaquery';
@@ -193,7 +193,7 @@ export class DyPatNavElement extends GemElement<State> {
   @attribute name: string;
   @property links?: Links;
   @property logo?: string | Element | DocumentFragment;
-  @property renderSlot?: (ele: Element) => TemplateResult | undefined;
+  @property navSlot?: TemplateResult;
 
   @state switching: boolean;
 
@@ -225,8 +225,6 @@ export class DyPatNavElement extends GemElement<State> {
     drawerOpen: false,
   };
 
-  #navSlot = document.createElement('div');
-
   #onMobileItemClick = (evt: MouseEvent) => {
     (evt.currentTarget as HTMLLIElement).classList.toggle('open-dropdown');
   };
@@ -249,8 +247,6 @@ export class DyPatNavElement extends GemElement<State> {
   };
 
   render = () => {
-    render(this.renderSlot ? this.renderSlot(this.#navSlot) : html``, this.#navSlot);
-
     return html`
       <dy-use
         class="menu"
@@ -309,7 +305,7 @@ export class DyPatNavElement extends GemElement<State> {
         <div style="flex-grow: 1" @click=${() => this.setState({ drawerOpen: false })}></div>
       </nav>
 
-      ${this.#navSlot}
+      ${this.navSlot}
     `;
   };
 }

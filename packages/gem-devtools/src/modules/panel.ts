@@ -58,11 +58,18 @@ export class Panel extends GemElement {
       <devtools-section name="Observed Properties" .items=${panelStore.observedProperties}></devtools-section>
       <devtools-section name="Observed Stores" .items=${panelStore.observedStores}></devtools-section>
       <devtools-section name="Adopted Styles" .items=${panelStore.adoptedStyles}></devtools-section>
-      <devtools-section
-        name="State"
-        .path=${panelStore.state.length ? ['state'] : undefined}
-        .items=${panelStore.state}
-      ></devtools-section>
+      ${panelStore.state.length
+        ? html`<devtools-section name="State" .path=${['state']} .items=${panelStore.state}></devtools-section>`
+        : ''}
+      ${panelStore.stateList.map(
+        (state, index) => html`
+          <devtools-section
+            name=${`State #${index}`}
+            .path=${['internals', 'stateList', `${index}`]}
+            .items=${state}
+          ></devtools-section>
+        `,
+      )}
       <devtools-section name="Emitters" .items=${panelStore.emitters}></devtools-section>
       <devtools-section name="Slots" tip=${TIP} .items=${panelStore.slots}></devtools-section>
       <devtools-section name="CSS States" tip=${TIP} .items=${panelStore.cssStates}></devtools-section>

@@ -23,7 +23,8 @@ declare global {
     readonly metadata: symbol;
   }
 }
-const { assign, defineProperty } = Object;
+
+const { assign, defineProperty, setPrototypeOf } = Object;
 
 defineProperty(Symbol, 'metadata', { value: Symbol.for('Symbol.metadata') });
 
@@ -34,7 +35,7 @@ export const SheetToken = Symbol.for('gem@sheetToken');
 // proto prop
 export const UpdateToken = Symbol.for('gem@update');
 
-const scopedToken = 'gem-style-scope';
+export const BoundaryCSSState = 'gem-style-boundary';
 // fix modal-factory type error
 const updateTokenAlias = UpdateToken;
 
@@ -55,10 +56,8 @@ class GemCSSSheet {
   #record = new Map<any, CSSStyleSheet>();
   #applyd = new Map<CSSStyleSheet, string>();
   getStyle(host?: HTMLElement) {
-    // GemElement Metadata, 支持 closed 模式
-    const metadate = host && ((host as any).constructor[Symbol.metadata] || {});
+    const metadate = host && (((host as any).constructor[Symbol.metadata] || {}) as Metadata);
     const isLight = metadate && !metadate.mode;
-    const layer = metadate?.layer;
 
     // 对同一类 dom 只使用同一个样式表
     const key = isLight ? host.constructor : this;
@@ -73,13 +72,10 @@ class GemCSSSheet {
     if (!this.#applyd.has(sheet)) {
       let style = this.#content;
       let scope = '';
-      if (layer !== undefined) {
-        style = `@layer ${layer} {${style}}`;
-      }
-      if (isLight && metadate.scoped !== false) {
+      if (isLight) {
         // light dom 嵌套时需要选择子元素
         // `> *` 实际上是多范围？是否存在性能问题
-        scope = `@scope (${host.tagName}) to (:state(${scopedToken}) > *)`;
+        scope = `@scope (${host.tagName}) to (:state(${BoundaryCSSState}) > *)`;
         // 不能使用 @layer，两个 @layer 不能覆盖，只有顺序起作用
         // 所以外部不能通过元素名称选择器来覆盖样式，除非样式在之前插入（会自动反转应用到尾部， see `appleCSSStyleSheet`）
         style = `${scope}{ ${style} }`;
@@ -165,6 +161,9 @@ const appleCSSStyleSheet = (ele: HTMLElement, sheets: CSSStyleSheet[]) => {
   return () => updateStyleSheets(map, sheets, -1);
 };
 
+/**必须使用在字段中，否则会读取到错误的实例 */
+export let createState: <T>(initState: T) => T & ((state: Partial<T>) => void);
+
 type GetDepFun<T> = () => T;
 type EffectCallback<T> = (depValues: T, oldDepValues?: T) => any;
 type EffectItem<T> = {
@@ -177,13 +176,10 @@ type EffectItem<T> = {
 };
 
 export type Metadata = Partial<ShadowRootInit> & {
-  // 手动设置 `false` 让自定义元素不作为样式边界，只工作于 light dom
-  scoped?: boolean;
-  layer?: string;
   noBlocking?: boolean;
   aria?: Partial<
     ARIAMixin & {
-      //  自动添加 tabIndex；支持 `disabled` 属性
+      /**自动添加 tabIndex；支持 `disabled` 属性 */
       focusable: boolean;
     }
   >;
@@ -212,66 +208,83 @@ const tick = (timeStamp = performance.now()) => {
 };
 noBlockingTaskList.addEventListener('start', () => addMicrotask(tick));
 
+let currentConstructGemElement: GemElement<any>;
+
 export abstract class GemElement<State = Record<string, unknown>> extends HTMLElement {
   // 禁止覆盖自定义元素原生生命周期方法
   // https://github.com/microsoft/TypeScript/issues/21388#issuecomment-934345226
   static #final = Symbol();
 
-  // 定义当前元素的状态，和 attr/prop 的本质区别是不为外部输入
-  readonly state?: State;
-
   #renderRoot: HTMLElement | ShadowRoot;
-  #internals: ElementInternals;
+  #internals: ElementInternals & { stateList: ReturnType<typeof createState>[] };
+  #effectList: EffectItem<any>[] = [];
+  #memoList: EffectItem<any>[] = [];
   #isAppendReason?: boolean;
   // 和 isConnected 有区别
   #isMounted?: boolean;
   #isConnected?: boolean;
-  #effectList?: EffectItem<any>[];
   #rendering?: boolean;
-  #memoList?: EffectItem<any>[];
   #unmountCallback?: any;
   #clearStyle?: any;
 
   [updateTokenAlias]() {
-    if (this.#isMounted) {
-      addMicrotask(this.#update);
-    }
+    addMicrotask(this.#update);
+  }
+
+  static {
+    createState = <T>(initState: T) => {
+      const ele = currentConstructGemElement;
+      const state: any = (payload: Partial<T>) => {
+        assign(state, payload);
+        // 避免无限刷新
+        if (!ele.#rendering) addMicrotask(ele.#update);
+      };
+      setPrototypeOf(state, null);
+      delete state.name;
+      delete state.length;
+      ele.#internals.stateList.push(state);
+      assign(state, initState);
+      return state as T & ((this: GemElement, state: Partial<T>) => void);
+    };
   }
 
   constructor() {
     super();
 
-    const { mode, serializable, delegatesFocus, slotAssignment, aria, scoped } = this.#metadata;
+    // eslint-disable-next-line @typescript-eslint/no-this-alias
+    currentConstructGemElement = this;
+
+    const { mode, serializable, delegatesFocus, slotAssignment, aria } = this.#metadata;
     const { focusable, ...internalsAria } = aria || {};
 
     this.#renderRoot = !mode ? this : this.attachShadow({ mode, serializable, delegatesFocus, slotAssignment });
-    this.#internals = this.attachInternals();
+    this.#internals = this.attachInternals() as GemElement['internals'];
+    this.#internals.stateList = [];
 
     assign(this.#internals, internalsAria);
-    if (!mode && scoped !== false) this.#internals.states.add(scopedToken);
+
+    // light dom 有 render 则不应该被外部样式化
+    // 特殊情况手动 `remove` 状态
+    if (!mode && this.render) this.#internals.states.add(BoundaryCSSState);
 
     // https://stackoverflow.com/questions/43836886/failed-to-construct-customelement-error-when-javascript-file-is-placed-in-head
     // focusable 元素一般同时具备 disabled 属性
     // 和原生元素行为保持一致，disabled 时不触发 click 事件
     let hasInitTabIndex: boolean | undefined;
-    this.effect(
-      ([disabled = false]) => {
+    this.#effectList.push({
+      inConstructor: true,
+      getDep: () => [(this as any).disabled],
+      callback: ([disabled = false]) => {
         if (hasInitTabIndex === undefined) hasInitTabIndex = this.hasAttribute('tabindex');
-
         this.#internals.ariaDisabled = String(disabled);
-
-        if (focusable && !hasInitTabIndex) {
-          this.tabIndex = -Number(disabled);
-        }
-
+        if (focusable && !hasInitTabIndex) this.tabIndex = -Number(disabled);
         if ((focusable || delegatesFocus) && disabled) {
           return addListener(this, 'click', (e: Event) => e.isTrusted && e.stopImmediatePropagation(), {
             capture: true,
           });
         }
       },
-      () => [(this as any).disabled],
-    );
+    });
   }
 
   get #metadata(): Metadata {
@@ -282,6 +295,8 @@ export abstract class GemElement<State = Record<string, unknown>> extends HTMLEl
     return this.#internals;
   }
 
+  // 定义当前元素的状态，和 attr/prop 的本质区别是不为外部输入
+  readonly state?: State;
   /**
    * @helper
    * 设置元素 state，会触发更新
@@ -339,7 +354,6 @@ export abstract class GemElement<State = Record<string, unknown>> extends HTMLEl
    * ```
    * */
   effect = <K = any[] | undefined>(callback: EffectCallback<K>, getDep?: K extends any[] ? () => K : undefined) => {
-    if (!this.#effectList) this.#effectList = [];
     const effectItem: EffectItem<K> = {
       callback,
       getDep,
@@ -371,7 +385,6 @@ export abstract class GemElement<State = Record<string, unknown>> extends HTMLEl
    * ```
    * */
   memo = <K = any[] | undefined>(callback: EffectCallback<K>, getDep?: K extends any[] ? () => K : undefined) => {
-    if (!this.#memoList) this.#memoList = [];
     this.#memoList.push({
       callback,
       getDep,
@@ -403,7 +416,7 @@ export abstract class GemElement<State = Record<string, unknown>> extends HTMLEl
    *
    * - 不提供 `render` 时显示子内容
    * - 返回 `null` 时渲染空的子内容
-   * - 返回 `undefined` 时不会调用 `render()`, 也就是不会更新以前的内容
+   * - 返回 `undefined` 时不会更新现有内容
    * */
   render?(): TemplateResult | null | undefined;
 
@@ -548,8 +561,8 @@ export abstract class GemElement<State = Record<string, unknown>> extends HTMLEl
     return GemElement.#final;
   }
 
-  #clearEffect = (list?: EffectItem<any>[]) => {
-    return list?.filter((e) => {
+  #clearEffect = (list: EffectItem<any>[]) => {
+    return list.filter((e) => {
       execCallback(e.preCallback);
       e.initialized = false;
       return e.inConstructor;

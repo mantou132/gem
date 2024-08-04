@@ -6,7 +6,7 @@ export const defaultTheme = {
   sidebarWidthSmall: '270px',
 
   sidebarWidth: '304px',
-  maxMainWidth: '48rem',
+  maxMainWidth: '52rem',
   headerHeight: '56px',
   normalRound: '0.5rem',
   smallRound: '0.25rem',
