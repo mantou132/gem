@@ -1,4 +1,4 @@
-import { GemElement, async, customElement, html, numattribute, render } from '@mantou/gem';
+import { GemElement, async, createState, customElement, html, numattribute, render } from '@mantou/gem';
 
 import '../elements/layout';
 
@@ -27,12 +27,12 @@ export class Posts extends GemElement {
 
 @customElement('app-root')
 export class App extends GemElement {
-  state = {
+  #state = createState({
     tab: 'home',
-  };
+  });
 
   #renderContent() {
-    switch (this.state.tab) {
+    switch (this.#state.tab) {
       case 'posts':
         return html`<app-posts-page></app-posts-page>`;
       case 'about':
@@ -46,7 +46,7 @@ export class App extends GemElement {
     return html`
       <div>
         ${['home', 'posts', 'about'].map((tab) => {
-          return html`<button ?disabled=${tab === this.state.tab} @click=${() => this.setState({ tab })}>
+          return html`<button ?disabled=${tab === this.#state.tab} @click=${() => this.#state({ tab })}>
             ${tab}
           </button> `;
         })}

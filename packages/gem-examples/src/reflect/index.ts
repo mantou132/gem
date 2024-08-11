@@ -1,4 +1,14 @@
-import { html, randomStr, GemElement, customElement, render, refobject, RefObject } from '@mantou/gem';
+import {
+  html,
+  randomStr,
+  GemElement,
+  customElement,
+  render,
+  refobject,
+  RefObject,
+  createState,
+  mounted,
+} from '@mantou/gem';
 
 import '@mantou/gem/elements/reflect';
 
@@ -6,29 +16,27 @@ import '../elements/layout';
 
 @customElement('app-children')
 export class AppChild extends GemElement {
-  mounted = () => console.log('mounted');
+  @mounted()
+  #init = () => console.log('mounted');
 }
 
 @customElement('app-root')
 export class App extends GemElement {
   @refobject childrenRef: RefObject<HTMLStyleElement>;
-  state = {
+  #state = createState({
     mount: true,
-  };
+  });
 
-  mounted() {
+  @mounted()
+  #init() {
     document.addEventListener('click', this.update);
-  }
-
-  updated() {
-    console.trace('updated', this.childrenRef.element);
   }
 
   render() {
     return html`
-      <button @click=${() => this.setState({ mount: true })}>mount</button>
-      <button @click=${() => this.setState({ mount: false })}>unmount</button>
-      ${this.state.mount
+      <button @click=${() => this.#state({ mount: true })}>mount</button>
+      <button @click=${() => this.#state({ mount: false })}>unmount</button>
+      ${this.#state.mount
         ? html`
             <gem-reflect>
               <app-children ref=${this.childrenRef.ref}></app-children>

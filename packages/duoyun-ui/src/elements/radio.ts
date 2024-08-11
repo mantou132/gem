@@ -9,9 +9,10 @@ import {
   slot,
   shadow,
   aria,
+  mounted,
 } from '@mantou/gem/lib/decorators';
 import { GemElement, html, TemplateResult, createCSSSheet } from '@mantou/gem/lib/element';
-import { css } from '@mantou/gem/lib/utils';
+import { addListener, css } from '@mantou/gem/lib/utils';
 
 import { theme } from '../lib/theme';
 import { commonHandle } from '../lib/hotkeys';
@@ -71,17 +72,13 @@ export class DuoyunRadioElement extends GemElement {
 
   @attribute value: string;
 
-  constructor() {
-    super();
-    this.addEventListener('click', this.#onClick);
-  }
-
   #onClick = () => {
     if (this.disabled) return;
-    if (!this.checked) {
-      this.change(this.value);
-    }
+    if (!this.checked) this.change(this.value);
   };
+
+  @mounted()
+  #init = () => addListener(this, 'click', this.#onClick);
 
   render = () => {
     return html`

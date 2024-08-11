@@ -11,6 +11,8 @@ import {
   createCSSSheet,
   css,
   styleMap,
+  mounted,
+  memo,
 } from '@mantou/gem';
 
 import { theme } from '../helper/theme';
@@ -447,28 +449,18 @@ export class Pre extends GemElement {
   #ranges: number[][];
   #highlightLineSet: Set<number>;
 
-  constructor() {
-    super();
-    new MutationObserver(() => this.update()).observe(this, {
-      childList: true,
-      characterData: true,
-      subtree: true,
-    });
-    this.memo(
-      () => {
-        const lines = (this.textContent || '').split(/\n|\r\n/);
-        this.#ranges = getRanges(this.range, lines);
-        this.#highlightLineSet = new Set(
-          this.highlight
-            ? getRanges(this.highlight, lines)
-                .map(([start, end]) => Array.from({ length: end - start + 1 }, (_, i) => start + i))
-                .flat()
-            : [],
-        );
-      },
-      () => [this.textContent, this.range, this.highlight],
+  @memo((i) => [i.textContent, i.range, i.highlight])
+  #setData = () => {
+    const lines = (this.textContent || '').split(/\n|\r\n/);
+    this.#ranges = getRanges(this.range, lines);
+    this.#highlightLineSet = new Set(
+      this.highlight
+        ? getRanges(this.highlight, lines)
+            .map(([start, end]) => Array.from({ length: end - start + 1 }, (_, i) => start + i))
+            .flat()
+        : [],
     );
-  }
+  };
 
   #getParts(s: string) {
     return getParts(s.split(/\n|\r\n/), this.#ranges);
@@ -569,7 +561,10 @@ export class Pre extends GemElement {
     this.#setOffset();
   };
 
-  mounted() {
+  @mounted()
+  #init = () => {
+    const ob = new MutationObserver(() => this.update());
+    ob.observe(this, { childList: true, characterData: true, subtree: true });
     const io = new IntersectionObserver((entries) => {
       entries.forEach(({ intersectionRatio }) => {
         if (intersectionRatio === 0) return;
@@ -581,8 +576,11 @@ export class Pre extends GemElement {
       });
     });
     io.observe(this);
-    return () => io.disconnect();
-  }
+    return () => {
+      io.disconnect();
+      ob.disconnect();
+    };
+  };
 
   render() {
     const { parts, lineNumbersParts } = this.#getParts(this.textContent || '');

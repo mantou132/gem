@@ -10,9 +10,11 @@ import {
   state,
   shadow,
   aria,
+  mounted,
+  effect,
 } from '@mantou/gem/lib/decorators';
 import { createCSSSheet, GemElement, html, TemplateResult } from '@mantou/gem/lib/element';
-import { css, partMap, classMap, styleMap } from '@mantou/gem/lib/utils';
+import { css, partMap, classMap, styleMap, addListener } from '@mantou/gem/lib/utils';
 
 import { theme } from '../lib/theme';
 import { commonHandle } from '../lib/hotkeys';
@@ -226,11 +228,11 @@ const panelStyle = createCSSSheet(css`
 export class DuoyunTabPanelElement extends DuoyunScrollBaseElement {
   @state vertical: boolean;
 
-  constructor() {
-    super();
-    this.addEventListener('change', (e) => e.stopPropagation());
-    this.effect(() => {
-      this.vertical = closestElement(this, DuoyunTabsElement)?.orientation === 'vertical';
-    });
-  }
+  @mounted()
+  #init = () => addListener(this, 'change', (e) => e.stopPropagation());
+
+  @effect()
+  #updateState = () => {
+    this.vertical = closestElement(this, DuoyunTabsElement)?.orientation === 'vertical';
+  };
 }

@@ -10,9 +10,11 @@ import {
   state,
   aria,
   shadow,
+  mounted,
+  effect,
 } from '@mantou/gem/lib/decorators';
 import { GemElement, html, TemplateResult, createCSSSheet } from '@mantou/gem/lib/element';
-import { css } from '@mantou/gem/lib/utils';
+import { addListener, css } from '@mantou/gem/lib/utils';
 
 import { theme } from '../lib/theme';
 import { icons } from '../lib/icons';
@@ -129,12 +131,6 @@ export class DuoyunPickerElement extends GemElement implements BasePickerElement
   @property value?: any | any[];
   @globalemitter change: Emitter<any>;
 
-  constructor() {
-    super();
-    this.addEventListener('click', this.#onOpen);
-    this.addEventListener('keydown', commonHandle);
-  }
-
   #isContain = (value: any) => {
     return this.multiple ? this.value?.includes(value) : this.value === value;
   };
@@ -168,14 +164,17 @@ export class DuoyunPickerElement extends GemElement implements BasePickerElement
     });
   };
 
-  updated = () => {
-    if (this.active) {
-      this.#onOpen();
-    }
+  @mounted()
+  #init = () => {
+    addListener(this, 'click', this.#onOpen);
+    addListener(this, 'keydown', commonHandle);
+    return () => this.active && ContextMenu.close();
   };
 
-  mounted = () => {
-    return () => this.active && ContextMenu.close();
+  @effect()
+  #autoOpen = () => {
+    if (!this.active) return;
+    this.#onOpen();
   };
 
   render = () => {

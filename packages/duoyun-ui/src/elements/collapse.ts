@@ -16,7 +16,7 @@ import {
   shadow,
   aria,
 } from '@mantou/gem/lib/decorators';
-import { createCSSSheet, GemElement, TemplateResult, html } from '@mantou/gem/lib/element';
+import { createCSSSheet, GemElement, TemplateResult, html, createState } from '@mantou/gem/lib/element';
 import { css, classMap, exportPartsMap } from '@mantou/gem/lib/utils';
 import { ifDefined } from '@mantou/gem/lib/directives';
 
@@ -69,11 +69,6 @@ const panelStyle = createCSSSheet(css`
   }
 `);
 
-type State = {
-  preExpand: boolean;
-  expand: boolean;
-};
-
 /**
  * @customElement dy-collapse-panel
  */
@@ -82,7 +77,7 @@ type State = {
 @adoptedStyle(focusStyle)
 @aria({ role: 'listitem' })
 @shadow()
-export class DuoyunCollapsePanelElement extends GemElement<State> {
+export class DuoyunCollapsePanelElement extends GemElement {
   @refobject contentRef: RefObject<HTMLDivElement>;
 
   @boolattribute searchable: boolean;
@@ -94,11 +89,6 @@ export class DuoyunCollapsePanelElement extends GemElement<State> {
   @slot static unnamed: string;
   @part static summary: string;
   @part static detail: string;
-
-  state: State = {
-    preExpand: false,
-    expand: false,
-  };
 
   #animate = async (isCollapse: boolean) => {
     const { element } = this.contentRef;
@@ -139,12 +129,17 @@ export class DuoyunCollapsePanelElement extends GemElement<State> {
     `;
   };
 
+  state = createState({
+    preExpand: false,
+    expand: false,
+  });
+
   toggleState = async () => {
     const { expand, preExpand } = this.state;
     this.toggle(!preExpand);
-    this.setState({ preExpand: !preExpand });
+    this.state({ preExpand: !preExpand });
     if (expand) await this.#animate(true);
-    this.setState({ expand: !expand });
+    this.state({ expand: !expand });
     if (!expand) queueMicrotask(() => this.#animate(false));
   };
 }

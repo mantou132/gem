@@ -9,8 +9,10 @@ import {
   refobject,
   RefObject,
   shadow,
+  memo,
+  effect,
 } from '@mantou/gem/lib/decorators';
-import { createCSSSheet, html, svg, TemplateResult } from '@mantou/gem/lib/element';
+import { createCSSSheet, createState, html, svg, TemplateResult } from '@mantou/gem/lib/element';
 import { css, styleMap, exportPartsMap } from '@mantou/gem/lib/utils';
 import type { ElkNode, ElkExtendedEdge, ElkEdgeSection, LayoutOptions, ElkShape, ElkPoint } from 'elkjs';
 import ELK from 'elkjs/lib/elk.bundled.js';
@@ -236,6 +238,7 @@ export class DuoyunFlowCanvasElement extends DuoyunResizeBaseElement {
   @part static edge: string;
   @part static edgeLabel: string;
 
+  @property resizeThrottle = false;
   @property graph?: Node;
   @property layout?: LayoutOptions;
   @property renderEdge?: (section: EdgeSection, edge: Edge) => TemplateResult;
@@ -249,10 +252,6 @@ export class DuoyunFlowCanvasElement extends DuoyunResizeBaseElement {
     const node = this.graph?.children?.[0];
     if (!node) return true;
     return !!node.width && !!this.graph?.width;
-  }
-
-  constructor() {
-    super({ throttle: false });
   }
 
   #renderNode = (data: any, node: Node) => {
@@ -456,15 +455,14 @@ export class DuoyunFlowCanvasElement extends DuoyunResizeBaseElement {
     `;
   };
 
-  mounted = () => {
-    this.effect(async () => {
-      if (this.#isReady) return;
-      if (isNullish(this.graph?.children?.[0]?.width)) {
-        this.#updateSize();
-      } else {
-        await this.#layout();
-      }
-    });
+  @effect()
+  #update = async () => {
+    if (this.#isReady) return;
+    if (isNullish(this.graph?.children?.[0]?.width)) {
+      this.#updateSize();
+    } else {
+      await this.#layout();
+    }
   };
 
   render = () => {
@@ -522,7 +520,7 @@ const style = createCSSSheet(css`
 @customElement('dy-flow')
 @adoptedStyle(style)
 @shadow()
-export class DuoyunFlowElement extends DuoyunResizeBaseElement<State> {
+export class DuoyunFlowElement extends DuoyunResizeBaseElement {
   @part static node: string;
   @part static nodeLabel: string;
   @part static edge: string;
@@ -539,12 +537,12 @@ export class DuoyunFlowElement extends DuoyunResizeBaseElement<State> {
   @state loaded: boolean;
   @refobject canvasRef: RefObject<DuoyunFlowCanvasElement>;
 
-  state: State = {};
+  #state = createState<State>({});
 
   #setScale = ({ width }: DuoyunFlowCanvasElement['contentRect']) => {
     const rect = this.getBoundingClientRect();
     const scale = Math.min(formatToPrecision(rect.width / width), 1);
-    this.setState({
+    this.#state({
       scale,
       marginBlock: ((scale - 1) / 2) * rect.height,
     });
@@ -574,39 +572,32 @@ export class DuoyunFlowElement extends DuoyunResizeBaseElement<State> {
     });
   };
 
-  willMount = () => {
-    this.memo(
-      () => {
-        this.setState({ scale: undefined, marginBlock: undefined });
-        this.#normalizeGraph();
-      },
-      () => [this.graph],
-    );
+  @memo((i) => [i.graph])
+  #updateState = () => {
+    this.#state({ scale: undefined, marginBlock: undefined });
+    this.#normalizeGraph();
   };
 
-  mounted = () => {
-    this.effect(
-      () => {
-        if (this.loaded) {
-          this.#setScale(this.canvasRef.element!.contentRect);
-        }
-      },
-      () => [this.contentRect.width],
-    );
+  @effect((i) => [i.contentRect.width])
+  #updateScale = () => {
+    if (!this.loaded) return;
+    this.#setScale(this.canvasRef.element!.contentRect);
   };
+
+  #exportparts = exportPartsMap({
+    [DuoyunFlowCanvasElement.node]: DuoyunFlowElement.node,
+    [DuoyunFlowCanvasElement.nodeLabel]: DuoyunFlowElement.nodeLabel,
+    [DuoyunFlowCanvasElement.edge]: DuoyunFlowElement.edge,
+    [DuoyunFlowCanvasElement.edgeLabel]: DuoyunFlowElement.edgeLabel,
+  });
 
   render = () => {
-    const { scale, marginBlock } = this.state;
+    const { scale, marginBlock } = this.#state;
     this.loaded = !!scale;
     return html`
       <dy-flow-canvas
         ref=${this.canvasRef.ref}
-        exportparts=${exportPartsMap({
-          [DuoyunFlowCanvasElement.node]: DuoyunFlowElement.node,
-          [DuoyunFlowCanvasElement.nodeLabel]: DuoyunFlowElement.nodeLabel,
-          [DuoyunFlowCanvasElement.edge]: DuoyunFlowElement.edge,
-          [DuoyunFlowCanvasElement.edgeLabel]: DuoyunFlowElement.edgeLabel,
-        })}
+        exportparts=${this.#exportparts}
         @resize=${this.#onCanvasResize}
         style=${styleMap({
           transform: scale && `scale(${scale})`,

@@ -7,7 +7,7 @@ type State = {
 
 customElements.whenDefined('gem-book').then(({ GemBookPluginElement }: typeof GemBookElement) => {
   const { Gem, theme, Utils } = GemBookPluginElement;
-  const { attribute, customElement, html, createCSSSheet, css, adoptedStyle } = Gem;
+  const { attribute, customElement, html, createCSSSheet, css, adoptedStyle, createState, effect } = Gem;
 
   const style = createCSSSheet(css`
     :scope {
@@ -44,7 +44,7 @@ customElements.whenDefined('gem-book').then(({ GemBookPluginElement }: typeof Ge
 
   @customElement('gbp-raw')
   @adoptedStyle(style)
-  class _GbpRawElement extends GemBookPluginElement<State> {
+  class _GbpRawElement extends GemBookPluginElement {
     @attribute src: string;
     @attribute codelang: string;
     @attribute range: string;
@@ -55,31 +55,27 @@ customElements.whenDefined('gem-book').then(({ GemBookPluginElement }: typeof Ge
       this.cacheState(() => [this.src]);
     }
 
-    state: State = {
+    state = createState<State>({
       content: '',
-    };
+    });
 
     get #codeLang() {
       return this.codelang || this.src.split('.').pop() || '';
     }
 
-    mounted() {
-      this.effect(
-        async () => {
-          const url = Utils.getRemoteURL(this.src);
-          if (!url) return;
-          this.setState({ error: false });
-          try {
-            const resp = await fetch(url);
-            if (resp.status === 404) throw new Error(resp.statusText || 'Not Found');
-            this.setState({ content: await resp.text() });
-          } catch (error) {
-            this.setState({ error });
-          }
-        },
-        () => [this.src],
-      );
-    }
+    @effect((i) => [i.src])
+    #init = async () => {
+      const url = Utils.getRemoteURL(this.src);
+      if (!url) return;
+      this.state({ error: false });
+      try {
+        const resp = await fetch(url);
+        if (resp.status === 404) throw new Error(resp.statusText || 'Not Found');
+        this.state({ content: await resp.text() });
+      } catch (error) {
+        this.state({ error });
+      }
+    };
 
     render() {
       const { content, error } = this.state;

@@ -1,4 +1,4 @@
-import { html, GemElement } from '@mantou/gem/lib/element';
+import { html, GemElement, createState } from '@mantou/gem/lib/element';
 import { customElement } from '@mantou/gem/lib/decorators';
 import { Time } from 'duoyun-ui/lib/time';
 import { ContextMenu, ContextMenuItem } from 'duoyun-ui/elements/contextmenu';
@@ -33,10 +33,10 @@ type NewItem = typeof initItem;
 
 @customElement('console-page-users')
 export class ConsolePageItemElement extends GemElement {
-  state = {
+  #state = createState({
     pagination: pagination,
     paginationMap: new Map([['', pagination]]),
-  };
+  });
 
   // 定义表格
   columns: PatTableColumn<Item>[] = [
@@ -209,7 +209,7 @@ export class ConsolePageItemElement extends GemElement {
       prepareOk: async (data) => {
         await sleep(1000);
         console.log(data);
-        this.state.pagination.updateItem(data);
+        this.#state.pagination.updateItem(data);
       },
     }).catch((data) => {
       console.log(data);
@@ -239,15 +239,15 @@ export class ConsolePageItemElement extends GemElement {
    * 这里使用页面级缓存，切换页面后将被清除
    */
   #onFetch = ({ detail }: CustomEvent<FetchEventDetail>) => {
-    let newPagination = this.state.paginationMap.get(detail.pageKey);
+    let newPagination = this.#state.paginationMap.get(detail.pageKey);
     if (!newPagination) {
       newPagination = createPaginationStore<Item>({
         cacheItems: true,
         pageContainItem: true,
       });
-      this.state.paginationMap.set(detail.pageKey, newPagination);
+      this.#state.paginationMap.set(detail.pageKey, newPagination);
     }
-    this.setState({ pagination: newPagination });
+    this.#state({ pagination: newPagination });
     newPagination.updatePage(fetchItemsWithArgs, detail);
   };
 
@@ -256,7 +256,7 @@ export class ConsolePageItemElement extends GemElement {
       <dy-pat-table
         filterable
         .columns=${this.columns}
-        .paginationStore=${this.state.pagination.store}
+        .paginationStore=${this.#state.pagination.store}
         .getActions=${this.getActions}
         @fetch=${this.#onFetch}
       >

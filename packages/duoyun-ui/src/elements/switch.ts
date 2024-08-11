@@ -7,9 +7,10 @@ import {
   boolattribute,
   slot,
   shadow,
+  mounted,
 } from '@mantou/gem/lib/decorators';
 import { GemElement, html, createCSSSheet } from '@mantou/gem/lib/element';
-import { css } from '@mantou/gem/lib/utils';
+import { addListener, css } from '@mantou/gem/lib/utils';
 
 import { theme, getSemanticColor } from '../lib/theme';
 import { commonHandle } from '../lib/hotkeys';
@@ -90,16 +91,14 @@ export class DuoyunSwitchElement extends GemElement {
     return theme.neutralColor;
   }
 
-  constructor() {
-    super();
-    this.addEventListener('click', this.#onClick);
-  }
-
   #onClick = () => {
     if (!this.disabled) {
       this.change(!this.checked);
     }
   };
+
+  @mounted()
+  #init = () => addListener(this, 'click', this.#onClick);
 
   render = () => {
     return html`

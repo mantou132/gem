@@ -6,7 +6,7 @@ customElements.whenDefined('gem-book').then(({ GemBookPluginElement }: typeof Ge
   const esmBuilderPromise = import(/* webpackIgnore: true */ esmBuilder);
 
   const { Gem, Utils } = GemBookPluginElement;
-  const { customElement, attribute } = Gem;
+  const { customElement, attribute, effect } = Gem;
 
   @customElement('gbp-import')
   class _GbpImportElement extends GemBookPluginElement {
@@ -25,33 +25,29 @@ customElements.whenDefined('gem-book').then(({ GemBookPluginElement }: typeof Ge
       );
     }
 
-    mounted() {
-      this.effect(
-        async () => {
-          const url = Utils.getRemoteURL(this.src);
-          if (!url) return;
-          try {
-            const resp = await fetch(url);
-            if (resp.status === 404) throw new Error(resp.statusText || 'Not Found');
-            const content = await resp.text();
-            if (new URL(url, location.origin).pathname.endsWith('.js')) {
-              return await import(/* webpackIgnore: true */ url);
-            }
-            const { build } = await esmBuilderPromise;
-            const ret = await build({
-              dependencies: this.#dependencies,
-              source: `
-                const GemBookPluginElement = customElements.get('gem-book').GemBookPluginElement;
-                ${content}
-              `,
-            });
-            await import(/* webpackIgnore: true */ ret.url);
-          } catch (error) {
-            this.error(error);
-          }
-        },
-        () => [this.src],
-      );
-    }
+    @effect((i) => [i.src])
+    #init = async () => {
+      const url = Utils.getRemoteURL(this.src);
+      if (!url) return;
+      try {
+        const resp = await fetch(url);
+        if (resp.status === 404) throw new Error(resp.statusText || 'Not Found');
+        const content = await resp.text();
+        if (new URL(url, location.origin).pathname.endsWith('.js')) {
+          return await import(/* webpackIgnore: true */ url);
+        }
+        const { build } = await esmBuilderPromise;
+        const ret = await build({
+          dependencies: this.#dependencies,
+          source: `
+            const GemBookPluginElement = customElements.get('gem-book').GemBookPluginElement;
+            ${content}
+          `,
+        });
+        await import(/* webpackIgnore: true */ ret.url);
+      } catch (error) {
+        this.error(error);
+      }
+    };
   }
 });

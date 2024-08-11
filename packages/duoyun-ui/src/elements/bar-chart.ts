@@ -1,4 +1,4 @@
-import { customElement, property, adoptedStyle } from '@mantou/gem/lib/decorators';
+import { customElement, property, adoptedStyle, memo } from '@mantou/gem/lib/decorators';
 import { createCSSSheet, html, svg } from '@mantou/gem/lib/element';
 import { css } from '@mantou/gem/lib/utils';
 
@@ -39,6 +39,29 @@ export class DuoyunBarChartElement extends DuoyunChartBaseElement {
 
   #stackSequences?: number[][];
 
+  @memo((i) => [i.sequences, i.contentRect.width, i.aspectRatio])
+  #calc = () => {
+    if (!this.contentRect.width) return;
+    if (!this.sequences?.length) return;
+    if (!this.series?.length) return;
+    const seqList = this.sequences.map((e) => e.values);
+    this.#stackSequences = seqList.map((_, index) => this.mergeNumberValues(seqList.slice(0, index + 1))!);
+    const xMin = 0;
+    const xMax = this.series.length;
+    let yMin = Infinity;
+    let yMax = -Infinity;
+    (this.stack ? this.#stackSequences : seqList).forEach((values) => {
+      values.forEach((y) => {
+        yMin = Math.min(yMin, y ?? Infinity);
+        yMax = Math.max(yMax, y ?? -Infinity);
+      });
+    });
+    this.xStep = xMax;
+    this.initXAxi(xMin, xMax);
+    this.initYAxi(yMin, yMax);
+    this.initViewBox();
+  };
+
   onMouseMove = (index: number, evt: MouseEvent, sort: boolean, seqIndex = -1) => {
     let tooltipValues: DataItem[] | undefined = this.sequences?.map(({ values, label }, i) => {
       return {
@@ -74,33 +97,6 @@ export class DuoyunBarChartElement extends DuoyunChartBaseElement {
 
   onMouseOut = () => {
     ChartTooltip.close();
-  };
-
-  willMount = () => {
-    this.memo(
-      () => {
-        if (!this.contentRect.width) return;
-        if (!this.sequences?.length) return;
-        if (!this.series?.length) return;
-        const seqList = this.sequences.map((e) => e.values);
-        this.#stackSequences = seqList.map((_, index) => this.mergeNumberValues(seqList.slice(0, index + 1))!);
-        const xMin = 0;
-        const xMax = this.series.length;
-        let yMin = Infinity;
-        let yMax = -Infinity;
-        (this.stack ? this.#stackSequences : seqList).forEach((values) => {
-          values.forEach((y) => {
-            yMin = Math.min(yMin, y ?? Infinity);
-            yMax = Math.max(yMax, y ?? -Infinity);
-          });
-        });
-        this.xStep = xMax;
-        this.initXAxi(xMin, xMax);
-        this.initYAxi(yMin, yMax);
-        this.initViewBox();
-      },
-      () => [this.sequences, this.contentRect.width, this.aspectRatio],
-    );
   };
 
   render = () => {

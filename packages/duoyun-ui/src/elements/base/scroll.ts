@@ -1,8 +1,8 @@
-import { adoptedStyle, shadow, state } from '@mantou/gem/lib/decorators';
+import { adoptedStyle, effect, mounted, shadow, state } from '@mantou/gem/lib/decorators';
 import { createCSSSheet } from '@mantou/gem/lib/element';
-import { css } from '@mantou/gem/lib/utils';
+import { addListener, css } from '@mantou/gem/lib/utils';
 
-import { DuoyunResizeBaseElement, DuoyunResizeBaseElementOptions } from './resize';
+import { DuoyunResizeBaseElement } from './resize';
 
 const PIXEL_DEVIATION = 0.1;
 
@@ -47,25 +47,26 @@ const style = createCSSSheet(css`
 
 @adoptedStyle(style)
 @shadow()
-export class DuoyunScrollBaseElement<_T = Record<string, unknown>> extends DuoyunResizeBaseElement {
+export class DuoyunScrollBaseElement extends DuoyunResizeBaseElement {
   @state topOverflow: boolean;
   @state rightOverflow: boolean;
   @state bottomOverflow: boolean;
   @state leftOverflow: boolean;
 
-  constructor(options?: DuoyunResizeBaseElementOptions) {
-    super(options);
-    this.addEventListener('scroll', this.#check);
-    this.addEventListener('scrollend', this.#check);
-    new MutationObserver(this.#check).observe(this, {
-      subtree: true,
-      childList: true,
-    });
-    this.effect(() => {
-      this.#check();
-    });
-  }
+  @mounted()
+  #init = () => {
+    const removeScrollHandle = addListener(this, 'scroll', this.#check);
+    const removeScrollEndHandle = addListener(this, 'scrollend', this.#check);
+    const ob = new MutationObserver(this.#check);
+    ob.observe(this, { subtree: true, childList: true });
+    return () => {
+      removeScrollHandle();
+      removeScrollEndHandle();
+      ob.disconnect();
+    };
+  };
 
+  @effect()
   #check = () => {
     const contentHeight = this.clientHeight - (this.borderBoxSize.blockSize - this.contentRect.height);
     const contentWidth = this.clientWidth - (this.borderBoxSize.inlineSize - this.contentRect.width);

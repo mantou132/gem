@@ -158,7 +158,7 @@ const styles = createCSSSheet(css`
 @connectStore(bookStore)
 @adoptedStyle(styles)
 export class Homepage extends GemElement {
-  renderHero({ hero }: NavItemWithLink) {
+  #renderHero({ hero }: NavItemWithLink) {
     if (!hero) return null;
     const { title, desc, actions } = hero;
     return html`
@@ -179,7 +179,7 @@ export class Homepage extends GemElement {
     `;
   }
 
-  renderFeature({ features, originLink }: NavItemWithLink) {
+  #renderFeature({ features, originLink }: NavItemWithLink) {
     return html`
       <div role="region" aria-label="features" class="features">
         <dl class="body" ?data-len=${features?.length}>
@@ -216,6 +216,6 @@ export class Homepage extends GemElement {
   render() {
     const homePageLink = bookStore.links?.find((e) => e.link === bookStore.homePage);
     if (!homePageLink) return null;
-    return html` ${this.renderHero(homePageLink)}${this.renderFeature(homePageLink)} `;
+    return html` ${this.#renderHero(homePageLink)}${this.#renderFeature(homePageLink)} `;
   }
 }

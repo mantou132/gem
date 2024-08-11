@@ -14,6 +14,8 @@ import {
   part,
   shadow,
   aria,
+  mounted,
+  effect,
 } from '@mantou/gem/lib/decorators';
 import { GemElement, html, TemplateResult, createCSSSheet } from '@mantou/gem/lib/element';
 import { css } from '@mantou/gem/lib/utils';
@@ -327,26 +329,24 @@ export class DuoyunInputElement extends GemElement {
     )(evt);
   };
 
-  mounted = () => {
-    this.effect(
-      () => {
-        const { element } = this.inputRef;
-        if (!element) return;
-        const { value, selectionStart, selectionEnd } = this.#nextState;
-        if (this.value === value) {
-          Object.assign(element, { value, selectionStart, selectionEnd });
-        } else {
-          if (this.#editing && this.#isNumberNotChange(this.value, value)) {
-            element.value = value;
-          } else {
-            element.value = this.value;
-          }
-        }
-        this.filled = !!element.value;
-      },
-      () => [this.value],
-    );
-    this.autofocus && this.focus();
+  @mounted()
+  #autoFocus = () => this.autofocus && this.focus();
+
+  @effect((i) => [i.value])
+  #updateState = () => {
+    const { element } = this.inputRef;
+    if (!element) return;
+    const { value, selectionStart, selectionEnd } = this.#nextState;
+    if (this.value === value) {
+      Object.assign(element, { value, selectionStart, selectionEnd });
+    } else {
+      if (this.#editing && this.#isNumberNotChange(this.value, value)) {
+        element.value = value;
+      } else {
+        element.value = this.value;
+      }
+    }
+    this.filled = !!element.value;
   };
 
   render() {

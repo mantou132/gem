@@ -10,9 +10,10 @@ import {
   emitter,
   aria,
   shadow,
+  mounted,
 } from '@mantou/gem/lib/decorators';
 import { GemElement, html, createCSSSheet } from '@mantou/gem/lib/element';
-import { css } from '@mantou/gem/lib/utils';
+import { addListener, css } from '@mantou/gem/lib/utils';
 
 import { theme } from '../lib/theme';
 import { isNotNullish } from '../lib/types';
@@ -119,11 +120,6 @@ export class DuoyunShortcutRecordElement extends GemElement {
     return this.tooltip || 'Please keypress...';
   }
 
-  constructor() {
-    super();
-    this.addEventListener('keydown', this.#onKeydown);
-  }
-
   #onKeydown = (evt: KeyboardEvent) => {
     const keys = [
       ...new Set(
@@ -148,6 +144,9 @@ export class DuoyunShortcutRecordElement extends GemElement {
     this.clear(null);
     // 由于 target 不能聚集，所以会自动聚焦到 this 上
   };
+
+  @mounted()
+  #init = () => addListener(this, 'keydown', this.#onKeydown);
 
   render = () => {
     return html`

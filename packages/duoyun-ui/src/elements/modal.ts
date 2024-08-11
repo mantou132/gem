@@ -13,6 +13,9 @@ import {
   state,
   slot,
   shadow,
+  mounted,
+  effect,
+  memo,
 } from '@mantou/gem/lib/decorators';
 import { createCSSSheet, GemElement, html, TemplateResult } from '@mantou/gem/lib/element';
 import { addListener, css, styled } from '@mantou/gem/lib/utils';
@@ -271,13 +274,6 @@ export class DuoyunModalElement extends GemElement {
     hotkeys({ esc: this.#close })(evt);
   };
 
-  willMount = () => {
-    this.memo(
-      (_, oldDeps) => oldDeps && (this.closing = !this.open),
-      () => [this.open],
-    );
-  };
-
   #openAnimate = () => {
     this.maskRef.element?.animate(fadeIn, commonAnimationOptions);
     (this.dialogRef.element || this.bodyRef.element)?.animate(this.openAnimation, commonAnimationOptions);
@@ -289,21 +285,22 @@ export class DuoyunModalElement extends GemElement {
       (this.dialogRef.element || this.bodyRef.element)?.animate(this.closeAnimation, commonAnimationOptions).finished,
     ]);
 
-  mounted = () => {
-    this.effect(
-      async () => {
-        if (this.open) {
-          !this.shadowRoot?.activeElement && this.focus();
-          this.#openAnimate();
-        } else if (this.closing) {
-          await this.#closeAnimate();
-          this.closing = false;
-          this.update();
-        }
-      },
-      () => [this.open],
-    );
-    return addListener(this, 'keydown', this.#keydown);
+  @memo((i) => [i.open])
+  #updateState = (_: [boolean], oldDeps?: [boolean]) => oldDeps && (this.closing = !this.open);
+
+  @mounted()
+  #init = () => addListener(this, 'keydown', this.#keydown);
+
+  @effect((i) => [i.open])
+  #animation = async () => {
+    if (this.open) {
+      !this.shadowRoot?.activeElement && this.focus();
+      this.#openAnimate();
+    } else if (this.closing) {
+      await this.#closeAnimate();
+      this.closing = false;
+      this.update();
+    }
   };
 
   render = () => {

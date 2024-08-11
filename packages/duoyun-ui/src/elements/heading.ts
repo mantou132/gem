@@ -1,4 +1,4 @@
-import { connectStore, adoptedStyle, customElement, attribute, slot, shadow } from '@mantou/gem/lib/decorators';
+import { connectStore, adoptedStyle, customElement, attribute, slot, shadow, effect } from '@mantou/gem/lib/decorators';
 import { GemElement, html, createCSSSheet } from '@mantou/gem/lib/element';
 import { history } from '@mantou/gem/lib/history';
 import { css } from '@mantou/gem/lib/utils';
@@ -51,19 +51,12 @@ export class DuoyunHeadingElement extends GemElement {
     return this.lv || '1';
   }
 
+  @effect()
   #checkHash = () => {
     const { hash } = history.getParams();
     if (hash === `#${this.id}`) {
       this.scrollIntoView();
     }
-  };
-
-  mounted = () => {
-    this.#checkHash();
-  };
-
-  updated = () => {
-    this.#checkHash();
   };
 
   render = () => {

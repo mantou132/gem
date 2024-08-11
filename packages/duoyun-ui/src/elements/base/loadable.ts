@@ -1,4 +1,4 @@
-import { adoptedStyle, customElement, boolattribute, shadow } from '@mantou/gem/lib/decorators';
+import { adoptedStyle, customElement, boolattribute, shadow, effect } from '@mantou/gem/lib/decorators';
 import { GemElement, html, createCSSSheet } from '@mantou/gem/lib/element';
 import { css } from '@mantou/gem/lib/utils';
 
@@ -52,19 +52,18 @@ const style = createCSSSheet(css`
  */
 @adoptedStyle(style)
 @shadow()
-export class DuoyunLoadableBaseElement<T = Record<string, unknown>> extends GemElement<T> {
+export class DuoyunLoadableBaseElement extends GemElement {
   @boolattribute loading: boolean;
 
-  constructor() {
-    super();
-    const mask = new DuoyunLoadableMaskElement();
-    this.effect(() => {
-      this.internals.ariaBusy = String(this.loading);
-      if (this.loading) {
-        this.shadowRoot!.append(mask);
-      } else {
-        mask.remove();
-      }
-    });
-  }
+  #mask = new DuoyunLoadableMaskElement();
+
+  @effect()
+  #effect = () => {
+    this.internals.ariaBusy = String(this.loading);
+    if (this.loading) {
+      this.shadowRoot!.append(this.#mask);
+    } else {
+      this.#mask.remove();
+    }
+  };
 }

@@ -1,6 +1,6 @@
-import { adoptedStyle, customElement } from '@mantou/gem/lib/decorators';
+import { adoptedStyle, customElement, mounted } from '@mantou/gem/lib/decorators';
 import { createCSSSheet } from '@mantou/gem/lib/element';
-import { css } from '@mantou/gem/lib/utils';
+import { addListener, css } from '@mantou/gem/lib/utils';
 import { GemLinkElement, GemActiveLinkElement } from '@mantou/gem/elements/base/link';
 
 import { commonHandle } from '../lib/hotkeys';
@@ -24,10 +24,8 @@ const style = createCSSSheet(css`
 @adoptedStyle(style)
 @adoptedStyle(focusStyle)
 export class DuoyunLinkElement extends GemLinkElement {
-  constructor() {
-    super();
-    this.addEventListener('keydown', commonHandle);
-  }
+  @mounted()
+  #init = () => addListener(this, 'keydown', commonHandle);
 }
 
 /**
@@ -37,8 +35,6 @@ export class DuoyunLinkElement extends GemLinkElement {
 @adoptedStyle(style)
 @adoptedStyle(focusStyle)
 export class DuoyunActiveLinkElement extends GemActiveLinkElement {
-  constructor() {
-    super();
-    this.addEventListener('keydown', commonHandle);
-  }
+  @mounted()
+  #init = () => addListener(this, 'keydown', commonHandle);
 }

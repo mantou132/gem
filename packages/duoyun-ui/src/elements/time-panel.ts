@@ -6,6 +6,7 @@ import {
   property,
   boolattribute,
   shadow,
+  mounted,
 } from '@mantou/gem/lib/decorators';
 import { GemElement, html, createCSSSheet } from '@mantou/gem/lib/element';
 import { css, classMap } from '@mantou/gem/lib/utils';
@@ -88,7 +89,8 @@ export class DuoyunTimePanelElement extends GemElement {
     this.change(this.#time.setSeconds(n));
   };
 
-  mounted = () => {
+  @mounted()
+  #init = () => {
     this.shadowRoot?.querySelectorAll(`.checked`).forEach((e) => {
       e.scrollIntoView({ block: 'center' });
     });

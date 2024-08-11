@@ -1,4 +1,4 @@
-import { GemElement, html, customElement, refobject, RefObject, render, shadow } from '@mantou/gem';
+import { GemElement, html, customElement, refobject, RefObject, render, shadow, createState } from '@mantou/gem';
 import { createModalClass } from '@mantou/gem/elements/base/modal-factory';
 import { GemDialogBaseElement } from '@mantou/gem/elements/base/dialog';
 
@@ -15,7 +15,7 @@ class Confirm extends createModalClass({
 }) {
   label = 'confirm title';
 
-  confirm = () => {
+  #confirm = () => {
     Confirm.close();
     Confirm.store.confirmHandle();
   };
@@ -45,7 +45,7 @@ class Confirm extends createModalClass({
       <div class="root" ?hidden=${!Confirm.isOpen}>
         <div class="body">
           <h2>${Confirm.store.content}</h2>
-          <button @click=${this.confirm}>close dialog</button>
+          <button @click=${this.#confirm}>close dialog</button>
         </div>
       </div>
     `;
@@ -112,11 +112,11 @@ class Dialog extends GemDialogBaseElement {
 export class Root extends GemElement {
   @refobject dialog: RefObject<Dialog>;
 
-  state = {
+  #state = createState({
     modal: false,
-  };
+  });
 
-  clickHandle = () => {
+  #clickHandle = () => {
     this.dialog.element?.open();
   };
 
@@ -127,12 +127,12 @@ export class Root extends GemElement {
           font-size: x-large;
         }
       </style>
-      <button ?inert=${this.state.modal} @click="${this.clickHandle}">open dialog</button>
+      <button ?inert=${this.#state.modal} @click="${this.#clickHandle}">open dialog</button>
       <app-dialog
         label="dialog title"
         ref=${this.dialog.ref}
-        @open=${() => this.setState({ modal: true })}
-        @close=${() => this.setState({ modal: false })}
+        @open=${() => this.#state({ modal: true })}
+        @close=${() => this.#state({ modal: false })}
       >
         <div>dialog body</div>
         <gem-link path="/hi" style="cursor: pointer; color: blue">replace route</gem-link>

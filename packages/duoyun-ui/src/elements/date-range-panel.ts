@@ -7,8 +7,9 @@ import {
   part,
   aria,
   shadow,
+  memo,
 } from '@mantou/gem/lib/decorators';
-import { GemElement, html, createCSSSheet } from '@mantou/gem/lib/element';
+import { GemElement, html, createCSSSheet, createState } from '@mantou/gem/lib/element';
 import { css } from '@mantou/gem/lib/utils';
 
 import { Time, parseNarrowRelativeTime, parseNarrowTimeRange } from '../lib/time';
@@ -54,52 +55,48 @@ type State = {
 @adoptedStyle(style)
 @aria({ role: 'widget' })
 @shadow()
-export class DuoyunDateRangePanelElement extends GemElement<State> {
+export class DuoyunDateRangePanelElement extends GemElement {
   @part static panel: string;
 
   @property value?: DateRangeValue;
   @globalemitter change: Emitter<number[]>;
 
-  state: State = {};
+  #state = createState<State>({});
+
+  @memo((i) => [i.value])
+  #updateState = () => {
+    if (Array.isArray(this.value)) {
+      return this.#state({ start: this.value[0], stop: this.value[1] });
+    }
+    if (typeof this.value === 'string') {
+      const parsed = parseNarrowRelativeTime(this.value);
+      if (parsed) {
+        return this.#state({ start: parsed.startOf('d').valueOf(), stop: new Time().valueOf() });
+      }
+      const range = parseNarrowTimeRange(this.value);
+      if (range) {
+        return this.#state({ start: range[0].startOf('d').valueOf(), stop: range[1].valueOf() });
+      }
+    }
+  };
 
   #onSelect = (evt: CustomEvent<number>) => {
     evt.stopPropagation();
-    const { start, stop } = this.state;
+    const { start, stop } = this.#state;
     if (isNullish(start) || (!isNullish(start) && !isNullish(stop))) {
-      this.setState({ start: evt.detail, stop: undefined });
+      this.#state({ start: evt.detail, stop: undefined });
     } else {
-      this.setState({ stop: evt.detail });
+      this.#state({ stop: evt.detail });
       this.change([Math.min(start, evt.detail), Math.max(start, evt.detail)]);
     }
   };
 
   #onDateHover = ({ detail }: CustomEvent<number>) => {
-    this.setState({ hover: detail });
-  };
-
-  willMount = () => {
-    this.memo(
-      () => {
-        if (Array.isArray(this.value)) {
-          return this.setState({ start: this.value[0], stop: this.value[1] });
-        }
-        if (typeof this.value === 'string') {
-          const parsed = parseNarrowRelativeTime(this.value);
-          if (parsed) {
-            return this.setState({ start: parsed.startOf('d').valueOf(), stop: new Time().valueOf() });
-          }
-          const range = parseNarrowTimeRange(this.value);
-          if (range) {
-            return this.setState({ start: range[0].startOf('d').valueOf(), stop: range[1].valueOf() });
-          }
-        }
-      },
-      () => [this.value],
-    );
+    this.#state({ hover: detail });
   };
 
   render = () => {
-    const { start, stop, hover } = this.state;
+    const { start, stop, hover } = this.#state;
     const highlightStop = stop || hover;
     const highlights: number[][] =
       !isNullish(start) && highlightStop ? [[Math.min(start, highlightStop), Math.max(start, highlightStop)]] : [];

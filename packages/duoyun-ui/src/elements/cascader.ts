@@ -8,8 +8,9 @@ import {
   part,
   emitter,
   shadow,
+  memo,
 } from '@mantou/gem/lib/decorators';
-import { createCSSSheet, GemElement, html, TemplateResult } from '@mantou/gem/lib/element';
+import { createCSSSheet, createState, GemElement, html, TemplateResult } from '@mantou/gem/lib/element';
 import { css, styleMap, classMap } from '@mantou/gem/lib/utils';
 
 import { icons } from '../lib/icons';
@@ -92,10 +93,6 @@ function getOptionDisplayValue(option: Option) {
   return String(getOptionValue(option));
 }
 
-type State = {
-  selected: Option[];
-};
-
 const checkboxStatusToken = Symbol();
 
 enum CheckboxStatus {
@@ -113,7 +110,7 @@ enum CheckboxStatus {
 @customElement('dy-cascader')
 @adoptedStyle(style)
 @shadow()
-export class DuoyunCascaderElement extends GemElement<State> {
+export class DuoyunCascaderElement extends GemElement {
   @part static column: string;
 
   @property options?: Option[];
@@ -124,9 +121,9 @@ export class DuoyunCascaderElement extends GemElement<State> {
 
   @property value?: OptionValue[][] | OptionValue[];
 
-  state: State = {
-    selected: [],
-  };
+  #state = createState({
+    selected: [] as Option[],
+  });
 
   get #value() {
     if (!this.value) return;
@@ -134,7 +131,65 @@ export class DuoyunCascaderElement extends GemElement<State> {
   }
 
   #deep = 1;
+
+  @memo((i) => [i.options])
+  #calcDeep = () => {
+    if (!this.options) return;
+    this.#deep = getCascaderDeep(this.options, 'children');
+    // init state
+    if (!this.#state.selected.length) {
+      const selected: Option[] = [];
+      const firstValue = this.#value?.[0] || [];
+      for (let index = 0; index < firstValue.length; index++) {
+        const val = firstValue[index];
+        const item = (index ? selected[selected.length - 1].children! : this.options!).find(
+          (e) => val === getOptionValue(e),
+        )!;
+        if (item.disabled) break;
+        selected.push(item);
+      }
+      this.#state({ selected });
+    }
+  };
+
   #valueObj: any = {};
+
+  @memo((i) => [i.value, i.options])
+  #calcObj = () => {
+    // generator obj via value(array)
+    this.#valueObj =
+      this.#value?.reduce((p, value) => {
+        value.reduce((pp, s, index, arr) => {
+          if (index === arr.length - 1) {
+            pp[s] = true;
+            return pp;
+          } else {
+            return (pp[s] = pp[s] || {});
+          }
+        }, p);
+        return p;
+      }, {} as any) || {};
+
+    // append check status to obj via value(array)
+    const check = (path: string[], item: Option) => {
+      const key = getOptionDisplayValue(item);
+      const sub = readProp(this.#valueObj, [...path, key]);
+      if (sub === true || !sub) return;
+
+      const isAll = item.children?.reduce((p, e) => {
+        const k = getOptionDisplayValue(e);
+        if (sub[k] === true) {
+          return p;
+        } else {
+          check([...path, key], e);
+          if (sub[k] && sub[k][checkboxStatusToken] === CheckboxStatus.Checked) return p;
+        }
+        return false;
+      }, true);
+      sub[checkboxStatusToken] = isAll ? CheckboxStatus.Checked : CheckboxStatus.Indeterminate;
+    };
+    this.options?.forEach((e) => check([], e));
+  };
 
   #onChange = (index: number, item: Option, evt: CustomEvent<boolean>) => {
     evt.stopPropagation();
@@ -142,7 +197,7 @@ export class DuoyunCascaderElement extends GemElement<State> {
     let obj = valueClone;
     // set new value(select part)
     for (let i = 0; i < index; i++) {
-      const k = getOptionValue(this.state.selected[i]);
+      const k = getOptionValue(this.#state.selected[i]);
       if (!obj[k]) obj[k] = {};
       obj = obj[k];
     }
@@ -183,10 +238,10 @@ export class DuoyunCascaderElement extends GemElement<State> {
 
   #onClick = (level: number, item: Option) => {
     if (item.disabled) return;
-    const { selected } = this.state;
+    const { selected } = this.#state;
     const clickValue = selected.slice(0, level).concat(item);
     if (selected[level] !== item) {
-      this.setState({ selected: clickValue });
+      this.#state({ selected: clickValue });
       if (hasChildren(item)) {
         this.expand(item);
       }
@@ -196,71 +251,9 @@ export class DuoyunCascaderElement extends GemElement<State> {
     }
   };
 
-  willMount = () => {
-    this.memo(
-      () => {
-        if (!this.options) return;
-        this.#deep = getCascaderDeep(this.options, 'children');
-        // init state
-        if (!this.state.selected.length) {
-          const selected: Option[] = [];
-          const firstValue = this.#value?.[0] || [];
-          for (let index = 0; index < firstValue.length; index++) {
-            const val = firstValue[index];
-            const item = (index ? selected[selected.length - 1].children! : this.options!).find(
-              (e) => val === getOptionValue(e),
-            )!;
-            if (item.disabled) break;
-            selected.push(item);
-          }
-          this.setState({ selected });
-        }
-      },
-      () => [this.options],
-    );
-    this.memo(
-      () => {
-        // generator obj via value(array)
-        this.#valueObj =
-          this.#value?.reduce((p, value) => {
-            value.reduce((pp, s, index, arr) => {
-              if (index === arr.length - 1) {
-                pp[s] = true;
-                return pp;
-              } else {
-                return (pp[s] = pp[s] || {});
-              }
-            }, p);
-            return p;
-          }, {} as any) || {};
-
-        // append check status to obj via value(array)
-        const check = (path: string[], item: Option) => {
-          const key = getOptionDisplayValue(item);
-          const sub = readProp(this.#valueObj, [...path, key]);
-          if (sub === true || !sub) return;
-
-          const isAll = item.children?.reduce((p, e) => {
-            const k = getOptionDisplayValue(e);
-            if (sub[k] === true) {
-              return p;
-            } else {
-              check([...path, key], e);
-              if (sub[k] && sub[k][checkboxStatusToken] === CheckboxStatus.Checked) return p;
-            }
-            return false;
-          }, true);
-          sub[checkboxStatusToken] = isAll ? CheckboxStatus.Checked : CheckboxStatus.Indeterminate;
-        };
-        this.options?.forEach((e) => check([], e));
-      },
-      () => [this.value, this.options],
-    );
-  };
-
   render = () => {
     if (!this.options) return html``;
-    const { selected } = this.state;
+    const { selected } = this.#state;
     const listStyle = styleMap({ width: this.fit ? `${100 / this.#deep}%` : undefined });
     const contents = [
       this.options,

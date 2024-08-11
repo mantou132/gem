@@ -10,9 +10,11 @@ import {
   emitter,
   aria,
   shadow,
+  mounted,
+  memo,
 } from '@mantou/gem/lib/decorators';
 import { createCSSSheet, GemElement, html } from '@mantou/gem/lib/element';
-import { css } from '@mantou/gem/lib/utils';
+import { addListener, css } from '@mantou/gem/lib/utils';
 
 import { theme } from '../lib/theme';
 import { icons } from '../lib/icons';
@@ -78,13 +80,14 @@ export class DuoyunCascaderPickerElement extends GemElement implements BasePicke
   @globalemitter change: Emitter<OptionValue[][] | OptionValue[]>;
   @emitter expand: Emitter<Option>;
 
-  constructor() {
-    super();
-    this.addEventListener('click', this.#onOpen);
-    this.addEventListener('keydown', commonHandle);
-  }
-
   #cascader?: DuoyunCascaderElement;
+
+  @memo((i) => [i.value, i.options])
+  #updateCascader = () => {
+    if (!this.#cascader) return;
+    this.#cascader.value = this.value;
+    this.#cascader.options = this.options;
+  };
 
   #onChange = ({ detail, target }: CustomEvent) => {
     this.#cascader = target as DuoyunCascaderElement;
@@ -129,17 +132,15 @@ export class DuoyunCascaderPickerElement extends GemElement implements BasePicke
     );
   };
 
-  mounted = () => {
-    this.effect(
-      () => {
-        if (this.#cascader) {
-          this.#cascader.value = this.value;
-          this.#cascader.options = this.options;
-        }
-      },
-      () => [this.value, this.options],
-    );
-    return () => this.active && ContextMenu.close();
+  @mounted()
+  #init = () => {
+    const removeClickHandle = addListener(this, 'click', this.#onOpen);
+    const removeKeydownHandle = addListener(this, 'keydown', commonHandle);
+    return () => {
+      this.active && ContextMenu.close();
+      removeClickHandle();
+      removeKeydownHandle();
+    };
   };
 
   render = () => {

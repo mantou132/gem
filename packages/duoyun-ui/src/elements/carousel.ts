@@ -1,4 +1,4 @@
-import { createCSSSheet, GemElement, html, TemplateResult } from '@mantou/gem/lib/element';
+import { createCSSSheet, createState, GemElement, html, TemplateResult } from '@mantou/gem/lib/element';
 import {
   adoptedStyle,
   customElement,
@@ -9,6 +9,9 @@ import {
   emitter,
   Emitter,
   shadow,
+  memo,
+  mounted,
+  effect,
 } from '@mantou/gem/lib/decorators';
 import { css, styleMap, classMap, addListener } from '@mantou/gem/lib/utils';
 
@@ -76,7 +79,7 @@ const style = createCSSSheet(css`
   @keyframes fadeIn {
     from {
       opacity: 0;
-      transform: translateX(calc(var(--direction) * 3em));
+      transform: translateX(calc(var(--step) * 3em));
     }
   }
   .tag {
@@ -140,10 +143,10 @@ export type CarouselItem = {
   };
 };
 
-type State = {
-  currentIndex: number;
-  direction: 1 | -1;
-};
+enum Direction {
+  Left,
+  Right,
+}
 
 /**
  * @customElement dy-carousel
@@ -152,7 +155,7 @@ type State = {
 @adoptedStyle(style)
 @adoptedStyle(focusStyle)
 @shadow({ delegatesFocus: true })
-export class DuoyunCarouselElement extends GemElement<State> {
+export class DuoyunCarouselElement extends GemElement {
   @part static img: string;
   @part static title: string;
   @part static tag: string;
@@ -177,15 +180,19 @@ export class DuoyunCarouselElement extends GemElement<State> {
     return this.interval || 3000;
   }
 
-  state: State = {
+  #state = createState({
     currentIndex: 0,
-    direction: 1,
-  };
+    direction: Direction.Right,
+  });
 
-  #add = (direction: 1 | -1) => {
+  get #step() {
+    return this.#state.direction === Direction.Right ? 1 : -1;
+  }
+
+  #add = (direction: Direction) => {
     const total = this.#items?.length;
     if (!total) return;
-    this.setState({ currentIndex: (total + this.state.currentIndex + direction) % total, direction });
+    this.#state({ currentIndex: (total + this.#state.currentIndex + this.#step) % total, direction });
     this.#reset();
   };
 
@@ -197,7 +204,7 @@ export class DuoyunCarouselElement extends GemElement<State> {
     this.#clearTimer();
     this.#timer = window.setTimeout(async () => {
       await this.#waitLeave;
-      this.#add(1);
+      this.#add(Direction.Right);
     }, this.#interval);
   };
 
@@ -221,24 +228,18 @@ export class DuoyunCarouselElement extends GemElement<State> {
   };
 
   #prevImg?: string;
-  willMount() {
-    this.memo(
-      (_, oldDeps) => {
-        if (oldDeps) {
-          this.#prevImg = this.#items?.[oldDeps[0]]?.img;
-          this.#isFirstRender = false;
-        }
-      },
-      () => [this.state.currentIndex],
-    );
-  }
 
-  mounted = () => {
+  @memo((i) => [i.#state.currentIndex])
+  #updateImg = () => (_: number[], oldDeps?: number[]) => {
+    if (oldDeps) {
+      this.#prevImg = this.#items?.[oldDeps[0]]?.img;
+      this.#isFirstRender = false;
+    }
+  };
+
+  @mounted()
+  #init = () => {
     this.#reset();
-    this.effect(
-      () => this.change(this.state.currentIndex),
-      () => [this.state.currentIndex],
-    );
     const removeListener = addListener(document, 'visibilitychange', this.#pageVisibleChange);
     return () => {
       removeListener();
@@ -246,8 +247,11 @@ export class DuoyunCarouselElement extends GemElement<State> {
     };
   };
 
+  @effect((i) => [i.#state.currentIndex])
+  #emitterEvent = () => this.change(this.#state.currentIndex);
+
   render = () => {
-    const { currentIndex, direction } = this.state;
+    const { currentIndex } = this.#state;
 
     return html`
       <style>
@@ -260,7 +264,7 @@ export class DuoyunCarouselElement extends GemElement<State> {
           ({ img, title, background, description, action, tag, onClick }, index) => html`
             <li
               class=${classMap({ item: true, paused: this.#isFirstRender })}
-              style=${styleMap({ '--direction': `${direction}` })}
+              style=${styleMap({ '--step': `${this.#step}` })}
               .inert=${currentIndex !== index}
               @click=${onClick}
             >
@@ -319,15 +323,18 @@ export class DuoyunCarouselElement extends GemElement<State> {
   };
 
   next = () => {
-    this.#add(1);
+    this.#add(Direction.Right);
   };
 
   prev = () => {
-    this.#add(-1);
+    this.#add(Direction.Left);
   };
 
   jump = (index: number) => {
-    this.setState({ currentIndex: index, direction: index > this.state.currentIndex ? 1 : -1 });
+    this.#state({
+      currentIndex: index,
+      direction: index > this.#state.currentIndex ? Direction.Right : Direction.Left,
+    });
     this.#reset();
   };
 }

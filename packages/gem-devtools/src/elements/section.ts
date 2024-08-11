@@ -175,12 +175,12 @@ export class Section extends GemElement {
   @property items: Item[] = [];
   @property path: Path | undefined;
 
-  renderTip = () => {
+  #renderTip = () => {
     if (!this.tip) return '';
     return html`<span class="tip" title=${this.tip} @click=${(e: Event) => e.preventDefault()}>?</span>`;
   };
 
-  renderInspect = (path?: Path) => {
+  #renderInspect = (path?: Path) => {
     if (!path) return '';
     return html`
       <span
@@ -196,7 +196,7 @@ export class Section extends GemElement {
     `;
   };
 
-  renderBuildInMark = (buildIn?: BuildIn) => {
+  #renderBuildInMark = (buildIn?: BuildIn) => {
     if (!buildIn) return '';
     switch (buildIn) {
       case 1:
@@ -206,7 +206,7 @@ export class Section extends GemElement {
     }
   };
 
-  renderItemValue = (item: Item) => {
+  #renderItemValue = (item: Item) => {
     const path =
       this.items === panelStore.staticMember
         ? ['constructor', item.name]
@@ -257,15 +257,15 @@ export class Section extends GemElement {
     }
   };
 
-  renderItem = (data: Item[]) => {
+  #renderItem = (data: Item[]) => {
     return html`
       <ul>
         ${data.map(
           (e) => html`
             <li>
-              <span class="name">${this.renderBuildInMark(e.buildIn)}${e.name}</span>
+              <span class="name">${this.#renderBuildInMark(e.buildIn)}${e.name}</span>
               <span class="sp">:</span>
-              ${this.renderItemValue(e)} ${this.renderInspect(e.path)}
+              ${this.#renderItemValue(e)} ${this.#renderInspect(e.path)}
             </li>
           `,
         )}
@@ -277,8 +277,8 @@ export class Section extends GemElement {
     const { name, items = [] } = this;
     return html`
       <details open>
-        <summary><span class="summary">${name}${this.renderTip()}</span>${this.renderInspect(this.path)}</summary>
-        <div>${items.length ? this.renderItem(items) : html`<div class="nodata">no data</div>`}</div>
+        <summary><span class="summary">${name}${this.#renderTip()}</span>${this.#renderInspect(this.path)}</summary>
+        <div>${items.length ? this.#renderItem(items) : html`<div class="nodata">no data</div>`}</div>
       </details>
     `;
   }

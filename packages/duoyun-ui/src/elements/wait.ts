@@ -1,6 +1,6 @@
-import { adoptedStyle, aria, customElement, shadow, state } from '@mantou/gem/lib/decorators';
-import { GemElement, html, createCSSSheet } from '@mantou/gem/lib/element';
-import { css } from '@mantou/gem/lib/utils';
+import { adoptedStyle, aria, customElement, effect, mounted, shadow, state } from '@mantou/gem/lib/decorators';
+import { GemElement, html, createCSSSheet, createState } from '@mantou/gem/lib/element';
+import { addListener, css } from '@mantou/gem/lib/utils';
 
 import { sleep } from '../lib/timer';
 import { setBodyInert } from '../lib/element';
@@ -77,7 +77,7 @@ export const closeLoading = async () => {
 };
 
 export const changeLoading = (newState: Partial<State>) => {
-  DuoyunWaitElement.instance?.setState(newState);
+  DuoyunWaitElement.instance?.state(newState);
 };
 
 type Position = 'start' | 'center' | 'end';
@@ -96,7 +96,7 @@ type State = {
 @adoptedStyle(style)
 @aria({ role: 'alert', ariaBusy: 'true' })
 @shadow()
-export class DuoyunWaitElement extends GemElement<State> {
+export class DuoyunWaitElement extends GemElement {
   static instance?: DuoyunWaitElement;
   static wait = waitLoading;
   static close = closeLoading;
@@ -106,29 +106,28 @@ export class DuoyunWaitElement extends GemElement<State> {
 
   constructor(initState: State = {}) {
     super();
-    this.state = initState;
-    this.addEventListener('contextmenu', (e) => e.preventDefault());
+    this.state = createState(initState);
   }
 
-  state: State = {};
+  #removedResolve?: (_?: unknown) => void;
 
-  mounted = () => {
+  @mounted()
+  #init = () => {
     DuoyunWaitElement.instance = this;
-    this.effect(
-      () => {
-        if (!this.state.transparent) {
-          const restoreInert = setBodyInert(this);
-          return restoreInert;
-        }
-      },
-      () => [this.state.transparent],
-    );
+    const removeHandle = addListener(this, 'contextmenu', (e) => e.preventDefault());
+    return () => {
+      DuoyunWaitElement.instance = undefined;
+      this.#removedResolve?.();
+      removeHandle();
+    };
   };
 
-  #removedResolve?: (_?: unknown) => void;
-  unmounted = () => {
-    DuoyunWaitElement.instance = undefined;
-    this.#removedResolve?.();
+  @effect((i) => [i.state.transparent])
+  #updateInert = () => {
+    if (!this.state.transparent) {
+      const restoreInert = setBodyInert(this);
+      return restoreInert;
+    }
   };
 
   render = () => {
@@ -150,6 +149,8 @@ export class DuoyunWaitElement extends GemElement<State> {
       <dy-loading>${text}</dy-loading>
     `;
   };
+
+  state: ReturnType<typeof createState<State>>;
 
   // 多个 promise 可能共享同一个 wait 元素，只能通过实例来判断是否结束
   // 和其他 modal 元素一起使用时需通过 instance 来判断，避免 inert 设置错误

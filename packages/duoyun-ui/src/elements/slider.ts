@@ -12,9 +12,11 @@ import {
   RefObject,
   aria,
   shadow,
+  mounted,
+  effect,
 } from '@mantou/gem/lib/decorators';
-import { GemElement, html, createCSSSheet } from '@mantou/gem/lib/element';
-import { css, classMap } from '@mantou/gem/lib/utils';
+import { GemElement, html, createCSSSheet, createState } from '@mantou/gem/lib/element';
+import { css, classMap, addListener } from '@mantou/gem/lib/utils';
 
 import { theme } from '../lib/theme';
 import { clamp } from '../lib/number';
@@ -137,24 +139,11 @@ export class DuoyunSliderElement extends GemElement {
     return this.#max - this.min;
   }
 
-  constructor() {
-    super();
-    this.addEventListener('keydown', this.#onKeydown);
-    this.effect(
-      () => {
-        this.internals.ariaValueText = String(this.value);
-        const position = this.#getValue(clamp(this.min, this.value, this.#max)) / this.#diff;
-        this.setState({ position, displayPosition: position });
-      },
-      () => [this.value],
-    );
-  }
-
-  state = {
+  #state = createState({
     position: 0,
     displayPosition: 0,
     start: false,
-  };
+  });
 
   #getValue = (precisionValue: number) => {
     const remainder = precisionValue % this.#step;
@@ -174,22 +163,22 @@ export class DuoyunSliderElement extends GemElement {
 
     if (movement < 0 && current > center) return;
     if (movement > 0 && current < center) return;
-    const position = clamp(0, this.state.position + ((isV ? -1 : 1) * movement) / totalLength, 1);
+    const position = clamp(0, this.#state.position + ((isV ? -1 : 1) * movement) / totalLength, 1);
     const precisionValue = position * this.#diff;
     const value = this.#getValue(precisionValue);
-    this.setState({ position });
+    this.#state({ position });
     this.change(value);
   };
 
   #onEnd = () => {
-    this.setState({ start: false });
+    this.#state({ start: false });
     this.end(this.value);
   };
 
   #setPrecisionValue = (precisionValue: number) => {
     const value = this.#getValue(clamp(this.min, precisionValue, this.#max));
     const position = value / this.#diff;
-    this.setState({ position, displayPosition: position });
+    this.#state({ position, displayPosition: position });
     this.change(value);
   };
 
@@ -203,8 +192,18 @@ export class DuoyunSliderElement extends GemElement {
     this.#setPrecisionValue(evt.detail);
   };
 
+  @mounted()
+  #init = () => addListener(this, 'keydown', this.#onKeydown);
+
+  @effect((i) => [i.value])
+  #updateState = () => {
+    this.internals.ariaValueText = String(this.value);
+    const position = this.#getValue(clamp(this.min, this.value, this.#max)) / this.#diff;
+    this.#state({ position, displayPosition: position });
+  };
+
   render = () => {
-    const { displayPosition, start } = this.state;
+    const { displayPosition, start } = this.#state;
     const position = `calc(var(--size) / 2 + calc(100% - var(--size)) * ${displayPosition})`;
     return html`
       <style>
@@ -224,7 +223,7 @@ export class DuoyunSliderElement extends GemElement {
         <dy-gesture
           class=${classMap({ mark: true, start })}
           @pan=${this.#onPan}
-          @pointerdown=${() => !this.disabled && this.setState({ start: true })}
+          @pointerdown=${() => !this.disabled && this.#state({ start: true })}
           @end=${this.#onEnd}
         ></dy-gesture>
         ${this.label

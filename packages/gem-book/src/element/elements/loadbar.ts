@@ -1,4 +1,15 @@
-import { aria, customElement, shadow, GemElement, html, css, createCSSSheet, adoptedStyle } from '@mantou/gem';
+import {
+  aria,
+  customElement,
+  shadow,
+  GemElement,
+  html,
+  css,
+  createCSSSheet,
+  adoptedStyle,
+  createState,
+  mounted,
+} from '@mantou/gem';
 
 import { theme } from '../helper/theme';
 
@@ -41,9 +52,9 @@ export class GemBookLoadbarElement extends GemElement {
     Loadbar.timer = window.setTimeout(() => {
       const instance = Loadbar.instance || new Loadbar();
       if (!instance.isConnected) document.body.append(instance);
-      instance.setState({ progress: 0 });
+      instance.#state({ progress: 0 });
       Loadbar.timer = window.setInterval(() => {
-        instance.setState({ progress: instance.state.progress + (95 - instance.state.progress) * 0.1 });
+        instance.#state({ progress: instance.#state.progress + (95 - instance.#state.progress) * 0.1 });
       }, 100);
     }, delay);
   }
@@ -52,17 +63,18 @@ export class GemBookLoadbarElement extends GemElement {
     clearInterval(Loadbar.timer);
     const instance = Loadbar.instance;
     if (instance) {
-      instance.setState({ progress: 100 });
+      instance.#state({ progress: 100 });
       await new Promise((res) => setTimeout(res, 300));
       instance.remove();
     }
   }
 
-  state = {
+  #state = createState({
     progress: 0,
-  };
+  });
 
-  mounted = () => {
+  @mounted()
+  #init = () => {
     Loadbar.instance = this;
     return () => (Loadbar.instance = undefined);
   };
@@ -71,7 +83,7 @@ export class GemBookLoadbarElement extends GemElement {
     return html`
       <style>
         :host {
-          width: ${this.state.progress}%;
+          width: ${this.#state.progress}%;
         }
       </style>
       <div class="head"></div>

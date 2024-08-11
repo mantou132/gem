@@ -9,7 +9,7 @@ import {
   slot,
   shadow,
 } from '@mantou/gem/lib/decorators';
-import { createCSSSheet, GemElement, html } from '@mantou/gem/lib/element';
+import { createCSSSheet, createState, GemElement, html } from '@mantou/gem/lib/element';
 import { css, classMap } from '@mantou/gem/lib/utils';
 
 import { icons } from '../lib/icons';
@@ -79,9 +79,7 @@ const style = createCSSSheet(css`
   }
 `);
 
-type State = {
-  status: 'none' | 'success' | 'fail';
-};
+type Status = 'none' | 'success' | 'fail';
 
 /**
  * @customElement dy-copy
@@ -90,7 +88,7 @@ type State = {
 @adoptedStyle(style)
 @adoptedStyle(focusStyle)
 @shadow({ delegatesFocus: true })
-export class DuoyunCopyElement extends GemElement<State> {
+export class DuoyunCopyElement extends GemElement {
   @slot static unnamed: string;
   @slot static after: string;
 
@@ -103,7 +101,7 @@ export class DuoyunCopyElement extends GemElement<State> {
   @emitter copy: Emitter<boolean>;
 
   get #icon() {
-    switch (this.state.status) {
+    switch (this.#state.status) {
       case 'success':
         return icons.check;
       case 'fail':
@@ -113,22 +111,22 @@ export class DuoyunCopyElement extends GemElement<State> {
     }
   }
 
-  state: State = {
-    status: 'none',
-  };
+  #state = createState({
+    status: 'none' as Status,
+  });
 
   #showMessage = (isSuccess: boolean) => {
     this.copy(isSuccess);
     if (!this.silent) {
-      this.setState({ status: isSuccess ? 'success' : 'fail' });
+      this.#state({ status: isSuccess ? 'success' : 'fail' });
       setTimeout(() => {
-        this.setState({ status: 'none' });
+        this.#state({ status: 'none' });
       }, 1000);
     }
   };
 
   #copy = async () => {
-    if (this.state.status !== 'none') return;
+    if (this.#state.status !== 'none') return;
     try {
       await navigator.clipboard.writeText(this.content || this.textContent || '');
       this.#showMessage(true);
@@ -138,7 +136,7 @@ export class DuoyunCopyElement extends GemElement<State> {
   };
 
   render = () => {
-    const { status } = this.state;
+    const { status } = this.#state;
     return html`
       <slot></slot>
       <dy-tooltip .content=${this.tooltip}>

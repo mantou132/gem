@@ -7,6 +7,7 @@ import {
   boolattribute,
   part,
   shadow,
+  memo,
 } from '@mantou/gem/lib/decorators';
 import { createCSSSheet, GemElement, html, TemplateResult } from '@mantou/gem/lib/element';
 import { css, classMap, partMap } from '@mantou/gem/lib/utils';
@@ -141,9 +142,30 @@ export class DuoyunCalendarElement extends GemElement {
   @property highlights?: number[][];
   @property renderDate?: (date: Time) => TemplateResult;
 
-  constructor() {
-    super();
-  }
+  #dates: Day[];
+
+  @memo((i) => [i.position])
+  #calc = () => {
+    const today = new Time();
+    const startTime = isNotNullish(this.position) ? new Time(this.position) : today;
+    const start = new Time(startTime).startOf('M');
+    const startDay = start.getDay();
+    const stop = new Time(startTime).endOf('M');
+    const stopDay = stop.getDay();
+    const dates: Day[] = [];
+    for (let i = 0; i < startDay; i++) {
+      dates.push({ date: new Time(start).subtract(startDay - i, 'd') });
+    }
+    let s = start;
+    while (s.valueOf() < stop.valueOf()) {
+      dates.push({ date: new Time(s), isThisMonth: true, isToday: today.isSame(s, 'd') });
+      s = new Time(s).add(1, 'd');
+    }
+    for (let i = 1; i < 7 - stopDay; i++) {
+      dates.push({ date: new Time(stop).add(i, 'd') });
+    }
+    this.#dates = dates;
+  };
 
   #isHighlightRange = (date: Time) => {
     const t = date.valueOf();
@@ -156,35 +178,6 @@ export class DuoyunCalendarElement extends GemElement {
 
   #isStopHighlight = (date: Time) => {
     return !!this.highlights?.some((ds) => date.isSame(ds[ds.length - 1], 'd'));
-  };
-
-  #dates: Day[];
-
-  willMount = () => {
-    this.memo(
-      () => {
-        const today = new Time();
-        const startTime = isNotNullish(this.position) ? new Time(this.position) : today;
-        const start = new Time(startTime).startOf('M');
-        const startDay = start.getDay();
-        const stop = new Time(startTime).endOf('M');
-        const stopDay = stop.getDay();
-        const dates: Day[] = [];
-        for (let i = 0; i < startDay; i++) {
-          dates.push({ date: new Time(start).subtract(startDay - i, 'd') });
-        }
-        let s = start;
-        while (s.valueOf() < stop.valueOf()) {
-          dates.push({ date: new Time(s), isThisMonth: true, isToday: today.isSame(s, 'd') });
-          s = new Time(s).add(1, 'd');
-        }
-        for (let i = 1; i < 7 - stopDay; i++) {
-          dates.push({ date: new Time(stop).add(i, 'd') });
-        }
-        this.#dates = dates;
-      },
-      () => [this.position],
-    );
   };
 
   render = () => {

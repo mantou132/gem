@@ -10,8 +10,10 @@ import {
   RefObject,
   part,
   shadow,
+  effect,
+  mounted,
 } from '@mantou/gem/lib/decorators';
-import { createCSSSheet, GemElement, html, TemplateResult } from '@mantou/gem/lib/element';
+import { createCSSSheet, createState, GemElement, html, TemplateResult } from '@mantou/gem/lib/element';
 import { addListener, css, styleMap, StyleObject } from '@mantou/gem/lib/utils';
 
 import { toggleActiveState, getBoundingClientRect, setBodyInert } from '../lib/element';
@@ -23,16 +25,6 @@ import { contentsContainer } from '../lib/styles';
 import './reflect';
 
 const offset = 12;
-
-export type PopoverState = {
-  open: boolean;
-  left: number;
-  right: number;
-  top: number;
-  bottom: number;
-  style: StyleObject;
-  position: Position;
-};
 
 type Position = 'top' | 'bottom' | 'right' | 'left' | 'topLeft' | 'topRight' | 'bottomLeft' | 'bottomRight';
 
@@ -67,7 +59,7 @@ type CloseCallback = {
 @customElement('dy-popover')
 @adoptedStyle(contentsContainer)
 @shadow({ delegatesFocus: true })
-export class DuoyunPopoverElement extends GemElement<PopoverState> {
+export class DuoyunPopoverElement extends GemElement {
   // 用于非继承样式通过 `inherit` 继承
   @part static slot: string;
 
@@ -141,15 +133,15 @@ export class DuoyunPopoverElement extends GemElement<PopoverState> {
     return this.tagName.includes('TOOLTIP') ? 'tooltip' : 'region';
   }
 
-  state: PopoverState = {
+  #state = createState({
     open: false,
     top: 0,
     left: 0,
     right: 0,
     bottom: 0,
-    style: {},
-    position: 'top',
-  };
+    style: {} as StyleObject,
+    position: 'top' as Position,
+  });
 
   #hover = false;
 
@@ -190,7 +182,7 @@ export class DuoyunPopoverElement extends GemElement<PopoverState> {
 
   #open = (targetRect?: { top: number; right: number; bottom: number; left: number }) => {
     if (this.disabled) return;
-    if (this.state.open) return;
+    if (this.#state.open) return;
     let rect = targetRect;
     if (!rect) {
       // self is `display: contents`
@@ -204,7 +196,7 @@ export class DuoyunPopoverElement extends GemElement<PopoverState> {
       rect = getBoundingClientRect(elements);
     }
     const { top, right, bottom, left } = rect;
-    this.setState({
+    this.#state({
       open: true,
       top,
       left,
@@ -212,7 +204,7 @@ export class DuoyunPopoverElement extends GemElement<PopoverState> {
       bottom,
     });
     const position = this.#position === 'auto' ? 'top' : this.#position;
-    this.setState({
+    this.#state({
       position,
       style: this.#genStyle(position),
     });
@@ -220,13 +212,13 @@ export class DuoyunPopoverElement extends GemElement<PopoverState> {
   };
 
   #close = () => {
-    if (!this.state.open) return;
-    this.setState({ open: this.debug || false });
-    if (!this.state.open) this.close(null);
+    if (!this.#state.open) return;
+    this.#state({ open: this.debug || false });
+    if (!this.#state.open) this.close(null);
   };
 
   #genStyle = (position: Position): StyleObject => {
-    const { top, left, right, bottom } = this.state;
+    const { top, left, right, bottom } = this.#state;
     const widthHalf = (right - left) / 2;
     const heightHalf = (top - bottom) / 2;
     switch (position) {
@@ -281,40 +273,36 @@ export class DuoyunPopoverElement extends GemElement<PopoverState> {
     }
   };
 
-  mounted = () => {
-    this.effect(
-      () => {
-        if (this.state.open && this.#position === 'auto') {
-          const { top, left, right, bottom, height } = this.popoverElement!.getBoundingClientRect();
-          let position: Position = 'top';
-          if (right > innerWidth) {
-            if (top < 0) {
-              position = 'bottomRight';
-            } else if (innerHeight - bottom < height / 2) {
-              position = 'topRight';
-            } else {
-              position = 'left';
-            }
-          } else if (left < 0) {
-            if (top < 0) {
-              position = 'bottomLeft';
-            } else if (innerHeight - bottom < height / 2) {
-              position = 'topLeft';
-            } else {
-              position = 'right';
-            }
-          } else if (top < 0) {
-            position = 'bottom';
-          }
-          this.setState({ style: this.#genStyle(position), position });
+  @effect((i) => [i.#state.open])
+  #updateState = () => {
+    if (this.#state.open && this.#position === 'auto') {
+      const { top, left, right, bottom, height } = this.popoverElement!.getBoundingClientRect();
+      let position: Position = 'top';
+      if (right > innerWidth) {
+        if (top < 0) {
+          position = 'bottomRight';
+        } else if (innerHeight - bottom < height / 2) {
+          position = 'topRight';
+        } else {
+          position = 'left';
         }
-      },
-      () => [this.state.open],
-    );
+      } else if (left < 0) {
+        if (top < 0) {
+          position = 'bottomLeft';
+        } else if (innerHeight - bottom < height / 2) {
+          position = 'topLeft';
+        } else {
+          position = 'right';
+        }
+      } else if (top < 0) {
+        position = 'bottom';
+      }
+      this.#state({ style: this.#genStyle(position), position });
+    }
   };
 
   render = () => {
-    const { open, style, position } = this.state;
+    const { open, style, position } = this.#state;
     return html`
       ${open
         ? html`
@@ -480,7 +468,6 @@ export class DuoyunPopoverGhostElement extends GemElement {
 
   #onKeyDown = hotkeys({ esc: () => this.close(null) });
 
-  mounted = () => {
-    return addListener(window, 'keydown', this.#onKeyDown);
-  };
+  @mounted()
+  #init = () => addListener(window, 'keydown', this.#onKeyDown);
 }

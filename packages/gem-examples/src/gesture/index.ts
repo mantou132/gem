@@ -5,7 +5,7 @@ import type {
   SwipeEventDetail,
   GemGestureElement,
 } from '@mantou/gem/elements/gesture';
-import { render, GemElement, html, customElement, refobject, RefObject } from '@mantou/gem';
+import { render, GemElement, html, customElement, refobject, RefObject, createState } from '@mantou/gem';
 
 import '@mantou/gem/elements/gesture';
 import '../elements/layout';
@@ -14,31 +14,33 @@ import './canvas';
 @customElement('app-root')
 export class AppRoot extends GemElement {
   @refobject gestureRef: RefObject<GemGestureElement>;
-  state = {
+
+  #state = createState({
     x: 0,
     y: 0,
     duration: 0,
     scale: 1,
     rotate: 0,
     swipe: '',
-    moves: [],
-  };
+    moves: [] as any[],
+  });
+
   onPan = (evt: CustomEvent<PanEventDetail>) => {
     const { detail } = evt;
-    const { x, y } = this.state;
-    this.setState({ x: detail.x + x, y: detail.y + y, duration: 0 });
+    const { x, y } = this.#state;
+    this.#state({ x: detail.x + x, y: detail.y + y, duration: 0 });
   };
   onPinch = (evt: CustomEvent<PinchEventDetail>) => {
-    this.setState({ scale: evt.detail.scale * this.state.scale });
+    this.#state({ scale: evt.detail.scale * this.#state.scale });
   };
   onRotate = (evt: CustomEvent<RotateEventDetail>) => {
-    this.setState({ rotate: evt.detail.rotate + this.state.rotate });
+    this.#state({ rotate: evt.detail.rotate + this.#state.rotate });
   };
   onSwipe = (e: CustomEvent<SwipeEventDetail>) => {
-    this.setState({ swipe: `${e.detail.direction}, speed: ${e.detail.speed}` });
+    this.#state({ swipe: `${e.detail.direction}, speed: ${e.detail.speed}` });
   };
   onEnd = () => {
-    this.setState({
+    this.#state({
       x: 0,
       y: 0,
       duration: 0.5,
@@ -49,7 +51,7 @@ export class AppRoot extends GemElement {
     });
   };
   render() {
-    const { x, y, scale, rotate, duration, swipe, moves } = this.state;
+    const { x, y, scale, rotate, duration, swipe, moves } = this.#state;
     return html`
       <style>
         img {

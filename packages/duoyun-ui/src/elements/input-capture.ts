@@ -1,5 +1,5 @@
-import { adoptedStyle, customElement, part, shadow } from '@mantou/gem/lib/decorators';
-import { createCSSSheet, GemElement, html } from '@mantou/gem/lib/element';
+import { adoptedStyle, customElement, mounted, part, shadow } from '@mantou/gem/lib/decorators';
+import { createCSSSheet, createState, GemElement, html } from '@mantou/gem/lib/element';
 import { addListener, css } from '@mantou/gem/lib/utils';
 
 import { theme } from '../lib/theme';
@@ -51,29 +51,30 @@ type State = {
 @adoptedStyle(style)
 @adoptedStyle(contentsContainer)
 @shadow()
-export class DuoyunInputCaptureElement extends GemElement<State> {
+export class DuoyunInputCaptureElement extends GemElement {
   @part static container: string;
   @part static kbd: string;
 
-  state: State = {
+  #state = createState<State>({
     keys: [],
     mousePosition: null,
-  };
+  });
 
   #onClear = throttle(() => {
-    this.setState({ keys: [] });
+    this.#state({ keys: [] });
   }, 1000);
 
   #onKeydown = (evt: KeyboardEvent) => {
-    this.setState({ keys: [...this.state.keys.slice(-5), getDisplayKey(evt.code)] });
+    this.#state({ keys: [...this.#state.keys.slice(-5), getDisplayKey(evt.code)] });
     this.#onClear();
   };
 
-  #onPointerdown = (evt: PointerEvent) => this.setState({ mousePosition: [evt.clientX, evt.clientY] });
-  #onPointermove = (evt: PointerEvent) => this.state.mousePosition && this.#onPointerdown(evt);
-  #onPointerup = () => this.setState({ mousePosition: null });
+  #onPointerdown = (evt: PointerEvent) => this.#state({ mousePosition: [evt.clientX, evt.clientY] });
+  #onPointermove = (evt: PointerEvent) => this.#state.mousePosition && this.#onPointerdown(evt);
+  #onPointerup = () => this.#state({ mousePosition: null });
 
-  mounted = () => {
+  @mounted()
+  #init = () => {
     const removeKeydownListener = addListener(window, 'keydown', this.#onKeydown, { capture: true });
     const removePointerdownListener = addListener(window, 'pointerdown', this.#onPointerdown, { capture: true });
     const removePointermoveListener = addListener(window, 'pointermove', this.#onPointermove, { capture: true });
@@ -89,7 +90,7 @@ export class DuoyunInputCaptureElement extends GemElement<State> {
   };
 
   render = () => {
-    const { keys, mousePosition } = this.state;
+    const { keys, mousePosition } = this.#state;
     return html`
       ${keys.length
         ? html`

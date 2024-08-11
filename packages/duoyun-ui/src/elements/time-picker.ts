@@ -10,9 +10,10 @@ import {
   state,
   aria,
   shadow,
+  mounted,
 } from '@mantou/gem/lib/decorators';
 import { GemElement, html, createCSSSheet } from '@mantou/gem/lib/element';
-import { css, classMap } from '@mantou/gem/lib/utils';
+import { css, classMap, addListener } from '@mantou/gem/lib/utils';
 
 import { Time } from '../lib/time';
 import { theme } from '../lib/theme';
@@ -81,12 +82,6 @@ export class DuoyunTimePickerElement extends GemElement implements BasePickerEle
     return this.#value && new Time(this.#value).format('HH:mm:ss');
   }
 
-  constructor() {
-    super();
-    this.addEventListener('click', this.#onOpen);
-    this.addEventListener('keydown', commonHandle);
-  }
-
   #onOpen = () => {
     if (this.disabled) return;
 
@@ -143,7 +138,10 @@ export class DuoyunTimePickerElement extends GemElement implements BasePickerEle
     this.clear(null);
   };
 
-  mounted = () => {
+  @mounted()
+  #init = () => {
+    addListener(this, 'click', this.#onOpen);
+    addListener(this, 'keydown', commonHandle);
     return () => this.active && ContextMenu.close();
   };
 

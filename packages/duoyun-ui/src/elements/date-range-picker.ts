@@ -10,6 +10,7 @@ import {
   state,
   aria,
   shadow,
+  mounted,
 } from '@mantou/gem/lib/decorators';
 import { GemElement, html, createCSSSheet } from '@mantou/gem/lib/element';
 import { css, classMap } from '@mantou/gem/lib/utils';
@@ -80,12 +81,6 @@ export class DuoyunDateRangePickerElement extends GemElement implements BasePick
   @property quickRanges?: { label: string; value: DateRangeValue }[];
   @globalemitter change: Emitter<DateRangeValue>;
   @emitter clear: Emitter;
-
-  constructor() {
-    super();
-    this.addEventListener('click', this.#onOpen);
-    this.addEventListener('keydown', commonHandle);
-  }
 
   #onClear = (e: Event) => {
     e.stopPropagation();
@@ -170,7 +165,10 @@ export class DuoyunDateRangePickerElement extends GemElement implements BasePick
     }
   };
 
-  mounted = () => {
+  @mounted()
+  #init = () => {
+    this.addEventListener('click', this.#onOpen);
+    this.addEventListener('keydown', commonHandle);
     return () => this.active && ContextMenu.close();
   };
 

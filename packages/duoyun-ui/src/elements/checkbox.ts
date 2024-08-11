@@ -9,9 +9,11 @@ import {
   slot,
   shadow,
   aria,
+  mounted,
+  memo,
 } from '@mantou/gem/lib/decorators';
 import { GemElement, html, createCSSSheet } from '@mantou/gem/lib/element';
-import { css } from '@mantou/gem/lib/utils';
+import { addListener, css } from '@mantou/gem/lib/utils';
 
 import { theme } from '../lib/theme';
 import { icons } from '../lib/icons';
@@ -84,10 +86,8 @@ export class DuoyunCheckboxElement extends GemElement {
   @globalemitter change: Emitter<boolean>;
   @attribute value: string;
 
-  constructor() {
-    super();
-    this.addEventListener('click', this.#onClick);
-  }
+  @mounted()
+  #init = () => addListener(this, 'click', this.#onClick);
 
   #onClick = () => {
     if (this.disabled) return;
@@ -128,6 +128,9 @@ export class DuoyunCheckboxGroupElement extends GemElement {
 
   #valueSet: Set<any>;
 
+  @memo((i) => [i.value])
+  #setValueSet = () => (this.#valueSet = new Set(this.value));
+
   #onChange = (evt: CustomEvent<boolean>, value: string) => {
     evt.stopPropagation();
     const newValue = new Set(this.#valueSet);
@@ -137,15 +140,6 @@ export class DuoyunCheckboxGroupElement extends GemElement {
       newValue.delete(value);
     }
     this.change([...newValue]);
-  };
-
-  willMount = () => {
-    this.memo(
-      () => {
-        this.#valueSet = new Set(this.value);
-      },
-      () => [this.value],
-    );
   };
 
   render = () => {

@@ -7,6 +7,7 @@ import {
   numattribute,
   aria,
   shadow,
+  effect,
 } from '@mantou/gem/lib/decorators';
 import { createCSSSheet, GemElement, html, TemplateResult } from '@mantou/gem/lib/element';
 import { css, styleMap } from '@mantou/gem/lib/utils';
@@ -100,13 +101,11 @@ export class DuoyunMeterElement extends GemElement {
     }
   }
 
-  constructor() {
-    super();
-    this.effect(() => {
-      this.internals.ariaValueMin = String(this.min);
-      this.internals.ariaValueMax = String(this.#max);
-    });
-  }
+  @effect()
+  #updateAria = () => {
+    this.internals.ariaValueMin = String(this.min);
+    this.internals.ariaValueMax = String(this.#max);
+  };
 
   render = () => {
     return html`

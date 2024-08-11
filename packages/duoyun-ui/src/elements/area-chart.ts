@@ -1,6 +1,6 @@
-import { html, svg } from '@mantou/gem/lib/element';
-import { customElement, emitter, Emitter, property } from '@mantou/gem/lib/decorators';
-import { classMap } from '@mantou/gem/lib/utils';
+import { createState, html, svg } from '@mantou/gem/lib/element';
+import { customElement, emitter, Emitter, memo, mounted, property } from '@mantou/gem/lib/decorators';
+import { addListener, classMap } from '@mantou/gem/lib/utils';
 
 import { isNotNullish } from '../lib/types';
 import { theme } from '../lib/theme';
@@ -79,19 +79,11 @@ export class DuoyunAreaChartElement extends DuoyunChartBaseElement {
     return this.noData || this.loading || !this.#sequences?.[0]?.values.length;
   }
 
-  constructor() {
-    super();
-    this.addEventListener('pointermove', this.#onPointerMove);
-    this.addEventListener('pointerout', this.#onPointerOut);
-    this.addEventListener('pointercancel', this.#onPointerOut);
-    this.addEventListener('click', this.#onClick);
-  }
-
-  state = {
+  #state = createState({
     hoverIndex: NaN,
     hoverLine: '',
     hoverSequence: '',
-  };
+  });
 
   #needReverse = false;
   #xValues?: (number | null)[];
@@ -120,8 +112,8 @@ export class DuoyunAreaChartElement extends DuoyunChartBaseElement {
         index = this.findClosestIndex(this.#xValues as any, xValue);
         xValue = this.#sequencesNormalize[0].values[index][0]!;
         const xAbsPos = (xValue - this.xAxiMin) / this.xAxiUnit;
-        if (this.state.hoverIndex !== index) {
-          this.setState({ hoverIndex: index, hoverLine: `M${xAbsPos} 0L${xAbsPos} ${this.stageHeight}` });
+        if (this.#state.hoverIndex !== index) {
+          this.#state({ hoverIndex: index, hoverLine: `M${xAbsPos} 0L${xAbsPos} ${this.stageHeight}` });
         }
       }
       return { index, xValue };
@@ -151,7 +143,7 @@ export class DuoyunAreaChartElement extends DuoyunChartBaseElement {
             value: this.tooltip?.valueFormatter?.(v) || this.yAxi?.formatter?.(v, 0) || String(v),
             color: this.colors[i],
             hidden: !!this.filtersSet.size && !this.filtersSet.has(value ?? label),
-            highlight: this.state.hoverSequence === (value ?? label),
+            highlight: this.#state.hoverSequence === (value ?? label),
             originValue: v,
           } as DataItem;
         })
@@ -171,7 +163,7 @@ export class DuoyunAreaChartElement extends DuoyunChartBaseElement {
   };
 
   #onPointerOut = () => {
-    this.setState({ hoverIndex: NaN, hoverLine: '' });
+    this.#state({ hoverIndex: NaN, hoverLine: '' });
     ChartTooltip.close();
   };
 
@@ -236,74 +228,74 @@ export class DuoyunAreaChartElement extends DuoyunChartBaseElement {
     });
   };
 
-  willMount = () => {
-    this.memo(
-      () => {
-        const [start, stop] = this.range;
-        const values = this.sequences?.[0]?.values;
+  @memo((i) => [i.sequences, ...i.range])
+  #calcSeqList = () => {
+    const [start, stop] = this.range;
+    const values = this.sequences?.[0]?.values;
 
-        this.#needReverse = !!values && (values[0] || 0) > (values[values.length - 1] || 0);
+    this.#needReverse = !!values && (values[0] || 0) > (values[values.length - 1] || 0);
 
-        this.#sequencesNormalize = this.#needReverse
-          ? this.sequences?.map((e) => ({ ...e, values: e.values.reverse() }))
-          : this.sequences;
+    this.#sequencesNormalize = this.#needReverse
+      ? this.sequences?.map((e) => ({ ...e, values: e.values.reverse() }))
+      : this.sequences;
 
-        this.#xValues = this.#sequencesNormalize?.[0]?.values.map((e) => e[0]);
+    this.#xValues = this.#sequencesNormalize?.[0]?.values.map((e) => e[0]);
 
-        this.#sequencesWithoutStack = this.#sequencesNormalize?.map((e) => {
-          return {
-            ...e,
-            values: e.values.slice(e.values.length * start, e.values.length * stop),
-          };
-        });
-        if (!this.#sequencesWithoutStack?.[0]?.values.length && !this.#isDefaultRange) {
-          this.#sequencesWithoutStack = this.#sequencesNormalize;
-          this.zoom([0, 1]);
-        }
-        this.#sequences = this.stack
-          ? this.#sequencesWithoutStack?.map((seq, index) => ({
-              ...seq,
-              values: this.mergeValues(this.#sequencesWithoutStack!.slice(0, index + 1).map((e) => e.values))!,
-            }))
-          : this.#sequencesWithoutStack;
-        if (this.#chartZoom) {
-          this.#totalValues = this.mergeValues(this.#sequencesNormalize?.map((e) => e.values));
-        }
-      },
-      () => [this.sequences, ...this.range],
-    );
-    this.memo(
-      () => {
-        if (!this.contentRect.width) return;
-        if (!this.#sequences?.length) return;
-        let xMin = Infinity;
-        let xMax = -Infinity;
-        let yMin = Infinity;
-        let yMax = -Infinity;
-        this.#sequences.forEach(({ values }) => {
-          values.forEach(([x, y]) => {
-            if (isNotNullish(x)) {
-              xMin = Math.min(xMin, x);
-              xMax = Math.max(xMax, x);
-            }
-            if (isNotNullish(y)) {
-              yMin = Math.min(yMin, y);
-              yMax = Math.max(yMax, y);
-            }
-          });
-        });
-        this.initXAxi(xMin, xMax, xMin > 946684800000 && this.#isDefaultRange);
-        this.initYAxi(yMin, yMax);
-        this.initViewBox();
-
-        this.#paths = this.#genPath(this.#sequences);
-        this.#areas = this.#genPath(this.#sequences, true);
-      },
-      () => [this.#sequences, this.#smooth, this.contentRect.width, this.aspectRatio],
-    );
+    this.#sequencesWithoutStack = this.#sequencesNormalize?.map((e) => {
+      return {
+        ...e,
+        values: e.values.slice(e.values.length * start, e.values.length * stop),
+      };
+    });
+    if (!this.#sequencesWithoutStack?.[0]?.values.length && !this.#isDefaultRange) {
+      this.#sequencesWithoutStack = this.#sequencesNormalize;
+      this.zoom([0, 1]);
+    }
+    this.#sequences = this.stack
+      ? this.#sequencesWithoutStack?.map((seq, index) => ({
+          ...seq,
+          values: this.mergeValues(this.#sequencesWithoutStack!.slice(0, index + 1).map((e) => e.values))!,
+        }))
+      : this.#sequencesWithoutStack;
+    if (this.#chartZoom) {
+      this.#totalValues = this.mergeValues(this.#sequencesNormalize?.map((e) => e.values));
+    }
   };
 
-  mounted = () => {
+  @memo((i) => [i.#sequences, i.#smooth, i.contentRect.width, i.aspectRatio])
+  #calcPath = () => {
+    if (!this.contentRect.width) return;
+    if (!this.#sequences?.length) return;
+    let xMin = Infinity;
+    let xMax = -Infinity;
+    let yMin = Infinity;
+    let yMax = -Infinity;
+    this.#sequences.forEach(({ values }) => {
+      values.forEach(([x, y]) => {
+        if (isNotNullish(x)) {
+          xMin = Math.min(xMin, x);
+          xMax = Math.max(xMax, x);
+        }
+        if (isNotNullish(y)) {
+          yMin = Math.min(yMin, y);
+          yMax = Math.max(yMax, y);
+        }
+      });
+    });
+    this.initXAxi(xMin, xMax, xMin > 946684800000 && this.#isDefaultRange);
+    this.initYAxi(yMin, yMax);
+    this.initViewBox();
+
+    this.#paths = this.#genPath(this.#sequences);
+    this.#areas = this.#genPath(this.#sequences, true);
+  };
+
+  @mounted()
+  #init = () => {
+    addListener(this, 'pointermove', this.#onPointerMove);
+    addListener(this, 'pointerout', this.#onPointerOut);
+    addListener(this, 'pointercancel', this.#onPointerOut);
+    addListener(this, 'click', this.#onClick);
     return () => ChartTooltip.close();
   };
 
@@ -399,8 +391,8 @@ export class DuoyunAreaChartElement extends DuoyunChartBaseElement {
                           fill="none"
                           stroke-width=${this.getSVGPixel(10)}
                           d=${this.#paths[revertIndex]}
-                          @pointerover=${() => this.setState({ hoverSequence: value })}
-                          @pointerout=${() => this.setState({ hoverSequence: '' })}
+                          @pointerover=${() => this.#state({ hoverSequence: value })}
+                          @pointerout=${() => this.#state({ hoverSequence: '' })}
                         ></path>
                         <path
                           class=${classMap({ line: true, disabled })}
@@ -420,8 +412,8 @@ export class DuoyunAreaChartElement extends DuoyunChartBaseElement {
                           opacity=${areaOpacity}
                           fill=${this.#gradient ? `url(#${this.genGradientId(revertIndex)})` : this.colors[revertIndex]}
                           d=${this.#areas[revertIndex]}
-                          @pointerover=${() => this.stack && this.setState({ hoverSequence: value })}
-                          @pointerout=${() => this.stack && this.setState({ hoverSequence: '' })}
+                          @pointerover=${() => this.stack && this.#state({ hoverSequence: value })}
+                          @pointerout=${() => this.stack && this.#state({ hoverSequence: '' })}
                         ></path>
                       `
                     : ''
@@ -436,7 +428,7 @@ export class DuoyunAreaChartElement extends DuoyunChartBaseElement {
                       ? this.symbolRender({
                           point,
                           color: this.colors[index],
-                          isHover: i === this.state.hoverIndex,
+                          isHover: i === this.#state.hoverIndex,
                           chart: this,
                         })
                       : '',
@@ -447,7 +439,7 @@ export class DuoyunAreaChartElement extends DuoyunChartBaseElement {
           ${this.renderMarkLines()}
           <path
             class="hover-line"
-            d=${this.state.hoverLine}
+            d=${this.#state.hoverLine}
             stroke=${theme.borderColor}
             stroke-width=${this.getSVGPixel()}
             stroke-dasharray=${`${this.getSVGPixel(4)} ${this.getSVGPixel(1.5)}`}>

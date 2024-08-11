@@ -1,6 +1,6 @@
-import { adoptedStyle, customElement, emitter, Emitter, property, shadow } from '@mantou/gem/lib/decorators';
-import { createCSSSheet, GemElement, html } from '@mantou/gem/lib/element';
-import { css, styleMap, classMap } from '@mantou/gem/lib/utils';
+import { adoptedStyle, customElement, emitter, Emitter, mounted, property, shadow } from '@mantou/gem/lib/decorators';
+import { createCSSSheet, createState, GemElement, html } from '@mantou/gem/lib/element';
+import { css, styleMap, classMap, addListener } from '@mantou/gem/lib/utils';
 
 import { clamp } from '../lib/number';
 import { theme } from '../lib/theme';
@@ -71,18 +71,13 @@ const style = createCSSSheet(css`
   }
 `);
 
-type State = {
-  grabbing: boolean;
-  newValue?: number[];
-};
-
 /**
  * @customElement dy-chart-zoom
  */
 @customElement('dy-chart-zoom')
 @adoptedStyle(style)
 @shadow()
-export class DuoyunChartZoomElement extends GemElement<State> {
+export class DuoyunChartZoomElement extends GemElement {
   @property values?: (number | null)[][];
   @property value?: number[];
   @property aspectRatio?: number;
@@ -97,14 +92,10 @@ export class DuoyunChartZoomElement extends GemElement<State> {
     return this.aspectRatio || 25;
   }
 
-  state: State = {
+  #state = createState({
     grabbing: false,
-  };
-
-  constructor() {
-    super();
-    this.addEventListener('dblclick', () => this.change([0, 1]));
-  }
+    newValue: undefined as number[] | undefined,
+  });
 
   #getMovement = (detail: PanEventDetail) => {
     const { left, right, width } = this.getBoundingClientRect();
@@ -145,22 +136,22 @@ export class DuoyunChartZoomElement extends GemElement<State> {
 
   #onNewStart = ({ clientX }: PointerEvent) => {
     const v = this.#getCurrent(clientX);
-    this.setState({ newValue: [v, v] });
+    this.#state({ newValue: [v, v] });
   };
 
   #onNewChange = ({ detail }: CustomEvent<PanEventDetail>) => {
     const v = this.#getCurrent(detail.clientX);
-    this.setState({ newValue: [this.state.newValue![0], v] });
+    this.#state({ newValue: [this.#state.newValue![0], v] });
   };
 
   #onNewEnd = () => {
-    const { newValue } = this.state;
+    const { newValue } = this.#state;
     this.change([Math.min(...newValue!), Math.max(...newValue!)]);
-    this.setState({ newValue: undefined });
+    this.#state({ newValue: undefined });
   };
 
   #onGrabStart = () => {
-    this.setState({ grabbing: true });
+    this.#state({ grabbing: true });
   };
 
   #onPan = ({ detail }: CustomEvent<PanEventDetail>) => {
@@ -169,11 +160,14 @@ export class DuoyunChartZoomElement extends GemElement<State> {
   };
 
   #onGrabEnd = () => {
-    this.setState({ grabbing: false });
+    this.#state({ grabbing: false });
   };
 
+  @mounted()
+  #init = () => addListener(this, 'dblclick', () => this.change([0, 1]));
+
   render = () => {
-    const { grabbing, newValue } = this.state;
+    const { grabbing, newValue } = this.#state;
     const [start, stop] = this.#value;
     return html`
       <dy-area-chart

@@ -1,5 +1,5 @@
-import { adoptedStyle, aria, customElement, shadow } from '@mantou/gem/lib/decorators';
-import { GemElement, html, createCSSSheet } from '@mantou/gem/lib/element';
+import { adoptedStyle, aria, customElement, mounted, shadow } from '@mantou/gem/lib/decorators';
+import { GemElement, html, createCSSSheet, createState } from '@mantou/gem/lib/element';
 import { css } from '@mantou/gem/lib/utils';
 
 import { theme } from '../lib/theme';
@@ -46,9 +46,9 @@ export class DuoyunPageLoadbarElement extends GemElement {
     Loadbar.timer = window.setTimeout(() => {
       const instance = Loadbar.instance || new Loadbar();
       if (!instance.isConnected) document.body.append(instance);
-      instance.setState({ progress: 0 });
+      instance.#state({ progress: 0 });
       Loadbar.timer = window.setInterval(() => {
-        instance.setState({ progress: instance.state.progress + (95 - instance.state.progress) * 0.1 });
+        instance.#state({ progress: instance.#state.progress + (95 - instance.#state.progress) * 0.1 });
       }, 100);
     }, delay);
   }
@@ -58,17 +58,18 @@ export class DuoyunPageLoadbarElement extends GemElement {
     clearInterval(Loadbar.timer);
     const instance = Loadbar.instance;
     if (instance) {
-      instance.setState({ progress: 100 });
+      instance.#state({ progress: 100 });
       await sleep(300);
       instance.remove();
     }
   }
 
-  state = {
+  #state = createState({
     progress: 0,
-  };
+  });
 
-  mounted = () => {
+  @mounted()
+  #init = () => {
     Loadbar.instance = this;
     return () => (Loadbar.instance = undefined);
   };
@@ -77,7 +78,7 @@ export class DuoyunPageLoadbarElement extends GemElement {
     return html`
       <style>
         :host {
-          width: ${this.state.progress}%;
+          width: ${this.#state.progress}%;
         }
       </style>
       <div class="head"></div>

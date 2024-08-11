@@ -1,4 +1,4 @@
-import { adoptedStyle, emitter, Emitter, property, state, part, aria, shadow } from '@mantou/gem/lib/decorators';
+import { adoptedStyle, emitter, Emitter, property, state, part, aria, shadow, memo } from '@mantou/gem/lib/decorators';
 import { createCSSSheet, html, svg, TemplateResult } from '@mantou/gem/lib/element';
 import { css, randomStr } from '@mantou/gem/lib/utils';
 
@@ -55,7 +55,7 @@ const style = createCSSSheet(css`
 @adoptedStyle(style)
 @aria({ role: 'img' })
 @shadow()
-export class DuoyunChartBaseElement<_T = Record<string, unknown>> extends DuoyunResizeBaseElement {
+export class DuoyunChartBaseElement extends DuoyunResizeBaseElement {
   @part static chart: string;
 
   @property aspectRatio?: number;
@@ -81,19 +81,19 @@ export class DuoyunChartBaseElement<_T = Record<string, unknown>> extends Duoyun
     return this.aspectRatio || 2;
   }
 
-  constructor() {
-    super();
-    this.memo(
-      () => (this.filtersSet = new Set(this.filters)),
-      () => [this.filters],
-    );
-    this.memo(() => (this.stageHeight = this.stageWidth / this.#aspectRatio));
+  stageWidth = 300;
+
+  @memo()
+  get stageHeight() {
+    return this.stageWidth / this.#aspectRatio;
   }
 
-  stageWidth = 300;
-  stageHeight = 150;
   chartId = randomStr();
-  filtersSet = new Set<string>();
+
+  @memo((i) => [i.filters])
+  get filtersSet() {
+    return new Set(this.filters);
+  }
 
   // initXAxi
   xAxiMin = 0;

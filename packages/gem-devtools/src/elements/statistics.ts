@@ -9,6 +9,7 @@ import {
   boolattribute,
   classMap,
   shadow,
+  memo,
 } from '@mantou/gem';
 
 import { panelStore } from '../store';
@@ -37,7 +38,7 @@ export class devtoolsStatisticsElement extends GemElement {
     return v.split(',');
   };
 
-  renderInspect = (id: string) => {
+  #renderInspect = (id: string) => {
     return html`
       <span
         class="inspect"
@@ -52,7 +53,7 @@ export class devtoolsStatisticsElement extends GemElement {
     `;
   };
 
-  renderItem = (data: string[]) => {
+  #renderItem = (data: string[]) => {
     return html`
       <ul>
         ${data.map((e) => {
@@ -63,7 +64,7 @@ export class devtoolsStatisticsElement extends GemElement {
                 ${`<${tag}>`}
               </span>
               <span class="value"></span>
-              ${this.renderInspect(id || tag)}
+              ${this.#renderInspect(id || tag)}
             </li>
           `;
         })}
@@ -72,10 +73,10 @@ export class devtoolsStatisticsElement extends GemElement {
   };
 
   #highlight = new Set<string>();
-  willMount = () => {
-    this.memo(() => {
-      this.#highlight = new Set(this.highlight || this.data);
-    });
+
+  @memo()
+  #setHightlight = () => {
+    this.#highlight = new Set(this.highlight || this.data);
   };
 
   render = () => {
@@ -87,7 +88,7 @@ export class devtoolsStatisticsElement extends GemElement {
           ${this.ignore
             ? html`<div class="nodata">ignore</div>`
             : data.length
-              ? this.renderItem(data)
+              ? this.#renderItem(data)
               : html`<div class="nodata">no data</div>`}
         </div>
       </details>

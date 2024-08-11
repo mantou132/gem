@@ -1,24 +1,18 @@
 import type { GemBookElement } from '../element';
 
-type State = {
-  content: Element[];
-  error?: any;
-};
-
 customElements.whenDefined('gem-book').then(({ GemBookPluginElement }: typeof GemBookElement) => {
   const { Gem, config } = GemBookPluginElement;
-  const { customElement, html, shadow } = Gem;
+  const { customElement, html, shadow, mounted } = Gem;
 
   @customElement('gbp-var')
   @shadow()
-  class _GbpVarElement extends GemBookPluginElement<State> {
-    mounted() {
-      new MutationObserver(() => this.update()).observe(this, {
-        childList: true,
-        characterData: true,
-        subtree: true,
-      });
-    }
+  class _GbpVarElement extends GemBookPluginElement {
+    @mounted()
+    #init = () => {
+      const ob = new MutationObserver(() => this.update());
+      ob.observe(this, { childList: true, characterData: true, subtree: true });
+      return () => ob.disconnect();
+    };
 
     render() {
       const paths = (this.textContent || '').split('.');

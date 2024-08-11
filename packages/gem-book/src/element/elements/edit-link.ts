@@ -1,4 +1,15 @@
-import { html, GemElement, customElement, connectStore, css, adoptedStyle, createCSSSheet } from '@mantou/gem';
+import {
+  html,
+  GemElement,
+  customElement,
+  connectStore,
+  css,
+  adoptedStyle,
+  createCSSSheet,
+  createState,
+  memo,
+  effect,
+} from '@mantou/gem';
 import { mediaQuery } from '@mantou/gem/helper/mediaquery';
 
 import { getGithubPath } from '../lib/utils';
@@ -45,12 +56,6 @@ const styles = createCSSSheet(css`
   }
 `);
 
-interface State {
-  lastUpdated: string;
-  message: string;
-  commitUrl: string;
-}
-
 const cache: Record<string, unknown> = {};
 const fetchData = async (api: string) => {
   if (cache[api]) return cache[api];
@@ -62,15 +67,20 @@ const fetchData = async (api: string) => {
 @customElement('gem-book-edit-link')
 @connectStore(locationStore)
 @adoptedStyle(styles)
-export class EditLink extends GemElement<State> {
-  state = {
+export class EditLink extends GemElement {
+  #state = createState({
     lastUpdated: '',
     message: '',
     commitUrl: '',
-  };
+  });
+
+  #fullPath = '';
+
+  @memo()
+  #calc = () => (this.#fullPath = this.#getMdFullPath());
 
   #getLastUpdated() {
-    const { lastUpdated } = this.state;
+    const { lastUpdated } = this.#state;
     return (
       lastUpdated &&
       new Intl.DateTimeFormat(bookStore.lang || 'default', {
@@ -90,9 +100,36 @@ export class EditLink extends GemElement<State> {
     return getGithubPath(link.originLink);
   };
 
+  @effect((i) => [i.#fullPath])
+  #fetchData = async () => {
+    const { config } = bookStore;
+    const { github, sourceBranch = '' } = config || {};
+    if (!github) return;
+    const repo = new URL(github).pathname;
+    if (!this.#fullPath) return;
+    const query = new URLSearchParams({
+      path: this.#fullPath,
+      page: '1',
+      per_page: '1',
+      sha: sourceBranch,
+    });
+    try {
+      const api = `https://api.github.com/repos${repo}/commits?${query}`;
+      const commit = await fetchData(api);
+      const date = commit?.commit?.committer?.date;
+      this.#state({
+        lastUpdated: date || '',
+        message: date ? commit.commit.message : '',
+        commitUrl: date ? commit.html_url : '',
+      });
+    } catch {
+      this.#state({ lastUpdated: '' });
+    }
+  };
+
   render() {
     const lastUpdated = this.#getLastUpdated();
-    const { message, commitUrl } = this.state;
+    const { message, commitUrl } = this.#state;
     const { config } = bookStore;
     const { github, sourceBranch = '' } = config || {};
     if (!github || !sourceBranch || !this.#fullPath) return;
@@ -109,42 +146,5 @@ export class EditLink extends GemElement<State> {
         </div>
       `}
     `;
-  }
-
-  #fullPath = '';
-
-  mounted() {
-    this.memo(() => {
-      this.#fullPath = this.#getMdFullPath();
-    });
-
-    this.effect(
-      async () => {
-        const { config } = bookStore;
-        const { github, sourceBranch = '' } = config || {};
-        if (!github) return;
-        const repo = new URL(github).pathname;
-        if (!this.#fullPath) return;
-        const query = new URLSearchParams({
-          path: this.#fullPath,
-          page: '1',
-          per_page: '1',
-          sha: sourceBranch,
-        });
-        try {
-          const api = `https://api.github.com/repos${repo}/commits?${query}`;
-          const commit = await fetchData(api);
-          const date = commit?.commit?.committer?.date;
-          this.setState({
-            lastUpdated: date || '',
-            message: date ? commit.commit.message : '',
-            commitUrl: date ? commit.html_url : '',
-          });
-        } catch {
-          this.setState({ lastUpdated: '' });
-        }
-      },
-      () => [this.#fullPath],
-    );
   }
 }

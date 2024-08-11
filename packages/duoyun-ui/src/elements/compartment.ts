@@ -11,6 +11,7 @@ import { contentsContainer } from '../lib/styles';
 @shadow()
 export class DuoyunCompartmentElement extends GemElement {
   @property content?: string | number | TemplateResult;
+
   render = () => {
     return html`${this.content}`;
   };

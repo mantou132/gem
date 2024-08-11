@@ -1,9 +1,20 @@
 // https://spectrum.adobe.com/page/code/
-import { adoptedStyle, customElement, attribute, refobject, RefObject, shadow } from '@mantou/gem/lib/decorators';
-import { createCSSSheet, GemElement, html } from '@mantou/gem/lib/element';
+import {
+  adoptedStyle,
+  customElement,
+  attribute,
+  refobject,
+  RefObject,
+  shadow,
+  mounted,
+  effect,
+} from '@mantou/gem/lib/decorators';
+import { createCSSSheet, html } from '@mantou/gem/lib/element';
 import { css, styleMap } from '@mantou/gem/lib/utils';
 
 import { theme } from '../lib/theme';
+
+import { DuoyunVisibleBaseElement } from './base/visible';
 
 const prismjs = 'https://esm.sh/prismjs@v1.26.0';
 
@@ -328,21 +339,12 @@ const style = createCSSSheet(css`
 @customElement('dy-code-block')
 @adoptedStyle(style)
 @shadow()
-export class DuoyunCodeBlockElement extends GemElement {
+export class DuoyunCodeBlockElement extends DuoyunVisibleBaseElement {
   @attribute codelang: string;
   @attribute range: string;
   @attribute highlight: string;
 
   @refobject codeRef: RefObject<HTMLElement>;
-
-  constructor() {
-    super();
-    new MutationObserver(() => this.update()).observe(this, {
-      childList: true,
-      characterData: true,
-      subtree: true,
-    });
-  }
 
   #getRanges(str: string) {
     const ranges = str.split(/,\s*/);
@@ -366,7 +368,16 @@ export class DuoyunCodeBlockElement extends GemElement {
     return parts.join('\n...\n\n');
   }
 
+  @mounted()
+  #init = () => {
+    const ob = new MutationObserver(() => this.update());
+    ob.observe(this, { childList: true, characterData: true, subtree: true });
+    return () => ob.disconnect();
+  };
+
+  @effect((i) => [i.textContent, i.codelang])
   #updateHtml = async () => {
+    if (!this.visible) return;
     if (!this.codeRef.element) return;
     await import(/* @vite-ignore */ /* webpackIgnore: true */ prismjs);
     const { Prism } = window as any;
@@ -387,21 +398,6 @@ export class DuoyunCodeBlockElement extends GemElement {
       : this.innerHTML;
     this.codeRef.element.innerHTML = this.#getParts(htmlStr);
   };
-
-  mounted() {
-    const io = new IntersectionObserver((entries) => {
-      entries.forEach(({ intersectionRatio }) => {
-        if (intersectionRatio === 0) return;
-        io.disconnect();
-        this.effect(
-          () => this.#updateHtml(),
-          () => [this.textContent, this.codelang],
-        );
-      });
-    });
-    io.observe(this);
-    return () => io.disconnect();
-  }
 
   render() {
     const lineHeight = 1.5;

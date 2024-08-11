@@ -8,6 +8,8 @@ import {
   createCSSSheet,
   css,
   adoptedStyle,
+  createState,
+  mounted,
 } from '@mantou/gem';
 
 import { theme, themeStore } from '../helper/theme';
@@ -64,8 +66,8 @@ type State = {
 @customElement('gem-book-toc')
 @connectStore(tocStore)
 @adoptedStyle(styles)
-export class GemBookTocElement extends GemElement<State> {
-  state: State = {};
+export class GemBookTocElement extends GemElement {
+  #state = createState<State>({});
 
   #getLevel = (h: HTMLHeadingElement) => Number(h.tagName.slice(1)) - 2;
 
@@ -76,17 +78,17 @@ export class GemBookTocElement extends GemElement<State> {
     if (isTop) {
       if (intersectionRatio === 1) {
         // 上方进入
-        this.setState({ current: target });
+        this.#state({ current: target });
       }
     } else {
       if (intersectionRatio === 1) {
         // 下方进入
-        this.setState({ current: target });
+        this.#state({ current: target });
       }
       if (intersectionRatio === 0) {
         // 下方离开
-        if (this.state.current === target) {
-          this.setState({
+        if (this.#state.current === target) {
+          this.#state({
             current: tocStore.elements.find((_, index, arr) => arr.at(index + 1) === target),
           });
         }
@@ -94,9 +96,10 @@ export class GemBookTocElement extends GemElement<State> {
     }
   };
 
-  #setCurrent = (current: Element) => setTimeout(() => this.setState({ current }), 100);
+  #setCurrent = (current: Element) => setTimeout(() => this.#state({ current }), 100);
 
-  mounted = () => {
+  @mounted()
+  #init = () => {
     const io = new IntersectionObserver((entryList) => entryList.forEach(this.#callback), {
       rootMargin: `-${themeStore.headerHeight} 0px 0px`,
       threshold: [0, 1],
@@ -118,7 +121,7 @@ export class GemBookTocElement extends GemElement<State> {
           (h) => html`
             <li>
               <gem-link
-                class=${classMap({ current: h === this.state.current })}
+                class=${classMap({ current: h === this.#state.current })}
                 @click=${() => this.#setCurrent(h)}
                 hash=${`#${h.id}`}
                 style="padding-inline-start:${this.#getLevel(h)}em"

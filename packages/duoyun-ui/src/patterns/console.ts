@@ -1,5 +1,5 @@
 import { GemElement, html, createCSSSheet } from '@mantou/gem/lib/element';
-import { adoptedStyle, attribute, boolattribute, customElement, property } from '@mantou/gem/lib/decorators';
+import { adoptedStyle, attribute, boolattribute, customElement, effect, property } from '@mantou/gem/lib/decorators';
 import { css } from '@mantou/gem/lib/utils';
 import { ifDefined } from '@mantou/gem/lib/directives';
 import { mediaQuery } from '@mantou/gem/helper/mediaquery';
@@ -166,11 +166,10 @@ export class DyPatConsoleElement extends GemElement {
     });
   };
 
-  mounted = () => {
-    this.effect(() => {
-      this.keyboardAccess && import('../elements/keyboard-access');
-      this.screencastMode && import('../elements/input-capture');
-    });
+  @effect()
+  #load = () => {
+    this.keyboardAccess && import('../elements/keyboard-access');
+    this.screencastMode && import('../elements/input-capture');
   };
 
   render = () => {

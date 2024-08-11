@@ -16,7 +16,8 @@ type Props = Record<string, PropValue>;
 
 customElements.whenDefined('gem-book').then(({ GemBookPluginElement }: typeof GemBookElement) => {
   const { Gem, theme, icons } = GemBookPluginElement;
-  const { html, customElement, attribute, createCSSSheet, css, adoptedStyle, styleMap, shadow } = Gem;
+  const { html, customElement, attribute, createCSSSheet, css, adoptedStyle, styleMap, shadow, createState, mounted } =
+    Gem;
 
   const styles = createCSSSheet(css`
     :host(:where(:not([hidden]))) {
@@ -80,7 +81,7 @@ customElements.whenDefined('gem-book').then(({ GemBookPluginElement }: typeof Ge
   @customElement('gbp-example')
   @adoptedStyle(styles)
   @shadow()
-  class _GbpExampleElement extends GemBookPluginElement<State> {
+  class _GbpExampleElement extends GemBookPluginElement {
     @attribute name: string;
     @attribute src: string;
     @attribute html: string;
@@ -91,9 +92,9 @@ customElements.whenDefined('gem-book').then(({ GemBookPluginElement }: typeof Ge
       return this.direction || 'row';
     }
 
-    state: State = {
+    #state = createState<State>({
       loading: true,
-    };
+    });
 
     #isFunction(value: PropValue) {
       return /^\((\w|,|\s)*\)\s*=>/.test(String(value));
@@ -260,7 +261,8 @@ customElements.whenDefined('gem-book').then(({ GemBookPluginElement }: typeof Ge
       });
     };
 
-    mounted = () => {
+    @mounted()
+    #init = async () => {
       let propsList: Props[] = [];
       let textContentIsProps = false;
       try {
@@ -273,36 +275,35 @@ customElements.whenDefined('gem-book').then(({ GemBookPluginElement }: typeof Ge
         propsList = [props];
         textContentIsProps = false;
       }
-      this.setState({
+      this.#state({
         textContentIsProps,
         code: propsList?.map((props, index) => html`${index ? '\n' : ''}${this.#renderCode(props)}`),
       });
 
-      Promise.all(
-        this.src
-          .trim()
-          .split(/\s*,\s*/)
-          .map((src) => this.#loadResource(src)),
-      )
-        .then(() => {
-          if (this.hidden) return;
-          this.setState({
-            loading: false,
-            error: false,
-            elements: propsList.map((props) => this.#renderElement(props)),
-          });
-        })
-        .catch((evt: ErrorEvent) => {
-          this.setState({
-            error: evt.error || 'Load Error!',
-            loading: false,
-          });
-          this.error(evt);
+      try {
+        await Promise.all(
+          this.src
+            .trim()
+            .split(/\s*,\s*/)
+            .map((src) => this.#loadResource(src)),
+        );
+        if (this.hidden) return;
+        this.#state({
+          loading: false,
+          error: false,
+          elements: propsList.map((props) => this.#renderElement(props)),
         });
+      } catch (evt) {
+        this.#state({
+          error: evt.error || 'Load Error!',
+          loading: false,
+        });
+        this.error(evt);
+      }
     };
 
     render = () => {
-      const { error, loading, code, elements, textContentIsProps } = this.state;
+      const { error, loading, code, elements, textContentIsProps } = this.#state;
       if (this.hidden) return html``;
       const slot = textContentIsProps ? '' : html`<slot></slot>`;
       return html`

@@ -13,8 +13,11 @@ import {
   part,
   shadow,
   aria,
+  mounted,
+  effect,
+  memo,
 } from '@mantou/gem/lib/decorators';
-import { createCSSSheet, GemElement, html, TemplateResult } from '@mantou/gem/lib/element';
+import { createCSSSheet, createState, GemElement, html, TemplateResult } from '@mantou/gem/lib/element';
 import { addListener, css, styleMap, StyleObject } from '@mantou/gem/lib/utils';
 
 import { theme } from '../lib/theme';
@@ -113,16 +116,6 @@ export interface Option {
   onRemove?: (evt: MouseEvent) => void;
 }
 
-type State = {
-  open: boolean;
-  left: number;
-  top: number;
-  width: number;
-  maxHeight: string;
-  transform: string;
-  search: string;
-};
-
 /**
  * @customElement dy-select
  * @attr multiple
@@ -139,7 +132,7 @@ type State = {
 @connectStore(icons)
 @shadow()
 @aria({ focusable: true })
-export class DuoyunSelectElement extends GemElement<State> implements BasePickerElement {
+export class DuoyunSelectElement extends GemElement implements BasePickerElement {
   @boolattribute multiple: boolean;
   @boolattribute disabled: boolean;
   @boolattribute searchable: boolean;
@@ -171,7 +164,7 @@ export class DuoyunSelectElement extends GemElement<State> implements BasePicker
   }
 
   get #filteredOptions() {
-    const { search } = this.state;
+    const { search } = this.#state;
     return search && !this.#isLoading
       ? this.options?.filter(({ label, description = '' }) => isIncludesString(html`${label}${description}`, search))
       : this.options;
@@ -185,19 +178,7 @@ export class DuoyunSelectElement extends GemElement<State> implements BasePicker
         : undefined;
   }
 
-  constructor() {
-    super();
-    this.effect(() => {
-      this.internals.role = this.inline ? null : 'combobox';
-      this.internals.ariaExpanded = String(this.state.open);
-      this.internals.ariaReadOnly = String(this.disabled);
-    });
-    this.addEventListener('click', this.#open);
-    this.addEventListener('keydown', this.#onKeydown);
-    this.addEventListener('pointerup', (e) => this.state.open && e.stopPropagation());
-  }
-
-  state = {
+  #state = createState({
     open: false,
     left: 0,
     top: 0,
@@ -205,20 +186,42 @@ export class DuoyunSelectElement extends GemElement<State> implements BasePicker
     maxHeight: 'auto',
     transform: 'none',
     search: '',
+  });
+
+  #valueSet: Set<any>;
+  #valueOptions: Option[] | undefined;
+  #isLoading = false;
+
+  @memo()
+  #updateLoadingStatus = () => {
+    this.#isLoading = this.#isLoading || this.loading;
+  };
+
+  @memo((i) => [i.value, i.options])
+  #calc = () => {
+    const map = new Map<any, Option>();
+    const forEach = (option: Option) => {
+      const { value, label } = option;
+      map.set(value ?? label, option);
+    };
+    this.#valueOptions?.forEach(forEach);
+    this.options?.forEach(forEach);
+    this.#valueSet = new Set(this.#value);
+    this.#valueOptions = this.#value?.map((value) => map.get(value) || { value, label: value });
   };
 
   #open = async () => {
     if (this.disabled) return;
-    if (this.state.open) return;
-    this.setState({ open: true });
+    if (this.#state.open) return;
+    this.#state({ open: true });
     // safari auto focus
     await Promise.resolve();
     this.searchRef.element?.focus();
   };
 
   #close = () => {
-    if (!this.state.open) return;
-    this.setState({ open: false });
+    if (!this.#state.open) return;
+    this.#state({ open: false });
   };
 
   #onKeydown = (evt: KeyboardEvent) => {
@@ -240,7 +243,7 @@ export class DuoyunSelectElement extends GemElement<State> implements BasePicker
   #onSearchKeydown = hotkeys(
     {
       backspace: () => {
-        if (!this.state.search && this.#valueOptions?.length) {
+        if (!this.#state.search && this.#valueOptions?.length) {
           if (this.multiple) {
             this.#onRemoveTag(this.#valueOptions[this.#valueOptions.length - 1]);
           } else {
@@ -249,7 +252,7 @@ export class DuoyunSelectElement extends GemElement<State> implements BasePicker
         }
       },
       tab: (evt) => {
-        if (!this.state.open) return;
+        if (!this.#state.open) return;
         this.optionsRef.element?.focus();
         evt.preventDefault();
       },
@@ -282,12 +285,12 @@ export class DuoyunSelectElement extends GemElement<State> implements BasePicker
   );
 
   #onSearch = (evt: CustomEvent<string>) => {
-    this.setState({ search: evt.detail, open: true });
+    this.#state({ search: evt.detail, open: true });
     evt.stopPropagation();
   };
 
   #onClear = () => {
-    this.setState({ search: '' });
+    this.#state({ search: '' });
   };
 
   #onChange = (value: any) => {
@@ -303,10 +306,10 @@ export class DuoyunSelectElement extends GemElement<State> implements BasePicker
       if (this.value !== value) {
         this.change(value);
       }
-      this.setState({ open: false });
+      this.#state({ open: false });
     }
     if (!this.keepsearch) {
-      this.setState({ search: '' });
+      this.#state({ search: '' });
     }
   };
 
@@ -314,74 +317,60 @@ export class DuoyunSelectElement extends GemElement<State> implements BasePicker
     this.#onChange(value ?? label);
   };
 
-  #valueSet: Set<any>;
-  #valueOptions: Option[] | undefined;
-  #isLoading = false;
+  #onPointerUp = (e: Event) => this.#state.open && e.stopPropagation();
 
-  willMount = () => {
-    this.memo(() => {
-      this.#isLoading = this.#isLoading || this.loading;
-    });
-    this.memo(
-      () => {
-        const map = new Map<any, Option>();
-        const forEach = (option: Option) => {
-          const { value, label } = option;
-          map.set(value ?? label, option);
-        };
-        this.#valueOptions?.forEach(forEach);
-        this.options?.forEach(forEach);
-        this.#valueSet = new Set(this.#value);
-        this.#valueOptions = this.#value?.map((value) => map.get(value) || { value, label: value });
-      },
-      () => [this.value, this.options],
-    );
+  @mounted()
+  #init = () => {
+    addListener(this, 'click', this.#open);
+    addListener(this, 'keydown', this.#onKeydown);
+    addListener(this, 'pointerup', this.#onPointerUp);
   };
 
-  mounted = () => {
-    this.effect(
-      () => {
-        const { open } = this.state;
-        this.active = open;
-        if (open) {
-          const { top, bottom, left, width, height } = this.getBoundingClientRect();
-          const isShowTop = innerHeight - bottom < 300;
-          this.setState({
-            left,
-            width,
-            open: true,
-            top: bottom + 4,
-            maxHeight: isShowTop ? `${top - 8}px` : `calc(100vh - ${bottom + 8}px)`,
-            transform: isShowTop ? `translateY(calc(-100% - 8px - ${height}px))` : 'none',
-          });
-          return addListener(window, 'pointerup', this.#close);
-        } else {
-          this.setState({ open: false });
-        }
-      },
-      () => [this.state.open],
-    );
-    this.effect(
-      () => {
-        if (this.state.open && !this.searchable && !this.inline && this.optionsRef.element) {
-          const restoreInert = setBodyInert(this.optionsRef.element);
-          this.optionsRef.element.focus();
-          return () => {
-            restoreInert();
-            this.focus();
-          };
-        }
-      },
-      () => [this.state.open],
-    );
-    this.effect(
-      ([search]) => this.search(search),
-      () => [this.state.search],
-    );
+  @effect()
+  #updateAria = () => {
+    this.internals.role = this.inline ? null : 'combobox';
+    this.internals.ariaExpanded = String(this.#state.open);
+    this.internals.ariaReadOnly = String(this.disabled);
   };
+
+  @effect((i) => [i.#state.open])
+  #updateState = () => {
+    const { open } = this.#state;
+    this.active = open;
+    if (open) {
+      const { top, bottom, left, width, height } = this.getBoundingClientRect();
+      const isShowTop = innerHeight - bottom < 300;
+      this.#state({
+        left,
+        width,
+        open: true,
+        top: bottom + 4,
+        maxHeight: isShowTop ? `${top - 8}px` : `calc(100vh - ${bottom + 8}px)`,
+        transform: isShowTop ? `translateY(calc(-100% - 8px - ${height}px))` : 'none',
+      });
+      return addListener(window, 'pointerup', this.#close);
+    } else {
+      this.#state({ open: false });
+    }
+  };
+
+  @effect((i) => [i.#state.open])
+  #autoFocus = () => {
+    if (this.#state.open && !this.searchable && !this.inline && this.optionsRef.element) {
+      const restoreInert = setBodyInert(this.optionsRef.element);
+      this.optionsRef.element.focus();
+      return () => {
+        restoreInert();
+        this.focus();
+      };
+    }
+  };
+
+  @effect((i) => [i.#state.search])
+  #emitterEvent = () => this.search(this.#state.search);
 
   #getOptions = () => {
-    const { search } = this.state;
+    const { search } = this.#state;
     if (this.loading) {
       return [
         {
@@ -413,7 +402,7 @@ export class DuoyunSelectElement extends GemElement<State> implements BasePicker
   };
 
   render = () => {
-    const { open, left, top, width, maxHeight, transform, search } = this.state;
+    const { open, left, top, width, maxHeight, transform, search } = this.#state;
     const isEmpty = !this.#valueOptions?.length;
     if (this.inline) {
       return html`<dy-options class="inline-options" .options=${this.#getOptions()} .adder=${this.adder}></dy-options>`;

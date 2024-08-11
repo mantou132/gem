@@ -9,7 +9,18 @@ type State = { elements?: ElementDetail[]; exports?: ExportDetail[]; error?: any
 
 customElements.whenDefined('gem-book').then(({ GemBookPluginElement }: typeof GemBookElement) => {
   const { Gem, theme, Utils } = GemBookPluginElement;
-  const { html, customElement, attribute, numattribute, createCSSSheet, css, adoptedStyle, BoundaryCSSState } = Gem;
+  const {
+    createState,
+    html,
+    customElement,
+    attribute,
+    numattribute,
+    createCSSSheet,
+    css,
+    adoptedStyle,
+    BoundaryCSSState,
+    effect,
+  } = Gem;
 
   const styles = createCSSSheet(css`
     table {
@@ -27,7 +38,7 @@ customElements.whenDefined('gem-book').then(({ GemBookPluginElement }: typeof Ge
 
   @customElement('gbp-api')
   @adoptedStyle(styles)
-  class _GbpApiElement extends GemBookPluginElement<State> {
+  class _GbpApiElement extends GemBookPluginElement {
     @attribute src: string;
     @attribute name: string;
     @numattribute headinglevel: number;
@@ -42,7 +53,7 @@ customElements.whenDefined('gem-book').then(({ GemBookPluginElement }: typeof Ge
       this.internals.states.delete(BoundaryCSSState);
     }
 
-    state: State = {};
+    state = createState<State>({});
 
     #parseFile = async (text: string) => {
       const { Project } = (await import(/* webpackIgnore: true */ tsMorph)) as typeof import('ts-morph');
@@ -203,6 +214,32 @@ customElements.whenDefined('gem-book').then(({ GemBookPluginElement }: typeof Ge
       );
     };
 
+    @effect()
+    #scrollIntoView = () => {
+      if (this.state.elements && !this.state.error && location.hash) {
+        this.querySelector(`[id="${decodeURIComponent(location.hash.slice(1))}"]`)?.scrollIntoView({
+          block: 'start',
+        });
+      }
+    };
+
+    @effect((i) => [i.src])
+    #updateState = async () => {
+      const url = Utils.getRemoteURL(this.src);
+      if (!url) return;
+
+      try {
+        const resp = await fetch(url);
+        if (resp.status === 404) throw new Error(resp.statusText || 'Not Found');
+        const text = await resp.text();
+        const { elements, exports } = await this.#parseFile(text);
+        this.state({ elements, exports, error: false });
+      } catch (error) {
+        this.error(error);
+        this.state({ error });
+      }
+    };
+
     render = () => {
       const { elements, exports, error } = this.state;
       if (error) return html`<div class="error">${error}</div>`;
@@ -210,34 +247,6 @@ customElements.whenDefined('gem-book').then(({ GemBookPluginElement }: typeof Ge
       const renderElements = this.name ? elements.filter(({ name }) => this.name === name) : elements;
       if (!renderElements.length && exports) return html`${this.#renderExports(exports)}`;
       return html`${renderElements.map(this.#renderElement)}`;
-    };
-
-    mounted = () => {
-      this.effect(() => {
-        if (this.state.elements && !this.state.error && location.hash) {
-          this.querySelector(`[id="${decodeURIComponent(location.hash.slice(1))}"]`)?.scrollIntoView({
-            block: 'start',
-          });
-        }
-      });
-      this.effect(
-        async () => {
-          const url = Utils.getRemoteURL(this.src);
-          if (!url) return;
-
-          try {
-            const resp = await fetch(url);
-            if (resp.status === 404) throw new Error(resp.statusText || 'Not Found');
-            const text = await resp.text();
-            const { elements, exports } = await this.#parseFile(text);
-            this.setState({ elements, exports, error: false });
-          } catch (error) {
-            this.error(error);
-            this.setState({ error });
-          }
-        },
-        () => [this.src],
-      );
     };
   }
 });

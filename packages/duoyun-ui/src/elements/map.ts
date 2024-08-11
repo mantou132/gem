@@ -1,5 +1,15 @@
-import { adoptedStyle, customElement, emitter, Emitter, property, state, part, aria } from '@mantou/gem/lib/decorators';
-import { createCSSSheet, html, svg } from '@mantou/gem/lib/element';
+import {
+  adoptedStyle,
+  customElement,
+  emitter,
+  Emitter,
+  property,
+  state,
+  part,
+  aria,
+  memo,
+} from '@mantou/gem/lib/decorators';
+import { createCSSSheet, createState, html, svg } from '@mantou/gem/lib/element';
 import { css, styleMap, classMap } from '@mantou/gem/lib/utils';
 import { geoProjection, geoMercatorRaw, geoEquirectangularRaw, GeoRawProjection, geoPath } from 'd3-geo';
 
@@ -156,7 +166,7 @@ export type AreaEventDetail = { name: string; originEvent: MouseEvent };
 @customElement('dy-map')
 @adoptedStyle(style)
 @aria({ role: 'img' })
-export class DuoyunMapElement extends DuoyunLoadableBaseElement<State> {
+export class DuoyunMapElement extends DuoyunLoadableBaseElement {
   @part static map: string;
 
   @property getProjection?: (fn: GeoCommonProjection) => ReturnType<GeoCommonProjection>;
@@ -181,7 +191,7 @@ export class DuoyunMapElement extends DuoyunLoadableBaseElement<State> {
   @emitter arealeave: Emitter<AreaEventDetail>;
   @emitter areaclick: Emitter<AreaEventDetail>;
 
-  state: State = {};
+  #state = createState<State>({});
 
   #projection: ReturnType<GeoCommonProjection>;
   #areas?: Area[];
@@ -197,29 +207,25 @@ export class DuoyunMapElement extends DuoyunLoadableBaseElement<State> {
 
   #onLeaveArea = (detail: AreaEventDetail) => {
     this.arealeave(detail);
-    this.setState({ currentArea: undefined });
+    this.#state({ currentArea: undefined });
   };
 
   #onLeaveNode = (detail: NodeEventDetail) => {
     this.nodeleave(detail);
-    this.setState({ currentNode: undefined });
+    this.#state({ currentNode: undefined });
   };
 
-  willMount = () => {
-    this.memo(
-      () => {
-        this.#projection = this.getProjection?.(geoCommonProjection) || geoCommonProjection();
-        const pathFn = geoPath().projection(this.#projection);
-        this.#areas = this.geo?.features.map(({ geometry, properties }) => {
-          return {
-            path: pathFn(geometry),
-            center: pathFn.centroid(geometry),
-            name: (properties && (properties.name || properties.NAME)) || '',
-          };
-        });
-      },
-      () => [this.geo, this.getProjection],
-    );
+  @memo((i) => [i.geo, i.getProjection])
+  #calc = () => {
+    this.#projection = this.getProjection?.(geoCommonProjection) || geoCommonProjection();
+    const pathFn = geoPath().projection(this.#projection);
+    this.#areas = this.geo?.features.map(({ geometry, properties }) => {
+      return {
+        path: pathFn(geometry),
+        center: pathFn.centroid(geometry),
+        name: (properties && (properties.name || properties.NAME)) || '',
+      };
+    });
   };
 
   #renderArea = (area: Area, isCurrent: boolean) => {
@@ -229,7 +235,7 @@ export class DuoyunMapElement extends DuoyunLoadableBaseElement<State> {
       if (isCurrent) {
         this.areahover({ name, originEvent });
       } else {
-        this.setState({ currentArea: area });
+        this.#state({ currentArea: area });
       }
     };
     return svg`
@@ -268,7 +274,7 @@ export class DuoyunMapElement extends DuoyunLoadableBaseElement<State> {
       if (isCurrent) {
         this.nodehover({ id, originEvent });
       } else {
-        this.setState({ currentNode: node });
+        this.#state({ currentNode: node });
       }
     };
     return svg`
@@ -287,7 +293,7 @@ export class DuoyunMapElement extends DuoyunLoadableBaseElement<State> {
   };
 
   render = () => {
-    const { currentArea, currentNode } = this.state;
+    const { currentArea, currentNode } = this.#state;
     return html`
       <dy-gesture @pan=${this.#onPan} @end=${this.#onEnd}>
         ${svg`

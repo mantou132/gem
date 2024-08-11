@@ -1,4 +1,15 @@
-import { GemElement, async, connectStore, customElement, html, property, render, shadow, useStore } from '@mantou/gem';
+import {
+  GemElement,
+  async,
+  connectStore,
+  createState,
+  customElement,
+  html,
+  property,
+  render,
+  shadow,
+  useStore,
+} from '@mantou/gem';
 
 import '../elements/layout';
 
@@ -15,6 +26,12 @@ setInterval(() => {
 @async()
 @shadow()
 export class Dot extends GemElement {
+  size: number;
+  x: number;
+  y: number;
+
+  #state = createState({ hover: false });
+
   constructor() {
     super();
     this.addEventListener('mouseenter', this.onMouseenter);
@@ -22,17 +39,11 @@ export class Dot extends GemElement {
   }
 
   onMouseenter = () => {
-    this.setState({ hover: true });
+    this.#state({ hover: true });
   };
   onMouseleave = () => {
-    this.setState({ hover: false });
+    this.#state({ hover: false });
   };
-
-  size: number;
-  x: number;
-  y: number;
-
-  state = { hover: false };
 
   render() {
     const s = this.size * 1.3;
@@ -43,7 +54,7 @@ export class Dot extends GemElement {
       top: this.y + 'px',
       borderRadius: s / 2 + 'px',
       lineHeight: s + 'px',
-      background: this.state.hover ? '#ff0' : '#61dafb',
+      background: this.#state.hover ? '#ff0' : '#61dafb',
     });
     return html`
       <style>
@@ -55,7 +66,7 @@ export class Dot extends GemElement {
           display: block;
         }
       </style>
-      ${this.state.hover ? '**' + store.number + '**' : store.number}
+      ${this.#state.hover ? '**' + store.number + '**' : store.number}
     `;
   }
 }

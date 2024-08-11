@@ -1,6 +1,6 @@
 import { fixture, expect, nextFrame } from '@open-wc/testing';
 
-import { createCSSSheet, GemElement, html } from '../../lib/element';
+import { createCSSSheet, createState, GemElement, html } from '../../lib/element';
 import { createStore, updateStore } from '../../lib/store';
 import { css } from '../../lib/utils';
 import {
@@ -35,14 +35,15 @@ class GemDemo extends GemElement {
   @numattribute count: number;
   @property prop = { value: '' };
 
-  state = { value: '' };
+  #state = createState({ value: '' });
 
   renderCount = 0;
 
   render() {
-    const { attr, disabled, count, prop, state } = this;
+    const { attr, disabled, count, prop } = this;
+    const { value } = this.#state;
     this.renderCount++;
-    return html`attr: ${attr}, disabled: ${disabled}, count: ${count}, prop: ${prop.value}, state: ${state.value}`;
+    return html`attr: ${attr}, disabled: ${disabled}, count: ${count}, prop: ${prop.value}, state: ${value}`;
   }
 }
 
@@ -129,12 +130,12 @@ describe('基本 gem element 测试', () => {
   it('修改 state', async () => {
     const el: GemDemo = await fixture(html`<gem-demo></gem-demo>`);
     expect(el.renderCount).to.equal(1);
-    el.setState({ value: 'asfasdf' });
-    el.setState({ value: 'state' });
-    el.setState({ value: 'state' });
+    el.internals.stateList[0]({ value: 'asfasdf' });
+    el.internals.stateList[0]({ value: 'state' });
+    el.internals.stateList[0]({ value: 'state' });
     await Promise.resolve();
     expect(el.renderCount).to.equal(2);
-    expect(el.state).to.deep.equal({ value: 'state' });
+    expect({ ...el.internals.stateList[0] }).to.deep.equal({ value: 'state' });
     expect(el).shadowDom.to.equal('attr: , disabled: false, count: 0, prop: , state: state');
   });
 

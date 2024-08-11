@@ -5,7 +5,7 @@ const gitalkCSSUrl = 'https://esm.sh/gitalk@1.7.2/dist/gitalk.css';
 
 customElements.whenDefined('gem-book').then(async ({ GemBookPluginElement }: typeof GemBookElement) => {
   const { config, Gem, theme, locationStore } = GemBookPluginElement;
-  const { html, customElement, attribute, connectStore, shadow, adoptedStyle, css, createCSSSheet } = Gem;
+  const { html, customElement, attribute, connectStore, shadow, adoptedStyle, css, createCSSSheet, effect } = Gem;
 
   const style = createCSSSheet(css`
     :host {
@@ -61,14 +61,8 @@ customElements.whenDefined('gem-book').then(async ({ GemBookPluginElement }: typ
     @attribute owner: string;
     @attribute admin: string;
 
-    render() {
-      return html`
-        <link rel="stylesheet" href=${gitalkCSSUrl} />
-        <div id="comment"></div>
-      `;
-    }
-
-    async init() {
+    @effect(() => [locationStore.path])
+    #init = async () => {
       const { github } = config;
       const ele = this.shadowRoot?.querySelector('#comment');
       if (!ele) return;
@@ -85,13 +79,13 @@ customElements.whenDefined('gem-book').then(async ({ GemBookPluginElement }: typ
         distractionFreeMode: false,
         language: GemBookPluginElement.lang,
       }).render(ele);
-    }
+    };
 
-    mounted() {
-      this.effect(
-        () => this.init(),
-        () => [locationStore.path],
-      );
+    render() {
+      return html`
+        <link rel="stylesheet" href=${gitalkCSSUrl} />
+        <div id="comment"></div>
+      `;
     }
   }
 });

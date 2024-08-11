@@ -9,8 +9,11 @@ import {
   part,
   shadow,
   aria,
+  willMount,
+  memo,
+  effect,
 } from '@mantou/gem/lib/decorators';
-import { createCSSSheet, GemElement, html } from '@mantou/gem/lib/element';
+import { createCSSSheet, createState, GemElement, html } from '@mantou/gem/lib/element';
 import { css, classMap, exportPartsMap } from '@mantou/gem/lib/utils';
 
 import { isNotNullish } from '../lib/types';
@@ -128,16 +131,6 @@ const modes = ['day', 'month', 'year'] as const;
 
 type Mode = (typeof modes)[number];
 
-type State = {
-  year: number;
-  month: number;
-  mode: Mode;
-  old?: {
-    year: number;
-    month: number;
-  };
-};
-
 /**
  * @customElement dy-date-panel
  * @attr time
@@ -149,7 +142,7 @@ type State = {
 @adoptedStyle(focusStyle)
 @shadow({ delegatesFocus: true })
 @aria({ role: 'widget' })
-export class DuoyunDatePanelElement extends GemElement<State> {
+export class DuoyunDatePanelElement extends GemElement {
   @part static dayCell: string;
 
   @boolattribute time: boolean;
@@ -162,12 +155,12 @@ export class DuoyunDatePanelElement extends GemElement<State> {
   @property initValue?: number;
 
   get #currentPosition() {
-    return new Time(`${this.state.year}-${String(this.state.month + 1).padStart(2, '0')}`);
+    return new Time(`${this.#state.year}-${String(this.#state.month + 1).padStart(2, '0')}`);
   }
 
   get #prevPosition() {
-    if (!this.state.old) return 0;
-    return new Time(`${this.state.old.year}-${String(this.state.old.month + 1).padStart(2, '0')}`);
+    if (!this.#state.old) return 0;
+    return new Time(`${this.#state.old.year}-${String(this.#state.old.month + 1).padStart(2, '0')}`);
   }
 
   get #highlights() {
@@ -180,15 +173,16 @@ export class DuoyunDatePanelElement extends GemElement<State> {
     return highlights;
   }
 
-  state: State = {
+  #state = createState({
     year: 0,
     month: 0,
-    mode: 'day',
-  };
+    mode: 'day' as Mode,
+    old: undefined as undefined | { year: number; month: number },
+  });
 
   #increaseView = (number: number) => {
     const date = this.#currentPosition;
-    switch (this.state.mode) {
+    switch (this.#state.mode) {
       case 'day':
         date.add(number, 'M');
         break;
@@ -202,13 +196,9 @@ export class DuoyunDatePanelElement extends GemElement<State> {
     this.#setState(date.valueOf());
   };
 
-  #onChangeView = (state: Partial<State>) => {
-    this.setState({ ...state, mode: 'day' });
-  };
-
   #setState = (value: number) => {
     const d = new Time(value);
-    this.setState({ year: d.getFullYear(), month: d.getMonth() });
+    this.#state({ year: d.getFullYear(), month: d.getMonth() });
   };
 
   #onChange = (evt: CustomEvent<number>) => {
@@ -231,18 +221,18 @@ export class DuoyunDatePanelElement extends GemElement<State> {
   };
 
   #renderCurrentPosition = () => {
-    switch (this.state.mode) {
+    switch (this.#state.mode) {
       case 'day':
         return html`${this.#currentPosition.formatToParts().map(({ type, value }) => {
           if (modes.includes(type as any)) {
             const mode = type as Mode;
-            return html`<dy-action-text @click=${() => this.setState({ mode })}>${value}</dy-action-text>`;
+            return html`<dy-action-text @click=${() => this.#state({ mode })}>${value}</dy-action-text>`;
           }
           return value;
         })}`;
       default:
         return html`
-          <dy-action-text @click=${() => this.setState({ mode: 'day' })}>
+          <dy-action-text @click=${() => this.#state({ mode: 'day' })}>
             ${this.#currentPosition.format('YYYY')}
           </dy-action-text>
         `;
@@ -251,7 +241,7 @@ export class DuoyunDatePanelElement extends GemElement<State> {
 
   #renderMonthList = () => {
     const start = new Time().startOf('Y');
-    const isCurrentYear = isNotNullish(this.value) && new Time(this.value).getFullYear() === this.state.year;
+    const isCurrentYear = isNotNullish(this.value) && new Time(this.value).getFullYear() === this.#state.year;
     return html`
       <div class="list">
         ${Array.from({ length: 12 }).map(
@@ -262,9 +252,9 @@ export class DuoyunDatePanelElement extends GemElement<State> {
               @keydown=${commonHandle}
               class=${classMap({
                 item: true,
-                highlight: isCurrentYear && index === this.state.month,
+                highlight: isCurrentYear && index === this.#state.month,
               })}
-              @click=${() => this.#onChangeView({ month: index })}
+              @click=${() => this.#state({ month: index, mode: 'day' })}
             >
               ${Object.fromEntries(
                 new Time(start)
@@ -283,7 +273,7 @@ export class DuoyunDatePanelElement extends GemElement<State> {
     const currentYear = isNotNullish(this.value) && new Time(this.value).getFullYear();
     return html`
       <div class="list">
-        ${Array.from({ length: 12 }, (_, index) => this.state.year - 7 + index).map(
+        ${Array.from({ length: 12 }, (_, index) => this.#state.year - 7 + index).map(
           (year) => html`
             <span
               tabindex="0"
@@ -293,7 +283,7 @@ export class DuoyunDatePanelElement extends GemElement<State> {
                 item: true,
                 highlight: currentYear === year,
               })}
-              @click=${() => this.#onChangeView({ year })}
+              @click=${() => this.#state({ year, mode: 'day' })}
             >
               ${year}
             </span>
@@ -303,34 +293,25 @@ export class DuoyunDatePanelElement extends GemElement<State> {
     `;
   };
 
-  willMount = () => {
-    this.#setState(isNotNullish(this.value) ? this.value : this.initValue || Time.now());
-    this.memo(
-      () => {
-        if (this.state.mode !== 'day') {
-          this.state.old = {
-            month: this.state.month,
-            year: this.state.year,
-          };
-        } else {
-          this.state.old = undefined;
-        }
-      },
-      () => [this.state.mode],
-    );
+  @willMount()
+  #initState = () => this.#setState(isNotNullish(this.value) ? this.value : this.initValue || Time.now());
+
+  @memo((i) => [i.#state.mode])
+  #preUpdateState = () => {
+    if (this.#state.mode !== 'day') {
+      this.#state({ old: { month: this.#state.month, year: this.#state.year } });
+    } else {
+      this.#state({ old: undefined });
+    }
   };
 
-  mounted = () => {
-    this.effect(
-      () => {
-        if (isNotNullish(this.initValue)) this.#setState(this.initValue);
-      },
-      () => [this.initValue],
-    );
+  @effect((i) => [i.initValue])
+  #updateState = () => {
+    if (isNotNullish(this.initValue)) this.#setState(this.initValue);
   };
 
   render = () => {
-    const { mode } = this.state;
+    const { mode } = this.#state;
     return html`
       <div class="date-panel">
         <div class="head">

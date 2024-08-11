@@ -8,6 +8,7 @@ import {
   connectStore,
   useStore,
   shadow,
+  mounted,
 } from '@mantou/gem';
 
 export const fpsStyle = createCSSSheet(css`
@@ -64,18 +65,18 @@ const tick = () => {
 export class NesboxFpsElement extends GemElement {
   static instanceSet: Set<NesboxFpsElement> = new Set();
 
-  mounted = () => {
+  @mounted()
+  #init = () => {
     NesboxFpsElement.instanceSet.add(this);
     if (NesboxFpsElement.instanceSet.size === 1) {
       timer = requestAnimationFrame(tick);
     }
-  };
-
-  unmounted = () => {
-    NesboxFpsElement.instanceSet.delete(this);
-    if (NesboxFpsElement.instanceSet.size === 0) {
-      cancelAnimationFrame(timer);
-    }
+    return () => {
+      NesboxFpsElement.instanceSet.delete(this);
+      if (NesboxFpsElement.instanceSet.size === 0) {
+        cancelAnimationFrame(timer);
+      }
+    };
   };
 
   render = () => {

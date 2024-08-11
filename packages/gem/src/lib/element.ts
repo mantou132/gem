@@ -1,7 +1,7 @@
 import { html, render, TemplateResult } from 'lit-html';
 
 import { connect, Store } from './store';
-import { LinkedList, addMicrotask, isArrayChange, GemError, addListener, randomStr } from './utils';
+import { LinkedList, addMicrotask, isArrayChange, addListener, randomStr } from './utils';
 
 export { html, svg, render, directive, TemplateResult, SVGTemplateResult } from 'lit-html';
 
@@ -208,9 +208,9 @@ const tick = (timeStamp = performance.now()) => {
 };
 noBlockingTaskList.addEventListener('start', () => addMicrotask(tick));
 
-let currentConstructGemElement: GemElement<any>;
+let currentConstructGemElement: GemElement;
 
-export abstract class GemElement<State = Record<string, unknown>> extends HTMLElement {
+export abstract class GemElement extends HTMLElement {
   // 禁止覆盖自定义元素原生生命周期方法
   // https://github.com/microsoft/TypeScript/issues/21388#issuecomment-934345226
   static #final = Symbol();
@@ -228,7 +228,10 @@ export abstract class GemElement<State = Record<string, unknown>> extends HTMLEl
   #clearStyle?: any;
 
   [updateTokenAlias]() {
-    addMicrotask(this.#update);
+    // 避免 `connectedCallback` 中的 property 赋值造成多余更新
+    if (this.#isMounted) {
+      addMicrotask(this.#update);
+    }
   }
 
   static {
@@ -294,27 +297,6 @@ export abstract class GemElement<State = Record<string, unknown>> extends HTMLEl
   get internals() {
     return this.#internals;
   }
-
-  // 定义当前元素的状态，和 attr/prop 的本质区别是不为外部输入
-  readonly state?: State;
-  /**
-   * @helper
-   * 设置元素 state，会触发更新
-   *
-   * ```js
-   * class App extends GemElement {
-   *   click() {
-   *     this.setState({});
-   *   }
-   * }
-   * ```
-   * */
-  setState = (payload: Partial<State>) => {
-    if (!this.state) throw new GemError('`state` not initialized');
-    assign(this.state, payload);
-    // 避免无限刷新
-    if (!this.#rendering) addMicrotask(this.#update);
-  };
 
   #exec = (list?: EffectItem<any>[]) => {
     list?.forEach((effectItem) => {

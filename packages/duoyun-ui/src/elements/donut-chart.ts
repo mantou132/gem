@@ -1,5 +1,5 @@
 // https://spectrum.adobe.com/page/donut-chart/
-import { adoptedStyle, customElement, attribute, property } from '@mantou/gem/lib/decorators';
+import { adoptedStyle, customElement, attribute, property, memo, unmounted } from '@mantou/gem/lib/decorators';
 import { html, svg, createCSSSheet } from '@mantou/gem/lib/element';
 import { css } from '@mantou/gem/lib/utils';
 
@@ -26,14 +26,36 @@ export class DuoyunDonutChartElement extends DuoyunChartBaseElement {
   @attribute label: string;
   @attribute total: string;
 
+  @property aspectRatio = 1;
   @property sequences?: { label: string; value: number }[];
 
   stageWidth = 300;
-  stageHeight = 300;
 
   #outside = 140;
   #inside = 115;
+
   #paths?: string[];
+
+  @memo((i) => [i.sequences])
+  #calc = () => {
+    const total = this.sequences?.reduce((p, c) => p + c.value, 0);
+    const accumulateSequences = this.sequences?.map((_, index) =>
+      this.sequences!.slice(0, index + 1).reduce((p, c) => p + c.value, 0),
+    );
+    const thetaList = accumulateSequences?.map((v, index, arr, prev = arr[index - 1] || 0) =>
+      [prev, v].map((e) => (e / total!) * 2 * Math.PI),
+    );
+    this.#paths = thetaList?.map(([start, stop]) => {
+      const insideStartPoint = this.polarToCartesian([this.#inside, start]).join(' ');
+      const insideStopPoint = this.polarToCartesian([this.#inside, stop]).join(' ');
+      const outsideStartPoint = this.polarToCartesian([this.#outside, stop]).join(' ');
+      const outsideStopPoint = this.polarToCartesian([this.#outside, start]).join(' ');
+      return (
+        `M${insideStartPoint}A${this.#inside} ${this.#inside} 0 0 1 ${insideStopPoint}` +
+        `L${outsideStartPoint}A${this.#outside} ${this.#outside} 0 0 0 ${outsideStopPoint}`
+      );
+    });
+  };
 
   #tooltipRender = (data: Data) => {
     return html`${data.values![0].label},${data.values![0].value}`;
@@ -55,37 +77,9 @@ export class DuoyunDonutChartElement extends DuoyunChartBaseElement {
     });
   };
 
+  @unmounted()
   #onMouseOut = () => {
     ChartTooltip.close();
-  };
-
-  willMount = () => {
-    this.memo(
-      () => {
-        const total = this.sequences?.reduce((p, c) => p + c.value, 0);
-        const accumulateSequences = this.sequences?.map((_, index) =>
-          this.sequences!.slice(0, index + 1).reduce((p, c) => p + c.value, 0),
-        );
-        const thetaList = accumulateSequences?.map((v, index, arr, prev = arr[index - 1] || 0) =>
-          [prev, v].map((e) => (e / total!) * 2 * Math.PI),
-        );
-        this.#paths = thetaList?.map(([start, stop]) => {
-          const insideStartPoint = this.polarToCartesian([this.#inside, start]).join(' ');
-          const insideStopPoint = this.polarToCartesian([this.#inside, stop]).join(' ');
-          const outsideStartPoint = this.polarToCartesian([this.#outside, stop]).join(' ');
-          const outsideStopPoint = this.polarToCartesian([this.#outside, start]).join(' ');
-          return (
-            `M${insideStartPoint}A${this.#inside} ${this.#inside} 0 0 1 ${insideStopPoint}` +
-            `L${outsideStartPoint}A${this.#outside} ${this.#outside} 0 0 0 ${outsideStopPoint}`
-          );
-        });
-      },
-      () => [this.sequences],
-    );
-  };
-
-  mounted = () => {
-    return this.#onMouseOut;
   };
 
   render = () => {

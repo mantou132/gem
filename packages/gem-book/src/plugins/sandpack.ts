@@ -48,6 +48,9 @@ customElements.whenDefined('gem-book').then(({ GemBookPluginElement }: typeof Ge
     createCSSSheet,
     classMap,
     shadow,
+    createState,
+    willMount,
+    unmounted,
   } = GemBookPluginElement.Gem;
 
   const styles = createCSSSheet(css`
@@ -156,7 +159,7 @@ customElements.whenDefined('gem-book').then(({ GemBookPluginElement }: typeof Ge
   @customElement('gbp-sandpack')
   @adoptedStyle(styles)
   @shadow()
-  class _GbpSandpackElement extends GemBookPluginElement<State> {
+  class _GbpSandpackElement extends GemBookPluginElement {
     @refobject iframeRef: RefObject<HTMLIFrameElement>;
     @attribute entry: string;
     @attribute dependencies: string;
@@ -209,17 +212,17 @@ customElements.whenDefined('gem-book').then(({ GemBookPluginElement }: typeof Ge
       };
     }
 
-    state: State = {
+    #state = createState<State>({
       files: [],
       forking: false,
       status: 'initialization',
-    };
+    });
 
     constructor() {
       super();
       new MutationObserver(() => {
         const files = this.#parseContents();
-        this.setState({ files });
+        this.#state({ files });
         this.#updateSandbox();
       }).observe(this, {
         childList: true,
@@ -259,10 +262,10 @@ customElements.whenDefined('gem-book').then(({ GemBookPluginElement }: typeof Ge
       (await this.#sandpackClient).listen((msg) => {
         switch (msg.type) {
           case 'status':
-            this.setState({ status: msg.status });
+            this.#state({ status: msg.status });
             break;
           case 'done':
-            this.setState({ status: 'done' });
+            this.#state({ status: 'done' });
             break;
         }
       });
@@ -276,7 +279,7 @@ customElements.whenDefined('gem-book').then(({ GemBookPluginElement }: typeof Ge
       return await loadSandpackClient(
         this.iframeRef.element!,
         {
-          files: this.state.files.reduce((p, c) => ({ ...p, [c.filename]: { code: c.code } }), {
+          files: this.#state.files.reduce((p, c) => ({ ...p, [c.filename]: { code: c.code } }), {
             'sandbox.config.json': this.#sandBoxConfigFile,
             'index.html': { code: this.#template },
             [this.#defaultEntryFilename]: { code: '' },
@@ -293,7 +296,7 @@ customElements.whenDefined('gem-book').then(({ GemBookPluginElement }: typeof Ge
 
     #updateSandbox = throttle(async () => {
       (await this.#sandpackClient)?.updateSandbox({
-        files: this.state.files.reduce((p, c) => ({ ...p, [c.filename]: { code: c.code } }), {
+        files: this.#state.files.reduce((p, c) => ({ ...p, [c.filename]: { code: c.code } }), {
           'sandbox.config.json': this.#sandBoxConfigFile,
           'index.html': { code: this.#template },
         } as SandpackBundlerFiles),
@@ -303,8 +306,8 @@ customElements.whenDefined('gem-book').then(({ GemBookPluginElement }: typeof Ge
     });
 
     #onClickTab = (ele: Pre) => {
-      this.setState({
-        files: this.state.files.map((file) => {
+      this.#state({
+        files: this.#state.files.map((file) => {
           const status = file.element === ele ? 'active' : '';
           file.element.status = status;
           return { ...file, status };
@@ -315,16 +318,16 @@ customElements.whenDefined('gem-book').then(({ GemBookPluginElement }: typeof Ge
     #onReset = async () => {
       const client = await this.#sandpackClient;
       if (client) {
-        this.setState({ status: 'initialization' });
+        this.#state({ status: 'initialization' });
         client.dispatch({ type: 'refresh' });
       }
     };
 
     #onFork = async () => {
-      if (this.state.forking) return;
-      this.setState({ forking: true });
+      if (this.#state.forking) return;
+      this.#state({ forking: true });
       // https://codesandbox.io/docs/learn/getting-started/your-first-sandbox#xhr-request
-      const normalizedFiles = this.state.files.reduce(
+      const normalizedFiles = this.#state.files.reduce(
         (p, c) => ({
           ...p,
           [c.filename.replace('/', '')]: { content: c.code },
@@ -360,20 +363,22 @@ customElements.whenDefined('gem-book').then(({ GemBookPluginElement }: typeof Ge
 
         open(`https://codesandbox.io/s/${sandbox_id}`);
       } finally {
-        this.setState({ forking: false });
+        this.#state({ forking: false });
       }
     };
 
-    willMount = () => {
-      this.setState({ files: this.#parseContents() });
+    @willMount()
+    #initState = () => {
+      this.#state({ files: this.#parseContents() });
     };
 
-    unmounted = async () => {
+    @unmounted()
+    #destroy = async () => {
       (await this.#sandpackClient)?.destroy();
     };
 
     render = () => {
-      const { files, forking, status } = this.state;
+      const { files, forking, status } = this.#state;
       if (!files.length) return;
       const currentFile = files.find((e) => e.status === 'active') || files.find((e) => e.status === '');
       return html`

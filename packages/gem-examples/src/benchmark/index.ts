@@ -13,6 +13,9 @@ import {
   RefObject,
   repeat,
   shadow,
+  createState,
+  memo,
+  mounted,
 } from '@mantou/gem';
 import { RGBA, rgbToRgbColor } from 'duoyun-ui/lib/color';
 import { formatTraffic } from 'duoyun-ui/lib/number';
@@ -67,40 +70,35 @@ const style = createCSSSheet(css`
   }
 `);
 
-type State = { canvasKey: number; pixels: Uint8ClampedArray; width: number; height: number; ratio: number };
-
 @customElement('app-root')
 @adoptedStyle(style)
 @shadow()
-export class App extends GemElement<State> {
+export class App extends GemElement {
   @refobject canvasRef: RefObject<HTMLCanvasElement>;
 
-  state: State = {
+  #state = createState({
     canvasKey: 0,
     ratio: 10,
     width: 0,
     height: 0,
     pixels: new Uint8ClampedArray(),
-  };
+  });
 
   #pixelsPosition: number[] = [];
 
-  willMount = () => {
-    this.memo(
-      () => {
-        const { width, height, ratio } = this.state;
-        this.#pixelsPosition = Array.from({ length: (height * width) / ratio / ratio }, (_, i) => i * 4);
-      },
-      () => [this.state.width, this.state.height, this.state.ratio],
-    );
+  @memo((i) => [i.#state.width, i.#state.height, i.#state.ratio])
+  #setPixelsPosition = () => {
+    const { width, height, ratio } = this.#state;
+    this.#pixelsPosition = Array.from({ length: (height * width) / ratio / ratio }, (_, i) => i * 4);
   };
 
-  mounted = () => {
+  @mounted()
+  #init = () => {
     const worker = new Worker();
 
     worker.addEventListener('message', (evt) => {
       const { width, height, pixels, canvasKey } = evt.data;
-      this.setState({ width, height, canvasKey, pixels: new Uint8ClampedArray(pixels) });
+      this.#state({ width, height, canvasKey, pixels: new Uint8ClampedArray(pixels) });
     });
 
     this.effect(
@@ -108,22 +106,22 @@ export class App extends GemElement<State> {
         const offscreenCanvas = this.canvasRef.element!.transferControlToOffscreen();
         worker.postMessage(
           {
-            ratio: this.state.ratio,
+            ratio: this.#state.ratio,
             canvas: offscreenCanvas,
           },
           [offscreenCanvas],
         );
       },
-      () => [this.state.canvasKey, this.state.ratio],
+      () => [this.#state.canvasKey, this.#state.ratio],
     );
   };
 
   #options = [{ label: '40' }, { label: '20' }, { label: '10' }];
 
-  #onChange = (evt: CustomEvent<string>) => this.setState({ ratio: Number(evt.detail) });
+  #onChange = (evt: CustomEvent<string>) => this.#state({ ratio: Number(evt.detail) });
 
   render() {
-    const { canvasKey, width, height, ratio, pixels } = this.state;
+    const { canvasKey, width, height, ratio, pixels } = this.#state;
     const { number, unit } = formatTraffic((performance as any).memory.usedJSHeapSize);
     return html`
       <style>

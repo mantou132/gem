@@ -1,6 +1,6 @@
-import { adoptedStyle, aria, customElement, emitter, Emitter, property } from '@mantou/gem/lib/decorators';
+import { adoptedStyle, aria, customElement, emitter, Emitter, mounted, property } from '@mantou/gem/lib/decorators';
 import { createCSSSheet, html } from '@mantou/gem/lib/element';
-import { css, styleMap, classMap } from '@mantou/gem/lib/utils';
+import { css, styleMap, classMap, addListener } from '@mantou/gem/lib/utils';
 
 import { theme } from '../lib/theme';
 import { commonColors } from '../lib/color';
@@ -63,11 +63,6 @@ export class DuoyunLegendElement extends DuoyunScrollBaseElement {
     return new Set(this.value ?? this.legends?.map((legend) => getValue(legend)));
   }
 
-  constructor() {
-    super();
-    this.addEventListener('wheel', this.#onWheel);
-  }
-
   #onWheel = (evt: WheelEvent) => {
     this.scrollBy(Math.sign(evt.deltaY) * 30, 0);
   };
@@ -87,6 +82,9 @@ export class DuoyunLegendElement extends DuoyunScrollBaseElement {
     }
     return this.change([...currentValue, value]);
   };
+
+  @mounted()
+  #init = () => addListener(this, 'wheel', this.#onWheel);
 
   render = () => {
     const valueSet = this.#currentValueSet;

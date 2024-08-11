@@ -16,7 +16,7 @@ type State = {
 
 customElements.whenDefined('gem-book').then(({ GemBookPluginElement }: typeof GemBookElement) => {
   const { Gem, theme, icons } = GemBookPluginElement;
-  const { html, customElement, adoptedStyle, css, createCSSSheet, classMap, shadow } = Gem;
+  const { html, customElement, adoptedStyle, css, createCSSSheet, classMap, shadow, createState, willMount } = Gem;
 
   const style = createCSSSheet(css`
     :host {
@@ -75,15 +75,20 @@ customElements.whenDefined('gem-book').then(({ GemBookPluginElement }: typeof Ge
   @customElement('gbp-code-group')
   @adoptedStyle(style)
   @shadow()
-  class _GbpCodeGroupElement extends GemBookPluginElement<State> {
+  class _GbpCodeGroupElement extends GemBookPluginElement {
     constructor() {
       super();
       this.cacheState(() => [this.textContent]);
     }
 
-    state: State = {
+    state = createState<State>({
       files: [],
       copyEnd: false,
+    });
+
+    @willMount()
+    #initState = () => {
+      this.state({ files: this.#parseContents() });
     };
 
     #getCurrentFile = () => {
@@ -107,7 +112,7 @@ customElements.whenDefined('gem-book').then(({ GemBookPluginElement }: typeof Ge
     };
 
     #onClickTab = (ele: Pre) => {
-      this.setState({
+      this.state({
         files: this.state.files.map((file) => {
           const status = file.element === ele ? 'active' : '';
           file.element.status = status;
@@ -118,12 +123,8 @@ customElements.whenDefined('gem-book').then(({ GemBookPluginElement }: typeof Ge
 
     #onCopy = async () => {
       await navigator.clipboard.writeText(this.#getCurrentFile()?.code || '');
-      this.setState({ copyEnd: true });
-      setTimeout(() => this.setState({ copyEnd: false }), 1000);
-    };
-
-    willMount = () => {
-      this.setState({ files: this.#parseContents() });
+      this.state({ copyEnd: true });
+      setTimeout(() => this.state({ copyEnd: false }), 1000);
     };
 
     render = () => {

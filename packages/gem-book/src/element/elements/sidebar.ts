@@ -13,6 +13,9 @@ import {
   css,
   createCSSSheet,
   adoptedStyle,
+  effect,
+  addListener,
+  mounted,
 } from '@mantou/gem';
 import { mediaQuery } from '@mantou/gem/helper/mediaquery';
 
@@ -209,6 +212,7 @@ export class SideBar extends GemElement {
     ele.classList.toggle('close');
   };
 
+  @effect(() => [locationStore.path])
   #expandToCurrentLink = () => {
     const removeCloseClass = (ele: Element | null | undefined) => {
       if (!ele) return;
@@ -304,21 +308,15 @@ export class SideBar extends GemElement {
     `;
   }
 
-  mounted() {
-    this.effect(
-      () => this.#expandToCurrentLink(),
-      () => [locationStore.path],
-    );
-
+  @mounted()
+  #init = () => {
     this.#currentLink?.scrollIntoView({ block: 'center' });
-
-    addEventListener('hashchange', this.#closeSidebar);
-
+    const removeHandle = addListener(window, 'hashchange', this.#closeSidebar);
     const disconnect = connect(locationStore, this.#closeSidebar);
 
     return () => {
-      removeEventListener('hashchange', this.#closeSidebar);
+      removeHandle();
       disconnect();
     };
-  }
+  };
 }

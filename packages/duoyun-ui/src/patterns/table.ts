@@ -1,4 +1,4 @@
-import { createCSSSheet, GemElement, html } from '@mantou/gem/lib/element';
+import { createCSSSheet, createState, GemElement, html } from '@mantou/gem/lib/element';
 import { QueryString, addListener, css, styleMap } from '@mantou/gem/lib/utils';
 import {
   Emitter,
@@ -7,7 +7,9 @@ import {
   boolattribute,
   connectStore,
   customElement,
+  effect,
   emitter,
+  memo,
   numattribute,
   property,
   refobject,
@@ -161,7 +163,7 @@ const style = createCSSSheet(css`
 @adoptedStyle(blockContainer)
 @connectStore(locationStore)
 @shadow()
-export class DyPatTableElement<T = any> extends GemElement<State> {
+export class DyPatTableElement<T = any> extends GemElement {
   @refobject tableRef: RefObject<DuoyunTableElement<T>>;
 
   @boolattribute filterable: boolean;
@@ -228,22 +230,22 @@ export class DyPatTableElement<T = any> extends GemElement<State> {
     return history.getParams().query.getAny(queryKeys.SORT) || {};
   }
 
-  state: State = {
+  #state = createState<State>({
     selection: [],
     search: this.#search,
     filters: this.#filters,
     sort: this.#sort,
-  };
+  });
 
   #data?: (T | undefined)[] = [];
 
-  #onSelect = (evt: CustomEvent) => this.setState({ selection: evt.detail });
+  #onSelect = (evt: CustomEvent) => this.#state({ selection: evt.detail });
 
   #onContextMenu = (originEvent: MouseEvent, currentRowData?: T, selected?: boolean) => {
     if (originEvent.altKey) return;
     if (!this.selectable) return;
     const table = this.tableRef.element!;
-    const { selection } = this.state;
+    const { selection } = this.#state;
     originEvent.stopPropagation();
     originEvent.preventDefault();
     const currentRowMenu: ContextMenuItem[] = !currentRowData
@@ -277,14 +279,14 @@ export class DyPatTableElement<T = any> extends GemElement<State> {
         ? [
             {
               text: this.getText('removeAllSelection'),
-              handle: () => this.setState({ selection: [] }),
+              handle: () => this.#state({ selection: [] }),
             },
             ...currentRowMenu,
             ...(userCustomMenu ? [{ text: '---' }, ...userCustomMenu] : []).map((item) => ({
               ...item,
               handle: async () => {
                 await item.handle?.(currentRowData);
-                this.setState({ selection: [] });
+                this.#state({ selection: [] });
               },
             })),
           ]
@@ -346,8 +348,8 @@ export class DyPatTableElement<T = any> extends GemElement<State> {
   #changeQuery = () => {
     const p = history.getParams();
     const query = new QueryString(p.query);
-    query.setAny(queryKeys.SEARCH, this.state.search);
-    query.setAny(queryKeys.FILTERS, this.state.filters);
+    query.setAny(queryKeys.SEARCH, this.#state.search);
+    query.setAny(queryKeys.FILTERS, this.#state.filters);
     query.delete(queryKeys.PAGINATION_PAGE);
     query.delete(queryKeys.PAGINATION_SIZE);
     history.replace({ ...p, query, hash: '' });
@@ -356,7 +358,7 @@ export class DyPatTableElement<T = any> extends GemElement<State> {
   #changeQueryThrottle = throttle(this.#changeQuery, 120);
 
   #onSearch = (evt: CustomEvent<string>) => {
-    this.setState({ search: evt.detail });
+    this.#state({ search: evt.detail });
     this.#changeQueryThrottle();
     evt.stopPropagation();
   };
@@ -364,41 +366,41 @@ export class DyPatTableElement<T = any> extends GemElement<State> {
   #onKeydown = (evt: KeyboardEvent) => {
     hotkeys({
       esc: () => {
-        this.setState({ search: '' });
+        this.#state({ search: '' });
         this.#changeQueryThrottle();
       },
     })(evt);
   };
 
   #onSwitchSort = (field: string) => {
-    const { sort } = this.state;
+    const { sort } = this.#state;
     const newSort = { ...sort };
     delete newSort[field];
-    this.setState({ sort: { ...newSort, [field]: getNextSort(sort[field]) } });
+    this.#state({ sort: { ...newSort, [field]: getNextSort(sort[field]) } });
     const p = history.getParams();
     const query = new QueryString(p.query);
-    if (JSON.stringify(this.state.sort) === '{}') {
+    if (JSON.stringify(this.#state.sort) === '{}') {
       query.delete(queryKeys.SORT);
     } else {
-      query.setAny(queryKeys.SORT, this.state.sort);
+      query.setAny(queryKeys.SORT, this.#state.sort);
     }
     history.replace({ ...p, query });
   };
 
   #onAddFilter = (data: Filter) => {
     ContextMenu.close();
-    this.setState({ filters: [...this.state.filters, data] });
+    this.#state({ filters: [...this.#state.filters, data] });
     this.#changeQuery();
   };
 
   #onRemoveFilter = (index: number) => {
-    this.state.filters.splice(index, 1);
+    this.#state.filters.splice(index, 1);
     this.#changeQuery();
   };
 
   #onModifyFilter = (index: number, data: Filter) => {
     ContextMenu.close();
-    this.state.filters.splice(index, 1, data);
+    this.#state.filters.splice(index, 1, data);
     this.#changeQuery();
   };
 
@@ -418,7 +420,7 @@ export class DyPatTableElement<T = any> extends GemElement<State> {
   };
 
   #onClickFilter = (evt: PointerEvent, index: number) => {
-    const { field, cType, value } = this.state.filters[index];
+    const { field, cType, value } = this.#state.filters[index];
     const column = this.columns.find((col) => this.#getFilterField(col) === field)!;
     const tagEle = evt.currentTarget as DuoyunTagElement;
     const offsetEle = tagEle.offsetParent as DuoyunScrollBoxElement;
@@ -465,10 +467,6 @@ export class DyPatTableElement<T = any> extends GemElement<State> {
     );
   };
 
-  #filterFieldOptionsMap: Record<string, PatTableColumn<T>['filterOptions']> = {};
-  #filterFieldLabelMap: Record<string, string> = {};
-  #filterFieldEnumMap: Record<string, Record<string, string>> = {};
-
   #getValueFromField = (field: string, value: any | any[]) => {
     return [].concat(value).map((e) => {
       const filterOptions = this.#filterFieldOptionsMap[field];
@@ -488,196 +486,188 @@ export class DyPatTableElement<T = any> extends GemElement<State> {
   };
 
   #selectionContainer?: HTMLElement;
+
+  @memo((i) => [i.selectable])
+  #setSelectionContainer = () => {
+    this.#selectionContainer = (this.selectable && closestElement(this, 'main')) || undefined;
+  };
+
   #columns: PatTableColumn<T>[] = [];
-  willMount = () => {
-    this.memo(
-      () => {
-        this.#selectionContainer = (this.selectable && closestElement(this, 'main')) || undefined;
-      },
-      () => [this.selectable],
-    );
-    this.memo(
-      () => {
-        const { sort } = this.state;
-        this.#columns = this.columns.map(
-          (column, _index, _arr, field = String(column.dataIndex), status = sort[field]) => ({
-            ...column,
-            title:
-              column.sortable && column.title && column.dataIndex
-                ? html`
-                    <div
-                      style=${styleMap({ cursor: 'pointer', display: 'flex', gap: '.3em' })}
-                      @click=${() => this.#onSwitchSort(field)}
-                    >
-                      ${column.title}
-                      <dy-use style="width: 1em" .element=${icons.sort}>
-                        <style>
-                          @scope {
-                            :scope::part(up),
-                            :scope::part(down) {
-                              opacity: 0.2;
-                            }
-                            :scope::part(${!status ? '' : status === 'asc' ? 'up' : 'down'}) {
-                              opacity: 1;
-                            }
-                          }
-                        </style>
-                      </dy-use>
-                    </div>
-                  `
-                : column.title,
-          }),
-        );
-      },
-      () => [this.columns, this.state.sort],
-    );
-    // 显示正确的过滤器文本
-    this.memo(
-      () => {
-        this.columns.forEach((column) => {
-          const { title, filterOptions } = column;
-          const field = this.#getFilterField(column);
-          this.#filterFieldOptionsMap[field] = filterOptions;
-          this.#filterFieldLabelMap[field] = typeof title === 'string' ? title : getStringFromTemplate(title);
-          const enums = filterOptions && filterOptions.getOptions?.('');
-          if (enums) {
-            this.#filterFieldEnumMap[field] = convertToMap(enums, 'value', 'label');
-          }
-        });
-      },
-      () => [this.columns],
-    );
-    // 搜索和过滤数据，如果服务端分页，则跳过
-    this.memo(
-      () => {
-        this.#data = this.data;
-        if (this.paginationStore) return;
-        if (!this.#data) return;
-        const { search, filters, sort } = this.state;
-        if (search) {
-          this.#data = this.#data.filter((e) => {
-            if (!e) return true;
-            const str = this.columns
-              .filter(({ title }) => !!title)
-              .map(({ dataIndex, render, filterOptions }) => {
-                if (filterOptions && filterOptions.getSearchText) return filterOptions.getSearchText(e);
-                if (dataIndex) return readProp(e, dataIndex);
-                if (render) {
-                  const result = render(e);
-                  return typeof result === 'string' ? result : '';
-                }
-                return '';
-              })
-              .join();
-            return isIncludesString(str, search);
-          });
-        }
-        this.#data = this.#data?.filter((filter) => {
-          return filters.every(({ field, cType, value }) => {
-            if (!filter) return true;
-            const filterOptions = this.#filterFieldOptionsMap[field];
-            const fieldValue =
-              filterOptions && filterOptions.getCompareValue
-                ? filterOptions.getCompareValue(filter)
-                : readProp(filter, field.split(','));
-            if (Array.isArray(value)) {
-              if (Array.isArray(fieldValue)) return fieldValue.some((e) => comparer(value, cType, e));
-              return comparer(value, cType, fieldValue);
-            }
-            return comparer(String(fieldValue || '').toLowerCase(), cType, String(value || '').toLowerCase());
-          });
-        });
-        Object.entries(sort).forEach(([field, sortType]) => {
-          if (!sortType) return;
-          this.#data?.sort((a, b) => {
-            if (!a || !b) return 0;
-            const [aa, bb] = sortType === 'asc' ? [a, b] : [b, a];
-            const dataIndex = field.split(',');
-            return comparer(readProp(aa, dataIndex), ComparerType.Gte, readProp(bb, dataIndex)) ? 1 : -1;
-          });
-        });
-      },
-      () => [(this.locationStore || locationStore).query, this.columns, this.data],
+
+  @memo((i) => [i.columns, i.#state.sort])
+  #setColumns = () => {
+    const { sort } = this.#state;
+    this.#columns = this.columns.map(
+      (column, _index, _arr, field = String(column.dataIndex), status = sort[field]) => ({
+        ...column,
+        title:
+          column.sortable && column.title && column.dataIndex
+            ? html`
+                <div
+                  style=${styleMap({ cursor: 'pointer', display: 'flex', gap: '.3em' })}
+                  @click=${() => this.#onSwitchSort(field)}
+                >
+                  ${column.title}
+                  <dy-use style="width: 1em" .element=${icons.sort}>
+                    <style>
+                      @scope {
+                        :scope::part(up),
+                        :scope::part(down) {
+                          opacity: 0.2;
+                        }
+                        :scope::part(${!status ? '' : status === 'asc' ? 'up' : 'down'}) {
+                          opacity: 1;
+                        }
+                      }
+                    </style>
+                  </dy-use>
+                </div>
+              `
+            : column.title,
+      }),
     );
   };
 
-  mounted = () => {
-    this.effect(
-      () => {
-        if (this.#selectionContainer) {
-          return addListener(this.#selectionContainer, 'contextmenu', this.#onContextMenu);
+  #filterFieldOptionsMap: Record<string, PatTableColumn<T>['filterOptions']> = {};
+  #filterFieldLabelMap: Record<string, string> = {};
+  #filterFieldEnumMap: Record<string, Record<string, string>> = {};
+
+  // 显示正确的过滤器文本
+  @memo((i) => [i.columns])
+  #setFilterFieldEnumMap = () => {
+    this.columns.forEach((column) => {
+      const { title, filterOptions } = column;
+      const field = this.#getFilterField(column);
+      this.#filterFieldOptionsMap[field] = filterOptions;
+      this.#filterFieldLabelMap[field] = typeof title === 'string' ? title : getStringFromTemplate(title);
+      const enums = filterOptions && filterOptions.getOptions?.('');
+      if (enums) {
+        this.#filterFieldEnumMap[field] = convertToMap(enums, 'value', 'label');
+      }
+    });
+  };
+
+  // 搜索和过滤数据，如果服务端分页，则跳过
+  @memo((i) => [(i.locationStore || locationStore).query, i.columns, i.data])
+  #setData = () => {
+    this.#data = this.data;
+    if (this.paginationStore) return;
+    if (!this.#data) return;
+    const { search, filters, sort } = this.#state;
+    if (search) {
+      this.#data = this.#data.filter((e) => {
+        if (!e) return true;
+        const str = this.columns
+          .filter(({ title }) => !!title)
+          .map(({ dataIndex, render, filterOptions }) => {
+            if (filterOptions && filterOptions.getSearchText) return filterOptions.getSearchText(e);
+            if (dataIndex) return readProp(e, dataIndex);
+            if (render) {
+              const result = render(e);
+              return typeof result === 'string' ? result : '';
+            }
+            return '';
+          })
+          .join();
+        return isIncludesString(str, search);
+      });
+    }
+    this.#data = this.#data?.filter((filter) => {
+      return filters.every(({ field, cType, value }) => {
+        if (!filter) return true;
+        const filterOptions = this.#filterFieldOptionsMap[field];
+        const fieldValue =
+          filterOptions && filterOptions.getCompareValue
+            ? filterOptions.getCompareValue(filter)
+            : readProp(filter, field.split(','));
+        if (Array.isArray(value)) {
+          if (Array.isArray(fieldValue)) return fieldValue.some((e) => comparer(value, cType, e));
+          return comparer(value, cType, fieldValue);
         }
-      },
-      () => [this.selectable],
-    );
-    this.effect(
-      () => this.paginationStore && connect(this.paginationStore, this.update),
-      () => [this.paginationStore],
-    );
-    this.effect(
-      () => this.locationStore && connect(this.locationStore, this.update),
-      () => [this.locationStore],
-    );
-    this.effect(
-      () => {
-        const { search, filters, sort } = this.state;
-        const sorts = Object.entries(sort).filter(([_, v]) => v);
-        this.fetch({
-          sort,
-          search,
-          filters,
-          page: this.#page,
-          size: this.#size,
-          ...locationStore,
-          ...this.locationStore,
-          pageKey:
-            search || filters.length || sorts.length
-              ? `${search}-${filters
-                  .sort((a, b) => (a.field > b.field ? 1 : 0))
-                  .map(({ field, cType, value }) => `${field}-${cType}-${value}`)
-                  .join()}-${sorts
-                  .sort(([k], [kk]) => (k > kk ? 1 : 0))
-                  .map((e) => e.join('-'))
-                  .join()}`
-              : '',
-        });
-      },
-      () => {
-        const { path, query } = this.locationStore || locationStore;
-        return [
-          this.paginationStore?.updatedItem,
-          query.get(queryKeys.PAGINATION_PAGE),
-          query.get(queryKeys.PAGINATION_SIZE),
-          query.get(queryKeys.FILTERS),
-          query.get(queryKeys.SORT),
-          query.get(queryKeys.SEARCH),
-          path,
-        ];
-      },
-    );
-    // 高亮搜索词
-    this.effect(
-      async () => {
-        await sleep(1);
-        const { search } = this.state;
-        const Highlight = (window as any).Highlight;
-        const highlights = (CSS as any).highlights;
-        if (!Highlight || !highlights) return;
+        return comparer(String(fieldValue || '').toLowerCase(), cType, String(value || '').toLowerCase());
+      });
+    });
+    Object.entries(sort).forEach(([field, sortType]) => {
+      if (!sortType) return;
+      this.#data?.sort((a, b) => {
+        if (!a || !b) return 0;
+        const [aa, bb] = sortType === 'asc' ? [a, b] : [b, a];
+        const dataIndex = field.split(',');
+        return comparer(readProp(aa, dataIndex), ComparerType.Gte, readProp(bb, dataIndex)) ? 1 : -1;
+      });
+    });
+  };
 
-        if (!search) return highlights.clear();
+  @effect((i) => [i.selectable])
+  #addListener = () => {
+    if (this.#selectionContainer) {
+      return addListener(this.#selectionContainer, 'contextmenu', this.#onContextMenu);
+    }
+  };
 
-        const tbody = this.tableRef.element?.shadowRoot?.querySelector('tbody');
-        if (!tbody) return;
+  @effect((i) => [i.paginationStore])
+  #connectPaginationStore = () => this.paginationStore && connect(this.paginationStore, this.update);
 
-        const highlight = new Highlight();
-        splitString(search).forEach((s) => {
-          findRanges(tbody, s).forEach((range) => highlight.add(range));
-        });
-        highlights.set('search', highlight);
-      },
-      // search 进行了节流，所以是依赖 query
-      () => [this.paginationStore ? this.paginationStore.pagination[this.#page]?.ids : this.#search],
-    );
+  @effect((i) => [i.locationStore])
+  #connectLocationStore = () => this.locationStore && connect(this.locationStore, this.update);
+
+  #getEmitterEventDeps = () => {
+    const { path, query } = this.locationStore || locationStore;
+    return [
+      this.paginationStore?.updatedItem,
+      query.get(queryKeys.PAGINATION_PAGE),
+      query.get(queryKeys.PAGINATION_SIZE),
+      query.get(queryKeys.FILTERS),
+      query.get(queryKeys.SORT),
+      query.get(queryKeys.SEARCH),
+      path,
+    ];
+  };
+
+  @effect((i) => i.#getEmitterEventDeps())
+  #emitterEvent = () => {
+    const { search, filters, sort } = this.#state;
+    const sorts = Object.entries(sort).filter(([_, v]) => v);
+    this.fetch({
+      sort,
+      search,
+      filters,
+      page: this.#page,
+      size: this.#size,
+      ...locationStore,
+      ...this.locationStore,
+      pageKey:
+        search || filters.length || sorts.length
+          ? `${search}-${filters
+              .sort((a, b) => (a.field > b.field ? 1 : 0))
+              .map(({ field, cType, value }) => `${field}-${cType}-${value}`)
+              .join()}-${sorts
+              .sort(([k], [kk]) => (k > kk ? 1 : 0))
+              .map((e) => e.join('-'))
+              .join()}`
+          : '',
+    });
+  };
+
+  // search 进行了节流，所以是依赖 query
+  @effect((i) => [i.paginationStore ? i.paginationStore.pagination[i.#page]?.ids : i.#search])
+  #setHighlights = async () => {
+    await sleep(1);
+    const { search } = this.#state;
+    const Highlight = (window as any).Highlight;
+    const highlights = (CSS as any).highlights;
+    if (!Highlight || !highlights) return;
+
+    if (!search) return highlights.clear();
+
+    const tbody = this.tableRef.element?.shadowRoot?.querySelector('tbody');
+    if (!tbody) return;
+
+    const highlight = new Highlight();
+    splitString(search).forEach((s) => {
+      findRanges(tbody, s).forEach((range) => highlight.add(range));
+    });
+    highlights.set('search', highlight);
   };
 
   render = () => {
@@ -693,7 +683,7 @@ export class DyPatTableElement<T = any> extends GemElement<State> {
           @clear=${this.#onSearch}
           @change=${this.#onSearch}
           @keydown=${this.#onKeydown}
-          .value=${this.state.search}
+          .value=${this.#state.search}
         ></dy-input>
         ${this.filterable
           ? html`
@@ -703,7 +693,7 @@ export class DyPatTableElement<T = any> extends GemElement<State> {
             `
           : ''}
         <dy-scroll-box class="filters" part="filters">
-          ${this.state.filters.map(
+          ${this.#state.filters.map(
             ({ field, value, cType }, index) => html`
               <dy-tag
                 @pointerdown=${(evt: Event) => evt.preventDefault()}
@@ -731,7 +721,7 @@ export class DyPatTableElement<T = any> extends GemElement<State> {
         .columns=${this.#columns}
         .selectable=${this.selectable}
         .rowKey=${this.rowKey}
-        .selection=${this.state.selection}
+        .selection=${this.#state.selection}
         .selectionContainer=${this.#selectionContainer}
         @select=${this.#onSelect}
         @expand=${(evt: CustomEvent) => this.expand(evt.detail)}

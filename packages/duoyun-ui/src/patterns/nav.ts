@@ -1,6 +1,15 @@
 import { history } from '@mantou/gem/lib/history';
-import { createCSSSheet, GemElement, TemplateResult, html } from '@mantou/gem/lib/element';
-import { adoptedStyle, attribute, connectStore, customElement, property, state } from '@mantou/gem/lib/decorators';
+import { createCSSSheet, GemElement, TemplateResult, html, createState } from '@mantou/gem/lib/element';
+import {
+  adoptedStyle,
+  attribute,
+  connectStore,
+  customElement,
+  effect,
+  mounted,
+  property,
+  state,
+} from '@mantou/gem/lib/decorators';
 import { addListener, classMap, css } from '@mantou/gem/lib/utils';
 import { mediaQuery } from '@mantou/gem/helper/mediaquery';
 
@@ -177,10 +186,6 @@ const mobileStyle = createCSSSheet(
   `,
 );
 
-type State = {
-  drawerOpen: boolean;
-};
-
 /**
  * @customElement dy-pat-nav
  */
@@ -189,7 +194,7 @@ type State = {
 @adoptedStyle(style)
 @adoptedStyle(focusStyle)
 @connectStore(history.store)
-export class DyPatNavElement extends GemElement<State> {
+export class DyPatNavElement extends GemElement {
   @attribute name: string;
   @property links?: Links;
   @property logo?: string | Element | DocumentFragment;
@@ -197,33 +202,9 @@ export class DyPatNavElement extends GemElement<State> {
 
   @state switching: boolean;
 
-  constructor() {
-    super();
-    const blur = () => {
-      this.setState({ drawerOpen: false });
-      (this.getRootNode() as any).activeElement?.blur();
-      this.switching = true;
-      setTimeout(() => (this.switching = false), 60);
-    };
-    this.effect(
-      () => blur(),
-      () => [location.href],
-    );
-    this.effect(
-      () => {
-        return addListener(document, 'visibilitychange', () => {
-          if (document.visibilityState === 'hidden') {
-            blur();
-          }
-        });
-      },
-      () => [],
-    );
-  }
-
-  state: State = {
+  #state = createState({
     drawerOpen: false,
-  };
+  });
 
   #onMobileItemClick = (evt: MouseEvent) => {
     (evt.currentTarget as HTMLLIElement).classList.toggle('open-dropdown');
@@ -246,18 +227,35 @@ export class DyPatNavElement extends GemElement<State> {
     `;
   };
 
+  @effect(() => [location.href])
+  #blur = () => {
+    this.#state({ drawerOpen: false });
+    (this.getRootNode() as any).activeElement?.blur();
+    this.switching = true;
+    setTimeout(() => (this.switching = false), 60);
+  };
+
+  @mounted()
+  #autoBlur = () => {
+    return addListener(document, 'visibilitychange', () => {
+      if (document.visibilityState === 'hidden') {
+        this.#blur();
+      }
+    });
+  };
+
   render = () => {
     return html`
       <dy-use
         class="menu"
         tabindex="0"
         .element=${icons.menu}
-        @click=${() => this.setState({ drawerOpen: true })}
+        @click=${() => this.#state({ drawerOpen: true })}
       ></dy-use>
 
       ${this.#renderBrand()}
 
-      <nav class=${classMap({ navbar: true, open: this.state.drawerOpen })}>
+      <nav class=${classMap({ navbar: true, open: this.#state.drawerOpen })}>
         <ul class="nav-list">
           <li class="drawer-brand">${this.#renderBrand()}</li>
 
@@ -302,7 +300,7 @@ export class DyPatNavElement extends GemElement<State> {
           )}
         </ul>
 
-        <div style="flex-grow: 1" @click=${() => this.setState({ drawerOpen: false })}></div>
+        <div style="flex-grow: 1" @click=${() => this.#state({ drawerOpen: false })}></div>
       </nav>
 
       ${this.navSlot}

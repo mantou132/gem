@@ -17,6 +17,8 @@ import {
   adoptedStyle,
   createCSSSheet,
   kebabToCamelCase,
+  mounted,
+  willMount,
 } from '@mantou/gem';
 import { GemLightRouteElement, matchPath } from '@mantou/gem/elements/route';
 import { mediaQuery } from '@mantou/gem/helper/mediaquery';
@@ -231,6 +233,15 @@ export class GemBookElement extends GemElement {
     });
   }
 
+  @willMount()
+  #initUpdateStore = () => {
+    updateBookStore({
+      slots: Object.fromEntries(
+        [...this.querySelectorAll(':scope > [slot]')].map((ele: Element) => [kebabToCamelCase(ele.slot), ele]),
+      ),
+    });
+  };
+
   #onLoading = () => {
     Loadbar.start();
   };
@@ -239,14 +250,6 @@ export class GemBookElement extends GemElement {
     Loadbar.end();
     this.routechange(null);
   };
-
-  willMount() {
-    updateBookStore({
-      slots: Object.fromEntries(
-        [...this.querySelectorAll(':scope > [slot]')].map((ele: Element) => [kebabToCamelCase(ele.slot), ele]),
-      ),
-    });
-  }
 
   render() {
     const { config, nav = [], routes = [], lang = '', homePage = '', currentSidebar } = bookStore;
@@ -300,7 +303,8 @@ export class GemBookElement extends GemElement {
     `;
   }
 
-  mounted() {
+  @mounted()
+  #init = () => {
     this.effect(
       async () => {
         if (!this.src) return;
@@ -317,7 +321,7 @@ export class GemBookElement extends GemElement {
       () => changeTheme(this.theme),
       () => [this.theme],
     );
-  }
+  };
 
   changeTheme = changeTheme;
 }

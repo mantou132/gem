@@ -13,8 +13,12 @@ import {
   attribute,
   shadow,
   aria,
+  effect,
+  willMount,
+  memo,
+  mounted,
 } from '@mantou/gem/lib/decorators';
-import { createCSSSheet, GemElement, html, TemplateResult } from '@mantou/gem/lib/element';
+import { createCSSSheet, createState, GemElement, html, TemplateResult } from '@mantou/gem/lib/element';
 import { addListener, css, LinkedList, LinkedListItem, styled, styleMap } from '@mantou/gem/lib/utils';
 import { logger } from '@mantou/gem/helper/logger';
 
@@ -24,7 +28,7 @@ import { findScrollContainer } from '../lib/element';
 import { throttle, once } from '../lib/timer';
 
 import type { Status } from './status-light';
-import { DuoyunVisibleBaseElement, visibilityObserver } from './base/visible';
+import { DuoyunVisibleBaseElement, visibilityObserver, VisibleBaseElement } from './base/visible';
 import { DuoyunResizeBaseElement } from './base/resize';
 
 import './avatar';
@@ -77,7 +81,7 @@ const styles = createCSSSheet(css`
 @adoptedStyle(blockContainer)
 @shadow({ delegatesFocus: true })
 @aria({ role: 'list' })
-export class DuoyunListElement extends GemElement<State> {
+export class DuoyunListElement extends GemElement {
   @part static list: string;
   @part static item: string;
   @part static beforeOutside: string;
@@ -122,14 +126,56 @@ export class DuoyunListElement extends GemElement<State> {
 
   // 防止网格布局渲染不是整数行
   get #appendCount() {
-    return this.#itemCountPerScreen - (this.state.renderList.length % this.#itemColumnCount);
+    return this.#itemCountPerScreen - (this.#state.renderList.length % this.#itemColumnCount);
   }
 
-  state: State = {
+  #state = createState<State>({
     beforeHeight: 0,
     renderList: [],
     afterHeight: 0,
+  });
+
+  #itemLinked = new LinkedList<Key>();
+  #prevItemLinked = new LinkedList<Key>();
+  #keyItemMap = new Map<Key, any>();
+
+  #initState?: PersistentState;
+
+  @willMount()
+  #updateState = () => {
+    if (this.infinite) this.#setState({ ...this.#initState });
   };
+
+  @memo((i) => [i.#items, i.infinite])
+  #initMap = () => {
+    if (!this.infinite) return;
+
+    this.#prevItemLinked = this.#itemLinked;
+    this.#itemLinked = new LinkedList();
+    this.#keyItemMap = new Map();
+    this.#items?.forEach((item) => {
+      const key = this.getKey!(item);
+      this.#keyItemMap.set(key, item);
+      this.#itemLinked.add(key);
+    });
+  };
+
+  @memo((i) => [i.#items])
+  #updateItem = ([items]: any[], oldDeps?: any[]) => {
+    if (!this.infinite) return;
+    if (this.#itemLinked.isSuperLinkOf(this.#prevItemLinked)) {
+      // 是父集 items 就肯定有内容
+      this.#appendItems(items!, oldDeps?.at(0));
+    } else {
+      // 列表改了，需要重排
+      this.#setState({ beforeHeight: 0, renderList: [], afterHeight: 0 });
+      this.#reLayout();
+    }
+  };
+
+  // 切换 infinite 时，在渲染前进行重排，以使用正确的 scrollTop
+  @memo((i) => [i.infinite])
+  #preLayout = (_: boolean[], oldDeps?: boolean[]) => oldDeps && this.infinite && this.#reLayout();
 
   #log = (...args: any) => {
     this.debug && logger.info(...args);
@@ -137,7 +183,7 @@ export class DuoyunListElement extends GemElement<State> {
 
   #isEnd = (direction: 0 | -1) => {
     const item = this.#items?.at(direction);
-    const key = this.state.renderList.at(direction);
+    const key = this.#state.renderList.at(direction);
     return (item === undefined && key === undefined) || key === this.getKey!(item);
   };
 
@@ -146,7 +192,7 @@ export class DuoyunListElement extends GemElement<State> {
 
   #setState = (newState: Partial<State>) => {
     this.#log(newState);
-    this.setState(newState);
+    this.#state(newState);
   };
 
   #isLeftItem = (count: number) => !(count % this.#itemColumnCount);
@@ -154,7 +200,7 @@ export class DuoyunListElement extends GemElement<State> {
   // 没有渲染内容时
   #reLayout = (options: { silent?: boolean; resize?: boolean } = {}) => {
     this.#log('reLayout', options);
-    const { beforeHeight, afterHeight, renderList } = this.state;
+    const { beforeHeight, afterHeight, renderList } = this.#state;
     // 初始状态
     if (!renderList.length && !beforeHeight && !afterHeight) {
       this.#appendAfter(this.#itemLinked.first);
@@ -231,10 +277,10 @@ export class DuoyunListElement extends GemElement<State> {
 
     // 隐藏后面不可见的
     let afterHeight = 0;
-    let len = this.state.renderList.length;
+    let len = this.#state.renderList.length;
     let count = 0;
     for (let i = len - 1; i >= 0; i--) {
-      const ele = this.#getElement(this.state.renderList[i]);
+      const ele = this.#getElement(this.#state.renderList[i]);
       if (!ele.visible) {
         if (this.#isLeftItem(count)) afterHeight += this.#getRowHeight(ele);
         len--;
@@ -243,11 +289,11 @@ export class DuoyunListElement extends GemElement<State> {
     }
     this.#setState({
       // 同一行 visible 值可能不一样，但高度已经被计算
-      renderList: this.state.renderList.splice(0, len - (len % this.#itemColumnCount)),
-      afterHeight: this.state.afterHeight + afterHeight,
+      renderList: this.#state.renderList.splice(0, len - (len % this.#itemColumnCount)),
+      afterHeight: this.#state.afterHeight + afterHeight,
     });
 
-    const newRenderedFirstKey = this.state.renderList.at(0);
+    const newRenderedFirstKey = this.#state.renderList.at(0);
     if (!newRenderedFirstKey) {
       this.#reLayout();
       return;
@@ -268,9 +314,9 @@ export class DuoyunListElement extends GemElement<State> {
       node = node.prev;
     }
     this.#setState({
-      renderList: appendList.concat(this.state.renderList),
+      renderList: appendList.concat(this.#state.renderList),
       // itemHeight 改变，这里可能为负值，需要矫正？
-      beforeHeight: Math.max(0, this.state.beforeHeight - beforeHeight),
+      beforeHeight: Math.max(0, this.#state.beforeHeight - beforeHeight),
     });
   };
 
@@ -286,7 +332,7 @@ export class DuoyunListElement extends GemElement<State> {
     }
     if (beforeHeight) {
       // 有向前（上）加载数据，必须是列数的倍数
-      this.#setState({ beforeHeight: this.state.beforeHeight + beforeHeight });
+      this.#setState({ beforeHeight: this.#state.beforeHeight + beforeHeight });
       // 等待渲染后再滚动
       queueMicrotask(() => {
         this.scrollContainer.scrollBy({
@@ -311,7 +357,7 @@ export class DuoyunListElement extends GemElement<State> {
     let len = 0;
     let beforeHeight = 0;
     let count = 0;
-    for (const key of this.state.renderList) {
+    for (const key of this.#state.renderList) {
       const ele = this.#getElement(key);
       if (!ele.visible) {
         len++;
@@ -323,11 +369,11 @@ export class DuoyunListElement extends GemElement<State> {
     const mod = len % this.#itemColumnCount;
     const difference = mod ? this.#itemColumnCount - mod : 0;
     this.#setState({
-      renderList: this.state.renderList.splice(len + difference),
-      beforeHeight: this.state.beforeHeight + beforeHeight,
+      renderList: this.#state.renderList.splice(len + difference),
+      beforeHeight: this.#state.beforeHeight + beforeHeight,
     });
 
-    const newRenderedLastKey = this.state.renderList.at(-1);
+    const newRenderedLastKey = this.#state.renderList.at(-1);
     if (!newRenderedLastKey) {
       this.#reLayout();
       return;
@@ -347,8 +393,8 @@ export class DuoyunListElement extends GemElement<State> {
       node = node.next;
     }
     this.#setState({
-      renderList: this.state.renderList.concat(appendList),
-      afterHeight: Math.max(0, this.state.afterHeight - afterHeight),
+      renderList: this.#state.renderList.concat(appendList),
+      afterHeight: Math.max(0, this.#state.afterHeight - afterHeight),
     });
   };
 
@@ -426,7 +472,7 @@ export class DuoyunListElement extends GemElement<State> {
   // 用于保证渲染内容，但不应该运行太频繁
   #onScroll = throttle(
     () => {
-      const { renderList } = this.state;
+      const { renderList } = this.#state;
       if (renderList.length && renderList.every((key) => !this.#getElement(key).visible)) {
         this.#reLayout();
       } else {
@@ -438,71 +484,24 @@ export class DuoyunListElement extends GemElement<State> {
     { maxWait: 120 },
   );
 
-  #itemLinked = new LinkedList<Key>();
-  #prevItemLinked = new LinkedList<Key>();
-  #keyItemMap = new Map<Key, any>();
-
-  #initState?: PersistentState;
-
-  willMount = () => {
-    if (this.infinite) this.#setState({ ...this.#initState });
-
-    this.memo(
-      () => {
-        if (!this.infinite) return;
-
-        this.#prevItemLinked = this.#itemLinked;
-        this.#itemLinked = new LinkedList();
-        this.#keyItemMap = new Map();
-        this.#items?.forEach((item) => {
-          const key = this.getKey!(item);
-          this.#keyItemMap.set(key, item);
-          this.#itemLinked.add(key);
-        });
-      },
-      () => [this.#items, this.infinite],
-    );
-
-    this.memo(
-      ([items], oldDeps) => {
-        if (!this.infinite) return;
-        if (this.#itemLinked.isSuperLinkOf(this.#prevItemLinked)) {
-          // 是父集 items 就肯定有内容
-          this.#appendItems(items!, oldDeps?.at(0));
-        } else {
-          // 列表改了，需要重排
-          this.#setState({ beforeHeight: 0, renderList: [], afterHeight: 0 });
-          this.#reLayout();
-        }
-      },
-      () => [this.#items],
-    );
-
-    // 切换 infinite 时，在渲染前进行重排，以使用正确的 scrollTop
-    this.memo(
-      (_, oldDeps) => oldDeps && this.infinite && this.#reLayout(),
-      () => [this.infinite],
-    );
-  };
-
-  mounted = () => {
+  @mounted()
+  #init = () => {
     this.scrollContainer = findScrollContainer(this) || document.documentElement;
     if (this.#initState) this.scrollContainer.scrollTo(0, this.#initState.scrollTop);
-
-    this.effect(() => {
-      if (!this.infinite) return;
-      return addListener(this.scrollContainer, 'scroll', this.#onScroll);
-    });
-
-    // 已经等到新值需要检查
-    this.effect(
-      () => this.infinite && this.#reCheck(),
-      () => [this.#items],
-    );
   };
 
+  @effect()
+  #listener = () => {
+    if (!this.infinite) return;
+    return addListener(this.scrollContainer, 'scroll', this.#onScroll);
+  };
+
+  // 已经等到新值需要检查
+  @effect((i) => [i.#items])
+  #check = () => this.infinite && this.#reCheck();
+
   render = () => {
-    const { beforeHeight, afterHeight, renderList } = this.state;
+    const { beforeHeight, afterHeight, renderList } = this.#state;
     return html`
       <slot name=${DuoyunListElement.before}></slot>
       ${this.infinite
@@ -551,7 +550,7 @@ export class DuoyunListElement extends GemElement<State> {
   /**Getter */
   get persistentState(): PersistentState {
     return {
-      ...this.state,
+      ...this.#state,
       scrollTop: this.scrollContainer.scrollTop,
     };
   }
@@ -597,7 +596,7 @@ const itemStyle = createCSSSheet({
 @adoptedStyle(itemStyle)
 @shadow({ delegatesFocus: true })
 @aria({ role: 'listitem' })
-export class DuoyunListItemElement extends DuoyunResizeBaseElement implements DuoyunVisibleBaseElement {
+export class DuoyunListItemElement extends DuoyunResizeBaseElement implements VisibleBaseElement {
   @emitter show: Emitter;
   @emitter hide: Emitter;
 
@@ -608,14 +607,6 @@ export class DuoyunListItemElement extends DuoyunResizeBaseElement implements Du
   @property item?: any;
   @property renderItem?: (item: any) => TemplateResult;
   @property key?: any; // 提供另外一种方式来更新
-
-  constructor() {
-    super();
-    this.effect(
-      () => visibilityObserver(this),
-      () => [this.intersectionRoot],
-    );
-  }
 
   #renderDefaultItem = ({ title, avatar, description, status }: Item) => {
     return html`
@@ -637,6 +628,9 @@ export class DuoyunListItemElement extends DuoyunResizeBaseElement implements Du
       <dy-divider></dy-divider>
     `;
   };
+
+  @effect((i) => [i.intersectionRoot])
+  #observer1 = () => visibilityObserver(this);
 
   render = () => {
     if (this.item === undefined) return html``;

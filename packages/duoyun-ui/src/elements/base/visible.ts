@@ -1,7 +1,15 @@
-import { emitter, Emitter, property, state } from '@mantou/gem/lib/decorators';
+import { effect, emitter, Emitter, property, state } from '@mantou/gem/lib/decorators';
 import { GemElement } from '@mantou/gem/lib/element';
 
-export function visibilityObserver(ele: DuoyunVisibleBaseElement) {
+export abstract class VisibleBaseElement extends GemElement {
+  visible: boolean;
+  show: Emitter;
+  hide: Emitter;
+  intersectionRoot?: Element | Document;
+  intersectionRootMargin?: string;
+}
+
+export function visibilityObserver(ele: VisibleBaseElement) {
   const io = new IntersectionObserver(
     (entries) => {
       entries.forEach(({ intersectionRatio }) => {
@@ -27,7 +35,7 @@ export function visibilityObserver(ele: DuoyunVisibleBaseElement) {
  * @fires show
  * @fires hide
  */
-export class DuoyunVisibleBaseElement<_T = Record<string, unknown>> extends GemElement {
+export class DuoyunVisibleBaseElement extends GemElement implements VisibleBaseElement {
   @emitter show: Emitter;
   @emitter hide: Emitter;
 
@@ -36,11 +44,6 @@ export class DuoyunVisibleBaseElement<_T = Record<string, unknown>> extends GemE
   @property intersectionRoot?: Element | Document;
   @property intersectionRootMargin?: string;
 
-  constructor() {
-    super();
-    this.effect(
-      () => visibilityObserver(this),
-      () => [this.intersectionRoot],
-    );
-  }
+  @effect((i) => [i.intersectionRoot])
+  #observer = () => visibilityObserver(this);
 }

@@ -10,6 +10,7 @@ import {
   boolattribute,
   part,
   shadow,
+  memo,
 } from '@mantou/gem/lib/decorators';
 import { createCSSSheet, html, TemplateResult } from '@mantou/gem/lib/element';
 import { css, styleMap, classMap, StyleObject, isArrayChange } from '@mantou/gem/lib/utils';
@@ -187,7 +188,75 @@ export class DuoyunTableElement<T = any, K = any> extends DuoyunScrollBoxElement
   @property getActions?: (record: T, activeElement: HTMLElement) => MenuOrMenuObject;
   @emitter expand: Emitter<T>;
 
+  #columns?: Column<T>[];
+  #sidePart?: TemplateResult;
+  #headerPart?: TemplateResult;
+
+  @memo((i) => [i.columns, i.headless, i.getActions, i.expandedRowRender])
+  #preRender = () => {
+    this.#columns = this.expandedRowRender && this.columns ? [this.#expandedColumn, ...this.columns] : this.columns;
+    if (!this.#columns) return;
+    if (this.getActions) this.#columns.push(this.#actionsColumn);
+
+    this.#headerPart = html`
+      <colgroup>
+        ${this.#columns.map(({ width = 'auto' }) => html`<col style=${styleMap({ width })} /> `)}
+      </colgroup>
+      ${this.headless
+        ? ''
+        : html`
+            <thead>
+              <tr>
+                ${this.#columns.map(
+                  ({ title = '', width, style = this.#getDefaultStyle(width), tooltip }) => html`
+                    <th part=${DuoyunTableElement.th} style=${styleMap(style)}>
+                      <dy-space size="small">
+                        ${title}
+                        ${tooltip
+                          ? html`
+                              <dy-tooltip .content=${tooltip}>
+                                <dy-use class="tooltip" .element=${icons.help}></dy-use>
+                              </dy-tooltip>
+                            `
+                          : ''}
+                      </dy-space>
+                    </th>
+                  `,
+                )}
+              </tr>
+            </thead>
+          `}
+    `;
+
+    let sum = this.#columns
+      .filter(({ visibleWidth }) => visibleWidth !== 'auto')
+      .map(({ width }) => width || '15em')
+      .join(' + ');
+
+    this.#sidePart = html`
+      ${this.#columns.map(({ visibleWidth, width }, index) => {
+        if (!visibleWidth) return '';
+
+        sum = `${sum} + ${width}`;
+        // `visibility: collapse;` 不完美
+        return html`
+          <style>
+            @container (width <= ${visibleWidth === 'auto' ? `calc(${sum})` : visibleWidth}) {
+              :where(th, td, col):nth-of-type(${index + 1}) {
+                width: 0 !important;
+                font-size: 0;
+              }
+            }
+          </style>
+        `;
+      })}
+    `;
+  };
+
   #selectionSet = new Set<K>();
+
+  @memo((i) => i.selection || [])
+  #updateSelectionSet = () => (this.#selectionSet = new Set(this.selection));
 
   #onSelectionBoxChange = ({ detail: { rect, mode } }: CustomEvent<SelectionChange>) => {
     const selection = new Set(mode === 'new' ? [] : this.#selectionSet);
@@ -310,83 +379,6 @@ export class DuoyunTableElement<T = any, K = any> extends DuoyunScrollBoxElement
 
   #getDefaultStyle = (width?: string): StyleObject => {
     return width?.startsWith('0') ? { fontSize: '0' } : {};
-  };
-
-  #columns?: Column<T>[];
-  #sidePart?: TemplateResult;
-  #headerPart?: TemplateResult;
-  willMount = () => {
-    this.memo(
-      () => {
-        this.#columns = this.expandedRowRender && this.columns ? [this.#expandedColumn, ...this.columns] : this.columns;
-        if (!this.#columns) return;
-        if (this.getActions) this.#columns.push(this.#actionsColumn);
-
-        this.#headerPart = html`
-          <colgroup>
-            ${this.#columns.map(({ width = 'auto' }) => html`<col style=${styleMap({ width })} /> `)}
-          </colgroup>
-          ${this.headless
-            ? ''
-            : html`
-                <thead>
-                  <tr>
-                    ${this.#columns.map(
-                      ({ title = '', width, style = this.#getDefaultStyle(width), tooltip }) => html`
-                        <th part=${DuoyunTableElement.th} style=${styleMap(style)}>
-                          <dy-space size="small">
-                            ${title}
-                            ${tooltip
-                              ? html`
-                                  <dy-tooltip .content=${tooltip}>
-                                    <dy-use class="tooltip" .element=${icons.help}></dy-use>
-                                  </dy-tooltip>
-                                `
-                              : ''}
-                          </dy-space>
-                        </th>
-                      `,
-                    )}
-                  </tr>
-                </thead>
-              `}
-        `;
-
-        let sum = this.#columns
-          .filter(({ visibleWidth }) => visibleWidth !== 'auto')
-          .map(({ width }) => width || '15em')
-          .join(' + ');
-
-        this.#sidePart = html`
-          ${this.#columns.map(({ visibleWidth, width }, index) => {
-            if (!visibleWidth) return '';
-
-            sum = `${sum} + ${width}`;
-            // `visibility: collapse;` 不完美
-            return html`
-              <style>
-                @container (width <= ${visibleWidth === 'auto' ? `calc(${sum})` : visibleWidth}) {
-                  :where(th, td, col):nth-of-type(${index + 1}) {
-                    width: 0 !important;
-                    font-size: 0;
-                  }
-                }
-              </style>
-            `;
-          })}
-        `;
-      },
-      () => [this.columns, this.headless, this.getActions, this.expandedRowRender],
-    );
-  };
-
-  mounted = () => {
-    this.memo(
-      () => {
-        this.#selectionSet = new Set(this.selection);
-      },
-      () => this.selection || [],
-    );
   };
 
   render = () => {

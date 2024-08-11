@@ -1,4 +1,4 @@
-import { connectStore, adoptedStyle, customElement, shadow } from '@mantou/gem/lib/decorators';
+import { connectStore, adoptedStyle, customElement, shadow, effect } from '@mantou/gem/lib/decorators';
 import { createCSSSheet, GemElement, html, TemplateResult } from '@mantou/gem/lib/element';
 import { css, styleMap, classMap } from '@mantou/gem/lib/utils';
 import { useStore } from '@mantou/gem/lib/store';
@@ -112,6 +112,7 @@ export class DuoyunChartTooltipElement extends GemElement {
     ChartTooltip.instance = null;
   };
 
+  @effect()
   #adjust = () => {
     const { x, y } = store;
     const { width, height } = this.getBoundingClientRect();
@@ -120,14 +121,6 @@ export class DuoyunChartTooltipElement extends GemElement {
       const yy = y + height > innerHeight ? '-100%' : 0;
       ChartTooltip.instance.style.transform = `translate(${xx}, ${yy})`;
     }
-  };
-
-  updated = () => {
-    this.#adjust();
-  };
-
-  mounted = () => {
-    this.#adjust();
   };
 
   render = () => {

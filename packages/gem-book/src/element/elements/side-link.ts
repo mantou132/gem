@@ -1,4 +1,4 @@
-import { connectStore, customElement, state } from '@mantou/gem';
+import { connectStore, customElement, effect, state } from '@mantou/gem';
 import { GemActiveLinkElement } from '@mantou/gem/elements/link';
 
 import { locationStore } from '../store';
@@ -11,11 +11,6 @@ import { locationStore } from '../store';
 export class GemBookSideLinkElement extends GemActiveLinkElement {
   @state match: boolean;
 
-  constructor() {
-    super();
-    this.effect(
-      () => (this.match = this.active),
-      () => [locationStore.path, locationStore.query],
-    );
-  }
+  @effect(() => [locationStore.path, locationStore.query])
+  #updateState = () => (this.match = this.active);
 }

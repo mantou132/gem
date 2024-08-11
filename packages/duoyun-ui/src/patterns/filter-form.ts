@@ -1,13 +1,16 @@
-import { GemElement, html, createCSSSheet } from '@mantou/gem/lib/element';
+import { GemElement, html, createCSSSheet, createState } from '@mantou/gem/lib/element';
 import { css } from '@mantou/gem/lib/utils';
 import {
   adoptedStyle,
   connectStore,
   customElement,
+  effect,
   emitter,
   Emitter,
+  memo,
   property,
   shadow,
+  willMount,
 } from '@mantou/gem/lib/decorators';
 import { Store, connect } from '@mantou/gem/lib/store';
 
@@ -91,7 +94,7 @@ const defaultState: State = {
 @adoptedStyle(blockContainer)
 @connectStore(locale)
 @shadow()
-export class DyPatFilterFormElement extends GemElement<State> {
+export class DyPatFilterFormElement extends GemElement {
   @property options?: FilterableOptions;
   @property getText?: (text: ComparerType) => string;
 
@@ -102,7 +105,7 @@ export class DyPatFilterFormElement extends GemElement<State> {
   }
 
   get #durationValue() {
-    return ((Number(this.state.value) || 0) / this.state.durationUnit).toString();
+    return ((Number(this.#state.value) || 0) / this.#state.durationUnit).toString();
   }
 
   get #comparerList(): ComparerType[] {
@@ -117,7 +120,7 @@ export class DyPatFilterFormElement extends GemElement<State> {
   }
 
   get #disabled() {
-    const { value } = this.state;
+    const { value } = this.#state;
     switch (this.#type) {
       case 'enum':
         return !Array.isArray(value) || !value.length;
@@ -126,40 +129,50 @@ export class DyPatFilterFormElement extends GemElement<State> {
     }
   }
 
-  state: State = { ...defaultState };
+  #state = createState({ ...defaultState });
+
+  @memo((i) => [i.options])
+  #initState = () => {
+    this.#state({ ...defaultState, comparerType: this.#comparerList[0] });
+  };
+
+  @willMount()
+  #applyInitValue = () => {
+    this.#state(this.initValue || {});
+  };
 
   #onSubmit = () => {
     if (this.#disabled) return;
-    const { comparerType, value } = this.state;
+    const { comparerType, value } = this.#state;
     this.submit({ comparerType, value });
   };
 
   #onChangeValue = ({ detail }: CustomEvent<string>) => {
-    this.setState({ value: detail });
+    this.#state({ value: detail });
   };
 
   #onChangeDataValue = ({ detail }: CustomEvent<number>) => {
-    this.setState({
-      value: String(this.state.comparerType === ComparerType.Lte ? new Time(detail).endOf('d').valueOf() : detail),
+    this.#state({
+      value: String(this.#state.comparerType === ComparerType.Lte ? new Time(detail).endOf('d').valueOf() : detail),
     });
   };
 
   #onChangeTimeValue = ({ detail }: CustomEvent<number>) => {
-    this.setState({
+    this.#state({
       value: String(new Time(detail).diff(new Time(detail).startOf('d'))),
     });
   };
 
   #onChangeDurationValue = ({ detail }: CustomEvent<string>) => {
     if (isNaN(Number(detail))) return;
-    this.setState({
-      value: (Number(detail) * this.state.durationUnit).toString(),
+    this.#state({
+      value: (Number(detail) * this.#state.durationUnit).toString(),
     });
   };
 
   #onChangeDurationUnit = ({ detail }: CustomEvent<number>) => {
-    this.setState({
-      value: String(((Number(this.state.value) || 0) / this.state.durationUnit) * detail),
+    this.#state({
+      value: String(((Number(this.#state.value) || 0) / this.#state.durationUnit) * detail),
       durationUnit: detail,
     });
   };
@@ -172,21 +185,23 @@ export class DyPatFilterFormElement extends GemElement<State> {
           <dy-date-panel
             ?time=${this.#type === 'date-time'}
             @change=${this.#type === 'date' ? this.#onChangeDataValue : this.#onChangeValue}
-            .value=${this.state.value === '' ? undefined : Number(this.state.value)}
+            .value=${this.#state.value === '' ? undefined : Number(this.#state.value)}
           ></dy-date-panel>
         `;
       case 'time':
         return html`
           <dy-time-panel
             @change=${this.#onChangeTimeValue}
-            .value=${this.state.value === '' ? undefined : Number(this.state.value) + new Time().startOf('d').valueOf()}
+            .value=${this.#state.value === ''
+              ? undefined
+              : Number(this.#state.value) + new Time().startOf('d').valueOf()}
           ></dy-time-panel>
         `;
       case 'enum':
         const getProviders = this.options?.getProviders;
-        const options: Option[] | undefined = this.options?.getOptions?.(this.state.provider);
-        const filteredOptions = this.state.search
-          ? options?.filter(({ label }) => isIncludesString(label, this.state.search))
+        const options: Option[] | undefined = this.options?.getOptions?.(this.#state.provider);
+        const filteredOptions = this.#state.search
+          ? options?.filter(({ label }) => isIncludesString(label, this.#state.search))
           : options;
         const hasFilter = options && options.length > 30;
         return html`
@@ -196,8 +211,8 @@ export class DyPatFilterFormElement extends GemElement<State> {
                   ${getProviders
                     ? html`
                         <dy-select
-                          @change=${({ detail }: CustomEvent<string>) => this.setState({ provider: detail })}
-                          .value=${this.state.provider}
+                          @change=${({ detail }: CustomEvent<string>) => this.#state({ provider: detail })}
+                          .value=${this.#state.provider}
                           .options=${getProviders()}
                           .placeholder=${locale.filter}
                         ></dy-select>
@@ -207,10 +222,10 @@ export class DyPatFilterFormElement extends GemElement<State> {
                     .icon=${icons.search}
                     .placeholder=${locale.search}
                     autofocus
-                    value=${this.state.search}
-                    @change=${({ detail: search }: CustomEvent<string>) => this.setState({ search })}
+                    value=${this.#state.search}
+                    @change=${({ detail: search }: CustomEvent<string>) => this.#state({ search })}
                     clearable
-                    @clear=${() => this.setState({ search: '' })}
+                    @clear=${() => this.#state({ search: '' })}
                   ></dy-input>
                 </dy-input-group>
               `
@@ -221,7 +236,7 @@ export class DyPatFilterFormElement extends GemElement<State> {
                   @change=${this.#onChangeValue}
                   .inline=${true}
                   .multiple=${true}
-                  .value=${this.state.value}
+                  .value=${this.#state.value}
                   .options=${filteredOptions}
                 ></dy-select>
               `
@@ -233,7 +248,7 @@ export class DyPatFilterFormElement extends GemElement<State> {
             <dy-input @change=${this.#onChangeDurationValue} .value=${this.#durationValue}></dy-input>
             <dy-select
               @change=${this.#onChangeDurationUnit}
-              .value=${this.state.durationUnit}
+              .value=${this.#state.durationUnit}
               .options=${durationUnitList}
             ></dy-select>
           </dy-input-group>
@@ -244,46 +259,29 @@ export class DyPatFilterFormElement extends GemElement<State> {
             type="number"
             autofocus
             @change=${this.#onChangeValue}
-            .value=${String(this.state.value)}
+            .value=${String(this.#state.value)}
           ></dy-input>
         `;
       default:
         return html`
-          <dy-input autofocus @change=${this.#onChangeValue} .value=${String(this.state.value)}></dy-input>
+          <dy-input autofocus @change=${this.#onChangeValue} .value=${String(this.#state.value)}></dy-input>
         `;
     }
   };
 
-  willMount = () => {
-    this.memo(
-      () => {
-        this.state = { ...defaultState, comparerType: this.#comparerList[0] };
-      },
-      () => [this.options],
-    );
-    this.memo(
-      () => Object.assign(this.state || {}, this.initValue),
-      () => [],
-    );
-  };
-
-  mounted = () => {
-    this.effect(
-      () => {
-        const disconnects = this.options?.connectStores?.map((e) => connect(e, this.update));
-        return () => disconnects?.forEach((disconnect) => disconnect());
-      },
-      () => [this.options],
-    );
+  @effect((i) => [i.options])
+  #connectStores = () => {
+    const disconnects = this.options?.connectStores?.map((e) => connect(e, this.update));
+    return () => disconnects?.forEach((disconnect) => disconnect());
   };
 
   render = () => {
-    const { comparerType } = this.state;
+    const { comparerType } = this.#state;
     return html`
       ${this.#comparerList.map(
         (e) => html`
           <div class="line">
-            <dy-radio ?checked=${e === comparerType} @change=${() => this.setState({ comparerType: e, value: '' })}>
+            <dy-radio ?checked=${e === comparerType} @change=${() => this.#state({ comparerType: e, value: '' })}>
               ${this.getText?.(e) || e}
             </dy-radio>
           </div>

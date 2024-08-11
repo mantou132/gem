@@ -12,12 +12,13 @@ const [store, update] = useStore({
 @customElement('app-root')
 @connectStore(store)
 export class HelloWorld extends GemElement {
-  clickHandle = () => {
+  #clickHandle = () => {
     update({ a: ++store.a });
   };
+
   render() {
     return html`
-      <button @click="${this.clickHandle}">Hello, World</button>
+      <button @click="${this.#clickHandle}">Hello, World</button>
       <div>store.a: ${store.a}</div>
     `;
   }

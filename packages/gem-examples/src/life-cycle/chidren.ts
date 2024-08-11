@@ -12,6 +12,7 @@ import {
   numattribute,
   boolattribute,
   shadow,
+  mounted,
 } from '@mantou/gem';
 
 export type Message = number[];
@@ -47,16 +48,13 @@ export class Children extends GemElement {
     console.log('child cons');
   }
 
-  mounted = () => {
+  @mounted()
+  #init = () => {
     console.log('child mounted');
     setTimeout(() => this.load(new Date()), 1000);
     this.addEventListener('click', () => {
       this.odd = !this.odd;
     });
-  };
-
-  updated = () => {
-    console.log('child updated');
   };
 
   render() {

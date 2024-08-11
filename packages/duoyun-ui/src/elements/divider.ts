@@ -1,5 +1,5 @@
 // https://spectrum.adobe.com/page/divider/
-import { adoptedStyle, customElement, attribute, aria, shadow } from '@mantou/gem/lib/decorators';
+import { adoptedStyle, customElement, attribute, aria, shadow, effect } from '@mantou/gem/lib/decorators';
 import { GemElement, html, createCSSSheet } from '@mantou/gem/lib/element';
 import { css } from '@mantou/gem/lib/utils';
 
@@ -67,12 +67,10 @@ export class DuoyunDividerElement extends GemElement {
     }
   }
 
-  constructor() {
-    super();
-    this.effect(() => {
-      this.internals.ariaOrientation = this.#orientation;
-    });
-  }
+  @effect()
+  #updateAria = () => {
+    this.internals.ariaOrientation = this.#orientation;
+  };
 
   render = () => {
     return html`

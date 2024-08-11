@@ -2,6 +2,7 @@
 
 import { logger } from '@mantou/gem/helper/logger';
 import { addListener } from '@mantou/gem/lib/utils';
+import { mounted } from '@mantou/gem/lib/decorators';
 
 import { DuoyunVisibleBaseElement } from './visible';
 
@@ -37,12 +38,7 @@ export function wakeLock(ele: DuoyunWakeLockBaseElement) {
   };
 }
 
-export class DuoyunWakeLockBaseElement<_T = Record<string, unknown>> extends DuoyunVisibleBaseElement {
-  constructor() {
-    super();
-    this.effect(
-      () => wakeLock(this),
-      () => [],
-    );
-  }
+export class DuoyunWakeLockBaseElement extends DuoyunVisibleBaseElement {
+  @mounted()
+  #init = () => wakeLock(this);
 }

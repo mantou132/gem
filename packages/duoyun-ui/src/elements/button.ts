@@ -11,10 +11,11 @@ import {
   part,
   slot,
   shadow,
+  mounted,
 } from '@mantou/gem/lib/decorators';
 import { createCSSSheet, GemElement, html } from '@mantou/gem/lib/element';
 import { history } from '@mantou/gem/lib/history';
-import { css, QueryString } from '@mantou/gem/lib/utils';
+import { addListener, css, QueryString } from '@mantou/gem/lib/utils';
 
 import { theme, getSemanticColor } from '../lib/theme';
 import { icons } from '../lib/icons';
@@ -168,21 +169,18 @@ export class DuoyunButtonElement extends GemElement {
     return getSemanticColor(this.color) || this.color || theme.primaryColor;
   }
 
-  constructor() {
-    super();
-    this.addEventListener('click', () => {
-      if (this.disabled) return;
-      if (this.route) {
-        history.push(
-          createHistoryParams(this.route, {
-            title: this.route.title,
-            params: this.params,
-            query: new QueryString(this.query),
-          }),
-        );
-      }
-    });
-  }
+  #onClick = () => {
+    if (this.disabled) return;
+    if (this.route) {
+      history.push(
+        createHistoryParams(this.route, {
+          title: this.route.title,
+          params: this.params,
+          query: new QueryString(this.query),
+        }),
+      );
+    }
+  };
 
   #onClickDropdown = async (e: MouseEvent) => {
     e.stopPropagation();
@@ -200,6 +198,9 @@ export class DuoyunButtonElement extends GemElement {
       element!.active = false;
     }
   };
+
+  @mounted()
+  #init = () => addListener(this, 'click', this.#onClick);
 
   render = () => {
     return html`

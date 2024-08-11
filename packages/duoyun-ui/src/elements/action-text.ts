@@ -1,6 +1,6 @@
 import { GemElement, html, createCSSSheet } from '@mantou/gem/lib/element';
-import { adoptedStyle, customElement, attribute, state, slot, aria, shadow } from '@mantou/gem/lib/decorators';
-import { css } from '@mantou/gem/lib/utils';
+import { adoptedStyle, customElement, attribute, state, slot, aria, shadow, mounted } from '@mantou/gem/lib/decorators';
+import { addListener, css } from '@mantou/gem/lib/utils';
 
 import { theme, getSemanticColor } from '../lib/theme';
 import { commonHandle } from '../lib/hotkeys';
@@ -43,10 +43,8 @@ export class DuoyunActionTextElement extends GemElement {
   @attribute color: string;
   @state active: boolean;
 
-  constructor() {
-    super();
-    this.addEventListener('keydown', commonHandle);
-  }
+  @mounted()
+  #init = () => addListener(this, 'keydown', commonHandle);
 
   render = () => {
     return html`

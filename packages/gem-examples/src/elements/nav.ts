@@ -1,14 +1,16 @@
-import { GemElement, html, customElement, shadow } from '@mantou/gem';
+import { GemElement, html, customElement, shadow, mounted } from '@mantou/gem';
 
 import { EXAMPLES, VERSION } from './env';
 
 @customElement('gem-examples-nav')
 @shadow()
 export class Nav extends GemElement {
-  mounted = () => {
+  @mounted()
+  #init = () => {
     if (window.top !== window) return;
     this.shadowRoot?.querySelector('.active')?.scrollIntoView({ block: 'center' });
   };
+
   render() {
     return html`
       <style>

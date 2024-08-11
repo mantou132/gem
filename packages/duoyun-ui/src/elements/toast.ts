@@ -1,6 +1,6 @@
-import { adoptedStyle, aria, customElement, property, shadow } from '@mantou/gem/lib/decorators';
+import { adoptedStyle, aria, customElement, mounted, property, shadow } from '@mantou/gem/lib/decorators';
 import { GemElement, html, TemplateResult, createCSSSheet } from '@mantou/gem/lib/element';
-import { css, classMap } from '@mantou/gem/lib/utils';
+import { css, classMap, addListener } from '@mantou/gem/lib/utils';
 import { repeat } from '@mantou/gem/lib/directives';
 
 import { icons } from '../lib/icons';
@@ -143,16 +143,6 @@ export class DuoyunToastElement extends GemElement {
     itemTimerMap.set(item, removeTimer);
   }
 
-  constructor() {
-    super();
-    if (Toast.instance) throw new Error('Single instance component');
-    this.addEventListener('mouseover', () => {
-      this.#over = new Promise((res) => {
-        this.addEventListener('mouseout', () => res(), { once: true });
-      });
-    });
-  }
-
   #over = Promise.resolve();
 
   #getIcon = (type: Type) => {
@@ -185,7 +175,16 @@ export class DuoyunToastElement extends GemElement {
     this.#removeItem(item);
   };
 
-  mounted = () => {
+  #onMouseOver = () => {
+    this.#over = new Promise((res) => {
+      this.addEventListener('mouseout', () => res(), { once: true });
+    });
+  };
+
+  @mounted()
+  #init = () => {
+    if (Toast.instance) throw new Error('Single instance component');
+    addListener(this, 'mouseover', this.#onMouseOver);
     Toast.instance = this;
     return () => (Toast.instance = undefined);
   };

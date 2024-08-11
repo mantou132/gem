@@ -7,6 +7,8 @@ import {
   createCSSSheet,
   adoptedStyle,
   connectStore,
+  memo,
+  effect,
 } from '@mantou/gem';
 import { mediaQuery } from '@mantou/gem/helper/mediaquery';
 
@@ -146,7 +148,6 @@ const style = createCSSSheet(css`
   }
   p {
     margin: 1rem 0;
-    content-visibility: auto;
   }
   li > p:first-of-type {
     margin: 0;
@@ -213,27 +214,22 @@ export class Main extends GemElement {
 
   static detailsStateCache = new Map<string, boolean>();
 
-  constructor() {
-    super();
-    this.memo(
-      () => {
-        const mdBody = getBody(this.content);
-        this.#content = parseMarkdown(mdBody).map((detailsEle) => {
-          if (detailsEle instanceof HTMLDetailsElement) {
-            const key = locationStore.path + detailsEle.innerHTML;
-            detailsEle.open = !!Main.detailsStateCache.get(key);
-            detailsEle.addEventListener('toggle', () => {
-              Main.detailsStateCache.set(key, detailsEle.open);
-            });
-          }
-          return detailsEle;
-        });
-      },
-      () => [this.content],
-    );
-  }
-
   #content: Element[] = [];
+
+  @memo((i) => [i.content])
+  #calc = () => {
+    const mdBody = getBody(this.content);
+    this.#content = parseMarkdown(mdBody).map((detailsEle) => {
+      if (detailsEle instanceof HTMLDetailsElement) {
+        const key = locationStore.path + detailsEle.innerHTML;
+        detailsEle.open = !!Main.detailsStateCache.get(key);
+        detailsEle.addEventListener('toggle', () => {
+          Main.detailsStateCache.set(key, detailsEle.open);
+        });
+      }
+      return detailsEle;
+    });
+  };
 
   #updateToc = () => {
     updateTocStore({
@@ -241,40 +237,30 @@ export class Main extends GemElement {
     });
   };
 
+  @effect((i) => [i.content])
+  #observe = () => {
+    checkBuiltInPlugin(this);
+
+    this.#updateToc();
+
+    const mo = new MutationObserver(() => {
+      checkBuiltInPlugin(this);
+      this.#updateToc();
+    });
+    mo.observe(this, { childList: true, subtree: true });
+
+    return () => mo.disconnect();
+  };
+
+  @effect(() => [locationStore.hash])
+  #scrollIntoView = () => {
+    if (!locationStore.hash) return;
+    this.querySelector(`[id="${locationStore.hash.slice(1)}"]`)?.scrollIntoView({
+      block: 'start',
+    });
+  };
+
   render() {
     return html`${this.#content} `;
-  }
-
-  mounted() {
-    this.effect(
-      () => {
-        checkBuiltInPlugin(this);
-
-        this.#updateToc();
-
-        const mo = new MutationObserver(() => {
-          checkBuiltInPlugin(this);
-          this.#updateToc();
-        });
-        mo.observe(this, {
-          childList: true,
-          subtree: true,
-        });
-
-        return () => mo.disconnect();
-      },
-      () => [this.content],
-    );
-
-    this.effect(
-      ([hash]) => {
-        if (hash) {
-          this.querySelector(`[id="${hash.slice(1)}"]`)?.scrollIntoView({
-            block: 'start',
-          });
-        }
-      },
-      () => [locationStore.hash],
-    );
   }
 }

@@ -1,5 +1,5 @@
 // https://spectrum.adobe.com/page/scatter-plot/
-import { customElement, property } from '@mantou/gem/lib/decorators';
+import { customElement, memo, property, unmounted } from '@mantou/gem/lib/decorators';
 import { html, svg } from '@mantou/gem/lib/element';
 import { classMap } from '@mantou/gem/lib/utils';
 
@@ -17,6 +17,37 @@ export class DuoyunScatterChartElement extends DuoyunChartBaseElement {
   @property sequences?: Sequence[];
 
   #symbolSequences: (number[] | undefined)[][] = [];
+
+  @memo((i) => [i.sequences, i.contentRect.width, i.aspectRatio])
+  #calc = () => {
+    if (!this.contentRect.width) return;
+    if (!this.sequences?.length) return;
+    let xMin = Infinity;
+    let xMax = -Infinity;
+    let yMin = Infinity;
+    let yMax = -Infinity;
+    this.sequences.forEach(({ values }) => {
+      values.forEach(([x, y]) => {
+        if (!isNullish(x)) {
+          xMin = Math.min(xMin, x);
+          xMax = Math.max(xMax, x);
+        }
+        if (!isNullish(y)) {
+          yMin = Math.min(yMin, y);
+          yMax = Math.max(yMax, y);
+        }
+      });
+    });
+    this.initXAxi(xMin, xMax);
+    this.initYAxi(yMin, yMax);
+    this.initViewBox();
+
+    this.#symbolSequences = this.sequences.map(({ values }) => {
+      return values.map(([x, y]) => {
+        return isNullish(x) || isNullish(y) ? undefined : this.getStagePoint([x, y]);
+      });
+    });
+  };
 
   #tooltipRender = (data: Data) => {
     return html`${data.xValue},${data.values![0].value}`;
@@ -38,47 +69,9 @@ export class DuoyunScatterChartElement extends DuoyunChartBaseElement {
     });
   };
 
+  @unmounted()
   #onMouseOut = () => {
     ChartTooltip.close();
-  };
-
-  willMount = () => {
-    this.memo(
-      () => {
-        if (!this.contentRect.width) return;
-        if (!this.sequences?.length) return;
-        let xMin = Infinity;
-        let xMax = -Infinity;
-        let yMin = Infinity;
-        let yMax = -Infinity;
-        this.sequences.forEach(({ values }) => {
-          values.forEach(([x, y]) => {
-            if (!isNullish(x)) {
-              xMin = Math.min(xMin, x);
-              xMax = Math.max(xMax, x);
-            }
-            if (!isNullish(y)) {
-              yMin = Math.min(yMin, y);
-              yMax = Math.max(yMax, y);
-            }
-          });
-        });
-        this.initXAxi(xMin, xMax);
-        this.initYAxi(yMin, yMax);
-        this.initViewBox();
-
-        this.#symbolSequences = this.sequences.map(({ values }) => {
-          return values.map(([x, y]) => {
-            return isNullish(x) || isNullish(y) ? undefined : this.getStagePoint([x, y]);
-          });
-        });
-      },
-      () => [this.sequences, this.contentRect.width, this.aspectRatio],
-    );
-  };
-
-  mounted = () => {
-    return this.#onMouseOut;
   };
 
   render = () => {

@@ -9,6 +9,7 @@ import {
   part,
   shadow,
   aria,
+  effect,
 } from '@mantou/gem/lib/decorators';
 import { GemElement, html, createCSSSheet } from '@mantou/gem/lib/element';
 import { css, classMap } from '@mantou/gem/lib/utils';
@@ -88,19 +89,17 @@ export class DuoyunRateElement extends GemElement {
     return offset + (1 - 2 * offset) * origin;
   }
 
-  constructor() {
-    super();
-    this.effect(() => {
-      this.internals.ariaDisabled = String(this.disabled);
-      this.internals.ariaLabel = `${this.value}/${this.total}`;
-      this.internals.ariaValueMax = String(this.#total);
-      this.internals.ariaValueNow = String(this.value);
-    });
-  }
-
   #onClick = (score: number) => {
     if (this.readonly) return;
     this.change(score);
+  };
+
+  @effect()
+  #updateAria = () => {
+    this.internals.ariaDisabled = String(this.disabled);
+    this.internals.ariaLabel = `${this.value}/${this.total}`;
+    this.internals.ariaValueMax = String(this.#total);
+    this.internals.ariaValueNow = String(this.value);
   };
 
   render = () => {

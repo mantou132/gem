@@ -56,7 +56,20 @@ type Locales = Record<string, typeof zh | undefined>;
 
 customElements.whenDefined('gem-book').then(({ GemBookPluginElement }: typeof GemBookElement) => {
   const { Gem, theme, mediaQuery, config, Utils } = GemBookPluginElement;
-  const { html, customElement, attribute, refobject, addListener, property, createCSSSheet, css, adoptedStyle } = Gem;
+  const {
+    html,
+    customElement,
+    attribute,
+    refobject,
+    addListener,
+    property,
+    createCSSSheet,
+    css,
+    adoptedStyle,
+    createState,
+    effect,
+    mounted,
+  } = Gem;
 
   const styles = createCSSSheet(css`
     :scope {
@@ -125,12 +138,12 @@ customElements.whenDefined('gem-book').then(({ GemBookPluginElement }: typeof Ge
       return { ..._GbpDocsearchElement.defaultLocales, ...this.locales };
     }
 
-    state = { style: '' };
+    #state = createState({ style: '' });
 
     render() {
       return html`
         <style>
-          ${this.state.style}
+          ${this.#state.style}
         </style>
         <style>
           :root {
@@ -186,115 +199,110 @@ customElements.whenDefined('gem-book').then(({ GemBookPluginElement }: typeof Ge
       return getRes(query, result);
     }, 500);
 
-    mounted = () => {
-      this.effect(
-        async () => {
-          if (!IS_LOCAL) return;
-          const [{ default: MiniSearch }, res] = await Promise.all([
-            import(/* webpackIgnore: true */ minisearchLink) as any,
-            fetch(
-              `/${['documents', GemBookPluginElement.lang, 'json'].filter((e) => !!e).join('.')}?version=${
-                config.version
-              }`,
-            ),
-          ]);
-          const segmenter = Intl.Segmenter && new Intl.Segmenter(GemBookPluginElement.lang, { granularity: 'word' });
+    @effect(() => [GemBookPluginElement.lang])
+    #initLocalSearch = async () => {
+      if (!IS_LOCAL) return;
+      const [{ default: MiniSearch }, res] = await Promise.all([
+        import(/* webpackIgnore: true */ minisearchLink) as any,
+        fetch(
+          `/${['documents', GemBookPluginElement.lang, 'json'].filter((e) => !!e).join('.')}?version=${config.version}`,
+        ),
+      ]);
+      const segmenter = Intl.Segmenter && new Intl.Segmenter(GemBookPluginElement.lang, { granularity: 'word' });
 
-          const documents: MdDocument[] = await res.json();
-          // https://github.com/lucaong/minisearch/
-          const miniSearch = new MiniSearch({
-            fields: ['title', 'content'],
-            storeFields: ['title', 'content', 'titles', 'type'],
-            processTerm: (term: string) => {
-              if (!segmenter) return term;
-              const tokens: string[] = [];
-              for (const seg of segmenter.segment(term)) {
-                tokens.push(seg.segment);
-              }
-              return tokens;
-            },
-          });
+      const documents: MdDocument[] = await res.json();
+      // https://github.com/lucaong/minisearch/
+      const miniSearch = new MiniSearch({
+        fields: ['title', 'content'],
+        storeFields: ['title', 'content', 'titles', 'type'],
+        processTerm: (term: string) => {
+          if (!segmenter) return term;
+          const tokens: string[] = [];
+          for (const seg of segmenter.segment(term)) {
+            tokens.push(seg.segment);
+          }
+          return tokens;
+        },
+      });
 
-          const record = Object.fromEntries(documents.map((document) => [document.id, document.title]));
-          documents.forEach(async (document) => {
-            if (!document.text) return;
-            await new Promise((resolve) => (window.requestIdleCallback || setTimeout)(resolve));
+      const record = Object.fromEntries(documents.map((document) => [document.id, document.title]));
+      documents.forEach(async (document) => {
+        if (!document.text) return;
+        await new Promise((resolve) => (window.requestIdleCallback || setTimeout)(resolve));
 
-            const df = new DocumentFragment();
-            df.append(...Utils.parseMarkdown(document.text));
-            const titleList = [record[document.id]];
-            const parts = document.id.split('/');
-            while (parts.length) {
-              const part = parts.pop();
-              if (!part) continue;
-              const parentId = parts.join('/');
-              const parent = record[parentId + '/'];
-              if (!parent) continue;
-              titleList.unshift(parent);
+        const df = new DocumentFragment();
+        df.append(...Utils.parseMarkdown(document.text));
+        const titleList = [record[document.id]];
+        const parts = document.id.split('/');
+        while (parts.length) {
+          const part = parts.pop();
+          if (!part) continue;
+          const parentId = parts.join('/');
+          const parent = record[parentId + '/'];
+          if (!parent) continue;
+          titleList.unshift(parent);
+        }
+
+        getSections(df, titleList).forEach(({ hash, content, titles }) => {
+          if (titles.length < 2) titles.unshift(config.title || 'Documentation');
+
+          miniSearch.add({
+            id: document.id + hash,
+            title: titles.at(-1),
+            content: Utils.escapeHTML(content),
+            titles: titles.map((title, index) => Utils.capitalize(index === 0 ? title : Utils.escapeHTML(title))),
+            type: hash ? 'content' : `lvl${titles.length - 1}`,
+          } as IndexObject);
+        });
+      });
+      this.#miniSearch = miniSearch;
+    };
+
+    @effect((i) => [GemBookPluginElement.lang, i.appId, i.apiKey, i.indexName])
+    #initDocsearch = async () => {
+      const [text, { default: docSearch }] = await Promise.all([
+        (await fetch(styleLink)).text(),
+        await import(/* webpackIgnore: true */ moduleLink),
+      ]);
+      this.#state({ style: text });
+      // https://docsearch.algolia.com/docs/api
+      const locale = this.#locales[GemBookPluginElement.lang || ''];
+      docSearch({
+        appId: this.appId || undefined,
+        apiKey: this.apiKey,
+        indexName: this.indexName,
+        container: this.searchRef.element,
+        searchParameters: {
+          facetFilters: GemBookPluginElement.lang ? [`lang:${GemBookPluginElement.lang}`] : [],
+        },
+        placeholder: locale?.placeholder,
+        translations: locale?.translations,
+        // keyboard navigation
+        navigator: {
+          navigate: (item: { itemUrl: string }) => {
+            this.#navigator(new URL(item.itemUrl, location.origin).href);
+          },
+        },
+        getMissingResultsUrl: config.github
+          ? ({ query }: { query: string }) => {
+              return `${config.github}/issues/new?title=${query}`;
             }
-
-            getSections(df, titleList).forEach(({ hash, content, titles }) => {
-              if (titles.length < 2) titles.unshift(config.title || 'Documentation');
-
-              miniSearch.add({
-                id: document.id + hash,
-                title: titles.at(-1),
-                content: Utils.escapeHTML(content),
-                titles: titles.map((title, index) => Utils.capitalize(index === 0 ? title : Utils.escapeHTML(title))),
-                type: hash ? 'content' : `lvl${titles.length - 1}`,
-              } as IndexObject);
-            });
-          });
-          this.#miniSearch = miniSearch;
+          : undefined,
+        transformSearchClient: (searchClient: any) => {
+          return {
+            ...searchClient,
+            // https://github.com/algolia/docsearch/blob/874e16a5d42e8657e6ab2653e9638cd2282ba408/packages/docsearch-react/src/DocSearchModal.tsx#L227C36-L227C36
+            search: async ([queryObject]: any) => {
+              if (IS_LOCAL) return this.#search(queryObject.query);
+              return searchClient.search([queryObject]);
+            },
+          };
         },
-        () => [GemBookPluginElement.lang],
-      );
+      });
+    };
 
-      this.effect(
-        async () => {
-          const [text, { default: docSearch }] = await Promise.all([
-            (await fetch(styleLink)).text(),
-            await import(/* webpackIgnore: true */ moduleLink),
-          ]);
-          this.setState({ style: text });
-          // https://docsearch.algolia.com/docs/api
-          const locale = this.#locales[GemBookPluginElement.lang || ''];
-          docSearch({
-            appId: this.appId || undefined,
-            apiKey: this.apiKey,
-            indexName: this.indexName,
-            container: this.searchRef.element,
-            searchParameters: {
-              facetFilters: GemBookPluginElement.lang ? [`lang:${GemBookPluginElement.lang}`] : [],
-            },
-            placeholder: locale?.placeholder,
-            translations: locale?.translations,
-            // keyboard navigation
-            navigator: {
-              navigate: (item: { itemUrl: string }) => {
-                this.#navigator(new URL(item.itemUrl, location.origin).href);
-              },
-            },
-            getMissingResultsUrl: config.github
-              ? ({ query }: { query: string }) => {
-                  return `${config.github}/issues/new?title=${query}`;
-                }
-              : undefined,
-            transformSearchClient: (searchClient: any) => {
-              return {
-                ...searchClient,
-                // https://github.com/algolia/docsearch/blob/874e16a5d42e8657e6ab2653e9638cd2282ba408/packages/docsearch-react/src/DocSearchModal.tsx#L227C36-L227C36
-                search: async ([queryObject]: any) => {
-                  if (IS_LOCAL) return this.#search(queryObject.query);
-                  return searchClient.search([queryObject]);
-                },
-              };
-            },
-          });
-        },
-        () => [GemBookPluginElement.lang, this.appId, this.apiKey, this.indexName],
-      );
-
+    @mounted()
+    #init = () => {
       return addListener(window, 'click', (evt) => {
         const target = evt.target as Element;
         if (!target.closest('.DocSearch')) return;

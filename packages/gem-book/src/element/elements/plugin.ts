@@ -44,7 +44,7 @@ function getRemoteURL(originSrc = '', dev = GemBookPluginElement.devMode) {
 
 @connectStore(bookStore)
 @customElement('gem-book-plugin')
-export class GemBookPluginElement<T = any> extends GemElement<T> {
+export class GemBookPluginElement extends GemElement {
   static Gem = Gem;
   static Utils = {
     escapeHTML,
@@ -117,7 +117,7 @@ export class GemBookPluginElement<T = any> extends GemElement<T> {
    *}
    * ```
    */
-  cacheState(getDeps: () => (string | number | undefined | null)[]) {
+  cacheState(this: GemElement & { state: any }, getDeps: () => (string | number | undefined | null)[]) {
     if (!this.state) throw new Error('Only cache state');
     const cons = this.constructor as typeof GemBookPluginElement;
     const cache = cons.caches.get(cons) || new Map();

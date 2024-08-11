@@ -1,5 +1,5 @@
 import { adoptedStyle, customElement, property, boolattribute, slot, aria, shadow } from '@mantou/gem/lib/decorators';
-import { GemElement, html, TemplateResult, createCSSSheet } from '@mantou/gem/lib/element';
+import { GemElement, html, TemplateResult, createCSSSheet, createState } from '@mantou/gem/lib/element';
 import { css, classMap } from '@mantou/gem/lib/utils';
 
 import { theme } from '../lib/theme';
@@ -140,11 +140,6 @@ export type Adder = {
 
 export const SEPARATOR = '---';
 
-type State = {
-  search: string;
-  addValue: string;
-};
-
 /**
  * @customElement dy-options
  * @attr searchable
@@ -154,7 +149,7 @@ type State = {
 @adoptedStyle(focusStyle)
 @shadow()
 @aria({ focusable: true, role: 'listbox' })
-export class DuoyunOptionsElement extends GemElement<State> {
+export class DuoyunOptionsElement extends GemElement {
   @slot static unnamed: string;
 
   @boolattribute searchable: boolean;
@@ -162,20 +157,19 @@ export class DuoyunOptionsElement extends GemElement<State> {
   @property options?: Option[];
   @property adder?: Adder;
 
-  state: State = {
+  #state = createState({
     search: '',
     addValue: '',
-  };
+  });
 
   #onSearch = ({ detail }: CustomEvent<string>) => {
-    this.setState({ search: detail });
+    this.#state({ search: detail });
   };
 
   #onAdd = async () => {
-    if (this.state.addValue) {
-      await this.adder!.handle?.(this.state.addValue);
-      this.setState({ addValue: '' });
-    }
+    if (!this.#state.addValue) return;
+    await this.adder!.handle?.(this.#state.addValue);
+    this.#state({ addValue: '' });
   };
 
   #onRemove = (evt: MouseEvent, onRemove: (evt: MouseEvent) => void) => {
@@ -192,7 +186,7 @@ export class DuoyunOptionsElement extends GemElement<State> {
   });
 
   render = () => {
-    const { search } = this.state;
+    const { search } = this.#state;
 
     const options = search
       ? this.options?.filter(({ label, description = '' }) => isIncludesString(html`${label}${description}`, search))
@@ -230,9 +224,9 @@ export class DuoyunOptionsElement extends GemElement<State> {
                 <div class="label">
                   <dy-input
                     class="add-input"
-                    .value=${this.state.addValue}
+                    .value=${this.#state.addValue}
                     .placeholder=${this.adder.text || locale.add}
-                    @change=${({ detail: addValue }: CustomEvent<string>) => this.setState({ addValue })}
+                    @change=${({ detail: addValue }: CustomEvent<string>) => this.#state({ addValue })}
                     @keydown=${this.#onAdderKeyDown}
                   ></dy-input>
                 </div>

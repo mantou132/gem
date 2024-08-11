@@ -1,4 +1,4 @@
-import { adoptedStyle, customElement, property, attribute, shadow } from '@mantou/gem/lib/decorators';
+import { adoptedStyle, customElement, property, attribute, shadow, mounted, memo } from '@mantou/gem/lib/decorators';
 import { GemElement, html, TemplateResult, createCSSSheet } from '@mantou/gem/lib/element';
 import { css } from '@mantou/gem/lib/utils';
 
@@ -31,41 +31,39 @@ export class DuoyunTextMaskElement extends GemElement {
     return this.replacer || '*';
   }
 
-  constructor() {
-    super();
-    new MutationObserver(() => this.update()).observe(this, { childList: true, characterData: true, subtree: true });
-  }
-
   #masks: Map<number, [string[], MaskParseValue[]]>;
 
-  willMount = () => {
-    this.memo(
-      () => {
-        const clearRegRxp = new RegExp(`[^${this.#placeholder}${this.#replacer}]`, 'g');
-        const matchRegRxp = new RegExp(`([${this.#placeholder}]+|[${this.#replacer}]+)`);
-        this.#masks = new Map();
-        this.masks?.forEach((mask) => {
-          const { length } = mask.replaceAll(clearRegRxp, '');
-          const templateArr: string[] = [];
-          const values: MaskParseValue[] = [];
-          mask.split(matchRegRxp).forEach((e) => {
-            templateArr.push('');
-            if (!e) {
-              values.push('');
-            } else if (e === this.#placeholder.repeat(e.length)) {
-              values.push(e);
-            } else if (e === this.#replacer.repeat(e.length)) {
-              values.push(e.length);
-            } else {
-              values.push(html`<span>${e}</span>`);
-            }
-          });
-          templateArr.push('');
-          this.#masks.set(length, [templateArr, values]);
-        });
-      },
-      () => this.masks || [],
-    );
+  @memo((i) => i.masks || [])
+  #calc = () => {
+    const clearRegRxp = new RegExp(`[^${this.#placeholder}${this.#replacer}]`, 'g');
+    const matchRegRxp = new RegExp(`([${this.#placeholder}]+|[${this.#replacer}]+)`);
+    this.#masks = new Map();
+    this.masks?.forEach((mask) => {
+      const { length } = mask.replaceAll(clearRegRxp, '');
+      const templateArr: string[] = [];
+      const values: MaskParseValue[] = [];
+      mask.split(matchRegRxp).forEach((e) => {
+        templateArr.push('');
+        if (!e) {
+          values.push('');
+        } else if (e === this.#placeholder.repeat(e.length)) {
+          values.push(e);
+        } else if (e === this.#replacer.repeat(e.length)) {
+          values.push(e.length);
+        } else {
+          values.push(html`<span>${e}</span>`);
+        }
+      });
+      templateArr.push('');
+      this.#masks.set(length, [templateArr, values]);
+    });
+  };
+
+  @mounted()
+  #init = () => {
+    const ob = new MutationObserver(() => this.update());
+    ob.observe(this, { childList: true, characterData: true, subtree: true });
+    return () => ob.disconnect();
   };
 
   render = () => {

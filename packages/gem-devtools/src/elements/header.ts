@@ -8,6 +8,7 @@ import {
   connectStore,
   styleMap,
   shadow,
+  mounted,
 } from '@mantou/gem';
 
 import { changeConfigureStore, configureStore } from '../store';
@@ -50,7 +51,8 @@ export class DevtoolsHeaderElement extends GemElement {
     changeConfigureStore({ currentFrameURL: (evt.target as HTMLSelectElement).value });
   };
 
-  mounted = () => {
+  @mounted()
+  #init = () => {
     const timer = setInterval(async () => {
       const frames = await execution(getAllFrames, [], { frameURL: undefined });
       changeConfigureStore({

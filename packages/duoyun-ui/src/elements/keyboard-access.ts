@@ -1,4 +1,4 @@
-import { createCSSSheet, GemElement, html } from '@mantou/gem/lib/element';
+import { createCSSSheet, createState, GemElement, html } from '@mantou/gem/lib/element';
 import {
   adoptedStyle,
   customElement,
@@ -8,6 +8,8 @@ import {
   emitter,
   Emitter,
   shadow,
+  effect,
+  mounted,
 } from '@mantou/gem/lib/decorators';
 import { addListener, css, styleMap } from '@mantou/gem/lib/utils';
 import { logger } from '@mantou/gem/helper/logger';
@@ -101,7 +103,7 @@ export type NavigationDirection = 'up' | 'down' | 'left' | 'right';
 @adoptedStyle(style)
 @adoptedStyle(contentsContainer)
 @shadow()
-export class DuoyunKeyboardAccessElement extends GemElement<State> {
+export class DuoyunKeyboardAccessElement extends GemElement {
   @part static kbd: string;
   @attribute activekey: string;
 
@@ -117,11 +119,11 @@ export class DuoyunKeyboardAccessElement extends GemElement<State> {
     return this.scrollContainer || document.body;
   }
 
-  state: State = {
+  #state = createState<State>({
     active: false,
     waiting: false,
     keydownHandles: {},
-  };
+  });
 
   #onActive = () => {
     const focusableElements = getFocusableElements()
@@ -162,15 +164,15 @@ export class DuoyunKeyboardAccessElement extends GemElement<State> {
 
     const keydownHandles: HotKeyHandles = {
       esc: this.#onInactive,
-      onLock: () => this.setState({ waiting: true }),
-      onUnlock: () => this.setState({ waiting: false }),
+      onLock: () => this.#state({ waiting: true }),
+      onUnlock: () => this.#state({ waiting: false }),
       onUncapture: () => logger.warn('Un Capture!'),
     };
 
     focusableElements.forEach(({ key, element }) => {
       // `a-b`
       keydownHandles[[...key].join('-')] = () => {
-        this.setState({ active: false });
+        this.#state({ active: false });
         if (element instanceof HTMLElement) {
           // BasePickerElement 的 `showPicker` 一样支持通过 `click` 触发
           element.focus();
@@ -183,7 +185,7 @@ export class DuoyunKeyboardAccessElement extends GemElement<State> {
       };
     });
 
-    this.setState({
+    this.#state({
       active: true,
       waiting: false,
       keydownHandles,
@@ -192,14 +194,14 @@ export class DuoyunKeyboardAccessElement extends GemElement<State> {
   };
 
   #onInactive = () => {
-    if (!this.state.active) return;
-    this.setState({ active: false });
+    if (!this.#state.active) return;
+    this.#state({ active: false });
   };
 
   #onCancel = () => {
-    if (!this.state.active) return;
+    if (!this.#state.active) return;
     unlock();
-    this.setState({ active: false });
+    this.#state({ active: false });
   };
 
   #onNavigation = (dir: NavigationDirection) => {
@@ -250,7 +252,7 @@ export class DuoyunKeyboardAccessElement extends GemElement<State> {
   };
 
   #onKeydown = (evt: KeyboardEvent) => {
-    if (this.state.active) return;
+    if (this.#state.active) return;
     if (isInputElement(evt.composedPath()[0] as HTMLElement)) return;
     hotkeys(
       {
@@ -268,25 +270,8 @@ export class DuoyunKeyboardAccessElement extends GemElement<State> {
     )(evt);
   };
 
-  mounted = () => {
-    this.effect(
-      () => {
-        if (this.state.active) {
-          document.body.style.pointerEvents = 'none';
-          const removeListener = addListener(
-            window,
-            'keydown',
-            hotkeys(this.state.keydownHandles, { stopPropagation: true }),
-            { capture: true },
-          );
-          return () => {
-            document.body.style.pointerEvents = 'auto';
-            removeListener();
-          };
-        }
-      },
-      () => [this.state.active],
-    );
+  @mounted()
+  #init = () => {
     const removeKeydownListener = addListener(window, 'keydown', this.#onKeydown, { capture: true });
     const removePointerdown = addListener(window, 'pointerdown', this.#onCancel);
     return () => {
@@ -295,8 +280,24 @@ export class DuoyunKeyboardAccessElement extends GemElement<State> {
     };
   };
 
+  @effect((i) => [i.#state.active])
+  #changeDoc = () => {
+    if (!this.#state.active) return;
+    document.body.style.pointerEvents = 'none';
+    const removeListener = addListener(
+      window,
+      'keydown',
+      hotkeys(this.#state.keydownHandles, { stopPropagation: true }),
+      { capture: true },
+    );
+    return () => {
+      document.body.style.pointerEvents = 'auto';
+      removeListener();
+    };
+  };
+
   render = () => {
-    const { active, focusableElements, waiting } = this.state;
+    const { active, focusableElements, waiting } = this.#state;
     if (!active || !focusableElements) return html``;
     return html`
       <dy-paragraph class="container">

@@ -1,4 +1,13 @@
-import { connectStore, adoptedStyle, customElement, refobject, RefObject, shadow } from '@mantou/gem/lib/decorators';
+import {
+  connectStore,
+  adoptedStyle,
+  customElement,
+  refobject,
+  RefObject,
+  shadow,
+  effect,
+  mounted,
+} from '@mantou/gem/lib/decorators';
 import { createCSSSheet, html, GemElement, TemplateResult } from '@mantou/gem/lib/element';
 import { css, styleMap, classMap } from '@mantou/gem/lib/utils';
 import { useStore } from '@mantou/gem/lib/store';
@@ -283,6 +292,31 @@ export class DuoyunContextmenuElement extends GemElement {
     }
   };
 
+  #onMaskClick = () => {
+    if (contextmenuStore.maskClosable) {
+      ContextMenu.close();
+    }
+  };
+
+  @mounted()
+  #init = () => {
+    const restoreInert = setBodyInert(this);
+    ContextMenu.instance = this;
+    this.addEventListener('contextmenu', this.#preventDefault);
+    const ob = new ResizeObserver(this.#initPosition);
+    const optionsElement = this.optionsRef.element;
+    if (optionsElement) ob.observe(optionsElement);
+    return () => {
+      if (optionsElement) ob.disconnect();
+      restoreInert();
+      ContextMenu.instance = undefined;
+    };
+  };
+
+  @effect(() => [contextmenuStore.menuStack.length])
+  #autoFocus = () => this.#menuElements.at(-1)?.focus();
+
+  @effect(() => [contextmenuStore.menuStack.at(-1)?.menu])
   #genMask = async () => {
     // wait `<dy-options>` update
     await Promise.resolve();
@@ -311,34 +345,6 @@ export class DuoyunContextmenuElement extends GemElement {
       ></div>
     `;
     update();
-  };
-
-  #onMaskClick = () => {
-    if (contextmenuStore.maskClosable) {
-      ContextMenu.close();
-    }
-  };
-
-  mounted = () => {
-    this.effect(
-      () => this.#menuElements.at(-1)?.focus(),
-      () => [contextmenuStore.menuStack.length],
-    );
-    this.effect(
-      () => this.#genMask(),
-      () => [contextmenuStore.menuStack.at(-1)?.menu],
-    );
-    const restoreInert = setBodyInert(this);
-    ContextMenu.instance = this;
-    this.addEventListener('contextmenu', this.#preventDefault);
-    const ob = new ResizeObserver(this.#initPosition);
-    const optionsElement = this.optionsRef.element;
-    if (optionsElement) ob.observe(optionsElement);
-    return () => {
-      if (optionsElement) ob.disconnect();
-      restoreInert();
-      ContextMenu.instance = undefined;
-    };
   };
 
   render = () => {

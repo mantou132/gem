@@ -1,4 +1,4 @@
-import { emitter, Emitter } from '@mantou/gem/lib/decorators';
+import { effect, emitter, Emitter, property } from '@mantou/gem/lib/decorators';
 import { GemElement } from '@mantou/gem/lib/element';
 
 import { throttle } from '../../lib/timer';
@@ -8,10 +8,8 @@ export type ResizeDetail = {
   borderBoxSize: DuoyunResizeBaseElement['borderBoxSize'];
 };
 
-export type DuoyunResizeBaseElementOptions = { throttle?: boolean };
-
-export function resizeObserver(ele: DuoyunResizeBaseElement, options: DuoyunResizeBaseElementOptions = {}) {
-  const { throttle: needThrottle = true } = options;
+export function resizeObserver(ele: DuoyunResizeBaseElement) {
+  const { resizeThrottle = true } = ele;
   const callback = (entryList: ResizeObserverEntry[]) => {
     entryList.forEach((entry) => {
       const oldDetail = { contentRect: ele.contentRect, borderBoxSize: ele.borderBoxSize };
@@ -25,22 +23,18 @@ export function resizeObserver(ele: DuoyunResizeBaseElement, options: DuoyunResi
       ele.resize(oldDetail);
     });
   };
-  const throttleCallback = needThrottle ? throttle(callback, 300, { leading: true }) : callback;
+  const throttleCallback = resizeThrottle ? throttle(callback, 300, { leading: true }) : callback;
   const ro = new ResizeObserver(throttleCallback);
   ro.observe(ele, {});
   return () => ro.disconnect();
 }
 
-export class DuoyunResizeBaseElement<_T = Record<string, unknown>> extends GemElement {
+export class DuoyunResizeBaseElement extends GemElement {
   @emitter resize: Emitter<ResizeDetail>;
+  @property resizeThrottle?: boolean;
 
-  constructor(options: DuoyunResizeBaseElementOptions = {}) {
-    super();
-    this.effect(
-      () => resizeObserver(this, options),
-      () => [],
-    );
-  }
+  @effect((i) => [i.resizeThrottle])
+  #observer = () => resizeObserver(this);
 
   borderBoxSize = {
     blockSize: 0,

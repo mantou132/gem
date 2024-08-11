@@ -8,7 +8,7 @@
  */
 import { fixture, expect, nextFrame } from '@open-wc/testing';
 
-import { createCSSSheet, GemElement, html, Metadata } from '../../lib/element';
+import { createCSSSheet, createState, GemElement, html, Metadata } from '../../lib/element';
 import { createStore, updateStore } from '../../lib/store';
 import {
   attribute,
@@ -21,6 +21,8 @@ import {
   connectStore,
   async,
   shadow,
+  mounted,
+  willMount,
 } from '../../lib/decorators';
 import { css } from '../../lib/utils';
 
@@ -33,7 +35,7 @@ const store = createStore({
 @shadow()
 @customElement('async-gem-demo')
 class AsyncGemDemo extends GemElement {
-  state = { a: 0 };
+  #state = createState({ a: 0 });
   renderCount = 0;
   render() {
     this.renderCount++;
@@ -46,7 +48,7 @@ describe('异步 gem element 测试', () => {
     const el: AsyncGemDemo = await fixture(html`<async-gem-demo></async-gem-demo>`);
     expect(el.renderCount).to.equal(1);
     updateStore(store, { a: ++store.a });
-    el.setState({ a: ++el.state.a });
+    el.internals.stateList[0]({ a: ++(el.internals.stateList[0] as any).a });
     await nextFrame();
     expect(el.renderCount).to.equal(2);
     await nextFrame();
@@ -106,18 +108,14 @@ class LifecycleGemElement extends GemElement {
   }
   renderCount = 0;
   mountedCount = 0;
-  updatedCount = 0;
 
-  updated() {
-    this.updatedCount++;
-  }
-
-  mounted() {
+  @mounted()
+  #init = () => {
     this.mountedCount++;
     return () => {
       this.renderCount = 0;
     };
-  }
+  };
 
   render() {
     this.renderCount++;
@@ -164,12 +162,10 @@ describe('gem element 生命周期', () => {
     await Promise.resolve();
     expect(el2.mountedCount).to.equal(2);
     expect(el2.renderCount).to.equal(1);
-    expect(el2.updatedCount).to.equal(0);
     el2.update();
     el2.update();
     await Promise.resolve();
     expect(el2.renderCount).to.equal(2);
-    expect(el2.updatedCount).to.equal(1);
 
     const el3 = new LifecycleGemElement('test1', 'test2');
     expect(el3.appTitle).to.equal('test1');
@@ -201,7 +197,8 @@ class EffectGemDemo extends GemElement {
       },
     );
   }
-  mounted() {
+  @mounted()
+  #mounted = () => {
     this.effect(
       (_arr) => {
         this.effectCallCount++;
@@ -212,7 +209,7 @@ class EffectGemDemo extends GemElement {
     this.effect(() => {
       this.effectCallCount++;
     });
-  }
+  };
 }
 describe('gem element 副作用', () => {
   it('依赖当前值', async () => {
@@ -261,7 +258,8 @@ class MemoGemDemo extends GemElement {
       () => [this.attr, this.prop],
     );
   }
-  willMount() {
+
+  willMount = () => {
     this.memo(
       (_arr) => {
         this.memoCount += 2;
@@ -271,7 +269,7 @@ class MemoGemDemo extends GemElement {
     this.memo(() => {
       this.memoCount += 4;
     });
-  }
+  };
 }
 describe('gem element Memo', () => {
   it('依赖当前值', async () => {

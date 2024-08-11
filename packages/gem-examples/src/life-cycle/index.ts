@@ -11,6 +11,7 @@ import {
   css,
   render,
   useStore,
+  mounted,
 } from '@mantou/gem';
 
 import '../elements/layout';
@@ -46,12 +47,9 @@ export class App extends GemElement {
     console.log('parent cons');
   }
 
-  mounted = () => {
+  @mounted()
+  #init = () => {
     console.log('parent mounted');
-  };
-
-  updated = () => {
-    console.log('parent updated');
   };
 
   onSayHi = () => {

@@ -1,5 +1,13 @@
-import { adoptedStyle, customElement, attribute, property, numattribute, shadow } from '@mantou/gem/lib/decorators';
-import { createCSSSheet, GemElement, html } from '@mantou/gem/lib/element';
+import {
+  adoptedStyle,
+  customElement,
+  attribute,
+  property,
+  numattribute,
+  shadow,
+  effect,
+} from '@mantou/gem/lib/decorators';
+import { createCSSSheet, createState, GemElement, html } from '@mantou/gem/lib/element';
 import { css, styleMap } from '@mantou/gem/lib/utils';
 
 import { theme, getSemanticColor } from '../lib/theme';
@@ -63,10 +71,6 @@ const style = createCSSSheet(css`
   }
 `);
 
-type State = {
-  previewUrl: string;
-};
-
 type Action = {
   icon: string | Element | DocumentFragment;
   handle: () => void;
@@ -81,7 +85,7 @@ export type ImageStatus = 'negative' | 'positive' | 'default';
 @adoptedStyle(style)
 @adoptedStyle(focusStyle)
 @shadow({ delegatesFocus: true })
-export class DuoyunImagePreviewElement extends GemElement<State> {
+export class DuoyunImagePreviewElement extends GemElement {
   @attribute status: ImageStatus;
   /**0-100 */
   @numattribute progress: number;
@@ -106,30 +110,26 @@ export class DuoyunImagePreviewElement extends GemElement<State> {
     }
   }
 
-  state: State = {
+  #state = createState({
     previewUrl: '',
-  };
+  });
 
-  mounted = () => {
-    const dimension = 64 * window.devicePixelRatio;
-    this.effect(
-      async () => {
-        if (this.file) {
-          const previewUrl = await compressionImage(
-            this.file,
-            { dimension: { width: dimension, height: dimension } },
-            { type: 'url', aspectRatio: 1 },
-          );
-          this.setState({ previewUrl });
-        }
-      },
-      () => [this.file],
-    );
+  @effect((i) => [i.file])
+  #updatePreviewImg = async () => {
+    if (this.file) {
+      const dimension = 64 * window.devicePixelRatio;
+      const previewUrl = await compressionImage(
+        this.file,
+        { dimension: { width: dimension, height: dimension } },
+        { type: 'url', aspectRatio: 1 },
+      );
+      this.#state({ previewUrl });
+    }
   };
 
   render = () => {
     if (!this.file) return html``;
-    const { previewUrl } = this.state;
+    const { previewUrl } = this.#state;
     const color = this.progress ? theme.informativeColor : this.#color;
     return html`
       ${color

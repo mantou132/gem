@@ -8,8 +8,9 @@ import {
   slot,
   aria,
   shadow,
+  effect,
 } from '@mantou/gem/lib/decorators';
-import { createCSSSheet, GemElement, html } from '@mantou/gem/lib/element';
+import { createCSSSheet, createState, GemElement, html } from '@mantou/gem/lib/element';
 import { classMap, css, styleMap } from '@mantou/gem/lib/utils';
 
 import { locale } from '../lib/locale';
@@ -37,11 +38,6 @@ const style = createCSSSheet(css`
   }
 `);
 
-type State = {
-  bottomOverflow: boolean;
-  expanded: boolean;
-};
-
 /**
  * @customElement dy-more
  * @attr maxheight
@@ -51,7 +47,7 @@ type State = {
 @adoptedStyle(style)
 @aria({ role: 'combobox' })
 @shadow()
-export class DuoyunMoreElement extends GemElement<State> {
+export class DuoyunMoreElement extends GemElement {
   @slot static unnamed: string;
 
   @attribute maxheight: string;
@@ -59,31 +55,29 @@ export class DuoyunMoreElement extends GemElement<State> {
   @attribute less: string;
   @boolattribute expandless: boolean;
 
-  state: State = {
+  #state = createState({
     bottomOverflow: false,
     expanded: false,
-  };
-
-  constructor() {
-    super();
-    this.effect(() => {
-      this.internals.ariaExpanded = String(this.state.expanded);
-    });
-  }
+  });
 
   #onClick = () => {
-    this.setState({ expanded: !this.state.expanded });
+    this.#state({ expanded: !this.#state.expanded });
+  };
+
+  @effect()
+  #updateAria = () => {
+    this.internals.ariaExpanded = String(this.#state.expanded);
   };
 
   render = () => {
-    const { expanded, bottomOverflow } = this.state;
+    const { expanded, bottomOverflow } = this.#state;
     return html`
       <dy-more-slot
         class=${classMap({ slot: true, overflow: bottomOverflow })}
         style=${styleMap({
           maxHeight: expanded ? 'none' : this.maxheight || '3.8lh',
         })}
-        @change=${({ detail }: CustomEvent<boolean>) => this.setState({ bottomOverflow: detail })}
+        @change=${({ detail }: CustomEvent<boolean>) => this.#state({ bottomOverflow: detail })}
       >
         <slot></slot>
       </dy-more-slot>
@@ -106,9 +100,6 @@ export class DuoyunMoreElement extends GemElement<State> {
 export class DuoyunMoreSlotElement extends DuoyunScrollBaseElement {
   @emitter change: Emitter<boolean>;
 
-  mounted = () => {
-    this.effect(() => {
-      this.change(this.bottomOverflow);
-    });
-  };
+  @effect()
+  #emitterEvent = () => this.change(this.bottomOverflow);
 }

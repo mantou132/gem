@@ -1,7 +1,16 @@
 // https://spectrum.adobe.com/page/coach-mark/
-import { connectStore, adoptedStyle, customElement, attribute, numattribute, shadow } from '@mantou/gem/lib/decorators';
+import {
+  connectStore,
+  adoptedStyle,
+  customElement,
+  attribute,
+  numattribute,
+  shadow,
+  effect,
+  mounted,
+} from '@mantou/gem/lib/decorators';
 import { html, createCSSSheet } from '@mantou/gem/lib/element';
-import { css } from '@mantou/gem/lib/utils';
+import { addListener, css } from '@mantou/gem/lib/utils';
 import { useStore } from '@mantou/gem/lib/store';
 import { splice } from '@mantou/gem/helper/i18n';
 
@@ -149,12 +158,7 @@ export class DuoyunCoachMarkElement extends DuoyunVisibleBaseElement {
     return this.width || '16em';
   }
 
-  constructor() {
-    super();
-    this.addEventListener('pointerdown', (e) => e.stopPropagation());
-    this.addEventListener('pointerup', (e) => e.stopPropagation());
-    this.addEventListener('click', (e) => e.stopPropagation());
-  }
+  #stopPropagation = (e: Event) => e.stopPropagation();
 
   #skip = () => {
     ContextMenu.close();
@@ -199,12 +203,17 @@ export class DuoyunCoachMarkElement extends DuoyunVisibleBaseElement {
     });
   };
 
-  mounted = () => {
-    this.effect(() => {
-      if (this.#tour) {
-        this.#open();
-      }
-    });
+  @mounted()
+  #init = () => {
+    addListener(this, 'pointerdown', this.#stopPropagation);
+    addListener(this, 'pointerup', this.#stopPropagation);
+    addListener(this, 'click', this.#stopPropagation);
+  };
+
+  @effect()
+  #autoOpen = () => {
+    if (!this.#tour) return;
+    this.#open();
   };
 
   render = () => {

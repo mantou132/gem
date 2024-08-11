@@ -11,6 +11,7 @@ import {
   RefObject,
   state,
   shadow,
+  mounted,
 } from '@mantou/gem/lib/decorators';
 import { createCSSSheet, GemElement, html } from '@mantou/gem/lib/element';
 import { classMap, css } from '@mantou/gem/lib/utils';
@@ -110,11 +111,14 @@ export class DuoyunBadgeElement extends GemElement {
     return getSemanticColor(this.color) || this.color || theme.negativeColor;
   }
 
-  mounted = () => {
+  #onSlotChange = () => {
+    this.inline = !this.slotRef.element!.assignedElements({ flatten: true }).length;
+  };
+
+  @mounted()
+  #init = () => {
     this.inline = !this.childNodes.length;
-    this.slotRef.element?.addEventListener('slotchange', () => {
-      this.inline = !this.slotRef.element!.assignedElements({ flatten: true }).length;
-    });
+    this.slotRef.element?.addEventListener('slotchange', this.#onSlotChange);
   };
 
   render = () => {

@@ -7,8 +7,9 @@ import {
   state,
   aria,
   shadow,
+  memo,
 } from '@mantou/gem/lib/decorators';
-import { createCSSSheet, html, TemplateResult } from '@mantou/gem/lib/element';
+import { createCSSSheet, createState, html, TemplateResult } from '@mantou/gem/lib/element';
 import { history } from '@mantou/gem/lib/history';
 import { css, QueryString } from '@mantou/gem/lib/utils';
 
@@ -130,8 +131,6 @@ const style = createCSSSheet(css`
   }
 `);
 
-type State = Record<string, boolean>;
-
 /**
  * @customElement dy-side-navigation
  */
@@ -141,7 +140,7 @@ type State = Record<string, boolean>;
 @connectStore(history.store)
 @shadow({ delegatesFocus: true })
 @aria({ role: 'navigation', ariaLabel: 'Side Navigation' })
-export class DuoyunSideNavigationElement extends DuoyunScrollBaseElement<State> {
+export class DuoyunSideNavigationElement extends DuoyunScrollBaseElement {
   @part static item: string;
   @part static group: string;
   @part static groupTitle: string;
@@ -152,12 +151,9 @@ export class DuoyunSideNavigationElement extends DuoyunScrollBaseElement<State> 
   @state compact: boolean;
 
   // children open state
-  state: State = {};
+  #state = createState<Record<string, boolean>>({});
 
-  #onClickChildren = (title: string) => {
-    this.setState({ [title]: !this.state[title] });
-  };
-
+  @memo(() => [history.getParams().path])
   #checkGroupStatus = () => {
     const { path } = history.getParams();
     const matchChildren = (item: Item | NavItemGroup) => {
@@ -169,11 +165,15 @@ export class DuoyunSideNavigationElement extends DuoyunScrollBaseElement<State> 
         e.pattern ? matchPath(e.pattern, path) : e.children ? e.children.some(matchChildren) : false,
       );
       if (has && item.title) {
-        this.setState({ [item.title]: true });
+        this.#state({ [item.title]: true });
         return true;
       }
     };
     this.items?.forEach(matchChildren);
+  };
+
+  #onClickChildren = (title: string) => {
+    this.#state({ [title]: !this.#state[title] });
   };
 
   #renderItem = ({
@@ -206,15 +206,8 @@ export class DuoyunSideNavigationElement extends DuoyunScrollBaseElement<State> 
         </div>
         ${slot}
       </dy-active-link>
-      ${children && this.state[title] ? html`<div class="children">${children.map(this.#renderItem)}</div>` : ''}
+      ${children && this.#state[title] ? html`<div class="children">${children.map(this.#renderItem)}</div>` : ''}
     `;
-  };
-
-  willMount = () => {
-    this.memo(
-      () => this.#checkGroupStatus(),
-      () => [history.getParams().path],
-    );
   };
 
   render = () => {

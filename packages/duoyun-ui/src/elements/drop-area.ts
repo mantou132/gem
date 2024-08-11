@@ -9,9 +9,10 @@ import {
   slot,
   aria,
   shadow,
+  mounted,
 } from '@mantou/gem/lib/decorators';
 import { GemElement, html, createCSSSheet } from '@mantou/gem/lib/element';
-import { css } from '@mantou/gem/lib/utils';
+import { addListener, css } from '@mantou/gem/lib/utils';
 
 import { theme } from '../lib/theme';
 
@@ -86,13 +87,6 @@ export class DuoyunDropAreaElement extends GemElement {
     return this.dropeffect || 'copy';
   }
 
-  constructor() {
-    super();
-    this.addEventListener('dragover', this.#onDragover);
-    this.addEventListener('dragleave', this.#onDragleave);
-    this.addEventListener('drop', this.#onDrop);
-  }
-
   #getValidFiles = (types: readonly string[], list: FileList) => {
     return types.includes('Files')
       ? [...list].filter((file) => this.#accepts.some((reg) => reg.test(file.type)))
@@ -141,6 +135,13 @@ export class DuoyunDropAreaElement extends GemElement {
         this.nodata(null);
       }
     }
+  };
+
+  @mounted()
+  #init = () => {
+    addListener(this, 'dragover', this.#onDragover);
+    addListener(this, 'dragleave', this.#onDragleave);
+    addListener(this, 'drop', this.#onDrop);
   };
 
   render = () => {

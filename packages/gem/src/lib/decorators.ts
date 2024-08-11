@@ -8,7 +8,7 @@ import * as decoratorsExports from './decorators';
 import * as storeExports from './store';
 import * as versionExports from './version';
 
-type GemElementPrototype = GemElement<any>;
+type GemElementPrototype = GemElement;
 type StaticField = Exclude<keyof Metadata, keyof ShadowRootInit | 'aria' | 'noBlocking'>;
 
 const { deleteProperty, getOwnPropertyDescriptor, defineProperty } = Reflect;
@@ -29,7 +29,7 @@ function pushStaticField(context: ClassFieldDecoratorContext | ClassDecoratorCon
   metadata[field]!.push(member);
 }
 
-function clearField<T extends GemElement<any>>(instance: T, prop: string) {
+function clearField<T extends GemElement>(instance: T, prop: string) {
   const { value } = getOwnPropertyDescriptor(instance, prop)!;
   deleteProperty(instance, prop);
   (instance as any)[prop] = value;
@@ -101,7 +101,7 @@ function defineRef(target: GemElement, prop: string, ref: string) {
  *  }
  * ```
  */
-export function refobject<T extends GemElement<any>, V extends HTMLElement>(
+export function refobject<T extends GemElement, V extends HTMLElement>(
   _: undefined,
   context: ClassFieldDecoratorContext<T, RefObject<V>>,
 ) {
@@ -195,7 +195,7 @@ function defineProp(
 }
 
 type AttrType = BooleanConstructor | NumberConstructor | StringConstructor;
-function decoratorAttr<T extends GemElement<any>>(context: ClassFieldDecoratorContext<T>, attrType: AttrType) {
+function decoratorAttr<T extends GemElement>(context: ClassFieldDecoratorContext<T>, attrType: AttrType) {
   const prop = context.name as string;
   const attr = camelToKebabCase(prop);
   context.addInitializer(function (this: T) {
@@ -226,16 +226,13 @@ function decoratorAttr<T extends GemElement<any>>(context: ClassFieldDecoratorCo
  *  }
  * ```
  */
-export function attribute<T extends GemElement<any>>(_: undefined, context: ClassFieldDecoratorContext<T, string>) {
+export function attribute<T extends GemElement>(_: undefined, context: ClassFieldDecoratorContext<T, string>) {
   return decoratorAttr(context, String);
 }
-export function boolattribute<T extends GemElement<any>>(
-  _: undefined,
-  context: ClassFieldDecoratorContext<T, boolean>,
-) {
+export function boolattribute<T extends GemElement>(_: undefined, context: ClassFieldDecoratorContext<T, boolean>) {
   return decoratorAttr(context, Boolean);
 }
-export function numattribute<T extends GemElement<any>>(_: undefined, context: ClassFieldDecoratorContext<T, number>) {
+export function numattribute<T extends GemElement>(_: undefined, context: ClassFieldDecoratorContext<T, number>) {
   return decoratorAttr(context, Number);
 }
 
@@ -249,7 +246,7 @@ export function numattribute<T extends GemElement<any>>(_: undefined, context: C
  *  }
  * ```
  */
-export function property<T extends GemElement<any>>(_: undefined, context: ClassFieldDecoratorContext<T>) {
+export function property<T extends GemElement>(_: undefined, context: ClassFieldDecoratorContext<T>) {
   const prop = context.name as string;
   context.addInitializer(function (this: T) {
     const target = getPrototypeOf(this);
@@ -278,8 +275,8 @@ export function property<T extends GemElement<any>>(_: undefined, context: Class
  *  }
  * ```
  */
-export function memo<T extends GemElement<any>, V = any, K = any[] | undefined>(
-  getDep: K extends readonly any[] ? (instance: T) => K : undefined,
+export function memo<T extends GemElement, V = any, K = any[] | undefined>(
+  getDep?: K extends readonly any[] ? (instance: T) => K : undefined,
 ) {
   return function (
     _: any,
@@ -313,11 +310,9 @@ export function memo<T extends GemElement<any>, V = any, K = any[] | undefined>(
  *  }
  * ```
  */
-export function effect<
-  T extends GemElement<any>,
-  V extends (depValues: K, oldDepValues?: K) => any,
-  K = any[] | undefined,
->(getDep?: K extends readonly any[] ? (instance: T) => K : undefined) {
+export function effect<T extends GemElement, V extends (depValues: K, oldDepValues?: K) => any, K = any[] | undefined>(
+  getDep?: K extends readonly any[] ? (instance: T) => K : undefined,
+) {
   return function (
     _: any,
     { addInitializer, access }: ClassFieldDecoratorContext<T, V> | ClassMethodDecoratorContext<T, V>,
@@ -328,7 +323,7 @@ export function effect<
   };
 }
 
-export function unmounted<T extends GemElement<any>, V extends () => any>() {
+export function unmounted<T extends GemElement, V extends () => any>() {
   return function (
     _: any,
     { addInitializer, access }: ClassFieldDecoratorContext<T, V> | ClassMethodDecoratorContext<T, V>,
@@ -342,17 +337,17 @@ export function unmounted<T extends GemElement<any>, V extends () => any>() {
   };
 }
 
-/**`@memo` 别名 */
+/**`@memo` 别名，不能再在回调中使用 `this.memo` */
 export function willMount() {
   return memo(() => []);
 }
 
-/**`@effect` 别名 */
+/**`@effect` 别名，不能再在回调中使用 `this.effect` */
 export function mounted() {
   return effect(() => []);
 }
 
-export function renderTemplate<T extends GemElement<any>, V extends () => TemplateResult | null | undefined>(
+export function renderTemplate<T extends GemElement, V extends () => TemplateResult | null | undefined>(
   /**当返回 `false` 时不进行更新，包括 `memo` */
   shouldRender?: (instance: T) => boolean,
 ) {
@@ -400,7 +395,7 @@ function defineCSSState(target: GemElementPrototype, prop: string, stateStr: str
  *  }
  * ```
  */
-export function state<T extends GemElement<any>>(_: undefined, context: ClassFieldDecoratorContext<T, boolean>) {
+export function state<T extends GemElement>(_: undefined, context: ClassFieldDecoratorContext<T, boolean>) {
   context.addInitializer(function (this: T) {
     const target = getPrototypeOf(this);
     const prop = context.name as string;
@@ -480,15 +475,12 @@ export type Emitter<T = any> = (detail?: T, options?: Omit<CustomEventInit<unkno
  *  }
  * ```
  */
-export function emitter<T extends GemElement<any>>(_: undefined, context: ClassFieldDecoratorContext<T, Emitter>) {
+export function emitter<T extends GemElement>(_: undefined, context: ClassFieldDecoratorContext<T, Emitter>) {
   context.addInitializer(function (this: T) {
     defineEmitter(context, this, context.name as string);
   });
 }
-export function globalemitter<T extends GemElement<any>>(
-  _: undefined,
-  context: ClassFieldDecoratorContext<T, Emitter>,
-) {
+export function globalemitter<T extends GemElement>(_: undefined, context: ClassFieldDecoratorContext<T, Emitter>) {
   context.addInitializer(function (this: T) {
     defineEmitter(context, this, context.name as string, { bubbles: true, composed: true });
   });

@@ -1,5 +1,5 @@
-import { createCSSSheet, html, GemElement, TemplateResult } from '@mantou/gem/lib/element';
-import { adoptedStyle, customElement, property, refobject, RefObject, shadow } from '@mantou/gem/lib/decorators';
+import { createCSSSheet, html, GemElement, TemplateResult, createState } from '@mantou/gem/lib/element';
+import { adoptedStyle, customElement, memo, property, refobject, RefObject, shadow } from '@mantou/gem/lib/decorators';
 import { GemError, StyleObject, css, styleMap } from '@mantou/gem/lib/utils';
 import { history } from '@mantou/gem/lib/history';
 import { ifDefined } from '@mantou/gem/lib/directives';
@@ -132,16 +132,30 @@ type State<T> = {
 @adoptedStyle(focusStyle)
 @adoptedStyle(style)
 @shadow()
-export class DyPatFormElement<T = Record<string, unknown>> extends GemElement<State<T>> {
+export class DyPatFormElement<T = Record<string, unknown>> extends GemElement {
   @refobject formRef: RefObject<DuoyunFormElement>;
 
   @property data?: T;
   @property formItems?: FormItem<T>[];
 
-  state: State<T> = {
-    data: {} as T,
-    optionsRecord: {},
-    ignoreCache: {},
+  @memo((i) => [i.data])
+  #initState = () => {
+    if (!this.data) return;
+    this.state({ data: structuredClone(this.data) });
+  };
+
+  #deps = new Map<string, Set<FormItemProps<T>>>();
+
+  @memo((i) => [i.formItems])
+  #setDeps = () => {
+    this.#forEachFormItems((props) => {
+      props.dependencies?.forEach((field) => {
+        const key = String(field);
+        const set = this.#deps.get(key) || new Set();
+        set.add(props);
+        this.#deps.set(key, set);
+      });
+    });
   };
 
   #onChange = ({ detail }: CustomEvent<any>) => {
@@ -151,7 +165,7 @@ export class DyPatFormElement<T = Record<string, unknown>> extends GemElement<St
       Reflect.set(readProp(prev, path.slice(0, -1), { fill: true }), path.at(-1)!, val);
       return prev;
     }, {} as any);
-    this.setState({ data });
+    this.state({ data });
 
     this.#forEachFormItems((props) => {
       if (!props.update && props.type !== 'number') return;
@@ -202,7 +216,6 @@ export class DyPatFormElement<T = Record<string, unknown>> extends GemElement<St
     }
   };
 
-  #deps = new Map<string, Set<FormItemProps<T>>>();
   #onItemChange = ({ detail }: CustomEvent<{ name: string }>) => {
     this.#deps.get(detail.name)?.forEach((props) => {
       this.#setStateInitValue(props);
@@ -427,30 +440,6 @@ export class DyPatFormElement<T = Record<string, unknown>> extends GemElement<St
     `;
   };
 
-  willMount() {
-    this.memo(
-      () => {
-        if (this.data) {
-          this.state.data = structuredClone(this.data);
-        }
-      },
-      () => [this.data],
-    );
-    this.memo(
-      () => {
-        this.#forEachFormItems((props) => {
-          props.dependencies?.forEach((field) => {
-            const key = String(field);
-            const set = this.#deps.get(key) || new Set();
-            set.add(props);
-            this.#deps.set(key, set);
-          });
-        });
-      },
-      () => [this.formItems],
-    );
-  }
-
   render = () => {
     return html`
       <dy-form @change=${this.#onChange} @itemchange=${this.#onItemChange} ref=${this.formRef.ref}>
@@ -458,6 +447,12 @@ export class DyPatFormElement<T = Record<string, unknown>> extends GemElement<St
       </dy-form>
     `;
   };
+
+  state = createState<State<T>>({
+    data: {} as T,
+    optionsRecord: {},
+    ignoreCache: {},
+  });
 
   valid = () => this.formRef.element!.valid();
 }

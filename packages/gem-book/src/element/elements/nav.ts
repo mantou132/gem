@@ -13,6 +13,7 @@ import {
   createCSSSheet,
   css,
   adoptedStyle,
+  effect,
 } from '@mantou/gem';
 import { mediaQuery } from '@mantou/gem/helper/mediaquery';
 
@@ -152,7 +153,7 @@ export class Nav extends GemElement {
   @refobject spaceRef: RefObject<HTMLDivElement>;
   @refobject i18nRef: RefObject<HTMLSelectElement>;
 
-  renderI18nSelect = () => {
+  #renderI18nSelect = () => {
     const { langList = [], lang } = bookStore;
     if (lang) {
       return html`
@@ -170,7 +171,7 @@ export class Nav extends GemElement {
     }
   };
 
-  renderExternalItem = ({ navTitle, title, link }: NavItem, icon?: string | Element | DocumentFragment) => {
+  #renderExternalItem = ({ navTitle, title, link }: NavItem, icon?: string | Element | DocumentFragment) => {
     if (link) {
       return html`
         <gem-link class=${classMap({ item: true, icon: !!icon, external: true })} href=${link} title=${title}>
@@ -181,7 +182,7 @@ export class Nav extends GemElement {
     }
   };
 
-  renderInternalItem = ({ navTitle, title, link }: NavItem) => {
+  #renderInternalItem = ({ navTitle, title, link }: NavItem) => {
     if (link) {
       return html`
         <gem-active-link class="item" href=${link} pattern="${link}*">
@@ -194,7 +195,7 @@ export class Nav extends GemElement {
   render() {
     const { config, nav = [] } = bookStore;
     const { github = '' } = config || {};
-    const githubLink = config ? this.renderExternalItem({ title: 'github', link: github }, icons.github) : null;
+    const githubLink = config ? this.#renderExternalItem({ title: 'github', link: github }, icons.github) : null;
     const internals = nav?.filter((e) => isSameOrigin(e.link)) || [];
     const externals = nav?.filter((e) => !isSameOrigin(e.link)) || [];
     const textExternals = externals.filter((e) => !(e.title.toLowerCase() in icons));
@@ -208,23 +209,22 @@ export class Nav extends GemElement {
       ></gem-use>
       ${this.logo ? html`<gem-book-nav-logo></gem-book-nav-logo>` : ''}
       <div class="left">
-        ${internals.map((item) => this.renderInternalItem(item))}
-        ${textExternals.map((item) => this.renderExternalItem(item))}
+        ${internals.map((item) => this.#renderInternalItem(item))}
+        ${textExternals.map((item) => this.#renderExternalItem(item))}
         <div ref=${this.spaceRef.ref} style="flex-grow: 1;"></div>
       </div>
       <slot class="item">${bookStore.slots?.navInside}</slot>
-      ${this.renderI18nSelect()}
-      ${iconExternals.map((item) => this.renderExternalItem(item, (icons as any)[item.title.toLowerCase()]))}
+      ${this.#renderI18nSelect()}
+      ${iconExternals.map((item) => this.#renderExternalItem(item, (icons as any)[item.title.toLowerCase()]))}
       ${githubLink}
     `;
   }
 
-  mounted = () => {
-    this.effect(() => {
-      if (this.i18nRef.element) {
-        this.i18nRef.element.value = bookStore.lang!;
-      }
-      this.compact ||= this.spaceRef.element!.getBoundingClientRect().width < 100;
-    });
+  @effect()
+  #setCompact = () => {
+    if (this.i18nRef.element) {
+      this.i18nRef.element.value = bookStore.lang!;
+    }
+    this.compact ||= this.spaceRef.element!.getBoundingClientRect().width < 100;
   };
 }
