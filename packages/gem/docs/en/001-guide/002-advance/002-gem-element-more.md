@@ -4,21 +4,21 @@ Features other than Attribute/Property/Store/State.
 
 ## Reference DOM
 
-If you want to manipulate the DOM content within an element, such as reading the value of `<input>`, you can use `querySelector` to get the element you want, in order to get the type support of TypeScript, GemElement provides a way to complete this work:
+If you want to manipulate the DOM content within an element, such as reading the value of `<input>`, you can use `querySelector` to get the element you want, in order to get the type support of TypeScript, GemElement provides `createRef` to complete this work:
 
 ```js
 // Omit import...
 
 @customElement('my-element')
 class MyElement extends GemElement {
-  @refobject inputRef;
+  #inputRef = createRef();
 
   render() {
-    return html`<input ref=${this.inputRef.ref} />`;
+    return html`<input ref=${this.#inputRef.ref} />`;
   }
 
   focus() {
-    this.inputRef.element.focus();
+    this.#inputRef.element.focus();
   }
 }
 ```

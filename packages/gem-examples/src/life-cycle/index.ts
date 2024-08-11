@@ -2,8 +2,7 @@ import {
   createCSSSheet,
   GemElement,
   html,
-  refobject,
-  RefObject,
+  createRef,
   attribute,
   connectStore,
   customElement,
@@ -16,7 +15,7 @@ import {
 
 import '../elements/layout';
 
-import { Message, Children } from './chidren';
+import { Message, Children } from './children';
 
 interface GlobalState {
   msg: Message;
@@ -38,8 +37,9 @@ const styles = createCSSSheet(css`
 @adoptedStyle(styles)
 @customElement('app-root')
 export class App extends GemElement {
-  @refobject childRef: RefObject<Children>;
   @attribute appTitle: string;
+
+  #childRef = createRef<Children>();
 
   constructor(title: string) {
     super();
@@ -61,7 +61,7 @@ export class App extends GemElement {
   };
 
   loadHandle = () => {
-    const { element } = this.childRef;
+    const { element } = this.#childRef;
     if (!element) return;
     const { firstName, lastName, disabled, count } = element;
     console.log({ firstName, lastName, disabled, count });
@@ -77,7 +77,7 @@ export class App extends GemElement {
       </style>
       <h1>${this.appTitle}</h1>
       <app-children
-        ref=${this.childRef.ref}
+        ref=${this.#childRef.ref}
         @load=${this.loadHandle}
         @say-hi=${this.onSayHi}
         .message=${store.msg}

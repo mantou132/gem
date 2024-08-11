@@ -10,14 +10,14 @@ Gem does not handle this behavior by default, you can handle forms like Vanilla 
 ```ts
 @customElement('form-text')
 class FormTextElement extends GemElement {
-  @refobject inputRef: RefObject<HTMLInputElement>;
-
-  submit() {
-    return fetch('/', { body: this.inputRef.element!.value });
-  }
+  #inputRef = createRef<HTMLInputElement>();
 
   render() {
-    return html`<input ref=${this.inputRef.ref} value="defaultValue" />`;
+    return html`<input ref=${this.#inputRef.ref} value="defaultValue" />`;
+  }
+
+  submit() {
+    return fetch('/', { body: this.#inputRef.element!.value });
   }
 }
 ```
@@ -29,16 +29,16 @@ You can use [`input` event](https://developer.mozilla.org/en-US/docs/Web/API/HTM
    ```ts
    @customElement('form-text')
    export class FormTextElement extends GemElement {
-     @refobject inputRef: RefObject<HTMLInputElement>;
+     #inputRef = createRef<HTMLInputElement>();
 
      #nextState = '';
 
      #inputHandle = (e: InputEvent) => {
-       this.#nextState = this.inputRef.element!.value;
+       this.#nextState = this.#inputRef.element!.value;
      };
 
      render() {
-       return html`<input ref=${this.inputRef.ref} @input=${this.#inputHandle} />`;
+       return html`<input ref=${this.#inputRef.ref} @input=${this.#inputHandle} />`;
      }
    }
    ```
@@ -48,20 +48,20 @@ You can use [`input` event](https://developer.mozilla.org/en-US/docs/Web/API/HTM
    ```ts 5,11-12
    @customElement('form-text')
    export class FormTextElement extends GemElement {
-     @refobject inputRef: RefObject<HTMLInputElement>;
+     #inputRef = createRef<HTMLInputElement>();
      @attribute value: string;
      @emitter change: Emitter<string>;
 
      #nextState = '';
 
      #inputHandle = (e: InputEvent) => {
-       this.#nextState = this.inputRef.element!.value;
-       this.inputRef.element!.value = this.value;
+       this.#nextState = this.#inputRef.element!.value;
+       this.#inputRef.element!.value = this.value;
        this.change(value);
      };
 
      render() {
-       return html`<input ref=${this.inputRef.ref} @input=${this.#inputHandle} />`;
+       return html`<input ref=${this.#inputRef.ref} @input=${this.#inputHandle} />`;
      }
    }
    ```
@@ -71,29 +71,29 @@ You can use [`input` event](https://developer.mozilla.org/en-US/docs/Web/API/HTM
    ```ts 15-22
    @customElement('form-text')
    export class FormTextElement extends GemElement {
-     @refobject inputRef: RefObject<HTMLInputElement>;
+     #inputRef = createRef<HTMLInputElement>();
      @attribute value: string;
      @emitter change: Emitter<string>;
 
      #nextState = '';
 
      #inputHandle = (e: InputEvent) => {
-       this.#nextState = this.inputRef.element!.value;
-       this.inputRef.element!.value = this.value;
+       this.#nextState = this.#inputRef.element!.value;
+       this.#inputRef.element!.value = this.value;
        this.change(value);
      };
 
      @effect((i) => [i.value])
      #updateValue = () => {
-      if (this.value === this.nextState.value) {
-        this.inputRef.element!.value = this.nextState.value;
-      } else {
-        this.inputRef.element!.value = this.value;
-      }
-     }
+       if (this.value === this.nextState.value) {
+         this.#inputRef.element!.value = this.nextState.value;
+       } else {
+         this.#inputRef.element!.value = this.value;
+       }
+     };
 
      render() {
-       return html`<input ref=${this.inputRef.ref} @input=${this.#inputHandle} />`;
+       return html`<input ref=${this.#inputRef.ref} @input=${this.#inputHandle} />`;
      }
    }
    ```
@@ -107,13 +107,15 @@ class FormElement extends GemElement {
     value: '',
   });
 
-  submit = () => fetch('/', { body: this.#state.value });
-
   #changeHandle = ({ detail }) => this.#state({ value: detail });
 
   render() {
     return html`<form-text value=${this.#state.value} @change=${this.#changeHandle}></form-text>`;
   }
+
+  submit = () => {
+    fetch('/', { body: this.#state.value });
+  };
 }
 ```
 

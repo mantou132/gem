@@ -5,8 +5,6 @@ import {
   property,
   slot,
   state,
-  refobject,
-  RefObject,
   emitter,
   Emitter,
   boolattribute,
@@ -18,7 +16,7 @@ import {
   memo,
   mounted,
 } from '@mantou/gem/lib/decorators';
-import { createCSSSheet, createState, GemElement, html, TemplateResult } from '@mantou/gem/lib/element';
+import { createCSSSheet, createRef, createState, GemElement, html, TemplateResult } from '@mantou/gem/lib/element';
 import { addListener, css, LinkedList, LinkedListItem, styled, styleMap } from '@mantou/gem/lib/utils';
 import { logger } from '@mantou/gem/helper/logger';
 
@@ -108,20 +106,20 @@ export class DuoyunListElement extends GemElement {
   /**only infinite */
   @emitter itemshow: Emitter<any>;
 
-  @refobject beforeItemRef: RefObject<DuoyunOutsideElement>;
-  @refobject afterItemRef: RefObject<DuoyunOutsideElement>;
-  @refobject listRef: RefObject<HTMLDivElement>;
+  #beforeItemRef = createRef<DuoyunOutsideElement>();
+  #afterItemRef = createRef<DuoyunOutsideElement>();
+  #listRef = createRef<HTMLDivElement>();
 
   get #items() {
     return this.items || this.data;
   }
 
   get #beforeVisible() {
-    return this.beforeItemRef.element?.visible;
+    return this.#beforeItemRef.element?.visible;
   }
 
   get #afterVisible() {
-    return this.afterItemRef.element?.visible;
+    return this.#afterItemRef.element?.visible;
   }
 
   // 防止网格布局渲染不是整数行
@@ -414,7 +412,7 @@ export class DuoyunListElement extends GemElement {
   #initLayout = (ele: DuoyunListItemElement) => {
     this.#initCheckOnce(this.items!.length > this.#itemCountPerScreen);
 
-    const style = getComputedStyle(this.listRef.element!);
+    const style = getComputedStyle(this.#listRef.element!);
     const thisGrid = getComputedStyle(this);
     this.#rowGap = parseFloat(style.rowGap) || parseFloat(thisGrid.rowGap) || 0;
     this.#columnGap = parseFloat(style.columnGap) || parseFloat(thisGrid.columnGap) || 0;
@@ -506,14 +504,14 @@ export class DuoyunListElement extends GemElement {
       <slot name=${DuoyunListElement.before}></slot>
       ${this.infinite
         ? html`<dy-list-outside
-            ref=${this.beforeItemRef.ref}
+            ref=${this.#beforeItemRef.ref}
             part=${DuoyunListElement.beforeOutside}
             .intersectionRoot=${this.scrollContainer}
             @show=${this.#onBeforeItemVisible}
             style=${styleMap({ height: `${beforeHeight}px` })}
           ></dy-list-outside>`
         : html``}
-      <div ref=${this.listRef.ref} class="list" part=${DuoyunListElement.list}>
+      <div ref=${this.#listRef.ref} class="list" part=${DuoyunListElement.list}>
         ${this.infinite
           ? renderList.map((key) => this.#getElement(key))
           : this.#items?.map(
@@ -528,7 +526,7 @@ export class DuoyunListElement extends GemElement {
             )}
       </div>
       <dy-list-outside
-        ref=${this.afterItemRef.ref}
+        ref=${this.#afterItemRef.ref}
         part=${DuoyunListElement.afterOutside}
         .intersectionRoot=${this.scrollContainer}
         @show=${this.#onAfterItemVisible}

@@ -1,4 +1,4 @@
-import { GemElement, html, customElement, RefObject, refobject, render, createState, mounted } from '@mantou/gem';
+import { GemElement, html, customElement, render, createState, mounted, createRef } from '@mantou/gem';
 
 import '../elements/layout';
 
@@ -13,7 +13,7 @@ function effect([textareaElement, callback]: [HTMLTextAreaElement | undefined, (
 
 @customElement('app-root')
 export class App extends GemElement {
-  @refobject textAreaRef: RefObject<HTMLTextAreaElement>;
+  #textAreaRef = createRef<HTMLTextAreaElement>();
 
   #state = createState({
     height: 0,
@@ -26,13 +26,13 @@ export class App extends GemElement {
 
   @mounted()
   #init = () => {
-    this.effect(effect, () => [this.textAreaRef.element, this.#updateHeight]);
+    this.effect(effect, () => [this.#textAreaRef.element, this.#updateHeight]);
   };
 
   render() {
     return html`
       <div><button @click=${() => this.#state({ hidden: !this.#state.hidden })}>switch</button></div>
-      ${this.#state.hidden ? null : html`<textarea ref=${this.textAreaRef.ref}></textarea>`}
+      ${this.#state.hidden ? null : html`<textarea ref=${this.#textAreaRef.ref}></textarea>`}
       <div>${this.#state.height}</div>
     `;
   }

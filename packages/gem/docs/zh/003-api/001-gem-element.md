@@ -35,17 +35,15 @@ class GemElement extends HTMLElement {
 | `@state`         | 定义元素 CSS [`state`][1]                                    |
 | `@slot`          | 定义元素的 [`slot`][2]                                       |
 | `@part`          | 定义元素的 [`part`][3]                                       |
-| `@refobject`     | 内部元素引用                                                 |
 
 > [!NOTE]
 > 除 `@property` 外其他装饰器装饰的字段都有默认值，`@attribute`/`@boolattribute`/`@numattribute`/`@state`/`@slot`/`@part` 装饰的字段的值都将自动进行烤串式转换，在元素外部使用时请使用对应的烤串式值\_
 
 配合装饰器的 Type
 
-| 名称           | 描述                          |
-| -------------- | ----------------------------- |
-| `RefObject<T>` | `@refobject` 定义的字段的类型 |
-| `Emitter<T>`   | `@emitter` 定义的字段的类型   |
+| 名称         | 描述                        |
+| ------------ | --------------------------- |
+| `Emitter<T>` | `@emitter` 定义的字段的类型 |
 
 ## 方法/函数装饰器
 
@@ -62,6 +60,7 @@ class GemElement extends HTMLElement {
 
 | 名称             | 描述                                 |
 | ---------------- | ------------------------------------ |
+| `createRef`      | 内部元素引用                         |
 | `createState`    | 为元素创建内部状态                   |
 | `createCSSSheet` | 使用构造函数创建能附加到元素的样式表 |
 

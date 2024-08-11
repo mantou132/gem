@@ -10,8 +10,7 @@ import {
   slot,
   globalemitter,
   state,
-  refobject,
-  RefObject,
+  createRef,
   boolattribute,
   css,
   adoptedStyle,
@@ -165,8 +164,6 @@ const styles = createCSSSheet(css`
 @adoptedStyle(styles)
 export class GemBookElement extends GemElement {
   static GemBookPluginElement = GemBookPluginElement;
-
-  @refobject routeRef: RefObject<GemLightRouteElement>;
 
   @attribute src: string;
   // process.env.DEV_MODE 只能用于 website 模式，不能用在单元素中
@@ -324,4 +321,6 @@ export class GemBookElement extends GemElement {
   };
 
   changeTheme = changeTheme;
+
+  routeRef = createRef<GemLightRouteElement>();
 }

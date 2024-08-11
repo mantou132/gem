@@ -1,5 +1,5 @@
-import { createCSSSheet, html, GemElement, TemplateResult, createState } from '@mantou/gem/lib/element';
-import { adoptedStyle, customElement, memo, property, refobject, RefObject, shadow } from '@mantou/gem/lib/decorators';
+import { createCSSSheet, html, GemElement, TemplateResult, createState, createRef } from '@mantou/gem/lib/element';
+import { adoptedStyle, customElement, memo, property, shadow } from '@mantou/gem/lib/decorators';
 import { GemError, StyleObject, css, styleMap } from '@mantou/gem/lib/utils';
 import { history } from '@mantou/gem/lib/history';
 import { ifDefined } from '@mantou/gem/lib/directives';
@@ -133,10 +133,10 @@ type State<T> = {
 @adoptedStyle(style)
 @shadow()
 export class DyPatFormElement<T = Record<string, unknown>> extends GemElement {
-  @refobject formRef: RefObject<DuoyunFormElement>;
-
   @property data?: T;
   @property formItems?: FormItem<T>[];
+
+  #formRef = createRef<DuoyunFormElement>();
 
   @memo((i) => [i.data])
   #initState = () => {
@@ -310,7 +310,7 @@ export class DyPatFormElement<T = Record<string, unknown>> extends GemElement {
                     const ele = this.#createFormInputElement(props.type);
                     ele.addEventListener('change', (evt: CustomEvent<any>) => {
                       this.#onInputChange(evt, props);
-                      this.formRef.element?.dispatchEvent(
+                      this.#formRef.element?.dispatchEvent(
                         new CustomEvent('itemchange', {
                           detail: { name: name, value: evt.detail },
                         }),
@@ -442,7 +442,7 @@ export class DyPatFormElement<T = Record<string, unknown>> extends GemElement {
 
   render = () => {
     return html`
-      <dy-form @change=${this.#onChange} @itemchange=${this.#onItemChange} ref=${this.formRef.ref}>
+      <dy-form @change=${this.#onChange} @itemchange=${this.#onItemChange} ref=${this.#formRef.ref}>
         ${this.#renderItems(this.formItems)}
       </dy-form>
     `;
@@ -454,7 +454,7 @@ export class DyPatFormElement<T = Record<string, unknown>> extends GemElement {
     ignoreCache: {},
   });
 
-  valid = () => this.formRef.element!.valid();
+  valid = () => this.#formRef.element!.valid();
 }
 
 type CreateFormOptions<T> = {

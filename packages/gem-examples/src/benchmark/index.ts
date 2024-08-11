@@ -9,8 +9,7 @@ import {
   createCSSSheet,
   css,
   adoptedStyle,
-  refobject,
-  RefObject,
+  createRef,
   repeat,
   shadow,
   createState,
@@ -74,7 +73,7 @@ const style = createCSSSheet(css`
 @adoptedStyle(style)
 @shadow()
 export class App extends GemElement {
-  @refobject canvasRef: RefObject<HTMLCanvasElement>;
+  #canvasRef = createRef<HTMLCanvasElement>();
 
   #state = createState({
     canvasKey: 0,
@@ -103,7 +102,7 @@ export class App extends GemElement {
 
     this.effect(
       () => {
-        const offscreenCanvas = this.canvasRef.element!.transferControlToOffscreen();
+        const offscreenCanvas = this.#canvasRef.element!.transferControlToOffscreen();
         worker.postMessage(
           {
             ratio: this.#state.ratio,
@@ -139,7 +138,7 @@ export class App extends GemElement {
       ${repeat(
         [canvasKey],
         (k) => k,
-        () => html`<canvas ref=${this.canvasRef.ref} width=${width / ratio} height=${height / ratio}></canvas>`,
+        () => html`<canvas ref=${this.#canvasRef.ref} width=${width / ratio} height=${height / ratio}></canvas>`,
       )}
       <div class="grid">
         ${repeat(

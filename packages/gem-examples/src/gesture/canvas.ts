@@ -1,17 +1,17 @@
 import { PanEventDetail } from '@mantou/gem/elements/gesture';
-import { GemElement, html, customElement, property, refobject, RefObject, mounted } from '@mantou/gem';
+import { GemElement, html, customElement, property, mounted, createRef } from '@mantou/gem';
 
 @customElement('app-canvas')
 export class AppCanvas extends GemElement {
   @property data: PanEventDetail[];
 
-  @refobject canvasRef: RefObject<HTMLCanvasElement>;
-  @refobject canvasRef1: RefObject<HTMLCanvasElement>;
+  #canvasRef = createRef<HTMLCanvasElement>();
+  #canvasRef1 = createRef<HTMLCanvasElement>();
 
   @mounted()
   #init = () => {
-    const canvas = this.canvasRef.element!;
-    const canvas1 = this.canvasRef1.element!;
+    const canvas = this.#canvasRef.element!;
+    const canvas1 = this.#canvasRef1.element!;
     const ctx = canvas.getContext('2d')!;
     const ctx1 = canvas1.getContext('2d')!;
     canvas.height = 150;
@@ -64,8 +64,8 @@ export class AppCanvas extends GemElement {
   render() {
     return html`
       <br />
-      <canvas ref=${this.canvasRef.ref} style="border: 1px solid"></canvas>
-      <canvas ref=${this.canvasRef1.ref} style="border: 1px solid"></canvas>
+      <canvas ref=${this.#canvasRef.ref} style="border: 1px solid"></canvas>
+      <canvas ref=${this.#canvasRef1.ref} style="border: 1px solid"></canvas>
     `;
   }
 }

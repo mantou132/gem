@@ -17,7 +17,7 @@ class GemElement extends HTMLElement {
 | ---------------- | ------------------------------------------------------------------------ |
 | `@customElement` | Class decorator, define custom elements tag                              |
 | `@connectStore`  | Class decorator, bound to `Store`, element auto update by `Store` update |
-| `@adoptedStyle`  | Class decorator, adopte style sheet                                      |
+| `@adoptedStyle`  | Class decorator, adopt style sheet                                       |
 | `@shadow`        | Class decorator, Use [ShadowDOM][10] render content                      |
 | `@async`         | Class decorator, Use no blocking render                                  |
 | `@aria`          | Class decorator, Specify the [accessibility][11] info                    |
@@ -32,7 +32,6 @@ class GemElement extends HTMLElement {
 | `@property`      | Field decorator, define reactivity [`Property`][6], no default value         |
 | `@emitter`       | Field decorator, define event emitter, similar to [`HTMLElement.click`][4]   |
 | `@globalemitter` | Similar `@emitter`, comes with [`composed`][7] and [`bubbles`][8] attributes |
-| `@refobject`     | Field decorator, defining dom references                                     |
 | `@state`         | Field decorator, define the inside of the element css [`state`][1]           |
 | `@slot`          | Field decorator, [`slot`][2] that defines the element                        |
 | `@part`          | Field decorator, [`part`][3] that defines the element                        |
@@ -42,10 +41,9 @@ class GemElement extends HTMLElement {
 
 Type with decorator
 
-| name           | description                                   |
-| -------------- | --------------------------------------------- |
-| `RefObject<T>` | The type of the field defined by `@refobject` |
-| `Emitter<T>`   | The type of the field defined by `@emitter`   |
+| name         | description                                 |
+| ------------ | ------------------------------------------- |
+| `Emitter<T>` | The type of the field defined by `@emitter` |
 
 ## Method Decorator
 
@@ -62,6 +60,7 @@ Type with decorator
 
 | name             | description                                                                     |
 | ---------------- | ------------------------------------------------------------------------------- |
+| `createRef`      | Defining dom references                                                         |
 | `createState`    | Specify the element internal state                                              |
 | `createCSSSheet` | Use the constructor to create a style sheet that can be attached to the element |
 

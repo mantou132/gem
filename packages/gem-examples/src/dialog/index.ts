@@ -1,4 +1,4 @@
-import { GemElement, html, customElement, refobject, RefObject, render, shadow, createState } from '@mantou/gem';
+import { GemElement, html, customElement, render, shadow, createState, createRef } from '@mantou/gem';
 import { createModalClass } from '@mantou/gem/elements/base/modal-factory';
 import { GemDialogBaseElement } from '@mantou/gem/elements/base/dialog';
 
@@ -110,14 +110,14 @@ class Dialog extends GemDialogBaseElement {
 @customElement('app-root')
 @shadow()
 export class Root extends GemElement {
-  @refobject dialog: RefObject<Dialog>;
+  #dialog = createRef<Dialog>();
 
   #state = createState({
     modal: false,
   });
 
   #clickHandle = () => {
-    this.dialog.element?.open();
+    this.#dialog.element?.open();
   };
 
   render() {
@@ -130,7 +130,7 @@ export class Root extends GemElement {
       <button ?inert=${this.#state.modal} @click="${this.#clickHandle}">open dialog</button>
       <app-dialog
         label="dialog title"
-        ref=${this.dialog.ref}
+        ref=${this.#dialog.ref}
         @open=${() => this.#state({ modal: true })}
         @close=${() => this.#state({ modal: false })}
       >

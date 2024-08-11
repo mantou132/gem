@@ -8,7 +8,7 @@
  */
 import { fixture, expect, nextFrame } from '@open-wc/testing';
 
-import { createCSSSheet, createState, GemElement, html, Metadata } from '../../lib/element';
+import { createCSSSheet, createState, GemElement, html, Metadata, createRef } from '../../lib/element';
 import { createStore, updateStore } from '../../lib/store';
 import {
   attribute,
@@ -16,13 +16,10 @@ import {
   customElement,
   emitter,
   adoptedStyle,
-  refobject,
-  RefObject,
   connectStore,
   async,
   shadow,
   mounted,
-  willMount,
 } from '../../lib/decorators';
 import { css } from '../../lib/utils';
 
@@ -91,8 +88,9 @@ describe('没有 Shadow DOM 的 gem 元素', () => {
 class LifecycleGemElement extends GemElement {
   @attribute appTitle = 'default';
   @attribute appTitle2 = 'default2';
-  @refobject divRef: RefObject<HTMLElement>;
   refInConstructor?: HTMLElement;
+
+  divRef = createRef<HTMLDivElement>();
 
   constructor(appTitle: string, appTitle2: string) {
     super();

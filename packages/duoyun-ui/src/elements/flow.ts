@@ -1,18 +1,7 @@
 // webkit marker arrow bug: https://duoyun-ui.gemjs.org/zh/elements/flow
 
-import {
-  adoptedStyle,
-  customElement,
-  property,
-  part,
-  state,
-  refobject,
-  RefObject,
-  shadow,
-  memo,
-  effect,
-} from '@mantou/gem/lib/decorators';
-import { createCSSSheet, createState, html, svg, TemplateResult } from '@mantou/gem/lib/element';
+import { adoptedStyle, customElement, property, part, state, shadow, memo, effect } from '@mantou/gem/lib/decorators';
+import { createCSSSheet, createRef, createState, html, svg, TemplateResult } from '@mantou/gem/lib/element';
 import { css, styleMap, exportPartsMap } from '@mantou/gem/lib/utils';
 import type { ElkNode, ElkExtendedEdge, ElkEdgeSection, LayoutOptions, ElkShape, ElkPoint } from 'elkjs';
 import ELK from 'elkjs/lib/elk.bundled.js';
@@ -535,7 +524,8 @@ export class DuoyunFlowElement extends DuoyunResizeBaseElement {
   @property renderEndMarker?: () => undefined | TemplateResult;
 
   @state loaded: boolean;
-  @refobject canvasRef: RefObject<DuoyunFlowCanvasElement>;
+
+  #canvasRef = createRef<DuoyunFlowCanvasElement>();
 
   #state = createState<State>({});
 
@@ -581,7 +571,7 @@ export class DuoyunFlowElement extends DuoyunResizeBaseElement {
   @effect((i) => [i.contentRect.width])
   #updateScale = () => {
     if (!this.loaded) return;
-    this.#setScale(this.canvasRef.element!.contentRect);
+    this.#setScale(this.#canvasRef.element!.contentRect);
   };
 
   #exportparts = exportPartsMap({
@@ -596,7 +586,7 @@ export class DuoyunFlowElement extends DuoyunResizeBaseElement {
     this.loaded = !!scale;
     return html`
       <dy-flow-canvas
-        ref=${this.canvasRef.ref}
+        ref=${this.#canvasRef.ref}
         exportparts=${this.#exportparts}
         @resize=${this.#onCanvasResize}
         style=${styleMap({

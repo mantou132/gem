@@ -7,8 +7,6 @@ import {
   Emitter,
   property,
   boolattribute,
-  refobject,
-  RefObject,
   state,
   part,
   shadow,
@@ -17,7 +15,7 @@ import {
   effect,
   memo,
 } from '@mantou/gem/lib/decorators';
-import { createCSSSheet, createState, GemElement, html, TemplateResult } from '@mantou/gem/lib/element';
+import { createCSSSheet, createRef, createState, GemElement, html, TemplateResult } from '@mantou/gem/lib/element';
 import { addListener, css, styleMap, StyleObject } from '@mantou/gem/lib/utils';
 
 import { theme } from '../lib/theme';
@@ -133,6 +131,9 @@ export interface Option {
 @shadow()
 @aria({ focusable: true })
 export class DuoyunSelectElement extends GemElement implements BasePickerElement {
+  @part static tag: string;
+  @part static value: string;
+
   @boolattribute multiple: boolean;
   @boolattribute disabled: boolean;
   @boolattribute searchable: boolean;
@@ -153,11 +154,8 @@ export class DuoyunSelectElement extends GemElement implements BasePickerElement
   @globalemitter change: Emitter<any | any[]>;
   @globalemitter search: Emitter<string>;
 
-  @refobject searchRef: RefObject<HTMLElement>;
-  @refobject optionsRef: RefObject<HTMLElement>;
-
-  @part static tag: string;
-  @part static value: string;
+  #searchRef = createRef<HTMLElement>();
+  #optionsRef = createRef<HTMLElement>();
 
   get #searchable() {
     return this.searchable && !this.disabled && !this.borderless;
@@ -216,7 +214,7 @@ export class DuoyunSelectElement extends GemElement implements BasePickerElement
     this.#state({ open: true });
     // safari auto focus
     await Promise.resolve();
-    this.searchRef.element?.focus();
+    this.#searchRef.element?.focus();
   };
 
   #close = () => {
@@ -237,7 +235,7 @@ export class DuoyunSelectElement extends GemElement implements BasePickerElement
 
   #onEsc = () => {
     this.#close();
-    (this.searchRef.element || this).focus();
+    (this.#searchRef.element || this).focus();
   };
 
   #onSearchKeydown = hotkeys(
@@ -253,7 +251,7 @@ export class DuoyunSelectElement extends GemElement implements BasePickerElement
       },
       tab: (evt) => {
         if (!this.#state.open) return;
-        this.optionsRef.element?.focus();
+        this.#optionsRef.element?.focus();
         evt.preventDefault();
       },
       esc: this.#onEsc,
@@ -275,8 +273,8 @@ export class DuoyunSelectElement extends GemElement implements BasePickerElement
     {
       esc: this.#onEsc,
       'shift+tab': (evt) => {
-        if (!this.optionsRef.element?.shadowRoot?.activeElement) {
-          (this.searchRef.element || this).focus();
+        if (!this.#optionsRef.element?.shadowRoot?.activeElement) {
+          (this.#searchRef.element || this).focus();
           evt.preventDefault();
         }
       },
@@ -356,9 +354,9 @@ export class DuoyunSelectElement extends GemElement implements BasePickerElement
 
   @effect((i) => [i.#state.open])
   #autoFocus = () => {
-    if (this.#state.open && !this.searchable && !this.inline && this.optionsRef.element) {
-      const restoreInert = setBodyInert(this.optionsRef.element);
-      this.optionsRef.element.focus();
+    if (this.#state.open && !this.searchable && !this.inline && this.#optionsRef.element) {
+      const restoreInert = setBodyInert(this.#optionsRef.element);
+      this.#optionsRef.element.focus();
       return () => {
         restoreInert();
         this.focus();
@@ -437,7 +435,7 @@ export class DuoyunSelectElement extends GemElement implements BasePickerElement
         ${this.#searchable
           ? html`
               <dy-input
-                ref=${this.searchRef.ref}
+                ref=${this.#searchRef.ref}
                 class="search"
                 type="search"
                 value=${search}
@@ -458,7 +456,7 @@ export class DuoyunSelectElement extends GemElement implements BasePickerElement
         ? html`
             <dy-reflect .target=${document.body}>
               <dy-options
-                ref=${this.optionsRef.ref}
+                ref=${this.#optionsRef.ref}
                 @keydown=${this.#onOptionsKeydown}
                 aria-multiselectable=${this.multiple}
                 style=${styleMap({

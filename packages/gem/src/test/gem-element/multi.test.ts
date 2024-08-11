@@ -1,13 +1,13 @@
 import { expect, fixture } from '@open-wc/testing';
 
-import { attribute, customElement, property, RefObject, refobject } from '../../lib/decorators';
-import { GemElement, html } from '../../lib/element';
+import { attribute, customElement, property } from '../../lib/decorators';
+import { GemElement, html, createRef } from '../../lib/element';
 
 @customElement('app-children')
 export class Children extends GemElement {
-  @refobject inputRef: RefObject<HTMLInputElement>;
   @property value?: { value: number };
   @attribute attr: string;
+  inputRef = createRef<HTMLInputElement>();
 
   render() {
     return html`<input ref=${this.inputRef.ref} />`;
@@ -16,8 +16,8 @@ export class Children extends GemElement {
 
 @customElement('app-root')
 export class App extends GemElement {
-  @refobject childrenRef1: RefObject<Children>;
-  @refobject childrenRef2: RefObject<Children>;
+  childrenRef1 = createRef<Children>();
+  childrenRef2 = createRef<Children>();
   render() {
     return html`
       <app-children ref=${this.childrenRef1.ref} .value=${{ value: 1 }} attr="1"></app-children>

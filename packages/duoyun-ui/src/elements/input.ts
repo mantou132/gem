@@ -8,8 +8,6 @@ import {
   property,
   boolattribute,
   numattribute,
-  refobject,
-  RefObject,
   state,
   part,
   shadow,
@@ -17,7 +15,7 @@ import {
   mounted,
   effect,
 } from '@mantou/gem/lib/decorators';
-import { GemElement, html, TemplateResult, createCSSSheet } from '@mantou/gem/lib/element';
+import { GemElement, html, TemplateResult, createCSSSheet, createRef } from '@mantou/gem/lib/element';
 import { css } from '@mantou/gem/lib/utils';
 
 import { theme } from '../lib/theme';
@@ -173,7 +171,6 @@ export class DuoyunInputElement extends GemElement {
   @part static input: string;
   @part static clear: string;
 
-  @refobject inputRef: RefObject<HTMLInputElement>;
   @globalemitter change: Emitter<string>;
   @emitter clear: Emitter<string>;
 
@@ -197,6 +194,8 @@ export class DuoyunInputElement extends GemElement {
 
   @state filled: boolean;
   @state composing: boolean;
+
+  #inputRef = createRef<HTMLInputElement>();
 
   get #spellcheck() {
     return this.spellcheck ? 'true' : 'false';
@@ -251,7 +250,7 @@ export class DuoyunInputElement extends GemElement {
 
   #inputHandle = () => {
     if (!this.composing) {
-      const { element } = this.inputRef;
+      const { element } = this.#inputRef;
       if (!element) return;
       const { value, selectionStart, selectionEnd } = element;
       // `value` mission `2.`?
@@ -334,7 +333,7 @@ export class DuoyunInputElement extends GemElement {
 
   @effect((i) => [i.value])
   #updateState = () => {
-    const { element } = this.inputRef;
+    const { element } = this.#inputRef;
     if (!element) return;
     const { value, selectionStart, selectionEnd } = this.#nextState;
     if (this.value === value) {
@@ -355,7 +354,7 @@ export class DuoyunInputElement extends GemElement {
       ${this.#type === 'textarea'
         ? html`
             <textarea
-              ref=${this.inputRef.ref}
+              ref=${this.#inputRef.ref}
               class="input"
               part=${DuoyunInputElement.input}
               spellcheck=${this.#spellcheck}
@@ -372,7 +371,7 @@ export class DuoyunInputElement extends GemElement {
         : html`
             <input
               type=${this.#type}
-              ref=${this.inputRef.ref}
+              ref=${this.#inputRef.ref}
               class="input"
               part=${DuoyunInputElement.input}
               spellcheck=${this.#spellcheck}

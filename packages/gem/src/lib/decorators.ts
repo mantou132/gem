@@ -1,7 +1,5 @@
-import type { GemReflectElement } from '../elements/reflect';
-
 import { createCSSSheet, GemElement, UpdateToken, Metadata, TemplateResult } from './element';
-import { camelToKebabCase, randomStr, PropProxyMap, GemError } from './utils';
+import { camelToKebabCase, PropProxyMap, GemError } from './utils';
 import { Store } from './store';
 import * as elementExports from './element';
 import * as decoratorsExports from './decorators';
@@ -33,88 +31,6 @@ function clearField<T extends GemElement>(instance: T, prop: string) {
   const { value } = getOwnPropertyDescriptor(instance, prop)!;
   deleteProperty(instance, prop);
   (instance as any)[prop] = value;
-}
-
-const getReflectTargets = (ele: ShadowRoot | GemElement) =>
-  [...ele.querySelectorAll<GemReflectElement>('[data-gem-reflect]')].map((e) => e.target);
-
-export class RefObject<T = HTMLElement> {
-  refSelector: string;
-  ele: GemElement | ShadowRoot;
-  ref: string;
-
-  constructor(ele: GemElement | ShadowRoot, ref: string) {
-    this.refSelector = `[ref=${ref}]`;
-    this.ele = ele;
-    this.ref = ref;
-  }
-  get element() {
-    for (const e of [this.ele, ...getReflectTargets(this.ele)]) {
-      // 在 LightDOM 中可能工作很慢？
-      const result = e.querySelector(this.refSelector);
-      if (result) return result as T;
-    }
-  }
-  get elements() {
-    return [this.ele, ...getReflectTargets(this.ele)]
-      .map((e) => [...e.querySelectorAll(this.refSelector)] as T[])
-      .flat();
-  }
-  toString() {
-    return this.ref;
-  }
-}
-
-function defineRef(target: GemElement, prop: string, ref: string) {
-  defineProperty(target, prop, {
-    configurable: true,
-    get() {
-      const proxy = gemElementProxyMap.get(this);
-      let obj = proxy[prop];
-      if (!obj) {
-        const that = this as GemElement;
-        obj = new RefObject(that.shadowRoot || that, ref);
-        proxy[prop] = obj;
-      }
-      return obj;
-    },
-    set() {
-      //
-    },
-  });
-}
-
-/**
- * 引用元素，只有第一个标记 ref 的元素有效
- *
- * For example
- * ```ts
- *  class App extends GemElement {
- *    @refobject childRef: RefObject<Children>;
- *    loadHandle = () => {
- *      const { element } = this.childRef;
- *      console.log(element);
- *    };
- *    render() {
- *      render html`<div ref=${this.childRef.ref}><div>`;
- *    }
- *  }
- * ```
- */
-export function refobject<T extends GemElement, V extends HTMLElement>(
-  _: undefined,
-  context: ClassFieldDecoratorContext<T, RefObject<V>>,
-) {
-  context.addInitializer(function (this: T) {
-    const target = getPrototypeOf(this);
-    const prop = context.name as string;
-    if (!target.hasOwnProperty(prop)) {
-      const ref = `${camelToKebabCase(prop)}-${randomStr()}`;
-      pushStaticField(context, 'definedRefs', ref);
-      defineRef(target, prop, ref);
-    }
-    clearField(this, prop);
-  });
 }
 
 const observedTargetAttributes = new WeakMap<GemElementPrototype, Map<string, string>>();

@@ -1,4 +1,3 @@
-import type { RefObject } from '@mantou/gem';
 import type { SandpackClient, SandpackBundlerFiles, ClientStatus } from '@codesandbox/sandpack-client';
 
 import type { GemBookElement } from '../element';
@@ -40,7 +39,7 @@ customElements.whenDefined('gem-book').then(({ GemBookPluginElement }: typeof Ge
   const {
     html,
     customElement,
-    refobject,
+    createRef,
     attribute,
     boolattribute,
     adoptedStyle,
@@ -160,7 +159,6 @@ customElements.whenDefined('gem-book').then(({ GemBookPluginElement }: typeof Ge
   @adoptedStyle(styles)
   @shadow()
   class _GbpSandpackElement extends GemBookPluginElement {
-    @refobject iframeRef: RefObject<HTMLIFrameElement>;
     @attribute entry: string;
     @attribute dependencies: string;
     @boolattribute hotreload: boolean;
@@ -211,6 +209,8 @@ customElements.whenDefined('gem-book').then(({ GemBookPluginElement }: typeof Ge
         }),
       };
     }
+
+    #iframeRef = createRef<HTMLIFrameElement>();
 
     #state = createState<State>({
       files: [],
@@ -277,7 +277,7 @@ customElements.whenDefined('gem-book').then(({ GemBookPluginElement }: typeof Ge
       )) as typeof import('@codesandbox/sandpack-client');
 
       return await loadSandpackClient(
-        this.iframeRef.element!,
+        this.#iframeRef.element!,
         {
           files: this.#state.files.reduce((p, c) => ({ ...p, [c.filename]: { code: c.code } }), {
             'sandbox.config.json': this.#sandBoxConfigFile,
@@ -414,7 +414,7 @@ customElements.whenDefined('gem-book').then(({ GemBookPluginElement }: typeof Ge
             <div class="sandbox" ?hidden=${status === 'done'}>
               <span class="status">${status.replace(/_|-/g, ' ')}...</span>
             </div>
-            <iframe class="sandbox" ref=${this.iframeRef.ref} ?hidden=${status !== 'done'}></iframe>
+            <iframe class="sandbox" ref=${this.#iframeRef.ref} ?hidden=${status !== 'done'}></iframe>
           </div>
         </div>
       `;

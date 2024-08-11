@@ -1,14 +1,4 @@
-import {
-  html,
-  randomStr,
-  GemElement,
-  customElement,
-  render,
-  refobject,
-  RefObject,
-  createState,
-  mounted,
-} from '@mantou/gem';
+import { html, randomStr, GemElement, customElement, render, createRef, createState, mounted } from '@mantou/gem';
 
 import '@mantou/gem/elements/reflect';
 
@@ -22,7 +12,7 @@ export class AppChild extends GemElement {
 
 @customElement('app-root')
 export class App extends GemElement {
-  @refobject childrenRef: RefObject<HTMLStyleElement>;
+  #childrenRef = createRef<HTMLStyleElement>();
   #state = createState({
     mount: true,
   });
@@ -39,7 +29,7 @@ export class App extends GemElement {
       ${this.#state.mount
         ? html`
             <gem-reflect>
-              <app-children ref=${this.childrenRef.ref}></app-children>
+              <app-children ref=${this.#childrenRef.ref}></app-children>
               <style>
                 head {
                   display: block;

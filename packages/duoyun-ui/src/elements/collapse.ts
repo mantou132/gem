@@ -6,8 +6,6 @@ import {
   customElement,
   attribute,
   part,
-  refobject,
-  RefObject,
   boolattribute,
   property,
   emitter,
@@ -16,7 +14,7 @@ import {
   shadow,
   aria,
 } from '@mantou/gem/lib/decorators';
-import { createCSSSheet, GemElement, TemplateResult, html, createState } from '@mantou/gem/lib/element';
+import { createCSSSheet, GemElement, TemplateResult, html, createState, createRef } from '@mantou/gem/lib/element';
 import { css, classMap, exportPartsMap } from '@mantou/gem/lib/utils';
 import { ifDefined } from '@mantou/gem/lib/directives';
 
@@ -78,7 +76,9 @@ const panelStyle = createCSSSheet(css`
 @aria({ role: 'listitem' })
 @shadow()
 export class DuoyunCollapsePanelElement extends GemElement {
-  @refobject contentRef: RefObject<HTMLDivElement>;
+  @slot static unnamed: string;
+  @part static summary: string;
+  @part static detail: string;
 
   @boolattribute searchable: boolean;
 
@@ -86,12 +86,10 @@ export class DuoyunCollapsePanelElement extends GemElement {
 
   @emitter toggle: Emitter<boolean>;
 
-  @slot static unnamed: string;
-  @part static summary: string;
-  @part static detail: string;
+  #contentRef = createRef<HTMLDivElement>();
 
   #animate = async (isCollapse: boolean) => {
-    const { element } = this.contentRef;
+    const { element } = this.#contentRef;
     if (!element) return;
     const { height } = element.getBoundingClientRect();
     const frames = [{ height: 0, paddingBlock: 0, borderWidth: 0 }, { height: `${height}px` }];
@@ -117,7 +115,7 @@ export class DuoyunCollapsePanelElement extends GemElement {
         ? html`
             <div
               class=${classMap({ detail: true, expand })}
-              ref=${this.contentRef.ref}
+              ref=${this.#contentRef.ref}
               part=${DuoyunCollapsePanelElement.detail}
               hidden=${ifDefined(expand ? undefined : 'until-found')}
               @beforematch=${this.toggleState}

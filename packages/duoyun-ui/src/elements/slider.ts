@@ -8,14 +8,12 @@ import {
   Emitter,
   boolattribute,
   numattribute,
-  refobject,
-  RefObject,
   aria,
   shadow,
   mounted,
   effect,
 } from '@mantou/gem/lib/decorators';
-import { GemElement, html, createCSSSheet, createState } from '@mantou/gem/lib/element';
+import { GemElement, html, createCSSSheet, createState, createRef } from '@mantou/gem/lib/element';
 import { css, classMap, addListener } from '@mantou/gem/lib/utils';
 
 import { theme } from '../lib/theme';
@@ -106,7 +104,6 @@ export class DuoyunSliderElement extends GemElement {
   @attribute orientation: 'horizontal' | 'vertical';
   @boolattribute editable: boolean;
   @boolattribute disabled: boolean;
-  @refobject sliderRef: RefObject<HTMLDivElement>;
 
   @numattribute value: number;
   @numattribute min: number;
@@ -118,6 +115,8 @@ export class DuoyunSliderElement extends GemElement {
    * Slider drop
    */
   @emitter end: Emitter<number>;
+
+  #sliderRef = createRef<HTMLDivElement>();
 
   get #orientation() {
     return this.orientation || 'horizontal';
@@ -153,7 +152,7 @@ export class DuoyunSliderElement extends GemElement {
 
   #onPan = ({ detail, target }: CustomEvent<PanEventDetail>) => {
     if (this.disabled) return;
-    const { width, height } = this.sliderRef.element!.getBoundingClientRect();
+    const { width, height } = this.#sliderRef.element!.getBoundingClientRect();
     const { left, right, top, bottom, width: w, height: h } = (target as Element).getBoundingClientRect();
     const isV = this.#isVertical;
     const totalLength = isV ? height - h : width - w;
@@ -219,7 +218,7 @@ export class DuoyunSliderElement extends GemElement {
           inset-inline-start: ${position};
         }
       </style>
-      <div class="slider" ref=${this.sliderRef.ref}>
+      <div class="slider" ref=${this.#sliderRef.ref}>
         <dy-gesture
           class=${classMap({ mark: true, start })}
           @pan=${this.#onPan}

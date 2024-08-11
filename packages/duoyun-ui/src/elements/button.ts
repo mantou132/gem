@@ -5,15 +5,13 @@ import {
   attribute,
   property,
   boolattribute,
-  refobject,
-  RefObject,
   state,
   part,
   slot,
   shadow,
   mounted,
 } from '@mantou/gem/lib/decorators';
-import { createCSSSheet, GemElement, html } from '@mantou/gem/lib/element';
+import { createCSSSheet, GemElement, html, createRef } from '@mantou/gem/lib/element';
 import { history } from '@mantou/gem/lib/history';
 import { addListener, css, QueryString } from '@mantou/gem/lib/utils';
 
@@ -145,6 +143,9 @@ const style = createCSSSheet(css`
 export class DuoyunButtonElement extends GemElement {
   @slot static unnamed: string;
 
+  @part static button: string;
+  @part static dropdown: string;
+
   @attribute type: 'solid' | 'reverse';
   @attribute color: StringList<'normal' | 'danger' | 'cancel'>;
   @boolattribute small: boolean;
@@ -160,10 +161,7 @@ export class DuoyunButtonElement extends GemElement {
   @property icon?: string | Element | DocumentFragment;
   @state active: boolean;
 
-  @refobject dropdownRef: RefObject<DuoyunUseElement>;
-
-  @part static button: string;
-  @part static dropdown: string;
+  #dropdownRef = createRef<DuoyunUseElement>();
 
   get #color() {
     return getSemanticColor(this.color) || this.color || theme.primaryColor;
@@ -186,7 +184,7 @@ export class DuoyunButtonElement extends GemElement {
     e.stopPropagation();
     if (this.disabled) return;
     if (this.dropdown) {
-      const { element } = this.dropdownRef;
+      const { element } = this.#dropdownRef;
       const { right, bottom } = element!.getBoundingClientRect();
       const { width } = this.getBoundingClientRect();
       element!.active = true;
@@ -233,7 +231,7 @@ export class DuoyunButtonElement extends GemElement {
               }
             </style>
             <dy-use
-              ref=${this.dropdownRef.ref}
+              ref=${this.#dropdownRef.ref}
               class="dropdown"
               part=${DuoyunButtonElement.dropdown}
               @keydown=${commonHandle}

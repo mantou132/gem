@@ -4,8 +4,6 @@ import {
   attribute,
   property,
   boolattribute,
-  refobject,
-  RefObject,
   state,
   part,
   globalemitter,
@@ -17,7 +15,7 @@ import {
   mounted,
   effect,
 } from '@mantou/gem/lib/decorators';
-import { GemElement, html, TemplateResult, createCSSSheet, createState } from '@mantou/gem/lib/element';
+import { GemElement, html, TemplateResult, createCSSSheet, createState, createRef } from '@mantou/gem/lib/element';
 import { addListener, css } from '@mantou/gem/lib/utils';
 import { mediaQuery } from '@mantou/gem/helper/mediaquery';
 
@@ -285,7 +283,7 @@ export class DuoyunFormItemElement extends GemElement {
 
   @emitter search: Emitter<string>;
 
-  @refobject slotRef: RefObject<HTMLSlotElement>;
+  #slotRef = createRef<HTMLSlotElement>();
 
   #state = createState<FormItemState>({});
 
@@ -298,7 +296,7 @@ export class DuoyunFormItemElement extends GemElement {
   }
 
   get #slotAssignedElement() {
-    return this.slotRef.element!.assignedElements()[0] as any;
+    return this.#slotRef.element!.assignedElements()[0] as any;
   }
 
   #itemchange = (value: number | string | any[] | any) => {
@@ -498,7 +496,7 @@ export class DuoyunFormItemElement extends GemElement {
                             ></dy-input>
                           `
                       : ''}
-      <slot ref=${this.slotRef.ref}></slot>
+      <slot ref=${this.#slotRef.ref}></slot>
       ${invalidMessage
         ? html`
             <dy-help-text class="tip" part=${DuoyunFormItemElement.tip} status="negative">

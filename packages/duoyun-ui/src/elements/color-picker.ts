@@ -6,11 +6,9 @@ import {
   globalemitter,
   Emitter,
   boolattribute,
-  refobject,
-  RefObject,
   shadow,
 } from '@mantou/gem/lib/decorators';
-import { createCSSSheet, GemElement, html } from '@mantou/gem/lib/element';
+import { createCSSSheet, createRef, GemElement, html } from '@mantou/gem/lib/element';
 import { css, styleMap } from '@mantou/gem/lib/utils';
 
 import { HexColor } from '../lib/color';
@@ -68,10 +66,11 @@ const style = createCSSSheet(css`
 export class DuoyunColorPickerElement extends GemElement implements BasePickerElement {
   @attribute value: HexColor;
   @boolattribute alpha: boolean;
-  @refobject divRef: RefObject<HTMLDivElement>;
   @boolattribute disabled: boolean;
 
   @globalemitter change: Emitter<HexColor>;
+
+  #divRef = createRef<HTMLDivElement>();
 
   render = () => {
     return html`
@@ -89,7 +88,7 @@ export class DuoyunColorPickerElement extends GemElement implements BasePickerEl
       >
         <div
           role="combobox"
-          ref=${this.divRef.ref}
+          ref=${this.#divRef.ref}
           tabindex=${-Number(this.disabled)}
           aria-disabled=${this.disabled}
           @keydown=${commonHandle}
@@ -101,6 +100,6 @@ export class DuoyunColorPickerElement extends GemElement implements BasePickerEl
   };
 
   showPicker() {
-    this.divRef.element?.click();
+    this.#divRef.element?.click();
   }
 }

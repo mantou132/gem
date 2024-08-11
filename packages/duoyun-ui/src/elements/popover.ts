@@ -6,14 +6,12 @@ import {
   Emitter,
   property,
   boolattribute,
-  refobject,
-  RefObject,
   part,
   shadow,
   effect,
   mounted,
 } from '@mantou/gem/lib/decorators';
-import { createCSSSheet, createState, GemElement, html, TemplateResult } from '@mantou/gem/lib/element';
+import { createCSSSheet, createRef, createState, GemElement, html, TemplateResult } from '@mantou/gem/lib/element';
 import { addListener, css, styleMap, StyleObject } from '@mantou/gem/lib/utils';
 
 import { toggleActiveState, getBoundingClientRect, setBodyInert } from '../lib/element';
@@ -71,8 +69,6 @@ export class DuoyunPopoverElement extends GemElement {
 
   @property content?: string | TemplateResult;
 
-  @refobject popoverRef: RefObject<DuoyunPopoverGhostElement>;
-  @refobject slotRef: RefObject<HTMLSlotElement>;
   @emitter open: Emitter<null>;
   @emitter close: Emitter<null>;
 
@@ -115,7 +111,8 @@ export class DuoyunPopoverElement extends GemElement {
     '--color': theme.textColor,
   };
 
-  ghostStyle?: GhostStyle;
+  #popoverRef = createRef<DuoyunPopoverGhostElement>();
+  #slotRef = createRef<HTMLSlotElement>();
 
   get #position() {
     return this.position || 'auto';
@@ -177,7 +174,7 @@ export class DuoyunPopoverElement extends GemElement {
   }
 
   get popoverElement() {
-    return this.popoverRef.element;
+    return this.#popoverRef.element;
   }
 
   #open = (targetRect?: { top: number; right: number; bottom: number; left: number }) => {
@@ -186,7 +183,7 @@ export class DuoyunPopoverElement extends GemElement {
     let rect = targetRect;
     if (!rect) {
       // self is `display: contents`
-      let elements = this.slotRef.element!.assignedElements({ flatten: true });
+      let elements = this.#slotRef.element!.assignedElements({ flatten: true });
       if (!elements.length) {
         elements = [this];
         this.style.display = 'inline';
@@ -322,7 +319,7 @@ export class DuoyunPopoverElement extends GemElement {
               ></div>
               <dy-popover-ghost
                 role=${this.#role}
-                ref=${this.popoverRef.ref}
+                ref=${this.#popoverRef.ref}
                 data-position=${position}
                 style=${styleMap({
                   ...style,
@@ -338,9 +335,11 @@ export class DuoyunPopoverElement extends GemElement {
             </dy-reflect>
           `
         : ''}
-      <slot ref=${this.slotRef.ref} part=${DuoyunPopoverElement.slot}></slot>
+      <slot ref=${this.#slotRef.ref} part=${DuoyunPopoverElement.slot}></slot>
     `;
   };
+
+  ghostStyle?: GhostStyle;
 }
 
 export const Popover = DuoyunPopoverElement;

@@ -1,8 +1,7 @@
-import { createCSSSheet, createState, GemElement, html } from '@mantou/gem/lib/element';
+import { createCSSSheet, createRef, createState, GemElement, html } from '@mantou/gem/lib/element';
 import { QueryString, addListener, css, styleMap } from '@mantou/gem/lib/utils';
 import {
   Emitter,
-  RefObject,
   adoptedStyle,
   boolattribute,
   connectStore,
@@ -12,7 +11,6 @@ import {
   memo,
   numattribute,
   property,
-  refobject,
   shadow,
 } from '@mantou/gem/lib/decorators';
 import { history } from '@mantou/gem/lib/history';
@@ -164,8 +162,6 @@ const style = createCSSSheet(css`
 @connectStore(locationStore)
 @shadow()
 export class DyPatTableElement<T = any> extends GemElement {
-  @refobject tableRef: RefObject<DuoyunTableElement<T>>;
-
   @boolattribute filterable: boolean;
   @boolattribute selectable: boolean;
 
@@ -201,6 +197,8 @@ export class DyPatTableElement<T = any> extends GemElement {
       | 'addAllToSelection'
       | ComparerType,
   ) => string = (e) => e.replace(/([A-Z])/g, ' $1').replace(/^\w/, ($1) => $1.toUpperCase());
+
+  #tableRef = createRef<DuoyunTableElement<T>>();
 
   get #defaultPagesize() {
     return this.pagesize || this.sizes?.[0] || 20;
@@ -244,7 +242,7 @@ export class DyPatTableElement<T = any> extends GemElement {
   #onContextMenu = (originEvent: MouseEvent, currentRowData?: T, selected?: boolean) => {
     if (originEvent.altKey) return;
     if (!this.selectable) return;
-    const table = this.tableRef.element!;
+    const table = this.#tableRef.element!;
     const { selection } = this.#state;
     originEvent.stopPropagation();
     originEvent.preventDefault();
@@ -660,7 +658,7 @@ export class DyPatTableElement<T = any> extends GemElement {
 
     if (!search) return highlights.clear();
 
-    const tbody = this.tableRef.element?.shadowRoot?.querySelector('tbody');
+    const tbody = this.#tableRef.element?.shadowRoot?.querySelector('tbody');
     if (!tbody) return;
 
     const highlight = new Highlight();
@@ -711,7 +709,7 @@ export class DyPatTableElement<T = any> extends GemElement {
         <slot></slot>
       </div>
       <dy-table
-        ref=${this.tableRef.ref}
+        ref=${this.#tableRef.ref}
         part="table-wrap"
         exportparts="table,tr,td,th"
         .getRowStyle=${this.getRowStyle}

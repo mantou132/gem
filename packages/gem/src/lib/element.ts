@@ -1,12 +1,14 @@
 import { html, render, TemplateResult } from 'lit-html';
 
+import type { GemReflectElement } from '../elements/reflect';
+
 import { connect, Store } from './store';
 import { LinkedList, addMicrotask, isArrayChange, addListener, randomStr } from './utils';
 
 export { html, svg, render, directive, TemplateResult, SVGTemplateResult } from 'lit-html';
 
 declare global {
-  // 用于 css 选择器选择元素，使用 @refobject 自动选择获取
+  // 用于 css 选择器选择元素，使用 RefObject 自动选择获取
   // 必须使用 attr 赋值
   /**
    * @attr ref
@@ -41,6 +43,40 @@ const updateTokenAlias = UpdateToken;
 
 const rootStyleSheetInfo = new WeakMap<Document | ShadowRoot, Map<CSSStyleSheet, number>>();
 const rootUpdateFnMap = new WeakMap<Map<CSSStyleSheet, number>, () => void>();
+
+const getReflectTargets = (ele: ShadowRoot | GemElement) =>
+  [...ele.querySelectorAll<GemReflectElement>('[data-gem-reflect]')].map((e) => e.target);
+
+class RefObject<T = HTMLElement> {
+  refSelector: string;
+  ele: GemElement | ShadowRoot;
+  ref: string;
+
+  constructor(current: GemElement) {
+    const ref = `ref-${randomStr()}`;
+    this.refSelector = `[ref=${ref}]`;
+    this.ele = current.internals.shadowRoot || current;
+    this.ref = ref;
+  }
+  get element() {
+    for (const e of [this.ele, ...getReflectTargets(this.ele)]) {
+      // 在 LightDOM 中可能工作很慢？
+      const result = e.querySelector(this.refSelector);
+      if (result) return result as T;
+    }
+  }
+  get elements() {
+    return [this.ele, ...getReflectTargets(this.ele)]
+      .map((e) => [...e.querySelectorAll(this.refSelector)] as T[])
+      .flat();
+  }
+  toString() {
+    return this.ref;
+  }
+}
+
+/**必须使用在字段中，否则会读取到错误的实例 */
+export let createRef: <T>() => RefObject<T>;
 
 class GemCSSSheet {
   #content = '';
@@ -191,9 +227,10 @@ export type Metadata = Partial<ShadowRootInit> & {
   observedAttributes?: string[];
   definedEvents?: string[];
   definedCSSStates?: string[];
-  definedRefs?: string[];
   definedParts?: string[];
   definedSlots?: string[];
+  /**@deprecated GemDevtools 在使用*/
+  definedRefs?: string[];
 };
 
 // global render task pool
@@ -249,6 +286,7 @@ export abstract class GemElement extends HTMLElement {
       assign(state, initState);
       return state as T & ((this: GemElement, state: Partial<T>) => void);
     };
+    createRef = () => new RefObject(currentConstructGemElement);
   }
 
   constructor() {

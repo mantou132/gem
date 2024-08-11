@@ -1,5 +1,4 @@
-import { GemElement, html, history, render } from '@mantou/gem';
-import { connectStore, customElement, RefObject, refobject } from '@mantou/gem/lib/decorators';
+import { GemElement, html, history, render, createRef, connectStore, customElement } from '@mantou/gem';
 import { createHistoryParams, GemRouteElement, RouteItem } from '@mantou/gem/elements/route';
 import '@mantou/gem/elements/link';
 
@@ -78,7 +77,7 @@ export class RouteA extends GemElement {
 @customElement('app-root')
 @connectStore(locationStore)
 export class App extends GemElement {
-  @refobject routeRef: RefObject<GemRouteElement>;
+  #routeRef = createRef<GemRouteElement>();
 
   constructor() {
     super();
@@ -86,7 +85,7 @@ export class App extends GemElement {
   }
 
   #onClick = () => {
-    if (this.routeRef.element?.currentRoute === routes.home) {
+    if (this.#routeRef.element?.currentRoute === routes.home) {
       history.push(createHistoryParams(routes.a, { params: { b: String(Date.now()) } }));
     } else {
       history.push(createHistoryParams(routes.home));
@@ -97,7 +96,7 @@ export class App extends GemElement {
       <main>
         <pre>${JSON.stringify(locationStore.params)}</pre>
         <gem-route
-          ref=${this.routeRef.ref}
+          ref=${this.#routeRef.ref}
           @loading=${console.log}
           @routechange=${console.log}
           @error=${console.error}

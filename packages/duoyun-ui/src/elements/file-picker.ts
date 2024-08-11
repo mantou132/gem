@@ -6,13 +6,11 @@ import {
   Emitter,
   property,
   boolattribute,
-  refobject,
-  RefObject,
   part,
   slot,
   shadow,
 } from '@mantou/gem/lib/decorators';
-import { createCSSSheet, GemElement, html } from '@mantou/gem/lib/element';
+import { createCSSSheet, createRef, GemElement, html } from '@mantou/gem/lib/element';
 import { css, styleMap } from '@mantou/gem/lib/utils';
 import { repeat } from '@mantou/gem/lib/directives';
 
@@ -137,9 +135,10 @@ export class DuoyunFilePickerElement extends GemElement implements BasePickerEle
   @boolattribute disabled: boolean;
   @boolattribute multiple: boolean;
   @globalemitter change: Emitter<FileItem[]>;
-  @refobject inputRef: RefObject<HTMLInputElement>;
 
   @property value?: FileItem[];
+
+  #inputRef = createRef<HTMLInputElement>();
 
   get #type() {
     return this.type || 'file';
@@ -150,7 +149,7 @@ export class DuoyunFilePickerElement extends GemElement implements BasePickerEle
   }
 
   #onChange = () => {
-    const input = this.inputRef.element!;
+    const input = this.#inputRef.element!;
     if (!input.files) return;
     this.change([...((this.multiple && this.value) || []), ...input.files]);
     input.value = '';
@@ -223,7 +222,7 @@ export class DuoyunFilePickerElement extends GemElement implements BasePickerEle
         type="file"
         ?multiple=${this.multiple}
         ?disabled=${this.disabled}
-        ref=${this.inputRef.ref}
+        ref=${this.#inputRef.ref}
         @change=${this.#onChange}
         .webkitdirectory=${this.directory}
         accept=${this.#accept}>
@@ -244,6 +243,6 @@ export class DuoyunFilePickerElement extends GemElement implements BasePickerEle
   };
 
   showPicker() {
-    this.inputRef.element!.click();
+    this.#inputRef.element!.click();
   }
 }

@@ -1,8 +1,7 @@
 import {
   customElement,
   attribute,
-  refobject,
-  RefObject,
+  createRef,
   boolattribute,
   shadow,
   GemElement,
@@ -436,8 +435,6 @@ export class Pre extends GemElement {
   @boolattribute linenumber: boolean;
   @boolattribute headless: boolean;
 
-  @refobject codeRef: RefObject<HTMLElement>;
-
   get #linenumber() {
     return !!this.range || this.linenumber;
   }
@@ -445,6 +442,8 @@ export class Pre extends GemElement {
   get #headless() {
     return !this.filename || this.headless;
   }
+
+  #codeRef = createRef<HTMLElement>();
 
   #ranges: number[][];
   #highlightLineSet: Set<number>;
@@ -493,7 +492,7 @@ export class Pre extends GemElement {
       'getSelection' in this.shadowRoot! ? (this.shadowRoot as unknown as Window).getSelection() : getSelection();
     if (!selection || selection.focusNode?.nodeType !== Node.TEXT_NODE) return;
     this.#offset = 0;
-    const textNodeIterator = document.createNodeIterator(this.codeRef.element!, NodeFilter.SHOW_TEXT);
+    const textNodeIterator = document.createNodeIterator(this.#codeRef.element!, NodeFilter.SHOW_TEXT);
     while (true) {
       const textNode = textNodeIterator.nextNode();
       if (textNode && textNode !== selection?.focusNode) {
@@ -503,13 +502,13 @@ export class Pre extends GemElement {
         break;
       }
     }
-    const content = this.codeRef.element!.textContent!;
+    const content = this.#codeRef.element!.textContent!;
     this.textContent = content;
   };
 
   #setOffset = () => {
     if (!this.editable || !this.#offset) return;
-    const textNodeIterator = document.createNodeIterator(this.codeRef.element!, NodeFilter.SHOW_TEXT);
+    const textNodeIterator = document.createNodeIterator(this.#codeRef.element!, NodeFilter.SHOW_TEXT);
     let offset = this.#offset;
     while (true) {
       const textNode = textNodeIterator.nextNode();
@@ -531,7 +530,7 @@ export class Pre extends GemElement {
 
   #updateHtml = async () => {
     if (this.status === 'hidden') return;
-    if (!this.codeRef.element) return;
+    if (!this.#codeRef.element) return;
     await import(/* @vite-ignore */ /* webpackIgnore: true */ prismjs);
     const { Prism } = window as any;
     if (this.codelang && !Prism.languages[this.codelang]) {
@@ -550,7 +549,7 @@ export class Pre extends GemElement {
       ? Prism.highlight(this.textContent || '', Prism.languages[this.codelang], this.codelang)
       : this.innerHTML;
     const { parts, lineNumbersParts } = this.#getParts(htmlStr);
-    this.codeRef.element.innerHTML = parts.reduce(
+    this.#codeRef.element.innerHTML = parts.reduce(
       (p, c, i) =>
         p +
         `<span class="code-ignore token comment">  @@ ${lineNumbersParts[i - 1].at(-1)! + 1}-${
@@ -615,7 +614,7 @@ export class Pre extends GemElement {
             `
           : ''}
         <code
-          ref=${this.codeRef.ref}
+          ref=${this.#codeRef.ref}
           class="gem-code"
           contenteditable=${this.editable ? contenteditableValue : false}
           @compositionstart=${this.#compositionstartHandle}

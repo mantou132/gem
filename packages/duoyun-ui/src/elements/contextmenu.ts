@@ -1,14 +1,5 @@
-import {
-  connectStore,
-  adoptedStyle,
-  customElement,
-  refobject,
-  RefObject,
-  shadow,
-  effect,
-  mounted,
-} from '@mantou/gem/lib/decorators';
-import { createCSSSheet, html, GemElement, TemplateResult } from '@mantou/gem/lib/element';
+import { connectStore, adoptedStyle, customElement, shadow, effect, mounted } from '@mantou/gem/lib/decorators';
+import { createCSSSheet, html, GemElement, TemplateResult, createRef } from '@mantou/gem/lib/element';
 import { css, styleMap, classMap } from '@mantou/gem/lib/utils';
 import { useStore } from '@mantou/gem/lib/store';
 
@@ -130,8 +121,6 @@ const style = createCSSSheet(css`
 @adoptedStyle(style)
 @shadow({ delegatesFocus: true })
 export class DuoyunContextmenuElement extends GemElement {
-  @refobject optionsRef: RefObject<DuoyunOptionsElement>;
-
   static instance?: DuoyunContextmenuElement;
 
   static async open(contextmenu: MenuOrMenuObject, options: ContextMenuOptions = {}) {
@@ -196,6 +185,8 @@ export class DuoyunContextmenuElement extends GemElement {
     contextmenuStore.activeElement?.focus();
     contextmenuStore.activeElement?.blur();
   }
+
+  #optionsRef = createRef<DuoyunOptionsElement>();
 
   get #defaultWidth() {
     return contextmenuStore.menuStack[0].width || '15em';
@@ -304,7 +295,7 @@ export class DuoyunContextmenuElement extends GemElement {
     ContextMenu.instance = this;
     this.addEventListener('contextmenu', this.#preventDefault);
     const ob = new ResizeObserver(this.#initPosition);
-    const optionsElement = this.optionsRef.element;
+    const optionsElement = this.#optionsRef.element;
     if (optionsElement) ob.observe(optionsElement);
     return () => {
       if (optionsElement) ob.disconnect();
@@ -321,7 +312,7 @@ export class DuoyunContextmenuElement extends GemElement {
     // wait `<dy-options>` update
     await Promise.resolve();
     const causeEle = contextmenuStore.menuStack.at(-1)?.causeEle;
-    const optionsEle = this.optionsRef.elements.at(-1)!;
+    const optionsEle = this.#optionsRef.elements.at(-1)!;
     if (!causeEle) return;
     const causeEleRect = causeEle.getBoundingClientRect();
     const optionsEleRect = optionsEle.getBoundingClientRect();
@@ -362,7 +353,7 @@ export class DuoyunContextmenuElement extends GemElement {
           ${causeMask}
           <dy-options
             class="menu"
-            ref=${this.optionsRef.ref}
+            ref=${this.#optionsRef.ref}
             style=${styleMap({
               width: menuWidth,
               maxHeight: maxHeight || `calc(100vh - 0.8em - ${y - this.#offset}px)`,

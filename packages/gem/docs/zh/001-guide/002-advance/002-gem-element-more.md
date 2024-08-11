@@ -5,21 +5,21 @@
 ## 引用 DOM
 
 如果你想要在元素内操作 DOM 内容，例如读取 `<input>` 的值，你可以使用 `querySelector` 来获取你想要的元素，
-为了获得 TypeScript 的类型支持，GemElement 提供了一种方法完成这项工作：
+为了获得 TypeScript 的类型支持，GemElement 提供了 `createRef` 完成这项工作：
 
 ```js
 // 省略导入...
 
 @customElement('my-element')
 class MyElement extends GemElement {
-  @refobject inputRef;
+  #inputRef = createRef();
 
   render() {
-    return html`<input ref=${this.inputRef.ref} />`;
+    return html`<input ref=${this.#inputRef.ref} />`;
   }
 
   focus() {
-    this.inputRef.element.focus();
+    this.#inputRef.element.focus();
   }
 }
 ```

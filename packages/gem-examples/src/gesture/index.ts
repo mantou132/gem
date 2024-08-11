@@ -5,7 +5,7 @@ import type {
   SwipeEventDetail,
   GemGestureElement,
 } from '@mantou/gem/elements/gesture';
-import { render, GemElement, html, customElement, refobject, RefObject, createState } from '@mantou/gem';
+import { render, GemElement, html, customElement, createRef, createState } from '@mantou/gem';
 
 import '@mantou/gem/elements/gesture';
 import '../elements/layout';
@@ -13,7 +13,7 @@ import './canvas';
 
 @customElement('app-root')
 export class AppRoot extends GemElement {
-  @refobject gestureRef: RefObject<GemGestureElement>;
+  #gestureRef = createRef<GemGestureElement>();
 
   #state = createState({
     x: 0,
@@ -25,21 +25,21 @@ export class AppRoot extends GemElement {
     moves: [] as any[],
   });
 
-  onPan = (evt: CustomEvent<PanEventDetail>) => {
+  #onPan = (evt: CustomEvent<PanEventDetail>) => {
     const { detail } = evt;
     const { x, y } = this.#state;
     this.#state({ x: detail.x + x, y: detail.y + y, duration: 0 });
   };
-  onPinch = (evt: CustomEvent<PinchEventDetail>) => {
+  #onPinch = (evt: CustomEvent<PinchEventDetail>) => {
     this.#state({ scale: evt.detail.scale * this.#state.scale });
   };
-  onRotate = (evt: CustomEvent<RotateEventDetail>) => {
+  #onRotate = (evt: CustomEvent<RotateEventDetail>) => {
     this.#state({ rotate: evt.detail.rotate + this.#state.rotate });
   };
-  onSwipe = (e: CustomEvent<SwipeEventDetail>) => {
+  #onSwipe = (e: CustomEvent<SwipeEventDetail>) => {
     this.#state({ swipe: `${e.detail.direction}, speed: ${e.detail.speed}` });
   };
-  onEnd = () => {
+  #onEnd = () => {
     this.#state({
       x: 0,
       y: 0,
@@ -47,7 +47,7 @@ export class AppRoot extends GemElement {
       scale: 1,
       rotate: 0,
       swipe: '',
-      moves: [...this.gestureRef.element!.movesMap.values().next().value],
+      moves: [...this.#gestureRef.element!.movesMap.values().next().value],
     });
   };
   render() {
@@ -62,13 +62,13 @@ export class AppRoot extends GemElement {
         }
       </style>
       <gem-gesture
-        ref=${this.gestureRef.ref}
-        @pan=${this.onPan}
-        @end=${this.onEnd}
-        @pinch=${this.onPinch}
-        @rotate=${this.onRotate}
+        ref=${this.#gestureRef.ref}
+        @pan=${this.#onPan}
+        @end=${this.#onEnd}
+        @pinch=${this.#onPinch}
+        @rotate=${this.#onRotate}
         @press=${console.log}
-        @swipe=${this.onSwipe}
+        @swipe=${this.#onSwipe}
         touch-action="pan-y"
       >
         <gem-gesture

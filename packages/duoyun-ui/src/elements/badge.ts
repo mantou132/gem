@@ -7,13 +7,11 @@ import {
   numattribute,
   property,
   boolattribute,
-  refobject,
-  RefObject,
   state,
   shadow,
   mounted,
 } from '@mantou/gem/lib/decorators';
-import { createCSSSheet, GemElement, html } from '@mantou/gem/lib/element';
+import { createCSSSheet, createRef, GemElement, html } from '@mantou/gem/lib/element';
 import { classMap, css } from '@mantou/gem/lib/utils';
 
 import { contentsContainer } from '../lib/styles';
@@ -101,7 +99,7 @@ export class DuoyunBadgeElement extends GemElement {
 
   @property icon?: string | Element | DocumentFragment;
 
-  @refobject slotRef: RefObject<HTMLSlotElement>;
+  #slotRef = createRef<HTMLSlotElement>();
 
   get #max() {
     return this.max || 99;
@@ -112,19 +110,19 @@ export class DuoyunBadgeElement extends GemElement {
   }
 
   #onSlotChange = () => {
-    this.inline = !this.slotRef.element!.assignedElements({ flatten: true }).length;
+    this.inline = !this.#slotRef.element!.assignedElements({ flatten: true }).length;
   };
 
   @mounted()
   #init = () => {
     this.inline = !this.childNodes.length;
-    this.slotRef.element?.addEventListener('slotchange', this.#onSlotChange);
+    this.#slotRef.element?.addEventListener('slotchange', this.#onSlotChange);
   };
 
   render = () => {
     const value = Number(this.count) > this.#max ? `${this.#max}+` : `${this.count}`;
     return html`
-      <slot ref=${this.slotRef.ref}></slot>
+      <slot ref=${this.#slotRef.ref}></slot>
       ${this.count || this.icon || this.dot
         ? html`
             <span

@@ -8,8 +8,6 @@ import {
   state,
   connect,
   useStore,
-  refobject,
-  RefObject,
   css,
   createCSSSheet,
   adoptedStyle,
@@ -197,8 +195,6 @@ const styles = createCSSSheet(css`
 @connectStore(tocStore)
 @adoptedStyle(styles)
 export class SideBar extends GemElement {
-  @refobject navRef: RefObject<HTMLElement>;
-
   @state open: boolean;
 
   get #currentLink() {
@@ -286,7 +282,7 @@ export class SideBar extends GemElement {
     const topNavList = bookStore.nav?.filter((e) => isSameOrigin(e.link));
     return html`
       <gem-book-nav-logo class="logo" part=${GemBookElement.sidebarLogo}></gem-book-nav-logo>
-      <div class="nav" ref=${this.navRef.ref}>
+      <div class="nav">
         ${mediaQuery.isPhone && topNavList?.length
           ? html`
               <div class="top-nav">

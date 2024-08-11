@@ -74,7 +74,9 @@ export class Panel extends GemElement {
       <devtools-section name="Slots" tip=${TIP} .items=${panelStore.slots}></devtools-section>
       <devtools-section name="CSS States" tip=${TIP} .items=${panelStore.cssStates}></devtools-section>
       <devtools-section name="CSS Parts" tip=${TIP} .items=${panelStore.parts}></devtools-section>
-      <devtools-section name="Refs" tip=${TIP} .items=${panelStore.refs}></devtools-section>
+      ${panelStore.refs.length
+        ? html`<devtools-section name="Refs" tip=${TIP} .items=${panelStore.refs}></devtools-section>`
+        : ''}
       <devtools-section name="Lifecycle Method" .items=${panelStore.lifecycleMethod}></devtools-section>
       <devtools-section name="Method" .items=${panelStore.method}></devtools-section>
       <devtools-section name="Unobserved Attributes" .items=${panelStore.attributes}></devtools-section>

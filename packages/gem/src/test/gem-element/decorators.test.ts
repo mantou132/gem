@@ -1,6 +1,6 @@
 import { fixture, expect } from '@open-wc/testing';
 
-import { createCSSSheet, GemElement, html, Metadata } from '../../lib/element';
+import { createCSSSheet, GemElement, html, Metadata, createRef } from '../../lib/element';
 import { createStore, updateStore } from '../../lib/store';
 import { css } from '../../lib/utils';
 import {
@@ -14,8 +14,6 @@ import {
   numattribute,
   Emitter,
   part,
-  RefObject,
-  refobject,
   slot,
   state,
   shadow,
@@ -47,8 +45,8 @@ class DecoratorGemElement extends GemElement {
   @property propData = { value: '' };
   @state openState: boolean;
   @part headerPart: string;
-  @refobject inputRef: RefObject<HTMLElement>;
   @slot bodySlot: string;
+  inputRef = createRef<HTMLElement>();
   renderCount = 0;
   render() {
     this.renderCount++;
@@ -91,7 +89,6 @@ describe('装饰器', () => {
     expect(metadata.definedCSSStates).to.eql(['open-state']);
     expect(metadata.definedParts).to.eql(['say-hi', 'header-part']);
     expect(metadata.definedSlots).to.eql(['rank-attr', 'body-slot']);
-    expect(metadata.definedRefs?.[0].startsWith('input-ref-')).to.equal(true);
     expect(metadata.observedProperties).to.eql(['propData']);
     expect(DecoratorGemElement.sayHi).to.equal('say-hi');
     expect(DecoratorGemElement.rankAttr).to.equal('rank-attr');
@@ -101,7 +98,7 @@ describe('装饰器', () => {
     expect(el.propData).to.eql({ value: 'prop' });
     expect(el.openState).to.equal(false);
     expect(el.headerPart).to.equal('header-part');
-    expect(el.inputRef.ref.startsWith('input-ref-')).to.equal(true);
+    expect(el.inputRef.ref.startsWith('ref-')).to.equal(true);
     expect(el.bodySlot).to.equal('body-slot');
     expect(el).shadowDom.to.equal('attr: attr, disabled: true, count: 2, prop: prop');
     updateStore(store, { a: 3 });

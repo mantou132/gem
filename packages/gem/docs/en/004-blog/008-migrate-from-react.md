@@ -47,6 +47,38 @@ class MyElement extends GemElement {
 }
 ```
 
+When developing components, it's often necessary to maintain internal state and obtain references to child components. In React, this is done using `useState` and `useRef`:
+
+```tsx
+function MyComponent() {
+  const divRef = useRef<HTMLDivElement>();
+  const [count, setCount] = useState(0);
+
+  return (
+    <div ref={divRef} onClick={() => setCount(count++)}>
+      {count}
+    </div>
+  );
+}
+```
+
+In Gem, you use `createState` and `createRef`:
+
+```ts
+@customElement('my-element')
+class MyElement extends GemElement {
+  #divRef = createRef<HTMLDivElement>();
+  #state = createState({ count: 0 });
+
+  render() {
+    const { count } = this.#state;
+    return html`
+      <div ref=${this.#divRef.ref} @click=${() => this.#state({ count: count++ })}>${count}</div>
+    `;
+  }
+}
+```
+
 Generally, React components are not that simple; they may have side effects or require memoization for some recalculations. These needs are handled in React using Hooks, for example, memoizing the serialization result from the above React component and logging it after mounting:
 
 ```tsx

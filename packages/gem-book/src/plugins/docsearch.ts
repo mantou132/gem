@@ -1,5 +1,3 @@
-import type { RefObject } from '@mantou/gem';
-
 import type { GemBookElement } from '../element';
 import type { MdDocument } from '../bin/builder';
 
@@ -60,7 +58,7 @@ customElements.whenDefined('gem-book').then(({ GemBookPluginElement }: typeof Ge
     html,
     customElement,
     attribute,
-    refobject,
+    createRef,
     addListener,
     property,
     createCSSSheet,
@@ -130,7 +128,6 @@ customElements.whenDefined('gem-book').then(({ GemBookPluginElement }: typeof Ge
     @attribute appId: string;
     @attribute apiKey: string;
     @attribute indexName: string;
-    @refobject searchRef: RefObject<HTMLInputElement>;
 
     @property locales?: Locales;
 
@@ -138,6 +135,7 @@ customElements.whenDefined('gem-book').then(({ GemBookPluginElement }: typeof Ge
       return { ..._GbpDocsearchElement.defaultLocales, ...this.locales };
     }
 
+    #searchRef = createRef<HTMLInputElement>();
     #state = createState({ style: '' });
 
     render() {
@@ -181,7 +179,7 @@ customElements.whenDefined('gem-book').then(({ GemBookPluginElement }: typeof Ge
             width: 1em;
           }
         </style>
-        <div ref=${this.searchRef.ref}></div>
+        <div ref=${this.#searchRef.ref}></div>
       `;
     }
 
@@ -271,7 +269,7 @@ customElements.whenDefined('gem-book').then(({ GemBookPluginElement }: typeof Ge
         appId: this.appId || undefined,
         apiKey: this.apiKey,
         indexName: this.indexName,
-        container: this.searchRef.element,
+        container: this.#searchRef.element,
         searchParameters: {
           facetFilters: GemBookPluginElement.lang ? [`lang:${GemBookPluginElement.lang}`] : [],
         },
