@@ -42,20 +42,20 @@ class MyElement extends GemElement {
 > [!TIP]
 > 不要在元素内修改 prop/attr，他们应该由父元素单向传递进来，就像原生元素一样
 
-另外 `GemElement` 提供了类似 React 的 `state`/`setState` API 来管理元素自身的状态，
-每当调用 `setState` 时触发元素重新渲染：
+另外，Gem 提供了 `createState` API 来创建元素自身的状态，
+创建的状态对象也充当了更新函数，调用时触发元素重新渲染：
 
 ```js
 // 省略导入...
 
 @customElement('my-element')
 class MyElement extends GemElement {
-  state = { id: 1 };
-  clicked() {
-    this.setState({ id: 2 });
+  #state = createState({ id: 1 });
+  #clicked() {
+    this.#state({ id: 2 });
   }
   render() {
-    return html`${this.state.id}`;
+    return html`${this.#state.id}`;
   }
 }
 ```
@@ -154,3 +154,6 @@ class MyElement extends GemElement {
 
 > [!NOTE]
 > 父元素的 `constructor` 和 `unmounted` 先于子元素执行，但 `mounted` 后于子元素执行
+
+> [!WARNING]
+> 生命周期在未来可能被基于 `@effect` `@memo` 的装饰器 `@willMount` `@renderTemplate` `@mounted` `@unmounted` 替代

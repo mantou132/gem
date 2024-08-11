@@ -31,12 +31,7 @@ class MyElement extends GemElement {}
 
 ```js 17
 import { GemElement, html } from '@mantou/gem';
-import {
-  createCSSSheet,
-  styled,
-  adoptedStyle,
-  customElement,
-} from '@mantou/gem';
+import { createCSSSheet, styled, adoptedStyle, customElement } from '@mantou/gem';
 
 const styles = createCSSSheet({
   header: styled.class`
@@ -55,6 +50,9 @@ class MyElement extends GemElement {
   }
 }
 ```
+
+> [!NOTE]
+> 使用 `$` 作为键代表 `:host, :scope` 选择器，让样式同时适用于 ShadowDOM 和 LightDOM
 
 ## 在元素外自定义样式
 
@@ -95,7 +93,7 @@ class MyElement extends GemElement {
 ```
 
 > [!NOTE]
-> 注意跟 `state`/`setState` 的区别
+> 注意跟 `createState` 的区别
 
 > [!TIP]
 > 还可以使用比较 Hack 的方式自定义元素样式，例如：

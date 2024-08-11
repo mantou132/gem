@@ -95,3 +95,7 @@ class App extends GemElement {
   }
 }
 ```
+
+## Scoped and override theme
+
+<gbp-include src="../../snippets/scoped-theme.md"></gbp-include>

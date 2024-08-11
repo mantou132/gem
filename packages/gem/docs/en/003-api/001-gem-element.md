@@ -5,22 +5,27 @@ navTitle: API
 # GemElement
 
 ```ts
-class GemElement<State> extends HTMLElement {
+class GemElement extends HTMLElement {
   constructor(): GemElement;
   // ...
 }
 ```
 
-## Decorator
+## Class Decorator
+
+| name             | description                                                              |
+| ---------------- | ------------------------------------------------------------------------ |
+| `@customElement` | Class decorator, define custom elements tag                              |
+| `@connectStore`  | Class decorator, bound to `Store`, element auto update by `Store` update |
+| `@adoptedStyle`  | Class decorator, adopte style sheet                                      |
+| `@shadow`        | Class decorator, Use [ShadowDOM][10] render content                      |
+| `@async`         | Class decorator, Use no blocking render                                  |
+| `@aria`          | Class decorator, Specify the [accessibility][11] info                    |
+
+## Field Decorator
 
 | name             | description                                                                  |
 | ---------------- | ---------------------------------------------------------------------------- |
-| `@customElement` | Class decorator, define custom elements                                      |
-| `@connectStore`  | Class decorator, bound to `Store`                                            |
-| `@adoptedStyle`  | Class decorator, additional style sheet                                      |
-| `@shadow`        | Class decorator, Use [ShadowDOM][10]                                         |
-| `@async`         | Class decorator, Use no blocking render                                      |
-| `@aria`          | Class decorator, Specify the [accessibility][11] info                        |
 | `@attribute`     | Field decorator, defining `string` type reactivity [`Attribute`][5]          |
 | `@boolattribute` | Field decorator, defining `boolean` type reactivity [`Attribute`][5]         |
 | `@numattribute`  | Field decorator, defining `number` type reactivity [`Attribute`][5]          |
@@ -42,6 +47,24 @@ Type with decorator
 | `RefObject<T>` | The type of the field defined by `@refobject` |
 | `Emitter<T>`   | The type of the field defined by `@emitter`   |
 
+## Method Decorator
+
+| name              | description                                             |
+| ----------------- | ------------------------------------------------------- |
+| `@memo`           | Similar `GemElement.memo`                               |
+| `@effect`         | Similar `GemElement.effect`                             |
+| `@willMount`      | Similar `GemElement.willMount`                          |
+| `@mounted`        | Similar `GemElement.mounted`                            |
+| `@unmounted`      | Similar `GemElement.unmounted`                          |
+| `@renderTemplate` | Similar `GemElement.render` + `GemElement.shouldUpdate` |
+
+## Utils
+
+| name             | description                                                                     |
+| ---------------- | ------------------------------------------------------------------------------- |
+| `createState`    | Specify the element internal state                                              |
+| `createCSSSheet` | Use the constructor to create a style sheet that can be attached to the element |
+
 ## Lifecycle hook
 
 | name           | description                                                                               |
@@ -55,13 +78,12 @@ Type with decorator
 
 ## Other
 
-| name               | description                                          |
-| ------------------ | ---------------------------------------------------- |
-| `effect`           | Register side effects, you can specify dependencies  |
-| `memo`             | Register callback, you can specify dependencies      |
-| `update`           | Update elements manually                             |
-| `state`/`setState` | Specify the element `State`, modify it by `setState` |
-| `internals`        | Get the element's [ElementInternals][12] object      |
+| name        | description                                         |
+| ----------- | --------------------------------------------------- |
+| `effect`    | Register side effects, you can specify dependencies |
+| `memo`      | Register callback, you can specify dependencies     |
+| `update`    | Update elements manually                            |
+| `internals` | Get the element's [ElementInternals][12] object     |
 
 [1]: https://github.com/w3c/webcomponents/blob/gh-pages/proposals/custom-states-and-state-pseudo-class.md
 [2]: https://developer.mozilla.org/en-US/docs/Web/HTML/Global_attributes/slot

@@ -68,7 +68,7 @@ You can use [`input` event](https://developer.mozilla.org/en-US/docs/Web/API/HTM
 
 3. Modify `<input>` element value according to attributes
 
-   ```ts 20-30
+   ```ts 15-22
    @customElement('form-text')
    export class FormTextElement extends GemElement {
      @refobject inputRef: RefObject<HTMLInputElement>;
@@ -83,21 +83,17 @@ You can use [`input` event](https://developer.mozilla.org/en-US/docs/Web/API/HTM
        this.change(value);
      };
 
-     render() {
-       return html`<input ref=${this.inputRef.ref} @input=${this.#inputHandle} />`;
+     @effect((i) => [i.value])
+     #updateValue = () => {
+      if (this.value === this.nextState.value) {
+        this.inputRef.element!.value = this.nextState.value;
+      } else {
+        this.inputRef.element!.value = this.value;
+      }
      }
 
-     mounted() {
-       this.effect(
-         () => {
-           if (this.value === this.nextState.value) {
-             this.inputRef.element!.value = this.nextState.value;
-           } else {
-             this.inputRef.element!.value = this.value;
-           }
-         },
-         () => [this.value],
-       );
+     render() {
+       return html`<input ref=${this.inputRef.ref} @input=${this.#inputHandle} />`;
      }
    }
    ```
@@ -107,16 +103,16 @@ Now `<form-text>` is a controlled element, it only receives the value of the `va
 ```ts
 @customElement('form')
 class FormElement extends GemElement {
-  state = {
+  #state = createState({
     value: '',
-  };
+  });
 
-  submit = () => fetch('/', { body: this.state.value });
+  submit = () => fetch('/', { body: this.#state.value });
 
-  #changeHandle = ({ detail }) => this.setState({ value: detail });
+  #changeHandle = ({ detail }) => this.#state({ value: detail });
 
   render() {
-    return html`<form-text value=${this.state.value} @change=${this.#changeHandle}></form-text>`;
+    return html`<form-text value=${this.#state.value} @change=${this.#changeHandle}></form-text>`;
   }
 }
 ```

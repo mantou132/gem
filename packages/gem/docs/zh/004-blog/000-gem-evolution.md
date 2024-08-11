@@ -152,6 +152,10 @@ class MyElement extends GemElement {
 - 主题支持
 - [DevTools](https://github.com/mantou132/gem-devtools/)
 
+## 使用 ES 装饰器
+
+装饰器已经成为规范，且和以前的装饰器规范不相容，所以需要抛弃以前 TypeScript 实现的装饰器转而[使用规范装饰器](./006-es-decorators.md)，但保持了相同的 API，此外，构造函数参数也改为使用装饰器描述并且弃用 `setState`，详细请阅读 [v2 简介](./007-v2-intro.md)。
+
 ## 正在进行中的工作
 
 分析 `GemElement`，生成 jsdoc 描述或者自定义元素数据，以支持自动文档生成和 IDE 集成优化。

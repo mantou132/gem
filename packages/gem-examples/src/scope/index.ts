@@ -9,15 +9,19 @@ const closedStyles = createCSSSheet(css`
 `);
 @shadow({ mode: 'closed' })
 @adoptedStyle(closedStyles)
-@customElement('app-closed')
+@customElement('closed-shadow-dom')
 class _Closed extends GemElement {
   render() {
     return html`<div>Closed shadow</div>`;
   }
 }
 
-@customElement('other-element')
-class _OtherElement extends GemElement {}
+@customElement('light-dom')
+class _OtherElement extends GemElement {
+  render() {
+    return html`<p>Other Content</p>`;
+  }
+}
 
 const style = createCSSSheet(css`
   :scope {
@@ -36,13 +40,11 @@ export class App extends GemElement {
       Text
       <header><h1>Header</h1></header>
       <p>Content</p>
-      <other-element>
-        <p>Other Content</p>
-      </other-element>
+      <light-dom></light-dom>
       <article>
         <p>Content</p>
       </article>
-      <app-closed></app-closed>
+      <closed-shadow-dom></closed-shadow-dom>
     `;
   }
 }

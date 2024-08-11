@@ -5,32 +5,37 @@ navTitle: API
 # GemElement
 
 ```ts
-class GemElement<State> extends HTMLElement {
+class GemElement extends HTMLElement {
   constructor(): GemElement;
   // ...
 }
 ```
 
-## 装饰器
+## 类装饰器
+
+| 名称             | 描述                                                 |
+| ---------------- | ---------------------------------------------------- |
+| `@customElement` | 定义自定义元素标签                                   |
+| `@connectStore`  | 绑定 `Store`，更新 `Store` 将自动更新元素            |
+| `@adoptedStyle`  | 附加样式表到元素                                     |
+| `@shadow`        | 使用 [ShadowDOM][10] 渲染内容                        |
+| `@async`         | 元素使用非阻塞渲染，适用于计算量大且有多个实例的元素 |
+| `@aria`          | 指定富应用[可访问性][11]信息                         |
+
+## 字段装饰器
 
 | 名称             | 描述                                                         |
 | ---------------- | ------------------------------------------------------------ |
-| `@customElement` | 类装饰器，定义自定义元素                                     |
-| `@connectStore`  | 类装饰器，绑定 `Store`                                       |
-| `@adoptedStyle`  | 类装饰器，附加样式表                                         |
-| `@shadow`        | 类装饰器，使用 [ShadowDOM][10]                               |
-| `@async`         | 类装饰器，使用非阻塞渲染                                     |
-| `@aria`          | 类装饰器，指定[可访问性][11]信息                             |
-| `@attribute`     | 字段装饰器，定义 `string` 类型反应性 [`Attribute`][5]        |
-| `@boolattribute` | 字段装饰器，定义 `boolean` 类型反应性 [`Attribute`]          |
-| `@numattribute`  | 字段装饰器，定义 `number` 类型反应性 [`Attribute`]           |
-| `@property`      | 字段装饰器，定义反应性 [`Property`][6]，无默认值             |
-| `@emitter`       | 字段装饰器，定义事件发射器，类似 [`HTMLElement.click`][4]    |
+| `@attribute`     | 定义 `string` 类型反应性 [`Attribute`][5]                    |
+| `@boolattribute` | 定义 `boolean` 类型反应性 [`Attribute`][5]                   |
+| `@numattribute`  | 定义 `number` 类型反应性 [`Attribute`][5]                    |
+| `@property`      | 定义反应性 [`Property`][6]，无默认值                         |
+| `@emitter`       | 定义事件发射器，类似 [`HTMLElement.click`][4]                |
 | `@globalemitter` | 类似 `@emitter`, 自带 [`composed`][7] 和 [`bubbles`][8] 属性 |
-| `@refobject`     | 字段装饰器，定义元素引用                                     |
-| `@state`         | 字段装饰器，定义元素内部 [`state`][1]                        |
-| `@slot`          | 字段装饰器，定义元素的 [`slot`][2]                           |
-| `@part`          | 字段装饰器，定义元素的 [`part`][3]                           |
+| `@state`         | 定义元素 CSS [`state`][1]                                    |
+| `@slot`          | 定义元素的 [`slot`][2]                                       |
+| `@part`          | 定义元素的 [`part`][3]                                       |
+| `@refobject`     | 内部元素引用                                                 |
 
 > [!NOTE]
 > 除 `@property` 外其他装饰器装饰的字段都有默认值，`@attribute`/`@boolattribute`/`@numattribute`/`@state`/`@slot`/`@part` 装饰的字段的值都将自动进行烤串式转换，在元素外部使用时请使用对应的烤串式值\_
@@ -41,6 +46,24 @@ class GemElement<State> extends HTMLElement {
 | -------------- | ----------------------------- |
 | `RefObject<T>` | `@refobject` 定义的字段的类型 |
 | `Emitter<T>`   | `@emitter` 定义的字段的类型   |
+
+## 方法/函数装饰器
+
+| 名称              | 描述                                                 |
+| ----------------- | ---------------------------------------------------- |
+| `@memo`           | 类似 `GemElement.memo`                               |
+| `@effect`         | 类似 `GemElement.effect`                             |
+| `@willMount`      | 类似 `GemElement.willMount`                          |
+| `@mounted`        | 类似 `GemElement.mounted`                            |
+| `@unmounted`      | 类似 `GemElement.unmounted`                          |
+| `@renderTemplate` | 类似 `GemElement.render` + `GemElement.shouldUpdate` |
+
+## 工具函数
+
+| 名称             | 描述                                 |
+| ---------------- | ------------------------------------ |
+| `createState`    | 为元素创建内部状态                   |
+| `createCSSSheet` | 使用构造函数创建能附加到元素的样式表 |
 
 ## 生命周期钩子
 
@@ -55,13 +78,12 @@ class GemElement<State> extends HTMLElement {
 
 ## 其他
 
-| 名称               | 描述                                                   |
-| ------------------ | ------------------------------------------------------ |
-| `effect`           | 注册副作用，可以指定依赖                               |
-| `memo`             | 注册回调函数，可以指定依赖                             |
-| `update`           | 手动更新元素                                           |
-| `state`/`setState` | 指定元素 `State`, 通过 `setState` 修改，修改后触发更新 |
-| `internals`        | 获取元素的 [ElementInternals][12] 对象                 |
+| 名称        | 描述                                   |
+| ----------- | -------------------------------------- |
+| `effect`    | 注册副作用，可以指定依赖               |
+| `memo`      | 注册回调函数，可以指定依赖             |
+| `update`    | 手动更新元素                           |
+| `internals` | 获取元素的 [ElementInternals][12] 对象 |
 
 [1]: https://github.com/w3c/webcomponents/blob/gh-pages/proposals/custom-states-and-state-pseudo-class.md
 [2]: https://developer.mozilla.org/en-US/docs/Web/HTML/Global_attributes/slot

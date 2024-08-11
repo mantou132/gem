@@ -41,19 +41,19 @@ class MyElement extends GemElement {
 > [!TIP]
 > Do not modify prop/attr within the element, they should be passed in one-way by the parent element, just like native elements
 
-In addition, `GemElement` provides React-like `state`/`setState` API to manage the state of the element itself. an element re-rendered is triggered whenever `setState` is called:
+In addition, Gem provides the `createState` API to create the element's own state, and the created state object also acts as an update function, triggering the element to re-render when called.
 
 ```js
 // Omit import...
 
 @customElement('my-element')
 class MyElement extends GemElement {
-  state = { id: 1 };
-  clicked() {
-    this.setState({ id: 2 });
+  #state = createState({ id: 1 });
+  #clicked() {
+    this.#state({ id: 2 });
   }
   render() {
-    return html`${this.state.id}`;
+    return html`${this.#state.id}`;
   }
 }
 ```
@@ -152,3 +152,6 @@ Complete life cycle:
 
 > [!NOTE]
 > The `constructor` and `unmounted` of the parent element are executed before the child element, but the `mounted` is executed after the child element
+
+> [!WARNING]
+> The lifecycle may be replaced in the future by decorators based on `@effect` `@memo` `@willMount` `@renderTemplate` `@mounted` `@unmounted

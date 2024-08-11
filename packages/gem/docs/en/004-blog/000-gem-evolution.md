@@ -152,6 +152,10 @@ class MyElement extends GemElement {
 - Theme support
 - [DevTools](https://github.com/mantou132/gem-devtools/)
 
+## Using ES Decorators
+
+Decorators have become standardized and are incompatible with the previous decorator specifications, so it is necessary to abandon the previous TypeScript implementation of decorators in favor of [using standardized decorators](./006-es-decorators.md), while maintaining the same API. Additionally, constructor parameters have also been changed to use decorator descriptions and deprecate `setState`; for more details, please read [v2 Introduction](./007-v2-intro.md).
+
 ## Work in progress
 
 Analyze `GemElement` and generate jsdoc description or custom element data to support automatic document generation and IDE integration optimization.

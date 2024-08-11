@@ -10,6 +10,7 @@ export const getSelectedGem = function (data: PanelStore): PanelStore | string {
   if (!$0) return `Not Gem: $0 is ${$0}`;
   const { __GEM_DEVTOOLS__HOOK__ } = window;
   if (__GEM_DEVTOOLS__HOOK__) {
+    // 不支持多种 GemElement，__GEM_DEVTOOLS__HOOK__ 只记录首个
     const { GemElement } = __GEM_DEVTOOLS__HOOK__;
     if (!GemElement || !($0 instanceof GemElement)) return 'Not Gem: gem hook';
   } else {

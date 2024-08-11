@@ -16,6 +16,7 @@ async function updateElementProperties() {
     if (typeof result !== 'string') {
       changePanelStore(result);
     } else {
+      logger.info(result);
       changePanelStore(await execution(getDomStat, [new PanelStore({ isGemElement: false })]));
     }
   } catch (err) {

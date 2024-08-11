@@ -12,19 +12,19 @@
 @customElement('my-element')
 class MyElement extends GemElement {
   @emitter pan: Emitter;
-  start = false;
+  #start = false;
   constructor() {
     this.addEventListener('pointerdown', () => {
-      this.start = true;
+      this.#start = true;
     });
     this.addEventListener('pointermove', ({ movementX, movementY }) => {
       this.pan({ x: movementX, y: movementY });
     });
     this.addEventListener('pointerup', () => {
-      this.start = false;
+      this.#start = false;
     });
     this.addEventListener('pointercancel', () => {
-      this.start = false;
+      this.#start = false;
     });
   }
 }
@@ -38,20 +38,20 @@ class MyElement extends GemElement {
 @customElement('my-element')
 class MyElement extends GemElement {
   @emitter pan: Emitter;
-  start = false;
+  #start = false;
   constructor() {
     this.addEventListener('pointerdown', ({ pointerId }) => {
-      this.start = true;
+      this.#start = true;
       this.setPointerCapture(pointerId);
     });
     this.addEventListener('pointermove', ({ movementX, movementY }) => {
       this.pan({ x: movementX, y: movementY });
     });
     this.addEventListener('pointerup', () => {
-      this.start = false;
+      this.#start = false;
     });
     this.addEventListener('pointercancel', () => {
-      this.start = false;
+      this.#start = false;
     });
   }
 }
@@ -72,12 +72,12 @@ html`<my-element @pan=${console.log} style="touch-action: none"></my-element>`;
 ```ts
 @customElement('my-app')
 class MyApp extends GemElement {
-  state = {
+  #state = createState({
     x: 0,
     y: 0
-  }
+  })
 
-  onPan = ({x, y} => this.setState({x: this.state.x + x, y: this.state.y + y}))
+  #onPan = ({x, y} => this.#state({x: this.#state.x + x, y: this.#state.y + y}))
 
   render() {
     return html`
@@ -90,7 +90,7 @@ class MyApp extends GemElement {
           translate: ${x}px ${y}px;
         }
       </style>
-      <gem-gesture @pan=${this.onPan}></gem-gesture>
+      <gem-gesture @pan=${this.#onPan}></gem-gesture>
     `
   }
 }

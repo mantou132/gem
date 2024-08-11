@@ -95,3 +95,7 @@ class App extends GemElement {
   }
 }
 ```
+
+## 范围主题和覆盖主题
+
+<gbp-include src="../../snippets/scoped-theme.md"></gbp-include>

@@ -68,7 +68,7 @@ class FormTextElement extends GemElement {
 
 3. 根据属性修改 `<input>` 元素值
 
-   ```ts 20-30
+   ```ts 15-22
    @customElement('form-text')
    export class FormTextElement extends GemElement {
      @refobject inputRef: RefObject<HTMLInputElement>;
@@ -83,21 +83,17 @@ class FormTextElement extends GemElement {
        this.change(value);
      };
 
-     render() {
-       return html`<input ref=${this.inputRef.ref} @input=${this.#inputHandle} />`;
+     @effect((i) => [i.value])
+     #updateValue = () => {
+      if (this.value === this.nextState.value) {
+        this.inputRef.element!.value = this.nextState.value;
+      } else {
+        this.inputRef.element!.value = this.value;
+      }
      }
 
-     mounted() {
-       this.effect(
-         () => {
-           if (this.value === this.nextState.value) {
-             this.inputRef.element!.value = this.nextState.value;
-           } else {
-             this.inputRef.element!.value = this.value;
-           }
-         },
-         () => [this.value],
-       );
+     render() {
+       return html`<input ref=${this.inputRef.ref} @input=${this.#inputHandle} />`;
      }
    }
    ```
@@ -107,16 +103,16 @@ class FormTextElement extends GemElement {
 ```ts
 @customElement('form')
 class FormElement extends GemElement {
-  state = {
+  #state = createState({
     value: '',
-  };
+  });
 
-  submit = () => fetch('/', { body: this.state.value });
+  submit = () => fetch('/', { body: this.#state.value });
 
-  #changeHandle = ({ detail }) => this.setState({ value: detail });
+  #changeHandle = ({ detail }) => this.#state({ value: detail });
 
   render() {
-    return html`<form-text value=${this.state.value} @change=${this.#changeHandle}></form-text>`;
+    return html`<form-text value=${this.#state.value} @change=${this.#changeHandle}></form-text>`;
   }
 }
 ```

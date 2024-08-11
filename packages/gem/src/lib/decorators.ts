@@ -588,7 +588,7 @@ declare global {
   }
 }
 
-if (window.__GEM_DEVTOOLS__HOOK__) {
+if (window.__GEM_DEVTOOLS__HOOK__ && !window.__GEM_DEVTOOLS__HOOK__.GemElement) {
   assign(window.__GEM_DEVTOOLS__HOOK__, {
     ...elementExports,
     ...decoratorsExports,

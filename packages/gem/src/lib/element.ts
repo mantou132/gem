@@ -54,10 +54,10 @@ class GemCSSSheet {
 
   // 不需要 GC
   #record = new Map<any, CSSStyleSheet>();
-  #applyd = new Map<CSSStyleSheet, string>();
+  #used = new Map<CSSStyleSheet, string>();
   getStyle(host?: HTMLElement) {
-    const metadate = host && (((host as any).constructor[Symbol.metadata] || {}) as Metadata);
-    const isLight = metadate && !metadate.mode;
+    const metadata = host && (((host as any).constructor[Symbol.metadata] || {}) as Metadata);
+    const isLight = metadata && !metadata.mode;
 
     // 对同一类 dom 只使用同一个样式表
     const key = isLight ? host.constructor : this;
@@ -69,7 +69,7 @@ class GemCSSSheet {
     const sheet = this.#record.get(key)!;
 
     // 只执行一次
-    if (!this.#applyd.has(sheet)) {
+    if (!this.#used.has(sheet)) {
       let style = this.#content;
       let scope = '';
       if (isLight) {
@@ -81,7 +81,7 @@ class GemCSSSheet {
         style = `${scope}{ ${style} }`;
       }
       sheet.replaceSync(style);
-      this.#applyd.set(sheet, scope);
+      this.#used.set(sheet, scope);
     }
 
     return sheet;
@@ -89,7 +89,7 @@ class GemCSSSheet {
 
   // 一般用于主题更新，不支持 layer
   updateStyle() {
-    this.#applyd.forEach((scope, sheet) => {
+    this.#used.forEach((scope, sheet) => {
       sheet.replaceSync(scope ? `${scope}{${this.#content}}` : this.#content);
     });
   }
