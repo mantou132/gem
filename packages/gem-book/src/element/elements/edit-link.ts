@@ -12,8 +12,8 @@ import {
 } from '@mantou/gem';
 import { mediaQuery } from '@mantou/gem/helper/mediaquery';
 
-import { getGithubPath } from '../lib/utils';
-import { selfI18n } from '../helper/i18n';
+import { getGithubPath, isGitLab } from '../lib/utils';
+import { getPlatform, selfI18n } from '../helper/i18n';
 import { bookStore, locationStore } from '../store';
 
 import { icons } from './icons';
@@ -77,7 +77,11 @@ export class EditLink extends GemElement {
   #fullPath = '';
 
   @memo()
-  #calc = () => (this.#fullPath = this.#getMdFullPath());
+  #calc = () => {
+    const link = bookStore.getCurrentLink?.();
+    if (!link) return (this.#fullPath = '');
+    this.#fullPath = getGithubPath(link.originLink);
+  };
 
   #getLastUpdated() {
     const { lastUpdated } = this.#state;
@@ -94,49 +98,77 @@ export class EditLink extends GemElement {
     );
   }
 
-  #getMdFullPath = () => {
-    const link = bookStore.getCurrentLink?.();
-    if (!link) return '';
-    return getGithubPath(link.originLink);
+  #fetchCommit = async () => {
+    const { config } = bookStore;
+    const { github, sourceBranch = '' } = config || {};
+    if (!github) return;
+    const repo = new URL(github).pathname;
+    if (isGitLab()) {
+      const api = `${new URL(github).origin}/api/v4/projects/${encodeURIComponent(
+        repo.replace(/^\//, ''),
+      )}/repository/commits?${new URLSearchParams({
+        path: this.#fullPath.replace(/^\//, ''),
+        page: '1',
+        per_page: '1',
+        ref_name: sourceBranch,
+      })}`;
+      const commit = await fetchData(api);
+      return {
+        date: commit.committed_date,
+        message: commit.message,
+        commitUrl: commit.web_url,
+      };
+    } else {
+      const api = `https://api.github.com/repos${repo}/commits?${new URLSearchParams({
+        path: this.#fullPath,
+        page: '1',
+        per_page: '1',
+        sha: sourceBranch,
+      })}`;
+      const commit = await fetchData(api);
+      return {
+        date: commit?.commit?.committer?.date,
+        message: commit.commit.message,
+        commitUrl: commit.html_url,
+      };
+    }
   };
 
   @effect((i) => [i.#fullPath])
   #fetchData = async () => {
     const { config } = bookStore;
-    const { github, sourceBranch = '' } = config || {};
+    const { github } = config || {};
     if (!github) return;
-    const repo = new URL(github).pathname;
     if (!this.#fullPath) return;
-    const query = new URLSearchParams({
-      path: this.#fullPath,
-      page: '1',
-      per_page: '1',
-      sha: sourceBranch,
-    });
     try {
-      const api = `https://api.github.com/repos${repo}/commits?${query}`;
-      const commit = await fetchData(api);
-      const date = commit?.commit?.committer?.date;
+      const commit = await this.#fetchCommit();
       this.#state({
-        lastUpdated: date || '',
-        message: date ? commit.commit.message : '',
-        commitUrl: date ? commit.html_url : '',
+        lastUpdated: commit?.date || '',
+        message: commit?.date ? commit.message : '',
+        commitUrl: commit?.date ? commit.commitUrl : '',
       });
     } catch {
       this.#state({ lastUpdated: '' });
     }
   };
 
-  render() {
-    const lastUpdated = this.#getLastUpdated();
-    const { message, commitUrl } = this.#state;
+  #getGitHubUrl = () => {
     const { config } = bookStore;
     const { github, sourceBranch = '' } = config || {};
     if (!github || !sourceBranch || !this.#fullPath) return;
+    // 兼容 github/gitlab
+    return `${github}/edit/${sourceBranch}${this.#fullPath}`;
+  };
+
+  render() {
+    const { message, commitUrl } = this.#state;
+    const lastUpdated = this.#getLastUpdated();
+    const url = this.#getGitHubUrl();
+    if (!url) return;
     return html`
-      <gem-link href=${`${github}/edit/${sourceBranch}${this.#fullPath}`}>
+      <gem-link href=${url}>
         <gem-use .element=${icons.compose}></gem-use>
-        <span>${selfI18n.get('editOnGithub')}</span>
+        <span>${selfI18n.get('editOnGithub', getPlatform())}</span>
       </gem-link>
       ${lastUpdated &&
       html`

@@ -40,6 +40,7 @@ import {
   importObject,
   resolveModule,
   getMdFile,
+  isGithubOrGitLabNav,
 } from './utils';
 import { buildApp } from './builder';
 import lang from './lang.json'; // https://developers.google.com/search/docs/advanced/crawling/localized-versions#language-codes
@@ -96,7 +97,7 @@ async function syncConfig(fullPath?: string) {
 
   if (obj.nav) {
     obj.nav = obj.nav?.filter((e) => {
-      if (e.title?.toLowerCase() === 'github') {
+      if (isGithubOrGitLabNav(e.title)) {
         bookConfig.github = e.link;
       } else {
         return true;
@@ -424,7 +425,7 @@ program
       print(chalk.red('nav options error'));
       process.exit(1);
     }
-    if (title.toLowerCase() === 'github') {
+    if (isGithubOrGitLabNav(title)) {
       bookConfig.github = link;
     } else {
       bookConfig.nav.push({ title, link });

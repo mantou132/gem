@@ -1,8 +1,8 @@
 import { adoptedStyle, createCSSSheet, css, customElement, GemElement, html } from '@mantou/gem';
 
-import { getGithubPath } from '../lib/utils';
+import { getGithubPath, isGitLab } from '../lib/utils';
 import { bookStore, locationStore } from '../store';
-import { selfI18n } from '../helper/i18n';
+import { getPlatform, selfI18n } from '../helper/i18n';
 import { getUserLink } from '../../common/utils';
 
 import { icons } from './icons';
@@ -40,29 +40,41 @@ const styles = createCSSSheet(css`
 export class Meta extends GemElement {
   #getMdFullPath = () => {
     const { links = [] } = bookStore;
-    const parts = locationStore.path.replace(/\/$/, '').split('/');
-    const newFile = parts.pop();
+    const parts = locationStore.path.split('/');
+    const newFile = parts.pop() || 'README.md';
     const parentPath = parts.join('/');
     const link = links.find(({ originLink }) => getUserLink(originLink).startsWith(parentPath));
     if (!link) return;
-    return getGithubPath(link.originLink.replace(/\/[^/]*$/, `/${newFile}`));
+    return [
+      getGithubPath(link.originLink.replace(/\/[^/]*$/, '')),
+      newFile.toLowerCase().endsWith('.md') ? newFile : `${newFile}.md`,
+    ];
+  };
+
+  #getGitHubUrl = () => {
+    const { config } = bookStore;
+    const { github, sourceBranch = '' } = config || {};
+    const [fullPath, fileName] = this.#getMdFullPath() || [];
+    if (!github || !sourceBranch || !fullPath) return;
+    const filenameParams = encodeURIComponent(fileName);
+    if (isGitLab()) {
+      return `${github}/-/new/${sourceBranch}${fullPath}?file_name=${filenameParams}`;
+    }
+    return `${github}/new/${sourceBranch}${fullPath}?filename=${filenameParams}`;
   };
 
   render() {
-    const { config } = bookStore;
-    const { github, sourceBranch = '' } = config || {};
-    const fullPath = this.#getMdFullPath();
-    const noGithub = !github || !sourceBranch || !fullPath;
+    const url = this.#getGitHubUrl();
 
     return html`
       <h1><gem-title inert>Not Found</gem-title></h1>
-      ${noGithub
+      ${!url
         ? ''
         : html`
             <div>
-              <gem-link href=${`${github}/new/${sourceBranch}${fullPath}`}>
+              <gem-link href=${url}>
                 <gem-use .element=${icons.compose}></gem-use>
-                <span>${selfI18n.get('createOnGithub')}</span>
+                <span>${selfI18n.get('createOnGithub', getPlatform())}</span>
               </gem-link>
             </div>
           `}

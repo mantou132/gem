@@ -18,7 +18,7 @@ import { mediaQuery } from '@mantou/gem/helper/mediaquery';
 
 import { NavItem } from '../../common/config';
 import { theme } from '../helper/theme';
-import { capitalize, isSameOrigin } from '../lib/utils';
+import { capitalize, isGitLab, isSameOrigin } from '../lib/utils';
 import { bookStore, updateBookConfig } from '../store';
 
 import { icons } from './icons';
@@ -195,7 +195,9 @@ export class Nav extends GemElement {
   render() {
     const { config, nav = [] } = bookStore;
     const { github = '' } = config || {};
-    const githubLink = config ? this.#renderExternalItem({ title: 'github', link: github }, icons.github) : null;
+    const githubLink = config
+      ? this.#renderExternalItem({ title: 'github', link: github }, isGitLab() ? icons.gitlab : icons.github)
+      : null;
     const internals = nav?.filter((e) => isSameOrigin(e.link)) || [];
     const externals = nav?.filter((e) => !isSameOrigin(e.link)) || [];
     const textExternals = externals.filter((e) => !(e.title.toLowerCase() in icons));

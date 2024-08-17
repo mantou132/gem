@@ -173,7 +173,7 @@ export async function buildApp(dir: string, options: Required<CliUniqueConfig>, 
     plugins: [
       new HtmlWebpackPlugin({
         title: bookConfig.title || 'GemBook App',
-        template: template ? path.resolve(process.cwd(), template) : undefined,
+        template: template ? path.resolve(process.cwd(), template) : 'auto',
         // Automatically copied to the output directory
         favicon: !isRemoteIcon && icon,
         meta: {

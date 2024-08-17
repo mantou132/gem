@@ -72,7 +72,7 @@ export function flatNav(nav: NavItem[]): NavItemWithLink[] {
 }
 
 export function joinPath(...paths: (string | undefined)[]) {
-  const toPath = (base: string) => (base.startsWith('/') ? base : base ? `/${base}` : '');
+  const toPath = (part: string) => (part.startsWith('/') ? part : part ? `/${part}` : '');
   return paths.reduce<string>((base = '', path = '') => {
     return `${toPath(base)}${toPath(path)}`;
   }, '');
@@ -81,7 +81,7 @@ export function joinPath(...paths: (string | undefined)[]) {
 export function getGithubPath(link: string) {
   const { config, lang } = bookStore;
   const { sourceDir, base } = config || {};
-  return joinPath(base, sourceDir, lang, link);
+  return joinPath(base, sourceDir !== '.' ? sourceDir : '', lang, link);
 }
 
 export function getURL(originPath: string, hash = '') {
@@ -112,4 +112,9 @@ export function checkBuiltInPlugin(container: HTMLElement) {
       window.dispatchEvent(new CustomEvent('plugin', { detail: rest.join('-') }));
     }
   });
+}
+
+export function isGitLab() {
+  const { config } = bookStore;
+  return config?.github && !new URL(config.github).host.endsWith('github.com');
 }

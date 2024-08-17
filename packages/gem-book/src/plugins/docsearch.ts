@@ -283,6 +283,9 @@ customElements.whenDefined('gem-book').then(({ GemBookPluginElement }: typeof Ge
         },
         getMissingResultsUrl: config.github
           ? ({ query }: { query: string }) => {
+              if (Utils.isGitLab()) {
+                return `${config.github}/-/issues/new?issue[title]=${query}`;
+              }
               return `${config.github}/issues/new?title=${query}`;
             }
           : undefined,

@@ -8,7 +8,7 @@ import { bookStore, locationStore } from '../store';
 import { BookConfig } from '../../common/config';
 import { debounce } from '../../common/utils';
 import { icons } from '../elements/icons';
-import { getRanges, getParts, joinPath, getURL, escapeHTML, capitalize } from '../lib/utils';
+import { getRanges, getParts, joinPath, getURL, escapeHTML, capitalize, isGitLab } from '../lib/utils';
 import { parseMarkdown, unsafeRenderHTML } from '../lib/renderer';
 import { originDocLang, selfI18n } from '../helper/i18n';
 
@@ -26,8 +26,6 @@ function getRemoteURL(originSrc = '', dev = GemBookPluginElement.devMode) {
   let url = originSrc;
   if (originSrc && !/^(https?:)?\/\//.test(originSrc)) {
     if (!github || !sourceBranch) return '';
-    const rawOrigin = 'https://raw.githubusercontent.com';
-    const repo = new URL(github).pathname;
     let src = originSrc.startsWith('/') ? originSrc : `/${originSrc}`;
     if (originSrc.startsWith('.')) {
       const absPath = new URL(originSrc, `${location.origin}${currentLink!.originLink}`).pathname;
@@ -37,7 +35,7 @@ function getRemoteURL(originSrc = '', dev = GemBookPluginElement.devMode) {
       if (linkItem) return getURL(joinPath(lang, linkItem.originLink), linkItem.hash);
       src = new URL(originSrc, `${location.origin}${joinPath(sourceDir, lang, currentLink!.originLink)}`).pathname;
     }
-    url = dev ? `/_assets${src}` : `${rawOrigin}${repo}/${sourceBranch}${joinPath(base, src)}`;
+    url = dev ? `/_assets${src}` : `${github}/raw/${sourceBranch}${joinPath(base, src)}`;
   }
   return url;
 }
@@ -55,6 +53,7 @@ export class GemBookPluginElement extends GemElement {
     getRemoteURL,
     parseMarkdown,
     unsafeRenderHTML,
+    isGitLab,
   };
 
   static caches = new Map<typeof GemBookPluginElement, Map<string, any>>();

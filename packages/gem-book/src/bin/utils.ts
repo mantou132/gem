@@ -24,7 +24,7 @@ export async function getGithubUrl() {
     const git = typeof repo === 'string' ? repo : repo?.url || (await gitRemoteOriginUrl(repoDir));
     const parsed = parseGithub(git);
     if (parsed?.repository) {
-      return `https://github.com/${parsed.repository}`;
+      return `https://${parsed.host}/${parsed.repository}`;
     }
   } catch {}
 }
@@ -264,5 +264,11 @@ export async function getIconDataUrl(filePath: string) {
   } catch (err) {
     print(err);
     return '';
+  }
+}
+
+export function isGithubOrGitLabNav(title?: string) {
+  if (title && ['github', 'gitlab'].includes(title.toLowerCase())) {
+    return true;
   }
 }
