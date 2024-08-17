@@ -585,6 +585,7 @@ export abstract class GemElement extends HTMLElement {
     return list.filter((e) => {
       execCallback(e.preCallback);
       e.initialized = false;
+      e.values = undefined;
       return e.inConstructor;
     });
   };
