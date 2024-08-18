@@ -616,6 +616,7 @@ export class Pre extends GemElement {
         <code
           ref=${this.#codeRef.ref}
           class="gem-code"
+          spellcheck="false"
           contenteditable=${this.editable ? contenteditableValue : false}
           @compositionstart=${this.#compositionstartHandle}
           @compositionend=${this.#compositionendHandle}

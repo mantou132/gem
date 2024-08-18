@@ -148,7 +148,7 @@ export const blockquoteStyle = css`
   }
 `;
 
-export const haedingStyle = css`
+export const headingStyle = css`
   .header-anchor {
     font-size: 0.75em;
     margin-inline-start: 0.25em;

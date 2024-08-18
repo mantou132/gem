@@ -15,7 +15,7 @@ import { mediaQuery } from '@mantou/gem/helper/mediaquery';
 import { theme } from '../helper/theme';
 import { checkBuiltInPlugin } from '../lib/utils';
 import { getBody } from '../../common/utils';
-import { parseMarkdown, linkStyle, tableStyle, haedingStyle, blockquoteStyle } from '../lib/renderer';
+import { parseMarkdown, linkStyle, tableStyle, headingStyle, blockquoteStyle } from '../lib/renderer';
 import { locationStore } from '../store';
 
 import { updateTocStore } from './toc';
@@ -202,7 +202,7 @@ const style = createCSSSheet(css`
   }
   ${linkStyle}
   ${tableStyle}
-  ${haedingStyle}
+  ${headingStyle}
   ${blockquoteStyle}
 `);
 

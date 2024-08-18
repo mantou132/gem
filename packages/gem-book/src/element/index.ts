@@ -16,8 +16,8 @@ import {
   adoptedStyle,
   createCSSSheet,
   kebabToCamelCase,
-  mounted,
   willMount,
+  effect,
 } from '@mantou/gem';
 import { GemLightRouteElement, matchPath } from '@mantou/gem/elements/route';
 import { mediaQuery } from '@mantou/gem/helper/mediaquery';
@@ -248,6 +248,19 @@ export class GemBookElement extends GemElement {
     this.routechange(null);
   };
 
+  @effect((i) => [i.src])
+  #updateRemoteConfig = async () => {
+    if (!this.src) return;
+    const config = await (await fetch(this.src)).json();
+    updateBookConfig(config, this);
+  };
+
+  @effect((i) => [i.config])
+  #updateConfig = () => updateBookConfig(this.config, this);
+
+  @effect((i) => [i.theme])
+  #updateTheme = () => changeTheme(this.theme);
+
   render() {
     const { config, nav = [], routes = [], lang = '', homePage = '', currentSidebar } = bookStore;
     if (!config) return null;
@@ -299,26 +312,6 @@ export class GemBookElement extends GemElement {
       <gem-book-toc></gem-book-toc>
     `;
   }
-
-  @mounted()
-  #init = () => {
-    this.effect(
-      async () => {
-        if (!this.src) return;
-        const config = await (await fetch(this.src)).json();
-        updateBookConfig(config, this);
-      },
-      () => [this.src],
-    );
-    this.effect(
-      () => updateBookConfig(this.config, this),
-      () => [this.config],
-    );
-    this.effect(
-      () => changeTheme(this.theme),
-      () => [this.theme],
-    );
-  };
 
   changeTheme = changeTheme;
 

@@ -6,7 +6,7 @@ import { logger } from '@mantou/gem/helper/logger';
 import { theme } from '../helper/theme';
 import { bookStore, locationStore } from '../store';
 import { BookConfig } from '../../common/config';
-import { debounce } from '../../common/utils';
+import { debounce, throttle } from '../../common/utils';
 import { icons } from '../elements/icons';
 import { getRanges, getParts, joinPath, getURL, escapeHTML, capitalize, isGitLab } from '../lib/utils';
 import { parseMarkdown, unsafeRenderHTML } from '../lib/renderer';
@@ -48,6 +48,7 @@ export class GemBookPluginElement extends GemElement {
     escapeHTML,
     capitalize,
     debounce,
+    throttle,
     getRanges,
     getParts,
     getRemoteURL,

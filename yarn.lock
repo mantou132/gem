@@ -979,14 +979,15 @@
     outvariant "^1.4.0"
     strict-event-emitter "^0.4.3"
 
-"@codesandbox/sandpack-client@^2.0.01":
-  version "2.10.0"
-  resolved "https://registry.yarnpkg.com/@codesandbox/sandpack-client/-/sandpack-client-2.10.0.tgz#01363b827195ab54c74834b420983d732e342327"
-  integrity sha512-1vLN0j8ElzTmTG43yoBj1dsOyuw6SqRH9rRa13D32jtM4v2qPFLWIFElcyNpH/YbWsCRZTUCN6ku6U4Yw/Xdvg==
+"@codesandbox/sandpack-client@^2.18.2":
+  version "2.18.2"
+  resolved "https://registry.yarnpkg.com/@codesandbox/sandpack-client/-/sandpack-client-2.18.2.tgz#408958a2e91ae056be423bee2cef00eb6df28035"
+  integrity sha512-zKSZWoCqpUFHqSbG1Q88ICqbY/nKKTY3rKKxTdNCSv0miI3JAR671kFcq6fkoCYVHFg6WIVpW7EzYwA/TYzX0w==
   dependencies:
     "@codesandbox/nodebox" "0.1.8"
     buffer "^6.0.3"
     dequal "^2.0.2"
+    mime-db "^1.52.0"
     outvariant "1.4.0"
     static-browser-server "1.0.3"
 

@@ -1,22 +1,16 @@
-import type { SandpackClient, SandpackBundlerFiles, ClientStatus } from '@codesandbox/sandpack-client';
+import type {
+  SandpackClient,
+  SandpackBundlerFiles,
+  ClientStatus,
+  SandpackTemplate,
+} from '@codesandbox/sandpack-client';
 
 import type { GemBookElement } from '../element';
 import type { Pre } from '../element/elements/pre';
 
 const CSB_URL = 'https://codesandbox.io/api/v1/sandboxes/define?json=1';
-const SANDPACK_CLIENT_ESM = 'https://esm.sh/@codesandbox/sandpack-client@2.0?bundle';
+const SANDPACK_CLIENT_ESM = 'https://esm.sh/@codesandbox/sandpack-client@2.18.2?bundle';
 const LZ_STRING_ESM = 'https://esm.sh/lz-string@1.5.0';
-
-function throttle<T extends (...args: any) => any>(fn: T, wait = 3000) {
-  let timer = 0;
-  return (...rest: Parameters<T>) => {
-    clearTimeout(timer);
-    timer = window.setTimeout(() => {
-      fn(...(rest as any));
-      timer = 0;
-    }, wait);
-  };
-}
 
 type FileStatus = 'active' | 'hidden' | '';
 
@@ -35,7 +29,7 @@ type State = {
 };
 
 customElements.whenDefined('gem-book').then(({ GemBookPluginElement }: typeof GemBookElement) => {
-  const { theme, icons } = GemBookPluginElement;
+  const { theme, icons, Utils } = GemBookPluginElement;
   const {
     html,
     customElement,
@@ -49,7 +43,7 @@ customElements.whenDefined('gem-book').then(({ GemBookPluginElement }: typeof Ge
     shadow,
     createState,
     willMount,
-    unmounted,
+    mounted,
   } = GemBookPluginElement.Gem;
 
   const styles = createCSSSheet(css`
@@ -161,7 +155,12 @@ customElements.whenDefined('gem-book').then(({ GemBookPluginElement }: typeof Ge
   class _GbpSandpackElement extends GemBookPluginElement {
     @attribute entry: string;
     @attribute dependencies: string;
+    @attribute template: SandpackTemplate;
     @boolattribute hotreload: boolean;
+
+    get #template() {
+      return this.template || undefined;
+    }
 
     get #entry() {
       return this.entry || '.';
@@ -171,21 +170,37 @@ customElements.whenDefined('gem-book').then(({ GemBookPluginElement }: typeof Ge
       return 'index.ts';
     }
 
-    get #template() {
+    get #indexTemplate() {
       const style = getComputedStyle(document.body);
       return `
-<style>
-  body {
-    font: ${style.font};
-    -moz-osx-font-smoothing: grayscale;
-    -webkit-font-smoothing: antialiased;
-  }
-  app-root:not(:defined) {
-    display: contents;
-  }
-</style>
-<app-root id=root></app-root>
+        <style>
+          body {
+            font: ${style.font};
+            -moz-osx-font-smoothing: grayscale;
+            -webkit-font-smoothing: antialiased;
+          }
+          app-root:not(:defined) {
+            display: contents;
+          }
+        </style>
+        <app-root id=root></app-root>
       `.trim();
+    }
+
+    get #erudaUrl() {
+      return `data:application/javascript;base64,${btoa(
+        `
+          const root = document.querySelector('#root');
+          eruda.init({ container: root, tool: ['console'] });
+          eruda.show();
+          const style = new CSSStyleSheet();
+          style.replace(\`
+            .eruda-dev-tools, .eruda-console { padding: 0 !important; border: none; }
+            .eruda-resizer, .eruda-tab, .eruda-entry-btn, .eruda-control, .eruda-js-input { display: none !important; }
+          \`);
+          root.shadowRoot.adoptedStyleSheets.push(style);
+        `,
+      )}`;
     }
 
     get #dependencies() {
@@ -217,26 +232,6 @@ customElements.whenDefined('gem-book').then(({ GemBookPluginElement }: typeof Ge
       forking: false,
       status: 'initialization',
     });
-
-    constructor() {
-      super();
-      new MutationObserver(() => {
-        const files = this.#parseContents();
-        this.#state({ files });
-        this.#updateSandbox();
-      }).observe(this, {
-        childList: true,
-        characterData: true,
-        subtree: true,
-      });
-
-      new IntersectionObserver(async (entries) => {
-        const { intersectionRatio } = entries.pop()!;
-        if (intersectionRatio > 0 && !this.#sandpackClient) {
-          this.#intoViewport();
-        }
-      }).observe(this);
-    }
 
     #sandpackClient?: Promise<SandpackClient>;
 
@@ -281,7 +276,7 @@ customElements.whenDefined('gem-book').then(({ GemBookPluginElement }: typeof Ge
         {
           files: this.#state.files.reduce((p, c) => ({ ...p, [c.filename]: { code: c.code } }), {
             'sandbox.config.json': this.#sandBoxConfigFile,
-            'index.html': { code: this.#template },
+            'index.html': { code: this.#indexTemplate },
             [this.#defaultEntryFilename]: { code: '' },
           } as SandpackBundlerFiles),
           dependencies: this.#dependencies,
@@ -290,15 +285,16 @@ customElements.whenDefined('gem-book').then(({ GemBookPluginElement }: typeof Ge
         {
           showOpenInCodeSandbox: false,
           showLoadingScreen: false,
+          externalResources: this.#template === 'node' ? ['https://cdn.jsdelivr.net/npm/eruda', this.#erudaUrl] : [],
         },
       );
     };
 
-    #updateSandbox = throttle(async () => {
+    #updateSandbox = Utils.throttle(async () => {
       (await this.#sandpackClient)?.updateSandbox({
         files: this.#state.files.reduce((p, c) => ({ ...p, [c.filename]: { code: c.code } }), {
           'sandbox.config.json': this.#sandBoxConfigFile,
-          'index.html': { code: this.#template },
+          'index.html': { code: this.#indexTemplate },
         } as SandpackBundlerFiles),
         entry: this.#entry,
         dependencies: this.#dependencies,
@@ -334,7 +330,7 @@ customElements.whenDefined('gem-book').then(({ GemBookPluginElement }: typeof Ge
         }),
         {
           'sandbox.config.json': { content: this.#sandBoxConfigFile.code },
-          'index.html': { content: this.#template },
+          'index.html': { content: this.#indexTemplate },
           'package.json': {
             content: {
               main: this.#entry,
@@ -372,9 +368,26 @@ customElements.whenDefined('gem-book').then(({ GemBookPluginElement }: typeof Ge
       this.#state({ files: this.#parseContents() });
     };
 
-    @unmounted()
-    #destroy = async () => {
-      (await this.#sandpackClient)?.destroy();
+    @mounted()
+    #init = () => {
+      const ob = new MutationObserver(() => {
+        const files = this.#parseContents();
+        this.#state({ files });
+        this.#updateSandbox();
+      });
+      ob.observe(this, { childList: true, characterData: true, subtree: true });
+      const io = new IntersectionObserver(async (entries) => {
+        const { intersectionRatio } = entries.pop()!;
+        if (intersectionRatio > 0 && !this.#sandpackClient) {
+          this.#intoViewport();
+        }
+      });
+      io.observe(this);
+      return async () => {
+        ob.disconnect();
+        io.disconnect();
+        (await this.#sandpackClient)?.destroy();
+      };
     };
 
     render = () => {

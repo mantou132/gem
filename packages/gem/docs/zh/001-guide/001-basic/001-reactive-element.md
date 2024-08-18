@@ -78,9 +78,7 @@ import {
   customElement,
 } from '@mantou/gem';
 
-const [store, update] = useStore({
-  count: 0,
-});
+const [store, update] = useStore({ count: 0 });
 
 @customElement('my-element')
 @connectStore(store)

@@ -108,7 +108,6 @@ export class GemBookTocElement extends GemElement {
       () => tocStore.elements.forEach((e) => io.observe(e)),
       () => [tocStore.elements],
     );
-
     return () => io.disconnect();
   };
 

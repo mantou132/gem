@@ -32,7 +32,7 @@ features:
 ## TodoApp
 
 <style>
-:host {
+[part=main] {
   width: clamp(100%, 90vw, 1024px);
   margin-left: calc((clamp(100%, 90vw, 1024px) - 100%) / -2);
 }
@@ -41,13 +41,7 @@ features:
 <gbp-sandpack dependencies="@mantou/gem, duoyun-ui">
 
 ```ts
-import {
-  customElement,
-  GemElement,
-  html,
-  render,
-  connectStore,
-} from '@mantou/gem';
+import { customElement, GemElement, html, render, connectStore, createState } from '@mantou/gem';
 
 import { todoData, addItem } from './store';
 
@@ -59,17 +53,15 @@ import './todo-list';
 @customElement('app-root')
 @connectStore(todoData)
 export class AppRootElement extends GemElement {
-  state = {
-    input: '',
-  };
+  #state = createState({ input: '' });
 
   #onChange = (e: CustomEvent<string>) => {
-    this.setState({ input: e.detail });
+    this.#state({ input: e.detail });
   };
 
   #onSubmit = () => {
-    addItem(this.state.input);
-    this.setState({ input: '' });
+    addItem(this.#state.input);
+    this.#state({ input: '' });
   };
 
   render = () => {
@@ -78,14 +70,8 @@ export class AppRootElement extends GemElement {
       <todo-list></todo-list>
       <dy-heading lv="3">What needs to be done?</dy-heading>
       <dy-input-group>
-        <dy-input
-          id="new-todo"
-          @change=${this.#onChange}
-          .value=${this.state.input}
-        ></dy-input>
-        <dy-button @click=${this.#onSubmit}
-          >Add #${todoData.items.length + 1}</dy-button
-        >
+        <dy-input id="new-todo" @change=${this.#onChange} .value=${this.#state.input}></dy-input>
+        <dy-button @click=${this.#onSubmit}>Add #${todoData.items.length + 1}</dy-button>
       </dy-input-group>
     `;
   };
@@ -145,10 +131,7 @@ export class TodoListElement extends GemElement {
           (item) => html`
             <li>
               <span>${item}</span>
-              <dy-use
-                .element=${icons.close}
-                @click=${() => deleteItem(item)}
-              ></dy-use>
+              <dy-use .element=${icons.close} @click=${() => deleteItem(item)}></dy-use>
             </li>
           `,
         )}
@@ -161,13 +144,9 @@ export class TodoListElement extends GemElement {
 ```ts store.ts
 import { useStore } from '@mantou/gem';
 
-type Store = {
-  items: string[];
-};
+type Store = { items: string[] };
 
-export const [todoData, update] = useStore<Store>({
-  items: [],
-});
+export const [todoData, update] = useStore<Store>({ items: [] });
 
 export const addItem = (item: string) => {
   update({ items: [...todoData.items, item] });

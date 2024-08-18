@@ -22,14 +22,14 @@ class MyElement extends GemElement {
 Using decorators provides better scalability and reduces code complexity. For the same purpose, decorators like `@effect` and `@memo` have been added to help you write more concise custom elements:
 
 ```ts
-@customElement("my-element")
+@customElement('my-element')
 class MyElement extends GemElement {
   @attribute name: string;
 
   #content: string;
 
   @memo((myElement) => [myElement.name])
-  #caleContent() {
+  #calcContent() {
     this.#content = this.name;
   }
 
@@ -48,9 +48,9 @@ class MyElement extends GemElement {
 v1 used a specific field `state` to represent the internal state of the element and used `this.setState` to update the state. In v2, any field can be used, as defining the state also defines the update method:
 
 ```ts
-@customElement("my-element")
+@customElement('my-element')
 class MyElement extends GemElement {
-  #state = createState({ a: true })
+  #state = createState({ a: true });
 
   render() {
     this.#state({ a: false });
@@ -59,8 +59,18 @@ class MyElement extends GemElement {
 }
 ```
 
-> [!NOTE]
-> v2 supports updating the state anywhere, which would cause an infinite loop in v1.
+Similar to `createState`, use `createRef` to replace v1's `@refobject`:
+
+```ts
+@customElement('my-element')
+class MyElement extends GemElement {
+  #input = createRef();
+
+  render() {
+    return html`<input ref=${this.#input.ref}></input>`;
+  }
+}
+```
 
 ## Default Use of Light DOM
 

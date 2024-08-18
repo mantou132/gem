@@ -14,9 +14,7 @@ const getProjection = (geoCommonProjection: GeoCommonProjection) => {
   return geoAlbersUsaTerritories().scale(400).translate([0, 0]);
 };
 
-fetch(
-  'https://raw.githubusercontent.com/mantou132/javascript-learn/master/geo/us.json',
-)
+fetch('https://raw.githubusercontent.com/mantou132/javascript-learn/master/geo/us.json')
   .then((res) => res.json())
   .then((geo) => {
     render(
@@ -31,10 +29,7 @@ fetch(
           @areahover=${console.log}
           @pan=${({ target, detail: { x, y } }) => {
             const arr = [x, y];
-            target.translate2D = [
-              target.translate2D[0] + x,
-              target.translate2D[1] + y,
-            ];
+            target.translate2D = [target.translate2D[0] + x, target.translate2D[1] + y];
           }}
         ></dy-map>
       `,

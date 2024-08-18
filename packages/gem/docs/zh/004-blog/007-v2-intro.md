@@ -8,9 +8,9 @@ v2 使用 ES 装饰器[代替了以前的 TS 装饰器](./es-decorators)，并�
 
 ```diff
 @customElement('my-element')
-+@aria({ foucusable: true, role: 'button' })
++@aria({ focusable: true, role: 'button' })
 +@shadow()
-+@asnyc()
++@async()
 class MyElement extends GemElement {
 -  constructor() {
 -    super({ focusable: true, isAsync: true, isLight: false });
@@ -22,14 +22,14 @@ class MyElement extends GemElement {
 使用装饰器具有更好的可扩展性，另外也降低了代码复杂度。基于同样的目的，还添加了 `@effect` `@memo` 等装饰器让你编写更简洁的自定义元素：
 
 ```ts
-@customElement("my-element")
+@customElement('my-element')
 class MyElement extends GemElement {
   @attribute name: string;
 
   #content: string;
 
-  @memo((myElement) => [myElemnt.name])
-  #caleContent() {
+  @memo((myElement) => [myElement.name])
+  #calcContent() {
     this.#content = this.name;
   }
 
@@ -43,14 +43,14 @@ class MyElement extends GemElement {
 > [!WARNING]
 > 未来 Gem 可能会[弃用生命周期回调函数](https://github.com/mantou132/gem/issues/159)，全面使用装饰器代替
 
-## 内部状态
+## 内部状态和 DOM 引用
 
 v1 使用特定的字段 `state` 来表示元素内部状态，并使用 `this.setState` 来更新状态，在 v2 中，可以使用任意字段，因为定义状态的同时定义了更新方法：
 
 ```ts
-@customElement("my-element")
+@customElement('my-element')
 class MyElement extends GemElement {
-  #state = createState({ a: true })
+  #state = createState({ a: true });
 
   render() {
     this.#state({ a: false });
@@ -59,8 +59,18 @@ class MyElement extends GemElement {
 }
 ```
 
-> [!NOTE]
-> v2 支持在任意地方更新状态，这在 v1 中将造成死循环
+类似 `createState`，用 `createRef` 来代替 v1 的 `@refobject`：
+
+```ts
+@customElement('my-element')
+class MyElement extends GemElement {
+  #input = createRef();
+
+  render() {
+    return html`<input ref=${this.#input.ref}></input>`;
+  }
+}
+```
 
 ## 默认使用 Light DOM
 

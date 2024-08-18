@@ -208,16 +208,6 @@ export class SideBar extends GemElement {
     ele.classList.toggle('close');
   };
 
-  @effect(() => [locationStore.path])
-  #expandToCurrentLink = () => {
-    const removeCloseClass = (ele: Element | null | undefined) => {
-      if (!ele) return;
-      ele.classList.remove('close');
-      removeCloseClass(ele.parentElement?.previousElementSibling);
-    };
-    removeCloseClass(this.#currentLink);
-  };
-
   #renderItem = (
     { type = 'file', link, title, children, sidebarIgnore }: NavItem,
     isTop = false,
@@ -277,6 +267,28 @@ export class SideBar extends GemElement {
     }
   };
 
+  @effect(() => [locationStore.path])
+  #expandToCurrentLink = () => {
+    const removeCloseClass = (ele: Element | null | undefined) => {
+      if (!ele) return;
+      ele.classList.remove('close');
+      removeCloseClass(ele.parentElement?.previousElementSibling);
+    };
+    removeCloseClass(this.#currentLink);
+  };
+
+  @mounted()
+  #init = () => {
+    this.#currentLink?.scrollIntoView({ block: 'center' });
+    const removeHandle = addListener(window, 'hashchange', this.#closeSidebar);
+    const disconnect = connect(locationStore, this.#closeSidebar);
+
+    return () => {
+      removeHandle();
+      disconnect();
+    };
+  };
+
   render() {
     this.open = sidebarStore.open;
     const topNavList = bookStore.nav?.filter((e) => isSameOrigin(e.link));
@@ -303,16 +315,4 @@ export class SideBar extends GemElement {
       </div>
     `;
   }
-
-  @mounted()
-  #init = () => {
-    this.#currentLink?.scrollIntoView({ block: 'center' });
-    const removeHandle = addListener(window, 'hashchange', this.#closeSidebar);
-    const disconnect = connect(locationStore, this.#closeSidebar);
-
-    return () => {
-      removeHandle();
-      disconnect();
-    };
-  };
 }
