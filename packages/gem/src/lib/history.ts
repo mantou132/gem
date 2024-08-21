@@ -213,8 +213,9 @@ if (!window._GEMHISTORY) {
 
   if (!nativeHistory.state) {
     // 初始化 historyState
-    const { pathname, search, hash } = location;
-    gemHistory.replace({ path: pathname, query: search, hash });
+    const { protocol, pathname, search, hash } = location;
+    // 支持在 `data:` `blob:` 中 `import`
+    if (protocol.startsWith('http')) gemHistory.replace({ path: pathname, query: search, hash });
   } else if (nativeHistory.state.$hasCloseHandle) {
     updateHistoryStore(nativeHistory.state);
     const params = normalizeParams({ title: document.title });

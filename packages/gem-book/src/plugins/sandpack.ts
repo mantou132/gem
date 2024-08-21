@@ -3,14 +3,29 @@ import type {
   SandpackBundlerFiles,
   ClientStatus,
   SandpackTemplate,
+  SandboxSetup,
+  ClientOptions,
+  SandpackMessage,
 } from '@codesandbox/sandpack-client';
 
 import type { GemBookElement } from '../element';
 import type { Pre } from '../element/elements/pre';
 
+const ESBUILD_URL = 'https://esm.sh/esbuild-wasm';
 const CSB_URL = 'https://codesandbox.io/api/v1/sandboxes/define?json=1';
 const SANDPACK_CLIENT_ESM = 'https://esm.sh/@codesandbox/sandpack-client@2.18.2?bundle';
 const LZ_STRING_ESM = 'https://esm.sh/lz-string@1.5.0';
+
+const { promise, resolve } = Promise.withResolvers<typeof import('esbuild')>();
+let initialize = false;
+async function loadESBuild() {
+  if (initialize) return promise;
+  initialize = true;
+  const esbuild = (await import(/* webpackIgnore: true */ ESBUILD_URL)) as typeof import('esbuild');
+  await esbuild.initialize({ wasmURL: `${ESBUILD_URL}/esbuild.wasm`, worker: true });
+  resolve(esbuild);
+  return promise;
+}
 
 type FileStatus = 'active' | 'hidden' | '';
 
@@ -126,6 +141,7 @@ customElements.whenDefined('gem-book').then(({ GemBookPluginElement }: typeof Ge
       border: none;
       background: ${theme.backgroundColor};
       border-radius: ${theme.normalRound};
+      color-scheme: light;
     }
     @container (max-width: 700px) {
       .container {
@@ -187,20 +203,8 @@ customElements.whenDefined('gem-book').then(({ GemBookPluginElement }: typeof Ge
       `.trim();
     }
 
-    get #erudaUrl() {
-      return `data:application/javascript;base64,${btoa(
-        `
-          const root = document.querySelector('#root');
-          eruda.init({ container: root, tool: ['console'] });
-          eruda.show();
-          const style = new CSSStyleSheet();
-          style.replace(\`
-            .eruda-dev-tools, .eruda-console { padding: 0 !important; border: none; }
-            .eruda-resizer, .eruda-tab, .eruda-entry-btn, .eruda-control, .eruda-js-input { display: none !important; }
-          \`);
-          root.shadowRoot.adoptedStyleSheets.push(style);
-        `,
-      )}`;
+    get #useESMBuild() {
+      return this.#template !== 'node';
     }
 
     get #dependencies() {
@@ -237,7 +241,7 @@ customElements.whenDefined('gem-book').then(({ GemBookPluginElement }: typeof Ge
 
     #parseContents = () => {
       return [...this.querySelectorAll<Pre>('gem-book-pre')].map((element) => {
-        const filename = element.getAttribute('filename') || this.#defaultEntryFilename;
+        const filename = (element.getAttribute('filename') || this.#defaultEntryFilename).toLowerCase();
         element.dataset.filename = filename;
         element.setAttribute('headless', '');
         element.setAttribute('editable', '');
@@ -266,12 +270,120 @@ customElements.whenDefined('gem-book').then(({ GemBookPluginElement }: typeof Ge
       });
     };
 
-    #initSandpackClient = async () => {
+    // `false`: 只有发生错误或者 console.error 才显示
+    #getErudaResources(always?: boolean) {
+      const erudaInit = `data:application/javascript;base64,${btoa(
+        `
+          const root = document.createElement('div');
+          document.body.append(root);
+          eruda.init({ container: root, tool: ['console'] });
+          const style = new CSSStyleSheet();
+          style.replace(\`
+            .eruda-dev-tools, .eruda-console { top: 0; border: none; padding: 0 !important; height: 100% !important; }
+            .eruda-resizer, .eruda-tab, .eruda-entry-btn, .eruda-control, .eruda-js-input { display: none !important; }
+          \`);
+          root.shadowRoot.adoptedStyleSheets.push(style);
+          if (${!!always}) eruda.show();
+          window.addEventListener('error', () => eruda.show());
+          const error = console.error.bind(console)
+          console.error = (...rest) => {
+            eruda.show();
+            error(...rest);
+          }
+        `,
+      )}`;
+      return ['https://cdn.jsdelivr.net/npm/eruda', erudaInit];
+    }
+
+    // 兼容 sandpack
+    #loadESBuildClient = async (iframe: HTMLIFrameElement, initSetup: SandboxSetup, _options?: ClientOptions) => {
+      const { build, formatMessages } = await loadESBuild();
+      const data = { ...initSetup };
+      const decoder = new TextDecoder();
+      const compile = async () => {
+        let code = '';
+        try {
+          const { outputFiles } = await build({
+            entryPoints: [this.#entry],
+            target: 'es2022',
+            platform: 'browser',
+            format: 'esm',
+            bundle: true,
+            write: false,
+            plugins: [
+              {
+                name: 'browserResolve',
+                setup: ({ onResolve, onLoad }) => {
+                  onResolve({ filter: /.*/ }, async (args) => {
+                    if (args.kind === 'entry-point' && args.path === '.') {
+                      return { path: `/index` };
+                    }
+                    if (args.path.startsWith('.')) {
+                      return { path: new URL(args.path, `file://${args.resolveDir}`).pathname };
+                    }
+                    return {
+                      // TODO: 依赖版本号 `this.#dependencies`
+                      path: `https://esm.sh/${args.path}`,
+                      external: true,
+                    };
+                  });
+                  onLoad({ filter: /.*/ }, (args) => {
+                    const name = args.path.substring(1).toLowerCase();
+                    let filename = '';
+                    for (const ext of ['', '.js', '.ts']) {
+                      const temp = `${name}${ext}`;
+                      if (!(temp in data.files)) continue;
+                      filename = temp;
+                      break;
+                    }
+                    return {
+                      loader: 'tsx',
+                      contents: data.files[filename]?.code,
+                    };
+                  });
+                },
+              },
+            ],
+          });
+          code = decoder.decode(outputFiles![0].contents);
+        } catch (e) {
+          const msg = (await formatMessages(e.errors, { kind: 'error', color: false, terminalWidth: 100 })).join('\n');
+          code = `console.error(\`${msg.replaceAll('\\', '\\\\').replaceAll('`', '\\`')}\`)`;
+        }
+        const htmlCode = `
+          ${data.files[Object.keys(data.files).find((e) => e.toLowerCase() === 'index.html')!]?.code}
+          ${this.#getErudaResources()
+            .map((src) => `<script src="${src}"></script>`)
+            .join('')}
+          <script type="module">${code}</script>
+        `;
+        URL.revokeObjectURL(iframe.src);
+        iframe.src = URL.createObjectURL(new Blob([htmlCode], { type: 'text/html' }));
+      };
+      compile();
+      this.#state({ status: 'done' });
+      return {
+        listen: (..._rest) => {},
+        updateSandbox: (sandboxSetup?: SandboxSetup) => {
+          Object.assign(data, sandboxSetup);
+          compile();
+        },
+        dispatch: ({ type }: SandpackMessage) => {
+          if (type === 'refresh') this.#state({ status: 'done' });
+        },
+        destroy: () => URL.revokeObjectURL(iframe.src),
+      } as SandpackClient;
+    };
+
+    #getLoadSandpackClient = async () => {
       const { loadSandpackClient } = (await import(
         /* webpackIgnore: true */ SANDPACK_CLIENT_ESM
       )) as typeof import('@codesandbox/sandpack-client');
+      return loadSandpackClient;
+    };
 
-      return await loadSandpackClient(
+    #initSandpackClient = async () => {
+      return (this.#useESMBuild ? this.#loadESBuildClient : await this.#getLoadSandpackClient())(
         this.#iframeRef.element!,
         {
           files: this.#state.files.reduce((p, c) => ({ ...p, [c.filename]: { code: c.code } }), {
@@ -285,7 +397,8 @@ customElements.whenDefined('gem-book').then(({ GemBookPluginElement }: typeof Ge
         {
           showOpenInCodeSandbox: false,
           showLoadingScreen: false,
-          externalResources: this.#template === 'node' ? ['https://cdn.jsdelivr.net/npm/eruda', this.#erudaUrl] : [],
+          // node 时只显示 console
+          externalResources: this.#template === 'node' ? this.#getErudaResources(true) : [],
         },
       );
     };
