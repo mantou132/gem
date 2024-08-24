@@ -9,7 +9,8 @@ import {
   css,
   adoptedStyle,
   createState,
-  mounted,
+  unmounted,
+  effect,
 } from '@mantou/gem';
 
 import { theme, themeStore } from '../helper/theme';
@@ -98,18 +99,16 @@ export class GemBookTocElement extends GemElement {
 
   #setCurrent = (current: Element) => setTimeout(() => this.#state({ current }), 100);
 
-  @mounted()
-  #init = () => {
-    const io = new IntersectionObserver((entryList) => entryList.forEach(this.#callback), {
-      rootMargin: `-${themeStore.headerHeight} 0px 0px`,
-      threshold: [0, 1],
-    });
-    this.effect(
-      () => tocStore.elements.forEach((e) => io.observe(e)),
-      () => [tocStore.elements],
-    );
-    return () => io.disconnect();
-  };
+  #io = new IntersectionObserver((entryList) => entryList.forEach(this.#callback), {
+    rootMargin: `-${themeStore.headerHeight} 0px 0px`,
+    threshold: [0, 1],
+  });
+
+  @effect(() => [tocStore.elements])
+  #observeHeadings = () => tocStore.elements.forEach((e) => this.#io.observe(e));
+
+  @unmounted()
+  #init = () => this.#io.disconnect();
 
   render = () => {
     if (!tocStore.elements.length) return html``;

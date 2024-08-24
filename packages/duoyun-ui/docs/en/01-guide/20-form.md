@@ -6,18 +6,16 @@ when forming a form editing, you need to dynamically assign a value, for example
 ```ts
 @customElement('my-ele')
 export class MyEleElement extends GemElement {
-  state = {
-    name: '',
-  };
+  #state = createState({ name: '' });
 
   #onChange = (evt) => {
-    this.setState(evt.detail);
+    this.#state(evt.detail);
   };
 
   render = () => {
     return html`
       <dy-form @change=${this.#onChange}>
-        <dy-form-item name="name" .value=${this.state.name}></dy-form-item>
+        <dy-form-item name="name" .value=${this.#state.name}></dy-form-item>
       </dy-form>
     `;
   };
@@ -28,19 +26,17 @@ export class MyEleElement extends GemElement {
 
 Add a `required` attribute for the field, and perform a form validation when submitted:
 
-```ts 16,23
+```ts 14,21
 @customElement('my-ele')
 export class MyEleElement extends GemElement {
-  state = {
-    name: '',
-  };
+  #state = createState({ name: '' });
 
   get #formEle() {
     return this.shadowRoot.querySelect('dy-form');
   }
 
   #onChange = (evt) => {
-    this.setState(evt.detail);
+    this.#state(evt.detail);
   };
 
   #onSubmit = async () => {
@@ -51,7 +47,7 @@ export class MyEleElement extends GemElement {
   render = () => {
     return html`
       <dy-form @change=${this.#onChange}>
-        <dy-form-item required name="name" .value=${this.state.name}></dy-form-item>
+        <dy-form-item required name="name" .value=${this.#state.name}></dy-form-item>
       </dy-form>
       <dy-button @click=${this.#onSubmit}></dy-button>
     `;
@@ -61,19 +57,17 @@ export class MyEleElement extends GemElement {
 
 Use a custom validator:
 
-```ts 16,26-30
+```ts 14,24-28
 @customElement('my-ele')
 export class MyEleElement extends GemElement {
-  state = {
-    name: '',
-  };
+  #state = createState({ name: '' });
 
   get #formEle() {
     return this.shadowRoot.querySelect('dy-form');
   }
 
   #onChange = (evt) => {
-    this.setState(evt.detail);
+    this.#state(evt.detail);
   };
 
   #onSubmit = async () => {
@@ -88,14 +82,14 @@ export class MyEleElement extends GemElement {
           .rules=${[
             {
               validator: async () => {
-                if (!this.state.name) {
+                if (!this.#state.name) {
                   throw new Error('name is required');
                 }
               },
             },
           ]}
           name="name"
-          .value=${this.state.name}
+          .value=${this.#state.name}
         ></dy-form-item>
       </dy-form>
       <dy-button @click=${this.#onSubmit}></dy-button>
@@ -110,21 +104,19 @@ export class MyEleElement extends GemElement {
 if them can't meet your needs, you can use your own elements,
 just implement the `value` attributes and bubble `change` event, then you can use [`<dy-form-item>`](../02-elements/form.md#dy-form-item-api) `slot` type:
 
-```ts 14-16
+```ts 12-14
 @customElement('my-ele')
 export class MyEleElement extends GemElement {
-  state = {
-    name: '',
-  };
+  #state = createState({ name: '' });
 
   #onChange = (evt) => {
-    this.setState(evt.detail);
+    this.#state(evt.detail);
   };
 
   render = () => {
     return html`
       <dy-form @change=${this.#onChange}>
-        <dy-form-item name="name" type="slot" .value=${this.state.name}>
+        <dy-form-item name="name" type="slot" .value=${this.#state.name}>
           <my-input></my-input>
         </dy-form-item>
       </dy-form>
@@ -135,20 +127,17 @@ export class MyEleElement extends GemElement {
 
 If you don't want to write a custom element, you may also use the DuoyunUI existing form element combination to complete your needs:
 
-```ts 20-23
+```ts 17-20
 @customElement('my-ele')
 export class MyEleElement extends GemElement {
-  state = {
-    name: '',
-    type: '',
-  };
+  #state = createState({ name: '', type: '' });
 
   #onChangeName = ({ detail }) => {
-    this.setState({ name: detail });
+    this.#state({ name: detail });
   };
 
   #onChangeType = ({ detail }) => {
-    this.setState({ type: detail });
+    this.#state({ type: detail });
   };
 
   render = () => {
@@ -162,8 +151,8 @@ export class MyEleElement extends GemElement {
           }
         >
           <dy-input-group>
-            <dy-input .value=${this.state.name} @change=${this.#onChangeName}></dy-input>
-            <dy-input .value=${this.state.type} @change=${this.#onChangeType}></dy-input>
+            <dy-input .value=${this.#state.name} @change=${this.#onChangeName}></dy-input>
+            <dy-input .value=${this.#state.type} @change=${this.#onChangeType}></dy-input>
           </dy-input-group>
         </dy-form-item>
       </dy-form>

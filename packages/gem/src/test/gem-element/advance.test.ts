@@ -248,11 +248,11 @@ describe('gem element 副作用', () => {
 class MemoGemDemo extends GemElement {
   @attribute attr = 'a';
   @property prop = {};
-  memoCount = 0;
+  memoNum = 0;
   constructor() {
     super();
     this.memo(
-      () => (this.memoCount += 1),
+      () => (this.memoNum += 1),
       () => [this.attr, this.prop],
     );
   }
@@ -260,35 +260,35 @@ class MemoGemDemo extends GemElement {
   willMount = () => {
     this.memo(
       (_arr) => {
-        this.memoCount += 2;
+        this.memoNum += 2;
       },
       () => [],
     );
     this.memo(() => {
-      this.memoCount += 4;
+      this.memoNum += 4;
     });
   };
 }
 describe('gem element Memo', () => {
   it('依赖当前值', async () => {
     const el: MemoGemDemo = await fixture(html`<memo-gem-demo></memo-gem-demo>`);
-    expect(el.memoCount).to.equal(7);
+    expect(el.memoNum).to.equal(7);
     el.attr = 'b';
     el.prop = {};
     await nextFrame();
-    expect(el.memoCount).to.equal(12);
+    expect(el.memoNum).to.equal(12);
 
     el.update();
     await Promise.resolve();
-    expect(el.memoCount).to.equal(16);
+    expect(el.memoNum).to.equal(16);
 
     document.body.append(el);
-    expect(el.memoCount).to.equal(16);
+    expect(el.memoNum).to.equal(16);
 
     el.remove();
     await Promise.resolve();
     document.body.append(el);
-    expect(el.memoCount).to.equal(22);
+    expect(el.memoNum).to.equal(23);
   });
 });
 

@@ -12,6 +12,7 @@ import {
   styleMap,
   mounted,
   memo,
+  effect,
 } from '@mantou/gem';
 
 import { theme } from '../helper/theme';
@@ -528,8 +529,12 @@ export class Pre extends GemElement {
     }
   };
 
+  #isVisble = false;
+
+  @effect((i) => [i.textContent, i.codelang, i.#isVisble])
   #updateHtml = async () => {
     if (this.status === 'hidden') return;
+    if (!this.#isVisble) return;
     if (!this.#codeRef.element) return;
     await import(/* @vite-ignore */ /* webpackIgnore: true */ prismjs);
     const { Prism } = window as any;
@@ -566,12 +571,8 @@ export class Pre extends GemElement {
     ob.observe(this, { childList: true, characterData: true, subtree: true });
     const io = new IntersectionObserver((entries) => {
       entries.forEach(({ intersectionRatio }) => {
-        if (intersectionRatio === 0) return;
-        io.disconnect();
-        this.effect(
-          () => this.#updateHtml(),
-          () => [this.textContent, this.codelang],
-        );
+        this.#isVisble = intersectionRatio > 0;
+        this.update();
       });
     });
     io.observe(this);

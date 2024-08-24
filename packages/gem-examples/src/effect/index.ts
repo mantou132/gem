@@ -1,8 +1,11 @@
-import { GemElement, html, customElement, render, createState, mounted, createRef } from '@mantou/gem';
+import { GemElement, html, customElement, render, createState, createRef, effect } from '@mantou/gem';
 
 import '../elements/layout';
 
-function effect([textareaElement, callback]: [HTMLTextAreaElement | undefined, (height: number) => void]) {
+function resizeObserverEffect([textareaElement, callback]: [
+  HTMLTextAreaElement | undefined,
+  (height: number) => void,
+]) {
   if (!textareaElement) return callback(0);
   const ro = new ResizeObserver(([entry]: [any]) => {
     callback(entry.contentRect.height);
@@ -24,10 +27,8 @@ export class App extends GemElement {
     this.#state({ height });
   };
 
-  @mounted()
-  #init = () => {
-    this.effect(effect, () => [this.#textAreaRef.element, this.#updateHeight]);
-  };
+  @effect((i) => [i.#textAreaRef.element, i.#updateHeight])
+  #resizeObserverEffect = resizeObserverEffect;
 
   render() {
     return html`

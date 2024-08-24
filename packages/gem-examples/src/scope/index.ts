@@ -12,7 +12,7 @@ const closedStyles = createCSSSheet(css`
 @customElement('closed-shadow-dom')
 class _Closed extends GemElement {
   render() {
-    return html`<div>Closed shadow</div>`;
+    return html`<div>Closed shadow red content</div>`;
   }
 }
 
@@ -39,10 +39,10 @@ export class App extends GemElement {
     return html`
       Text
       <header><h1>Header</h1></header>
-      <p>Content</p>
+      <p>Underline Content</p>
       <light-dom></light-dom>
       <article>
-        <p>Content</p>
+        <p>Underline Content</p>
       </article>
       <closed-shadow-dom></closed-shadow-dom>
     `;

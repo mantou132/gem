@@ -54,9 +54,7 @@ const routes = {
     pattern: '/items/:id',
     title: 'Item Page',
     async getContent(params) {
-      return html`
-        <console-page-item>${JSON.stringify(params)}</console-page-item>
-      `;
+      return html`<console-page-item>${JSON.stringify(params)}</console-page-item>`;
     },
   },
 } satisfies Routes;
@@ -247,7 +245,7 @@ export function Item() {
 <gbp-code-group>
 
 ```ts Gem
-import { html, GemElement, connectStore, customElement } from '@mantou/gem';
+import { html, GemElement, connectStore, customElement, createState, effect } from '@mantou/gem';
 import { get } from '@mantou/gem/helper/request';
 import { locationStore } from 'duoyun-ui/patterns/console';
 import type { FilterableColumn } from 'duoyun-ui/patterns/table';
@@ -256,7 +254,7 @@ import 'duoyun-ui/patterns/table';
 @customElement('console-page-item')
 @connectStore(locationStore)
 export class ConsolePageItemElement extends GemElement {
-  state = {};
+  #state = createState<{ data: any }>({});
 
   #columns: FilterableColumn<any>[] = [
     {
@@ -265,23 +263,15 @@ export class ConsolePageItemElement extends GemElement {
     },
   ];
 
-  mounted = () => {
-    this.effect(
-      async ([id]) => {
-        const data = await get(`https://jsonplaceholder.typicode.com/users`);
-        this.setState({ data });
-      },
-      () => [locationStore.params.id],
-    );
+  @effect((i) => [locationStore.params.id])
+  #fetch = async ([id]) => {
+    const data = await get(`https://jsonplaceholder.typicode.com/users`);
+    this.#state({ data });
   };
 
   render = () => {
     return html`
-      <dy-pat-table
-        filterable
-        .columns=${this.#columns}
-        .data=${this.state.data}
-      ></dy-pat-table>
+      <dy-pat-table filterable .columns=${this.#columns} .data=${this.#state.data}></dy-pat-table>
     `;
   };
 }
@@ -311,9 +301,7 @@ export function Item() {
     },
   ];
 
-  return (
-    <DyPatTable filterable={true} columns={columns} data={data}></DyPatTable>
-  );
+  return <DyPatTable filterable={true} columns={columns} data={data}></DyPatTable>;
 }
 ```
 
@@ -499,21 +487,21 @@ const onFetch = ({ detail }: CustomEvent<FetchEventDetail>) => {
 ```ts
 @customElement('console-page-item')
 export class ConsolePageItemElement extends GemElement {
-  state = {
+  #state = createState({
     pagination: pagination,
     paginationMap: new Map([['', pagination]]),
-  };
+  });
 
   #onFetch = ({ detail }: CustomEvent<FetchEventDetail>) => {
-    let pagination = this.state.paginationMap.get(detail.searchAndFilterKey);
+    let pagination = this.#state.paginationMap.get(detail.searchAndFilterKey);
     if (!pagination) {
       pagination = createPaginationStore<Item>({
         cacheItems: true,
         pageContainItem: true,
       });
-      this.state.paginationMap.set(detail.searchAndFilterKey, pagination);
+      this.#state.paginationMap.set(detail.searchAndFilterKey, pagination);
     }
-    this.setState({ pagination });
+    this.#state({ pagination });
     pagination.updatePage(fetchList, detail);
   };
 }

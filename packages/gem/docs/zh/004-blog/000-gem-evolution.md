@@ -158,4 +158,6 @@ class MyElement extends GemElement {
 
 ## 正在进行中的工作
 
-分析 `GemElement`，生成 jsdoc 描述或者自定义元素数据，以支持自动文档生成和 IDE 集成优化。
+- 分析 `GemElement`，生成 jsdoc 描述或者自定义元素数据，以支持自动文档生成
+- IDE 集成优化
+- 构建优化

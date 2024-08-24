@@ -63,15 +63,13 @@ html`
 > Scroll based on `hash` requires additional logic, for example:
 >
 > ```ts
-> this.effect(
->   ([hash]) => {
->     if (!hash) return;
->     this.shadowRoot
->       ?.querySelector(`[id="${hash.slice(1)}"]`)
->       ?.scrollIntoView({
->         block: 'start',
->       });
->   },
->   () => [locationStore.hash],
-> );
+> @effect(() => [locationStore.hash])
+> #updateScroll = ([hash]) => {
+>   if (!hash) return;
+>   this.shadowRoot
+>     ?.querySelector(`[id="${hash.slice(1)}"]`)
+>     ?.scrollIntoView({
+>       block: 'start',
+>     });
+> }
 > ```

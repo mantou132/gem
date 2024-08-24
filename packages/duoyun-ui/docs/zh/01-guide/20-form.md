@@ -5,18 +5,16 @@ DuoyunUI 所有的表单元素均为“[受控](https://reactjs.org/docs/forms.h
 ```ts
 @customElement('my-ele')
 export class MyEleElement extends GemElement {
-  state = {
-    name: '',
-  };
+  #state = createState({ name: '' });
 
   #onChange = (evt) => {
-    this.setState(evt.detail);
+    this.#state(evt.detail);
   };
 
   render = () => {
     return html`
       <dy-form @change=${this.#onChange}>
-        <dy-form-item name="name" .value=${this.state.name}></dy-form-item>
+        <dy-form-item name="name" .value=${this.#state.name}></dy-form-item>
       </dy-form>
     `;
   };
@@ -27,19 +25,17 @@ export class MyEleElement extends GemElement {
 
 为字段添加 `required` 属性，并在提交时进行表单验证：
 
-```ts 16,23
+```ts 14,21
 @customElement('my-ele')
 export class MyEleElement extends GemElement {
-  state = {
-    name: '',
-  };
+  #state = createState({ name: '' });
 
   get #formEle() {
     return this.shadowRoot.querySelect('dy-form');
   }
 
   #onChange = (evt) => {
-    this.setState(evt.detail);
+    this.#state(evt.detail);
   };
 
   #onSubmit = async () => {
@@ -50,7 +46,7 @@ export class MyEleElement extends GemElement {
   render = () => {
     return html`
       <dy-form @change=${this.#onChange}>
-        <dy-form-item required name="name" .value=${this.state.name}></dy-form-item>
+        <dy-form-item required name="name" .value=${this.#state.name}></dy-form-item>
       </dy-form>
       <dy-button @click=${this.#onSubmit}></dy-button>
     `;
@@ -60,19 +56,17 @@ export class MyEleElement extends GemElement {
 
 使用自定义验证器：
 
-```ts 16,26-30
+```ts 14,24-28
 @customElement('my-ele')
 export class MyEleElement extends GemElement {
-  state = {
-    name: '',
-  };
+  #state = createState({ name: '' });
 
   get #formEle() {
     return this.shadowRoot.querySelect('dy-form');
   }
 
   #onChange = (evt) => {
-    this.setState(evt.detail);
+    this.#state(evt.detail);
   };
 
   #onSubmit = async () => {
@@ -87,14 +81,14 @@ export class MyEleElement extends GemElement {
           .rules=${[
             {
               validator: async () => {
-                if (!this.state.name) {
+                if (!this.#state.name) {
                   throw new Error('name is required');
                 }
               },
             },
           ]}
           name="name"
-          .value=${this.state.name}
+          .value=${this.#state.name}
         ></dy-form-item>
       </dy-form>
       <dy-button @click=${this.#onSubmit}></dy-button>
@@ -108,21 +102,19 @@ export class MyEleElement extends GemElement {
 `<dy-form-item>` 默认支持 `text`, `number`, `checkbox`, `picker`, `radio`, `select`, `textarea`，如果这些不能满足你的需求，你可以使用自己的元素，
 只需要实现 `value` 属性和可冒泡 `change` 事件即可，然后你可以使用 [`<dy-form-item>`](../02-elements/form.md#dy-form-item-api) 的 `slot` 类型：
 
-```ts 14-16
+```ts 12-14
 @customElement('my-ele')
 export class MyEleElement extends GemElement {
-  state = {
-    name: '',
-  };
+  #state = createState({ name: '' });
 
   #onChange = (evt) => {
-    this.setState(evt.detail);
+    this.#state(evt.detail);
   };
 
   render = () => {
     return html`
       <dy-form @change=${this.#onChange}>
-        <dy-form-item name="name" type="slot" .value=${this.state.name}>
+        <dy-form-item name="name" type="slot" .value=${this.#state.name}>
           <my-input></my-input>
         </dy-form-item>
       </dy-form>
@@ -133,20 +125,17 @@ export class MyEleElement extends GemElement {
 
 如果你不想编写自定义元素，也可能利用 DuoyunUI 现有表单元素组合来完成你的需求：
 
-```ts 20-23
+```ts 17-20
 @customElement('my-ele')
 export class MyEleElement extends GemElement {
-  state = {
-    name: '',
-    type: '',
-  };
+  #state = createState({ name: '', type: '' });
 
   #onChangeName = ({ detail }) => {
-    this.setState({ name: detail });
+    this.#state({ name: detail });
   };
 
   #onChangeType = ({ detail }) => {
-    this.setState({ type: detail });
+    this.#state({ type: detail });
   };
 
   render = () => {
@@ -160,8 +149,8 @@ export class MyEleElement extends GemElement {
           }
         >
           <dy-input-group>
-            <dy-input .value=${this.state.name} @change=${this.#onChangeName}></dy-input>
-            <dy-input .value=${this.state.type} @change=${this.#onChangeType}></dy-input>
+            <dy-input .value=${this.#state.name} @change=${this.#onChangeName}></dy-input>
+            <dy-input .value=${this.#state.type} @change=${this.#onChangeType}></dy-input>
           </dy-input-group>
         </dy-form-item>
       </dy-form>

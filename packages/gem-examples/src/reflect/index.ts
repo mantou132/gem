@@ -13,9 +13,7 @@ export class AppChild extends GemElement {
 @customElement('app-root')
 export class App extends GemElement {
   #childrenRef = createRef<HTMLStyleElement>();
-  #state = createState({
-    mount: true,
-  });
+  #state = createState({ mount: true });
 
   @mounted()
   #init() {

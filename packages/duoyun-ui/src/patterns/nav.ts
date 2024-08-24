@@ -190,8 +190,8 @@ const mobileStyle = createCSSSheet(
  * @customElement dy-pat-nav
  */
 @customElement('dy-pat-nav')
-@adoptedStyle(mobileStyle)
 @adoptedStyle(style)
+@adoptedStyle(mobileStyle)
 @adoptedStyle(focusStyle)
 @connectStore(history.store)
 export class DyPatNavElement extends GemElement {

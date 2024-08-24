@@ -15,6 +15,7 @@ import {
   createState,
   memo,
   mounted,
+  effect,
 } from '@mantou/gem';
 import { RGBA, rgbToRgbColor } from 'duoyun-ui/lib/color';
 import { formatTraffic } from 'duoyun-ui/lib/number';
@@ -91,27 +92,25 @@ export class App extends GemElement {
     this.#pixelsPosition = Array.from({ length: (height * width) / ratio / ratio }, (_, i) => i * 4);
   };
 
+  #worker = new Worker();
+
   @mounted()
   #init = () => {
-    const worker = new Worker();
-
-    worker.addEventListener('message', (evt) => {
+    this.#worker.addEventListener('message', (evt) => {
       const { width, height, pixels, canvasKey } = evt.data;
       this.#state({ width, height, canvasKey, pixels: new Uint8ClampedArray(pixels) });
     });
+  };
 
-    this.effect(
-      () => {
-        const offscreenCanvas = this.#canvasRef.element!.transferControlToOffscreen();
-        worker.postMessage(
-          {
-            ratio: this.#state.ratio,
-            canvas: offscreenCanvas,
-          },
-          [offscreenCanvas],
-        );
+  @effect((i) => [i.#state.canvasKey, i.#state.ratio])
+  #changeSettings = () => {
+    const offscreenCanvas = this.#canvasRef.element!.transferControlToOffscreen();
+    this.#worker.postMessage(
+      {
+        ratio: this.#state.ratio,
+        canvas: offscreenCanvas,
       },
-      () => [this.#state.canvasKey, this.#state.ratio],
+      [offscreenCanvas],
     );
   };
 

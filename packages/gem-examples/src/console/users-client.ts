@@ -1,5 +1,5 @@
 import { html } from '@mantou/gem/lib/element';
-import { connectStore, customElement } from '@mantou/gem/lib/decorators';
+import { connectStore, customElement, mounted } from '@mantou/gem/lib/decorators';
 import { createPaginationStore } from 'duoyun-ui/helper/store';
 
 import { ConsolePageItemElement } from './users';
@@ -17,13 +17,9 @@ const { store, updatePage } = createPaginationStore<Item>({
 @customElement('console-page-users-client')
 @connectStore(store)
 export class ConsolePageItemClientElement extends ConsolePageItemElement {
-  constructor() {
-    super();
-    this.effect(
-      () => updatePage(fetchAllItems),
-      () => [],
-    );
-  }
+  @mounted()
+  #fetch = () => updatePage(fetchAllItems);
+
   render = () => {
     return html`
       <dy-pat-table

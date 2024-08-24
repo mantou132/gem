@@ -43,7 +43,7 @@ class MyElement extends GemElement {
 > [!WARNING]
 > In the future, Gem may [deprecate lifecycle callback functions](https://github.com/mantou132/gem/issues/159) and fully use decorators instead.
 
-## Internal State
+## Internal State and DOM Ref
 
 v1 used a specific field `state` to represent the internal state of the element and used `this.setState` to update the state. In v2, any field can be used, as defining the state also defines the update method:
 

@@ -158,4 +158,6 @@ Decorators have become standardized and are incompatible with the previous decor
 
 ## Work in progress
 
-Analyze `GemElement` and generate jsdoc description or custom element data to support automatic document generation and IDE integration optimization.
+- Analyze `GemElement` and generate jsdoc description or custom element data to support automatic document generation
+- IDE integration optimization
+- Improve building

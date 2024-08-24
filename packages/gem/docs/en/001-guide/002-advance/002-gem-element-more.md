@@ -48,7 +48,7 @@ html`<my-element @value-change=${console.log}></my-element>`;
 
 ## Effect
 
-In many cases, elements need to perform some side effects based on certain attributes, such as network requests, and finally update the document. This is where `GemElement.effect` comes in handy. It can check dependencies every time the element is `updated` and execute a callback if the dependencies change.
+In many cases, elements need to perform some side effects based on certain attributes, such as network requests, and finally update the document. This is where `@effect` comes in handy. It can check dependencies every time the element is render and execute a callback if the dependencies change.
 
 ```js
 // Omit import...
@@ -57,12 +57,8 @@ In many cases, elements need to perform some side effects based on certain attri
 class MyElement extends GemElement {
   @attribute src;
 
-  mounted() {
-    this.effect(
-      () => fetch(this.src),
-      () => [this.src],
-    );
-  }
+  @effect((i) => [i.src])
+  #fetch = () => fetch(this.src);
 }
 ```
 
@@ -72,8 +68,7 @@ Below is an example of `effect` that depends on child elements([Other implementa
 
 ## Memo
 
-In order to avoid performing some complex calculations when re-render, `memo` can execution of the callback when specified dependencies change, unlike the`effect`, `memo` execution before the `render`,
-so you should register in the `constructor` or `willMount`:
+In order to avoid performing some complex calculations when rerender, `@memo` can execution of the callback when specified dependencies change, unlike the `effect`, `memo` execution before the render.
 
 ```js
 // Omit import...
@@ -83,12 +78,12 @@ class MyElement extends GemElement {
   @attribute src;
 
   #href;
-
-  willMount() {
-    this.memo(
-      () => (this.#href = new URL(this.src, location.origin).href),
-      () => [this.src],
-    );
-  }
+  @memo((i) => [i.src])
+  #updateHref = () => (this.#href = new URL(this.src, location.origin).href);
 }
 ```
+
+> [!NOTE]
+>
+> - `@memo` supports `getter`, but does [not currently support private names](https://github.com/tc39/proposal-decorators/issues/509)
+> - The decorators `@effect` and `@memo` are based on `GemElement.effect` and `GemElement.memo`. If necessary, `effect` and `memo` can be dynamically added using `GemElement.effect` and `GemElement.memo`

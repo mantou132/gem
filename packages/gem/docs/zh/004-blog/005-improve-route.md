@@ -62,15 +62,13 @@ html`
 > 根据 `hash` 跳转需要另外的逻辑，例如：
 >
 > ```ts
-> this.effect(
->   ([hash]) => {
->     if (!hash) return;
->     this.shadowRoot
->       ?.querySelector(`[id="${hash.slice(1)}"]`)
->       ?.scrollIntoView({
->         block: 'start',
->       });
->   },
->   () => [locationStore.hash],
-> );
+> @effect(() => [locationStore.hash])
+> #updateScroll = ([hash]) => {
+>   if (!hash) return;
+>   this.shadowRoot
+>     ?.querySelector(`[id="${hash.slice(1)}"]`)
+>     ?.scrollIntoView({
+>       block: 'start',
+>     });
+> }
 > ```
