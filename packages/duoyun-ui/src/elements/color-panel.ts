@@ -23,11 +23,11 @@ import {
   rgbToHsl,
   hslToHsv,
   hsvToHsl,
-  isValidHexColor,
 } from '../lib/color';
 import { theme } from '../lib/theme';
 import { icons } from '../lib/icons';
 import { clamp, formatToPrecision } from '../lib/number';
+import { HEX_COLOR } from '../lib/patterns';
 
 import type { PanEventDetail } from './gesture';
 
@@ -293,7 +293,7 @@ export class DuoyunColorPanelElement extends GemElement {
     }
     let str = '#' + evt.detail.trim().replace('#', '').replace(/[g-z]/gi, '').toLowerCase();
     // valid color emit event
-    if (isValidHexColor(str)) {
+    if (HEX_COLOR.test(str)) {
       const aStr = Math.round(a * 255)
         .toString(16)
         .padStart(2, '0');

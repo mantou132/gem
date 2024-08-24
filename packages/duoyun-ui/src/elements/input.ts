@@ -24,6 +24,7 @@ import { focusStyle } from '../lib/styles';
 import { commonHandle, hotkeys } from '../lib/hotkeys';
 import { clamp } from '../lib/number';
 import { throttle } from '../lib/timer';
+import { NUMBER } from '../lib/patterns';
 
 import './use';
 
@@ -242,7 +243,7 @@ export class DuoyunInputElement extends GemElement {
 
   #isNumberInvalid = (value: string) => {
     if (this.#isNumberType) {
-      return !/^-?(\.|\d)*$/.test(value) || value.replace(/\d/g, '').includes('..');
+      return !NUMBER.test(value);
     }
   };
 

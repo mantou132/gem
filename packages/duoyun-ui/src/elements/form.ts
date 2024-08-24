@@ -161,6 +161,7 @@ export class DuoyunFormElement<Data = Record<string, any>> extends GemElement {
  * @customElement dy-form-item-inline-group
  */
 @customElement('dy-form-item-inline-group')
+@aria({ role: 'group' })
 export class DuoyunFormItemInlineGroupElement extends GemElement {}
 
 const formItemStyle = createCSSSheet(css`
@@ -176,7 +177,6 @@ const formItemStyle = createCSSSheet(css`
     content: '＊';
   }
   .label {
-    cursor: default;
     font-size: 0.875em;
     line-height: 1.2;
     margin-bottom: 0.4em;
@@ -357,7 +357,11 @@ export class DuoyunFormItemElement extends GemElement {
     return html`
       ${this.#type === 'checkbox'
         ? ''
-        : html`<div class="label" part=${DuoyunFormItemElement.label} @click=${() => this.focus()}>${this.label}</div>`}
+        : html`
+            <label class="label" part=${DuoyunFormItemElement.label} @click=${() => this.focus()}>
+              ${this.label}
+            </label>
+          `}
       ${this.#type === 'select'
         ? html`
             <dy-select
@@ -539,16 +543,18 @@ export class DuoyunFormItemElement extends GemElement {
       let invalidMessage = '';
       if (rule.required && (!this.value || (Array.isArray(this.value) && !this.value.length))) {
         invalidMessage = rule.message || locale.requiredMeg;
-      } else if (rule.pattern && !new RegExp(rule.pattern).test(String(this.value || ''))) {
-        invalidMessage = rule.message || locale.patternMsg;
-      } else if (rule.validator) {
-        try {
-          await rule.validator(this.value);
-        } catch (err) {
-          if (err instanceof Error) {
-            invalidMessage = err.message;
-          } else {
-            invalidMessage = err;
+      } else if (this.value) {
+        if (rule.pattern && !new RegExp(rule.pattern).test(String(this.value))) {
+          invalidMessage = rule.message || locale.patternMsg;
+        } else if (rule.validator) {
+          try {
+            await rule.validator(this.value);
+          } catch (err) {
+            if (err instanceof Error) {
+              invalidMessage = err.message;
+            } else {
+              invalidMessage = err;
+            }
           }
         }
       }

@@ -57,11 +57,6 @@ export function randomColor(type?: 'hex' | 'rgba' | 'hsla'): HexColor | HSLColor
   }
 }
 
-export function isValidHexColor(str: string): str is HexColor {
-  // https://stackoverflow.com/a/9682781/7167456
-  return /^#(?:[0-9a-f]{3}){1,2}$/i.test(str);
-}
-
 export function parseHexColor(str: HexColor): RGBA {
   const s = str.replace('#', '');
   const fullHex = s.length === 3 || s.length === 4 ? s.replace(/\w/g, ($1) => $1 + $1) : s;
