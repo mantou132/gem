@@ -9,7 +9,7 @@
     "declarationMap": true,
     "isolatedModules": true,
     "sourceMap": true,
-    "module": "ES2020",
+    "module": "es2022",
     "moduleResolution": "node",
     "resolveJsonModule": true,
     "skipLibCheck": true,

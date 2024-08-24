@@ -52,274 +52,273 @@ const zh = {
 
 type Locales = Record<string, typeof zh | undefined>;
 
-customElements.whenDefined('gem-book').then(({ GemBookPluginElement }: typeof GemBookElement) => {
-  const { Gem, theme, mediaQuery, config, Utils } = GemBookPluginElement;
-  const {
-    html,
-    customElement,
-    attribute,
-    createRef,
-    addListener,
-    property,
-    createCSSSheet,
-    css,
-    adoptedStyle,
-    createState,
-    effect,
-    mounted,
-  } = Gem;
+const { GemBookPluginElement } = (await customElements.whenDefined('gem-book')) as typeof GemBookElement;
+const { Gem, theme, mediaQuery, config, Utils } = GemBookPluginElement;
+const {
+  html,
+  customElement,
+  attribute,
+  createRef,
+  addListener,
+  property,
+  createCSSSheet,
+  css,
+  adoptedStyle,
+  createState,
+  effect,
+  mounted,
+} = Gem;
 
-  const styles = createCSSSheet(css`
-    :scope {
-      display: block;
-    }
+const styles = createCSSSheet(css`
+  :scope {
+    display: block;
+  }
+  .DocSearch-Button,
+  .DocSearch-Button:hover,
+  .DocSearch-Button .DocSearch-Search-Icon {
+    color: rgb(from ${theme.textColor} r g b / 0.5);
+  }
+  .DocSearch-Button,
+  .DocSearch-Button:hover {
+    background: rgb(from ${theme.textColor} r g b / 0.05);
+  }
+  .DocSearch-Button .DocSearch-Search-Icon {
+    width: 1.2em;
+    margin-inline: 0.35em;
+  }
+  .DocSearch-Button {
+    width: 100%;
+    margin: 0;
+    border-radius: ${theme.normalRound};
+    font-weight: normal;
+  }
+  .DocSearch-Button-Keys {
+    justify-content: center;
+    border-radius: ${theme.smallRound};
+    border: 1px solid ${theme.borderColor};
+    min-width: auto;
+    padding-inline: 0.3em;
+  }
+  .DocSearch-Button-Key {
+    position: static;
+    margin: 0;
+    padding: 0;
+    width: 1em;
+    font-family: ${theme.codeFont};
+  }
+  @media ${mediaQuery.PHONE} {
     .DocSearch-Button,
     .DocSearch-Button:hover,
     .DocSearch-Button .DocSearch-Search-Icon {
-      color: rgb(from ${theme.textColor} r g b / 0.5);
-    }
-    .DocSearch-Button,
-    .DocSearch-Button:hover {
-      background: rgb(from ${theme.textColor} r g b / 0.05);
+      padding: 0;
+      background: transparent;
     }
     .DocSearch-Button .DocSearch-Search-Icon {
-      width: 1.2em;
-      margin-inline: 0.35em;
+      width: 1.5rem;
+      margin-inline: 0;
     }
-    .DocSearch-Button {
-      width: 100%;
-      margin: 0;
-      border-radius: ${theme.normalRound};
-      font-weight: normal;
-    }
-    .DocSearch-Button-Keys {
-      justify-content: center;
-      border-radius: ${theme.smallRound};
-      border: 1px solid ${theme.borderColor};
-      min-width: auto;
-      padding-inline: 0.3em;
-    }
-    .DocSearch-Button-Key {
-      position: static;
-      margin: 0;
-      padding: 0;
-      width: 1em;
-      font-family: ${theme.codeFont};
-    }
-    @media ${mediaQuery.PHONE} {
-      .DocSearch-Button,
-      .DocSearch-Button:hover,
-      .DocSearch-Button .DocSearch-Search-Icon {
-        padding: 0;
-        background: transparent;
-      }
-      .DocSearch-Button .DocSearch-Search-Icon {
-        width: 1.5rem;
-        margin-inline: 0;
-      }
-    }
-  `);
-
-  @customElement('gbp-docsearch')
-  @adoptedStyle(styles)
-  class _GbpDocsearchElement extends GemBookPluginElement {
-    static defaultLocales: Locales = { zh };
-
-    @attribute appId: string;
-    @attribute apiKey: string;
-    @attribute indexName: string;
-
-    @property locales?: Locales;
-
-    get #locales(): Locales {
-      return { ..._GbpDocsearchElement.defaultLocales, ...this.locales };
-    }
-
-    #searchRef = createRef<HTMLInputElement>();
-    #state = createState({ style: '' });
-
-    render() {
-      return html`
-        <style>
-          ${this.#state.style}
-        </style>
-        <style>
-          :root {
-            --docsearch-logo-color: ${theme.primaryColor};
-            --docsearch-primary-color: ${theme.primaryColor};
-            --docsearch-text-color: ${theme.textColor};
-            --docsearch-muted-color: rgb(from ${theme.textColor} r g b / 0.6);
-            --docsearch-container-background: rgba(101, 108, 133, 0.8);
-            --docsearch-modal-background: ${theme.backgroundColor};
-            --docsearch-modal-shadow: 0 3px 8px 0 #555a64;
-            --docsearch-searchbox-background: rgb(from ${theme.textColor} r g b / 0.05);
-            --docsearch-searchbox-focus-background: rgb(from ${theme.textColor} r g b / 0.05);
-            --docsearch-hit-color: rgb(from ${theme.textColor} r g b / 0.6);
-            --docsearch-hit-background: rgb(from ${theme.textColor} r g b / 0.05);
-            --docsearch-hit-active-color: #fff;
-            --docsearch-hit-shadow: none;
-            --docsearch-footer-background: ${theme.backgroundColor};
-            --docsearch-footer-shadow: 0 -1px 0 0 ${theme.borderColor};
-            --docsearch-key-gradient: transparent;
-            --docsearch-key-shadow: none;
-          }
-          .DocSearch {
-            color: ${theme.textColor};
-            font-family: ${theme.font};
-          }
-          .DocSearch-Container * {
-            outline-offset: -2px;
-            outline-color: ${theme.primaryColor};
-          }
-          .DocSearch-Container a {
-            color: ${theme.primaryColor};
-          }
-          .DocSearch-Commands-Key {
-            padding: 0;
-            width: 1em;
-          }
-        </style>
-        <div ref=${this.#searchRef.ref}></div>
-      `;
-    }
-
-    #navigator = (url: string) => {
-      // route 中会更新 title
-      history.pushState(null, document.title, url.replace(new RegExp(`/${GemBookPluginElement.lang}(/?)`), '$1'));
-    };
-
-    #miniSearch?: Promise<any>;
-
-    #search = Utils.debounce(async (query: string): Promise<Res> => {
-      const miniSearch = await this.#miniSearch;
-      const result: IndexObject[] = miniSearch?.search(query, { fuzzy: 0.2 }) || [];
-      if (result.length > 20) result.length = 20;
-      return getRes(query, result);
-    }, 500);
-
-    @effect(() => [GemBookPluginElement.lang])
-    #initLocalSearch = async () => {
-      if (!IS_LOCAL) return;
-      const [{ default: MiniSearch }, res] = await Promise.all([
-        import(/* webpackIgnore: true */ minisearchLink) as any,
-        fetch(
-          `/${['documents', GemBookPluginElement.lang, 'json'].filter((e) => !!e).join('.')}?version=${config.version}`,
-        ),
-      ]);
-      const segmenter = Intl.Segmenter && new Intl.Segmenter(GemBookPluginElement.lang, { granularity: 'word' });
-
-      const documents: MdDocument[] = await res.json();
-      // https://github.com/lucaong/minisearch/
-      const miniSearch = new MiniSearch({
-        fields: ['title', 'content'],
-        storeFields: ['title', 'content', 'titles', 'type'],
-        processTerm: (term: string) => {
-          if (!segmenter) return term;
-          const tokens: string[] = [];
-          for (const seg of segmenter.segment(term)) {
-            tokens.push(seg.segment);
-          }
-          return tokens;
-        },
-      });
-
-      const record = Object.fromEntries(documents.map((document) => [document.id, document.title]));
-      documents.forEach(async (document) => {
-        if (!document.text) return;
-        await new Promise((resolve) => (window.requestIdleCallback || setTimeout)(resolve));
-
-        const df = new DocumentFragment();
-        df.append(...Utils.parseMarkdown(document.text));
-        const titleList = [record[document.id]];
-        const parts = document.id.split('/');
-        while (parts.length) {
-          const part = parts.pop();
-          if (!part) continue;
-          const parentId = parts.join('/');
-          const parent = record[parentId + '/'];
-          if (!parent) continue;
-          titleList.unshift(parent);
-        }
-
-        getSections(df, titleList).forEach(({ hash, content, titles }) => {
-          if (titles.length < 2) titles.unshift(config.title || 'Documentation');
-
-          miniSearch.add({
-            id: document.id + hash,
-            title: titles.at(-1),
-            content: Utils.escapeHTML(content),
-            titles: titles.map((title, index) => Utils.capitalize(index === 0 ? title : Utils.escapeHTML(title))),
-            type: hash ? 'content' : `lvl${titles.length - 1}`,
-          } as IndexObject);
-        });
-      });
-      this.#miniSearch = miniSearch;
-    };
-
-    @effect((i) => [GemBookPluginElement.lang, i.appId, i.apiKey, i.indexName])
-    #initDocsearch = async () => {
-      const [text, { default: docSearch }] = await Promise.all([
-        (await fetch(styleLink)).text(),
-        await import(/* webpackIgnore: true */ moduleLink),
-      ]);
-      this.#state({ style: text });
-      // https://docsearch.algolia.com/docs/api
-      const locale = this.#locales[GemBookPluginElement.lang || ''];
-      docSearch({
-        appId: this.appId || undefined,
-        apiKey: this.apiKey,
-        indexName: this.indexName,
-        container: this.#searchRef.element,
-        searchParameters: {
-          facetFilters: GemBookPluginElement.lang ? [`lang:${GemBookPluginElement.lang}`] : [],
-        },
-        placeholder: locale?.placeholder,
-        translations: locale?.translations,
-        // keyboard navigation
-        navigator: {
-          navigate: (item: { itemUrl: string }) => {
-            this.#navigator(new URL(item.itemUrl, location.origin).href);
-          },
-        },
-        getMissingResultsUrl: config.github
-          ? ({ query }: { query: string }) => {
-              if (Utils.isGitLab()) {
-                return `${config.github}/-/issues/new?issue[title]=${query}`;
-              }
-              return `${config.github}/issues/new?title=${query}`;
-            }
-          : undefined,
-        transformSearchClient: (searchClient: any) => {
-          return {
-            ...searchClient,
-            // https://github.com/algolia/docsearch/blob/874e16a5d42e8657e6ab2653e9638cd2282ba408/packages/docsearch-react/src/DocSearchModal.tsx#L227C36-L227C36
-            search: async ([queryObject]: any) => {
-              if (IS_LOCAL) return this.#search(queryObject.query);
-              return searchClient.search([queryObject]);
-            },
-          };
-        },
-      });
-    };
-
-    @mounted()
-    #init = () => {
-      return addListener(window, 'click', (evt) => {
-        const target = evt.target as Element;
-        if (!target.closest('.DocSearch')) return;
-        const link = target.closest('a');
-        if (
-          !link ||
-          link.target === '_blank' ||
-          (link.origin !== location.origin && !location.origin.includes('localhost'))
-        )
-          return;
-        evt.preventDefault();
-        this.#navigator(link.href);
-      });
-    };
   }
-});
+`);
+
+@customElement('gbp-docsearch')
+@adoptedStyle(styles)
+class _GbpDocsearchElement extends GemBookPluginElement {
+  static defaultLocales: Locales = { zh };
+
+  @attribute appId: string;
+  @attribute apiKey: string;
+  @attribute indexName: string;
+
+  @property locales?: Locales;
+
+  get #locales(): Locales {
+    return { ..._GbpDocsearchElement.defaultLocales, ...this.locales };
+  }
+
+  #searchRef = createRef<HTMLInputElement>();
+  #state = createState({ style: '' });
+
+  render() {
+    return html`
+      <style>
+        ${this.#state.style}
+      </style>
+      <style>
+        :root {
+          --docsearch-logo-color: ${theme.primaryColor};
+          --docsearch-primary-color: ${theme.primaryColor};
+          --docsearch-text-color: ${theme.textColor};
+          --docsearch-muted-color: rgb(from ${theme.textColor} r g b / 0.6);
+          --docsearch-container-background: rgba(101, 108, 133, 0.8);
+          --docsearch-modal-background: ${theme.backgroundColor};
+          --docsearch-modal-shadow: 0 3px 8px 0 #555a64;
+          --docsearch-searchbox-background: rgb(from ${theme.textColor} r g b / 0.05);
+          --docsearch-searchbox-focus-background: rgb(from ${theme.textColor} r g b / 0.05);
+          --docsearch-hit-color: rgb(from ${theme.textColor} r g b / 0.6);
+          --docsearch-hit-background: rgb(from ${theme.textColor} r g b / 0.05);
+          --docsearch-hit-active-color: #fff;
+          --docsearch-hit-shadow: none;
+          --docsearch-footer-background: ${theme.backgroundColor};
+          --docsearch-footer-shadow: 0 -1px 0 0 ${theme.borderColor};
+          --docsearch-key-gradient: transparent;
+          --docsearch-key-shadow: none;
+        }
+        .DocSearch {
+          color: ${theme.textColor};
+          font-family: ${theme.font};
+        }
+        .DocSearch-Container * {
+          outline-offset: -2px;
+          outline-color: ${theme.primaryColor};
+        }
+        .DocSearch-Container a {
+          color: ${theme.primaryColor};
+        }
+        .DocSearch-Commands-Key {
+          padding: 0;
+          width: 1em;
+        }
+      </style>
+      <div ref=${this.#searchRef.ref}></div>
+    `;
+  }
+
+  #navigator = (url: string) => {
+    // route 中会更新 title
+    history.pushState(null, document.title, url.replace(new RegExp(`/${GemBookPluginElement.lang}(/?)`), '$1'));
+  };
+
+  #miniSearch?: Promise<any>;
+
+  #search = Utils.debounce(async (query: string): Promise<Res> => {
+    const miniSearch = await this.#miniSearch;
+    const result: IndexObject[] = miniSearch?.search(query, { fuzzy: 0.2 }) || [];
+    if (result.length > 20) result.length = 20;
+    return getRes(query, result);
+  }, 500);
+
+  @effect(() => [GemBookPluginElement.lang])
+  #initLocalSearch = async () => {
+    if (!IS_LOCAL) return;
+    const [{ default: MiniSearch }, res] = await Promise.all([
+      import(/* webpackIgnore: true */ minisearchLink) as any,
+      fetch(
+        `/${['documents', GemBookPluginElement.lang, 'json'].filter((e) => !!e).join('.')}?version=${config.version}`,
+      ),
+    ]);
+    const segmenter = Intl.Segmenter && new Intl.Segmenter(GemBookPluginElement.lang, { granularity: 'word' });
+
+    const documents: MdDocument[] = await res.json();
+    // https://github.com/lucaong/minisearch/
+    const miniSearch = new MiniSearch({
+      fields: ['title', 'content'],
+      storeFields: ['title', 'content', 'titles', 'type'],
+      processTerm: (term: string) => {
+        if (!segmenter) return term;
+        const tokens: string[] = [];
+        for (const seg of segmenter.segment(term)) {
+          tokens.push(seg.segment);
+        }
+        return tokens;
+      },
+    });
+
+    const record = Object.fromEntries(documents.map((document) => [document.id, document.title]));
+    documents.forEach(async (document) => {
+      if (!document.text) return;
+      await new Promise((resolve) => (window.requestIdleCallback || setTimeout)(resolve));
+
+      const df = new DocumentFragment();
+      df.append(...Utils.parseMarkdown(document.text));
+      const titleList = [record[document.id]];
+      const parts = document.id.split('/');
+      while (parts.length) {
+        const part = parts.pop();
+        if (!part) continue;
+        const parentId = parts.join('/');
+        const parent = record[parentId + '/'];
+        if (!parent) continue;
+        titleList.unshift(parent);
+      }
+
+      getSections(df, titleList).forEach(({ hash, content, titles }) => {
+        if (titles.length < 2) titles.unshift(config.title || 'Documentation');
+
+        miniSearch.add({
+          id: document.id + hash,
+          title: titles.at(-1),
+          content: Utils.escapeHTML(content),
+          titles: titles.map((title, index) => Utils.capitalize(index === 0 ? title : Utils.escapeHTML(title))),
+          type: hash ? 'content' : `lvl${titles.length - 1}`,
+        } as IndexObject);
+      });
+    });
+    this.#miniSearch = miniSearch;
+  };
+
+  @effect((i) => [GemBookPluginElement.lang, i.appId, i.apiKey, i.indexName])
+  #initDocsearch = async () => {
+    const [text, { default: docSearch }] = await Promise.all([
+      (await fetch(styleLink)).text(),
+      await import(/* webpackIgnore: true */ moduleLink),
+    ]);
+    this.#state({ style: text });
+    // https://docsearch.algolia.com/docs/api
+    const locale = this.#locales[GemBookPluginElement.lang || ''];
+    docSearch({
+      appId: this.appId || undefined,
+      apiKey: this.apiKey,
+      indexName: this.indexName,
+      container: this.#searchRef.element,
+      searchParameters: {
+        facetFilters: GemBookPluginElement.lang ? [`lang:${GemBookPluginElement.lang}`] : [],
+      },
+      placeholder: locale?.placeholder,
+      translations: locale?.translations,
+      // keyboard navigation
+      navigator: {
+        navigate: (item: { itemUrl: string }) => {
+          this.#navigator(new URL(item.itemUrl, location.origin).href);
+        },
+      },
+      getMissingResultsUrl: config.github
+        ? ({ query }: { query: string }) => {
+            if (Utils.isGitLab()) {
+              return `${config.github}/-/issues/new?issue[title]=${query}`;
+            }
+            return `${config.github}/issues/new?title=${query}`;
+          }
+        : undefined,
+      transformSearchClient: (searchClient: any) => {
+        return {
+          ...searchClient,
+          // https://github.com/algolia/docsearch/blob/874e16a5d42e8657e6ab2653e9638cd2282ba408/packages/docsearch-react/src/DocSearchModal.tsx#L227C36-L227C36
+          search: async ([queryObject]: any) => {
+            if (IS_LOCAL) return this.#search(queryObject.query);
+            return searchClient.search([queryObject]);
+          },
+        };
+      },
+    });
+  };
+
+  @mounted()
+  #init = () => {
+    return addListener(window, 'click', (evt) => {
+      const target = evt.target as Element;
+      if (!target.closest('.DocSearch')) return;
+      const link = target.closest('a');
+      if (
+        !link ||
+        link.target === '_blank' ||
+        (link.origin !== location.origin && !location.origin.includes('localhost'))
+      )
+        return;
+      evt.preventDefault();
+      this.#navigator(link.href);
+    });
+  };
+}
 
 type IndexObject = {
   id: string;

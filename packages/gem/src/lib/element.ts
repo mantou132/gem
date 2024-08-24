@@ -205,11 +205,34 @@ type EffectCallback<T> = (depValues: T, oldDepValues?: T) => any;
 type EffectItem<T> = {
   callback: EffectCallback<T>;
   initialized?: boolean;
-  inConstructor?: boolean;
+  fixed?: boolean; // 不需要清理，只会添加一次
   values?: T;
   getDep?: GetDepFun<T>;
   preCallback?: () => void;
 };
+
+function execEffectList(list?: EffectItem<any>[]) {
+  list?.forEach((effectItem) => {
+    const { callback, getDep, values, preCallback } = effectItem;
+    const newValues = getDep?.();
+    if (!getDep || !values || isArrayChange(values, newValues)) {
+      execCallback(preCallback);
+      effectItem.preCallback = callback(newValues, values);
+      effectItem.values = newValues;
+      // 更新时也要设置，避免异步的 `#initEffect` 重复执行
+      effectItem.initialized = true;
+    }
+  });
+}
+
+function clearEffect(list: EffectItem<any>[]) {
+  return list.filter((e) => {
+    execCallback(e.preCallback);
+    e.initialized = false;
+    e.values = undefined;
+    return e.fixed;
+  });
+}
 
 export type Metadata = Partial<ShadowRootInit> & {
   noBlocking?: boolean;
@@ -257,8 +280,8 @@ export abstract class GemElement extends HTMLElement {
   #effectList: EffectItem<any>[] = [];
   #memoList: EffectItem<any>[] = [];
   #isAppendReason?: boolean;
-  // 和 isConnected 有区别
   #isMounted?: boolean;
+  // not in constructor 的近似值
   #isConnected?: boolean;
   #rendering?: boolean;
   #unmountCallback?: any;
@@ -313,7 +336,7 @@ export abstract class GemElement extends HTMLElement {
     // 和原生元素行为保持一致，disabled 时不触发 click 事件
     let hasInitTabIndex: boolean | undefined;
     this.#effectList.push({
-      inConstructor: true,
+      fixed: true,
       getDep: () => [(this as any).disabled],
       callback: ([disabled = false]) => {
         if (hasInitTabIndex === undefined) hasInitTabIndex = this.hasAttribute('tabindex');
@@ -336,94 +359,15 @@ export abstract class GemElement extends HTMLElement {
     return this.#internals;
   }
 
-  #exec = (list?: EffectItem<any>[]) => {
-    list?.forEach((effectItem) => {
-      const { callback, getDep, values, preCallback } = effectItem;
-      const newValues = getDep?.();
-      if (!getDep || !values || isArrayChange(values, newValues)) {
-        execCallback(preCallback);
-        effectItem.preCallback = callback(newValues, values);
-        effectItem.values = newValues;
-      }
-    });
-  };
-
   /**
    * 每次更新完检查依赖，执行对应的副作用回调
    * */
   #execEffect = () => {
-    this.#exec(this.#effectList);
+    execEffectList(this.#effectList);
   };
 
   #execMemo = () => {
-    this.#exec(this.#memoList);
-  };
-
-  /**
-   * @helper
-   * 记录副作用回调和值，在 `constructor`/`mounted` 中使用；
-   * 回调到返回值如果是函数将再卸载时执行；
-   * 第一次执行时 `oldDeps` 为空；
-   *
-   * ```js
-   * class App extends GemElement {
-   *   mounted() {
-   *     this.effect(callback, () => [this.attrName]);
-   *   }
-   * }
-   * ```
-   * */
-  effect = <K = any[] | undefined>(callback: EffectCallback<K>, getDep?: K extends any[] ? () => K : undefined) => {
-    const effectItem: EffectItem<K> = {
-      callback,
-      getDep,
-      initialized: this.#isMounted,
-      inConstructor: !this.#isConnected,
-    };
-    // 以挂载时立即执行副作用，未挂载时等挂载后执行
-    if (this.#isMounted) {
-      effectItem.values = getDep?.() as K;
-      effectItem.preCallback = callback(effectItem.values);
-    }
-    this.#effectList.push(effectItem);
-  };
-
-  /**
-   * @helper
-   * 在 `render` 前执行回调；
-   * 和 `effect` 一样接受依赖数组参数，在 `constructor`/`willMount` 中使用;
-   * 第一次执行时 `oldDeps` 为空；
-   *
-   * ```js
-   * class App extends GemElement {
-   *   willMount() {
-   *     this.memo(() => {
-   *       this.a = exec(this.attrName);
-   *     }), () => [this.attrName]);
-   *   }
-   * }
-   * ```
-   * */
-  memo = <K = any[] | undefined>(callback: EffectCallback<K>, getDep?: K extends any[] ? () => K : undefined) => {
-    this.#memoList.push({
-      callback,
-      getDep,
-      inConstructor: !this.#isConnected,
-    });
-  };
-
-  /**
-   * 元素挂载后执行还未初始化的副作用
-   * */
-  #initEffect = () => {
-    this.#effectList?.forEach((effectItem) => {
-      const { callback, getDep, initialized } = effectItem;
-      if (!initialized) {
-        effectItem.values = getDep?.();
-        effectItem.preCallback = callback(effectItem.values);
-        effectItem.initialized = true;
-      }
-    });
+    execEffectList(this.#memoList);
   };
 
   /**
@@ -480,14 +424,6 @@ export abstract class GemElement extends HTMLElement {
   };
 
   /**
-   * @helper
-   * async
-   */
-  update = () => {
-    addMicrotask(this.#update);
-  };
-
-  /**
    * @lifecycle
    */
   updated?(): void | Promise<void>;
@@ -512,6 +448,20 @@ export abstract class GemElement extends HTMLElement {
     } else {
       return appleCSSStyleSheet(this, sheets);
     }
+  };
+
+  /**
+   * 元素挂载后执行还未初始化的副作用
+   * */
+  #initEffect = () => {
+    this.#effectList?.forEach((effectItem) => {
+      const { callback, getDep, initialized } = effectItem;
+      if (!initialized) {
+        effectItem.values = getDep?.();
+        effectItem.preCallback = callback(effectItem.values);
+        effectItem.initialized = true;
+      }
+    });
   };
 
   #disconnectStore?: (() => void)[];
@@ -575,18 +525,68 @@ export abstract class GemElement extends HTMLElement {
     // 是否要异步执行回调？
     execCallback(this.#unmountCallback);
     this.unmounted?.();
-    this.#effectList = this.#clearEffect(this.#effectList);
-    this.#memoList = this.#clearEffect(this.#memoList);
+    this.#effectList = clearEffect(this.#effectList);
+    this.#memoList = clearEffect(this.#memoList);
     execCallback(this.#clearStyle);
     return GemElement.#final;
   }
 
-  #clearEffect = (list: EffectItem<any>[]) => {
-    return list.filter((e) => {
-      execCallback(e.preCallback);
-      e.initialized = false;
-      e.values = undefined;
-      return e.inConstructor;
+  /**
+   * @helper
+   * 记录副作用回调和值，在 `constructor`/`mounted` 中使用；
+   * 回调到返回值如果是函数将再卸载时执行；
+   * 第一次执行时 `oldDeps` 为空；
+   *
+   * ```js
+   * class App extends GemElement {
+   *   mounted() {
+   *     this.effect(callback, () => [this.attrName]);
+   *   }
+   * }
+   * ```
+   * */
+  effect = <K = any[] | undefined>(callback: EffectCallback<K>, getDep?: K extends any[] ? () => K : undefined) => {
+    const effectItem: EffectItem<K> = {
+      callback,
+      getDep,
+      initialized: this.#isMounted,
+      fixed: !this.#isConnected,
+    };
+    // 已挂载时立即执行副作用，未挂载时等挂载后执行
+    if (this.#isMounted) {
+      effectItem.values = getDep?.() as K;
+      effectItem.preCallback = callback(effectItem.values);
+    }
+    this.#effectList.push(effectItem);
+  };
+
+  /**
+   * @helper
+   * 在 `render` 前执行回调；
+   * 和 `effect` 一样接受依赖数组参数，在 `constructor`/`willMount` 中使用;
+   * 第一次执行时 `oldDeps` 为空；
+   *
+   * ```js
+   * class App extends GemElement {
+   *   willMount() {
+   *     this.memo(() => {
+   *       this.a = exec(this.attrName);
+   *     }), () => [this.attrName]);
+   *   }
+   * }
+   * ```
+   * */
+  memo = <K = any[] | undefined>(callback: EffectCallback<K>, getDep?: K extends any[] ? () => K : undefined) => {
+    this.#memoList.push({
+      callback,
+      getDep,
+      fixed: !this.#isConnected,
     });
   };
+
+  /**
+   * @helper
+   * async
+   */
+  update = () => addMicrotask(this.#update);
 }

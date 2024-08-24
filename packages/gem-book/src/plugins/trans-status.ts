@@ -14,30 +14,25 @@ const locales: Record<string, Record<Status, string>> = {
   },
 } satisfies Record<SupportLang, unknown>;
 
-customElements.whenDefined('gem-book').then(({ GemBookPluginElement }: typeof GemBookElement) => {
-  const { Gem, Utils, selfI18n } = GemBookPluginElement;
-  const { html, customElement, attribute, BoundaryCSSState } = Gem;
+const { GemBookPluginElement } = (await customElements.whenDefined('gem-book')) as typeof GemBookElement;
+const { Gem, Utils, selfI18n } = GemBookPluginElement;
+const { html, customElement, attribute, BoundaryCSSState } = Gem;
 
-  @customElement('gbp-trans-status')
-  class _GbpTransStatusElement extends GemBookPluginElement {
-    @attribute status: Status;
+@customElement('gbp-trans-status')
+class _GbpTransStatusElement extends GemBookPluginElement {
+  @attribute status: Status;
 
-    constructor() {
-      super();
-      this.internals.states.delete(BoundaryCSSState);
-    }
-
-    get #status() {
-      return this.status || 'none';
-    }
-
-    render() {
-      const langPkg = locales[GemBookPluginElement.lang || selfI18n.fallbackLanguage];
-      return html`${Utils.parseMarkdown(
-        `> [!WARNING]
-> ${langPkg[this.#status]}
-`,
-      )}`;
-    }
+  constructor() {
+    super();
+    this.internals.states.delete(BoundaryCSSState);
   }
-});
+
+  get #status() {
+    return this.status || 'none';
+  }
+
+  render() {
+    const langPkg = locales[GemBookPluginElement.lang || selfI18n.fallbackLanguage];
+    return html`${Utils.parseMarkdown(`> [!WARNING]\n> ${langPkg[this.#status]}\n`)}`;
+  }
+}
