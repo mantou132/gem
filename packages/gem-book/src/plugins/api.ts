@@ -20,6 +20,8 @@ const {
   adoptedStyle,
   BoundaryCSSState,
   effect,
+  kebabToCamelCase,
+  camelToKebabCase,
 } = Gem;
 
 const styles = createCSSSheet(css`
@@ -66,15 +68,26 @@ class _GbpApiElement extends GemBookPluginElement {
       useInMemoryFileSystem: true,
       compilerOptions: { target: ts.ScriptTarget.ESNext },
     });
+    const fileSystem = project.getFileSystem();
+    fileSystem.readFile = async (filePath: string) => {
+      const url = Utils.getRemoteURL(filePath);
+      return (await fetch(url)).text();
+    };
     const file = project.createSourceFile(this.src, text);
-    return { elements: getElements(file), exports: getExports(file) };
+    return { elements: await getElements(file, project), exports: await getExports(file) };
   };
 
-  #renderHeader = (headingLevel: number, text: string, name: string) => {
-    return `${'#'.repeat(headingLevel + this.#headingLevel - 1)} ${text} {#${`${name}-${text}`.replaceAll(
-      ' ',
-      '-',
-    )}}\n\n`;
+  #renderHeader = (text: string, extText: string, root?: ElementDetail) => {
+    const baseLevel = root?.extend ? 2 : 1;
+    const headingLevel = extText === text ? baseLevel - 1 : baseLevel;
+    const level = '#'.repeat(headingLevel + this.#headingLevel - 1);
+    const title = root?.extend ? `\`${extText}\` ${text}` : text;
+    const hash = `${[extText === text ? '' : extText, text]
+      .map((e) => kebabToCamelCase(e).replaceAll(' ', ''))
+      .map((e) => camelToKebabCase(e).replace('-', ''))
+      .filter((e) => e)
+      .join('-')}`;
+    return `${level} ${title} {#${hash}}\n\n`;
   };
 
   #renderCode = (s = '', deprecated?: boolean) => {
@@ -93,10 +106,9 @@ class _GbpApiElement extends GemBookPluginElement {
     return text;
   };
 
-  #renderElement = (detail: ElementDetail) => {
+  #renderElement = (detail: ElementDetail, root = detail): string => {
     const {
       shadow,
-      name: eleName,
       description: eleDescription = '',
       constructorName,
       constructorExtendsName,
@@ -109,8 +121,14 @@ class _GbpApiElement extends GemBookPluginElement {
       cssStates,
       parts,
       slots,
+      extend,
     } = detail;
+
     let text = '';
+
+    if (root.extend) {
+      text += this.#renderHeader(constructorName, constructorName);
+    }
 
     text += eleDescription + '\n\n';
     if (constructorExtendsName) {
@@ -121,7 +139,7 @@ class _GbpApiElement extends GemBookPluginElement {
     }
 
     if (constructorName && constructorParams.length) {
-      text += this.#renderHeader(1, `Constructor \`${constructorName}()\``, eleName);
+      text += this.#renderHeader(`Constructor \`${constructorName}()\``, constructorName, root);
       text += this.#renderTable(
         constructorParams,
         ['Params', 'Type'].concat(constructorParams.some((e) => e.description) ? 'Description' : []),
@@ -133,7 +151,7 @@ class _GbpApiElement extends GemBookPluginElement {
       );
     }
     if (staticProperties.length) {
-      text += this.#renderHeader(1, 'Static Properties', eleName);
+      text += this.#renderHeader('Static Properties', constructorName, root);
       text += this.#renderTable(
         staticProperties,
         ['Property', 'Type'].concat(constructorParams.some((e) => e.description) ? 'Description' : []),
@@ -145,7 +163,7 @@ class _GbpApiElement extends GemBookPluginElement {
       );
     }
     if (staticMethods.length) {
-      text += this.#renderHeader(1, 'Static Methods', eleName);
+      text += this.#renderHeader('Static Methods', constructorName, root);
       text += this.#renderTable(
         staticMethods,
         ['Method', 'Type'].concat(constructorParams.some((e) => e.description) ? 'Description' : []),
@@ -157,7 +175,7 @@ class _GbpApiElement extends GemBookPluginElement {
       );
     }
     if (properties.length) {
-      text += this.#renderHeader(1, 'Instance Properties', eleName);
+      text += this.#renderHeader('Instance Properties', constructorName, root);
       text += this.#renderTable(
         properties.filter(({ slot, cssState, part, isRef }) => !slot && !cssState && !part && !isRef),
         ['Property(Attribute)', 'Reactive', 'Type'].concat(
@@ -174,7 +192,7 @@ class _GbpApiElement extends GemBookPluginElement {
     }
 
     if (methods.length) {
-      text += this.#renderHeader(1, 'Instance Methods', eleName);
+      text += this.#renderHeader('Instance Methods', constructorName, root);
       text += this.#renderTable(
         methods.filter(({ event }) => !event),
         ['Method', 'Type'].concat(constructorParams.some((e) => e.description) ? 'Description' : []),
@@ -193,7 +211,7 @@ class _GbpApiElement extends GemBookPluginElement {
       { type: 'CSS State', value: cssStates },
     ];
     if (otherRows.some(({ value }) => !!value.length)) {
-      text += this.#renderHeader(1, 'Other', eleName);
+      text += this.#renderHeader('Other', constructorName, root);
       text += this.#renderTable(
         otherRows.filter(({ value }) => !!value.length),
         ['Type', 'Value'],
@@ -201,7 +219,11 @@ class _GbpApiElement extends GemBookPluginElement {
       );
     }
 
-    return Utils.parseMarkdown(text);
+    if (extend) {
+      text += this.#renderElement(extend, detail) + '\n\n';
+    }
+
+    return text;
   };
 
   #renderExports = (exports: ExportDetail[]) => {
@@ -249,6 +271,6 @@ class _GbpApiElement extends GemBookPluginElement {
     if (!elements) return html`<div class="loading">API Loading...</div>`;
     const renderElements = this.name ? elements.filter(({ name }) => this.name === name) : elements;
     if (!renderElements.length && exports) return html`${this.#renderExports(exports)}`;
-    return html`${renderElements.map(this.#renderElement)}`;
+    return html`${renderElements.map((detail) => Utils.parseMarkdown(this.#renderElement(detail)))}`;
   };
 }

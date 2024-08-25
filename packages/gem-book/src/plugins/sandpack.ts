@@ -204,7 +204,7 @@ class _GbpSandpackElement extends GemBookPluginElement {
   }
 
   get #useESMBuild() {
-    return this.#template !== 'node';
+    return !this.#template;
   }
 
   get #dependencies() {

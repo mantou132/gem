@@ -27,10 +27,12 @@ declare module '@vue/runtime-dom' {
 }
  */
 
-export function generateVue(elementsDir: string, outDir: string): void {
+export async function generateVue(elementsDir: string, outDir: string) {
   mkdirSync(outDir, { recursive: true });
-  getElementPathList(elementsDir).forEach((elementFilePath) => {
-    getFileElements(elementFilePath).forEach(({ name: tag, properties, constructorName, methods, events }) => {
+
+  const processFile = async (elementFilePath: string) => {
+    const elements = await getFileElements(elementFilePath);
+    elements.forEach(({ name: tag, properties, constructorName, methods, events }) => {
       const componentName = getComponentName(tag);
       const componentMethodsName = `${componentName}Methods`;
       const relativePath = getRelativePath(elementFilePath, outDir);
@@ -115,5 +117,7 @@ export function generateVue(elementsDir: string, outDir: string): void {
       `,
       );
     });
-  });
+  };
+
+  await Promise.all(getElementPathList(elementsDir).map(processFile));
 }

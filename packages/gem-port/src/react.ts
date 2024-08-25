@@ -7,8 +7,8 @@ import {
   getJsDocDescName,
 } from './common';
 
-function createReactSourceFile(elementFilePath: string, outDir: string) {
-  const elementDetailList = getFileElements(elementFilePath);
+async function createReactSourceFile(elementFilePath: string, outDir: string) {
+  const elementDetailList = await getFileElements(elementFilePath);
   return Object.fromEntries(
     elementDetailList.map(({ name: tag, constructorName, properties, methods }) => {
       const componentName = getComponentName(tag);
@@ -80,10 +80,13 @@ function createReactSourceFile(elementFilePath: string, outDir: string) {
   );
 }
 
-export function compileReact(elementsDir: string, outDir: string): void {
+export async function compileReact(elementsDir: string, outDir: string) {
   const fileSystem: Record<string, string> = {};
-  getElementPathList(elementsDir).forEach((elementFilePath) => {
-    Object.assign(fileSystem, createReactSourceFile(elementFilePath, outDir));
-  });
+
+  const processFile = async (elementFilePath: string) => {
+    Object.assign(fileSystem, await createReactSourceFile(elementFilePath, outDir));
+  };
+
+  await Promise.all(getElementPathList(elementsDir).map(processFile));
   compile(outDir, fileSystem);
 }

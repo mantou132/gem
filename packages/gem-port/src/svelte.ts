@@ -9,10 +9,11 @@ import {
   getRelativePath,
 } from './common';
 
-export function compileSvelte(elementsDir: string, outDir: string, ns = ''): void {
+export async function compileSvelte(elementsDir: string, outDir: string, ns = '') {
   const fileSystem: Record<string, string> = {};
-  getElementPathList(elementsDir).forEach((elementFilePath) => {
-    const elementDetailList = getFileElements(elementFilePath);
+
+  const processFile = async (elementFilePath: string) => {
+    const elementDetailList = await getFileElements(elementFilePath);
     Object.assign(
       fileSystem,
       Object.fromEntries(
@@ -53,6 +54,8 @@ export function compileSvelte(elementsDir: string, outDir: string, ns = ''): voi
         }),
       ),
     );
-  });
+  };
+
+  await Promise.all(getElementPathList(elementsDir).map(processFile));
   compile(outDir, fileSystem);
 }

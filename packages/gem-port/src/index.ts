@@ -22,10 +22,12 @@ program
   .option('-o, --outdir <path>', `specify out dir`, (outdir: string) => (cliOptions.outDir = outdir))
   .option('--svelte-ns <ns>', `specify svelte element namespace`, (ns: string) => (cliOptions.svelteNs = ns))
   .arguments('<dir>')
-  .action((dir: string) => {
-    compileReact(dir, path.resolve(cliOptions.outDir, 'react'));
-    generateVue(dir, path.resolve(cliOptions.outDir, 'vue'));
-    compileSvelte(dir, path.resolve(cliOptions.outDir, 'svelte'), cliOptions.svelteNs);
+  .action(async (dir: string) => {
+    await Promise.all([
+      compileReact(dir, path.resolve(cliOptions.outDir, 'react')),
+      generateVue(dir, path.resolve(cliOptions.outDir, 'vue')),
+      compileSvelte(dir, path.resolve(cliOptions.outDir, 'svelte'), cliOptions.svelteNs),
+    ]);
     process.exit(0);
   });
 

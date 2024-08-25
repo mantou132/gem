@@ -1,4 +1,4 @@
-import type { SourceFile, ClassDeclaration } from 'ts-morph';
+import type { SourceFile, ClassDeclaration, Project } from 'ts-morph';
 import { camelToKebabCase } from '@mantou/gem/lib/utils';
 
 import { getJsDoc } from './lib/utils';
@@ -65,6 +65,7 @@ export interface ElementDetail {
   slots: string[];
   parts: string[];
   cssStates: string[];
+  extend?: ElementDetail;
 }
 
 const shadowDecoratorName = ['shadow'];
@@ -79,7 +80,35 @@ const eventDecoratorName = ['emitter', 'globalemitter'];
 const globalEventDecoratorName = ['globalemitter'];
 const lifecyclePopsOrMethods = ['state', 'willMount', 'render', 'mounted', 'shouldUpdate', 'updated', 'unmounted'];
 
-export const parseElement = (declaration: ClassDeclaration) => {
+async function getExtendsClassDetail(className: string, sourceFile: SourceFile, project?: Project) {
+  const currentFile = sourceFile.getFilePath();
+  const isAbsFilePath = currentFile.startsWith('/');
+  if (!isAbsFilePath || !project) return;
+  const fileSystem = project.getFileSystem();
+  const importDeclaration = sourceFile.getImportDeclaration(
+    (desc) =>
+      !!desc
+        .getNamedImports()
+        .map((e) => e.getText())
+        .find((e) => e.includes(className)),
+  );
+  if (!importDeclaration) return;
+  const depPath = importDeclaration.getModuleSpecifierValue();
+  if (!depPath.startsWith('.')) return;
+  const { pathname } = new URL(`${depPath}.ts`, `gem:${currentFile}`);
+  if (project.getSourceFile(pathname)) return;
+  project.createSourceFile(pathname, '');
+  try {
+    const text = await fileSystem.readFile(pathname);
+    const file = project.createSourceFile(pathname, text, { overwrite: true });
+    const classDeclaration = file.getClass(className);
+    return classDeclaration && parseElement(classDeclaration, file, project);
+  } catch {
+    return;
+  }
+}
+
+export const parseElement = async (declaration: ClassDeclaration, file: SourceFile, project?: Project) => {
   const detail: ElementDetail = {
     name: '',
     shadow: false,
@@ -104,6 +133,7 @@ export const parseElement = (declaration: ClassDeclaration) => {
   declaration.getJsDocs().forEach((jsDoc) => appendElementDesc(jsDoc.getCommentText()));
 
   if (className && constructorExtendsName) {
+    detail.extend = await getExtendsClassDetail(constructorExtendsName, file, project);
     detail.constructorName = className;
     detail.constructorExtendsName = constructorExtendsName;
     if (constructor) {
@@ -240,7 +270,7 @@ export const parseElement = (declaration: ClassDeclaration) => {
   return detail;
 };
 
-export const getElements = (file: SourceFile) => {
+export const getElements = async (file: SourceFile, project?: Project) => {
   const result: ElementDetail[] = [];
   for (const declaration of file.getClasses()) {
     // need support other decorators?
@@ -263,7 +293,7 @@ export const getElements = (file: SourceFile) => {
         ?.getCommentText();
     if (elementTag) {
       const detail: ElementDetail = {
-        ...parseElement(declaration),
+        ...(await parseElement(declaration, file, project)),
         name: elementTag,
         shadow: !!shadowDeclaration,
       };
@@ -283,7 +313,7 @@ export interface ExportDetail {
   description?: string;
 }
 
-export const getExports = (file: SourceFile) => {
+export const getExports = async (file: SourceFile) => {
   const result: ExportDetail[] = [];
 
   for (const [name, declarations] of file.getExportedDeclarations()) {

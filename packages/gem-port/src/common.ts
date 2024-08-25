@@ -28,13 +28,13 @@ export function getElementPathList(elementsDir: string) {
 
 const elementCache: Record<string, ElementDetail[] | undefined> = {};
 const project = new Project({ useInMemoryFileSystem: true });
-export function getFileElements(elementFilePath: string) {
-  return (
-    elementCache[elementFilePath] ||
-    (elementCache[elementFilePath] = getElements(
-      project.createSourceFile(elementFilePath, readFileSync(elementFilePath, { encoding: 'utf-8' })),
-    ))
-  );
+export async function getFileElements(elementFilePath: string) {
+  if (!elementCache[elementFilePath]) {
+    const text = readFileSync(elementFilePath, { encoding: 'utf-8' });
+    const file = project.createSourceFile(elementFilePath, text);
+    elementCache[elementFilePath] = await getElements(file);
+  }
+  return elementCache[elementFilePath];
 }
 
 export function getComponentName(tag: string) {
