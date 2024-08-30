@@ -1,9 +1,11 @@
 import type { SourceFile, ClassDeclaration, Project } from 'ts-morph';
 import { camelToKebabCase } from '@mantou/gem/lib/utils';
 
-import { getJsDoc } from './lib/utils';
+import { getJsDoc, getTypeText, isGetter, isSetter } from './lib/utils';
 
 interface StaticProperty {
+  getter?: boolean;
+  setter?: boolean;
   name: string;
   deprecated?: boolean;
   slot?: string;
@@ -20,6 +22,8 @@ interface StaticMethod {
 }
 
 interface Property {
+  getter?: boolean;
+  setter?: boolean;
   name: string;
   reactive: boolean;
   deprecated?: boolean;
@@ -50,6 +54,7 @@ interface ConstructorParam {
 }
 
 export interface ElementDetail {
+  relativePath?: string;
   shadow: boolean;
   name: string;
   constructorName: string;
@@ -68,6 +73,16 @@ export interface ElementDetail {
   extend?: ElementDetail;
 }
 
+export const getChain = (detail: ElementDetail) => {
+  let root = detail;
+  const result: ElementDetail[] = [root];
+  while (root.extend) {
+    root = root.extend;
+    result.push(root);
+  }
+  return result;
+};
+
 const shadowDecoratorName = ['shadow'];
 const elementDecoratorName = ['customElement'];
 const attrDecoratorName = ['attribute', 'boolattribute', 'numattribute'];
@@ -81,6 +96,7 @@ const globalEventDecoratorName = ['globalemitter'];
 const lifecyclePopsOrMethods = ['state', 'willMount', 'render', 'mounted', 'shouldUpdate', 'updated', 'unmounted'];
 
 async function getExtendsClassDetail(className: string, sourceFile: SourceFile, project?: Project) {
+  if (className === 'GemElement') return;
   const currentFile = sourceFile.getFilePath();
   const isAbsFilePath = currentFile.startsWith('/');
   if (!isAbsFilePath || !project) return;
@@ -102,7 +118,10 @@ async function getExtendsClassDetail(className: string, sourceFile: SourceFile, 
     const text = await fileSystem.readFile(pathname);
     const file = project.createSourceFile(pathname, text, { overwrite: true });
     const classDeclaration = file.getClass(className);
-    return classDeclaration && parseElement(classDeclaration, file, project);
+    if (!classDeclaration) return;
+    const detail = await parseElement(classDeclaration, file, project);
+    detail.relativePath = depPath;
+    return detail;
   } catch {
     return;
   }
@@ -151,7 +170,7 @@ export const parseElement = async (declaration: ClassDeclaration, file: SourceFi
       });
       detail.constructorParams = constructor.getParameters().map((param) => ({
         name: param.getName(),
-        type: param.getType().getText(),
+        type: getTypeText(param),
         description: params[param.getName()],
       }));
     }
@@ -164,6 +183,8 @@ export const parseElement = async (declaration: ClassDeclaration, file: SourceFi
     const prop: StaticProperty = {
       name: staticPropName,
       type: staticPropDeclaration.getType().getText(),
+      getter: isGetter(staticPropDeclaration),
+      setter: isSetter(staticPropDeclaration),
       ...getJsDoc(staticPropDeclaration),
     };
 
@@ -208,7 +229,9 @@ export const parseElement = async (declaration: ClassDeclaration, file: SourceFi
     const prop: Property = {
       name: propName,
       reactive: false,
-      type: propDeclaration.getType().getText(),
+      type: getTypeText(propDeclaration),
+      getter: isGetter(propDeclaration),
+      setter: isSetter(propDeclaration),
       ...getJsDoc(propDeclaration),
     };
     detail.properties.push(prop);
@@ -250,7 +273,7 @@ export const parseElement = async (declaration: ClassDeclaration, file: SourceFi
     if (lifecyclePopsOrMethods.includes(methodName)) continue;
     const method: Method = {
       name: methodName,
-      type: methodDeclaration.getType().getText(),
+      type: getTypeText(methodDeclaration),
       ...getJsDoc(methodDeclaration),
     };
     detail.methods.push(method);
@@ -267,6 +290,13 @@ export const parseElement = async (declaration: ClassDeclaration, file: SourceFi
       }
     }
   }
+
+  const elementDecorators = declaration.getDecorators();
+  const shadowDeclaration = elementDecorators.find((decorator) => shadowDecoratorName.includes(decorator.getName()));
+  if (shadowDeclaration) {
+    detail.shadow = true;
+  }
+
   return detail;
 };
 
@@ -278,7 +308,6 @@ export const getElements = async (file: SourceFile, project?: Project) => {
     const elementDeclaration = elementDecorators.find((decorator) =>
       elementDecoratorName.includes(decorator.getName()),
     );
-    const shadowDeclaration = elementDecorators.find((decorator) => shadowDecoratorName.includes(decorator.getName()));
     const elementTag =
       elementDeclaration
         ?.getCallExpression()!
@@ -295,7 +324,6 @@ export const getElements = async (file: SourceFile, project?: Project) => {
       const detail: ElementDetail = {
         ...(await parseElement(declaration, file, project)),
         name: elementTag,
-        shadow: !!shadowDeclaration,
       };
       if (!detail.constructorName.startsWith('_')) {
         result.push(detail);

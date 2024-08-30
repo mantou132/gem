@@ -90,9 +90,13 @@ class _GbpApiElement extends GemBookPluginElement {
     return `${level} ${title} {#${hash}}\n\n`;
   };
 
-  #renderCode = (s = '', deprecated?: boolean) => {
+  #renderCode = (s = '', deprecated?: boolean, prefix?: string) => {
     if (!s) return '';
-    const code = `\`${s.replace(/\|/g, '\\|').replace(/\n/g, ' ')}\``;
+    const code = `\`${[prefix, s]
+      .filter((e) => e)
+      .join(' ')
+      .replace(/\|/g, '\\|')
+      .replace(/\n/g, ' ')}\``;
     return deprecated ? `~~${code}~~` : code;
   };
 
@@ -156,7 +160,8 @@ class _GbpApiElement extends GemBookPluginElement {
         staticProperties,
         ['Property', 'Type'].concat(constructorParams.some((e) => e.description) ? 'Description' : []),
         [
-          ({ name, deprecated }) => this.#renderCode(name, deprecated),
+          ({ name, deprecated, getter, setter }) =>
+            this.#renderCode(name, deprecated, getter ? 'get' : setter ? 'set' : ''),
           ({ type }) => this.#renderCode(type),
           ({ description = '' }) => description.replaceAll('\n', '<br>'),
         ],
@@ -182,8 +187,9 @@ class _GbpApiElement extends GemBookPluginElement {
           innerWidth > 600 && constructorParams.some((e) => e.description) ? 'Description' : [],
         ),
         [
-          ({ name, attribute: attr, deprecated }) =>
-            this.#renderCode(name, deprecated) + (attr ? `(${this.#renderCode(attr, deprecated)})` : ''),
+          ({ name, attribute: attr, deprecated, setter, getter }) =>
+            this.#renderCode(name, deprecated, getter ? 'get' : setter ? 'set' : '') +
+            (attr ? `(${this.#renderCode(attr, deprecated)})` : ''),
           ({ reactive }) => (reactive ? 'Yes' : ''),
           ({ type }) => this.#renderCode(type),
           ({ description = '' }) => description.replaceAll('\n', '<br>'),

@@ -17,7 +17,7 @@ export async function compileSvelte(elementsDir: string, outDir: string, ns = ''
     Object.assign(
       fileSystem,
       Object.fromEntries(
-        elementDetailList.map(({ name: tag, constructorName, properties }) => {
+        elementDetailList.map(([{ name: tag, constructorName, properties }]) => {
           const componentName = getComponentName(tag);
           const componentPropsName = `${componentName}Props`;
           const relativePath = getRelativePath(elementFilePath, outDir);
@@ -31,13 +31,13 @@ export async function compileSvelte(elementsDir: string, outDir: string, ns = ''
 
             interface ${componentPropsName} extends HTMLAttributes<HTMLElement> {
               ${properties
-                .map(({ name, reactive, event, deprecated }) =>
+                .map(({ name, getter, event, deprecated }) =>
                   event
                     ? [
                         getJsDocDescName(`'on:${event}'`, deprecated),
                         `(event: CustomEvent<Parameters<${constructorName}['${name}']>[0]>) => void`,
                       ].join('?:')
-                    : reactive
+                    : !getter
                       ? [getJsDocDescName(name, deprecated), `${constructorName}['${name}']`].join('?:')
                       : '',
                 )

@@ -26,7 +26,6 @@ if (typeof window === 'undefined') {
   globalThis.document = any;
   globalThis.addEventListener = any;
   globalThis.history = any;
-  globalThis.navigator = any;
   globalThis.customElements = any;
 
   // duoyun-ui
@@ -34,6 +33,14 @@ if (typeof window === 'undefined') {
   globalThis.Document = any;
   globalThis.Element = any;
   globalThis.MutationObserver = any;
+
+  try {
+    // gem dist i18n
+    // https://nodejs.org/api/globals.html#navigator_1
+    globalThis.navigator = any;
+  } catch {
+    //
+  }
 }
 
 export {};

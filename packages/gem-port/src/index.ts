@@ -15,6 +15,8 @@ const cliOptions = {
   svelteNs: '',
 };
 
+const timer = setTimeout(() => program.outputHelp());
+
 program
   .name(name)
   .description(description)
@@ -23,12 +25,11 @@ program
   .option('--svelte-ns <ns>', `specify svelte element namespace`, (ns: string) => (cliOptions.svelteNs = ns))
   .arguments('<dir>')
   .action(async (dir: string) => {
-    await Promise.all([
-      compileReact(dir, path.resolve(cliOptions.outDir, 'react')),
-      generateVue(dir, path.resolve(cliOptions.outDir, 'vue')),
-      compileSvelte(dir, path.resolve(cliOptions.outDir, 'svelte'), cliOptions.svelteNs),
-    ]);
+    clearTimeout(timer);
+    await compileReact(dir, path.resolve(cliOptions.outDir, 'react'));
+    await generateVue(dir, path.resolve(cliOptions.outDir, 'vue'));
+    await compileSvelte(dir, path.resolve(cliOptions.outDir, 'svelte'), cliOptions.svelteNs);
     process.exit(0);
   });
 
-program.parse(process.argv).outputHelp();
+program.parse(process.argv);

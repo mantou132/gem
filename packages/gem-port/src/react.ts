@@ -10,33 +10,43 @@ import {
 async function createReactSourceFile(elementFilePath: string, outDir: string) {
   const elementDetailList = await getFileElements(elementFilePath);
   return Object.fromEntries(
-    elementDetailList.map(({ name: tag, constructorName, properties, methods }) => {
+    elementDetailList.map(([{ name: tag, constructorName, properties, methods }, chain]) => {
       const componentName = getComponentName(tag);
       const componentPropsName = `${componentName}Props`;
-      const componentMethodsName = `${componentName}Methods`;
+      const componentExposeName = `${componentName}Expose`;
       const relativePath = getRelativePath(elementFilePath, outDir);
+      const getters = properties.filter((e) => e.getter);
+      const settableProperties = properties.filter((e) => !e.getter && !e.event);
       return [
         componentName + '.tsx',
         `
           import React, { HTMLAttributes, RefAttributes } from 'react';
-          import React, { ForwardRefExoticComponent, forwardRef, useImperativeHandle, useRef, useState, useEffect } from 'react';
+          import React, { ForwardRefExoticComponent, forwardRef, useImperativeHandle, useRef, useLayoutEffect } from 'react';
           import { ${constructorName} } from '${relativePath}';
           export * from '${relativePath}';
         
           export type ${componentPropsName} = HTMLAttributes<HTMLDivElement> & RefAttributes<${constructorName}> & {
             ${properties
-              .map(({ name, reactive, event, deprecated }) =>
+              .map(({ name, getter, event, deprecated }) =>
                 event
                   ? [
                       getJsDocDescName(`'on${event}'`, deprecated),
                       `(event: CustomEvent<Parameters<${constructorName}['${name}']>[0]>) => void`,
                     ].join('?:')
-                  : reactive
+                  : !getter
                     ? [getJsDocDescName(name, deprecated), `${constructorName}['${name}']`].join('?:')
                     : '',
               )
               .join(';\n')}
           };
+
+          export type ${componentExposeName} = {
+            ${[...methods, ...getters]
+              .map(({ name, deprecated }) =>
+                [getJsDocDescName(name, deprecated), `${constructorName}['${name}']`].join(': '),
+              )
+              .join(';\n')}
+          }
         
           declare global {
             namespace JSX {
@@ -45,16 +55,8 @@ async function createReactSourceFile(elementFilePath: string, outDir: string) {
               }
             }
           }
-
-          export type ${componentMethodsName} = {
-            ${methods
-              .map(({ name, deprecated }) =>
-                [getJsDocDescName(name, deprecated), `${constructorName}['${name}']`].join(': '),
-              )
-              .join(';\n')}
-          }
         
-          export const ${componentName}: ForwardRefExoticComponent<Omit<${componentPropsName}, "ref"> & RefAttributes<${componentMethodsName}>> = forwardRef<${componentMethodsName}, ${componentPropsName}>(function (props, ref): JSX.Element {
+          export const ${componentName}: ForwardRefExoticComponent<Omit<${componentPropsName}, "ref"> & RefAttributes<${componentExposeName}>> = forwardRef<${componentExposeName}, ${componentPropsName}>(function (props, ref): JSX.Element {
             const elementRef = useRef<${constructorName}>(null);
             useImperativeHandle(ref, () => {
               return {
@@ -62,14 +64,29 @@ async function createReactSourceFile(elementFilePath: string, outDir: string) {
                   .map(
                     ({ name }) => `
                       ${name}(...args) {
-                        elementRef.current?.${name}(...args)
-                      }
+                        return elementRef.current!.${name}(...args)
+                      },
                     `,
                   )
-                  .join(',')}
+                  .join('')}
+                  ${getters
+                    .map(
+                      ({ name }) => `
+                        get ${name}() {
+                          return elementRef.current!.${name}
+                        },
+                      `,
+                    )
+                    .join('')}
               };
             }, []);
             
+            // React Bug?
+            useLayoutEffect(() => {
+              const element = elementRef.current!;
+              ${settableProperties.map(({ name }) => `element.${name} = props.${name}`).join(';\n')}
+            }, [])
+
             return <${tag} ref={elementRef} {...props}></${tag}>;
           })
 

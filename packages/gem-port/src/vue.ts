@@ -32,11 +32,12 @@ export async function generateVue(elementsDir: string, outDir: string) {
 
   const processFile = async (elementFilePath: string) => {
     const elements = await getFileElements(elementFilePath);
-    elements.forEach(({ name: tag, properties, constructorName, methods, events }) => {
+    elements.forEach(([{ name: tag, properties, constructorName, methods, events }]) => {
       const componentName = getComponentName(tag);
-      const componentMethodsName = `${componentName}Methods`;
+      const componentExposeName = `${componentName}Expose`;
       const relativePath = getRelativePath(elementFilePath, outDir);
-      const reactiveProps = properties.filter(({ reactive }) => !!reactive);
+      const settableProperties = properties.filter((e) => !e.getter && !e.event);
+      const getters = properties.filter((e) => e.getter);
       writeFileSync(
         resolve(outDir, componentName + '.vue'),
         `
@@ -46,19 +47,13 @@ export async function generateVue(elementsDir: string, outDir: string) {
         
         const elementRef = ref<${constructorName}>();
         
-        ${
-          reactiveProps.length
-            ? `
         const props = defineProps<{
-          ${reactiveProps
+          ${settableProperties
             .map(({ name, deprecated }) =>
               [getJsDocDescName(name, deprecated), `${constructorName}['${name}']`].join('?: '),
             )
             .join(',\n')}
         }>();
-        `
-            : ''
-        }
         
         const emit = defineEmits<{
           ${properties
@@ -72,30 +67,33 @@ export async function generateVue(elementsDir: string, outDir: string) {
             .join(',\n')}
         }>()
 
-        type ${componentMethodsName} = {
-          ${methods
+        type ${componentExposeName} = {
+          ${[...methods, ...getters]
             .map(({ name, deprecated }) =>
               [getJsDocDescName(name, deprecated), `${constructorName}['${name}']`].join(': '),
             )
             .join(';\n')}
         }
         
-        defineExpose<${componentMethodsName}>({
+        defineExpose<${componentExposeName}>({
           ${methods
             .map(
               ({ name }) => `
                 ${name}(...args) {
-                  elementRef.value?.${name}(...args)
-                }
+                  return elementRef.value!.${name}(...args)
+                },
               `,
             )
-            .join(',')}
-        })
-        
-        // prop 可以用 :prop
-        onMounted(() => {
-          const element = elementRef.value!;
-          ${properties.map(({ name, reactive }) => (reactive ? `element.${name} = props.${name}` : '')).join(';\n')}
+            .join('')}
+          ${getters
+            .map(
+              ({ name }) => `
+                get ${name}() {
+                  return elementRef.value!.${name}
+                },
+              `,
+            )
+            .join('')}
         })
         
         </script>
@@ -108,9 +106,10 @@ export async function generateVue(elementsDir: string, outDir: string) {
         </script>
         
         <template>
-          <${tag} ref="elementRef" ${reactiveProps.length ? 'v-bind="props"' : ''} ${events
-            .map((event) => [`@${event}`, `"e => emit('change', e)"`].join('='))
-            .join(' ')}>
+          <${tag}
+            ref="elementRef"
+            ${settableProperties.map(({ name }) => `.${name}="props.${name}"`).join(' ')}
+            ${events.map((event) => [`@${event}`, `"e => emit('${event}', e)"`].join('=')).join(' ')}>
             <slot />
           </${tag}>
         </template>
