@@ -314,7 +314,10 @@ export class GemLightRouteElement extends GemElement {
       return;
     }
     if (this.trigger === history) {
-      updateStore(titleStore, { title: route?.title });
+      // 嵌套路由执行顺序也是从父到子
+      if (location.href !== titleStore.url || route?.title) {
+        updateStore(titleStore, { url: location.href, title: route?.title });
+      }
     }
     const contentOrLoader = content || getContent?.(params, this.shadowRoot || this);
     this.loading(route);

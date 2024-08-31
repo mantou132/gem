@@ -10,6 +10,7 @@ import {
   adoptedStyle,
   mounted,
   effect,
+  boolattribute,
 } from '../../lib/decorators';
 import { history, basePathStore } from '../../lib/history';
 import { absoluteLocation, css } from '../../lib/utils';
@@ -61,8 +62,9 @@ export class GemLinkElement extends GemElement {
   @attribute path: string;
   @attribute query: string;
   @attribute hash: string;
-  @attribute docTitle: string;
   @attribute hint: 'on' | 'off';
+  /** Preload route content when point over */
+  @boolattribute preload: boolean;
 
   // 动态路由，根据 route.pattern 和 options.params 计算出 path
   @property route?: RouteItem;
@@ -113,24 +115,19 @@ export class GemLinkElement extends GemElement {
     await this.prepare?.();
 
     if (this.route) {
-      history.pushIgnoreCloseHandle({
-        ...createHistoryParams(this.route, this.#routeOptions),
-        title: this.route.title || this.docTitle,
-      });
+      history.pushIgnoreCloseHandle(createHistoryParams(this.route, this.#routeOptions));
     } else if (this.href) {
       const url = new URL(locationString, location.origin);
       history.pushIgnoreCloseHandle({
         path: url.pathname,
         query: url.search,
         hash: url.hash,
-        title: this.docTitle,
       });
     } else {
       history.pushIgnoreCloseHandle({
         path: this.path,
         query: this.query,
         hash: this.hash,
-        title: this.docTitle,
       });
     }
   };
@@ -146,9 +143,17 @@ export class GemLinkElement extends GemElement {
       : new URL(history.basePath + locationString, location.origin).toString();
   };
 
+  #preload = () => {
+    // 也许是 `getter`
+    this.route?.content;
+    // 只触发 `getContent` 调用，参数不使用
+    this.route?.getContent?.({}, this.shadowRoot!);
+  };
+
   @mounted()
   #init() {
     this.addEventListener('click', this.#onClick);
+    this.addEventListener('pointerenter', this.#preload);
   }
 
   render() {

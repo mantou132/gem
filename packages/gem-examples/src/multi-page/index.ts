@@ -8,6 +8,8 @@ import '../elements/layout';
 import './page-b';
 import './page-c';
 
+// 没写 `basePath`
+
 const routes = [
   {
     pattern: '/',
@@ -32,8 +34,21 @@ const routes = [
     content: html`<app-page-c>C: </app-page-c>`,
   },
   {
-    pattern: '/',
-    content: html`<div>hello</div>`,
+    pattern: '/empty',
+    content: html``,
+  },
+  {
+    pattern: '/*',
+    content: html`<div>
+      <gem-light-route
+        .routes=${[
+          {
+            pattern: '/*',
+            content: html`pattern match`,
+          },
+        ]}
+      ></gem-light-route>
+    </div>`,
   },
 ];
 
@@ -62,6 +77,8 @@ class _App extends GemElement {
         <gem-link path="/a">PageA</gem-link>
         <gem-link path="/b">PageB</gem-link>
         <gem-link path="/c/e" pattern="/c/*">PageC</gem-link>
+        <gem-link path="/empty">Empty</gem-link>
+        <gem-link path="/test">Test</gem-link>
       </nav>
       <main><gem-light-route .routes=${routes}></gem-light-route></main>
     `;

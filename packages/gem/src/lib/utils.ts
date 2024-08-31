@@ -12,26 +12,6 @@ export function addMicrotask(func: () => void) {
   microtaskSet.add(func);
 }
 
-const microtaskStack: (() => void)[] = [];
-
-function execMicrotaskStack() {
-  for (let i = microtaskStack.length - 1; i >= 0; i--) {
-    microtaskStack[i]();
-  }
-  microtaskStack.length = 0;
-}
-
-/**
- * 添加回调函数到微任务队列栈；
- * 先进后执行，使用这个函数可以改变嵌套的元素 `mounted` 的顺序；
- */
-export function addMicrotaskToStack(func: () => void) {
-  if (!microtaskStack.length) {
-    addMicrotask(execMicrotaskStack);
-  }
-  microtaskStack.push(func);
-}
-
 // 不编码 hash 用于比较
 export function absoluteLocation(currentPath = '', relativePath = '') {
   const { pathname, search, hash } = new URL(relativePath, location.origin + currentPath);

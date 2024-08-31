@@ -17,6 +17,27 @@ import {
 
 export type Message = number[];
 
+@customElement('app-descendant')
+@shadow()
+export class Descendant extends GemElement {
+  key = 0;
+
+  constructor() {
+    super();
+    console.log(`descendant${this.key} cons`);
+  }
+
+  @mounted()
+  #init = () => {
+    console.log(`descendant${this.key} mounted`);
+  };
+
+  render() {
+    console.log(`descendant${this.key} render`);
+    return html``;
+  }
+}
+
 /**
  * @attr first-name
  * @attr last-name
@@ -70,6 +91,8 @@ export class Children extends GemElement {
       <p part=${Children.paragraph}>properties: ${JSON.stringify(this.message)}</p>
       <slot name=${Children.light}></slot>
       <button @click=${() => this.sayHi({}, { bubbles: true, composed: true })}>say hi</button>
+      <app-descendant .key=${1}></app-descendant>
+      <app-descendant .key=${2}></app-descendant>
     `;
   }
 }

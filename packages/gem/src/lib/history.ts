@@ -183,7 +183,7 @@ class GemHistory extends EventTarget {
 // `<gem-**>` 只读写父应用 `basePath`
 const gemHistory = new GemHistory();
 
-const [gemTitleStore, updateTitleStore] = useStore({ title: '' });
+const [gemTitleStore, updateTitleStore] = useStore({ defaultTitle: document.title, url: '', title: '' });
 
 const _GEMHISTORY = { history: gemHistory, titleStore: gemTitleStore, basePathStore: gemBasePathStore };
 
