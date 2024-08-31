@@ -10,7 +10,7 @@ import {
 async function createReactSourceFile(elementFilePath: string, outDir: string) {
   const elementDetailList = await getFileElements(elementFilePath);
   return Object.fromEntries(
-    elementDetailList.map(([{ name: tag, constructorName, properties, methods }, chain]) => {
+    elementDetailList.map(({ name: tag, constructorName, properties, methods }) => {
       const componentName = getComponentName(tag);
       const componentPropsName = `${componentName}Props`;
       const componentExposeName = `${componentName}Expose`;
@@ -84,7 +84,9 @@ async function createReactSourceFile(elementFilePath: string, outDir: string) {
             // React Bug?
             useLayoutEffect(() => {
               const element = elementRef.current!;
-              ${settableProperties.map(({ name }) => `element.${name} = props.${name}`).join(';\n')}
+              ${JSON.stringify(settableProperties.map(({ name }) => name))}.map(name => {
+                element[name] = props[name];
+              })
             }, [])
 
             return <${tag} ref={elementRef} {...props}></${tag}>;

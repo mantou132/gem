@@ -17,7 +17,7 @@ export async function compileSvelte(elementsDir: string, outDir: string, ns = ''
     Object.assign(
       fileSystem,
       Object.fromEntries(
-        elementDetailList.map(([{ name: tag, constructorName, properties }]) => {
+        elementDetailList.map(({ name: tag, constructorName, properties }) => {
           const componentName = getComponentName(tag);
           const componentPropsName = `${componentName}Props`;
           const relativePath = getRelativePath(elementFilePath, outDir);

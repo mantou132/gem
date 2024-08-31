@@ -32,7 +32,7 @@ export async function generateVue(elementsDir: string, outDir: string) {
 
   const processFile = async (elementFilePath: string) => {
     const elements = await getFileElements(elementFilePath);
-    elements.forEach(([{ name: tag, properties, constructorName, methods, events }]) => {
+    elements.forEach(({ name: tag, properties, constructorName, methods, events }) => {
       const componentName = getComponentName(tag);
       const componentExposeName = `${componentName}Expose`;
       const relativePath = getRelativePath(elementFilePath, outDir);

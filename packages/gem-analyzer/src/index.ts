@@ -73,16 +73,6 @@ export interface ElementDetail {
   extend?: ElementDetail;
 }
 
-export const getChain = (detail: ElementDetail) => {
-  let root = detail;
-  const result: ElementDetail[] = [root];
-  while (root.extend) {
-    root = root.extend;
-    result.push(root);
-  }
-  return result;
-};
-
 const shadowDecoratorName = ['shadow'];
 const elementDecoratorName = ['customElement'];
 const attrDecoratorName = ['attribute', 'boolattribute', 'numattribute'];

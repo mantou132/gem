@@ -1,7 +1,7 @@
 import path from 'path';
 import { readdirSync, readFileSync, statSync, promises } from 'fs';
 
-import { ElementDetail, getChain, getElements } from 'gem-analyzer';
+import { ElementDetail, getElements } from 'gem-analyzer';
 import { Project, ts as morphTs } from 'ts-morph';
 import * as ts from 'typescript';
 
@@ -26,7 +26,27 @@ export function getElementPathList(elementsDir: string) {
   return paths;
 }
 
-const elementCache: Record<string, [ElementDetail, ElementDetail[]][] | undefined> = {};
+const getChain = (detail: ElementDetail) => {
+  let root = detail;
+  const result: ElementDetail[] = [root];
+  while (root.extend) {
+    root = root.extend;
+    result.push(root);
+  }
+  return result;
+};
+
+const mergeElementDetail = (elementFilePath: string, detail: ElementDetail): ElementDetail => {
+  const chain = getChain(detail);
+  return {
+    ...detail,
+    properties: chain.map((e) => e.properties).flat(),
+    methods: chain.map((e) => e.methods).flat(),
+    events: chain.map((e) => e.events).flat(),
+  };
+};
+
+const elementCache: Record<string, ElementDetail[] | undefined> = {};
 const project = new Project({
   useInMemoryFileSystem: true,
   compilerOptions: { target: morphTs.ScriptTarget.ESNext },
@@ -37,7 +57,7 @@ export async function getFileElements(elementFilePath: string) {
     const text = readFileSync(elementFilePath, { encoding: 'utf-8' });
     const file = project.getSourceFile(elementFilePath) || project.createSourceFile(elementFilePath, text);
     const details = await getElements(file, project);
-    elementCache[elementFilePath] = details.map((detail) => [detail, getChain(detail)] as const);
+    elementCache[elementFilePath] = details.map((detail) => mergeElementDetail(elementFilePath, detail));
   }
   return elementCache[elementFilePath];
 }
