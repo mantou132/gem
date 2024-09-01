@@ -40,16 +40,29 @@ class PortalModuleProfileElement extends GemElement {
 }
 ```
 
-When necessary, both Attribute and Property can be supported for a single field:
+When a property needs to support templates, `<slot>` (ShadowDOM) or non-responsive `Property` can be used:
+
+```ts
+@shadow()
+@customElement('portal-module-profile')
+class PortalModuleProfileElement extends GemElement {
+  @slot static name: string;
+  @attribute name: string;
+
+  get #name() {
+    return html`<slot name=${PortalModuleProfileElement.name}>${this.name}</slot>`;
+  }
+}
+```
 
 ```ts
 @customElement('portal-module-profile')
 class PortalModuleProfileElement extends GemElement {
   @attribute name: string;
-  @property nameHTML?: TemplateResult;
+  nameSlot?: TemplateResult;
 
   get #name() {
-    return this.nameHTML || this.name;
+    return this.nameSlot || this.name;
   }
 }
 ```

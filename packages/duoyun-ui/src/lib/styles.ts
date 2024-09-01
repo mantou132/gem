@@ -38,6 +38,7 @@ export const contentsContainer = createCSSSheet(css`
   }
 `);
 
+/** render empty content */
 export const noneTemplate = html`
   <style>
     :host {

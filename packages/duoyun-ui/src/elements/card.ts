@@ -1,12 +1,13 @@
 // https://spectrum.adobe.com/page/cards/
 import { adoptedStyle, customElement, attribute, property, part, slot, shadow, aria } from '@mantou/gem/lib/decorators';
-import { createCSSSheet, html, TemplateResult } from '@mantou/gem/lib/element';
+import { createCSSSheet, html } from '@mantou/gem/lib/element';
 import { css } from '@mantou/gem/lib/utils';
 
 import { theme } from '../lib/theme';
 import { icons } from '../lib/icons';
 import { commonHandle } from '../lib/hotkeys';
 import { focusStyle } from '../lib/styles';
+import { StringList } from '../lib/types';
 
 import { DuoyunLoadableBaseElement } from './base/loadable';
 import { ContextMenuItem, ContextMenu } from './contextmenu';
@@ -105,6 +106,9 @@ export class DuoyunCardElement extends DuoyunLoadableBaseElement {
   @part static preview: string;
   @part static avatar: string;
 
+  @slot static header: string;
+  @slot static detail: string;
+  @slot static detailRight: string;
   @slot static body: string;
   @slot static unnamed: string;
   @slot static footer: string;
@@ -112,9 +116,9 @@ export class DuoyunCardElement extends DuoyunLoadableBaseElement {
   @attribute avatar: string;
   @attribute preview: string;
 
-  @property header?: string | TemplateResult;
-  @property detail?: string | TemplateResult;
-  @property detailRight?: string | TemplateResult;
+  @attribute header: StringList<'slot'>;
+  @attribute detail: string;
+  @attribute detailRight: string;
   @property actions?: ActionItem[];
   @attribute crossorigin: 'anonymous' | 'use-credentials';
 
@@ -149,9 +153,9 @@ export class DuoyunCardElement extends DuoyunLoadableBaseElement {
       ${this.header
         ? html`
             <div class="header">
-              <div class="title">${this.header}</div>
-              <div class="detail">${this.detail}</div>
-              <div class="detail right">${this.detailRight}</div>
+              <div class="title"><slot name=${DuoyunCardElement.header}>${this.header}</slot></div>
+              <div class="detail"><slot name=${DuoyunCardElement.detail}>${this.detail}</slot></div>
+              <div class="detail right"><slot name=${DuoyunCardElement.detailRight}>${this.detailRight}</slot></div>
               ${this.actions
                 ? html`
                     <dy-use

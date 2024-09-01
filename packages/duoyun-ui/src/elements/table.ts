@@ -11,6 +11,7 @@ import {
   part,
   shadow,
   memo,
+  slot,
 } from '@mantou/gem/lib/decorators';
 import { createCSSSheet, html, TemplateResult } from '@mantou/gem/lib/element';
 import { css, styleMap, classMap, StyleObject, isArrayChange } from '@mantou/gem/lib/utils';
@@ -164,9 +165,11 @@ export class DuoyunTableElement<T = any, K = any> extends DuoyunScrollBoxElement
   @part static td: string;
   @part static tr: string;
   @part static side: string;
+  @slot static noData: string;
 
   @attribute caption: string;
   @boolattribute headless: boolean;
+  @attribute noData: string;
 
   @boolattribute selectable: boolean;
   @property selection?: K[];
@@ -179,8 +182,6 @@ export class DuoyunTableElement<T = any, K = any> extends DuoyunScrollBoxElement
   @property columns?: Column<T>[];
   @property data?: T[] | (T | undefined)[];
   @property getRowStyle?: (record: T) => StyleObject;
-
-  @property noData?: string | TemplateResult;
 
   @property rowKey?: string | string[];
   @property getKey?: (record: T) => K;
@@ -476,7 +477,11 @@ export class DuoyunTableElement<T = any, K = any> extends DuoyunScrollBoxElement
       ${!this.data
         ? html`<div class="side" part=${DuoyunTableElement.side}><dy-loading></dy-loading></div>`
         : this.data.length === 0
-          ? html`<div class="side" part=${DuoyunTableElement.side}>${this.noData || html`<dy-empty></dy-empty>`}</div>`
+          ? html`
+              <div class="side" part=${DuoyunTableElement.side}>
+                <dy-empty .slotName=${DuoyunTableElement.noData} .text=${this.noData}></dy-empty>
+              </div>
+            `
           : ''}
     `;
   };

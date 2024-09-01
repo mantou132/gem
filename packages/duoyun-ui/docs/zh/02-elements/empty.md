@@ -4,6 +4,7 @@
 
 <gbp-example
   name="dy-empty"
+  props='{"icon":"icons.delete"}'
   src="https://esm.sh/duoyun-ui/elements/empty"></gbp-example>
 
 ## API

@@ -77,12 +77,12 @@ const panelStyle = createCSSSheet(css`
 @shadow()
 export class DuoyunCollapsePanelElement extends GemElement {
   @slot static unnamed: string;
-  @part static summary: string;
+  @part @slot static summary: string;
   @part static detail: string;
 
   @boolattribute searchable: boolean;
 
-  @property summary?: string | TemplateResult;
+  @attribute summary: string;
 
   @emitter toggle: Emitter<boolean>;
 
@@ -109,7 +109,7 @@ export class DuoyunCollapsePanelElement extends GemElement {
         @click=${this.toggleState}
       >
         <dy-use class=${classMap({ icon: true, expand: preExpand })} .element=${icons.right}></dy-use>
-        <span class="title">${this.summary}</span>
+        <span class="title"><slot name=${DuoyunCollapsePanelElement.summary}>${this.summary}</slot></span>
       </div>
       ${expand || this.searchable
         ? html`

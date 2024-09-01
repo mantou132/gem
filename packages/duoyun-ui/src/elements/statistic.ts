@@ -7,8 +7,9 @@ import {
   property,
   aria,
   shadow,
+  slot,
 } from '@mantou/gem/lib/decorators';
-import { GemElement, html, TemplateResult, createCSSSheet } from '@mantou/gem/lib/element';
+import { GemElement, html, createCSSSheet } from '@mantou/gem/lib/element';
 import { css, classMap } from '@mantou/gem/lib/utils';
 
 import { parseDuration } from '../lib/time';
@@ -82,9 +83,13 @@ export const formatFnMap: Record<StatisticType, (n: number) => { number: string;
 @aria({ role: 'group' })
 @shadow()
 export class DuoyunStatisticElement extends GemElement {
+  @slot static header: string;
+
   @attribute neutral: StatisticNeutral;
   @attribute type: StatisticType;
-  @property text: string | TemplateResult;
+  /**@deprecated */
+  @attribute text: string;
+  @attribute header: string;
   @property icon: string | Element | DocumentFragment;
   @boolattribute loading: boolean;
   @numattribute value: number;
@@ -96,6 +101,10 @@ export class DuoyunStatisticElement extends GemElement {
 
   get #type() {
     return this.type || 'decimal';
+  }
+
+  get #header() {
+    return this.header || this.text;
   }
 
   render = () => {
@@ -110,7 +119,11 @@ export class DuoyunStatisticElement extends GemElement {
 
     return html`
       <div class="header">
-        <span class="title">${this.loading ? html`<dy-placeholder width="5em"></dy-placeholder>` : this.text}</span>
+        <span class="title">
+          ${this.loading
+            ? html`<dy-placeholder width="5em"></dy-placeholder>`
+            : html`<slot name=${DuoyunStatisticElement.header}>${this.#header}</slot>`}
+        </span>
         <dy-use class="icon" .element=${this.icon}></dy-use>
       </div>
       <div class="values">

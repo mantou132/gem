@@ -10,7 +10,7 @@ import { contentsContainer } from '../lib/styles';
 @adoptedStyle(contentsContainer)
 @shadow()
 export class DuoyunCompartmentElement extends GemElement {
-  @property content?: string | number | TemplateResult;
+  @property content?: string | number | TemplateResult | Element | Element[];
 
   render = () => {
     return html`${this.content}`;

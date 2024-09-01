@@ -1,8 +1,9 @@
-import { GemElement, html, TemplateResult, createCSSSheet } from '@mantou/gem/lib/element';
+import { GemElement, html, createCSSSheet } from '@mantou/gem/lib/element';
 import { adoptedStyle, customElement, property, attribute, slot, shadow } from '@mantou/gem/lib/decorators';
 import { css } from '@mantou/gem/lib/utils';
 
 import { theme } from '../lib/theme';
+import { StringList } from '../lib/types';
 
 import { Status, getStatusColor } from './status-light';
 
@@ -45,14 +46,16 @@ const style = createCSSSheet(css`
 @adoptedStyle(style)
 @shadow()
 export class DuoyunResultElement extends GemElement {
+  @slot static header: string;
+  @slot static description: string;
   @slot static unnamed: string;
 
   @attribute status: Status;
+  @attribute header: StringList<'slot'>;
+  @attribute description: StringList<'slot'>;
 
   @property icon?: string | Element | DocumentFragment;
   @property illustrator?: string | Element | DocumentFragment;
-  @property header?: string | TemplateResult;
-  @property description?: string | TemplateResult;
 
   get #status() {
     return this.status || 'default';
@@ -66,8 +69,20 @@ export class DuoyunResultElement extends GemElement {
     return html`
       ${this.icon ? html`<dy-use class="icon" style="color:${this.#color}" .element=${this.icon}></dy-use>` : ''}
       ${this.illustrator ? html`<dy-use class="illustrator" .element=${this.illustrator}></dy-use>` : ''}
-      ${this.header ? html`<dy-heading lv="2" class="header">${this.header}</dy-heading>` : ''}
-      ${this.description ? html`<dy-paragraph class="description">${this.description}</dy-paragraph>` : ''}
+      ${this.header
+        ? html`
+            <dy-heading lv="2" class="header">
+              <slot name=${DuoyunResultElement.header}>${this.header}</slot>
+            </dy-heading>
+          `
+        : ''}
+      ${this.description
+        ? html`
+            <dy-paragraph class="description">
+              <slot name=${DuoyunResultElement.description}>${this.description}</slot>
+            </dy-paragraph>
+          `
+        : ''}
       <slot></slot>
     `;
   };

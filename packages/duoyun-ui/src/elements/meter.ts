@@ -8,8 +8,9 @@ import {
   aria,
   shadow,
   effect,
+  slot,
 } from '@mantou/gem/lib/decorators';
-import { createCSSSheet, GemElement, html, TemplateResult } from '@mantou/gem/lib/element';
+import { createCSSSheet, GemElement, html } from '@mantou/gem/lib/element';
 import { css, styleMap } from '@mantou/gem/lib/utils';
 
 import { theme, getSemanticColor } from '../lib/theme';
@@ -60,15 +61,18 @@ const style = createCSSSheet(css`
 @aria({ role: 'meter' })
 @shadow()
 export class DuoyunMeterElement extends GemElement {
+  @slot static label: string;
+  @slot static valueLabel: string;
+
   /**range: 0-100 */
   @numattribute value: number;
   @numattribute max: number;
   @numattribute min: number;
   @attribute color: StringList<'positive' | 'informative' | 'negative' | 'notice'>;
   @attribute layout: 'stack' | 'flat';
+  @attribute label: string;
+  @attribute valueLabel: StringList<'percentage'>;
 
-  @property label?: string | TemplateResult;
-  @property valueLabel?: 'percentage' | TemplateResult;
   @property calculateColor = () => {
     const progress = this.#progress;
     if (progress > 0.9) return theme.negativeColor;
@@ -110,8 +114,8 @@ export class DuoyunMeterElement extends GemElement {
   render = () => {
     return html`
       <div class="text">
-        <span class="label">${this.label}</span>
-        <span class="value-label">${this.#valueLabel}</span>
+        <span class="label"><slot name=${DuoyunMeterElement.label}>${this.label}</slot></span>
+        <span class="value-label"><slot name=${DuoyunMeterElement.valueLabel}>${this.valueLabel}</slot></span>
       </div>
       <div class="track">
         <div class="value" style=${styleMap({ width: this.#percentage, color: this.#color })}></div>

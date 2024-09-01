@@ -67,6 +67,7 @@ export class DuoyunPopoverElement extends GemElement {
   @attribute trigger: 'click' | 'hover';
   @attribute position: Position | 'auto';
 
+  // 不能通过 slot 元素支持
   @property content?: string | TemplateResult;
 
   @emitter open: Emitter<null>;

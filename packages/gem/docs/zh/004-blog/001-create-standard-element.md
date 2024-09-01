@@ -40,16 +40,30 @@ class PortalModuleProfileElement extends GemElement {
 }
 ```
 
-必要时可以同时为一个属性支持 Attribute 和 Property：
+当一个属性需要支持模版，则可以使用 `<slot>`（ShadowDOM） 或者非响应性 `Property`：
+
+
+```ts
+@shadow()
+@customElement('portal-module-profile')
+class PortalModuleProfileElement extends GemElement {
+  @slot static name: string;
+  @attribute name: string;
+
+  get #name() {
+    return html`<slot name=${PortalModuleProfileElement.name}>${this.name}</slot>`;
+  }
+}
+```
 
 ```ts
 @customElement('portal-module-profile')
 class PortalModuleProfileElement extends GemElement {
   @attribute name: string;
-  @property nameHTML?: TemplateResult;
+  nameSlot?: TemplateResult;
 
   get #name() {
-    return this.nameHTML || this.name;
+    return this.nameSlot || this.name;
   }
 }
 ```
