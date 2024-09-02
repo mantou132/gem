@@ -1,11 +1,12 @@
-const microtaskSet = new Set<() => void>();
+let microtaskSet = new Set<() => void>();
 export function addMicrotask(func: () => void) {
   if (typeof func !== 'function') return;
   if (!microtaskSet.size) {
     // delayed execution callback after updating store
     globalThis.queueMicrotask(() => {
-      microtaskSet.forEach((f) => f());
-      microtaskSet.clear();
+      const set = microtaskSet;
+      microtaskSet = new Set();
+      set.forEach((f) => f());
     });
   }
   microtaskSet.delete(func);
@@ -317,94 +318,3 @@ declare global {
   interface PropertyIndexedKeyframes extends StyleObject {}
   interface Keyframe extends StyleObject {}
 }
-
-/**
- * @example
- * ```css
- * animation: 150ms ease 0ms showMask;`
- * @keyframes showMask {
- *   from {
- *     opacity: 0;
- *   }
- * }
- * ```
- */
-// export function createCSSAnimation(
-//   keyframes: PropertyIndexedKeyframes | Keyframe[],
-//   options?: number | (KeyframeEffectOptions & { name: string }),
-// ) {
-//   const frames = new Map<number, StyleObject>();
-//   if (Array.isArray(keyframes)) {
-//     keyframes.forEach((keyframe, index) => {
-//       const offset = keyframes.length === 1 ? 1 : keyframe.offset || index / (keyframes.length - 1);
-//       frames.set(offset, {
-//         ...keyframe,
-//         // https://developer.mozilla.org/en-US/docs/Web/API/Web_Animations_API/Keyframe_Formats#attributes
-//         cssOffset: undefined,
-//         offset: keyframe.cssOffset,
-//         composite: undefined,
-//         animationComposition: keyframe.composite,
-//         easing: undefined,
-//         animationTimingFunction: keyframe.easing,
-//       } as StyleObject);
-//     });
-//   } else {
-//     const offsetList: (number | null)[] = Array.isArray(keyframes.offset)
-//       ? keyframes.offset
-//       : keyframes.offset === undefined
-//         ? []
-//         : [keyframes.offset];
-//     if (offsetList.length && offsetList.at(-1) !== 1) offsetList.push(1);
-
-//     const setStyle = (offset: number, key: string, value: string | number | null | undefined) => {
-//       const style = frames.get(offset) || {};
-//       switch (key) {
-//         case 'offset':
-//           break;
-//         case 'cssOffset':
-//           Reflect.set(style, 'offset', value);
-//           break;
-//         case 'composite':
-//           Reflect.set(style, 'animationComposition', value);
-//           break;
-//         case 'easing':
-//           Reflect.set(style, 'animationTimingFunction', value);
-//           break;
-//         default:
-//           Reflect.set(style, key, value);
-//       }
-//       frames.set(offset, style);
-//     };
-//     for (const key in keyframes) {
-//       const framesValue = keyframes[key];
-//       !Array.isArray(framesValue)
-//         ? setStyle(1, key, framesValue)
-//         : framesValue.length === 1
-//           ? setStyle(1, key, framesValue[0])
-//           : framesValue.forEach((value, index) =>
-//               setStyle(offsetList[index] ?? index / (framesValue.length - 1), key, value),
-//             );
-//     }
-//   }
-
-//   let framesStr = '';
-//   frames.forEach((rules, offset) => {
-//     framesStr += `${(offset * 100).toFixed()}%{${styleMap(rules)}}`;
-//   });
-
-//   if (options) {
-//     const {
-//       // 只能使用 ms 数字
-//       duration = 0,
-//       easing = '',
-//       delay = 0,
-//       iterations = 1,
-//       direction = '',
-//       fill = '',
-//       name = `ani-${randomStr()}`,
-//     } = typeof options === 'number' ? ({ duration: options } as Exclude<typeof options, number>) : options;
-//     return `${duration}ms ${easing} ${delay}ms ${iterations} ${direction} ${fill} ${name};@keyframes ${name}{${framesStr}}`;
-//   }
-
-//   return framesStr;
-// }

@@ -126,28 +126,4 @@ describe('utils 测试', () => {
     expect(exportPartsMap({ foo: 'bar', content: 'content', false: false })).to.equal(`,foo:bar,content,`);
     expect(exportPartsMap({ foo: 'bar', content: true })).to.equal(`,foo:bar,content,`);
   });
-  // it('createCSSAnimation', () => {
-  //   expect(createCSSAnimation([{ opacity: 0 }])).to.equal('100%{;opacity:0;}');
-  //   expect(createCSSAnimation([{ opacity: 1 }, { opacity: 0 }])).to.equal('0%{;opacity:1;}100%{;opacity:0;}');
-  //   expect(createCSSAnimation([{ opacity: 1 }, { opacity: 0.1, offset: 0.7 }, { opacity: 0 }])).to.equal(
-  //     '0%{;opacity:1;}70%{;opacity:0.1;}100%{;opacity:0;}',
-  //   );
-  //   expect(createCSSAnimation({ opacity: [0] })).to.equal('100%{;opacity:0;}');
-  //   expect(createCSSAnimation({ opacity: [1, 0] })).to.equal('0%{;opacity:1;}100%{;opacity:0;}');
-  //   expect(createCSSAnimation({ opacity: [1, 0], offset: [0, 0.7] })).to.equal(
-  //     '0%{;opacity:1;}70%{;opacity:0;}100%{;}',
-  //   );
-  //   expect(createCSSAnimation({ opacity: [1, 0], backgroundColor: ['red', 'yellow', 'green'] })).to.equal(
-  //     '0%{;opacity:1;background-color:red;}100%{;opacity:0;background-color:green;}50%{;background-color:yellow;}',
-  //   );
-  //   expect(
-  //     createCSSAnimation({
-  //       opacity: [1, 0],
-  //       backgroundColor: ['red', 'yellow', 'green'],
-  //       offset: [0, 0.7],
-  //     }),
-  //   ).to.equal(
-  //     '0%{;opacity:1;background-color:red;}70%{;opacity:0;background-color:yellow;}100%{;background-color:green;}',
-  //   );
-  // });
 });
