@@ -115,7 +115,8 @@ export const getSelectedGem = function (data: PanelStore): PanelStore | string {
   const lifecycleMethod = new Set(['willMount', 'render', 'mounted', 'shouldUpdate', 'updated', 'unmounted']);
   const buildInMethod = new Set(['update', 'setState', 'effect', 'memo']);
   const buildInProperty = new Set(['internals']);
-  const buildInAttribute = new Set(['ref']);
+  const buildInAttribute = new Set(['ref', 'data-gem-reflect', 'data-gem-style']);
+  const buildInCSSState = new Set(['gem-style-boundary']);
   const memberSet = getProps($0);
   metadata.observedAttributes?.forEach((attr) => {
     const prop = kebabToCamelCase(attr);
@@ -225,6 +226,7 @@ export const getSelectedGem = function (data: PanelStore): PanelStore | string {
       name: state,
       value: $0[prop],
       type: 'boolean',
+      buildIn: buildInCSSState.has(state) ? 1 : 0,
     });
   });
   $0.internals?.stateList?.forEach((state: any) => {
@@ -271,7 +273,7 @@ export const getSelectedGem = function (data: PanelStore): PanelStore | string {
         value: objectToString($0[key]),
         type: 'function',
         path: [key],
-        buildIn: buildInMethod.has(key) ? 2 : 0,
+        buildIn: buildInMethod.has(key) ? 1 : 0,
       });
       return;
     }
@@ -280,7 +282,7 @@ export const getSelectedGem = function (data: PanelStore): PanelStore | string {
       value: objectToString($0[key]),
       type: typeof $0[key],
       path: [key],
-      buildIn: buildInProperty.has(key) ? 2 : 0,
+      buildIn: buildInProperty.has(key) ? 1 : 0,
     });
   });
 

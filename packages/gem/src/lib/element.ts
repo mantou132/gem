@@ -39,6 +39,8 @@ export const SheetToken = Symbol.for('gem@sheetToken');
 export const UpdateToken = Symbol.for('gem@update');
 
 export const BoundaryCSSState = 'gem-style-boundary';
+export const RenderErrorEvent = 'gem@render-error';
+
 // fix modal-factory type error
 const updateTokenAlias = UpdateToken;
 
@@ -253,6 +255,11 @@ function clearEffect(list: EffectItem<any>[]) {
   });
 }
 
+type Render = () => TemplateResult | null | undefined;
+type RenderItem = { render: Render; condition?: () => boolean };
+
+export let createTemplate: (ele: GemElement, item: RenderItem) => void;
+
 export type Metadata = Partial<ShadowRootInit> & {
   noBlocking?: boolean;
   aria?: Partial<
@@ -302,12 +309,12 @@ export abstract class GemElement extends HTMLElement {
   };
   #effectList: EffectItem<any>[] = [];
   #memoList: EffectItem<any>[] = [];
+  #renderList: RenderItem[] = [];
   #isAppendReason?: boolean;
   #isMounted?: boolean;
   // not in constructor 的近似值
   #isConnected?: boolean;
   #rendering?: boolean;
-  #unmountCallback?: any;
   #clearStyle?: any;
 
   [updateTokenAlias]() {
@@ -333,6 +340,7 @@ export abstract class GemElement extends HTMLElement {
       return state as T & ((this: GemElement, state: Partial<T>) => void);
     };
     createRef = () => new RefObject(currentConstructGemElement);
+    createTemplate = (ele, item) => ele.#renderList.push(item);
   }
 
   constructor() {
@@ -351,9 +359,9 @@ export abstract class GemElement extends HTMLElement {
 
     assign(this.#internals, internalsAria);
 
-    // light dom 有 render 则不应该被外部样式化
-    // 特殊情况手动 `remove` 状态
-    if (!mode && this.render) this.#internals.states.add(BoundaryCSSState);
+    // light dom 添加边界，防止内容被外部样式化
+    // 特殊情况下需要手动 `delete` 边界，以应该外部样式
+    if (!mode) this.#internals.states.add(BoundaryCSSState);
 
     // https://stackoverflow.com/questions/43836886/failed-to-construct-customelement-error-when-javascript-file-is-placed-in-head
     // focusable 元素一般同时具备 disabled 属性
@@ -379,6 +387,10 @@ export abstract class GemElement extends HTMLElement {
     return (this.constructor as any)[Symbol.metadata];
   }
 
+  get #renderItem() {
+    return this.#renderList.find((e) => !e.condition || e.condition());
+  }
+
   get internals() {
     return this.#internals;
   }
@@ -395,46 +407,33 @@ export abstract class GemElement extends HTMLElement {
   };
 
   /**
-   * @lifecycle
-   */
-  willMount?(): void | Promise<void>;
-
-  /**
-   * @lifecycle
-   *
+   * - 条件渲染
    * - 不提供 `render` 时显示子内容
    * - 返回 `null` 时渲染空的子内容
    * - 返回 `undefined` 时不会更新现有内容
    * */
-  render?(): TemplateResult | null | undefined;
-
-  #render = () => {
-    this.#rendering = true;
-    this.#execMemo();
-    const isLight = this.#renderRoot === this;
-    const temp = this.render ? this.render() : isLight ? undefined : html`<slot></slot>`;
-    this.#rendering = false;
-    if (temp === undefined) return;
-    render(temp, this.#renderRoot);
-  };
-
-  /**
-   * @lifecycle
-   */
-  mounted?(): void | (() => void) | Promise<void>;
-
-  /**
-   * @lifecycle
-   */
-  shouldUpdate?(): boolean;
-  #shouldUpdate = () => {
-    return this.shouldUpdate ? this.shouldUpdate() : true;
+  #render = (item?: RenderItem) => {
+    try {
+      this.#rendering = true;
+      this.#execMemo();
+      const isLight = this.#renderRoot === this;
+      const temp = item ? item.render() : isLight ? undefined : html`<slot></slot>`;
+      this.#rendering = false;
+      if (temp === undefined) return;
+      render(temp, this.#renderRoot);
+    } catch (err) {
+      this.dispatchEvent(new CustomEvent(RenderErrorEvent, { bubbles: true, composed: true, detail: err }));
+    }
   };
 
   #updateCallback = () => {
-    if (this.#isMounted && this.#shouldUpdate()) {
-      this.#render();
-      addMicrotask(this.#updated);
+    const item = this.#renderItem;
+    if (
+      this.#isMounted &&
+      // 当有渲染函数，但是没一个符合条件时跳过
+      (item || !this.#renderList.length)
+    ) {
+      this.#render(item);
       addMicrotask(this.#execEffect);
     }
   };
@@ -446,21 +445,6 @@ export abstract class GemElement extends HTMLElement {
       this.#updateCallback();
     }
   };
-
-  /**
-   * @lifecycle
-   */
-  updated?(): void | Promise<void>;
-  #updated = () => {
-    this.updated?.();
-  };
-
-  /**
-   * @lifecycle
-   *
-   * 卸载元素，但不一定会被垃圾回收，所以事件监听器需要手动清除，以免重复注册
-   */
-  unmounted?(): void | Promise<void>;
 
   #prepareStyle = () => {
     const { adoptedStyleSheets = [] } = this.#metadata;
@@ -489,8 +473,28 @@ export abstract class GemElement extends HTMLElement {
     });
   };
 
+  /** @lifecycle 将来会彻底移除，现在做兼容实现*/ willMount?(): void | Promise<void>;
+  /** @lifecycle 将来会彻底移除，现在做兼容实现*/ mounted?(): void | (() => void) | Promise<void>;
+  /** @lifecycle 将来会彻底移除，现在做兼容实现*/ updated?(): void | Promise<void>;
+  /** @lifecycle 将来会彻底移除，现在做兼容实现*/ unmounted?(): void | Promise<void>;
+  /** @lifecycle 将来会彻底移除，现在做兼容实现*/ shouldUpdate?(): boolean;
+  /** @lifecycle 将来会彻底移除，现在做兼容实现*/ render?(): TemplateResult | null | undefined;
+  #compat = () => {
+    if (this.willMount) this.memo(this.willMount.bind(this), () => []);
+    if (this.mounted) this.effect(this.mounted.bind(this), () => []);
+    if (this.updated) this.effect((_, old) => old && this.updated!.apply(this));
+    if (this.unmounted)
+      this.effect(
+        () => this.unmounted!.bind(this),
+        () => [],
+      );
+    if (!this.#renderList.length && this.render)
+      this.#renderList.push({ render: this.render.bind(this), condition: this.shouldUpdate?.bind(this) });
+  };
+
   #disconnectStore?: (() => void)[];
   #connectedCallback = async () => {
+    this.#compat();
     if (this.#isAppendReason) {
       this.#isAppendReason = false;
       return;
@@ -499,15 +503,13 @@ export abstract class GemElement extends HTMLElement {
     const { observedStores } = this.#metadata;
 
     this.#isConnected = true;
-    this.willMount?.();
     this.#disconnectStore = observedStores?.map((store) => connect(store, this.#update));
-    this.#render();
+    this.#render(this.#renderItem);
     this.#isMounted = true;
     this.#clearStyle = this.#prepareStyle();
     // 等待所有元素的样式被应用，再执行回调
     // 这让 mounted 和 effect 回调和其他回调一样保持一样的异步行为
     await Promise.resolve();
-    this.#unmountCallback = this.mounted?.();
     this.#initEffect();
   };
 
@@ -548,8 +550,6 @@ export abstract class GemElement extends HTMLElement {
     this.#isMounted = false;
     this.#disconnectStore?.forEach((disconnect) => disconnect());
     // 是否要异步执行回调？
-    execCallback(this.#unmountCallback);
-    this.unmounted?.();
     this.#effectList = clearEffect(this.#effectList);
     this.#memoList = clearEffect(this.#memoList);
     execCallback(this.#clearStyle);

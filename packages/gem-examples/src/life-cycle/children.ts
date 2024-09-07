@@ -34,6 +34,7 @@ export class Descendant extends GemElement {
 
   render() {
     console.log(`descendant${this.key} render`);
+    if (Math.random() > 0.8) throw new Error('random error');
     return html``;
   }
 }

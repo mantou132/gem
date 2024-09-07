@@ -107,6 +107,9 @@ render(
 
 ## Life cycle
 
+> [!WARNING]
+> The lifecycle may be [replaced](https://github.com/mantou132/gem/issues/159) in the future by decorators based on `@effect` `@memo` `@willMount` `@template` `@mounted` `@unmounted`
+
 You can specify life cycle functions for GemElement. Sometimes they are useful, for example:
 
 ```js
@@ -127,29 +130,22 @@ Complete life cycle:
   | constructor |       |attr/prop/store update|
   +-------------+       +----------------------+
          |                         |
-         |                         |
-  +------v------+         +--------v-------+
-  |  willMount  |         |  shouldUpdate  |
-  +-------------+         +----------------+
-         |                         |
+         |                   (shouldUpdate)
          |                         |
   +------v-------------------------v------+
-  |                render                 |
+  |            @memo(willMount)           |
   +---------------------------------------+
          |                         |
          |                         |
-  +------v------+           +------v------+
-  |   mounted   |           |   updated   |
-  +-------------+           +-------------+
+  +------v-------------------------v------+
+  |           @template(render)           |
+  +---------------------------------------+
          |                         |
          |                         |
   +------v-------------------------v------+
-  |               unmounted               |
+  |  @effect(mounted/updated/unmounted)   |
   +---------------------------------------+
 ```
 
 > [!NOTE]
 > The `constructor` and `unmounted` of the parent element are executed before the child element, but the `mounted` is executed after the child element
-
-> [!WARNING]
-> The lifecycle may be replaced in the future by decorators based on `@effect` `@memo` `@willMount` `@renderTemplate` `@mounted` `@unmounted

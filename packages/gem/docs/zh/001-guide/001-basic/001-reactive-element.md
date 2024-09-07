@@ -109,6 +109,9 @@ render(
 
 ## 生命周期
 
+> [!WARNING]
+> 生命周期在未来可能被基于 `@effect` `@memo` 的装饰器 `@willMount` `@template` `@mounted` `@unmounted` [替代](https://github.com/mantou132/gem/issues/159)
+
 你可以为 GemElement 指定生命周期函数，有时候他们会很有用，例如：
 
 ```js
@@ -129,29 +132,23 @@ class MyElement extends GemElement {
   | constructor |       |attr/prop/store update|
   +-------------+       +----------------------+
          |                         |
-         |                         |
-  +------v------+         +--------v-------+
-  |  willMount  |         |  shouldUpdate  |
-  +-------------+         +----------------+
-         |                         |
+         |                   (shouldUpdate)
          |                         |
   +------v-------------------------v------+
-  |                render                 |
+  |            @memo(willMount)           |
   +---------------------------------------+
          |                         |
          |                         |
-  +------v------+           +------v------+
-  |   mounted   |           |   updated   |
-  +-------------+           +-------------+
+  +------v-------------------------v------+
+  |           @template(render)           |
+  +---------------------------------------+
          |                         |
          |                         |
   +------v-------------------------v------+
-  |               unmounted               |
+  |  @effect(mounted/updated/unmounted)   |
   +---------------------------------------+
 ```
 
 > [!NOTE]
 > 父元素的 `constructor` 和 `unmounted` 先于子元素执行，但 `mounted` 后于子元素执行
 
-> [!WARNING]
-> 生命周期在未来可能被基于 `@effect` `@memo` 的装饰器 `@willMount` `@renderTemplate` `@mounted` `@unmounted` 替代

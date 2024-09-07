@@ -1,14 +1,5 @@
 import { BoundaryCSSState, createState, GemElement, html, TemplateResult } from '../../lib/element';
-import {
-  property,
-  emitter,
-  Emitter,
-  boolattribute,
-  shadow,
-  effect,
-  renderTemplate,
-  willMount,
-} from '../../lib/decorators';
+import { property, emitter, Emitter, boolattribute, shadow, effect, template, willMount } from '../../lib/decorators';
 import { createStore, updateStore, Store, connect } from '../../lib/store';
 import { titleStore, history, UpdateHistoryParams } from '../../lib/history';
 import { addListener, QueryString } from '../../lib/utils';
@@ -270,7 +261,7 @@ export class GemLightRouteElement extends GemElement {
   };
 
   @effect((i) => i.#updateContentDep())
-  #updateContent = ([key, path]: any, old: any) => {
+  #updateContent = ([key, path]: any, old?: any) => {
     // 只有查询参数改变
     if (old && key === old[0] && path === old[1]) {
       this.#updateLocationStore();
@@ -279,8 +270,8 @@ export class GemLightRouteElement extends GemElement {
     this.update();
   };
 
-  @renderTemplate((i) => !i.inert)
-  #render = () => {
+  @template((i) => !i.inert)
+  #content = () => {
     const { content } = this.#state;
     if (content === undefined) return;
 

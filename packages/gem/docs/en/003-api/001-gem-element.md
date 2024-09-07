@@ -47,14 +47,16 @@ Type with decorator
 
 ## Method Decorator
 
-| name              | description                                             |
-| ----------------- | ------------------------------------------------------- |
-| `@memo`           | Similar `GemElement.memo`                               |
-| `@effect`         | Similar `GemElement.effect`                             |
-| `@willMount`      | Similar `GemElement.willMount`                          |
-| `@mounted`        | Similar `GemElement.mounted`                            |
-| `@unmounted`      | Similar `GemElement.unmounted`                          |
-| `@renderTemplate` | Similar `GemElement.render` + `GemElement.shouldUpdate` |
+| name         | description                                                  |
+| ------------ | ------------------------------------------------------------ |
+| `@memo`      | Similar `GemElement.memo`                                    |
+| `@effect`    | Similar `GemElement.effect`                                  |
+| `@willMount` | Similar `GemElement.willMount`                               |
+| `@mounted`   | Similar `GemElement.mounted`                                 |
+| `@unmounted` | Similar `GemElement.unmounted`                               |
+| `@template`  | Similar `GemElement.render` + `GemElement.shouldUpdate`      |
+| `@fallback`  | When the content render error, rendering the reserve content |
+
 
 ## Utils
 

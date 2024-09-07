@@ -47,14 +47,15 @@ class GemElement extends HTMLElement {
 
 ## 方法/函数装饰器
 
-| 名称              | 描述                                                 |
-| ----------------- | ---------------------------------------------------- |
-| `@memo`           | 类似 `GemElement.memo`                               |
-| `@effect`         | 类似 `GemElement.effect`                             |
-| `@willMount`      | 类似 `GemElement.willMount`                          |
-| `@mounted`        | 类似 `GemElement.mounted`                            |
-| `@unmounted`      | 类似 `GemElement.unmounted`                          |
-| `@renderTemplate` | 类似 `GemElement.render` + `GemElement.shouldUpdate` |
+| 名称         | 描述                                                 |
+| ------------ | ---------------------------------------------------- |
+| `@memo`      | 类似 `GemElement.memo`                               |
+| `@effect`    | 类似 `GemElement.effect`                             |
+| `@willMount` | 类似 `GemElement.willMount`                          |
+| `@mounted`   | 类似 `GemElement.mounted`                            |
+| `@unmounted` | 类似 `GemElement.unmounted`                          |
+| `@template`  | 类似 `GemElement.render` + `GemElement.shouldUpdate` |
+| `@fallback`  | 当内容渲染失败时渲染后备内容                         |
 
 ## 工具函数
 

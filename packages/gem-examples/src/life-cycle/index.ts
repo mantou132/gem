@@ -11,6 +11,7 @@ import {
   render,
   useStore,
   mounted,
+  fallback,
 } from '@mantou/gem';
 
 import '../elements/layout';
@@ -65,6 +66,12 @@ export class App extends GemElement {
     if (!element) return;
     const { firstName, lastName, disabled, count } = element;
     console.log({ firstName, lastName, disabled, count });
+  };
+
+  @fallback()
+  #error = (detail?: Error) => {
+    console.error(detail);
+    return html`${detail?.message}`;
   };
 
   render() {

@@ -1,4 +1,13 @@
-import { createCSSSheet, GemElement, UpdateToken, Metadata, TemplateResult } from './element';
+import {
+  createCSSSheet,
+  GemElement,
+  UpdateToken,
+  Metadata,
+  TemplateResult,
+  createTemplate,
+  RenderErrorEvent,
+  render,
+} from './element';
 import { camelToKebabCase, PropProxyMap, GemError } from './utils';
 import { Store } from './store';
 import * as elementExports from './element';
@@ -263,17 +272,32 @@ export function mounted() {
   return effect(() => []);
 }
 
-export function renderTemplate<T extends GemElement, V extends () => TemplateResult | null | undefined>(
-  /**当返回 `false` 时不进行更新，包括 `memo` */
-  shouldRender?: (instance: T) => boolean,
+export function template<T extends GemElement, V extends () => TemplateResult | null | undefined>(
+  /** 当所有 `template` 返回 `false` 时不进行更新，包括 `memo` */
+  condition?: (instance: T) => boolean,
 ) {
   return function (
     _: any,
     { addInitializer, access }: ClassFieldDecoratorContext<T, V> | ClassMethodDecoratorContext<T, V>,
   ) {
     addInitializer(function (this: T) {
-      if (shouldRender) this.shouldUpdate = () => shouldRender(this);
-      this.render = access.get(this).bind(this);
+      createTemplate(this, {
+        render: access.get(this).bind(this),
+        condition: condition && (() => condition(this) as any),
+      });
+    });
+  };
+}
+
+export function fallback<T extends GemElement, V extends (err: any) => TemplateResult | null | undefined>() {
+  return function (
+    _: any,
+    { addInitializer, access }: ClassFieldDecoratorContext<T, V> | ClassMethodDecoratorContext<T, V>,
+  ) {
+    addInitializer(function (this: T) {
+      this.addEventListener(RenderErrorEvent, ({ detail }: CustomEvent) => {
+        render(access.get(this).apply(this, [detail]), this.internals.shadowRoot || this);
+      });
     });
   };
 }
