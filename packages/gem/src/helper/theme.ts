@@ -1,6 +1,6 @@
 import { connect, Store, useStore } from '../lib/store';
 import { camelToKebabCase, randomStr } from '../lib/utils';
-import { SheetToken, createCSSSheet } from '../lib/element';
+import { GemElement, SheetToken, createCSSSheet } from '../lib/element';
 
 export type Theme<T> = ReturnType<typeof createCSSSheet> & {
   [K in keyof T as K extends `${string}Color`
@@ -76,4 +76,21 @@ export function useTheme<T extends Record<string, unknown>>(themeObj: T) {
 /**用来覆盖全局主题 */
 export function useOverrideTheme<T extends Record<string, unknown>>(theme: Theme<T>, themeObj: Partial<T>) {
   return useThemeFromProps(themeObj, getThemeProps(theme));
+}
+
+export function useDecoratorTheme<T extends Record<string, unknown>>(themeObj: T) {
+  const [themeAsKeys] = useThemeFromProps(themeObj);
+  const props = getThemeProps(themeAsKeys);
+  const updateDecorator =
+    <E extends GemElement, V extends () => T, K = any[] | undefined>(
+      getDep?: K extends readonly any[] ? (instance: E) => K : undefined,
+    ) =>
+    (_: any, { addInitializer, access }: ClassFieldDecoratorContext<E, V> | ClassMethodDecoratorContext<E, V>) => {
+      addInitializer(function (this: E) {
+        const [theme, update] = useThemeFromProps({ ...themeObj }, props);
+        this.internals.sheets.push(theme[SheetToken].getStyle(this));
+        this.memo(() => update(access.get(this).apply(this)), getDep && (() => getDep(this) as any));
+      });
+    };
+  return [themeAsKeys, updateDecorator] as const;
 }

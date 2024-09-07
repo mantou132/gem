@@ -13,7 +13,8 @@ import {
 } from '@mantou/gem/lib/decorators';
 import { createCSSSheet, GemElement, html, createRef } from '@mantou/gem/lib/element';
 import { history } from '@mantou/gem/lib/history';
-import { addListener, css, QueryString } from '@mantou/gem/lib/utils';
+import { addListener, classMap, css, QueryString } from '@mantou/gem/lib/utils';
+import { useDecoratorTheme } from '@mantou/gem/helper/theme';
 
 import { theme, getSemanticColor } from '../lib/theme';
 import { icons } from '../lib/icons';
@@ -27,9 +28,10 @@ import { ContextMenuItem, ContextMenu } from './contextmenu';
 
 import './use';
 
+const [elementTheme, updateTheme] = useDecoratorTheme({ bg: '', color: '' });
+
 const style = createCSSSheet(css`
   :host(:where(:not([hidden]))) {
-    --color: ${theme.backgroundColor};
     display: inline-flex;
     align-items: stretch;
     line-height: 1.2;
@@ -48,9 +50,9 @@ const style = createCSSSheet(css`
   .content,
   .dropdown {
     position: relative;
-    color: var(--color);
-    background: var(--bg);
-    border: 1px solid var(--bg);
+    color: ${elementTheme.color};
+    background: ${elementTheme.bg};
+    border: 1px solid ${elementTheme.bg};
   }
   .content {
     flex-grow: 1;
@@ -61,6 +63,10 @@ const style = createCSSSheet(css`
     padding: 0.5em 1.5em;
     min-width: 3em;
     border-radius: inherit;
+  }
+  .content.corner {
+    border-start-end-radius: 0;
+    border-end-end-radius: 0;
   }
   .dropdown {
     display: flex;
@@ -90,26 +96,15 @@ const style = createCSSSheet(css`
     padding: 0.5em;
   }
   :host([type='reverse']) :where(.content, .dropdown) {
-    color: var(--bg);
-    border-color: var(--bg);
+    color: ${elementTheme.bg};
+    border-color: ${elementTheme.bg};
     background: transparent;
   }
   :host([borderless]) :where(.content, .dropdown) {
     border-color: transparent;
   }
-  :host([color='normal']) {
-    --bg: ${theme.primaryColor};
-  }
-  :host([color='danger']) {
-    --bg: ${theme.negativeColor};
-  }
-  :host([color='cancel']:not([disabled])) {
-    --bg: ${theme.hoverBackgroundColor};
-    --color: ${theme.textColor};
-  }
   :host([disabled]) {
     cursor: not-allowed;
-    --bg: ${theme.disabledColor};
   }
   :where(:host(:state(active)) .content, .content:where(:hover), .dropdown:where(:hover, :state(active)))::after {
     content: '';
@@ -200,19 +195,29 @@ export class DuoyunButtonElement extends GemElement {
   @mounted()
   #init = () => addListener(this, 'click', this.#onClick);
 
+  @updateTheme()
+  #theme = () => {
+    if (this.disabled) return { bg: theme.disabledColor, color: theme.backgroundColor };
+    switch (this.color) {
+      case 'normal':
+        return { bg: theme.primaryColor, color: theme.backgroundColor };
+      case 'danger':
+        return { bg: theme.negativeColor, color: theme.backgroundColor };
+      case 'cancel':
+        return { bg: theme.hoverBackgroundColor, color: theme.textColor };
+      default:
+        return { bg: getSemanticColor(this.color) || this.color || theme.primaryColor, color: theme.backgroundColor };
+    }
+  };
+
   render = () => {
     return html`
-      <style>
-        :host {
-          --bg: ${this.#color};
-        }
-      </style>
       <div
         role="button"
         tabindex=${-Number(this.disabled)}
         aria-disabled=${this.disabled}
         @keydown=${commonHandle}
-        class="content"
+        class=${classMap({ content: true, corner: !!this.dropdown })}
         part=${DuoyunButtonElement.button}
       >
         ${this.icon ? html`<dy-use class="icon" .element=${this.icon}></dy-use>` : ''}
@@ -220,16 +225,6 @@ export class DuoyunButtonElement extends GemElement {
       </div>
       ${this.dropdown
         ? html`
-            <style>
-              div.content {
-                border-start-end-radius: 0;
-                border-end-end-radius: 0;
-              }
-              span.dropdown {
-                border-start-start-radius: 0;
-                border-end-start-radius: 0;
-              }
-            </style>
             <dy-use
               ref=${this.#dropdownRef.ref}
               class="dropdown"

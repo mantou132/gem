@@ -11,21 +11,22 @@ import {
 } from '@mantou/gem/lib/decorators';
 import { GemElement, html, createCSSSheet } from '@mantou/gem/lib/element';
 import { addListener, css } from '@mantou/gem/lib/utils';
+import { useDecoratorTheme } from '@mantou/gem/helper/theme';
 
 import { theme, getSemanticColor } from '../lib/theme';
 import { commonHandle } from '../lib/hotkeys';
 import { focusStyle } from '../lib/styles';
 
+const [elementTheme, updateTheme] = useDecoratorTheme({ color: '' });
+
 const style = createCSSSheet(css`
   :host(:where(:not([hidden]))) {
-    --color: ${theme.borderColor};
     cursor: default;
     display: inline-flex;
     align-items: center;
     gap: 0.5em;
   }
   :host([disabled]) {
-    --color: ${theme.neutralColor};
     cursor: not-allowed;
     opacity: 0.3;
   }
@@ -34,7 +35,7 @@ const style = createCSSSheet(css`
     aspect-ratio: 9 / 5;
     border-radius: 10em;
     opacity: 0.8;
-    background: var(--color);
+    background: ${elementTheme.color};
     transition: all 0.3s ${theme.timingFunction};
     transition-property: background, opacity, margin-inline-start;
   }
@@ -42,7 +43,7 @@ const style = createCSSSheet(css`
     opacity: 1;
   }
   :host([checked]) .switch {
-    background: var(--color);
+    background: ${elementTheme.color};
   }
   :host(:not([disabled])) .switch {
     box-shadow: ${theme.controlShadow};
@@ -100,13 +101,15 @@ export class DuoyunSwitchElement extends GemElement {
   @mounted()
   #init = () => addListener(this, 'click', this.#onClick);
 
+  @updateTheme()
+  #theme = () => {
+    if (this.disabled) return { color: theme.neutralColor };
+    if (this.checked) return { color: this.#checkedColor };
+    return { color: theme.borderColor };
+  };
+
   render = () => {
     return html`
-      <style>
-        :host([checked]) {
-          --color: ${this.#checkedColor};
-        }
-      </style>
       <div
         class="switch"
         @keydown=${commonHandle}

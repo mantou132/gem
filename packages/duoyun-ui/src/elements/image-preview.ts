@@ -8,7 +8,8 @@ import {
   effect,
 } from '@mantou/gem/lib/decorators';
 import { createCSSSheet, createState, GemElement, html } from '@mantou/gem/lib/element';
-import { css, styleMap } from '@mantou/gem/lib/utils';
+import { css } from '@mantou/gem/lib/utils';
+import { useDecoratorTheme } from '@mantou/gem/helper/theme';
 
 import { theme, getSemanticColor } from '../lib/theme';
 import { compressionImage } from '../lib/image';
@@ -18,9 +19,10 @@ import { focusStyle } from '../lib/styles';
 
 import './use';
 
+const [elementTheme, updateTheme] = useDecoratorTheme({ color: '', progress: '' });
+
 const style = createCSSSheet(css`
   :host {
-    --color: initial;
     position: relative;
     aspect-ratio: 1;
     background: conic-gradient(
@@ -51,13 +53,17 @@ const style = createCSSSheet(css`
   .desc {
     position: relative;
     color: ${theme.backgroundColor};
-    background: var(--color);
+    background: ${elementTheme.color};
     border-radius: 10em;
     padding: 0 0.5em;
     line-height: 1.5;
   }
   .mask {
     background-color: rgba(0, 0, 0, calc(${theme.maskAlpha} + 0.4));
+  }
+  .progress {
+    opacity: 0.4;
+    background: linear-gradient(to top, ${elementTheme.color} ${elementTheme.progress}, transparent ${elementTheme.progress});,
   }
   .icon {
     width: 1.5em;
@@ -67,7 +73,7 @@ const style = createCSSSheet(css`
     cursor: pointer;
   }
   .status .icon {
-    color: var(--color);
+    color: ${elementTheme.color};
   }
 `);
 
@@ -97,10 +103,6 @@ export class DuoyunImagePreviewElement extends GemElement {
     return this.status || 'default';
   }
 
-  get #color() {
-    return getSemanticColor(this.#status);
-  }
-
   get #icon() {
     switch (this.#status) {
       case 'negative':
@@ -127,30 +129,20 @@ export class DuoyunImagePreviewElement extends GemElement {
     }
   };
 
+  @updateTheme()
+  #theme = () => ({
+    progress: `${this.progress}%`,
+    color: this.progress ? theme.informativeColor : getSemanticColor(this.#status) || 'none',
+  });
+
   render = () => {
     if (!this.file) return html``;
     const { previewUrl } = this.#state;
-    const color = this.progress ? theme.informativeColor : this.#color;
     return html`
-      ${color
-        ? html`
-            <style>
-              :host {
-                --color: ${color} !important;
-              }
-            </style>
-          `
-        : ''}
       ${previewUrl ? html`<img class="preview" alt=${this.file.name} src=${previewUrl}></img>` : ''}
       ${this.progress
         ? html`
-            <div
-              class="mask status"
-              style=${styleMap({
-                opacity: '0.4',
-                background: `linear-gradient(to top, ${color} ${this.progress}%, transparent ${this.progress}%);`,
-              })}
-            ></div>
+            <div class="mask status progress"></div>
             <div class="desc" role="progressbar">${Math.floor(this.progress)}%</div>
           `
         : this.#status !== 'default'

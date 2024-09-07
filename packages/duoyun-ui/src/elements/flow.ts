@@ -3,6 +3,7 @@
 import { adoptedStyle, customElement, property, part, state, shadow, memo, effect } from '@mantou/gem/lib/decorators';
 import { createCSSSheet, createRef, createState, html, svg, TemplateResult } from '@mantou/gem/lib/element';
 import { css, styleMap, exportPartsMap } from '@mantou/gem/lib/utils';
+import { useDecoratorTheme } from '@mantou/gem/helper/theme';
 import type { ElkNode, ElkExtendedEdge, ElkEdgeSection, LayoutOptions, ElkShape, ElkPoint } from 'elkjs';
 import ELK from 'elkjs/lib/elk.bundled.js';
 
@@ -187,11 +188,16 @@ export type Node = Modify<
   }
 >;
 
+const [elementTheme, updateTheme] = useDecoratorTheme({ opacity: 0, width: '', height: '' });
+
 const canvasStyle = createCSSSheet(css`
   :host(:where(:not([hidden]))) {
     display: block;
     position: relative;
     flex-shrink: 0;
+    opacity: ${elementTheme.opacity};
+    width: ${elementTheme.width};
+    height: ${elementTheme.height};
   }
   .node {
     height: 100%;
@@ -454,17 +460,20 @@ export class DuoyunFlowCanvasElement extends DuoyunResizeBaseElement {
     }
   };
 
+  @updateTheme()
+  #theme = () => {
+    const { width, height } = this.graph || {};
+    return {
+      opacity: this.#isReady ? 1 : 0,
+      width: width ? `${width}px` : '100%',
+      height: height ? `${height}px` : '100%',
+    };
+  };
+
   render = () => {
     if (!this.graph) return html``;
     const { children, edges, width, height } = this.graph;
     return html`
-      <style>
-        :host {
-          opacity: ${this.#isReady ? 1 : 0};
-          width: ${width ? `${width}px` : '100%'};
-          height: ${height ? `${height}px` : '100%'};
-        }
-      </style>
       <!-- edge -->
       ${width && height
         ? svg`

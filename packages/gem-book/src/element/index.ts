@@ -276,19 +276,14 @@ export class GemBookElement extends GemElement {
     this.isHomePage = !!renderHomePage;
 
     return html`
-      <gem-book-meta aria-hidden="true"></gem-book-meta>
-
+      <gem-book-meta></gem-book-meta>
       ${hasNavbar
         ? html`
-            <gem-book-nav
-              role="navigation"
-              part=${GemBookElement.nav}
-              .logo=${mediaQuery.isPhone || this.renderFullWidth}
-            ></gem-book-nav>
+            <gem-book-nav part=${GemBookElement.nav} .logo=${mediaQuery.isPhone || this.renderFullWidth}></gem-book-nav>
           `
         : null}
       ${mediaQuery.isPhone || !this.renderFullWidth
-        ? html`<gem-book-sidebar role="navigation" part=${GemBookElement.sidebar}></gem-book-sidebar>`
+        ? html`<gem-book-sidebar part=${GemBookElement.sidebar}></gem-book-sidebar>`
         : null}
       ${renderHomePage ? html`<gem-book-homepage></gem-book-homepage>` : ''}
       <main>
@@ -304,10 +299,10 @@ export class GemBookElement extends GemElement {
           @loading=${this.#onLoading}
           @routechange=${this.#onRouteChange}
         ></gem-light-route>
-        <gem-book-edit-link role="complementary" part=${GemBookElement.editLink}></gem-book-edit-link>
-        <gem-book-rel-link role="navigation" part=${GemBookElement.relLink}></gem-book-rel-link>
+        <gem-book-edit-link part=${GemBookElement.editLink}></gem-book-edit-link>
+        <gem-book-rel-link part=${GemBookElement.relLink}></gem-book-rel-link>
         ${renderHomePage ? '' : html`<slot name=${GemBookElement.mainAfter}>${bookStore.slots?.mainAfter}</slot>`}
-        <gem-book-footer role="contentinfo" part=${GemBookElement.footer}></gem-book-footer>
+        <gem-book-footer part=${GemBookElement.footer}></gem-book-footer>
       </main>
       <gem-book-toc></gem-book-toc>
     `;

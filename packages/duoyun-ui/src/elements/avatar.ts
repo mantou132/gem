@@ -11,11 +11,14 @@ import {
 } from '@mantou/gem/lib/decorators';
 import { createCSSSheet, GemElement, html } from '@mantou/gem/lib/element';
 import { css, exportPartsMap } from '@mantou/gem/lib/utils';
+import { useDecoratorTheme } from '@mantou/gem/helper/theme';
 
 import { theme } from '../lib/theme';
 
 import { Status, getStatusColor } from './status-light';
 import './tooltip';
+
+const [elementTheme, updateTheme] = useDecoratorTheme({ color: '' });
 
 const style = createCSSSheet(css`
   :host(:where(:not([hidden]))) {
@@ -60,7 +63,6 @@ const style = createCSSSheet(css`
       #0000 var(--mask),
       #fff calc(var(--mask) + 0.5px)
     );
-    -webkit-mask-image: var(--m);
     mask-image: var(--m);
   }
   .status {
@@ -71,7 +73,7 @@ const style = createCSSSheet(css`
     border-radius: 10em;
     aspect-ratio: 1;
     transform: translate(50%, -50%);
-    background-color: var(--status);
+    background-color: ${elementTheme.color};
   }
 `);
 
@@ -99,14 +101,11 @@ export class DuoyunAvatarElement extends GemElement {
   @attribute crossorigin: 'anonymous' | 'use-credentials';
   @boolattribute square: boolean;
 
+  @updateTheme()
+  #theme = () => ({ color: getStatusColor(this.status) || 'inherit' });
+
   render = () => {
-    const status = getStatusColor(this.status);
     return html`
-      <style>
-        :host {
-          --status: ${status || 'inherit'};
-        }
-      </style>
       <dy-tooltip .content=${this.tooltip}>
         <img
           class="img"
@@ -134,9 +133,7 @@ const groupStyle = createCSSSheet(css`
     --m-left: radial-gradient(circle at calc(-50% + var(--gap)) center, var(--gradient));
     --m-right: radial-gradient(circle at calc(150% - var(--gap)) center, var(--gradient));
     --m: none;
-    -webkit-mask-image: var(--m);
     mask-image: var(--m);
-    -webkit-mask-composite: intersect;
     mask-composite: intersect;
   }
   .item:not(:last-child, :hover) {

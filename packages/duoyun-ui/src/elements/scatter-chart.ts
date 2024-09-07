@@ -1,7 +1,7 @@
 // https://spectrum.adobe.com/page/scatter-plot/
-import { customElement, memo, property, unmounted } from '@mantou/gem/lib/decorators';
-import { html, svg } from '@mantou/gem/lib/element';
-import { classMap } from '@mantou/gem/lib/utils';
+import { adoptedStyle, customElement, memo, property, unmounted } from '@mantou/gem/lib/decorators';
+import { createCSSSheet, html, svg } from '@mantou/gem/lib/element';
+import { classMap, css } from '@mantou/gem/lib/utils';
 
 import { isNullish } from '../lib/types';
 
@@ -9,10 +9,26 @@ import { DuoyunChartBaseElement } from './base/chart';
 import { Sequence } from './area-chart';
 import { ChartTooltip, Data } from './chart-tooltip';
 
+const style = createCSSSheet(css`
+  .symbol {
+    opacity: 0.8;
+  }
+  .symbol:hover {
+    opacity: 1;
+    transform-box: fill-box;
+    transform-origin: center;
+    transform: scale(1.2);
+  }
+  .disabled {
+    pointer-events: none;
+  }
+`);
+
 /**
  * @customElement dy-scatter-chart
  */
 @customElement('dy-scatter-chart')
+@adoptedStyle(style)
 export class DuoyunScatterChartElement extends DuoyunChartBaseElement {
   @property sequences?: Sequence[];
 
@@ -78,49 +94,35 @@ export class DuoyunScatterChartElement extends DuoyunChartBaseElement {
     if (this.loading) return this.renderLoading();
     if (this.noData) return this.renderNotData();
     if (!this.contentRect.width || !this.sequences) return html``;
-    return html`
-      <style>
-        .symbol {
-          opacity: 0.8;
-        }
-        .symbol:hover {
-          opacity: 1;
-          transform-box: fill-box;
-          transform-origin: center;
-          transform: scale(1.2);
-        }
-        .disabled {
-          pointer-events: none;
-        }
-      </style>
-      ${svg`
-        <svg aria-hidden="true" part=${
-          DuoyunChartBaseElement.chart
-        } xmlns="http://www.w3.org/2000/svg" viewBox=${this.viewBox.join(' ')}>
-          ${this.renderXAxi({ grid: true })}
-          ${this.renderYAxi()}
-          ${this.sequences.map(({ label, value, values }, index) =>
-            this.#symbolSequences[index].map((point, pos) =>
-              point
-                ? svg`
-                    <circle
-                      @mousemove=${(evt: MouseEvent) => this.#onMouseMove(evt, index, values[pos] as number[])}
-                      @mouseout=${this.#onMouseOut}
-                      class=${classMap({
-                        symbol: true,
-                        disabled: !!this.filtersSet.size && !this.filtersSet.has(value ?? label),
-                      })}
-                      fill=${this.colors[index]}
-                      r=${this.getSVGPixel(5)}
-                      cx=${point[0]}
-                      cy=${point[1]}
-                    />
-                  `
-                : '',
-            ),
-          )}
-        </svg>
-      `}
+    return svg`
+      <svg
+        aria-hidden="true"
+        part=${DuoyunChartBaseElement.chart}
+        xmlns="http://www.w3.org/2000/svg"
+        viewBox=${this.viewBox.join(' ')}
+      >
+        ${this.renderXAxi({ grid: true })} ${this.renderYAxi()}
+        ${this.sequences.map(({ label, value, values }, index) =>
+          this.#symbolSequences[index].map((point, pos) =>
+            point
+              ? svg`
+                  <circle
+                    @mousemove=${(evt: MouseEvent) => this.#onMouseMove(evt, index, values[pos] as number[])}
+                    @mouseout=${this.#onMouseOut}
+                    class=${classMap({
+                      symbol: true,
+                      disabled: !!this.filtersSet.size && !this.filtersSet.has(value ?? label),
+                    })}
+                    fill=${this.colors[index]}
+                    r=${this.getSVGPixel(5)}
+                    cx=${point[0]}
+                    cy=${point[1]}
+                  />
+                `
+              : '',
+          ),
+        )}
+      </svg>
     `;
   };
 }

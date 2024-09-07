@@ -10,10 +10,13 @@ import {
 } from '@mantou/gem/lib/decorators';
 import { createCSSSheet, html } from '@mantou/gem/lib/element';
 import { css, styleMap } from '@mantou/gem/lib/utils';
+import { useDecoratorTheme } from '@mantou/gem/helper/theme';
 
 import { theme } from '../lib/theme';
 
 import { DuoyunVisibleBaseElement } from './base/visible';
+
+const [elementTheme, updateTheme] = useDecoratorTheme({ color: '' });
 
 const style = createCSSSheet(css`
   :host(:where(:not([hidden]))) {
@@ -28,7 +31,7 @@ const style = createCSSSheet(css`
     justify-content: center;
   }
   .content {
-    background-image: linear-gradient(var(--color), var(--color));
+    background-image: linear-gradient(${elementTheme.color}, ${elementTheme.color});
     background-position-y: center;
     background-size: 100% 1em;
     background-repeat: no-repeat;
@@ -60,10 +63,6 @@ export class DuoyunPlaceholderElement extends DuoyunVisibleBaseElement {
   @numattribute maxLine: number;
   @numattribute minLine: number;
 
-  get #color() {
-    return this.color || theme.lightBackgroundColor;
-  }
-
   get #type() {
     return this.type || this.mode || 'single';
   }
@@ -76,15 +75,13 @@ export class DuoyunPlaceholderElement extends DuoyunVisibleBaseElement {
     return this.minLine || 1;
   }
 
+  @updateTheme()
+  #theme = () => ({ color: this.color || theme.lightBackgroundColor });
+
   render = () => {
     const lineCount =
       this.#type === 'single' ? 1 : Math.round(this.#minLine + Math.random() * (this.#maxLine - this.#minLine));
     return html`
-      <style>
-        :host {
-          --color: ${this.#color};
-        }
-      </style>
       ${Array(lineCount)
         .fill(null)
         .map(

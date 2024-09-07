@@ -1,6 +1,7 @@
 import { GemElement, html, createCSSSheet } from '@mantou/gem/lib/element';
 import { adoptedStyle, customElement, attribute, state, slot, aria, shadow, mounted } from '@mantou/gem/lib/decorators';
 import { addListener, css } from '@mantou/gem/lib/utils';
+import { useDecoratorTheme } from '@mantou/gem/helper/theme';
 
 import { theme, getSemanticColor } from '../lib/theme';
 import { commonHandle } from '../lib/hotkeys';
@@ -8,17 +9,19 @@ import { focusStyle } from '../lib/styles';
 
 import './tooltip';
 
+const [elementTheme, updateTheme] = useDecoratorTheme({ color: '', activeColor: '' });
+
 const style = createCSSSheet(css`
   :host {
     overflow: hidden;
     text-overflow: ellipsis;
     cursor: default;
     line-height: 1.5;
-    color: var(--color, inherit);
+    color: ${elementTheme.color};
     border-radius: ${theme.normalRound};
   }
   :host(:where(:hover, :state(active))) {
-    color: var(--color, ${theme.primaryColor});
+    color: ${elementTheme.activeColor};
     text-decoration: underline;
   }
   :host(:where(:lang(zh), :lang(ja), :lang(kr))) {
@@ -46,13 +49,14 @@ export class DuoyunActionTextElement extends GemElement {
   @mounted()
   #init = () => addListener(this, 'keydown', commonHandle);
 
+  @updateTheme()
+  #theme = () => {
+    const color = getSemanticColor(this.color) || this.color;
+    return { color: color || 'inherit', activeColor: color || theme.primaryColor };
+  };
+
   render = () => {
     return html`
-      <style>
-        :host([color]) {
-          --color: ${getSemanticColor(this.color) || this.color};
-        }
-      </style>
       <dy-tooltip .content=${this.tooltip}>
         <slot></slot>
       </dy-tooltip>

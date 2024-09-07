@@ -1,14 +1,18 @@
 import { adoptedStyle, customElement, attribute, slot, shadow } from '@mantou/gem/lib/decorators';
-import { GemElement, html, createCSSSheet } from '@mantou/gem/lib/element';
+import { GemElement, createCSSSheet } from '@mantou/gem/lib/element';
 import { css } from '@mantou/gem/lib/utils';
+import { useDecoratorTheme } from '@mantou/gem/helper/theme';
 
 import { getStatusColor } from './status-light';
+
+const [elementTheme, updateTheme] = useDecoratorTheme({ color: '' });
 
 const style = createCSSSheet(css`
   :host {
     margin-block: 0.2em;
     font-size: 0.875em;
     line-height: 1.5;
+    color: ${elementTheme.color};
   }
 `);
 
@@ -28,14 +32,6 @@ export class DuoyunHelpTextElement extends GemElement {
     return this.status || 'neutral';
   }
 
-  render = () => {
-    return html`
-      <style>
-        :host {
-          color: ${getStatusColor(this.#status)};
-        }
-      </style>
-      <slot></slot>
-    `;
-  };
+  @updateTheme()
+  #theme = () => ({ color: getStatusColor(this.#status) });
 }

@@ -2,8 +2,11 @@ import { connectStore, adoptedStyle, customElement, shadow, effect } from '@mant
 import { createCSSSheet, GemElement, html, TemplateResult } from '@mantou/gem/lib/element';
 import { css, styleMap, classMap } from '@mantou/gem/lib/utils';
 import { useStore } from '@mantou/gem/lib/store';
+import { useDecoratorTheme } from '@mantou/gem/helper/theme';
 
 import { theme } from '../lib/theme';
+
+const [elementTheme, updateTheme] = useDecoratorTheme({ top: '', left: '', width: '' });
 
 const style = createCSSSheet(css`
   :host(:where(:not([hidden]))) {
@@ -14,6 +17,8 @@ const style = createCSSSheet(css`
     padding: 1em;
     line-height: 1.2;
     width: max-content;
+    top: ${elementTheme.top};
+    left: ${elementTheme.left};
   }
   .title {
     font-size: 1.125em;
@@ -21,6 +26,7 @@ const style = createCSSSheet(css`
   }
   .body {
     font-size: 0.875em;
+    width: ${elementTheme.width};
     padding: 0.75em;
     color: ${theme.textColor};
     background-color: ${theme.backgroundColor};
@@ -123,18 +129,19 @@ export class DuoyunChartTooltipElement extends GemElement {
     }
   };
 
+  @updateTheme()
+  #theme = () => {
+    const { values, render } = store.data;
+    return {
+      left: `${store.x}px`,
+      top: `${store.y}px`,
+      width: `${render ? 'auto' : values && values.length > 5 ? 20 : 15}em`,
+    };
+  };
+
   render = () => {
     const { title, values, render } = store.data;
     return html`
-      <style>
-        :host {
-          top: ${store.y}px;
-          left: ${store.x}px;
-        }
-        .body {
-          width: ${render ? 'auto' : values && values.length > 5 ? 20 : 15}em;
-        }
-      </style>
       <div class="body" role="tooltip">
         ${render
           ? render(store.data)

@@ -9,6 +9,7 @@ import {
   createState,
   memo,
   effect,
+  aria,
 } from '@mantou/gem';
 import { mediaQuery } from '@mantou/gem/helper/mediaquery';
 
@@ -67,6 +68,7 @@ const fetchData = async (api: string) => {
 @customElement('gem-book-edit-link')
 @connectStore(locationStore)
 @adoptedStyle(styles)
+@aria({ role: 'complementary' })
 export class EditLink extends GemElement {
   #state = createState({
     lastUpdated: '',

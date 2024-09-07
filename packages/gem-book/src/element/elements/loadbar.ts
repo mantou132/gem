@@ -10,8 +10,11 @@ import {
   createState,
   mounted,
 } from '@mantou/gem';
+import { useDecoratorTheme } from '@mantou/gem/helper/theme';
 
 import { theme } from '../helper/theme';
+
+const [elementTheme, updateTheme] = useDecoratorTheme({ progress: '' });
 
 const styles = createCSSSheet(css`
   :host {
@@ -25,6 +28,7 @@ const styles = createCSSSheet(css`
     height: 2px;
     transition: width 0.3s;
     background-color: ${theme.primaryColor};
+    width: ${elementTheme.progress};
   }
   .head {
     width: 300px;
@@ -79,15 +83,11 @@ export class GemBookLoadbarElement extends GemElement {
     return () => (Loadbar.instance = undefined);
   };
 
+  @updateTheme()
+  #theme = () => ({ progress: `${this.#state.progress}%` });
+
   render = () => {
-    return html`
-      <style>
-        :host {
-          width: ${this.#state.progress}%;
-        }
-      </style>
-      <div class="head"></div>
-    `;
+    return html`<div class="head"></div>`;
   };
 }
 

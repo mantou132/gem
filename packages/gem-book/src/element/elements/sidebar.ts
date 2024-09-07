@@ -14,6 +14,7 @@ import {
   effect,
   addListener,
   mounted,
+  aria,
 } from '@mantou/gem';
 import { mediaQuery } from '@mantou/gem/helper/mediaquery';
 
@@ -194,6 +195,7 @@ const styles = createCSSSheet(css`
 @connectStore(sidebarStore)
 @connectStore(tocStore)
 @adoptedStyle(styles)
+@aria({ role: 'navigation' })
 export class SideBar extends GemElement {
   @state open: boolean;
 

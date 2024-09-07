@@ -1,4 +1,4 @@
-import { adoptedStyle, createCSSSheet, css, customElement, GemElement, html } from '@mantou/gem';
+import { adoptedStyle, aria, createCSSSheet, css, customElement, GemElement, html } from '@mantou/gem';
 
 import { getGithubPath, isGitLab } from '../lib/utils';
 import { bookStore, locationStore } from '../store';
@@ -37,6 +37,7 @@ const styles = createCSSSheet(css`
 `);
 @customElement('gem-book-404')
 @adoptedStyle(styles)
+@aria({ role: 'region', ariaLabel: 'not found' })
 export class Meta extends GemElement {
   #getMdFullPath = () => {
     const { links = [] } = bookStore;

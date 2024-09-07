@@ -13,6 +13,7 @@ import { html, createCSSSheet } from '@mantou/gem/lib/element';
 import { addListener, css } from '@mantou/gem/lib/utils';
 import { useStore } from '@mantou/gem/lib/store';
 import { splice } from '@mantou/gem/helper/i18n';
+import { useDecoratorTheme } from '@mantou/gem/helper/theme';
 
 import { theme, getSemanticColor } from '../lib/theme';
 import { locale } from '../lib/locale';
@@ -83,6 +84,8 @@ async function nextTour() {
   }
 }
 
+const [elementTheme, updateTheme] = useDecoratorTheme({ color: '' });
+
 const style = createCSSSheet(css`
   :host {
     position: absolute;
@@ -92,6 +95,7 @@ const style = createCSSSheet(css`
     width: 3em;
     aspect-ratio: 1;
     border-radius: 10em;
+    color: ${elementTheme.color};
   }
   :host([size='small']) {
     transform: translate(-50%, -50%) scale(0.8);
@@ -216,14 +220,12 @@ export class DuoyunCoachMarkElement extends DuoyunVisibleBaseElement {
     this.#open();
   };
 
+  @updateTheme()
+  #theme = () => ({ color: getSemanticColor(this.color) || this.color || theme.informativeColor });
+
   render = () => {
     if (!this.#tour) return noneTemplate;
     return html`
-      <style>
-        :host {
-          color: ${getSemanticColor(this.color) || this.color || theme.informativeColor};
-        }
-      </style>
       <span class="ring"></span>
       <span class="ring"></span>
       <span class="ring"></span>

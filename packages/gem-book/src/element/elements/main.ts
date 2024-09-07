@@ -9,6 +9,7 @@ import {
   connectStore,
   memo,
   effect,
+  aria,
 } from '@mantou/gem';
 import { mediaQuery } from '@mantou/gem/helper/mediaquery';
 
@@ -209,6 +210,7 @@ const style = createCSSSheet(css`
 @customElement('gem-book-main')
 @adoptedStyle(style)
 @connectStore(locationStore)
+@aria({ role: 'article' })
 export class Main extends GemElement {
   @property content?: string;
 

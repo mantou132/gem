@@ -15,6 +15,7 @@ import {
 } from '@mantou/gem/lib/decorators';
 import { GemElement, html, createCSSSheet, createState, createRef } from '@mantou/gem/lib/element';
 import { css, classMap, addListener } from '@mantou/gem/lib/utils';
+import { useDecoratorTheme } from '@mantou/gem/helper/theme';
 
 import { theme } from '../lib/theme';
 import { clamp } from '../lib/number';
@@ -25,6 +26,8 @@ import type { PanEventDetail } from './gesture';
 
 import './gesture';
 import './input';
+
+const [elementTheme, updateTheme] = useDecoratorTheme({ position: '', positionPoint: '' });
 
 const style = createCSSSheet(css`
   :host(:where(:not([hidden]))) {
@@ -49,9 +52,16 @@ const style = createCSSSheet(css`
     position: relative;
     block-size: 2px;
     border-radius: 1px;
+    background: radial-gradient(
+      circle at ${elementTheme.positionPoint},
+      transparent,
+      transparent var(--c),
+      ${theme.borderColor} var(--c)
+    );
   }
   .mark {
     position: absolute;
+    inset-inline-start: ${elementTheme.position};
     inset-block-start: 50%;
     transform: translate(-50%, -50%);
     border-radius: 10em;
@@ -201,26 +211,18 @@ export class DuoyunSliderElement extends GemElement {
     this.#state({ position, displayPosition: position });
   };
 
-  render = () => {
-    const { displayPosition, start } = this.#state;
+  @updateTheme()
+  #theme = () => {
+    const { displayPosition } = this.#state;
     const position = `calc(var(--size) / 2 + calc(100% - var(--size)) * ${displayPosition})`;
+    return { position, positionPoint: `${this.#isVertical ? '0 ' : ''}${position}` };
+  };
+
+  render = () => {
     return html`
-      <style>
-        .slider {
-          background: radial-gradient(
-            circle at ${this.#isVertical ? '0 ' : ''}${position},
-            transparent,
-            transparent var(--c),
-            ${theme.borderColor} var(--c)
-          );
-        }
-        .mark {
-          inset-inline-start: ${position};
-        }
-      </style>
       <div class="slider" ref=${this.#sliderRef.ref}>
         <dy-gesture
-          class=${classMap({ mark: true, start })}
+          class=${classMap({ mark: true, start: this.#state.start })}
           @pan=${this.#onPan}
           @pointerdown=${() => !this.disabled && this.#state({ start: true })}
           @end=${this.#onEnd}

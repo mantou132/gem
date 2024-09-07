@@ -89,9 +89,6 @@ const style = createCSSSheet(css`
     overscroll-behavior: contain;
     min-height: 2em;
   }
-  .body::-webkit-scrollbar {
-    width: 0;
-  }
   .footer {
     margin-top: 1.5em;
   }

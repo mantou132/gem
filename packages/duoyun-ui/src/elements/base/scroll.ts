@@ -40,7 +40,6 @@ const style = createCSSSheet(css`
   }
   :host(:where(:state(top-overflow), :state(bottom-overflow), :state(left-overflow), :state(right-overflow))) {
     --m: linear-gradient(to var(--mask-dir), #fff0, #000 var(--mask-start), #000 var(--mask-end), #fff0 100%);
-    -webkit-mask-image: var(--m);
     mask-image: var(--m);
   }
 `);

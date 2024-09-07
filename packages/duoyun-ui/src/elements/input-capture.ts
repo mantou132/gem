@@ -1,6 +1,7 @@
 import { adoptedStyle, customElement, mounted, part, shadow } from '@mantou/gem/lib/decorators';
 import { createCSSSheet, createState, GemElement, html } from '@mantou/gem/lib/element';
 import { addListener, css } from '@mantou/gem/lib/utils';
+import { useDecoratorTheme } from '@mantou/gem/helper/theme';
 
 import { theme } from '../lib/theme';
 import { getDisplayKey } from '../lib/hotkeys';
@@ -8,6 +9,8 @@ import { throttle } from '../lib/timer';
 import { contentsContainer } from '../lib/styles';
 
 import './paragraph';
+
+const [elementTheme, updateTheme] = useDecoratorTheme({ left: '', top: '' });
 
 const style = createCSSSheet(css`
   .container,
@@ -36,6 +39,8 @@ const style = createCSSSheet(css`
     width: 2.5em;
     aspect-ratio: 1;
     transform: translate(-50%, -50%);
+    left: ${elementTheme.left};
+    top: ${elementTheme.top};
   }
 `);
 
@@ -89,6 +94,12 @@ export class DuoyunInputCaptureElement extends GemElement {
     };
   };
 
+  @updateTheme()
+  #theme = () => {
+    const { mousePosition } = this.#state;
+    return { left: `${mousePosition?.at(0)}px`, top: `${mousePosition?.at(1)}px` };
+  };
+
   render = () => {
     const { keys, mousePosition } = this.#state;
     return html`
@@ -99,18 +110,7 @@ export class DuoyunInputCaptureElement extends GemElement {
             </dy-paragraph>
           `
         : ''}
-      ${mousePosition
-        ? html`
-            <div class="circle">
-              <style>
-                .circle {
-                  left: ${mousePosition[0]}px;
-                  top: ${mousePosition[1]}px;
-                }
-              </style>
-            </div>
-          `
-        : ''}
+      ${mousePosition ? html`<div class="circle"></div>` : ''}
     `;
   };
 }

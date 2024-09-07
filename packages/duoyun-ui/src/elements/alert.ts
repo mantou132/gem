@@ -2,6 +2,7 @@
 import { adoptedStyle, customElement, attribute, property, slot, aria, shadow } from '@mantou/gem/lib/decorators';
 import { GemElement, html, createCSSSheet } from '@mantou/gem/lib/element';
 import { css } from '@mantou/gem/lib/utils';
+import { useDecoratorTheme } from '@mantou/gem/helper/theme';
 
 import { theme, getSemanticColor } from '../lib/theme';
 import { icons } from '../lib/icons';
@@ -9,13 +10,15 @@ import { icons } from '../lib/icons';
 import './use';
 import './action-text';
 
+const [elementTheme, updateTheme] = useDecoratorTheme({ color: '' });
+
 const style = createCSSSheet(css`
   :host(:where(:not([hidden]))) {
     display: flex;
     flex-direction: column;
     padding: 1.2em 1.5em;
     gap: 0.8em;
-    border: 2px solid var(--color);
+    border: 2px solid ${elementTheme.color};
     border-radius: ${theme.normalRound};
   }
   .header {
@@ -35,7 +38,7 @@ const style = createCSSSheet(css`
   }
   .icon {
     width: 1.5em;
-    color: var(--color);
+    color: ${elementTheme.color};
   }
   .footer {
     text-align: right;
@@ -72,18 +75,12 @@ export class DuoyunAlertElement extends GemElement {
     }
   }
 
-  get #color() {
-    return getSemanticColor(this.status) || theme.neutralColor;
-  }
+  @updateTheme()
+  #theme = () => ({ color: getSemanticColor(this.status) || theme.neutralColor });
 
   render = () => {
     const icon = this.#icon;
     return html`
-      <style>
-        :host {
-          --color: ${this.#color};
-        }
-      </style>
       <div class="header">
         <div class="title">${this.header}</div>
         ${icon ? html`<dy-use class="icon" .element=${icon}></dy-use>` : ''}

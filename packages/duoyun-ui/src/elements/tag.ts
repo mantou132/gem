@@ -12,6 +12,7 @@ import {
 } from '@mantou/gem/lib/decorators';
 import { GemElement, html, createCSSSheet } from '@mantou/gem/lib/element';
 import { css } from '@mantou/gem/lib/utils';
+import { useDecoratorTheme } from '@mantou/gem/helper/theme';
 
 import { icons } from '../lib/icons';
 import { theme, getSemanticColor } from '../lib/theme';
@@ -20,6 +21,8 @@ import { commonHandle } from '../lib/hotkeys';
 import { focusStyle } from '../lib/styles';
 
 import './use';
+
+const [elementTheme, updateTheme] = useDecoratorTheme({ color: '', borderColor: '', bg: '' });
 
 const style = createCSSSheet(css`
   :host(:where(:not([hidden]))) {
@@ -34,6 +37,9 @@ const style = createCSSSheet(css`
     border-radius: ${theme.normalRound};
     border-width: 1px;
     border-style: solid;
+    border-color: ${elementTheme.borderColor};
+    color: ${elementTheme.color};
+    background-color: ${elementTheme.bg};
   }
   :host([small]) {
     font-size: 0.75em;
@@ -95,18 +101,19 @@ export class DuoyunTagElement extends GemElement {
     this.close(null);
   };
 
-  render = () => {
+  @updateTheme()
+  #theme = () => {
     const isSolid = this.#type === 'solid';
     const isDefault = this.color === 'default' || this.color === '';
+    return {
+      color: isDefault ? theme.textColor : isSolid ? theme.backgroundColor : this.#color,
+      bg: isSolid ? this.#color : 'transparent',
+      borderColor: this.#color,
+    };
+  };
 
+  render = () => {
     return html`
-      <style>
-        :host {
-          color: ${isDefault ? theme.textColor : isSolid ? theme.backgroundColor : this.#color};
-          background-color: ${isSolid ? this.#color : 'transparent'};
-          border-color: ${this.#color};
-        }
-      </style>
       <slot></slot>
       ${this.closable
         ? html`

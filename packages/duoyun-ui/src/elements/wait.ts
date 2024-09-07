@@ -1,6 +1,7 @@
 import { adoptedStyle, aria, customElement, effect, mounted, shadow, state } from '@mantou/gem/lib/decorators';
 import { GemElement, html, createCSSSheet, createState } from '@mantou/gem/lib/element';
 import { addListener, css } from '@mantou/gem/lib/utils';
+import { useDecoratorTheme } from '@mantou/gem/helper/theme';
 
 import { sleep } from '../lib/timer';
 import { setBodyInert } from '../lib/element';
@@ -8,6 +9,8 @@ import { theme } from '../lib/theme';
 import { commonAnimationOptions, fadeIn, fadeOut } from '../lib/animations';
 
 import './loading';
+
+const [elementTheme, updateTheme] = useDecoratorTheme({ color: '', align: '', justify: '', paddingBottom: '' });
 
 const style = createCSSSheet(css`
   :host(:where(:not([hidden]))) {
@@ -22,6 +25,10 @@ const style = createCSSSheet(css`
     height: calc(100% - var(--top));
     box-sizing: border-box;
     pointer-events: none;
+    color: ${elementTheme.color};
+    align-items: ${elementTheme.align};
+    justify-content: ${elementTheme.justify};
+    padding-bottom: ${elementTheme.paddingBottom};
   }
   dy-loading {
     padding: 1em;
@@ -130,24 +137,24 @@ export class DuoyunWaitElement extends GemElement {
     }
   };
 
+  @updateTheme()
+  #theme = () => {
+    const { position, color } = this.state;
+    const [align, justify] = position?.split(' ') || [];
+    return {
+      color: color || 'white',
+      align: align || 'flex-start',
+      justify: justify || 'center',
+      paddingBottom: align === 'center' ? '10vh' : '0',
+    };
+  };
+
   render = () => {
-    const { text, transparent, position, color } = this.state;
+    const { text, transparent } = this.state;
     this.internals.ariaLabel = text || '';
     this.modal = !transparent;
 
-    const [align, justify] = position?.split(' ') || [];
-
-    return html`
-      <style>
-        :host {
-          color: ${color || 'white'};
-          align-items: ${align || 'flex-start'};
-          justify-content: ${justify || 'center'};
-          padding-bottom: ${align === 'center' ? '10vh' : 0};
-        }
-      </style>
-      <dy-loading>${text}</dy-loading>
-    `;
+    return html`<dy-loading>${text}</dy-loading>`;
   };
 
   state: ReturnType<typeof createState<State>>;

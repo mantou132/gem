@@ -1,4 +1,4 @@
-import { html, GemElement, customElement, connectStore, css, createCSSSheet, adoptedStyle } from '@mantou/gem';
+import { html, GemElement, customElement, connectStore, css, createCSSSheet, adoptedStyle, aria } from '@mantou/gem';
 
 import { selfI18n } from '../helper/i18n';
 import { theme } from '../helper/theme';
@@ -29,6 +29,7 @@ const styles = createCSSSheet(css`
 @customElement('gem-book-footer')
 @connectStore(bookStore)
 @adoptedStyle(styles)
+@aria({ role: 'contentinfo' })
 export class Footer extends GemElement {
   render() {
     const { config } = bookStore;

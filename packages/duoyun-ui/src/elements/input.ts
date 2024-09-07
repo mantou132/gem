@@ -111,12 +111,18 @@ const style = createCSSSheet(css`
   textarea {
     min-height: 5em;
   }
+  .input::-webkit-contacts-auto-fill-button,
   .input::-webkit-calendar-picker-indicator,
   .input::-webkit-search-decoration,
   .input::-webkit-search-cancel-button,
   .input::-webkit-search-results-button,
   .input::-webkit-search-results-decoration {
     display: none !important;
+    visibility: hidden;
+    pointer-events: none;
+    height: 0;
+    width: 0;
+    margin: 0;
   }
   .icon,
   .clear {

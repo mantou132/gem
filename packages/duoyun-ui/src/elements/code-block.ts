@@ -203,6 +203,9 @@ const langAliases: Record<string, string> = {
   yml: 'yaml',
 };
 
+const lineHeight = 1.5;
+const padding = 1;
+
 const style = createCSSSheet(css`
   :host(:where(:not([hidden]))) {
     position: relative;
@@ -241,12 +244,8 @@ const style = createCSSSheet(css`
     border: none;
     background: transparent;
     scrollbar-width: thin;
-  }
-  .code::-webkit-scrollbar {
-    height: 0.5em;
-  }
-  .code::-webkit-scrollbar-thumb {
-    border-radius: inherit;
+    padding: ${padding}em;
+    line-height: ${lineHeight};
   }
   .token.comment,
   .token.prolog,
@@ -313,7 +312,7 @@ const style = createCSSSheet(css`
     cursor: help;
   }
   @media print {
-    code {
+    .code {
       border-left: 5px solid ${theme.borderColor};
       white-space: pre-wrap;
       word-break: break-word;
@@ -363,6 +362,7 @@ export class DuoyunCodeBlockElement extends DuoyunVisibleBaseElement {
   #init = () => {
     const ob = new MutationObserver(() => this.update());
     ob.observe(this, { childList: true, characterData: true, subtree: true });
+    this.addEventListener('show', this.#updateHtml, { once: true });
     return () => ob.disconnect();
   };
 
@@ -391,8 +391,6 @@ export class DuoyunCodeBlockElement extends DuoyunVisibleBaseElement {
   };
 
   render() {
-    const lineHeight = 1.5;
-    const padding = 1;
     return html`
       ${this.highlight
         ? this.#getRanges(this.highlight).map(
@@ -408,12 +406,6 @@ export class DuoyunCodeBlockElement extends DuoyunVisibleBaseElement {
           )
         : ''}
       <code ref=${this.#codeRef.ref} class="code">${this.#getParts(this.textContent || '')}</code>
-      <style>
-        code {
-          padding: ${padding}em;
-          line-height: ${lineHeight};
-        }
-      </style>
     `;
   }
 }

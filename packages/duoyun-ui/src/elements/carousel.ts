@@ -14,6 +14,7 @@ import {
   effect,
 } from '@mantou/gem/lib/decorators';
 import { css, styleMap, classMap, addListener } from '@mantou/gem/lib/utils';
+import { useDecoratorTheme } from '@mantou/gem/helper/theme';
 
 import { theme } from '../lib/theme';
 import { icons } from '../lib/icons';
@@ -26,6 +27,8 @@ import './paragraph';
 import './button';
 import './more';
 
+const [elementTheme, updateTheme] = useDecoratorTheme({ bgImg: '' });
+
 const style = createCSSSheet(css`
   :host(:where(:not([hidden]))) {
     display: block;
@@ -36,6 +39,7 @@ const style = createCSSSheet(css`
     /** use prevImg */
     background-size: cover;
     background-position: center;
+    background-image: ${elementTheme.bgImg};
   }
   .list,
   .item,
@@ -230,7 +234,7 @@ export class DuoyunCarouselElement extends GemElement {
   #prevImg?: string;
 
   @memo((i) => [i.#state.currentIndex])
-  #updateImg = () => (_: number[], oldDeps?: number[]) => {
+  #updateImg = (_: number[], oldDeps?: number[]) => {
     if (oldDeps) {
       this.#prevImg = this.#items?.[oldDeps[0]]?.img;
       this.#isFirstRender = false;
@@ -250,15 +254,13 @@ export class DuoyunCarouselElement extends GemElement {
   @effect((i) => [i.#state.currentIndex])
   #emitterEvent = () => this.change(this.#state.currentIndex);
 
+  @updateTheme()
+  #theme = () => ({ bgImg: this.#prevImg ? `url(${this.#prevImg})` : 'none' });
+
   render = () => {
     const { currentIndex } = this.#state;
 
     return html`
-      <style>
-        :host {
-          background-image: ${this.#prevImg ? `url(${this.#prevImg})` : 'none'};
-        }
-      </style>
       <ul class="list" role="region">
         ${this.#items?.map(
           ({ img, title, background, description, action, tag, onClick }, index) => html`

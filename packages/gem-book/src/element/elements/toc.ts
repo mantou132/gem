@@ -11,6 +11,7 @@ import {
   createState,
   unmounted,
   effect,
+  aria,
 } from '@mantou/gem';
 
 import { theme, themeStore } from '../helper/theme';
@@ -67,6 +68,7 @@ type State = {
 @customElement('gem-book-toc')
 @connectStore(tocStore)
 @adoptedStyle(styles)
+@aria({ role: 'navigation' })
 export class GemBookTocElement extends GemElement {
   #state = createState<State>({});
 

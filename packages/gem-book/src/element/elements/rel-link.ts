@@ -7,6 +7,7 @@ import {
   adoptedStyle,
   createCSSSheet,
   css,
+  aria,
 } from '@mantou/gem';
 import { mediaQuery } from '@mantou/gem/helper/mediaquery';
 
@@ -58,6 +59,7 @@ const styles = createCSSSheet(css`
 @customElement('gem-book-rel-link')
 @connectStore(bookStore)
 @adoptedStyle(styles)
+@aria({ role: 'navigation' })
 export class RelLink extends GemElement {
   @property links: NavItem[];
 
@@ -68,18 +70,7 @@ export class RelLink extends GemElement {
     const index = currentLinks.findIndex((item) => currentLink.originLink === item.originLink);
     const prev = currentLinks[index - 1];
     const next = currentLinks[index + 1];
-    if (!prev && !next)
-      return html`
-        <style>
-          ${css`
-            @scope {
-              :scope {
-                display: none;
-              }
-            }
-          `}
-        </style>
-      `;
+    this.hidden = !prev && !next;
     return html`
       ${prev ? html`<gem-link path=${prev.link}>←<span>${capitalize(prev.title)}</span></gem-link>` : null}
       <div></div>

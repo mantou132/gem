@@ -167,7 +167,7 @@ function getLinkRouters(links: NavItemWithLink[], title = '', lang: string, disp
           useLang = originDocLang;
         }
         if (bookStore.isDevMode?.()) await new Promise((res) => setTimeout(res, 500));
-        return html`<gem-book-main lang=${useLang} role="article" .content=${content}></gem-book-main>`;
+        return html`<gem-book-main lang=${useLang} .content=${content}></gem-book-main>`;
       },
       data: item,
     });
@@ -206,7 +206,7 @@ function getLinkRouters(links: NavItemWithLink[], title = '', lang: string, disp
     pattern: '*',
     async getContent() {
       await import('./elements/404');
-      return html`<gem-book-404 role="region" aria-label="not found"></gem-book-404>`;
+      return html`<gem-book-404></gem-book-404>`;
     },
   });
 

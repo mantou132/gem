@@ -108,9 +108,6 @@ const style = createCSSSheet(css`
     box-shadow: 0 7px 14px rgba(0, 0, 0, calc(${theme.maskAlpha} - 0.1));
     scrollbar-width: none;
   }
-  .menu::-webkit-scrollbar {
-    width: 0;
-  }
 `);
 
 /**

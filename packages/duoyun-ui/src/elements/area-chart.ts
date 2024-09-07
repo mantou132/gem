@@ -1,6 +1,7 @@
-import { createState, html, svg } from '@mantou/gem/lib/element';
-import { customElement, emitter, Emitter, memo, mounted, property } from '@mantou/gem/lib/decorators';
-import { addListener, classMap } from '@mantou/gem/lib/utils';
+import { createCSSSheet, createState, html, svg } from '@mantou/gem/lib/element';
+import { adoptedStyle, customElement, emitter, Emitter, memo, mounted, property } from '@mantou/gem/lib/decorators';
+import { addListener, classMap, css } from '@mantou/gem/lib/utils';
+import { useDecoratorTheme } from '@mantou/gem/helper/theme';
 
 import { isNotNullish } from '../lib/types';
 import { theme } from '../lib/theme';
@@ -35,10 +36,65 @@ export function defaultSymbolRender({ point, color, isHover, chart }: SymbolRend
   `;
 }
 
+const [elementTheme, updateTheme] = useDecoratorTheme({
+  lineStrokeWidth: 0,
+  areaHighlightOpacity: 0,
+  areaPointer: '',
+  areaOpacity: 0,
+  zoomLeft: '',
+  zoomRight: '',
+  symbolStrokeWidth: 0,
+});
+
+const style = createCSSSheet(css`
+  .hit-line {
+    pointer-events: stroke;
+  }
+  .hit-line:hover + .line {
+    stroke-width: ${elementTheme.lineStrokeWidth};
+  }
+  .hit-line:hover + .line + .area {
+    opacity: ${elementTheme.areaHighlightOpacity};
+  }
+  .hit-line + .line,
+  .hover-line,
+  .disabled {
+    pointer-events: none;
+  }
+  .area {
+    pointer-events: ${elementTheme.areaPointer};
+  }
+  .area:hover {
+    filter: brightness(1.1);
+  }
+  .line.disabled {
+    stroke: ${theme.disabledColor};
+    opacity: 0.3;
+  }
+  .area {
+    opacity: ${elementTheme.areaOpacity};
+  }
+  .area.disabled {
+    fill: ${theme.disabledColor};
+    opacity: 0.1;
+  }
+  .symbol {
+    pointer-events: none;
+    fill: ${theme.backgroundColor};
+    stroke-width: ${elementTheme.symbolStrokeWidth};
+  }
+  dy-chart-zoom {
+    width: calc(100% - ${elementTheme.zoomLeft} - ${elementTheme.zoomRight});
+    margin-inline-start: ${elementTheme.zoomLeft};
+    align-self: flex-start;
+  }
+`);
+
 /**
  * @customElement dy-area-chart
  */
 @customElement('dy-area-chart')
+@adoptedStyle(style)
 export class DuoyunAreaChartElement extends DuoyunChartBaseElement {
   @property fill = true;
   @property stroke = true;
@@ -299,56 +355,23 @@ export class DuoyunAreaChartElement extends DuoyunChartBaseElement {
     return () => ChartTooltip.close();
   };
 
+  @updateTheme()
+  #theme = () => ({
+    lineStrokeWidth: this.getSVGPixel(2),
+    symbolStrokeWidth: this.getSVGPixel(1),
+    areaHighlightOpacity: this.#gradient ? 0.4 : 0.2,
+    areaOpacity: this.stack ? 1 : this.#gradient ? 0.3 : 0.15,
+    areaPointer: this.stack ? 'all' : 'none',
+    zoomLeft: `${-this.viewBox[0] * this.getStageScale()}px`,
+    zoomRight: `${(this.viewBox[2] + this.viewBox[0] - this.stageWidth) * this.getStageScale()}px`,
+  });
+
   render = () => {
     if (this.loading) return this.renderLoading();
     if (this.noData) return this.renderNotData();
     if (!this.contentRect.width || !this.#sequences?.length) return html``;
-    const areaOpacity = this.stack ? 1 : this.#gradient ? 0.3 : 0.15;
-    const areaHighlightOpacity = this.#gradient ? 0.4 : 0.2;
 
     return html`
-      <style>
-        .hit-line {
-          pointer-events: stroke;
-        }
-        .hit-line:hover + .line {
-          stroke-width: ${this.getSVGPixel(2)}px;
-        }
-        .hit-line:hover + .line + .area {
-          opacity: ${areaHighlightOpacity};
-        }
-        .hit-line + .line,
-        .hover-line,
-        .disabled {
-          pointer-events: none;
-        }
-        .area {
-          pointer-events: ${this.stack ? 'all' : 'none'};
-        }
-        .area:hover {
-          filter: brightness(1.1);
-        }
-        .line.disabled {
-          stroke: ${theme.disabledColor};
-          opacity: 0.3;
-        }
-        .area.disabled {
-          fill: ${theme.disabledColor};
-          opacity: 0.1;
-        }
-        .symbol {
-          pointer-events: none;
-          fill: ${theme.backgroundColor};
-          stroke-width: ${this.getSVGPixel(1)};
-        }
-        dy-chart-zoom {
-          --left: ${-this.viewBox[0] * this.getStageScale()}px;
-          --right: ${(this.viewBox[2] + this.viewBox[0] - this.stageWidth) * this.getStageScale()}px;
-          width: calc(100% - var(--left) - var(--right));
-          margin-inline-start: var(--left);
-          align-self: flex-start;
-        }
-      </style>
       ${svg`
         <svg aria-hidden="true" part=${
           DuoyunChartBaseElement.chart
@@ -409,7 +432,6 @@ export class DuoyunAreaChartElement extends DuoyunChartBaseElement {
                     ? svg`
                         <path
                           class=${classMap({ area: true, disabled })}
-                          opacity=${areaOpacity}
                           fill=${this.#gradient ? `url(#${this.genGradientId(revertIndex)})` : this.colors[revertIndex]}
                           d=${this.#areas[revertIndex]}
                           @pointerover=${() => this.stack && this.#state({ hoverSequence: value })}

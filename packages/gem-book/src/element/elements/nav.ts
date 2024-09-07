@@ -13,6 +13,7 @@ import {
   css,
   adoptedStyle,
   effect,
+  aria,
 } from '@mantou/gem';
 import { mediaQuery } from '@mantou/gem/helper/mediaquery';
 
@@ -138,6 +139,7 @@ const styles = createCSSSheet(css`
 @connectStore(bookStore)
 @connectStore(sidebarStore)
 @adoptedStyle(styles)
+@aria({ role: 'navigation' })
 export class Nav extends GemElement {
   @boolattribute logo: boolean;
 

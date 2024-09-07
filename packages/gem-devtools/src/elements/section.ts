@@ -235,7 +235,7 @@ export class Section extends GemElement {
             title="Click to edit"
             placeholder="<empty string>"
             @input=${onInput}
-            value=${item.value}
+            .value=${item.value}
           />
         `;
       case 'number':
@@ -245,7 +245,7 @@ export class Section extends GemElement {
             title="Click to edit"
             type="number"
             @input=${onInputNumber}
-            value=${item.value}
+            .value=${item.value}
           />
         `;
       case 'boolean':

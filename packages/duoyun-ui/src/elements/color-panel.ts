@@ -12,6 +12,7 @@ import {
 } from '@mantou/gem/lib/decorators';
 import { createCSSSheet, createState, GemElement, html } from '@mantou/gem/lib/element';
 import { css, styleMap, classMap } from '@mantou/gem/lib/utils';
+import { useDecoratorTheme } from '@mantou/gem/helper/theme';
 
 import {
   HexColor,
@@ -36,6 +37,8 @@ import './use';
 import './input';
 import './select';
 
+const [elementTheme, updateTheme] = useDecoratorTheme({ h: 0, s: 0, l: 0, a: 0 });
+
 const style = createCSSSheet(css`
   :host(:where(:not([hidden]))) {
     display: flex;
@@ -43,8 +46,8 @@ const style = createCSSSheet(css`
     gap: 1em;
     width: 20em;
     font-size: 0.875em;
-    --hsl: hsl(var(--h), var(--s), var(--l));
-    --hue: hsl(var(--h), 100%, 50%);
+    --hsl: hsl(${elementTheme.h}, ${elementTheme.s}, ${elementTheme.l});
+    --hue: hsl(${elementTheme.h}, 100%, 50%);
     --alpha: linear-gradient(var(--hue), transparent),
       conic-gradient(transparent 0.25turn, #d3cfcf 0.25turn 0.5turn, transparent 0.5turn 0.75turn, #d3cfcf 0.75turn) top
         left / 1.2em 1.2em repeat;
@@ -315,17 +318,15 @@ export class DuoyunColorPanelElement extends GemElement {
     this.change(result.sRGBHex);
   };
 
+  @updateTheme()
+  #theme = () => {
+    const { h, s, l, a } = this.#state;
+    return { h: h * 360, s: s * 100, l: l * 100, a };
+  };
+
   render = () => {
-    const { mode, grabbingHue, grabbingSV, grabbingA, h, s, l, a, sa, v, str } = this.#state;
+    const { mode, grabbingHue, grabbingSV, grabbingA, h, a, sa, v, str } = this.#state;
     return html`
-      <style>
-        :host {
-          --h: ${h * 360};
-          --s: ${s * 100}%;
-          --l: ${l * 100}%;
-          --a: ${a};
-        }
-      </style>
       <div class="color">
         <dy-gesture class="area" @pan=${this.#onPanSV} @end=${this.#onPanEnd}>
           <div

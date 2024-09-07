@@ -13,6 +13,7 @@ import {
 } from '@mantou/gem/lib/decorators';
 import { GemElement, html, createCSSSheet } from '@mantou/gem/lib/element';
 import { css, classMap } from '@mantou/gem/lib/utils';
+import { useDecoratorTheme } from '@mantou/gem/helper/theme';
 
 import { createDataURLFromSVG } from '../lib/image';
 import { icons } from '../lib/icons';
@@ -23,6 +24,8 @@ import { focusStyle } from '../lib/styles';
 import './use';
 
 const starUrl = createDataURLFromSVG(icons.star);
+
+const [elementTheme, updateTheme] = useDecoratorTheme({ color: '' });
 
 const style = createCSSSheet(css`
   :host(:where(:not([hidden]))) {
@@ -48,7 +51,6 @@ const style = createCSSSheet(css`
     fill: none;
     stroke: currentColor;
     stroke-width: 2px;
-    -webkit-mask: url(${starUrl}) center / 100%;
     mask: url(${starUrl}) center / 100%;
     transition: transform 0.1s ${theme.timingFunction};
   }
@@ -59,6 +61,9 @@ const style = createCSSSheet(css`
   :host(:not([readonly])) .icon:hover::part(icon),
   :host(:not([readonly])) .icon:hover ~ .icon::part(icon) {
     fill: currentColor;
+  }
+  :host(:where(:not(:hover), [readonly])) .mask::part(icon) {
+    background-image: linear-gradient(to right, currentColor ${elementTheme.color}, transparent ${elementTheme.color});
   }
 `);
 
@@ -102,17 +107,11 @@ export class DuoyunRateElement extends GemElement {
     this.internals.ariaValueNow = String(this.value);
   };
 
+  @updateTheme()
+  #theme = () => ({ color: `${this.#ratio * 100}%` });
+
   render = () => {
     return html`
-      <style>
-        :host(:where(:not(:hover), [readonly])) .mask::part(icon) {
-          background-image: linear-gradient(
-            to right,
-            currentColor ${this.#ratio * 100}%,
-            transparent ${this.#ratio * 100}%
-          );
-        }
-      </style>
       ${Array.from(
         { length: this.#total },
         (_, index) => html`

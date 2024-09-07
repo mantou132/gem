@@ -47,18 +47,7 @@ export class GemBookNavLogoElement extends GemElement {
   render = () => {
     const { config } = bookStore;
     const { icon = '', title = '' } = config || {};
-    if (!icon && !title)
-      return html`
-        <style>
-          ${css`
-            @scope {
-              :scope {
-                display: none;
-              }
-            }
-          `}
-        </style>
-      `;
+    this.hidden = !icon && !title;
     return html`
       <gem-link path="/">
         ${icon ? html`<img alt=${title} src=${icon} aria-hidden="true" />` : null}

@@ -18,6 +18,7 @@ declare global {
   }
   interface DOMStringMap {
     gemReflect?: '';
+    gemStyle?: '';
     [name: string]: string | undefined;
   }
   // https://github.com/tc39/proposal-decorator-metadata
@@ -78,6 +79,25 @@ class RefObject<T = HTMLElement> {
 /**必须使用在字段中，否则会读取到错误的实例 */
 export let createRef: <T>() => RefObject<T>;
 
+class GemCSSStyleSheet extends CSSStyleSheet {
+  #ele?: HTMLStyleElement;
+
+  cssText = '';
+  get element() {
+    if (!this.#ele) {
+      this.#ele = document.createElement('style');
+      this.#ele.textContent = this.cssText;
+      this.#ele.dataset.gemStyle = '';
+    }
+    return this.#ele;
+  }
+  replaceSync(text: string) {
+    this.cssText = text;
+    if (this.#ele) this.#ele.textContent = text;
+    super.replaceSync(text);
+  }
+}
+
 class GemCSSSheet {
   #content = '';
   #media = '';
@@ -89,16 +109,15 @@ class GemCSSSheet {
   }
 
   // 不需要 GC
-  #record = new Map<any, CSSStyleSheet>();
-  #used = new Map<CSSStyleSheet, string>();
+  #record = new Map<any, GemCSSStyleSheet>();
+  #used = new Map<GemCSSStyleSheet, string>();
   getStyle(host?: HTMLElement) {
-    const metadata = host && (((host as any).constructor[Symbol.metadata] || {}) as Metadata);
-    const isLight = metadata && !metadata.mode;
+    const isLight = host && !(host as GemElement).internals.shadowRoot;
 
     // 对同一类 dom 只使用同一个样式表
     const key = isLight ? host.constructor : this;
     if (!this.#record.has(key)) {
-      const sheet = new CSSStyleSheet({ media: this.#media });
+      const sheet = new GemCSSStyleSheet({ media: this.#media });
       this.#record.set(key, sheet);
     }
 
@@ -276,7 +295,11 @@ export abstract class GemElement extends HTMLElement {
   static #final = Symbol();
 
   #renderRoot: HTMLElement | ShadowRoot;
-  #internals: ElementInternals & { stateList: ReturnType<typeof createState>[] };
+  #internals: ElementInternals & {
+    // 有别于 adoptedStyleSheets，用来定义单个实例样式
+    sheets: GemCSSStyleSheet[];
+    stateList: ReturnType<typeof createState>[];
+  };
   #effectList: EffectItem<any>[] = [];
   #memoList: EffectItem<any>[] = [];
   #isAppendReason?: boolean;
@@ -324,6 +347,7 @@ export abstract class GemElement extends HTMLElement {
     this.#renderRoot = !mode ? this : this.attachShadow({ mode, serializable, delegatesFocus, slotAssignment });
     this.#internals = this.attachInternals() as GemElement['internals'];
     this.#internals.stateList = [];
+    this.#internals.sheets = [];
 
     assign(this.#internals, internalsAria);
 
@@ -440,13 +464,14 @@ export abstract class GemElement extends HTMLElement {
 
   #prepareStyle = () => {
     const { adoptedStyleSheets = [] } = this.#metadata;
-    const { shadowRoot } = this.#internals;
+    const { shadowRoot, sheets } = this.#internals;
 
-    const sheets = adoptedStyleSheets.map((item) => item[SheetToken].getStyle(this));
+    const clsSheets = adoptedStyleSheets.map((item) => item[SheetToken].getStyle(this));
     if (shadowRoot) {
-      shadowRoot.adoptedStyleSheets = sheets;
+      shadowRoot.adoptedStyleSheets = clsSheets.concat(sheets);
     } else {
-      return appleCSSStyleSheet(this, sheets);
+      this.append(...sheets.map((e) => e.element));
+      return appleCSSStyleSheet(this, clsSheets);
     }
   };
 

@@ -1,9 +1,12 @@
 // https://spectrum.adobe.com/page/divider/
 import { adoptedStyle, customElement, attribute, aria, shadow, effect } from '@mantou/gem/lib/decorators';
-import { GemElement, html, createCSSSheet } from '@mantou/gem/lib/element';
+import { GemElement, createCSSSheet } from '@mantou/gem/lib/element';
 import { css } from '@mantou/gem/lib/utils';
+import { useDecoratorTheme } from '@mantou/gem/helper/theme';
 
 import { theme, getSemanticColor } from '../lib/theme';
+
+const [elementTheme, updateTheme] = useDecoratorTheme({ width: '', height: '', color: '' });
 
 const style = createCSSSheet(css`
   :host(:where(:not([hidden]))) {
@@ -11,6 +14,9 @@ const style = createCSSSheet(css`
     border-radius: 10px;
     align-self: stretch;
     background: currentColor;
+    width: ${elementTheme.width};
+    height: ${elementTheme.height};
+    color: ${elementTheme.color};
   }
 `);
 
@@ -57,7 +63,7 @@ export class DuoyunDividerElement extends GemElement {
     return 'auto';
   }
 
-  get #bgColor() {
+  get #color() {
     if (this.color) return getSemanticColor(this.color) || this.color;
     switch (this.size) {
       case 'large':
@@ -72,15 +78,6 @@ export class DuoyunDividerElement extends GemElement {
     this.internals.ariaOrientation = this.#orientation;
   };
 
-  render = () => {
-    return html`
-      <style>
-        :host {
-          width: ${this.#width};
-          height: ${this.#height};
-          color: ${this.#bgColor};
-        }
-      </style>
-    `;
-  };
+  @updateTheme()
+  #theme = () => ({ width: this.#width, height: this.#height, color: this.#color });
 }
