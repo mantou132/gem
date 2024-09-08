@@ -1,0 +1,10 @@
+{
+  "extends": "@gemjs/config/tsconfig",
+  "compilerOptions": {
+    "outDir": "./",
+    "module": "Node16",
+    "moduleResolution": "Node16"
+  },
+  "include": ["src"],
+  "exclude": []
+}

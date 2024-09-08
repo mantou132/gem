@@ -1,0 +1,19 @@
+{
+  "name": "swc-gem-plugin",
+  "version": "0.1.0",
+  "description": "",
+  "author": "",
+  "license": "ISC",
+  "keywords": [
+    "swc-plugin",
+    "gem",
+    "web components"
+  ],
+  "main": "swc_gem_plugin.wasm",
+  "scripts": {
+    "prepublishOnly": "cargo build-wasi --release && cp ../../target/wasm32-wasip1/release/swc_gem_plugin.wasm .",
+    "test": "cargo watch -x test"
+  },
+  "files": [],
+  "preferUnplugged": true
+}

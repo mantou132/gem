@@ -1,0 +1,18 @@
+[workspace]
+members = ["crates/swc-gem-plugin"]
+
+resolver = "2"
+
+[workspace.package]
+authors = ["mantou <594mantou@gmail.com>"]
+rust-version = "1.70"
+edition = "2021"
+homepage = "https://github.com/mantou132/gem"
+license = "Apache-2.0"
+repository = "https://github.com/mantou132/gem.git"
+
+[workspace.dependencies]
+regex = { version = "1.10.4", default-features = false }
+serde = "1.0.203"
+swc_core = "0.103.2"
+swc_ecma_parser = "0.149.1"

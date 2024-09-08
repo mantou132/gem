@@ -1,0 +1,38 @@
+{
+  "name": "vscode-gem-plugin",
+  "displayName": "vscode-gem-plugin",
+  "description": "Gem plugin for VS Code",
+  "version": "0.0.1",
+  "engines": {
+    "vscode": "^1.93.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [],
+  "main": "./dist/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "vscode-gem-plugin.helloWorld",
+        "title": "Hello World"
+      }
+    ]
+  },
+  "scripts": {
+    "compile": "node esbuild.js",
+    "package": "yarn run compile --production",
+    "watch": "yarn run compile --watch",
+    "pretest": "tsc -p . --outDir out && yarn run compile",
+    "test": "vscode-test",
+    "vscode:prepublish": "yarn run package"
+  },
+  "devDependencies": {
+    "@types/mocha": "^10.0.7",
+    "@types/vscode": "^1.93.0",
+    "@vscode/test-cli": "^0.0.10",
+    "@vscode/test-electron": "^2.4.1",
+    "esbuild": "^0.23.0",
+    "typescript": "^5.5.3"
+  }
+}
