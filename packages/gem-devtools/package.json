@@ -1,6 +1,6 @@
 {
   "name": "gem-devtools",
-  "version": "1.7.8",
+  "version": "2.0.0-alpha.0",
   "description": "Gem devtools",
   "scripts": {
     "update:version": "node ./scripts/update.js",
@@ -12,11 +12,11 @@
     "start": "pnpm build && concurrently -k npm:watch npm:browser"
   },
   "dependencies": {
-    "@mantou/gem": "^1.7.12",
+    "@mantou/gem": "^2.0.0-alpha.0",
     "webextension-polyfill": "^0.10.0"
   },
   "devDependencies": {
-    "@gemjs/config": "^1.6.14",
+    "@gemjs/config": "^2.0.0-alpha.0",
     "@types/webextension-polyfill": "^0.10.7",
     "vite": "^5.2.10",
     "web-ext": "^7.8.0"

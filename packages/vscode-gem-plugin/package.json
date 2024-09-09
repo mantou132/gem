@@ -3,7 +3,7 @@
   "name": "vscode-gem-plugin",
   "displayName": "vscode-gem-plugin",
   "description": "Gem plugin for VS Code",
-  "version": "0.0.1",
+  "version": "1.0.0-alpha.0",
   "engines": {
     "vscode": "^1.93.0"
   },
