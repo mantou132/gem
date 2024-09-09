@@ -1,6 +1,6 @@
 import { createCSSSheet, GemElement, html } from '@mantou/gem/lib/element';
+import type { Emitter } from '@mantou/gem/lib/decorators';
 import {
-  Emitter,
   adoptedStyle,
   aria,
   boolattribute,

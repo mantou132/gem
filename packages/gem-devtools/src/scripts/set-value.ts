@@ -1,4 +1,4 @@
-import { Path } from '../store';
+import type { Path } from '../store';
 
 declare let $0: any;
 

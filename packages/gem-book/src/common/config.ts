@@ -1,4 +1,4 @@
-import { FrontMatter } from './frontmatter';
+import type { FrontMatter } from './frontmatter';
 
 export type NavItem = FrontMatter & {
   title: string;

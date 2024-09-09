@@ -1,8 +1,8 @@
+import type { Emitter } from '@mantou/gem/lib/decorators';
 import {
   adoptedStyle,
   customElement,
   globalemitter,
-  Emitter,
   property,
   boolattribute,
   part,
@@ -10,7 +10,8 @@ import {
   shadow,
   memo,
 } from '@mantou/gem/lib/decorators';
-import { createCSSSheet, createState, GemElement, html, TemplateResult } from '@mantou/gem/lib/element';
+import type { TemplateResult } from '@mantou/gem/lib/element';
+import { createCSSSheet, createState, GemElement, html } from '@mantou/gem/lib/element';
 import { css, styleMap, classMap } from '@mantou/gem/lib/utils';
 
 import { icons } from '../lib/icons';

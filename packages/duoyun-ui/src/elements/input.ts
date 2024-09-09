@@ -1,10 +1,10 @@
+import type { Emitter } from '@mantou/gem/lib/decorators';
 import {
   adoptedStyle,
   customElement,
   attribute,
   emitter,
   globalemitter,
-  Emitter,
   property,
   boolattribute,
   numattribute,
@@ -15,7 +15,8 @@ import {
   mounted,
   effect,
 } from '@mantou/gem/lib/decorators';
-import { GemElement, html, TemplateResult, createCSSSheet, createRef } from '@mantou/gem/lib/element';
+import type { TemplateResult } from '@mantou/gem/lib/element';
+import { GemElement, html, createCSSSheet, createRef } from '@mantou/gem/lib/element';
 import { css } from '@mantou/gem/lib/utils';
 
 import { theme } from '../lib/theme';

@@ -13,7 +13,7 @@ import YAML from 'yaml';
 import Jimp from 'jimp';
 import chalk from 'chalk';
 
-import { FrontMatter } from '../common/frontmatter';
+import type { FrontMatter } from '../common/frontmatter';
 import { isIndexFile, parseFilename, parseTitle } from '../common/utils';
 
 export async function getGithubUrl() {

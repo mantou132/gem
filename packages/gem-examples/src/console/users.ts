@@ -1,13 +1,16 @@
 import { html, GemElement, createState } from '@mantou/gem/lib/element';
 import { customElement } from '@mantou/gem/lib/decorators';
 import { Time } from 'duoyun-ui/lib/time';
-import { ContextMenu, ContextMenuItem } from 'duoyun-ui/elements/contextmenu';
-import { FormItem, createForm } from 'duoyun-ui/patterns/form';
+import type { ContextMenuItem } from 'duoyun-ui/elements/contextmenu';
+import { ContextMenu } from 'duoyun-ui/elements/contextmenu';
+import type { FormItem } from 'duoyun-ui/patterns/form';
+import { createForm } from 'duoyun-ui/patterns/form';
 import { sleep } from 'duoyun-ui/lib/timer';
 import { createPaginationStore } from 'duoyun-ui/helper/store';
 import type { FetchEventDetail, PatTableColumn } from 'duoyun-ui/patterns/table';
 
-import { Item, fetchItemsWithArgs } from './api';
+import type { Item } from './api';
+import { fetchItemsWithArgs } from './api';
 
 import 'duoyun-ui/patterns/table';
 import 'duoyun-ui/elements/button';

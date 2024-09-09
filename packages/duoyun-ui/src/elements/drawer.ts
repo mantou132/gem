@@ -4,7 +4,8 @@ import { css } from '@mantou/gem/lib/utils';
 
 import { slideInLeft, slideOutRight } from '../lib/animations';
 
-import { DuoyunModalElement, ModalOptions } from './modal';
+import type { ModalOptions } from './modal';
+import { DuoyunModalElement } from './modal';
 
 const style = createCSSSheet(css`
   .dialog {

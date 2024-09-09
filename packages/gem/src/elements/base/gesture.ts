@@ -1,5 +1,6 @@
 import { GemElement, html } from '../../lib/element';
-import { attribute, emitter, Emitter, mounted, shadow } from '../../lib/decorators';
+import type { Emitter } from '../../lib/decorators';
+import { attribute, emitter, mounted, shadow } from '../../lib/decorators';
 
 export type PanEventDetail = {
   // movement

@@ -1,7 +1,7 @@
 import { createCSSSheet, createRef, createState, GemElement, html } from '@mantou/gem/lib/element';
 import { QueryString, addListener, css, styleMap } from '@mantou/gem/lib/utils';
+import type { Emitter } from '@mantou/gem/lib/decorators';
 import {
-  Emitter,
   adoptedStyle,
   boolattribute,
   connectStore,
@@ -14,9 +14,11 @@ import {
   shadow,
 } from '@mantou/gem/lib/decorators';
 import { history } from '@mantou/gem/lib/history';
-import { Store, connect } from '@mantou/gem/lib/store';
+import type { Store } from '@mantou/gem/lib/store';
+import { connect } from '@mantou/gem/lib/store';
 
-import { ContextMenuItem, ContextMenu } from '../elements/contextmenu';
+import type { ContextMenuItem } from '../elements/contextmenu';
+import { ContextMenu } from '../elements/contextmenu';
 import { theme } from '../lib/theme';
 import {
   comparer,
@@ -37,8 +39,8 @@ import { locale } from '../lib/locale';
 import { icons } from '../lib/icons';
 import { isNotBoolean } from '../lib/types';
 import { hotkeys } from '../lib/hotkeys';
-import { PaginationStore } from '../helper/store';
-import { DuoyunRouteElement } from '../elements/route';
+import type { PaginationStore } from '../helper/store';
+import type { DuoyunRouteElement } from '../elements/route';
 import type { DuoyunTagElement } from '../elements/tag';
 import type { DuoyunScrollBoxElement } from '../elements/scroll-box';
 

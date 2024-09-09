@@ -16,6 +16,6 @@ jobs:
         with:
           node-version: 18.x
 
-      - run: yarn
-      - run: yarn run lint
-      - run: yarn run test
+      - run: pnpm install
+      - run: pnpm lint
+      - run: pnpm test

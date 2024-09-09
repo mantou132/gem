@@ -1,4 +1,4 @@
-import { NavItem } from '../../common/config';
+import type { NavItem } from '../../common/config';
 import { bookStore } from '../store';
 
 export type NavItemWithLink = NavItem & {

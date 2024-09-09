@@ -1,6 +1,6 @@
 import { I18n } from '@mantou/gem/helper/i18n';
 
-import { SupportLang } from '../../common/config';
+import type { SupportLang } from '../../common/config';
 import { isGitLab } from '../lib/utils';
 
 export function getPlatform() {

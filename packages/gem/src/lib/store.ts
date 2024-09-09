@@ -1,4 +1,5 @@
-import { addMicrotask, GemError, NonPrimitive } from './utils';
+import type { NonPrimitive } from './utils';
+import { addMicrotask, GemError } from './utils';
 
 export const StoreListenerMap = new WeakMap<NonPrimitive, Set<() => void>>();
 

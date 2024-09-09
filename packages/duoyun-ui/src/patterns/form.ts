@@ -1,6 +1,7 @@
 import { createCSSSheet, html, GemElement, TemplateResult, createState, createRef } from '@mantou/gem/lib/element';
 import { adoptedStyle, customElement, memo, property, shadow } from '@mantou/gem/lib/decorators';
-import { GemError, StyleObject, css, styleMap } from '@mantou/gem/lib/utils';
+import type { StyleObject } from '@mantou/gem/lib/utils';
+import { GemError, css, styleMap } from '@mantou/gem/lib/utils';
 import { history } from '@mantou/gem/lib/history';
 import { ifDefined } from '@mantou/gem/lib/directives';
 
@@ -9,7 +10,8 @@ import { blockContainer, focusStyle } from '../lib/styles';
 import { readProp } from '../lib/utils';
 import { theme } from '../lib/theme';
 import { Drawer } from '../elements/drawer';
-import { Modal, ModalOpenOptions, ModalOptions } from '../elements/modal';
+import type { ModalOpenOptions, ModalOptions } from '../elements/modal';
+import { Modal } from '../elements/modal';
 import { DuoyunWaitElement, waitLoading } from '../elements/wait';
 import type { DuoyunFormElement, DuoyunFormItemElement } from '../elements/form';
 import { DuoyunInputElement } from '../elements/input';

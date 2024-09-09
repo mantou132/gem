@@ -1,8 +1,13 @@
-import { BoundaryCSSState, createState, GemElement, html, TemplateResult } from '../../lib/element';
-import { property, emitter, Emitter, boolattribute, shadow, effect, template, willMount } from '../../lib/decorators';
-import { createStore, updateStore, Store, connect } from '../../lib/store';
-import { titleStore, history, UpdateHistoryParams } from '../../lib/history';
-import { addListener, QueryString } from '../../lib/utils';
+import type { TemplateResult } from '../../lib/element';
+import { BoundaryCSSState, createState, GemElement, html } from '../../lib/element';
+import type { Emitter } from '../../lib/decorators';
+import { property, emitter, boolattribute, shadow, effect, template, willMount } from '../../lib/decorators';
+import type { Store } from '../../lib/store';
+import { createStore, updateStore, connect } from '../../lib/store';
+import type { UpdateHistoryParams } from '../../lib/history';
+import { titleStore, history } from '../../lib/history';
+import type { QueryString } from '../../lib/utils';
+import { addListener } from '../../lib/utils';
 
 const UNNAMED_PARAM_PREFIX = '_';
 

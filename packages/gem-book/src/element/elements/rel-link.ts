@@ -11,7 +11,7 @@ import {
 } from '@mantou/gem';
 import { mediaQuery } from '@mantou/gem/helper/mediaquery';
 
-import { NavItem } from '../../common/config';
+import type { NavItem } from '../../common/config';
 import { theme } from '../helper/theme';
 import { capitalize } from '../lib/utils';
 import { bookStore } from '../store';

@@ -1,3 +1,4 @@
+import type { Emitter } from '@mantou/gem';
 import {
   html,
   GemElement,
@@ -5,7 +6,6 @@ import {
   property,
   attribute,
   connectStore,
-  Emitter,
   part,
   slot,
   globalemitter,
@@ -19,14 +19,16 @@ import {
   willMount,
   effect,
 } from '@mantou/gem';
-import { GemLightRouteElement, matchPath } from '@mantou/gem/elements/route';
+import type { GemLightRouteElement } from '@mantou/gem/elements/route';
+import { matchPath } from '@mantou/gem/elements/route';
 import { mediaQuery } from '@mantou/gem/helper/mediaquery';
 import { logger } from '@mantou/gem/helper/logger';
 
-import { BookConfig } from '../common/config';
+import type { BookConfig } from '../common/config';
 import { UPDATE_EVENT } from '../common/constant';
 
-import { theme, changeTheme, Theme, themeProps } from './helper/theme';
+import type { Theme } from './helper/theme';
+import { theme, changeTheme, themeProps } from './helper/theme';
 import { bookStore, updateBookConfig, locationStore, updateBookStore } from './store';
 import { checkBuiltInPlugin, joinPath } from './lib/utils';
 import { GemBookPluginElement } from './elements/plugin';

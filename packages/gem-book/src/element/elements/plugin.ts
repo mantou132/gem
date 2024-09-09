@@ -1,11 +1,12 @@
-import { GemElement, connectStore, globalemitter, Emitter, customElement } from '@mantou/gem';
+import type { Emitter } from '@mantou/gem';
+import { GemElement, connectStore, globalemitter, customElement } from '@mantou/gem';
 import * as Gem from '@mantou/gem';
 import { mediaQuery } from '@mantou/gem/helper/mediaquery';
 import { logger } from '@mantou/gem/helper/logger';
 
 import { theme } from '../helper/theme';
 import { bookStore, locationStore } from '../store';
-import { BookConfig } from '../../common/config';
+import type { BookConfig } from '../../common/config';
 import { debounce, throttle } from '../../common/utils';
 import { icons } from '../elements/icons';
 import { getRanges, getParts, joinPath, getURL, escapeHTML, capitalize, isGitLab } from '../lib/utils';

@@ -19,12 +19,14 @@ import { useDecoratorTheme } from '@mantou/gem/helper/theme';
 import { theme, getSemanticColor } from '../lib/theme';
 import { icons } from '../lib/icons';
 import { commonHandle } from '../lib/hotkeys';
-import { StringList } from '../lib/types';
+import type { StringList } from '../lib/types';
 import { focusStyle } from '../lib/styles';
 
 import type { DuoyunUseElement } from './use';
-import { createHistoryParams, RouteItem } from './route';
-import { ContextMenuItem, ContextMenu } from './contextmenu';
+import type { RouteItem } from './route';
+import { createHistoryParams } from './route';
+import type { ContextMenuItem } from './contextmenu';
+import { ContextMenu } from './contextmenu';
 
 import './use';
 

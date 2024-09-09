@@ -1,3 +1,4 @@
+import type { Emitter } from '@mantou/gem/lib/decorators';
 import {
   adoptedStyle,
   customElement,
@@ -5,7 +6,6 @@ import {
   property,
   boolattribute,
   emitter,
-  Emitter,
   slot,
   shadow,
 } from '@mantou/gem/lib/decorators';

@@ -12,7 +12,7 @@ import { watch } from 'chokidar';
 import express, { static as serveStatic } from 'express';
 
 import { version } from '../../package.json';
-import { BookConfig, CliConfig, CliUniqueConfig, NavItem, SidebarConfig } from '../common/config';
+import type { BookConfig, CliConfig, CliUniqueConfig, NavItem, SidebarConfig } from '../common/config';
 import {
   DEFAULT_FILE,
   DEFAULT_CLI_FILE,
@@ -22,7 +22,7 @@ import {
   DEFAULT_DOCS_DIR,
 } from '../common/constant';
 import { isIndexFile, parseFilename, debounce } from '../common/utils';
-import { FrontMatter } from '../common/frontmatter';
+import type { FrontMatter } from '../common/frontmatter';
 
 import {
   getGithubUrl,

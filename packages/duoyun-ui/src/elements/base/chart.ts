@@ -1,9 +1,11 @@
-import { adoptedStyle, emitter, Emitter, property, state, part, aria, shadow, memo } from '@mantou/gem/lib/decorators';
-import { createCSSSheet, html, svg, TemplateResult } from '@mantou/gem/lib/element';
+import type { Emitter } from '@mantou/gem/lib/decorators';
+import { adoptedStyle, emitter, property, state, part, aria, shadow, memo } from '@mantou/gem/lib/decorators';
+import type { TemplateResult } from '@mantou/gem/lib/element';
+import { createCSSSheet, html, svg } from '@mantou/gem/lib/element';
 import { css, randomStr } from '@mantou/gem/lib/utils';
 
 import { theme } from '../../lib/theme';
-import { Data, DataItem } from '../chart-tooltip';
+import type { Data, DataItem } from '../chart-tooltip';
 import { formatToPrecision, adjustRange } from '../../lib/number';
 import { commonColors } from '../../lib/color';
 

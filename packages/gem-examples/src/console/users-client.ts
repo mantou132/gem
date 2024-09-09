@@ -3,7 +3,8 @@ import { connectStore, customElement, mounted } from '@mantou/gem/lib/decorators
 import { createPaginationStore } from 'duoyun-ui/helper/store';
 
 import { ConsolePageItemElement } from './users';
-import { Item, fetchAllItems } from './api';
+import type { Item } from './api';
+import { fetchAllItems } from './api';
 
 import 'duoyun-ui/patterns/table';
 import 'duoyun-ui/elements/button';

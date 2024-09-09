@@ -13,7 +13,8 @@ import {
 } from '@mantou/gem';
 
 import { panelStore } from '../store';
-import { DomStatInfo, inspectDom } from '../scripts/inspect-ele';
+import type { DomStatInfo } from '../scripts/inspect-ele';
+import { inspectDom } from '../scripts/inspect-ele';
 import { execution } from '../common';
 
 import { style } from './section';

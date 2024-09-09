@@ -15,7 +15,8 @@ import { useDecoratorTheme } from '@mantou/gem/helper/theme';
 
 import { theme } from '../lib/theme';
 
-import { Status, getStatusColor } from './status-light';
+import type { Status } from './status-light';
+import { getStatusColor } from './status-light';
 import './tooltip';
 
 const [elementTheme, updateTheme] = useDecoratorTheme({ color: '' });

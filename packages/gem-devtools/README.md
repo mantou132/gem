@@ -7,5 +7,5 @@ Devtools for [Gem](https://github.com/mantou132/gem), able to view the character
 ## development
 
 ```bash
-yarn start
+pnpm start
 ```

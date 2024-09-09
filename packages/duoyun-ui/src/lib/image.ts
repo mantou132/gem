@@ -1,6 +1,7 @@
 import { raw } from '@mantou/gem/lib/utils';
 
-import { luminance, hslToRgb, HSL, HexColor, rgbToHexColor, parseHexColor } from './color';
+import type { HSL, HexColor } from './color';
+import { luminance, hslToRgb, rgbToHexColor, parseHexColor } from './color';
 import { fnv1a } from './encode';
 import { pseudoRandom, normalizeNumber } from './number';
 

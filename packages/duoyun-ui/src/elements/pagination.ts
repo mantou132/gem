@@ -1,10 +1,10 @@
+import type { Emitter } from '@mantou/gem/lib/decorators';
 import {
   connectStore,
   adoptedStyle,
   customElement,
   attribute,
   emitter,
-  Emitter,
   property,
   numattribute,
   shadow,

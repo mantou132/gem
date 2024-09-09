@@ -1,9 +1,9 @@
+import type { Emitter } from '@mantou/gem/lib/decorators';
 import {
   adoptedStyle,
   customElement,
   emitter,
   globalemitter,
-  Emitter,
   property,
   boolattribute,
   part,

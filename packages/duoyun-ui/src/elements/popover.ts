@@ -1,9 +1,9 @@
+import type { Emitter } from '@mantou/gem/lib/decorators';
 import {
   adoptedStyle,
   customElement,
   attribute,
   emitter,
-  Emitter,
   property,
   boolattribute,
   part,
@@ -11,8 +11,10 @@ import {
   effect,
   mounted,
 } from '@mantou/gem/lib/decorators';
-import { createCSSSheet, createRef, createState, GemElement, html, TemplateResult } from '@mantou/gem/lib/element';
-import { addListener, css, styleMap, StyleObject } from '@mantou/gem/lib/utils';
+import type { TemplateResult } from '@mantou/gem/lib/element';
+import { createCSSSheet, createRef, createState, GemElement, html } from '@mantou/gem/lib/element';
+import type { StyleObject } from '@mantou/gem/lib/utils';
+import { addListener, css, styleMap } from '@mantou/gem/lib/utils';
 
 import { toggleActiveState, getBoundingClientRect, setBodyInert } from '../lib/element';
 import { sleep } from '../lib/timer';

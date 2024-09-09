@@ -3,7 +3,7 @@ import { GemElement, html, createCSSSheet } from '@mantou/gem/lib/element';
 import { css } from '@mantou/gem/lib/utils';
 
 import { theme, getSemanticColor } from '../lib/theme';
-import { StringList } from '../lib/types';
+import type { StringList } from '../lib/types';
 
 const style = createCSSSheet(css`
   :host(:where(:not([hidden]))) {

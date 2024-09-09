@@ -1,3 +1,4 @@
+import type { Emitter } from '@mantou/gem/lib/decorators';
 import {
   adoptedStyle,
   customElement,
@@ -7,7 +8,6 @@ import {
   state,
   part,
   globalemitter,
-  Emitter,
   emitter,
   numattribute,
   shadow,
@@ -15,7 +15,8 @@ import {
   mounted,
   effect,
 } from '@mantou/gem/lib/decorators';
-import { GemElement, html, TemplateResult, createCSSSheet, createState, createRef } from '@mantou/gem/lib/element';
+import type { TemplateResult } from '@mantou/gem/lib/element';
+import { GemElement, html, createCSSSheet, createState, createRef } from '@mantou/gem/lib/element';
 import { addListener, css } from '@mantou/gem/lib/utils';
 import { mediaQuery } from '@mantou/gem/helper/mediaquery';
 

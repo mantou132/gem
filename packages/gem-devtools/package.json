@@ -6,10 +6,10 @@
     "update:version": "node ./scripts/update.js",
     "serve": "vite",
     "build": "vite build",
-    "watch": "yarn build --watch",
-    "build:zip": "yarn build && web-ext build",
+    "watch": "pnpm build --watch",
+    "build:zip": "pnpm build && web-ext build",
     "browser": "web-ext run --target=chromium --target=firefox-desktop",
-    "start": "yarn build && concurrently -k npm:watch npm:browser"
+    "start": "pnpm build && concurrently -k npm:watch npm:browser"
   },
   "dependencies": {
     "@mantou/gem": "^1.7.12",

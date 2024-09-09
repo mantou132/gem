@@ -1,4 +1,5 @@
-import { effect, emitter, Emitter, property, state } from '@mantou/gem/lib/decorators';
+import type { Emitter } from '@mantou/gem/lib/decorators';
+import { effect, emitter, property, state } from '@mantou/gem/lib/decorators';
 import { GemElement } from '@mantou/gem/lib/element';
 
 export abstract class VisibleBaseElement extends GemElement {

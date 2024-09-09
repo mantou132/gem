@@ -5,7 +5,8 @@ import { css } from '@mantou/gem/lib/utils';
 import { theme } from '../lib/theme';
 
 import { DuoyunChartBaseElement } from './base/chart';
-import { ChartTooltip, DataItem } from './chart-tooltip';
+import type { DataItem } from './chart-tooltip';
+import { ChartTooltip } from './chart-tooltip';
 
 export interface Sequence {
   label: string;

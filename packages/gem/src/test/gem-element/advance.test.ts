@@ -8,7 +8,8 @@
  */
 import { fixture, expect, nextFrame } from '@open-wc/testing';
 
-import { createCSSSheet, createState, GemElement, html, Metadata, createRef } from '../../lib/element';
+import type { Metadata } from '../../lib/element';
+import { createCSSSheet, createState, GemElement, html, createRef } from '../../lib/element';
 import { createStore, updateStore } from '../../lib/store';
 import {
   attribute,
@@ -255,9 +256,6 @@ class MemoGemDemo extends GemElement {
       () => (this.memoNum += 1),
       () => [this.attr, this.prop],
     );
-  }
-
-  willMount = () => {
     this.memo(
       (_arr) => {
         this.memoNum += 2;
@@ -267,7 +265,7 @@ class MemoGemDemo extends GemElement {
     this.memo(() => {
       this.memoNum += 4;
     });
-  };
+  }
 }
 describe('gem element Memo', () => {
   it('依赖当前值', async () => {

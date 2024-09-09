@@ -16,7 +16,7 @@ import { classMap, css } from '@mantou/gem/lib/utils';
 
 import { contentsContainer } from '../lib/styles';
 import { getSemanticColor, theme } from '../lib/theme';
-import { StringList } from '../lib/types';
+import type { StringList } from '../lib/types';
 
 import './use';
 

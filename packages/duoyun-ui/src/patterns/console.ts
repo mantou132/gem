@@ -11,8 +11,10 @@ import { icons } from '../lib/icons';
 import { isNotNullish } from '../lib/types';
 import type { NavItems } from '../elements/side-navigation';
 import type { DuoyunUseElement } from '../elements/use';
-import { DuoyunRouteElement, RouteItem, RoutesObject } from '../elements/route';
-import { ContextMenu, ContextMenuItem } from '../elements/contextmenu';
+import type { RouteItem, RoutesObject } from '../elements/route';
+import { DuoyunRouteElement } from '../elements/route';
+import type { ContextMenuItem } from '../elements/contextmenu';
+import { ContextMenu } from '../elements/contextmenu';
 import { isRemoteIcon } from '../lib/utils';
 
 import '../elements/title';

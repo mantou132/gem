@@ -1,9 +1,9 @@
+import type { Emitter } from '@mantou/gem/lib/decorators';
 import {
   adoptedStyle,
   customElement,
   attribute,
   globalemitter,
-  Emitter,
   property,
   boolattribute,
   slot,
@@ -11,7 +11,8 @@ import {
   aria,
   mounted,
 } from '@mantou/gem/lib/decorators';
-import { GemElement, html, TemplateResult, createCSSSheet } from '@mantou/gem/lib/element';
+import type { TemplateResult } from '@mantou/gem/lib/element';
+import { GemElement, html, createCSSSheet } from '@mantou/gem/lib/element';
 import { addListener, css } from '@mantou/gem/lib/utils';
 
 import { theme } from '../lib/theme';

@@ -1,15 +1,16 @@
+import type { Emitter } from '@mantou/gem/lib/decorators';
 import {
   adoptedStyle,
   customElement,
   emitter,
-  Emitter,
   property,
   boolattribute,
   part,
   shadow,
   memo,
 } from '@mantou/gem/lib/decorators';
-import { createCSSSheet, GemElement, html, TemplateResult } from '@mantou/gem/lib/element';
+import type { TemplateResult } from '@mantou/gem/lib/element';
+import { createCSSSheet, GemElement, html } from '@mantou/gem/lib/element';
 import { css, classMap, partMap } from '@mantou/gem/lib/utils';
 
 import { isNotNullish } from '../lib/types';

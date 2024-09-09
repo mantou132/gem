@@ -1,10 +1,10 @@
+import type { Emitter } from '@mantou/gem/lib/decorators';
 import {
   connectStore,
   adoptedStyle,
   customElement,
   attribute,
   globalemitter,
-  Emitter,
   property,
   boolattribute,
   state,
@@ -13,7 +13,8 @@ import {
   mounted,
   effect,
 } from '@mantou/gem/lib/decorators';
-import { GemElement, html, TemplateResult, createCSSSheet } from '@mantou/gem/lib/element';
+import type { TemplateResult } from '@mantou/gem/lib/element';
+import { GemElement, html, createCSSSheet } from '@mantou/gem/lib/element';
 import { addListener, css } from '@mantou/gem/lib/utils';
 
 import { theme } from '../lib/theme';
@@ -21,7 +22,8 @@ import { icons } from '../lib/icons';
 import { commonHandle } from '../lib/hotkeys';
 import { focusStyle } from '../lib/styles';
 
-import { ContextMenu, ContextMenuItem } from './contextmenu';
+import type { ContextMenuItem } from './contextmenu';
+import { ContextMenu } from './contextmenu';
 
 import './use';
 import './scroll-box';

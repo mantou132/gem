@@ -1,4 +1,5 @@
-import { effect, emitter, Emitter, property } from '@mantou/gem/lib/decorators';
+import type { Emitter } from '@mantou/gem/lib/decorators';
+import { effect, emitter, property } from '@mantou/gem/lib/decorators';
 import { GemElement } from '@mantou/gem/lib/element';
 
 import { throttle } from '../../lib/timer';

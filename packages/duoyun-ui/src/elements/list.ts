@@ -1,3 +1,4 @@
+import type { Emitter } from '@mantou/gem/lib/decorators';
 import {
   adoptedStyle,
   customElement,
@@ -6,7 +7,6 @@ import {
   slot,
   state,
   emitter,
-  Emitter,
   boolattribute,
   attribute,
   shadow,
@@ -16,8 +16,10 @@ import {
   memo,
   mounted,
 } from '@mantou/gem/lib/decorators';
-import { createCSSSheet, createRef, createState, GemElement, html, TemplateResult } from '@mantou/gem/lib/element';
-import { addListener, css, LinkedList, LinkedListItem, styled, styleMap } from '@mantou/gem/lib/utils';
+import type { TemplateResult } from '@mantou/gem/lib/element';
+import { createCSSSheet, createRef, createState, GemElement, html } from '@mantou/gem/lib/element';
+import type { LinkedListItem } from '@mantou/gem/lib/utils';
+import { addListener, css, LinkedList, styled, styleMap } from '@mantou/gem/lib/utils';
 import { logger } from '@mantou/gem/helper/logger';
 
 import { theme } from '../lib/theme';
@@ -26,7 +28,8 @@ import { findScrollContainer } from '../lib/element';
 import { throttle, once } from '../lib/timer';
 
 import type { Status } from './status-light';
-import { DuoyunVisibleBaseElement, visibilityObserver, VisibleBaseElement } from './base/visible';
+import type { VisibleBaseElement } from './base/visible';
+import { DuoyunVisibleBaseElement, visibilityObserver } from './base/visible';
 import { DuoyunResizeBaseElement } from './base/resize';
 
 import './avatar';

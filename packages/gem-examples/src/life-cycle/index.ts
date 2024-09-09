@@ -16,7 +16,8 @@ import {
 
 import '../elements/layout';
 
-import { Message, Children } from './children';
+import type { Message } from './children';
+import { Children } from './children';
 
 interface GlobalState {
   msg: Message;

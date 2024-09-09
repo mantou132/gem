@@ -8,6 +8,7 @@ import '../../elements/title';
 describe('GemTitleElement', () => {
   it('basic', async () => {
     const ele: GemTitleElement = await fixture(html`<gem-title>title</gem-title>`);
+    await nextFrame();
     expect(document.title).to.equal('title');
     ele.textContent = 'title2';
     await nextFrame();

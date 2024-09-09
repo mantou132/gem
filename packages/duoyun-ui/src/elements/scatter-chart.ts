@@ -6,8 +6,9 @@ import { classMap, css } from '@mantou/gem/lib/utils';
 import { isNullish } from '../lib/types';
 
 import { DuoyunChartBaseElement } from './base/chart';
-import { Sequence } from './area-chart';
-import { ChartTooltip, Data } from './chart-tooltip';
+import type { Sequence } from './area-chart';
+import type { Data } from './chart-tooltip';
+import { ChartTooltip } from './chart-tooltip';
 
 const style = createCSSSheet(css`
   .symbol {

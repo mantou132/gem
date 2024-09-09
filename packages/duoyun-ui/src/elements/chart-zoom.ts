@@ -1,4 +1,5 @@
-import { adoptedStyle, customElement, emitter, Emitter, mounted, property, shadow } from '@mantou/gem/lib/decorators';
+import type { Emitter } from '@mantou/gem/lib/decorators';
+import { adoptedStyle, customElement, emitter, mounted, property, shadow } from '@mantou/gem/lib/decorators';
 import { createCSSSheet, createState, GemElement, html } from '@mantou/gem/lib/element';
 import { css, styleMap, classMap, addListener } from '@mantou/gem/lib/utils';
 

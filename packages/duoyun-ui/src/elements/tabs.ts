@@ -1,8 +1,8 @@
+import type { Emitter } from '@mantou/gem/lib/decorators';
 import {
   adoptedStyle,
   customElement,
   emitter,
-  Emitter,
   property,
   boolattribute,
   attribute,
@@ -13,7 +13,8 @@ import {
   mounted,
   effect,
 } from '@mantou/gem/lib/decorators';
-import { createCSSSheet, GemElement, html, TemplateResult } from '@mantou/gem/lib/element';
+import type { TemplateResult } from '@mantou/gem/lib/element';
+import { createCSSSheet, GemElement, html } from '@mantou/gem/lib/element';
 import { css, partMap, classMap, styleMap, addListener } from '@mantou/gem/lib/utils';
 
 import { theme } from '../lib/theme';

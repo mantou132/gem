@@ -1,8 +1,10 @@
-import { html, render, TemplateResult } from 'lit-html';
+import type { TemplateResult } from 'lit-html';
+import { html, render } from 'lit-html';
 
 import type { GemReflectElement } from '../elements/reflect';
 
-import { connect, Store } from './store';
+import type { Store } from './store';
+import { connect } from './store';
 import { LinkedList, addMicrotask, isArrayChange, addListener, randomStr } from './utils';
 
 export { html, svg, render, directive, TemplateResult, SVGTemplateResult } from 'lit-html';
@@ -114,7 +116,7 @@ class GemCSSSheet {
   #record = new Map<any, GemCSSStyleSheet>();
   #used = new Map<GemCSSStyleSheet, string>();
   getStyle(host?: HTMLElement) {
-    const isLight = host && !(host as GemElement).internals.shadowRoot;
+    const isLight = host && !(host as GemElement).internals?.shadowRoot;
 
     // 对同一类 dom 只使用同一个样式表
     const key = isLight ? host.constructor : this;
@@ -454,7 +456,7 @@ export abstract class GemElement extends HTMLElement {
     if (shadowRoot) {
       shadowRoot.adoptedStyleSheets = clsSheets.concat(sheets);
     } else {
-      this.append(...sheets.map((e) => e.element));
+      this.prepend(...sheets.map((e) => e.element));
       return appleCSSStyleSheet(this, clsSheets);
     }
   };
@@ -494,11 +496,11 @@ export abstract class GemElement extends HTMLElement {
 
   #disconnectStore?: (() => void)[];
   #connectedCallback = async () => {
-    this.#compat();
     if (this.#isAppendReason) {
       this.#isAppendReason = false;
       return;
     }
+    this.#compat();
 
     const { observedStores } = this.#metadata;
 
@@ -558,7 +560,7 @@ export abstract class GemElement extends HTMLElement {
 
   /**
    * @helper
-   * 记录副作用回调和值，在 `constructor`/`mounted` 中使用；
+   * 记录副作用回调和值；
    * 回调到返回值如果是函数将再卸载时执行；
    * 第一次执行时 `oldDeps` 为空；
    *
@@ -588,12 +590,13 @@ export abstract class GemElement extends HTMLElement {
   /**
    * @helper
    * 在 `render` 前执行回调；
-   * 和 `effect` 一样接受依赖数组参数，在 `constructor`/`willMount` 中使用;
+   * 和 `effect` 一样接受依赖数组参数，在 `constructor` 中使用;
    * 第一次执行时 `oldDeps` 为空；
    *
    * ```js
    * class App extends GemElement {
-   *   willMount() {
+   *   constructor() {
+   *     super();
    *     this.memo(() => {
    *       this.a = exec(this.attrName);
    *     }), () => [this.attrName]);

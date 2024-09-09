@@ -1,9 +1,9 @@
 // https://spectrum.adobe.com/page/rating/
+import type { Emitter } from '@mantou/gem/lib/decorators';
 import {
   adoptedStyle,
   customElement,
   globalemitter,
-  Emitter,
   boolattribute,
   numattribute,
   part,

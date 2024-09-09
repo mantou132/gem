@@ -16,7 +16,8 @@ import { history, basePathStore } from '../../lib/history';
 import { absoluteLocation, css } from '../../lib/utils';
 import { ifDefined } from '../../lib/directives';
 
-import { matchPath, RouteItem, RouteOptions, createHistoryParams, createPath } from './route';
+import type { RouteItem, RouteOptions } from './route';
+import { matchPath, createHistoryParams, createPath } from './route';
 
 function isExternal(path: string) {
   return !path.startsWith('/');

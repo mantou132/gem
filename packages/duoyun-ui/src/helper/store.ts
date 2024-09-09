@@ -1,6 +1,7 @@
 import { useStore } from '@mantou/gem/lib/store';
 
-import { UseCacheStoreOptions, useCacheStore } from '../lib/utils';
+import type { UseCacheStoreOptions } from '../lib/utils';
+import { useCacheStore } from '../lib/utils';
 
 export type PaginationReq = {
   page: number;

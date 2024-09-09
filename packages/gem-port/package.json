@@ -15,8 +15,8 @@
   ],
   "scripts": {
     "build": "esbuild ./src/index.ts --outdir=./bin --bundle --platform=node --external:typescript --external:ts-morph",
-    "start": "yarn build --watch",
-    "prepublishOnly": "yarn build"
+    "start": "pnpm build --watch",
+    "prepublishOnly": "pnpm build"
   },
   "dependencies": {
     "@gemjs/config": "^1.6.14",

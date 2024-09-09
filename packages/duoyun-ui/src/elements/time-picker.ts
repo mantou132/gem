@@ -1,10 +1,10 @@
+import type { Emitter } from '@mantou/gem/lib/decorators';
 import {
   adoptedStyle,
   customElement,
   attribute,
   emitter,
   globalemitter,
-  Emitter,
   property,
   boolattribute,
   state,
@@ -24,7 +24,8 @@ import { commonHandle } from '../lib/hotkeys';
 import { focusStyle } from '../lib/styles';
 
 import { ContextMenu } from './contextmenu';
-import { BasePickerElement, pickerStyle } from './picker';
+import type { BasePickerElement } from './picker';
+import { pickerStyle } from './picker';
 import type { DuoyunButtonElement } from './button';
 import type { DuoyunTimePanelElement } from './time-panel';
 

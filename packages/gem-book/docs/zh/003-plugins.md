@@ -14,6 +14,10 @@ isNav: true
 npm i gem-book
 ```
 
+```bash pnpm
+pnpm add gem-book
+```
+
 ```bash yarn
 yarn add gem-book
 ```
@@ -25,6 +29,10 @@ yarn add gem-book
 
 ```bash npm
 npm i gem-book
+```
+
+```bash pnpm
+pnpm add gem-book
 ```
 
 ```bash yarn

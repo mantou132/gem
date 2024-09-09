@@ -18,7 +18,7 @@ jobs:
         with:
           node-version: 18.x
 
-      - run: yarn
+      - run: pnpm install
 
       - name: Build
         run: |
@@ -28,9 +28,9 @@ jobs:
           export ZIP_PATH=packages/gem-devtools/build/${ZIP_NAME}
           echo ${ZIP_PATH}
 
-          yarn update:version
+          pnpm update:version
 
-          yarn build:zip
+          pnpm build:zip
 
           echo "ZIP_PATH=${ZIP_PATH}" >> $GITHUB_ENV
         working-directory: packages/gem-devtools

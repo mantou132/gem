@@ -1,5 +1,6 @@
 import { GemElement, html, createCSSSheet } from '@mantou/gem/lib/element';
-import { Emitter, adoptedStyle, customElement, globalemitter, property } from '@mantou/gem/lib/decorators';
+import type { Emitter } from '@mantou/gem/lib/decorators';
+import { adoptedStyle, customElement, globalemitter, property } from '@mantou/gem/lib/decorators';
 import { css } from '@mantou/gem/lib/utils';
 import { mediaQuery } from '@mantou/gem/helper/mediaquery';
 

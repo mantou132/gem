@@ -1,6 +1,7 @@
 // https://ant.design/components/timeline/
 import { adoptedStyle, aria, customElement, property, shadow } from '@mantou/gem/lib/decorators';
-import { createCSSSheet, html, TemplateResult } from '@mantou/gem/lib/element';
+import type { TemplateResult } from '@mantou/gem/lib/element';
+import { createCSSSheet, html } from '@mantou/gem/lib/element';
 import { css, styleMap, classMap } from '@mantou/gem/lib/utils';
 
 import { theme } from '../lib/theme';

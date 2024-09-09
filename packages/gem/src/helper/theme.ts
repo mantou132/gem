@@ -1,6 +1,8 @@
-import { connect, Store, useStore } from '../lib/store';
+import type { Store } from '../lib/store';
+import { connect, useStore } from '../lib/store';
 import { camelToKebabCase, randomStr } from '../lib/utils';
-import { GemElement, SheetToken, createCSSSheet } from '../lib/element';
+import type { GemElement } from '../lib/element';
+import { SheetToken, createCSSSheet } from '../lib/element';
 
 export type Theme<T> = ReturnType<typeof createCSSSheet> & {
   [K in keyof T as K extends `${string}Color`

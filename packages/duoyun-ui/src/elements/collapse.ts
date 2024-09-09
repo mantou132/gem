@@ -1,6 +1,7 @@
 // https://ant.design/components/collapse/
 // https://developer.mozilla.org/en-US/docs/Web/HTML/Global_attributes/hidden#the_hidden_until_found_state
 
+import type { Emitter } from '@mantou/gem/lib/decorators';
 import {
   adoptedStyle,
   customElement,
@@ -9,12 +10,12 @@ import {
   boolattribute,
   property,
   emitter,
-  Emitter,
   slot,
   shadow,
   aria,
 } from '@mantou/gem/lib/decorators';
-import { createCSSSheet, GemElement, TemplateResult, html, createState, createRef } from '@mantou/gem/lib/element';
+import type { TemplateResult } from '@mantou/gem/lib/element';
+import { createCSSSheet, GemElement, html, createState, createRef } from '@mantou/gem/lib/element';
 import { css, classMap, exportPartsMap } from '@mantou/gem/lib/utils';
 import { ifDefined } from '@mantou/gem/lib/directives';
 

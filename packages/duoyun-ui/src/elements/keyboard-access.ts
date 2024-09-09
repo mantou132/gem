@@ -1,4 +1,5 @@
 import { createCSSSheet, createState, GemElement, html } from '@mantou/gem/lib/element';
+import type { Emitter } from '@mantou/gem/lib/decorators';
 import {
   adoptedStyle,
   customElement,
@@ -6,7 +7,6 @@ import {
   part,
   property,
   emitter,
-  Emitter,
   shadow,
   effect,
   mounted,
@@ -14,7 +14,8 @@ import {
 import { addListener, css, styleMap } from '@mantou/gem/lib/utils';
 import { logger } from '@mantou/gem/helper/logger';
 
-import { hotkeys, HotKeyHandles, unlock } from '../lib/hotkeys';
+import type { HotKeyHandles } from '../lib/hotkeys';
+import { hotkeys, unlock } from '../lib/hotkeys';
 import { isNotNullish } from '../lib/types';
 import { theme } from '../lib/theme';
 import { contentsContainer } from '../lib/styles';

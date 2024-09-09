@@ -1,5 +1,6 @@
-import { UpdateHistoryParams } from '../lib/history';
-import { html, TemplateResult, UpdateToken } from '../lib/element';
+import type { UpdateHistoryParams } from '../lib/history';
+import type { TemplateResult } from '../lib/element';
+import { html, UpdateToken } from '../lib/element';
 import { GemError } from '../lib/utils';
 import type { RouteTrigger } from '../elements/base/route';
 

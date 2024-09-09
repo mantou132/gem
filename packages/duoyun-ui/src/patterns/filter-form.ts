@@ -1,18 +1,19 @@
 import { GemElement, html, createCSSSheet, createState } from '@mantou/gem/lib/element';
 import { css } from '@mantou/gem/lib/utils';
+import type { Emitter } from '@mantou/gem/lib/decorators';
 import {
   adoptedStyle,
   connectStore,
   customElement,
   effect,
   emitter,
-  Emitter,
   memo,
   property,
   shadow,
   willMount,
 } from '@mantou/gem/lib/decorators';
-import { Store, connect } from '@mantou/gem/lib/store';
+import type { Store } from '@mantou/gem/lib/store';
+import { connect } from '@mantou/gem/lib/store';
 
 import { ComparerType, isIncludesString } from '../lib/utils';
 import { Time } from '../lib/time';

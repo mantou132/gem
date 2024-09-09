@@ -8,6 +8,7 @@
     "declaration": true,
     "declarationMap": true,
     "isolatedModules": true,
+    "verbatimModuleSyntax": true,
     "sourceMap": true,
     "module": "es2022",
     "moduleResolution": "node",

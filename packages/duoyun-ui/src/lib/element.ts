@@ -1,4 +1,5 @@
-import { GemElement, Metadata } from '@mantou/gem/lib/element';
+import type { Metadata } from '@mantou/gem/lib/element';
+import { GemElement } from '@mantou/gem/lib/element';
 
 export function getBoundingClientRect(eleList: Element[]) {
   const rects = eleList.map((e) => e.getBoundingClientRect());

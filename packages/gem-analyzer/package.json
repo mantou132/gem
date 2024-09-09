@@ -9,8 +9,8 @@
   ],
   "scripts": {
     "build": "tsc",
-    "start": "yarn build --watch",
-    "prepublishOnly": "yarn build"
+    "start": "pnpm build --watch",
+    "prepublishOnly": "pnpm build"
   },
   "dependencies": {
     "@mantou/gem": "^1.7.12"

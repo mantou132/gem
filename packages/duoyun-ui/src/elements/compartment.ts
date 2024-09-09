@@ -1,5 +1,6 @@
 import { adoptedStyle, customElement, property, shadow } from '@mantou/gem/lib/decorators';
-import { GemElement, html, TemplateResult } from '@mantou/gem/lib/element';
+import type { TemplateResult } from '@mantou/gem/lib/element';
+import { GemElement, html } from '@mantou/gem/lib/element';
 
 import { contentsContainer } from '../lib/styles';
 

@@ -1,11 +1,11 @@
 // https://spectrum.adobe.com/page/slider/
+import type { Emitter } from '@mantou/gem/lib/decorators';
 import {
   adoptedStyle,
   customElement,
   attribute,
   globalemitter,
   emitter,
-  Emitter,
   boolattribute,
   numattribute,
   aria,

@@ -3,7 +3,8 @@ import { mediaQuery } from '@mantou/gem/helper/mediaquery';
 
 import { getUserLink } from '../../common/utils';
 import { theme } from '../helper/theme';
-import { joinPath, NavItemWithLink } from '../lib/utils';
+import type { NavItemWithLink } from '../lib/utils';
+import { joinPath } from '../lib/utils';
 import { bookStore } from '../store';
 import { unsafeRenderHTML } from '../lib/renderer';
 import { GemBookElement } from '..';

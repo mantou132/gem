@@ -1,5 +1,6 @@
 import { adoptedStyle, customElement, property, boolattribute, slot, aria, shadow } from '@mantou/gem/lib/decorators';
-import { GemElement, html, TemplateResult, createCSSSheet, createState } from '@mantou/gem/lib/element';
+import type { TemplateResult } from '@mantou/gem/lib/element';
+import { GemElement, html, createCSSSheet, createState } from '@mantou/gem/lib/element';
 import { css, classMap } from '@mantou/gem/lib/utils';
 
 import { theme } from '../lib/theme';

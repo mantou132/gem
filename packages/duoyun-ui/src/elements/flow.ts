@@ -1,13 +1,15 @@
 // webkit marker arrow bug: https://duoyun-ui.gemjs.org/zh/elements/flow
 
 import { adoptedStyle, customElement, property, part, state, shadow, memo, effect } from '@mantou/gem/lib/decorators';
-import { createCSSSheet, createRef, createState, html, svg, TemplateResult } from '@mantou/gem/lib/element';
+import type { TemplateResult } from '@mantou/gem/lib/element';
+import { createCSSSheet, createRef, createState, html, svg } from '@mantou/gem/lib/element';
 import { css, styleMap, exportPartsMap } from '@mantou/gem/lib/utils';
 import { useDecoratorTheme } from '@mantou/gem/helper/theme';
 import type { ElkNode, ElkExtendedEdge, ElkEdgeSection, LayoutOptions, ElkShape, ElkPoint } from 'elkjs';
 import ELK from 'elkjs/lib/elk.bundled.js';
 
-import { Modify, isNullish, isNotNullish } from '../lib/types';
+import type { Modify } from '../lib/types';
+import { isNullish, isNotNullish } from '../lib/types';
 import { formatToPrecision } from '../lib/number';
 import { theme } from '../lib/theme';
 import { utf8ToB64 } from '../lib/encode';

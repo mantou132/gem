@@ -1,8 +1,10 @@
 import { fixture, expect } from '@open-wc/testing';
 
-import { createCSSSheet, GemElement, html, Metadata, createRef } from '../../lib/element';
+import type { Metadata } from '../../lib/element';
+import { createCSSSheet, GemElement, html, createRef } from '../../lib/element';
 import { createStore, updateStore } from '../../lib/store';
 import { css } from '../../lib/utils';
+import type { Emitter } from '../../lib/decorators';
 import {
   attribute,
   property,
@@ -12,7 +14,6 @@ import {
   emitter,
   boolattribute,
   numattribute,
-  Emitter,
   part,
   slot,
   state,

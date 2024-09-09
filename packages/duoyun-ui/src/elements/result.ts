@@ -3,9 +3,10 @@ import { adoptedStyle, customElement, property, attribute, slot, shadow } from '
 import { css } from '@mantou/gem/lib/utils';
 
 import { theme } from '../lib/theme';
-import { StringList } from '../lib/types';
+import type { StringList } from '../lib/types';
 
-import { Status, getStatusColor } from './status-light';
+import type { Status } from './status-light';
+import { getStatusColor } from './status-light';
 
 import './use';
 import './heading';

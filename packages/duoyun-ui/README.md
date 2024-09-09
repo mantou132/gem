@@ -4,11 +4,11 @@
 
 ```bash
 # install dependencies
-yarn
+pnpm install
 # test
-yarn test
+pnpm test
 # build watch
-yarn start
+pnpm start
 # development, view example and api
-yarn docs
+pnpm docs
 ```

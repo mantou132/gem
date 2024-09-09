@@ -1,17 +1,17 @@
 // https://spectrum.adobe.com/page/color-area/
+import type { Emitter } from '@mantou/gem/lib/decorators';
 import {
   adoptedStyle,
   customElement,
   attribute,
   globalemitter,
-  Emitter,
   boolattribute,
   shadow,
 } from '@mantou/gem/lib/decorators';
 import { createCSSSheet, createRef, GemElement, html } from '@mantou/gem/lib/element';
 import { css, styleMap } from '@mantou/gem/lib/utils';
 
-import { HexColor } from '../lib/color';
+import type { HexColor } from '../lib/color';
 import { theme } from '../lib/theme';
 import { commonHandle } from '../lib/hotkeys';
 import { focusStyle } from '../lib/styles';

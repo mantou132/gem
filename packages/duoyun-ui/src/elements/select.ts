@@ -1,10 +1,10 @@
+import type { Emitter } from '@mantou/gem/lib/decorators';
 import {
   connectStore,
   adoptedStyle,
   customElement,
   attribute,
   globalemitter,
-  Emitter,
   property,
   boolattribute,
   state,
@@ -15,8 +15,10 @@ import {
   effect,
   memo,
 } from '@mantou/gem/lib/decorators';
-import { createCSSSheet, createRef, createState, GemElement, html, TemplateResult } from '@mantou/gem/lib/element';
-import { addListener, css, styleMap, StyleObject } from '@mantou/gem/lib/utils';
+import type { TemplateResult } from '@mantou/gem/lib/element';
+import { createCSSSheet, createRef, createState, GemElement, html } from '@mantou/gem/lib/element';
+import type { StyleObject } from '@mantou/gem/lib/utils';
+import { addListener, css, styleMap } from '@mantou/gem/lib/utils';
 
 import { theme } from '../lib/theme';
 import { icons } from '../lib/icons';
@@ -27,7 +29,8 @@ import { hotkeys } from '../lib/hotkeys';
 import { isNotNullish } from '../lib/types';
 import { focusStyle } from '../lib/styles';
 
-import { BasePickerElement, pickerStyle } from './picker';
+import type { BasePickerElement } from './picker';
+import { pickerStyle } from './picker';
 import type { Adder } from './options';
 
 import './reflect';

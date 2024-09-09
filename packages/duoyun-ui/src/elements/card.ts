@@ -7,10 +7,11 @@ import { theme } from '../lib/theme';
 import { icons } from '../lib/icons';
 import { commonHandle } from '../lib/hotkeys';
 import { focusStyle } from '../lib/styles';
-import { StringList } from '../lib/types';
+import type { StringList } from '../lib/types';
 
 import { DuoyunLoadableBaseElement } from './base/loadable';
-import { ContextMenuItem, ContextMenu } from './contextmenu';
+import type { ContextMenuItem } from './contextmenu';
+import { ContextMenu } from './contextmenu';
 
 import './use';
 

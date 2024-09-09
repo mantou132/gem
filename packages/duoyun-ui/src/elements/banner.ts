@@ -1,10 +1,10 @@
 // https://spectrum.adobe.com/page/alert-banner/
+import type { Emitter } from '@mantou/gem/lib/decorators';
 import {
   adoptedStyle,
   customElement,
   attribute,
   emitter,
-  Emitter,
   property,
   boolattribute,
   slot,

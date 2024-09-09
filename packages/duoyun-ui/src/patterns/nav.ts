@@ -1,5 +1,6 @@
 import { history } from '@mantou/gem/lib/history';
-import { createCSSSheet, GemElement, TemplateResult, html, createState } from '@mantou/gem/lib/element';
+import type { TemplateResult } from '@mantou/gem/lib/element';
+import { createCSSSheet, GemElement, html, createState } from '@mantou/gem/lib/element';
 import {
   adoptedStyle,
   attribute,
@@ -18,7 +19,7 @@ import { icons } from '../lib/icons';
 import { theme } from '../lib/theme';
 import { focusStyle } from '../lib/styles';
 
-import { Links } from './footer';
+import type { Links } from './footer';
 
 import '../elements/use';
 

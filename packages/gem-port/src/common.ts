@@ -1,7 +1,8 @@
 import path from 'path';
 import { readdirSync, readFileSync, statSync, promises } from 'fs';
 
-import { ElementDetail, getElements } from 'gem-analyzer';
+import type { ElementDetail } from 'gem-analyzer';
+import { getElements } from 'gem-analyzer';
 import { Project, ts as morphTs } from 'ts-morph';
 import * as ts from 'typescript';
 

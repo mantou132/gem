@@ -4,18 +4,26 @@
   "version": "2.0.0",
   "tasks": [
     {
-      "label": "VS Code gem plugin watch",
-      "type": "shell",
-      "command": "yarn --cwd packages/vscode-gem-plugin run watch",
-      "problemMatcher": "$esbuild-watch",
-      "isBackground": true,
+      "label": "watch",
+      "dependsOn": ["VS Code gem plugin watch"],
       "presentation": {
-        "group": "watch",
         "reveal": "never"
       },
       "group": {
         "kind": "build",
         "isDefault": true
+      }
+    },
+    {
+      "type": "shell",
+      "command": "pnpm -C packages/vscode-gem-plugin run watch",
+      "group": "build",
+      "problemMatcher": "$esbuild-watch",
+      "isBackground": true,
+      "label": "VS Code gem plugin watch",
+      "presentation": {
+        "group": "watch",
+        "reveal": "never"
       }
     }
   ]

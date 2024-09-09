@@ -1,8 +1,8 @@
+import type { TemplateResult } from '@mantou/gem';
 import {
   html,
   GemElement,
   customElement,
-  TemplateResult,
   connectStore,
   classMap,
   state,
@@ -18,7 +18,7 @@ import {
 } from '@mantou/gem';
 import { mediaQuery } from '@mantou/gem/helper/mediaquery';
 
-import { NavItem } from '../../common/config';
+import type { NavItem } from '../../common/config';
 import { capitalize, isSameOrigin } from '../lib/utils';
 import { theme } from '../helper/theme';
 import { bookStore, locationStore } from '../store';

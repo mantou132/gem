@@ -1,3 +1,4 @@
+import type { Emitter } from '@mantou/gem';
 import {
   html,
   customElement,
@@ -5,7 +6,6 @@ import {
   render,
   attribute,
   emitter,
-  Emitter,
   createRef,
   createState,
   effect,

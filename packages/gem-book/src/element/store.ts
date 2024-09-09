@@ -1,12 +1,14 @@
 import { connect, html, history, useStore } from '@mantou/gem';
-import { RouteItem, GemLightRouteElement } from '@mantou/gem/elements/route';
+import type { RouteItem } from '@mantou/gem/elements/route';
+import { GemLightRouteElement } from '@mantou/gem/elements/route';
 import { I18n } from '@mantou/gem/helper/i18n';
 
-import { BookConfig, NavItem } from '../common/config';
+import type { BookConfig, NavItem } from '../common/config';
 import { getLinkPath, getUserLink } from '../common/utils';
 
 import { originDocLang, selfI18n } from './helper/i18n';
-import { NavItemWithLink, flatNav, capitalize, getURL, joinPath } from './lib/utils';
+import type { NavItemWithLink } from './lib/utils';
+import { flatNav, capitalize, getURL, joinPath } from './lib/utils';
 
 import type { GemBookElement } from '.';
 

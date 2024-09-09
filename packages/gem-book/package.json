@@ -29,14 +29,14 @@
   "scripts": {
     "schema": "npx ts-json-schema-generator@1.5 -p src/common/config.ts -t CliConfig -o schema.json",
     "build:cli": "esbuild ./src/bin/index.ts --tsconfig=./tsconfig.cli.json --outdir=./bin --platform=node --sourcemap --bundle --external:anymatch --external:cheerio --external:chokidar --external:jimp --external:marked --external:yaml --external:front-matter --external:commander --external:webpack --external:ts-loader --external:typescript --external:webpack-dev-server --external:html-webpack-plugin --external:copy-webpack-plugin --external:workbox-webpack-plugin",
-    "start:cli": "yarn build:cli --watch",
+    "start:cli": "pnpm build:cli --watch",
     "docs": "node ./bin docs",
-    "start:docs": "cross-env GEM_BOOK_DEV=true nodemon --watch bin --exec \"yarn docs\"",
+    "start:docs": "cross-env GEM_BOOK_DEV=true nodemon --watch bin --exec \"pnpm docs\"",
     "start": "concurrently npm:start:cli npm:start:docs",
-    "build:website": "yarn build:cli && yarn docs --build --ga G-7X2Z4B2KV0",
-    "build": "yarn build:cli && tsc -p ./tsconfig.build.json",
+    "build:website": "pnpm build:cli && pnpm docs --build --ga G-7X2Z4B2KV0",
+    "build": "pnpm build:cli && tsc -p ./tsconfig.build.json",
     "test": "cross-env NODE_OPTIONS=--no-experimental-fetch wtr",
-    "prepublishOnly": "yarn build"
+    "prepublishOnly": "pnpm build"
   },
   "dependencies": {
     "@mantou/gem": "^1.7.12",

@@ -12,7 +12,8 @@ import {
   SheetToken,
 } from '@mantou/gem';
 
-import { Item, Path, BuildIn, panelStore } from '../store';
+import type { Item, Path, BuildIn } from '../store';
+import { panelStore } from '../store';
 import { theme } from '../theme';
 import { inspectValue } from '../scripts/inspect-value';
 import { execution } from '../common';

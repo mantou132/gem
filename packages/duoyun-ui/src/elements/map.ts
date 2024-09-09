@@ -1,17 +1,9 @@
-import {
-  adoptedStyle,
-  customElement,
-  emitter,
-  Emitter,
-  property,
-  state,
-  part,
-  aria,
-  memo,
-} from '@mantou/gem/lib/decorators';
+import type { Emitter } from '@mantou/gem/lib/decorators';
+import { adoptedStyle, customElement, emitter, property, state, part, aria, memo } from '@mantou/gem/lib/decorators';
 import { createCSSSheet, createState, html, svg } from '@mantou/gem/lib/element';
 import { css, styleMap, classMap } from '@mantou/gem/lib/utils';
-import { geoProjection, geoMercatorRaw, geoEquirectangularRaw, GeoRawProjection, geoPath } from 'd3-geo';
+import type { GeoRawProjection } from 'd3-geo';
+import { geoProjection, geoMercatorRaw, geoEquirectangularRaw, geoPath } from 'd3-geo';
 
 import { theme } from '../lib/theme';
 

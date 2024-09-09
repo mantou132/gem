@@ -1,6 +1,8 @@
-import { Store, connect, updateStore, useStore } from '@mantou/gem/lib/store';
+import type { Store } from '@mantou/gem/lib/store';
+import { connect, updateStore, useStore } from '@mantou/gem/lib/store';
 import { render, TemplateResult } from '@mantou/gem/lib/element';
-import { NonPrimitive, cleanObject } from '@mantou/gem/lib/utils';
+import type { NonPrimitive } from '@mantou/gem/lib/utils';
+import { cleanObject } from '@mantou/gem/lib/utils';
 
 import { isNullish } from '../lib/types';
 

@@ -1,7 +1,8 @@
 import path from 'path';
 import { writeFileSync, symlinkSync, renameSync } from 'fs';
 
-import webpack, { DefinePlugin, Compiler, sources } from 'webpack';
+import type { Compiler } from 'webpack';
+import webpack, { DefinePlugin, sources } from 'webpack';
 import { static as serveStatic } from 'express';
 import WebpackDevServer from 'webpack-dev-server';
 import HtmlWebpackPlugin from 'html-webpack-plugin';
@@ -9,7 +10,7 @@ import CopyWebpackPlugin from 'copy-webpack-plugin';
 import SitemapPlugin from 'sitemap-webpack-plugin';
 import { GenerateSW } from 'workbox-webpack-plugin';
 
-import { BookConfig, CliUniqueConfig, NavItem } from '../common/config';
+import type { BookConfig, CliUniqueConfig, NavItem } from '../common/config';
 import { STATS_FILE } from '../common/constant';
 import { getBody, getLinkPath, getUserLink } from '../common/utils';
 
@@ -148,6 +149,7 @@ export async function buildApp(dir: string, options: Required<CliUniqueConfig>, 
                 transpileOnly: true,
                 compilerOptions: {
                   module: 'esnext',
+                  declarationMap: false,
                 },
               },
             },

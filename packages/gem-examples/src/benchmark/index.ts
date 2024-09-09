@@ -17,7 +17,8 @@ import {
   mounted,
   effect,
 } from '@mantou/gem';
-import { RGBA, rgbToRgbColor } from 'duoyun-ui/lib/color';
+import type { RGBA } from 'duoyun-ui/lib/color';
+import { rgbToRgbColor } from 'duoyun-ui/lib/color';
 import { formatTraffic } from 'duoyun-ui/lib/number';
 
 // eslint-disable-next-line import/default

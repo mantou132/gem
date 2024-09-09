@@ -1,5 +1,5 @@
 import { request } from '@mantou/gem/helper/request';
-import { PaginationRes } from 'duoyun-ui/helper/store';
+import type { PaginationRes } from 'duoyun-ui/helper/store';
 import { Time } from 'duoyun-ui/lib/time';
 import type { FetchEventDetail } from 'duoyun-ui/patterns/table';
 

@@ -1,4 +1,5 @@
-import { getThemeStore, useTheme, Theme } from '@mantou/gem/helper/theme';
+import type { Theme } from '@mantou/gem/helper/theme';
+import { getThemeStore, useTheme } from '@mantou/gem/helper/theme';
 
 export function getSemanticColor(semantic?: string) {
   switch (semantic) {

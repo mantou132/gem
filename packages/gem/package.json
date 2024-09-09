@@ -31,12 +31,12 @@
   "typings": "index.d.ts",
   "scripts": {
     "docs": "GEM_BOOK_REPLACE=true gem-book docs",
-    "docs:remote": "yarn docs",
-    "build:docs": "yarn docs --build",
+    "docs:remote": "pnpm docs",
+    "build:docs": "pnpm docs --build",
     "build:module": "tsc -p tsconfig.build.json",
     "build:lib": "vite build",
-    "build": "yarn build:module && yarn build:lib",
-    "start": "yarn build:module --watch",
+    "build": "pnpm build:module && pnpm build:lib",
+    "start": "pnpm build:module --watch",
     "test": "cross-env NODE_OPTIONS=--no-experimental-fetch wtr"
   },
   "dependencies": {

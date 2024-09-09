@@ -1,11 +1,11 @@
 // TODO: sticky row/column
+import type { Emitter } from '@mantou/gem/lib/decorators';
 import {
   connectStore,
   adoptedStyle,
   customElement,
   attribute,
   emitter,
-  Emitter,
   property,
   boolattribute,
   part,
@@ -13,8 +13,10 @@ import {
   memo,
   slot,
 } from '@mantou/gem/lib/decorators';
-import { createCSSSheet, html, TemplateResult } from '@mantou/gem/lib/element';
-import { css, styleMap, classMap, StyleObject, isArrayChange } from '@mantou/gem/lib/utils';
+import type { TemplateResult } from '@mantou/gem/lib/element';
+import { createCSSSheet, html } from '@mantou/gem/lib/element';
+import type { StyleObject } from '@mantou/gem/lib/utils';
+import { css, styleMap, classMap, isArrayChange } from '@mantou/gem/lib/utils';
 
 import { theme } from '../lib/theme';
 import { readProp } from '../lib/utils';
@@ -23,7 +25,8 @@ import { icons } from '../lib/icons';
 import { commonHandle } from '../lib/hotkeys';
 import { focusStyle } from '../lib/styles';
 
-import { ContextMenu, MenuOrMenuObject } from './contextmenu';
+import type { MenuOrMenuObject } from './contextmenu';
+import { ContextMenu } from './contextmenu';
 import { DuoyunScrollBoxElement } from './scroll-box';
 import type { SelectionChange } from './selection-box';
 

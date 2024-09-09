@@ -1,4 +1,6 @@
-import { createCSSSheet, createState, GemElement, html, TemplateResult } from '@mantou/gem/lib/element';
+import type { TemplateResult } from '@mantou/gem/lib/element';
+import { createCSSSheet, createState, GemElement, html } from '@mantou/gem/lib/element';
+import type { Emitter } from '@mantou/gem/lib/decorators';
 import {
   adoptedStyle,
   customElement,
@@ -7,7 +9,6 @@ import {
   attribute,
   part,
   emitter,
-  Emitter,
   shadow,
   memo,
   mounted,
@@ -213,11 +214,10 @@ export class DuoyunCarouselElement extends GemElement {
   };
 
   #oMouseEnter = (evt: Event) => {
-    this.#waitLeave = new Promise(
-      (res) =>
-        evt.target?.addEventListener('mouseleave', () => res(), {
-          once: true,
-        }),
+    this.#waitLeave = new Promise((res) =>
+      evt.target?.addEventListener('mouseleave', () => res(), {
+        once: true,
+      }),
     );
   };
 

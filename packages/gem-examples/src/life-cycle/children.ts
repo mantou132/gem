@@ -1,3 +1,4 @@
+import type { Emitter } from '@mantou/gem';
 import {
   GemElement,
   html,
@@ -7,7 +8,6 @@ import {
   part,
   state,
   emitter,
-  Emitter,
   customElement,
   numattribute,
   boolattribute,
@@ -34,7 +34,7 @@ export class Descendant extends GemElement {
 
   render() {
     console.log(`descendant${this.key} render`);
-    if (Math.random() > 0.8) throw new Error('random error');
+    if (Math.random() > 0.8) throw new Error('Error, should render fallback content');
     return html``;
   }
 }

@@ -1,5 +1,6 @@
 import { createCSSSheet, createState, html, svg } from '@mantou/gem/lib/element';
-import { adoptedStyle, customElement, emitter, Emitter, memo, mounted, property } from '@mantou/gem/lib/decorators';
+import type { Emitter } from '@mantou/gem/lib/decorators';
+import { adoptedStyle, customElement, emitter, memo, mounted, property } from '@mantou/gem/lib/decorators';
 import { addListener, classMap, css } from '@mantou/gem/lib/utils';
 import { useDecoratorTheme } from '@mantou/gem/helper/theme';
 
@@ -7,7 +8,8 @@ import { isNotNullish } from '../lib/types';
 import { theme } from '../lib/theme';
 
 import { DuoyunChartBaseElement } from './base/chart';
-import { ChartTooltip, DataItem } from './chart-tooltip';
+import type { DataItem } from './chart-tooltip';
+import { ChartTooltip } from './chart-tooltip';
 
 import './chart-zoom';
 
@@ -109,7 +111,7 @@ export class DuoyunAreaChartElement extends DuoyunChartBaseElement {
   @property gradient = true;
   @property sequences?: Sequence[];
 
-  @emitter zoom: Emitter<number[]>;
+  @emitter zoom: Emitter;
 
   get #chartZoom() {
     return this.chartZoom || this.chartzoom;

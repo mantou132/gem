@@ -2,7 +2,7 @@ import { css, history } from '@mantou/gem';
 import { logger } from '@mantou/gem/helper/logger';
 
 import { GemBookElement } from '../element';
-import { BookConfig } from '../common/config';
+import type { BookConfig } from '../common/config';
 import { theme as defaultTheme } from '../element/helper/theme';
 
 const gaId = process.env.GA_ID;

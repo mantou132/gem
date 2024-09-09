@@ -1,10 +1,10 @@
+import type { Emitter } from '@mantou/gem/lib/decorators';
 import {
   connectStore,
   adoptedStyle,
   customElement,
   attribute,
   emitter,
-  Emitter,
   boolattribute,
   slot,
   shadow,
@@ -16,7 +16,7 @@ import { useDecoratorTheme } from '@mantou/gem/helper/theme';
 
 import { icons } from '../lib/icons';
 import { theme, getSemanticColor } from '../lib/theme';
-import { StringList } from '../lib/types';
+import type { StringList } from '../lib/types';
 import { commonHandle } from '../lib/hotkeys';
 import { focusStyle } from '../lib/styles';
 

@@ -1,10 +1,10 @@
 // https://spectrum.adobe.com/page/color-area/
+import type { Emitter } from '@mantou/gem/lib/decorators';
 import {
   adoptedStyle,
   customElement,
   attribute,
   globalemitter,
-  Emitter,
   boolattribute,
   aria,
   shadow,
@@ -14,8 +14,8 @@ import { createCSSSheet, createState, GemElement, html } from '@mantou/gem/lib/e
 import { css, styleMap, classMap } from '@mantou/gem/lib/utils';
 import { useDecoratorTheme } from '@mantou/gem/helper/theme';
 
+import type { HexColor } from '../lib/color';
 import {
-  HexColor,
   parseHexColor,
   rgbToHexColor,
   rgbToHslColor,

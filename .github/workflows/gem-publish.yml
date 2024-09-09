@@ -3,7 +3,7 @@ name: Publish Gem
 on:
   push:
     tags:
-      - "@mantou/gem@*"
+      - '@mantou/gem@*'
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 
@@ -19,7 +19,7 @@ jobs:
           node-version: 18.x
 
       - run: node -e "fs.writeFileSync('./packages/gem/src/lib/version.ts', 'export const version = \'' + require('./packages/gem/package.json').version + '\';\n')"
-      - run: yarn
+      - run: pnpm install
 
       - uses: JS-DevTools/npm-publish@v1
         with:

@@ -1,15 +1,7 @@
-import {
-  createCSSSheet,
-  GemElement,
-  UpdateToken,
-  Metadata,
-  TemplateResult,
-  createTemplate,
-  RenderErrorEvent,
-  render,
-} from './element';
+import type { createCSSSheet, Metadata, TemplateResult } from './element';
+import { GemElement, UpdateToken, createTemplate, RenderErrorEvent, render } from './element';
 import { camelToKebabCase, PropProxyMap, GemError } from './utils';
-import { Store } from './store';
+import type { Store } from './store';
 import * as elementExports from './element';
 import * as decoratorsExports from './decorators';
 import * as storeExports from './store';

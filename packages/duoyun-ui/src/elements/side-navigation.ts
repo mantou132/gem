@@ -9,9 +9,11 @@ import {
   shadow,
   memo,
 } from '@mantou/gem/lib/decorators';
-import { createCSSSheet, createState, html, TemplateResult } from '@mantou/gem/lib/element';
+import type { TemplateResult } from '@mantou/gem/lib/element';
+import { createCSSSheet, createState, html } from '@mantou/gem/lib/element';
 import { history } from '@mantou/gem/lib/history';
-import { css, QueryString } from '@mantou/gem/lib/utils';
+import type { QueryString } from '@mantou/gem/lib/utils';
+import { css } from '@mantou/gem/lib/utils';
 
 import { theme } from '../lib/theme';
 import { commonHandle } from '../lib/hotkeys';

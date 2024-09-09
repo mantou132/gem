@@ -20,5 +20,5 @@ Build beautiful documentation websites quickly.
 ## Development
 
 ```bash
-yarn start
+pnpm start
 ```

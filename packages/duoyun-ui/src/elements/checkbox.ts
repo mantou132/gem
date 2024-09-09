@@ -1,9 +1,9 @@
+import type { Emitter } from '@mantou/gem/lib/decorators';
 import {
   adoptedStyle,
   customElement,
   attribute,
   globalemitter,
-  Emitter,
   boolattribute,
   property,
   slot,
@@ -20,7 +20,8 @@ import { icons } from '../lib/icons';
 import { commonHandle } from '../lib/hotkeys';
 import { focusStyle } from '../lib/styles';
 
-import { groupStyle, Option } from './radio';
+import type { Option } from './radio';
+import { groupStyle } from './radio';
 
 import './use';
 
