@@ -1,4 +1,4 @@
-# vscode-gem-plugin
+# vscode-plugin-gem
 
 https://github.com/mantou132/gem
 

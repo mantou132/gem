@@ -99,3 +99,31 @@ class App extends GemElement {
 ## 范围主题和覆盖主题
 
 <gbp-include src="../../snippets/scoped-theme.md"></gbp-include>
+
+## 元素级主题 {#element-level-theme}
+
+主题是使用 CSS 变量实现的，在渲染时可能需要动态设置 CSS 变量，这同样可以通过主题来完成，和其他类型的主题不一样，需要使用装饰器来应用和更新主题：
+
+```js
+import { useDecoratorTheme } from '@mantou/gem/helper/theme';
+
+const [elementTheme, updateTheme] = useDecoratorTheme({ color: '' });
+
+const style = createCSSSheet(css`
+  :host(:where(:not([hidden]))) {
+    border-color: ${elementTheme.color};
+  }
+`);
+
+@customElement('app-root')
+class App extends GemElement {
+  @attribute color;
+
+  @updateTheme()
+  #theme = () => ({ color: this.color })
+
+  render() {
+    return html``;
+  }
+}
+```

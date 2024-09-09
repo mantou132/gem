@@ -54,6 +54,31 @@ class MyElement extends GemElement {
 > [!NOTE]
 > 使用 `$` 作为键代表 `:host, :scope` 选择器，让样式同时适用于 ShadowDOM 和 LightDOM
 
+## 样式化实例
+
+如果需要通过属性或者状态指定单个实例的样式可以：
+
+```js
+// 省略导入...
+
+@customElement('my-element')
+class MyElement extends GemElement {
+  @attribute color;
+
+  render() {
+    return html`
+      <style>
+        :host {
+          --color: ${this.color}
+        }
+      </style>
+    `;
+  }
+}
+```
+
+这个方法写法复杂且麻烦，推荐使用 [`useDecoratorTheme`](../002-advance/003-theme.md#element-level-theme)。
+
 ## 在元素外自定义样式
 
 可以使用 [`::part`](https://drafts.csswg.org/css-shadow-parts-1/#part)(仅限于 ShadowDOM) 导出元素内部内容，允许外部进行自定义样式：

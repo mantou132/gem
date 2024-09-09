@@ -1,5 +1,5 @@
 [package]
-name = "swc-gem-plugin"
+name = "swc-plugin-gem"
 version = "0.1.0"
 edition = { workspace = true }
 rust-version = { workspace = true }

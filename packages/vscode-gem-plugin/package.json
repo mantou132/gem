@@ -1,7 +1,7 @@
 {
   "private": true,
-  "name": "vscode-gem-plugin",
-  "displayName": "vscode-gem-plugin",
+  "name": "vscode-plugin-gem",
+  "displayName": "vscode-plugin-gem",
   "description": "Gem plugin for VS Code",
   "version": "1.0.0-alpha.0",
   "engines": {
@@ -15,7 +15,7 @@
   "contributes": {
     "commands": [
       {
-        "command": "vscode-gem-plugin.helloWorld",
+        "command": "vscode-plugin-gem.helloWorld",
         "title": "Hello World"
       }
     ]
@@ -29,6 +29,7 @@
     "vscode:prepublish": "pnpm package"
   },
   "devDependencies": {
+    "@gemjs/config": "^2.0.0-alpha.0",
     "@types/mocha": "^10.0.7",
     "@types/vscode": "^1.93.0",
     "@vscode/test-cli": "^0.0.10",

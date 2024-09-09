@@ -1,5 +1,5 @@
 [workspace]
-members = ["crates/swc-gem-plugin"]
+members = ["crates/swc-plugin-gem"]
 
 resolver = "2"
 

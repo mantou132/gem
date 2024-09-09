@@ -54,6 +54,31 @@ class MyElement extends GemElement {
 > [!NOTE]
 > Use `$` as a key to represent `:host, :scope` selectors, allowing styles to apply to both ShadowDOM and LightDOM.
 
+## Stylized Instance
+
+If you need to specify the style of a single instance through properties or states, you can:
+
+```js
+// Omit import...
+
+@customElement('my-element')
+class MyElement extends GemElement {
+  @attribute color;
+
+  render() {
+    return html`
+      <style>
+        :host {
+          --color: ${this.color}
+        }
+      </style>
+    `;
+  }
+}
+```
+
+This method is complex and troublesome to write; it is recommended to use [`useDecoratorTheme`](../002-advance/003-theme.md#element-level-theme).
+
 ## Customize the style outside the element
 
 Use [`::part`](https://drafts.csswg.org/css-shadow-parts-1/#part)(only ShadowDOM) to export the internal content of the element, allowing external custom styles:

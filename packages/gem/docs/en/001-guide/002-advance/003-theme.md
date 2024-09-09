@@ -99,3 +99,31 @@ class App extends GemElement {
 ## Scoped and override theme
 
 <gbp-include src="../../snippets/scoped-theme.md"></gbp-include>
+
+## Element level theme {#element-level-theme}
+
+The theme is implemented using CSS variables, which may need to be dynamically set during rendering, this can also be achieved through themes, but unlike other types of themes, decorators are required to apply and update the theme.
+
+```js
+import { useDecoratorTheme } from '@mantou/gem/helper/theme';
+
+const [elementTheme, updateTheme] = useDecoratorTheme({ color: '' });
+
+const style = createCSSSheet(css`
+  :host(:where(:not([hidden]))) {
+    border-color: ${elementTheme.color};
+  }
+`);
+
+@customElement('app-root')
+class App extends GemElement {
+  @attribute color;
+
+  @updateTheme()
+  #theme = () => ({ color: this.color })
+
+  render() {
+    return html``;
+  }
+}
+```
