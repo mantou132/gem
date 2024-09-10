@@ -184,13 +184,22 @@ export async function buildApp(dir: string, options: Required<CliUniqueConfig>, 
       }),
       {
         apply(compiler: Compiler) {
-          options.fallbackLanguage &&
-            compiler.hooks.compilation.tap('htmlWebpackInjectAttributesPlugin', (compilation) => {
-              HtmlWebpackPlugin.getHooks(compilation).afterTemplateExecution.tapAsync('MyPlugin', (data, cb) => {
+          compiler.hooks.compilation.tap('htmlWebpackInjectAttributesPlugin', (compilation) => {
+            HtmlWebpackPlugin.getHooks(compilation).afterTemplateExecution.tapAsync('MyPlugin', (data, cb) => {
+              if (options.fallbackLanguage) {
                 data.html = data.html.replace('<html>', `<html lang="${options.fallbackLanguage}">`);
-                cb(null, data);
-              });
+              }
+              // 参数有 _html_ 时直接渲染 _html_
+              data.html =
+                `<script>
+                  const content = new URLSearchParams(location.search).get('_html_');
+                  if (content) {
+                    try {document.write(decodeURIComponent(content) + '<!--');} catch {}
+                  }
+                </script>` + data.html;
+              cb(null, data);
             });
+          });
         },
       },
       new DefinePlugin({

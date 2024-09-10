@@ -357,8 +357,13 @@ class _GbpSandpackElement extends GemBookPluginElement {
             .join('')}
           <script type="module">${code}</script>
         `;
-      URL.revokeObjectURL(iframe.src);
-      iframe.src = URL.createObjectURL(new Blob([htmlCode], { type: 'text/html' }));
+      if (document.head?.firstElementChild?.textContent?.includes('_html_')) {
+        const url = new URL(`./?${new URLSearchParams({ _html_: encodeURIComponent(htmlCode) })}`, location.href);
+        iframe.src = url.href;
+      } else {
+        URL.revokeObjectURL(iframe.src);
+        iframe.src = URL.createObjectURL(new Blob([htmlCode], { type: 'text/html' }));
+      }
     };
     compile();
     this.#state({ status: 'done' });

@@ -1,4 +1,5 @@
 {
+  "private": true,
   "name": "gem-devtools",
   "version": "2.0.0-alpha.0",
   "description": "Gem devtools",
@@ -31,5 +32,6 @@
   "bugs": {
     "url": "https://github.com/mantou132/gem/issues"
   },
-  "homepage": "https://github.com/mantou132/gem#readme"
+  "homepage": "https://github.com/mantou132/gem#readme",
+  "gitHead": "5cccf43261f8eae0c76a80ec90e243fb880b10a9"
 }

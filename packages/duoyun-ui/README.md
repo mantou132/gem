@@ -10,5 +10,5 @@ pnpm test
 # build watch
 pnpm start
 # development, view example and api
-pnpm docs
+pnpm run docs
 ```
