@@ -249,7 +249,8 @@ const styles = createCSSSheet(css`
     display: none;
   }
   :host {
-    display: block;
+    display: flex;
+    flex-direction: column;
     font-family: ${theme.codeFont};
     background: rgb(from ${theme.textColor} r g b / 0.05);
     border-radius: ${theme.normalRound};
@@ -266,7 +267,7 @@ const styles = createCSSSheet(css`
     color: rgb(from ${theme.textColor} r g b / 0.5);
   }
   .container {
-    height: 100%;
+    flex-grow: 1;
     overflow-y: auto;
     scrollbar-width: thin;
     position: relative;
@@ -455,9 +456,9 @@ export class Pre extends GemElement {
     this.#ranges = getRanges(this.range, lines);
     this.#highlightLineSet = new Set(
       this.highlight
-        ? getRanges(this.highlight, lines)
-            .map(([start, end]) => Array.from({ length: end - start + 1 }, (_, i) => start + i))
-            .flat()
+        ? getRanges(this.highlight, lines).flatMap(([start, end]) =>
+            Array.from({ length: end - start + 1 }, (_, i) => start + i),
+          )
         : [],
     );
   };
@@ -487,19 +488,31 @@ export class Pre extends GemElement {
     this.#onInputHandle();
   };
 
+  // https://stackoverflow.com/questions/62054839/shadowroot-getselection
+  #chrome = 'getSelection' in this.shadowRoot!;
+
   #offset = 0;
   #onInputHandle = () => {
-    const selection =
-      'getSelection' in this.shadowRoot! ? (this.shadowRoot as unknown as Window).getSelection() : getSelection();
-    if (!selection || selection.focusNode?.nodeType !== Node.TEXT_NODE) return;
+    let focusNode: Node | null;
+    let focusOffset = 0;
+    if (this.#chrome) {
+      const selection: Selection = (this.shadowRoot as any).getSelection();
+      focusNode = selection?.focusNode;
+      focusOffset = selection?.focusOffset;
+    } else {
+      const range: Range = (getSelection() as any)?.getComposedRanges(this.shadowRoot)?.at(0);
+      focusNode = range?.startContainer;
+      focusOffset = range?.startOffset;
+    }
+    if (focusNode?.nodeType !== Node.TEXT_NODE) return;
     this.#offset = 0;
     const textNodeIterator = document.createNodeIterator(this.#codeRef.element!, NodeFilter.SHOW_TEXT);
     while (true) {
       const textNode = textNodeIterator.nextNode();
-      if (textNode && textNode !== selection?.focusNode) {
+      if (textNode && textNode !== focusNode) {
         this.#offset += textNode.nodeValue!.length;
       } else {
-        this.#offset += selection.focusOffset;
+        this.#offset += focusOffset;
         break;
       }
     }
@@ -522,6 +535,7 @@ export class Pre extends GemElement {
         const range = document.createRange();
         range.setStart(textNode, offset);
         range.collapse(false);
+        // TODO: safari not work
         sel.removeAllRanges();
         sel.addRange(range);
         break;
@@ -556,11 +570,9 @@ export class Pre extends GemElement {
     const { parts, lineNumbersParts } = this.#getParts(htmlStr);
     this.#codeRef.element.innerHTML = parts.reduce(
       (p, c, i) =>
-        p +
-        `<span class="code-ignore token comment">  @@ ${lineNumbersParts[i - 1].at(-1)! + 1}-${
+        `${p}<span class="code-ignore token comment">  @@ ${lineNumbersParts[i - 1].at(-1)! + 1}-${
           lineNumbersParts[i].at(0)! - 1
-        } @@</span>` +
-        c,
+        } @@</span>${c}`,
     );
     this.#setOffset();
   };
@@ -570,10 +582,10 @@ export class Pre extends GemElement {
     const ob = new MutationObserver(() => this.update());
     ob.observe(this, { childList: true, characterData: true, subtree: true });
     const io = new IntersectionObserver((entries) => {
-      entries.forEach(({ intersectionRatio }) => {
+      for (const { intersectionRatio } of entries) {
         this.#isVisble = intersectionRatio > 0;
         this.update();
-      });
+      }
     });
     io.observe(this);
     return () => {

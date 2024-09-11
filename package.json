@@ -7,10 +7,11 @@
     "test": "lerna exec --concurrency=1 --scope '{@mantou/gem,gem-book,duoyun-ui}' -- pnpm test",
     "release": "lerna version",
     "prepare:build": "pnpm -C packages/gem build && lerna exec --scope '{gem-analyzer,duoyun-ui,gem-book,gem-port}' -- pnpm build",
-    "prepare:link": "lerna exec --scope '{gem-book,gem-port}' -- pnpm link --global",
+    "prepare:link": "lerna exec --scope '{gem-book,@mantou/gem-port}' -- npm link",
     "prepare": "husky install && pnpm prepare:build && pnpm prepare:link"
   },
   "devDependencies": {
+    "@biomejs/biome": "1.8.3",
     "@types/node": "^20.10.0",
     "@typescript-eslint/eslint-plugin": "^6.13.1",
     "@typescript-eslint/parser": "^6.13.1",

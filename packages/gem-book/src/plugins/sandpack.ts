@@ -350,14 +350,21 @@ class _GbpSandpackElement extends GemBookPluginElement {
         const msg = (await formatMessages(e.errors, { kind: 'error', color: false, terminalWidth: 100 })).join('\n');
         code = `console.error(\`${msg.replaceAll('\\', '\\\\').replaceAll('`', '\\`')}\`)`;
       }
+      const loadEventName = '_load_';
       const htmlCode = `
           ${data.files[Object.keys(data.files).find((e) => e.toLowerCase() === 'index.html')!]?.code}
           ${this.#getErudaResources()
             .map((src) => `<script src="${src}"></script>`)
             .join('')}
-          <script type="module">${code}</script>
+          <script type="module">
+            addEventListener('DOMContentLoaded', () => parent.postMessage('${loadEventName}', '*'));
+            ${code};
+          </script>
         `;
-      if (document.head?.firstElementChild?.textContent?.includes('_html_')) {
+      addEventListener('message', (evt) => {
+        if (evt.data === loadEventName) this.#state({ status: 'done' });
+      });
+      if (!document.head?.firstElementChild?.textContent?.includes('_html_')) {
         const url = new URL(`./?${new URLSearchParams({ _html_: encodeURIComponent(htmlCode) })}`, location.href);
         iframe.src = url.href;
       } else {
@@ -366,7 +373,6 @@ class _GbpSandpackElement extends GemBookPluginElement {
       }
     };
     compile();
-    this.#state({ status: 'done' });
     return {
       listen: (..._rest) => {},
       updateSandbox: (sandboxSetup?: SandboxSetup) => {
