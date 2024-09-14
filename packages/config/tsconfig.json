@@ -18,7 +18,7 @@
     "allowSyntheticDefaultImports": true,
     "downlevelIteration": true,
     "target": "ES2022",
-    "lib": ["ES2023", "DOM", "DOM.Iterable"],
+    "lib": ["ESNext", "DOM", "DOM.Iterable"],
     "paths": {
       "src/*": ["src/*"]
     }

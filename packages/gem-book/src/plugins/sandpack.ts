@@ -16,6 +16,8 @@ const CSB_URL = 'https://codesandbox.io/api/v1/sandboxes/define?json=1';
 const SANDPACK_CLIENT_ESM = 'https://esm.sh/@codesandbox/sandpack-client@2.18.2?bundle';
 const LZ_STRING_ESM = 'https://esm.sh/lz-string@1.5.0';
 
+const loadEventName = '_load_';
+
 const { promise, resolve } = Promise.withResolvers<typeof import('esbuild')>();
 let initialize = false;
 async function loadESBuild() {
@@ -274,23 +276,27 @@ class _GbpSandpackElement extends GemBookPluginElement {
   #getErudaResources(always?: boolean) {
     const erudaInit = `data:application/javascript;base64,${btoa(
       `
-          const root = document.createElement('div');
-          document.body.append(root);
-          eruda.init({ container: root, tool: ['console'] });
-          const style = new CSSStyleSheet();
-          style.replace(\`
-            .eruda-dev-tools, .eruda-console { top: 0; border: none; padding: 0 !important; height: 100% !important; }
-            .eruda-resizer, .eruda-tab, .eruda-entry-btn, .eruda-control, .eruda-js-input { display: none !important; }
-          \`);
-          root.shadowRoot.adoptedStyleSheets.push(style);
-          if (${!!always}) eruda.show();
-          window.addEventListener('error', () => eruda.show());
-          const error = console.error.bind(console)
-          console.error = (...rest) => {
-            eruda.show();
-            error(...rest);
-          }
-        `,
+        const root = document.createElement('div');
+        document.body.append(root);
+        eruda.init({ container: root, tool: ['console'] });
+        const style = new CSSStyleSheet();
+        style.replace(\`
+          .eruda-dev-tools, .eruda-console { top: 0; border: none; padding: 0 !important; height: 100% !important; }
+          .eruda-resizer, .eruda-tab, .eruda-entry-btn, .eruda-control, .eruda-js-input { display: none !important; }
+        \`);
+        root.shadowRoot.adoptedStyleSheets.push(style);
+        if (${!!always}) eruda.show();
+        const onError = () => {
+          eruda.show();
+          parent.postMessage('${loadEventName}', '*');
+        }
+        window.addEventListener('error', onError);
+        const error = console.error.bind(console);
+        console.error = (...rest) => {
+          onError();
+          error(...rest);
+        };
+      `,
     )}`;
     return ['https://cdn.jsdelivr.net/npm/eruda', erudaInit];
   }
@@ -350,7 +356,6 @@ class _GbpSandpackElement extends GemBookPluginElement {
         const msg = (await formatMessages(e.errors, { kind: 'error', color: false, terminalWidth: 100 })).join('\n');
         code = `console.error(\`${msg.replaceAll('\\', '\\\\').replaceAll('`', '\\`')}\`)`;
       }
-      const loadEventName = '_load_';
       const htmlCode = `
           ${data.files[Object.keys(data.files).find((e) => e.toLowerCase() === 'index.html')!]?.code}
           ${this.#getErudaResources()

@@ -1,88 +1,20 @@
 import path from 'path';
 import { writeFileSync, symlinkSync, renameSync } from 'fs';
 
-import type { Compiler } from 'webpack';
-import webpack, { DefinePlugin, sources } from 'webpack';
+import { rspack, DefinePlugin, HtmlRspackPlugin, CopyRspackPlugin } from '@rspack/core';
+import { RspackDevServer } from '@rspack/dev-server';
+import { GenerateSW } from '@aaroon/workbox-rspack-plugin';
 import { static as serveStatic } from 'express';
-import WebpackDevServer from 'webpack-dev-server';
-import HtmlWebpackPlugin from 'html-webpack-plugin';
-import CopyWebpackPlugin from 'copy-webpack-plugin';
-import SitemapPlugin from 'sitemap-webpack-plugin';
-import { GenerateSW } from 'workbox-webpack-plugin';
 
-import type { BookConfig, CliUniqueConfig, NavItem } from '../common/config';
+import type { BookConfig, CliUniqueConfig } from '../common/config';
 import { STATS_FILE } from '../common/constant';
-import { getBody, getLinkPath, getUserLink } from '../common/utils';
 
-import { resolveLocalPlugin, resolveTheme, isURL, importObject, print, getMdFile, getMetadata } from './utils';
+import { resolveLocalPlugin, resolveTheme, isURL, importObject, print } from './utils';
+import { ExecHTMLPlugin, FallbackLangPlugin, LocalSearchSearch, SitemapPlugin } from './plugins';
 
 const publicDir = path.resolve(__dirname, '../public');
 const entryDir = path.resolve(__dirname, process.env.GEM_BOOK_DEV ? '../src/website' : '../website');
 const pluginDir = path.resolve(__dirname, process.env.GEM_BOOK_DEV ? '../src/plugins' : '../plugins');
-
-export interface MdDocument {
-  id: string;
-  title: string;
-  text: string;
-}
-
-function genDocuments(docsDir: string, bookConfig: BookConfig) {
-  const gen = (sidebar: NavItem[], lang = '') => {
-    // 防止文件夹重复
-    const addedLinks = new Set<string>();
-    const documents: MdDocument[] = [];
-    const temp = [...sidebar];
-    while (temp.length) {
-      const item = temp.pop()!;
-      if (item.sidebarIgnore) continue;
-      if (item.children) temp.push(...item.children);
-
-      if (addedLinks.has(item.link)) continue;
-      if (item.type === 'file' || item.type === 'dir') {
-        addedLinks.add(item.link);
-        const fullPath = path.join(docsDir, lang, item.link);
-        documents.push({
-          // 通过路径来识别文件和目录，以获取父级 title，例如：
-          // `/guide/readme` 的父级 title 是 `/guide/` 的目录 title
-          id: getLinkPath(item.link, bookConfig.displayRank),
-          text: item.type === 'file' ? getBody(getMdFile(fullPath).content) : '',
-          title: getMetadata(fullPath, bookConfig.displayRank).title,
-        });
-      }
-    }
-    return documents;
-  };
-  if (Array.isArray(bookConfig.sidebar)) {
-    return { '': gen(bookConfig.sidebar) };
-  } else {
-    return Object.fromEntries(
-      Object.entries(bookConfig.sidebar || {}).map(([lang, { data }]) => [lang, gen(data, lang)]),
-    );
-  }
-}
-
-function genPaths(bookConfig: BookConfig) {
-  const result: string[] = [];
-  const gen = (sidebar: NavItem[], lang = '') => {
-    const temp = [...sidebar];
-    while (temp.length) {
-      const item = temp.pop()!;
-      if (item.sidebarIgnore) continue;
-      if (item.children) temp.push(...item.children);
-      if (item.type === 'file') {
-        result.push(`${lang ? `/${lang}` : ''}${getUserLink(item.link, bookConfig.displayRank)}`);
-      }
-    }
-  };
-  if (Array.isArray(bookConfig.sidebar)) {
-    gen(bookConfig.sidebar);
-  } else {
-    Object.entries(bookConfig.sidebar || {}).forEach(([lang, { data }]) => {
-      gen(data, lang);
-    });
-  }
-  return result;
-}
 
 function getPluginRecord(pluginList: string[]) {
   return Object.fromEntries<{ name: string; url: string }>(
@@ -124,7 +56,7 @@ export async function buildApp(dir: string, options: Required<CliUniqueConfig>, 
   const docSearchPlugin = plugins.find((e) => e.name === 'docsearch')?.url;
   const isLocalSearch = docSearchPlugin && new URL(docSearchPlugin).searchParams.has('local');
 
-  const webpackCompiler = webpack({
+  const compiler = rspack({
     stats: build ? 'normal' : 'errors-warnings',
     mode: build ? 'production' : 'development',
     entry: [entryDir],
@@ -140,9 +72,27 @@ export async function buildApp(dir: string, options: Required<CliUniqueConfig>, 
           },
         },
         {
+          test: /\.j|ts$/,
+          include: /plugins/,
+          loader: require.resolve('string-replace-loader'),
+          options: {
+            // 插件 query 参数传递
+            search: 'import.meta.url',
+            replace(this: { resource: string }): string {
+              // 如果是符号链接返回的是原始路径
+              const pluginInfo =
+                pluginRecord[this.resource] ||
+                // 如果是 GemBook 本身 GEM_BOOK_DEV 模式，路径是 src
+                pluginRecord[this.resource.replace(/\/src\/plugins\/(\w*)\.ts/, '/plugins/$1.js')];
+              return JSON.stringify(pluginInfo ? pluginInfo.url : '');
+            },
+          },
+        },
+        {
           test: /\.ts$/,
           use: [
             {
+              // https://github.com/swc-project/swc/issues/9565
               loader: require.resolve('ts-loader'),
               options: {
                 // Install cli without installing dev @types dependency
@@ -155,7 +105,7 @@ export async function buildApp(dir: string, options: Required<CliUniqueConfig>, 
             },
           ],
         },
-      ],
+      ].filter((e) => !!e),
     },
     resolve: {
       extensions: ['.ts', '.js'],
@@ -173,67 +123,27 @@ export async function buildApp(dir: string, options: Required<CliUniqueConfig>, 
     },
     devtool: debug && 'source-map',
     plugins: [
-      new HtmlWebpackPlugin({
+      new HtmlRspackPlugin({
         title: bookConfig.title || 'GemBook App',
         template: template ? path.resolve(process.cwd(), template) : 'auto',
         // Automatically copied to the output directory
-        favicon: !isRemoteIcon && icon,
+        favicon: !isRemoteIcon ? icon : undefined,
         meta: {
           viewport: 'width=device-width, initial-scale=1, shrink-to-fit=no',
         },
       }),
-      {
-        apply(compiler: Compiler) {
-          compiler.hooks.compilation.tap('htmlWebpackInjectAttributesPlugin', (compilation) => {
-            HtmlWebpackPlugin.getHooks(compilation).afterTemplateExecution.tapAsync('MyPlugin', (data, cb) => {
-              if (options.fallbackLanguage) {
-                data.html = data.html.replace('<html>', `<html lang="${options.fallbackLanguage}">`);
-              }
-              // 参数有 _html_ 时直接渲染 _html_
-              data.html =
-                `<script>
-                  const content = new URLSearchParams(location.search).get('_html_');
-                  if (content) {
-                    try {document.write(decodeURIComponent(content) + '<!--');} catch {}
-                  }
-                </script>` + data.html;
-              cb(null, data);
-            });
-          });
-        },
-      },
+      new FallbackLangPlugin(options.fallbackLanguage),
+      new ExecHTMLPlugin(),
       new DefinePlugin({
-        // 插件 query 参数传递
-        'import.meta.url': DefinePlugin.runtimeValue(({ module }) => {
-          // 如果是符号链接返回的是原始路径
-          const pluginInfo =
-            pluginRecord[module.resource] ||
-            // 如果是 GemBook 本身 GEM_BOOK_DEV 模式，路径是 src
-            pluginRecord[module.resource.replace(/\/src\/plugins\/(\w*)\.ts/, '/plugins/$1.js')];
-          return JSON.stringify(pluginInfo ? pluginInfo.url : '');
-        }),
         'process.env.DEV_MODE': !build,
         'process.env.BOOK_CONFIG': JSON.stringify(bookConfig),
         'process.env.THEME': JSON.stringify(await importObject(themePath)),
         'process.env.PLUGINS': JSON.stringify(plugins.map(({ name }) => name)),
         'process.env.GA_ID': JSON.stringify(ga),
       }),
-      new CopyWebpackPlugin({ patterns: [{ from: publicDir, to: outputDir }] }),
-      isLocalSearch && {
-        apply(compiler: Compiler) {
-          compiler.hooks.compilation.tap('json-webpack-plugin', (compilation) => {
-            compilation.hooks.processAssets.tap('json-webpack-plugin', () => {
-              Object.entries(genDocuments(docsDir, bookConfig)).forEach(([lang, documents]) => {
-                compilation.emitAsset(
-                  ['documents', lang, 'json'].filter((e) => !!e).join('.'),
-                  new sources.RawSource(JSON.stringify(documents)),
-                );
-              });
-            });
-          });
-        },
-      },
-      site && new SitemapPlugin({ base: site, paths: genPaths(bookConfig) }),
+      new CopyRspackPlugin({ patterns: [{ from: publicDir, to: outputDir }] }),
+      isLocalSearch && new LocalSearchSearch(docsDir, bookConfig),
+      !!site && new SitemapPlugin(site, bookConfig),
       build &&
         new GenerateSW({
           navigationPreload: true,
@@ -245,13 +155,13 @@ export async function buildApp(dir: string, options: Required<CliUniqueConfig>, 
           ],
         }),
       outputDir !== docsDir &&
-        new CopyWebpackPlugin({
+        new CopyRspackPlugin({
           patterns: [{ from: docsDir, to: outputDir }],
         }),
     ].filter((e) => !!e),
   });
   if (build) {
-    webpackCompiler.run((err, stats) => {
+    compiler.run((err, stats) => {
       if (err) {
         print(err);
         return;
@@ -259,7 +169,7 @@ export async function buildApp(dir: string, options: Required<CliUniqueConfig>, 
 
       if (!stats) return;
 
-      const info = stats.toJson();
+      const info = stats.toJson({});
 
       if (stats.hasErrors()) {
         info.errors?.forEach((error) => print(Object.assign(new Error(error.message), { stack: error.stack })));
@@ -276,7 +186,7 @@ export async function buildApp(dir: string, options: Required<CliUniqueConfig>, 
     });
   } else {
     // https://github.com/webpack/webpack-dev-server/blob/master/examples/api/simple/server.js
-    const server = new WebpackDevServer(
+    const server = new RspackDevServer(
       {
         hot: true,
         liveReload: false,
@@ -297,7 +207,7 @@ export async function buildApp(dir: string, options: Required<CliUniqueConfig>, 
         },
         port,
       },
-      webpackCompiler,
+      compiler,
     );
 
     return server;

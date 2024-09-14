@@ -23,7 +23,7 @@
     "commander": "^7.2.0",
     "gem-analyzer": "^2.0.0-alpha.0",
     "ts-morph": "^13.0.0",
-    "typescript": "^5.5.3"
+    "typescript": "^5.6.2"
   },
   "author": "mantou132",
   "license": "MIT",

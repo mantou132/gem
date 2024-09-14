@@ -37,7 +37,12 @@ const styles = createCSSSheet(css`
     color: rgb(from ${theme.textColor} r g b / 0.6);
     margin: 0 0 1em;
   }
-  ul,
+  ul {
+    display: block;
+    padding: 0 1.5rem;
+    margin: 0 -1.5rem;
+    border-inline-start: 1px solid ${theme.borderColor};
+  }
   li {
     display: contents;
   }

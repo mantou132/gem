@@ -63,7 +63,7 @@
     "@web/dev-server-esbuild": "^1.0.2",
     "@web/test-runner": "^0.18.1",
     "rimraf": "^3.0.2",
-    "typescript": "^5.5.3"
+    "typescript": "^5.6.2"
   },
   "author": "mantou132",
   "license": "ISC",

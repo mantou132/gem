@@ -1,5 +1,5 @@
 import type { GemBookElement } from '../element';
-import type { MdDocument } from '../bin/builder';
+import type { MdDocument } from '../bin/plugins';
 
 const moduleLink = 'https://esm.sh/@docsearch/js@3.5.2';
 const styleLink = 'https://esm.sh/@docsearch/css@3.5.2/dist/style.css';

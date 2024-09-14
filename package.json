@@ -28,7 +28,7 @@
     "lerna": "^8.0.0",
     "lint-staged": "^15.1.0",
     "prettier": "^3.1.0",
-    "typescript": "^5.5.3"
+    "typescript": "^5.6.2"
   },
   "lint-staged": {
     "*.ts": "eslint --fix"
