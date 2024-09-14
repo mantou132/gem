@@ -7,9 +7,10 @@ type State = {
 
 const { GemBookPluginElement } = (await customElements.whenDefined('gem-book')) as typeof GemBookElement;
 const { Gem, theme, Utils } = GemBookPluginElement;
-const { attribute, customElement, html, BoundaryCSSState, createState, effect } = Gem;
+const { attribute, customElement, html, light, createState, effect } = Gem;
 
 @customElement('gbp-include')
+@light({ penetrable: true })
 class _GbpIncludeElement extends GemBookPluginElement {
   @attribute src: string;
   @attribute range: string;
@@ -17,7 +18,6 @@ class _GbpIncludeElement extends GemBookPluginElement {
   constructor() {
     super();
     this.cacheState(() => [this.src, this.range]);
-    this.internals.states.delete(BoundaryCSSState);
   }
 
   state = createState<State>({

@@ -19,6 +19,7 @@ class GemElement extends HTMLElement {
 | `@connectStore`  | 绑定 `Store`，更新 `Store` 将自动更新元素            |
 | `@adoptedStyle`  | 附加样式表到元素                                     |
 | `@shadow`        | 使用 [ShadowDOM][10] 渲染内容                        |
+| `@light`         | 使用 Light DOM 渲染内容，默认                        |
 | `@async`         | 元素使用非阻塞渲染，适用于计算量大且有多个实例的元素 |
 | `@aria`          | 指定富应用[可访问性][11]信息                         |
 

@@ -21,12 +21,15 @@
           "type": "boolean"
         },
         "fallbackLanguage": {
-          "enum": [
-            "zh",
-            "en",
-            ""
-          ],
-          "type": "string"
+          "anyOf": [
+            {
+              "$ref": "#/definitions/SupportLang"
+            },
+            {
+              "const": "",
+              "type": "string"
+            }
+          ]
         },
         "footer": {
           "type": "string"
@@ -228,6 +231,13 @@
         "title"
       ],
       "type": "object"
+    },
+    "SupportLang": {
+      "enum": [
+        "zh",
+        "en"
+      ],
+      "type": "string"
     }
   }
 }

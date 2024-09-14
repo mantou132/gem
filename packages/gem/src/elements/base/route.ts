@@ -1,7 +1,7 @@
 import type { TemplateResult } from '../../lib/element';
-import { BoundaryCSSState, createState, GemElement, html } from '../../lib/element';
+import { createState, GemElement, html } from '../../lib/element';
 import type { Emitter } from '../../lib/decorators';
-import { property, emitter, boolattribute, shadow, effect, template, willMount } from '../../lib/decorators';
+import { property, emitter, boolattribute, shadow, effect, template, light } from '../../lib/decorators';
 import type { Store } from '../../lib/store';
 import { createStore, updateStore, connect } from '../../lib/store';
 import type { UpdateHistoryParams } from '../../lib/history';
@@ -139,6 +139,7 @@ const scrollPositionMap = new Map<string, number>();
  * @fires error
  * @fires loading
  */
+@light({ penetrable: true })
 export class GemLightRouteElement extends GemElement {
   @boolattribute transition: boolean;
   @property routes?: RouteItem[] | RoutesObject;
@@ -244,9 +245,6 @@ export class GemLightRouteElement extends GemElement {
       changeContent();
     }
   };
-
-  @willMount()
-  #unBoundary = () => this.internals.states.delete(BoundaryCSSState);
 
   @effect((i) => [i.scrollContainer])
   #rememberScrollPosition = () => {

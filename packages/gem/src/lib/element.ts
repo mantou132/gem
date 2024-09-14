@@ -40,7 +40,7 @@ export const SheetToken = Symbol.for('gem@sheetToken');
 // proto prop
 export const UpdateToken = Symbol.for('gem@update');
 
-export const BoundaryCSSState = 'gem-style-boundary';
+const BoundaryCSSState = 'gem-style-boundary';
 export const RenderErrorEvent = 'gem@render-error';
 
 // fix modal-factory type error
@@ -263,10 +263,12 @@ type RenderItem = { render: Render; condition?: () => boolean };
 export let createTemplate: (ele: GemElement, item: RenderItem) => void;
 
 export type Metadata = Partial<ShadowRootInit> & {
+  /** 内容可被外部样式化 */
+  penetrable?: boolean;
   noBlocking?: boolean;
   aria?: Partial<
     ARIAMixin & {
-      /**自动添加 tabIndex；支持 `disabled` 属性 */
+      /** 自动添加 tabIndex；支持 `disabled` 属性 */
       focusable: boolean;
     }
   >;
@@ -360,10 +362,6 @@ export abstract class GemElement extends HTMLElement {
     this.#internals.sheets = [];
 
     assign(this.#internals, internalsAria);
-
-    // light dom 添加边界，防止内容被外部样式化
-    // 特殊情况下需要手动 `delete` 边界，以应该外部样式
-    if (!mode) this.#internals.states.add(BoundaryCSSState);
 
     // https://stackoverflow.com/questions/43836886/failed-to-construct-customelement-error-when-javascript-file-is-placed-in-head
     // focusable 元素一般同时具备 disabled 属性
@@ -502,7 +500,11 @@ export abstract class GemElement extends HTMLElement {
     }
     this.#compat();
 
-    const { observedStores } = this.#metadata;
+    const { observedStores, mode, penetrable } = this.#metadata;
+
+    // 有渲染函数的 light dom 应该添加边界，防止内容被外部样式化
+    // 如果渲染内容需要应用外部样式，需要手动 `delete` 边界
+    if (!mode && this.#renderList.length && !penetrable) this.#internals.states.add(BoundaryCSSState);
 
     this.#isConnected = true;
     this.#disconnectStore = observedStores?.map((store) => connect(store, this.#update));

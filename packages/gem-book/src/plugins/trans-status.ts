@@ -16,16 +16,12 @@ const locales: Record<string, Record<Status, string>> = {
 
 const { GemBookPluginElement } = (await customElements.whenDefined('gem-book')) as typeof GemBookElement;
 const { Gem, Utils, selfI18n } = GemBookPluginElement;
-const { html, customElement, attribute, BoundaryCSSState } = Gem;
+const { html, customElement, attribute, light } = Gem;
 
 @customElement('gbp-trans-status')
+@light({ penetrable: true })
 class _GbpTransStatusElement extends GemBookPluginElement {
   @attribute status: Status;
-
-  constructor() {
-    super();
-    this.internals.states.delete(BoundaryCSSState);
-  }
 
   get #status() {
     return this.status || 'none';

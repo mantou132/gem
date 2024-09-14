@@ -18,10 +18,10 @@ const {
   createCSSSheet,
   css,
   adoptedStyle,
-  BoundaryCSSState,
   effect,
   kebabToCamelCase,
   camelToKebabCase,
+  light,
 } = Gem;
 
 const styles = createCSSSheet(css`
@@ -40,6 +40,7 @@ const styles = createCSSSheet(css`
 
 @customElement('gbp-api')
 @adoptedStyle(styles)
+@light({ penetrable: true })
 class _GbpApiElement extends GemBookPluginElement {
   @attribute src: string;
   @attribute name: string;
@@ -52,7 +53,6 @@ class _GbpApiElement extends GemBookPluginElement {
   constructor() {
     super();
     this.cacheState(() => [this.name, this.src]);
-    this.internals.states.delete(BoundaryCSSState);
   }
 
   state = createState<State>({});

@@ -19,6 +19,7 @@ class GemElement extends HTMLElement {
 | `@connectStore`  | Class decorator, bound to `Store`, element auto update by `Store` update |
 | `@adoptedStyle`  | Class decorator, adopt style sheet                                       |
 | `@shadow`        | Class decorator, Use [ShadowDOM][10] render content                      |
+| `@light`         | Class decorator, Use light dom render content, default                   |
 | `@async`         | Class decorator, Use no blocking render                                  |
 | `@aria`          | Class decorator, Specify the [accessibility][11] info                    |
 

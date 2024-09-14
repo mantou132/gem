@@ -8,7 +8,7 @@ import * as storeExports from './store';
 import * as versionExports from './version';
 
 type GemElementPrototype = GemElement;
-type StaticField = Exclude<keyof Metadata, keyof ShadowRootInit | 'aria' | 'noBlocking'>;
+type StaticField = Exclude<keyof Metadata, keyof ShadowRootInit | 'aria' | 'noBlocking' | 'penetrable'>;
 
 const { deleteProperty, getOwnPropertyDescriptor, defineProperty } = Reflect;
 const { getPrototypeOf, assign } = Object;
@@ -471,6 +471,13 @@ export function shadow({
   return function (_: any, context: ClassDecoratorContext) {
     const metadata = context.metadata as Metadata;
     assign(metadata, { mode, serializable, delegatesFocus, slotAssignment });
+  };
+}
+
+export function light({ penetrable }: Pick<Metadata, 'penetrable'>) {
+  return function (_: any, context: ClassDecoratorContext) {
+    const metadata = context.metadata as Metadata;
+    metadata.penetrable = penetrable;
   };
 }
 
