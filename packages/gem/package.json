@@ -1,6 +1,6 @@
 {
   "name": "@mantou/gem",
-  "version": "2.0.0-alpha.0",
+  "version": "2.0.0",
   "description": "💎 使用自定义元素的轻量级 WebApp 开发框架",
   "keywords": [
     "frontend",
@@ -44,7 +44,7 @@
   },
   "devDependencies": {
     "@esm-bundle/chai": "^4.3.4-fix.0",
-    "@gemjs/config": "^2.0.0-alpha.0",
+    "@gemjs/config": "^2.0.0",
     "@open-wc/testing": "^2.5.33",
     "@types/mocha": "^10.0.7",
     "@web/dev-server-esbuild": "^1.0.2",

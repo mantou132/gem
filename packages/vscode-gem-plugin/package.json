@@ -3,7 +3,7 @@
   "name": "vscode-plugin-gem",
   "displayName": "vscode-plugin-gem",
   "description": "Gem plugin for VS Code",
-  "version": "1.0.0-alpha.0",
+  "version": "1.0.0",
   "engines": {
     "vscode": "^1.93.0"
   },
@@ -29,7 +29,7 @@
     "vscode:prepublish": "pnpm package"
   },
   "devDependencies": {
-    "@gemjs/config": "^2.0.0-alpha.0",
+    "@gemjs/config": "^2.0.0",
     "@types/mocha": "^10.0.7",
     "@types/vscode": "^1.93.0",
     "@vscode/test-cli": "^0.0.10",
