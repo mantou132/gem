@@ -6,7 +6,7 @@ import { theme } from '../helper/theme';
 import { GemBookElement } from '..';
 
 const styles = createCSSSheet(css`
-  :scope {
+  :scope:where(:not([hidden])) {
     height: ${theme.headerHeight};
     font-size: 1.2rem;
     font-weight: 700;

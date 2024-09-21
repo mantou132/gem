@@ -83,7 +83,7 @@ This method is complex and troublesome to write; it is recommended to use [`useD
 
 Use [`::part`](https://drafts.csswg.org/css-shadow-parts-1/#part)(only ShadowDOM) to export the internal content of the element, allowing external custom styles:
 
-```js 13
+```js 14
 /**
  * The following code has the same effect as `<div part="header"></div>`,
  * But Gem recommends using decorators to define parts, so that IDE integration can be done well in the future
@@ -92,6 +92,7 @@ Use [`::part`](https://drafts.csswg.org/css-shadow-parts-1/#part)(only ShadowDOM
 // Omit import...
 
 @customElement('my-element')
+@shadow()
 class MyElement extends GemElement {
   @part static header;
 
@@ -124,7 +125,7 @@ class MyElement extends GemElement {
 > Can also customize element styles using hack, for example:
 >
 > ```js
-> GemLinkElement.adoptedStyleSheets.push(
+> GemLinkElement[Symbol.metadata].adoptedStyleSheets.push(
 >   createCSSSheet(css`
 >     * {
 >       font-style: italic;

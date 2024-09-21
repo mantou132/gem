@@ -37,7 +37,7 @@ const styles = createCSSSheet(css`
 `);
 @customElement('gem-book-404')
 @adoptedStyle(styles)
-@aria({ role: 'region', ariaLabel: 'not found' })
+@aria({ role: 'region' })
 export class Meta extends GemElement {
   #getMdFullPath = () => {
     const { links = [] } = bookStore;

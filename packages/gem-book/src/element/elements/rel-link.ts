@@ -19,7 +19,7 @@ import { bookStore } from '../store';
 import '@mantou/gem/elements/link';
 
 const styles = createCSSSheet(css`
-  :scope {
+  :scope:where(:not([hidden])) {
     display: flex;
     flex-wrap: wrap;
     justify-content: space-between;

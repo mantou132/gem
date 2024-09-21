@@ -113,6 +113,7 @@ export class I18n<T = Record<string, Msg>> implements RouteTrigger {
     this.onChange?.(lang);
   }
 
+  #inConstructor = true;
   constructor(options: I18nOptions<T>) {
     if (!options.resources[options.fallbackLanguage]) {
       throw new GemError('i18n: fallbackLanguage invalid');
@@ -139,6 +140,7 @@ export class I18n<T = Record<string, Msg>> implements RouteTrigger {
     } else {
       this.resetLanguage();
     }
+    this.#inConstructor = false;
   }
 
   get(s: keyof T): string;
@@ -207,14 +209,15 @@ export class I18n<T = Record<string, Msg>> implements RouteTrigger {
     }
     this.resources[lang] = pack;
 
-    // update all element
-    const temp: Element[] = [document.documentElement];
-    while (!!temp.length) {
-      const element = temp.pop()!;
-      (element as any)[UpdateToken]?.();
-      if (element.shadowRoot?.firstElementChild) temp.push(element.shadowRoot.firstElementChild);
-      if (element.firstElementChild) temp.push(element.firstElementChild);
-      if (element.nextElementSibling) temp.push(element.nextElementSibling);
+    if (!this.#inConstructor) {
+      // 更新所有元素，可能会更新许多不必要的元素
+      const temp: Element[] = [document.documentElement];
+      while (!!temp.length) {
+        const element = temp.pop()!;
+        (element as any)[UpdateToken]?.();
+        // 和 gem 更新机制一样使用深度优先
+        temp.push(...[...element.children, ...(element.shadowRoot?.children || [])].reverse());
+      }
     }
 
     if (lang !== this.currentLanguage) {

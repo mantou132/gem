@@ -177,8 +177,9 @@ export function createCSSSheet<T extends Record<string, string>>(
     Object.keys(rules).forEach((key) => {
       const isScope = key === '$';
       // 对于已经有 `-` 的保留原始 key，支持覆盖修改
+      // :scope 下可以写嵌套样式 &:xxx，:host() 下不行（子内容可以）
       sheet[key] = isScope || key.includes('-') ? key : `${key}-${randomStr()}`;
-      style += `${isScope ? ':scope,:host' : `.${sheet[key]}`} {${rules[key]}}`;
+      style += `${isScope ? ':where(:scope:not([hidden])),:host(:where(:not([hidden])))' : `.${sheet[key]}`} {${rules[key]}}`;
     });
   }
   styleSheet.setContent(style);

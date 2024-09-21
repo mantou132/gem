@@ -35,7 +35,6 @@ import { GemBookPluginElement } from './elements/plugin';
 import { Loadbar } from './elements/loadbar';
 import type { Main } from './elements/main';
 
-import '@mantou/gem/elements/title';
 import '@mantou/gem/elements/reflect';
 import './elements/homepage';
 import './elements/sidebar';

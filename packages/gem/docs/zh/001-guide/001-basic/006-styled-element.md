@@ -83,7 +83,7 @@ class MyElement extends GemElement {
 
 可以使用 [`::part`](https://drafts.csswg.org/css-shadow-parts-1/#part)(仅限于 ShadowDOM) 导出元素内部内容，允许外部进行自定义样式：
 
-```js 13
+```js 14
 /**
  * 下面的代码跟 `<div part="header"></div>` 效果一样，
  * 但是 Gem 推荐使用装饰器来定义 part，这样在将来能很好的进行 IDE 集成
@@ -92,6 +92,7 @@ class MyElement extends GemElement {
 // 省略导入...
 
 @customElement('my-element')
+@shadow()
 class MyElement extends GemElement {
   @part static header;
 
@@ -124,7 +125,7 @@ class MyElement extends GemElement {
 > 还可以使用比较 Hack 的方式自定义元素样式，例如：
 >
 > ```js
-> GemLinkElement.adoptedStyleSheets.push(
+> GemLinkElement[Symbol.metadata].adoptedStyleSheets.push(
 >   createCSSSheet(css`
 >     * {
 >       font-style: italic;

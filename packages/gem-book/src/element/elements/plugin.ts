@@ -36,7 +36,11 @@ function getRemoteURL(originSrc = '', dev = GemBookPluginElement.devMode) {
       if (linkItem) return getURL(joinPath(lang, linkItem.originLink), linkItem.hash);
       src = new URL(originSrc, `${location.origin}${joinPath(sourceDir, lang, currentLink!.originLink)}`).pathname;
     }
-    url = dev ? `/_assets${src}` : `${github}/raw/${sourceBranch}${joinPath(base, src)}`;
+    url = dev
+      ? `/_assets${src}`
+      : isGitLab()
+        ? `${github}/raw/${sourceBranch}${joinPath(base, src)}`
+        : `https://raw.githubusercontent.com${new URL(github).pathname}/${sourceBranch}${joinPath(base, src)}`;
   }
   return url;
 }

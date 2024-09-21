@@ -4,6 +4,7 @@ import { joinPath } from '../lib/utils';
 import { themeStore } from '../helper/theme';
 import { bookStore, locationStore } from '../store';
 
+import '@mantou/gem/elements/title';
 import '@mantou/gem/elements/reflect';
 
 function getAlternateUrl(lang: string, pathname?: string) {
@@ -30,6 +31,7 @@ export class Meta extends GemElement {
     const description = isHomePage && navItem?.hero?.desc;
     return html`
       <gem-reflect>
+        <gem-title></gem-title>
         <meta name="theme-color" content=${themeStore.backgroundColor} />
         ${description ? html`<meta name="description" content=${description} />` : ''}
 

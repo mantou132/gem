@@ -369,7 +369,7 @@ class _GbpSandpackElement extends GemBookPluginElement {
       addEventListener('message', (evt) => {
         if (evt.data === loadEventName) this.#state({ status: 'done' });
       });
-      if (!document.head?.firstElementChild?.textContent?.includes('_html_')) {
+      if (document.head?.firstElementChild?.textContent?.includes('_html_')) {
         const url = new URL(`./?${new URLSearchParams({ _html_: encodeURIComponent(htmlCode) })}`, location.href);
         iframe.src = url.href;
       } else {
