@@ -1,16 +1,12 @@
 const { assign, setPrototypeOf, fromEntries, entries, keys } = Object;
 
-let microtaskSet = new Set<() => void>();
+const microtaskSet = new Set<() => void>();
 export function addMicrotask(func: () => void) {
-  if (!microtaskSet.size) {
-    // delayed execution callback after updating store
-    queueMicrotask(() => {
-      const set = microtaskSet;
-      microtaskSet = new Set();
-      set.forEach((f) => f());
-    });
-  }
-  microtaskSet.delete(func);
+  if (microtaskSet.has(func)) return;
+  queueMicrotask(() => {
+    microtaskSet.delete(func);
+    func();
+  });
   microtaskSet.add(func);
 }
 
