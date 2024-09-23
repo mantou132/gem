@@ -1,12 +1,12 @@
 import { adoptedStyle, aria, customElement, mounted, shadow } from '@mantou/gem/lib/decorators';
 import { GemElement, html, createCSSSheet, createState } from '@mantou/gem/lib/element';
 import { css } from '@mantou/gem/lib/utils';
-import { useDecoratorTheme } from '@mantou/gem/helper/theme';
+import { createDecoratorTheme } from '@mantou/gem/helper/theme';
 
 import { theme } from '../lib/theme';
 import { sleep } from '../lib/timer';
 
-const [elementTheme, updateTheme] = useDecoratorTheme({ progress: '' });
+const elementTheme = createDecoratorTheme({ progress: '' });
 
 const style = createCSSSheet(css`
   :host(:where(:not([hidden]))) {
@@ -78,7 +78,7 @@ export class DuoyunPageLoadbarElement extends GemElement {
     return () => (Loadbar.instance = undefined);
   };
 
-  @updateTheme()
+  @elementTheme()
   #theme = () => ({ progress: `${this.#state.progress}%` });
 
   render = () => {

@@ -1,5 +1,5 @@
 import { GemElement } from '../../lib/element';
-import { connect, createStore, updateStore } from '../../lib/store';
+import { connect, createStore } from '../../lib/store';
 import { history } from '../../lib/history';
 import { aria, mounted, shadow } from '../../lib/decorators';
 
@@ -46,7 +46,7 @@ export function createModalClass<T extends Record<string, unknown>>(options: T) 
       this.inertStore = ([...document.body.children] as HTMLElement[]).filter((e) => !e.inert);
       this.inertStore.forEach((e) => (e.inert = true));
       document.body.append(instance);
-      const changeStore = () => updateStore(this.store, { [open]: true, ...opts });
+      const changeStore = () => this.store({ [open]: true, ...opts });
       setTimeout(() => {
         changeStore();
         history.push({
@@ -75,7 +75,7 @@ export function createModalClass<T extends Record<string, unknown>>(options: T) 
     static closeHandle() {
       this.inertStore.forEach((e) => (e.inert = false));
       this.instance?.remove();
-      updateStore(this.store, { [open]: false, ...options });
+      this.store({ [open]: false, ...options });
       return final;
     }
 

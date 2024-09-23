@@ -3,7 +3,7 @@ import { html, render } from '@mantou/gem';
 import { logger } from '@mantou/gem/helper/logger';
 
 import { getSelectedGem } from './scripts/get-gem';
-import { changePanelStore, PanelStore } from './store';
+import { panelStore, PanelStore } from './store';
 import { getDomStat } from './scripts/dom-stat';
 import { theme } from './theme';
 import { execution } from './common';
@@ -14,14 +14,14 @@ async function updateElementProperties() {
   try {
     const result = await execution(getSelectedGem, [new PanelStore()]);
     if (typeof result !== 'string') {
-      changePanelStore(result);
+      panelStore(result);
     } else {
       logger.info(result);
-      changePanelStore(await execution(getDomStat, [new PanelStore({ isGemElement: false })]));
+      panelStore(await execution(getDomStat, [new PanelStore({ isGemElement: false })]));
     }
   } catch (err) {
     logger.error(err);
-    changePanelStore(new PanelStore({ isGemElement: false }));
+    panelStore(new PanelStore({ isGemElement: false }));
   }
 }
 

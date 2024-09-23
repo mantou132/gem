@@ -14,7 +14,7 @@
 
 import { GemElement, html } from '../../lib/element';
 import { attribute, boolattribute, effect, mounted, shadow } from '../../lib/decorators';
-import { updateStore, connect } from '../../lib/store';
+import { connect } from '../../lib/store';
 import { titleStore } from '../../lib/history';
 
 // 避免重定向时的中间状态标题
@@ -50,7 +50,7 @@ export class GemTitleElement extends GemElement {
   static title = document.title;
 
   static setTitle(title: string) {
-    updateStore(titleStore, { title });
+    titleStore({ title });
   }
 
   @effect((i) => [i.inert])

@@ -9,31 +9,31 @@ import {
   adoptedStyle,
   styleMap,
 } from '@mantou/gem';
-import { useTheme, getThemeStore, useScopedTheme, useOverrideTheme } from '@mantou/gem/helper/theme';
+import { createTheme, getThemeStore, createScopedTheme, createOverrideTheme } from '@mantou/gem/helper/theme';
 import { mediaQuery } from '@mantou/gem/helper/mediaquery';
 
 import '../elements/layout';
 
-const [scopedTheme] = useScopedTheme({
+const scopedTheme = createScopedTheme({
   color: '#456',
   borderColor: '#eee',
 });
 
-const [overrideTheme, updateOverrideTheme] = useOverrideTheme(scopedTheme, {
+const overrideTheme = createOverrideTheme(scopedTheme, {
   borderColor: '#f0f',
 });
 
 const overrideThemeStore = getThemeStore(overrideTheme);
 
-const [printTheme, updatePrintTheme] = useTheme({
+const printTheme = createTheme({
   borderColor: 'yellow',
 });
 
 document.onclick = () => {
-  updateOverrideTheme({
+  overrideTheme({
     borderColor: Math.random() > 0.5 ? 'red' : 'blue',
   });
-  updatePrintTheme({
+  printTheme({
     borderColor: Math.random() > 0.5 ? 'gray' : 'white',
   });
 };

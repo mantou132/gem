@@ -4,7 +4,7 @@ import { adoptedStyle, customElement, property, part, state, shadow, memo, effec
 import type { TemplateResult } from '@mantou/gem/lib/element';
 import { createCSSSheet, createRef, createState, html, svg } from '@mantou/gem/lib/element';
 import { css, styleMap, exportPartsMap } from '@mantou/gem/lib/utils';
-import { useDecoratorTheme } from '@mantou/gem/helper/theme';
+import { createDecoratorTheme } from '@mantou/gem/helper/theme';
 import type { ElkNode, ElkExtendedEdge, ElkEdgeSection, LayoutOptions, ElkShape, ElkPoint } from 'elkjs';
 import ELK from 'elkjs/lib/elk.bundled.js';
 
@@ -190,7 +190,7 @@ export type Node = Modify<
   }
 >;
 
-const [elementTheme, updateTheme] = useDecoratorTheme({ opacity: 0, width: '', height: '' });
+const elementTheme = createDecoratorTheme({ opacity: 0, width: '', height: '' });
 
 const canvasStyle = createCSSSheet(css`
   :host(:where(:not([hidden]))) {
@@ -462,7 +462,7 @@ export class DuoyunFlowCanvasElement extends DuoyunResizeBaseElement {
     }
   };
 
-  @updateTheme()
+  @elementTheme()
   #theme = () => {
     const { width, height } = this.graph || {};
     return {

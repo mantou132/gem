@@ -105,9 +105,9 @@ class App extends GemElement {
 The theme is implemented using CSS variables, which may need to be dynamically set during rendering, this can also be achieved through themes, but unlike other types of themes, decorators are required to apply and update the theme.
 
 ```js
-import { useDecoratorTheme } from '@mantou/gem/helper/theme';
+import { createDecoratorTheme } from '@mantou/gem/helper/theme';
 
-const [elementTheme, updateTheme] = useDecoratorTheme({ color: '' });
+const elementTheme = createDecoratorTheme({ color: '' });
 
 const style = createCSSSheet(css`
   :host(:where(:not([hidden]))) {
@@ -119,7 +119,7 @@ const style = createCSSSheet(css`
 class App extends GemElement {
   @attribute color;
 
-  @updateTheme()
+  @elementTheme()
   #theme = () => ({ color: this.color })
 
   render() {

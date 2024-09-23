@@ -3,7 +3,7 @@ import { html, render } from '@mantou/gem/lib/element';
 import { history } from '@mantou/gem/lib/history';
 import { Toast } from 'duoyun-ui/elements/toast';
 import { sleep } from 'duoyun-ui/lib/timer';
-import { updateTheme, darkTheme, lightTheme } from 'duoyun-ui/lib/theme';
+import { theme, darkTheme, lightTheme } from 'duoyun-ui/lib/theme';
 import { type ContextMenus, type Routes, type UserInfo, type NavItems } from 'duoyun-ui/patterns/console';
 
 import 'duoyun-ui/patterns/console';
@@ -103,11 +103,11 @@ const contextMenus: ContextMenus = [
   },
   {
     text: 'Switch to Light',
-    handle: () => updateTheme(lightTheme),
+    handle: () => theme(lightTheme),
   },
   {
     text: 'Switch to Dark',
-    handle: () => updateTheme(darkTheme),
+    handle: () => theme(darkTheme),
   },
   {
     text: '---',

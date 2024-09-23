@@ -1,14 +1,14 @@
 import { adoptedStyle, customElement } from '@mantou/gem/lib/decorators';
 import { html, svg, createCSSSheet } from '@mantou/gem/lib/element';
 import { css } from '@mantou/gem/lib/utils';
-import { useDecoratorTheme } from '@mantou/gem/helper/theme';
+import { createDecoratorTheme } from '@mantou/gem/helper/theme';
 
 import { isNullish } from '../lib/types';
 import { theme } from '../lib/theme';
 
 import { DuoyunBarChartElement } from './bar-chart';
 
-const [elementTheme, updateTheme] = useDecoratorTheme({ strokeWidth: 0, strokeDasharray: '' });
+const elementTheme = createDecoratorTheme({ strokeWidth: 0, strokeDasharray: '' });
 
 const style = createCSSSheet(css`
   .line {
@@ -47,7 +47,7 @@ export class DuoyunLineChartElement extends DuoyunBarChartElement {
       .join(``);
   };
 
-  @updateTheme()
+  @elementTheme()
   #theme = () => ({
     strokeWidth: this.getSVGPixel(1),
     strokeDasharray: `${this.getSVGPixel(4)} ${this.getSVGPixel(1.5)}`,

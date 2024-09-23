@@ -1,4 +1,4 @@
-import { connect, html, history, useStore } from '@mantou/gem';
+import { connect, html, history, createStore } from '@mantou/gem';
 import type { RouteItem } from '@mantou/gem/elements/route';
 import { GemLightRouteElement } from '@mantou/gem/elements/route';
 import { I18n } from '@mantou/gem/helper/i18n';
@@ -37,7 +37,7 @@ interface CurrentBookConfig {
   };
 }
 
-export const [bookStore, updateBookStore] = useStore<Partial<CurrentBookConfig>>({});
+export const bookStore = createStore<Partial<CurrentBookConfig>>({});
 
 function getI18nSidebar(config: BookConfig = {}) {
   let sidebar: NavItem[] = [];
@@ -275,7 +275,7 @@ export function updateBookConfig(config?: BookConfig, gemBookElement?: GemBookEl
   const currentLinks = flatNav(currentSidebar).filter(
     (e) => !e.sidebarIgnore && (!config?.homeMode || e.link !== homePage),
   );
-  updateBookStore({
+  bookStore({
     config,
     links,
     nav,
@@ -287,7 +287,7 @@ export function updateBookConfig(config?: BookConfig, gemBookElement?: GemBookEl
     currentLinks,
   });
   if (gemBookElement) {
-    updateBookStore({
+    bookStore({
       isDevMode: () => gemBookElement.dev,
       getCurrentLink: () => {
         return gemBookElement?.routeRef.element?.currentRoute?.data as NavItemWithLink | undefined;

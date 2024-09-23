@@ -9,7 +9,7 @@ import {
 } from '@mantou/gem/lib/decorators';
 import { createCSSSheet, createState, GemElement, html } from '@mantou/gem/lib/element';
 import { css } from '@mantou/gem/lib/utils';
-import { useDecoratorTheme } from '@mantou/gem/helper/theme';
+import { createDecoratorTheme } from '@mantou/gem/helper/theme';
 
 import { theme, getSemanticColor } from '../lib/theme';
 import { compressionImage } from '../lib/image';
@@ -19,7 +19,7 @@ import { focusStyle } from '../lib/styles';
 
 import './use';
 
-const [elementTheme, updateTheme] = useDecoratorTheme({ color: '', progress: '' });
+const elementTheme = createDecoratorTheme({ color: '', progress: '' });
 
 const style = createCSSSheet(css`
   :host {
@@ -129,7 +129,7 @@ export class DuoyunImagePreviewElement extends GemElement {
     }
   };
 
-  @updateTheme()
+  @elementTheme()
   #theme = () => ({
     progress: `${this.progress}%`,
     color: this.progress ? theme.informativeColor : getSemanticColor(this.#status) || 'none',

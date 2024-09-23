@@ -15,7 +15,7 @@ import {
   effect,
 } from '@mantou/gem/lib/decorators';
 import { css, styleMap, classMap, addListener } from '@mantou/gem/lib/utils';
-import { useDecoratorTheme } from '@mantou/gem/helper/theme';
+import { createDecoratorTheme } from '@mantou/gem/helper/theme';
 
 import { theme } from '../lib/theme';
 import { icons } from '../lib/icons';
@@ -28,7 +28,7 @@ import './paragraph';
 import './button';
 import './more';
 
-const [elementTheme, updateTheme] = useDecoratorTheme({ bgImg: '' });
+const elementTheme = createDecoratorTheme({ bgImg: '' });
 
 const style = createCSSSheet(css`
   :host(:where(:not([hidden]))) {
@@ -254,7 +254,7 @@ export class DuoyunCarouselElement extends GemElement {
   @effect((i) => [i.#state.currentIndex])
   #emitterEvent = () => this.change(this.#state.currentIndex);
 
-  @updateTheme()
+  @elementTheme()
   #theme = () => ({ bgImg: this.#prevImg ? `url(${this.#prevImg})` : 'none' });
 
   render = () => {

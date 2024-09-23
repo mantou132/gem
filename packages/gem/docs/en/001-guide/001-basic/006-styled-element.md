@@ -77,7 +77,7 @@ class MyElement extends GemElement {
 }
 ```
 
-This method is complex and troublesome to write; it is recommended to use [`useDecoratorTheme`](../002-advance/003-theme.md#element-level-theme).
+This method is complex and troublesome to write; it is recommended to use [`createDecoratorTheme`](../002-advance/003-theme.md#element-level-theme).
 
 ## Customize the style outside the element
 

@@ -2,7 +2,7 @@ import { createCSSSheet, createState, html, svg } from '@mantou/gem/lib/element'
 import type { Emitter } from '@mantou/gem/lib/decorators';
 import { adoptedStyle, customElement, emitter, memo, mounted, property } from '@mantou/gem/lib/decorators';
 import { addListener, classMap, css } from '@mantou/gem/lib/utils';
-import { useDecoratorTheme } from '@mantou/gem/helper/theme';
+import { createDecoratorTheme } from '@mantou/gem/helper/theme';
 
 import { isNotNullish } from '../lib/types';
 import { theme } from '../lib/theme';
@@ -38,7 +38,7 @@ export function defaultSymbolRender({ point, color, isHover, chart }: SymbolRend
   `;
 }
 
-const [elementTheme, updateTheme] = useDecoratorTheme({
+const elementTheme = createDecoratorTheme({
   lineStrokeWidth: 0,
   areaHighlightOpacity: 0,
   areaPointer: '',
@@ -357,7 +357,7 @@ export class DuoyunAreaChartElement extends DuoyunChartBaseElement {
     return () => ChartTooltip.close();
   };
 
-  @updateTheme()
+  @elementTheme()
   #theme = () => ({
     lineStrokeWidth: this.getSVGPixel(2),
     symbolStrokeWidth: this.getSVGPixel(1),

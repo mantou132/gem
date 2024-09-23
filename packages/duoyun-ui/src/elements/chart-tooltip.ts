@@ -2,12 +2,12 @@ import { connectStore, adoptedStyle, customElement, shadow, effect } from '@mant
 import type { TemplateResult } from '@mantou/gem/lib/element';
 import { createCSSSheet, GemElement, html } from '@mantou/gem/lib/element';
 import { css, styleMap, classMap } from '@mantou/gem/lib/utils';
-import { useStore } from '@mantou/gem/lib/store';
-import { useDecoratorTheme } from '@mantou/gem/helper/theme';
+import { createStore } from '@mantou/gem/lib/store';
+import { createDecoratorTheme } from '@mantou/gem/helper/theme';
 
 import { theme } from '../lib/theme';
 
-const [elementTheme, updateTheme] = useDecoratorTheme({ top: '', left: '', width: '' });
+const elementTheme = createDecoratorTheme({ top: '', left: '', width: '' });
 
 const style = createCSSSheet(css`
   :host(:where(:not([hidden]))) {
@@ -88,7 +88,7 @@ type Store = {
   debug: boolean;
 };
 
-const [store, update] = useStore<Store>({
+const store = createStore<Store>({
   data: {},
   x: 0,
   y: 0,
@@ -106,7 +106,7 @@ export class DuoyunChartTooltipElement extends GemElement {
   static instance: DuoyunChartTooltipElement | null = null;
 
   static open = (x: number, y: number, data: Data) => {
-    update({ x, y, data });
+    store({ x, y, data });
     if (!ChartTooltip.instance) {
       ChartTooltip.instance = new ChartTooltip();
       document.body.append(ChartTooltip.instance);
@@ -130,7 +130,7 @@ export class DuoyunChartTooltipElement extends GemElement {
     }
   };
 
-  @updateTheme()
+  @elementTheme()
   #theme = () => {
     const { values, render } = store.data;
     return {

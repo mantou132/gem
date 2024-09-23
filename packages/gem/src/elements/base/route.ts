@@ -3,7 +3,7 @@ import { createState, GemElement, html } from '../../lib/element';
 import type { Emitter } from '../../lib/decorators';
 import { property, emitter, boolattribute, shadow, effect, template, light } from '../../lib/decorators';
 import type { Store } from '../../lib/store';
-import { createStore, updateStore, connect } from '../../lib/store';
+import { createStore, connect } from '../../lib/store';
 import type { UpdateHistoryParams } from '../../lib/history';
 import { titleStore, history } from '../../lib/history';
 import type { QueryString } from '../../lib/utils';
@@ -205,7 +205,7 @@ export class GemLightRouteElement extends GemElement {
   #updateLocationStore = () => {
     if (!this.locationStore) return;
     const { path, query, hash, data } = history.getParams();
-    updateStore(this.locationStore, {
+    this.locationStore({
       path,
       params: this.currentParams,
       query,
@@ -256,7 +256,7 @@ export class GemLightRouteElement extends GemElement {
 
   // history or i18n
   @effect((i) => [i.scrollContainer])
-  #connectTriggerStore = () => connect(this.trigger.store, () => this.#state({}));
+  #connectTriggerStore = () => this.trigger.store && connect(this.trigger.store, () => this.#state());
 
   #updateContentDep = () => {
     const { path, query, hash } = this.trigger.getParams();
@@ -310,7 +310,7 @@ export class GemLightRouteElement extends GemElement {
     if (this.trigger === history) {
       // 嵌套路由执行顺序也是从父到子
       if (location.href !== titleStore.url || route?.title) {
-        updateStore(titleStore, { url: location.href, title: route?.title });
+        titleStore({ url: location.href, title: route?.title });
       }
     }
     const contentOrLoader = content || getContent?.(params, this.shadowRoot || this);

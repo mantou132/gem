@@ -456,7 +456,7 @@ export function adoptedStyle(sheet: ReturnType<typeof createCSSSheet>) {
  *  class App extends GemElement {}
  * ```
  */
-export function connectStore(store: Store<unknown>) {
+export function connectStore(store: Store<any>) {
   return function (_: unknown, context: ClassDecoratorContext) {
     pushStaticField(context, 'observedStores', store);
   };

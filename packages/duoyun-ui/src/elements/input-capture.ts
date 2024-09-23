@@ -1,7 +1,7 @@
 import { adoptedStyle, customElement, mounted, part, shadow } from '@mantou/gem/lib/decorators';
 import { createCSSSheet, createState, GemElement, html } from '@mantou/gem/lib/element';
 import { addListener, css } from '@mantou/gem/lib/utils';
-import { useDecoratorTheme } from '@mantou/gem/helper/theme';
+import { createDecoratorTheme } from '@mantou/gem/helper/theme';
 
 import { theme } from '../lib/theme';
 import { getDisplayKey } from '../lib/hotkeys';
@@ -10,7 +10,7 @@ import { contentsContainer } from '../lib/styles';
 
 import './paragraph';
 
-const [elementTheme, updateTheme] = useDecoratorTheme({ left: '', top: '' });
+const elementTheme = createDecoratorTheme({ left: '', top: '' });
 
 const style = createCSSSheet(css`
   .container,
@@ -94,7 +94,7 @@ export class DuoyunInputCaptureElement extends GemElement {
     };
   };
 
-  @updateTheme()
+  @elementTheme()
   #theme = () => {
     const { mousePosition } = this.#state;
     return { left: `${mousePosition?.at(0)}px`, top: `${mousePosition?.at(1)}px` };

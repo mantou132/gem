@@ -12,7 +12,7 @@ import {
 } from '@mantou/gem/lib/decorators';
 import { createCSSSheet, createState, GemElement, html } from '@mantou/gem/lib/element';
 import { css, styleMap, classMap } from '@mantou/gem/lib/utils';
-import { useDecoratorTheme } from '@mantou/gem/helper/theme';
+import { createDecoratorTheme } from '@mantou/gem/helper/theme';
 
 import type { HexColor } from '../lib/color';
 import {
@@ -37,7 +37,7 @@ import './use';
 import './input';
 import './select';
 
-const [elementTheme, updateTheme] = useDecoratorTheme({ h: 0, s: 0, l: 0, a: 0 });
+const elementTheme = createDecoratorTheme({ h: 0, s: 0, l: 0, a: 0 });
 
 const style = createCSSSheet(css`
   :host(:where(:not([hidden]))) {
@@ -318,7 +318,7 @@ export class DuoyunColorPanelElement extends GemElement {
     this.change(result.sRGBHex);
   };
 
-  @updateTheme()
+  @elementTheme()
   #theme = () => {
     const { h, s, l, a } = this.#state;
     return { h: h * 360, s: s * 100, l: l * 100, a };

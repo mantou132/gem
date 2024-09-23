@@ -29,7 +29,7 @@ import { UPDATE_EVENT } from '../common/constant';
 
 import type { Theme } from './helper/theme';
 import { theme, changeTheme, themeProps } from './helper/theme';
-import { bookStore, updateBookConfig, locationStore, updateBookStore } from './store';
+import { bookStore, updateBookConfig, locationStore } from './store';
 import { checkBuiltInPlugin, joinPath } from './lib/utils';
 import { GemBookPluginElement } from './elements/plugin';
 import { Loadbar } from './elements/loadbar';
@@ -233,7 +233,7 @@ export class GemBookElement extends GemElement {
 
   @willMount()
   #initUpdateStore = () => {
-    updateBookStore({
+    bookStore({
       slots: Object.fromEntries(
         [...this.querySelectorAll(':scope > [slot]')].map((ele: Element) => [kebabToCamelCase(ele.slot), ele]),
       ),

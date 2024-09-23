@@ -11,13 +11,13 @@ import {
 } from '@mantou/gem/lib/decorators';
 import { GemElement, html, createCSSSheet } from '@mantou/gem/lib/element';
 import { addListener, css } from '@mantou/gem/lib/utils';
-import { useDecoratorTheme } from '@mantou/gem/helper/theme';
+import { createDecoratorTheme } from '@mantou/gem/helper/theme';
 
 import { theme, getSemanticColor } from '../lib/theme';
 import { commonHandle } from '../lib/hotkeys';
 import { focusStyle } from '../lib/styles';
 
-const [elementTheme, updateTheme] = useDecoratorTheme({ color: '' });
+const elementTheme = createDecoratorTheme({ color: '' });
 
 const style = createCSSSheet(css`
   :host(:where(:not([hidden]))) {
@@ -101,7 +101,7 @@ export class DuoyunSwitchElement extends GemElement {
   @mounted()
   #init = () => addListener(this, 'click', this.#onClick);
 
-  @updateTheme()
+  @elementTheme()
   #theme = () => {
     if (this.disabled) return { color: theme.neutralColor };
     if (this.checked) return { color: this.#checkedColor };

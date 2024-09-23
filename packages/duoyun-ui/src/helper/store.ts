@@ -1,7 +1,7 @@
-import { useStore } from '@mantou/gem/lib/store';
+import { createStore } from '@mantou/gem/lib/store';
 
 import type { UseCacheStoreOptions } from '../lib/utils';
-import { useCacheStore } from '../lib/utils';
+import { createCacheStore } from '../lib/utils';
 
 export type PaginationReq = {
   page: number;
@@ -67,16 +67,16 @@ export function createPaginationStore<T extends Record<string, any>>(options: Pa
       return !!store.pagination[page]?.loading;
     },
   };
-  const [store, update, saveStore = () => {}] = storageKey
-    ? useCacheStore<PaginationStore<T>>(storageKey, initStore, {
+  const { store, saveStore } = storageKey
+    ? createCacheStore<PaginationStore<T>>(storageKey, initStore, {
         ...rest,
         cacheExcludeKeys,
       })
-    : useStore(initStore);
+    : { store: createStore(initStore), saveStore: () => {} };
 
   const changePage = (page: number, content: Partial<PageInit>) => {
     store.pagination[page] = { ...store.pagination[page], ...content };
-    update();
+    store();
   };
 
   // 指定 API 函数和参数来更新 Store
@@ -91,7 +91,7 @@ export function createPaginationStore<T extends Record<string, any>>(options: Pa
         result.list.forEach((e) => (store.items[e[idKey]] = e));
       }
 
-      update({ total: 'total' in result ? result.total : Math.ceil(result.count / req.size) });
+      store({ total: 'total' in result ? result.total : Math.ceil(result.count / req.size) });
     } finally {
       changePage(req.page, { loading: false });
     }
@@ -102,7 +102,7 @@ export function createPaginationStore<T extends Record<string, any>>(options: Pa
       const item = request;
       store.items[item[idKey]] = item;
       store.updatedItem = item;
-      update();
+      store();
       return;
     }
     if (id === undefined) {
@@ -111,20 +111,19 @@ export function createPaginationStore<T extends Record<string, any>>(options: Pa
     if (store.loader[id]) return;
     const loader = request(id);
     store.loader[id] = loader;
-    update();
+    store();
     try {
       const item = await loader;
       store.items[item[idKey]] = item;
-      update();
+      store();
     } finally {
       delete store.loader[id];
-      update();
+      store();
     }
   };
 
   return {
     store,
-    update,
     saveStore,
     updateItem,
     updatePage,

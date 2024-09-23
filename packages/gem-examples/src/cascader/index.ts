@@ -1,4 +1,4 @@
-import { connect, html, render, useStore } from '@mantou/gem';
+import { connect, html, render, createStore } from '@mantou/gem';
 import type { Option } from 'duoyun-ui/elements/cascader-picker';
 import { sleep } from 'duoyun-ui/lib/timer';
 
@@ -7,7 +7,7 @@ import 'duoyun-ui/elements/loading';
 
 import '../elements/layout';
 
-const [store, update] = useStore({
+const store = createStore({
   selected: [['Item 3', 'Item 3.3', 'Item 3.3.1']],
   options: [
     { label: 'Item 1', disabled: true },
@@ -29,24 +29,24 @@ const [store, update] = useStore({
 });
 
 function onChange({ detail }: CustomEvent) {
-  update({ selected: detail });
+  store({ selected: detail });
 }
 let i = 10;
 async function onExpand({ detail }: CustomEvent<Option>) {
   await sleep(1000);
   if (detail.label === 'Item 2') {
     detail.children = [];
-    update({ options: [...store.options] });
+    store({ options: [...store.options] });
   }
   if (detail.label === 'Item 3.2') {
     detail.children = [];
-    update({ options: [...store.options] });
+    store({ options: [...store.options] });
   }
   if (detail.label === 'Item 4') {
     detail.children = Array(i++)
       .fill(null)
       .map((_, index) => ({ label: `Item 4.${index + 1}` }));
-    update({ options: [...store.options] });
+    store({ options: [...store.options] });
   }
 }
 

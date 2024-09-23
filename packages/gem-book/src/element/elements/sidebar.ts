@@ -7,7 +7,7 @@ import {
   classMap,
   state,
   connect,
-  useStore,
+  createStore,
   css,
   createCSSSheet,
   adoptedStyle,
@@ -32,7 +32,7 @@ import '@mantou/gem/elements/use';
 import './side-link';
 import './nav-logo';
 
-export const [sidebarStore, updateSidebarStore] = useStore({ open: false });
+export const sidebarStore = createStore({ open: false });
 
 const styles = createCSSSheet(css`
   :scope {
@@ -203,7 +203,7 @@ export class SideBar extends GemElement {
     return this.querySelector(':state(active)');
   }
 
-  #closeSidebar = () => updateSidebarStore({ open: false });
+  #closeSidebar = () => sidebarStore({ open: false });
 
   #toggleLinks = (e: MouseEvent) => {
     const ele = e.target as HTMLDivElement;

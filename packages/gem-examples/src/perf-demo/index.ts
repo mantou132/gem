@@ -8,17 +8,17 @@ import {
   property,
   render,
   shadow,
-  useStore,
+  createStore,
 } from '@mantou/gem';
 
 import '../elements/layout';
 
-const [store, update] = useStore({
+const store = createStore({
   number: 1,
 });
 
 setInterval(() => {
-  update({ number: (store.number % 10) + 1 });
+  store({ number: (store.number % 10) + 1 });
 }, 1000);
 
 @customElement('fiber-dot')

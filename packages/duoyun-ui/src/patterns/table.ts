@@ -111,7 +111,7 @@ type State = {
 
 type LocationStore = Store<ReturnType<(typeof DuoyunRouteElement)['createLocationStore']>>;
 
-export type FetchEventDetail = LocationStore & {
+export type FetchEventDetail = Omit<LocationStore, ''> & {
   page: number;
   size: number;
   search: string;

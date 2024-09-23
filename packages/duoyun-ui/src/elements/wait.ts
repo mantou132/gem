@@ -1,7 +1,7 @@
 import { adoptedStyle, aria, customElement, effect, mounted, shadow, state } from '@mantou/gem/lib/decorators';
 import { GemElement, html, createCSSSheet, createState } from '@mantou/gem/lib/element';
 import { addListener, css } from '@mantou/gem/lib/utils';
-import { useDecoratorTheme } from '@mantou/gem/helper/theme';
+import { createDecoratorTheme } from '@mantou/gem/helper/theme';
 
 import { sleep } from '../lib/timer';
 import { setBodyInert } from '../lib/element';
@@ -10,7 +10,7 @@ import { commonAnimationOptions, fadeIn, fadeOut } from '../lib/animations';
 
 import './loading';
 
-const [elementTheme, updateTheme] = useDecoratorTheme({ color: '', align: '', justify: '', paddingBottom: '' });
+const elementTheme = createDecoratorTheme({ color: '', align: '', justify: '', paddingBottom: '' });
 
 const style = createCSSSheet(css`
   :host(:where(:not([hidden]))) {
@@ -137,7 +137,7 @@ export class DuoyunWaitElement extends GemElement {
     }
   };
 
-  @updateTheme()
+  @elementTheme()
   #theme = () => {
     const { position, color } = this.state;
     const [align, justify] = position?.split(' ') || [];

@@ -12,7 +12,7 @@ import {
 } from '@mantou/gem/lib/decorators';
 import { GemElement, html, createCSSSheet } from '@mantou/gem/lib/element';
 import { css } from '@mantou/gem/lib/utils';
-import { useDecoratorTheme } from '@mantou/gem/helper/theme';
+import { createDecoratorTheme } from '@mantou/gem/helper/theme';
 
 import { icons } from '../lib/icons';
 import { theme, getSemanticColor } from '../lib/theme';
@@ -22,7 +22,7 @@ import { focusStyle } from '../lib/styles';
 
 import './use';
 
-const [elementTheme, updateTheme] = useDecoratorTheme({ color: '', borderColor: '', bg: '' });
+const elementTheme = createDecoratorTheme({ color: '', borderColor: '', bg: '' });
 
 const style = createCSSSheet(css`
   :host(:where(:not([hidden]))) {
@@ -101,7 +101,7 @@ export class DuoyunTagElement extends GemElement {
     this.close(null);
   };
 
-  @updateTheme()
+  @elementTheme()
   #theme = () => {
     const isSolid = this.#type === 'solid';
     const isDefault = this.color === 'default' || this.color === '';

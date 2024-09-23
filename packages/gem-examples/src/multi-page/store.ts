@@ -1,9 +1,9 @@
-import { useStore } from '@mantou/gem';
+import { createStore } from '@mantou/gem';
 
-export const [pageA, updatePageA] = useStore({
+export const pageA = createStore({
   text: 'this is page A',
 });
 
-export const [pageB, updatePageB] = useStore({
+export const pageB = createStore({
   text: 'this is page B',
 });

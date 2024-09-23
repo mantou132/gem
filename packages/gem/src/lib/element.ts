@@ -5,7 +5,7 @@ import type { GemReflectElement } from '../elements/reflect';
 
 import type { Store } from './store';
 import { connect } from './store';
-import { LinkedList, addMicrotask, isArrayChange, addListener, randomStr } from './utils';
+import { LinkedList, addMicrotask, isArrayChange, addListener, randomStr, createUpdater } from './utils';
 
 export { html, svg, render, directive, TemplateResult, SVGTemplateResult } from 'lit-html';
 
@@ -29,7 +29,7 @@ declare global {
   }
 }
 
-const { assign, defineProperty, setPrototypeOf } = Object;
+const { assign, defineProperty } = Object;
 
 defineProperty(Symbol, 'metadata', { value: Symbol.for('Symbol.metadata') });
 
@@ -222,7 +222,7 @@ const appleCSSStyleSheet = (ele: HTMLElement, sheets: CSSStyleSheet[]) => {
 };
 
 /**必须使用在字段中，否则会读取到错误的实例 */
-export let createState: <T>(initState: T) => T & ((state: Partial<T>) => void);
+export let createState: <T>(initState: T) => ReturnType<typeof createUpdater<T>>;
 
 type GetDepFun<T> = () => T;
 type EffectCallback<T> = (depValues: T, oldDepValues?: T) => any;
@@ -274,7 +274,7 @@ export type Metadata = Partial<ShadowRootInit> & {
     }
   >;
   // 实例化时使用到，DevTools 需要读取
-  observedStores: Store<unknown>[];
+  observedStores: Store<any>[];
   adoptedStyleSheets?: Sheet<unknown>[];
   // 以下静态字段仅供外部读取，没有实际作用
   observedProperties?: string[];
@@ -332,17 +332,13 @@ export abstract class GemElement extends HTMLElement {
   static {
     createState = <T>(initState: T) => {
       const ele = currentConstructGemElement;
-      const state: any = (payload: Partial<T>) => {
+      const state = createUpdater(initState, (payload) => {
         assign(state, payload);
         // 避免无限刷新
         if (!ele.#rendering) addMicrotask(ele.#update);
-      };
-      setPrototypeOf(state, null);
-      delete state.name;
-      delete state.length;
+      });
       ele.#internals.stateList.push(state);
-      assign(state, initState);
-      return state as T & ((this: GemElement, state: Partial<T>) => void);
+      return state;
     };
     createRef = () => new RefObject(currentConstructGemElement);
     createTemplate = (ele, item) => ele.#renderList.push(item);

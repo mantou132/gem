@@ -10,13 +10,13 @@ import {
 } from '@mantou/gem/lib/decorators';
 import { createCSSSheet, html } from '@mantou/gem/lib/element';
 import { css, styleMap } from '@mantou/gem/lib/utils';
-import { useDecoratorTheme } from '@mantou/gem/helper/theme';
+import { createDecoratorTheme } from '@mantou/gem/helper/theme';
 
 import { theme } from '../lib/theme';
 
 import { DuoyunVisibleBaseElement } from './base/visible';
 
-const [elementTheme, updateTheme] = useDecoratorTheme({ color: '' });
+const elementTheme = createDecoratorTheme({ color: '' });
 
 const style = createCSSSheet(css`
   :host(:where(:not([hidden]))) {
@@ -75,7 +75,7 @@ export class DuoyunPlaceholderElement extends DuoyunVisibleBaseElement {
     return this.minLine || 1;
   }
 
-  @updateTheme()
+  @elementTheme()
   #theme = () => ({ color: this.color || theme.lightBackgroundColor });
 
   render = () => {

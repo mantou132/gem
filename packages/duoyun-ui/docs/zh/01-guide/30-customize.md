@@ -39,17 +39,17 @@ export class MyEleElement extends GemElement {
 使用自带暗黑主题：
 
 ```ts
-import { updateTheme, darkTheme } from 'duoyun-ui/lib/theme';
+import { theme, darkTheme } from 'duoyun-ui/lib/theme';
 
-updateTheme(darkTheme);
+theme(darkTheme);
 ```
 
 使用自定义主题色：
 
 ```ts
-import { updateTheme } from 'duoyun-ui/lib/theme';
+import { theme } from 'duoyun-ui/lib/theme';
 
-updateTheme({ primaryColor: 'blue' });
+theme({ primaryColor: 'blue' });
 ```
 
 扩展主题：
@@ -57,7 +57,7 @@ updateTheme({ primaryColor: 'blue' });
 ```ts
 import { extendTheme } from 'duoyun-ui/lib/theme';
 
-export const [theme, updateTheme] = extendTheme({ myColor: '#f00' });
+export const theme = extendTheme({ myColor: '#f00' });
 ```
 
 ## 自定义图标
@@ -68,7 +68,7 @@ export const [theme, updateTheme] = extendTheme({ myColor: '#f00' });
 ```ts
 import { extendIcons } from 'duoyun-ui/lib/icons';
 
-const [icons, updateIcons] = extendIcons({
+const icons = extendIcons({
   more: `
     <svg part="icon" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 0 24 24" width="24px" fill="currentColor">
       <path d="M0 0h24v24H0z" fill="none" stroke="none"></path>
@@ -84,17 +84,17 @@ const [icons, updateIcons] = extendIcons({
 DuoyunUI 默认使用英语，指定成中文并修改某个文本：
 
 ```ts
-import { updateLocale } from 'duoyun-ui/lib/locale';
+import { local } from 'duoyun-ui/lib/locale';
 import zh from 'duoyun-ui/locales/zh';
 
-updateLocale({ ...zh, more: '其他' });
+local({ ...zh, more: '其他' });
 ```
 
-`updateLocale` 的参数支持 `Promise`，所以你可以很方便的按需加载，下面是 Gem [I18n](https://gemjs.org/en/guide/advance/i18n) 方案的例子：
+`loadLocale` 支持加载 `Promise`，所以你可以很方便的按需加载，下面是 Gem [I18n](https://gemjs.org/en/guide/advance/i18n) 方案的例子：
 
 ```ts
 import { I18n } from '@mantou/gem/helper/i18n';
-import { updateLocale } from 'duoyun-ui/lib/locale';
+import { loadLocale } from 'duoyun-ui/lib/locale';
 
 import zhCN from 'src/locales/templates/messages.json';
 import enURI from 'src/locales/en/messages.json?url';
@@ -108,9 +108,9 @@ export const i18n = new I18n<typeof zhCN>({
   onChange: (code: keyof typeof langNames) => {
     switch (code) {
       case 'en':
-        return updateLocale(import('duoyun-ui/locales/en'));
+        return loadLocale(import('duoyun-ui/locales/en'));
       case 'zh-CN':
-        return updateLocale(import('duoyun-ui/locales/zh'));
+        return loadLocale(import('duoyun-ui/locales/zh'));
     }
   },
 });

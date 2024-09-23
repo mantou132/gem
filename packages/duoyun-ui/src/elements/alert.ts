@@ -2,7 +2,7 @@
 import { adoptedStyle, customElement, attribute, property, slot, aria, shadow } from '@mantou/gem/lib/decorators';
 import { GemElement, html, createCSSSheet } from '@mantou/gem/lib/element';
 import { css } from '@mantou/gem/lib/utils';
-import { useDecoratorTheme } from '@mantou/gem/helper/theme';
+import { createDecoratorTheme } from '@mantou/gem/helper/theme';
 
 import { theme, getSemanticColor } from '../lib/theme';
 import { icons } from '../lib/icons';
@@ -10,7 +10,7 @@ import { icons } from '../lib/icons';
 import './use';
 import './action-text';
 
-const [elementTheme, updateTheme] = useDecoratorTheme({ color: '' });
+const elementTheme = createDecoratorTheme({ color: '' });
 
 const style = createCSSSheet(css`
   :host(:where(:not([hidden]))) {
@@ -75,7 +75,7 @@ export class DuoyunAlertElement extends GemElement {
     }
   }
 
-  @updateTheme()
+  @elementTheme()
   #theme = () => ({ color: getSemanticColor(this.status) || theme.neutralColor });
 
   render = () => {

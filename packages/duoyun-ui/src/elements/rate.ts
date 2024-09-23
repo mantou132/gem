@@ -13,7 +13,7 @@ import {
 } from '@mantou/gem/lib/decorators';
 import { GemElement, html, createCSSSheet } from '@mantou/gem/lib/element';
 import { css, classMap } from '@mantou/gem/lib/utils';
-import { useDecoratorTheme } from '@mantou/gem/helper/theme';
+import { createDecoratorTheme } from '@mantou/gem/helper/theme';
 
 import { createDataURLFromSVG } from '../lib/image';
 import { icons } from '../lib/icons';
@@ -25,7 +25,7 @@ import './use';
 
 const starUrl = createDataURLFromSVG(icons.star);
 
-const [elementTheme, updateTheme] = useDecoratorTheme({ color: '' });
+const elementTheme = createDecoratorTheme({ color: '' });
 
 const style = createCSSSheet(css`
   :host(:where(:not([hidden]))) {
@@ -107,7 +107,7 @@ export class DuoyunRateElement extends GemElement {
     this.internals.ariaValueNow = String(this.value);
   };
 
-  @updateTheme()
+  @elementTheme()
   #theme = () => ({ color: `${this.#ratio * 100}%` });
 
   render = () => {

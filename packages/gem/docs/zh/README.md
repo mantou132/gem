@@ -142,18 +142,18 @@ export class TodoListElement extends GemElement {
 ```
 
 ```ts store.ts
-import { useStore } from '@mantou/gem';
+import { createStore } from '@mantou/gem';
 
 type Store = { items: string[] };
 
-export const [todoData, update] = useStore<Store>({ items: [] });
+export const todoData = createStore<Store>({ items: [] });
 
 export const addItem = (item: string) => {
-  update({ items: [...todoData.items, item] });
+  todoData({ items: [...todoData.items, item] });
 };
 
 export const deleteItem = (item: string) => {
-  update({ items: todoData.items.filter((e) => e !== item) });
+  todoData({ items: todoData.items.filter((e) => e !== item) });
 };
 ```
 

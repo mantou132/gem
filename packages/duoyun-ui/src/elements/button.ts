@@ -14,7 +14,7 @@ import {
 import { createCSSSheet, GemElement, html, createRef } from '@mantou/gem/lib/element';
 import { history } from '@mantou/gem/lib/history';
 import { addListener, classMap, css, QueryString } from '@mantou/gem/lib/utils';
-import { useDecoratorTheme } from '@mantou/gem/helper/theme';
+import { createDecoratorTheme } from '@mantou/gem/helper/theme';
 
 import { theme, getSemanticColor } from '../lib/theme';
 import { icons } from '../lib/icons';
@@ -30,7 +30,7 @@ import { ContextMenu } from './contextmenu';
 
 import './use';
 
-const [elementTheme, updateTheme] = useDecoratorTheme({ bg: '', color: '' });
+const elementTheme = createDecoratorTheme({ bg: '', color: '' });
 
 const style = createCSSSheet(css`
   :host(:where(:not([hidden]))) {
@@ -197,7 +197,7 @@ export class DuoyunButtonElement extends GemElement {
   @mounted()
   #init = () => addListener(this, 'click', this.#onClick);
 
-  @updateTheme()
+  @elementTheme()
   #theme = () => {
     if (this.disabled) return { bg: theme.disabledColor, color: theme.backgroundColor };
     switch (this.color) {

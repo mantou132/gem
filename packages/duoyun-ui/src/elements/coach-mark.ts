@@ -11,9 +11,9 @@ import {
 } from '@mantou/gem/lib/decorators';
 import { html, createCSSSheet } from '@mantou/gem/lib/element';
 import { addListener, css } from '@mantou/gem/lib/utils';
-import { useStore } from '@mantou/gem/lib/store';
+import { createStore } from '@mantou/gem/lib/store';
 import { splice } from '@mantou/gem/helper/i18n';
-import { useDecoratorTheme } from '@mantou/gem/helper/theme';
+import { createDecoratorTheme } from '@mantou/gem/helper/theme';
 
 import { theme, getSemanticColor } from '../lib/theme';
 import { locale } from '../lib/locale';
@@ -44,7 +44,7 @@ type Store = {
   opened: boolean;
 };
 
-const [store, update] = useStore<Store>({
+const store = createStore<Store>({
   currentIndex: 0,
   opened: false,
 });
@@ -52,7 +52,7 @@ const [store, update] = useStore<Store>({
 export async function openTour(currentIndex = store.currentIndex) {
   if (!tourList[currentIndex]) throw new Error('missing tours');
   await tourList[currentIndex].before?.();
-  update({ opened: true, currentIndex });
+  store({ opened: true, currentIndex });
 }
 
 export async function setTours(tours: Tour[] | Record<number, Tour>, options: Partial<Store> = {}) {
@@ -61,22 +61,22 @@ export async function setTours(tours: Tour[] | Record<number, Tour>, options: Pa
   if (opened) {
     await openTour(currentIndex);
   } else {
-    update({ opened });
+    store({ opened });
   }
 }
 
 async function closeTour() {
-  update({ opened: false });
+  store({ opened: false });
   tourList[store.currentIndex].skip?.();
 }
 
 async function nextTour() {
-  update({ opened: false });
+  store({ opened: false });
   ContextMenu.close();
   const { currentIndex } = store;
   const isFinish = currentIndex === tourList.length - 1;
   if (isFinish) {
-    update({ currentIndex: tourList.findIndex((e) => !!e) || 0 });
+    store({ currentIndex: tourList.findIndex((e) => !!e) || 0 });
   }
   await tourList[currentIndex].finish?.();
   if (!isFinish) {
@@ -84,7 +84,7 @@ async function nextTour() {
   }
 }
 
-const [elementTheme, updateTheme] = useDecoratorTheme({ color: '' });
+const elementTheme = createDecoratorTheme({ color: '' });
 
 const style = createCSSSheet(css`
   :host {
@@ -220,7 +220,7 @@ export class DuoyunCoachMarkElement extends DuoyunVisibleBaseElement {
     this.#open();
   };
 
-  @updateTheme()
+  @elementTheme()
   #theme = () => ({ color: getSemanticColor(this.color) || this.color || theme.informativeColor });
 
   render = () => {

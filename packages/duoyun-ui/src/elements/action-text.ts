@@ -1,7 +1,7 @@
 import { GemElement, html, createCSSSheet } from '@mantou/gem/lib/element';
 import { adoptedStyle, customElement, attribute, state, slot, aria, shadow, mounted } from '@mantou/gem/lib/decorators';
 import { addListener, css } from '@mantou/gem/lib/utils';
-import { useDecoratorTheme } from '@mantou/gem/helper/theme';
+import { createDecoratorTheme } from '@mantou/gem/helper/theme';
 
 import { theme, getSemanticColor } from '../lib/theme';
 import { commonHandle } from '../lib/hotkeys';
@@ -9,7 +9,7 @@ import { focusStyle } from '../lib/styles';
 
 import './tooltip';
 
-const [elementTheme, updateTheme] = useDecoratorTheme({ color: '', activeColor: '' });
+const elementTheme = createDecoratorTheme({ color: '', activeColor: '' });
 
 const style = createCSSSheet(css`
   :host {
@@ -49,7 +49,7 @@ export class DuoyunActionTextElement extends GemElement {
   @mounted()
   #init = () => addListener(this, 'keydown', commonHandle);
 
-  @updateTheme()
+  @elementTheme()
   #theme = () => {
     const color = getSemanticColor(this.color) || this.color;
     return { color: color || 'inherit', activeColor: color || theme.primaryColor };

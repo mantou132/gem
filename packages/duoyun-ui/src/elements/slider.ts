@@ -15,7 +15,7 @@ import {
 } from '@mantou/gem/lib/decorators';
 import { GemElement, html, createCSSSheet, createState, createRef } from '@mantou/gem/lib/element';
 import { css, classMap, addListener } from '@mantou/gem/lib/utils';
-import { useDecoratorTheme } from '@mantou/gem/helper/theme';
+import { createDecoratorTheme } from '@mantou/gem/helper/theme';
 
 import { theme } from '../lib/theme';
 import { clamp } from '../lib/number';
@@ -27,7 +27,7 @@ import type { PanEventDetail } from './gesture';
 import './gesture';
 import './input';
 
-const [elementTheme, updateTheme] = useDecoratorTheme({ position: '', positionPoint: '' });
+const elementTheme = createDecoratorTheme({ position: '', positionPoint: '' });
 
 const style = createCSSSheet(css`
   :host(:where(:not([hidden]))) {
@@ -211,7 +211,7 @@ export class DuoyunSliderElement extends GemElement {
     this.#state({ position, displayPosition: position });
   };
 
-  @updateTheme()
+  @elementTheme()
   #theme = () => {
     const { displayPosition } = this.#state;
     const position = `calc(var(--size) / 2 + calc(100% - var(--size)) * ${displayPosition})`;

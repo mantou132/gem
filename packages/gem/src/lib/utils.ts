@@ -1,9 +1,10 @@
+const { assign, setPrototypeOf, fromEntries, entries, keys } = Object;
+
 let microtaskSet = new Set<() => void>();
 export function addMicrotask(func: () => void) {
-  if (typeof func !== 'function') return;
   if (!microtaskSet.size) {
     // delayed execution callback after updating store
-    globalThis.queueMicrotask(() => {
+    queueMicrotask(() => {
       const set = microtaskSet;
       microtaskSet = new Set();
       set.forEach((f) => f());
@@ -11,6 +12,16 @@ export function addMicrotask(func: () => void) {
   }
   microtaskSet.delete(func);
   microtaskSet.add(func);
+}
+
+export function createUpdater<T, Fn = (payload?: Partial<T>) => any>(initState: T, fn: Fn) {
+  const state: any = fn;
+  setPrototypeOf(state, null);
+  delete state.name;
+  delete state.length;
+  assign(state, initState);
+  // TODO: type
+  return state as Fn & T;
 }
 
 // 不编码 hash 用于比较
@@ -156,11 +167,11 @@ export class QueryString extends URLSearchParams {
   concat(param: any) {
     let query: any;
     if (typeof param === 'string') {
-      query = Object.fromEntries(new URLSearchParams(param).entries());
+      query = fromEntries(new URLSearchParams(param).entries());
     } else {
       query = param;
     }
-    Object.entries(query).forEach(([key, value]) => {
+    entries(query).forEach(([key, value]) => {
       this.append(key, this.#stringify(value));
     });
   }
@@ -247,7 +258,7 @@ export function kebabToCamelCase(str: string) {
 }
 
 export function cleanObject<T extends Record<string, unknown>>(o: T) {
-  Object.keys(o).forEach((key: keyof T) => {
+  keys(o).forEach((key: keyof T) => {
     delete o[key];
   });
   return o;

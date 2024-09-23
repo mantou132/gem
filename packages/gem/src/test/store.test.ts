@@ -1,27 +1,27 @@
 import { expect, aTimeout } from '@open-wc/testing';
 
-import { StoreListenerMap, createStore, updateStore, connect, disconnect } from '../lib/store';
+import { StoreListenerMap, createStore, connect } from '../lib/store';
 
 describe('store 测试', () => {
   it('create store', () => {
     const origin = { a: 1 };
     const store = createStore(origin);
-    expect(store).to.equal(origin);
+    expect({ ...store }).to.deep.equal(origin);
     expect(!!StoreListenerMap.get(store)).to.equal(true);
   });
   it('update store', async () => {
     const store = createStore({ a: 1 });
     let flag = true;
     const update = () => (flag = !flag);
-    connect(store, update);
-    updateStore(store, { a: 1 });
+    const disconnect = connect(store, update);
+    store({ a: 1 });
     await aTimeout(0);
     expect(flag).to.equal(false);
-    updateStore(store);
+    store();
     await aTimeout(0);
     expect(flag).to.equal(true);
-    disconnect(store, update);
-    updateStore(store, { a: 1 });
+    disconnect();
+    store({ a: 1 });
     await aTimeout(0);
     expect(flag).to.equal(true);
   });

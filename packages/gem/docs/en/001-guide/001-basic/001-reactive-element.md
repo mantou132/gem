@@ -66,7 +66,7 @@ class MyElement extends GemElement {
 
 ```js index.js
 import {
-  useStore,
+  createStore,
   GemElement,
   render,
   html,
@@ -76,7 +76,7 @@ import {
   customElement,
 } from '@mantou/gem';
 
-const [store, update] = useStore({ count: 0 });
+const store= createStore({ count: 0 });
 
 @customElement('my-element')
 @connectStore(store)
@@ -85,7 +85,7 @@ class MyElement extends GemElement {
   @property data;
 
   #onClick = () => {
-    update({ count: ++store.count });
+    store({ count: ++store.count });
   };
 
   render() {

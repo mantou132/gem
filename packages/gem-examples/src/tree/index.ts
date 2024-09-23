@@ -1,4 +1,4 @@
-import { connect, html, render, useStore } from '@mantou/gem';
+import { connect, html, render, createStore } from '@mantou/gem';
 import type { MouseEventDetail, TreeItem } from 'duoyun-ui/elements/tree';
 import { ContextMenu } from 'duoyun-ui/elements/contextmenu';
 import { sleep } from 'duoyun-ui/lib/timer';
@@ -8,7 +8,7 @@ import 'duoyun-ui/elements/loading';
 
 import '../elements/layout';
 
-const [store, update] = useStore({
+const store = createStore({
   selected: 'Item 3.3.1',
   data: [
     { label: 'Item 1' },
@@ -41,13 +41,13 @@ async function onExpand({ detail }: CustomEvent<TreeItem>) {
     detail.children = Array(4)
       .fill(null)
       .map((_, index) => ({ label: `Item 4.${index + 1}` }));
-    update({ data: [...store.data] });
+    store({ data: [...store.data] });
   }
 }
 
 function onClick({ detail }: CustomEvent<MouseEventDetail>) {
   if (detail.value.type === 'folder') return;
-  update({ selected: detail.value });
+  store({ selected: detail.value });
 }
 
 function onContextMenu({ detail }: CustomEvent<MouseEventDetail>) {

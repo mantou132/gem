@@ -19,7 +19,7 @@ import { getBody } from '../../common/utils';
 import { parseMarkdown, linkStyle, tableStyle, headingStyle, blockquoteStyle } from '../lib/renderer';
 import { locationStore } from '../store';
 
-import { updateTocStore } from './toc';
+import { tocStore } from './toc';
 
 import '@mantou/gem/elements/unsafe';
 import '@mantou/gem/elements/link';
@@ -234,7 +234,7 @@ export class Main extends GemElement {
   };
 
   #updateToc = () => {
-    updateTocStore({
+    tocStore({
       elements: [...this.querySelectorAll<HTMLHeadingElement>('h2,h3')],
     });
   };

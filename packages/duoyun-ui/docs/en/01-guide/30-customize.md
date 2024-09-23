@@ -39,17 +39,17 @@ Can be easily modified or extended.
 Use build-in dark theme:
 
 ```ts
-import { updateTheme, darkTheme } from 'duoyun-ui/lib/theme';
+import { theme, darkTheme } from 'duoyun-ui/lib/theme';
 
-updateTheme(darkTheme);
+theme(darkTheme);
 ```
 
 Use customize theme:
 
 ```ts
-import { updateTheme } from 'duoyun-ui/lib/theme';
+import { theme } from 'duoyun-ui/lib/theme';
 
-updateTheme({ primaryColor: 'blue' });
+theme({ primaryColor: 'blue' });
 ```
 
 Extend theme:
@@ -57,7 +57,7 @@ Extend theme:
 ```ts
 import { extendTheme } from 'duoyun-ui/lib/theme';
 
-export const [theme, updateTheme] = extendTheme({ myColor: '#f00' });
+export const theme = extendTheme({ myColor: '#f00' });
 ```
 
 ## Customize icon
@@ -67,7 +67,7 @@ Currently DuoyunUI uses [Material Icon](https://fonts.google.com/icons?selected=
 ```ts
 import { extendIcons } from 'duoyun-ui/lib/icons';
 
-const [icons, updateIcons] = extendIcons({
+const icons = extendIcons({
   more: `
     <svg part="icon" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 0 24 24" width="24px" fill="currentColor">
       <path d="M0 0h24v24H0z" fill="none" stroke="none"></path>
@@ -85,17 +85,17 @@ const [icons, updateIcons] = extendIcons({
 DuoyunUI defaults English, specifying Chinese and modifying a text:
 
 ```ts
-import { updateLocale } from 'duoyun-ui/lib/locale';
+import { local } from 'duoyun-ui/lib/locale';
 import zh from 'duoyun-ui/locales/zh';
 
-updateLocale({ ...zh, more: '其他' });
+local({ ...zh, more: '其他' });
 ```
 
-`updateLocale` support `Promise`, so you can be loaded on demand, the following is an example of Gem [I18n](https://gemjs.org/en/guide/advance/i18n) scheme:
+`loadLocale` support load `Promise`, so you can be loaded on demand, the following is an example of Gem [I18n](https://gemjs.org/en/guide/advance/i18n) scheme:
 
 ```ts
 import { I18n } from '@mantou/gem/helper/i18n';
-import { updateLocale } from 'duoyun-ui/lib/locale';
+import { loadLocale } from 'duoyun-ui/lib/locale';
 
 import zhCN from 'src/locales/templates/messages.json';
 import enURI from 'src/locales/en/messages.json?url';
@@ -109,9 +109,9 @@ export const i18n = new I18n<typeof zhCN>({
   onChange: (code: keyof typeof langNames) => {
     switch (code) {
       case 'en':
-        return updateLocale(import('duoyun-ui/locales/en'));
+        return loadLocale(import('duoyun-ui/locales/en'));
       case 'zh-CN':
-        return updateLocale(import('duoyun-ui/locales/zh'));
+        return loadLocale(import('duoyun-ui/locales/zh'));
     }
   },
 });

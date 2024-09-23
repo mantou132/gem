@@ -23,7 +23,7 @@ import { capitalize, isGitLab, isSameOrigin } from '../lib/utils';
 import { bookStore, updateBookConfig } from '../store';
 
 import { icons } from './icons';
-import { sidebarStore, updateSidebarStore } from './sidebar';
+import { sidebarStore } from './sidebar';
 
 import '@mantou/gem/elements/link';
 import '@mantou/gem/elements/use';
@@ -208,7 +208,7 @@ export class Nav extends GemElement {
     return html`
       <gem-use
         class="menu"
-        @click=${() => updateSidebarStore({ open: !sidebarStore.open })}
+        @click=${() => sidebarStore({ open: !sidebarStore.open })}
         .element=${sidebarStore.open ? icons.close : icons.menu}
       ></gem-use>
       ${this.logo ? html`<gem-book-nav-logo></gem-book-nav-logo>` : ''}

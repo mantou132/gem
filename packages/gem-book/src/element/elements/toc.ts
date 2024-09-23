@@ -4,7 +4,7 @@ import {
   customElement,
   connectStore,
   classMap,
-  useStore,
+  createStore,
   createCSSSheet,
   css,
   adoptedStyle,
@@ -18,7 +18,7 @@ import { theme, themeStore } from '../helper/theme';
 
 import '@mantou/gem/elements/link';
 
-export const [tocStore, updateTocStore] = useStore({
+export const tocStore = createStore({
   elements: [] as HTMLHeadingElement[],
 });
 

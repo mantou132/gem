@@ -2,7 +2,7 @@ import { fixture, expect } from '@open-wc/testing';
 
 import type { Metadata } from '../../lib/element';
 import { createCSSSheet, GemElement, html, createRef } from '../../lib/element';
-import { createStore, updateStore } from '../../lib/store';
+import { createStore } from '../../lib/store';
 import { css } from '../../lib/utils';
 import type { Emitter } from '../../lib/decorators';
 import {
@@ -81,10 +81,10 @@ describe('装饰器', () => {
         rank-count="2"
       ></decorator-gem-demo>
     `);
-    updateStore(store, { a: 1 });
+    store({ a: 1 });
     await Promise.resolve();
     const metadata: Metadata = Reflect.get(DecoratorGemElement, Symbol.metadata);
-    expect(metadata.observedStores).to.eql([{ a: 1 }]);
+    expect({ ...metadata.observedStores.at(0) }).to.eql({ a: 1 });
     expect(metadata.observedAttributes).to.eql(['rank-attr', 'rank-disabled', 'rank-count']);
     expect(metadata.definedEvents).to.eql(['say-hi']);
     expect(metadata.definedCSSStates).to.eql(['open-state']);
@@ -102,7 +102,7 @@ describe('装饰器', () => {
     expect(el.inputRef.ref.startsWith('ref-')).to.equal(true);
     expect(el.bodySlot).to.equal('body-slot');
     expect(el).shadowDom.to.equal('attr: attr, disabled: true, count: 2, prop: prop');
-    updateStore(store, { a: 3 });
+    store({ a: 3 });
     await Promise.resolve();
     expect(el.renderCount).to.equal(3);
     el.sayHi(2);

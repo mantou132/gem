@@ -2,11 +2,11 @@
 import { adoptedStyle, customElement, attribute, aria, shadow, effect } from '@mantou/gem/lib/decorators';
 import { GemElement, createCSSSheet } from '@mantou/gem/lib/element';
 import { css } from '@mantou/gem/lib/utils';
-import { useDecoratorTheme } from '@mantou/gem/helper/theme';
+import { createDecoratorTheme } from '@mantou/gem/helper/theme';
 
 import { theme, getSemanticColor } from '../lib/theme';
 
-const [elementTheme, updateTheme] = useDecoratorTheme({ width: '', height: '', color: '' });
+const elementTheme = createDecoratorTheme({ width: '', height: '', color: '' });
 
 const style = createCSSSheet(css`
   :host(:where(:not([hidden]))) {
@@ -78,6 +78,6 @@ export class DuoyunDividerElement extends GemElement {
     this.internals.ariaOrientation = this.#orientation;
   };
 
-  @updateTheme()
+  @elementTheme()
   #theme = () => ({ width: this.#width, height: this.#height, color: this.#color });
 }

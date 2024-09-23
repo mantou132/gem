@@ -112,7 +112,7 @@ describe('utils 测试', () => {
     });
     expect(cssSheet.scroll.startsWith('scroll')).to.true;
     const rules = cssSheet[SheetToken].getStyle().cssRules;
-    expect(rules.item(0).selectorText).to.equal(':scope, :host');
+    expect(rules.item(0).selectorText).to.equal(':where(:scope:not([hidden])), :host(:where(:not([hidden])))');
     expect(rules.item(1).selectorText.startsWith('.scroll')).to.true;
     expect(rules.item(1).style.background).to.equal('red');
     expect(rules.item(1).cssRules.item(0).selectorText).to.equal('&:hover *');

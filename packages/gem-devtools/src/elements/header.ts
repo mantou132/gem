@@ -11,7 +11,7 @@ import {
   mounted,
 } from '@mantou/gem';
 
-import { changeConfigureStore, configureStore } from '../store';
+import { configureStore } from '../store';
 import { execution } from '../common';
 import { getAllFrames } from '../scripts/get-all-frame';
 
@@ -48,14 +48,14 @@ const style = createCSSSheet(css`
 @shadow()
 export class DevtoolsHeaderElement extends GemElement {
   #onChange = (evt: Event) => {
-    changeConfigureStore({ currentFrameURL: (evt.target as HTMLSelectElement).value });
+    configureStore({ currentFrameURL: (evt.target as HTMLSelectElement).value });
   };
 
   @mounted()
   #init = () => {
     const timer = setInterval(async () => {
       const frames = await execution(getAllFrames, [], { frameURL: undefined });
-      changeConfigureStore({
+      configureStore({
         frames,
         currentFrameURL: frames.includes(configureStore.currentFrameURL) ? configureStore.currentFrameURL : '',
       });

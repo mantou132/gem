@@ -10,7 +10,7 @@ import { fixture, expect, nextFrame } from '@open-wc/testing';
 
 import type { Metadata } from '../../lib/element';
 import { createCSSSheet, createState, GemElement, html, createRef } from '../../lib/element';
-import { createStore, updateStore } from '../../lib/store';
+import { createStore } from '../../lib/store';
 import {
   attribute,
   property,
@@ -45,7 +45,7 @@ describe('异步 gem element 测试', () => {
   it('异步 gem element 更新', async () => {
     const el: AsyncGemDemo = await fixture(html`<async-gem-demo></async-gem-demo>`);
     expect(el.renderCount).to.equal(1);
-    updateStore(store, { a: ++store.a });
+    store({ a: ++store.a });
     el.internals.stateList[0]({ a: ++(el.internals.stateList[0] as any).a });
     await nextFrame();
     expect(el.renderCount).to.equal(2);

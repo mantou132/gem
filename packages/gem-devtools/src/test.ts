@@ -1,6 +1,6 @@
 import { html, render } from '@mantou/gem';
 
-import { changePanelStore, PanelStore } from './store';
+import { panelStore, PanelStore } from './store';
 
 import './modules/panel';
 
@@ -16,7 +16,7 @@ render(
   document.body,
 );
 
-changePanelStore({
+panelStore({
   ...new PanelStore(),
   observedAttributes: [
     { name: 'song-id', value: String(Date.now()), type: 'number' },

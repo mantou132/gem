@@ -77,7 +77,7 @@ class MyElement extends GemElement {
 }
 ```
 
-这个方法写法复杂且麻烦，推荐使用 [`useDecoratorTheme`](../002-advance/003-theme.md#element-level-theme)。
+这个方法写法复杂且麻烦，推荐使用 [`createDecoratorTheme`](../002-advance/003-theme.md#element-level-theme)。
 
 ## 在元素外自定义样式
 

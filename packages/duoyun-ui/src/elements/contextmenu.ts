@@ -2,7 +2,7 @@ import { connectStore, adoptedStyle, customElement, shadow, effect, mounted } fr
 import type { TemplateResult } from '@mantou/gem/lib/element';
 import { createCSSSheet, html, GemElement, createRef } from '@mantou/gem/lib/element';
 import { css, styleMap, classMap } from '@mantou/gem/lib/utils';
-import { useStore } from '@mantou/gem/lib/store';
+import { createStore } from '@mantou/gem/lib/store';
 
 import { icons } from '../lib/icons';
 import { locale } from '../lib/locale';
@@ -55,7 +55,7 @@ type ContextMenuStore = {
   })[];
 };
 
-const [contextmenuStore, update] = useStore<ContextMenuStore>({
+const contextmenuStore = createStore<ContextMenuStore>({
   menuStack: [],
 });
 
@@ -131,7 +131,7 @@ export class DuoyunContextmenuElement extends GemElement {
     const maxHeight = menuObject.maxHeight || options.maxHeight;
     const searchable = menuObject.searchable || options.searchable;
     toggleActiveState(activeElement, true);
-    update({
+    contextmenuStore({
       activeElement,
       onlyActive: !!x || !!y,
       openLeft,
@@ -213,7 +213,7 @@ export class DuoyunContextmenuElement extends GemElement {
           openLeft ||
           (menuStackIndex > 0 && menuStack[menuStackIndex].x < menuStack[menuStackIndex - 1].x)) &&
         left > 300;
-      update({
+      contextmenuStore({
         menuStack: [
           ...menuStack.slice(0, menuStackIndex + 1),
           {
@@ -226,7 +226,7 @@ export class DuoyunContextmenuElement extends GemElement {
         ],
       });
     } else {
-      update({ menuStack: menuStack.slice(0, menuStackIndex + 1) });
+      contextmenuStore({ menuStack: menuStack.slice(0, menuStackIndex + 1) });
     }
   };
 
@@ -243,7 +243,7 @@ export class DuoyunContextmenuElement extends GemElement {
       esc:
         menuStackIndex === 0
           ? ContextMenu.close
-          : () => update({ menuStack: contextmenuStore.menuStack.slice(0, menuStackIndex) }),
+          : () => contextmenuStore({ menuStack: contextmenuStore.menuStack.slice(0, menuStackIndex) }),
     })(evt);
   };
 
@@ -264,7 +264,7 @@ export class DuoyunContextmenuElement extends GemElement {
       const showToTop = innerHeight - bottom < height + 2 * this.#offset && top > innerHeight - bottom;
       const x = showToLeft ? right - width : left;
       const y = showToTop ? Math.max(top - height - 2 * this.#offset, 0) : bottom;
-      update({
+      contextmenuStore({
         menuStack: [
           {
             ...menu,
@@ -277,7 +277,7 @@ export class DuoyunContextmenuElement extends GemElement {
       });
     } else {
       const y = innerHeight - menu.y > width ? menu.y : Math.max(0, menu.y - (scrollHeight - clientHeight));
-      update({ menuStack: [{ ...menu, y }] });
+      contextmenuStore({ menuStack: [{ ...menu, y }] });
     }
   };
 
@@ -333,7 +333,7 @@ export class DuoyunContextmenuElement extends GemElement {
         })}
       ></div>
     `;
-    update();
+    contextmenuStore();
   };
 
   render = () => {

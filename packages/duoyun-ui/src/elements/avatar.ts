@@ -11,7 +11,7 @@ import {
 } from '@mantou/gem/lib/decorators';
 import { createCSSSheet, GemElement, html } from '@mantou/gem/lib/element';
 import { css, exportPartsMap } from '@mantou/gem/lib/utils';
-import { useDecoratorTheme } from '@mantou/gem/helper/theme';
+import { createDecoratorTheme } from '@mantou/gem/helper/theme';
 
 import { theme } from '../lib/theme';
 
@@ -19,7 +19,7 @@ import type { Status } from './status-light';
 import { getStatusColor } from './status-light';
 import './tooltip';
 
-const [elementTheme, updateTheme] = useDecoratorTheme({ color: '' });
+const elementTheme = createDecoratorTheme({ color: '' });
 
 const style = createCSSSheet(css`
   :host(:where(:not([hidden]))) {
@@ -102,7 +102,7 @@ export class DuoyunAvatarElement extends GemElement {
   @attribute crossorigin: 'anonymous' | 'use-credentials';
   @boolattribute square: boolean;
 
-  @updateTheme()
+  @elementTheme()
   #theme = () => ({ color: getStatusColor(this.status) || 'inherit' });
 
   render = () => {

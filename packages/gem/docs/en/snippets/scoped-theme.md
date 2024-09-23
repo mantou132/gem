@@ -2,11 +2,11 @@ v1 only supports global themes, while v2 supports scoped themes and theme overri
 
 ```ts
 // Global theme will be automatically added to `document`
-const [theme] = useTheme({ textColor: '#eee' });
+const theme = createTheme({ textColor: '#eee' });
 
-const [scopedTheme] = useScopedTheme({ scopeTextColor: '#333' });
+const scopedTheme = createScopedTheme({ scopeTextColor: '#333' });
 
-const [overrideTheme] = overrideTheme(theme, { textColor: '#eff' });
+const overrideTheme = createOverrideTheme(theme, { textColor: '#eff' });
 
 const styles = createCSSSheet(css`
   :scope {

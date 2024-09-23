@@ -1,5 +1,5 @@
 import type { Store } from '@mantou/gem/lib/store';
-import { connect, updateStore, useStore } from '@mantou/gem/lib/store';
+import { connect, createStore } from '@mantou/gem/lib/store';
 import { render, TemplateResult } from '@mantou/gem/lib/element';
 import type { NonPrimitive } from '@mantou/gem/lib/utils';
 import { cleanObject } from '@mantou/gem/lib/utils';
@@ -222,7 +222,7 @@ export type UseCacheStoreOptions<T> = {
 };
 
 /**Create auto cache(localStorage) Store */
-export function useCacheStore<T extends Record<string, any>>(
+export function createCacheStore<T extends Record<string, any>>(
   storageKey: string,
   initStore: T,
   options?: UseCacheStoreOptions<T>,
@@ -245,14 +245,14 @@ export function useCacheStore<T extends Record<string, any>>(
   const cacheExcludeKeys = new Set(options?.cacheExcludeKeys || []);
   let key = getKey();
 
-  const [store, updater] = useStore<T>(getStoreStore(key));
+  const store = createStore<T>(getStoreStore(key));
 
   if (options?.depStore) {
     connect(options.depStore, () => {
       const newKey = getKey();
       if (newKey !== key) {
         key = newKey;
-        updateStore(cleanObject(store), getStoreStore(newKey));
+        cleanObject(store)(getStoreStore(newKey));
       }
     });
   }
@@ -266,17 +266,7 @@ export function useCacheStore<T extends Record<string, any>>(
 
   window.addEventListener('pagehide', saveStore);
 
-  return [store, updater, saveStore] as const;
-}
-
-/**@deprecated use `useCacheStore` */
-export function createCacheStore<T extends Record<string, any>>(
-  storageKey: string,
-  initStore: T,
-  options?: UseCacheStoreOptions<T>,
-) {
-  const [store, , save] = useCacheStore(storageKey, initStore, options);
-  return [store, save] as const;
+  return { store, saveStore };
 }
 
 // 是链接需要使用 img 渲染

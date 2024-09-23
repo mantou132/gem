@@ -13,7 +13,7 @@ import {
 import { GemElement, html, createCSSSheet } from '@mantou/gem/lib/element';
 import { css, classMap } from '@mantou/gem/lib/utils';
 import { splice } from '@mantou/gem/helper/i18n';
-import { useDecoratorTheme } from '@mantou/gem/helper/theme';
+import { createDecoratorTheme } from '@mantou/gem/helper/theme';
 
 import { locale } from '../lib/locale';
 import { theme } from '../lib/theme';
@@ -29,7 +29,7 @@ import './input';
 import './button';
 import './picker';
 
-const [elementTheme, updateTheme] = useDecoratorTheme({ align: '' });
+const elementTheme = createDecoratorTheme({ align: '' });
 
 const style = createCSSSheet(css`
   :host(:where(:not([hidden]))) {
@@ -175,7 +175,7 @@ export class DuoyunPaginationElement extends GemElement {
     `;
   }
 
-  @updateTheme()
+  @elementTheme()
   #theme = () => ({ align: this.#align });
 
   render = () => {

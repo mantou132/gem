@@ -1,7 +1,7 @@
 import { fixture, expect, nextFrame } from '@open-wc/testing';
 
 import { createCSSSheet, createState, GemElement, html } from '../../lib/element';
-import { createStore, updateStore } from '../../lib/store';
+import { createStore } from '../../lib/store';
 import { css } from '../../lib/utils';
 import {
   adoptedStyle,
@@ -142,8 +142,8 @@ describe('基本 gem element 测试', () => {
   it('更新 store', async () => {
     const a = store.a;
     const el: GemDemo = await fixture(html`<gem-demo></gem-demo>`);
-    updateStore(store, { a: ++store.a });
-    updateStore(store, { a: ++store.a });
+    store({ a: ++store.a });
+    store({ a: ++store.a });
     expect(store.a).to.equal(a + 2);
     expect(el.renderCount).to.equal(1);
     await Promise.resolve();

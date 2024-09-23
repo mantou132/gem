@@ -2,11 +2,11 @@ v1 只支持全局主题，v2 支持范围主题，并且支持主题覆盖：
 
 ```ts
 // 全局主题将自动添加到 `document`
-const [theme] = useTheme({ textColor: '#eee' });
+const theme = createTheme({ textColor: '#eee' });
 
-const [scopedTheme] = useScopedTheme({ scopeTextColor: '#333' });
+const scopedTheme = createScopedTheme({ scopeTextColor: '#333' });
 
-const [overrideTheme] = overrideTheme(theme, { textColor: '#eff' })
+const overrideTheme = createOverrideTheme(theme, { textColor: '#eff' })
 
 const styles = createCSSSheet(css`
   :scope {

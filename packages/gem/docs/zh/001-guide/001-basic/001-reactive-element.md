@@ -68,7 +68,7 @@ class MyElement extends GemElement {
 
 ```js index.js
 import {
-  useStore,
+  createStore,
   GemElement,
   render,
   html,
@@ -78,7 +78,7 @@ import {
   customElement,
 } from '@mantou/gem';
 
-const [store, update] = useStore({ count: 0 });
+const store = createStore({ count: 0 });
 
 @customElement('my-element')
 @connectStore(store)
@@ -87,7 +87,7 @@ class MyElement extends GemElement {
   @property data;
 
   #onClick = () => {
-    update({ count: ++store.count });
+    store({ count: ++store.count });
   };
 
   render() {
@@ -151,4 +151,3 @@ class MyElement extends GemElement {
 
 > [!NOTE]
 > 父元素的 `constructor` 和 `unmounted` 先于子元素执行，但 `mounted` 后于子元素执行
-
