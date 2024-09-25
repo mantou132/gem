@@ -35,13 +35,13 @@ defineProperty(Symbol, 'metadata', { value: Symbol.for('Symbol.metadata') });
 
 const execCallback = (fun: any) => typeof fun === 'function' && fun();
 
-// 跨多个 gem 工作
+// 读取构造样式表，跨多个 gem 工作
 export const SheetToken = Symbol.for('gem@sheetToken');
-// proto prop
+// 更新元素，跨多个 gem 工作
 export const UpdateToken = Symbol.for('gem@update');
 
 const BoundaryCSSState = 'gem-style-boundary';
-export const RenderErrorEvent = 'gem@render-error';
+export const _RenderErrorEvent = 'gem@render-error';
 
 // fix modal-factory type error
 const updateTokenAlias = UpdateToken;
@@ -261,7 +261,7 @@ function clearEffect(list: EffectItem<any>[]) {
 type Render = () => TemplateResult | null | undefined;
 type RenderItem = { render: Render; condition?: () => boolean };
 
-export let createTemplate: (ele: GemElement, item: RenderItem) => void;
+export let _createTemplate: (ele: GemElement, item: RenderItem) => void;
 
 export type Metadata = Partial<ShadowRootInit> & {
   /** 内容可被外部样式化 */
@@ -341,7 +341,7 @@ export abstract class GemElement extends HTMLElement {
       return state;
     };
     createRef = () => new RefObject(currentConstructGemElement);
-    createTemplate = (ele, item) => ele.#renderList.push(item);
+    _createTemplate = (ele, item) => ele.#renderList.push(item);
   }
 
   constructor() {
@@ -385,7 +385,8 @@ export abstract class GemElement extends HTMLElement {
   }
 
   get #renderItem() {
-    return this.#renderList.find((e) => !e.condition || e.condition());
+    // 从末尾开始寻找，允许被覆盖
+    return this.#renderList.findLast((e) => !e.condition || e.condition());
   }
 
   get internals() {
@@ -419,7 +420,7 @@ export abstract class GemElement extends HTMLElement {
       if (temp === undefined) return;
       render(temp, this.#renderRoot);
     } catch (err) {
-      this.dispatchEvent(new CustomEvent(RenderErrorEvent, { bubbles: true, composed: true, detail: err }));
+      this.dispatchEvent(new CustomEvent(_RenderErrorEvent, { bubbles: true, composed: true, detail: err }));
     }
   };
 

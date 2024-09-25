@@ -31,7 +31,7 @@ export function defaultSymbolRender({ point, color, isHover, chart }: SymbolRend
     <circle
       class="symbol"
       stroke=${color}
-      r=${chart.getSVGPixel(isHover ? 3 : 2)}
+      r=${chart._getSVGPixel(isHover ? 3 : 2)}
       cx=${point[0]}
       cy=${point[1]}
     />
@@ -154,24 +154,24 @@ export class DuoyunAreaChartElement extends DuoyunChartBaseElement {
   #symbolSequences: (number[] | null)[][] = [];
 
   #isDisabled = (value: string) => {
-    return !!this.filtersSet.size && !this.filtersSet.has(value);
+    return !!this._filtersSet.size && !this._filtersSet.has(value);
   };
 
   #preProcessEvent = (evt: MouseEvent) => {
     const { x, y } = this.getBoundingClientRect();
     const point = [evt.x - x, evt.y - y];
-    const value = this.getStagePointFromPosition(point);
+    const value = this._getStagePointFromPosition(point);
     if (!value) {
       this.#onPointerOut();
     } else {
       let index = -1;
-      let xValue = this.xAxiMin + value[0] * this.xAxiUnit;
+      let xValue = this._xAxiMin + value[0] * this._xAxiUnit;
       if (this.#sequencesNormalize) {
-        index = this.findClosestIndex(this.#xValues as any, xValue);
+        index = this._findClosestIndex(this.#xValues as any, xValue);
         xValue = this.#sequencesNormalize[0].values[index][0]!;
-        const xAbsPos = (xValue - this.xAxiMin) / this.xAxiUnit;
+        const xAbsPos = (xValue - this._xAxiMin) / this._xAxiUnit;
         if (this.#state.hoverIndex !== index) {
-          this.#state({ hoverIndex: index, hoverLine: `M${xAbsPos} 0L${xAbsPos} ${this.stageHeight}` });
+          this.#state({ hoverIndex: index, hoverLine: `M${xAbsPos} 0L${xAbsPos} ${this._stageHeight}` });
         }
       }
       return { index, xValue };
@@ -200,7 +200,7 @@ export class DuoyunAreaChartElement extends DuoyunChartBaseElement {
             label,
             value: this.tooltip?.valueFormatter?.(v) || this.yAxi?.formatter?.(v, 0) || String(v),
             color: this.colors[i],
-            hidden: !!this.filtersSet.size && !this.filtersSet.has(value ?? label),
+            hidden: !!this._filtersSet.size && !this._filtersSet.has(value ?? label),
             highlight: this.#state.hoverSequence === (value ?? label),
             originValue: v,
           } as DataItem;
@@ -252,7 +252,7 @@ export class DuoyunAreaChartElement extends DuoyunChartBaseElement {
             dots.push(null);
             return '';
           }
-          const point = this.getStagePoint(origin);
+          const point = this._getStagePoint(origin);
           dots.push(point);
           const isLastDot = index === arr.length - 1;
           const prevValid = isValidPoint(prev);
@@ -265,17 +265,17 @@ export class DuoyunAreaChartElement extends DuoyunChartBaseElement {
             const prevPrevValid = isValidPoint(prevPrev);
             const curve =
               this.#smooth && isLastDot && prevValid && prevPrevValid
-                ? `C${this.getStagePoint(controlPointFromPrev(prevPrev, prev, origin, -1))},${point.join(
+                ? `C${this._getStagePoint(controlPointFromPrev(prevPrev, prev, origin, -1))},${point.join(
                     ' ',
                   )},${point.join(' ')}`
                 : `L${point.join(' ')}`;
-            return isArea ? `${curve}L${point[0]} ${this.stageHeight}` : `${curve}L${point.join(' ')}`;
+            return isArea ? `${curve}L${point[0]} ${this._stageHeight}` : `${curve}L${point.join(' ')}`;
           }
           if (!prevValid) {
-            return isArea ? `M${point[0]} ${this.stageHeight}L${point.join(' ')}` : `M${point.join(' ')}`;
+            return isArea ? `M${point[0]} ${this._stageHeight}L${point.join(' ')}` : `M${point.join(' ')}`;
           }
           return this.#smooth
-            ? `S${this.getStagePoint(controlPointFromPrev(prev, origin, next)).join()} ${point.join(' ')}`
+            ? `S${this._getStagePoint(controlPointFromPrev(prev, origin, next)).join()} ${point.join(' ')}`
             : `L${point.join(' ')}`;
         })
         .join('');
@@ -312,11 +312,11 @@ export class DuoyunAreaChartElement extends DuoyunChartBaseElement {
     this.#sequences = this.stack
       ? this.#sequencesWithoutStack?.map((seq, index) => ({
           ...seq,
-          values: this.mergeValues(this.#sequencesWithoutStack!.slice(0, index + 1).map((e) => e.values))!,
+          values: this._mergeValues(this.#sequencesWithoutStack!.slice(0, index + 1).map((e) => e.values))!,
         }))
       : this.#sequencesWithoutStack;
     if (this.#chartZoom) {
-      this.#totalValues = this.mergeValues(this.#sequencesNormalize?.map((e) => e.values));
+      this.#totalValues = this._mergeValues(this.#sequencesNormalize?.map((e) => e.values));
     }
   };
 
@@ -340,9 +340,9 @@ export class DuoyunAreaChartElement extends DuoyunChartBaseElement {
         }
       });
     });
-    this.initXAxi(xMin, xMax, xMin > 946684800000 && this.#isDefaultRange);
-    this.initYAxi(yMin, yMax);
-    this.initViewBox();
+    this._initXAxi(xMin, xMax, xMin > 946684800000 && this.#isDefaultRange);
+    this._initYAxi(yMin, yMax);
+    this._initViewBox();
 
     this.#paths = this.#genPath(this.#sequences);
     this.#areas = this.#genPath(this.#sequences, true);
@@ -359,25 +359,25 @@ export class DuoyunAreaChartElement extends DuoyunChartBaseElement {
 
   @elementTheme()
   #theme = () => ({
-    lineStrokeWidth: this.getSVGPixel(2),
-    symbolStrokeWidth: this.getSVGPixel(1),
+    lineStrokeWidth: this._getSVGPixel(2),
+    symbolStrokeWidth: this._getSVGPixel(1),
     areaHighlightOpacity: this.#gradient ? 0.4 : 0.2,
     areaOpacity: this.stack ? 1 : this.#gradient ? 0.3 : 0.15,
     areaPointer: this.stack ? 'all' : 'none',
-    zoomLeft: `${-this.viewBox[0] * this.getStageScale()}px`,
-    zoomRight: `${(this.viewBox[2] + this.viewBox[0] - this.stageWidth) * this.getStageScale()}px`,
+    zoomLeft: `${-this._viewBox[0] * this._getStageScale()}px`,
+    zoomRight: `${(this._viewBox[2] + this._viewBox[0] - this._stageWidth) * this._getStageScale()}px`,
   });
 
   render = () => {
-    if (this.loading) return this.renderLoading();
-    if (this.noData) return this.renderNotData();
+    if (this.loading) return this._renderLoading();
+    if (this.noData) return this._renderNotData();
     if (!this.contentRect.width || !this.#sequences?.length) return html``;
 
     return html`
       ${svg`
         <svg aria-hidden="true" part=${
           DuoyunChartBaseElement.chart
-        } xmlns="http://www.w3.org/2000/svg" viewBox=${this.viewBox.join(' ')}>
+        } xmlns="http://www.w3.org/2000/svg" viewBox=${this._viewBox.join(' ')}>
           ${
             this.#gradient
               ? svg`
@@ -394,8 +394,8 @@ export class DuoyunAreaChartElement extends DuoyunChartBaseElement {
                 `
               : ''
           }
-          ${this.renderXAxi()}
-          ${this.renderYAxi()}
+          ${this._renderXAxi()}
+          ${this._renderYAxi()}
           ${this.#sequences.map(
             (
               _,
@@ -414,7 +414,7 @@ export class DuoyunAreaChartElement extends DuoyunChartBaseElement {
                           class=${classMap({ 'hit-line': true, disabled })}
                           stroke="transparent"
                           fill="none"
-                          stroke-width=${this.getSVGPixel(10)}
+                          stroke-width=${this._getSVGPixel(10)}
                           d=${this.#paths[revertIndex]}
                           @pointerover=${() => this.#state({ hoverSequence: value })}
                           @pointerout=${() => this.#state({ hoverSequence: '' })}
@@ -423,7 +423,7 @@ export class DuoyunAreaChartElement extends DuoyunChartBaseElement {
                           class=${classMap({ line: true, disabled })}
                           stroke=${this.colors[revertIndex]}
                           fill="none"
-                          stroke-width=${this.stroke ? this.getSVGPixel(1) : 0}
+                          stroke-width=${this.stroke ? this._getSVGPixel(1) : 0}
                           d=${this.#paths[revertIndex]}
                         ></path>
                       `
@@ -460,13 +460,13 @@ export class DuoyunAreaChartElement extends DuoyunChartBaseElement {
                 )
               : ''
           }
-          ${this.renderMarkLines()}
+          ${this._renderMarkLines()}
           <path
             class="hover-line"
             d=${this.#state.hoverLine}
             stroke=${theme.borderColor}
-            stroke-width=${this.getSVGPixel()}
-            stroke-dasharray=${`${this.getSVGPixel(4)} ${this.getSVGPixel(1.5)}`}>
+            stroke-width=${this._getSVGPixel()}
+            stroke-dasharray=${`${this._getSVGPixel(4)} ${this._getSVGPixel(1.5)}`}>
           </path>
         </svg>
       `} ${this.#chartZoom

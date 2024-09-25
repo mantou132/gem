@@ -1,5 +1,5 @@
 import { GemElement } from '../../lib/element';
-import { attribute, shadow } from '../../lib/decorators';
+import { attribute, shadow, template } from '../../lib/decorators';
 import { raw } from '../../lib/utils';
 
 /**
@@ -12,7 +12,8 @@ export class GemUnsafeElement extends GemElement {
   @attribute content: string;
   @attribute contentcss: string;
 
-  render() {
+  @template()
+  #content = () => {
     this.shadowRoot!.innerHTML = raw`
       <style>
         :host(:where(:not([hidden]))) {
@@ -22,6 +23,8 @@ export class GemUnsafeElement extends GemElement {
       </style>
       ${this.content}
     `;
+
+    // 不要更新内容
     return undefined;
-  }
+  };
 }

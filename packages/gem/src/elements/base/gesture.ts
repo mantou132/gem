@@ -1,6 +1,7 @@
-import { GemElement, html } from '../../lib/element';
+import { createCSSSheet, GemElement } from '../../lib/element';
 import type { Emitter } from '../../lib/decorators';
-import { attribute, emitter, mounted, shadow } from '../../lib/decorators';
+import { adoptedStyle, attribute, emitter, mounted } from '../../lib/decorators';
+import { css } from '../../lib/utils';
 
 export type PanEventDetail = {
   // movement
@@ -44,6 +45,14 @@ function angleAB(
   );
 }
 
+const style = createCSSSheet(css`
+  :scope:where(:not([hidden])) {
+    display: block;
+    user-select: none;
+    touch-action: attr(touch-action, none);
+  }
+`);
+
 /**
  * 块级元素，如果要设置成 `contents`，则内容块要设置 `touch-action: none`
  * https://javascript.info/pointer-events#event-pointercancel
@@ -59,7 +68,7 @@ function angleAB(
  *
  * @attr touch-action
  */
-@shadow()
+@adoptedStyle(style)
 export class GemGestureElement extends GemElement {
   @emitter pan: Emitter<PanEventDetail>;
   @emitter pinch: Emitter<PinchEventDetail>;
@@ -75,11 +84,8 @@ export class GemGestureElement extends GemElement {
 
   #startEventMap: Map<number, PointerEvent> = new Map();
 
-  /** 指针移动事件记录 */
-  movesMap: Map<number, PanEventDetail[]> = new Map();
-
   #getMoves = (pointerId: number) => {
-    return this.movesMap.get(pointerId) || [];
+    return this._movesMap.get(pointerId) || [];
   };
 
   #getStartEvent = (pointerId: number) => {
@@ -87,7 +93,7 @@ export class GemGestureElement extends GemElement {
   };
 
   #getOtherLastMove = (pointerId: number) => {
-    for (const id of this.movesMap.keys()) {
+    for (const id of this._movesMap.keys()) {
       if (id !== pointerId) {
         const moves = this.#getMoves(id);
         return moves[moves.length - 1] || this.#getStartEvent(id);
@@ -130,7 +136,7 @@ export class GemGestureElement extends GemElement {
   #onStart = (evt: PointerEvent) => {
     evt.stopPropagation();
     this.setPointerCapture(evt.pointerId);
-    this.movesMap.set(evt.pointerId, []);
+    this._movesMap.set(evt.pointerId, []);
     this.#startEventMap.set(evt.pointerId, evt);
     if (evt.isPrimary) {
       this.#pressed = false;
@@ -163,7 +169,7 @@ export class GemGestureElement extends GemElement {
       moves.push(move);
       this.pan(move);
 
-      if (this.movesMap.size !== 1) {
+      if (this._movesMap.size !== 1) {
         const secondaryPoint = this.#getOtherLastMove(pointerId) as PanEventDetail;
         const moveLen = Math.sqrt(movementX ** 2 + movementY ** 2);
         const distanceLen = Math.sqrt(
@@ -205,7 +211,7 @@ export class GemGestureElement extends GemElement {
     const { pointerId } = evt;
     window.clearTimeout(this.#pressTimer);
 
-    if (this.movesMap.size === 1) {
+    if (this._movesMap.size === 1) {
       this.end(null);
     }
 
@@ -239,9 +245,11 @@ export class GemGestureElement extends GemElement {
       }
     }
 
-    this.movesMap.delete(pointerId);
+    this._movesMap.delete(pointerId);
     this.#startEventMap.delete(pointerId);
   };
+
+  #preventDefault = (evt: Event) => evt.preventDefault();
 
   @mounted()
   #init = () => {
@@ -252,19 +260,9 @@ export class GemGestureElement extends GemElement {
     // 为什么空白区域会自动触发 `pointercancel`?
     this.addEventListener('pointercancel', this.#onEnd);
 
-    this.addEventListener('dragstart', (evt) => evt.preventDefault());
+    this.addEventListener('dragstart', this.#preventDefault);
   };
 
-  render() {
-    return html`
-      <style>
-        :host(:where(:not([hidden]))) {
-          display: block;
-          user-select: none;
-          touch-action: ${this.touchAction || 'none'};
-        }
-      </style>
-      <slot></slot>
-    `;
-  }
+  /** 指针移动事件记录 */
+  _movesMap: Map<number, PanEventDetail[]> = new Map();
 }

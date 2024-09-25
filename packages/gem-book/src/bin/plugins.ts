@@ -20,7 +20,7 @@ export class FallbackLangPlugin {
     compiler.hooks.compilation.tap('htmlWebpackInjectAttributesPlugin', (compilation) => {
       HtmlRspackPlugin.getCompilationHooks(compilation).afterTemplateExecution.tapAsync('MyPlugin', (data, cb) => {
         if (this.fallbackLanguage) {
-          data.html = data.html.replace('<html ', `<html lang="${this.fallbackLanguage}" `);
+          data.html = data.html.replace('<html', `<html lang="${this.fallbackLanguage}"`);
         }
         cb(null, data);
       });
@@ -34,7 +34,7 @@ export class ExecHTMLPlugin {
       HtmlRspackPlugin.getCompilationHooks(compilation).afterTemplateExecution.tapAsync('MyPlugin', (data, cb) => {
         // 参数有 _html_ 时直接渲染 _html_，用于 sandpack plugin
         data.html = data.html.replace(
-          /(<html\S[^>]*>)/i,
+          /(<head.*?>)/i,
           `
           $1
           <script>

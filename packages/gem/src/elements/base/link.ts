@@ -11,6 +11,7 @@ import {
   mounted,
   effect,
   boolattribute,
+  template,
 } from '../../lib/decorators';
 import { history, basePathStore } from '../../lib/history';
 import { absoluteLocation, css } from '../../lib/utils';
@@ -85,7 +86,7 @@ export class GemLinkElement extends GemElement {
   }
 
   #onClick = async () => {
-    const locationString = this.getLocationString();
+    const locationString = this._getLocationString();
 
     if (!locationString) return;
 
@@ -133,12 +134,10 @@ export class GemLinkElement extends GemElement {
     }
   };
 
-  #preventDefault = (e: MouseEvent) => {
-    e.preventDefault();
-  };
+  #preventDefault = (e: MouseEvent) => e.preventDefault();
 
   #getHint = () => {
-    const locationString = this.getLocationString();
+    const locationString = this._getLocationString();
     return isExternal(locationString)
       ? locationString
       : new URL(history.basePath + locationString, location.origin).toString();
@@ -157,7 +156,8 @@ export class GemLinkElement extends GemElement {
     this.addEventListener('pointerenter', this.#preload);
   }
 
-  render() {
+  @template()
+  #content = () => {
     return html`
       <a
         part=${this.link}
@@ -168,12 +168,12 @@ export class GemLinkElement extends GemElement {
         <slot></slot>
       </a>
     `;
-  }
+  };
 
   /**
    * 如果该元素是外部链接返回 URL，否则返回路径（不包含 basePath）
    */
-  getLocationString() {
+  _getLocationString() {
     if (this.route) {
       const queryProp = this.#routeOptions?.query || '';
       const hashProp = this.#routeOptions?.hash || '';
@@ -208,6 +208,6 @@ export class GemActiveLinkElement extends GemLinkElement {
   #updateState = () => {
     const { path, query, hash } = history.getParams();
     const isMatchPattern = this.pattern && matchPath(this.pattern, path);
-    this.active = !!isMatchPattern || path + query + hash === this.getLocationString();
+    this.active = !!isMatchPattern || path + query + hash === this._getLocationString();
   };
 }

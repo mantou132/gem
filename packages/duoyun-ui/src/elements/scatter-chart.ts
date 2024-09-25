@@ -55,13 +55,13 @@ export class DuoyunScatterChartElement extends DuoyunChartBaseElement {
         }
       });
     });
-    this.initXAxi(xMin, xMax);
-    this.initYAxi(yMin, yMax);
-    this.initViewBox();
+    this._initXAxi(xMin, xMax);
+    this._initYAxi(yMin, yMax);
+    this._initViewBox();
 
     this.#symbolSequences = this.sequences.map(({ values }) => {
       return values.map(([x, y]) => {
-        return isNullish(x) || isNullish(y) ? undefined : this.getStagePoint([x, y]);
+        return isNullish(x) || isNullish(y) ? undefined : this._getStagePoint([x, y]);
       });
     });
   };
@@ -92,17 +92,17 @@ export class DuoyunScatterChartElement extends DuoyunChartBaseElement {
   };
 
   render = () => {
-    if (this.loading) return this.renderLoading();
-    if (this.noData) return this.renderNotData();
+    if (this.loading) return this._renderLoading();
+    if (this.noData) return this._renderNotData();
     if (!this.contentRect.width || !this.sequences) return html``;
     return svg`
       <svg
         aria-hidden="true"
         part=${DuoyunChartBaseElement.chart}
         xmlns="http://www.w3.org/2000/svg"
-        viewBox=${this.viewBox.join(' ')}
+        viewBox=${this._viewBox.join(' ')}
       >
-        ${this.renderXAxi({ grid: true })} ${this.renderYAxi()}
+        ${this._renderXAxi({ grid: true })} ${this._renderYAxi()}
         ${this.sequences.map(({ label, value, values }, index) =>
           this.#symbolSequences[index].map((point, pos) =>
             point
@@ -112,10 +112,10 @@ export class DuoyunScatterChartElement extends DuoyunChartBaseElement {
                     @mouseout=${this.#onMouseOut}
                     class=${classMap({
                       symbol: true,
-                      disabled: !!this.filtersSet.size && !this.filtersSet.has(value ?? label),
+                      disabled: !!this._filtersSet.size && !this._filtersSet.has(value ?? label),
                     })}
                     fill=${this.colors[index]}
-                    r=${this.getSVGPixel(5)}
+                    r=${this._getSVGPixel(5)}
                     cx=${point[0]}
                     cy=${point[1]}
                   />

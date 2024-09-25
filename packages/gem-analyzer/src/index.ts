@@ -1,7 +1,7 @@
 import type { SourceFile, ClassDeclaration, Project } from 'ts-morph';
 import { camelToKebabCase } from '@mantou/gem/lib/utils';
 
-import { getJsDoc, getTypeText, isGetter, isSetter } from './lib/utils';
+import { getJsDoc, getTypeText, isGetter, isPrivateId, isSetter } from './lib/utils';
 
 interface StaticProperty {
   getter?: boolean;
@@ -169,7 +169,7 @@ export const parseElement = async (declaration: ClassDeclaration, file: SourceFi
   const staticPropertiesDeclarations = declaration.getStaticProperties();
   for (const staticPropDeclaration of staticPropertiesDeclarations) {
     const staticPropName = staticPropDeclaration.getName();
-    if (staticPropName.startsWith('#')) continue;
+    if (isPrivateId(staticPropName)) continue;
     const prop: StaticProperty = {
       name: staticPropName,
       type: staticPropDeclaration.getType().getText(),
@@ -202,7 +202,7 @@ export const parseElement = async (declaration: ClassDeclaration, file: SourceFi
   const staticMethodDeclarations = declaration.getStaticMethods();
   for (const staticMethodDeclaration of staticMethodDeclarations) {
     const staticMethodName = staticMethodDeclaration.getName();
-    if (staticMethodName.startsWith('#')) continue;
+    if (isPrivateId(staticMethodName)) continue;
     const method: StaticMethod = {
       name: staticMethodName,
       type: staticMethodDeclaration.getType().getText(),
@@ -214,7 +214,7 @@ export const parseElement = async (declaration: ClassDeclaration, file: SourceFi
   const propDeclarations = declaration.getInstanceProperties();
   for (const propDeclaration of propDeclarations) {
     const propName = propDeclaration.getName();
-    if (propName.startsWith('#')) continue;
+    if (isPrivateId(propName)) continue;
     if (lifecyclePopsOrMethods.includes(propName)) continue;
     const prop: Property = {
       name: propName,
@@ -259,7 +259,7 @@ export const parseElement = async (declaration: ClassDeclaration, file: SourceFi
   const methodDeclarations = declaration.getInstanceMethods();
   for (const methodDeclaration of methodDeclarations) {
     const methodName = methodDeclaration.getName();
-    if (methodName.startsWith('#')) continue;
+    if (isPrivateId(methodName)) continue;
     if (lifecyclePopsOrMethods.includes(methodName)) continue;
     const method: Method = {
       name: methodName,

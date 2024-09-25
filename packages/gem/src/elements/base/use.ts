@@ -1,5 +1,5 @@
 import { createCSSSheet, GemElement, html } from '../../lib/element';
-import { adoptedStyle, attribute, property, shadow, state } from '../../lib/decorators';
+import { adoptedStyle, attribute, property, shadow, state, template } from '../../lib/decorators';
 import { css } from '../../lib/utils';
 
 const styles = createCSSSheet(css`
@@ -50,10 +50,11 @@ export class GemUseElement extends GemElement {
     }
   };
 
-  render() {
+  @template()
+  #content = () => {
     return html`
       ${this.#getContent()}
       <slot></slot>
     `;
-  }
+  };
 }

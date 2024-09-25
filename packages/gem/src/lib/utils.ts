@@ -10,6 +10,7 @@ export function addMicrotask(func: () => void) {
   microtaskSet.add(func);
 }
 
+// 注意 typeof state === 'function' 但是没有 Function 的方法和属性
 export function createUpdater<T, Fn = (payload?: Partial<T>) => any>(initState: T, fn: Fn) {
   const state: any = fn;
   setPrototypeOf(state, null);

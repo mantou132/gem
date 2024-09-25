@@ -13,7 +13,7 @@
  */
 
 import { GemElement, html } from '../../lib/element';
-import { attribute, boolattribute, effect, mounted, shadow } from '../../lib/decorators';
+import { attribute, boolattribute, effect, mounted, shadow, template } from '../../lib/decorators';
 import { connect } from '../../lib/store';
 import { titleStore } from '../../lib/history';
 
@@ -63,7 +63,8 @@ export class GemTitleElement extends GemElement {
     this.#ob.observe(this, { characterData: true, childList: true, subtree: true });
   };
 
-  render = () => {
+  @template()
+  #content = () => {
     // 多个 <gem-title> 时，最终 document.title 按渲染顺序决定
     setDocumentTitle(this.textContent?.trim(), this.prefix, this.suffix);
     return html`${GemTitleElement.title}`;

@@ -46,7 +46,7 @@ export class DuoyunBarChartElement extends DuoyunChartBaseElement {
     if (!this.sequences?.length) return;
     if (!this.series?.length) return;
     const seqList = this.sequences.map((e) => e.values);
-    this.#stackSequences = seqList.map((_, index) => this.mergeNumberValues(seqList.slice(0, index + 1))!);
+    this.#stackSequences = seqList.map((_, index) => this._mergeNumberValues(seqList.slice(0, index + 1))!);
     const xMin = 0;
     const xMax = this.series.length;
     let yMin = Infinity;
@@ -58,9 +58,9 @@ export class DuoyunBarChartElement extends DuoyunChartBaseElement {
       });
     });
     this.xStep = xMax;
-    this.initXAxi(xMin, xMax);
-    this.initYAxi(yMin, yMax);
-    this.initViewBox();
+    this._initXAxi(xMin, xMax);
+    this._initYAxi(yMin, yMax);
+    this._initViewBox();
   };
 
   onMouseMove = (index: number, evt: MouseEvent, sort: boolean, seqIndex = -1) => {
@@ -101,16 +101,16 @@ export class DuoyunBarChartElement extends DuoyunChartBaseElement {
   };
 
   render = () => {
-    if (this.loading) return this.renderLoading();
-    if (this.noData) return this.renderNotData();
+    if (this.loading) return this._renderLoading();
+    if (this.noData) return this._renderNotData();
     if (!this.contentRect.width || !this.sequences || !this.series) return html``;
     return html`
       ${svg`
         <svg aria-hidden="true" part=${
           DuoyunChartBaseElement.chart
-        } xmlns="http://www.w3.org/2000/svg" viewBox=${this.viewBox.join(' ')}>
-          ${this.renderXAxi({ centerLabel: true })}
-          ${this.renderYAxi()}
+        } xmlns="http://www.w3.org/2000/svg" viewBox=${this._viewBox.join(' ')}>
+          ${this._renderXAxi({ centerLabel: true })}
+          ${this._renderYAxi()}
           ${this.series.map(
             (_value, i, _, width = 1) => svg`
               <g class="col" @click=${() => this.indexclick(i)} @pointerout=${this.onMouseOut}>
@@ -118,10 +118,10 @@ export class DuoyunBarChartElement extends DuoyunChartBaseElement {
                   @pointermove=${(evt: PointerEvent) => this.onMouseMove(i, evt, false)}
                   class="rect"
                   fill="transparent"
-                  x=${(i + 0.5 - width / 2) / this.xAxiUnit}
+                  x=${(i + 0.5 - width / 2) / this._xAxiUnit}
                   y=${0}
-                  width=${width / this.xAxiUnit}
-                  height=${this.stageHeight}
+                  width=${width / this._xAxiUnit}
+                  height=${this._stageHeight}
                 />
                 ${this.sequences!.map(
                   (
@@ -130,28 +130,28 @@ export class DuoyunBarChartElement extends DuoyunChartBaseElement {
                     sequences,
                     value = values[i],
                     total = 0.6,
-                    height = (value || 0) - this.yAxiMin,
+                    height = (value || 0) - this._yAxiMin,
                     seqWidth = this.stack ? total : (total - this.gutter * (sequences.length - 1)) / sequences.length,
                     offsetX = this.stack ? 0 : index * (this.gutter + seqWidth),
                     offsetY = this.stack
-                      ? (this.#stackSequences![index - 1] ? this.#stackSequences![index - 1][i] : 0) - this.yAxiMin
+                      ? (this.#stackSequences![index - 1] ? this.#stackSequences![index - 1][i] : 0) - this._yAxiMin
                       : 0,
                   ) => svg`
                     <rect
                       @pointermove=${(evt: PointerEvent) => this.onMouseMove(i, evt, false, index)}
                       class="bar"
                       fill=${this.colors[index]}
-                      x=${(i + (1 - total) / 2 + offsetX) / this.xAxiUnit}
-                      y=${this.stageHeight - (height + offsetY) / this.yAxiUnit}
-                      width=${seqWidth / this.xAxiUnit}
-                      height=${height / this.yAxiUnit}
+                      x=${(i + (1 - total) / 2 + offsetX) / this._xAxiUnit}
+                      y=${this._stageHeight - (height + offsetY) / this._yAxiUnit}
+                      width=${seqWidth / this._xAxiUnit}
+                      height=${height / this._yAxiUnit}
                     />
                   `,
                 )}
               </g>
             `,
           )}
-          ${this.renderMarkLines()}
+          ${this._renderMarkLines()}
         </svg>
       `}
     `;

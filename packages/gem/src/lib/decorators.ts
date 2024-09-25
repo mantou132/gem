@@ -1,5 +1,5 @@
 import type { createCSSSheet, Metadata, TemplateResult } from './element';
-import { GemElement, UpdateToken, createTemplate, RenderErrorEvent, render } from './element';
+import { GemElement, UpdateToken, _createTemplate, _RenderErrorEvent, render } from './element';
 import { camelToKebabCase, PropProxyMap, GemError } from './utils';
 import type { Store } from './store';
 import * as elementExports from './element';
@@ -273,7 +273,7 @@ export function template<T extends GemElement, V extends () => TemplateResult | 
     { addInitializer, access }: ClassFieldDecoratorContext<T, V> | ClassMethodDecoratorContext<T, V>,
   ) {
     addInitializer(function (this: T) {
-      createTemplate(this, {
+      _createTemplate(this, {
         render: access.get(this).bind(this),
         condition: condition && (() => condition(this) as any),
       });
@@ -287,7 +287,7 @@ export function fallback<T extends GemElement, V extends (err: any) => TemplateR
     { addInitializer, access }: ClassFieldDecoratorContext<T, V> | ClassMethodDecoratorContext<T, V>,
   ) {
     addInitializer(function (this: T) {
-      this.addEventListener(RenderErrorEvent, ({ detail }: CustomEvent) => {
+      this.addEventListener(_RenderErrorEvent, ({ detail }: CustomEvent) => {
         render(access.get(this).apply(this, [detail]), this.internals.shadowRoot || this);
       });
     });

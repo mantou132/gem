@@ -83,57 +83,57 @@ export class DuoyunChartBaseElement extends DuoyunResizeBaseElement {
     return this.aspectRatio || 2;
   }
 
-  stageWidth = 300;
+  _stageWidth = 300;
 
   @memo()
-  get stageHeight() {
-    return this.stageWidth / this.#aspectRatio;
+  get _stageHeight() {
+    return this._stageWidth / this.#aspectRatio;
   }
 
-  chartId = randomStr();
+  _chartId = randomStr();
 
   @memo((i) => [i.filters])
-  get filtersSet() {
+  get _filtersSet() {
     return new Set(this.filters);
   }
 
   // initXAxi
-  xAxiMin = 0;
-  xAxiMax = 0;
-  xAxiUnit = 0;
-  xAxiStepUnit = 0;
-  xAxiMarks = [0];
-  xAxiLabels = [''];
-  stateXAxiMarks = [0];
+  _xAxiMin = 0;
+  _xAxiMax = 0;
+  _xAxiUnit = 0;
+  _xAxiStepUnit = 0;
+  _xAxiMarks = [0];
+  _xAxiLabels = [''];
+  _stateXAxiMarks = [0];
   // initYAxi
-  yAxiMin = 0;
-  yAxiMax = 0;
-  yAxiUnit = 0;
-  yAxiStepUnit = 0;
-  yAxiMarks = [0];
-  yAxiLabels = [''];
-  stateYAxiMarks = [0];
+  _yAxiMin = 0;
+  _yAxiMax = 0;
+  _yAxiUnit = 0;
+  _yAxiStepUnit = 0;
+  _yAxiMarks = [0];
+  _yAxiLabels = [''];
+  _stateYAxiMarks = [0];
 
-  viewBox = [0, 0, 0, 0];
+  _viewBox = [0, 0, 0, 0];
 
-  initXAxi = (xMin: number, xMax: number, adjust = false) => {
+  _initXAxi = (xMin: number, xMax: number, adjust = false) => {
     if (xMin === Infinity || xMax === -Infinity) return;
     if (adjust) {
       const [min, max] = adjustRange([xMin, xMax], this.xStep, [1000, 60, 5, 6, 2, 2, 12]);
-      this.xAxiMin = min;
-      this.xAxiMax = max;
+      this._xAxiMin = min;
+      this._xAxiMax = max;
     } else {
-      this.xAxiMin = xMin;
-      this.xAxiMax = xMax;
+      this._xAxiMin = xMin;
+      this._xAxiMax = xMax;
     }
-    this.xAxiUnit = (this.xAxiMax - this.xAxiMin) / this.stageWidth;
-    this.xAxiStepUnit = (this.xAxiMax - this.xAxiMin) / this.xStep;
-    this.xAxiMarks = Array.from({ length: this.xStep + 1 }, (_, index) => this.xAxiMin + index * this.xAxiStepUnit);
-    this.stateXAxiMarks = this.xAxiMarks.map((_, index) => (this.xAxiStepUnit * index) / this.xAxiUnit);
-    this.xAxiLabels = this.xAxiMarks.map((e, i) => this.xAxi?.formatter?.(e, i) ?? String(e));
+    this._xAxiUnit = (this._xAxiMax - this._xAxiMin) / this._stageWidth;
+    this._xAxiStepUnit = (this._xAxiMax - this._xAxiMin) / this.xStep;
+    this._xAxiMarks = Array.from({ length: this.xStep + 1 }, (_, index) => this._xAxiMin + index * this._xAxiStepUnit);
+    this._stateXAxiMarks = this._xAxiMarks.map((_, index) => (this._xAxiStepUnit * index) / this._xAxiUnit);
+    this._xAxiLabels = this._xAxiMarks.map((e, i) => this.xAxi?.formatter?.(e, i) ?? String(e));
   };
 
-  initYAxi = (yMin: number, yMax: number) => {
+  _initYAxi = (yMin: number, yMax: number) => {
     if (yMin === Infinity || yMax === -Infinity) {
       yMin = 0;
       yMax = 0;
@@ -143,80 +143,80 @@ export class DuoyunChartBaseElement extends DuoyunResizeBaseElement {
     const [min, max] = this.yMax
       ? [iMin, Math.max(this.yMax, ...markLineValues)]
       : adjustRange([iMin, iMax], this.yStep);
-    this.yAxiMin = min;
-    this.yAxiMax = max;
-    this.yAxiUnit = (this.yAxiMax - this.yAxiMin) / this.stageHeight;
-    this.yAxiStepUnit = (this.yAxiMax - 0) / this.yStep;
-    this.yAxiMarks = Array.from({ length: this.yStep + 1 }, (_, index) => this.yAxiMin + index * this.yAxiStepUnit);
-    this.stateYAxiMarks = this.yAxiMarks.map(
-      (_, index, arr) => (this.yAxiStepUnit * (arr.length - 1 - index)) / this.yAxiUnit,
+    this._yAxiMin = min;
+    this._yAxiMax = max;
+    this._yAxiUnit = (this._yAxiMax - this._yAxiMin) / this._stageHeight;
+    this._yAxiStepUnit = (this._yAxiMax - 0) / this.yStep;
+    this._yAxiMarks = Array.from({ length: this.yStep + 1 }, (_, index) => this._yAxiMin + index * this._yAxiStepUnit);
+    this._stateYAxiMarks = this._yAxiMarks.map(
+      (_, index, arr) => (this._yAxiStepUnit * (arr.length - 1 - index)) / this._yAxiUnit,
     );
-    this.yAxiLabels = this.yAxiMarks.map((e, i) => this.yAxi?.formatter?.(e, i) ?? String(e));
+    this._yAxiLabels = this._yAxiMarks.map((e, i) => this.yAxi?.formatter?.(e, i) ?? String(e));
   };
 
-  initViewBox = () => {
+  _initViewBox = () => {
     const charUnit = 3;
     const offsetX =
       this.xAxi === null
-        ? 3 * -this.getSVGPixel(12)
-        : -this.getSVGPixel(12) -
-          this.getSVGPixel(8) * Math.ceil(Math.max(...this.yAxiLabels.map((e) => e.length)) / charUnit) * charUnit;
-    const offsetY = this.yAxi === null ? 3 * -this.getSVGPixel(12) : -this.getSVGPixel(12) / 2;
-    this.viewBox =
+        ? 3 * -this._getSVGPixel(12)
+        : -this._getSVGPixel(12) -
+          this._getSVGPixel(8) * Math.ceil(Math.max(...this._yAxiLabels.map((e) => e.length)) / charUnit) * charUnit;
+    const offsetY = this.yAxi === null ? 3 * -this._getSVGPixel(12) : -this._getSVGPixel(12) / 2;
+    this._viewBox =
       this.xAxi === null && this.yAxi === null
-        ? [0, 0, this.stageWidth, this.stageHeight]
+        ? [0, 0, this._stageWidth, this._stageHeight]
         : [
             offsetX,
             offsetY,
-            this.stageWidth - offsetX + 3 * this.getSVGPixel(12),
-            this.stageHeight - offsetY + 3.5 * this.getSVGPixel(12),
+            this._stageWidth - offsetX + 3 * this._getSVGPixel(12),
+            this._stageHeight - offsetY + 3.5 * this._getSVGPixel(12),
           ];
   };
 
-  genGradientId = (index: number) => `gradient-${this.chartId}-${index}`;
+  genGradientId = (index: number) => `gradient-${this._chartId}-${index}`;
 
   // ~=
-  getSVGPixel = (x = 1) => formatToPrecision(x / (this.contentRect.width / this.stageWidth));
+  _getSVGPixel = (x = 1) => formatToPrecision(x / (this.contentRect.width / this._stageWidth));
 
-  getStageScale = () => this.contentRect.width / this.viewBox[2];
+  _getStageScale = () => this.contentRect.width / this._viewBox[2];
 
   // init after
   // from origin data point
-  getStagePoint = ([x, y]: number[]) => {
+  _getStagePoint = ([x, y]: number[]) => {
     return [
-      formatToPrecision((x - this.xAxiMin) / this.xAxiUnit),
-      formatToPrecision(this.stageHeight - (y - this.yAxiMin) / this.yAxiUnit),
+      formatToPrecision((x - this._xAxiMin) / this._xAxiUnit),
+      formatToPrecision(this._stageHeight - (y - this._yAxiMin) / this._yAxiUnit),
     ];
   };
 
   // from mouse position
-  getStagePointFromPosition = ([x, y]: number[]) => {
-    const svgScale = this.getStageScale();
-    const value = [x / svgScale + this.viewBox[0], y / svgScale + this.viewBox[1]];
-    if (value[0] < 0 || value[0] > this.stageWidth || value[1] < 0 || value[1] > this.stageHeight) return;
+  _getStagePointFromPosition = ([x, y]: number[]) => {
+    const svgScale = this._getStageScale();
+    const value = [x / svgScale + this._viewBox[0], y / svgScale + this._viewBox[1]];
+    if (value[0] < 0 || value[0] > this._stageWidth || value[1] < 0 || value[1] > this._stageHeight) return;
     return value;
   };
 
-  renderLoading = () => {
+  _renderLoading = () => {
     return html`<dy-loading></dy-loading>`;
   };
 
-  renderNotData = () => {
+  _renderNotData = () => {
     return html`<dy-empty></dy-empty>`;
   };
 
-  renderXAxi = ({ centerLabel, grid }: { centerLabel?: boolean; grid?: boolean } = {}) => {
-    const offset = centerLabel ? 0.5 * (this.xAxiStepUnit / this.xAxiUnit) : 0;
+  _renderXAxi = ({ centerLabel, grid }: { centerLabel?: boolean; grid?: boolean } = {}) => {
+    const offset = centerLabel ? 0.5 * (this._xAxiStepUnit / this._xAxiUnit) : 0;
     // zoom 选择范围太小时，xAxiUnit 为 0
-    return this.xAxi !== null && this.xAxiUnit
+    return this.xAxi !== null && this._xAxiUnit
       ? svg`
-        <path 
+        <path
           stroke=${theme.borderColor}
           fill="none"
-          stroke-width=${this.getSVGPixel()}
-          d=${`M0 ${this.stageHeight}L${(this.xAxiMax - this.xAxiMin) / this.xAxiUnit} ${this.stageHeight}`}>
+          stroke-width=${this._getSVGPixel()}
+          d=${`M0 ${this._stageHeight}L${(this._xAxiMax - this._xAxiMin) / this._xAxiUnit} ${this._stageHeight}`}>
         </path>
-        ${this.xAxiLabels.map(
+        ${this._xAxiLabels.map(
           (label, index) =>
             svg`
               ${
@@ -225,24 +225,24 @@ export class DuoyunChartBaseElement extends DuoyunResizeBaseElement {
                       <path
                         stroke=${theme.lightBackgroundColor}
                         fill="none"
-                        stroke-width=${this.getSVGPixel()}
-                        d=${`M${this.stateXAxiMarks[index]} ${this.stageHeight} L${this.stateXAxiMarks[index]} 0`}>
+                        stroke-width=${this._getSVGPixel()}
+                        d=${`M${this._stateXAxiMarks[index]} ${this._stageHeight} L${this._stateXAxiMarks[index]} 0`}>
                       </path>
                     `
                   : ''
               }
-              <path 
+              <path
                 stroke=${theme.borderColor}
                 fill="none"
-                stroke-width=${this.getSVGPixel()}
-                d=${`M${this.stateXAxiMarks[index]} ${this.stageHeight} L${this.stateXAxiMarks[index]} ${
-                  this.stageHeight + this.getSVGPixel(6)
+                stroke-width=${this._getSVGPixel()}
+                d=${`M${this._stateXAxiMarks[index]} ${this._stageHeight} L${this._stateXAxiMarks[index]} ${
+                  this._stageHeight + this._getSVGPixel(6)
                 }`}>
               </path>
               <text
-                x=${this.stateXAxiMarks[index] - offset}
-                y=${this.stageHeight + this.getSVGPixel(12)}
-                font-size=${this.getSVGPixel(12)}
+                x=${this._stateXAxiMarks[index] - offset}
+                y=${this._stageHeight + this._getSVGPixel(12)}
+                font-size=${this._getSVGPixel(12)}
                 fill="currentColor"
                 text-anchor="middle"
                 dominant-baseline="hanging">
@@ -254,28 +254,28 @@ export class DuoyunChartBaseElement extends DuoyunResizeBaseElement {
       : '';
   };
 
-  renderYAxi = () => {
+  _renderYAxi = () => {
     return this.yAxi !== null
       ? html`
-          ${this.stateYAxiMarks.map((_, index) =>
+          ${this._stateYAxiMarks.map((_, index) =>
             index !== 0
               ? svg`
                   <path
                     stroke=${theme.lightBackgroundColor}
                     fill="none"
-                    stroke-width=${this.getSVGPixel()}
-                    d=${`M0 ${this.stateYAxiMarks[index]} L${this.stageWidth} ${this.stateYAxiMarks[index]}`}>
+                    stroke-width=${this._getSVGPixel()}
+                    d=${`M0 ${this._stateYAxiMarks[index]} L${this._stageWidth} ${this._stateYAxiMarks[index]}`}>
                   </path>
                 `
               : '',
           )}
-          ${this.yAxiLabels.map(
+          ${this._yAxiLabels.map(
             (label, index) =>
               svg`
                 <text
-                  x=${-this.getSVGPixel(12)}
-                  y=${this.stateYAxiMarks[index]}
-                  font-size=${this.getSVGPixel(12)}
+                  x=${-this._getSVGPixel(12)}
+                  y=${this._stateYAxiMarks[index]}
+                  font-size=${this._getSVGPixel(12)}
                   fill="currentColor"
                   text-anchor="end"
                   dominant-baseline="middle">
@@ -287,7 +287,7 @@ export class DuoyunChartBaseElement extends DuoyunResizeBaseElement {
       : '';
   };
 
-  renderMarkLines = () => {
+  _renderMarkLines = () => {
     return html`
       ${this.markLines?.map(
         (
@@ -295,19 +295,19 @@ export class DuoyunChartBaseElement extends DuoyunResizeBaseElement {
           _index,
           _arr,
           c = color || 'currentColor',
-          stageValue = this.getStagePoint([0, value])[1],
+          stageValue = this._getStagePoint([0, value])[1],
         ) =>
           svg`
             <path
               stroke=${c}
               fill="none"
-              stroke-width=${this.getSVGPixel()}
-              d=${`M0 ${stageValue} L${this.stageWidth} ${stageValue}`}>
+              stroke-width=${this._getSVGPixel()}
+              d=${`M0 ${stageValue} L${this._stageWidth} ${stageValue}`}>
             </path>
             <text
-              x=${this.stageWidth}
-              y=${stageValue - this.getSVGPixel(4)}
-              font-size=${this.getSVGPixel(12)}
+              x=${this._stageWidth}
+              y=${stageValue - this._getSVGPixel(4)}
+              font-size=${this._getSVGPixel(12)}
               fill=${c}
               text-anchor="end"
               dominant-baseline="auto">
@@ -318,25 +318,25 @@ export class DuoyunChartBaseElement extends DuoyunResizeBaseElement {
     `;
   };
 
-  polarToCartesian = ([r, theta]: number[]) => {
+  _polarToCartesian = ([r, theta]: number[]) => {
     return [r * Math.cos(theta), r * Math.sin(theta)];
   };
 
-  cartesianToPolar = ([x, y]: number[]) => {
+  _cartesianToPolar = ([x, y]: number[]) => {
     return [Math.sqrt(x ** 2 + y ** 2), Math.atan(y / x)];
   };
 
-  mergeNumberValues = (seqs?: (number | null)[][]) => {
+  _mergeNumberValues = (seqs?: (number | null)[][]) => {
     if (!seqs || !seqs[0]) return;
     return seqs[0].map((_, index) => seqs.reduce((p, c) => p + (c[index] || 0), 0));
   };
 
-  mergeValues = (seqs?: ((number | null)[] | null)[][]) => {
+  _mergeValues = (seqs?: ((number | null)[] | null)[][]) => {
     if (!seqs || !seqs[0]) return;
     return seqs[0].map((point, index) => [point && point[0], seqs.reduce((p, c) => p + (c[index]?.[1] || 0), 0)]);
   };
 
-  findClosestIndex = (values: number[], v: number) => {
+  _findClosestIndex = (values: number[], v: number) => {
     let index = 0;
     let slice = values.slice();
     if (values.length === 0) return -1;

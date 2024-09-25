@@ -16,6 +16,7 @@ import { mediaQuery } from '@mantou/gem/helper/mediaquery';
 import { getGithubPath, isGitLab } from '../lib/utils';
 import { getPlatform, selfI18n } from '../helper/i18n';
 import { bookStore, locationStore } from '../store';
+import { theme } from '../helper/theme';
 
 import { icons } from './icons';
 
@@ -47,7 +48,7 @@ const styles = createCSSSheet(css`
     margin-right: 10px;
   }
   .last-updated gem-link {
-    opacity: 0.5;
+    color: rgb(from ${theme.textColor} r g b / 0.5);
   }
   @media ${mediaQuery.PHONE} {
     gem-link,

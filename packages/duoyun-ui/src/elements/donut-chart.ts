@@ -30,7 +30,7 @@ export class DuoyunDonutChartElement extends DuoyunChartBaseElement {
   @property aspectRatio = 1;
   @property sequences?: { label: string; value: number }[];
 
-  stageWidth = 300;
+  _stageWidth = 300;
 
   #outside = 140;
   #inside = 115;
@@ -47,10 +47,10 @@ export class DuoyunDonutChartElement extends DuoyunChartBaseElement {
       [prev, v].map((e) => (e / total!) * 2 * Math.PI),
     );
     this.#paths = thetaList?.map(([start, stop]) => {
-      const insideStartPoint = this.polarToCartesian([this.#inside, start]).join(' ');
-      const insideStopPoint = this.polarToCartesian([this.#inside, stop]).join(' ');
-      const outsideStartPoint = this.polarToCartesian([this.#outside, stop]).join(' ');
-      const outsideStopPoint = this.polarToCartesian([this.#outside, start]).join(' ');
+      const insideStartPoint = this._polarToCartesian([this.#inside, start]).join(' ');
+      const insideStopPoint = this._polarToCartesian([this.#inside, stop]).join(' ');
+      const outsideStartPoint = this._polarToCartesian([this.#outside, stop]).join(' ');
+      const outsideStopPoint = this._polarToCartesian([this.#outside, start]).join(' ');
       return (
         `M${insideStartPoint}A${this.#inside} ${this.#inside} 0 0 1 ${insideStopPoint}` +
         `L${outsideStartPoint}A${this.#outside} ${this.#outside} 0 0 0 ${outsideStopPoint}`
@@ -93,20 +93,20 @@ export class DuoyunDonutChartElement extends DuoyunChartBaseElement {
           ${this.#paths?.map(
             (d, index) => svg`
               <path
-                class="path" 
+                class="path"
                 @pointermove=${(evt: PointerEvent) => this.#onMouseMove(evt, index)}
                 @pointerout=${this.#onMouseOut}
                 @click=${() => this.indexclick(index)}
                 d=${d}
                 fill=${this.colors[index]}
-                stroke-width=${this.getSVGPixel(1)}
+                stroke-width=${this._getSVGPixel(1)}
               />
             `,
           )}
           <text
             x=${0}
-            y=${this.label ? -this.getSVGPixel(4) : 0}
-            font-size=${this.getSVGPixel(24)}
+            y=${this.label ? -this._getSVGPixel(4) : 0}
+            font-size=${this._getSVGPixel(24)}
             font-weight="bold"
             fill="currentColor"
             text-anchor="middle"
@@ -115,8 +115,8 @@ export class DuoyunDonutChartElement extends DuoyunChartBaseElement {
           </text>
           <text
             x=${0}
-            y=${this.total ? this.getSVGPixel(14) : 0}
-            font-size=${this.getSVGPixel(12)}
+            y=${this.total ? this._getSVGPixel(14) : 0}
+            font-size=${this._getSVGPixel(12)}
             fill="currentColor"
             text-anchor="middle"
             dominant-baseline="middle">

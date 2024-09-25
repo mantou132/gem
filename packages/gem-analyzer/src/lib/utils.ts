@@ -39,3 +39,7 @@ export function isGetter(
 export function isSetter(declaration: ClassInstancePropertyTypes | ClassStaticPropertyTypes) {
   return isGetter(declaration, 'set');
 }
+
+export function isPrivateId(name: string) {
+  if (name.startsWith('#') || name.startsWith('_')) return true;
+}

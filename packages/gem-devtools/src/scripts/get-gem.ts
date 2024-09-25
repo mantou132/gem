@@ -40,7 +40,8 @@ export const getSelectedGem = function (data: PanelStore): PanelStore | string {
     if (arg === null) return 'null';
     switch (typeof arg) {
       case 'function':
-        return funcToString(arg);
+        if (arg instanceof Function) return funcToString(arg);
+      // eslint-disable-next-line no-fallthrough
       case 'object':
         return '{...}';
       case 'string':
@@ -54,7 +55,8 @@ export const getSelectedGem = function (data: PanelStore): PanelStore | string {
     if (arg === null) return 'null';
     switch (typeof arg) {
       case 'function':
-        return funcToString(arg);
+        if (arg instanceof Function) return funcToString(arg);
+      // eslint-disable-next-line no-fallthrough
       case 'object': {
         if (arg instanceof Element) {
           const tag = arg.tagName.toLowerCase();
