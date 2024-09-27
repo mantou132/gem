@@ -29,6 +29,25 @@ async function loadESBuild() {
   return promise;
 }
 
+declare global {
+  interface Uint8Array {
+    toBase64: (options: any) => any;
+  }
+}
+
+// https://github.com/tc39/proposal-arraybuffer-base64
+Uint8Array.prototype.toBase64 = async function (this: Uint8Array) {
+  const url = 'https://esm.sh/duoyun-ui/lib/encode';
+  const { arrayBufferToBase64 } = await import(/* webpackIgnore: true */ url);
+  return arrayBufferToBase64(this.buffer, true);
+};
+
+async function compressStringToBase64(str: string) {
+  const cs = new CompressionStream('gzip');
+  const stream = new Blob([str]).stream().pipeThrough(cs);
+  return new Uint8Array(await new Response(stream).arrayBuffer()).toBase64({ alphabet: 'base64url' });
+}
+
 type FileStatus = 'active' | 'hidden' | '';
 
 type File = {
@@ -357,20 +376,21 @@ class _GbpSandpackElement extends GemBookPluginElement {
         code = `console.error(\`${msg.replaceAll('\\', '\\\\').replaceAll('`', '\\`')}\`)`;
       }
       const htmlCode = `
-          ${data.files[Object.keys(data.files).find((e) => e.toLowerCase() === 'index.html')!]?.code}
-          ${this.#getErudaResources()
-            .map((src) => `<script src="${src}"></script>`)
-            .join('')}
-          <script type="module">
-            addEventListener('DOMContentLoaded', () => parent.postMessage('${loadEventName}', '*'));
-            ${code};
-          </script>
-        `;
+        ${data.files[Object.keys(data.files).find((e) => e.toLowerCase() === 'index.html')!]?.code}
+        ${this.#getErudaResources()
+          .map((src) => `<script src="${src}"></script>`)
+          .join('')}
+        <script type="module" async>
+          ${code};
+          parent.postMessage('${loadEventName}', '*');
+        </script>
+      `;
       addEventListener('message', (evt) => {
         if (evt.data === loadEventName) this.#state({ status: 'done' });
       });
       if (document.head?.firstElementChild?.textContent?.includes('_html_')) {
-        const url = new URL(`./?${new URLSearchParams({ _html_: encodeURIComponent(htmlCode) })}`, location.href);
+        const search = new URLSearchParams({ _html_: await compressStringToBase64(htmlCode) });
+        const url = new URL(`./?${search}`, location.href);
         iframe.src = url.href;
       } else {
         URL.revokeObjectURL(iframe.src);

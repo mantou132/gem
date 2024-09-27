@@ -40,7 +40,21 @@ export class ExecHTMLPlugin {
           <script>
             const content = new URLSearchParams(location.search).get('_html_');
             if (content) {
-              try {document.write(decodeURIComponent(content) + '<!--');} catch {}
+              document.write(\`
+                <script>
+                  async function decompressString(base64) {
+                    const { base64ToArrayBuffer } = await import('https://esm.sh/duoyun-ui/lib/encode');
+                    Uint8Array.fromBase64 = (string) => {
+                      return new Uint8Array(base64ToArrayBuffer(string));
+                    };
+                    const arr = Uint8Array.fromBase64(base64, { alphabet: 'base64url' });
+                    const ds = new DecompressionStream('gzip');
+                    const stream = new Blob([arr]).stream().pipeThrough(ds);
+                    return new Response(stream).text();
+                  }
+                  decompressString("\${content}").then((html) => document.write(html));
+                <\\/script>
+              \` + '<!--');
             }
           </script>
           `,
