@@ -147,7 +147,7 @@ importers:
   packages/gem-analyzer:
     dependencies:
       '@mantou/gem':
-        specifier: ^2.1.0
+        specifier: ^2.1.1
         version: link:../gem
     devDependencies:
       '@gemjs/config':
@@ -166,7 +166,7 @@ importers:
         specifier: ^0.3.2
         version: 0.3.2(@rspack/core@1.0.5)
       '@mantou/gem':
-        specifier: ^2.1.0
+        specifier: ^2.1.1
         version: link:../gem
       '@rspack/cli':
         specifier: ^1.0.5
@@ -272,7 +272,7 @@ importers:
         specifier: ^0.18.1
         version: 0.18.3
       gem-analyzer:
-        specifier: ^2.1.0
+        specifier: ^2.1.1
         version: link:../gem-analyzer
       nodemon:
         specifier: ^2.0.7
@@ -284,7 +284,7 @@ importers:
   packages/gem-devtools:
     dependencies:
       '@mantou/gem':
-        specifier: ^2.1.0
+        specifier: ^2.1.1
         version: link:../gem
       webextension-polyfill:
         specifier: ^0.10.0
@@ -306,10 +306,10 @@ importers:
   packages/gem-examples:
     dependencies:
       '@mantou/gem':
-        specifier: ^2.1.0
+        specifier: ^2.1.1
         version: link:../gem
       duoyun-ui:
-        specifier: ^2.1.0
+        specifier: ^2.1.1
         version: link:../duoyun-ui
     devDependencies:
       '@gemjs/config':
@@ -331,7 +331,7 @@ importers:
         specifier: ^7.2.0
         version: 7.2.0
       gem-analyzer:
-        specifier: ^2.1.0
+        specifier: ^2.1.1
         version: link:../gem-analyzer
       ts-morph:
         specifier: ^13.0.0
