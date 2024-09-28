@@ -60,6 +60,7 @@
     "sitemap-rspack-plugin": "^1.1.1",
     "string-replace-loader": "^3.1.0",
     "ts-loader": "^9.5.1",
+    "tslib": "^2.7.0",
     "typescript": "^5.6.2",
     "yaml": "^1.10.2"
   },

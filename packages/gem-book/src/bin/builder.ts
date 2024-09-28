@@ -100,6 +100,7 @@ export async function buildApp(dir: string, options: Required<CliUniqueConfig>, 
                 compilerOptions: {
                   module: 'esnext',
                   declarationMap: false,
+                  importHelpers: true,
                 },
               },
             },
@@ -109,6 +110,9 @@ export async function buildApp(dir: string, options: Required<CliUniqueConfig>, 
     },
     resolve: {
       extensions: ['.ts', '.js'],
+      alias: {
+        tslib: require.resolve('tslib'),
+      },
     },
     output: {
       path: outputDir,

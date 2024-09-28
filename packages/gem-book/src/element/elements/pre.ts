@@ -27,6 +27,8 @@ let contenteditableValue = 'true';
   if (div.isContentEditable) contenteditableValue = 'plaintext-only';
 })();
 
+const supportAnchor = CSS.supports('anchor-name: --foo');
+
 // https://github.com/PrismJS/prism/blob/master/plugins/autoloader/prism-autoloader.js
 const langDependencies: Record<string, string | string[]> = {
   javascript: 'clike',
@@ -284,28 +286,50 @@ const styles = createCSSSheet(css`
     --keyword-color: var(--code-keyword-color, #93219e);
     --attribute-color: var(--code-attribute-color, #4646c6);
   }
-  .gem-code,
+  .code-container,
   .linenumber {
-    padding: ${PADDING};
-    box-sizing: border-box;
     min-height: 100%;
     height: max-content;
   }
-  .gem-code {
-    overflow-x: auto;
-    scrollbar-width: thin;
-    font-family: inherit;
+  .padding {
+    padding: ${PADDING};
+    box-sizing: border-box;
+  }
+  .code-container {
+    min-width: 0;
     flex-grow: 1;
+    overflow-x: auto;
+    overflow-clip-box: content-box;
+    scrollbar-width: thin;
+    display: flex;
+    position: relative;
+  }
+  .gem-code,
+  .code-shadow {
+    font-family: inherit;
     text-align: left;
     white-space: pre;
     tab-size: 2;
     hyphens: none;
-    overflow-clip-box: content-box;
     box-shadow: none;
     border: none;
     background: transparent;
     outline: none;
     caret-color: ${theme.textColor};
+  }
+  .gem-code {
+    anchor-name: --code;
+  }
+  .code-shadow {
+    position: absolute;
+    position-anchor: --code;
+    inset: anchor(top) anchor(right) anchor(bottom) anchor(left);
+    color: transparent;
+  }
+  @supports not (anchor-name: --foo) {
+    .code-shadow {
+      display: none;
+    }
   }
   .linenumber {
     display: inline-flex;
@@ -445,7 +469,12 @@ export class Pre extends GemElement {
     return !this.filename || this.headless;
   }
 
+  get #contentElement() {
+    return supportAnchor ? this.#editorRef.element : this.#codeRef.element;
+  }
+
   #codeRef = createRef<HTMLElement>();
+  #editorRef = createRef<HTMLElement>();
 
   #ranges: number[][];
   #highlightLineSet: Set<number>;
@@ -488,59 +517,8 @@ export class Pre extends GemElement {
     this.#onInputHandle();
   };
 
-  // https://stackoverflow.com/questions/62054839/shadowroot-getselection
-  #chrome = 'getSelection' in this.shadowRoot!;
-
-  #offset = 0;
   #onInputHandle = () => {
-    let focusNode: Node | null;
-    let focusOffset = 0;
-    if (this.#chrome) {
-      const selection: Selection = (this.shadowRoot as any).getSelection();
-      focusNode = selection?.focusNode;
-      focusOffset = selection?.focusOffset;
-    } else {
-      const range: Range = (getSelection() as any)?.getComposedRanges(this.shadowRoot)?.at(0);
-      focusNode = range?.startContainer;
-      focusOffset = range?.startOffset;
-    }
-    if (focusNode?.nodeType !== Node.TEXT_NODE) return;
-    this.#offset = 0;
-    const textNodeIterator = document.createNodeIterator(this.#codeRef.element!, NodeFilter.SHOW_TEXT);
-    while (true) {
-      const textNode = textNodeIterator.nextNode();
-      if (textNode && textNode !== focusNode) {
-        this.#offset += textNode.nodeValue!.length;
-      } else {
-        this.#offset += focusOffset;
-        break;
-      }
-    }
-    const content = this.#codeRef.element!.textContent!;
-    this.textContent = content;
-  };
-
-  #setOffset = () => {
-    if (!this.editable || !this.#offset) return;
-    const textNodeIterator = document.createNodeIterator(this.#codeRef.element!, NodeFilter.SHOW_TEXT);
-    let offset = this.#offset;
-    while (true) {
-      const textNode = textNodeIterator.nextNode();
-      if (!textNode) break;
-      if (textNode.nodeValue!.length < offset) {
-        offset -= textNode.nodeValue!.length;
-      } else {
-        const sel = window.getSelection();
-        if (!sel) break;
-        const range = document.createRange();
-        range.setStart(textNode, offset);
-        range.collapse(false);
-        // TODO: safari not work
-        sel.removeAllRanges();
-        sel.addRange(range);
-        break;
-      }
-    }
+    this.textContent = this.#contentElement!.textContent;
   };
 
   #isVisble = false;
@@ -574,13 +552,27 @@ export class Pre extends GemElement {
           lineNumbersParts[i].at(0)! - 1
         } @@</span>${c}`,
     );
-    this.#setOffset();
   };
 
   @mounted()
-  #init = () => {
-    const ob = new MutationObserver(() => this.update());
+  #initContent = () => {
+    if (this.#contentElement) {
+      this.#contentElement.textContent = this.textContent;
+    }
+  };
+
+  @mounted()
+  #obTextContent = () => {
+    const ob = new MutationObserver(() => {
+      this.#initContent();
+      this.update();
+    });
     ob.observe(this, { childList: true, characterData: true, subtree: true });
+    return () => ob.disconnect();
+  };
+
+  @mounted()
+  #obVisibity = () => {
     const io = new IntersectionObserver((entries) => {
       for (const { intersectionRatio } of entries) {
         this.#isVisble = intersectionRatio > 0;
@@ -588,10 +580,7 @@ export class Pre extends GemElement {
       }
     });
     io.observe(this);
-    return () => {
-      io.disconnect();
-      ob.disconnect();
-    };
+    return () => io.disconnect();
   };
 
   render() {
@@ -615,7 +604,7 @@ export class Pre extends GemElement {
           )}
         ${this.#linenumber
           ? html`
-              <div class="linenumber">
+              <div class="linenumber padding">
                 ${lineNumbersParts.map(
                   (numbers, index, arr) => html`
                     ${numbers.map((n) => html`<span>${n}</span>`)}${arr.length - 1 !== index
@@ -626,16 +615,29 @@ export class Pre extends GemElement {
               </div>
             `
           : ''}
-        <code
-          ref=${this.#codeRef.ref}
-          class="gem-code"
-          spellcheck="false"
-          contenteditable=${this.editable ? contenteditableValue : false}
-          @compositionstart=${this.#compositionstartHandle}
-          @compositionend=${this.#compositionendHandle}
-          @input=${this.#onInput}
-          >${parts.join('\n'.repeat(IGNORE_LINE + 1))}</code
-        >
+        <div class="code-container">
+          <code
+            ref=${this.#codeRef.ref}
+            class="gem-code padding"
+            spellcheck="false"
+            contenteditable=${this.editable ? contenteditableValue : false}
+            @compositionstart=${this.#compositionstartHandle}
+            @compositionend=${this.#compositionendHandle}
+            @input=${this.#onInput}
+            >${parts.join('\n'.repeat(IGNORE_LINE + 1))}</code
+          >
+          ${this.editable
+            ? html`<code
+                ref=${this.#editorRef.ref}
+                class="code-shadow padding"
+                spellcheck="false"
+                contenteditable=${this.editable ? contenteditableValue : false}
+                @compositionstart=${this.#compositionstartHandle}
+                @compositionend=${this.#compositionendHandle}
+                @input=${this.#onInput}
+              ></code>`
+            : ''}
+        </div>
       </div>
     `;
   }

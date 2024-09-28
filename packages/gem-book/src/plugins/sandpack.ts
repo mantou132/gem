@@ -11,7 +11,7 @@ import type {
 import type { GemBookElement } from '../element';
 import type { Pre } from '../element/elements/pre';
 
-const ESBUILD_URL = 'https://esm.sh/esbuild-wasm';
+const ESBUILD_URL = 'https://esm.sh/esbuild-wasm@0.24.0';
 const CSB_URL = 'https://codesandbox.io/api/v1/sandboxes/define?json=1';
 const SANDPACK_CLIENT_ESM = 'https://esm.sh/@codesandbox/sandpack-client@2.18.2?bundle';
 const LZ_STRING_ESM = 'https://esm.sh/lz-string@1.5.0';
@@ -164,6 +164,12 @@ const styles = createCSSSheet(css`
     border-radius: ${theme.normalRound};
     color-scheme: light;
   }
+  .sandbox.loading {
+    /* Safari not load hidden iframe */
+    position: absolute;
+    width: 1px;
+    opacity: 0;
+  }
   @container (max-width: 700px) {
     .container {
       grid-template: 'tabs' 'code' 'preview' / 100%;
@@ -210,18 +216,19 @@ class _GbpSandpackElement extends GemBookPluginElement {
   get #indexTemplate() {
     const style = getComputedStyle(document.body);
     return `
-        <style>
-          body {
-            font: ${style.font};
-            -moz-osx-font-smoothing: grayscale;
-            -webkit-font-smoothing: antialiased;
-          }
-          app-root:not(:defined) {
-            display: contents;
-          }
-        </style>
-        <app-root id=root></app-root>
-      `.trim();
+      <!DOCTYPE html>
+      <style>
+        body {
+          font: ${style.font};
+          -moz-osx-font-smoothing: grayscale;
+          -webkit-font-smoothing: antialiased;
+        }
+        app-root:not(:defined) {
+          display: contents;
+        }
+      </style>
+      <app-root id=root></app-root>
+    `.trim();
   }
 
   get #useESMBuild() {
@@ -317,7 +324,7 @@ class _GbpSandpackElement extends GemBookPluginElement {
         };
       `,
     )}`;
-    return ['https://cdn.jsdelivr.net/npm/eruda', erudaInit];
+    return ['https://cdn.jsdelivr.net/npm/eruda@3.3.0', erudaInit];
   }
 
   // 兼容 sandpack
@@ -405,7 +412,10 @@ class _GbpSandpackElement extends GemBookPluginElement {
         compile();
       },
       dispatch: ({ type }: SandpackMessage) => {
-        if (type === 'refresh') this.#state({ status: 'done' });
+        switch (type) {
+          case 'refresh':
+            return this.#iframeRef.element?.contentWindow?.location.reload();
+        }
       },
       destroy: () => URL.revokeObjectURL(iframe.src),
     } as SandpackClient;
@@ -427,8 +437,8 @@ class _GbpSandpackElement extends GemBookPluginElement {
           'index.html': { code: this.#indexTemplate },
           [this.#defaultEntryFilename]: { code: '' },
         } as SandpackBundlerFiles),
-        dependencies: this.#dependencies,
         entry: this.#entry,
+        dependencies: this.#dependencies,
       },
       {
         showOpenInCodeSandbox: false,
@@ -462,10 +472,9 @@ class _GbpSandpackElement extends GemBookPluginElement {
 
   #onReset = async () => {
     const client = await this.#sandpackClient;
-    if (client) {
-      this.#state({ status: 'initialization' });
-      client.dispatch({ type: 'refresh' });
-    }
+    if (!client) return;
+    this.#state({ status: 'initialization' });
+    client.dispatch({ type: 'refresh' });
   };
 
   #onFork = async () => {
@@ -576,7 +585,7 @@ class _GbpSandpackElement extends GemBookPluginElement {
           <div class="sandbox" ?hidden=${status === 'done'}>
             <span class="status">${status.replace(/_|-/g, ' ')}...</span>
           </div>
-          <iframe class="sandbox" ref=${this.#iframeRef.ref} ?hidden=${status !== 'done'}></iframe>
+          <iframe ref=${this.#iframeRef.ref} class=${classMap({ sandbox: true, loading: status !== 'done' })}></iframe>
         </div>
       </div>
     `;

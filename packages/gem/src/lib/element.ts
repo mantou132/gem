@@ -75,7 +75,7 @@ class RefObject<T = HTMLElement> {
       .map((e) => [...e.querySelectorAll(this.refSelector)] as T[])
       .flat();
   }
-  toString() {
+  [Symbol.toPrimitive]() {
     return this.ref;
   }
 }
