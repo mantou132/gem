@@ -91,8 +91,8 @@ export class DuoyunPopoverElement extends GemElement {
     toggleActiveState(element, true);
     const popover = new DuoyunPopoverElement(options);
     const restoreInert = options.trigger === 'click' ? setBodyInert(popover) : undefined;
-    document.body.append(popover);
     popover.#open({ left, right, top, bottom });
+    document.body.append(popover);
     // handle mask click
     popover.addEventListener('close', () => {
       restoreInert?.();
@@ -275,30 +275,29 @@ export class DuoyunPopoverElement extends GemElement {
 
   @effect((i) => [i.#state.open])
   #updateState = () => {
-    if (this.#state.open && this.#position === 'auto') {
-      const { top, left, right, bottom, height } = this.popoverElement!.getBoundingClientRect();
-      let position: Position = 'top';
-      if (right > innerWidth) {
-        if (top < 0) {
-          position = 'bottomRight';
-        } else if (innerHeight - bottom < height / 2) {
-          position = 'topRight';
-        } else {
-          position = 'left';
-        }
-      } else if (left < 0) {
-        if (top < 0) {
-          position = 'bottomLeft';
-        } else if (innerHeight - bottom < height / 2) {
-          position = 'topLeft';
-        } else {
-          position = 'right';
-        }
-      } else if (top < 0) {
-        position = 'bottom';
+    if (!this.#state.open || this.#position !== 'auto') return;
+    const { top, left, right, bottom, height } = this.popoverElement!.getBoundingClientRect();
+    let position: Position = 'top';
+    if (right > innerWidth) {
+      if (top < 0) {
+        position = 'bottomRight';
+      } else if (innerHeight - bottom < height / 2) {
+        position = 'topRight';
+      } else {
+        position = 'left';
       }
-      this.#state({ style: this.#genStyle(position), position });
+    } else if (left < 0) {
+      if (top < 0) {
+        position = 'bottomLeft';
+      } else if (innerHeight - bottom < height / 2) {
+        position = 'topLeft';
+      } else {
+        position = 'right';
+      }
+    } else if (top < 0) {
+      position = 'bottom';
     }
+    this.#state({ style: this.#genStyle(position), position });
   };
 
   render = () => {

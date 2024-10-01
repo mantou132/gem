@@ -55,8 +55,8 @@ export class GemBookLoadbarElement extends GemElement {
     clearInterval(Loadbar.timer);
     Loadbar.timer = window.setTimeout(() => {
       const instance = Loadbar.instance || new Loadbar();
-      if (!instance.isConnected) document.body.append(instance);
       instance.#state({ progress: 0 });
+      if (!instance.isConnected) document.body.append(instance);
       Loadbar.timer = window.setInterval(() => {
         instance.#state({ progress: instance.#state.progress + (95 - instance.#state.progress) * 0.1 });
       }, 100);

@@ -5,7 +5,7 @@ import type { GemReflectElement } from '../elements/reflect';
 
 import type { Store } from './store';
 import { connect } from './store';
-import { LinkedList, addMicrotask, isArrayChange, addListener, randomStr, createUpdater } from './utils';
+import { LinkedList, addMicrotask, isArrayChange, addListener, randomStr, createUpdater, GemError } from './utils';
 
 export { html, svg, render, directive, TemplateResult, SVGTemplateResult } from 'lit-html';
 
@@ -232,7 +232,7 @@ type EffectItem<T> = {
   fixed?: boolean; // 不需要清理，只会添加一次
   values?: T;
   getDep?: GetDepFun<T>;
-  preCallback?: () => void;
+  preCallback?: any;
 };
 
 function execEffectList(list?: EffectItem<any>[]) {
@@ -318,24 +318,28 @@ export abstract class GemElement extends HTMLElement {
   #isAppendReason?: boolean;
   #isMounted?: boolean;
   // not in constructor 的近似值
-  #isConnected?: boolean;
+  #notInCons?: boolean;
   #rendering?: boolean;
-  #clearStyle?: any;
+  #clearStyle?: (() => void) | undefined;
 
   [updateTokenAlias]() {
     // 避免 `connectedCallback` 中的 property 赋值造成多余更新
-    if (this.#isMounted) {
-      addMicrotask(this.#update);
-    }
+    if (this.#isMounted) addMicrotask(this.#update);
   }
 
   static {
     createState = <T>(initState: T) => {
       const ele = currentConstructGemElement;
       const state = createUpdater(initState, (payload) => {
+        const effect = ele.#effectList.at(0);
+        // https://github.com/mantou132/gem/issues/203
+        if (ele.#isMounted && effect && !effect.initialized) {
+          throw new GemError(`Do't set state sync before insert the DOM`);
+        }
         assign(state, payload);
         // 避免无限刷新
-        if (!ele.#rendering) addMicrotask(ele.#update);
+        // 挂载前 set state 不应该触发更新
+        if (!ele.#rendering && ele.#isMounted) addMicrotask(ele.#update);
       });
       ele.#internals.stateList.push(state);
       return state;
@@ -494,8 +498,12 @@ export abstract class GemElement extends HTMLElement {
   #connectedCallback = async () => {
     if (this.#isAppendReason) {
       this.#isAppendReason = false;
+      // https://github.com/mantou132/gem/issues/202
+      this.#clearStyle?.();
+      this.#clearStyle = this.#prepareStyle();
       return;
     }
+    this.#notInCons = true;
     this.#compat();
 
     const { observedStores, mode, penetrable } = this.#metadata;
@@ -504,7 +512,6 @@ export abstract class GemElement extends HTMLElement {
     // 如果渲染内容需要应用外部样式，需要手动 `delete` 边界
     if (!mode && this.#renderList.length && !penetrable) this.#internals.states.add(BoundaryCSSState);
 
-    this.#isConnected = true;
     this.#disconnectStore = observedStores?.map((store) => connect(store, this.#update));
     this.#render(this.#renderItem);
     this.#isMounted = true;
@@ -554,7 +561,7 @@ export abstract class GemElement extends HTMLElement {
     // 是否要异步执行回调？
     this.#effectList = clearEffect(this.#effectList);
     this.#memoList = clearEffect(this.#memoList);
-    execCallback(this.#clearStyle);
+    this.#clearStyle?.();
     return GemElement.#final;
   }
 
@@ -577,7 +584,7 @@ export abstract class GemElement extends HTMLElement {
       callback,
       getDep,
       initialized: this.#isMounted,
-      fixed: !this.#isConnected,
+      fixed: !this.#notInCons,
     };
     // 已挂载时立即执行副作用，未挂载时等挂载后执行
     if (this.#isMounted) {
@@ -608,7 +615,7 @@ export abstract class GemElement extends HTMLElement {
     this.#memoList.push({
       callback,
       getDep,
-      fixed: !this.#isConnected,
+      fixed: !this.#notInCons,
     });
   };
 
