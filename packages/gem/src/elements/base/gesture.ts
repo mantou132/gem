@@ -158,6 +158,8 @@ export class GemGestureElement extends GemElement {
       const moves = this.#getMoves(pointerId);
       const startEvent = this.#getStartEvent(pointerId);
       const lastMove = moves[moves.length - 1] || startEvent;
+      // Firefox contextmenu after trigger
+      if (!lastMove) return;
       // https://bugs.webkit.org/show_bug.cgi?id=220194
       // https://bugs.chromium.org/p/chromium/issues/detail?id=1092358
       const movementX = clientX - lastMove.clientX;

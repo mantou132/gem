@@ -80,6 +80,7 @@ const style = createCSSSheet(css`
     border-radius: ${theme.normalRound};
     caret-color: ${theme.primaryColor};
     outline: none;
+    overflow: hidden;
   }
   :host(:not([disabled])) {
     box-shadow: ${theme.controlShadow};
@@ -105,7 +106,8 @@ const style = createCSSSheet(css`
     inline-size: 100%;
     padding-inline: 0.5em;
     border: none;
-    background-color: transparent;
+    border-radio: inherit;
+    background-clip: text;
     resize: none;
     field-sizing: inherit;
   }

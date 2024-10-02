@@ -304,12 +304,20 @@ class InheritGem extends I {
   @attribute appTitle = '1';
   @attribute appTitle2 = '2';
 }
+
+@customElement('inherit-gem1')
+class InheritGem1 extends I {}
+
 describe('gem element 继承', () => {
   it('静态字段继承', async () => {
     new I();
     new InheritGem(); // 触发装饰器自定义初始化函数
     const metadata: Metadata = Reflect.get(InheritGem, Symbol.metadata);
     expect(metadata.observedAttributes).to.eql(['app-title', 'app-title2']);
+
+    new InheritGem1(); // 触发装饰器自定义初始化函数
+    const metadata1: Metadata = Reflect.get(InheritGem1, Symbol.metadata);
+    expect(metadata1.observedAttributes).to.eql(['app-title']);
   });
   it('attr/prop/emitter 继承', async () => {
     const name = window.name;
