@@ -17,36 +17,32 @@ export const focusStyle = createCSSSheet(css`
   }
 `);
 
-export const blockContainer = createCSSSheet(css`
-  :host(:where(:not([hidden]))),
-  :where(:scope:not([hidden])) {
-    display: block;
-  }
-`);
+function createContainer(display: string) {
+  return createCSSSheet(css`
+    @layer {
+      :host(:where(:not([hidden]))),
+      :where(:scope:not([hidden])) {
+        display: ${display};
+      }
+    }
+  `);
+}
 
-export const flexContainer = createCSSSheet(css`
-  :host(:where(:not([hidden]))),
-  :where(:scope:not([hidden])) {
-    display: flex;
-  }
-`);
+export const blockContainer = createContainer('block');
 
-export const contentsContainer = createCSSSheet(css`
-  :host(:where(:not([hidden]))),
-  :where(:scope:not([hidden])) {
-    display: contents;
-  }
-`);
+export const flexContainer = createContainer('flex');
+
+export const contentsContainer = createContainer('contents');
 
 /** render empty content */
 export const noneTemplate = html`
   <style>
     :host {
-      display: none;
+      display: none !important;
     }
     @scope {
       :scope {
-        display: none;
+        display: none !important;
       }
     }
   </style>

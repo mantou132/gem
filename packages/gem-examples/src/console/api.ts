@@ -28,7 +28,7 @@ const EXAMPLE = {
   updated: 0,
 };
 
-export type Item = typeof EXAMPLE;
+export type Item = typeof EXAMPLE & { social?: string[] };
 
 export async function fetchItemsWithArgs(args: FetchEventDetail): Promise<PaginationRes<Item>> {
   console.log('args:', args);

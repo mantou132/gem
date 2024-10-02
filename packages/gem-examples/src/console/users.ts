@@ -8,6 +8,7 @@ import { createForm } from 'duoyun-ui/patterns/form';
 import { sleep } from 'duoyun-ui/lib/timer';
 import { createPaginationStore } from 'duoyun-ui/helper/store';
 import type { FetchEventDetail, PatTableColumn } from 'duoyun-ui/patterns/table';
+import type { Modify } from 'duoyun-ui/lib/types';
 
 import type { Item } from './api';
 import { fetchItemsWithArgs } from './api';
@@ -22,6 +23,7 @@ const pagination = createPaginationStore<Item>({
 });
 
 const initItem = {
+  social: [''],
   username: 'Mantou',
   name: '',
   company: {
@@ -32,7 +34,7 @@ const initItem = {
   updated: Date.now(),
 };
 
-type NewItem = typeof initItem;
+type NewItem = Modify<typeof initItem, { social?: string[] }>;
 
 @customElement('console-page-users')
 export class ConsolePageItemElement extends GemElement {
@@ -169,6 +171,15 @@ export class ConsolePageItemElement extends GemElement {
         },
       },
     ],
+    {
+      type: 'text',
+      field: ['social'],
+      label: 'Social',
+      list: {
+        initItem: '',
+        sortable: true,
+      },
+    },
     {
       label: 'Company Info',
       fieldset: [

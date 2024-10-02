@@ -356,7 +356,7 @@ export class DuoyunFormItemElement extends GemElement {
   render = () => {
     const { invalidMessage } = this.#state;
     return html`
-      ${this.#type === 'checkbox'
+      ${this.#type === 'checkbox' || !this.label
         ? ''
         : html`
             <label class="label" part=${DuoyunFormItemElement.label} @click=${() => this.focus()}>

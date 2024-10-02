@@ -18,6 +18,7 @@ export default {
   copySuccess: 'Copy success',
   copyFail: 'Copy fail',
   add: 'Add',
+  remove: 'Remove',
   search: 'Search',
   filter: 'Filter',
   loading: 'Loading',

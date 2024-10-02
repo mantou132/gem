@@ -1,6 +1,6 @@
 import { createCSSSheet, GemElement } from '../../lib/element';
 import type { Emitter } from '../../lib/decorators';
-import { adoptedStyle, attribute, emitter, mounted } from '../../lib/decorators';
+import { adoptedStyle, attribute, emitter, mounted, state } from '../../lib/decorators';
 import { css } from '../../lib/utils';
 
 export type PanEventDetail = {
@@ -46,10 +46,12 @@ function angleAB(
 }
 
 const style = createCSSSheet(css`
-  :scope:where(:not([hidden])) {
-    display: block;
-    user-select: none;
-    touch-action: attr(touch-action, none);
+  @layer {
+    :scope:where(:not([hidden])) {
+      display: block;
+      user-select: none;
+      touch-action: attr(touch-action, none);
+    }
   }
 `);
 
@@ -74,10 +76,12 @@ export class GemGestureElement extends GemElement {
   @emitter pinch: Emitter<PinchEventDetail>;
   @emitter rotate: Emitter<RotateEventDetail>;
   @emitter swipe: Emitter<SwipeEventDetail>;
-  @emitter press: Emitter<null>;
-  @emitter end: Emitter<null>;
+  @emitter press: Emitter<PointerEvent>;
+  @emitter end: Emitter<PointerEvent>;
 
   @attribute touchAction: string;
+
+  @state grabbing: boolean;
 
   #pressed = false; // 触发 press 之后不触发其他事件
   #pressTimer = 0;
@@ -134,6 +138,7 @@ export class GemGestureElement extends GemElement {
   };
 
   #onStart = (evt: PointerEvent) => {
+    this.grabbing = true;
     evt.stopPropagation();
     this.setPointerCapture(evt.pointerId);
     this._movesMap.set(evt.pointerId, []);
@@ -141,7 +146,7 @@ export class GemGestureElement extends GemElement {
     if (evt.isPrimary) {
       this.#pressed = false;
       this.#pressTimer = window.setTimeout(() => {
-        this.press(null);
+        this.press(evt);
         this.#pressed = true;
       }, 251);
     }
@@ -212,7 +217,8 @@ export class GemGestureElement extends GemElement {
     window.clearTimeout(this.#pressTimer);
 
     if (this._movesMap.size === 1) {
-      this.end(null);
+      this.grabbing = false;
+      this.end(evt);
     }
 
     // auto release: https://javascript.info/pointer-events#pointer-capturing

@@ -20,6 +20,7 @@ const lang: typeof en = {
   copySuccess: '复制成功',
   copyFail: '复制失败',
   add: '新增',
+  remove: '移除',
   search: '搜索',
   filter: '过滤',
   loading: '加载中',

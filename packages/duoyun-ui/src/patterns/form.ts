@@ -20,20 +20,19 @@ import { DuoyunDatePickerElement } from '../elements/date-picker';
 import { DuoyunDateRangePickerElement } from '../elements/date-range-picker';
 import { DuoyunPickerElement } from '../elements/picker';
 import { locale } from '../lib/locale';
+import type { SortEventDetail } from '../elements/sort-box';
 
 import '../elements/form';
+import '../elements/button';
+import '../elements/space';
+import '../elements/sort-box';
 
-// ts 5.4
-declare global {
-  interface MapConstructor {
-    /**
-     * Groups members of an iterable according to the return value of the passed callback.
-     * @param items An iterable.
-     * @param keySelector A callback which will be invoked for each item in items.
-     */
-    groupBy<K, T>(items: Iterable<T>, keySelector: (item: T, index: number) => K): Map<K, T[]>;
-  }
-}
+type ListOptions = {
+  add?: boolean | string | TemplateResult;
+  remove?: boolean | string | TemplateResult;
+  initItem?: any;
+  sortable?: boolean;
+};
 
 type FormItemProps<T = unknown> = {
   label: string;
@@ -69,6 +68,9 @@ type FormItemProps<T = unknown> = {
 
   /**update field setting for any field change */
   update?: (data: T) => Partial<FormItemProps<T>>;
+
+  // array field
+  list?: boolean | ListOptions;
 };
 
 export type FormItem<T = unknown> =
@@ -85,6 +87,14 @@ export type FormItem<T = unknown> =
 const style = createCSSSheet(css`
   dy-form {
     width: 100%;
+  }
+  dy-sort-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 1em;
+    dy-form-item:first-of-type {
+      flex-grow: 1;
+    }
   }
   .template {
     margin-block-end: 1em;
@@ -160,22 +170,28 @@ export class DyPatFormElement<T = Record<string, unknown>> extends GemElement {
     });
   };
 
-  #onChange = ({ detail }: CustomEvent<any>) => {
+  #changeData = (detail: any) => {
     const data = Object.keys(detail).reduce((prev, key) => {
       const val = detail[key];
       const path = key.split(',');
-      Reflect.set(readProp(prev, path.slice(0, -1), { fill: true }), path.at(-1)!, val);
+      const prop = path.at(-1)!;
+      const root = readProp(prev, path.slice(0, -1), { fill: true });
+      Reflect.set(root, prop, val);
       return prev;
     }, {} as any);
     this.state({ data });
 
     this.#forEachFormItems((props) => {
-      if (!props.update && props.type !== 'number') return;
+      if (!props.list && !props.update && props.type !== 'number') return;
 
       const path = Array.isArray(props.field) ? props.field : [props.field];
       const wrapObj = readProp(data, path.slice(0, -1) as string[]);
       const lastKey = path.at(-1)!;
       const val = wrapObj[lastKey];
+
+      if (props.list && val && !Array.isArray(val)) {
+        Reflect.set(wrapObj, lastKey, Array.from({ ...val, length: Object.keys(val).length }));
+      }
 
       if (props.type === 'number') {
         Reflect.set(wrapObj, lastKey, Number(val) || 0);
@@ -192,6 +208,8 @@ export class DyPatFormElement<T = Record<string, unknown>> extends GemElement {
       }
     });
   };
+
+  #onChange = ({ detail }: CustomEvent<any>) => this.#changeData(detail);
 
   #onOptionsChange = async (props: FormItemProps<T>, input: string) => {
     if (!props.getOptions) return;
@@ -401,6 +419,69 @@ export class DyPatFormElement<T = Record<string, unknown>> extends GemElement {
     `;
   };
 
+  #renderItemList = (item: FormItemProps<T>) => {
+    const { add = true, remove = true, initItem, sortable } = typeof item.list === 'boolean' ? {} : item.list || {};
+    const addTemplate = typeof add === 'boolean' ? locale.add : add;
+    const removeTemplate = typeof remove === 'boolean' ? '' : remove;
+    const path = [item.field].flat() as string[];
+    const prop = path.at(-1)!;
+    const value = readProp(this.state.data!, path) as any[] | undefined;
+    const onSort = ({ detail }: CustomEvent<SortEventDetail>) => {
+      [value![detail.new], value![detail.old]] = [value![detail.old], value![detail.new]];
+      this.state();
+    };
+    const addEle = () => {
+      const root = readProp(this.state.data!, path.slice(0, -1), { fill: true });
+      if (!root[prop]) root[prop] = [];
+      root[prop].push(initItem);
+      this.state();
+    };
+    const removeEle = (index: number) => {
+      value!.splice(index, 1);
+      this.state();
+    };
+    return html`
+      <dy-form-item style="margin-bottom: 0" label=${item.label}></dy-form-item>
+      <dy-sort-box @sort=${onSort}>
+        ${value?.map(
+          (e, index) => html`
+            <dy-sort-item>
+              ${sortable && !item.disabled
+                ? html`
+                    <dy-sort-handle>
+                      <dy-button .icon=${icons.menu} square color="cancel"></dy-button>
+                    </dy-sort-handle>
+                  `
+                : ''}
+              ${this.#renderItem({ ...item, field: [...path, index] as string[], label: '' })}
+              <dy-form-item ?hidden=${item.disabled}>
+                <dy-space>
+                  ${removeTemplate
+                    ? html`${removeTemplate}`
+                    : html`
+                        <dy-button
+                          @click=${() => removeEle(index)}
+                          .icon=${icons.delete}
+                          square
+                          round
+                          color="cancel"
+                          title=${locale.remove}
+                        ></dy-button>
+                      `}
+                </dy-space>
+              </dy-form-item>
+            </dy-sort-item>
+          `,
+        )}
+      </dy-sort-box>
+      <dy-form-item>
+        <dy-button type="reverse" .disabled=${item.disabled} .icon=${icons.add} @click=${addEle}>
+          ${addTemplate}
+        </dy-button>
+      </dy-form-item>
+    `;
+  };
+
   #renderInlineGroup = (items: FormItemProps<T>[]) => {
     return html`<dy-form-item-inline-group>${this.#renderItems(items)}</dy-form-item-inline-group>`;
   };
@@ -422,6 +503,9 @@ export class DyPatFormElement<T = Record<string, unknown>> extends GemElement {
               ${this.#renderItems(item.fieldset)}
             </details>
           `;
+        }
+        if (item.list) {
+          return this.#renderItemList(item);
         }
         const inputs = inputGroup.get(item.label);
         if (inputs) {

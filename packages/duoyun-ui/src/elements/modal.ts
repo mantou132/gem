@@ -252,6 +252,14 @@ export class DuoyunModalElement extends GemElement {
     this.dangerDefaultOkBtn = !!dangerDefaultOkBtn;
   }
 
+  get #header() {
+    return this.header || this.headerSlot;
+  }
+
+  get #body() {
+    return this.body || this.bodySlot;
+  }
+
   #maskRef = createRef<HTMLElement>();
   #dialogRef = createRef<HTMLElement>();
   #bodyRef = createRef<HTMLElement>();
@@ -319,7 +327,7 @@ export class DuoyunModalElement extends GemElement {
               aria-modal="true"
               class="dialog absolute"
             >
-              ${this.body || this.bodySlot || html`<slot></slot>`}
+              ${this.#body || html`<slot></slot>`}
             </div>
           `
         : html`
@@ -331,16 +339,16 @@ export class DuoyunModalElement extends GemElement {
               aria-modal="true"
               class="dialog main absolute"
             >
-              ${this.header
+              ${this.#header
                 ? html`
                     <div part=${DuoyunModalElement.header} role="heading" aria-level="1" class="header">
-                      <slot name=${DuoyunModalElement.header}>${this.header || this.headerSlot}</slot>
+                      <slot name=${DuoyunModalElement.header}>${this.#header}</slot>
                     </div>
                     <dy-divider part=${DuoyunModalElement.divider} class="header-divider" size="medium"></dy-divider>
                   `
                 : ''}
               <dy-scroll-box class="body" part=${DuoyunModalElement.body}>
-                <slot ref=${this.#bodyRef.ref}>${this.body || this.bodySlot}</slot>
+                <slot ref=${this.#bodyRef.ref}>${this.#body}</slot>
               </dy-scroll-box>
               <div class="footer" part=${DuoyunModalElement.footer}>
                 <slot name=${DuoyunModalElement.footer}>
