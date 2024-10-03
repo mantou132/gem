@@ -47,7 +47,7 @@ export class AppRoot extends GemElement {
       scale: 1,
       rotate: 0,
       swipe: '',
-      moves: [...this.#gestureRef.element!._movesMap.values().next().value],
+      moves: [...this.#gestureRef.element!.movesMap.values().next().value],
     });
   };
   render() {

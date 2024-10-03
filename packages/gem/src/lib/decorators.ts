@@ -94,10 +94,13 @@ function defineProp(
       if (event) {
         proxy[prop] = v?.[isEventHandleSymbol]
           ? v
-          : (detail: any, options: any) => {
+          : async (detail: any, options: any) => {
+              // 事件如果同步触发，则祖先元素可能还没有挂载好，其中就不能更新 state
+              // https://github.com/mantou132/gem/issues/203
+              await Promise.resolve();
               const evt = new CustomEvent(event, { ...options, ...eventOptions, detail });
               that.dispatchEvent(evt);
-              v(detail, options);
+              await v(detail, options);
             };
         (proxy[prop] as any)[isEventHandleSymbol] = true;
         // emitter 不触发元素更新
@@ -407,7 +410,7 @@ export function part(_: undefined, context: ClassFieldDecoratorContext<any, stri
   };
 }
 
-export type Emitter<T = any> = (detail?: T, options?: Omit<CustomEventInit<unknown>, 'detail'>) => void;
+export type Emitter<T = any> = (detail?: T, options?: Omit<CustomEventInit<unknown>, 'detail'>) => Promise<void> | void;
 
 /**
  * 定义一个事件发射器，类似 `HTMLElement.click`，

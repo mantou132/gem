@@ -89,7 +89,7 @@ export class GemGestureElement extends GemElement {
   #startEventMap: Map<number, PointerEvent> = new Map();
 
   #getMoves = (pointerId: number) => {
-    return this._movesMap.get(pointerId) || [];
+    return this.movesMap.get(pointerId) || [];
   };
 
   #getStartEvent = (pointerId: number) => {
@@ -97,7 +97,7 @@ export class GemGestureElement extends GemElement {
   };
 
   #getOtherLastMove = (pointerId: number) => {
-    for (const id of this._movesMap.keys()) {
+    for (const id of this.movesMap.keys()) {
       if (id !== pointerId) {
         const moves = this.#getMoves(id);
         return moves[moves.length - 1] || this.#getStartEvent(id);
@@ -141,7 +141,7 @@ export class GemGestureElement extends GemElement {
     this.grabbing = true;
     evt.stopPropagation();
     this.setPointerCapture(evt.pointerId);
-    this._movesMap.set(evt.pointerId, []);
+    this.movesMap.set(evt.pointerId, []);
     this.#startEventMap.set(evt.pointerId, evt);
     if (evt.isPrimary) {
       this.#pressed = false;
@@ -176,7 +176,7 @@ export class GemGestureElement extends GemElement {
       moves.push(move);
       this.pan(move);
 
-      if (this._movesMap.size !== 1) {
+      if (this.movesMap.size !== 1) {
         const secondaryPoint = this.#getOtherLastMove(pointerId) as PanEventDetail;
         const moveLen = Math.sqrt(movementX ** 2 + movementY ** 2);
         const distanceLen = Math.sqrt(
@@ -213,12 +213,12 @@ export class GemGestureElement extends GemElement {
     }
   };
 
-  #onEnd = (evt: PointerEvent) => {
+  #onEnd = async (evt: PointerEvent) => {
     evt.stopPropagation();
     const { pointerId } = evt;
     window.clearTimeout(this.#pressTimer);
 
-    if (this._movesMap.size === 1) {
+    if (this.movesMap.size === 1) {
       this.grabbing = false;
       this.end(evt);
     }
@@ -253,8 +253,10 @@ export class GemGestureElement extends GemElement {
       }
     }
 
-    this._movesMap.delete(pointerId);
     this.#startEventMap.delete(pointerId);
+    // 确保外部 end 事件处理器中可以读取到
+    await Promise.resolve();
+    this.movesMap.delete(pointerId);
   };
 
   #preventDefault = (evt: Event) => evt.preventDefault();
@@ -271,6 +273,6 @@ export class GemGestureElement extends GemElement {
     this.addEventListener('dragstart', this.#preventDefault);
   };
 
-  /** 指针移动事件记录 */
-  _movesMap: Map<number, PanEventDetail[]> = new Map();
+  /** 一次手势的指针移动事件记录 */
+  movesMap: Map<number, PanEventDetail[]> = new Map();
 }

@@ -9,6 +9,7 @@ import {
   boolattribute,
   connectStore,
   customElement,
+  fallback,
   numattribute,
   property,
   shadow,
@@ -40,11 +41,15 @@ class GemDemo extends GemElement {
   renderCount = 0;
 
   render() {
+    if (this.attr === 'error') throw new Error();
     const { attr, disabled, count, prop } = this;
     const { value } = this.#state;
     this.renderCount++;
     return html`attr: ${attr}, disabled: ${disabled}, count: ${count}, prop: ${prop.value}, state: ${value}`;
   }
+
+  @fallback()
+  #error = () => html`Error`;
 }
 
 describe('基本 gem element 测试', () => {
@@ -74,6 +79,8 @@ describe('基本 gem element 测试', () => {
     el.update();
     await Promise.resolve();
     expect(el.renderCount).to.equal(2);
+    const errEl: GemDemo = await fixture(html`<gem-demo attr="error"></gem-demo>`);
+    expect(errEl).shadowDom.to.equal('Error');
   });
   it('读取 attr', async () => {
     const el: GemDemo = await fixture(html`
@@ -125,6 +132,13 @@ describe('基本 gem element 测试', () => {
     expect(el.renderCount).to.equal(2);
     expect(el.prop).to.deep.equal({ value: 'value' });
     expect(el).shadowDom.to.equal('attr: , disabled: false, count: 0, prop: value, state: ');
+  });
+
+  it('只能在 initEffect 前修改 state', async () => {
+    const syncUpdateEle = new GemDemo();
+    expect(() => syncUpdateEle.internals.stateList[0]()).to.not.throw();
+    document.body.append(syncUpdateEle);
+    expect(() => syncUpdateEle.internals.stateList[0]()).to.throw();
   });
 
   it('修改 state', async () => {

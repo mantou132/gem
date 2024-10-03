@@ -106,6 +106,7 @@ describe('装饰器', () => {
     await Promise.resolve();
     expect(el.renderCount).to.equal(3);
     el.sayHi(2);
+    await Promise.resolve();
     expect(el.renderCount).to.equal(3);
     expect(a).to.equal(2);
   });
