@@ -10,9 +10,8 @@ import {
   slot,
   shadow,
 } from '@mantou/gem/lib/decorators';
-import { createCSSSheet, createRef, GemElement, html } from '@mantou/gem/lib/element';
+import { createCSSSheet, createRef, GemElement, html, repeat } from '@mantou/gem/lib/element';
 import { css, styleMap } from '@mantou/gem/lib/utils';
-import { repeat } from '@mantou/gem/lib/directives';
 
 import { icons } from '../lib/icons';
 import { theme } from '../lib/theme';

@@ -1,5 +1,4 @@
-import { fixture, expect, nextFrame } from '@open-wc/testing';
-
+import { fixture, expect, nextFrame } from '../utils';
 import { createCSSSheet, GemElement, html } from '../../lib/element';
 import { adoptedStyle, customElement } from '../../lib/decorators';
 import type { GemReflectElement } from '../../elements/reflect';

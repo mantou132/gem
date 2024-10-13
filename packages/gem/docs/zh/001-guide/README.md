@@ -47,7 +47,7 @@ class MyElement extends GemElement {
 
 装饰器 `@customElement` 使用标准的 [API](https://developer.mozilla.org/en-US/docs/Web/API/Window/customElements) 定义一个自定义元素，然后以任何方式在 HTML 中使用他，当然也可以在其他自定义元素的模板中使用。
 
-在 `render` 方法中返回渲染模版。 Gem 将 [lit-html](https://github.com/Polymer/lit-html) 作为其模版引擎，
+在 `render` 方法中返回渲染模版。 Gem 将 [lit-html](https://lit.dev/docs/templates/overview/) 作为其模版引擎，
 他使用 ES6 的模版字符串来编写 HTML 模版，没有其他概念，不存在编译时。
 
 使用变量：
@@ -68,7 +68,7 @@ html`<div title=${title} .data=${data}></div>`;
 html`<div @click=${clickHandle}></div>`;
 ```
 
-更详细的语法可以查看 [lit-html](https://lit-html.polymer-project.org/guide) 文档。
+更详细的语法可以查看 [lit-html](https://lit.dev/docs/templates/overview/) 文档。
 
 ## 准备好了吗？
 

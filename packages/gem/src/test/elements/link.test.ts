@@ -1,5 +1,4 @@
-import { fixture, expect } from '@open-wc/testing';
-
+import { fixture, expect } from '../utils';
 import { html } from '../../lib/element';
 import type { GemActiveLinkElement } from '../../elements/link';
 

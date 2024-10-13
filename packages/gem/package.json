@@ -17,6 +17,7 @@
   "exports": {
     ".": "./index.js",
     "./lib/*": "./lib/*.js",
+    "./test/*": "./test/*.js",
     "./elements/*": "./elements/*.js",
     "./helper/*": "./helper/*.js"
   },
@@ -39,16 +40,14 @@
     "start": "pnpm build:module --watch",
     "test": "cross-env NODE_OPTIONS=--no-experimental-fetch wtr"
   },
-  "dependencies": {
-    "lit-html": "^1.4.1"
-  },
   "devDependencies": {
-    "@esm-bundle/chai": "^4.3.4-fix.0",
     "@gemjs/config": "^2.1.0",
-    "@open-wc/testing": "^2.5.33",
+    "@types/chai": "^5.0.0",
     "@types/mocha": "^10.0.7",
+    "@types/trusted-types": "^2.0.7",
     "@web/dev-server-esbuild": "^1.0.2",
     "@web/test-runner": "^0.18.1",
+    "chai": "^5.1.1",
     "rimraf": "^3.0.2",
     "typescript": "^5.6.2",
     "vite": "^5.2.10"

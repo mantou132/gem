@@ -1,4 +1,4 @@
-import { expect } from '@open-wc/testing';
+import { expect } from '@mantou/gem/test/utils';
 
 import { once, omitOnce } from './timer';
 

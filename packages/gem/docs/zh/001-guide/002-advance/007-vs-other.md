@@ -17,7 +17,7 @@ Gem 是针对 Web 环境的库，所以它能满足 WebApp 的常见需求，而
 ### 性能
 
 React 在需要更新时计算整个组件的 vDOM，然后通过比较找到需要修改的 DOM/Node，最后写到 DOM/Node 上，
-Gem 使用完全不同的方式，参见 lit-html [文档](https://github.com/Polymer/lit-html/wiki/How-it-Works)，
+Gem 使用完全不同的方式，参见 lit-html [文档](https://github.com/lit/lit/blob/main/dev-docs/design/how-lit-html-works.md)，
 在挂载前， lit-html 找到了模板字符串中的数据对应的 DOM/Node，在更新时，直接将内容需要目标 DOM/Node 上，
 另外，Gem 使用 ShadowDOM，在重新调用 `render` 时，会跳过模板中的自定义元素的内容，
 他们只由该元素“Observe”的 Attribute/Property/Store 通知更新，这会造成 Gem App 是分批次列队更新，

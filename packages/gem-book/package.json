@@ -66,9 +66,7 @@
   },
   "devDependencies": {
     "@codesandbox/sandpack-client": "^2.18.2",
-    "@esm-bundle/chai": "^4.3.4-fix.0",
     "@gemjs/config": "^2.1.0",
-    "@open-wc/testing": "^2.5.33",
     "@types/express": "^4.17.3",
     "@types/jsdom": "^16.2.10",
     "@types/marked": "^2.0.2",

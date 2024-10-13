@@ -1,7 +1,6 @@
-import { GemElement, html, createCSSSheet } from '@mantou/gem/lib/element';
+import { GemElement, html, createCSSSheet, nothing } from '@mantou/gem/lib/element';
 import { adoptedStyle, attribute, boolattribute, customElement, effect, property } from '@mantou/gem/lib/decorators';
 import { css } from '@mantou/gem/lib/utils';
-import { ifDefined } from '@mantou/gem/lib/directives';
 import { mediaQuery } from '@mantou/gem/helper/mediaquery';
 
 import { theme } from '../lib/theme';
@@ -190,7 +189,7 @@ export class DyPatConsoleElement extends GemElement {
           ? html`
               <div class="user-info">
                 <dy-avatar class="avatar" alt="Avatar" src=${avatar}></dy-avatar>
-                <dy-link class="user" href=${ifDefined(this.userInfo.profile)}>
+                <dy-link class="user" href=${this.userInfo.profile ?? nothing}>
                   <span class="username" aria-label="Username">${this.userInfo.username}</span>
                   <span class="org" aria-label="Org" ?hidden=${!this.userInfo.org}>@${this.userInfo.org}</span>
                 </dy-link>

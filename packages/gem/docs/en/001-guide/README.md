@@ -43,7 +43,7 @@ class MyElement extends GemElement {
 
 Decorator `@customElement` use standard [API](https://developer.mozilla.org/en-US/docs/Web/API/Window/customElements) to define a custom element, and then use it in HTML in any way, of course, it can also be used in other custom element templates.
 
-Return the rendering template in the `render` method. Gem uses [lit-html](https://github.com/Polymer/lit-html) as its template engine. He uses ES6 template strings to write HTML templates. There are no other concepts and no compile-time.
+Return the rendering template in the `render` method. Gem uses [lit-html](https://lit.dev/docs/templates/overview/) as its template engine. He uses ES6 template strings to write HTML templates. There are no other concepts and no compile-time.
 
 Use variables:
 
@@ -63,7 +63,7 @@ Use event bind:
 html`<div @click=${clickHandle}></div>`;
 ```
 
-More detailed syntax can be found in [lit-html](https://lit-html.polymer-project.org/guide) document.
+More detailed syntax can be found in [lit-html](https://lit.dev/docs/templates/overview/) document.
 
 ## Are you ready?
 

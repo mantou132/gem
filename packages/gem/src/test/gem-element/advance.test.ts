@@ -6,8 +6,7 @@
  * - 派生元素（类扩展）
  * - 无渲染内容 Gem 元素
  */
-import { fixture, expect, nextFrame } from '@open-wc/testing';
-
+import { fixture, expect, nextFrame } from '../utils';
 import type { Metadata } from '../../lib/element';
 import { createCSSSheet, createState, GemElement, html, createRef } from '../../lib/element';
 import { createStore } from '../../lib/store';

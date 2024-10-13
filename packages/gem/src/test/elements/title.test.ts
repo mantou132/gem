@@ -1,5 +1,4 @@
-import { fixture, expect, nextFrame } from '@open-wc/testing';
-
+import { fixture, expect, nextFrame } from '../utils';
 import { html } from '../../lib/element';
 import type { GemTitleElement } from '../../elements/title';
 

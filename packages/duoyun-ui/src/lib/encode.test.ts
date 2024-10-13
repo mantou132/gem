@@ -1,4 +1,4 @@
-import { expect } from '@open-wc/testing';
+import { expect } from '@mantou/gem/test/utils';
 
 import { arrayBufferToBase64, base64ToArrayBuffer, b64ToUtf8, utf8ToB64 } from './encode';
 

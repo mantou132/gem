@@ -1,9 +1,16 @@
-import { createCSSSheet, html, GemElement, TemplateResult, createState, createRef } from '@mantou/gem/lib/element';
+import {
+  createCSSSheet,
+  html,
+  GemElement,
+  createState,
+  createRef,
+  nothing,
+  TemplateResult,
+} from '@mantou/gem/lib/element';
 import { adoptedStyle, customElement, memo, property, shadow } from '@mantou/gem/lib/decorators';
 import type { StyleObject } from '@mantou/gem/lib/utils';
 import { GemError, css, styleMap } from '@mantou/gem/lib/utils';
 import { history } from '@mantou/gem/lib/history';
-import { ifDefined } from '@mantou/gem/lib/directives';
 
 import { icons } from '../lib/icons';
 import { blockContainer, focusStyle } from '../lib/styles';
@@ -405,11 +412,11 @@ export class DyPatFormElement<T = Record<string, unknown>> extends GemElement {
         ?searchable=${props.searchable || !!props.getOptions}
         ?required=${props.required}
         ?multiple=${props.multiple /**影响值 */}
-        placeholder=${ifDefined(props.placeholder)}
-        rows=${ifDefined(props.rows)}
-        step=${ifDefined(props.step)}
-        min=${ifDefined(props.min)}
-        max=${ifDefined(props.max)}
+        placeholder=${props.placeholder ?? nothing}
+        rows=${props.rows ?? nothing}
+        step=${props.step ?? nothing}
+        min=${props.min ?? nothing}
+        max=${props.max ?? nothing}
         @change=${onChange}
         @clear=${onChange}
         @search=${onSearch}

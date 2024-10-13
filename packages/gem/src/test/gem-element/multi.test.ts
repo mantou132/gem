@@ -1,5 +1,4 @@
-import { expect, fixture } from '@open-wc/testing';
-
+import { expect, fixture } from '../utils';
 import { attribute, customElement, emitter, mounted, property, type Emitter } from '../../lib/decorators';
 import { GemElement, html, createRef, createState } from '../../lib/element';
 

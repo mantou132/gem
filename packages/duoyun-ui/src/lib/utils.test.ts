@@ -1,4 +1,4 @@
-import { expect } from '@open-wc/testing';
+import { expect } from '@mantou/gem/test/utils';
 
 import { getCascaderDeep, getCascaderBubbleWeakMap, readProp, comparer, ComparerType, isIncludesString } from './utils';
 

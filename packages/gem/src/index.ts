@@ -6,4 +6,3 @@ export * from './lib/version';
 
 // 使用路径时可选模块
 export * from './lib/history';
-export * from './lib/directives';

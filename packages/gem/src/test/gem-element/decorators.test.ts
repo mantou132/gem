@@ -1,5 +1,4 @@
-import { fixture, expect } from '@open-wc/testing';
-
+import { fixture, expect } from '../utils';
 import type { Metadata } from '../../lib/element';
 import { createCSSSheet, GemElement, html, createRef } from '../../lib/element';
 import { createStore } from '../../lib/store';
@@ -101,7 +100,7 @@ describe('装饰器', () => {
     expect(el.headerPart).to.equal('header-part');
     expect(el.inputRef.ref.startsWith('ref-')).to.equal(true);
     expect(el.bodySlot).to.equal('body-slot');
-    expect(el).shadowDom.to.equal('attr: attr, disabled: true, count: 2, prop: prop');
+    expect(el.shadowRoot?.textContent).to.equal('attr: attr, disabled: true, count: 2, prop: prop');
     store({ a: 3 });
     await Promise.resolve();
     expect(el.renderCount).to.equal(3);

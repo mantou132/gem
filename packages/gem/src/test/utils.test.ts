@@ -1,5 +1,3 @@
-import { expect } from '@open-wc/testing';
-
 import { createCSSSheet, SheetToken } from '../lib/element';
 import {
   LinkedList,
@@ -12,6 +10,8 @@ import {
   exportPartsMap,
   absoluteLocation,
 } from '../lib/utils';
+
+import { expect } from './utils';
 
 declare global {
   interface CSSRuleList {

@@ -4,7 +4,7 @@ With [WebComponents](https://developer.mozilla.org/en-US/docs/Web/Web_Components
 
 ## Realization idea
 
-Affected by React, declarative writing of UI components has become popular. Using ES6 template strings, you can get a development experience similar to JSX. Use [`innerHTML`](https://developer.mozilla.org/en-US/docs/Web/API/Element/innerHTML) to parse the template into DOM, after traversing the parsed DOM, you can bind the variables in the ES6 template string with Node to achieve the purpose of updating components. For this, Gem uses [lit-html](https://github.com/Polymer/lit-html) as a template engine.
+Affected by React, declarative writing of UI components has become popular. Using ES6 template strings, you can get a development experience similar to JSX. Use [`innerHTML`](https://developer.mozilla.org/en-US/docs/Web/API/Element/innerHTML) to parse the template into DOM, after traversing the parsed DOM, you can bind the variables in the ES6 template string with Node to achieve the purpose of updating components. For this, Gem uses [lit-html](https://lit.dev/docs/templates/overview/) as a template engine.
 
 ```js
 render(html`<div>${name}</div>`, document.body);

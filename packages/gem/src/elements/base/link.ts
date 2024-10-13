@@ -1,4 +1,4 @@
-import { createCSSSheet, GemElement, html } from '../../lib/element';
+import { createCSSSheet, GemElement, html, nothing } from '../../lib/element';
 import {
   attribute,
   property,
@@ -15,7 +15,6 @@ import {
 } from '../../lib/decorators';
 import { history, basePathStore } from '../../lib/history';
 import { absoluteLocation, css } from '../../lib/utils';
-import { ifDefined } from '../../lib/directives';
 
 import type { RouteItem, RouteOptions } from './route';
 import { matchPath, createHistoryParams, createPath } from './route';
@@ -162,7 +161,7 @@ export class GemLinkElement extends GemElement {
       <a
         part=${this.link}
         @click=${this.#preventDefault}
-        href=${ifDefined(this.#hint === 'off' ? undefined : this.#getHint())}
+        href=${this.#hint === 'off' ? nothing : this.#getHint()}
         tabindex="-1"
       >
         <slot></slot>

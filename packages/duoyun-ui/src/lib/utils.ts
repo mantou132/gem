@@ -187,17 +187,13 @@ export function comparer(a: any, comparerType: ComparerType, b: any): boolean {
 }
 
 /**Serialized `TemplateResult` */
-export function getStringFromTemplate(o: TemplateResult | string, incorrect = false): string {
-  if (o instanceof TemplateResult) {
-    if (incorrect) {
-      const string = o.getTemplateElement().content.textContent || '';
-      return string + ' ' + o.values.map((e) => getStringFromTemplate(e as string | TemplateResult)).join(' ');
-    }
-    const div = document.createElement('div');
-    render(o, div);
+const div = document.createElement('div');
+export function getStringFromTemplate(input: TemplateResult | string): string {
+  if (input instanceof TemplateResult) {
+    render(input, div);
     return div.textContent || '';
   }
-  return String(o);
+  return String(input);
 }
 
 /**Segmentation search word */
@@ -208,7 +204,7 @@ export function splitString(s: string) {
 /**Search */
 export function isIncludesString(origin: string | TemplateResult, search: string, caseSensitive = false) {
   const getStr = (s: string) => (caseSensitive ? s : s.toLowerCase()).trim();
-  const oString = getStr(getStringFromTemplate(origin, true));
+  const oString = getStr(getStringFromTemplate(origin));
   const sString = getStr(search);
   return splitString(sString).some((s) => oString.includes(s));
 }

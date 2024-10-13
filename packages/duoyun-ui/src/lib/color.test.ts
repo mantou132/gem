@@ -1,4 +1,4 @@
-import { expect } from '@open-wc/testing';
+import { expect } from '@mantou/gem/test/utils';
 
 import { parseHexColor, rgbToRgbColor, rgbToHslColor, hsvToRgb, rgbToHsv, rgbToHsl, hslToRgb } from './color';
 import { formatToPrecision } from './number';

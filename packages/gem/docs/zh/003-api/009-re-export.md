@@ -1,6 +1,6 @@
 # 重导出
 
-Gem 依赖 [`lit-html`](https://github.com/Polymer/lit-html)，部分 API 被 Gem 重新导出：
+Gem 依赖 [`lit-html`](https://lit.dev/docs/templates/overview/)，部分 API 被 Gem 重新导出：
 
 | 名称        | 描述                                        |
 | ----------- | ------------------------------------------- |
@@ -9,11 +9,9 @@ Gem 依赖 [`lit-html`](https://github.com/Polymer/lit-html)，部分 API 被 Ge
 | `render`    | 挂载 lit-html 模版到 DOM                    |
 | `directive` | 自定义 lit-html 模版渲染指令                |
 | `repeat`    | 优化 lit-html 列表渲染指令                  |
-| `guard`     | 阻止重新渲染模版的指令                      |
-| `ifDefined` | 如果值为为定义，则移除 Attribute 的指令     |
 
-其他 API 和指令可以从 lit-html 中导入：
+其他指令可以从 lit-html 中导入：
 
 ```js
-import { parts } from 'lit-html';
+import { cache } from 'lit-html/directives/cache';
 ```

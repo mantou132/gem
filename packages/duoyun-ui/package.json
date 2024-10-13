@@ -55,9 +55,7 @@
     "@mantou/gem": "^2.x"
   },
   "devDependencies": {
-    "@esm-bundle/chai": "^4.3.4-fix.0",
     "@gemjs/config": "^2.1.0",
-    "@open-wc/testing": "^2.5.33",
     "@types/d3-geo": "^3.0.1",
     "@types/mocha": "^10.0.7",
     "@web/dev-server-esbuild": "^1.0.2",

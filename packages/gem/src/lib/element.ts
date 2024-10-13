@@ -1,13 +1,14 @@
-import type { TemplateResult } from 'lit-html';
-import { html, render } from 'lit-html';
-
 import type { GemReflectElement } from '../elements/reflect';
 
+import type { TemplateResult } from './lit-html';
+import { html, render } from './lit-html';
 import type { Store } from './store';
 import { connect } from './store';
 import { LinkedList, addMicrotask, isArrayChange, addListener, randomStr, createUpdater, GemError } from './utils';
 
-export { html, svg, render, directive, TemplateResult, SVGTemplateResult } from 'lit-html';
+export { directive } from './directive';
+export { repeat } from './repeat';
+export { html, svg, render, nothing, noChange, TemplateResult } from './lit-html';
 
 declare global {
   // 用于 css 选择器选择元素，使用 RefObject 自动选择获取

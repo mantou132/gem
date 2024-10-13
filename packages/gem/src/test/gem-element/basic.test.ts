@@ -1,5 +1,4 @@
-import { fixture, expect, nextFrame } from '@open-wc/testing';
-
+import { fixture, expect, nextFrame } from '../utils';
 import { createCSSSheet, createState, GemElement, html } from '../../lib/element';
 import { createStore } from '../../lib/store';
 import { css } from '../../lib/utils';
@@ -73,14 +72,14 @@ describe('基本 gem element 测试', () => {
   });
   it('渲染 gem element', async () => {
     const el: GemDemo = await fixture(html`<gem-demo attr="attr" .prop=${{ value: 'prop' }}></gem-demo>`);
-    expect(el).shadowDom.to.equal('attr: attr, disabled: false, count: 0, prop: prop, state: ');
+    expect(el.shadowRoot?.textContent).to.equal('attr: attr, disabled: false, count: 0, prop: prop, state: ');
     await Promise.resolve();
     expect(el.renderCount).to.equal(1);
     el.update();
     await Promise.resolve();
     expect(el.renderCount).to.equal(2);
     const errEl: GemDemo = await fixture(html`<gem-demo attr="error"></gem-demo>`);
-    expect(errEl).shadowDom.to.equal('Error');
+    expect(errEl.shadowRoot?.textContent).to.equal('Error');
   });
   it('读取 attr', async () => {
     const el: GemDemo = await fixture(html`
@@ -109,7 +108,7 @@ describe('基本 gem element 测试', () => {
     expect(el.attr).to.equal('value');
     expect(el.disabled).to.equal(true);
     expect(el.count).to.equal(2);
-    expect(el).shadowDom.to.equal('attr: value, disabled: true, count: 2, prop: , state: ');
+    expect(el.shadowRoot?.textContent).to.equal('attr: value, disabled: true, count: 2, prop: , state: ');
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
     el.attr = null;
@@ -131,7 +130,7 @@ describe('基本 gem element 测试', () => {
     await Promise.resolve();
     expect(el.renderCount).to.equal(2);
     expect(el.prop).to.deep.equal({ value: 'value' });
-    expect(el).shadowDom.to.equal('attr: , disabled: false, count: 0, prop: value, state: ');
+    expect(el.shadowRoot?.textContent).to.equal('attr: , disabled: false, count: 0, prop: value, state: ');
   });
 
   it('只能在 initEffect 前修改 state', async () => {
@@ -150,7 +149,7 @@ describe('基本 gem element 测试', () => {
     await Promise.resolve();
     expect(el.renderCount).to.equal(2);
     expect({ ...el.internals.stateList[0] }).to.deep.equal({ value: 'state' });
-    expect(el).shadowDom.to.equal('attr: , disabled: false, count: 0, prop: , state: state');
+    expect(el.shadowRoot?.textContent).to.equal('attr: , disabled: false, count: 0, prop: , state: state');
   });
 
   it('更新 store', async () => {

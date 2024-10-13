@@ -4,7 +4,7 @@
 
 ## 实现思路
 
-受 React 的影响，声明式编写 UI 组件已经深入人心。使用 ES6 的模版字符串，可以获得和 JSX 类似的开发体验，利用 [`innerHTML`](https://developer.mozilla.org/en-US/docs/Web/API/Element/innerHTML) 可以将模版解析成 DOM，遍历解析后的 DOM 可以将 ES6 模版字符串中的变量和 Node 进行绑定，从而实现更新组件的目的，为此，Gem 使用 [lit-html](https://github.com/Polymer/lit-html) 作为模版引擎。
+受 React 的影响，声明式编写 UI 组件已经深入人心。使用 ES6 的模版字符串，可以获得和 JSX 类似的开发体验，利用 [`innerHTML`](https://developer.mozilla.org/en-US/docs/Web/API/Element/innerHTML) 可以将模版解析成 DOM，遍历解析后的 DOM 可以将 ES6 模版字符串中的变量和 Node 进行绑定，从而实现更新组件的目的，为此，Gem 使用 [lit-html](https://lit.dev/docs/templates/overview/) 作为模版引擎。
 
 ```js
 render(html`<div>${name}</div>`, document.body);
