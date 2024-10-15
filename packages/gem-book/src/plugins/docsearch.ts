@@ -59,7 +59,6 @@ const {
   customElement,
   attribute,
   createRef,
-  addListener,
   property,
   createCSSSheet,
   css,
@@ -302,21 +301,35 @@ class _GbpDocsearchElement extends GemBookPluginElement {
     });
   };
 
+  #onClick = (evt: Event) => {
+    const target = evt.target as Element;
+    if (!target.closest('.DocSearch')) return;
+    const link = target.closest('a');
+    if (
+      !link ||
+      link.target === '_blank' ||
+      (link.origin !== location.origin && !location.origin.includes('localhost'))
+    )
+      return;
+    evt.preventDefault();
+    this.#navigator(link.href);
+  };
+
+  // https://github.com/algolia/docsearch/pull/2212
+  #keyDown = (event: KeyboardEvent) => {
+    const element = event.composedPath()[0] as HTMLElement;
+    const tagName = element.tagName;
+    if (element.isContentEditable || tagName === 'INPUT' || tagName === 'SELECT' || tagName === 'TEXTAREA') {
+      event.stopPropagation();
+    }
+  };
+
   @mounted()
   #init = () => {
-    return addListener(window, 'click', (evt) => {
-      const target = evt.target as Element;
-      if (!target.closest('.DocSearch')) return;
-      const link = target.closest('a');
-      if (
-        !link ||
-        link.target === '_blank' ||
-        (link.origin !== location.origin && !location.origin.includes('localhost'))
-      )
-        return;
-      evt.preventDefault();
-      this.#navigator(link.href);
-    });
+    const controller = new AbortController();
+    addEventListener('click', this.#onClick, { signal: controller.signal });
+    addEventListener('keydown', this.#keyDown, { signal: controller.signal, capture: true });
+    return () => controller.abort();
   };
 }
 
