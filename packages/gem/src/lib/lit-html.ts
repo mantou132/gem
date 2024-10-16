@@ -6,6 +6,7 @@
 
 /**
  * TemplateResult change to classes
+ * Use `null`/`undefined` instead `nothing`
  * Remove compiled template result
  * Remove sanitizer
  * Remove debug log event
@@ -50,6 +51,7 @@ const createMarker = () => d.createComment('');
 type Primitive = null | undefined | boolean | number | string | symbol | bigint;
 const isPrimitive = (value: unknown): value is Primitive =>
   value === null || (typeof value != 'object' && typeof value != 'function');
+const isNullish = (value: unknown) => value === null || value === undefined;
 const isArray = Array.isArray;
 const isIterable = (value: any): value is Iterable<unknown> => Symbol.iterator in value;
 
@@ -160,8 +162,8 @@ export const html = tag(ResultType.HTML);
 export const svg = tag(ResultType.SVG);
 export const mathml = tag(ResultType.MATHML);
 
+// for directive
 export const noChange = Symbol.for('lit-noChange');
-export const nothing = Symbol.for('lit-nothing');
 
 const templateCache = new WeakMap<TemplateStringsArray, Template>();
 
@@ -668,7 +670,7 @@ export type Part = ChildPart | AttributePart | PropertyPart | BooleanAttributePa
 export class ChildPart implements Disconnectable {
   readonly type = CHILD_PART;
   readonly options: RenderOptions | undefined;
-  _$committedValue: unknown = nothing;
+  _$committedValue: unknown;
   /** @internal */
   __directive?: Directive;
   /** @internal */
@@ -772,11 +774,11 @@ export class ChildPart implements Disconnectable {
       // Non-rendering child values. It's important that these do not render
       // empty text nodes to avoid issues with preventing default <slot>
       // fallback content.
-      if (value === nothing || value == null || value === '') {
-        if (this._$committedValue !== nothing) {
+      if (isNullish(value) || value === '') {
+        if (!isNullish(this._$committedValue)) {
           this._$clear();
         }
-        this._$committedValue = nothing;
+        this._$committedValue = undefined;
       } else if (value !== this._$committedValue && value !== noChange) {
         this._commitText(value);
       }
@@ -807,7 +809,7 @@ export class ChildPart implements Disconnectable {
     // If the committed value is a primitive it means we called _commitText on
     // the previous render, and we know that this._$startNode.nextSibling is a
     // Text node. We can now just replace the text content (.data) of the node.
-    if (this._$committedValue !== nothing && isPrimitive(this._$committedValue)) {
+    if (!isNullish(this._$committedValue) && isPrimitive(this._$committedValue)) {
       const node = this._$startNode.nextSibling as Text;
       (node as Text).data = value as string;
     } else {
@@ -960,7 +962,7 @@ class AttributePart implements Disconnectable {
    */
   readonly strings?: ReadonlyArray<string>;
   /** @internal */
-  _$committedValue: unknown | Array<unknown> = nothing;
+  _$committedValue: unknown | Array<unknown>;
   /** @internal */
   __directives?: Array<Directive | undefined>;
   /** @internal */
@@ -992,7 +994,7 @@ class AttributePart implements Disconnectable {
       this._$committedValue = new Array(strings.length - 1).fill(new String());
       this.strings = strings;
     } else {
-      this._$committedValue = nothing;
+      this._$committedValue = undefined;
     }
   }
 
@@ -1032,7 +1034,7 @@ class AttributePart implements Disconnectable {
     if (strings === undefined) {
       // Single-value binding case
       value = resolveDirective(this, value, directiveParent, 0);
-      change = !isPrimitive(value) || (value !== this._$committedValue && value !== noChange);
+      change = !isPrimitive(value) || value !== this._$committedValue;
       if (change) {
         this._$committedValue = value;
       }
@@ -1044,19 +1046,12 @@ class AttributePart implements Disconnectable {
       let i, v;
       for (i = 0; i < strings.length - 1; i++) {
         v = resolveDirective(this, values[valueIndex! + i], directiveParent, i);
-
-        if (v === noChange) {
-          // If the user-provided value is `noChange`, use the previous value
-          v = (this._$committedValue as Array<unknown>)[i];
-        }
         change ||= !isPrimitive(v) || v !== (this._$committedValue as Array<unknown>)[i];
-        if (v === nothing) {
-          value = nothing;
-        } else if (value !== nothing) {
-          value += (v ?? '') + strings[i + 1];
+        if (isNullish(v)) {
+          value = undefined;
+        } else if (!isNullish(value)) {
+          value += v + strings[i + 1];
         }
-        // We always record each value, even if one is `nothing`, for future
-        // change detection.
         (this._$committedValue as Array<unknown>)[i] = v;
       }
     }
@@ -1067,10 +1062,10 @@ class AttributePart implements Disconnectable {
 
   /** @internal */
   _commitValue(value: unknown) {
-    if (value === nothing) {
+    if (isNullish(value)) {
       (this.element as Element).removeAttribute(this.name);
     } else {
-      (this.element as Element).setAttribute(this.name, (value ?? '') as string);
+      (this.element as Element).setAttribute(this.name, value as string);
     }
   }
 }
@@ -1081,8 +1076,7 @@ class PropertyPart extends AttributePart {
 
   /** @internal */
   override _commitValue(value: unknown) {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (this.element as any)[this.name] = value === nothing ? undefined : value;
+    (this.element as any)[this.name] = value;
   }
 }
 
@@ -1092,23 +1086,12 @@ class BooleanAttributePart extends AttributePart {
 
   /** @internal */
   override _commitValue(value: unknown) {
-    (this.element as Element).toggleAttribute(this.name, !!value && value !== nothing);
+    (this.element as Element).toggleAttribute(this.name, !!value);
   }
 }
 
 type EventListenerWithOptions = EventListenerOrEventListenerObject & Partial<AddEventListenerOptions>;
 
-/**
- * An AttributePart that manages an event listener via add/removeEventListener.
- *
- * This part works by adding itself as the event listener on an element, then
- * delegating to the value passed to it. This reduces the number of calls to
- * add/removeEventListener if the listener changes frequently, such as when an
- * inline function is used as a listener.
- *
- * Because event options are passed when adding listeners, we must take case
- * to add and remove the part as a listener when the event options change.
- */
 export type { EventPart };
 class EventPart extends AttributePart {
   override readonly type = EVENT_PART;
@@ -1123,35 +1106,24 @@ class EventPart extends AttributePart {
     super(element, name, strings, parent, options);
   }
 
-  // EventPart does not use the base _$setValue/_resolveValue implementation
-  // since the dirty checking is more complex
   /** @internal */
   override _$setValue(newListener: unknown, directiveParent: DirectiveParent = this) {
-    newListener = resolveDirective(this, newListener, directiveParent, 0) ?? nothing;
-    if (newListener === noChange) {
-      return;
-    }
+    newListener = resolveDirective(this, newListener, directiveParent, 0);
     const oldListener = this._$committedValue;
 
-    // If the new value is nothing or any options change we have to remove the
-    // part as a listener.
     const shouldRemoveListener =
-      (newListener === nothing && oldListener !== nothing) ||
-      (newListener as EventListenerWithOptions).capture !== (oldListener as EventListenerWithOptions).capture ||
-      (newListener as EventListenerWithOptions).once !== (oldListener as EventListenerWithOptions).once ||
-      (newListener as EventListenerWithOptions).passive !== (oldListener as EventListenerWithOptions).passive;
+      oldListener &&
+      (!newListener ||
+        (newListener as EventListenerWithOptions).capture !== (oldListener as EventListenerWithOptions).capture ||
+        (newListener as EventListenerWithOptions).once !== (oldListener as EventListenerWithOptions).once ||
+        (newListener as EventListenerWithOptions).passive !== (oldListener as EventListenerWithOptions).passive);
 
-    // If the new value is not nothing and we removed the listener, we have
-    // to add the part as a listener.
-    const shouldAddListener = newListener !== nothing && (oldListener === nothing || shouldRemoveListener);
+    const shouldAddListener = newListener && (!oldListener || shouldRemoveListener);
 
     if (shouldRemoveListener) {
       this.element.removeEventListener(this.name, this, oldListener as EventListenerWithOptions);
     }
     if (shouldAddListener) {
-      // Beware: IE11 and Chrome 41 don't like using the listener as the
-      // options object. Figure out how to deal w/ this in IE11 - maybe
-      // patch addEventListener?
       this.element.addEventListener(this.name, this, newListener as EventListenerWithOptions);
     }
     this._$committedValue = newListener;

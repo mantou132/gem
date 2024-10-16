@@ -1,12 +1,4 @@
-import {
-  createCSSSheet,
-  html,
-  GemElement,
-  createState,
-  createRef,
-  nothing,
-  TemplateResult,
-} from '@mantou/gem/lib/element';
+import { createCSSSheet, html, GemElement, createState, createRef, TemplateResult } from '@mantou/gem/lib/element';
 import { adoptedStyle, customElement, memo, property, shadow } from '@mantou/gem/lib/decorators';
 import type { StyleObject } from '@mantou/gem/lib/utils';
 import { GemError, css, styleMap } from '@mantou/gem/lib/utils';
@@ -412,11 +404,11 @@ export class DyPatFormElement<T = Record<string, unknown>> extends GemElement {
         ?searchable=${props.searchable || !!props.getOptions}
         ?required=${props.required}
         ?multiple=${props.multiple /**影响值 */}
-        placeholder=${props.placeholder ?? nothing}
-        rows=${props.rows ?? nothing}
-        step=${props.step ?? nothing}
-        min=${props.min ?? nothing}
-        max=${props.max ?? nothing}
+        placeholder=${props.placeholder}
+        rows=${props.rows}
+        step=${props.step}
+        min=${props.min}
+        max=${props.max}
         @change=${onChange}
         @clear=${onChange}
         @search=${onSearch}

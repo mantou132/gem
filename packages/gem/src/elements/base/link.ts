@@ -1,4 +1,4 @@
-import { createCSSSheet, GemElement, html, nothing } from '../../lib/element';
+import { createCSSSheet, GemElement, html } from '../../lib/element';
 import {
   attribute,
   property,
@@ -161,7 +161,7 @@ export class GemLinkElement extends GemElement {
       <a
         part=${this.link}
         @click=${this.#preventDefault}
-        href=${this.#hint === 'off' ? nothing : this.#getHint()}
+        href=${this.#hint === 'off' ? null : this.#getHint()}
         tabindex="-1"
       >
         <slot></slot>

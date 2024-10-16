@@ -15,7 +15,7 @@ import {
   aria,
 } from '@mantou/gem/lib/decorators';
 import type { TemplateResult } from '@mantou/gem/lib/element';
-import { createCSSSheet, GemElement, html, createState, createRef, nothing } from '@mantou/gem/lib/element';
+import { createCSSSheet, GemElement, html, createState, createRef } from '@mantou/gem/lib/element';
 import { css, classMap, exportPartsMap } from '@mantou/gem/lib/utils';
 
 import { icons } from '../lib/icons';
@@ -117,7 +117,7 @@ export class DuoyunCollapsePanelElement extends GemElement {
               class=${classMap({ detail: true, expand })}
               ref=${this.#contentRef.ref}
               part=${DuoyunCollapsePanelElement.detail}
-              hidden=${expand ? nothing : 'until-found'}
+              hidden=${expand ? null : 'until-found'}
               @beforematch=${this.toggleState}
             >
               <slot></slot>
