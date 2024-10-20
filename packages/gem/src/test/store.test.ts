@@ -1,4 +1,4 @@
-import { StoreListenerMap, createStore, connect } from '../lib/store';
+import { _StoreListenerMap, createStore, connect } from '../lib/store';
 
 import { expect, aTimeout } from './utils';
 
@@ -7,7 +7,7 @@ describe('store 测试', () => {
     const origin = { a: 1 };
     const store = createStore(origin);
     expect({ ...store }).to.deep.equal(origin);
-    expect(!!StoreListenerMap.get(store)).to.equal(true);
+    expect(!!_StoreListenerMap.get(store)).to.equal(true);
   });
   it('update store', async () => {
     const store = createStore({ a: 1 });

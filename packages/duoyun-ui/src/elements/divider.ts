@@ -1,22 +1,63 @@
-// https://spectrum.adobe.com/page/divider/
-import { adoptedStyle, customElement, attribute, aria, shadow, effect } from '@mantou/gem/lib/decorators';
-import { GemElement, createCSSSheet } from '@mantou/gem/lib/element';
+import {
+  adoptedStyle,
+  customElement,
+  attribute,
+  aria,
+  shadow,
+  effect,
+  template,
+  slot,
+} from '@mantou/gem/lib/decorators';
+import { html, GemElement, createCSSSheet } from '@mantou/gem/lib/element';
 import { css } from '@mantou/gem/lib/utils';
 import { createDecoratorTheme } from '@mantou/gem/helper/theme';
 
 import { theme, getSemanticColor } from '../lib/theme';
 
-const elementTheme = createDecoratorTheme({ width: '', height: '', color: '' });
+const elementTheme = createDecoratorTheme({ color: '' });
 
 const style = createCSSSheet(css`
   :host(:where(:not([hidden]))) {
-    display: block;
-    border-radius: 10px;
     align-self: stretch;
-    background: currentColor;
-    width: ${elementTheme.width};
-    height: ${elementTheme.height};
-    color: ${elementTheme.color};
+    display: flex;
+    align-items: center;
+    gap: 1em;
+    --size: 1px;
+  }
+  :host([orientation='vertical']) {
+    writing-mode: sideways-rl;
+  }
+  :host([size='medium']) {
+    font-weight: 500;
+    --size: 2px;
+  }
+  :host([size='large']) {
+    font-weight: 700;
+    --size: 4px;
+  }
+  :host([position='start']) .start,
+  :host([position='end']) .end {
+    display: none;
+  }
+  slot {
+    color: ${theme.textColor};
+    display: inline;
+  }
+  :host(:not([position='start'], [position='end'])) slot {
+    margin-inline: -4px;
+  }
+  slot::slotted(*) {
+    margin-inline: -1em;
+  }
+  .collapse {
+    margin-inline: -1em;
+  }
+  .line,
+  .collapse {
+    border-radius: 10px;
+    flex-grow: 1;
+    background: ${elementTheme.color};
+    block-size: var(--size);
   }
 `);
 
@@ -30,37 +71,15 @@ const style = createCSSSheet(css`
 @aria({ role: 'separator' })
 @shadow()
 export class DuoyunDividerElement extends GemElement {
+  @slot static unnamed: string;
+
   @attribute size: 'small' | 'medium' | 'large';
   @attribute color: string;
   @attribute orientation: 'horizontal' | 'vertical';
+  @attribute position: 'start' | 'center' | 'end';
 
   get #orientation() {
     return this.orientation || 'horizontal';
-  }
-
-  get #size() {
-    switch (this.size) {
-      case 'large':
-        return '4px';
-      case 'medium':
-        return '2px';
-      default:
-        return '1px';
-    }
-  }
-
-  get #height() {
-    if (this.#orientation === 'vertical') {
-      return 'auto';
-    }
-    return this.#size;
-  }
-
-  get #width() {
-    if (this.#orientation === 'vertical') {
-      return this.#size;
-    }
-    return 'auto';
   }
 
   get #color() {
@@ -79,5 +98,16 @@ export class DuoyunDividerElement extends GemElement {
   };
 
   @elementTheme()
-  #theme = () => ({ width: this.#width, height: this.#height, color: this.#color });
+  #theme = () => ({ color: this.#color });
+
+  @template()
+  #content = () => {
+    return html`
+      <span class="line start"></span>
+      <slot>
+        <div class="collapse"></div>
+      </slot>
+      <span class="line end"></span>
+    `;
+  };
 }

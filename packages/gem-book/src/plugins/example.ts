@@ -197,7 +197,7 @@ class _GbpExampleElement extends GemBookPluginElement {
           ? key.replace(/@(\w)/, (_, c) => 'on' + c.toUpperCase())
           : String(value)
         : this.#jsonStringify(value);
-    const kString = key.startsWith('@') ? key : `.${key}`;
+    const kString = key.startsWith('@') || key === 'style' ? key : `.${key}`;
     const hasMultipleLine = vString.includes('\n');
     const indentValue = hasMultipleLine ? `\n${this.#addIndentation(vString, 4)}\n` : vString;
     return html`${isNewLine ? html`<br />${this.#addIndentation('')}` : ' '}<span class="attribute">${kString}</span

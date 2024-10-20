@@ -36,6 +36,10 @@ export function sleep(ms = 3000) {
   return new Promise((res) => setTimeout(res, ms));
 }
 
+export function nextFrame() {
+  return new Promise((resolve) => requestAnimationFrame(() => resolve(null)));
+}
+
 export function throttle<T extends (...args: any) => any>(
   fn: T,
   wait = 500,

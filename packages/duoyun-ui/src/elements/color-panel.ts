@@ -68,9 +68,7 @@ const style = createCSSSheet(css`
     width: 1.8em;
   }
   .hue-bar {
-    background-image: linear-gradient(
-      ${Array.from({ length: 15 }, (_, i) => `hsl(${360 - (360 / (15 - 1)) * i}, 100%, 50%)`).join(',')}
-    );
+    background-image: linear-gradient(0deg in hsl longer hue, red, red);
   }
   .alpha-bar {
     background: var(--alpha);
