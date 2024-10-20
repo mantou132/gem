@@ -115,9 +115,9 @@ export const getSelectedGem = function (data: PanelStore): PanelStore | string {
     'toggleAttribute',
   ]);
   const lifecycleMethod = new Set(['willMount', 'render', 'mounted', 'shouldUpdate', 'updated', 'unmounted']);
-  const buildInMethod = new Set(['update', 'setState', 'effect', 'memo']);
+  const buildInMethod = new Set(['update', /**@deprecated */ 'setState', 'effect', 'memo']);
   const buildInProperty = new Set(['internals']);
-  const buildInAttribute = new Set(['ref', 'data-gem-reflect', 'data-gem-style']);
+  const buildInAttribute = new Set([/**@deprecated */ 'ref', 'data-gem-reflect', 'data-gem-style']);
   const buildInCSSState = new Set(['gem-style-boundary']);
   const memberSet = getProps($0);
   metadata.observedAttributes?.forEach((attr) => {

@@ -160,10 +160,10 @@ export class Nav extends GemElement {
     if (lang) {
       return html`
         <div class="icon item">
-          <gem-use @click=${() => this.#i18nRef.element?.click()} .element=${icons.i18n}></gem-use>
+          <gem-use @click=${() => this.#i18nRef.value?.click()} .element=${icons.i18n}></gem-use>
           <select
+            ${this.#i18nRef}
             aria-label="language select"
-            ref=${this.#i18nRef.ref}
             @change=${(e: any) => this.languagechange(e.target.value)}
           >
             ${langList.map(({ name, code }) => html`<option value=${code} ?selected=${code === lang}>${name}</option>`)}
@@ -215,7 +215,7 @@ export class Nav extends GemElement {
       <div class="left">
         ${internals.map((item) => this.#renderInternalItem(item))}
         ${textExternals.map((item) => this.#renderExternalItem(item))}
-        <div ref=${this.#spaceRef.ref} style="flex-grow: 1;"></div>
+        <div ${this.#spaceRef} style="flex-grow: 1;"></div>
       </div>
       <slot class="item">${bookStore.slots?.navInside}</slot>
       ${this.#renderI18nSelect()}
@@ -226,9 +226,9 @@ export class Nav extends GemElement {
 
   @effect()
   #setCompact = () => {
-    if (this.#i18nRef.element) {
-      this.#i18nRef.element.value = bookStore.lang!;
+    if (this.#i18nRef.value) {
+      this.#i18nRef.value.value = bookStore.lang!;
     }
-    this.compact ||= this.#spaceRef.element!.getBoundingClientRect().width < 100;
+    this.compact ||= this.#spaceRef.value!.getBoundingClientRect().width < 100;
   };
 }

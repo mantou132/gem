@@ -73,7 +73,7 @@ class MyElement extends GemElement {
   render() {
     const { count } = this.#state;
     return html`
-      <div ref=${this.#divRef.ref} @click=${() => this.#state({ count: count++ })}>${count}</div>
+      <div ${this.#divRef} @click=${() => this.#state({ count: count++ })}>${count}</div>
     `;
   }
 }

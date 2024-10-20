@@ -1,5 +1,3 @@
-import type { GemReflectElement } from '../elements/reflect';
-
 import { html, render } from './lit-html';
 import type { TemplateResult } from './lit-html';
 import type { Store } from './store';
@@ -8,17 +6,9 @@ import { LinkedList, addMicrotask, isArrayChange, addListener, randomStr, create
 
 export { directive } from './directive';
 export { repeat } from './repeat';
-export { html, svg, mathml, render, TemplateResult } from './lit-html';
+export { html, svg, mathml, render, TemplateResult, createRef } from './lit-html';
 
 declare global {
-  // 用于 css 选择器选择元素，使用 RefObject 自动选择获取
-  // 必须使用 attr 赋值
-  /**
-   * @attr ref
-   */
-  interface HTMLElement {
-    ref: string;
-  }
   interface DOMStringMap {
     gemReflect?: '';
     gemStyle?: '';
@@ -49,40 +39,6 @@ const updateTokenAlias = UpdateToken;
 
 const rootStyleSheetInfo = new WeakMap<Document | ShadowRoot, Map<CSSStyleSheet, number>>();
 const rootUpdateFnMap = new WeakMap<Map<CSSStyleSheet, number>, () => void>();
-
-const getReflectTargets = (ele: ShadowRoot | GemElement) =>
-  [...ele.querySelectorAll<GemReflectElement>('[data-gem-reflect]')].map((e) => e.target);
-
-class RefObject<T = HTMLElement> {
-  refSelector: string;
-  ele: GemElement | ShadowRoot;
-  ref: string;
-
-  constructor(current: GemElement) {
-    const ref = `ref-${randomStr()}`;
-    this.refSelector = `[ref=${ref}]`;
-    this.ele = current.internals.shadowRoot || current;
-    this.ref = ref;
-  }
-  get element() {
-    for (const e of [this.ele, ...getReflectTargets(this.ele)]) {
-      // 在 LightDOM 中可能工作很慢？
-      const result = e.querySelector(this.refSelector);
-      if (result) return result as T;
-    }
-  }
-  get elements() {
-    return [this.ele, ...getReflectTargets(this.ele)]
-      .map((e) => [...e.querySelectorAll(this.refSelector)] as T[])
-      .flat();
-  }
-  [Symbol.toPrimitive]() {
-    return this.ref;
-  }
-}
-
-/**必须使用在字段中，否则会读取到错误的实例 */
-export let createRef: <T>() => RefObject<T>;
 
 class GemCSSStyleSheet extends CSSStyleSheet {
   #ele?: HTMLStyleElement;
@@ -345,7 +301,6 @@ export abstract class GemElement extends HTMLElement {
       ele.#internals.stateList.push(state);
       return state;
     };
-    createRef = () => new RefObject(currentConstructGemElement);
     _createTemplate = (ele, item) => ele.#renderList.push(item);
   }
 

@@ -181,7 +181,7 @@ export class DuoyunButtonElement extends GemElement {
     e.stopPropagation();
     if (this.disabled) return;
     if (this.dropdown) {
-      const { element } = this.#dropdownRef;
+      const { value: element } = this.#dropdownRef;
       const { right, bottom } = element!.getBoundingClientRect();
       const { width } = this.getBoundingClientRect();
       element!.active = true;
@@ -228,7 +228,7 @@ export class DuoyunButtonElement extends GemElement {
       ${this.dropdown
         ? html`
             <dy-use
-              ref=${this.#dropdownRef.ref}
+              ${this.#dropdownRef}
               class="dropdown"
               part=${DuoyunButtonElement.dropdown}
               @keydown=${commonHandle}

@@ -162,7 +162,7 @@ export class DuoyunSliderElement extends GemElement {
 
   #onPan = ({ detail, target }: CustomEvent<PanEventDetail>) => {
     if (this.disabled) return;
-    const { width, height } = this.#sliderRef.element!.getBoundingClientRect();
+    const { width, height } = this.#sliderRef.value!.getBoundingClientRect();
     const { left, right, top, bottom, width: w, height: h } = (target as Element).getBoundingClientRect();
     const isV = this.#isVertical;
     const totalLength = isV ? height - h : width - w;
@@ -220,7 +220,7 @@ export class DuoyunSliderElement extends GemElement {
 
   render = () => {
     return html`
-      <div class="slider" ref=${this.#sliderRef.ref}>
+      <div ${this.#sliderRef} class="slider">
         <dy-gesture
           class=${classMap({ mark: true, start: this.#state.start })}
           @pan=${this.#onPan}

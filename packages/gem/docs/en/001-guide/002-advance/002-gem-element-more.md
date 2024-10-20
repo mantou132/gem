@@ -14,11 +14,11 @@ class MyElement extends GemElement {
   #inputRef = createRef();
 
   render() {
-    return html`<input ref=${this.#inputRef.ref} />`;
+    return html`<input ${this.#inputRef} />`;
   }
 
   focus() {
-    this.#inputRef.element.focus();
+    this.#inputRef.value.focus();
   }
 }
 ```

@@ -177,7 +177,7 @@ export class DuoyunPopoverElement extends GemElement {
   }
 
   get popoverElement() {
-    return this.#popoverRef.element;
+    return this.#popoverRef.value;
   }
 
   #open = (targetRect?: { top: number; right: number; bottom: number; left: number }) => {
@@ -186,7 +186,7 @@ export class DuoyunPopoverElement extends GemElement {
     let rect = targetRect;
     if (!rect) {
       // self is `display: contents`
-      let elements = this.#slotRef.element!.assignedElements({ flatten: true });
+      let elements = this.#slotRef.value!.assignedElements({ flatten: true });
       if (!elements.length) {
         elements = [this];
         this.style.display = 'inline';
@@ -320,8 +320,8 @@ export class DuoyunPopoverElement extends GemElement {
                 }
               ></div>
               <dy-popover-ghost
+                ${this.#popoverRef}
                 role=${this.#role}
-                ref=${this.#popoverRef.ref}
                 data-position=${position}
                 style=${styleMap({
                   ...style,
@@ -337,7 +337,7 @@ export class DuoyunPopoverElement extends GemElement {
             </dy-reflect>
           `
         : ''}
-      <slot ref=${this.#slotRef.ref} part=${DuoyunPopoverElement.slot}></slot>
+      <slot ${this.#slotRef} part=${DuoyunPopoverElement.slot}></slot>
     `;
   };
 

@@ -86,7 +86,7 @@ export class App extends GemElement {
   }
 
   #onClick = () => {
-    if (this.#routeRef.element?.currentRoute === routes.home) {
+    if (this.#routeRef.value?.currentRoute === routes.home) {
       history.push(createHistoryParams(routes.a, { params: { b: String(Date.now()) } }));
     } else {
       history.push(createHistoryParams(routes.home));
@@ -97,7 +97,7 @@ export class App extends GemElement {
       <main>
         <pre>${JSON.stringify(locationStore.params)}</pre>
         <gem-route
-          ref=${this.#routeRef.ref}
+          ${this.#routeRef}
           @loading=${console.log}
           @routechange=${console.log}
           @error=${console.error}

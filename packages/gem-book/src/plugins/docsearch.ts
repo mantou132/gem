@@ -178,7 +178,7 @@ class _GbpDocsearchElement extends GemBookPluginElement {
           width: 1em;
         }
       </style>
-      <div ref=${this.#searchRef.ref}></div>
+      <div ${this.#searchRef}></div>
     `;
   }
 
@@ -268,7 +268,7 @@ class _GbpDocsearchElement extends GemBookPluginElement {
       appId: this.appId || undefined,
       apiKey: this.apiKey,
       indexName: this.indexName,
-      container: this.#searchRef.element,
+      container: this.#searchRef.value,
       searchParameters: {
         facetFilters: GemBookPluginElement.lang ? [`lang:${GemBookPluginElement.lang}`] : [],
       },

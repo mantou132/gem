@@ -109,20 +109,20 @@ export class DuoyunBadgeElement extends GemElement {
     return getSemanticColor(this.color) || this.color || theme.negativeColor;
   }
 
+  @mounted()
   #onSlotChange = () => {
-    this.inline = !this.#slotRef.element!.assignedElements({ flatten: true }).length;
+    this.inline = !this.#slotRef.value!.assignedElements({ flatten: true }).length;
   };
 
   @mounted()
   #init = () => {
-    this.inline = !this.childNodes.length;
-    this.#slotRef.element?.addEventListener('slotchange', this.#onSlotChange);
+    this.#slotRef.value?.addEventListener('slotchange', this.#onSlotChange);
   };
 
   render = () => {
     const value = Number(this.count) > this.#max ? `${this.#max}+` : `${this.count}`;
     return html`
-      <slot ref=${this.#slotRef.ref}></slot>
+      <slot ${this.#slotRef}></slot>
       ${this.count || this.icon || this.dot
         ? html`
             <span

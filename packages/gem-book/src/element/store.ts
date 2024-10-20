@@ -290,7 +290,7 @@ export function updateBookConfig(config?: BookConfig, gemBookElement?: GemBookEl
     bookStore({
       isDevMode: () => gemBookElement.dev,
       getCurrentLink: () => {
-        return gemBookElement?.routeRef.element?.currentRoute?.data as NavItemWithLink | undefined;
+        return gemBookElement?.routeRef.value?.currentRoute?.data as NavItemWithLink | undefined;
       },
     });
   }

@@ -6,7 +6,8 @@
 
 /**
  * TemplateResult change to classes
- * Use `null`/`undefined` instead `nothing`
+ * Use `null`/`undefined` instead `nothing`, no export `noChange`
+ * Built-in ref & rest props`
  * Remove compiled template result
  * Remove sanitizer
  * Remove debug log event
@@ -1154,6 +1155,8 @@ class ElementPart implements Disconnectable {
   /** @internal */
   _$disconnectableChildren?: Set<Disconnectable> = undefined;
 
+  _$props: any;
+
   options: RenderOptions | undefined;
 
   constructor(
@@ -1171,8 +1174,28 @@ class ElementPart implements Disconnectable {
   }
 
   _$setValue(value: unknown) {
-    resolveDirective(this, value);
+    if (!value) return;
+    if (value instanceof Ref) {
+      value.value = this.element;
+    } else if ((value as DirectiveResult)['_$litDirective$']) {
+      resolveDirective(this, value);
+    } else {
+      if (this._$props) {
+        for (const prop in this._$props) {
+          Reflect.set(this.element, prop, undefined);
+        }
+      }
+      Object.assign(this.element, value);
+      this._$props = value;
+    }
   }
+}
+
+export const createRef = <T = Element>() => new Ref<T>();
+
+export type { Ref };
+class Ref<T = Element> {
+  value?: T;
 }
 
 export const render = (

@@ -148,7 +148,7 @@ export class DuoyunFilePickerElement extends GemElement implements BasePickerEle
   }
 
   #onChange = () => {
-    const input = this.#inputRef.element!;
+    const input = this.#inputRef.value!;
     if (!input.files) return;
     this.change([...((this.multiple && this.value) || []), ...input.files]);
     input.value = '';
@@ -217,11 +217,11 @@ export class DuoyunFilePickerElement extends GemElement implements BasePickerEle
 
     return html`
       <input
+      ${this.#inputRef}
         hidden
         type="file"
         ?multiple=${this.multiple}
         ?disabled=${this.disabled}
-        ref=${this.#inputRef.ref}
         @change=${this.#onChange}
         .webkitdirectory=${this.directory}
         accept=${this.#accept}>
@@ -242,6 +242,6 @@ export class DuoyunFilePickerElement extends GemElement implements BasePickerEle
   };
 
   showPicker() {
-    this.#inputRef.element!.click();
+    this.#inputRef.value!.click();
   }
 }

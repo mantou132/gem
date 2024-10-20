@@ -63,7 +63,7 @@ export class App extends GemElement {
   };
 
   loadHandle = () => {
-    const { element } = this.#childRef;
+    const { value: element } = this.#childRef;
     if (!element) return;
     const { firstName, lastName, disabled, count } = element;
     console.log({ firstName, lastName, disabled, count });
@@ -85,7 +85,7 @@ export class App extends GemElement {
       </style>
       <h1>${this.appTitle}</h1>
       <app-children
-        ref=${this.#childRef.ref}
+        ${this.#childRef}
         @load=${this.loadHandle}
         @say-hi=${this.onSayHi}
         .message=${store.msg}

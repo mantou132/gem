@@ -89,7 +89,7 @@ export class DuoyunCollapsePanelElement extends GemElement {
   #contentRef = createRef<HTMLDivElement>();
 
   #animate = async (isCollapse: boolean) => {
-    const { element } = this.#contentRef;
+    const { value: element } = this.#contentRef;
     if (!element) return;
     const { height } = element.getBoundingClientRect();
     const frames = [{ height: 0, paddingBlock: 0, borderWidth: 0 }, { height: `${height}px` }];
@@ -114,8 +114,8 @@ export class DuoyunCollapsePanelElement extends GemElement {
       ${expand || this.searchable
         ? html`
             <div
+              ${this.#contentRef}
               class=${classMap({ detail: true, expand })}
-              ref=${this.#contentRef.ref}
               part=${DuoyunCollapsePanelElement.detail}
               hidden=${expand ? null : 'until-found'}
               @beforematch=${this.toggleState}

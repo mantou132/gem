@@ -470,7 +470,7 @@ export class Pre extends GemElement {
   }
 
   get #contentElement() {
-    return supportAnchor ? this.#editorRef.element : this.#codeRef.element;
+    return supportAnchor ? this.#editorRef.value : this.#codeRef.value;
   }
 
   #codeRef = createRef<HTMLElement>();
@@ -527,7 +527,7 @@ export class Pre extends GemElement {
   #updateHtml = async () => {
     if (this.status === 'hidden') return;
     if (!this.#isVisble) return;
-    if (!this.#codeRef.element) return;
+    if (!this.#codeRef.value) return;
     await import(/* @vite-ignore */ /* webpackIgnore: true */ prismjs);
     const { Prism } = window as any;
     if (this.codelang && !Prism.languages[this.codelang]) {
@@ -546,7 +546,7 @@ export class Pre extends GemElement {
       ? Prism.highlight(this.textContent || '', Prism.languages[this.codelang], this.codelang)
       : this.innerHTML;
     const { parts, lineNumbersParts } = this.#getParts(htmlStr);
-    this.#codeRef.element.innerHTML = parts.reduce(
+    this.#codeRef.value.innerHTML = parts.reduce(
       (p, c, i) =>
         `${p}<span class="code-ignore token comment">  @@ ${lineNumbersParts[i - 1].at(-1)! + 1}-${
           lineNumbersParts[i].at(0)! - 1
@@ -617,7 +617,7 @@ export class Pre extends GemElement {
           : ''}
         <div class="code-container">
           <code
-            ref=${this.#codeRef.ref}
+            ${this.#codeRef}
             class="gem-code padding"
             spellcheck="false"
             contenteditable=${this.editable ? contenteditableValue : false}
@@ -628,7 +628,7 @@ export class Pre extends GemElement {
           >
           ${this.editable
             ? html`<code
-                ref=${this.#editorRef.ref}
+                ${this.#editorRef}
                 class="code-shadow padding"
                 spellcheck="false"
                 contenteditable=${this.editable ? contenteditableValue : false}

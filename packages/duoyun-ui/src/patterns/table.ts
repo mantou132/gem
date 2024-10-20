@@ -244,7 +244,7 @@ export class DyPatTableElement<T = any> extends GemElement {
   #onContextMenu = (originEvent: MouseEvent, currentRowData?: T, selected?: boolean) => {
     if (originEvent.altKey) return;
     if (!this.selectable) return;
-    const table = this.#tableRef.element!;
+    const table = this.#tableRef.value!;
     const { selection } = this.#state;
     originEvent.stopPropagation();
     originEvent.preventDefault();
@@ -660,7 +660,7 @@ export class DyPatTableElement<T = any> extends GemElement {
 
     if (!search) return highlights.clear();
 
-    const tbody = this.#tableRef.element?.shadowRoot?.querySelector('tbody');
+    const tbody = this.#tableRef.value?.shadowRoot?.querySelector('tbody');
     if (!tbody) return;
 
     const highlight = new Highlight();
@@ -711,7 +711,7 @@ export class DyPatTableElement<T = any> extends GemElement {
         <slot></slot>
       </div>
       <dy-table
-        ref=${this.#tableRef.ref}
+        ${this.#tableRef}
         part="table-wrap"
         exportparts="table,tr,td,th"
         .getRowStyle=${this.getRowStyle}

@@ -118,11 +118,11 @@ export class DuoyunListElement extends GemElement {
   }
 
   get #beforeVisible() {
-    return this.#beforeItemRef.element?.visible;
+    return this.#beforeItemRef.value?.visible;
   }
 
   get #afterVisible() {
-    return this.#afterItemRef.element?.visible;
+    return this.#afterItemRef.value?.visible;
   }
 
   // 防止网格布局渲染不是整数行
@@ -415,7 +415,7 @@ export class DuoyunListElement extends GemElement {
   #initLayout = (ele: DuoyunListItemElement) => {
     this.#initCheckOnce(this.items!.length > this.#itemCountPerScreen);
 
-    const style = getComputedStyle(this.#listRef.element!);
+    const style = getComputedStyle(this.#listRef.value!);
     const thisGrid = getComputedStyle(this);
     this.#rowGap = parseFloat(style.rowGap) || parseFloat(thisGrid.rowGap) || 0;
     this.#columnGap = parseFloat(style.columnGap) || parseFloat(thisGrid.columnGap) || 0;
@@ -507,14 +507,14 @@ export class DuoyunListElement extends GemElement {
       <slot name=${DuoyunListElement.before}></slot>
       ${this.infinite
         ? html`<dy-list-outside
-            ref=${this.#beforeItemRef.ref}
+            ${this.#beforeItemRef}
             part=${DuoyunListElement.beforeOutside}
             .intersectionRoot=${this.scrollContainer}
             @show=${this.#onBeforeItemVisible}
             style=${styleMap({ height: `${beforeHeight}px` })}
           ></dy-list-outside>`
         : html``}
-      <div ref=${this.#listRef.ref} class="list" part=${DuoyunListElement.list}>
+      <div ${this.#listRef} class="list" part=${DuoyunListElement.list}>
         ${this.infinite
           ? renderList.map((key) => this.#getElement(key))
           : this.#items?.map(
@@ -529,7 +529,7 @@ export class DuoyunListElement extends GemElement {
             )}
       </div>
       <dy-list-outside
-        ref=${this.#afterItemRef.ref}
+        ${this.#afterItemRef}
         part=${DuoyunListElement.afterOutside}
         .intersectionRoot=${this.scrollContainer}
         @show=${this.#onAfterItemVisible}

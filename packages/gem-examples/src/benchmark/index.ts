@@ -105,7 +105,7 @@ export class App extends GemElement {
 
   @effect((i) => [i.#state.canvasKey, i.#state.ratio])
   #changeSettings = () => {
-    const offscreenCanvas = this.#canvasRef.element!.transferControlToOffscreen();
+    const offscreenCanvas = this.#canvasRef.value!.transferControlToOffscreen();
     this.#worker.postMessage(
       {
         ratio: this.#state.ratio,
@@ -138,7 +138,7 @@ export class App extends GemElement {
       ${repeat(
         [canvasKey],
         (k) => k,
-        () => html`<canvas ref=${this.#canvasRef.ref} width=${width / ratio} height=${height / ratio}></canvas>`,
+        () => html`<canvas ${this.#canvasRef} width=${width / ratio} height=${height / ratio}></canvas>`,
       )}
       <div class="grid">
         ${repeat(

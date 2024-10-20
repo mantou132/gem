@@ -28,7 +28,7 @@ export class FormText extends GemElement {
 
   #inputHandle = (e: InputEvent) => {
     if (!e.isComposing) {
-      const { element } = this.#inputRef;
+      const { value: element } = this.#inputRef;
       if (!element) return;
       const { value, selectionStart, selectionEnd } = element;
       this.#nextState = {
@@ -43,7 +43,7 @@ export class FormText extends GemElement {
 
   @effect((i) => [i.value])
   #init = () => {
-    const { element } = this.#inputRef;
+    const { value: element } = this.#inputRef;
     if (!element) return;
     if (this.value === this.#nextState.value) {
       element.value = this.#nextState.value;
@@ -55,7 +55,7 @@ export class FormText extends GemElement {
   };
 
   render() {
-    return html`<input ref=${this.#inputRef.ref} @input=${this.#inputHandle} />`;
+    return html`<input ${this.#inputRef} @input=${this.#inputHandle} />`;
   }
 }
 

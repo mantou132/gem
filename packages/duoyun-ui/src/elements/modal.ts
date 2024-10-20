@@ -191,7 +191,7 @@ export class DuoyunModalElement extends GemElement {
     return DyPromise.new<T, { modal: DuoyunModalElement }>(
       (res, rej) => {
         const getBodyEle = () => {
-          const ele = modal.#bodyRef.element?.children[0] as any;
+          const ele = modal.#bodyRef.value?.children[0] as any;
           return ele instanceof HTMLSlotElement ? ele.assignedElements()[0] : ele;
         };
         modal.addEventListener('close', async () => {
@@ -284,14 +284,14 @@ export class DuoyunModalElement extends GemElement {
   };
 
   #openAnimate = () => {
-    this.#maskRef.element?.animate(fadeIn, commonAnimationOptions);
-    (this.#dialogRef.element || this.#bodyRef.element)?.animate(this.openAnimation, commonAnimationOptions);
+    this.#maskRef.value?.animate(fadeIn, commonAnimationOptions);
+    (this.#dialogRef.value || this.#bodyRef.value)?.animate(this.openAnimation, commonAnimationOptions);
   };
 
   #closeAnimate = () =>
     Promise.all([
-      this.#maskRef.element?.animate(fadeOut, commonAnimationOptions).finished,
-      (this.#dialogRef.element || this.#bodyRef.element)?.animate(this.closeAnimation, commonAnimationOptions).finished,
+      this.#maskRef.value?.animate(fadeOut, commonAnimationOptions).finished,
+      (this.#dialogRef.value || this.#bodyRef.value)?.animate(this.closeAnimation, commonAnimationOptions).finished,
     ]);
 
   @memo((i) => [i.open])
@@ -316,11 +316,11 @@ export class DuoyunModalElement extends GemElement {
     if (!this.open && !this.closing) return html``;
 
     return html`
-      <div class="mask absolute" ref=${this.#maskRef.ref} @click=${this.#onMaskClick}></div>
+      <div ${this.#maskRef} class="mask absolute" @click=${this.#onMaskClick}></div>
       ${this.customize
         ? html`
             <div
-              ref=${this.#bodyRef.ref}
+              ${this.#bodyRef}
               part=${DuoyunModalElement.dialog}
               role="dialog"
               tabindex="0"
@@ -332,7 +332,7 @@ export class DuoyunModalElement extends GemElement {
           `
         : html`
             <div
-              ref=${this.#dialogRef.ref}
+              ${this.#dialogRef}
               part=${DuoyunModalElement.dialog}
               role="dialog"
               tabindex="0"
@@ -348,7 +348,7 @@ export class DuoyunModalElement extends GemElement {
                   `
                 : ''}
               <dy-scroll-box class="body" part=${DuoyunModalElement.body}>
-                <slot ref=${this.#bodyRef.ref}>${this.#body}</slot>
+                <slot ${this.#bodyRef}>${this.#body}</slot>
               </dy-scroll-box>
               <div class="footer" part=${DuoyunModalElement.footer}>
                 <slot name=${DuoyunModalElement.footer}>

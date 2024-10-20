@@ -414,7 +414,7 @@ class _GbpSandpackElement extends GemBookPluginElement {
       dispatch: ({ type }: SandpackMessage) => {
         switch (type) {
           case 'refresh':
-            return this.#iframeRef.element?.contentWindow?.location.reload();
+            return this.#iframeRef.value?.contentWindow?.location.reload();
         }
       },
       destroy: () => URL.revokeObjectURL(iframe.src),
@@ -430,7 +430,7 @@ class _GbpSandpackElement extends GemBookPluginElement {
 
   #initSandpackClient = async () => {
     return (this.#useESMBuild ? this.#loadESBuildClient : await this.#getLoadSandpackClient())(
-      this.#iframeRef.element!,
+      this.#iframeRef.value!,
       {
         files: this.#state.files.reduce((p, c) => ({ ...p, [c.filename]: { code: c.code } }), {
           'sandbox.config.json': this.#sandBoxConfigFile,
@@ -585,7 +585,7 @@ class _GbpSandpackElement extends GemBookPluginElement {
           <div class="sandbox" ?hidden=${status === 'done'}>
             <span class="status">${status.replace(/_|-/g, ' ')}...</span>
           </div>
-          <iframe ref=${this.#iframeRef.ref} class=${classMap({ sandbox: true, loading: status !== 'done' })}></iframe>
+          <iframe ${this.#iframeRef} class=${classMap({ sandbox: true, loading: status !== 'done' })}></iframe>
         </div>
       </div>
     `;

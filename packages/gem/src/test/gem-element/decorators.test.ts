@@ -1,6 +1,6 @@
 import { fixture, expect } from '../utils';
 import type { Metadata } from '../../lib/element';
-import { createCSSSheet, GemElement, html, createRef } from '../../lib/element';
+import { createCSSSheet, GemElement, html } from '../../lib/element';
 import { createStore } from '../../lib/store';
 import { css } from '../../lib/utils';
 import type { Emitter } from '../../lib/decorators';
@@ -46,7 +46,6 @@ class DecoratorGemElement extends GemElement {
   @state openState: boolean;
   @part headerPart: string;
   @slot bodySlot: string;
-  inputRef = createRef<HTMLElement>();
   renderCount = 0;
   render() {
     this.renderCount++;
@@ -98,7 +97,6 @@ describe('装饰器', () => {
     expect(el.propData).to.eql({ value: 'prop' });
     expect(el.openState).to.equal(false);
     expect(el.headerPart).to.equal('header-part');
-    expect(el.inputRef.ref.startsWith('ref-')).to.equal(true);
     expect(el.bodySlot).to.equal('body-slot');
     expect(el.shadowRoot?.textContent).to.equal('attr: attr, disabled: true, count: 2, prop: prop');
     store({ a: 3 });

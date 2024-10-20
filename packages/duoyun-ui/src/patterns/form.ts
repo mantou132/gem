@@ -329,7 +329,7 @@ export class DyPatFormElement<T = Record<string, unknown>> extends GemElement {
                     const ele = this.#createFormInputElement(props.type);
                     ele.addEventListener('change', (evt: CustomEvent<any>) => {
                       this.#onInputChange(evt, props);
-                      this.#formRef.element?.dispatchEvent(
+                      this.#formRef.value?.dispatchEvent(
                         new CustomEvent('itemchange', {
                           detail: { name: name, value: evt.detail },
                         }),
@@ -527,7 +527,7 @@ export class DyPatFormElement<T = Record<string, unknown>> extends GemElement {
 
   render = () => {
     return html`
-      <dy-form @change=${this.#onChange} @itemchange=${this.#onItemChange} ref=${this.#formRef.ref}>
+      <dy-form ${this.#formRef} @change=${this.#onChange} @itemchange=${this.#onItemChange}>
         ${this.#renderItems(this.formItems)}
       </dy-form>
     `;
@@ -539,7 +539,7 @@ export class DyPatFormElement<T = Record<string, unknown>> extends GemElement {
     ignoreCache: {},
   });
 
-  valid = () => this.#formRef.element!.valid();
+  valid = () => this.#formRef.value!.valid();
 }
 
 type CreateFormOptions<T> = {

@@ -67,7 +67,7 @@ class MyElement extends GemElement {
   #input = createRef();
 
   render() {
-    return html`<input ref=${this.#input.ref}></input>`;
+    return html`<input ${this.#input}></input>`;
   }
 }
 ```

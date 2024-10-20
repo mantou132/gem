@@ -47,7 +47,7 @@ export class AppRoot extends GemElement {
       scale: 1,
       rotate: 0,
       swipe: '',
-      moves: [...this.#gestureRef.element!.movesMap.values().next().value],
+      moves: [...this.#gestureRef.value!.movesMap.values().next().value],
     });
   };
   render() {
@@ -62,7 +62,7 @@ export class AppRoot extends GemElement {
         }
       </style>
       <gem-gesture
-        ref=${this.#gestureRef.ref}
+        ${this.#gestureRef}
         @pan=${this.#onPan}
         @end=${this.#onEnd}
         @pinch=${this.#onPinch}

@@ -582,7 +582,7 @@ export class DuoyunFlowElement extends DuoyunResizeBaseElement {
   @effect((i) => [i.contentRect.width])
   #updateScale = () => {
     if (!this.loaded) return;
-    this.#setScale(this.#canvasRef.element!.contentRect);
+    this.#setScale(this.#canvasRef.value!.contentRect);
   };
 
   #exportparts = exportPartsMap({
@@ -597,7 +597,7 @@ export class DuoyunFlowElement extends DuoyunResizeBaseElement {
     this.loaded = !!scale;
     return html`
       <dy-flow-canvas
-        ref=${this.#canvasRef.ref}
+        ${this.#canvasRef}
         exportparts=${this.#exportparts}
         @resize=${this.#onCanvasResize}
         style=${styleMap({

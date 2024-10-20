@@ -297,7 +297,7 @@ export class DuoyunFormItemElement extends GemElement {
   }
 
   get #slotAssignedElement() {
-    return this.#slotRef.element!.assignedElements()[0] as any;
+    return this.#slotRef.value!.assignedElements()[0] as any;
   }
 
   #itemchange = (value: number | string | any[] | any) => {
@@ -501,7 +501,7 @@ export class DuoyunFormItemElement extends GemElement {
                             ></dy-input>
                           `
                       : ''}
-      <slot ref=${this.#slotRef.ref}></slot>
+      <slot ${this.#slotRef}></slot>
       ${invalidMessage
         ? html`
             <dy-help-text class="tip" part=${DuoyunFormItemElement.tip} status="negative">

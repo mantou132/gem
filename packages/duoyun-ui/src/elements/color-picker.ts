@@ -87,8 +87,8 @@ export class DuoyunColorPickerElement extends GemElement implements BasePickerEl
         `}
       >
         <div
+          ${this.#divRef}
           role="combobox"
-          ref=${this.#divRef.ref}
           tabindex=${-Number(this.disabled)}
           aria-disabled=${this.disabled}
           @keydown=${commonHandle}
@@ -100,6 +100,6 @@ export class DuoyunColorPickerElement extends GemElement implements BasePickerEl
   };
 
   showPicker() {
-    this.#divRef.element?.click();
+    this.#divRef.value?.click();
   }
 }

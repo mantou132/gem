@@ -99,7 +99,7 @@ class LifecycleGemElement extends GemElement {
     this.appTitle2 = appTitle2 ?? this.appTitle2;
     this.effect(
       () => {
-        this.refInConstructor = this.divRef.element;
+        this.refInConstructor = this.divRef.value;
       },
       () => [],
     );
@@ -117,7 +117,7 @@ class LifecycleGemElement extends GemElement {
 
   render() {
     this.renderCount++;
-    return html`<div ref=${this.divRef.ref}></div>`;
+    return html`<div ${this.divRef}></div>`;
   }
 }
 describe('gem element 生命周期', () => {

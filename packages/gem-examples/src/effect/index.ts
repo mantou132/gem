@@ -27,13 +27,13 @@ export class App extends GemElement {
     this.#state({ height });
   };
 
-  @effect((i) => [i.#textAreaRef.element, i.#updateHeight])
+  @effect((i) => [i.#textAreaRef.value, i.#updateHeight])
   #resizeObserverEffect = resizeObserverEffect;
 
   render() {
     return html`
       <div><button @click=${() => this.#state({ hidden: !this.#state.hidden })}>switch</button></div>
-      ${this.#state.hidden ? null : html`<textarea ref=${this.#textAreaRef.ref}></textarea>`}
+      ${this.#state.hidden ? null : html`<textarea ${this.#textAreaRef}></textarea>`}
       <div>${this.#state.height}</div>
     `;
   }

@@ -293,7 +293,7 @@ export class DuoyunContextmenuElement extends GemElement {
     ContextMenu.instance = this;
     this.addEventListener('contextmenu', this.#preventDefault);
     const ob = new ResizeObserver(this.#initPosition);
-    const optionsElement = this.#optionsRef.element;
+    const optionsElement = this.#optionsRef.value;
     if (optionsElement) ob.observe(optionsElement);
     return () => {
       if (optionsElement) ob.disconnect();
@@ -310,8 +310,8 @@ export class DuoyunContextmenuElement extends GemElement {
     // wait `<dy-options>` update
     await Promise.resolve();
     const causeEle = contextmenuStore.menuStack.at(-1)?.causeEle;
-    const optionsEle = this.#optionsRef.elements.at(-1)!;
-    if (!causeEle) return;
+    const { value: optionsEle } = this.#optionsRef;
+    if (!causeEle || !optionsEle) return;
     const causeEleRect = causeEle.getBoundingClientRect();
     const optionsEleRect = optionsEle.getBoundingClientRect();
     const isRight = optionsEleRect.right > causeEleRect.right;
@@ -350,8 +350,8 @@ export class DuoyunContextmenuElement extends GemElement {
         ) => html`
           ${causeMask}
           <dy-options
+            ${this.#optionsRef}
             class="menu"
-            ref=${this.#optionsRef.ref}
             style=${styleMap({
               width: menuWidth,
               maxHeight: maxHeight || `calc(100vh - 0.8em - ${y - this.#offset}px)`,

@@ -260,7 +260,7 @@ export class DuoyunInputElement extends GemElement {
 
   #inputHandle = () => {
     if (!this.composing) {
-      const { element } = this.#inputRef;
+      const { value: element } = this.#inputRef;
       if (!element) return;
       const { value, selectionStart, selectionEnd } = element;
       // `value` mission `2.`?
@@ -343,7 +343,7 @@ export class DuoyunInputElement extends GemElement {
 
   @effect((i) => [i.value])
   #updateState = () => {
-    const { element } = this.#inputRef;
+    const { value: element } = this.#inputRef;
     if (!element) return;
     const { value, selectionStart, selectionEnd } = this.#nextState;
     if (this.value === value) {
@@ -364,7 +364,7 @@ export class DuoyunInputElement extends GemElement {
       ${this.#type === 'textarea'
         ? html`
             <textarea
-              ref=${this.#inputRef.ref}
+              ${this.#inputRef}
               class="input"
               part=${DuoyunInputElement.input}
               spellcheck=${this.#spellcheck}
@@ -380,8 +380,8 @@ export class DuoyunInputElement extends GemElement {
           `
         : html`
             <input
+              ${this.#inputRef}
               type=${this.#type}
-              ref=${this.#inputRef.ref}
               class="input"
               part=${DuoyunInputElement.input}
               spellcheck=${this.#spellcheck}

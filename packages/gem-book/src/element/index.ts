@@ -207,7 +207,7 @@ export class GemBookElement extends GemElement {
       if (this.dev) logger.info('Event data', event.data);
       const { filePath, content, config: newConfig, theme: newTheme, reload } = event.data;
       if (event.type !== UPDATE_EVENT) return;
-      const routeELement = this.routeRef.element!;
+      const routeELement = this.routeRef.value!;
       const mainElement = routeELement.firstElementChild! as Main;
       if (reload) {
         location.reload();
@@ -290,7 +290,7 @@ export class GemBookElement extends GemElement {
       <main>
         ${renderHomePage ? '' : html`<slot name=${GemBookElement.mainBefore}>${bookStore.slots?.mainBefore}</slot>`}
         <gem-light-route
-          ref=${this.routeRef.ref}
+          ${this.routeRef}
           role="main"
           part=${GemBookElement.main}
           .locationStore=${locationStore}

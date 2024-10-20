@@ -217,7 +217,7 @@ export class DuoyunSelectElement extends GemElement implements BasePickerElement
     this.#state({ open: true });
     // safari auto focus
     await Promise.resolve();
-    this.#searchRef.element?.focus();
+    this.#searchRef.value?.focus();
   };
 
   #close = () => {
@@ -238,7 +238,7 @@ export class DuoyunSelectElement extends GemElement implements BasePickerElement
 
   #onEsc = () => {
     this.#close();
-    (this.#searchRef.element || this).focus();
+    (this.#searchRef.value || this).focus();
   };
 
   #onSearchKeydown = hotkeys(
@@ -254,7 +254,7 @@ export class DuoyunSelectElement extends GemElement implements BasePickerElement
       },
       tab: (evt) => {
         if (!this.#state.open) return;
-        this.#optionsRef.element?.focus();
+        this.#optionsRef.value?.focus();
         evt.preventDefault();
       },
       esc: this.#onEsc,
@@ -276,8 +276,8 @@ export class DuoyunSelectElement extends GemElement implements BasePickerElement
     {
       esc: this.#onEsc,
       'shift+tab': (evt) => {
-        if (!this.#optionsRef.element?.shadowRoot?.activeElement) {
-          (this.#searchRef.element || this).focus();
+        if (!this.#optionsRef.value?.shadowRoot?.activeElement) {
+          (this.#searchRef.value || this).focus();
           evt.preventDefault();
         }
       },
@@ -357,9 +357,9 @@ export class DuoyunSelectElement extends GemElement implements BasePickerElement
 
   @effect((i) => [i.#state.open])
   #autoFocus = () => {
-    if (this.#state.open && !this.searchable && !this.inline && this.#optionsRef.element) {
-      const restoreInert = setBodyInert(this.#optionsRef.element);
-      this.#optionsRef.element.focus();
+    if (this.#state.open && !this.searchable && !this.inline && this.#optionsRef.value) {
+      const restoreInert = setBodyInert(this.#optionsRef.value);
+      this.#optionsRef.value.focus();
       return () => {
         restoreInert();
         this.focus();
@@ -438,7 +438,7 @@ export class DuoyunSelectElement extends GemElement implements BasePickerElement
         ${this.#searchable
           ? html`
               <dy-input
-                ref=${this.#searchRef.ref}
+                ${this.#searchRef}
                 class="search"
                 type="search"
                 value=${search}
@@ -459,7 +459,7 @@ export class DuoyunSelectElement extends GemElement implements BasePickerElement
         ? html`
             <dy-reflect .target=${document.body}>
               <dy-options
-                ref=${this.#optionsRef.ref}
+                ${this.#optionsRef}
                 @keydown=${this.#onOptionsKeydown}
                 aria-multiselectable=${this.multiple}
                 style=${styleMap({

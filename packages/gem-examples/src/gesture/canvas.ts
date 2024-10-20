@@ -10,8 +10,8 @@ export class AppCanvas extends GemElement {
 
   @effect()
   #paint = () => {
-    const canvas = this.#canvasRef.element!;
-    const canvas1 = this.#canvasRef1.element!;
+    const canvas = this.#canvasRef.value!;
+    const canvas1 = this.#canvasRef1.value!;
     const ctx = canvas.getContext('2d')!;
     const ctx1 = canvas1.getContext('2d')!;
     canvas.width = 0;
@@ -60,8 +60,8 @@ export class AppCanvas extends GemElement {
   render() {
     return html`
       <br />
-      <canvas ref=${this.#canvasRef.ref} style="border: 1px solid" height="150"></canvas>
-      <canvas ref=${this.#canvasRef1.ref} style="border: 1px solid" height="150"></canvas>
+      <canvas ${this.#canvasRef} style="border: 1px solid" height="150"></canvas>
+      <canvas ${this.#canvasRef1} style="border: 1px solid" height="150"></canvas>
     `;
   }
 }

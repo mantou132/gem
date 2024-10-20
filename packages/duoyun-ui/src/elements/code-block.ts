@@ -369,7 +369,7 @@ export class DuoyunCodeBlockElement extends DuoyunVisibleBaseElement {
   @effect((i) => [i.textContent, i.codelang])
   #updateHtml = async () => {
     if (!this.visible) return;
-    if (!this.#codeRef.element) return;
+    if (!this.#codeRef.value) return;
     await import(/* @vite-ignore */ /* webpackIgnore: true */ prismjs);
     const { Prism } = window as any;
     if (this.codelang && !Prism.languages[this.codelang]) {
@@ -387,7 +387,7 @@ export class DuoyunCodeBlockElement extends DuoyunVisibleBaseElement {
     const htmlStr = Prism.languages[this.codelang]
       ? Prism.highlight(this.textContent || '', Prism.languages[this.codelang], this.codelang)
       : this.innerHTML;
-    this.#codeRef.element.innerHTML = this.#getParts(htmlStr);
+    this.#codeRef.value.innerHTML = this.#getParts(htmlStr);
   };
 
   render() {
@@ -405,7 +405,7 @@ export class DuoyunCodeBlockElement extends DuoyunVisibleBaseElement {
             `,
           )
         : ''}
-      <code ref=${this.#codeRef.ref} class="code">${this.#getParts(this.textContent || '')}</code>
+      <code ${this.#codeRef} class="code">${this.#getParts(this.textContent || '')}</code>
     `;
   }
 }

@@ -117,7 +117,7 @@ export class Root extends GemElement {
   });
 
   #clickHandle = () => {
-    this.#dialog.element?.open();
+    this.#dialog.value?.open();
   };
 
   render() {
@@ -129,8 +129,8 @@ export class Root extends GemElement {
       </style>
       <button ?inert=${this.#state.modal} @click="${this.#clickHandle}">open dialog</button>
       <app-dialog
+        ${this.#dialog}
         label="dialog title"
-        ref=${this.#dialog.ref}
         @open=${() => this.#state({ modal: true })}
         @close=${() => this.#state({ modal: false })}
       >

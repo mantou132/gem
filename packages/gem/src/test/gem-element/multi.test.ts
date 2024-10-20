@@ -14,7 +14,7 @@ export class Children extends GemElement {
   #init = () => this.sayHi();
 
   render() {
-    return html`<input ref=${this.inputRef.ref} />`;
+    return html`<input ${this.inputRef} />`;
   }
 }
 
@@ -29,23 +29,18 @@ export class App extends GemElement {
 
   render() {
     return html`
-      <app-children
-        ref=${this.childrenRef1.ref}
-        .value=${{ value: 1 }}
-        attr="1"
-        @say-hi=${this.#onSayHi}
-      ></app-children>
-      <app-children ref=${this.childrenRef2.ref} .value=${{ value: 2 }} attr="2"></app-children>
+      <app-children ${this.childrenRef1} .value=${{ value: 1 }} attr="1" @say-hi=${this.#onSayHi}></app-children>
+      <app-children ${this.childrenRef2} .value=${{ value: 2 }} attr="2"></app-children>
     `;
   }
 }
 describe('多个 gem element 一起工作', () => {
   it('ref & prop & attr', async () => {
     const el: App = await fixture(html`<app-root></app-root>`);
-    const children1 = el.childrenRef1.element!;
-    const children2 = el.childrenRef2.element!;
-    const input1 = children1.inputRef.element!;
-    const input2 = children2.inputRef.element!;
+    const children1 = el.childrenRef1.value!;
+    const children2 = el.childrenRef2.value!;
+    const input1 = children1.inputRef.value!;
+    const input2 = children2.inputRef.value!;
     expect(input1 !== input2).to.equal(true);
     expect(children1.value).to.eql({ value: 1 });
     expect(children2.value).to.eql({ value: 2 });

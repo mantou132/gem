@@ -13,11 +13,11 @@ class FormTextElement extends GemElement {
   #inputRef = createRef<HTMLInputElement>();
 
   render() {
-    return html`<input ref=${this.#inputRef.ref} value="defaultValue" />`;
+    return html`<input ${this.#inputRef} value="defaultValue" />`;
   }
 
   submit() {
-    return fetch('/', { body: this.#inputRef.element!.value });
+    return fetch('/', { body: this.#inputRef.value!.value });
   }
 }
 ```
@@ -34,11 +34,11 @@ You can use [`input` event](https://developer.mozilla.org/en-US/docs/Web/API/HTM
      #nextState = '';
 
      #inputHandle = (e: InputEvent) => {
-       this.#nextState = this.#inputRef.element!.value;
+       this.#nextState = this.#inputRef.value!.value;
      };
 
      render() {
-       return html`<input ref=${this.#inputRef.ref} @input=${this.#inputHandle} />`;
+       return html`<input ${this.#inputRef} @input=${this.#inputHandle} />`;
      }
    }
    ```
@@ -55,13 +55,13 @@ You can use [`input` event](https://developer.mozilla.org/en-US/docs/Web/API/HTM
      #nextState = '';
 
      #inputHandle = (e: InputEvent) => {
-       this.#nextState = this.#inputRef.element!.value;
-       this.#inputRef.element!.value = this.value;
+       this.#nextState = this.#inputRef.value!.value;
+       this.#inputRef.value!.value = this.value;
        this.change(value);
      };
 
      render() {
-       return html`<input ref=${this.#inputRef.ref} @input=${this.#inputHandle} />`;
+       return html`<input ${this.#inputRef} @input=${this.#inputHandle} />`;
      }
    }
    ```
@@ -78,22 +78,22 @@ You can use [`input` event](https://developer.mozilla.org/en-US/docs/Web/API/HTM
      #nextState = '';
 
      #inputHandle = (e: InputEvent) => {
-       this.#nextState = this.#inputRef.element!.value;
-       this.#inputRef.element!.value = this.value;
+       this.#nextState = this.#inputRef.value!.value;
+       this.#inputRef.value!.value = this.value;
        this.change(value);
      };
 
      @effect((i) => [i.value])
      #updateValue = () => {
        if (this.value === this.nextState.value) {
-         this.#inputRef.element!.value = this.nextState.value;
+         this.#inputRef.value!.value = this.nextState.value;
        } else {
-         this.#inputRef.element!.value = this.value;
+         this.#inputRef.value!.value = this.value;
        }
      };
 
      render() {
-       return html`<input ref=${this.#inputRef.ref} @input=${this.#inputHandle} />`;
+       return html`<input ${this.#inputRef} @input=${this.#inputHandle} />`;
      }
    }
    ```
