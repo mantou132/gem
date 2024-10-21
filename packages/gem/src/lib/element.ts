@@ -381,6 +381,7 @@ export abstract class GemElement extends HTMLElement {
       render(temp, this.#renderRoot);
     } catch (err) {
       this.dispatchEvent(new CustomEvent(_RenderErrorEvent, { bubbles: true, composed: true, detail: err }));
+      throw err;
     }
   };
 

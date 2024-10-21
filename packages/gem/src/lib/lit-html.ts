@@ -53,7 +53,6 @@ type Primitive = null | undefined | boolean | number | string | symbol | bigint;
 const isPrimitive = (value: unknown): value is Primitive =>
   value === null || (typeof value != 'object' && typeof value != 'function');
 const isNullish = (value: unknown) => value === null || value === undefined;
-const isArray = Array.isArray;
 const isIterable = (value: any): value is Iterable<unknown> => Symbol.iterator in value;
 
 const SPACE_CHAR = `[ \t\n\f\r]`;
@@ -222,14 +221,7 @@ export interface DirectiveParent {
 }
 
 function trustFromTemplateString(tsa: TemplateStringsArray, stringFromTSA: string): TrustedHTML {
-  // A security check to prevent spoofing of Lit template results.
-  // In the future, we may be able to replace this with Array.isTemplateObject,
-  // though we might need to make that check inside of the html and svg
-  // functions, because precompiled templates don't come in as
-  // TemplateStringArray objects.
-  if (!isArray(tsa) || !tsa.hasOwnProperty('raw')) {
-    throw new Error('invalid template strings array');
-  }
+  if (!Array.isArray(tsa)) throw new Error('invalid template');
   return policy !== undefined ? policy.createHTML(stringFromTSA) : (stringFromTSA as unknown as TrustedHTML);
 }
 
@@ -855,7 +847,7 @@ export class ChildPart implements Disconnectable {
     // iterable and value will contain the ChildParts from the previous
     // render. If value is not an array, clear this part and make a new
     // array for ChildParts.
-    if (!isArray(this._$committedValue)) {
+    if (!Array.isArray(this._$committedValue)) {
       this._$committedValue = [];
       this._$clear();
     }
