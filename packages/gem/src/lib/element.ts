@@ -218,6 +218,19 @@ function clearEffect(list: EffectItem<any>[]) {
 type Render = () => TemplateResult | null | undefined;
 type RenderItem = { render: Render; condition?: () => boolean };
 
+const nullTemplate = html`
+  <style>
+    :host {
+      display: none !important;
+    }
+    @scope {
+      :scope {
+        display: none !important;
+      }
+    }
+  </style>
+`;
+
 export let _createTemplate: (ele: GemElement, item: RenderItem) => void;
 
 export type Metadata = Partial<ShadowRootInit> & {
@@ -366,9 +379,10 @@ export abstract class GemElement extends HTMLElement {
 
   /**
    * - 条件渲染
-   * - 不提供 `render` 时显示子内容
-   * - 返回 `null` 时渲染空的子内容
+   * - 没有 `render` 时显示子内容
    * - 返回 `undefined` 时不会更新现有内容
+   * - 返回 `null` 时渲染空内容
+   * - 返回 html`` 时渲染空的子内容
    * */
   #render = (item?: RenderItem) => {
     try {
@@ -378,7 +392,7 @@ export abstract class GemElement extends HTMLElement {
       const temp = item ? item.render() : isLight ? undefined : html`<slot></slot>`;
       this.#rendering = false;
       if (temp === undefined) return;
-      render(temp, this.#renderRoot);
+      render(temp === null ? nullTemplate : temp, this.#renderRoot);
     } catch (err) {
       this.dispatchEvent(new CustomEvent(_RenderErrorEvent, { bubbles: true, composed: true, detail: err }));
       throw err;

@@ -33,17 +33,3 @@ export const blockContainer = createContainer('block');
 export const flexContainer = createContainer('flex');
 
 export const contentsContainer = createContainer('contents');
-
-/** render empty content */
-export const noneTemplate = html`
-  <style>
-    :host {
-      display: none !important;
-    }
-    @scope {
-      :scope {
-        display: none !important;
-      }
-    }
-  </style>
-`;

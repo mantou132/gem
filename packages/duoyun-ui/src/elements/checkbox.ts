@@ -118,7 +118,6 @@ export class DuoyunCheckboxElement extends GemElement {
  */
 @customElement('dy-checkbox-group')
 @adoptedStyle(groupStyle)
-@shadow({ delegatesFocus: true })
 @aria({ role: 'group' })
 export class DuoyunCheckboxGroupElement extends GemElement {
   @attribute orientation: 'horizontal' | 'vertical';

@@ -98,15 +98,15 @@ export class DuoyunRadioElement extends GemElement {
 }
 
 export const groupStyle = createCSSSheet(css`
-  :host(:where(:not([hidden]))) {
+  :scope:where(:not([hidden])) {
     display: flex;
     align-items: center;
     flex-wrap: wrap;
   }
-  :host(:not([orientation='vertical'])) {
+  :scope:not([orientation='vertical']) {
     gap: 1em;
   }
-  :host([orientation='vertical']) {
+  :scope[orientation='vertical'] {
     flex-direction: column;
     align-items: flex-start;
   }
@@ -123,7 +123,6 @@ export interface Option<T = any> {
  */
 @customElement('dy-radio-group')
 @adoptedStyle(groupStyle)
-@shadow({ delegatesFocus: true })
 @aria({ role: 'radiogroup' })
 export class DuoyunRadioGroupElement extends GemElement {
   @attribute orientation: 'horizontal' | 'vertical';

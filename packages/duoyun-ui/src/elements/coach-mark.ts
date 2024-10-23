@@ -17,7 +17,6 @@ import { createDecoratorTheme } from '@mantou/gem/helper/theme';
 
 import { theme, getSemanticColor } from '../lib/theme';
 import { locale } from '../lib/locale';
-import { noneTemplate } from '../lib/styles';
 
 import { ContextMenu } from './contextmenu';
 import { DuoyunVisibleBaseElement } from './base/visible';
@@ -224,7 +223,7 @@ export class DuoyunCoachMarkElement extends DuoyunVisibleBaseElement {
   #theme = () => ({ color: getSemanticColor(this.color) || this.color || theme.informativeColor });
 
   render = () => {
-    if (!this.#tour) return noneTemplate;
+    if (!this.#tour) return null;
     return html`
       <span class="ring"></span>
       <span class="ring"></span>

@@ -122,7 +122,7 @@ export class DuoyunAvatarElement extends GemElement {
 }
 
 const groupStyle = createCSSSheet(css`
-  :host(:where(:not([hidden]))) {
+  :scope:where(:not([hidden])) {
     display: flex;
   }
   .item:not(:first-child) {
@@ -163,7 +163,6 @@ export type AvatarItem = {
 @customElement('dy-avatar-group')
 @adoptedStyle(groupStyle)
 @aria({ role: 'list' })
-@shadow()
 export class DuoyunAvatarGroupElement extends GemElement {
   @part static avatar: string;
 
