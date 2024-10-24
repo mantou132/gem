@@ -1,3 +1,5 @@
+export const GBP_PROTOCOL = 'gbp:';
+
 export const UPDATE_EVENT = 'gen-book-update';
 
 export const DEFAULT_CLI_FILE = 'gem-book.cli';

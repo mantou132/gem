@@ -20,6 +20,7 @@ import {
   UPDATE_EVENT,
   DEFAULT_OUTPUT,
   DEFAULT_DOCS_DIR,
+  GBP_PROTOCOL,
 } from '../common/constant';
 import { isIndexFile, parseFilename, debounce } from '../common/utils';
 import type { FrontMatter } from '../common/frontmatter';
@@ -159,7 +160,7 @@ function readFiles(filenames: string[], docsRootDir: string, dir: string, link: 
             features,
           };
           if (redirect) {
-            (bookConfig.redirects ||= {})[item.link] = new URL(redirect, `gbp:${item.link}`).pathname;
+            (bookConfig.redirects ||= {})[item.link] = new URL(redirect, GBP_PROTOCOL + item.link).pathname;
           } else {
             result.push(item);
           }
@@ -168,10 +169,10 @@ function readFiles(filenames: string[], docsRootDir: string, dir: string, link: 
       if (stat.isDirectory()) {
         const { title, isNav, navTitle, navOrder, sidebarIgnore, groups, redirect } = getMetadata(fullPath, false);
         const newDir = fullPath;
-        const newLink = path.join(link, filename) + '/';
+        const newLink = path.posix.join(link, filename) + '/';
         if (redirect) {
           const pattern = `${newLink}*`;
-          const redirectPath = new URL(redirect, `gbp:${pattern}`).pathname;
+          const redirectPath = new URL(redirect, GBP_PROTOCOL + pattern).pathname;
           (bookConfig.redirects ||= {})[pattern] = `${redirectPath}${redirectPath.endsWith('/') ? ':0' : ''}`;
         } else {
           const subFilenameSet = new Set([...readdirSync(fullPath)]);
