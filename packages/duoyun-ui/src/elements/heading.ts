@@ -1,11 +1,10 @@
 import { connectStore, adoptedStyle, customElement, attribute, slot, shadow, effect } from '@mantou/gem/lib/decorators';
 import { GemElement, html, createCSSSheet } from '@mantou/gem/lib/element';
 import { history } from '@mantou/gem/lib/history';
-import { css } from '@mantou/gem/lib/utils';
 
 import { theme } from '../lib/theme';
 
-const style = createCSSSheet(css`
+const style = createCSSSheet`
   :host(:where(:not([hidden]))) {
     display: block;
     font-size: 2.5em;
@@ -32,12 +31,8 @@ const style = createCSSSheet(css`
     font: inherit;
     text-wrap: balance;
   }
-`);
+`;
 
-/**
- * @customElement dy-heading
- * @attr lv
- */
 @customElement('dy-heading')
 @adoptedStyle(style)
 @connectStore(history.store)

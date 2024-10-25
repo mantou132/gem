@@ -8,7 +8,6 @@ import {
   effect,
 } from '@mantou/gem/lib/decorators';
 import { createCSSSheet, createState, GemElement, html } from '@mantou/gem/lib/element';
-import { css } from '@mantou/gem/lib/utils';
 import { createDecoratorTheme } from '@mantou/gem/helper/theme';
 
 import { theme, getSemanticColor } from '../lib/theme';
@@ -21,7 +20,7 @@ import './use';
 
 const elementTheme = createDecoratorTheme({ color: '', progress: '' });
 
-const style = createCSSSheet(css`
+const style = createCSSSheet`
   :host {
     position: relative;
     aspect-ratio: 1;
@@ -75,7 +74,7 @@ const style = createCSSSheet(css`
   .status .icon {
     color: ${elementTheme.color};
   }
-`);
+`;
 
 type Action = {
   icon: string | Element | DocumentFragment;
@@ -84,9 +83,6 @@ type Action = {
 
 export type ImageStatus = 'negative' | 'positive' | 'default';
 
-/**
- * @customElement dy-image-preview
- */
 @customElement('dy-image-preview')
 @adoptedStyle(style)
 @adoptedStyle(focusStyle)

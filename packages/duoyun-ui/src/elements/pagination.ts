@@ -11,7 +11,7 @@ import {
   aria,
 } from '@mantou/gem/lib/decorators';
 import { GemElement, html, createCSSSheet } from '@mantou/gem/lib/element';
-import { css, classMap } from '@mantou/gem/lib/utils';
+import { classMap } from '@mantou/gem/lib/utils';
 import { splice } from '@mantou/gem/helper/i18n';
 import { createDecoratorTheme } from '@mantou/gem/helper/theme';
 
@@ -31,7 +31,7 @@ import './picker';
 
 const elementTheme = createDecoratorTheme({ align: '' });
 
-const style = createCSSSheet(css`
+const style = createCSSSheet`
   :host(:where(:not([hidden]))) {
     display: flex;
     align-items: center;
@@ -75,13 +75,8 @@ const style = createCSSSheet(css`
   .size {
     font-size: 1em;
   }
-`);
+`;
 
-/**
- * @customElement dy-pagination
- * @fires pagechange
- * @fires sizechange
- */
 @customElement('dy-pagination')
 @adoptedStyle(style)
 @adoptedStyle(focusStyle)

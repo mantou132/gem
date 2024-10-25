@@ -7,7 +7,6 @@ import {
   connectStore,
   customElement,
   adoptedStyle,
-  css,
   render,
   createStore,
   mounted,
@@ -29,11 +28,11 @@ const store = createStore<GlobalState>({
   now: new Date(),
 });
 
-const styles = createCSSSheet(css`
+const styles = createCSSSheet`
   h1 {
     text-decoration: underline;
   }
-`);
+`;
 
 @connectStore(store)
 @adoptedStyle(styles)

@@ -10,7 +10,6 @@ import {
   history,
   state,
   createCSSSheet,
-  css,
   adoptedStyle,
   effect,
   aria,
@@ -29,7 +28,7 @@ import '@mantou/gem/elements/link';
 import '@mantou/gem/elements/use';
 import './nav-logo';
 
-const styles = createCSSSheet(css`
+const styles = createCSSSheet`
   :scope {
     display: flex;
     box-sizing: border-box;
@@ -128,13 +127,8 @@ const styles = createCSSSheet(css`
       display: none;
     }
   }
-`);
+`;
 
-/**
- * @attr tl
- * @attr icon
- * @attr github
- */
 @customElement('gem-book-nav')
 @connectStore(bookStore)
 @connectStore(sidebarStore)

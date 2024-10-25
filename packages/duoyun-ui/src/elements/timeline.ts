@@ -2,7 +2,7 @@
 import { adoptedStyle, aria, customElement, property, shadow } from '@mantou/gem/lib/decorators';
 import type { TemplateResult } from '@mantou/gem/lib/element';
 import { createCSSSheet, html } from '@mantou/gem/lib/element';
-import { css, styleMap, classMap } from '@mantou/gem/lib/utils';
+import { styleMap, classMap } from '@mantou/gem/lib/utils';
 
 import { theme } from '../lib/theme';
 
@@ -10,7 +10,7 @@ import { DuoyunScrollBaseElement } from './base/scroll';
 
 import './use';
 
-const style = createCSSSheet(css`
+const style = createCSSSheet`
   :host(:where(:not([hidden]))) {
     --size: 1.5em;
     line-height: var(--size);
@@ -53,7 +53,7 @@ const style = createCSSSheet(css`
     color: ${theme.describeColor};
     padding-block-end: 0.5em;
   }
-`);
+`;
 
 type Item = {
   title: string;
@@ -62,9 +62,6 @@ type Item = {
   color?: string;
 };
 
-/**
- * @customElement dy-timeline
- */
 @customElement('dy-timeline')
 @adoptedStyle(style)
 @aria({ role: 'list' })

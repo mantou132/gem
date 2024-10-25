@@ -1,4 +1,4 @@
-import { html, GemElement, customElement, connectStore, css, createCSSSheet, adoptedStyle, aria } from '@mantou/gem';
+import { html, GemElement, customElement, connectStore, createCSSSheet, adoptedStyle, aria } from '@mantou/gem';
 
 import { selfI18n } from '../helper/i18n';
 import { theme } from '../helper/theme';
@@ -7,7 +7,7 @@ import { unsafeRenderHTML } from '../lib/renderer';
 
 import '@mantou/gem/elements/link';
 
-const styles = createCSSSheet(css`
+const styles = createCSSSheet`
   :scope {
     display: block;
     padding-block: 2rem;
@@ -24,7 +24,7 @@ const styles = createCSSSheet(css`
   gem-link:hover {
     opacity: 0.8;
   }
-`);
+`;
 
 @customElement('gem-book-footer')
 @connectStore(bookStore)
@@ -37,7 +37,7 @@ export class Footer extends GemElement {
       ${config?.footer
         ? unsafeRenderHTML(
             config.footer,
-            css`
+            /*css*/ `
               p {
                 margin: 0;
               }

@@ -1,11 +1,10 @@
 import { adoptedStyle, customElement, attribute, slot, aria, shadow } from '@mantou/gem/lib/decorators';
 import { GemElement, html, createCSSSheet } from '@mantou/gem/lib/element';
-import { css } from '@mantou/gem/lib/utils';
 
 import { theme, getSemanticColor } from '../lib/theme';
 import type { StringList } from '../lib/types';
 
-const style = createCSSSheet(css`
+const style = createCSSSheet`
   :host(:where(:not([hidden]))) {
     display: inline-flex;
     align-items: center;
@@ -25,7 +24,7 @@ const style = createCSSSheet(css`
     white-space: nowrap;
     text-overflow: ellipsis;
   }
-`);
+`;
 
 export type Status = StringList<'default' | 'positive' | 'informative' | 'neutral' | 'notice' | 'negative'>;
 
@@ -40,9 +39,6 @@ export function getStatusColor(status: Status) {
   }
 }
 
-/**
- * @customElement dy-status-light
- */
 @customElement('dy-status-light')
 @adoptedStyle(style)
 @aria({ role: 'status' })

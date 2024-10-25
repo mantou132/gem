@@ -8,7 +8,6 @@ import {
   html,
   adoptedStyle,
   createCSSSheet,
-  css,
   styleMap,
   mounted,
   memo,
@@ -246,7 +245,7 @@ const IGNORE_LINE = 2;
 const LINE_HEIGHT = '24px';
 const PADDING = '1em';
 
-const styles = createCSSSheet(css`
+const styles = createCSSSheet`
   :host([status='hidden']) {
     display: none;
   }
@@ -443,11 +442,8 @@ const styles = createCSSSheet(css`
       display: none;
     }
   }
-`);
+`;
 
-/**
- * @customElement gem-book-pre
- */
 @customElement('gem-book-pre')
 @adoptedStyle(styles)
 @shadow()

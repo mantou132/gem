@@ -21,7 +21,6 @@ import {
   shadow,
   mounted,
 } from '../../lib/decorators';
-import { css } from '../../lib/utils';
 
 const store = createStore({
   a: 1,
@@ -53,11 +52,11 @@ describe('异步 gem element 测试', () => {
   });
 });
 
-const lightStyle = createCSSSheet(css`
+const lightStyle = createCSSSheet`
   div {
     font-size: 18.1px;
   }
-`);
+`;
 
 @customElement('light-gem-demo')
 @adoptedStyle(lightStyle)

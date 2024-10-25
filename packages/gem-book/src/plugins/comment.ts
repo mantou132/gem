@@ -5,9 +5,9 @@ const gitalkCSSUrl = 'https://esm.sh/gitalk@1.7.2/dist/gitalk.css';
 
 const { GemBookPluginElement } = (await customElements.whenDefined('gem-book')) as typeof GemBookElement;
 const { config, Gem, theme, locationStore } = GemBookPluginElement;
-const { html, customElement, attribute, connectStore, shadow, adoptedStyle, css, createCSSSheet, effect } = Gem;
+const { html, customElement, attribute, connectStore, shadow, adoptedStyle, createCSSSheet, effect } = Gem;
 
-const style = createCSSSheet(css`
+const style = createCSSSheet`
   :host {
     display: contents;
   }
@@ -49,7 +49,7 @@ const style = createCSSSheet(css`
   .gt-container .gt-comment-content {
     background: rgb(from ${theme.primaryColor} r g b / 0.05);
   }
-`);
+`;
 @customElement('gbp-comment')
 @connectStore(locationStore)
 @adoptedStyle(style)

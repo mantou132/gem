@@ -1,6 +1,6 @@
 import { GemElement, createCSSSheet } from '@mantou/gem/lib/element';
 import { adoptedStyle, boolattribute, customElement, emitter, mounted, type Emitter } from '@mantou/gem/lib/decorators';
-import { addListener, css } from '@mantou/gem/lib/utils';
+import { addListener } from '@mantou/gem/lib/utils';
 
 import { blockContainer } from '../lib/styles';
 import { theme } from '../lib/theme';
@@ -8,7 +8,7 @@ import { theme } from '../lib/theme';
 import { DuoyunGestureElement } from './gesture';
 import type { PanEventDetail } from './gesture';
 
-const style = createCSSSheet(css`
+const style = createCSSSheet`
   :where(dy-sort-item[handle], dy-sort-handle):state(grabbing) {
     cursor: grabbing;
 
@@ -21,13 +21,10 @@ const style = createCSSSheet(css`
     position: relative;
     z-index: ${theme.popupZIndex};
   }
-`);
+`;
 
 export type SortEventDetail = { new: number; old: number };
 
-/**
- * @customElement dy-sort-box
- */
 @customElement('dy-sort-box')
 @adoptedStyle(style)
 @adoptedStyle(blockContainer)
@@ -81,16 +78,10 @@ export class DuoyunSortBoxElement extends GemElement {
   };
 }
 
-/**
- * @customElement dy-sort-item
- */
 @customElement('dy-sort-item')
 export class DuoyunSortItemElement extends DuoyunGestureElement {
   @boolattribute handle: boolean;
 }
 
-/**
- * @customElement dy-sort-handle
- */
 @customElement('dy-sort-handle')
 export class DuoyunSortHandleElement extends DuoyunGestureElement {}

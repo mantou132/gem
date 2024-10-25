@@ -14,7 +14,7 @@ import {
   memo,
 } from '@mantou/gem/lib/decorators';
 import { createCSSSheet, GemElement, html } from '@mantou/gem/lib/element';
-import { addListener, css } from '@mantou/gem/lib/utils';
+import { addListener } from '@mantou/gem/lib/utils';
 
 import { theme } from '../lib/theme';
 import { icons } from '../lib/icons';
@@ -34,7 +34,7 @@ import './cascader';
 import './tag';
 import './scroll-box';
 
-const style = createCSSSheet(css`
+const style = createCSSSheet`
   :host {
     width: 15em;
     white-space: nowrap;
@@ -57,11 +57,8 @@ const style = createCSSSheet(css`
   dy-tag {
     border-radius: ${theme.smallRound};
   }
-`);
+`;
 
-/**
- * @customElement dy-cascader-picker
- */
 @customElement('dy-cascader-picker')
 @adoptedStyle(style)
 @adoptedStyle(pickerStyle)

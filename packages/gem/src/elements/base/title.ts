@@ -35,11 +35,6 @@ function setDocumentTitle(defaultTitle?: string | null, prefix = '', suffix = ''
   }
 }
 
-/**
- * @customElement gem-title
- * @attr prefix
- * @attr suffix
- */
 @shadow()
 export class GemTitleElement extends GemElement {
   @attribute prefix: string;

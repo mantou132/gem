@@ -17,7 +17,6 @@ import {
 } from '@mantou/gem/lib/decorators';
 import type { TemplateResult } from '@mantou/gem/lib/element';
 import { GemElement, html, createCSSSheet, createRef } from '@mantou/gem/lib/element';
-import { css } from '@mantou/gem/lib/utils';
 
 import { theme } from '../lib/theme';
 import { icons } from '../lib/icons';
@@ -66,7 +65,7 @@ class InputHistory {
   }, 300);
 }
 
-const style = createCSSSheet(css`
+const style = createCSSSheet`
   :host(:where(:not([hidden]))) {
     font-size: 0.875em;
     inline-size: 15em;
@@ -156,23 +155,8 @@ const style = createCSSSheet(css`
       display: block;
     }
   }
-`);
+`;
 
-/**
- * @customElement dy-input
- * @attr name
- * @attr value
- * @attr type
- * @attr placeholder
- * @attr disabled
- * @attr autofocus
- * @attr clearable
- * @attr alwayclearable
- * @attr rows
- * @attr step
- * @attr min
- * @attr max
- */
 @customElement('dy-input')
 @adoptedStyle(style)
 @adoptedStyle(focusStyle)
@@ -420,7 +404,7 @@ export class DuoyunInputElement extends GemElement {
   }
 }
 
-const inputGroupStyle = createCSSSheet(css`
+const inputGroupStyle = createCSSSheet`
   :scope {
     display: flex;
 
@@ -444,11 +428,8 @@ const inputGroupStyle = createCSSSheet(css`
       border-bottom-left-radius: 0;
     }
   }
-`);
+`;
 
-/**
- * @customElement dy-input-group
- */
 @customElement('dy-input-group')
 @adoptedStyle(inputGroupStyle)
 @aria({ role: 'group' })

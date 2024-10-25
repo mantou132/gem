@@ -1,12 +1,12 @@
-import { GemElement, adoptedStyle, createCSSSheet, css, customElement, html, render, shadow } from '@mantou/gem';
+import { GemElement, adoptedStyle, createCSSSheet, customElement, html, render, shadow } from '@mantou/gem';
 
 import '../elements/layout';
 
-const closedStyles = createCSSSheet(css`
+const closedStyles = createCSSSheet`
   div {
     color: red;
   }
-`);
+`;
 @shadow({ mode: 'closed' })
 @adoptedStyle(closedStyles)
 @customElement('closed-shadow-dom')
@@ -23,14 +23,14 @@ class _OtherElement extends GemElement {
   }
 }
 
-const style = createCSSSheet(css`
+const style = createCSSSheet`
   :scope {
     font-style: italic;
   }
   p {
     text-decoration: underline;
   }
-`);
+`;
 
 @customElement('app-root')
 @adoptedStyle(style)

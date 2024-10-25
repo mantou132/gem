@@ -1,11 +1,10 @@
-import { createCSSSheet, html } from '@mantou/gem/lib/element';
-import { css } from '@mantou/gem/lib/utils';
+import { createCSSSheet } from '@mantou/gem/lib/element';
 
 import { theme } from '../lib/theme';
 
 // global style: `::selection`, `::target-text`, `::highlight`
 // https://bugzilla.mozilla.org/show_bug.cgi?id=1868009
-export const focusStyle = createCSSSheet(css`
+export const focusStyle = createCSSSheet`
   :host(:where(:focus)),
   :where(:focus) {
     outline: none;
@@ -15,17 +14,17 @@ export const focusStyle = createCSSSheet(css`
     outline: 2px solid ${theme.focusColor};
     outline-offset: -2px;
   }
-`);
+`;
 
 function createContainer(display: string) {
-  return createCSSSheet(css`
+  return createCSSSheet`
     @layer {
       :host(:where(:not([hidden]))),
       :where(:scope:not([hidden])) {
         display: ${display};
       }
     }
-  `);
+  `;
 }
 
 export const blockContainer = createContainer('block');

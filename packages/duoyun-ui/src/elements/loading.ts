@@ -1,6 +1,5 @@
 import { adoptedStyle, customElement, shadow, slot } from '@mantou/gem/lib/decorators';
 import { html, createCSSSheet } from '@mantou/gem/lib/element';
-import { css } from '@mantou/gem/lib/utils';
 
 import { icons } from '../lib/icons';
 
@@ -8,7 +7,7 @@ import { DuoyunVisibleBaseElement } from './base/visible';
 
 import './use';
 
-const style = createCSSSheet(css`
+const style = createCSSSheet`
   :host(:where(:not([hidden]))) {
     position: relative;
     display: inline-flex;
@@ -21,11 +20,8 @@ const style = createCSSSheet(css`
   .describe {
     opacity: 0.7;
   }
-`);
+`;
 
-/**
- * @customElement dy-loading
- */
 @customElement('dy-loading')
 @adoptedStyle(style)
 @shadow()

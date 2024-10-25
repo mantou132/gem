@@ -32,10 +32,6 @@ export function visibilityObserver(ele: VisibleBaseElement) {
   return () => io.disconnect();
 }
 
-/**
- * @fires show
- * @fires hide
- */
 export class DuoyunVisibleBaseElement extends GemElement implements VisibleBaseElement {
   @emitter show: Emitter;
   @emitter hide: Emitter;

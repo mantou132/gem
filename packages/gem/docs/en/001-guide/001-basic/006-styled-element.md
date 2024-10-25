@@ -126,11 +126,11 @@ class MyElement extends GemElement {
 >
 > ```js
 > GemLinkElement[Symbol.metadata].adoptedStyleSheets.push(
->   createCSSSheet(css`
+>   createCSSSheet`
 >     * {
 >       font-style: italic;
 >     }
->   `),
+>   `,
 > );
 > ```
 

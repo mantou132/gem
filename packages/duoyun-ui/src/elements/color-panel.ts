@@ -11,7 +11,7 @@ import {
   memo,
 } from '@mantou/gem/lib/decorators';
 import { createCSSSheet, createState, GemElement, html } from '@mantou/gem/lib/element';
-import { css, styleMap, classMap } from '@mantou/gem/lib/utils';
+import { styleMap, classMap } from '@mantou/gem/lib/utils';
 import { createDecoratorTheme } from '@mantou/gem/helper/theme';
 
 import type { HexColor } from '../lib/color';
@@ -39,7 +39,7 @@ import './select';
 
 const elementTheme = createDecoratorTheme({ h: 0, s: 0, l: 0, a: 0 });
 
-const style = createCSSSheet(css`
+const style = createCSSSheet`
   :host(:where(:not([hidden]))) {
     display: flex;
     flex-direction: column;
@@ -152,17 +152,12 @@ const style = createCSSSheet(css`
   .colorize:hover {
     background: ${theme.lightBackgroundColor};
   }
-`);
+`;
 
 const modes = ['Hex', 'RGB', 'HSL'] as const;
 
 type Mode = (typeof modes)[number];
 
-/**
- * @customElement dy-color-panel
- * @attr value
- * @attr alpha
- */
 @customElement('dy-color-panel')
 @adoptedStyle(style)
 @aria({ role: 'widget' })

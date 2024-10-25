@@ -1,6 +1,5 @@
 import { adoptedStyle, aria, customElement, mounted, shadow } from '@mantou/gem/lib/decorators';
 import { GemElement, html, createCSSSheet, createState } from '@mantou/gem/lib/element';
-import { css } from '@mantou/gem/lib/utils';
 import { createDecoratorTheme } from '@mantou/gem/helper/theme';
 
 import { theme } from '../lib/theme';
@@ -8,7 +7,7 @@ import { sleep } from '../lib/timer';
 
 const elementTheme = createDecoratorTheme({ progress: '' });
 
-const style = createCSSSheet(css`
+const style = createCSSSheet`
   :host(:where(:not([hidden]))) {
     view-transition-name: dy-page-loadbar;
     z-index: ${theme.popupZIndex};
@@ -31,11 +30,8 @@ const style = createCSSSheet(css`
     border-end-start-radius: 50%;
     filter: drop-shadow(0 0 4px ${theme.primaryColor});
   }
-`);
+`;
 
-/**
- * @customElement dy-page-loadbar
- */
 @customElement('dy-page-loadbar')
 @adoptedStyle(style)
 @aria({ role: 'progressbar' })

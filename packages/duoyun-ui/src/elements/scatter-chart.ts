@@ -1,7 +1,7 @@
 // https://spectrum.adobe.com/page/scatter-plot/
 import { adoptedStyle, customElement, memo, property, unmounted } from '@mantou/gem/lib/decorators';
 import { createCSSSheet, html, svg } from '@mantou/gem/lib/element';
-import { classMap, css } from '@mantou/gem/lib/utils';
+import { classMap } from '@mantou/gem/lib/utils';
 
 import { isNullish } from '../lib/types';
 
@@ -10,7 +10,7 @@ import type { Sequence } from './area-chart';
 import type { Data } from './chart-tooltip';
 import { ChartTooltip } from './chart-tooltip';
 
-const style = createCSSSheet(css`
+const style = createCSSSheet`
   .symbol {
     opacity: 0.8;
   }
@@ -23,11 +23,8 @@ const style = createCSSSheet(css`
   .disabled {
     pointer-events: none;
   }
-`);
+`;
 
-/**
- * @customElement dy-scatter-chart
- */
 @customElement('dy-scatter-chart')
 @adoptedStyle(style)
 export class DuoyunScatterChartElement extends DuoyunChartBaseElement {

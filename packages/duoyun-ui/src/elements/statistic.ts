@@ -10,7 +10,7 @@ import {
   slot,
 } from '@mantou/gem/lib/decorators';
 import { GemElement, html, createCSSSheet } from '@mantou/gem/lib/element';
-import { css, classMap } from '@mantou/gem/lib/utils';
+import { classMap } from '@mantou/gem/lib/utils';
 
 import { parseDuration } from '../lib/time';
 import { theme } from '../lib/theme';
@@ -19,7 +19,7 @@ import { formatBandwidth, formatDecimal, formatPercentage, formatTraffic, format
 import './placeholder';
 import './use';
 
-const style = createCSSSheet(css`
+const style = createCSSSheet`
   :host(:where(:not([hidden]))) {
     display: block;
     font-size: 0.875em;
@@ -60,7 +60,7 @@ const style = createCSSSheet(css`
   .negative {
     color: ${theme.negativeColor};
   }
-`);
+`;
 
 export type StatisticType = 'bandwidth' | 'traffic' | 'decimal' | 'percentage' | 'duration' | 'currency';
 export type StatisticNeutral = 'positive' | 'negative';
@@ -74,10 +74,6 @@ export const formatFnMap: Record<StatisticType, (n: number) => { number: string;
   duration: parseDuration,
 };
 
-/**
- * @customElement dy-statistic
- * @attr loading
- */
 @customElement('dy-statistic')
 @adoptedStyle(style)
 @aria({ role: 'group' })

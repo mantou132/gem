@@ -10,7 +10,7 @@ import {
   mounted,
 } from '@mantou/gem/lib/decorators';
 import { html, createCSSSheet } from '@mantou/gem/lib/element';
-import { addListener, css } from '@mantou/gem/lib/utils';
+import { addListener } from '@mantou/gem/lib/utils';
 import { createStore } from '@mantou/gem/lib/store';
 import { splice } from '@mantou/gem/helper/i18n';
 import { createDecoratorTheme } from '@mantou/gem/helper/theme';
@@ -85,7 +85,7 @@ async function nextTour() {
 
 const elementTheme = createDecoratorTheme({ color: '' });
 
-const style = createCSSSheet(css`
+const style = createCSSSheet`
   :host {
     position: absolute;
     left: 50%;
@@ -131,17 +131,8 @@ const style = createCSSSheet(css`
       transform: scale(1);
     }
   }
-`);
+`;
 
-/**
- * parent element must is relative position
- *
- * @customElement dy-coach-mark
- * @attr index
- * @attr width
- * @attr size
- * @attr color
- */
 @customElement('dy-coach-mark')
 @adoptedStyle(style)
 @connectStore(store)

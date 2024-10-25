@@ -39,17 +39,6 @@ export class Descendant extends GemElement {
   }
 }
 
-/**
- * @attr first-name
- * @attr last-name
- * @attr count
- * @attr disabled
- * @fires say-hi
- * @fires load
- * @state odd
- * @slot light
- * @part paragraph
- */
 @customElement('app-children')
 @shadow()
 export class Children extends GemElement {

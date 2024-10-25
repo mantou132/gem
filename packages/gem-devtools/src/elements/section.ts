@@ -2,7 +2,6 @@ import {
   adoptedStyle,
   attribute,
   createCSSSheet,
-  css,
   customElement,
   GemElement,
   html,
@@ -22,7 +21,7 @@ import { setGemPropValue } from '../scripts/set-value';
 const maybeBuildInPrefix = '[[Gem?]] ';
 const buildInPrefix = '[[Gem]] ';
 
-export const style = createCSSSheet(css`
+export const style = createCSSSheet`
   :host(:not([hidden])) {
     display: block;
     line-height: 1.5;
@@ -161,12 +160,8 @@ export const style = createCSSSheet(css`
   .element {
     color: ${theme.elementValueColor};
   }
-`);
+`;
 
-/**
- * @attr name
- * @attr tip
- */
 @customElement('devtools-section')
 @adoptedStyle(style)
 @shadow()

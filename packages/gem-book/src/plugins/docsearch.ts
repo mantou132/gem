@@ -61,14 +61,13 @@ const {
   createRef,
   property,
   createCSSSheet,
-  css,
   adoptedStyle,
   createState,
   effect,
   mounted,
 } = Gem;
 
-const styles = createCSSSheet(css`
+const styles = createCSSSheet`
   :scope {
     display: block;
   }
@@ -117,7 +116,7 @@ const styles = createCSSSheet(css`
       margin-inline: 0;
     }
   }
-`);
+`;
 
 @customElement('gbp-docsearch')
 @adoptedStyle(styles)

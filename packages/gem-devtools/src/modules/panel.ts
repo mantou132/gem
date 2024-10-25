@@ -1,4 +1,4 @@
-import { adoptedStyle, connectStore, createCSSSheet, css, customElement, GemElement, html, shadow } from '@mantou/gem';
+import { adoptedStyle, connectStore, createCSSSheet, customElement, GemElement, html, shadow } from '@mantou/gem';
 
 import { panelStore } from '../store';
 
@@ -8,13 +8,13 @@ import '../elements/header';
 
 const TIP = 'Only works on GemElement written with Decorator, fallback to "Unobserved Properties"';
 
-const style = createCSSSheet(css`
+const style = createCSSSheet`
   :host {
     display: block;
     margin-bottom: 4em;
     font-size: 12px;
   }
-`);
+`;
 
 @customElement('devtools-panel')
 @connectStore(panelStore)

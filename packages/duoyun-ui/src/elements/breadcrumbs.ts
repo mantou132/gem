@@ -1,7 +1,7 @@
 // https://spectrum.adobe.com/page/breadcrumbs/
 import { adoptedStyle, customElement, property, boolattribute, part, aria, shadow } from '@mantou/gem/lib/decorators';
 import { createCSSSheet, GemElement, html } from '@mantou/gem/lib/element';
-import { css, classMap } from '@mantou/gem/lib/utils';
+import { classMap } from '@mantou/gem/lib/utils';
 
 import { icons } from '../lib/icons';
 import { theme } from '../lib/theme';
@@ -11,7 +11,7 @@ import './use';
 import './tooltip';
 import './action-text';
 
-const style = createCSSSheet(css`
+const style = createCSSSheet`
   :host(:where(:not([hidden]))) {
     display: flex;
     align-items: center;
@@ -41,7 +41,7 @@ const style = createCSSSheet(css`
     color: ${theme.primaryColor};
     font-weight: bold;
   }
-`);
+`;
 
 export type BreadcrumbsItem = {
   title?: string;
@@ -50,9 +50,6 @@ export type BreadcrumbsItem = {
   handle?: () => void;
 };
 
-/**
- * @customElement dy-breadcrumbs
- */
 @customElement('dy-breadcrumbs')
 @adoptedStyle(style)
 @aria({ ariaLabel: 'breadcrumbs' })

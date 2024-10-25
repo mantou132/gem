@@ -5,7 +5,6 @@ import {
   customElement,
   connectStore,
   createCSSSheet,
-  css,
   adoptedStyle,
   styleMap,
 } from '@mantou/gem';
@@ -38,16 +37,16 @@ document.onclick = () => {
   });
 };
 
-const style = createCSSSheet(css`
+const style = createCSSSheet`
   div {
     color: ${scopedTheme.color};
     border: 2px solid ${scopedTheme.borderColor};
   }
-`);
+`;
 
 const printStyle = createCSSSheet(
   mediaQuery.PRINT,
-  css`
+  `
     div {
       border: 2px solid ${printTheme.borderColor};
     }

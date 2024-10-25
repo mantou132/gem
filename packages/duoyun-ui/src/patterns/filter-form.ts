@@ -1,5 +1,4 @@
 import { GemElement, html, createCSSSheet, createState } from '@mantou/gem/lib/element';
-import { css } from '@mantou/gem/lib/utils';
 import type { Emitter } from '@mantou/gem/lib/decorators';
 import {
   adoptedStyle,
@@ -39,7 +38,7 @@ export type FilterableOptions = {
   connectStores?: Store<any>[];
 };
 
-const style = createCSSSheet(css`
+const style = createCSSSheet`
   dy-input,
   dy-select {
     width: 100%;
@@ -60,7 +59,7 @@ const style = createCSSSheet(css`
   .filter {
     margin-block-end: 0.5em;
   }
-`);
+`;
 
 const durationUnitList = [
   { label: locale.minute, value: 1000 * 60 },
@@ -87,9 +86,6 @@ const defaultState: State = {
   provider: undefined,
 };
 
-/**
- * @customElement dy-pat-filter-form
- */
 @customElement('dy-pat-filter-form')
 @adoptedStyle(style)
 @adoptedStyle(blockContainer)

@@ -3,9 +3,6 @@ import { GemActiveLinkElement } from '@mantou/gem/elements/link';
 
 import { locationStore } from '../store';
 
-/**
- * @customElement gem-book-side-link
- */
 @customElement('gem-book-side-link')
 @connectStore(locationStore)
 export class GemBookSideLinkElement extends GemActiveLinkElement {

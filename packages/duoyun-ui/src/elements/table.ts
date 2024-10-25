@@ -16,7 +16,7 @@ import {
 import type { TemplateResult } from '@mantou/gem/lib/element';
 import { createCSSSheet, html } from '@mantou/gem/lib/element';
 import type { StyleObject } from '@mantou/gem/lib/utils';
-import { css, styleMap, classMap, isArrayChange } from '@mantou/gem/lib/utils';
+import { styleMap, classMap, isArrayChange } from '@mantou/gem/lib/utils';
 
 import { theme } from '../lib/theme';
 import { readProp } from '../lib/utils';
@@ -38,7 +38,7 @@ import './loading';
 import './space';
 import './selection-box';
 
-const styles = createCSSSheet(css`
+const styles = createCSSSheet`
   :host(:where(:not([hidden]))) {
     display: block;
     width: 100%;
@@ -126,7 +126,7 @@ const styles = createCSSSheet(css`
     margin-block-start: 0.5em;
     font-weight: bold;
   }
-`);
+`;
 
 export type Column<T> = {
   title: string | TemplateResult;
@@ -154,9 +154,6 @@ export type ItemContextMenuEventDetail<T> = {
   originEvent: MouseEvent;
 };
 
-/**
- * @customElement dy-table
- */
 @customElement('dy-table')
 @adoptedStyle(styles)
 @adoptedStyle(focusStyle)

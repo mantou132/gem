@@ -1,8 +1,7 @@
 import { createCSSSheet, GemElement, html } from '../../lib/element';
 import { adoptedStyle, attribute, property, shadow, state, template } from '../../lib/decorators';
-import { css } from '../../lib/utils';
 
-const styles = createCSSSheet(css`
+const styles = createCSSSheet`
   :host(:where(:not([hidden]))) {
     position: relative;
     display: inline-flex;
@@ -12,7 +11,7 @@ const styles = createCSSSheet(css`
     width: 100%;
     height: 100%;
   }
-`);
+`;
 
 const eleCache = new Map<string, HTMLTemplateElement>();
 /**
@@ -20,9 +19,6 @@ const eleCache = new Map<string, HTMLTemplateElement>();
  * 此元素用来模拟 `<use>`,
  * 由于是复制元素，所以不能像 `<use>` 一样自动更新
  * slot 支持为 icon 添加效果，如涟漪，徽章
- *
- * @customElement gem-use
- * @attr selector
  */
 @shadow()
 @adoptedStyle(styles)

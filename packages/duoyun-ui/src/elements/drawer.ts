@@ -1,13 +1,12 @@
 import { adoptedStyle, customElement } from '@mantou/gem/lib/decorators';
 import { createCSSSheet } from '@mantou/gem/lib/element';
-import { css } from '@mantou/gem/lib/utils';
 
 import { slideInLeft, slideOutRight } from '../lib/animations';
 
 import type { ModalOptions } from './modal';
 import { DuoyunModalElement } from './modal';
 
-const style = createCSSSheet(css`
+const style = createCSSSheet`
   .dialog {
     top: 0;
     left: auto;
@@ -21,11 +20,8 @@ const style = createCSSSheet(css`
     max-height: none;
     border-radius: 0;
   }
-`);
+`;
 
-/**
- * @customElement dy-drawer
- */
 @customElement('dy-drawer')
 @adoptedStyle(style)
 export class DuoyunDrawerElement extends DuoyunModalElement {

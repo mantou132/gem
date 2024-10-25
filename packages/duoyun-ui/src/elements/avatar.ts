@@ -10,7 +10,7 @@ import {
   shadow,
 } from '@mantou/gem/lib/decorators';
 import { createCSSSheet, GemElement, html } from '@mantou/gem/lib/element';
-import { css, exportPartsMap } from '@mantou/gem/lib/utils';
+import { exportPartsMap } from '@mantou/gem/lib/utils';
 import { createDecoratorTheme } from '@mantou/gem/helper/theme';
 
 import { theme } from '../lib/theme';
@@ -21,7 +21,7 @@ import './tooltip';
 
 const elementTheme = createDecoratorTheme({ color: '' });
 
-const style = createCSSSheet(css`
+const style = createCSSSheet`
   :host(:where(:not([hidden]))) {
     cursor: default;
     display: inline-block;
@@ -76,19 +76,8 @@ const style = createCSSSheet(css`
     transform: translate(50%, -50%);
     background-color: ${elementTheme.color};
   }
-`);
+`;
 
-/**
- * @customElement dy-avatar
- * @attr src
- * @attr alt
- * @attr status
- * @attr background
- * @attr tooltip
- * @attr size
- * @attr square
- * @attr crossorigin
- */
 @customElement('dy-avatar')
 @adoptedStyle(style)
 @shadow()
@@ -121,7 +110,7 @@ export class DuoyunAvatarElement extends GemElement {
   };
 }
 
-const groupStyle = createCSSSheet(css`
+const groupStyle = createCSSSheet`
   :scope:where(:not([hidden])) {
     display: flex;
   }
@@ -146,7 +135,7 @@ const groupStyle = createCSSSheet(css`
   .item:hover + .item:last-child {
     --m: var(--m-left);
   }
-`);
+`;
 
 export type AvatarItem = {
   src?: string;
@@ -157,9 +146,6 @@ export type AvatarItem = {
   onClick?: (evt: Event) => void;
 };
 
-/**
- * @customElement dy-avatar-group
- */
 @customElement('dy-avatar-group')
 @adoptedStyle(groupStyle)
 @aria({ role: 'list' })

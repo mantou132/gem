@@ -17,7 +17,7 @@ import {
 } from '@mantou/gem/lib/decorators';
 import type { TemplateResult } from '@mantou/gem/lib/element';
 import { createCSSSheet, createState, GemElement, html } from '@mantou/gem/lib/element';
-import { css, styleMap } from '@mantou/gem/lib/utils';
+import { styleMap } from '@mantou/gem/lib/utils';
 
 import { icons } from '../lib/icons';
 import { commonHandle } from '../lib/hotkeys';
@@ -54,7 +54,7 @@ function getItemValue(item: TreeItem) {
   return item.value ?? item.label;
 }
 
-const itemStyle = createCSSSheet(css`
+const itemStyle = createCSSSheet`
   :host(:where(:not([hidden]))) {
     display: flex;
     align-items: center;
@@ -99,11 +99,8 @@ const itemStyle = createCSSSheet(css`
     background: currentColor;
     border-radius: 10em;
   }
-`);
+`;
 
-/**
- * @customElement dy-tree-item
- */
 @customElement('dy-tree-item')
 @adoptedStyle(itemStyle)
 @shadow()
@@ -136,22 +133,15 @@ class _DuoyunTreeItemElement extends GemElement {
   };
 }
 
-const style = createCSSSheet(css`
+const style = createCSSSheet`
   :host(:where(:not([hidden]))) {
     display: block;
     font-size: 0.875em;
   }
-`);
+`;
 
 export type MouseEventDetail = { value: any; item: TreeItem; originEvent: MouseEvent };
 
-/**
- * @customElement dy-tree
- * @fires itemclick
- * @fires itemcontextmenu
- * @fires expand
- * @fires collapse
- */
 @customElement('dy-tree')
 @adoptedStyle(style)
 @adoptedStyle(focusStyle)

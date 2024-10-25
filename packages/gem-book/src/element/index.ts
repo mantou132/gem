@@ -12,7 +12,6 @@ import {
   state,
   createRef,
   boolattribute,
-  css,
   adoptedStyle,
   createCSSSheet,
   kebabToCamelCase,
@@ -45,7 +44,7 @@ import './elements/rel-link';
 import './elements/meta';
 import './elements/toc';
 
-const styles = createCSSSheet(css`
+const styles = createCSSSheet`
   :scope {
     display: grid;
     grid-template-areas: 'aside content toc';
@@ -152,14 +151,8 @@ const styles = createCSSSheet(css`
       }
     }
   }
-`);
+`;
 
-/**
- * @custom-element gem-book
- * @prop {BookConfig} config
- * @prop {Theme} theme
- * @attr src
- */
 @customElement('gem-book')
 @connectStore(bookStore)
 @adoptedStyle(styles)

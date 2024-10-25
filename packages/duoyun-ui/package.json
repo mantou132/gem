@@ -35,11 +35,11 @@
     "/locales/"
   ],
   "scripts": {
-    "docs": "GEM_BOOK_REPLACE=true gem-book docs",
+    "docs": "cross-env GEM_BOOK_REPLACE=true gem-book docs",
     "docs:remote": "gem-book docs",
     "build:docs": "gem-book docs --build",
     "build:components": "gem-port src/elements && gem-port src/patterns --svelte-ns=pat",
-    "build:dev": "MODE=dev nodemon -w ../gem-port/bin --exec gem-port src/elements",
+    "build:dev": "cross-env MODE=dev nodemon -w ../gem-port/bin --exec gem-port src/elements",
     "clean": "node -e \"fs.readdirSync('src').map(dir => require('rimraf').sync(dir))\"",
     "build": "pnpm clean && tsc -p tsconfig.build.json",
     "start": "pnpm build --watch",

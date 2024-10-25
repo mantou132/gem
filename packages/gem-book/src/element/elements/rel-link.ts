@@ -6,7 +6,6 @@ import {
   property,
   adoptedStyle,
   createCSSSheet,
-  css,
   aria,
 } from '@mantou/gem';
 import { mediaQuery } from '@mantou/gem/helper/mediaquery';
@@ -18,7 +17,7 @@ import { bookStore } from '../store';
 
 import '@mantou/gem/elements/link';
 
-const styles = createCSSSheet(css`
+const styles = createCSSSheet`
   :scope:where(:not([hidden])) {
     display: flex;
     flex-wrap: wrap;
@@ -54,7 +53,7 @@ const styles = createCSSSheet(css`
       width: 100%;
     }
   }
-`);
+`;
 
 @customElement('gem-book-rel-link')
 @connectStore(bookStore)

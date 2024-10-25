@@ -1,20 +1,16 @@
 import { adoptedStyle, customElement, property, attribute, shadow, mounted, memo } from '@mantou/gem/lib/decorators';
 import type { TemplateResult } from '@mantou/gem/lib/element';
 import { GemElement, html, createCSSSheet } from '@mantou/gem/lib/element';
-import { css } from '@mantou/gem/lib/utils';
 
-const style = createCSSSheet(css`
+const style = createCSSSheet`
   span {
     user-select: none;
   }
-`);
+`;
 
 // other | placeholder | replacer
 type MaskParseValue = TemplateResult | string | number;
 
-/**
- * @customElement dy-text-mask
- */
 @customElement('dy-text-mask')
 @adoptedStyle(style)
 @shadow()

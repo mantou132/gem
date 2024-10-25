@@ -85,7 +85,6 @@ import {
   html,
   render,
   connectStore,
-  css,
   createCSSSheet,
   adoptedStyle,
 } from '@mantou/gem';
@@ -95,7 +94,7 @@ import { todoData, deleteItem } from './store';
 
 import 'duoyun-ui/elements/use';
 
-const style = createCSSSheet(css`
+const style = createCSSSheet`
   ul {
     padding: 0;
   }
@@ -118,7 +117,7 @@ const style = createCSSSheet(css`
   dy-use:hover {
     background: #eee;
   }
-`);
+`;
 
 @customElement('todo-list')
 @connectStore(todoData)

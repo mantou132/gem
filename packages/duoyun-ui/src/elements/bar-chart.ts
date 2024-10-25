@@ -1,6 +1,5 @@
 import { customElement, property, adoptedStyle, memo } from '@mantou/gem/lib/decorators';
 import { createCSSSheet, html, svg } from '@mantou/gem/lib/element';
-import { css } from '@mantou/gem/lib/utils';
 
 import { theme } from '../lib/theme';
 
@@ -13,7 +12,7 @@ export interface Sequence {
   values: (number | null)[];
 }
 
-const style = createCSSSheet(css`
+const style = createCSSSheet`
   .col:hover .rect {
     fill: ${theme.hoverBackgroundColor};
     opacity: 0.2;
@@ -21,11 +20,8 @@ const style = createCSSSheet(css`
   .bar:hover {
     filter: brightness(1.05);
   }
-`);
+`;
 
-/**
- * @customElement dy-bar-chart
- */
 @customElement('dy-bar-chart')
 @adoptedStyle(style)
 export class DuoyunBarChartElement extends DuoyunChartBaseElement {

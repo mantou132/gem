@@ -1,0 +1,32 @@
+{
+  "Insert Gem element": {
+    "scope": "typescript",
+    "prefix": "@custom",
+    "body": [
+      "import { GemElement, html, adoptedStyle, customElement, createCSSSheet } from '@mantou/gem';",
+      "",
+      "const style = createCSSSheet``;",
+      "",
+      "@customElement('${1:$WORKSPACE_NAME}-${2:$TM_FILENAME_BASE}')",
+      "@adoptedStyle(style)",
+      "export class ${3:${1/((^|-)(.))/${3:/upcase}/g}}${4:${2/((^|-)(.))/${3:/upcase}/g}}Element extends GemElement {",
+      "  render = () => {",
+      "    return html`${1}-${2}`;",
+      "  };",
+      "}",
+      ""
+    ]
+  },
+  "Insert commented out inline-html block": {
+    "prefix": "/html",
+    "body": ["/*html*/`", "\t$1", "`$2"]
+  },
+  "Insert commented out inline-css block": {
+    "prefix": "/css",
+    "body": ["/*css*/`", "\t$1", "`$2"]
+  },
+  "Insert commented out inline-style block": {
+    "prefix": "/style",
+    "body": ["/*style*/`", "\t$1", "`$2"]
+  }
+}

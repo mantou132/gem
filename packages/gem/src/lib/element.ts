@@ -2,7 +2,7 @@ import { html, render } from './lit-html';
 import type { TemplateResult } from './lit-html';
 import type { Store } from './store';
 import { connect } from './store';
-import { LinkedList, addMicrotask, isArrayChange, addListener, randomStr, createUpdater, GemError } from './utils';
+import { LinkedList, addMicrotask, isArrayChange, addListener, randomStr, createUpdater, GemError, raw } from './utils';
 
 export { directive } from './directive';
 export { repeat } from './repeat';
@@ -103,7 +103,7 @@ class GemCSSSheet {
     return sheet;
   }
 
-  // 一般用于主题更新，不支持 layer
+  // 一般用于主题更新
   updateStyle() {
     this.#used.forEach((scope, sheet) => {
       sheet.replaceSync(scope ? `${scope}{${this.#content}}` : this.#content);
@@ -117,14 +117,26 @@ export type Sheet<T> = { [P in keyof T]: P } & { [SheetToken]: GemCSSSheet };
  *
  * 创建 style sheet 用于 `@adoptedStyle`，不支持样式更新，只支持自定义 CSS 属性
  */
+export function createCSSSheet<T extends Record<string, string>>(media: TemplateStringsArray, ...rest: any[]): Sheet<T>;
 export function createCSSSheet<T extends Record<string, string>>(media: string, rules: T | string): Sheet<T>;
 export function createCSSSheet<T extends Record<string, string>>(rules: T | string): Sheet<T>;
 export function createCSSSheet<T extends Record<string, string>>(
-  mediaOrRules: T | string,
-  rulesValue?: T | string,
+  mediaOrRules: T | string | TemplateStringsArray,
+  ...rest: any[]
 ): Sheet<T> {
-  const media = rulesValue ? (mediaOrRules as string) : '';
-  const rules = rulesValue || mediaOrRules;
+  let media = '';
+  let rules: T | string = '';
+
+  const rulesValue = rest.at(0);
+  if (Array.isArray(mediaOrRules)) {
+    rules = raw(mediaOrRules as TemplateStringsArray, ...rest);
+  } else if (rulesValue !== undefined) {
+    media = mediaOrRules as string;
+    rules = rulesValue;
+  } else {
+    rules = mediaOrRules as string;
+  }
+
   const styleSheet = new GemCSSSheet(media);
   const sheet: any = { [SheetToken]: styleSheet };
   let style = '';

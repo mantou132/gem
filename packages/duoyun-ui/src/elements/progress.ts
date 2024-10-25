@@ -4,9 +4,6 @@ import { theme } from '../lib/theme';
 
 import { DuoyunMeterElement } from './meter';
 
-/**
- * @customElement dy-progress
- */
 @customElement('dy-progress')
 @aria({ role: 'progressbar' })
 export class DuoyunProgressElement extends DuoyunMeterElement {

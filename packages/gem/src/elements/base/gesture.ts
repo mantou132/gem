@@ -1,7 +1,6 @@
 import { createCSSSheet, GemElement } from '../../lib/element';
 import type { Emitter } from '../../lib/decorators';
 import { adoptedStyle, attribute, emitter, mounted, state } from '../../lib/decorators';
-import { css } from '../../lib/utils';
 
 export type PanEventDetail = {
   // movement
@@ -45,7 +44,7 @@ function angleAB(
   );
 }
 
-const style = createCSSSheet(css`
+const style = createCSSSheet`
   @layer {
     :scope:where(:not([hidden])) {
       display: block;
@@ -53,22 +52,12 @@ const style = createCSSSheet(css`
       touch-action: attr(touch-action, none);
     }
   }
-`);
+`;
 
 /**
  * 块级元素，如果要设置成 `contents`，则内容块要设置 `touch-action: none`
  * https://javascript.info/pointer-events#event-pointercancel
  * 在移动端上，必须设置 `touch-action` 以允许滚动等原生动作
- *
- * @customElement gem-gesture
- * @event pan
- * @event pinch
- * @event rotate
- * @event swipe
- * @event press
- * @event end
- *
- * @attr touch-action
  */
 @adoptedStyle(style)
 export class GemGestureElement extends GemElement {

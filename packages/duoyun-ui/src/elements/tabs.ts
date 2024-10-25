@@ -15,7 +15,7 @@ import {
 } from '@mantou/gem/lib/decorators';
 import type { TemplateResult } from '@mantou/gem/lib/element';
 import { createCSSSheet, GemElement, html } from '@mantou/gem/lib/element';
-import { css, partMap, classMap, styleMap, addListener } from '@mantou/gem/lib/utils';
+import { partMap, classMap, styleMap, addListener } from '@mantou/gem/lib/utils';
 
 import { theme } from '../lib/theme';
 import { commonHandle } from '../lib/hotkeys';
@@ -30,7 +30,7 @@ import './divider';
 
 const getAnchorName = (index: number) => `--anchor-${index}`;
 
-const style = createCSSSheet(css`
+const style = createCSSSheet`
   :host(:where(:not([hidden]))) {
     display: flex;
     flex-direction: column;
@@ -106,7 +106,7 @@ const style = createCSSSheet(css`
       inset: anchor(top) auto anchor(bottom) anchor(right);
     }
   }
-`);
+`;
 
 export interface TabItem<T = any> {
   label: string | TemplateResult;
@@ -115,9 +115,6 @@ export interface TabItem<T = any> {
   getContent?: () => string | TemplateResult;
 }
 
-/**
- * @customElement dy-tabs
- */
 @customElement('dy-tabs')
 @adoptedStyle(style)
 @adoptedStyle(focusStyle)
@@ -197,7 +194,7 @@ export class DuoyunTabsElement extends GemElement {
   };
 }
 
-const panelStyle = createCSSSheet(css`
+const panelStyle = createCSSSheet`
   :host(:where(:not([hidden]))) {
     display: block;
     flex-shrink: 1;
@@ -209,11 +206,8 @@ const panelStyle = createCSSSheet(css`
     margin-inline-start: 1em;
     margin-block-start: 0em;
   }
-`);
+`;
 
-/**
- * @customElement dy-tab-panel
- */
 @customElement('dy-tab-panel')
 @adoptedStyle(panelStyle)
 @aria({ role: 'tabpanel' })

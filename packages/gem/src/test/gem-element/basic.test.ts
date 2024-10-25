@@ -1,7 +1,6 @@
 import { fixture, expect, nextFrame } from '../utils';
 import { createCSSSheet, createState, GemElement, html } from '../../lib/element';
 import { createStore } from '../../lib/store';
-import { css } from '../../lib/utils';
 import {
   adoptedStyle,
   attribute,
@@ -18,11 +17,11 @@ const store = createStore({
   a: 1,
 });
 
-const styles = createCSSSheet(css`
+const styles = createCSSSheet`
   :host {
     background: rgb(255, 0, 0);
   }
-`);
+`;
 
 @connectStore(store)
 @adoptedStyle(styles)

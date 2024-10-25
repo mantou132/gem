@@ -13,7 +13,7 @@ import {
   memo,
 } from '@mantou/gem/lib/decorators';
 import { GemElement, html, createCSSSheet } from '@mantou/gem/lib/element';
-import { addListener, css } from '@mantou/gem/lib/utils';
+import { addListener } from '@mantou/gem/lib/utils';
 
 import { theme } from '../lib/theme';
 import { icons } from '../lib/icons';
@@ -25,7 +25,7 @@ import { groupStyle } from './radio';
 
 import './use';
 
-const style = createCSSSheet(css`
+const style = createCSSSheet`
   :host(:where(:not([hidden]))) {
     cursor: default;
     display: inline-flex;
@@ -65,15 +65,8 @@ const style = createCSSSheet(css`
     padding: 2px;
     background-color: ${theme.primaryColor};
   }
-`);
+`;
 
-/**
- * @customElement dy-checkbox
- * @attr checked
- * @attr indeterminate
- * @attr value
- * @attr disabled
- */
 @customElement('dy-checkbox')
 @adoptedStyle(style)
 @adoptedStyle(focusStyle)
@@ -112,10 +105,6 @@ export class DuoyunCheckboxElement extends GemElement {
   };
 }
 
-/**
- * @customElement dy-checkbox-group
- * @attr disabled
- */
 @customElement('dy-checkbox-group')
 @adoptedStyle(groupStyle)
 @aria({ role: 'group' })

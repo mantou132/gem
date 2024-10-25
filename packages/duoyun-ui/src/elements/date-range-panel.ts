@@ -10,7 +10,6 @@ import {
   memo,
 } from '@mantou/gem/lib/decorators';
 import { GemElement, html, createCSSSheet, createState } from '@mantou/gem/lib/element';
-import { css } from '@mantou/gem/lib/utils';
 
 import { Time, parseNarrowRelativeTime, parseNarrowTimeRange } from '../lib/time';
 import { theme } from '../lib/theme';
@@ -23,7 +22,7 @@ import './divider';
 
 export type DateRangeValue = string | number[];
 
-const style = createCSSSheet(css`
+const style = createCSSSheet`
   :host(:where(:not([hidden]))) {
     display: flex;
     align-items: flex-start;
@@ -40,7 +39,7 @@ const style = createCSSSheet(css`
     color: ${theme.lightBackgroundColor};
     margin-inline: 0.5em;
   }
-`);
+`;
 
 type State = {
   start?: number;
@@ -48,9 +47,6 @@ type State = {
   hover?: number;
 };
 
-/**
- * @customElement dy-date-range-panel
- */
 @customElement('dy-date-range-panel')
 @adoptedStyle(style)
 @aria({ role: 'widget' })

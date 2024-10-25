@@ -17,7 +17,7 @@ import {
 } from '@mantou/gem/lib/decorators';
 import type { TemplateResult } from '@mantou/gem/lib/element';
 import { GemElement, html, createCSSSheet, createState, createRef } from '@mantou/gem/lib/element';
-import { addListener, css } from '@mantou/gem/lib/utils';
+import { addListener } from '@mantou/gem/lib/utils';
 import { mediaQuery } from '@mantou/gem/helper/mediaquery';
 
 import { theme } from '../lib/theme';
@@ -38,7 +38,7 @@ import './help-text';
 import './date-picker';
 import './date-range-picker';
 
-const formStyle = createCSSSheet(css`
+const formStyle = createCSSSheet`
   :where(:scope:not([inline], [hidden])) {
     display: block;
   }
@@ -97,12 +97,8 @@ const formStyle = createCSSSheet(css`
       display: contents;
     }
   }
-`);
+`;
 
-/**
- * @customElement dy-form
- * @attr inline
- */
 @customElement('dy-form')
 @adoptedStyle(formStyle)
 @aria({ role: 'form' })
@@ -158,14 +154,11 @@ export class DuoyunFormElement<Data = Record<string, any>> extends GemElement {
   }
 }
 
-/**
- * @customElement dy-form-item-inline-group
- */
 @customElement('dy-form-item-inline-group')
 @aria({ role: 'group' })
 export class DuoyunFormItemInlineGroupElement extends GemElement {}
 
-const formItemStyle = createCSSSheet(css`
+const formItemStyle = createCSSSheet`
   :host(:where(:not([hidden]))) {
     display: flex;
     flex-direction: column;
@@ -197,7 +190,7 @@ const formItemStyle = createCSSSheet(css`
   .footer {
     margin-top: 0.7em;
   }
-`);
+`;
 
 type FormItemState = {
   invalidMessage?: string;
@@ -210,24 +203,6 @@ type FormItemRule = {
   validator?: (value: any) => void | Promise<void>;
 };
 
-/**
- * @customElement dy-form-item
- * @attr type
- * @attr multiple
- * @attr name
- * @attr label
- * @attr placeholder
- * @attr required
- * @attr checked
- * @attr autofocus
- * @attr disabled
- * @attr searchable
- * @attr clearable
- * @attr rows
- * @attr step
- * @attr min
- * @attr max
- */
 @customElement('dy-form-item')
 @adoptedStyle(formItemStyle)
 @shadow()

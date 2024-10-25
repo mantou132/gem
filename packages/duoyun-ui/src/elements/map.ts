@@ -1,7 +1,7 @@
 import type { Emitter } from '@mantou/gem/lib/decorators';
 import { adoptedStyle, customElement, emitter, property, state, part, aria, memo } from '@mantou/gem/lib/decorators';
 import { createCSSSheet, createState, html, svg } from '@mantou/gem/lib/element';
-import { css, styleMap, classMap } from '@mantou/gem/lib/utils';
+import { styleMap, classMap } from '@mantou/gem/lib/utils';
 import type { GeoRawProjection } from 'd3-geo';
 import { geoProjection, geoMercatorRaw, geoEquirectangularRaw, geoPath } from 'd3-geo';
 
@@ -84,7 +84,7 @@ export const shapes = [
   },
 ];
 
-const style = createCSSSheet(css`
+const style = createCSSSheet`
   :host(:where(:not([hidden]))) {
     display: block;
     border-radius: ${theme.normalRound};
@@ -121,7 +121,7 @@ const style = createCSSSheet(css`
   .node.current:hover {
     transform: translate(var(--translate)) scale(calc(var(--scale) * 1.5));
   }
-`);
+`;
 
 type Area = {
   name: string;
@@ -146,15 +146,6 @@ type State = {
 export type NodeEventDetail = { id: string; originEvent: MouseEvent };
 export type AreaEventDetail = { name: string; originEvent: MouseEvent };
 
-/**
- * @customElement dy-map
- * @fire nodehover
- * @fire nodeleave
- * @fire nodeclick
- * @fire areahover
- * @fire arealeave
- * @fire areaclick
- */
 @customElement('dy-map')
 @adoptedStyle(style)
 @aria({ role: 'img' })

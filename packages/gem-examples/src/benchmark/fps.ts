@@ -4,18 +4,17 @@ import {
   adoptedStyle,
   customElement,
   createCSSSheet,
-  css,
   connectStore,
   createStore,
   shadow,
   mounted,
 } from '@mantou/gem';
 
-export const fpsStyle = createCSSSheet(css`
+export const fpsStyle = createCSSSheet`
   :host {
     font-variant-numeric: tabular-nums;
   }
-`);
+`;
 
 const store = createStore({
   min: 0,
@@ -55,9 +54,6 @@ const tick = () => {
   timer = requestAnimationFrame(tick);
 };
 
-/**
- * @customElement nesbox-fps
- */
 @customElement('nesbox-fps')
 @adoptedStyle(fpsStyle)
 @connectStore(store)

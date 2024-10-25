@@ -1,4 +1,4 @@
-import { html, GemElement, customElement, connectStore, css, createCSSSheet, adoptedStyle } from '@mantou/gem';
+import { html, GemElement, customElement, connectStore, createCSSSheet, adoptedStyle } from '@mantou/gem';
 import { mediaQuery } from '@mantou/gem/helper/mediaquery';
 
 import { getUserLink } from '../../common/utils';
@@ -14,7 +14,7 @@ import { icons } from './icons';
 import '@mantou/gem/elements/link';
 import '@mantou/gem/elements/use';
 
-const styles = createCSSSheet(css`
+const styles = createCSSSheet`
   :scope {
     overflow: hidden;
 
@@ -153,7 +153,7 @@ const styles = createCSSSheet(css`
       margin: 0;
     }
   }
-`);
+`;
 
 @customElement('gem-book-homepage')
 @connectStore(bookStore)
@@ -199,7 +199,7 @@ export class Homepage extends GemElement {
                 <dd class="feat-desc">
                   ${unsafeRenderHTML(
                     feature.desc,
-                    css`
+                    /*css*/ `
                       p:last-of-type {
                         margin-block-end: 0;
                       }

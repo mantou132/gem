@@ -85,14 +85,14 @@ Gem 使用 Shadow DOM 的一个理由是样式隔离性，他让用户可以直�
 如果不是写需要高度封装的自定义元素（例如 UI 库），使用 Light DOM 是更合适的选择。现在，CSS 规范带来了 [`@scope`](https://developer.mozilla.org/en-US/docs/Web/CSS/@scope)，所以 Gem 充分利用 `@scope` 并默认使用 Light DOM，并且同样具备“模块化”（v1 不支持 Light DOM 样式“模块化”），下面的例子中，`div` 选择器将只应用在 `<my-element>` 的内容上：
 
 ```ts
-const styles = createCSSSheet(css`
+const styles = createCSSSheet`
   :scope {
     display: block;
   }
   div {
     color: red;
   }
-`);
+`;
 
 @customElement('my-element')
 @adoptedStyle(styles)

@@ -2,7 +2,7 @@ import type { Emitter } from '@mantou/gem/lib/decorators';
 import { adoptedStyle, emitter, property, state, part, aria, shadow, memo } from '@mantou/gem/lib/decorators';
 import type { TemplateResult } from '@mantou/gem/lib/element';
 import { createCSSSheet, html, svg } from '@mantou/gem/lib/element';
-import { css, randomStr } from '@mantou/gem/lib/utils';
+import { randomStr } from '@mantou/gem/lib/utils';
 
 import { theme } from '../../lib/theme';
 import type { Data, DataItem } from '../chart-tooltip';
@@ -31,7 +31,7 @@ export interface MarkLine {
   color?: string;
 }
 
-const style = createCSSSheet(css`
+const style = createCSSSheet`
   :host(:where(:not([hidden]))) {
     display: flex;
     flex-direction: column;
@@ -52,7 +52,7 @@ const style = createCSSSheet(css`
   text {
     cursor: default;
   }
-`);
+`;
 
 @adoptedStyle(style)
 @aria({ role: 'img' })

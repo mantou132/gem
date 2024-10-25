@@ -9,7 +9,7 @@ import {
   shadow,
 } from '@mantou/gem/lib/decorators';
 import { createCSSSheet, createRef, GemElement, html } from '@mantou/gem/lib/element';
-import { css, styleMap } from '@mantou/gem/lib/utils';
+import { styleMap } from '@mantou/gem/lib/utils';
 
 import type { HexColor } from '../lib/color';
 import { theme } from '../lib/theme';
@@ -21,7 +21,7 @@ import type { BasePickerElement } from './picker';
 import './popover';
 import './color-panel';
 
-const style = createCSSSheet(css`
+const style = createCSSSheet`
   :host(:where(:not([hidden]))) {
     cursor: pointer;
     display: inline-flex;
@@ -54,11 +54,8 @@ const style = createCSSSheet(css`
     height: 100%;
     box-shadow: inset 0 0 0 1px #0002;
   }
-`);
+`;
 
-/**
- * @customElement dy-color-picker
- */
 @customElement('dy-color-picker')
 @adoptedStyle(style)
 @adoptedStyle(focusStyle)

@@ -1,12 +1,12 @@
 import { adoptedStyle, effect, mounted, shadow, state } from '@mantou/gem/lib/decorators';
 import { createCSSSheet } from '@mantou/gem/lib/element';
-import { addListener, css } from '@mantou/gem/lib/utils';
+import { addListener } from '@mantou/gem/lib/utils';
 
 import { DuoyunResizeBaseElement } from './resize';
 
 const PIXEL_DEVIATION = 0.1;
 
-const style = createCSSSheet(css`
+const style = createCSSSheet`
   :host(:where(:not([hidden]))) {
     display: block;
     overflow: auto;
@@ -42,7 +42,7 @@ const style = createCSSSheet(css`
     --m: linear-gradient(to var(--mask-dir), #fff0, #000 var(--mask-start), #000 var(--mask-end), #fff0 100%);
     mask-image: var(--m);
   }
-`);
+`;
 
 @adoptedStyle(style)
 @shadow()

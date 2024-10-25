@@ -1,7 +1,7 @@
 import { createCSSSheet, html, GemElement, createState, createRef, TemplateResult } from '@mantou/gem/lib/element';
 import { adoptedStyle, customElement, memo, property, shadow } from '@mantou/gem/lib/decorators';
 import type { StyleObject } from '@mantou/gem/lib/utils';
-import { GemError, css, styleMap } from '@mantou/gem/lib/utils';
+import { GemError, styleMap } from '@mantou/gem/lib/utils';
 import { history } from '@mantou/gem/lib/history';
 
 import { icons } from '../lib/icons';
@@ -83,7 +83,7 @@ export type FormItem<T = unknown> =
       label?: string;
     };
 
-const style = createCSSSheet(css`
+const style = createCSSSheet`
   dy-form {
     width: 100%;
   }
@@ -122,7 +122,7 @@ const style = createCSSSheet(css`
   details[open] summary {
     display: none;
   }
-`);
+`;
 
 type OptionsRecord = {
   loading: boolean;
@@ -135,9 +135,6 @@ type State<T> = {
   ignoreCache: Partial<Record<string, any>>;
 };
 
-/**
- * @customElement dy-pat-form
- */
 @customElement('dy-pat-form')
 @adoptedStyle(blockContainer)
 @adoptedStyle(focusStyle)

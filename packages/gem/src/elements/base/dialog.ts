@@ -7,10 +7,6 @@ const final = Symbol();
 /**
  * 在模版中声明的 dialog，使用 `open` 方法 打开；
  * 模拟 top layer：https://github.com/whatwg/html/issues/4633.
- *
- * @attr label
- * @fires open
- * @fires close
  */
 @connectStore(history.store)
 @aria({ role: 'dialog', ariaModal: 'true' })

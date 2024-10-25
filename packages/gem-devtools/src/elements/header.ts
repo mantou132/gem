@@ -4,7 +4,6 @@ import {
   adoptedStyle,
   customElement,
   createCSSSheet,
-  css,
   connectStore,
   styleMap,
   shadow,
@@ -15,7 +14,7 @@ import { configureStore } from '../store';
 import { execution } from '../common';
 import { getAllFrames } from '../scripts/get-all-frame';
 
-const style = createCSSSheet(css`
+const style = createCSSSheet`
   :host {
     display: flex;
     line-height: 1.5;
@@ -37,11 +36,8 @@ const style = createCSSSheet(css`
     min-width: 4em;
     max-width: 10em;
   }
-`);
+`;
 
-/**
- * @customElement devtools-header
- */
 @customElement('devtools-header')
 @adoptedStyle(style)
 @connectStore(configureStore)

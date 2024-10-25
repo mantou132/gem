@@ -109,11 +109,11 @@ import { createDecoratorTheme } from '@mantou/gem/helper/theme';
 
 const elementTheme = createDecoratorTheme({ color: '' });
 
-const style = createCSSSheet(css`
+const style = createCSSSheet`
   :host(:where(:not([hidden]))) {
     border-color: ${elementTheme.color};
   }
-`);
+`;
 
 @customElement('app-root')
 class App extends GemElement {

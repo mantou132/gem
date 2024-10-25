@@ -12,11 +12,11 @@ import {
   mounted,
 } from '@mantou/gem/lib/decorators';
 import { GemElement, html, createCSSSheet } from '@mantou/gem/lib/element';
-import { addListener, css } from '@mantou/gem/lib/utils';
+import { addListener } from '@mantou/gem/lib/utils';
 
 import { theme } from '../lib/theme';
 
-const style = createCSSSheet(css`
+const style = createCSSSheet`
   :host(:where(:not([hidden]))) {
     display: block;
     position: relative;
@@ -49,11 +49,8 @@ const style = createCSSSheet(css`
     color: white;
     border: 1px dashed currentColor;
   }
-`);
+`;
 
-/**
- * @customElement dy-drop-area
- */
 @customElement('dy-drop-area')
 @adoptedStyle(style)
 @aria({ role: 'region' })

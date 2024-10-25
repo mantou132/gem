@@ -1,7 +1,7 @@
 import { createCSSSheet, createState, html, svg } from '@mantou/gem/lib/element';
 import type { Emitter } from '@mantou/gem/lib/decorators';
 import { adoptedStyle, customElement, emitter, memo, mounted, property } from '@mantou/gem/lib/decorators';
-import { addListener, classMap, css } from '@mantou/gem/lib/utils';
+import { addListener, classMap } from '@mantou/gem/lib/utils';
 import { createDecoratorTheme } from '@mantou/gem/helper/theme';
 
 import { isNotNullish } from '../lib/types';
@@ -48,7 +48,7 @@ const elementTheme = createDecoratorTheme({
   symbolStrokeWidth: 0,
 });
 
-const style = createCSSSheet(css`
+const style = createCSSSheet`
   .hit-line {
     pointer-events: stroke;
   }
@@ -90,11 +90,8 @@ const style = createCSSSheet(css`
     margin-inline-start: ${elementTheme.zoomLeft};
     align-self: flex-start;
   }
-`);
+`;
 
-/**
- * @customElement dy-area-chart
- */
 @customElement('dy-area-chart')
 @adoptedStyle(style)
 export class DuoyunAreaChartElement extends DuoyunChartBaseElement {

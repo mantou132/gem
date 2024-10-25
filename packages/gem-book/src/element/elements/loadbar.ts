@@ -4,7 +4,6 @@ import {
   shadow,
   GemElement,
   html,
-  css,
   createCSSSheet,
   adoptedStyle,
   createState,
@@ -16,7 +15,7 @@ import { theme } from '../helper/theme';
 
 const elementTheme = createDecoratorTheme({ progress: '' });
 
-const styles = createCSSSheet(css`
+const styles = createCSSSheet`
   :host {
     z-index: 22222222;
     position: fixed;
@@ -38,11 +37,8 @@ const styles = createCSSSheet(css`
     border-end-start-radius: 50%;
     filter: drop-shadow(0 0 4px ${theme.primaryColor});
   }
-`);
+`;
 
-/**
- * @customElement gem-book-loadbar
- */
 @customElement('gem-book-loadbar')
 @aria({ role: 'progressbar' })
 @adoptedStyle(styles)

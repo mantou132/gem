@@ -11,7 +11,7 @@ import {
   effect,
 } from '@mantou/gem/lib/decorators';
 import { createCSSSheet, createState, GemElement, html } from '@mantou/gem/lib/element';
-import { classMap, css, styleMap } from '@mantou/gem/lib/utils';
+import { classMap, styleMap } from '@mantou/gem/lib/utils';
 
 import { locale } from '../lib/locale';
 import { commonHandle } from '../lib/hotkeys';
@@ -20,7 +20,7 @@ import { DuoyunScrollBaseElement } from './base/scroll';
 
 import './action-text';
 
-const style = createCSSSheet(css`
+const style = createCSSSheet`
   :host(:where(:not([hidden]))) {
     display: flex;
     flex-direction: column;
@@ -36,13 +36,8 @@ const style = createCSSSheet(css`
   .action {
     cursor: pointer;
   }
-`);
+`;
 
-/**
- * @customElement dy-more
- * @attr maxheight
- * @attr expandless
- */
 @customElement('dy-more')
 @adoptedStyle(style)
 @aria({ role: 'combobox' })
@@ -92,9 +87,6 @@ export class DuoyunMoreElement extends GemElement {
   };
 }
 
-/**
- * @customElement dy-more-slot
- */
 @customElement('dy-more-slot')
 @aria({ role: 'paragraph' })
 export class DuoyunMoreSlotElement extends DuoyunScrollBaseElement {

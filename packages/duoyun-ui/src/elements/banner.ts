@@ -12,7 +12,6 @@ import {
   aria,
 } from '@mantou/gem/lib/decorators';
 import { createCSSSheet, GemElement, html } from '@mantou/gem/lib/element';
-import { css } from '@mantou/gem/lib/utils';
 
 import { theme } from '../lib/theme';
 import { icons } from '../lib/icons';
@@ -21,7 +20,7 @@ import { commonHandle } from '../lib/hotkeys';
 import './use';
 import './divider';
 
-const style = createCSSSheet(css`
+const style = createCSSSheet`
   :host(:where(:not([hidden]))) {
     display: flex;
     align-items: flex-start;
@@ -75,13 +74,10 @@ const style = createCSSSheet(css`
   .close:hover {
     opacity: 1;
   }
-`);
+`;
 
 type Status = 'positive' | 'notice' | 'negative' | 'default';
 
-/**
- * @customElement dy-banner
- */
 @customElement('dy-banner')
 @adoptedStyle(style)
 @shadow({ delegatesFocus: true })

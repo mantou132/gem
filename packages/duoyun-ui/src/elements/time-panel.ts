@@ -9,7 +9,7 @@ import {
   mounted,
 } from '@mantou/gem/lib/decorators';
 import { GemElement, html, createCSSSheet } from '@mantou/gem/lib/element';
-import { css, classMap } from '@mantou/gem/lib/utils';
+import { classMap } from '@mantou/gem/lib/utils';
 
 import { Time, parseDate } from '../lib/time';
 import { theme } from '../lib/theme';
@@ -17,7 +17,7 @@ import { isNotNullish } from '../lib/types';
 import { locale } from '../lib/locale';
 import { focusStyle } from '../lib/styles';
 
-const style = createCSSSheet(css`
+const style = createCSSSheet`
   :host(:where(:not([hidden]))) {
     display: grid;
     grid-template: 'hour minute second' / 1fr 1fr 1fr;
@@ -49,13 +49,8 @@ const style = createCSSSheet(css`
   .checked {
     background: ${theme.hoverBackgroundColor};
   }
-`);
+`;
 
-/**
- * @customElement dy-time-panel
- * @attr headless
- * @emits change
- */
 @customElement('dy-time-panel')
 @adoptedStyle(style)
 @adoptedStyle(focusStyle)

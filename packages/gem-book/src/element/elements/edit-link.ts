@@ -3,7 +3,6 @@ import {
   GemElement,
   customElement,
   connectStore,
-  css,
   adoptedStyle,
   createCSSSheet,
   createState,
@@ -23,7 +22,7 @@ import { icons } from './icons';
 import '@mantou/gem/elements/link';
 import '@mantou/gem/elements/use';
 
-const styles = createCSSSheet(css`
+const styles = createCSSSheet`
   :scope {
     display: flex;
     gap: 1rem;
@@ -56,7 +55,7 @@ const styles = createCSSSheet(css`
       white-space: nowrap;
     }
   }
-`);
+`;
 
 const cache: Record<string, unknown> = {};
 const fetchData = async (api: string) => {

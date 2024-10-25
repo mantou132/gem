@@ -14,7 +14,7 @@ import {
   template,
 } from '../../lib/decorators';
 import { history, basePathStore } from '../../lib/history';
-import { absoluteLocation, css } from '../../lib/utils';
+import { absoluteLocation } from '../../lib/utils';
 
 import type { RouteItem, RouteOptions } from './route';
 import { matchPath, createHistoryParams, createPath } from './route';
@@ -23,7 +23,7 @@ function isExternal(path: string) {
   return !path.startsWith('/');
 }
 
-const styles = createCSSSheet(css`
+const styles = createCSSSheet`
   :host {
     /* link default style */
     cursor: pointer;
@@ -37,20 +37,9 @@ const styles = createCSSSheet(css`
   a:visited {
     color: unset;
   }
-`);
+`;
 
 /**
- * @customElement gem-link
- * @attr href
- * @attr target
- * @attr doc-title
- * @attr path
- * @attr query
- * @attr hash
- * @attr pattern
- * @attr hint
- * @part link
- *
  * Bug: print `<link>` https://github.com/mantou132/gem/issues/36
  */
 @connectStore(basePathStore)
@@ -193,11 +182,6 @@ export class GemLinkElement extends GemElement {
   }
 }
 
-/**
- * @customElement gem-active-link
- * @attr pattern
- * @state active
- */
 @connectStore(history.store)
 export class GemActiveLinkElement extends GemLinkElement {
   @attribute pattern: string; // 使用匹配模式设定 active

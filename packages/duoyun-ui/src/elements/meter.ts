@@ -11,12 +11,12 @@ import {
   slot,
 } from '@mantou/gem/lib/decorators';
 import { createCSSSheet, GemElement, html } from '@mantou/gem/lib/element';
-import { css, styleMap } from '@mantou/gem/lib/utils';
+import { styleMap } from '@mantou/gem/lib/utils';
 
 import { theme, getSemanticColor } from '../lib/theme';
 import type { StringList } from '../lib/types';
 
-const style = createCSSSheet(css`
+const style = createCSSSheet`
   :host(:where(:not([hidden]))) {
     font-size: 0.875em;
     width: 15em;
@@ -51,11 +51,8 @@ const style = createCSSSheet(css`
     background: currentColor;
     transition: width 0.3s;
   }
-`);
+`;
 
-/**
- * @customElement dy-meter
- */
 @customElement('dy-meter')
 @adoptedStyle(style)
 @aria({ role: 'meter' })

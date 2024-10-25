@@ -1,6 +1,5 @@
 import { GemElement, html, createCSSSheet } from '@mantou/gem/lib/element';
 import { adoptedStyle, customElement, property, attribute, slot, shadow } from '@mantou/gem/lib/decorators';
-import { css } from '@mantou/gem/lib/utils';
 
 import { theme } from '../lib/theme';
 import type { StringList } from '../lib/types';
@@ -13,7 +12,7 @@ import './heading';
 import './paragraph';
 import './space';
 
-const style = createCSSSheet(css`
+const style = createCSSSheet`
   :host(:where(:not([hidden]))) {
     display: flex;
     flex-direction: column;
@@ -38,11 +37,8 @@ const style = createCSSSheet(css`
   slot::slotted(*) {
     margin-block-start: 1em;
   }
-`);
+`;
 
-/**
- * @customElement dy-result
- */
 @customElement('dy-result')
 @adoptedStyle(style)
 @shadow()

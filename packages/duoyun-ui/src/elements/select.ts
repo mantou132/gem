@@ -18,7 +18,7 @@ import {
 import type { TemplateResult } from '@mantou/gem/lib/element';
 import { createCSSSheet, createRef, createState, GemElement, html } from '@mantou/gem/lib/element';
 import type { StyleObject } from '@mantou/gem/lib/utils';
-import { addListener, css, styleMap } from '@mantou/gem/lib/utils';
+import { addListener, styleMap } from '@mantou/gem/lib/utils';
 
 import { theme } from '../lib/theme';
 import { icons } from '../lib/icons';
@@ -40,7 +40,7 @@ import './input';
 import './tag';
 import './scroll-box';
 
-const style = createCSSSheet(css`
+const style = createCSSSheet`
   :host {
     width: 15em;
   }
@@ -107,7 +107,7 @@ const style = createCSSSheet(css`
   .search:where(:state(filled), :state(composing)) + .placeholder {
     display: none;
   }
-`);
+`;
 
 export interface Option {
   label: string | TemplateResult;
@@ -117,15 +117,6 @@ export interface Option {
   onRemove?: (evt: MouseEvent) => void;
 }
 
-/**
- * @customElement dy-select
- * @attr multiple
- * @attr disabled
- * @attr searchable
- * @attr inline
- * @attr placeholder
- * @attr borderless
- */
 @customElement('dy-select')
 @adoptedStyle(style)
 @adoptedStyle(pickerStyle)

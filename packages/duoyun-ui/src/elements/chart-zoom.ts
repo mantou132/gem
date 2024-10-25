@@ -1,7 +1,7 @@
 import type { Emitter } from '@mantou/gem/lib/decorators';
 import { adoptedStyle, customElement, emitter, mounted, property, shadow } from '@mantou/gem/lib/decorators';
 import { createCSSSheet, createState, GemElement, html } from '@mantou/gem/lib/element';
-import { css, styleMap, classMap, addListener } from '@mantou/gem/lib/utils';
+import { styleMap, classMap, addListener } from '@mantou/gem/lib/utils';
 
 import { clamp } from '../lib/number';
 import { theme } from '../lib/theme';
@@ -11,7 +11,7 @@ import type { PanEventDetail } from './gesture';
 import './gesture';
 import './area-chart';
 
-const style = createCSSSheet(css`
+const style = createCSSSheet`
   :host(:where(:not([hidden]))) {
     position: relative;
     display: block;
@@ -70,11 +70,8 @@ const style = createCSSSheet(css`
     right: 0;
     transform: translate(50%, -50%);
   }
-`);
+`;
 
-/**
- * @customElement dy-chart-zoom
- */
 @customElement('dy-chart-zoom')
 @adoptedStyle(style)
 @shadow()

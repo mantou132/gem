@@ -10,7 +10,7 @@ import {
   shadow,
 } from '@mantou/gem/lib/decorators';
 import { createCSSSheet, createState, GemElement, html } from '@mantou/gem/lib/element';
-import { css, classMap } from '@mantou/gem/lib/utils';
+import { classMap } from '@mantou/gem/lib/utils';
 
 import { icons } from '../lib/icons';
 import { theme } from '../lib/theme';
@@ -21,7 +21,7 @@ import { focusStyle } from '../lib/styles';
 import './use';
 import '../elements/tooltip';
 
-const style = createCSSSheet(css`
+const style = createCSSSheet`
   :host(:where(:not([hidden]))) {
     position: relative;
     display: flex;
@@ -77,13 +77,10 @@ const style = createCSSSheet(css`
     text-overflow: ellipsis;
     white-space: nowrap;
   }
-`);
+`;
 
 type Status = 'none' | 'success' | 'fail';
 
-/**
- * @customElement dy-copy
- */
 @customElement('dy-copy')
 @adoptedStyle(style)
 @adoptedStyle(focusStyle)

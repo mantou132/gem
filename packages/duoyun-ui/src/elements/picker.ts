@@ -15,7 +15,7 @@ import {
 } from '@mantou/gem/lib/decorators';
 import type { TemplateResult } from '@mantou/gem/lib/element';
 import { GemElement, html, createCSSSheet } from '@mantou/gem/lib/element';
-import { addListener, css } from '@mantou/gem/lib/utils';
+import { addListener } from '@mantou/gem/lib/utils';
 
 import { theme } from '../lib/theme';
 import { icons } from '../lib/icons';
@@ -28,7 +28,7 @@ import { ContextMenu } from './contextmenu';
 import './use';
 import './scroll-box';
 
-export const pickerStyle = createCSSSheet(css`
+export const pickerStyle = createCSSSheet`
   :host(:where(:not([hidden]))) {
     cursor: pointer;
     display: inline-flex;
@@ -71,14 +71,14 @@ export const pickerStyle = createCSSSheet(css`
   :host(:not([disabled]):where(:hover, :state(active))) dy-use {
     color: ${theme.textColor};
   }
-`);
+`;
 
 export abstract class BasePickerElement {
   disabled: boolean;
   showPicker: () => void;
 }
 
-const style = createCSSSheet(css`
+const style = createCSSSheet`
   :host {
     width: 12em;
     white-space: nowrap;
@@ -96,7 +96,7 @@ const style = createCSSSheet(css`
   .placeholder {
     color: ${theme.describeColor};
   }
-`);
+`;
 
 export interface Option<T = any> {
   label: string | TemplateResult;
@@ -105,14 +105,6 @@ export interface Option<T = any> {
   children?: Option<T>[];
 }
 
-/**
- * @customElement dy-picker
- * @attr disabled
- * @attr borderless
- * @attr selectmode
- * @attr fit
- * @attr multiple
- */
 @customElement('dy-picker')
 @adoptedStyle(style)
 @adoptedStyle(pickerStyle)

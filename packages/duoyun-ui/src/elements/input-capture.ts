@@ -1,6 +1,6 @@
 import { adoptedStyle, customElement, mounted, part, shadow } from '@mantou/gem/lib/decorators';
 import { createCSSSheet, createState, GemElement, html } from '@mantou/gem/lib/element';
-import { addListener, css } from '@mantou/gem/lib/utils';
+import { addListener } from '@mantou/gem/lib/utils';
 import { createDecoratorTheme } from '@mantou/gem/helper/theme';
 
 import { theme } from '../lib/theme';
@@ -12,7 +12,7 @@ import './paragraph';
 
 const elementTheme = createDecoratorTheme({ left: '', top: '' });
 
-const style = createCSSSheet(css`
+const style = createCSSSheet`
   .container,
   .circle {
     position: fixed;
@@ -42,16 +42,13 @@ const style = createCSSSheet(css`
     left: ${elementTheme.left};
     top: ${elementTheme.top};
   }
-`);
+`;
 
 type State = {
   keys: string[];
   mousePosition: number[] | null;
 };
 
-/**
- * @customElement dy-input-capture
- */
 @customElement('dy-input-capture')
 @adoptedStyle(style)
 @adoptedStyle(contentsContainer)

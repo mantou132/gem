@@ -9,14 +9,13 @@ import {
   slot,
 } from '@mantou/gem/lib/decorators';
 import { html, GemElement, createCSSSheet } from '@mantou/gem/lib/element';
-import { css } from '@mantou/gem/lib/utils';
 import { createDecoratorTheme } from '@mantou/gem/helper/theme';
 
 import { theme, getSemanticColor } from '../lib/theme';
 
 const elementTheme = createDecoratorTheme({ color: '' });
 
-const style = createCSSSheet(css`
+const style = createCSSSheet`
   :host(:where(:not([hidden]))) {
     align-self: stretch;
     display: flex;
@@ -59,13 +58,8 @@ const style = createCSSSheet(css`
     background: ${elementTheme.color};
     block-size: var(--size);
   }
-`);
+`;
 
-/**
- * @customElement dy-divider
- * @attr size
- * @attr orientation
- */
 @customElement('dy-divider')
 @adoptedStyle(style)
 @aria({ role: 'separator' })

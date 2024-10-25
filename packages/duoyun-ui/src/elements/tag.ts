@@ -11,7 +11,6 @@ import {
   aria,
 } from '@mantou/gem/lib/decorators';
 import { GemElement, html, createCSSSheet } from '@mantou/gem/lib/element';
-import { css } from '@mantou/gem/lib/utils';
 import { createDecoratorTheme } from '@mantou/gem/helper/theme';
 
 import { icons } from '../lib/icons';
@@ -24,7 +23,7 @@ import './use';
 
 const elementTheme = createDecoratorTheme({ color: '', borderColor: '', bg: '' });
 
-const style = createCSSSheet(css`
+const style = createCSSSheet`
   :host(:where(:not([hidden]))) {
     cursor: default;
     display: inline-flex;
@@ -52,16 +51,10 @@ const style = createCSSSheet(css`
   .close:hover {
     opacity: 1;
   }
-`);
+`;
 
 export type PresetColor = 'positive' | 'informative' | 'negative' | 'notice' | 'default';
 
-/**
- * @customElement dy-tag
- * @attr small
- * @attr closable
- * @fires close
- */
 @customElement('dy-tag')
 @adoptedStyle(style)
 @adoptedStyle(focusStyle)

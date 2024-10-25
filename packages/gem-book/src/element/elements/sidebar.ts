@@ -8,7 +8,6 @@ import {
   state,
   connect,
   createStore,
-  css,
   createCSSSheet,
   adoptedStyle,
   effect,
@@ -34,7 +33,7 @@ import './nav-logo';
 
 export const sidebarStore = createStore({ open: false });
 
-const styles = createCSSSheet(css`
+const styles = createCSSSheet`
   :scope {
     display: flex;
     flex-direction: column;
@@ -188,7 +187,7 @@ const styles = createCSSSheet(css`
       display: none;
     }
   }
-`);
+`;
 
 @customElement('gem-book-sidebar')
 @connectStore(bookStore)

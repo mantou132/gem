@@ -11,7 +11,7 @@ import {
   property,
   state,
 } from '@mantou/gem/lib/decorators';
-import { addListener, classMap, css } from '@mantou/gem/lib/utils';
+import { addListener, classMap } from '@mantou/gem/lib/utils';
 import { mediaQuery } from '@mantou/gem/helper/mediaquery';
 
 import { isRemoteIcon } from '../lib/utils';
@@ -25,7 +25,7 @@ import '../elements/use';
 
 export type { Links } from './footer';
 
-const style = createCSSSheet(css`
+const style = createCSSSheet`
   :scope {
     display: flex;
     align-items: center;
@@ -112,11 +112,11 @@ const style = createCSSSheet(css`
   .dropdown dy-link:hover {
     background: ${theme.lightBackgroundColor};
   }
-`);
+`;
 
 const mobileStyle = createCSSSheet(
-  `${mediaQuery.PHONE}`,
-  css`
+  mediaQuery.PHONE,
+  /*css*/ `
     :scope {
       gap: 1em;
     }
@@ -187,9 +187,6 @@ const mobileStyle = createCSSSheet(
   `,
 );
 
-/**
- * @customElement dy-pat-nav
- */
 @customElement('dy-pat-nav')
 @adoptedStyle(style)
 @adoptedStyle(mobileStyle)

@@ -1,6 +1,6 @@
 import { adoptedStyle, aria, customElement, effect, mounted, shadow, state } from '@mantou/gem/lib/decorators';
 import { GemElement, html, createCSSSheet, createState } from '@mantou/gem/lib/element';
-import { addListener, css } from '@mantou/gem/lib/utils';
+import { addListener } from '@mantou/gem/lib/utils';
 import { createDecoratorTheme } from '@mantou/gem/helper/theme';
 
 import { sleep } from '../lib/timer';
@@ -12,7 +12,7 @@ import './loading';
 
 const elementTheme = createDecoratorTheme({ color: '', align: '', justify: '', paddingBottom: '' });
 
-const style = createCSSSheet(css`
+const style = createCSSSheet`
   :host(:where(:not([hidden]))) {
     view-transition-name: dy-wait;
     position: fixed;
@@ -37,7 +37,7 @@ const style = createCSSSheet(css`
     pointer-events: all;
     background-color: rgba(0, 0, 0, ${theme.maskAlpha});
   }
-`);
+`;
 
 interface WaitOptions {
   minDelay?: number;
@@ -96,9 +96,6 @@ type State = {
   position?: Position | `${Position} ${Position}`;
 };
 
-/**
- * @customElement dy-wait
- */
 @customElement('dy-wait')
 @adoptedStyle(style)
 @aria({ role: 'alert', ariaBusy: 'true' })

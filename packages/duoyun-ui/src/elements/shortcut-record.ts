@@ -13,7 +13,7 @@ import {
   mounted,
 } from '@mantou/gem/lib/decorators';
 import { GemElement, html, createCSSSheet } from '@mantou/gem/lib/element';
-import { addListener, css } from '@mantou/gem/lib/utils';
+import { addListener } from '@mantou/gem/lib/utils';
 
 import { theme } from '../lib/theme';
 import { isNotNullish } from '../lib/types';
@@ -24,7 +24,7 @@ import { icons } from '../lib/icons';
 import './paragraph';
 import './use';
 
-const style = createCSSSheet(css`
+const style = createCSSSheet`
   :host(:where(:not([hidden]))) {
     display: inline-flex;
     font-size: 0.875em;
@@ -91,14 +91,8 @@ const style = createCSSSheet(css`
       display: block;
     }
   }
-`);
+`;
 
-/**
- * @customElement dy-shortcut-record
- * @attr placeholder
- * @attr tooltip
- * @attr disabled
- */
 @customElement('dy-shortcut-record')
 @adoptedStyle(style)
 @adoptedStyle(focusStyle)

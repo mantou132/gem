@@ -12,7 +12,7 @@ import {
 } from '@mantou/gem/lib/decorators';
 import type { TemplateResult } from '@mantou/gem/lib/element';
 import { createCSSSheet, createState, GemElement, html } from '@mantou/gem/lib/element';
-import { css, styleMap, classMap } from '@mantou/gem/lib/utils';
+import { styleMap, classMap } from '@mantou/gem/lib/utils';
 
 import { icons } from '../lib/icons';
 import { getCascaderDeep, readProp } from '../lib/utils';
@@ -23,7 +23,7 @@ import { locale } from '../lib/locale';
 import './use';
 import './checkbox';
 
-const style = createCSSSheet(css`
+const style = createCSSSheet`
   :host(:where(:not([hidden]))) {
     display: flex;
     align-items: stretch;
@@ -68,7 +68,7 @@ const style = createCSSSheet(css`
   .right {
     width: 1.2em;
   }
-`);
+`;
 
 export type Option = {
   label: string | number;
@@ -101,13 +101,6 @@ enum CheckboxStatus {
   Indeterminate,
 }
 
-/**
- * @customElement dy-cascader
- * @attr fit
- * @attr multiple
- * @fires change
- * @fires expand
- */
 @customElement('dy-cascader')
 @adoptedStyle(style)
 @shadow()

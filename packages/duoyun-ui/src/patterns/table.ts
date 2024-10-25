@@ -1,5 +1,5 @@
 import { createCSSSheet, createRef, createState, GemElement, html } from '@mantou/gem/lib/element';
-import { QueryString, addListener, css, styleMap } from '@mantou/gem/lib/utils';
+import { QueryString, addListener, styleMap } from '@mantou/gem/lib/utils';
 import type { Emitter } from '@mantou/gem/lib/decorators';
 import {
   adoptedStyle,
@@ -120,7 +120,7 @@ export type FetchEventDetail = Omit<LocationStore, ''> & {
   sort: Record<string, Sort | undefined>;
 };
 
-const style = createCSSSheet(css`
+const style = createCSSSheet`
   .searchbar {
     display: flex;
     align-items: center;
@@ -149,11 +149,9 @@ const style = createCSSSheet(css`
     right: 1rem;
     bottom: 1rem;
   }
-`);
+`;
 
 /**
- * @customElement dy-pat-table
- *
  * !WARNING
  *
  * field not contain `,`, `filters` field and `sort` key use `,` split

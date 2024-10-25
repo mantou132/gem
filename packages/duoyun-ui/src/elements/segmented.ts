@@ -11,7 +11,7 @@ import {
   shadow,
   state,
 } from '@mantou/gem/lib/decorators';
-import { classMap, css, partMap, styleMap } from '@mantou/gem/lib/utils';
+import { classMap, partMap, styleMap } from '@mantou/gem/lib/utils';
 
 import { commonHandle } from '../lib/hotkeys';
 import { theme } from '../lib/theme';
@@ -22,7 +22,7 @@ import './use';
 
 const getAnchorName = (index: number) => `--anchor-${index}`;
 
-const style = createCSSSheet(css`
+const style = createCSSSheet`
   :host(:where(:not([hidden]))) {
     display: flex;
     cursor: default;
@@ -100,15 +100,12 @@ const style = createCSSSheet(css`
       box-shadow: ${theme.controlShadow};
     }
   }
-`);
+`;
 
 export interface SegmentedOption<T = any> extends Option<T> {
   icon?: string | Element | DocumentFragment;
 }
 
-/**
- * @customElement dy-segmented
- */
 @customElement('dy-segmented')
 @adoptedStyle(style)
 @shadow({ delegatesFocus: true })

@@ -12,7 +12,7 @@ import {
   effect,
 } from '@mantou/gem/lib/decorators';
 import { GemElement, html, createCSSSheet } from '@mantou/gem/lib/element';
-import { css, classMap } from '@mantou/gem/lib/utils';
+import { classMap } from '@mantou/gem/lib/utils';
 import { createDecoratorTheme } from '@mantou/gem/helper/theme';
 
 import { createDataURLFromSVG } from '../lib/image';
@@ -27,7 +27,7 @@ const starUrl = createDataURLFromSVG(icons.star);
 
 const elementTheme = createDecoratorTheme({ color: '' });
 
-const style = createCSSSheet(css`
+const style = createCSSSheet`
   :host(:where(:not([hidden]))) {
     display: inline-flex;
     flex-direction: row-reverse;
@@ -65,11 +65,8 @@ const style = createCSSSheet(css`
   :host(:where(:not(:hover), [readonly])) .mask::part(icon) {
     background-image: linear-gradient(to right, currentColor ${elementTheme.color}, transparent ${elementTheme.color});
   }
-`);
+`;
 
-/**
- * @customElement dy-rate
- */
 @customElement('dy-rate')
 @adoptedStyle(style)
 @adoptedStyle(focusStyle)

@@ -1,6 +1,6 @@
 import { GemElement, html, createCSSSheet } from '@mantou/gem/lib/element';
 import { adoptedStyle, customElement, attribute, state, slot, aria, shadow, mounted } from '@mantou/gem/lib/decorators';
-import { addListener, css } from '@mantou/gem/lib/utils';
+import { addListener } from '@mantou/gem/lib/utils';
 import { createDecoratorTheme } from '@mantou/gem/helper/theme';
 
 import { theme, getSemanticColor } from '../lib/theme';
@@ -11,7 +11,7 @@ import './tooltip';
 
 const elementTheme = createDecoratorTheme({ color: '', activeColor: '' });
 
-const style = createCSSSheet(css`
+const style = createCSSSheet`
   :host {
     overflow: hidden;
     text-overflow: ellipsis;
@@ -27,13 +27,8 @@ const style = createCSSSheet(css`
   :host(:where(:lang(zh), :lang(ja), :lang(kr))) {
     text-underline-offset: 0.125em;
   }
-`);
+`;
 
-/**
- * @customElement dy-action-text
- * @attr color
- * @attr tooltip
- */
 @customElement('dy-action-text')
 @adoptedStyle(style)
 @adoptedStyle(focusStyle)

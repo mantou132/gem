@@ -16,7 +16,7 @@ import {
 } from '@mantou/gem/lib/decorators';
 import type { TemplateResult } from '@mantou/gem/lib/element';
 import { createCSSSheet, GemElement, html, createState, createRef } from '@mantou/gem/lib/element';
-import { css, classMap, exportPartsMap } from '@mantou/gem/lib/utils';
+import { classMap, exportPartsMap } from '@mantou/gem/lib/utils';
 
 import { icons } from '../lib/icons';
 import { theme } from '../lib/theme';
@@ -26,7 +26,7 @@ import { commonAnimationOptions } from '../lib/animations';
 
 import './use';
 
-const panelStyle = createCSSSheet(css`
+const panelStyle = createCSSSheet`
   :host(:where(:not([hidden]))) {
     display: block;
     border-block-start: 1px solid ${theme.borderColor};
@@ -65,11 +65,8 @@ const panelStyle = createCSSSheet(css`
     padding-block: 1em;
     border-width: 1px;
   }
-`);
+`;
 
-/**
- * @customElement dy-collapse-panel
- */
 @customElement('dy-collapse-panel')
 @adoptedStyle(panelStyle)
 @adoptedStyle(focusStyle)
@@ -142,7 +139,7 @@ export class DuoyunCollapsePanelElement extends GemElement {
   };
 }
 
-const style = createCSSSheet(css`
+const style = createCSSSheet`
   :host(:where(:not([hidden]))) {
     display: block;
     overflow: hidden;
@@ -153,16 +150,13 @@ const style = createCSSSheet(css`
   :host dy-collapse-panel:first-child {
     border-block-start: none;
   }
-`);
+`;
 
 type CollapseItem = {
   summary: string | TemplateResult;
   detail: string | TemplateResult;
 };
 
-/**
- * @customElement dy-collapse
- */
 @customElement('dy-collapse')
 @adoptedStyle(style)
 @shadow({ delegatesFocus: true })

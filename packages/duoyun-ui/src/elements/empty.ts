@@ -8,14 +8,13 @@ import {
   slot,
 } from '@mantou/gem/lib/decorators';
 import { GemElement, html, createCSSSheet, render } from '@mantou/gem/lib/element';
-import { css } from '@mantou/gem/lib/utils';
 
 import { locale } from '../lib/locale';
 import { theme } from '../lib/theme';
 
 import './use';
 
-const style = createCSSSheet(css`
+const style = createCSSSheet`
   :host(:where(:not([hidden]))) {
     display: inline-flex;
     flex-direction: column;
@@ -27,11 +26,8 @@ const style = createCSSSheet(css`
   .icon {
     width: 5em;
   }
-`);
+`;
 
-/**
- * @customElement dy-empty
- */
 @customElement('dy-empty')
 @adoptedStyle(style)
 @connectStore(locale)

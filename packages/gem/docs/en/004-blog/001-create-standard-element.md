@@ -167,11 +167,11 @@ class MyElement extends GemElement {
 This is equivalent to creating a `<style>` element in each `<my-element>`. If it is a static style, you should try to use [Constructable Stylesheet](https://wicg.github.io/construct-stylesheets/) , It has better performance and lower memory usage:
 
 ```ts
-const style = createCSSSheet(css`
+const style = createCSSSheet`
   :host {
     display: contents;
   }
-`);
+`;
 @customElement('my-element')
 @adoptedStyle(style)
 class MyElement extends GemElement {}

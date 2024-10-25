@@ -13,7 +13,7 @@ import {
 } from '@mantou/gem/lib/decorators';
 import { createCSSSheet, GemElement, html, createRef } from '@mantou/gem/lib/element';
 import { history } from '@mantou/gem/lib/history';
-import { addListener, classMap, css, QueryString } from '@mantou/gem/lib/utils';
+import { addListener, classMap, QueryString } from '@mantou/gem/lib/utils';
 import { createDecoratorTheme } from '@mantou/gem/helper/theme';
 
 import { theme, getSemanticColor } from '../lib/theme';
@@ -32,7 +32,7 @@ import './use';
 
 const elementTheme = createDecoratorTheme({ bg: '', color: '' });
 
-const style = createCSSSheet(css`
+const style = createCSSSheet`
   :host(:where(:not([hidden]))) {
     display: inline-flex;
     align-items: stretch;
@@ -123,15 +123,8 @@ const style = createCSSSheet(css`
   :host([disabled]) ::after {
     content: none;
   }
-`);
+`;
 
-/**
- * @customElement dy-button
- * @attr type
- * @attr color
- * @attr small
- * @attr disabled
- */
 @customElement('dy-button')
 @adoptedStyle(style)
 @adoptedStyle(focusStyle)

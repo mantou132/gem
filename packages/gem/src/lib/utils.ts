@@ -223,8 +223,17 @@ export function raw(arr: TemplateStringsArray, ...args: any[]) {
   return arr.reduce((prev, current, index) => prev + (args[index - 1] ?? '') + current);
 }
 
-// 写 css 文本，在 CSSStyleSheet 中使用
-export const css = raw;
+// 写 css 文本，在 CSSStyleSheet 中使用，使用 styed-components 高亮
+//
+// createCSSSheet({
+//   red: styled`
+//     background: red;
+//     &:hover {
+//       background: blue;
+//     }
+//   `,
+// });
+export const styled = raw;
 
 export function randomStr(len = 5): string {
   const str = Math.random()
@@ -233,18 +242,6 @@ export function randomStr(len = 5): string {
   if (str.length < len) return str + randomStr(len - str.length);
   return str;
 }
-
-// 写 css 文本，在 CSSStyleSheet 中使用，使用 styed-components 高亮
-//
-// createCSSSheet({
-//   red: styled.class`
-//     background: red;
-//     &:hover {
-//       background: blue;
-//     }
-//   `,
-// });
-export const styled = { class: raw };
 
 export function camelToKebabCase(str: string) {
   return str.replace(/[A-Z]/g, ($1: string) => '-' + $1.toLowerCase());

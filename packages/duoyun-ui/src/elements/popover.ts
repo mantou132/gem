@@ -14,7 +14,7 @@ import {
 import type { TemplateResult } from '@mantou/gem/lib/element';
 import { createCSSSheet, createRef, createState, GemElement, html } from '@mantou/gem/lib/element';
 import type { StyleObject } from '@mantou/gem/lib/utils';
-import { addListener, css, styleMap } from '@mantou/gem/lib/utils';
+import { addListener, styleMap } from '@mantou/gem/lib/utils';
 
 import { toggleActiveState, getBoundingClientRect, setBodyInert } from '../lib/element';
 import { sleep } from '../lib/timer';
@@ -48,14 +48,6 @@ type CloseCallback = {
   instance: DuoyunPopoverElement;
 };
 
-/**
- * @customElement dy-popover
- * @attr debug
- * @attr unreachable
- * @attr disabled
- * @attr position
- * @attr trigger
- */
 @customElement('dy-popover')
 @adoptedStyle(contentsContainer)
 @shadow({ delegatesFocus: true })
@@ -346,7 +338,7 @@ export class DuoyunPopoverElement extends GemElement {
 
 export const Popover = DuoyunPopoverElement;
 
-const ghostStyle = createCSSSheet(css`
+const ghostStyle = createCSSSheet`
   :host {
     position: fixed;
     z-index: ${theme.popupZIndex};
@@ -456,11 +448,8 @@ const ghostStyle = createCSSSheet(css`
     border-width: 6px 6px 6px 0;
     transform: translateY(-50%);
   }
-`);
+`;
 
-/**
- * @customElement dy-popover-ghost
- */
 @customElement('dy-popover-ghost')
 @adoptedStyle(ghostStyle)
 @shadow()

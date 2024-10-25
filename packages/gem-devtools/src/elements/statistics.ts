@@ -19,9 +19,6 @@ import { execution } from '../common';
 
 import { style } from './section';
 
-/**
- * @customElement devtools-statistics
- */
 @customElement('devtools-statistics')
 @adoptedStyle(style)
 @connectStore(panelStore)

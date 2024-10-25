@@ -3,10 +3,10 @@ import { GemElement, html, styled, createCSSSheet, render, adoptedStyle, customE
 import '../elements/layout';
 
 const styles = createCSSSheet({
-  $: styled.class`
+  $: styled`
     font-style: italic;
   `,
-  div: styled.class`
+  div: styled`
     color: blue;
     &:hover {
       color: red;
@@ -15,7 +15,7 @@ const styles = createCSSSheet({
 });
 
 const styles2 = createCSSSheet({
-  [styles.div]: styled.class`
+  [styles.div]: styled`
     font-weight: bold;
     font-size: 2em;
   `,

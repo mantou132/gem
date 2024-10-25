@@ -2,7 +2,6 @@ import { createCSSSheet, SheetToken } from '../lib/element';
 import {
   LinkedList,
   QueryString,
-  css,
   raw,
   styled,
   styleMap,
@@ -82,11 +81,11 @@ describe('utils 测试', () => {
     expect(new QueryString(query).toString()).to.equal(query.toString());
   });
   it('createCSSSheet', () => {
-    const cssSheet = createCSSSheet(css`
+    const cssSheet = createCSSSheet`
       div {
         background: red;
       }
-    `);
+    `;
     const rules = cssSheet[SheetToken].getStyle().cssRules;
     expect(rules.item(0).selectorText).to.equal('div');
     expect(rules.item(0).style.background).to.equal('red');
@@ -102,8 +101,8 @@ describe('utils 测试', () => {
   });
   it('styled', () => {
     const cssSheet = createCSSSheet({
-      $: styled.class``,
-      scroll: styled.class`
+      $: styled``,
+      scroll: styled`
         background: red;
         &:hover * {
           background: blue;

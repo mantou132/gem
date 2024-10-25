@@ -1,6 +1,5 @@
 import { adoptedStyle, customElement } from '@mantou/gem/lib/decorators';
 import { html, svg, createCSSSheet } from '@mantou/gem/lib/element';
-import { css } from '@mantou/gem/lib/utils';
 import { createDecoratorTheme } from '@mantou/gem/helper/theme';
 
 import { isNullish } from '../lib/types';
@@ -10,7 +9,7 @@ import { DuoyunBarChartElement } from './bar-chart';
 
 const elementTheme = createDecoratorTheme({ strokeWidth: 0, strokeDasharray: '' });
 
-const style = createCSSSheet(css`
+const style = createCSSSheet`
   .line {
     pointer-events: none;
   }
@@ -27,11 +26,8 @@ const style = createCSSSheet(css`
     transform-origin: center;
     transform: scale(1.5);
   }
-`);
+`;
 
-/**
- * @customElement dy-line-chart
- */
 @customElement('dy-line-chart')
 @adoptedStyle(style)
 export class DuoyunLineChartElement extends DuoyunBarChartElement {

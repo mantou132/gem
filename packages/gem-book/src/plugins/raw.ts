@@ -7,9 +7,9 @@ type State = {
 
 const { GemBookPluginElement } = (await customElements.whenDefined('gem-book')) as typeof GemBookElement;
 const { Gem, theme, Utils } = GemBookPluginElement;
-const { attribute, customElement, html, createCSSSheet, css, adoptedStyle, createState, effect } = Gem;
+const { attribute, customElement, html, createCSSSheet, adoptedStyle, createState, effect } = Gem;
 
-const style = createCSSSheet(css`
+const style = createCSSSheet`
   :scope {
     display: contents;
   }
@@ -40,7 +40,7 @@ const style = createCSSSheet(css`
       opacity: 1;
     }
   }
-`);
+`;
 
 @customElement('gbp-raw')
 @adoptedStyle(style)

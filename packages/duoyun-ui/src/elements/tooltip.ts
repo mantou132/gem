@@ -4,9 +4,6 @@ import { theme } from '../lib/theme';
 
 import { DuoyunPopoverElement } from './popover';
 
-/**
- * @customElement dy-tooltip
- */
 @customElement('dy-tooltip')
 export class DuoyunTooltipElement extends DuoyunPopoverElement {
   static ghostStyle: (typeof DuoyunPopoverElement)['ghostStyle'] = {

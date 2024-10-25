@@ -14,7 +14,7 @@ import {
   effect,
 } from '@mantou/gem/lib/decorators';
 import { GemElement, html, createCSSSheet, createState, createRef } from '@mantou/gem/lib/element';
-import { css, classMap, addListener } from '@mantou/gem/lib/utils';
+import { classMap, addListener } from '@mantou/gem/lib/utils';
 import { createDecoratorTheme } from '@mantou/gem/helper/theme';
 
 import { theme } from '../lib/theme';
@@ -29,7 +29,7 @@ import './input';
 
 const elementTheme = createDecoratorTheme({ position: '', positionPoint: '' });
 
-const style = createCSSSheet(css`
+const style = createCSSSheet`
   :host(:where(:not([hidden]))) {
     font-size: 0.875em;
     inline-size: 15em;
@@ -99,11 +99,8 @@ const style = createCSSSheet(css`
   .input {
     inline-size: 50px;
   }
-`);
+`;
 
-/**
- * @customElement dy-slider
- */
 @customElement('dy-slider')
 @adoptedStyle(style)
 @adoptedStyle(focusStyle)

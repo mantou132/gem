@@ -1,6 +1,5 @@
 import { GemElement, html, createCSSSheet } from '@mantou/gem/lib/element';
 import { adoptedStyle, attribute, boolattribute, customElement, effect, property } from '@mantou/gem/lib/decorators';
-import { css } from '@mantou/gem/lib/utils';
 import { mediaQuery } from '@mantou/gem/helper/mediaquery';
 
 import { theme } from '../lib/theme';
@@ -34,7 +33,7 @@ export type UserInfo = {
   profile?: string;
 };
 
-const style = createCSSSheet(css`
+const style = createCSSSheet`
   :scope {
     display: flex;
     color: ${theme.textColor};
@@ -132,11 +131,8 @@ const style = createCSSSheet(css`
       }
     }
   }
-`);
+`;
 
-/**
- * @customElement dy-pat-console
- */
 @customElement('dy-pat-console')
 @adoptedStyle(style)
 export class DyPatConsoleElement extends GemElement {

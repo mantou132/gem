@@ -5,7 +5,6 @@ DuoyunUI comes with themes, icons, texts, and can be used in the application:
 ```ts
 import {
   createCSSSheet,
-  css,
   adoptedStyle,
   customElement,
   GemElement,
@@ -17,11 +16,11 @@ import { locale } from 'duoyun-ui/lib/locale';
 
 import '@mantou/gem';
 
-const style = createCSSSheet(css`
+const style = createCSSSheet`
   gem-use {
     color: ${theme.positiveColor};
   }
-`);
+`;
 
 @customElement('my-ele')
 @adoptedStyle(style)

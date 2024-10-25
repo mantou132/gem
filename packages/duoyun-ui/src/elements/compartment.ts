@@ -4,9 +4,6 @@ import { GemElement, html } from '@mantou/gem/lib/element';
 
 import { contentsContainer } from '../lib/styles';
 
-/**
- * @customElement dy-compartment
- */
 @customElement('dy-compartment')
 @adoptedStyle(contentsContainer)
 @shadow()

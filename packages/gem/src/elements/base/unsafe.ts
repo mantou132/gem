@@ -2,11 +2,6 @@ import { GemElement } from '../../lib/element';
 import { attribute, shadow, template } from '../../lib/decorators';
 import { raw } from '../../lib/utils';
 
-/**
- * @customElement gem-unsafe
- * @attr content
- * @attr contentcss
- */
 @shadow()
 export class GemUnsafeElement extends GemElement {
   @attribute content: string;

@@ -16,7 +16,6 @@ const {
   attribute,
   numattribute,
   createCSSSheet,
-  css,
   adoptedStyle,
   effect,
   kebabToCamelCase,
@@ -24,7 +23,7 @@ const {
   light,
 } = Gem;
 
-const styles = createCSSSheet(css`
+const styles = createCSSSheet`
   table {
     tr td:first-of-type {
       white-space: nowrap;
@@ -36,7 +35,7 @@ const styles = createCSSSheet(css`
   .error {
     color: ${theme.cautionColor};
   }
-`);
+`;
 
 @customElement('gbp-api')
 @adoptedStyle(styles)

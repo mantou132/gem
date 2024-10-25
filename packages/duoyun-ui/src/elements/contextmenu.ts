@@ -1,7 +1,7 @@
 import { connectStore, adoptedStyle, customElement, shadow, effect, mounted } from '@mantou/gem/lib/decorators';
 import type { TemplateResult } from '@mantou/gem/lib/element';
 import { createCSSSheet, html, GemElement, createRef } from '@mantou/gem/lib/element';
-import { css, styleMap, classMap } from '@mantou/gem/lib/utils';
+import { styleMap, classMap } from '@mantou/gem/lib/utils';
 import { createStore } from '@mantou/gem/lib/store';
 
 import { icons } from '../lib/icons';
@@ -80,7 +80,7 @@ function getMenuObject(menuOrMenuObject: MenuOrMenuObject) {
 
 let closeResolve: (value?: any) => void;
 
-const style = createCSSSheet(css`
+const style = createCSSSheet`
   :host(:where(:not([hidden]))) {
     display: block;
     position: fixed;
@@ -109,11 +109,8 @@ const style = createCSSSheet(css`
     box-shadow: 0 7px 14px rgba(0, 0, 0, calc(${theme.maskAlpha} - 0.1));
     scrollbar-width: none;
   }
-`);
+`;
 
-/**
- * @customElement dy-contextmenu
- */
 @customElement('dy-contextmenu')
 @connectStore(contextmenuStore)
 @adoptedStyle(style)

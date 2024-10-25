@@ -1,7 +1,7 @@
 import { adoptedStyle, aria, customElement, mounted, property, shadow } from '@mantou/gem/lib/decorators';
 import type { TemplateResult } from '@mantou/gem/lib/element';
 import { GemElement, html, createCSSSheet, repeat } from '@mantou/gem/lib/element';
-import { css, classMap, addListener } from '@mantou/gem/lib/utils';
+import { classMap, addListener } from '@mantou/gem/lib/utils';
 
 import { icons } from '../lib/icons';
 import { theme } from '../lib/theme';
@@ -10,7 +10,7 @@ import { getStringFromTemplate } from '../lib/utils';
 import './use';
 import './action-text';
 
-const style = createCSSSheet(css`
+const style = createCSSSheet`
   :host(:where(:not([hidden]))) {
     --item-gap: 1em;
     --item-padding-block: 0.6em;
@@ -89,7 +89,7 @@ const style = createCSSSheet(css`
     cursor: pointer;
     text-decoration: underline;
   }
-`);
+`;
 
 type Type = 'info' | 'success' | 'warning' | 'error' | 'loading';
 
@@ -108,9 +108,6 @@ type ToastOptions = Partial<ToastItem> & {
 const itemTimerMap = new WeakMap<ToastItem, number>();
 const removedSet = new WeakSet<ToastItem>();
 
-/**
- * @customElement dy-toast
- */
 @customElement('dy-toast')
 @adoptedStyle(style)
 @aria({ role: 'alert', ariaLive: 'polite' })

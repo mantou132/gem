@@ -3,7 +3,7 @@
 import { adoptedStyle, customElement, property, part, state, shadow, memo, effect } from '@mantou/gem/lib/decorators';
 import type { TemplateResult } from '@mantou/gem/lib/element';
 import { createCSSSheet, createRef, createState, html, svg } from '@mantou/gem/lib/element';
-import { css, styleMap, exportPartsMap } from '@mantou/gem/lib/utils';
+import { styleMap, exportPartsMap } from '@mantou/gem/lib/utils';
 import { createDecoratorTheme } from '@mantou/gem/helper/theme';
 import type { ElkNode, ElkExtendedEdge, ElkEdgeSection, LayoutOptions, ElkShape, ElkPoint } from 'elkjs';
 import ELK from 'elkjs/lib/elk.bundled.js';
@@ -192,7 +192,7 @@ export type Node = Modify<
 
 const elementTheme = createDecoratorTheme({ opacity: 0, width: '', height: '' });
 
-const canvasStyle = createCSSSheet(css`
+const canvasStyle = createCSSSheet`
   :host(:where(:not([hidden]))) {
     display: block;
     position: relative;
@@ -221,11 +221,8 @@ const canvasStyle = createCSSSheet(css`
     stroke-width: 1;
     fill: none;
   }
-`);
+`;
 
-/**
- * @customElement dy-flow-canvas
- */
 @customElement('dy-flow-canvas')
 @adoptedStyle(canvasStyle)
 @shadow()
@@ -506,17 +503,14 @@ type State = {
   marginBlock?: number;
 };
 
-const style = createCSSSheet(css`
+const style = createCSSSheet`
   :host(:where(:not([hidden]))) {
     display: flex;
     align-items: center;
     justify-content: center;
   }
-`);
+`;
 
-/**
- * @customElement dy-flow
- */
 @customElement('dy-flow')
 @adoptedStyle(style)
 @shadow()

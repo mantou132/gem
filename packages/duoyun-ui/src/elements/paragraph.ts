@@ -1,10 +1,9 @@
 import { adoptedStyle, aria, customElement } from '@mantou/gem/lib/decorators';
 import { GemElement, createCSSSheet } from '@mantou/gem/lib/element';
-import { css } from '@mantou/gem/lib/utils';
 
 import { theme } from '../lib/theme';
 
-const style = createCSSSheet(css`
+const style = createCSSSheet`
   :where(:scope:not([hidden])) {
     display: block;
     margin-block-end: 0.75em;
@@ -43,11 +42,8 @@ const style = createCSSSheet(css`
       border-bottom-width: 2px;
     }
   }
-`);
+`;
 
-/**
- * @customElement dy-paragraph
- */
 @customElement('dy-paragraph')
 @adoptedStyle(style)
 @aria({ role: 'paragraph' })

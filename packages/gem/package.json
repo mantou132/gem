@@ -31,7 +31,7 @@
   ],
   "typings": "index.d.ts",
   "scripts": {
-    "docs": "GEM_BOOK_REPLACE=true gem-book docs",
+    "docs": "cross-env GEM_BOOK_REPLACE=true gem-book docs",
     "docs:remote": "pnpm run docs",
     "build:docs": "pnpm run docs --build",
     "build:module": "tsc -p tsconfig.build.json",

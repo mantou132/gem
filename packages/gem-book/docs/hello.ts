@@ -3,16 +3,16 @@ import type { GemBookElement } from 'gem-book';
 customElements.whenDefined('gem-book').then(() => {
   const { GemBookPluginElement } = customElements.get('gem-book') as typeof GemBookElement;
   const { Gem, theme } = GemBookPluginElement;
-  const { html, css, adoptedStyle, createCSSSheet, customElement } = Gem;
+  const { html, adoptedStyle, createCSSSheet, customElement } = Gem;
 
-  const style = createCSSSheet(css`
+  const style = createCSSSheet`
     my-plugin-hello {
       display: block;
       border-radius: ${theme.normalRound};
       background: rgb(from ${theme.textColor} r g b / 0.05);
       padding: 1rem;
     }
-  `);
+  `;
 
   @customElement('my-plugin-hello')
   @adoptedStyle(style)

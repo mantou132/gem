@@ -3,8 +3,5 @@ import { customElement } from '@mantou/gem/lib/decorators';
 
 export * from '@mantou/gem/elements/base/unsafe';
 
-/**
- * @customElement dy-unsafe
- */
 @customElement('dy-unsafe')
 export class DuoyunUnsafeElement extends GemUnsafeElement {}

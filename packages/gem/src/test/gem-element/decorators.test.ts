@@ -2,7 +2,6 @@ import { fixture, expect } from '../utils';
 import type { Metadata } from '../../lib/element';
 import { createCSSSheet, GemElement, html } from '../../lib/element';
 import { createStore } from '../../lib/store';
-import { css } from '../../lib/utils';
 import type { Emitter } from '../../lib/decorators';
 import {
   attribute,
@@ -23,11 +22,11 @@ const store = createStore({
   a: 1,
 });
 
-const styles = createCSSSheet(css`
+const styles = createCSSSheet`
   :host {
     background: rgb(255, 0, 0);
   }
-`);
+`;
 
 @connectStore(store)
 @adoptedStyle(styles)

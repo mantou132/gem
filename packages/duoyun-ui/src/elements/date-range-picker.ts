@@ -13,7 +13,7 @@ import {
   mounted,
 } from '@mantou/gem/lib/decorators';
 import { GemElement, html, createCSSSheet } from '@mantou/gem/lib/element';
-import { css, classMap } from '@mantou/gem/lib/utils';
+import { classMap } from '@mantou/gem/lib/utils';
 
 import { Time } from '../lib/time';
 import { icons } from '../lib/icons';
@@ -33,7 +33,7 @@ import './use';
 import './date-range-panel';
 import './button';
 
-const style = createCSSSheet(css`
+const style = createCSSSheet`
   :host {
     width: 18em;
   }
@@ -56,16 +56,8 @@ const style = createCSSSheet(css`
   :host(:not([disabled])) .clearable:hover .close {
     display: inline-flex;
   }
-`);
+`;
 
-/**
- * @customElement dy-date-range-picker
- * @attr placeholder
- * @attr clearable
- * @attr disabled
- * @fires change
- * @fires clear
- */
 @customElement('dy-date-range-picker')
 @adoptedStyle(style)
 @adoptedStyle(pickerStyle)

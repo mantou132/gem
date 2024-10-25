@@ -11,7 +11,7 @@ import {
 } from '@mantou/gem/lib/decorators';
 import type { TemplateResult } from '@mantou/gem/lib/element';
 import { createCSSSheet, GemElement, html } from '@mantou/gem/lib/element';
-import { css, classMap, partMap } from '@mantou/gem/lib/utils';
+import { classMap, partMap } from '@mantou/gem/lib/utils';
 
 import { isNotNullish } from '../lib/types';
 import { Time } from '../lib/time';
@@ -19,7 +19,7 @@ import { theme } from '../lib/theme';
 import { commonHandle } from '../lib/hotkeys';
 import { focusStyle } from '../lib/styles';
 
-const style = createCSSSheet(css`
+const style = createCSSSheet`
   :host(:where(:not([hidden]))) {
     cursor: default;
     font-size: 0.875em;
@@ -99,7 +99,7 @@ const style = createCSSSheet(css`
     border-radius: 0;
     border-color: transparent;
   }
-`);
+`;
 
 interface Day {
   date: Time;
@@ -107,11 +107,6 @@ interface Day {
   isToday?: boolean;
 }
 
-/**
- * @customElement dy-calendar
- * @attr borderless
- * @attr today
- */
 @customElement('dy-calendar')
 @adoptedStyle(style)
 @adoptedStyle(focusStyle)

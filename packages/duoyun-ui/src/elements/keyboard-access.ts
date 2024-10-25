@@ -11,7 +11,7 @@ import {
   effect,
   mounted,
 } from '@mantou/gem/lib/decorators';
-import { addListener, css, styleMap } from '@mantou/gem/lib/utils';
+import { addListener, styleMap } from '@mantou/gem/lib/utils';
 import { logger } from '@mantou/gem/helper/logger';
 
 import type { HotKeyHandles } from '../lib/hotkeys';
@@ -59,7 +59,7 @@ const getFocusableElements = () => {
   });
 };
 
-const style = createCSSSheet(css`
+const style = createCSSSheet`
   :host {
     font-size: 0.75em;
   }
@@ -78,7 +78,7 @@ const style = createCSSSheet(css`
     border-color: #0002;
     text-transform: uppercase;
   }
-`);
+`;
 
 type FocusableElement = {
   key: string;
@@ -97,7 +97,6 @@ type State = {
 export type NavigationDirection = 'up' | 'down' | 'left' | 'right';
 
 /**
- * @customElement dy-keyboard-access
  * Firefox cross origin open popup allow: about:config -> dom.popup_allowed_events add `keydown`
  */
 @customElement('dy-keyboard-access')

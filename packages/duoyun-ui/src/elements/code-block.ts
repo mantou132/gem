@@ -1,7 +1,7 @@
 // https://spectrum.adobe.com/page/code/
 import { adoptedStyle, customElement, attribute, shadow, mounted, effect } from '@mantou/gem/lib/decorators';
 import { createCSSSheet, createRef, html } from '@mantou/gem/lib/element';
-import { css, styleMap } from '@mantou/gem/lib/utils';
+import { styleMap } from '@mantou/gem/lib/utils';
 
 import { theme } from '../lib/theme';
 
@@ -206,7 +206,7 @@ const langAliases: Record<string, string> = {
 const lineHeight = 1.5;
 const padding = 1;
 
-const style = createCSSSheet(css`
+const style = createCSSSheet`
   :host(:where(:not([hidden]))) {
     position: relative;
     display: block;
@@ -321,11 +321,8 @@ const style = createCSSSheet(css`
       display: none;
     }
   }
-`);
+`;
 
-/**
- * @customElement dy-code-block
- */
 @customElement('dy-code-block')
 @adoptedStyle(style)
 @shadow()

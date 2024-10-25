@@ -9,7 +9,7 @@ import {
   shadow,
 } from '@mantou/gem/lib/decorators';
 import { createCSSSheet, html } from '@mantou/gem/lib/element';
-import { css, styleMap } from '@mantou/gem/lib/utils';
+import { styleMap } from '@mantou/gem/lib/utils';
 import { createDecoratorTheme } from '@mantou/gem/helper/theme';
 
 import { theme } from '../lib/theme';
@@ -18,7 +18,7 @@ import { DuoyunVisibleBaseElement } from './base/visible';
 
 const elementTheme = createDecoratorTheme({ color: '' });
 
-const style = createCSSSheet(css`
+const style = createCSSSheet`
   :host(:where(:not([hidden]))) {
     display: block;
     flex-grow: 1;
@@ -36,16 +36,8 @@ const style = createCSSSheet(css`
     background-size: 100% 1em;
     background-repeat: no-repeat;
   }
-`);
+`;
 
-/**
- * @customElement dy-placeholder
- * @attr mode
- * @attr width
- * @attr center
- * @attr max-line
- * @attr min-line
- */
 @customElement('dy-placeholder')
 @adoptedStyle(style)
 @aria({ role: 'progressbar', ariaBusy: 'true' })

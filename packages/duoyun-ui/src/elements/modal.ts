@@ -16,7 +16,7 @@ import {
   memo,
 } from '@mantou/gem/lib/decorators';
 import { createCSSSheet, createRef, GemElement, html, TemplateResult } from '@mantou/gem/lib/element';
-import { addListener, css, styled } from '@mantou/gem/lib/utils';
+import { addListener, styled } from '@mantou/gem/lib/utils';
 import { mediaQuery } from '@mantou/gem/helper/mediaquery';
 
 import { theme } from '../lib/theme';
@@ -30,7 +30,7 @@ import './button';
 import './divider';
 import './scroll-box';
 
-const style = createCSSSheet(css`
+const style = createCSSSheet`
   /* modal 可能会在刷新前后保持打开 */
   :host {
     view-transition-name: dy-modal;
@@ -106,13 +106,13 @@ const style = createCSSSheet(css`
       height: 100%;
     }
   }
-`);
+`;
 
 const style2 = createCSSSheet({
-  p: styled.class`
+  p: styled`
     margin: 0;
   `,
-  c: styled.class`
+  c: styled`
     &::first-letter {
       text-transform: capitalize;
     }
@@ -139,12 +139,6 @@ export interface ModalOpenOptions<T> {
   prepareOk?: (ele: T) => void | Promise<void>;
 }
 
-/**
- * @customElement dy-modal
- * @fires ok
- * @fires close
- * @fires maskclick
- */
 @customElement('dy-modal')
 @adoptedStyle(style)
 @adoptedStyle(style2)

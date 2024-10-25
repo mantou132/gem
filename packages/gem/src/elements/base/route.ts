@@ -132,13 +132,6 @@ export type RouteTrigger = {
 
 const scrollPositionMap = new Map<string, number>();
 
-/**
- * @customElement gem-light-route
- * @attr inert 暂停路由更新
- * @fires routechange
- * @fires error
- * @fires loading
- */
 @light({ penetrable: true })
 export class GemLightRouteElement extends GemElement {
   @boolattribute transition: boolean;
@@ -331,8 +324,5 @@ export class GemLightRouteElement extends GemElement {
   };
 }
 
-/**
- * @customElement gem-route
- */
 @shadow()
 export class GemRouteElement extends GemLightRouteElement {}

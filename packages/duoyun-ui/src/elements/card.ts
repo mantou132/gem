@@ -1,7 +1,6 @@
 // https://spectrum.adobe.com/page/cards/
 import { adoptedStyle, customElement, attribute, property, part, slot, shadow, aria } from '@mantou/gem/lib/decorators';
 import { createCSSSheet, html } from '@mantou/gem/lib/element';
-import { css } from '@mantou/gem/lib/utils';
 
 import { theme } from '../lib/theme';
 import { icons } from '../lib/icons';
@@ -15,7 +14,7 @@ import { ContextMenu } from './contextmenu';
 
 import './use';
 
-const style = createCSSSheet(css`
+const style = createCSSSheet`
   :host(:where(:not([hidden]))) {
     display: flex;
     flex-direction: column;
@@ -87,17 +86,10 @@ const style = createCSSSheet(css`
     justify-content: flex-end;
     gap: 1em;
   }
-`);
+`;
 
 export type ActionItem = Omit<ContextMenuItem, 'handle'> & { handle: (rest: HTMLElement) => void | Promise<void> };
 
-/**
- * @customElement dy-card
- * @attr header
- * @attr detail
- * @attr avatar
- * @attr preview
- */
 @customElement('dy-card')
 @adoptedStyle(style)
 @adoptedStyle(focusStyle)

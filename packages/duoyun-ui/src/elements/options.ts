@@ -1,7 +1,7 @@
 import { adoptedStyle, customElement, property, boolattribute, slot, aria, shadow } from '@mantou/gem/lib/decorators';
 import type { TemplateResult } from '@mantou/gem/lib/element';
 import { GemElement, html, createCSSSheet, createState } from '@mantou/gem/lib/element';
-import { css, classMap } from '@mantou/gem/lib/utils';
+import { classMap } from '@mantou/gem/lib/utils';
 
 import { theme } from '../lib/theme';
 import { icons } from '../lib/icons';
@@ -13,7 +13,7 @@ import { focusStyle } from '../lib/styles';
 import './use';
 import './input';
 
-const style = createCSSSheet(css`
+const style = createCSSSheet`
   :host(:where(:not([hidden]))) {
     cursor: default;
     font-size: 0.875em;
@@ -115,7 +115,7 @@ const style = createCSSSheet(css`
   dy-tag {
     padding-block: 0;
   }
-`);
+`;
 
 export type Option = {
   label: string | TemplateResult;
@@ -141,10 +141,6 @@ export type Adder = {
 
 export const SEPARATOR = '---';
 
-/**
- * @customElement dy-options
- * @attr searchable
- */
 @customElement('dy-options')
 @adoptedStyle(style)
 @adoptedStyle(focusStyle)

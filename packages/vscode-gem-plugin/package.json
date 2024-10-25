@@ -10,13 +10,128 @@
   "categories": [
     "Other"
   ],
-  "activationEvents": [],
+  "activationEvents": [
+    "onLanguage:javascript",
+    "onLanguage:typescript",
+    "onLanguage:javascriptreact",
+    "onLanguage:typescriptreact"
+  ],
   "main": "./dist/extension.js",
   "contributes": {
     "commands": [
       {
         "command": "vscode-plugin-gem.helloWorld",
         "title": "Hello World"
+      }
+    ],
+    "snippets": [
+      {
+        "language": "javascript",
+        "path": "snippets/snippets.json"
+      },
+      {
+        "language": "typescript",
+        "path": "snippets/snippets.json"
+      }
+    ],
+    "languages": [
+      {
+        "id": "style",
+        "aliases": [
+          "STYLE",
+          "style"
+        ],
+        "extensions": [
+          ".style"
+        ],
+        "mimetypes": [
+          "text/style"
+        ]
+      }
+    ],
+    "grammars": [
+      {
+        "language": "style",
+        "scopeName": "source.style",
+        "path": "./syntaxes/style.tmLanguage.json",
+        "tokenTypes": {
+          "meta.function.url string.quoted": "other"
+        }
+      },
+      {
+        "injectTo": [
+          "source.js",
+          "source.mjs",
+          "source.jsx",
+          "source.ts",
+          "source.tsx"
+        ],
+        "scopeName": "es6.inline.style",
+        "path": "./syntaxes/es6.inline.style.json",
+        "embeddedLanguages": {
+          "meta.embedded.block.style": "style",
+          "meta.template.expression.ts": "typescript"
+        }
+      },
+      {
+        "injectTo": [
+          "source.js",
+          "source.mjs",
+          "source.jsx",
+          "source.ts",
+          "source.tsx"
+        ],
+        "scopeName": "es6.inline.html",
+        "path": "./syntaxes/es6.inline.html.json",
+        "embeddedLanguages": {
+          "meta.embedded.block.html": "html",
+          "meta.template.expression.ts": "typescript"
+        }
+      },
+      {
+        "injectTo": [
+          "source.js",
+          "source.mjs",
+          "source.jsx",
+          "source.ts",
+          "source.tsx"
+        ],
+        "scopeName": "es6.inline.css",
+        "path": "./syntaxes/es6.inline.css.json",
+        "embeddedLanguages": {
+          "meta.embedded.block.css": "css",
+          "meta.template.expression.ts": "typescript"
+        }
+      },
+      {
+        "injectTo": [
+          "source.js",
+          "source.mjs",
+          "source.jsx",
+          "source.ts",
+          "source.tsx"
+        ],
+        "scopeName": "es6.inline.scss",
+        "path": "./syntaxes/es6.inline.scss.json",
+        "embeddedLanguages": {
+          "meta.embedded.block.scss": "scss",
+          "meta.template.expression.ts": "typescript"
+        }
+      },
+      {
+        "injectTo": [
+          "source.js",
+          "source.mjs",
+          "source.jsx",
+          "source.ts",
+          "source.tsx"
+        ],
+        "scopeName": "es6.inline.less",
+        "path": "./syntaxes/es6.inline.less.json",
+        "embeddedLanguages": {
+          "meta.embedded.block.less": "less",
+          "meta.template.expression.ts": "typescript"
+        }
       }
     ]
   },
@@ -28,13 +143,18 @@
     "test": "vscode-test",
     "vscode:prepublish": "pnpm package"
   },
+  "dependencies": {
+    "@vscode/emmet-helper": "^2.9.3",
+    "vscode-css-languageservice": "^6.3.1",
+    "vscode-html-languageservice": "^5.3.1"
+  },
   "devDependencies": {
     "@gemjs/config": "^2.1.0",
     "@types/mocha": "^10.0.7",
-    "@types/vscode": "^1.93.0",
+    "@types/vscode": "^1.94.0",
     "@vscode/test-cli": "^0.0.10",
     "@vscode/test-electron": "^2.4.1",
-    "esbuild": "^0.23.1",
+    "esbuild": "^0.24.0",
     "typescript": "^5.6.2"
   }
 }

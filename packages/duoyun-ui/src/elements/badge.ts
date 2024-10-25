@@ -12,7 +12,7 @@ import {
   mounted,
 } from '@mantou/gem/lib/decorators';
 import { createCSSSheet, createRef, GemElement, html } from '@mantou/gem/lib/element';
-import { classMap, css } from '@mantou/gem/lib/utils';
+import { classMap } from '@mantou/gem/lib/utils';
 
 import { contentsContainer } from '../lib/styles';
 import { getSemanticColor, theme } from '../lib/theme';
@@ -20,7 +20,7 @@ import type { StringList } from '../lib/types';
 
 import './use';
 
-const style = createCSSSheet(css`
+const style = createCSSSheet`
   .badge {
     display: flex;
     align-items: center;
@@ -74,11 +74,8 @@ const style = createCSSSheet(css`
       right: 0;
     }
   }
-`);
+`;
 
-/**
- * @customElement dy-badge
- */
 @customElement('dy-badge')
 @adoptedStyle(style)
 @adoptedStyle(contentsContainer)

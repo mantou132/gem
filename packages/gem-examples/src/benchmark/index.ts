@@ -7,7 +7,6 @@ import {
   attribute,
   numattribute,
   createCSSSheet,
-  css,
   adoptedStyle,
   createRef,
   repeat,
@@ -46,7 +45,7 @@ export class Pixel extends GemElement {
   }
 }
 
-const style = createCSSSheet(css`
+const style = createCSSSheet`
   :host {
     display: grid;
     place-items: center;
@@ -69,7 +68,7 @@ const style = createCSSSheet(css`
   .grid {
     display: grid;
   }
-`);
+`;
 
 @customElement('app-root')
 @adoptedStyle(style)

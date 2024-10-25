@@ -11,7 +11,7 @@ import {
   shadow,
 } from '@mantou/gem/lib/decorators';
 import { createCSSSheet, createRef, GemElement, html, repeat } from '@mantou/gem/lib/element';
-import { css, styleMap } from '@mantou/gem/lib/utils';
+import { styleMap } from '@mantou/gem/lib/utils';
 
 import { icons } from '../lib/icons';
 import { theme } from '../lib/theme';
@@ -25,7 +25,7 @@ import type { BasePickerElement } from './picker';
 import './use';
 import './image-preview';
 
-const style = createCSSSheet(css`
+const style = createCSSSheet`
   :host(:where(:not([hidden]))) {
     font-size: 0.875em;
     display: flex;
@@ -102,7 +102,7 @@ const style = createCSSSheet(css`
     width: auto;
     max-width: 100%;
   }
-`);
+`;
 
 type FileStatus = 'success' | 'fail' | 'uploading';
 
@@ -113,9 +113,6 @@ export interface FileItem extends File {
   progress?: number;
 }
 
-/**
- * @customElement dy-file-picker
- */
 @customElement('dy-file-picker')
 @adoptedStyle(style)
 @adoptedStyle(focusStyle)

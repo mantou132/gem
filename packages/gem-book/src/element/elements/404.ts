@@ -1,4 +1,4 @@
-import { adoptedStyle, aria, createCSSSheet, css, customElement, GemElement, html } from '@mantou/gem';
+import { adoptedStyle, aria, createCSSSheet, customElement, GemElement, html } from '@mantou/gem';
 
 import { getGithubPath, isGitLab } from '../lib/utils';
 import { bookStore, locationStore } from '../store';
@@ -11,7 +11,7 @@ import '@mantou/gem/elements/reflect';
 import '@mantou/gem/elements/title';
 import '@mantou/gem/elements/use';
 
-const styles = createCSSSheet(css`
+const styles = createCSSSheet`
   :scope {
     text-align: center;
   }
@@ -34,7 +34,7 @@ const styles = createCSSSheet(css`
     height: 18px;
     margin-right: 10px;
   }
-`);
+`;
 @customElement('gem-book-404')
 @adoptedStyle(styles)
 @aria({ role: 'region' })

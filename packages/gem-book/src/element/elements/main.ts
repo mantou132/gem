@@ -2,7 +2,6 @@ import {
   html,
   GemElement,
   customElement,
-  css,
   property,
   createCSSSheet,
   adoptedStyle,
@@ -25,7 +24,7 @@ import '@mantou/gem/elements/unsafe';
 import '@mantou/gem/elements/link';
 import './pre';
 
-const style = createCSSSheet(css`
+const style = createCSSSheet`
   /**
   * 未定义元素提醒
   * https://github.com/w3c/csswg-drafts/issues/9712
@@ -205,7 +204,7 @@ const style = createCSSSheet(css`
   ${tableStyle}
   ${headingStyle}
   ${blockquoteStyle}
-`);
+`;
 
 @customElement('gem-book-main')
 @adoptedStyle(style)

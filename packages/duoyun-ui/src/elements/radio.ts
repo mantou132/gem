@@ -13,13 +13,13 @@ import {
 } from '@mantou/gem/lib/decorators';
 import type { TemplateResult } from '@mantou/gem/lib/element';
 import { GemElement, html, createCSSSheet } from '@mantou/gem/lib/element';
-import { addListener, css } from '@mantou/gem/lib/utils';
+import { addListener } from '@mantou/gem/lib/utils';
 
 import { theme } from '../lib/theme';
 import { commonHandle } from '../lib/hotkeys';
 import { focusStyle } from '../lib/styles';
 
-const style = createCSSSheet(css`
+const style = createCSSSheet`
   :host(:where(:not([hidden]))) {
     cursor: default;
     display: inline-flex;
@@ -52,14 +52,8 @@ const style = createCSSSheet(css`
   :host([checked]) .radio {
     background-color: currentColor;
   }
-`);
+`;
 
-/**
- * @customElement dy-radio
- * @attr checked
- * @attr value
- * @attr disabled
- */
 @customElement('dy-radio')
 @adoptedStyle(style)
 @adoptedStyle(focusStyle)
@@ -97,7 +91,7 @@ export class DuoyunRadioElement extends GemElement {
   };
 }
 
-export const groupStyle = createCSSSheet(css`
+export const groupStyle = createCSSSheet`
   :scope:where(:not([hidden])) {
     display: flex;
     align-items: center;
@@ -110,17 +104,13 @@ export const groupStyle = createCSSSheet(css`
     flex-direction: column;
     align-items: flex-start;
   }
-`);
+`;
 
 export interface Option<T = any> {
   label: string | TemplateResult;
   value?: T;
 }
 
-/**
- * @customElement dy-radio-group
- * @attr disabled
- */
 @customElement('dy-radio-group')
 @adoptedStyle(groupStyle)
 @aria({ role: 'radiogroup' })

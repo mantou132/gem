@@ -73,7 +73,6 @@ const {
   attribute,
   boolattribute,
   adoptedStyle,
-  css,
   createCSSSheet,
   classMap,
   shadow,
@@ -82,7 +81,7 @@ const {
   mounted,
 } = GemBookPluginElement.Gem;
 
-const styles = createCSSSheet(css`
+const styles = createCSSSheet`
   :host {
     display: block;
     container-type: inline-size;
@@ -190,7 +189,7 @@ const styles = createCSSSheet(css`
       height: 35vh;
     }
   }
-`);
+`;
 
 @customElement('gbp-sandpack')
 @adoptedStyle(styles)

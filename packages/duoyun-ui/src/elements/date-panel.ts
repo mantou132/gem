@@ -14,7 +14,7 @@ import {
   effect,
 } from '@mantou/gem/lib/decorators';
 import { createCSSSheet, createState, GemElement, html } from '@mantou/gem/lib/element';
-import { css, classMap, exportPartsMap } from '@mantou/gem/lib/utils';
+import { classMap, exportPartsMap } from '@mantou/gem/lib/utils';
 
 import { isNotNullish } from '../lib/types';
 import { theme } from '../lib/theme';
@@ -30,7 +30,7 @@ import './divider';
 import './action-text';
 import './time-panel';
 
-const style = createCSSSheet(css`
+const style = createCSSSheet`
   :host(:where(:not([hidden]))) {
     font-size: 0.875em;
     display: flex;
@@ -125,18 +125,12 @@ const style = createCSSSheet(css`
     height: 0;
     flex-grow: 1;
   }
-`);
+`;
 
 const modes = ['day', 'month', 'year'] as const;
 
 type Mode = (typeof modes)[number];
 
-/**
- * @customElement dy-date-panel
- * @attr time
- * @fires change
- * @fires datehover
- */
 @customElement('dy-date-panel')
 @adoptedStyle(style)
 @adoptedStyle(focusStyle)

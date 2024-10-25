@@ -1,7 +1,6 @@
 import { GemElement, html, createCSSSheet } from '@mantou/gem/lib/element';
 import type { Emitter } from '@mantou/gem/lib/decorators';
 import { adoptedStyle, customElement, globalemitter, property } from '@mantou/gem/lib/decorators';
-import { css } from '@mantou/gem/lib/utils';
 import { mediaQuery } from '@mantou/gem/helper/mediaquery';
 
 import { theme } from '../lib/theme';
@@ -43,7 +42,7 @@ export type Languages = {
   names: Record<string, string>;
 };
 
-const style = createCSSSheet(css`
+const style = createCSSSheet`
   :scope {
     display: block;
     background: ${theme.lightBackgroundColor};
@@ -146,11 +145,11 @@ const style = createCSSSheet(css`
     background: transparent;
     padding-block: 0.25em;
   }
-`);
+`;
 
 const mobileStyle = createCSSSheet(
   mediaQuery.PHONE,
-  css`
+  /*css*/ `
     :scope {
       .column {
         width: 100%;
@@ -163,9 +162,6 @@ const mobileStyle = createCSSSheet(
   `,
 );
 
-/**
- * @customElement dy-pat-footer
- */
 @customElement('dy-pat-footer')
 @adoptedStyle(mobileStyle)
 @adoptedStyle(style)

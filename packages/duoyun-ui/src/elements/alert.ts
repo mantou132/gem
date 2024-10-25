@@ -1,7 +1,6 @@
 // https://spectrum.adobe.com/page/in-line-alert/
 import { adoptedStyle, customElement, attribute, property, slot, aria, shadow } from '@mantou/gem/lib/decorators';
 import { GemElement, html, createCSSSheet } from '@mantou/gem/lib/element';
-import { css } from '@mantou/gem/lib/utils';
 import { createDecoratorTheme } from '@mantou/gem/helper/theme';
 
 import { theme, getSemanticColor } from '../lib/theme';
@@ -12,7 +11,7 @@ import './action-text';
 
 const elementTheme = createDecoratorTheme({ color: '' });
 
-const style = createCSSSheet(css`
+const style = createCSSSheet`
   :host(:where(:not([hidden]))) {
     display: flex;
     flex-direction: column;
@@ -43,13 +42,10 @@ const style = createCSSSheet(css`
   .footer {
     text-align: right;
   }
-`);
+`;
 
 type Status = 'positive' | 'notice' | 'negative' | 'informative' | 'default';
 
-/**
- * @customElement dy-alert
- */
 @customElement('dy-alert')
 @adoptedStyle(style)
 @aria({ role: 'alert' })

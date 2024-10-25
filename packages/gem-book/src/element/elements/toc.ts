@@ -6,7 +6,6 @@ import {
   classMap,
   createStore,
   createCSSSheet,
-  css,
   adoptedStyle,
   createState,
   unmounted,
@@ -22,7 +21,7 @@ export const tocStore = createStore({
   elements: [] as HTMLHeadingElement[],
 });
 
-const styles = createCSSSheet(css`
+const styles = createCSSSheet`
   :scope {
     font-size: 0.875rem;
     padding: 2rem 1.5rem;
@@ -61,15 +60,12 @@ const styles = createCSSSheet(css`
     opacity: 1;
     color: ${theme.primaryColor};
   }
-`);
+`;
 
 type State = {
   current?: Element;
 };
 
-/**
- * @customElement gem-book-toc
- */
 @customElement('gem-book-toc')
 @connectStore(tocStore)
 @adoptedStyle(styles)

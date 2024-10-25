@@ -14,7 +14,7 @@ import {
   mounted,
   effect,
 } from '@mantou/gem/lib/decorators';
-import { css, styleMap, classMap, addListener } from '@mantou/gem/lib/utils';
+import { styleMap, classMap, addListener } from '@mantou/gem/lib/utils';
 import { createDecoratorTheme } from '@mantou/gem/helper/theme';
 
 import { theme } from '../lib/theme';
@@ -30,7 +30,7 @@ import './more';
 
 const elementTheme = createDecoratorTheme({ bgImg: '' });
 
-const style = createCSSSheet(css`
+const style = createCSSSheet`
   :host(:where(:not([hidden]))) {
     display: block;
     width: 100%;
@@ -133,7 +133,7 @@ const style = createCSSSheet(css`
     width: 1.5em;
     opacity: 1;
   }
-`);
+`;
 
 export type CarouselItem = {
   img: string;
@@ -153,9 +153,6 @@ enum Direction {
   Right,
 }
 
-/**
- * @customElement dy-carousel
- */
 @customElement('dy-carousel')
 @adoptedStyle(style)
 @adoptedStyle(focusStyle)

@@ -10,7 +10,7 @@ import {
   mounted,
 } from '@mantou/gem/lib/decorators';
 import { GemElement, html, createCSSSheet } from '@mantou/gem/lib/element';
-import { addListener, css } from '@mantou/gem/lib/utils';
+import { addListener } from '@mantou/gem/lib/utils';
 import { createDecoratorTheme } from '@mantou/gem/helper/theme';
 
 import { theme, getSemanticColor } from '../lib/theme';
@@ -19,7 +19,7 @@ import { focusStyle } from '../lib/styles';
 
 const elementTheme = createDecoratorTheme({ color: '' });
 
-const style = createCSSSheet(css`
+const style = createCSSSheet`
   :host(:where(:not([hidden]))) {
     cursor: default;
     display: inline-flex;
@@ -65,14 +65,8 @@ const style = createCSSSheet(css`
   :host([checked]) .switch::before {
     margin-inline-start: calc(100% * 4 / 9);
   }
-`);
+`;
 
-/**
- * @customElement dy-switch
- * @attr checked
- * @attr value
- * @attr neutral
- */
 @customElement('dy-switch')
 @adoptedStyle(style)
 @adoptedStyle(focusStyle)

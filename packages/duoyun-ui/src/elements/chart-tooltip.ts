@@ -1,7 +1,7 @@
 import { connectStore, adoptedStyle, customElement, shadow, effect } from '@mantou/gem/lib/decorators';
 import type { TemplateResult } from '@mantou/gem/lib/element';
 import { createCSSSheet, GemElement, html } from '@mantou/gem/lib/element';
-import { css, styleMap, classMap } from '@mantou/gem/lib/utils';
+import { styleMap, classMap } from '@mantou/gem/lib/utils';
 import { createStore } from '@mantou/gem/lib/store';
 import { createDecoratorTheme } from '@mantou/gem/helper/theme';
 
@@ -9,7 +9,7 @@ import { theme } from '../lib/theme';
 
 const elementTheme = createDecoratorTheme({ top: '', left: '', width: '' });
 
-const style = createCSSSheet(css`
+const style = createCSSSheet`
   :host(:where(:not([hidden]))) {
     position: fixed;
     z-index: ${theme.popupZIndex};
@@ -63,7 +63,7 @@ const style = createCSSSheet(css`
   .value {
     white-space: nowrap;
   }
-`);
+`;
 
 export type DataItem = {
   label: string | string[];
@@ -95,9 +95,6 @@ const store = createStore<Store>({
   debug: false,
 });
 
-/**
- * @customElement dy-chart-tooltip
- */
 @customElement('dy-chart-tooltip')
 @adoptedStyle(style)
 @connectStore(store)

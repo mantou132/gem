@@ -13,7 +13,6 @@ import type { TemplateResult } from '@mantou/gem/lib/element';
 import { createCSSSheet, createState, html } from '@mantou/gem/lib/element';
 import { history } from '@mantou/gem/lib/history';
 import type { QueryString } from '@mantou/gem/lib/utils';
-import { css } from '@mantou/gem/lib/utils';
 
 import { theme } from '../lib/theme';
 import { commonHandle } from '../lib/hotkeys';
@@ -59,7 +58,7 @@ interface NavItemGroup {
 
 export type NavItems = (Item | NavItemGroup)[];
 
-const style = createCSSSheet(css`
+const style = createCSSSheet`
   :host(:where(:not([hidden]))) {
     user-select: none;
     display: flex;
@@ -131,11 +130,8 @@ const style = createCSSSheet(css`
   :host(:state(compact)) :where(.item, .title-wrap) {
     justify-content: center;
   }
-`);
+`;
 
-/**
- * @customElement dy-side-navigation
- */
 @customElement('dy-side-navigation')
 @adoptedStyle(style)
 @adoptedStyle(focusStyle)

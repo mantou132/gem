@@ -1,4 +1,4 @@
-import { css, history } from '@mantou/gem';
+import { history } from '@mantou/gem';
 import { logger } from '@mantou/gem/helper/logger';
 
 import { GemBookElement } from '../element';
@@ -62,7 +62,7 @@ book.dev = dev;
 document.body.append(book);
 
 const style = document.createElement('style');
-style.textContent = css`
+style.textContent = /*css*/ `
   ::selection,
   ::target-text {
     color: ${defaultTheme.backgroundColor};

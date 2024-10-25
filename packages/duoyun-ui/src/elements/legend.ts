@@ -1,7 +1,7 @@
 import type { Emitter } from '@mantou/gem/lib/decorators';
 import { adoptedStyle, aria, customElement, emitter, mounted, property } from '@mantou/gem/lib/decorators';
 import { createCSSSheet, html } from '@mantou/gem/lib/element';
-import { css, styleMap, classMap, addListener } from '@mantou/gem/lib/utils';
+import { styleMap, classMap, addListener } from '@mantou/gem/lib/utils';
 
 import { theme } from '../lib/theme';
 import { commonColors } from '../lib/color';
@@ -10,7 +10,7 @@ import { DuoyunScrollBaseElement } from './base/scroll';
 
 import './tooltip';
 
-const style = createCSSSheet(css`
+const style = createCSSSheet`
   :host(:where(:not([hidden]))) {
     --color: initial;
     display: flex;
@@ -36,7 +36,7 @@ const style = createCSSSheet(css`
     border-radius: ${theme.smallRound};
     background-color: currentColor;
   }
-`);
+`;
 
 export interface Legend {
   label: string;
@@ -48,9 +48,6 @@ function getValue(legend: Legend) {
   return legend.value ?? legend.label;
 }
 
-/**
- * @customElement dy-legend
- */
 @customElement('dy-legend')
 @adoptedStyle(style)
 @aria({ ariaHidden: 'true' })

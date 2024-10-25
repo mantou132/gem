@@ -1,11 +1,11 @@
-import { GemElement, html, customElement, connectStore, createCSSSheet, css, adoptedStyle } from '@mantou/gem';
+import { GemElement, html, customElement, connectStore, createCSSSheet, adoptedStyle } from '@mantou/gem';
 import { mediaQuery } from '@mantou/gem/helper/mediaquery';
 
 import { bookStore } from '../store';
 import { theme } from '../helper/theme';
 import { GemBookElement } from '..';
 
-const styles = createCSSSheet(css`
+const styles = createCSSSheet`
   :scope:where(:not([hidden])) {
     height: ${theme.headerHeight};
     font-size: 1.2rem;
@@ -35,11 +35,8 @@ const styles = createCSSSheet(css`
       display: none;
     }
   }
-`);
+`;
 
-/**
- * @customElement gem-book-nav-logo
- */
 @customElement('gem-book-nav-logo')
 @connectStore(bookStore)
 @adoptedStyle(styles)
