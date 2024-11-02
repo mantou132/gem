@@ -1,7 +1,8 @@
 id = "gem"
 name = "Gem"
+description = "Gem plugin for VS Code"
 version = "0.0.1"
 schema_version = 1
 authors = ["mantou132 <709922234@qq.com>"]
-description = "Gem plugin for VS Code"
 repository = "https://github.com/mantou132/gem"
+snippets = "./snippets/typescript.json"

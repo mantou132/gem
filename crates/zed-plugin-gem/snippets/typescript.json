@@ -1,0 +1,35 @@
+{
+  "Insert Gem element": {
+    "prefix": "custom",
+    "body": [
+      "import { GemElement, html, adoptedStyle, customElement, css } from '@mantou/gem';",
+      "",
+      "const style = css``;",
+      "",
+      "@customElement('${1:$WORKSPACE_NAME}-${2:$TM_FILENAME_BASE}')",
+      "@adoptedStyle(style)",
+      "export class ${3:${1/((^|-)(.))/${3:/upcase}/g}}${4:${2/((^|-)(.))/${3:/upcase}/g}}Element extends GemElement {",
+      "  render = () => {",
+      "    return html`${1}-${2}`;",
+      "  };",
+      "}",
+      ""
+    ],
+    "description": "Insert Gem element"
+  },
+  "Insert commented out inline-html block": {
+    "prefix": "inline-html",
+    "body": ["/*html*/`", "\t$1", "`$2"],
+    "description": "Insert commented out inline-html block"
+  },
+  "Insert commented out inline-css block": {
+    "prefix": "inline-css",
+    "body": ["/*css*/`", "\t$1", "`$2"],
+    "description": "Insert commented out inline-css block"
+  },
+  "Insert commented out inline-style block": {
+    "prefix": "inline-style",
+    "body": ["/*style*/`", "\t$1", "`$2"],
+    "description": "Insert commented out inline-style block"
+  }
+}
