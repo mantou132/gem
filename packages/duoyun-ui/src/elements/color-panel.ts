@@ -10,7 +10,7 @@ import {
   shadow,
   memo,
 } from '@mantou/gem/lib/decorators';
-import { createCSSSheet, createState, GemElement, html } from '@mantou/gem/lib/element';
+import { css, createState, GemElement, html } from '@mantou/gem/lib/element';
 import { styleMap, classMap } from '@mantou/gem/lib/utils';
 import { createDecoratorTheme } from '@mantou/gem/helper/theme';
 
@@ -39,7 +39,7 @@ import './select';
 
 const elementTheme = createDecoratorTheme({ h: 0, s: 0, l: 0, a: 0 });
 
-const style = createCSSSheet`
+const style = css`
   :host(:where(:not([hidden]))) {
     display: flex;
     flex-direction: column;

@@ -50,7 +50,7 @@ export class HTMLHoverProvider implements HoverProvider {
 
 export class CSSHoverProvider implements HoverProvider {
   #cssLanguageService: CssLanguageService = getCssLanguageService();
-  #expression = /(\/\*\s*(css|less|scss)\s*\*\/\s*`|(?:css|createCSSSheet|stylesheet)\s*`)([^`]*)(`)/gi;
+  #expression = /(\/\*\s*(css|less|scss)\s*\*\/\s*`|(?:css|stylesheet)\s*`)([^`]*)(`)/gi;
 
   provideHover(document: TextDocument, position: Position, _token: CancellationToken) {
     const currentOffset = document.offsetAt(position);

@@ -1,6 +1,6 @@
 // https://spectrum.adobe.com/page/code/
 import { adoptedStyle, customElement, attribute, shadow, mounted, effect } from '@mantou/gem/lib/decorators';
-import { createCSSSheet, createRef, html } from '@mantou/gem/lib/element';
+import { css, createRef, html } from '@mantou/gem/lib/element';
 import { styleMap } from '@mantou/gem/lib/utils';
 
 import { theme } from '../lib/theme';
@@ -206,7 +206,7 @@ const langAliases: Record<string, string> = {
 const lineHeight = 1.5;
 const padding = 1;
 
-const style = createCSSSheet`
+const style = css`
   :host(:where(:not([hidden]))) {
     position: relative;
     display: block;

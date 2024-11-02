@@ -1,6 +1,6 @@
 import { history } from '@mantou/gem/lib/history';
 import type { TemplateResult } from '@mantou/gem/lib/element';
-import { createCSSSheet, GemElement, html, createState } from '@mantou/gem/lib/element';
+import { css, GemElement, html, createState } from '@mantou/gem/lib/element';
 import {
   adoptedStyle,
   attribute,
@@ -25,7 +25,7 @@ import '../elements/use';
 
 export type { Links } from './footer';
 
-const style = createCSSSheet`
+const style = css`
   :scope {
     display: flex;
     align-items: center;
@@ -114,7 +114,7 @@ const style = createCSSSheet`
   }
 `;
 
-const mobileStyle = createCSSSheet(
+const mobileStyle = css(
   mediaQuery.PHONE,
   /*css*/ `
     :scope {

@@ -1,7 +1,7 @@
 import type { Emitter } from '@mantou/gem/lib/decorators';
 import { adoptedStyle, emitter, property, state, part, aria, shadow, memo } from '@mantou/gem/lib/decorators';
 import type { TemplateResult } from '@mantou/gem/lib/element';
-import { createCSSSheet, html, svg } from '@mantou/gem/lib/element';
+import { css, html, svg } from '@mantou/gem/lib/element';
 import { randomStr } from '@mantou/gem/lib/utils';
 
 import { theme } from '../../lib/theme';
@@ -31,7 +31,7 @@ export interface MarkLine {
   color?: string;
 }
 
-const style = createCSSSheet`
+const style = css`
   :host(:where(:not([hidden]))) {
     display: flex;
     flex-direction: column;

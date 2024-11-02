@@ -2,7 +2,7 @@
 
 import { adoptedStyle, customElement, property, part, state, shadow, memo, effect } from '@mantou/gem/lib/decorators';
 import type { TemplateResult } from '@mantou/gem/lib/element';
-import { createCSSSheet, createRef, createState, html, svg } from '@mantou/gem/lib/element';
+import { css, createRef, createState, html, svg } from '@mantou/gem/lib/element';
 import { styleMap, exportPartsMap } from '@mantou/gem/lib/utils';
 import { createDecoratorTheme } from '@mantou/gem/helper/theme';
 import type { ElkNode, ElkExtendedEdge, ElkEdgeSection, LayoutOptions, ElkShape, ElkPoint } from 'elkjs';
@@ -192,7 +192,7 @@ export type Node = Modify<
 
 const elementTheme = createDecoratorTheme({ opacity: 0, width: '', height: '' });
 
-const canvasStyle = createCSSSheet`
+const canvasStyle = css`
   :host(:where(:not([hidden]))) {
     display: block;
     position: relative;
@@ -503,7 +503,7 @@ type State = {
   marginBlock?: number;
 };
 
-const style = createCSSSheet`
+const style = css`
   :host(:where(:not([hidden]))) {
     display: flex;
     align-items: center;

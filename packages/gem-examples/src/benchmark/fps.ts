@@ -3,14 +3,14 @@ import {
   html,
   adoptedStyle,
   customElement,
-  createCSSSheet,
+  css,
   connectStore,
   createStore,
   shadow,
   mounted,
 } from '@mantou/gem';
 
-export const fpsStyle = createCSSSheet`
+export const fpsStyle = css`
   :host {
     font-variant-numeric: tabular-nums;
   }

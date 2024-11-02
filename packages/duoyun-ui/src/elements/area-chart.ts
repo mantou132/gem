@@ -1,4 +1,4 @@
-import { createCSSSheet, createState, html, svg } from '@mantou/gem/lib/element';
+import { css, createState, html, svg } from '@mantou/gem/lib/element';
 import type { Emitter } from '@mantou/gem/lib/decorators';
 import { adoptedStyle, customElement, emitter, memo, mounted, property } from '@mantou/gem/lib/decorators';
 import { addListener, classMap } from '@mantou/gem/lib/utils';
@@ -48,7 +48,7 @@ const elementTheme = createDecoratorTheme({
   symbolStrokeWidth: 0,
 });
 
-const style = createCSSSheet`
+const style = css`
   .hit-line {
     pointer-events: stroke;
   }

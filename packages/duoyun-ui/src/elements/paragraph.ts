@@ -1,9 +1,9 @@
 import { adoptedStyle, aria, customElement } from '@mantou/gem/lib/decorators';
-import { GemElement, createCSSSheet } from '@mantou/gem/lib/element';
+import { GemElement, css } from '@mantou/gem/lib/element';
 
 import { theme } from '../lib/theme';
 
-const style = createCSSSheet`
+const style = css`
   :where(:scope:not([hidden])) {
     display: block;
     margin-block-end: 0.75em;

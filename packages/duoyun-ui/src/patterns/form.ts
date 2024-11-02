@@ -1,4 +1,4 @@
-import { createCSSSheet, html, GemElement, createState, createRef, TemplateResult } from '@mantou/gem/lib/element';
+import { css, html, GemElement, createState, createRef, TemplateResult } from '@mantou/gem/lib/element';
 import { adoptedStyle, customElement, memo, property, shadow } from '@mantou/gem/lib/decorators';
 import type { StyleObject } from '@mantou/gem/lib/utils';
 import { GemError, styleMap } from '@mantou/gem/lib/utils';
@@ -83,7 +83,7 @@ export type FormItem<T = unknown> =
       label?: string;
     };
 
-const style = createCSSSheet`
+const style = css`
   dy-form {
     width: 100%;
   }

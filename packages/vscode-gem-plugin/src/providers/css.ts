@@ -72,7 +72,7 @@ export class HTMLStyleCompletionItemProvider implements CompletionItemProvider {
 
 export class CSSCompletionItemProvider implements CompletionItemProvider {
   #cssLanguageService: CSSLanguageService = getCSSLanguageService();
-  #expression = /(\/\*\s*(css|less|scss)\s*\*\/\s*`|(?<!`)(?:css|less|scss|createCSSSheet|stylesheet)\s*`)([^`]*)(`)/gi;
+  #expression = /(\/\*\s*(css|less|scss)\s*\*\/\s*`|(?<!`)(?:css|less|scss|stylesheet)\s*`)([^`]*)(`)/gi;
   #cache = new CompletionsCache();
 
   provideCompletionItems(document: TextDocument, position: Position, _token: CancellationToken) {

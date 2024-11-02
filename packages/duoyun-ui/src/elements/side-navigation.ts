@@ -10,7 +10,7 @@ import {
   memo,
 } from '@mantou/gem/lib/decorators';
 import type { TemplateResult } from '@mantou/gem/lib/element';
-import { createCSSSheet, createState, html } from '@mantou/gem/lib/element';
+import { css, createState, html } from '@mantou/gem/lib/element';
 import { history } from '@mantou/gem/lib/history';
 import type { QueryString } from '@mantou/gem/lib/utils';
 
@@ -58,7 +58,7 @@ interface NavItemGroup {
 
 export type NavItems = (Item | NavItemGroup)[];
 
-const style = createCSSSheet`
+const style = css`
   :host(:where(:not([hidden]))) {
     user-select: none;
     display: flex;

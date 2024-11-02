@@ -14,7 +14,7 @@
   "patterns": [
     {
       "contentName": "meta.embedded.block.html",
-      "begin": "(?ix)(\\s*?(\\w+\\.)?(?:html|raw|/\\*\\s*html\\s*\\*/)\\s*)(`)",
+      "begin": "(?ix)(\\s*?(\\w+\\.)?(?:html|svg|raw|/\\*\\s*html\\s*\\*/)\\s*)(`)",
       "beginCaptures": {
         "0": {
           "name": "string.template.ts, punctuation.definition.string.template.begin.ts"

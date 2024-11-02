@@ -1,21 +1,11 @@
-import {
-  aria,
-  customElement,
-  shadow,
-  GemElement,
-  html,
-  createCSSSheet,
-  adoptedStyle,
-  createState,
-  mounted,
-} from '@mantou/gem';
+import { aria, customElement, shadow, GemElement, html, css, adoptedStyle, createState, mounted } from '@mantou/gem';
 import { createDecoratorTheme } from '@mantou/gem/helper/theme';
 
 import { theme } from '../helper/theme';
 
 const elementTheme = createDecoratorTheme({ progress: '' });
 
-const styles = createCSSSheet`
+const styles = css`
   :host {
     z-index: 22222222;
     position: fixed;

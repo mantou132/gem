@@ -5,7 +5,7 @@ import {
   connectStore,
   classMap,
   createStore,
-  createCSSSheet,
+  css,
   adoptedStyle,
   createState,
   unmounted,
@@ -21,7 +21,7 @@ export const tocStore = createStore({
   elements: [] as HTMLHeadingElement[],
 });
 
-const styles = createCSSSheet`
+const styles = css`
   :scope {
     font-size: 0.875rem;
     padding: 2rem 1.5rem;

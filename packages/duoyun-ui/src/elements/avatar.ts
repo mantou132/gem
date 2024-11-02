@@ -9,7 +9,7 @@ import {
   aria,
   shadow,
 } from '@mantou/gem/lib/decorators';
-import { createCSSSheet, GemElement, html } from '@mantou/gem/lib/element';
+import { css, GemElement, html } from '@mantou/gem/lib/element';
 import { exportPartsMap } from '@mantou/gem/lib/utils';
 import { createDecoratorTheme } from '@mantou/gem/helper/theme';
 
@@ -21,7 +21,7 @@ import './tooltip';
 
 const elementTheme = createDecoratorTheme({ color: '' });
 
-const style = createCSSSheet`
+const style = css`
   :host(:where(:not([hidden]))) {
     cursor: default;
     display: inline-block;
@@ -110,7 +110,7 @@ export class DuoyunAvatarElement extends GemElement {
   };
 }
 
-const groupStyle = createCSSSheet`
+const groupStyle = css`
   :scope:where(:not([hidden])) {
     display: flex;
   }

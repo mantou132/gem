@@ -1,5 +1,5 @@
 import type { TemplateResult } from '@mantou/gem/lib/element';
-import { createCSSSheet, createState, GemElement, html } from '@mantou/gem/lib/element';
+import { css, createState, GemElement, html } from '@mantou/gem/lib/element';
 import type { Emitter } from '@mantou/gem/lib/decorators';
 import {
   adoptedStyle,
@@ -30,7 +30,7 @@ import './more';
 
 const elementTheme = createDecoratorTheme({ bgImg: '' });
 
-const style = createCSSSheet`
+const style = css`
   :host(:where(:not([hidden]))) {
     display: block;
     width: 100%;

@@ -1,11 +1,11 @@
 import { adoptedStyle, customElement, boolattribute, shadow, effect } from '@mantou/gem/lib/decorators';
-import { GemElement, html, createCSSSheet } from '@mantou/gem/lib/element';
+import { GemElement, html, css } from '@mantou/gem/lib/element';
 
 import { theme } from '../../lib/theme';
 
 import '../loading';
 
-const maskStyle = createCSSSheet`
+const maskStyle = css`
   :host(:where(:not([hidden]))) {
     position: absolute;
     z-index: ${theme.popupZIndex};
@@ -34,7 +34,7 @@ export class DuoyunLoadableMaskElement extends GemElement {
   };
 }
 
-const style = createCSSSheet`
+const style = css`
   :host(:where(:not([hidden]))) {
     display: block;
     position: relative;

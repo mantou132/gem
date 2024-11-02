@@ -16,7 +16,7 @@ import {
   memo,
 } from '@mantou/gem/lib/decorators';
 import type { TemplateResult } from '@mantou/gem/lib/element';
-import { createCSSSheet, createState, GemElement, html } from '@mantou/gem/lib/element';
+import { css, createState, GemElement, html } from '@mantou/gem/lib/element';
 import { styleMap } from '@mantou/gem/lib/utils';
 
 import { icons } from '../lib/icons';
@@ -54,7 +54,7 @@ function getItemValue(item: TreeItem) {
   return item.value ?? item.label;
 }
 
-const itemStyle = createCSSSheet`
+const itemStyle = css`
   :host(:where(:not([hidden]))) {
     display: flex;
     align-items: center;
@@ -133,7 +133,7 @@ class _DuoyunTreeItemElement extends GemElement {
   };
 }
 
-const style = createCSSSheet`
+const style = css`
   :host(:where(:not([hidden]))) {
     display: block;
     font-size: 0.875em;

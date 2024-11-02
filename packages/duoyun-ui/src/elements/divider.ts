@@ -8,14 +8,14 @@ import {
   template,
   slot,
 } from '@mantou/gem/lib/decorators';
-import { html, GemElement, createCSSSheet } from '@mantou/gem/lib/element';
+import { html, GemElement, css } from '@mantou/gem/lib/element';
 import { createDecoratorTheme } from '@mantou/gem/helper/theme';
 
 import { theme, getSemanticColor } from '../lib/theme';
 
 const elementTheme = createDecoratorTheme({ color: '' });
 
-const style = createCSSSheet`
+const style = css`
   :host(:where(:not([hidden]))) {
     align-self: stretch;
     display: flex;

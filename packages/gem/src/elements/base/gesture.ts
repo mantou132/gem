@@ -1,4 +1,4 @@
-import { createCSSSheet, GemElement } from '../../lib/element';
+import { css, GemElement } from '../../lib/element';
 import type { Emitter } from '../../lib/decorators';
 import { adoptedStyle, attribute, emitter, mounted, state } from '../../lib/decorators';
 
@@ -44,7 +44,7 @@ function angleAB(
   );
 }
 
-const style = createCSSSheet`
+const style = css`
   @layer {
     :scope:where(:not([hidden])) {
       display: block;

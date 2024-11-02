@@ -1,7 +1,7 @@
 import {
   adoptedStyle,
   attribute,
-  createCSSSheet,
+  css,
   customElement,
   GemElement,
   html,
@@ -21,7 +21,7 @@ import { setGemPropValue } from '../scripts/set-value';
 const maybeBuildInPrefix = '[[Gem?]] ';
 const buildInPrefix = '[[Gem]] ';
 
-export const style = createCSSSheet`
+export const style = css`
   :host(:not([hidden])) {
     display: block;
     line-height: 1.5;

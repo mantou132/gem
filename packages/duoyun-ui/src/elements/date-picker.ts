@@ -13,7 +13,7 @@ import {
   shadow,
   mounted,
 } from '@mantou/gem/lib/decorators';
-import { GemElement, html, createCSSSheet } from '@mantou/gem/lib/element';
+import { GemElement, html, css } from '@mantou/gem/lib/element';
 import { classMap, addListener } from '@mantou/gem/lib/utils';
 
 import { Time } from '../lib/time';
@@ -34,7 +34,7 @@ import './use';
 import './date-panel';
 import './button';
 
-const style = createCSSSheet`
+const style = css`
   :host {
     width: 15em;
   }

@@ -1,4 +1,4 @@
-import { adoptedStyle, aria, createCSSSheet, customElement, GemElement, html } from '@mantou/gem';
+import { adoptedStyle, aria, css, customElement, GemElement, html } from '@mantou/gem';
 
 import { getGithubPath, isGitLab } from '../lib/utils';
 import { bookStore, locationStore } from '../store';
@@ -11,7 +11,7 @@ import '@mantou/gem/elements/reflect';
 import '@mantou/gem/elements/title';
 import '@mantou/gem/elements/use';
 
-const styles = createCSSSheet`
+const styles = css`
   :scope {
     text-align: center;
   }

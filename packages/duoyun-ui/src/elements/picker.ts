@@ -14,7 +14,7 @@ import {
   effect,
 } from '@mantou/gem/lib/decorators';
 import type { TemplateResult } from '@mantou/gem/lib/element';
-import { GemElement, html, createCSSSheet } from '@mantou/gem/lib/element';
+import { GemElement, html, css } from '@mantou/gem/lib/element';
 import { addListener } from '@mantou/gem/lib/utils';
 
 import { theme } from '../lib/theme';
@@ -28,7 +28,7 @@ import { ContextMenu } from './contextmenu';
 import './use';
 import './scroll-box';
 
-export const pickerStyle = createCSSSheet`
+export const pickerStyle = css`
   :host(:where(:not([hidden]))) {
     cursor: pointer;
     display: inline-flex;
@@ -78,7 +78,7 @@ export abstract class BasePickerElement {
   showPicker: () => void;
 }
 
-const style = createCSSSheet`
+const style = css`
   :host {
     width: 12em;
     white-space: nowrap;

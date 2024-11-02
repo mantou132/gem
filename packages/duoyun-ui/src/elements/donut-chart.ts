@@ -1,6 +1,6 @@
 // https://spectrum.adobe.com/page/donut-chart/
 import { adoptedStyle, customElement, attribute, property, memo, unmounted } from '@mantou/gem/lib/decorators';
-import { html, svg, createCSSSheet } from '@mantou/gem/lib/element';
+import { html, svg, css } from '@mantou/gem/lib/element';
 
 import { theme } from '../lib/theme';
 
@@ -8,7 +8,7 @@ import { DuoyunChartBaseElement } from './base/chart';
 import type { Data } from './chart-tooltip';
 import { ChartTooltip } from './chart-tooltip';
 
-const style = createCSSSheet`
+const style = css`
   .path {
     stroke: ${theme.backgroundColor};
   }

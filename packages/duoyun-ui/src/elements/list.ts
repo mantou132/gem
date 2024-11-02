@@ -17,7 +17,7 @@ import {
   mounted,
 } from '@mantou/gem/lib/decorators';
 import type { TemplateResult } from '@mantou/gem/lib/element';
-import { createCSSSheet, createRef, createState, GemElement, html } from '@mantou/gem/lib/element';
+import { css, createRef, createState, GemElement, html } from '@mantou/gem/lib/element';
 import type { LinkedListItem } from '@mantou/gem/lib/utils';
 import { addListener, LinkedList, styled, styleMap } from '@mantou/gem/lib/utils';
 import { logger } from '@mantou/gem/helper/logger';
@@ -59,7 +59,7 @@ export type PersistentState = State & {
 @shadow()
 export class DuoyunOutsideElement extends DuoyunVisibleBaseElement {}
 
-const styles = createCSSSheet`
+const styles = css`
   :host([infinite]),
   * {
     overflow-anchor: none;
@@ -557,7 +557,7 @@ export class DuoyunListElement extends GemElement {
   scrollContainer = document.documentElement;
 }
 
-const itemStyle = createCSSSheet({
+const itemStyle = css({
   // 避免该样式干扰用户样式
   item: styled`
     display: flex;

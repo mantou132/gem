@@ -14,7 +14,7 @@ import {
   effect,
 } from '@mantou/gem/lib/decorators';
 import type { TemplateResult } from '@mantou/gem/lib/element';
-import { createCSSSheet, GemElement, html } from '@mantou/gem/lib/element';
+import { css, GemElement, html } from '@mantou/gem/lib/element';
 import { partMap, classMap, styleMap, addListener } from '@mantou/gem/lib/utils';
 
 import { theme } from '../lib/theme';
@@ -30,7 +30,7 @@ import './divider';
 
 const getAnchorName = (index: number) => `--anchor-${index}`;
 
-const style = createCSSSheet`
+const style = css`
   :host(:where(:not([hidden]))) {
     display: flex;
     flex-direction: column;
@@ -194,7 +194,7 @@ export class DuoyunTabsElement extends GemElement {
   };
 }
 
-const panelStyle = createCSSSheet`
+const panelStyle = css`
   :host(:where(:not([hidden]))) {
     display: block;
     flex-shrink: 1;

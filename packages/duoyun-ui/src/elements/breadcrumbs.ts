@@ -1,6 +1,6 @@
 // https://spectrum.adobe.com/page/breadcrumbs/
 import { adoptedStyle, customElement, property, boolattribute, part, aria, shadow } from '@mantou/gem/lib/decorators';
-import { createCSSSheet, GemElement, html } from '@mantou/gem/lib/element';
+import { css, GemElement, html } from '@mantou/gem/lib/element';
 import { classMap } from '@mantou/gem/lib/utils';
 
 import { icons } from '../lib/icons';
@@ -11,7 +11,7 @@ import './use';
 import './tooltip';
 import './action-text';
 
-const style = createCSSSheet`
+const style = css`
   :host(:where(:not([hidden]))) {
     display: flex;
     align-items: center;

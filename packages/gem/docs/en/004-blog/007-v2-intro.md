@@ -85,7 +85,7 @@ One reason Gem uses Shadow DOM is for style isolation, allowing users to write "
 If you are not writing highly encapsulated custom elements (such as UI libraries), using Light DOM is a more suitable choice. Now, the CSS specification has introduced [`@scope`](https://developer.mozilla.org/en-US/docs/Web/CSS/@scope), so Gem takes full advantage of `@scope` and defaults to using Light DOM, while also supporting "modularity" (v1 does not support Light DOM style "modularity"). In the example below, the `div` selector will only apply to the content of `<my-element>`:
 
 ```ts
-const styles = createCSSSheet`
+const styles = css`
   :scope {
     display: block;
   }

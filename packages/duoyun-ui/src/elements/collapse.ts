@@ -15,7 +15,7 @@ import {
   aria,
 } from '@mantou/gem/lib/decorators';
 import type { TemplateResult } from '@mantou/gem/lib/element';
-import { createCSSSheet, GemElement, html, createState, createRef } from '@mantou/gem/lib/element';
+import { css, GemElement, html, createState, createRef } from '@mantou/gem/lib/element';
 import { classMap, exportPartsMap } from '@mantou/gem/lib/utils';
 
 import { icons } from '../lib/icons';
@@ -26,7 +26,7 @@ import { commonAnimationOptions } from '../lib/animations';
 
 import './use';
 
-const panelStyle = createCSSSheet`
+const panelStyle = css`
   :host(:where(:not([hidden]))) {
     display: block;
     border-block-start: 1px solid ${theme.borderColor};
@@ -139,7 +139,7 @@ export class DuoyunCollapsePanelElement extends GemElement {
   };
 }
 
-const style = createCSSSheet`
+const style = css`
   :host(:where(:not([hidden]))) {
     display: block;
     overflow: hidden;

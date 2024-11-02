@@ -1,12 +1,12 @@
 import { adoptedStyle, effect, mounted, shadow, state } from '@mantou/gem/lib/decorators';
-import { createCSSSheet } from '@mantou/gem/lib/element';
+import { css } from '@mantou/gem/lib/element';
 import { addListener } from '@mantou/gem/lib/utils';
 
 import { DuoyunResizeBaseElement } from './resize';
 
 const PIXEL_DEVIATION = 0.1;
 
-const style = createCSSSheet`
+const style = css`
   :host(:where(:not([hidden]))) {
     display: block;
     overflow: auto;

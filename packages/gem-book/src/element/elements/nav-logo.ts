@@ -1,11 +1,11 @@
-import { GemElement, html, customElement, connectStore, createCSSSheet, adoptedStyle } from '@mantou/gem';
+import { GemElement, html, customElement, connectStore, css, adoptedStyle } from '@mantou/gem';
 import { mediaQuery } from '@mantou/gem/helper/mediaquery';
 
 import { bookStore } from '../store';
 import { theme } from '../helper/theme';
 import { GemBookElement } from '..';
 
-const styles = createCSSSheet`
+const styles = css`
   :scope:where(:not([hidden])) {
     height: ${theme.headerHeight};
     font-size: 1.2rem;

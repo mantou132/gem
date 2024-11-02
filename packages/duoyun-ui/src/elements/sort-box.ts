@@ -1,4 +1,4 @@
-import { GemElement, createCSSSheet } from '@mantou/gem/lib/element';
+import { GemElement, css } from '@mantou/gem/lib/element';
 import { adoptedStyle, boolattribute, customElement, emitter, mounted, type Emitter } from '@mantou/gem/lib/decorators';
 import { addListener } from '@mantou/gem/lib/utils';
 
@@ -8,7 +8,7 @@ import { theme } from '../lib/theme';
 import { DuoyunGestureElement } from './gesture';
 import type { PanEventDetail } from './gesture';
 
-const style = createCSSSheet`
+const style = css`
   :where(dy-sort-item[handle], dy-sort-handle):state(grabbing) {
     cursor: grabbing;
 

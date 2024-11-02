@@ -1,10 +1,10 @@
 import { connectStore, adoptedStyle, customElement, attribute, slot, shadow, effect } from '@mantou/gem/lib/decorators';
-import { GemElement, html, createCSSSheet } from '@mantou/gem/lib/element';
+import { GemElement, html, css } from '@mantou/gem/lib/element';
 import { history } from '@mantou/gem/lib/history';
 
 import { theme } from '../lib/theme';
 
-const style = createCSSSheet`
+const style = css`
   :host(:where(:not([hidden]))) {
     display: block;
     font-size: 2.5em;

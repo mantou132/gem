@@ -8,7 +8,7 @@ import {
   boolattribute,
   shadow,
 } from '@mantou/gem/lib/decorators';
-import { createCSSSheet, createRef, GemElement, html } from '@mantou/gem/lib/element';
+import { css, createRef, GemElement, html } from '@mantou/gem/lib/element';
 import { styleMap } from '@mantou/gem/lib/utils';
 
 import type { HexColor } from '../lib/color';
@@ -21,7 +21,7 @@ import type { BasePickerElement } from './picker';
 import './popover';
 import './color-panel';
 
-const style = createCSSSheet`
+const style = css`
   :host(:where(:not([hidden]))) {
     cursor: pointer;
     display: inline-flex;

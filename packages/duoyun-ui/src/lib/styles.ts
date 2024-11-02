@@ -1,10 +1,10 @@
-import { createCSSSheet } from '@mantou/gem/lib/element';
+import { css } from '@mantou/gem/lib/element';
 
 import { theme } from '../lib/theme';
 
 // global style: `::selection`, `::target-text`, `::highlight`
 // https://bugzilla.mozilla.org/show_bug.cgi?id=1868009
-export const focusStyle = createCSSSheet`
+export const focusStyle = css`
   :host(:where(:focus)),
   :where(:focus) {
     outline: none;
@@ -17,7 +17,7 @@ export const focusStyle = createCSSSheet`
 `;
 
 function createContainer(display: string) {
-  return createCSSSheet`
+  return css`
     @layer {
       :host(:where(:not([hidden]))),
       :where(:scope:not([hidden])) {

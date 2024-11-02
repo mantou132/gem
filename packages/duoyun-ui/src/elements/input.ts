@@ -16,7 +16,7 @@ import {
   effect,
 } from '@mantou/gem/lib/decorators';
 import type { TemplateResult } from '@mantou/gem/lib/element';
-import { GemElement, html, createCSSSheet, createRef } from '@mantou/gem/lib/element';
+import { GemElement, html, css, createRef } from '@mantou/gem/lib/element';
 
 import { theme } from '../lib/theme';
 import { icons } from '../lib/icons';
@@ -65,7 +65,7 @@ class InputHistory {
   }, 300);
 }
 
-const style = createCSSSheet`
+const style = css`
   :host(:where(:not([hidden]))) {
     font-size: 0.875em;
     inline-size: 15em;
@@ -404,7 +404,7 @@ export class DuoyunInputElement extends GemElement {
   }
 }
 
-const inputGroupStyle = createCSSSheet`
+const inputGroupStyle = css`
   :scope {
     display: flex;
 

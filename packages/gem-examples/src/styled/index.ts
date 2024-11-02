@@ -1,8 +1,8 @@
-import { GemElement, html, styled, createCSSSheet, render, adoptedStyle, customElement, SheetToken } from '@mantou/gem';
+import { GemElement, html, styled, css, render, adoptedStyle, customElement, SheetToken } from '@mantou/gem';
 
 import '../elements/layout';
 
-const styles = createCSSSheet({
+const styles = css({
   $: styled`
     font-style: italic;
   `,
@@ -14,7 +14,7 @@ const styles = createCSSSheet({
   `,
 });
 
-const styles2 = createCSSSheet({
+const styles2 = css({
   [styles.div]: styled`
     font-weight: bold;
     font-size: 2em;

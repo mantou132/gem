@@ -3,7 +3,7 @@ import {
   html,
   adoptedStyle,
   customElement,
-  createCSSSheet,
+  css,
   connectStore,
   styleMap,
   shadow,
@@ -14,7 +14,7 @@ import { configureStore } from '../store';
 import { execution } from '../common';
 import { getAllFrames } from '../scripts/get-all-frame';
 
-const style = createCSSSheet`
+const style = css`
   :host {
     display: flex;
     line-height: 1.5;

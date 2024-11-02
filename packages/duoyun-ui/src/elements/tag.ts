@@ -10,7 +10,7 @@ import {
   shadow,
   aria,
 } from '@mantou/gem/lib/decorators';
-import { GemElement, html, createCSSSheet } from '@mantou/gem/lib/element';
+import { GemElement, html, css } from '@mantou/gem/lib/element';
 import { createDecoratorTheme } from '@mantou/gem/helper/theme';
 
 import { icons } from '../lib/icons';
@@ -23,7 +23,7 @@ import './use';
 
 const elementTheme = createDecoratorTheme({ color: '', borderColor: '', bg: '' });
 
-const style = createCSSSheet`
+const style = css`
   :host(:where(:not([hidden]))) {
     cursor: default;
     display: inline-flex;

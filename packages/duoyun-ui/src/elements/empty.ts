@@ -7,14 +7,14 @@ import {
   attribute,
   slot,
 } from '@mantou/gem/lib/decorators';
-import { GemElement, html, createCSSSheet, render } from '@mantou/gem/lib/element';
+import { GemElement, html, css, render } from '@mantou/gem/lib/element';
 
 import { locale } from '../lib/locale';
 import { theme } from '../lib/theme';
 
 import './use';
 
-const style = createCSSSheet`
+const style = css`
   :host(:where(:not([hidden]))) {
     display: inline-flex;
     flex-direction: column;

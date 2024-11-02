@@ -8,7 +8,7 @@ import {
   shadow,
   mounted,
 } from '@mantou/gem/lib/decorators';
-import { GemElement, html, createCSSSheet } from '@mantou/gem/lib/element';
+import { GemElement, html, css } from '@mantou/gem/lib/element';
 import { classMap } from '@mantou/gem/lib/utils';
 
 import { Time, parseDate } from '../lib/time';
@@ -17,7 +17,7 @@ import { isNotNullish } from '../lib/types';
 import { locale } from '../lib/locale';
 import { focusStyle } from '../lib/styles';
 
-const style = createCSSSheet`
+const style = css`
   :host(:where(:not([hidden]))) {
     display: grid;
     grid-template: 'hour minute second' / 1fr 1fr 1fr;

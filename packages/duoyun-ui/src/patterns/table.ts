@@ -1,4 +1,4 @@
-import { createCSSSheet, createRef, createState, GemElement, html } from '@mantou/gem/lib/element';
+import { css, createRef, createState, GemElement, html } from '@mantou/gem/lib/element';
 import { QueryString, addListener, styleMap } from '@mantou/gem/lib/utils';
 import type { Emitter } from '@mantou/gem/lib/decorators';
 import {
@@ -120,7 +120,7 @@ export type FetchEventDetail = Omit<LocationStore, ''> & {
   sort: Record<string, Sort | undefined>;
 };
 
-const style = createCSSSheet`
+const style = css`
   .searchbar {
     display: flex;
     align-items: center;

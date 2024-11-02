@@ -1,6 +1,6 @@
 import { connectStore, adoptedStyle, customElement, shadow, effect } from '@mantou/gem/lib/decorators';
 import type { TemplateResult } from '@mantou/gem/lib/element';
-import { createCSSSheet, GemElement, html } from '@mantou/gem/lib/element';
+import { css, GemElement, html } from '@mantou/gem/lib/element';
 import { styleMap, classMap } from '@mantou/gem/lib/utils';
 import { createStore } from '@mantou/gem/lib/store';
 import { createDecoratorTheme } from '@mantou/gem/helper/theme';
@@ -9,7 +9,7 @@ import { theme } from '../lib/theme';
 
 const elementTheme = createDecoratorTheme({ top: '', left: '', width: '' });
 
-const style = createCSSSheet`
+const style = css`
   :host(:where(:not([hidden]))) {
     position: fixed;
     z-index: ${theme.popupZIndex};

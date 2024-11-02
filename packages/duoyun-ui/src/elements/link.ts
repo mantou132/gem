@@ -1,5 +1,5 @@
 import { adoptedStyle, customElement, mounted } from '@mantou/gem/lib/decorators';
-import { createCSSSheet } from '@mantou/gem/lib/element';
+import { css } from '@mantou/gem/lib/element';
 import { addListener } from '@mantou/gem/lib/utils';
 import { GemLinkElement, GemActiveLinkElement } from '@mantou/gem/elements/base/link';
 
@@ -9,7 +9,7 @@ import { theme } from '../lib/theme';
 
 export * from '@mantou/gem/elements/base/link';
 
-const style = createCSSSheet`
+const style = css`
   :host {
     color: inherit;
     text-decoration: inherit;

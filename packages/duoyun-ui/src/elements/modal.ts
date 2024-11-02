@@ -15,7 +15,7 @@ import {
   effect,
   memo,
 } from '@mantou/gem/lib/decorators';
-import { createCSSSheet, createRef, GemElement, html, TemplateResult } from '@mantou/gem/lib/element';
+import { css, createRef, GemElement, html, TemplateResult } from '@mantou/gem/lib/element';
 import { addListener, styled } from '@mantou/gem/lib/utils';
 import { mediaQuery } from '@mantou/gem/helper/mediaquery';
 
@@ -30,7 +30,7 @@ import './button';
 import './divider';
 import './scroll-box';
 
-const style = createCSSSheet`
+const style = css`
   /* modal 可能会在刷新前后保持打开 */
   :host {
     view-transition-name: dy-modal;
@@ -108,7 +108,7 @@ const style = createCSSSheet`
   }
 `;
 
-const style2 = createCSSSheet({
+const style2 = css({
   p: styled`
     margin: 0;
   `,

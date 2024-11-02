@@ -15,7 +15,7 @@ const {
   customElement,
   attribute,
   numattribute,
-  createCSSSheet,
+  css,
   adoptedStyle,
   effect,
   kebabToCamelCase,
@@ -23,7 +23,7 @@ const {
   light,
 } = Gem;
 
-const styles = createCSSSheet`
+const styles = css`
   table {
     tr td:first-of-type {
       white-space: nowrap;

@@ -1,4 +1,4 @@
-import { createCSSSheet, GemElement, html } from '@mantou/gem/lib/element';
+import { css, GemElement, html } from '@mantou/gem/lib/element';
 import type { Emitter } from '@mantou/gem/lib/decorators';
 import {
   adoptedStyle,
@@ -22,7 +22,7 @@ import './use';
 
 const getAnchorName = (index: number) => `--anchor-${index}`;
 
-const style = createCSSSheet`
+const style = css`
   :host(:where(:not([hidden]))) {
     display: flex;
     cursor: default;

@@ -16,7 +16,7 @@ import {
   memo,
 } from '@mantou/gem/lib/decorators';
 import type { TemplateResult } from '@mantou/gem/lib/element';
-import { createCSSSheet, createRef, createState, GemElement, html } from '@mantou/gem/lib/element';
+import { css, createRef, createState, GemElement, html } from '@mantou/gem/lib/element';
 import type { StyleObject } from '@mantou/gem/lib/utils';
 import { addListener, styleMap } from '@mantou/gem/lib/utils';
 
@@ -40,7 +40,7 @@ import './input';
 import './tag';
 import './scroll-box';
 
-const style = createCSSSheet`
+const style = css`
   :host {
     width: 15em;
   }

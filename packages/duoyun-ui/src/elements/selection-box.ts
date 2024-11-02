@@ -1,6 +1,6 @@
 import type { Emitter } from '@mantou/gem/lib/decorators';
 import { adoptedStyle, customElement, effect, emitter, property, shadow } from '@mantou/gem/lib/decorators';
-import { createCSSSheet, createState, GemElement, html } from '@mantou/gem/lib/element';
+import { css, createState, GemElement, html } from '@mantou/gem/lib/element';
 import { addListener, styleMap } from '@mantou/gem/lib/utils';
 
 import { theme } from '../lib/theme';
@@ -144,7 +144,7 @@ export class DuoyunSelectionBoxElement extends GemElement {
 }
 
 const borderWidth = 100;
-const maskStyle = createCSSSheet`
+const maskStyle = css`
   :host {
     position: fixed;
     border: ${borderWidth}px solid transparent;

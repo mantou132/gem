@@ -85,7 +85,7 @@ import {
   html,
   render,
   connectStore,
-  createCSSSheet,
+  css,
   adoptedStyle,
 } from '@mantou/gem';
 import { icons } from 'duoyun-ui/lib/icons';
@@ -94,7 +94,7 @@ import { todoData, deleteItem } from './store';
 
 import 'duoyun-ui/elements/use';
 
-const style = createCSSSheet`
+const style = css`
   ul {
     padding: 0;
   }

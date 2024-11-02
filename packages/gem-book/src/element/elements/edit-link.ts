@@ -4,7 +4,7 @@ import {
   customElement,
   connectStore,
   adoptedStyle,
-  createCSSSheet,
+  css,
   createState,
   memo,
   effect,
@@ -22,7 +22,7 @@ import { icons } from './icons';
 import '@mantou/gem/elements/link';
 import '@mantou/gem/elements/use';
 
-const styles = createCSSSheet`
+const styles = css`
   :scope {
     display: flex;
     gap: 1rem;

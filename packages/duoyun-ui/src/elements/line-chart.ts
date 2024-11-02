@@ -1,5 +1,5 @@
 import { adoptedStyle, customElement } from '@mantou/gem/lib/decorators';
-import { html, svg, createCSSSheet } from '@mantou/gem/lib/element';
+import { html, svg, css } from '@mantou/gem/lib/element';
 import { createDecoratorTheme } from '@mantou/gem/helper/theme';
 
 import { isNullish } from '../lib/types';
@@ -9,7 +9,7 @@ import { DuoyunBarChartElement } from './bar-chart';
 
 const elementTheme = createDecoratorTheme({ strokeWidth: 0, strokeDasharray: '' });
 
-const style = createCSSSheet`
+const style = css`
   .line {
     pointer-events: none;
   }

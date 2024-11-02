@@ -1,12 +1,6 @@
-# vscode-plugin-gem
+# Gem for VSCode
 
-https://github.com/mantou132/gem
-
-## Development
-
-```bash
-pnpm start
-```
+Improve the development experience of writing [Gem](https://github.com/mantou132/gem) elements.
 
 ## Special Thanks
 

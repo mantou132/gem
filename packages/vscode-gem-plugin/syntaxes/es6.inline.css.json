@@ -4,7 +4,7 @@
   "patterns": [
     {
       "contentName": "meta.embedded.block.css",
-      "begin": "(?ix)(\\s*?(\\w+\\.)?(?:css|stylesheet|createCSSSheet|/\\*\\s*css\\s*\\*/)\\s*)(`)",
+      "begin": "(?ix)(\\s*?(\\w+\\.)?(?:css|stylesheet|/\\*\\s*css\\s*\\*/)\\s*)(`)",
       "beginCaptures": {
         "0": {
           "name": "string.template.ts, punctuation.definition.string.template.begin.ts"

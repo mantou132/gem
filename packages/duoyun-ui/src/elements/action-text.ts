@@ -1,4 +1,4 @@
-import { GemElement, html, createCSSSheet } from '@mantou/gem/lib/element';
+import { GemElement, html, css } from '@mantou/gem/lib/element';
 import { adoptedStyle, customElement, attribute, state, slot, aria, shadow, mounted } from '@mantou/gem/lib/decorators';
 import { addListener } from '@mantou/gem/lib/utils';
 import { createDecoratorTheme } from '@mantou/gem/helper/theme';
@@ -11,7 +11,7 @@ import './tooltip';
 
 const elementTheme = createDecoratorTheme({ color: '', activeColor: '' });
 
-const style = createCSSSheet`
+const style = css`
   :host {
     overflow: hidden;
     text-overflow: ellipsis;

@@ -11,7 +11,7 @@ import {
   memo,
 } from '@mantou/gem/lib/decorators';
 import type { TemplateResult } from '@mantou/gem/lib/element';
-import { createCSSSheet, createState, GemElement, html } from '@mantou/gem/lib/element';
+import { css, createState, GemElement, html } from '@mantou/gem/lib/element';
 import { styleMap, classMap } from '@mantou/gem/lib/utils';
 
 import { icons } from '../lib/icons';
@@ -23,7 +23,7 @@ import { locale } from '../lib/locale';
 import './use';
 import './checkbox';
 
-const style = createCSSSheet`
+const style = css`
   :host(:where(:not([hidden]))) {
     display: flex;
     align-items: stretch;

@@ -117,10 +117,10 @@ export type Sheet<T> = { [P in keyof T]: P } & { [SheetToken]: GemCSSSheet };
  *
  * 创建 style sheet 用于 `@adoptedStyle`，不支持样式更新，只支持自定义 CSS 属性
  */
-export function createCSSSheet<T extends Record<string, string>>(media: TemplateStringsArray, ...rest: any[]): Sheet<T>;
-export function createCSSSheet<T extends Record<string, string>>(media: string, rules: T | string): Sheet<T>;
-export function createCSSSheet<T extends Record<string, string>>(rules: T | string): Sheet<T>;
-export function createCSSSheet<T extends Record<string, string>>(
+export function css<T extends Record<string, string>>(media: TemplateStringsArray, ...rest: any[]): Sheet<T>;
+export function css<T extends Record<string, string>>(media: string, rules: T | string): Sheet<T>;
+export function css<T extends Record<string, string>>(rules: T | string): Sheet<T>;
+export function css<T extends Record<string, string>>(
   mediaOrRules: T | string | TemplateStringsArray,
   ...rest: any[]
 ): Sheet<T> {

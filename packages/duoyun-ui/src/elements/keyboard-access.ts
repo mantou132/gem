@@ -1,4 +1,4 @@
-import { createCSSSheet, createState, GemElement, html } from '@mantou/gem/lib/element';
+import { css, createState, GemElement, html } from '@mantou/gem/lib/element';
 import type { Emitter } from '@mantou/gem/lib/decorators';
 import {
   adoptedStyle,
@@ -59,7 +59,7 @@ const getFocusableElements = () => {
   });
 };
 
-const style = createCSSSheet`
+const style = css`
   :host {
     font-size: 0.75em;
   }

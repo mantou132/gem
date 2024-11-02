@@ -4,9 +4,9 @@ type MediaType = 'img' | 'video' | 'audio' | 'unknown';
 
 const { GemBookPluginElement } = (await customElements.whenDefined('gem-book')) as typeof GemBookElement;
 const { Gem, theme, Utils } = GemBookPluginElement;
-const { html, customElement, attribute, state, createCSSSheet, adoptedStyle } = Gem;
+const { html, customElement, attribute, state, css, adoptedStyle } = Gem;
 
-const styles = createCSSSheet`
+const styles = css`
   :scope {
     display: block;
     overflow: hidden;

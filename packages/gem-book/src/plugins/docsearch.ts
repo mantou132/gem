@@ -54,20 +54,9 @@ type Locales = Record<string, typeof zh | undefined>;
 
 const { GemBookPluginElement } = (await customElements.whenDefined('gem-book')) as typeof GemBookElement;
 const { Gem, theme, mediaQuery, config, Utils } = GemBookPluginElement;
-const {
-  html,
-  customElement,
-  attribute,
-  createRef,
-  property,
-  createCSSSheet,
-  adoptedStyle,
-  createState,
-  effect,
-  mounted,
-} = Gem;
+const { html, customElement, attribute, createRef, property, css, adoptedStyle, createState, effect, mounted } = Gem;
 
-const styles = createCSSSheet`
+const styles = css`
   :scope {
     display: block;
   }

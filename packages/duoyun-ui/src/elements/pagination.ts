@@ -10,7 +10,7 @@ import {
   shadow,
   aria,
 } from '@mantou/gem/lib/decorators';
-import { GemElement, html, createCSSSheet } from '@mantou/gem/lib/element';
+import { GemElement, html, css } from '@mantou/gem/lib/element';
 import { classMap } from '@mantou/gem/lib/utils';
 import { splice } from '@mantou/gem/helper/i18n';
 import { createDecoratorTheme } from '@mantou/gem/helper/theme';
@@ -31,7 +31,7 @@ import './picker';
 
 const elementTheme = createDecoratorTheme({ align: '' });
 
-const style = createCSSSheet`
+const style = css`
   :host(:where(:not([hidden]))) {
     display: flex;
     align-items: center;

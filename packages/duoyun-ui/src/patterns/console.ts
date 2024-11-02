@@ -1,4 +1,4 @@
-import { GemElement, html, createCSSSheet } from '@mantou/gem/lib/element';
+import { GemElement, html, css } from '@mantou/gem/lib/element';
 import { adoptedStyle, attribute, boolattribute, customElement, effect, property } from '@mantou/gem/lib/decorators';
 import { mediaQuery } from '@mantou/gem/helper/mediaquery';
 
@@ -33,7 +33,7 @@ export type UserInfo = {
   profile?: string;
 };
 
-const style = createCSSSheet`
+const style = css`
   :scope {
     display: flex;
     color: ${theme.textColor};

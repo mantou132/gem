@@ -1,8 +1,8 @@
-import { GemElement, adoptedStyle, createCSSSheet, customElement, html, render, shadow } from '@mantou/gem';
+import { GemElement, adoptedStyle, css, customElement, html, render, shadow } from '@mantou/gem';
 
 import '../elements/layout';
 
-const closedStyles = createCSSSheet`
+const closedStyles = css`
   div {
     color: red;
   }
@@ -23,7 +23,7 @@ class _OtherElement extends GemElement {
   }
 }
 
-const style = createCSSSheet`
+const style = css`
   :scope {
     font-style: italic;
   }

@@ -16,7 +16,7 @@ import {
   effect,
 } from '@mantou/gem/lib/decorators';
 import type { TemplateResult } from '@mantou/gem/lib/element';
-import { GemElement, html, createCSSSheet, createState, createRef } from '@mantou/gem/lib/element';
+import { GemElement, html, css, createState, createRef } from '@mantou/gem/lib/element';
 import { addListener } from '@mantou/gem/lib/utils';
 import { mediaQuery } from '@mantou/gem/helper/mediaquery';
 
@@ -38,7 +38,7 @@ import './help-text';
 import './date-picker';
 import './date-range-picker';
 
-const formStyle = createCSSSheet`
+const formStyle = css`
   :where(:scope:not([inline], [hidden])) {
     display: block;
   }
@@ -158,7 +158,7 @@ export class DuoyunFormElement<Data = Record<string, any>> extends GemElement {
 @aria({ role: 'group' })
 export class DuoyunFormItemInlineGroupElement extends GemElement {}
 
-const formItemStyle = createCSSSheet`
+const formItemStyle = css`
   :host(:where(:not([hidden]))) {
     display: flex;
     flex-direction: column;

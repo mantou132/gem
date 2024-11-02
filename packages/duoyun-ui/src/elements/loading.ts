@@ -1,5 +1,5 @@
 import { adoptedStyle, customElement, shadow, slot } from '@mantou/gem/lib/decorators';
-import { html, createCSSSheet } from '@mantou/gem/lib/element';
+import { html, css } from '@mantou/gem/lib/element';
 
 import { icons } from '../lib/icons';
 
@@ -7,7 +7,7 @@ import { DuoyunVisibleBaseElement } from './base/visible';
 
 import './use';
 
-const style = createCSSSheet`
+const style = css`
   :host(:where(:not([hidden]))) {
     position: relative;
     display: inline-flex;

@@ -3,7 +3,7 @@ import {
   GemElement,
   customElement,
   property,
-  createCSSSheet,
+  css,
   adoptedStyle,
   connectStore,
   memo,
@@ -24,7 +24,7 @@ import '@mantou/gem/elements/unsafe';
 import '@mantou/gem/elements/link';
 import './pre';
 
-const style = createCSSSheet`
+const style = css`
   /**
   * 未定义元素提醒
   * https://github.com/w3c/csswg-drafts/issues/9712

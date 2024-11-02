@@ -3,9 +3,9 @@
     "scope": "typescript",
     "prefix": "@custom",
     "body": [
-      "import { GemElement, html, adoptedStyle, customElement, createCSSSheet } from '@mantou/gem';",
+      "import { GemElement, html, adoptedStyle, customElement, css } from '@mantou/gem';",
       "",
-      "const style = createCSSSheet``;",
+      "const style = css``;",
       "",
       "@customElement('${1:$WORKSPACE_NAME}-${2:$TM_FILENAME_BASE}')",
       "@adoptedStyle(style)",

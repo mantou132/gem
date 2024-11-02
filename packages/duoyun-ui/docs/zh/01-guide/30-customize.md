@@ -4,7 +4,7 @@ DuoyunUI 自带主题、图标、文本，在应用中可以这样使用它们�
 
 ```ts
 import {
-  createCSSSheet,
+  css,
   adoptedStyle,
   customElement,
   GemElement,
@@ -16,7 +16,7 @@ import { locale } from 'duoyun-ui/lib/locale';
 
 import '@mantou/gem';
 
-const style = createCSSSheet`
+const style = css`
   gem-use {
     color: ${theme.positiveColor};
   }

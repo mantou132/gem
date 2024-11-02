@@ -12,7 +12,7 @@ import {
   mounted,
   memo,
 } from '@mantou/gem/lib/decorators';
-import { GemElement, html, createCSSSheet } from '@mantou/gem/lib/element';
+import { GemElement, html, css } from '@mantou/gem/lib/element';
 import { addListener } from '@mantou/gem/lib/utils';
 
 import { theme } from '../lib/theme';
@@ -25,7 +25,7 @@ import { groupStyle } from './radio';
 
 import './use';
 
-const style = createCSSSheet`
+const style = css`
   :host(:where(:not([hidden]))) {
     cursor: default;
     display: inline-flex;

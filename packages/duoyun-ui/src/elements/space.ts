@@ -1,7 +1,7 @@
 import { adoptedStyle, customElement, attribute } from '@mantou/gem/lib/decorators';
-import { GemElement, createCSSSheet } from '@mantou/gem/lib/element';
+import { GemElement, css } from '@mantou/gem/lib/element';
 
-const style = createCSSSheet`
+const style = css`
   :where(:scope:not([hidden])) {
     display: inline-flex;
     flex-wrap: wrap;

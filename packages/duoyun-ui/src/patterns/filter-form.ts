@@ -1,4 +1,4 @@
-import { GemElement, html, createCSSSheet, createState } from '@mantou/gem/lib/element';
+import { GemElement, html, css, createState } from '@mantou/gem/lib/element';
 import type { Emitter } from '@mantou/gem/lib/decorators';
 import {
   adoptedStyle,
@@ -38,7 +38,7 @@ export type FilterableOptions = {
   connectStores?: Store<any>[];
 };
 
-const style = createCSSSheet`
+const style = css`
   dy-input,
   dy-select {
     width: 100%;

@@ -1,5 +1,5 @@
 import { adoptedStyle, customElement, shadow } from '@mantou/gem/lib/decorators';
-import { GemElement, html, createCSSSheet } from '@mantou/gem/lib/element';
+import { GemElement, html, css } from '@mantou/gem/lib/element';
 
 import { icons } from '../lib/icons';
 import { theme } from '../lib/theme';
@@ -9,7 +9,7 @@ import { Toast } from './toast';
 
 import './use';
 
-const style = createCSSSheet`
+const style = css`
   :host(:where(:not([hidden]))) {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(6em, 1fr));

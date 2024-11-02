@@ -11,7 +11,7 @@ import {
   aria,
   effect,
 } from '@mantou/gem/lib/decorators';
-import { GemElement, html, createCSSSheet } from '@mantou/gem/lib/element';
+import { GemElement, html, css } from '@mantou/gem/lib/element';
 import { classMap } from '@mantou/gem/lib/utils';
 import { createDecoratorTheme } from '@mantou/gem/helper/theme';
 
@@ -27,7 +27,7 @@ const starUrl = createDataURLFromSVG(icons.star);
 
 const elementTheme = createDecoratorTheme({ color: '' });
 
-const style = createCSSSheet`
+const style = css`
   :host(:where(:not([hidden]))) {
     display: inline-flex;
     flex-direction: row-reverse;

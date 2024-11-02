@@ -1,6 +1,6 @@
 import { adoptedStyle, aria, customElement, mounted, property, shadow } from '@mantou/gem/lib/decorators';
 import type { TemplateResult } from '@mantou/gem/lib/element';
-import { GemElement, html, createCSSSheet, repeat } from '@mantou/gem/lib/element';
+import { GemElement, html, css, repeat } from '@mantou/gem/lib/element';
 import { classMap, addListener } from '@mantou/gem/lib/utils';
 
 import { icons } from '../lib/icons';
@@ -10,7 +10,7 @@ import { getStringFromTemplate } from '../lib/utils';
 import './use';
 import './action-text';
 
-const style = createCSSSheet`
+const style = css`
   :host(:where(:not([hidden]))) {
     --item-gap: 1em;
     --item-padding-block: 0.6em;

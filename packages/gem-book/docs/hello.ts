@@ -3,9 +3,9 @@ import type { GemBookElement } from 'gem-book';
 customElements.whenDefined('gem-book').then(() => {
   const { GemBookPluginElement } = customElements.get('gem-book') as typeof GemBookElement;
   const { Gem, theme } = GemBookPluginElement;
-  const { html, adoptedStyle, createCSSSheet, customElement } = Gem;
+  const { html, adoptedStyle, css, customElement } = Gem;
 
-  const style = createCSSSheet`
+  const style = css`
     my-plugin-hello {
       display: block;
       border-radius: ${theme.normalRound};

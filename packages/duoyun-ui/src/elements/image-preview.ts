@@ -7,7 +7,7 @@ import {
   shadow,
   effect,
 } from '@mantou/gem/lib/decorators';
-import { createCSSSheet, createState, GemElement, html } from '@mantou/gem/lib/element';
+import { css, createState, GemElement, html } from '@mantou/gem/lib/element';
 import { createDecoratorTheme } from '@mantou/gem/helper/theme';
 
 import { theme, getSemanticColor } from '../lib/theme';
@@ -20,7 +20,7 @@ import './use';
 
 const elementTheme = createDecoratorTheme({ color: '', progress: '' });
 
-const style = createCSSSheet`
+const style = css`
   :host {
     position: relative;
     aspect-ratio: 1;

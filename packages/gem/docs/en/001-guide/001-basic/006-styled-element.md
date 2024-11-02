@@ -4,18 +4,18 @@ Benefit from ShadowDOM, [CSS Nesting](https://drafts.csswg.org/css-nesting-1/), 
 
 ## Shared style
 
-Use the `createcssSheet` to create a shared style table, use `@adoptedStyle` to apply to the required elements.
+Use the `css` to create a shared style table, use `@adoptedStyle` to apply to the required elements.
 
 ```js 11
 import { GemElement } from '@mantou/gem';
 import { adoptedStyle, customElement } from '@mantou/gem';
 
 // 使用 Constructable Stylesheet 创建样式表
-const styles = createCSSSheet(`
+const styles = css`
   h1 {
     text-decoration: underline;
   }
-`);
+`;
 
 @adoptedStyle(styles)
 @customElement('my-element')
@@ -31,9 +31,9 @@ You can reference CSS selectors in JS:
 
 ```js 17
 import { GemElement, html } from '@mantou/gem';
-import { createCSSSheet, styled, adoptedStyle, customElement } from '@mantou/gem';
+import { css, styled, adoptedStyle, customElement } from '@mantou/gem';
 
-const styles = createCSSSheet({
+const styles = css({
   header: styled.class`
     text-decoration: underline;
     &:hover {
@@ -126,7 +126,7 @@ class MyElement extends GemElement {
 >
 > ```js
 > GemLinkElement[Symbol.metadata].adoptedStyleSheets.push(
->   createCSSSheet`
+>   css`
 >     * {
 >       font-style: italic;
 >     }

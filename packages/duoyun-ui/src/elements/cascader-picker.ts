@@ -13,7 +13,7 @@ import {
   mounted,
   memo,
 } from '@mantou/gem/lib/decorators';
-import { createCSSSheet, GemElement, html } from '@mantou/gem/lib/element';
+import { css, GemElement, html } from '@mantou/gem/lib/element';
 import { addListener } from '@mantou/gem/lib/utils';
 
 import { theme } from '../lib/theme';
@@ -34,7 +34,7 @@ import './cascader';
 import './tag';
 import './scroll-box';
 
-const style = createCSSSheet`
+const style = css`
   :host {
     width: 15em;
     white-space: nowrap;

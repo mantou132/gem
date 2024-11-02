@@ -1,6 +1,6 @@
 // https://spectrum.adobe.com/page/in-line-alert/
 import { adoptedStyle, customElement, attribute, property, slot, aria, shadow } from '@mantou/gem/lib/decorators';
-import { GemElement, html, createCSSSheet } from '@mantou/gem/lib/element';
+import { GemElement, html, css } from '@mantou/gem/lib/element';
 import { createDecoratorTheme } from '@mantou/gem/helper/theme';
 
 import { theme, getSemanticColor } from '../lib/theme';
@@ -11,7 +11,7 @@ import './action-text';
 
 const elementTheme = createDecoratorTheme({ color: '' });
 
-const style = createCSSSheet`
+const style = css`
   :host(:where(:not([hidden]))) {
     display: flex;
     flex-direction: column;

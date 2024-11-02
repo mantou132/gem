@@ -8,7 +8,7 @@ import {
   aria,
   shadow,
 } from '@mantou/gem/lib/decorators';
-import { createCSSSheet, html } from '@mantou/gem/lib/element';
+import { css, html } from '@mantou/gem/lib/element';
 import { styleMap } from '@mantou/gem/lib/utils';
 import { createDecoratorTheme } from '@mantou/gem/helper/theme';
 
@@ -18,7 +18,7 @@ import { DuoyunVisibleBaseElement } from './base/visible';
 
 const elementTheme = createDecoratorTheme({ color: '' });
 
-const style = createCSSSheet`
+const style = css`
   :host(:where(:not([hidden]))) {
     display: block;
     flex-grow: 1;

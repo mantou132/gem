@@ -11,7 +11,7 @@ import {
   shadow,
   mounted,
 } from '@mantou/gem/lib/decorators';
-import { createCSSSheet, GemElement, html, createRef } from '@mantou/gem/lib/element';
+import { css, GemElement, html, createRef } from '@mantou/gem/lib/element';
 import { history } from '@mantou/gem/lib/history';
 import { addListener, classMap, QueryString } from '@mantou/gem/lib/utils';
 import { createDecoratorTheme } from '@mantou/gem/helper/theme';
@@ -32,7 +32,7 @@ import './use';
 
 const elementTheme = createDecoratorTheme({ bg: '', color: '' });
 
-const style = createCSSSheet`
+const style = css`
   :host(:where(:not([hidden]))) {
     display: inline-flex;
     align-items: stretch;

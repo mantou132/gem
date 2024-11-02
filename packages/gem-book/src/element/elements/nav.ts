@@ -9,7 +9,7 @@ import {
   classMap,
   history,
   state,
-  createCSSSheet,
+  css,
   adoptedStyle,
   effect,
   aria,
@@ -28,7 +28,7 @@ import '@mantou/gem/elements/link';
 import '@mantou/gem/elements/use';
 import './nav-logo';
 
-const styles = createCSSSheet`
+const styles = css`
   :scope {
     display: flex;
     box-sizing: border-box;

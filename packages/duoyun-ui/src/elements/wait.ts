@@ -1,5 +1,5 @@
 import { adoptedStyle, aria, customElement, effect, mounted, shadow, state } from '@mantou/gem/lib/decorators';
-import { GemElement, html, createCSSSheet, createState } from '@mantou/gem/lib/element';
+import { GemElement, html, css, createState } from '@mantou/gem/lib/element';
 import { addListener } from '@mantou/gem/lib/utils';
 import { createDecoratorTheme } from '@mantou/gem/helper/theme';
 
@@ -12,7 +12,7 @@ import './loading';
 
 const elementTheme = createDecoratorTheme({ color: '', align: '', justify: '', paddingBottom: '' });
 
-const style = createCSSSheet`
+const style = css`
   :host(:where(:not([hidden]))) {
     view-transition-name: dy-wait;
     position: fixed;

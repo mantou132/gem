@@ -7,7 +7,7 @@ import {
   GemElement,
   html,
   adoptedStyle,
-  createCSSSheet,
+  css,
   styleMap,
   mounted,
   memo,
@@ -245,7 +245,7 @@ const IGNORE_LINE = 2;
 const LINE_HEIGHT = '24px';
 const PADDING = '1em';
 
-const styles = createCSSSheet`
+const styles = css`
   :host([status='hidden']) {
     display: none;
   }

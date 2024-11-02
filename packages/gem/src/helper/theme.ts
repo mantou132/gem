@@ -2,10 +2,10 @@ import type { Store } from '../lib/store';
 import { connect, createStore } from '../lib/store';
 import { camelToKebabCase, createUpdater, randomStr } from '../lib/utils';
 import type { GemElement } from '../lib/element';
-import { SheetToken, createCSSSheet } from '../lib/element';
+import { SheetToken, css } from '../lib/element';
 
 export type Theme<T> = ReturnType<typeof createUpdater<T>> &
-  ReturnType<typeof createCSSSheet> & {
+  ReturnType<typeof css> & {
     [K in keyof T as K extends `${string}Color`
       ? `${string & K}${'' | 100 | 200 | 300 | 400 | 500 | 600 | 700 | 800 | 900}`
       : K]: T[K];
@@ -26,7 +26,7 @@ export function getThemeProps<T>(theme: Theme<T>) {
 
 function createThemeFromProps<T extends Record<string, unknown>>(themeObj: T, props: Record<string, string> = {}) {
   const salt = randomStr();
-  const styleSheet = createCSSSheet({})[SheetToken];
+  const styleSheet = css({})[SheetToken];
   const store = createStore<T>(themeObj);
   const theme: any = new Proxy(
     createUpdater({ [SheetToken]: styleSheet }, (payload: Partial<T>) => store(payload)),
@@ -63,7 +63,7 @@ function createThemeFromProps<T extends Record<string, unknown>>(themeObj: T, pr
 }
 
 /**
- * 用于 `@adoptedStyle(theme)`，类似 `createCSSSheet`
+ * 用于 `@adoptedStyle(theme)`，类似 `css`
  */
 export function createScopedTheme<T extends Record<string, unknown>>(themeObj: T) {
   return createThemeFromProps(themeObj);

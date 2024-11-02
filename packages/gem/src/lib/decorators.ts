@@ -1,4 +1,4 @@
-import type { createCSSSheet, Metadata, TemplateResult } from './element';
+import type { css, Metadata, TemplateResult } from './element';
 import { GemElement, UpdateToken, _createTemplate, _RenderErrorEvent, render } from './element';
 import { camelToKebabCase, PropProxyMap, GemError } from './utils';
 import type { Store } from './store';
@@ -454,7 +454,7 @@ function defineEmitter<T extends GemElement>(
  *  class App extends GemElement {}
  * ```
  */
-export function adoptedStyle(sheet: ReturnType<typeof createCSSSheet>) {
+export function adoptedStyle(sheet: ReturnType<typeof css>) {
   return function (_: unknown, context: ClassDecoratorContext) {
     pushStaticField(context, 'adoptedStyleSheets', sheet);
   };

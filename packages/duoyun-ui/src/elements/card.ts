@@ -1,6 +1,6 @@
 // https://spectrum.adobe.com/page/cards/
 import { adoptedStyle, customElement, attribute, property, part, slot, shadow, aria } from '@mantou/gem/lib/decorators';
-import { createCSSSheet, html } from '@mantou/gem/lib/element';
+import { css, html } from '@mantou/gem/lib/element';
 
 import { theme } from '../lib/theme';
 import { icons } from '../lib/icons';
@@ -14,7 +14,7 @@ import { ContextMenu } from './contextmenu';
 
 import './use';
 
-const style = createCSSSheet`
+const style = css`
   :host(:where(:not([hidden]))) {
     display: flex;
     flex-direction: column;

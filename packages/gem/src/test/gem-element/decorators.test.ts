@@ -1,6 +1,6 @@
 import { fixture, expect } from '../utils';
 import type { Metadata } from '../../lib/element';
-import { createCSSSheet, GemElement, html } from '../../lib/element';
+import { css, GemElement, html } from '../../lib/element';
 import { createStore } from '../../lib/store';
 import type { Emitter } from '../../lib/decorators';
 import {
@@ -22,7 +22,7 @@ const store = createStore({
   a: 1,
 });
 
-const styles = createCSSSheet`
+const styles = css`
   :host {
     background: rgb(255, 0, 0);
   }

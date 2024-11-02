@@ -1,7 +1,7 @@
-import { createCSSSheet, GemElement, html } from '../../lib/element';
+import { css, GemElement, html } from '../../lib/element';
 import { adoptedStyle, attribute, property, shadow, state, template } from '../../lib/decorators';
 
-const styles = createCSSSheet`
+const styles = css`
   :host(:where(:not([hidden]))) {
     position: relative;
     display: inline-flex;

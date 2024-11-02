@@ -9,7 +9,7 @@ import {
   shadow,
   memo,
 } from '@mantou/gem/lib/decorators';
-import { GemElement, html, createCSSSheet, createState } from '@mantou/gem/lib/element';
+import { GemElement, html, css, createState } from '@mantou/gem/lib/element';
 
 import { Time, parseNarrowRelativeTime, parseNarrowTimeRange } from '../lib/time';
 import { theme } from '../lib/theme';
@@ -22,7 +22,7 @@ import './divider';
 
 export type DateRangeValue = string | number[];
 
-const style = createCSSSheet`
+const style = css`
   :host(:where(:not([hidden]))) {
     display: flex;
     align-items: flex-start;

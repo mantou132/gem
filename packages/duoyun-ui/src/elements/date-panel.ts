@@ -13,7 +13,7 @@ import {
   memo,
   effect,
 } from '@mantou/gem/lib/decorators';
-import { createCSSSheet, createState, GemElement, html } from '@mantou/gem/lib/element';
+import { css, createState, GemElement, html } from '@mantou/gem/lib/element';
 import { classMap, exportPartsMap } from '@mantou/gem/lib/utils';
 
 import { isNotNullish } from '../lib/types';
@@ -30,7 +30,7 @@ import './divider';
 import './action-text';
 import './time-panel';
 
-const style = createCSSSheet`
+const style = css`
   :host(:where(:not([hidden]))) {
     font-size: 0.875em;
     display: flex;

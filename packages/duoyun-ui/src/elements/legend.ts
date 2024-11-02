@@ -1,6 +1,6 @@
 import type { Emitter } from '@mantou/gem/lib/decorators';
 import { adoptedStyle, aria, customElement, emitter, mounted, property } from '@mantou/gem/lib/decorators';
-import { createCSSSheet, html } from '@mantou/gem/lib/element';
+import { css, html } from '@mantou/gem/lib/element';
 import { styleMap, classMap, addListener } from '@mantou/gem/lib/utils';
 
 import { theme } from '../lib/theme';
@@ -10,7 +10,7 @@ import { DuoyunScrollBaseElement } from './base/scroll';
 
 import './tooltip';
 
-const style = createCSSSheet`
+const style = css`
   :host(:where(:not([hidden]))) {
     --color: initial;
     display: flex;

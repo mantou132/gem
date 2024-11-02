@@ -1,4 +1,4 @@
-import { createCSSSheet, SheetToken } from '../lib/element';
+import { css, SheetToken } from '../lib/element';
 import {
   LinkedList,
   QueryString,
@@ -80,8 +80,8 @@ describe('utils 测试', () => {
     expect(new QueryString({ a: 1 }).toString()).to.equal('?a=1');
     expect(new QueryString(query).toString()).to.equal(query.toString());
   });
-  it('createCSSSheet', () => {
-    const cssSheet = createCSSSheet`
+  it('css', () => {
+    const cssSheet = css`
       div {
         background: red;
       }
@@ -100,7 +100,7 @@ describe('utils 测试', () => {
     expect(raw`<div>${'str'}</div>`).to.equal('<div>str</div>');
   });
   it('styled', () => {
-    const cssSheet = createCSSSheet({
+    const cssSheet = css({
       $: styled``,
       scroll: styled`
         background: red;

@@ -1,6 +1,6 @@
 import type { Emitter } from '@mantou/gem/lib/decorators';
 import { adoptedStyle, customElement, emitter, property, state, part, aria, memo } from '@mantou/gem/lib/decorators';
-import { createCSSSheet, createState, html, svg } from '@mantou/gem/lib/element';
+import { css, createState, html, svg } from '@mantou/gem/lib/element';
 import { styleMap, classMap } from '@mantou/gem/lib/utils';
 import type { GeoRawProjection } from 'd3-geo';
 import { geoProjection, geoMercatorRaw, geoEquirectangularRaw, geoPath } from 'd3-geo';
@@ -84,7 +84,7 @@ export const shapes = [
   },
 ];
 
-const style = createCSSSheet`
+const style = css`
   :host(:where(:not([hidden]))) {
     display: block;
     border-radius: ${theme.normalRound};

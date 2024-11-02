@@ -1,6 +1,6 @@
 import { adoptedStyle, customElement, property, boolattribute, slot, aria, shadow } from '@mantou/gem/lib/decorators';
 import type { TemplateResult } from '@mantou/gem/lib/element';
-import { GemElement, html, createCSSSheet, createState } from '@mantou/gem/lib/element';
+import { GemElement, html, css, createState } from '@mantou/gem/lib/element';
 import { classMap } from '@mantou/gem/lib/utils';
 
 import { theme } from '../lib/theme';
@@ -13,7 +13,7 @@ import { focusStyle } from '../lib/styles';
 import './use';
 import './input';
 
-const style = createCSSSheet`
+const style = css`
   :host(:where(:not([hidden]))) {
     cursor: default;
     font-size: 0.875em;

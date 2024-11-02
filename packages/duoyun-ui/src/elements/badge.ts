@@ -11,7 +11,7 @@ import {
   shadow,
   mounted,
 } from '@mantou/gem/lib/decorators';
-import { createCSSSheet, createRef, GemElement, html } from '@mantou/gem/lib/element';
+import { css, createRef, GemElement, html } from '@mantou/gem/lib/element';
 import { classMap } from '@mantou/gem/lib/utils';
 
 import { contentsContainer } from '../lib/styles';
@@ -20,7 +20,7 @@ import type { StringList } from '../lib/types';
 
 import './use';
 
-const style = createCSSSheet`
+const style = css`
   .badge {
     display: flex;
     align-items: center;

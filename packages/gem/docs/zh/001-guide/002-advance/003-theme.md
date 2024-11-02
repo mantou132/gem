@@ -109,7 +109,7 @@ import { createDecoratorTheme } from '@mantou/gem/helper/theme';
 
 const elementTheme = createDecoratorTheme({ color: '' });
 
-const style = createCSSSheet`
+const style = css`
   :host(:where(:not([hidden]))) {
     border-color: ${elementTheme.color};
   }

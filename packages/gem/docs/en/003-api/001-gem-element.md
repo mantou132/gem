@@ -59,13 +59,6 @@ Type with decorator
 | `@fallback`  | When the content render error, rendering the reserve content |
 
 
-## Utils
-
-| name             | description                                                                     |
-| ---------------- | ------------------------------------------------------------------------------- |
-| `createRef`      | Defining dom references                                                         |
-| `createState`    | Specify the element internal state                                              |
-| `createCSSSheet` | Use the constructor to create a style sheet that can be attached to the element |
 
 ## Lifecycle hook
 
@@ -78,7 +71,7 @@ Type with decorator
 | `updated`      | Callback after updating the element                                                       |
 | `unmounted`    | Callback after unloading the element                                                      |
 
-## Other
+## Method
 
 | name        | description                                         |
 | ----------- | --------------------------------------------------- |
@@ -98,3 +91,16 @@ Type with decorator
 [10]: https://developer.mozilla.org/en-US/docs/Web/API/Web_components/Using_shadow_DOM
 [11]: https://developer.mozilla.org/en-US/docs/Web/API/ElementInternals#instance_properties_included_from_aria
 [12]: https://html.spec.whatwg.org/multipage/custom-elements.html#the-elementinternals-interface
+
+## Utils
+
+| name          | description                                                                     |
+| ------------- | ------------------------------------------------------------------------------- |
+| `createRef`   | Defining dom references                                                         |
+| `createState` | Specify the element internal state                                              |
+| `css`         | Use the constructor to create a style sheet that can be attached to the element |
+| `html`        | Template string tags, used to create HTML lit-html templates                    |
+| `svg`         | Template string tags, used to create SVG lit-html templates                     |
+| `render`      | Mount lit-html template to DOM                                                  |
+| `directive`   | Custom lit-html template rendering directive                                    |
+| `repeat`      | Optimize lit-html list rendering directive                                      |

@@ -1,13 +1,4 @@
-import {
-  GemElement,
-  html,
-  render,
-  customElement,
-  connectStore,
-  createCSSSheet,
-  adoptedStyle,
-  styleMap,
-} from '@mantou/gem';
+import { GemElement, html, render, customElement, connectStore, css, adoptedStyle, styleMap } from '@mantou/gem';
 import { createTheme, getThemeStore, createScopedTheme, createOverrideTheme } from '@mantou/gem/helper/theme';
 import { mediaQuery } from '@mantou/gem/helper/mediaquery';
 
@@ -37,14 +28,14 @@ document.onclick = () => {
   });
 };
 
-const style = createCSSSheet`
+const style = css`
   div {
     color: ${scopedTheme.color};
     border: 2px solid ${scopedTheme.borderColor};
   }
 `;
 
-const printStyle = createCSSSheet(
+const printStyle = css(
   mediaQuery.PRINT,
   `
     div {

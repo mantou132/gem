@@ -12,7 +12,7 @@ import {
   mounted,
 } from '@mantou/gem/lib/decorators';
 import type { TemplateResult } from '@mantou/gem/lib/element';
-import { createCSSSheet, createRef, createState, GemElement, html } from '@mantou/gem/lib/element';
+import { css, createRef, createState, GemElement, html } from '@mantou/gem/lib/element';
 import type { StyleObject } from '@mantou/gem/lib/utils';
 import { addListener, styleMap } from '@mantou/gem/lib/utils';
 
@@ -338,7 +338,7 @@ export class DuoyunPopoverElement extends GemElement {
 
 export const Popover = DuoyunPopoverElement;
 
-const ghostStyle = createCSSSheet`
+const ghostStyle = css`
   :host {
     position: fixed;
     z-index: ${theme.popupZIndex};

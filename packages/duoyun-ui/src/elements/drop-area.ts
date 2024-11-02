@@ -11,12 +11,12 @@ import {
   shadow,
   mounted,
 } from '@mantou/gem/lib/decorators';
-import { GemElement, html, createCSSSheet } from '@mantou/gem/lib/element';
+import { GemElement, html, css } from '@mantou/gem/lib/element';
 import { addListener } from '@mantou/gem/lib/utils';
 
 import { theme } from '../lib/theme';
 
-const style = createCSSSheet`
+const style = css`
   :host(:where(:not([hidden]))) {
     display: block;
     position: relative;

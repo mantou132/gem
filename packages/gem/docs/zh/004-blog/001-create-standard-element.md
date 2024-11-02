@@ -168,7 +168,7 @@ class MyElement extends GemElement {
 这相当于在每个 `<my-element>` 中创建 `<style>` 元素，如果是静态样式，应该尽量使用 [Constructable Stylesheet](https://wicg.github.io/construct-stylesheets/)，它的性能更好，内存占用更低：
 
 ```ts
-const style = createCSSSheet`
+const style = css`
   :host {
     display: contents;
   }

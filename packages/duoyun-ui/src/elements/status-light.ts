@@ -1,10 +1,10 @@
 import { adoptedStyle, customElement, attribute, slot, aria, shadow } from '@mantou/gem/lib/decorators';
-import { GemElement, html, createCSSSheet } from '@mantou/gem/lib/element';
+import { GemElement, html, css } from '@mantou/gem/lib/element';
 
 import { theme, getSemanticColor } from '../lib/theme';
 import type { StringList } from '../lib/types';
 
-const style = createCSSSheet`
+const style = css`
   :host(:where(:not([hidden]))) {
     display: inline-flex;
     align-items: center;

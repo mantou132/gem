@@ -1,12 +1,12 @@
 import { adoptedStyle, customElement, attribute, slot, shadow } from '@mantou/gem/lib/decorators';
-import { GemElement, createCSSSheet } from '@mantou/gem/lib/element';
+import { GemElement, css } from '@mantou/gem/lib/element';
 import { createDecoratorTheme } from '@mantou/gem/helper/theme';
 
 import { getStatusColor } from './status-light';
 
 const elementTheme = createDecoratorTheme({ color: '' });
 
-const style = createCSSSheet`
+const style = css`
   :host {
     margin-block: 0.2em;
     font-size: 0.875em;

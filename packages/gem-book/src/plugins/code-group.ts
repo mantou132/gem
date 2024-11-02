@@ -16,9 +16,9 @@ type State = {
 
 const { GemBookPluginElement } = (await customElements.whenDefined('gem-book')) as typeof GemBookElement;
 const { Gem, theme, icons } = GemBookPluginElement;
-const { html, customElement, adoptedStyle, createCSSSheet, classMap, shadow, createState, willMount } = Gem;
+const { html, customElement, adoptedStyle, css, classMap, shadow, createState, willMount } = Gem;
 
-const style = createCSSSheet`
+const style = css`
   :host {
     display: block;
     border-radius: ${theme.normalRound};

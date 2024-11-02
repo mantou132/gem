@@ -9,7 +9,7 @@
       "name": "Run Gem Extension",
       "type": "extensionHost",
       "request": "launch",
-      "args": ["--extensionDevelopmentPath=${workspaceFolder}/packages/vscode-gem-plugin"],
+      "args": ["--disable-extensions", "--extensionDevelopmentPath=${workspaceFolder}/packages/vscode-gem-plugin"],
       "outFiles": ["${workspaceFolder}/packages/vscode-gem-plugin/dist/**/*.js"],
       "preLaunchTask": "${defaultBuildTask}"
     }

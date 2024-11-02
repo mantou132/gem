@@ -4,18 +4,18 @@
 
 ## 共享样式
 
-使用 `createCSSSheet` 能创建可供共享的样式表，再使用 `@adoptedStyle` 应用到需要的元素即可。
+使用 `css` 能创建可共享样式表，再使用 `@adoptedStyle` 应用到需要的元素即可。
 
 ```js 11
 import { GemElement } from '@mantou/gem';
 import { adoptedStyle, customElement } from '@mantou/gem';
 
 // 使用 Constructable Stylesheet 创建样式表
-const styles = createCSSSheet(`
+const styles = css`
   h1 {
     text-decoration: underline;
   }
-`);
+`;
 
 @adoptedStyle(styles)
 @customElement('my-element')
@@ -31,9 +31,9 @@ class MyElement extends GemElement {}
 
 ```js 17
 import { GemElement, html } from '@mantou/gem';
-import { createCSSSheet, styled, adoptedStyle, customElement } from '@mantou/gem';
+import { css, styled, adoptedStyle, customElement } from '@mantou/gem';
 
-const styles = createCSSSheet({
+const styles = css({
   header: styled.class`
     text-decoration: underline;
     &:hover {
@@ -126,7 +126,7 @@ class MyElement extends GemElement {
 >
 > ```js
 > GemLinkElement[Symbol.metadata].adoptedStyleSheets.push(
->   createCSSSheet`
+>   css`
 >     * {
 >       font-style: italic;
 >     }

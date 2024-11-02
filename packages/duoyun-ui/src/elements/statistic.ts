@@ -9,7 +9,7 @@ import {
   shadow,
   slot,
 } from '@mantou/gem/lib/decorators';
-import { GemElement, html, createCSSSheet } from '@mantou/gem/lib/element';
+import { GemElement, html, css } from '@mantou/gem/lib/element';
 import { classMap } from '@mantou/gem/lib/utils';
 
 import { parseDuration } from '../lib/time';
@@ -19,7 +19,7 @@ import { formatBandwidth, formatDecimal, formatPercentage, formatTraffic, format
 import './placeholder';
 import './use';
 
-const style = createCSSSheet`
+const style = css`
   :host(:where(:not([hidden]))) {
     display: block;
     font-size: 0.875em;

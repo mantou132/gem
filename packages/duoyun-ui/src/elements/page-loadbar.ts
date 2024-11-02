@@ -1,5 +1,5 @@
 import { adoptedStyle, aria, customElement, mounted, shadow } from '@mantou/gem/lib/decorators';
-import { GemElement, html, createCSSSheet, createState } from '@mantou/gem/lib/element';
+import { GemElement, html, css, createState } from '@mantou/gem/lib/element';
 import { createDecoratorTheme } from '@mantou/gem/helper/theme';
 
 import { theme } from '../lib/theme';
@@ -7,7 +7,7 @@ import { sleep } from '../lib/timer';
 
 const elementTheme = createDecoratorTheme({ progress: '' });
 
-const style = createCSSSheet`
+const style = css`
   :host(:where(:not([hidden]))) {
     view-transition-name: dy-page-loadbar;
     z-index: ${theme.popupZIndex};

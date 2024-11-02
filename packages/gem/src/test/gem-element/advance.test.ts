@@ -8,7 +8,7 @@
  */
 import { fixture, expect, nextFrame } from '../utils';
 import type { Metadata } from '../../lib/element';
-import { createCSSSheet, createState, GemElement, html, createRef } from '../../lib/element';
+import { css, createState, GemElement, html, createRef } from '../../lib/element';
 import { createStore } from '../../lib/store';
 import {
   attribute,
@@ -52,7 +52,7 @@ describe('异步 gem element 测试', () => {
   });
 });
 
-const lightStyle = createCSSSheet`
+const lightStyle = css`
   div {
     font-size: 18.1px;
   }

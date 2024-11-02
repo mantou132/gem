@@ -1,5 +1,5 @@
 import { adoptedStyle, customElement, mounted, part, shadow } from '@mantou/gem/lib/decorators';
-import { createCSSSheet, createState, GemElement, html } from '@mantou/gem/lib/element';
+import { css, createState, GemElement, html } from '@mantou/gem/lib/element';
 import { addListener } from '@mantou/gem/lib/utils';
 import { createDecoratorTheme } from '@mantou/gem/helper/theme';
 
@@ -12,7 +12,7 @@ import './paragraph';
 
 const elementTheme = createDecoratorTheme({ left: '', top: '' });
 
-const style = createCSSSheet`
+const style = css`
   .container,
   .circle {
     position: fixed;

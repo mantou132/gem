@@ -1,4 +1,4 @@
-import { GemElement, html, createCSSSheet } from '@mantou/gem/lib/element';
+import { GemElement, html, css } from '@mantou/gem/lib/element';
 import { adoptedStyle, customElement, property, attribute, slot, shadow } from '@mantou/gem/lib/decorators';
 
 import { theme } from '../lib/theme';
@@ -12,7 +12,7 @@ import './heading';
 import './paragraph';
 import './space';
 
-const style = createCSSSheet`
+const style = css`
   :host(:where(:not([hidden]))) {
     display: flex;
     flex-direction: column;

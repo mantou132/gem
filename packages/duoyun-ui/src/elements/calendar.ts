@@ -10,7 +10,7 @@ import {
   memo,
 } from '@mantou/gem/lib/decorators';
 import type { TemplateResult } from '@mantou/gem/lib/element';
-import { createCSSSheet, GemElement, html } from '@mantou/gem/lib/element';
+import { css, GemElement, html } from '@mantou/gem/lib/element';
 import { classMap, partMap } from '@mantou/gem/lib/utils';
 
 import { isNotNullish } from '../lib/types';
@@ -19,7 +19,7 @@ import { theme } from '../lib/theme';
 import { commonHandle } from '../lib/hotkeys';
 import { focusStyle } from '../lib/styles';
 
-const style = createCSSSheet`
+const style = css`
   :host(:where(:not([hidden]))) {
     cursor: default;
     font-size: 0.875em;

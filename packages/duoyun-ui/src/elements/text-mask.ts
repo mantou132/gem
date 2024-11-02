@@ -1,8 +1,8 @@
 import { adoptedStyle, customElement, property, attribute, shadow, mounted, memo } from '@mantou/gem/lib/decorators';
 import type { TemplateResult } from '@mantou/gem/lib/element';
-import { GemElement, html, createCSSSheet } from '@mantou/gem/lib/element';
+import { GemElement, html, css } from '@mantou/gem/lib/element';
 
-const style = createCSSSheet`
+const style = css`
   span {
     user-select: none;
   }

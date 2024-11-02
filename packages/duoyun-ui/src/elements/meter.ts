@@ -10,13 +10,13 @@ import {
   effect,
   slot,
 } from '@mantou/gem/lib/decorators';
-import { createCSSSheet, GemElement, html } from '@mantou/gem/lib/element';
+import { css, GemElement, html } from '@mantou/gem/lib/element';
 import { styleMap } from '@mantou/gem/lib/utils';
 
 import { theme, getSemanticColor } from '../lib/theme';
 import type { StringList } from '../lib/types';
 
-const style = createCSSSheet`
+const style = css`
   :host(:where(:not([hidden]))) {
     font-size: 0.875em;
     width: 15em;

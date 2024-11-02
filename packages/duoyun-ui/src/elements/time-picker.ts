@@ -12,7 +12,7 @@ import {
   shadow,
   mounted,
 } from '@mantou/gem/lib/decorators';
-import { GemElement, html, createCSSSheet } from '@mantou/gem/lib/element';
+import { GemElement, html, css } from '@mantou/gem/lib/element';
 import { classMap, addListener } from '@mantou/gem/lib/utils';
 
 import { Time } from '../lib/time';
@@ -31,7 +31,7 @@ import type { DuoyunTimePanelElement } from './time-panel';
 
 import './time-panel';
 
-const style = createCSSSheet`
+const style = css`
   :host {
     width: 10em;
   }

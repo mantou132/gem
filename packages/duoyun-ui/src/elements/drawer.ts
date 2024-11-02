@@ -1,12 +1,12 @@
 import { adoptedStyle, customElement } from '@mantou/gem/lib/decorators';
-import { createCSSSheet } from '@mantou/gem/lib/element';
+import { css } from '@mantou/gem/lib/element';
 
 import { slideInLeft, slideOutRight } from '../lib/animations';
 
 import type { ModalOptions } from './modal';
 import { DuoyunModalElement } from './modal';
 
-const style = createCSSSheet`
+const style = css`
   .dialog {
     top: 0;
     left: auto;

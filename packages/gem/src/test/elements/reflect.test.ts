@@ -1,12 +1,16 @@
 import { fixture, expect, nextFrame } from '../utils';
-import { createCSSSheet, GemElement, html } from '../../lib/element';
+import { css, GemElement, html } from '../../lib/element';
 import { adoptedStyle, customElement } from '../../lib/decorators';
 import type { GemReflectElement } from '../../elements/reflect';
 
 import '../../elements/reflect';
 
+@adoptedStyle(css`
+  :scope {
+    color: rgb(255, 0, 0);
+  }
+`)
 @customElement('light-dom')
-@adoptedStyle(createCSSSheet(`:scope { color: rgb(255, 0, 0) }`))
 export class Children extends GemElement {}
 
 describe('GemReflectElement', () => {

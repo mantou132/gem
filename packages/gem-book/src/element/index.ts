@@ -13,7 +13,7 @@ import {
   createRef,
   boolattribute,
   adoptedStyle,
-  createCSSSheet,
+  css,
   kebabToCamelCase,
   willMount,
   effect,
@@ -44,7 +44,7 @@ import './elements/rel-link';
 import './elements/meta';
 import './elements/toc';
 
-const styles = createCSSSheet`
+const styles = css`
   :scope {
     display: grid;
     grid-template-areas: 'aside content toc';

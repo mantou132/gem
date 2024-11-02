@@ -58,13 +58,7 @@ class GemElement extends HTMLElement {
 | `@template`  | 类似 `GemElement.render` + `GemElement.shouldUpdate` |
 | `@fallback`  | 当内容渲染失败时渲染后备内容                         |
 
-## 工具函数
 
-| 名称             | 描述                                 |
-| ---------------- | ------------------------------------ |
-| `createRef`      | 内部元素引用                         |
-| `createState`    | 为元素创建内部状态                   |
-| `createCSSSheet` | 使用构造函数创建能附加到元素的样式表 |
 
 ## 生命周期钩子
 
@@ -77,7 +71,7 @@ class GemElement extends HTMLElement {
 | `updated`      | 更新元素后的回调                            |
 | `unmounted`    | 卸载元素后的回调                            |
 
-## 其他
+## 扩展方法
 
 | 名称        | 描述                                   |
 | ----------- | -------------------------------------- |
@@ -97,3 +91,16 @@ class GemElement extends HTMLElement {
 [10]: https://developer.mozilla.org/en-US/docs/Web/API/Web_components/Using_shadow_DOM
 [11]: https://developer.mozilla.org/en-US/docs/Web/API/ElementInternals#instance_properties_included_from_aria
 [12]: https://html.spec.whatwg.org/multipage/custom-elements.html#the-elementinternals-interface
+
+## 工具函数
+
+| 名称          | 描述                                        |
+| ------------- | ------------------------------------------- |
+| `createRef`   | 内部元素引用                                |
+| `createState` | 为元素创建内部状态                          |
+| `css`         | 使用构造函数创建能附加到元素的样式表        |
+| `html`        | 模版字符串标签，用于创建 HTML lit-html 模版 |
+| `svg`         | 模版字符串标签，用于创建 SVG lit-html 模版  |
+| `render`      | 挂载 lit-html 模版到 DOM                    |
+| `directive`   | 自定义 lit-html 模版渲染指令                |
+| `repeat`      | 优化 lit-html 列表渲染指令                  |

@@ -1,4 +1,4 @@
-import { GemElement, html, createCSSSheet } from '@mantou/gem/lib/element';
+import { GemElement, html, css } from '@mantou/gem/lib/element';
 import type { Emitter } from '@mantou/gem/lib/decorators';
 import { adoptedStyle, customElement, globalemitter, property } from '@mantou/gem/lib/decorators';
 import { mediaQuery } from '@mantou/gem/helper/mediaquery';
@@ -42,7 +42,7 @@ export type Languages = {
   names: Record<string, string>;
 };
 
-const style = createCSSSheet`
+const style = css`
   :scope {
     display: block;
     background: ${theme.lightBackgroundColor};
@@ -147,7 +147,7 @@ const style = createCSSSheet`
   }
 `;
 
-const mobileStyle = createCSSSheet(
+const mobileStyle = css(
   mediaQuery.PHONE,
   /*css*/ `
     :scope {

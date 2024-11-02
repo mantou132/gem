@@ -1,6 +1,6 @@
 import { connectStore, adoptedStyle, customElement, shadow, effect, mounted } from '@mantou/gem/lib/decorators';
 import type { TemplateResult } from '@mantou/gem/lib/element';
-import { createCSSSheet, html, GemElement, createRef } from '@mantou/gem/lib/element';
+import { css, html, GemElement, createRef } from '@mantou/gem/lib/element';
 import { styleMap, classMap } from '@mantou/gem/lib/utils';
 import { createStore } from '@mantou/gem/lib/store';
 
@@ -80,7 +80,7 @@ function getMenuObject(menuOrMenuObject: MenuOrMenuObject) {
 
 let closeResolve: (value?: any) => void;
 
-const style = createCSSSheet`
+const style = css`
   :host(:where(:not([hidden]))) {
     display: block;
     position: fixed;

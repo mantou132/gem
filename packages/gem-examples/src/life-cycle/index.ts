@@ -1,5 +1,5 @@
 import {
-  createCSSSheet,
+  css,
   GemElement,
   html,
   createRef,
@@ -28,7 +28,7 @@ const store = createStore<GlobalState>({
   now: new Date(),
 });
 
-const styles = createCSSSheet`
+const styles = css`
   h1 {
     text-decoration: underline;
   }

@@ -11,7 +11,7 @@ import {
   shadow,
   aria,
 } from '@mantou/gem/lib/decorators';
-import { createCSSSheet, GemElement, html } from '@mantou/gem/lib/element';
+import { css, GemElement, html } from '@mantou/gem/lib/element';
 
 import { theme } from '../lib/theme';
 import { icons } from '../lib/icons';
@@ -20,7 +20,7 @@ import { commonHandle } from '../lib/hotkeys';
 import './use';
 import './divider';
 
-const style = createCSSSheet`
+const style = css`
   :host(:where(:not([hidden]))) {
     display: flex;
     align-items: flex-start;

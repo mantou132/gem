@@ -9,7 +9,7 @@ import {
   effect,
   mounted,
 } from '@mantou/gem/lib/decorators';
-import { html, createCSSSheet } from '@mantou/gem/lib/element';
+import { html, css } from '@mantou/gem/lib/element';
 import { addListener } from '@mantou/gem/lib/utils';
 import { createStore } from '@mantou/gem/lib/store';
 import { splice } from '@mantou/gem/helper/i18n';
@@ -85,7 +85,7 @@ async function nextTour() {
 
 const elementTheme = createDecoratorTheme({ color: '' });
 
-const style = createCSSSheet`
+const style = css`
   :host {
     position: absolute;
     left: 50%;

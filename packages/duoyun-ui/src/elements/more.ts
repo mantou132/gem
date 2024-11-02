@@ -10,7 +10,7 @@ import {
   shadow,
   effect,
 } from '@mantou/gem/lib/decorators';
-import { createCSSSheet, createState, GemElement, html } from '@mantou/gem/lib/element';
+import { css, createState, GemElement, html } from '@mantou/gem/lib/element';
 import { classMap, styleMap } from '@mantou/gem/lib/utils';
 
 import { locale } from '../lib/locale';
@@ -20,7 +20,7 @@ import { DuoyunScrollBaseElement } from './base/scroll';
 
 import './action-text';
 
-const style = createCSSSheet`
+const style = css`
   :host(:where(:not([hidden]))) {
     display: flex;
     flex-direction: column;

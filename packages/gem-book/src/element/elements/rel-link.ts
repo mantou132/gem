@@ -1,13 +1,4 @@
-import {
-  html,
-  GemElement,
-  customElement,
-  connectStore,
-  property,
-  adoptedStyle,
-  createCSSSheet,
-  aria,
-} from '@mantou/gem';
+import { html, GemElement, customElement, connectStore, property, adoptedStyle, css, aria } from '@mantou/gem';
 import { mediaQuery } from '@mantou/gem/helper/mediaquery';
 
 import type { NavItem } from '../../common/config';
@@ -17,7 +8,7 @@ import { bookStore } from '../store';
 
 import '@mantou/gem/elements/link';
 
-const styles = createCSSSheet`
+const styles = css`
   :scope:where(:not([hidden])) {
     display: flex;
     flex-wrap: wrap;

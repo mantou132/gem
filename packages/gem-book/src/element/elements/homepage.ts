@@ -1,4 +1,4 @@
-import { html, GemElement, customElement, connectStore, createCSSSheet, adoptedStyle } from '@mantou/gem';
+import { html, GemElement, customElement, connectStore, css, adoptedStyle } from '@mantou/gem';
 import { mediaQuery } from '@mantou/gem/helper/mediaquery';
 
 import { getUserLink } from '../../common/utils';
@@ -14,7 +14,7 @@ import { icons } from './icons';
 import '@mantou/gem/elements/link';
 import '@mantou/gem/elements/use';
 
-const styles = createCSSSheet`
+const styles = css`
   :scope {
     overflow: hidden;
 

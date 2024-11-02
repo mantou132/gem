@@ -8,7 +8,7 @@ const scopedTheme = createScopedTheme({ scopeTextColor: '#333' });
 
 const overrideTheme = createOverrideTheme(theme, { textColor: '#eff' });
 
-const styles = createCSSSheet`
+const styles = css`
   :scope {
     color: ${theme.textColor};
     background: ${scopedTheme.scopeTextColor};

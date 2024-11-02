@@ -1,6 +1,6 @@
 // https://spectrum.adobe.com/page/scatter-plot/
 import { adoptedStyle, customElement, memo, property, unmounted } from '@mantou/gem/lib/decorators';
-import { createCSSSheet, html, svg } from '@mantou/gem/lib/element';
+import { css, html, svg } from '@mantou/gem/lib/element';
 import { classMap } from '@mantou/gem/lib/utils';
 
 import { isNullish } from '../lib/types';
@@ -10,7 +10,7 @@ import type { Sequence } from './area-chart';
 import type { Data } from './chart-tooltip';
 import { ChartTooltip } from './chart-tooltip';
 
-const style = createCSSSheet`
+const style = css`
   .symbol {
     opacity: 0.8;
   }

@@ -14,7 +14,7 @@ import {
   slot,
 } from '@mantou/gem/lib/decorators';
 import type { TemplateResult } from '@mantou/gem/lib/element';
-import { createCSSSheet, html } from '@mantou/gem/lib/element';
+import { css, html } from '@mantou/gem/lib/element';
 import type { StyleObject } from '@mantou/gem/lib/utils';
 import { styleMap, classMap, isArrayChange } from '@mantou/gem/lib/utils';
 
@@ -38,7 +38,7 @@ import './loading';
 import './space';
 import './selection-box';
 
-const styles = createCSSSheet`
+const styles = css`
   :host(:where(:not([hidden]))) {
     display: block;
     width: 100%;

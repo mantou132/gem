@@ -9,7 +9,7 @@ import {
   slot,
   shadow,
 } from '@mantou/gem/lib/decorators';
-import { createCSSSheet, createState, GemElement, html } from '@mantou/gem/lib/element';
+import { css, createState, GemElement, html } from '@mantou/gem/lib/element';
 import { classMap } from '@mantou/gem/lib/utils';
 
 import { icons } from '../lib/icons';
@@ -21,7 +21,7 @@ import { focusStyle } from '../lib/styles';
 import './use';
 import '../elements/tooltip';
 
-const style = createCSSSheet`
+const style = css`
   :host(:where(:not([hidden]))) {
     position: relative;
     display: flex;

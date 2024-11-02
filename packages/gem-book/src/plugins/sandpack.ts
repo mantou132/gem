@@ -73,7 +73,7 @@ const {
   attribute,
   boolattribute,
   adoptedStyle,
-  createCSSSheet,
+  css,
   classMap,
   shadow,
   createState,
@@ -81,7 +81,7 @@ const {
   mounted,
 } = GemBookPluginElement.Gem;
 
-const styles = createCSSSheet`
+const styles = css`
   :host {
     display: block;
     container-type: inline-size;

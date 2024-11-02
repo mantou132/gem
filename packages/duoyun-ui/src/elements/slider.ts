@@ -13,7 +13,7 @@ import {
   mounted,
   effect,
 } from '@mantou/gem/lib/decorators';
-import { GemElement, html, createCSSSheet, createState, createRef } from '@mantou/gem/lib/element';
+import { GemElement, html, css, createState, createRef } from '@mantou/gem/lib/element';
 import { classMap, addListener } from '@mantou/gem/lib/utils';
 import { createDecoratorTheme } from '@mantou/gem/helper/theme';
 
@@ -29,7 +29,7 @@ import './input';
 
 const elementTheme = createDecoratorTheme({ position: '', positionPoint: '' });
 
-const style = createCSSSheet`
+const style = css`
   :host(:where(:not([hidden]))) {
     font-size: 0.875em;
     inline-size: 15em;

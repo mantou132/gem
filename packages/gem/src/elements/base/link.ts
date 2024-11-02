@@ -1,4 +1,4 @@
-import { createCSSSheet, GemElement, html } from '../../lib/element';
+import { css, GemElement, html } from '../../lib/element';
 import {
   attribute,
   property,
@@ -23,7 +23,7 @@ function isExternal(path: string) {
   return !path.startsWith('/');
 }
 
-const styles = createCSSSheet`
+const styles = css`
   :host {
     /* link default style */
     cursor: pointer;

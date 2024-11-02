@@ -1,4 +1,4 @@
-import { html, GemElement, customElement, connectStore, createCSSSheet, adoptedStyle, aria } from '@mantou/gem';
+import { html, GemElement, customElement, connectStore, css, adoptedStyle, aria } from '@mantou/gem';
 
 import { selfI18n } from '../helper/i18n';
 import { theme } from '../helper/theme';
@@ -7,7 +7,7 @@ import { unsafeRenderHTML } from '../lib/renderer';
 
 import '@mantou/gem/elements/link';
 
-const styles = createCSSSheet`
+const styles = css`
   :scope {
     display: block;
     padding-block: 2rem;

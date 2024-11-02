@@ -10,7 +10,7 @@ import {
   slot,
   shadow,
 } from '@mantou/gem/lib/decorators';
-import { createCSSSheet, createRef, GemElement, html, repeat } from '@mantou/gem/lib/element';
+import { css, createRef, GemElement, html, repeat } from '@mantou/gem/lib/element';
 import { styleMap } from '@mantou/gem/lib/utils';
 
 import { icons } from '../lib/icons';
@@ -25,7 +25,7 @@ import type { BasePickerElement } from './picker';
 import './use';
 import './image-preview';
 
-const style = createCSSSheet`
+const style = css`
   :host(:where(:not([hidden]))) {
     font-size: 0.875em;
     display: flex;

@@ -8,7 +8,7 @@ import {
   state,
   connect,
   createStore,
-  createCSSSheet,
+  css,
   adoptedStyle,
   effect,
   addListener,
@@ -33,7 +33,7 @@ import './nav-logo';
 
 export const sidebarStore = createStore({ open: false });
 
-const styles = createCSSSheet`
+const styles = css`
   :scope {
     display: flex;
     flex-direction: column;
