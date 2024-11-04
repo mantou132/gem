@@ -1,12 +1,13 @@
 // eslint-disable-next-line import/no-unresolved
-import { workspace, Range, Position } from 'vscode';
-import { TextDocument as HTMLTextDocument, TokenType as HTMLTokenType } from 'vscode-html-languageservice';
+import { Range, Position } from 'vscode';
+import { TextDocument as HTMLTextDocument } from 'vscode-html-languageservice';
 import type { TextLine, CompletionItem } from 'vscode';
-import type { LanguageService, CompletionList as HtmlCompletionList } from 'vscode-html-languageservice';
-import type { VSCodeEmmetConfig } from '@vscode/emmet-helper';
+import type { CompletionList as HtmlCompletionList } from 'vscode-html-languageservice';
 
-export function translateToCSS(text: string) {
-  return text.replace(/\$\{.*\}/g, (str) => 'x'.repeat(str.length));
+export function removeSlot(text: string) {
+  const v = text.replace(/\$\{[^${]*?\}/g, (str) => str.replaceAll(/[^\n]/g, ' '));
+  if (v === text) return v;
+  return removeSlot(v);
 }
 
 export function translateCompletionList(list: HtmlCompletionList, line: TextLine, expand?: boolean) {
@@ -38,86 +39,21 @@ export function translateCompletionList(list: HtmlCompletionList, line: TextLine
   };
 }
 
-export function getEmmetConfiguration() {
-  const emmetConfig = workspace.getConfiguration('emmet');
-  return {
-    useNewEmmet: true,
-    showExpandedAbbreviation: emmetConfig.showExpandedAbbreviation,
-    showAbbreviationSuggestions: emmetConfig.showAbbreviationSuggestions,
-    syntaxProfiles: emmetConfig.syntaxProfiles,
-    variables: emmetConfig.variables,
-  } as VSCodeEmmetConfig;
-}
-
-export function notNull<T>(input: any) {
-  if (!input) {
-    return {} as T;
-  }
-  return input as T;
-}
-
-export function matchOffset(regex: RegExp, data: string, offset: number) {
+export function matchOffset(regex: RegExp, docText: string, offset: number) {
   regex.exec('null');
 
   let match: RegExpExecArray | null;
-  while ((match = regex.exec(data)) !== null) {
-    if (offset > match.index + match[1].length && offset < match.index + match[0].length) {
+  while ((match = regex.exec(docText)) !== null) {
+    const [fullStr, startStr] = match;
+    const start = match.index + startStr.length;
+    const end = match.index + fullStr.length;
+    if (offset > start && offset < end) {
       return match;
     }
   }
   return null;
 }
 
-export function getLanguageRegions(service: LanguageService, data: string) {
-  const scanner = service.createScanner(data);
-  const regions: IEmbeddedRegion[] = [];
-  let tokenType: HTMLTokenType;
-
-  while ((tokenType = scanner.scan()) !== HTMLTokenType.EOS) {
-    switch (tokenType) {
-      case HTMLTokenType.Styles:
-        regions.push({
-          languageId: 'css',
-          start: scanner.getTokenOffset(),
-          end: scanner.getTokenEnd(),
-          length: scanner.getTokenLength(),
-          content: scanner.getTokenText(),
-        });
-        break;
-      default:
-        break;
-    }
-  }
-
-  return regions;
-}
-
-export function getRegionAtOffset(regions: IEmbeddedRegion[], offset: number) {
-  for (const region of regions) {
-    if (region.start <= offset) {
-      if (offset <= region.end) {
-        return region;
-      }
-    } else {
-      break;
-    }
-  }
-  return null;
-}
-
-export function createVirtualDocument(
-  // context: TextDocument | HTMLTextDocument,
-  languageId: string,
-  // position: Position | HtmlPosition,
-  content: string,
-) {
+export function createVirtualDocument(languageId: string, content: string) {
   return HTMLTextDocument.create(`embedded://document.${languageId}`, languageId, 1, content);
-}
-
-export interface IEmbeddedRegion {
-  languageId: string;
-  start: number;
-  end: number;
-  length: number;
-  content: string;
 }

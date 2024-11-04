@@ -6,7 +6,8 @@ import type { HoverProvider, TextDocument, Position, CancellationToken } from 'v
 import type { LanguageService as HtmlLanguageService, Hover as HtmlHover } from 'vscode-html-languageservice';
 import type { LanguageService as CssLanguageService } from 'vscode-css-languageservice';
 
-import { createVirtualDocument, matchOffset } from '../util';
+import { createVirtualDocument, matchOffset, removeSlot } from '../util';
+import { CSS_REG, HTML_REG, STYLE_REG } from '../constants';
 
 function translateHover(hover: HtmlHover | null): Hover | null {
   if (!hover) return null;
@@ -25,7 +26,7 @@ function translateHover(hover: HtmlHover | null): Hover | null {
 
 export class HTMLHoverProvider implements HoverProvider {
   #htmlLanguageService: HtmlLanguageService = getHtmlLanguageService();
-  #expression = /(\/\*\s*html\s*\*\/\s*`|(?<!`)(?:html|raw)\s*`)([^`]*)(`)/gi;
+  #expression = HTML_REG;
 
   provideHover(document: TextDocument, position: Position, _token: CancellationToken) {
     const currentOffset = document.offsetAt(position);
@@ -34,8 +35,8 @@ export class HTMLHoverProvider implements HoverProvider {
 
     if (!match) return null;
 
-    const matchContent = match[2];
-    const matchStartOffset = match.index + match[1].length;
+    const matchContent = match.groups!.content;
+    const matchStartOffset = match.index + match.groups!.start.length;
     const virtualOffset = currentOffset - matchStartOffset;
     const virtualDocument = createVirtualDocument('html', matchContent);
     const html = this.#htmlLanguageService.parseHTMLDocument(virtualDocument);
@@ -50,7 +51,7 @@ export class HTMLHoverProvider implements HoverProvider {
 
 export class CSSHoverProvider implements HoverProvider {
   #cssLanguageService: CssLanguageService = getCssLanguageService();
-  #expression = /(\/\*\s*(css|less|scss)\s*\*\/\s*`|(?:css|stylesheet)\s*`)([^`]*)(`)/gi;
+  #expression = CSS_REG;
 
   provideHover(document: TextDocument, position: Position, _token: CancellationToken) {
     const currentOffset = document.offsetAt(position);
@@ -59,12 +60,10 @@ export class CSSHoverProvider implements HoverProvider {
 
     if (!match) return null;
 
-    const dialect = match[2];
-
-    const matchContent = match[3];
-    const matchStartOffset = match.index + match[1].length;
+    const matchContent = match.groups!.content;
+    const matchStartOffset = match.index + match.groups!.start.length;
     const virtualOffset = currentOffset - matchStartOffset;
-    const virtualDocument = createVirtualDocument(dialect, matchContent);
+    const virtualDocument = createVirtualDocument('css', removeSlot(matchContent));
     const stylesheet = this.#cssLanguageService.parseStylesheet(virtualDocument);
     const hover = this.#cssLanguageService.doHover(
       virtualDocument,
@@ -82,7 +81,7 @@ export class CSSHoverProvider implements HoverProvider {
 
 export class StyleHoverProvider implements HoverProvider {
   #cssLanguageService: CssLanguageService = getCssLanguageService();
-  #expression = /(\/\*\s*(style)\s*\*\/\s*`|styled?\s*`)([^`]*)(`)/gi;
+  #expression = STYLE_REG;
 
   provideHover(document: TextDocument, position: Position, _token: CancellationToken) {
     const currentOffset = document.offsetAt(position);
@@ -91,10 +90,10 @@ export class StyleHoverProvider implements HoverProvider {
 
     if (!match) return null;
 
-    const matchContent = match[3];
-    const matchStartOffset = match.index + match[1].length;
+    const matchContent = match.groups!.content;
+    const matchStartOffset = match.index + match.groups!.start.length;
     const virtualOffset = currentOffset - matchStartOffset + 8;
-    const virtualDocument = createVirtualDocument('css', `:host { ${matchContent} }`);
+    const virtualDocument = createVirtualDocument('css', `:host { ${removeSlot(matchContent)} }`);
     const stylesheet = this.#cssLanguageService.parseStylesheet(virtualDocument);
     const hover = this.#cssLanguageService.doHover(
       virtualDocument,

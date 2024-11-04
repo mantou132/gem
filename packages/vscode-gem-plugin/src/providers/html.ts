@@ -1,3 +1,5 @@
+// eslint-disable-next-line import/no-unresolved
+import { workspace } from 'vscode';
 import type {
   CompletionList,
   CompletionItem,
@@ -12,13 +14,26 @@ import type {
 } from 'vscode-html-languageservice';
 import { getLanguageService as getHTMLanguageService } from 'vscode-html-languageservice';
 import { doComplete as doEmmetComplete } from '@vscode/emmet-helper';
+import type { VSCodeEmmetConfig } from '@vscode/emmet-helper';
 
-import { getEmmetConfiguration, matchOffset, createVirtualDocument, translateCompletionList } from '../util';
+import { matchOffset, createVirtualDocument, translateCompletionList } from '../util';
 import { CompletionsCache } from '../cache';
+import { HTML_REG } from '../constants';
+
+export function getEmmetConfiguration() {
+  const emmetConfig = workspace.getConfiguration('emmet');
+  return {
+    useNewEmmet: true,
+    showExpandedAbbreviation: emmetConfig.showExpandedAbbreviation,
+    showAbbreviationSuggestions: emmetConfig.showAbbreviationSuggestions,
+    syntaxProfiles: emmetConfig.syntaxProfiles,
+    variables: emmetConfig.variables,
+  } as VSCodeEmmetConfig;
+}
 
 export class HTMLCompletionItemProvider implements CompletionItemProvider {
   #htmlLanguageService: HTMLanguageService = getHTMLanguageService();
-  #expression = /(\/\*\s*html\s*\*\/\s*`|(?<!`)html\s*`)([^`]*)(`)/gi;
+  #expression = HTML_REG;
   #cache = new CompletionsCache();
 
   provideCompletionItems(document: TextDocument, position: Position, _token: CancellationToken) {
@@ -36,8 +51,8 @@ export class HTMLCompletionItemProvider implements CompletionItemProvider {
 
     if (!match) return empty;
 
-    const matchContent = match[2];
-    const matchStartOffset = match.index + match[1].length;
+    const matchContent = match.groups!.content;
+    const matchStartOffset = match.index + match.groups!.start.length;
     const virtualOffset = currentOffset - matchStartOffset;
     const virtualDocument = createVirtualDocument('html', matchContent);
     const vHtml = this.#htmlLanguageService.parseHTMLDocument(virtualDocument);

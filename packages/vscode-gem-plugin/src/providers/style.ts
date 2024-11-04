@@ -9,12 +9,13 @@ import type {
 import type { LanguageService as CSSLanguageService } from 'vscode-css-languageservice';
 import { getCSSLanguageService as getCSSLanguageService } from 'vscode-css-languageservice';
 
-import { matchOffset, createVirtualDocument, translateCompletionList, translateToCSS } from '../util';
+import { matchOffset, createVirtualDocument, translateCompletionList, removeSlot } from '../util';
 import { CompletionsCache } from '../cache';
+import { STYLE_REG } from '../constants';
 
 export class StyleCompletionItemProvider implements CompletionItemProvider {
   #cssLanguageService: CSSLanguageService = getCSSLanguageService();
-  #expression = /(\/\*\s*(style)\s*\*\/\s*`|(?<!`)styled?\s*`)([^`]*)(`)/gi;
+  #expression = STYLE_REG;
   #cache = new CompletionsCache();
 
   provideCompletionItems(document: TextDocument, position: Position, _token: CancellationToken): CompletionList {
@@ -32,10 +33,10 @@ export class StyleCompletionItemProvider implements CompletionItemProvider {
 
     if (!match) return empty;
 
-    const matchContent = match[3];
-    const matchStartOffset = match.index + match[1].length;
+    const matchContent = match.groups!.content;
+    const matchStartOffset = match.index + match.groups!.start.length;
     const virtualOffset = currentOffset - matchStartOffset + 8; // accounting for :host { }
-    const virtualDocument = createVirtualDocument('css', `:host { ${translateToCSS(matchContent)} }`);
+    const virtualDocument = createVirtualDocument('css', `:host { ${removeSlot(matchContent)} }`);
     const vCss = this.#cssLanguageService.parseStylesheet(virtualDocument);
 
     const completions = this.#cssLanguageService.doComplete(
