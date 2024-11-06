@@ -15,7 +15,6 @@ import { STYLE_REG } from '../constants';
 
 export class StyleCompletionItemProvider implements CompletionItemProvider {
   #cssLanguageService: CSSLanguageService = getCSSLanguageService();
-  #expression = STYLE_REG;
   #cache = new CompletionsCache();
 
   provideCompletionItems(document: TextDocument, position: Position, _token: CancellationToken): CompletionList {
@@ -29,7 +28,7 @@ export class StyleCompletionItemProvider implements CompletionItemProvider {
 
     const currentOffset = document.offsetAt(position);
     const documentText = document.getText();
-    const match = matchOffset(this.#expression, documentText, currentOffset);
+    const match = matchOffset(STYLE_REG, documentText, currentOffset);
 
     if (!match) return empty;
 

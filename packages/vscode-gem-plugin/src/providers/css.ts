@@ -63,7 +63,6 @@ export function getLanguageRegions(service: HTMLanguageService, data: string) {
 export class HTMLStyleCompletionItemProvider implements CompletionItemProvider {
   #cssLanguageService: CSSLanguageService = getCSSLanguageService();
   #htmlLanguageService: HTMLanguageService = getHTMLanguageService();
-  #expression = HTML_REG;
   #cache = new CompletionsCache();
 
   provideCompletionItems(document: TextDocument, position: Position, _token: CancellationToken) {
@@ -77,7 +76,7 @@ export class HTMLStyleCompletionItemProvider implements CompletionItemProvider {
 
     const currentOffset = document.offsetAt(position);
     const documentText = document.getText();
-    const match = matchOffset(this.#expression, documentText, currentOffset);
+    const match = matchOffset(HTML_REG, documentText, currentOffset);
 
     if (!match) return empty;
 
@@ -111,7 +110,6 @@ export class HTMLStyleCompletionItemProvider implements CompletionItemProvider {
 
 export class CSSCompletionItemProvider implements CompletionItemProvider {
   #cssLanguageService: CSSLanguageService = getCSSLanguageService();
-  #expression = CSS_REG;
   #cache = new CompletionsCache();
 
   provideCompletionItems(document: TextDocument, position: Position, _token: CancellationToken) {
@@ -125,7 +123,7 @@ export class CSSCompletionItemProvider implements CompletionItemProvider {
 
     const currentOffset = document.offsetAt(position);
     const documentText = document.getText();
-    const match = matchOffset(this.#expression, documentText, currentOffset);
+    const match = matchOffset(CSS_REG, documentText, currentOffset);
 
     if (!match) return empty;
 

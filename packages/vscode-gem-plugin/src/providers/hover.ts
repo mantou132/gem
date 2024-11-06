@@ -6,7 +6,7 @@ import type { HoverProvider, TextDocument, Position, CancellationToken } from 'v
 import type { LanguageService as HtmlLanguageService, Hover as HtmlHover } from 'vscode-html-languageservice';
 import type { LanguageService as CssLanguageService } from 'vscode-css-languageservice';
 
-import { createVirtualDocument, matchOffset, removeSlot } from '../util';
+import { createVirtualDocument, matchOffset, removeHTMLSlot, removeSlot } from '../util';
 import { CSS_REG, HTML_REG, STYLE_REG } from '../constants';
 
 function translateHover(hover: HtmlHover | null): Hover | null {
@@ -26,12 +26,11 @@ function translateHover(hover: HtmlHover | null): Hover | null {
 
 export class HTMLHoverProvider implements HoverProvider {
   #htmlLanguageService: HtmlLanguageService = getHtmlLanguageService();
-  #expression = HTML_REG;
 
   provideHover(document: TextDocument, position: Position, _token: CancellationToken) {
     const currentOffset = document.offsetAt(position);
-    const documentText = document.getText();
-    const match = matchOffset(this.#expression, documentText, currentOffset);
+    const documentText = removeHTMLSlot(document.getText(), currentOffset);
+    const match = matchOffset(HTML_REG, documentText, currentOffset);
 
     if (!match) return null;
 
@@ -51,12 +50,11 @@ export class HTMLHoverProvider implements HoverProvider {
 
 export class CSSHoverProvider implements HoverProvider {
   #cssLanguageService: CssLanguageService = getCssLanguageService();
-  #expression = CSS_REG;
 
   provideHover(document: TextDocument, position: Position, _token: CancellationToken) {
     const currentOffset = document.offsetAt(position);
     const documentText = document.getText();
-    const match = matchOffset(this.#expression, documentText, currentOffset);
+    const match = matchOffset(CSS_REG, documentText, currentOffset);
 
     if (!match) return null;
 
@@ -81,12 +79,11 @@ export class CSSHoverProvider implements HoverProvider {
 
 export class StyleHoverProvider implements HoverProvider {
   #cssLanguageService: CssLanguageService = getCssLanguageService();
-  #expression = STYLE_REG;
 
   provideHover(document: TextDocument, position: Position, _token: CancellationToken) {
     const currentOffset = document.offsetAt(position);
     const documentText = document.getText();
-    const match = matchOffset(this.#expression, documentText, currentOffset);
+    const match = matchOffset(STYLE_REG, documentText, currentOffset);
 
     if (!match) return null;
 

@@ -16,7 +16,7 @@ import { getLanguageService as getHTMLanguageService } from 'vscode-html-languag
 import { doComplete as doEmmetComplete } from '@vscode/emmet-helper';
 import type { VSCodeEmmetConfig } from '@vscode/emmet-helper';
 
-import { matchOffset, createVirtualDocument, translateCompletionList } from '../util';
+import { matchOffset, createVirtualDocument, translateCompletionList, removeHTMLSlot } from '../util';
 import { CompletionsCache } from '../cache';
 import { HTML_REG } from '../constants';
 
@@ -33,7 +33,6 @@ export function getEmmetConfiguration() {
 
 export class HTMLCompletionItemProvider implements CompletionItemProvider {
   #htmlLanguageService: HTMLanguageService = getHTMLanguageService();
-  #expression = HTML_REG;
   #cache = new CompletionsCache();
 
   provideCompletionItems(document: TextDocument, position: Position, _token: CancellationToken) {
@@ -46,8 +45,8 @@ export class HTMLCompletionItemProvider implements CompletionItemProvider {
     if (currentLine.isEmptyOrWhitespace) return empty;
 
     const currentOffset = document.offsetAt(position);
-    const documentText = document.getText();
-    const match = matchOffset(this.#expression, documentText, currentOffset);
+    const documentText = removeHTMLSlot(document.getText(), currentOffset);
+    const match = matchOffset(HTML_REG, documentText, currentOffset);
 
     if (!match) return empty;
 
