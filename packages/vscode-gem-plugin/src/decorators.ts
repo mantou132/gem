@@ -1,9 +1,11 @@
+// https://github.com/microsoft/TypeScript/issues/59482
+
 // eslint-disable-next-line import/no-unresolved
 import { workspace, window, Range } from 'vscode';
 import type { DecorationOptions, ExtensionContext } from 'vscode';
 
 const decorationType = window.createTextEditorDecorationType({ opacity: '1 !important' });
-const regEx = /(?<=@\w+\([^@\n]*\)\s+)(#?\w+)/g;
+const regEx = /(?<=^\s*@\w+\([^@\n]*\)\s+)(#\w+)/gm;
 
 let activeEditor = window.activeTextEditor;
 let timeout: NodeJS.Timeout;
@@ -16,11 +18,9 @@ function updateDecorations() {
   const decorations: DecorationOptions[] = [];
   let match;
   while ((match = regEx.exec(text))) {
-    if (!match[0].startsWith('#')) continue;
     const startPos = activeEditor.document.positionAt(match.index);
     const endPos = activeEditor.document.positionAt(match.index + match[0].length);
-    const decoration = { range: new Range(startPos, endPos) };
-    decorations.push(decoration);
+    decorations.push({ range: new Range(startPos, endPos) });
   }
   activeEditor.setDecorations(decorationType, decorations);
 }

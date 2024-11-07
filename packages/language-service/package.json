@@ -1,28 +1,26 @@
 {
-  "name": "@mantou/gem-port",
-  "version": "1.2.0",
-  "description": "Export React component",
+  "name": "vscode-gem-languageservice",
+  "version": "0.0.1",
+  "description": "Language service for Gem",
   "keywords": [
     "gem",
-    "react",
-    "generator"
+    "language-service"
   ],
+  "type": "module",
+  "module": "src/index.ts",
   "bin": {
-    "gem-port": "bin/index.js"
+    "gem-language-server": "src/index.ts"
   },
   "files": [
-    "/bin/"
+    "/src/"
   ],
-  "scripts": {
-    "build": "esbuild ./src/index.ts --outdir=./bin --bundle --platform=node --external:typescript --external:ts-morph",
-    "start": "pnpm build --watch",
-    "prepublishOnly": "pnpm build"
-  },
+  "scripts": {},
   "dependencies": {
-    "commander": "^7.2.0",
     "gem-analyzer": "^2.2.0",
     "ts-morph": "^13.0.0",
-    "typescript": "^5.6.2"
+    "typescript": "^5.6.2",
+    "vscode-languageserver": "^9.0.1",
+    "vscode-languageserver-textdocument": "^1.0.12"
   },
   "devDependencies": {
     "@gemjs/config": "^2.1.0"
@@ -32,7 +30,7 @@
   "repository": {
     "type": "git",
     "url": "git+https://github.com/mantou132/gem.git",
-    "directory": "packages/gem-port"
+    "directory": "packages/language-server"
   },
   "bugs": {
     "url": "https://github.com/mantou132/gem/issues"

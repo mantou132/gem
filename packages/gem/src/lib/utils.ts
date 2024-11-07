@@ -1,4 +1,4 @@
-const { assign, setPrototypeOf, fromEntries, entries, keys } = Object;
+const { assign, fromEntries, entries, keys } = Object;
 
 const microtaskSet = new Set<() => void>();
 export function addMicrotask(func: () => void) {
@@ -13,7 +13,8 @@ export function addMicrotask(func: () => void) {
 // 注意 typeof state === 'function' 但是没有 Function 的方法和属性
 export function createUpdater<T, Fn = (payload?: Partial<T>) => any>(initState: T, fn: Fn) {
   const state: any = fn;
-  setPrototypeOf(state, null);
+  // https://github.com/vitejs/vite/issues/18540 现在覆盖 call 也一样会报错
+  // setPrototypeOf(state, null);
   delete state.name;
   delete state.length;
   assign(state, initState);

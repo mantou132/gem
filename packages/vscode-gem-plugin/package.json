@@ -20,6 +20,18 @@
   ],
   "main": "./dist/extension.js",
   "contributes": {
+    "configuration": {
+      "type": "object",
+      "title": "Example configuration",
+      "properties": {
+        "languageServerGem.maxNumberOfProblems": {
+          "scope": "resource",
+          "type": "number",
+          "default": 100,
+          "description": "Controls the maximum number of problems produced by the server."
+        }
+      }
+    },
     "commands": [
       {
         "command": "vscode-plugin-gem.helloWorld",
@@ -149,7 +161,9 @@
   "dependencies": {
     "@vscode/emmet-helper": "^2.9.3",
     "vscode-css-languageservice": "^6.3.1",
-    "vscode-html-languageservice": "^5.3.1"
+    "vscode-gem-languageservice": "^0.0.1",
+    "vscode-html-languageservice": "^5.3.1",
+    "vscode-languageclient": "^9.0.1"
   },
   "devDependencies": {
     "@gemjs/config": "^2.1.0",
