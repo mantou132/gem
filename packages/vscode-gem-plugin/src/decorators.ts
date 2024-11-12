@@ -8,7 +8,6 @@ const decorationType = window.createTextEditorDecorationType({ opacity: '1 !impo
 const regEx = /(?<=^\s*@\w+\([^@\n]*\)\s+)(#\w+)/gm;
 
 let activeEditor = window.activeTextEditor;
-let timeout: NodeJS.Timeout;
 
 function updateDecorations() {
   if (!activeEditor || !activeEditor.document) {
@@ -25,9 +24,10 @@ function updateDecorations() {
   activeEditor.setDecorations(decorationType, decorations);
 }
 
+let timeout: NodeJS.Timeout;
 function triggerUpdateDecorations() {
   clearTimeout(timeout);
-  timeout = setTimeout(updateDecorations, 0);
+  timeout = setTimeout(updateDecorations, 60);
 }
 
 if (activeEditor) {
@@ -35,24 +35,20 @@ if (activeEditor) {
 }
 
 export function markDecorators(context: ExtensionContext) {
-  window.onDidChangeActiveTextEditor(
-    function (editor) {
+  context.subscriptions.push(
+    window.onDidChangeActiveTextEditor((editor) => {
       activeEditor = editor;
       if (editor) {
         triggerUpdateDecorations();
       }
-    },
-    null,
-    context.subscriptions,
+    }),
   );
 
-  workspace.onDidChangeTextDocument(
-    function (event) {
+  context.subscriptions.push(
+    workspace.onDidChangeTextDocument((event) => {
       if (activeEditor && event.document === activeEditor.document) {
         triggerUpdateDecorations();
       }
-    },
-    null,
-    context.subscriptions,
+    }),
   );
 }

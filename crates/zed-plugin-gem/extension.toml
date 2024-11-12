@@ -6,3 +6,7 @@ schema_version = 1
 authors = ["mantou132 <709922234@qq.com>"]
 repository = "https://github.com/mantou132/gem"
 snippets = "./snippets/typescript.json"
+
+[grammars.typescript]
+repository = "https://github.com/tree-sitter/tree-sitter-typescript"
+commit = "f975a621f4e7f532fe322e13c4f79495e0a7b2e7"

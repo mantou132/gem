@@ -214,15 +214,15 @@ export class DuoyunFilePickerElement extends GemElement implements BasePickerEle
 
     return html`
       <input
-      ${this.#inputRef}
+        ${this.#inputRef}
         hidden
         type="file"
         ?multiple=${this.multiple}
         ?disabled=${this.disabled}
         @change=${this.#onChange}
         .webkitdirectory=${this.directory}
-        accept=${this.#accept}>
-      </input>
+        accept=${this.#accept}
+      />
       <div
         role="button"
         tabindex=${-Number(this.disabled)}
@@ -230,7 +230,8 @@ export class DuoyunFilePickerElement extends GemElement implements BasePickerEle
         part=${DuoyunFilePickerElement.button}
         class="item button"
         @keydown=${commonHandle}
-        @click=${() => this.showPicker()}>
+        @click=${() => this.showPicker()}
+      >
         <dy-use class="icon" .element=${icons.add}></dy-use>
         <span class="name"><slot>${this.placeholder || 'Browse'}</slot></span>
       </div>

@@ -105,7 +105,7 @@ const style = css`
     inline-size: 100%;
     padding-inline: 0.5em;
     border: none;
-    border-radio: inherit;
+    border-radius: inherit;
     background-clip: text;
     resize: none;
     field-sizing: inherit;

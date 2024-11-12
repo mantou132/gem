@@ -1,5 +1,3 @@
-// Code from https://github.com/Microsoft/typescript-styled-plugin/blob/master/src/styled-template-language-service.ts
-
 import type { CompletionList, TextDocument, Position } from 'vscode';
 
 export class CompletionsCache {
@@ -8,16 +6,16 @@ export class CompletionsCache {
   #cachedCompletionsContent?: string;
   #completions?: CompletionList;
 
-  #equalPositions(left: Position, right?: Position): boolean {
+  #equalPositions(left: Position, right?: Position) {
     return !!right && left.line === right.line && left.character === right.character;
   }
 
-  getCached(context: TextDocument, position: Position): CompletionList | undefined {
+  getCached(doc: TextDocument, position: Position) {
     if (
       this.#completions &&
-      context.fileName === this.#cachedCompletionsFile &&
+      doc.fileName === this.#cachedCompletionsFile &&
       this.#equalPositions(position, this.#cachedCompletionsPosition) &&
-      context.getText() === this.#cachedCompletionsContent
+      doc.getText() === this.#cachedCompletionsContent
     ) {
       return this.#completions;
     }

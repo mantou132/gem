@@ -387,6 +387,9 @@ importers:
       '@vscode/test-electron':
         specifier: ^2.4.1
         version: 2.4.1
+      duoyun-ui:
+        specifier: ^2.2.0
+        version: link:../duoyun-ui
       esbuild:
         specifier: ^0.24.0
         version: 0.24.0

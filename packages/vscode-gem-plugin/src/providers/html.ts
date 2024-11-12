@@ -8,17 +8,15 @@ import type {
   CancellationToken,
   CompletionItemProvider,
 } from 'vscode';
-import type {
-  LanguageService as HTMLanguageService,
-  CompletionList as HTMLCompletionList,
-} from 'vscode-html-languageservice';
+import type { CompletionList as HTMLCompletionList } from 'vscode-html-languageservice';
 import { getLanguageService as getHTMLanguageService } from 'vscode-html-languageservice';
 import { doComplete as doEmmetComplete } from '@vscode/emmet-helper';
 import type { VSCodeEmmetConfig } from '@vscode/emmet-helper';
 
 import { matchOffset, createVirtualDocument, translateCompletionList, removeHTMLSlot } from '../util';
-import { CompletionsCache } from '../cache';
 import { HTML_REG } from '../constants';
+
+import { CompletionsCache } from './cache';
 
 export function getEmmetConfiguration() {
   const emmetConfig = workspace.getConfiguration('emmet');
@@ -32,7 +30,7 @@ export function getEmmetConfiguration() {
 }
 
 export class HTMLCompletionItemProvider implements CompletionItemProvider {
-  #htmlLanguageService: HTMLanguageService = getHTMLanguageService();
+  #htmlLanguageService = getHTMLanguageService();
   #cache = new CompletionsCache();
 
   provideCompletionItems(document: TextDocument, position: Position, _token: CancellationToken) {

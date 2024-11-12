@@ -6,15 +6,15 @@ import type {
   CancellationToken,
   CompletionItemProvider,
 } from 'vscode';
-import type { LanguageService as CSSLanguageService } from 'vscode-css-languageservice';
 import { getCSSLanguageService as getCSSLanguageService } from 'vscode-css-languageservice';
 
 import { matchOffset, createVirtualDocument, translateCompletionList, removeSlot } from '../util';
-import { CompletionsCache } from '../cache';
 import { STYLE_REG } from '../constants';
 
+import { CompletionsCache } from './cache';
+
 export class StyleCompletionItemProvider implements CompletionItemProvider {
-  #cssLanguageService: CSSLanguageService = getCSSLanguageService();
+  #cssLanguageService = getCSSLanguageService();
   #cache = new CompletionsCache();
 
   provideCompletionItems(document: TextDocument, position: Position, _token: CancellationToken): CompletionList {

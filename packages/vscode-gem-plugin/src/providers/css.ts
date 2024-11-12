@@ -7,13 +7,13 @@ import type {
   CompletionItemProvider,
 } from 'vscode';
 import type { LanguageService as HTMLanguageService } from 'vscode-html-languageservice';
-import type { LanguageService as CSSLanguageService } from 'vscode-css-languageservice';
 import { getLanguageService as getHTMLanguageService, TokenType as HTMLTokenType } from 'vscode-html-languageservice';
 import { getCSSLanguageService as getCSSLanguageService } from 'vscode-css-languageservice';
 
 import { matchOffset, createVirtualDocument, translateCompletionList, removeSlot } from '../util';
-import { CompletionsCache } from '../cache';
 import { CSS_REG, HTML_REG } from '../constants';
+
+import { CompletionsCache } from './cache';
 
 export function getRegionAtOffset(regions: IEmbeddedRegion[], offset: number) {
   for (const region of regions) {
@@ -61,8 +61,8 @@ export function getLanguageRegions(service: HTMLanguageService, data: string) {
 }
 
 export class HTMLStyleCompletionItemProvider implements CompletionItemProvider {
-  #cssLanguageService: CSSLanguageService = getCSSLanguageService();
-  #htmlLanguageService: HTMLanguageService = getHTMLanguageService();
+  #cssLanguageService = getCSSLanguageService();
+  #htmlLanguageService = getHTMLanguageService();
   #cache = new CompletionsCache();
 
   provideCompletionItems(document: TextDocument, position: Position, _token: CancellationToken) {
@@ -109,7 +109,7 @@ export class HTMLStyleCompletionItemProvider implements CompletionItemProvider {
 }
 
 export class CSSCompletionItemProvider implements CompletionItemProvider {
-  #cssLanguageService: CSSLanguageService = getCSSLanguageService();
+  #cssLanguageService = getCSSLanguageService();
   #cache = new CompletionsCache();
 
   provideCompletionItems(document: TextDocument, position: Position, _token: CancellationToken) {

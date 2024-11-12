@@ -62,7 +62,11 @@ const style = css`
   }
   .progress {
     opacity: 0.4;
-    background: linear-gradient(to top, ${elementTheme.color} ${elementTheme.progress}, transparent ${elementTheme.progress});,
+    background: linear-gradient(
+      to top,
+      ${elementTheme.color} ${elementTheme.progress},
+      transparent ${elementTheme.progress}
+    );
   }
   .icon {
     width: 1.5em;

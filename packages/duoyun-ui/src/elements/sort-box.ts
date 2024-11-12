@@ -13,7 +13,7 @@ const style = css`
     cursor: grabbing;
 
     * {
-      pointer-event: none;
+      pointer-events: none;
     }
   }
   dy-sort-item[handle]:state(grabbing),

@@ -3,7 +3,7 @@ import { Hover, MarkdownString } from 'vscode';
 import { getLanguageService as getHtmlLanguageService } from 'vscode-html-languageservice';
 import { getCSSLanguageService as getCssLanguageService } from 'vscode-css-languageservice';
 import type { HoverProvider, TextDocument, Position, CancellationToken } from 'vscode';
-import type { LanguageService as HtmlLanguageService, Hover as HtmlHover } from 'vscode-html-languageservice';
+import type { Hover as HtmlHover } from 'vscode-html-languageservice';
 import type { LanguageService as CssLanguageService } from 'vscode-css-languageservice';
 
 import { createVirtualDocument, matchOffset, removeHTMLSlot, removeSlot } from '../util';
@@ -25,7 +25,7 @@ function translateHover(hover: HtmlHover | null): Hover | null {
 }
 
 export class HTMLHoverProvider implements HoverProvider {
-  #htmlLanguageService: HtmlLanguageService = getHtmlLanguageService();
+  #htmlLanguageService = getHtmlLanguageService();
 
   provideHover(document: TextDocument, position: Position, _token: CancellationToken) {
     const currentOffset = document.offsetAt(position);

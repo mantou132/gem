@@ -1,9 +1,11 @@
-import { TextDocument as HTMLTextDocument } from 'vscode-html-languageservice';
+// eslint-disable-next-line import/no-unresolved
+import { Position, Range } from 'vscode';
+import { TextDocument } from 'vscode-html-languageservice';
 import type { TextLine, CompletionItem } from 'vscode';
 import type { CompletionList as HtmlCompletionList } from 'vscode-html-languageservice';
 
 export function removeSlot(text: string) {
-  const v = text.replace(/\$\{[^${]*?\}/g, (str) => str.replaceAll(/[^\n]/g, ' '));
+  const v = text.replace(/\$\{[^${]*?\}/g, (str) => str.replaceAll(/[^\n]/g, 'x'));
   if (v === text) return v;
   return removeSlot(v);
 }
@@ -21,8 +23,15 @@ export function translateCompletionList(list: HtmlCompletionList, line: TextLine
   return {
     ...list,
     items: list.items.map((item) => {
-      delete item.textEdit;
       const result = item as CompletionItem;
+
+      if (item.textEdit && 'range' in item.textEdit) {
+        result.range = new Range(
+          new Position(line.lineNumber, item.textEdit.range.start.character),
+          new Position(line.lineNumber, item.textEdit.range.end.character),
+        );
+      }
+      delete result.textEdit;
 
       if (expand) {
         // i use this to both expand html abbreviations and auto complete tags
@@ -53,5 +62,5 @@ export function matchOffset(regex: RegExp, docText: string, offset: number) {
 }
 
 export function createVirtualDocument(languageId: string, content: string) {
-  return HTMLTextDocument.create(`embedded://document.${languageId}`, languageId, 1, content);
+  return TextDocument.create(`embedded://document.${languageId}`, languageId, 1, content);
 }
