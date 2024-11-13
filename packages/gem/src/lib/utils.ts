@@ -224,16 +224,7 @@ export function raw(arr: TemplateStringsArray, ...args: any[]) {
   return arr.reduce((prev, current, index) => prev + (args[index - 1] ?? '') + current);
 }
 
-// 在 html 中引用 class 时使用，目前仅提供高亮功能
-//
-// css({
-//   red: styled`
-//     background: red;
-//     &:hover {
-//       background: blue;
-//     }
-//   `,
-// });
+// 在 html 中引用 class 时使用，仅提供高亮功能
 export const styled = raw;
 
 export function randomStr(len = 5): string {

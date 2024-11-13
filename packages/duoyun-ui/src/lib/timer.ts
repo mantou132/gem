@@ -21,7 +21,7 @@ export function polling(fn: (args?: any[]) => any, delay: number) {
     } catch {
     } finally {
       if (!hasExit) {
-        timer = window.setTimeout(poll, delay);
+        timer = self.setTimeout(poll, delay);
       }
     }
   };
@@ -48,7 +48,7 @@ export function throttle<T extends (...args: any) => any>(
   let timer = 0;
   let first = 0;
   const exec = (...rest: Parameters<T>) => {
-    timer = window.setTimeout(() => (timer = 0), wait);
+    timer = self.setTimeout(() => (timer = 0), wait);
     fn(...(rest as any));
   };
   return (...rest: Parameters<T>) => {
@@ -62,7 +62,7 @@ export function throttle<T extends (...args: any) => any>(
       exec(...rest);
     } else {
       clearTimeout(timer);
-      timer = window.setTimeout(() => exec(...rest), wait);
+      timer = self.setTimeout(() => exec(...rest), wait);
     }
   };
 }
@@ -76,9 +76,9 @@ export function debounce<T extends (...args: any) => any>(
   return function (...args: Parameters<T>) {
     return new Promise<Awaited<ReturnType<typeof fn>>>((resolve, reject) => {
       clearTimeout(timer);
-      timer = window.setTimeout(
+      timer = self.setTimeout(
         () => {
-          timer = window.setTimeout(() => (timer = 0), wait);
+          timer = self.setTimeout(() => (timer = 0), wait);
           Promise.resolve(fn(...(args as any)))
             .then(resolve)
             .catch(reject);

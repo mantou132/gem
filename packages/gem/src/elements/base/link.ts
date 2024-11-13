@@ -40,7 +40,7 @@ const styles = css`
 `;
 
 /**
- * Bug: print `<link>` https://github.com/mantou132/gem/issues/36
+ * Bug: [can't print `<link>`](https://github.com/mantou132/gem/issues/36)
  */
 @connectStore(basePathStore)
 @adoptedStyle(styles)
@@ -146,16 +146,13 @@ export class GemLinkElement extends GemElement {
 
   @template()
   #content = () => {
-    return html`
-      <a
-        part=${this.link}
-        @click=${this.#preventDefault}
-        href=${this.#hint === 'off' ? null : this.#getHint()}
-        tabindex="-1"
-      >
-        <slot></slot>
-      </a>
-    `;
+    return html`<a
+      part=${this.link}
+      @click=${this.#preventDefault}
+      href=${this.#hint === 'off' ? null : this.#getHint()}
+      tabindex="-1"
+      ><slot></slot
+    ></a>`;
   };
 
   /**

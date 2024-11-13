@@ -15,7 +15,7 @@ export function createCanvas(width?: number, height?: number) {
 }
 
 export function createDataURLFromSVG(rawStr: string) {
-  return `data:image/svg+xml;base64,${window.btoa(rawStr)}`;
+  return `data:image/svg+xml;base64,${self.btoa(rawStr)}`;
 }
 
 // if `bg` is't `HexColor`, text fill color error

@@ -12,8 +12,8 @@ import { ColorProvider } from './providers/color';
 import { HTMLHoverProvider, CSSHoverProvider, StyleHoverProvider } from './providers/hover';
 import { markDecorators } from './decorators';
 import { markDiagnostic } from './diagnostic';
+import { LANG_SELECTOR } from './constants';
 
-const selector = ['typescriptreact', 'javascriptreact', 'typescript', 'javascript'];
 const triggers = ['!', '.', '}', ':', '*', '$', ']', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
 
 let client: LanguageClient | undefined;
@@ -31,7 +31,7 @@ function useLS(context: ExtensionContext) {
       },
     },
     {
-      documentSelector: selector,
+      documentSelector: LANG_SELECTOR,
       synchronize: { fileEvents: workspace.createFileSystemWatcher('**/.gemrc') },
     },
   );
@@ -42,21 +42,21 @@ export function activate(context: ExtensionContext) {
   markDecorators(context);
   markDiagnostic(context);
 
-  context.subscriptions.push(languages.registerColorProvider(selector, new ColorProvider()));
-  context.subscriptions.push(languages.registerHoverProvider(selector, new HTMLHoverProvider()));
-  context.subscriptions.push(languages.registerHoverProvider(selector, new StyleHoverProvider()));
-  context.subscriptions.push(languages.registerHoverProvider(selector, new CSSHoverProvider()));
+  context.subscriptions.push(languages.registerColorProvider(LANG_SELECTOR, new ColorProvider()));
+  context.subscriptions.push(languages.registerHoverProvider(LANG_SELECTOR, new HTMLHoverProvider()));
+  context.subscriptions.push(languages.registerHoverProvider(LANG_SELECTOR, new StyleHoverProvider()));
+  context.subscriptions.push(languages.registerHoverProvider(LANG_SELECTOR, new CSSHoverProvider()));
   context.subscriptions.push(
-    languages.registerCompletionItemProvider(selector, new HTMLCompletionItemProvider(), '<', ...triggers),
+    languages.registerCompletionItemProvider(LANG_SELECTOR, new HTMLCompletionItemProvider(), '<', ...triggers),
   );
   context.subscriptions.push(
-    languages.registerCompletionItemProvider(selector, new HTMLStyleCompletionItemProvider(), ...triggers),
+    languages.registerCompletionItemProvider(LANG_SELECTOR, new HTMLStyleCompletionItemProvider(), ...triggers),
   );
   context.subscriptions.push(
-    languages.registerCompletionItemProvider(selector, new CSSCompletionItemProvider(), ...triggers),
+    languages.registerCompletionItemProvider(LANG_SELECTOR, new CSSCompletionItemProvider(), ...triggers),
   );
   context.subscriptions.push(
-    languages.registerCompletionItemProvider(selector, new StyleCompletionItemProvider(), ...triggers),
+    languages.registerCompletionItemProvider(LANG_SELECTOR, new StyleCompletionItemProvider(), ...triggers),
   );
 
   context.subscriptions.push(

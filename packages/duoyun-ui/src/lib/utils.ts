@@ -260,7 +260,7 @@ export function createCacheStore<T extends Record<string, any>>(
     );
   };
 
-  window.addEventListener('pagehide', saveStore);
+  self.addEventListener('pagehide', saveStore);
 
   return { store, saveStore };
 }

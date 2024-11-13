@@ -1,7 +1,7 @@
 import type { TemplateResult } from '../../lib/element';
-import { createState, GemElement, html } from '../../lib/element';
+import { createState, css, GemElement, html } from '../../lib/element';
 import type { Emitter } from '../../lib/decorators';
-import { property, emitter, boolattribute, shadow, effect, template, light } from '../../lib/decorators';
+import { property, emitter, boolattribute, shadow, effect, template, light, adoptedStyle } from '../../lib/decorators';
 import type { Store } from '../../lib/store';
 import { createStore, connect } from '../../lib/store';
 import type { UpdateHistoryParams } from '../../lib/history';
@@ -276,15 +276,7 @@ export class GemLightRouteElement extends GemElement {
       return html`${content}`;
     }
 
-    return html`
-      <style>
-        :host(:where(:not([hidden]))),
-        :not(:defined) {
-          display: contents;
-        }
-      </style>
-      ${content === INIT_CONTENT ? html`<slot></slot>` : content}
-    `;
+    return content === INIT_CONTENT ? html`<slot></slot>` : content;
   };
 
   // 重写 `update`，并暴露为公共字段
@@ -324,5 +316,13 @@ export class GemLightRouteElement extends GemElement {
   };
 }
 
+const style = css`
+  :host(:where(:not([hidden]))),
+  :not(:defined) {
+    display: contents;
+  }
+`;
+
 @shadow()
+@adoptedStyle(style)
 export class GemRouteElement extends GemLightRouteElement {}

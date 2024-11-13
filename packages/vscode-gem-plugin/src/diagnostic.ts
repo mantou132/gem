@@ -6,14 +6,16 @@
 import { workspace, languages, window, Range, Diagnostic } from 'vscode';
 import { getCSSLanguageService as getCSSLanguageService } from 'vscode-css-languageservice';
 import type { ExtensionContext, TextDocument } from 'vscode';
+import { debounce } from 'duoyun-ui/lib/timer';
 
-import { CSS_REG, STYLE_REG } from './constants';
+import { CSS_REG, LANG_SELECTOR, STYLE_REG } from './constants';
 import { createVirtualDocument, removeSlot } from './util';
 
 const diagnosticCollection = languages.createDiagnosticCollection('gem');
 const cssLanguageService = getCSSLanguageService();
 
-const updateDiagnostic = (document: TextDocument) => {
+const updateDiagnostic = debounce((document: TextDocument) => {
+  if (!LANG_SELECTOR.includes(document.languageId)) return;
   const diagnostics: Diagnostic[] = [];
   const text = document.getText();
 
@@ -41,7 +43,7 @@ const updateDiagnostic = (document: TextDocument) => {
   matchFragments(STYLE_REG, ':host { ', ' }');
 
   diagnosticCollection.set(document.uri, diagnostics);
-};
+});
 
 export function markDiagnostic(context: ExtensionContext) {
   context.subscriptions.push(diagnosticCollection);

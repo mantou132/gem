@@ -2,7 +2,10 @@
 
 Gem exports a `history` object, which extends [History API](https://developer.mozilla.org/en-US/docs/Web/API/History).
 
-| property                | description                                                       |
+
+## Property
+
+| name                    | description                                                       |
 | ----------------------- | ----------------------------------------------------------------- |
 | `store`                 | `Store` to maintain history                                       |
 | `basePath`              | Specify the base path (only allowed to be set once)               |
@@ -12,3 +15,10 @@ Gem exports a `history` object, which extends [History API](https://developer.mo
 | `getParams`             | Get the value of `path`, `query`, `hash` etc. of the current page |
 | `updateParams`          | Update `title` or `handle`                                        |
 | `basePathStore`         | `Store` corresponding to `history.basePath`                       |
+
+## Other
+
+| name            | description                    |
+| --------------- | ------------------------------ |
+| `titleStore`    | document title                 |
+| `basePathStore` | export `history.basePathStore` |

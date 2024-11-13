@@ -48,9 +48,6 @@ export class GemUseElement extends GemElement {
 
   @template()
   #content = () => {
-    return html`
-      ${this.#getContent()}
-      <slot></slot>
-    `;
+    return html`${this.#getContent()}<slot></slot>`;
   };
 }

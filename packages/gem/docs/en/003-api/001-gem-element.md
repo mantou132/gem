@@ -59,8 +59,7 @@ Type with decorator
 | `@fallback`  | When the content render error, rendering the reserve content |
 
 
-
-## Lifecycle hook
+## ~~Lifecycle hook~~
 
 | name           | description                                                                               |
 | -------------- | ----------------------------------------------------------------------------------------- |

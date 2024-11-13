@@ -1,6 +1,5 @@
 import { GemElement } from '../../lib/element';
 import { attribute, shadow, template } from '../../lib/decorators';
-import { raw } from '../../lib/utils';
 
 @shadow()
 export class GemUnsafeElement extends GemElement {
@@ -9,15 +8,16 @@ export class GemUnsafeElement extends GemElement {
 
   @template()
   #content = () => {
-    this.shadowRoot!.innerHTML = raw`
+    const style = /*html*/ `
       <style>
         :host(:where(:not([hidden]))) {
           display: contents;
         }
         ${this.contentcss}
       </style>
-      ${this.content}
     `;
+
+    this.shadowRoot!.innerHTML = this.content + style.trim();
 
     // 不要更新内容
     return undefined;
