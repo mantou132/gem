@@ -1,19 +1,28 @@
 {
   "name": "swc-plugin-gem",
   "version": "0.1.0",
-  "description": "",
-  "author": "",
-  "license": "ISC",
+  "description": "swc plugin for Gem",
   "keywords": [
     "swc-plugin",
     "gem",
     "web components"
   ],
-  "main": "swc_gem_plugin.wasm",
+  "main": "swc_plugin_gem.wasm",
+  "files": [],
   "scripts": {
-    "prepublishOnly": "cargo build-wasi --release && cp ../../target/wasm32-wasip1/release/swc_gem_plugin.wasm .",
+    "prepublishOnly": "cross-env CARGO_TARGET_DIR=target cargo build-wasi --release && cp target/wasm32-wasip1/release/swc_plugin_gem.wasm .",
     "test": "cargo watch -x test"
   },
-  "files": [],
-  "preferUnplugged": true
+  "preferUnplugged": true,
+  "author": "mantou132",
+  "license": "ISC",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mantou132/gem.git",
+    "directory": "crates/swc-plugin-gem"
+  },
+  "bugs": {
+    "url": "https://github.com/mantou132/gem/issues"
+  },
+  "homepage": "https://github.com/mantou132/gem#readme"
 }

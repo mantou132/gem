@@ -5,10 +5,7 @@
 <gbp-sandpack dependencies="@mantou/gem, duoyun-ui">
 
 ```ts
-import { render, html } from '@mantou/gem';
-
-import 'duoyun-ui/elements/popover';
-import 'duoyun-ui/elements/button';
+import { render } from '@mantou/gem';
 
 render(
   html`

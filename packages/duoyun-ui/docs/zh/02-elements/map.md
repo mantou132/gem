@@ -5,9 +5,7 @@
 <gbp-sandpack dependencies="@mantou/gem, duoyun-ui">
 
 ```ts
-import { render, html } from '@mantou/gem';
-
-import 'duoyun-ui/elements/map';
+import { render } from '@mantou/gem';
 
 const getProjection = (geoCommonProjection: GeoCommonProjection) => {
   return geoCommonProjection()

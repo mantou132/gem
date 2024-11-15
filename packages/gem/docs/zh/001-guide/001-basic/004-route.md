@@ -21,10 +21,6 @@ Gem 内置元素 `<gem-route>` 和 `<gem-link>` 就是这样工作。
 <gbp-sandpack dependencies="@mantou/gem">
 
 ```js index.js
-import { GemElement, html, customElement } from '@mantou/gem';
-import '@mantou/gem/elements/link';
-import '@mantou/gem/elements/route';
-
 const routes = {
   home: {
     pattern: '/',

@@ -19,10 +19,6 @@ Gem built-in elements `<gem-route>` and `<gem-link>` work like this.
 <gbp-sandpack dependencies="@mantou/gem">
 
 ```js index.js
-import { GemElement, html, customElement } from '@mantou/gem';
-import '@mantou/gem/elements/link';
-import '@mantou/gem/elements/route';
-
 const routes = {
   home: {
     pattern: '/',

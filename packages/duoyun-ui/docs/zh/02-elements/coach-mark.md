@@ -5,10 +5,8 @@
 <gbp-sandpack dependencies="@mantou/gem,duoyun-ui">
 
 ```ts
-import { render, html } from '@mantou/gem';
+import { render } from '@mantou/gem';
 import { setTours } from 'duoyun-ui/elements/coach-mark';
-
-import 'duoyun-ui/elements/side-navigation';
 
 setTours(
   [

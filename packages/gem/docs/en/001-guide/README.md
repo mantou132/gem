@@ -25,8 +25,6 @@ import * as Gem from 'https://esm.sh/@mantou/gem';
 <gbp-sandpack dependencies="@mantou/gem">
 
 ```js index.js
-import { GemElement, html, customElement } from '@mantou/gem';
-
 @customElement('my-element')
 class MyElement extends GemElement {
   render() {

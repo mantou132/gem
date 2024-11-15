@@ -65,16 +65,7 @@ class MyElement extends GemElement {
 <gbp-sandpack dependencies="@mantou/gem">
 
 ```js index.js
-import {
-  createStore,
-  GemElement,
-  render,
-  html,
-  attribute,
-  property,
-  connectStore,
-  customElement,
-} from '@mantou/gem';
+import { render } from '@mantou/gem';
 
 const store= createStore({ count: 0 });
 

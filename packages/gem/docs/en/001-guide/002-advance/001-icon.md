@@ -5,9 +5,7 @@
 <gbp-sandpack dependencies="@mantou/gem">
 
 ```js index.js
-import { html, render } from '@mantou/gem';
-
-import '@mantou/gem/elements/use';
+import { render } from '@mantou/gem';
 
 const icon = `
   <svg width="24" height="24" viewBox="0 0 24 24">

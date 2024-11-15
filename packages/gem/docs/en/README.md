@@ -41,14 +41,7 @@ features:
 <gbp-sandpack dependencies="@mantou/gem, duoyun-ui">
 
 ```ts
-import { customElement, GemElement, html, render, connectStore, createState } from '@mantou/gem';
-
 import { todoData, addItem } from './store';
-
-import 'duoyun-ui/elements/input';
-import 'duoyun-ui/elements/button';
-import 'duoyun-ui/elements/heading';
-import './todo-list';
 
 @customElement('app-root')
 @connectStore(todoData)
@@ -79,20 +72,9 @@ export class AppRootElement extends GemElement {
 ```
 
 ```ts todo-list.ts
-import {
-  customElement,
-  GemElement,
-  html,
-  render,
-  connectStore,
-  css,
-  adoptedStyle,
-} from '@mantou/gem';
 import { icons } from 'duoyun-ui/lib/icons';
 
 import { todoData, deleteItem } from './store';
-
-import 'duoyun-ui/elements/use';
 
 const style = css`
   ul {
@@ -141,8 +123,6 @@ export class TodoListElement extends GemElement {
 ```
 
 ```ts store.ts
-import { createStore } from '@mantou/gem';
-
 type Store = { items: string[] };
 
 export const todoData = createStore<Store>({ items: [] });

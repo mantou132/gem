@@ -11,6 +11,7 @@ import type {
 import type { GemBookElement } from '../element';
 import type { Pre } from '../element/elements/pre';
 
+const AUTO_IMPORT = 'https://raw.githubusercontent.com/mantou132/gem/main/crates/swc-plugin-gem/src/auto-import.json';
 const ESBUILD_URL = 'https://esm.sh/esbuild-wasm@0.24.0';
 const CSB_URL = 'https://codesandbox.io/api/v1/sandboxes/define?json=1';
 const SANDPACK_CLIENT_ESM = 'https://esm.sh/@codesandbox/sandpack-client@2.18.2?bundle';
@@ -79,6 +80,7 @@ const {
   createState,
   willMount,
   mounted,
+  raw,
 } = GemBookPluginElement.Gem;
 
 const styles = css`
@@ -214,7 +216,7 @@ class _GbpSandpackElement extends GemBookPluginElement {
 
   get #indexTemplate() {
     const style = getComputedStyle(document.body);
-    return `
+    return raw`
       <!DOCTYPE html>
       <style>
         body {
@@ -427,11 +429,71 @@ class _GbpSandpackElement extends GemBookPluginElement {
     return loadSandpackClient;
   };
 
+  #importConfig: { members: Record<string, Set<string>>; tagMap: Map<RegExp, string> };
+  #loadAutoImportConfig = async () => {
+    const { keys, fromEntries, entries } = Object;
+    const deps = new Set(keys(this.#dependencies));
+    const trans = (config: { members: Record<string, string[]>; elements: Record<string, Record<string, string>> }) => {
+      const pkgAutoImport = fromEntries(
+        entries(config.members)
+          .filter(([pkg]) => deps.has(pkg))
+          .map(([pkg, set]) => [pkg, new Set(set)] as const),
+      );
+      const tagReplacer = entries(config.elements)
+        .filter(([pkg]) => deps.has(pkg))
+        .map(([pkg, map]) =>
+          entries(map).map(
+            ([tag, path]) => [new RegExp(tag.replace('*', '(.*)')), `${pkg}${path.replace('*', '$1')}`] as const,
+          ),
+        );
+      return { members: pkgAutoImport, tagMap: new Map(tagReplacer.flat()) };
+    };
+    try {
+      this.#importConfig = trans(JSON.parse(await (await fetch(AUTO_IMPORT)).text()));
+    } catch {
+      // TODO: remove content;
+      this.#importConfig = trans({ members: {}, elements: {} });
+    }
+  };
+
+  // 在第一行加入自动导入内容，将导致 error stack 行数多报一行
+  #applyImport = ({ code, filename }: { filename: string; code: string }) => {
+    if (!filename.match(/\.m?(j|t)s$/i)) return code;
+    const { members, tagMap } = this.#importConfig;
+    const autoImportMembers = Object.fromEntries(Object.entries(members).map(([pkg, set]) => [pkg, new Set(set)]));
+    [...code.matchAll(/import\s*(type)?\s*{(?<line>.*?)}\s*from\s*('|")(?<pkg>.*?)\3/gs)].forEach((match) => {
+      const { line, pkg } = match.groups!;
+      const imported = line.split(',').map((e) => e.trim());
+      imported.forEach((member) => autoImportMembers[pkg]?.delete(member));
+    });
+    const importLines = new Set<string>();
+    Object.entries(autoImportMembers).forEach(([pkg, set]) => {
+      if (set.size) importLines.add(`import {${[...set].join(',')}} from '${pkg}'`);
+    });
+    new Set([...code.matchAll(/<(?<tag>\w+(-\w+)+)(\s|>)/gs)].map((match) => match.groups!.tag)).forEach((tag) => {
+      for (const [reg, replace] of tagMap) {
+        const importPath = tag.replace(reg, replace);
+        if (importPath !== tag) {
+          importLines.add(`import '${importPath}'`);
+          break;
+        }
+      }
+      // 自动导入元素
+      for (const file of this.#state.files) {
+        if (file.filename === `${tag}.ts`) {
+          importLines.add(`import './${tag}'`);
+        }
+      }
+    });
+    return [...importLines].join(';') + '\n' + code;
+  };
+
   #initSandpackClient = async () => {
+    await this.#loadAutoImportConfig();
     return (this.#useESMBuild ? this.#loadESBuildClient : await this.#getLoadSandpackClient())(
       this.#iframeRef.value!,
       {
-        files: this.#state.files.reduce((p, c) => ({ ...p, [c.filename]: { code: c.code } }), {
+        files: this.#state.files.reduce((p, c) => ({ ...p, [c.filename]: { code: this.#applyImport(c) } }), {
           'sandbox.config.json': this.#sandBoxConfigFile,
           'index.html': { code: this.#indexTemplate },
           [this.#defaultEntryFilename]: { code: '' },
@@ -450,7 +512,7 @@ class _GbpSandpackElement extends GemBookPluginElement {
 
   #updateSandbox = Utils.throttle(async () => {
     (await this.#sandpackClient)?.updateSandbox({
-      files: this.#state.files.reduce((p, c) => ({ ...p, [c.filename]: { code: c.code } }), {
+      files: this.#state.files.reduce((p, c) => ({ ...p, [c.filename]: { code: this.#applyImport(c) } }), {
         'sandbox.config.json': this.#sandBoxConfigFile,
         'index.html': { code: this.#indexTemplate },
       } as SandpackBundlerFiles),
@@ -483,7 +545,7 @@ class _GbpSandpackElement extends GemBookPluginElement {
     const normalizedFiles = this.#state.files.reduce(
       (p, c) => ({
         ...p,
-        [c.filename.replace('/', '')]: { content: c.code },
+        [c.filename.replace('/', '')]: { content: this.#applyImport(c) },
       }),
       {
         'sandbox.config.json': { content: this.#sandBoxConfigFile.code },

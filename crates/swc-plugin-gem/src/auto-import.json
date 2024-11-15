@@ -1,0 +1,62 @@
+{
+  "comment1": "SheetToken、UpdateToken、directive、repeat、render、connect 和 version 不自动导入",
+  "comment2": "types 不自动导入，例如 Emitter<T>",
+  "members": {
+    "@mantou/gem": [
+      "GemElement",
+      "TemplateResult",
+      "css",
+      "html",
+      "mathml",
+      "svg",
+
+      "aria",
+      "async",
+      "shadow",
+      "light",
+      "adoptedStyle",
+      "connectStore",
+      "customElement",
+
+      "part",
+      "slot",
+
+      "attribute",
+      "numattribute",
+      "boolattribute",
+      "property",
+      "emitter",
+      "globalemitter",
+      "state",
+
+      "effect",
+      "memo",
+      "willMount",
+      "mounted",
+      "unmounted",
+      "template",
+      "fallback",
+
+      "createRef",
+      "createState",
+      "createStore",
+
+      "raw",
+      "styled",
+      "styleMap",
+      "classMap",
+      "partMap",
+      "exportPartsMap"
+    ]
+  },
+  "elements": {
+    "@mantou/gem": {
+      "gem-(gesture|link|reflect|route|title|unsafe|use)": "/elements/$1"
+    },
+    "duoyun-ui": {
+      "dy-pat-*": "/patterns/*",
+      "dy-input-*": "/elements/input",
+      "dy-*": "/elements/*"
+    }
+  }
+}

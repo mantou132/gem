@@ -5,10 +5,8 @@
 <gbp-sandpack dependencies="@mantou/gem, duoyun-ui, geo-albers-usa-territories">
 
 ```ts
-import { render, html } from '@mantou/gem';
+import { render } from '@mantou/gem';
 import { geoAlbersUsaTerritories } from 'geo-albers-usa-territories';
-
-import 'duoyun-ui/elements/map';
 
 const getProjection = (geoCommonProjection: GeoCommonProjection) => {
   return geoAlbersUsaTerritories().scale(400).translate([0, 0]);
