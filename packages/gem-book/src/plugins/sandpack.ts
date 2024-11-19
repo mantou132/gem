@@ -451,7 +451,6 @@ class _GbpSandpackElement extends GemBookPluginElement {
     try {
       this.#importConfig = trans(JSON.parse(await (await fetch(AUTO_IMPORT)).text()));
     } catch {
-      // TODO: remove content;
       this.#importConfig = trans({ members: {}, elements: {} });
     }
   };
@@ -472,6 +471,8 @@ class _GbpSandpackElement extends GemBookPluginElement {
     });
     new Set([...code.matchAll(/<(?<tag>\w+(-\w+)+)(\s|>)/gs)].map((match) => match.groups!.tag)).forEach((tag) => {
       for (const [reg, replace] of tagMap) {
+        // 用来排除
+        if (!replace) continue;
         const importPath = tag.replace(reg, replace);
         if (importPath !== tag) {
           importLines.add(`import '${importPath}'`);

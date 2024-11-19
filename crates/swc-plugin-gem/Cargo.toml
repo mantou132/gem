@@ -1,23 +1,27 @@
 [package]
-name = "swc-plugin-gem"
+name = "swc_plugin_gem"
 version = "0.1.0"
 edition = { workspace = true }
 rust-version = { workspace = true }
 publish = false
 
 [lib]
-crate-type = ["cdylib"]
+crate-type = ["cdylib", "rlib"]
 
 [profile.release]
 lto = true
 
 [dependencies]
-serde = { workspace = true }
+serde = { workspace = true, features = ["derive"] }
+serde_json = { workspace = true }
 swc_core = { workspace = true, features = ["ecma_plugin_transform"] }
-
-# .cargo/config defines few alias to build plugin.
-# cargo build-wasi generates wasm-wasi32 binary
-# cargo build-wasm32 generates wasm32-unknown-unknown binary.
+swc_ecma_visit = { workspace = true }
+swc_common = { workspace = true, features = ["concurrent"] }
+swc_ecma_ast = { workspace = true }
+once_cell = { workspace = true }
+tracing = { workspace = true }
+regex = { workspace = true }
 
 [dev-dependencies]
 swc_ecma_parser = { workspace = true }
+testing = { workspace = true }

@@ -28,7 +28,6 @@
       "attributePosition": "auto"
     }
   },
-  "overrides": [{ "include": ["*.md"], "formatter": { "lineWidth": 100 } }],
   "linter": {
     "enabled": true,
     "rules": {
@@ -56,5 +55,9 @@
         "noUnsafeDeclarationMerging": "error"
       }
     }
-  }
+  },
+  "overrides": [
+    { "include": ["*.md"], "formatter": { "lineWidth": 100 } },
+    { "include": ["fixture/**"], "linter": { "enabled": false } }
+  ]
 }

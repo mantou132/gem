@@ -11,7 +11,7 @@
   "files": [],
   "scripts": {
     "prepublishOnly": "cross-env CARGO_TARGET_DIR=target cargo build-wasi --release && cp target/wasm32-wasip1/release/swc_plugin_gem.wasm .",
-    "test": "cargo watch -x test"
+    "test": "cross-env RUST_LOG=info cargo watch -x test"
   },
   "preferUnplugged": true,
   "author": "mantou132",
