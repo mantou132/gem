@@ -1,12 +1,16 @@
 use once_cell::sync::Lazy;
 use regex::Regex;
 use serde::Deserialize;
-use std::collections::{BTreeMap, HashMap, HashSet};
+use std::{
+    collections::{BTreeMap, HashMap, HashSet},
+    fs,
+    path::Path,
+};
 use swc_common::DUMMY_SP;
 use swc_core::ecma::visit::{noop_visit_mut_type, VisitMut, VisitMutWith};
 use swc_ecma_ast::{
     Callee, Class, ClassDecl, ClassExpr, Decorator, Ident, ImportDecl, ImportNamedSpecifier,
-    ImportSpecifier, ModuleDecl, ModuleItem, Str, TaggedTpl,
+    ImportSpecifier, JSXElementName, ModuleDecl, ModuleItem, Str, TaggedTpl,
 };
 
 static CUSTOM_ELEMENT_REGEX: Lazy<Regex> =
@@ -106,6 +110,12 @@ impl VisitMut for TransformVisitor {
         }
     }
 
+    fn visit_mut_jsx_element_name(&mut self, node: &mut JSXElementName) {
+        if let JSXElementName::Ident(ident) = node {
+            self.used_members.push(ident.to_name());
+        }
+    }
+
     fn visit_mut_decorator(&mut self, node: &mut Decorator) {
         node.visit_mut_children_with(self);
 
@@ -173,6 +183,7 @@ impl VisitMut for TransformVisitor {
             }
             out.push(ImportDecl {
                 specifiers,
+                // 也许可以支持替换：'@mantou/gem/{:pascal:}' + ColorPicker -> '@mantou/gem/ColorPicker'
                 src: Box::new(Str::from(pkg)),
                 span: DUMMY_SP,
                 type_only: false,
@@ -207,4 +218,29 @@ impl VisitMut for TransformVisitor {
 
 pub fn import_transform() -> impl VisitMut {
     TransformVisitor::default()
+}
+
+pub fn gen_dts() {
+    // https://github.com/swc-project/swc/discussions/4997
+    let types_dir = "/cwd/node_modules/@types/auto-import";
+    let mut import_list: Vec<String> = vec![];
+    for (member, pkg) in GEM_AUTO_IMPORT_CONFIG.member_map.iter() {
+        import_list.push(format!(
+            "const {member}: typeof import('{pkg}')['{member}'];",
+        ));
+    }
+    fs::create_dir_all(types_dir).expect("create auto import dir error");
+    fs::write(
+        Path::new(types_dir).join("index.d.ts"),
+        format!(
+            r#"
+              export {{}}
+              declare global {{
+                {}
+              }}
+            "#,
+            import_list.join("\n")
+        ),
+    )
+    .expect("create dts error");
 }

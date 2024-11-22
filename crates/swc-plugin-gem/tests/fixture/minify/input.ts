@@ -1,6 +1,11 @@
 // @ts-nocheck
 const style = css`
   :host {
-    color: red;
+    color: ${' red'};
   }
 `
+const style2 = css({
+  $: `
+    color: ${' red'};
+  `
+})

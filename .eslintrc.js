@@ -61,6 +61,7 @@ module.exports = {
         'packages/gem-examples/src/**/*.ts',
         'packages/gem-devtools/src/scripts/*.ts',
         'packages/gem/src/helper/logger.ts',
+        'packages/vscode-gem-plugin/esbuild.ts',
       ],
       rules: {
         'no-console': 'off',

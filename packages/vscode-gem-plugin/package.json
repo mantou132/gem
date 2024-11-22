@@ -150,7 +150,7 @@
     ]
   },
   "scripts": {
-    "compile": "node esbuild.js",
+    "compile": "node --experimental-transform-types esbuild.ts",
     "package": "pnpm compile --production",
     "watch": "pnpm compile --watch",
     "pretest": "tsc -p . --outDir out && pnpm compile",

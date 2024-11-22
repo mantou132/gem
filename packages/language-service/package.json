@@ -8,9 +8,7 @@
   ],
   "type": "module",
   "module": "src/index.ts",
-  "bin": {
-    "gem-language-server": "src/index.ts"
-  },
+  "bin": "src/index.ts",
   "files": [
     "/src/"
   ],

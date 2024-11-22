@@ -1,0 +1,4 @@
+# local test file
+*.wasm
+.swcrc
+.swc

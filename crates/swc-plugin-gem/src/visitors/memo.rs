@@ -39,9 +39,9 @@ fn is_memo_getter(node: &mut PrivateMethod) -> bool {
     }
 
     node.function.decorators.iter().any(|x| {
-        if let Expr::Call(ref call_expr) = *x.expr {
-            if let Callee::Expr(ref b) = call_expr.callee {
-                if let Expr::Ident(ref ident) = **b {
+        if let Some(call_expr) = x.expr.as_call() {
+            if let Callee::Expr(b) = &call_expr.callee {
+                if let Some(ident) = b.as_ident() {
                     return ident.sym.as_str() == "memo";
                 }
             }

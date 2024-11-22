@@ -3,6 +3,7 @@ use swc_common::pass::Optional;
 use swc_core::ecma::visit::VisitMutWith;
 use swc_core::plugin::{plugin_transform, proxies::TransformPluginProgramMetadata};
 use swc_ecma_ast::Program;
+use visitors::import::gen_dts;
 pub use visitors::import::import_transform;
 pub use visitors::memo::memo_transform;
 pub use visitors::minify::minify_transform;
@@ -13,15 +14,17 @@ mod visitors;
 #[serde(rename_all = "camelCase")]
 struct PluginConfig {
     #[serde(default)]
+    pub style_minify: bool,
+    #[serde(default)]
     pub auto_import: bool,
     #[serde(default)]
     pub auto_import_dts: bool,
     #[serde(default)]
     pub resolve_path: bool,
     #[serde(default)]
-    pub style_minify: bool,
-    #[serde(default)]
     pub esm_provider: String,
+    #[serde(default)]
+    pub hmr: bool,
 }
 
 #[plugin_transform]
@@ -31,6 +34,10 @@ pub fn process_transform(mut program: Program, data: TransformPluginProgramMetad
         .expect("failed to get plugin config for gem plugin");
     let config =
         serde_json::from_str::<PluginConfig>(plugin_config).expect("invalid config for gem plugin");
+
+    if config.auto_import_dts {
+        gen_dts();
+    }
 
     program.visit_mut_with(&mut (
         Optional {
