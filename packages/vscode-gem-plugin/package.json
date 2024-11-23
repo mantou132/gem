@@ -159,10 +159,8 @@
     "publish": "vsce publish --no-dependencies --skip-license"
   },
   "dependencies": {
-    "@vscode/emmet-helper": "^2.9.3",
-    "vscode-css-languageservice": "^6.3.1",
-    "vscode-gem-languageservice": "^0.0.1",
-    "vscode-html-languageservice": "^5.3.1",
+    "duoyun-ui": "^2.2.0",
+    "vscode-gem-languageservice": "^0.0.4",
     "vscode-languageclient": "^9.0.1"
   },
   "devDependencies": {
@@ -171,7 +169,6 @@
     "@types/vscode": "^1.94.0",
     "@vscode/test-cli": "^0.0.10",
     "@vscode/test-electron": "^2.4.1",
-    "duoyun-ui": "^2.2.0",
     "esbuild": "^0.24.0",
     "typescript": "^5.6.2"
   },

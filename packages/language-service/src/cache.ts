@@ -1,4 +1,5 @@
-import type { CompletionList, TextDocument, Position } from 'vscode';
+import type { CompletionList } from 'vscode-languageserver';
+import type { Position, TextDocument } from 'vscode-languageserver-textdocument';
 
 export class CompletionsCache {
   #cachedCompletionsFile?: string;
@@ -13,7 +14,7 @@ export class CompletionsCache {
   getCached(doc: TextDocument, position: Position) {
     if (
       this.#completions &&
-      doc.fileName === this.#cachedCompletionsFile &&
+      doc.uri === this.#cachedCompletionsFile &&
       this.#equalPositions(position, this.#cachedCompletionsPosition) &&
       doc.getText() === this.#cachedCompletionsContent
     ) {
@@ -24,7 +25,7 @@ export class CompletionsCache {
   }
 
   updateCached(context: TextDocument, position: Position, completions: CompletionList) {
-    this.#cachedCompletionsFile = context.fileName;
+    this.#cachedCompletionsFile = context.uri;
     this.#cachedCompletionsPosition = position;
     this.#cachedCompletionsContent = context.getText();
     this.#completions = completions;

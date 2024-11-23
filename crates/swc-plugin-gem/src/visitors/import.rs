@@ -220,7 +220,15 @@ pub fn import_transform() -> impl VisitMut {
     TransformVisitor::default()
 }
 
-pub fn gen_dts() {
+static mut GEN_DTS: bool = false;
+
+pub fn gen_once_dts() {
+    unsafe {
+        if GEN_DTS {
+            return;
+        }
+        GEN_DTS = true;
+    }
     // https://github.com/swc-project/swc/discussions/4997
     let types_dir = "/cwd/node_modules/@types/auto-import";
     let mut import_list: Vec<String> = vec![];

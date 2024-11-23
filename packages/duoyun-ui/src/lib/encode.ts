@@ -16,7 +16,7 @@ export function b64ToUtf8(str: string) {
 }
 
 export function base64ToArrayBuffer(str: string) {
-  return new Uint8Array([...self.atob(safeUrlToBase64Str(str))].map((char) => char.charCodeAt(0))).buffer;
+  return new Uint8Array([...atob(safeUrlToBase64Str(str))].map((char) => char.charCodeAt(0))).buffer;
 }
 
 function base64ToSafeUrl(str: string) {
@@ -25,7 +25,7 @@ function base64ToSafeUrl(str: string) {
 
 /**Converted string to Base64, `isSafe` indicates URL safe */
 export function utf8ToB64(str: string, isSafe?: boolean) {
-  const base64 = self.btoa(
+  const base64 = btoa(
     encodeURIComponent(str).replace(/%([0-9A-F]{2})/g, (_, p1) => String.fromCharCode(Number(`0x${p1}`))),
   );
   return isSafe ? base64ToSafeUrl(base64) : base64;
@@ -33,7 +33,7 @@ export function utf8ToB64(str: string, isSafe?: boolean) {
 
 // https://github.com/tc39/proposal-arraybuffer-base64
 export function arrayBufferToBase64(arrayBuffer: ArrayBuffer, isSafe?: boolean) {
-  const base64 = self.btoa(String.fromCharCode(...new Uint8Array(arrayBuffer)));
+  const base64 = btoa(String.fromCharCode(...new Uint8Array(arrayBuffer)));
   return isSafe ? base64ToSafeUrl(base64) : base64;
 }
 

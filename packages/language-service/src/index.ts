@@ -1,15 +1,22 @@
-#!/usr/bin/env -S node --experimental-transform-types
-import type { Diagnostic, InitializeParams } from 'vscode-languageserver/node';
+#!/usr/bin/env node
+
+import type { InitializeParams } from 'vscode-languageserver/node';
 import {
   createConnection,
   TextDocuments,
-  DiagnosticSeverity,
   ProposedFeatures,
   DidChangeConfigurationNotification,
-  CompletionItemKind,
   TextDocumentSyncKind,
 } from 'vscode-languageserver/node';
 import { TextDocument } from 'vscode-languageserver-textdocument';
+import { debounce } from 'duoyun-ui/lib/timer';
+
+import { ColorProvider } from './color';
+import { getDiagnostics } from './diagnostic';
+import { CSSHoverProvider, HTMLHoverProvider, StyleHoverProvider } from './hover';
+import { CSSCompletionItemProvider, HTMLStyleCompletionItemProvider } from './css';
+import { HTMLCompletionItemProvider } from './html';
+import { StyleCompletionItemProvider } from './style';
 
 const connection = createConnection(ProposedFeatures.all);
 const documents = new TextDocuments(TextDocument);
@@ -24,8 +31,13 @@ connection.onInitialize(({ capabilities }: InitializeParams) => {
   hasDiagnosticRelatedInformationCapability = !!capabilities.textDocument?.publishDiagnostics?.relatedInformation;
   return {
     capabilities: {
+      completionProvider: {
+        resolveProvider: true,
+        triggerCharacters: ['!', '.', '}', ':', '*', '$', ']', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '<'],
+      },
+      hoverProvider: true,
+      colorProvider: true,
       textDocumentSync: TextDocumentSyncKind.Incremental,
-      completionProvider: { resolveProvider: true },
       workspace: !hasWorkspaceFolderCapability ? undefined : { workspaceFolders: { supported: true } },
     },
   };
@@ -60,7 +72,7 @@ connection.onDidChangeConfiguration((change) => {
   documents.all().forEach(validateTextDocument);
 });
 
-async function getDocumentSettings(resource: string) {
+function _getDocumentSettings(resource: string) {
   if (!hasConfigurationCapability) return globalSettings;
   if (!documentSettings.has(resource)) {
     const settings = connection.workspace.getConfiguration({ scopeUri: resource, section: 'languageServerGem' });
@@ -73,74 +85,47 @@ documents.onDidClose((e) => documentSettings.delete(e.document.uri));
 
 documents.onDidChangeContent((change) => validateTextDocument(change.document));
 
-async function validateTextDocument(textDocument: TextDocument) {
-  const settings = await getDocumentSettings(textDocument.uri);
-
-  const text = textDocument.getText();
-  const pattern = /\b[A-Z]{20,}\b/g;
-  let m: RegExpExecArray | null;
-
-  let problems = 0;
-  const diagnostics: Diagnostic[] = [];
-  while ((m = pattern.exec(text)) && problems < settings.maxNumberOfProblems) {
-    problems++;
-    const diagnostic: Diagnostic = {
-      severity: DiagnosticSeverity.Warning,
-      range: { start: textDocument.positionAt(m.index), end: textDocument.positionAt(m.index + m[0].length) },
-      message: `${m[0]} is all uppercase.`,
-      source: 'vscode-gem',
-    };
-    if (hasDiagnosticRelatedInformationCapability) {
-      diagnostic.relatedInformation = [
-        {
-          location: {
-            uri: textDocument.uri,
-            range: Object.assign({}, diagnostic.range),
-          },
-          message: 'Spelling matters',
-        },
-        {
-          location: {
-            uri: textDocument.uri,
-            range: Object.assign({}, diagnostic.range),
-          },
-          message: 'Particularly for names',
-        },
-      ];
-    }
-    diagnostics.push(diagnostic);
-  }
-  connection.sendDiagnostics({ uri: textDocument.uri, diagnostics });
-}
+const validateTextDocument = debounce((textDocument: TextDocument) => {
+  connection.sendDiagnostics({
+    uri: textDocument.uri,
+    diagnostics: getDiagnostics(textDocument, hasDiagnosticRelatedInformationCapability),
+  });
+});
 
 connection.onDidChangeWatchedFiles((_change) => {
   connection.console.log('We received a file change event');
 });
 
-connection.onCompletion((_textDocumentPosition) => {
-  return [
-    {
-      label: 'TypeScript',
-      kind: CompletionItemKind.Text,
-      data: 1,
-    },
-    {
-      label: 'JavaScript',
-      kind: CompletionItemKind.Text,
-      data: 2,
-    },
-  ];
+const completionItemProviders = [
+  new CSSCompletionItemProvider(),
+  new HTMLStyleCompletionItemProvider(),
+  new HTMLCompletionItemProvider(connection),
+  new StyleCompletionItemProvider(),
+];
+connection.onCompletion(async ({ textDocument, position }) => {
+  for (const provider of completionItemProviders) {
+    const result = await provider.provideCompletionItems(documents.get(textDocument.uri)!, position);
+    if (result) return { isIncomplete: true, items: result.items };
+  }
 });
 
-connection.onCompletionResolve((item) => {
-  if (item.data === 1) {
-    item.detail = 'TypeScript details';
-    item.documentation = 'TypeScript documentation';
-  } else if (item.data === 2) {
-    item.detail = 'JavaScript details';
-    item.documentation = 'JavaScript documentation';
+connection.onCompletionResolve((item) => item);
+
+const colorProvider = new ColorProvider();
+connection.onColorPresentation(({ color }) => {
+  return colorProvider.provideColorPresentations(color);
+});
+
+connection.onDocumentColor(({ textDocument }) => {
+  return colorProvider.provideDocumentColors(documents.get(textDocument.uri)!);
+});
+
+const hoverProviders = [new CSSHoverProvider(), new StyleHoverProvider(), new HTMLHoverProvider()];
+connection.onHover(({ textDocument, position }) => {
+  for (const provider of hoverProviders) {
+    const result = provider.provideHover(documents.get(textDocument.uri)!, position);
+    if (result) return result;
   }
-  return item;
 });
 
 documents.listen(connection);

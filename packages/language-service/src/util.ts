@@ -1,11 +1,11 @@
-// eslint-disable-next-line import/no-unresolved
-import { Position, Range } from 'vscode';
 import { TextDocument } from 'vscode-html-languageservice';
-import type { TextLine, CompletionItem } from 'vscode';
-import type { CompletionList as HtmlCompletionList } from 'vscode-html-languageservice';
+import { Position, Range } from 'vscode-languageserver/node';
+import type { CompletionItem } from 'vscode-languageserver/node';
+
+import { SLOT_TOKEN } from './constants';
 
 export function removeSlot(text: string) {
-  const v = text.replace(/\$\{[^${]*?\}/g, (str) => str.replaceAll(/[^\n]/g, 'x'));
+  const v = text.replace(/\$\{[^${]*?\}/g, (str) => str.replaceAll(/[^\n]/g, SLOT_TOKEN));
   if (v === text) return v;
   return removeSlot(v);
 }
@@ -19,33 +19,28 @@ export function removeHTMLSlot(text: string, position: number) {
   return left2 + removeSlot(right);
 }
 
-export function translateCompletionList(list: HtmlCompletionList, line: TextLine, expand?: boolean) {
+export function translateCompletionList(result: any, position: Position) {
+  const getRange = (item: CompletionItem): Range | undefined => {
+    if (item.textEdit && 'range' in item.textEdit) {
+      const { start, end } = item.textEdit.range;
+      return Range.create(
+        Position.create(position.line, start.character),
+        Position.create(position.line, end.character),
+      );
+    }
+  };
+
   return {
-    ...list,
-    items: list.items.map((item) => {
-      const result = item as CompletionItem;
-
-      if (item.textEdit && 'range' in item.textEdit) {
-        result.range = new Range(
-          new Position(line.lineNumber, item.textEdit.range.start.character),
-          new Position(line.lineNumber, item.textEdit.range.end.character),
-        );
-      }
-      delete result.textEdit;
-
-      if (expand) {
-        // i use this to both expand html abbreviations and auto complete tags
-        result.command = {
-          title: 'Emmet Expand Abbreviation',
-          command: 'editor.emmet.action.expandAbbreviation',
-        };
-      }
-
-      return result;
-    }),
+    ...result,
+    items: result?.items.map((item: CompletionItem) => ({
+      ...item,
+      textEdit: item.textEdit && {
+        ...item.textEdit,
+        range: getRange(item),
+      },
+    })),
   };
 }
-
 export function matchOffset(regex: RegExp, docText: string, offset: number) {
   regex.exec('null');
 

@@ -1,21 +1,13 @@
-import type {
-  CompletionList,
-  CompletionItem,
-  TextDocument,
-  Position,
-  CancellationToken,
-  CompletionItemProvider,
-} from 'vscode';
 import type { LanguageService as HTMLanguageService } from 'vscode-html-languageservice';
+import type { Position, TextDocument } from 'vscode-languageserver-textdocument';
 import { getLanguageService as getHTMLanguageService, TokenType as HTMLTokenType } from 'vscode-html-languageservice';
-import { getCSSLanguageService as getCSSLanguageService } from 'vscode-css-languageservice';
+import { getCSSLanguageService } from 'vscode-css-languageservice';
 
-import { matchOffset, createVirtualDocument, translateCompletionList, removeSlot } from '../util';
-import { CSS_REG, HTML_REG } from '../constants';
-
+import { matchOffset, createVirtualDocument, removeSlot, translateCompletionList } from './util';
+import { CSS_REG, HTML_REG } from './constants';
 import { CompletionsCache } from './cache';
 
-export function getRegionAtOffset(regions: IEmbeddedRegion[], offset: number) {
+function getRegionAtOffset(regions: IEmbeddedRegion[], offset: number) {
   for (const region of regions) {
     if (region.start <= offset) {
       if (offset <= region.end) {
@@ -28,7 +20,7 @@ export function getRegionAtOffset(regions: IEmbeddedRegion[], offset: number) {
   return null;
 }
 
-export interface IEmbeddedRegion {
+interface IEmbeddedRegion {
   languageId: string;
   start: number;
   end: number;
@@ -36,7 +28,7 @@ export interface IEmbeddedRegion {
   content: string;
 }
 
-export function getLanguageRegions(service: HTMLanguageService, data: string) {
+function getLanguageRegions(service: HTMLanguageService, data: string) {
   const scanner = service.createScanner(data);
   const regions: IEmbeddedRegion[] = [];
   let tokenType: HTMLTokenType;
@@ -60,35 +52,30 @@ export function getLanguageRegions(service: HTMLanguageService, data: string) {
   return regions;
 }
 
-export class HTMLStyleCompletionItemProvider implements CompletionItemProvider {
+export class HTMLStyleCompletionItemProvider {
   #cssLanguageService = getCSSLanguageService();
   #htmlLanguageService = getHTMLanguageService();
   #cache = new CompletionsCache();
 
-  provideCompletionItems(document: TextDocument, position: Position, _token: CancellationToken) {
+  provideCompletionItems(document: TextDocument, position: Position) {
     const cached = this.#cache.getCached(document, position);
     if (cached) return cached;
-
-    const currentLine = document.lineAt(position.line);
-    const empty: CompletionList = { isIncomplete: false, items: [] };
-
-    if (currentLine.isEmptyOrWhitespace) return empty;
 
     const currentOffset = document.offsetAt(position);
     const documentText = document.getText();
     const match = matchOffset(HTML_REG, documentText, currentOffset);
 
-    if (!match) return empty;
+    if (!match) return;
 
     const matchContent = match.groups!.content;
     const matchStartOffset = match.index + match.groups!.start.length;
     const regions = getLanguageRegions(this.#htmlLanguageService, matchContent);
 
-    if (regions.length <= 0) return empty;
+    if (regions.length <= 0) return;
 
     const region = getRegionAtOffset(regions, currentOffset - matchStartOffset);
 
-    if (!region) return empty;
+    if (!region) return;
 
     const virtualOffset = currentOffset - (matchStartOffset + region.start);
     const virtualDocument = createVirtualDocument('css', removeSlot(region.content));
@@ -100,32 +87,23 @@ export class HTMLStyleCompletionItemProvider implements CompletionItemProvider {
       stylesheet,
     );
 
-    return this.#cache.updateCached(document, position, translateCompletionList(completions, currentLine));
-  }
-
-  resolveCompletionItem(item: CompletionItem, _token: CancellationToken) {
-    return item;
+    return this.#cache.updateCached(document, position, translateCompletionList(completions, position));
   }
 }
 
-export class CSSCompletionItemProvider implements CompletionItemProvider {
+export class CSSCompletionItemProvider {
   #cssLanguageService = getCSSLanguageService();
   #cache = new CompletionsCache();
 
-  provideCompletionItems(document: TextDocument, position: Position, _token: CancellationToken) {
+  provideCompletionItems(document: TextDocument, position: Position) {
     const cached = this.#cache.getCached(document, position);
     if (cached) return cached;
-
-    const currentLine = document.lineAt(position.line);
-    const empty: CompletionList = { isIncomplete: false, items: [] };
-
-    if (currentLine.isEmptyOrWhitespace) return empty;
 
     const currentOffset = document.offsetAt(position);
     const documentText = document.getText();
     const match = matchOffset(CSS_REG, documentText, currentOffset);
 
-    if (!match) return empty;
+    if (!match) return;
 
     const matchContent = match.groups!.content;
     const matchStartOffset = match.index + match.groups!.start.length;
@@ -139,10 +117,6 @@ export class CSSCompletionItemProvider implements CompletionItemProvider {
       vCss,
     );
 
-    return this.#cache.updateCached(document, position, translateCompletionList(completions, currentLine));
-  }
-
-  resolveCompletionItem(item: CompletionItem, _token: CancellationToken) {
-    return item;
+    return this.#cache.updateCached(document, position, translateCompletionList(completions, position));
   }
 }

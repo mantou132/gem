@@ -1,22 +1,28 @@
 {
   "name": "vscode-gem-languageservice",
-  "version": "0.0.1",
+  "version": "0.0.4",
   "description": "Language service for Gem",
   "keywords": [
     "gem",
     "language-service"
   ],
-  "type": "module",
   "module": "src/index.ts",
-  "bin": "src/index.ts",
+  "main": "src/index.ts",
+  "bin": "dist/index.js",
   "files": [
-    "/src/"
+    "/dist/"
   ],
-  "scripts": {},
+  "scripts": {
+    "prepublishOnly": "esbuild ./src/index.ts --outdir=./dist --platform=node --sourcemap --bundle --packages=external"
+  },
   "dependencies": {
+    "@vscode/emmet-helper": "^2.9.3",
+    "duoyun-ui": "^2.2.0",
     "gem-analyzer": "^2.2.0",
     "ts-morph": "^13.0.0",
     "typescript": "^5.6.2",
+    "vscode-css-languageservice": "^6.3.1",
+    "vscode-html-languageservice": "^5.3.1",
     "vscode-languageserver": "^9.0.1",
     "vscode-languageserver-textdocument": "^1.0.12"
   },

@@ -1,6 +1,6 @@
 // https://code.visualstudio.com/api/language-extensions/language-server-extension-guide#testing-the-language-server
 
-import * as assert from 'assert';
+import * as assert from 'node:assert';
 
 // eslint-disable-next-line import/no-unresolved
 import * as vscode from 'vscode';
