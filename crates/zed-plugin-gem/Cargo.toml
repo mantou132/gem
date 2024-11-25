@@ -8,3 +8,11 @@ crate-type = ["cdylib"]
 
 [dependencies]
 zed_extension_api = "0.1.0"
+
+[build-dependencies]
+anyhow = "1"
+tempfile = "3"
+fs-more = "0.8.0"
+reqwest = { version = "0.12.9", features = ["blocking"] }
+flate2 = "1.0.35"
+tar = "0.4.43"
