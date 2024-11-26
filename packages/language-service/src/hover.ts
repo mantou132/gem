@@ -86,9 +86,9 @@ export class StyleHoverProvider {
     if (!match) return null;
 
     const matchContent = match.groups!.content;
-    const content = `:host { ${removeSlot(matchContent)} }`;
+    const content = `.parent { ${removeSlot(matchContent)} }`;
     const matchStartOffset = match.index + match.groups!.start.length;
-    const virtualOffset = currentOffset - matchStartOffset + 8;
+    const virtualOffset = currentOffset - matchStartOffset + 9;
 
     if (content[virtualOffset] === SLOT_TOKEN) return null;
 

@@ -1,3 +1,3 @@
 // @ts-nocheck
-import '@mantou/gem/index.js';
-import '@mantou/gem/helper/react-shim.js';
+import "@mantou/gem.js";
+import "@mantou/gem/helper/react-shim.js";

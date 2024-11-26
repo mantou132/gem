@@ -1,6 +1,7 @@
 use serde::Deserialize;
 use swc_common::pass::Optional;
 use swc_core::ecma::visit::VisitMutWith;
+use swc_core::plugin::metadata::TransformPluginMetadataContextKind;
 use swc_core::plugin::{plugin_transform, proxies::TransformPluginProgramMetadata};
 use swc_ecma_ast::Program;
 use visitors::import::gen_once_dts;
@@ -34,6 +35,8 @@ pub fn process_transform(mut program: Program, data: TransformPluginProgramMetad
         .expect("failed to get plugin config for gem plugin");
     let config =
         serde_json::from_str::<PluginConfig>(plugin_config).expect("invalid config for gem plugin");
+
+    let _file_name = data.get_context(&TransformPluginMetadataContextKind::Filename);
 
     // 执行在每个文件
     if config.auto_import_dts {

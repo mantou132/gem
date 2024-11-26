@@ -1,8 +1,9 @@
+use indexmap::IndexMap;
 use once_cell::sync::Lazy;
 use regex::Regex;
 use serde::Deserialize;
 use std::{
-    collections::{BTreeMap, HashMap, HashSet},
+    collections::{HashMap, HashSet},
     fs,
     path::Path,
 };
@@ -27,7 +28,7 @@ enum MemberOrMemberAs {
 #[serde(rename_all = "camelCase")]
 struct AutoImportContent {
     members: HashMap<String, Vec<MemberOrMemberAs>>,
-    elements: HashMap<String, HashMap<String, String>>,
+    elements: IndexMap<String, IndexMap<String, String>>,
 }
 
 struct AutoImportConfig {
@@ -157,7 +158,7 @@ impl VisitMut for TransformVisitor {
         node.visit_mut_children_with(self);
 
         let mut out: Vec<ImportDecl> = vec![];
-        let mut available_import: HashMap<String, BTreeMap<String, String>> = HashMap::new();
+        let mut available_import: HashMap<String, IndexMap<String, String>> = HashMap::new();
 
         for used_member in self.used_members.iter() {
             if !self.defined_members.contains(used_member) {
@@ -203,6 +204,7 @@ impl VisitMut for TransformVisitor {
                         with: None,
                         phase: Default::default(),
                     });
+                    break;
                 }
             }
         }
@@ -251,4 +253,19 @@ pub fn gen_once_dts() {
         ),
     )
     .expect("create dts error");
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn should_return_default_config() {
+        let content: &str = include_str!("../auto-import.json");
+        let config = serde_json::from_str::<AutoImportContent>(content).unwrap();
+        assert_eq!(
+            format!("{:?}", config.elements.get("duoyun-ui").unwrap().keys()),
+            r#"["dy-pat-*", "dy-input-*", "dy-*"]"#
+        )
+    }
 }

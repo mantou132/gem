@@ -20,9 +20,10 @@ export class StyleCompletionItemProvider {
     if (!match) return;
 
     const matchContent = match.groups!.content;
+    const content = `.parent { ${removeSlot(matchContent)} }`;
     const matchStartOffset = match.index + match.groups!.start.length;
-    const virtualOffset = currentOffset - matchStartOffset + 8; // accounting for :host { }
-    const virtualDocument = createVirtualDocument('css', `:host { ${removeSlot(matchContent)} }`);
+    const virtualOffset = currentOffset - matchStartOffset + 9;
+    const virtualDocument = createVirtualDocument('css', content);
     const vCss = this.#cssLanguageService.parseStylesheet(virtualDocument);
 
     const completions = this.#cssLanguageService.doComplete(

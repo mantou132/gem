@@ -20,6 +20,11 @@ impl TransformVisitor {
         self.private_props.get(self.current_index).unwrap()
     }
 
+    fn start_visit_mut_class(&mut self) {
+        self.private_props = Vec::new();
+        self.current_index = 0;
+    }
+
     fn visit_mut_class(&mut self, node: &mut Box<Class>) {
         for prop in self.private_props.iter() {
             node.body.push(ClassMember::PrivateProp(PrivateProp {
@@ -54,12 +59,16 @@ impl VisitMut for TransformVisitor {
     noop_visit_mut_type!();
 
     fn visit_mut_class_decl(&mut self, node: &mut ClassDecl) {
+        self.start_visit_mut_class();
+
         node.visit_mut_children_with(self);
 
         self.visit_mut_class(&mut node.class);
     }
 
     fn visit_mut_class_expr(&mut self, node: &mut ClassExpr) {
+        self.start_visit_mut_class();
+
         node.visit_mut_children_with(self);
 
         self.visit_mut_class(&mut node.class);
@@ -80,6 +89,10 @@ impl VisitMut for TransformVisitor {
     }
 
     fn visit_mut_return_stmt(&mut self, node: &mut ReturnStmt) {
+        // why? 类表达式会直接走到这里来？
+        if self.private_props.is_empty() {
+            return;
+        }
         node.arg = Some(Box::new(Expr::Assign(AssignExpr {
             span: DUMMY_SP,
             op: AssignOp::Assign,

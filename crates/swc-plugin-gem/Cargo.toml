@@ -21,6 +21,7 @@ swc_ecma_ast = { workspace = true }
 once_cell = { workspace = true }
 tracing = { workspace = true }
 regex = { workspace = true }
+indexmap = { workspace = true, features = ["serde"] }
 
 [dev-dependencies]
 swc_ecma_parser = { workspace = true }
