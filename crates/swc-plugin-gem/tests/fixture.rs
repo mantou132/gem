@@ -58,7 +58,11 @@ fn fixture_path(input: PathBuf) {
 
     test_fixture(
         get_syntax(),
-        &|_| visit_mut_pass(path_transform()),
+        &|_| {
+            visit_mut_pass(path_transform(Some(
+                "tests/fixture/path/input.ts".to_string(),
+            )))
+        },
         &input,
         &output,
         Default::default(),

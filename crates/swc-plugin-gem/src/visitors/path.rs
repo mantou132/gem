@@ -1,20 +1,52 @@
-///! 验证模块是否为文件，是就添加 .js 否就添加 /index.js
-///!   识别模块是否为相对路径，如何是 ts 需要处理
+use std::{env, path::PathBuf};
+
+use node_resolve::Resolver;
+use pathdiff::diff_paths;
 use swc_core::ecma::visit::{noop_visit_mut_type, VisitMut};
 use swc_ecma_ast::{CallExpr, Callee, ExprOrSpread, ImportDecl, Lit, Str};
+use typed_path::{Utf8Path, Utf8UnixEncoding, Utf8WindowsEncoding};
 
-fn resolve_path(origin: &str) -> Str {
-    return format!("{}.js", origin).into();
+fn converting(path_buf: &PathBuf) -> String {
+    let windows_path = Utf8Path::<Utf8WindowsEncoding>::new(path_buf.to_str().unwrap());
+    windows_path.with_encoding::<Utf8UnixEncoding>().to_string()
 }
 
 #[derive(Default)]
-struct TransformVisitor {}
+struct TransformVisitor {
+    filename: Option<String>,
+}
+
+impl TransformVisitor {
+    fn resolve_path(&self, origin: &str) -> Str {
+        if let Some(filename) = &self.filename {
+            let cwd = env::current_dir().expect("get current dir error");
+            let dir = cwd.join(filename).parent().unwrap().to_path_buf();
+            let resolver = Resolver::new()
+                .with_extensions(&["ts"])
+                .with_basedir(dir.clone());
+            if let Ok(full_path) = resolver.resolve(origin) {
+                if let Some(relative_path) = diff_paths(&converting(&full_path), &converting(&dir))
+                {
+                    if let Some(relative_path) = relative_path.to_str() {
+                        let relative_path = relative_path.replace(".ts", ".js");
+                        if !relative_path.starts_with(".") {
+                            return format!("./{}", relative_path).into();
+                        } else {
+                            return relative_path.into();
+                        }
+                    }
+                }
+            }
+        }
+        origin.into()
+    }
+}
 
 impl VisitMut for TransformVisitor {
     noop_visit_mut_type!();
 
     fn visit_mut_import_decl(&mut self, node: &mut ImportDecl) {
-        node.src = resolve_path(node.src.value.as_str()).into();
+        node.src = self.resolve_path(node.src.value.as_str()).into();
     }
 
     // 只处理 string 的动态导入
@@ -23,13 +55,16 @@ impl VisitMut for TransformVisitor {
             if let Some(Some(Lit::Str(source))) = node.args.get(0).map(|e| e.expr.as_lit()) {
                 node.args = vec![ExprOrSpread {
                     spread: None,
-                    expr: resolve_path(source.value.as_str()).into(),
+                    expr: self.resolve_path(source.value.as_str()).into(),
                 }]
             }
         }
     }
 }
 
-pub fn path_transform() -> impl VisitMut {
-    TransformVisitor::default()
+pub fn path_transform(filename: Option<String>) -> impl VisitMut {
+    TransformVisitor {
+        filename,
+        ..Default::default()
+    }
 }

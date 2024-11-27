@@ -2,3 +2,4 @@
 *.wasm
 .swcrc
 .swc
+*.d.ts

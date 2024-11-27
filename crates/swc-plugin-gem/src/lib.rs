@@ -23,6 +23,7 @@ struct PluginConfig {
     /// 在安装时会尝试读取 .swcrc 生成，有些项目没有 .swcrc 文件，需要在正式变异时生成
     pub auto_import_dts: bool,
     #[serde(default)]
+    /// 配合 import map 直接使用 esm
     pub resolve_path: bool,
     #[serde(default)]
     pub hmr: bool,
@@ -36,7 +37,7 @@ pub fn process_transform(mut program: Program, data: TransformPluginProgramMetad
     let config =
         serde_json::from_str::<PluginConfig>(plugin_config).expect("invalid config for gem plugin");
 
-    let _file_name = data.get_context(&TransformPluginMetadataContextKind::Filename);
+    let filename = data.get_context(&TransformPluginMetadataContextKind::Filename);
 
     // 执行在每个文件
     if config.auto_import_dts {
@@ -58,7 +59,7 @@ pub fn process_transform(mut program: Program, data: TransformPluginProgramMetad
         },
         Optional {
             enabled: config.resolve_path,
-            visitor: path_transform(),
+            visitor: path_transform(filename.clone()),
         },
     ));
 
