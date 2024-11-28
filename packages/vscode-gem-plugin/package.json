@@ -4,7 +4,7 @@
   "displayName": "Gem",
   "description": "Gem plugin for VS Code",
   "icon": "logo.png",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "engines": {
     "vscode": "^1.94.0"
   },
@@ -156,11 +156,11 @@
     "pretest": "tsc -p . --outDir out && pnpm compile",
     "test": "vscode-test",
     "vscode:prepublish": "pnpm package",
-    "publish": "vsce publish --no-dependencies --skip-license"
+    "publish": "vsce publish --no-dependencies"
   },
   "dependencies": {
     "duoyun-ui": "^2.2.0",
-    "vscode-gem-languageservice": "^0.0.4",
+    "vscode-gem-languageservice": "^0.0.5",
     "vscode-languageclient": "^9.0.1"
   },
   "devDependencies": {

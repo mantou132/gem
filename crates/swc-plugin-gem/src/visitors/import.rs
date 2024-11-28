@@ -2,15 +2,16 @@ use indexmap::{IndexMap, IndexSet};
 use once_cell::sync::Lazy;
 use regex::Regex;
 use serde::Deserialize;
-use std::{
-    collections::{HashMap, HashSet},
-    fs,
-};
+use std::{collections::HashMap, fs};
 use swc_common::{SyntaxContext, DUMMY_SP};
-use swc_core::ecma::visit::{noop_visit_mut_type, VisitMut, VisitMutWith};
+use swc_core::{
+    atoms::Atom,
+    ecma::visit::{noop_visit_mut_type, VisitMut, VisitMutWith},
+};
 use swc_ecma_ast::{
-    Callee, Class, ClassDecl, ClassExpr, Decorator, Ident, ImportDecl, ImportNamedSpecifier,
-    ImportSpecifier, JSXElementName, ModuleDecl, ModuleItem, Str, TaggedTpl,
+    Callee, Class, ClassDecl, ClassExpr, Decorator, FnDecl, FnExpr, Id, Ident, ImportDecl,
+    ImportNamedSpecifier, ImportSpecifier, JSXElementName, ModuleDecl, ModuleItem, Str, TaggedTpl,
+    VarDeclarator,
 };
 
 static CUSTOM_ELEMENT_REGEX: Lazy<Regex> =
@@ -68,36 +69,33 @@ static GEM_AUTO_IMPORT_CONFIG: Lazy<AutoImportConfig> = Lazy::new(|| {
     }
 });
 
-trait IdentString {
-    fn to_name(&self) -> String;
-}
-
-impl IdentString for Ident {
-    fn to_name(&self) -> String {
-        self.sym.as_str().into()
-    }
-}
-
 #[derive(Default)]
 pub struct TransformVisitor {
-    used_members: IndexMap<String, SyntaxContext>,
-    imported_members: HashSet<String>,
+    used_members: IndexSet<Id>,
+    defined_members: IndexSet<Id>,
     used_elements: IndexSet<String>,
 }
 
 impl TransformVisitor {
     fn inset_used_member(&mut self, ident: &Ident) {
-        let name = ident.to_name();
-        // 只保存顶层使用成员，会复用 SyntaxContext
-        if !self.used_members.contains_key(&name) {
-            self.used_members.insert(name, ident.ctxt);
-        }
+        self.used_members.insert(ident.to_id());
+    }
+
+    fn inset_defined_member(&mut self, ident: &Ident) {
+        self.defined_members.insert(ident.to_id());
     }
 
     fn visit_mut_class(&mut self, node: &Box<Class>) {
         if let Some(expr) = &node.super_class {
             if let Some(ident) = expr.as_ident() {
                 self.inset_used_member(ident);
+            }
+            // support decorators transform
+            // class PageHomeElement extends (_GemElement = GemElement) {}
+            if let Some(assign) = expr.as_assign() {
+                if let Some(ident) = assign.right.as_ident() {
+                    self.inset_used_member(ident);
+                }
             }
         }
     }
@@ -107,7 +105,7 @@ impl VisitMut for TransformVisitor {
     noop_visit_mut_type!();
 
     fn visit_mut_import_specifier(&mut self, node: &mut ImportSpecifier) {
-        self.imported_members.insert(node.local().to_name());
+        self.inset_defined_member(node.local());
     }
 
     fn visit_mut_callee(&mut self, node: &mut Callee) {
@@ -150,41 +148,66 @@ impl VisitMut for TransformVisitor {
         node.visit_mut_children_with(self);
 
         self.visit_mut_class(&node.class);
+        self.inset_defined_member(&node.ident);
     }
 
     fn visit_mut_class_expr(&mut self, node: &mut ClassExpr) {
         node.visit_mut_children_with(self);
 
         self.visit_mut_class(&node.class);
+        if let Some(ident) = &node.ident {
+            self.inset_defined_member(ident);
+        }
+    }
+
+    fn visit_mut_fn_decl(&mut self, node: &mut FnDecl) {
+        node.visit_mut_children_with(self);
+
+        self.inset_defined_member(&node.ident);
+    }
+
+    fn visit_mut_fn_expr(&mut self, node: &mut FnExpr) {
+        node.visit_mut_children_with(self);
+
+        if let Some(ident) = &node.ident {
+            self.inset_defined_member(ident);
+        }
+    }
+
+    fn visit_mut_var_declarator(&mut self, node: &mut VarDeclarator) {
+        node.visit_mut_children_with(self);
+
+        if let Some(ident) = &node.name.as_ident() {
+            self.inset_defined_member(&ident);
+        }
     }
 
     // https://swc.rs/docs/plugin/ecmascript/cheatsheet#inserting-new-nodes
     // 只处理模块
     fn visit_mut_module_items(&mut self, node: &mut Vec<ModuleItem>) {
-        // TODO: 收集顶层声明, 防止重复声明
         node.visit_mut_children_with(self);
 
         let mut out: Vec<ImportDecl> = vec![];
-        let mut available_import: HashMap<String, IndexMap<String, (String, &SyntaxContext)>> =
+        let mut available_import: HashMap<String, IndexMap<&Atom, (&Atom, &SyntaxContext)>> =
             HashMap::new();
 
-        for (used_member, ctx) in self.used_members.iter() {
-            if !self.imported_members.contains(used_member) {
-                let pkg = GEM_AUTO_IMPORT_CONFIG.member_map.get(used_member);
+        for id in self.used_members.iter() {
+            if !self.defined_members.contains(id) {
+                let pkg = GEM_AUTO_IMPORT_CONFIG.member_map.get(id.0.as_str());
                 if let Some(pkg) = pkg {
                     let set = available_import
                         .entry(pkg.into())
                         .or_insert(Default::default());
-                    set.insert(used_member.into(), (used_member.into(), ctx));
+                    set.insert(&id.0, (&id.0, &id.1));
                 }
             }
         }
 
         for (pkg, set) in available_import {
             let mut specifiers: Vec<ImportSpecifier> = vec![];
-            for (member, (_, ctx)) in set {
+            for (member, (_member_as, ctx)) in set {
                 specifiers.push(ImportSpecifier::Named(ImportNamedSpecifier {
-                    local: Ident::new(member.into(), DUMMY_SP, ctx.clone()),
+                    local: Ident::new(member.clone(), DUMMY_SP, ctx.clone()),
                     span: DUMMY_SP,
                     imported: None,
                     is_type_only: false,

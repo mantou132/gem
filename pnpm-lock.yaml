@@ -372,7 +372,7 @@ importers:
         specifier: ^2.2.0
         version: link:../duoyun-ui
       vscode-gem-languageservice:
-        specifier: ^0.0.4
+        specifier: ^0.0.5
         version: link:../language-service
       vscode-languageclient:
         specifier: ^9.0.1

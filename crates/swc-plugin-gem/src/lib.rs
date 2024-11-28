@@ -46,6 +46,7 @@ pub fn process_transform(mut program: Program, data: TransformPluginProgramMetad
 
     program.visit_mut_with(&mut (
         Optional {
+            // 只支持原生装饰器或 `runPluginFirst`，不然被转译了，改写不了
             enabled: true,
             visitor: memo_transform(),
         },

@@ -13,3 +13,4 @@ class MyElement extends GemElement {
     return html`<div style=${styleMap({})}></div>`;
   }
 }
+class MyElement1 extends (_GemElement = GemElement) {}
