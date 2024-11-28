@@ -4,39 +4,10 @@ use swc_core::{
     ecma::visit::{noop_visit_mut_type, VisitMut, VisitMutWith},
 };
 use swc_ecma_ast::{
-    AssignExpr, AssignOp, AssignTarget, Callee, Class, ClassDecl, ClassExpr, ClassMember, Expr,
-    MemberExpr, MemberProp, MethodKind, PrivateMethod, PrivateName, PrivateProp, ReturnStmt,
-    SimpleAssignTarget, ThisExpr,
+    AssignExpr, AssignOp, AssignTarget, BlockStmt, Callee, Class, ClassDecl, ClassExpr,
+    ClassMember, Decorator, Expr, ExprStmt, Function, MemberExpr, MemberProp, MethodKind,
+    PrivateMethod, PrivateName, PrivateProp, SimpleAssignTarget, Stmt, ThisExpr,
 };
-
-#[derive(Default)]
-struct TransformVisitor {
-    private_props: Vec<Atom>,
-    current_index: usize,
-}
-
-impl TransformVisitor {
-    fn current_method(&self) -> &Atom {
-        self.private_props.get(self.current_index).unwrap()
-    }
-
-    fn start_visit_mut_class(&mut self) {
-        self.private_props = Vec::new();
-        self.current_index = 0;
-    }
-
-    fn visit_mut_class(&mut self, node: &mut Box<Class>) {
-        for prop in self.private_props.iter() {
-            node.body.push(ClassMember::PrivateProp(PrivateProp {
-                key: PrivateName {
-                    span: DUMMY_SP,
-                    name: prop.as_str().into(),
-                },
-                ..Default::default()
-            }));
-        }
-    }
-}
 
 fn is_memo_getter(node: &mut PrivateMethod) -> bool {
     if node.kind != MethodKind::Getter {
@@ -55,57 +26,100 @@ fn is_memo_getter(node: &mut PrivateMethod) -> bool {
     })
 }
 
+#[derive(Default)]
+struct TransformVisitor {
+    private_props: Vec<(Atom, Vec<Decorator>, String)>,
+}
+
+impl TransformVisitor {
+    fn append_private_field(&mut self, node: &mut Box<Class>) {
+        while let Some((prop, decorators, getter_name)) = self.private_props.pop() {
+            node.body.push(ClassMember::PrivateMethod(PrivateMethod {
+                span: DUMMY_SP,
+                kind: MethodKind::Method,
+                key: PrivateName {
+                    span: DUMMY_SP,
+                    name: format!("_{}", getter_name).into(),
+                },
+                function: Box::new(Function {
+                    span: DUMMY_SP,
+                    params: vec![],
+                    decorators,
+                    body: Some(BlockStmt {
+                        span: DUMMY_SP,
+                        stmts: vec![Stmt::Expr(ExprStmt {
+                            span: DUMMY_SP,
+                            expr: Box::new(Expr::Assign(AssignExpr {
+                                span: DUMMY_SP,
+                                op: AssignOp::Assign,
+                                left: AssignTarget::Simple(SimpleAssignTarget::Member(
+                                    MemberExpr {
+                                        span: DUMMY_SP,
+                                        obj: ThisExpr { span: DUMMY_SP }.into(),
+                                        prop: MemberProp::PrivateName(PrivateName {
+                                            span: DUMMY_SP,
+                                            name: prop.clone(),
+                                        }),
+                                    },
+                                )),
+                                right: Box::new(Expr::Member(MemberExpr {
+                                    span: DUMMY_SP,
+                                    obj: ThisExpr { span: DUMMY_SP }.into(),
+                                    prop: MemberProp::PrivateName(PrivateName {
+                                        span: DUMMY_SP,
+                                        name: getter_name.as_str().into(),
+                                    }),
+                                })),
+                            })),
+                        })],
+                        ..Default::default()
+                    }),
+                    ..Default::default()
+                }),
+                ..Default::default()
+            }));
+            node.body.push(ClassMember::PrivateProp(PrivateProp {
+                key: PrivateName {
+                    span: DUMMY_SP,
+                    name: prop.as_str().into(),
+                },
+                ..Default::default()
+            }));
+        }
+    }
+}
+
 impl VisitMut for TransformVisitor {
     noop_visit_mut_type!();
 
     fn visit_mut_class_decl(&mut self, node: &mut ClassDecl) {
-        self.start_visit_mut_class();
-
         node.visit_mut_children_with(self);
 
-        self.visit_mut_class(&mut node.class);
+        self.append_private_field(&mut node.class);
     }
 
     fn visit_mut_class_expr(&mut self, node: &mut ClassExpr) {
-        self.start_visit_mut_class();
-
         node.visit_mut_children_with(self);
 
-        self.visit_mut_class(&mut node.class);
+        self.append_private_field(&mut node.class);
     }
 
     fn visit_mut_private_method(&mut self, node: &mut PrivateMethod) {
         if is_memo_getter(node) {
-            self.current_index = self.private_props.len();
-            self.private_props.push(node.key.name.clone());
-
-            node.visit_mut_children_with(self);
+            let name = node.key.name.clone();
+            let getter_name = format!("_{}", name);
 
             node.key = PrivateName {
                 span: DUMMY_SP,
-                name: format!("_{}", node.key.name).into(),
-            }
-        }
-    }
+                name: getter_name.clone().into(),
+            };
 
-    fn visit_mut_return_stmt(&mut self, node: &mut ReturnStmt) {
-        // why? 类表达式会直接走到这里来？
-        if self.private_props.is_empty() {
-            return;
+            let mut decorators = Vec::new();
+            decorators.append(&mut node.function.decorators);
+
+            self.private_props
+                .push((name.clone(), decorators, getter_name));
         }
-        node.arg = Some(Box::new(Expr::Assign(AssignExpr {
-            span: DUMMY_SP,
-            op: AssignOp::Assign,
-            left: AssignTarget::Simple(SimpleAssignTarget::Member(MemberExpr {
-                span: DUMMY_SP,
-                obj: ThisExpr { span: DUMMY_SP }.into(),
-                prop: MemberProp::PrivateName(PrivateName {
-                    span: DUMMY_SP,
-                    name: self.current_method().clone(),
-                }),
-            })),
-            right: node.arg.clone().unwrap_or(Expr::undefined(DUMMY_SP)),
-        })));
     }
 }
 
