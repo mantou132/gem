@@ -6,7 +6,7 @@ use swc_core::ecma::visit::{noop_visit_mut_type, VisitMut};
 use swc_ecma_ast::{CallExpr, Callee, ExprOrSpread, ImportDecl, Lit, Str};
 use typed_path::{Utf8Path, Utf8UnixEncoding, Utf8WindowsEncoding};
 
-fn converting(path_buf: &PathBuf) -> String {
+fn converting_to_unix_path(path_buf: &PathBuf) -> String {
     let windows_path = Utf8Path::<Utf8WindowsEncoding>::new(path_buf.to_str().unwrap());
     windows_path.with_encoding::<Utf8UnixEncoding>().to_string()
 }
@@ -22,11 +22,13 @@ impl TransformVisitor {
             let cwd = env::current_dir().expect("get current dir error");
             let dir = cwd.join(filename).parent().unwrap().to_path_buf();
             let resolver = Resolver::new()
-                .with_extensions(&["ts"])
+                .with_extensions(&["ts", "js", ".mjs"])
                 .with_basedir(dir.clone());
             if let Ok(full_path) = resolver.resolve(origin) {
-                if let Some(relative_path) = diff_paths(&converting(&full_path), &converting(&dir))
-                {
+                if let Some(relative_path) = diff_paths(
+                    &converting_to_unix_path(&full_path),
+                    &converting_to_unix_path(&dir),
+                ) {
                     if let Some(relative_path) = relative_path.to_str() {
                         let relative_path = relative_path.replace(".ts", ".js");
                         if !relative_path.starts_with(".") {

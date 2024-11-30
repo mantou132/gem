@@ -4,29 +4,29 @@ use swc_core::ecma::visit::VisitMutWith;
 use swc_core::plugin::metadata::TransformPluginMetadataContextKind;
 use swc_core::plugin::{plugin_transform, proxies::TransformPluginProgramMetadata};
 use swc_ecma_ast::Program;
-use visitors::import::gen_once_dts;
-pub use visitors::import::import_transform;
+pub use visitors::import::{import_transform, AutoImport};
 pub use visitors::memo::memo_transform;
 pub use visitors::minify::minify_transform;
 pub use visitors::path::path_transform;
+pub use visitors::preload::preload_transform;
 
 mod visitors;
 
 #[derive(Deserialize, Debug, Clone, PartialEq, Default)]
-#[serde(rename_all = "camelCase")]
+#[serde(default, rename_all = "camelCase")]
 struct PluginConfig {
-    #[serde(default)]
     pub style_minify: bool,
-    #[serde(default)]
-    pub auto_import: bool,
-    #[serde(default)]
-    /// 在安装时会尝试读取 .swcrc 生成，有些项目没有 .swcrc 文件，需要在正式变异时生成
+    pub auto_import: AutoImport,
+    /// Write into the src directory
     pub auto_import_dts: bool,
-    #[serde(default)]
-    /// 配合 import map 直接使用 esm
+    /// Use esm directly with import map
     pub resolve_path: bool,
-    #[serde(default)]
+    ///depend on URL loader, top await
+    pub preload: bool,
+    /// un-implement
     pub hmr: bool,
+    /// un-implement
+    pub lazy_view: bool,
 }
 
 #[plugin_transform]
@@ -39,11 +39,6 @@ pub fn process_transform(mut program: Program, data: TransformPluginProgramMetad
 
     let filename = data.get_context(&TransformPluginMetadataContextKind::Filename);
 
-    // 执行在每个文件
-    if config.auto_import_dts {
-        gen_once_dts();
-    }
-
     program.visit_mut_with(&mut (
         Optional {
             // 只支持原生装饰器或 `runPluginFirst`，不然被转译了，改写不了
@@ -51,8 +46,12 @@ pub fn process_transform(mut program: Program, data: TransformPluginProgramMetad
             visitor: memo_transform(),
         },
         Optional {
-            enabled: config.auto_import,
-            visitor: import_transform(),
+            enabled: match config.auto_import {
+                AutoImport::Gem(enabeld) => enabeld,
+                AutoImport::Custom(_) => true,
+            },
+            // 执行在每个文件
+            visitor: import_transform(config.auto_import, config.auto_import_dts),
         },
         Optional {
             enabled: config.style_minify,
@@ -61,6 +60,10 @@ pub fn process_transform(mut program: Program, data: TransformPluginProgramMetad
         Optional {
             enabled: config.resolve_path,
             visitor: path_transform(filename.clone()),
+        },
+        Optional {
+            enabled: config.preload,
+            visitor: preload_transform(),
         },
     ));
 
@@ -77,7 +80,7 @@ mod tests {
         assert_eq!(
             config,
             PluginConfig {
-                auto_import: true,
+                auto_import: AutoImport::Gem(true),
                 ..Default::default()
             }
         )

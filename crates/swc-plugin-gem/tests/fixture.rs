@@ -3,7 +3,7 @@ use std::path::PathBuf;
 use swc_core::ecma::transforms::testing::test_fixture;
 use swc_ecma_parser::{Syntax, TsSyntax};
 use swc_ecma_visit::visit_mut_pass;
-use swc_plugin_gem::{import_transform, memo_transform, minify_transform, path_transform};
+use swc_plugin_gem::*;
 use testing::fixture;
 
 fn get_syntax() -> Syntax {
@@ -19,7 +19,7 @@ fn fixture_auto_import(input: PathBuf) {
 
     test_fixture(
         get_syntax(),
-        &|_| visit_mut_pass(import_transform()),
+        &|_| visit_mut_pass(import_transform(AutoImport::Gem(true), false)),
         &input,
         &output,
         Default::default(),
@@ -63,6 +63,19 @@ fn fixture_path(input: PathBuf) {
                 "tests/fixture/path/input.ts".to_string(),
             )))
         },
+        &input,
+        &output,
+        Default::default(),
+    );
+}
+
+#[fixture("tests/fixture/preload/input.ts")]
+fn fixture_preload(input: PathBuf) {
+    let output = input.parent().unwrap().join("output.ts");
+
+    test_fixture(
+        get_syntax(),
+        &|_| visit_mut_pass(preload_transform()),
         &input,
         &output,
         Default::default(),

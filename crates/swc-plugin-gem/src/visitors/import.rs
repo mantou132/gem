@@ -1,8 +1,9 @@
 use indexmap::{IndexMap, IndexSet};
-use once_cell::sync::Lazy;
+use node_resolve::Resolver;
+use once_cell::sync::{Lazy, OnceCell};
 use regex::Regex;
 use serde::Deserialize;
-use std::{collections::HashMap, fs};
+use std::{collections::HashMap, env, fs};
 use swc_common::{SyntaxContext, DUMMY_SP};
 use swc_core::{
     atoms::Atom,
@@ -14,6 +15,10 @@ use swc_ecma_ast::{
     VarDeclarator,
 };
 
+static CREATED_DTS: OnceCell<bool> = OnceCell::new();
+
+static GLOBAL_CONFIG: OnceCell<AutoImportConfig> = OnceCell::new();
+
 static CUSTOM_ELEMENT_REGEX: Lazy<Regex> =
     Lazy::new(|| Regex::new(r"(?s)<(?<tag>\w+(-\w+)+)(\s|>)").unwrap());
 
@@ -24,13 +29,7 @@ enum MemberOrMemberAs {
     MemberAs([String; 2]),
 }
 
-#[derive(Deserialize, Debug, Clone, PartialEq, Default)]
-#[serde(rename_all = "camelCase")]
-struct AutoImportContent {
-    members: HashMap<String, Vec<MemberOrMemberAs>>,
-    elements: IndexMap<String, IndexMap<String, String>>,
-}
-
+#[derive(Default)]
 struct AutoImportConfig {
     /// member -> package name
     member_map: HashMap<String, String>,
@@ -38,39 +37,8 @@ struct AutoImportConfig {
     tag_config: Vec<(Regex, String)>,
 }
 
-static GEM_AUTO_IMPORT_CONFIG: Lazy<AutoImportConfig> = Lazy::new(|| {
-    let content: &str = include_str!("../auto-import.json");
-    let content = serde_json::from_str::<AutoImportContent>(content).expect("invalid json");
-
-    let mut member_map = HashMap::new();
-
-    for (package, import_vec) in content.members.iter() {
-        for member in import_vec {
-            // TODO: support `MemberAs`
-            if let MemberOrMemberAs::Member(name) = member {
-                member_map.insert(name.into(), package.into());
-            }
-        }
-    }
-
-    let mut tag_config = Vec::new();
-
-    for (package, import_map) in content.elements {
-        for (tag, path) in import_map {
-            if let Ok(reg) = Regex::new(&tag.replace("*", "(.*)")) {
-                tag_config.push((reg, format!("{}{}", package, path.replace("*", "$1"))));
-            }
-        }
-    }
-
-    AutoImportConfig {
-        member_map,
-        tag_config,
-    }
-});
-
 #[derive(Default)]
-pub struct TransformVisitor {
+struct TransformVisitor {
     used_members: IndexSet<Id>,
     defined_members: IndexSet<Id>,
     used_elements: IndexSet<String>,
@@ -137,7 +105,7 @@ impl VisitMut for TransformVisitor {
             self.inset_used_member(ident);
         }
 
-        for ele in node.tpl.quasis.iter() {
+        for ele in &node.tpl.quasis {
             for cap in CUSTOM_ELEMENT_REGEX.captures_iter(ele.raw.as_str()) {
                 self.used_elements.insert(cap["tag"].to_string());
             }
@@ -191,9 +159,9 @@ impl VisitMut for TransformVisitor {
         let mut available_import: HashMap<String, IndexMap<&Atom, (&Atom, &SyntaxContext)>> =
             HashMap::new();
 
-        for id in self.used_members.iter() {
+        for id in &self.used_members {
             if !self.defined_members.contains(id) {
-                let pkg = GEM_AUTO_IMPORT_CONFIG.member_map.get(id.0.as_str());
+                let pkg = GLOBAL_CONFIG.get().unwrap().member_map.get(id.0.as_str());
                 if let Some(pkg) = pkg {
                     let set = available_import
                         .entry(pkg.into())
@@ -224,8 +192,8 @@ impl VisitMut for TransformVisitor {
             });
         }
 
-        for tag in self.used_elements.iter() {
-            for (reg, path) in GEM_AUTO_IMPORT_CONFIG.tag_config.iter() {
+        for tag in &self.used_elements {
+            for (reg, path) in &GLOBAL_CONFIG.get().unwrap().tag_config {
                 if reg.is_match(tag) {
                     out.push(ImportDecl {
                         specifiers: vec![],
@@ -249,40 +217,147 @@ impl VisitMut for TransformVisitor {
     }
 }
 
-pub fn import_transform() -> impl VisitMut {
-    TransformVisitor::default()
+pub fn import_transform(auto_import: AutoImport, gen_dts: bool) -> impl VisitMut {
+    let visitor = TransformVisitor::default();
+
+    gen_once_config(auto_import);
+    if gen_dts {
+        gen_once_dts();
+    }
+
+    visitor
 }
 
-static mut GEN_DTS: bool = false;
+#[derive(Deserialize, Debug, Clone, PartialEq, Default)]
+#[serde(rename_all = "camelCase")]
+pub struct AutoImportContent {
+    extends: Option<String>,
+    members: Option<HashMap<String, Vec<MemberOrMemberAs>>>,
+    elements: Option<IndexMap<String, IndexMap<String, String>>>,
+}
 
-pub fn gen_once_dts() {
-    unsafe {
-        if GEN_DTS {
-            return;
+#[derive(Deserialize, Debug, Clone, PartialEq)]
+#[serde(untagged)]
+pub enum AutoImport {
+    Gem(bool),
+    Custom(AutoImportContent),
+}
+
+impl Default for AutoImport {
+    fn default() -> Self {
+        AutoImport::Gem(false)
+    }
+}
+
+fn merge_content(
+    content: AutoImportContent,
+    mut root: Vec<AutoImportContent>,
+) -> Vec<AutoImportContent> {
+    let extends = content.extends.clone();
+    root.push(content);
+
+    if let Some(extends) = extends {
+        if extends == "gem" {
+            return merge_content(get_config_content(AutoImport::Gem(true)), root);
+        } else {
+            let resolver = Resolver::new()
+                .with_extensions(&["json"])
+                .with_basedir(env::current_dir().expect("get current dir error"));
+            if let Ok(full_path) = resolver.resolve(&extends) {
+                if let Ok(json_str) = fs::read_to_string(full_path) {
+                    if let Ok(json) = serde_json::from_str::<AutoImportContent>(&json_str) {
+                        return merge_content(json, root);
+                    }
+                }
+            }
         }
-        GEN_DTS = true;
     }
-    let mut import_list: Vec<String> = vec![];
-    for (member, pkg) in GEM_AUTO_IMPORT_CONFIG.member_map.iter() {
-        import_list.push(format!(
-            "const {member}: typeof import('{pkg}')['{member}'];",
-        ));
+
+    root
+}
+
+fn get_config_content(config: AutoImport) -> AutoImportContent {
+    match config {
+        AutoImport::Gem(_) => {
+            let content: &str = include_str!("../auto-import.json");
+            serde_json::from_str::<AutoImportContent>(content).expect("invalid json")
+        }
+        AutoImport::Custom(content) => {
+            let chain = merge_content(content, vec![]);
+
+            let mut elements = IndexMap::default();
+            let mut members = HashMap::default();
+            for lv in chain {
+                elements.extend(lv.elements.unwrap_or_default());
+                members.extend(lv.members.unwrap_or_default());
+            }
+
+            AutoImportContent {
+                extends: None,
+                elements: Some(elements),
+                members: Some(members),
+            }
+        }
     }
-    fs::write(
-        // https://github.com/swc-project/swc/discussions/4997
-        "/cwd/src/auto-import.d.ts",
-        format!(
-            r#"
+}
+
+fn gen_once_config(auto_import: AutoImport) {
+    GLOBAL_CONFIG.get_or_init(|| {
+        let content = get_config_content(auto_import);
+        let mut member_map = HashMap::new();
+
+        for (package, import_vec) in &content.members.unwrap_or_default() {
+            for member in import_vec {
+                // TODO: support `MemberAs`
+                if let MemberOrMemberAs::Member(name) = member {
+                    member_map.insert(name.into(), package.into());
+                }
+            }
+        }
+
+        let mut tag_config = Vec::new();
+
+        for (package, import_map) in content.elements.unwrap_or_default() {
+            for (tag, path) in import_map {
+                if let Ok(reg) = Regex::new(&tag.replace("*", "(.*)")) {
+                    tag_config.push((reg, format!("{}{}", package, path.replace("*", "$1"))));
+                }
+            }
+        }
+
+        AutoImportConfig {
+            member_map,
+            tag_config,
+        }
+    });
+}
+
+fn gen_once_dts() {
+    CREATED_DTS.get_or_init(|| {
+        let mut import_list: Vec<String> = vec![];
+        for (member, pkg) in &GLOBAL_CONFIG.get().unwrap().member_map {
+            import_list.push(format!(
+                "const {member}: typeof import('{pkg}')['{member}'];",
+            ));
+        }
+        fs::write(
+            // https://github.com/swc-project/swc/discussions/4997
+            "/cwd/src/auto-import.d.ts",
+            format!(
+                r#"
               // AUTOMATICALLY GENERATED, DO NOT MODIFY MANUALLY.
               export {{}}
               declare global {{
                 {}
               }}
             "#,
-            import_list.join("\n")
-        ),
-    )
-    .expect("create dts error");
+                import_list.join("\n")
+            ),
+        )
+        .expect("create dts error");
+
+        true
+    });
 }
 
 #[cfg(test)]
@@ -291,10 +366,34 @@ mod tests {
 
     #[test]
     fn should_return_default_config() {
-        let content: &str = include_str!("../auto-import.json");
-        let config = serde_json::from_str::<AutoImportContent>(content).unwrap();
         assert_eq!(
-            format!("{:?}", config.elements.get("duoyun-ui").unwrap().keys()),
+            format!(
+                "{:?}",
+                get_config_content(AutoImport::Gem(true))
+                    .elements
+                    .unwrap_or_default()
+                    .get("duoyun-ui")
+                    .unwrap()
+                    .keys()
+            ),
+            r#"["dy-pat-*", "dy-input-*", "dy-*"]"#
+        )
+    }
+
+    #[test]
+    fn should_support_extend_config() {
+        assert_eq!(
+            format!(
+                "{:?}",
+                get_config_content(AutoImport::Custom(
+                    serde_json::from_str::<AutoImportContent>(r#"{"extends":"gem"}"#).unwrap()
+                ))
+                .elements
+                .unwrap_or_default()
+                .get("duoyun-ui")
+                .unwrap()
+                .keys()
+            ),
             r#"["dy-pat-*", "dy-input-*", "dy-*"]"#
         )
     }
