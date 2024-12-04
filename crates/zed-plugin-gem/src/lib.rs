@@ -1,4 +1,5 @@
 use std::{env, fs};
+
 use zed::settings::LspSettings;
 use zed_extension_api::{self as zed, LanguageServerId, Result};
 
@@ -12,7 +13,7 @@ struct GemExtension {
 
 impl GemExtension {
     fn server_exists(&self) -> bool {
-        fs::metadata(LS_BIN_PATH).map_or(false, |stat| stat.is_file())
+        fs::metadata(LS_BIN_PATH).is_ok_and(|stat| stat.is_file())
     }
 
     fn server_script_path(&mut self, language_server_id: &zed::LanguageServerId) -> Result<String> {
@@ -39,8 +40,9 @@ impl GemExtension {
                 Ok(()) => {
                     if !self.server_exists() {
                         Err(format!(
-                              "installed package '{NPM_PKG_NAME}' did not contain expected path '{LS_BIN_PATH}'",
-                          ))?;
+                            "installed package '{NPM_PKG_NAME}' did not contain expected path \
+                             '{LS_BIN_PATH}'",
+                        ))?;
                     }
                 }
                 Err(error) => {

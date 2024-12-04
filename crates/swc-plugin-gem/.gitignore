@@ -2,4 +2,4 @@
 *.wasm
 .swcrc
 .swc
-*.d.ts
+auto-import.d.ts

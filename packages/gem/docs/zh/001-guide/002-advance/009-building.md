@@ -16,4 +16,4 @@ pnpm install swc-plugin-gem
 
 配置：
 
-<gbp-raw src="https://raw.githubusercontent.com/mantou132/gem/main/crates/swc-plugin-gem/src/lib.rs" range="15-30"></gbp-raw>
+<gbp-raw src="https://raw.githubusercontent.com/mantou132/gem/main/crates/swc-plugin-gem/src/lib.rs" range="#[-}"></gbp-raw>

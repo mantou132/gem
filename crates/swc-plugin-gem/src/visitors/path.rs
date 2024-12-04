@@ -1,4 +1,4 @@
-use std::{env, path::PathBuf};
+use std::{env, path::Path};
 
 use node_resolve::Resolver;
 use pathdiff::diff_paths;
@@ -6,8 +6,8 @@ use swc_core::ecma::visit::{noop_visit_mut_type, VisitMut};
 use swc_ecma_ast::{CallExpr, Callee, ExprOrSpread, ImportDecl, Lit, Str};
 use typed_path::{Utf8Path, Utf8UnixEncoding, Utf8WindowsEncoding};
 
-fn converting_to_unix_path(path_buf: &PathBuf) -> String {
-    let windows_path = Utf8Path::<Utf8WindowsEncoding>::new(path_buf.to_str().unwrap());
+fn converting_to_unix_path(path: &Path) -> String {
+    let windows_path = Utf8Path::<Utf8WindowsEncoding>::new(path.to_str().unwrap());
     windows_path.with_encoding::<Utf8UnixEncoding>().to_string()
 }
 
@@ -20,14 +20,15 @@ impl TransformVisitor {
     fn resolve_path(&self, origin: &str) -> Str {
         if let Some(filename) = &self.filename {
             let cwd = env::current_dir().expect("get current dir error");
-            let dir = cwd.join(filename).parent().unwrap().to_path_buf();
+            let full_filename = cwd.join(filename);
+            let dir = full_filename.parent().unwrap();
             let resolver = Resolver::new()
-                .with_extensions(&["ts", "js", ".mjs"])
-                .with_basedir(dir.clone());
-            if let Ok(full_path) = resolver.resolve(origin) {
+                .with_extensions(["ts", "js", ".mjs"])
+                .with_basedir(dir.to_path_buf());
+            if let Ok(ref full_path) = resolver.resolve(origin) {
                 if let Some(relative_path) = diff_paths(
-                    &converting_to_unix_path(&full_path),
-                    &converting_to_unix_path(&dir),
+                    converting_to_unix_path(full_path),
+                    converting_to_unix_path(dir),
                 ) {
                     if let Some(relative_path) = relative_path.to_str() {
                         let relative_path = relative_path.replace(".ts", ".js");
@@ -54,7 +55,7 @@ impl VisitMut for TransformVisitor {
     // 只处理 string 的动态导入
     fn visit_mut_call_expr(&mut self, node: &mut CallExpr) {
         if let Callee::Import(_) = node.callee {
-            if let Some(Some(Lit::Str(source))) = node.args.get(0).map(|e| e.expr.as_lit()) {
+            if let Some(Some(Lit::Str(source))) = node.args.first().map(|e| e.expr.as_lit()) {
                 node.args = vec![ExprOrSpread {
                     spread: None,
                     expr: self.resolve_path(source.value.as_str()).into(),
@@ -65,8 +66,5 @@ impl VisitMut for TransformVisitor {
 }
 
 pub fn path_transform(filename: Option<String>) -> impl VisitMut {
-    TransformVisitor {
-        filename,
-        ..Default::default()
-    }
+    TransformVisitor { filename }
 }

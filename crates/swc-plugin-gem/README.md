@@ -16,7 +16,7 @@
     "experimental": {
       "plugins": [
         [
-          "swc_plugin_gem",
+          "swc-plugin-gem",
           {
             "autoImport": {
               "extends": "gem",

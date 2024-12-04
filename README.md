@@ -25,17 +25,21 @@ Create custom elements, bind data, route switching, and quickly develop WebApps 
 
 ## Project Packages
 
-| Package                                        | Description                                                      |
-| ---------------------------------------------- | ---------------------------------------------------------------- |
-| [packages/gem](packages/gem)                   | Gem core                                                         |
-| [packages/gem-devtools](packages/gem-devtools) | Browser debugging tool for Gem                                   |
-| [packages/gem-analyzer](packages/gem-analyzer) | Gem element analyzer, which can automatically generate documents |
-| [packages/gem-book](packages/gem-book)         | Documentation site builder created using Gem                     |
-| [packages/duoyun-ui](packages/duoyun-ui)       | UI library created using Gem                                     |
-| [packages/gem-port](packages/gem-port)         | Export Gem elements as React/Vue/Svelte components               |
-| [packages/gem-examples](packages/gem-examples) | Gem and DuoyunUI examples                                        |
+| Package                                         | Description                                                      |
+| ----------------------------------------------- | ---------------------------------------------------------------- |
+| [gem](packages/gem)                             | Gem core                                                         |
+| [gem-devtools](packages/gem-devtools)           | Browser debugging tool for Gem                                   |
+| [gem-analyzer](packages/gem-analyzer)           | Gem element analyzer, which can automatically generate documents |
+| [gem-book](packages/gem-book)                   | Documentation site builder created using Gem                     |
+| [duoyun-ui](packages/duoyun-ui)                 | UI library created using Gem                                     |
+| [gem-port](packages/gem-port)                   | Export Gem elements as React/Vue/Svelte components               |
+| [gem-examples](packages/gem-examples)           | Gem and DuoyunUI examples                                        |
+| [language-service](packages/language-service)   | language service for Gem                                         |
+| [vscode-gem-plugin](packages/vscode-gem-plugin) | VSCode extension                                                 |
+| [swc-plugin-gem](crates/swc-plugin-gem)         | Building plugin for [SWC](https://swc.rs/)                       |
+| [zed-plugin-gem](crates/swc-plugin-gem)         | [Zed](https://zed.dev/) extension                                |
 
-[Rodmap](https://mm.tt/app/map/3412316197?t=TGs84FRcwQ).
+[Roadmap](https://mm.tt/app/map/3412316197?t=TGs84FRcwQ).
 
 ## Contribution
 

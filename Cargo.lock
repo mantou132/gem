@@ -618,6 +618,7 @@ dependencies = [
  "reqwest",
  "tar",
  "tempfile",
+ "tracing",
  "zed_extension_api",
 ]
 
