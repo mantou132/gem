@@ -1,9 +1,10 @@
+use std::{collections::HashMap, env, fs};
+
 use indexmap::{IndexMap, IndexSet};
 use node_resolve::Resolver;
 use once_cell::sync::{Lazy, OnceCell};
 use regex::Regex;
 use serde::Deserialize;
-use std::{collections::HashMap, env, fs};
 use swc_common::{SyntaxContext, DUMMY_SP};
 use swc_core::{
     atoms::Atom,
@@ -15,12 +16,12 @@ use swc_ecma_ast::{
     VarDeclarator,
 };
 
-static CREATED_DTS: OnceCell<bool> = OnceCell::new();
-
-static GLOBAL_CONFIG: OnceCell<AutoImportConfig> = OnceCell::new();
-
 static CUSTOM_ELEMENT_REGEX: Lazy<Regex> =
     Lazy::new(|| Regex::new(r"(?s)<(?<tag>\w+(-\w+)+)(\s|>)").unwrap());
+
+// FIXME: 每个文件作为 loader 重新执行整个程序，这个全局缓存并没有生效
+static CREATED_DTS: OnceCell<bool> = OnceCell::new();
+static GLOBAL_CONFIG: OnceCell<AutoImportConfig> = OnceCell::new();
 
 #[derive(Deserialize, Debug, Clone, PartialEq)]
 #[serde(untagged)]
@@ -53,7 +54,7 @@ impl TransformVisitor {
         self.defined_members.insert(ident.to_id());
     }
 
-    fn visit_mut_class(&mut self, node: &Box<Class>) {
+    fn visit_mut_class(&mut self, node: &Class) {
         if let Some(expr) = &node.super_class {
             if let Some(ident) = expr.as_ident() {
                 self.inset_used_member(ident);
@@ -146,7 +147,7 @@ impl VisitMut for TransformVisitor {
         node.visit_mut_children_with(self);
 
         if let Some(ident) = &node.name.as_ident() {
-            self.inset_defined_member(&ident);
+            self.inset_defined_member(ident);
         }
     }
 
@@ -163,9 +164,7 @@ impl VisitMut for TransformVisitor {
             if !self.defined_members.contains(id) {
                 let pkg = GLOBAL_CONFIG.get().unwrap().member_map.get(id.0.as_str());
                 if let Some(pkg) = pkg {
-                    let set = available_import
-                        .entry(pkg.into())
-                        .or_insert(Default::default());
+                    let set = available_import.entry(pkg.into()).or_default();
                     set.insert(&id.0, (&id.0, &id.1));
                 }
             }
@@ -175,7 +174,7 @@ impl VisitMut for TransformVisitor {
             let mut specifiers: Vec<ImportSpecifier> = vec![];
             for (member, (_member_as, ctx)) in set {
                 specifiers.push(ImportSpecifier::Named(ImportNamedSpecifier {
-                    local: Ident::new(member.clone(), DUMMY_SP, ctx.clone()),
+                    local: Ident::new(member.clone(), DUMMY_SP, *ctx),
                     span: DUMMY_SP,
                     imported: None,
                     is_type_only: false,
@@ -183,7 +182,8 @@ impl VisitMut for TransformVisitor {
             }
             out.push(ImportDecl {
                 specifiers,
-                // 也许可以支持替换：'@mantou/gem/{:pascal:}' + ColorPicker -> '@mantou/gem/ColorPicker'
+                // 也许可以支持替换：'@mantou/gem/{:pascal:}' + ColorPicker ->
+                // '@mantou/gem/ColorPicker'
                 src: Box::new(Str::from(pkg)),
                 span: DUMMY_SP,
                 type_only: false,
@@ -261,7 +261,7 @@ fn merge_content(
             return merge_content(get_config_content(AutoImport::Gem(true)), root);
         } else {
             let resolver = Resolver::new()
-                .with_extensions(&["json"])
+                .with_extensions(["json"])
                 .with_basedir(env::current_dir().expect("get current dir error"));
             if let Ok(full_path) = resolver.resolve(&extends) {
                 if let Ok(json_str) = fs::read_to_string(full_path) {

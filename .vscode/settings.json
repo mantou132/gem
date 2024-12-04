@@ -12,6 +12,7 @@
   "editor.codeActionsOnSave": {
     "source.fixAll": "explicit"
   },
+  "rust-analyzer.check.command": "clippy",
   "[xml]": {
     "editor.defaultFormatter": null
   },

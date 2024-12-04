@@ -7,7 +7,7 @@ use swc_core::{
 use swc_ecma_ast::{Ident, ImportDecl, ModuleItem, Str};
 
 static IMG_REG: Lazy<Regex> =
-    Lazy::new(|| Regex::new(r"(?i)\.(gif|jpe?g|tiff?|png|webp|bmp)$").unwrap());
+    Lazy::new(|| Regex::new(r"(?i)\.(svg|gif|jpe?g|tiff?|a?png|webp|avif|bmp)$").unwrap());
 
 enum AwaitItem {
     Img(Ident),

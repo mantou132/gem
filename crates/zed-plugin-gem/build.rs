@@ -1,11 +1,16 @@
+use std::{
+    env,
+    fs::{self, File, OpenOptions},
+    io::{self, Cursor, Write},
+    time::Duration,
+};
+
 use flate2::read::GzDecoder;
 use fs_more::directory::copy_directory;
 use reqwest::blocking::Client;
-use std::fs::{self, File, OpenOptions};
-use std::io::{self, Cursor, Write};
-use std::time::Duration;
 use tar::Archive;
 use tempfile::tempdir;
+use tracing::error;
 
 fn sync_typescript() -> anyhow::Result<()> {
     let dir = tempdir()?;
@@ -38,9 +43,9 @@ fn sync_typescript() -> anyhow::Result<()> {
     Ok(())
 }
 
-fn main() -> anyhow::Result<()> {
+fn set_languages() -> anyhow::Result<()> {
     if !fs::read_to_string("languages/typescript/injections.scm")
-        .unwrap_or(String::new())
+        .unwrap_or_default()
         .contains("Gem")
     {
         sync_typescript()?;
@@ -56,4 +61,15 @@ fn main() -> anyhow::Result<()> {
     }
 
     Ok(())
+}
+
+fn main() {
+    let profile = env::var("PROFILE").unwrap_or_else(|_| "debug".to_string());
+    if set_languages().is_err() {
+        if profile == "release" {
+            panic!("set languages error");
+        } else {
+            error!("set languages error");
+        }
+    }
 }
