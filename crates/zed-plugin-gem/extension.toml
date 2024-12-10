@@ -1,6 +1,6 @@
 id = "gem"
 name = "Gem"
-description = "Gem plugin for VS Code"
+description = "Gem plugin for Zed"
 version = "0.0.1"
 schema_version = 1
 authors = ["mantou132 <709922234@qq.com>"]
