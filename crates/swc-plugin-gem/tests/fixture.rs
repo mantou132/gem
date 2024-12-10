@@ -19,7 +19,26 @@ fn fixture_auto_import(input: PathBuf) {
 
     test_fixture(
         get_syntax(),
-        &|_| visit_mut_pass(import_transform(AutoImport::Gem(true), false)),
+        &|_| {
+            visit_mut_pass(import_transform(
+                AutoImport::CustomContent(AutoImportContent {
+                    extends: Some("gem".to_string()),
+                    members: Some(
+                        vec![(
+                            "test".to_string(),
+                            vec![MemberOrMemberAs::MemberAs([
+                                "name".to_string(),
+                                "alias".to_string(),
+                            ])],
+                        )]
+                        .into_iter()
+                        .collect(),
+                    ),
+                    elements: None,
+                }),
+                AutoImportDts::Src(false),
+            ))
+        },
         &input,
         &output,
         Default::default(),

@@ -1,5 +1,6 @@
 // @ts-nocheck
-import { css, adoptedStyle, customElement, attribute, emitter, template, styleMap, html } from "@mantou/gem";
+import { css, adoptedStyle, customElement, attribute, emitter, template, html, styleMap } from "@mantou/gem";
+import { name as alias } from "test";
 import { render, Emitter, GemElement } from '@mantou/gem';
 const style = css``;
 @adoptedStyle(style)
@@ -15,3 +16,4 @@ class MyElement extends GemElement {
     }
 }
 class MyElement1 extends (_GemElement = GemElement) {}
+alias();

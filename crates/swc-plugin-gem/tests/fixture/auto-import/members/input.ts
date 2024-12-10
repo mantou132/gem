@@ -14,3 +14,4 @@ class MyElement extends GemElement {
   }
 }
 class MyElement1 extends (_GemElement = GemElement) {}
+alias();

@@ -10,7 +10,7 @@ use swc_core::{
 use swc_ecma_ast::Program;
 pub use visitors::{
     hmr::hmr_transform,
-    import::{import_transform, AutoImport},
+    import::{import_transform, AutoImport, AutoImportContent, AutoImportDts, MemberOrMemberAs},
     memo::memo_transform,
     minify::minify_transform,
     path::path_transform,
@@ -23,12 +23,13 @@ mod visitors;
 #[serde(default, rename_all = "camelCase")]
 struct PluginConfig {
     pub style_minify: bool,
+    /// e.g: https://github.com/mantou132/gem/blob/main/crates/swc-plugin-gem/README.md#example
     pub auto_import: AutoImport,
-    /// Write into the src directory
-    pub auto_import_dts: bool,
+    /// Generate .d.ts file, use src/auto-import.d.ts when true
+    pub auto_import_dts: AutoImportDts,
     /// Use esm directly with import map
     pub resolve_path: bool,
-    ///depend on URL loader, top await
+    ///depend on URL loader & top await
     pub preload: bool,
     /// Under development, need add `@mantou/gem/helper/hmr` to entry
     pub hmr: bool,
@@ -55,7 +56,7 @@ pub fn process_transform(mut program: Program, data: TransformPluginProgramMetad
         Optional {
             enabled: match config.auto_import {
                 AutoImport::Gem(enabled) => enabled,
-                AutoImport::Custom(_) => true,
+                AutoImport::CustomContent(_) => true,
             },
             visitor: import_transform(config.auto_import, config.auto_import_dts),
         },
