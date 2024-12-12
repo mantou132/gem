@@ -4,9 +4,9 @@ use swc_core::{
     ecma::visit::{noop_visit_mut_type, VisitMut, VisitMutWith},
 };
 use swc_ecma_ast::{
-    AssignExpr, AssignOp, AssignTarget, BlockStmt, Callee, Class, ClassDecl, ClassExpr,
-    ClassMember, Decorator, Expr, ExprStmt, Function, MemberExpr, MemberProp, MethodKind,
-    PrivateMethod, PrivateName, PrivateProp, SimpleAssignTarget, Stmt, ThisExpr,
+    AssignExpr, AssignOp, AssignTarget, BlockStmt, Callee, Class, ClassMember, Decorator, Expr,
+    ExprStmt, Function, MemberExpr, MemberProp, MethodKind, PrivateMethod, PrivateName,
+    PrivateProp, SimpleAssignTarget, Stmt, ThisExpr,
 };
 
 fn is_memo_getter(node: &mut PrivateMethod) -> bool {
@@ -31,8 +31,12 @@ struct TransformVisitor {
     private_props: Vec<(Atom, Vec<Decorator>, String)>,
 }
 
-impl TransformVisitor {
-    fn append_private_field(&mut self, node: &mut Box<Class>) {
+impl VisitMut for TransformVisitor {
+    noop_visit_mut_type!();
+
+    fn visit_mut_class(&mut self, node: &mut Class) {
+        node.visit_mut_children_with(self);
+
         while let Some((prop, decorators, getter_name)) = self.private_props.pop() {
             node.body.push(ClassMember::PrivateMethod(PrivateMethod {
                 span: DUMMY_SP,
@@ -87,22 +91,6 @@ impl TransformVisitor {
             }));
         }
     }
-}
-
-impl VisitMut for TransformVisitor {
-    noop_visit_mut_type!();
-
-    fn visit_mut_class_decl(&mut self, node: &mut ClassDecl) {
-        node.visit_mut_children_with(self);
-
-        self.append_private_field(&mut node.class);
-    }
-
-    fn visit_mut_class_expr(&mut self, node: &mut ClassExpr) {
-        node.visit_mut_children_with(self);
-
-        self.append_private_field(&mut node.class);
-    }
 
     fn visit_mut_private_method(&mut self, node: &mut PrivateMethod) {
         if is_memo_getter(node) {
@@ -114,8 +102,7 @@ impl VisitMut for TransformVisitor {
                 name: getter_name.clone().into(),
             };
 
-            let mut decorators = Vec::new();
-            decorators.append(&mut node.function.decorators);
+            let decorators = node.function.decorators.drain(..).collect();
 
             self.private_props
                 .push((name.clone(), decorators, getter_name));

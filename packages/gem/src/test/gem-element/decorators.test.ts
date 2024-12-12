@@ -81,7 +81,7 @@ describe('装饰器', () => {
     store({ a: 1 });
     await Promise.resolve();
     const metadata: Metadata = Reflect.get(DecoratorGemElement, Symbol.metadata);
-    expect({ ...metadata.observedStores.at(0) }).to.eql({ a: 1 });
+    expect({ ...metadata.observedStores?.at(0) }).to.eql({ a: 1 });
     expect(metadata.observedAttributes).to.eql(['rank-attr', 'rank-disabled', 'rank-count']);
     expect(metadata.definedEvents).to.eql(['say-hi']);
     expect(metadata.definedCSSStates).to.eql(['open-state']);

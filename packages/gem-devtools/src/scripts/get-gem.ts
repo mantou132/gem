@@ -40,7 +40,7 @@ export const getSelectedGem = function (data: PanelStore): PanelStore | string {
     if (arg === null) return 'null';
     switch (typeof arg) {
       case 'function':
-        if (arg instanceof Function) return funcToString(arg);
+        if (window.__GEM_DEVTOOLS__PRELOAD__.isFunction(arg)) return funcToString(arg);
       // eslint-disable-next-line no-fallthrough
       case 'object':
         return '{...}';
@@ -55,7 +55,7 @@ export const getSelectedGem = function (data: PanelStore): PanelStore | string {
     if (arg === null) return 'null';
     switch (typeof arg) {
       case 'function':
-        if (arg instanceof Function) return funcToString(arg);
+        if (window.__GEM_DEVTOOLS__PRELOAD__.isFunction(arg)) return funcToString(arg);
       // eslint-disable-next-line no-fallthrough
       case 'object': {
         if (arg instanceof Element) {
@@ -97,7 +97,14 @@ export const getSelectedGem = function (data: PanelStore): PanelStore | string {
 
   const getProps = (obj: any, set = new Set<string>()) => {
     Object.getOwnPropertyNames(obj).forEach((key) => {
-      if (key !== 'constructor') set.add(key);
+      if (
+        key !== 'constructor' &&
+        !key.startsWith('_hmr_') &&
+        !key.startsWith('_private_') &&
+        !key.startsWith('_$lit')
+      ) {
+        set.add(key);
+      }
     });
     const proto = Object.getPrototypeOf(obj);
     if (proto !== HTMLElement.prototype) getProps(proto, set);
