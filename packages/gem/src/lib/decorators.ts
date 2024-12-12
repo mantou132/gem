@@ -220,7 +220,16 @@ export function memo<T extends GemElement, V = any, K = any[] | undefined>(
       if (kind === 'getter') {
         // 不能设置私有字段 https://github.com/tc39/proposal-decorators/issues/509
         if (context.private) throw new GemError('not support');
-        this.memo(() => defineProperty(this, name, { configurable: true, value: access.get(this) }), dep);
+        this.memo(
+          () =>
+            defineProperty(this, name, {
+              configurable: true,
+              // 这里需要 bind(this) 是为了兼容 swc
+              // https://github.com/swc-project/swc/issues/9565#issuecomment-2539107736
+              value: access.get.bind(this)(this),
+            }),
+          dep,
+        );
       } else {
         this.memo((access.get(this) as any).bind(this) as any, dep);
       }

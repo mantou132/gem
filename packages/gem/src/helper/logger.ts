@@ -1,20 +1,24 @@
 export class Logger {
-  _type: string;
+  #type: string;
+
+  get #prefix() {
+    return `[${this.#type}]`;
+  }
 
   constructor(type: string) {
-    this._type = type;
+    this.#type = type;
   }
 
   info = (...args: any[]) => {
-    console.log(`[${this._type}]:`, ...args);
+    console.log(this.#prefix, ...args);
   };
 
   warn = (...args: any[]) => {
-    console.warn(`[${this._type}]:`, ...args);
+    console.warn(this.#prefix, ...args);
   };
 
   error = (...args: any[]) => {
-    console.error(`[${this._type}]:`, ...args);
+    console.error(this.#prefix, ...args);
   };
 }
 

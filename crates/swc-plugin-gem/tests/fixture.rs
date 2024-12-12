@@ -100,3 +100,16 @@ fn fixture_preload(input: PathBuf) {
         Default::default(),
     );
 }
+
+#[fixture("tests/fixture/hmr/input.ts")]
+fn fixture_hmr(input: PathBuf) {
+    let output = input.parent().unwrap().join("output.ts");
+
+    test_fixture(
+        get_syntax(),
+        &|_| visit_mut_pass(hmr_transform()),
+        &input,
+        &output,
+        Default::default(),
+    );
+}

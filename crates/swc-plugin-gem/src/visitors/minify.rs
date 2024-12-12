@@ -7,6 +7,7 @@ use swc_ecma_ast::{Callee, KeyValueProp, TaggedTpl, Tpl, TplElement};
 static HEAD_REG: Lazy<Regex> = Lazy::new(|| Regex::new(r"(?s)\s*(\{)\s*").unwrap());
 static TAIL_REG: Lazy<Regex> = Lazy::new(|| Regex::new(r"(?s)(;|})\s+").unwrap());
 static SPACE_REG: Lazy<Regex> = Lazy::new(|| Regex::new(r"(?s)\s+").unwrap());
+static COMMENT_REG: Lazy<Regex> = Lazy::new(|| Regex::new(r"(?s)/\\*.*\\*/").unwrap());
 
 fn minify_tpl(tpl: &Tpl) -> Tpl {
     Tpl {
@@ -16,7 +17,8 @@ fn minify_tpl(tpl: &Tpl) -> Tpl {
             .quasis
             .iter()
             .map(|x| {
-                let remove_head = &HEAD_REG.replace_all(x.raw.as_str(), "$1");
+                let remove_comment = &COMMENT_REG.replace_all(x.raw.as_str(), "");
+                let remove_head = &HEAD_REG.replace_all(remove_comment, "$1");
                 let remove_tail = &TAIL_REG.replace_all(remove_head, "$1");
                 let remove_space = SPACE_REG.replace_all(remove_tail, " ");
                 TplElement {

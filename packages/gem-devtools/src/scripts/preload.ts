@@ -1,9 +1,11 @@
 import type { Path } from '../store';
 
 type DevToolsHookPreload = {
+  isFunction: (path: any) => boolean;
   readProp: (path: Path) => any;
   traverseDom: (callback: (element: Element) => void) => void;
 };
+
 declare global {
   interface Window {
     __GEM_DEVTOOLS__PRELOAD__: DevToolsHookPreload;
@@ -15,6 +17,10 @@ declare let $0: any;
 
 export function preload() {
   window.__GEM_DEVTOOLS__PRELOAD__ = {
+    // 支持 state/store 函数
+    isFunction(value) {
+      return value instanceof Function && Object.getOwnPropertyNames(value).join() === 'length,name';
+    },
     // [["shadowRoot", ""], "querySelector", "[ref=child-ref]"]
     // 只有 constructor 函数会当成对象读取
     readProp(path) {
@@ -31,8 +37,7 @@ export function preload() {
             return c.reduce((pp, cc) => pp || (cc === '' ? p : p[cc]), undefined);
           } else {
             const value = p[c];
-            // 支持 state 函数
-            return value instanceof Function && c !== 'constructor' ? value.bind(p) : value;
+            return window.__GEM_DEVTOOLS__PRELOAD__.isFunction(value) && c !== 'constructor' ? value.bind(p) : value;
           }
         }
       }, $0);

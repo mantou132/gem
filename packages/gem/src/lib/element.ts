@@ -256,7 +256,7 @@ export type Metadata = Partial<ShadowRootInit> & {
     }
   >;
   // 实例化时使用到，DevTools 需要读取
-  observedStores: Store<any>[];
+  observedStores?: Store<any>[];
   adoptedStyleSheets?: Sheet<unknown>[];
   // 以下静态字段仅供外部读取，没有实际作用
   observedProperties?: string[];
