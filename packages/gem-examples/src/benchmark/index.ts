@@ -1,4 +1,3 @@
-/// <reference types="vite/client" />
 import {
   adoptedStyle,
   attribute,
@@ -19,9 +18,6 @@ import {
 import type { RGBA } from 'duoyun-ui/lib/color';
 import { rgbToRgbColor } from 'duoyun-ui/lib/color';
 import { formatTraffic } from 'duoyun-ui/lib/number';
-
-// eslint-disable-next-line import/default
-import Worker from './worker?worker';
 
 import 'duoyun-ui/elements/radio';
 import '../elements/layout';
@@ -92,7 +88,7 @@ export class App extends GemElement {
     this.#pixelsPosition = Array.from({ length: (height * width) / ratio / ratio }, (_, i) => i * 4);
   };
 
-  #worker = new Worker();
+  #worker = new Worker(new URL('./worker.ts', import.meta.url));
 
   @mounted()
   #init = () => {

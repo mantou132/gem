@@ -4,9 +4,9 @@
   "version": "2.2.1",
   "description": "gem examples",
   "scripts": {
-    "build": "vite build",
-    "preview": "vite preview",
-    "start": "vite serve"
+    "build": "rsbuild build",
+    "preview": "rsbuild preview",
+    "start": "DEBUG=rsbuild rsbuild dev"
   },
   "dependencies": {
     "@mantou/gem": "^2.2.1",
@@ -14,7 +14,6 @@
   },
   "devDependencies": {
     "@gemjs/config": "^2.1.1",
-    "vite": "^5.2.10",
-    "vite-plugin-virtual-mpa": "^1.9.3"
+    "@rsbuild/core": "^1.2.3"
   }
 }

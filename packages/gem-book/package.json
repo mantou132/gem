@@ -41,9 +41,9 @@
   "dependencies": {
     "@aaroon/workbox-rspack-plugin": "^0.3.2",
     "@mantou/gem": "^2.2.1",
-    "@rspack/cli": "^1.0.5",
-    "@rspack/core": "^1.0.5",
-    "@rspack/dev-server": "^1.0.5",
+    "@rspack/cli": "^1.2.2",
+    "@rspack/core": "^1.2.2",
+    "@rspack/dev-server": "^1.0.10",
     "anymatch": "^3.1.3",
     "chalk": "^2.4.2",
     "cheerio": "^1.0.0-rc.12",

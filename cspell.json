@@ -116,6 +116,7 @@
     "scrollend",
     "searchbox",
     "selectmode",
+    "serde",
     "shadowrootmode",
     "sizechange",
     "slotchange",

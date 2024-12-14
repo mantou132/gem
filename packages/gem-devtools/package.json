@@ -1,37 +1,37 @@
 {
-  "private": true,
-  "name": "gem-devtools",
-  "version": "2.2.1",
-  "description": "Gem devtools",
-  "scripts": {
-    "update:version": "node ./scripts/update.js",
-    "serve": "vite",
-    "build": "vite build",
-    "watch": "pnpm build --watch",
-    "build:zip": "pnpm build && web-ext build",
-    "browser": "web-ext run --target=chromium --target=firefox-desktop",
-    "start": "pnpm build && concurrently -k npm:watch npm:browser"
-  },
-  "dependencies": {
-    "@mantou/gem": "^2.2.1",
-    "webextension-polyfill": "^0.10.0"
-  },
-  "devDependencies": {
-    "@gemjs/config": "^2.1.1",
-    "@types/webextension-polyfill": "^0.10.7",
-    "vite": "^5.2.10",
-    "web-ext": "^7.8.0"
-  },
-  "author": "mantou132",
-  "license": "MIT",
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/mantou132/gem.git",
-    "directory": "packages/gem-devtools"
-  },
-  "bugs": {
-    "url": "https://github.com/mantou132/gem/issues"
-  },
-  "homepage": "https://github.com/mantou132/gem#readme",
-  "gitHead": "5cccf43261f8eae0c76a80ec90e243fb880b10a9"
+	"private": true,
+	"name": "gem-devtools",
+	"version": "2.2.1",
+	"description": "Gem devtools",
+	"scripts": {
+		"update:version": "node ./scripts/update.js",
+		"serve": "rsbuild dev",
+		"build": "rsbuild build",
+		"watch": "pnpm build --watch",
+		"build:zip": "pnpm build && web-ext build",
+		"browser": "web-ext run --target=chromium --target=firefox-desktop",
+		"start": "pnpm build && concurrently -k npm:watch npm:browser"
+	},
+	"dependencies": {
+		"@mantou/gem": "^2.2.1",
+		"webextension-polyfill": "^0.10.0"
+	},
+	"devDependencies": {
+		"@gemjs/config": "^2.1.1",
+		"@rsbuild/core": "^1.2.3",
+		"@types/webextension-polyfill": "^0.10.7",
+		"web-ext": "^7.8.0"
+	},
+	"author": "mantou132",
+	"license": "MIT",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/mantou132/gem.git",
+		"directory": "packages/gem-devtools"
+	},
+	"bugs": {
+		"url": "https://github.com/mantou132/gem/issues"
+	},
+	"homepage": "https://github.com/mantou132/gem#readme",
+	"gitHead": "5cccf43261f8eae0c76a80ec90e243fb880b10a9"
 }
