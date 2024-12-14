@@ -14,9 +14,9 @@ use swc_core::{
     quote,
 };
 use swc_ecma_ast::{
-    BlockStmt, BlockStmtOrExpr, Callee, Class, ClassMember, ClassMethod, ClassProp, Expr,
-    ExprOrSpread, Function, Ident, IdentName, Lit, MemberExpr, MemberProp, ModuleItem, Param,
-    PropName, ThisExpr,
+    ArrowExpr, BlockStmt, BlockStmtOrExpr, Callee, Class, ClassMember, ClassMethod, ClassProp,
+    Expr, ExprOrSpread, Function, Ident, IdentName, Lit, MemberExpr, MemberProp, ModuleItem, Param,
+    Pat, PropName, RestPat, ThisExpr,
 };
 
 static DASH_REG: Lazy<Regex> = Lazy::new(|| Regex::new(r"-").unwrap());
@@ -98,6 +98,15 @@ fn gen_shadow_member(
     })
 }
 
+fn gen_proxy_arg() -> Vec<Pat> {
+    vec![Pat::Rest(RestPat {
+        arg: Box::new(Pat::Ident("args".into())),
+        dot3_token: DUMMY_SP,
+        span: DUMMY_SP,
+        type_ann: None,
+    })]
+}
+
 fn gen_proxy_body(shadow_ident: &IdentName) -> BlockStmt {
     let this_expr = Expr::Member(MemberExpr {
         obj: Box::new(Expr::This(ThisExpr { span: DUMMY_SP })),
@@ -107,12 +116,41 @@ fn gen_proxy_body(shadow_ident: &IdentName) -> BlockStmt {
     BlockStmt {
         stmts: vec![quote!(
             "
-            return $expr.bind(this)(...arguments);
+            return $expr.bind(this)(...args);
             " as Stmt,
             expr: Expr = this_expr
         )],
         ..Default::default()
     }
+}
+
+fn replace_to_proxy_function(
+    func: &mut Function,
+    shadow_ident: &IdentName,
+) -> (Option<BlockStmt>, Vec<Param>) {
+    (
+        mem::replace(&mut func.body, gen_proxy_body(&shadow_ident).into()),
+        mem::replace(
+            &mut func.params,
+            gen_proxy_arg().drain(..).map(|x| x.into()).collect(),
+        ),
+    )
+}
+
+fn replace_to_proxy_arrow(
+    func: &mut ArrowExpr,
+    shadow_ident: &IdentName,
+) -> (Box<BlockStmtOrExpr>, Vec<Param>) {
+    (
+        mem::replace(
+            &mut func.body,
+            Box::new(BlockStmtOrExpr::BlockStmt(gen_proxy_body(&shadow_ident))),
+        ),
+        mem::replace(&mut func.params, gen_proxy_arg())
+            .drain(..)
+            .map(|x| x.into())
+            .collect(),
+    )
 }
 
 fn transform_fn(node: ClassMember, key: &str) -> (ClassMember, Option<ClassMember>) {
@@ -121,11 +159,7 @@ fn transform_fn(node: ClassMember, key: &str) -> (ClassMember, Option<ClassMembe
         ClassMember::Method(mut method) => {
             if let Some(origin_ident) = method.key.as_ident() {
                 let shadow_ident = get_shadow_ident(origin_ident, key, false);
-                let body = mem::replace(
-                    &mut method.function.body,
-                    gen_proxy_body(&shadow_ident).into(),
-                );
-                let params = method.function.params.drain(..).collect();
+                let (body, params) = replace_to_proxy_function(&mut method.function, &shadow_ident);
                 let is_async = method.function.is_async;
                 (
                     ClassMember::Method(ClassMethod { ..method }),
@@ -145,11 +179,7 @@ fn transform_fn(node: ClassMember, key: &str) -> (ClassMember, Option<ClassMembe
             let origin_ident = IdentName::new(method.key.name, DUMMY_SP);
             let private_ident = PropName::Ident(get_private_ident(&origin_ident, key));
             let shadow_ident = get_shadow_ident(&origin_ident, key, true);
-            let body = mem::replace(
-                &mut method.function.body,
-                gen_proxy_body(&shadow_ident).into(),
-            );
-            let params = method.function.params.drain(..).collect();
+            let (body, params) = replace_to_proxy_function(&mut method.function, &shadow_ident);
             let is_async = method.function.is_async;
             (
                 ClassMember::Method(ClassMethod {
@@ -174,14 +204,10 @@ fn transform_fn(node: ClassMember, key: &str) -> (ClassMember, Option<ClassMembe
         }
         ClassMember::ClassProp(mut prop) => {
             if let Some(ref mut v) = prop.value {
-                if let Some(func) = v.as_mut_arrow() {
+                if let Some(mut func) = v.as_mut_arrow() {
                     let origin_ident = prop.key.as_ident().unwrap();
                     let shadow_ident = get_shadow_ident(origin_ident, key, false);
-                    let body = mem::replace(
-                        &mut func.body,
-                        Box::new(BlockStmtOrExpr::BlockStmt(gen_proxy_body(&shadow_ident))),
-                    );
-                    let params = func.params.drain(..).map(|x| x.into()).collect();
+                    let (body, params) = replace_to_proxy_arrow(&mut func, &shadow_ident);
                     let is_async = func.is_async;
                     if let BlockStmtOrExpr::BlockStmt(body) = *body {
                         return (
@@ -203,13 +229,9 @@ fn transform_fn(node: ClassMember, key: &str) -> (ClassMember, Option<ClassMembe
             let origin_ident = IdentName::new(prop.key.name, DUMMY_SP);
             let private_ident = PropName::Ident(get_private_ident(&origin_ident, key));
             if let Some(ref mut v) = prop.value {
-                if let Some(func) = v.as_mut_arrow() {
+                if let Some(mut func) = v.as_mut_arrow() {
                     let shadow_ident = get_shadow_ident(&origin_ident, key, true);
-                    let body = mem::replace(
-                        &mut func.body,
-                        Box::new(BlockStmtOrExpr::BlockStmt(gen_proxy_body(&shadow_ident))),
-                    );
-                    let params = func.params.drain(..).map(|x| x.into()).collect();
+                    let (body, params) = replace_to_proxy_arrow(&mut func, &shadow_ident);
                     let is_async = func.is_async;
                     if let BlockStmtOrExpr::BlockStmt(body) = *body {
                         return (

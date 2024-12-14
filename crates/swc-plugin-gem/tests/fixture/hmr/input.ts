@@ -1,6 +1,7 @@
 // @ts-nocheck
 @customElement('my-element')
 class MyElement extends GemElement {
+  @emitter change;
   @effect([])
   method(arg) {
     console.log('method');
@@ -8,14 +9,14 @@ class MyElement extends GemElement {
   @effect([])
   field = (arg) => {
     console.log('field');
-  }
+  };
   @effect([])
   #method(arg) {
     console.log('#method');
   }
-  @effect([])
+  @effect((i) => [i.#field])
   #field = (arg) => {
     console.log('#field');
-  }
+  };
   #content;
 }
