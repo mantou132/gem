@@ -74,5 +74,5 @@ export const themeStore = getThemeStore(theme);
 
 export function extendTheme<T extends Record<string, string>>(t: Partial<typeof lightTheme> & T) {
   theme(t);
-  return theme as Theme<typeof lightTheme & T>;
+  return theme as unknown as Theme<typeof lightTheme & T>;
 }

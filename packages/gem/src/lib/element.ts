@@ -292,7 +292,7 @@ export abstract class GemElement extends HTMLElement {
   #internals: ElementInternals & {
     // 有别于 adoptedStyleSheets，用来定义单个实例样式
     sheets: GemCSSStyleSheet[];
-    stateList: ReturnType<typeof createState>[];
+    stateList: ReturnType<typeof createState<any>>[];
   };
   #effectList: EffectItem<any>[] = [];
   #memoList: EffectItem<any>[] = [];

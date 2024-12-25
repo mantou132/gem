@@ -20,6 +20,12 @@
   ],
   "main": "./dist/extension.js",
   "contributes": {
+    "typescriptServerPlugins": [
+      {
+        "name": "ts-gem-plugin",
+        "enableForWorkspaceTypeScriptVersions": true
+      }
+    ],
     "configuration": {
       "type": "object",
       "title": "Example configuration",
@@ -160,6 +166,7 @@
   },
   "dependencies": {
     "duoyun-ui": "^2.2.0",
+    "ts-gem-plugin": "^0.0.5",
     "vscode-gem-languageservice": "^0.0.5",
     "vscode-languageclient": "^9.0.1"
   },

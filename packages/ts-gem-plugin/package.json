@@ -1,0 +1,33 @@
+{
+  "name": "ts-gem-plugin",
+  "version": "0.0.5",
+  "description": "Typescript language service plugin for Gem",
+  "keywords": [
+    "gem",
+    "typescript-language-service"
+  ],
+  "main": "dist/index.js",
+  "files": [],
+  "scripts": {
+    "prepublishOnly": "esbuild ./src/index.ts --outdir=./dist --platform=node --sourcemap --bundle --packages=external",
+    "start": "pnpm run prepublishOnly --watch"
+  },
+  "dependencies": {
+    "typescript": "^5.6.2",
+    "typescript-template-language-service-decorator": "^2.3.2"
+  },
+  "devDependencies": {
+    "@gemjs/config": "^2.1.0"
+  },
+  "author": "mantou132",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mantou132/gem.git",
+    "directory": "packages/ts-gem-plugin"
+  },
+  "bugs": {
+    "url": "https://github.com/mantou132/gem/issues"
+  },
+  "homepage": "https://github.com/mantou132/gem#readme"
+}

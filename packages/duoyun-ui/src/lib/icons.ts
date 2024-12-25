@@ -125,5 +125,5 @@ export const icons = createStore(defaultIcons);
 
 export function extendIcons<T extends Record<string, string>>(customIcons: Partial<typeof defaultIcons> & T) {
   icons(customIcons);
-  return icons as Store<typeof defaultIcons & T>;
+  return icons as unknown as Store<typeof defaultIcons & T>;
 }

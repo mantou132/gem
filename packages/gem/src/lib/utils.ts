@@ -10,6 +10,19 @@ export function addMicrotask(func: () => void) {
   microtaskSet.add(func);
 }
 
+type OverrideFn = {
+  name: never;
+  apply: never;
+  call: never;
+  bind: never;
+  toString: never;
+  prototype: never;
+  length: never;
+  arguments: never;
+  caller: never;
+  '~updater~': never;
+};
+
 // 注意 typeof state === 'function' 但是没有 Function 的方法和属性
 export function createUpdater<T, Fn = (payload?: Partial<T>) => any>(initState: T, fn: Fn) {
   const state: any = fn;
@@ -18,8 +31,9 @@ export function createUpdater<T, Fn = (payload?: Partial<T>) => any>(initState: 
   delete state.name;
   delete state.length;
   assign(state, initState);
-  // TODO: type
-  return state as Fn & T;
+  // ts 不允许直接 Omit 掉 Fn 上的属性
+  // 只能利用 ts plugin 移除多余的自动完成项
+  return state as Fn & Omit<OverrideFn, keyof T> & T;
 }
 
 // 不编码 hash 用于比较
