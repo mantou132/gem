@@ -74,7 +74,7 @@ pub fn process_transform(mut program: Program, data: TransformPluginProgramMetad
         },
         Optional {
             enabled: config.hmr,
-            visitor: hmr_transform(),
+            visitor: hmr_transform(filename.clone()),
         },
     ));
 

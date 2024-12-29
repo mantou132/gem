@@ -1,0 +1,19 @@
+// Folder-specific settings
+//
+// For a full list of overridable settings, and general information on folder-specific settings,
+// see the documentation: https://zed.dev/docs/configuring-zed#settings-files
+{
+  "auto_install_extension": {
+    "biome": true,
+    "emmet": true,
+    "toml": true,
+    "html": true,
+    "gem": true
+  },
+  "tab_size": 2,
+  "languages": {
+    "Rust": {
+      "tab_size": 4
+    }
+  }
+}

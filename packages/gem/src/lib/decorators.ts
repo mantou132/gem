@@ -27,7 +27,8 @@ function pushStaticField(context: ClassFieldDecoratorContext | ClassDecoratorCon
 }
 
 function clearField<T extends GemElement>(instance: T, prop: string) {
-  const { value } = getOwnPropertyDescriptor(instance, prop)!;
+  // hmr 支持不存在属性
+  const { value } = getOwnPropertyDescriptor(instance, prop) || {};
   deleteProperty(instance, prop);
   (instance as any)[prop] = value;
 }

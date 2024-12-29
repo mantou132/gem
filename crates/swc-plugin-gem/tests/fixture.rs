@@ -107,7 +107,7 @@ fn fixture_hmr(input: PathBuf) {
 
     test_fixture(
         get_syntax(),
-        &|_| visit_mut_pass(hmr_transform()),
+        &|_| visit_mut_pass(hmr_transform(None)),
         &input,
         &output,
         Default::default(),
