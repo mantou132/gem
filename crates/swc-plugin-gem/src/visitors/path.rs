@@ -32,7 +32,7 @@ impl TransformVisitor {
                 ) {
                     if let Some(relative_path) = relative_path.to_str() {
                         let relative_path = relative_path.replace(".ts", ".js");
-                        if !relative_path.starts_with(".") {
+                        if !relative_path.starts_with('.') {
                             return format!("./{}", relative_path).into();
                         } else {
                             return relative_path.into();

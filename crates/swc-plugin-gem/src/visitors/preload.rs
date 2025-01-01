@@ -23,7 +23,7 @@ impl VisitMut for TransformVisitor {
     noop_visit_mut_type!();
 
     fn visit_mut_import_decl(&mut self, node: &mut ImportDecl) {
-        if let Some((source, prefix)) = node.src.value.split_once("?") {
+        if let Some((source, prefix)) = node.src.value.split_once('?') {
             if prefix != "preload" {
                 return;
             }

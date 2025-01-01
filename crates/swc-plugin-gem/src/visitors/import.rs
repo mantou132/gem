@@ -341,10 +341,10 @@ fn get_config(auto_import: AutoImport) -> AutoImportConfig {
 
     for (package, import_map) in content.elements.unwrap_or_default() {
         for (tag, path) in import_map {
-            if let Ok(regex) = Regex::new(&tag.replace("*", "(.*)")) {
+            if let Ok(regex) = Regex::new(&tag.replace('*', "(.*)")) {
                 tag_config.push(RegexStringPair {
                     regex,
-                    path: format!("{}{}", package, path.replace("*", "$1")),
+                    path: format!("{}{}", package, path.replace('*', "$1")),
                 });
             }
         }

@@ -8,6 +8,7 @@
     "dbaeumer.vscode-eslint",
     "esbenp.prettier-vscode",
     "connor4312.esbuild-problem-matchers",
-    "ms-vscode.extension-test-runner"
+    "ms-vscode.extension-test-runner",
+    "streetsidesoftware.code-spell-checker"
   ]
 }

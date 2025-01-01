@@ -74,7 +74,7 @@ impl zed::Extension for GemExtension {
             args: vec![
                 env::current_dir()
                     .unwrap()
-                    .join(&server_path)
+                    .join(server_path)
                     .to_string_lossy()
                     .to_string(),
                 "--stdio".to_string(),
