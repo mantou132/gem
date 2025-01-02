@@ -11,6 +11,9 @@
       "request": "launch",
       "args": ["--disable-extensions", "--extensionDevelopmentPath=${workspaceFolder}/packages/vscode-gem-plugin"],
       "outFiles": ["${workspaceFolder}/packages/vscode-gem-plugin/dist/**/*.js"],
+      "env": {
+        "TSS_DEBUG": "9559"
+      },
       "preLaunchTask": "${defaultBuildTask}"
     }
   ]

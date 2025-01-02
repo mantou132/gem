@@ -20,7 +20,6 @@ type OverrideFn = {
   length: never;
   arguments: never;
   caller: never;
-  '~updater~': never;
 };
 
 // 注意 typeof state === 'function' 但是没有 Function 的方法和属性
