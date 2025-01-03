@@ -1,6 +1,10 @@
 // @ts-nocheck
 @customElement('my-element')
 class MyElement extends GemElement {
+  constructor(arg) {
+    super();
+    console.log(arg);
+  }
   @emitter change;
   get src() {
     return 1;

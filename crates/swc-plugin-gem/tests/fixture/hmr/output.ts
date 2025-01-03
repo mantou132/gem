@@ -2,6 +2,13 @@
 @customElement('my-element')
 @(window._hmrRegisterClass ? _hmrRegisterClass("my-element") : Function.prototype)
 class MyElement extends GemElement {
+    _hmr_public_my_element_constructor(arg) {
+        console.log(arg);
+    }
+    constructor(...args){
+        super();
+        this._hmr_public_my_element_constructor.bind(this)(...args);
+    }
     @emitter
     change;
     _hmr_public_my_element_src() {

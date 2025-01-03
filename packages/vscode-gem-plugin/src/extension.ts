@@ -5,7 +5,6 @@ import { commands, window, workspace, extensions } from 'vscode';
 import type { ExtensionContext } from 'vscode';
 import { LanguageClient, TransportKind } from 'vscode-languageclient/node';
 
-import { markDecorators } from './decorators';
 import { LANG_SELECTOR } from './constants';
 
 let client: LanguageClient | undefined;
@@ -32,7 +31,6 @@ export async function activate(context: ExtensionContext) {
   );
   client.start();
 
-  markDecorators(context);
   context.subscriptions.push(
     commands.registerCommand('vscode-plugin-gem.helloWorld', () => {
       window.showInformationMessage('Hello World from vscode-plugin-gem!');

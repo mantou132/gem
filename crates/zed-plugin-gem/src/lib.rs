@@ -1,3 +1,9 @@
+//! 支持 ts-plugin: https://github.com/zed-industries/zed/issues/22410
+//! 执行 LSP 命令: https://github.com/zed-industries/zed/issues/13756
+//! https://github.com/typescript-language-server/typescript-language-server/blob/master/docs/configuration.md#plugins-option
+//! https://github.com/yioneko/vtsls?tab=readme-ov-file#commands
+//! https://github.com/typescript-language-server/typescript-language-server?tab=readme-ov-file#configure-plugin
+
 use std::{env, fs};
 
 use zed::settings::LspSettings;

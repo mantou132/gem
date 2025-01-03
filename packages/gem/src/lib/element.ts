@@ -14,14 +14,11 @@ declare global {
     gemStyle?: '';
     [name: string]: string | undefined;
   }
-  // https://github.com/tc39/proposal-decorator-metadata
-  interface SymbolConstructor {
-    readonly metadata: symbol;
-  }
 }
 
 const { assign, defineProperty } = Object;
 
+// https://github.com/tc39/proposal-decorator-metadata
 defineProperty(Symbol, 'metadata', { value: Symbol.for('Symbol.metadata') });
 
 const execCallback = (fun: any) => typeof fun === 'function' && fun();

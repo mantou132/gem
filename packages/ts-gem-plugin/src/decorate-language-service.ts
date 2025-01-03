@@ -21,8 +21,12 @@ export function decorateLanguageService(languageService: LanguageService, { ts, 
     (typeChecker as any).isValidPropertyAccessForCompletions = (...args: any[]) => {
       const result = fn(...args);
       try {
-        const declarations = (args.at(2) as ts.Symbol).declarations || [];
-        return result && declarations.some((node) => ts.isPropertySignature(node) && node.type?.getText() !== 'never');
+        const { declarations } = args.at(2) as ts.Symbol;
+        return (
+          result &&
+          (!declarations ||
+            declarations.some((node) => ts.isPropertySignature(node) && node.type?.getText() !== 'never'))
+        );
       } catch {
         return result;
       }

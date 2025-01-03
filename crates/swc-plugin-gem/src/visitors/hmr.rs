@@ -5,6 +5,12 @@
 //!   在运行时进行替换，不支持计算属性名
 //! - 调用 HMR API：模块中有元素定义就接受、否则冒泡
 //! - 收集所有非函数字段名称及其装饰器，在运行时进行比较和更新
+//!
+//! 有构造函数时，下列情况不支持：
+//!     - new.target、ts 构造函数参数,
+//!     - super 带参数调用
+//!     - 没有 filename && tagName
+//!     - 构造函数带 return
 
 use std::{
     hash::{DefaultHasher, Hash, Hasher},
@@ -20,9 +26,10 @@ use swc_core::{
     quote,
 };
 use swc_ecma_ast::{
-    ArrayLit, ArrowExpr, BlockStmt, BlockStmtOrExpr, Callee, Class, ClassMember, ClassMethod,
-    ClassProp, Decorator, Expr, ExprOrSpread, Function, Ident, IdentName, Lit, MemberExpr,
-    MemberProp, MethodKind, ModuleItem, Param, Pat, PropName, RestPat, StaticBlock, ThisExpr,
+    ArrayLit, ArrowExpr, BlockStmt, BlockStmtOrExpr, CallExpr, Callee, Class, ClassMember,
+    ClassMethod, ClassProp, Constructor, Decorator, Expr, ExprOrSpread, Function, Ident, IdentName,
+    Lit, MemberExpr, MemberProp, MetaPropKind, MethodKind, ModuleItem, Param, ParamOrTsParamProp,
+    Pat, PropName, RestPat, ReturnStmt, StaticBlock, Stmt, ThisExpr,
 };
 
 static DASH_REG: Lazy<Regex> = Lazy::new(|| Regex::new(r"-").unwrap());
@@ -40,6 +47,11 @@ struct TransformVisitor {
     class_index: usize,
     has_element: bool,
     class_stack: Vec<String>,
+    need_reload: bool,
+    // 用来判断构造函数内部内部是否有 return
+    // 语句，不支持嵌套类构造函数（嵌套类）；不能识别内部函数申明的
+    // return 语句，有正常的内联函数 return 也会拒绝 hmr
+    in_constructor: bool,
 }
 
 impl TransformVisitor {
@@ -134,28 +146,48 @@ fn gen_proxy_arg() -> Vec<Pat> {
     })]
 }
 
-fn gen_proxy_body(shadow_ident: &IdentName, is_getter: bool) -> BlockStmt {
-    let this_expr = Expr::Member(MemberExpr {
+fn gen_proxy_this_expr(shadow_ident: &IdentName) -> Expr {
+    Expr::Member(MemberExpr {
         obj: Box::new(Expr::This(ThisExpr { span: DUMMY_SP })),
         prop: MemberProp::Ident(shadow_ident.clone()),
         ..Default::default()
-    });
+    })
+}
+
+fn gen_proxy_body(shadow_ident: &IdentName) -> BlockStmt {
+    let this_expr = gen_proxy_this_expr(shadow_ident);
     BlockStmt {
-        stmts: vec![if is_getter {
-            quote!(
-                "
-                return $expr.bind(this)();
-                " as Stmt,
-                expr: Expr = this_expr
-            )
-        } else {
-            quote!(
-                "
-                return $expr.bind(this)(...args);
-                " as Stmt,
-                expr: Expr = this_expr
-            )
-        }],
+        stmts: vec![quote!(
+            "return $expr.bind(this)(...args);" as Stmt,
+            expr: Expr = this_expr
+        )],
+        ..Default::default()
+    }
+}
+
+fn gen_proxy_body_getter(shadow_ident: &IdentName) -> BlockStmt {
+    let this_expr = gen_proxy_this_expr(shadow_ident);
+    BlockStmt {
+        stmts: vec![quote!(
+            "return $expr.bind(this)();" as Stmt,
+            expr: Expr = this_expr
+        )],
+        ..Default::default()
+    }
+}
+
+fn gen_proxy_body_constructor(shadow_ident: &IdentName, has_super: &bool) -> BlockStmt {
+    let this_expr = gen_proxy_this_expr(shadow_ident);
+    let mut stmts = vec![];
+    if *has_super {
+        stmts.push(quote!("super();" as Stmt));
+    }
+    stmts.push(quote!(
+        "$expr.bind(this)(...args);" as Stmt,
+        expr: Expr = this_expr
+    ));
+    BlockStmt {
+        stmts,
         ..Default::default()
     }
 }
@@ -167,16 +199,63 @@ fn replace_to_proxy_function(
 ) -> (Option<BlockStmt>, Vec<Param>) {
     if is_getter {
         return (
-            mem::replace(&mut func.body, gen_proxy_body(shadow_ident, true).into()),
+            mem::replace(&mut func.body, gen_proxy_body_getter(shadow_ident).into()),
             vec![],
         );
     }
     (
-        mem::replace(&mut func.body, gen_proxy_body(shadow_ident, false).into()),
+        mem::replace(&mut func.body, gen_proxy_body(shadow_ident).into()),
         mem::replace(
             &mut func.params,
             gen_proxy_arg().drain(..).map(|x| x.into()).collect(),
         ),
+    )
+}
+
+fn replace_to_proxy_function_for_constructor(
+    constructor: &mut Constructor,
+    shadow_ident: &IdentName,
+    has_super: &bool,
+) -> (Option<BlockStmt>, Vec<Param>) {
+    let body = mem::replace(
+        &mut constructor.body,
+        gen_proxy_body_constructor(shadow_ident, has_super).into(),
+    );
+    let mut params = mem::replace(
+        &mut constructor.params,
+        gen_proxy_arg()
+            .drain(..)
+            .map(|x| ParamOrTsParamProp::Param(x.into()))
+            .collect(),
+    );
+    (
+        body.map(|mut b| BlockStmt {
+            stmts: b
+                .stmts
+                .drain(..)
+                .filter(|stmt| {
+                    if let Stmt::Expr(stmt_expr) = stmt {
+                        if let Some(call) = stmt_expr.expr.as_call() {
+                            if let Callee::Super(_) = call.callee {
+                                return false;
+                            }
+                        }
+                    }
+                    true
+                })
+                .collect(),
+            ..b
+        }),
+        params
+            .drain(..)
+            .map(|param| {
+                if let ParamOrTsParamProp::Param(p) = param {
+                    p
+                } else {
+                    unreachable!()
+                }
+            })
+            .collect(),
     )
 }
 
@@ -187,10 +266,7 @@ fn replace_to_proxy_arrow(
     (
         mem::replace(
             &mut func.body,
-            Box::new(BlockStmtOrExpr::BlockStmt(gen_proxy_body(
-                shadow_ident,
-                false,
-            ))),
+            Box::new(BlockStmtOrExpr::BlockStmt(gen_proxy_body(shadow_ident))),
         ),
         mem::replace(&mut func.params, gen_proxy_arg())
             .drain(..)
@@ -199,8 +275,24 @@ fn replace_to_proxy_arrow(
     )
 }
 
-fn transform_fn(node: ClassMember, key: &str) -> (ClassMember, Option<ClassMember>) {
+fn transform_fn(
+    node: ClassMember,
+    key: &str,
+    has_super: &bool,
+) -> (ClassMember, Option<ClassMember>) {
     match node {
+        ClassMember::Constructor(mut constructor) => {
+            let shadow_ident = get_shadow_ident(&IdentName::from("constructor"), key, false);
+            let (body, params) = replace_to_proxy_function_for_constructor(
+                &mut constructor,
+                &shadow_ident,
+                has_super,
+            );
+            (
+                ClassMember::Constructor(Constructor { ..constructor }),
+                Some(gen_shadow_member(&shadow_ident, false, body, params, false)),
+            )
+        }
         ClassMember::Method(mut method) => {
             if let Some(origin_ident) = method.key.as_ident() {
                 let shadow_ident = get_shadow_ident(origin_ident, key, false);
@@ -405,9 +497,7 @@ fn gen_hmr_props(props: Vec<Option<FieldProp>>) -> ClassMember {
                     ExprOrSpread {
                         spread: None,
                         expr: Box::new(quote!(
-                            "
-                            [$prop_name, $field_type, $is_static]
-                            " as Expr,
+                            "[$prop_name, $field_type, $is_static]" as Expr,
                             prop_name: Expr = p_name,
                             field_type: Expr = p_type,
                             is_static: Expr = p_static,
@@ -424,9 +514,7 @@ fn gen_hmr_props(props: Vec<Option<FieldProp>>) -> ClassMember {
     ClassMember::StaticBlock(StaticBlock {
         body: BlockStmt {
             stmts: vec![quote!(
-                "
-                this._defined_fields_ = $arr_expr;
-                " as Stmt,
+                "this._defined_fields_ = $arr_expr;" as Stmt,
                 arr_expr: Expr = arr_expr
             )],
             ..Default::default()
@@ -439,9 +527,7 @@ fn gen_register_class(name: &str) -> Decorator {
     let name = Expr::Lit(Lit::Str(name.into()));
     Decorator {
         expr: Box::new(quote!(
-            "
-            (window._hmrRegisterClass ? _hmrRegisterClass($key) : Function.prototype)
-            " as Expr,
+            "(window._hmrRegisterClass ? _hmrRegisterClass($key) : Function.prototype)" as Expr,
             key: Expr = name,
         )),
         ..Default::default()
@@ -462,13 +548,56 @@ impl VisitMut for TransformVisitor {
         }
     }
 
+    fn visit_mut_constructor(&mut self, node: &mut Constructor) {
+        self.in_constructor = true;
+        node.visit_mut_children_with(self);
+        self.in_constructor = false;
+    }
+
+    fn visit_mut_param_or_ts_param_prop(&mut self, node: &mut ParamOrTsParamProp) {
+        if let ParamOrTsParamProp::TsParamProp(_) = node {
+            if self.in_constructor {
+                self.need_reload = true;
+            }
+        }
+    }
+
+    fn visit_mut_call_expr(&mut self, node: &mut CallExpr) {
+        node.visit_mut_children_with(self);
+
+        if let Callee::Super(_) = node.callee {
+            if !node.args.is_empty() {
+                self.need_reload = true;
+            }
+        }
+    }
+
+    fn visit_mut_meta_prop_kind(&mut self, node: &mut MetaPropKind) {
+        if node == &MetaPropKind::NewTarget {
+            self.need_reload = true;
+        }
+    }
+
+    fn visit_mut_return_stmt(&mut self, node: &mut ReturnStmt) {
+        node.visit_mut_children_with(self);
+
+        if self.in_constructor && node.arg.is_some() {
+            self.need_reload = true;
+        }
+    }
+
     fn visit_mut_class(&mut self, node: &mut Class) {
+        let has_super = node.super_class.is_some();
         let class_name = self.get_class_name(node);
 
         if !class_name.is_empty() {
             self.class_stack.push(class_name.clone());
             node.visit_mut_children_with(self);
             self.class_stack.pop();
+
+            if self.need_reload {
+                return;
+            }
 
             if !class_name.starts_with(HASH_KEY_PREFIX) {
                 self.has_element = true;
@@ -477,7 +606,7 @@ impl VisitMut for TransformVisitor {
             let mut props = vec![];
             let mut body = vec![];
             while let Some(item) = node.body.pop() {
-                let (origin_member, append) = transform_fn(item, &class_name);
+                let (origin_member, append) = transform_fn(item, &class_name, &has_super);
 
                 // 不是函数成员，进行记录
                 if append.is_none() {
@@ -495,13 +624,23 @@ impl VisitMut for TransformVisitor {
 
             node.body.push(gen_hmr_props(props));
             node.decorators.push(gen_register_class(&class_name));
+        } else {
+            self.need_reload = true;
         }
     }
 
     fn visit_mut_module_items(&mut self, node: &mut Vec<ModuleItem>) {
         node.visit_mut_children_with(self);
 
-        if self.has_element {
+        if self.need_reload {
+            node.push(quote!(
+                "
+                if (module.hot) {
+                    module.hot.decline();
+                }
+                " as ModuleItem,
+            ));
+        } else if self.has_element {
             node.push(quote!(
                 "
                 if (module.hot) {
