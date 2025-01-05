@@ -57,7 +57,14 @@
     }
   },
   "overrides": [
-    { "include": ["*.md"], "formatter": { "lineWidth": 100 } },
-    { "include": ["fixture/**"], "linter": { "enabled": false } }
+    {
+      "include": ["*.md"],
+      "formatter": { "lineWidth": 100 }
+    },
+    {
+      "include": ["fixture/**/*"],
+      "linter": { "enabled": false },
+      "formatter": { "enabled": false }
+    }
   ]
 }

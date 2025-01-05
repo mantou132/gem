@@ -3,7 +3,7 @@
 const { readGitignoreFiles } = require('eslint-gitignore');
 
 module.exports = {
-  ignorePatterns: readGitignoreFiles({ cwd: __dirname }),
+  ignorePatterns: ['fixture', ...readGitignoreFiles({ cwd: __dirname })],
   parser: '@typescript-eslint/parser',
   extends: [
     'plugin:import/errors',

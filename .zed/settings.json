@@ -16,11 +16,38 @@
       "tab_size": 4
     }
   },
+  "formatter": {
+    "language_server": {
+      "name": "biome"
+    }
+  },
+  "code_actions_on_format": {
+    "source.fixAll.biome": true,
+    "source.organizeImports.biome": true
+  },
+  "language_servers": [
+    "vtsls",
+    "!typescript-language-server",
+    // use biome
+    "!prettier",
+    "!eslint",
+    "..."
+  ],
   "lsp": {
     "rust-analyzer": {
       "initialization_options": {
         "checkOnSave": {
           "command": "clippy"
+        }
+      }
+    },
+    "vtsls": {
+      "settings": {
+        "typescript": {
+          "tsdk": "node_modules/typescript/lib",
+          "preferences": {
+            "importModuleSpecifier": "non-relative"
+          }
         }
       }
     }
