@@ -1,12 +1,15 @@
+// ts-plugin 不支持
+// Zed: https://github.com/zed-industries/zed/issues/4678
+
+// eslint-disable-next-line import/no-unresolved
+import { Range, Color } from 'vscode';
+import type { DocumentColorProvider, ColorInformation, TextDocument } from 'vscode';
 import { rgbToHexColor, parseHexColor } from 'duoyun-ui/lib/color';
-import { Range, Color } from 'vscode-languageserver/node';
-import type { ColorInformation, ColorPresentation } from 'vscode-languageserver/node';
 import type { HexColor } from 'duoyun-ui/lib/color';
-import type { TextDocument } from 'vscode-languageserver-textdocument';
 
-import { COLOR_REG } from './constants';
+const COLOR_REG = /(?<start>'|")?(?<content>#([0-9a-fA-F]{8}|[0-9a-fA-F]{6}|[0-9a-fA-F]{3,4}))($1|\s*;|\s*\))/g;
 
-export class ColorProvider {
+export class ColorProvider implements DocumentColorProvider {
   provideDocumentColors(document: TextDocument) {
     COLOR_REG.exec('null');
 
@@ -18,14 +21,14 @@ export class ColorProvider {
       const hex = match.groups!.content as HexColor;
       const [red, green, blue, alpha] = parseHexColor(hex);
       const offset = match.index + (match.groups!.start?.length || 0);
-      const range = Range.create(document.positionAt(offset), document.positionAt(offset + hex.length));
-      const color = Color.create(red / 255, green / 255, blue / 255, alpha);
+      const range = new Range(document.positionAt(offset), document.positionAt(offset + hex.length));
+      const color = new Color(red / 255, green / 255, blue / 255, alpha);
       colors.push({ range, color });
     }
     return colors;
   }
 
-  provideColorPresentations({ red, green, blue, alpha }: Color): ColorPresentation[] {
+  provideColorPresentations({ red, green, blue, alpha }: Color) {
     return [{ label: rgbToHexColor([red * 255, green * 255, blue * 255, alpha]) }];
   }
 }

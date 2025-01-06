@@ -40,10 +40,10 @@
 | [duoyun-ui](packages/duoyun-ui)                 | 使用 Gem 创建的 UI 库                   |
 | [gem-port](packages/gem-port)                   | 将 Gem 元素导出为 React/Vue/Svelte 组件 |
 | [gem-examples](packages/gem-examples)           | 一些 Gem 和 DuoyunUI 示例               |
-| [language-service](packages/language-service)   | Gem 的语言服务                          |
-| [vscode-gem-plugin](packages/vscode-gem-plugin) | VSCode 扩展                             |
+| [ts-gem-plugin](packages/ts-gem-plugin)         | TypeScript 的 Gem 语言服务插件          |
 | [swc-plugin-gem](crates/swc-plugin-gem)         | [SWC](https://swc.rs/) 构建插件         |
 | [zed-plugin-gem](crates/swc-plugin-gem)         | [Zed](https://zed.dev/) 扩展            |
+| [vscode-gem-plugin](packages/vscode-gem-plugin) | VSCode 扩展                             |
 
 [路线图](https://mm.tt/app/map/3412316197?t=TGs84FRcwQ)。
 

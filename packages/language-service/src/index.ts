@@ -11,7 +11,6 @@ import {
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import { debounce } from 'duoyun-ui/lib/timer';
 
-import { ColorProvider } from './color';
 import { getDiagnostics } from './diagnostic';
 import { CSSHoverProvider, HTMLHoverProvider, StyleHoverProvider } from './hover';
 import { CSSCompletionItemProvider, HTMLStyleCompletionItemProvider } from './css';
@@ -110,15 +109,6 @@ connection.onCompletion(async ({ textDocument, position }) => {
 });
 
 connection.onCompletionResolve((item) => item);
-
-const colorProvider = new ColorProvider();
-connection.onColorPresentation(({ color }) => {
-  return colorProvider.provideColorPresentations(color);
-});
-
-connection.onDocumentColor(({ textDocument }) => {
-  return colorProvider.provideDocumentColors(documents.get(textDocument.uri)!);
-});
 
 const hoverProviders = [new CSSHoverProvider(), new StyleHoverProvider(), new HTMLHoverProvider()];
 connection.onHover(({ textDocument, position }) => {

@@ -1,43 +1,21 @@
-import * as path from 'node:path';
-
 // eslint-disable-next-line import/no-unresolved
-import { commands, window, workspace, extensions } from 'vscode';
-import type { ExtensionContext } from 'vscode';
-import { LanguageClient, TransportKind } from 'vscode-languageclient/node';
+import { commands, window, workspace, extensions, languages } from 'vscode';
+import type { ExtensionContext, WorkspaceConfiguration } from 'vscode';
 
-import { LANG_SELECTOR } from './constants';
+import { ColorProvider } from './color';
 
-let client: LanguageClient | undefined;
+const typeScriptExtensionId = 'vscode.typescript-language-features';
+const pluginId = 'ts-gem-plugin';
+const configurationSection = 'gem';
 
 export async function activate(context: ExtensionContext) {
-  // TODO: 语言服务移动到 ts 插件中去，但是怎么在 Zed 中配置 vscode.typescript-language-features？
-  // https://github.com/microsoft/typescript-template-language-service-decorator
-  const serverModule = context.asAbsolutePath(path.join('dist', 'server.js'));
-  client = new LanguageClient(
-    'languageServerGem',
-    'Gem Language Server',
-    {
-      run: { module: serverModule, transport: TransportKind.ipc },
-      debug: {
-        module: serverModule,
-        transport: TransportKind.ipc,
-        options: { execArgv: ['--nolazy', '--inspect=6009'] },
-      },
-    },
-    {
-      documentSelector: LANG_SELECTOR,
-      synchronize: { fileEvents: workspace.createFileSystemWatcher('**/.gemrc') },
-    },
-  );
-  client.start();
-
   context.subscriptions.push(
     commands.registerCommand('vscode-plugin-gem.helloWorld', () => {
       window.showInformationMessage('Hello World from vscode-plugin-gem!');
     }),
   );
 
-  const extension = extensions.getExtension('vscode.typescript-language-features');
+  const extension = extensions.getExtension(typeScriptExtensionId);
   if (!extension) return;
 
   await extension.activate();
@@ -47,19 +25,70 @@ export async function activate(context: ExtensionContext) {
 
   context.subscriptions.push(
     workspace.onDidChangeConfiguration((evt) => {
-      if (evt.affectsConfiguration('gem-plugin')) {
-        setGemPluginConfig(api);
+      if (evt.affectsConfiguration(configurationSection)) {
+        synchronizeConfiguration(api);
       }
     }),
+    languages.registerColorProvider(
+      [
+        { scheme: 'file', language: 'typescript' },
+        { scheme: 'file', language: 'javascript' },
+      ],
+      new ColorProvider(),
+    ),
   );
 
-  setGemPluginConfig(api);
+  synchronizeConfiguration(api);
 }
 
-function setGemPluginConfig(api: any) {
-  api.configurePlugin('ts-gem-plugin', {});
+function synchronizeConfiguration(api: any) {
+  api.configurePlugin(pluginId, getConfiguration());
 }
 
-export function deactivate() {
-  return client?.stop();
+interface SynchronizedConfiguration {
+  emmet: any;
+  tags?: ReadonlyArray<string>;
+  format: {
+    enabled?: boolean;
+  };
+}
+
+function getConfiguration(): SynchronizedConfiguration {
+  const config = workspace.getConfiguration(configurationSection);
+  const outConfig: SynchronizedConfiguration = {
+    format: {},
+    emmet: workspace.getConfiguration('emmet'),
+  };
+
+  withConfigValue<string[]>(config, 'tags', (tags) => {
+    outConfig.tags = tags;
+  });
+
+  withConfigValue<boolean>(config, 'format.enabled', (enabled) => {
+    outConfig.format.enabled = enabled;
+  });
+
+  return outConfig;
+}
+
+function withConfigValue<T>(config: WorkspaceConfiguration, key: string, withValue: (value: T) => void): void {
+  const configSetting = config.inspect(key);
+  if (!configSetting) {
+    return;
+  }
+
+  // Make sure the user has actually set the value.
+  // VS Code will return the default values instead of `undefined`, even if user has not don't set anything.
+  if (
+    typeof configSetting.globalValue === 'undefined' &&
+    typeof configSetting.workspaceFolderValue === 'undefined' &&
+    typeof configSetting.workspaceValue === 'undefined'
+  ) {
+    return;
+  }
+
+  const value = config.get<T | undefined>(key, undefined);
+  if (typeof value !== 'undefined') {
+    withValue(value);
+  }
 }

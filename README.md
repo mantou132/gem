@@ -34,10 +34,10 @@ Create custom elements, bind data, route switching, and quickly develop WebApps 
 | [duoyun-ui](packages/duoyun-ui)                 | UI library created using Gem                                     |
 | [gem-port](packages/gem-port)                   | Export Gem elements as React/Vue/Svelte components               |
 | [gem-examples](packages/gem-examples)           | Gem and DuoyunUI examples                                        |
-| [language-service](packages/language-service)   | language service for Gem                                         |
-| [vscode-gem-plugin](packages/vscode-gem-plugin) | VSCode extension                                                 |
+| [ts-gem-plugin](packages/ts-gem-plugin)         | Gem language service plugin for TypeScript                       |
 | [swc-plugin-gem](crates/swc-plugin-gem)         | Building plugin for [SWC](https://swc.rs/)                       |
 | [zed-plugin-gem](crates/swc-plugin-gem)         | [Zed](https://zed.dev/) extension                                |
+| [vscode-gem-plugin](packages/vscode-gem-plugin) | VSCode extension                                                 |
 
 [Roadmap](https://mm.tt/app/map/3412316197?t=TGs84FRcwQ).
 

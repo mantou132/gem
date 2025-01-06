@@ -359,12 +359,33 @@ importers:
 
   packages/ts-gem-plugin:
     dependencies:
+      '@vscode/emmet-helper':
+        specifier: ^2.9.3
+        version: 2.9.3
+      duoyun-ui:
+        specifier: ^2.2.0
+        version: link:../duoyun-ui
       typescript:
         specifier: ^5.6.2
         version: 5.6.2
       typescript-template-language-service-decorator:
         specifier: ^2.3.2
         version: 2.3.2
+      vscode-css-languageservice:
+        specifier: ^6.3.1
+        version: 6.3.1
+      vscode-html-languageservice:
+        specifier: ^5.3.1
+        version: 5.3.1
+      vscode-languageserver:
+        specifier: ^9.0.1
+        version: 9.0.1
+      vscode-languageserver-textdocument:
+        specifier: ^1.0.12
+        version: 1.0.12
+      vscode-languageserver-types:
+        specifier: ^3.17.5
+        version: 3.17.5
     devDependencies:
       '@gemjs/config':
         specifier: ^2.1.0
@@ -378,12 +399,6 @@ importers:
       ts-gem-plugin:
         specifier: ^0.0.5
         version: link:../ts-gem-plugin
-      vscode-gem-languageservice:
-        specifier: ^0.0.5
-        version: link:../language-service
-      vscode-languageclient:
-        specifier: ^9.0.1
-        version: 9.0.1
     devDependencies:
       '@gemjs/config':
         specifier: ^2.1.0
@@ -7471,10 +7486,6 @@ packages:
   vscode-jsonrpc@8.2.0:
     resolution: {integrity: sha512-C+r0eKJUIfiDIfwJhria30+TYWPtuHJXHtI7J0YlOmKAo7ogxP20T0zxB7HZQIFhIyvoBPwWskjxrvAtfjyZfA==}
     engines: {node: '>=14.0.0'}
-
-  vscode-languageclient@9.0.1:
-    resolution: {integrity: sha512-JZiimVdvimEuHh5olxhxkht09m3JzUGwggb5eRUkzzJhZ2KjCN0nh55VfiED9oez9DyF8/fz1g1iBV3h+0Z2EA==}
-    engines: {vscode: ^1.82.0}
 
   vscode-languageserver-protocol@3.17.5:
     resolution: {integrity: sha512-mb1bvRJN8SVznADSGWM9u/b07H7Ecg0I3OgXDuLdn307rl/J3A9YD6/eYOssqhecL27hK1IPZAsaqh00i/Jljg==}
@@ -16060,12 +16071,6 @@ snapshots:
       vscode-uri: 3.0.8
 
   vscode-jsonrpc@8.2.0: {}
-
-  vscode-languageclient@9.0.1:
-    dependencies:
-      minimatch: 5.1.6
-      semver: 7.6.3
-      vscode-languageserver-protocol: 3.17.5
 
   vscode-languageserver-protocol@3.17.5:
     dependencies:

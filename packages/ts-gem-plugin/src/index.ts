@@ -2,10 +2,12 @@ import type { Logger } from 'typescript-template-language-service-decorator';
 import type * as ts from 'typescript/lib/tsserverlibrary';
 import { decorateWithTemplateLanguageService } from 'typescript-template-language-service-decorator';
 
-import { EchoTemplateLanguageService } from './template-language-service';
-import type { Context } from './decorate-language-service';
-import { decorateLanguageService } from './decorate-language-service';
-import { Utils, decorate } from './utils';
+import { HTMLLanguageService } from './decorate-html';
+import type { Context } from './decorate-ts';
+import { decorateLanguageService } from './decorate-ts';
+import { Utils, decorate, getSubstitution } from './utils';
+import { Configuration } from './configuration';
+import { CSSLanguageService } from './decorate-css';
 
 class LanguageServiceLogger implements Logger {
   #info: ts.server.PluginCreateInfo;
@@ -20,6 +22,8 @@ class LanguageServiceLogger implements Logger {
 
 class HtmlPlugin {
   #ts: typeof ts;
+  #config = new Configuration();
+
   constructor(typescript: typeof ts) {
     this.#ts = typescript;
   }
@@ -28,8 +32,10 @@ class HtmlPlugin {
     return decorate(info.languageService, () => {
       const logger = new LanguageServiceLogger(info);
       logger.log('Starting ts-gem-plugin...');
+      this.#config.update(info.config);
 
       const context: Context = {
+        config: this.#config,
         ts: this.#ts,
         utils: new Utils(this.#ts),
         logger,
@@ -45,19 +51,36 @@ class HtmlPlugin {
 
       const decoratedService = decorateLanguageService(info.languageService, context);
 
-      return decorateWithTemplateLanguageService(
+      const decoratedService1 = decorateWithTemplateLanguageService(
         this.#ts,
         decoratedService,
         info.project,
-        new EchoTemplateLanguageService(context),
-        { tags: ['html'], enableForStringWithSubstitutions: true },
+        new CSSLanguageService(context),
+        {
+          tags: ['styled', 'css'],
+          enableForStringWithSubstitutions: true,
+          getSubstitution,
+        },
+        { logger },
+      );
+
+      return decorateWithTemplateLanguageService(
+        this.#ts,
+        decoratedService1,
+        info.project,
+        new HTMLLanguageService(context),
+        {
+          tags: ['html', 'raw'],
+          enableForStringWithSubstitutions: true,
+          getSubstitution,
+        },
         { logger },
       );
     });
   }
 
-  onConfigurationChanged(_config: any) {
-    // this._config.update(config);
+  onConfigurationChanged(config: any) {
+    this.#config.update(config);
   }
 }
 

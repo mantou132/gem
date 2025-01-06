@@ -26,18 +26,31 @@
         "enableForWorkspaceTypeScriptVersions": true
       }
     ],
-    "configuration": {
-      "type": "object",
-      "title": "Example configuration",
-      "properties": {
-        "languageServerGem.maxNumberOfProblems": {
-          "scope": "resource",
-          "type": "number",
-          "default": 100,
-          "description": "Controls the maximum number of problems produced by the server."
+    "configuration": [
+      {
+        "id": "gem",
+        "title": "Gem",
+        "properties": {
+          "gem.tags": {
+            "type": "array",
+            "description": "List of template tags to enable html intellisense in.",
+            "items": {
+              "type": "string",
+              "description": "Tag name."
+            },
+            "default": [
+              "html",
+              "raw"
+            ]
+          },
+          "gem.format.enabled": {
+            "type": "boolean",
+            "description": "Enable/disable formatting of html template strings.",
+            "default": true
+          }
         }
       }
-    },
+    ],
     "commands": [
       {
         "command": "vscode-plugin-gem.helloWorld",
@@ -166,9 +179,7 @@
   },
   "dependencies": {
     "duoyun-ui": "^2.2.0",
-    "ts-gem-plugin": "^0.0.5",
-    "vscode-gem-languageservice": "^0.0.5",
-    "vscode-languageclient": "^9.0.1"
+    "ts-gem-plugin": "^0.0.5"
   },
   "devDependencies": {
     "@gemjs/config": "^2.1.0",
