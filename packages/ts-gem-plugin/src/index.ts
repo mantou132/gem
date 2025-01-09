@@ -1,5 +1,7 @@
 import type { Logger } from 'typescript-template-language-service-decorator';
 import type * as ts from 'typescript/lib/tsserverlibrary';
+// FIXME: nested `getSyntacticDiagnostics`
+// TODO: support object property value none tag css template
 import { decorateWithTemplateLanguageService } from 'typescript-template-language-service-decorator';
 
 import { HTMLLanguageService } from './decorate-html';

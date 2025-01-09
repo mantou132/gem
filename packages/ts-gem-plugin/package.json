@@ -9,22 +9,21 @@
   "main": "dist/index.js",
   "files": [],
   "scripts": {
-    "prepublishOnly": "esbuild ./src/index.ts --outdir=./dist --platform=node --sourcemap --bundle --packages=external",
+    "prepublishOnly": "esbuild ./src/index.ts --outdir=./dist --platform=node --sourcemap --bundle --external:@vscode/emmet-helper --external:vscode-* --external:typescript-*",
     "start": "pnpm run prepublishOnly --watch"
   },
   "dependencies": {
     "@vscode/emmet-helper": "^2.9.3",
     "duoyun-ui": "^2.2.0",
-    "typescript": "^5.6.2",
     "typescript-template-language-service-decorator": "^2.3.2",
     "vscode-css-languageservice": "^6.3.1",
     "vscode-html-languageservice": "^5.3.1",
-    "vscode-languageserver": "^9.0.1",
     "vscode-languageserver-textdocument": "^1.0.12",
     "vscode-languageserver-types": "^3.17.5"
   },
   "devDependencies": {
-    "@gemjs/config": "^2.1.0"
+    "@gemjs/config": "^2.1.0",
+    "typescript": "^5.6.2"
   },
   "author": "mantou132",
   "license": "MIT",

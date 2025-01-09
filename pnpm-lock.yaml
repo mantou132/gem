@@ -365,9 +365,6 @@ importers:
       duoyun-ui:
         specifier: ^2.2.0
         version: link:../duoyun-ui
-      typescript:
-        specifier: ^5.6.2
-        version: 5.6.2
       typescript-template-language-service-decorator:
         specifier: ^2.3.2
         version: 2.3.2
@@ -377,9 +374,6 @@ importers:
       vscode-html-languageservice:
         specifier: ^5.3.1
         version: 5.3.1
-      vscode-languageserver:
-        specifier: ^9.0.1
-        version: 9.0.1
       vscode-languageserver-textdocument:
         specifier: ^1.0.12
         version: 1.0.12
@@ -390,6 +384,9 @@ importers:
       '@gemjs/config':
         specifier: ^2.1.0
         version: link:../config
+      typescript:
+        specifier: ^5.6.2
+        version: 5.6.2
 
   packages/vscode-gem-plugin:
     dependencies:

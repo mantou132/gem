@@ -57,6 +57,7 @@ function translateCompletionEntry(context: TemplateContext, vsItem: vscode.Compl
     kind: translationCompletionItemKind(context, vsItem.kind),
     sortText: '0',
     filterText: vsItem.label,
+    labelDetails: { description: vsItem.detail },
   };
 
   if (vsItem.textEdit) {
@@ -151,4 +152,51 @@ export function translateHover(
     documentation: docs,
     tags: [],
   };
+}
+
+export function translateCompletionItemsToCompletionEntryDetails(
+  context: TemplateContext,
+  item: vscode.CompletionItem,
+): ts.CompletionEntryDetails {
+  return {
+    name: item.label,
+    kindModifiers: 'declare',
+    kind: item.kind ? translationCompletionItemKind(context, item.kind) : context.typescript.ScriptElementKind.unknown,
+    displayParts: toDisplayParts(item.detail),
+    documentation: toDisplayParts(item.documentation, true),
+    tags: [],
+  };
+}
+
+export function genDefaultCompletionEntryDetails(context: TemplateContext, name: string): ts.CompletionEntryDetails {
+  return {
+    name,
+    kindModifiers: '',
+    kind: context.typescript.ScriptElementKind.unknown,
+    displayParts: toDisplayParts(name),
+    documentation: [],
+    tags: [],
+  };
+}
+
+function toDisplayParts(text: string | vscode.MarkupContent | undefined, isDoc = false): ts.SymbolDisplayPart[] {
+  if (!text) return [];
+
+  const escape = (unsafe: string) =>
+    unsafe
+      .replaceAll('&', '&amp;')
+      .replaceAll('<', '&lt;')
+      .replaceAll('>', '&gt;')
+      .replaceAll('"', '&quot;')
+      .replaceAll("'", '&#39;')
+      .replaceAll(' ', '&nbsp;')
+      .replaceAll('\n', '  \n')
+      .replaceAll('\t', '&emsp;');
+
+  return [
+    {
+      kind: 'unknown',
+      text: typeof text !== 'string' ? text.value : isDoc ? escape(text) : text,
+    },
+  ];
 }
