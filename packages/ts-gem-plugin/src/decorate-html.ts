@@ -1,5 +1,5 @@
 import type * as ts from 'typescript/lib/tsserverlibrary';
-import type { TemplateLanguageService, TemplateContext } from 'typescript-template-language-service-decorator';
+import type { TemplateLanguageService, TemplateContext } from '@mantou/typescript-template-language-service-decorator';
 import type { CompletionList, HTMLDocument, Position, Range } from 'vscode-html-languageservice';
 import { getLanguageService as getHTMLanguageService } from 'vscode-html-languageservice';
 import { doComplete as doEmmetComplete } from '@vscode/emmet-helper';

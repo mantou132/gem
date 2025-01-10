@@ -1,28 +1,19 @@
 import type * as ts from 'typescript/lib/tsserverlibrary';
 import * as vscode from 'vscode-languageserver-types';
 import { TextDocument } from 'vscode-languageserver-textdocument';
-import type { TemplateContext } from 'typescript-template-language-service-decorator';
+import type { TemplateContext } from '@mantou/typescript-template-language-service-decorator';
 
-export class Utils {
-  #ts: typeof ts;
-
-  constructor(typescript: typeof ts) {
-    this.#ts = typescript;
+export function getAstNodeAtPosition(typescript: typeof ts, node: ts.Node, pos: number) {
+  if (node.pos > pos || node.end <= pos) return;
+  while (node.kind >= typescript.SyntaxKind.FirstNode) {
+    const nested = typescript.forEachChild(node, (child) => (child.pos <= pos && child.end > pos ? child : undefined));
+    if (nested === undefined) break;
+    node = nested;
   }
-
-  getAstNodeAtPosition(node: ts.Node, pos: number) {
-    if (node.pos > pos || node.end <= pos) return;
-    while (node.kind >= this.#ts.SyntaxKind.FirstNode) {
-      const nested = this.#ts.forEachChild(node, (child) => (child.pos <= pos && child.end > pos ? child : undefined));
-      if (nested === undefined) break;
-      node = nested;
-    }
-    return node;
-  }
+  return node;
 }
 
 const marker = Symbol();
-
 export function decorate<T>(origin: T, fn: (o: T) => T): T {
   if ((origin as any)[marker]) return origin;
   const result = fn(origin);
@@ -36,6 +27,30 @@ export function createVirtualDocument(languageId: string, content: string) {
 
 export function getSubstitution(templateString: string, start: number, end: number) {
   return templateString.slice(start, end).replaceAll(/[^\n]/g, '_');
+}
+
+export function isValidCSSTemplate(
+  typescript: typeof ts,
+  node: ts.NoSubstitutionTemplateLiteral | ts.TaggedTemplateExpression | ts.TemplateExpression,
+  callName: string,
+) {
+  switch (node.kind) {
+    case typescript.SyntaxKind.NoSubstitutionTemplateLiteral:
+    case typescript.SyntaxKind.TemplateExpression:
+      const parent = node.parent;
+      if (typescript.isCallExpression(parent) && parent.expression.getText() === callName) {
+        return true;
+      }
+      if (typescript.isPropertyAssignment(parent)) {
+        const call = parent.parent.parent;
+        if (typescript.isCallExpression(call) && call.expression.getText() === callName) {
+          return true;
+        }
+      }
+      return false;
+    default:
+      return false;
+  }
 }
 
 export function translateCompletionItemsToCompletionInfo(

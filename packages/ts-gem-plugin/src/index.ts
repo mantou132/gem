@@ -1,13 +1,13 @@
-import type { Logger } from 'typescript-template-language-service-decorator';
+// FIXME: css('xx', `:host ${1}`) `getQuickInfoAtPosition` `getCompletionsAtPosition`
+// FIXME: nested html style `getSyntacticDiagnostics`
+import { decorateWithTemplateLanguageService } from '@mantou/typescript-template-language-service-decorator';
+import type { Logger } from '@mantou/typescript-template-language-service-decorator';
 import type * as ts from 'typescript/lib/tsserverlibrary';
-// FIXME: nested `getSyntacticDiagnostics`
-// TODO: support object property value none tag css template
-import { decorateWithTemplateLanguageService } from 'typescript-template-language-service-decorator';
 
 import { HTMLLanguageService } from './decorate-html';
 import type { Context } from './decorate-ts';
 import { decorateLanguageService } from './decorate-ts';
-import { Utils, decorate, getSubstitution } from './utils';
+import { decorate, getSubstitution, isValidCSSTemplate } from './utils';
 import { Configuration } from './configuration';
 import { CSSLanguageService } from './decorate-css';
 
@@ -39,7 +39,6 @@ class HtmlPlugin {
       const context: Context = {
         config: this.#config,
         ts: this.#ts,
-        utils: new Utils(this.#ts),
         logger,
         getProgram: () => {
           return info.languageService.getProgram()!;
@@ -48,8 +47,6 @@ class HtmlPlugin {
           return info.project;
         },
       };
-
-      // hack ts 来收集自定义元素信息？
 
       const decoratedService = decorateLanguageService(info.languageService, context);
 
@@ -62,6 +59,7 @@ class HtmlPlugin {
           tags: ['styled', 'css'],
           enableForStringWithSubstitutions: true,
           getSubstitution,
+          isValidTemplate: (node) => isValidCSSTemplate(this.#ts, node, 'css'),
         },
         { logger },
       );
@@ -72,7 +70,7 @@ class HtmlPlugin {
         info.project,
         new HTMLLanguageService(context),
         {
-          tags: ['html', 'raw'],
+          tags: ['html', 'raw', 'h'],
           enableForStringWithSubstitutions: true,
           getSubstitution,
         },

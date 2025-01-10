@@ -9,13 +9,14 @@
   "main": "dist/index.js",
   "files": [],
   "scripts": {
-    "prepublishOnly": "esbuild ./src/index.ts --outdir=./dist --platform=node --sourcemap --bundle --external:@vscode/emmet-helper --external:vscode-* --external:typescript-*",
-    "start": "pnpm run prepublishOnly --watch"
+    "build": "esbuild ./src/index.ts --outdir=./dist --platform=node --sourcemap --bundle --external:@vscode/* --external:@mantou/typescript-* --external:vscode-*",
+    "start": "pnpm run build --watch",
+    "prepublishOnly": "pnpm run build"
   },
   "dependencies": {
+    "@mantou/typescript-template-language-service-decorator": "^2.3.2",
     "@vscode/emmet-helper": "^2.9.3",
     "duoyun-ui": "^2.2.0",
-    "typescript-template-language-service-decorator": "^2.3.2",
     "vscode-css-languageservice": "^6.3.1",
     "vscode-html-languageservice": "^5.3.1",
     "vscode-languageserver-textdocument": "^1.0.12",

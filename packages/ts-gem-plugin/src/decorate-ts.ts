@@ -1,14 +1,13 @@
 import type * as ts from 'typescript/lib/tsserverlibrary';
 import type { LanguageService } from 'typescript';
-import type { Logger } from 'typescript-template-language-service-decorator';
+import type { Logger } from '@mantou/typescript-template-language-service-decorator';
 
-import { decorate, type Utils } from './utils';
+import { decorate, getAstNodeAtPosition } from './utils';
 import type { Configuration } from './configuration';
 
 export type Context = {
   config: Configuration;
   ts: typeof ts;
-  utils: Utils;
   logger: Logger;
   getProgram: LanguageService['getProgram'];
   getProject: () => ts.server.Project;
@@ -37,7 +36,7 @@ function decorateTypeChecker(typeChecker: ts.TypeChecker, context: Context) {
 }
 
 export function decorateLanguageService(languageService: LanguageService, ctx: Context) {
-  const { ts, utils, getProgram } = ctx;
+  const { ts, getProgram } = ctx;
   const ls = Object.fromEntries(
     Object.entries(languageService).map(([key, value]) => [key, value.bind(languageService)]),
   ) as LanguageService;
@@ -55,7 +54,7 @@ export function decorateLanguageService(languageService: LanguageService, ctx: C
     return result.filter(({ start, reportsUnnecessary, category }) => {
       if (!reportsUnnecessary || category !== ts.DiagnosticCategory.Suggestion) return true;
 
-      const node = utils.getAstNodeAtPosition(file, start);
+      const node = getAstNodeAtPosition(ts, file, start);
       if (!node || !ts.isPrivateIdentifier(node)) return true;
 
       const declaration = (node as ts.PrivateIdentifier).parent;

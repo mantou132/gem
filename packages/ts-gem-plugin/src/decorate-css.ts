@@ -1,5 +1,5 @@
 import type * as ts from 'typescript/lib/tsserverlibrary';
-import type { TemplateLanguageService, TemplateContext } from 'typescript-template-language-service-decorator';
+import type { TemplateLanguageService, TemplateContext } from '@mantou/typescript-template-language-service-decorator';
 import type { CompletionList } from 'vscode-css-languageservice';
 import { getCSSLanguageService } from 'vscode-css-languageservice';
 import { doComplete as doEmmetComplete } from '@vscode/emmet-helper';
@@ -25,9 +25,9 @@ export class CSSLanguageService implements TemplateLanguageService {
   }
 
   #normalize = (context: TemplateContext, position: ts.LineAndCharacter) => {
-    const tagged = context.node.parent;
-    const tag = context.typescript.isTaggedTemplateExpression(tagged) && tagged.tag.getText();
-    if (tag === 'styled') {
+    const parent = context.node.parent;
+    const tag = context.typescript.isTaggedTemplateExpression(parent) && parent.tag.getText();
+    if (context.typescript.isPropertyAssignment(parent) || tag === 'styled') {
       const appendBefore = '.parent { ';
       const appendAfter = ' }';
       return {

@@ -7,6 +7,11 @@
       (#set! "language" "css"))))))
 
 (call_expression
+  function: (identifier) @_name (#eq? @_name "css")
+  arguments: (arguments ((template_string (string_fragment) @content
+    (#set! "language" "css")))))
+
+(call_expression
   function: (identifier) @_name (#match? @_name "^styled(\\.\\w+)?$")
   arguments: (template_string (string_fragment) @content
                               (#set! "language" "css"))

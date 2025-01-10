@@ -1,4 +1,4 @@
-import type { TemplateContext } from 'typescript-template-language-service-decorator';
+import type { TemplateContext } from '@mantou/typescript-template-language-service-decorator';
 import type { Position } from 'vscode-languageserver-textdocument';
 import { Cache } from 'duoyun-ui/lib/cache';
 
