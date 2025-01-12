@@ -1,14 +1,28 @@
 import type * as ts from 'typescript/lib/tsserverlibrary';
 import type { TemplateLanguageService, TemplateContext } from '@mantou/typescript-template-language-service-decorator';
-import type { CompletionList, HTMLDocument, Position, Range } from 'vscode-html-languageservice';
-import { getLanguageService as getHTMLanguageService } from 'vscode-html-languageservice';
+import type {
+  CompletionList,
+  HTMLDocument,
+  IAttributeData,
+  ITagData,
+  Position,
+  Range,
+} from 'vscode-html-languageservice';
+import { getDefaultHTMLDataProvider, getLanguageService as getHTMLanguageService } from 'vscode-html-languageservice';
 import { doComplete as doEmmetComplete } from '@vscode/emmet-helper';
 import { getCSSLanguageService } from 'vscode-css-languageservice';
+import { isNotNullish } from 'duoyun-ui/lib/types';
+import { kebabToCamelCase } from '@mantou/gem/lib/utils';
 
-import type { Context } from './decorate-ts';
+import type { Context } from './configuration';
 import {
   createVirtualDocument,
   genDefaultCompletionEntryDetails,
+  getAttrName,
+  getDocComment,
+  getHTMLTextAtPosition,
+  isCustomElement,
+  isDepElement,
   translateCompletionItemsToCompletionEntryDetails,
   translateCompletionItemsToCompletionInfo,
   translateHover,
@@ -18,12 +32,52 @@ import { LRUCache } from './cache';
 export class HTMLLanguageService implements TemplateLanguageService {
   #completionsCache = new LRUCache<CompletionList>();
   #diagnosticsCache = new LRUCache<ts.Diagnostic[]>();
-  #htmlLanguageService = getHTMLanguageService();
-  #cssLanguageService = getCSSLanguageService();
+  #cssLanguageService: ReturnType<typeof getCSSLanguageService>;
+  #htmlLanguageService: ReturnType<typeof getHTMLanguageService>;
   #ctx: Context;
 
   constructor(ctx: Context) {
     this.#ctx = ctx;
+    const ts = ctx.ts;
+    const htmlDataProvider = getDefaultHTMLDataProvider();
+    const provideTags = htmlDataProvider.provideTags.bind(htmlDataProvider);
+    htmlDataProvider.provideTags = () => {
+      const result = [...ctx.elements]
+        .map<ITagData | undefined>(([tag, node]) => ({
+          name: tag,
+          attributes: [],
+          description: getDocComment(ts, node),
+        }))
+        .filter(isNotNullish);
+      return [...result, ...provideTags()];
+    };
+    const provideAttributes = htmlDataProvider.provideAttributes.bind(htmlDataProvider);
+    htmlDataProvider.provideAttributes = (tag: string) => {
+      const typeChecker = ctx.getProgram()!.getTypeChecker();
+      const node = ctx.elements.get(tag);
+      const isDep = node && isDepElement(node);
+      const props = node && typeChecker.getTypeAtLocation(node).getApparentProperties();
+      const result = (props || [])
+        .map<IAttributeData | undefined>((e) => {
+          const declaration = e.getDeclarations()?.at(0);
+          const prop = declaration && ts.isPropertyDeclaration(declaration);
+          if (!prop) return;
+          const hasPropDecorator = declaration.modifiers?.some(
+            (m) => ts.isDecorator(m) && ts.isIdentifier(m.expression),
+          );
+          if (!hasPropDecorator && !isDep) return;
+          const type = declaration.type && typeChecker.getTypeFromTypeNode(declaration.type);
+          return {
+            name: type === typeChecker.getBooleanType() ? e.name : `.${e.name}`,
+            description: getDocComment(ts, declaration!),
+            valueSet: 'v',
+          };
+        })
+        .filter(isNotNullish);
+      return [...result, ...provideAttributes(isCustomElement(tag) ? 'div' : tag)];
+    };
+    this.#htmlLanguageService = getHTMLanguageService({ customDataProviders: [htmlDataProvider] });
+    this.#cssLanguageService = getCSSLanguageService({ useDefaultDataProvider: true });
   }
 
   #getAllCssDoc(doc: HTMLDocument) {
@@ -176,5 +230,62 @@ export class HTMLLanguageService implements TemplateLanguageService {
         })
         .flat(),
     );
+  }
+
+  getDefinitionAndBoundSpan(context: TemplateContext, position: ts.LineAndCharacter): ts.DefinitionInfoAndBoundSpan {
+    // typescript-template-language-service-decorator 根据当前文档位置偏移了
+    const htmlOffset = context.node.pos + 1;
+    const virtualDocument = createVirtualDocument('html', context.text);
+    const vHtml = this.#htmlLanguageService.parseHTMLDocument(virtualDocument);
+    const offset = context.toOffset(position);
+    const node = vHtml.findNodeAt(offset);
+    const { text, start, length } = getHTMLTextAtPosition(context.text, offset);
+    const definitionNode = this.#ctx.elements.get(node.tag!);
+
+    if (!definitionNode || node.tag === 'style' || offset > node.startTagEnd! || !text) {
+      return { textSpan: { start, length } };
+    }
+
+    if (text === node.tag) {
+      return {
+        textSpan: { start, length },
+        definitions: [
+          {
+            containerName: 'Custom Element',
+            containerKind: context.typescript.ScriptElementKind.unknown,
+            name: definitionNode.name!.text,
+            kind: context.typescript.ScriptElementKind.classElement,
+            fileName: definitionNode.getSourceFile().fileName,
+            textSpan: {
+              start: definitionNode.name!.getStart() - htmlOffset,
+              length: definitionNode.name!.text.length,
+            },
+          },
+        ],
+      };
+    }
+
+    const { attr, type } = getAttrName(text);
+    const typeChecker = this.#ctx.getProgram()!.getTypeChecker();
+    const propSymbol = typeChecker.getTypeAtLocation(definitionNode).getProperty(kebabToCamelCase(attr));
+    const propDeclaration = propSymbol?.getDeclarations()?.at(0);
+    return {
+      textSpan: { start: type ? start + 1 : start, length: attr.length },
+      definitions: !propDeclaration
+        ? undefined
+        : [
+            {
+              containerName: 'Attribute',
+              containerKind: context.typescript.ScriptElementKind.unknown,
+              name: propDeclaration.getText(),
+              kind: context.typescript.ScriptElementKind.memberVariableElement,
+              fileName: propDeclaration.getSourceFile().fileName,
+              textSpan: {
+                start: propDeclaration.getStart() - htmlOffset,
+                length: propDeclaration.getText().length,
+              },
+            },
+          ],
+    };
   }
 }

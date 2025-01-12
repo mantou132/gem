@@ -4,7 +4,7 @@ import type { CompletionList } from 'vscode-css-languageservice';
 import { getCSSLanguageService } from 'vscode-css-languageservice';
 import { doComplete as doEmmetComplete } from '@vscode/emmet-helper';
 
-import type { Context } from './decorate-ts';
+import type { Context } from './configuration';
 import {
   createVirtualDocument,
   genDefaultCompletionEntryDetails,

@@ -14,6 +14,7 @@
     "prepublishOnly": "pnpm run build"
   },
   "dependencies": {
+    "@mantou/gem": "^2.2.0",
     "@mantou/typescript-template-language-service-decorator": "^2.3.2",
     "@vscode/emmet-helper": "^2.9.3",
     "duoyun-ui": "^2.2.0",

@@ -359,6 +359,9 @@ importers:
 
   packages/ts-gem-plugin:
     dependencies:
+      '@mantou/gem':
+        specifier: ^2.2.0
+        version: link:../gem
       '@mantou/typescript-template-language-service-decorator':
         specifier: ^2.3.2
         version: 2.3.2

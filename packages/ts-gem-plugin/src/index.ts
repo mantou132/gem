@@ -5,10 +5,10 @@ import type { Logger } from '@mantou/typescript-template-language-service-decora
 import type * as ts from 'typescript/lib/tsserverlibrary';
 
 import { HTMLLanguageService } from './decorate-html';
-import type { Context } from './decorate-ts';
 import { decorateLanguageService } from './decorate-ts';
 import { decorate, getSubstitution, isValidCSSTemplate } from './utils';
-import { Configuration } from './configuration';
+import type { Context } from './configuration';
+import { Configuration, Store } from './configuration';
 import { CSSLanguageService } from './decorate-css';
 
 class LanguageServiceLogger implements Logger {
@@ -40,6 +40,7 @@ class HtmlPlugin {
         config: this.#config,
         ts: this.#ts,
         logger,
+        elements: new Store(),
         getProgram: () => {
           return info.languageService.getProgram()!;
         },
@@ -48,7 +49,7 @@ class HtmlPlugin {
         },
       };
 
-      const decoratedService = decorateLanguageService(info.languageService, context);
+      const decoratedService = decorateLanguageService(context, info.languageService);
 
       const decoratedService1 = decorateWithTemplateLanguageService(
         this.#ts,

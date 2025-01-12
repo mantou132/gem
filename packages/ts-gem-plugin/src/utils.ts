@@ -3,6 +3,109 @@ import * as vscode from 'vscode-languageserver-types';
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import type { TemplateContext } from '@mantou/typescript-template-language-service-decorator';
 
+export function isCustomElement(tag: string) {
+  return tag.includes('-');
+}
+
+export function isDepElement(node: ts.Node) {
+  return node.getSourceFile().fileName.includes('/node_modules/');
+}
+
+const openTagReg = /(?<prefix><)(?<tag>\w+-\w+)\s+/g;
+export function forEachTag(
+  typescript: typeof ts,
+  containerNode: ts.Node,
+  fn: (tags: { tag: string; length: number; start: number }) => void,
+) {
+  const list = [containerNode];
+  while (true) {
+    const currentNode = list.pop();
+    if (!currentNode) return;
+    typescript.forEachChild(currentNode, (node) => {
+      list.push(node);
+      if (
+        typescript.isTemplateHead(node) ||
+        typescript.isTemplateMiddle(node) ||
+        typescript.isTemplateTail(node) ||
+        typescript.isNoSubstitutionTemplateLiteral(node)
+      ) {
+        [...node.text.matchAll(openTagReg)].forEach((e) => {
+          const { prefix = '', tag } = e.groups!;
+          const start = node.getStart() + 1 + prefix.length + e.index;
+          fn({ tag, length: tag.length, start });
+        });
+      }
+    });
+  }
+}
+
+export function getHTMLTextAtPosition(text: string, offset: number) {
+  const before =
+    text
+      .slice(0, offset)
+      .match(/[^ \n<>]+$/)
+      ?.at(0) || '';
+  const after =
+    text
+      .slice(offset)
+      .match(/^[^ \n<>]+/)
+      ?.at(0) || '';
+  const str = before + after;
+  return {
+    text: str,
+    start: offset - before.length,
+    length: str.length,
+  };
+}
+
+const attrMap: Record<string, 'property' | 'boolean' | 'event'> = {
+  '.': 'property',
+  '?': 'boolean',
+  '@': 'event',
+};
+export function getAttrName(text: string) {
+  const attr = text.split('=').at(0)!;
+  const char = attr.at(0)!;
+  if (char in attrMap) {
+    return { attr: attr.slice(1), type: attrMap[char] };
+  }
+  return { attr };
+}
+
+export function getCustomElementTag(typescript: typeof ts, node: ts.Node, isDep = isDepElement(node)) {
+  if (!typescript.isClassDeclaration(node)) return;
+
+  for (const modifier of node.modifiers || []) {
+    if (
+      typescript.isDecorator(modifier) &&
+      typescript.isCallExpression(modifier.expression) &&
+      modifier.expression.expression.getText() === 'customElement'
+    ) {
+      const arg = modifier.expression.arguments.at(0);
+      if (arg && typescript.isStringLiteral(arg)) {
+        return arg.text;
+      }
+    }
+  }
+
+  // 只有声明文件
+  if (isDep && node.name && typescript.isIdentifier(node.name)) {
+    const name = node.name.text;
+    if (name.endsWith('Element')) {
+      return name;
+    }
+  }
+}
+
+export function getDocComment(typescript: typeof ts, declaration: ts.Node) {
+  const fullText = declaration.getSourceFile().getFullText();
+  const commentRanges = typescript.getLeadingCommentRanges(fullText, declaration.getFullStart());
+  const commentStrings = commentRanges
+    ?.filter(({ kind }) => kind === typescript.SyntaxKind.MultiLineCommentTrivia)
+    .map(({ pos, end }) => fullText.slice(pos, end));
+  return commentStrings?.join('\n');
+}
+
 export function getAstNodeAtPosition(typescript: typeof ts, node: ts.Node, pos: number) {
   if (node.pos > pos || node.end <= pos) return;
   while (node.kind >= typescript.SyntaxKind.FirstNode) {
@@ -14,9 +117,10 @@ export function getAstNodeAtPosition(typescript: typeof ts, node: ts.Node, pos: 
 }
 
 const marker = Symbol();
-export function decorate<T>(origin: T, fn: (o: T) => T): T {
+/**只调用一次回调函数 */
+export function decorate<T>(origin: T, cb: (o: T) => T): T {
   if ((origin as any)[marker]) return origin;
-  const result = fn(origin);
+  const result = cb(origin);
   (result as any)[marker] = true;
   return result;
 }
