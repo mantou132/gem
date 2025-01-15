@@ -365,18 +365,18 @@ importers:
       '@mantou/typescript-template-language-service-decorator':
         specifier: ^2.3.2
         version: 2.3.2
-      '@vscode/emmet-helper':
+      '@mantou/vscode-css-languageservice':
+        specifier: ^6.3.2
+        version: 6.3.2
+      '@mantou/vscode-emmet-helper':
         specifier: ^2.9.3
-        version: 2.9.3
+        version: 2.11.0
+      '@mantou/vscode-html-languageservice':
+        specifier: ^5.3.2
+        version: 5.3.2
       duoyun-ui:
         specifier: ^2.2.0
         version: link:../duoyun-ui
-      vscode-css-languageservice:
-        specifier: ^6.3.1
-        version: 6.3.1
-      vscode-html-languageservice:
-        specifier: ^5.3.1
-        version: 5.3.1
       vscode-languageserver-textdocument:
         specifier: ^1.0.12
         version: 1.0.12
@@ -1533,6 +1533,15 @@ packages:
 
   '@mantou/typescript-template-language-service-decorator@2.3.2':
     resolution: {integrity: sha512-vk1fnDqn3uLu1LYo1wckBMF9ZXFcM6LBtn3slEXTMhrzTCBryvCZ7wj27du4m0QQTgl4wae49fblyIho4nB7Ow==}
+
+  '@mantou/vscode-css-languageservice@6.3.2':
+    resolution: {integrity: sha512-HnFmbhLYXiO3uD05zBwGFErml9fhpQ6enkWUXykl5qC0+csWLLj/5ODcnpBvIVBf7v6wqbkLRQr5DJekw4kN2A==}
+
+  '@mantou/vscode-emmet-helper@2.11.0':
+    resolution: {integrity: sha512-TTuRAmRP8Q+6OPMbpuj6g/pbsEhLT4zoeSMbEnGcoZJiQ36+TlnoGsKhPesL/xvA6SsOQkJqaIUqhS3M/vvhFA==}
+
+  '@mantou/vscode-html-languageservice@5.3.2':
+    resolution: {integrity: sha512-2HWJmpdxaeM1hEfOe+7VGEjBQ5d2+/hkF9pWIsDrVYRE0zXMlQRN1aWhhzKCJ/jl5DFQ758Nq/n+7gfvFzoSGw==}
 
   '@mdn/browser-compat-data@4.2.1':
     resolution: {integrity: sha512-EWUguj2kd7ldmrF9F+vI5hUOralPd+sdsUnYbRy33vZTuZkduC1shE9TtEMEjAQwyfyMb4ole5KtjF8MsnQOlA==}
@@ -9229,6 +9238,28 @@ snapshots:
       - typescript
 
   '@mantou/typescript-template-language-service-decorator@2.3.2': {}
+
+  '@mantou/vscode-css-languageservice@6.3.2':
+    dependencies:
+      '@vscode/l10n': 0.0.18
+      vscode-languageserver-textdocument: 1.0.12
+      vscode-languageserver-types: 3.17.5
+      vscode-uri: 3.0.8
+
+  '@mantou/vscode-emmet-helper@2.11.0':
+    dependencies:
+      emmet: 2.4.11
+      jsonc-parser: 2.3.1
+      vscode-languageserver-textdocument: 1.0.12
+      vscode-languageserver-types: 3.17.5
+      vscode-uri: 3.0.8
+
+  '@mantou/vscode-html-languageservice@5.3.2':
+    dependencies:
+      '@vscode/l10n': 0.0.18
+      vscode-languageserver-textdocument: 1.0.12
+      vscode-languageserver-types: 3.17.5
+      vscode-uri: 3.0.8
 
   '@mdn/browser-compat-data@4.2.1': {}
 

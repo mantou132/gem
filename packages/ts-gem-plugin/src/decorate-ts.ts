@@ -1,16 +1,23 @@
 import type * as ts from 'typescript/lib/tsserverlibrary';
 import type { LanguageService } from 'typescript';
 
-import { decorate, forEachTag, getAstNodeAtPosition, getCustomElementTag, isDepElement } from './utils';
+import {
+  bindMemberFunction,
+  decorate,
+  forEachTag,
+  getAstNodeAtPosition,
+  getCustomElementTag,
+  isDepElement,
+} from './utils';
 import type { Context } from './configuration';
 
 function decorateTypeChecker(ctx: Context, typeChecker: ts.TypeChecker) {
-  const fn = (typeChecker as any).isValidPropertyAccessForCompletions.bind(typeChecker);
-
   // https://github.com/microsoft/TypeScript/blob/main/src/services/completions.ts#L3789
   // https://github.com/microsoft/TypeScript/blob/main/src/compiler/types.ts#L5217
-  (typeChecker as any).isValidPropertyAccessForCompletions = (...args: any[]) => {
-    const result = fn(...args);
+  const internal = typeChecker as unknown as { isValidPropertyAccessForCompletions: (...a: any) => any };
+  const checker = bindMemberFunction(internal, ['isValidPropertyAccessForCompletions']);
+  internal.isValidPropertyAccessForCompletions = (...args: any[]) => {
+    const result = checker.isValidPropertyAccessForCompletions(...args);
     if (!result) return false;
     try {
       const { declarations } = args.at(2) as ts.Symbol;
@@ -30,7 +37,7 @@ function updateElement(ctx: Context, file: ts.SourceFile) {
   const isDep = isDepElement(file);
   // 只支持顶级 class 声明
   ctx.ts.forEachChild(file, (node) => {
-    const tag = getCustomElementTag(ctx.ts, node, isDep);
+    const tag = getCustomElementTag(ctx, node, isDep);
     if (tag && ctx.ts.isClassDeclaration(node)) {
       ctx.elements.set(tag, node);
     }
@@ -39,9 +46,7 @@ function updateElement(ctx: Context, file: ts.SourceFile) {
 
 export function decorateLanguageService(ctx: Context, languageService: LanguageService) {
   const { ts, getProgram } = ctx;
-  const ls = Object.fromEntries(
-    Object.entries(languageService).map(([key, value]) => [key, value.bind(languageService)]),
-  ) as LanguageService;
+  const ls = bindMemberFunction(languageService);
 
   languageService.getCompletionsAtPosition = (...args) => {
     const program = getProgram()!;
@@ -52,12 +57,21 @@ export function decorateLanguageService(ctx: Context, languageService: LanguageS
   };
 
   languageService.findReferences = (...args) => {
+    const oResult = ls.findReferences(...args) || [];
     const program = getProgram()!;
     const result: ReturnType<typeof ls.findReferences> = [];
     const currentNode = getAstNodeAtPosition(ts, program.getSourceFile(args[0])!, args[1]);
-    const currentTag = currentNode && getCustomElementTag(ts, currentNode.parent);
+    if (!currentNode) return oResult;
+    const isIdent = ts.isIdentifier(currentNode);
+    if (!isIdent) return oResult;
+    const currentTag =
+      getCustomElementTag(ctx, currentNode.parent) || getCustomElementTag(ctx, currentNode.parent.parent);
+    const _propName = ts.isClassDeclaration(currentNode.parent.parent) && currentNode.text;
+    if (!currentTag) return oResult;
     for (const file of program.getSourceFiles()) {
+      if (file.fileName.endsWith('.d.ts')) continue;
       const references: ts.ReferencedSymbolEntry[] = [];
+      // TODO: find props / attr references
       forEachTag(ts, file, ({ tag, length, start }) => {
         if (tag !== currentTag) return;
         references.push({
@@ -81,7 +95,7 @@ export function decorateLanguageService(ctx: Context, languageService: LanguageS
         },
       });
     }
-    return [...result, ...(ls.findReferences(...args) || [])];
+    return [...result, ...oResult];
   };
 
   languageService.getSuggestionDiagnostics = (...args) => {

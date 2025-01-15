@@ -4,6 +4,7 @@ export type StringList<T> = T | (string & Record<string, unknown>);
 export type ElementOf<T> = T extends (infer E)[] ? E : never;
 export type ValueOf<T> = T[keyof T];
 export type Modify<T, R> = Omit<T, keyof R> & R;
+export type DeepPartial<T> = { [P in keyof T]?: DeepPartial<T[P]> };
 
 export function isNullish<T>(v: T | undefined | null): v is null | undefined {
   return v === null || v === undefined;

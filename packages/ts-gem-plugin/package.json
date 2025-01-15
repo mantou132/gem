@@ -9,17 +9,17 @@
   "main": "dist/index.js",
   "files": [],
   "scripts": {
-    "build": "esbuild ./src/index.ts --outdir=./dist --platform=node --sourcemap --bundle --external:@vscode/* --external:@mantou/typescript-* --external:vscode-*",
+    "build": "esbuild ./src/index.ts --outdir=./dist --platform=node --sourcemap --bundle --external:@mantou/typescript-* --external:@mantou/vscode-* --external:vscode-*",
     "start": "pnpm run build --watch",
     "prepublishOnly": "pnpm run build"
   },
   "dependencies": {
     "@mantou/gem": "^2.2.0",
     "@mantou/typescript-template-language-service-decorator": "^2.3.2",
-    "@vscode/emmet-helper": "^2.9.3",
+    "@mantou/vscode-css-languageservice": "^6.3.2",
+    "@mantou/vscode-emmet-helper": "^2.9.3",
+    "@mantou/vscode-html-languageservice": "^5.3.2",
     "duoyun-ui": "^2.2.0",
-    "vscode-css-languageservice": "^6.3.1",
-    "vscode-html-languageservice": "^5.3.1",
     "vscode-languageserver-textdocument": "^1.0.12",
     "vscode-languageserver-types": "^3.17.5"
   },

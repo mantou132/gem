@@ -31,22 +31,12 @@
         "id": "gem",
         "title": "Gem",
         "properties": {
-          "gem.tags": {
-            "type": "array",
-            "description": "List of template tags to enable html intellisense in.",
-            "items": {
-              "type": "string",
-              "description": "Tag name."
-            },
-            "default": [
-              "html",
-              "raw"
-            ]
+          "gem.emmet": {
+            "type": "object",
+            "description": "View [doc](https://github.com/microsoft/vscode-emmet-helper/blob/main/src/emmetHelper.ts#L53)"
           },
-          "gem.format.enabled": {
-            "type": "boolean",
-            "description": "Enable/disable formatting of html template strings.",
-            "default": true
+          "gem.elementDefineRules": {
+            "type": "object"
           }
         }
       }

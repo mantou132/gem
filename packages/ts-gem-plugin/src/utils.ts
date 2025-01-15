@@ -2,8 +2,12 @@ import type * as ts from 'typescript/lib/tsserverlibrary';
 import * as vscode from 'vscode-languageserver-types';
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import type { TemplateContext } from '@mantou/typescript-template-language-service-decorator';
+import type { IValueData } from '@mantou/vscode-html-languageservice';
+import { camelToKebabCase } from '@mantou/gem/lib/utils';
 
-export function isCustomElement(tag: string) {
+import type { Context } from './configuration';
+
+export function isCustomElementTag(tag: string) {
   return tag.includes('-');
 }
 
@@ -11,7 +15,11 @@ export function isDepElement(node: ts.Node) {
   return node.getSourceFile().fileName.includes('/node_modules/');
 }
 
-const openTagReg = /(?<prefix><)(?<tag>\w+-\w+)\s+/g;
+export function bindMemberFunction<T extends object>(o: T, keys = Object.keys(o) as (keyof T)[]) {
+  return Object.fromEntries(keys.map((key) => [key, (o as any)[key].bind?.(o)])) as T;
+}
+
+const OPEN_TAG_REG = /(?<prefix><)(?<tag>(\w+-)+\w+)\s+/g;
 export function forEachTag(
   typescript: typeof ts,
   containerNode: ts.Node,
@@ -29,7 +37,7 @@ export function forEachTag(
         typescript.isTemplateTail(node) ||
         typescript.isNoSubstitutionTemplateLiteral(node)
       ) {
-        [...node.text.matchAll(openTagReg)].forEach((e) => {
+        [...node.text.matchAll(OPEN_TAG_REG)].forEach((e) => {
           const { prefix = '', tag } = e.groups!;
           const start = node.getStart() + 1 + prefix.length + e.index;
           fn({ tag, length: tag.length, start });
@@ -39,40 +47,50 @@ export function forEachTag(
   }
 }
 
+const BEFORE_REG = /[^\s</>]+$/;
+const AFTER_REG = /^[^\s</>]+/;
+/**获取 Tag 或者 Attribute */
 export function getHTMLTextAtPosition(text: string, offset: number) {
-  const before =
-    text
-      .slice(0, offset)
-      .match(/[^ \n<>]+$/)
-      ?.at(0) || '';
-  const after =
-    text
-      .slice(offset)
-      .match(/^[^ \n<>]+/)
-      ?.at(0) || '';
+  const before = text.slice(0, offset).match(BEFORE_REG)?.at(0) || '';
+  const after = text.slice(offset).match(AFTER_REG)?.at(0) || '';
   const str = before + after;
-  return {
-    text: str,
-    start: offset - before.length,
-    length: str.length,
-  };
+  return { before, after, text: str, start: offset - before.length, length: str.length };
 }
 
-const attrMap: Record<string, 'property' | 'boolean' | 'event'> = {
-  '.': 'property',
-  '?': 'boolean',
-  '@': 'event',
-};
+/**从属性键值字符串上解析出不包含装饰符的名称 */
 export function getAttrName(text: string) {
   const attr = text.split('=').at(0)!;
-  const char = attr.at(0)!;
-  if (char in attrMap) {
-    return { attr: attr.slice(1), type: attrMap[char] };
-  }
-  return { attr };
+  const isNotLetter = attr.at(0)!.charCodeAt(0) < 65;
+  const offset = isNotLetter ? 1 : 0;
+  return { attr: attr.slice(offset), offset };
 }
 
-export function getCustomElementTag(typescript: typeof ts, node: ts.Node, isDep = isDepElement(node)) {
+// TODO: use typeChecker
+const STRING_REG = /("|')(?<str>.*)\1/;
+export function getBasicUnionValues(node?: ts.Node) {
+  const typeText = (node as ts.PropertyDeclaration)?.type?.getText();
+  if (!typeText) return;
+
+  const result: IValueData[] = [];
+  for (const text of typeText.split('|')) {
+    const t = text.trim();
+    if (!t) continue;
+    const number = Number(t);
+    if (!Number.isNaN(number)) {
+      result.push({ name: t });
+      continue;
+    }
+    const match = t.match(STRING_REG);
+    if (!match) {
+      // 有个元素不是字符串也不是数字
+      return;
+    }
+    result.push({ name: match.groups!.str });
+  }
+  if (result.length) return result;
+}
+
+export function getCustomElementTag({ ts: typescript, config }: Context, node: ts.Node, isDep = isDepElement(node)) {
   if (!typescript.isClassDeclaration(node)) return;
 
   for (const modifier of node.modifiers || []) {
@@ -90,20 +108,21 @@ export function getCustomElementTag(typescript: typeof ts, node: ts.Node, isDep 
 
   // 只有声明文件
   if (isDep && node.name && typescript.isIdentifier(node.name)) {
-    const name = node.name.text;
-    if (name.endsWith('Element')) {
-      return name;
-    }
+    return config.elementDefineRules.findTag(node.name.text);
   }
 }
 
+const COMMENT_LINE_CONTENT = /^(\/?[ *\t]*)?(?<str>.*?)(\**\/)?$/gm;
 export function getDocComment(typescript: typeof ts, declaration: ts.Node) {
   const fullText = declaration.getSourceFile().getFullText();
   const commentRanges = typescript.getLeadingCommentRanges(fullText, declaration.getFullStart());
   const commentStrings = commentRanges
     ?.filter(({ kind }) => kind === typescript.SyntaxKind.MultiLineCommentTrivia)
-    .map(({ pos, end }) => fullText.slice(pos, end));
-  return commentStrings?.join('\n');
+    .map(({ pos, end }) => {
+      const fullComment = [...fullText.slice(pos, end).matchAll(COMMENT_LINE_CONTENT)];
+      return fullComment.map((m) => m.groups!.str).join('\n');
+    });
+  return commentStrings?.join('\n\n');
 }
 
 export function getAstNodeAtPosition(typescript: typeof ts, node: ts.Node, pos: number) {

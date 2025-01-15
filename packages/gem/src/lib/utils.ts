@@ -251,7 +251,7 @@ export function randomStr(len = 5): string {
 }
 
 export function camelToKebabCase(str: string) {
-  return str.replace(/[A-Z]/g, ($1: string) => '-' + $1.toLowerCase());
+  return str.replace(/([a-z0-9])([A-Z])/g, '$1-$2').toLowerCase();
 }
 
 export function kebabToCamelCase(str: string) {

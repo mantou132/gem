@@ -1,45 +1,58 @@
 import type { Logger } from '@mantou/typescript-template-language-service-decorator';
+import type { VSCodeEmmetConfig } from '@mantou/vscode-emmet-helper';
 import type { LanguageService } from 'typescript';
 import type * as ts from 'typescript/lib/tsserverlibrary';
+import { camelToKebabCase } from '@mantou/gem/lib/utils';
 
-interface FormatConfig {
-  readonly enabled: boolean;
-}
-
-interface PluginConfiguration {
-  readonly emmet: any;
-  readonly tags: ReadonlyArray<string>;
-  readonly format: FormatConfig;
+export interface PluginConfiguration {
+  emmet: VSCodeEmmetConfig;
+  elementDefineRules: Record<string, string>;
 }
 
 const defaultConfiguration: PluginConfiguration = {
   emmet: {},
-  tags: ['html', 'raw'],
-  format: {
-    enabled: true,
+  elementDefineRules: {
+    'Duoyun*Element': 'dy-*',
+    '*Element': '*',
   },
 };
 
+// 类似自动导入
+class Rules {
+  #map = new Map<RegExp, string>();
+  constructor(data: PluginConfiguration['elementDefineRules']) {
+    Object.entries(data).forEach(([classNamePattern, tagPattern]) => {
+      this.#map.set(new RegExp(classNamePattern.replace('*', '(.*)')), tagPattern.replace('*', '$1'));
+    });
+  }
+
+  findTag(className: string) {
+    for (const [reg, replaceStr] of this.#map) {
+      if (reg.exec(className)) {
+        return camelToKebabCase(className.replace(reg, replaceStr));
+      }
+    }
+  }
+}
+
 export class Configuration {
   #emmet = defaultConfiguration.emmet;
-  #format = defaultConfiguration.format;
-  #tags = defaultConfiguration.tags;
+  #elementDefineRules = new Rules(defaultConfiguration.elementDefineRules);
 
   update(config: any) {
-    this.#format = Object.assign({}, defaultConfiguration.format, config.format || {});
-    this.#tags = config.tags || defaultConfiguration.tags;
+    this.#emmet = config.emmet || defaultConfiguration.emmet;
+    this.#elementDefineRules = new Rules({
+      ...defaultConfiguration.elementDefineRules,
+      ...config.elementDefineRules,
+    });
   }
 
   get emmet() {
     return this.#emmet;
   }
 
-  get format() {
-    return this.#format;
-  }
-
-  get tags() {
-    return this.#tags;
+  get elementDefineRules() {
+    return this.#elementDefineRules;
   }
 }
 

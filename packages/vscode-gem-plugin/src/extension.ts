@@ -1,6 +1,7 @@
 // eslint-disable-next-line import/no-unresolved
 import { commands, window, workspace, extensions, languages } from 'vscode';
 import type { ExtensionContext, WorkspaceConfiguration } from 'vscode';
+import type { PluginConfiguration } from 'ts-gem-plugin/src/configuration';
 
 import { ColorProvider } from './color';
 
@@ -45,27 +46,16 @@ function synchronizeConfiguration(api: any) {
   api.configurePlugin(pluginId, getConfiguration());
 }
 
-interface SynchronizedConfiguration {
-  emmet: any;
-  tags?: ReadonlyArray<string>;
-  format: {
-    enabled?: boolean;
-  };
-}
-
-function getConfiguration(): SynchronizedConfiguration {
+function getConfiguration(): Partial<PluginConfiguration> {
   const config = workspace.getConfiguration(configurationSection);
-  const outConfig: SynchronizedConfiguration = {
-    format: {},
-    emmet: workspace.getConfiguration('emmet'),
+  const outConfig: Partial<PluginConfiguration> = {
+    emmet: workspace.getConfiguration('emmet') as PluginConfiguration['emmet'],
   };
 
-  withConfigValue<string[]>(config, 'tags', (tags) => {
-    outConfig.tags = tags;
-  });
-
-  withConfigValue<boolean>(config, 'format.enabled', (enabled) => {
-    outConfig.format.enabled = enabled;
+  (['emmet', 'elementDefineRules'] as (keyof PluginConfiguration)[]).forEach((k) => {
+    withConfigValue<any>(config, k, (v) => {
+      outConfig[k] = v;
+    });
   });
 
   return outConfig;

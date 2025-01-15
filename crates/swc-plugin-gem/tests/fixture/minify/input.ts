@@ -15,6 +15,12 @@ const style2 = css({
 })
 const template = html`
   <div>
+    <!--
+      Line
+      测试
+    -->
+    content
+    <!--1211-->
     <span>${'test'}</span>
   </div>
 `

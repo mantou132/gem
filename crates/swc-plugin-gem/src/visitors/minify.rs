@@ -33,7 +33,8 @@ fn minify_css_style_tpl(tpl: &Tpl) -> Tpl {
 }
 
 static TAG_BEFORE_REG: Lazy<Regex> = Lazy::new(|| Regex::new(r"(?s)\s*<").unwrap());
-static TAG_AFTER_REG: Lazy<Regex> = Lazy::new(|| Regex::new(r"(?s)\s*>").unwrap());
+static TAG_AFTER_REG: Lazy<Regex> = Lazy::new(|| Regex::new(r"(?s)>\s*").unwrap());
+static TAG_COMMENT_REG: Lazy<Regex> = Lazy::new(|| Regex::new(r"(?s)<!--.*?-->").unwrap());
 
 fn minify_html_tpl(tpl: &Tpl) -> Tpl {
     Tpl {
@@ -44,12 +45,13 @@ fn minify_html_tpl(tpl: &Tpl) -> Tpl {
             .iter()
             .map(|x| {
                 let removed_before = &TAG_BEFORE_REG.replace_all(x.raw.as_str(), "<");
-                let removed_after = TAG_AFTER_REG.replace_all(removed_before, ">");
+                let removed_after = &TAG_AFTER_REG.replace_all(removed_before, ">");
+                let removed_comment = TAG_COMMENT_REG.replace_all(removed_after, "");
                 TplElement {
                     span: DUMMY_SP,
                     tail: x.tail,
                     cooked: None,
-                    raw: removed_after.into(),
+                    raw: removed_comment.into(),
                 }
             })
             .collect(),
