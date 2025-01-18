@@ -1,156 +1,27 @@
-import type * as ts from 'typescript/lib/tsserverlibrary';
-import type { TemplateLanguageService, TemplateContext } from '@mantou/typescript-template-language-service-decorator';
-import type {
-  CompletionList,
-  HTMLDocument,
-  IAttributeData,
-  IHTMLDataProvider,
-  Position,
-  Range,
-  TextDocument,
-} from '@mantou/vscode-html-languageservice';
-import {
-  getDefaultHTMLDataProvider,
-  getLanguageService as getHTMLanguageService,
-} from '@mantou/vscode-html-languageservice';
-import { doComplete as doEmmetComplete, updateTags } from '@mantou/vscode-emmet-helper';
-import type { Stylesheet } from '@mantou/vscode-css-languageservice';
-import { getCSSLanguageService, updateTags as updateCSSTags } from '@mantou/vscode-css-languageservice';
 import { kebabToCamelCase } from '@mantou/gem/lib/utils';
+import type { TemplateContext, TemplateLanguageService } from '@mantou/typescript-template-language-service-decorator';
+import { updateTags as updateCSSTags } from '@mantou/vscode-css-languageservice';
+import { doComplete as doEmmetComplete, updateTags } from '@mantou/vscode-emmet-helper';
+import type { CompletionList, HTMLDocument, Position, Range } from '@mantou/vscode-html-languageservice';
+import type * as ts from 'typescript/lib/tsserverlibrary';
 
-import type { Context } from './configuration';
+import { LRUCache } from './cache';
+import type { Context } from './context';
+import { forEachNode, getAttrName, getHTMLTextAtPosition, isCustomElementTag } from './utils';
 import {
-  createVirtualDocument,
   genDefaultCompletionEntryDetails,
-  getAttrName,
-  getDocComment,
-  getHTMLTextAtPosition,
-  isCustomElementTag,
-  isDepElement,
-  getBasicUnionValues,
   translateCompletionItemsToCompletionEntryDetails,
   translateCompletionItemsToCompletionInfo,
   translateHover,
-} from './utils';
-import type { CacheContext } from './cache';
-import { LRUCache } from './cache';
-
-const dataProvider = getDefaultHTMLDataProvider();
-
-class HTMLDataProvider implements IHTMLDataProvider {
-  #ctx: Context;
-  constructor(ctx: Context) {
-    this.#ctx = ctx;
-  }
-
-  getId() {
-    return 'gem';
-  }
-
-  isApplicable() {
-    return true;
-  }
-
-  provideTags() {
-    const { elements, ts } = this.#ctx;
-    return [...elements].map(([tag, node]) => ({
-      name: tag,
-      attributes: [],
-      description: getDocComment(ts, node),
-    }));
-  }
-
-  provideAttributes(tag: string) {
-    const { elements, ts, getProgram } = this.#ctx;
-    const typeChecker = getProgram()!.getTypeChecker();
-    const node = elements.get(tag);
-    if (!node) return [];
-    const isDep = isDepElement(node);
-    const result: IAttributeData[] = [];
-    const props = typeChecker.getTypeAtLocation(node).getApparentProperties();
-    // TODO: props, attributes
-    props.forEach((e) => {
-      const declaration = e.getDeclarations()?.at(0);
-      const prop = declaration && ts.isPropertyDeclaration(declaration);
-      if (!prop) return;
-      const hasPropDecorator = declaration.modifiers?.some((m) => ts.isDecorator(m) && ts.isIdentifier(m.expression));
-      if (!hasPropDecorator && !isDep) return;
-      const type = declaration.type && typeChecker.getTypeFromTypeNode(declaration.type);
-      const typeText = declaration.type?.getText();
-      const description = getDocComment(ts, declaration!);
-      switch (type) {
-        case typeChecker.getStringType():
-        case typeChecker.getNumberType():
-          result.push({ name: e.name, description });
-          break;
-        case typeChecker.getBooleanType():
-          result.push({ name: e.name, description, valueSet: 'v' });
-          result.push({ name: `?${e.name}`, description });
-          break;
-      }
-      if (getBasicUnionValues(declaration)) {
-        result.push({ name: e.name, description });
-      }
-      if (typeText?.startsWith('Emitter')) {
-        result.push({ name: `@${e.name}`, description });
-      } else {
-        result.push({ name: `.${e.name}`, description });
-      }
-    });
-    const oResult = dataProvider.provideAttributes(isCustomElementTag(tag) ? 'div' : tag);
-    oResult.forEach((data) => {
-      const tryEvtName = data.name.replace(/^on/, '@');
-      if (tryEvtName !== data.name) {
-        result.push({ ...data, name: tryEvtName });
-      }
-    });
-    return result;
-  }
-
-  provideValues(tag: string, attr: string) {
-    const { elements, getProgram } = this.#ctx;
-    const typeChecker = getProgram()!.getTypeChecker();
-    const node = elements.get(tag);
-    if (!node) return [];
-    const prop = typeChecker.getTypeAtLocation(node).getProperty(getAttrName(attr).attr);
-    const declaration = prop?.getDeclarations()?.at(0);
-    const result = getBasicUnionValues(declaration);
-    return result || [];
-  }
-}
+} from './translates';
 
 export class HTMLLanguageService implements TemplateLanguageService {
-  #completionsCache = new LRUCache<CompletionList>();
+  #completionsCache = new LRUCache<CompletionList>({ max: 1 });
   #diagnosticsCache = new LRUCache<ts.Diagnostic[]>();
-  #virtualHtmlCache = new LRUCache<{ vDoc: TextDocument; vHtml: HTMLDocument }>();
-  #virtualCssCache = new LRUCache<{ vDoc: TextDocument; vCss: Stylesheet }>();
-
-  #cssLanguageService: ReturnType<typeof getCSSLanguageService>;
-  #htmlLanguageService: ReturnType<typeof getHTMLanguageService>;
   #ctx: Context;
 
   constructor(ctx: Context) {
     this.#ctx = ctx;
-    this.#htmlLanguageService = getHTMLanguageService({
-      customDataProviders: [dataProvider, new HTMLDataProvider(ctx)],
-    });
-    this.#cssLanguageService = getCSSLanguageService({});
-  }
-
-  #getCssDoc(context: CacheContext) {
-    return this.#virtualCssCache.get(context, () => {
-      const vDoc = createVirtualDocument('css', context.text);
-      const vCss = this.#cssLanguageService.parseStylesheet(vDoc);
-      return { vDoc, vCss };
-    });
-  }
-
-  #getHtmlDoc(context: CacheContext) {
-    return this.#virtualHtmlCache.get(context, () => {
-      const vDoc = createVirtualDocument('html', context.text);
-      const vHtml = this.#htmlLanguageService.parseHTMLDocument(vDoc);
-      return { vDoc, vHtml };
-    });
   }
 
   #getAllStyleSheet(doc: HTMLDocument) {
@@ -169,7 +40,7 @@ export class HTMLLanguageService implements TemplateLanguageService {
     const node = doc.findNodeAt(context.toOffset(position));
     if (node.tag !== 'style') return;
     const text = context.text.slice(node.startTagEnd, node.endTagStart);
-    const { vDoc, vCss } = this.#getCssDoc({ fileName: context.fileName, text });
+    const { vDoc, vCss } = this.#ctx.getCssDoc(text);
     const offset = context.toOffset(position) - node.startTagEnd!;
     const toPosition = (pos: Position) => context.toPosition(vDoc.offsetAt(pos) + node.startTagEnd!);
     return {
@@ -189,9 +60,9 @@ export class HTMLLanguageService implements TemplateLanguageService {
 
     let emmetResults: CompletionList | undefined;
     const onCssProperty = () => (emmetResults = doEmmetComplete(css.vDoc, css.position, 'css', this.#ctx.config.emmet));
-    this.#cssLanguageService.setCompletionParticipants([{ onCssProperty }]);
+    this.#ctx.cssLanguageService.setCompletionParticipants([{ onCssProperty }]);
     updateCSSTags([...this.#ctx.elements].map(([tag]) => tag));
-    const completions = this.#cssLanguageService.doComplete(css.vDoc, css.position, css.style);
+    const completions = this.#ctx.cssLanguageService.doComplete(css.vDoc, css.position, css.style);
 
     completions.items.push(...(emmetResults?.items || []));
     return completions.items.map((e) => {
@@ -202,22 +73,22 @@ export class HTMLLanguageService implements TemplateLanguageService {
   }
 
   #getCompletionsAtPosition(context: TemplateContext, position: ts.LineAndCharacter) {
-    const cached = this.#completionsCache.getCached(context, position);
-    if (cached) return cached;
-    const { vDoc, vHtml } = this.#getHtmlDoc(context);
+    return this.#completionsCache.get(context, position, () => {
+      const { vDoc, vHtml } = this.#ctx.getHtmlDoc(context.text);
 
-    let emmetResults: CompletionList | undefined;
-    const onHtmlContent = () => {
-      updateTags([...this.#ctx.elements].map(([tag]) => tag));
-      emmetResults = doEmmetComplete(vDoc, position, 'html', this.#ctx.config.emmet);
-    };
-    this.#htmlLanguageService.setCompletionParticipants([{ onHtmlContent }]);
-    const completions = this.#htmlLanguageService.doComplete(vDoc, position, vHtml);
+      let emmetResults: CompletionList | undefined;
+      const onHtmlContent = () => {
+        updateTags([...this.#ctx.elements].map(([tag]) => tag));
+        emmetResults = doEmmetComplete(vDoc, position, 'html', this.#ctx.config.emmet);
+      };
+      this.#ctx.htmlLanguageService.setCompletionParticipants([{ onHtmlContent }]);
+      const completions = this.#ctx.htmlLanguageService.doComplete(vDoc, position, vHtml);
 
-    completions.items.push(...(emmetResults?.items || []));
-    completions.items.push(...this.#getCSSCompletionsAtPosition(context, position, vHtml));
+      completions.items.push(...(emmetResults?.items || []));
+      completions.items.push(...this.#getCSSCompletionsAtPosition(context, position, vHtml));
 
-    return this.#completionsCache.updateCached(context, position, completions);
+      return completions;
+    });
   }
 
   getCompletionsAtPosition(context: TemplateContext, position: ts.LineAndCharacter) {
@@ -239,7 +110,7 @@ export class HTMLLanguageService implements TemplateLanguageService {
   #getCSSQuickInfoAtPosition(context: TemplateContext, position: ts.LineAndCharacter, doc: HTMLDocument) {
     const css = this.#getEmbeddedCss(context, position, doc);
     if (!css) return;
-    const hover = this.#cssLanguageService.doHover(css.vDoc, css.position, css.style, {
+    const hover = this.#ctx.cssLanguageService.doHover(css.vDoc, css.position, css.style, {
       documentation: true,
       references: true,
     });
@@ -248,8 +119,8 @@ export class HTMLLanguageService implements TemplateLanguageService {
   }
 
   getQuickInfoAtPosition(context: TemplateContext, position: ts.LineAndCharacter) {
-    const { vDoc, vHtml } = this.#getHtmlDoc(context);
-    const htmlHover = this.#htmlLanguageService.doHover(vDoc, position, vHtml, {
+    const { vDoc, vHtml } = this.#ctx.getHtmlDoc(context.text);
+    const htmlHover = this.#ctx.htmlLanguageService.doHover(vDoc, position, vHtml, {
       documentation: true,
       references: true,
     });
@@ -258,38 +129,61 @@ export class HTMLLanguageService implements TemplateLanguageService {
     return translateHover(context, hover, position);
   }
 
-  getSyntacticDiagnostics(context: TemplateContext): ts.Diagnostic[] {
-    const cached = this.#diagnosticsCache.getCached(context);
-    if (cached) return cached;
+  #getCssSyntacticDiagnostics(context: TemplateContext) {
+    return this.#diagnosticsCache.get(context, undefined, () => {
+      const { vHtml } = this.#ctx.getHtmlDoc(context.text);
+      const file = this.#ctx.getProgram().getSourceFile(context.fileName);
+      const styles = this.#getAllStyleSheet(vHtml);
+      const diagnostics: ts.Diagnostic[] = [];
+      styles.forEach((node) => {
+        const text = context.text.slice(node.startTagEnd, node.endTagStart);
+        const { vDoc, vCss } = this.#ctx.getCssDoc(text);
+        this.#ctx.cssLanguageService.doValidation(vDoc, vCss).forEach(({ message, range }) => {
+          const start = node.startTagEnd! + vDoc.offsetAt(range.start);
+          const end = node.startTagEnd! + vDoc.offsetAt(range.end);
+          diagnostics.push({
+            category: context.typescript.DiagnosticCategory.Warning,
+            code: 0,
+            file,
+            start,
+            length: end - start,
+            messageText: message,
+          });
+        });
+      });
+      return diagnostics;
+    });
+  }
 
-    const { vHtml } = this.#getHtmlDoc(context);
-    const styles = this.#getAllStyleSheet(vHtml);
-    const file = this.#ctx.getProgram()!.getSourceFile(context.fileName);
-    const diagnostics = styles.map((node) => {
-      const text = context.text.slice(node.startTagEnd, node.endTagStart);
-      const { vDoc, vCss } = this.#getCssDoc({ fileName: context.fileName, text });
-      const oDiagnostics = this.#cssLanguageService.doValidation(vDoc, vCss);
-      return oDiagnostics.map(({ message, range }) => {
-        const start = node.startTagEnd! + vDoc.offsetAt(range.start);
-        const end = node.startTagEnd! + vDoc.offsetAt(range.end);
-        return {
+  #getHtmlSyntacticDiagnostics(context: TemplateContext) {
+    const { vHtml } = this.#ctx.getHtmlDoc(context.text);
+    const file = this.#ctx.getProgram().getSourceFile(context.fileName);
+    const diagnostics: ts.Diagnostic[] = [];
+    forEachNode(vHtml.roots, (node) => {
+      if (node.tag && isCustomElementTag(node.tag) && !this.#ctx.elements.get(node.tag)) {
+        diagnostics.push({
           category: context.typescript.DiagnosticCategory.Warning,
           code: 0,
           file,
-          start,
-          length: end - start,
-          messageText: message,
-        };
-      });
+          start: node.start + 1,
+          length: node.tag.length,
+          messageText: 'Undefined element',
+        });
+      }
     });
-    return this.#diagnosticsCache.updateCached(context, diagnostics.flat());
+    return diagnostics;
+  }
+
+  getSyntacticDiagnostics(context: TemplateContext): ts.Diagnostic[] {
+    this.#ctx.initElements();
+    return [...this.#getCssSyntacticDiagnostics(context), ...this.#getHtmlSyntacticDiagnostics(context)];
   }
 
   getDefinitionAndBoundSpan(context: TemplateContext, position: ts.LineAndCharacter): ts.DefinitionInfoAndBoundSpan {
     // typescript-template-language-service-decorator 根据当前文档位置偏移了
     const htmlOffset = context.node.pos + 1;
     const currentOffset = context.toOffset(position);
-    const { vHtml } = this.#getHtmlDoc(context);
+    const { vHtml } = this.#ctx.getHtmlDoc(context.text);
     const node = vHtml.findNodeAt(currentOffset);
     const { text, start, length, before } = getHTMLTextAtPosition(context.text, currentOffset);
     const definitionNode = this.#ctx.elements.get(node.tag!);
@@ -319,7 +213,7 @@ export class HTMLLanguageService implements TemplateLanguageService {
     const { attr, offset } = getAttrName(text);
     if (before.length > attr.length) return empty;
 
-    const typeChecker = this.#ctx.getProgram()!.getTypeChecker();
+    const typeChecker = this.#ctx.getProgram().getTypeChecker();
     const propSymbol = typeChecker.getTypeAtLocation(definitionNode).getProperty(kebabToCamelCase(attr));
     const propDeclaration = propSymbol?.getDeclarations()?.at(0);
     return {

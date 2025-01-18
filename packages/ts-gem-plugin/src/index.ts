@@ -4,12 +4,12 @@ import { decorateWithTemplateLanguageService } from '@mantou/typescript-template
 import type { Logger } from '@mantou/typescript-template-language-service-decorator';
 import type * as ts from 'typescript/lib/tsserverlibrary';
 
+import { Configuration } from './configuration';
+import { Context } from './context';
+import { CSSLanguageService } from './decorate-css';
 import { HTMLLanguageService } from './decorate-html';
 import { decorateLanguageService } from './decorate-ts';
-import { decorate, getSubstitution, isValidCSSTemplate } from './utils';
-import type { Context } from './configuration';
-import { Configuration, Store } from './configuration';
-import { CSSLanguageService } from './decorate-css';
+import { decorate } from './utils';
 
 class LanguageServiceLogger implements Logger {
   #info: ts.server.PluginCreateInfo;
@@ -36,18 +36,7 @@ class HtmlPlugin {
       logger.log('Starting ts-gem-plugin...');
       this.#config.update(info.config);
 
-      const context: Context = {
-        config: this.#config,
-        ts: this.#ts,
-        logger,
-        elements: new Store(),
-        getProgram: () => {
-          return info.languageService.getProgram()!;
-        },
-        getProject: () => {
-          return info.project;
-        },
-      };
+      const context = new Context(this.#ts, this.#config, info, logger);
 
       const decoratedService = decorateLanguageService(context, info.languageService);
 
@@ -56,12 +45,7 @@ class HtmlPlugin {
         decoratedService,
         info.project,
         new CSSLanguageService(context),
-        {
-          tags: ['styled', 'css'],
-          enableForStringWithSubstitutions: true,
-          getSubstitution,
-          isValidTemplate: (node) => isValidCSSTemplate(this.#ts, node, 'css'),
-        },
+        context.cssTemplateStringSettings,
         { logger },
       );
 
@@ -70,11 +54,7 @@ class HtmlPlugin {
         decoratedService1,
         info.project,
         new HTMLLanguageService(context),
-        {
-          tags: ['html', 'raw', 'h'],
-          enableForStringWithSubstitutions: true,
-          getSubstitution,
-        },
+        context.htmlTemplateStringSettings,
         { logger },
       );
     });

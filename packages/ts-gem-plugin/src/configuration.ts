@@ -1,8 +1,5 @@
-import type { Logger } from '@mantou/typescript-template-language-service-decorator';
-import type { VSCodeEmmetConfig } from '@mantou/vscode-emmet-helper';
-import type { LanguageService } from 'typescript';
-import type * as ts from 'typescript/lib/tsserverlibrary';
 import { camelToKebabCase } from '@mantou/gem/lib/utils';
+import type { VSCodeEmmetConfig } from '@mantou/vscode-emmet-helper';
 
 export interface PluginConfiguration {
   emmet: VSCodeEmmetConfig;
@@ -55,39 +52,3 @@ export class Configuration {
     return this.#elementDefineRules;
   }
 }
-
-export class Store<T extends WeakKey> {
-  #map = new Map<string, WeakRef<T>>();
-  #weakMap = new WeakMap<T, string>();
-  #registry = new FinalizationRegistry<string>((key) => this.#map.delete(key));
-
-  set(key: string, val: T) {
-    this.#map.set(key, new WeakRef(val));
-    this.#weakMap.set(val, key);
-    this.#registry.register(val, key);
-  }
-
-  get(key: string) {
-    return this.#map.get(key)?.deref();
-  }
-
-  findKey(val: T) {
-    return this.#weakMap.get(val);
-  }
-
-  *[Symbol.iterator]() {
-    const entries = this.#map.entries();
-    for (const [tag, ref] of entries) {
-      yield [tag, ref.deref()!] as const;
-    }
-  }
-}
-
-export type Context = {
-  config: Configuration;
-  ts: typeof ts;
-  logger: Logger;
-  getProgram: LanguageService['getProgram'];
-  getProject: () => ts.server.Project;
-  elements: Store<ts.ClassDeclaration>;
-};
