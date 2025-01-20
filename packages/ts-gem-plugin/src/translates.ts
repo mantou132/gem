@@ -164,3 +164,53 @@ function toDisplayParts(text: string | vscode.MarkupContent | undefined, isDoc =
     },
   ];
 }
+
+export function genElementDefinitionInfo(
+  context: TemplateContext,
+  { start, length }: ts.TextSpan,
+  definitionNode: ts.ClassDeclaration,
+): ts.DefinitionInfoAndBoundSpan {
+  // typescript-template-language-service-decorator bug, 根据当前文档位置偏移了
+  const htmlOffset = context.node.pos + 1;
+  return {
+    textSpan: { start, length },
+    definitions: [
+      {
+        containerName: 'Custom Element',
+        containerKind: context.typescript.ScriptElementKind.unknown,
+        name: definitionNode.name!.text,
+        kind: context.typescript.ScriptElementKind.classElement,
+        fileName: definitionNode.getSourceFile().fileName,
+        textSpan: {
+          start: definitionNode.name!.getStart() - htmlOffset,
+          length: definitionNode.name!.text.length,
+        },
+      },
+    ],
+  };
+}
+
+export function genAttrDefinitionInfo(
+  context: TemplateContext,
+  { start, length }: ts.TextSpan,
+  propDeclaration: ts.Declaration,
+): ts.DefinitionInfoAndBoundSpan {
+  // typescript-template-language-service-decorator 根据当前文档位置偏移了
+  const htmlOffset = context.node.pos + 1;
+  return {
+    textSpan: { start, length },
+    definitions: [
+      {
+        containerName: 'Attribute',
+        containerKind: context.typescript.ScriptElementKind.unknown,
+        name: propDeclaration.getText(),
+        kind: context.typescript.ScriptElementKind.memberVariableElement,
+        fileName: propDeclaration.getSourceFile().fileName,
+        textSpan: {
+          start: propDeclaration.getStart() - htmlOffset,
+          length: propDeclaration.getText().length,
+        },
+      },
+    ],
+  };
+}

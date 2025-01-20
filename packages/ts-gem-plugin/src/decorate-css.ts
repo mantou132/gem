@@ -8,6 +8,7 @@ import { LRUCache } from './cache';
 import type { Context } from './context';
 import {
   genDefaultCompletionEntryDetails,
+  genElementDefinitionInfo,
   translateCompletionItemsToCompletionEntryDetails,
   translateCompletionItemsToCompletionInfo,
   translateHover,
@@ -104,5 +105,17 @@ export class CSSLanguageService implements TemplateLanguageService {
   getSyntacticDiagnostics(context: TemplateContext): ts.Diagnostic[] {
     this.#ctx.initElements();
     return this.#diagnosticsCache.get(context, undefined, () => this.#getSyntacticDiagnostics(context));
+  }
+
+  getDefinitionAndBoundSpan(context: TemplateContext, position: ts.LineAndCharacter): ts.DefinitionInfoAndBoundSpan {
+    const { text, offset } = this.#normalize(context, position);
+    const { vDoc, vCss } = this.#ctx.getCssDoc(text);
+    const empty = { textSpan: { start: 0, length: 0 } };
+    const node = vCss.findChildAtOffset(context.toOffset(position), true);
+    if (!node) return empty;
+    const ident = vDoc.getText().slice(node.offset, node.end);
+    const definitionNode = this.#ctx.elements.get(ident);
+    if (!definitionNode) return empty;
+    return genElementDefinitionInfo(context, { start: node.offset - offset, length: node.length }, definitionNode);
   }
 }

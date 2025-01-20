@@ -52,6 +52,7 @@ export function decorateLanguageService(ctx: Context, languageService: LanguageS
     const prop = ts.isClassDeclaration(currentNode.parent.parent) && currentNode;
     if (!currentTag) return oResult;
     const map = new Map<string, ts.ReferencedSymbol>();
+    // 只遍历了 html 模板中的元素使用，未遍历 css/style 中的节点
     forEachAllHtmlTemplateNode(ctx, currentTag, (file, tagInfo) => {
       const symbol = map.get(file.fileName) || {
         references: [],
@@ -71,15 +72,9 @@ export function decorateLanguageService(ctx: Context, languageService: LanguageS
         const kebabCaseName = camelToKebabCase(prop.text);
         ['', '?', '@'].forEach((c) => propNames.add(`${c}${kebabCaseName}`));
         for (const propName of propNames) {
-          const { attributes = {}, start, startTagEnd } = tagInfo.node;
-          if (!(propName in attributes)) continue;
-          const attrStart = file.getFullText().slice(start + tagInfo.offset, startTagEnd! + tagInfo.offset);
-          const index = attrStart.split(propName)[0].length;
-          symbol.references.push({
-            fileName: file.fileName,
-            isWriteAccess: true,
-            textSpan: { start: start + tagInfo.offset + index, length: propName.length },
-          });
+          const textSpan = getAttrTextSpan(file, tagInfo, propName);
+          if (!textSpan) continue;
+          symbol.references.push({ fileName: file.fileName, isWriteAccess: true, textSpan });
         }
       } else {
         symbol.references.push({
@@ -120,25 +115,55 @@ export function decorateLanguageService(ctx: Context, languageService: LanguageS
   };
 
   languageService.findRenameLocations = (fileName, position, ...args) => {
-    const tagInfo = findCurrentTagInfo(ctx, fileName, position);
-    if (tagInfo) {
-      const result: ts.RenameLocation[] = [{ fileName, textSpan: tagInfo.open }];
-      if (tagInfo.end) result.push({ fileName, textSpan: tagInfo.end });
+    const tagPairInfo = findCurrentTagInfo(ctx, fileName, position);
+    if (tagPairInfo) {
+      const result: ts.RenameLocation[] = [{ fileName, textSpan: tagPairInfo.open }];
+      if (tagPairInfo.end) result.push({ fileName, textSpan: tagPairInfo.end });
       return result;
     }
     const tagDefinedInfo = findDefinedTagInfo(ctx, fileName, position);
     if (tagDefinedInfo) {
       const result: ts.RenameLocation[] = [{ fileName, textSpan: tagDefinedInfo.textSpan }];
+      // 只遍历了 html 模板中的元素使用，未遍历 css/style 中的节点
       forEachAllHtmlTemplateNode(ctx, tagDefinedInfo.tag, (f, info) => {
         result.push({ fileName: f.fileName, textSpan: info.open });
         if (info.end) result.push({ fileName: f.fileName, textSpan: info.end });
       });
       return result;
     }
-    // TODO: prop rename
+
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
-    return ls.findRenameLocations(fileName, position, ...args);
+    const oResult = [...(ls.findRenameLocations(fileName, position, ...args) || [])];
+    const file = ctx.getProgram().getSourceFile(fileName)!;
+    const node = getAstNodeAtPosition(ctx.ts, file, position);
+
+    const tag = node && ts.isPropertyDeclaration(node.parent) && ctx.getTagFromNode(node.parent.parent);
+    if (!tag) return oResult;
+
+    const propText = node.getText();
+    const kebabCaseName = camelToKebabCase(propText);
+    // Dep html template engine: `@camelCase`
+    if (isPropType(ctx.ts, node.parent, ['emitter', 'globalemitter'])) {
+      forEachAllHtmlTemplateNode(ctx, tag, (f, info) => {
+        const textSpan = getAttrTextSpan(f, info, `@${kebabCaseName}`);
+        if (!textSpan) return;
+        oResult.push({ fileName: f.fileName, prefixText: '@', textSpan });
+      });
+    }
+    // Dep html template engine: <my-element .camelCase="5" .camelCase>
+    if (isPropType(ctx.ts, node.parent, ['attribute', 'numattribute', 'boolattribute', 'property'])) {
+      forEachAllHtmlTemplateNode(ctx, tag, (f, info) => {
+        const propNames = ['', '.', '?'].map((c) => `${c}${kebabCaseName}`);
+        propNames.map((propName) => {
+          const textSpan = getAttrTextSpan(f, info, propName);
+          if (!textSpan) return;
+          oResult.push({ fileName: f.fileName, prefixText: '.', textSpan });
+        });
+      });
+    }
+
+    return oResult;
   };
 
   return languageService;
@@ -213,6 +238,25 @@ function getTagInfo(node: Node, offset: number) {
       length: node.end - node.endTagStart! - 3,
     },
   };
+}
+
+function isPropType(typescript: typeof ts, node: ts.Node, types: string[]) {
+  if (!typescript.isPropertyDeclaration(node)) return;
+  for (const modifier of node.modifiers || []) {
+    if (!typescript.isDecorator(modifier)) continue;
+    const { expression } = modifier;
+    if (typescript.isIdentifier(expression) && types.includes(expression.text)) {
+      return true;
+    }
+  }
+}
+
+function getAttrTextSpan(file: ts.SourceFile, tagInfo: ReturnType<typeof getTagInfo>, propName: string) {
+  const { attributes = {}, start, startTagEnd } = tagInfo.node;
+  if (!(propName in attributes)) return;
+  const attrStart = file.getFullText().slice(start + tagInfo.offset, startTagEnd! + tagInfo.offset);
+  const index = attrStart.split(propName)[0].length;
+  return { start: start + tagInfo.offset + index, length: propName.length };
 }
 
 function decorateTypeChecker(ctx: Context, typeChecker: ts.TypeChecker) {

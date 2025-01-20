@@ -9,7 +9,9 @@ import { LRUCache } from './cache';
 import type { Context } from './context';
 import { forEachNode, getAttrName, getHTMLTextAtPosition, isCustomElementTag } from './utils';
 import {
+  genAttrDefinitionInfo,
   genDefaultCompletionEntryDetails,
+  genElementDefinitionInfo,
   translateCompletionItemsToCompletionEntryDetails,
   translateCompletionItemsToCompletionInfo,
   translateHover,
@@ -180,34 +182,32 @@ export class HTMLLanguageService implements TemplateLanguageService {
   }
 
   getDefinitionAndBoundSpan(context: TemplateContext, position: ts.LineAndCharacter): ts.DefinitionInfoAndBoundSpan {
-    // typescript-template-language-service-decorator 根据当前文档位置偏移了
-    const htmlOffset = context.node.pos + 1;
     const currentOffset = context.toOffset(position);
     const { vHtml } = this.#ctx.getHtmlDoc(context.text);
     const node = vHtml.findNodeAt(currentOffset);
     const { text, start, length, before } = getHTMLTextAtPosition(context.text, currentOffset);
-    const definitionNode = this.#ctx.elements.get(node.tag!);
     const empty = { textSpan: { start, length } };
 
-    if (!definitionNode || node.tag === 'style' || currentOffset > node.startTagEnd! || !text) return empty;
+    if (node.tag === 'style') {
+      const { style, vDoc, position: pos } = this.#getEmbeddedCss(context, position, vHtml)!;
+      const cssNode = style.findChildAtOffset(vDoc.offsetAt(pos), true);
+      if (!cssNode) return empty;
+      const ident = vDoc.getText().slice(cssNode.offset, cssNode.end);
+      const definitionNode = this.#ctx.elements.get(ident);
+      if (!definitionNode) return empty;
+      return genElementDefinitionInfo(
+        context,
+        { start: cssNode.offset + node.startTagEnd!, length: cssNode.length },
+        definitionNode,
+      );
+    }
+
+    const definitionNode = this.#ctx.elements.get(node.tag!);
+
+    if (!definitionNode || currentOffset > node.startTagEnd! || !text) return empty;
 
     if (text === node.tag) {
-      return {
-        textSpan: { start, length },
-        definitions: [
-          {
-            containerName: 'Custom Element',
-            containerKind: context.typescript.ScriptElementKind.unknown,
-            name: definitionNode.name!.text,
-            kind: context.typescript.ScriptElementKind.classElement,
-            fileName: definitionNode.getSourceFile().fileName,
-            textSpan: {
-              start: definitionNode.name!.getStart() - htmlOffset,
-              length: definitionNode.name!.text.length,
-            },
-          },
-        ],
-      };
+      return genElementDefinitionInfo(context, { start, length }, definitionNode);
     }
 
     const { attr, offset } = getAttrName(text);
@@ -216,23 +216,7 @@ export class HTMLLanguageService implements TemplateLanguageService {
     const typeChecker = this.#ctx.getProgram().getTypeChecker();
     const propSymbol = typeChecker.getTypeAtLocation(definitionNode).getProperty(kebabToCamelCase(attr));
     const propDeclaration = propSymbol?.getDeclarations()?.at(0);
-    return {
-      textSpan: { start: start + offset, length: attr.length },
-      definitions: !propDeclaration
-        ? undefined
-        : [
-            {
-              containerName: 'Attribute',
-              containerKind: context.typescript.ScriptElementKind.unknown,
-              name: propDeclaration.getText(),
-              kind: context.typescript.ScriptElementKind.memberVariableElement,
-              fileName: propDeclaration.getSourceFile().fileName,
-              textSpan: {
-                start: propDeclaration.getStart() - htmlOffset,
-                length: propDeclaration.getText().length,
-              },
-            },
-          ],
-    };
+    if (!propDeclaration) return empty;
+    return genAttrDefinitionInfo(context, { start: start + offset, length: attr.length }, propDeclaration);
   }
 }

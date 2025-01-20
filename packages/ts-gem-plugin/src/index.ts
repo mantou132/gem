@@ -1,5 +1,3 @@
-// FIXME: css('xx', `:host ${1}`) `getQuickInfoAtPosition` `getCompletionsAtPosition`
-// FIXME: nested html style `getSyntacticDiagnostics`
 import { decorateWithTemplateLanguageService } from '@mantou/typescript-template-language-service-decorator';
 import type { Logger } from '@mantou/typescript-template-language-service-decorator';
 import type * as ts from 'typescript/lib/tsserverlibrary';
