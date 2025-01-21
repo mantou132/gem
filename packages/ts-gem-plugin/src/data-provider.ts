@@ -45,7 +45,7 @@ export class HTMLDataProvider implements IHTMLDataProvider {
     const isDep = isDepElement(node);
     const result: IAttributeData[] = [];
     const props = typeChecker.getTypeAtLocation(node).getApparentProperties();
-    // TODO: props, attributes
+    // TODO: 完善
     props.forEach((e) => {
       const declaration = e.getDeclarations()?.at(0);
       const prop = declaration && ts.isPropertyDeclaration(declaration);

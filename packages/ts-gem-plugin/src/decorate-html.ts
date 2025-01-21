@@ -7,7 +7,15 @@ import type * as ts from 'typescript/lib/tsserverlibrary';
 
 import { LRUCache } from './cache';
 import type { Context } from './context';
-import { forEachNode, getAttrName, getHTMLTextAtPosition, isCustomElementTag } from './utils';
+import {
+  forEachNode,
+  getAstNodeAtPosition,
+  getAttrName,
+  getAttrTextSpan,
+  getHTMLTextAtPosition,
+  getTagInfo,
+  isCustomElementTag,
+} from './utils';
 import {
   genAttrDefinitionInfo,
   genDefaultCompletionEntryDetails,
@@ -158,11 +166,17 @@ export class HTMLLanguageService implements TemplateLanguageService {
   }
 
   #getHtmlSyntacticDiagnostics(context: TemplateContext) {
+    const offset = context.node.getStart() + 1;
     const { vHtml } = this.#ctx.getHtmlDoc(context.text);
-    const file = this.#ctx.getProgram().getSourceFile(context.fileName);
+    const program = this.#ctx.getProgram();
+    const file = program.getSourceFile(context.fileName)!;
+    const typeChecker = program.getTypeChecker();
     const diagnostics: ts.Diagnostic[] = [];
     forEachNode(vHtml.roots, (node) => {
-      if (node.tag && isCustomElementTag(node.tag) && !this.#ctx.elements.get(node.tag)) {
+      if (!node.tag) return;
+
+      // 检查自定义元素是否定义
+      if (isCustomElementTag(node.tag) && !this.#ctx.elements.get(node.tag)) {
         diagnostics.push({
           category: context.typescript.DiagnosticCategory.Warning,
           code: 0,
@@ -171,6 +185,79 @@ export class HTMLLanguageService implements TemplateLanguageService {
           length: node.tag.length,
           messageText: 'Undefined element',
         });
+      }
+
+      const tagClassDeclaration = this.#ctx.elements.get(node.tag);
+      if (!tagClassDeclaration) return;
+
+      // TODO: 完善
+      // 检查属性类型
+      for (const [attributeName, value] of Object.entries(node.attributes || {})) {
+        if (attributeName.startsWith('_')) continue;
+
+        const attrInfo = getAttrName(attributeName);
+        const textSpan = getAttrTextSpan(file, getTagInfo(node, offset), attributeName)!;
+        const diagnostic: ts.Diagnostic = {
+          category: context.typescript.DiagnosticCategory.Warning,
+          code: 0,
+          file,
+          start: textSpan.originStart,
+          length: textSpan.length,
+          messageText: 'Type error',
+        };
+
+        const propType = getType(typeChecker, tagClassDeclaration, attributeName);
+
+        if (!propType) {
+          diagnostics.push(diagnostic);
+          continue;
+        }
+
+        if (value === null) {
+          if (propType !== typeChecker.getBooleanType()) {
+            diagnostics.push(diagnostic);
+          }
+          continue;
+        }
+
+        if (value.startsWith('"')) {
+          if (
+            !typeChecker.isTypeAssignableTo(typeChecker.getStringType(), propType) &&
+            !typeChecker.isTypeAssignableTo(typeChecker.getNumberType(), propType)
+          ) {
+            diagnostics.push(diagnostic);
+          }
+          continue;
+        }
+
+        if (value.startsWith('_')) {
+          const valueOffset = textSpan.start + textSpan.length + 3;
+          const spanExp = getSpanExpression(this.#ctx.ts, file, valueOffset)!;
+          const spanType = typeChecker.getTypeAtLocation(spanExp);
+          switch (attrInfo.decorate) {
+            case '@':
+              continue;
+            case '?':
+              if (!typeChecker.isTypeAssignableTo(spanType, typeChecker.getBooleanType())) {
+                diagnostics.push(diagnostic);
+              }
+              continue;
+            case '.':
+              if (!typeChecker.isTypeAssignableTo(spanType, propType)) {
+                diagnostics.push(diagnostic);
+              }
+              continue;
+            default:
+              if (!typeChecker.isTypeAssignableTo(spanType, typeChecker.getStringType())) {
+                diagnostics.push(diagnostic);
+              }
+              continue;
+          }
+        }
+
+        if (propType !== typeChecker.getStringType()) {
+          diagnostics.push(diagnostic);
+        }
       }
     });
     return diagnostics;
@@ -218,5 +305,31 @@ export class HTMLLanguageService implements TemplateLanguageService {
     const propDeclaration = propSymbol?.getDeclarations()?.at(0);
     if (!propDeclaration) return empty;
     return genAttrDefinitionInfo(context, { start: start + offset, length: attr.length }, propDeclaration);
+  }
+}
+
+function getSpanExpression(typescript: typeof ts, file: ts.SourceFile, pos: number) {
+  let node = getAstNodeAtPosition(typescript, file, pos)!;
+  while (!typescript.isTemplateSpan(node)) {
+    node = node.parent;
+    if (!node) return;
+  }
+  return node.expression;
+}
+
+function getType(typeChecker: ts.TypeChecker, tagClassDeclaration: ts.ClassDeclaration, attributeName: string) {
+  const classType = typeChecker.getTypeAtLocation(tagClassDeclaration);
+  const propName = kebabToCamelCase(getAttrName(attributeName).attr);
+  switch (propName) {
+    case 'style':
+    case 'class':
+    case 'part':
+    case 'exportparts':
+    case 'tabindex':
+      return typeChecker.getStringType();
+    default:
+      const propSymbol = classType.getProperty(propName);
+      if (!propSymbol) return;
+      return typeChecker.getTypeOfSymbol(propSymbol);
   }
 }

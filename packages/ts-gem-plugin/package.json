@@ -15,7 +15,7 @@
   },
   "dependencies": {
     "@mantou/gem": "^2.2.0",
-    "@mantou/typescript-template-language-service-decorator": "^2.3.3",
+    "@mantou/typescript-template-language-service-decorator": "^2.3.4",
     "@mantou/vscode-css-languageservice": "^6.3.3",
     "@mantou/vscode-emmet-helper": "^2.9.3",
     "@mantou/vscode-html-languageservice": "^5.3.2",

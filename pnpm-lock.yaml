@@ -363,8 +363,8 @@ importers:
         specifier: ^2.2.0
         version: link:../gem
       '@mantou/typescript-template-language-service-decorator':
-        specifier: ^2.3.3
-        version: 2.3.3
+        specifier: ^2.3.4
+        version: 2.3.4
       '@mantou/vscode-css-languageservice':
         specifier: ^6.3.3
         version: 6.3.3
@@ -1531,8 +1531,8 @@ packages:
     resolution: {integrity: sha512-wi72R01tgjBjzG2kjRyTHl4yCTKDfDMIXRyKz9E/FBa9SkFvUOAE4bdyY9MhEsRZmSWL7+CYE8Flv/HScRpBbA==}
     engines: {node: '>=18.0.0'}
 
-  '@mantou/typescript-template-language-service-decorator@2.3.3':
-    resolution: {integrity: sha512-b1I50SZAv++s7H0Oso0kCH3sS5Sx+nkNaAR+dBmmheMsZolmBIfZ0qzZpQ6GidJZo4jpQZHkF5IjxSG/4XYWTQ==}
+  '@mantou/typescript-template-language-service-decorator@2.3.4':
+    resolution: {integrity: sha512-Uv8UBnaF+Ua7o7Qabc/Ti5mn6GGxFz6163cxJCDvzpA7Ea7hFl9Oh0CrN+WwCA/g28IZ7hTv2SvOgTkM2ZXEBg==}
 
   '@mantou/vscode-css-languageservice@6.3.3':
     resolution: {integrity: sha512-vSvapx/BVuBWQJH2kvKra14zvhsCNEEyYN/GdRByAtHeUvLKT0MwKx4vkRjc+rf2rZ5YvahCMloq/neoaL9SQQ==}
@@ -9237,7 +9237,7 @@ snapshots:
       - supports-color
       - typescript
 
-  '@mantou/typescript-template-language-service-decorator@2.3.3': {}
+  '@mantou/typescript-template-language-service-decorator@2.3.4': {}
 
   '@mantou/vscode-css-languageservice@6.3.3':
     dependencies:

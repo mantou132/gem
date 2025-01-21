@@ -1,10 +1,17 @@
 import type { LanguageService } from 'typescript';
 import type * as ts from 'typescript/lib/tsserverlibrary';
-import type { Node } from '@mantou/vscode-html-languageservice';
 import { camelToKebabCase } from '@mantou/gem/lib/utils';
 
 import type { Context } from './context';
-import { bindMemberFunction, decorate, forEachNode, getHTMLTextAtPosition } from './utils';
+import {
+  bindMemberFunction,
+  decorate,
+  forEachNode,
+  getAstNodeAtPosition,
+  getAttrTextSpan,
+  getHTMLTextAtPosition,
+  getTagInfo,
+} from './utils';
 
 export function decorateLanguageService(ctx: Context, languageService: LanguageService) {
   const { ts, getProgram } = ctx;
@@ -169,16 +176,6 @@ export function decorateLanguageService(ctx: Context, languageService: LanguageS
   return languageService;
 }
 
-function getAstNodeAtPosition(typescript: typeof ts, node: ts.Node, pos: number) {
-  if (node.pos > pos || node.end <= pos) return;
-  while (node.kind >= typescript.SyntaxKind.FirstNode) {
-    const nested = typescript.forEachChild(node, (child) => (child.pos <= pos && child.end > pos ? child : undefined));
-    if (nested === undefined) break;
-    node = nested;
-  }
-  return node;
-}
-
 function forEachAllHtmlTemplateNode(
   ctx: Context,
   tag: string,
@@ -225,21 +222,6 @@ function findDefinedTagInfo(ctx: Context, fileName: string, position: number) {
   return { tag, textSpan: { start: node.getStart() + 1, length: tag.length } };
 }
 
-function getTagInfo(node: Node, offset: number) {
-  const tag = node.tag!;
-  const openStart = node.start + 1 + offset;
-  return {
-    node,
-    tag,
-    offset,
-    open: { start: openStart, length: tag.length },
-    end: node.endTagStart && {
-      start: node.endTagStart! + 2 + offset,
-      length: node.end - node.endTagStart! - 3,
-    },
-  };
-}
-
 function isPropType(typescript: typeof ts, node: ts.Node, types: string[]) {
   if (!typescript.isPropertyDeclaration(node)) return;
   for (const modifier of node.modifiers || []) {
@@ -249,14 +231,6 @@ function isPropType(typescript: typeof ts, node: ts.Node, types: string[]) {
       return true;
     }
   }
-}
-
-function getAttrTextSpan(file: ts.SourceFile, tagInfo: ReturnType<typeof getTagInfo>, propName: string) {
-  const { attributes = {}, start, startTagEnd } = tagInfo.node;
-  if (!(propName in attributes)) return;
-  const attrStart = file.getFullText().slice(start + tagInfo.offset, startTagEnd! + tagInfo.offset);
-  const index = attrStart.split(propName)[0].length;
-  return { start: start + tagInfo.offset + index, length: propName.length };
 }
 
 function decorateTypeChecker(ctx: Context, typeChecker: ts.TypeChecker) {
