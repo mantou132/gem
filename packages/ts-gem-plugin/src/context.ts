@@ -7,6 +7,7 @@ import StandardScriptSourceHelper from '@mantou/typescript-template-language-ser
 import type { Stylesheet } from '@mantou/vscode-css-languageservice';
 import { getCSSLanguageService } from '@mantou/vscode-css-languageservice';
 import { StringWeakMap } from 'duoyun-ui/lib/map';
+import { camelToKebabCase } from '@mantou/gem/lib/utils';
 
 import { isDepElement } from './utils';
 import type { Configuration } from './configuration';
@@ -18,6 +19,7 @@ import { LRUCache } from './cache';
  */
 export class Context {
   elements: StringWeakMap<ts.ClassDeclaration>;
+  builtInElements: StringWeakMap<ts.InterfaceDeclaration>;
   ts: typeof ts;
   config: Configuration;
   project: ts.server.Project;
@@ -37,7 +39,8 @@ export class Context {
     this.project = info.project;
     this.logger = logger;
     this.dataProvider = dataProvider;
-    this.elements = new StringWeakMap<ts.ClassDeclaration>();
+    this.elements = new StringWeakMap();
+    this.builtInElements = new StringWeakMap();
     this.cssLanguageService = getCSSLanguageService({});
     this.htmlLanguageService = getHTMLanguageService({
       customDataProviders: [dataProvider, new HTMLDataProvider(typescript, this.elements, this.getProgram)],
@@ -119,7 +122,20 @@ export class Context {
   initElements() {
     const program = this.getProgram();
     if (this.#initElementsCache.has(program)) return;
-    program.getSourceFiles().forEach((file) => this.updateElement(file));
+    const files = program.getSourceFiles();
+    files.forEach((file) => this.updateElement(file));
+
+    // 内置元素接口
+    const typeChecker = program.getTypeChecker();
+    const symbols = typeChecker.getSymbolsInScope(files.at(0)!, this.ts.SymbolFlags.Interface);
+    symbols.forEach((symbol) => {
+      const name = symbol.escapedName.toString();
+      const match = name.match(/^(SVG|HTML)(\w*)Element$/);
+      const declaration = symbol.declarations?.find((e) => this.ts.isInterfaceDeclaration(e));
+      if (match && declaration) {
+        this.builtInElements.set(camelToKebabCase(match[2]), declaration);
+      }
+    });
   }
 }
 

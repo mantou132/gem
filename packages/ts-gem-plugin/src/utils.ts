@@ -52,14 +52,17 @@ export function getHTMLTextAtPosition(text: string, offset: number) {
 /**从属性键值字符串上解析出不包含装饰符的名称 */
 export function getAttrName(text: string) {
   const attr = text.split('=').at(0)!;
-  const firstChar = attr.at(0)!;
-  const isNotLetter = firstChar.charCodeAt(0) < 65;
+  const isNotLetter = hasDecoratorAttr(attr);
   const offset = isNotLetter ? 1 : 0;
   return {
     attr: attr.slice(offset),
     offset,
-    decorate: isNotLetter ? firstChar : '',
+    decorate: isNotLetter ? attr.at(0)! : '',
   };
+}
+
+export function hasDecoratorAttr(str: string) {
+  return str.charCodeAt(0) < 65;
 }
 
 export function getTagInfo(node: Node, offset: number) {
@@ -77,11 +80,12 @@ export function getTagInfo(node: Node, offset: number) {
   };
 }
 
+// TODO: enhance html parser
 export function getAttrTextSpan(file: ts.SourceFile, tagInfo: ReturnType<typeof getTagInfo>, attrName: string) {
   const { attributes = {}, start, startTagEnd } = tagInfo.node;
   if (!(attrName in attributes)) return;
   const attrStart = file.getFullText().slice(start + tagInfo.offset, startTagEnd! + tagInfo.offset);
-  const index = attrStart.split(attrName)[0].length;
+  const index = attrStart.split(new RegExp(`${hasDecoratorAttr(attrName) ? '\\' : ''}${attrName}\\b`))[0].length;
   const originStart = start + index;
   return {
     originStart,

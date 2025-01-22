@@ -13,6 +13,7 @@ import {
   translateCompletionItemsToCompletionInfo,
   translateHover,
 } from './translates';
+import { NAME } from './constants';
 
 export class CSSLanguageService implements TemplateLanguageService {
   #completionsCache = new LRUCache<CompletionList>({ max: 1 });
@@ -98,6 +99,7 @@ export class CSSLanguageService implements TemplateLanguageService {
         start: range.start.line === 0 ? start - offset : start,
         length: context.toOffset(range.end) - start,
         messageText: message,
+        source: NAME,
       };
     });
   }

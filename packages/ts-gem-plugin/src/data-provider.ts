@@ -7,6 +7,7 @@ import type * as ts from 'typescript/lib/tsserverlibrary';
 import type { StringWeakMap } from 'duoyun-ui/lib/map';
 
 import { isDepElement, isCustomElementTag, getAttrName } from './utils';
+import { NAME } from './constants';
 
 export const dataProvider = getDefaultHTMLDataProvider();
 
@@ -22,7 +23,7 @@ export class HTMLDataProvider implements IHTMLDataProvider {
   }
 
   getId() {
-    return 'gem';
+    return NAME;
   }
 
   isApplicable() {

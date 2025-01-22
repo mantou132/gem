@@ -420,7 +420,17 @@ export function part(_: undefined, context: ClassFieldDecoratorContext<any, stri
   };
 }
 
-export type Emitter<T = any> = (detail?: T, options?: Omit<CustomEventInit<unknown>, 'detail'>) => Promise<void> | void;
+type EmitterHandler<T> = (evt: CustomEvent<T>) => void;
+
+export type Emitter<T = any> = ((
+  detail?: T,
+  options?: Omit<CustomEventInit<unknown>, 'detail'>,
+) => Promise<void> | void) & {
+  /**
+   * @internal 用来为 ts plugin 提供类型签名，没有值
+   */
+  handler: EmitterHandler<T> | (AddEventListenerOptions & { handleEvent: EmitterHandler<T> });
+};
 
 /**
  * 定义一个事件发射器，类似 `HTMLElement.click`，

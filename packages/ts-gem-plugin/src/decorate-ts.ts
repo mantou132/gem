@@ -150,7 +150,7 @@ export function decorateLanguageService(ctx: Context, languageService: LanguageS
 
     const propText = node.getText();
     const kebabCaseName = camelToKebabCase(propText);
-    // Dep html template engine: `@camelCase`
+    // FIXME: `@camelCase`
     if (isPropType(ctx.ts, node.parent, ['emitter', 'globalemitter'])) {
       forEachAllHtmlTemplateNode(ctx, tag, (f, info) => {
         const textSpan = getAttrTextSpan(f, info, `@${kebabCaseName}`);
@@ -158,7 +158,7 @@ export function decorateLanguageService(ctx: Context, languageService: LanguageS
         oResult.push({ fileName: f.fileName, prefixText: '@', textSpan });
       });
     }
-    // Dep html template engine: <my-element .camelCase="5" .camelCase>
+    // FIXME: <my-element .camelCase="5" .camelCase>
     if (isPropType(ctx.ts, node.parent, ['attribute', 'numattribute', 'boolattribute', 'property'])) {
       forEachAllHtmlTemplateNode(ctx, tag, (f, info) => {
         const propNames = ['', '.', '?'].map((c) => `${c}${kebabCaseName}`);

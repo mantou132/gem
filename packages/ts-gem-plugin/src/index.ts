@@ -8,6 +8,7 @@ import { CSSLanguageService } from './decorate-css';
 import { HTMLLanguageService } from './decorate-html';
 import { decorateLanguageService } from './decorate-ts';
 import { decorate } from './utils';
+import { NAME } from './constants';
 
 class LanguageServiceLogger implements Logger {
   #info: ts.server.PluginCreateInfo;
@@ -16,7 +17,7 @@ class LanguageServiceLogger implements Logger {
   }
 
   log(msg: string) {
-    this.#info.project.projectService.logger.info(`[gem] ${msg}`);
+    this.#info.project.projectService.logger.info(`[${NAME}] ${msg}`);
   }
 }
 
@@ -31,7 +32,7 @@ class HtmlPlugin {
   create(info: ts.server.PluginCreateInfo): ts.LanguageService {
     return decorate(info.languageService, () => {
       const logger = new LanguageServiceLogger(info);
-      logger.log('Starting ts-gem-plugin...');
+      logger.log('Starting...');
       this.#config.update(info.config);
 
       const context = new Context(this.#ts, this.#config, info, logger);

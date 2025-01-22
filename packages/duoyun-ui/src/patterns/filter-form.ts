@@ -144,7 +144,7 @@ export class DyPatFilterFormElement extends GemElement {
     this.submit({ comparerType, value });
   };
 
-  #onChangeValue = ({ detail }: CustomEvent<string>) => {
+  #onChangeValue = ({ detail }: CustomEvent<string | number>) => {
     this.#state({ value: detail });
   };
 

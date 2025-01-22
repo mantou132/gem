@@ -168,7 +168,7 @@ function toDisplayParts(text: string | vscode.MarkupContent | undefined, isDoc =
 export function genElementDefinitionInfo(
   context: TemplateContext,
   { start, length }: ts.TextSpan,
-  definitionNode: ts.ClassDeclaration,
+  definitionNode: ts.ClassDeclaration | ts.InterfaceDeclaration,
 ): ts.DefinitionInfoAndBoundSpan {
   // typescript-template-language-service-decorator bug, 根据当前文档位置偏移了
   const htmlOffset = context.node.pos + 1;

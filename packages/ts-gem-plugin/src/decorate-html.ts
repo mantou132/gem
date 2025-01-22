@@ -1,4 +1,4 @@
-import { kebabToCamelCase } from '@mantou/gem/lib/utils';
+import { camelToKebabCase, kebabToCamelCase } from '@mantou/gem/lib/utils';
 import type { TemplateContext, TemplateLanguageService } from '@mantou/typescript-template-language-service-decorator';
 import { updateTags as updateCSSTags } from '@mantou/vscode-css-languageservice';
 import { doComplete as doEmmetComplete, updateTags } from '@mantou/vscode-emmet-helper';
@@ -24,6 +24,7 @@ import {
   translateCompletionItemsToCompletionInfo,
   translateHover,
 } from './translates';
+import { DiagnosticCode, NAME } from './constants';
 
 export class HTMLLanguageService implements TemplateLanguageService {
   #completionsCache = new LRUCache<CompletionList>({ max: 1 });
@@ -158,6 +159,7 @@ export class HTMLLanguageService implements TemplateLanguageService {
             start,
             length: end - start,
             messageText: message,
+            source: NAME,
           });
         });
       });
@@ -179,52 +181,58 @@ export class HTMLLanguageService implements TemplateLanguageService {
       if (isCustomElementTag(node.tag) && !this.#ctx.elements.get(node.tag)) {
         diagnostics.push({
           category: context.typescript.DiagnosticCategory.Warning,
-          code: 0,
+          code: DiagnosticCode.UnknownTag,
           file,
           start: node.start + 1,
           length: node.tag.length,
-          messageText: 'Undefined element',
+          messageText: `Unknown element tag '${node.tag}'`,
+          source: NAME,
         });
       }
 
-      const tagClassDeclaration = this.#ctx.elements.get(node.tag);
-      if (!tagClassDeclaration) return;
+      const tagDeclaration = this.#ctx.elements.get(node.tag) || this.#ctx.builtInElements.get(node.tag);
+      if (!tagDeclaration) return;
 
-      // TODO: 完善
       // 检查属性类型
       for (const [attributeName, value] of Object.entries(node.attributes || {})) {
         if (attributeName.startsWith('_')) continue;
 
         const attrInfo = getAttrName(attributeName);
         const textSpan = getAttrTextSpan(file, getTagInfo(node, offset), attributeName)!;
-        const diagnostic: ts.Diagnostic = {
+        const diagnostic = {
           category: context.typescript.DiagnosticCategory.Warning,
-          code: 0,
           file,
           start: textSpan.originStart,
           length: textSpan.length,
-          messageText: 'Type error',
+          source: NAME,
+          code: DiagnosticCode.PropTypeError,
+          messageText: `'${attributeName}' type error`,
         };
 
-        const propType = getType(typeChecker, tagClassDeclaration, attributeName);
+        const propType = getPropType(typeChecker, tagDeclaration, attrInfo);
 
         if (!propType) {
-          diagnostics.push(diagnostic);
-          continue;
-        }
-
-        if (value === null) {
-          if (propType !== typeChecker.getBooleanType()) {
-            diagnostics.push(diagnostic);
+          if (attrInfo.decorate !== '@') {
+            // <div unknown>
+            diagnostics.push({
+              ...diagnostic,
+              code: DiagnosticCode.UnknownProp,
+              messageText: `Unknown property '${attrInfo.attr}'`,
+            });
           }
           continue;
         }
 
-        if (value.startsWith('"')) {
-          if (
-            !typeChecker.isTypeAssignableTo(typeChecker.getStringType(), propType) &&
-            !typeChecker.isTypeAssignableTo(typeChecker.getNumberType(), propType)
-          ) {
+        if (value === null) {
+          if (attrInfo.decorate) {
+            // <div ?hidden>
+            diagnostics.push({
+              ...diagnostic,
+              code: DiagnosticCode.PropSyntaxError,
+              messageText: `Consider using '${camelToKebabCase(attrInfo.attr)}'`,
+            });
+          } else if (propType !== typeChecker.getBooleanType()) {
+            // <div class>
             diagnostics.push(diagnostic);
           }
           continue;
@@ -235,28 +243,50 @@ export class HTMLLanguageService implements TemplateLanguageService {
           const spanExp = getSpanExpression(this.#ctx.ts, file, valueOffset)!;
           const spanType = typeChecker.getTypeAtLocation(spanExp);
           switch (attrInfo.decorate) {
-            case '@':
-              continue;
             case '?':
               if (!typeChecker.isTypeAssignableTo(spanType, typeChecker.getBooleanType())) {
+                // <div ?hidden=${"string"}>
                 diagnostics.push(diagnostic);
               }
               continue;
             case '.':
+            case '@':
               if (!typeChecker.isTypeAssignableTo(spanType, propType)) {
+                // <div .hidden=${"string"}>
+                // <div @keydown=${"string"}>
                 diagnostics.push(diagnostic);
               }
               continue;
             default:
-              if (!typeChecker.isTypeAssignableTo(spanType, typeChecker.getStringType())) {
+              if (
+                !typeChecker.isTypeAssignableTo(propType, typeChecker.getStringType()) ||
+                !typeChecker.isTypeAssignableTo(spanType, typeChecker.getStringType())
+              ) {
+                // <div hidden=${"string"}>
                 diagnostics.push(diagnostic);
               }
               continue;
           }
-        }
-
-        if (propType !== typeChecker.getStringType()) {
-          diagnostics.push(diagnostic);
+        } else {
+          const types = [typeChecker.getStringType(), typeChecker.getNumberType()];
+          const valueLetter = value.startsWith('"') ? value.slice(1, -1) : value;
+          types.push(typeChecker.getStringLiteralType(valueLetter));
+          const numberValue = Number(valueLetter);
+          if (!Number.isNaN(numberValue)) {
+            types.push(typeChecker.getNumberLiteralType(numberValue));
+          }
+          if (attrInfo.decorate) {
+            // <div ?hidden="">
+            diagnostics.push({
+              ...diagnostic,
+              code: DiagnosticCode.PropSyntaxError,
+              messageText: `Consider using '${camelToKebabCase(attrInfo.attr)}'`,
+            });
+          } else if (types.every((t) => !typeChecker.isTypeAssignableTo(t, propType))) {
+            // <div innerText="">
+            diagnostics.push(diagnostic);
+          }
+          continue;
         }
       }
     });
@@ -289,7 +319,7 @@ export class HTMLLanguageService implements TemplateLanguageService {
       );
     }
 
-    const definitionNode = this.#ctx.elements.get(node.tag!);
+    const definitionNode = this.#ctx.elements.get(node.tag!) || this.#ctx.builtInElements.get(node.tag!);
 
     if (!definitionNode || currentOffset > node.startTagEnd! || !text) return empty;
 
@@ -317,9 +347,13 @@ function getSpanExpression(typescript: typeof ts, file: ts.SourceFile, pos: numb
   return node.expression;
 }
 
-function getType(typeChecker: ts.TypeChecker, tagClassDeclaration: ts.ClassDeclaration, attributeName: string) {
+function getPropType(
+  typeChecker: ts.TypeChecker,
+  tagClassDeclaration: ts.ClassDeclaration | ts.InterfaceDeclaration,
+  attrInfo: ReturnType<typeof getAttrName>,
+) {
   const classType = typeChecker.getTypeAtLocation(tagClassDeclaration);
-  const propName = kebabToCamelCase(getAttrName(attributeName).attr);
+  const propName = kebabToCamelCase(attrInfo.attr);
   switch (propName) {
     case 'style':
     case 'class':
@@ -328,8 +362,33 @@ function getType(typeChecker: ts.TypeChecker, tagClassDeclaration: ts.ClassDecla
     case 'tabindex':
       return typeChecker.getStringType();
     default:
+      const isEvent = attrInfo.decorate === '@';
       const propSymbol = classType.getProperty(propName);
-      if (!propSymbol) return;
-      return typeChecker.getTypeOfSymbol(propSymbol);
+      const propType = propSymbol && typeChecker.getTypeOfSymbol(propSymbol);
+      if (!isEvent) return propType;
+      const eventHandleType = getEmitterHandleType(typeChecker, classType, propType);
+      return getUnionType(typeChecker, [eventHandleType, typeChecker.getUndefinedType()]);
   }
+}
+
+function getEmitterHandleType(typeChecker: ts.TypeChecker, classType: ts.Type, propType?: ts.Type) {
+  const handleSymbol = propType?.getProperty('handler');
+  if (handleSymbol) return typeChecker.getTypeOfSymbol(handleSymbol);
+
+  const addEventListenerSymbol = classType.getProperty('addEventListener');
+  if (!addEventListenerSymbol) return typeChecker.getAnyType();
+
+  const addEventListenerDecls = addEventListenerSymbol.declarations as ts.MethodSignature[];
+  const addEventListenerDecl = addEventListenerDecls.find((e) => !e.typeParameters);
+  const listenerDecl = addEventListenerDecl!.parameters.at(1);
+  if (!listenerDecl) return typeChecker.getAnyType();
+
+  return typeChecker.getTypeAtLocation(listenerDecl);
+}
+
+function getUnionType(typeChecker: ts.TypeChecker, types: ts.Type[]): ts.Type {
+  if ('getUnionType' in typeChecker) {
+    return (typeChecker as any).getUnionType(types);
+  }
+  return types.at(0)!;
 }
