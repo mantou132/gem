@@ -429,7 +429,7 @@ export type Emitter<T = any> = ((
   /**
    * @internal 用来为 ts plugin 提供类型签名，没有值
    */
-  handler: EmitterHandler<T> | (AddEventListenerOptions & { handleEvent: EmitterHandler<T> });
+  handler?: EmitterHandler<T> | (AddEventListenerOptions & { handleEvent: EmitterHandler<T> });
 };
 
 /**

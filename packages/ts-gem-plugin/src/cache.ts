@@ -6,7 +6,7 @@ export type CacheContext = Pick<TemplateContext, 'fileName' | 'text'>;
 
 export class LRUCache<T extends object> {
   #bucket: Cache<T>;
-  constructor(...args: ConstructorParameters<typeof Cache<T>>) {
+  constructor(args?: ConstructorParameters<typeof Cache<T>>[0]) {
     this.#bucket = new Cache<T>({ max: 25, renewal: true, ...args });
   }
 

@@ -24,7 +24,9 @@ let initialize = false;
 async function loadESBuild() {
   if (initialize) return promise;
   initialize = true;
-  const esbuild = (await import(/* webpackIgnore: true */ ESBUILD_URL)) as typeof import('esbuild');
+  const { default: esbuild } = (await import(/* webpackIgnore: true */ ESBUILD_URL)) as {
+    default: typeof import('esbuild');
+  };
   await esbuild.initialize({ wasmURL: `${ESBUILD_URL}/esbuild.wasm`, worker: true });
   resolve(esbuild);
   return promise;

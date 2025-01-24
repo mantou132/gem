@@ -8,7 +8,6 @@ import {
   decorate,
   forEachNode,
   getAstNodeAtPosition,
-  getAttrTextSpan,
   getHTMLTextAtPosition,
   getTagInfo,
 } from './utils';
@@ -79,8 +78,9 @@ export function decorateLanguageService(ctx: Context, languageService: LanguageS
         const kebabCaseName = camelToKebabCase(prop.text);
         ['', '?', '@'].forEach((c) => propNames.add(`${c}${kebabCaseName}`));
         for (const propName of propNames) {
-          const textSpan = getAttrTextSpan(file, tagInfo, propName);
-          if (!textSpan) continue;
+          const info = tagInfo.node.attributesMap.get(propName);
+          if (!info) continue;
+          const textSpan = { start: info.start + tagInfo.offset, length: info.end - info.start };
           symbol.references.push({ fileName: file.fileName, isWriteAccess: true, textSpan });
         }
       } else {
@@ -152,19 +152,21 @@ export function decorateLanguageService(ctx: Context, languageService: LanguageS
     const kebabCaseName = camelToKebabCase(propText);
     // FIXME: `@camelCase`
     if (isPropType(ctx.ts, node.parent, ['emitter', 'globalemitter'])) {
-      forEachAllHtmlTemplateNode(ctx, tag, (f, info) => {
-        const textSpan = getAttrTextSpan(f, info, `@${kebabCaseName}`);
-        if (!textSpan) return;
+      forEachAllHtmlTemplateNode(ctx, tag, (f, tagInfo) => {
+        const info = tagInfo.node.attributesMap.get(`@${kebabCaseName}`);
+        if (!info) return;
+        const textSpan = { start: info.start + tagInfo.offset, length: info.end - info.start };
         oResult.push({ fileName: f.fileName, prefixText: '@', textSpan });
       });
     }
     // FIXME: <my-element .camelCase="5" .camelCase>
     if (isPropType(ctx.ts, node.parent, ['attribute', 'numattribute', 'boolattribute', 'property'])) {
-      forEachAllHtmlTemplateNode(ctx, tag, (f, info) => {
+      forEachAllHtmlTemplateNode(ctx, tag, (f, tagInfo) => {
         const propNames = ['', '.', '?'].map((c) => `${c}${kebabCaseName}`);
         propNames.map((propName) => {
-          const textSpan = getAttrTextSpan(f, info, propName);
-          if (!textSpan) return;
+          const info = tagInfo.node.attributesMap.get(propName);
+          if (!info) return;
+          const textSpan = { start: info.start + tagInfo.offset, length: info.end - info.start };
           oResult.push({ fileName: f.fileName, prefixText: '.', textSpan });
         });
       });

@@ -66,7 +66,7 @@ export class HTMLDataProvider implements IHTMLDataProvider {
           result.push({ name: `?${e.name}`, description });
           break;
       }
-      if (getBasicUnionValues(declaration)) {
+      if (type && getUnionValues(type)) {
         result.push({ name: e.name, description });
       }
       if (typeText?.startsWith('Emitter')) {
@@ -90,35 +90,19 @@ export class HTMLDataProvider implements IHTMLDataProvider {
     const node = this.#elements.get(tag);
     if (!node) return [];
     const prop = typeChecker.getTypeAtLocation(node).getProperty(getAttrName(attr).attr);
-    const declaration = prop?.getDeclarations()?.at(0);
-    const result = getBasicUnionValues(declaration);
+    const result = prop && getUnionValues(typeChecker.getTypeOfSymbol(prop));
     return result?.map((name) => ({ name })) || [];
   }
 }
 
-// TODO: use typeChecker
-const STRING_REG = /("|')(?<str>.*)\1/;
-function getBasicUnionValues(node?: ts.Node) {
-  const typeText = (node as ts.PropertyDeclaration)?.type?.getText();
-  if (!typeText) return;
-
+function getUnionValues(type: ts.Type) {
+  if (!type.isUnion()) return;
   const result: string[] = [];
-  for (const text of typeText.split('|')) {
-    const t = text.trim();
-    if (!t) continue;
-    const number = Number(t);
-    if (!Number.isNaN(number)) {
-      result.push(t);
-      continue;
-    }
-    const match = t.match(STRING_REG);
-    if (!match) {
-      // 有个元素不是字符串也不是数字
-      return;
-    }
-    result.push(match.groups!.str);
-  }
-  if (result.length) return result;
+  type.types.forEach((e) => {
+    if (!e.isLiteral()) return;
+    result.push(String(e.value));
+  });
+  return result;
 }
 
 const COMMENT_LINE_CONTENT = /^(\/?[ *\t]*)?(?<str>.*?)(\**\/)?$/gm;

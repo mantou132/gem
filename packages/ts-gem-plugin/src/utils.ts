@@ -80,20 +80,6 @@ export function getTagInfo(node: Node, offset: number) {
   };
 }
 
-// TODO: enhance html parser
-export function getAttrTextSpan(file: ts.SourceFile, tagInfo: ReturnType<typeof getTagInfo>, attrName: string) {
-  const { attributes = {}, start, startTagEnd } = tagInfo.node;
-  if (!(attrName in attributes)) return;
-  const attrStart = file.getFullText().slice(start + tagInfo.offset, startTagEnd! + tagInfo.offset);
-  const index = attrStart.split(new RegExp(`${hasDecoratorAttr(attrName) ? '\\' : ''}${attrName}\\b`))[0].length;
-  const originStart = start + index;
-  return {
-    originStart,
-    start: originStart + tagInfo.offset,
-    length: attrName.length,
-  };
-}
-
 const marker = Symbol();
 /**只调用一次回调函数 */
 export function decorate<T>(origin: T, cb: (o: T) => T): T {

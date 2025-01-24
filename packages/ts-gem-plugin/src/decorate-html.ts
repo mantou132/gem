@@ -7,15 +7,7 @@ import type * as ts from 'typescript/lib/tsserverlibrary';
 
 import { LRUCache } from './cache';
 import type { Context } from './context';
-import {
-  forEachNode,
-  getAstNodeAtPosition,
-  getAttrName,
-  getAttrTextSpan,
-  getHTMLTextAtPosition,
-  getTagInfo,
-  isCustomElementTag,
-} from './utils';
+import { forEachNode, getAstNodeAtPosition, getAttrName, getHTMLTextAtPosition, isCustomElementTag } from './utils';
 import {
   genAttrDefinitionInfo,
   genDefaultCompletionEntryDetails,
@@ -194,22 +186,22 @@ export class HTMLLanguageService implements TemplateLanguageService {
       if (!tagDeclaration) return;
 
       // 检查属性类型
-      for (const [attributeName, value] of Object.entries(node.attributes || {})) {
+      for (const [attributeName, { value, start, end }] of node.attributesMap) {
         if (attributeName.startsWith('_')) continue;
 
         const attrInfo = getAttrName(attributeName);
-        const textSpan = getAttrTextSpan(file, getTagInfo(node, offset), attributeName)!;
+        const propType = getPropType(typeChecker, tagDeclaration, attrInfo);
         const diagnostic = {
           category: context.typescript.DiagnosticCategory.Warning,
           file,
-          start: textSpan.originStart,
-          length: textSpan.length,
+          start: start,
+          length: end - start,
           source: NAME,
           code: DiagnosticCode.PropTypeError,
-          messageText: `'${attributeName}' type error`,
+          messageText: !propType
+            ? `'${attributeName}' type error`
+            : `'${attributeName}' not satisfied '${typeChecker.typeToString(propType)}'`,
         };
-
-        const propType = getPropType(typeChecker, tagDeclaration, attrInfo);
 
         if (!propType) {
           if (attrInfo.decorate !== '@') {
@@ -239,12 +231,17 @@ export class HTMLLanguageService implements TemplateLanguageService {
         }
 
         if (value.startsWith('_')) {
-          const valueOffset = textSpan.start + textSpan.length + 3;
+          const valueOffset = end + offset + 3;
           const spanExp = getSpanExpression(this.#ctx.ts, file, valueOffset)!;
           const spanType = typeChecker.getTypeAtLocation(spanExp);
           switch (attrInfo.decorate) {
             case '?':
-              if (!typeChecker.isTypeAssignableTo(spanType, typeChecker.getBooleanType())) {
+              const boolType = getUnionType(typeChecker, [
+                typeChecker.getBooleanType(),
+                typeChecker.getUndefinedType(),
+                typeChecker.getNullType(),
+              ]);
+              if (!typeChecker.isTypeAssignableTo(spanType, boolType)) {
                 // <div ?hidden=${"string"}>
                 diagnostics.push(diagnostic);
               }
@@ -259,8 +256,9 @@ export class HTMLLanguageService implements TemplateLanguageService {
               continue;
             default:
               if (
-                !typeChecker.isTypeAssignableTo(propType, typeChecker.getStringType()) ||
-                !typeChecker.isTypeAssignableTo(spanType, typeChecker.getStringType())
+                !typeChecker.isTypeAssignableTo(spanType, propType) &&
+                (!typeChecker.isTypeAssignableTo(propType, typeChecker.getStringType()) ||
+                  !typeChecker.isTypeAssignableTo(spanType, typeChecker.getStringType()))
               ) {
                 // <div hidden=${"string"}>
                 diagnostics.push(diagnostic);
@@ -355,12 +353,21 @@ function getPropType(
   const classType = typeChecker.getTypeAtLocation(tagClassDeclaration);
   const propName = kebabToCamelCase(attrInfo.attr);
   switch (propName) {
-    case 'style':
     case 'class':
+    case 'style':
     case 'part':
     case 'exportparts':
-    case 'tabindex':
       return typeChecker.getStringType();
+    case 'tabindex':
+      return typeChecker.getNumberType();
+    case 'ariaDisabled':
+    case 'ariaChecked':
+    case 'ariaHidden':
+      return getUnionType(typeChecker, [
+        typeChecker.getStringType(),
+        typeChecker.getBooleanType(),
+        typeChecker.getUndefinedType(),
+      ]);
     default:
       const isEvent = attrInfo.decorate === '@';
       const propSymbol = classType.getProperty(propName);

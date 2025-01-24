@@ -1,5 +1,5 @@
 export type Maybe<T> = T | undefined | null;
-export type StringList<T> = T | (string & Record<string, unknown>);
+export type StringList<T> = T | (string & NonNullable<unknown>);
 
 export type ElementOf<T> = T extends (infer E)[] ? E : never;
 export type ValueOf<T> = T[keyof T];
