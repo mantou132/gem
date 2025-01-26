@@ -48,7 +48,8 @@ const style = css`
     font-size: 0.875em;
     --hsl: hsl(${elementTheme.h}, ${elementTheme.s}, ${elementTheme.l});
     --hue: hsl(${elementTheme.h}, 100%, 50%);
-    --alpha: linear-gradient(var(--hue), transparent),
+    --alpha:
+      linear-gradient(var(--hue), transparent),
       conic-gradient(transparent 0.25turn, #d3cfcf 0.25turn 0.5turn, transparent 0.5turn 0.75turn, #d3cfcf 0.75turn) top
         left / 1.2em 1.2em repeat;
   }

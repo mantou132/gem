@@ -228,9 +228,9 @@ export class DyPatConsoleElement extends GemElement {
           background: ${theme.informativeColor};
         }
         :where(:root) {
-          font-family: -apple-system, system-ui, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial,
-            'Noto Sans', 'PingFang SC', sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol',
-            'Noto Color Emoji';
+          font-family:
+            -apple-system, system-ui, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans',
+            'PingFang SC', sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
           -moz-osx-font-smoothing: grayscale;
           -webkit-font-smoothing: antialiased;
           height: 100%;
