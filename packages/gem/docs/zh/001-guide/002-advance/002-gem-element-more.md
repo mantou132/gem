@@ -45,7 +45,7 @@ class MyElement extends GemElement {
 添加自定义事件处理程序：
 
 ```js
-html` <my-element @value-change=${console.log}></my-element>`;
+html`<my-element @value-change=${console.log}></my-element>`;
 ```
 
 ## 副作用

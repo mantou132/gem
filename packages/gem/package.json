@@ -38,7 +38,7 @@
     "build:lib": "vite build",
     "build": "pnpm build:module && pnpm build:lib",
     "start": "pnpm build:module --watch",
-    "test": "cross-env NODE_OPTIONS=--no-experimental-fetch wtr"
+    "test": "cross-env wtr"
   },
   "devDependencies": {
     "@gemjs/config": "^2.1.0",

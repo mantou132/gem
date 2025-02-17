@@ -1,32 +1,32 @@
 ---
-title: Use Web Components to quickly build complex high-performance WebApps
+title: Quickly Build UI Components, High-Performance WebApps
 hero:
   title: Gem
-  desc: Use Web Components to quickly build complex high-performance WebApps
+  desc: Quickly build UI components, high-performance WebApps
   actions:
-    - text: Getting Started
+    - text: Get Started Quickly
       link: ./001-guide/
 features:
-  - title: Web Components
+  - title: Based on Standards
     desc: >
-      Build encapsulated elements that manage their own state, and then combine them to form a complex WebApp.
+      Create custom elements using standard JavaScript, HTML, and CSS technologies without needing to learn anything outside of these standards.
 
 
-      Use the familiar ES Classes syntax to write custom elements and declare the data and attributes of the custom elements.
+      Follow unified design principles to achieve high abstraction on top of standards, making it easy to get started while meeting various needs.
 
   - title: Declarative
     desc: >
-      GemElement’s simple, familiar development model makes it easier than ever to build Web Components.
+      Define element properties and templates declaratively using decorators, making it readable without any learning curve.
 
 
-      Express your UI declaratively, as a function of state. No need to learn a custom template language – you can use the full power of JavaScript in your templates. Elements update automatically when their properties change.
+      With TypeScript and plugins, type constraints and element diagnostics can also be performed.
 
-  - title: Observation
+  - title: Ecosystem
     desc: >
-      The management of global data and the modification of routing all use the observation mode.
+      Provide solutions for internationalization, localization, documentation generation, cross-framework component output, SSR (in development), and more.
 
 
-      Use the observation mode to connect custom elements and data, and efficiently update your WebApp when data is updated, you only need to focus on business logic.
+      Also offers build optimizations (e.g., automatic imports) and development experience enhancements (e.g., HMR).
 ---
 
 ## TodoApp
@@ -64,7 +64,7 @@ export class AppRootElement extends GemElement {
       <dy-heading lv="3">What needs to be done?</dy-heading>
       <dy-input-group>
         <dy-input id="new-todo" @change=${this.#onChange} .value=${this.#state.input}></dy-input>
-        <dy-button @click=${this.#onSubmit}>Add #${todoData.items.length + 1}</dy-button>
+        <dy-button style="flex-grow: 3" @click=${this.#onSubmit}>Add #${todoData.items.length + 1}</dy-button>
       </dy-input-group>
     `;
   };

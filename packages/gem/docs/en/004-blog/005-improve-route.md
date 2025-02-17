@@ -20,7 +20,7 @@ After adopting this strategy, two points need to be paid attention to:
 
 ## Read URL parameters
 
-`GemRouteElement` has a `createLocationStore` method, which creates a [Store](../001-guide/001-basic/003-global-state-management.md) containing the URL parameters and then provides it to ` <gem-route>` to get updates after a new page loads, for example:
+`GemRouteElement` has a `createLocationStore` method, which creates a [Store](../001-guide/001-basic/003-global-state-management.md) containing the URL parameters and then provides it to `<gem-route>` to get updates after a new page loads, for example:
 
 ```ts
 const locationStore = GemRouteElement.createLocationStore();

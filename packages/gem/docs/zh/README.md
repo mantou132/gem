@@ -1,32 +1,32 @@
 ---
-title: 使用 WebComponents 快速构建复杂的高性能 WebApp
+title: 快速构建 UI 组件、高性能 WebApp
 hero:
   title: Gem
-  desc: 使用 WebComponents 快速构建复杂的高性能 WebApp
+  desc: 快速构建 UI 组件、高性能 WebApp
   actions:
     - text: 快速开始
       link: ./001-guide/
 features:
-  - title: 基于 WebComponents
+  - title: 基于标准
     desc: >
-      构建管理其自身状态的封装元素，然后对其进行组合以构成复杂的 UI。
+      使用标准 JavaScript、HTML、CSS 技术创建自定义元素，无需学习标准外任何东西。
 
 
-      使用熟悉的 ES Classes 语法来编写自定义元素，并声明自定义元素的数据和属性。
+      遵循统一设计原则在标准之上进行高度抽象，既能简单上手，又能满足各种需求。
 
-  - title: 声明式模版
+  - title: 声明式
     desc: >
-      Gem 的简单，熟悉的开发模型使构建 Web 组件比以往更加容易。
+      使用装饰器声明式定义元素属性和模板，不需要任何学习即可阅读。
 
 
-      根据状态声明性地表达 UI。 无需学习自定义模板语言-您可以在模板中使用 JavaScript 的全部功能。 元素的属性更改时会自动更新。
+      配合 TypeScript 以及插件，还可以进行类型约束、元素诊断。
 
-  - title: 观察模式
+  - title: 生态系统
     desc: >
-      全局数据的管理，路由的修改全部使用观察模式。
+      提供国际化、本地化、文档生成、组件跨框架输出、SSR（开发中）等解决方案。
 
 
-      使用观察模式来连接自定义元素和数据，在数据更新时高效的更新你的 WebApp，只需要将注意力集中在业务逻辑上。
+      还提供构建优化（例如自动导入）、开发体验优化（例如 HMR）。
 ---
 
 ## 待办事项 App
@@ -64,7 +64,7 @@ export class AppRootElement extends GemElement {
       <dy-heading lv="3">需要做什么？</dy-heading>
       <dy-input-group>
         <dy-input id="new-todo" @change=${this.#onChange} .value=${this.#state.input}></dy-input>
-        <dy-button @click=${this.#onSubmit}>添加 #${todoData.items.length + 1}</dy-button>
+        <dy-button style="flex-grow: 3" @click=${this.#onSubmit}>添加 #${todoData.items.length + 1}</dy-button>
       </dy-input-group>
     `;
   };

@@ -6,8 +6,7 @@ import { esbuildPlugin } from '@web/dev-server-esbuild';
  * @type {import('@web/test-runner').TestRunnerConfig}
  */
 export default {
-  // Error while generating code coverage for http://localhost:8000/__wds-outside-root__/2/node_modules/.pnpm/@web+test-runner-commands@0.6.6/node_modules/@web/test-runner-commands/browser/commands.mjs.
-  coverage: false,
+  coverage: true,
   nodeResolve: true,
   files: [
     './src/**/*.test.ts',
