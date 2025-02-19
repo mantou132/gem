@@ -1,4 +1,4 @@
-# Use SVG icons
+# SVG icons
 
 [SVG Sprite](https://css-tricks.com/svg-sprites-use-better-icon-fonts/) cannot be at [ShadowDOM](https://developer.mozilla.org/en-s/docs/web_components/usion_shadow_dom) takes effect. Therefore, Gem has a built-in element `<gem-user>` to replace SVG Sprite:
 

@@ -61,14 +61,14 @@ class GemElement extends HTMLElement {
 
 ## ~~生命周期钩子~~
 
-| 名称           | 描述                                        |
-| -------------- | ------------------------------------------- |
-| `willMount`    | 挂载元素前的回调                            |
-| `render`       | 渲染元素                                    |
-| `mounted`      | 挂载元素后的回调                            |
-| `shouldUpdate` | 更新元素前的回调, 返回 `false` 时不更新元素 |
-| `updated`      | 更新元素后的回调                            |
-| `unmounted`    | 卸载元素后的回调                            |
+| 名称           | 描述                                                            |
+| -------------- | --------------------------------------------------------------- |
+| `willMount`    | 挂载元素前的回调                                                |
+| `render`       | 渲染元素，返回 `null` 时清空内容，返回 `undefined` 时不更新内容 |
+| `mounted`      | 挂载元素后的回调                                                |
+| `shouldUpdate` | 更新元素前的回调, 返回 `false` 时不更新元素                     |
+| `updated`      | 更新元素后的回调                                                |
+| `unmounted`    | 卸载元素后的回调                                                |
 
 ## 扩展方法
 
@@ -103,3 +103,6 @@ class GemElement extends HTMLElement {
 | `render`      | 挂载 lit-html 模版到 DOM                    |
 | `directive`   | 自定义 lit-html 模版渲染指令                |
 | `repeat`      | 优化 lit-html 列表渲染指令                  |
+
+> [!NOTE]
+> 通过 `import {} from '@mantou/gem/lib/reactive'` 可以导入无 lit-html 模板引擎的反应性元素，如果你的组件足够简单，使用这种方法将大幅减少构建尺寸。

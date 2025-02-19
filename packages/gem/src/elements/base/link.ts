@@ -73,7 +73,9 @@ export class GemLinkElement extends GemElement {
     return this.hint || 'on';
   }
 
-  #onClick = async () => {
+  #onClick = async (e: MouseEvent) => {
+    e.preventDefault();
+
     const locationString = this._getLocationString();
 
     if (!locationString) return;
@@ -122,8 +124,6 @@ export class GemLinkElement extends GemElement {
     }
   };
 
-  #preventDefault = (e: MouseEvent) => e.preventDefault();
-
   #getHint = () => {
     const locationString = this._getLocationString();
     return isExternal(locationString)
@@ -146,13 +146,8 @@ export class GemLinkElement extends GemElement {
 
   @template()
   #content = () => {
-    return html`<a
-      part=${this.link}
-      @click=${this.#preventDefault}
-      href=${this.#hint === 'off' ? null : this.#getHint()}
-      tabindex="-1"
-      ><slot></slot
-    ></a>`;
+    const href = this.#hint === 'off' ? null : this.#getHint();
+    return html`<a part=${this.link} href=${href} tabindex="-1"><slot></slot></a>`;
   };
 
   /**

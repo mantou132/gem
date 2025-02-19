@@ -1,6 +1,6 @@
 import type { UpdateHistoryParams } from '../lib/history';
-import type { TemplateResult } from '../lib/element';
-import { html, UpdateToken } from '../lib/element';
+import type { TemplateResult } from '../lib/lit-html';
+import { html, UpdateToken } from '../lib/reactive';
 import { GemError } from '../lib/utils';
 import type { RouteTrigger } from '../elements/base/route';
 

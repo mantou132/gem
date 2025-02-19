@@ -12,7 +12,7 @@
  * - `<gem-title>` 作为默认值设置
  */
 
-import { GemElement, html } from '../../lib/element';
+import { GemElement, html } from '../../lib/reactive';
 import { attribute, boolattribute, effect, mounted, shadow, template } from '../../lib/decorators';
 import { connect } from '../../lib/store';
 import { titleStore } from '../../lib/history';

@@ -72,6 +72,13 @@ style.textContent = /*css*/ `
     color: ${defaultTheme.backgroundColor};
     background: ${defaultTheme.noteColor};
   }
+  :where(:focus) {
+    outline: none;
+  }
+  :where(:focus-visible) {
+    outline: 2px solid ${defaultTheme.primaryColor};
+    outline-offset: -2px;
+  }
   :where(html) {
     height: 100%;
     overflow: hidden;

@@ -1,4 +1,4 @@
-import { GemElement, UpdateToken, type Metadata } from '../lib/element';
+import { GemElement, UpdateToken, type Metadata } from '../lib/reactive';
 import { property, attribute, numattribute, boolattribute, emitter, state } from '../lib/decorators';
 import type { Store } from '../lib/store';
 

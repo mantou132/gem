@@ -1,4 +1,4 @@
-import { css, GemElement } from '../../lib/element';
+import { css, GemElement } from '../../lib/reactive';
 import type { Emitter } from '../../lib/decorators';
 import { adoptedStyle, attribute, emitter, mounted, state } from '../../lib/decorators';
 

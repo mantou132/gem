@@ -61,14 +61,14 @@ Type with decorator
 
 ## ~~Lifecycle hook~~
 
-| name           | description                                                                               |
-| -------------- | ----------------------------------------------------------------------------------------- |
-| `willMount`    | Callback before mounting the element                                                      |
-| `render`       | Render element                                                                            |
-| `mounted`      | Callback after mounting the element                                                       |
-| `shouldUpdate` | Callback before updating the element, do not re-render the element when returning `false` |
-| `updated`      | Callback after updating the element                                                       |
-| `unmounted`    | Callback after unloading the element                                                      |
+| name           | description                                                                                                 |
+| -------------- | ----------------------------------------------------------------------------------------------------------- |
+| `willMount`    | Callback before mounting the element                                                                        |
+| `render`       | Render element, clear the content when return `null`, and do not update the content when return `undefined` |
+| `mounted`      | Callback after mounting the element                                                                         |
+| `shouldUpdate` | Callback before updating the element, do not re-render the element when returning `false`                   |
+| `updated`      | Callback after updating the element                                                                         |
+| `unmounted`    | Callback after unloading the element                                                                        |
 
 ## Method
 
@@ -103,3 +103,6 @@ Type with decorator
 | `render`      | Mount lit-html template to DOM                                                  |
 | `directive`   | Custom lit-html template rendering directive                                    |
 | `repeat`      | Optimize lit-html list rendering directive                                      |
+
+> [!NOTE]
+> You can import reactive elements without the lit-html template engine by using `import {} from '@mantou/gem/lib/reactive'`. If your component is simple enough, using this method will significantly reduce the build size.

@@ -5,6 +5,8 @@
  */
 
 /**
+ * Gem Note:
+ *
  * TemplateResult change to classes
  * Use `null`/`undefined` instead `nothing`, no export `noChange`
  * Built-in ref & rest props`

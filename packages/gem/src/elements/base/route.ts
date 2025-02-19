@@ -1,4 +1,4 @@
-import type { TemplateResult } from '../../lib/element';
+import type { TemplateResult } from '../../lib/lit-html';
 import { createState, css, GemElement, html } from '../../lib/element';
 import type { Emitter } from '../../lib/decorators';
 import { property, emitter, boolattribute, shadow, effect, template, light, adoptedStyle } from '../../lib/decorators';

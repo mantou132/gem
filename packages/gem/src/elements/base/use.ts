@@ -1,4 +1,4 @@
-import { css, GemElement, html } from '../../lib/element';
+import { css, GemElement, html } from '../../lib/reactive';
 import { adoptedStyle, attribute, property, shadow, state, template } from '../../lib/decorators';
 
 const styles = css`

@@ -1,14 +1,14 @@
 import type { Store } from '../lib/store';
 import { connect, createStore } from '../lib/store';
 import { camelToKebabCase, createUpdater, randomStr } from '../lib/utils';
-import type { GemElement } from '../lib/element';
-import { SheetToken, css } from '../lib/element';
+import type { GemElement, Sheet } from '../lib/reactive';
+import { SheetToken, css } from '../lib/reactive';
 
 export type Theme<T> = ReturnType<typeof createUpdater<T>> &
-  ReturnType<typeof css> & {
+  Sheet<unknown> & {
     [K in keyof T as K extends `${string}Color`
       ? `${string & K}${'' | 100 | 200 | 300 | 400 | 500 | 600 | 700 | 800 | 900}`
-      : K]: T[K];
+      : K]: string;
   };
 
 const themeStoreMap = new WeakMap();

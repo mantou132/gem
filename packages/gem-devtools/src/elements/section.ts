@@ -122,6 +122,7 @@ export const style = css`
     flex-shrink: 1;
     flex-grow: 1;
     color: ${theme.valueColor};
+    caret-color: rgba(${theme.textColorRGB}, 1);
     overflow: hidden;
     white-space: nowrap;
     text-overflow: ellipsis;

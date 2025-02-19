@@ -1,4 +1,4 @@
-import { GemElement } from '../../lib/element';
+import { GemElement } from '../../lib/reactive';
 import { attribute, shadow, template } from '../../lib/decorators';
 
 @shadow()

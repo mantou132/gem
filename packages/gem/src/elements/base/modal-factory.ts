@@ -1,4 +1,4 @@
-import { GemElement } from '../../lib/element';
+import { GemElement } from '../../lib/reactive';
 import { connect, createStore } from '../../lib/store';
 import { history } from '../../lib/history';
 import { aria, mounted, shadow } from '../../lib/decorators';

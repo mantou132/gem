@@ -296,14 +296,7 @@ export function objectMapToString<T = any>(
 }
 
 // Wait: Typescript lib dom CSSStyleDeclaration anchor position
-type StyleProp =
-  | keyof CSSStyleDeclaration
-  | `--${string}`
-  | 'scrollbarWidth'
-  | 'scrollbarColor'
-  | 'positionAnchor'
-  | 'anchorDefault'
-  | 'anchorName';
+type StyleProp = keyof CSSStyleDeclaration | `--${string}` | 'positionAnchor' | 'anchorDefault' | 'anchorName';
 
 export type StyleObject = Partial<Record<StyleProp, string | number | false | undefined | null>>;
 

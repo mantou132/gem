@@ -1,8 +1,9 @@
-import type { css, Metadata, TemplateResult } from './element';
-import { GemElement, UpdateToken, _createTemplate, _RenderErrorEvent, render } from './element';
+import type { TemplateResult } from './lit-html';
+import type { Metadata, Sheet } from './reactive';
+import { GemElement, UpdateToken, _createTemplate, _RenderErrorEvent, render } from './reactive';
 import { camelToKebabCase, PropProxyMap, GemError } from './utils';
 import type { Store } from './store';
-import * as elementExports from './element';
+import * as reactiveExports from './reactive';
 import * as decoratorsExports from './decorators';
 import * as storeExports from './store';
 import * as versionExports from './version';
@@ -474,7 +475,7 @@ function defineEmitter<T extends GemElement>(
  *  class App extends GemElement {}
  * ```
  */
-export function adoptedStyle(sheet: ReturnType<typeof css>) {
+export function adoptedStyle(sheet: Sheet<unknown>) {
   return function (_: unknown, context: ClassDecoratorContext) {
     pushStaticField(context, 'adoptedStyleSheets', sheet);
   };
@@ -555,14 +556,15 @@ export function customElement(name: string) {
 declare global {
   interface Window {
     __GEM_DEVTOOLS__HOOK__?:
-      | (typeof elementExports & typeof decoratorsExports & typeof storeExports & typeof versionExports)
+      | (typeof reactiveExports & typeof decoratorsExports & typeof storeExports & typeof versionExports)
       | Record<string, never>;
   }
 }
 
+// 只记录第一次定义，往往是最外层 App
 if (window.__GEM_DEVTOOLS__HOOK__ && !window.__GEM_DEVTOOLS__HOOK__.GemElement) {
   assign(window.__GEM_DEVTOOLS__HOOK__, {
-    ...elementExports,
+    ...reactiveExports,
     ...decoratorsExports,
     ...storeExports,
     ...versionExports,
