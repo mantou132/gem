@@ -108,19 +108,16 @@ export class DuoyunCollapsePanelElement extends GemElement {
         <dy-use class=${classMap({ icon: true, expand: preExpand })} .element=${icons.right}></dy-use>
         <span class="title"><slot name=${DuoyunCollapsePanelElement.summary}>${this.summary}</slot></span>
       </div>
-      ${expand || this.searchable
-        ? html`
-            <div
-              ${this.#contentRef}
-              class=${classMap({ detail: true, expand })}
-              part=${DuoyunCollapsePanelElement.detail}
-              hidden=${expand ? null : 'until-found'}
-              @beforematch=${this.toggleState}
-            >
-              <slot></slot>
-            </div>
-          `
-        : ''}
+      <div
+        ${this.#contentRef}
+        v-if=${expand || this.searchable}
+        class=${classMap({ detail: true, expand })}
+        part=${DuoyunCollapsePanelElement.detail}
+        hidden=${expand ? null : 'until-found'}
+        @beforematch=${this.toggleState}
+      >
+        <slot></slot>
+      </div>
     `;
   };
 

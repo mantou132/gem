@@ -120,17 +120,14 @@ export class DuoyunBadgeElement extends GemElement {
     const value = Number(this.count) > this.#max ? `${this.#max}+` : `${this.count}`;
     return html`
       <slot ${this.#slotRef}></slot>
-      ${this.count || this.icon || this.dot
-        ? html`
-            <span
-              class=${classMap({ badge: true, long: value.length > 1 })}
-              part=${DuoyunBadgeElement.badge}
-              style="background:${this.#color}"
-            >
-              ${this.dot ? '' : this.icon ? html`<dy-use class="icon" .element=${this.icon}></dy-use>` : value}
-            </span>
-          `
-        : ''}
+      <span
+        v-if=${!!(this.count || this.icon || this.dot)}
+        class=${classMap({ badge: true, long: value.length > 1 })}
+        part=${DuoyunBadgeElement.badge}
+        style="background:${this.#color}"
+      >
+        ${this.dot ? '' : this.icon ? html`<dy-use class="icon" .element=${this.icon}></dy-use>` : value}
+      </span>
     `;
   };
 }

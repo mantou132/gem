@@ -14,6 +14,7 @@
  * Remove sanitizer
  * Remove debug log event
  * Remove warning log
+ * Support v-if/v-else-if/v-else
  */
 
 import type { TrustedTypesWindow } from 'trusted-types/lib';
@@ -24,9 +25,7 @@ const global = globalThis;
 
 const trustedTypes = (global as unknown as TrustedTypesWindow).trustedTypes;
 
-const policy = trustedTypes?.createPolicy('lit-html', {
-  createHTML: (s: string) => s,
-});
+const policy = trustedTypes?.createPolicy('lit-html', { createHTML: (s: string) => s });
 
 // Added to an attribute name to mark the attribute as bound so we can find
 // it easily.
@@ -127,6 +126,13 @@ const doubleQuoteAttrEndRegex = /"/g;
  */
 const rawTextElement = /^(?:script|style|textarea|title)$/i;
 
+/** TemplateResult types */
+const HTML_RESULT = 1;
+const SVG_RESULT = 2;
+const MATHML_RESULT = 3;
+
+type ResultType = typeof HTML_RESULT | typeof SVG_RESULT | typeof MATHML_RESULT;
+
 // TemplatePart types
 // IMPORTANT: these must match the values in PartType
 const ATTRIBUTE_PART = 1;
@@ -137,11 +143,9 @@ const EVENT_PART = 5;
 const ELEMENT_PART = 6;
 const COMMENT_PART = 7;
 
-enum ResultType {
-  HTML,
-  SVG,
-  MATHML,
-}
+const V_IF = 'v-if';
+const V_ELSE_IF = 'v-else-if';
+const V_ELSE = 'v-else';
 
 export class TemplateResult {
   type: ResultType;
@@ -160,9 +164,9 @@ const tag =
     return new TemplateResult(type, strings, values);
   };
 
-export const html = tag(ResultType.HTML);
-export const svg = tag(ResultType.SVG);
-export const mathml = tag(ResultType.MATHML);
+export const html = tag(HTML_RESULT);
+export const svg = tag(SVG_RESULT);
+export const mathml = tag(MATHML_RESULT);
 
 // for directive
 export const noChange = Symbol.for('lit-noChange');
@@ -251,7 +255,7 @@ const getTemplateHtml = (strings: TemplateStringsArray, type: ResultType): [Trus
   // parts. ElementParts are also reflected in this array as undefined
   // rather than a string, to disambiguate from attribute bindings.
   const attrNames: Array<string> = [];
-  let htmlStr = type === ResultType.SVG ? '<svg>' : type === ResultType.MATHML ? '<math>' : '';
+  let htmlStr = type === SVG_RESULT ? '<svg>' : type === MATHML_RESULT ? '<math>' : '';
 
   // When we're inside a raw text tag (not it's text content), the regex
   // will still be tagRegex so we can find attributes, but will switch to
@@ -359,9 +363,7 @@ const getTemplateHtml = (strings: TemplateStringsArray, type: ResultType): [Trus
   }
 
   const htmlResult: string | TrustedHTML =
-    htmlStr +
-    (strings[l] || '<?>') +
-    (type === ResultType.SVG ? '</svg>' : type === ResultType.MATHML ? '</math>' : '');
+    htmlStr + (strings[l] || '<?>') + (type === SVG_RESULT ? '</svg>' : type === MATHML_RESULT ? '</math>' : '');
 
   // Returned as an array for terseness
   return [trustFromTemplateString(strings, htmlResult), attrNames];
@@ -387,7 +389,7 @@ class Template {
     walker.currentNode = this.el.content;
 
     // Re-parent SVG or MathML nodes into template root
-    if (type === ResultType.SVG || type === ResultType.MATHML) {
+    if (type === SVG_RESULT || type === MATHML_RESULT) {
       const wrapper = this.el.content.firstChild!;
       wrapper.replaceWith(...wrapper.childNodes);
     }
@@ -550,6 +552,8 @@ export type { TemplateInstance };
 class TemplateInstance implements Disconnectable {
   _$template: Template;
   _$parts: Array<Part | undefined> = [];
+  /** @internal */
+  _$conditions: ConditionChain[] = [];
 
   /** @internal */
   _$parent: ChildPart;
@@ -578,6 +582,8 @@ class TemplateInstance implements Disconnectable {
       el: { content },
       parts: parts,
     } = this._$template;
+    const ifMap = new Map<Element, number>();
+    const elseIfMap = new Map<Element, number>();
     const fragment = (options?.creationScope ?? d).importNode(content, true);
     walker.currentNode = fragment;
 
@@ -592,6 +598,8 @@ class TemplateInstance implements Disconnectable {
         if (templatePart.type === CHILD_PART) {
           part = new ChildPart(node as HTMLElement, node.nextSibling, this, options);
         } else if (templatePart.type === ATTRIBUTE_PART) {
+          templatePart.name === V_IF && ifMap.set(node as HTMLElement, partIndex);
+          templatePart.name === V_ELSE_IF && elseIfMap.set(node as HTMLElement, partIndex);
           part = new templatePart.ctor(node as HTMLElement, templatePart.name, templatePart.strings, this, options);
         } else if (templatePart.type === ELEMENT_PART) {
           part = new ElementPart(node as HTMLElement, this, options);
@@ -604,6 +612,18 @@ class TemplateInstance implements Disconnectable {
         nodeIndex++;
       }
     }
+
+    ifMap.forEach((idx, element) => {
+      const chain = new ConditionChain(element, idx);
+      this._$conditions.push(chain);
+      let ele: Element | null = element;
+      while ((ele = ele.nextElementSibling)) {
+        const pos = elseIfMap.get(ele);
+        if (pos === undefined) break;
+        chain.push(ele, pos);
+      }
+    });
+
     // We need to set the currentNode away from the cloned tree so that we
     // don't hold onto the tree even if the tree is detached and should be
     // freed.
@@ -621,12 +641,52 @@ class TemplateInstance implements Disconnectable {
           // since values are in between template spans. We increment i by 1
           // later in the loop, so increment it by part.strings.length - 2 here
           i += (part as AttributePart).strings!.length - 2;
+        } else if ((part as AttributePart).name === V_IF || (part as AttributePart).name === V_ELSE_IF) {
         } else {
           part._$setValue(values[i]);
         }
       }
       i++;
     }
+
+    this._$conditions.forEach((e) => e.update(values));
+  }
+}
+
+class ConditionChain {
+  readonly mark: Comment;
+  readonly list: { ele: Element; idx?: number }[];
+
+  constructor(ele: Element, idx: number) {
+    const mark = createMarker();
+    ele.before(mark);
+    this.mark = mark;
+    this.list = [{ ele, idx }];
+    this.check();
+  }
+
+  get next() {
+    return this.list.at(-1)!.ele.nextElementSibling;
+  }
+
+  push(ele: Element, idx?: number) {
+    this.list.push({ ele, idx });
+    this.check();
+  }
+
+  check() {
+    const next = this.next;
+    if (next?.attributes.getNamedItem(V_ELSE)) {
+      this.list.push({ ele: next });
+      next.removeAttribute(V_ELSE);
+    }
+  }
+
+  update(values: Array<unknown>) {
+    const { mark, list } = this;
+    const show = list.find(({ idx }) => idx === undefined || !!values[idx]);
+    if (show && !show.ele.parentNode) mark.after(show.ele);
+    list.forEach(({ ele }) => (!show || ele !== show.ele) && ele.remove());
   }
 }
 

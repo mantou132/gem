@@ -108,18 +108,15 @@ export class DuoyunTagElement extends GemElement {
   render = () => {
     return html`
       <slot></slot>
-      ${this.closable
-        ? html`
-            <dy-use
-              tabindex="0"
-              role="button"
-              class="close"
-              @keydown=${commonHandle}
-              @click=${this.#onClose}
-              .element=${icons.close}
-            ></dy-use>
-          `
-        : ''}
+      <dy-use
+        v-if=${this.closable}
+        tabindex="0"
+        role="button"
+        class="close"
+        @keydown=${commonHandle}
+        @click=${this.#onClose}
+        .element=${icons.close}
+      ></dy-use>
     `;
   };
 }

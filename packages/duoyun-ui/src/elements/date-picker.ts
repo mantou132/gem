@@ -117,20 +117,16 @@ export class DuoyunDatePickerElement extends GemElement implements BasePickerEle
           ?time=${this.time}
           @change=${this.time ? onChange : this.#onSubmit}
         ></dy-date-panel>
-        ${this.time
-          ? html`
-              <style>
-                .footer {
-                  margin-block-start: 2em;
-                  display: flex;
-                  justify-content: flex-end;
-                }
-              </style>
-              <div class="footer">
-                <dy-button disabled @click=${onSubmit} small>${locale.ok}</dy-button>
-              </div>
-            `
-          : ''}
+        <style v-if=${this.time}>
+          .footer {
+            margin-block-start: 2em;
+            display: flex;
+            justify-content: flex-end;
+          }
+        </style>
+        <div v-if=${this.time} class="footer">
+          <dy-button disabled @click=${onSubmit} small>${locale.ok}</dy-button>
+        </div>
       `,
       {
         activeElement: this,

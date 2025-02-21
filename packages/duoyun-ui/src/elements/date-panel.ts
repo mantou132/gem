@@ -108,7 +108,9 @@ const style = css`
   }
   .separate {
     color: ${theme.lightBackgroundColor};
-    margin-inline: 0.5em;
+    &[orientation='vertical'] {
+      margin-inline: 0.5em;
+    }
   }
   .time-panel-wrap {
     width: 0;
@@ -341,21 +343,12 @@ export class DuoyunDatePanelElement extends GemElement {
           ${mode === 'month' ? this.#renderMonthList() : ''} ${mode === 'year' ? this.#renderYearList() : ''}
         </div>
       </div>
-      ${this.time
-        ? html`
-            <dy-divider class="separate" orientation="vertical"></dy-divider>
-            <div class="time-panel-wrap">
-              <div class="time">${isNotNullish(this.value) ? new Time(this.value).format('HH:mm:ss') : '-:-:-'}</div>
-              <dy-divider class="separate"></dy-divider>
-              <dy-time-panel
-                class="time-panel"
-                .value=${this.value}
-                @change=${this.#onTimeChange}
-                headless
-              ></dy-time-panel>
-            </div>
-          `
-        : ''}
+      <dy-divider v-if=${this.time} class="separate" orientation="vertical"></dy-divider>
+      <div v-if=${this.time} class="time-panel-wrap">
+        <div class="time">${isNotNullish(this.value) ? new Time(this.value).format('HH:mm:ss') : '-:-:-'}</div>
+        <dy-divider class="separate"></dy-divider>
+        <dy-time-panel class="time-panel" .value=${this.value} @change=${this.#onTimeChange} headless></dy-time-panel>
+      </div>
     `;
   };
 }

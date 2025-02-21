@@ -333,14 +333,21 @@ export class DuoyunModalElement extends GemElement {
               aria-modal="true"
               class="dialog main absolute"
             >
-              ${this.#header
-                ? html`
-                    <div part=${DuoyunModalElement.header} role="heading" aria-level="1" class="header">
-                      <slot name=${DuoyunModalElement.header}>${this.#header}</slot>
-                    </div>
-                    <dy-divider part=${DuoyunModalElement.divider} class="header-divider" size="medium"></dy-divider>
-                  `
-                : ''}
+              <div
+                v-if=${!!this.#header}
+                part=${DuoyunModalElement.header}
+                role="heading"
+                aria-level="1"
+                class="header"
+              >
+                <slot name=${DuoyunModalElement.header}>${this.#header}</slot>
+              </div>
+              <dy-divider
+                v-if=${!!this.#header}
+                part=${DuoyunModalElement.divider}
+                class="header-divider"
+                size="medium"
+              ></dy-divider>
               <dy-scroll-box class="body" part=${DuoyunModalElement.body}>
                 <slot ${this.#bodyRef}>${this.#body}</slot>
               </dy-scroll-box>

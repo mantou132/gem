@@ -490,8 +490,7 @@ export abstract class GemElement extends HTMLElement {
     this.#clearStyle = this.#prepareStyle();
     // 等待所有元素的样式被应用，再执行回调
     // 这让 mounted 和 effect 回调和其他回调一样保持一样的异步行为
-    await Promise.resolve();
-    this.#initEffect();
+    addMicrotask(this.#initEffect);
   };
 
   /**

@@ -10,6 +10,7 @@ import type { Context } from './context';
 import { forEachNode, getAstNodeAtPosition, getAttrName, getHTMLTextAtPosition, isCustomElementTag } from './utils';
 import {
   genAttrDefinitionInfo,
+  genCurrentCtxDefinitionInfo,
   genDefaultCompletionEntryDetails,
   genElementDefinitionInfo,
   translateCompletionItemsToCompletionEntryDetails,
@@ -189,6 +190,7 @@ export class HTMLLanguageService implements TemplateLanguageService {
       for (const [attributeName, { value, start, end }] of node.attributesMap) {
         if (attributeName.startsWith('_')) continue;
 
+        const hasValueSpan = value?.startsWith('_');
         const attrInfo = getAttrName(attributeName);
         const propType = getPropType(typeChecker, tagDeclaration, attrInfo);
         const diagnostic = {
@@ -202,6 +204,33 @@ export class HTMLLanguageService implements TemplateLanguageService {
             ? `'${attributeName}' type error`
             : `'${attributeName}' not satisfied '${typeChecker.typeToString(propType)}'`,
         };
+
+        if (
+          (attributeName === 'v-else-if' || attributeName === 'v-else') &&
+          !node.prev?.attributesMap.has('v-if') &&
+          !node.prev?.attributesMap.has('v-else-if')
+        ) {
+          diagnostics.push({
+            ...diagnostic,
+            code: DiagnosticCode.PropSyntaxError,
+            messageText: `'${attrInfo.attr}' syntax error`,
+          });
+        }
+
+        if (attributeName === 'v-if' || attributeName === 'v-else-if') {
+          const spanType = getSpanType(this.#ctx.ts, typeChecker, file, offset, end);
+          if (!hasValueSpan || !typeChecker.isTypeAssignableTo(spanType, typeChecker.getBooleanType())) {
+            diagnostics.push(diagnostic);
+          }
+          continue;
+        }
+
+        if (attributeName === 'v-else') {
+          if (value !== null) {
+            diagnostics.push(diagnostic);
+          }
+          continue;
+        }
 
         if (!propType) {
           if (attrInfo.decorate !== '@') {
@@ -230,10 +259,8 @@ export class HTMLLanguageService implements TemplateLanguageService {
           continue;
         }
 
-        if (value.startsWith('_')) {
-          const valueOffset = end + offset + 3;
-          const spanExp = getSpanExpression(this.#ctx.ts, file, valueOffset)!;
-          const spanType = typeChecker.getTypeAtLocation(spanExp);
+        if (hasValueSpan) {
+          const spanType = getSpanType(this.#ctx.ts, typeChecker, file, offset, end);
           switch (attrInfo.decorate) {
             case '?':
               const boolType = getUnionType(typeChecker, [
@@ -303,7 +330,7 @@ export class HTMLLanguageService implements TemplateLanguageService {
     const { text, start, length, before } = getHTMLTextAtPosition(context.text, currentOffset);
     const empty = { textSpan: { start, length } };
 
-    if (node.tag === 'style') {
+    if (node.tag === 'style' && currentOffset > node.startTagEnd!) {
       const { style, vDoc, position: pos } = this.#getEmbeddedCss(context, position, vHtml)!;
       const cssNode = style.findChildAtOffset(vDoc.offsetAt(pos), true);
       if (!cssNode) return empty;
@@ -328,6 +355,16 @@ export class HTMLLanguageService implements TemplateLanguageService {
     const { attr, offset } = getAttrName(text);
     if (before.length > attr.length) return empty;
 
+    if (attr === 'v-else' || attr === 'v-else-if') {
+      const ifAttr = node.prev?.attributesMap.get('v-if') || node.prev?.attributesMap.get('v-else-if');
+      if (!ifAttr) return empty;
+      return genCurrentCtxDefinitionInfo(
+        context,
+        { start: start + offset, length: attr.length },
+        { start: ifAttr.start, length: ifAttr.end - ifAttr.start },
+      );
+    }
+
     const typeChecker = this.#ctx.getProgram().getTypeChecker();
     const propSymbol = typeChecker.getTypeAtLocation(definitionNode).getProperty(kebabToCamelCase(attr));
     const propDeclaration = propSymbol?.getDeclarations()?.at(0);
@@ -345,12 +382,27 @@ function getSpanExpression(typescript: typeof ts, file: ts.SourceFile, pos: numb
   return node.expression;
 }
 
+function getSpanType(
+  typescript: typeof ts,
+  typeChecker: ts.TypeChecker,
+  file: ts.SourceFile,
+  htmlOffset: number,
+  attrNameEnd: number,
+) {
+  const valueOffset = attrNameEnd + htmlOffset + 3;
+  const spanExp = getSpanExpression(typescript, file, valueOffset)!;
+  return typeChecker.getTypeAtLocation(spanExp);
+}
+
 function getPropType(
   typeChecker: ts.TypeChecker,
   tagClassDeclaration: ts.ClassDeclaration | ts.InterfaceDeclaration,
   attrInfo: ReturnType<typeof getAttrName>,
 ) {
   const classType = typeChecker.getTypeAtLocation(tagClassDeclaration);
+  if (attrInfo.attr.startsWith('data-')) {
+    return typeChecker.getStringType();
+  }
   const propName = kebabToCamelCase(attrInfo.attr);
   switch (propName) {
     case 'class':

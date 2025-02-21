@@ -116,9 +116,8 @@ export class DuoyunStatisticElement extends GemElement {
     return html`
       <div class="header">
         <span class="title">
-          ${this.loading
-            ? html`<dy-placeholder width="5em"></dy-placeholder>`
-            : html`<slot name=${DuoyunStatisticElement.header}>${this.#header}</slot>`}
+          <dy-placeholder v-if=${this.loading} width="5em"></dy-placeholder>
+          <slot v-else name=${DuoyunStatisticElement.header}>${this.#header}</slot>
         </span>
         <dy-use class="icon" .element=${this.icon}></dy-use>
       </div>

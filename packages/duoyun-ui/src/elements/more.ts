@@ -76,13 +76,14 @@ export class DuoyunMoreElement extends GemElement {
       >
         <slot></slot>
       </dy-more-slot>
-      ${!this.expandless && (bottomOverflow || expanded)
-        ? html`
-            <dy-action-text class="action" @keydown=${commonHandle} @click=${this.#onClick}>
-              ${expanded ? this.less || locale.less : this.more || locale.more}
-            </dy-action-text>
-          `
-        : ''}
+      <dy-action-text
+        v-if=${!this.expandless && (bottomOverflow || expanded)}
+        class="action"
+        @keydown=${commonHandle}
+        @click=${this.#onClick}
+      >
+        ${expanded ? this.less || locale.less : this.more || locale.more}
+      </dy-action-text>
     `;
   };
 }

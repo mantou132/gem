@@ -145,13 +145,9 @@ export class DuoyunCopyElement extends GemElement {
           @keydown=${commonHandle}
           .element=${this.#icon}
         >
-          ${status === 'none'
-            ? ''
-            : html`
-                <div class="tip">
-                  <span class="text">${status === 'fail' ? locale.copyFail : locale.copySuccess}</span>
-                </div>
-              `}
+          <div v-if=${status !== 'none'} class="tip">
+            <span class="text">${status === 'fail' ? locale.copyFail : locale.copySuccess}</span>
+          </div>
         </dy-use>
       </dy-tooltip>
       <slot name=${DuoyunCopyElement.after}></slot>

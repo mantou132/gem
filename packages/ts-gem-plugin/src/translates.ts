@@ -214,3 +214,23 @@ export function genAttrDefinitionInfo(
     ],
   };
 }
+
+export function genCurrentCtxDefinitionInfo(
+  context: TemplateContext,
+  { start, length }: ts.TextSpan,
+  definitionTextSpan: ts.TextSpan,
+): ts.DefinitionInfoAndBoundSpan {
+  return {
+    textSpan: { start, length },
+    definitions: [
+      {
+        containerName: 'Attribute',
+        containerKind: context.typescript.ScriptElementKind.unknown,
+        name: context.text.slice(start, start + length),
+        kind: context.typescript.ScriptElementKind.memberVariableElement,
+        fileName: context.fileName,
+        textSpan: definitionTextSpan,
+      },
+    ],
+  };
+}

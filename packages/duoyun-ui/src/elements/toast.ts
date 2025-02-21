@@ -195,13 +195,9 @@ export class DuoyunToastElement extends GemElement {
           <div class=${classMap({ item: true, [item.type]: true, removed: removedSet.has(item) })}>
             <dy-use class="icon" .element=${this.#getIcon(item.type)}></dy-use>
             <span class="body">${item.content}</span>
-            ${item.action
-              ? html`
-                  <dy-action-text class="action" color="white" @click=${() => this.#clickAction(item)}>
-                    ${item.action.text}
-                  </dy-action-text>
-                `
-              : ''}
+            <dy-action-text v-if=${!!item.action} class="action" color="white" @click=${() => this.#clickAction(item)}>
+              ${item.action?.text}
+            </dy-action-text>
           </div>
         `,
       )}

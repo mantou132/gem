@@ -3,10 +3,6 @@ import type { Metadata, Sheet } from './reactive';
 import { GemElement, UpdateToken, _createTemplate, _RenderErrorEvent, render } from './reactive';
 import { camelToKebabCase, PropProxyMap, GemError } from './utils';
 import type { Store } from './store';
-import * as reactiveExports from './reactive';
-import * as decoratorsExports from './decorators';
-import * as storeExports from './store';
-import * as versionExports from './version';
 
 type GemElementPrototype = GemElement & { '': never };
 type StaticField = Exclude<keyof Metadata, keyof ShadowRootInit | 'aria' | 'noBlocking' | 'penetrable'>;
@@ -551,22 +547,4 @@ export function customElement(name: string) {
       customElements.define(name, cls);
     });
   };
-}
-
-declare global {
-  interface Window {
-    __GEM_DEVTOOLS__HOOK__?:
-      | (typeof reactiveExports & typeof decoratorsExports & typeof storeExports & typeof versionExports)
-      | Record<string, never>;
-  }
-}
-
-// 只记录第一次定义，往往是最外层 App
-if (window.__GEM_DEVTOOLS__HOOK__ && !window.__GEM_DEVTOOLS__HOOK__.GemElement) {
-  assign(window.__GEM_DEVTOOLS__HOOK__, {
-    ...reactiveExports,
-    ...decoratorsExports,
-    ...storeExports,
-    ...versionExports,
-  });
 }

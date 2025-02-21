@@ -106,28 +106,21 @@ export class DuoyunBannerElement extends GemElement {
   render = () => {
     const icon = this.#icon;
     return html`
-      ${icon ? html`<dy-use class="icon" .element=${icon}></dy-use>` : ''}
-      <div class="content">
-        <slot></slot>
-      </div>
-      ${this.action
-        ? html`
-            <button class="action" @keydown=${commonHandle} @click=${this.action.handle}>${this.action.text}</button>
-          `
-        : ''}
-      ${this.closable
-        ? html`
-            <dy-divider class="divider" orientation="vertical"></dy-divider>
-            <dy-use
-              role="button"
-              class="close"
-              tabindex="0"
-              .element=${icons.close}
-              @click=${() => this.close(null)}
-              @keydown=${commonHandle}
-            ></dy-use>
-          `
-        : ''}
+      <dy-use v-if=${!!icon} class="icon" .element=${icon}></dy-use>
+      <div class="content"><slot></slot></div>
+      <button v-if=${!!this.action} class="action" @keydown=${commonHandle} @click=${this.action?.handle}>
+        ${this.action?.text}
+      </button>
+      <dy-divider v-if=${this.closable} class="divider" orientation="vertical"></dy-divider>
+      <dy-use
+        v-if=${this.closable}
+        role="button"
+        class="close"
+        tabindex="0"
+        .element=${icons.close}
+        @click=${() => this.close(null)}
+        @keydown=${commonHandle}
+      ></dy-use>
     `;
   };
 }

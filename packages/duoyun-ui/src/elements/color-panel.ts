@@ -334,16 +334,12 @@ export class DuoyunColorPanelElement extends GemElement {
             style=${styleMap({ top: `${(1 - h) * 100}%`, left: '50%' })}
           ></div>
         </dy-gesture>
-        ${this.alpha
-          ? html`
-              <dy-gesture class="alpha-bar" @pan=${this.#onPanA} @end=${this.#onPanEnd}>
-                <div
-                  class=${classMap({ current: true, grabbing: grabbingA })}
-                  style=${styleMap({ top: `${(1 - a) * 100}%`, left: '50%' })}
-                ></div>
-              </dy-gesture>
-            `
-          : ''}
+        <dy-gesture v-if=${this.alpha} class="alpha-bar" @pan=${this.#onPanA} @end=${this.#onPanEnd}>
+          <div
+            class=${classMap({ current: true, grabbing: grabbingA })}
+            style=${styleMap({ top: `${(1 - a) * 100}%`, left: '50%' })}
+          ></div>
+        </dy-gesture>
       </div>
       <div class="input">
         <dy-select

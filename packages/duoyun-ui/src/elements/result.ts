@@ -64,22 +64,14 @@ export class DuoyunResultElement extends GemElement {
 
   render = () => {
     return html`
-      ${this.icon ? html`<dy-use class="icon" style="color:${this.#color}" .element=${this.icon}></dy-use>` : ''}
-      ${this.illustrator ? html`<dy-use class="illustrator" .element=${this.illustrator}></dy-use>` : ''}
-      ${this.header
-        ? html`
-            <dy-heading lv="2" class="header">
-              <slot name=${DuoyunResultElement.header}>${this.header}</slot>
-            </dy-heading>
-          `
-        : ''}
-      ${this.description
-        ? html`
-            <dy-paragraph class="description">
-              <slot name=${DuoyunResultElement.description}>${this.description}</slot>
-            </dy-paragraph>
-          `
-        : ''}
+      <dy-use v-if=${!!this.icon} class="icon" style="color:${this.#color}" .element=${this.icon}></dy-use>
+      <dy-use v-if=${!!this.illustrator} class="illustrator" .element=${this.illustrator}></dy-use>
+      <dy-heading v-if=${!!this.header} lv="2" class="header">
+        <slot name=${DuoyunResultElement.header}>${this.header}</slot>
+      </dy-heading>
+      <dy-paragraph v-if=${!!this.description} class="description">
+        <slot name=${DuoyunResultElement.description}>${this.description}</slot>
+      </dy-paragraph>
       <slot></slot>
     `;
   };

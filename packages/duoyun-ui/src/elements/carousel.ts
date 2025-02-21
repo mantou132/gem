@@ -276,30 +276,27 @@ export class DuoyunCarouselElement extends GemElement {
                 crossorigin=${this.crossorigin}
               />
               <div class="content" part=${DuoyunCarouselElement.content} @mouseenter=${this.#oMouseEnter}>
-                ${tag ? html`<div part=${DuoyunCarouselElement.tag} class="tag">${tag}</div>` : ''}
+                <div v-if=${!!tag} part=${DuoyunCarouselElement.tag} class="tag">${tag}</div>
                 <dy-heading part=${DuoyunCarouselElement.title} class="heading" lv="2">${title}</dy-heading>
                 <dy-more expandless>
                   <dy-paragraph part=${DuoyunCarouselElement.description} class="paragraph">
                     ${description}
                   </dy-paragraph>
                 </dy-more>
-                ${action
-                  ? html`
-                      <dy-button
-                        class="action"
-                        part=${DuoyunCarouselElement.button}
-                        @click=${(evt: Event) => {
-                          if (action.handle) {
-                            evt.stopPropagation();
-                            action.handle();
-                          }
-                        }}
-                      >
-                        ${action.text}
-                        <dy-use class="forward" .element=${icons.forward}></dy-use>
-                      </dy-button>
-                    `
-                  : ''}
+                <dy-button
+                  v-if=${!!action}
+                  class="action"
+                  part=${DuoyunCarouselElement.button}
+                  @click=${(evt: Event) => {
+                    if (action?.handle) {
+                      evt.stopPropagation();
+                      action.handle();
+                    }
+                  }}
+                >
+                  ${action?.text}
+                  <dy-use class="forward" .element=${icons.forward}></dy-use>
+                </dy-button>
               </div>
             </li>
           `,

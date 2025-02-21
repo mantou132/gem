@@ -73,9 +73,7 @@ const style = css`
     width: 1.2em;
   }
   .tab:hover,
-  .current,
-  .marker,
-  .animate-marker {
+  .current {
     color: ${theme.primaryColor};
   }
   .marker {
@@ -83,27 +81,30 @@ const style = css`
     top: 100%;
     left: 0;
     right: 0;
+
+    :host([orientation='vertical']) & {
+      top: 0;
+      left: 100%;
+      height: 100%;
+    }
   }
-  :host([orientation='vertical']) .marker {
-    top: 0;
-    left: 100%;
-    height: 100%;
-  }
-  .animate-marker {
-    display: none;
+  @supports not (anchor-name: --foo) {
+    .animate-marker {
+      display: none;
+    }
   }
   @supports (anchor-name: --foo) {
     .marker {
-      background: none;
+      display: none;
     }
     .animate-marker {
-      display: block;
       position: absolute;
       inset: anchor(bottom) anchor(right) auto anchor(left);
       transition: inset 0.3s ${theme.timingFunction};
-    }
-    :host([orientation='vertical']) .animate-marker {
-      inset: anchor(top) auto anchor(bottom) anchor(right);
+
+      :host([orientation='vertical']) & {
+        inset: anchor(top) auto anchor(bottom) anchor(right);
+      }
     }
   }
 `;
@@ -145,17 +146,15 @@ export class DuoyunTabsElement extends GemElement {
     const currentIndex = this.items.findIndex(({ value }, index) => (value ?? index) === this.value);
     return html`
       <div part=${DuoyunTabsElement.tabs} class="tabs">
-        ${currentIndex !== -1
-          ? html`
-              <dy-divider
-                part=${DuoyunTabsElement.marker}
-                class="animate-marker"
-                size="medium"
-                orientation=${this.#orientation}
-                style=${styleMap({ positionAnchor: getAnchorName(currentIndex) })}
-              ></dy-divider>
-            `
-          : ''}
+        <dy-divider
+          v-if=${currentIndex !== -1}
+          part=${DuoyunTabsElement.marker}
+          class="animate-marker"
+          size="medium"
+          orientation=${this.#orientation}
+          color=${theme.primaryColor}
+          style=${styleMap({ positionAnchor: getAnchorName(currentIndex) })}
+        ></dy-divider>
         ${this.items.map(({ value, label, icon, getContent }, index) => {
           const isCurrent = currentIndex === index;
           if (isCurrent) currentContent = getContent?.() || '';
@@ -167,18 +166,16 @@ export class DuoyunTabsElement extends GemElement {
               part=${partMap({ [DuoyunTabsElement.tab]: true, [DuoyunTabsElement.current]: isCurrent })}
               @click=${() => this.change(value ?? index)}
             >
-              ${icon ? html`<dy-use part=${DuoyunTabsElement.icon} class="icon" .element=${icon}></dy-use>` : ''}
+              <dy-use v-if=${!!icon} part=${DuoyunTabsElement.icon} class="icon" .element=${icon}></dy-use>
               <span tabindex="0" @keydown=${commonHandle}>${label}</span>
-              ${isCurrent
-                ? html`
-                    <dy-divider
-                      part=${DuoyunTabsElement.marker}
-                      class="marker"
-                      size="medium"
-                      orientation=${this.#orientation}
-                    ></dy-divider>
-                  `
-                : ''}
+              <dy-divider
+                v-if=${isCurrent}
+                part=${DuoyunTabsElement.marker}
+                class="marker"
+                size="medium"
+                orientation=${this.#orientation}
+                color=${theme.primaryColor}
+              ></dy-divider>
             </div>
           `;
         })}

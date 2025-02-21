@@ -179,15 +179,11 @@ export class DuoyunPickerElement extends GemElement implements BasePickerElement
     const currentLabels = currents?.map((e) => e.label);
     const isEmpty = !currentLabels?.length;
     return html`
-      ${isEmpty
-        ? html`<div class="placeholder">${this.placeholder}</div>`
-        : !this.multiple
-          ? html`<div class="value">${currentLabels}</div>`
-          : html`
-              <dy-scroll-box class="values">
-                ${typeof currentLabels[0] === 'object' ? currentLabels : currentLabels.join(', ')}
-              </dy-scroll-box>
-            `}
+      <div v-if=${isEmpty} class="placeholder">${this.placeholder}</div>
+      <div v-else-if=${!this.multiple} class="value">${currentLabels}</div>
+      <dy-scroll-box v-else class="values">
+        ${typeof currentLabels?.at(0) === 'object' ? currentLabels : currentLabels?.join(', ')}
+      </dy-scroll-box>
       <dy-use .element=${icons.expand}></dy-use>
     `;
   };

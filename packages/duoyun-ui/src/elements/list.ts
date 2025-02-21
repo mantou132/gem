@@ -1,36 +1,36 @@
+import { logger } from '@mantou/gem/helper/logger';
 import type { Emitter } from '@mantou/gem/lib/decorators';
 import {
   adoptedStyle,
-  customElement,
-  part,
-  property,
-  slot,
-  state,
-  emitter,
-  boolattribute,
-  attribute,
-  shadow,
   aria,
+  attribute,
+  boolattribute,
+  customElement,
   effect,
-  willMount,
+  emitter,
   memo,
   mounted,
+  part,
+  property,
+  shadow,
+  slot,
+  state,
+  willMount,
 } from '@mantou/gem/lib/decorators';
 import type { TemplateResult } from '@mantou/gem/lib/element';
-import { css, createRef, createState, GemElement, html } from '@mantou/gem/lib/element';
+import { GemElement, createRef, createState, css, html } from '@mantou/gem/lib/element';
 import type { LinkedListItem } from '@mantou/gem/lib/utils';
-import { addListener, LinkedList, styled, styleMap } from '@mantou/gem/lib/utils';
-import { logger } from '@mantou/gem/helper/logger';
+import { LinkedList, addListener, styleMap, styled } from '@mantou/gem/lib/utils';
 
-import { theme } from '../lib/theme';
-import { blockContainer } from '../lib/styles';
 import { findScrollContainer } from '../lib/element';
-import { throttle, once } from '../lib/timer';
+import { blockContainer } from '../lib/styles';
+import { theme } from '../lib/theme';
+import { once, throttle } from '../lib/timer';
 
-import type { Status } from './status-light';
+import { DuoyunResizeBaseElement } from './base/resize';
 import type { VisibleBaseElement } from './base/visible';
 import { DuoyunVisibleBaseElement, visibilityObserver } from './base/visible';
-import { DuoyunResizeBaseElement } from './base/resize';
+import type { Status } from './status-light';
 
 import './avatar';
 import './divider';
@@ -609,15 +609,11 @@ export class DuoyunListItemElement extends DuoyunResizeBaseElement implements Vi
   #renderDefaultItem = ({ title, avatar, description, status }: Item) => {
     return html`
       <div class=${itemStyle.item}>
-        ${!avatar
-          ? ''
-          : html`
-              <div class="avatar">
-                ${typeof avatar === 'string'
-                  ? html`<dy-avatar src=${avatar} alt="Avatar" .status=${status as Status}></dy-avatar>`
-                  : avatar}
-              </div>
-            `}
+        <div v-if=${!!avatar} class="avatar">
+          ${typeof avatar === 'string'
+            ? html`<dy-avatar src=${avatar} alt="Avatar" .status=${status as Status}></dy-avatar>`
+            : avatar}
+        </div>
         <div class="content">
           <div class="title">${title}</div>
           <div class="description">${description}</div>

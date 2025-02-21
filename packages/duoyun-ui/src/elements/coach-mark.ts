@@ -168,19 +168,15 @@ export class DuoyunCoachMarkElement extends DuoyunVisibleBaseElement {
     DuoyunWaitElement.instance?.remove(); // avoid inert conflict
     ContextMenu.open(
       html`
-        <dy-card
-          style="margin: -0.8em -1em; border: none; border-radius: 0;"
-          .header=${title}
-          .detailRight=${isFinish
-            ? '🎉'
-            : splice(locale.currentOfTotal, String(store.currentIndex + 1), String(tourList.length))}
-          .preview=${preview}
-        >
+        <dy-card style="margin: -0.8em -1em; border: none; border-radius: 0;" header=${title} preview=${preview}>
+          <span slot="detail-right">
+            ${isFinish ? '🎉' : splice(locale.currentOfTotal, String(store.currentIndex + 1), String(tourList.length))}
+          </span>
           <dy-paragraph slot="body">${description}</dy-paragraph>
           <div slot="footer">
-            ${isFinish
-              ? ''
-              : html`<dy-button @click=${() => this.#skip()} small color="cancel">${locale.skipTour}</dy-button>`}
+            <dy-button v-if=${!isFinish} @click=${() => this.#skip()} small color="cancel">
+              ${locale.skipTour}
+            </dy-button>
             <dy-button @click=${() => nextTour()} small>
               ${finishText || (isFinish ? locale.finishTour : locale.nextTour)}
             </dy-button>
@@ -204,7 +200,7 @@ export class DuoyunCoachMarkElement extends DuoyunVisibleBaseElement {
     addListener(this, 'click', this.#stopPropagation);
   };
 
-  @effect()
+  @effect((i) => [i.#tour])
   #autoOpen = () => {
     if (!this.#tour) return;
     this.#open();

@@ -72,21 +72,19 @@ export class DuoyunBreadcrumbsElement extends GemElement {
       ${this.#items?.map(
         ({ title, tooltip, handle, icon }, index, arr, isLast = arr.length - 1 === index) => html`
           <dy-tooltip .content=${tooltip}>
-            ${icon
-              ? html`<dy-use class="item-icon" .element=${icon}></dy-use>`
-              : html`
-                  <dy-action-text
-                    role="link"
-                    part=${DuoyunBreadcrumbsElement.item}
-                    @click=${handle}
-                    @keydown=${commonHandle}
-                    class=${classMap({ 'item-title': true, current: isLast })}
-                  >
-                    ${title}
-                  </dy-action-text>
-                `}
+            <dy-use v-if=${!!icon} class="item-icon" .element=${icon}></dy-use>
+            <dy-action-text
+              v-else
+              role="link"
+              part=${DuoyunBreadcrumbsElement.item}
+              @click=${handle}
+              @keydown=${commonHandle}
+              class=${classMap({ 'item-title': true, current: isLast })}
+            >
+              ${title}
+            </dy-action-text>
           </dy-tooltip>
-          ${!isLast ? html`<dy-use class="separator" role="separator" .element=${icons.right}></dy-use>` : ''}
+          <dy-use v-if=${!isLast} class="separator" role="separator" .element=${icons.right}></dy-use>
         `,
       )}
     `;

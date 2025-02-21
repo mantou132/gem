@@ -3,7 +3,7 @@ const { assign, fromEntries, entries, keys } = Object;
 const microtaskSet = new Set<() => void>();
 export function addMicrotask(func: () => void) {
   if (microtaskSet.has(func)) return;
-  queueMicrotask(() => {
+  Promise.resolve().then(() => {
     microtaskSet.delete(func);
     func();
   });

@@ -203,30 +203,26 @@ export class DuoyunTableElement<T = any, K = any> extends DuoyunScrollBoxElement
       <colgroup>
         ${this.#columns.map(({ width = 'auto' }) => html`<col style=${styleMap({ width })} /> `)}
       </colgroup>
-      ${this.headless
-        ? ''
-        : html`
-            <thead>
-              <tr>
-                ${this.#columns.map(
-                  ({ title = '', width, style = this.#getDefaultStyle(width), tooltip }) => html`
-                    <th part=${DuoyunTableElement.th} style=${styleMap(style)}>
-                      <dy-space size="small">
-                        ${title}
-                        ${tooltip
-                          ? html`
-                              <dy-tooltip .content=${tooltip}>
-                                <dy-use class="tooltip" .element=${icons.help}></dy-use>
-                              </dy-tooltip>
-                            `
-                          : ''}
-                      </dy-space>
-                    </th>
-                  `,
-                )}
-              </tr>
-            </thead>
-          `}
+      <thead v-if=${!this.headless}>
+        <tr>
+          ${this.#columns.map(
+            ({ title = '', width, style = this.#getDefaultStyle(width), tooltip }) => html`
+              <th part=${DuoyunTableElement.th} style=${styleMap(style)}>
+                <dy-space size="small">
+                  ${title}
+                  ${tooltip
+                    ? html`
+                        <dy-tooltip .content=${tooltip}>
+                          <dy-use class="tooltip" .element=${icons.help}></dy-use>
+                        </dy-tooltip>
+                      `
+                    : ''}
+                </dy-space>
+              </th>
+            `,
+          )}
+        </tr>
+      </thead>
     `;
 
     let sum = this.#columns
@@ -389,19 +385,15 @@ export class DuoyunTableElement<T = any, K = any> extends DuoyunScrollBoxElement
     const rowSpanMemo = columns.map(() => 0);
     return html`
       <table part=${DuoyunTableElement.table} class=${classMap({ selection: this.#selectionSet.size })}>
-        ${this.caption
-          ? html`
-              <caption>
-                ${this.caption}
-              </caption>
-            `
-          : ''}
+        <caption v-if=${!!this.caption}>
+          ${this.caption}
+        </caption>
         ${this.#headerPart}
         <tbody>
           ${this.data?.map(
             (record, _rowIndex, _data, colSpanMemo = [0]) => html`
               <tr
-                data-state-active
+                data-state-active=""
                 @click=${() => record && this.#onItemClick(record)}
                 @contextmenu=${(evt: MouseEvent) => record && this.#onItemContextMenu(evt, record)}
                 part=${DuoyunTableElement.tr}
@@ -465,24 +457,16 @@ export class DuoyunTableElement<T = any, K = any> extends DuoyunScrollBoxElement
         </tbody>
       </table>
       ${this.#sidePart}
-      ${this.selectable
-        ? html`
-            <dy-selection-box
-              class="selection"
-              .container=${this.selectionContainer}
-              @change=${this.#onSelectionBoxChange}
-            ></dy-selection-box>
-          `
-        : ''}
-      ${!this.data
-        ? html`<div class="side" part=${DuoyunTableElement.side}><dy-loading></dy-loading></div>`
-        : this.data.length === 0
-          ? html`
-              <div class="side" part=${DuoyunTableElement.side}>
-                <dy-empty .slotName=${DuoyunTableElement.noData} .text=${this.noData}></dy-empty>
-              </div>
-            `
-          : ''}
+      <dy-selection-box
+        v-if=${this.selectable}
+        class="selection"
+        .container=${this.selectionContainer}
+        @change=${this.#onSelectionBoxChange}
+      ></dy-selection-box>
+      <div v-if=${!this.data} class="side" part=${DuoyunTableElement.side}><dy-loading></dy-loading></div>
+      <div v-else-if=${this.data?.length === 0} class="side" part=${DuoyunTableElement.side}>
+        <dy-empty .slotName=${DuoyunTableElement.noData} .text=${this.noData}></dy-empty>
+      </div>
     `;
   };
 

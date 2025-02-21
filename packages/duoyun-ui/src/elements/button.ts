@@ -215,24 +215,21 @@ export class DuoyunButtonElement extends GemElement {
         class=${classMap({ content: true, corner: !!this.dropdown })}
         part=${DuoyunButtonElement.button}
       >
-        ${this.icon ? html`<dy-use class="icon" .element=${this.icon}></dy-use>` : ''}
+        <dy-use v-if=${!!this.icon} class="icon" .element=${this.icon}></dy-use>
         <slot></slot>
       </div>
-      ${this.dropdown
-        ? html`
-            <dy-use
-              ${this.#dropdownRef}
-              class="dropdown"
-              part=${DuoyunButtonElement.dropdown}
-              @keydown=${commonHandle}
-              role="button"
-              tabindex=${-Number(this.disabled)}
-              aria-disabled=${this.disabled}
-              @click=${this.#onClickDropdown}
-              .element=${icons.expand}
-            ></dy-use>
-          `
-        : ''}
+      <dy-use
+        ${this.#dropdownRef}
+        v-if=${!!this.dropdown}
+        class="dropdown"
+        part=${DuoyunButtonElement.dropdown}
+        @keydown=${commonHandle}
+        role="button"
+        tabindex=${-Number(this.disabled)}
+        aria-disabled=${this.disabled}
+        @click=${this.#onClickDropdown}
+        .element=${icons.expand}
+      ></dy-use>
     `;
   };
 }

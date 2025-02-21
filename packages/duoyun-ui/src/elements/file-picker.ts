@@ -170,7 +170,7 @@ export class DuoyunFilePickerElement extends GemElement implements BasePickerEle
     return html`
       <div role="listitem" class="item" part=${DuoyunFilePickerElement.item} style=${styleMap({ color: getColor() })}>
         <div class="name">${name}</div>
-        ${progress ? html`<div role="progressbar">${Math.floor(progress)}%</div>` : ''}
+        <div v-if=${!!progress} role="progressbar">${Math.floor(Number(progress))}%</div>
         <slot name=${utf8ToB64(name, true)}></slot>
         <dy-use
           role="button"
@@ -235,7 +235,7 @@ export class DuoyunFilePickerElement extends GemElement implements BasePickerEle
         <dy-use class="icon" .element=${icons.add}></dy-use>
         <span class="name"><slot>${this.placeholder || 'Browse'}</slot></span>
       </div>
-      ${this.value ? html`<div role="list" class="list">${repeat(this.value, (e) => e, renderItem)}</div>` : ''}
+      <div v-if=${!!this.value} role="list" class="list">${repeat(this.value || [], (e) => e, renderItem)}</div>
     `;
   };
 

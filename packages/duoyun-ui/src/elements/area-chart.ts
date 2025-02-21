@@ -283,7 +283,7 @@ export class DuoyunAreaChartElement extends DuoyunChartBaseElement {
     });
   };
 
-  @memo((i) => [i.sequences, ...i.range])
+  @memo((i) => [i.sequences, ...i.range, i.#chartZoom])
   #calcSeqList = () => {
     const [start, stop] = this.range;
     const values = this.sequences?.[0]?.values;
@@ -375,22 +375,16 @@ export class DuoyunAreaChartElement extends DuoyunChartBaseElement {
         <svg aria-hidden="true" part=${
           DuoyunChartBaseElement.chart
         } xmlns="http://www.w3.org/2000/svg" viewBox=${this._viewBox.join(' ')}>
-          ${
-            this.#gradient
-              ? svg`
-                  <defs>
-                    ${this.#sequences?.map(
-                      (_, index) => svg`
-                        <linearGradient id="${this.genGradientId(index)}" gradientTransform="rotate(90)">
-                          <stop offset="10%"  stop-color=${this.colors[index]} />
-                          <stop offset="90%" stop-opacity="0.2" stop-color=${this.colors[index]} />
-                        </linearGradient>
-                        `,
-                    )}
-                  </defs>
-                `
-              : ''
-          }
+          <defs v-if=${this.#gradient}>
+            ${this.#sequences?.map(
+              (_, index) => svg`
+                <linearGradient id="${this.genGradientId(index)}" gradientTransform="rotate(90)">
+                  <stop offset="10%"  stop-color=${this.colors[index]} />
+                  <stop offset="90%" stop-opacity="0.2" stop-color=${this.colors[index]} />
+                </linearGradient>
+                `,
+            )}
+          </defs>
           ${this._renderXAxi()}
           ${this._renderYAxi()}
           ${this.#sequences.map(
@@ -404,41 +398,32 @@ export class DuoyunAreaChartElement extends DuoyunChartBaseElement {
               disabled = this.#isDisabled(value),
             ) =>
               svg`
-                ${
-                  !this.stack
-                    ? svg`
-                        <path
-                          class=${classMap({ 'hit-line': true, disabled })}
-                          stroke="transparent"
-                          fill="none"
-                          stroke-width=${this._getSVGPixel(10)}
-                          d=${this.#paths[revertIndex]}
-                          @pointerover=${() => this.#state({ hoverSequence: value })}
-                          @pointerout=${() => this.#state({ hoverSequence: '' })}
-                        ></path>
-                        <path
-                          class=${classMap({ line: true, disabled })}
-                          stroke=${this.colors[revertIndex]}
-                          fill="none"
-                          stroke-width=${this.stroke ? this._getSVGPixel(1) : 0}
-                          d=${this.#paths[revertIndex]}
-                        ></path>
-                      `
-                    : ''
-                }
-                ${
-                  this.#fill
-                    ? svg`
-                        <path
-                          class=${classMap({ area: true, disabled })}
-                          fill=${this.#gradient ? `url(#${this.genGradientId(revertIndex)})` : this.colors[revertIndex]}
-                          d=${this.#areas[revertIndex]}
-                          @pointerover=${() => this.stack && this.#state({ hoverSequence: value })}
-                          @pointerout=${() => this.stack && this.#state({ hoverSequence: '' })}
-                        ></path>
-                      `
-                    : ''
-                }
+                <path
+                  v-if=${!this.stack}
+                  class=${classMap({ 'hit-line': true, disabled })}
+                  stroke="transparent"
+                  fill="none"
+                  stroke-width=${this._getSVGPixel(10)}
+                  d=${this.#paths[revertIndex]}
+                  @pointerover=${() => this.#state({ hoverSequence: value })}
+                  @pointerout=${() => this.#state({ hoverSequence: '' })}
+                ></path>
+                <path
+                  v-if=${!this.stack}
+                  class=${classMap({ line: true, disabled })}
+                  stroke=${this.colors[revertIndex]}
+                  fill="none"
+                  stroke-width=${this.stroke ? this._getSVGPixel(1) : 0}
+                  d=${this.#paths[revertIndex]}
+                ></path>
+                <path
+                  v-if=${this.#fill}
+                  class=${classMap({ area: true, disabled })}
+                  fill=${this.#gradient ? `url(#${this.genGradientId(revertIndex)})` : this.colors[revertIndex]}
+                  d=${this.#areas[revertIndex]}
+                  @pointerover=${() => this.stack && this.#state({ hoverSequence: value })}
+                  @pointerout=${() => this.stack && this.#state({ hoverSequence: '' })}
+                ></path>
               `,
           )}
           ${
@@ -466,15 +451,13 @@ export class DuoyunAreaChartElement extends DuoyunChartBaseElement {
             stroke-dasharray=${`${this._getSVGPixel(4)} ${this._getSVGPixel(1.5)}`}>
           </path>
         </svg>
-      `} ${this.#chartZoom
-        ? html`
-            <dy-chart-zoom
-              @change=${({ detail }: CustomEvent) => this.zoom(detail)}
-              .values=${this.#totalValues}
-              .value=${this.range}
-            ></dy-chart-zoom>
-          `
-        : ''}
+      `}
+      <dy-chart-zoom
+        v-if=${this.#chartZoom}
+        @change=${({ detail }: CustomEvent) => this.zoom(detail)}
+        .values=${this.#totalValues}
+        .value=${this.range}
+      ></dy-chart-zoom>
     `;
   };
 }

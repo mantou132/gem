@@ -4,7 +4,7 @@
   "displayName": "Gem",
   "description": "Gem plugin for VS Code",
   "icon": "logo.png",
-  "version": "1.0.3",
+  "version": "1.0.6",
   "engines": {
     "vscode": "^1.94.0"
   },
@@ -169,7 +169,7 @@
   },
   "dependencies": {
     "duoyun-ui": "^2.2.0",
-    "ts-gem-plugin": "^0.0.5"
+    "ts-gem-plugin": "^0.0.7"
   },
   "devDependencies": {
     "@gemjs/config": "^2.1.0",

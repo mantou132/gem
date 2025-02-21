@@ -7,12 +7,18 @@ import StandardScriptSourceHelper from '@mantou/typescript-template-language-ser
 import type { Stylesheet } from '@mantou/vscode-css-languageservice';
 import { getCSSLanguageService } from '@mantou/vscode-css-languageservice';
 import { StringWeakMap } from 'duoyun-ui/lib/map';
-import { camelToKebabCase } from '@mantou/gem/lib/utils';
 
 import { isDepElement } from './utils';
 import type { Configuration } from './configuration';
 import { dataProvider, HTMLDataProvider } from './data-provider';
 import { LRUCache } from './cache';
+
+declare module '@mantou/vscode-html-languageservice' {
+  interface Node {
+    prev?: Node;
+    next?: Node;
+  }
+}
 
 /**
  * 全局上下文，数据共享
@@ -78,6 +84,11 @@ export class Context {
     return this.#virtualHtmlCache.get({ text, fileName: '' }, undefined, () => {
       const vDoc = createVirtualDocument('html', text);
       const vHtml = this.htmlLanguageService.parseHTMLDocument(vDoc);
+      vHtml.roots.forEach(function transform(e, index, arr) {
+        e.prev = arr[index - 1];
+        e.next = arr[index + 1];
+        e.children.forEach(transform);
+      });
       return { vDoc, vHtml };
     });
   }
@@ -132,12 +143,35 @@ export class Context {
       const name = symbol.escapedName.toString();
       const match = name.match(/^(SVG|HTML)(\w*)Element$/);
       const declaration = symbol.declarations?.find((e) => this.ts.isInterfaceDeclaration(e));
-      if (match && declaration) {
-        this.builtInElements.set(camelToKebabCase(match[2]), declaration);
+      if (!match || !declaration) return;
+      if (name in partialBuiltInElementMap) {
+        partialBuiltInElementMap[name].forEach((e) => this.builtInElements.set(e, declaration));
+      } else {
+        this.builtInElements.set(match[2].toLowerCase(), declaration);
       }
     });
   }
 }
+
+const partialBuiltInElementMap: Record<string, string[]> = {
+  SVGAElement: [],
+  HTMLAnchorElement: ['a'],
+  SVGImageElement: [],
+  HTMLImageElement: ['img'],
+  SVGStyleElement: [],
+  HTMLStyleElement: ['style'],
+  HTMLDListElement: ['dl'],
+  HTMLOListElement: ['ol'],
+  HTMLUListElement: ['ul'],
+  HTMLHeadingElement: ['h1', 'h2', 'h3', 'h4', 'h5', 'h6'],
+  HTMLModElement: ['del', 'ins'],
+  HTMLQuoteElement: ['blockquote', 'q', 'cite'],
+  HTMLTableCaptionElement: ['caption'],
+  HTMLTableCellElement: ['th', 'td'],
+  HTMLTableColElement: ['col'],
+  HTMLTableRowElement: ['tr'],
+  HTMLTableSectionElement: ['thead', 'tfoot', 'tbody'],
+};
 
 function createVirtualDocument(languageId: string, content: string) {
   return TextDocument.create(`embedded://document.${languageId}`, languageId, 1, content);

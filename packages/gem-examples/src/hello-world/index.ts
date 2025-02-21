@@ -18,7 +18,7 @@ export class HelloWorld extends GemElement {
 
   render() {
     return html`
-      <button @click="${this.#clickHandle}">Hello, World</button>
+      <button @click=${this.#clickHandle}>Hello, World</button>
       <div>store.a: ${store.a}</div>
     `;
   }

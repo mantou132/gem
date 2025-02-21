@@ -84,13 +84,9 @@ export class DuoyunAlertElement extends GemElement {
       <div class="content">
         <slot></slot>
       </div>
-      ${this.action
-        ? html`
-            <div class="footer">
-              <dy-action-text @click=${this.action.handle}>${this.action.text}</dy-action-text>
-            </div>
-          `
-        : ''}
+      <div v-if=${!!this.action} class="footer">
+        <dy-action-text @click=${this.action?.handle}>${this.action?.text}</dy-action-text>
+      </div>
     `;
   };
 }

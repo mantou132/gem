@@ -112,15 +112,11 @@ export class DuoyunCascaderPickerElement extends GemElement implements BasePicke
           @expand=${this.#onExpand}
           ?multiple=${this.multiple}
         >
-          ${this.fit
-            ? html`
-                <style>
-                  dy-cascader::part(column) {
-                    width: ${this.getBoundingClientRect().width / getCascaderDeep(this.options, 'children')}px;
-                  }
-                </style>
-              `
-            : ''}
+          <style v-if=${this.fit}>
+            dy-cascader::part(column) {
+              width: ${this.getBoundingClientRect().width / getCascaderDeep(this.options, 'children')}px;
+            }
+          </style>
         </dy-cascader>
       `,
       {
@@ -144,15 +140,11 @@ export class DuoyunCascaderPickerElement extends GemElement implements BasePicke
   render = () => {
     const isEmpty = this.multiple ? !this.value?.length : !this.value;
     return html`
-      ${isEmpty
-        ? html`<div class="placeholder">${this.placeholder}</div>`
-        : this.multiple
-          ? html`
-              <dy-scroll-box class="values">
-                ${(this.value as OptionValue[][]).map((e) => html`<dy-tag small>${e.join(' / ')}</dy-tag>`)}
-              </dy-scroll-box>
-            `
-          : html`<div class="value">${(this.value as OptionValue[]).join(' / ')}</div>`}
+      <div v-if=${isEmpty} class="placeholder">${this.placeholder}</div>
+      <dy-scroll-box v-else-if=${this.multiple} class="values">
+        ${(this.value as OptionValue[][]).map((e) => html`<dy-tag small>${e.join(' / ')}</dy-tag>`)}
+      </dy-scroll-box>
+      <div v-else class="value">${(this.value as OptionValue[]).join(' / ')}</div>
       <dy-use class="icon" .element=${icons.expand}></dy-use>
     `;
   };

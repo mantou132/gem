@@ -224,25 +224,18 @@ export class DuoyunSliderElement extends GemElement {
           @pointerdown=${() => !this.disabled && this.#state({ start: true })}
           @end=${this.#onEnd}
         ></dy-gesture>
-        ${this.label
-          ? html`
-              <div class="label">${this.label}</div>
-              <div class="value">${this.value}</div>
-            `
-          : ''}
+        <div v-if=${!!this.label} class="label">${this.label}</div>
+        <div v-if=${!!this.label} class="value">${this.value}</div>
       </div>
-      ${this.editable
-        ? html`
-            <dy-input
-              ?disabled=${this.disabled}
-              class="input"
-              type="number"
-              step=${this.step}
-              value=${String(this.value)}
-              @change=${this.#onInputChange}
-            ></dy-input>
-          `
-        : ''}
+      <dy-input
+        v-if=${this.editable}
+        ?disabled=${this.disabled}
+        class="input"
+        type="number"
+        step=${this.step}
+        value=${String(this.value)}
+        @change=${this.#onInputChange}
+      ></dy-input>
     `;
   };
 }

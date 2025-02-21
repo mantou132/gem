@@ -43,8 +43,14 @@ const style = css`
   :host([size='large']) {
     width: 3.8em;
   }
-  .img {
-    display: block;
+  .slot:has-slotted {
+    place-items: center;
+    place-content: center;
+    border-color: ${theme.textColor};
+  }
+  .img,
+  .slot:has-slotted {
+    display: flex;
     width: 100%;
     aspect-ratio: 1;
     border-radius: var(--radius);
@@ -97,15 +103,17 @@ export class DuoyunAvatarElement extends GemElement {
   render = () => {
     return html`
       <dy-tooltip .content=${this.tooltip}>
-        <img
-          class="img"
-          alt=${this.alt || this.src}
-          src=${this.src}
-          part=${DuoyunAvatarElement.avatar}
-          crossorigin=${this.crossorigin}
-        />
+        <slot class="slot">
+          <img
+            class="img"
+            alt=${this.alt || this.src}
+            src=${this.src}
+            part=${DuoyunAvatarElement.avatar}
+            crossorigin=${this.crossorigin}
+          />
+        </slot>
       </dy-tooltip>
-      ${this.status ? html`<div class="status"></div>` : ''}
+      <div v-if=${!!this.status} class="status"></div>
     `;
   };
 }
@@ -192,18 +200,15 @@ export class DuoyunAvatarGroupElement extends GemElement {
     const rest = this.#items.slice(this.#max);
     return html`
       ${this.#items.slice(0, this.#max).map((avatar) => this.#renderAvatar(avatar))}
-      ${rest.length
-        ? html`
-            <dy-avatar
-              exportparts=${DuoyunAvatarElement.avatar}
-              class="item"
-              role="listitem"
-              .tooltip=${rest.map((e) => e.alt).join()}
-            >
-              +${rest.length}
-            </dy-avatar>
-          `
-        : ''}
+      <dy-avatar
+        v-if=${!!rest.length}
+        exportparts=${DuoyunAvatarElement.avatar}
+        class="item"
+        role="listitem"
+        .tooltip=${rest.map((e) => e.alt).join()}
+      >
+        +${rest.length}
+      </dy-avatar>
     `;
   };
 }

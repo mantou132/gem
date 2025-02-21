@@ -125,45 +125,36 @@ export class DuoyunCardElement extends DuoyunLoadableBaseElement {
 
   render = () => {
     return html`
-      ${this.preview
-        ? html`<img
-            part=${DuoyunCardElement.preview}
-            alt="preview"
-            class="preview"
-            src=${this.preview}
-            crossorigin=${this.crossorigin}
-          />`
-        : ''}
-      ${this.avatar
-        ? html`<img
-            part=${DuoyunCardElement.avatar}
-            alt="avatar"
-            class="avatar"
-            src=${this.avatar}
-            crossorigin=${this.crossorigin}
-          />`
-        : ''}
-      ${this.header
-        ? html`
-            <div class="header">
-              <div class="title"><slot name=${DuoyunCardElement.header}>${this.header}</slot></div>
-              <div class="detail"><slot name=${DuoyunCardElement.detail}>${this.detail}</slot></div>
-              <div class="detail right"><slot name=${DuoyunCardElement.detailRight}>${this.detailRight}</slot></div>
-              ${this.actions
-                ? html`
-                    <dy-use
-                      tabindex="0"
-                      role="button"
-                      class="actions"
-                      @click=${this.#onOpenMenu}
-                      @keydown=${commonHandle}
-                      .element=${icons.more}
-                    ></dy-use>
-                  `
-                : ''}
-            </div>
-          `
-        : ''}
+      <img
+        v-if=${!!this.preview}
+        part=${DuoyunCardElement.preview}
+        alt="preview"
+        class="preview"
+        src=${this.preview}
+        crossorigin=${this.crossorigin}
+      />
+      <img
+        v-if=${!!this.avatar}
+        part=${DuoyunCardElement.avatar}
+        alt="avatar"
+        class="avatar"
+        src=${this.avatar}
+        crossorigin=${this.crossorigin}
+      />
+      <div v-if=${!!this.header} class="header">
+        <div class="title"><slot name=${DuoyunCardElement.header}>${this.header}</slot></div>
+        <div class="detail"><slot name=${DuoyunCardElement.detail}>${this.detail}</slot></div>
+        <div class="detail right"><slot name=${DuoyunCardElement.detailRight}>${this.detailRight}</slot></div>
+        <dy-use
+          v-if=${!!this.actions}
+          tabindex="0"
+          role="button"
+          class="actions"
+          @click=${this.#onOpenMenu}
+          @keydown=${commonHandle}
+          .element=${icons.more}
+        ></dy-use>
+      </div>
       <slot name=${DuoyunCardElement.body}></slot>
       <slot></slot>
       <slot name=${DuoyunCardElement.footer}></slot>

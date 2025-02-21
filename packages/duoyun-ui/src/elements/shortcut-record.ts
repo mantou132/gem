@@ -154,9 +154,13 @@ export class DuoyunShortcutRecordElement extends GemElement {
               <div class="tooltip">${this.#tooltip}</div>
             `}
       </dy-paragraph>
-      ${this.clearable
-        ? html`<dy-use class="clear" role="button" @click=${this.#onClear} .element=${icons.close}></dy-use>`
-        : ''}
+      <dy-use
+        v-if=${this.clearable}
+        class="clear"
+        role="button"
+        @click=${this.#onClear}
+        .element=${icons.close}
+      ></dy-use>
     `;
   };
 }

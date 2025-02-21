@@ -192,7 +192,6 @@ export class DuoyunSideNavigationElement extends DuoyunScrollBaseElement {
         part=${DuoyunSideNavigationElement.item}
         @keydown=${commonHandle}
         @click=${children && (() => this.#onClickChildren(title))}
-        doc-title=${title}
         path=${pattern ? createPath({ pattern }, { params }) : ''}
         query=${query ? query.toString() : ''}
         hash=${hash || ''}

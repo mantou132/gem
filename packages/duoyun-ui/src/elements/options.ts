@@ -191,54 +191,44 @@ export class DuoyunOptionsElement extends GemElement {
 
     return html`
       <slot></slot>
-      ${this.searchable
-        ? html`
-            <div class="search">
-              <dy-input
-                class="input"
-                type="search"
-                .icon=${icons.search}
-                .placeholder=${locale.search}
-                value=${search}
-                @change=${this.#onSearch}
-              ></dy-input>
-            </div>
-          `
-        : ''}
-      ${this.adder
-        ? html`
-            <div
-              role="option"
-              tabindex="0"
-              class=${classMap({
-                item: true,
-                add: true,
-              })}
-              @pointerup=${this.#stopPropagation}
-              @keydown=${commonHandle}
-            >
-              <div class="value">
-                <div class="label">
-                  <dy-input
-                    class="add-input"
-                    .value=${this.#state.addValue}
-                    .placeholder=${this.adder.text || locale.add}
-                    @change=${({ detail: addValue }: CustomEvent<string>) => this.#state({ addValue })}
-                    @keydown=${this.#onAdderKeyDown}
-                  ></dy-input>
-                </div>
-              </div>
-              <dy-use
-                role="button"
-                tabindex="0"
-                class="icon action"
-                .element=${icons.add}
-                @click=${this.#onAdd}
-                @keydown=${commonHandle}
-              ></dy-use>
-            </div>
-          `
-        : ''}
+      <div v-if=${this.searchable} class="search">
+        <dy-input
+          class="input"
+          type="search"
+          .icon=${icons.search}
+          .placeholder=${locale.search}
+          value=${search}
+          @change=${this.#onSearch}
+        ></dy-input>
+      </div>
+      <div
+        v-if=${!!this.adder}
+        role="option"
+        tabindex="0"
+        class=${classMap({ item: true, add: true })}
+        @pointerup=${this.#stopPropagation}
+        @keydown=${commonHandle}
+      >
+        <div class="value">
+          <div class="label">
+            <dy-input
+              class="add-input"
+              .value=${this.#state.addValue}
+              .placeholder=${this.adder?.text || locale.add}
+              @change=${({ detail: addValue }: CustomEvent<string>) => this.#state({ addValue })}
+              @keydown=${this.#onAdderKeyDown}
+            ></dy-input>
+          </div>
+        </div>
+        <dy-use
+          role="button"
+          tabindex="0"
+          class="icon action"
+          .element=${icons.add}
+          @click=${this.#onAdd}
+          @keydown=${commonHandle}
+        ></dy-use>
+      </div>
       ${(search && options?.length === 0 ? [{ label: locale.noData, disabled: true }] : options)?.map(
         ({
           label,

@@ -372,8 +372,8 @@ importers:
         specifier: ^2.9.3
         version: 2.11.0
       '@mantou/vscode-html-languageservice':
-        specifier: ^5.3.4
-        version: 5.3.4
+        specifier: ^5.3.6
+        version: 5.3.6
       duoyun-ui:
         specifier: ^2.2.0
         version: link:../duoyun-ui
@@ -397,7 +397,7 @@ importers:
         specifier: ^2.2.0
         version: link:../duoyun-ui
       ts-gem-plugin:
-        specifier: ^0.0.5
+        specifier: ^0.0.7
         version: link:../ts-gem-plugin
     devDependencies:
       '@gemjs/config':
@@ -1545,8 +1545,8 @@ packages:
   '@mantou/vscode-emmet-helper@2.11.0':
     resolution: {integrity: sha512-TTuRAmRP8Q+6OPMbpuj6g/pbsEhLT4zoeSMbEnGcoZJiQ36+TlnoGsKhPesL/xvA6SsOQkJqaIUqhS3M/vvhFA==}
 
-  '@mantou/vscode-html-languageservice@5.3.4':
-    resolution: {integrity: sha512-8cB8qiqbuCBRD0kQEht4TpMx7Vu+RlY8anuA7K/nViVeEWPsu7j5j/Vw6RTIdJzveoZQUzNQHCvbS64GcTXljg==}
+  '@mantou/vscode-html-languageservice@5.3.6':
+    resolution: {integrity: sha512-QhiSeY/KMI7I52mMRdsEtTPKQ8kDOnT0p/YpL3yUc0g6RMSrPLB8SHHBeMB1qAN5UePGEbH4ttAHk7Fr7EwYwQ==}
 
   '@mdn/browser-compat-data@4.2.1':
     resolution: {integrity: sha512-EWUguj2kd7ldmrF9F+vI5hUOralPd+sdsUnYbRy33vZTuZkduC1shE9TtEMEjAQwyfyMb4ole5KtjF8MsnQOlA==}
@@ -9257,7 +9257,7 @@ snapshots:
       vscode-languageserver-types: 3.17.5
       vscode-uri: 3.0.8
 
-  '@mantou/vscode-html-languageservice@5.3.4':
+  '@mantou/vscode-html-languageservice@5.3.6':
     dependencies:
       '@vscode/l10n': 0.0.18
       vscode-languageserver-textdocument: 1.0.12

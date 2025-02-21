@@ -100,14 +100,10 @@ export class DuoyunInputCaptureElement extends GemElement {
   render = () => {
     const { keys, mousePosition } = this.#state;
     return html`
-      ${keys.length
-        ? html`
-            <dy-paragraph part=${DuoyunInputCaptureElement.container} class="container">
-              ${keys.map((key) => html`<kbd part=${DuoyunInputCaptureElement.kbd} class="kbd">${key}</kbd>`)}
-            </dy-paragraph>
-          `
-        : ''}
-      ${mousePosition ? html`<div class="circle"></div>` : ''}
+      <dy-paragraph v-if=${!!keys.length} part=${DuoyunInputCaptureElement.container} class="container">
+        ${keys.map((key) => html`<kbd part=${DuoyunInputCaptureElement.kbd} class="kbd">${key}</kbd>`)}
+      </dy-paragraph>
+      <div v-if=${!!mousePosition} class="circle"></div>
     `;
   };
 }

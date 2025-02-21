@@ -42,9 +42,14 @@ export class HTMLDataProvider implements IHTMLDataProvider {
     const ts = this.#ts;
     const typeChecker = this.#getProgram().getTypeChecker();
     const node = this.#elements.get(tag);
-    if (!node) return [];
+    // TODO: Update @mantou/vscode-html-languageservice support `${|}`
+    const result: IAttributeData[] = [
+      { name: 'v-if', description: 'Similar to vue `v-if`' },
+      { name: 'v-else-if', description: 'Similar to vue `v-else-if`' },
+      { name: 'v-else', description: 'Similar to vue `v-else`', valueSet: 'v' },
+    ];
+    if (!node) return result;
     const isDep = isDepElement(node);
-    const result: IAttributeData[] = [];
     const props = typeChecker.getTypeAtLocation(node).getApparentProperties();
     // TODO: 完善
     props.forEach((e) => {

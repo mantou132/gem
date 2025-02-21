@@ -4,10 +4,10 @@ use swc_common::DUMMY_SP;
 use swc_core::ecma::visit::{noop_visit_mut_type, VisitMut, VisitMutWith};
 use swc_ecma_ast::{Callee, KeyValueProp, TaggedTpl, Tpl, TplElement};
 
+static COMMENT_REG: Lazy<Regex> = Lazy::new(|| Regex::new(r"(?s)/\\*.*\\*/").unwrap());
 static HEAD_REG: Lazy<Regex> = Lazy::new(|| Regex::new(r"(?s)\s*(\{)\s*").unwrap());
 static TAIL_REG: Lazy<Regex> = Lazy::new(|| Regex::new(r"(?s)(;|})\s+").unwrap());
 static SPACE_REG: Lazy<Regex> = Lazy::new(|| Regex::new(r"(?s)\s+").unwrap());
-static COMMENT_REG: Lazy<Regex> = Lazy::new(|| Regex::new(r"(?s)/\\*.*\\*/").unwrap());
 
 fn minify_css_style_tpl(tpl: &Tpl) -> Tpl {
     Tpl {

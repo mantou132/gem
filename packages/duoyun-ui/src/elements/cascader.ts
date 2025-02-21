@@ -254,50 +254,44 @@ export class DuoyunCascaderElement extends GemElement {
       ...selected.map((item) => item.children || item.childrenPlaceholder).filter(isNotNullish),
     ];
     return html`
-      ${contents.map((list, level) =>
-        !Array.isArray(list)
-          ? html`<div class="list none">${list}</div>`
-          : !list.length
-            ? html`<div class="list none">${locale.noData}</div>`
-            : html`
-                <ul part=${DuoyunCascaderElement.column} class="list" style=${listStyle}>
-                  ${list.map(
-                    (
-                      item,
-                      _i,
-                      _arr,
-                      disabled = level === 0 && item.disabled,
-                      status = readProp(
-                        this.#valueObj,
-                        [...selected.slice(0, level), item].map((e) => getOptionDisplayValue(e)),
-                      ),
-                    ) => html`
-                      <li
-                        class=${classMap({ item: true, selected: selected[level] === item })}
-                        @click=${() => this.#onClick(level, item)}
-                      >
-                        ${this.multiple
-                          ? html`
-                              <dy-checkbox
-                                class="checkbox"
-                                @change=${(evt: CustomEvent<boolean>) => this.#onChange(level, item, evt)}
-                                ?disabled=${disabled}
-                                ?checked=${status === true || status?.[checkboxStatusToken] === CheckboxStatus.Checked}
-                                ?indeterminate=${status !== true &&
-                                status?.[checkboxStatusToken] === CheckboxStatus.Indeterminate}
-                              ></dy-checkbox>
-                            `
-                          : ''}
-                        <span class=${classMap({ label: true, disabled })}>${getOptionDisplayValue(item)}</span>
-                        <dy-use
-                          class=${classMap({ right: true, disabled })}
-                          .element=${hasChildren(item) && icons.right}
-                        ></dy-use>
-                      </li>
-                    `,
-                  )}
-                </ul>
+      ${contents.map(
+        (list, level) => html`
+          <div v-if=${!Array.isArray(list)} class="list none">${list}</div>
+          <div v-else-if=${!(list as Option[]).length} class="list none">${locale.noData}</div>
+          <ul v-else part=${DuoyunCascaderElement.column} class="list" style=${listStyle}>
+            ${(list as Option[]).map(
+              (
+                item,
+                _i,
+                _arr,
+                disabled = level === 0 && item.disabled,
+                status = readProp(
+                  this.#valueObj,
+                  [...selected.slice(0, level), item].map((e) => getOptionDisplayValue(e)),
+                ),
+              ) => html`
+                <li
+                  class=${classMap({ item: true, selected: selected[level] === item })}
+                  @click=${() => this.#onClick(level, item)}
+                >
+                  <dy-checkbox
+                    v-if=${this.multiple}
+                    class="checkbox"
+                    @change=${(evt: CustomEvent<boolean>) => this.#onChange(level, item, evt)}
+                    ?disabled=${disabled}
+                    ?checked=${status === true || status?.[checkboxStatusToken] === CheckboxStatus.Checked}
+                    ?indeterminate=${status !== true && status?.[checkboxStatusToken] === CheckboxStatus.Indeterminate}
+                  ></dy-checkbox>
+                  <span class=${classMap({ label: true, disabled })}>${getOptionDisplayValue(item)}</span>
+                  <dy-use
+                    class=${classMap({ right: true, disabled })}
+                    .element=${hasChildren(item) && icons.right}
+                  ></dy-use>
+                </li>
               `,
+            )}
+          </ul>
+        `,
       )}
     `;
   };

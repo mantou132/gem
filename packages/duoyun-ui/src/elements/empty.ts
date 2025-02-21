@@ -46,7 +46,7 @@ export class DuoyunEmptyElement extends GemElement {
       this.innerHTML = '';
     }
     return html`
-      ${this.icon ? html`<dy-use class="icon" .element=${this.icon}></dy-use>` : ''}
+      <dy-use v-if=${!!this.icon} class="icon" .element=${this.icon}></dy-use>
       <div><slot>${this.text || locale.noData}</slot></div>
     `;
   };

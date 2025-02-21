@@ -179,19 +179,16 @@ export class DuoyunPaginationElement extends GemElement {
     const prevAble = this.page > 1;
     const nextAble = this.page < this.total;
     return html`
-      ${this.sizes
-        ? html`
-            <dy-picker
-              class="size"
-              fit
-              selectmode
-              borderless
-              .options=${this.sizes.map((size) => ({ label: splice(locale.perPage, String(size)), value: size }))}
-              .value=${this.size}
-              @change=${({ detail }: CustomEvent<number>) => this.sizechange(detail)}
-            ></dy-picker>
-          `
-        : ''}
+      <dy-picker
+        v-if=${!!this.sizes}
+        class="size"
+        fit
+        selectmode
+        borderless
+        .options=${this.sizes?.map((size) => ({ label: splice(locale.perPage, String(size)), value: size }))}
+        .value=${this.size}
+        @change=${({ detail }: CustomEvent<number>) => this.sizechange(detail)}
+      ></dy-picker>
       <div
         role="option"
         aria-disabled=${!prevAble}
