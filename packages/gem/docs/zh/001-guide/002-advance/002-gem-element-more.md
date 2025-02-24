@@ -2,7 +2,11 @@
 
 除了 Attribute/Property/Store/State 外的特性。
 
-## 引用 DOM
+## 模板语法扩展
+
+Gem 对 [lit-html](https://lit.dev/docs/templates/overview/) 进行了很多修改，将一些常用功能内置而不需要通过指令。
+
+### 引用 DOM
 
 如果你想要在元素内操作 DOM 内容，例如读取 `<input>` 的值，你可以使用 `querySelector` 来获取你想要的元素，
 为了获得 TypeScript 的类型支持，GemElement 提供了 `createRef` 完成这项工作：
@@ -24,9 +28,46 @@ class MyElement extends GemElement {
 }
 ```
 
+### 剩余属性
+
+有时候属性通过参数传递到元素上，需要写很多重复代码，比如：
+
+```js
+const { prop1, prop2, prop3 } = props;
+
+html`<my-element .prop1=${prop1} .prop2=${prop2} .prop3=${prop3}></my-element>`
+```
+
+Gem 支持剩余属性，写法类似 React：
+
+```js
+html`<my-element ${...props}></my-element>`
+```
+
+### 条件渲染
+
+开发中经常会遇到条件渲染，一般会这样写：
+
+```js
+html`${isA ? html`<div>a</div>` : isB ? html`<div>b</div>` : html`<div>c</div>`}`
+```
+
+这样的可读性很低，所以 Gem 支持了 `v-if`，写法类似 Vue：
+
+```js
+html`
+  <div v-if=${isA}>a</div>
+  <div v-else-if=${isB}>b</div>
+  <div v-else>c</div>
+`
+```
+
+> [!NOTE]
+> 相比原来的写法，使用 `v-if` 会损失一点点性能，在元素初始化时，那些不会渲染的元素也会参数解析、创建。
+
 ## 自定义事件
 
-自定义事件是一种传递数据的方法，使用 `dispatch(new CustomEvent('event'))` 能轻松完成，同样为了获得 TypeScript 的类型支持，
+自定义事件是一种传递数据的方法，使用 `dispatch(new CustomEvent('event'))` 能轻松完成，为了获得 TypeScript 的类型支持，
 GemElement 允许快速定义方法来触发自定义事件：
 
 ```js
@@ -88,5 +129,5 @@ class MyElement extends GemElement {
 
 > [!NOTE]
 >
-> - `@memo` 支持 `getter`，但暂[不支持私有名称](https://github.com/tc39/proposal-decorators/issues/509)
+> - `@memo` 支持 `getter`，但装饰器暂[不支持私有名称](https://github.com/tc39/proposal-decorators/issues/509)，使用 [SWC 插件](../002-advance/009-building.md)可以解除这一限制。
 > - 装饰器 `@effect` `@memo` 基于 `GemElement.effect` 和 `GemElement.memo`，有必要时，可以使用 `GemElement.effect` 和 `GemElement.memo` 动态添加 `effect` 和 `memo`。

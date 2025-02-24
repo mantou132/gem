@@ -1,6 +1,6 @@
 # Introduction
 
-Gem is a lightweight library that uses modern [WebComponents](https://developer.mozilla.org/en-US/docs/Web/Web_Components) technology to build WebApp. Essentially, you just create individual custom elements and let them work together. They are very flexible and can be easily extended, such as integrated gestures. In addition to building WebApps, you can also use Gem to publish custom elements that can work independently(e.g [GemPanel](https://panel.gemjs.org/)). Custom elements can be easily used in other libraries, Therefore, Gem is also particularly suitable for building a UI component library(e.g [DuoyunUI](https://duoyun-ui.gemjs.org)).
+Gem is a lightweight library that uses [WebComponents](https://developer.mozilla.org/en-US/docs/Web/Web_Components) technology to build WebApp. Essentially, you just create individual custom elements and let them work together. They are very flexible and can be easily extended, such as integrated gestures. In addition to building WebApps, you can also use Gem to publish custom elements that can work independently(e.g [GemPanel](https://panel.gemjs.org/)). Custom elements can be easily used in other libraries, therefore, Gem is also particularly suitable for building a UI component library(e.g [DuoyunUI](https://duoyun-ui.gemjs.org)).
 
 ## Installation
 
@@ -61,7 +61,7 @@ Use event bind:
 html`<div @click=${clickHandle}></div>`;
 ```
 
-More detailed syntax can be found in [lit-html](https://lit.dev/docs/templates/overview/) document.
+More detailed syntax can be found in [lit-html](https://lit.dev/docs/templates/overview/) document. In addition, please check the extension of Gem to template syntax [here](../001-guide/002-advance/002-gem-element-more.md).
 
 ## Are you ready?
 

@@ -374,7 +374,7 @@ const handleAction = async (dir = DEFAULT_DOCS_DIR) => {
       const { content, metadataChanged } = getLatestMdFile(fullPath, bookConfig.displayRank);
       devServerEventTarget.dispatchEvent(
         Object.assign(new Event(UPDATE_EVENT), {
-          detail: { filePath, content },
+          detail: { filePath: filePath.replaceAll('\\', '/'), content },
         }),
       );
 

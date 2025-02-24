@@ -10,7 +10,7 @@ Gem is a library for the web environment, so it can meet the common needs of Web
 
 Unlike other libraries, Gem only uses JavaScript/Typescript to write any part of WebApp, so it has no syntactic sugar, to complete the same function requires more code, of course, this is also one of the advantages of Gem, you do not need to learn additional languages.
 
-But, Gem does not have a perfect hot reload solution for the time being.
+If you want a better experience, such as template diagnosis, you need to install the IDE plugin and build plugin just like you would with other libraries.
 
 ### Performance
 

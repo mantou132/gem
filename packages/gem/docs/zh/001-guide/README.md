@@ -1,9 +1,9 @@
 # 简介
 
-Gem 是一套使用现代 [WebComponents](https://developer.mozilla.org/en-US/docs/Web/Web_Components) 技术构建 WebApp 的轻量级库。
+Gem 是一套使用 [WebComponents](https://developer.mozilla.org/en-US/docs/Web/Web_Components) 技术构建 WebApp 的轻量级库。
 本质上说，你只是创建许多自定义元素，然后让他们协同工作，他们非常灵活，可以很容易的进行扩展，比如集成手势。
-除了构建 WebApp，也可以利用 Gem 发布能独立工作的自定义元素（例如 [GemPanel](https://panel.gemjs.org/)），
-自定义元素很容易在其他库中使用。
+除了构建 WebApp，也可以利用 Gem 发布能独立工作的自定义元素（例如 [GemPanel](https://panel.gemjs.org/)）。
+自定义元素很容易在其他库中使用，
 所以，Gem 也特别适用于构建 UI 组件库（例如 [DuoyunUI](https://duoyun-ui.gemjs.org)）。
 
 ## 安装
@@ -66,7 +66,7 @@ html`<div title=${title} .data=${data}></div>`;
 html`<div @click=${clickHandle}></div>`;
 ```
 
-更详细的语法可以查看 [lit-html](https://lit.dev/docs/templates/overview/) 文档。
+更详细的语法可以查看 [lit-html](https://lit.dev/docs/templates/overview/) 文档，另外，Gem 对模块语法的扩展请查看[这里](../001-guide/002-advance/002-gem-element-more.md)。
 
 ## 准备好了吗？
 

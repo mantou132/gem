@@ -153,7 +153,7 @@ function MyComponent() {
 在 Gem 中，需要手动创建对象并应用到元素上（[应该自动应用？](https://github.com/mantou132/gem/issues/141)）：
 
 ```ts
-const styles = createCSSStyle({
+const styles = css({
   title: `
     font-size: medium;
   `,
@@ -171,7 +171,7 @@ class MyElement extends GemElement {
 ## 其他工具迁移到 Gem
 
 - React Router => `<gem-light-route>`
-- React Redux => `Gem.useStore`
+- React Redux => `Gem.createStore`
 - Theming => `@mantou/gem/helper/theme`
 - I18n => `@mantou/gem/helper/i18n`
 - Request => `@mantou/gem/helper/request`

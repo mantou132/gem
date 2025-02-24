@@ -34,8 +34,8 @@ class GemElement extends HTMLElement {
 | `@emitter`       | 定义事件发射器，类似 [`HTMLElement.click`][4]                |
 | `@globalemitter` | 类似 `@emitter`, 自带 [`composed`][7] 和 [`bubbles`][8] 属性 |
 | `@state`         | 定义元素 CSS [`state`][1]                                    |
-| `@slot`          | 定义元素的 [`slot`][2]                                       |
-| `@part`          | 定义元素的 [`part`][3]                                       |
+| `@slot`          | 定义元素的 [`slot`][2]，可以定义成静态字段                   |
+| `@part`          | 定义元素的 [`part`][3]，可以定义成静态字段                   |
 
 > [!NOTE]
 > 除 `@property` 外其他装饰器装饰的字段都有默认值，`@attribute`/`@boolattribute`/`@numattribute`/`@state`/`@slot`/`@part` 装饰的字段的值都将自动进行烤串式转换，在元素外部使用时请使用对应的烤串式值\_

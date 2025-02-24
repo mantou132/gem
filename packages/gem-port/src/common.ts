@@ -73,7 +73,7 @@ export function getJsDocDescName(name: string, deprecated?: boolean) {
 
 export function getRelativePath(elementFilePath: string, outDir: string) {
   const basename = path.basename(elementFilePath, path.extname(elementFilePath));
-  // FIXME
+  // FIXME: 这里暂时坚定的认为 src/elements 的输出目录是 elements
   const relativePath = path.relative(path.resolve(outDir), path.dirname(elementFilePath)).replace('src/', '');
   return `${relativePath}/${basename}`;
 }

@@ -25,4 +25,12 @@ pnpm add -D prettier@npm:@mantou/prettier
 
 ### Biome
 
-`prettier` defaults to support the inline `html`/`css` template, but does not support`css({})`.
+`biome` v2 defaults to support the inline `html`/`css` template, but does not support`css({})`.
+
+## HMR
+
+Enable HMR in three steps:
+
+1. Turn on `hot` in the build tool, such as [Webpack](https://webpack.js.org/guides/hot-module-replacement)
+2. Add `@mantou/gem/helper/hmr` to build tool config entry
+3. Add [swc plugin](./009-building.md) and enable `hmr`

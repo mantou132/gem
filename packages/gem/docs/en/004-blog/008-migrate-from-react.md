@@ -150,10 +150,10 @@ function MyComponent() {
 }
 ```
 
-In Gem, you need to manually create an object and apply it to the elements ([should auto adopte?](https://github.com/mantou132/gem/issues/141)):
+In Gem, you need to manually create an object and apply it to the elements ([should auto adopt?](https://github.com/mantou132/gem/issues/141)):
 
 ```ts
-const styles = createCSSStyle({
+const styles = css({
   title: `
     font-size: medium;
   `,
@@ -168,10 +168,10 @@ class MyElement extends GemElement {
 }
 ```
 
-## Other Tools to Gem
+## Other tools to Gem
 
 - React Router => `<gem-light-route>`
-- React Redux => `Gem.useStore`
+- React Redux => `Gem.createStore`
 - Theming => `@mantou/gem/helper/theme`
 - I18n => `@mantou/gem/helper/i18n`
 - Request => `@mantou/gem/helper/request`

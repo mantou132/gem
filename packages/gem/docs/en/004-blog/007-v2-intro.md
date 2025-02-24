@@ -102,10 +102,10 @@ class MyElement extends GemElement {}
 > [!NOTE]
 > Just like in the initial example, if you want to use Shadow DOM, you need to add `@shadow` and replace [`:scope`](https://developer.mozilla.org/en-US/docs/Web/CSS/:scope) with `:host`.
 
-## Theme Enhancement
+## Theme enhancement
 
 <gbp-include src="../snippets/scoped-theme.md"></gbp-include>
 
-## Creating Better Gem Together
+## Creating better Gem together
 
 We hope Gem can become the preferred solution for creating custom elements with excellent design. If you have any suggestions or ideas, please [create an issue](https://github.com/mantou132/gem/issues/new).

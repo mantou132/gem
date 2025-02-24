@@ -382,7 +382,6 @@ export abstract class GemElement extends HTMLElement {
       this.#execMemo();
       const isLight = this.#renderRoot === this;
       const temp = item ? item.render() : isLight ? undefined : html`<slot></slot>`;
-      this.#rendering = false;
       if (temp === undefined) return;
       render(
         temp !== null
@@ -397,6 +396,8 @@ export abstract class GemElement extends HTMLElement {
     } catch (err) {
       this.dispatchEvent(new CustomEvent(_RenderErrorEvent, { bubbles: true, composed: true, detail: err }));
       throw err;
+    } finally {
+      this.#rendering = false;
     }
   };
 

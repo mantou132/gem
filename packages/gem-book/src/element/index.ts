@@ -91,7 +91,7 @@ const styles = css`
   }
   @media not ${`(${mediaQuery.DESKTOP})`} {
     :scope {
-      ${`${themeProps.sidebarWidth}: ${theme.sidebarWidthSmall}`};
+      ${themeProps.sidebarWidth}: ${theme.sidebarWidthSmall};
     }
     gem-book-toc {
       display: none;

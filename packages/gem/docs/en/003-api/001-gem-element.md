@@ -34,8 +34,8 @@ class GemElement extends HTMLElement {
 | `@emitter`       | Field decorator, define event emitter, similar to [`HTMLElement.click`][4]   |
 | `@globalemitter` | Similar `@emitter`, comes with [`composed`][7] and [`bubbles`][8] attributes |
 | `@state`         | Field decorator, define the inside of the element css [`state`][1]           |
-| `@slot`          | Field decorator, [`slot`][2] that defines the element                        |
-| `@part`          | Field decorator, [`part`][3] that defines the element                        |
+| `@slot`          | Field(static or instance) decorator, [`slot`][2] that defines the element    |
+| `@part`          | Field(static or instance) decorator, [`part`][3] that defines the element    |
 
 > [!NOTE]
 > Except for `@property`, all fields decorated by decorators have default values, `@attribute`/`@boolattribute`/`@numattribute`/`@state`/`@slot`/`@part` the value of the decorated field will be automatically converted to kebab-case. Please use the kebab-case value when you use it outside the element outside

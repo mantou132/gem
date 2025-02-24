@@ -26,4 +26,12 @@ pnpm add -D prettier@npm:@mantou/prettier
 
 ### Biome
 
-`Biome` 默认支持内联 `html`/`css` 模版，但不支持 `css({})`。
+`Biome` v2 默认支持内联 `html`/`css` 模版，但不支持 `css({})`。
+
+## HMR
+
+启用 HMR 分三步：
+
+1. 在构建工具中开启 `hot`，例如 [Webpack](https://webpack.js.org/guides/hot-module-replacement)
+2. 在构建工具配置中入口添加 `@mantou/gem/helper/hmr`
+3. 添加 [swc 插件](./008-development.md)并开启 `hmr`
