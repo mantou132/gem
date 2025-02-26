@@ -1,0 +1,9 @@
+---
+description: TypeScript 文件规则
+globs: *.ts
+alwaysApply: false
+---
+- 整个文件风格一致
+- 使用较新的 Web API 或者 ES 标准
+- 参考其他文件时不应该编写相同有问题的代码
+- 格式化规则 @.prettierrc.json

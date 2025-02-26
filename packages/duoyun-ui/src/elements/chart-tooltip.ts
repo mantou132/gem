@@ -148,7 +148,7 @@ export class DuoyunChartTooltipElement extends GemElement {
               ${values?.map(
                 ({ hidden, color, label, value, highlight }) => html`
                   <div v-if=${!hidden} class=${classMap({ item: true, highlight: !!highlight })}>
-                    ${color ? html`<div class="color" style=${styleMap({ backgroundColor: color })}></div>` : ''}
+                    <div v-if=${!!color} class="color" style=${styleMap({ backgroundColor: color })}></div>
                     <div class="label-container">
                       ${(Array.isArray(label) ? label : [label]).map((text) => html`<div class="label">${text}</div>`)}
                     </div>

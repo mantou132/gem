@@ -13,6 +13,7 @@ import {
   memo,
   effect,
 } from '@mantou/gem';
+import { mediaQuery } from '@mantou/gem/helper/mediaquery';
 
 import { theme } from '../helper/theme';
 import { getParts, getRanges } from '../lib/utils';
@@ -458,7 +459,7 @@ export class Pre extends GemElement {
   @boolattribute headless: boolean;
 
   get #linenumber() {
-    return !!this.range || this.linenumber;
+    return !!this.range || (this.linenumber && !mediaQuery.isPhone);
   }
 
   get #headless() {

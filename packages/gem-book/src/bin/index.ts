@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 import path from 'path';
-import { readdirSync, statSync, writeFileSync } from 'fs';
+import { readdirSync, statSync, writeFileSync, existsSync } from 'fs';
 
 import program from 'commander';
 import getRepoInfo from 'git-repo-info';
@@ -185,7 +185,13 @@ function readFiles(filenames: string[], docsRootDir: string, dir: string, link: 
                   .map(({ title: groupTitle, members }) => {
                     if (!members?.forEach) return [];
                     members.forEach((member) => subFilenameSet.delete(member));
-                    const children = readFiles(members, docsRootDir, newDir, newLink, config);
+                    const children = readFiles(
+                      members.filter((f) => existsSync(path.join(newDir, f))),
+                      docsRootDir,
+                      newDir,
+                      newLink,
+                      config,
+                    );
                     if (!groupTitle) return children;
                     return {
                       type: 'dir',

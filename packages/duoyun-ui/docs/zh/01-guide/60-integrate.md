@@ -6,7 +6,7 @@
 ## React
 
 > [!NOTE]
-> React 19 才支持自定义元素，当前使用 `npm install react@canary react-dom@canary` 安装 React 19。
+> React 19 才支持自定义元素，请确保安装 React 19。
 
 跟使用其他 React 组件库一样使用 DuoyunUI：
 
