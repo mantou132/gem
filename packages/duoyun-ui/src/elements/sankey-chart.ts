@@ -1,5 +1,5 @@
 import { css, html, svg } from '@mantou/gem/lib/element';
-import { adoptedStyle, customElement, memo, mounted, property } from '@mantou/gem/lib/decorators';
+import { adoptedStyle, customElement, memo, property } from '@mantou/gem/lib/decorators';
 
 import { theme } from '../lib/theme';
 
@@ -9,13 +9,13 @@ import { ChartTooltip } from './chart-tooltip';
 export interface SankeyNode {
   id: string;
   label: string;
-  value?: number; // 节点值，可选
+  value?: number;
 }
 
 export interface SankeyLink {
-  source: string; // 源节点 ID
-  target: string; // 目标节点 ID
-  value: number; // 连接值/流量
+  source: string;
+  target: string;
+  value: number;
 }
 
 export interface SankeyData {
@@ -24,28 +24,24 @@ export interface SankeyData {
 }
 
 interface ProcessedNode extends SankeyNode {
-  x: number; // x 坐标
-  y: number; // y 坐标
-  height: number; // 节点高度
-  layer: number; // 所在层级
-  sourceLinks: ProcessedLink[]; // 出发的连接
-  targetLinks: ProcessedLink[]; // 到达的连接
+  x: number;
+  y: number;
+  height: number;
+  layer: number;
+  sourceLinks: ProcessedLink[];
+  targetLinks: ProcessedLink[];
 }
 
 interface ProcessedLink extends SankeyLink {
   sourceNode: ProcessedNode;
   targetNode: ProcessedNode;
-  path: string; // SVG 路径
-  width: number; // 连接宽度
+  path: string;
+  width: number;
 }
 
 const style = css`
-  .node {
-    cursor: pointer;
-
-    &:hover {
-      filter: brightness(0.9);
-    }
+  .node:hover {
+    filter: brightness(0.9);
   }
   .link {
     fill: ${theme.textColor};
@@ -83,7 +79,7 @@ export class DuoyunSankeyChartElement extends DuoyunChartBaseElement {
     ChartTooltip.open(evt.x, evt.y, {
       values: node.sourceLinks.map((l) => ({
         label: `${l.sourceNode.label} -> ${l.targetNode.label}`,
-        value: l.value,
+        value: this.pAxi?.formatter?.(l.value, 0) || String(l.value),
         originValue: l.value,
         color: '',
         highlight: l === link,
@@ -160,7 +156,7 @@ export class DuoyunSankeyChartElement extends DuoyunChartBaseElement {
     this.#data = { nodes, links, layers, totalLayerValue };
   };
 
-  @memo((i) => [i.contentRect.width, i.aspectRatio, i.nodePadding, i.nodeWidth])
+  @memo((i) => [i.data, i.contentRect.width, i.aspectRatio, i.nodePadding, i.nodeWidth])
   #computeLayout = () => {
     if (!this.contentRect.width) return;
     const { links, layers, totalLayerValue } = this.#data;
@@ -214,6 +210,8 @@ export class DuoyunSankeyChartElement extends DuoyunChartBaseElement {
       sourceNodeUsedMap.set(sourceNode, sourceNodeUsed + linkWidth);
       targetNodeUsedMap.set(targetNode, targetNodeUsed + linkWidth);
     });
+
+    this._initViewBox();
   };
 
   #generateLinkPath = (x0: number, y0: number, x1: number, y1: number, width: number) => {
@@ -226,11 +224,6 @@ export class DuoyunSankeyChartElement extends DuoyunChartBaseElement {
             v ${width}
             C ${x3} ${y1 + width}, ${x2} ${y0 + width}, ${x0} ${y0 + width}
             Z`;
-  };
-
-  @mounted()
-  #init = () => {
-    this._initViewBox();
   };
 
   render = () => {
@@ -260,6 +253,7 @@ export class DuoyunSankeyChartElement extends DuoyunChartBaseElement {
                   height=${node.height}
                   fill=${this.colors[index % this.colors.length]}
                   @pointermove=${(evt: PointerEvent) => this.#onMouseMove(evt, node)}
+                  @pointerout=${this.#onMouseOut}
                 />
                 <text
                   class="label"

@@ -150,10 +150,6 @@ export class DuoyunAreaChartElement extends DuoyunChartBaseElement {
   #areas = [''];
   #symbolSequences: (number[] | null)[][] = [];
 
-  #isDisabled = (value: string) => {
-    return !!this._filtersSet.size && !this._filtersSet.has(value);
-  };
-
   #preProcessEvent = (evt: MouseEvent) => {
     const { x, y } = this.getBoundingClientRect();
     const point = [evt.x - x, evt.y - y];
@@ -197,7 +193,7 @@ export class DuoyunAreaChartElement extends DuoyunChartBaseElement {
             label,
             value: this.tooltip?.valueFormatter?.(v) || this.yAxi?.formatter?.(v, 0) || String(v),
             color: this.colors[i],
-            hidden: !!this._filtersSet.size && !this._filtersSet.has(value ?? label),
+            hidden: this._isDisabled(value ?? label),
             highlight: this.#state.hoverSequence === (value ?? label),
             originValue: v,
           } as DataItem;
@@ -351,7 +347,6 @@ export class DuoyunAreaChartElement extends DuoyunChartBaseElement {
     addListener(this, 'pointerout', this.#onPointerOut);
     addListener(this, 'pointercancel', this.#onPointerOut);
     addListener(this, 'click', this.#onClick);
-    return () => ChartTooltip.close();
   };
 
   @elementTheme()
@@ -395,7 +390,7 @@ export class DuoyunAreaChartElement extends DuoyunChartBaseElement {
               revertIndex = arr.length - 1 - index,
               sequence = this.#sequences![revertIndex],
               value = sequence.value ?? sequence.label,
-              disabled = this.#isDisabled(value),
+              disabled = this._isDisabled(value),
             ) =>
               svg`
                 <path

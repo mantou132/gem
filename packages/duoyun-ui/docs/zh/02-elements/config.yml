@@ -98,6 +98,7 @@ groups:
       - legend.md
       - line-chart.md
       - map.md
+      - radar-chart.md
       - sankey-chart.md
       - scatter-chart.md
   - title: 布局元素

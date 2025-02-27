@@ -112,7 +112,7 @@ function defineProp(
 
 // https://github.com/tc39/proposal-decorators/issues/517
 const targetCache = new WeakMap<DecoratorMetadataObject, GemElementPrototype>();
-function getDecoratorTarget(element: GemElement, { metadata }: ClassFieldDecoratorContext) {
+function getDecoratorTarget(element: GemElement, { metadata }: ClassMemberDecoratorContext) {
   const target = targetCache.get(metadata);
   if (target) return target;
   let result = element as GemElementPrototype;
@@ -218,16 +218,17 @@ export function memo<T extends GemElement, V = any, K = any[] | undefined>(
       if (kind === 'getter') {
         // 不能设置私有字段 https://github.com/tc39/proposal-decorators/issues/509
         if (context.private) throw new GemError('not support');
-        this.memo(
-          () =>
-            defineProperty(this, name, {
-              configurable: true,
-              // 这里需要 bind(this) 是为了兼容 swc
-              // https://github.com/swc-project/swc/issues/9565#issuecomment-2539107736
-              value: access.get.bind(this)(this),
-            }),
-          dep,
-        );
+        const target = getDecoratorTarget(this, context as any);
+        // 不能直接用 `access.get.bind(this)` 是现有 builder 工具的 bug？
+        const getter = Object.getOwnPropertyDescriptor(target, name)!.get!.bind(this);
+        this.memo(() => {
+          defineProperty(this, name, {
+            configurable: true,
+            // 这里需要 bind(this) 是为了兼容 swc
+            // https://github.com/swc-project/swc/issues/9565#issuecomment-2539107736
+            value: getter(this),
+          });
+        }, dep);
       } else {
         this.memo((access.get(this) as any).bind(this) as any, dep);
       }

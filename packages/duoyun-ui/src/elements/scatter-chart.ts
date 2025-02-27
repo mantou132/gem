@@ -109,7 +109,7 @@ export class DuoyunScatterChartElement extends DuoyunChartBaseElement {
                     @mouseout=${this.#onMouseOut}
                     class=${classMap({
                       symbol: true,
-                      disabled: !!this._filtersSet.size && !this._filtersSet.has(value ?? label),
+                      disabled: this._isDisabled(value ?? label),
                     })}
                     fill=${this.colors[index]}
                     r=${this._getSVGPixel(5)}

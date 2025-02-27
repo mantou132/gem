@@ -7,6 +7,7 @@
 ```json
 {
   "style": "width: 100%;",
+  "aspectRatio": 3,
   "data": {
     "nodes": [
       { "id": "a", "label": "Node A" },

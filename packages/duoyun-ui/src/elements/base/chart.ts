@@ -65,10 +65,12 @@ export class DuoyunChartBaseElement extends DuoyunResizeBaseElement {
   @property colors = commonColors;
   @property xAxi?: Axi | null;
   @property yAxi?: Axi | null;
+  @property pAxi?: Axi | null;
   @property yMin?: number;
   @property yMax?: number;
   @property xStep = 6;
   @property yStep = 5;
+  @property pStep = 5;
   // FIXME: rem change bug
   @property tooltip?: Tooltip;
   @property markLines?: MarkLine[];
@@ -92,9 +94,10 @@ export class DuoyunChartBaseElement extends DuoyunResizeBaseElement {
 
   _chartId = randomStr();
 
+  #filtersSet = new Set<string>();
   @memo((i) => [i.filters])
-  get _filtersSet() {
-    return new Set(this.filters);
+  #setFiltersSet() {
+    this.#filtersSet = new Set(this.filters);
   }
 
   // initXAxi
@@ -115,6 +118,10 @@ export class DuoyunChartBaseElement extends DuoyunResizeBaseElement {
   _stateYAxiMarks = [0];
 
   _viewBox = [0, 0, 0, 0];
+
+  _isDisabled = (value: string) => {
+    return !!this.#filtersSet.size && !this.#filtersSet.has(value);
+  };
 
   _initXAxi = (xMin: number, xMax: number, adjust = false) => {
     if (xMin === Infinity || xMax === -Infinity) return;
