@@ -442,13 +442,9 @@ export class DyPatFormElement<T = Record<string, unknown>> extends GemElement {
         ${value?.map(
           (e, index) => html`
             <dy-sort-item>
-              ${sortable && !item.disabled
-                ? html`
-                    <dy-sort-handle>
-                      <dy-button .icon=${icons.menu} square color="cancel"></dy-button>
-                    </dy-sort-handle>
-                  `
-                : ''}
+              <dy-sort-handle v-if=${!!sortable && !item.disabled}>
+                <dy-button .icon=${icons.menu} square color="cancel"></dy-button>
+              </dy-sort-handle>
               ${this.#renderItem({ ...item, field: [...path, index] as string[], label: '' })}
               <dy-form-item ?hidden=${item.disabled}>
                 <dy-space>

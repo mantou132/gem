@@ -3,7 +3,7 @@
 import { adoptedStyle, customElement, property, part, state, shadow, memo, effect } from '@mantou/gem/lib/decorators';
 import type { TemplateResult } from '@mantou/gem/lib/element';
 import { css, createRef, createState, html, svg } from '@mantou/gem/lib/element';
-import { styleMap, exportPartsMap } from '@mantou/gem/lib/utils';
+import { styleMap } from '@mantou/gem/lib/utils';
 import { createDecoratorTheme } from '@mantou/gem/helper/theme';
 import type { ElkNode, ElkExtendedEdge, ElkEdgeSection, LayoutOptions, ElkShape, ElkPoint } from 'elkjs';
 import ELK from 'elkjs/lib/elk.bundled.js';
@@ -193,7 +193,7 @@ export type Node = Modify<
 const elementTheme = createDecoratorTheme({ opacity: 0, width: '', height: '' });
 
 const canvasStyle = css`
-  :host(:where(:not([hidden]))) {
+  :scope:where(:not([hidden])) {
     display: block;
     position: relative;
     flex-shrink: 0;
@@ -225,13 +225,7 @@ const canvasStyle = css`
 
 @customElement('dy-flow-canvas')
 @adoptedStyle(canvasStyle)
-@shadow()
 export class DuoyunFlowCanvasElement extends DuoyunResizeBaseElement {
-  @part static node: string;
-  @part static nodeLabel: string;
-  @part static edge: string;
-  @part static edgeLabel: string;
-
   @property resizeThrottle = false;
   @property graph?: Node;
   @property layout?: LayoutOptions;
@@ -251,13 +245,13 @@ export class DuoyunFlowCanvasElement extends DuoyunResizeBaseElement {
   #renderNode = (data: any, node: Node) => {
     return this.renderNode
       ? this.renderNode(data, node)
-      : html`<div class="node" part=${DuoyunFlowCanvasElement.node}>${data}</div>`;
+      : html`<div class="node" part=${DuoyunFlowElement.node}>${data}</div>`;
   };
 
   #renderNodeLabel = (label: string | undefined, edge: Edge) => {
     return this.renderNodeLabel
       ? this.renderNodeLabel(label, edge)
-      : html`<div class="node-label" part=${DuoyunFlowCanvasElement.nodeLabel}>${label}</div>`;
+      : html`<div class="node-label" part=${DuoyunFlowElement.nodeLabel}>${label}</div>`;
   };
 
   #renderEdge = (section: EdgeSection, edge: Edge) => {
@@ -266,7 +260,7 @@ export class DuoyunFlowCanvasElement extends DuoyunResizeBaseElement {
       : svg`
           <path
             class="edge"
-            part=${DuoyunFlowCanvasElement.edge}
+            part=${DuoyunFlowElement.edge}
             d=${section.d || ''}
             marker-start="url(#startmarker)"
             marker-end="url(#endmarker)"
@@ -277,7 +271,7 @@ export class DuoyunFlowCanvasElement extends DuoyunResizeBaseElement {
   #renderEdgeLabel = (label: string | undefined, edge: Edge) => {
     return this.renderEdgeLabel
       ? this.renderEdgeLabel(label, edge)
-      : html`<div class="edge-label" part=${DuoyunFlowCanvasElement.edgeLabel}>${label}</div>`;
+      : html`<div class="edge-label" part=${DuoyunFlowElement.edgeLabel}>${label}</div>`;
   };
 
   #renderEndMarker = () => {
@@ -308,7 +302,7 @@ export class DuoyunFlowCanvasElement extends DuoyunResizeBaseElement {
   #genLabelId = (parentId: string, id: string | number) => this.#genId(`label-${parentId}-${id}`);
 
   #initShape = (id: string, node: ElkShape) => {
-    const ele = this.shadowRoot?.querySelector('#' + id);
+    const ele = this.querySelector('#' + id);
     if (ele) {
       const { width, height } = ele.getBoundingClientRect();
       node.width = width;
@@ -582,20 +576,12 @@ export class DuoyunFlowElement extends DuoyunResizeBaseElement {
     this.#setScale(this.#canvasRef.value!.contentRect);
   };
 
-  #exportparts = exportPartsMap({
-    [DuoyunFlowCanvasElement.node]: DuoyunFlowElement.node,
-    [DuoyunFlowCanvasElement.nodeLabel]: DuoyunFlowElement.nodeLabel,
-    [DuoyunFlowCanvasElement.edge]: DuoyunFlowElement.edge,
-    [DuoyunFlowCanvasElement.edgeLabel]: DuoyunFlowElement.edgeLabel,
-  });
-
   render = () => {
     const { scale, marginBlock } = this.#state;
     this.loaded = !!scale;
     return html`
       <dy-flow-canvas
         ${this.#canvasRef}
-        exportparts=${this.#exportparts}
         @resize=${this.#onCanvasResize}
         style=${styleMap({
           transform: scale && `scale(${scale})`,

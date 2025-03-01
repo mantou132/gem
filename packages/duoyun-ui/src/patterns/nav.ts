@@ -275,24 +275,22 @@ export class DyPatNavElement extends GemElement {
                         ${label}<dy-use .element=${icons.expand}></dy-use>
                       </div>
                     `}
-                ${items
-                  ? html`
-                      <ul class="dropdown">
-                        ${items.map(
-                          (item) => html`
-                            <li>
-                              <dy-link href=${item.href}>
-                                ${item.label}
-                                ${this.#isOutwardLink(item.href)
-                                  ? html`<dy-use class="outward" .element=${icons.outward}></dy-use>`
-                                  : ''}
-                              </dy-link>
-                            </li>
-                          `,
-                        )}
-                      </ul>
-                    `
-                  : ''}
+                <ul v-if=${!!items} class="dropdown">
+                  ${items?.map(
+                    (item) => html`
+                      <li>
+                        <dy-link href=${item.href}>
+                          ${item.label}
+                          <dy-use
+                            v-if=${this.#isOutwardLink(item.href)}
+                            class="outward"
+                            .element=${icons.outward}
+                          ></dy-use>
+                        </dy-link>
+                      </li>
+                    `,
+                  )}
+                </ul>
               </li>
             `,
           )}

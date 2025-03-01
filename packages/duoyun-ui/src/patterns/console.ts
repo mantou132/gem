@@ -177,31 +177,26 @@ export class DyPatConsoleElement extends GemElement {
     return html`
       <dy-title hidden .suffix=${mediaQuery.isPWA ? '' : this.name && ` - ${this.name}`}></dy-title>
       <div class="sidebar">
-        ${isRemoteIcon(this.logo)
-          ? html`<img class="logo" alt="Logo" src=${this.logo}></img>`
-          : html`<dy-use class="logo" .element=${this.logo}></dy-use>`}
+        <img v-if=${isRemoteIcon(this.logo)} class="logo" alt="Logo" src=${this.logo as string}></img>
+        <dy-use v-else class="logo" .element=${this.logo}></dy-use>
         <dy-side-navigation class="navigation" .items=${this.navItems}></dy-side-navigation>
-        ${this.userInfo
-          ? html`
-              <div class="user-info">
-                <dy-avatar class="avatar" alt="Avatar" src=${avatar}></dy-avatar>
-                <dy-link class="user" href=${this.userInfo.profile}>
-                  <span class="username" aria-label="Username">${this.userInfo.username}</span>
-                  <span class="org" aria-label="Org" ?hidden=${!this.userInfo.org}>@${this.userInfo.org}</span>
-                </dy-link>
-                <dy-use
-                  tabindex="0"
-                  role="button"
-                  aria-label="Preference"
-                  class="menu"
-                  ?hidden=${!this.contextMenus}
-                  @click=${this.#openMenu}
-                  @keydown=${commonHandle}
-                  .element=${icons.more}
-                ></dy-use>
-              </div>
-            `
-          : ''}
+        <div v-if=${!!this.userInfo} class="user-info">
+          <dy-avatar class="avatar" alt="Avatar" src=${avatar}></dy-avatar>
+          <dy-link class="user" href=${this.userInfo?.profile || ''}>
+            <span class="username" aria-label="Username">${this.userInfo?.username}</span>
+            <span class="org" aria-label="Org" ?hidden=${!this.userInfo?.org}>@${this.userInfo?.org}</span>
+          </dy-link>
+          <dy-use
+            tabindex="0"
+            role="button"
+            aria-label="Preference"
+            class="menu"
+            ?hidden=${!this.contextMenus}
+            @click=${this.#openMenu}
+            @keydown=${commonHandle}
+            .element=${icons.more}
+          ></dy-use>
+        </div>
       </div>
       <main class="main-container">
         <div class="main" aria-label="Content">
@@ -214,8 +209,8 @@ export class DyPatConsoleElement extends GemElement {
           ></dy-light-route>
         </div>
       </main>
-      ${this.keyboardAccess ? html`<dy-keyboard-access></dy-keyboard-access>` : ''}
-      ${this.screencastMode ? html`<dy-input-capture></dy-input-capture>` : ''}
+      <dy-keyboard-access v-if=${this.keyboardAccess}></dy-keyboard-access>
+      <dy-input-capture v-if=${this.screencastMode}></dy-input-capture>
 
       <style>
         ::selection,

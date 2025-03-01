@@ -56,7 +56,6 @@ export type PersistentState = State & {
 
 @customElement('dy-list-outside')
 @adoptedStyle(blockContainer)
-@shadow()
 export class DuoyunOutsideElement extends DuoyunVisibleBaseElement {}
 
 const styles = css`
@@ -502,15 +501,14 @@ export class DuoyunListElement extends GemElement {
     const { beforeHeight, afterHeight, renderList } = this.#state;
     return html`
       <slot name=${DuoyunListElement.before}></slot>
-      ${this.infinite
-        ? html`<dy-list-outside
-            ${this.#beforeItemRef}
-            part=${DuoyunListElement.beforeOutside}
-            .intersectionRoot=${this.scrollContainer}
-            @show=${this.#onBeforeItemVisible}
-            style=${styleMap({ height: `${beforeHeight}px` })}
-          ></dy-list-outside>`
-        : html``}
+      <dy-list-outside
+        ${this.#beforeItemRef}
+        v-if=${this.infinite}
+        part=${DuoyunListElement.beforeOutside}
+        .intersectionRoot=${this.scrollContainer}
+        @show=${this.#onBeforeItemVisible}
+        style=${styleMap({ height: `${beforeHeight}px` })}
+      ></dy-list-outside>
       <div ${this.#listRef} class="list" part=${DuoyunListElement.list}>
         ${this.infinite
           ? renderList.map((key) => this.#getElement(key))
@@ -592,7 +590,6 @@ const itemStyle = css({
 @customElement('dy-list-item')
 @adoptedStyle(blockContainer)
 @adoptedStyle(itemStyle)
-@shadow({ delegatesFocus: true })
 @aria({ role: 'listitem' })
 export class DuoyunListItemElement extends DuoyunResizeBaseElement implements VisibleBaseElement {
   @emitter show: Emitter;

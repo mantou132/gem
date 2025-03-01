@@ -174,9 +174,9 @@ export class DuoyunRadarChartElement extends DuoyunChartBaseElement {
   @elementTheme()
   #theme = () => ({
     axisStrokeWidth: this._getSVGPixel(1),
-    polygonStrokeWidth: this._getSVGPixel(2),
-    pointStrokeWidth: this._getSVGPixel(2),
-    pointHoverStrokeWidth: this._getSVGPixel(3),
+    polygonStrokeWidth: this._getSVGPixel(1),
+    pointStrokeWidth: this._getSVGPixel(1),
+    pointHoverStrokeWidth: this._getSVGPixel(2),
   });
 
   render = () => {
@@ -227,7 +227,7 @@ export class DuoyunRadarChartElement extends DuoyunChartBaseElement {
                     class=${classMap({ point: true, disabled: this._isDisabled(this.sequences![seqIndex].label) })}
                     cx=${x}
                     cy=${y}
-                    r=${this._getSVGPixel(3)}
+                    r=${this._getSVGPixel(2)}
                     stroke=${this.colors[seqIndex]}
                     @pointermove=${(evt: PointerEvent) => this.#onPointMove(evt, seqIndex, pointIndex)}
                     @pointerout=${this.#onPointOut}

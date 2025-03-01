@@ -200,44 +200,34 @@ export class DyPatFilterFormElement extends GemElement {
         const filteredOptions = this.#state.search
           ? options?.filter(({ label }) => isIncludesString(label, this.#state.search))
           : options;
-        const hasFilter = options && options.length > 30;
+        const hasFilter = !!options && options.length > 30;
         return html`
-          ${hasFilter
-            ? html`
-                <dy-input-group class="filter">
-                  ${getProviders
-                    ? html`
-                        <dy-select
-                          @change=${({ detail }: CustomEvent<string>) => this.#state({ provider: detail })}
-                          .value=${this.#state.provider}
-                          .options=${getProviders()}
-                          .placeholder=${locale.filter}
-                        ></dy-select>
-                      `
-                    : ''}
-                  <dy-input
-                    .icon=${icons.search}
-                    .placeholder=${locale.search}
-                    autofocus
-                    value=${this.#state.search}
-                    @change=${({ detail: search }: CustomEvent<string>) => this.#state({ search })}
-                    clearable
-                    @clear=${() => this.#state({ search: '' })}
-                  ></dy-input>
-                </dy-input-group>
-              `
-            : ''}
-          ${filteredOptions?.length
-            ? html`
-                <dy-select
-                  @change=${this.#onChangeValue}
-                  .inline=${true}
-                  .multiple=${true}
-                  .value=${this.#state.value}
-                  .options=${filteredOptions}
-                ></dy-select>
-              `
-            : html``}
+          <dy-input-group v-if=${hasFilter} class="filter">
+            <dy-select
+              v-if=${!!getProviders}
+              @change=${({ detail }: CustomEvent<string>) => this.#state({ provider: detail })}
+              .value=${this.#state.provider}
+              .options=${getProviders?.()}
+              .placeholder=${locale.filter}
+            ></dy-select>
+            <dy-input
+              .icon=${icons.search}
+              .placeholder=${locale.search}
+              autofocus
+              value=${this.#state.search}
+              @change=${({ detail: search }: CustomEvent<string>) => this.#state({ search })}
+              clearable
+              @clear=${() => this.#state({ search: '' })}
+            ></dy-input>
+          </dy-input-group>
+          <dy-select
+            v-if=${!!filteredOptions?.length}
+            @change=${this.#onChangeValue}
+            .inline=${true}
+            .multiple=${true}
+            .value=${this.#state.value}
+            .options=${filteredOptions}
+          ></dy-select>
         `;
       case 'duration':
         return html`

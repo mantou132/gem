@@ -409,6 +409,8 @@ function getPropType(
     case 'style':
     case 'part':
     case 'exportparts':
+    case 'xmlns':
+    case 'viewBox':
       return typeChecker.getStringType();
     case 'tabindex':
       return typeChecker.getNumberType();

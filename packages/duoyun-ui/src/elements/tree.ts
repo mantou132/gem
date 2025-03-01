@@ -55,7 +55,7 @@ function getItemValue(item: TreeItem) {
 }
 
 const itemStyle = css`
-  :host(:where(:not([hidden]))) {
+  :scope:where(:not([hidden])) {
     display: flex;
     align-items: center;
     gap: 0.3em;
@@ -63,10 +63,10 @@ const itemStyle = css`
     line-height: 2;
     user-select: none;
   }
-  :host(:where(:hover, :state(active))) {
+  :scope:where(:hover, :state(active)) {
     background-color: ${theme.lightBackgroundColor};
   }
-  :host([highlight]) {
+  :scope[highlight] {
     background-color: ${theme.hoverBackgroundColor};
   }
   .padding {
@@ -103,7 +103,6 @@ const itemStyle = css`
 
 @customElement('dy-tree-item')
 @adoptedStyle(itemStyle)
-@shadow()
 @aria({ focusable: true, role: 'treeitem' })
 class _DuoyunTreeItemElement extends GemElement {
   @boolattribute expanded: boolean;

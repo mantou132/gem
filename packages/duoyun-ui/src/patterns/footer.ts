@@ -204,9 +204,11 @@ export class DyPatFooterElement extends GemElement {
                   ? this.#renderIcon(item, 'icon')
                   : html`
                       ${item.label}
-                      ${renderOutward && this.#isOutwardLink(item.href)
-                        ? html`<dy-use class="outward" .element=${icons.outward}></dy-use>`
-                        : ''}
+                      <dy-use
+                        v-if=${renderOutward && this.#isOutwardLink(item.href)}
+                        class="outward"
+                        .element=${icons.outward}
+                      ></dy-use>
                     `}
               </dy-link>
             </li>
@@ -219,15 +221,11 @@ export class DyPatFooterElement extends GemElement {
   render = () => {
     return html`
       <footer>
-        ${this.social
-          ? html`
-              <div class="social">
-                <h3>${this.social.label}</h3>
-                ${this.#renderLinks(this.social.items)}
-              </div>
-              <dy-divider size="small"></dy-divider>
-            `
-          : ''}
+        <div v-if=${!!this.social} class="social">
+          <h3>${this.social?.label}</h3>
+          ${this.social && this.#renderLinks(this.social.items)}
+        </div>
+        <dy-divider v-if=${!!this.social} size="small"></dy-divider>
 
         <nav class="links">
           ${this.links?.map(
@@ -244,28 +242,20 @@ export class DyPatFooterElement extends GemElement {
 
         <div class="terms-wrap">
           <div class="terms">
-            ${this.logo ? html`<div>${this.#renderIcon({ icon: this.logo, label: 'Logo' }, 'logo')}</div>` : ''}
-            ${this.terms ? html`<nav class="terms-nav">${this.#renderLinks(this.terms)}</nav>` : ''}
+            <div v-if=${!!this.logo}>${this.#renderIcon({ icon: this.logo || '', label: 'Logo' }, 'logo')}</div>
+            <nav v-if=${!!this.terms} class="terms-nav">${this.terms && this.#renderLinks(this.terms)}</nav>
           </div>
           <div class="help">
-            ${this.help
-              ? html`
-                  <dy-link href=${this.help.href}>
-                    <dy-use .element=${icons.help} style="gap: 0.5em">${this.help.label}</dy-use>
-                  </dy-link>
-                `
-              : ''}
-            ${this.languages
-              ? html`
-                  <select class="languages" @change=${this.#onChange}>
-                    ${Object.entries(this.languages.names).map(
-                      ([lang, name]) => html`
-                        <option ?selected=${this.languages?.current === lang} value=${lang}>${name}</option>
-                      `,
-                    )}
-                  </select>
-                `
-              : ``}
+            <dy-link v-if=${!!this.help} href=${this.help?.href || ''}>
+              <dy-use .element=${icons.help} style="gap: 0.5em">${this.help?.label}</dy-use>
+            </dy-link>
+            <select v-if=${!!this.languages} class="languages" @change=${this.#onChange}>
+              ${Object.entries(this.languages?.names || {}).map(
+                ([lang, name]) => html`
+                  <option ?selected=${this.languages?.current === lang} value=${lang}>${name}</option>
+                `,
+              )}
+            </select>
           </div>
         </div>
       </footer>

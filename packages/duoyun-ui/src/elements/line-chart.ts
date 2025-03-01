@@ -2,7 +2,7 @@ import { adoptedStyle, customElement } from '@mantou/gem/lib/decorators';
 import { html, svg, css } from '@mantou/gem/lib/element';
 import { createDecoratorTheme } from '@mantou/gem/helper/theme';
 
-import { isNullish } from '../lib/types';
+import { isNotNullish, isNullish } from '../lib/types';
 import { theme } from '../lib/theme';
 
 import { DuoyunBarChartElement } from './bar-chart';
@@ -84,19 +84,18 @@ export class DuoyunLineChartElement extends DuoyunBarChartElement {
                 width=${1 / this._xAxiUnit}
                 height=${this._stageHeight}
               />
-              ${this.sequences!.map(({ values }, i, __, value = values[index]) =>
-                isNullish(value)
-                  ? ''
-                  : svg`
-                      <circle
-                        @mousemove=${(evt: MouseEvent) => this.onMouseMove(index, evt, true, i)}
-                        class="symbol"
-                        stroke=${this.colors[i]}
-                        r=${this._getSVGPixel(2)}
-                        cx=${x}
-                        cy=${this._stageHeight - (value + this._yAxiMin) / this._yAxiUnit}
-                      />
-                    `,
+              ${this.sequences!.map(
+                ({ values }, i, __, value = values[index]) => svg`
+                  <circle
+                    v-if=${isNotNullish(value)}
+                    @mousemove=${(evt: MouseEvent) => this.onMouseMove(index, evt, true, i)}
+                    class="symbol"
+                    stroke=${this.colors[i]}
+                    r=${this._getSVGPixel(2)}
+                    cx=${x}
+                    cy=${this._stageHeight - ((value || 0) + this._yAxiMin) / this._yAxiUnit}
+                  />
+                `,
               )}
               <path
                 class="line"

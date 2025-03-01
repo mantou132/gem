@@ -683,13 +683,9 @@ export class DyPatTableElement<T = any> extends GemElement {
           @keydown=${this.#onKeydown}
           .value=${this.#state.search}
         ></dy-input>
-        ${this.filterable
-          ? html`
-              <dy-button color="cancel" @click=${this.#onOpenFilter} .icon=${icons.filter}>
-                ${this.getText('filter')}
-              </dy-button>
-            `
-          : ''}
+        <dy-button v-if=${this.filterable} color="cancel" @click=${this.#onOpenFilter} .icon=${icons.filter}>
+          ${this.getText('filter')}
+        </dy-button>
         <dy-scroll-box class="filters" part="filters">
           ${this.#state.filters.map(
             ({ field, value, cType }, index) => html`

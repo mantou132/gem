@@ -1,37 +1,37 @@
 import type { Emitter } from '@mantou/gem/lib/decorators';
 import {
-  connectStore,
   adoptedStyle,
-  customElement,
-  attribute,
-  globalemitter,
-  property,
-  boolattribute,
-  state,
-  part,
-  shadow,
   aria,
-  mounted,
+  attribute,
+  boolattribute,
+  connectStore,
+  customElement,
   effect,
+  globalemitter,
   memo,
+  mounted,
+  part,
+  property,
+  shadow,
+  state,
 } from '@mantou/gem/lib/decorators';
 import type { TemplateResult } from '@mantou/gem/lib/element';
-import { css, createRef, createState, GemElement, html } from '@mantou/gem/lib/element';
+import { GemElement, createRef, createState, css, html } from '@mantou/gem/lib/element';
 import type { StyleObject } from '@mantou/gem/lib/utils';
 import { addListener, styleMap } from '@mantou/gem/lib/utils';
 
-import { theme } from '../lib/theme';
-import { icons } from '../lib/icons';
-import { locale } from '../lib/locale';
-import { isIncludesString } from '../lib/utils';
 import { setBodyInert } from '../lib/element';
 import { hotkeys } from '../lib/hotkeys';
-import { isNotNullish } from '../lib/types';
+import { icons } from '../lib/icons';
+import { locale } from '../lib/locale';
 import { focusStyle } from '../lib/styles';
+import { theme } from '../lib/theme';
+import { isNotNullish } from '../lib/types';
+import { isIncludesString } from '../lib/utils';
 
+import type { Adder } from './options';
 import type { BasePickerElement } from './picker';
 import { pickerStyle } from './picker';
-import type { Adder } from './options';
 
 import './reflect';
 import './use';
@@ -401,7 +401,7 @@ export class DuoyunSelectElement extends GemElement implements BasePickerElement
     }
     return html`
       <div class="value-wrap">
-        <span v-if=${isEmpty} />
+        <span v-if=${isEmpty}></span>
         <dy-scroll-box v-else-if=${this.multiple} class="values" part=${DuoyunSelectElement.value}>
           ${this.#valueOptions?.map(({ label }, index) =>
             typeof label === 'string'
@@ -421,7 +421,7 @@ export class DuoyunSelectElement extends GemElement implements BasePickerElement
                 : label,
           )}
         </dy-scroll-box>
-        <div v-else class="value">${this.#valueOptions?.[0].label}</div>
+        <div v-else class="value">${this.#valueOptions?.[0]?.label}</div>
         <dy-input
           v-if=${this.#searchable}
           ${this.#searchRef}
