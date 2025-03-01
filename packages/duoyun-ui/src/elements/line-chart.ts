@@ -54,11 +54,13 @@ export class DuoyunLineChartElement extends DuoyunBarChartElement {
     if (this.noData) return this._renderNotData();
     if (!this.contentRect.width || !this.sequences || !this.series) return html``;
     return svg`
-      <svg aria-hidden="true" part=${
-        DuoyunBarChartElement.chart
-      } xmlns="http://www.w3.org/2000/svg" viewBox=${this._viewBox.join(' ')}>
-        ${this._renderXAxi({ centerLabel: true })}
-        ${this._renderYAxi()}
+      <svg
+        aria-hidden="true"
+        part=${DuoyunBarChartElement.chart}
+        xmlns="http://www.w3.org/2000/svg"
+        viewBox=${this._viewBox.join(' ')}
+      >
+        ${this._renderXAxi({ centerLabel: true })} ${this._renderYAxi()}
         ${this.sequences.map(
           ({ values }, index) => svg`
             <path
@@ -86,15 +88,15 @@ export class DuoyunLineChartElement extends DuoyunBarChartElement {
                 isNullish(value)
                   ? ''
                   : svg`
-                  <circle
-                    @mousemove=${(evt: MouseEvent) => this.onMouseMove(index, evt, true, i)}
-                    class="symbol"
-                    stroke=${this.colors[i]}
-                    r=${this._getSVGPixel(2)}
-                    cx=${x}
-                    cy=${this._stageHeight - (value + this._yAxiMin) / this._yAxiUnit}
-                  />
-                `,
+                      <circle
+                        @mousemove=${(evt: MouseEvent) => this.onMouseMove(index, evt, true, i)}
+                        class="symbol"
+                        stroke=${this.colors[i]}
+                        r=${this._getSVGPixel(2)}
+                        cx=${x}
+                        cy=${this._stageHeight - (value + this._yAxiMin) / this._yAxiUnit}
+                      />
+                    `,
               )}
               <path
                 class="line"

@@ -1,18 +1,18 @@
 import type { Emitter } from '@mantou/gem/lib/decorators';
 import {
   adoptedStyle,
+  aria,
   customElement,
   globalemitter,
-  property,
-  part,
-  aria,
-  shadow,
   memo,
+  part,
+  property,
+  shadow,
 } from '@mantou/gem/lib/decorators';
-import { GemElement, html, css, createState } from '@mantou/gem/lib/element';
+import { GemElement, createState, css, html } from '@mantou/gem/lib/element';
 
-import { Time, parseNarrowRelativeTime, parseNarrowTimeRange } from '../lib/time';
 import { theme } from '../lib/theme';
+import { Time, parseNarrowRelativeTime, parseNarrowTimeRange } from '../lib/time';
 import { isNullish } from '../lib/types';
 
 import './date-panel';
@@ -36,8 +36,8 @@ const style = css`
     transition: none;
   }
   .separate {
+    margin: 0.5em;
     color: ${theme.lightBackgroundColor};
-    margin-inline: 0.5em;
   }
 `;
 

@@ -425,9 +425,9 @@ class _GbpSandpackElement extends GemBookPluginElement {
   };
 
   #getLoadSandpackClient = async () => {
-    const { loadSandpackClient } = (await import(
-      /* webpackIgnore: true */ SANDPACK_CLIENT_ESM
-    )) as typeof import('@codesandbox/sandpack-client');
+    const { loadSandpackClient } = (await import(/* webpackIgnore: true */ SANDPACK_CLIENT_ESM)) as typeof import(
+      '@codesandbox/sandpack-client'
+    );
     return loadSandpackClient;
   };
 

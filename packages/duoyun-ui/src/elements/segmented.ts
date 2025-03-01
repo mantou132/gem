@@ -136,15 +136,12 @@ export class DuoyunSegmentedElement extends GemElement {
     if (!this.options) return html``;
     const currentIndex = this.options.findIndex(({ value }, index) => (value ?? index) === this.value);
     return html`
-      ${currentIndex !== -1
-        ? html`
-            <span
-              class="marker"
-              part=${DuoyunSegmentedElement.marker}
-              style=${styleMap({ positionAnchor: getAnchorName(currentIndex) })}
-            ></span>
-          `
-        : ''}
+      <span
+        v-if=${currentIndex !== -1}
+        class="marker"
+        part=${DuoyunSegmentedElement.marker}
+        style=${styleMap({ positionAnchor: getAnchorName(currentIndex) })}
+      ></span>
       ${this.options.map(({ value, label, icon }, index) => {
         return html`
           <div
@@ -160,7 +157,7 @@ export class DuoyunSegmentedElement extends GemElement {
             @keydown=${commonHandle}
             @click=${() => this.#onClick(value ?? index)}
           >
-            ${icon ? html`<dy-use part=${DuoyunSegmentedElement.icon} class="icon" .element=${icon}></dy-use>` : ''}
+            <dy-use v-if=${!!icon} part=${DuoyunSegmentedElement.icon} class="icon" .element=${icon}></dy-use>
             <span class="label">${label}</span>
           </div>
         `;

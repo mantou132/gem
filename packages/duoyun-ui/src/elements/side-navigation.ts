@@ -198,12 +198,12 @@ export class DuoyunSideNavigationElement extends DuoyunScrollBaseElement {
         pattern=${!pattern ? '' : pattern.endsWith('*') ? pattern : `${pattern}/*`}
       >
         <div class="title-wrap">
-          ${ico ? html`<dy-use class="icon" .element=${ico}></dy-use>` : ''}
+          <dy-use v-if=${!!ico} class="icon" .element=${ico || ''}></dy-use>
           <span class="title">${title}</span>
         </div>
         ${slot}
       </dy-active-link>
-      ${children && this.#state[title] ? html`<div class="children">${children.map(this.#renderItem)}</div>` : ''}
+      <div v-if=${!!children && this.#state[title]} class="children">${children?.map(this.#renderItem)}</div>
     `;
   };
 

@@ -477,13 +477,9 @@ export class DuoyunFormItemElement extends GemElement {
                           `
                       : ''}
       <slot ${this.#slotRef}></slot>
-      ${invalidMessage
-        ? html`
-            <dy-help-text class="tip" part=${DuoyunFormItemElement.tip} status="negative">
-              ${invalidMessage}
-            </dy-help-text>
-          `
-        : ''}
+      <dy-help-text v-if=${!!invalidMessage} class="tip" part=${DuoyunFormItemElement.tip} status="negative">
+        ${invalidMessage}
+      </dy-help-text>
     `;
   };
 

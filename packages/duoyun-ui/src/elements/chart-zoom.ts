@@ -178,17 +178,14 @@ export class DuoyunChartZoomElement extends GemElement {
         .sequences=${this.values && [{ label: '', values: this.values }]}
       ></dy-area-chart>
       <dy-gesture class="bg" @pointerdown=${this.#onNewStart} @pan=${this.#onNewChange} @end=${this.#onNewEnd}>
-        ${newValue
-          ? html`
-              <div
-                class="new-range"
-                style=${styleMap({
-                  left: `calc(${Math.min(...newValue) * 100}% - 1px)`,
-                  right: `calc(${(1 - Math.max(...newValue)) * 100}% - 2px)`,
-                })}
-              ></div>
-            `
-          : ''}
+        <div
+          v-if=${!!newValue}
+          class="new-range"
+          style=${styleMap({
+            left: `calc(${Math.min(...(newValue || [])) * 100}% - 1px)`,
+            right: `calc(${(1 - Math.max(...(newValue || []))) * 100}% - 2px)`,
+          })}
+        ></div>
       </dy-gesture>
       <div
         class=${classMap({ range: true, grabbing })}

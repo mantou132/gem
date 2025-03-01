@@ -27,7 +27,7 @@
     "husky": "^8.0.3",
     "lerna": "^8.0.0",
     "lint-staged": "^15.1.0",
-    "prettier": "npm:@mantou/prettier@3.5.0-dev",
+    "prettier": "npm:@mantou/prettier@3.6.0-dev",
     "typescript": "^5.6.2"
   },
   "lint-staged": {

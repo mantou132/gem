@@ -79,7 +79,7 @@ export class DuoyunAlertElement extends GemElement {
     return html`
       <div class="header">
         <div class="title">${this.header}</div>
-        ${icon ? html`<dy-use class="icon" .element=${icon}></dy-use>` : ''}
+        <dy-use v-if=${!!icon} class="icon" .element=${icon}></dy-use>
       </div>
       <div class="content">
         <slot></slot>

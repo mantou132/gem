@@ -28,13 +28,7 @@ export interface SymbolRenderOptions {
 
 export function defaultSymbolRender({ point, color, isHover, chart }: SymbolRenderOptions) {
   return svg`
-    <circle
-      class="symbol"
-      stroke=${color}
-      r=${chart._getSVGPixel(isHover ? 3 : 2)}
-      cx=${point[0]}
-      cy=${point[1]}
-    />
+    <circle class="symbol" stroke=${color} r=${chart._getSVGPixel(isHover ? 3 : 2)} cx=${point[0]} cy=${point[1]} />
   `;
 }
 
@@ -367,21 +361,23 @@ export class DuoyunAreaChartElement extends DuoyunChartBaseElement {
 
     return html`
       ${svg`
-        <svg aria-hidden="true" part=${
-          DuoyunChartBaseElement.chart
-        } xmlns="http://www.w3.org/2000/svg" viewBox=${this._viewBox.join(' ')}>
+        <svg
+          aria-hidden="true"
+          part=${DuoyunChartBaseElement.chart}
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox=${this._viewBox.join(' ')}
+        >
           <defs v-if=${this.#gradient}>
             ${this.#sequences?.map(
               (_, index) => svg`
                 <linearGradient id="${this.genGradientId(index)}" gradientTransform="rotate(90)">
-                  <stop offset="10%"  stop-color=${this.colors[index]} />
+                  <stop offset="10%" stop-color=${this.colors[index]} />
                   <stop offset="90%" stop-opacity="0.2" stop-color=${this.colors[index]} />
                 </linearGradient>
-                `,
+              `,
             )}
           </defs>
-          ${this._renderXAxi()}
-          ${this._renderYAxi()}
+          ${this._renderXAxi()} ${this._renderYAxi()}
           ${this.#sequences.map(
             (
               _,
@@ -391,60 +387,57 @@ export class DuoyunAreaChartElement extends DuoyunChartBaseElement {
               sequence = this.#sequences![revertIndex],
               value = sequence.value ?? sequence.label,
               disabled = this._isDisabled(value),
-            ) =>
-              svg`
-                <path
-                  v-if=${!this.stack}
-                  class=${classMap({ 'hit-line': true, disabled })}
-                  stroke="transparent"
-                  fill="none"
-                  stroke-width=${this._getSVGPixel(10)}
-                  d=${this.#paths[revertIndex]}
-                  @pointerover=${() => this.#state({ hoverSequence: value })}
-                  @pointerout=${() => this.#state({ hoverSequence: '' })}
-                ></path>
-                <path
-                  v-if=${!this.stack}
-                  class=${classMap({ line: true, disabled })}
-                  stroke=${this.colors[revertIndex]}
-                  fill="none"
-                  stroke-width=${this.stroke ? this._getSVGPixel(1) : 0}
-                  d=${this.#paths[revertIndex]}
-                ></path>
-                <path
-                  v-if=${this.#fill}
-                  class=${classMap({ area: true, disabled })}
-                  fill=${this.#gradient ? `url(#${this.genGradientId(revertIndex)})` : this.colors[revertIndex]}
-                  d=${this.#areas[revertIndex]}
-                  @pointerover=${() => this.stack && this.#state({ hoverSequence: value })}
-                  @pointerout=${() => this.stack && this.#state({ hoverSequence: '' })}
-                ></path>
-              `,
+            ) => svg`
+              <path
+                v-if=${!this.stack}
+                class=${classMap({ 'hit-line': true, disabled })}
+                stroke="transparent"
+                fill="none"
+                stroke-width=${this._getSVGPixel(10)}
+                d=${this.#paths[revertIndex]}
+                @pointerover=${() => this.#state({ hoverSequence: value })}
+                @pointerout=${() => this.#state({ hoverSequence: '' })}
+              ></path>
+              <path
+                v-if=${!this.stack}
+                class=${classMap({ line: true, disabled })}
+                stroke=${this.colors[revertIndex]}
+                fill="none"
+                stroke-width=${this.stroke ? this._getSVGPixel(1) : 0}
+                d=${this.#paths[revertIndex]}
+              ></path>
+              <path
+                v-if=${this.#fill}
+                class=${classMap({ area: true, disabled })}
+                fill=${this.#gradient ? `url(#${this.genGradientId(revertIndex)})` : this.colors[revertIndex]}
+                d=${this.#areas[revertIndex]}
+                @pointerover=${() => this.stack && this.#state({ hoverSequence: value })}
+                @pointerout=${() => this.stack && this.#state({ hoverSequence: '' })}
+              ></path>
+            `,
           )}
-          ${
-            this.symbol
-              ? this.#symbolSequences.map((dots, index) =>
-                  dots.map((point, i) =>
-                    point
-                      ? this.symbolRender({
-                          point,
-                          color: this.colors[index],
-                          isHover: i === this.#state.hoverIndex,
-                          chart: this,
-                        })
-                      : '',
-                  ),
-                )
-              : ''
-          }
+          ${this.symbol
+            ? this.#symbolSequences.map((dots, index) =>
+                dots.map((point, i) =>
+                  point
+                    ? this.symbolRender({
+                        point,
+                        color: this.colors[index],
+                        isHover: i === this.#state.hoverIndex,
+                        chart: this,
+                      })
+                    : '',
+                ),
+              )
+            : ''}
           ${this._renderMarkLines()}
           <path
             class="hover-line"
             d=${this.#state.hoverLine}
             stroke=${theme.borderColor}
             stroke-width=${this._getSVGPixel()}
-            stroke-dasharray=${`${this._getSVGPixel(4)} ${this._getSVGPixel(1.5)}`}>
-          </path>
+            stroke-dasharray=${`${this._getSVGPixel(4)} ${this._getSVGPixel(1.5)}`}
+          ></path>
         </svg>
       `}
       <dy-chart-zoom

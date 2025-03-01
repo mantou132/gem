@@ -186,28 +186,14 @@ export class DuoyunRadarChartElement extends DuoyunChartBaseElement {
 
     return svg`
       <svg part=${DuoyunChartBaseElement.chart} xmlns="http://www.w3.org/2000/svg" viewBox=${this._viewBox.join(' ')}>
-        ${this.#axisLines.map(
-          (points) => svg`
-            <polygon
-              class="axis"
-              points=${points}
-            />
-          `,
-        )}
-
+        ${this.#axisLines.map((points) => svg`<polygon class="axis" points=${points} />`)}
         ${this.#dimensionsPoints.map(({ start, end, angle }, i) => {
           const isTop = i === 0;
           const isBottom = angle === -Math.PI / 2;
           const isLeft = angle > Math.PI / 2 || angle < -Math.PI / 2;
           const isCenter = angle === -Math.PI / 2 || angle === Math.PI / 2;
           return svg`
-            <line
-              class="axis"
-              x1=${start[0]}
-              y1=${start[1]}
-              x2=${end[0]}
-              y2=${end[1]}
-            />
+            <line class="axis" x1=${start[0]} y1=${start[1]} x2=${end[0]} y2=${end[1]} />
             <text
               class="axis-label"
               x=${end[0]}
@@ -217,10 +203,11 @@ export class DuoyunRadarChartElement extends DuoyunChartBaseElement {
               dy=${`${isTop ? -1 : isBottom ? 1 : 0}em`}
               text-anchor=${isCenter ? 'middle' : isLeft ? 'end' : 'start'}
               dominant-baseline=${'middle'}
-            >${this.#processedDimensions![i].label}</text>
+            >
+              ${this.#processedDimensions![i].label}
+            </text>
           `;
         })}
-
         ${this.#sequences.map(
           (points, seqIndex) => svg`
             <polygon
@@ -232,7 +219,6 @@ export class DuoyunRadarChartElement extends DuoyunChartBaseElement {
             />
           `,
         )}
-
         ${this.#sequences.map((points, seqIndex) =>
           this.showPoint
             ? points.map(

@@ -268,23 +268,20 @@ export class DuoyunOptionsElement extends GemElement {
                   @click=${onClick}
                   @keydown=${commonHandle}
                 >
-                  ${icon ? html`<dy-use class="icon" .element=${icon}></dy-use>` : ''}
+                  <dy-use v-if=${!!icon} class="icon" .element=${icon}></dy-use>
                   <div class="value">
                     <div class="label">${label}</div>
                     <div class="description">${description}</div>
                   </div>
-                  ${tag ? html`<div class="tag">${tag}</div>` : ''}
-                  ${tagIcon ? html`<dy-use class="icon" .element=${tagIcon}></dy-use>` : ''}
-                  ${onRemove
-                    ? html`
-                        <dy-use
-                          class="icon action"
-                          .element=${icons.delete}
-                          @pointerup=${this.#stopPropagation}
-                          @click=${(evt: MouseEvent) => this.#onRemove(evt, onRemove)}
-                        ></dy-use>
-                      `
-                    : ''}
+                  <div v-if=${!!tag} class="tag">${tag}</div>
+                  <dy-use v-if=${!!tagIcon} class="icon" .element=${tagIcon}></dy-use>
+                  <dy-use
+                    v-if=${!!onRemove}
+                    class="icon action"
+                    .element=${icons.delete}
+                    @pointerup=${this.#stopPropagation}
+                    @click=${(evt: MouseEvent) => onRemove && this.#onRemove(evt, onRemove)}
+                  ></dy-use>
                 </div>
               `;
         },

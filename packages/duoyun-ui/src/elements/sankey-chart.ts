@@ -261,7 +261,9 @@ export class DuoyunSankeyChartElement extends DuoyunChartBaseElement {
                   font-size=${this._getSVGPixel(10)}
                   x=${this.nodeWidth + 3}
                   y=${node.height / 2}
-                >${node.label}</text>
+                >
+                  ${node.label}
+                </text>
               </g>
             `,
           )}

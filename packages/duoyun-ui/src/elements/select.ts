@@ -401,44 +401,37 @@ export class DuoyunSelectElement extends GemElement implements BasePickerElement
     }
     return html`
       <div class="value-wrap">
-        ${isEmpty
-          ? ''
-          : this.multiple
-            ? html`
-                <dy-scroll-box class="values" part=${DuoyunSelectElement.value}>
-                  ${this.#valueOptions!.map(({ label }, index) =>
-                    typeof label === 'string'
-                      ? html`
-                          <dy-tag
-                            small
-                            part=${DuoyunSelectElement.tag}
-                            .closable=${this.disabled ? false : true}
-                            @keydown=${(evt: KeyboardEvent) => evt.stopPropagation()}
-                            @close=${() => this.#onRemoveTag(this.#valueOptions![index])}
-                          >
-                            ${label}
-                          </dy-tag>
-                        `
-                      : this.renderTag
-                        ? this.renderTag(this.#valueOptions![index])
-                        : label,
-                  )}
-                </dy-scroll-box>
-              `
-            : html`<div class="value">${this.#valueOptions![0].label}</div>`}
-        ${this.#searchable
-          ? html`
-              <dy-input
-                ${this.#searchRef}
-                class="search"
-                type="search"
-                value=${search}
-                @keydown=${this.#onSearchKeydown}
-                @change=${this.#onSearch}
-              ></dy-input>
-            `
-          : ''}
-        ${isEmpty && this.placeholder ? html`<div class="placeholder">${this.placeholder}</div>` : ``}
+        <span v-if=${isEmpty} />
+        <dy-scroll-box v-else-if=${this.multiple} class="values" part=${DuoyunSelectElement.value}>
+          ${this.#valueOptions?.map(({ label }, index) =>
+            typeof label === 'string'
+              ? html`
+                  <dy-tag
+                    small
+                    part=${DuoyunSelectElement.tag}
+                    .closable=${this.disabled ? false : true}
+                    @keydown=${(evt: KeyboardEvent) => evt.stopPropagation()}
+                    @close=${() => this.#onRemoveTag(this.#valueOptions![index])}
+                  >
+                    ${label}
+                  </dy-tag>
+                `
+              : this.renderTag
+                ? this.renderTag(this.#valueOptions![index])
+                : label,
+          )}
+        </dy-scroll-box>
+        <div v-else class="value">${this.#valueOptions?.[0].label}</div>
+        <dy-input
+          v-if=${this.#searchable}
+          ${this.#searchRef}
+          class="search"
+          type="search"
+          value=${search}
+          @keydown=${this.#onSearchKeydown}
+          @change=${this.#onSearch}
+        ></dy-input>
+        <div v-if=${isEmpty && !!this.placeholder} class="placeholder">${this.placeholder}</div>
       </div>
       <dy-use
         class="icon"

@@ -217,34 +217,32 @@ export class DuoyunChartBaseElement extends DuoyunResizeBaseElement {
     // zoom 选择范围太小时，xAxiUnit 为 0
     return this.xAxi !== null && this._xAxiUnit
       ? svg`
-        <path
-          stroke=${theme.borderColor}
-          fill="none"
-          stroke-width=${this._getSVGPixel()}
-          d=${`M0 ${this._stageHeight}L${(this._xAxiMax - this._xAxiMin) / this._xAxiUnit} ${this._stageHeight}`}>
-        </path>
-        ${this._xAxiLabels.map(
-          (label, index) =>
-            svg`
-              ${
-                grid
-                  ? svg`
-                      <path
-                        stroke=${theme.lightBackgroundColor}
-                        fill="none"
-                        stroke-width=${this._getSVGPixel()}
-                        d=${`M${this._stateXAxiMarks[index]} ${this._stageHeight} L${this._stateXAxiMarks[index]} 0`}>
-                      </path>
-                    `
-                  : ''
-              }
+          <path
+            stroke=${theme.borderColor}
+            fill="none"
+            stroke-width=${this._getSVGPixel()}
+            d=${`M0 ${this._stageHeight}L${(this._xAxiMax - this._xAxiMin) / this._xAxiUnit} ${this._stageHeight}`}
+          ></path>
+          ${this._xAxiLabels.map(
+            (label, index) => svg`
+              ${grid
+                ? svg`
+                    <path
+                      stroke=${theme.lightBackgroundColor}
+                      fill="none"
+                      stroke-width=${this._getSVGPixel()}
+                      d=${`M${this._stateXAxiMarks[index]} ${this._stageHeight} L${this._stateXAxiMarks[index]} 0`}
+                    ></path>
+                  `
+                : ''}
               <path
                 stroke=${theme.borderColor}
                 fill="none"
                 stroke-width=${this._getSVGPixel()}
                 d=${`M${this._stateXAxiMarks[index]} ${this._stageHeight} L${this._stateXAxiMarks[index]} ${
                   this._stageHeight + this._getSVGPixel(6)
-                }`}>
+                }`}
+              >
               </path>
               <text
                 x=${this._stateXAxiMarks[index] - offset}
@@ -252,12 +250,13 @@ export class DuoyunChartBaseElement extends DuoyunResizeBaseElement {
                 font-size=${this._getSVGPixel(12)}
                 fill="currentColor"
                 text-anchor="middle"
-                dominant-baseline="hanging">
+                dominant-baseline="hanging"
+              >
                 ${label}
               </text>
             `,
-        )}
-      `
+          )}
+        `
       : '';
   };
 
@@ -271,24 +270,25 @@ export class DuoyunChartBaseElement extends DuoyunResizeBaseElement {
                     stroke=${theme.lightBackgroundColor}
                     fill="none"
                     stroke-width=${this._getSVGPixel()}
-                    d=${`M0 ${this._stateYAxiMarks[index]} L${this._stageWidth} ${this._stateYAxiMarks[index]}`}>
+                    d=${`M0 ${this._stateYAxiMarks[index]} L${this._stageWidth} ${this._stateYAxiMarks[index]}`}
+                  >
                   </path>
                 `
               : '',
           )}
           ${this._yAxiLabels.map(
-            (label, index) =>
-              svg`
-                <text
-                  x=${-this._getSVGPixel(12)}
-                  y=${this._stateYAxiMarks[index]}
-                  font-size=${this._getSVGPixel(12)}
-                  fill="currentColor"
-                  text-anchor="end"
-                  dominant-baseline="middle">
-                  ${label}
-                </text>
-              `,
+            (label, index) => svg`
+              <text
+                x=${-this._getSVGPixel(12)}
+                y=${this._stateYAxiMarks[index]}
+                font-size=${this._getSVGPixel(12)}
+                fill="currentColor"
+                text-anchor="end"
+                dominant-baseline="middle"
+              >
+                ${label}
+              </text>
+            `,
           )}
         `
       : '';
@@ -303,24 +303,25 @@ export class DuoyunChartBaseElement extends DuoyunResizeBaseElement {
           _arr,
           c = color || 'currentColor',
           stageValue = this._getStagePoint([0, value])[1],
-        ) =>
-          svg`
-            <path
-              stroke=${c}
-              fill="none"
-              stroke-width=${this._getSVGPixel()}
-              d=${`M0 ${stageValue} L${this._stageWidth} ${stageValue}`}>
-            </path>
-            <text
-              x=${this._stageWidth}
-              y=${stageValue - this._getSVGPixel(4)}
-              font-size=${this._getSVGPixel(12)}
-              fill=${c}
-              text-anchor="end"
-              dominant-baseline="auto">
-              ${label || this.yAxi?.formatter?.(value, 0) || value}
-            </text>
-          `,
+        ) => svg`
+          <path
+            stroke=${c}
+            fill="none"
+            stroke-width=${this._getSVGPixel()}
+            d=${`M0 ${stageValue} L${this._stageWidth} ${stageValue}`}
+          >
+          </path>
+          <text
+            x=${this._stageWidth}
+            y=${stageValue - this._getSVGPixel(4)}
+            font-size=${this._getSVGPixel(12)}
+            fill=${c}
+            text-anchor="end"
+            dominant-baseline="auto"
+          >
+            ${label || this.yAxi?.formatter?.(value, 0) || value}
+          </text>
+        `,
       )}
     `;
   };

@@ -269,8 +269,8 @@ export class DuoyunFlowCanvasElement extends DuoyunResizeBaseElement {
             part=${DuoyunFlowCanvasElement.edge}
             d=${section.d || ''}
             marker-start="url(#startmarker)"
-            marker-end="url(#endmarker)">
-          </path>
+            marker-end="url(#endmarker)"
+          ></path>
         `;
   };
 
@@ -284,12 +284,17 @@ export class DuoyunFlowCanvasElement extends DuoyunResizeBaseElement {
     return this.renderEndMarker
       ? this.renderEndMarker()
       : svg`
-          <marker id="endmarker" viewBox="0 0 10 10"
-            refX="10" refY="5"
+          <marker
+            id="endmarker"
+            viewBox="0 0 10 10"
+            refX="10"
+            refY="5"
             markerUnits="strokeWidth"
-            markerWidth="10" markerHeight="10"
-            orient="auto">
-            <path d="M 0 1 L 10 5 L 0 9 z" fill="currentColor"/>
+            markerWidth="10"
+            markerHeight="10"
+            orient="auto"
+          >
+            <path d="M 0 1 L 10 5 L 0 9 z" fill="currentColor" />
           </marker>
         `;
   };
@@ -474,17 +479,15 @@ export class DuoyunFlowCanvasElement extends DuoyunResizeBaseElement {
     const { children, edges, width, height } = this.graph;
     return html`
       <!-- edge -->
-      ${width && height
-        ? svg`
-            <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${width} ${height}">
-              <defs>
-                ${this.#renderEndMarker()}
-                ${this.#renderStartMarker()}
-              </defs>
-              ${this.#renderChildrenEdge(this.graph)}
-            </svg>
-          `
-        : ''}
+      <svg
+        v-if=${!!width && !!height}
+        aria-hidden="true"
+        xmlns="http://www.w3.org/2000/svg"
+        viewBox="0 0 ${width} ${height}"
+      >
+        <defs>${this.#renderEndMarker()} ${this.#renderStartMarker()}</defs>
+        ${this.#renderChildrenEdge(this.graph)}
+      </svg>
       <!-- node -->
       ${children?.map(this.#renderChildren)}
       <!-- edge labels -->

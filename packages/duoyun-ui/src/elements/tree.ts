@@ -124,11 +124,11 @@ class _DuoyunTreeItemElement extends GemElement {
         class="icon expandable"
         .element=${!children && !childrenPlaceholder ? undefined : this.expanded ? icons.expand : icons.right}
       ></dy-use>
-      ${icon ? html`<dy-use class="icon" .element=${icon}></dy-use>` : ''}
-      ${context ? html`<div class="context">${context}</div>` : ''}
+      <dy-use v-if=${!!icon} class="icon" .element=${icon}></dy-use>
+      <div v-if=${!!context} class="context">${context}</div>
       <span class="label">${label}</span>
-      ${!tags && this.hastags ? html`<div class="tags children"></div>` : ''}
-      ${tags ? html`<div class="tags">${tags.join(', ')}</div>` : ''}
+      <div v-if=${!tags && this.hastags} class="tags children"></div>
+      <div v-if=${!!tags} class="tags">${tags?.join(', ')}</div>
     `;
   };
 }

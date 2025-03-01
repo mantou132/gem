@@ -241,7 +241,8 @@ export class DuoyunMapElement extends DuoyunLoadableBaseElement {
         x=${x}
         y=${y}
         font-size=${2.5 / this.scale}
-        stroke-width=${0.5 / this.scale}>
+        stroke-width=${0.5 / this.scale}
+      >
         ${this.getAreaName?.(name, isCurrent)}
       </text>
     `;
@@ -287,7 +288,8 @@ export class DuoyunMapElement extends DuoyunLoadableBaseElement {
             aria-hidden="true"
             style=${styleMap({
               transform: `scale(${this.scale}) translate(${this.translate2D[0]}px, ${this.translate2D[1]}px)`,
-            })}>
+            })}
+          >
             ${this.#areas?.map((area) => (area === currentArea ? '' : this.#renderArea(area, false)))}
             ${currentArea ? this.#renderArea(currentArea, true) : ''}
             ${this.#areas?.map((area) => this.#renderName(area, false))}

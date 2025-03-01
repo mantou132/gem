@@ -344,7 +344,7 @@ export class DuoyunInputElement extends GemElement {
 
   render() {
     return html`
-      ${this.icon ? html`<dy-use class="icon" .element=${this.icon}></dy-use>` : ''}
+      <dy-use v-if=${!!this.icon} class="icon" .element=${this.icon}></dy-use>
       ${this.#type === 'textarea'
         ? html`
             <textarea
@@ -380,26 +380,20 @@ export class DuoyunInputElement extends GemElement {
               list="datalist"
             />
           `}
-      ${this.dataList &&
-      html`
-        <datalist id="datalist">
-          ${this.dataList.map(({ value, label }) => html`<option value=${value ?? label}>${label}</option>`)}
-        </datalist>
-      `}
-      ${this.clearable && (this.alwayclearable || this.value)
-        ? html`
-            <dy-use
-              role="button"
-              tabindex=${-Number(this.disabled)}
-              aria-disabled=${this.disabled}
-              @keydown=${commonHandle}
-              @click=${this.#onClear}
-              part=${DuoyunInputElement.clear}
-              class="clear"
-              .element=${icons.close}
-            ></dy-use>
-          `
-        : ''}
+      <datalist v-if=${!!this.dataList} id="datalist">
+        ${this.dataList?.map(({ value, label }) => html`<option value=${value ?? label}>${label}</option>`)}
+      </datalist>
+      <dy-use
+        v-if=${this.clearable && (this.alwayclearable || !!this.value)}
+        role="button"
+        tabindex=${-Number(this.disabled)}
+        aria-disabled=${this.disabled}
+        @keydown=${commonHandle}
+        @click=${this.#onClear}
+        part=${DuoyunInputElement.clear}
+        class="clear"
+        .element=${icons.close}
+      ></dy-use>
     `;
   }
 }

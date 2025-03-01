@@ -210,13 +210,9 @@ export class DuoyunTableElement<T = any, K = any> extends DuoyunScrollBoxElement
               <th part=${DuoyunTableElement.th} style=${styleMap(style)}>
                 <dy-space size="small">
                   ${title}
-                  ${tooltip
-                    ? html`
-                        <dy-tooltip .content=${tooltip}>
-                          <dy-use class="tooltip" .element=${icons.help}></dy-use>
-                        </dy-tooltip>
-                      `
-                    : ''}
+                  <dy-tooltip v-if=${!!tooltip} .content=${tooltip}>
+                    <dy-use class="tooltip" .element=${icons.help}></dy-use>
+                  </dy-tooltip>
                 </dy-space>
               </th>
             `,

@@ -102,11 +102,13 @@ export class DuoyunBarChartElement extends DuoyunChartBaseElement {
     if (!this.contentRect.width || !this.sequences || !this.series) return html``;
     return html`
       ${svg`
-        <svg aria-hidden="true" part=${
-          DuoyunChartBaseElement.chart
-        } xmlns="http://www.w3.org/2000/svg" viewBox=${this._viewBox.join(' ')}>
-          ${this._renderXAxi({ centerLabel: true })}
-          ${this._renderYAxi()}
+        <svg
+          aria-hidden="true"
+          part=${DuoyunChartBaseElement.chart}
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox=${this._viewBox.join(' ')}
+        >
+          ${this._renderXAxi({ centerLabel: true })} ${this._renderYAxi()}
           ${this.series.map(
             (_value, i, _, width = 1) => svg`
               <g class="col" @click=${() => this.indexclick(i)} @pointerout=${this.onMouseOut}>

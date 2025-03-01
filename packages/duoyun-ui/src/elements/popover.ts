@@ -295,9 +295,10 @@ export class DuoyunPopoverElement extends GemElement {
   render = () => {
     const { open, style, position } = this.#state;
     return html`
-      ${open
-        ? html`
-            <dy-reflect .target=${document.body}>
+      ${!open
+        ? null
+        : html`
+            <dy-reflect v-if=${open} .target=${document.body}>
               <div
                 style=${styleMap({
                   display: this.#isClickTrigger ? 'block' : 'none',
@@ -327,8 +328,7 @@ export class DuoyunPopoverElement extends GemElement {
                 ${this.content}
               </dy-popover-ghost>
             </dy-reflect>
-          `
-        : ''}
+          `}
       <slot ${this.#slotRef} part=${DuoyunPopoverElement.slot}></slot>
     `;
   };
