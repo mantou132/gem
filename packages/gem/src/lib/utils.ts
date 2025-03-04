@@ -319,8 +319,3 @@ export function exportPartsMap(object: Record<string, string | boolean | undefin
     value === true || key === value ? key : value ? `${key}:${value}` : '',
   );
 }
-
-declare global {
-  interface PropertyIndexedKeyframes extends StyleObject {}
-  interface Keyframe extends StyleObject {}
-}

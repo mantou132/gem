@@ -8,11 +8,13 @@ import {
   styleMap,
   shadow,
   mounted,
+  createState,
 } from '@mantou/gem';
 
 import { configureStore } from '../store';
 import { execution } from '../common';
 import { getAllFrames } from '../scripts/get-all-frame';
+import { appendScanElement, checkGemElement, checkScanElement } from '../scripts/scan';
 
 const style = css`
   :host {
@@ -24,6 +26,14 @@ const style = css`
     font-style: italic;
     opacity: 0.5;
     flex-grow: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .btn {
+    border-inline-end: 1px solid;
+    padding-inline-end: 0.2em;
+    cursor: pointer;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -43,12 +53,14 @@ const style = css`
 @connectStore(configureStore)
 @shadow()
 export class DevtoolsHeaderElement extends GemElement {
+  #state = createState({ showScanBtn: false });
+
   #onChange = (evt: Event) => {
     configureStore({ currentFrameURL: (evt.target as HTMLSelectElement).value });
   };
 
   @mounted()
-  #init = () => {
+  #initFrame = () => {
     const timer = setInterval(async () => {
       const frames = await execution(getAllFrames, [], { frameURL: undefined });
       configureStore({
@@ -59,9 +71,26 @@ export class DevtoolsHeaderElement extends GemElement {
     return () => clearInterval(timer);
   };
 
+  @mounted()
+  #initScan = async () => {
+    const hasGem = await execution(checkGemElement, []);
+    if (!hasGem) return;
+    const timer = setInterval(async () => {
+      const hasScan = await execution(checkScanElement, []);
+      this.#state({ showScanBtn: !hasScan });
+    }, 1000);
+    return () => clearInterval(timer);
+  };
+
+  #enableScan = async () => {
+    await execution(appendScanElement, []);
+    this.#state({ showScanBtn: false });
+  };
+
   render = () => {
     return html`
       <div class="title"><slot></slot></div>
+      <div class="btn" v-if=${this.#state.showScanBtn} @click=${this.#enableScan}>Scan</div>
       <select
         @change=${this.#onChange}
         style=${styleMap({ width: `${configureStore.currentFrameURL.length * 0.5}em` })}
