@@ -30,11 +30,10 @@ class ParamsRegExp extends RegExp {
 
 type Params = Record<string, string>;
 declare global {
-  interface Window {
-    // https://bugzilla.mozilla.org/show_bug.cgi?id=1731418
-    // https://github.com/WebKit/standards-positions/issues/61
-    URLPattern: any;
-  }
+  // https://bugzilla.mozilla.org/show_bug.cgi?id=1731418
+  // https://github.com/WebKit/standards-positions/issues/61
+  // eslint-disable-next-line no-var
+  var URLPattern: any;
 }
 
 /**
@@ -51,8 +50,8 @@ declare global {
  * ```
  */
 export function matchPath(pattern: string, path: string) {
-  if (window.URLPattern) {
-    const urLPattern = new window.URLPattern({ pathname: pattern });
+  if (globalThis.URLPattern) {
+    const urLPattern = new URLPattern({ pathname: pattern });
     const matchResult = urLPattern.exec({ pathname: path }) || urLPattern.exec({ pathname: `${path}/` });
     if (!matchResult) return null;
     return matchResult.pathname.groups as Params;

@@ -3,7 +3,7 @@
 import { connect, createStore } from './store';
 import { QueryString, cleanObject, GemError, absoluteLocation } from './utils';
 
-const nativeHistory = window.history;
+const nativeHistory = globalThis.history;
 const nativePushState: typeof nativeHistory.pushState = nativeHistory.pushState.bind(nativeHistory);
 const nativeReplaceState: typeof nativeHistory.replaceState = nativeHistory.replaceState.bind(nativeHistory);
 
@@ -107,7 +107,7 @@ function updateHistory(p: UpdateHistoryParams, native: typeof nativeHistory.push
   const url = getUrlBarPath(path) + new QueryString(query) + hash;
   const prevHash = decodeURIComponent(location.hash);
   native(state, title, url);
-  if (prevHash !== hash) window.dispatchEvent(new CustomEvent('hashchange'));
+  if (prevHash !== hash) dispatchEvent(new CustomEvent('hashchange'));
 }
 
 // 跨框架时，调用者对 basePath 无感知
@@ -128,7 +128,7 @@ function updateHistoryByNative(data: any, title: string, originUrl: string, nati
   const prevHash = location.hash;
   native(state, title, url);
   // `location.hash` 和 `hash` 都已经进行了 url 编码，可以直接进行相等判断
-  if (prevHash !== hash) window.dispatchEvent(new CustomEvent('hashchange'));
+  if (prevHash !== hash) dispatchEvent(new CustomEvent('hashchange'));
 }
 
 const gemBasePathStore = createStore({
@@ -185,16 +185,15 @@ const gemHistory = new GemHistory();
 
 const gemTitleStore = createStore({ defaultTitle: document.title, url: '', title: '' });
 
-const _GEMHISTORY = { history: gemHistory, titleStore: gemTitleStore, basePathStore: gemBasePathStore };
+const HISTORY = { history: gemHistory, titleStore: gemTitleStore, basePathStore: gemBasePathStore };
 
 declare global {
-  interface Window {
-    _GEMHISTORY?: typeof _GEMHISTORY;
-  }
+  // eslint-disable-next-line no-var
+  var _GEMHISTORY: typeof HISTORY | undefined;
 }
 
-if (!window._GEMHISTORY) {
-  window._GEMHISTORY = _GEMHISTORY;
+if (!globalThis._GEMHISTORY) {
+  globalThis._GEMHISTORY = HISTORY;
 
   nativeHistory.pushState = function (state: any, title: string, path: string) {
     updateHistoryByNative(state, title, path, nativePushState);
@@ -205,7 +204,7 @@ if (!window._GEMHISTORY) {
   };
 
   // 点击 `<a>`
-  window.addEventListener('hashchange', ({ isTrusted }) => {
+  addEventListener('hashchange', ({ isTrusted }) => {
     if (isTrusted) {
       gemHistory.replace({ hash: location.hash });
     }
@@ -250,7 +249,7 @@ if (!window._GEMHISTORY) {
    * 表示 popstate handler 中正在进行导航
    */
   let navigating = false;
-  window.addEventListener('popstate', (event) => {
+  addEventListener('popstate', (event) => {
     const newState = event.state as HistoryState | null;
     if (!newState?.$key) {
       // 比如作为其他框架 app 的宿主 app
@@ -316,5 +315,5 @@ if (!window._GEMHISTORY) {
   });
 }
 
-const { history, titleStore, basePathStore } = window._GEMHISTORY;
+const { history, titleStore, basePathStore } = globalThis._GEMHISTORY;
 export { history, titleStore, basePathStore };

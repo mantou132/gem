@@ -105,7 +105,7 @@ type ToastOptions = Partial<ToastItem> & {
   debug?: boolean;
 };
 
-const itemTimerMap = new WeakMap<ToastItem, number>();
+const itemTimerMap = new WeakMap<ToastItem, ReturnType<typeof setTimeout>>();
 const removedSet = new WeakSet<ToastItem>();
 
 @customElement('dy-toast')
@@ -136,7 +136,7 @@ export class DuoyunToastElement extends GemElement {
     // 取消正在执行移除动画的删除定时器
     removedSet.delete(item);
     clearTimeout(itemTimerMap.get(item));
-    const removeTimer = window.setTimeout(() => toast.#removeItem(item), debug ? 1000000 : duration);
+    const removeTimer = setTimeout(() => toast.#removeItem(item), debug ? 1000000 : duration);
     itemTimerMap.set(item, removeTimer);
   }
 
@@ -159,7 +159,7 @@ export class DuoyunToastElement extends GemElement {
     await this.#over;
     removedSet.add(item);
     this.update();
-    window.setTimeout(() => {
+    setTimeout(() => {
       if (!this.items || !removedSet.has(item)) return;
       this.items = this.items.filter((e) => e !== item);
       if (this.items.length === 0) this.remove();

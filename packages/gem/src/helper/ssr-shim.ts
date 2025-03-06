@@ -1,3 +1,6 @@
+/// 简单的垫片，让 GemElement 服务端渲染不报错
+/// 渲染时将忽略 GemElement 内容
+
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-nocheck
 if (typeof window === 'undefined') {

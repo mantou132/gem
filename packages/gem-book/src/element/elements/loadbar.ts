@@ -35,15 +35,15 @@ const styles = css`
 @shadow()
 export class GemBookLoadbarElement extends GemElement {
   static instance?: GemBookLoadbarElement;
-  static timer = 0;
+  static timer: ReturnType<typeof setTimeout> | number = 0;
 
   static async start({ delay = 100 }: { delay?: number } = {}) {
     clearInterval(Loadbar.timer);
-    Loadbar.timer = window.setTimeout(() => {
+    Loadbar.timer = setTimeout(() => {
       const instance = Loadbar.instance || new Loadbar();
       instance.#state({ progress: 0 });
       if (!instance.isConnected) document.body.append(instance);
-      Loadbar.timer = window.setInterval(() => {
+      Loadbar.timer = setInterval(() => {
         instance.#state({ progress: instance.#state.progress + (95 - instance.#state.progress) * 0.1 });
       }, 100);
     }, delay);

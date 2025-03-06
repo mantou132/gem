@@ -198,13 +198,13 @@ export class DuoyunCarouselElement extends GemElement {
     this.#reset();
   };
 
-  #timer = 0;
+  #timer: ReturnType<typeof setTimeout> | number = 0;
   #isFirstRender = true;
   #waitLeave = Promise.resolve();
 
   #reset = () => {
     this.#clearTimer();
-    this.#timer = window.setTimeout(async () => {
+    this.#timer = setTimeout(async () => {
       await this.#waitLeave;
       this.#add(Direction.Right);
     }, this.#interval);

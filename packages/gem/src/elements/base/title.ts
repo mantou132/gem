@@ -18,10 +18,10 @@ import { connect } from '../../lib/store';
 import { titleStore } from '../../lib/history';
 
 // 避免重定向时的中间状态标题
-let timer = 0;
+let timer: ReturnType<typeof setTimeout> | number = 0;
 const setTitle = (documentTitle: string) => {
   clearTimeout(timer);
-  timer = window.setTimeout(() => (document.title = documentTitle));
+  timer = setTimeout(() => (document.title = documentTitle));
 };
 
 function setDocumentTitle(defaultTitle?: string | null, prefix = '', suffix = '') {

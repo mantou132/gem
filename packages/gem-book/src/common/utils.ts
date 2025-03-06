@@ -63,10 +63,10 @@ export function debounce<T extends (...args: any) => any>(func: T, wait = 100) {
 }
 
 export function throttle<T extends (...args: any) => any>(fn: T, wait = 1000) {
-  let timer = 0;
+  let timer: ReturnType<typeof setTimeout> | number = 0;
   return (...rest: Parameters<T>) => {
     clearTimeout(timer);
-    timer = window.setTimeout(() => {
+    timer = setTimeout(() => {
       fn(...(rest as any));
       timer = 0;
     }, wait);

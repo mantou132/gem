@@ -213,7 +213,7 @@ class _GbpDocsearchElement extends GemBookPluginElement {
     const record = Object.fromEntries(documents.map((document) => [document.id, document.title]));
     documents.forEach(async (document) => {
       if (!document.text) return;
-      await new Promise((resolve) => (window.requestIdleCallback || setTimeout)(resolve));
+      await new Promise((resolve) => (globalThis.requestIdleCallback || setTimeout)(resolve));
 
       const df = new DocumentFragment();
       df.append(...Utils.parseMarkdown(document.text));

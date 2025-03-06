@@ -1,0 +1,10 @@
+{
+  "extends": "@gemjs/config/tsconfig",
+  "compilerOptions": {
+    "outDir": "./",
+    "verbatimModuleSyntax": false,
+    "module": "commonjs"
+  },
+  "include": ["src"],
+  "exclude": []
+}

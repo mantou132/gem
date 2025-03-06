@@ -31,7 +31,7 @@ if (gaId) {
     gtag('config', gaId, { send_page_view: false });
     send();
     // https://book.gemjs.org/en/api/event
-    window.addEventListener('routechange', send);
+    addEventListener('routechange', send);
   };
   document.body.append(script);
   script.remove();
@@ -101,7 +101,7 @@ style.textContent = /*css*/ `
 document.head.append(style);
 
 if (!dev) {
-  window.addEventListener('load', () => {
+  addEventListener('load', () => {
     navigator.serviceWorker?.register('/service-worker.js');
   });
 }

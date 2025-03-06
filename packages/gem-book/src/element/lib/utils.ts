@@ -109,7 +109,7 @@ export function checkBuiltInPlugin(container: HTMLElement) {
   tagSet.forEach((tag) => {
     const [namespace, ...rest] = tag.split('-');
     if (namespace === 'gbp' && rest.length) {
-      window.dispatchEvent(new CustomEvent('plugin', { detail: rest.join('-') }));
+      dispatchEvent(new CustomEvent('plugin', { detail: rest.join('-') }));
     }
   });
 }

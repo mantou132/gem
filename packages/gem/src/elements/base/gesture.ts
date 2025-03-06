@@ -73,7 +73,7 @@ export class GemGestureElement extends GemElement {
   @state grabbing: boolean;
 
   #pressed = false; // 触发 press 之后不触发其他事件
-  #pressTimer = 0;
+  #pressTimer: ReturnType<typeof setTimeout> | number = 0;
 
   #startEventMap: Map<number, PointerEvent> = new Map();
 
@@ -134,7 +134,7 @@ export class GemGestureElement extends GemElement {
     this.#startEventMap.set(evt.pointerId, evt);
     if (evt.isPrimary) {
       this.#pressed = false;
-      this.#pressTimer = window.setTimeout(() => {
+      this.#pressTimer = setTimeout(() => {
         this.press(evt);
         this.#pressed = true;
       }, 251);
@@ -187,7 +187,7 @@ export class GemGestureElement extends GemElement {
         Math.abs(move.clientX - startEvent.clientX) > accuracy ||
         Math.abs(move.clientY - startEvent.clientY) > accuracy
       ) {
-        window.clearTimeout(this.#pressTimer);
+        clearTimeout(this.#pressTimer);
       }
     }
   };
@@ -205,7 +205,7 @@ export class GemGestureElement extends GemElement {
   #onEnd = async (evt: PointerEvent) => {
     evt.stopPropagation();
     const { pointerId } = evt;
-    window.clearTimeout(this.#pressTimer);
+    clearTimeout(this.#pressTimer);
 
     if (this.movesMap.size === 1) {
       this.grabbing = false;
