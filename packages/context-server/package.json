@@ -1,0 +1,37 @@
+{
+  "name": "gem-context-server",
+  "version": "0.0.1",
+  "description": "Model context server for Gem",
+  "keywords": [
+    "gem",
+    "MCP"
+  ],
+  "module": "src/index.ts",
+  "main": "src/index.ts",
+  "bin": "dist/index.js",
+  "files": [
+    "/dist/"
+  ],
+  "scripts": {
+    "prepublishOnly": "esbuild ./src/index.ts --outdir=./dist --platform=node --sourcemap --bundle --packages=external"
+  },
+  "dependencies": {
+    "adm-zip": "^0.5.16",
+    "@modelcontextprotocol/sdk": "^1.6.1"
+  },
+  "devDependencies": {
+    "@gemjs/config": "^2.1.0",
+    "@types/adm-zip": "^0.5.7"
+  },
+  "author": "mantou132",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mantou132/gem.git",
+    "directory": "packages/context-server"
+  },
+  "bugs": {
+    "url": "https://github.com/mantou132/gem/issues"
+  },
+  "homepage": "https://github.com/mantou132/gem#readme"
+}
