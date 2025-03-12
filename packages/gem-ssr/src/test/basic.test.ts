@@ -1,15 +1,16 @@
 import '../lib/shim';
 
-import assert from 'node:assert';
-import { describe, it } from 'node:test';
+import test from 'node:test';
+
 import { customElement } from '@mantou/gem/lib/decorators';
 import { GemElement } from '@mantou/gem/lib/reactive';
+import { html } from '@mantou/gem/lib/lit-html';
+
+import { renderToString } from '..';
 
 @customElement('app-demo')
-class DemoElement extends GemElement {}
+export class DemoElement extends GemElement {}
 
-describe('Basic element render', async () => {
-  it('The easiest', async () => {
-    assert.strictEqual(1, 1);
-  });
+test('basic', async (t) => {
+  t.assert.snapshot(renderToString(html`<app-demo></app-demo>`));
 });

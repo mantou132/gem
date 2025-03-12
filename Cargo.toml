@@ -13,18 +13,18 @@ repository = "https://github.com/mantou132/gem.git"
 
 [workspace.dependencies]
 node-resolve = "2.2.0"
-indexmap = { version = "2.6.0" }
-regex = { version = "1.10.4", default-features = false }
-serde = "1.0.203"
-serde_json = "1.0.117"
+indexmap = { version = "2.8.0" }
+regex = { version = "1.11.1", default-features = false }
+serde = "1.0.219"
+serde_json = "1.0.140"
 serde_regex = "1.1.0"
-swc_core = "5.0.0"
-swc_ecma_parser = "5.0.0"
-swc_ecma_visit = "4.0.0"
-swc_ecma_ast = "4.0.0"
-swc_common = "4.0.0"
-testing = "0.42.0"
-once_cell = "1.19.0"
-tracing = "0.1.40"
+swc_core = "16.4.1"
+swc_ecma_parser = "10.0.1"
+swc_ecma_visit = "8.0.0"
+swc_ecma_ast = "8.0.0"
+swc_common = "8.0.0"
+testing = "8.0.0"
+once_cell = "1.21.0"
+tracing = "0.1.41"
 pathdiff = "0.2.3"
-typed-path = { version = "0.9.3", default-features = false }
+typed-path = { version = "0.10.0", default-features = false }

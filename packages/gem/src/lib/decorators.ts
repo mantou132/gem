@@ -1,8 +1,8 @@
 import type { TemplateResult } from './lit-html';
 import type { Metadata, Sheet } from './reactive';
-import { GemElement, UpdateToken, _createTemplate, _RenderErrorEvent, render } from './reactive';
-import { camelToKebabCase, PropProxyMap, GemError } from './utils';
+import { GemElement, UpdateToken, _RenderErrorEvent, _createTemplate, render } from './reactive';
 import type { Store } from './store';
+import { GemError, PropProxyMap, camelToKebabCase } from './utils';
 
 type GemElementPrototype = GemElement & { '': never };
 type StaticField = Exclude<keyof Metadata, keyof ShadowRootInit | 'aria' | 'noBlocking' | 'penetrable'>;
@@ -35,18 +35,19 @@ const observedTargetAttributes = new WeakMap<GemElementPrototype, Map<string, st
 // 不在 Devtools 中工作 https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/Content_scripts#dom_access
 // 使用 Gem DevTools 注入脚本监听 attribute 变化
 const { setAttribute, toggleAttribute, removeAttribute } = Element.prototype;
+const getObservedPropName = (i: GemElement, n: string) => observedTargetAttributes.get(getPrototypeOf(i))?.get(n);
 GemElement.prototype.setAttribute = function (n: string, v: string) {
-  const prop = observedTargetAttributes.get(getPrototypeOf(this))?.get(n);
+  const prop = getObservedPropName(this, n);
   if (!prop) return setAttribute.call(this, n, v);
   (this as any)[prop] = v;
 };
 GemElement.prototype.removeAttribute = function (n: string) {
-  const prop = observedTargetAttributes.get(getPrototypeOf(this))?.get(n);
+  const prop = getObservedPropName(this, n);
   if (!prop) return removeAttribute.call(this, n);
   (this as any)[prop] = null;
 };
 GemElement.prototype.toggleAttribute = function (n: string, force?: boolean) {
-  const prop = observedTargetAttributes.get(getPrototypeOf(this))?.get(n);
+  const prop = getObservedPropName(this, n);
   if (!prop) return toggleAttribute.call(this, n, force);
   return ((this as any)[prop] = force ?? !this.hasAttribute(n));
 };
@@ -220,17 +221,15 @@ export function memo<T extends GemElement, V = any, K = any[] | undefined>(
         if (context.private) throw new GemError('not support');
         const target = getDecoratorTarget(this, context as any);
         // 不能直接用 `access.get.bind(this)` 是现有 builder 工具的 bug？
-        const getter = Object.getOwnPropertyDescriptor(target, name)!.get!.bind(this);
+        const getter = getOwnPropertyDescriptor(target, name)!.get!.bind(this);
         this.memo(() => {
           defineProperty(this, name, {
             configurable: true,
-            // 这里需要 bind(this) 是为了兼容 swc
-            // https://github.com/swc-project/swc/issues/9565#issuecomment-2539107736
-            value: getter(this),
+            value: getter(),
           });
         }, dep);
       } else {
-        this.memo((access.get(this) as any).bind(this) as any, dep);
+        this.memo((access.get(this) as any).bind(this), dep);
       }
     });
   };

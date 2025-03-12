@@ -2,6 +2,21 @@ import { CustomElementRegistry, CustomEvent, Element, Event, EventTarget, HTMLEl
 
 class CSSStyleSheet {}
 
+class Document {
+  get adoptedStyleSheets() {
+    return [];
+  }
+  createTreeWalker() {
+    return {};
+  }
+  createTextNode() {
+    return {};
+  }
+  createElement() {
+    return {};
+  }
+}
+
 Object.assign(globalThis, {
   customElements: new CustomElementRegistry(),
   CSSStyleSheet,
@@ -11,4 +26,6 @@ Object.assign(globalThis, {
   CustomEvent,
   CustomElementRegistry,
   EventTarget,
+  Document,
+  document: new Document(),
 });
