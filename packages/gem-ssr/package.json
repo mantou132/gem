@@ -2,20 +2,30 @@
   "name": "gem-ssr",
   "version": "0.0.1",
   "description": "Render to string",
-  "keywords": ["gem", "react", "generator"],
+  "keywords": [
+    "gem",
+    "react",
+    "generator"
+  ],
   "main": "src/index.ts",
   "type": "module",
   "scripts": {
     "test": "tsx --test",
-    "prepublishOnly": "pnpm build"
+    "test:watch": "nodemon --watch src -e .ts --exec \"pnpm run test\"",
+    "example": "tsx src/example",
+    "example:watch": "nodemon --watch src -e .ts --exec \"pnpm run example\""
   },
   "dependencies": {
     "@mantou/gem": "^2.2.0",
-    "@lit-labs/ssr-dom-shim": "^1.3.0",
-    "parse5": "^7.1.1"
+    "@hono/node-server": "^1.13.8",
+    "esbuild": "^0.24.0",
+    "hono": "^4.7.4",
+    "jsdom": "^26.0.0"
   },
   "devDependencies": {
     "@gemjs/config": "^2.1.0",
+    "@types/jsdom": "^21.1.7",
+    "nodemon": "^2.0.7",
     "tsx": "^4.19.3"
   },
   "author": "mantou132",

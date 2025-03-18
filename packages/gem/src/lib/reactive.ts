@@ -148,6 +148,9 @@ export function css<T extends Record<string, string>>(
   return sheet as Sheet<T>;
 }
 
+// TODO: move to transform?
+export const isSSR = typeof process !== 'undefined';
+
 const updateStyleSheets = (map: Map<CSSStyleSheet, number>, sheets: CSSStyleSheet[], value: number) => {
   let needUpdate = false;
   sheets.forEach((e) => {
@@ -159,7 +162,7 @@ const updateStyleSheets = (map: Map<CSSStyleSheet, number>, sheets: CSSStyleShee
   });
   if (needUpdate) {
     // 避免重复更新，例如 list 元素增删，全 light dom 时 document 更新
-    addMicrotask(rootUpdateFnMap.get(map)!);
+    addMicrotask(rootUpdateFnMap.get(map)!, isSSR);
   }
 };
 

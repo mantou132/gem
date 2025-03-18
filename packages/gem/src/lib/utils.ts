@@ -1,12 +1,17 @@
 const { assign, fromEntries, entries, keys } = Object;
 
 const microtaskSet = new Set<() => void>();
-export function addMicrotask(func: () => void) {
+export function addMicrotask(func: () => void, isNodeForceMicrotask?: boolean) {
   if (microtaskSet.has(func)) return;
-  Promise.resolve().then(() => {
+  const next = () => {
     microtaskSet.delete(func);
     func();
-  });
+  };
+  if (isNodeForceMicrotask) {
+    process.nextTick(next);
+  } else {
+    Promise.resolve().then(next);
+  }
   microtaskSet.add(func);
 }
 

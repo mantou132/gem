@@ -1,3 +1,17 @@
-exports[`basic 1`] = `
-"<app-demo></app-demo>"
+exports[`basic light 1`] = `
+<style>@scope (APP-LIGHT-DEMO) to (:state(gem-style-boundary) > *){ 
+  :scope {
+    font-size: medium;
+  }
+ }</style><!----><app-light-demo attr="attr"><!---->
+      light dom
+      <div>attr: <!--?$lit-temp$-->attr</div>
+      <div>prop: <!--?$lit-temp$-->prop</div>
+      <div>state: <!--?$lit-temp$-->1</div>
+      <div>store: <!--?$lit-temp$-->2</div>
+    </app-light-demo>
+`;
+
+exports[`basic shadow 1`] = `
+<!----><app-shadow-demo><template shadowrootmode="open"><!---->shadow dom</template></app-shadow-demo>
 `;
