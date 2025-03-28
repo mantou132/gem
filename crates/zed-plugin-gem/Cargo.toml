@@ -9,7 +9,8 @@ publish = false
 crate-type = ["cdylib"]
 
 [dependencies]
-zed_extension_api = "0.3.0"
+zed_extension_api = { git = "https://github.com/zed-industries/zed", branch = "v0.181.x" }
+serde = { workspace = true, features = ["derive"] }
 
 [build-dependencies]
 anyhow = "1.0.97"

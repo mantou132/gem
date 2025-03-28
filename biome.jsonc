@@ -1,11 +1,17 @@
 {
-  "$schema": "https://biomejs.dev/schemas/1.8.3/schema.json",
+  "$schema": "https://raw.githubusercontent.com/biomejs/biome/refs/tags/%40biomejs/biome%402.0.0-beta.1/packages/%40biomejs/biome/configuration_schema.json",
   "vcs": {
     "enabled": true,
     "clientKind": "git",
     "useIgnoreFile": true
   },
-  "organizeImports": { "enabled": true },
+  "assist": {
+    "actions": {
+      "source": {
+        "organizeImports": "on"
+      }
+    }
+  },
   "formatter": {
     "enabled": true,
     "formatWithErrors": false,
@@ -14,6 +20,11 @@
     "lineEnding": "lf",
     "lineWidth": 120,
     "attributePosition": "auto"
+  },
+  "html": {
+    "formatter": {
+      "enabled": true
+    }
   },
   "javascript": {
     "formatter": {
@@ -58,11 +69,11 @@
   },
   "overrides": [
     {
-      "include": ["*.md"],
+      "includes": ["**/*.md"],
       "formatter": { "lineWidth": 100 }
     },
     {
-      "include": ["fixture/**/*"],
+      "includes": ["**/fixture/**/*"],
       "linter": { "enabled": false },
       "formatter": { "enabled": false }
     }

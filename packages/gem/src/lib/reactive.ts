@@ -26,6 +26,8 @@ export const SheetToken = Symbol.for('gem@sheetToken');
 export const UpdateToken = Symbol.for('gem@update');
 
 const BoundaryCSSState = 'gem-style-boundary';
+
+/**@internal */
 export const _RenderErrorEvent = 'gem@render-error';
 
 // fix modal-factory type error
@@ -226,6 +228,7 @@ function clearEffect(list: EffectItem<any>[]) {
 type Render = () => Lit.TemplateResult | null | undefined;
 type RenderItem = { render: Render; condition?: () => boolean };
 
+/**@internal */
 export let _createTemplate: (ele: GemElement, item: RenderItem) => void;
 
 export type Metadata = Partial<ShadowRootInit> & {
@@ -267,10 +270,6 @@ noBlockingTaskList.addEventListener('start', () => addMicrotask(tick));
 let currentConstructGemElement: GemElement;
 
 export abstract class GemElement extends HTMLElement {
-  // 禁止覆盖自定义元素原生生命周期方法
-  // https://github.com/microsoft/TypeScript/issues/21388#issuecomment-934345226
-  static #final = Symbol();
-
   #renderRoot: HTMLElement | ShadowRoot;
   #internals: ElementInternals & {
     // 有别于 adoptedStyleSheets，用来定义单个实例样式
@@ -500,34 +499,26 @@ export abstract class GemElement extends HTMLElement {
   /**
    * @private
    * @final
-   * use `mounted`
+   * use `@mounted`
    */
-  connectedCallback() {
+  connectedCallback(): Unique {
     if (this.#metadata.noBlocking) {
       noBlockingTaskList.add(this.#connectedCallback);
     } else {
       this.#connectedCallback();
     }
-    return GemElement.#final;
+    return undefined as unknown as Unique;
   }
 
   /**
    * @private
    * @final
+   * use `@unmounted`
    */
-  adoptedCallback() {
-    return GemElement.#final;
-  }
-
-  /**
-   * @private
-   * @final
-   * use `unmounted`
-   */
-  disconnectedCallback() {
+  disconnectedCallback(): Unique {
     if (this.isConnected) {
       this.#isAppendReason = true;
-      return;
+      return undefined as unknown as Unique;
     }
     noBlockingTaskList.delete(this.#connectedCallback);
     noBlockingTaskList.delete(this.#updateCallback);
@@ -537,7 +528,7 @@ export abstract class GemElement extends HTMLElement {
     this.#effectList = clearEffect(this.#effectList);
     this.#memoList = clearEffect(this.#memoList);
     this.#clearStyle?.();
-    return GemElement.#final;
+    return undefined as unknown as Unique;
   }
 
   /**
@@ -600,3 +591,6 @@ export abstract class GemElement extends HTMLElement {
    */
   update = () => addMicrotask(this.#update);
 }
+
+// 用来禁止 connectCallback 方法被覆盖而破坏 GemElement 的功能
+type Unique = typeof UpdateToken;

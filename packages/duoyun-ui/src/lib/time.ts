@@ -1,4 +1,5 @@
 /* eslint-disable no-fallthrough */
+/* biome-ignore-all lint/suspicious/noFallthroughSwitchClause: falls through */
 
 import { locale } from './locale';
 

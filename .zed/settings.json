@@ -42,16 +42,6 @@
       }
     },
     "vtsls": {
-      "tsserver": {
-        "globalPlugins": [
-          // 不知道为啥没有生效！
-          {
-            "location": "packages",
-            "name": "ts-gem-plugin",
-            "enableForWorkspaceTypeScriptVersions": true
-          }
-        ]
-      },
       "settings": {
         "typescript": {
           "tsdk": "node_modules/typescript/lib",

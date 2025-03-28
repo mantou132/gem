@@ -1,7 +1,7 @@
 // @ts-nocheck
 @customElement('my-element')
 @(window._hmrRegisterClass ? _hmrRegisterClass("my-element") : Function.prototype)
-class MyElement extends GemElement {
+export class MyElement extends GemElement {
     _hmr_public_my_element_constructor(arg) {
         console.log(arg);
     }
@@ -69,4 +69,7 @@ class MyElement extends GemElement {
             ]
         ];
     }
+}
+if (import.meta.webpackHot) {
+    import.meta.webpackHot.accept();
 }

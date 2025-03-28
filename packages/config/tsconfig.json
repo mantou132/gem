@@ -5,6 +5,7 @@
     "noImplicitThis": true,
     "noImplicitAny": true,
     "strictNullChecks": true,
+    "stripInternal": true,
     "declaration": true,
     "declarationMap": true,
     "isolatedModules": true,

@@ -1,5 +1,0 @@
-{
-  "extends": "@gemjs/config/tsconfig",
-  "include": ["src"],
-  "exclude": []
-}

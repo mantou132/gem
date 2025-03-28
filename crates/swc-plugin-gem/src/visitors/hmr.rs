@@ -632,21 +632,35 @@ impl VisitMut for TransformVisitor {
     fn visit_mut_module_items(&mut self, node: &mut Vec<ModuleItem>) {
         node.visit_mut_children_with(self);
 
+        let module_expr = Expr::Member(MemberExpr {
+            obj: Box::new(Expr::Ident("import".into())),
+            prop: MemberProp::Ident("meta".into()),
+            ..Default::default()
+        });
+
+        let hot_expr = Expr::Member(MemberExpr {
+            obj: Box::new(module_expr),
+            prop: MemberProp::Ident("webpackHot".into()),
+            ..Default::default()
+        });
+
         if self.need_reload {
             node.push(quote!(
                 "
-                if (module.hot) {
-                    module.hot.decline();
+                if ($hot) {
+                    $hot.decline();
                 }
                 " as ModuleItem,
+                hot: Expr = hot_expr
             ));
         } else if self.has_element {
             node.push(quote!(
                 "
-                if (module.hot) {
-                    module.hot.accept();
+                if ($hot) {
+                    $hot.accept();
                 }
                 " as ModuleItem,
+                hot: Expr = hot_expr
             ));
         }
     }

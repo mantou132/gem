@@ -1,6 +1,6 @@
 // @ts-nocheck
 @customElement('my-element')
-class MyElement extends GemElement {
+export class MyElement extends GemElement {
   constructor(arg) {
     super();
     console.log(arg);
