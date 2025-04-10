@@ -1,11 +1,25 @@
 # `<dy-breadcrumbs>`
 
+Breadcrumbs are a navigation pattern that helps users understand the hierarchy of a website and navigate back through the parent levels.
+
 ## Example
 
-<gbp-example
-  name="dy-breadcrumbs"
-  props='{"list": [{"title": "Level 1"}, {"title": "Level 2"}]}'
-  src="https://esm.sh/duoyun-ui/elements/breadcrumbs"></gbp-example>
+<gbp-example name="dy-breadcrumbs" src="https://esm.sh/duoyun-ui/elements/breadcrumbs">
+
+```json
+{
+  "list": [
+    {
+      "title": "Level 1"
+    },
+    {
+      "title": "Level 2"
+    }
+  ]
+}
+```
+
+</gbp-example>
 
 ## API
 

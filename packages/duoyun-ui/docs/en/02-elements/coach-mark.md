@@ -1,5 +1,7 @@
 # `<dy-coach-mark>`
 
+A component for creating guided tours and onboarding experiences. It helps users understand new features or complex interfaces by highlighting specific elements and providing contextual information.
+
 ## Example
 
 <gbp-sandpack dependencies="@mantou/gem,duoyun-ui">

@@ -1,5 +1,7 @@
 # `<dy-date-range-picker>`
 
+A component that enables users to select a range of dates. It provides options for quick range selection and supports both date-only and date-time range selections.
+
 ## `<dy-date-range-picker>` Example
 
 <gbp-example name="dy-date-range-picker" src="https://esm.sh/duoyun-ui/elements/date-range-picker">
@@ -27,10 +29,15 @@
 
 ## `<dy-date-range-panel>` Example
 
-<gbp-example
-  name="dy-date-range-panel"
-  props='{"style": "width: 360px;"}'
-  src="https://esm.sh/duoyun-ui/elements/date-range-panel"></gbp-example>
+<gbp-example name="dy-date-range-panel" src="https://esm.sh/duoyun-ui/elements/date-range-panel">
+
+```json
+{
+  "style": "width: 360px;"
+}
+```
+
+</gbp-example>
 
 ## `<dy-date-range-panel>` API
 

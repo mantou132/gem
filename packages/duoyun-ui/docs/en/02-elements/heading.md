@@ -1,8 +1,10 @@
 # `<dy-heading>`
 
+A heading component that provides consistent styling for different heading levels (h1-h6). It helps maintain a clear visual hierarchy in your content while ensuring accessibility standards are met.
+
 ## Example
 
-<gbp-example name="dy-heading" html='Heading 3' src="https://esm.sh/duoyun-ui/elements/heading">
+<gbp-example name="dy-heading" src="https://esm.sh/duoyun-ui/elements/heading">
 
 ```json
 [

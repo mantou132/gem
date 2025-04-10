@@ -1,5 +1,7 @@
 # `<dy-text-mask>`
 
+A text masking component that formats and masks text content according to specified patterns. It's commonly used for displaying sensitive information or formatting data like phone numbers.
+
 ## Example
 
 <gbp-example name="dy-text-mask" src="https://esm.sh/duoyun-ui/elements/text-mask">

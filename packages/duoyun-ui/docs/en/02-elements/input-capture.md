@@ -1,5 +1,7 @@
 # `<dy-input-capture>`
 
+A component that captures and handles keyboard and mouse input events. It can be used to create custom keyboard shortcuts or capture specific user interactions.
+
 ## Example
 
 <gbp-example

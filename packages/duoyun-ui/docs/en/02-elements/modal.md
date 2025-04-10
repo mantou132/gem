@@ -1,5 +1,7 @@
 # `<dy-modal>`
 
+A modal dialog component that creates an overlay to focus user attention on specific content or actions. It supports customizable headers, content, and actions, with built-in support for closing via mask click or buttons.
+
 ## Example
 
 <gbp-example

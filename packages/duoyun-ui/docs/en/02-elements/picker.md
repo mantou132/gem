@@ -1,5 +1,7 @@
 # `<dy-picker>`
 
+A versatile picker component that supports single and multiple selection with nested options.
+
 ## Example
 
 <gbp-example name="dy-picker" direction="column" src="https://esm.sh/duoyun-ui/elements/picker">

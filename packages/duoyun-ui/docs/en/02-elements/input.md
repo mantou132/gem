@@ -1,5 +1,7 @@
 # `<dy-input>`
 
+A versatile input component that supports various input types and features like data lists, clearable inputs, and number inputs. It provides a consistent and accessible way to collect user input with built-in validation and formatting options.
+
 ## Example
 
 <gbp-example name="dy-input" direction="column" src="https://esm.sh/duoyun-ui/elements/input">

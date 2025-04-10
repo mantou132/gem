@@ -1,5 +1,7 @@
 # `<dy-toast>`
 
+A toast component that displays temporary notifications or messages to users. It supports different types of messages (success, warning, error) and can be triggered programmatically.
+
 ## Example
 
 <gbp-example name="dy-button" src="https://esm.sh/duoyun-ui/elements/toast,https://esm.sh/duoyun-ui/elements/button">

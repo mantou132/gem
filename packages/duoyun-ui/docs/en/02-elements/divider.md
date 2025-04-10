@@ -1,5 +1,7 @@
 # `<dy-divider>`
 
+A divider is a thin line that groups content in lists and layouts. It can be used to separate and group content both vertically and horizontally.
+
 ## Example
 
 <gbp-example name="dy-divider" src="https://esm.sh/duoyun-ui/elements/divider">

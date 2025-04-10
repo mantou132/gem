@@ -1,5 +1,7 @@
 # `<dy-avatar>`
 
+Avatars are used to represent a user or entity. They can display either an image, initials, or a fallback icon. Avatars can also be grouped into a stack or list.
+
 ## Example
 
 <gbp-example name="dy-avatar"  src="https://esm.sh/duoyun-ui/elements/avatar">

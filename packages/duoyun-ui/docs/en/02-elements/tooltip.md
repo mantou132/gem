@@ -1,5 +1,7 @@
 # `<dy-tooltip>`
 
+A tooltip component that displays additional information when users hover over or click on an element. It supports different trigger modes and positioning options to provide contextual help or extra details.
+
 ## Example
 
 <gbp-example name="dy-tooltip" src="https://esm.sh/duoyun-ui/elements/tooltip,https://esm.sh/duoyun-ui/elements/button">

@@ -1,5 +1,7 @@
 # `<dy-table>`
 
+A table component that displays data in rows and columns. It supports features like selectable rows, tooltips, and customizable column widths.
+
 ## Example
 
 <gbp-example name="dy-table" src="https://esm.sh/duoyun-ui/elements/table">

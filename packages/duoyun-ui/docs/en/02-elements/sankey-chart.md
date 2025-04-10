@@ -1,5 +1,7 @@
 # `<dy-sankey-chart>`
 
+A Sankey diagram component that visualizes flow quantities between nodes in a network, showing relationships and their magnitudes.
+
 ## Example
 
 <gbp-example name="dy-sankey-chart" src="https://esm.sh/duoyun-ui/elements/sankey-chart">

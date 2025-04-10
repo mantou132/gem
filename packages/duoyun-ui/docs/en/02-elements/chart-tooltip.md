@@ -1,5 +1,7 @@
 # `<dy-chart-tooltip>`
 
+A tooltip component specifically designed for chart elements, providing contextual information about data points. It can be customized to display formatted values, labels, and additional information when hovering over chart elements.
+
 ## Example
 
 See [`<dy-area-chart>`](./area-chart.md)

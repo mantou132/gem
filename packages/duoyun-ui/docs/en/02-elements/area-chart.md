@@ -1,5 +1,7 @@
 # `<dy-area-chart>`
 
+Area charts are used to represent quantitative variations over a period of time. They are similar to line charts but with the area below the line filled in with color. This can be useful for showing cumulative totals or emphasizing volume.
+
 ## Example
 
 <gbp-example name="dy-area-chart" src="https://esm.sh/duoyun-ui/elements/area-chart">

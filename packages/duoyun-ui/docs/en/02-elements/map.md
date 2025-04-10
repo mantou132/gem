@@ -1,5 +1,7 @@
 # `<dy-map>`
 
+A component for rendering interactive maps with support for custom projections, area coloring, and node placement. It's particularly useful for creating geographic visualizations and data overlays on maps.
+
 ## Example
 
 <gbp-sandpack dependencies="@mantou/gem, duoyun-ui, geo-albers-usa-territories">

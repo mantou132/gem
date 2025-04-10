@@ -1,5 +1,7 @@
 # `<dy-file-picker>`
 
+A component that enables users to select files or directories from their device. It supports various file types, multiple file selection, and directory selection modes.
+
 ## Example
 
 <gbp-example name="dy-file-picker" src="https://esm.sh/duoyun-ui/elements/file-picker">

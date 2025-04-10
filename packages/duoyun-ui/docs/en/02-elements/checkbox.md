@@ -1,5 +1,7 @@
 # `<dy-checkbox>`
 
+A checkbox component that allows users to select one or multiple options. It supports three states: checked, unchecked, and indeterminate, and can be configured to be disabled.
+
 ## Example
 
 <gbp-example name="dy-checkbox" src="https://esm.sh/duoyun-ui/elements/checkbox">

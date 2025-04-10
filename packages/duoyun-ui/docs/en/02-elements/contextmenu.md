@@ -1,5 +1,7 @@
 # `<dy-contextmenu>`
 
+A context menu is a popup menu that appears upon user interaction, such as a right click. It provides a list of options or actions relevant to the current context.
+
 ## Example
 
 <gbp-example name="dy-button" src="https://esm.sh/duoyun-ui/elements/contextmenu,https://esm.sh/duoyun-ui/elements/button">

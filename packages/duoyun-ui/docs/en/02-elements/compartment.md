@@ -1,6 +1,8 @@
 # `<dy-compartment>`
 
-Used to isolate elemental styles to avoid the contents of the user affect internal elements.
+A component that creates an isolated styling context, preventing external styles from affecting its internal elements. This is particularly useful when embedding third-party content or creating isolated UI components.
+
+## Example
 
 ```ts
 html`

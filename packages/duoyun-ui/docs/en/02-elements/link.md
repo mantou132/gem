@@ -1,5 +1,7 @@
 # `<dy-link>`
 
+A component for creating navigation links with active state support. It extends the functionality of `<gem-link>` by adding pattern matching capabilities and active state styling.
+
 See [`<gem-link>`](https://gemjs.org/zh/api/built-in-element)
 
 ## Example

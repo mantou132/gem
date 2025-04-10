@@ -1,5 +1,7 @@
 # `<dy-list>`
 
+A versatile list component that supports both basic list rendering and infinite scrolling. It can display items with avatars, titles, and descriptions, and supports custom rendering and virtualization for large datasets.
+
 ## Example
 
 <gbp-example name="dy-list" src="https://esm.sh/duoyun-ui/elements/list">

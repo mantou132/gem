@@ -1,5 +1,7 @@
 # `<dy-page-loadbar>`
 
+A page-level loading progress bar that appears at the top of the page to indicate loading status.
+
 ## Example
 
 <gbp-example name="dy-button" src="https://esm.sh/duoyun-ui/elements/page-loadbar,https://esm.sh/duoyun-ui/elements/button">

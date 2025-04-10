@@ -1,5 +1,7 @@
 # `<dy-button>`
 
+Buttons allow users to trigger an action or event with a single click. They communicate calls to action to the user and allow users to interact with pages in a variety of ways.
+
 ## Example
 
 <gbp-example name="dy-button" src="https://esm.sh/duoyun-ui/elements/button">

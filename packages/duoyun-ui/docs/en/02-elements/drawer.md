@@ -1,5 +1,7 @@
 # `<dy-drawer>`
 
+A drawer is a panel that slides in from the edge of the screen. It can contain various types of content and is commonly used for navigation menus, filters, or additional information panels.
+
 ## Example
 
 <gbp-example

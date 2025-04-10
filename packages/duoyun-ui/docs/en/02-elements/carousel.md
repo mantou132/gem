@@ -1,5 +1,7 @@
 # `<dy-carousel>`
 
+A carousel is a slideshow component for cycling through elements—images or slides of text. It provides an interactive way to display multiple pieces of content in a limited space.
+
 ## Example
 
 <gbp-example name="dy-carousel" src="https://esm.sh/duoyun-ui/elements/carousel">

@@ -1,5 +1,7 @@
 # `<dy-result>`
 
+A result component that displays operation outcomes with customizable icons, status, and descriptions.
+
 ## Example
 
 <gbp-example name="dy-result" src="https://esm.sh/duoyun-ui/elements/result">

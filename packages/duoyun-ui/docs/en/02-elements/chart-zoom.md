@@ -1,5 +1,7 @@
 # `<dy-chart-zoom>`
 
+A chart component that provides zooming functionality for data visualization. It allows users to select and focus on specific ranges of data, making it easier to analyze detailed sections of large datasets.
+
 ## Example
 
 See [`<dy-area-chart>`](./area-chart.md)
@@ -8,7 +10,7 @@ See [`<dy-area-chart>`](./area-chart.md)
 
 ```json
 {
-  "style": "width: 100%;",
+  "style": "width: 100%",
   "aspectRatio": 5,
   "values": [
     [1, 8],

@@ -1,6 +1,6 @@
-# Customize
+# Customization
 
-DuoyunUI comes with themes, icons, texts, and can be used in the application:
+DuoyunUI comes with themes, icons, and texts that can be used in applications:
 
 ```ts
 import {
@@ -31,7 +31,7 @@ export class MyEleElement extends GemElement {
 }
 ```
 
-Can be easily modified or extended.
+These can be easily modified or extended.
 
 ## Customize theme
 

@@ -1,5 +1,7 @@
 # `<dy-tabs>`
 
+A tabs component that organizes content into multiple sections, allowing users to switch between different views. It supports centered alignment and provides event handling for tab changes.
+
 ## Example
 
 <gbp-example name="dy-tabs" src="https://esm.sh/duoyun-ui/elements/tabs">

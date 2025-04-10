@@ -1,5 +1,7 @@
 # `<dy-line-chart>`
 
+A component for creating line charts to visualize data trends over time or sequences. It supports multiple series, customizable styles, and interactive features like tooltips and hover effects.
+
 ## Example
 
 <gbp-example name="dy-line-chart" src="https://esm.sh/duoyun-ui/elements/line-chart">

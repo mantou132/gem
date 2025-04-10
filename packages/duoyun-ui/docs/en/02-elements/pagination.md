@@ -1,5 +1,7 @@
 # `<dy-pagination>`
 
+A pagination component that supports customizable page sizes and navigation through large datasets.
+
 ## Example
 
 <gbp-example name="dy-pagination" src="https://esm.sh/duoyun-ui/elements/pagination">

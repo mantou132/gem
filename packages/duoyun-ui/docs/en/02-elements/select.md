@@ -1,5 +1,7 @@
 # `<dy-select>`
 
+A select component allows users to choose one or multiple options from a dropdown list. It supports searching, custom rendering, and keyboard navigation.
+
 ## Example
 
 <gbp-example name="dy-select" src="https://esm.sh/duoyun-ui/elements/select">

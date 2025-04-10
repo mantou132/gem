@@ -1,5 +1,7 @@
 # `<dy-date-picker>`
 
+A component that allows users to select a date or date-time from a calendar interface. It supports both date-only and date-time selection modes.
+
 ## `<dy-date-picker>` Example
 
 <gbp-example name="dy-date-picker" src="https://esm.sh/duoyun-ui/elements/date-picker">
@@ -31,10 +33,15 @@
 
 ## `<dy-date-panel>` Example
 
-<gbp-example
-  name="dy-date-panel"
-  props='{"style": "width: 300px;"}'
-  src="https://esm.sh/duoyun-ui/elements/date-panel"></gbp-example>
+<gbp-example name="dy-date-panel" src="https://esm.sh/duoyun-ui/elements/date-panel">
+
+```json
+{
+  "style": "width: 300px;"
+}
+```
+
+</gbp-example>
 
 ## `<dy-date-panel>` API
 

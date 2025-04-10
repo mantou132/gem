@@ -1,5 +1,7 @@
 # `<dy-statistic>`
 
+A component for displaying statistical data with support for various data types including bandwidth, traffic, decimal numbers, percentages, durations, and currency. It can show trends by comparing current and previous values, and supports customizable icons and loading states.
+
 ## Example
 
 <gbp-example name="dy-statistic" src="https://esm.sh/duoyun-ui/elements/statistic">

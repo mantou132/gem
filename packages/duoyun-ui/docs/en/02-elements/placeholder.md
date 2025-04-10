@@ -1,5 +1,7 @@
 # `<dy-placeholder>`
 
+A placeholder component that displays loading states with customizable line counts and widths.
+
 ## Example
 
 <gbp-example name="dy-placeholder" src="https://esm.sh/duoyun-ui/elements/placeholder">

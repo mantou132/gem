@@ -1,5 +1,7 @@
 # `<dy-meter>`
 
+A component for displaying measurements within a known range. It can be used to show progress, usage levels, or any other metric that has a minimum and maximum value, with support for different layouts and color schemes.
+
 ## Example
 
 <gbp-example name="dy-meter" direction="column" src="https://esm.sh/duoyun-ui/elements/meter">

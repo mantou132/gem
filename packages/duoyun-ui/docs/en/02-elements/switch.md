@@ -1,5 +1,7 @@
 # `<dy-switch>`
 
+A switch component that allows users to toggle between two states. It provides visual feedback and can be customized with different colors based on semantic meanings.
+
 ## Example
 
 <gbp-example name="dy-switch" src="https://esm.sh/duoyun-ui/elements/switch">

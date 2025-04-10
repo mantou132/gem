@@ -1,5 +1,7 @@
 # `<dy-timeline>`
 
+A timeline component that displays a vertical list of events in chronological order. Each event can include a title and description, making it ideal for displaying historical data or process flows.
+
 ## Example
 
 <gbp-example name="dy-timeline" src="https://esm.sh/duoyun-ui/elements/timeline">

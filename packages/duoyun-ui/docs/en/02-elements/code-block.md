@@ -1,5 +1,7 @@
 # `<dy-code-block>`
 
+A component for displaying formatted code snippets with syntax highlighting. It supports line numbering, line highlighting, and range selection to focus on specific parts of the code.
+
 ## Example
 
 <gbp-example

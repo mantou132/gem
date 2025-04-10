@@ -1,5 +1,7 @@
 # `<dy-legend>`
 
+A component for displaying a legend or key for charts, maps, or other data visualizations. It helps users understand the meaning of different elements in your visualization by providing clear labels and indicators.
+
 ## Example
 
 <gbp-example name="dy-legend" src="https://esm.sh/duoyun-ui/elements/legend">

@@ -1,5 +1,7 @@
 # `<dy-collapse>`
 
+A collapsible content component that allows users to expand and collapse sections of content. It supports single or multiple panel expansion modes and includes search functionality for filtering content.
+
 ## Example
 
 <gbp-example name="dy-collapse" src="https://esm.sh/duoyun-ui/elements/collapse">

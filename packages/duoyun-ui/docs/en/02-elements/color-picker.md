@@ -1,5 +1,7 @@
 # `<dy-color-picker>`
 
+A color selection component that provides a user-friendly interface for choosing colors. It supports both RGB and alpha channel selection, and includes an eyedropper tool for picking colors from the screen when available.
+
 ## `<dy-color-picker>` Example
 
 <gbp-example name="dy-color-picker" src="https://esm.sh/duoyun-ui/elements/color-picker">

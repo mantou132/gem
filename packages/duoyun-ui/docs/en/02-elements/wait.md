@@ -1,5 +1,7 @@
 # `<dy-wait>`
 
+A wait component that displays a loading indicator with optional text while waiting for an asynchronous operation to complete. It can be used globally or locally with customizable positioning and styling.
+
 ## Example
 
 <gbp-example name="dy-button" src="https://esm.sh/duoyun-ui/elements/wait,https://esm.sh/duoyun-ui/elements/button">

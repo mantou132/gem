@@ -1,12 +1,14 @@
 # `<dy-side-navigation>`
 
+A navigation component that displays a hierarchical menu structure on the side of a page. It supports nested items, groups, icons, and automatic collapsing when space is limited.
+
 ## Example
 
 <gbp-example name="dy-side-navigation" src="https://esm.sh/duoyun-ui/elements/side-navigation">
 
 ```json
 {
-  "style": "width: 240px;",
+  "style": "width: 240px",
   "items": [
     { "title": "Page 1", "hash": "#1" },
     { "title": "Page 2", "hash": "#2" },

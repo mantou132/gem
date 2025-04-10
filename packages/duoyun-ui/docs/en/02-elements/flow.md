@@ -1,5 +1,7 @@
 # `<dy-flow>`
 
+A flow chart component that displays nodes and edges in a directed graph layout. It uses the ELK algorithm to automatically arrange nodes and edges in a visually appealing way, with support for custom node and edge rendering, labels, and various layout options.
+
 ## Example
 
 <gbp-example name="dy-flow" src="https://esm.sh/duoyun-ui/elements/flow">

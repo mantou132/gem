@@ -1,5 +1,7 @@
 # `<dy-tag>`
 
+A tag component that displays compact labels with optional colors and styles. It can be used to categorize, mark, or highlight items with support for closable and small variants.
+
 ## Example
 
 <gbp-example name="dy-tag" src="https://esm.sh/duoyun-ui/elements/tag">

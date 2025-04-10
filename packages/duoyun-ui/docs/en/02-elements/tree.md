@@ -1,5 +1,7 @@
 # `<dy-tree>`
 
+A tree component that displays hierarchical data structures. It supports features like expandable nodes, item highlighting, status indicators, and lazy loading of child nodes.
+
 ## Example
 
 <gbp-example name="dy-tree" src="https://esm.sh/duoyun-ui/elements/tree">

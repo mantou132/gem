@@ -1,5 +1,7 @@
 # `<dy-slider>`
 
+A slider component that allows users to select a value from a range by dragging a handle along a track. It supports both horizontal and vertical orientations, keyboard navigation, and optional editable input field.
+
 ## Example
 
 <gbp-example name="dy-slider" direction="column" src="https://esm.sh/duoyun-ui/elements/slider">

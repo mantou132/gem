@@ -1,6 +1,6 @@
 # `<dy-badge>`
 
-Dependence on [anchor positioning](//www.w3.org/TR/css-anchor-position-1)
+Badges are small status descriptors for UI elements. A badge consists of a small circle, typically containing a number or other short set of characters, that appears in proximity to another object.
 
 ## Example
 
@@ -35,6 +35,6 @@ Dependence on [anchor positioning](//www.w3.org/TR/css-anchor-position-1)
 
 </gbp-example>
 
-## `<dy-badge>` API
+## API
 
 <gbp-api name="dy-badge" src="/src/elements/badge.ts"></gbp-api>

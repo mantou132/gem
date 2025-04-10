@@ -1,5 +1,7 @@
 # `<dy-popover>`
 
+A popover component that displays floating content triggered by click or hover events, with customizable positioning.
+
 ## Example
 
 <gbp-sandpack dependencies="@mantou/gem, duoyun-ui">
