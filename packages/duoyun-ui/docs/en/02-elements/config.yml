@@ -83,6 +83,7 @@ groups:
       - text-mask.md
       - timeline.md
       - tree.md
+      - vestaboard.md
   - title: Chart
     members:
       - area-chart.md

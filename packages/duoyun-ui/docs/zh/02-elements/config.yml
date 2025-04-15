@@ -87,6 +87,7 @@ groups:
       - text-mask.md
       - timeline.md
       - tree.md
+      - vestaboard.md
   - title: 图表元素
     members:
       - area-chart.md
