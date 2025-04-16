@@ -1,12 +1,12 @@
-import { devtools } from 'webextension-polyfill';
 import { html, render } from '@mantou/gem';
 import { logger } from '@mantou/gem/helper/logger';
+import { devtools } from 'webextension-polyfill';
 
-import { getSelectedGem } from './scripts/get-gem';
-import { panelStore, PanelStore } from './store';
-import { getDomStat } from './scripts/dom-stat';
-import { theme } from './theme';
 import { execution } from './common';
+import { getDomStat } from './scripts/dom-stat';
+import { getSelectedGem } from './scripts/get-gem';
+import { PanelStore, panelStore } from './store';
+import { theme } from './theme';
 
 import './modules/panel';
 

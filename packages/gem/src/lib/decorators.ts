@@ -1,14 +1,14 @@
 import type { TemplateResult } from './lit-html';
 import type { Metadata, Sheet } from './reactive';
-import { GemElement, UpdateToken, _RenderErrorEvent, _createTemplate, render } from './reactive';
+import { _createTemplate, _RenderErrorEvent, GemElement, render, UpdateToken } from './reactive';
 import type { Store } from './store';
-import { GemError, PropProxyMap, camelToKebabCase } from './utils';
+import { camelToKebabCase, GemError, PropProxyMap } from './utils';
 
 type GemElementPrototype = GemElement & { '': never };
 type StaticField = Exclude<keyof Metadata, keyof ShadowRootInit | 'aria' | 'noBlocking' | 'penetrable'>;
 
 const { deleteProperty, getOwnPropertyDescriptor, defineProperty } = Reflect;
-const { getPrototypeOf, assign } = Object;
+const { getPrototypeOf, assign, hasOwn } = Object;
 const gemElementProxyMap = new PropProxyMap<GemElement>();
 
 function pushStaticField(context: ClassFieldDecoratorContext | ClassDecoratorContext, field: StaticField, member: any) {
@@ -130,7 +130,7 @@ function decoratorAttr<T extends GemElement>(context: ClassFieldDecoratorContext
   const attr = camelToKebabCase(prop);
   context.addInitializer(function (this: T) {
     const target = getDecoratorTarget(this, context);
-    if (!target.hasOwnProperty(prop)) {
+    if (!hasOwn(target, prop)) {
       pushStaticField(context, 'observedAttributes', attr); // 没有 observe 的效果
       defineProp(target, prop, { attr, attrType });
     }
@@ -181,7 +181,7 @@ export function property<T extends GemElement>(_: undefined, context: ClassField
   const prop = context.name as string;
   context.addInitializer(function (this: T) {
     const target = getDecoratorTarget(this, context);
-    if (!target.hasOwnProperty(prop)) {
+    if (!hasOwn(target, prop)) {
       pushStaticField(context, 'observedProperties', prop);
       defineProp(target, prop);
     }
@@ -209,10 +209,10 @@ export function property<T extends GemElement>(_: undefined, context: ClassField
 export function memo<T extends GemElement, V = any, K = any[] | undefined>(
   getDep?: K extends readonly any[] ? (instance: T) => K : undefined,
 ) {
-  return function (
+  return (
     _: any,
     context: ClassGetterDecoratorContext<T, V> | ClassFieldDecoratorContext<T> | ClassMethodDecoratorContext<T>,
-  ) {
+  ) => {
     const { addInitializer, name, access, kind } = context;
     addInitializer(function (this: T) {
       const dep = getDep && (() => getDep(this) as any);
@@ -253,10 +253,7 @@ export function memo<T extends GemElement, V = any, K = any[] | undefined>(
 export function effect<T extends GemElement, V extends (depValues: K, oldDepValues?: K) => any, K = any[] | undefined>(
   getDep?: K extends readonly any[] ? (instance: T) => K : undefined,
 ) {
-  return function (
-    _: any,
-    { addInitializer, access }: ClassFieldDecoratorContext<T, V> | ClassMethodDecoratorContext<T, V>,
-  ) {
+  return (_: any, { addInitializer, access }: ClassFieldDecoratorContext<T, V> | ClassMethodDecoratorContext<T, V>) => {
     addInitializer(function (this: T) {
       this.effect(access.get(this).bind(this) as any, getDep && (() => getDep(this) as any));
     });
@@ -264,10 +261,7 @@ export function effect<T extends GemElement, V extends (depValues: K, oldDepValu
 }
 
 export function unmounted<T extends GemElement, V extends () => any>() {
-  return function (
-    _: any,
-    { addInitializer, access }: ClassFieldDecoratorContext<T, V> | ClassMethodDecoratorContext<T, V>,
-  ) {
+  return (_: any, { addInitializer, access }: ClassFieldDecoratorContext<T, V> | ClassMethodDecoratorContext<T, V>) => {
     addInitializer(function (this: T) {
       this.effect(
         () => access.get(this).bind(this) as any,
@@ -291,10 +285,7 @@ export function template<T extends GemElement, V extends () => TemplateResult | 
   /** 当所有 `template` 返回 `false` 时不进行更新，包括 `memo` */
   condition?: (instance: T) => boolean,
 ) {
-  return function (
-    _: any,
-    { addInitializer, access }: ClassFieldDecoratorContext<T, V> | ClassMethodDecoratorContext<T, V>,
-  ) {
+  return (_: any, { addInitializer, access }: ClassFieldDecoratorContext<T, V> | ClassMethodDecoratorContext<T, V>) => {
     addInitializer(function (this: T) {
       _createTemplate(this, {
         render: access.get(this).bind(this),
@@ -305,10 +296,7 @@ export function template<T extends GemElement, V extends () => TemplateResult | 
 }
 
 export function fallback<T extends GemElement, V extends (err: any) => TemplateResult | null | undefined>() {
-  return function (
-    _: any,
-    { addInitializer, access }: ClassFieldDecoratorContext<T, V> | ClassMethodDecoratorContext<T, V>,
-  ) {
+  return (_: any, { addInitializer, access }: ClassFieldDecoratorContext<T, V> | ClassMethodDecoratorContext<T, V>) => {
     addInitializer(function (this: T) {
       this.addEventListener(_RenderErrorEvent, ({ detail }: CustomEvent) => {
         render(access.get(this).apply(this, [detail]), this.internals.shadowRoot || this);
@@ -355,7 +343,7 @@ export function state<T extends GemElement>(_: undefined, context: ClassFieldDec
   const attr = camelToKebabCase(prop);
   context.addInitializer(function (this: T) {
     const target = getDecoratorTarget(this, context);
-    if (!target.hasOwnProperty(prop)) {
+    if (!hasOwn(target, prop)) {
       pushStaticField(context, 'definedCSSStates', attr);
       defineCSSState(target, prop, attr);
     }
@@ -454,7 +442,7 @@ function defineEmitter<T extends GemElement>(
   const event = camelToKebabCase(prop);
   context.addInitializer(function (this: T) {
     const target = getDecoratorTarget(this, context);
-    if (!target.hasOwnProperty(prop)) {
+    if (!hasOwn(target, prop)) {
       pushStaticField(context, 'definedEvents', event);
       defineProp(target, prop, { event, eventOptions });
     }
@@ -472,7 +460,7 @@ function defineEmitter<T extends GemElement>(
  * ```
  */
 export function adoptedStyle(sheet: Sheet<unknown>) {
-  return function (_: unknown, context: ClassDecoratorContext) {
+  return (_: unknown, context: ClassDecoratorContext) => {
     pushStaticField(context, 'adoptedStyleSheets', sheet);
   };
 }
@@ -487,7 +475,7 @@ export function adoptedStyle(sheet: Sheet<unknown>) {
  * ```
  */
 export function connectStore(store: Store<any>) {
-  return function (_: unknown, context: ClassDecoratorContext) {
+  return (_: unknown, context: ClassDecoratorContext) => {
     pushStaticField(context, 'observedStores', store);
   };
 }
@@ -498,14 +486,14 @@ export function shadow({
   delegatesFocus,
   slotAssignment,
 }: Partial<ShadowRootInit> = {}) {
-  return function (_: any, context: ClassDecoratorContext) {
+  return (_: any, context: ClassDecoratorContext) => {
     const metadata = context.metadata as Metadata;
     assign(metadata, { mode, serializable, delegatesFocus, slotAssignment });
   };
 }
 
 export function light({ penetrable }: Pick<Metadata, 'penetrable'>) {
-  return function (_: any, context: ClassDecoratorContext) {
+  return (_: any, context: ClassDecoratorContext) => {
     const metadata = context.metadata as Metadata;
     metadata.penetrable = penetrable;
   };
@@ -516,7 +504,7 @@ export function light({ penetrable }: Pick<Metadata, 'penetrable'>) {
  * 例如：https://examples.gemjs.org/async
  */
 export function async() {
-  return function (_: any, context: ClassDecoratorContext) {
+  return (_: any, context: ClassDecoratorContext) => {
     const metadata = context.metadata as Metadata;
     metadata.noBlocking = true;
   };
@@ -526,7 +514,7 @@ export function async() {
  * 定义元素的可访问性属性
  */
 export function aria(info: Metadata['aria']) {
-  return function (_: any, context: ClassDecoratorContext) {
+  return (_: any, context: ClassDecoratorContext) => {
     const metadata = context.metadata as Metadata;
     metadata.aria = { ...metadata.aria, ...info };
   };
@@ -542,8 +530,8 @@ export function aria(info: Metadata['aria']) {
  * ```
  */
 export function customElement(name: string) {
-  return function (cls: new (...args: any) => any, { addInitializer }: ClassDecoratorContext) {
-    addInitializer(function () {
+  return (cls: new (...args: any) => any, { addInitializer }: ClassDecoratorContext) => {
+    addInitializer(() => {
       customElements.define(name, cls);
     });
   };

@@ -1,5 +1,5 @@
 // 由于只复制函数体，所以不能使用装饰器、字段，直到浏览器原生支持
-export const appendScanElement = function () {
+export const appendScanElement = () => {
   const { setEngine, css, createState, GemElement, render, html } = window.__GEM_DEVTOOLS__HOOK__!;
 
   if (customElements.get('devtools-scan')) {
@@ -94,10 +94,6 @@ export const appendScanElement = function () {
   document.body.after(document.createElement('devtools-scan'));
 };
 
-export const checkScanElement = function () {
-  return !!document.querySelector('devtools-scan');
-};
+export const checkScanElement = () => !!document.querySelector('devtools-scan');
 
-export const checkGemElement = function () {
-  return !!window.__GEM_DEVTOOLS__HOOK__?.GemElement;
-};
+export const checkGemElement = () => !!window.__GEM_DEVTOOLS__HOOK__?.GemElement;

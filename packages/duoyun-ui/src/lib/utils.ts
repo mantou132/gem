@@ -1,6 +1,6 @@
+import { render, TemplateResult } from '@mantou/gem/lib/element';
 import type { Store } from '@mantou/gem/lib/store';
 import { connect, createStore } from '@mantou/gem/lib/store';
-import { render, TemplateResult } from '@mantou/gem/lib/element';
 import type { NonPrimitive } from '@mantou/gem/lib/utils';
 import { cleanObject } from '@mantou/gem/lib/utils';
 
@@ -163,11 +163,13 @@ export enum ComparerType {
 export function comparer(a: any, comparerType: ComparerType, b: any): boolean {
   const aNum = Number(a);
   const bNum = Number(b);
-  const isNumber = !isNaN(aNum) && !isNaN(aNum);
+  const isNumber = !Number.isNaN(aNum) && !Number.isNaN(aNum);
   switch (comparerType) {
     case ComparerType.Eq:
+      // biome-ignore lint/suspicious/noDoubleEquals: <explanation>
       return a == b;
     case ComparerType.Ne:
+      // biome-ignore lint/suspicious/noDoubleEquals: <explanation>
       return a != b;
     case ComparerType.Gt:
       return isNumber ? aNum > bNum : a > b;
@@ -232,7 +234,7 @@ export function createCacheStore<T extends Record<string, any>>(
     let storeCache: T | undefined = undefined;
     try {
       storeCache = JSON.parse(localStorage.getItem(key) || '{}');
-    } catch (err) {
+    } catch {
       //
     }
     return storeCache ? { ...initStore, ...storeCache } : initStore;
@@ -283,6 +285,7 @@ export class DyPromise<T, E extends Record<string, unknown>> extends Promise<T> 
     const instance = new DyPromise<V, U>(executor);
     return Object.assign(instance, props);
   }
+  // biome-ignore lint/suspicious/noThenProperty: extends
   then<TResult1 = T, TResult2 = never>(
     onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null,
     onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null,

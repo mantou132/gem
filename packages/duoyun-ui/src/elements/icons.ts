@@ -1,10 +1,9 @@
 import { adoptedStyle, customElement, shadow } from '@mantou/gem/lib/decorators';
-import { GemElement, html, css } from '@mantou/gem/lib/element';
+import { css, GemElement, html } from '@mantou/gem/lib/element';
 
 import { icons } from '../lib/icons';
-import { theme } from '../lib/theme';
 import { locale } from '../lib/locale';
-
+import { theme } from '../lib/theme';
 import { Toast } from './toast';
 
 import './use';

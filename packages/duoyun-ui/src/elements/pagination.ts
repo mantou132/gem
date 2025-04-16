@@ -1,27 +1,26 @@
-import type { Emitter } from '@mantou/gem/lib/decorators';
-import {
-  connectStore,
-  adoptedStyle,
-  customElement,
-  attribute,
-  emitter,
-  property,
-  numattribute,
-  shadow,
-  aria,
-} from '@mantou/gem/lib/decorators';
-import { GemElement, html, css } from '@mantou/gem/lib/element';
-import { classMap } from '@mantou/gem/lib/utils';
 import { splice } from '@mantou/gem/helper/i18n';
 import { createDecoratorTheme } from '@mantou/gem/helper/theme';
+import type { Emitter } from '@mantou/gem/lib/decorators';
+import {
+  adoptedStyle,
+  aria,
+  attribute,
+  connectStore,
+  customElement,
+  emitter,
+  numattribute,
+  property,
+  shadow,
+} from '@mantou/gem/lib/decorators';
+import { css, GemElement, html } from '@mantou/gem/lib/element';
+import { classMap } from '@mantou/gem/lib/utils';
 
-import { locale } from '../lib/locale';
-import { theme } from '../lib/theme';
-import { icons } from '../lib/icons';
 import { commonHandle } from '../lib/hotkeys';
-import { focusStyle } from '../lib/styles';
+import { icons } from '../lib/icons';
+import { locale } from '../lib/locale';
 import { middle } from '../lib/number';
-
+import { focusStyle } from '../lib/styles';
+import { theme } from '../lib/theme';
 import { Popover } from './popover';
 
 import './use';
@@ -104,7 +103,7 @@ export class DuoyunPaginationElement extends GemElement {
     let close: () => void;
     const pageChange = ({ target }: MouseEvent) => {
       const page = Number(((target as HTMLElement).previousElementSibling as HTMLInputElement).value);
-      if (!isNaN(page)) {
+      if (!Number.isNaN(page)) {
         this.pagechange(Math.round(page < 0 ? Math.max(1, this.total + 1 + page) : Math.min(page, this.total)));
       }
       close();

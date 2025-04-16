@@ -1,18 +1,18 @@
 import {
-  html,
-  GemElement,
-  customElement,
-  createRef,
-  globalemitter,
-  connectStore,
+  adoptedStyle,
+  aria,
   boolattribute,
   classMap,
-  history,
-  state,
+  connectStore,
+  createRef,
   css,
-  adoptedStyle,
+  customElement,
   effect,
-  aria,
+  GemElement,
+  globalemitter,
+  history,
+  html,
+  state,
 } from '@mantou/gem';
 import { mediaQuery } from '@mantou/gem/helper/mediaquery';
 
@@ -20,7 +20,6 @@ import type { NavItem } from '../../common/config';
 import { theme } from '../helper/theme';
 import { capitalize, isGitLab, isSameOrigin } from '../lib/utils';
 import { bookStore, updateBookConfig } from '../store';
-
 import { icons } from './icons';
 import { sidebarStore } from './sidebar';
 

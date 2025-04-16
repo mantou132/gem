@@ -1,11 +1,10 @@
 import type { Emitter } from '@mantou/gem/lib/decorators';
 import { adoptedStyle, customElement, emitter, mounted, property, shadow } from '@mantou/gem/lib/decorators';
-import { css, createState, GemElement, html } from '@mantou/gem/lib/element';
-import { styleMap, classMap, addListener } from '@mantou/gem/lib/utils';
+import { createState, css, GemElement, html } from '@mantou/gem/lib/element';
+import { addListener, classMap, styleMap } from '@mantou/gem/lib/utils';
 
 import { clamp } from '../lib/number';
 import { theme } from '../lib/theme';
-
 import type { PanEventDetail } from './gesture';
 
 import './gesture';

@@ -1,13 +1,13 @@
 import {
-  GemElement,
-  html,
   adoptedStyle,
-  customElement,
-  css,
   connectStore,
   createStore,
-  shadow,
+  css,
+  customElement,
+  GemElement,
+  html,
   mounted,
+  shadow,
 } from '@mantou/gem';
 
 export const fpsStyle = css`

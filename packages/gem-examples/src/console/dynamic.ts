@@ -1,5 +1,5 @@
-import { html, GemElement } from '@mantou/gem/lib/element';
 import { connectStore, customElement } from '@mantou/gem/lib/decorators';
+import { GemElement, html } from '@mantou/gem/lib/element';
 import { locationStore } from 'duoyun-ui/patterns/console';
 
 import 'duoyun-ui/elements/code-block';

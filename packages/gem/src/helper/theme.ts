@@ -1,8 +1,8 @@
+import type { GemElement, Sheet } from '../lib/reactive';
+import { css, SheetToken } from '../lib/reactive';
 import type { Store } from '../lib/store';
 import { connect, createStore } from '../lib/store';
 import { camelToKebabCase, createUpdater, randomStr } from '../lib/utils';
-import type { GemElement, Sheet } from '../lib/reactive';
-import { SheetToken, css } from '../lib/reactive';
 
 export type Theme<T> = ReturnType<typeof createUpdater<T>> &
   Sheet<unknown> & {

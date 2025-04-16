@@ -1,4 +1,4 @@
-import { GemElement, html, adoptedStyle, customElement, css } from '@mantou/gem';
+import { adoptedStyle, css, customElement, GemElement, html } from '@mantou/gem';
 
 import './card';
 import './header';

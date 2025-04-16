@@ -1,6 +1,6 @@
-import { fixture, expect, nextFrame } from '../utils';
-import { html } from '../../lib/element';
 import type { GemTitleElement } from '../../elements/title';
+import { html } from '../../lib/element';
+import { expect, fixture, nextFrame } from '../utils';
 
 import '../../elements/title';
 

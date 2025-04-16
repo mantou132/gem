@@ -1,4 +1,4 @@
-import { GemLinkElement, GemActiveLinkElement } from './base/link';
+import { GemActiveLinkElement, GemLinkElement } from './base/link';
 
 export * from './base/link';
 

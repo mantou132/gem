@@ -1,7 +1,7 @@
-import { fixture, expect, nextFrame } from '../utils';
-import { css, GemElement, html } from '../../lib/element';
-import { adoptedStyle, customElement } from '../../lib/decorators';
 import type { GemReflectElement } from '../../elements/reflect';
+import { adoptedStyle, customElement } from '../../lib/decorators';
+import { css, GemElement, html } from '../../lib/element';
+import { expect, fixture, nextFrame } from '../utils';
 
 import '../../elements/reflect';
 

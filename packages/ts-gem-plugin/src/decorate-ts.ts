@@ -1,6 +1,6 @@
+import { camelToKebabCase } from '@mantou/gem/lib/utils';
 import type { LanguageService } from 'typescript';
 import type * as ts from 'typescript/lib/tsserverlibrary';
-import { camelToKebabCase } from '@mantou/gem/lib/utils';
 
 import type { Context } from './context';
 import {

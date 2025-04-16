@@ -1,18 +1,17 @@
-import { html, render } from './lit-html';
-import { setEngine } from './reactive';
-import * as reactiveExports from './reactive';
 import * as decoratorsExports from './decorators';
+import { html, render } from './lit-html';
+import * as reactiveExports from './reactive';
+import { setEngine } from './reactive';
 import * as storeExports from './store';
 import * as versionExports from './version';
 
 setEngine(html, render);
 
-export * from './reactive';
 export * from './decorators';
-
 export { directive } from './directive';
+export { createRef, mathml, svg, TemplateResult } from './lit-html';
+export * from './reactive';
 export { repeat } from './repeat';
-export { svg, mathml, TemplateResult, createRef } from './lit-html';
 
 declare global {
   // eslint-disable-next-line no-var

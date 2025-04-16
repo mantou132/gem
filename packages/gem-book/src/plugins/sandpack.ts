@@ -1,11 +1,11 @@
 import type {
-  SandpackClient,
-  SandpackBundlerFiles,
-  ClientStatus,
-  SandpackTemplate,
-  SandboxSetup,
   ClientOptions,
+  ClientStatus,
+  SandboxSetup,
+  SandpackBundlerFiles,
+  SandpackClient,
   SandpackMessage,
+  SandpackTemplate,
 } from '@codesandbox/sandpack-client';
 
 import type { GemBookElement } from '../element';
@@ -244,7 +244,8 @@ class _GbpSandpackElement extends GemBookPluginElement {
       (p, c) => {
         if (!c) return p;
         const [name, version = 'latest'] = c.split(/(.+)@/).filter((e) => !!e);
-        return { ...p, [name]: version };
+        p[name] = version;
+        return p;
       },
       {} as Record<string, string>,
     );
@@ -425,9 +426,9 @@ class _GbpSandpackElement extends GemBookPluginElement {
   };
 
   #getLoadSandpackClient = async () => {
-    const { loadSandpackClient } = (await import(/* webpackIgnore: true */ SANDPACK_CLIENT_ESM)) as typeof import(
-      '@codesandbox/sandpack-client'
-    );
+    const { loadSandpackClient } = (await import(
+      /* webpackIgnore: true */ SANDPACK_CLIENT_ESM
+    )) as typeof import('@codesandbox/sandpack-client');
     return loadSandpackClient;
   };
 
@@ -496,11 +497,17 @@ class _GbpSandpackElement extends GemBookPluginElement {
     return (this.#useESMBuild ? this.#loadESBuildClient : await this.#getLoadSandpackClient())(
       this.#iframeRef.value!,
       {
-        files: this.#state.files.reduce((p, c) => ({ ...p, [c.filename]: { code: this.#applyImport(c) } }), {
-          'sandbox.config.json': this.#sandBoxConfigFile,
-          'index.html': { code: this.#indexTemplate },
-          [this.#defaultEntryFilename]: { code: '' },
-        } as SandpackBundlerFiles),
+        files: this.#state.files.reduce(
+          (p, c) => {
+            p[c.filename] = { code: this.#applyImport(c) };
+            return p;
+          },
+          {
+            'sandbox.config.json': this.#sandBoxConfigFile,
+            'index.html': { code: this.#indexTemplate },
+            [this.#defaultEntryFilename]: { code: '' },
+          } as SandpackBundlerFiles,
+        ),
         entry: this.#entry,
         dependencies: this.#dependencies,
       },
@@ -515,10 +522,16 @@ class _GbpSandpackElement extends GemBookPluginElement {
 
   #updateSandbox = Utils.throttle(async () => {
     (await this.#sandpackClient)?.updateSandbox({
-      files: this.#state.files.reduce((p, c) => ({ ...p, [c.filename]: { code: this.#applyImport(c) } }), {
-        'sandbox.config.json': this.#sandBoxConfigFile,
-        'index.html': { code: this.#indexTemplate },
-      } as SandpackBundlerFiles),
+      files: this.#state.files.reduce(
+        (p, c) => {
+          p[c.filename] = { code: this.#applyImport(c) };
+          return p;
+        },
+        {
+          'sandbox.config.json': this.#sandBoxConfigFile,
+          'index.html': { code: this.#indexTemplate },
+        } as SandpackBundlerFiles,
+      ),
       entry: this.#entry,
       dependencies: this.#dependencies,
     });
@@ -546,10 +559,10 @@ class _GbpSandpackElement extends GemBookPluginElement {
     this.#state({ forking: true });
     // https://codesandbox.io/docs/learn/getting-started/your-first-sandbox#xhr-request
     const normalizedFiles = this.#state.files.reduce(
-      (p, c) => ({
-        ...p,
-        [c.filename.replace('/', '')]: { content: this.#applyImport(c) },
-      }),
+      (p, c) => {
+        p[c.filename.replace('/', '')] = { content: this.#applyImport(c) };
+        return p;
+      },
       {
         'sandbox.config.json': { content: this.#sandBoxConfigFile.code },
         'index.html': { content: this.#indexTemplate },
@@ -559,7 +572,7 @@ class _GbpSandpackElement extends GemBookPluginElement {
             dependencies: this.#dependencies,
           },
         },
-      },
+      } as Record<string, { content: any }>,
     );
 
     try {

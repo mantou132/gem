@@ -9,10 +9,10 @@ import {
   property,
   shadow,
 } from '@mantou/gem/lib/decorators';
-import { GemElement, createState, css, html } from '@mantou/gem/lib/element';
+import { createState, css, GemElement, html } from '@mantou/gem/lib/element';
 
 import { theme } from '../lib/theme';
-import { Time, parseNarrowRelativeTime, parseNarrowTimeRange } from '../lib/time';
+import { parseNarrowRelativeTime, parseNarrowTimeRange, Time } from '../lib/time';
 import { isNullish } from '../lib/types';
 
 import './date-panel';
@@ -105,11 +105,13 @@ export class DuoyunDateRangePanelElement extends GemElement {
         @datehover=${this.#onDateHover}
         .value=${start}
         .highlights=${highlights}
-        .initValue=${isNullish(start)
-          ? new Time().subtract(1, 'M').valueOf()
-          : isSomeMonth
-            ? new Time(start).subtract(1, 'M').valueOf()
-            : undefined}
+        .initValue=${
+          isNullish(start)
+            ? new Time().subtract(1, 'M').valueOf()
+            : isSomeMonth
+              ? new Time(start).subtract(1, 'M').valueOf()
+              : undefined
+        }
       ></dy-date-panel>
       <dy-divider class="separate" orientation="vertical"></dy-divider>
       <dy-date-panel

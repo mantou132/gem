@@ -12,10 +12,10 @@
  * - `<gem-title>` 作为默认值设置
  */
 
-import { GemElement, html } from '../../lib/reactive';
 import { attribute, boolattribute, effect, mounted, shadow, template } from '../../lib/decorators';
-import { connect } from '../../lib/store';
 import { titleStore } from '../../lib/history';
+import { GemElement, html } from '../../lib/reactive';
+import { connect } from '../../lib/store';
 
 // 避免重定向时的中间状态标题
 let timer: ReturnType<typeof setTimeout> | number = 0;

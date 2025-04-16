@@ -1,6 +1,6 @@
 import { expect } from '@mantou/gem/test/utils';
 
-import { formatNumber, formatToPrecision, adjustRange } from './number';
+import { adjustRange, formatNumber, formatToPrecision } from './number';
 
 it('`adjustRange`', () => {
   expect(adjustRange([0, 0], 5)).eql([0, 0.001]);

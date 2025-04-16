@@ -1,4 +1,4 @@
-import { GemElement, html, customElement, shadow, mounted } from '@mantou/gem';
+import { customElement, GemElement, html, mounted, shadow } from '@mantou/gem';
 
 import { EXAMPLES, VERSION } from './env';
 

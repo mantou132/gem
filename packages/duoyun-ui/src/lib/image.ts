@@ -1,9 +1,9 @@
 import { raw } from '@mantou/gem/lib/utils';
 
-import type { HSL, HexColor } from './color';
-import { luminance, hslToRgb, rgbToHexColor, parseHexColor } from './color';
+import type { HexColor, HSL } from './color';
+import { hslToRgb, luminance, parseHexColor, rgbToHexColor } from './color';
 import { fnv1a } from './encode';
-import { pseudoRandom, normalizeNumber } from './number';
+import { normalizeNumber, pseudoRandom } from './number';
 
 export function createCanvas(width?: number, height?: number) {
   const canvas = document.createElement('canvas');
@@ -140,58 +140,54 @@ export async function compressionImage(origin: Origin, limit: LimitOptions, { as
   const originIsFile = origin instanceof Blob;
   const outputDataURL = type === 'url';
   const canvas = createCanvas();
-  try {
-    let img = new Image();
-    let file = new File([], '');
-    const loadImg = async () => {
-      await new Promise((res, rej) => {
-        img.onload = res;
-        img.onerror = rej;
-      });
-    };
-    if (originIsFile) {
-      img.crossOrigin = 'anonymous';
-      img.src = await createDataURLFromBlob(origin);
-      await loadImg();
-      file = origin;
-    } else {
-      img = origin;
-      if (!img.complete) await loadImg();
-      if (limit.fileSize) {
-        const res = await fetch(origin.currentSrc);
-        const blob = await res.blob();
-        const contentType = res.headers.get('content-type');
-        file = new File([blob], 'temp', { type: contentType?.startsWith('image/') ? contentType : origin.type || '' });
-      }
+  let img = new Image();
+  let file = new File([], '');
+  const loadImg = async () => {
+    await new Promise((res, rej) => {
+      img.onload = res;
+      img.onerror = rej;
+    });
+  };
+  if (originIsFile) {
+    img.crossOrigin = 'anonymous';
+    img.src = await createDataURLFromBlob(origin);
+    await loadImg();
+    file = origin;
+  } else {
+    img = origin;
+    if (!img.complete) await loadImg();
+    if (limit.fileSize) {
+      const res = await fetch(origin.currentSrc);
+      const blob = await res.blob();
+      const contentType = res.headers.get('content-type');
+      file = new File([blob], 'temp', { type: contentType?.startsWith('image/') ? contentType : origin.type || '' });
     }
-    const rate = Math.min(
-      limit.fileSize ? Math.sqrt(limit.fileSize / file.size) : 1,
-      limit.dimension ? limit.dimension.width / img.naturalWidth : 1,
-      limit.dimension ? limit.dimension.height / img.naturalHeight : 1,
-    );
-    if (rate >= 1) {
-      return Promise.resolve(outputDataURL ? img.currentSrc : file);
-    }
-    const naturalAspectRatio = img.naturalWidth / img.naturalHeight;
-    aspectRatio = aspectRatio || naturalAspectRatio;
-    const widthRatio = aspectRatio > naturalAspectRatio ? 1 : aspectRatio / naturalAspectRatio;
-    const heightRatio = aspectRatio > naturalAspectRatio ? naturalAspectRatio / aspectRatio : 1;
-    const width = img.naturalWidth * rate;
-    const height = img.naturalHeight * rate;
-    canvas.width = width * widthRatio;
-    canvas.height = height * heightRatio;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) throw new Error('ctx is null');
-    ctx.imageSmoothingQuality = 'high';
-    ctx.drawImage(img, (canvas.width - width) / 2, (canvas.height - height) / 2, width, height);
-    if (outputDataURL) return Promise.resolve(canvas.toDataURL());
-    return new Promise<File>((res, rej) =>
-      canvas.toBlob((blob) => {
-        if (!blob) return rej();
-        res(new File([blob], 'compressed', { type: blob.type }));
-      }),
-    );
-  } catch (err) {
-    throw err;
   }
+  const rate = Math.min(
+    limit.fileSize ? Math.sqrt(limit.fileSize / file.size) : 1,
+    limit.dimension ? limit.dimension.width / img.naturalWidth : 1,
+    limit.dimension ? limit.dimension.height / img.naturalHeight : 1,
+  );
+  if (rate >= 1) {
+    return Promise.resolve(outputDataURL ? img.currentSrc : file);
+  }
+  const naturalAspectRatio = img.naturalWidth / img.naturalHeight;
+  aspectRatio = aspectRatio || naturalAspectRatio;
+  const widthRatio = aspectRatio > naturalAspectRatio ? 1 : aspectRatio / naturalAspectRatio;
+  const heightRatio = aspectRatio > naturalAspectRatio ? naturalAspectRatio / aspectRatio : 1;
+  const width = img.naturalWidth * rate;
+  const height = img.naturalHeight * rate;
+  canvas.width = width * widthRatio;
+  canvas.height = height * heightRatio;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) throw new Error('ctx is null');
+  ctx.imageSmoothingQuality = 'high';
+  ctx.drawImage(img, (canvas.width - width) / 2, (canvas.height - height) / 2, width, height);
+  if (outputDataURL) return Promise.resolve(canvas.toDataURL());
+  return new Promise<File>((res, rej) =>
+    canvas.toBlob((blob) => {
+      if (!blob) return rej();
+      res(new File([blob], 'compressed', { type: blob.type }));
+    }),
+  );
 }

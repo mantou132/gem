@@ -3,19 +3,19 @@ import '../lib/shim';
 import test from 'node:test';
 
 import {
-  customElement,
-  GemElement,
-  html,
-  shadow,
+  adoptedStyle,
   attribute,
-  property,
   connectStore,
   createState,
   createStore,
-  template,
-  mounted,
   css,
-  adoptedStyle,
+  customElement,
+  GemElement,
+  html,
+  mounted,
+  property,
+  shadow,
+  template,
 } from '@mantou/gem';
 
 import { t } from './utils';

@@ -1,4 +1,4 @@
-import { render, GemElement, html, createStore } from '@mantou/gem';
+import { createStore, GemElement, html, render } from '@mantou/gem';
 import { connectStore, customElement } from '@mantou/gem/lib/decorators';
 
 import '../elements/layout';

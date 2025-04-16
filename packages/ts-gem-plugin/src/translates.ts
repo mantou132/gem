@@ -66,8 +66,6 @@ function translationCompletionItemKind(context: TemplateContext, kind?: vscode.C
       return typescript.ScriptElementKind.alias;
     case vscode.CompletionItemKind.File:
       return typescript.ScriptElementKind.moduleElement;
-    case vscode.CompletionItemKind.Snippet:
-    case vscode.CompletionItemKind.Text:
     default:
       return typescript.ScriptElementKind.unknown;
   }
@@ -146,7 +144,7 @@ export function genDefaultCompletionEntryDetails(context: TemplateContext, name:
 function toDisplayParts(text: string | vscode.MarkupContent | undefined, isDoc = false): ts.SymbolDisplayPart[] {
   if (!text) return [];
 
-  const escape = (unsafe: string) =>
+  const escapeText = (unsafe: string) =>
     unsafe
       .replaceAll('&', '&amp;')
       .replaceAll('<', '&lt;')
@@ -160,7 +158,7 @@ function toDisplayParts(text: string | vscode.MarkupContent | undefined, isDoc =
   return [
     {
       kind: 'unknown',
-      text: typeof text !== 'string' ? text.value : isDoc ? escape(text) : text,
+      text: typeof text !== 'string' ? text.value : isDoc ? escapeText(text) : text,
     },
   ];
 }

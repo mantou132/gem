@@ -1,14 +1,13 @@
 import type { Emitter } from '@mantou/gem/lib/decorators';
-import { adoptedStyle, customElement, emitter, property, state, part, aria, memo } from '@mantou/gem/lib/decorators';
-import { css, createState, html, svg } from '@mantou/gem/lib/element';
-import { styleMap, classMap } from '@mantou/gem/lib/utils';
+import { adoptedStyle, aria, customElement, emitter, memo, part, property, state } from '@mantou/gem/lib/decorators';
+import { createState, css, html, svg } from '@mantou/gem/lib/element';
+import { classMap, styleMap } from '@mantou/gem/lib/utils';
 import type { GeoRawProjection } from 'd3-geo';
-import { geoProjection, geoMercatorRaw, geoEquirectangularRaw, geoPath } from 'd3-geo';
+import { geoEquirectangularRaw, geoMercatorRaw, geoPath, geoProjection } from 'd3-geo';
 
 import { theme } from '../lib/theme';
-
-import type { PanEventDetail } from './gesture';
 import { DuoyunLoadableBaseElement } from './base/loadable';
+import type { PanEventDetail } from './gesture';
 
 import './gesture';
 

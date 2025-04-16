@@ -1,5 +1,5 @@
-import { adoptedStyle, customElement, attribute } from '@mantou/gem/lib/decorators';
-import { GemElement, css } from '@mantou/gem/lib/element';
+import { adoptedStyle, attribute, customElement } from '@mantou/gem/lib/decorators';
+import { css, GemElement } from '@mantou/gem/lib/element';
 
 const style = css`
   :where(:scope:not([hidden])) {

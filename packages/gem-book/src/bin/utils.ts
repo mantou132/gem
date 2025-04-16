@@ -1,17 +1,17 @@
-import path from 'path';
-import { readFileSync, existsSync, statSync, readdirSync, lstatSync } from 'fs';
-import util from 'util';
-import { URL } from 'url';
 import { createHash } from 'crypto';
+import { existsSync, lstatSync, readdirSync, readFileSync, statSync } from 'fs';
+import path from 'path';
+import { URL } from 'url';
+import util from 'util';
 
-import gitRemoteOriginUrl from 'git-remote-origin-url';
-import parseGithub from 'parse-github-url';
-import { load } from 'cheerio';
-import { marked } from 'marked';
-import fm from 'front-matter';
-import YAML from 'yaml';
-import Jimp from 'jimp';
 import chalk from 'chalk';
+import { load } from 'cheerio';
+import fm from 'front-matter';
+import gitRemoteOriginUrl from 'git-remote-origin-url';
+import Jimp from 'jimp';
+import { marked } from 'marked';
+import parseGithub from 'parse-github-url';
+import YAML from 'yaml';
 
 import type { FrontMatter } from '../common/frontmatter';
 import { isIndexFile, parseFilename, parseTitle } from '../common/utils';
@@ -82,8 +82,7 @@ export function resolveModule(
     ...builtInDirs.map((dir) => path.resolve(__dirname, `${dir}${pathname}`)),
     path.resolve(process.cwd(), pathname),
   ]
-    .map((p) => ['', '.js', '.json', '.mjs'].map((ext) => p + ext))
-    .flat()
+    .flatMap((p) => ['', '.js', '.json', '.mjs'].map((ext) => p + ext))
     .find((e) => existsSync(e));
 
   if (!silent && !modulePath) print(chalk.red(`Module not found:`), pathname);
@@ -148,7 +147,7 @@ export function readDirConfig(fullPath: string) {
     const configPath = path.join(fullPath, configFile);
     try {
       return YAML.parse(readFileSync(configPath, 'utf-8')) as FrontMatter;
-    } catch (error) {
+    } catch {
       print(chalk.red(`Parse error: ${configPath}`));
     }
   }

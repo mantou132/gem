@@ -1,5 +1,5 @@
-import type { SourceFile, ClassDeclaration, Project } from 'ts-morph';
 import { camelToKebabCase } from '@mantou/gem/lib/utils';
+import type { ClassDeclaration, Project, SourceFile } from 'ts-morph';
 
 import { getJsDoc, getTypeText, isGetter, isPrivateId, isSetter } from './lib/utils';
 
@@ -136,7 +136,7 @@ export const parseElement = async (declaration: ClassDeclaration, file: SourceFi
   };
   const className = declaration.getName();
   const constructorExtendsName = declaration.getExtends()?.getText();
-  const constructor = declaration.getConstructors()[0];
+  const cons = declaration.getConstructors()[0];
   const appendElementDesc = (desc = '') =>
     (detail.description = (detail.description ? detail.description + '\n\n' : '') + desc);
   declaration.getJsDocs().forEach((jsDoc) => appendElementDesc(jsDoc.getCommentText()));
@@ -145,9 +145,9 @@ export const parseElement = async (declaration: ClassDeclaration, file: SourceFi
     detail.extend = await getExtendsClassDetail(constructorExtendsName, file, project);
     detail.constructorName = className;
     detail.constructorExtendsName = constructorExtendsName;
-    if (constructor) {
+    if (cons) {
       const params: Record<string, string> = {};
-      const jsDocs = constructor.getJsDocs();
+      const jsDocs = cons.getJsDocs();
       jsDocs.forEach((jsDoc) => {
         appendElementDesc(jsDoc.getDescription());
         jsDoc
@@ -158,7 +158,7 @@ export const parseElement = async (declaration: ClassDeclaration, file: SourceFi
             params[name] = comment!;
           });
       });
-      detail.constructorParams = constructor.getParameters().map((param) => ({
+      detail.constructorParams = cons.getParameters().map((param) => ({
         name: param.getName(),
         type: getTypeText(param),
         description: params[param.getName()],
@@ -306,8 +306,7 @@ export const getElements = async (file: SourceFile, project?: Project) => {
         .replace(/('|"|`)?(\S*)\1/, '$2') ||
       declaration
         .getJsDocs()
-        .map((jsDoc) => jsDoc.getTags())
-        .flat()
+        .flatMap((jsDoc) => jsDoc.getTags())
         .find((e) => e.getTagName() === 'customElement')
         ?.getCommentText();
     if (elementTag) {

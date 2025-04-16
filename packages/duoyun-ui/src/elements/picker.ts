@@ -1,27 +1,26 @@
 import type { Emitter } from '@mantou/gem/lib/decorators';
 import {
-  connectStore,
   adoptedStyle,
-  customElement,
-  attribute,
-  globalemitter,
-  property,
-  boolattribute,
-  state,
   aria,
-  shadow,
-  mounted,
+  attribute,
+  boolattribute,
+  connectStore,
+  customElement,
   effect,
+  globalemitter,
+  mounted,
+  property,
+  shadow,
+  state,
 } from '@mantou/gem/lib/decorators';
 import type { TemplateResult } from '@mantou/gem/lib/element';
-import { GemElement, html, css } from '@mantou/gem/lib/element';
+import { css, GemElement, html } from '@mantou/gem/lib/element';
 import { addListener } from '@mantou/gem/lib/utils';
 
-import { theme } from '../lib/theme';
-import { icons } from '../lib/icons';
 import { commonHandle } from '../lib/hotkeys';
+import { icons } from '../lib/icons';
 import { focusStyle } from '../lib/styles';
-
+import { theme } from '../lib/theme';
 import type { ContextMenuItem } from './contextmenu';
 import { ContextMenu } from './contextmenu';
 
@@ -173,8 +172,7 @@ export class DuoyunPickerElement extends GemElement implements BasePickerElement
 
   render = () => {
     const currents = this.options
-      ?.map((e) => (e.children ? [e, ...e.children] : e))
-      .flat()
+      ?.flatMap((e) => (e.children ? [e, ...e.children] : e))
       .filter((e) => this.#isContain(e.value ?? e.label));
     const currentLabels = currents?.map((e) => e.label);
     const isEmpty = !currentLabels?.length;

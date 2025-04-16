@@ -1,13 +1,12 @@
 // https://spectrum.adobe.com/page/cards/
-import { adoptedStyle, customElement, attribute, property, part, slot, shadow, aria } from '@mantou/gem/lib/decorators';
+import { adoptedStyle, aria, attribute, customElement, part, property, shadow, slot } from '@mantou/gem/lib/decorators';
 import { css, html } from '@mantou/gem/lib/element';
 
-import { theme } from '../lib/theme';
-import { icons } from '../lib/icons';
 import { commonHandle } from '../lib/hotkeys';
+import { icons } from '../lib/icons';
 import { focusStyle } from '../lib/styles';
+import { theme } from '../lib/theme';
 import type { StringList } from '../lib/types';
-
 import { DuoyunLoadableBaseElement } from './base/loadable';
 import type { ContextMenuItem } from './contextmenu';
 import { ContextMenu } from './contextmenu';

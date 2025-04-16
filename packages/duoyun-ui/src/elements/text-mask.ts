@@ -1,6 +1,6 @@
-import { adoptedStyle, customElement, property, attribute, shadow, mounted, memo } from '@mantou/gem/lib/decorators';
+import { adoptedStyle, attribute, customElement, memo, mounted, property, shadow } from '@mantou/gem/lib/decorators';
 import type { TemplateResult } from '@mantou/gem/lib/element';
-import { GemElement, html, css } from '@mantou/gem/lib/element';
+import { css, GemElement, html } from '@mantou/gem/lib/element';
 
 const style = css`
   span {

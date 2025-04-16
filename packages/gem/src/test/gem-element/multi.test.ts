@@ -1,6 +1,6 @@
+import { attribute, customElement, type Emitter, emitter, mounted, property } from '../../lib/decorators';
+import { createRef, createState, GemElement, html } from '../../lib/element';
 import { expect, fixture } from '../utils';
-import { attribute, customElement, emitter, mounted, property, type Emitter } from '../../lib/decorators';
-import { GemElement, html, createRef, createState } from '../../lib/element';
 
 @customElement('app-children')
 export class Children extends GemElement {

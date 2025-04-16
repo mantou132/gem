@@ -1,6 +1,6 @@
-import { connect, html, render, createStore } from '@mantou/gem';
-import type { MouseEventDetail, TreeItem } from 'duoyun-ui/elements/tree';
+import { connect, createStore, html, render } from '@mantou/gem';
 import { ContextMenu } from 'duoyun-ui/elements/contextmenu';
+import type { MouseEventDetail, TreeItem } from 'duoyun-ui/elements/tree';
 import { sleep } from 'duoyun-ui/lib/timer';
 
 import 'duoyun-ui/elements/tree';

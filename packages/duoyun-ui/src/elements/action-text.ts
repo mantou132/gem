@@ -1,11 +1,11 @@
-import { GemElement, html, css } from '@mantou/gem/lib/element';
-import { adoptedStyle, customElement, attribute, state, slot, aria, shadow, mounted } from '@mantou/gem/lib/decorators';
-import { addListener } from '@mantou/gem/lib/utils';
 import { createDecoratorTheme } from '@mantou/gem/helper/theme';
+import { adoptedStyle, aria, attribute, customElement, mounted, shadow, slot, state } from '@mantou/gem/lib/decorators';
+import { css, GemElement, html } from '@mantou/gem/lib/element';
+import { addListener } from '@mantou/gem/lib/utils';
 
-import { theme, getSemanticColor } from '../lib/theme';
 import { commonHandle } from '../lib/hotkeys';
 import { focusStyle } from '../lib/styles';
+import { getSemanticColor, theme } from '../lib/theme';
 
 import './tooltip';
 

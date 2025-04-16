@@ -1,22 +1,22 @@
-import { fixture, expect } from '../utils';
+import type { Emitter } from '../../lib/decorators';
+import {
+  adoptedStyle,
+  attribute,
+  boolattribute,
+  connectStore,
+  customElement,
+  emitter,
+  numattribute,
+  part,
+  property,
+  shadow,
+  slot,
+  state,
+} from '../../lib/decorators';
 import type { Metadata } from '../../lib/element';
 import { css, GemElement, html } from '../../lib/element';
 import { createStore } from '../../lib/store';
-import type { Emitter } from '../../lib/decorators';
-import {
-  attribute,
-  property,
-  customElement,
-  connectStore,
-  adoptedStyle,
-  emitter,
-  boolattribute,
-  numattribute,
-  part,
-  slot,
-  state,
-  shadow,
-} from '../../lib/decorators';
+import { expect, fixture } from '../utils';
 
 const store = createStore({
   a: 1,

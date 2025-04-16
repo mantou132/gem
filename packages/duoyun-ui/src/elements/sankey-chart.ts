@@ -1,8 +1,7 @@
-import { css, html, svg } from '@mantou/gem/lib/element';
 import { adoptedStyle, customElement, memo, property } from '@mantou/gem/lib/decorators';
+import { css, html, svg } from '@mantou/gem/lib/element';
 
 import { theme } from '../lib/theme';
-
 import { DuoyunChartBaseElement } from './base/chart';
 import { ChartTooltip } from './chart-tooltip';
 

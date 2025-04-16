@@ -2,28 +2,28 @@
 import type { Emitter } from '@mantou/gem/lib/decorators';
 import {
   adoptedStyle,
-  customElement,
-  emitter,
-  property,
-  boolattribute,
-  part,
-  state,
-  numattribute,
-  shadow,
   aria,
+  boolattribute,
+  customElement,
   effect,
-  willMount,
+  emitter,
   memo,
+  numattribute,
+  part,
+  property,
+  shadow,
+  state,
+  willMount,
 } from '@mantou/gem/lib/decorators';
 import type { TemplateResult } from '@mantou/gem/lib/element';
-import { css, createState, GemElement, html } from '@mantou/gem/lib/element';
+import { createState, css, GemElement, html } from '@mantou/gem/lib/element';
 import { styleMap } from '@mantou/gem/lib/utils';
 
-import { icons } from '../lib/icons';
 import { commonHandle } from '../lib/hotkeys';
-import { theme, getSemanticColor } from '../lib/theme';
-import { getCascaderBubbleWeakMap } from '../lib/utils';
+import { icons } from '../lib/icons';
 import { focusStyle } from '../lib/styles';
+import { getSemanticColor, theme } from '../lib/theme';
+import { getCascaderBubbleWeakMap } from '../lib/utils';
 
 import './use';
 
@@ -229,11 +229,13 @@ export class DuoyunTreeElement extends GemElement {
         .expanded=${expanded}
         .highlight=${this.#highlights.has(value)}
       ></dy-tree-item>
-      ${!expanded
-        ? ''
-        : !item.children
-          ? item.childrenPlaceholder
-          : item.children.map((e) => this.#renderItem(e, level + 1))}
+      ${
+        !expanded
+          ? ''
+          : !item.children
+            ? item.childrenPlaceholder
+            : item.children.map((e) => this.#renderItem(e, level + 1))
+      }
     `;
   };
 
@@ -281,7 +283,7 @@ export class DuoyunTreeElement extends GemElement {
   iterateCollapseItem(value: any) {
     let start = false;
     const temp = this.#items ? [...this.#items] : [];
-    while (!!temp.length) {
+    while (temp.length) {
       const item = temp.pop()!;
       const v = getItemValue(item);
       if (v === value) {

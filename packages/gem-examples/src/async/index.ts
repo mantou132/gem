@@ -1,4 +1,4 @@
-import { GemElement, async, createState, customElement, html, numattribute, render } from '@mantou/gem';
+import { async, createState, customElement, GemElement, html, numattribute, render } from '@mantou/gem';
 
 import '../elements/layout';
 

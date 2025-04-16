@@ -1,5 +1,5 @@
-import { adoptedStyle, customElement, boolattribute, shadow, effect } from '@mantou/gem/lib/decorators';
-import { GemElement, html, css } from '@mantou/gem/lib/element';
+import { adoptedStyle, boolattribute, customElement, effect, shadow } from '@mantou/gem/lib/decorators';
+import { css, GemElement, html } from '@mantou/gem/lib/element';
 
 import { theme } from '../../lib/theme';
 

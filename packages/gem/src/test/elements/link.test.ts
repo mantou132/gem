@@ -1,6 +1,6 @@
-import { fixture, expect } from '../utils';
-import { html } from '../../lib/element';
 import type { GemActiveLinkElement } from '../../elements/link';
+import { html } from '../../lib/element';
+import { expect, fixture } from '../utils';
 
 import '../../elements/link';
 

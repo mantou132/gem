@@ -1,6 +1,4 @@
-import { history } from '@mantou/gem/lib/history';
-import type { TemplateResult } from '@mantou/gem/lib/element';
-import { css, GemElement, html, createState } from '@mantou/gem/lib/element';
+import { mediaQuery } from '@mantou/gem/helper/mediaquery';
 import {
   adoptedStyle,
   attribute,
@@ -11,14 +9,15 @@ import {
   property,
   state,
 } from '@mantou/gem/lib/decorators';
+import type { TemplateResult } from '@mantou/gem/lib/element';
+import { createState, css, GemElement, html } from '@mantou/gem/lib/element';
+import { history } from '@mantou/gem/lib/history';
 import { addListener, classMap } from '@mantou/gem/lib/utils';
-import { mediaQuery } from '@mantou/gem/helper/mediaquery';
 
-import { isRemoteIcon } from '../lib/utils';
 import { icons } from '../lib/icons';
-import { theme } from '../lib/theme';
 import { focusStyle } from '../lib/styles';
-
+import { theme } from '../lib/theme';
+import { isRemoteIcon } from '../lib/utils';
 import type { Links } from './footer';
 
 import '../elements/use';
@@ -215,11 +214,13 @@ export class DyPatNavElement extends GemElement {
   #renderBrand = () => {
     return html`
       <dy-link class="brand" title=${this.name} href="/">
-        ${!this.logo
-          ? ''
-          : isRemoteIcon(this.logo)
-            ? html`<img class="logo" alt="Logo" src=${this.logo}></img>`
-            : html`<dy-use class="logo" aria-label="Logo" .element=${this.logo}></dy-use>`}
+        ${
+          !this.logo
+            ? ''
+            : isRemoteIcon(this.logo)
+              ? html`<img class="logo" alt="Logo" src=${this.logo}></img>`
+              : html`<dy-use class="logo" aria-label="Logo" .element=${this.logo}></dy-use>`
+        }
         <span class="name">${this.name}</span>
       </dy-link>
     `;
@@ -260,21 +261,17 @@ export class DyPatNavElement extends GemElement {
           ${this.links?.map(
             ({ label, items, href }) => html`
               <li class="navbar-item-wrap">
-                ${href
-                  ? html`
-                      <dy-active-link
-                        @click=${this.#onMobileItemClick}
-                        tabindex="0"
-                        class="navbar-top-link"
-                        href=${href}
-                        >${label}</dy-active-link
-                      >
-                    `
-                  : html`
-                      <div @click=${this.#onMobileItemClick} tabindex="0" class="navbar-top-link">
-                        ${label}<dy-use .element=${icons.expand}></dy-use>
-                      </div>
-                    `}
+              <dy-active-link
+                v-if=${!!href}
+                @click=${this.#onMobileItemClick}
+                tabindex="0"
+                class="navbar-top-link"
+                href=${href!}
+                >${label}</dy-active-link
+              >
+              <div v-else @click=${this.#onMobileItemClick} tabindex="0" class="navbar-top-link">
+                ${label}<dy-use .element=${icons.expand}></dy-use>
+              </div>
                 <ul v-if=${!!items} class="dropdown">
                   ${items?.map(
                     (item) => html`

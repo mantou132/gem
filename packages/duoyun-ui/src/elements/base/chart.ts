@@ -1,18 +1,17 @@
 import type { Emitter } from '@mantou/gem/lib/decorators';
-import { adoptedStyle, emitter, property, state, part, aria, shadow, memo } from '@mantou/gem/lib/decorators';
+import { adoptedStyle, aria, emitter, memo, part, property, shadow, state } from '@mantou/gem/lib/decorators';
 import type { TemplateResult } from '@mantou/gem/lib/element';
 import { css, html, svg } from '@mantou/gem/lib/element';
 import { randomStr } from '@mantou/gem/lib/utils';
 
+import { commonColors } from '../../lib/color';
+import { adjustRange, formatToPrecision } from '../../lib/number';
 import { theme } from '../../lib/theme';
 import type { Data, DataItem } from '../chart-tooltip';
-import { formatToPrecision, adjustRange } from '../../lib/number';
-import { commonColors } from '../../lib/color';
-
 import { DuoyunResizeBaseElement } from './resize';
 
-import '../loading';
 import '../empty';
+import '../loading';
 
 export interface Axi {
   formatter?: (value: number | null, index: number) => string;
@@ -225,8 +224,9 @@ export class DuoyunChartBaseElement extends DuoyunResizeBaseElement {
           ></path>
           ${this._xAxiLabels.map(
             (label, index) => svg`
-              ${grid
-                ? svg`
+              ${
+                grid
+                  ? svg`
                     <path
                       stroke=${theme.lightBackgroundColor}
                       fill="none"
@@ -234,7 +234,8 @@ export class DuoyunChartBaseElement extends DuoyunResizeBaseElement {
                       d=${`M${this._stateXAxiMarks[index]} ${this._stageHeight} L${this._stateXAxiMarks[index]} 0`}
                     ></path>
                   `
-                : ''}
+                  : ''
+              }
               <path
                 stroke=${theme.borderColor}
                 fill="none"
@@ -341,6 +342,7 @@ export class DuoyunChartBaseElement extends DuoyunResizeBaseElement {
 
   _mergeValues = (seqs?: ((number | null)[] | null)[][]) => {
     if (!seqs || !seqs[0]) return;
+    // biome-ignore lint/complexity/useOptionalChain: Preserve null value
     return seqs[0].map((point, index) => [point && point[0], seqs.reduce((p, c) => p + (c[index]?.[1] || 0), 0)]);
   };
 

@@ -1,12 +1,11 @@
-import { GemElement, css } from '@mantou/gem/lib/element';
-import { adoptedStyle, boolattribute, customElement, emitter, mounted, type Emitter } from '@mantou/gem/lib/decorators';
+import { adoptedStyle, boolattribute, customElement, type Emitter, emitter, mounted } from '@mantou/gem/lib/decorators';
+import { css, GemElement } from '@mantou/gem/lib/element';
 import { addListener } from '@mantou/gem/lib/utils';
 
 import { blockContainer } from '../lib/styles';
 import { theme } from '../lib/theme';
-
-import { DuoyunGestureElement } from './gesture';
 import type { PanEventDetail } from './gesture';
+import { DuoyunGestureElement } from './gesture';
 
 const style = css`
   :where(dy-sort-item[handle], dy-sort-handle):state(grabbing) {

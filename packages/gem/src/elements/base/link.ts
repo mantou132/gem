@@ -1,23 +1,22 @@
-import { css, GemElement, html } from '../../lib/element';
 import {
-  attribute,
-  property,
-  state,
-  part,
-  connectStore,
-  shadow,
-  aria,
   adoptedStyle,
-  mounted,
-  effect,
+  aria,
+  attribute,
   boolattribute,
+  connectStore,
+  effect,
+  mounted,
+  part,
+  property,
+  shadow,
+  state,
   template,
 } from '../../lib/decorators';
-import { history, basePathStore } from '../../lib/history';
+import { css, GemElement, html } from '../../lib/element';
+import { basePathStore, history } from '../../lib/history';
 import { absoluteLocation } from '../../lib/utils';
-
 import type { RouteItem, RouteOptions } from './route';
-import { matchPath, createHistoryParams, createPath } from './route';
+import { createHistoryParams, createPath, matchPath } from './route';
 
 function isExternal(path: string) {
   return !path.startsWith('/');

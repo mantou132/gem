@@ -1,13 +1,13 @@
 import {
-  connectStore,
   adoptedStyle,
+  attribute,
+  connectStore,
   customElement,
   property,
   shadow,
-  attribute,
   slot,
 } from '@mantou/gem/lib/decorators';
-import { GemElement, html, css, render } from '@mantou/gem/lib/element';
+import { css, GemElement, html, render } from '@mantou/gem/lib/element';
 
 import { locale } from '../lib/locale';
 import { theme } from '../lib/theme';

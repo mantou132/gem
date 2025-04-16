@@ -1,12 +1,11 @@
-import { css, createState, html, svg } from '@mantou/gem/lib/element';
+import { createDecoratorTheme } from '@mantou/gem/helper/theme';
 import type { Emitter } from '@mantou/gem/lib/decorators';
 import { adoptedStyle, customElement, emitter, memo, mounted, property } from '@mantou/gem/lib/decorators';
+import { createState, css, html, svg } from '@mantou/gem/lib/element';
 import { addListener, classMap } from '@mantou/gem/lib/utils';
-import { createDecoratorTheme } from '@mantou/gem/helper/theme';
 
-import { isNotNullish } from '../lib/types';
 import { theme } from '../lib/theme';
-
+import { isNotNullish } from '../lib/types';
 import { DuoyunChartBaseElement } from './base/chart';
 import type { DataItem } from './chart-tooltip';
 import { ChartTooltip } from './chart-tooltip';
@@ -199,8 +198,8 @@ export class DuoyunAreaChartElement extends DuoyunChartBaseElement {
             : (a, b) => {
                 const an = Number(a.originValue);
                 const bn = Number(b.originValue);
-                if (isNaN(an)) return 1;
-                if (isNaN(bn)) return -1;
+                if (Number.isNaN(an)) return 1;
+                if (Number.isNaN(bn)) return -1;
                 return an > bn ? -1 : 1;
               },
         ),
@@ -416,20 +415,22 @@ export class DuoyunAreaChartElement extends DuoyunChartBaseElement {
               ></path>
             `,
           )}
-          ${this.symbol
-            ? this.#symbolSequences.map((dots, index) =>
-                dots.map((point, i) =>
-                  point
-                    ? this.symbolRender({
-                        point,
-                        color: this.colors[index],
-                        isHover: i === this.#state.hoverIndex,
-                        chart: this,
-                      })
-                    : '',
-                ),
-              )
-            : ''}
+          ${
+            this.symbol
+              ? this.#symbolSequences.map((dots, index) =>
+                  dots.map((point, i) =>
+                    point
+                      ? this.symbolRender({
+                          point,
+                          color: this.colors[index],
+                          isHover: i === this.#state.hoverIndex,
+                          chart: this,
+                        })
+                      : '',
+                  ),
+                )
+              : ''
+          }
           ${this._renderMarkLines()}
           <path
             class="hover-line"

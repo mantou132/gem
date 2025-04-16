@@ -1,7 +1,6 @@
 import { createStore } from '@mantou/gem/lib/store';
 
 import en from '../locales/en';
-
 import { OrderlyPromisePool } from './utils';
 
 export const locale = createStore({ ...en });

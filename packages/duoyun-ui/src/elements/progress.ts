@@ -1,7 +1,6 @@
 import { aria, customElement, mounted, numattribute } from '@mantou/gem/lib/decorators';
 
 import { theme } from '../lib/theme';
-
 import { DuoyunMeterElement } from './meter';
 
 @customElement('dy-progress')

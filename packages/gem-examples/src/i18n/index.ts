@@ -1,4 +1,4 @@
-import { GemElement, html, customElement, render } from '@mantou/gem';
+import { customElement, GemElement, html, render } from '@mantou/gem';
 import { I18n } from '@mantou/gem/helper/i18n';
 import type { RouteItem } from 'duoyun-ui/elements/route';
 

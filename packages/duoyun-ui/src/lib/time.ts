@@ -15,7 +15,7 @@ const intlDigitFormatter = Intl.DateTimeFormat(undefined, {
 
 /**Parse Date/number to object */
 export function parseDate(date?: number | Date) {
-  const parts = isNaN(Number(date)) ? [] : intlDigitFormatter.formatToParts(date);
+  const parts = Number.isNaN(Number(date)) ? [] : intlDigitFormatter.formatToParts(date);
   const dateObj: Record<string, string> = {};
   parts.forEach(({ type, value }) => (dateObj[type] = value));
   const { year = '', month = '', day = '', hour = '', minute = '', second = '' } = dateObj;
@@ -127,7 +127,7 @@ export class Time extends Date {
   static #formatReg = /\[([^\]]+)]|Y{1,4}|M{1,4}|D{1,2}|H{1,2}|m{1,2}|s{1,2}/g;
 
   get isInvalidTime() {
-    return isNaN(this.valueOf());
+    return Number.isNaN(this.valueOf());
   }
 
   formatToParts(opt: Intl.DateTimeFormatOptions = { year: 'numeric', month: 'short' }) {
@@ -208,9 +208,10 @@ export class Time extends Date {
     let result = true;
     const targetDate = new Time(d);
     switch (unit) {
-      case 'w':
+      case 'w': {
         const ws = new Time(this).subtract(this.getDay(), 'd').startOf('d');
         return targetDate.getTime() >= ws.getTime() && targetDate.getTime() <= ws.getTime() + 7 * Dd;
+      }
       case 'ms':
         return this.getTime() === targetDate.getTime();
       case 's':

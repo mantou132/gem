@@ -1,27 +1,27 @@
 // https://spectrum.adobe.com/page/slider/
+
+import { createDecoratorTheme } from '@mantou/gem/helper/theme';
 import type { Emitter } from '@mantou/gem/lib/decorators';
 import {
   adoptedStyle,
-  customElement,
-  attribute,
-  globalemitter,
-  emitter,
-  boolattribute,
-  numattribute,
   aria,
-  shadow,
-  mounted,
+  attribute,
+  boolattribute,
+  customElement,
   effect,
+  emitter,
+  globalemitter,
+  mounted,
+  numattribute,
+  shadow,
 } from '@mantou/gem/lib/decorators';
-import { GemElement, html, css, createState, createRef } from '@mantou/gem/lib/element';
-import { classMap, addListener } from '@mantou/gem/lib/utils';
-import { createDecoratorTheme } from '@mantou/gem/helper/theme';
+import { createRef, createState, css, GemElement, html } from '@mantou/gem/lib/element';
+import { addListener, classMap } from '@mantou/gem/lib/utils';
 
-import { theme } from '../lib/theme';
-import { clamp } from '../lib/number';
 import { hotkeys } from '../lib/hotkeys';
+import { clamp } from '../lib/number';
 import { focusStyle } from '../lib/styles';
-
+import { theme } from '../lib/theme';
 import type { PanEventDetail } from './gesture';
 
 import './gesture';

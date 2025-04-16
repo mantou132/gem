@@ -1,21 +1,20 @@
 import type { Emitter } from '@mantou/gem/lib/decorators';
 import {
   adoptedStyle,
-  customElement,
-  attribute,
-  emitter,
-  boolattribute,
-  slot,
   aria,
-  shadow,
+  attribute,
+  boolattribute,
+  customElement,
   effect,
+  emitter,
+  shadow,
+  slot,
 } from '@mantou/gem/lib/decorators';
-import { css, createState, GemElement, html } from '@mantou/gem/lib/element';
+import { createState, css, GemElement, html } from '@mantou/gem/lib/element';
 import { classMap, styleMap } from '@mantou/gem/lib/utils';
 
-import { locale } from '../lib/locale';
 import { commonHandle } from '../lib/hotkeys';
-
+import { locale } from '../lib/locale';
 import { DuoyunScrollBaseElement } from './base/scroll';
 
 import './action-text';

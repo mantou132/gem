@@ -1,16 +1,14 @@
-import { connect, html, history, createStore } from '@mantou/gem';
+import { connect, createStore, history, html } from '@mantou/gem';
 import type { RouteItem } from '@mantou/gem/elements/route';
 import { GemLightRouteElement } from '@mantou/gem/elements/route';
 import { I18n } from '@mantou/gem/helper/i18n';
 
 import type { BookConfig, NavItem } from '../common/config';
 import { getLinkPath, getUserLink } from '../common/utils';
-
+import type { GemBookElement } from '.';
 import { originDocLang, selfI18n } from './helper/i18n';
 import type { NavItemWithLink } from './lib/utils';
-import { flatNav, capitalize, getURL, joinPath } from './lib/utils';
-
-import type { GemBookElement } from '.';
+import { capitalize, flatNav, getURL, joinPath } from './lib/utils';
 
 interface CurrentBookConfig {
   config: BookConfig;
@@ -45,7 +43,7 @@ function getI18nSidebar(config: BookConfig = {}) {
   let langList: { code: string; name: string }[] = [];
 
   const sidebarConfig = config.sidebar || [];
-  if (sidebarConfig instanceof Array) {
+  if (Array.isArray(sidebarConfig)) {
     sidebar = sidebarConfig;
   } else {
     langList = Object.keys(sidebarConfig).map((code) => ({ code, name: sidebarConfig[code].name }));

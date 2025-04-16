@@ -1,4 +1,4 @@
-import { html, render, raw } from '@mantou/gem';
+import { html, raw, render } from '@mantou/gem';
 
 import '@mantou/gem/elements/use';
 

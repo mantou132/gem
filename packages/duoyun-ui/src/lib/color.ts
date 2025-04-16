@@ -98,7 +98,7 @@ export function rgbToHsl(rgb: RGB | RGBA): HSL {
   const v = Math.max(r, g, b),
     c = v - Math.min(r, g, b),
     f = 1 - Math.abs(v + v - c - 1);
-  const h = c && (v == r ? (g - b) / c : v == g ? 2 + (b - r) / c : 4 + (r - g) / c);
+  const h = c && (v === r ? (g - b) / c : v === g ? 2 + (b - r) / c : 4 + (r - g) / c);
   return [(h < 0 ? h + 6 : h) / 6, f ? c / f : 0, (v + v - c) / 2];
 }
 
@@ -112,7 +112,7 @@ export function rgbToHsv(rgb: RGB | RGBA): HSV {
   const [r, g, b] = rgb.map((e) => e / 255);
   const v = Math.max(r, g, b),
     c = v - Math.min(r, g, b);
-  const h = c && (v == r ? (g - b) / c : v == g ? 2 + (b - r) / c : 4 + (r - g) / c);
+  const h = c && (v === r ? (g - b) / c : v === g ? 2 + (b - r) / c : 4 + (r - g) / c);
   return [(h < 0 ? h + 6 : h) / 6, v && c / v, v];
 }
 

@@ -1,3 +1,4 @@
+/** biome-ignore-all lint/security/noGlobalEval: <explanation> */
 import type { TemplateResult } from '@mantou/gem/';
 
 import type { GemBookElement } from '../element';
@@ -144,7 +145,7 @@ class _GbpExampleElement extends GemBookPluginElement {
   #jsonReplace = (value: any, indent: number, getValue: (v: any) => [boolean, string]) => {
     let id = 0;
     const replaceStr = new Map<string, string>();
-    const replacer = (key: string, val: any) => {
+    const replacer = (_: string, val: any) => {
       const [needReplace, v] = getValue(val);
       // 用来将字符串替换成 v，例如函数
       if (needReplace) {
@@ -200,9 +201,9 @@ class _GbpExampleElement extends GemBookPluginElement {
     const hasMultipleLine = vString.includes('\n');
     const indentValue = hasMultipleLine ? `\n${this.#addIndentation(vString, 4)}\n` : vString;
     return html`${isNewLine ? html`<br />${this.#addIndentation('')}` : ' '}<span class="attribute">${kString}</span
-      >${this.#renderToken('=')}${html`\${${this.#renderToken(indentValue)}${hasMultipleLine
-        ? this.#addIndentation('')
-        : ''}}`}`;
+      >${this.#renderToken('=')}${html`\${${this.#renderToken(indentValue)}${
+        hasMultipleLine ? this.#addIndentation('') : ''
+      }}`}`;
   };
 
   #renderProps = (props: Props) => {
@@ -305,11 +306,13 @@ class _GbpExampleElement extends GemBookPluginElement {
     const slot = textContentIsProps ? '' : html`<slot></slot>`;
     return html`
       <div class="preview" style=${styleMap({ flexDirection: this.#direction })}>
-        ${error
-          ? html`<div class="error">${error}</div>`
-          : loading
-            ? html`<div class="loading">Example Loading...</div>`
-            : html`${elements}${slot}`}
+        ${
+          error
+            ? html`<div class="error">${error}</div>`
+            : loading
+              ? html`<div class="loading">Example Loading...</div>`
+              : html`${elements}${slot}`
+        }
       </div>
       <div class="panel">
         <div class="code">${code}</div>

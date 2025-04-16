@@ -1,22 +1,21 @@
 import {
-  GemElement,
-  html,
   adoptedStyle,
-  customElement,
-  connectStore,
   attribute,
-  property,
   boolattribute,
   classMap,
-  shadow,
+  connectStore,
+  customElement,
+  GemElement,
+  html,
   memo,
+  property,
+  shadow,
 } from '@mantou/gem';
 
-import { panelStore } from '../store';
+import { execution } from '../common';
 import type { DomStatInfo } from '../scripts/inspect-ele';
 import { inspectDom } from '../scripts/inspect-ele';
-import { execution } from '../common';
-
+import { panelStore } from '../store';
 import { style } from './section';
 
 @customElement('devtools-statistics')
@@ -83,11 +82,13 @@ export class devtoolsStatisticsElement extends GemElement {
       <details>
         <summary><span class="summary">${name}${data.length ? `(${data.length})` : ''}</span></summary>
         <div>
-          ${this.ignore
-            ? html`<div class="nodata">ignore</div>`
-            : data.length
-              ? this.#renderItem(data)
-              : html`<div class="nodata">no data</div>`}
+          ${
+            this.ignore
+              ? html`<div class="nodata">ignore</div>`
+              : data.length
+                ? this.#renderItem(data)
+                : html`<div class="nodata">no data</div>`
+          }
         </div>
       </details>
     `;

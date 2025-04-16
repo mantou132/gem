@@ -1,21 +1,21 @@
+import { createDecoratorTheme } from '@mantou/gem/helper/theme';
 import type { Emitter } from '@mantou/gem/lib/decorators';
 import {
   adoptedStyle,
-  customElement,
   attribute,
-  globalemitter,
   boolattribute,
-  slot,
-  shadow,
+  customElement,
+  globalemitter,
   mounted,
+  shadow,
+  slot,
 } from '@mantou/gem/lib/decorators';
-import { GemElement, html, css } from '@mantou/gem/lib/element';
+import { css, GemElement, html } from '@mantou/gem/lib/element';
 import { addListener } from '@mantou/gem/lib/utils';
-import { createDecoratorTheme } from '@mantou/gem/helper/theme';
 
-import { theme, getSemanticColor } from '../lib/theme';
 import { commonHandle } from '../lib/hotkeys';
 import { focusStyle } from '../lib/styles';
+import { getSemanticColor, theme } from '../lib/theme';
 
 const elementTheme = createDecoratorTheme({ color: '' });
 

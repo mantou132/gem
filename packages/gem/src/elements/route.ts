@@ -1,4 +1,4 @@
-import { GemRouteElement, GemLightRouteElement } from './base/route';
+import { GemLightRouteElement, GemRouteElement } from './base/route';
 
 export * from './base/route';
 

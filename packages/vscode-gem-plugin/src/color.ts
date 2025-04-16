@@ -1,11 +1,11 @@
 // ts-plugin 不支持
 // Zed: https://github.com/zed-industries/zed/issues/4678
 
-// eslint-disable-next-line import/no-unresolved
-import { Range, Color } from 'vscode';
-import type { DocumentColorProvider, ColorInformation, TextDocument } from 'vscode';
-import { rgbToHexColor, parseHexColor } from 'duoyun-ui/lib/color';
 import type { HexColor } from 'duoyun-ui/lib/color';
+import { parseHexColor, rgbToHexColor } from 'duoyun-ui/lib/color';
+import type { ColorInformation, DocumentColorProvider, TextDocument } from 'vscode';
+// eslint-disable-next-line import/no-unresolved
+import { Color, Range } from 'vscode';
 
 const COLOR_REG = /(?<start>'|")?(?<content>#([0-9a-fA-F]{8}|[0-9a-fA-F]{6}|[0-9a-fA-F]{3,4}))($1|\s*;|\s*\))/g;
 

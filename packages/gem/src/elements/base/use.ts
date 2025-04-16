@@ -1,5 +1,5 @@
-import { css, GemElement, html } from '../../lib/reactive';
 import { adoptedStyle, attribute, property, shadow, state, template } from '../../lib/decorators';
+import { css, GemElement, html } from '../../lib/reactive';
 
 const styles = css`
   :host(:where(:not([hidden]))) {

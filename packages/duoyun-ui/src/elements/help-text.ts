@@ -1,6 +1,6 @@
-import { adoptedStyle, customElement, attribute, slot, shadow } from '@mantou/gem/lib/decorators';
-import { GemElement, css } from '@mantou/gem/lib/element';
 import { createDecoratorTheme } from '@mantou/gem/helper/theme';
+import { adoptedStyle, attribute, customElement, shadow, slot } from '@mantou/gem/lib/decorators';
+import { css, GemElement } from '@mantou/gem/lib/element';
 
 import { getStatusColor } from './status-light';
 

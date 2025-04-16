@@ -1,4 +1,4 @@
-import { html, randomStr, GemElement, customElement, render, createState, mounted } from '@mantou/gem';
+import { createState, customElement, GemElement, html, mounted, randomStr, render } from '@mantou/gem';
 
 import '@mantou/gem/elements/reflect';
 
@@ -23,8 +23,9 @@ export class App extends GemElement {
     return html`
       <button @click=${() => this.#state({ mount: true })}>mount</button>
       <button @click=${() => this.#state({ mount: false })}>unmount</button>
-      ${this.#state.mount
-        ? html`
+      ${
+        this.#state.mount
+          ? html`
             <gem-reflect>
               <app-children></app-children>
               <style>
@@ -45,7 +46,8 @@ export class App extends GemElement {
               <div>${randomStr()}</div>
             </gem-reflect>
           `
-        : null}
+          : null
+      }
     `;
   }
 }

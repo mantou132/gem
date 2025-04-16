@@ -1,11 +1,11 @@
 // https://spectrum.adobe.com/page/breadcrumbs/
-import { adoptedStyle, customElement, property, boolattribute, part, aria, shadow } from '@mantou/gem/lib/decorators';
+import { adoptedStyle, aria, boolattribute, customElement, part, property, shadow } from '@mantou/gem/lib/decorators';
 import { css, GemElement, html } from '@mantou/gem/lib/element';
 import { classMap } from '@mantou/gem/lib/utils';
 
+import { commonHandle } from '../lib/hotkeys';
 import { icons } from '../lib/icons';
 import { theme } from '../lib/theme';
-import { commonHandle } from '../lib/hotkeys';
 
 import './use';
 import './tooltip';

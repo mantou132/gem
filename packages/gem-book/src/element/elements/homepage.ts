@@ -1,14 +1,13 @@
-import { html, GemElement, customElement, connectStore, css, adoptedStyle } from '@mantou/gem';
+import { adoptedStyle, connectStore, css, customElement, GemElement, html } from '@mantou/gem';
 import { mediaQuery } from '@mantou/gem/helper/mediaquery';
 
 import { getUserLink } from '../../common/utils';
+import { GemBookElement } from '..';
 import { theme } from '../helper/theme';
+import { unsafeRenderHTML } from '../lib/renderer';
 import type { NavItemWithLink } from '../lib/utils';
 import { joinPath } from '../lib/utils';
 import { bookStore } from '../store';
-import { unsafeRenderHTML } from '../lib/renderer';
-import { GemBookElement } from '..';
-
 import { icons } from './icons';
 
 import '@mantou/gem/elements/link';
@@ -187,14 +186,16 @@ export class Homepage extends GemElement {
           ${features?.map(
             (feature) => html`
               <div class="feature ${feature.icon ? 'has-icon' : ''}">
-                ${!feature.icon
-                  ? ''
-                  : [...feature.icon].length <= 3
-                    ? html`<span class="icon">${feature.icon}</span>`
-                    : html`<img
+                ${
+                  !feature.icon
+                    ? ''
+                    : [...feature.icon].length <= 3
+                      ? html`<span class="icon">${feature.icon}</span>`
+                      : html`<img
                         class="icon"
                         src=${new URL(feature.icon, `${location.origin}${joinPath(bookStore.lang, originLink)}`).href}
-                      />`}
+                      />`
+                }
                 <dt class="feat-title">${feature.title}</dt>
                 <dd class="feat-desc">
                   ${unsafeRenderHTML(

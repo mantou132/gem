@@ -1,10 +1,9 @@
 // https://spectrum.adobe.com/page/code/
-import { adoptedStyle, customElement, attribute, shadow, mounted, effect } from '@mantou/gem/lib/decorators';
-import { css, createRef, html } from '@mantou/gem/lib/element';
+import { adoptedStyle, attribute, customElement, effect, mounted, shadow } from '@mantou/gem/lib/decorators';
+import { createRef, css, html } from '@mantou/gem/lib/element';
 import { styleMap } from '@mantou/gem/lib/utils';
 
 import { theme } from '../lib/theme';
-
 import { DuoyunVisibleBaseElement } from './base/visible';
 
 const prismjs = 'https://esm.sh/prismjs@v1.26.0';
@@ -389,9 +388,10 @@ export class DuoyunCodeBlockElement extends DuoyunVisibleBaseElement {
 
   render() {
     return html`
-      ${this.highlight
-        ? this.#getRanges(this.highlight).map(
-            ([start, end]) => html`
+      ${
+        this.highlight
+          ? this.#getRanges(this.highlight).map(
+              ([start, end]) => html`
               <span
                 class="highlight"
                 style=${styleMap({
@@ -400,8 +400,9 @@ export class DuoyunCodeBlockElement extends DuoyunVisibleBaseElement {
                 })}
               ></span>
             `,
-          )
-        : ''}
+            )
+          : ''
+      }
       <code ${this.#codeRef} class="code">${this.#getParts(this.textContent || '')}</code>
     `;
   }

@@ -1,15 +1,14 @@
 import { css, SheetToken } from '../lib/element';
 import {
+  absoluteLocation,
+  classMap,
+  exportPartsMap,
   LinkedList,
   QueryString,
   raw,
   styled,
   styleMap,
-  classMap,
-  exportPartsMap,
-  absoluteLocation,
 } from '../lib/utils';
-
 import { expect } from './utils';
 
 declare global {
@@ -77,7 +76,7 @@ describe('utils 测试', () => {
     query.setAny('obj', [{ a: 1, b: 2 }]);
     expect(query.getAny('obj')).to.deep.equal({ a: 1, b: 2 });
     expect(query.getAnyAll('obj')).to.deep.equal([{ a: 1, b: 2 }]);
-    expect(new QueryString({ a: 1 }).toString()).to.equal('?a=1');
+    expect(new QueryString({ a: '1' }).toString()).to.equal('?a=1');
     expect(new QueryString(query).toString()).to.equal(query.toString());
   });
   it('css', () => {

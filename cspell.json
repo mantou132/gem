@@ -1,12 +1,7 @@
 {
   "$schema": "https://raw.githubusercontent.com/streetsidesoftware/cspell/main/cspell.schema.json",
   "version": "0.2",
-  "ignorePaths": [
-    "**/pnpm-lock.yaml",
-    "**/package.json",
-    "**/settings.json",
-    "**/cspell.json"
-  ],
+  "ignorePaths": ["**/pnpm-lock.yaml", "**/package.json", "**/settings.json", "**/cspell.json"],
   "useGitignore": true,
   "words": [
     "activekey",
@@ -139,6 +134,7 @@
     "WIDTHSCREEN",
     "worklet",
     "worktree",
-    "xywh"
+    "xywh",
+    "vestaboard"
   ]
 }

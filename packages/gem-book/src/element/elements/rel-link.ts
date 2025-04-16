@@ -1,4 +1,4 @@
-import { html, GemElement, customElement, connectStore, property, adoptedStyle, css, aria } from '@mantou/gem';
+import { adoptedStyle, aria, connectStore, css, customElement, GemElement, html, property } from '@mantou/gem';
 import { mediaQuery } from '@mantou/gem/helper/mediaquery';
 
 import type { NavItem } from '../../common/config';

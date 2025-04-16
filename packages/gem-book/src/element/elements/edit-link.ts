@@ -1,22 +1,21 @@
 import {
-  html,
-  GemElement,
-  customElement,
-  connectStore,
   adoptedStyle,
-  css,
-  createState,
-  memo,
-  effect,
   aria,
+  connectStore,
+  createState,
+  css,
+  customElement,
+  effect,
+  GemElement,
+  html,
+  memo,
 } from '@mantou/gem';
 import { mediaQuery } from '@mantou/gem/helper/mediaquery';
 
-import { getGithubPath, isGitLab } from '../lib/utils';
 import { getPlatform, selfI18n } from '../helper/i18n';
-import { bookStore, locationStore } from '../store';
 import { theme } from '../helper/theme';
-
+import { getGithubPath, isGitLab } from '../lib/utils';
+import { bookStore, locationStore } from '../store';
 import { icons } from './icons';
 
 import '@mantou/gem/elements/link';
@@ -172,13 +171,10 @@ export class EditLink extends GemElement {
         <gem-use .element=${icons.compose}></gem-use>
         <span>${selfI18n.get('editOnGithub', getPlatform())}</span>
       </gem-link>
-      ${lastUpdated &&
-      html`
-        <div class="last-updated">
-          <span>${selfI18n.get('lastUpdated')}:</span>
-          <gem-link href=${commitUrl} title=${message}>${lastUpdated}</gem-link>
-        </div>
-      `}
+      <div v-if=${!!lastUpdated} class="last-updated">
+        <span>${selfI18n.get('lastUpdated')}:</span>
+        <gem-link href=${commitUrl} title=${message}>${lastUpdated}</gem-link>
+      </div>
     `;
   }
 }

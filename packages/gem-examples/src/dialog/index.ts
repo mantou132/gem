@@ -1,6 +1,6 @@
-import { GemElement, html, customElement, render, shadow, createState, createRef } from '@mantou/gem';
-import { createModalClass } from '@mantou/gem/elements/base/modal-factory';
+import { createRef, createState, customElement, GemElement, html, render, shadow } from '@mantou/gem';
 import { GemDialogBaseElement } from '@mantou/gem/elements/base/dialog';
+import { createModalClass } from '@mantou/gem/elements/base/modal-factory';
 
 import '@mantou/gem/elements/link';
 import '../elements/layout';

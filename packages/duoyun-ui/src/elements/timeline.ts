@@ -2,10 +2,9 @@
 import { adoptedStyle, aria, customElement, property, shadow } from '@mantou/gem/lib/decorators';
 import type { TemplateResult } from '@mantou/gem/lib/element';
 import { css, html } from '@mantou/gem/lib/element';
-import { styleMap, classMap } from '@mantou/gem/lib/utils';
+import { classMap, styleMap } from '@mantou/gem/lib/utils';
 
 import { theme } from '../lib/theme';
-
 import { DuoyunScrollBaseElement } from './base/scroll';
 
 import './use';

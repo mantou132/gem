@@ -75,8 +75,8 @@ export function debounce<T extends (...args: any) => any>(
   { leading = false }: { leading?: boolean } = {},
 ) {
   let timer = 0;
-  return function (...args: Parameters<T>) {
-    return new Promise<Awaited<ReturnType<typeof fn>>>((resolve, reject) => {
+  return (...args: Parameters<T>) =>
+    new Promise<Awaited<ReturnType<typeof fn>>>((resolve, reject) => {
       clearTimeout(timer);
       timer = setTimeout(
         () => {
@@ -88,7 +88,6 @@ export function debounce<T extends (...args: any) => any>(
         leading && !timer ? 0 : wait,
       );
     });
-  };
 }
 
 /**Invoke the function by condition */

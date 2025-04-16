@@ -35,7 +35,7 @@ export interface DirectiveResult<C extends DirectiveClass = DirectiveClass> {
    * This property needs to remain unminified.
    * @internal
    */
-  ['_$litDirective$']: C;
+  _$litDirective$: C;
   /** @internal */
   values: DirectiveParameters<InstanceType<C>>;
 }
@@ -86,7 +86,7 @@ export const directive =
   <C extends DirectiveClass>(c: C) =>
   (...values: DirectiveParameters<InstanceType<C>>): DirectiveResult<C> => ({
     // This property needs to remain unminified.
-    ['_$litDirective$']: c,
+    _$litDirective$: c,
     values,
   });
 
@@ -111,9 +111,7 @@ export abstract class Directive implements Disconnectable {
   _$disconnectableChildren?: Set<Disconnectable>;
   // This property needs to remain unminified.
   //@internal
-  ['_$notifyDirectiveConnectionChanged']?(isConnected: boolean): void;
-
-  constructor(_partInfo: PartInfo) {}
+  _$notifyDirectiveConnectionChanged?(isConnected: boolean): void;
 
   // See comment in Disconnectable interface for why this is a getter
   get _$isConnected() {

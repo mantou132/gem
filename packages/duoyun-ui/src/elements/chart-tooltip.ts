@@ -1,9 +1,9 @@
-import { connectStore, adoptedStyle, customElement, shadow, effect } from '@mantou/gem/lib/decorators';
+import { createDecoratorTheme } from '@mantou/gem/helper/theme';
+import { adoptedStyle, connectStore, customElement, effect, shadow } from '@mantou/gem/lib/decorators';
 import type { TemplateResult } from '@mantou/gem/lib/element';
 import { css, GemElement, html } from '@mantou/gem/lib/element';
-import { styleMap, classMap } from '@mantou/gem/lib/utils';
 import { createStore } from '@mantou/gem/lib/store';
-import { createDecoratorTheme } from '@mantou/gem/helper/theme';
+import { classMap, styleMap } from '@mantou/gem/lib/utils';
 
 import { theme } from '../lib/theme';
 
@@ -141,9 +141,10 @@ export class DuoyunChartTooltipElement extends GemElement {
     const { title, values, render } = store.data;
     return html`
       <div class="body" role="tooltip">
-        ${render
-          ? render(store.data)
-          : html`
+        ${
+          render
+            ? render(store.data)
+            : html`
               <div v-if=${!!title} class="title">${title}</div>
               ${values?.map(
                 ({ hidden, color, label, value, highlight }) => html`
@@ -156,7 +157,8 @@ export class DuoyunChartTooltipElement extends GemElement {
                   </div>
                 `,
               )}
-            `}
+            `
+        }
       </div>
     `;
   };

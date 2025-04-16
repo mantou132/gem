@@ -1,17 +1,17 @@
 import {
-  customElement,
+  adoptedStyle,
   attribute,
-  createRef,
   boolattribute,
-  shadow,
+  createRef,
+  css,
+  customElement,
+  effect,
   GemElement,
   html,
-  adoptedStyle,
-  css,
-  styleMap,
-  mounted,
   memo,
-  effect,
+  mounted,
+  shadow,
+  styleMap,
 } from '@mantou/gem';
 import { mediaQuery } from '@mantou/gem/helper/mediaquery';
 
@@ -599,19 +599,21 @@ export class Pre extends GemElement {
                 `
               : '',
           )}
-        ${this.#linenumber
-          ? html`
+        ${
+          this.#linenumber
+            ? html`
               <div class="linenumber padding">
                 ${lineNumbersParts.map(
                   (numbers, index, arr) => html`
-                    ${numbers.map((n) => html`<span>${n}</span>`)}${arr.length - 1 !== index
-                      ? html`<span class="linenumber-ignore"></span>`
-                      : ''}
+                    ${numbers.map((n) => html`<span>${n}</span>`)}${
+                      arr.length - 1 !== index ? html`<span class="linenumber-ignore"></span>` : ''
+                    }
                   `,
                 )}
               </div>
             `
-          : ''}
+            : ''
+        }
         <div class="code-container">
           <code
             ${this.#codeRef}
@@ -623,8 +625,9 @@ export class Pre extends GemElement {
             @input=${this.#onInput}
             >${parts.join('\n'.repeat(IGNORE_LINE + 1))}</code
           >
-          ${this.editable
-            ? html`<code
+          ${
+            this.editable
+              ? html`<code
                 ${this.#editorRef}
                 class="code-shadow padding"
                 spellcheck="false"
@@ -633,7 +636,8 @@ export class Pre extends GemElement {
                 @compositionend=${this.#compositionendHandle}
                 @input=${this.#onInput}
               ></code>`
-            : ''}
+              : ''
+          }
         </div>
       </div>
     `;

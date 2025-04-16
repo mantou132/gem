@@ -1,11 +1,11 @@
+import { createRef, createState, customElement, GemElement, html, render } from '@mantou/gem';
 import type {
+  GemGestureElement,
   PanEventDetail,
   PinchEventDetail,
   RotateEventDetail,
   SwipeEventDetail,
-  GemGestureElement,
 } from '@mantou/gem/elements/gesture';
-import { render, GemElement, html, customElement, createRef, createState } from '@mantou/gem';
 
 import '@mantou/gem/elements/gesture';
 import '../elements/layout';

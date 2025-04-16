@@ -1,7 +1,7 @@
 import { aria, connectStore, customElement, GemElement, html } from '@mantou/gem';
 
-import { joinPath } from '../lib/utils';
 import { themeStore } from '../helper/theme';
+import { joinPath } from '../lib/utils';
 import { bookStore, locationStore } from '../store';
 
 import '@mantou/gem/elements/title';

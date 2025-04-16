@@ -32,7 +32,7 @@ export function utf8ToB64(str: string, isSafe?: boolean) {
 }
 
 // https://github.com/tc39/proposal-arraybuffer-base64
-export function arrayBufferToBase64(arrayBuffer: ArrayBuffer, isSafe?: boolean) {
+export function arrayBufferToBase64(arrayBuffer: ArrayBufferLike, isSafe?: boolean) {
   const base64 = btoa(String.fromCharCode(...new Uint8Array(arrayBuffer)));
   return isSafe ? base64ToSafeUrl(base64) : base64;
 }

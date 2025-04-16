@@ -1,20 +1,19 @@
+import { createDecoratorTheme } from '@mantou/gem/helper/theme';
 import {
   adoptedStyle,
-  customElement,
+  aria,
   attribute,
-  property,
   boolattribute,
+  customElement,
   numattribute,
   part,
-  aria,
+  property,
   shadow,
 } from '@mantou/gem/lib/decorators';
 import { css, GemElement, html } from '@mantou/gem/lib/element';
 import { exportPartsMap } from '@mantou/gem/lib/utils';
-import { createDecoratorTheme } from '@mantou/gem/helper/theme';
 
 import { theme } from '../lib/theme';
-
 import type { Status } from './status-light';
 import { getStatusColor } from './status-light';
 import './tooltip';

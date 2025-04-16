@@ -1,12 +1,12 @@
-import { adoptedStyle, customElement, mounted, part, shadow } from '@mantou/gem/lib/decorators';
-import { css, createState, GemElement, html } from '@mantou/gem/lib/element';
-import { addListener } from '@mantou/gem/lib/utils';
 import { createDecoratorTheme } from '@mantou/gem/helper/theme';
+import { adoptedStyle, customElement, mounted, part, shadow } from '@mantou/gem/lib/decorators';
+import { createState, css, GemElement, html } from '@mantou/gem/lib/element';
+import { addListener } from '@mantou/gem/lib/utils';
 
-import { theme } from '../lib/theme';
 import { getDisplayKey } from '../lib/hotkeys';
-import { throttle } from '../lib/timer';
 import { contentsContainer } from '../lib/styles';
+import { theme } from '../lib/theme';
+import { throttle } from '../lib/timer';
 
 import './paragraph';
 

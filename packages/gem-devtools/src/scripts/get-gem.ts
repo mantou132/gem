@@ -1,11 +1,11 @@
-import type { GemElement, SheetToken, Metadata } from '@mantou/gem';
+import type { GemElement, Metadata, SheetToken } from '@mantou/gem';
 
 import type { PanelStore } from '../store';
 
 declare let $0: any;
 
 // 不要使用作用域外的变量
-export const getSelectedGem = function (data: PanelStore): PanelStore | string {
+export const getSelectedGem = (data: PanelStore): PanelStore | string => {
   // https://github.com/bramus/scroll-driven-animations-debugger-extension/issues/19
   if (!$0) return `Not Gem: $0 is ${$0}`;
   const { __GEM_DEVTOOLS__HOOK__ } = window;
@@ -39,6 +39,7 @@ export const getSelectedGem = function (data: PanelStore): PanelStore | string {
   const objToString = (arg: any) => {
     if (arg === null) return 'null';
     switch (typeof arg) {
+      // biome-ignore lint/suspicious/noFallthroughSwitchClause: <explanation>
       case 'function':
         if (window.__GEM_DEVTOOLS__PRELOAD__.isFunction(arg)) return funcToString(arg);
       // eslint-disable-next-line no-fallthrough
@@ -55,6 +56,7 @@ export const getSelectedGem = function (data: PanelStore): PanelStore | string {
     if (arg === null) return 'null';
     switch (typeof arg) {
       case 'function':
+        // biome-ignore lint/suspicious/noFallthroughSwitchClause: <explanation>
         if (window.__GEM_DEVTOOLS__PRELOAD__.isFunction(arg)) return funcToString(arg);
       // eslint-disable-next-line no-fallthrough
       case 'object': {

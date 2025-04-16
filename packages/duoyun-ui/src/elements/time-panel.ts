@@ -1,21 +1,21 @@
 import type { Emitter } from '@mantou/gem/lib/decorators';
 import {
   adoptedStyle,
+  boolattribute,
   customElement,
   globalemitter,
-  property,
-  boolattribute,
-  shadow,
   mounted,
+  property,
+  shadow,
 } from '@mantou/gem/lib/decorators';
-import { GemElement, html, css } from '@mantou/gem/lib/element';
+import { css, GemElement, html } from '@mantou/gem/lib/element';
 import { classMap } from '@mantou/gem/lib/utils';
 
-import { Time, parseDate } from '../lib/time';
-import { theme } from '../lib/theme';
-import { isNotNullish } from '../lib/types';
 import { locale } from '../lib/locale';
 import { focusStyle } from '../lib/styles';
+import { theme } from '../lib/theme';
+import { parseDate, Time } from '../lib/time';
+import { isNotNullish } from '../lib/types';
 
 const style = css`
   :host(:where(:not([hidden]))) {
@@ -94,13 +94,15 @@ export class DuoyunTimePanelElement extends GemElement {
   render = () => {
     const { hour, minute, second } = this.#parts;
     return html`
-      ${this.headless
-        ? ''
-        : html`
-            <div class="header">${locale.hour}</div>
-            <div class="header">${locale.minute}</div>
-            <div class="header">${locale.second}</div>
-          `}
+      ${
+        this.headless
+          ? ''
+          : html`
+              <div class="header">${locale.hour}</div>
+              <div class="header">${locale.minute}</div>
+              <div class="header">${locale.second}</div>
+            `
+      }
       <div class="scrollbar">
         ${this.#toArr(24).map(
           (h) => html`

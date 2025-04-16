@@ -2,20 +2,20 @@
 import type { Emitter } from '@mantou/gem/lib/decorators';
 import {
   adoptedStyle,
-  customElement,
+  aria,
   attribute,
+  boolattribute,
+  customElement,
   emitter,
   property,
-  boolattribute,
-  slot,
   shadow,
-  aria,
+  slot,
 } from '@mantou/gem/lib/decorators';
 import { css, GemElement, html } from '@mantou/gem/lib/element';
 
-import { theme } from '../lib/theme';
-import { icons } from '../lib/icons';
 import { commonHandle } from '../lib/hotkeys';
+import { icons } from '../lib/icons';
+import { theme } from '../lib/theme';
 
 import './use';
 import './divider';

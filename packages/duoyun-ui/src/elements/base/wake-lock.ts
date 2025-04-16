@@ -1,8 +1,8 @@
 /**只要元素显示在屏幕内，屏幕就不会自动熄灭 */
 
 import { logger } from '@mantou/gem/helper/logger';
-import { addListener } from '@mantou/gem/lib/utils';
 import { mounted } from '@mantou/gem/lib/decorators';
+import { addListener } from '@mantou/gem/lib/utils';
 
 import { DuoyunVisibleBaseElement } from './visible';
 

@@ -1,9 +1,8 @@
+import type { RouteTrigger } from '../elements/base/route';
 import type { UpdateHistoryParams } from '../lib/history';
 import type { TemplateResult } from '../lib/lit-html';
 import { html, UpdateToken } from '../lib/reactive';
 import { GemError } from '../lib/utils';
-import type { RouteTrigger } from '../elements/base/route';
-
 import { logger } from './logger';
 
 // Hello, $1
@@ -91,9 +90,10 @@ export class I18n<T = Record<string, Msg>> implements RouteTrigger {
         return parts.shift();
       case 'path':
         return pathname.split('/')[1];
-      default:
+      default: {
         const fragment = (this.urlParamsName && new URLSearchParams(search).get(this.urlParamsName)) || '';
         return fragment in this.resources ? fragment : '';
+      }
     }
   }
 
@@ -198,7 +198,7 @@ export class I18n<T = Record<string, Msg>> implements RouteTrigger {
       if (localPackString) {
         try {
           pack = JSON.parse(localPackString);
-        } catch (e) {
+        } catch {
           pack = await fetchPack();
         }
       } else {
@@ -212,7 +212,7 @@ export class I18n<T = Record<string, Msg>> implements RouteTrigger {
     if (!this.#inConstructor) {
       // 更新所有元素，可能会更新许多不必要的元素
       const temp: Element[] = [document.documentElement];
-      while (!!temp.length) {
+      while (temp.length) {
         const element = temp.pop()!;
         (element as any)[UpdateToken]?.();
         // 和 gem 更新机制一样使用深度优先

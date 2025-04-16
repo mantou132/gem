@@ -1,20 +1,20 @@
 import {
   adoptedStyle,
-  customElement,
+  aria,
   attribute,
   boolattribute,
+  customElement,
   numattribute,
   property,
-  aria,
   shadow,
   slot,
 } from '@mantou/gem/lib/decorators';
-import { GemElement, html, css } from '@mantou/gem/lib/element';
+import { css, GemElement, html } from '@mantou/gem/lib/element';
 import { classMap } from '@mantou/gem/lib/utils';
 
-import { parseDuration } from '../lib/time';
+import { formatBandwidth, formatCurrency, formatDecimal, formatPercentage, formatTraffic } from '../lib/number';
 import { theme } from '../lib/theme';
-import { formatBandwidth, formatDecimal, formatPercentage, formatTraffic, formatCurrency } from '../lib/number';
+import { parseDuration } from '../lib/time';
 
 import './placeholder';
 import './use';
@@ -126,11 +126,9 @@ export class DuoyunStatisticElement extends GemElement {
           <span class="number">${this.loading ? html`<dy-placeholder width="6em"></dy-placeholder>` : number}</span>
           <span class="unit">${this.loading ? '' : unit}</span>
         </div>
-        ${this.loading || !this.hasAttribute('prev-value')
-          ? ''
-          : html`<span class=${classMap({ positive, negative })}>
-              ${isNaN(diffValue) ? '-' : diffValue === Infinity ? '∞' : diffValue}%
-            </span>`}
+        <span v-if=${!this.loading && this.hasAttribute('prev-value')} class=${classMap({ positive, negative })}>
+          ${Number.isNaN(diffValue) ? '-' : diffValue === Infinity ? '∞' : diffValue}%
+        </span>
       </div>
     `;
   };

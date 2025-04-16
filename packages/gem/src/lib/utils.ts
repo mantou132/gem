@@ -178,10 +178,6 @@ export class PropProxyMap<T extends NonPrimitive, V = unknown> extends WeakMap<T
 }
 
 export class QueryString extends URLSearchParams {
-  constructor(param?: any) {
-    super(param);
-  }
-
   // support `{ key: ObjectValue }`
   concat(param: any) {
     let query: any;
@@ -290,11 +286,11 @@ export function isArrayChange(newValues: any[], oldValues: any[]) {
 export function objectMapToString<T = any>(
   object: Record<string, T>,
   separate: string,
-  toString: (key: string, value: T) => string,
+  toStr: (key: string, value: T) => string,
 ) {
   let result = separate;
   for (const key in object) {
-    const s = toString(key, object[key]);
+    const s = toStr(key, object[key]);
     result += s ? s + separate : '';
   }
   return result;

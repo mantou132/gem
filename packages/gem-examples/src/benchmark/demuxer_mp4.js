@@ -107,7 +107,7 @@ class MP4Demuxer {
     this.#file.start();
   }
 
-  #onSamples(track_id, ref, samples) {
+  #onSamples(_track_id, _ref, samples) {
     // Generate and emit an EncodedVideoChunk for each demuxed sample.
     for (const sample of samples) {
       this.#onChunk(

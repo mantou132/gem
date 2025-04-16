@@ -1,4 +1,4 @@
-import { getThemeProps, getThemeStore, createTheme } from '@mantou/gem/helper/theme';
+import { createTheme, getThemeProps, getThemeStore } from '@mantou/gem/helper/theme';
 
 import { defaultTheme } from './default-theme';
 

@@ -1,12 +1,11 @@
-import { html, connect } from '@mantou/gem';
-import { Renderer, parse } from 'marked';
+import { connect, html } from '@mantou/gem';
+import { parse, Renderer } from 'marked';
 
+import { getUserLink, normalizeId, parseTitle } from '../../common/utils';
 import { icons } from '../elements/icons';
-import { normalizeId, getUserLink, parseTitle } from '../../common/utils';
 import { theme } from '../helper/theme';
 import { bookStore } from '../store';
-
-import { isSameOrigin, escapeHTML, textContent, joinPath } from './utils';
+import { escapeHTML, isSameOrigin, joinPath, textContent } from './utils';
 
 import '@mantou/gem/elements/unsafe';
 
@@ -33,7 +32,7 @@ function genRenderer(): Renderer {
 
   const renderer = new Renderer();
   // https://marked.js.org/using_pro#renderer
-  renderer.heading = function (fullText, level) {
+  renderer.heading = (fullText, level) => {
     // # heading {#custom-id}
     const { text, customId } = parseTitle(textContent(fullText));
     const tag = `h${level}`;
@@ -74,7 +73,7 @@ function genRenderer(): Renderer {
     return `<img src="${url.href}" alt="${text}" title="${title || ''}"/>`;
   };
 
-  renderer.link = function (href, title, text) {
+  renderer.link = (href, title, text) => {
     if (href?.startsWith('.')) {
       const { search, hash } = new URL(href, location.origin);
       return `<gem-link

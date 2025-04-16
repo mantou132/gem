@@ -1,6 +1,6 @@
 import { expect } from '@mantou/gem/test/utils';
 
-import { Time, formatDuration } from './time';
+import { formatDuration, Time } from './time';
 
 const date1 = '2010-01-12 04:00:00';
 

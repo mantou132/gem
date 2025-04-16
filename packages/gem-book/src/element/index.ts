@@ -1,47 +1,46 @@
 import type { Emitter } from '@mantou/gem';
 import {
-  html,
-  GemElement,
-  customElement,
-  property,
-  attribute,
-  connectStore,
-  part,
-  slot,
-  globalemitter,
-  state,
-  createRef,
-  boolattribute,
   adoptedStyle,
+  attribute,
+  boolattribute,
+  connectStore,
+  createRef,
   css,
-  kebabToCamelCase,
-  willMount,
+  customElement,
   effect,
+  GemElement,
+  globalemitter,
+  html,
+  kebabToCamelCase,
+  part,
+  property,
+  slot,
+  state,
+  willMount,
 } from '@mantou/gem';
 import type { GemLightRouteElement } from '@mantou/gem/elements/route';
 import { matchPath } from '@mantou/gem/elements/route';
-import { mediaQuery } from '@mantou/gem/helper/mediaquery';
 import { logger } from '@mantou/gem/helper/logger';
+import { mediaQuery } from '@mantou/gem/helper/mediaquery';
 
 import type { BookConfig } from '../common/config';
 import { UPDATE_EVENT } from '../common/constant';
-
-import type { Theme } from './helper/theme';
-import { theme, changeTheme, themeProps } from './helper/theme';
-import { bookStore, updateBookConfig, locationStore } from './store';
-import { checkBuiltInPlugin, joinPath } from './lib/utils';
-import { GemBookPluginElement } from './elements/plugin';
 import { Loadbar } from './elements/loadbar';
 import type { Main } from './elements/main';
+import { GemBookPluginElement } from './elements/plugin';
+import type { Theme } from './helper/theme';
+import { changeTheme, theme, themeProps } from './helper/theme';
+import { checkBuiltInPlugin, joinPath } from './lib/utils';
+import { bookStore, locationStore, updateBookConfig } from './store';
 
 import '@mantou/gem/elements/reflect';
-import './elements/homepage';
-import './elements/sidebar';
-import './elements/nav';
-import './elements/footer';
 import './elements/edit-link';
-import './elements/rel-link';
+import './elements/footer';
+import './elements/homepage';
 import './elements/meta';
+import './elements/nav';
+import './elements/rel-link';
+import './elements/sidebar';
 import './elements/toc';
 
 const styles = css`
@@ -271,17 +270,11 @@ export class GemBookElement extends GemElement {
 
     return html`
       <gem-book-meta></gem-book-meta>
-      ${hasNavbar
-        ? html`
-            <gem-book-nav part=${GemBookElement.nav} .logo=${mediaQuery.isPhone || this.renderFullWidth}></gem-book-nav>
-          `
-        : null}
-      ${mediaQuery.isPhone || !this.renderFullWidth
-        ? html`<gem-book-sidebar part=${GemBookElement.sidebar}></gem-book-sidebar>`
-        : null}
-      ${renderHomePage ? html`<gem-book-homepage></gem-book-homepage>` : ''}
+      <gem-book-nav v-if=${!!hasNavbar} part=${GemBookElement.nav} .logo=${mediaQuery.isPhone || this.renderFullWidth}></gem-book-nav>
+      <gem-book-sidebar v-if=${mediaQuery.isPhone || !this.renderFullWidth} part=${GemBookElement.sidebar}></gem-book-sidebar>
+      <gem-book-homepage v-if=${renderHomePage}></gem-book-homepage>
       <main>
-        ${renderHomePage ? '' : html`<slot name=${GemBookElement.mainBefore}>${bookStore.slots?.mainBefore}</slot>`}
+        <slot v-if=${!renderHomePage} name=${GemBookElement.mainBefore}>${bookStore.slots?.mainBefore}</slot>
         <gem-light-route
           ${this.routeRef}
           role="main"
@@ -295,7 +288,7 @@ export class GemBookElement extends GemElement {
         ></gem-light-route>
         <gem-book-edit-link part=${GemBookElement.editLink}></gem-book-edit-link>
         <gem-book-rel-link part=${GemBookElement.relLink}></gem-book-rel-link>
-        ${renderHomePage ? '' : html`<slot name=${GemBookElement.mainAfter}>${bookStore.slots?.mainAfter}</slot>`}
+        <slot v-if=${!renderHomePage} name=${GemBookElement.mainAfter}>${bookStore.slots?.mainAfter}</slot>
         <gem-book-footer part=${GemBookElement.footer}></gem-book-footer>
       </main>
       <gem-book-toc></gem-book-toc>

@@ -1,25 +1,25 @@
 import type { Emitter } from '@mantou/gem/lib/decorators';
 import {
   adoptedStyle,
-  customElement,
-  attribute,
-  globalemitter,
-  property,
-  boolattribute,
-  part,
-  emitter,
   aria,
-  shadow,
+  attribute,
+  boolattribute,
+  customElement,
+  emitter,
+  globalemitter,
   mounted,
+  part,
+  property,
+  shadow,
 } from '@mantou/gem/lib/decorators';
-import { GemElement, html, css } from '@mantou/gem/lib/element';
+import { css, GemElement, html } from '@mantou/gem/lib/element';
 import { addListener } from '@mantou/gem/lib/utils';
 
+import { getDisplayKey, normalizeKey } from '../lib/hotkeys';
+import { icons } from '../lib/icons';
+import { focusStyle } from '../lib/styles';
 import { theme } from '../lib/theme';
 import { isNotNullish } from '../lib/types';
-import { normalizeKey, getDisplayKey } from '../lib/hotkeys';
-import { focusStyle } from '../lib/styles';
-import { icons } from '../lib/icons';
 
 import './paragraph';
 import './use';
@@ -145,14 +145,16 @@ export class DuoyunShortcutRecordElement extends GemElement {
   render = () => {
     return html`
       <dy-paragraph class="paragraph">
-        ${this.value
-          ? html`${this.value.map(
-              (key) => html`<kbd part=${DuoyunShortcutRecordElement.kbd}>${getDisplayKey(key)}</kbd>`,
-            )}`
-          : html`
+        ${
+          this.value
+            ? html`${this.value.map(
+                (key) => html`<kbd part=${DuoyunShortcutRecordElement.kbd}>${getDisplayKey(key)}</kbd>`,
+              )}`
+            : html`
               <div class="placeholder">${this.placeholder}</div>
               <div class="tooltip">${this.#tooltip}</div>
-            `}
+            `
+        }
       </dy-paragraph>
       <dy-use
         v-if=${this.clearable}

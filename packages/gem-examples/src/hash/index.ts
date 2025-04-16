@@ -1,4 +1,4 @@
-import { GemElement, render, html, customElement, shadow, addListener, mounted } from '@mantou/gem';
+import { addListener, customElement, GemElement, html, mounted, render, shadow } from '@mantou/gem';
 import '@mantou/gem/elements/link';
 
 import '../elements/layout';

@@ -5,6 +5,7 @@ import { doComplete as doEmmetComplete } from '@mantou/vscode-emmet-helper';
 import type * as ts from 'typescript/lib/tsserverlibrary';
 
 import { LRUCache } from './cache';
+import { NAME } from './constants';
 import type { Context } from './context';
 import {
   genDefaultCompletionEntryDetails,
@@ -13,7 +14,6 @@ import {
   translateCompletionItemsToCompletionInfo,
   translateHover,
 } from './translates';
-import { NAME } from './constants';
 
 export class CSSLanguageService implements TemplateLanguageService {
   #completionsCache = new LRUCache<CompletionList>({ max: 1 });

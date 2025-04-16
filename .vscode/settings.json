@@ -6,29 +6,20 @@
   "scss.validate": false,
   "typescript.preferences.importModuleSpecifier": "non-relative",
   "typescript.tsdk": "node_modules/typescript/lib",
-  "eslint.validate": ["typescript", "typescriptreact"],
   "editor.formatOnSave": true,
-  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "editor.defaultFormatter": "biomejs.biome",
   "editor.codeActionsOnSave": {
-    "source.fixAll": "explicit"
+    "source.fixAll": "explicit",
+    "source.organizeImports": "always"
   },
   "rust-analyzer.check.command": "clippy",
-  "[xml]": {
-    "editor.defaultFormatter": null
-  },
-  "[typescript]": {
-    "editor.formatOnSave": false
-  },
   "[toml]": {
     "editor.defaultFormatter": "tamasfe.even-better-toml"
   },
   "[rust]": {
     "editor.defaultFormatter": "rust-lang.rust-analyzer"
   },
-  "[json]": {
-    "editor.defaultFormatter": "esbenp.prettier-vscode"
-  },
-  "[jsonc]": {
-    "editor.defaultFormatter": "esbenp.prettier-vscode"
-  }
+  "eslint.enable": false,
+  "prettier.enable": false,
+  "vue.server.hybridMode": false
 }

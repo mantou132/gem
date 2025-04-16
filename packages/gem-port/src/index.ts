@@ -4,11 +4,10 @@ import path from 'path';
 
 import program from 'commander';
 
-import { name, description, version } from '../package.json';
-
+import { description, name, version } from '../package.json';
 import { compileReact } from './react';
-import { generateVue } from './vue';
 import { compileSvelte } from './svelte';
+import { generateVue } from './vue';
 
 const cliOptions = {
   outDir: './',

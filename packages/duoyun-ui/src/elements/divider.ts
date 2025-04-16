@@ -1,17 +1,17 @@
+import { createDecoratorTheme } from '@mantou/gem/helper/theme';
 import {
   adoptedStyle,
-  customElement,
-  attribute,
   aria,
-  shadow,
+  attribute,
+  customElement,
   effect,
-  template,
+  shadow,
   slot,
+  template,
 } from '@mantou/gem/lib/decorators';
-import { html, GemElement, css } from '@mantou/gem/lib/element';
-import { createDecoratorTheme } from '@mantou/gem/helper/theme';
+import { css, GemElement, html } from '@mantou/gem/lib/element';
 
-import { theme, getSemanticColor } from '../lib/theme';
+import { getSemanticColor, theme } from '../lib/theme';
 
 const elementTheme = createDecoratorTheme({ color: '' });
 

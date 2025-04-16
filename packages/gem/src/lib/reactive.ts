@@ -1,7 +1,7 @@
 import type * as Lit from './lit-html';
 import type { Store } from './store';
 import { connect } from './store';
-import { LinkedList, addMicrotask, isArrayChange, addListener, randomStr, createUpdater, GemError, raw } from './utils';
+import { addListener, addMicrotask, createUpdater, GemError, isArrayChange, LinkedList, randomStr, raw } from './utils';
 
 export let html = ((arr: TemplateStringsArray, ...args: any[]) =>
   raw(arr, ...args.map((e) => (e instanceof Element ? e.outerHTML : e)))) as unknown as typeof Lit.html;

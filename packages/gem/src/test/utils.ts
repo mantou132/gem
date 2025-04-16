@@ -1,7 +1,7 @@
-import { expect, should, assert } from 'chai';
+import { assert, expect, should } from 'chai';
 
-import { render } from '../lib/element';
 import type { TemplateResult } from '../lib/element';
+import { render } from '../lib/element';
 
 export { expect, should, assert };
 

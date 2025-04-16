@@ -1,19 +1,18 @@
+import { createDecoratorTheme } from '@mantou/gem/helper/theme';
 import {
   adoptedStyle,
-  customElement,
+  aria,
   attribute,
   boolattribute,
+  customElement,
   numattribute,
   part,
-  aria,
   shadow,
 } from '@mantou/gem/lib/decorators';
 import { css, html } from '@mantou/gem/lib/element';
 import { styleMap } from '@mantou/gem/lib/utils';
-import { createDecoratorTheme } from '@mantou/gem/helper/theme';
 
 import { theme } from '../lib/theme';
-
 import { DuoyunVisibleBaseElement } from './base/visible';
 
 const elementTheme = createDecoratorTheme({ color: '' });

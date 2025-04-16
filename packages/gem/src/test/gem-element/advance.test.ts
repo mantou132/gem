@@ -6,21 +6,22 @@
  * - 派生元素（类扩展）
  * - 无渲染内容 Gem 元素
  */
-import { fixture, expect, nextFrame } from '../utils';
-import type { Metadata } from '../../lib/element';
-import { css, createState, GemElement, html, createRef } from '../../lib/element';
-import { createStore } from '../../lib/store';
+
 import {
+  adoptedStyle,
+  async,
   attribute,
-  property,
+  connectStore,
   customElement,
   emitter,
-  adoptedStyle,
-  connectStore,
-  async,
-  shadow,
   mounted,
+  property,
+  shadow,
 } from '../../lib/decorators';
+import type { Metadata } from '../../lib/element';
+import { createRef, createState, css, GemElement, html } from '../../lib/element';
+import { createStore } from '../../lib/store';
+import { expect, fixture, nextFrame } from '../utils';
 
 const store = createStore({
   a: 1,

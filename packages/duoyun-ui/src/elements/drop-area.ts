@@ -1,17 +1,17 @@
 import type { Emitter } from '@mantou/gem/lib/decorators';
 import {
   adoptedStyle,
-  customElement,
-  attribute,
-  globalemitter,
-  emitter,
-  state,
-  slot,
   aria,
-  shadow,
+  attribute,
+  customElement,
+  emitter,
+  globalemitter,
   mounted,
+  shadow,
+  slot,
+  state,
 } from '@mantou/gem/lib/decorators';
-import { GemElement, html, css } from '@mantou/gem/lib/element';
+import { css, GemElement, html } from '@mantou/gem/lib/element';
 import { addListener } from '@mantou/gem/lib/utils';
 
 import { theme } from '../lib/theme';

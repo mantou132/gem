@@ -1,26 +1,26 @@
 import type { Emitter } from '@mantou/gem/lib/decorators';
 import {
   adoptedStyle,
-  customElement,
   attribute,
-  emitter,
-  property,
   boolattribute,
-  part,
-  shadow,
+  customElement,
   effect,
+  emitter,
   mounted,
+  part,
+  property,
+  shadow,
 } from '@mantou/gem/lib/decorators';
 import type { TemplateResult } from '@mantou/gem/lib/element';
-import { css, createRef, createState, GemElement, html } from '@mantou/gem/lib/element';
+import { createRef, createState, css, GemElement, html } from '@mantou/gem/lib/element';
 import type { StyleObject } from '@mantou/gem/lib/utils';
 import { addListener, styleMap } from '@mantou/gem/lib/utils';
 
-import { toggleActiveState, getBoundingClientRect, setBodyInert } from '../lib/element';
-import { sleep } from '../lib/timer';
+import { getBoundingClientRect, setBodyInert, toggleActiveState } from '../lib/element';
 import { hotkeys } from '../lib/hotkeys';
-import { theme } from '../lib/theme';
 import { contentsContainer } from '../lib/styles';
+import { theme } from '../lib/theme';
+import { sleep } from '../lib/timer';
 
 import './reflect';
 
@@ -76,7 +76,7 @@ export class DuoyunPopoverElement extends GemElement {
     const element = firstArg instanceof Element ? firstArg : null;
     const { left, right, top, bottom } = element
       ? element.getBoundingClientRect()
-      : firstArg instanceof Array
+      : Array.isArray(firstArg)
         ? { left: firstArg[0], right: firstArg[0] + firstArg[2], top: firstArg[1], bottom: firstArg[1] + firstArg[3] }
         : { left: firstArg, right: firstArg, top: args[1], bottom: args[1] };
 
@@ -295,9 +295,10 @@ export class DuoyunPopoverElement extends GemElement {
   render = () => {
     const { open, style, position } = this.#state;
     return html`
-      ${!open
-        ? null
-        : html`
+      ${
+        !open
+          ? null
+          : html`
             <dy-reflect v-if=${open} .target=${document.body}>
               <div
                 style=${styleMap({
@@ -328,7 +329,8 @@ export class DuoyunPopoverElement extends GemElement {
                 ${this.content}
               </dy-popover-ghost>
             </dy-reflect>
-          `}
+          `
+      }
       <slot ${this.#slotRef} part=${DuoyunPopoverElement.slot}></slot>
     `;
   };

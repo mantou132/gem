@@ -1,22 +1,22 @@
 import type { Emitter } from '@mantou/gem/lib/decorators';
 import {
   adoptedStyle,
-  customElement,
   attribute,
-  property,
   boolattribute,
+  customElement,
   emitter,
-  slot,
+  property,
   shadow,
+  slot,
 } from '@mantou/gem/lib/decorators';
-import { css, createState, GemElement, html } from '@mantou/gem/lib/element';
+import { createState, css, GemElement, html } from '@mantou/gem/lib/element';
 import { classMap } from '@mantou/gem/lib/utils';
 
-import { icons } from '../lib/icons';
-import { theme } from '../lib/theme';
-import { locale } from '../lib/locale';
 import { commonHandle } from '../lib/hotkeys';
+import { icons } from '../lib/icons';
+import { locale } from '../lib/locale';
 import { focusStyle } from '../lib/styles';
+import { theme } from '../lib/theme';
 
 import './use';
 import '../elements/tooltip';

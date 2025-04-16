@@ -19,7 +19,8 @@ class _GbpImportElement extends GemBookPluginElement {
       (p, c) => {
         if (!c) return p;
         const [name, version = 'latest'] = c.split(/(.+)@/).filter((e) => !!e);
-        return { ...p, [name]: version };
+        p[name] = version;
+        return p;
       },
       {} as Record<string, string>,
     );

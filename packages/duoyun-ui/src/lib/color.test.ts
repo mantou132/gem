@@ -1,6 +1,6 @@
 import { expect } from '@mantou/gem/test/utils';
 
-import { parseHexColor, rgbToRgbColor, rgbToHslColor, hsvToRgb, rgbToHsv, rgbToHsl, hslToRgb } from './color';
+import { hslToRgb, hsvToRgb, parseHexColor, rgbToHsl, rgbToHslColor, rgbToHsv, rgbToRgbColor } from './color';
 import { formatToPrecision } from './number';
 
 it('`parseHexColor`', () => {

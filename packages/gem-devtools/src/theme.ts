@@ -1,5 +1,5 @@
-import { devtools } from 'webextension-polyfill';
 import { createTheme } from '@mantou/gem/helper/theme';
+import { devtools } from 'webextension-polyfill';
 
 const lightTheme = {
   backgroundColorRGB: '255,255,255',

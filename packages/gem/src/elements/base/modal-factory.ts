@@ -1,7 +1,7 @@
+import { aria, mounted, shadow } from '../../lib/decorators';
+import { history } from '../../lib/history';
 import { GemElement } from '../../lib/reactive';
 import { connect, createStore } from '../../lib/store';
-import { history } from '../../lib/history';
-import { aria, mounted, shadow } from '../../lib/decorators';
 
 const open = Symbol('open mark');
 
@@ -32,7 +32,7 @@ export function createModalClass<T extends Record<string, unknown>>(options: T) 
 
     /**@final */
     static get isOpen() {
-      return this.store[open];
+      return ModalElement.store[open];
     }
 
     /**
@@ -41,19 +41,19 @@ export function createModalClass<T extends Record<string, unknown>>(options: T) 
      * 浏览器 history 为异步 API，需要设置较长延迟;
      */
     static open(opts: T) {
-      const instance = new this();
-      this.instance = instance;
-      this.inertStore = ([...document.body.children] as HTMLElement[]).filter((e) => !e.inert);
-      this.inertStore.forEach((e) => (e.inert = true));
+      const instance = new ModalElement();
+      ModalElement.instance = instance;
+      ModalElement.inertStore = ([...document.body.children] as HTMLElement[]).filter((e) => !e.inert);
+      ModalElement.inertStore.forEach((e) => (e.inert = true));
       document.body.append(instance);
-      const changeStore = () => this.store({ [open]: true, ...opts });
+      const changeStore = () => ModalElement.store({ [open]: true, ...opts });
       setTimeout(() => {
         changeStore();
         history.push({
           title: instance.label,
           open: changeStore,
-          close: this.closeHandle.bind(this),
-          shouldClose: this.shouldClose.bind(this),
+          close: ModalElement.closeHandle.bind(ModalElement),
+          shouldClose: ModalElement.shouldClose.bind(ModalElement),
         });
       }, 100);
       return final;
@@ -73,9 +73,9 @@ export function createModalClass<T extends Record<string, unknown>>(options: T) 
      * history 中自动调用
      */
     static closeHandle() {
-      this.inertStore.forEach((e) => (e.inert = false));
-      this.instance?.remove();
-      this.store({ [open]: false, ...options });
+      ModalElement.inertStore.forEach((e) => (e.inert = false));
+      ModalElement.instance?.remove();
+      ModalElement.store({ [open]: false, ...options });
       return final;
     }
 

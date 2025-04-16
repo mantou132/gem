@@ -1,5 +1,5 @@
-import { css, createRef, createState, GemElement, html } from '@mantou/gem/lib/element';
-import { QueryString, addListener, styleMap } from '@mantou/gem/lib/utils';
+/** biome-ignore-all lint/complexity/useOptionalChain: type maybe is false */
+
 import type { Emitter } from '@mantou/gem/lib/decorators';
 import {
   adoptedStyle,
@@ -13,47 +13,48 @@ import {
   property,
   shadow,
 } from '@mantou/gem/lib/decorators';
+import { createRef, createState, css, GemElement, html } from '@mantou/gem/lib/element';
 import { history } from '@mantou/gem/lib/history';
 import type { Store } from '@mantou/gem/lib/store';
 import { connect } from '@mantou/gem/lib/store';
+import { addListener, QueryString, styleMap } from '@mantou/gem/lib/utils';
 
+import type { DuoyunButtonElement } from '../elements/button';
 import type { ContextMenuItem } from '../elements/contextmenu';
 import { ContextMenu } from '../elements/contextmenu';
-import { theme } from '../lib/theme';
-import {
-  comparer,
-  readProp,
-  isIncludesString,
-  splitString,
-  ComparerType,
-  getStringFromTemplate,
-  convertToMap,
-} from '../lib/utils';
-import { sleep, throttle } from '../lib/timer';
-import type { Column, ItemContextMenuEventDetail, DuoyunTableElement } from '../elements/table';
-import { blockContainer } from '../lib/styles';
-import { closestElement, findRanges, findScrollContainer } from '../lib/element';
-import { Time, formatDuration } from '../lib/time';
-import type { DuoyunButtonElement } from '../elements/button';
-import { locale } from '../lib/locale';
-import { icons } from '../lib/icons';
-import { isNotBoolean } from '../lib/types';
-import { hotkeys } from '../lib/hotkeys';
-import type { PaginationStore } from '../helper/store';
 import type { DuoyunRouteElement } from '../elements/route';
-import type { DuoyunTagElement } from '../elements/tag';
 import type { DuoyunScrollBoxElement } from '../elements/scroll-box';
-
+import type { Column, DuoyunTableElement, ItemContextMenuEventDetail } from '../elements/table';
+import type { DuoyunTagElement } from '../elements/tag';
+import type { PaginationStore } from '../helper/store';
+import { closestElement, findRanges, findScrollContainer } from '../lib/element';
+import { hotkeys } from '../lib/hotkeys';
+import { icons } from '../lib/icons';
+import { locale } from '../lib/locale';
+import { blockContainer } from '../lib/styles';
+import { theme } from '../lib/theme';
+import { formatDuration, Time } from '../lib/time';
+import { sleep, throttle } from '../lib/timer';
+import { isNotBoolean } from '../lib/types';
+import {
+  ComparerType,
+  comparer,
+  convertToMap,
+  getStringFromTemplate,
+  isIncludesString,
+  readProp,
+  splitString,
+} from '../lib/utils';
 import { locationStore } from './console';
 import type { FilterableOptions, SubmitValue } from './filter-form';
 
-import '../elements/input';
 import '../elements/button';
-import '../elements/tag';
-import '../elements/table';
+import '../elements/input';
+import '../elements/loading';
 import '../elements/pagination';
 import '../elements/scroll-box';
-import '../elements/loading';
+import '../elements/table';
+import '../elements/tag';
 
 import './filter-form';
 

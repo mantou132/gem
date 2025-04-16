@@ -5,8 +5,9 @@
  * 不能在在顶级代码块中清除这些元素，因为重复加载该代码时会把正常 reflect 元素清除，
  * 比如 duoyun-ui 文档站加载示例元素时把 GemReflectElement 渲染的元素清除
  */
-import { GemElement } from '../../lib/reactive';
+
 import { attribute, effect, property, willMount } from '../../lib/decorators';
+import { GemElement } from '../../lib/reactive';
 
 const START = 'gem-reflect-start';
 const END = 'gem-reflect-end';

@@ -1,30 +1,29 @@
 // TODO: sticky row/column
 import type { Emitter } from '@mantou/gem/lib/decorators';
 import {
-  connectStore,
   adoptedStyle,
-  customElement,
   attribute,
-  emitter,
-  property,
   boolattribute,
-  part,
-  shadow,
+  connectStore,
+  customElement,
+  emitter,
   memo,
+  part,
+  property,
+  shadow,
   slot,
 } from '@mantou/gem/lib/decorators';
 import type { TemplateResult } from '@mantou/gem/lib/element';
 import { css, html } from '@mantou/gem/lib/element';
 import type { StyleObject } from '@mantou/gem/lib/utils';
-import { styleMap, classMap, isArrayChange } from '@mantou/gem/lib/utils';
+import { classMap, isArrayChange, styleMap } from '@mantou/gem/lib/utils';
 
-import { theme } from '../lib/theme';
-import { readProp } from '../lib/utils';
-import { isNullish } from '../lib/types';
-import { icons } from '../lib/icons';
 import { commonHandle } from '../lib/hotkeys';
+import { icons } from '../lib/icons';
 import { focusStyle } from '../lib/styles';
-
+import { theme } from '../lib/theme';
+import { isNullish } from '../lib/types';
+import { readProp } from '../lib/utils';
 import type { MenuOrMenuObject } from './contextmenu';
 import { ContextMenu } from './contextmenu';
 import { DuoyunScrollBoxElement } from './scroll-box';
@@ -427,27 +426,31 @@ export class DuoyunTableElement<T = any, K = any> extends DuoyunScrollBoxElement
                             rowspan=${rowSpan}
                             colspan=${colSpan}
                           >
-                            ${!record
-                              ? html`<dy-placeholder ?center=${style.textAlign === 'center'}></dy-placeholder>`
-                              : render
-                                ? render(record)
-                                : dataIndex
-                                  ? readProp(record, dataIndex)
-                                  : ''}
+                            ${
+                              !record
+                                ? html`<dy-placeholder ?center=${style.textAlign === 'center'}></dy-placeholder>`
+                                : render
+                                  ? render(record)
+                                  : dataIndex
+                                    ? readProp(record, dataIndex)
+                                    : ''
+                            }
                           </td>
                         `
                       : '',
                 )}
               </tr>
-              ${this.expandedRowRender && record && this.#expandedMap.get(this.#getKey(record))
-                ? html`
+              ${
+                this.expandedRowRender && record && this.#expandedMap.get(this.#getKey(record))
+                  ? html`
                     <tr>
                       <td style=${styleMap({ padding: `0 0 0 ${this.#iconColWidth}` })} colspan=${columns.length}>
                         ${this.expandedRowRender(record) || html`<dy-loading></dy-loading>`}
                       </td>
                     </tr>
                   `
-                : ''}
+                  : ''
+              }
             `,
           )}
         </tbody>

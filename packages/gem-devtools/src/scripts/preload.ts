@@ -45,7 +45,7 @@ export function preload() {
     traverseDom(callback) {
       // 同 dom-stat 迭代
       const temp: Element[] = [document.documentElement];
-      while (!!temp.length) {
+      while (temp.length) {
         const element = temp.pop()!;
         callback(element);
         if (element.shadowRoot?.firstElementChild) temp.push(element.shadowRoot.firstElementChild);

@@ -4,9 +4,8 @@ import { css, html, svg } from '@mantou/gem/lib/element';
 import { classMap } from '@mantou/gem/lib/utils';
 
 import { isNullish } from '../lib/types';
-
-import { DuoyunChartBaseElement } from './base/chart';
 import type { Sequence } from './area-chart';
+import { DuoyunChartBaseElement } from './base/chart';
 import type { Data } from './chart-tooltip';
 import { ChartTooltip } from './chart-tooltip';
 

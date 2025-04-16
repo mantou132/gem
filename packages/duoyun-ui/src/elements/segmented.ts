@@ -1,4 +1,3 @@
-import { css, GemElement, html } from '@mantou/gem/lib/element';
 import type { Emitter } from '@mantou/gem/lib/decorators';
 import {
   adoptedStyle,
@@ -11,11 +10,11 @@ import {
   shadow,
   state,
 } from '@mantou/gem/lib/decorators';
+import { css, GemElement, html } from '@mantou/gem/lib/element';
 import { classMap, partMap, styleMap } from '@mantou/gem/lib/utils';
 
 import { commonHandle } from '../lib/hotkeys';
 import { theme } from '../lib/theme';
-
 import type { Option } from './radio';
 
 import './use';

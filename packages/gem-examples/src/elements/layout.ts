@@ -1,5 +1,5 @@
-import { GemElement, html } from '@mantou/gem/lib/element';
 import { customElement, shadow } from '@mantou/gem/lib/decorators';
+import { GemElement, html } from '@mantou/gem/lib/element';
 
 import '@mantou/gem/elements/reflect';
 import '@mantou/gem/elements/title';

@@ -1,23 +1,23 @@
 import type { Emitter } from '@mantou/gem/lib/decorators';
 import {
   adoptedStyle,
-  customElement,
-  attribute,
-  globalemitter,
-  property,
-  boolattribute,
-  slot,
-  shadow,
   aria,
+  attribute,
+  boolattribute,
+  customElement,
+  globalemitter,
   mounted,
+  property,
+  shadow,
+  slot,
 } from '@mantou/gem/lib/decorators';
 import type { TemplateResult } from '@mantou/gem/lib/element';
-import { GemElement, html, css } from '@mantou/gem/lib/element';
+import { css, GemElement, html } from '@mantou/gem/lib/element';
 import { addListener } from '@mantou/gem/lib/utils';
 
-import { theme } from '../lib/theme';
 import { commonHandle } from '../lib/hotkeys';
 import { focusStyle } from '../lib/styles';
+import { theme } from '../lib/theme';
 
 const style = css`
   :host(:where(:not([hidden]))) {

@@ -1,11 +1,11 @@
-import type { TemplateResult } from '../../lib/lit-html';
-import { createState, css, GemElement, html } from '../../lib/element';
 import type { Emitter } from '../../lib/decorators';
-import { property, emitter, boolattribute, shadow, effect, template, light, adoptedStyle } from '../../lib/decorators';
-import type { Store } from '../../lib/store';
-import { createStore, connect } from '../../lib/store';
+import { adoptedStyle, boolattribute, effect, emitter, light, property, shadow, template } from '../../lib/decorators';
+import { createState, css, GemElement, html } from '../../lib/element';
 import type { UpdateHistoryParams } from '../../lib/history';
-import { titleStore, history } from '../../lib/history';
+import { history, titleStore } from '../../lib/history';
+import type { TemplateResult } from '../../lib/lit-html';
+import type { Store } from '../../lib/store';
+import { connect, createStore } from '../../lib/store';
 import type { QueryString } from '../../lib/utils';
 import { addListener } from '../../lib/utils';
 
@@ -170,7 +170,7 @@ export class GemLightRouteElement extends GemElement {
   static findRoute = (target: RouteItem[] | RoutesObject = [], path: string) => {
     let defaultRoute: RouteItem | null = null;
     let routes: RouteItem[];
-    if (target instanceof Array) {
+    if (Array.isArray(target)) {
       routes = target;
     } else {
       routes = Object.values(target);

@@ -1,12 +1,11 @@
 import path from 'path';
 
-import { HtmlRspackPlugin, sources } from '@rspack/core';
 import type { Compiler } from '@rspack/core';
+import { HtmlRspackPlugin, sources } from '@rspack/core';
 import SitemapWebpackPlugin from 'sitemap-rspack-plugin';
 
-import { getBody, getLinkPath, getUserLink } from '../common/utils';
 import type { BookConfig, NavItem } from '../common/config';
-
+import { getBody, getLinkPath, getUserLink } from '../common/utils';
 import { getMdFile, getMetadata } from './utils';
 
 export class FallbackLangPlugin {

@@ -1,19 +1,18 @@
 // webkit marker arrow bug: https://duoyun-ui.gemjs.org/zh/elements/flow
 
-import { adoptedStyle, customElement, property, part, state, shadow, memo, effect } from '@mantou/gem/lib/decorators';
-import type { TemplateResult } from '@mantou/gem/lib/element';
-import { css, createRef, createState, html, svg } from '@mantou/gem/lib/element';
-import { styleMap } from '@mantou/gem/lib/utils';
 import { createDecoratorTheme } from '@mantou/gem/helper/theme';
-import type { ElkNode, ElkExtendedEdge, ElkEdgeSection, LayoutOptions, ElkShape, ElkPoint } from 'elkjs';
+import { adoptedStyle, customElement, effect, memo, part, property, shadow, state } from '@mantou/gem/lib/decorators';
+import type { TemplateResult } from '@mantou/gem/lib/element';
+import { createRef, createState, css, html, svg } from '@mantou/gem/lib/element';
+import { styleMap } from '@mantou/gem/lib/utils';
+import type { ElkEdgeSection, ElkExtendedEdge, ElkNode, ElkPoint, ElkShape, LayoutOptions } from 'elkjs';
 import ELK from 'elkjs/lib/elk.bundled.js';
 
-import type { Modify } from '../lib/types';
-import { isNullish, isNotNullish } from '../lib/types';
+import { utf8ToB64 } from '../lib/encode';
 import { formatToPrecision } from '../lib/number';
 import { theme } from '../lib/theme';
-import { utf8ToB64 } from '../lib/encode';
-
+import type { Modify } from '../lib/types';
+import { isNotNullish, isNullish } from '../lib/types';
 import { DuoyunResizeBaseElement } from './base/resize';
 
 const elk = new ELK();
@@ -396,7 +395,7 @@ export class DuoyunFlowCanvasElement extends DuoyunResizeBaseElement {
   #layout = async () => {
     try {
       await elk.layout(this.graph as any, { layoutOptions: { ...defaultLayout, ...(this.layout || {}) } });
-    } catch (err) {
+    } catch {
       //
     }
     this.#calcPath(this.graph);

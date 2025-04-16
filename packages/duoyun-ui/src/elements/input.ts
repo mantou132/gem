@@ -1,30 +1,30 @@
 import type { Emitter } from '@mantou/gem/lib/decorators';
 import {
   adoptedStyle,
-  customElement,
+  aria,
   attribute,
+  boolattribute,
+  customElement,
+  effect,
   emitter,
   globalemitter,
-  property,
-  boolattribute,
-  numattribute,
-  state,
-  part,
-  shadow,
-  aria,
   mounted,
-  effect,
+  numattribute,
+  part,
+  property,
+  shadow,
+  state,
 } from '@mantou/gem/lib/decorators';
 import type { TemplateResult } from '@mantou/gem/lib/element';
-import { GemElement, html, css, createRef } from '@mantou/gem/lib/element';
+import { createRef, css, GemElement, html } from '@mantou/gem/lib/element';
 
-import { theme } from '../lib/theme';
-import { icons } from '../lib/icons';
-import { focusStyle } from '../lib/styles';
 import { commonHandle, hotkeys } from '../lib/hotkeys';
+import { icons } from '../lib/icons';
 import { clamp } from '../lib/number';
-import { throttle } from '../lib/timer';
 import { NUMBER } from '../lib/patterns';
+import { focusStyle } from '../lib/styles';
+import { theme } from '../lib/theme';
+import { throttle } from '../lib/timer';
 
 import './use';
 
@@ -345,8 +345,9 @@ export class DuoyunInputElement extends GemElement {
   render() {
     return html`
       <dy-use v-if=${!!this.icon} class="icon" .element=${this.icon}></dy-use>
-      ${this.#type === 'textarea'
-        ? html`
+      ${
+        this.#type === 'textarea'
+          ? html`
             <textarea
               ${this.#inputRef}
               class="input"
@@ -362,7 +363,7 @@ export class DuoyunInputElement extends GemElement {
               rows=${this.#rows}
             ></textarea>
           `
-        : html`
+          : html`
             <input
               ${this.#inputRef}
               type=${this.#type}
@@ -379,7 +380,8 @@ export class DuoyunInputElement extends GemElement {
               @keydown=${this.#onKeyDown}
               list="datalist"
             />
-          `}
+          `
+      }
       <datalist v-if=${!!this.dataList} id="datalist">
         ${this.dataList?.map(({ value, label }) => html`<option value=${value ?? label}>${label}</option>`)}
       </datalist>

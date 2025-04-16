@@ -1,10 +1,9 @@
-import { adoptedStyle, customElement } from '@mantou/gem/lib/decorators';
-import { html, svg, css } from '@mantou/gem/lib/element';
 import { createDecoratorTheme } from '@mantou/gem/helper/theme';
+import { adoptedStyle, customElement } from '@mantou/gem/lib/decorators';
+import { css, html, svg } from '@mantou/gem/lib/element';
 
-import { isNotNullish, isNullish } from '../lib/types';
 import { theme } from '../lib/theme';
-
+import { isNotNullish, isNullish } from '../lib/types';
 import { DuoyunBarChartElement } from './bar-chart';
 
 const elementTheme = createDecoratorTheme({ strokeWidth: 0, strokeDasharray: '' });

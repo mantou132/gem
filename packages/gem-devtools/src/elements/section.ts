@@ -7,16 +7,16 @@ import {
   html,
   kebabToCamelCase,
   property,
-  shadow,
   SheetToken,
+  shadow,
 } from '@mantou/gem';
 
-import type { Item, Path, BuildIn } from '../store';
+import { execution } from '../common';
+import { inspectValue } from '../scripts/inspect-value';
+import { setGemPropValue } from '../scripts/set-value';
+import type { BuildIn, Item, Path } from '../store';
 import { panelStore } from '../store';
 import { theme } from '../theme';
-import { inspectValue } from '../scripts/inspect-value';
-import { execution } from '../common';
-import { setGemPropValue } from '../scripts/set-value';
 
 const maybeBuildInPrefix = '[[Gem?]] ';
 const buildInPrefix = '[[Gem]] ';
@@ -219,10 +219,7 @@ export class Section extends GemElement {
       execution(setGemPropValue, [path, Number((evt.target as HTMLInputElement).value) || 0]);
     };
     const toggleValue = (evt: MouseEvent) => {
-      execution(setGemPropValue, [
-        path,
-        (evt.target as HTMLInputElement).textContent?.trim() === 'true' ? false : true,
-      ]);
+      execution(setGemPropValue, [path, !((evt.target as HTMLInputElement).textContent?.trim() === 'true')]);
     };
     switch (item.type) {
       case 'string':

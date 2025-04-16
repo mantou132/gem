@@ -1,5 +1,5 @@
-import { proxyObject } from './utils';
 import { isNotBoolean } from './types';
+import { proxyObject } from './utils';
 
 export type Key = {
   win?: string;
@@ -133,7 +133,7 @@ export function getDisplayKey(code: string, type?: keyof Key) {
     result = keyObj[type];
   }
   if (!result) {
-    result = (isMac ? keyObj['macSymbol'] || keyObj['mac'] : keyObj['win']) || keyObj['symbol'] || key;
+    result = (isMac ? keyObj.macSymbol || keyObj.mac : keyObj.win) || keyObj.symbol || key;
   }
   return result.replace(/^(.)/, (_substr, $1: string) => $1.toUpperCase());
 }
@@ -220,7 +220,7 @@ type HotkeysOptions = {
  */
 export function hotkeys(handles: HotKeyHandles, options: HotkeysOptions = {}) {
   const { stopPropagation, preventDefault = true } = options;
-  return function (event: KeyboardEvent) {
+  return (event: KeyboardEvent) => {
     if (event.isComposing) return;
     if (locked) return;
 

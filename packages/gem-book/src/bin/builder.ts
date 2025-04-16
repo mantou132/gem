@@ -1,16 +1,15 @@
+import { renameSync, symlinkSync, writeFileSync } from 'fs';
 import path from 'path';
-import { writeFileSync, symlinkSync, renameSync } from 'fs';
 
-import { rspack, DefinePlugin, HtmlRspackPlugin, CopyRspackPlugin } from '@rspack/core';
-import { RspackDevServer } from '@rspack/dev-server';
 import { GenerateSW } from '@aaroon/workbox-rspack-plugin';
+import { CopyRspackPlugin, DefinePlugin, HtmlRspackPlugin, rspack } from '@rspack/core';
+import { RspackDevServer } from '@rspack/dev-server';
 import { static as serveStatic } from 'express';
 
 import type { BookConfig, CliUniqueConfig } from '../common/config';
 import { GBP_PROTOCOL, STATS_FILE } from '../common/constant';
-
-import { resolveLocalPlugin, resolveTheme, isURL, importObject, print } from './utils';
 import { ExecHTMLPlugin, FallbackLangPlugin, LocalSearchSearch, SitemapPlugin } from './plugins';
+import { importObject, isURL, print, resolveLocalPlugin, resolveTheme } from './utils';
 
 const publicDir = path.resolve(__dirname, '../public');
 const entryDir = path.resolve(__dirname, process.env.GEM_BOOK_DEV ? '../src/website' : '../website');

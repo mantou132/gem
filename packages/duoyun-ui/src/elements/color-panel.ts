@@ -1,35 +1,35 @@
 // https://spectrum.adobe.com/page/color-area/
+
+import { createDecoratorTheme } from '@mantou/gem/helper/theme';
 import type { Emitter } from '@mantou/gem/lib/decorators';
 import {
   adoptedStyle,
-  customElement,
-  attribute,
-  globalemitter,
-  boolattribute,
   aria,
-  shadow,
+  attribute,
+  boolattribute,
+  customElement,
+  globalemitter,
   memo,
+  shadow,
 } from '@mantou/gem/lib/decorators';
-import { css, createState, GemElement, html } from '@mantou/gem/lib/element';
-import { styleMap, classMap } from '@mantou/gem/lib/utils';
-import { createDecoratorTheme } from '@mantou/gem/helper/theme';
+import { createState, css, GemElement, html } from '@mantou/gem/lib/element';
+import { classMap, styleMap } from '@mantou/gem/lib/utils';
 
 import type { HexColor } from '../lib/color';
 import {
+  hslToHsv,
+  hslToRgb,
+  hsvToHsl,
   parseHexColor,
   rgbToHexColor,
+  rgbToHsl,
   rgbToHslColor,
   rgbToRgbColor,
-  hslToRgb,
-  rgbToHsl,
-  hslToHsv,
-  hsvToHsl,
 } from '../lib/color';
-import { theme } from '../lib/theme';
 import { icons } from '../lib/icons';
 import { clamp, formatToPrecision } from '../lib/number';
 import { HEX_COLOR } from '../lib/patterns';
-
+import { theme } from '../lib/theme';
 import type { PanEventDetail } from './gesture';
 
 import './gesture';

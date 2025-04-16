@@ -47,8 +47,8 @@ export function getUserLink(originPath: string, displayRank?: boolean) {
 
 export function debounce<T extends (...args: any) => any>(func: T, wait = 100) {
   let lastTimeout: ReturnType<typeof setTimeout> | null = null;
-  return function (...args: Parameters<T>) {
-    return new Promise<Awaited<ReturnType<typeof func>>>((resolve, reject) => {
+  return (...args: Parameters<T>) =>
+    new Promise<Awaited<ReturnType<typeof func>>>((resolve, reject) => {
       if (lastTimeout) {
         clearTimeout(lastTimeout);
       }
@@ -59,7 +59,6 @@ export function debounce<T extends (...args: any) => any>(func: T, wait = 100) {
           .catch(reject);
       }, wait);
     });
-  };
 }
 
 export function throttle<T extends (...args: any) => any>(fn: T, wait = 1000) {

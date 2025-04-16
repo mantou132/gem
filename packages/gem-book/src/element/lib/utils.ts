@@ -63,12 +63,10 @@ export function getParts(lines: string[], ranges: number[][]) {
 
 // type error
 export function flatNav(nav: NavItem[]): NavItemWithLink[] {
-  return nav
-    .map((item) => {
-      if (item.type === 'dir') return item.children ? flatNav(item.children) : [];
-      return item as NavItemWithLink;
-    })
-    .flat();
+  return nav.flatMap((item) => {
+    if (item.type === 'dir') return item.children ? flatNav(item.children) : [];
+    return item as NavItemWithLink;
+  });
 }
 
 export function joinPath(...paths: (string | undefined)[]) {

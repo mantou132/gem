@@ -1,16 +1,16 @@
-import { GemElement, html, css } from '@mantou/gem/lib/element';
+import { mediaQuery } from '@mantou/gem/helper/mediaquery';
 import type { Emitter } from '@mantou/gem/lib/decorators';
 import { adoptedStyle, customElement, globalemitter, property } from '@mantou/gem/lib/decorators';
-import { mediaQuery } from '@mantou/gem/helper/mediaquery';
+import { css, GemElement, html } from '@mantou/gem/lib/element';
 
-import { theme } from '../lib/theme';
 import { icons } from '../lib/icons';
-import { isRemoteIcon } from '../lib/utils';
 import { focusStyle } from '../lib/styles';
+import { theme } from '../lib/theme';
+import { isRemoteIcon } from '../lib/utils';
 
+import '../elements/divider';
 import '../elements/link';
 import '../elements/use';
-import '../elements/divider';
 
 type Link = {
   label: string;
@@ -200,16 +200,18 @@ export class DyPatFooterElement extends GemElement {
           (item) => html`
             <li>
               <dy-link href=${item.href}>
-                ${'icon' in item
-                  ? this.#renderIcon(item, 'icon')
-                  : html`
+                ${
+                  'icon' in item
+                    ? this.#renderIcon(item, 'icon')
+                    : html`
                       ${item.label}
                       <dy-use
                         v-if=${renderOutward && this.#isOutwardLink(item.href)}
                         class="outward"
                         .element=${icons.outward}
                       ></dy-use>
-                    `}
+                    `
+                }
               </dy-link>
             </li>
           `,

@@ -1,6 +1,6 @@
 import { expect } from '@mantou/gem/test/utils';
 
-import { getCascaderDeep, getCascaderBubbleWeakMap, readProp, comparer, ComparerType, isIncludesString } from './utils';
+import { ComparerType, comparer, getCascaderBubbleWeakMap, getCascaderDeep, isIncludesString, readProp } from './utils';
 
 it('`getCascaderDeep`', () => {
   expect(getCascaderDeep([{ a: 1, children: undefined }], 'children')).to.equal(1);

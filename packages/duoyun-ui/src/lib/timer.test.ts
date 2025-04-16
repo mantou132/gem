@@ -1,6 +1,6 @@
 import { expect } from '@mantou/gem/test/utils';
 
-import { once, omitOnce } from './timer';
+import { omitOnce, once } from './timer';
 
 it('`once`', () => {
   let count = 1;

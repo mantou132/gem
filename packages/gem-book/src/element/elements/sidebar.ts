@@ -1,28 +1,27 @@
 import type { TemplateResult } from '@mantou/gem';
 import {
-  html,
-  GemElement,
-  customElement,
-  connectStore,
+  addListener,
+  adoptedStyle,
+  aria,
   classMap,
-  state,
   connect,
+  connectStore,
   createStore,
   css,
-  adoptedStyle,
+  customElement,
   effect,
-  addListener,
+  GemElement,
+  html,
   mounted,
-  aria,
+  state,
 } from '@mantou/gem';
 import { mediaQuery } from '@mantou/gem/helper/mediaquery';
 
 import type { NavItem } from '../../common/config';
-import { capitalize, isSameOrigin } from '../lib/utils';
-import { theme } from '../helper/theme';
-import { bookStore, locationStore } from '../store';
 import { GemBookElement } from '..';
-
+import { theme } from '../helper/theme';
+import { capitalize, isSameOrigin } from '../lib/utils';
+import { bookStore, locationStore } from '../store';
 import { icons } from './icons';
 import { tocStore } from './toc';
 
@@ -243,8 +242,9 @@ export class SideBar extends GemElement {
           >
             ${title ? capitalize(title) : 'No title'}
           </gem-book-side-link>
-          ${!onlyFile && locationStore.path === link
-            ? html`<div class="links item hash">
+          ${
+            !onlyFile && locationStore.path === link
+              ? html`<div class="links item hash">
                 ${tocStore.elements
                   .filter((e) => e.tagName === 'H2')
                   .map((h) =>
@@ -255,7 +255,8 @@ export class SideBar extends GemElement {
                     }),
                   )}
               </div>`
-            : null}
+              : null
+          }
         `;
       }
       case 'heading': {
@@ -296,8 +297,9 @@ export class SideBar extends GemElement {
     return html`
       <gem-book-nav-logo class="logo" part=${GemBookElement.sidebarLogo}></gem-book-nav-logo>
       <div class="nav">
-        ${mediaQuery.isPhone && topNavList?.length
-          ? html`
+        ${
+          mediaQuery.isPhone && topNavList?.length
+            ? html`
               <div class="top-nav">
                 ${topNavList.map(
                   ({ link, navTitle, title }) => html`
@@ -308,7 +310,8 @@ export class SideBar extends GemElement {
                 )}
               </div>
             `
-          : ''}
+            : ''
+        }
         <slot name=${GemBookElement.sidebarBefore}>${bookStore.slots?.sidebarBefore}</slot>
         <div part=${GemBookElement.sidebarContent}>
           ${bookStore.currentSidebar?.map((item) => this.#renderItem(item, true))}

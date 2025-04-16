@@ -1,30 +1,30 @@
+import { mediaQuery } from '@mantou/gem/helper/mediaquery';
 import type { Emitter } from '@mantou/gem/lib/decorators';
 import {
-  connectStore,
   adoptedStyle,
-  customElement,
   attribute,
-  emitter,
-  property,
   boolattribute,
-  part,
-  state,
-  slot,
-  shadow,
-  mounted,
+  connectStore,
+  customElement,
   effect,
+  emitter,
   memo,
+  mounted,
+  part,
+  property,
+  shadow,
+  slot,
+  state,
 } from '@mantou/gem/lib/decorators';
-import { css, createRef, GemElement, html, TemplateResult } from '@mantou/gem/lib/element';
+import { createRef, css, GemElement, html, TemplateResult } from '@mantou/gem/lib/element';
 import { addListener, styled } from '@mantou/gem/lib/utils';
-import { mediaQuery } from '@mantou/gem/helper/mediaquery';
 
-import { theme } from '../lib/theme';
-import { locale } from '../lib/locale';
-import { hotkeys } from '../lib/hotkeys';
-import { DyPromise, ignoredPromiseReasonSet } from '../lib/utils';
-import { setBodyInert } from '../lib/element';
 import { commonAnimationOptions, fadeIn, fadeOut, slideInUp } from '../lib/animations';
+import { setBodyInert } from '../lib/element';
+import { hotkeys } from '../lib/hotkeys';
+import { locale } from '../lib/locale';
+import { theme } from '../lib/theme';
+import { DyPromise, ignoredPromiseReasonSet } from '../lib/utils';
 
 import './button';
 import './divider';
@@ -178,6 +178,7 @@ export class DuoyunModalElement extends GemElement {
 
   // Cannot be used for dynamic forms
   static open<T = Element>(options: ModalOptions & ModalOpenOptions<T>) {
+    // biome-ignore lint/complexity/noThisInStatic: Drawer / Modal
     const modal = new this({ ...options, open: true });
     const restoreInert = setBodyInert(modal);
     document.body.append(modal);
@@ -289,7 +290,9 @@ export class DuoyunModalElement extends GemElement {
     ]);
 
   @memo((i) => [i.open])
-  #updateState = (_: [boolean], oldDeps?: [boolean]) => oldDeps && (this.closing = !this.open);
+  #updateState = (_: [boolean], oldDeps?: [boolean]) => {
+    if (oldDeps) this.closing = !this.open;
+  };
 
   @mounted()
   #init = () => addListener(this, 'keydown', this.#keydown);
@@ -311,65 +314,64 @@ export class DuoyunModalElement extends GemElement {
 
     return html`
       <div ${this.#maskRef} class="mask absolute" @click=${this.#onMaskClick}></div>
-      ${this.customize
-        ? html`
-            <div
-              ${this.#bodyRef}
-              part=${DuoyunModalElement.dialog}
-              role="dialog"
-              tabindex="0"
-              aria-modal="true"
-              class="dialog absolute"
-            >
-              ${this.#body || html`<slot></slot>`}
-            </div>
-          `
-        : html`
-            <div
-              ${this.#dialogRef}
-              part=${DuoyunModalElement.dialog}
-              role="dialog"
-              tabindex="0"
-              aria-modal="true"
-              class="dialog main absolute"
-            >
-              <div
-                v-if=${!!this.#header}
-                part=${DuoyunModalElement.header}
-                role="heading"
-                aria-level="1"
-                class="header"
+      <div
+        ${this.#bodyRef}
+        v-if=${this.customize}
+        part=${DuoyunModalElement.dialog}
+        role="dialog"
+        tabindex="0"
+        aria-modal="true"
+        class="dialog absolute"
+      >
+        ${this.#body || html`<slot></slot>`}
+      </div>
+      <div
+        ${this.#dialogRef}
+        v-else
+        part=${DuoyunModalElement.dialog}
+        role="dialog"
+        tabindex="0"
+        aria-modal="true"
+        class="dialog main absolute"
+      >
+        <div
+          v-if=${!!this.#header}
+          part=${DuoyunModalElement.header}
+          role="heading"
+          aria-level="1"
+          class="header"
+        >
+          <slot name=${DuoyunModalElement.header}>${this.#header}</slot>
+        </div>
+        <dy-divider
+          v-if=${!!this.#header}
+          part=${DuoyunModalElement.divider}
+          class="header-divider"
+          size="medium"
+        ></dy-divider>
+        <dy-scroll-box class="body" part=${DuoyunModalElement.body}>
+          <slot ${this.#bodyRef}>${this.#body}</slot>
+        </dy-scroll-box>
+        <div class="footer" part=${DuoyunModalElement.footer}>
+          <slot name=${DuoyunModalElement.footer}>
+            ${
+              this.footerSlot ||
+              html`
+              <dy-button ?hidden=${this.disableDefaultCancelBtn} @click=${this.#close} .color=${'cancel'}>
+                ${this.cancelText || locale.cancel}
+              </dy-button>
+              <dy-button
+                ?hidden=${this.disableDefaultOKBtn}
+                .color=${this.dangerDefaultOkBtn ? 'danger' : 'normal'}
+                @click=${this.#ok}
               >
-                <slot name=${DuoyunModalElement.header}>${this.#header}</slot>
-              </div>
-              <dy-divider
-                v-if=${!!this.#header}
-                part=${DuoyunModalElement.divider}
-                class="header-divider"
-                size="medium"
-              ></dy-divider>
-              <dy-scroll-box class="body" part=${DuoyunModalElement.body}>
-                <slot ${this.#bodyRef}>${this.#body}</slot>
-              </dy-scroll-box>
-              <div class="footer" part=${DuoyunModalElement.footer}>
-                <slot name=${DuoyunModalElement.footer}>
-                  ${this.footerSlot ||
-                  html`
-                    <dy-button ?hidden=${this.disableDefaultCancelBtn} @click=${this.#close} .color=${'cancel'}>
-                      ${this.cancelText || locale.cancel}
-                    </dy-button>
-                    <dy-button
-                      ?hidden=${this.disableDefaultOKBtn}
-                      .color=${this.dangerDefaultOkBtn ? 'danger' : 'normal'}
-                      @click=${this.#ok}
-                    >
-                      ${this.okText || locale.ok}
-                    </dy-button>
-                  `}
-                </slot>
-              </div>
-            </div>
-          `}
+                ${this.okText || locale.ok}
+              </dy-button>
+            `
+            }
+          </slot>
+        </div>
+      </div>
     `;
   };
 }

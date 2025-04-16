@@ -1,5 +1,5 @@
-import { connectStore, adoptedStyle, customElement, attribute, slot, shadow, effect } from '@mantou/gem/lib/decorators';
-import { GemElement, html, css } from '@mantou/gem/lib/element';
+import { adoptedStyle, attribute, connectStore, customElement, effect, shadow, slot } from '@mantou/gem/lib/decorators';
+import { css, GemElement, html } from '@mantou/gem/lib/element';
 import { history } from '@mantou/gem/lib/history';
 
 import { theme } from '../lib/theme';

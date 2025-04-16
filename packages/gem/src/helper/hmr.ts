@@ -1,7 +1,6 @@
-import { GemElement, UpdateToken, type Metadata } from '../lib/reactive';
-import { property, attribute, numattribute, boolattribute, emitter, state } from '../lib/decorators';
+import { attribute, boolattribute, emitter, numattribute, property, state } from '../lib/decorators';
+import { GemElement, type Metadata, UpdateToken } from '../lib/reactive';
 import type { Store } from '../lib/store';
-
 import { Logger } from './logger';
 
 const logger = new Logger('HMR');
@@ -13,7 +12,7 @@ function updateElement(name: string, fn: (ele: Element) => void) {
   if (!cache.has(name)) {
     const elements = [];
     const temp: Element[] = [document.documentElement];
-    while (!!temp.length) {
+    while (temp.length) {
       const element = temp.pop()!;
       if (element.tagName.toLowerCase() === name) elements.push(element);
       temp.push(...[...element.children, ...(element.shadowRoot?.children || [])].reverse());
@@ -161,8 +160,9 @@ declare global {
 }
 
 window._hmrClassRegistry = new Map();
-window._hmrRegisterClass = function (name: string) {
-  return function (cls: HasFieldsRecordClass, { addInitializer }: ClassDecoratorContext) {
+window._hmrRegisterClass =
+  (name: string) =>
+  (cls: HasFieldsRecordClass, { addInitializer }: ClassDecoratorContext) => {
     addInitializer(() => {
       const existed = window._hmrClassRegistry.get(name);
 
@@ -282,7 +282,6 @@ window._hmrRegisterClass = function (name: string) {
       }
     });
   };
-};
 
 window.customElements.define = (name: string, cls: CustomElementConstructor) => {
   const existed = customElements.get(name);

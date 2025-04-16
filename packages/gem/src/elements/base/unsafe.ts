@@ -1,5 +1,5 @@
-import { GemElement } from '../../lib/reactive';
 import { attribute, shadow, template } from '../../lib/decorators';
+import { GemElement } from '../../lib/reactive';
 
 @shadow()
 export class GemUnsafeElement extends GemElement {

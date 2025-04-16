@@ -1,8 +1,7 @@
-import { customElement, property, adoptedStyle, memo } from '@mantou/gem/lib/decorators';
+import { adoptedStyle, customElement, memo, property } from '@mantou/gem/lib/decorators';
 import { css, html, svg } from '@mantou/gem/lib/element';
 
 import { theme } from '../lib/theme';
-
 import { DuoyunChartBaseElement } from './base/chart';
 import type { DataItem } from './chart-tooltip';
 import { ChartTooltip } from './chart-tooltip';
@@ -79,8 +78,8 @@ export class DuoyunBarChartElement extends DuoyunChartBaseElement {
       tooltipValues = tooltipValues?.sort((a, b) => {
         const an = Number(a.originValue);
         const bn = Number(b.originValue);
-        if (isNaN(an)) return 1;
-        if (isNaN(bn)) return -1;
+        if (Number.isNaN(an)) return 1;
+        if (Number.isNaN(bn)) return -1;
         return an > bn ? -1 : 1;
       });
     }

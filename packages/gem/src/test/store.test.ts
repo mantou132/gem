@@ -1,6 +1,5 @@
-import { _StoreListenerMap, createStore, connect } from '../lib/store';
-
-import { expect, aTimeout } from './utils';
+import { _StoreListenerMap, connect, createStore } from '../lib/store';
+import { aTimeout, expect } from './utils';
 
 describe('store 测试', () => {
   it('create store', () => {

@@ -1,10 +1,10 @@
 import {
+  compile,
+  getComponentName,
   getElementPathList,
   getFileElements,
-  getComponentName,
-  getRelativePath,
-  compile,
   getJsDocDescName,
+  getRelativePath,
 } from './common';
 
 async function createReactSourceFile(elementFilePath: string, outDir: string) {

@@ -1,19 +1,19 @@
 // https://spectrum.adobe.com/page/meter/
 import {
   adoptedStyle,
-  customElement,
-  attribute,
-  property,
-  numattribute,
   aria,
-  shadow,
+  attribute,
+  customElement,
   effect,
+  numattribute,
+  property,
+  shadow,
   slot,
 } from '@mantou/gem/lib/decorators';
 import { css, GemElement, html } from '@mantou/gem/lib/element';
 import { styleMap } from '@mantou/gem/lib/utils';
 
-import { theme, getSemanticColor } from '../lib/theme';
+import { getSemanticColor, theme } from '../lib/theme';
 import type { StringList } from '../lib/types';
 
 const style = css`

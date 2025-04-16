@@ -1,4 +1,4 @@
-import { GemElement, adoptedStyle, css, customElement, html, render, shadow } from '@mantou/gem';
+import { adoptedStyle, css, customElement, GemElement, html, render, shadow } from '@mantou/gem';
 
 import '../elements/layout';
 

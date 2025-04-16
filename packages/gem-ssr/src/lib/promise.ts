@@ -30,6 +30,7 @@ export class MockPromise {
     );
   }
 
+  // biome-ignore lint/suspicious/noThenProperty: mock
   then() {
     return new MockPromise(() => {});
   }

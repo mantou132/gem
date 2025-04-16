@@ -1,10 +1,9 @@
 import { adoptedStyle, aria, css, customElement, GemElement, html } from '@mantou/gem';
 
+import { getUserLink } from '../../common/utils';
+import { getPlatform, selfI18n } from '../helper/i18n';
 import { getGithubPath, isGitLab } from '../lib/utils';
 import { bookStore, locationStore } from '../store';
-import { getPlatform, selfI18n } from '../helper/i18n';
-import { getUserLink } from '../../common/utils';
-
 import { icons } from './icons';
 
 import '@mantou/gem/elements/reflect';
@@ -69,16 +68,18 @@ export class Meta extends GemElement {
 
     return html`
       <h1><gem-title inert>Not Found</gem-title></h1>
-      ${!url
-        ? ''
-        : html`
+      ${
+        !url
+          ? ''
+          : html`
             <div>
               <gem-link href=${url}>
                 <gem-use .element=${icons.compose}></gem-use>
                 <span>${selfI18n.get('createOnGithub', getPlatform())}</span>
               </gem-link>
             </div>
-          `}
+          `
+      }
       <gem-reflect>
         <meta name="robots" content="noindex" />
       </gem-reflect>

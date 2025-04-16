@@ -1,7 +1,7 @@
 import { devtools } from 'webextension-polyfill';
 
-import { configureStore } from './store';
 import { preload } from './scripts/preload';
+import { configureStore } from './store';
 
 const preloadSource = preload.toString();
 

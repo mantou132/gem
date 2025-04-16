@@ -1,9 +1,9 @@
-import { html, GemElement, customElement, connectStore, css, adoptedStyle, aria } from '@mantou/gem';
+import { adoptedStyle, aria, connectStore, css, customElement, GemElement, html } from '@mantou/gem';
 
 import { selfI18n } from '../helper/i18n';
 import { theme } from '../helper/theme';
-import { bookStore } from '../store';
 import { unsafeRenderHTML } from '../lib/renderer';
+import { bookStore } from '../store';
 
 import '@mantou/gem/elements/link';
 
@@ -34,10 +34,11 @@ export class Footer extends GemElement {
   render() {
     const { config } = bookStore;
     return html`
-      ${config?.footer
-        ? unsafeRenderHTML(
-            config.footer,
-            /*css*/ `
+      ${
+        config?.footer
+          ? unsafeRenderHTML(
+              config.footer,
+              /*css*/ `
               p {
                 margin: 0;
               }
@@ -46,8 +47,9 @@ export class Footer extends GemElement {
                 background: none;
               }
             `,
-          )
-        : selfI18n.get('footer', (t) => html`<gem-link href="https://book.gemjs.org">${t}</gem-link>`)}
+            )
+          : selfI18n.get('footer', (t) => html`<gem-link href="https://book.gemjs.org">${t}</gem-link>`)
+      }
     `;
   }
 }

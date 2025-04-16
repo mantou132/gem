@@ -1,4 +1,4 @@
-import { connect, html, render, createStore } from '@mantou/gem';
+import { connect, createStore, html, render } from '@mantou/gem';
 import type { Option } from 'duoyun-ui/elements/cascader-picker';
 import { sleep } from 'duoyun-ui/lib/timer';
 

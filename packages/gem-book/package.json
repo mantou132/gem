@@ -35,7 +35,7 @@
     "start": "concurrently npm:start:cli npm:start:docs",
     "build:website": "pnpm build:cli && pnpm run docs --build --ga G-7X2Z4B2KV0",
     "build": "pnpm build:cli && tsc -p ./tsconfig.build.json",
-    "test": "cross-env NODE_OPTIONS=--no-experimental-fetch wtr",
+    "test": "cross-env wtr",
     "prepublishOnly": "pnpm build"
   },
   "dependencies": {

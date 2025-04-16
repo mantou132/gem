@@ -1,23 +1,22 @@
 import {
-  html,
-  GemElement,
-  customElement,
-  property,
-  css,
   adoptedStyle,
-  connectStore,
-  memo,
-  effect,
   aria,
+  connectStore,
+  css,
+  customElement,
+  effect,
+  GemElement,
+  html,
+  memo,
+  property,
 } from '@mantou/gem';
 import { mediaQuery } from '@mantou/gem/helper/mediaquery';
 
-import { theme } from '../helper/theme';
-import { checkBuiltInPlugin } from '../lib/utils';
 import { getBody } from '../../common/utils';
-import { parseMarkdown, linkStyle, tableStyle, headingStyle, blockquoteStyle } from '../lib/renderer';
+import { theme } from '../helper/theme';
+import { blockquoteStyle, headingStyle, linkStyle, parseMarkdown, tableStyle } from '../lib/renderer';
+import { checkBuiltInPlugin } from '../lib/utils';
 import { locationStore } from '../store';
-
 import { tocStore } from './toc';
 
 import '@mantou/gem/elements/unsafe';

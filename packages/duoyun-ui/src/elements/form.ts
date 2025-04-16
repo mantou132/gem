@@ -1,42 +1,41 @@
+import { mediaQuery } from '@mantou/gem/helper/mediaquery';
 import type { Emitter } from '@mantou/gem/lib/decorators';
 import {
   adoptedStyle,
-  customElement,
-  attribute,
-  property,
-  boolattribute,
-  state,
-  part,
-  globalemitter,
-  emitter,
-  numattribute,
-  shadow,
   aria,
-  mounted,
+  attribute,
+  boolattribute,
+  customElement,
   effect,
+  emitter,
+  globalemitter,
+  mounted,
+  numattribute,
+  part,
+  property,
+  shadow,
+  state,
 } from '@mantou/gem/lib/decorators';
 import type { TemplateResult } from '@mantou/gem/lib/element';
-import { GemElement, html, css, createState, createRef } from '@mantou/gem/lib/element';
+import { createRef, createState, css, GemElement, html } from '@mantou/gem/lib/element';
 import { addListener } from '@mantou/gem/lib/utils';
-import { mediaQuery } from '@mantou/gem/helper/mediaquery';
 
-import { theme } from '../lib/theme';
 import { locale } from '../lib/locale';
-
+import { theme } from '../lib/theme';
 import type { DataList } from './input';
+import type { Adder } from './options';
 import type { Option as PickerOption } from './picker';
 import type { Option as SelectOption } from './select';
-import type { Adder } from './options';
 
-import './input';
-import './picker';
 import './button';
 import './checkbox';
-import './radio';
-import './select';
-import './help-text';
 import './date-picker';
 import './date-range-picker';
+import './help-text';
+import './input';
+import './picker';
+import './radio';
+import './select';
 
 const formStyle = css`
   :where(:scope:not([inline], [hidden])) {
@@ -331,15 +330,12 @@ export class DuoyunFormItemElement extends GemElement {
   render = () => {
     const { invalidMessage } = this.#state;
     return html`
-      ${this.#type === 'checkbox' || !this.label
-        ? ''
-        : html`
-            <label class="label" part=${DuoyunFormItemElement.label} @click=${() => this.focus()}>
-              ${this.label}
-            </label>
-          `}
-      ${this.#type === 'select'
-        ? html`
+      <label v-if=${this.#type !== 'checkbox' && !!this.label} class="label" part=${DuoyunFormItemElement.label} @click=${() => this.focus()}>
+        ${this.label}
+      </label>
+      ${
+        this.#type === 'select'
+          ? html`
             <dy-select
               ?disabled=${this.disabled}
               ?searchable=${this.searchable}
@@ -356,8 +352,8 @@ export class DuoyunFormItemElement extends GemElement {
               .renderLabel=${this.renderLabel}
             ></dy-select>
           `
-        : this.#type === 'date' || this.#type === 'date-time'
-          ? html`
+          : this.#type === 'date' || this.#type === 'date-time'
+            ? html`
               <dy-date-picker
                 class="input"
                 part=${DuoyunFormItemElement.input}
@@ -371,8 +367,8 @@ export class DuoyunFormItemElement extends GemElement {
               >
               </dy-date-picker>
             `
-          : this.#type === 'date-range'
-            ? html`
+            : this.#type === 'date-range'
+              ? html`
                 <dy-date-range-picker
                   class="input"
                   part=${DuoyunFormItemElement.input}
@@ -385,8 +381,8 @@ export class DuoyunFormItemElement extends GemElement {
                 >
                 </dy-date-range-picker>
               `
-            : this.#type === 'picker'
-              ? html`
+              : this.#type === 'picker'
+                ? html`
                   <dy-picker
                     ?disabled=${this.disabled}
                     class="input"
@@ -399,8 +395,8 @@ export class DuoyunFormItemElement extends GemElement {
                     .options=${this.#options}
                   ></dy-picker>
                 `
-              : this.#type === 'checkbox'
-                ? html`
+                : this.#type === 'checkbox'
+                  ? html`
                     <dy-checkbox
                       @change=${this.#onCheckboxChange}
                       ?checked=${this.checked}
@@ -410,8 +406,8 @@ export class DuoyunFormItemElement extends GemElement {
                       ${this.label}
                     </dy-checkbox>
                   `
-                : this.#type === 'radio-group'
-                  ? html`
+                  : this.#type === 'radio-group'
+                    ? html`
                       <dy-radio-group
                         @change=${this.#onChange}
                         ?disabled=${this.disabled}
@@ -420,8 +416,8 @@ export class DuoyunFormItemElement extends GemElement {
                       >
                       </dy-radio-group>
                     `
-                  : this.#type === 'checkbox-group'
-                    ? html`
+                    : this.#type === 'checkbox-group'
+                      ? html`
                         <dy-checkbox-group
                           @change=${this.#onChange}
                           ?disabled=${this.disabled}
@@ -430,9 +426,9 @@ export class DuoyunFormItemElement extends GemElement {
                         >
                         </dy-checkbox-group>
                       `
-                    : this.name && this.#type !== 'slot'
-                      ? this.multiple
-                        ? html`
+                      : this.name && this.#type !== 'slot'
+                        ? this.multiple
+                          ? html`
                             ${(this.value as string[])?.map(
                               (value, index) => html`
                                 <dy-input
@@ -454,7 +450,7 @@ export class DuoyunFormItemElement extends GemElement {
                               <dy-button .color=${'cancel'} @click=${this.#onTextAdd}>+</dy-button>
                             </div>
                           `
-                        : html`
+                          : html`
                             <dy-input
                               class="input"
                               part=${DuoyunFormItemElement.input}
@@ -475,7 +471,8 @@ export class DuoyunFormItemElement extends GemElement {
                               .dataList=${this.#options}
                             ></dy-input>
                           `
-                      : ''}
+                        : ''
+      }
       <slot ${this.#slotRef}></slot>
       <dy-help-text v-if=${!!invalidMessage} class="tip" part=${DuoyunFormItemElement.tip} status="negative">
         ${invalidMessage}

@@ -1,30 +1,30 @@
-import { css, html, GemElement, createState, createRef, TemplateResult } from '@mantou/gem/lib/element';
 import { adoptedStyle, customElement, memo, property, shadow } from '@mantou/gem/lib/decorators';
+import { createRef, createState, css, GemElement, html, TemplateResult } from '@mantou/gem/lib/element';
+import { history } from '@mantou/gem/lib/history';
 import type { StyleObject } from '@mantou/gem/lib/utils';
 import { GemError, styleMap } from '@mantou/gem/lib/utils';
-import { history } from '@mantou/gem/lib/history';
 
-import { icons } from '../lib/icons';
-import { blockContainer, focusStyle } from '../lib/styles';
-import { readProp } from '../lib/utils';
-import { theme } from '../lib/theme';
-import { Drawer } from '../elements/drawer';
-import type { ModalOpenOptions, ModalOptions } from '../elements/modal';
-import { Modal } from '../elements/modal';
-import { DuoyunWaitElement, waitLoading } from '../elements/wait';
-import type { DuoyunFormElement, DuoyunFormItemElement } from '../elements/form';
-import { DuoyunInputElement } from '../elements/input';
-import { DuoyunSelectElement } from '../elements/select';
 import { DuoyunDatePickerElement } from '../elements/date-picker';
 import { DuoyunDateRangePickerElement } from '../elements/date-range-picker';
+import { Drawer } from '../elements/drawer';
+import type { DuoyunFormElement, DuoyunFormItemElement } from '../elements/form';
+import { DuoyunInputElement } from '../elements/input';
+import type { ModalOpenOptions, ModalOptions } from '../elements/modal';
+import { Modal } from '../elements/modal';
 import { DuoyunPickerElement } from '../elements/picker';
-import { locale } from '../lib/locale';
+import { DuoyunSelectElement } from '../elements/select';
 import type { SortEventDetail } from '../elements/sort-box';
+import { DuoyunWaitElement, waitLoading } from '../elements/wait';
+import { icons } from '../lib/icons';
+import { locale } from '../lib/locale';
+import { blockContainer, focusStyle } from '../lib/styles';
+import { theme } from '../lib/theme';
+import { readProp } from '../lib/utils';
 
-import '../elements/form';
 import '../elements/button';
-import '../elements/space';
+import '../elements/form';
 import '../elements/sort-box';
+import '../elements/space';
 
 type ListOptions = {
   add?: boolean | string | TemplateResult;
@@ -300,7 +300,7 @@ export class DyPatFormElement<T = Record<string, unknown>> extends GemElement {
       )}
     `;
     const items = this.#filterVisibleItems(allItems);
-    const flatRules = items.map(({ rules = [] }) => rules).flat();
+    const flatRules = items.flatMap(({ rules = [] }) => rules);
     const requiredItems = items.filter(({ required }) => required);
     if (requiredItems.length) {
       flatRules.push({
@@ -315,8 +315,9 @@ export class DyPatFormElement<T = Record<string, unknown>> extends GemElement {
     }
     return html`
       ${shadowFormItems}
-      ${items.length
-        ? html`
+      ${
+        items.length
+          ? html`
             <dy-form-item .label=${items[0].label} .rules=${flatRules}>
               <dy-input-group>
                 ${items.map((props) => {
@@ -365,7 +366,8 @@ export class DyPatFormElement<T = Record<string, unknown>> extends GemElement {
               </dy-input-group>
             </dy-form-item>
           `
-        : ''}
+          : ''
+      }
     `;
   };
 
@@ -440,7 +442,7 @@ export class DyPatFormElement<T = Record<string, unknown>> extends GemElement {
       <dy-form-item style="margin-bottom: 0" label=${item.label}></dy-form-item>
       <dy-sort-box @sort=${onSort}>
         ${value?.map(
-          (e, index) => html`
+          (_, index) => html`
             <dy-sort-item>
               <dy-sort-handle v-if=${!!sortable && !item.disabled}>
                 <dy-button .icon=${icons.menu} square color="cancel"></dy-button>
@@ -448,9 +450,10 @@ export class DyPatFormElement<T = Record<string, unknown>> extends GemElement {
               ${this.#renderItem({ ...item, field: [...path, index] as string[], label: '' })}
               <dy-form-item ?hidden=${item.disabled}>
                 <dy-space>
-                  ${removeTemplate
-                    ? html`${removeTemplate}`
-                    : html`
+                  ${
+                    removeTemplate
+                      ? html`${removeTemplate}`
+                      : html`
                         <dy-button
                           @click=${() => removeEle(index)}
                           .icon=${icons.delete}
@@ -459,7 +462,8 @@ export class DyPatFormElement<T = Record<string, unknown>> extends GemElement {
                           color="cancel"
                           title=${locale.remove}
                         ></dy-button>
-                      `}
+                      `
+                  }
                 </dy-space>
               </dy-form-item>
             </dy-sort-item>

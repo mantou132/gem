@@ -1,17 +1,17 @@
 import type { Logger, TemplateSettings } from '@mantou/typescript-template-language-service-decorator';
-import type * as ts from 'typescript/lib/tsserverlibrary';
-import type { HTMLDocument, IHTMLDataProvider } from '@mantou/vscode-html-languageservice';
-import { getLanguageService as getHTMLanguageService, TextDocument } from '@mantou/vscode-html-languageservice';
-import StandardTemplateSourceHelper from '@mantou/typescript-template-language-service-decorator/lib/standard-template-source-helper';
 import StandardScriptSourceHelper from '@mantou/typescript-template-language-service-decorator/lib/standard-script-source-helper';
+import StandardTemplateSourceHelper from '@mantou/typescript-template-language-service-decorator/lib/standard-template-source-helper';
 import type { Stylesheet } from '@mantou/vscode-css-languageservice';
 import { getCSSLanguageService } from '@mantou/vscode-css-languageservice';
+import type { HTMLDocument, IHTMLDataProvider } from '@mantou/vscode-html-languageservice';
+import { getLanguageService as getHTMLanguageService, TextDocument } from '@mantou/vscode-html-languageservice';
 import { StringWeakMap } from 'duoyun-ui/lib/map';
+import type * as ts from 'typescript/lib/tsserverlibrary';
 
-import { isDepElement } from './utils';
+import { LRUCache } from './cache';
 import type { Configuration } from './configuration';
 import { dataProvider, HTMLDataProvider } from './data-provider';
-import { LRUCache } from './cache';
+import { isDepElement } from './utils';
 
 declare module '@mantou/vscode-html-languageservice' {
   interface Node {
@@ -188,7 +188,7 @@ function isValidCSSTemplate(
 ) {
   switch (node.kind) {
     case typescript.SyntaxKind.NoSubstitutionTemplateLiteral:
-    case typescript.SyntaxKind.TemplateExpression:
+    case typescript.SyntaxKind.TemplateExpression: {
       const parent = node.parent;
       if (typescript.isCallExpression(parent) && parent.expression.getText() === callName) {
         return true;
@@ -200,6 +200,7 @@ function isValidCSSTemplate(
         }
       }
       return false;
+    }
     default:
       return false;
   }

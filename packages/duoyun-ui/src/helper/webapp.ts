@@ -10,10 +10,12 @@ export function getWebManifestURL(manifest: Record<string, unknown>) {
   )}`;
 }
 
-export function initApp({
-  serviceWorkerScript,
-  initWindowSize,
-}: { serviceWorkerScript?: string; initWindowSize?: [number, number] } = {}) {
+interface InitAppOptions {
+  serviceWorkerScript?: string;
+  initWindowSize?: [number, number];
+}
+
+export function initApp({ serviceWorkerScript, initWindowSize }: InitAppOptions = {}) {
   if (serviceWorkerScript) {
     navigator.serviceWorker?.register(serviceWorkerScript, { type: 'module' });
   } else {

@@ -18,15 +18,14 @@ import {
   willMount,
 } from '@mantou/gem/lib/decorators';
 import type { TemplateResult } from '@mantou/gem/lib/element';
-import { GemElement, createRef, createState, css, html } from '@mantou/gem/lib/element';
+import { createRef, createState, css, GemElement, html } from '@mantou/gem/lib/element';
 import type { LinkedListItem } from '@mantou/gem/lib/utils';
-import { LinkedList, addListener, styleMap, styled } from '@mantou/gem/lib/utils';
+import { addListener, LinkedList, styled, styleMap } from '@mantou/gem/lib/utils';
 
 import { findScrollContainer } from '../lib/element';
 import { blockContainer } from '../lib/styles';
 import { theme } from '../lib/theme';
 import { once, throttle } from '../lib/timer';
-
 import { DuoyunResizeBaseElement } from './base/resize';
 import type { VisibleBaseElement } from './base/visible';
 import { DuoyunVisibleBaseElement, visibilityObserver } from './base/visible';
@@ -510,10 +509,11 @@ export class DuoyunListElement extends GemElement {
         style=${styleMap({ height: `${beforeHeight}px` })}
       ></dy-list-outside>
       <div ${this.#listRef} class="list" part=${DuoyunListElement.list}>
-        ${this.infinite
-          ? renderList.map((key) => this.#getElement(key))
-          : this.#items?.map(
-              (item) => html`
+        ${
+          this.infinite
+            ? renderList.map((key) => this.#getElement(key))
+            : this.#items?.map(
+                (item) => html`
                 <dy-list-item
                   part=${DuoyunListElement.item}
                   .item=${item}
@@ -521,7 +521,8 @@ export class DuoyunListElement extends GemElement {
                   .renderItem=${this.renderItem}
                 ></dy-list-item>
               `,
-            )}
+              )
+        }
       </div>
       <dy-list-outside
         ${this.#afterItemRef}
@@ -607,9 +608,11 @@ export class DuoyunListItemElement extends DuoyunResizeBaseElement implements Vi
     return html`
       <div class=${itemStyle.item}>
         <div v-if=${!!avatar} class="avatar">
-          ${typeof avatar === 'string'
-            ? html`<dy-avatar src=${avatar} alt="Avatar" .status=${status as Status}></dy-avatar>`
-            : avatar}
+          ${
+            typeof avatar === 'string'
+              ? html`<dy-avatar src=${avatar} alt="Avatar" .status=${status as Status}></dy-avatar>`
+              : avatar
+          }
         </div>
         <div class="content">
           <div class="title">${title}</div>

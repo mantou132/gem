@@ -1,4 +1,4 @@
-import { GemElement, html, history, render, customElement, createState, mounted, addListener } from '@mantou/gem';
+import { addListener, createState, customElement, GemElement, history, html, mounted, render } from '@mantou/gem';
 import '@mantou/gem/elements/link';
 
 import '../elements/layout';
@@ -21,9 +21,11 @@ export class App extends GemElement {
   render() {
     return html`
       <main>
-        ${this.#state.count > 0
-          ? html`<div>${this.#state.count} 次后将改变 \`basePath\`</div>`
-          : html`<div>\`basePath\` 为 ${history.basePath}</div>`}
+        ${
+          this.#state.count > 0
+            ? html`<div>${this.#state.count} 次后将改变 \`basePath\`</div>`
+            : html`<div>\`basePath\` 为 ${history.basePath}</div>`
+        }
         <gem-link href="/a">href="/a"</gem-link>
         <button @click=${() => history.push({ path: '/b' })}>push({ path: '/b' })</button>
         <button @click=${() => history.push({ hash: '#b' })}>push({ hash: '#b' })</button>

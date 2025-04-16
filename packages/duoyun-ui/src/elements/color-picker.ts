@@ -2,20 +2,19 @@
 import type { Emitter } from '@mantou/gem/lib/decorators';
 import {
   adoptedStyle,
-  customElement,
   attribute,
-  globalemitter,
   boolattribute,
+  customElement,
+  globalemitter,
   shadow,
 } from '@mantou/gem/lib/decorators';
-import { css, createRef, GemElement, html } from '@mantou/gem/lib/element';
+import { createRef, css, GemElement, html } from '@mantou/gem/lib/element';
 import { styleMap } from '@mantou/gem/lib/utils';
 
 import type { HexColor } from '../lib/color';
-import { theme } from '../lib/theme';
 import { commonHandle } from '../lib/hotkeys';
 import { focusStyle } from '../lib/styles';
-
+import { theme } from '../lib/theme';
 import type { BasePickerElement } from './picker';
 
 import './popover';

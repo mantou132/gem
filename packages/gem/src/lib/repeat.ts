@@ -4,10 +4,10 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-import { noChange, ChildPart } from './lit-html';
-import type { Part, DirectiveParent } from './lit-html';
-import { directive, Directive, PartType } from './directive';
 import type { PartInfo } from './directive';
+import { Directive, directive, PartType } from './directive';
+import type { DirectiveParent, Part } from './lit-html';
+import { ChildPart, noChange } from './lit-html';
 
 export type KeyFn<T> = (item: T, index: number) => unknown;
 export type ItemTemplate<T> = (item: T, index: number) => unknown;
@@ -49,7 +49,7 @@ export const insertPart = (containerPart: ChildPart, refPart?: ChildPart, part?:
       // Since the _$isConnected getter is somewhat costly, only
       // read it once we know the subtree has directives that need
       // to be notified
-      let newConnectionState;
+      let newConnectionState: any;
       if (
         part._$notifyConnectionChanged !== undefined &&
         (newConnectionState = containerPart._$isConnected) !== oldParent!._$isConnected
@@ -163,7 +163,7 @@ class RepeatDirective extends Directive {
   private _itemKeys?: unknown[];
 
   constructor(partInfo: PartInfo) {
-    super(partInfo);
+    super();
     if (partInfo.type !== PartType.CHILD) {
       throw new Error('repeat() can only be used in text expressions');
     }

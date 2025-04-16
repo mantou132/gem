@@ -41,4 +41,5 @@ if (navigator.userAgent.includes('Firefox')) {
   initDevToolsHook();
 }
 
+// biome-ignore lint/complexity/noUselessEmptyExport: isolated module
 export {};

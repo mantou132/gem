@@ -3,7 +3,7 @@
   "name": "root",
   "version": "1.6.5",
   "scripts": {
-    "lint": "lerna exec --ignore @gemjs/config -- tsc --noEmit && eslint . --ext .ts,.js",
+    "lint": "biome check --write && lerna exec --ignore @gemjs/config -- tsgo tsc --noEmit",
     "test": "lerna exec --concurrency=1 --scope \"{@mantou/gem,gem-book,duoyun-ui}\" -- pnpm test",
     "release": "lerna version",
     "prepare:build": "pnpm -C packages/gem build && lerna exec --scope \"{gem-analyzer,duoyun-ui,gem-book,gem-port}\" -- pnpm build",
@@ -12,26 +12,18 @@
   },
   "devDependencies": {
     "@biomejs/biome": "2.0.0-beta.1",
+    "@mxyhi/tsgo": "2025.4.16-12",
     "@types/node": "^22.13.10",
-    "@typescript-eslint/eslint-plugin": "^6.13.1",
-    "@typescript-eslint/parser": "^6.13.1",
     "concurrently": "^8.2.2",
     "cross-env": "^7.0.3",
     "esbuild": "^0.24.0",
-    "eslint": "^8.54.0",
-    "eslint-config-prettier": "^10.0.1",
-    "eslint-gitignore": "^0.1.0",
-    "eslint-import-resolver-typescript": "^3.6.1",
-    "eslint-plugin-import": "^2.29.0",
-    "eslint-plugin-prettier": "^5.2.3",
     "husky": "^8.0.3",
     "lerna": "^8.0.0",
     "lint-staged": "^15.1.0",
-    "prettier": "npm:@mantou/prettier@3.6.0-dev",
     "typescript": "^5.6.2"
   },
   "lint-staged": {
-    "*.ts": "eslint --fix"
+    "*.ts": "biome check --write"
   },
   "packageManager": "pnpm@9.10.0+sha512.73a29afa36a0d092ece5271de5177ecbf8318d454ecd701343131b8ebc0c1a91c487da46ab77c8e596d6acf1461e3594ced4becedf8921b074fbd8653ed7051c",
   "pnpm": {

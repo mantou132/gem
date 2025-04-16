@@ -1,28 +1,27 @@
 import type { Emitter } from '@mantou/gem/lib/decorators';
 import {
   adoptedStyle,
+  aria,
+  boolattribute,
   customElement,
+  effect,
   emitter,
   globalemitter,
-  property,
-  boolattribute,
-  part,
-  shadow,
-  aria,
-  willMount,
   memo,
-  effect,
+  part,
+  property,
+  shadow,
+  willMount,
 } from '@mantou/gem/lib/decorators';
-import { css, createState, GemElement, html } from '@mantou/gem/lib/element';
+import { createState, css, GemElement, html } from '@mantou/gem/lib/element';
 import { classMap, exportPartsMap } from '@mantou/gem/lib/utils';
 
-import { isNotNullish } from '../lib/types';
+import { commonHandle } from '../lib/hotkeys';
+import { icons } from '../lib/icons';
+import { focusStyle } from '../lib/styles';
 import { theme } from '../lib/theme';
 import { Time } from '../lib/time';
-import { icons } from '../lib/icons';
-import { commonHandle } from '../lib/hotkeys';
-import { focusStyle } from '../lib/styles';
-
+import { isNotNullish } from '../lib/types';
 import { DuoyunCalendarElement } from './calendar';
 
 import './use';
@@ -252,12 +251,14 @@ export class DuoyunDatePanelElement extends GemElement {
               })}
               @click=${() => this.#state({ month: index, mode: 'day' })}
             >
-              ${Object.fromEntries(
-                new Time(start)
-                  .add(index, 'M')
-                  .formatToParts()
-                  .map(({ type, value }) => [type, value]),
-              ).month}
+              ${
+                Object.fromEntries(
+                  new Time(start)
+                    .add(index, 'M')
+                    .formatToParts()
+                    .map(({ type, value }) => [type, value]),
+                ).month
+              }
             </span>
           `,
         )}

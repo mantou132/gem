@@ -1,14 +1,14 @@
-import { decorateWithTemplateLanguageService } from '@mantou/typescript-template-language-service-decorator';
 import type { Logger } from '@mantou/typescript-template-language-service-decorator';
+import { decorateWithTemplateLanguageService } from '@mantou/typescript-template-language-service-decorator';
 import type * as ts from 'typescript/lib/tsserverlibrary';
 
 import { Configuration } from './configuration';
+import { NAME } from './constants';
 import { Context } from './context';
 import { CSSLanguageService } from './decorate-css';
 import { HTMLLanguageService } from './decorate-html';
 import { decorateLanguageService } from './decorate-ts';
 import { decorate } from './utils';
-import { NAME } from './constants';
 
 class LanguageServiceLogger implements Logger {
   #info: ts.server.PluginCreateInfo;

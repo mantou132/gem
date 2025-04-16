@@ -1,16 +1,16 @@
 import {
-  css,
-  GemElement,
-  html,
-  createRef,
+  adoptedStyle,
   attribute,
   connectStore,
-  customElement,
-  adoptedStyle,
-  render,
+  createRef,
   createStore,
-  mounted,
+  css,
+  customElement,
   fallback,
+  GemElement,
+  html,
+  mounted,
+  render,
 } from '@mantou/gem';
 
 import '../elements/layout';

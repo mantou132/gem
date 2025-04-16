@@ -1,6 +1,6 @@
-import { adoptedStyle, aria, customElement, mounted, shadow } from '@mantou/gem/lib/decorators';
-import { GemElement, html, css, createState } from '@mantou/gem/lib/element';
 import { createDecoratorTheme } from '@mantou/gem/helper/theme';
+import { adoptedStyle, aria, customElement, mounted, shadow } from '@mantou/gem/lib/decorators';
+import { createState, css, GemElement, html } from '@mantou/gem/lib/element';
 
 import { theme } from '../lib/theme';
 import { sleep } from '../lib/timer';

@@ -1,14 +1,14 @@
 import {
-  GemElement,
   async,
   connectStore,
   createState,
+  createStore,
   customElement,
+  GemElement,
   html,
   property,
   render,
   shadow,
-  createStore,
 } from '@mantou/gem';
 
 import '../elements/layout';

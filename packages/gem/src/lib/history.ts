@@ -1,7 +1,7 @@
 // https://github.com/WICG/navigation-api#stakeholder-feedback
 
 import { connect, createStore } from './store';
-import { QueryString, cleanObject, GemError, absoluteLocation } from './utils';
+import { absoluteLocation, cleanObject, GemError, QueryString } from './utils';
 
 const nativeHistory = globalThis.history;
 const nativePushState: typeof nativeHistory.pushState = nativeHistory.pushState.bind(nativeHistory);
@@ -195,11 +195,11 @@ declare global {
 if (!globalThis._GEMHISTORY) {
   globalThis._GEMHISTORY = HISTORY;
 
-  nativeHistory.pushState = function (state: any, title: string, path: string) {
+  nativeHistory.pushState = (state: any, title: string, path: string) => {
     updateHistoryByNative(state, title, path, nativePushState);
   };
 
-  nativeHistory.replaceState = function (state: any, title: string, path: string) {
+  nativeHistory.replaceState = (state: any, title: string, path: string) => {
     updateHistoryByNative(state, title, path, nativeReplaceState);
   };
 

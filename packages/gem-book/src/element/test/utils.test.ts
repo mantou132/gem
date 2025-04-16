@@ -1,7 +1,7 @@
 import { expect } from '@mantou/gem/test/utils';
 
-import { capitalize, flatNav } from '../lib/utils';
 import { getUserLink } from '../../common/utils';
+import { capitalize, flatNav } from '../lib/utils';
 
 describe('lib/utils', () => {
   it('capitalize', () => {

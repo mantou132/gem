@@ -1,6 +1,3 @@
-import { fixture, expect, nextFrame } from '../utils';
-import { css, createState, GemElement, html } from '../../lib/element';
-import { createStore } from '../../lib/store';
 import {
   adoptedStyle,
   attribute,
@@ -12,6 +9,9 @@ import {
   property,
   shadow,
 } from '../../lib/decorators';
+import { createState, css, GemElement, html } from '../../lib/element';
+import { createStore } from '../../lib/store';
+import { expect, fixture, nextFrame } from '../utils';
 
 const store = createStore({
   a: 1,

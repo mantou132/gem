@@ -6,8 +6,8 @@ import type { CompletionList, HTMLDocument, Position, Range } from '@mantou/vsco
 import type * as ts from 'typescript/lib/tsserverlibrary';
 
 import { LRUCache } from './cache';
+import { DiagnosticCode, NAME } from './constants';
 import type { Context } from './context';
-import { forEachNode, getAstNodeAtPosition, getAttrName, getHTMLTextAtPosition, isCustomElementTag } from './utils';
 import {
   genAttrDefinitionInfo,
   genCurrentCtxDefinitionInfo,
@@ -17,7 +17,7 @@ import {
   translateCompletionItemsToCompletionInfo,
   translateHover,
 } from './translates';
-import { DiagnosticCode, NAME } from './constants';
+import { forEachNode, getAstNodeAtPosition, getAttrName, getHTMLTextAtPosition, isCustomElementTag } from './utils';
 
 export class HTMLLanguageService implements TemplateLanguageService {
   #completionsCache = new LRUCache<CompletionList>({ max: 1 });
@@ -262,7 +262,7 @@ export class HTMLLanguageService implements TemplateLanguageService {
         if (hasValueSpan) {
           const spanType = getSpanType(this.#ctx.ts, typeChecker, file, offset, end);
           switch (attrInfo.decorate) {
-            case '?':
+            case '?': {
               const boolType = getUnionType(typeChecker, [
                 typeChecker.getBooleanType(),
                 typeChecker.getUndefinedType(),
@@ -273,6 +273,7 @@ export class HTMLLanguageService implements TemplateLanguageService {
                 diagnostics.push(diagnostic);
               }
               continue;
+            }
             case '.':
             case '@':
               if (!typeChecker.isTypeAssignableTo(spanType, propType)) {
@@ -311,7 +312,6 @@ export class HTMLLanguageService implements TemplateLanguageService {
             // <div innerText="">
             diagnostics.push(diagnostic);
           }
-          continue;
         }
       }
     });
@@ -422,13 +422,14 @@ function getPropType(
         typeChecker.getBooleanType(),
         typeChecker.getUndefinedType(),
       ]);
-    default:
+    default: {
       const isEvent = attrInfo.decorate === '@';
       const propSymbol = classType.getProperty(propName);
       const propType = propSymbol && typeChecker.getTypeOfSymbol(propSymbol);
       if (!isEvent) return propType;
       const eventHandleType = getEmitterHandleType(typeChecker, classType, propType);
       return getUnionType(typeChecker, [eventHandleType, typeChecker.getUndefinedType()]);
+    }
   }
 }
 

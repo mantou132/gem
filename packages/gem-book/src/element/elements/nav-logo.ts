@@ -1,9 +1,9 @@
-import { GemElement, html, customElement, connectStore, css, adoptedStyle } from '@mantou/gem';
+import { adoptedStyle, connectStore, css, customElement, GemElement, html } from '@mantou/gem';
 import { mediaQuery } from '@mantou/gem/helper/mediaquery';
 
-import { bookStore } from '../store';
-import { theme } from '../helper/theme';
 import { GemBookElement } from '..';
+import { theme } from '../helper/theme';
+import { bookStore } from '../store';
 
 const styles = css`
   :scope:where(:not([hidden])) {

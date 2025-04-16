@@ -16,7 +16,7 @@ import {
   state,
 } from '@mantou/gem/lib/decorators';
 import type { TemplateResult } from '@mantou/gem/lib/element';
-import { GemElement, createRef, createState, css, html } from '@mantou/gem/lib/element';
+import { createRef, createState, css, GemElement, html } from '@mantou/gem/lib/element';
 import type { StyleObject } from '@mantou/gem/lib/utils';
 import { addListener, styleMap } from '@mantou/gem/lib/utils';
 
@@ -28,7 +28,6 @@ import { focusStyle } from '../lib/styles';
 import { theme } from '../lib/theme';
 import { isNotNullish } from '../lib/types';
 import { isIncludesString } from '../lib/utils';
-
 import type { Adder } from './options';
 import type { BasePickerElement } from './picker';
 import { pickerStyle } from './picker';
@@ -409,7 +408,7 @@ export class DuoyunSelectElement extends GemElement implements BasePickerElement
                   <dy-tag
                     small
                     part=${DuoyunSelectElement.tag}
-                    .closable=${this.disabled ? false : true}
+                    .closable=${!this.disabled}
                     @keydown=${(evt: KeyboardEvent) => evt.stopPropagation()}
                     @close=${() => this.#onRemoveTag(this.#valueOptions![index])}
                   >
@@ -439,8 +438,9 @@ export class DuoyunSelectElement extends GemElement implements BasePickerElement
         .tabIndex=${search ? 0 : -1}
         .element=${search ? icons.close : icons.expand}
       ></dy-use>
-      ${this.options && open
-        ? html`
+      ${
+        this.options && open
+          ? html`
             <dy-reflect .target=${document.body}>
               <dy-options
                 ${this.#optionsRef}
@@ -462,7 +462,8 @@ export class DuoyunSelectElement extends GemElement implements BasePickerElement
               ></dy-options>
             </dy-reflect>
           `
-        : ''}
+          : ''
+      }
     `;
   };
 

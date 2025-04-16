@@ -1,7 +1,7 @@
-// eslint-disable-next-line import/no-unresolved
-import { commands, window, workspace, extensions, languages } from 'vscode';
-import type { ExtensionContext, WorkspaceConfiguration } from 'vscode';
 import type { PluginConfiguration } from 'ts-gem-plugin/src/configuration';
+import type { ExtensionContext, WorkspaceConfiguration } from 'vscode';
+// eslint-disable-next-line import/no-unresolved
+import { commands, extensions, languages, window, workspace } from 'vscode';
 
 import { ColorProvider } from './color';
 

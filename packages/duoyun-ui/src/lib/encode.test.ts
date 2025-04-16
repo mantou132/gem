@@ -1,11 +1,13 @@
 import { expect } from '@mantou/gem/test/utils';
 
-import { arrayBufferToBase64, base64ToArrayBuffer, b64ToUtf8, utf8ToB64 } from './encode';
+import { arrayBufferToBase64, b64ToUtf8, base64ToArrayBuffer, utf8ToB64 } from './encode';
 
 it('`base64ToArrayBuffer`', () => {
   const str = 'abcdefg';
-  const buffer = new TextEncoder().encode(str);
-  expect(new TextDecoder().decode(base64ToArrayBuffer(arrayBufferToBase64(buffer)))).to.equal(str);
+  const uin8Arr = new TextEncoder().encode(str);
+  const base64 = arrayBufferToBase64(uin8Arr.buffer);
+  const arrBuf = base64ToArrayBuffer(base64);
+  expect(new TextDecoder().decode(arrBuf)).to.equal(str);
 });
 
 it('`utf8ToB64`', () => {

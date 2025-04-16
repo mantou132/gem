@@ -43,10 +43,10 @@ export function findRanges(root: Node, text: string) {
   const reg = new RegExp([...text].map((c) => `\\u{${c.codePointAt(0)!.toString(16)}}`).join(''), 'gui');
   const ranges: Range[] = [];
   const nodes: Node[] = [root];
-  while (!!nodes.length) {
+  while (nodes.length) {
     const node = nodes.pop()!;
     switch (node.nodeType) {
-      case Node.TEXT_NODE:
+      case Node.TEXT_NODE: {
         const matched = node.nodeValue?.matchAll(reg);
         if (matched) {
           for (const arr of matched) {
@@ -59,6 +59,7 @@ export function findRanges(root: Node, text: string) {
           }
         }
         break;
+      }
       case Node.ELEMENT_NODE:
         if ((node as Element).shadowRoot) nodes.push((node as Element).shadowRoot as Node);
         break;
@@ -94,7 +95,7 @@ export function closestElement<K extends keyof HTMLElementTagNameMap>(
 ): HTMLElementTagNameMap[K] | null;
 export function closestElement<K extends abstract new (...args: any) => any>(
   ele: Element,
-  constructor: K,
+  con: K,
 ): InstanceType<K> | null;
 export function closestElement<K extends Element>(ele: Element, tag: string): K | null;
 export function closestElement<K extends abstract new (...args: any) => any>(ele: Element, selector: K | string) {

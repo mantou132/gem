@@ -1,6 +1,6 @@
 import { html, render } from '@mantou/gem';
 
-import { panelStore, PanelStore } from './store';
+import { PanelStore, panelStore } from './store';
 
 import './modules/panel';
 

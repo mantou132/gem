@@ -1,13 +1,13 @@
 import {
   getDefaultHTMLDataProvider,
-  type IHTMLDataProvider,
   type IAttributeData,
+  type IHTMLDataProvider,
 } from '@mantou/vscode-html-languageservice';
-import type * as ts from 'typescript/lib/tsserverlibrary';
 import type { StringWeakMap } from 'duoyun-ui/lib/map';
+import type * as ts from 'typescript/lib/tsserverlibrary';
 
-import { isDepElement, isCustomElementTag, getAttrName } from './utils';
 import { NAME } from './constants';
+import { getAttrName, isCustomElementTag, isDepElement } from './utils';
 
 export const dataProvider = getDefaultHTMLDataProvider();
 

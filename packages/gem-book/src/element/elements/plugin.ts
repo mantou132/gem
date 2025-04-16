@@ -1,17 +1,17 @@
-import type { Emitter } from '@mantou/gem';
-import { GemElement, connectStore, globalemitter, customElement } from '@mantou/gem';
 import * as Gem from '@mantou/gem';
-import { mediaQuery } from '@mantou/gem/helper/mediaquery';
+import type { Emitter } from '@mantou/gem';
+import { connectStore, customElement, GemElement, globalemitter } from '@mantou/gem';
 import { logger } from '@mantou/gem/helper/logger';
+import { mediaQuery } from '@mantou/gem/helper/mediaquery';
 
-import { theme } from '../helper/theme';
-import { bookStore, locationStore } from '../store';
 import type { BookConfig } from '../../common/config';
 import { debounce, throttle } from '../../common/utils';
 import { icons } from '../elements/icons';
-import { getRanges, getParts, joinPath, getURL, escapeHTML, capitalize, isGitLab } from '../lib/utils';
-import { parseMarkdown, unsafeRenderHTML } from '../lib/renderer';
 import { originDocLang, selfI18n } from '../helper/i18n';
+import { theme } from '../helper/theme';
+import { parseMarkdown, unsafeRenderHTML } from '../lib/renderer';
+import { capitalize, escapeHTML, getParts, getRanges, getURL, isGitLab, joinPath } from '../lib/utils';
+import { bookStore, locationStore } from '../store';
 
 /**
  * 获取资源的远端 GitHub raw 地址，如果使用 `DEV_MODE`，则返回本机服务的 URL

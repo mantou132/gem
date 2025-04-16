@@ -1,20 +1,20 @@
 import {
+  adoptedStyle,
+  connectStore,
+  createState,
+  css,
+  customElement,
   GemElement,
   html,
-  adoptedStyle,
-  customElement,
-  css,
-  connectStore,
-  styleMap,
-  shadow,
   mounted,
-  createState,
+  shadow,
+  styleMap,
 } from '@mantou/gem';
 
-import { configureStore } from '../store';
 import { execution } from '../common';
 import { getAllFrames } from '../scripts/get-all-frame';
 import { appendScanElement, checkGemElement, checkScanElement } from '../scripts/scan';
+import { configureStore } from '../store';
 
 const style = css`
   :host {

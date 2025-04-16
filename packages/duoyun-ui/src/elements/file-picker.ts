@@ -1,24 +1,23 @@
 import type { Emitter } from '@mantou/gem/lib/decorators';
 import {
   adoptedStyle,
-  customElement,
   attribute,
-  globalemitter,
-  property,
   boolattribute,
+  customElement,
+  globalemitter,
   part,
-  slot,
+  property,
   shadow,
+  slot,
 } from '@mantou/gem/lib/decorators';
-import { css, createRef, GemElement, html, repeat } from '@mantou/gem/lib/element';
+import { createRef, css, GemElement, html, repeat } from '@mantou/gem/lib/element';
 import { styleMap } from '@mantou/gem/lib/utils';
 
-import { icons } from '../lib/icons';
-import { theme } from '../lib/theme';
-import { commonHandle } from '../lib/hotkeys';
-import { focusStyle } from '../lib/styles';
 import { utf8ToB64 } from '../lib/encode';
-
+import { commonHandle } from '../lib/hotkeys';
+import { icons } from '../lib/icons';
+import { focusStyle } from '../lib/styles';
+import { theme } from '../lib/theme';
 import type { ImageStatus } from './image-preview';
 import type { BasePickerElement } from './picker';
 

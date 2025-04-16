@@ -52,7 +52,7 @@ const createMarker = () => d.createComment('');
 // https://tc39.github.io/ecma262/#sec-typeof-operator
 type Primitive = null | undefined | boolean | number | string | symbol | bigint;
 const isPrimitive = (value: unknown): value is Primitive =>
-  value === null || (typeof value != 'object' && typeof value != 'function');
+  value === null || (typeof value !== 'object' && typeof value !== 'function');
 const isNullish = (value: unknown) => value === null || value === undefined;
 const isIterable = (value: any): value is Iterable<unknown> => Symbol.iterator in value;
 
@@ -517,10 +517,10 @@ function resolveDirective(
   const nextDirectiveConstructor = isPrimitive(value)
     ? undefined
     : // This property needs to remain unminified.
-      (value as DirectiveResult)['_$litDirective$'];
+      (value as DirectiveResult)._$litDirective$;
   if (currentDirective?.constructor !== nextDirectiveConstructor) {
     // This property needs to remain unminified.
-    currentDirective?.['_$notifyDirectiveConnectionChanged']?.(false);
+    currentDirective?._$notifyDirectiveConnectionChanged?.(false);
     if (nextDirectiveConstructor === undefined) {
       currentDirective = undefined;
     } else {
@@ -580,7 +580,7 @@ class TemplateInstance implements Disconnectable {
   _clone(options: RenderOptions | undefined) {
     const {
       el: { content },
-      parts: parts,
+      parts,
     } = this._$template;
     const ifMap = new Map<Element, number>();
     const elseIfMap = new Map<Element, number>();
@@ -1104,7 +1104,7 @@ class AttributePart implements Disconnectable {
       const values = value as Array<unknown>;
       value = strings[0];
 
-      let i, v;
+      let i: number, v: any;
       for (i = 0; i < strings.length - 1; i++) {
         v = resolveDirective(this, values[valueIndex! + i], directiveParent, i);
         change ||= !isPrimitive(v) || v !== (this._$committedValue as Array<unknown>)[i];
@@ -1156,16 +1156,6 @@ type EventListenerWithOptions = EventListenerOrEventListenerObject & Partial<Add
 export type { EventPart };
 class EventPart extends AttributePart {
   override readonly type = EVENT_PART;
-
-  constructor(
-    element: HTMLElement,
-    name: string,
-    strings: ReadonlyArray<string>,
-    parent: Disconnectable,
-    options: RenderOptions | undefined,
-  ) {
-    super(element, name, strings, parent, options);
-  }
 
   /** @internal */
   override _$setValue(newListener: unknown, directiveParent: DirectiveParent = this) {
@@ -1237,7 +1227,7 @@ class ElementPart implements Disconnectable {
     if (!value) return;
     if (value instanceof Ref) {
       value.value = this.element;
-    } else if ((value as DirectiveResult)['_$litDirective$']) {
+    } else if ((value as DirectiveResult)._$litDirective$) {
       resolveDirective(this, value);
     } else {
       if (this._$props) {
@@ -1264,10 +1254,10 @@ export const render = (
   options?: RenderOptions,
 ): RootPart => {
   const partOwnerNode = (options?.renderBefore ?? container) as any;
-  let part: ChildPart = partOwnerNode['_$litPart$'];
+  let part: ChildPart = partOwnerNode._$litPart$;
   if (part === undefined) {
     const endNode = options?.renderBefore ?? null;
-    partOwnerNode['_$litPart$'] = part = new ChildPart(
+    partOwnerNode._$litPart$ = part = new ChildPart(
       container.insertBefore(createMarker(), endNode),
       endNode,
       undefined,

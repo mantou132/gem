@@ -1,4 +1,4 @@
-import { expect, aTimeout } from '@mantou/gem/test/utils';
+import { aTimeout, expect } from '@mantou/gem/test/utils';
 
 import { Cache } from './cache';
 

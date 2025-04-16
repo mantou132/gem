@@ -1,9 +1,8 @@
-import { GemElement, html, css } from '@mantou/gem/lib/element';
-import { adoptedStyle, customElement, property, attribute, slot, shadow } from '@mantou/gem/lib/decorators';
+import { adoptedStyle, attribute, customElement, property, shadow, slot } from '@mantou/gem/lib/decorators';
+import { css, GemElement, html } from '@mantou/gem/lib/element';
 
 import { theme } from '../lib/theme';
 import type { StringList } from '../lib/types';
-
 import type { Status } from './status-light';
 import { getStatusColor } from './status-light';
 

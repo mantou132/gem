@@ -1,18 +1,18 @@
 import type { Emitter } from '@mantou/gem';
 import {
+  attribute,
+  boolattribute,
+  customElement,
+  emitter,
   GemElement,
   html,
-  property,
-  attribute,
-  slot,
-  part,
-  state,
-  emitter,
-  customElement,
-  numattribute,
-  boolattribute,
-  shadow,
   mounted,
+  numattribute,
+  part,
+  property,
+  shadow,
+  slot,
+  state,
 } from '@mantou/gem';
 
 export type Message = number[];

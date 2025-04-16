@@ -1,4 +1,4 @@
-import { GemElement, html, history, render, createRef, connectStore, customElement } from '@mantou/gem';
+import { connectStore, createRef, customElement, GemElement, history, html, render } from '@mantou/gem';
 import type { RouteItem } from '@mantou/gem/elements/route';
 import { createHistoryParams, GemRouteElement } from '@mantou/gem/elements/route';
 import '@mantou/gem/elements/link';

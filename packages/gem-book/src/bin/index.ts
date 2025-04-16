@@ -1,50 +1,49 @@
 #!/usr/bin/env node
 
+import { existsSync, readdirSync, statSync, writeFileSync } from 'fs';
 import path from 'path';
-import { readdirSync, statSync, writeFileSync, existsSync } from 'fs';
 
-import program from 'commander';
-import getRepoInfo from 'git-repo-info';
-import chalk from 'chalk';
 import anymatch from 'anymatch';
-import { sync } from 'mkdirp';
+import chalk from 'chalk';
 import { watch } from 'chokidar';
+import program from 'commander';
 import express, { static as serveStatic } from 'express';
+import getRepoInfo from 'git-repo-info';
+import { sync } from 'mkdirp';
 
 import { version } from '../../package.json';
 import type { BookConfig, CliConfig, CliUniqueConfig, NavItem, SidebarConfig } from '../common/config';
 import {
-  DEFAULT_FILE,
   DEFAULT_CLI_FILE,
-  DEFAULT_SOURCE_BRANCH,
-  UPDATE_EVENT,
-  DEFAULT_OUTPUT,
   DEFAULT_DOCS_DIR,
+  DEFAULT_FILE,
+  DEFAULT_OUTPUT,
+  DEFAULT_SOURCE_BRANCH,
   GBP_PROTOCOL,
+  UPDATE_EVENT,
 } from '../common/constant';
-import { isIndexFile, parseFilename, debounce } from '../common/utils';
 import type { FrontMatter } from '../common/frontmatter';
-
-import {
-  getGithubUrl,
-  getBaseDir,
-  isDirConfigFile,
-  getMetadata,
-  isMdFile,
-  print,
-  getRepoTitle,
-  checkRelativeLink,
-  readDirConfig,
-  getIconDataUrl,
-  getLatestMdFile,
-  resolveTheme,
-  importObject,
-  resolveModule,
-  getMdFile,
-  isGithubOrGitLabNav,
-} from './utils';
+import { debounce, isIndexFile, parseFilename } from '../common/utils';
 import { buildApp } from './builder';
 import lang from './lang.json'; // https://developers.google.com/search/docs/advanced/crawling/localized-versions#language-codes
+import {
+  checkRelativeLink,
+  getBaseDir,
+  getGithubUrl,
+  getIconDataUrl,
+  getLatestMdFile,
+  getMdFile,
+  getMetadata,
+  getRepoTitle,
+  importObject,
+  isDirConfigFile,
+  isGithubOrGitLabNav,
+  isMdFile,
+  print,
+  readDirConfig,
+  resolveModule,
+  resolveTheme,
+} from './utils';
 
 const devServerEventTarget = new EventTarget();
 
@@ -182,7 +181,7 @@ function readFiles(filenames: string[], docsRootDir: string, dir: string, link: 
             title,
             children: groups?.map
               ? groups
-                  .map(({ title: groupTitle, members }) => {
+                  .flatMap(({ title: groupTitle, members }) => {
                     if (!members?.forEach) return [];
                     members.forEach((member) => subFilenameSet.delete(member));
                     const children = readFiles(
@@ -200,7 +199,6 @@ function readFiles(filenames: string[], docsRootDir: string, dir: string, link: 
                       children,
                     } as NavItem;
                   })
-                  .flat()
                   .concat(readFiles([...subFilenameSet], docsRootDir, newDir, newLink, config))
               : readDir(docsRootDir, newDir, newLink),
             isNav,

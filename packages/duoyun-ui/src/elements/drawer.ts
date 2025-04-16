@@ -2,7 +2,6 @@ import { adoptedStyle, customElement } from '@mantou/gem/lib/decorators';
 import { css } from '@mantou/gem/lib/element';
 
 import { slideInLeft, slideOutRight } from '../lib/animations';
-
 import type { ModalOptions } from './modal';
 import { DuoyunModalElement } from './modal';
 

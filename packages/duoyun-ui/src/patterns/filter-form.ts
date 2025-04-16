@@ -1,4 +1,3 @@
-import { GemElement, html, css, createState } from '@mantou/gem/lib/element';
 import type { Emitter } from '@mantou/gem/lib/decorators';
 import {
   adoptedStyle,
@@ -11,22 +10,23 @@ import {
   shadow,
   willMount,
 } from '@mantou/gem/lib/decorators';
+import { createState, css, GemElement, html } from '@mantou/gem/lib/element';
 import type { Store } from '@mantou/gem/lib/store';
 import { connect } from '@mantou/gem/lib/store';
 
-import { ComparerType, isIncludesString } from '../lib/utils';
-import { Time } from '../lib/time';
-import { locale } from '../lib/locale';
-import { icons } from '../lib/icons';
-import { blockContainer } from '../lib/styles';
 import type { Option } from '../elements/select';
+import { icons } from '../lib/icons';
+import { locale } from '../lib/locale';
+import { blockContainer } from '../lib/styles';
+import { Time } from '../lib/time';
+import { ComparerType, isIncludesString } from '../lib/utils';
 
-import '../elements/radio';
 import '../elements/button';
 import '../elements/date-panel';
-import '../elements/time-panel';
-import '../elements/select';
 import '../elements/input';
+import '../elements/radio';
+import '../elements/select';
+import '../elements/time-panel';
 
 export type FilterableType = 'string' | 'number' | 'date' | 'date-time' | 'time' | 'duration' | 'enum';
 
@@ -161,7 +161,7 @@ export class DyPatFilterFormElement extends GemElement {
   };
 
   #onChangeDurationValue = ({ detail }: CustomEvent<string>) => {
-    if (isNaN(Number(detail))) return;
+    if (Number.isNaN(Number(detail))) return;
     this.#state({
       value: (Number(detail) * this.#state.durationUnit).toString(),
     });
@@ -189,12 +189,12 @@ export class DyPatFilterFormElement extends GemElement {
         return html`
           <dy-time-panel
             @change=${this.#onChangeTimeValue}
-            .value=${this.#state.value === ''
-              ? undefined
-              : Number(this.#state.value) + new Time().startOf('d').valueOf()}
+            .value=${
+              this.#state.value === '' ? undefined : Number(this.#state.value) + new Time().startOf('d').valueOf()
+            }
           ></dy-time-panel>
         `;
-      case 'enum':
+      case 'enum': {
         const getProviders = this.options?.getProviders;
         const options: Option[] | undefined = this.options?.getOptions?.(this.#state.provider);
         const filteredOptions = this.#state.search
@@ -229,6 +229,7 @@ export class DyPatFilterFormElement extends GemElement {
             .options=${filteredOptions}
           ></dy-select>
         `;
+      }
       case 'duration':
         return html`
           <dy-input-group class="duration">

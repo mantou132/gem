@@ -43,7 +43,7 @@
     "clean": "node -e \"fs.readdirSync('src').map(dir => require('rimraf').sync(dir))\"",
     "build": "pnpm clean && tsc -p tsconfig.build.json",
     "start": "pnpm build --watch",
-    "test": "cross-env NODE_OPTIONS=--no-experimental-fetch wtr",
+    "test": "cross-env wtr",
     "prepublishOnly": "pnpm build && pnpm build:components"
   },
   "dependencies": {

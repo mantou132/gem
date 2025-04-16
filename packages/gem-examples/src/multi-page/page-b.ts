@@ -1,4 +1,4 @@
-import { GemElement, connectStore, customElement, html, shadow } from '@mantou/gem';
+import { connectStore, customElement, GemElement, html, shadow } from '@mantou/gem';
 
 import { pageB } from './store';
 

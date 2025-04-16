@@ -101,9 +101,9 @@ class _GbpApiElement extends GemBookPluginElement {
 
   #renderTable = <T>(list: T[], headers: string[], fields: ((data: T) => string)[]) => {
     let text = '';
-    text += headers.reduce((p, c, index) => p + `${headers[index]} |`, '|') + '\n';
+    text += headers.reduce((p, _c, index) => p + `${headers[index]} |`, '|') + '\n';
     text += headers.reduce((p) => p + `--- |`, '|') + '\n';
-    text += list.reduce((prev, c, dataIndex) => {
+    text += list.reduce((prev, _c, dataIndex) => {
       return prev + headers.reduce((p, _, index) => p + `${fields[index](list[dataIndex])} |`, '|') + '\n';
     }, '');
     return text;

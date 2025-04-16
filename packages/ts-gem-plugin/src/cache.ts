@@ -1,6 +1,6 @@
 import type { TemplateContext } from '@mantou/typescript-template-language-service-decorator';
-import type { Position } from 'vscode-languageserver-textdocument';
 import { Cache } from 'duoyun-ui/lib/cache';
+import type { Position } from 'vscode-languageserver-textdocument';
 
 export type CacheContext = Pick<TemplateContext, 'fileName' | 'text'>;
 

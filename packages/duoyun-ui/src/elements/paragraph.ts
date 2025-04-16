@@ -1,5 +1,5 @@
 import { adoptedStyle, aria, customElement } from '@mantou/gem/lib/decorators';
-import { GemElement, css } from '@mantou/gem/lib/element';
+import { css, GemElement } from '@mantou/gem/lib/element';
 
 import { theme } from '../lib/theme';
 

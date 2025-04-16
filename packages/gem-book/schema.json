@@ -111,10 +111,7 @@
           "type": "string"
         }
       },
-      "required": [
-        "title",
-        "desc"
-      ],
+      "required": ["title", "desc"],
       "type": "object"
     },
     "Hero": {
@@ -131,10 +128,7 @@
                 "type": "string"
               }
             },
-            "required": [
-              "text",
-              "link"
-            ],
+            "required": ["text", "link"],
             "type": "object"
           },
           "type": "array"
@@ -177,10 +171,7 @@
                 "type": "string"
               }
             },
-            "required": [
-              "title",
-              "members"
-            ],
+            "required": ["title", "members"],
             "type": "object"
           },
           "type": "array"
@@ -218,25 +209,15 @@
           "type": "string"
         },
         "type": {
-          "enum": [
-            "dir",
-            "file",
-            "heading"
-          ],
+          "enum": ["dir", "file", "heading"],
           "type": "string"
         }
       },
-      "required": [
-        "link",
-        "title"
-      ],
+      "required": ["link", "title"],
       "type": "object"
     },
     "SupportLang": {
-      "enum": [
-        "zh",
-        "en"
-      ],
+      "enum": ["zh", "en"],
       "type": "string"
     }
   }

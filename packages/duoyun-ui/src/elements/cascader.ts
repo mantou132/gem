@@ -1,24 +1,24 @@
 import type { Emitter } from '@mantou/gem/lib/decorators';
 import {
   adoptedStyle,
-  customElement,
-  globalemitter,
-  property,
   boolattribute,
-  part,
+  customElement,
   emitter,
-  shadow,
+  globalemitter,
   memo,
+  part,
+  property,
+  shadow,
 } from '@mantou/gem/lib/decorators';
 import type { TemplateResult } from '@mantou/gem/lib/element';
-import { css, createState, GemElement, html } from '@mantou/gem/lib/element';
-import { styleMap, classMap } from '@mantou/gem/lib/utils';
+import { createState, css, GemElement, html } from '@mantou/gem/lib/element';
+import { classMap, styleMap } from '@mantou/gem/lib/utils';
 
 import { icons } from '../lib/icons';
-import { getCascaderDeep, readProp } from '../lib/utils';
+import { locale } from '../lib/locale';
 import { theme } from '../lib/theme';
 import { isNotNullish } from '../lib/types';
-import { locale } from '../lib/locale';
+import { getCascaderDeep, readProp } from '../lib/utils';
 
 import './use';
 import './checkbox';

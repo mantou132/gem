@@ -1,15 +1,14 @@
-import { connectStore, adoptedStyle, customElement, shadow, effect, mounted } from '@mantou/gem/lib/decorators';
+import { adoptedStyle, connectStore, customElement, effect, mounted, shadow } from '@mantou/gem/lib/decorators';
 import type { TemplateResult } from '@mantou/gem/lib/element';
-import { css, html, GemElement, createRef } from '@mantou/gem/lib/element';
-import { styleMap, classMap } from '@mantou/gem/lib/utils';
+import { createRef, css, GemElement, html } from '@mantou/gem/lib/element';
 import { createStore } from '@mantou/gem/lib/store';
+import { classMap, styleMap } from '@mantou/gem/lib/utils';
 
-import { icons } from '../lib/icons';
-import { locale } from '../lib/locale';
 import { setBodyInert, toggleActiveState } from '../lib/element';
 import { hotkeys } from '../lib/hotkeys';
+import { icons } from '../lib/icons';
+import { locale } from '../lib/locale';
 import { theme } from '../lib/theme';
-
 import type { DuoyunOptionsElement } from './options';
 
 import './compartment';
@@ -357,35 +356,39 @@ export class DuoyunContextmenuElement extends GemElement {
             })}
             @keydown=${(evt: KeyboardEvent) => this.#onKeydown(evt, index)}
             ?searchable=${searchable}
-            .options=${Array.isArray(menu)
-              ? menu.map(
-                  (
-                    { text, description, tag, tagIcon, handle, disabled, selected, danger, menu: subMenu },
-                    _index,
-                    __arr,
-                    onPointerEnter = (evt: PointerEvent) => this.#onEnterMenu(evt, index, subMenu),
-                    onClick = !disabled ? (_evt: PointerEvent) => this.#execHandle(handle) : undefined,
-                  ) => ({
-                    label: text,
-                    description,
-                    tag,
-                    disabled,
-                    danger,
-                    highlight: subMenu && getMenuObject(subMenu).menu === menuStack[index + 1]?.menu,
-                    tagIcon: subMenu ? icons.right : selected ? icons.check : tagIcon,
-                    onClick: subMenu ? onPointerEnter : onClick,
-                    onPointerEnter,
-                  }),
-                )
-              : undefined}
+            .options=${
+              Array.isArray(menu)
+                ? menu.map(
+                    (
+                      { text, description, tag, tagIcon, handle, disabled, selected, danger, menu: subMenu },
+                      _index,
+                      __arr,
+                      onPointerEnter = (evt: PointerEvent) => this.#onEnterMenu(evt, index, subMenu),
+                      onClick = !disabled ? (_evt: PointerEvent) => this.#execHandle(handle) : undefined,
+                    ) => ({
+                      label: text,
+                      description,
+                      tag,
+                      disabled,
+                      danger,
+                      highlight: subMenu && getMenuObject(subMenu).menu === menuStack[index + 1]?.menu,
+                      tagIcon: subMenu ? icons.right : selected ? icons.check : tagIcon,
+                      onClick: subMenu ? onPointerEnter : onClick,
+                      onPointerEnter,
+                    }),
+                  )
+                : undefined
+            }
           >
-            ${Array.isArray(menu)
-              ? header
-              : html`
+            ${
+              Array.isArray(menu)
+                ? header
+                : html`
                   <div class="menu-custom-container">
                     <dy-compartment .content=${menu}></dy-compartment>
                   </div>
-                `}
+                `
+            }
           </dy-options>
         `,
       )}
