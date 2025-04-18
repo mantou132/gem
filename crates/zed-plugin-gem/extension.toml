@@ -9,3 +9,7 @@ snippets = "./snippets/typescript.json"
 
 [context_servers.gem]
 name = "Gem Context Server"
+
+[language_servers.gem]
+name = "Gem language server"
+languages = ["TypeScript", "TSX", "JavaScript", "JSDoc"]
