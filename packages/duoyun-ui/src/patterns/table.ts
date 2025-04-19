@@ -475,7 +475,7 @@ export class DyPatTableElement<T = any> extends GemElement {
         case 'date-time':
           return new Time(Number(e)).format();
         case 'time':
-          return formatDuration(e, true);
+          return formatDuration(e, { numeric: true });
         case 'duration':
           return formatDuration(e);
         default:

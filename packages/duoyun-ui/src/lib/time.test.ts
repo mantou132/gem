@@ -36,12 +36,12 @@ it('`D.relativeTimeFormat`', () => {
 });
 
 it('`parseDuration`', () => {
-  expect(formatDuration(100)).to.equal('100 Millisecond');
-  expect(formatDuration(1000)).to.equal('1 Second');
-  expect(formatDuration(1000 * 60)).to.equal('1 Minute');
-  expect(formatDuration(1000 * 60 * 60)).to.equal('1 Hour');
-  expect(formatDuration(1000 * 60 * 60 * 24)).to.equal('1 Day');
-  expect(formatDuration(1000 * 60 * 60 * 24 * 6)).to.equal('6 Day');
-  expect(formatDuration(1000 * 60 * 60 * 24 * 30)).to.equal('5 Week');
-  expect(formatDuration(1000 * 60 * 60 * 24 * 31)).to.equal('1 Month');
+  expect(formatDuration(100)).to.equal('100 ms');
+  expect(formatDuration(1000)).to.equal('1 sec');
+  expect(formatDuration(1000 * 60)).to.equal('1 min');
+  expect(formatDuration(1000 * 60 * 60)).to.equal('1 hr');
+  expect(formatDuration(1000 * 60 * 60 * 24)).to.equal('1 day');
+  expect(formatDuration(1000 * 60 * 60 * 24 * 6)).to.equal('6 days');
+  expect(formatDuration(1000 * 60 * 60 * 24 * 30)).to.equal('30 days');
+  expect(formatDuration(1000 * 60 * 60 * 24 * 31)).to.equal('31 days');
 });

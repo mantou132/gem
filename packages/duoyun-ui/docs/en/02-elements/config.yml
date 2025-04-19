@@ -65,6 +65,7 @@ groups:
       - code-block.md
       - collapse.md
       - compartment.md
+      - countdown.md
       - empty.md
       - heading.md
       - image-preview.md

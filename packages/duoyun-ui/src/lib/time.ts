@@ -19,8 +19,7 @@ export function parseDate(date?: number | Date) {
   const dateObj: Record<string, string> = {};
   parts.forEach(({ type, value }) => (dateObj[type] = value));
   const { year = '', month = '', day = '', hour = '', minute = '', second = '' } = dateObj;
-  // https://bugs.chromium.org/p/chromium/issues/detail?id=1262801
-  return { year, month, day, hour: hour === '24' ? '00' : hour, minute, second };
+  return { year, month, day, hour, minute, second };
 }
 
 const Ds = 1000;
@@ -289,16 +288,34 @@ export function parseDuration(ms: number) {
   return { number: Math.ceil(ms).toString(), unit: locale.millisecond };
 }
 
-// https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/DurationFormat
-export function formatDuration(ms: number, numeric?: boolean) {
+export function parseDurationToParts(ms: number, hasDays?: boolean) {
+  const days = hasDays ? Math.floor(ms / Dd) : 0;
+  const hours = Math.floor((hasDays ? ms % Dd : ms) / Dh);
+  const minutes = Math.floor((ms % Dh) / Dm);
+  const seconds = Math.floor((ms % Dm) / Ds);
+  const milliseconds = ms % Ds;
+  return { days, hours, minutes, seconds, milliseconds };
+}
+
+interface FormatDurationOptions {
+  /** HH:mm:ss */
+  numeric?: boolean;
+  style?: Intl.RelativeTimeFormatStyle;
+}
+
+export function formatDuration(ms: number, { numeric, style = 'short' }: FormatDurationOptions = {}) {
+  const { days, hours, minutes, seconds, milliseconds } = parseDurationToParts(ms, !numeric);
+
   if (numeric) {
-    const sec = Math.ceil(ms / 1000);
-    const hours = Math.floor(sec / 3600);
-    const minutes = Math.floor((sec - hours * 3600) / 60);
-    const seconds = sec - hours * 3600 - minutes * 60;
     const fill = (n: number) => n.toString().padStart(2, '0');
     return `${fill(hours)}:${fill(minutes)}:${fill(seconds)}`;
   }
-  const { number, unit } = parseDuration(ms);
-  return `${number} ${unit}`;
+
+  return new (Intl as any).DurationFormat(locale.localeCode, { style }).format({
+    days,
+    hours,
+    minutes,
+    seconds,
+    milliseconds,
+  });
 }
