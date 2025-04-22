@@ -5,11 +5,14 @@ class MyElement1 {
         if (bool) return '#src';
         return '#src';
     }
+    @effect((i) => MyElement1._dep_fn_0(i))
+    #update = () => {}
     @memo(['src'])
     #__src() {
         this.#src = this.#_src;
     }
     #src;
+    static _dep_fn_0 = (i) => [i.#src];
   }
 class MyElement2 {
     get #src() {

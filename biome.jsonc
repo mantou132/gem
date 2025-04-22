@@ -59,6 +59,7 @@
     "rules": {
       "recommended": true,
       "correctness": {
+        "noUnusedImports": "warn",
         "noUnusedVariables": "warn"
       },
       "style": {

@@ -6,6 +6,8 @@ class MyElement1 {
     if (bool) return '#src';
     return '#src';
   }
+  @effect((i) => [i.#src])
+  #update = () => {}
 }
 class MyElement2 {
   get #src() {

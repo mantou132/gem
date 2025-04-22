@@ -12,7 +12,7 @@ import {
 } from '@mantou/gem/lib/decorators';
 import { css, GemElement, html, repeat, TemplateResult } from '@mantou/gem/lib/element';
 
-import { parseDurationToParts, Time } from '../lib/time';
+import { parseDurationToParts } from '../lib/time';
 
 const style = css`
   :host(:where(:not([hidden]))) {
@@ -53,7 +53,6 @@ export class DuoyunCountdownElement extends GemElement {
 
   @effect()
   #update = () => {
-    if (!this.#diff) return this.finish();
     const timer = setTimeout(() => this.update(), this.#diff % 1000);
     return () => clearTimeout(timer);
   };
@@ -64,7 +63,10 @@ export class DuoyunCountdownElement extends GemElement {
   };
 
   render = () => {
-    const { hours, minutes, seconds } = parseDurationToParts(this.#diff);
+    const currentSec = Math.round(this.#diff / 1000);
+    if (!currentSec) this.finish();
+
+    const { hours, minutes, seconds } = parseDurationToParts(currentSec * 1000);
     return html`
       <div part=${DuoyunCountdownElement.hours}>${this.#fill(hours)}</div>
       <div part=${DuoyunCountdownElement.delimiter} class="delimiter"></div>
