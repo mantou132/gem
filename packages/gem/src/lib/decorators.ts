@@ -229,7 +229,7 @@ export function memo<T extends GemElement, V = any, K = any[] | undefined>(
           });
         }, dep);
       } else {
-        this.memo((access.get(this) as any).bind(this), dep);
+        this.memo((access.get.call(this, this) as any).bind(this), dep);
       }
     });
   };
@@ -255,7 +255,7 @@ export function effect<T extends GemElement, V extends (depValues: K, oldDepValu
 ) {
   return (_: any, { addInitializer, access }: ClassFieldDecoratorContext<T, V> | ClassMethodDecoratorContext<T, V>) => {
     addInitializer(function (this: T) {
-      this.effect(access.get(this).bind(this) as any, getDep && (() => getDep(this) as any));
+      this.effect(access.get.call(this, this).bind(this) as any, getDep && (() => getDep(this) as any));
     });
   };
 }
@@ -264,7 +264,7 @@ export function unmounted<T extends GemElement, V extends () => any>() {
   return (_: any, { addInitializer, access }: ClassFieldDecoratorContext<T, V> | ClassMethodDecoratorContext<T, V>) => {
     addInitializer(function (this: T) {
       this.effect(
-        () => access.get(this).bind(this) as any,
+        () => access.get.call(this, this).bind(this) as any,
         () => [],
       );
     });
@@ -288,7 +288,7 @@ export function template<T extends GemElement, V extends () => TemplateResult | 
   return (_: any, { addInitializer, access }: ClassFieldDecoratorContext<T, V> | ClassMethodDecoratorContext<T, V>) => {
     addInitializer(function (this: T) {
       _createTemplate(this, {
-        render: access.get(this).bind(this),
+        render: access.get.call(this, this).bind(this),
         condition: condition && (() => condition(this) as any),
       });
     });
@@ -299,7 +299,7 @@ export function fallback<T extends GemElement, V extends (err: any) => TemplateR
   return (_: any, { addInitializer, access }: ClassFieldDecoratorContext<T, V> | ClassMethodDecoratorContext<T, V>) => {
     addInitializer(function (this: T) {
       this.addEventListener(_RenderErrorEvent, ({ detail }: CustomEvent) => {
-        render(access.get(this).apply(this, [detail]), this.internals.shadowRoot || this);
+        render(access.get.call(this, this).apply(this, [detail]), this.internals.shadowRoot || this);
       });
     });
   };

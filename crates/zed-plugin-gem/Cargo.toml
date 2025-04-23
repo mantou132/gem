@@ -1,6 +1,6 @@
 [package]
 name = "gem"
-version = "0.0.2"
+version = "0.0.3"
 edition = { workspace = true }
 rust-version = { workspace = true }
 publish = false
@@ -9,7 +9,7 @@ publish = false
 crate-type = ["cdylib"]
 
 [dependencies]
-zed_extension_api = { git = "https://github.com/zed-industries/zed", branch = "v0.181.x" }
+zed_extension_api = "0.4.0"
 serde = { workspace = true, features = ["derive"] }
 
 [build-dependencies]
