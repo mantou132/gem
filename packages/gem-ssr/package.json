@@ -1,6 +1,6 @@
 {
   "name": "gem-ssr",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Render to string",
   "keywords": [
     "gem",
@@ -16,14 +16,14 @@
     "example:watch": "nodemon --watch src -e .ts --exec \"pnpm run example\""
   },
   "dependencies": {
-    "@mantou/gem": "^2.2.0",
     "@hono/node-server": "^1.13.8",
+    "@mantou/gem": "^2.2.1",
     "esbuild": "^0.24.0",
     "hono": "^4.7.4",
     "jsdom": "^26.0.0"
   },
   "devDependencies": {
-    "@gemjs/config": "^2.1.0",
+    "@gemjs/config": "^2.1.1",
     "@types/jsdom": "^21.1.7",
     "nodemon": "^2.0.7",
     "tsx": "^4.19.3"
