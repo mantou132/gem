@@ -1,6 +1,6 @@
 {
   "name": "gem-context-server",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Model context server for Gem",
   "keywords": [
     "gem",
@@ -16,11 +16,11 @@
     "prepublishOnly": "esbuild ./src/index.ts --outdir=./dist --platform=node --sourcemap --bundle --packages=external"
   },
   "dependencies": {
-    "adm-zip": "^0.5.16",
-    "@modelcontextprotocol/sdk": "^1.6.1"
+    "@modelcontextprotocol/sdk": "^1.6.1",
+    "adm-zip": "^0.5.16"
   },
   "devDependencies": {
-    "@gemjs/config": "^2.1.0",
+    "@gemjs/config": "^2.1.1",
     "@types/adm-zip": "^0.5.7"
   },
   "author": "mantou132",

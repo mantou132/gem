@@ -1,7 +1,7 @@
 {
   "private": true,
   "name": "gem-devtools",
-  "version": "2.2.0",
+  "version": "2.2.1",
   "description": "Gem devtools",
   "scripts": {
     "update:version": "node ./scripts/update.js",
@@ -13,11 +13,11 @@
     "start": "pnpm build && concurrently -k npm:watch npm:browser"
   },
   "dependencies": {
-    "@mantou/gem": "^2.2.0",
+    "@mantou/gem": "^2.2.1",
     "webextension-polyfill": "^0.10.0"
   },
   "devDependencies": {
-    "@gemjs/config": "^2.1.0",
+    "@gemjs/config": "^2.1.1",
     "@types/webextension-polyfill": "^0.10.7",
     "vite": "^5.2.10",
     "web-ext": "^7.8.0"

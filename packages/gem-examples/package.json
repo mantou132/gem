@@ -1,7 +1,7 @@
 {
   "private": true,
   "name": "gem-examples",
-  "version": "2.2.0",
+  "version": "2.2.1",
   "description": "gem examples",
   "scripts": {
     "build": "vite build",
@@ -9,11 +9,11 @@
     "start": "vite serve"
   },
   "dependencies": {
-    "@mantou/gem": "^2.2.0",
-    "duoyun-ui": "^2.2.0"
+    "@mantou/gem": "^2.2.1",
+    "duoyun-ui": "^2.2.1"
   },
   "devDependencies": {
-    "@gemjs/config": "^2.1.0",
+    "@gemjs/config": "^2.1.1",
     "vite": "^5.2.10",
     "vite-plugin-virtual-mpa": "^1.9.3"
   }
