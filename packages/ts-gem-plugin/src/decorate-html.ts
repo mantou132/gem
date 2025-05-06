@@ -170,8 +170,10 @@ export class HTMLLanguageService implements TemplateLanguageService {
     forEachNode(vHtml.roots, (node) => {
       if (!node.tag) return;
 
+      const customElementTagDecl = this.#ctx.elements.get(node.tag);
+
       // 检查自定义元素是否定义
-      if (isCustomElementTag(node.tag) && !this.#ctx.elements.get(node.tag)) {
+      if (isCustomElementTag(node.tag) && !customElementTagDecl) {
         diagnostics.push({
           category: context.typescript.DiagnosticCategory.Warning,
           code: DiagnosticCode.UnknownTag,
@@ -183,7 +185,7 @@ export class HTMLLanguageService implements TemplateLanguageService {
         });
       }
 
-      const tagDeclaration = this.#ctx.elements.get(node.tag) || this.#ctx.builtInElements.get(node.tag);
+      const tagDeclaration = customElementTagDecl || this.#ctx.builtInElements.get(node.tag);
       if (!tagDeclaration) return;
 
       // 检查属性类型
@@ -192,7 +194,7 @@ export class HTMLLanguageService implements TemplateLanguageService {
 
         const hasValueSpan = value?.startsWith('_');
         const attrInfo = getAttrName(attributeName);
-        const propType = getPropType(typeChecker, tagDeclaration, attrInfo);
+        const propType = getPropType(typeChecker, tagDeclaration, !customElementTagDecl, attrInfo);
         const diagnostic = {
           category: context.typescript.DiagnosticCategory.Warning,
           file,
@@ -394,16 +396,27 @@ function getSpanType(
   return typeChecker.getTypeAtLocation(spanExp);
 }
 
+export const buildInElementNoGlobalAttrPropMap = new Map([
+  ['crossorigin', 'crossOrigin'],
+  ['rowspan', 'rowSpan'],
+  ['colspan', 'colSpan'],
+  // <input> list: string
+  ['list', 'ariaLabelledby'],
+]);
+
 function getPropType(
   typeChecker: ts.TypeChecker,
   tagClassDeclaration: ts.ClassDeclaration | ts.InterfaceDeclaration,
+  isBuiltInTag: boolean,
   attrInfo: ReturnType<typeof getAttrName>,
 ) {
   const classType = typeChecker.getTypeAtLocation(tagClassDeclaration);
   if (attrInfo.attr.startsWith('data-')) {
     return typeChecker.getStringType();
   }
-  const propName = kebabToCamelCase(attrInfo.attr);
+  const propName = isBuiltInTag
+    ? buildInElementNoGlobalAttrPropMap.get(attrInfo.attr) || kebabToCamelCase(attrInfo.attr)
+    : kebabToCamelCase(attrInfo.attr);
   switch (propName) {
     case 'class':
     case 'style':
@@ -411,12 +424,24 @@ function getPropType(
     case 'exportparts':
     case 'xmlns':
     case 'viewBox':
+    case 'ariaLabelledby':
       return typeChecker.getStringType();
     case 'tabindex':
       return typeChecker.getNumberType();
-    case 'ariaDisabled':
+    case 'ariaAtomic':
+    case 'ariaBusy':
     case 'ariaChecked':
+    case 'ariaDisabled':
+    case 'ariaExpanded':
+    case 'ariaGrabbed':
     case 'ariaHidden':
+    case 'ariaModal':
+    case 'ariaMultiline':
+    case 'ariaMultiselectable':
+    case 'ariaReadonly':
+    case 'ariaRequired':
+    case 'ariaPressed':
+    case 'ariaSelected':
       return getUnionType(typeChecker, [
         typeChecker.getStringType(),
         typeChecker.getBooleanType(),

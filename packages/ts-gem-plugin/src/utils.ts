@@ -6,7 +6,8 @@ export function isCustomElementTag(tag: string) {
 }
 
 export function isDepElement(node: ts.Node) {
-  return node.getSourceFile().fileName.includes('/node_modules/');
+  const { fileName } = node.getSourceFile();
+  return ['/node_modules/', '/dist/', '.d.ts'].some((s) => fileName.includes(s));
 }
 
 export function bindMemberFunction<T extends object>(o: T, keys = Object.keys(o) as (keyof T)[]) {

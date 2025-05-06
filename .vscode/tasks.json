@@ -4,8 +4,8 @@
   "version": "2.0.0",
   "tasks": [
     {
-      "label": "watch",
-      "dependsOn": ["VS Code gem plugin watch", "TypeScript gem plugin watch"],
+      "label": "build",
+      "dependsOn": ["VS Code gem plugin build", "TypeScript gem plugin build"],
       "presentation": {
         "reveal": "never"
       },
@@ -16,25 +16,25 @@
     },
     {
       "type": "shell",
-      "command": "pnpm -C packages/vscode-gem-plugin run watch",
+      "command": "pnpm -C packages/vscode-gem-plugin run compile",
       "group": "build",
       "problemMatcher": "$esbuild-watch",
       "isBackground": true,
-      "label": "VS Code gem plugin watch",
+      "label": "VS Code gem plugin build",
       "presentation": {
-        "group": "watch",
+        "group": "build",
         "reveal": "never"
       }
     },
     {
       "type": "shell",
-      "command": "pnpm -C packages/ts-gem-plugin start",
+      "command": "pnpm -C packages/ts-gem-plugin build",
       "group": "build",
       "problemMatcher": "$esbuild-watch",
       "isBackground": true,
-      "label": "TypeScript gem plugin watch",
+      "label": "TypeScript gem plugin build",
       "presentation": {
-        "group": "watch",
+        "group": "build",
         "reveal": "never"
       }
     }

@@ -128,7 +128,7 @@ export async function buildApp(dir: string, options: Required<CliUniqueConfig>, 
     plugins: [
       new HtmlRspackPlugin({
         title: bookConfig.title || 'GemBook App',
-        template: template ? path.resolve(process.cwd(), template) : 'auto',
+        template: template ? path.resolve(process.cwd(), template) : undefined,
         // Automatically copied to the output directory
         favicon: !isRemoteIcon ? icon : undefined,
         meta: {

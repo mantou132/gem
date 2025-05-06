@@ -191,10 +191,6 @@ export class DuoyunInputElement extends GemElement {
 
   #inputRef = createRef<HTMLInputElement>();
 
-  get #spellcheck() {
-    return this.spellcheck ? 'true' : 'false';
-  }
-
   get #type() {
     // https://html.spec.whatwg.org/multipage/input.html#do-not-apply
     return !this.type || this.type === 'number' ? 'text' : this.type;
@@ -352,7 +348,7 @@ export class DuoyunInputElement extends GemElement {
               ${this.#inputRef}
               class="input"
               part=${DuoyunInputElement.input}
-              spellcheck=${this.#spellcheck}
+              spellcheck=${this.spellcheck}
               placeholder=${this.placeholder}
               ?disabled=${this.disabled}
               ?required=${this.required}
@@ -369,7 +365,7 @@ export class DuoyunInputElement extends GemElement {
               type=${this.#type}
               class="input"
               part=${DuoyunInputElement.input}
-              spellcheck=${this.#spellcheck}
+              spellcheck=${this.spellcheck}
               name=${this.name}
               placeholder=${this.placeholder}
               ?disabled=${this.disabled}
