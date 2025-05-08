@@ -1,0 +1,30 @@
+name: Publish TS Gem Plugin
+
+on:
+  push:
+    tags:
+      - "@mantou/gem-port@*"
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+jobs:
+  gem-port-publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4 # docs https://pnpm.io/continuous-integration#github-actions
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22.x
+          cache: pnpm
+
+      - run: pnpm install
+
+      - uses: JS-DevTools/npm-publish@v1
+        with:
+          package: packages/gem-port/package.json
+          token: ${{ secrets.NPM_TOKEN }}

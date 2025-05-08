@@ -133,7 +133,7 @@ importers:
   packages/gem-analyzer:
     dependencies:
       '@mantou/gem':
-        specifier: ^2.2.1
+        specifier: ^2.x
         version: link:../gem
     devDependencies:
       '@gemjs/config':
@@ -1604,7 +1604,6 @@ packages:
   '@mxyhi/tsgo@2025.4.16-12':
     resolution: {integrity: sha512-bil1IrObQLTIDR91dHa4HOjrOnIdwMv+bXXDV6kXTll+EjzG32eBXIHnpxqQdOcK6mEAuk2GhWp/5Q4ThksjTA==}
     engines: {node: '>=12'}
-    cpu: [x64, ia32, arm, arm64]
     os: [darwin, linux, win32, freebsd]
     hasBin: true
 

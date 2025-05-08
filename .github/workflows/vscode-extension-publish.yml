@@ -1,0 +1,30 @@
+name: Publish VSCode Extension
+
+on:
+  push:
+    tags:
+      - vscode-plugin-gem@*
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+jobs:
+  vscode-plugin-publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.x
+
+      - run: cd packages/vscode-gem-plugin && npm install
+
+      - run: npx vsce package
+
+      - uses: actions/upload-artifact@v4
+        with:
+          path: "*.vsix"
+
+      - run: npx vsce publish --packagePath $(find . -iname *.vsix)
+        env:
+          VSCE_PAT: ${{ secrets.VSCE_PAT }}

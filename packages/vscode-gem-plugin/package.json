@@ -4,7 +4,7 @@
   "displayName": "Gem",
   "description": "Gem plugin for VS Code",
   "icon": "logo.png",
-  "version": "1.0.8",
+  "version": "1.0.9",
   "engines": {
     "vscode": "^1.94.0"
   },
@@ -164,8 +164,7 @@
     "watch": "pnpm compile --watch",
     "pretest": "tsc -p . --outDir out && pnpm compile",
     "test": "vscode-test",
-    "vscode:prepublish": "pnpm package",
-    "publish": "vsce publish --no-dependencies"
+    "vscode:prepublish": "pnpm package"
   },
   "dependencies": {
     "duoyun-ui": "^2.2.1",
