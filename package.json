@@ -7,7 +7,7 @@
     "test": "lerna exec --concurrency=1 --scope \"{@mantou/gem,gem-book,duoyun-ui}\" -- pnpm test",
     "release": "lerna version",
     "prepare:build": "pnpm -C packages/gem build && lerna exec --scope \"{gem-analyzer,duoyun-ui,gem-book,@mantou/gem-port}\" -- pnpm build",
-    "prepare:link": "lerna exec --scope \"{gem-book,@mantou/gem-port}\" -- pnpm link -g",
+    "prepare:link": "lerna exec --scope \"{gem-book,@mantou/gem-port}\" -- npm link",
     "prepare": "husky install && pnpm prepare:build && pnpm prepare:link"
   },
   "devDependencies": {

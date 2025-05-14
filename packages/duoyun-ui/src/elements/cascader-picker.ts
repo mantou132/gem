@@ -28,10 +28,10 @@ import { pickerStyle } from './picker';
 
 export type { Option } from './cascader';
 
-import './use';
 import './cascader';
-import './tag';
 import './scroll-box';
+import './tag';
+import './use';
 
 const style = css`
   :host {

@@ -150,24 +150,29 @@ export function decorateLanguageService(ctx: Context, languageService: LanguageS
 
     const propText = node.getText();
     const kebabCaseName = camelToKebabCase(propText);
-    // FIXME: `@camelCase`
+    // FIXME: <my-element @camelCase=${console.log}>
+    // FIXME: <my-element camelCase="5" ?camelCase>
+    // 不能指定目标文本：https://github.com/microsoft/vscode/issues/248912
     if (isPropType(ctx.ts, node.parent, ['emitter', 'globalemitter'])) {
       forEachAllHtmlTemplateNode(ctx, tag, (f, tagInfo) => {
         const info = tagInfo.node.attributesMap.get(`@${kebabCaseName}`);
         if (!info) return;
         const textSpan = { start: info.start + tagInfo.offset, length: info.end - info.start };
-        oResult.push({ fileName: f.fileName, prefixText: '@', textSpan });
+        oResult.push({ textSpan, fileName: f.fileName, prefixText: '@' });
       });
     }
-    // FIXME: <my-element .camelCase="5" .camelCase>
     if (isPropType(ctx.ts, node.parent, ['attribute', 'numattribute', 'boolattribute', 'property'])) {
       forEachAllHtmlTemplateNode(ctx, tag, (f, tagInfo) => {
-        const propNames = ['', '.', '?'].map((c) => `${c}${kebabCaseName}`);
-        propNames.map((propName) => {
-          const info = tagInfo.node.attributesMap.get(propName);
+        const propNames = [
+          ['', kebabCaseName],
+          ['?', kebabCaseName],
+          ['.', propText],
+        ];
+        propNames.map(([decorate, propName]) => {
+          const info = tagInfo.node.attributesMap.get(decorate + propName);
           if (!info) return;
           const textSpan = { start: info.start + tagInfo.offset, length: info.end - info.start };
-          oResult.push({ fileName: f.fileName, prefixText: '.', textSpan });
+          oResult.push({ textSpan, fileName: f.fileName, prefixText: decorate });
         });
       });
     }

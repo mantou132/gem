@@ -1,3 +1,4 @@
+import { camelToKebabCase } from '@mantou/gem/lib/utils';
 import {
   getDefaultHTMLDataProvider,
   type IAttributeData,
@@ -7,7 +8,7 @@ import type { StringWeakMap } from 'duoyun-ui/lib/map';
 import type * as ts from 'typescript/lib/tsserverlibrary';
 
 import { NAME } from './constants';
-import { getAttrName, isCustomElementTag, isDepElement } from './utils';
+import { getAttrName, isDepElement } from './utils';
 
 export const dataProvider = getDefaultHTMLDataProvider();
 
@@ -42,16 +43,19 @@ export class HTMLDataProvider implements IHTMLDataProvider {
     const ts = this.#ts;
     const typeChecker = this.#getProgram().getTypeChecker();
     const node = this.#elements.get(tag);
-    // TODO: Update @mantou/vscode-html-languageservice support `${|}`
     const result: IAttributeData[] = [
       { name: 'v-if', description: 'Similar to vue `v-if`' },
       { name: 'v-else-if', description: 'Similar to vue `v-else-if`' },
       { name: 'v-else', description: 'Similar to vue `v-else`', valueSet: 'v' },
     ];
-    if (!node) return result;
+    const builtInAttrsAndEvents = dataProvider
+      .provideAttributes('div')
+      .map((e) => ({ ...e, name: e.name.replace(/^on/, '@') }));
+    // 未知元素
+    if (!node) return [...result, ...builtInAttrsAndEvents];
+
     const isDep = isDepElement(node);
     const props = typeChecker.getTypeAtLocation(node).getApparentProperties();
-    // TODO: 完善
     props.forEach((e) => {
       const declaration = e.getDeclarations()?.at(0);
       const prop = declaration && ts.isPropertyDeclaration(declaration);
@@ -62,31 +66,33 @@ export class HTMLDataProvider implements IHTMLDataProvider {
       const typeText = declaration.type?.getText();
       const description = getDocComment(ts, declaration!);
       switch (type) {
+        // 一般是 attribute
         case typeChecker.getStringType():
         case typeChecker.getNumberType():
           result.push({ name: e.name, description });
           break;
+        // 一般是 boolean attribute
         case typeChecker.getBooleanType():
           result.push({ name: e.name, description, valueSet: 'v' });
           result.push({ name: `?${e.name}`, description });
           break;
-      }
-      if (type && getUnionValues(type)) {
-        result.push({ name: e.name, description });
+        default: {
+          // 一般是 attribute
+          if (type && getUnionValues(type)) {
+            result.push({ name: e.name, description });
+          }
+        }
       }
       if (typeText?.startsWith('Emitter')) {
-        result.push({ name: `@${e.name}`, description });
+        // 自定义事件
+        result.push({ name: `@${camelToKebabCase(e.name)}`, description });
       } else {
+        // 其他属性都能用 `.` 赋值
         result.push({ name: `.${e.name}`, description });
       }
     });
-    const oResult = dataProvider.provideAttributes(isCustomElementTag(tag) ? 'div' : tag);
-    oResult.forEach((data) => {
-      const tryEvtName = data.name.replace(/^on/, '@');
-      if (tryEvtName !== data.name) {
-        result.push({ ...data, name: tryEvtName });
-      }
-    });
+    // 添加原生全局事件
+    result.push(...builtInAttrsAndEvents.filter((e) => e.name.startsWith('@')));
     return result;
   }
 
