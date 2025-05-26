@@ -32,12 +32,12 @@ import type { Adder } from './options';
 import type { BasePickerElement } from './picker';
 import { pickerStyle } from './picker';
 
-import './reflect';
-import './use';
-import './options';
 import './input';
-import './tag';
+import './options';
+import './reflect';
 import './scroll-box';
+import './tag';
+import './use';
 
 const style = css`
   :host {
@@ -469,5 +469,9 @@ export class DuoyunSelectElement extends GemElement implements BasePickerElement
 
   showPicker() {
     this.#open();
+  }
+
+  setSearch(search: string) {
+    this.#state({ search });
   }
 }

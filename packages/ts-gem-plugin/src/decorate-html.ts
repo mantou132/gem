@@ -171,6 +171,7 @@ export class HTMLLanguageService implements TemplateLanguageService {
       if (!node.tag) return;
 
       const customElementTagDecl = this.#ctx.elements.get(node.tag);
+      const builtInElementTagDecl = this.#ctx.builtInElements.get(node.tag);
 
       // 检查自定义元素是否定义
       if (isCustomElementTag(node.tag) && !customElementTagDecl) {
@@ -185,7 +186,7 @@ export class HTMLLanguageService implements TemplateLanguageService {
         });
       }
 
-      const tagDeclaration = customElementTagDecl || this.#ctx.builtInElements.get(node.tag);
+      const tagDeclaration = customElementTagDecl || builtInElementTagDecl;
       if (!tagDeclaration) return;
 
       // 检查属性类型
@@ -235,7 +236,11 @@ export class HTMLLanguageService implements TemplateLanguageService {
         }
 
         if (!propType) {
-          if (attrInfo.decorate !== '@') {
+          if (
+            attrInfo.decorate !== '@' &&
+            // SVG 元素有很多 css 属性，所以不检查
+            !builtInElementTagDecl?.name.getText().startsWith('SVG')
+          ) {
             // <div unknown>
             diagnostics.push({
               ...diagnostic,
@@ -243,6 +248,21 @@ export class HTMLLanguageService implements TemplateLanguageService {
               messageText: `Unknown property '${attrInfo.attr}'`,
             });
           }
+          continue;
+        }
+
+        if (
+          buildInEnumeratedBooleanAttr.has(attrInfo.attr) &&
+          // <div ?draggable=${xx}>
+          (attrInfo.decorate === '?' ||
+            // <div draggable>
+            value === null)
+        ) {
+          diagnostics.push({
+            ...diagnostic,
+            code: DiagnosticCode.PropSyntaxError,
+            messageText: `Consider using '${camelToKebabCase(attrInfo.attr)}', must has value`,
+          });
           continue;
         }
 
@@ -310,6 +330,15 @@ export class HTMLLanguageService implements TemplateLanguageService {
               code: DiagnosticCode.PropSyntaxError,
               messageText: `Consider using '${camelToKebabCase(attrInfo.attr)}'`,
             });
+          } else if (buildInEnumeratedBooleanAttr.has(attrInfo.attr)) {
+            if (valueLetter !== 'true' && valueLetter !== 'false') {
+              // <div draggable="string">
+              diagnostics.push({
+                ...diagnostic,
+                code: DiagnosticCode.PropTypeError,
+                messageText: `Must be 'true' or 'false'`,
+              });
+            }
           } else if (types.every((t) => !typeChecker.isTypeAssignableTo(t, propType))) {
             // <div innerText="">
             diagnostics.push(diagnostic);
@@ -396,13 +425,15 @@ function getSpanType(
   return typeChecker.getTypeAtLocation(spanExp);
 }
 
-export const buildInElementNoGlobalAttrPropMap = new Map([
+const buildInElementNoGlobalAttrPropMap = new Map([
   ['crossorigin', 'crossOrigin'],
   ['rowspan', 'rowSpan'],
   ['colspan', 'colSpan'],
   // <input> list: string
   ['list', 'ariaLabelledby'],
 ]);
+
+const buildInEnumeratedBooleanAttr = new Set(['draggable']);
 
 function getPropType(
   typeChecker: ts.TypeChecker,

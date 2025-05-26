@@ -151,6 +151,7 @@ export function css<T extends Record<string, string>>(
 }
 
 // TODO: move to transform?
+// gem-ssr 模拟了 web 环境，所以这里判断 node
 export const isSSR = typeof process !== 'undefined';
 
 const updateStyleSheets = (map: Map<CSSStyleSheet, number>, sheets: CSSStyleSheet[], value: number) => {
