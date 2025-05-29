@@ -6,7 +6,7 @@ export class StringWeakMap<T extends WeakKey> {
   set(key: string, val: T) {
     this.#map.set(key, new WeakRef(val));
     this.#weakMap.set(val, key);
-    this.#registry.register(val, key);
+    this.#registry.register(val, key, val);
   }
 
   get(key: string) {
@@ -15,6 +15,15 @@ export class StringWeakMap<T extends WeakKey> {
 
   findKey(val: T) {
     return this.#weakMap.get(val);
+  }
+
+  delete(key: string) {
+    const val = this.get(key);
+    if (val) {
+      this.#map.delete(key);
+      this.#weakMap.delete(val);
+      this.#registry.unregister(val);
+    }
   }
 
   *[Symbol.iterator]() {

@@ -252,7 +252,8 @@ export class DuoyunInputElement extends GemElement {
       if (this.#isNumberNotChange(this.value, value)) {
         return;
       }
-      if (this.#isNumberInvalid(value)) {
+      // `2..` auto convert to `2`
+      if (value && this.#isNumberInvalid(value)) {
         element.value = this.value;
         return;
       }

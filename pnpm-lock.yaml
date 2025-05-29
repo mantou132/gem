@@ -364,8 +364,8 @@ importers:
         specifier: ^2.3.5
         version: 2.3.5
       '@mantou/vscode-css-languageservice':
-        specifier: ^6.3.3
-        version: 6.3.3
+        specifier: ^6.3.4
+        version: 6.3.4
       '@mantou/vscode-emmet-helper':
         specifier: ^2.9.3
         version: 2.11.0
@@ -1570,8 +1570,8 @@ packages:
   '@mantou/typescript-template-language-service-decorator@2.3.5':
     resolution: {integrity: sha512-YjxlVcRy/3mRP9kBDKUk6st3XmaAFLJeOLysdefI2EEsKkEkBhw3JvJ2uiDzOx1wVPZW7McQ2eZDtXIVQc2YOg==}
 
-  '@mantou/vscode-css-languageservice@6.3.3':
-    resolution: {integrity: sha512-vSvapx/BVuBWQJH2kvKra14zvhsCNEEyYN/GdRByAtHeUvLKT0MwKx4vkRjc+rf2rZ5YvahCMloq/neoaL9SQQ==}
+  '@mantou/vscode-css-languageservice@6.3.4':
+    resolution: {integrity: sha512-0V7N+9KKc3+pGhCBA+vuPcl6bI3yHX5RvFuH7M+MsB+91vTuDNzMrQG3NLIYAN/P6IBiSmUyy+fh11+Q0bpPjw==}
 
   '@mantou/vscode-emmet-helper@2.11.0':
     resolution: {integrity: sha512-TTuRAmRP8Q+6OPMbpuj6g/pbsEhLT4zoeSMbEnGcoZJiQ36+TlnoGsKhPesL/xvA6SsOQkJqaIUqhS3M/vvhFA==}
@@ -9412,7 +9412,7 @@ snapshots:
 
   '@mantou/typescript-template-language-service-decorator@2.3.5': {}
 
-  '@mantou/vscode-css-languageservice@6.3.3':
+  '@mantou/vscode-css-languageservice@6.3.4':
     dependencies:
       '@vscode/l10n': 0.0.18
       vscode-languageserver-textdocument: 1.0.12

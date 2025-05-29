@@ -12,6 +12,7 @@ import {
   genElementDefinitionInfo,
   translateCompletionItemsToCompletionEntryDetails,
   translateCompletionItemsToCompletionInfo,
+  translateFoldingRange,
   translateHover,
 } from './translates';
 
@@ -119,5 +120,12 @@ export class CSSLanguageService implements TemplateLanguageService {
     const definitionNode = this.#ctx.elements.get(ident);
     if (!definitionNode) return empty;
     return genElementDefinitionInfo(context, { start: node.offset - offset, length: node.length }, definitionNode);
+  }
+
+  // 不知道如何起作用的，没有被调用，但不加就没有 css 折叠了
+  getOutliningSpans(context: TemplateContext): ts.OutliningSpan[] {
+    const { vDoc } = this.#ctx.getHtmlDoc(context.text);
+    const ranges = this.#ctx.cssLanguageService.getFoldingRanges(vDoc);
+    return ranges.map((range) => translateFoldingRange(context, range));
   }
 }

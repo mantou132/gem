@@ -116,6 +116,41 @@ export function translateHover(
   };
 }
 
+function translateFoldingRangeKind(
+  context: TemplateContext,
+  kind: vscode.FoldingRangeKind | undefined,
+): ts.OutliningSpanKind {
+  const typescript = context.typescript;
+  switch (kind) {
+    case vscode.FoldingRangeKind.Comment:
+      return typescript.OutliningSpanKind.Comment;
+    case vscode.FoldingRangeKind.Imports:
+      return typescript.OutliningSpanKind.Imports;
+    case vscode.FoldingRangeKind.Region:
+      return typescript.OutliningSpanKind.Region;
+    default:
+      return typescript.OutliningSpanKind.Code;
+  }
+}
+
+export function translateFoldingRange(context: TemplateContext, range: vscode.FoldingRange): ts.OutliningSpan {
+  const start = context.toOffset({ line: range.startLine, character: range.startCharacter || 0 });
+  const end = context.toOffset({ line: range.endLine, character: range.endCharacter || 0 });
+  return {
+    kind: translateFoldingRangeKind(context, range.kind),
+    autoCollapse: true,
+    bannerText: range.collapsedText || '',
+    textSpan: {
+      start: start,
+      length: end - start,
+    },
+    hintSpan: {
+      start: start,
+      length: end - start,
+    },
+  };
+}
+
 export function translateCompletionItemsToCompletionEntryDetails(
   context: TemplateContext,
   item: vscode.CompletionItem,

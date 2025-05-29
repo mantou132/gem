@@ -3,14 +3,7 @@ import type { LanguageService } from 'typescript';
 import type * as ts from 'typescript/lib/tsserverlibrary';
 
 import type { Context } from './context';
-import {
-  bindMemberFunction,
-  decorate,
-  forEachNode,
-  getAstNodeAtPosition,
-  getHTMLTextAtPosition,
-  getTagInfo,
-} from './utils';
+import { bindMemberFunction, decorate, getAstNodeAtPosition, getHTMLTextAtPosition, getTagInfo } from './utils';
 
 export function decorateLanguageService(ctx: Context, languageService: LanguageService) {
   const { ts, getProgram } = ctx;
@@ -25,14 +18,20 @@ export function decorateLanguageService(ctx: Context, languageService: LanguageS
     return ls.getCompletionsAtPosition(...args);
   };
 
+  languageService.getSyntacticDiagnostics = (...args) => {
+    const program = getProgram();
+    const file = program.getSourceFile(args[0])!;
+    // 更新文档会触发 `getSuggestionDiagnostics`
+    // 在 html 模版诊断之前更新
+    ctx.updateElement(file);
+    return ls.getSyntacticDiagnostics(...args);
+  };
+
   // `memo/effect` decorate
   languageService.getSuggestionDiagnostics = (...args) => {
     const program = getProgram();
     const file = program.getSourceFile(args[0])!;
     const result = ls.getSuggestionDiagnostics(...args);
-
-    // 更新文档会触发 `getSuggestionDiagnostics`
-    ctx.updateElement(file);
 
     return result.filter(({ start, reportsUnnecessary, category }) => {
       if (!reportsUnnecessary || category !== ts.DiagnosticCategory.Suggestion) return true;
@@ -51,46 +50,49 @@ export function decorateLanguageService(ctx: Context, languageService: LanguageS
     const oResult = ls.findReferences(...args) || [];
     const program = getProgram();
     const currentNode = getAstNodeAtPosition(ts, program.getSourceFile(args[0])!, args[1]);
-    if (!currentNode) return oResult;
-    const isIdent = ts.isIdentifier(currentNode);
-    if (!isIdent) return oResult;
+    if (!currentNode || !ts.isIdentifier(currentNode)) return oResult;
+
     const currentTag = ctx.getTagFromNode(currentNode.parent) || ctx.getTagFromNode(currentNode.parent.parent);
     const prop = ts.isClassDeclaration(currentNode.parent.parent) && currentNode;
     if (!currentTag) return oResult;
+
     const map = new Map<string, ts.ReferencedSymbol>();
-    // 只遍历了 html 模板中的元素使用，未遍历 css/style 中的节点
-    forEachAllHtmlTemplateNode(ctx, currentTag, (file, tagInfo) => {
-      const symbol = map.get(file.fileName) || {
-        references: [],
-        definition: {
-          containerKind: ctx.ts.ScriptElementKind.unknown,
-          containerName: '',
-          displayParts: [],
-          fileName: file.fileName,
-          textSpan: { start: 0, length: 0 },
-          name: 'test',
-          kind: ctx.ts.ScriptElementKind.unknown,
-        },
-      };
-      map.set(file.fileName, symbol);
-      if (prop) {
-        const propNames = new Set([`.${prop.text}`]);
-        const kebabCaseName = camelToKebabCase(prop.text);
-        ['', '?', '@'].forEach((c) => propNames.add(`${c}${kebabCaseName}`));
-        for (const propName of propNames) {
-          const info = tagInfo.node.attributesMap.get(propName);
-          if (!info) continue;
-          const textSpan = { start: info.start + tagInfo.offset, length: info.end - info.start };
-          symbol.references.push({ fileName: file.fileName, isWriteAccess: true, textSpan });
-        }
-      } else {
+    if (prop) {
+      [currentTag, ...getSubElementTag(ctx, currentNode)].forEach((tag) => {
+        forEachAllHtmlTemplateNode(ctx, tag, (file, tagInfo) => {
+          const symbol = map.get(file.fileName) || getReferencedSymbol(ctx, file);
+          map.set(file.fileName, symbol);
+          const propNames = new Set([`.${prop.text}`]);
+          const kebabCaseName = camelToKebabCase(prop.text);
+          ['', '?', '@'].forEach((c) => propNames.add(`${c}${kebabCaseName}`));
+          for (const propName of propNames) {
+            const info = tagInfo.node.attributesMap.get(propName);
+            if (!info) continue;
+            const textSpan = { start: info.start + tagInfo.offset, length: info.end - info.start };
+            symbol.references.push({ fileName: file.fileName, isWriteAccess: true, textSpan });
+          }
+        });
+      });
+    } else {
+      forEachAllHtmlTemplateNode(ctx, currentTag, (file, tagInfo) => {
+        const symbol = map.get(file.fileName) || getReferencedSymbol(ctx, file);
+        map.set(file.fileName, symbol);
         symbol.references.push({
           fileName: file.fileName,
           isWriteAccess: true,
           textSpan: tagInfo.open,
         });
-      }
-    });
+      });
+      forEachAllCssTemplateNode(ctx, currentTag, (file, textSpan) => {
+        const symbol = map.get(file.fileName) || getReferencedSymbol(ctx, file);
+        map.set(file.fileName, symbol);
+        symbol.references.push({
+          fileName: file.fileName,
+          isWriteAccess: true,
+          textSpan,
+        });
+      });
+    }
     return [...map.values(), ...oResult];
   };
 
@@ -131,10 +133,12 @@ export function decorateLanguageService(ctx: Context, languageService: LanguageS
     const tagDefinedInfo = findDefinedTagInfo(ctx, fileName, position);
     if (tagDefinedInfo) {
       const result: ts.RenameLocation[] = [{ fileName, textSpan: tagDefinedInfo.textSpan }];
-      // 只遍历了 html 模板中的元素使用，未遍历 css/style 中的节点
       forEachAllHtmlTemplateNode(ctx, tagDefinedInfo.tag, (f, info) => {
         result.push({ fileName: f.fileName, textSpan: info.open });
         if (info.end) result.push({ fileName: f.fileName, textSpan: info.end });
+      });
+      forEachAllCssTemplateNode(ctx, tagDefinedInfo.tag, (f, textSpan) => {
+        result.push({ fileName: f.fileName, textSpan });
       });
       return result;
     }
@@ -146,33 +150,38 @@ export function decorateLanguageService(ctx: Context, languageService: LanguageS
     const node = getAstNodeAtPosition(ctx.ts, file, position);
 
     const tag = node && ts.isPropertyDeclaration(node.parent) && ctx.getTagFromNode(node.parent.parent);
-    if (!tag) return oResult;
+    if (!tag || !ts.isIdentifier(node)) return oResult;
 
     const propText = node.getText();
     const kebabCaseName = camelToKebabCase(propText);
     // FIXME: <my-element @camelCase=${console.log}>
     // FIXME: <my-element camelCase="5" ?camelCase>
     // 不能指定目标文本：https://github.com/microsoft/vscode/issues/248912
+    // NOTE: 冒泡事件处理器无法找到
     if (isPropType(ctx.ts, node.parent, ['emitter', 'globalemitter'])) {
-      forEachAllHtmlTemplateNode(ctx, tag, (f, tagInfo) => {
-        const info = tagInfo.node.attributesMap.get(`@${kebabCaseName}`);
-        if (!info) return;
-        const textSpan = { start: info.start + tagInfo.offset, length: info.end - info.start };
-        oResult.push({ textSpan, fileName: f.fileName, prefixText: '@' });
+      [tag, ...getSubElementTag(ctx, node)].forEach((tag) => {
+        forEachAllHtmlTemplateNode(ctx, tag, (f, tagInfo) => {
+          const info = tagInfo.node.attributesMap.get(`@${kebabCaseName}`);
+          if (!info) return;
+          const textSpan = { start: info.start + tagInfo.offset, length: info.end - info.start };
+          oResult.push({ textSpan, fileName: f.fileName, prefixText: '@' });
+        });
       });
     }
     if (isPropType(ctx.ts, node.parent, ['attribute', 'numattribute', 'boolattribute', 'property'])) {
-      forEachAllHtmlTemplateNode(ctx, tag, (f, tagInfo) => {
-        const propNames = [
-          ['', kebabCaseName],
-          ['?', kebabCaseName],
-          ['.', propText],
-        ];
-        propNames.map(([decorate, propName]) => {
-          const info = tagInfo.node.attributesMap.get(decorate + propName);
-          if (!info) return;
-          const textSpan = { start: info.start + tagInfo.offset, length: info.end - info.start };
-          oResult.push({ textSpan, fileName: f.fileName, prefixText: decorate });
+      [tag, ...getSubElementTag(ctx, node)].forEach((tag) => {
+        forEachAllHtmlTemplateNode(ctx, tag, (f, tagInfo) => {
+          const propNames = [
+            ['', kebabCaseName],
+            ['?', kebabCaseName],
+            ['.', propText],
+          ];
+          propNames.map(([decorate, propName]) => {
+            const info = tagInfo.node.attributesMap.get(decorate + propName);
+            if (!info) return;
+            const textSpan = { start: info.start + tagInfo.offset, length: info.end - info.start };
+            oResult.push({ textSpan, fileName: f.fileName, prefixText: decorate });
+          });
         });
       });
     }
@@ -183,6 +192,39 @@ export function decorateLanguageService(ctx: Context, languageService: LanguageS
   return languageService;
 }
 
+function getSubElementTag(ctx: Context, prop: ts.Identifier) {
+  let originTagDecl: ts.Node = prop;
+  while (!ctx.ts.isClassDeclaration(originTagDecl)) {
+    originTagDecl = originTagDecl.parent;
+  }
+  const typeChecker = ctx.getProgram().getTypeChecker();
+  const originTagType = typeChecker.getTypeAtLocation(originTagDecl);
+  const result: string[] = [];
+  [...ctx.elements].forEach(([tag, decl]) => {
+    const tagType = typeChecker.getTypeAtLocation(decl);
+    if (!tagType.isClassOrInterface()) return;
+    if (typeChecker.isTypeAssignableTo(tagType, originTagType)) {
+      result.push(tag);
+    }
+  });
+  return result;
+}
+
+function getReferencedSymbol(ctx: Context, file: ts.SourceFile): ts.ReferencedSymbol {
+  return {
+    references: [],
+    definition: {
+      containerKind: ctx.ts.ScriptElementKind.unknown,
+      containerName: '',
+      displayParts: [],
+      fileName: file.fileName,
+      textSpan: { start: 0, length: 0 },
+      name: 'test',
+      kind: ctx.ts.ScriptElementKind.unknown,
+    },
+  };
+}
+
 function forEachAllHtmlTemplateNode(
   ctx: Context,
   tag: string,
@@ -191,11 +233,23 @@ function forEachAllHtmlTemplateNode(
   for (const file of ctx.getProgram().getSourceFiles()) {
     if (file.fileName.endsWith('.d.ts')) continue;
     for (const templateContext of ctx.htmlSourceHelper.getAllTemplates(file.fileName)) {
-      const { vHtml } = ctx.getHtmlDoc(templateContext.text);
-      forEachNode(vHtml.roots, (node) => {
-        if (node.tag !== tag) return;
-        fn(file, getTagInfo(node, templateContext.node.getStart() + 1));
-      });
+      const { tagNodeMap } = ctx.getHtmlDoc(templateContext.text);
+      tagNodeMap[tag]?.forEach((node) => fn(file, getTagInfo(node, templateContext.node.getStart() + 1)));
+    }
+  }
+}
+
+function forEachAllCssTemplateNode(
+  ctx: Context,
+  tag: string,
+  fn: (fileName: ts.SourceFile, textSpan: ts.TextSpan) => void,
+) {
+  for (const file of ctx.getProgram().getSourceFiles()) {
+    if (file.fileName.endsWith('.d.ts')) continue;
+    for (const templateContext of ctx.cssSourceHelper.getAllTemplates(file.fileName)) {
+      const { tagNodeMap } = ctx.getCssDoc(templateContext.text);
+      const offset = templateContext.node.getStart() + 1;
+      tagNodeMap[tag]?.forEach((node) => fn(file, { start: offset + node.offset, length: node.end - node.offset }));
     }
   }
 }

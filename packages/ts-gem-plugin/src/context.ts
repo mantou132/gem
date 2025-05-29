@@ -2,8 +2,8 @@ import type { Logger, TemplateSettings } from '@mantou/typescript-template-langu
 import StandardScriptSourceHelper from '@mantou/typescript-template-language-service-decorator/lib/standard-script-source-helper';
 import StandardTemplateSourceHelper from '@mantou/typescript-template-language-service-decorator/lib/standard-template-source-helper';
 import type { Stylesheet } from '@mantou/vscode-css-languageservice';
-import { getCSSLanguageService } from '@mantou/vscode-css-languageservice';
-import type { HTMLDocument, IHTMLDataProvider } from '@mantou/vscode-html-languageservice';
+import { getCSSLanguageService, NodeType } from '@mantou/vscode-css-languageservice';
+import type { HTMLDocument, IHTMLDataProvider, Node } from '@mantou/vscode-html-languageservice';
 import { getLanguageService as getHTMLanguageService, TextDocument } from '@mantou/vscode-html-languageservice';
 import { StringWeakMap } from 'duoyun-ui/lib/map';
 import type * as ts from 'typescript/lib/tsserverlibrary';
@@ -11,7 +11,7 @@ import type * as ts from 'typescript/lib/tsserverlibrary';
 import { LRUCache } from './cache';
 import type { Configuration } from './configuration';
 import { dataProvider, HTMLDataProvider } from './data-provider';
-import { isDepElement } from './utils';
+import { forEachNode, isDepElement } from './utils';
 
 declare module '@mantou/vscode-html-languageservice' {
   interface Node {
@@ -19,6 +19,9 @@ declare module '@mantou/vscode-html-languageservice' {
     next?: Node;
   }
 }
+
+type CSSTagNodeMap = Record<string, ReturnType<Stylesheet['getChildren']> | undefined>;
+type HTMLTagNodeMap = Record<string, Node[] | undefined>;
 
 /**
  * 全局上下文，数据共享
@@ -34,6 +37,7 @@ export class Context {
   cssLanguageService: ReturnType<typeof getCSSLanguageService>;
   htmlLanguageService: ReturnType<typeof getHTMLanguageService>;
   htmlSourceHelper: StandardTemplateSourceHelper;
+  cssSourceHelper: StandardTemplateSourceHelper;
   htmlTemplateStringSettings: TemplateSettings;
   cssTemplateStringSettings: TemplateSettings;
   getProgram: () => ts.Program;
@@ -68,28 +72,56 @@ export class Context {
       new StandardScriptSourceHelper(typescript, info.project),
       logger,
     );
+    this.cssSourceHelper = new StandardTemplateSourceHelper(
+      typescript,
+      this.cssTemplateStringSettings,
+      new StandardScriptSourceHelper(typescript, info.project),
+      logger,
+    );
   }
 
-  #virtualHtmlCache = new LRUCache<{ vDoc: TextDocument; vHtml: HTMLDocument }>({ max: 1000 });
-  #virtualCssCache = new LRUCache<{ vDoc: TextDocument; vCss: Stylesheet }>({ max: 1000 });
+  #virtualCssCache = new LRUCache<{
+    vDoc: TextDocument;
+    vCss: Stylesheet;
+    tagNodeMap: CSSTagNodeMap;
+  }>({ max: 1000 });
   getCssDoc(text: string) {
     return this.#virtualCssCache.get({ text, fileName: '' }, undefined, () => {
       const vDoc = createVirtualDocument('css', text);
       const vCss = this.cssLanguageService.parseStylesheet(vDoc);
-      return { vDoc, vCss };
+      const tagNodeMap: CSSTagNodeMap = {};
+      forEachNode(vCss.getChildren(), (node) => {
+        if (node.type === NodeType.Identifier) {
+          const ident = text.slice(node.offset, node.end);
+          if (!tagNodeMap[ident]) tagNodeMap[ident] = [];
+          tagNodeMap[ident].push(node);
+        }
+      });
+      return { vDoc, vCss, tagNodeMap };
     });
   }
 
+  #virtualHtmlCache = new LRUCache<{
+    vDoc: TextDocument;
+    vHtml: HTMLDocument;
+    tagNodeMap: HTMLTagNodeMap;
+  }>({ max: 1000 });
   getHtmlDoc(text: string) {
     return this.#virtualHtmlCache.get({ text, fileName: '' }, undefined, () => {
       const vDoc = createVirtualDocument('html', text);
       const vHtml = this.htmlLanguageService.parseHTMLDocument(vDoc);
-      vHtml.roots.forEach(function transform(e, index, arr) {
+      const tagNodeMap: HTMLTagNodeMap = {};
+      vHtml.roots.forEach(function process(e, index, arr) {
         e.prev = arr[index - 1];
         e.next = arr[index + 1];
-        e.children.forEach(transform);
+        e.children.forEach(process);
+        const tag = e.tag;
+        if (tag) {
+          if (!tagNodeMap[tag]) tagNodeMap[tag] = [];
+          tagNodeMap[tag].push(e);
+        }
       });
-      return { vDoc, vHtml };
+      return { vDoc, vHtml, tagNodeMap };
     });
   }
 
@@ -116,6 +148,14 @@ export class Context {
   }
 
   updateElement(file: ts.SourceFile) {
+    // 可能修改了 tag ，应该立刻清理
+    for (const [tag, decl] of this.elements) {
+      if (decl.getSourceFile().fileName === file.fileName) {
+        // duoyun-ui 2.2.2
+        (this.elements as any).delete?.(tag);
+      }
+    }
+
     const isDep = isDepElement(file);
     // 只支持顶级 class 声明
     this.ts.forEachChild(file, (node) => {
@@ -126,13 +166,14 @@ export class Context {
     });
   }
 
-  #initElementsCache = new WeakSet<ts.Program>();
+  #initElementsCache = new WeakSet<ts.server.Project>();
   /**
    * 当 project 准备好了执行
    */
   initElements() {
     const program = this.getProgram();
-    if (this.#initElementsCache.has(program)) return;
+    if (this.#initElementsCache.has(this.project)) return;
+    this.#initElementsCache.add(this.project);
     const files = program.getSourceFiles();
     files.forEach((file) => this.updateElement(file));
 

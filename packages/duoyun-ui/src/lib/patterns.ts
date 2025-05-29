@@ -13,7 +13,7 @@ export const USERNAME = /^[a-z0-9_-]{4,}$/i;
 
 export const PASSWORD = /^.*(?=.{6,})(?=.*[A-Z])(?=.*[a-z])(?=.*[!@#$%^&*? ])(?=.*\d).*$/;
 
-export const NUMBER = /^-?\d*.?\d+$/;
+export const NUMBER = /^-?\d*\.?\d*$/;
 
 export const IPv4 = /^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?).){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/;
 

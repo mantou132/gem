@@ -15,6 +15,7 @@ import {
   genElementDefinitionInfo,
   translateCompletionItemsToCompletionEntryDetails,
   translateCompletionItemsToCompletionInfo,
+  translateFoldingRange,
   translateHover,
 } from './translates';
 import { forEachNode, getAstNodeAtPosition, getAttrName, getHTMLTextAtPosition, isCustomElementTag } from './utils';
@@ -160,7 +161,7 @@ export class HTMLLanguageService implements TemplateLanguageService {
     });
   }
 
-  #getHtmlSyntacticDiagnostics(context: TemplateContext) {
+  #getHtmlSemanticDiagnostics(context: TemplateContext) {
     const offset = context.node.getStart() + 1;
     const { vHtml } = this.#ctx.getHtmlDoc(context.text);
     const program = this.#ctx.getProgram();
@@ -252,7 +253,7 @@ export class HTMLLanguageService implements TemplateLanguageService {
         }
 
         if (
-          buildInEnumeratedBooleanAttr.has(attrInfo.attr) &&
+          globalEnumeratedBooleanAttr.has(attrInfo.attr) &&
           // <div ?draggable=${xx}>
           (attrInfo.decorate === '?' ||
             // <div draggable>
@@ -330,7 +331,7 @@ export class HTMLLanguageService implements TemplateLanguageService {
               code: DiagnosticCode.PropSyntaxError,
               messageText: `Consider using '${camelToKebabCase(attrInfo.attr)}'`,
             });
-          } else if (buildInEnumeratedBooleanAttr.has(attrInfo.attr)) {
+          } else if (globalEnumeratedBooleanAttr.has(attrInfo.attr)) {
             if (valueLetter !== 'true' && valueLetter !== 'false') {
               // <div draggable="string">
               diagnostics.push({
@@ -351,7 +352,11 @@ export class HTMLLanguageService implements TemplateLanguageService {
 
   getSyntacticDiagnostics(context: TemplateContext): ts.Diagnostic[] {
     this.#ctx.initElements();
-    return [...this.#getCssSyntacticDiagnostics(context), ...this.#getHtmlSyntacticDiagnostics(context)];
+    return this.#getCssSyntacticDiagnostics(context);
+  }
+
+  getSemanticDiagnostics(context: TemplateContext): ts.Diagnostic[] {
+    return this.#getHtmlSemanticDiagnostics(context);
   }
 
   getDefinitionAndBoundSpan(context: TemplateContext, position: ts.LineAndCharacter): ts.DefinitionInfoAndBoundSpan {
@@ -402,7 +407,44 @@ export class HTMLLanguageService implements TemplateLanguageService {
     if (!propDeclaration) return empty;
     return genAttrDefinitionInfo(context, { start: start + offset, length: attr.length }, propDeclaration);
   }
+
+  // 不知道如何起作用的，没有被调用，但不加就没有 HTML 折叠了
+  // 所以也忽略了 HTML 里面的内联样式折叠
+  getOutliningSpans(context: TemplateContext): ts.OutliningSpan[] {
+    const { vDoc } = this.#ctx.getHtmlDoc(context.text);
+    const ranges = this.#ctx.htmlLanguageService.getFoldingRanges(vDoc);
+    return ranges.map((range) => translateFoldingRange(context, range));
+  }
+
+  getJsxClosingTagAtPosition(
+    context: TemplateContext,
+    position: ts.LineAndCharacter,
+  ): ts.JsxClosingTagInfo | undefined {
+    const currentOffset = context.toOffset(position);
+    const { vHtml } = this.#ctx.getHtmlDoc(context.text);
+    const node = vHtml.findNodeAt(currentOffset);
+    if (!node.tag || !node.startTagEnd || voidElementTags.has(node.tag)) return;
+    if (!node.endTagStart) return { newText: `</${node.tag}>` };
+  }
 }
+
+// https://developer.mozilla.org/en-US/docs/Glossary/Void_element
+const voidElementTags = new Set([
+  'area',
+  'base',
+  'br',
+  'col',
+  'embed',
+  'hr',
+  'img',
+  'input',
+  'link',
+  'meta',
+  'param',
+  'source',
+  'track',
+  'wbr',
+]);
 
 function getSpanExpression(typescript: typeof ts, file: ts.SourceFile, pos: number) {
   let node = getAstNodeAtPosition(typescript, file, pos)!;
@@ -433,7 +475,7 @@ const buildInElementNoGlobalAttrPropMap = new Map([
   ['list', 'ariaLabelledby'],
 ]);
 
-const buildInEnumeratedBooleanAttr = new Set(['draggable']);
+const globalEnumeratedBooleanAttr = new Set(['draggable']);
 
 function getPropType(
   typeChecker: ts.TypeChecker,
@@ -453,6 +495,7 @@ function getPropType(
     case 'style':
     case 'part':
     case 'exportparts':
+    case 'accesskey':
     case 'xmlns':
     case 'viewBox':
     case 'ariaLabelledby':

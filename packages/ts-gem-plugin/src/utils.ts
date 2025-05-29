@@ -14,13 +14,16 @@ export function bindMemberFunction<T extends object>(o: T, keys = Object.keys(o)
   return Object.fromEntries(keys.map((key) => [key, (o as any)[key].bind?.(o)])) as T;
 }
 
-export function forEachNode<T extends { children: T[] }>(roots: T[], fn: (node: T) => void) {
+export function forEachNode<T extends { children: T[] } | { getChildren: () => T[] }>(
+  roots: T[],
+  fn: (node: T) => void,
+) {
   const list = [...roots];
   while (true) {
     const currentNode = list.pop();
     if (!currentNode) return;
     fn(currentNode);
-    list.push(...currentNode.children);
+    list.push(...('getChildren' in currentNode ? currentNode.getChildren() : currentNode.children));
   }
 }
 
