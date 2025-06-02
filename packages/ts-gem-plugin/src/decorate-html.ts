@@ -1,6 +1,6 @@
 import { camelToKebabCase, kebabToCamelCase } from '@mantou/gem/lib/utils';
 import type { TemplateContext, TemplateLanguageService } from '@mantou/typescript-template-language-service-decorator';
-import { updateTags as updateCSSTags } from '@mantou/vscode-css-languageservice';
+import { NodeType, updateTags as updateCSSTags } from '@mantou/vscode-css-languageservice';
 import { doComplete as doEmmetComplete, updateTags } from '@mantou/vscode-emmet-helper';
 import type { CompletionList, HTMLDocument, Position, Range } from '@mantou/vscode-html-languageservice';
 import type * as ts from 'typescript/lib/tsserverlibrary';
@@ -190,13 +190,40 @@ export class HTMLLanguageService implements TemplateLanguageService {
       const tagDeclaration = customElementTagDecl || builtInElementTagDecl;
       if (!tagDeclaration) return;
 
+      if (tagDeclaration.name && isDeprecate(typeChecker.getSymbolAtLocation(tagDeclaration.name))) {
+        [node.start + 1, node.endTagStart && node.endTagStart + 2].forEach((tagStart) => {
+          tagStart &&
+            diagnostics.push({
+              category: context.typescript.DiagnosticCategory.Suggestion,
+              file,
+              start: tagStart,
+              length: node.tag!.length,
+              source: NAME,
+              code: DiagnosticCode.Deprecated,
+              messageText: `Deprecated tag '${node.tag}'`,
+              reportsDeprecated: 'true',
+            });
+        });
+      }
+
       // 检查属性类型
       for (const [attributeName, { value, start, end }] of node.attributesMap) {
         if (attributeName.startsWith('_')) continue;
 
         const hasValueSpan = value?.startsWith('_');
         const attrInfo = getAttrName(attributeName);
-        const propType = getPropType(typeChecker, tagDeclaration, !customElementTagDecl, attrInfo);
+        const propType = getPropType(typeChecker, tagDeclaration, !customElementTagDecl, attrInfo, () => {
+          diagnostics.push({
+            category: context.typescript.DiagnosticCategory.Suggestion,
+            file,
+            start: start,
+            length: end - start,
+            source: NAME,
+            code: DiagnosticCode.Deprecated,
+            messageText: `Deprecated prop '${attrInfo.attr}'`,
+            reportsDeprecated: 'true',
+          });
+        });
         const diagnostic = {
           category: context.typescript.DiagnosticCategory.Warning,
           file,
@@ -219,6 +246,7 @@ export class HTMLLanguageService implements TemplateLanguageService {
             code: DiagnosticCode.PropSyntaxError,
             messageText: `'${attrInfo.attr}' syntax error`,
           });
+          continue;
         }
 
         if (attributeName === 'v-if' || attributeName === 'v-else-if') {
@@ -369,7 +397,7 @@ export class HTMLLanguageService implements TemplateLanguageService {
     if (node.tag === 'style' && currentOffset > node.startTagEnd!) {
       const { style, vDoc, position: pos } = this.#getEmbeddedCss(context, position, vHtml)!;
       const cssNode = style.findChildAtOffset(vDoc.offsetAt(pos), true);
-      if (!cssNode) return empty;
+      if (!cssNode || cssNode.parent?.type !== NodeType.ElementNameSelector) return empty;
       const ident = vDoc.getText().slice(cssNode.offset, cssNode.end);
       const definitionNode = this.#ctx.elements.get(ident);
       if (!definitionNode) return empty;
@@ -482,6 +510,7 @@ function getPropType(
   tagClassDeclaration: ts.ClassDeclaration | ts.InterfaceDeclaration,
   isBuiltInTag: boolean,
   attrInfo: ReturnType<typeof getAttrName>,
+  reportDeprecate: () => void,
 ) {
   const classType = typeChecker.getTypeAtLocation(tagClassDeclaration);
   if (attrInfo.attr.startsWith('data-')) {
@@ -524,12 +553,19 @@ function getPropType(
     default: {
       const isEvent = attrInfo.decorate === '@';
       const propSymbol = classType.getProperty(propName);
+      if (isDeprecate(propSymbol)) reportDeprecate();
       const propType = propSymbol && typeChecker.getTypeOfSymbol(propSymbol);
       if (!isEvent) return propType;
       const eventHandleType = getEmitterHandleType(typeChecker, classType, propType);
       return getUnionType(typeChecker, [eventHandleType, typeChecker.getUndefinedType()]);
     }
   }
+}
+
+function isDeprecate(symbol?: ts.Symbol) {
+  if (!symbol) return false;
+  const tags = symbol.getJsDocTags();
+  return tags.some(({ name }) => name === 'deprecated');
 }
 
 function getEmitterHandleType(typeChecker: ts.TypeChecker, classType: ts.Type, propType?: ts.Type) {

@@ -91,7 +91,7 @@ export class Context {
       const vCss = this.cssLanguageService.parseStylesheet(vDoc);
       const tagNodeMap: CSSTagNodeMap = {};
       forEachNode(vCss.getChildren(), (node) => {
-        if (node.type === NodeType.Identifier) {
+        if (node.type === NodeType.ElementNameSelector) {
           const ident = text.slice(node.offset, node.end);
           if (!tagNodeMap[ident]) tagNodeMap[ident] = [];
           tagNodeMap[ident].push(node);

@@ -1,6 +1,6 @@
 import type { TemplateContext, TemplateLanguageService } from '@mantou/typescript-template-language-service-decorator';
 import type { CompletionList } from '@mantou/vscode-css-languageservice';
-import { updateTags as updateCSSTags } from '@mantou/vscode-css-languageservice';
+import { NodeType, updateTags as updateCSSTags } from '@mantou/vscode-css-languageservice';
 import { doComplete as doEmmetComplete } from '@mantou/vscode-emmet-helper';
 import type * as ts from 'typescript/lib/tsserverlibrary';
 
@@ -115,7 +115,7 @@ export class CSSLanguageService implements TemplateLanguageService {
     const { vDoc, vCss } = this.#ctx.getCssDoc(text);
     const empty = { textSpan: { start: 0, length: 0 } };
     const node = vCss.findChildAtOffset(context.toOffset(position), true);
-    if (!node) return empty;
+    if (!node || node.parent?.type !== NodeType.ElementNameSelector) return empty;
     const ident = vDoc.getText().slice(node.offset, node.end);
     const definitionNode = this.#ctx.elements.get(ident);
     if (!definitionNode) return empty;
