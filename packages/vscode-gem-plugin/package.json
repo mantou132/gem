@@ -167,6 +167,7 @@
     "vscode:prepublish": "pnpm package"
   },
   "dependencies": {
+    "css-color-keywords": "^1.0.0",
     "duoyun-ui": "^2.2.1",
     "ts-gem-plugin": "^0.0.8"
   },

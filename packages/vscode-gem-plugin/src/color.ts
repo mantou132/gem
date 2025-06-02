@@ -1,13 +1,18 @@
 // ts-plugin 不支持
 // Zed: https://github.com/zed-industries/zed/issues/4678
 
+//@ts-ignore
+import cssColors from 'css-color-keywords';
 import type { HexColor } from 'duoyun-ui/lib/color';
 import { parseHexColor, rgbToHexColor } from 'duoyun-ui/lib/color';
 import type { ColorInformation, DocumentColorProvider, TextDocument } from 'vscode';
 // eslint-disable-next-line import/no-unresolved
 import { Color, Range } from 'vscode';
 
-const COLOR_REG = /(?<start>'|")?(?<content>#([0-9a-fA-F]{8}|[0-9a-fA-F]{6}|[0-9a-fA-F]{3,4}))($1|\s*;|\s*\))/g;
+const COLOR_REG = new RegExp(
+  `(?<start>'|")?(?<content>(#([0-9a-fA-F]{8}|[0-9a-fA-F]{6}|[0-9a-fA-F]{3,4})|${Object.keys(cssColors).join('|')}))($1|\\s*;|\\s*\\))`,
+  'g',
+);
 
 export class ColorProvider implements DocumentColorProvider {
   provideDocumentColors(document: TextDocument) {
@@ -18,7 +23,7 @@ export class ColorProvider implements DocumentColorProvider {
 
     let match: RegExpExecArray | null;
     while ((match = COLOR_REG.exec(documentText)) !== null) {
-      const hex = match.groups!.content as HexColor;
+      const hex = (cssColors[match.groups!.content] || match.groups!.content) as HexColor;
       const [red, green, blue, alpha] = parseHexColor(hex);
       const offset = match.index + (match.groups!.start?.length || 0);
       const range = new Range(document.positionAt(offset), document.positionAt(offset + hex.length));
