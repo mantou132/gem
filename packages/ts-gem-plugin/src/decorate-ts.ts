@@ -47,6 +47,29 @@ export function decorateLanguageService(ctx: Context, languageService: LanguageS
   };
 
   languageService.findReferences = (...args) => {
+    const map = new Map<string, ts.ReferencedSymbol>();
+    const tagDefinedInfo = findDefinedTagInfo(ctx, ...args);
+    if (tagDefinedInfo) {
+      forEachAllHtmlTemplateNode(ctx, tagDefinedInfo.tag, (file, tagInfo) => {
+        const symbol = map.get(file.fileName) || getReferencedSymbol(ctx, file);
+        map.set(file.fileName, symbol);
+        symbol.references.push({
+          fileName: file.fileName,
+          isWriteAccess: true,
+          textSpan: tagInfo.open,
+        });
+      });
+      forEachAllCssTemplateNode(ctx, tagDefinedInfo.tag, (file, textSpan) => {
+        const symbol = map.get(file.fileName) || getReferencedSymbol(ctx, file);
+        map.set(file.fileName, symbol);
+        symbol.references.push({
+          fileName: file.fileName,
+          isWriteAccess: true,
+          textSpan,
+        });
+      });
+      return [...map.values()];
+    }
     const oResult = ls.findReferences(...args) || [];
     const program = getProgram();
     const currentNode = getAstNodeAtPosition(ts, program.getSourceFile(args[0])!, args[1]);
@@ -56,7 +79,6 @@ export function decorateLanguageService(ctx: Context, languageService: LanguageS
     const prop = ts.isClassDeclaration(currentNode.parent.parent) && currentNode;
     if (!currentTag) return oResult;
 
-    const map = new Map<string, ts.ReferencedSymbol>();
     if (prop) {
       [currentTag, ...getSubElementTag(ctx, currentNode)].forEach((tag) => {
         forEachAllHtmlTemplateNode(ctx, tag, (file, tagInfo) => {
@@ -71,25 +93,6 @@ export function decorateLanguageService(ctx: Context, languageService: LanguageS
             const textSpan = { start: info.start + tagInfo.offset, length: info.end - info.start };
             symbol.references.push({ fileName: file.fileName, isWriteAccess: true, textSpan });
           }
-        });
-      });
-    } else {
-      forEachAllHtmlTemplateNode(ctx, currentTag, (file, tagInfo) => {
-        const symbol = map.get(file.fileName) || getReferencedSymbol(ctx, file);
-        map.set(file.fileName, symbol);
-        symbol.references.push({
-          fileName: file.fileName,
-          isWriteAccess: true,
-          textSpan: tagInfo.open,
-        });
-      });
-      forEachAllCssTemplateNode(ctx, currentTag, (file, textSpan) => {
-        const symbol = map.get(file.fileName) || getReferencedSymbol(ctx, file);
-        map.set(file.fileName, symbol);
-        symbol.references.push({
-          fileName: file.fileName,
-          isWriteAccess: true,
-          textSpan,
         });
       });
     }
@@ -121,6 +124,27 @@ export function decorateLanguageService(ctx: Context, languageService: LanguageS
       };
     }
     return result;
+  };
+
+  languageService.getDefinitionAndBoundSpan = (...args) => {
+    const tagDefinedInfo = findDefinedTagInfo(ctx, ...args);
+    if (tagDefinedInfo) {
+      // VS Code hack: https://github.com/microsoft/vscode/issues/250280
+      return {
+        textSpan: tagDefinedInfo.textSpan,
+        definitions: [
+          {
+            containerKind: ts.ScriptElementKind.unknown,
+            kind: ts.ScriptElementKind.classElement,
+            containerName: '',
+            name: '',
+            fileName: args[0],
+            textSpan: tagDefinedInfo.textSpan,
+          },
+        ],
+      };
+    }
+    return ls.getDefinitionAndBoundSpan(...args);
   };
 
   languageService.findRenameLocations = (fileName, position, ...args) => {
