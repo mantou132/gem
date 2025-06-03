@@ -264,6 +264,16 @@ export class HTMLLanguageService implements TemplateLanguageService {
           continue;
         }
 
+        if (attrInfo.decorate === '' && attributeName !== camelToKebabCase(attrInfo.attr)) {
+          // <my-element myProp="xx">
+          diagnostics.push({
+            ...diagnostic,
+            code: DiagnosticCode.AttrFormatError,
+            messageText: `Consider using '${customElementTagDecl ? camelToKebabCase(attrInfo.attr) : attrInfo.attr.toLowerCase()}'`,
+          });
+          continue;
+        }
+
         if (!propType) {
           if (
             attrInfo.decorate !== '@' &&

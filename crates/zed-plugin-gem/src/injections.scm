@@ -35,5 +35,6 @@
 
 ((comment) @_html_comment
   (#match? @_html_comment "/[*]+\\s*html\\s*[*]+/")
-  (template_string (string_fragment) @injection.content
-    (#set! injection.language "html")))
+  (template_string) @injection.content
+                              (#set! injection.language "html")
+)

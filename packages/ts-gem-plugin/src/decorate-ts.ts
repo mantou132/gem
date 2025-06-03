@@ -80,7 +80,7 @@ export function decorateLanguageService(ctx: Context, languageService: LanguageS
     if (!currentTag) return oResult;
 
     if (prop) {
-      [currentTag, ...getSubElementTag(ctx, currentNode)].forEach((tag) => {
+      getAllTagFromProp(ctx, currentNode).forEach((tag) => {
         forEachAllHtmlTemplateNode(ctx, tag, (file, tagInfo) => {
           const symbol = map.get(file.fileName) || getReferencedSymbol(ctx, file);
           map.set(file.fileName, symbol);
@@ -183,7 +183,7 @@ export function decorateLanguageService(ctx: Context, languageService: LanguageS
     // 不能指定目标文本：https://github.com/microsoft/vscode/issues/248912
     // NOTE: 冒泡事件处理器无法找到
     if (isPropType(ctx.ts, node.parent, ['emitter', 'globalemitter'])) {
-      [tag, ...getSubElementTag(ctx, node)].forEach((tag) => {
+      getAllTagFromProp(ctx, node).forEach((tag) => {
         forEachAllHtmlTemplateNode(ctx, tag, (f, tagInfo) => {
           const info = tagInfo.node.attributesMap.get(`@${kebabCaseName}`);
           if (!info) return;
@@ -193,7 +193,7 @@ export function decorateLanguageService(ctx: Context, languageService: LanguageS
       });
     }
     if (isPropType(ctx.ts, node.parent, ['attribute', 'numattribute', 'boolattribute', 'property'])) {
-      [tag, ...getSubElementTag(ctx, node)].forEach((tag) => {
+      getAllTagFromProp(ctx, node).forEach((tag) => {
         forEachAllHtmlTemplateNode(ctx, tag, (f, tagInfo) => {
           const propNames = [
             ['', kebabCaseName],
@@ -216,7 +216,7 @@ export function decorateLanguageService(ctx: Context, languageService: LanguageS
   return languageService;
 }
 
-function getSubElementTag(ctx: Context, prop: ts.Identifier) {
+function getAllTagFromProp(ctx: Context, prop: ts.Identifier) {
   let originTagDecl: ts.Node = prop;
   while (!ctx.ts.isClassDeclaration(originTagDecl)) {
     originTagDecl = originTagDecl.parent;

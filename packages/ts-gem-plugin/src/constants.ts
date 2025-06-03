@@ -6,4 +6,5 @@ export enum DiagnosticCode {
   PropTypeError,
   PropSyntaxError,
   Deprecated,
+  AttrFormatError,
 }
