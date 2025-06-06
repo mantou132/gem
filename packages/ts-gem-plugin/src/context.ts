@@ -195,12 +195,6 @@ export class Context {
 }
 
 const partialBuiltInElementMap: Record<string, string[]> = {
-  SVGAElement: [],
-  HTMLAnchorElement: ['a'],
-  SVGImageElement: [],
-  HTMLImageElement: ['img'],
-  SVGStyleElement: [],
-  HTMLStyleElement: ['style'],
   HTMLDListElement: ['dl'],
   HTMLOListElement: ['ol'],
   HTMLUListElement: ['ul'],
@@ -212,6 +206,17 @@ const partialBuiltInElementMap: Record<string, string[]> = {
   HTMLTableColElement: ['col'],
   HTMLTableRowElement: ['tr'],
   HTMLTableSectionElement: ['thead', 'tfoot', 'tbody'],
+  // 和 svg 同名元素使用 html 元素对待
+  SVGAElement: [],
+  HTMLAnchorElement: ['a'],
+  SVGImageElement: [],
+  HTMLImageElement: ['img'],
+  SVGStyleElement: [],
+  HTMLStyleElement: ['style'],
+  SVGScriptElement: [],
+  HTMLScriptElement: ['script'],
+  SVGTitleElement: [],
+  HTMLTitleElement: ['title'],
 };
 
 function createVirtualDocument(languageId: string, content: string) {

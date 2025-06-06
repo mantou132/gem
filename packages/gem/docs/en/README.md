@@ -38,7 +38,7 @@ features:
 }
 </style>
 
-<gbp-sandpack dependencies="@mantou/gem, duoyun-ui">
+<gbp-sandpack tailwind="basic" dependencies="@mantou/gem, duoyun-ui">
 
 ```ts
 import { todoData, addItem } from './store';
@@ -77,27 +77,8 @@ import { icons } from 'duoyun-ui/lib/icons';
 import { todoData, deleteItem } from './store';
 
 const style = css`
-  ul {
-    padding: 0;
-  }
-  li {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    border-top: 1px solid #eee;
-  }
-  li:last-child {
-    border-bottom: 1px solid #eee;
-  }
   li:not(:hover) dy-use {
     opacity: 0;
-  }
-  dy-use {
-    width: 1.3em;
-    padding: 4px;
-  }
-  dy-use:hover {
-    background: #eee;
   }
 `;
 
@@ -107,12 +88,12 @@ const style = css`
 export class TodoListElement extends GemElement {
   render = () => {
     return html`
-      <ul>
+      <ul class="p-0">
         ${todoData.items.map(
           (item) => html`
-            <li>
+            <li class="flex items-center justify-between py-1 border-t border-gray-300 last:border-b">
               <span>${item}</span>
-              <dy-use .element=${icons.close} @click=${() => deleteItem(item)}></dy-use>
+              <dy-use class="w-5 p-1 hover:bg-gray-200" .element=${icons.close} @click=${() => deleteItem(item)}></dy-use>
             </li>
           `,
         )}

@@ -202,6 +202,7 @@ class _GbpSandpackElement extends GemBookPluginElement {
   @attribute entry: string;
   @attribute dependencies: string;
   @attribute template: SandpackTemplate;
+  @attribute tailwind: 'all' | 'basic';
   @boolattribute hotreload: boolean;
 
   get #template() {
@@ -231,6 +232,19 @@ class _GbpSandpackElement extends GemBookPluginElement {
         }
       </style>
       <app-root id=root></app-root>
+      ${
+        this.tailwind
+          ? raw`
+            <style type="text/tailwindcss">
+              @layer theme, base, components, utilities;
+              @import "tailwindcss/theme.css" layer(theme);
+              ${this.tailwind === 'all' ? `@import "tailwindcss/preflight.css" layer(base);` : ''}
+              @import "tailwindcss/utilities.css" layer(utilities);
+            </style>
+            <script src="https://unpkg.com/@tailwindcss/browser@4"></script>
+          `
+          : ''
+      }
     `.trim();
   }
 
@@ -328,7 +342,7 @@ class _GbpSandpackElement extends GemBookPluginElement {
         };
       `,
     )}`;
-    return ['https://cdn.jsdelivr.net/npm/eruda@3.3.0', erudaInit];
+    return ['https://unpkg.com/eruda@3.3.0', erudaInit];
   }
 
   // 兼容 sandpack

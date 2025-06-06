@@ -10,7 +10,7 @@ const prismjs = 'https://esm.sh/prismjs@v1.26.0';
 
 // https://github.com/PrismJS/prism/blob/master/plugins/autoloader/prism-autoloader.js
 const langDependencies: Record<string, string | string[]> = {
-  javascript: 'clike',
+  javascript: ['clike', 'js-templates'],
   actionscript: 'javascript',
   apex: ['clike', 'sql'],
   arduino: 'cpp',
@@ -22,6 +22,8 @@ const langDependencies: Record<string, string | string[]> = {
   cpp: 'c',
   cfscript: 'clike',
   chaiscript: ['clike', 'cpp'],
+  cilkc: 'c',
+  cilkcpp: 'cpp',
   coffeescript: 'javascript',
   crystal: 'ruby',
   'css-extras': 'css',
@@ -38,6 +40,7 @@ const langDependencies: Record<string, string | string[]> = {
   gml: 'clike',
   glsl: 'c',
   go: 'clike',
+  gradle: 'clike',
   groovy: 'clike',
   haml: 'ruby',
   handlebars: 'markup-templating',
@@ -57,7 +60,8 @@ const langDependencies: Record<string, string | string[]> = {
   less: 'css',
   lilypond: 'scheme',
   liquid: 'markup-templating',
-  markdown: 'markup',
+  // https://github.com/PrismJS/prism/issues/3283#issuecomment-1001532061
+  markdown: ['markup', 'yaml'],
   'markup-templating': 'markup',
   mongodb: 'javascript',
   n4js: 'javascript',
@@ -92,13 +96,14 @@ const langDependencies: Record<string, string | string[]> = {
   sparql: 'turtle',
   sqf: 'clike',
   squirrel: 'clike',
+  stata: ['mata', 'java', 'python'],
   't4-cs': ['t4-templating', 'csharp'],
   't4-vb': ['t4-templating', 'vbnet'],
   tap: 'yaml',
   tt2: ['clike', 'markup-templating'],
   textile: 'markup',
   twig: 'markup-templating',
-  typescript: 'javascript',
+  typescript: ['javascript', 'js-templates'],
   v: 'clike',
   vala: 'clike',
   vbnet: 'basic',
@@ -119,9 +124,13 @@ const langAliases: Record<string, string> = {
   js: 'javascript',
   g4: 'antlr4',
   ino: 'arduino',
+  'arm-asm': 'armasm',
+  art: 'arturo',
   adoc: 'asciidoc',
   avs: 'avisynth',
   avdl: 'avro-idl',
+  gawk: 'awk',
+  sh: 'bash',
   shell: 'bash',
   shortcode: 'bbcode',
   rbnf: 'bnf',
@@ -129,6 +138,9 @@ const langAliases: Record<string, string> = {
   cs: 'csharp',
   dotnet: 'csharp',
   cfc: 'cfscript',
+  'cilk-c': 'cilkc',
+  'cilk-cpp': 'cilkcpp',
+  cilk: 'cilkcpp',
   coffee: 'coffeescript',
   conc: 'concurnas',
   jinja2: 'django',
@@ -139,9 +151,12 @@ const langAliases: Record<string, string> = {
   xlsx: 'excel-formula',
   xls: 'excel-formula',
   gamemakerlanguage: 'gml',
+  po: 'gettext',
   gni: 'gn',
+  ld: 'linker-script',
   'go-mod': 'go-module',
   hbs: 'handlebars',
+  mustache: 'handlebars',
   hs: 'haskell',
   idr: 'idris',
   gitignore: 'ignore',
@@ -166,6 +181,7 @@ const langAliases: Record<string, string> = {
   objectpascal: 'pascal',
   px: 'pcaxis',
   pcode: 'peoplecode',
+  plantuml: 'plant-uml',
   pq: 'powerquery',
   mscript: 'powerquery',
   pbfasm: 'purebasic',
@@ -175,6 +191,8 @@ const langAliases: Record<string, string> = {
   rkt: 'racket',
   razor: 'cshtml',
   rpy: 'renpy',
+  res: 'rescript',
+  rs: 'rust',
   robot: 'robotframework',
   rb: 'ruby',
   'sh-session': 'shell-session',
@@ -183,6 +201,7 @@ const langAliases: Record<string, string> = {
   sol: 'solidity',
   sln: 'solution-file',
   rq: 'sparql',
+  sclang: 'supercollider',
   t4: 't4-cs',
   trickle: 'tremor',
   troy: 'tremor',
@@ -366,23 +385,23 @@ export class DuoyunCodeBlockElement extends DuoyunVisibleBaseElement {
   #updateHtml = async () => {
     if (!this.visible) return;
     if (!this.#codeRef.value) return;
+
     await import(/* @vite-ignore */ /* webpackIgnore: true */ prismjs);
     const { Prism } = window as any;
-    if (this.codelang && !Prism.languages[this.codelang]) {
-      const codelang = langAliases[this.codelang] || this.codelang;
-      const langDeps = ([] as string[]).concat(langDependencies[codelang] || []);
-      const load = (lang: string) =>
-        import(/* @vite-ignore */ /* webpackIgnore: true */ `${prismjs}/components/prism-${lang}.min.js`);
-      try {
-        await Promise.all(langDeps.map((langDep) => !Prism.languages[langDep] && load(langDep)));
-        await load(codelang);
-      } catch {
-        //
-      }
-    }
-    const htmlStr = Prism.languages[this.codelang]
-      ? Prism.highlight(this.textContent || '', Prism.languages[this.codelang], this.codelang)
+    const codelang = langAliases[this.codelang] || this.codelang;
+
+    const load = (lang: string) =>
+      !Prism.languages[lang] &&
+      import(/* @vite-ignore */ /* webpackIgnore: true */ `${prismjs}/components/prism-${lang}.min.js`);
+
+    const loadPromises = ([] as string[]).concat(langDependencies[codelang] || []).map(load);
+    await Promise.allSettled(loadPromises);
+    await Promise.allSettled([load(codelang)]);
+
+    const htmlStr = Prism.languages[codelang]
+      ? Prism.highlight(this.textContent || '', Prism.languages[codelang], codelang)
       : this.innerHTML;
+
     this.#codeRef.value.innerHTML = this.#getParts(htmlStr);
   };
 

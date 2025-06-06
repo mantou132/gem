@@ -31,7 +31,7 @@ const supportAnchor = CSS.supports('anchor-name: --foo');
 
 // https://github.com/PrismJS/prism/blob/master/plugins/autoloader/prism-autoloader.js
 const langDependencies: Record<string, string | string[]> = {
-  javascript: 'clike',
+  javascript: ['clike', 'js-templates'],
   actionscript: 'javascript',
   apex: ['clike', 'sql'],
   arduino: 'cpp',
@@ -124,7 +124,7 @@ const langDependencies: Record<string, string | string[]> = {
   tt2: ['clike', 'markup-templating'],
   textile: 'markup',
   twig: 'markup-templating',
-  typescript: 'javascript',
+  typescript: ['javascript', 'js-templates'],
   v: 'clike',
   vala: 'clike',
   vbnet: 'basic',
@@ -213,6 +213,7 @@ const langAliases: Record<string, string> = {
   razor: 'cshtml',
   rpy: 'renpy',
   res: 'rescript',
+  rs: 'rust',
   robot: 'robotframework',
   rb: 'ruby',
   'sh-session': 'shell-session',
@@ -525,23 +526,23 @@ export class Pre extends GemElement {
     if (this.status === 'hidden') return;
     if (!this.#isVisble) return;
     if (!this.#codeRef.value) return;
+
     await import(/* @vite-ignore */ /* webpackIgnore: true */ prismjs);
     const { Prism } = window as any;
-    if (this.codelang && !Prism.languages[this.codelang]) {
-      const codelang = langAliases[this.codelang] || this.codelang;
-      const langDeps = ([] as string[]).concat(langDependencies[codelang] || []);
-      const load = (lang: string) =>
-        import(/* @vite-ignore */ /* webpackIgnore: true */ `${prismjs}/components/prism-${lang}.min.js`);
-      try {
-        await Promise.all(langDeps.map((langDep) => !Prism.languages[langDep] && load(langDep)));
-        await load(codelang);
-      } catch {
-        //
-      }
-    }
-    const htmlStr = Prism.languages[this.codelang]
-      ? Prism.highlight(this.textContent || '', Prism.languages[this.codelang], this.codelang)
+    const codelang = langAliases[this.codelang] || this.codelang;
+
+    const load = (lang: string) =>
+      !Prism.languages[lang] &&
+      import(/* @vite-ignore */ /* webpackIgnore: true */ `${prismjs}/components/prism-${lang}.min.js`);
+
+    const loadPromises = ([] as string[]).concat(langDependencies[codelang] || []).map(load);
+    await Promise.allSettled(loadPromises);
+    await Promise.allSettled([load(codelang)]);
+
+    const htmlStr = Prism.languages[codelang]
+      ? Prism.highlight(this.textContent || '', Prism.languages[codelang], codelang)
       : this.innerHTML;
+
     const { parts, lineNumbersParts } = this.#getParts(htmlStr);
     this.#codeRef.value.innerHTML = parts.reduce(
       (p, c, i) =>
@@ -553,8 +554,8 @@ export class Pre extends GemElement {
 
   @mounted()
   #initContent = () => {
-    if (this.#contentElement) {
-      this.#contentElement.textContent = this.textContent;
+    if (this.#contentElement?.textContent !== this.textContent) {
+      this.#contentElement!.textContent = this.textContent;
     }
   };
 
