@@ -71,6 +71,19 @@ fn fixture_minify(input: PathBuf) {
     );
 }
 
+#[fixture("tests/fixture/selector/input.ts")]
+fn fixture_selector(input: PathBuf) {
+    let output = input.parent().unwrap().join("output.ts");
+
+    test_fixture(
+        get_syntax(),
+        &|_| visit_mut_pass(selector_transform()),
+        &input,
+        &output,
+        Default::default(),
+    );
+}
+
 #[fixture("tests/fixture/path/input.ts")]
 fn fixture_path(input: PathBuf) {
     let output = input.parent().unwrap().join("output.ts");

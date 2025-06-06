@@ -2,6 +2,7 @@
 
 - auto import
 - support [memo getter](https://github.com/tc39/proposal-decorators/issues/509#issuecomment-2226967170)
+- support [top `&:hover`](https://github.com/w3c/csswg-drafts/issues/11000#issuecomment-2943322835) in shadow dom
 - support minify style
 - resolve full path (for esm)
 

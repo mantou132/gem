@@ -15,6 +15,7 @@ pub use visitors::{
     minify::minify_transform,
     path::path_transform,
     preload::preload_transform,
+    selector::selector_transform,
 };
 
 mod visitors;
@@ -33,6 +34,8 @@ struct PluginConfig {
     pub preload: bool,
     /// Under development, need add `@mantou/gem/helper/hmr` to entry
     pub hmr: bool,
+    /// Support `&:hover` in shadow dom and light dom
+    pub selector_compatible: bool,
     /// un-implement
     pub lazy_view: bool,
 }
@@ -59,6 +62,10 @@ pub fn process_transform(mut program: Program, data: TransformPluginProgramMetad
                 AutoImport::CustomContent(_) => true,
             },
             visitor: import_transform(config.auto_import, config.auto_import_dts),
+        },
+        Optional {
+            enabled: config.selector_compatible,
+            visitor: selector_transform(),
         },
         Optional {
             enabled: config.style_minify,
