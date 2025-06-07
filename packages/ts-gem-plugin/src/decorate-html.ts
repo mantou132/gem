@@ -464,6 +464,48 @@ export class HTMLLanguageService implements TemplateLanguageService {
     if (!node.tag || !node.startTagEnd || voidElementTags.has(node.tag)) return;
     if (!node.endTagStart) return { newText: `</${node.tag}>` };
   }
+
+  getDocumentHighlights(context: TemplateContext, position: ts.LineAndCharacter): ts.DocumentHighlights[] | undefined {
+    const { vDoc, vHtml } = this.#ctx.getHtmlDoc(context.text);
+    const docHighlights = this.#ctx.htmlLanguageService.findDocumentHighlights(vDoc, position, vHtml);
+    return [
+      {
+        fileName: context.fileName,
+        highlightSpans: docHighlights.map(({ range }) => {
+          const start = vDoc.offsetAt(range.start);
+          return {
+            textSpan: { start, length: vDoc.offsetAt(range.end) - start },
+            kind: context.typescript.HighlightSpanKind.definition,
+          };
+        }),
+      },
+    ];
+  }
+
+  getCodeFixesAtPosition(
+    context: TemplateContext,
+    start: number,
+    end: number,
+    errorCodes: number[],
+  ): (ts.CodeAction | ts.CodeFixAction)[] {
+    const result: (ts.CodeAction | ts.CodeFixAction)[] = [];
+
+    if (errorCodes.includes(DiagnosticCode.AttrFormatError)) {
+      const { vHtml } = this.#ctx.getHtmlDoc(context.text);
+      const node = vHtml.findNodeAt(start);
+      const isBuiltInTag = !!this.#ctx.builtInElements.get(node.tag!);
+      const attr = context.text.slice(start, end);
+      const targetAttr = isBuiltInTag ? attr.toLowerCase() : camelToKebabCase(attr);
+      const textChanges = [{ span: { start, length: end - start }, newText: targetAttr }];
+      result.push({
+        fixName: context.fileName,
+        description: `Convert attribute to '${targetAttr}'`,
+        changes: [{ fileName: context.fileName, textChanges }],
+      });
+    }
+
+    return result;
+  }
 }
 
 // https://developer.mozilla.org/en-US/docs/Glossary/Void_element
