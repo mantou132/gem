@@ -1,9 +1,9 @@
 import type { Logger, TemplateSettings } from '@mantou/typescript-template-language-service-decorator';
 import StandardScriptSourceHelper from '@mantou/typescript-template-language-service-decorator/lib/standard-script-source-helper';
 import StandardTemplateSourceHelper from '@mantou/typescript-template-language-service-decorator/lib/standard-template-source-helper';
-import type { Stylesheet } from '@mantou/vscode-css-languageservice';
+import type { LanguageService as CssLS, Node as CssNode, Stylesheet } from '@mantou/vscode-css-languageservice';
 import { getCSSLanguageService, NodeType } from '@mantou/vscode-css-languageservice';
-import type { HTMLDocument, IHTMLDataProvider, Node } from '@mantou/vscode-html-languageservice';
+import type { HTMLDocument, IHTMLDataProvider, LanguageService, Node } from '@mantou/vscode-html-languageservice';
 import { getLanguageService as getHTMLanguageService, TextDocument } from '@mantou/vscode-html-languageservice';
 import { StringWeakMap } from 'duoyun-ui/lib/map';
 import type * as ts from 'typescript/lib/tsserverlibrary';
@@ -11,7 +11,7 @@ import type * as ts from 'typescript/lib/tsserverlibrary';
 import { LRUCache } from './cache';
 import type { Configuration } from './configuration';
 import { dataProvider, HTMLDataProvider } from './data-provider';
-import { forEachNode, isDepElement } from './utils';
+import { forEachNode, getAllText, getTagFromNodeWithDecorator, getTextAtPosition, isDepElement } from './utils';
 
 declare module '@mantou/vscode-html-languageservice' {
   interface Node {
@@ -20,8 +20,16 @@ declare module '@mantou/vscode-html-languageservice' {
   }
 }
 
-type CSSTagNodeMap = Record<string, ReturnType<Stylesheet['getChildren']> | undefined>;
-type HTMLTagNodeMap = Record<string, Node[] | undefined>;
+class NodeMap<T> {
+  #map: Record<string, T[] | undefined> = {};
+  get(key: string) {
+    return this.#map[key];
+  }
+  add(key: string, value: T) {
+    if (!this.#map[key]) this.#map[key] = [];
+    this.#map[key].push(value);
+  }
+}
 
 /**
  * 全局上下文，数据共享
@@ -34,8 +42,8 @@ export class Context {
   project: ts.server.Project;
   logger: Logger;
   dataProvider: IHTMLDataProvider;
-  cssLanguageService: ReturnType<typeof getCSSLanguageService>;
-  htmlLanguageService: ReturnType<typeof getHTMLanguageService>;
+  cssLanguageService: CssLS;
+  htmlLanguageService: LanguageService;
   htmlSourceHelper: StandardTemplateSourceHelper;
   cssSourceHelper: StandardTemplateSourceHelper;
   htmlTemplateStringSettings: TemplateSettings;
@@ -83,63 +91,73 @@ export class Context {
   #virtualCssCache = new LRUCache<{
     vDoc: TextDocument;
     vCss: Stylesheet;
-    tagNodeMap: CSSTagNodeMap;
+    tagNodeMap: NodeMap<CssNode>;
+    classIdNodeMap: NodeMap<CssNode>;
   }>({ max: 1000 });
   getCssDoc(text: string) {
     return this.#virtualCssCache.get({ text, fileName: '' }, undefined, () => {
       const vDoc = createVirtualDocument('css', text);
       const vCss = this.cssLanguageService.parseStylesheet(vDoc);
-      const tagNodeMap: CSSTagNodeMap = {};
+      const tagNodeMap = new NodeMap<CssNode>();
+      const classIdNodeMap = new NodeMap<CssNode>();
       forEachNode(vCss.getChildren(), (node) => {
         if (node.type === NodeType.ElementNameSelector) {
-          const ident = text.slice(node.offset, node.end);
-          if (!tagNodeMap[ident]) tagNodeMap[ident] = [];
-          tagNodeMap[ident].push(node);
+          tagNodeMap.add(node.getText(), node);
+        }
+        if (node.type === NodeType.IdentifierSelector || node.parent?.type === NodeType.ClassSelector) {
+          classIdNodeMap.add(node.getText(), node);
         }
       });
-      return { vDoc, vCss, tagNodeMap };
+      return { vDoc, vCss, tagNodeMap, classIdNodeMap };
     });
   }
 
   #virtualHtmlCache = new LRUCache<{
     vDoc: TextDocument;
     vHtml: HTMLDocument;
-    tagNodeMap: HTMLTagNodeMap;
+    tagNodeMap: NodeMap<Node>;
+    classIdNodeMap: NodeMap<{ start: number; length: number }>;
   }>({ max: 1000 });
   getHtmlDoc(text: string) {
     return this.#virtualHtmlCache.get({ text, fileName: '' }, undefined, () => {
       const vDoc = createVirtualDocument('html', text);
       const vHtml = this.htmlLanguageService.parseHTMLDocument(vDoc);
-      const tagNodeMap: HTMLTagNodeMap = {};
+      const tagNodeMap = new NodeMap<Node>();
+      const classIdNodeMap = new NodeMap<{ start: number; length: number }>();
       vHtml.roots.forEach(function process(e, index, arr) {
         e.prev = arr[index - 1];
         e.next = arr[index + 1];
-        e.children.forEach(process);
-        const tag = e.tag;
-        if (tag) {
-          if (!tagNodeMap[tag]) tagNodeMap[tag] = [];
-          tagNodeMap[tag].push(e);
+        e.tag && tagNodeMap.add(e.tag, e);
+        const idAttr = e.attributesMap.get('id');
+        const classAttr = e.attributesMap.get('class');
+        if (idAttr?.value) {
+          const text = getTextAtPosition(idAttr.value, 1);
+          if (text) {
+            classIdNodeMap.add(`#${text.text}`, {
+              start: idAttr.end + 1 + text.start,
+              length: text.length,
+            });
+          }
         }
+        if (classAttr?.value) {
+          getAllText(classAttr.value).forEach((text) => {
+            classIdNodeMap.add(text.value, {
+              start: classAttr.end + 1 + text.start,
+              length: text.length,
+            });
+          });
+        }
+        e.children.forEach(process);
       });
-      return { vDoc, vHtml, tagNodeMap };
+      return { vDoc, vHtml, tagNodeMap, classIdNodeMap };
     });
   }
 
   getTagFromNode(node: ts.Node, supportClassName = isDepElement(node)) {
     if (!this.ts.isClassDeclaration(node)) return;
 
-    for (const modifier of node.modifiers || []) {
-      if (
-        this.ts.isDecorator(modifier) &&
-        this.ts.isCallExpression(modifier.expression) &&
-        modifier.expression.expression.getText() === 'customElement'
-      ) {
-        const arg = modifier.expression.arguments.at(0);
-        if (arg && this.ts.isStringLiteral(arg)) {
-          return arg.text;
-        }
-      }
-    }
+    const tag = getTagFromNodeWithDecorator(this.ts, node);
+    if (tag) return tag;
 
     // 只有声明文件
     if (supportClassName && node.name && this.ts.isIdentifier(node.name)) {
@@ -229,7 +247,7 @@ function getSubstitution(templateString: string, start: number, end: number) {
 
 function isValidCSSTemplate(
   typescript: typeof ts,
-  node: ts.NoSubstitutionTemplateLiteral | ts.TaggedTemplateExpression | ts.TemplateExpression,
+  node: ts.NoSubstitutionTemplateLiteral | ts.TemplateExpression | ts.TaggedTemplateExpression,
   callName: string,
 ) {
   switch (node.kind) {

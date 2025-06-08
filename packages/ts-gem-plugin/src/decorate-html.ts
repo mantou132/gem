@@ -3,6 +3,7 @@ import type { TemplateContext, TemplateLanguageService } from '@mantou/typescrip
 import { NodeType, updateTags as updateCSSTags } from '@mantou/vscode-css-languageservice';
 import { doComplete as doEmmetComplete, updateTags } from '@mantou/vscode-emmet-helper';
 import type { CompletionList, HTMLDocument, Position, Range } from '@mantou/vscode-html-languageservice';
+import { isNotNullish } from 'duoyun-ui/lib/types';
 import type * as ts from 'typescript/lib/tsserverlibrary';
 
 import { LRUCache } from './cache';
@@ -10,6 +11,7 @@ import { DiagnosticCode, NAME } from './constants';
 import type { Context } from './context';
 import {
   genAttrDefinitionInfo,
+  genCurrentCtxCssDefinitionInfo,
   genCurrentCtxDefinitionInfo,
   genDefaultCompletionEntryDetails,
   genElementDefinitionInfo,
@@ -18,7 +20,16 @@ import {
   translateFoldingRange,
   translateHover,
 } from './translates';
-import { forEachNode, getAstNodeAtPosition, getAttrName, getHTMLTextAtPosition, isCustomElementTag } from './utils';
+import {
+  forEachNode,
+  getAllStyleNode,
+  getAstNodeAtPosition,
+  getAttrName,
+  getCurrentElementDecl,
+  getHTMLTextAtPosition,
+  getTextAtPosition,
+  isCustomElementTag,
+} from './utils';
 
 export class HTMLLanguageService implements TemplateLanguageService {
   #completionsCache = new LRUCache<CompletionList>({ max: 1 });
@@ -398,6 +409,7 @@ export class HTMLLanguageService implements TemplateLanguageService {
   }
 
   getDefinitionAndBoundSpan(context: TemplateContext, position: ts.LineAndCharacter): ts.DefinitionInfoAndBoundSpan {
+    const typeChecker = this.#ctx.getProgram().getTypeChecker();
     const currentOffset = context.toOffset(position);
     const { vHtml } = this.#ctx.getHtmlDoc(context.text);
     const node = vHtml.findNodeAt(currentOffset);
@@ -408,14 +420,14 @@ export class HTMLLanguageService implements TemplateLanguageService {
       const { style, vDoc, position: pos } = this.#getEmbeddedCss(context, position, vHtml)!;
       const cssNode = style.findChildAtOffset(vDoc.offsetAt(pos), true);
       if (!cssNode || cssNode.parent?.type !== NodeType.ElementNameSelector) return empty;
-      const ident = vDoc.getText().slice(cssNode.offset, cssNode.end);
-      const definitionNode = this.#ctx.elements.get(ident);
+      const definitionNode = this.#ctx.elements.get(cssNode.getText());
       if (!definitionNode) return empty;
       return genElementDefinitionInfo(
         context,
         { start: cssNode.offset + node.startTagEnd!, length: cssNode.length },
         definitionNode,
       );
+      // 忽略行内样式: go to definition
     }
 
     const definitionNode = this.#ctx.elements.get(node.tag!) || this.#ctx.builtInElements.get(node.tag!);
@@ -427,6 +439,31 @@ export class HTMLLanguageService implements TemplateLanguageService {
     }
 
     const { attr, offset } = getAttrName(text);
+
+    // FIXME: multiple class
+    if (attr === 'class' || attr === 'id') {
+      const attrValue = node.attributesMap.get(attr);
+      if (!attrValue?.value) return empty;
+      const currentAttrValue = getTextAtPosition(attrValue.value, currentOffset - attrValue.end + 1);
+      const currentElementDecl = getCurrentElementDecl(context.typescript, context.node);
+      if (!currentAttrValue || !currentElementDecl) return empty;
+      return genCurrentCtxCssDefinitionInfo(
+        context,
+        currentAttrValue.text,
+        attrValue.end + 1 + currentAttrValue.start,
+        getAllStyleNode(this.#ctx.ts, typeChecker, currentElementDecl)
+          .flatMap((e) => {
+            const { fileName } = e.getSourceFile();
+            const templateContext = this.#ctx.cssSourceHelper.getTemplate(fileName, e.pos + 1);
+            if (!templateContext) return;
+            const { classIdNodeMap } = this.#ctx.getCssDoc(templateContext.text);
+            const nodes = classIdNodeMap.get(attr === 'id' ? `#${currentAttrValue.text}` : currentAttrValue.text);
+            return { ctx: templateContext, nodes: nodes || [] };
+          })
+          .filter(isNotNullish),
+      );
+    }
+
     if (before.length > attr.length) return empty;
 
     if (attr === 'v-else' || attr === 'v-else-if') {
@@ -439,7 +476,6 @@ export class HTMLLanguageService implements TemplateLanguageService {
       );
     }
 
-    const typeChecker = this.#ctx.getProgram().getTypeChecker();
     const propSymbol = typeChecker.getTypeAtLocation(definitionNode).getProperty(kebabToCamelCase(attr));
     const propDeclaration = propSymbol?.getDeclarations()?.at(0);
     if (!propDeclaration) return empty;

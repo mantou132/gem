@@ -1,4 +1,5 @@
 import type { TemplateContext } from '@mantou/typescript-template-language-service-decorator';
+import { Node } from '@mantou/vscode-css-languageservice';
 import type * as ts from 'typescript/lib/tsserverlibrary';
 import * as vscode from 'vscode-languageserver-types';
 
@@ -265,5 +266,29 @@ export function genCurrentCtxDefinitionInfo(
         textSpan: definitionTextSpan,
       },
     ],
+  };
+}
+
+export function genCurrentCtxCssDefinitionInfo(
+  context: TemplateContext,
+  value: string,
+  start: number,
+  definitions: { ctx: TemplateContext; nodes: Node[] }[],
+): ts.DefinitionInfoAndBoundSpan {
+  // typescript-template-language-service-decorator 根据当前文档位置偏移了
+  const htmlOffset = context.node.getStart();
+  const length = value.length;
+  return {
+    textSpan: { start, length },
+    definitions: definitions.flatMap(({ ctx, nodes }) =>
+      nodes.map((node) => ({
+        containerName: 'AttributeValue',
+        containerKind: context.typescript.ScriptElementKind.unknown,
+        name: context.text.slice(start, start + length),
+        kind: context.typescript.ScriptElementKind.memberVariableElement,
+        fileName: context.fileName,
+        textSpan: { start: node.offset + ctx.node.pos - htmlOffset, length: node.length },
+      })),
+    ),
   };
 }

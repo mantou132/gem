@@ -8,6 +8,7 @@ import { LRUCache } from './cache';
 import { NAME } from './constants';
 import type { Context } from './context';
 import {
+  genCurrentCtxDefinitionInfo,
   genDefaultCompletionEntryDetails,
   genElementDefinitionInfo,
   translateCompletionItemsToCompletionEntryDetails,
@@ -15,6 +16,7 @@ import {
   translateFoldingRange,
   translateHover,
 } from './translates';
+import { forEachNode, getAllStyleNode, getTemplateNode, isClassMapKey } from './utils';
 
 export class CSSLanguageService implements TemplateLanguageService {
   #completionsCache = new LRUCache<CompletionList>({ max: 1 });
@@ -110,16 +112,58 @@ export class CSSLanguageService implements TemplateLanguageService {
     return this.#diagnosticsCache.get(context, undefined, () => this.#getSyntacticDiagnostics(context));
   }
 
+  getReferencesAtPosition(context: TemplateContext, position: ts.LineAndCharacter): ts.ReferenceEntry[] | undefined {
+    const typeChecker = this.#ctx.getProgram().getTypeChecker();
+    const { text, offset } = this.#normalize(context, position);
+    const { vCss } = this.#ctx.getCssDoc(text);
+    const node = vCss.findChildAtOffset(context.toOffset(position) + offset, true);
+    if (node?.type !== NodeType.IdentifierSelector && node?.parent?.type !== NodeType.ClassSelector) return;
+    const result: ts.ReferenceEntry[] = [];
+    const classOrId = node.getText();
+    for (const [, decl] of this.#ctx.elements) {
+      const { fileName } = decl.getSourceFile();
+      const styles = getAllStyleNode(context.typescript, typeChecker, decl);
+      if (!styles.includes(context.node)) continue;
+      forEachNode(decl.getChildren(), (node) => {
+        const templateNode = getTemplateNode(context.typescript, node);
+        if (templateNode) {
+          const templateContext = this.#ctx.htmlSourceHelper.getTemplate(fileName, templateNode.pos + 1);
+          if (!templateContext) return;
+          const { classIdNodeMap } = this.#ctx.getHtmlDoc(templateContext.text);
+          classIdNodeMap.get(classOrId)?.forEach((n) => {
+            result.push({
+              fileName,
+              textSpan: { start: n.start + templateNode.pos - context.node.pos, length: n.length },
+              isWriteAccess: true,
+            });
+          });
+        } else if (isClassMapKey(context.typescript, node) && node.text === classOrId) {
+          const isString = context.typescript.isStringLiteral(node);
+          result.push({
+            fileName,
+            textSpan: { start: node.getStart() - context.node.pos - 1 + (isString ? 1 : 0), length: node.text.length },
+            isWriteAccess: true,
+          });
+        }
+      });
+    }
+    return result;
+  }
+
   getDefinitionAndBoundSpan(context: TemplateContext, position: ts.LineAndCharacter): ts.DefinitionInfoAndBoundSpan {
     const { text, offset } = this.#normalize(context, position);
-    const { vDoc, vCss } = this.#ctx.getCssDoc(text);
+    const { vCss } = this.#ctx.getCssDoc(text);
     const empty = { textSpan: { start: 0, length: 0 } };
-    const node = vCss.findChildAtOffset(context.toOffset(position), true);
-    if (!node || node.parent?.type !== NodeType.ElementNameSelector) return empty;
-    const ident = vDoc.getText().slice(node.offset, node.end);
-    const definitionNode = this.#ctx.elements.get(ident);
+    const node = vCss.findChildAtOffset(context.toOffset(position) + offset, true);
+    if (!node) return empty;
+    const textSpan = { start: node.offset - offset, length: node.length };
+    if (node.type === NodeType.IdentifierSelector || node.parent?.type === NodeType.ClassSelector) {
+      return genCurrentCtxDefinitionInfo(context, textSpan, textSpan);
+    }
+    if (node.parent?.type !== NodeType.ElementNameSelector) return empty;
+    const definitionNode = this.#ctx.elements.get(node.getText());
     if (!definitionNode) return empty;
-    return genElementDefinitionInfo(context, { start: node.offset - offset, length: node.length }, definitionNode);
+    return genElementDefinitionInfo(context, textSpan, definitionNode);
   }
 
   // 不知道如何起作用的，没有被调用，但不加就没有 css 折叠了

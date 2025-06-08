@@ -1,9 +1,19 @@
 import { camelToKebabCase } from '@mantou/gem/lib/utils';
+import { isNotNullish } from 'duoyun-ui/lib/types';
 import type { LanguageService } from 'typescript';
 import type * as ts from 'typescript/lib/tsserverlibrary';
 
 import type { Context } from './context';
-import { bindMemberFunction, decorate, getAstNodeAtPosition, getHTMLTextAtPosition, getTagInfo } from './utils';
+import {
+  bindMemberFunction,
+  decorate,
+  getAllStyleNode,
+  getAstNodeAtPosition,
+  getCurrentElementDecl,
+  getHTMLTextAtPosition,
+  getTagInfo,
+  isClassMapKey,
+} from './utils';
 
 export function decorateLanguageService(ctx: Context, languageService: LanguageService) {
   const { ts, getProgram } = ctx;
@@ -99,6 +109,42 @@ export function decorateLanguageService(ctx: Context, languageService: LanguageS
     return [...map.values(), ...oResult];
   };
 
+  languageService.getDefinitionAndBoundSpan = (...args) => {
+    const classMapKeyInfo = getClassMapKeyInfo(ctx, ...args);
+    const kind = ts.ScriptElementKind.classElement;
+    const containerKind = ts.ScriptElementKind.unknown;
+    const fileName = args[0];
+    if (classMapKeyInfo) {
+      return {
+        textSpan: classMapKeyInfo.textSpan,
+        definitions: classMapKeyInfo.styles
+          .flatMap((e) => {
+            const { fileName } = e.getSourceFile();
+            const templateContext = ctx.cssSourceHelper.getTemplate(fileName, e.pos + 1);
+            if (!templateContext) return;
+            const { classIdNodeMap } = ctx.getCssDoc(templateContext.text);
+            return classIdNodeMap.get(classMapKeyInfo.text)?.map((node) => ({
+              kind,
+              containerKind,
+              fileName,
+              containerName: '',
+              name: '',
+              textSpan: { start: node.offset + e.pos + 1, length: node.getText().length },
+            }));
+          })
+          .filter(isNotNullish),
+      };
+    }
+    const tagDefinedInfo = findDefinedTagInfo(ctx, ...args);
+    if (!tagDefinedInfo) return ls.getDefinitionAndBoundSpan(...args);
+    // 触发 go to ref: https://github.com/microsoft/vscode/issues/250280
+    const textSpan = tagDefinedInfo.textSpan;
+    return {
+      textSpan,
+      definitions: [{ kind, containerKind, fileName, containerName: '', name: '', textSpan }],
+    };
+  };
+
   languageService.getRenameInfo = (fileName, position, ...args) => {
     const result = ls.getRenameInfo(fileName, position, ...args);
     const tagInfo = findCurrentTagInfo(ctx, fileName, position);
@@ -113,38 +159,15 @@ export function decorateLanguageService(ctx: Context, languageService: LanguageS
       };
     }
     const tagDefinedInfo = findDefinedTagInfo(ctx, fileName, position);
-    if (tagDefinedInfo) {
-      return {
-        canRename: true,
-        displayName: tagDefinedInfo.tag,
-        fullDisplayName: tagDefinedInfo.tag,
-        kind: ts.ScriptElementKind.alias,
-        kindModifiers: 'tag',
-        triggerSpan: tagDefinedInfo.textSpan,
-      };
-    }
-    return result;
-  };
-
-  languageService.getDefinitionAndBoundSpan = (...args) => {
-    const tagDefinedInfo = findDefinedTagInfo(ctx, ...args);
-    if (tagDefinedInfo) {
-      // VS Code hack: https://github.com/microsoft/vscode/issues/250280
-      return {
-        textSpan: tagDefinedInfo.textSpan,
-        definitions: [
-          {
-            containerKind: ts.ScriptElementKind.unknown,
-            kind: ts.ScriptElementKind.classElement,
-            containerName: '',
-            name: '',
-            fileName: args[0],
-            textSpan: tagDefinedInfo.textSpan,
-          },
-        ],
-      };
-    }
-    return ls.getDefinitionAndBoundSpan(...args);
+    if (!tagDefinedInfo) return result;
+    return {
+      canRename: true,
+      displayName: tagDefinedInfo.tag,
+      fullDisplayName: tagDefinedInfo.tag,
+      kind: ts.ScriptElementKind.alias,
+      kindModifiers: 'tag',
+      triggerSpan: tagDefinedInfo.textSpan,
+    };
   };
 
   languageService.findRenameLocations = (fileName, position, ...args) => {
@@ -252,13 +275,13 @@ function getReferencedSymbol(ctx: Context, file: ts.SourceFile): ts.ReferencedSy
 function forEachAllHtmlTemplateNode(
   ctx: Context,
   tag: string,
-  fn: (fileName: ts.SourceFile, info: ReturnType<typeof getTagInfo>) => void,
+  fn: (file: ts.SourceFile, info: ReturnType<typeof getTagInfo>) => void,
 ) {
   for (const file of ctx.getProgram().getSourceFiles()) {
     if (file.fileName.endsWith('.d.ts')) continue;
     for (const templateContext of ctx.htmlSourceHelper.getAllTemplates(file.fileName)) {
       const { tagNodeMap } = ctx.getHtmlDoc(templateContext.text);
-      tagNodeMap[tag]?.forEach((node) => fn(file, getTagInfo(node, templateContext.node.getStart() + 1)));
+      tagNodeMap.get(tag)?.forEach((node) => fn(file, getTagInfo(node, templateContext.node.getStart() + 1)));
     }
   }
 }
@@ -266,14 +289,14 @@ function forEachAllHtmlTemplateNode(
 function forEachAllCssTemplateNode(
   ctx: Context,
   tag: string,
-  fn: (fileName: ts.SourceFile, textSpan: ts.TextSpan) => void,
+  fn: (file: ts.SourceFile, textSpan: ts.TextSpan) => void,
 ) {
   for (const file of ctx.getProgram().getSourceFiles()) {
     if (file.fileName.endsWith('.d.ts')) continue;
     for (const templateContext of ctx.cssSourceHelper.getAllTemplates(file.fileName)) {
       const { tagNodeMap } = ctx.getCssDoc(templateContext.text);
       const offset = templateContext.node.getStart() + 1;
-      tagNodeMap[tag]?.forEach((node) => fn(file, { start: offset + node.offset, length: node.end - node.offset }));
+      tagNodeMap.get(tag)?.forEach((node) => fn(file, { start: offset + node.offset, length: node.end - node.offset }));
     }
   }
 }
@@ -305,6 +328,22 @@ function findDefinedTagInfo(ctx: Context, fileName: string, position: number) {
   }
   const tag = node.text;
   return { tag, textSpan: { start: node.getStart() + 1, length: tag.length } };
+}
+
+function getClassMapKeyInfo(ctx: Context, fileName: string, position: number) {
+  const program = ctx.getProgram();
+  const file = program.getSourceFile(fileName)!;
+  const typeChecker = program.getTypeChecker();
+  const node = getAstNodeAtPosition(ctx.ts, file, position);
+  const decl = node && getCurrentElementDecl(ctx.ts, node);
+  if (decl && isClassMapKey(ctx.ts, node)) {
+    const isString = ctx.ts.isStringLiteral(node);
+    return {
+      text: node.text,
+      styles: getAllStyleNode(ctx.ts, typeChecker, decl),
+      textSpan: { start: node.getStart() + (isString ? 1 : 0), length: node.text.length },
+    };
+  }
 }
 
 function isPropType(typescript: typeof ts, node: ts.Node, types: string[]) {
