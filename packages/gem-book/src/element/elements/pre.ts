@@ -554,7 +554,7 @@ export class Pre extends GemElement {
 
   @mounted()
   #initContent = () => {
-    if (this.#contentElement?.textContent !== this.textContent) {
+    if (this.#contentElement && this.#contentElement?.textContent !== this.textContent) {
       this.#contentElement!.textContent = this.textContent;
     }
   };

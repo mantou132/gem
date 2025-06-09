@@ -136,7 +136,7 @@ class MyElement extends GemElement {
 class MyElement extends GemElement {
   @emitter error: Emitter<string>;
 
-  async #fetchData() {
+  async #fetchData = () => {
     try {
       //...
     } catch {
@@ -148,12 +148,13 @@ class MyElement extends GemElement {
 
 ## 性能
 
-使用 Gem 编写自定义元素时默认使用 ShadowDOM，它有隔离 CSS 的优异特性
+编写元素模板时，可以添加行内样式，这在 Shadow DOM 中能工作：
 
 ```ts
 @customElement('my-element')
+@shadow()
 class MyElement extends GemElement {
-  render() {
+  render = () => {
     return html`
       <style>
         :host {
@@ -168,13 +169,14 @@ class MyElement extends GemElement {
 这相当于在每个 `<my-element>` 中创建 `<style>` 元素，如果是静态样式，应该尽量使用 [Constructable Stylesheet](https://wicg.github.io/construct-stylesheets/)，它的性能更好，内存占用更低：
 
 ```ts
-const style = css`
+const styles = css`
   :host {
     display: contents;
   }
 `;
 @customElement('my-element')
-@adoptedStyle(style)
+@adoptedStyle(styles)
+@shadow()
 class MyElement extends GemElement {}
 ```
 
@@ -205,9 +207,6 @@ html`<my-element hidden>My content</my-element>`;
 
 此外，使用 [`@layer`](https://developer.mozilla.org/en-US/docs/Web/CSS/@layer) 解决元素[多状态](https://developer.mozilla.org/en-US/docs/Web/API/CustomStateSet)样式覆盖的问题；使用 [CSS 嵌套](https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_nesting) 简化样式表。
 
-> [!WARNING]
-> Chrome 中 `:host` 不能使用 CSS 嵌套, [Bug](https://bugs.chromium.org/p/chromium/issues/detail?id=1442408)
-
 ## 可访问性
 
 在用户使用自定义元素时，他们可以用 `role`,`aria-*` 属性指定元素的语义:
@@ -224,7 +223,7 @@ html`<my-element role="region" aria-label="my profile"></my-element>`;
 class MyElement extends GemElement {
   @boolattribute disabled: boolean;
 
-  render() {
+  render = () => {
     return html`<div>Focusable</div>`;
   }
 }

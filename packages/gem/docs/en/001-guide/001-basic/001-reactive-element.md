@@ -1,10 +1,10 @@
 # Reactive element
 
-When you want to create a reactive WebApp, you need elements that can react(re-render) to different inputs (attribute/property/[store](./003-global-state-management.md)).
+When you want to create a reactive WebApp, you need elements that can react(re-render) to different inputs (attribute/property).
 
 ## Definition
 
-Define reactive attributes, using decorator `@attribute`:
+Define reactive Attribute, using decorator `@attribute`:
 
 ```js
 // Omit import...
@@ -12,7 +12,8 @@ Define reactive attributes, using decorator `@attribute`:
 @customElement('my-element')
 class MyElement extends GemElement {
   @attribute firstName;
-  render() {
+
+  render = () => {
     return html`${this.firstName}`;
   }
 }
@@ -22,76 +23,56 @@ In the above example, the field `firstName` of `MyElement` is declared as a reac
 When this property change, the mounted instance of `MyElement` will re-render,
 additionally, this field maps to the element's `first-name` Attribute.
 
-Similar to `@attribute`, GemElement also supports `@property`/`@connectStore` to reflect the specified Property/Store:
+Similar to `@attribute`, GemElement also provides `numattribute` `boolattribute` to support Number and Boolean values. And `@property` is used to reflect the specified Property:
 
 ```js
 // Omit import...
 
 @customElement('my-element')
-@connectStore(store)
 class MyElement extends GemElement {
   @property data;
 
-  render() {
+  render = () => {
     return html`${this.data.id} ${store.name}`;
   }
 }
 ```
 
 > [!TIP]
-> Do not modify prop/attr within the element, they should be passed in one-way by the parent element, just like native elements
+> - Do not modify prop/attr within the element, they should be passed in one-way by the parent element, just like native elements
+> - `GemElement` extends from [`HTMLElement`](https://developer.mozilla.org/en-US/docs/Web/API/HTMLElement), don’t override the attribute/property/method/event, use [private fields](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Classes/Private_class_fields) to avoid overwriting the property/methods of `GemElement`/`HTMLElement`
 
 In addition, Gem provides the `createState` API to create the element's own state, and the created state object also acts as an update function, triggering the element to re-render when called.
-
-```js
-// Omit import...
-
-@customElement('my-element')
-class MyElement extends GemElement {
-  #state = createState({ id: 1 });
-  #clicked() {
-    this.#state({ id: 2 });
-  }
-  render() {
-    return html`${this.#state.id}`;
-  }
-}
-```
-
-> [!TIP] `GemElement` extends from [`HTMLElement`](https://developer.mozilla.org/en-US/docs/Web/API/HTMLElement), don’t override the attribute/property/method/event, use [private fields](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Classes/Private_class_fields) to avoid overwriting the property/methods of `GemElement`/`HTMLElement`
 
 ## Example
 
 <gbp-sandpack dependencies="@mantou/gem">
 
 ```js index.js
-import { render } from '@mantou/gem';
-
-const store= createStore({ count: 0 });
-
 @customElement('my-element')
-@connectStore(store)
 class MyElement extends GemElement {
   @attribute name;
-  @property data;
 
-  #onClick = () => {
-    store({ count: ++store.count });
-  };
+  #state = createState({ count: 1 });
 
-  render() {
+  #clicked = () => {
+    this.#state({ count: ++this.#state.count });
+  }
+
+  render = () => {
     return html`
-      <button @click="${this.#onClick}">Hello, ${this.name}</button>
-      <div>clicked count: ${store.count}</div>
-      <pre>${JSON.stringify(this.data)}</pre>
+      <button @click=${this.#clicked}>
+        ${this.name}:
+        Clicked ${this.#state.count} times
+      </button>
     `;
   }
 }
+```
 
-render(
-  html`<my-element name="world" .data=${{ a: 1 }}></my-element>`,
-  document.getElementById('root'),
-);
+```html index.html
+<my-element name="World"></my-element>
+<my-element name="Friend"></my-element>
 ```
 
 </gbp-sandpack>
@@ -108,7 +89,7 @@ You can specify life cycle functions for GemElement. Sometimes they are useful, 
 
 @customElement('my-element')
 class MyElement extends GemElement {
-  mounted() {
+  mounted = () => {
     console.log('element mounted!');
   }
 }

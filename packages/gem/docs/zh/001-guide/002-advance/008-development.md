@@ -9,9 +9,6 @@
 - [VSCode](https://marketplace.visualstudio.com/items?itemName=gem-vscode.vscode-plugin-gem)
 - [Zed](https://zed.dev/extensions?query=gem)
 
-> [!TIP]
-> 由于 Zed 的扩展能力[缺失](https://github.com/zed-industries/zed/issues/22410)一些功能，需要使用手动配置 TypeScript 语言服务插件 `ts-gem-plugin`
-
 ## 自动格式化
 
 ### Prettier
@@ -30,7 +27,7 @@ pnpm add -D prettier@npm:@mantou/prettier
 
 ## HMR
 
-启用 HMR 分三步：
+启用 HMR 分三步（只支持基于 `swc` 的捆绑器）：
 
 1. 在构建工具中开启 `hot`，例如 [Webpack](https://webpack.js.org/guides/hot-module-replacement)
 2. 在构建工具配置中入口添加 `@mantou/gem/helper/hmr`

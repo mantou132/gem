@@ -76,7 +76,7 @@ import { icons } from 'duoyun-ui/lib/icons';
 
 import { todoData, deleteItem } from './store';
 
-const style = css`
+const styles = css`
   li:not(:hover) dy-use {
     opacity: 0;
   }
@@ -84,7 +84,7 @@ const style = css`
 
 @customElement('todo-list')
 @connectStore(todoData)
-@adoptedStyle(style)
+@adoptedStyle(styles)
 export class TodoListElement extends GemElement {
   render = () => {
     return html`

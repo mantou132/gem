@@ -15,18 +15,15 @@ const theme = createTheme({
   primaryColor: '#eee',
 });
 
-@customElement('app-root')
-class App extends GemElement {
-  render() {
-    return html`
-      <style>
-        div {
-          border: 2px solid ${theme.primaryColor};
-        }
-      </style>
-    `;
+const styles = css`
+  div {
+    border: 2px solid ${theme.primaryColor};
   }
-}
+`;
+
+@customElement('app-root')
+@adoptedStyle(styles)
+class App extends GemElement {}
 ```
 
 ## 读取主题原始对象
@@ -40,7 +37,7 @@ console.log(theme.primaryColor);
 
 有时候可能需要读取原始对象，比如将主题打印到元素中：
 
-```js 7,10,19
+```js 7,16,21
 import { createTheme, getThemeStore } from '@mantou/gem/helper/theme';
 
 const theme = createTheme({
@@ -49,16 +46,18 @@ const theme = createTheme({
 
 const themeStore = getThemeStore(theme);
 
+const styles = css`
+  div {
+    border: 2px solid ${theme.primaryColor};
+  }
+`;
+
 @customElement('app-root')
+@adoptedStyle(styles)
 @connectStore(themeStore)
 class App extends GemElement {
-  render() {
+  render = () => {
     return html`
-      <style>
-        div {
-          border: 2px solid ${theme.primaryColor};
-        }
-      </style>
       <div>primaryColor: ${themeStore.primaryColor}</div>
     `;
   }
@@ -82,18 +81,15 @@ const darkTheme = {
 
 const theme = createTheme(matchMedia('(prefers-color-scheme: dark)').matches ? darkTheme : lightTheme);
 
-@customElement('app-root')
-class App extends GemElement {
-  render() {
-    return html`
-      <style>
-        div {
-          border: 2px solid ${theme.primaryColor};
-        }
-      </style>
-    `;
+const styles = css`
+  div {
+    border: 2px solid ${theme.primaryColor};
   }
-}
+`;
+
+@customElement('app-root')
+@adoptedStyle(styles)
+class App extends GemElement {}
 ```
 
 ## 范围主题和覆盖主题
@@ -122,7 +118,7 @@ class App extends GemElement {
   @elementTheme()
   #theme = () => ({ color: this.color })
 
-  render() {
+  render = () => {
     return html``;
   }
 }

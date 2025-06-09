@@ -12,11 +12,11 @@ Gem does not handle this behavior by default, you can handle forms like Vanilla 
 class FormTextElement extends GemElement {
   #inputRef = createRef<HTMLInputElement>();
 
-  render() {
+  render = () => {
     return html`<input ${this.#inputRef} value="defaultValue" />`;
   }
 
-  submit() {
+  submit = () => {
     return fetch('/', { body: this.#inputRef.value!.value });
   }
 }
@@ -37,7 +37,7 @@ You can use [`input` event](https://developer.mozilla.org/en-US/docs/Web/API/HTM
        this.#nextState = this.#inputRef.value!.value;
      };
 
-     render() {
+     render = () => {
        return html`<input ${this.#inputRef} @input=${this.#inputHandle} />`;
      }
    }
@@ -60,7 +60,7 @@ You can use [`input` event](https://developer.mozilla.org/en-US/docs/Web/API/HTM
        this.change(value);
      };
 
-     render() {
+     render = () => {
        return html`<input ${this.#inputRef} @input=${this.#inputHandle} />`;
      }
    }
@@ -92,7 +92,7 @@ You can use [`input` event](https://developer.mozilla.org/en-US/docs/Web/API/HTM
        }
      };
 
-     render() {
+     render = () => {
        return html`<input ${this.#inputRef} @input=${this.#inputHandle} />`;
      }
    }
@@ -109,7 +109,7 @@ class FormElement extends GemElement {
 
   #changeHandle = ({ detail }) => this.#state({ value: detail });
 
-  render() {
+  render = () => {
     return html`<form-text value=${this.#state.value} @change=${this.#changeHandle}></form-text>`;
   }
 

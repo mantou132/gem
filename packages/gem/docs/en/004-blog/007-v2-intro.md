@@ -29,12 +29,12 @@ class MyElement extends GemElement {
   #content: string;
 
   @memo((myElement) => [myElement.name])
-  #calcContent() {
+  #calcContent = () => {
     this.#content = this.name;
   }
 
   @effect((myElement) => [myElement.name])
-  #fetchData() {
+  #fetchData = () => {
     // request
   }
 }
@@ -52,7 +52,7 @@ v1 used a specific field `state` to represent the internal state of the element 
 class MyElement extends GemElement {
   #state = createState({ a: true });
 
-  render() {
+  render = () => {
     this.#state({ a: false });
     console.log(this.#state.a);
   }
@@ -66,7 +66,7 @@ Similar to `createState`, use `createRef` to replace v1's `@refobject`:
 class MyElement extends GemElement {
   #input = createRef();
 
-  render() {
+  render = () => {
     return html`<input ${this.#input} />`;
   }
 }

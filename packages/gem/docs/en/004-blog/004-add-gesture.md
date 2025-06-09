@@ -79,7 +79,7 @@ class MyApp extends GemElement {
 
   #onPan = ({x, y} => this.#state({x: this.#state.x + x, y: this.#state.y + y}))
 
-  render() {
+  render = () => {
     return html`
       <style>
         gem-gesture {

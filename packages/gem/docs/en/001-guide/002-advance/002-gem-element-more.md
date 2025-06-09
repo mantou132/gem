@@ -17,11 +17,11 @@ If you want to manipulate the DOM content within an element, such as reading the
 class MyElement extends GemElement {
   #inputRef = createRef();
 
-  render() {
+  render = () => {
     return html`<input ${this.#inputRef} />`;
   }
 
-  focus() {
+  focus = () => {
     this.#inputRef.value.focus();
   }
 }
@@ -76,7 +76,7 @@ Custom event is a method of transferring data. It can be easily done by using `d
 class MyElement extends GemElement {
   @emitter valueChange;
 
-  render() {
+  render = () => {
     return html`<input @change=${(e) => this.valueChange(e.target.value)} />`;
   }
 }
@@ -104,9 +104,54 @@ class MyElement extends GemElement {
 }
 ```
 
-Below is an example of `effect` that depends on child elements([Other implementations](https://twitter.com/youyuxi/status/1327328144525848577?s=20))
+Below is an example of `effect` that depends on child elements([Other implementations](https://twitter.com/youyuxi/status/1327328144525848577?s=20)):
 
-<gbp-raw src="https://raw.githubusercontent.com/mantou132/gem/main/packages/gem-examples/src/effect/index.ts"></gbp-raw>
+<gbp-sandpack dependencies="@mantou/gem">
+
+```js index.js
+import { resizeEffect } from './effect.js';
+
+@customElement('app-root')
+export class App extends GemElement {
+  #ref = createRef();
+  #state = createState({ height: 0, visible: true });
+
+  @effect((i) => [i.#ref.value])
+  #resize = resizeEffect((height) => {
+    this.#state({ height });
+  });
+
+  render() {
+    const { visible, height } = this.#state;
+    return html`
+      <button @click=${() => this.#state({ visible: !visible})}>
+        ${visible ? 'hidden' : 'show'}
+      </button>
+      <div>${height}</div>
+      <textarea v-if=${visible} ${this.#ref}></textarea>
+    `;
+  }
+}
+```
+
+```js effect.js
+export function resizeEffect(callback) {
+  return ([ele]) => {
+    if (!ele) return callback(0);
+    const ro = new ResizeObserver(([entry]) => {
+      callback(entry.contentRect.height);
+    });
+    ro.observe(ele, {});
+    return () => ro.disconnect();
+  }
+}
+```
+
+```html index.html
+<app-root></app-root>
+```
+
+</gbp-sandpack>
 
 ## Memo
 

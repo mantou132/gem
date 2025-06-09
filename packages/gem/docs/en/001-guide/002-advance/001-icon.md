@@ -1,6 +1,72 @@
-# SVG icons
+# Use Icon
 
-[SVG Sprite](https://css-tricks.com/svg-sprites-use-better-icon-fonts/) cannot be at [ShadowDOM](https://developer.mozilla.org/en-s/docs/web_components/usion_shadow_dom) takes effect. Therefore, Gem has a built-in element `<gem-user>` to replace SVG Sprite:
+[SVG Sprite](https://css-tricks.com/svg-sprites-use-better-icon-fonts/) cannot be at [ShadowDOM](https://developer.mozilla.org/en-s/docs/web_components/usion_shadow_dom) takes effect.
+
+## Font icons
+
+Usually we use class name to map characters, for example:
+
+```html
+<style>
+  .fa-house {
+    --fa: "\f015";
+  }
+</style>
+<i class="fal fa-house"></i>
+```
+
+This requires ensuring that the style is applied in each Shadow DOM to be used. Consider using the ligature feature to display the icon, which is also more accessible:
+
+<gbp-sandpack dependencies="@mantou/gem">
+
+```js index.js
+import './icon.js';
+
+@customElement('my-element')
+@shadow()
+class MyElement extends GemElement {
+  render = () => {
+    return html`
+      <g-icon>chevron_right</g-icon>
+      <g-icon>home</g-icon>
+      <g-icon>menu</g-icon>
+    `;
+  }
+}
+```
+
+```js icon.js
+const styles = css`
+  & {
+    font-size: 24px;
+    font-family: 'Material Icons';
+  }
+`;
+
+@customElement('g-icon')
+@adoptedStyle(styles)
+@aria({ role: 'img' })
+class GIconElement extends GemElement {}
+```
+
+```html index.html
+<style>
+  @font-face {
+    font-family: "Material Icons";
+    src: url("https://fonts.gstatic.com/s/materialicons/v143/flUhRq6tzZclQEJ-Vdg-IuiaDsNc.woff2") format("woff2");
+    font-style: normal;
+    font-weight: 400;
+    font-display: block;
+  }
+</style>
+<my-element></my-element>
+```
+
+</gbp-sandpack>
+
+## SVG icons
+
+Gem has a built-in element `<gem-user>` to replace SVG Sprite:
 
 <gbp-sandpack dependencies="@mantou/gem">
 

@@ -135,7 +135,7 @@ When an error occurs in an element, the error should be propagated in an event m
 class MyElement extends GemElement {
   @emitter error: Emitter<string>;
 
-  async #fetchData() {
+  async #fetchData = () => {
     try {
       //...
     } catch {
@@ -147,12 +147,13 @@ class MyElement extends GemElement {
 
 ## Performance
 
-When using Gem to write custom elements, ShadowDOM is used by default, which has the excellent feature of isolating CSS:
+When writing an element template, can add inline styles, which works in Shadow DOM(not in Light DOM):
 
 ```ts
 @customElement('my-element')
+@shadow()
 class MyElement extends GemElement {
-  render() {
+  render = () => {
     return html`
       <style>
         :host {
@@ -167,13 +168,14 @@ class MyElement extends GemElement {
 This is equivalent to creating a `<style>` element in each `<my-element>`. If it is a static style, you should try to use [Constructable Stylesheet](https://wicg.github.io/construct-stylesheets/) , It has better performance and lower memory usage:
 
 ```ts
-const style = css`
+const styles = css`
   :host {
     display: contents;
   }
 `;
 @customElement('my-element')
-@adoptedStyle(style)
+@adoptedStyle(styles)
+@shadow()
 class MyElement extends GemElement {}
 ```
 
@@ -204,9 +206,6 @@ so the `:host` style should be defined carefully to avoid making it difficult fo
 
 In addition, use [`@layer`](https://developer.mozilla.org/en-US/docs/Web/CSS/@layer) to solve the problem of [multi-state](https://developer.mozilla.org/en-US/docs/Web/API/CustomStateSet) style coverage of elements; use [CSS Nesting](https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_nesting) simplified stylesheets.
 
-> [!WARNING]
-> Chrome 中 `:host` 不能使用 CSS 嵌套, [Bug](https://bugs.chromium.org/p/chromium/issues/detail?id=1442408)
-
 ## Accessibility
 
 When users use custom elements, they can use the `role`,`aria-*` attributes to specify the semantics of the element:
@@ -223,7 +222,7 @@ Use [`ElementInternals`](https://html.spec.whatwg.org/multipage/custom-elements.
 class MyElement extends GemElement {
   @boolattribute disabled: boolean;
 
-  render() {
+  render = () => {
     return html`<div>Focusable</div>`;
   }
 }

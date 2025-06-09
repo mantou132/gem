@@ -107,6 +107,7 @@
     "refobject",
     "routechange",
     "routechangebefore",
+    "rowspan",
     "rsbuild",
     "rslib",
     "rspack",
@@ -127,6 +128,7 @@
     "texcoord",
     "titlebar",
     "tsserverlibrary",
+    "vestaboard",
     "visibilitychange",
     "vlist",
     "webextension",
@@ -134,7 +136,6 @@
     "WIDTHSCREEN",
     "worklet",
     "worktree",
-    "xywh",
-    "vestaboard"
+    "xywh"
   ]
 }

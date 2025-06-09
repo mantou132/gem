@@ -45,7 +45,7 @@ const styles = css({
 @adoptedStyle(styles)
 @customElement('my-element')
 class MyElement extends GemElement {
-  render() {
+  render = () => {
     return html`<div class=${styles.header}></div>`;
   }
 }
@@ -65,7 +65,7 @@ class MyElement extends GemElement {
 class MyElement extends GemElement {
   @attribute color;
 
-  render() {
+  render = () => {
     return html`
       <style>
         :host {
@@ -96,7 +96,7 @@ class MyElement extends GemElement {
 class MyElement extends GemElement {
   @part static header;
 
-  render() {
+  render = () => {
     return html`<div part=${MyElement.header}></div>`;
   }
 }
@@ -111,7 +111,7 @@ class MyElement extends GemElement {
 class MyElement extends GemElement {
   @state opened;
 
-  open() {
+  open = () => {
     // 可被选择器 `:state(opened)` 选中
     this.opened = true;
   }
@@ -137,3 +137,7 @@ class MyElement extends GemElement {
 ## 自定义元素外部样式
 
 - [`::slotted()`](https://developer.mozilla.org/en-US/docs/Web/CSS/::slotted)
+
+## Tailwind CSS
+
+Tailwind 等原子 CSS 方案仅支持 Light DOM

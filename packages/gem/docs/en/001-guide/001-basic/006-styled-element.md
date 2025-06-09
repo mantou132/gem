@@ -45,7 +45,7 @@ const styles = css({
 @adoptedStyle(styles)
 @customElement('my-element')
 class MyElement extends GemElement {
-  render() {
+  render = () => {
     return html`<div class=${styles.header}></div>`;
   }
 }
@@ -65,7 +65,7 @@ If you need to specify the style of a single instance through properties or stat
 class MyElement extends GemElement {
   @attribute color;
 
-  render() {
+  render = () => {
     return html`
       <style>
         :host {
@@ -96,7 +96,7 @@ Use [`::part`](https://drafts.csswg.org/css-shadow-parts-1/#part)(only ShadowDOM
 class MyElement extends GemElement {
   @part static header;
 
-  render() {
+  render = () => {
     return html`<div part=${MyElement.header}></div>`;
   }
 }
@@ -111,7 +111,7 @@ Also use [`ElementInternals.states`](https://developer.mozilla.org/en-US/docs/We
 class MyElement extends GemElement {
   @state opened;
 
-  open() {
+  open = () => {
     // Can be selected by the selector `:state(opened)`
     this.opened = true;
   }
@@ -137,3 +137,7 @@ class MyElement extends GemElement {
 ## Custom element external style
 
 - [`::slotted()`](https://developer.mozilla.org/en-US/docs/Web/CSS/::slotted)
+
+## Tailwind CSS
+
+Atomic CSS solutions such as Tailwind only support Light DOM

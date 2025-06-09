@@ -12,11 +12,11 @@ Gem 默认没有处理此行为，你可以像 Vanilla JS 一样处理表单：
 class FormTextElement extends GemElement {
   #inputRef = createRef<HTMLInputElement>();
 
-  render() {
+  render = () => {
     return html`<input ${this.#inputRef} value="defaultValue" />`;
   }
 
-  submit() {
+  submit = () => {
     return fetch('/', { body: this.#inputRef.value!.value });
   }
 }
@@ -37,7 +37,7 @@ class FormTextElement extends GemElement {
        this.#nextState = this.#inputRef.value!.value;
      };
 
-     render() {
+     render = () => {
        return html`<input ${this.#inputRef} @input=${this.#inputHandle} />`;
      }
    }
@@ -60,7 +60,7 @@ class FormTextElement extends GemElement {
        this.change(value);
      };
 
-     render() {
+     render = () => {
        return html`<input ${this.#inputRef} @input=${this.#inputHandle} />`;
      }
    }
@@ -92,7 +92,7 @@ class FormTextElement extends GemElement {
        }
      };
 
-     render() {
+     render = () => {
        return html`<input ${this.#inputRef} @input=${this.#inputHandle} />`;
      }
    }
@@ -109,7 +109,7 @@ class FormElement extends GemElement {
 
   #changeHandle = ({ detail }) => this.#state({ value: detail });
 
-  render() {
+  render = () => {
     return html`<form-text value=${this.#state.value} @change=${this.#changeHandle}></form-text>`;
   }
 

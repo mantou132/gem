@@ -36,7 +36,7 @@ class MyElement extends GemElement {
     return JSON.stringify(this.data);
   }
 
-  render() {
+  render = () => {
     return html`
       <div>
         ${this.name}
@@ -70,7 +70,7 @@ class MyElement extends GemElement {
   #divRef = createRef<HTMLDivElement>();
   #state = createState({ count: 0 });
 
-  render() {
+  render = () => {
     const { count } = this.#state;
     return html`
       <div ${this.#divRef} @click=${() => this.#state({ count: count++ })}>${count}</div>
@@ -83,13 +83,13 @@ class MyElement extends GemElement {
 
 ```tsx
 function MyComponent(props: IProps) {
-  userEffect(() => {
-    console.log('mounted!');
-  }, []);
-
   const str = React.useMemo(() => {
     return JSON.stringify(props.data);
   }, [props.data]);
+
+  userEffect(() => {
+    console.log('mounted!');
+  }, []);
 
   return (
     <div>
@@ -108,18 +108,18 @@ class MyElement extends GemElement {
   @attribute name: string;
   @property data?: Record<string, string>;
 
-  @effect(() => [])
-  log() {
-    console.log('mounted!');
-  }
-
   // 注意：不能从 `this` 访问 `data`
   @memo((e) => [e.data])
   get str() {
     return JSON.stringify(this.data);
   }
 
-  render() {
+  @effect(() => [])
+  log = () => {
+    console.log('mounted!');
+  }
+
+  render = () => {
     return html`
       <div>
         ${this.name}
@@ -162,7 +162,7 @@ const styles = css({
 @customElement('my-element')
 @adoptedStyle(styles)
 class MyElement extends GemElement {
-  render() {
+  render = () => {
     return html`<div class=${styles.title}></div>`;
   }
 }

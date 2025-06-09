@@ -9,9 +9,6 @@ Install extension:
 - [VSCode](https://marketplace.visualstudio.com/items?itemName=gem-vscode.vscode-plugin-gem)
 - [Zed](https://zed.dev/extensions?query=gem)
 
-> [!TIP]
-> Due to the expansion capabilities of Zed [missing](https://github.com/zed-industries/zed/issues/22410), you need to use the manual configuration TypeScript language service plugin `ts-gem-plugin`
-
 ## Formatting
 
 ### Prettier
@@ -29,7 +26,7 @@ pnpm add -D prettier@npm:@mantou/prettier
 
 ## HMR
 
-Enable HMR in three steps:
+Enable HMR in three steps(Only `swc` based bundlers are supported):
 
 1. Turn on `hot` in the build tool, such as [Webpack](https://webpack.js.org/guides/hot-module-replacement)
 2. Add `@mantou/gem/helper/hmr` to build tool config entry

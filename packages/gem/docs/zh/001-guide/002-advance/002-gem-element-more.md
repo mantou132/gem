@@ -18,11 +18,11 @@ Gem 对 [lit-html](https://lit.dev/docs/templates/overview/) 进行了很多修�
 class MyElement extends GemElement {
   #inputRef = createRef();
 
-  render() {
+  render = () => {
     return html`<input ${this.#inputRef} />`;
   }
 
-  focus() {
+  focus = () => {
     this.#inputRef.value.focus();
   }
 }
@@ -77,7 +77,7 @@ GemElement 允许快速定义方法来触发自定义事件：
 class MyElement extends GemElement {
   @emitter valueChange;
 
-  render() {
+  render = () => {
     return html`<input @change=${(e) => this.valueChange(e.target.value)} />`;
   }
 }
@@ -108,7 +108,52 @@ class MyElement extends GemElement {
 
 下面是依赖子元素的 `@effect` 例子（[其他框架实现](https://twitter.com/youyuxi/status/1327328144525848577?s=20)）：
 
-<gbp-raw src="https://raw.githubusercontent.com/mantou132/gem/main/packages/gem-examples/src/effect/index.ts"></gbp-raw>
+<gbp-sandpack dependencies="@mantou/gem">
+
+```js index.js
+import { resizeEffect } from './effect.js';
+
+@customElement('app-root')
+export class App extends GemElement {
+  #ref = createRef();
+  #state = createState({ height: 0, visible: true });
+
+  @effect((i) => [i.#ref.value])
+  #resize = resizeEffect((height) => {
+    this.#state({ height });
+  });
+
+  render() {
+    const { visible, height } = this.#state;
+    return html`
+      <button @click=${() => this.#state({ visible: !visible})}>
+        ${visible ? 'hidden' : 'show'}
+      </button>
+      <div>${height}</div>
+      <textarea v-if=${visible} ${this.#ref}></textarea>
+    `;
+  }
+}
+```
+
+```js effect.js
+export function resizeEffect(callback) {
+  return ([ele]) => {
+    if (!ele) return callback(0);
+    const ro = new ResizeObserver(([entry]) => {
+      callback(entry.contentRect.height);
+    });
+    ro.observe(ele, {});
+    return () => ro.disconnect();
+  }
+}
+```
+
+```html index.html
+<app-root></app-root>
+```
+
+</gbp-sandpack>
 
 ## Memo
 

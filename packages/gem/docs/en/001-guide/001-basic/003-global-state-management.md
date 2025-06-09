@@ -45,22 +45,30 @@ Of course, you can define `Store` and elements together.
 In the life cycle of an element, you can easily monitor the `visibilitychange` event, and then switch the state of the element in the callback of the event, such as entering the energy-saving mode.
 If this logic needs to be shared among many elements, you can use `Store` to easily accomplish this job.
 
-```js
-// Omit import...
+<gbp-sandpack dependencies="@mantou/gem">
 
+```js
 const isSavingMode = () => document.visibilityState !== 'visible';
 
 const store = createStore({ savingMode: isSavingMode() });
 
 document.addEventListener('visibilitychange', () => {
-  store({ savingMode: isSavingMode() });
+  setTimeout(() => {
+    store({ savingMode: isSavingMode() });
+  }, 1000);
 });
 
 @customElement('my-element')
 @connectStore(store)
 class MyElement extends GemElement {
-  render() {
-    return html`${store.savingMode}`;
+  render = () => {
+    return html`Saving: ${store.savingMode}`;
   }
 }
 ```
+
+```html index.html
+<my-element></my-element>
+```
+
+</gbp-sandpack>

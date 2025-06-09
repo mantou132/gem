@@ -29,12 +29,12 @@ class MyElement extends GemElement {
   #content: string;
 
   @memo((myElement) => [myElement.name])
-  #calcContent() {
+  #calcContent = () => {
     this.#content = this.name;
   }
 
   @effect((myElement) => [myElement.name])
-  #fetchData() {
+  #fetchData = () => {
     // request
   }
 }
@@ -52,7 +52,7 @@ v1 使用特定的字段 `state` 来表示元素内部状态，并使用 `this.s
 class MyElement extends GemElement {
   #state = createState({ a: true });
 
-  render() {
+  render = () => {
     this.#state({ a: false });
     console.log(this.#state.a);
   }
@@ -66,7 +66,7 @@ class MyElement extends GemElement {
 class MyElement extends GemElement {
   #input = createRef();
 
-  render() {
+  render = () => {
     return html`<input ${this.#input} />`;
   }
 }

@@ -51,22 +51,30 @@ const profiles = createStore({ ... });
 在元素的生命周期中可以很方便的监听 `visibilitychange` 事件，然后在该事件的回调中来切换元素的状态，比如进入节能模式。
 如果这个逻辑需要在很多元素中共享使用时，你可以使用 `Store` 轻松完成这个工作。
 
-```js
-// 省略导入...
+<gbp-sandpack dependencies="@mantou/gem">
 
+```js
 const isSavingMode = () => document.visibilityState !== 'visible';
 
 const store = createStore({ savingMode: isSavingMode() });
 
 document.addEventListener('visibilitychange', () => {
-  store({ savingMode: isSavingMode() });
+  setTimeout(() => {
+    store({ savingMode: isSavingMode() });
+  }, 1000);
 });
 
 @customElement('my-element')
 @connectStore(store)
 class MyElement extends GemElement {
-  render() {
-    return html`${store.savingMode}`;
+  render = () => {
+    return html`Saving: ${store.savingMode}`;
   }
 }
 ```
+
+```html index.html
+<my-element></my-element>
+```
+
+</gbp-sandpack>
