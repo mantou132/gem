@@ -10,7 +10,6 @@ import {
   getAllStyleNode,
   getAstNodeAtPosition,
   getCurrentElementDecl,
-  getHTMLTextAtPosition,
   getTagInfo,
   isClassMapKey,
 } from './utils';
@@ -309,10 +308,7 @@ function findCurrentTagInfo(ctx: Context, fileName: string, position: number) {
   const relativePosition = ctx.htmlSourceHelper.getRelativePosition(templateContext, position);
   const offset = templateContext.toOffset(relativePosition);
   const node = vHtml.findNodeAt(offset);
-  const { text } = getHTMLTextAtPosition(templateContext.text, offset);
-  const onTag = offset < node.startTagEnd! && text === node.tag;
-  if (!onTag || !node.tag) return;
-  return getTagInfo(node, htmlOffset);
+  if (node.tag && offset < node.start + 1 + node.tag.length) return getTagInfo(node, htmlOffset);
 }
 
 function findDefinedTagInfo(ctx: Context, fileName: string, position: number) {

@@ -26,8 +26,7 @@ import {
   getAstNodeAtPosition,
   getAttrName,
   getCurrentElementDecl,
-  getHTMLTextAtPosition,
-  getTextAtPosition,
+  getIdentAtPosition,
   isCustomElementTag,
 } from './utils';
 
@@ -412,11 +411,14 @@ export class HTMLLanguageService implements TemplateLanguageService {
     const typeChecker = this.#ctx.getProgram().getTypeChecker();
     const currentOffset = context.toOffset(position);
     const { vHtml } = this.#ctx.getHtmlDoc(context.text);
-    const node = vHtml.findNodeAt(currentOffset);
-    const { text, start, length, before } = getHTMLTextAtPosition(context.text, currentOffset);
-    const empty = { textSpan: { start, length } };
+    const { node, attrStart, attrEnd, attrName, attrValue } = getHTMLNodeAtPosition(vHtml, currentOffset);
 
-    if (node.tag === 'style' && currentOffset > node.startTagEnd!) {
+    const empty = { textSpan: { start: 0, length: 0 } };
+    const notInStartTag = currentOffset > node.startTagEnd!;
+    const startTagNameStart = node.start + 1;
+    if (!node.tag) return empty;
+
+    if (node.tag === 'style' && notInStartTag) {
       const { style, vDoc, position: pos } = this.#getEmbeddedCss(context, position, vHtml)!;
       const cssNode = style.findChildAtOffset(vDoc.offsetAt(pos), true);
       if (!cssNode || cssNode.parent?.type !== NodeType.ElementNameSelector) return empty;
@@ -427,30 +429,29 @@ export class HTMLLanguageService implements TemplateLanguageService {
         { start: cssNode.offset + node.startTagEnd!, length: cssNode.length },
         definitionNode,
       );
-      // 忽略行内样式: go to definition
+      // 忽略内联样式: go to definition
     }
 
-    const definitionNode = this.#ctx.elements.get(node.tag!) || this.#ctx.builtInElements.get(node.tag!);
+    const definitionNode = this.#ctx.elements.get(node.tag) || this.#ctx.builtInElements.get(node.tag);
+    if (!definitionNode || notInStartTag) return empty;
 
-    if (!definitionNode || currentOffset > node.startTagEnd! || !text) return empty;
-
-    if (text === node.tag) {
-      return genElementDefinitionInfo(context, { start, length }, definitionNode);
+    if (currentOffset < startTagNameStart + node.tag.length) {
+      return genElementDefinitionInfo(context, { start: startTagNameStart, length: node.tag.length }, definitionNode);
     }
 
-    const { attr, offset } = getAttrName(text);
+    if (!attrName) return empty;
 
-    // FIXME: multiple class
+    const { attr, offset } = getAttrName(attrName);
+
     if (attr === 'class' || attr === 'id') {
-      const attrValue = node.attributesMap.get(attr);
-      if (!attrValue?.value) return empty;
-      const currentAttrValue = getTextAtPosition(attrValue.value, currentOffset - attrValue.end + 1);
+      if (!attrValue) return empty;
+      const currentAttrValue = getIdentAtPosition(attrValue, currentOffset - (attrEnd + 1));
       const currentElementDecl = getCurrentElementDecl(context.typescript, context.node);
       if (!currentAttrValue || !currentElementDecl) return empty;
       return genCurrentCtxCssDefinitionInfo(
         context,
         currentAttrValue.text,
-        attrValue.end + 1 + currentAttrValue.start,
+        attrEnd + 1 + currentAttrValue.start,
         getAllStyleNode(this.#ctx.ts, typeChecker, currentElementDecl)
           .flatMap((e) => {
             const { fileName } = e.getSourceFile();
@@ -464,14 +465,14 @@ export class HTMLLanguageService implements TemplateLanguageService {
       );
     }
 
-    if (before.length > attr.length) return empty;
+    if (currentOffset > attrEnd) return empty;
 
     if (attr === 'v-else' || attr === 'v-else-if') {
       const ifAttr = node.prev?.attributesMap.get('v-if') || node.prev?.attributesMap.get('v-else-if');
       if (!ifAttr) return empty;
       return genCurrentCtxDefinitionInfo(
         context,
-        { start: start + offset, length: attr.length },
+        { start: attrStart + offset, length: attr.length },
         { start: ifAttr.start, length: ifAttr.end - ifAttr.start },
       );
     }
@@ -479,7 +480,7 @@ export class HTMLLanguageService implements TemplateLanguageService {
     const propSymbol = typeChecker.getTypeAtLocation(definitionNode).getProperty(kebabToCamelCase(attr));
     const propDeclaration = propSymbol?.getDeclarations()?.at(0);
     if (!propDeclaration) return empty;
-    return genAttrDefinitionInfo(context, { start: start + offset, length: attr.length }, propDeclaration);
+    return genAttrDefinitionInfo(context, { start: attrStart + offset, length: attr.length }, propDeclaration);
   }
 
   // 不知道如何起作用的，没有被调用，但不加就没有 HTML 折叠了
@@ -676,4 +677,18 @@ function getUnionType(typeChecker: ts.TypeChecker, types: ts.Type[]): ts.Type {
     return (typeChecker as any).getUnionType(types);
   }
   return types.at(0)!;
+}
+
+function getHTMLNodeAtPosition(vHtml: HTMLDocument, offset: number) {
+  const node = vHtml.findNodeAt(offset);
+  const attr = node.attributesMap.entries().find(([_, n]) => {
+    return offset > n.start && offset < n.end + 1 + (n.value?.length || 0);
+  });
+  return {
+    node,
+    attrName: attr?.[0] ?? '',
+    attrValue: attr?.[1].value ?? '',
+    attrStart: attr?.[1].start ?? 0,
+    attrEnd: attr?.[1].end ?? 0,
+  };
 }

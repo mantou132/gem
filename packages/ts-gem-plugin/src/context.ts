@@ -11,7 +11,7 @@ import type * as ts from 'typescript/lib/tsserverlibrary';
 import { LRUCache } from './cache';
 import type { Configuration } from './configuration';
 import { dataProvider, HTMLDataProvider } from './data-provider';
-import { forEachNode, getAllText, getTagFromNodeWithDecorator, getTextAtPosition, isDepElement } from './utils';
+import { forEachNode, getAllIdent, getIdentAtPosition, getTagFromNodeWithDecorator, isDepElement } from './utils';
 
 declare module '@mantou/vscode-html-languageservice' {
   interface Node {
@@ -131,7 +131,7 @@ export class Context {
         const idAttr = e.attributesMap.get('id');
         const classAttr = e.attributesMap.get('class');
         if (idAttr?.value) {
-          const text = getTextAtPosition(idAttr.value, 1);
+          const text = getIdentAtPosition(idAttr.value, 1);
           if (text) {
             classIdNodeMap.add(`#${text.text}`, {
               start: idAttr.end + 1 + text.start,
@@ -140,7 +140,7 @@ export class Context {
           }
         }
         if (classAttr?.value) {
-          getAllText(classAttr.value).forEach((text) => {
+          getAllIdent(classAttr.value).forEach((text) => {
             classIdNodeMap.add(text.value, {
               start: classAttr.end + 1 + text.start,
               length: text.length,

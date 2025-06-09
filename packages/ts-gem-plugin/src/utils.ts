@@ -51,6 +51,7 @@ export function isClassMapKey(typescript: typeof ts, node: ts.Node): node is ts.
   );
 }
 
+// 不支持获取继承类的样式
 export function getAllStyleNode(typescript: typeof ts, typeChecker: ts.TypeChecker, node: ts.ClassDeclaration) {
   const getArgNode = (arg: ts.Node) => {
     if (typescript.isIdentifier(arg)) {
@@ -118,32 +119,16 @@ export function getAstNodeAtPosition(typescript: typeof ts, node: ts.Node, pos: 
   return node;
 }
 
-const BEFORE_REG = /[^\s</>]+$/;
-const AFTER_REG = /^[^\s</>]+/;
-/**获取 Tag 或者 Attribute */
-export function getHTMLTextAtPosition(text: string, offset: number) {
-  const before = text.slice(0, offset).match(BEFORE_REG)?.at(0) || '';
-  const after = text.slice(offset).match(AFTER_REG)?.at(0) || '';
-  const str = before + after;
-  return {
-    before,
-    after,
-    text: str,
-    start: offset - before.length,
-    length: str.length,
-  };
-}
-
-export function getAllText(text: string) {
-  return [...text.matchAll(/\b\w+\b/g)].map(({ 0: v, index }) => ({
+export function getAllIdent(text: string) {
+  return [...text.matchAll(/[a-zA-Z0-9-_]+/g)].map(({ 0: v, index }) => ({
     start: index,
     length: v.length,
     value: v,
   }));
 }
 
-export function getTextAtPosition(text: string, offset: number) {
-  for (const { value, start } of getAllText(text)) {
+export function getIdentAtPosition(text: string, offset: number) {
+  for (const { value, start } of getAllIdent(text)) {
     if (offset >= start && offset <= start + value.length) {
       return { text: value, start: start, length: value.length };
     }
