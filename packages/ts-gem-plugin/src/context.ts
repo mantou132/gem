@@ -93,6 +93,7 @@ export class Context {
     vCss: Stylesheet;
     tagNodeMap: NodeMap<CssNode>;
     classIdNodeMap: NodeMap<CssNode>;
+    customPropNodeMap: NodeMap<CssNode>;
   }>({ max: 1000 });
   getCssDoc(text: string) {
     return this.#virtualCssCache.get({ text, fileName: '' }, undefined, () => {
@@ -100,6 +101,7 @@ export class Context {
       const vCss = this.cssLanguageService.parseStylesheet(vDoc);
       const tagNodeMap = new NodeMap<CssNode>();
       const classIdNodeMap = new NodeMap<CssNode>();
+      const propNodeMap = new NodeMap<CssNode>();
       forEachNode(vCss.getChildren(), (node) => {
         if (node.type === NodeType.ElementNameSelector) {
           tagNodeMap.add(node.getText(), node);
@@ -107,8 +109,11 @@ export class Context {
         if (node.type === NodeType.IdentifierSelector || node.parent?.type === NodeType.ClassSelector) {
           classIdNodeMap.add(node.getText(), node);
         }
+        if (node.parent?.type === NodeType.CustomPropertyDeclaration) {
+          propNodeMap.add(node.getText(), node);
+        }
       });
-      return { vDoc, vCss, tagNodeMap, classIdNodeMap };
+      return { vDoc, vCss, tagNodeMap, classIdNodeMap, customPropNodeMap: propNodeMap };
     });
   }
 

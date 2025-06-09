@@ -1,5 +1,5 @@
 import type { TemplateContext, TemplateLanguageService } from '@mantou/typescript-template-language-service-decorator';
-import type { CompletionList } from '@mantou/vscode-css-languageservice';
+import type { CompletionList, Node, Stylesheet } from '@mantou/vscode-css-languageservice';
 import { NodeType, updateTags as updateCSSTags } from '@mantou/vscode-css-languageservice';
 import { doComplete as doEmmetComplete } from '@mantou/vscode-emmet-helper';
 import type * as ts from 'typescript/lib/tsserverlibrary';
@@ -8,6 +8,7 @@ import { LRUCache } from './cache';
 import { NAME } from './constants';
 import type { Context } from './context';
 import {
+  genCurrentCtxCssDefinitionInfo,
   genCurrentCtxDefinitionInfo,
   genDefaultCompletionEntryDetails,
   genElementDefinitionInfo,
@@ -117,34 +118,47 @@ export class CSSLanguageService implements TemplateLanguageService {
     const { text, offset } = this.#normalize(context, position);
     const { vCss } = this.#ctx.getCssDoc(text);
     const node = vCss.findChildAtOffset(context.toOffset(position) + offset, true);
-    if (node?.type !== NodeType.IdentifierSelector && node?.parent?.type !== NodeType.ClassSelector) return;
     const result: ts.ReferenceEntry[] = [];
-    const classOrId = node.getText();
-    for (const [, decl] of this.#ctx.elements) {
-      const { fileName } = decl.getSourceFile();
-      const styles = getAllStyleNode(context.typescript, typeChecker, decl);
-      if (!styles.includes(context.node)) continue;
-      forEachNode(decl.getChildren(), (node) => {
-        const templateNode = getTemplateNode(context.typescript, node);
-        if (templateNode) {
-          const templateContext = this.#ctx.htmlSourceHelper.getTemplate(fileName, templateNode.pos + 1);
-          if (!templateContext) return;
-          const { classIdNodeMap } = this.#ctx.getHtmlDoc(templateContext.text);
-          classIdNodeMap.get(classOrId)?.forEach((n) => {
+    if (node?.type === NodeType.IdentifierSelector || node?.parent?.type === NodeType.ClassSelector) {
+      const classOrId = node.getText();
+      for (const [, decl] of this.#ctx.elements) {
+        const { fileName } = decl.getSourceFile();
+        const styles = getAllStyleNode(context.typescript, typeChecker, decl);
+        if (!styles.includes(context.node)) continue;
+        forEachNode(decl.getChildren(), (node) => {
+          const templateNode = getTemplateNode(context.typescript, node);
+          if (templateNode) {
+            const templateContext = this.#ctx.htmlSourceHelper.getTemplate(fileName, templateNode.pos + 1);
+            if (!templateContext) return;
+            const { classIdNodeMap } = this.#ctx.getHtmlDoc(templateContext.text);
+            classIdNodeMap.get(classOrId)?.forEach((n) => {
+              result.push({
+                fileName,
+                textSpan: { start: n.start + templateNode.pos - context.node.pos, length: n.length },
+                isWriteAccess: true,
+              });
+            });
+          } else if (isClassMapKey(context.typescript, node) && node.text === classOrId) {
+            const isString = context.typescript.isStringLiteral(node);
             result.push({
               fileName,
-              textSpan: { start: n.start + templateNode.pos - context.node.pos, length: n.length },
+              textSpan: {
+                start: node.getStart() - context.node.pos - 1 + (isString ? 1 : 0),
+                length: node.text.length,
+              },
               isWriteAccess: true,
             });
-          });
-        } else if (isClassMapKey(context.typescript, node) && node.text === classOrId) {
-          const isString = context.typescript.isStringLiteral(node);
-          result.push({
-            fileName,
-            textSpan: { start: node.getStart() - context.node.pos - 1 + (isString ? 1 : 0), length: node.text.length },
-            isWriteAccess: true,
-          });
-        }
+          }
+        });
+      }
+    }
+    if (node?.parent?.type === NodeType.Property) {
+      forEachIdent(vCss, node.getText(), (cssNode) => {
+        result.push({
+          fileName: context.fileName,
+          textSpan: { start: cssNode.offset - offset, length: cssNode.end - cssNode.offset },
+          isWriteAccess: true,
+        });
       });
     }
     return result;
@@ -152,13 +166,23 @@ export class CSSLanguageService implements TemplateLanguageService {
 
   getDefinitionAndBoundSpan(context: TemplateContext, position: ts.LineAndCharacter): ts.DefinitionInfoAndBoundSpan {
     const { text, offset } = this.#normalize(context, position);
-    const { vCss } = this.#ctx.getCssDoc(text);
+    const { vCss, customPropNodeMap } = this.#ctx.getCssDoc(text);
     const empty = { textSpan: { start: 0, length: 0 } };
     const node = vCss.findChildAtOffset(context.toOffset(position) + offset, true);
     if (!node) return empty;
     const textSpan = { start: node.offset - offset, length: node.length };
-    if (node.type === NodeType.IdentifierSelector || node.parent?.type === NodeType.ClassSelector) {
+    if (
+      node.type === NodeType.IdentifierSelector ||
+      node.parent?.type === NodeType.ClassSelector ||
+      node.parent?.parent?.type === NodeType.CustomPropertyDeclaration
+    ) {
       return genCurrentCtxDefinitionInfo(context, textSpan, textSpan);
+    }
+    const propDefinitions = customPropNodeMap.get(node.getText());
+    if (node.type === NodeType.Identifier && propDefinitions) {
+      return genCurrentCtxCssDefinitionInfo(context, node.getText(), node.offset - offset, [
+        { ctx: context, nodes: propDefinitions, offset },
+      ]);
     }
     if (node.parent?.type !== NodeType.ElementNameSelector) return empty;
     const definitionNode = this.#ctx.elements.get(node.getText());
@@ -172,4 +196,12 @@ export class CSSLanguageService implements TemplateLanguageService {
     const ranges = this.#ctx.cssLanguageService.getFoldingRanges(vDoc);
     return ranges.map((range) => translateFoldingRange(context, range));
   }
+}
+
+function forEachIdent(vCss: Stylesheet, customPropName: string, fn: (ident: Node) => void) {
+  forEachNode(vCss.getChildren(), (ident) => {
+    if (ident.type !== NodeType.Identifier || ident.getText() !== customPropName) return;
+    if (ident.parent?.type !== NodeType.Term && ident?.parent?.type !== NodeType.Property) return;
+    fn(ident);
+  });
 }

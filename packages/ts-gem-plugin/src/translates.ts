@@ -273,21 +273,21 @@ export function genCurrentCtxCssDefinitionInfo(
   context: TemplateContext,
   value: string,
   start: number,
-  definitions: { ctx: TemplateContext; nodes: Node[] }[],
+  definitions: { ctx: TemplateContext; offset?: number; nodes: Node[] }[],
 ): ts.DefinitionInfoAndBoundSpan {
   // typescript-template-language-service-decorator 根据当前文档位置偏移了
   const htmlOffset = context.node.getStart();
   const length = value.length;
   return {
     textSpan: { start, length },
-    definitions: definitions.flatMap(({ ctx, nodes }) =>
+    definitions: definitions.flatMap(({ ctx, nodes, offset = 0 }) =>
       nodes.map((node) => ({
         containerName: 'AttributeValue',
         containerKind: context.typescript.ScriptElementKind.unknown,
         name: context.text.slice(start, start + length),
         kind: context.typescript.ScriptElementKind.memberVariableElement,
         fileName: context.fileName,
-        textSpan: { start: node.offset + ctx.node.pos - htmlOffset, length: node.length },
+        textSpan: { start: node.offset + ctx.node.pos - offset - htmlOffset, length: node.length },
       })),
     ),
   };

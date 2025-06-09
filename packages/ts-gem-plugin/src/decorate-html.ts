@@ -459,7 +459,7 @@ export class HTMLLanguageService implements TemplateLanguageService {
             if (!templateContext) return;
             const { classIdNodeMap } = this.#ctx.getCssDoc(templateContext.text);
             const nodes = classIdNodeMap.get(attr === 'id' ? `#${currentAttrValue.text}` : currentAttrValue.text);
-            return { ctx: templateContext, nodes: nodes || [] };
+            return { ctx: templateContext, nodes: nodes || [], offset: 0 };
           })
           .filter(isNotNullish),
       );

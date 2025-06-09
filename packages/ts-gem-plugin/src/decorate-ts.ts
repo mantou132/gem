@@ -145,7 +145,6 @@ export function decorateLanguageService(ctx: Context, languageService: LanguageS
   };
 
   languageService.getRenameInfo = (fileName, position, ...args) => {
-    const result = ls.getRenameInfo(fileName, position, ...args);
     const tagInfo = findCurrentTagInfo(ctx, fileName, position);
     if (tagInfo) {
       return {
@@ -158,15 +157,17 @@ export function decorateLanguageService(ctx: Context, languageService: LanguageS
       };
     }
     const tagDefinedInfo = findDefinedTagInfo(ctx, fileName, position);
-    if (!tagDefinedInfo) return result;
-    return {
-      canRename: true,
-      displayName: tagDefinedInfo.tag,
-      fullDisplayName: tagDefinedInfo.tag,
-      kind: ts.ScriptElementKind.alias,
-      kindModifiers: 'tag',
-      triggerSpan: tagDefinedInfo.textSpan,
-    };
+    if (tagDefinedInfo) {
+      return {
+        canRename: true,
+        displayName: tagDefinedInfo.tag,
+        fullDisplayName: tagDefinedInfo.tag,
+        kind: ts.ScriptElementKind.alias,
+        kindModifiers: 'tag',
+        triggerSpan: tagDefinedInfo.textSpan,
+      };
+    }
+    return ls.getRenameInfo(fileName, position, ...args);
   };
 
   languageService.findRenameLocations = (fileName, position, ...args) => {
