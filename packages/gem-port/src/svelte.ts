@@ -1,4 +1,4 @@
-import path from 'path';
+import path from 'node:path';
 
 import {
   compile,
@@ -23,7 +23,7 @@ export async function compileSvelte(elementsDir: string, outDir: string, ns = ''
           const relativePath = getRelativePath(elementFilePath, outDir);
           const basename = path.basename(relativePath);
           return [
-            [ns, basename].filter((e) => !!e).join('-') + '.ts',
+            `${[ns, basename].filter((e) => !!e).join('-')}.ts`,
             `
             import type { HTMLAttributes } from "svelte/elements";
             import { ${constructorName} } from '${relativePath}';

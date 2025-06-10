@@ -281,7 +281,7 @@ export class DyPatFormElement<T = Record<string, unknown>> extends GemElement {
       case 'picker':
         return new DuoyunPickerElement();
       default:
-        throw new GemError('Not support type: `' + type + '`');
+        throw new GemError(`Not support type: \`${type}\``);
     }
   };
 

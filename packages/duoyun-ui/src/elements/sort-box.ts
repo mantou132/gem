@@ -59,7 +59,7 @@ export class DuoyunSortBoxElement extends GemElement {
       const removePan = addListener(e, 'pan', ({ detail }: CustomEvent<PanEventDetail>) => {
         itemTranslate[0] += detail.x;
         itemTranslate[1] += detail.y;
-        item.style.translate = itemTranslate.map((p) => p + 'px').join(' ');
+        item.style.translate = itemTranslate.map((p) => `${p}px`).join(' ');
       });
       return [removeEnd, removePan];
     });

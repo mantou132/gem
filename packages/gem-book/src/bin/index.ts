@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
-import { existsSync, readdirSync, statSync, writeFileSync } from 'fs';
-import path from 'path';
+import { existsSync, readdirSync, statSync, writeFileSync } from 'node:fs';
+import path from 'node:path';
 
 import anymatch from 'anymatch';
 import chalk from 'chalk';
@@ -168,7 +168,7 @@ function readFiles(filenames: string[], docsRootDir: string, dir: string, link: 
       if (stat.isDirectory()) {
         const { title, isNav, navTitle, navOrder, sidebarIgnore, groups, redirect } = getMetadata(fullPath, false);
         const newDir = fullPath;
-        const newLink = path.posix.join(link, filename) + '/';
+        const newLink = `${path.posix.join(link, filename)}/`;
         if (redirect) {
           const pattern = `${newLink}*`;
           const redirectPath = new URL(redirect, GBP_PROTOCOL + pattern).pathname;
@@ -273,7 +273,7 @@ async function generateBookConfig(dir: string) {
   if (cliConfig.json) {
     const jsonPath = path.resolve(cliConfig.output || dir, cliConfig.output.endsWith('.json') ? '' : DEFAULT_FILE);
     sync(path.dirname(jsonPath));
-    writeFileSync(jsonPath, JSON.stringify(bookConfig, null, 2) + '\n');
+    writeFileSync(jsonPath, `${JSON.stringify(bookConfig, null, 2)}\n`);
   }
 
   if (cliConfig.debug) print(bookConfig);
@@ -510,7 +510,7 @@ program
       .use('/', serveStatic(path.resolve(cliConfig.output || dir), { immutable: true }))
       .get('*', (_, res) => res.sendFile(path.resolve(cliConfig.output || dir, 'index.html')))
       .listen(cliConfig.port, () => {
-        print(chalk.green(`Project is running at:`) + `http://localhost:${cliConfig.port}`);
+        print(`${chalk.green(`Project is running at:`)} http://localhost:${cliConfig.port}`);
       });
   });
 

@@ -1,4 +1,3 @@
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
 //@ts-ignore
 import { MP4Demuxer } from './demuxer_mp4';
 

@@ -1,5 +1,5 @@
-import { promises, readdirSync, readFileSync, statSync } from 'fs';
-import path from 'path';
+import { promises, readdirSync, readFileSync, statSync } from 'node:fs';
+import path from 'node:path';
 
 import type { ElementDetail } from 'gem-analyzer';
 import { getElements } from 'gem-analyzer';

@@ -3,6 +3,7 @@ import { isNotNullish } from 'duoyun-ui/lib/types';
 import type { LanguageService } from 'typescript';
 import type * as ts from 'typescript/lib/tsserverlibrary';
 
+import { Decorators } from './constants';
 import type { Context } from './context';
 import {
   bindMemberFunction,
@@ -190,7 +191,10 @@ export function decorateLanguageService(ctx: Context, languageService: LanguageS
       return result;
     }
 
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // https://github.com/mantou132/gem/issues/224
+    // 需要支持类名重命名？
+    // 需要收集 HTML/CSS 模板以及当前元素中 classMap key
+
     // @ts-ignore
     const oResult = [...(ls.findRenameLocations(fileName, position, ...args) || [])];
     const file = ctx.getProgram().getSourceFile(fileName)!;
@@ -205,7 +209,7 @@ export function decorateLanguageService(ctx: Context, languageService: LanguageS
     // FIXME: <my-element camelCase="5" ?camelCase>
     // 不能指定目标文本：https://github.com/microsoft/vscode/issues/248912
     // NOTE: 冒泡事件处理器无法找到
-    if (isPropType(ctx.ts, node.parent, ['emitter', 'globalemitter'])) {
+    if (isPropType(ctx.ts, node.parent, [Decorators.Emitter, Decorators.GlobalEmitter])) {
       getAllTagFromProp(ctx, node).forEach((tag) => {
         forEachAllHtmlTemplateNode(ctx, tag, (f, tagInfo) => {
           const info = tagInfo.node.attributesMap.get(`@${kebabCaseName}`);
@@ -215,7 +219,8 @@ export function decorateLanguageService(ctx: Context, languageService: LanguageS
         });
       });
     }
-    if (isPropType(ctx.ts, node.parent, ['attribute', 'numattribute', 'boolattribute', 'property'])) {
+    // NOTE: CSS 中的属性选择器没有寻找，因为很难找全
+    if (isPropType(ctx.ts, node.parent, [Decorators.Attr, Decorators.NumAttr, Decorators.BoolAttr, Decorators.Prop])) {
       getAllTagFromProp(ctx, node).forEach((tag) => {
         forEachAllHtmlTemplateNode(ctx, tag, (f, tagInfo) => {
           const propNames = [
@@ -319,7 +324,7 @@ function findDefinedTagInfo(ctx: Context, fileName: string, position: number) {
     !node ||
     !ctx.ts.isStringLiteral(node) ||
     !ctx.ts.isCallExpression(node.parent) ||
-    node.parent.expression.getText() !== 'customElement'
+    node.parent.expression.getText() !== Decorators.CustomElement
   ) {
     return;
   }

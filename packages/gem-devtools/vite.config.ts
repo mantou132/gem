@@ -1,4 +1,4 @@
-import { resolve } from 'path';
+import { resolve } from 'node:path';
 
 import { defineConfig } from 'vite';
 
@@ -23,10 +23,10 @@ export default defineConfig({
       output: {
         assetFileNames: '[name].[ext]',
         chunkFileNames(info) {
-          return info.name + '.js';
+          return `${info.name}.js`;
         },
         entryFileNames(info) {
-          return info.name + '.js';
+          return `${info.name}.js`;
         },
         manualChunks: {
           gem: ['@mantou/gem'],

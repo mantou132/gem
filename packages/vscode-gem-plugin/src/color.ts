@@ -6,7 +6,6 @@ import cssColors from 'css-color-keywords';
 import type { HexColor } from 'duoyun-ui/lib/color';
 import { parseHexColor, rgbToHexColor } from 'duoyun-ui/lib/color';
 import type { ColorInformation, DocumentColorProvider, TextDocument } from 'vscode';
-// eslint-disable-next-line import/no-unresolved
 import { Color, Range } from 'vscode';
 
 const COLOR_REG = new RegExp(

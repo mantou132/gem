@@ -15,12 +15,10 @@ export function convertToMap<T extends Record<string, any>, V = string>(
   fallback?: any,
 ): Record<string, V>;
 export function convertToMap<T extends Record<string, any>, V = string>(
-  list: (T | null)[],
-  key: any,
-  value?: any,
-  fallback?: any,
+  ...rest: [list: (T | null)[], key: any, value?: any, fallback?: any]
 ) {
-  const argLength = arguments.length;
+  const [list, key, value, fallback] = rest;
+  const argLength = rest.length;
   const isSelf = argLength === 2;
   const hasFallback = argLength === 4;
   const result: Record<string, V> = {};
@@ -166,10 +164,10 @@ export function comparer(a: any, comparerType: ComparerType, b: any): boolean {
   const isNumber = !Number.isNaN(aNum) && !Number.isNaN(aNum);
   switch (comparerType) {
     case ComparerType.Eq:
-      // biome-ignore lint/suspicious/noDoubleEquals: <explanation>
+      // biome-ignore lint/suspicious/noDoubleEquals: auto convert
       return a == b;
     case ComparerType.Ne:
-      // biome-ignore lint/suspicious/noDoubleEquals: <explanation>
+      // biome-ignore lint/suspicious/noDoubleEquals: auto convert
       return a != b;
     case ComparerType.Gt:
       return isNumber ? aNum > bNum : a > b;
@@ -231,7 +229,7 @@ export function createCacheStore<T extends Record<string, any>>(
   };
 
   const getStoreStore = (key: string) => {
-    let storeCache: T | undefined = undefined;
+    let storeCache: T | undefined;
     try {
       storeCache = JSON.parse(localStorage.getItem(key) || '{}');
     } catch {

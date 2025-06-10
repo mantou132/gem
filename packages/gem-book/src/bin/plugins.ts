@@ -1,4 +1,4 @@
-import path from 'path';
+import path from 'node:path';
 
 import type { Compiler } from '@rspack/core';
 import { HtmlRspackPlugin, sources } from '@rspack/core';

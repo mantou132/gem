@@ -68,7 +68,7 @@ type State = {
 };
 
 const { GemBookPluginElement } = (await customElements.whenDefined('gem-book')) as typeof GemBookElement;
-const { theme, icons, Utils } = GemBookPluginElement;
+const { theme, icons, Utils, mediaQuery } = GemBookPluginElement;
 const {
   html,
   customElement,
@@ -90,6 +90,11 @@ const styles = css`
     display: block;
     container-type: inline-size;
     margin: 2rem 0px;
+  }
+  @media ${mediaQuery.WIDTHSCREEN} {
+    :host {
+      margin-inline: -10em;
+    }
   }
   .container {
     display: grid;
@@ -503,7 +508,7 @@ class _GbpSandpackElement extends GemBookPluginElement {
         }
       }
     });
-    return [...importLines].join(';') + '\n' + code;
+    return `${[...importLines].join(';')}\n${code}`;
   };
 
   #initSandpackClient = async () => {

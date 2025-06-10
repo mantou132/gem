@@ -2,7 +2,6 @@
 
 import * as assert from 'node:assert';
 
-// eslint-disable-next-line import/no-unresolved
 import * as vscode from 'vscode';
 
 suite('Utils', () => {

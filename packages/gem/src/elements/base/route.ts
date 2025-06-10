@@ -32,7 +32,6 @@ type Params = Record<string, string>;
 declare global {
   // https://bugzilla.mozilla.org/show_bug.cgi?id=1731418
   // https://github.com/WebKit/standards-positions/issues/61
-  // eslint-disable-next-line no-var
   var URLPattern: any;
 }
 

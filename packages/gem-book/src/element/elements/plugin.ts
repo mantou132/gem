@@ -1,5 +1,5 @@
-import * as Gem from '@mantou/gem';
 import type { Emitter } from '@mantou/gem';
+import * as Gem from '@mantou/gem';
 import { connectStore, customElement, GemElement, globalemitter } from '@mantou/gem';
 import { logger } from '@mantou/gem/helper/logger';
 import { mediaQuery } from '@mantou/gem/helper/mediaquery';

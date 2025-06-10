@@ -39,10 +39,9 @@ export const getSelectedGem = (data: PanelStore): PanelStore | string => {
   const objToString = (arg: any) => {
     if (arg === null) return 'null';
     switch (typeof arg) {
-      // biome-ignore lint/suspicious/noFallthroughSwitchClause: <explanation>
+      // biome-ignore lint/suspicious/noFallthroughSwitchClause: fallback to object
       case 'function':
         if (window.__GEM_DEVTOOLS__PRELOAD__.isFunction(arg)) return funcToString(arg);
-      // eslint-disable-next-line no-fallthrough
       case 'object':
         return '{...}';
       case 'string':
@@ -55,10 +54,9 @@ export const getSelectedGem = (data: PanelStore): PanelStore | string => {
   const objectToString = (arg: any) => {
     if (arg === null) return 'null';
     switch (typeof arg) {
+      // biome-ignore lint/suspicious/noFallthroughSwitchClause: fallback to object
       case 'function':
-        // biome-ignore lint/suspicious/noFallthroughSwitchClause: <explanation>
         if (window.__GEM_DEVTOOLS__PRELOAD__.isFunction(arg)) return funcToString(arg);
-      // eslint-disable-next-line no-fallthrough
       case 'object': {
         if (arg instanceof Element) {
           const tag = arg.tagName.toLowerCase();

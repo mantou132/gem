@@ -1,5 +1,5 @@
-import { mkdirSync, writeFileSync } from 'fs';
-import { resolve } from 'path';
+import { mkdirSync, writeFileSync } from 'node:fs';
+import { resolve } from 'node:path';
 
 import { getComponentName, getElementPathList, getFileElements, getJsDocDescName, getRelativePath } from './common';
 
@@ -39,7 +39,7 @@ export async function generateVue(elementsDir: string, outDir: string) {
       const settableProperties = properties.filter((e) => !e.getter && !e.event);
       const getters = properties.filter((e) => e.getter);
       writeFileSync(
-        resolve(outDir, componentName + '.vue'),
+        resolve(outDir, `${componentName}.vue`),
         `
         <script setup lang="ts">
         import { ref, defineProps, defineEmits, defineExpose, onMounted } from 'vue'

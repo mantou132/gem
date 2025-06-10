@@ -89,6 +89,8 @@ export class HTMLLanguageService implements TemplateLanguageService {
 
   #getCompletionsAtPosition(context: TemplateContext, position: ts.LineAndCharacter) {
     return this.#completionsCache.get(context, position, () => {
+      const typeChecker = this.#ctx.getProgram().getTypeChecker();
+      const currentOffset = context.toOffset(position);
       const { vDoc, vHtml } = this.#ctx.getHtmlDoc(context.text);
 
       let emmetResults: CompletionList | undefined;
@@ -101,6 +103,26 @@ export class HTMLLanguageService implements TemplateLanguageService {
 
       completions.items.push(...(emmetResults?.items || []));
       completions.items.push(...this.#getCSSCompletionsAtPosition(context, position, vHtml));
+
+      const { attrName } = getHTMLNodeAtPosition(vHtml, currentOffset);
+      const { attr } = getAttrName(attrName);
+      if (attr === 'class' || attr === 'id') {
+        const currentElementDecl = getCurrentElementDecl(context.typescript, context.node);
+        if (currentElementDecl) {
+          getAllStyleNode(this.#ctx.ts, typeChecker, currentElementDecl).forEach((e) => {
+            const { fileName } = e.getSourceFile();
+            const templateContext = this.#ctx.cssSourceHelper.getTemplate(fileName, e.pos + 1);
+            if (!templateContext) return;
+            const { classIdNodeMap } = this.#ctx.getCssDoc(templateContext.text);
+            classIdNodeMap
+              .entries()
+              .filter(([key]) => !(+(attr === 'id') ^ +key.startsWith('#')))
+              .forEach(([classOrId]) => {
+                completions.items.push({ label: classOrId.slice(attr === 'id' ? 1 : 0) });
+              });
+          });
+        }
+      }
 
       return completions;
     });
@@ -510,10 +532,8 @@ export class HTMLLanguageService implements TemplateLanguageService {
         fileName: context.fileName,
         highlightSpans: docHighlights.map(({ range }) => {
           const start = vDoc.offsetAt(range.start);
-          return {
-            textSpan: { start, length: vDoc.offsetAt(range.end) - start },
-            kind: context.typescript.HighlightSpanKind.definition,
-          };
+          const end = vDoc.offsetAt(range.end);
+          return { textSpan: { start, length: end - start }, kind: this.#ctx.ts.HighlightSpanKind.definition };
         }),
       },
     ];

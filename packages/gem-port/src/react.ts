@@ -18,7 +18,7 @@ async function createReactSourceFile(elementFilePath: string, outDir: string) {
       const getters = properties.filter((e) => e.getter);
       const settableProperties = properties.filter((e) => !e.getter && !e.event);
       return [
-        componentName + '.tsx',
+        `${componentName}.tsx`,
         `
           import React, { HTMLAttributes, RefAttributes } from 'react';
           import React, { ForwardRefExoticComponent, forwardRef, useImperativeHandle, useRef, useLayoutEffect } from 'react';

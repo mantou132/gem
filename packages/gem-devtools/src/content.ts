@@ -1,8 +1,6 @@
 // 作为静态资源输出
-// eslint-disable-next-line import/no-duplicates
 import './manifest.json?url';
 // 实时更新
-// eslint-disable-next-line import/no-duplicates
 import './manifest.json';
 
 type DevToolsHookStore = {

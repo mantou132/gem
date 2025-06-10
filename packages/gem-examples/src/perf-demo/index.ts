@@ -48,12 +48,12 @@ export class Dot extends GemElement {
   render() {
     const s = this.size * 1.3;
     Object.assign(this.style, {
-      width: s + 'px',
-      height: s + 'px',
-      left: this.x + 'px',
-      top: this.y + 'px',
-      borderRadius: s / 2 + 'px',
-      lineHeight: s + 'px',
+      width: `${s}px`,
+      height: `${s}px`,
+      left: `${this.x}px`,
+      top: `${this.y}px`,
+      borderRadius: `${s / 2}px`,
+      lineHeight: `${s}px`,
       background: this.#state.hover ? '#ff0' : '#61dafb',
     });
     return html`
@@ -66,7 +66,7 @@ export class Dot extends GemElement {
           display: block;
         }
       </style>
-      ${this.#state.hover ? '**' + store.number + '**' : store.number}
+      ${this.#state.hover ? `**${store.number}**` : store.number}
     `;
   }
 }
@@ -113,7 +113,7 @@ class App extends GemElement {
     const elapsed = this.elapsed;
     const t = (elapsed / 1000) % 10;
     const scale = 1 + (t > 5 ? 10 - t : t) / 10;
-    this.style.transform = 'scaleX(' + scale / 2.1 + ') scaleY(0.7) translateZ(0.1px)';
+    this.style.transform = `scaleX(${scale / 2.1}) scaleY(0.7) translateZ(0.1px)`;
     return html`
       <style>
         :host {

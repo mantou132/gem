@@ -92,7 +92,7 @@ export class DuoyunDatePickerElement extends GemElement implements BasePickerEle
   #onOpen = () => {
     if (this.disabled) return;
 
-    let v: undefined | number = undefined;
+    let v: undefined | number;
     const onChange = ({ detail, target }: CustomEvent<number>) => {
       const panel = target as DuoyunDatePanelElement;
       panel.highlights = [];

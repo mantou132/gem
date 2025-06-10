@@ -82,7 +82,7 @@ export class DuoyunDateRangePickerElement extends GemElement implements BasePick
   #onOpen = () => {
     if (this.disabled) return;
 
-    let v: undefined | DateRangeValue = undefined;
+    let v: undefined | DateRangeValue;
     const onChange = ({ detail, target }: CustomEvent<number[]>) => {
       const root = (target as HTMLElement).getRootNode() as ShadowRoot;
       const button = root.querySelector('dy-button') as DuoyunButtonElement;

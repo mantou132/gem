@@ -188,7 +188,6 @@ const gemTitleStore = createStore({ defaultTitle: document.title, url: '', title
 const HISTORY = { history: gemHistory, titleStore: gemTitleStore, basePathStore: gemBasePathStore };
 
 declare global {
-  // eslint-disable-next-line no-var
   var _GEMHISTORY: typeof HISTORY | undefined;
 }
 
@@ -316,4 +315,4 @@ if (!globalThis._GEMHISTORY) {
 }
 
 const { history, titleStore, basePathStore } = globalThis._GEMHISTORY;
-export { history, titleStore, basePathStore };
+export { basePathStore, history, titleStore };

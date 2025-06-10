@@ -2,6 +2,8 @@ import type { Node } from '@mantou/vscode-html-languageservice';
 import { isNotNullish } from 'duoyun-ui/lib/types';
 import type * as ts from 'typescript/lib/tsserverlibrary';
 
+import { Decorators, Utils } from './constants';
+
 export function isCustomElementTag(tag: string) {
   return tag.includes('-');
 }
@@ -46,7 +48,7 @@ export function isClassMapKey(typescript: typeof ts, node: ts.Node): node is ts.
     typescript.isObjectLiteralExpression(obj) &&
     typescript.isCallExpression(callExp) &&
     typescript.isIdentifier(callExp.expression) &&
-    callExp.expression.text === 'classMap'
+    callExp.expression.text === Utils.ClassMap
     // 不支持计算属性和动态属性
   );
 }
@@ -75,7 +77,7 @@ export function getAllStyleNode(typescript: typeof ts, typeChecker: ts.TypeCheck
         typescript.isDecorator(m) &&
         typescript.isCallExpression(m.expression) &&
         typescript.isIdentifier(m.expression.expression) &&
-        m.expression.expression.escapedText === 'adoptedStyle'
+        m.expression.expression.escapedText === Decorators.AdoptedStyle
           ? m.expression.arguments.at(0)
           : undefined;
       if (!arg) return null;
@@ -91,7 +93,7 @@ export function getTagFromNodeWithDecorator(typescript: typeof ts, node: ts.Node
     if (
       typescript.isDecorator(modifier) &&
       typescript.isCallExpression(modifier.expression) &&
-      modifier.expression.expression.getText() === 'customElement'
+      modifier.expression.expression.getText() === Decorators.CustomElement
     ) {
       const arg = modifier.expression.arguments.at(0);
       if (arg && typescript.isStringLiteral(arg)) {

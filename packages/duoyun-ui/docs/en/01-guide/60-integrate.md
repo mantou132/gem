@@ -1,7 +1,7 @@
 # Used in projects like React
 
 [Most frontend frameworks/libraries](https://custom-elements-everywhere.com/) can seamlessly use custom elements, such as assigning Attributes/Properties and registering events.
-However, directly using custom elements lacks [type hints](https://code.visualstudio.com/docs/editor/intellisense) and ESLint support, so DuoyunUI has been re-exported to perfectly adapt to React/Vue/Svelte.
+However, directly using custom elements lacks [type hints](https://code.visualstudio.com/docs/editor/intellisense), so DuoyunUI has been re-exported to perfectly adapt to React/Vue/Svelte.
 
 ## React
 

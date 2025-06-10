@@ -1,8 +1,8 @@
-import { createHash } from 'crypto';
-import { existsSync, lstatSync, readdirSync, readFileSync, statSync } from 'fs';
-import path from 'path';
-import { URL } from 'url';
-import util from 'util';
+import { createHash } from 'node:crypto';
+import { existsSync, lstatSync, readdirSync, readFileSync, statSync } from 'node:fs';
+import path from 'node:path';
+import { URL } from 'node:url';
+import util from 'node:util';
 
 import chalk from 'chalk';
 import { load } from 'cheerio';
@@ -241,7 +241,6 @@ export function isURL(s: string) {
 
 export function print(...args: any) {
   for (const obj of args) {
-    // eslint-disable-next-line no-console
     console.log(
       typeof obj === 'string'
         ? obj

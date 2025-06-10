@@ -2,9 +2,10 @@ import type { GemElement, Sheet } from '../lib/reactive';
 import { css, SheetToken } from '../lib/reactive';
 import type { Store } from '../lib/store';
 import { connect, createStore } from '../lib/store';
+import type { Updater } from '../lib/utils';
 import { camelToKebabCase, createUpdater, randomStr } from '../lib/utils';
 
-export type Theme<T> = ReturnType<typeof createUpdater<T>> &
+export type Theme<T> = Updater<T> &
   Sheet<unknown> & {
     [K in keyof T as K extends `${string}Color`
       ? `${string & K}${'' | 100 | 200 | 300 | 400 | 500 | 600 | 700 | 800 | 900}`
@@ -82,18 +83,20 @@ export function createOverrideTheme<T extends Record<string, unknown>>(theme: Th
 }
 
 export function createDecoratorTheme<T extends Record<string, unknown>>(themeObj: T) {
-  const themeAsKeys = createThemeFromProps<T>(themeObj);
+  const themeAsKeys = createThemeFromProps(themeObj);
   const props = getThemeProps(themeAsKeys);
-  const update =
-    <E extends GemElement, V extends () => T, K = any[] | undefined>(
-      getDep?: K extends readonly any[] ? (instance: E) => K : undefined,
-    ) =>
-    (_: any, { addInitializer, access }: ClassFieldDecoratorContext<E, V> | ClassMethodDecoratorContext<E, V>) => {
+  const update = <E extends GemElement, V extends () => T, K = any[] | undefined>(
+    getDep?: K extends readonly any[] ? (instance: E) => K : undefined,
+  ) => {
+    type Ctx = ClassFieldDecoratorContext<E, V> | ClassMethodDecoratorContext<E, V>;
+    return (_: any, { addInitializer, access }: Ctx) => {
       addInitializer(function (this: E) {
         const theme = createThemeFromProps({ ...themeObj }, props);
         this.internals.sheets.push(theme[SheetToken].getStyle(this));
         this.memo(() => theme(access.get(this).apply(this)), getDep && (() => getDep(this) as any));
       });
     };
-  return createUpdater(themeAsKeys, update) as ReturnType<typeof createUpdater<typeof themeAsKeys, typeof update>>;
+  };
+  // 不知道为什么 `as` 能解决外部 `SheetToken` 不能命名的问题
+  return createUpdater(themeAsKeys, update) as Updater<Theme<T>, typeof update>;
 }

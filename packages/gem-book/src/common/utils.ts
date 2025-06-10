@@ -39,7 +39,7 @@ export function getUserLink(originPath: string, displayRank?: boolean) {
   const parts = originPath.split('/');
   const filename = parts.pop() || '';
   if (isIndexFile(filename)) {
-    return getLinkPath(parts.join('/') + '/', displayRank);
+    return getLinkPath(`${parts.join('/')}/`, displayRank);
   } else {
     return getLinkPath(originPath, displayRank);
   }

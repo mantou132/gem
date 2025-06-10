@@ -20,7 +20,6 @@ import type { RGBA } from 'duoyun-ui/lib/color';
 import { rgbToRgbColor } from 'duoyun-ui/lib/color';
 import { formatTraffic } from 'duoyun-ui/lib/number';
 
-// eslint-disable-next-line import/default
 import Worker from './worker?worker';
 
 import 'duoyun-ui/elements/radio';

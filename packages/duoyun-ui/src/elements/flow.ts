@@ -301,7 +301,7 @@ export class DuoyunFlowCanvasElement extends DuoyunResizeBaseElement {
   #genLabelId = (parentId: string, id: string | number) => this.#genId(`label-${parentId}-${id}`);
 
   #initShape = (id: string, node: ElkShape) => {
-    const ele = this.querySelector('#' + id);
+    const ele = this.querySelector(`#${id}`);
     if (ele) {
       const { width, height } = ele.getBoundingClientRect();
       node.width = width;

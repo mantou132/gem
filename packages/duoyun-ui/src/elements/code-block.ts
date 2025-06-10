@@ -365,7 +365,7 @@ export class DuoyunCodeBlockElement extends DuoyunVisibleBaseElement {
       ? this.#getRanges(this.range).map(([start, end]) => {
           let result = '';
           for (let i = start - 1; i < (end || lines.length); i++) {
-            result += lines[i] + '\n';
+            result += `${lines[i]}\n`;
           }
           return result;
         })
@@ -381,7 +381,7 @@ export class DuoyunCodeBlockElement extends DuoyunVisibleBaseElement {
     return () => ob.disconnect();
   };
 
-  @effect((i) => [i.textContent, i.codelang])
+  @effect((i) => [i.textContent, i.codelang, i.range])
   #updateHtml = async () => {
     if (!this.visible) return;
     if (!this.#codeRef.value) return;

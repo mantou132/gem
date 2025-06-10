@@ -1,13 +1,10 @@
 import { camelToKebabCase } from '@mantou/gem/lib/utils';
-import {
-  getDefaultHTMLDataProvider,
-  type IAttributeData,
-  type IHTMLDataProvider,
-} from '@mantou/vscode-html-languageservice';
+import type { IAttributeData, IHTMLDataProvider } from '@mantou/vscode-html-languageservice';
+import { getDefaultHTMLDataProvider } from '@mantou/vscode-html-languageservice';
 import type { StringWeakMap } from 'duoyun-ui/lib/map';
 import type * as ts from 'typescript/lib/tsserverlibrary';
 
-import { NAME } from './constants';
+import { NAME, Types } from './constants';
 import { getAttrName, isDepElement } from './utils';
 
 export const dataProvider = getDefaultHTMLDataProvider();
@@ -83,7 +80,7 @@ export class HTMLDataProvider implements IHTMLDataProvider {
           }
         }
       }
-      if (typeText?.startsWith('Emitter')) {
+      if (typeText?.startsWith(Types.Emitter)) {
         // 自定义事件
         result.push({ name: `@${camelToKebabCase(e.name)}`, description });
       } else {

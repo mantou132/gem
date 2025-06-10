@@ -101,10 +101,10 @@ class _GbpApiElement extends GemBookPluginElement {
 
   #renderTable = <T>(list: T[], headers: string[], fields: ((data: T) => string)[]) => {
     let text = '';
-    text += headers.reduce((p, _c, index) => p + `${headers[index]} |`, '|') + '\n';
-    text += headers.reduce((p) => p + `--- |`, '|') + '\n';
+    text += `${headers.reduce((p, _c, index) => `${p}${headers[index]} |`, '|')}\n`;
+    text += `${headers.reduce((p) => `${p}--- |`, '|')}\n`;
     text += list.reduce((prev, _c, dataIndex) => {
-      return prev + headers.reduce((p, _, index) => p + `${fields[index](list[dataIndex])} |`, '|') + '\n';
+      return `${prev + headers.reduce((p, _, index) => `${p}${fields[index](list[dataIndex])} |`, '|')}\n`;
     }, '');
     return text;
   };
@@ -133,7 +133,7 @@ class _GbpApiElement extends GemBookPluginElement {
       text += this.#renderHeader(constructorName, constructorName);
     }
 
-    text += eleDescription + '\n\n';
+    text += `${eleDescription}\n\n`;
     if (constructorExtendsName) {
       if (shadow) {
         text += `Shadow DOM; `;
@@ -225,7 +225,7 @@ class _GbpApiElement extends GemBookPluginElement {
     }
 
     if (extend) {
-      text += this.#renderElement(extend, detail) + '\n\n';
+      text += `${this.#renderElement(extend, detail)}\n\n`;
     }
 
     return text;

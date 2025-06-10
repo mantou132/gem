@@ -126,7 +126,7 @@ export const isMac = navigator.platform.includes('Mac');
 export function getDisplayKey(code: string, type?: keyof Key) {
   const key = normalizeKey(code);
   const keyObj = keysInfo[key];
-  let result: string | undefined = undefined;
+  let result: string | undefined;
   if (!keyObj) {
     result = key;
   } else if (type) {

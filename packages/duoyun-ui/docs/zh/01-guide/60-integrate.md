@@ -1,7 +1,7 @@
 # 在 React 等项目中使用
 
 [大多数前端框架/库](https://custom-elements-everywhere.com/)都能无缝使用自定义元素，比如分配 Attribute/Property，注册事件，
-但是直接使用自定义元素没有[类型提示](https://code.visualstudio.com/docs/editor/intellisense)、不支持 ESLint，所以 DuoyunUI 进行了重导出，完美适配了 React/Vue/Svelte。
+但是直接使用自定义元素没有[类型提示](https://code.visualstudio.com/docs/editor/intellisense)，所以 DuoyunUI 进行了重导出，完美适配了 React/Vue/Svelte。
 
 ## React
 

@@ -3,14 +3,14 @@ import StandardScriptSourceHelper from '@mantou/typescript-template-language-ser
 import StandardTemplateSourceHelper from '@mantou/typescript-template-language-service-decorator/lib/standard-template-source-helper';
 import type { LanguageService as CssLS, Node as CssNode, Stylesheet } from '@mantou/vscode-css-languageservice';
 import { getCSSLanguageService, NodeType } from '@mantou/vscode-css-languageservice';
-import type { HTMLDocument, IHTMLDataProvider, LanguageService, Node } from '@mantou/vscode-html-languageservice';
+import type { HTMLDocument, LanguageService, Node } from '@mantou/vscode-html-languageservice';
 import { getLanguageService as getHTMLanguageService, TextDocument } from '@mantou/vscode-html-languageservice';
 import { StringWeakMap } from 'duoyun-ui/lib/map';
 import type * as ts from 'typescript/lib/tsserverlibrary';
 
 import { LRUCache } from './cache';
 import type { Configuration } from './configuration';
-import { dataProvider, HTMLDataProvider } from './data-provider';
+import { HTMLDataProvider } from './data-provider';
 import { forEachNode, getAllIdent, getIdentAtPosition, getTagFromNodeWithDecorator, isDepElement } from './utils';
 
 declare module '@mantou/vscode-html-languageservice' {
@@ -29,6 +29,9 @@ class NodeMap<T> {
     if (!this.#map[key]) this.#map[key] = [];
     this.#map[key].push(value);
   }
+  entries() {
+    return Object.entries(this.#map);
+  }
 }
 
 /**
@@ -41,7 +44,6 @@ export class Context {
   config: Configuration;
   project: ts.server.Project;
   logger: Logger;
-  dataProvider: IHTMLDataProvider;
   cssLanguageService: CssLS;
   htmlLanguageService: LanguageService;
   htmlSourceHelper: StandardTemplateSourceHelper;
@@ -56,12 +58,11 @@ export class Context {
     this.getProgram = () => info.languageService.getProgram()!;
     this.project = info.project;
     this.logger = logger;
-    this.dataProvider = dataProvider;
     this.elements = new StringWeakMap();
     this.builtInElements = new StringWeakMap();
     this.cssLanguageService = getCSSLanguageService({});
     this.htmlLanguageService = getHTMLanguageService({
-      customDataProviders: [dataProvider, new HTMLDataProvider(typescript, this.elements, this.getProgram)],
+      customDataProviders: [new HTMLDataProvider(typescript, this.elements, this.getProgram)],
     });
     this.htmlTemplateStringSettings = {
       tags: ['html', 'raw', 'h'],
@@ -74,6 +75,7 @@ export class Context {
       getSubstitution,
       isValidTemplate: (node) => isValidCSSTemplate(typescript, node, 'css'),
     };
+    // `getTemplate` `getAllTemplate` 需要添加缓存功能吗？
     this.htmlSourceHelper = new StandardTemplateSourceHelper(
       typescript,
       this.htmlTemplateStringSettings,

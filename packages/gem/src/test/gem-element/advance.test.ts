@@ -341,7 +341,7 @@ describe('gem element 继承', () => {
     });
     el.sayHi();
     await Promise.resolve();
-    expect(window.name).to.equal(name + '21');
+    expect(window.name).to.equal(`${name}21`);
   });
 });
 @customElement('render-empty')

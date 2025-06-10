@@ -28,7 +28,7 @@ export class devtoolsStatisticsElement extends GemElement {
   @attribute type: DomStatInfo['type'] = 'ele';
   @property highlight?: Array<string>;
 
-  @property data = new Array<string>();
+  @property data = [] as string[];
 
   #parse = (v: string) => {
     // scripts/dom-stat
@@ -72,7 +72,7 @@ export class devtoolsStatisticsElement extends GemElement {
   #highlight = new Set<string>();
 
   @memo()
-  #setHightlight = () => {
+  #setHighlight = () => {
     this.#highlight = new Set(this.highlight || this.data);
   };
 

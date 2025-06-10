@@ -1,18 +1,10 @@
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
-// eslint-disable-next-line import/no-unresolved, import/no-extraneous-dependencies
 import type { ReactNode } from 'react';
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
-// eslint-disable-next-line import/no-unresolved, import/no-extraneous-dependencies
 import { useEffect, useRef, useState } from 'react';
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
-// eslint-disable-next-line import/no-unresolved, import/no-extraneous-dependencies
 import type { Root } from 'react-dom/client';
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
-// eslint-disable-next-line import/no-unresolved, import/no-extraneous-dependencies
 import { createRoot } from 'react-dom/client';
 
 import type { Store } from '../lib/store';

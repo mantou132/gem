@@ -133,7 +133,6 @@ export class DuoyunFormElement<Data = Record<string, any>> extends GemElement {
     const data = {} as Data;
     this.items.forEach((item) => {
       if (!item.name) return;
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       //@ts-ignore
       Object.assign(data, { [item.name]: item.data });
     });

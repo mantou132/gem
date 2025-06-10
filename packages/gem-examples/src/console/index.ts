@@ -5,7 +5,7 @@ import { history } from '@mantou/gem/lib/history';
 import { Toast } from 'duoyun-ui/elements/toast';
 import { darkTheme, lightTheme, theme } from 'duoyun-ui/lib/theme';
 import { sleep } from 'duoyun-ui/lib/timer';
-import { type ContextMenus, type NavItems, type Routes, type UserInfo } from 'duoyun-ui/patterns/console';
+import type { ContextMenus, NavItems, Routes, UserInfo } from 'duoyun-ui/patterns/console';
 
 import 'duoyun-ui/elements/badge';
 import 'duoyun-ui/elements/card';

@@ -131,10 +131,10 @@ export class DuoyunSelectionBoxElement extends GemElement {
       <dy-reflect .target=${document.body}>
         <dy-selection-box-mask
           style=${styleMap({
-            left: left + 'px',
-            top: top + 'px',
-            width: width + 'px',
-            height: height + 'px',
+            left: `${left}px`,
+            top: `${top}px`,
+            width: `${width}px`,
+            height: `${height}px`,
             cursor: this.#getCursor(),
           })}
         ></dy-selection-box-mask>

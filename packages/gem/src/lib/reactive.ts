@@ -1,7 +1,17 @@
 import type * as Lit from './lit-html';
 import type { Store } from './store';
 import { connect } from './store';
-import { addListener, addMicrotask, createUpdater, GemError, isArrayChange, LinkedList, randomStr, raw } from './utils';
+import {
+  addListener,
+  addMicrotask,
+  createUpdater,
+  GemError,
+  isArrayChange,
+  LinkedList,
+  randomStr,
+  raw,
+  type Updater,
+} from './utils';
 
 export let html = ((arr: TemplateStringsArray, ...args: any[]) =>
   raw(arr, ...args.map((e) => (e instanceof Element ? e.outerHTML : e)))) as unknown as typeof Lit.html;
@@ -22,6 +32,7 @@ const execCallback = (fun: any) => typeof fun === 'function' && fun();
 
 // 读取构造样式表，跨多个 gem 工作
 export const SheetToken = Symbol.for('gem@sheetToken');
+export type SheetTokenType = typeof SheetToken;
 // 更新元素，跨多个 gem 工作
 export const UpdateToken = Symbol.for('gem@update');
 
@@ -190,7 +201,7 @@ const appleCSSStyleSheet = (ele: HTMLElement, sheets: CSSStyleSheet[]) => {
 };
 
 /**必须使用在字段中，否则会读取到错误的实例 */
-export let createState: <T>(initState: T) => ReturnType<typeof createUpdater<T>>;
+export let createState: <T>(initState: T) => Updater<T>;
 
 type GetDepFun<T> = () => T;
 type EffectCallback<T> = (depValues: T, oldDepValues?: T) => any;
@@ -275,7 +286,7 @@ export abstract class GemElement extends HTMLElement {
   #internals: ElementInternals & {
     // 有别于 adoptedStyleSheets，用来定义单个实例样式
     sheets: GemCSSStyleSheet[];
-    stateList: ReturnType<typeof createState<any>>[];
+    stateList: Updater<any>[];
   };
   #effectList: EffectItem<any>[] = [];
   #memoList: EffectItem<any>[] = [];
@@ -315,7 +326,6 @@ export abstract class GemElement extends HTMLElement {
   constructor() {
     super();
 
-    // eslint-disable-next-line @typescript-eslint/no-this-alias
     currentConstructGemElement = this;
 
     const { mode, serializable, delegatesFocus, slotAssignment, aria } = this.#metadata;

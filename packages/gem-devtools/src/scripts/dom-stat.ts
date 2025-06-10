@@ -6,9 +6,9 @@ export function getDomStat(data: PanelStore): PanelStore {
   const { customElementMap, currentElementsMap } = __GEM_DEVTOOLS__STORE__;
   const { GemElement } = __GEM_DEVTOOLS__HOOK__;
 
-  const elements = new Array<string>();
-  const customElements = new Array<string>();
-  const gemElements = new Array<string>();
+  const elements: string[] = [];
+  const customElements: string[] = [];
+  const gemElements: string[] = [];
   const usedDefinedCustomElements = new Set<string>();
   const usedDefinedGemElements = new Set<string>();
 

@@ -1,5 +1,5 @@
-import { renameSync, symlinkSync, writeFileSync } from 'fs';
-import path from 'path';
+import { renameSync, symlinkSync, writeFileSync } from 'node:fs';
+import path from 'node:path';
 
 import { GenerateSW } from '@aaroon/workbox-rspack-plugin';
 import { CopyRspackPlugin, DefinePlugin, HtmlRspackPlugin, rspack } from '@rspack/core';

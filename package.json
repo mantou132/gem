@@ -3,7 +3,7 @@
   "name": "root",
   "version": "1.6.5",
   "scripts": {
-    "lint": "biome check --write && lerna exec --ignore @gemjs/config -- tsgo tsc --noEmit",
+    "lint": "biome check --write && lerna exec --ignore @gemjs/config -- tsgo --noEmit",
     "test": "lerna exec --concurrency=1 --scope \"{@mantou/gem,gem-book,duoyun-ui}\" -- pnpm test",
     "release": "lerna version",
     "prepare:build": "pnpm -C packages/gem build && lerna exec --scope \"{gem-analyzer,duoyun-ui,gem-book,@mantou/gem-port}\" -- pnpm build",
@@ -11,8 +11,8 @@
     "prepare": "husky install && pnpm prepare:build && pnpm prepare:link"
   },
   "devDependencies": {
-    "@biomejs/biome": "2.0.0-beta.1",
-    "@mxyhi/tsgo": "2025.4.16-12",
+    "@biomejs/biome": "^2.0.0-beta.6",
+    "@typescript/native-preview": "^7.0.0-dev.20250610.1",
     "@types/node": "^22.13.10",
     "concurrently": "^8.2.2",
     "cross-env": "^7.0.3",

@@ -223,7 +223,7 @@ class _GbpDocsearchElement extends GemBookPluginElement {
         const part = parts.pop();
         if (!part) continue;
         const parentId = parts.join('/');
-        const parent = record[parentId + '/'];
+        const parent = record[`${parentId}/`];
         if (!parent) continue;
         titleList.unshift(parent);
       }

@@ -138,7 +138,7 @@ export const parseElement = async (declaration: ClassDeclaration, file: SourceFi
   const constructorExtendsName = declaration.getExtends()?.getText();
   const cons = declaration.getConstructors()[0];
   const appendElementDesc = (desc = '') =>
-    (detail.description = (detail.description ? detail.description + '\n\n' : '') + desc);
+    (detail.description = (detail.description ? `${detail.description}\n\n` : '') + desc);
   declaration.getJsDocs().forEach((jsDoc) => appendElementDesc(jsDoc.getCommentText()));
 
   if (className && constructorExtendsName) {

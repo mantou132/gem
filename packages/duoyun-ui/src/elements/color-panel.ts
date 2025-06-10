@@ -288,7 +288,7 @@ export class DuoyunColorPanelElement extends GemElement {
       this.#state({ mode: 'Hex' });
       return;
     }
-    let str = '#' + evt.detail.trim().replace('#', '').replace(/[g-z]/gi, '').toLowerCase();
+    let str = `#${evt.detail.trim().replace('#', '').replace(/[g-z]/gi, '').toLowerCase()}`;
     // valid color emit event
     if (HEX_COLOR.test(str)) {
       const aStr = Math.round(a * 255)

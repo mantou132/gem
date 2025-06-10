@@ -10,7 +10,7 @@ import {
   property,
   shadow,
 } from '@mantou/gem/lib/decorators';
-import { css, GemElement, html, repeat, TemplateResult } from '@mantou/gem/lib/element';
+import { css, GemElement, html, repeat, type TemplateResult } from '@mantou/gem/lib/element';
 
 import { parseDurationToParts } from '../lib/time';
 

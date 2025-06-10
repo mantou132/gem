@@ -59,10 +59,10 @@ export const appendScanElement = () => {
         const { x, y, width, height } = container.getBoundingClientRect();
         const ele = document.createElement('div');
         ele.classList.add('highlight');
-        ele.style.left = x + 'px';
-        ele.style.top = y + 'px';
-        ele.style.width = width + 'px';
-        ele.style.height = height + 'px';
+        ele.style.left = `${x}px`;
+        ele.style.top = `${y}px`;
+        ele.style.width = `${width}px`;
+        ele.style.height = `${height}px`;
         highlightElements.set(container, { ele });
       }
 

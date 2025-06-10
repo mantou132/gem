@@ -1,5 +1,5 @@
 import type { TemplateContext } from '@mantou/typescript-template-language-service-decorator';
-import { Node } from '@mantou/vscode-css-languageservice';
+import type { Node } from '@mantou/vscode-css-languageservice';
 import type * as ts from 'typescript/lib/tsserverlibrary';
 import * as vscode from 'vscode-languageserver-types';
 
@@ -212,8 +212,8 @@ export function genElementDefinitionInfo(
       {
         containerName: 'Custom Element',
         containerKind: context.typescript.ScriptElementKind.unknown,
-        name: definitionNode.name!.text,
         kind: context.typescript.ScriptElementKind.classElement,
+        name: definitionNode.name!.text,
         fileName: definitionNode.getSourceFile().fileName,
         textSpan: {
           start: definitionNode.name!.getStart() - htmlOffset,
@@ -231,18 +231,19 @@ export function genAttrDefinitionInfo(
 ): ts.DefinitionInfoAndBoundSpan {
   // typescript-template-language-service-decorator 根据当前文档位置偏移了
   const htmlOffset = context.node.pos + 1;
+  const propName = propDeclaration.getText();
   return {
     textSpan: { start, length },
     definitions: [
       {
         containerName: 'Attribute',
         containerKind: context.typescript.ScriptElementKind.unknown,
-        name: propDeclaration.getText(),
         kind: context.typescript.ScriptElementKind.memberVariableElement,
+        name: propName,
         fileName: propDeclaration.getSourceFile().fileName,
         textSpan: {
           start: propDeclaration.getStart() - htmlOffset,
-          length: propDeclaration.getText().length,
+          length: propName.length,
         },
       },
     ],
@@ -260,8 +261,8 @@ export function genCurrentCtxDefinitionInfo(
       {
         containerName: 'Attribute',
         containerKind: context.typescript.ScriptElementKind.unknown,
-        name: context.text.slice(start, start + length),
         kind: context.typescript.ScriptElementKind.memberVariableElement,
+        name: context.text.slice(start, start + length),
         fileName: context.fileName,
         textSpan: definitionTextSpan,
       },
@@ -284,8 +285,8 @@ export function genCurrentCtxCssDefinitionInfo(
       nodes.map((node) => ({
         containerName: 'AttributeValue',
         containerKind: context.typescript.ScriptElementKind.unknown,
-        name: context.text.slice(start, start + length),
         kind: context.typescript.ScriptElementKind.memberVariableElement,
+        name: value,
         fileName: context.fileName,
         textSpan: { start: node.offset + ctx.node.pos - offset - htmlOffset, length: node.length },
       })),

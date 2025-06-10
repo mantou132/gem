@@ -521,7 +521,7 @@ export class Pre extends GemElement {
 
   #isVisble = false;
 
-  @effect((i) => [i.textContent, i.codelang, i.#isVisble])
+  @effect((i) => [i.textContent, i.codelang, i.range, i.#isVisble])
   #updateHtml = async () => {
     if (this.status === 'hidden') return;
     if (!this.#isVisble) return;

@@ -1,3 +1,6 @@
+/** biome-ignore-all lint/complexity/noCommaOperator: lit */
+/** biome-ignore-all lint/style/useTemplate: lit */
+
 /**
  * @license
  * Copyright 2017 Google LLC

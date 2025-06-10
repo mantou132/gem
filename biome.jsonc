@@ -60,6 +60,7 @@
       "recommended": true,
       "correctness": {
         "noUnusedImports": "warn",
+        "noUnusedPrivateClassMembers": "off",
         "noUnusedVariables": "warn"
       },
       "style": {

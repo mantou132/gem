@@ -14,7 +14,6 @@ export * from './reactive';
 export { repeat } from './repeat';
 
 declare global {
-  // eslint-disable-next-line no-var
   var __GEM_DEVTOOLS__HOOK__:
     | (typeof reactiveExports & typeof decoratorsExports & typeof storeExports & typeof versionExports)
     | Record<string, never>

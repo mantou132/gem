@@ -1,6 +1,6 @@
-import { addMicrotask, createUpdater } from './utils';
+import { addMicrotask, createUpdater, type Updater } from './utils';
 
-export type Store<T = any> = ReturnType<typeof createUpdater<T>>;
+export type Store<T = any> = Updater<T>;
 
 /**@internal */
 export const _StoreListenerMap = new WeakMap<Store<any>, Set<() => void>>();

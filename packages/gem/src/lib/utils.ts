@@ -42,6 +42,8 @@ export function createUpdater<T, Fn = (payload?: Partial<T>) => any>(initState: 
   return state as Fn & Omit<OverrideFn, keyof T> & T;
 }
 
+export type Updater<T, Fn = (payload?: Partial<T>) => any> = ReturnType<typeof createUpdater<T, Fn>>;
+
 // 不编码 hash 用于比较
 export function absoluteLocation(currentPath = '', relativePath = '') {
   const { pathname, search, hash } = new URL(relativePath, location.origin + currentPath);

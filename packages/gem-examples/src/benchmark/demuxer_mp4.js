@@ -35,7 +35,7 @@ class MP4FileSink {
     this.#offset += buffer.byteLength;
 
     // Append chunk.
-    this.#setStatus('fetch', (this.#offset / 1024 ** 2).toFixed(1) + ' MiB');
+    this.#setStatus('fetch', `${(this.#offset / 1024 ** 2).toFixed(1)} MiB`);
     this.#file.appendBuffer(buffer);
   }
 

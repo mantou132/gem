@@ -1,4 +1,4 @@
-/** biome-ignore-all lint/security/noGlobalEval: <explanation> */
+/** biome-ignore-all lint/security/noGlobalEval: local run */
 import type { TemplateResult } from '@mantou/gem/';
 
 import type { GemBookElement } from '../element';
@@ -194,7 +194,7 @@ class _GbpExampleElement extends GemBookPluginElement {
       ? icon.join('.')
       : key.startsWith('@') || this.#isFunction(value)
         ? String(value).includes('customElements.get')
-          ? key.replace(/@(\w)/, (_, c) => 'on' + c.toUpperCase())
+          ? key.replace(/@(\w)/, (_, c) => `on${c.toUpperCase()}`)
           : String(value)
         : this.#jsonStringify(value);
     const kString = key.startsWith('@') || key === 'style' ? key : `.${key}`;
@@ -216,7 +216,7 @@ class _GbpExampleElement extends GemBookPluginElement {
   };
 
   #renderTag = (tag: string, props: Props, close?: boolean) => {
-    const openToken = '<' + (close ? '/' : '');
+    const openToken = `<${close ? '/' : ''}`;
     const closeToken = '>';
     return html`${this.#renderToken(openToken)}<span class="tag">${tag}${close ? '' : this.#renderProps(props)}</span
       >${this.#renderToken(closeToken)}`;
@@ -228,9 +228,9 @@ class _GbpExampleElement extends GemBookPluginElement {
     if (props.tagName === 'style') {
       const style = new CSSStyleSheet();
       style.replaceSync(props.innerHTML as string);
-      text = '\n' + this.#addIndentation([...style.cssRules].map((rule) => rule.cssText)) + '\n';
+      text = `\n${this.#addIndentation([...style.cssRules].map((rule) => rule.cssText))}\n`;
     } else {
-      text = '\n' + this.#addIndentation(String(props.innerHTML)) + '\n';
+      text = `\n${this.#addIndentation(String(props.innerHTML))}\n`;
     }
     return html`<span class="inner">${text}</span>`;
   };
