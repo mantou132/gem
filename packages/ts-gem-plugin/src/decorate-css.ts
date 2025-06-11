@@ -1,6 +1,6 @@
 import type { TemplateContext, TemplateLanguageService } from '@mantou/typescript-template-language-service-decorator';
 import type { CompletionList, Node, Stylesheet } from '@mantou/vscode-css-languageservice';
-import { NodeType, updateTags as updateCSSTags } from '@mantou/vscode-css-languageservice';
+import { NodeType } from '@mantou/vscode-css-languageservice';
 import { doComplete as doEmmetComplete } from '@mantou/vscode-emmet-helper';
 import type * as ts from 'typescript/lib/tsserverlibrary';
 
@@ -53,7 +53,7 @@ export class CSSLanguageService implements TemplateLanguageService {
       let emmetResults: CompletionList | undefined;
       const onCssProperty = () => (emmetResults = doEmmetComplete(vDoc, pos, 'css', this.#ctx.config.emmet));
       this.#ctx.cssLanguageService.setCompletionParticipants([{ onCssProperty }]);
-      updateCSSTags([...this.#ctx.elements].map(([tag]) => tag));
+      this.#ctx.prepareComplete(context.node);
       const completions = this.#ctx.cssLanguageService.doComplete(vDoc, pos, vCss);
 
       completions.items.push(...(emmetResults?.items || []));

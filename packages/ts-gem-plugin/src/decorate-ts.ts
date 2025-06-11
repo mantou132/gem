@@ -3,12 +3,12 @@ import { isNotNullish } from 'duoyun-ui/lib/types';
 import type { LanguageService } from 'typescript';
 import type * as ts from 'typescript/lib/tsserverlibrary';
 
-import { Decorators } from './constants';
+import { Decorators, Utils } from './constants';
 import type { Context } from './context';
 import {
   bindMemberFunction,
   decorate,
-  getAllStyleNode,
+  getAllCss,
   getAstNodeAtPosition,
   getCurrentElementDecl,
   getTagInfo,
@@ -25,6 +25,17 @@ export function decorateLanguageService(ctx: Context, languageService: LanguageS
     const typeChecker = program.getTypeChecker();
     // 可以移动到更合适的位置
     decorate(typeChecker, () => decorateTypeChecker(ctx, typeChecker));
+
+    const classKeys = getClassKeys(ctx, args[0], args[1]);
+    if (classKeys) {
+      return {
+        isGlobalCompletion: true,
+        isMemberCompletion: true,
+        isNewIdentifierLocation: true,
+        entries: classKeys.map((name) => ({ kind: ts.ScriptElementKind.enumMemberElement, sortText: '', name })),
+      };
+    }
+
     return ls.getCompletionsAtPosition(...args);
   };
 
@@ -118,18 +129,14 @@ export function decorateLanguageService(ctx: Context, languageService: LanguageS
       return {
         textSpan: classMapKeyInfo.textSpan,
         definitions: classMapKeyInfo.styles
-          .flatMap((e) => {
-            const { fileName } = e.getSourceFile();
-            const templateContext = ctx.cssSourceHelper.getTemplate(fileName, e.pos + 1);
-            if (!templateContext) return;
-            const { classIdNodeMap } = ctx.getCssDoc(templateContext.text);
+          .flatMap(({ classIdNodeMap, templateNode }) => {
             return classIdNodeMap.get(classMapKeyInfo.text)?.map((node) => ({
               kind,
               containerKind,
               fileName,
               containerName: '',
               name: '',
-              textSpan: { start: node.offset + e.pos + 1, length: node.getText().length },
+              textSpan: { start: node.offset + templateNode.pos + 1, length: node.getText().length },
             }));
           })
           .filter(isNotNullish),
@@ -198,7 +205,7 @@ export function decorateLanguageService(ctx: Context, languageService: LanguageS
     // @ts-ignore
     const oResult = [...(ls.findRenameLocations(fileName, position, ...args) || [])];
     const file = ctx.getProgram().getSourceFile(fileName)!;
-    const node = getAstNodeAtPosition(ctx.ts, file, position);
+    const node = getAstNodeAtPosition(ts, file, position);
 
     const tag = node && ts.isPropertyDeclaration(node.parent) && ctx.getTagFromNode(node.parent.parent);
     if (!tag || !ts.isIdentifier(node)) return oResult;
@@ -209,7 +216,7 @@ export function decorateLanguageService(ctx: Context, languageService: LanguageS
     // FIXME: <my-element camelCase="5" ?camelCase>
     // 不能指定目标文本：https://github.com/microsoft/vscode/issues/248912
     // NOTE: 冒泡事件处理器无法找到
-    if (isPropType(ctx.ts, node.parent, [Decorators.Emitter, Decorators.GlobalEmitter])) {
+    if (isPropType(ts, node.parent, [Decorators.Emitter, Decorators.GlobalEmitter])) {
       getAllTagFromProp(ctx, node).forEach((tag) => {
         forEachAllHtmlTemplateNode(ctx, tag, (f, tagInfo) => {
           const info = tagInfo.node.attributesMap.get(`@${kebabCaseName}`);
@@ -220,7 +227,7 @@ export function decorateLanguageService(ctx: Context, languageService: LanguageS
       });
     }
     // NOTE: CSS 中的属性选择器没有寻找，因为很难找全
-    if (isPropType(ctx.ts, node.parent, [Decorators.Attr, Decorators.NumAttr, Decorators.BoolAttr, Decorators.Prop])) {
+    if (isPropType(ts, node.parent, [Decorators.Attr, Decorators.NumAttr, Decorators.BoolAttr, Decorators.Prop])) {
       getAllTagFromProp(ctx, node).forEach((tag) => {
         forEachAllHtmlTemplateNode(ctx, tag, (f, tagInfo) => {
           const propNames = [
@@ -333,18 +340,50 @@ function findDefinedTagInfo(ctx: Context, fileName: string, position: number) {
 }
 
 function getClassMapKeyInfo(ctx: Context, fileName: string, position: number) {
-  const program = ctx.getProgram();
-  const file = program.getSourceFile(fileName)!;
-  const typeChecker = program.getTypeChecker();
+  const file = ctx.getProgram().getSourceFile(fileName)!;
   const node = getAstNodeAtPosition(ctx.ts, file, position);
   const decl = node && getCurrentElementDecl(ctx.ts, node);
   if (decl && isClassMapKey(ctx.ts, node)) {
     const isString = ctx.ts.isStringLiteral(node);
     return {
       text: node.text,
-      styles: getAllStyleNode(ctx.ts, typeChecker, decl),
+      styles: getAllCss(ctx, decl),
       textSpan: { start: node.getStart() + (isString ? 1 : 0), length: node.text.length },
     };
+  }
+}
+
+function isClassMap(typescript: typeof ts, node: ts.Node) {
+  if (!node.parent?.parent) return false;
+  const beforeText = node.getSourceFile().getText().slice(0, node.pos);
+  const callExp = node.parent;
+  const isClassMapProp =
+    typescript.isObjectLiteralExpression(node) &&
+    !beforeText.endsWith(':') &&
+    typescript.isCallExpression(callExp) &&
+    typescript.isIdentifier(callExp.expression) &&
+    callExp.expression.text === Utils.ClassMap;
+  return isClassMapProp || isClassMapKey(typescript, node);
+}
+
+function getCurrentClassMap(typescript: typeof ts, node: ts.Node) {
+  while (!typescript.isObjectLiteralExpression(node)) {
+    node = node.parent;
+    if (!node) return;
+  }
+  return node;
+}
+
+function getClassKeys(ctx: Context, fileName: string, position: number) {
+  const file = ctx.getProgram().getSourceFile(fileName)!;
+  const node = getAstNodeAtPosition(ctx.ts, file, position);
+  const decl = node && getCurrentElementDecl(ctx.ts, node);
+  if (decl && isClassMap(ctx.ts, node)) {
+    const obj = getCurrentClassMap(ctx.ts, node)!;
+    const keys = new Set(obj.properties.map((e) => e.name?.getText()));
+    return getAllCss(ctx, decl).flatMap(({ classIdNodeMap }) => {
+      return [...classIdNodeMap.entries()].filter(([k]) => !keys.has(k) && !k.startsWith('#')).map(([k]) => k);
+    });
   }
 }
 

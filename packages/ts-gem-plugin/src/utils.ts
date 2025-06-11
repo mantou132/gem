@@ -3,6 +3,7 @@ import { isNotNullish } from 'duoyun-ui/lib/types';
 import type * as ts from 'typescript/lib/tsserverlibrary';
 
 import { Decorators, Utils } from './constants';
+import type { Context } from './context';
 
 export function isCustomElementTag(tag: string) {
   return tag.includes('-');
@@ -45,6 +46,7 @@ export function isClassMapKey(typescript: typeof ts, node: ts.Node): node is ts.
   return (
     key &&
     typescript.isPropertyAssignment(assignment) &&
+    assignment.initializer !== node &&
     typescript.isObjectLiteralExpression(obj) &&
     typescript.isCallExpression(callExp) &&
     typescript.isIdentifier(callExp.expression) &&
@@ -82,6 +84,17 @@ export function getAllStyleNode(typescript: typeof ts, typeChecker: ts.TypeCheck
           : undefined;
       if (!arg) return null;
       return getArgNode(arg);
+    })
+    .filter(isNotNullish);
+}
+
+export function getAllCss(ctx: Context, node: ts.ClassDeclaration) {
+  return getAllStyleNode(ctx.ts, ctx.getProgram().getTypeChecker(), node)
+    .map((templateNode) => {
+      const { fileName } = templateNode.getSourceFile();
+      const templateContext = ctx.cssSourceHelper.getTemplate(fileName, templateNode.pos + 1);
+      if (!templateContext) return;
+      return { ...ctx.getCssDoc(templateContext.text), templateContext, templateNode };
     })
     .filter(isNotNullish);
 }

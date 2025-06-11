@@ -1,23 +1,21 @@
 import { camelToKebabCase } from '@mantou/gem/lib/utils';
-import type { IAttributeData, IHTMLDataProvider } from '@mantou/vscode-html-languageservice';
+import type { IAttributeData, IHTMLDataProvider, IValueData } from '@mantou/vscode-html-languageservice';
 import { getDefaultHTMLDataProvider } from '@mantou/vscode-html-languageservice';
-import type { StringWeakMap } from 'duoyun-ui/lib/map';
 import type * as ts from 'typescript/lib/tsserverlibrary';
 
 import { NAME, Types } from './constants';
-import { getAttrName, isDepElement } from './utils';
+import type { Context } from './context';
+import { getAllCss, getAttrName, getCurrentElementDecl, isDepElement } from './utils';
 
 export const dataProvider = getDefaultHTMLDataProvider();
 
 export class HTMLDataProvider implements IHTMLDataProvider {
   #ts: typeof ts;
-  #elements: StringWeakMap<ts.ClassDeclaration>;
-  #getProgram: () => ts.Program;
+  #ctx: Context;
 
-  constructor(typescript: typeof ts, elements: StringWeakMap<ts.ClassDeclaration>, getProgram: () => ts.Program) {
-    this.#ts = typescript;
-    this.#elements = elements;
-    this.#getProgram = getProgram;
+  constructor(ctx: Context) {
+    this.#ts = ctx.ts;
+    this.#ctx = ctx;
   }
 
   getId() {
@@ -29,7 +27,7 @@ export class HTMLDataProvider implements IHTMLDataProvider {
   }
 
   provideTags() {
-    return [...this.#elements].map(([tag, node]) => ({
+    return [...this.#ctx.elements].map(([tag, node]) => ({
       name: tag,
       attributes: [],
       description: getDocComment(this.#ts, node),
@@ -38,8 +36,8 @@ export class HTMLDataProvider implements IHTMLDataProvider {
 
   provideAttributes(tag: string) {
     const ts = this.#ts;
-    const typeChecker = this.#getProgram().getTypeChecker();
-    const node = this.#elements.get(tag);
+    const typeChecker = this.#ctx.getProgram().getTypeChecker();
+    const node = this.#ctx.elements.get(tag);
     const result: IAttributeData[] = [
       { name: 'v-if', description: 'Similar to vue `v-if`' },
       { name: 'v-else-if', description: 'Similar to vue `v-else-if`' },
@@ -94,12 +92,26 @@ export class HTMLDataProvider implements IHTMLDataProvider {
   }
 
   provideValues(tag: string, attr: string) {
-    const typeChecker = this.#getProgram().getTypeChecker();
-    const node = this.#elements.get(tag);
-    if (!node) return [];
-    const prop = typeChecker.getTypeAtLocation(node).getProperty(getAttrName(attr).attr);
-    const result = prop && getUnionValues(typeChecker.getTypeOfSymbol(prop));
-    return result?.map((name) => ({ name })) || [];
+    const result: IValueData[] = [];
+    const typeChecker = this.#ctx.getProgram().getTypeChecker();
+    const node = this.#ctx.elements.get(tag);
+    const prop = node && typeChecker.getTypeAtLocation(node).getProperty(getAttrName(attr).attr);
+    const values = prop && getUnionValues(typeChecker.getTypeOfSymbol(prop));
+    values?.forEach((name) => result.push({ name }));
+    if (attr === 'class' || attr === 'id') {
+      const currentElementDecl = getCurrentElementDecl(this.#ts, this.#ctx.currentNode!);
+      if (currentElementDecl) {
+        getAllCss(this.#ctx, currentElementDecl).forEach(({ classIdNodeMap }) => {
+          classIdNodeMap
+            .entries()
+            .filter(([key]) => !(+(attr === 'id') ^ +key.startsWith('#')))
+            .forEach(([classOrId]) => {
+              result.push({ name: classOrId.slice(attr === 'id' ? 1 : 0) });
+            });
+        });
+      }
+    }
+    return result;
   }
 }
 

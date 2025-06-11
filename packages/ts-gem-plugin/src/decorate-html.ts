@@ -1,7 +1,7 @@
 import { camelToKebabCase, kebabToCamelCase } from '@mantou/gem/lib/utils';
 import type { TemplateContext, TemplateLanguageService } from '@mantou/typescript-template-language-service-decorator';
 import { NodeType, updateTags as updateCSSTags } from '@mantou/vscode-css-languageservice';
-import { doComplete as doEmmetComplete, updateTags } from '@mantou/vscode-emmet-helper';
+import { doComplete as doEmmetComplete } from '@mantou/vscode-emmet-helper';
 import type { CompletionList, HTMLDocument, Position, Range } from '@mantou/vscode-html-languageservice';
 import { isNotNullish } from 'duoyun-ui/lib/types';
 import type * as ts from 'typescript/lib/tsserverlibrary';
@@ -22,7 +22,7 @@ import {
 } from './translates';
 import {
   forEachNode,
-  getAllStyleNode,
+  getAllCss,
   getAstNodeAtPosition,
   getAttrName,
   getCurrentElementDecl,
@@ -89,40 +89,15 @@ export class HTMLLanguageService implements TemplateLanguageService {
 
   #getCompletionsAtPosition(context: TemplateContext, position: ts.LineAndCharacter) {
     return this.#completionsCache.get(context, position, () => {
-      const typeChecker = this.#ctx.getProgram().getTypeChecker();
-      const currentOffset = context.toOffset(position);
       const { vDoc, vHtml } = this.#ctx.getHtmlDoc(context.text);
-
       let emmetResults: CompletionList | undefined;
-      const onHtmlContent = () => {
-        updateTags([...this.#ctx.elements].map(([tag]) => tag));
-        emmetResults = doEmmetComplete(vDoc, position, 'html', this.#ctx.config.emmet);
-      };
+      const onHtmlContent = () => (emmetResults = doEmmetComplete(vDoc, position, 'html', this.#ctx.config.emmet));
       this.#ctx.htmlLanguageService.setCompletionParticipants([{ onHtmlContent }]);
+      this.#ctx.prepareComplete(context.node);
       const completions = this.#ctx.htmlLanguageService.doComplete(vDoc, position, vHtml);
 
       completions.items.push(...(emmetResults?.items || []));
       completions.items.push(...this.#getCSSCompletionsAtPosition(context, position, vHtml));
-
-      const { attrName } = getHTMLNodeAtPosition(vHtml, currentOffset);
-      const { attr } = getAttrName(attrName);
-      if (attr === 'class' || attr === 'id') {
-        const currentElementDecl = getCurrentElementDecl(context.typescript, context.node);
-        if (currentElementDecl) {
-          getAllStyleNode(this.#ctx.ts, typeChecker, currentElementDecl).forEach((e) => {
-            const { fileName } = e.getSourceFile();
-            const templateContext = this.#ctx.cssSourceHelper.getTemplate(fileName, e.pos + 1);
-            if (!templateContext) return;
-            const { classIdNodeMap } = this.#ctx.getCssDoc(templateContext.text);
-            classIdNodeMap
-              .entries()
-              .filter(([key]) => !(+(attr === 'id') ^ +key.startsWith('#')))
-              .forEach(([classOrId]) => {
-                completions.items.push({ label: classOrId.slice(attr === 'id' ? 1 : 0) });
-              });
-          });
-        }
-      }
 
       return completions;
     });
@@ -474,12 +449,8 @@ export class HTMLLanguageService implements TemplateLanguageService {
         context,
         currentAttrValue.text,
         attrEnd + 1 + currentAttrValue.start,
-        getAllStyleNode(this.#ctx.ts, typeChecker, currentElementDecl)
-          .flatMap((e) => {
-            const { fileName } = e.getSourceFile();
-            const templateContext = this.#ctx.cssSourceHelper.getTemplate(fileName, e.pos + 1);
-            if (!templateContext) return;
-            const { classIdNodeMap } = this.#ctx.getCssDoc(templateContext.text);
+        getAllCss(this.#ctx, currentElementDecl)
+          .flatMap(({ classIdNodeMap, templateContext }) => {
             const nodes = classIdNodeMap.get(attr === 'id' ? `#${currentAttrValue.text}` : currentAttrValue.text);
             return { ctx: templateContext, nodes: nodes || [], offset: 0 };
           })

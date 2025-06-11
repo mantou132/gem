@@ -2,7 +2,8 @@ import type { Logger, TemplateSettings } from '@mantou/typescript-template-langu
 import StandardScriptSourceHelper from '@mantou/typescript-template-language-service-decorator/lib/standard-script-source-helper';
 import StandardTemplateSourceHelper from '@mantou/typescript-template-language-service-decorator/lib/standard-template-source-helper';
 import type { LanguageService as CssLS, Node as CssNode, Stylesheet } from '@mantou/vscode-css-languageservice';
-import { getCSSLanguageService, NodeType } from '@mantou/vscode-css-languageservice';
+import { getCSSLanguageService, NodeType, updateTags } from '@mantou/vscode-css-languageservice';
+import { updateTags as updateHTMLTags } from '@mantou/vscode-emmet-helper';
 import type { HTMLDocument, LanguageService, Node } from '@mantou/vscode-html-languageservice';
 import { getLanguageService as getHTMLanguageService, TextDocument } from '@mantou/vscode-html-languageservice';
 import { StringWeakMap } from 'duoyun-ui/lib/map';
@@ -38,6 +39,9 @@ class NodeMap<T> {
  * 全局上下文，数据共享
  */
 export class Context {
+  // 用于 data-provider 自动完成
+  currentNode?: ts.Node;
+  // TODO: 支持同名元素，查找时使用最近的声明
   elements: StringWeakMap<ts.ClassDeclaration>;
   builtInElements: StringWeakMap<ts.InterfaceDeclaration>;
   ts: typeof ts;
@@ -62,7 +66,7 @@ export class Context {
     this.builtInElements = new StringWeakMap();
     this.cssLanguageService = getCSSLanguageService({});
     this.htmlLanguageService = getHTMLanguageService({
-      customDataProviders: [new HTMLDataProvider(typescript, this.elements, this.getProgram)],
+      customDataProviders: [new HTMLDataProvider(this)],
     });
     this.htmlTemplateStringSettings = {
       tags: ['html', 'raw', 'h'],
@@ -158,6 +162,13 @@ export class Context {
       });
       return { vDoc, vHtml, tagNodeMap, classIdNodeMap };
     });
+  }
+
+  prepareComplete(node: ts.Node) {
+    const tags = [...this.elements].map(([tag]) => tag);
+    updateHTMLTags(tags);
+    updateTags(tags);
+    this.currentNode = node;
   }
 
   getTagFromNode(node: ts.Node, supportClassName = isDepElement(node)) {
