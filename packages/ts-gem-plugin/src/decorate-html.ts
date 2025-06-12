@@ -22,7 +22,6 @@ import {
 } from './translates';
 import {
   forEachNode,
-  getAllCss,
   getAstNodeAtPosition,
   getAttrName,
   getCurrentElementDecl,
@@ -377,12 +376,13 @@ export class HTMLLanguageService implements TemplateLanguageService {
               messageText: `Consider using '${camelToKebabCase(attrInfo.attr)}'`,
             });
           } else if (globalEnumeratedBooleanAttr.has(attrInfo.attr)) {
-            if (valueLetter !== 'true' && valueLetter !== 'false') {
+            const values = ['true', 'false', ...globalEnumeratedBooleanAttr.get(attrInfo.attr)!];
+            if (!values.includes(valueLetter)) {
               // <div draggable="string">
               diagnostics.push({
                 ...diagnostic,
                 code: DiagnosticCode.PropTypeError,
-                messageText: `Must be 'true' or 'false'`,
+                messageText: `Must be ${values.join(', ')}`,
               });
             }
           } else if (types.every((t) => !typeChecker.isTypeAssignableTo(t, propType))) {
@@ -449,7 +449,8 @@ export class HTMLLanguageService implements TemplateLanguageService {
         context,
         currentAttrValue.text,
         attrEnd + 1 + currentAttrValue.start,
-        getAllCss(this.#ctx, currentElementDecl)
+        this.#ctx
+          .getAllCss(currentElementDecl)
           .flatMap(({ classIdNodeMap, templateContext }) => {
             const nodes = classIdNodeMap.get(attr === 'id' ? `#${currentAttrValue.text}` : currentAttrValue.text);
             return { ctx: templateContext, nodes: nodes || [], offset: 0 };
@@ -583,7 +584,13 @@ const buildInElementNoGlobalAttrPropMap = new Map([
   ['list', 'ariaLabelledby'],
 ]);
 
-const globalEnumeratedBooleanAttr = new Set(['draggable']);
+const globalAttrPropMap = new Map([['contenteditable', 'contentEditable']]);
+
+const globalEnumeratedBooleanAttr = new Map([
+  ['draggable', []],
+  ['spellcheck', []],
+  ['contenteditable', ['plaintext-only']],
+]);
 
 function getPropType(
   typeChecker: ts.TypeChecker,
@@ -596,9 +603,11 @@ function getPropType(
   if (attrInfo.attr.startsWith('data-')) {
     return typeChecker.getStringType();
   }
-  const propName = isBuiltInTag
-    ? buildInElementNoGlobalAttrPropMap.get(attrInfo.attr) || kebabToCamelCase(attrInfo.attr)
-    : kebabToCamelCase(attrInfo.attr);
+  const propName =
+    globalAttrPropMap.get(attrInfo.attr) ||
+    (isBuiltInTag
+      ? buildInElementNoGlobalAttrPropMap.get(attrInfo.attr) || kebabToCamelCase(attrInfo.attr)
+      : kebabToCamelCase(attrInfo.attr));
   switch (propName) {
     case 'class':
     case 'style':

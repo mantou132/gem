@@ -5,7 +5,7 @@ import type * as ts from 'typescript/lib/tsserverlibrary';
 
 import { NAME, Types } from './constants';
 import type { Context } from './context';
-import { getAllCss, getAttrName, getCurrentElementDecl, isDepElement } from './utils';
+import { getAttrName, getCurrentElementDecl, isDepElement } from './utils';
 
 export const dataProvider = getDefaultHTMLDataProvider();
 
@@ -101,7 +101,7 @@ export class HTMLDataProvider implements IHTMLDataProvider {
     if (attr === 'class' || attr === 'id') {
       const currentElementDecl = getCurrentElementDecl(this.#ts, this.#ctx.currentNode!);
       if (currentElementDecl) {
-        getAllCss(this.#ctx, currentElementDecl).forEach(({ classIdNodeMap }) => {
+        this.#ctx.getAllCss(currentElementDecl).forEach(({ classIdNodeMap }) => {
           classIdNodeMap
             .entries()
             .filter(([key]) => !(+(attr === 'id') ^ +key.startsWith('#')))

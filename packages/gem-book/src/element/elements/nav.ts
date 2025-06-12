@@ -57,6 +57,35 @@ const styles = css`
     inset: 0;
     opacity: 0;
   }
+  .item select,
+  ::picker(select) {
+    appearance: base-select;
+  }
+  ::picker(select) {
+    border: none;
+    background: transparent;
+  }
+  option {
+    border: 1px solid ${theme.borderColor};
+    background: ${theme.backgroundColor};
+    padding: 0.5em 1em;
+    width: 4.8em;
+    &:hover {
+      color: ${theme.primaryColor}
+    }
+    &:first-of-type {
+      border-radius: ${theme.smallRound} ${theme.smallRound} 0 0;
+    }
+    &:last-of-type {
+      border-radius: 0 0 ${theme.smallRound} ${theme.smallRound};
+    }
+    &:not(&:last-of-type) {
+      border-bottom: none;
+    }
+    &::checkmark {
+      content: none;
+    }
+  }
   .left {
     flex-grow: 1;
     display: flex;

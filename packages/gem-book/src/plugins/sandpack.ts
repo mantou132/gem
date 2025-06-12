@@ -68,7 +68,7 @@ type State = {
 };
 
 const { GemBookPluginElement } = (await customElements.whenDefined('gem-book')) as typeof GemBookElement;
-const { theme, icons, Utils, mediaQuery } = GemBookPluginElement;
+const { theme, icons, Utils, mediaQuery, themeStore } = GemBookPluginElement;
 const {
   html,
   customElement,
@@ -91,9 +91,11 @@ const styles = css`
     container-type: inline-size;
     margin: 2rem 0px;
   }
-  @media ${mediaQuery.WIDTHSCREEN} {
-    :host {
-      margin-inline: -10em;
+  @container (width <= ${themeStore.maxMainWidth}) {
+    @media ${mediaQuery.WIDTHSCREEN} {
+      .container {
+        margin-inline: -10em;
+      }
     }
   }
   .container {
@@ -178,7 +180,7 @@ const styles = css`
     width: 1px;
     opacity: 0;
   }
-  @container (max-width: 700px) {
+  @container (width < 700px) {
     .container {
       grid-template: 'tabs' 'code' 'preview' / 100%;
     }

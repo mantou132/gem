@@ -8,7 +8,7 @@ import type { BookConfig } from '../../common/config';
 import { debounce, throttle } from '../../common/utils';
 import { icons } from '../elements/icons';
 import { originDocLang, selfI18n } from '../helper/i18n';
-import { theme } from '../helper/theme';
+import { theme, themeStore } from '../helper/theme';
 import { parseMarkdown, unsafeRenderHTML } from '../lib/renderer';
 import { capitalize, escapeHTML, getParts, getRanges, getURL, isGitLab, joinPath } from '../lib/utils';
 import { bookStore, locationStore } from '../store';
@@ -64,6 +64,7 @@ export class GemBookPluginElement extends GemElement {
 
   static caches = new Map<typeof GemBookPluginElement, Map<string, any>>();
   static theme = theme;
+  static themeStore = themeStore;
   static icons = icons;
   static selfI18n = selfI18n;
   static originDocLang = originDocLang;

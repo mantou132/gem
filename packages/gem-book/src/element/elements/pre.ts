@@ -15,17 +15,11 @@ import {
 } from '@mantou/gem';
 import { mediaQuery } from '@mantou/gem/helper/mediaquery';
 
+import { debounce } from '../../common/utils';
 import { theme } from '../helper/theme';
 import { getParts, getRanges } from '../lib/utils';
 
 const prismjs = 'https://esm.sh/prismjs@v1.29.0';
-
-let contenteditableValue = 'true';
-(() => {
-  const div = document.createElement('div');
-  div.setAttribute('contenteditable', 'plaintext-only');
-  if (div.isContentEditable) contenteditableValue = 'plaintext-only';
-})();
 
 const supportAnchor = CSS.supports('anchor-name: --foo');
 
@@ -490,6 +484,40 @@ export class Pre extends GemElement {
     );
   };
 
+  @memo()
+  #setEditHighlightLine = () => {
+    if (!this.editable || !this.#editorRef.value) return;
+    const sel = (this.shadowRoot as unknown as Window).getSelection?.() || getSelection();
+    if (!sel || !sel.focusNode) return;
+    if (!this.shadowRoot!.contains(sel.focusNode)) return;
+
+    if (sel.anchorNode !== sel.focusNode || sel.anchorOffset !== sel.focusOffset) {
+      this.#highlightLineSet = new Set();
+      return;
+    }
+
+    let text = '';
+    let currentNode: Node | null;
+    const walker = document.createTreeWalker(this.#editorRef.value, NodeFilter.SHOW_TEXT);
+    while ((currentNode = walker.nextNode()) && currentNode !== sel.focusNode) {
+      text += currentNode.nodeValue!;
+    }
+    const currentNdoeText =
+      sel.focusNode === this.#editorRef.value! ? 0 : sel.focusNode.nodeValue!.slice(0, sel.focusOffset);
+    const value = text + currentNdoeText;
+    const lineNum = value.split('\n').length;
+    this.#highlightLineSet = new Set([lineNum]);
+  };
+
+  #updateSelection = debounce(this.update, 20);
+
+  @mounted()
+  #listenerCaret = () => {
+    if (!this.editable) return;
+    this.addEventListener('mouseup', this.#updateSelection);
+    this.addEventListener('keyup', this.#updateSelection);
+  };
+
   #getParts(s: string) {
     return getParts(s.split(/\n|\r\n/), this.#ranges);
   }
@@ -554,7 +582,7 @@ export class Pre extends GemElement {
 
   @mounted()
   #initContent = () => {
-    if (this.#contentElement && this.#contentElement?.textContent !== this.textContent) {
+    if (this.#contentElement && this.#contentElement.textContent !== this.textContent) {
       this.#contentElement!.textContent = this.textContent;
     }
   };
@@ -600,45 +628,34 @@ export class Pre extends GemElement {
                 `
               : '',
           )}
-        ${
-          this.#linenumber
-            ? html`
-              <div class="linenumber padding">
-                ${lineNumbersParts.map(
-                  (numbers, index, arr) => html`
-                    ${numbers.map((n) => html`<span>${n}</span>`)}${
-                      arr.length - 1 !== index ? html`<span class="linenumber-ignore"></span>` : ''
-                    }
-                  `,
-                )}
-              </div>
-            `
-            : ''
-        }
+        <div v-if=${this.#linenumber} class="linenumber padding">
+          ${lineNumbersParts.map(
+            (numbers, index, arr) => html`
+              ${numbers.map((n) => html`<span>${n}</span>`)}
+              <span v-if=${arr.length - 1 !== index} class="linenumber-ignore"></span>
+            `,
+          )}
+        </div>
         <div class="code-container">
           <code
             ${this.#codeRef}
             class="gem-code padding"
             spellcheck="false"
-            contenteditable=${this.editable ? contenteditableValue : false}
+            contenteditable=${this.editable ? 'plaintext-only' : 'false'}
             @compositionstart=${this.#compositionstartHandle}
             @compositionend=${this.#compositionendHandle}
             @input=${this.#onInput}
-            >${parts.join('\n'.repeat(IGNORE_LINE + 1))}</code
-          >
-          ${
-            this.editable
-              ? html`<code
-                ${this.#editorRef}
-                class="code-shadow padding"
-                spellcheck="false"
-                contenteditable=${this.editable ? contenteditableValue : false}
-                @compositionstart=${this.#compositionstartHandle}
-                @compositionend=${this.#compositionendHandle}
-                @input=${this.#onInput}
-              ></code>`
-              : ''
-          }
+          >${parts.join('\n'.repeat(IGNORE_LINE + 1))}</code>
+          <code
+            ${this.#editorRef}
+            v-if=${this.editable}
+            class="code-shadow padding"
+            spellcheck="false"
+            contenteditable="plaintext-only"
+            @compositionstart=${this.#compositionstartHandle}
+            @compositionend=${this.#compositionendHandle}
+            @input=${this.#onInput}
+          ></code>
         </div>
       </div>
     `;

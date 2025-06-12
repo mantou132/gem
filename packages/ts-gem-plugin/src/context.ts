@@ -7,12 +7,20 @@ import { updateTags as updateHTMLTags } from '@mantou/vscode-emmet-helper';
 import type { HTMLDocument, LanguageService, Node } from '@mantou/vscode-html-languageservice';
 import { getLanguageService as getHTMLanguageService, TextDocument } from '@mantou/vscode-html-languageservice';
 import { StringWeakMap } from 'duoyun-ui/lib/map';
+import { isNotNullish } from 'duoyun-ui/lib/types';
 import type * as ts from 'typescript/lib/tsserverlibrary';
 
 import { LRUCache } from './cache';
 import type { Configuration } from './configuration';
 import { HTMLDataProvider } from './data-provider';
-import { forEachNode, getAllIdent, getIdentAtPosition, getTagFromNodeWithDecorator, isDepElement } from './utils';
+import {
+  forEachNode,
+  getAllIdent,
+  getAllStyleNode,
+  getIdentAtPosition,
+  getTagFromNodeWithDecorator,
+  isDepElement,
+} from './utils';
 
 declare module '@mantou/vscode-html-languageservice' {
   interface Node {
@@ -123,6 +131,17 @@ export class Context {
     });
   }
 
+  getAllCss(node: ts.ClassDeclaration) {
+    return getAllStyleNode(this.ts, this.getProgram().getTypeChecker(), node)
+      .map((templateNode) => {
+        const { fileName } = templateNode.getSourceFile();
+        const templateContext = this.cssSourceHelper.getTemplate(fileName, templateNode.pos + 1);
+        if (!templateContext) return;
+        return { ...this.getCssDoc(templateContext.text), templateContext, templateNode };
+      })
+      .filter(isNotNullish);
+  }
+
   #virtualHtmlCache = new LRUCache<{
     vDoc: TextDocument;
     vHtml: HTMLDocument;
@@ -231,6 +250,54 @@ export class Context {
 }
 
 const partialBuiltInElementMap: Record<string, string[]> = {
+  HTMLElement: [
+    'abbr',
+    'address',
+    'article',
+    'aside',
+    'b',
+    'bid',
+    'bdo',
+    'cite',
+    'code',
+    'dd',
+    'dfn',
+    'dt',
+    'em',
+    'figcaption',
+    'figure',
+    'footer',
+    'header',
+    'hgroup',
+    'i',
+    'kbd',
+    'main',
+    'mark',
+    'nav',
+    'noscript',
+    'rp',
+    'rt',
+    'ruby',
+    's',
+    'samp',
+    'search',
+    'section',
+    'small',
+    'strong',
+    'sub',
+    'summary',
+    'sup',
+    'u',
+    'var',
+    'wbr',
+  ],
+  HTMLIFrameElement: ['iframe'],
+  HTMLFieldSetElement: ['fieldset'],
+  HTMLFencedFrameElement: ['fencedframe'],
+  HTMLSelectedContentElement: ['selectedcontent'],
+  HTMLParagraphElement: ['p'],
+  HTMLOptGroupElement: ['optgroup'],
+  HTMLTextAreaElement: ['textarea'],
   HTMLDListElement: ['dl'],
   HTMLOListElement: ['ol'],
   HTMLUListElement: ['ul'],

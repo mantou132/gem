@@ -8,7 +8,6 @@ import type { Context } from './context';
 import {
   bindMemberFunction,
   decorate,
-  getAllCss,
   getAstNodeAtPosition,
   getCurrentElementDecl,
   getTagInfo,
@@ -347,7 +346,7 @@ function getClassMapKeyInfo(ctx: Context, fileName: string, position: number) {
     const isString = ctx.ts.isStringLiteral(node);
     return {
       text: node.text,
-      styles: getAllCss(ctx, decl),
+      styles: ctx.getAllCss(decl),
       textSpan: { start: node.getStart() + (isString ? 1 : 0), length: node.text.length },
     };
   }
@@ -381,7 +380,7 @@ function getClassKeys(ctx: Context, fileName: string, position: number) {
   if (decl && isClassMap(ctx.ts, node)) {
     const obj = getCurrentClassMap(ctx.ts, node)!;
     const keys = new Set(obj.properties.map((e) => e.name?.getText()));
-    return getAllCss(ctx, decl).flatMap(({ classIdNodeMap }) => {
+    return ctx.getAllCss(decl).flatMap(({ classIdNodeMap }) => {
       return [...classIdNodeMap.entries()].filter(([k]) => !keys.has(k) && !k.startsWith('#')).map(([k]) => k);
     });
   }

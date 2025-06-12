@@ -35,7 +35,7 @@ export class Layout extends GemElement {
           overflow: auto;
           padding: 2em;
         }
-        @media (max-width: 480px) {
+        @media (width < 480px) {
           :host {
             display: block;
           }
