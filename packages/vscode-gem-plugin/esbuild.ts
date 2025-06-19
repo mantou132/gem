@@ -5,7 +5,7 @@ const watch = process.argv.includes('--watch');
 
 async function main() {
   const ctx = await context({
-    entryPoints: ['src/extension.ts'],
+    entryPoints: ['src/extension.ts', 'src/server.ts'],
     bundle: true,
     format: 'cjs',
     minify: production,
@@ -13,7 +13,7 @@ async function main() {
     sourcesContent: false,
     platform: 'node',
     outdir: 'dist',
-    external: ['vscode'],
+    external: ['vscode', 'vscode-gem-languageservice'],
     logLevel: 'silent',
     mainFields: ['module', 'main'],
     plugins: [

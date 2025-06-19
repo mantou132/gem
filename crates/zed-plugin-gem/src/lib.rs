@@ -1,7 +1,10 @@
-use std::{collections::HashMap, env};
+use std::{collections::HashMap, env, fs};
 
 use serde::Deserialize;
 use zed_extension_api::{self as zed, serde_json, Result};
+
+const LS_PKG_NAME: &str = "vscode-gem-languageservice";
+const LS_BIN_PATH: &str = "node_modules/.bin/vscode-gem-languageservice";
 
 const TS_PLUGIN_PACKAGE_NAME: &str = "ts-gem-plugin";
 
@@ -18,9 +21,56 @@ struct PackageJson {
 }
 
 #[derive(Default)]
-struct GemExtension {}
+struct GemExtension {
+    ls_server_find: bool,
+}
 
 impl GemExtension {
+    fn ls_exists(&self) -> bool {
+        fs::metadata(LS_BIN_PATH).is_ok_and(|stat| stat.is_file())
+    }
+
+    fn ls_path(&mut self, language_server_id: &zed::LanguageServerId) -> Result<String> {
+        let server_exists = self.ls_exists();
+        if self.ls_server_find && server_exists {
+            return Ok(LS_BIN_PATH.to_string());
+        }
+
+        zed::set_language_server_installation_status(
+            language_server_id,
+            &zed::LanguageServerInstallationStatus::CheckingForUpdate,
+        );
+        let version = zed::npm_package_latest_version(LS_PKG_NAME)?;
+
+        if !server_exists
+            || zed::npm_package_installed_version(LS_PKG_NAME)?.as_ref() != Some(&version)
+        {
+            zed::set_language_server_installation_status(
+                language_server_id,
+                &zed::LanguageServerInstallationStatus::Downloading,
+            );
+            let result = zed::npm_install_package(LS_PKG_NAME, &version);
+            match result {
+                Ok(()) => {
+                    if !self.ls_exists() {
+                        Err(format!(
+                            "installed package '{LS_PKG_NAME}' did not contain expected path \
+                                '{LS_BIN_PATH}'",
+                        ))?;
+                    }
+                }
+                Err(error) => {
+                    if !self.ls_exists() {
+                        Err(error)?;
+                    }
+                }
+            }
+        }
+
+        self.ls_server_find = true;
+        Ok(LS_BIN_PATH.to_string())
+    }
+
     fn install_ts_plugin_if_needed(&self) -> Result<()> {
         let installed_plugin_version = zed::npm_package_installed_version(TS_PLUGIN_PACKAGE_NAME)?;
         let latest_plugin_version = zed::npm_package_latest_version(TS_PLUGIN_PACKAGE_NAME)?;
@@ -88,14 +138,34 @@ impl zed::Extension for GemExtension {
 
     fn language_server_command(
         &mut self,
-        _language_server_id: &zed::LanguageServerId,
+        language_server_id: &zed::LanguageServerId,
         _worktree: &zed::Worktree,
     ) -> Result<zed::Command> {
+        let server_path = self.ls_path(language_server_id)?;
         Ok(zed::Command {
             command: zed::node_binary_path()?,
-            args: vec!["-e".into(), r#"import('data:text/javascript;base64,Y29uc3QgeyBzdGRpbiwgc3Rkb3V0IH0gPSBwcm9jZXNzOwoKc3RkaW4uc2V0RW5jb2RpbmcoInV0ZjgiKTsKCmZ1bmN0aW9uIHNlbmQobXNnKSB7CiAgY29uc3QganNvbiA9IEpTT04uc3RyaW5naWZ5KG1zZyk7CiAgY29uc3QgbGVuID0gQnVmZmVyLmJ5dGVMZW5ndGgoanNvbiwgInV0ZjgiKTsKICBzdGRvdXQud3JpdGUoYENvbnRlbnQtTGVuZ3RoOiAke2xlbn1cclxuXHJcbmApOwogIHN0ZG91dC53cml0ZShqc29uKTsKfQoKbGV0IGJ1ZmZlciA9ICIiOwpsZXQgY29udGVudExlbmd0aCA9IDA7CgpzdGRpbi5vbigiZGF0YSIsIChjaHVuaykgPT4gewogIGJ1ZmZlciArPSBjaHVuazsKCiAgd2hpbGUgKHRydWUpIHsKICAgIGlmIChjb250ZW50TGVuZ3RoID09PSAwKSB7CiAgICAgIGNvbnN0IGhlYWRlckVuZCA9IGJ1ZmZlci5pbmRleE9mKCJcclxuXHJcbiIpOwogICAgICBpZiAoaGVhZGVyRW5kID09PSAtMSkgcmV0dXJuOwoKICAgICAgY29uc3QgaGVhZGVyID0gYnVmZmVyLnNsaWNlKDAsIGhlYWRlckVuZCk7CiAgICAgIGNvbnN0IG1hdGNoID0gaGVhZGVyLm1hdGNoKC9Db250ZW50LUxlbmd0aDogKFxkKykvaSk7CiAgICAgIGlmICghbWF0Y2gpIHJldHVybjsgLy8gSWdub3JlIG1hbGZvcm1lZCBoZWFkZXJzCgogICAgICBjb250ZW50TGVuZ3RoID0gcGFyc2VJbnQobWF0Y2hbMV0sIDEwKTsKICAgICAgYnVmZmVyID0gYnVmZmVyLnNsaWNlKGhlYWRlckVuZCArIDQpOwogICAgfQoKICAgIC8vIFdhaXQgZm9yIHRoZSBmdWxsIG1lc3NhZ2UgYm9keQogICAgaWYgKGJ1ZmZlci5sZW5ndGggPCBjb250ZW50TGVuZ3RoKSByZXR1cm47CgogICAgY29uc3QgbWVzc2FnZUpzb24gPSBidWZmZXIuc2xpY2UoMCwgY29udGVudExlbmd0aCk7CiAgICBidWZmZXIgPSBidWZmZXIuc2xpY2UoY29udGVudExlbmd0aCk7CiAgICBjb250ZW50TGVuZ3RoID0gMDsgLy8gUmVzZXQgZm9yIHRoZSBuZXh0IG1lc3NhZ2UKCiAgICB0cnkgewogICAgICBjb25zdCByZXEgPSBKU09OLnBhcnNlKG1lc3NhZ2VKc29uKTsKCiAgICAgIGlmIChyZXEubWV0aG9kID09PSAiaW5pdGlhbGl6ZSIpIHsKICAgICAgICBzZW5kKHsKICAgICAgICAgIGpzb25ycGM6ICIyLjAiLAogICAgICAgICAgaWQ6IHJlcS5pZCwKICAgICAgICAgIHJlc3VsdDogewogICAgICAgICAgICBjYXBhYmlsaXRpZXM6IHt9LCAvLyBNaW5pbWFsIGNhcGFiaWxpdGllcwogICAgICAgICAgfSwKICAgICAgICB9KTsKICAgICAgfSBlbHNlIGlmIChyZXEubWV0aG9kID09PSAic2h1dGRvd24iKSB7CiAgICAgICAgLy8gUmVzcG9uZCB0byBzaHV0ZG93biBiZWZvcmUgZXhpdGluZwogICAgICAgIHNlbmQoewogICAgICAgICAganNvbnJwYzogIjIuMCIsCiAgICAgICAgICBpZDogcmVxLmlkLAogICAgICAgICAgcmVzdWx0OiBudWxsLAogICAgICAgIH0pOwogICAgICAgIC8vIFRoZSBjbGllbnQgc2hvdWxkIHNlbmQgJ2V4aXQnIGFmdGVyIHRoaXMsIGJ1dCB3ZSBjYW4gZXhpdCBoZXJlIGlmIG5lZWRlZCwKICAgICAgICAvLyB0aG91Z2ggdGVjaG5pY2FsbHkgTFNQIHNwZWMgc3VnZ2VzdHMgd2FpdGluZyBmb3IgJ2V4aXQnCiAgICAgICAgLy8gcHJvY2Vzcy5leGl0KDApOwogICAgICB9IGVsc2UgaWYgKHJlcS5tZXRob2QgPT09ICJleGl0IikgewogICAgICAgIHByb2Nlc3MuZXhpdCgwKTsgLy8gRXhpdCBjbGVhbmx5CiAgICAgIH0gZWxzZSBpZiAocmVxLmlkICE9PSB1bmRlZmluZWQpIHsKICAgICAgICAvLyBSZXNwb25kIHdpdGggYW4gZXJyb3IgZm9yIHVuc3VwcG9ydGVkIHJlcXVlc3RzIHRoYXQgaGF2ZSBhbiBJRAogICAgICAgIHNlbmQoewogICAgICAgICAganNvbnJwYzogIjIuMCIsCiAgICAgICAgICBpZDogcmVxLmlkLAogICAgICAgICAgZXJyb3I6IHsKICAgICAgICAgICAgY29kZTogLTMyNjAxLCAvLyBNZXRob2ROb3RGb3VuZAogICAgICAgICAgICBtZXNzYWdlOiBgTWV0aG9kIG5vdCBmb3VuZDogJHtyZXEubWV0aG9kfWAsCiAgICAgICAgICB9LAogICAgICAgIH0pOwogICAgICB9CiAgICAgIC8vIElnbm9yZSBub3RpZmljYXRpb25zIChyZXF1ZXN0cyB3aXRob3V0IGFuIElEKSBvdGhlciB0aGFuICdleGl0JwogICAgfSBjYXRjaCAoZXJyb3IpIHsKICAgICAgLy8gSGFuZGxlIEpTT04gcGFyc2luZyBlcnJvcnMgb3Igb3RoZXIgaXNzdWVzCiAgICAgIGNvbnNvbGUuZXJyb3IoIkVycm9yIHByb2Nlc3NpbmcgbWVzc2FnZToiLCBlcnJvcik7CiAgICAgIC8vIE9wdGlvbmFsbHkgc2VuZCBhIGdlbmVyaWMgZXJyb3IgcmVzcG9uc2UgaWYgcG9zc2libGUKICAgIH0KICB9Cn0pOwoKc3RkaW4ub24oImVuZCIsICgpID0+IHsKICAvLyBIYW5kbGUgc3RyZWFtIGVuZCBpZiBuZWNlc3NhcnkKICBwcm9jZXNzLmV4aXQoMCk7Cn0pOwoKLy8gSGFuZGxlIHBvdGVudGlhbCBlcnJvcnMgb24gc3RyZWFtcwpzdGRpbi5vbigiZXJyb3IiLCAoZXJyKSA9PiB7CiAgY29uc29sZS5lcnJvcigiU3RkaW4gRXJyb3I6IiwgZXJyKTsKICBwcm9jZXNzLmV4aXQoMSk7Cn0pOwoKc3Rkb3V0Lm9uKCJlcnJvciIsIChlcnIpID0+IHsKICBjb25zb2xlLmVycm9yKCJTdGRvdXQgRXJyb3I6IiwgZXJyKTsKICBwcm9jZXNzLmV4aXQoMSk7Cn0pOwo=')"#.to_string()],
+            args: vec![
+                env::current_dir()
+                    .unwrap()
+                    .join(server_path)
+                    .to_string_lossy()
+                    .to_string(),
+                "--stdio".to_string(),
+            ],
             env: Default::default(),
         })
+    }
+
+    fn language_server_workspace_configuration(
+        &mut self,
+        server_id: &zed::LanguageServerId,
+        worktree: &zed::Worktree,
+    ) -> Result<Option<serde_json::Value>> {
+        let settings = zed::settings::LspSettings::for_worktree(server_id.as_ref(), worktree)
+            .ok()
+            .and_then(|lsp_settings| lsp_settings.settings.clone())
+            .unwrap_or_default();
+        Ok(Some(settings))
     }
 
     fn language_server_additional_initialization_options(

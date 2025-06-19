@@ -1,0 +1,44 @@
+{
+  "name": "vscode-gem-languageservice",
+  "version": "0.0.5",
+  "description": "Language service for Gem",
+  "keywords": [
+    "gem",
+    "language-service"
+  ],
+  "module": "dist/index.js",
+  "main": "dist/index.js",
+  "bin": "dist/index.js",
+  "files": [
+    "/dist/"
+  ],
+  "scripts": {
+    "build": "esbuild ./src/index.ts --outdir=./dist --platform=node --sourcemap --bundle --packages=external --external:tree-sitter*",
+    "prepublishOnly": "pnpm run build",
+    "start": "pnpm run build --watch"
+  },
+  "dependencies": {
+    "@mantou/vscode-css-languageservice": "^6.3.6",
+    "@mantou/vscode-html-languageservice": "^5.3.6",
+    "css-color-keywords": "^1.0.0",
+    "duoyun-ui": "^2.2.0",
+    "tree-sitter": "^0.22.4",
+    "tree-sitter-typescript": "^0.23.2",
+    "vscode-languageserver": "^9.0.1",
+    "vscode-languageserver-textdocument": "^1.0.12"
+  },
+  "devDependencies": {
+    "@gemjs/config": "^2.1.0"
+  },
+  "author": "mantou132",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mantou132/gem.git",
+    "directory": "packages/language-server"
+  },
+  "bugs": {
+    "url": "https://github.com/mantou132/gem/issues"
+  },
+  "homepage": "https://github.com/mantou132/gem#readme"
+}

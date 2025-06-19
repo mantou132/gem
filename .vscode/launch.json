@@ -9,7 +9,14 @@
       "name": "Run Gem Extension",
       "type": "extensionHost",
       "request": "launch",
-      "args": ["--disable-extensions", "--extensionDevelopmentPath=${workspaceFolder}/packages/vscode-gem-plugin"],
+      "args": [
+        "--disable-updates",
+        "--disable-workspace-trust",
+        "--profile-temp",
+        "--skip-release-notes",
+        "--skip-welcome",
+        "--extensionDevelopmentPath=${workspaceFolder}/packages/vscode-gem-plugin"
+      ],
       "outFiles": ["${workspaceFolder}/packages/vscode-gem-plugin/dist/**/*.js"],
       "env": {
         "TSS_DEBUG": "9559"

@@ -1,14 +1,37 @@
+import * as path from 'node:path';
+
 import type { PluginConfiguration } from 'ts-gem-plugin/src/configuration';
 import type { ExtensionContext, WorkspaceConfiguration } from 'vscode';
-import { commands, extensions, languages, window, workspace } from 'vscode';
+import { commands, extensions, window, workspace } from 'vscode';
+import { LanguageClient, TransportKind } from 'vscode-languageclient/node';
 
-import { ColorProvider } from './color';
+const langSelectors = ['typescriptreact', 'javascriptreact', 'typescript', 'javascript'];
 
 const typeScriptExtensionId = 'vscode.typescript-language-features';
 const pluginId = 'ts-gem-plugin';
 const configurationSection = 'gem';
 
+let client: LanguageClient | undefined;
+
 export async function activate(context: ExtensionContext) {
+  const serverModule = context.asAbsolutePath(path.join('dist', 'server.js'));
+  client = new LanguageClient(
+    'languageServerGem',
+    'Gem Language Server',
+    {
+      run: { module: serverModule, transport: TransportKind.ipc },
+      debug: {
+        module: serverModule,
+        transport: TransportKind.ipc,
+        options: { execArgv: ['--nolazy', '--inspect=6009'] },
+      },
+    },
+    {
+      documentSelector: langSelectors,
+    },
+  );
+  client.start();
+
   context.subscriptions.push(
     commands.registerCommand('vscode-plugin-gem.helloWorld', () => {
       window.showInformationMessage('Hello World from vscode-plugin-gem!');
@@ -29,16 +52,13 @@ export async function activate(context: ExtensionContext) {
         synchronizeConfiguration(api);
       }
     }),
-    languages.registerColorProvider(
-      [
-        { scheme: 'file', language: 'typescript' },
-        { scheme: 'file', language: 'javascript' },
-      ],
-      new ColorProvider(),
-    ),
   );
 
   synchronizeConfiguration(api);
+}
+
+export function deactivate() {
+  return client?.stop();
 }
 
 function synchronizeConfiguration(api: any) {
