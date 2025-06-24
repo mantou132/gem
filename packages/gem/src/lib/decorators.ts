@@ -150,11 +150,11 @@ function decoratorAttr<T extends GemElement>(context: ClassFieldDecoratorContext
 /**
  * 定义一个响应式的 attribute，驼峰字段名将自动映射到烤串 attribute，默认值为空字符串；不要覆盖定义
  *
- * For example
+ * @example
  * ```ts
- *  class App extends GemElement {
- *    @attribute attr: string;
- *  }
+ * class App extends GemElement {
+ *   @​attribute attr: string;
+ * }
  * ```
  */
 export function attribute<T extends GemElement>(_: undefined, context: ClassFieldDecoratorContext<T, string>) {
@@ -170,11 +170,11 @@ export function numattribute<T extends GemElement>(_: undefined, context: ClassF
 /**
  * 定义一个响应式的 property，注意值可能为 `undefined`；不要覆盖定义
  *
- * For example
+ * @example
  * ```ts
- *  class App extends GemElement {
- *    @property prop: Data | undefined;
- *  }
+ * class App extends GemElement {
+ *   @​property prop: Data | undefined;
+ * }
  * ```
  */
 export function property<T extends GemElement>(_: undefined, context: ClassFieldDecoratorContext<T>) {
@@ -196,14 +196,14 @@ export function property<T extends GemElement>(_: undefined, context: ClassField
 /**
  * 依赖 `GemElement.memo`
  *
- * For example
+ * @example
  * ```ts
- *  class App extends GemElement {
- *    @memo(() => [])
- *    get data() {
- *      return 1;
- *    }
- *  }
+ * class App extends GemElement {
+ *   @​memo(() => [])
+ *   get data() {
+ *     return 1;
+ *   }
+ * }
  * ```
  */
 export function memo<T extends GemElement, V = any, K = any[] | undefined>(
@@ -240,14 +240,14 @@ export function memo<T extends GemElement, V = any, K = any[] | undefined>(
  * - 方法执行在字段前面
  * - 如果没有 oldValue，在为首次执行
  *
- * For example
+ * @example
  * ```ts
- *  class App extends GemElement {
- *    @effect(() => [])
- *    #fetchData(newValue, oldValue) {
- *      console.log('fetch')
- *    }
- *  }
+ * class App extends GemElement {
+ *   @​effect(() => [])
+ *   #fetchData(newValue, oldValue) {
+ *     console.log('fetch')
+ *   }
+ * }
  * ```
  */
 export function effect<T extends GemElement, V extends (depValues: K, oldDepValues?: K) => any, K = any[] | undefined>(
@@ -331,11 +331,11 @@ function defineCSSState(target: GemElementPrototype, prop: string, stateStr: str
  * 重新赋值转换 css 伪类
  * 将来也可能用于 IDE 识别
  *
- * For example
+ * @example
  * ```ts
- *  class App extends GemElement {
- *    @state state: boolean;
- *  }
+ * class App extends GemElement {
+ *   @​state state: boolean;
+ * }
  * ```
  */
 export function state<T extends GemElement>(_: undefined, context: ClassFieldDecoratorContext<T, boolean>) {
@@ -374,12 +374,12 @@ function defineStaticField(
 /**
  * 定义一个内部 slot，默认值即为字段名，不能使用全局属性 `slot`
  *
- * For example
+ * @example
  * ```ts
- *  class App extends GemElement {
- *    @slot slot: string;
- *    @slot static slot: string;
- *  }
+ * class App extends GemElement {
+ *   @​slot slot: string;
+ *   @​slot static slot: string;
+ * }
  * ```
  */
 export function slot(_: undefined, context: ClassFieldDecoratorContext<any, string>) {
@@ -391,12 +391,12 @@ export function slot(_: undefined, context: ClassFieldDecoratorContext<any, stri
 /**
  * 定义一个内部 part，默认值即为字段名，不能使用全局属性 `part`
  *
- * For example
+ * @example
  * ```ts
- *  class App extends GemElement {
- *    @part part: string;
- *    @part static part: string;
- *  }
+ * class App extends GemElement {
+ *   @​part part: string;
+ *   @​part static part: string;
+ * }
  * ```
  */
 export function part(_: undefined, context: ClassFieldDecoratorContext<any, string>) {
@@ -421,11 +421,11 @@ export type Emitter<T = any> = ((
  * 定义一个事件发射器，类似 `HTMLElement.click`，
  * 调用时将同步发送一个和字段名称的烤串式格式的自定义事件
  *
- * For example
+ * @example
  * ```ts
- *  class App extends GemElement {
- *    @emitter load: Function;
- *  }
+ * class App extends GemElement {
+ *   @​emitter load: Function;
+ * }
  * ```
  */
 export function emitter<T extends GemElement>(_: undefined, context: ClassFieldDecoratorContext<T, Emitter>) {
@@ -453,10 +453,10 @@ function defineEmitter<T extends GemElement>(
 /**
  * 分配一个构造的样式表，前面的优先级越高（因为装饰器是越近越早执行）
  *
- * For example
+ * @example
  * ```ts
- *  @adoptedStyle(stylesheet)
- *  class App extends GemElement {}
+ * ​@​adoptedStyle(stylesheet)
+ * class App extends GemElement {}
  * ```
  */
 export function adoptedStyle(sheet: Sheet<unknown>) {
@@ -468,10 +468,10 @@ export function adoptedStyle(sheet: Sheet<unknown>) {
 /**
  * 链接一个 store，当 store 更新时更新元素
  *
- * For example
+ * @example
  * ```ts
- *  @connectStore(store)
- *  class App extends GemElement {}
+ * ​@​connectStore(store)
+ * class App extends GemElement {}
  * ```
  */
 export function connectStore(store: Store<any>) {
@@ -523,10 +523,10 @@ export function aria(info: Metadata['aria']) {
 /**
  * 定义自定义元素
  *
- * For example
+ * @example
  * ```ts
- *  @customElement('my-element')
- *  class App extends GemElement {}
+ * ​@​customElement('my-element')
+ * class App extends GemElement {}
  * ```
  */
 export function customElement(name: string) {

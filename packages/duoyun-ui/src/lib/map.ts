@@ -4,6 +4,7 @@ export class StringWeakMap<T extends WeakKey> {
   #registry = new FinalizationRegistry<string>((key) => this.#map.delete(key));
 
   set(key: string, val: T) {
+    this.delete(key);
     this.#map.set(key, new WeakRef(val));
     this.#weakMap.set(val, key);
     this.#registry.register(val, key, val);

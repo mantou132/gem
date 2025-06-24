@@ -4,7 +4,7 @@
 
 ## 装饰器
 
-v2 使用 ES 装饰器[代替了以前的 TS 装饰器](./es-decorators)，并且将 `GemElement.constructor` 的参数用装饰器代替：
+v2 使用 ES 装饰器[代替了以前的 TS 装饰器](./006-es-decorators.md)，并且将 `GemElement.constructor` 的参数用装饰器代替：
 
 ```diff
 @customElement('my-element')

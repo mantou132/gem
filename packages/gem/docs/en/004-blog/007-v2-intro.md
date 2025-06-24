@@ -4,7 +4,7 @@ After a long development process, Gem has finally entered v2, focusing on allowi
 
 ## Decorators
 
-v2 uses ES decorators [instead of the previous TS decorators](./es-decorators) and replaces the parameters of `GemElement.constructor` with decorators:
+v2 uses ES decorators [instead of the previous TS decorators](./006-es-decorators.md) and replaces the parameters of `GemElement.constructor` with decorators:
 
 ```diff
 @customElement('my-element')

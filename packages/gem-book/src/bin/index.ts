@@ -371,10 +371,6 @@ const handleAction = async (dir = DEFAULT_DOCS_DIR) => {
         return updateBookConfig(dir);
       }
 
-      if (cliConfig.debug) {
-        checkRelativeLink(fullPath, docsRootDir);
-      }
-
       const { content, metadataChanged } = getLatestMdFile(fullPath, bookConfig.displayRank);
       devServerEventTarget.dispatchEvent(
         Object.assign(new Event(UPDATE_EVENT), {
@@ -384,6 +380,10 @@ const handleAction = async (dir = DEFAULT_DOCS_DIR) => {
 
       if (metadataChanged) {
         updateBookConfig(dir);
+      }
+
+      if (cliConfig.debug) {
+        checkRelativeLink(fullPath, docsRootDir);
       }
     });
   }

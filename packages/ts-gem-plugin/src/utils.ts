@@ -44,8 +44,8 @@ export function isClassMapKey(typescript: typeof ts, node: ts.Node): node is ts.
   const key = typescript.isStringLiteral(node) || typescript.isIdentifier(node);
   return (
     key &&
-    typescript.isPropertyAssignment(assignment) &&
-    assignment.initializer !== node &&
+    ((typescript.isPropertyAssignment(assignment) && assignment.initializer !== node) ||
+      typescript.isShorthandPropertyAssignment(assignment)) &&
     typescript.isObjectLiteralExpression(obj) &&
     typescript.isCallExpression(callExp) &&
     typescript.isIdentifier(callExp.expression) &&
@@ -115,7 +115,7 @@ export function getCurrentElementDecl(typescript: typeof ts, node: ts.Node) {
 export function getAstNodeAtPosition(typescript: typeof ts, node: ts.Node, pos: number) {
   if (node.pos > pos || node.end <= pos) return;
   while (node.kind >= typescript.SyntaxKind.FirstNode) {
-    const nested = typescript.forEachChild(node, (child) => (child.pos <= pos && child.end > pos ? child : undefined));
+    const nested = typescript.forEachChild(node, (child) => (child.pos < pos && child.end >= pos ? child : undefined));
     if (nested === undefined) break;
     node = nested;
   }

@@ -46,6 +46,8 @@ const styles = css`
 @shadow()
 @aria({ focusable: true })
 export class GemLinkElement extends GemElement {
+  @part static link: string;
+
   @attribute href: string;
   @attribute target: string;
   @attribute path: string;
@@ -61,8 +63,6 @@ export class GemLinkElement extends GemElement {
   @property options?: RouteOptions;
   @property routeOptions?: RouteOptions;
   @property prepare?: () => void | Promise<void>;
-
-  @part link: string;
 
   get #routeOptions() {
     return this.routeOptions || this.options;
@@ -146,7 +146,7 @@ export class GemLinkElement extends GemElement {
   @template()
   #content = () => {
     const href = this.#hint === 'off' ? null : this.#getHint();
-    return html`<a part=${this.link} href=${href} tabindex="-1"><slot></slot></a>`;
+    return html`<a part=${GemLinkElement.link} href=${href} tabindex="-1"><slot></slot></a>`;
   };
 
   /**

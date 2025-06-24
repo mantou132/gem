@@ -82,6 +82,18 @@ export function createOverrideTheme<T extends Record<string, unknown>>(theme: Th
   return createThemeFromProps(themeObj, getThemeProps(theme));
 }
 
+/**
+ * 返回一个主题对象，但同时又是一个装饰器函数，用来装饰一个主题更新函数
+ *
+ * @example
+ * ```ts
+ * const elementTheme = createDecoratorTheme({ color: '' });
+ * class MyElement {
+ *   @​elementTheme()
+ *   #theme = () => ({ color: this.color });
+ * }
+ * ```
+ * */
 export function createDecoratorTheme<T extends Record<string, unknown>>(themeObj: T) {
   const themeAsKeys = createThemeFromProps(themeObj);
   const props = getThemeProps(themeAsKeys);

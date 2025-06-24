@@ -3,7 +3,7 @@ import { isNotNullish } from 'duoyun-ui/lib/types';
 import type { LanguageService } from 'typescript';
 import type * as ts from 'typescript/lib/tsserverlibrary';
 
-import { Decorators, Utils } from './constants';
+import { Decorators, DiagnosticCode, Utils } from './constants';
 import type { Context } from './context';
 import {
   bindMemberFunction,
@@ -18,12 +18,11 @@ export function decorateLanguageService(ctx: Context, languageService: LanguageS
   const { ts, getProgram } = ctx;
   const ls = bindMemberFunction(languageService);
 
-  // `state.|` filter
   languageService.getCompletionsAtPosition = (...args) => {
     const program = getProgram();
     const typeChecker = program.getTypeChecker();
-    // 可以移动到更合适的位置
-    decorate(typeChecker, () => decorateTypeChecker(ctx, typeChecker));
+    // 过滤 `state.|`，可以移动到更合适的位置
+    decorate(typeChecker, () => decorateTypeChecker(typeChecker));
 
     const classKeys = getClassKeys(ctx, args[0], args[1]);
     if (classKeys) {
@@ -32,6 +31,16 @@ export function decorateLanguageService(ctx: Context, languageService: LanguageS
         isMemberCompletion: true,
         isNewIdentifierLocation: true,
         entries: classKeys.map((name) => ({ kind: ts.ScriptElementKind.enumMemberElement, sortText: '', name })),
+      };
+    }
+
+    const themeKeys = getThemeKeys(ctx, args[0], args[1]);
+    if (themeKeys) {
+      return {
+        isGlobalCompletion: true,
+        isMemberCompletion: true,
+        isNewIdentifierLocation: true,
+        entries: themeKeys.map((name) => ({ kind: ts.ScriptElementKind.enumMemberElement, sortText: '', name })),
       };
     }
 
@@ -52,6 +61,31 @@ export function decorateLanguageService(ctx: Context, languageService: LanguageS
     const program = getProgram();
     const file = program.getSourceFile(args[0])!;
     const result = ls.getSuggestionDiagnostics(...args);
+
+    ts.forEachChild(file, (node) => {
+      const tag = ctx.getTagFromNode(node);
+      if (tag && ts.isClassDeclaration(node)) {
+        node.members.forEach((member) => {
+          if (!ts.isPropertyDeclaration(member) || !member.modifiers) return;
+          const shouldIsStatic = member.modifiers.some(
+            (modifier) =>
+              ts.isDecorator(modifier) &&
+              ts.isIdentifier(modifier.expression) &&
+              [Decorators.Slot, Decorators.Part].includes(modifier.expression.text),
+          );
+          if (shouldIsStatic && member.modifiers.every((e) => e.kind !== ts.SyntaxKind.StaticKeyword)) {
+            result.push({
+              file,
+              start: member.getStart(),
+              length: member.getEnd() - member.getStart(),
+              category: ts.DiagnosticCategory.Warning,
+              code: DiagnosticCode.DecoratorSyntaxError,
+              messageText: 'Use static field for `@part` and `@slot`',
+            });
+          }
+        });
+      }
+    });
 
     return result.filter(({ start, reportsUnnecessary, category }) => {
       if (!reportsUnnecessary || category !== ts.DiagnosticCategory.Suggestion) return true;
@@ -352,17 +386,84 @@ function getClassMapKeyInfo(ctx: Context, fileName: string, position: number) {
   }
 }
 
+export function isKey(typescript: typeof ts, node: ts.Node): node is ts.StringLiteral | ts.Identifier {
+  if (!node.parent?.parent) return false;
+  const assignment = node.parent;
+  const obj = assignment.parent;
+  const key = typescript.isStringLiteral(node) || typescript.isIdentifier(node);
+  return (
+    key &&
+    ((typescript.isPropertyAssignment(assignment) && assignment.initializer !== node) ||
+      typescript.isShorthandPropertyAssignment(assignment)) &&
+    typescript.isObjectLiteralExpression(obj)
+  );
+}
+
+function inReturn(typescript: typeof ts, node?: ts.Node) {
+  if (!node?.parent?.parent) return false;
+  const isReturnObject = (n: ts.Node) =>
+    typescript.isObjectLiteralExpression(n) &&
+    ((typescript.isParenthesizedExpression(n.parent) &&
+      typescript.isArrowFunction(n.parent.parent) &&
+      n.parent.parent.body === n.parent) ||
+      typescript.isReturnStatement(n.parent));
+
+  return (
+    // 空对象
+    isReturnObject(node) ||
+    // 在返回对象的 key 上
+    (isReturnObject(node.parent.parent) && isKey(typescript, node))
+  );
+}
+
+function getThemeKeys(ctx: Context, fileName: string, position: number) {
+  const program = ctx.getProgram();
+  const typeChecker = program.getTypeChecker();
+  const file = program.getSourceFile(fileName)!;
+  const node = getAstNodeAtPosition(ctx.ts, file, position);
+  if (!inReturn(ctx.ts, node)) return;
+  let desc = node;
+  while (desc) {
+    if (
+      ((ctx.ts.isArrowFunction(desc) || ctx.ts.isFunctionExpression(desc)) &&
+        !ctx.ts.isPropertyDeclaration(desc.parent)) ||
+      ctx.ts.isFunctionDeclaration(desc) ||
+      ctx.ts.isClassDeclaration(desc) ||
+      ctx.ts.isClassExpression(desc)
+    ) {
+      return;
+    }
+    if (ctx.ts.isPropertyDeclaration(desc) || ctx.ts.isMethodDeclaration(desc)) {
+      for (const modifier of desc.modifiers || []) {
+        if (!ctx.ts.isDecorator(modifier) || !ctx.ts.isCallExpression(modifier.expression)) continue;
+        const themeDescSymbol = typeChecker.getSymbolAtLocation(modifier.expression.expression);
+        const themeDesc = themeDescSymbol?.valueDeclaration;
+        const param =
+          themeDesc &&
+          ctx.ts.isVariableDeclaration(themeDesc) &&
+          themeDesc.initializer &&
+          ctx.ts.isCallExpression(themeDesc.initializer) &&
+          themeDesc.initializer.expression.getText() === Utils.CreateDecoratorTheme &&
+          themeDesc.initializer.arguments.at(0);
+        if (!param) continue;
+        const type = typeChecker.getTypeAtLocation(param);
+        return type.getApparentProperties().map((e) => e.name);
+      }
+      return;
+    }
+    desc = desc.parent;
+  }
+}
+
 function isClassMap(typescript: typeof ts, node: ts.Node) {
   if (!node.parent?.parent) return false;
-  const beforeText = node.getSourceFile().getText().slice(0, node.pos);
   const callExp = node.parent;
-  const isClassMapProp =
+  const isEmptyClassMap =
     typescript.isObjectLiteralExpression(node) &&
-    !beforeText.endsWith(':') &&
     typescript.isCallExpression(callExp) &&
     typescript.isIdentifier(callExp.expression) &&
     callExp.expression.text === Utils.ClassMap;
-  return isClassMapProp || isClassMapKey(typescript, node);
+  return isEmptyClassMap || isClassMapKey(typescript, node);
 }
 
 function getCurrentClassMap(typescript: typeof ts, node: ts.Node) {
@@ -397,23 +498,18 @@ function isPropType(typescript: typeof ts, node: ts.Node, types: string[]) {
   }
 }
 
-function decorateTypeChecker(ctx: Context, typeChecker: ts.TypeChecker) {
+function decorateTypeChecker(typeChecker: ts.TypeChecker) {
+  const neverType = typeChecker.getNeverType();
   // https://github.com/microsoft/TypeScript/blob/main/src/services/completions.ts#L3789
   // https://github.com/microsoft/TypeScript/blob/main/src/compiler/types.ts#L5217
   const internal = typeChecker as unknown as { isValidPropertyAccessForCompletions: (...a: any) => any };
   const checker = bindMemberFunction(internal, ['isValidPropertyAccessForCompletions']);
   internal.isValidPropertyAccessForCompletions = (...args: any[]) => {
     const result = checker.isValidPropertyAccessForCompletions(...args);
-    if (!result) return false;
     try {
-      const { declarations } = args.at(2) as ts.Symbol;
-      if (!declarations) return true;
-      const isNever = declarations.every(
-        (node) => ctx.ts.isPropertySignature(node) && node.type?.getText() === 'never',
-      );
-      return !isNever;
+      return result && typeChecker.getTypeOfSymbol(args.at(2)) !== neverType;
     } catch {
-      return true;
+      return result;
     }
   };
   return typeChecker;

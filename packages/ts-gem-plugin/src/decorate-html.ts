@@ -349,9 +349,10 @@ export class HTMLLanguageService implements TemplateLanguageService {
                 diagnostics.push(diagnostic);
               }
               continue;
-            default:
+            default: {
+              const nullablePropType = getUnionType(typeChecker, [propType, typeChecker.getNullType()]);
               if (
-                !typeChecker.isTypeAssignableTo(spanType, propType) &&
+                !typeChecker.isTypeAssignableTo(spanType, nullablePropType) &&
                 (!typeChecker.isTypeAssignableTo(propType, typeChecker.getStringType()) ||
                   !typeChecker.isTypeAssignableTo(spanType, typeChecker.getStringType()))
               ) {
@@ -359,6 +360,7 @@ export class HTMLLanguageService implements TemplateLanguageService {
                 diagnostics.push(diagnostic);
               }
               continue;
+            }
           }
         } else {
           const types = [typeChecker.getStringType(), typeChecker.getNumberType()];
@@ -571,7 +573,7 @@ function getSpanType(
   htmlOffset: number,
   attrNameEnd: number,
 ) {
-  const valueOffset = attrNameEnd + htmlOffset + 3;
+  const valueOffset = attrNameEnd + htmlOffset + 4;
   const spanExp = getSpanExpression(typescript, file, valueOffset)!;
   return typeChecker.getTypeAtLocation(spanExp);
 }
