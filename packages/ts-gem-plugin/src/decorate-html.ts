@@ -350,7 +350,11 @@ export class HTMLLanguageService implements TemplateLanguageService {
               }
               continue;
             default: {
-              const nullablePropType = getUnionType(typeChecker, [propType, typeChecker.getNullType()]);
+              const nullablePropType = getUnionType(typeChecker, [
+                propType,
+                typeChecker.getNullType(),
+                typeChecker.getUndefinedType(),
+              ]);
               if (
                 !typeChecker.isTypeAssignableTo(spanType, nullablePropType) &&
                 (!typeChecker.isTypeAssignableTo(propType, typeChecker.getStringType()) ||

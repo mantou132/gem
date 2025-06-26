@@ -55,7 +55,7 @@ impl GemExtension {
                     if !self.ls_exists() {
                         Err(format!(
                             "installed package '{LS_PKG_NAME}' did not contain expected path \
-                                '{LS_BIN_PATH}'",
+                             '{LS_BIN_PATH}'",
                         ))?;
                     }
                 }

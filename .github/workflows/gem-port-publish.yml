@@ -1,4 +1,4 @@
-name: Publish TS Gem Plugin
+name: Publish Gem Port
 
 on:
   push:

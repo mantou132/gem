@@ -11,11 +11,6 @@
     "gem": true
   },
   "tab_size": 2,
-  "languages": {
-    "Rust": {
-      "tab_size": 4
-    }
-  },
   "formatter": {
     "language_server": {
       "name": "biome"
@@ -34,13 +29,6 @@
     "..."
   ],
   "lsp": {
-    "rust-analyzer": {
-      "initialization_options": {
-        "checkOnSave": {
-          "command": "clippy"
-        }
-      }
-    },
     "vtsls": {
       "settings": {
         "typescript": {
@@ -48,6 +36,23 @@
           "preferences": {
             "importModuleSpecifier": "non-relative"
           }
+        }
+      }
+    },
+    "rust-analyzer": {
+      "initialization_options": {
+        "check": {
+          "command": "clippy"
+        }
+      }
+    }
+  },
+  "languages": {
+    "Rust": {
+      "tab_size": 4,
+      "formatter": {
+        "language_server": {
+          "name": "rust-analyzer"
         }
       }
     }

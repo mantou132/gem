@@ -8,3 +8,7 @@ esbuild.js
 **/*.map
 **/*.ts
 **/.vscode-test.*
+node_modules/**/*.c
+node_modules/**/*.ts
+node_modules/**/*.wasm
+node_modules/**/src/**

@@ -13,7 +13,7 @@
     "/dist/"
   ],
   "scripts": {
-    "build": "esbuild ./src/index.ts --outdir=./dist --platform=node --sourcemap --bundle --packages=external --external:tree-sitter*",
+    "build": "esbuild ./src/index.ts --outdir=./dist --platform=node --sourcemap --bundle --packages=external",
     "prepublishOnly": "pnpm run build",
     "start": "pnpm run build --watch"
   },
