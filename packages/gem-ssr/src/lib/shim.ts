@@ -53,6 +53,9 @@ HTMLElement.prototype.attachInternals = function (this: HTMLElement) {
 };
 
 Object.assign(globalThis, {
+  // nativeQueueMicrotask
+  nQM: queueMicrotask,
+
   // Web 独有 API
   customElements,
   CustomElementRegistry,

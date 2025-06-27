@@ -37,4 +37,6 @@ app.get('/dist.js', async (ctx) => {
   return ctx.text(result.outputFiles[0].text);
 });
 
-serve({ fetch: app.fetch, port: 3000 });
+serve({ fetch: app.fetch, port: 3000 }).on('listening', () => {
+  console.log('listening http://localhost:3000/');
+});

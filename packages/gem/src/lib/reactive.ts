@@ -78,7 +78,7 @@ class GemCSSSheet {
   // 不需要 GC
   #record = new Map<any, GemCSSStyleSheet>();
   #used = new Map<GemCSSStyleSheet, string>();
-  getStyle(host?: HTMLElement) {
+  getStyle(host?: HTMLElement, isEleTheme?: boolean) {
     const isLight = host && !(host as GemElement).internals?.shadowRoot;
 
     // 对同一类 dom 只使用同一个样式表
@@ -97,7 +97,7 @@ class GemCSSSheet {
       if (isLight) {
         // light dom 嵌套时需要选择子元素
         // `> *` 实际上是多范围？是否存在性能问题
-        scope = `@scope (${host.tagName}) to (:state(${BoundaryCSSState}) > *)`;
+        scope = isEleTheme ? '@scope' : `@scope (${host.tagName}) to (:state(${BoundaryCSSState}) > *)`;
         // 不能使用 @layer，两个 @layer 不能覆盖，只有顺序起作用
         // 所以外部不能通过元素名称选择器来覆盖样式，除非样式在之前插入（会自动反转应用到尾部， see `appleCSSStyleSheet`）
         style = `${scope}{ ${style} }`;
@@ -154,16 +154,12 @@ export function css<T extends Record<string, string>>(
       // 对于已经有 `-` 的保留原始 key，支持覆盖修改
       // :scope 下可以写嵌套样式 &:xxx，:host() 下不行（子内容可以）
       sheet[key] = isScope || key.includes('-') ? key : `${key}-${randomStr()}`;
-      style += `${isScope ? ':where(:scope:not([hidden])),:host(:where(:not([hidden])))' : `.${sheet[key]}`} {${rules[key]}}`;
+      style += `${isScope ? ':where(&:not([hidden])),:host(:where(:not([hidden])))' : `.${sheet[key]}`} {${rules[key]}}`;
     });
   }
   styleSheet.setContent(style);
   return sheet as Sheet<T>;
 }
-
-// TODO: move to transform?
-// gem-ssr 模拟了 web 环境，所以这里判断 node
-export const isSSR = typeof process !== 'undefined';
 
 const updateStyleSheets = (map: Map<CSSStyleSheet, number>, sheets: CSSStyleSheet[], value: number) => {
   let needUpdate = false;
@@ -176,7 +172,8 @@ const updateStyleSheets = (map: Map<CSSStyleSheet, number>, sheets: CSSStyleShee
   });
   if (needUpdate) {
     // 避免重复更新，例如 list 元素增删，全 light dom 时 document 更新
-    addMicrotask(rootUpdateFnMap.get(map)!, isSSR);
+    // 在 SSR 中应该区别 effect 强制执行
+    addMicrotask(rootUpdateFnMap.get(map)!, (globalThis as any).nQM);
   }
 };
 
@@ -397,13 +394,7 @@ export abstract class GemElement extends HTMLElement {
       const temp = item ? item.render() : isLight ? undefined : html`<slot></slot>`;
       if (temp === undefined) return;
       render(
-        temp !== null
-          ? temp
-          : isLight
-            ? // prettier-ignore
-              html`<style>@scope{:scope{display:none !important}}</style>`
-            : // prettier-ignore
-              html`<style>:host{display:none !important}</style>`,
+        temp !== null ? temp : html`<style>${isLight ? '@scope' : ':host'}{&{display:none!important;}}</style>`,
         this.#renderRoot,
       );
     } catch (err) {

@@ -300,10 +300,16 @@ interface FormatDurationOptions {
   /** HH:mm:ss */
   numeric?: boolean;
   style?: Intl.RelativeTimeFormatStyle;
+  precision?: RelativeTimeFormatUnit;
 }
 
-export function formatDuration(ms: number, { numeric, style = 'short' }: FormatDurationOptions = {}) {
-  const { days, hours, minutes, seconds, milliseconds } = parseDurationToParts(ms, !numeric);
+export function formatDuration(ms: number, options: FormatDurationOptions = {}) {
+  const { numeric, style = 'short', precision } = options;
+  const precisionTime = precision && ms > durationMap[precision] ? durationMap[precision] : 1;
+  const { days, hours, minutes, seconds, milliseconds } = parseDurationToParts(
+    Math.floor(ms / precisionTime) * precisionTime,
+    !numeric,
+  );
 
   if (numeric) {
     const fill = (n: number) => n.toString().padStart(2, '0');

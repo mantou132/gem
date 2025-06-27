@@ -3,7 +3,6 @@ import type { Emitter } from '@mantou/gem/lib/decorators';
 import {
   adoptedStyle,
   aria,
-  attribute,
   boolattribute,
   customElement,
   effect,
@@ -93,7 +92,6 @@ export class DuoyunListElement extends GemElement {
   @property key?: any; // 除了 items 提供另外一种方式来更新
   @property renderItem?: (item: any) => TemplateResult;
   @boolattribute debug: boolean;
-  @attribute itemexportparts: string;
 
   /**enable infinite scroll, virtualization render */
   @boolattribute infinite: boolean;
@@ -445,7 +443,6 @@ export class DuoyunListElement extends GemElement {
     if (!this.#keyElementMap.has(key)) {
       const ele = new DuoyunListItemElement();
       ele.setAttribute('part', DuoyunListElement.item);
-      ele.setAttribute('exportparts', this.itemexportparts);
       ele.addEventListener('resize', this.#onItemResize);
       ele.addEventListener('show', () => this.itemshow(this.#keyItemMap.get(key)));
       ele.intersectionRoot = this.scrollContainer;

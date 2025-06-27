@@ -46,10 +46,11 @@ function* generateHTML(root: Node, options: GetHTMLOptions = {}): Generator<stri
 }
 
 function tempReplacer() {
-  const originVar = { Promise, setTimeout, setInterval };
+  const originVar = { Promise, queueMicrotask, setTimeout, setInterval };
 
   Object.assign(globalThis, {
     Promise: MockPromise,
+    queueMicrotask: () => {},
     setTimeout: () => {},
     setInterval: () => {},
   });
@@ -59,12 +60,8 @@ function tempReplacer() {
   };
 }
 
-async function nextTick() {
-  return new Promise((res) => process.nextTick(res));
-}
-
 export async function* render(result: TemplateResult) {
-  const next = nextTick();
+  const next = Promise.resolve();
   const restore = tempReplacer();
   try {
     renderDom(result, document.body);

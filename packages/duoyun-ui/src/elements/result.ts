@@ -1,15 +1,15 @@
 import { adoptedStyle, attribute, customElement, property, shadow, slot } from '@mantou/gem/lib/decorators';
-import { css, GemElement, html } from '@mantou/gem/lib/element';
+import { css, GemElement, html, type TemplateResult } from '@mantou/gem/lib/element';
 
 import { theme } from '../lib/theme';
 import type { StringList } from '../lib/types';
 import type { Status } from './status-light';
 import { getStatusColor } from './status-light';
 
-import './use';
 import './heading';
 import './paragraph';
 import './space';
+import './use';
 
 const style = css`
   :host(:where(:not([hidden]))) {
@@ -47,9 +47,9 @@ export class DuoyunResultElement extends GemElement {
   @slot static unnamed: string;
 
   @attribute status: Status;
-  @attribute header: StringList<'slot'>;
-  @attribute description: StringList<'slot'>;
 
+  @property header: StringList<'slot'> | TemplateResult;
+  @property description: StringList<'slot'> | TemplateResult;
   @property icon?: string | Element | DocumentFragment;
   @property illustrator?: string | Element | DocumentFragment;
 

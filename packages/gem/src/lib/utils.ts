@@ -1,17 +1,17 @@
 const { assign, fromEntries, entries, keys } = Object;
 
+// 用原生 Chrome 找不到调用栈
+function queueMicrotask(cb: () => void) {
+  Promise.resolve().then(cb);
+}
+
 const microtaskSet = new Set<() => void>();
-export function addMicrotask(func: () => void, isNodeForceMicrotask?: boolean) {
+export function addMicrotask(func: () => void, method = queueMicrotask) {
   if (microtaskSet.has(func)) return;
-  const next = () => {
+  method(() => {
     microtaskSet.delete(func);
     func();
-  };
-  if (isNodeForceMicrotask) {
-    process.nextTick(next);
-  } else {
-    Promise.resolve().then(next);
-  }
+  });
   microtaskSet.add(func);
 }
 

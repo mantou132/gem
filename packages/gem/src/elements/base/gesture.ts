@@ -46,7 +46,7 @@ function angleAB(
 
 const style = css`
   @layer {
-    :scope:where(:not([hidden])) {
+    &:where(:not([hidden])) {
       display: block;
       user-select: none;
       touch-action: attr(touch-action, none);

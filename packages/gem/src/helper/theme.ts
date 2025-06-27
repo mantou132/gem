@@ -53,7 +53,7 @@ function createThemeFromProps<T extends Record<string, unknown>>(themeObj: T, pr
       }
       rules += `${props[key]}:${store[key]};`;
     });
-    styleSheet.setContent(`:scope,:host{${rules}}`);
+    styleSheet.setContent(`&,:host{${rules}}`);
   };
   updateContent();
   connect(store, () => {
@@ -104,7 +104,7 @@ export function createDecoratorTheme<T extends Record<string, unknown>>(themeObj
     return (_: any, { addInitializer, access }: Ctx) => {
       addInitializer(function (this: E) {
         const theme = createThemeFromProps({ ...themeObj }, props);
-        this.internals.sheets.push(theme[SheetToken].getStyle(this));
+        this.internals.sheets.push(theme[SheetToken].getStyle(this, true));
         this.memo(() => theme(access.get(this).apply(this)), getDep && (() => getDep(this) as any));
       });
     };
