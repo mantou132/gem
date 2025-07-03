@@ -78,7 +78,7 @@ export class DuoyunMeterElement extends GemElement {
   };
 
   get #max() {
-    return this.hasAttribute('max') ? this.max : 100;
+    return this.attributes.max ? this.max : 100;
   }
 
   get #progress() {

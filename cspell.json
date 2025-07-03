@@ -138,6 +138,7 @@
     "WIDTHSCREEN",
     "worklet",
     "worktree",
-    "xywh"
+    "xywh",
+    "Uncapitalize"
   ]
 }

@@ -209,11 +209,11 @@ export class DuoyunInputElement extends GemElement {
   }
 
   get #min() {
-    return this.hasAttribute('min') ? this.min : -Infinity;
+    return this.attributes.min ? this.min : -Infinity;
   }
 
   get #max() {
-    return this.hasAttribute('max') ? this.max : Infinity;
+    return this.attributes.max ? this.max : Infinity;
   }
 
   #nextState = {

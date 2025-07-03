@@ -280,7 +280,23 @@ noBlockingTaskList.addEventListener('start', () => addMicrotask(tick));
 
 let currentConstructGemElement: GemElement;
 
+type KebabCase<S extends string> = S extends `${infer Head}${infer Tail}`
+  ? Tail extends Uncapitalize<Tail>
+    ? `${Lowercase<Head>}${KebabCase<Tail>}`
+    : `${Lowercase<Head>}-${KebabCase<Tail>}`
+  : S;
+
 export abstract class GemElement extends HTMLElement {
+  /** 用来判断 attribute 是否存在，但是 length/item 将读取到 NamedNodeMap */
+  declare readonly attributes: NamedNodeMap & {
+    [K in keyof this as K extends keyof NamedNodeMap
+      ? never
+      : K extends keyof GemElement
+        ? never
+        : K extends Uppercase<string & K>
+          ? never
+          : `${KebabCase<string & K>}`]?: Attr;
+  };
   #renderRoot: HTMLElement | ShadowRoot;
   #internals: ElementInternals & {
     // 有别于 adoptedStyleSheets，用来定义单个实例样式

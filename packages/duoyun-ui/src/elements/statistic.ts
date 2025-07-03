@@ -126,7 +126,7 @@ export class DuoyunStatisticElement extends GemElement {
           <span class="number">${this.loading ? html`<dy-placeholder width="6em"></dy-placeholder>` : number}</span>
           <span class="unit">${this.loading ? '' : unit}</span>
         </div>
-        <span v-if=${!this.loading && this.hasAttribute('prev-value')} class=${classMap({ positive, negative })}>
+        <span v-if=${!this.loading && !!this.attributes['prev-value']} class=${classMap({ positive, negative })}>
           ${Number.isNaN(diffValue) ? '-' : diffValue === Infinity ? '∞' : diffValue}%
         </span>
       </div>
