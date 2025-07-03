@@ -3,7 +3,7 @@ import '../lib/shim';
 import { serve } from '@hono/node-server';
 import { html } from '@mantou/gem/lib/lit-html';
 import { build } from 'esbuild';
-import { Hono } from 'hono';
+import { type Context, Hono } from 'hono';
 import { stream } from 'hono/streaming';
 
 import { render } from '..';
@@ -12,9 +12,9 @@ import './elements/app';
 
 const app = new Hono();
 
-async function* renderApp() {
+async function* renderApp(ctx: Context) {
   yield `<!doctype html><html><body>`;
-  yield* render(html`<gem-ssr-app></gem-ssr-app>`);
+  yield* render(html`<gem-ssr-app></gem-ssr-app>`, { url: ctx.req.url });
   yield `<script src="/dist.js"></script>`;
   yield `</body></html>`;
 }
@@ -22,7 +22,7 @@ async function* renderApp() {
 app.get('/', (ctx) => {
   ctx.header('Content-Type', 'text/html');
   return stream(ctx, async (resStream) => {
-    await resStream.pipe((ReadableStream as any).from(renderApp()));
+    await resStream.pipe((ReadableStream as any).from(renderApp(ctx)));
   });
 });
 

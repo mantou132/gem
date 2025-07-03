@@ -1,8 +1,10 @@
 import './lib/shim';
 
-import { render as renderDom, type TemplateResult } from '@mantou/gem';
+import { history, render as renderDom, type TemplateResult } from '@mantou/gem';
+import { GemLightRouteElement } from '@mantou/gem/elements/route';
 
-import { MockPromise } from './lib/promise';
+import { MockPromise, NativePromise } from './lib/promise';
+import { dom } from './lib/shim';
 
 function getStyle(sheets: CSSStyleSheet[] = []) {
   return sheets.map((sheet) => `<style>${sheet._text}</style>`).join('');
@@ -10,7 +12,7 @@ function getStyle(sheets: CSSStyleSheet[] = []) {
 
 // https://github.com/EasyWebApp/declarative-shadow-dom-polyfill/blob/main/source/index.ts#L93
 const xmlSerializer = new XMLSerializer();
-function* generateHTML(root: Node, options: GetHTMLOptions = {}): Generator<string> {
+async function* generateHTML(root: Node, options: GetHTMLOptions = {}): AsyncGenerator<string> {
   const { serializableShadowRoots, shadowRoots = [] } = options;
   if (!serializableShadowRoots && !shadowRoots[0]) {
     yield (root as HTMLElement).innerHTML;
@@ -32,6 +34,9 @@ function* generateHTML(root: Node, options: GetHTMLOptions = {}): Generator<stri
       const attributes = [...currentNode.attributes].map(({ name, value }) => `${name}="${value}"`);
       const shadowRoot = currentNode.shadowRoot;
       yield `<${[tagName, ...attributes].join(' ')}>`;
+      if (currentNode instanceof GemLightRouteElement) {
+        await currentNode.update();
+      }
       if (shadowRoot && (shadowRootsSet.has(shadowRoot) || serializableShadowRoots)) {
         yield `<template shadowrootmode="${shadowRoot.mode}">`;
         yield getStyle(shadowRoot.adoptedStyleSheets);
@@ -60,12 +65,18 @@ function tempReplacer() {
   };
 }
 
-export async function* render(result: TemplateResult) {
-  const next = Promise.resolve();
+export interface RenderOptions {
+  url?: string;
+}
+
+export async function* render(result: TemplateResult, ctx: RenderOptions = {}) {
+  dom.reconfigure({ url: ctx.url || 'https://example.org/' });
+  const { pathname, search, hash } = location;
+  history.replace({ path: pathname, query: search, hash });
   const restore = tempReplacer();
   try {
     renderDom(result, document.body);
-    await next;
+    await NativePromise.resolve();
     yield getStyle(document.adoptedStyleSheets);
     yield* generateHTML(document.body, { serializableShadowRoots: true });
   } finally {
@@ -73,10 +84,10 @@ export async function* render(result: TemplateResult) {
   }
 }
 
-export async function renderToString(result: TemplateResult) {
-  let t = '';
-  for await (const chunk of render(result)) {
-    t += chunk;
+export async function renderToString(result: TemplateResult, ctx?: RenderOptions) {
+  let text = '';
+  for await (const chunk of render(result, ctx)) {
+    text += chunk;
   }
-  return t;
+  return text;
 }

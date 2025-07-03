@@ -1,11 +1,11 @@
 # Gem SSR
 
-Render custom element to string
+Server render Gem element
 
 ## Basic usage
 
 ```js
-// Import at the beginning
+// Import before any Gem element
 import { renderToString } from 'gem-ssr';
 
 app.get('/', async (req, res) => {
@@ -14,11 +14,11 @@ app.get('/', async (req, res) => {
 });
 ```
 
-## Improve
+## Improve WebApp Performance
 
 ### Lazy View
 
-The server renders the initial data, load the element when interacting, and then playback of the interaction event
+The server renders the initial data, load the element when user interacting, and then playback of the interaction event
 
 ```ts
 @lazy()
@@ -26,7 +26,7 @@ The server renders the initial data, load the element when interacting, and then
 class GemSsrElement extends GemElement {
   #state = createState({ content: 0 });
 
-  @server() // or `@lazyServer()`
+  @server() // or `@server('lazy')`
   @mounted()
   #init = async () => {
     this.#state({ content: await 1; });
@@ -34,7 +34,7 @@ class GemSsrElement extends GemElement {
 }
 ```
 
-The method marked with `@server()` waits for execution to complete on the server before returning, while `@lazyServer()` returns first, then executes, and re-renders the content after execution.
+The method marked with `@server()` waits for execution to complete on the server before returning, while `@server('lazy')` returns first, then executes, and re-renders the content after execution.
 
 ### Server Side Element
 

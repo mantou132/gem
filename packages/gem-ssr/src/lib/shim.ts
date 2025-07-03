@@ -1,6 +1,6 @@
 import { JSDOM } from 'jsdom';
 
-const dom = new JSDOM(``, {
+export const dom = new JSDOM(``, {
   url: 'https://example.org/',
   referrer: 'https://example.com/',
   contentType: 'text/html',

@@ -1,3 +1,5 @@
+export const NativePromise = globalThis.Promise;
+
 export class MockPromise {
   static resolve() {
     return new MockPromise(() => {});

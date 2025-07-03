@@ -30,6 +30,8 @@ defineProperty(Symbol, 'metadata', { value: Symbol.for('Symbol.metadata') });
 
 const execCallback = (fun: any) => typeof fun === 'function' && fun();
 
+const ssrNativeQueueMicrotask = (globalThis as any).nQM;
+
 // 读取构造样式表，跨多个 gem 工作
 export const SheetToken = Symbol.for('gem@sheetToken');
 export type SheetTokenType = typeof SheetToken;
@@ -173,7 +175,7 @@ const updateStyleSheets = (map: Map<CSSStyleSheet, number>, sheets: CSSStyleShee
   if (needUpdate) {
     // 避免重复更新，例如 list 元素增删，全 light dom 时 document 更新
     // 在 SSR 中应该区别 effect 强制执行
-    addMicrotask(rootUpdateFnMap.get(map)!, (globalThis as any).nQM);
+    addMicrotask(rootUpdateFnMap.get(map)!, ssrNativeQueueMicrotask);
   }
 };
 
@@ -306,13 +308,15 @@ export abstract class GemElement extends HTMLElement {
       const state = createUpdater(initState, (payload) => {
         const effect = ele.#effectList.at(0);
         // https://github.com/mantou132/gem/issues/203
-        if (ele.#isMounted && effect && !effect.initialized) {
-          throw new GemError(`Do't set state sync before insert the DOM`);
+        // SSR 不会执行 initEffect，应该跳过
+        if (!ssrNativeQueueMicrotask && ele.#isMounted && effect && !effect.initialized) {
+          throw new GemError(`Don't set state sync before insert the DOM`);
         }
         assign(state, payload);
         // 避免无限刷新
         // 挂载前 set state 不应该触发更新
-        if (!ele.#rendering && ele.#isMounted) addMicrotask(ele.#update);
+        // SSR 中渲染 <gem-route>，其他情况的 SSR 应该也可以执行
+        if (!ele.#rendering && ele.#isMounted) addMicrotask(ele.#update, ssrNativeQueueMicrotask);
       });
       ele.#internals.stateList.push(state);
       return state;

@@ -215,7 +215,7 @@ export class GemLightRouteElement extends GemElement {
     }
   };
 
-  #lastLoader?: Promise<TemplateResult | undefined>;
+  #lastLoader?: TemplateResult | Promise<TemplateResult | undefined>;
   #setContent = (route: RouteItem | null, params: Params, content?: TemplateResult) => {
     this.beforeroutechange(route);
     this.#lastLoader = undefined;
@@ -278,7 +278,7 @@ export class GemLightRouteElement extends GemElement {
   };
 
   // 重写 `update`，并暴露为公共字段
-  update = () => {
+  update = async () => {
     const { path, hash, query } = this.trigger.getParams();
     const { route, params = {} } = GemRouteElement.findRoute(this.routes, path);
     const { redirect, content, getContent } = route || {};
@@ -298,19 +298,14 @@ export class GemLightRouteElement extends GemElement {
     }
     const contentOrLoader = content || getContent?.(params, this.shadowRoot || this);
     this.loading(route);
-    if (contentOrLoader instanceof Promise) {
-      this.#lastLoader = contentOrLoader;
-      const isSomeLoader = () => this.#lastLoader === contentOrLoader;
-      contentOrLoader
-        .then((newContent) => {
-          if (isSomeLoader()) this.#setContent(route, params, newContent);
-        })
-        .catch((err) => {
-          if (isSomeLoader()) this.error(err);
-        });
-      return;
+    this.#lastLoader = contentOrLoader;
+    const isSomeLoader = () => this.#lastLoader === contentOrLoader;
+    try {
+      const newContent = await contentOrLoader;
+      if (isSomeLoader()) this.#setContent(route, params, newContent);
+    } catch (err) {
+      if (isSomeLoader()) this.error(err);
     }
-    this.#setContent(route, params, contentOrLoader);
   };
 }
 
