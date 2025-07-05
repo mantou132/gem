@@ -257,7 +257,16 @@ export class DuoyunModalElement extends GemElement {
 
   #maskRef = createRef<HTMLElement>();
   #dialogRef = createRef<HTMLElement>();
-  #bodyRef = createRef<HTMLElement>();
+  #customizeBodyRef = createRef<HTMLElement>();
+  #bodySlotRef = createRef<HTMLSlotElement>();
+
+  get #bodyRef() {
+    return this.customize ? this.#customizeBodyRef : this.#bodySlotRef;
+  }
+
+  get #animationEleRef() {
+    return this.customize ? this.#customizeBodyRef : this.#dialogRef;
+  }
 
   #close = () => {
     this.close(null);
@@ -280,13 +289,13 @@ export class DuoyunModalElement extends GemElement {
 
   #openAnimate = () => {
     this.#maskRef.value?.animate(fadeIn, commonAnimationOptions);
-    (this.#dialogRef.value || this.#bodyRef.value)?.animate(this.openAnimation, commonAnimationOptions);
+    this.#animationEleRef.value?.animate(this.openAnimation, commonAnimationOptions);
   };
 
   #closeAnimate = () =>
     Promise.all([
       this.#maskRef.value?.animate(fadeOut, commonAnimationOptions).finished,
-      (this.#dialogRef.value || this.#bodyRef.value)?.animate(this.closeAnimation, commonAnimationOptions).finished,
+      this.#animationEleRef.value?.animate(this.closeAnimation, commonAnimationOptions).finished,
     ]);
 
   @memo((i) => [i.open])
@@ -315,7 +324,7 @@ export class DuoyunModalElement extends GemElement {
     return html`
       <div ${this.#maskRef} class="mask absolute" @click=${this.#onMaskClick}></div>
       <div
-        ${this.#bodyRef}
+        ${this.#customizeBodyRef}
         v-if=${this.customize}
         part=${DuoyunModalElement.dialog}
         role="dialog"
@@ -350,7 +359,7 @@ export class DuoyunModalElement extends GemElement {
           size="medium"
         ></dy-divider>
         <dy-scroll-box class="body" part=${DuoyunModalElement.body}>
-          <slot ${this.#bodyRef}>${this.#body}</slot>
+          <slot ${this.#bodySlotRef}>${this.#body}</slot>
         </dy-scroll-box>
         <div class="footer" part=${DuoyunModalElement.footer}>
           <slot name=${DuoyunModalElement.footer}>
