@@ -25,7 +25,33 @@ new PortalPageUserElement();
 new PortalModuleProfileElement();
 ```
 
-## Attribute or Property
+## 可构造元素
+
+在命令式调用中，在构造函数参数中配置属性是一种常见方式：
+
+```ts
+const img = new MyImgElement({ width: 100, height: 100 });
+```
+
+为了避免声明式中定义的静态 `attribute` 被构造函数中覆盖，在构造函数中应该*只设置传递的属性*：
+
+```ts 9-10
+@customElement('my-img')
+class MyImgElement extends GemElement {
+  @numattribute width: number;
+  @numattribute height: number;
+  @property srcObject?:  MediaStream | MediaSource | Blob | File;
+
+  constructor(options = {}) {
+    super();
+    if (options.width) this.width = options.width;
+    if (options.height) this.height = options.height;
+    this.srcObject = options.srcObject;
+  }
+}
+```
+
+## Attribute 或 Property
 
 使用 Gem 创建自定义元素时，可以定义 Attribute 和 Property，他们都能传递数据给元素，并且都能让他们具备“观察性”，即改变他们的值时会触发元素更新。但是 Attribute 是可以用 Markup 表示的，机器可读，在浏览器 DevTools 也可以直接编辑，并且 Attribute 都有默认值，在元素内部使用时非常方便，所以如果能用 Attribute 表示的数据时尽量使用 Attribute，Attribute 不支持的数据类型才使用 Property。
 
@@ -84,7 +110,7 @@ class PortalModuleProfileElement extends GemElement {
 > }
 > ```
 
-## Public or Private
+## Public 或 Private
 
 使用 TypeScript 编写 Gem 元素时，其字段和方法默认都是 `public` 的，你固然可以使用 `private` 修饰符来标记为私有，但是在 JavaScript 中看来他们还是公开的，可以在元素外部访问，为了防止用户意外使用这些字段和方法，应该使用 JavaScript 中的[私有字段](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Classes/Private_class_fields)：
 
@@ -100,7 +126,7 @@ class MyElement extends GemElement {
 
 使用私有字段的另一个好处是不会和 `GemElement`/`HTMLelement` 属性或者方法重名，这对开发复杂元素时有很高的收益。
 
-## `addEventListener` or `onclick`
+## `addEventListener` 或 `onclick`
 
 在元素内部添加原生 DOM 事件监听器时可以使用事件处理器属性：
 
@@ -122,6 +148,7 @@ class MyElement extends GemElement {
 @customElement('my-element')
 class MyElement extends GemElement {
   constructor() {
+    super();
     this.addEventListener('click', console.log);
   }
 }

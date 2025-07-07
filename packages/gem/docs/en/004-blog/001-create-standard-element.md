@@ -25,6 +25,32 @@ new PortalPageUserElement();
 new PortalModuleProfileElement();
 ```
 
+## Constructable element
+
+In imperative calls, it is common to configure properties in constructor arguments:
+
+```ts
+const img = new MyImgElement({ width: 100, height: 100 });
+```
+
+To avoid static `attribute` defined in the declarative form being overwritten in the constructor, you should *only* set the passed attributes in the constructor:
+
+```ts 9-10
+@customElement('my-img')
+class MyImgElement extends GemElement {
+  @numattribute width: number;
+  @numattribute height: number;
+  @property srcObject?:  MediaStream | MediaSource | Blob | File;
+
+  constructor(options = {}) {
+    super();
+    if (options.width) this.width = options.width;
+    if (options.height) this.height = options.height;
+    this.srcObject = options.srcObject;
+  }
+}
+```
+
 ## Attribute or Property
 
 When using Gem to create a custom element, you can define Attribute and Property. Both of them can pass data to the element, and both can make them "observable", that is, when their values are changed, they will trigger element updates. But Attribute can be expressed by Markup, machine readable, and can be directly edited in the browser DevTools, and Attribute has default values, which is very convenient when used inside the element, so if you can use the data represented by Attribute, try to use Attribute. Property is only used for data types not supported by Attribute.
@@ -121,6 +147,7 @@ So you should use `addEventListener` to register event handlers:
 @customElement('my-element')
 class MyElement extends GemElement {
   constructor() {
+    super();
     this.addEventListener('click', console.log);
   }
 }

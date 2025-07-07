@@ -222,29 +222,29 @@ export class DuoyunModalElement extends GemElement {
   constructor(options: ModalOptions = {}) {
     super();
     const {
-      header,
       open,
       customize,
       maskClosable,
-      cancelText = '',
-      okText = '',
-      body,
-      footer,
+      cancelText,
+      okText,
       disableDefaultCancelBtn,
       disableDefaultOKBtn,
       dangerDefaultOkBtn,
+      header,
+      body,
+      footer,
     } = options;
+    if (customize) this.customize = customize;
+    if (maskClosable) this.maskClosable = maskClosable;
+    if (open) this.open = open;
+    if (cancelText) this.cancelText = cancelText;
+    if (okText) this.okText = okText;
+    if (disableDefaultCancelBtn) this.disableDefaultCancelBtn = disableDefaultCancelBtn;
+    if (disableDefaultOKBtn) this.disableDefaultOKBtn = disableDefaultOKBtn;
+    if (dangerDefaultOkBtn) this.dangerDefaultOkBtn = dangerDefaultOkBtn;
     this.headerSlot = header;
     this.bodySlot = body;
     this.footerSlot = footer;
-    this.customize = !!customize;
-    this.maskClosable = !!maskClosable;
-    this.open = !!open;
-    this.cancelText = cancelText;
-    this.okText = okText;
-    this.disableDefaultCancelBtn = !!disableDefaultCancelBtn;
-    this.disableDefaultOKBtn = !!disableDefaultOKBtn;
-    this.dangerDefaultOkBtn = !!dangerDefaultOkBtn;
   }
 
   get #header() {
