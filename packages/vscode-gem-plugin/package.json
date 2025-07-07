@@ -43,8 +43,20 @@
     ],
     "commands": [
       {
-        "command": "vscode-plugin-gem.helloWorld",
-        "title": "Hello World"
+        "command": "vscode-plugin-gem.remove_import",
+        "title": "Gem: Remove Unnecessary Import"
+      },
+      {
+        "command": "vscode-plugin-gem.remove_debugger",
+        "title": "Gem: Remove Debugger Statements"
+      },
+      {
+        "command": "vscode-plugin-gem.memo_to_getter",
+        "title": "Gem: Rewrite Memo to Getter"
+      },
+      {
+        "command": "vscode-plugin-gem.useSwcPlugin",
+        "title": "Gem: Rewrite Use Swc Plugin"
       }
     ],
     "snippets": [

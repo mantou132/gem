@@ -1,15 +1,19 @@
+import * as fs from 'node:fs/promises';
 import * as path from 'node:path';
 
 import type { PluginConfiguration } from 'ts-gem-plugin/src/configuration';
 import type { ExtensionContext, WorkspaceConfiguration } from 'vscode';
-import { commands, extensions, window, workspace } from 'vscode';
+import { commands, extensions, Range, window, workspace } from 'vscode';
 import { LanguageClient, TransportKind } from 'vscode-languageclient/node';
+
+import { exec, showTask } from './utils';
 
 const langSelectors = ['typescriptreact', 'javascriptreact', 'typescript', 'javascript'];
 
 const typeScriptExtensionId = 'vscode.typescript-language-features';
 const pluginId = 'ts-gem-plugin';
 const configurationSection = 'gem';
+const gritDir = path.join(__dirname, '../patterns');
 
 let client: LanguageClient | undefined;
 
@@ -32,9 +36,21 @@ export async function activate(context: ExtensionContext) {
   );
   client.start();
 
+  (await fs.readdir(gritDir)).forEach((file) => {
+    const fileName = path.basename(file, '.md');
+    context.subscriptions.push(
+      commands.registerCommand(`vscode-plugin-gem.${fileName}`, async () => {
+        await checkGritInstalled();
+        await grit(fileName);
+      }),
+    );
+  });
+
   context.subscriptions.push(
-    commands.registerCommand('vscode-plugin-gem.helloWorld', () => {
-      window.showInformationMessage('Hello World from vscode-plugin-gem!');
+    commands.registerCommand(`vscode-plugin-gem.useSwcPlugin`, async () => {
+      await checkGritInstalled();
+      await grit('remove_import');
+      await grit('memo_to_getter');
     }),
   );
 
@@ -99,5 +115,33 @@ function withConfigValue<T>(config: WorkspaceConfiguration, key: string, withVal
   const value = config.get<T | undefined>(key, undefined);
   if (typeof value !== 'undefined') {
     withValue(value);
+  }
+}
+
+async function checkGritInstalled() {
+  try {
+    await exec(`grit --version`);
+  } catch {
+    await showTask('Grit CLI is not installed, Install ...', exec(`npm install -g @getgrit/cli`));
+  }
+}
+
+async function grit(name: string) {
+  try {
+    const editor = window.activeTextEditor;
+    if (!editor) return;
+
+    const doc = editor.document;
+    const gritFilePath = path.join(gritDir, `./${name}.md`);
+    const command = `grit apply --force --stdin --language ${doc.languageId} ${gritFilePath}`;
+    const result = await showTask('Refactor...', exec(command, doc.getText()));
+    if (result) {
+      return editor.edit((editBuilder) => {
+        const range = doc.validateRange(new Range(0, 0, doc.lineCount, 0));
+        editBuilder.replace(range, result);
+      });
+    }
+  } catch (err) {
+    window.showErrorMessage(`Error: ${err.message}`);
   }
 }
