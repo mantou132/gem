@@ -328,6 +328,7 @@ export class DuoyunInputElement extends GemElement {
     if (!element) return;
     const { value, selectionStart, selectionEnd } = this.#nextState;
     if (this.value === value) {
+      // biome-ignore lint/plugin/assign: 有些控件没有原生 selectionStart
       Object.assign(element, { value, selectionStart, selectionEnd });
     } else {
       if (this.#editing && this.#isNumberNotChange(this.value, value)) {

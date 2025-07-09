@@ -54,6 +54,7 @@
       "attributePosition": "auto"
     }
   },
+  "plugins": ["./linter/assign.grit", "./linter/no_this_effect.grit"],
   "linter": {
     "enabled": true,
     "rules": {

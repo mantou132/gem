@@ -7,6 +7,7 @@ export const _StoreListenerMap = new WeakMap<Store<any>, Set<() => void>>();
 
 export function createStore<T = any>(originStore: T) {
   const store = createUpdater(originStore, (value?: Partial<T>) => {
+    // biome-ignore lint/plugin/assign: 未知类型
     Object.assign(store, value);
     _StoreListenerMap.get(store)?.forEach((func) => addMicrotask(func));
   });

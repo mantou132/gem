@@ -19,6 +19,7 @@ export const Decorators = {
   Emitter: 'emitter',
   GlobalEmitter: 'globalemitter',
   AdoptedStyle: 'adoptedStyle',
+  Shadow: 'shadow',
   CustomElement: 'customElement',
   Part: 'part',
   Slot: 'slot',

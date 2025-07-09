@@ -1,0 +1,8 @@
+`this.$effect($_, $dep)` where {
+    $effect <: or { `effect`, `memo` },
+    register_diagnostic(
+        span = $effect,
+        severity = "warn",
+        message = js"Prefer `@$effect` instead of `this.$effect`"
+    )
+}

@@ -65,6 +65,12 @@ export function decorateLanguageService(ctx: Context, languageService: LanguageS
     ts.forEachChild(file, (node) => {
       const tag = ctx.getTagFromNode(node);
       if (tag && ts.isClassDeclaration(node)) {
+        const isShadowDom = node.modifiers?.some(
+          (modifier) =>
+            ts.isDecorator(modifier) &&
+            ts.isCallExpression(modifier.expression) &&
+            modifier.expression.expression.getText() === Decorators.Shadow,
+        );
         node.members.forEach((member) => {
           if (!ts.isPropertyDeclaration(member) || !member.modifiers) return;
           const shouldIsStatic = member.modifiers.some(
@@ -73,14 +79,18 @@ export function decorateLanguageService(ctx: Context, languageService: LanguageS
               ts.isIdentifier(modifier.expression) &&
               [Decorators.Slot, Decorators.Part].includes(modifier.expression.text),
           );
-          if (shouldIsStatic && member.modifiers.every((e) => e.kind !== ts.SyntaxKind.StaticKeyword)) {
+          if (!shouldIsStatic) return;
+          const missStaticKeyword = member.modifiers.every((e) => e.kind !== ts.SyntaxKind.StaticKeyword);
+          if (missStaticKeyword || !isShadowDom) {
             result.push({
               file,
               start: member.getStart(),
               length: member.getEnd() - member.getStart(),
               category: ts.DiagnosticCategory.Warning,
               code: DiagnosticCode.DecoratorSyntaxError,
-              messageText: 'Use static field for `@part` and `@slot`',
+              messageText: missStaticKeyword
+                ? 'Use static field for `@part` and `@slot`'
+                : 'Not available on light dom `@part` and `@slot`',
             });
           }
         });

@@ -7,11 +7,11 @@ engine marzano(0.1)
 language js
 
 or {
-  `import $import_clause from "@mantou/gem/elements/$name"` where {
-    $import_clause <: not contains `$_`
-  } => .,
-
-  `import $import_clause from "duoyun-ui/elements/$name"` where {
+  `import $import_clause from $lib` where {
+    $lib <: or {
+      `"@mantou/gem/elements/$name"`,
+      `"duoyun-ui/elements/$name"`
+    },
     $import_clause <: not contains `$_`
   } => .,
 
@@ -19,7 +19,7 @@ or {
     $named_imports <: maybe some bubble or {
       `type $import`,
       `$import`
-    } where {
+    } as $import_item where {
       $import <: or {
         // crates/swc-plugin-gem/src/auto-import.json
         `GemElement`,
@@ -67,11 +67,9 @@ or {
         `partMap`,
         `exportPartsMap`,
       },
-      $import => .,
+      $import_item => .,
     }
   },
-
-  `import {} from "@mantou/gem"` => .,
 }
 ```
 

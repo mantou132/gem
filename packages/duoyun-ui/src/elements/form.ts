@@ -133,7 +133,8 @@ export class DuoyunFormElement<Data = Record<string, any>> extends GemElement {
     const data = {} as Data;
     this.items.forEach((item) => {
       if (!item.name) return;
-      //@ts-ignore
+      // @ts-ignore
+      // biome-ignore lint/plugin/assign: 未知类型
       Object.assign(data, { [item.name]: item.data });
     });
     return data;

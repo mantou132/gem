@@ -1,3 +1,5 @@
+// biome-ignore-all lint/plugin/no_this_effect: 定义装饰器
+
 import type { TemplateResult } from './lit-html';
 import type { Metadata, Sheet } from './reactive';
 import { _createTemplate, _RenderErrorEvent, GemElement, render, UpdateToken } from './reactive';
