@@ -5,15 +5,20 @@ A component that creates an isolated styling context, preventing external styles
 ## Example
 
 ```ts
+const style = css`
+  * {
+    color: red;
+  }
+`;
+
 html`
   <dy-compartment
-    .content=${html`
-      <style>
-        * {
-          color: red;
-        }
-      </style>
-    `}
+    .styles=${style}
+    .content=${html`<div>test</div>`}
   ></dy-compartment>
 `;
 ```
+
+## `<dy-compartment>` API
+
+<gbp-api src="/src/elements/compartment.ts"></gbp-api>

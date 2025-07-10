@@ -1,4 +1,4 @@
-import { connect, html } from '@mantou/gem';
+import { connect, css, html } from '@mantou/gem';
 import { parse, Renderer } from 'marked';
 
 import { getUserLink, normalizeId, parseTitle } from '../../common/utils';
@@ -105,7 +105,7 @@ export function parseMarkdown(mdBody: string) {
   return [...parser.parseFromString(parse(mdBody, { renderer: currentRenderer }), 'text/html').body.children];
 }
 
-export const blockquoteStyle = /*css*/ `
+export const blockquoteStyle = css`
   blockquote {
     --highlight: ${theme.textColor};
     border-left: ${theme.normalRound} solid rgb(from var(--highlight) r g b / 0.05);
@@ -147,7 +147,7 @@ export const blockquoteStyle = /*css*/ `
   }
 `;
 
-export const headingStyle = /*css*/ `
+export const headingStyle = css`
   .header-anchor {
     font-size: 0.75em;
     margin-inline-start: 0.25em;
@@ -164,7 +164,7 @@ export const headingStyle = /*css*/ `
   }
 `;
 
-export const tableStyle = /*css*/ `
+export const tableStyle = css`
   .table-wrap {
     margin: 2rem 0;
     width: max-content;
@@ -202,7 +202,7 @@ export const tableStyle = /*css*/ `
   }
 `;
 
-export const linkStyle = /*css*/ `
+export const linkStyle = css`
   .link {
     color: ${theme.primaryColor};
     text-decoration: none;
@@ -217,12 +217,7 @@ export const linkStyle = /*css*/ `
   }
 `;
 
-export function unsafeRenderHTML(s: string, style = '') {
+export function unsafeRenderHTML(s: string, style = css``) {
   const htmlStr = parse(s, { renderer: currentRenderer });
-  // 只包含链接样式
-  const cssStr = /*css*/ `
-    ${linkStyle}
-    ${style}
-  `;
-  return html`<gem-unsafe content=${htmlStr} contentcss=${cssStr}></gem-unsafe>`;
+  return html`<gem-unsafe html=${htmlStr} .styles=${[linkStyle, style]}></gem-unsafe>`;
 }

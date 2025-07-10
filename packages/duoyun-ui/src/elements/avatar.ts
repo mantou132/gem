@@ -5,13 +5,13 @@ import {
   attribute,
   boolattribute,
   customElement,
+  light,
   numattribute,
   part,
   property,
   shadow,
 } from '@mantou/gem/lib/decorators';
 import { css, GemElement, html } from '@mantou/gem/lib/element';
-import { exportPartsMap } from '@mantou/gem/lib/utils';
 
 import { theme } from '../lib/theme';
 import type { Status } from './status-light';
@@ -156,9 +156,8 @@ export type AvatarItem = {
 @customElement('dy-avatar-group')
 @adoptedStyle(groupStyle)
 @aria({ role: 'list' })
+@light({ penetrable: true })
 export class DuoyunAvatarGroupElement extends GemElement {
-  @part static avatar: string;
-
   @numattribute max: number;
   @attribute size: 'small' | 'medium' | 'large';
   @attribute crossorigin: 'anonymous' | 'use-credentials';
@@ -175,12 +174,9 @@ export class DuoyunAvatarGroupElement extends GemElement {
     return this.max || this.#items?.length || 0;
   }
 
-  #parts = exportPartsMap({ [DuoyunAvatarElement.avatar]: DuoyunAvatarGroupElement.avatar });
-
   #renderAvatar = ({ src = '', tooltip = '', alt = '', status, onClick }: AvatarItem) => {
     return html`
       <dy-avatar
-        exportparts=${this.#parts}
         class="item"
         role="listitem"
         .src=${src}

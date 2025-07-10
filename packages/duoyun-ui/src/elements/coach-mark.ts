@@ -22,9 +22,9 @@ import { DuoyunVisibleBaseElement } from './base/visible';
 import { ContextMenu } from './contextmenu';
 import { DuoyunWaitElement } from './wait';
 
+import './button';
 import './card';
 import './paragraph';
-import './button';
 
 export type Tour = {
   title: string;
@@ -55,6 +55,7 @@ export async function openTour(currentIndex = store.currentIndex) {
 }
 
 export async function setTours(tours: Tour[] | Record<number, Tour>, options: Partial<Store> = {}) {
+  // biome-ignore lint/plugin/assign: 支持对象
   tourList = Object.assign([], tours);
   const { opened = true, currentIndex = tourList.findIndex((e) => !!e) || 0 } = options;
   if (opened) {

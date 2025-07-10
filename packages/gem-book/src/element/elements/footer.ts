@@ -26,6 +26,16 @@ const styles = css`
   }
 `;
 
+const footerStyle = css`
+  p {
+    margin: 0;
+  }
+  .link,
+  .link:hover {
+    background: none;
+  }
+`;
+
 @customElement('gem-book-footer')
 @connectStore(bookStore)
 @adoptedStyle(styles)
@@ -36,18 +46,7 @@ export class Footer extends GemElement {
     return html`
       ${
         config?.footer
-          ? unsafeRenderHTML(
-              config.footer,
-              /*css*/ `
-              p {
-                margin: 0;
-              }
-              .link,
-              .link:hover {
-                background: none;
-              }
-            `,
-            )
+          ? unsafeRenderHTML(config.footer, footerStyle)
           : selfI18n.get('footer', (t) => html`<gem-link href="https://book.gemjs.org">${t}</gem-link>`)
       }
     `;

@@ -9,6 +9,7 @@ import {
   boolattribute,
   customElement,
   emitter,
+  light,
   part,
   property,
   shadow,
@@ -16,7 +17,7 @@ import {
 } from '@mantou/gem/lib/decorators';
 import type { TemplateResult } from '@mantou/gem/lib/element';
 import { createRef, createState, css, GemElement, html } from '@mantou/gem/lib/element';
-import { classMap, exportPartsMap } from '@mantou/gem/lib/utils';
+import { classMap } from '@mantou/gem/lib/utils';
 
 import { commonAnimationOptions } from '../lib/animations';
 import { commonHandle } from '../lib/hotkeys';
@@ -137,14 +138,14 @@ export class DuoyunCollapsePanelElement extends GemElement {
 }
 
 const style = css`
-  :host(:where(:not([hidden]))) {
+  :scope:where(:not([hidden])) {
     display: block;
     overflow: hidden;
     border-radius: ${theme.normalRound};
     border: 1px solid ${theme.borderColor};
     overflow-anchor: none;
   }
-  :host dy-collapse-panel:first-child {
+  :scope dy-collapse-panel:first-child {
     border-block-start: none;
   }
 `;
@@ -156,12 +157,9 @@ type CollapseItem = {
 
 @customElement('dy-collapse')
 @adoptedStyle(style)
-@shadow({ delegatesFocus: true })
 @aria({ role: 'list' })
+@light({ penetrable: true })
 export class DuoyunCollapseElement extends GemElement {
-  @part static panel: string;
-  @part static summary: string;
-  @part static detail: string;
   @attribute type: 'single' | 'multi';
   @boolattribute searchable: boolean;
 
@@ -173,7 +171,7 @@ export class DuoyunCollapseElement extends GemElement {
 
   #onToggle = (evt: CustomEvent<boolean>) => {
     if (this.#type === 'single' && evt.detail) {
-      [...this.shadowRoot!.querySelectorAll('dy-collapse-panel')].forEach((panel: DuoyunCollapsePanelElement) => {
+      [...this.querySelectorAll('dy-collapse-panel')].forEach((panel: DuoyunCollapsePanelElement) => {
         if (panel !== evt.target && panel.state.preExpand) {
           panel.toggleState();
         }
@@ -181,17 +179,10 @@ export class DuoyunCollapseElement extends GemElement {
     }
   };
 
-  #parts = exportPartsMap({
-    [DuoyunCollapsePanelElement.summary]: DuoyunCollapseElement.summary,
-    [DuoyunCollapsePanelElement.detail]: DuoyunCollapseElement.detail,
-  });
-
   render() {
     return html`${this.items?.map(
       ({ summary, detail }) => html`
         <dy-collapse-panel
-          part=${DuoyunCollapseElement.panel}
-          exportparts=${this.#parts}
           .searchable=${this.searchable}
           .summary=${summary}
           @toggle=${this.#onToggle}

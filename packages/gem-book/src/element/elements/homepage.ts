@@ -2,8 +2,8 @@ import { adoptedStyle, connectStore, css, customElement, GemElement, html } from
 import { mediaQuery } from '@mantou/gem/helper/mediaquery';
 
 import { getUserLink } from '../../common/utils';
-import { GemBookElement } from '..';
 import { theme } from '../helper/theme';
+import { GemBookElement } from '../index';
 import { unsafeRenderHTML } from '../lib/renderer';
 import type { NavItemWithLink } from '../lib/utils';
 import { joinPath } from '../lib/utils';
@@ -154,6 +154,12 @@ const styles = css`
   }
 `;
 
+const featureStyle = css`
+  p:last-of-type {
+    margin-block-end: 0;
+  }
+`;
+
 @customElement('gem-book-homepage')
 @connectStore(bookStore)
 @adoptedStyle(styles)
@@ -198,14 +204,7 @@ export class Homepage extends GemElement {
                 }
                 <dt class="feat-title">${feature.title}</dt>
                 <dd class="feat-desc">
-                  ${unsafeRenderHTML(
-                    feature.desc,
-                    /*css*/ `
-                      p:last-of-type {
-                        margin-block-end: 0;
-                      }
-                    `,
-                  )}
+                  ${unsafeRenderHTML(feature.desc, featureStyle)}
                 </dd>
               </div>
             `,

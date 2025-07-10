@@ -19,8 +19,8 @@ import { checkBuiltInPlugin } from '../lib/utils';
 import { locationStore } from '../store';
 import { tocStore } from './toc';
 
-import '@mantou/gem/elements/unsafe';
 import '@mantou/gem/elements/link';
+import '@mantou/gem/elements/unsafe';
 import './pre';
 
 const style = css`
@@ -52,8 +52,7 @@ const style = css`
   }
 
   :scope {
-    -webkit-print-color-adjust: economy;
-    color-adjust: economy;
+    print-color-adjust: economy;
     display: block;
     width: 100%;
     box-sizing: border-box;
@@ -199,14 +198,14 @@ const style = css`
       margin: 1rem 0 2rem;
     }
   }
-  ${linkStyle}
-  ${tableStyle}
-  ${headingStyle}
-  ${blockquoteStyle}
 `;
 
 @customElement('gem-book-main')
 @adoptedStyle(style)
+@adoptedStyle(linkStyle)
+@adoptedStyle(tableStyle)
+@adoptedStyle(headingStyle)
+@adoptedStyle(blockquoteStyle)
 @connectStore(locationStore)
 @aria({ role: 'article' })
 export class Main extends GemElement {

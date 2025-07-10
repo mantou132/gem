@@ -1,16 +1,15 @@
-import { adoptedStyle, customElement, property, shadow } from '@mantou/gem/lib/decorators';
+import { GemUnsafeElement } from '@mantou/gem/elements/base/unsafe';
+import { customElement, property, shadow, template } from '@mantou/gem/lib/decorators';
 import type { TemplateResult } from '@mantou/gem/lib/element';
-import { GemElement, html } from '@mantou/gem/lib/element';
-
-import { contentsContainer } from '../lib/styles';
+import { html } from '@mantou/gem/lib/element';
 
 @customElement('dy-compartment')
-@adoptedStyle(contentsContainer)
 @shadow()
-export class DuoyunCompartmentElement extends GemElement {
+export class DuoyunCompartmentElement extends GemUnsafeElement {
   @property content?: string | number | TemplateResult | Element | Element[];
 
-  render = () => {
+  @template()
+  #content = () => {
     return html`${this.content}`;
   };
 }

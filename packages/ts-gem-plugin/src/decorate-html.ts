@@ -270,7 +270,14 @@ export class HTMLLanguageService implements TemplateLanguageService {
           continue;
         }
 
-        if (attrInfo.decorate === '' && attributeName !== camelToKebabCase(attrInfo.attr)) {
+        const isSVG = builtInElementTagDecl?.name.getText().startsWith('SVG');
+
+        if (
+          // SVG 大小写敏感
+          !isSVG &&
+          attrInfo.decorate === '' &&
+          attributeName !== camelToKebabCase(attrInfo.attr)
+        ) {
           // <my-element myProp="xx">
           diagnostics.push({
             ...diagnostic,
@@ -282,9 +289,9 @@ export class HTMLLanguageService implements TemplateLanguageService {
 
         if (!propType) {
           if (
-            attrInfo.decorate !== '@' &&
             // SVG 元素有很多 css 属性，所以不检查
-            !builtInElementTagDecl?.name.getText().startsWith('SVG')
+            !isSVG &&
+            attrInfo.decorate !== '@'
           ) {
             // <div unknown>
             diagnostics.push({
