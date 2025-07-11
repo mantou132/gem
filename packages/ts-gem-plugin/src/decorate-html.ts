@@ -7,7 +7,7 @@ import { isNotNullish } from 'duoyun-ui/lib/types';
 import type * as ts from 'typescript/lib/tsserverlibrary';
 
 import { LRUCache } from './cache';
-import { DiagnosticCode, NAME } from './constants';
+import { DiagnosticCode, HTML_SUBSTITUTION_CHAR, NAME } from './constants';
 import type { Context } from './context';
 import {
   genAttrDefinitionInfo,
@@ -169,78 +169,106 @@ export class HTMLLanguageService implements TemplateLanguageService {
 
   #getHtmlSemanticDiagnostics(context: TemplateContext) {
     const offset = context.node.getStart() + 1;
+    const templateTag = (context.node.parent as ts.TaggedTemplateExpression).tag?.getText();
     const { vHtml } = this.#ctx.getHtmlDoc(context.text);
     const program = this.#ctx.getProgram();
     const file = program.getSourceFile(context.fileName)!;
     const typeChecker = program.getTypeChecker();
     const diagnostics: ts.Diagnostic[] = [];
+    const baseDiagnostic = { file, source: NAME };
     forEachNode(vHtml.roots, (node) => {
       if (!node.tag) return;
 
       const customElementTagDecl = this.#ctx.elements.get(node.tag);
       const builtInElementTagDecl = this.#ctx.builtInElements.get(node.tag);
+      const baseTagDiagnostic = { ...baseDiagnostic, start: node.start + 1, length: node.tag.length };
+
+      if (this.#ctx.config.strict && templateTag !== 'raw' && node.tag === 'style') {
+        diagnostics.push({
+          ...baseTagDiagnostic,
+          category: context.typescript.DiagnosticCategory.Warning,
+          code: DiagnosticCode.NoStyleTag,
+          messageText: `Use 'adoptedStyle' or 'createDecoratorTheme' instead of the style tag`,
+        });
+      }
 
       // 检查自定义元素是否定义
       if (isCustomElementTag(node.tag) && !customElementTagDecl) {
         diagnostics.push({
+          ...baseTagDiagnostic,
           category: context.typescript.DiagnosticCategory.Warning,
           code: DiagnosticCode.UnknownTag,
-          file,
-          start: node.start + 1,
-          length: node.tag.length,
           messageText: `Unknown element tag '${node.tag}'`,
-          source: NAME,
         });
       }
 
       const tagDeclaration = customElementTagDecl || builtInElementTagDecl;
       if (!tagDeclaration) return;
+      const classType = typeChecker.getTypeAtLocation(tagDeclaration);
+      const isSVG = builtInElementTagDecl?.name.getText().startsWith('SVG');
 
+      // 检查元素是否弃用
       if (tagDeclaration.name && isDeprecate(typeChecker.getSymbolAtLocation(tagDeclaration.name))) {
-        [node.start + 1, node.endTagStart && node.endTagStart + 2].forEach((tagStart) => {
-          tagStart &&
-            diagnostics.push({
-              category: context.typescript.DiagnosticCategory.Suggestion,
-              file,
-              start: tagStart,
-              length: node.tag!.length,
-              source: NAME,
-              code: DiagnosticCode.Deprecated,
-              messageText: `Deprecated tag '${node.tag}'`,
-              reportsDeprecated: 'true',
-            });
+        [node.start + 1, node.endTagStart && node.endTagStart + 2].filter(isNotNullish).forEach((tagStart) => {
+          diagnostics.push({
+            ...baseTagDiagnostic,
+            start: tagStart,
+            category: context.typescript.DiagnosticCategory.Suggestion,
+            code: DiagnosticCode.Deprecated,
+            messageText: `Deprecated tag '${node.tag}'`,
+            reportsDeprecated: 'true',
+          });
         });
       }
 
       // 检查属性类型
       for (const [attributeName, { value, start, end }] of node.attributesMap) {
-        if (attributeName.startsWith('_')) continue;
+        if (attributeName.startsWith(HTML_SUBSTITUTION_CHAR)) continue;
 
-        const hasValueSpan = value?.startsWith('_');
+        const hasValueSpan = value?.startsWith(HTML_SUBSTITUTION_CHAR);
         const attrInfo = getAttrName(attributeName);
-        const propType = getPropType(typeChecker, tagDeclaration, !customElementTagDecl, attrInfo, () => {
+        const propName = getPropName(attrInfo, !!builtInElementTagDecl);
+        const propType = getPropType(typeChecker, classType, propName, attrInfo.decorate === '@');
+        const attrBaseDiagnostic = { ...baseDiagnostic, start: start, length: end - start };
+
+        // 检查属性是否弃用
+        if (isDeprecate(classType.getProperty(propName))) {
           diagnostics.push({
+            ...attrBaseDiagnostic,
             category: context.typescript.DiagnosticCategory.Suggestion,
-            file,
-            start: start,
-            length: end - start,
-            source: NAME,
             code: DiagnosticCode.Deprecated,
             messageText: `Deprecated prop '${attrInfo.attr}'`,
             reportsDeprecated: 'true',
           });
-        });
+        }
+
         const diagnostic = {
+          ...attrBaseDiagnostic,
           category: context.typescript.DiagnosticCategory.Warning,
-          file,
-          start: start,
-          length: end - start,
-          source: NAME,
           code: DiagnosticCode.PropTypeError,
           messageText: !propType
             ? `'${attributeName}' type error`
             : `'${attributeName}' not satisfied '${typeChecker.typeToString(propType)}'`,
         };
+
+        if (templateTag === 'raw') {
+          if (attrInfo.decorate) {
+            diagnostics.push({
+              ...diagnostic,
+              code: DiagnosticCode.PropSyntaxError,
+              messageText: `Raw HTML templates only support attributes`,
+            });
+            continue;
+          }
+          if (hasValueSpan) {
+            diagnostics.push({
+              ...diagnostic,
+              code: DiagnosticCode.PropSyntaxError,
+              messageText: `Please wrap the raw html template attribute value with "" to avoid parsing errors when the value is an empty string`,
+            });
+            continue;
+          }
+        }
 
         if (
           (attributeName === 'v-else-if' || attributeName === 'v-else') &&
@@ -269,8 +297,6 @@ export class HTMLLanguageService implements TemplateLanguageService {
           }
           continue;
         }
-
-        const isSVG = builtInElementTagDecl?.name.getText().startsWith('SVG');
 
         if (
           // SVG 大小写敏感
@@ -605,22 +631,22 @@ const globalEnumeratedBooleanAttr = new Map([
   ['contenteditable', ['plaintext-only']],
 ]);
 
-function getPropType(
-  typeChecker: ts.TypeChecker,
-  tagClassDeclaration: ts.ClassDeclaration | ts.InterfaceDeclaration,
-  isBuiltInTag: boolean,
-  attrInfo: ReturnType<typeof getAttrName>,
-  reportDeprecate: () => void,
-) {
-  const classType = typeChecker.getTypeAtLocation(tagClassDeclaration);
+function getPropName(attrInfo: ReturnType<typeof getAttrName>, isNativeTag: boolean) {
   if (attrInfo.attr.startsWith('data-')) {
+    return attrInfo.attr;
+  }
+  return (
+    globalAttrPropMap.get(attrInfo.attr) ||
+    (isNativeTag
+      ? buildInElementNoGlobalAttrPropMap.get(attrInfo.attr) || kebabToCamelCase(attrInfo.attr)
+      : kebabToCamelCase(attrInfo.attr))
+  );
+}
+
+function getPropType(typeChecker: ts.TypeChecker, classType: ts.Type, propName: string, isEvent: boolean) {
+  if (propName.startsWith('data-')) {
     return typeChecker.getStringType();
   }
-  const propName =
-    globalAttrPropMap.get(attrInfo.attr) ||
-    (isBuiltInTag
-      ? buildInElementNoGlobalAttrPropMap.get(attrInfo.attr) || kebabToCamelCase(attrInfo.attr)
-      : kebabToCamelCase(attrInfo.attr));
   switch (propName) {
     case 'class':
     case 'style':
@@ -653,9 +679,7 @@ function getPropType(
         typeChecker.getUndefinedType(),
       ]);
     default: {
-      const isEvent = attrInfo.decorate === '@';
       const propSymbol = classType.getProperty(propName);
-      if (isDeprecate(propSymbol)) reportDeprecate();
       const propType = propSymbol && typeChecker.getTypeOfSymbol(propSymbol);
       if (!isEvent) return propType;
       const eventHandleType = getEmitterHandleType(typeChecker, classType, propType);

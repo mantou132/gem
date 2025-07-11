@@ -159,6 +159,11 @@ export class LinkedList<T = any> extends EventTarget {
     return deleteItem;
   }
 
+  clear() {
+    this.#map.clear();
+    this.#firstItem = this.#lastItem = undefined;
+  }
+
   /** 获取头部元素，会从链表删除 */
   get(): T | undefined {
     const firstItem = this.#firstItem;

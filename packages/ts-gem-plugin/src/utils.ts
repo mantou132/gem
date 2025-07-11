@@ -30,6 +30,24 @@ export function forEachNode<T extends { children: readonly T[] } | { getChildren
   }
 }
 
+export function hasDecorator(typescript: typeof ts, node: ts.Node, decorates?: string[]) {
+  return (node as ts.ClassDeclaration).modifiers?.some(
+    (modifier) =>
+      typescript.isDecorator(modifier) &&
+      typescript.isIdentifier(modifier.expression) &&
+      (!decorates || decorates.includes(modifier.expression.text)),
+  );
+}
+
+export function hasCallDecorator(typescript: typeof ts, node: ts.Node, decorates?: string[]) {
+  return (node as ts.ClassDeclaration).modifiers?.some(
+    (modifier) =>
+      typescript.isDecorator(modifier) &&
+      typescript.isCallExpression(modifier.expression) &&
+      (!decorates || decorates.includes(modifier.expression.expression.getText())),
+  );
+}
+
 export function getTemplateNode(typescript: typeof ts, node: ts.Node) {
   if (typescript.isTaggedTemplateExpression(node)) return node.template;
   if (typescript.isTemplateExpression(node)) return node;

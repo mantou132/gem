@@ -17,4 +17,8 @@ export class LRUCache<T extends object> {
   get(context: CacheContext, position: Position | undefined, init: () => T) {
     return this.#bucket.get(this.#genKey(context, position), init);
   }
+
+  clear() {
+    this.#bucket.clear?.();
+  }
 }

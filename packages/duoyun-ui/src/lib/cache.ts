@@ -74,4 +74,10 @@ export class Cache<T = any> {
     this.#addedLinked.add(value);
     return value;
   }
+
+  clear() {
+    this.#map.clear();
+    this.#reverseMap.clear();
+    this.#addedLinked.clear();
+  }
 }
