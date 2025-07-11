@@ -81,13 +81,18 @@ function synchronizeConfiguration(api: any) {
   api.configurePlugin(pluginId, getConfiguration());
 }
 
+type TupleUnion<U extends string, R extends string[] = []> = {
+  [S in U]: Exclude<U, S> extends never ? [...R, S] : TupleUnion<Exclude<U, S>, [...R, S]>;
+}[U] &
+  string[];
+
 function getConfiguration(): Partial<PluginConfiguration> {
   const config = workspace.getConfiguration(configurationSection);
   const outConfig: Partial<PluginConfiguration> = {
     emmet: workspace.getConfiguration('emmet') as PluginConfiguration['emmet'],
   };
 
-  (['emmet', 'elementDefineRules'] as (keyof PluginConfiguration)[]).forEach((k) => {
+  (['strict', 'emmet', 'elementDefineRules'] as TupleUnion<keyof PluginConfiguration>).forEach((k) => {
     withConfigValue<any>(config, k, (v) => {
       outConfig[k] = v;
     });

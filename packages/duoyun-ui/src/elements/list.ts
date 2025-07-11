@@ -7,6 +7,7 @@ import {
   customElement,
   effect,
   emitter,
+  light,
   memo,
   mounted,
   part,
@@ -589,6 +590,8 @@ const itemStyle = css({
 @adoptedStyle(blockContainer)
 @adoptedStyle(itemStyle)
 @aria({ role: 'listitem' })
+// Chrome bug: https://x.com/594mantou/status/1944406907319661026
+@light({ penetrable: true })
 export class DuoyunListItemElement extends DuoyunResizeBaseElement implements VisibleBaseElement {
   @emitter show: Emitter;
   @emitter hide: Emitter;

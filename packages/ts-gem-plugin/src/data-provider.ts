@@ -5,7 +5,7 @@ import type * as ts from 'typescript/lib/tsserverlibrary';
 
 import { NAME, Types } from './constants';
 import type { Context } from './context';
-import { getAttrName, getCurrentElementDecl, isDepElement } from './utils';
+import { getAttrName, getCurrentElementDecl, hasDecorator, isDepElement } from './utils';
 
 export const dataProvider = getDefaultHTMLDataProvider();
 
@@ -55,7 +55,7 @@ export class HTMLDataProvider implements IHTMLDataProvider {
       const declaration = e.getDeclarations()?.at(0);
       const prop = declaration && ts.isPropertyDeclaration(declaration);
       if (!prop) return;
-      const hasPropDecorator = declaration.modifiers?.some((m) => ts.isDecorator(m) && ts.isIdentifier(m.expression));
+      const hasPropDecorator = hasDecorator(ts, declaration);
       if (!hasPropDecorator && !isDep) return;
       const type = declaration.type && typeChecker.getTypeFromTypeNode(declaration.type);
       const typeText = declaration.type?.getText();

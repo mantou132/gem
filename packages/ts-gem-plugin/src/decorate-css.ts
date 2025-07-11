@@ -5,6 +5,7 @@ import { doComplete as doEmmetComplete } from '@mantou/vscode-emmet-helper';
 import type * as ts from 'typescript/lib/tsserverlibrary';
 
 import { LRUCache } from './cache';
+import { onConfigurationUpdate } from './configuration';
 import { NAME } from './constants';
 import type { Context } from './context';
 import {
@@ -26,6 +27,7 @@ export class CSSLanguageService implements TemplateLanguageService {
 
   constructor(ctx: Context) {
     this.#ctx = ctx;
+    onConfigurationUpdate(() => this.#diagnosticsCache.clear());
   }
 
   #normalize(context: TemplateContext, position: ts.LineAndCharacter) {
@@ -92,20 +94,42 @@ export class CSSLanguageService implements TemplateLanguageService {
   #getSyntacticDiagnostics(context: TemplateContext): ts.Diagnostic[] {
     const { text, offset } = this.#normalize(context, { line: 0, character: 0 });
     const { vDoc, vCss } = this.#ctx.getCssDoc(text);
+    const result: ts.Diagnostic[] = [];
     const oDiagnostics = this.#ctx.cssLanguageService.doValidation(vDoc, vCss);
     const file = this.#ctx.getProgram().getSourceFile(context.fileName);
-    return oDiagnostics.map(({ message, range }) => {
+    const baseDiagnostic = { code: 0, file, source: NAME, category: context.typescript.DiagnosticCategory.Warning };
+
+    if (this.#ctx.config.strict) {
+      const scopeSelectors = new Set([':host', ':scope', '&']);
+      vCss.getChildren().forEach((rule) => {
+        if (rule.type !== NodeType.Ruleset) return;
+        const [selectors, declarations] = rule.getChildren();
+        const isScopeSelector = selectors?.getChildren().every((s) => scopeSelectors.has(s.getText()));
+        if (!isScopeSelector) return;
+        declarations.getChildren().forEach((decl) => {
+          const [property] = decl.getChildren();
+          if (property?.getText() === 'display') {
+            result.push({
+              ...baseDiagnostic,
+              start: property.offset,
+              length: property.length,
+              messageText: `Do not set 'display' directly in '${selectors.getText()}', which will cause the 'hidden' attribute to be unavailable`,
+            });
+          }
+        });
+      });
+    }
+
+    oDiagnostics.forEach(({ message, range }) => {
       const start = context.toOffset(range.start);
-      return {
-        category: context.typescript.DiagnosticCategory.Warning,
-        code: 0,
-        file,
+      result.push({
+        ...baseDiagnostic,
         start: range.start.line === 0 ? start - offset : start,
         length: context.toOffset(range.end) - start,
         messageText: message,
-        source: NAME,
-      };
+      });
     });
+    return result;
   }
 
   getSyntacticDiagnostics(context: TemplateContext): ts.Diagnostic[] {

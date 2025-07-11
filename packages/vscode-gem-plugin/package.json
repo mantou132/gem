@@ -31,12 +31,17 @@
         "id": "gem",
         "title": "Gem",
         "properties": {
+          "gem.strict": {
+            "type": "boolean",
+            "description": "Writing standard custom elements"
+          },
           "gem.emmet": {
             "type": "object",
-            "description": "View [doc](https://github.com/microsoft/vscode-emmet-helper/blob/main/src/emmetHelper.ts#L53)"
+            "description": "Emmet plugin configuration"
           },
           "gem.elementDefineRules": {
-            "type": "object"
+            "type": "object",
+            "description": "Define custom rules for plugin to find element definitions"
           }
         }
       }

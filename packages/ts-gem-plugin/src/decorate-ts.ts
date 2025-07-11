@@ -11,6 +11,8 @@ import {
   getAstNodeAtPosition,
   getCurrentElementDecl,
   getTagInfo,
+  hasCallDecorator,
+  hasDecorator,
   isClassMapKey,
 } from './utils';
 
@@ -65,27 +67,56 @@ export function decorateLanguageService(ctx: Context, languageService: LanguageS
     ts.forEachChild(file, (node) => {
       const tag = ctx.getTagFromNode(node);
       if (tag && ts.isClassDeclaration(node)) {
-        const isShadowDom = node.modifiers?.some(
-          (modifier) =>
-            ts.isDecorator(modifier) &&
-            ts.isCallExpression(modifier.expression) &&
-            modifier.expression.expression.getText() === Decorators.Shadow,
-        );
+        if (node.name && !node.name.text.endsWith('Element')) {
+          result.push({
+            file,
+            start: node.name.getStart(),
+            length: node.name.getEnd() - node.name.getStart(),
+            category: ctx.config.strict ? ts.DiagnosticCategory.Warning : ts.DiagnosticCategory.Suggestion,
+            code: DiagnosticCode.SuggestionClassName,
+            messageText: 'Element definition class suggests the suffix to use `Element`',
+          });
+        }
+
+        const isShadowDom = hasCallDecorator(ts, node, [Decorators.Shadow]);
+
         node.members.forEach((member) => {
+          const memberStart = member.getStart();
+          const baseMemberDiagnostic = { file, start: memberStart, length: member.getEnd() - memberStart };
+
+          if (
+            ctx.config.strict &&
+            member.name &&
+            ts.isIdentifier(member.name) &&
+            member.name.text.length > 3 &&
+            member.name.text === member.name.text.toLowerCase() &&
+            member.name.text.startsWith('on')
+          ) {
+            result.push({
+              ...baseMemberDiagnostic,
+              category: ts.DiagnosticCategory.Warning,
+              code: DiagnosticCode.SuggestionPropName,
+              messageText: 'Consider changing the name, it looks too much like the html event handler',
+            });
+          }
+
           if (!ts.isPropertyDeclaration(member) || !member.modifiers) return;
-          const shouldIsStatic = member.modifiers.some(
-            (modifier) =>
-              ts.isDecorator(modifier) &&
-              ts.isIdentifier(modifier.expression) &&
-              [Decorators.Slot, Decorators.Part].includes(modifier.expression.text),
-          );
-          if (!shouldIsStatic) return;
+
+          if (hasDecorator(ts, member, [Decorators.Prop]) && !member.questionToken) {
+            result.push({
+              ...baseMemberDiagnostic,
+              category: ctx.config.strict ? ts.DiagnosticCategory.Warning : ts.DiagnosticCategory.Suggestion,
+              code: DiagnosticCode.SuggestionPropOptional,
+              messageText: 'Custom element property should be optional',
+            });
+          }
+
+          if (!hasDecorator(ts, member, [Decorators.Slot, Decorators.Part])) return;
+
           const missStaticKeyword = member.modifiers.every((e) => e.kind !== ts.SyntaxKind.StaticKeyword);
           if (missStaticKeyword || !isShadowDom) {
             result.push({
-              file,
-              start: member.getStart(),
-              length: member.getEnd() - member.getStart(),
+              ...baseMemberDiagnostic,
               category: ts.DiagnosticCategory.Warning,
               code: DiagnosticCode.DecoratorSyntaxError,
               messageText: missStaticKeyword

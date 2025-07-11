@@ -1,8 +1,4 @@
 `$fn($args)` where {
-    $fn <: `Object.assign`,
-    register_diagnostic(
-        span = $fn,
-        severity = "warn",
-        message = "Prefer object spread instead of `Object.assign()`"
-    )
+  $fn <: `Object.assign`,
+  register_diagnostic(span=$fn, severity="warn", message="Prefer object spread instead of `Object.assign()`")
 }

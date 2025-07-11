@@ -12,6 +12,7 @@ import type * as ts from 'typescript/lib/tsserverlibrary';
 
 import { LRUCache } from './cache';
 import type { Configuration } from './configuration';
+import { HTML_SUBSTITUTION_CHAR } from './constants';
 import { HTMLDataProvider } from './data-provider';
 import {
   forEachNode,
@@ -327,7 +328,7 @@ function createVirtualDocument(languageId: string, content: string) {
 }
 
 function getSubstitution(templateString: string, start: number, end: number) {
-  return templateString.slice(start, end).replaceAll(/[^\n]/g, '_');
+  return templateString.slice(start, end).replaceAll(/[^\n]/g, HTML_SUBSTITUTION_CHAR);
 }
 
 function isValidCSSTemplate(
