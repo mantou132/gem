@@ -268,7 +268,7 @@ if (!globalThis._GEMHISTORY) {
     if (!paramsMap.has(newState.$key)) {
       const { pathname, search, hash } = location;
       paramsMap.set(newState.$key, {
-        path: pathname,
+        path: getInternalPath(pathname),
         query: new QueryString(search),
         hash: decodeURIComponent(hash),
         title: newState.$title, // document.title 是导航前的
