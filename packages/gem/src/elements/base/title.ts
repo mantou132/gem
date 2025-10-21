@@ -27,11 +27,9 @@ const setTitle = (documentTitle: string) => {
 function setDocumentTitle(defaultTitle?: string | null, prefix = '', suffix = '') {
   const title = titleStore.title || defaultTitle;
   if (title && title !== titleStore.defaultTitle) {
-    GemTitleElement.title = title;
-    setTitle(prefix + GemTitleElement.title + suffix);
+    setTitle(prefix + (GemTitleElement.title = title) + suffix);
   } else {
-    GemTitleElement.title = titleStore.defaultTitle;
-    setTitle(GemTitleElement.title);
+    setTitle((GemTitleElement.title = titleStore.defaultTitle));
   }
 }
 

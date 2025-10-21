@@ -1,4 +1,4 @@
-import { customElement } from '@mantou/gem/lib/decorators';
+import { customElement, type Emitter, effect, emitter, mounted } from '@mantou/gem/lib/decorators';
 import { createState, GemElement, html } from '@mantou/gem/lib/element';
 import type { ContextMenuItem } from 'duoyun-ui/elements/contextmenu';
 import { ContextMenu } from 'duoyun-ui/elements/contextmenu';
@@ -15,6 +15,8 @@ import { fetchItemsWithArgs } from './api';
 
 import 'duoyun-ui/patterns/table';
 import 'duoyun-ui/elements/button';
+
+import { history } from '@mantou/gem/lib/history';
 
 const pagination = createPaginationStore<Item>({
   storageKey: 'users',
@@ -38,6 +40,8 @@ type NewItem = Modify<typeof initItem, { social?: string[] }>;
 
 @customElement('console-page-users')
 export class ConsolePageItemElement extends GemElement {
+  @emitter loaded: Emitter;
+
   #state = createState({
     pagination: pagination,
     paginationMap: new Map([['', pagination]]),
@@ -220,13 +224,14 @@ export class ConsolePageItemElement extends GemElement {
       header: `Edit: ${r.id}`,
       query: ['id', r.id],
       formItems: this.getFormItems(true),
+      prepareClose: (data) => {
+        console.log(data);
+      },
       prepareOk: async (data) => {
         await sleep(1000);
         console.log(data);
         this.#state.pagination.updateItem(data);
       },
-    }).catch((data) => {
-      console.log(data);
     });
   };
 
@@ -237,14 +242,29 @@ export class ConsolePageItemElement extends GemElement {
       header: `Create`,
       query: ['new', true],
       formItems: this.getFormItems(),
+      prepareClose: (data) => {
+        console.log(data);
+      },
       prepareOk: async (data) => {
         await sleep(1000);
         console.log(data);
         throw new Error('No implement!');
       },
-    }).catch((data) => {
-      console.log(data);
     });
+  };
+
+  @mounted()
+  #init = async () => {
+    const { query } = history.getParams();
+    if (query.get('new')) {
+      this.onCreate();
+    }
+    const id = query.get('id');
+    if (id) {
+      await new Promise((res) => this.addEventListener('loaded', res, { once: true }));
+      const item = this.#state.pagination.store.items[id];
+      item && this.onUpdate(item);
+    }
   };
 
   /**
@@ -252,7 +272,7 @@ export class ConsolePageItemElement extends GemElement {
    * 被根据 `searchAndFilterKey` 进行缓存
    * 这里使用页面级缓存，切换页面后将被清除
    */
-  #onFetch = ({ detail }: CustomEvent<FetchEventDetail>) => {
+  #onFetch = async ({ detail }: CustomEvent<FetchEventDetail>) => {
     let newPagination = this.#state.paginationMap.get(detail.pageKey);
     if (!newPagination) {
       newPagination = createPaginationStore<Item>({
@@ -262,7 +282,8 @@ export class ConsolePageItemElement extends GemElement {
       this.#state.paginationMap.set(detail.pageKey, newPagination);
     }
     this.#state({ pagination: newPagination });
-    newPagination.updatePage(fetchItemsWithArgs, detail);
+    await newPagination.updatePage(fetchItemsWithArgs, detail);
+    this.loaded();
   };
 
   render = () => {

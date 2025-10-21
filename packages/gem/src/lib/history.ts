@@ -271,7 +271,7 @@ if (!globalThis._GEMHISTORY) {
         path: getInternalPath(pathname),
         query: new QueryString(search),
         hash: decodeURIComponent(hash),
-        title: newState.$title, // document.title 是导航前的
+        title: gemTitleStore.title || newState.$title, // document.title 是导航前的
         data: newState,
       });
     }

@@ -2,7 +2,7 @@ import { adoptedStyle, customElement, memo, property, shadow } from '@mantou/gem
 import { createRef, createState, css, GemElement, html, TemplateResult } from '@mantou/gem/lib/element';
 import { history } from '@mantou/gem/lib/history';
 import type { StyleObject } from '@mantou/gem/lib/utils';
-import { GemError, styleMap } from '@mantou/gem/lib/utils';
+import { GemError, QueryString, styleMap } from '@mantou/gem/lib/utils';
 
 import { DuoyunDatePickerElement } from '../elements/date-picker';
 import { DuoyunDateRangePickerElement } from '../elements/date-range-picker';
@@ -19,7 +19,7 @@ import { icons } from '../lib/icons';
 import { locale } from '../lib/locale';
 import { blockContainer, focusStyle } from '../lib/styles';
 import { theme } from '../lib/theme';
-import { readProp } from '../lib/utils';
+import { getStringFromTemplate, readProp } from '../lib/utils';
 
 import '../elements/button';
 import '../elements/form';
@@ -555,11 +555,7 @@ type CreateFormOptions<T> = {
 export function createForm<T = Record<string, unknown>>(options: CreateFormOptions<T>) {
   const containerType = options.type === 'modal' ? Modal : Drawer;
   const { query } = history.getParams();
-  if (options.query) {
-    query.setAny(options.query[0], options.query[1]);
-    history.replace({ query });
-  }
-  return containerType
+  let modalPromise = containerType
     .open<DyPatFormElement<T>>({
       header: options.header,
       body: html`
@@ -577,14 +573,26 @@ export function createForm<T = Record<string, unknown>>(options: CreateFormOptio
         await DuoyunWaitElement.instance?.removed;
       },
     })
-    .then((ele) => ele.state.data)
-    .catch((ele) => {
-      throw ele.state.data;
-    })
-    .finally(() => {
-      if (options.query) {
-        query.delete(options.query[0]);
-        history.replace({ query });
-      }
+    .catch((ele) => ele);
+  modalPromise.modal.addEventListener('close', (evt: CustomEvent) => {
+    if (evt.detail !== modalPromise) modalPromise.finally(() => history.back());
+  });
+  if (options.query) {
+    query.delete(options.query[0]);
+    history.replace({ query });
+
+    const newQuery = new QueryString(query);
+    newQuery.setAny(options.query[0], options.query[1]);
+
+    history.push({
+      query: newQuery,
+      title: getStringFromTemplate(options.header || ''),
+      close: () => modalPromise.modal.parentElement && modalPromise.modal.close(modalPromise),
+      open: async () => {
+        const { data } = (await modalPromise).state;
+        modalPromise = createForm({ ...options, data, query: undefined });
+      },
     });
+  }
+  return modalPromise;
 }

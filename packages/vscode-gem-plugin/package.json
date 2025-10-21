@@ -2,7 +2,7 @@
   "private": true,
   "name": "vscode-plugin-gem",
   "displayName": "Gem",
-  "description": "Gem plugin for VS Code",
+  "description": "Language Support for Gem",
   "icon": "logo.png",
   "version": "1.0.10",
   "engines": {
