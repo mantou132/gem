@@ -1,4 +1,4 @@
-//@ts-ignore
+//@ts-expect-error
 import { MP4Demuxer } from './demuxer_mp4';
 
 // https://w3c.github.io/webcodecs/samples/video-decode-display/worker.js

@@ -102,7 +102,7 @@ export function decorateLanguageService(ctx: Context, languageService: LanguageS
 
           if (!ts.isPropertyDeclaration(member) || !member.modifiers) return;
 
-          if (hasDecorator(ts, member, [Decorators.Prop]) && !member.questionToken) {
+          if (hasDecorator(ts, member, [Decorators.Prop]) && !member.questionToken && !member.initializer) {
             result.push({
               ...baseMemberDiagnostic,
               category: ctx.config.strict ? ts.DiagnosticCategory.Warning : ts.DiagnosticCategory.Suggestion,
@@ -276,7 +276,7 @@ export function decorateLanguageService(ctx: Context, languageService: LanguageS
     // 需要支持类名重命名？
     // 需要收集 HTML/CSS 模板以及当前元素中 classMap key
 
-    // @ts-ignore
+    // @ts-expect-error
     const oResult = [...(ls.findRenameLocations(fileName, position, ...args) || [])];
     const file = ctx.getProgram().getSourceFile(fileName)!;
     const node = getAstNodeAtPosition(ts, file, position);

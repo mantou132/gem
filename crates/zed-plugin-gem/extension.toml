@@ -1,6 +1,6 @@
 id = "gem"
 name = "Gem"
-description = "Gem plugin for Zed"
+description = "Language Support for Gem"
 version = "0.0.4"
 schema_version = 1
 authors = ["mantou132 <709922234@qq.com>"]

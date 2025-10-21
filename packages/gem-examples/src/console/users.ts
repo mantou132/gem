@@ -1,5 +1,6 @@
-import { customElement, type Emitter, effect, emitter, mounted } from '@mantou/gem/lib/decorators';
+import { customElement, type Emitter, emitter, mounted } from '@mantou/gem/lib/decorators';
 import { createState, GemElement, html } from '@mantou/gem/lib/element';
+import { history } from '@mantou/gem/lib/history';
 import type { ContextMenuItem } from 'duoyun-ui/elements/contextmenu';
 import { ContextMenu } from 'duoyun-ui/elements/contextmenu';
 import { createPaginationStore } from 'duoyun-ui/helper/store';
@@ -15,8 +16,6 @@ import { fetchItemsWithArgs } from './api';
 
 import 'duoyun-ui/patterns/table';
 import 'duoyun-ui/elements/button';
-
-import { history } from '@mantou/gem/lib/history';
 
 const pagination = createPaginationStore<Item>({
   storageKey: 'users',

@@ -1,4 +1,4 @@
-// @ts-ignore
+// @ts-expect-error
 // biome-ignore assist/source/organizeImports: export/path
 import cssColors from 'css-color-keywords';
 import type { HexColor } from 'duoyun-ui/lib/color';

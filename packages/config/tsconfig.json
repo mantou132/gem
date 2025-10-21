@@ -1,6 +1,5 @@
 {
   "compilerOptions": {
-    "baseUrl": "./",
     "alwaysStrict": true,
     "noImplicitThis": true,
     "noImplicitAny": true,
@@ -21,7 +20,7 @@
     "target": "ES2022",
     "lib": ["ESNext", "DOM", "DOM.Iterable"],
     "paths": {
-      "src/*": ["src/*"]
+      "src/*": ["./src/*"]
     }
   }
 }

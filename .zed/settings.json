@@ -3,7 +3,7 @@
 // For a full list of overridable settings, and general information on folder-specific settings,
 // see the documentation: https://zed.dev/docs/configuring-zed#settings-files
 {
-  "auto_install_extension": {
+  "auto_install_extensions": {
     "biome": true,
     "emmet": true,
     "toml": true,

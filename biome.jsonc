@@ -1,5 +1,5 @@
 {
-  "$schema": "https://raw.githubusercontent.com/biomejs/biome/refs/tags/%40biomejs/biome%402.0.0-beta.1/packages/%40biomejs/biome/configuration_schema.json",
+  "$schema": "https://raw.githubusercontent.com/biomejs/biome/refs/tags/%40biomejs/biome%402.2.6/packages/%40biomejs/biome/configuration_schema.json",
   "vcs": {
     "enabled": true,
     "clientKind": "git",
@@ -12,8 +12,7 @@
           "level": "on",
           "options": {
             "groups": [
-              ":NODE:",
-              ":BUN:",
+              [":BUN:", ":NODE:"],
               ":BLANK_LINE:",
               ":PACKAGE:",
               ":PACKAGE_WITH_PROTOCOL:",
@@ -71,7 +70,8 @@
       "suspicious": {
         "noAssignInExpressions": "off",
         "noExplicitAny": "off",
-        "useGetterReturn": "off"
+        "useGetterReturn": "off",
+        "useIterableCallbackReturn": "off"
       }
     }
   },

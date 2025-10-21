@@ -57,7 +57,7 @@ fn set_languages() -> anyhow::Result<()> {
         let append_content = fs::read_to_string("src/injections.scm")?;
 
         writeln!(file)?;
-        writeln!(file, "{}", append_content)?;
+        writeln!(file, "{append_content}")?;
     }
 
     Ok(())

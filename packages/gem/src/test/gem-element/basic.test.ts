@@ -108,7 +108,7 @@ describe('基本 gem element 测试', () => {
     expect(el.disabled).to.equal(true);
     expect(el.count).to.equal(2);
     expect(el.shadowRoot?.textContent).to.equal('attr: value, disabled: true, count: 2, prop: , state: ');
-    // @ts-ignore
+    // @ts-expect-error
     el.attr = null;
     await Promise.resolve();
     expect(el.hasAttribute('attr')).to.equal(false);

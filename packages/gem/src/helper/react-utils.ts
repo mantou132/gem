@@ -1,10 +1,10 @@
-// @ts-ignore
+// @ts-expect-error
 import type { ReactNode } from 'react';
-// @ts-ignore
+// @ts-expect-error
 import { useEffect, useRef, useState } from 'react';
-// @ts-ignore
+// @ts-expect-error
 import type { Root } from 'react-dom/client';
-// @ts-ignore
+// @ts-expect-error
 import { createRoot } from 'react-dom/client';
 
 import type { Store } from '../lib/store';
