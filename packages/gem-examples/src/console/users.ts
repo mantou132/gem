@@ -1,4 +1,4 @@
-import { customElement, type Emitter, effect, emitter, mounted } from '@mantou/gem/lib/decorators';
+import { customElement, type Emitter, emitter, mounted } from '@mantou/gem/lib/decorators';
 import { createState, GemElement, html } from '@mantou/gem/lib/element';
 import type { ContextMenuItem } from 'duoyun-ui/elements/contextmenu';
 import { ContextMenu } from 'duoyun-ui/elements/contextmenu';

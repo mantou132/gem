@@ -60,7 +60,7 @@ impl TransformVisitor {
 
                 let first_arg = *call_expr.args.drain(0..1).next().unwrap().expr;
                 if let Expr::Arrow(arrow_expr) = first_arg {
-                    let prop = format!("_dep_fn_{}", idx);
+                    let prop = format!("_dep_fn_{idx}");
                     // 忽略了箭头函数的 `this` 绑定，模块中类成员装饰器参数中的 `this`
                     // 会指向模块 正常情况下都不会使用
                     // `this`，所以忽略也无所谓
@@ -114,7 +114,7 @@ impl VisitMut for TransformVisitor {
                 kind: MethodKind::Method,
                 key: PrivateName {
                     span: DUMMY_SP,
-                    name: format!("_{}", getter_name).into(),
+                    name: format!("_{getter_name}").into(),
                 },
                 function: Box::new(Function {
                     span: DUMMY_SP,
@@ -166,7 +166,7 @@ impl VisitMut for TransformVisitor {
     fn visit_mut_private_method(&mut self, node: &mut PrivateMethod) {
         if self.is_memo_getter(node) {
             let name = node.key.name.clone();
-            let getter_name = format!("_{}", name);
+            let getter_name = format!("_{name}");
 
             node.key = PrivateName {
                 span: DUMMY_SP,

@@ -4,7 +4,7 @@ use serde::Deserialize;
 use zed_extension_api::{self as zed, serde_json, Result};
 
 const LS_PKG_NAME: &str = "vscode-gem-languageservice";
-const LS_BIN_PATH: &str = "node_modules/.bin/vscode-gem-languageservice";
+const LS_BIN_PATH: &str = "node_modules/vscode-gem-languageservice/dist/index.js";
 
 const TS_PLUGIN_PACKAGE_NAME: &str = "ts-gem-plugin";
 
@@ -145,6 +145,8 @@ impl zed::Extension for GemExtension {
         Ok(zed::Command {
             command: zed::node_binary_path()?,
             args: vec![
+                // https://nodejs.org/docs/latest/api/modules.html#loading-ecmascript-modules-using-require
+                "--experimental-require-module".to_string(),
                 env::current_dir()
                     .unwrap()
                     .join(server_path)
