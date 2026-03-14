@@ -1,6 +1,6 @@
 {
   "name": "gem-ssr",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "Render to string",
   "keywords": [
     "gem",
@@ -17,13 +17,13 @@
   },
   "dependencies": {
     "@hono/node-server": "^1.13.8",
-    "@mantou/gem": "^2.2.1",
+    "@mantou/gem": "^2.2.2",
     "esbuild": "^0.24.0",
     "hono": "^4.7.4",
     "jsdom": "^26.0.0"
   },
   "devDependencies": {
-    "@gemjs/config": "^2.1.1",
+    "@gemjs/config": "^2.1.2",
     "@types/jsdom": "^21.1.7",
     "nodemon": "^2.0.7",
     "tsx": "^4.19.3"

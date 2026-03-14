@@ -54,7 +54,7 @@ importers:
         version: 0.5.16
     devDependencies:
       '@gemjs/config':
-        specifier: ^2.1.1
+        specifier: ^2.1.2
         version: link:../config
       '@types/adm-zip':
         specifier: ^0.5.7
@@ -76,7 +76,7 @@ importers:
         version: 0.7.1
     devDependencies:
       '@gemjs/config':
-        specifier: ^2.1.1
+        specifier: ^2.1.2
         version: link:../config
       '@types/d3-geo':
         specifier: ^3.0.1
@@ -100,7 +100,7 @@ importers:
   packages/gem:
     devDependencies:
       '@gemjs/config':
-        specifier: ^2.1.1
+        specifier: ^2.1.2
         version: link:../config
       '@types/chai':
         specifier: ^5.0.0
@@ -133,11 +133,11 @@ importers:
   packages/gem-analyzer:
     dependencies:
       '@mantou/gem':
-        specifier: ^2.x
+        specifier: ^2.2.2
         version: link:../gem
     devDependencies:
       '@gemjs/config':
-        specifier: ^2.1.1
+        specifier: ^2.1.2
         version: link:../config
       ts-morph:
         specifier: ^13.0.0
@@ -152,7 +152,7 @@ importers:
         specifier: ^0.3.2
         version: 0.3.2(@rspack/core@1.5.8)
       '@mantou/gem':
-        specifier: ^2.2.1
+        specifier: ^2.2.2
         version: link:../gem
       '@rspack/cli':
         specifier: ^1.0.5
@@ -225,7 +225,7 @@ importers:
         specifier: ^2.18.2
         version: 2.19.8
       '@gemjs/config':
-        specifier: ^2.1.1
+        specifier: ^2.1.2
         version: link:../config
       '@types/express':
         specifier: ^4.17.3
@@ -255,7 +255,7 @@ importers:
         specifier: ^0.18.1
         version: 0.18.3
       gem-analyzer:
-        specifier: ^2.2.1
+        specifier: ^2.2.2
         version: link:../gem-analyzer
       nodemon:
         specifier: ^2.0.7
@@ -267,14 +267,14 @@ importers:
   packages/gem-devtools:
     dependencies:
       '@mantou/gem':
-        specifier: ^2.2.1
+        specifier: ^2.2.2
         version: link:../gem
       webextension-polyfill:
         specifier: ^0.10.0
         version: 0.10.0
     devDependencies:
       '@gemjs/config':
-        specifier: ^2.1.1
+        specifier: ^2.1.2
         version: link:../config
       '@types/webextension-polyfill':
         specifier: ^0.10.7
@@ -289,14 +289,14 @@ importers:
   packages/gem-examples:
     dependencies:
       '@mantou/gem':
-        specifier: ^2.2.1
+        specifier: ^2.2.2
         version: link:../gem
       duoyun-ui:
-        specifier: ^2.2.1
+        specifier: ^2.2.2
         version: link:../duoyun-ui
     devDependencies:
       '@gemjs/config':
-        specifier: ^2.1.1
+        specifier: ^2.1.2
         version: link:../config
       vite:
         specifier: ^5.2.10
@@ -311,7 +311,7 @@ importers:
         specifier: ^7.2.0
         version: 7.2.0
       gem-analyzer:
-        specifier: ^2.2.1
+        specifier: ^2.2.2
         version: link:../gem-analyzer
       ts-morph:
         specifier: ^13.0.0
@@ -321,7 +321,7 @@ importers:
         version: 5.9.3
     devDependencies:
       '@gemjs/config':
-        specifier: ^2.1.1
+        specifier: ^2.1.2
         version: link:../config
 
   packages/gem-ssr:
@@ -330,7 +330,7 @@ importers:
         specifier: ^1.13.8
         version: 1.19.5(hono@4.10.1)
       '@mantou/gem':
-        specifier: ^2.2.1
+        specifier: ^2.2.2
         version: link:../gem
       esbuild:
         specifier: ^0.24.0
@@ -343,7 +343,7 @@ importers:
         version: 26.1.0
     devDependencies:
       '@gemjs/config':
-        specifier: ^2.1.1
+        specifier: ^2.1.2
         version: link:../config
       '@types/jsdom':
         specifier: ^21.1.7
@@ -367,7 +367,7 @@ importers:
         specifier: ^1.0.0
         version: 1.0.0
       duoyun-ui:
-        specifier: ^2.2.0
+        specifier: ^2.2.2
         version: link:../duoyun-ui
       tree-sitter:
         specifier: ^0.22.4
@@ -383,13 +383,13 @@ importers:
         version: 1.0.12
     devDependencies:
       '@gemjs/config':
-        specifier: ^2.1.0
+        specifier: ^2.1.2
         version: link:../config
 
   packages/ts-gem-plugin:
     dependencies:
       '@mantou/gem':
-        specifier: ^2.2.1
+        specifier: ^2.2.2
         version: link:../gem
       '@mantou/typescript-template-language-service-decorator':
         specifier: ^2.3.6
@@ -404,7 +404,7 @@ importers:
         specifier: ^5.3.6
         version: 5.3.6
       duoyun-ui:
-        specifier: ^2.2.1
+        specifier: ^2.2.2
         version: link:../duoyun-ui
       vscode-languageserver-textdocument:
         specifier: ^1.0.12
@@ -414,7 +414,7 @@ importers:
         version: 3.17.5
     devDependencies:
       '@gemjs/config':
-        specifier: ^2.1.1
+        specifier: ^2.1.2
         version: link:../config
       typescript:
         specifier: ^5.6.2
@@ -426,20 +426,20 @@ importers:
         specifier: ^1.0.0
         version: 1.0.0
       duoyun-ui:
-        specifier: ^2.2.1
+        specifier: ^2.2.2
         version: link:../duoyun-ui
       ts-gem-plugin:
-        specifier: ^0.0.9
+        specifier: ^0.0.10
         version: link:../ts-gem-plugin
       vscode-gem-languageservice:
-        specifier: ^0.0.5
+        specifier: ^0.0.6
         version: link:../language-service
       vscode-languageclient:
         specifier: ^9.0.1
         version: 9.0.1
     optionalDependencies:
       '@gemjs/config':
-        specifier: ^2.1.1
+        specifier: ^2.1.2
         version: link:../config
     devDependencies:
       '@types/mocha':
@@ -1556,6 +1556,7 @@ packages:
   '@lerna/create@8.2.4':
     resolution: {integrity: sha512-A8AlzetnS2WIuhijdAzKUyFpR5YbLLfV3luQ4lzBgIBgRfuoBDZeF+RSZPhra+7A6/zTUlrbhKZIOi/MNhqgvQ==}
     engines: {node: '>=18.0.0'}
+    deprecated: This package is an implementation detail of Lerna and is no longer published separately.
 
   '@mantou/typescript-template-language-service-decorator@2.3.6':
     resolution: {integrity: sha512-f14Ucca/pLbTI+pXOgvwjnmZN5vW1JtgbIvPjtRheOtJA8kujNyE5tvBVLiKGDXJOBwu5at6yBpxUbJMyeSl2w==}
@@ -2840,6 +2841,7 @@ packages:
   basic-ftp@5.0.5:
     resolution: {integrity: sha512-4Bcg1P8xhUuqcii/S0Z9wiHIrQVPMermM1any+MX5GeGD7faD3/msQUDGLol9wOcz4/jbg/WJnGqoJF6LiBdtg==}
     engines: {node: '>=10.0.0'}
+    deprecated: Security vulnerability fixed in 5.2.0, please upgrade
 
   batch@0.6.1:
     resolution: {integrity: sha512-x+VAiMRL6UPkx+kudNvxTl6hB2XNNCG2r+7wixVfIYwu/2HKRXimwQyaumLjMveWvT2Hkd/cAJw+QBMfJ/EKVw==}
@@ -4285,6 +4287,7 @@ packages:
   git-raw-commits@3.0.0:
     resolution: {integrity: sha512-b5OHmZ3vAgGrDn/X0kS+9qCfNKWe4K/jFnhwzVWWg0/k5eLa3060tZShrRg8Dja5kPc+YjS0Gc6y7cRr44Lpjw==}
     engines: {node: '>=14'}
+    deprecated: This package is no longer maintained. For the JavaScript API, please use @conventional-changelog/git-client instead.
     hasBin: true
 
   git-remote-origin-url@2.0.0:
@@ -4302,6 +4305,7 @@ packages:
   git-semver-tags@5.0.1:
     resolution: {integrity: sha512-hIvOeZwRbQ+7YEUmCkHqo8FOLQZCEn18yevLHADlFPZY02KJGsu5FZt9YW/lybfK2uhWFI7Qg/07LekJiTv7iA==}
     engines: {node: '>=14'}
+    deprecated: This package is no longer maintained. For the JavaScript API, please use @conventional-changelog/git-client instead.
     hasBin: true
 
   git-up@7.0.0:
@@ -4336,28 +4340,31 @@ packages:
   glob@10.4.1:
     resolution: {integrity: sha512-2jelhlq3E4ho74ZyVLN03oKdAZVUa6UDZzFLVH1H7dnoax+y9qyaq8zBkfDIggjniU19z0wU18y16jMB2eyVIw==}
     engines: {node: '>=16 || 14 >=14.18'}
+    deprecated: Old versions of glob are not supported, and contain widely publicized security vulnerabilities, which have been fixed in the current version. Please update. Support for old versions may be purchased (at exorbitant rates) by contacting i@izs.me
     hasBin: true
 
   glob@10.4.5:
     resolution: {integrity: sha512-7Bv8RF0k6xjo7d4A/PxYLbUCfb6c+Vpd2/mB2yRDlew7Jb5hEXiCD9ibfO7wpk8i4sevK6DFny9h7EYbM3/sHg==}
+    deprecated: Old versions of glob are not supported, and contain widely publicized security vulnerabilities, which have been fixed in the current version. Please update. Support for old versions may be purchased (at exorbitant rates) by contacting i@izs.me
     hasBin: true
 
   glob@6.0.4:
     resolution: {integrity: sha512-MKZeRNyYZAVVVG1oZeLaWie1uweH40m9AZwIwxyPbTSX4hHrVYSzLg0Ro5Z5R7XKkIX+Cc6oD1rqeDJnwsB8/A==}
-    deprecated: Glob versions prior to v9 are no longer supported
+    deprecated: Old versions of glob are not supported, and contain widely publicized security vulnerabilities, which have been fixed in the current version. Please update. Support for old versions may be purchased (at exorbitant rates) by contacting i@izs.me
 
   glob@7.2.3:
     resolution: {integrity: sha512-nFR0zLpU2YCaRxwoCJvL6UvCH2JFyFVIvwTLsIf21AuHlMskA1hhTdk+LlYJtOlYt9v6dvszD2BGRqBL+iQK9Q==}
-    deprecated: Glob versions prior to v9 are no longer supported
+    deprecated: Old versions of glob are not supported, and contain widely publicized security vulnerabilities, which have been fixed in the current version. Please update. Support for old versions may be purchased (at exorbitant rates) by contacting i@izs.me
 
   glob@8.1.0:
     resolution: {integrity: sha512-r8hpEjiQEYlF2QU0df3dS+nxxSIreXQS1qRhMJM0Q5NDdR386C7jb7Hwwod8Fgiuex+k0GFjgft18yvxm5XoCQ==}
     engines: {node: '>=12'}
-    deprecated: Glob versions prior to v9 are no longer supported
+    deprecated: Old versions of glob are not supported, and contain widely publicized security vulnerabilities, which have been fixed in the current version. Please update. Support for old versions may be purchased (at exorbitant rates) by contacting i@izs.me
 
   glob@9.3.5:
     resolution: {integrity: sha512-e1LleDykUz2Iu+MTYdkSsuWX8lvAjAcs0Xef0lNIu0S2wOAzuTxCJtcd9S3cijlwYF18EsU3rzb8jPVobxDh9Q==}
     engines: {node: '>=16 || 14 >=14.17'}
+    deprecated: Old versions of glob are not supported, and contain widely publicized security vulnerabilities, which have been fixed in the current version. Please update. Support for old versions may be purchased (at exorbitant rates) by contacting i@izs.me
 
   global-dirs@3.0.1:
     resolution: {integrity: sha512-NBcGGFbBA9s1VzD41QXDG+3++t9Mn5t1FpLdhESY6oKY4gYTFpX4wO3sqGUa0Srjtbfj3szX0RnemmrVRUdULA==}
@@ -7105,6 +7112,7 @@ packages:
   tar@6.2.1:
     resolution: {integrity: sha512-DZ4yORTwrbTj/7MZYq2w+/ZFdI6OZ/f9SFHR+71gIVUZhOQPHzVCLpvRnPgyaMpfWxxk/4ONva3GQSyNIKRv6A==}
     engines: {node: '>=10'}
+    deprecated: Old versions of tar are not supported, and contain widely publicized security vulnerabilities, which have been fixed in the current version. Please update. Support for old versions may be purchased (at exorbitant rates) by contacting i@izs.me
 
   temp-dir@1.0.0:
     resolution: {integrity: sha512-xZFXEGbG7SNC3itwBzI3RYjq/cEhBkx2hJuKGIUOcEULmkQExXiHat2z/qkISYsuR+IKumhEfKKbV5qXmhICFQ==}
@@ -7731,6 +7739,7 @@ packages:
   whatwg-encoding@3.1.1:
     resolution: {integrity: sha512-6qN4hJdMwfYBtE3YBTTHhoeuUrDBPZmbQaxWAqSALV/MeEnR5z1xd8UKud2RAkFoPkmB+hli1TZSnyi84xz1vQ==}
     engines: {node: '>=18'}
+    deprecated: Use @exodus/bytes instead for a more spec-conformant and faster implementation
 
   whatwg-mimetype@4.0.0:
     resolution: {integrity: sha512-QaKxh0eNIi2mE9p2vEdzfagOKHCcj1pJ56EEHGQOVxp8r9/iszLUUV7v89x9O1p/T+NlTM5W7jW6+cz4Fq1YVg==}
