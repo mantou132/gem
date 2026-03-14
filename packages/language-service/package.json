@@ -1,6 +1,6 @@
 {
   "name": "vscode-gem-languageservice",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "description": "Language service for Gem",
   "keywords": [
     "gem",
@@ -21,14 +21,14 @@
     "@mantou/vscode-css-languageservice": "^6.3.6",
     "@mantou/vscode-html-languageservice": "^5.3.6",
     "css-color-keywords": "^1.0.0",
-    "duoyun-ui": "^2.2.0",
+    "duoyun-ui": "^2.2.2",
     "tree-sitter": "^0.22.4",
     "tree-sitter-typescript": "^0.23.2",
     "vscode-languageserver": "^9.0.1",
     "vscode-languageserver-textdocument": "^1.0.12"
   },
   "devDependencies": {
-    "@gemjs/config": "^2.1.0"
+    "@gemjs/config": "^2.1.2"
   },
   "author": "mantou132",
   "license": "MIT",
