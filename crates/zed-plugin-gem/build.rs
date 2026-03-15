@@ -51,12 +51,12 @@ fn set_languages() -> anyhow::Result<()> {
         sync_typescript()?;
 
         let mut file = OpenOptions::new()
-            .append(true)
+            .write(true)
+            .truncate(true)
             .open("languages/typescript/injections.scm")?;
 
         let append_content = fs::read_to_string("src/injections.scm")?;
 
-        writeln!(file)?;
         writeln!(file, "{append_content}")?;
     }
 
