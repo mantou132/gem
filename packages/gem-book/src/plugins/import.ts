@@ -1,9 +1,6 @@
 import type { GemBookElement } from '../element';
 
-const esmBuilder = 'https://esm.sh/build';
-
 const { GemBookPluginElement } = (await customElements.whenDefined('gem-book')) as typeof GemBookElement;
-const esmBuilderPromise = import(/* webpackIgnore: true */ esmBuilder);
 
 const { Gem, Utils } = GemBookPluginElement;
 const { customElement, attribute, effect } = Gem;
@@ -13,13 +10,13 @@ class _GbpImportElement extends GemBookPluginElement {
   @attribute src: string;
   @attribute dependencies: string;
 
-  get #dependencies() {
+  get #importMap() {
     const deps = this.dependencies.split(/\s*,\s*/);
     return deps.reduce(
       (p, c) => {
         if (!c) return p;
         const [name, version = 'latest'] = c.split(/(.+)@/).filter((e) => !!e);
-        p[name] = version;
+        p[name] = `https://esm.sh/${name}@${version}`;
         return p;
       },
       {} as Record<string, string>,
@@ -37,15 +34,21 @@ class _GbpImportElement extends GemBookPluginElement {
       if (new URL(url, location.origin).pathname.endsWith('.js')) {
         return await import(/* webpackIgnore: true */ url);
       }
-      const { build } = await esmBuilderPromise;
-      const ret = await build({
-        dependencies: this.#dependencies,
-        source: `
-            const GemBookPluginElement = customElements.get('gem-book').GemBookPluginElement;
-            ${content}
-          `,
+      const source = `
+        const GemBookPluginElement = customElements.get('gem-book').GemBookPluginElement;
+        ${content}
+      `;
+      const body = JSON.stringify({
+        lang: 'ts',
+        code: source,
+        target: 'es2022',
+        minify: !GemBookPluginElement.devMode,
+        importMap: { imports: this.#importMap },
       });
-      await import(/* webpackIgnore: true */ ret.url);
+      const res = await fetch('https://esm.sh/transform', { method: 'POST', body });
+      const { code } = await res.json();
+      const base64 = btoa(unescape(encodeURIComponent(code)));
+      await import(/* webpackIgnore: true */ `data:text/javascript;base64,${base64}`);
     } catch (error) {
       this.error(error);
     }

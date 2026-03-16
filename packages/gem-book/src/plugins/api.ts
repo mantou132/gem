@@ -2,7 +2,7 @@ import type { ElementDetail, ExportDetail } from 'gem-analyzer';
 
 import type { GemBookElement } from '../element';
 
-const tsMorph = 'https://esm.sh/ts-morph@13.0.3';
+const tsMorph = 'https://esm.sh/ts-morph@12.0.0';
 const gemAnalyzer = 'https://esm.sh/gem-analyzer';
 
 type State = { elements?: ElementDetail[]; exports?: ExportDetail[]; error?: any };

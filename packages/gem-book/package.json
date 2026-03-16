@@ -78,7 +78,7 @@
     "@web/test-runner": "^0.18.1",
     "gem-analyzer": "^2.2.2",
     "nodemon": "^2.0.7",
-    "ts-morph": "^13.0.0"
+    "ts-morph": "^12.0.0"
   },
   "author": "mantou132",
   "license": "MIT",
