@@ -22,6 +22,7 @@ const resources = {
   },
 } satisfies Record<SupportLang, unknown>;
 
+// `fallbackLanguage` or template html 中指定
 export const originDocLang = document.documentElement.lang;
 
 export const selfI18n = new I18n<typeof resources.en>({

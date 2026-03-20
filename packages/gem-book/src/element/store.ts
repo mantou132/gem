@@ -157,14 +157,23 @@ function getLinkRouters(links: NavItemWithLink[], title = '', lang: string, disp
       pattern: link,
       async getContent() {
         await import('./elements/main');
-        const fmAndH1Reg = /.*?# .*?(\n|$)+/s;
+        const fmAndH1Reg = /(.*?# .*?(\n|$)+)/s;
         let content = await fetchContent(lang);
         let useLang = lang;
-        if (originDocLang && !content.replace(fmAndH1Reg, '').trim()) {
-          content +=
-            `<gbp-trans-status></gbp-trans-status>` +
-            (await fetchContent(originDocLang)).replace(fmAndH1Reg, '').trimStart();
-          useLang = originDocLang;
+        const isNotTranslate = !content.replace(fmAndH1Reg, '').trim();
+        if (originDocLang && isNotTranslate) {
+          const originDoc = await fetchContent(originDocLang);
+          try {
+            const res = await fetch('https://translate.709922234.workers.dev', {
+              method: 'post',
+              body: JSON.stringify({ text: originDoc, sourceLang: originDocLang, targetLang: lang }),
+            });
+            const data = await res.json();
+            content = data.content;
+          } catch {
+            content = originDoc.replace(fmAndH1Reg, '$1\n\n<gbp-trans-status></gbp-trans-status>');
+            useLang = originDocLang;
+          }
         }
         if (bookStore.isDevMode?.()) await new Promise((res) => setTimeout(res, 500));
         return html`<gem-book-main lang=${useLang} .content=${content}></gem-book-main>`;
