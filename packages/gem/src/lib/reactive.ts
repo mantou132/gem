@@ -347,10 +347,11 @@ export abstract class GemElement extends HTMLElement {
 
     currentConstructGemElement = this;
 
-    const { mode, serializable, delegatesFocus, slotAssignment, aria } = this.#metadata;
+    const { aria, mode, delegatesFocus, ...rest } = this.#metadata;
     const { focusable, ...internalsAria } = aria || {};
 
-    this.#renderRoot = !mode ? this : this.attachShadow({ mode, serializable, delegatesFocus, slotAssignment });
+    // 这里认为 rest 不会有自定义字段和 ShadowRootInit 参数冲突
+    this.#renderRoot = !mode ? this : this.attachShadow({ mode, delegatesFocus, ...rest });
     this.#internals = this.attachInternals() as GemElement['internals'];
     this.#internals.stateList = [];
     this.#internals.sheets = [];

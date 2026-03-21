@@ -402,7 +402,7 @@ const inputGroupStyle = css`
   :scope {
     display: flex;
 
-    :where(dy-input, dy-select):where(:focus, :focus-within, :hover, :state(active)) {
+    :where(dy-input, dy-select, dy-picker):where(:focus, :focus-within, :hover, :state(active)) {
       position: relative;
       z-index: 1;
     }

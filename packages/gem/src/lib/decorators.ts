@@ -482,15 +482,10 @@ export function connectStore(store: Store<any>) {
   };
 }
 
-export function shadow({
-  mode = 'open',
-  serializable = true,
-  delegatesFocus,
-  slotAssignment,
-}: Partial<ShadowRootInit> = {}) {
+export function shadow({ mode = 'open', serializable = true, ...rest }: Partial<ShadowRootInit> = {}) {
   return (_: any, context: ClassDecoratorContext) => {
     const metadata = context.metadata as Metadata;
-    assign(metadata, { mode, serializable, delegatesFocus, slotAssignment });
+    assign(metadata, { mode, serializable, ...rest });
   };
 }
 
