@@ -188,7 +188,7 @@ const appleCSSStyleSheet = (ele: HTMLElement, sheets: CSSStyleSheet[]) => {
     rootStyleSheetInfo.set(root, map);
     rootUpdateFnMap.set(map, () => {
       // 先找到外部样式表
-      const newSheets = root.adoptedStyleSheets.filter((e) => !map.has(e));
+      const newSheets = (root.adoptedStyleSheets || []).filter((e) => !map.has(e));
       map.forEach((count, sheet) => count && newSheets.push(sheet));
       // 外层元素的样式要放到最后，以提升优先级，但是只考虑第一次出现样式表的位置
       root.adoptedStyleSheets = newSheets.reverse();
