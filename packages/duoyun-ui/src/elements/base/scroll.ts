@@ -11,7 +11,6 @@ const style = css`
     display: block;
     overflow: auto;
     scrollbar-width: none;
-    overscroll-behavior: contain;
     --mask-width: 1.5em;
     --mask-top: 0;
     --mask-right: 100%;
