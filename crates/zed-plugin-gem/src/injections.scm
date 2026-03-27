@@ -201,15 +201,10 @@
 ; Gem support
 
 ; svg``
-(call_expression
-  function: (identifier) @_name (#eq? @_name "svg")
-  arguments: (template_string) @injection.content
-                              (#set! injection.language "html")
-)
-
+; raw``
 ; mathml``
 (call_expression
-  function: (identifier) @_name (#eq? @_name "mathml")
+  function: (identifier) @_name (#match? @_name "^(svg|raw|mathml)$")
   arguments: (template_string) @injection.content
                               (#set! injection.language "html")
 )
