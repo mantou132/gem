@@ -85,6 +85,7 @@ groups:
       - timeline.md
       - tree.md
       - vestaboard.md
+      - letters.md
   - title: Chart
     members:
       - area-chart.md

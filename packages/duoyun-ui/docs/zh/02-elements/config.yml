@@ -89,6 +89,7 @@ groups:
       - timeline.md
       - tree.md
       - vestaboard.md
+      - letters.md
   - title: 图表元素
     members:
       - area-chart.md
