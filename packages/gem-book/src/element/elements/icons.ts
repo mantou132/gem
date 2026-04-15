@@ -124,7 +124,6 @@ export const icons = {
     <svg part="icon" aria-hidden="true" height="24px" viewBox="0 0 24 24" width="24px" fill="currentColor">
       <path d="M0 0h24v24H0z" fill="none" stroke="none"></path>
       <path d="M12 4l-1.41 1.41L16.17 11H4v2h12.17l-5.58 5.59L12 20l8-8z"></path>
-      
     </svg>
   `,
   delete: raw`
@@ -137,7 +136,6 @@ export const icons = {
     <svg part="icon" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 0 24 24" width="24px" fill="currentColor">
       <path d="M0 0h24v24H0z" fill="none" stroke="none"></path>
       <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"></path>
-      
     </svg>
   `,
 };

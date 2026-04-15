@@ -34,6 +34,7 @@ const style = css`
     padding: var(--padding);
     gap: var(--padding);
     --inner-radius: max(calc(${theme.normalRound} - var(--padding)), ${theme.smallRound});
+    box-sizing: border-box;
   }
   :host([small]) {
     font-size: 0.75em;

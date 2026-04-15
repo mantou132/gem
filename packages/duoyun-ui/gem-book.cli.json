@@ -6,6 +6,6 @@
   "i18n": true,
   "fallbackLanguage": "zh",
   "sourceBranch": "docs",
-  "plugin": ["media", "api", "sandpack", "raw", "docsearch?local", "example"],
+  "plugin": ["media", "api", "sandpack", "raw", "docsearch?local", "example", "import"],
   "debug": true
 }

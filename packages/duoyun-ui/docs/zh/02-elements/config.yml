@@ -23,6 +23,7 @@ groups:
       - picker.md
       - radio.md
       - rate.md
+      - segmented.md
       - select.md
       - shortcut-record.md
       - slider.md
@@ -79,7 +80,6 @@ groups:
       - paragraph.md
       - options.md
       - result.md
-      - segmented.md
       - statistic.md
       - status-light.md
       - table.md

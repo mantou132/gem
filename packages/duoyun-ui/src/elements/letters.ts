@@ -3,7 +3,9 @@ import {
   attribute,
   boolattribute,
   customElement,
+  type Emitter,
   effect,
+  emitter,
   memo,
   numattribute,
   shadow,
@@ -12,6 +14,7 @@ import { createState, css, GemElement, svg } from '@mantou/gem/lib/element';
 import { randomStr } from '@mantou/gem/lib/utils';
 
 import { type EasingType, getEasing } from '../lib/easing';
+import { clamp } from '../lib/number';
 
 const style = css`
   :host {
@@ -525,17 +528,20 @@ export class DuoyunLettersElement extends GemElement {
   @numattribute duration: number;
   @attribute easing: EasingType;
   @boolattribute autoplay: boolean;
+  @emitter finished: Emitter;
+  @emitter elapse: Emitter<number>;
 
   #gradientId = `letters-fill-${randomStr()}`;
   #maskId = `letters-mask-${randomStr()}`;
 
   #state = createState({
+    // 缓动函数计算后的动画进度
     progress: 0,
   });
 
   #raf = 0;
-  #startTime = 0;
-  #pausedElapsed = 0;
+  #prevTickTime = 0;
+  #elapsed = 0;
   #running = false;
 
   get #strokeWidth() {
@@ -564,26 +570,34 @@ export class DuoyunLettersElement extends GemElement {
     return buildLayout(this.text, this.#strokeWidth);
   }
 
+  get playing() {
+    return this.#running;
+  }
+
   #tick = (ts: number) => {
     if (!this.#running) return;
 
-    const elapsed = ts - this.#startTime + this.#pausedElapsed;
-    const t = Math.min(1, elapsed / this.#duration);
-    this.#state({ progress: this.#easingFn(t) * this.layout.totalLength });
+    const elapsed = ts - this.#prevTickTime + this.#elapsed;
+    const t = elapsed / this.#duration;
+    this.#state({ progress: this.#easingFn(t) });
     if (t < 1) {
       this.#raf = requestAnimationFrame(this.#tick);
+      this.elapse(t);
     } else {
       this.#running = false;
+      this.finished(null);
+      this.elapse(1);
     }
   };
 
   play = () => {
     cancelAnimationFrame(this.#raf);
-    this.#pausedElapsed = 0;
+    this.#elapsed = 0;
     this.#running = true;
     this.#state({ progress: 0 });
+    this.elapse(0);
     this.#raf = requestAnimationFrame((ts) => {
-      this.#startTime = ts;
+      this.#prevTickTime = ts;
       this.#tick(ts);
     });
   };
@@ -592,21 +606,30 @@ export class DuoyunLettersElement extends GemElement {
     if (!this.#running) return;
     this.#running = false;
     cancelAnimationFrame(this.#raf);
-    this.#pausedElapsed += performance.now() - this.#startTime;
+    this.#elapsed += performance.now() - this.#prevTickTime;
   };
 
   resume = () => {
     if (this.#running) return;
     this.#running = true;
     this.#raf = requestAnimationFrame((ts) => {
-      this.#startTime = ts;
+      this.#prevTickTime = ts;
       this.#tick(ts);
     });
   };
 
+  position = (p: number) => {
+    this.#running = false;
+    cancelAnimationFrame(this.#raf);
+    this.#elapsed = p * this.#duration;
+    this.#state({ progress: this.#easingFn(clamp(0, p, 1)) });
+  };
+
   @effect((ele) => [ele.autoplay, ele.text, ele.easing])
   #initAnimation = () => {
-    if (this.autoplay) this.play();
+    if (this.autoplay || this.#running) {
+      this.play();
+    }
   };
 
   #renderChar(layout: CharLayout) {
@@ -615,10 +638,11 @@ export class DuoyunLettersElement extends GemElement {
     if (!letter) return svg``;
 
     return svg`
-      <g transform=${`translate(${x} 18)`} data-title=${char}>
+      <g transform=${`translate(${x} 20)`} data-title=${char}>
         ${letter.paths.map((shape, i) => {
           const seg = segments[i]!;
-          const drawn = Math.max(0, Math.min(seg.length, this.#state.progress - seg.globalOffset));
+          const len = this.#state.progress * this.layout.totalLength;
+          const drawn = Math.max(0, Math.min(seg.length, len - seg.globalOffset));
           if (!drawn) return svg``;
 
           if (shape.dot) {
@@ -634,7 +658,7 @@ export class DuoyunLettersElement extends GemElement {
               stroke-linecap="round"
               stroke-linejoin="round"
               pathLength=${seg.length}
-              stroke-dasharray=${`${drawn} ${seg.length}`}
+              stroke-dasharray=${`${drawn} ${seg.length + 10}`}
               stroke-dashoffset="0"
             />
           `;
@@ -644,7 +668,7 @@ export class DuoyunLettersElement extends GemElement {
   }
 
   render = () => {
-    const height = 40;
+    const height = 44;
     const { chars, width } = this.layout;
 
     return svg`

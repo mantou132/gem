@@ -30,14 +30,10 @@ class _GbpImportElement extends GemBookPluginElement {
     try {
       const resp = await fetch(url);
       if (resp.status === 404) throw new Error(resp.statusText || 'Not Found');
-      const content = await resp.text();
+      const source = await resp.text();
       if (new URL(url, location.origin).pathname.endsWith('.js')) {
         return await import(/* webpackIgnore: true */ url);
       }
-      const source = `
-        const GemBookPluginElement = customElements.get('gem-book').GemBookPluginElement;
-        ${content}
-      `;
       const body = JSON.stringify({
         lang: 'ts',
         code: source,

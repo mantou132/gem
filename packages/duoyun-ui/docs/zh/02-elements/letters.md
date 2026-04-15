@@ -2,19 +2,17 @@
 
 用于显示动画 SVG 字母的元素，灵感来源于手写字母动画效果。支持逐字绘制动画，可自定义颜色、渐变、画笔粗细和动画参数。
 
-## 示例
+## 游乐场
 
-<gbp-example name="dy-letters" src="https://esm.sh/duoyun-ui/elements/letters">
-
-```json
-[
-  { "text": "Hello", "autoplay": true },
-  { "text": "World", "colors": "#26c0e3", "strokeWidth": 3, "autoplay": true },
-  { "text": "Gem", "colors": "#7c3aed,#06b6d4", "autoplay": true }
-]
-```
-
-</gbp-example>
+<gbp-import src="docs/letters-playground.ts"></gbp-import>
+<letters-playground></letters-playground>
+<gbp-example hidden src="https://esm.sh/duoyun-ui/elements/letters"></gbp-example>
+<gbp-example hidden src="https://esm.sh/duoyun-ui/elements/color-picker"></gbp-example>
+<gbp-example hidden src="https://esm.sh/duoyun-ui/elements/slider"></gbp-example>
+<gbp-example hidden src="https://esm.sh/duoyun-ui/elements/input"></gbp-example>
+<gbp-example hidden src="https://esm.sh/duoyun-ui/elements/button"></gbp-example>
+<gbp-example hidden src="https://esm.sh/duoyun-ui/elements/select"></gbp-example>
+<gbp-example hidden src="https://esm.sh/duoyun-ui/elements/segmented"></gbp-example>
 
 ## API
 
