@@ -3,12 +3,23 @@ import type { GemBookElement } from '../element';
 const { GemBookPluginElement } = (await customElements.whenDefined('gem-book')) as typeof GemBookElement;
 
 const { Gem, Utils } = GemBookPluginElement;
-const { customElement, attribute, effect } = Gem;
+const { customElement, attribute, effect, state, adoptedStyle, css } = Gem;
+
+const style = css`
+  :scope:not(:state(finished)) {
+    display: inline-block;
+    width: attr(width px);
+    height: attr(height px);
+  }
+`;
 
 @customElement('gbp-import')
+@adoptedStyle(style)
 class _GbpImportElement extends GemBookPluginElement {
+  @attribute name: string;
   @attribute src: string;
   @attribute dependencies: string;
+  @state finished: boolean;
 
   get #importMap() {
     const deps = this.dependencies.split(/\s*,\s*/);
@@ -47,6 +58,11 @@ class _GbpImportElement extends GemBookPluginElement {
       await import(/* webpackIgnore: true */ `data:text/javascript;base64,${base64}`);
     } catch (error) {
       this.error(error);
+    } finally {
+      this.finished = true;
+      if (this.name) {
+        this.after(document.createElement(this.name));
+      }
     }
   };
 }

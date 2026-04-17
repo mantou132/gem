@@ -88,14 +88,10 @@ Dynamically loads Markdown snippets:
 
 Dynamically imports modules, which can be used to load plugins on demand. For example, the following custom element is dynamically loaded (the `.ts` file will be compiled using [esm.sh](https://esm.sh/)):
 
-<gbp-import dependencies="canvas-confetti" src="docs/hello.ts"></gbp-import>
-
-<my-plugin-hello></my-plugin-hello>
+<gbp-import height="20" name="my-plugin-hello" dependencies="canvas-confetti" src="docs/hello.ts"></gbp-import>
 
 ```md
-<gbp-import src="docs/hello.ts"></gbp-import>
-
-<my-plugin-hello></my-plugin-hello>
+<gbp-import height="20" name="my-plugin-hello" dependencies="canvas-confetti" src="docs/hello.ts"></gbp-import>
 ```
 
 ## `<gbp-content>`

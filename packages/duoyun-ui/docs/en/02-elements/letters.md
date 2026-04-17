@@ -4,8 +4,7 @@ A creative text display element that renders text using animated SVG letter path
 
 ## Playground
 
-<gbp-import src="docs/letters-playground.ts"></gbp-import>
-<letters-playground src="/src/elements/letters.ts"></letters-playground>
+<gbp-import height="256" name="letters-playground" src="docs/letters-playground.ts"></gbp-import>
 <gbp-example hidden src="https://esm.sh/duoyun-ui/elements/letters"></gbp-example>
 <gbp-example hidden src="https://esm.sh/duoyun-ui/elements/color-picker"></gbp-example>
 <gbp-example hidden src="https://esm.sh/duoyun-ui/elements/slider"></gbp-example>

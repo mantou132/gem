@@ -19,13 +19,23 @@ const style = css`
 @customElement('my-plugin-hello')
 @adoptedStyle(style)
 class _MyPlugin extends GemBookPluginElement {
-  @mounted()
-  #init = () => {
+  #animate = () => {
     confetti({
-      particleCount: 5,
+      particleCount: 50,
       origin: { x: 0.5, y: 0.5 },
     });
   };
 
-  render = () => html`Hello, World`;
+  @mounted()
+  #init = () => {
+    const observer = new IntersectionObserver(([entry]) => {
+      if (!entry.isIntersecting) return;
+      this.#animate();
+      observer.disconnect();
+    });
+    observer.observe(this);
+    return () => observer.disconnect();
+  };
+
+  render = () => html`Hello, <code>${`<gbp-import>`}</code>`;
 }

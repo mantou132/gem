@@ -88,14 +88,10 @@ yarn add gem-book
 
 动态导入模块，这可以用来按需加载插件，比如下面这个自定义元素是动态（`.ts` 文件会使用 [esm.sh](https://esm.sh/) 编译 ）加载的：
 
-<gbp-import src="docs/hello.ts"></gbp-import>
-
-<my-plugin-hello></my-plugin-hello>
+<gbp-import height="20" name="my-plugin-hello" dependencies="canvas-confetti" src="docs/hello.ts"></gbp-import>
 
 ```md
-<gbp-import src="docs/hello.ts"></gbp-import>
-
-<my-plugin-hello></my-plugin-hello>
+<gbp-import height="20" name="my-plugin-hello" dependencies="canvas-confetti" src="docs/hello.ts"></gbp-import>
 ```
 
 ## `<gbp-content>`
