@@ -1,15 +1,17 @@
----
-description: Gem 元素编写规范
-globs: **/elements/*.ts
-alwaysApply: false
----
+# AI Assistant Rules
 
-一般 `elements` 文件夹下的文件用来编写 Gem 元素，一个文件包含一个或多个元素，文件名是元素名的无前缀版，Gem 元素扩展自 GemElement 或者 GemElement 的派生类。
+## General Rules
 
-# Gem 语法
+- Entire file should have consistent style
+- Use modern Web APIs or ES standards
+- When referencing other files, do not write code with the same issues
+- Formatting rules: see `biome.jsonc`
 
-下面是一个 Gem 元素的例子，里面的注释解释了 Gem 的语法或者 API，
-请认真阅读下面的例子和注释，编写 Gem 元素时请严格遵守下面的规则。
+## Gem Element Development
+
+Files in `elements` folder are for Gem elements. One file contains one or more elements. Filename is the prefix-less element name. Gem elements extend GemElement or its derived classes.
+
+### Gem Syntax Example
 
 ```ts
 // 如果需要全局状态，就可以创建一个 Store
@@ -43,10 +45,10 @@ const style = css`
 // 复杂的元素，可以使用这个方案编写样式表，在模板中用 `style1.header` 来引用类名
 const style1 = css({
   // `$` 表示 `:host` 或 `:scope`
-  $: styled`
+  $: `
     font-size: small;
   `,
-  content: styled`
+  content: `
     font-size: 24px;
     color: ${elementTheme.color};
   `,
@@ -136,7 +138,7 @@ class DuoyunTestElement extends GemElement {
   }
 
   // 当元素更新后，会根据依赖是否变化重新计算主题，不提供依赖函数则每次更新都更新主题
-  @elementTheme((self) => [self.show])
+  @elementTheme((i) => [i.show])
   #updateTheme = () => ({ color: this.show ? 'red' : 'blue' });
 
   // 渲染出错时的后备内容，只有可能会渲染出错时才需要提供后备模板内容
@@ -152,8 +154,6 @@ class DuoyunTestElement extends GemElement {
 
 ```
 
-# Gem 最佳实践
+### Gem Best Practices
 
-- 最截实践 [001-create-standard-element.md](mdc:packages/gem/docs/en/004-blog/001-create-standard-element.md)
-
-
+- [other](packages/gem/docs/en/004-blog/001-create-standard-element.md)
