@@ -11,6 +11,7 @@ export type PanEventDetail = {
   timeStamp: number;
   isPrimary: boolean;
   pointerId: number;
+  pressed: boolean;
 };
 export interface SwipeEventDetail {
   direction: 'top' | 'right' | 'bottom' | 'left';
@@ -143,7 +144,7 @@ export class GemGestureElement extends GemElement {
 
   #onMove = (evt: PointerEvent) => {
     const { pointerId, clientX, clientY, isPrimary, pointerType, timeStamp } = evt;
-    if (!this.#pressed && this.hasPointerCapture(pointerId)) {
+    if (this.hasPointerCapture(pointerId)) {
       const moves = this.#getMoves(pointerId);
       const startEvent = this.#getStartEvent(pointerId);
       const lastMove = moves[moves.length - 1] || startEvent;
@@ -161,6 +162,7 @@ export class GemGestureElement extends GemElement {
         timeStamp,
         isPrimary,
         pointerId,
+        pressed: this.#pressed,
       };
       moves.push(move);
       this.pan(move);
