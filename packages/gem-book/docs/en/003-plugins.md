@@ -86,13 +86,15 @@ Dynamically loads Markdown snippets:
 
 ## `<gbp-import>`
 
-Dynamically imports modules, which can be used to load plugins on demand. For example, the following custom element is dynamically loaded (the `.ts` file will be compiled using [esm.sh](https://esm.sh/)):
+Dynamically imports modules, compiled and executed on the client. `.ts` files are compiled using [esm.sh](https://esm.sh/).
 
 <gbp-import height="20" name="my-plugin-hello" dependencies="canvas-confetti" src="docs/hello.ts"></gbp-import>
 
 ```md
 <gbp-import height="20" name="my-plugin-hello" dependencies="canvas-confetti" src="docs/hello.ts"></gbp-import>
 ```
+
+Specify name will auto-inserted as tag name after `<gbp-import>`, useful for custom elements.
 
 ## `<gbp-content>`
 
@@ -202,6 +204,8 @@ Generate examples for any custom element, for example:
 
 </gbp-example>
 ````
+
+Array can be used in code blocks to display multiple differently configured elements.
 
 ## `<gbp-api>`
 

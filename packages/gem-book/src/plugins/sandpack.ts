@@ -200,6 +200,18 @@ const styles = css`
       height: 35vh;
     }
   }
+  @media print {
+    .container {
+      display: block;
+    }
+    .actions, .preview {
+      display: none;
+    }
+    ::slotted(*) {
+      height: auto;
+      max-height: none;
+    }
+  }
 `;
 
 @customElement('gbp-sandpack')

@@ -68,7 +68,14 @@ GemBook 使用自定义元素作为插件系统，他们可以自定义渲染 Ma
 <gbp-code-group>
 
 ```bash cli
+# 使用内置插件名称
 gem-book docs --plugin raw
+
+# 使用本地插件路径
+gem-book docs --plugin ./my-plugin.ts
+
+# 使用远端 URL
+gem-book docs --plugin https://example.com/plugin.js
 ```
 
 ```html html
@@ -99,7 +106,7 @@ gem-book docs --plugin raw
 ### 开发插件
 
 GemBook 公开一个类 `GemBookPluginElement`, 他扩展自 [`GemElement`](https://gemjs.org/api/)，
-[包含](../004-api.md#gem-book-plugin-api) 许多内部方法和属性，通过下面这种方式获取 `GemBookPluginElement` 和读取 `<gem-book>` 配置：
+[包含](../004-api.md#gem-book-plugin-api) 许多内部方法和属性。示例：
 
 ```js
 customElements.whenDefined('gem-book').then(({ GemBookPluginElement }) => {

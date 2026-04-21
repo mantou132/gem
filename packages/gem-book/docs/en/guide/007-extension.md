@@ -54,7 +54,7 @@ By default, hash is generated based on the title text field, but sometimes you n
 
 ## Slots
 
-[Slot](https://developer.mozilla.org/en-US/docs/Web/HTML/Global_attributes/slot) allows you to customize `<gem-book>` but the content, currently supported slots are `sidebar-before`, `main-before`, `main-after`, `nav-inside`.
+[Slot](https://developer.mozilla.org/en-US/docs/Web/HTML/Global_attributes/slot) allows you to customize `<gem-book>` but the content, currently supported slots are `sidebar-before`, `main-before`, `main-after`, `nav-inside`, `logo-after`.
 
 <gbp-raw src="docs/template.html" range="8--4"></gbp-raw>
 
@@ -66,12 +66,19 @@ _Can use `--template` specified template file_
 
 GemBook uses custom elements as a plugin system, they can customize the rendering of Markdown content or enhance the ability of `<gem-book>`. The following is how to use the built-in plugin `<gbp-raw>`.
 
-import plugin:
+Import the plugin:
 
 <gbp-code-group>
 
 ```bash cli
+# Built-in plugin name
 gem-book docs --plugin raw
+
+# Local plugin path
+gem-book docs --plugin ./my-plugin.ts
+
+# Remote URL
+gem-book docs --plugin https://example.com/plugin.js
 ```
 
 ```html html

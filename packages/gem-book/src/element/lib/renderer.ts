@@ -215,6 +215,11 @@ export const linkStyle = css`
     vertical-align: -0.1em;
     margin-inline: 0.2em;
   }
+  @media print {
+    .link svg {
+      display: none;
+    }
+  }
 `;
 
 export function unsafeRenderHTML(s: string, style = css``) {

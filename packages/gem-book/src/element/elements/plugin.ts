@@ -14,12 +14,12 @@ import { capitalize, escapeHTML, getParts, getRanges, getURL, isGitLab, joinPath
 import { bookStore, locationStore } from '../store';
 
 /**
- * 获取资源的远端 GitHub raw 地址，如果使用 `DEV_MODE`，则返回本机服务的 URL
+ * Get remote GitHub raw URL for resource, returns local server URL if `DEV_MODE`
  *
- * - 优先使用 markdown 文件
- * - 支持相对路径
- * - 支持查询字符串
- * - `/docs/readme.md` 和 `docs/readme.md` 等效
+ * - Prefers markdown files
+ * - Supports relative paths
+ * - Supports query strings
+ * - `/docs/readme.md` and `docs/readme.md` are equivalent
  */
 function getRemoteURL(originSrc = '', dev = GemBookPluginElement.devMode) {
   const { currentLink, lang, config, links } = GemBookPluginElement;
@@ -48,7 +48,9 @@ function getRemoteURL(originSrc = '', dev = GemBookPluginElement.devMode) {
 @connectStore(bookStore)
 @customElement('gem-book-plugin')
 export class GemBookPluginElement extends GemElement {
+  /**Gem library exports */
   static Gem = Gem;
+  /**Utility functions */
   static Utils = {
     escapeHTML,
     capitalize,
@@ -113,14 +115,14 @@ export class GemBookPluginElement extends GemElement {
   @globalemitter error: Emitter<ErrorEvent | Event> = logger.error;
 
   /**
-   * 自动缓存状态，下次挂载时应用状态
+   * Auto cache state, apply state on next mount
    *
    * @example
    * ```js
    * constructor() {
    *   super();
    *   this.cacheState(() => [this.src, this.range]);
-   *}
+   * }
    * ```
    */
   cacheState(this: GemElement & { state: any }, getDeps: () => (string | number | undefined | null)[]) {

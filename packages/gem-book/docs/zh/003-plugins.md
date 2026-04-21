@@ -86,13 +86,15 @@ yarn add gem-book
 
 ## `<gbp-import>`
 
-动态导入模块，这可以用来按需加载插件，比如下面这个自定义元素是动态（`.ts` 文件会使用 [esm.sh](https://esm.sh/) 编译 ）加载的：
+动态导入模块，在客户端按需编译并执行。`.ts` 文件会使用 [esm.sh](https://esm.sh/) 编译。
 
 <gbp-import height="20" name="my-plugin-hello" dependencies="canvas-confetti" src="docs/hello.ts"></gbp-import>
 
 ```md
 <gbp-import height="20" name="my-plugin-hello" dependencies="canvas-confetti" src="docs/hello.ts"></gbp-import>
 ```
+
+指定 `name` 将自动作为标签名插入到 `<gbp-import>` 后面，适合导入自定义元素场景。
 
 ## `<gbp-content>`
 
@@ -202,6 +204,8 @@ render(
 
 </gbp-example>
 ````
+
+代码块中可以使用数组来展示多个不同配置的元素。
 
 ## `<gbp-api>`
 

@@ -152,6 +152,9 @@ const styles = css`
   }
 `;
 
+/**
+ * GemBook document site element for rendering a complete documentation website
+ */
 @customElement('gem-book')
 @connectStore(bookStore)
 @adoptedStyle(styles)
@@ -159,7 +162,6 @@ export class GemBookElement extends GemElement {
   static GemBookPluginElement = GemBookPluginElement;
 
   @attribute src: string;
-  // process.env.DEV_MODE 只能用于 website 模式，不能用在单元素中
   @boolattribute dev: boolean;
 
   @property config: BookConfig | undefined;
@@ -181,7 +183,7 @@ export class GemBookElement extends GemElement {
   @slot static mainBefore: string;
   @slot static mainAfter: string;
   @slot static navInside: string;
-  /**仅侧边栏中 */
+  /**Only in sidebar */
   @slot static logoAfter: string;
 
   @state isHomePage: boolean;
@@ -207,7 +209,7 @@ export class GemBookElement extends GemElement {
         this.theme = newTheme;
       } else if (newConfig) {
         this.config = newConfig;
-        // 等待路由更新
+        // Wait for route update
         queueMicrotask(() => routeELement.update());
       } else if (routeELement.currentRoute?.pattern === '*') {
         routeELement.update();
@@ -215,7 +217,7 @@ export class GemBookElement extends GemElement {
         mainElement.content = content;
       } else {
         const filename = filePath?.split('/').pop();
-        // 支持非所有 [src=*.md] 元素
+        // Support non [src=*.md] elements
         mainElement.querySelectorAll(`[src*="${filename}"]`).forEach((ele) => {
           (ele as any).src += `?`;
         });
@@ -262,7 +264,7 @@ export class GemBookElement extends GemElement {
     const hasNavbar = icon || title || nav.length;
     const renderHomePage = !!homeMode && homePage === locationStore.path;
     const missSidebar = homeMode ? !!currentSidebar?.every((e) => e.link === homePage) : !currentSidebar?.length;
-    // 首次渲染
+    // First render
     const isRedirectRoute = routes.find(({ pattern }) => matchPath(pattern, locationStore.path))?.redirect;
 
     this.renderFullWidth = renderHomePage || (missSidebar && !isRedirectRoute);
@@ -295,7 +297,9 @@ export class GemBookElement extends GemElement {
     `;
   }
 
+  /**Change theme dynamically */
   changeTheme = changeTheme;
 
+  /**Route element reference */
   routeRef = createRef<GemLightRouteElement>();
 }

@@ -8,7 +8,7 @@ navTitle: Guide
 GemBook renders [Markdown](https://zh.wikipedia.org/wiki/Markdown) content into a website and generates pages based on the directory structure.
 GemBook is a document site generation tool created for [Gem](https://github.com/mantou132/gem). It is also written using Gem. It has a symbiotic relationship with Gem. It uses the custom element `<gem-book>` render content.
 
-### Getting Started
+## Getting Started
 
 You can try it online directly at [StackBlitz](https://stackblitz.com/edit/node-c7iw5d?file=README.md).
 
@@ -17,7 +17,7 @@ You can try it online directly at [StackBlitz](https://stackblitz.com/edit/node-
 
 <gbp-include src="../snippets/start.md"></gbp-include>
 
-More [options](./003-cli.md).
+More [options](../002-cli.md).
 
 <details>
 <summary>
@@ -51,9 +51,9 @@ You can use the `<gem-book>` element in any framework.
 
 </details>
 
-### Goal
+## Goals
 
-- Build documentation into front-end projects
-- Provide a command line to parse the directory into a `<gem-book>` configuration file
-- Provide `<gem-book>` for front-end projects
-- Provide API for users to extend
+- Build Markdown content into a website with one command
+- Provide stable Plugin API for user extensions
+- Export `<gem-book>` element for use in any frontend project
+- Parse directories and generate `json` format rendering data for `<gem-book>`

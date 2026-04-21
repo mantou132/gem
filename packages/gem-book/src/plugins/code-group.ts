@@ -70,6 +70,11 @@ const style = css`
     margin: 0 !important;
     border-radius: 0 !important;
   }
+  @media print {
+    .actions {
+      display: none;
+    }
+  }
 `;
 
 @customElement('gbp-code-group')
