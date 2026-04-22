@@ -1,5 +1,8 @@
+// @ts-expect-error
+// You can install it as a development dependency in your own project
 import confetti from 'canvas-confetti';
-import type { GemBookElement } from 'gem-book';
+
+import type { GemBookElement } from '../../gem-book';
 
 await customElements.whenDefined('gem-book');
 

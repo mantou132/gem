@@ -355,7 +355,7 @@ export class DuoyunCodeBlockElement extends DuoyunVisibleBaseElement {
     const ranges = str.split(/,\s*/);
     return ranges.map((range) => {
       const [start, end = start] = range.split('-');
-      return [parseInt(start) || 1, parseInt(end) || 0];
+      return [parseInt(start, 10) || 1, parseInt(end, 10) || 0];
     });
   }
 

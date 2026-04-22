@@ -1,4 +1,5 @@
-import type { GemBookElement } from 'gem-book';
+import type { GemBookElement } from '../../gem-book';
+import type { DuoyunLettersElement } from '../elements/letters';
 
 await customElements.whenDefined('gem-book');
 
@@ -13,9 +14,14 @@ const pause = raw`
   <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="currentColor"><path d="M520-200v-560h240v560H520Zm-320 0v-560h240v560H200Zm400-80h80v-400h-80v400Zm-320 0h80v-400h-80v400Zm0-400v400-400Zm320 0v400-400Z"/></svg>
 `;
 
+enum Bg {
+  Gradient = 'gradient',
+  Photo = 'photo',
+}
+
 const bgOptions = [
-  { label: 'Photo', value: 'photo' },
-  { label: 'Gradient', value: 'gradient' },
+  { label: 'Photo', value: Bg.Photo },
+  { label: 'Gradient', value: Bg.Gradient },
 ];
 const easingOptions = [
   { label: 'Linear', value: 'linear' },
@@ -180,9 +186,9 @@ enum PlayingState {
 @customElement('letters-playground')
 @adoptedStyle(style)
 class _LettersPlaygroundElement extends GemBookPluginElement {
-  #dy = createRef();
+  #dy = createRef<DuoyunLettersElement>();
   #state = createState({
-    bg: 'gradient' as 'gradient' | 'photo',
+    bg: Bg.Gradient,
     playing: PlayingState.Before,
     progress: 0,
     props: {
@@ -220,7 +226,6 @@ class _LettersPlaygroundElement extends GemBookPluginElement {
   };
 
   #onColors = (index: number, e: CustomEvent<string>) => {
-    console.log(e);
     const newColor = e.detail;
     const colors = this.#state.props.colors.split(',');
     colors[index] = newColor;
@@ -240,8 +245,8 @@ class _LettersPlaygroundElement extends GemBookPluginElement {
     this.#setProps({ colors: colors.join(',') });
   };
 
-  #onChangeBg = (e: CustomEvent<string>) => {
-    const colors = e.detail === 'photo' ? 'white' : DEFAULT_GRADIENT_COLORS.join();
+  #onChangeBg = (e: CustomEvent<Bg>) => {
+    const colors = e.detail === Bg.Photo ? 'white' : DEFAULT_GRADIENT_COLORS.join();
     this.#setProps({ colors });
     this.#state({ bg: e.detail });
   };
@@ -314,7 +319,7 @@ class _LettersPlaygroundElement extends GemBookPluginElement {
             <dy-segmented .value=${bg} @change=${this.#onChangeBg} .options=${bgOptions}></dy-segmented>
           </div>
 
-          <div v-if=${bg === 'gradient'} class="row">
+          <div v-if=${bg === Bg.Gradient} class="row">
             <label>Colors</label>
             <div class="colors">
               ${colors.map(
