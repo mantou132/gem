@@ -9,6 +9,7 @@ export const dom = new JSDOM(``, {
 });
 
 const {
+  ShadowRoot,
   customElements,
   CustomElementRegistry,
   CSSStyleSheet,
@@ -57,6 +58,7 @@ Object.assign(globalThis, {
   nQM: queueMicrotask,
 
   // Web 独有 API
+  ShadowRoot,
   customElements,
   CustomElementRegistry,
   CSSStyleSheet,

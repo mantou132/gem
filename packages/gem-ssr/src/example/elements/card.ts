@@ -53,7 +53,8 @@ export class GemSsrCardElement extends GemElement {
         <gem-link>Action</gem-link>
       </div>
       <div class="body">
-        <slot></slot>
+        <slot>${html`<div></div><div></div>`}<div></div>
+        </slot>
       </div>
     `;
   };

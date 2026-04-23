@@ -72,3 +72,7 @@ export class DemoShadowElement extends GemElement {
 test('basic shadow', async ({ assert: { snapshot } }) => {
   snapshot(await t(html`<app-shadow-demo></app-shadow-demo>`));
 });
+
+test('basic nested', async ({ assert: { snapshot } }) => {
+  snapshot(await t(html`<div>${html`<em>${'hello'}</em>`}</div>`));
+});

@@ -560,7 +560,7 @@ export function createForm<T = Record<string, unknown>>(options: CreateFormOptio
       header: options.header,
       body: html`
         <dy-pat-form
-          style=${styleMap(Object.assign({ minWidth: '30em' }, options.style))}
+          style=${styleMap({ minWidth: '30em', ...options.style })}
           .formItems=${options.formItems}
           .data=${options.data}
         ></dy-pat-form>

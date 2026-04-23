@@ -2,12 +2,24 @@ import './lib/shim';
 
 import { history, render as renderDom, type TemplateResult } from '@mantou/gem';
 import { GemLightRouteElement } from '@mantou/gem/elements/route';
+import type { ChildPart } from '@mantou/gem/lib/lit-html';
 
+import { LIT_PART_END } from './client/hydration';
 import { MockPromise, NativePromise } from './lib/promise';
 import { dom } from './lib/shim';
 
+const endTag = `<!--${LIT_PART_END}-->`;
+
 function getStyle(sheets: CSSStyleSheet[] = []) {
   return sheets.map((sheet) => `<style>${sheet._text}</style>`).join('');
+}
+
+function collectEndNodes(node: Node, endNodeSet: Set<Node>) {
+  const childPart: ChildPart = (node as any)._$litPart$;
+  if (childPart) {
+    const parts: ChildPart[] = (childPart._$committedValue as any)?._$parts || [];
+    parts.forEach((part) => part.endNode && endNodeSet.add(part.endNode));
+  }
 }
 
 // https://github.com/EasyWebApp/declarative-shadow-dom-polyfill/blob/main/source/index.ts#L93
@@ -19,17 +31,27 @@ async function* generateHTML(root: Node, options: GetHTMLOptions = {}): AsyncGen
     return;
   }
 
+  const endNodeSet = new Set<Node>();
+  collectEndNodes(root, endNodeSet);
+
   const shadowRootsSet = new Set(shadowRoots);
   const walker = document.createTreeWalker(root, NodeFilter.SHOW_ALL, {
     acceptNode: (n) => (n === root || n instanceof SVGElement ? NodeFilter.FILTER_SKIP : NodeFilter.FILTER_ACCEPT),
   });
   let currentNode: Node | null = null;
+  const stack: Element[] = [];
   while ((currentNode = walker.nextNode())) {
+    while (stack.length > 0 && !stack.at(-1)!.contains(currentNode)) {
+      const lastElement = stack.pop()!;
+      yield `</${lastElement.tagName.toLowerCase()}>`;
+    }
+    if (endNodeSet.has(currentNode)) yield endTag;
     if (currentNode instanceof CDATASection) yield `<![CDATA[${currentNode.nodeValue}]]>`;
     else if (currentNode instanceof Text) yield currentNode.nodeValue || '';
     else if (currentNode instanceof Comment) yield `<!--${currentNode.nodeValue}-->`;
     else if (currentNode instanceof SVGElement) yield xmlSerializer.serializeToString(currentNode);
     else if (currentNode instanceof Element) {
+      collectEndNodes(currentNode, endNodeSet);
       const tagName = currentNode.tagName.toLowerCase();
       const attributes = [...currentNode.attributes].map(({ name, value }) => `${name}="${value}"`);
       const shadowRoot = currentNode.shadowRoot;
@@ -38,15 +60,26 @@ async function* generateHTML(root: Node, options: GetHTMLOptions = {}): AsyncGen
         await currentNode.update();
       }
       if (shadowRoot && (shadowRootsSet.has(shadowRoot) || serializableShadowRoots)) {
-        yield `<template shadowrootmode="${shadowRoot.mode}">`;
+        const shadowAttrs = [`shadowrootmode="${shadowRoot.mode}"`];
+        if (shadowRoot.delegatesFocus) shadowAttrs.push('shadowrootdelegatesfocus');
+        if (shadowRoot.serializable) shadowAttrs.push('shadowrootserializable');
+        if (shadowRoot.clonable) shadowAttrs.push('shadowrootclonable');
+        if (shadowRoot.slotAssignment === 'manual') shadowAttrs.push('shadowrootslotassignment="manual"');
+        yield `<template ${shadowAttrs.join(' ')}>`;
         yield getStyle(shadowRoot.adoptedStyleSheets);
         yield* generateHTML(shadowRoot, options);
         yield `</template>`;
       }
-      if (!currentNode.childNodes[0]) yield `</${tagName}>`;
+      if (currentNode.childNodes[0]) {
+        stack.push(currentNode);
+      } else {
+        yield `</${tagName}>`;
+      }
     }
-    const { nextSibling, parentElement } = currentNode;
-    if (!nextSibling && parentElement && parentElement !== root) yield `</${parentElement.tagName.toLowerCase()}>`;
+  }
+  while (stack.length > 0) {
+    const lastElement = stack.pop()!;
+    yield `</${lastElement.tagName.toLowerCase()}>`;
   }
 }
 

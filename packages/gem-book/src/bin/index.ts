@@ -118,7 +118,7 @@ function readFiles(filenames: string[], docsRootDir: string, dir: string, link: 
       if (isIndexFile(filename1)) return -1;
 
       const reverse = config?.reverse ? -1 : 1;
-      if (rank1 && rank2) return (parseInt(rank1) - parseInt(rank2)) * reverse;
+      if (rank1 && rank2) return (parseInt(rank1, 10) - parseInt(rank2, 10)) * reverse;
 
       // 文件夹排前面
       const isDir1 = getStat(filename1).isDirectory();

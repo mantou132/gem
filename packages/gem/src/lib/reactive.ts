@@ -25,6 +25,14 @@ export function setEngine(h: typeof Lit.html, r: typeof Lit.render) {
   render = r;
 }
 
+let hydrationEngine = (_value: unknown, _container: HTMLElement | DocumentFragment): Lit.RootPart | undefined => {
+  return;
+};
+
+export function setHydrationEngine(engine: typeof hydrationEngine) {
+  hydrationEngine = engine;
+}
+
 const { assign, defineProperty } = Object;
 
 // https://github.com/tc39/proposal-decorator-metadata
@@ -351,7 +359,7 @@ export abstract class GemElement extends HTMLElement {
     const { focusable, ...internalsAria } = aria || {};
 
     // 这里认为 rest 不会有自定义字段和 ShadowRootInit 参数冲突
-    this.#renderRoot = !mode ? this : this.attachShadow({ mode, delegatesFocus, ...rest });
+    this.#renderRoot = !mode ? this : this.shadowRoot || this.attachShadow({ mode, delegatesFocus, ...rest });
     this.#internals = this.attachInternals() as GemElement['internals'];
     this.#internals.stateList = [];
     this.#internals.sheets = [];
@@ -416,10 +424,8 @@ export abstract class GemElement extends HTMLElement {
       const isLight = this.#renderRoot === this;
       const temp = item ? item.render() : isLight ? undefined : html`<slot></slot>`;
       if (temp === undefined) return;
-      render(
-        temp !== null ? temp : html`<style>${isLight ? '@scope' : ':host'}{&{display:none!important;}}</style>`,
-        this.#renderRoot,
-      );
+      const r = temp !== null ? temp : html`<style>${isLight ? '@scope' : ':host'}{&{display:none!important;}}</style>`;
+      hydrationEngine(r, this.#renderRoot) || render(r, this.#renderRoot);
     } catch (err) {
       this.dispatchEvent(new CustomEvent(_RenderErrorEvent, { bubbles: true, composed: true, detail: err }));
       throw err;

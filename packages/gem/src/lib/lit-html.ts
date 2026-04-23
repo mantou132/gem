@@ -547,12 +547,11 @@ function resolveDirective(
   return value;
 }
 
-export type { TemplateInstance };
 /**
  * An updateable instance of a Template. Holds references to the Parts used to
  * update the template instance.
  */
-class TemplateInstance implements Disconnectable {
+export class TemplateInstance implements Disconnectable {
   _$template: Template;
   _$parts: Array<Part | undefined> = [];
   /** @internal */

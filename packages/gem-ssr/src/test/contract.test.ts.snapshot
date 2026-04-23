@@ -1,0 +1,87 @@
+exports[`AttributePart: 动态 attribute 的元素有 data-lit-bound 标记 1`] = `
+<!----><div class="static" title="hello"></div>
+`;
+
+exports[`AttributePart: 多个动态 attribute 1`] = `
+<!----><input type="text"></input>
+`;
+
+exports[`connectStore 元素: store 值绑定有 lit-part 注释 1`] = `
+<!----><contract-store><!----><span><!--?lit$000$-->store-val</span></contract-store>
+`;
+
+exports[`iterable ChildPart: 数组每项都有 lit-part 注释 1`] = `
+<!----><ul><!--?lit$000$--><!----><li><!--?lit$000$-->a</li><!----><!----><li><!--?lit$000$-->b</li><!----><!----><li><!--?lit$000$-->c</li><!----></ul>
+`;
+
+exports[`iterable ChildPart: 空数组保留注释边界 1`] = `
+<!----><ul><!--?lit$000$--></ul>
+`;
+
+exports[`light DOM 元素: 渲染内容有 lit-part 注释 1`] = `
+<style>@scope (CONTRACT-OUTER) to (:state(gem-style-boundary) > *){ 
+  :scope {
+    display: block;
+  }
+ }</style><!----><contract-outer title="hello"><!---->
+      <h1><!--?lit$000$-->hello</h1>
+      <!--?lit$000$--><contract-other><!----><!--?lit$000$-->1<!--/lit--> 2 <!--?lit$000$-->3<!--/lit--><!--?--></contract-other><!--/lit-->
+      <contract-inner label="hello"><template shadowrootmode="open"><!----><span class="inner"><!--?lit$000$-->hello</span></template></contract-inner>
+      <ul>
+        <!--?lit$000$--><!----><li><!--?lit$000$-->x</li><!----><!----><li><!--?lit$000$-->y</li><!----><!--/lit-->
+      </ul>
+      <p>count: <!--?lit$000$-->0<!--/lit-->'s</p>
+    </contract-outer>
+`;
+
+exports[`nested TemplateResult: 三层嵌套 1`] = `
+<!----><div><!--?lit$000$--><i><!--?lit$000$--><b><!--?lit$000$-->c</b></i></div>
+`;
+
+exports[`nested TemplateResult: 子模板也有 lit-part 注释 1`] = `
+<!----><div><!--?lit$000$--><em><!--?lit$000$-->world</em></div>
+`;
+
+exports[`nested custom elements: 外层 light + 内层 shadow 都有标记 1`] = `
+<style>@scope (CONTRACT-OUTER) to (:state(gem-style-boundary) > *){ 
+  :scope {
+    display: block;
+  }
+ }</style><!----><contract-outer title="nested"><!---->
+      <h1><!--?lit$000$-->nested</h1>
+      <!--?lit$000$--><contract-other><!----><!--?lit$000$-->1<!--/lit--> 2 <!--?lit$000$-->3<!--/lit--><!--?--></contract-other><!--/lit-->
+      <contract-inner label="nested"><template shadowrootmode="open"><!----><span class="inner"><!--?lit$000$-->nested</span></template></contract-inner>
+      <ul>
+        <!--?lit$000$--><!----><li><!--?lit$000$-->a</li><!----><!----><li><!--?lit$000$-->b</li><!----><!--/lit-->
+      </ul>
+      <p>count: <!--?lit$000$-->0<!--/lit-->'s</p>
+    </contract-outer>
+`;
+
+exports[`primitive ChildPart: null/undefined 绑定输出空内容但保留注释边界 1`] = `
+<!----><div><!--?lit$000$--><!--/lit--><!--?lit$000$--></div>
+`;
+
+exports[`primitive ChildPart: 多个并列绑定各自有独立注释 1`] = `
+<!----><div><!--?lit$000$-->first<!--/lit--><hr></hr><!--?lit$000$-->second</div>
+`;
+
+exports[`primitive ChildPart: 数字绑定 1`] = `
+<!----><span><!--?lit$000$-->42</span>
+`;
+
+exports[`primitive ChildPart: 文本绑定 1`] = `
+<!----><span>a<!--?lit$000$-->b<!--/lit-->c</span>
+`;
+
+exports[`primitive ChildPart: 文本绑定有 lit-part 注释包裹 1`] = `
+<!----><span><!--?lit$000$-->hello</span>
+`;
+
+exports[`shadow DOM: shadowroot template 内有 lit-part 注释 1`] = `
+<!----><contract-inner label="test"><template shadowrootmode="open"><!----><span class="inner"><!--?lit$000$-->test</span></template></contract-inner>
+`;
+
+exports[`顶层输出: 整个输出被根 lit-part 注释包裹 1`] = `
+<!----><span>root</span>
+`;
