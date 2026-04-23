@@ -8,7 +8,6 @@
     "generator"
   ],
   "main": "src/index.ts",
-  "type": "module",
   "scripts": {
     "test": "tsx --test",
     "test:watch": "nodemon --watch src -e .ts --exec \"pnpm run test\"",

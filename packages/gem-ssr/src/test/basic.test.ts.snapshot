@@ -5,11 +5,15 @@ exports[`basic light 1`] = `
   }
  }</style><!----><app-light-demo attr="attr"><!---->
       light dom
-      <div>attr: <!--?$lit-temp$-->attr</div>
-      <div>prop: <!--?$lit-temp$-->prop</div>
-      <div>state: <!--?$lit-temp$-->1</div>
-      <div>store: <!--?$lit-temp$-->2</div>
+      <div>attr: <!--?lit$000$-->attr</div>
+      <div>prop: <!--?lit$000$-->prop</div>
+      <div>state: <!--?lit$000$-->1</div>
+      <div>store: <!--?lit$000$-->2</div>
     </app-light-demo>
+`;
+
+exports[`basic nested 1`] = `
+<!----><div><!--?lit$000$--><em><!--?lit$000$-->hello</em></div>
 `;
 
 exports[`basic shadow 1`] = `
