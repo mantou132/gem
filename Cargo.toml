@@ -28,3 +28,10 @@ once_cell = "1.21.0"
 tracing = "0.1.41"
 pathdiff = "0.2.3"
 typed-path = { version = "0.10.0", default-features = false }
+
+[profile.release]
+codegen-units = 1 # Allows LLVM to perform better optimization.
+lto = true # Enables link-time-optimizations.
+opt-level = "s" # Prioritizes small binary size. Use `3` if you prefer speed.
+strip = true # Ensures debug symbols are removed.
+
