@@ -1,8 +1,14 @@
-import { ChildPart, type RootPart, TemplateInstance, TemplateResult } from '@mantou/gem/lib/lit-html';
+import {
+  ChildPart,
+  ElementPart,
+  type Part,
+  type RootPart,
+  TemplateInstance,
+  TemplateResult,
+} from '@mantou/gem/lib/lit-html';
 
 export const LIT_PART_END = '/lit';
 export const LIT_PART_START_RE = /\?lit\$(\d+)\$/;
-const CHILD_PART = 2;
 
 export function isSSRRoot(node: Node | undefined | null): node is Comment {
   return node?.nodeType === Node.COMMENT_NODE && (node as Comment).data === '';
@@ -16,105 +22,116 @@ export function isSSREnd(node: Node | undefined | null): node is Comment {
   return node?.nodeType === Node.COMMENT_NODE && (node as Comment).data === LIT_PART_END;
 }
 
-function buildPartsFromDOM(
-  instance: TemplateInstance,
-  container: Element | ShadowRoot | DocumentFragment,
-  values: unknown[],
-): void {
+export function isSSREndEdge(node: Node | undefined | null): node is Comment {
+  return node?.nodeType === Node.COMMENT_NODE && (node as Comment).data === '?';
+}
+
+let walkerContainer: Node = document;
+const walker = document.createTreeWalker(document, NodeFilter.SHOW_COMMENT | NodeFilter.SHOW_ELEMENT, {
+  acceptNode: (n) =>
+    // 不是 ShadowDOM 的自定义元素中的子元素都屏蔽掉
+    n.parentNode !== walkerContainer && isSSRRoot(n.parentNode?.firstChild)
+      ? NodeFilter.FILTER_REJECT
+      : NodeFilter.FILTER_ACCEPT,
+});
+
+interface IndexedNode {
+  node: Node;
+  // 如果是 child part，则可能有下面两个
+  endNode?: ChildNode | null;
+  childIndexMap?: Map<number, IndexedNode>;
+}
+
+type StackFrame = {
+  index: number;
+  indexedNode: IndexedNode;
+  startNode: Node;
+};
+
+function buildNodeIndexMap(container: Node) {
+  walker.currentNode = container;
+  walkerContainer = container;
+  const rootIndexNode = { childIndexMap: new Map<number, IndexedNode>(), node: container };
+  const stack: StackFrame[] = [{ index: 0, indexedNode: rootIndexNode, startNode: container.firstChild! }];
+  let node: Node | null;
+  while ((node = walker.nextNode())) {
+    // 超出容器
+    if (node === container.nextSibling) break;
+    // 忽略边缘注释
+    if (isSSRRoot(node) || isSSREndEdge(node)) continue;
+
+    let frame = stack.at(-1)!;
+
+    // 超出范围时应该闭合，并弹出栈
+    while (
+      stack.length >= 2 &&
+      frame.indexedNode.endNode === undefined &&
+      !frame.startNode.parentNode!.contains(node)
+    ) {
+      frame.indexedNode.endNode = null;
+      stack.pop();
+      frame = stack.at(-1)!;
+    }
+
+    if (isSSRStart(node)) {
+      const indexedNode = { node, childIndexMap: new Map<number, IndexedNode>() };
+      frame.indexedNode.childIndexMap!.set(frame.index++, indexedNode);
+      stack.push({ indexedNode, index: 0, startNode: node });
+      continue;
+    }
+
+    if (isSSREnd(node)) {
+      stack.pop();
+      frame.indexedNode.endNode = node;
+      continue;
+    }
+
+    frame.indexedNode.childIndexMap!.set(frame.index++, { node });
+  }
+  return stack[0].indexedNode.childIndexMap!;
+}
+
+const ATTRIBUTE_PART = 1;
+const CHILD_PART = 2;
+const PROPERTY_PART = 3;
+const BOOLEAN_ATTRIBUTE_PART = 4;
+const EVENT_PART = 5;
+const ELEMENT_PART = 6;
+const COMMENT_PART = 7;
+
+function buildPartsFromDOM(instance: TemplateInstance, values: unknown[], nodeIndexMap: Map<number, IndexedNode>) {
   const { parts } = instance._$template;
   if (parts.length === 0) return;
 
-  const builtParts: Array<ChildPart | undefined> = new Array(parts.length).fill(undefined);
-  const childPartIndices = parts.map((p, i) => (p.type === CHILD_PART ? i : -1)).filter((i) => i >= 0);
+  const builtParts = new Array<Part | undefined>(parts.length).fill(undefined);
+  for (let i = 0; i < parts.length; i++) {
+    const templatePart = parts[i];
+    const { node, endNode = null, childIndexMap } = nodeIndexMap.get(templatePart.index)!;
 
-  // 单次遍历：收集所有 SSR start 注释，使用栈处理嵌套
-  const stack: Array<{ startNode: Comment; partIndex: number }> = [];
-  const walker = document.createTreeWalker(container, NodeFilter.SHOW_COMMENT);
-  let node: Comment | null;
-  let markerIdx = 0;
-
-  while ((node = walker.nextNode() as Comment | null)) {
-    if (isSSRStart(node)) {
-      const partIndex = childPartIndices[markerIdx++];
-      if (partIndex === undefined) continue;
-      stack.push({ startNode: node, partIndex });
-    } else if (isSSREnd(node) && stack.length > 0) {
-      const { startNode, partIndex } = stack.pop()!;
-      const childPart = new ChildPart(startNode, node, instance, {});
-      builtParts[partIndex] = childPart;
-
-      const value = values[partIndex];
+    if (templatePart.type === CHILD_PART) {
+      const childPart = new ChildPart(node as ChildNode, endNode, instance, undefined);
+      builtParts[i] = childPart;
+      // 嵌套模板
+      const value = values[i];
       if (value instanceof TemplateResult) {
-        // 嵌套模板：递归水合
-        const nestedResult = value as TemplateResult;
-        const template = (childPart as any)._$getTemplate(nestedResult);
-        const nestedInstance = new TemplateInstance(template, childPart);
-
-        const fragment = document.createDocumentFragment();
-        let cur = startNode.nextSibling;
-        while (cur && cur !== node) {
-          const next = cur.nextSibling;
-          fragment.appendChild(cur);
-          cur = next;
-        }
-
-        buildPartsFromDOM(nestedInstance, fragment, nestedResult.values);
-
-        while (fragment.firstChild) {
-          startNode.parentNode!.insertBefore(fragment.firstChild, node);
-        }
+        const nestedTemplate = (childPart as any)._$getTemplate(value);
+        const nestedInstance = new TemplateInstance(nestedTemplate, childPart);
+        buildPartsFromDOM(nestedInstance, value.values, childIndexMap!);
         childPart._$committedValue = nestedInstance;
-      } else {
-        // 纯文本
-        const contentNodes: ChildNode[] = [];
-        let cur = startNode.nextSibling;
-        while (cur && cur !== node) {
-          if (!isSSREnd(cur)) contentNodes.push(cur);
-          cur = cur.nextSibling;
-        }
-        if (contentNodes.length === 1 && contentNodes[0].nodeType === Node.TEXT_NODE) {
-          childPart._$committedValue = (contentNodes[0] as Text).data;
-        }
       }
-    }
-  }
-
-  // 处理没有结束注释的 ChildPart（内容到父元素末尾）
-  while (stack.length > 0) {
-    const { startNode, partIndex } = stack.pop()!;
-    const childPart = new ChildPart(startNode, null, instance, {});
-    builtParts[partIndex] = childPart;
-
-    const value = values[partIndex];
-    if (value instanceof TemplateResult) {
-      const nestedResult = value;
-      const template = (childPart as any)._$getTemplate(nestedResult);
-      const nestedInstance = new TemplateInstance(template, childPart);
-
-      const fragment = document.createDocumentFragment();
-      let cur = startNode.nextSibling;
-      while (cur) {
-        const next = cur.nextSibling;
-        fragment.appendChild(cur);
-        cur = next;
-      }
-
-      buildPartsFromDOM(nestedInstance, fragment, nestedResult.values);
-
-      while (fragment.firstChild) {
-        startNode.parentNode!.appendChild(fragment.firstChild);
-      }
-      childPart._$committedValue = nestedInstance;
-    } else {
-      const contentNodes: ChildNode[] = [];
-      let cur = startNode.nextSibling;
-      while (cur) {
-        if (!isSSREnd(cur)) contentNodes.push(cur);
-        cur = cur.nextSibling;
-      }
-      if (contentNodes.length === 1 && contentNodes[0].nodeType === Node.TEXT_NODE) {
-        childPart._$committedValue = (contentNodes[0] as Text).data;
-      }
+    } else if (templatePart.type === ATTRIBUTE_PART) {
+      // 使用 templatePart.ctor 创建对应的 AttributePart 实例
+      builtParts[i] = new (templatePart as any).ctor(
+        node as Element,
+        templatePart.name,
+        templatePart.strings,
+        instance,
+        undefined,
+      );
+      (builtParts[i] as any)._$setValue(values[i]);
+    } else if (templatePart.type === ELEMENT_PART) {
+      // 创建一个简单的 ElementPart 对象
+      builtParts[i] = new ElementPart(node as Element, instance, undefined);
     }
   }
 
@@ -134,7 +151,7 @@ export function hydrateContainer(result: TemplateResult, container: HTMLElement 
   (container as any)._$litPart$ = rootPart;
   const template = (rootPart as any)._$getTemplate(result);
   const instance = new TemplateInstance(template, rootPart);
-  buildPartsFromDOM(instance, container, result.values);
+  buildPartsFromDOM(instance, result.values, buildNodeIndexMap(container));
   rootPart._$committedValue = instance;
   return rootPart as RootPart;
 }

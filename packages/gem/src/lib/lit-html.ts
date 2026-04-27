@@ -1191,8 +1191,7 @@ class EventPart extends AttributePart {
   }
 }
 
-export type { ElementPart };
-class ElementPart implements Disconnectable {
+export class ElementPart implements Disconnectable {
   readonly type = ELEMENT_PART;
 
   /** @internal */

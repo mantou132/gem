@@ -30,22 +30,13 @@ export class GemSsrAppElement extends GemElement {
             pattern: '/',
             getContent: async () => {
               await import('./card');
+              const cards = [1, 2, 3].map((i) => ({
+                header: `Card ${i}`,
+                content:
+                  'Nulla deserunt labore amet occaecat ad officia. Proident mollit elit nostrud nostrud nulla pariatur mollit cillum pariatur commodo sunt enim. Dolor exercitation duis magna nisi excepteur proident exercitation mollit. Amet cillum excepteur nulla ipsum incididunt.',
+              }));
               return html`
-                <gem-ssr-card header=${'Card 1'}>
-                  Nulla deserunt labore amet occaecat ad officia. Proident mollit elit nostrud nostrud nulla pariatur mollit
-                  cillum pariatur commodo sunt enim. Dolor exercitation duis magna nisi excepteur proident exercitation mollit.
-                  Amet cillum excepteur nulla ipsum incididunt.
-                </gem-ssr-card>
-                <gem-ssr-card header="Card 2">
-                  Nulla deserunt labore amet occaecat ad officia. Proident mollit elit nostrud nostrud nulla pariatur mollit
-                  cillum pariatur commodo sunt enim. Dolor exercitation duis magna nisi excepteur proident exercitation mollit.
-                  Amet cillum excepteur nulla ipsum incididunt.
-                </gem-ssr-card>
-                <gem-ssr-card header="Card 3">
-                  Nulla deserunt labore amet occaecat ad officia. Proident mollit elit nostrud nostrud nulla pariatur mollit
-                  cillum pariatur commodo sunt enim. Dolor exercitation duis magna nisi excepteur proident exercitation mollit.
-                  Amet cillum excepteur nulla ipsum incididunt.
-                </gem-ssr-card>
+                ${cards.map((card) => html`<gem-ssr-card header=${card.header}>${card.content}</gem-ssr-card>`)}
               `;
             },
           },

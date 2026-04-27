@@ -13,6 +13,6 @@ const style = css`
 @adoptedStyle(style)
 export class GemSsrHeaderElement extends GemElement {
   render = () => {
-    return html`Header`;
+    return html`${'Header'}`;
   };
 }

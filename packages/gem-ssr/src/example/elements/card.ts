@@ -39,20 +39,22 @@ export class GemSsrCardElement extends GemElement {
 
   #state = createState({ count: 1 });
 
+  #handle = () => {
+    this.#state({ count: ++this.#state.count });
+  };
+
   @mounted()
   #mounted = () => {
-    this.addEventListener('click', () => {
-      this.#state({ count: ++this.#state.count });
-    });
+    this.addEventListener('click', this.#handle);
   };
 
   render = () => {
     return html`
-      <div class="header">
-        <span>${this.header}: ${this.#state.count}</span>
-        <gem-link>Action</gem-link>
+      <div class="header" data-count=${`${this.#state.count}`}>
+        <span>${html`<i>${this.header}</i>`}: ${this.#state.count}</span>
+        <gem-link v-if=${!!(this.#state.count % 3)}>Action</gem-link>
       </div>
-      <div class="body">
+      <div class="body" @click=${this.#handle}>
         <slot>${html`<div></div><div></div>`}<div></div>
         </slot>
       </div>
