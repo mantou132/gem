@@ -17,7 +17,9 @@
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.6.1",
-    "adm-zip": "^0.5.16"
+    "adm-zip": "^0.5.16",
+    "dedent": "^1.7.2",
+    "zod": "^3.25.42"
   },
   "devDependencies": {
     "@gemjs/config": "^2.1.2",

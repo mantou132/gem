@@ -12,8 +12,8 @@
   },
   "devDependencies": {
     "@biomejs/biome": "^2.2.6",
-    "@typescript/native-preview": "^7.0.0-dev.20250610.1",
     "@types/node": "^22.13.10",
+    "@typescript/native-preview": "^7.0.0-dev.20250610.1",
     "concurrently": "^8.2.2",
     "cross-env": "^7.0.3",
     "esbuild": "^0.24.0",
@@ -25,7 +25,7 @@
   "lint-staged": {
     "*.ts": "biome check --write"
   },
-  "packageManager": "pnpm@9.10.0+sha512.73a29afa36a0d092ece5271de5177ecbf8318d454ecd701343131b8ebc0c1a91c487da46ab77c8e596d6acf1461e3594ced4becedf8921b074fbd8653ed7051c",
+  "packageManager": "pnpm@10.33.2",
   "pnpm": {
     "overrides": {
       "esbuild": "^0.24.0"
