@@ -1,11 +1,10 @@
 {
-  "typescript.validate.enable": true,
-  "javascript.validate.enable": true,
+  "js/ts.validate.enable": true,
   "css.validate": false,
   "less.validate": false,
   "scss.validate": false,
-  "typescript.preferences.importModuleSpecifier": "non-relative",
-  "typescript.tsdk": "node_modules/typescript/lib",
+  "js/ts.preferences.importModuleSpecifier": "non-relative",
+  "js/ts.tsdk.path": "node_modules/typescript/lib",
   "editor.formatOnSave": true,
   "editor.defaultFormatter": "biomejs.biome",
   "editor.codeActionsOnSave": {

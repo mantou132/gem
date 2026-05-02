@@ -132,12 +132,18 @@ export function decorateLanguageService(ctx: Context, languageService: LanguageS
       if (!reportsUnnecessary || category !== ts.DiagnosticCategory.Suggestion) return true;
 
       const node = getAstNodeAtPosition(ts, file, start);
-      if (!node || !ts.isPrivateIdentifier(node)) return true;
+      const declaration = node?.parent;
+      if (!declaration) return true;
 
-      const declaration = (node as ts.PrivateIdentifier).parent;
-      if (!ts.isMethodDeclaration(declaration) && !ts.isPropertyDeclaration(declaration)) return true;
+      if (ts.isClassDeclaration(declaration)) {
+        return !hasCallDecorator(ts, declaration, [Decorators.CustomElement]);
+      }
 
-      return !declaration.modifiers?.some((e) => e?.kind === ts.SyntaxKind.Decorator);
+      if (ts.isMethodDeclaration(declaration) || ts.isPropertyDeclaration(declaration)) {
+        return !declaration.modifiers?.some((e) => e?.kind === ts.SyntaxKind.Decorator);
+      }
+
+      return true;
     });
   };
 
