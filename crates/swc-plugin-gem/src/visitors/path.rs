@@ -49,7 +49,7 @@ impl VisitMut for TransformVisitor {
     noop_visit_mut_type!();
 
     fn visit_mut_import_decl(&mut self, node: &mut ImportDecl) {
-        node.src = self.resolve_path(node.src.value.as_str()).into();
+        node.src = self.resolve_path(node.src.value.as_str().unwrap_or_default()).into();
     }
 
     // 只处理 string 的动态导入
@@ -58,7 +58,7 @@ impl VisitMut for TransformVisitor {
             if let Some(Some(Lit::Str(source))) = node.args.first().map(|e| e.expr.as_lit()) {
                 node.args = vec![ExprOrSpread {
                     spread: None,
-                    expr: self.resolve_path(source.value.as_str()).into(),
+                    expr: self.resolve_path(source.value.as_str().unwrap_or_default()).into(),
                 }]
             }
         }

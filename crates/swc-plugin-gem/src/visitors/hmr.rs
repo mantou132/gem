@@ -78,7 +78,7 @@ impl TransformVisitor {
             .map(|x| {
                 if let Some(ExprOrSpread { expr, .. }) = x.expr.as_call().unwrap().args.first() {
                     if let Some(Lit::Str(tag_name)) = expr.as_lit() {
-                        return tag_name.value.to_string();
+                        return tag_name.value.as_str().unwrap_or_default().to_string();
                     }
                 }
                 Default::default()

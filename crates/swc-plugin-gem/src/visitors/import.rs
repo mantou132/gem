@@ -372,7 +372,7 @@ mod tests {
                     .unwrap()
                     .keys()
             ),
-            r#"["dy-pat-*", "dy-input-*", "dy-*"]"#
+            r#"["dy-pat-*", "dy-input-*", "dy-light-route", "dy-active-link", "dy-(form|avatar|radio|checkbox|collapse|tab)-*", "dy-*"]"#
         )
     }
 
@@ -390,7 +390,7 @@ mod tests {
                 .unwrap()
                 .keys()
             ),
-            r#"["dy-pat-*", "dy-input-*", "dy-*"]"#
+            r#"["dy-pat-*", "dy-input-*", "dy-light-route", "dy-active-link", "dy-(form|avatar|radio|checkbox|collapse|tab)-*", "dy-*"]"#
         )
     }
 }

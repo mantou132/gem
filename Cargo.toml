@@ -4,7 +4,6 @@ members = ["crates/*"]
 resolver = "2"
 
 [workspace.package]
-authors = ["mantou <594mantou@gmail.com>"]
 rust-version = "1.70"
 edition = "2021"
 homepage = "https://github.com/mantou132/gem"
@@ -18,12 +17,12 @@ regex = { version = "1.11.1", default-features = false }
 serde = "1.0.219"
 serde_json = "1.0.140"
 serde_regex = "1.1.0"
-swc_core = "16.4.1"
-swc_ecma_parser = "10.0.1"
-swc_ecma_visit = "8.0.0"
-swc_ecma_ast = "8.0.0"
-swc_common = "8.0.0"
-testing = "8.0.0"
+swc_core = "65.0.1"
+swc_ecma_parser = "39.0.2"
+swc_ecma_visit = "23.0.0"
+swc_ecma_ast = "23.0.0"
+swc_common = "21.0.1"
+testing = "22.0.0"
 once_cell = "1.21.0"
 tracing = "0.1.41"
 pathdiff = "0.2.3"

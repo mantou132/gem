@@ -37,7 +37,7 @@ impl VisitMut for TransformVisitor {
         if let Some(ident) = node.tag.as_ident() {
             let tag_fn = ident.sym.as_str();
             if tag_fn == "css" {
-                node.tpl = Box::new(trans_css_tpl(&node.tpl));
+                *node.tpl = trans_css_tpl(&node.tpl);
             }
         }
     }

@@ -70,10 +70,10 @@ impl VisitMut for TransformVisitor {
         if let Some(ident) = node.tag.as_ident() {
             let tag_fn = ident.sym.as_str();
             if tag_fn == "css" || tag_fn == "styled" {
-                node.tpl = Box::new(minify_css_style_tpl(&node.tpl));
+                *node.tpl = minify_css_style_tpl(&node.tpl);
             }
             if tag_fn == "html" || tag_fn == "raw" {
-                node.tpl = Box::new(minify_html_tpl(&node.tpl));
+                *node.tpl = minify_html_tpl(&node.tpl);
             }
         }
     }

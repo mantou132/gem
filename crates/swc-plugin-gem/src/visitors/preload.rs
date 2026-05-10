@@ -23,7 +23,8 @@ impl VisitMut for TransformVisitor {
     noop_visit_mut_type!();
 
     fn visit_mut_import_decl(&mut self, node: &mut ImportDecl) {
-        if let Some((source, prefix)) = node.src.value.split_once('?') {
+        let value = node.src.value.as_str().unwrap_or_default();
+        if let Some((source, prefix)) = value.split_once('?') {
             if prefix != "preload" {
                 return;
             }
@@ -38,7 +39,7 @@ impl VisitMut for TransformVisitor {
                 ident.sym = format!("_{}", ident.sym.as_str()).into();
                 self.await_items.push(AwaitItem::ArrayBuffer(ident.clone()));
             }
-            node.src = Box::new(Str::from([source, "url"].join("?")));
+            *node.src = Str::from([source, "url"].join("?"));
         }
     }
 

@@ -51,11 +51,16 @@
   },
   "elements": {
     "@mantou/gem": {
+      "gem-light-route": "/elements/route",
+      "gem-active-link": "/elements/link",
       "gem-(gesture|link|reflect|route|title|unsafe|use)": "/elements/$1"
     },
     "duoyun-ui": {
       "dy-pat-*": "/patterns/*",
       "dy-input-*": "/elements/input",
+      "dy-light-route": "/elements/route",
+      "dy-active-link": "/elements/link",
+      "dy-(form|avatar|radio|checkbox|collapse|tab)-*": "/elements/$1",
       "dy-*": "/elements/*"
     }
   }
