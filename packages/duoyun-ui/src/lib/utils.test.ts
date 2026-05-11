@@ -1,6 +1,7 @@
 import { expect } from '@mantou/gem/test/utils';
+import { html } from '@mantou/gem/lib/element';
 
-import { ComparerType, comparer, getCascaderBubbleWeakMap, getCascaderDeep, isIncludesString, readProp } from './utils';
+import { ComparerType, comparer, getCascaderBubbleWeakMap, getCascaderDeep, getStringFromTemplate, isIncludesString, readProp } from './utils';
 
 it('`getCascaderDeep`', () => {
   expect(getCascaderDeep([{ a: 1, children: undefined }], 'children')).to.equal(1);
@@ -47,4 +48,21 @@ it('`isIncludesString`', () => {
   expect(isIncludesString('a.b.c.d', 'ab')).to.equal(false);
   expect(isIncludesString('a.b.c.d', 'e a')).to.equal(true);
   expect(isIncludesString('a.b.c.d', 'e/a')).to.equal(true);
+});
+
+it('`getStringFromTemplate`', () => {
+  // plain string
+  expect(getStringFromTemplate('hello')).to.equal('hello');
+  // simple template
+  expect(getStringFromTemplate(html`hello`)).to.equal('hello');
+  // template with interpolation
+  expect(getStringFromTemplate(html`hello ${'world'}`)).to.equal('hello world');
+  // template with html tags (stripped by textContent)
+  expect(getStringFromTemplate(html`<b>bold</b> text`)).to.equal('bold text');
+  // nested template
+  expect(getStringFromTemplate(html`<span>${html`nested`}</span>`)).to.equal('nested');
+  // deeply nested template
+  expect(getStringFromTemplate(html`a${html`b${html`c`}`}d`)).to.equal('abcd');
+  // number interpolation
+  expect(getStringFromTemplate(html`count: ${42}`)).to.equal('count: 42');
 });

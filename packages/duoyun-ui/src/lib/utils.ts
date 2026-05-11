@@ -1,4 +1,4 @@
-import { render, TemplateResult } from '@mantou/gem/lib/element';
+import type { TemplateResult } from '@mantou/gem/lib/element';
 import type { Store } from '@mantou/gem/lib/store';
 import { connect, createStore } from '@mantou/gem/lib/store';
 import type { NonPrimitive } from '@mantou/gem/lib/utils';
@@ -186,14 +186,23 @@ export function comparer(a: any, comparerType: ComparerType, b: any): boolean {
   }
 }
 
-/**Serialized `TemplateResult` */
-const div = document.createElement('div');
+const isTemplateResult = (input: any): input is TemplateResult =>
+  Array.isArray(input?.values) && Array.isArray(input?.strings);
+
+const serializeTemplate = (input: TemplateResult | string): string => {
+  if (!isTemplateResult(input)) return input;
+  return input.strings.reduce(
+    (acc, s, i) => acc + s + (i < input.values.length ? serializeTemplate(input.values[i] as any) : ''),
+    '',
+  );
+};
+
+/**Serialized `TemplateResult` return text content */
 export function getStringFromTemplate(input: TemplateResult | string): string {
-  if (input instanceof TemplateResult) {
-    render(input, div);
-    return div.textContent || '';
-  }
-  return String(input);
+  if (!isTemplateResult(input)) return input;
+  const div = document.createElement('div');
+  div.innerHTML = serializeTemplate(input);
+  return div.textContent || '';
 }
 
 /**Segmentation search word */
@@ -202,7 +211,7 @@ export function splitString(s: string) {
 }
 
 /**Search */
-export function isIncludesString(origin: string | TemplateResult, search: string, caseSensitive = false) {
+export function isIncludesString(origin: TemplateResult | string, search: string, caseSensitive = false) {
   const getStr = (s: string) => (caseSensitive ? s : s.toLowerCase()).trim();
   const oString = getStr(getStringFromTemplate(origin));
   const sString = getStr(search);

@@ -554,7 +554,6 @@ type CreateFormOptions<T> = {
  */
 export function createForm<T = Record<string, unknown>>(options: CreateFormOptions<T>) {
   const containerType = options.type === 'modal' ? Modal : Drawer;
-  const { query } = history.getParams();
   let modalPromise = containerType
     .open<DyPatFormElement<T>>({
       header: options.header,
@@ -578,6 +577,7 @@ export function createForm<T = Record<string, unknown>>(options: CreateFormOptio
     if (evt.detail !== modalPromise) modalPromise.finally(() => history.back());
   });
   if (options.query) {
+    const { query } = history.getParams();
     query.delete(options.query[0]);
     history.replace({ query });
 
