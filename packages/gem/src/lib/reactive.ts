@@ -49,6 +49,7 @@ export type SheetTokenType = typeof SheetToken;
 export const UpdateToken = Symbol.for('gem@update');
 
 const BoundaryCSSState = 'gem-style-boundary';
+const ElementCSSState = 'gem-element';
 
 /**@internal */
 export const _RenderErrorEvent = 'gem@render-error';
@@ -255,6 +256,10 @@ export let _createTemplate: (ele: GemElement, item: RenderItem) => void;
 export type Metadata = Partial<ShadowRootInit> & {
   /** 内容可被外部样式化 */
   penetrable?: boolean;
+  /**
+   * 这个属性用来解决同步渲染长列表，且渲染过程有大量计算阻塞主线程
+   * 否则应该考虑 `content-visibility: auto` 和虚拟列表
+   */
   noBlocking?: boolean;
   aria?: Partial<
     ARIAMixin & {
@@ -279,7 +284,7 @@ export type Metadata = Partial<ShadowRootInit> & {
 // global render task pool
 const noBlockingTaskList = new LinkedList<() => void>();
 const tick = (timeStamp = performance.now()) => {
-  if (performance.now() > timeStamp + 16) return requestAnimationFrame(tick);
+  if (performance.now() > timeStamp + 50) return requestAnimationFrame(tick);
   const task = noBlockingTaskList.get();
   if (task) {
     task();
@@ -514,6 +519,8 @@ export abstract class GemElement extends HTMLElement {
 
     const { observedStores, mode, penetrable } = this.#metadata;
 
+    // https://github.com/w3c/csswg-drafts/issues/10407#issuecomment-4418616596
+    this.#internals.states.add(ElementCSSState);
     // 有渲染函数的 light dom 应该添加边界，防止内容被外部样式化
     // 如果渲染内容需要应用外部样式，需要手动 `delete` 边界
     if (!mode && this.#renderList.length && !penetrable) this.#internals.states.add(BoundaryCSSState);
