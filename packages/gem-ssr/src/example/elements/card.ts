@@ -53,6 +53,7 @@ export class GemSsrCardElement extends GemElement {
       <div class="header" data-count=${`${this.#state.count}`}>
         <span>${html`<i>${this.header}</i>`}: ${this.#state.count}</span>
         <gem-link v-if=${!!(this.#state.count % 3)}>Action</gem-link>
+        <gem-link v-else>X</gem-link>
       </div>
       <div class="body" @click=${this.#handle}>
         <slot>${html`<div></div><div></div>`}<div></div>

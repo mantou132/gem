@@ -2,7 +2,7 @@ import './lib/shim';
 
 import { history, render as renderDom, type TemplateResult } from '@mantou/gem';
 import { GemLightRouteElement } from '@mantou/gem/elements/route';
-import type { ChildPart } from '@mantou/gem/lib/lit-html';
+import type { ChildPart, ConditionChain } from '@mantou/gem/lib/lit-html';
 
 import { LIT_PART_END } from './client/hydration';
 import { MockPromise, NativePromise } from './lib/promise';
@@ -48,8 +48,19 @@ async function* generateHTML(root: Node, options: GetHTMLOptions = {}): AsyncGen
     if (endNodeSet.has(currentNode)) yield endTag;
     if (currentNode instanceof CDATASection) yield `<![CDATA[${currentNode.nodeValue}]]>`;
     else if (currentNode instanceof Text) yield currentNode.nodeValue || '';
-    else if (currentNode instanceof Comment) yield `<!--${currentNode.nodeValue}-->`;
-    else if (currentNode instanceof SVGElement) yield xmlSerializer.serializeToString(currentNode);
+    else if (currentNode instanceof Comment) {
+      const chain: ConditionChain | undefined = (currentNode as any)._$chain;
+      if (chain) {
+        for (const { ele } of chain.list) {
+          if (!ele.parentNode) (ele as any).style.display = 'none';
+          const tmp = document.createElement('div');
+          tmp.append(ele);
+          yield* generateHTML(tmp, options);
+        }
+      } else {
+        yield `<!--${currentNode.nodeValue}-->`;
+      }
+    } else if (currentNode instanceof SVGElement) yield xmlSerializer.serializeToString(currentNode);
     else if (currentNode instanceof Element) {
       collectEndNodes(currentNode, endNodeSet);
       const tagName = currentNode.tagName.toLowerCase();

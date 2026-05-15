@@ -117,7 +117,6 @@ function buildPartsFromDOM(instance: TemplateInstance, values: unknown[], nodeIn
         const nestedTemplate = (childPart as any)._$getTemplate(value);
         const nestedInstance = new TemplateInstance(nestedTemplate, childPart);
         buildPartsFromDOM(nestedInstance, value.values, childIndexMap!);
-        childPart._$committedValue = nestedInstance;
       }
     } else if (templatePart.type === ATTRIBUTE_PART) {
       // 使用 templatePart.ctor 创建对应的 AttributePart 实例
@@ -152,6 +151,5 @@ export function hydrateContainer(result: TemplateResult, container: HTMLElement 
   const template = (rootPart as any)._$getTemplate(result);
   const instance = new TemplateInstance(template, rootPart);
   buildPartsFromDOM(instance, result.values, buildNodeIndexMap(container));
-  rootPart._$committedValue = instance;
   return rootPart as RootPart;
 }

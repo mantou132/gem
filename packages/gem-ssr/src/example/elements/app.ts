@@ -30,6 +30,8 @@ export class GemSsrAppElement extends GemElement {
             pattern: '/',
             getContent: async () => {
               await import('./card');
+              // TODO: 临时处理方式
+              if (!process) await new Promise((res) => setTimeout(res, 2000));
               const cards = [1, 2, 3].map((i) => ({
                 header: `Card ${i}`,
                 content:

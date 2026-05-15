@@ -14,7 +14,7 @@ import './elements/card';
 const app = new Hono();
 
 async function* renderPage(ctx: Context, template: TemplateResult, scripts: string[]) {
-  yield `<!doctype html><html><body>`;
+  yield `<!doctype html><html><head><meta charset="utf-8"></head><body>`;
   yield* render(template, { url: ctx.req.url });
   for (const script of scripts) {
     yield script.startsWith('<script') ? script : `<script src="${script}"></script>`;

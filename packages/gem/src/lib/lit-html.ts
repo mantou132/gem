@@ -374,6 +374,7 @@ const getTemplateHtml = (strings: TemplateStringsArray, type: ResultType): [Trus
 
 /** @internal */
 export type { Template };
+
 class Template {
   /** @internal */
   el!: HTMLTemplateElement;
@@ -554,7 +555,6 @@ function resolveDirective(
 export class TemplateInstance implements Disconnectable {
   _$template: Template;
   _$parts: Array<Part | undefined> = [];
-  /** @internal */
   _$conditions: ConditionChain[] = [];
 
   /** @internal */
@@ -655,12 +655,13 @@ export class TemplateInstance implements Disconnectable {
   }
 }
 
-class ConditionChain {
+export class ConditionChain {
   readonly mark: Comment;
   readonly list: { ele: Element; idx?: number }[];
 
   constructor(ele: Element, idx: number) {
     const mark = createMarker();
+    (mark as any)._$chain = this;
     ele.before(mark);
     this.mark = mark;
     this.list = [{ ele, idx }];
@@ -1011,6 +1012,7 @@ export interface RootPart extends ChildPart {
 }
 
 export type { AttributePart };
+
 class AttributePart implements Disconnectable {
   readonly type: typeof ATTRIBUTE_PART | typeof PROPERTY_PART | typeof BOOLEAN_ATTRIBUTE_PART | typeof EVENT_PART =
     ATTRIBUTE_PART;
@@ -1134,6 +1136,7 @@ class AttributePart implements Disconnectable {
 }
 
 export type { PropertyPart };
+
 class PropertyPart extends AttributePart {
   override readonly type = PROPERTY_PART;
 
@@ -1144,6 +1147,7 @@ class PropertyPart extends AttributePart {
 }
 
 export type { BooleanAttributePart };
+
 class BooleanAttributePart extends AttributePart {
   override readonly type = BOOLEAN_ATTRIBUTE_PART;
 
@@ -1156,6 +1160,7 @@ class BooleanAttributePart extends AttributePart {
 type EventListenerWithOptions = EventListenerOrEventListenerObject & Partial<AddEventListenerOptions>;
 
 export type { EventPart };
+
 class EventPart extends AttributePart {
   override readonly type = EVENT_PART;
 
@@ -1245,6 +1250,7 @@ export class ElementPart implements Disconnectable {
 export const createRef = <T = Element>() => new Ref<T>();
 
 export type { Ref };
+
 class Ref<T = Element> {
   value?: T;
 }
