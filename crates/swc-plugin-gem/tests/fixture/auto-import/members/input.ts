@@ -7,7 +7,7 @@ const style = css``;
 class MyElement extends GemElement {
   @attribute name: string;
   @emitter open: Emitter<null>;
-  
+
   @template()
   render() {
     return html`<div style=${styleMap({})}></div>`;

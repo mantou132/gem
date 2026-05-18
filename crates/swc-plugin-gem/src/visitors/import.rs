@@ -5,7 +5,7 @@ use node_resolve::Resolver;
 use once_cell::sync::Lazy;
 use regex::Regex;
 use serde::{Deserialize, Serialize};
-use swc_common::{SyntaxContext, DUMMY_SP};
+use swc_common::{Spanned, SyntaxContext, DUMMY_SP};
 use swc_core::{
     atoms::Atom,
     ecma::visit::{noop_visit_mut_type, VisitMut, VisitMutWith},
@@ -156,6 +156,7 @@ impl VisitMut for TransformVisitor {
     fn visit_mut_module_items(&mut self, node: &mut Vec<ModuleItem>) {
         node.visit_mut_children_with(self);
 
+        let first_item_span = node.first().map(|item| item.span()).unwrap_or(DUMMY_SP);
         let mut out: Vec<ImportDecl> = vec![];
         let mut available_import: IndexMap<
             String,
@@ -208,6 +209,10 @@ impl VisitMut for TransformVisitor {
                     break;
                 }
             }
+        }
+
+        if let Some(first) = out.first_mut() {
+            first.span = first_item_span;
         }
 
         node.splice(

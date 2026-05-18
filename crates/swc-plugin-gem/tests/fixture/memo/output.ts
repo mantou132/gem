@@ -28,4 +28,3 @@ class MyElement2 {
     }
     #src2;
 }
-  
