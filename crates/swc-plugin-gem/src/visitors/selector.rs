@@ -4,7 +4,12 @@ use swc_common::DUMMY_SP;
 use swc_core::ecma::visit::{noop_visit_mut_type, VisitMut, VisitMutWith};
 use swc_ecma_ast::{TaggedTpl, Tpl, TplElement};
 
-static COMMENT_REG: Lazy<Regex> = Lazy::new(|| Regex::new(r"&([^ {]+)").unwrap());
+static COMMENT_REG: Lazy<Regex> = Lazy::new(|| {
+    Regex::new(
+        r#"&((?:[^\s{\(\["']+|\([^()]*\)|\[[^\]]*\]|"[^"]*"|'[^']*')+)"#,
+    )
+    .unwrap()
+});
 
 fn trans_css_tpl(tpl: &Tpl) -> Tpl {
     Tpl {

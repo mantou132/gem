@@ -9,4 +9,13 @@ const style = css`
   &:hover{
     color: green;
   }
+  &:not(.a, .b) {
+    color: yellow;
+  }
+  &[data-x="a b"] {
+    color: blue;
+  }
+  &:is(.a, .b):where(:hover, :focus) {
+    color: purple;
+  }
 `

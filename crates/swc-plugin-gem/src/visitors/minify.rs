@@ -4,36 +4,190 @@ use swc_common::DUMMY_SP;
 use swc_core::ecma::visit::{noop_visit_mut_type, VisitMut, VisitMutWith};
 use swc_ecma_ast::{Callee, KeyValueProp, TaggedTpl, Tpl, TplElement};
 
-static COMMENT_REG: Lazy<Regex> = Lazy::new(|| Regex::new(r"(?s)/\\*.*\\*/").unwrap());
-static HEAD_REG: Lazy<Regex> = Lazy::new(|| Regex::new(r"(?s)\s*(\{)\s*").unwrap());
-static TAIL_REG: Lazy<Regex> = Lazy::new(|| Regex::new(r"(?s)(;|})\s+").unwrap());
-static SPACE_REG: Lazy<Regex> = Lazy::new(|| Regex::new(r"(?s)\s+").unwrap());
+fn should_keep_expr_boundary_space(ch: char) -> bool {
+    ch.is_ascii_alphanumeric() || ch == '-' || ch == '_' || ch == '%' || ch == ')'
+}
 
-fn minify_css_style_tpl(tpl: &Tpl) -> Tpl {
-    Tpl {
-        span: DUMMY_SP,
-        exprs: tpl.exprs.clone(),
-        quasis: tpl
-            .quasis
-            .iter()
-            .map(|x| {
-                let removed_comment = &COMMENT_REG.replace_all(x.raw.as_str(), "");
-                let removed_head = &HEAD_REG.replace_all(removed_comment, "$1");
-                let removed_tail = &TAIL_REG.replace_all(removed_head, "$1");
-                let removed_space = SPACE_REG.replace_all(removed_tail, " ");
-                TplElement {
-                    span: DUMMY_SP,
-                    tail: x.tail,
-                    cooked: None,
-                    raw: removed_space.trim().into(),
-                }
-            })
-            .collect(),
+fn should_insert_css_space(prev: char, next: char) -> bool {
+    if matches!(prev, '{' | '}' | ':' | ';' | ',' | '(') {
+        return false;
+    }
+    if matches!(next, '{' | '}' | ':' | ';' | ',' | ')') {
+        return false;
+    }
+    true
+}
+
+#[derive(Clone, Copy, Default)]
+struct CssQuasiState {
+    in_comment: bool,
+    in_single_quote: bool,
+    in_double_quote: bool,
+    escaped: bool,
+}
+
+impl CssQuasiState {
+    fn in_string(self) -> bool {
+        self.in_single_quote || self.in_double_quote
     }
 }
 
-static TAG_BEFORE_REG: Lazy<Regex> = Lazy::new(|| Regex::new(r"(?s)\s*<").unwrap());
-static TAG_AFTER_REG: Lazy<Regex> = Lazy::new(|| Regex::new(r"(?s)>\s*").unwrap());
+fn minify_css_quasi(raw: &str, mut state: CssQuasiState) -> (String, CssQuasiState) {
+    let mut out = String::with_capacity(raw.len());
+    let chars: Vec<char> = raw.chars().collect();
+    let mut i = 0;
+    let mut pending_space = false;
+
+    while i < chars.len() {
+        let ch = chars[i];
+        let next = chars.get(i + 1).copied();
+
+        if state.in_comment {
+            if ch == '*' && next == Some('/') {
+                state.in_comment = false;
+                i += 2;
+            } else {
+                i += 1;
+            }
+            continue;
+        }
+
+        if state.in_single_quote || state.in_double_quote {
+            out.push(ch);
+            if state.escaped {
+                state.escaped = false;
+            } else if ch == '\\' {
+                state.escaped = true;
+            } else if (state.in_single_quote && ch == '\'')
+                || (state.in_double_quote && ch == '"')
+            {
+                state.in_single_quote = false;
+                state.in_double_quote = false;
+            }
+            i += 1;
+            continue;
+        }
+
+        if ch == '/' && next == Some('*') {
+            state.in_comment = true;
+            i += 2;
+            continue;
+        }
+
+        if ch == '\'' {
+            if pending_space {
+                if let Some(prev) = out.chars().last() {
+                    if should_insert_css_space(prev, ch) {
+                        out.push(' ');
+                    }
+                }
+                pending_space = false;
+            }
+            state.in_single_quote = true;
+            out.push(ch);
+            i += 1;
+            continue;
+        }
+
+        if ch == '"' {
+            if pending_space {
+                if let Some(prev) = out.chars().last() {
+                    if should_insert_css_space(prev, ch) {
+                        out.push(' ');
+                    }
+                }
+                pending_space = false;
+            }
+            state.in_double_quote = true;
+            out.push(ch);
+            i += 1;
+            continue;
+        }
+
+        if ch.is_whitespace() {
+            pending_space = true;
+            i += 1;
+            continue;
+        }
+
+        if pending_space {
+            if let Some(prev) = out.chars().last() {
+                if should_insert_css_space(prev, ch) {
+                    out.push(' ');
+                }
+            }
+            pending_space = false;
+        }
+
+        out.push(ch);
+        i += 1;
+    }
+
+    (out, state)
+}
+
+fn minify_css_style_tpl(tpl: &Tpl) -> Tpl {
+    let last_quasi_idx = tpl.quasis.len().saturating_sub(1);
+    let mut state = CssQuasiState::default();
+    let quasis = tpl
+        .quasis
+        .iter()
+        .enumerate()
+        .map(|(idx, quasi)| {
+            let raw = quasi.raw.as_str();
+            let state_at_start = state;
+            let (mut removed_space, state_at_end) = minify_css_quasi(raw, state);
+            state = state_at_end;
+
+            if !state_at_start.in_string() {
+                let keep_head_space = idx > 0
+                    && raw.chars().next().is_some_and(char::is_whitespace)
+                    && removed_space
+                        .trim_start()
+                        .chars()
+                        .next()
+                        .is_some_and(should_keep_expr_boundary_space);
+                if keep_head_space && !removed_space.starts_with(char::is_whitespace) {
+                    removed_space.insert(0, ' ');
+                }
+                if !keep_head_space {
+                    removed_space = removed_space.trim_start().to_string();
+                }
+            }
+
+            if !state_at_end.in_string() {
+                let keep_tail_space = idx < last_quasi_idx
+                    && raw.chars().last().is_some_and(char::is_whitespace)
+                    && removed_space
+                        .trim_end()
+                        .chars()
+                        .last()
+                        .is_some_and(should_keep_expr_boundary_space);
+                if keep_tail_space && !removed_space.ends_with(char::is_whitespace) {
+                    removed_space.push(' ');
+                }
+                if !keep_tail_space {
+                    removed_space = removed_space.trim_end().to_string();
+                }
+            }
+
+            TplElement {
+                span: DUMMY_SP,
+                tail: quasi.tail,
+                cooked: None,
+                raw: removed_space.into(),
+            }
+        })
+        .collect();
+
+    Tpl {
+        span: DUMMY_SP,
+        exprs: tpl.exprs.clone(),
+        quasis,
+    }
+}
+
+static TAG_BETWEEN_REG: Lazy<Regex> = Lazy::new(|| Regex::new(r"(?s)>\s+<").unwrap());
 static TAG_COMMENT_REG: Lazy<Regex> = Lazy::new(|| Regex::new(r"(?s)<!--.*?-->").unwrap());
 
 fn minify_html_tpl(tpl: &Tpl) -> Tpl {
@@ -44,14 +198,13 @@ fn minify_html_tpl(tpl: &Tpl) -> Tpl {
             .quasis
             .iter()
             .map(|x| {
-                let removed_before = &TAG_BEFORE_REG.replace_all(x.raw.as_str(), "<");
-                let removed_after = &TAG_AFTER_REG.replace_all(removed_before, ">");
-                let removed_comment = TAG_COMMENT_REG.replace_all(removed_after, "");
+                let removed_comment = TAG_COMMENT_REG.replace_all(x.raw.as_str(), "");
+                let removed_between = TAG_BETWEEN_REG.replace_all(&removed_comment, "> <");
                 TplElement {
                     span: DUMMY_SP,
                     tail: x.tail,
                     cooked: None,
-                    raw: removed_comment.into(),
+                    raw: removed_between.into(),
                 }
             })
             .collect(),

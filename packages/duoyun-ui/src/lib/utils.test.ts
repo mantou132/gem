@@ -1,7 +1,15 @@
-import { expect } from '@mantou/gem/test/utils';
 import { html } from '@mantou/gem/lib/element';
+import { expect } from '@mantou/gem/test/utils';
 
-import { ComparerType, comparer, getCascaderBubbleWeakMap, getCascaderDeep, getStringFromTemplate, isIncludesString, readProp } from './utils';
+import {
+  ComparerType,
+  comparer,
+  getCascaderBubbleWeakMap,
+  getCascaderDeep,
+  getStringFromTemplate,
+  isIncludesString,
+  readProp,
+} from './utils';
 
 it('`getCascaderDeep`', () => {
   expect(getCascaderDeep([{ a: 1, children: undefined }], 'children')).to.equal(1);
