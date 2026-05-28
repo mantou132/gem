@@ -8,9 +8,9 @@ type Options = {
   origin?: string;
   base?: string;
   // only for get/del/put/post
-  appendHeaders?: (input?: any) => HeadersInit;
-  transformInput?: (input?: any) => any;
-  transformOutput?: (output: any, req: Request) => any;
+  appendHeaders?: (input?: any) => HeadersInit | Promise<HeadersInit>;
+  transformInput?: (input?: any) => any | Promise<any>;
+  transformOutput?: (output: any, req: Request) => any | Promise<any>;
 } & RequestInit;
 
 function initRequest(options: Options = {}) {
@@ -83,7 +83,7 @@ function initRequest(options: Options = {}) {
         data = await res.text();
       }
       if (isClientError) throw new (Error as any)(res.statusText, { cause: data });
-      return transformOutput(data, req);
+      return await transformOutput(data, req);
     } catch {
       throw new Error('Parse error');
     }
@@ -91,33 +91,33 @@ function initRequest(options: Options = {}) {
 
   return {
     request,
-    get<T>(path: string, params?: ReqParams) {
-      const i = transformInput(params);
+    async get<T>(path: string, params?: ReqParams) {
+      const i = await transformInput(params);
       return request<T>(serializationUrl(path, i), {
         method: 'GET',
-        headers: appendHeaders(i),
+        headers: await appendHeaders(i),
       });
     },
-    del<T>(path: string, params?: ReqParams) {
-      const i = transformInput(params);
+    async del<T>(path: string, params?: ReqParams) {
+      const i = await transformInput(params);
       return request<T>(serializationUrl(path, i), {
         method: 'DELETE',
-        headers: appendHeaders(i),
+        headers: await appendHeaders(i),
       });
     },
-    put<T>(path: string, body?: ReqBody) {
-      const i = transformInput(body);
+    async put<T>(path: string, body?: ReqBody) {
+      const i = await transformInput(body);
       return request<T>(serializationUrl(path), {
         method: 'PUT',
-        headers: appendHeaders(i),
+        headers: await appendHeaders(i),
         body: serializationBody(i),
       });
     },
-    post<T>(path: string, body?: ReqBody) {
-      const i = transformInput(body);
+    async post<T>(path: string, body?: ReqBody) {
+      const i = await transformInput(body);
       return request<T>(serializationUrl(path), {
         method: 'POST',
-        headers: appendHeaders(i),
+        headers: await appendHeaders(i),
         body: serializationBody(i),
       });
     },
@@ -126,4 +126,4 @@ function initRequest(options: Options = {}) {
 
 const { request, del, get, post, put } = initRequest();
 
-export { initRequest, request, del, get, post, put };
+export { del, get, initRequest, post, put, request };
