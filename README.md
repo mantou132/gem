@@ -36,6 +36,7 @@ Create custom elements, bind data, route switching, and quickly develop WebApps 
 | [gem-examples](packages/gem-examples)           | Gem and DuoyunUI examples                                                                            |
 | [ts-gem-plugin](packages/ts-gem-plugin)         | Gem language service plugin for TypeScript                                                           |
 | [swc-plugin-gem](crates/swc-plugin-gem)         | Building plugin for [SWC](https://swc.rs/)                                                           |
+| [unplugin-gem](packages/unplugin-gem)           | Universal plugin for Vite/Webpack/Rollup/esbuild/Rspack/Rolldown                                |
 | [zed-plugin-gem](crates/zed-plugin-gem)         | [Zed](https://zed.dev/) extension                                                                    |
 | [vscode-gem-plugin](packages/vscode-gem-plugin) | VSCode [extension](https://marketplace.visualstudio.com/items?itemName=gem-vscode.vscode-plugin-gem) |
 

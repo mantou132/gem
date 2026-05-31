@@ -42,6 +42,7 @@
 | [gem-examples](packages/gem-examples)           | 一些 Gem 和 DuoyunUI 示例                           |
 | [ts-gem-plugin](packages/ts-gem-plugin)         | TypeScript 的 Gem 语言服务插件                      |
 | [swc-plugin-gem](crates/swc-plugin-gem)         | [SWC](https://swc.rs/) 构建插件                     |
+| [unplugin-gem](packages/unplugin-gem)           | 通用构建插件，支持 Vite/Webpack/Rollup/esbuild/Rspack/Rolldown |
 | [zed-plugin-gem](crates/zed-plugin-gem)         | [Zed](https://zed.dev/) 扩展                        |
 | [vscode-gem-plugin](packages/vscode-gem-plugin) | VSCode [扩展](https://zed.dev/extensions?query=gem) |
 

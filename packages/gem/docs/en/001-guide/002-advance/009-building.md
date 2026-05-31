@@ -1,6 +1,16 @@
 # Building
 
+## Universal Plugin (Recommended)
+
+[unplugin-gem](https://github.com/mantou132/gem/tree/main/packages/unplugin-gem) provides a unified plugin for all major bundlers.
+
+Supports: **Vite**, **Webpack**, **Rollup**, **esbuild**, **Rspack** and **Rolldown**.
+
+See [unplugin-gem documentation](https://github.com/mantou132/gem/tree/main/packages/unplugin-gem#readme) for usage.
+
 ## SWC Plugin
+
+For direct SWC usage:
 
 <gbp-code-group>
 

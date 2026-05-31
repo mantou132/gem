@@ -15,7 +15,8 @@
   "$schema": "https://swc.rs/schema.json",
   "jsc": {
     "target": "es2024",
-    "parser": { "syntax": "typescript" },
+    "parser": { "syntax": "typescript", "decorators": true },
+    "transform": { "decoratorVersion": "2022-03" },
     "experimental": {
       "runPluginFirst": true,
       "plugins": [
