@@ -76,6 +76,7 @@ groups:
       - paragraph.md
       - options.md
       - result.md
+      - rolling-number.md
       - statistic.md
       - status-light.md
       - table.md
