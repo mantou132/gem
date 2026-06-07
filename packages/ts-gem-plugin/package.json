@@ -1,6 +1,6 @@
 {
   "name": "ts-gem-plugin",
-  "version": "0.0.10",
+  "version": "0.0.11",
   "description": "Typescript language service plugin for Gem",
   "keywords": [
     "gem",
@@ -14,17 +14,17 @@
     "prepublishOnly": "pnpm run build"
   },
   "dependencies": {
-    "@mantou/gem": "^2.2.2",
+    "@mantou/gem": "^2.2.3",
     "@mantou/typescript-template-language-service-decorator": "^2.3.6",
     "@mantou/vscode-css-languageservice": "^6.3.6",
     "@mantou/vscode-emmet-helper": "^2.9.3",
     "@mantou/vscode-html-languageservice": "^5.3.6",
-    "duoyun-ui": "^2.2.2",
+    "duoyun-ui": "^2.2.3",
     "vscode-languageserver-textdocument": "^1.0.12",
     "vscode-languageserver-types": "^3.17.5"
   },
   "devDependencies": {
-    "@gemjs/config": "^2.1.2",
+    "@gemjs/config": "^2.1.3",
     "typescript": "^5.6.2"
   },
   "author": "mantou132",

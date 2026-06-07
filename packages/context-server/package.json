@@ -1,6 +1,6 @@
 {
   "name": "gem-context-server",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "Model context server for Gem",
   "keywords": [
     "gem",
@@ -22,7 +22,7 @@
     "zod": "^3.25.42"
   },
   "devDependencies": {
-    "@gemjs/config": "^2.1.2",
+    "@gemjs/config": "^2.1.3",
     "@types/adm-zip": "^0.5.7"
   },
   "author": "mantou132",
