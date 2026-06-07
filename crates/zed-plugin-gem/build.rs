@@ -36,7 +36,7 @@ fn sync_typescript() -> anyhow::Result<()> {
     archive.unpack(&dst)?;
     let zed_dir = fs::read_dir(&dst)?.last().unwrap().unwrap().file_name();
     copy_directory(
-        dst.join(zed_dir).join("crates/languages/src/typescript"),
+        dst.join(zed_dir).join("crates/grammars/src/typescript"),
         "languages/typescript",
         Default::default(),
     )?;
