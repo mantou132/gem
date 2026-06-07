@@ -11,7 +11,6 @@ on:
       - '@mantou/gem@*'
       - unplugin-gem@*
       - gem-analyzer@*
-      - gem-ssr@*
       - duoyun-ui@*
       - gem-book@*
       - '@mantou/gem-port@*'
@@ -28,6 +27,7 @@ on:
 permissions:
   actions: write
   contents: read
+  id-token: write
 
 concurrency:
   group: release-${{ github.workflow }}
@@ -81,12 +81,6 @@ jobs:
               name: 'gem-analyzer',
               path: 'packages/gem-analyzer/package.json',
               workflow: 'gem-analyzer-publish.yml',
-              npm: true,
-            },
-            {
-              name: 'gem-ssr',
-              path: 'packages/gem-ssr/package.json',
-              workflow: 'gem-ssr-publish.yml',
               npm: true,
             },
             {
@@ -321,11 +315,12 @@ jobs:
 
           const run = (command, args, options = {}) => {
             console.log(`$ ${command} ${args.join(' ')}`);
-            return execFileSync(command, args, {
+            const output = execFileSync(command, args, {
               encoding: 'utf8',
               stdio: options.stdio || 'pipe',
               ...options,
-            }).trim();
+            });
+            return typeof output === 'string' ? output.trim() : '';
           };
 
           const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));

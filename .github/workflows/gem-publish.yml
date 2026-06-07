@@ -18,8 +18,13 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v6
         with:
-          node-version: 22.x
+          node-version: 24.x
           cache: pnpm
+
+      - name: Check publish tool versions
+        run: |
+          node --version
+          npm --version
 
       - run: node -e "fs.writeFileSync('./packages/gem/src/lib/version.ts', 'export const version = \'' + require('./packages/gem/package.json').version + '\';\n')"
       - run: pnpm install

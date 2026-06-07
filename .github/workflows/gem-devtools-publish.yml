@@ -46,19 +46,17 @@ jobs:
           tag: ${{ github.ref }}
           overwrite: true
 
-      # https://github.com/trmcnvn/firefox-addon
-      # - uses: trmcnvn/firefox-addon@v1
-      #   with:
-      #     uuid: "{2af13fd2-a726-41de-b3a1-4bf2cb91c105}"
-      #     xpi: ${{ env.ZIP_PATH }}
-      #     manifest: packages/gem-devtools/extension/manifest.json
-      #     api-key: ${{ secrets.FIREFOX_API_KEY }}
-      #     api-secret: ${{ secrets.FIREFOX_API_SECRET }}
-
-      - uses: trmcnvn/chrome-addon@v2
+      - uses: wdzeng/chrome-extension@v1
         with:
-          extension: lgfpciakeemopebkmjajengljoakjfle
-          zip: ${{ env.ZIP_PATH }}
+          extension-id: lgfpciakeemopebkmjajengljoakjfle
+          zip-path: ${{ env.ZIP_PATH }}
           client-id: ${{ secrets.CHROME_CLIENT_ID }}
           client-secret: ${{ secrets.CHROME_CLIENT_SECRET }}
           refresh-token: ${{ secrets.CHROME_REFRESH_TOKEN }}
+
+      - uses: wdzeng/firefox-addon@v1
+        with:
+          addon-guid: "{2af13fd2-a726-41de-b3a1-4bf2cb91c105}"
+          xpi-path: ${{ env.ZIP_PATH }}
+          jwt-issuer: ${{ secrets.FIREFOX_API_KEY }}
+          jwt-secret: ${{ secrets.FIREFOX_API_SECRET }}
