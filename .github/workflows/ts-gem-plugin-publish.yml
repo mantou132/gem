@@ -1,10 +1,6 @@
 name: Publish TS Gem Plugin
 
 on:
-  push:
-    tags:
-      - ts-gem-plugin@*
-  # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 
 jobs:

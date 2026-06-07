@@ -1,10 +1,10 @@
-name: Publish Gem Analyzer
+name: Publish Gem SSR
 
 on:
   workflow_dispatch:
 
 jobs:
-  gem-analyzer-publish:
+  gem-ssr-publish:
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -25,4 +25,4 @@ jobs:
 
       - uses: JS-DevTools/npm-publish@v4
         with:
-          package: packages/gem-analyzer/package.json
+          package: packages/gem-ssr/package.json

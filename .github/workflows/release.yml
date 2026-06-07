@@ -1,0 +1,465 @@
+name: Release
+
+on:
+  push:
+    # Fallback for `git push --follow-tags`: GitHub does not create tag push events
+    # when more than three tags are pushed at once.
+    branches:
+      - main
+    tags:
+      - gem-context-server@*
+      - '@mantou/gem@*'
+      - unplugin-gem@*
+      - gem-analyzer@*
+      - gem-ssr@*
+      - duoyun-ui@*
+      - gem-book@*
+      - '@mantou/gem-port@*'
+      - gem-devtools@*
+      - vscode-gem-languageservice@*
+      - ts-gem-plugin@*
+      - vscode-plugin-gem@*
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Package tag used to find the release batch
+        required: true
+
+permissions:
+  actions: write
+  contents: read
+
+concurrency:
+  group: release-${{ github.workflow }}
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.inputs.tag || github.ref }}
+          fetch-depth: 0
+          fetch-tags: true
+
+      - name: Create release plan
+        id: plan
+        env:
+          INPUT_TAG: ${{ github.event.inputs.tag }}
+          REF_NAME: ${{ github.ref_name }}
+          REF_TYPE: ${{ github.ref_type }}
+          GH_TOKEN: ${{ github.token }}
+          IS_WORKFLOW_DISPATCH: ${{ github.event_name == 'workflow_dispatch' }}
+          RUN_ATTEMPT: ${{ github.run_attempt }}
+        run: |
+          node <<'NODE'
+          const fs = require('node:fs');
+          const { execFileSync } = require('node:child_process');
+
+          const packages = [
+            {
+              name: 'gem-context-server',
+              path: 'packages/context-server/package.json',
+              workflow: 'context-server-publish.yml',
+              npm: true,
+            },
+            {
+              name: '@mantou/gem',
+              path: 'packages/gem/package.json',
+              workflow: 'gem-publish.yml',
+              npm: true,
+            },
+            {
+              name: 'unplugin-gem',
+              path: 'packages/unplugin-gem/package.json',
+              workflow: 'unplugin-gem-publish.yml',
+              npm: true,
+            },
+            {
+              name: 'gem-analyzer',
+              path: 'packages/gem-analyzer/package.json',
+              workflow: 'gem-analyzer-publish.yml',
+              npm: true,
+            },
+            {
+              name: 'gem-ssr',
+              path: 'packages/gem-ssr/package.json',
+              workflow: 'gem-ssr-publish.yml',
+              npm: true,
+            },
+            {
+              name: 'duoyun-ui',
+              path: 'packages/duoyun-ui/package.json',
+              workflow: 'duoyun-ui-publish.yml',
+              npm: true,
+            },
+            {
+              name: 'gem-book',
+              path: 'packages/gem-book/package.json',
+              workflow: 'gem-book-publish.yml',
+              npm: true,
+            },
+            {
+              name: '@mantou/gem-port',
+              path: 'packages/gem-port/package.json',
+              workflow: 'gem-port-publish.yml',
+              npm: true,
+            },
+            {
+              name: 'gem-devtools',
+              path: 'packages/gem-devtools/package.json',
+              workflow: 'gem-devtools-publish.yml',
+              npm: false,
+            },
+            {
+              name: 'vscode-gem-languageservice',
+              path: 'packages/language-service/package.json',
+              workflow: 'language-service-publish.yml',
+              npm: true,
+            },
+            {
+              name: 'ts-gem-plugin',
+              path: 'packages/ts-gem-plugin/package.json',
+              workflow: 'ts-gem-plugin-publish.yml',
+              npm: true,
+            },
+            {
+              name: 'vscode-plugin-gem',
+              path: 'packages/vscode-gem-plugin/package.json',
+              workflow: 'vscode-extension-publish.yml',
+              npm: false,
+            },
+          ];
+
+          const repo = process.env.GITHUB_REPOSITORY;
+          const inputTag = process.env.INPUT_TAG;
+          const refName = process.env.REF_NAME;
+          const refType = process.env.REF_TYPE;
+          const isWorkflowDispatch = process.env.IS_WORKFLOW_DISPATCH === 'true';
+          const isRerun = Number(process.env.RUN_ATTEMPT || 1) > 1;
+
+          const run = (command, args, options = {}) => {
+            const output = execFileSync(command, args, {
+              encoding: 'utf8',
+              stdio: options.stdio || 'pipe',
+              ...options,
+            });
+            return typeof output === 'string' ? output.trim() : '';
+          };
+
+          const appendOutput = (key, value) => {
+            fs.appendFileSync(process.env.GITHUB_OUTPUT, `${key}=${value}\n`);
+          };
+
+          const readJson = (path) => JSON.parse(fs.readFileSync(path, 'utf8'));
+
+          const tagExists = (tag) => {
+            try {
+              run('git', ['show-ref', '--verify', '--quiet', `refs/tags/${tag}`], { stdio: 'ignore' });
+              return true;
+            } catch {
+              return false;
+            }
+          };
+
+          const tagSha = (tag) => run('git', ['rev-list', '-n', '1', `refs/tags/${tag}`]);
+
+          const fetchTags = () => {
+            try {
+              run('git', ['fetch', '--force', '--tags', 'origin'], { stdio: 'inherit' });
+            } catch (error) {
+              console.warn(`Failed to fetch tags: ${error.message}`);
+            }
+          };
+
+          const waitSeconds = (seconds) => {
+            run('sleep', [String(seconds)], { stdio: 'ignore' });
+          };
+
+          const ghApi = (path) => JSON.parse(run('gh', ['api', path]));
+
+          const npmPackageVersion = (pkg) => {
+            try {
+              return run('npm', [
+                'view',
+                `${pkg.name}@${pkg.version}`,
+                'version',
+                '--registry=https://registry.npmjs.org',
+              ]);
+            } catch {
+              return undefined;
+            }
+          };
+
+          const isNpmPackageAvailable = (pkg) => npmPackageVersion(pkg) === pkg.version;
+
+          const hasSuccessfulRun = (pkg, releaseSha) => {
+            const data = ghApi(`/repos/${repo}/actions/workflows/${pkg.workflow}/runs?event=workflow_dispatch&per_page=50`);
+            return data.workflow_runs.some((item) => item.head_sha === releaseSha && item.conclusion === 'success');
+          };
+
+          const isTagRef = refType === 'tag';
+          const currentTag = inputTag || (isTagRef ? refName : '');
+
+          if (inputTag && !tagExists(inputTag)) {
+            throw new Error(`Tag ${inputTag} does not exist in this checkout.`);
+          }
+
+          if (isTagRef && !tagExists(refName)) {
+            throw new Error(`Tag ${refName} does not exist in this checkout.`);
+          }
+
+          if (!currentTag && refType !== 'branch') {
+            throw new Error('A package tag is required to create a release plan.');
+          }
+
+          const releaseSha = currentTag ? tagSha(currentTag) : run('git', ['rev-parse', 'HEAD']);
+          const createPlan = () =>
+            packages
+              .map((pkg) => {
+                const { version } = readJson(pkg.path);
+                return {
+                  ...pkg,
+                  version,
+                  tag: `${pkg.name}@${version}`,
+                };
+              })
+              .filter((pkg) => tagExists(pkg.tag) && tagSha(pkg.tag) === releaseSha)
+              .map((pkg) => {
+                const published = pkg.npm ? isNpmPackageAvailable(pkg) : hasSuccessfulRun(pkg, releaseSha);
+                return {
+                  ...pkg,
+                  published,
+                };
+              });
+
+          let plan = createPlan();
+          const commitMessage = run('git', ['log', '-1', '--format=%B']);
+          const shouldWaitForTags = !currentTag && !plan.length && /^Publish\b/.test(commitMessage);
+
+          for (let attempt = 0; shouldWaitForTags && !plan.length && attempt < 6; attempt++) {
+            console.log(`Waiting for release tags to become visible (${attempt + 1}/6)...`);
+            fetchTags();
+            plan = createPlan();
+            if (!plan.length) {
+              waitSeconds(10);
+            }
+          }
+
+          const pendingPlan = plan.filter((pkg) => !pkg.published);
+          const leaderTag = plan[0]?.tag;
+          const canPublishFromTag = Boolean(currentTag && currentTag === leaderTag);
+          // Tag push events are not created when more than three tags are pushed at once.
+          const canPublishFromBranch = Boolean(!currentTag);
+          const shouldPublish = Boolean(
+            pendingPlan.length && (isWorkflowDispatch || isRerun || canPublishFromTag || canPublishFromBranch),
+          );
+
+          appendOutput('has_release', String(plan.length > 0));
+          appendOutput('should_publish', String(shouldPublish));
+          appendOutput('release_sha', releaseSha);
+          appendOutput('plan', JSON.stringify(plan));
+
+          const summary = [
+            '## Release plan',
+            '',
+            currentTag ? `Current tag: \`${currentTag}\`` : `Current ref: \`${refName}\``,
+            `Release commit: \`${releaseSha}\``,
+            leaderTag ? `Leader tag: \`${leaderTag}\`` : 'Leader tag: none',
+            `This run will publish: \`${shouldPublish}\``,
+            '',
+            plan.length
+              ? plan
+                  .map((pkg) => `- \`${pkg.tag}\` -> ${pkg.workflow} (${pkg.published ? 'already published' : 'pending'})`)
+                  .join('\n')
+              : 'No managed package tags were found on this commit.',
+            '',
+          ].join('\n');
+
+          fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY, summary);
+          console.log(summary);
+          NODE
+
+      - name: Setup pnpm
+        if: steps.plan.outputs.should_publish == 'true'
+        uses: pnpm/action-setup@v4 # docs https://pnpm.io/continuous-integration#github-actions
+
+      - name: Setup Node.js
+        if: steps.plan.outputs.should_publish == 'true'
+        uses: actions/setup-node@v6
+        with:
+          node-version: 22.x
+          cache: pnpm
+
+      - name: Install dependencies
+        if: steps.plan.outputs.should_publish == 'true'
+        run: pnpm install
+
+      - name: Lint
+        if: steps.plan.outputs.should_publish == 'true'
+        run: pnpm lint
+
+      - name: Test
+        if: steps.plan.outputs.should_publish == 'true'
+        run: pnpm test
+
+      - name: Dispatch publish workflows
+        if: steps.plan.outputs.should_publish == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_PLAN: ${{ steps.plan.outputs.plan }}
+          RELEASE_SHA: ${{ steps.plan.outputs.release_sha }}
+        run: |
+          node <<'NODE'
+          const { execFileSync } = require('node:child_process');
+
+          const plan = JSON.parse(process.env.RELEASE_PLAN);
+          const releaseSha = process.env.RELEASE_SHA;
+          const repo = process.env.GITHUB_REPOSITORY;
+
+          const run = (command, args, options = {}) => {
+            console.log(`$ ${command} ${args.join(' ')}`);
+            return execFileSync(command, args, {
+              encoding: 'utf8',
+              stdio: options.stdio || 'pipe',
+              ...options,
+            }).trim();
+          };
+
+          const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+          const ghApi = (path) => JSON.parse(run('gh', ['api', path]));
+
+          const workflowRuns = (workflow) => {
+            const data = ghApi(`/repos/${repo}/actions/workflows/${workflow}/runs?event=workflow_dispatch&per_page=50`);
+            return data.workflow_runs.filter((item) => item.head_sha === releaseSha);
+          };
+
+          const findRun = async (workflow, dispatchedAt) => {
+            const startedAfter = dispatchedAt - 30_000;
+
+            for (let attempt = 0; attempt < 40; attempt++) {
+              const run = workflowRuns(workflow)
+                .filter((item) => new Date(item.created_at).getTime() >= startedAfter)
+                .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())[0];
+
+              if (run) {
+                return run;
+              }
+
+              await sleep(5_000);
+            }
+
+            throw new Error(`Could not find workflow run for ${workflow}.`);
+          };
+
+          const latestRun = (workflow) =>
+            workflowRuns(workflow).sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())[0];
+
+          const waitForRun = async (id) => {
+            for (let attempt = 0; attempt < 720; attempt++) {
+              const data = ghApi(`/repos/${repo}/actions/runs/${id}`);
+              console.log(`${data.name} #${data.run_number}: ${data.status}${data.conclusion ? `/${data.conclusion}` : ''}`);
+
+              if (data.status === 'completed') {
+                if (data.conclusion === 'success') {
+                  return;
+                }
+                throw new Error(`${data.name} #${data.run_number} finished with ${data.conclusion}.`);
+              }
+
+              await sleep(15_000);
+            }
+
+            throw new Error(`Timed out waiting for workflow run ${id}.`);
+          };
+
+          const npmPackageVersion = (pkg) => {
+            try {
+              return run('npm', [
+                'view',
+                `${pkg.name}@${pkg.version}`,
+                'version',
+                '--registry=https://registry.npmjs.org',
+              ]);
+            } catch {
+              return undefined;
+            }
+          };
+
+          const isNpmPackageAvailable = (pkg) => npmPackageVersion(pkg) === pkg.version;
+
+          const waitForNpmPackage = async (pkg) => {
+            for (let attempt = 0; attempt < 40; attempt++) {
+              if (isNpmPackageAvailable(pkg)) {
+                console.log(`${pkg.name}@${pkg.version} is available on npm.`);
+                return;
+              }
+
+              console.log(`Waiting for ${pkg.name}@${pkg.version} to appear on npm...`);
+              await sleep(15_000);
+            }
+
+            throw new Error(`${pkg.name}@${pkg.version} did not become available on npm in time.`);
+          };
+
+          const alreadyPublished = (pkg) => {
+            if (pkg.npm && isNpmPackageAvailable(pkg)) {
+              console.log(`${pkg.name}@${pkg.version} is already available on npm, skipping ${pkg.workflow}.`);
+              return true;
+            }
+
+            const existingRun = latestRun(pkg.workflow);
+            if (existingRun?.conclusion === 'success') {
+              console.log(`${pkg.workflow} already succeeded for ${releaseSha}, skipping.`);
+              return true;
+            }
+
+            return false;
+          };
+
+          const waitForExistingRun = async (pkg) => {
+            const existingRun = latestRun(pkg.workflow);
+            if (existingRun && existingRun.status !== 'completed') {
+              console.log(`${pkg.workflow} is already ${existingRun.status}; waiting for ${existingRun.html_url}.`);
+              await waitForRun(existingRun.id);
+              if (pkg.npm) {
+                await waitForNpmPackage(pkg);
+              }
+              return true;
+            }
+
+            return false;
+          };
+
+          const dispatch = async (pkg) => {
+            if (alreadyPublished(pkg)) {
+              return;
+            }
+
+            if (await waitForExistingRun(pkg)) {
+              return;
+            }
+
+            const dispatchedAt = Date.now();
+            run('gh', ['workflow', 'run', pkg.workflow, '--ref', pkg.tag], { stdio: 'inherit' });
+            const workflowRun = await findRun(pkg.workflow, dispatchedAt);
+            console.log(`Dispatched ${pkg.workflow} for ${pkg.tag}: ${workflowRun.html_url}`);
+            await waitForRun(workflowRun.id);
+
+            if (pkg.npm) {
+              await waitForNpmPackage(pkg);
+            }
+          };
+
+          (async () => {
+            for (const pkg of plan) {
+              await dispatch(pkg);
+            }
+          })().catch((error) => {
+            console.error(error);
+            process.exit(1);
+          });
+          NODE
