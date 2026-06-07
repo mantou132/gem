@@ -27,6 +27,7 @@ jobs:
           npm --version
 
       - run: pnpm install
+      - run: pnpm -C packages/unplugin-gem run prepublishOnly
 
       - uses: JS-DevTools/npm-publish@v4
         with:

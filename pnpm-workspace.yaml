@@ -1,3 +1,4 @@
 linkWorkspacePackages: deep
 packages:
   - 'packages/*'
+  - 'crates/swc-plugin-gem'

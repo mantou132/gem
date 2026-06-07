@@ -37,15 +37,6 @@ jobs:
           echo "ZIP_PATH=${ZIP_PATH}" >> $GITHUB_ENV
         working-directory: packages/gem-devtools
 
-      - name: Upload to release
-        uses: svenstaro/upload-release-action@v2
-        with:
-          repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: packages/gem-devtools/build/*
-          file_glob: true
-          tag: ${{ github.ref }}
-          overwrite: true
-
       - uses: wdzeng/chrome-extension@v1
         with:
           extension-id: lgfpciakeemopebkmjajengljoakjfle

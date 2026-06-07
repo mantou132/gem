@@ -1,3 +1,3 @@
 # Gem model context server
 
-Use for Zed & Cursor
+Gem MCP for Zed & Cursor

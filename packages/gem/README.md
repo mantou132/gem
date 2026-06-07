@@ -6,4 +6,5 @@ https://github.com/mantou132/gem
 
 ```bash
 pnpm start
+pnpm docs
 ```

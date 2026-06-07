@@ -10,6 +10,7 @@ on:
       - gem-context-server@*
       - '@mantou/gem@*'
       - unplugin-gem@*
+      - swc-plugin-gem@*
       - gem-analyzer@*
       - duoyun-ui@*
       - gem-book@*
@@ -75,6 +76,12 @@ jobs:
               name: 'unplugin-gem',
               path: 'packages/unplugin-gem/package.json',
               workflow: 'unplugin-gem-publish.yml',
+              npm: true,
+            },
+            {
+              name: 'swc-plugin-gem',
+              path: 'crates/swc-plugin-gem/package.json',
+              workflow: 'swc-plugin-gem-publish.yml',
               npm: true,
             },
             {

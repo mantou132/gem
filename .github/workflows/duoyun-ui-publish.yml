@@ -27,6 +27,7 @@ jobs:
           npm --version
 
       - run: pnpm install
+      - run: pnpm -C packages/duoyun-ui run build:components
 
       - uses: JS-DevTools/npm-publish@v4
         with:

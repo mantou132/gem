@@ -1,0 +1,147 @@
+name: Publish Zed Plugin Gem
+
+on:
+  workflow_dispatch:
+    inputs:
+      gem_ref:
+        description: Branch in mantou132/gem used for the Zed submodule
+        required: true
+        default: main
+
+permissions:
+  contents: read
+
+jobs:
+  zed-plugin-gem-publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Zed extensions fork
+        uses: actions/checkout@v6
+        with:
+          repository: mantou132/extensions
+          token: ${{ secrets.EXTENSIONS_PAT }}
+          path: extensions
+          fetch-depth: 0
+          submodules: false
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4 # docs https://pnpm.io/continuous-integration#github-actions
+        with:
+          version: 10.33.2
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 20.x
+
+      - name: Update extension metadata
+        working-directory: extensions
+        env:
+          EXTENSION_ID: gem
+          EXTENSION_PATH: extensions/gem
+          EXTENSION_REPO: https://github.com/mantou132/gem.git
+          EXTENSION_SUBDIR: crates/zed-plugin-gem
+          EXTENSION_REF: ${{ inputs.gem_ref }}
+        run: |
+          set -euo pipefail
+
+          git remote add upstream https://github.com/zed-industries/extensions.git || git remote set-url upstream https://github.com/zed-industries/extensions.git
+          git fetch upstream main
+          git checkout -B update-gem upstream/main
+
+          if git config -f .gitmodules --get "submodule.${EXTENSION_PATH}.url" >/dev/null; then
+            git submodule sync -- "${EXTENSION_PATH}"
+            git submodule update --init -- "${EXTENSION_PATH}"
+          else
+            git submodule add "${EXTENSION_REPO}" "${EXTENSION_PATH}"
+          fi
+
+          git -C "${EXTENSION_PATH}" fetch origin '+refs/heads/*:refs/remotes/origin/*' '+refs/tags/*:refs/tags/*'
+          git -C "${EXTENSION_PATH}" checkout -B "${EXTENSION_REF}" "origin/${EXTENSION_REF}"
+
+          EXTENSION_SHA=$(git -C "${EXTENSION_PATH}" rev-parse HEAD)
+          VERSION=$(node -e "const fs = require('node:fs'); const toml = fs.readFileSync('${EXTENSION_PATH}/${EXTENSION_SUBDIR}/extension.toml', 'utf8'); console.log(toml.match(/^version\\s*=\\s*\"([^\"]+)\"/m)[1]);")
+          git branch -M "update-gem-${VERSION}"
+          export EXTENSION_SHA VERSION
+
+          echo "EXTENSION_SHA=${EXTENSION_SHA}" >> "${GITHUB_ENV}"
+          echo "VERSION=${VERSION}" >> "${GITHUB_ENV}"
+
+          node <<'NODE'
+          const fs = require('node:fs');
+
+          const id = process.env.EXTENSION_ID;
+          const extensionPath = process.env.EXTENSION_PATH;
+          const extensionSubdir = process.env.EXTENSION_SUBDIR;
+          const version = process.env.VERSION;
+          const path = 'extensions.toml';
+          const header = `[${id}]`;
+          const block = [
+            header,
+            `submodule = "${extensionPath}"`,
+            `path = "${extensionSubdir}"`,
+            `version = "${version}"`,
+            '',
+          ];
+          const lines = fs.readFileSync(path, 'utf8').split('\n');
+          const start = lines.findIndex((line) => line.trim() === header);
+
+          if (start === -1) {
+            while (lines.at(-1) === '') lines.pop();
+            lines.push('', ...block);
+          } else {
+            let end = start + 1;
+            while (end < lines.length && !/^\[[^\]]+\]\s*$/.test(lines[end])) end++;
+            lines.splice(start, end - start, ...block);
+          }
+
+          fs.writeFileSync(path, `${lines.join('\n').replace(/\n*$/, '')}\n`);
+          NODE
+
+          pnpm install --frozen-lockfile
+          pnpm sort-extensions
+
+      - name: Open pull request
+        working-directory: extensions
+        env:
+          EXTENSION_PATH: extensions/gem
+          GH_TOKEN: ${{ secrets.EXTENSIONS_PAT }}
+        run: |
+          set -euo pipefail
+
+          BRANCH="update-gem-${VERSION}"
+          BODY=$(cat <<EOF
+          Updates the Gem Zed extension to ${VERSION}.
+
+          - Updates \`extensions.toml\`
+          - Updates \`${EXTENSION_PATH}\` to \`${EXTENSION_SHA}\`
+
+          Source commit: ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/commit/${EXTENSION_SHA}
+          EOF
+          )
+
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add .gitmodules extensions.toml "${EXTENSION_PATH}"
+
+          if git diff --cached --quiet; then
+            echo "No Zed extension changes to publish."
+            exit 0
+          fi
+
+          git commit -m "Update Gem extension to ${VERSION}"
+          git push --force-with-lease origin "HEAD:${BRANCH}"
+
+          PR_URL=$(gh pr list --repo zed-industries/extensions --head "mantou132:${BRANCH}" --base main --json url --jq '.[0].url')
+
+          if [ -n "${PR_URL}" ]; then
+            gh pr edit "${PR_URL}" --title "Update Gem extension to ${VERSION}" --body "${BODY}"
+            echo "Updated ${PR_URL}"
+          else
+            gh pr create \
+              --repo zed-industries/extensions \
+              --base main \
+              --head "mantou132:${BRANCH}" \
+              --title "Update Gem extension to ${VERSION}" \
+              --body "${BODY}"
+          fi
