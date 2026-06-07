@@ -1,6 +1,6 @@
 {
   "name": "vscode-gem-languageservice",
-  "version": "0.0.7",
+  "version": "0.0.8",
   "description": "Language service for Gem",
   "keywords": [
     "gem",
