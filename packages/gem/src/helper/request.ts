@@ -68,6 +68,7 @@ function initRequest(options: Options = {}) {
     });
     const res = await fetch(req);
 
+    if (res.status === 204) return undefined as T;
     if (res.status === 0) throw new Error('Request fail');
     if (res.status >= 500) throw new Error(res.statusText);
 
