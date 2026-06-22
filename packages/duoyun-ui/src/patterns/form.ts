@@ -1,4 +1,5 @@
-import { adoptedStyle, customElement, memo, property, shadow } from '@mantou/gem/lib/decorators';
+import type { Emitter } from '@mantou/gem/lib/decorators';
+import { adoptedStyle, customElement, globalemitter, memo, property, shadow } from '@mantou/gem/lib/decorators';
 import { createRef, createState, css, GemElement, html, TemplateResult } from '@mantou/gem/lib/element';
 import { history } from '@mantou/gem/lib/history';
 import type { StyleObject } from '@mantou/gem/lib/utils';
@@ -144,6 +145,8 @@ export class DyPatFormElement<T = Record<string, unknown>> extends GemElement {
   @property data?: T;
   @property formItems?: FormItem<T>[];
 
+  @globalemitter change: Emitter<T>;
+
   #formRef = createRef<DuoyunFormElement>();
 
   @memo((i) => [i.data])
@@ -203,9 +206,14 @@ export class DyPatFormElement<T = Record<string, unknown>> extends GemElement {
         Reflect.set(wrapObj, lastKey, this.state.ignoreCache[String(props.field)]);
       }
     });
+
+    this.change(this.state.data);
   };
 
-  #onChange = ({ detail }: CustomEvent<any>) => this.#changeData(detail);
+  #onChange = (evt: CustomEvent<any>) => {
+    evt.stopPropagation();
+    this.#changeData(evt.detail);
+  };
 
   #onOptionsChange = async (props: FormItemProps<T>, input: string) => {
     if (!props.getOptions) return;
@@ -427,16 +435,19 @@ export class DyPatFormElement<T = Record<string, unknown>> extends GemElement {
     const onSort = ({ detail }: CustomEvent<SortEventDetail>) => {
       [value![detail.new], value![detail.old]] = [value![detail.old], value![detail.new]];
       this.state();
+      this.change(this.state.data);
     };
     const addEle = () => {
       const root = readProp(this.state.data!, path.slice(0, -1), { fill: true });
       if (!root[prop]) root[prop] = [];
       root[prop].push(initItem);
       this.state();
+      this.change(this.state.data);
     };
     const removeEle = (index: number) => {
       value!.splice(index, 1);
       this.state();
+      this.change(this.state.data);
     };
     return html`
       <dy-form-item style="margin-bottom: 0" label=${item.label}></dy-form-item>

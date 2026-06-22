@@ -1,4 +1,4 @@
-import { adoptedStyle, boolattribute, customElement, type Emitter, emitter, mounted } from '@mantou/gem/lib/decorators';
+import { adoptedStyle, customElement, type Emitter, emitter, mounted } from '@mantou/gem/lib/decorators';
 import { css, GemElement } from '@mantou/gem/lib/element';
 import { addListener } from '@mantou/gem/lib/utils';
 
@@ -8,14 +8,13 @@ import type { PanEventDetail } from './gesture';
 import { DuoyunGestureElement } from './gesture';
 
 const style = css`
-  :where(dy-sort-item[handle], dy-sort-handle):state(grabbing) {
+  dy-sort-handle:state(grabbing) {
     cursor: grabbing;
 
     * {
       pointer-events: none;
     }
   }
-  dy-sort-item[handle]:state(grabbing),
   dy-sort-item:has(:state(grabbing)) {
     position: relative;
     z-index: ${theme.popupZIndex};
@@ -39,9 +38,7 @@ export class DuoyunSortBoxElement extends GemElement {
   #listen = () => {
     this.#removeListeners();
     const items = [...this.querySelectorAll<DuoyunSortItemElement>('dy-sort-item')];
-    const handles = items.map((item) =>
-      item.handle ? item : item.querySelector<DuoyunSortHandleElement>('dy-sort-handle'),
-    );
+    const handles = items.map((item) => item.querySelector<DuoyunSortHandleElement>('dy-sort-handle'));
     this.#listeners = handles.map((e, index) => {
       if (!e) return;
       const item = items[index];
@@ -78,9 +75,7 @@ export class DuoyunSortBoxElement extends GemElement {
 }
 
 @customElement('dy-sort-item')
-export class DuoyunSortItemElement extends DuoyunGestureElement {
-  @boolattribute handle: boolean;
-}
+export class DuoyunSortItemElement extends GemElement {}
 
 @customElement('dy-sort-handle')
 export class DuoyunSortHandleElement extends DuoyunGestureElement {}
