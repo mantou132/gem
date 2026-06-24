@@ -11,14 +11,23 @@ export class MyElement extends GemElement {
     }
     @emitter
     change;
-    _hmr_public_my_element_src() {
+    _hmr_public_my_element_src_get() {
         return 1;
     }
     get src() {
-        return this._hmr_public_my_element_src.bind(this)();
+        return this._hmr_public_my_element_src_get.bind(this)();
+    }
+    _hmr_public_my_element_src_set(value) {
+        this._v = value;
+    }
+    set src(value) {
+        this._hmr_public_my_element_src_set.bind(this)(value);
     }
     _hmr_public_my_element_method(arg) {
         console.log('method');
+        if ("_private_my_element_method" in this) {
+            console.log('#method in this');
+        }
     }
     @effect([])
     method(...args) {
@@ -46,6 +55,13 @@ export class MyElement extends GemElement {
         ])
     _private_my_element_field = (...args)=>{
         return this._hmr_private_my_element_field.bind(this)(...args);
+    };
+    _hmr_private_my_element_fieldExpr(arg) {
+        return console.log('#fieldExpr');
+    }
+    @effect([])
+    _private_my_element_fieldExpr = (...args)=>{
+        return this._hmr_private_my_element_fieldExpr.bind(this)(...args);
     };
     _private_my_element_content;
     @state

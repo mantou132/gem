@@ -16,7 +16,7 @@
   "jsc": {
     "target": "es2024",
     "parser": { "syntax": "typescript", "decorators": true },
-    "transform": { "decoratorVersion": "2022-03" },
+    "transform": { "decoratorVersion": "2023-11" },
     "experimental": {
       "runPluginFirst": true,
       "plugins": [

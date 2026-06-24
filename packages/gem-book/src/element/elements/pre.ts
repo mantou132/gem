@@ -488,7 +488,7 @@ export class Pre extends GemElement {
   #setEditHighlightLine = () => {
     if (!this.editable || !this.#editorRef.value) return;
     const sel = (this.shadowRoot as unknown as Window).getSelection?.() || getSelection();
-    if (!sel || !sel.focusNode) return;
+    if (!sel?.focusNode) return;
     if (!this.shadowRoot!.contains(sel.focusNode)) return;
 
     if (sel.anchorNode !== sel.focusNode || sel.anchorOffset !== sel.focusOffset) {
@@ -502,9 +502,9 @@ export class Pre extends GemElement {
     while ((currentNode = walker.nextNode()) && currentNode !== sel.focusNode) {
       text += currentNode.nodeValue!;
     }
-    const currentNdoeText =
+    const currentNodeText =
       sel.focusNode === this.#editorRef.value! ? 0 : sel.focusNode.nodeValue!.slice(0, sel.focusOffset);
-    const value = text + currentNdoeText;
+    const value = text + currentNodeText;
     const lineNum = value.split('\n').length;
     this.#highlightLineSet = new Set([lineNum]);
   };
@@ -547,12 +547,12 @@ export class Pre extends GemElement {
     this.textContent = this.#contentElement!.textContent;
   };
 
-  #isVisble = false;
+  #isVisible = false;
 
-  @effect((i) => [i.textContent, i.codelang, i.range, i.#isVisble])
+  @effect((i) => [i.textContent, i.codelang, i.range, i.#isVisible])
   #updateHtml = async () => {
     if (this.status === 'hidden') return;
-    if (!this.#isVisble) return;
+    if (!this.#isVisible) return;
     if (!this.#codeRef.value) return;
 
     await import(/* @vite-ignore */ /* webpackIgnore: true */ prismjs);
@@ -560,6 +560,7 @@ export class Pre extends GemElement {
     const codelang = langAliases[this.codelang] || this.codelang;
 
     const load = (lang: string) =>
+      lang &&
       !Prism.languages[lang] &&
       import(/* @vite-ignore */ /* webpackIgnore: true */ `${prismjs}/components/prism-${lang}.min.js`);
 
@@ -598,10 +599,10 @@ export class Pre extends GemElement {
   };
 
   @mounted()
-  #obVisibity = () => {
+  #obVisibility = () => {
     const io = new IntersectionObserver((entries) => {
       for (const { intersectionRatio } of entries) {
-        this.#isVisble = intersectionRatio > 0;
+        this.#isVisible = intersectionRatio > 0;
         this.update();
       }
     });

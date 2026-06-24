@@ -87,7 +87,7 @@ export class Nav extends GemElement {
                   ${examples.map(
                     ({ path = '', name = '' }) => html`
                       <li>
-                        <a class=${location.pathname.includes(path) ? 'active' : ''} href=${`../${path}/`}>
+                        <a class=${location.pathname.includes(path) ? 'active' : ''} href=${`../${path}`}>
                           <div>${name.replace('-', ' ')}</div>
                         </a>
                       </li>

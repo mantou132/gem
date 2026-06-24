@@ -114,13 +114,13 @@ fn fixture_preload(input: PathBuf) {
     );
 }
 
-#[fixture("tests/fixture/hmr/input.ts")]
+#[fixture("tests/fixture/hmr/**/input.ts")]
 fn fixture_hmr(input: PathBuf) {
     let output = input.parent().unwrap().join("output.ts");
 
     test_fixture(
         get_syntax(),
-        &|_| visit_mut_pass(hmr_transform(None)),
+        &move |_| visit_mut_pass(hmr_transform(Some("reactive.js".to_string()))),
         &input,
         &output,
         Default::default(),

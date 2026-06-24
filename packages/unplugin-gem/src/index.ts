@@ -28,7 +28,7 @@ export const unpluginFactory: UnpluginFactory<UnpluginGemOptions | undefined> = 
             decorators: true,
           },
           transform: {
-            decoratorVersion: '2022-03',
+            decoratorVersion: '2023-11',
           },
           externalHelpers: true,
           target: 'es2022',

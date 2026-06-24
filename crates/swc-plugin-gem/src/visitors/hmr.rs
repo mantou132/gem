@@ -17,6 +17,7 @@ use std::{
     mem, vec,
 };
 
+use indexmap::IndexSet;
 use once_cell::sync::Lazy;
 use regex::Regex;
 use swc_common::DUMMY_SP;
@@ -26,10 +27,11 @@ use swc_core::{
     quote,
 };
 use swc_ecma_ast::{
-    ArrayLit, ArrowExpr, BlockStmt, BlockStmtOrExpr, CallExpr, Callee, Class, ClassMember,
-    ClassMethod, ClassProp, Constructor, Decorator, Expr, ExprOrSpread, Function, Ident, IdentName,
-    Lit, MemberExpr, MemberProp, MetaPropKind, MethodKind, ModuleItem, Param, ParamOrTsParamProp,
-    Pat, PropName, RestPat, ReturnStmt, StaticBlock, Stmt, ThisExpr,
+    op, ArrayLit, ArrowExpr, BinExpr, BlockStmt, BlockStmtOrExpr, CallExpr, Callee, Class,
+    ClassMember, ClassMethod, ClassProp, Constructor, Decorator, Expr, ExprOrSpread, Function,
+    Ident, IdentName, ImportSpecifier, Lit, MemberExpr, MemberProp, MetaPropKind, MethodKind,
+    ModuleItem, Param, ParamOrTsParamProp, Pat, PropName, RestPat, ReturnStmt, StaticBlock, Stmt,
+    Str, ThisExpr,
 };
 
 static DASH_REG: Lazy<Regex> = Lazy::new(|| Regex::new(r"-").unwrap());
@@ -48,6 +50,7 @@ struct TransformVisitor {
     has_element: bool,
     class_stack: Vec<String>,
     need_reload: bool,
+    imported_names: IndexSet<Atom>,
     // 用来判断构造函数内部内部是否有 return
     // 语句，不支持嵌套类构造函数（嵌套类）；不能识别内部函数申明的
     // return 语句，有正常的内联函数 return 也会拒绝 hmr
@@ -57,6 +60,17 @@ struct TransformVisitor {
 impl TransformVisitor {
     fn get_current_tag_name(&self) -> &str {
         self.class_stack.last().unwrap()
+    }
+
+    fn store_arg_is_local(&self, expr: &Expr) -> bool {
+        match expr {
+            Expr::Ident(ident) => !self.imported_names.contains(&ident.sym),
+            Expr::Member(member) => match &*member.obj {
+                Expr::Ident(ident) => !self.imported_names.contains(&ident.sym),
+                _ => true,
+            },
+            _ => true,
+        }
     }
 
     fn get_class_name(&mut self, node: &mut Class) -> String {
@@ -98,12 +112,23 @@ impl TransformVisitor {
     }
 }
 
-fn get_shadow_ident(origin_ident: &IdentName, key: &str, is_private: bool) -> IdentName {
+fn get_shadow_ident(
+    origin_ident: &IdentName,
+    key: &str,
+    is_private: bool,
+    method_kind: MethodKind,
+) -> IdentName {
+    let kind_suffix = match method_kind {
+        MethodKind::Getter => "_get",
+        MethodKind::Setter => "_set",
+        MethodKind::Method => "",
+    };
     format!(
-        "_hmr_{}_{}_{}",
+        "_hmr_{}_{}_{}{}",
         if is_private { "private" } else { "public" },
         &DASH_REG.replace_all(key, "_"),
-        origin_ident.as_ref()
+        origin_ident.as_ref(),
+        kind_suffix,
     )
     .into()
 }
@@ -176,6 +201,17 @@ fn gen_proxy_body_getter(shadow_ident: &IdentName) -> BlockStmt {
     }
 }
 
+fn gen_proxy_body_setter(shadow_ident: &IdentName) -> BlockStmt {
+    let this_expr = gen_proxy_this_expr(shadow_ident);
+    BlockStmt {
+        stmts: vec![quote!(
+            "$expr.bind(this)(value);" as Stmt,
+            expr: Expr = this_expr
+        )],
+        ..Default::default()
+    }
+}
+
 fn gen_proxy_body_constructor(shadow_ident: &IdentName, has_super: &bool) -> BlockStmt {
     let this_expr = gen_proxy_this_expr(shadow_ident);
     let mut stmts = vec![];
@@ -196,11 +232,22 @@ fn replace_to_proxy_function(
     func: &mut Function,
     shadow_ident: &IdentName,
     is_getter: bool,
+    is_setter: bool,
 ) -> (Option<BlockStmt>, Vec<Param>) {
     if is_getter {
         return (
             mem::replace(&mut func.body, gen_proxy_body_getter(shadow_ident).into()),
             vec![],
+        );
+    }
+    if is_setter {
+        // setter 必须有且仅有一个参数，不能用 rest，否则下游解析会失败
+        return (
+            mem::replace(&mut func.body, gen_proxy_body_setter(shadow_ident).into()),
+            mem::replace(
+                &mut func.params,
+                vec![Param::from(Pat::Ident("value".into()))],
+            ),
         );
     }
     (
@@ -262,12 +309,22 @@ fn replace_to_proxy_function_for_constructor(
 fn replace_to_proxy_arrow(
     func: &mut ArrowExpr,
     shadow_ident: &IdentName,
-) -> (Box<BlockStmtOrExpr>, Vec<Param>) {
+) -> (BlockStmt, Vec<Param>) {
+    let origin_body = mem::replace(
+        &mut func.body,
+        Box::new(BlockStmtOrExpr::BlockStmt(gen_proxy_body(shadow_ident))),
+    );
     (
-        mem::replace(
-            &mut func.body,
-            Box::new(BlockStmtOrExpr::BlockStmt(gen_proxy_body(shadow_ident))),
-        ),
+        match *origin_body {
+            BlockStmtOrExpr::BlockStmt(body) => body,
+            BlockStmtOrExpr::Expr(expr) => BlockStmt {
+                stmts: vec![quote!(
+                    "return $expr;" as Stmt,
+                    expr: Expr = *expr
+                )],
+                ..Default::default()
+            },
+        },
         mem::replace(&mut func.params, gen_proxy_arg())
             .drain(..)
             .map(|x| x.into())
@@ -282,7 +339,12 @@ fn transform_fn(
 ) -> (ClassMember, Option<ClassMember>) {
     match node {
         ClassMember::Constructor(mut constructor) => {
-            let shadow_ident = get_shadow_ident(&IdentName::from("constructor"), key, false);
+            let shadow_ident = get_shadow_ident(
+                &IdentName::from("constructor"),
+                key,
+                false,
+                MethodKind::Method,
+            );
             let (body, params) = replace_to_proxy_function_for_constructor(
                 &mut constructor,
                 &shadow_ident,
@@ -295,11 +357,12 @@ fn transform_fn(
         }
         ClassMember::Method(mut method) => {
             if let Some(origin_ident) = method.key.as_ident() {
-                let shadow_ident = get_shadow_ident(origin_ident, key, false);
+                let shadow_ident = get_shadow_ident(origin_ident, key, false, method.kind);
                 let (body, params) = replace_to_proxy_function(
                     &mut method.function,
                     &shadow_ident,
                     method.kind == MethodKind::Getter,
+                    method.kind == MethodKind::Setter,
                 );
                 let is_async = method.function.is_async;
                 (
@@ -319,11 +382,12 @@ fn transform_fn(
         ClassMember::PrivateMethod(mut method) => {
             let origin_ident = IdentName::new(method.key.name, DUMMY_SP);
             let private_ident = PropName::Ident(get_private_ident(&origin_ident, key));
-            let shadow_ident = get_shadow_ident(&origin_ident, key, true);
+            let shadow_ident = get_shadow_ident(&origin_ident, key, true, method.kind);
             let (body, params) = replace_to_proxy_function(
                 &mut method.function,
                 &shadow_ident,
                 method.kind == MethodKind::Getter,
+                method.kind == MethodKind::Setter,
             );
             let is_async = method.function.is_async;
             (
@@ -351,21 +415,20 @@ fn transform_fn(
             if let Some(ref mut v) = prop.value {
                 if let Some(func) = v.as_mut_arrow() {
                     let origin_ident = prop.key.as_ident().unwrap();
-                    let shadow_ident = get_shadow_ident(origin_ident, key, false);
+                    let shadow_ident =
+                        get_shadow_ident(origin_ident, key, false, MethodKind::Method);
                     let (body, params) = replace_to_proxy_arrow(func, &shadow_ident);
                     let is_async = func.is_async;
-                    if let BlockStmtOrExpr::BlockStmt(body) = *body {
-                        return (
-                            ClassMember::ClassProp(ClassProp { ..prop }),
-                            Some(gen_shadow_member(
-                                &shadow_ident,
-                                prop.is_static,
-                                Some(body),
-                                params,
-                                is_async,
-                            )),
-                        );
-                    }
+                    return (
+                        ClassMember::ClassProp(ClassProp { ..prop }),
+                        Some(gen_shadow_member(
+                            &shadow_ident,
+                            prop.is_static,
+                            Some(body),
+                            params,
+                            is_async,
+                        )),
+                    );
                 }
             }
             (ClassMember::ClassProp(prop), None)
@@ -375,34 +438,33 @@ fn transform_fn(
             let private_ident = PropName::Ident(get_private_ident(&origin_ident, key));
             if let Some(ref mut v) = prop.value {
                 if let Some(func) = v.as_mut_arrow() {
-                    let shadow_ident = get_shadow_ident(&origin_ident, key, true);
+                    let shadow_ident =
+                        get_shadow_ident(&origin_ident, key, true, MethodKind::Method);
                     let (body, params) = replace_to_proxy_arrow(func, &shadow_ident);
                     let is_async = func.is_async;
-                    if let BlockStmtOrExpr::BlockStmt(body) = *body {
-                        return (
-                            ClassMember::ClassProp(ClassProp {
-                                key: private_ident,
-                                accessibility: prop.accessibility,
-                                is_optional: prop.is_optional,
-                                is_override: prop.is_override,
-                                is_static: prop.is_static,
-                                span: prop.span,
-                                decorators: prop.decorators,
-                                definite: prop.definite,
-                                readonly: prop.readonly,
-                                value: prop.value,
-                                type_ann: prop.type_ann,
-                                ..Default::default()
-                            }),
-                            Some(gen_shadow_member(
-                                &shadow_ident,
-                                prop.is_static,
-                                Some(body),
-                                params,
-                                is_async,
-                            )),
-                        );
-                    }
+                    return (
+                        ClassMember::ClassProp(ClassProp {
+                            key: private_ident,
+                            accessibility: prop.accessibility,
+                            is_optional: prop.is_optional,
+                            is_override: prop.is_override,
+                            is_static: prop.is_static,
+                            span: prop.span,
+                            decorators: prop.decorators,
+                            definite: prop.definite,
+                            readonly: prop.readonly,
+                            value: prop.value,
+                            type_ann: prop.type_ann,
+                            ..Default::default()
+                        }),
+                        Some(gen_shadow_member(
+                            &shadow_ident,
+                            prop.is_static,
+                            Some(body),
+                            params,
+                            is_async,
+                        )),
+                    );
                 }
             }
             (
@@ -548,10 +610,38 @@ impl VisitMut for TransformVisitor {
         }
     }
 
+    fn visit_mut_bin_expr(&mut self, node: &mut BinExpr) {
+        node.visit_mut_children_with(self);
+
+        if node.op == op!("in") {
+            if let Expr::PrivateName(private_name) = node.left.as_ref() {
+                let private_ident = get_private_ident(
+                    &IdentName::new(private_name.name.clone(), DUMMY_SP),
+                    self.get_current_tag_name(),
+                );
+                *node.left = Expr::Lit(Lit::Str(Str::from(private_ident.sym.clone())));
+            }
+        }
+    }
+
     fn visit_mut_constructor(&mut self, node: &mut Constructor) {
         self.in_constructor = true;
         node.visit_mut_children_with(self);
         self.in_constructor = false;
+    }
+
+    fn visit_mut_function(&mut self, node: &mut Function) {
+        let saved = self.in_constructor;
+        self.in_constructor = false;
+        node.visit_mut_children_with(self);
+        self.in_constructor = saved;
+    }
+
+    fn visit_mut_arrow_expr(&mut self, node: &mut ArrowExpr) {
+        let saved = self.in_constructor;
+        self.in_constructor = false;
+        node.visit_mut_children_with(self);
+        self.in_constructor = saved;
     }
 
     fn visit_mut_param_or_ts_param_prop(&mut self, node: &mut ParamOrTsParamProp) {
@@ -570,6 +660,11 @@ impl VisitMut for TransformVisitor {
                 self.need_reload = true;
             }
         }
+    }
+
+    fn visit_mut_import_specifier(&mut self, node: &mut ImportSpecifier) {
+        self.imported_names.insert(node.local().sym.clone());
+        node.visit_mut_children_with(self);
     }
 
     fn visit_mut_meta_prop_kind(&mut self, node: &mut MetaPropKind) {
@@ -592,10 +687,31 @@ impl VisitMut for TransformVisitor {
 
         if !class_name.is_empty() {
             self.class_stack.push(class_name.clone());
+            let snapshot = node.body.clone();
             node.visit_mut_children_with(self);
             self.class_stack.pop();
 
+            if !self.need_reload {
+                for decorator in &node.decorators {
+                    if let Some(call) = decorator.expr.as_call() {
+                        if let Callee::Expr(callee) = &call.callee {
+                            if let Some(Ident { sym, .. }) = callee.as_ident() {
+                                if sym.as_str() == "connectStore" {
+                                    if let Some(ExprOrSpread { expr, .. }) = call.args.first() {
+                                        if self.store_arg_is_local(expr) {
+                                            self.need_reload = true;
+                                            break;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
             if self.need_reload {
+                node.body = snapshot;
                 return;
             }
 
