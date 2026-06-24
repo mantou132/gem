@@ -1,4 +1,4 @@
-import { connectStore, customElement, mounted } from '@mantou/gem/lib/decorators';
+import { connectStore, customElement, mounted, template } from '@mantou/gem/lib/decorators';
 import { html } from '@mantou/gem/lib/element';
 import { createPaginationStore } from 'duoyun-ui/helper/store';
 
@@ -21,7 +21,8 @@ export class ConsolePageItemClientElement extends ConsolePageItemElement {
   @mounted()
   #fetch = () => updatePage(fetchAllItems);
 
-  render = () => {
+  @template()
+  #render = () => {
     return html`
       <dy-pat-table
         filterable
@@ -33,12 +34,6 @@ export class ConsolePageItemClientElement extends ConsolePageItemElement {
       >
         <dy-button @click=${this.onCreate}>Add</dy-button>
       </dy-pat-table>
-
-      <style>
-        dy-pat-table::part(table) {
-          min-width: 40em;
-        }
-      </style>
     `;
   };
 }

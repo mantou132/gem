@@ -1,4 +1,4 @@
-import { async, createState, customElement, GemElement, html, numattribute, render } from '@mantou/gem';
+import { async, createState, customElement, GemElement, html, numattribute, render, template } from '@mantou/gem';
 
 import '../elements/layout';
 
@@ -7,7 +7,8 @@ import '../elements/layout';
 export class Post extends GemElement {
   @numattribute index: number;
 
-  render() {
+  @template()
+  #render = () => {
     console.log(`render ${this.index}`);
 
     const startTime = performance.now();
@@ -15,14 +16,15 @@ export class Post extends GemElement {
       // Do nothing for 1 ms per item to emulate extremely slow code
     }
     return html`<div>Post #${this.index + 1}</div>`;
-  }
+  };
 }
 
 @customElement('app-posts-page')
 export class Posts extends GemElement {
-  render() {
+  @template()
+  #render = () => {
     return html`${Array.from({ length: 500 }, (_, i) => i).map((e) => html`<app-post .index=${e}></app-post>`)}`;
-  }
+  };
 }
 
 @customElement('app-root')
@@ -31,7 +33,7 @@ export class App extends GemElement {
     tab: 'home',
   });
 
-  #renderContent() {
+  #renderContent = () => {
     switch (this.#state.tab) {
       case 'posts':
         return html`<app-posts-page></app-posts-page>`;
@@ -40,9 +42,10 @@ export class App extends GemElement {
       default:
         return html`Welcome to my profile!`;
     }
-  }
+  };
 
-  render() {
+  @template()
+  #render = () => {
     return html`
       <div>
         ${['home', 'posts', 'about'].map((tab) => {
@@ -54,7 +57,7 @@ export class App extends GemElement {
       <hr />
       ${this.#renderContent()}
     `;
-  }
+  };
 }
 
 render(

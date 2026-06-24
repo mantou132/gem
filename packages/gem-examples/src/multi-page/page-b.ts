@@ -1,4 +1,4 @@
-import { connectStore, customElement, GemElement, html, shadow } from '@mantou/gem';
+import { connectStore, customElement, GemElement, html, shadow, template } from '@mantou/gem';
 
 import { pageB } from './store';
 
@@ -6,7 +6,8 @@ import { pageB } from './store';
 @customElement('app-page-b')
 @shadow()
 export class App extends GemElement {
-  render() {
+  @template()
+  #render = () => {
     return html`<slot></slot> ${pageB.text}`;
-  }
+  };
 }

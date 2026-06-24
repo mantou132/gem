@@ -1,14 +1,17 @@
 import {
+  adoptedStyle,
   async,
   connectStore,
   createState,
   createStore,
+  css,
   customElement,
   GemElement,
   html,
   property,
   render,
   shadow,
+  template,
 } from '@mantou/gem';
 
 import '../elements/layout';
@@ -21,9 +24,20 @@ setInterval(() => {
   store({ number: (store.number % 10) + 1 });
 }, 1000);
 
-@customElement('fiber-dot')
+const dotStyle = css`
+  :host {
+    position: absolute;
+    font: normal 15px sans-serif;
+    text-align: center;
+    cursor: pointer;
+    display: block;
+  }
+`;
+
+@adoptedStyle(dotStyle)
 @connectStore(store)
 @async()
+@customElement('fiber-dot')
 @shadow()
 export class Dot extends GemElement {
   size: number;
@@ -34,18 +48,19 @@ export class Dot extends GemElement {
 
   constructor() {
     super();
-    this.addEventListener('mouseenter', this.onMouseenter);
-    this.addEventListener('mouseleave', this.onMouseleave);
+    this.addEventListener('mouseenter', this.#onMouseenter);
+    this.addEventListener('mouseleave', this.#onMouseleave);
   }
 
-  onMouseenter = () => {
+  #onMouseenter = () => {
     this.#state({ hover: true });
   };
-  onMouseleave = () => {
+  #onMouseleave = () => {
     this.#state({ hover: false });
   };
 
-  render() {
+  @template()
+  #render = () => {
     const s = this.size * 1.3;
     Object.assign(this.style, {
       width: `${s}px`,
@@ -56,19 +71,8 @@ export class Dot extends GemElement {
       lineHeight: `${s}px`,
       background: this.#state.hover ? '#ff0' : '#61dafb',
     });
-    return html`
-      <style>
-        :host {
-          position: absolute;
-          font: normal 15px sans-serif;
-          text-align: center;
-          cursor: pointer;
-          display: block;
-        }
-      </style>
-      ${this.#state.hover ? `**${store.number}**` : store.number}
-    `;
-  }
+    return html`${this.#state.hover ? `**${store.number}**` : store.number}`;
+  };
 }
 
 const targetSize = 25;
@@ -81,7 +85,8 @@ export class Triangle extends GemElement {
   s: number;
   seconds: number;
 
-  render() {
+  @template()
+  #render = () => {
     let s = this.s;
     if (s <= targetSize) {
       return html`
@@ -102,35 +107,39 @@ export class Triangle extends GemElement {
       <fiber-triangle .x=${this.x - s} .y=${this.y + s / 2} .s=${s}></fiber-triangle>
       <fiber-triangle .x=${this.x + s} .y=${this.y + s / 2} .s=${s}></fiber-triangle>
     `;
-  }
+  };
 }
 
+const rootStyle = css`
+  :host {
+    position: absolute;
+    transform-origin: 0 0;
+    left: 50%;
+    top: 50%;
+    width: 10px;
+    height: 10px;
+    background: #eee;
+  }
+`;
+
+@adoptedStyle(rootStyle)
 @customElement('app-root')
 @shadow()
 class App extends GemElement {
   @property elapsed: number;
-  render() {
+
+  @template()
+  #render = () => {
     const elapsed = this.elapsed;
     const t = (elapsed / 1000) % 10;
     const scale = 1 + (t > 5 ? 10 - t : t) / 10;
     this.style.transform = `scaleX(${scale / 2.1}) scaleY(0.7) translateZ(0.1px)`;
     return html`
-      <style>
-        :host {
-          position: absolute;
-          transform-origin: 0 0;
-          left: 50%;
-          top: 50%;
-          width: 10px;
-          height: 10px;
-          background: #eee;
-        }
-      </style>
       <div>
         <fiber-triangle .x=${0} .y=${0} .s=${1000}></fiber-triangle>
       </div>
     `;
-  }
+  };
 }
 
 const app = new App();

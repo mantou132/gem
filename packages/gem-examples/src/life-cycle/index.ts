@@ -11,6 +11,7 @@ import {
   html,
   mounted,
   render,
+  template,
 } from '@mantou/gem';
 
 import '../elements/layout';
@@ -31,6 +32,9 @@ const store = createStore<GlobalState>({
 const styles = css`
   h1 {
     text-decoration: underline;
+  }
+  app-children:state(odd)::part(${Children.paragraph}) {
+    color: red;
   }
 `;
 
@@ -53,7 +57,7 @@ export class App extends GemElement {
     console.log('parent mounted');
   };
 
-  onSayHi = () => {
+  #onSayHi = () => {
     const [foo, bar] = store.msg;
     store({
       msg: [bar, foo],
@@ -61,7 +65,7 @@ export class App extends GemElement {
     });
   };
 
-  loadHandle = () => {
+  #loadHandle = () => {
     const { value: element } = this.#childRef;
     if (!element) return;
     const { firstName, lastName, disabled, count } = element;
@@ -74,19 +78,15 @@ export class App extends GemElement {
     return html`${detail?.message}`;
   };
 
-  render() {
+  @template()
+  #render = () => {
     console.log('parent render');
     return html`
-      <style>
-        app-children:state(odd)::part(${Children.paragraph}) {
-          color: red;
-        }
-      </style>
       <h1>${this.appTitle}</h1>
       <app-children
         ${this.#childRef}
-        @load=${this.loadHandle}
-        @say-hi=${this.onSayHi}
+        @load=${this.#loadHandle}
+        @say-hi=${this.#onSayHi}
         .message=${store.msg}
         first-name="hello"
         last-name="world"
@@ -96,7 +96,7 @@ export class App extends GemElement {
         <p slot=${Children.light}>now: ${store.now}</p>
       </app-children>
     `;
-  }
+  };
 }
 
 document.addEventListener('say-hi', (e: CustomEvent) => {

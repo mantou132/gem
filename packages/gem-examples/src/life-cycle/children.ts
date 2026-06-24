@@ -13,6 +13,7 @@ import {
   shadow,
   slot,
   state,
+  template,
 } from '@mantou/gem';
 
 export type Message = number[];
@@ -32,11 +33,12 @@ export class Descendant extends GemElement {
     console.log(`descendant${this.key} mounted`);
   };
 
-  render() {
+  @template()
+  #render = () => {
     console.log(`descendant${this.key} render`);
     if (Math.random() > 0.8) throw new Error('Error, should render fallback content');
     return html``;
-  }
+  };
 }
 
 @customElement('app-children')
@@ -68,7 +70,8 @@ export class Children extends GemElement {
     });
   };
 
-  render() {
+  @template()
+  #render = () => {
     console.log('child render');
     return html`
       <p>
@@ -84,5 +87,5 @@ export class Children extends GemElement {
       <app-descendant .key=${1}></app-descendant>
       <app-descendant .key=${2}></app-descendant>
     `;
-  }
+  };
 }

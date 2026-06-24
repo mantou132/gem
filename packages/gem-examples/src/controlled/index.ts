@@ -9,6 +9,7 @@ import {
   GemElement,
   html,
   render,
+  template,
 } from '@mantou/gem';
 
 import '../elements/layout';
@@ -54,9 +55,10 @@ export class FormText extends GemElement {
     }
   };
 
-  render() {
+  @template()
+  #render = () => {
     return html`<input ${this.#inputRef} @input=${this.#inputHandle} />`;
-  }
+  };
 }
 
 @customElement('app-root')
@@ -65,12 +67,13 @@ export class Root extends GemElement {
 
   #changeHandle = (e: CustomEvent<string>) => this.#state({ value: e.detail });
 
-  render() {
+  @template()
+  #render = () => {
     return html`
       Controlled input:
       <app-form-text @change=${this.#changeHandle} value=${this.#state.value}></app-form-text>
     `;
-  }
+  };
 }
 
 render(

@@ -1,15 +1,40 @@
-import { customElement, shadow } from '@mantou/gem/lib/decorators';
-import { GemElement, html } from '@mantou/gem/lib/element';
+import { adoptedStyle, customElement, shadow, template } from '@mantou/gem/lib/decorators';
+import { css, GemElement, html } from '@mantou/gem/lib/element';
 
 import '@mantou/gem/elements/reflect';
 import '@mantou/gem/elements/title';
 
 import './nav';
 
+const style = css`
+  :host {
+    display: grid;
+    grid-template-areas: 'nav main' 'nav source';
+    grid-template-columns: 260px 1fr;
+    grid-template-rows: 1fr;
+    height: 100vh;
+  }
+  ::slotted(*) {
+    overflow: auto;
+    padding: 2em;
+  }
+  @media (width < 480px) {
+    :host {
+      display: block;
+    }
+    gem-examples-nav,
+    gem-examples-source {
+      display: none;
+    }
+  }
+`;
+
+@adoptedStyle(style)
 @customElement('gem-examples-layout')
 @shadow()
 export class Layout extends GemElement {
-  render() {
+  @template()
+  #render = () => {
     return html`
       <gem-title suffix=" - Gem Examples" hidden>${location.pathname}</gem-title>
       <gem-reflect>
@@ -23,30 +48,8 @@ export class Layout extends GemElement {
           }
         </style>
       </gem-reflect>
-      <style>
-        :host {
-          display: grid;
-          grid-template-areas: 'nav main' 'nav source';
-          grid-template-columns: 260px 1fr;
-          grid-template-rows: 1fr;
-          height: 100vh;
-        }
-        ::slotted(*) {
-          overflow: auto;
-          padding: 2em;
-        }
-        @media (width < 480px) {
-          :host {
-            display: block;
-          }
-          gem-examples-nav,
-          gem-examples-source {
-            display: none;
-          }
-        }
-      </style>
       <gem-examples-nav></gem-examples-nav>
       <slot></slot>
     `;
-  }
+  };
 }

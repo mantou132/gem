@@ -1,4 +1,4 @@
-import { customElement, GemElement, html, render, shadow } from '@mantou/gem';
+import { adoptedStyle, css, customElement, GemElement, html, render, shadow, template } from '@mantou/gem';
 import '@mantou/gem/elements/title';
 import '@mantou/gem/elements/route';
 import '@mantou/gem/elements/link';
@@ -52,25 +52,28 @@ const routes = [
   },
 ];
 
+const style = css`
+  :host {
+    text-align: center;
+  }
+  gem-link {
+    cursor: pointer;
+  }
+  gem-link + gem-link {
+    margin-left: 0.5em;
+  }
+  gem-link:hover {
+    text-decoration: underline;
+  }
+`;
+
+@adoptedStyle(style)
 @customElement('app-root')
 @shadow()
 class _App extends GemElement {
-  render() {
+  @template()
+  #render = () => {
     return html`
-      <style>
-        :host {
-          text-align: center;
-        }
-        gem-link {
-          cursor: pointer;
-        }
-        gem-link + gem-link {
-          margin-left: 0.5em;
-        }
-        gem-link:hover {
-          text-decoration: underline;
-        }
-      </style>
       <header><gem-title prefix=${'😊'}>AppName</gem-title></header>
       <nav>
         <gem-link path="/">Home</gem-link>
@@ -82,7 +85,7 @@ class _App extends GemElement {
       </nav>
       <main><gem-light-route .routes=${routes}></gem-light-route></main>
     `;
-  }
+  };
 }
 
 render(

@@ -1,4 +1,14 @@
-import { adoptedStyle, connectStore, css, customElement, GemElement, html, render, styleMap } from '@mantou/gem';
+import {
+  adoptedStyle,
+  connectStore,
+  css,
+  customElement,
+  GemElement,
+  html,
+  render,
+  styleMap,
+  template,
+} from '@mantou/gem';
 import { mediaQuery } from '@mantou/gem/helper/mediaquery';
 import { createOverrideTheme, createScopedTheme, createTheme, getThemeStore } from '@mantou/gem/helper/theme';
 
@@ -47,7 +57,8 @@ const printStyle = css(
 @customElement('sub-app')
 @adoptedStyle(overrideTheme)
 class _Sub extends GemElement {
-  render() {
+  @template()
+  #render = () => {
     return html`<div
       style=${styleMap({
         border: `2px solid ${scopedTheme.borderColor}`,
@@ -55,7 +66,7 @@ class _Sub extends GemElement {
     >
       sub app
     </div>`;
-  }
+  };
 }
 
 @customElement('app-root')
@@ -64,12 +75,13 @@ class _Sub extends GemElement {
 @adoptedStyle(printStyle)
 @adoptedStyle(style)
 export class App extends GemElement {
-  render() {
+  @template()
+  #render = () => {
     return html`
       <div>overrideThemeStore.borderColor: ${overrideThemeStore.borderColor}</div>
       <sub-app></sub-app>
     `;
-  }
+  };
 }
 
 render(
@@ -81,3 +93,4 @@ render(
   `,
   document.body,
 );
+

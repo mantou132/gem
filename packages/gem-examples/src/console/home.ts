@@ -1,4 +1,4 @@
-import { connectStore, customElement } from '@mantou/gem/lib/decorators';
+import { connectStore, customElement, template } from '@mantou/gem/lib/decorators';
 import { GemElement, html } from '@mantou/gem/lib/element';
 import { locationStore } from 'duoyun-ui/patterns/console';
 
@@ -9,7 +9,8 @@ import 'duoyun-ui/elements/title';
 @customElement('console-page-home')
 @connectStore(locationStore)
 export class ConsolePageHomeElement extends GemElement {
-  render = () => {
+  @template()
+  #render = () => {
     const text = `Current Path: ${locationStore.path}`;
     return html`
       <dy-heading style="margin-block: 0 1em"><dy-title inert></dy-title></dy-heading>

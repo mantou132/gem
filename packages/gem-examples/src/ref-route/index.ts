@@ -1,4 +1,15 @@
-import { connectStore, createRef, customElement, GemElement, history, html, render } from '@mantou/gem';
+import {
+  adoptedStyle,
+  connectStore,
+  createRef,
+  css,
+  customElement,
+  GemElement,
+  history,
+  html,
+  render,
+  template,
+} from '@mantou/gem';
 import type { RouteItem } from '@mantou/gem/elements/route';
 import { createHistoryParams, GemRouteElement } from '@mantou/gem/elements/route';
 import '@mantou/gem/elements/link';
@@ -28,19 +39,23 @@ const routes = {
 
 const locationStore = GemRouteElement.createLocationStore();
 
+const linkStyle = css`
+  gem-active-link {
+    display: block;
+  }
+  gem-active-link:state(active) {
+    color: inherit;
+  }
+`;
+
+@adoptedStyle(linkStyle)
 @customElement('route-home')
 export class RouteHome extends GemElement {
   params: Record<string, string>;
-  render = () => {
+
+  @template()
+  #render = () => {
     return html`
-      <style>
-        gem-active-link {
-          display: block;
-        }
-        gem-active-link:state(active) {
-          color: inherit;
-        }
-      </style>
       current route: home page, current params: ${JSON.stringify(this.params)}, click navigation to /a page
       <gem-active-link @click=${(e: Event) => e.stopPropagation()} .route=${routes.a} .options=${{ params: { b: 1 } }}>
         a page link, params: {b: 1}
@@ -49,19 +64,13 @@ export class RouteHome extends GemElement {
   };
 }
 
+@adoptedStyle(linkStyle)
 @connectStore(locationStore)
 @customElement('route-a')
 export class RouteA extends GemElement {
-  render = () => {
+  @template()
+  #render = () => {
     return html`
-      <style>
-        gem-active-link {
-          display: block;
-        }
-        gem-active-link:state(active) {
-          color: inherit;
-        }
-      </style>
       current route: /a/:b, current params: ${JSON.stringify(locationStore.params)}, click navigation to home page,
       current query: ${history.getParams().query.toString()}
       <gem-active-link
@@ -92,7 +101,9 @@ export class App extends GemElement {
       history.push(createHistoryParams(routes.home));
     }
   };
-  render() {
+
+  @template()
+  #render = () => {
     return html`
       <main>
         <pre>${JSON.stringify(locationStore.params)}</pre>
@@ -106,7 +117,7 @@ export class App extends GemElement {
         ></gem-route>
       </main>
     `;
-  }
+  };
 }
 
 render(

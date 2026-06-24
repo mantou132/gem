@@ -1,4 +1,4 @@
-import { adoptedStyle, css, customElement, GemElement, html, render, shadow } from '@mantou/gem';
+import { adoptedStyle, css, customElement, GemElement, html, render, shadow, template } from '@mantou/gem';
 
 import '../elements/layout';
 
@@ -11,16 +11,18 @@ const closedStyles = css`
 @adoptedStyle(closedStyles)
 @customElement('closed-shadow-dom')
 class _Closed extends GemElement {
-  render() {
+  @template()
+  #render = () => {
     return html`<div>Closed shadow red content</div>`;
-  }
+  };
 }
 
 @customElement('light-dom')
 class _OtherElement extends GemElement {
-  render() {
+  @template()
+  #render = () => {
     return html`<p>Other Content</p>`;
-  }
+  };
 }
 
 const style = css`
@@ -35,7 +37,8 @@ const style = css`
 @customElement('app-root')
 @adoptedStyle(style)
 export class App extends GemElement {
-  render() {
+  @template()
+  #render = () => {
     return html`
       Text
       <header><h1>Header</h1></header>
@@ -46,7 +49,7 @@ export class App extends GemElement {
       </article>
       <closed-shadow-dom></closed-shadow-dom>
     `;
-  }
+  };
 }
 
 render(

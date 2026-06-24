@@ -14,6 +14,7 @@ import {
   render,
   repeat,
   shadow,
+  template,
 } from '@mantou/gem';
 import type { RGBA } from 'duoyun-ui/lib/color';
 import { rgbToRgbColor } from 'duoyun-ui/lib/color';
@@ -28,7 +29,9 @@ import './fps';
 export class Pixel extends GemElement {
   @attribute color: string;
   @numattribute ratio: number;
-  render() {
+
+  @template()
+  #render = () => {
     return html`
       <style>
         :host {
@@ -38,7 +41,7 @@ export class Pixel extends GemElement {
         }
       </style>
     `;
-  }
+  };
 }
 
 const style = css`
@@ -114,7 +117,8 @@ export class App extends GemElement {
 
   #onChange = (evt: CustomEvent<string>) => this.#state({ ratio: Number(evt.detail) });
 
-  render() {
+  @template()
+  #render = () => {
     const { canvasKey, width, height, ratio, pixels } = this.#state;
     const { number, unit } = formatTraffic((performance as any).memory.usedJSHeapSize);
     return html`
@@ -146,7 +150,7 @@ export class App extends GemElement {
         )}
       </div>
     `;
-  }
+  };
 }
 
 render(

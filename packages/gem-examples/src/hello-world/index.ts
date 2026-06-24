@@ -1,5 +1,5 @@
 import { createStore, GemElement, html, render } from '@mantou/gem';
-import { connectStore, customElement } from '@mantou/gem/lib/decorators';
+import { connectStore, customElement, template } from '@mantou/gem/lib/decorators';
 
 import '../elements/layout';
 
@@ -16,12 +16,13 @@ export class HelloWorld extends GemElement {
     store({ a: ++store.a });
   };
 
-  render() {
+  @template()
+  #render = () => {
     return html`
       <button @click=${this.#clickHandle}>Hello, World</button>
       <div>store.a: ${store.a}</div>
     `;
-  }
+  };
 }
 
 render(

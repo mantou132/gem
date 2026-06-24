@@ -1,4 +1,4 @@
-import { createRef, createState, customElement, GemElement, html, render } from '@mantou/gem';
+import { createRef, createState, customElement, GemElement, html, render, template } from '@mantou/gem';
 import type {
   GemGestureElement,
   PanEventDetail,
@@ -50,7 +50,8 @@ export class AppRoot extends GemElement {
       moves: [...this.#gestureRef.value!.movesMap.values().next().value],
     });
   };
-  render() {
+  @template()
+  #render = () => {
     const { x, y, scale, rotate, duration, swipe, moves } = this.#state;
     return html`
       <style>
@@ -87,7 +88,7 @@ export class AppRoot extends GemElement {
         <app-canvas .data=${moves}></app-canvas>
       </gem-gesture>
     `;
-  }
+  };
 }
 
 render(

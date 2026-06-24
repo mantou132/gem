@@ -1,4 +1,4 @@
-import { adoptedStyle, css, customElement, GemElement, html, render, SheetToken, styled } from '@mantou/gem';
+import { adoptedStyle, css, customElement, GemElement, html, render, SheetToken, styled, template } from '@mantou/gem';
 
 import '../elements/layout';
 
@@ -25,14 +25,15 @@ const styles2 = css({
 @adoptedStyle(styles2)
 @customElement('app-root')
 export class App extends GemElement {
-  render() {
+  @template()
+  #render = () => {
     return html`
       <div class=${styles.div}>Header 1</div>
       ${[styles, styles2].map(
         (gemStyles) => html`<pre>${gemStyles[SheetToken].getStyle(this).cssRules[0].cssText}</pre>`,
       )}
     `;
-  }
+  };
 }
 
 render(

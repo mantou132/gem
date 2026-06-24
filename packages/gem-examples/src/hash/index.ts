@@ -1,8 +1,30 @@
-import { addListener, customElement, GemElement, html, mounted, render, shadow } from '@mantou/gem';
+import {
+  addListener,
+  adoptedStyle,
+  css,
+  customElement,
+  GemElement,
+  html,
+  mounted,
+  render,
+  shadow,
+  template,
+} from '@mantou/gem';
 import '@mantou/gem/elements/link';
 
 import '../elements/layout';
 
+const articleStyle = css`
+  :host {
+    display: block;
+    margin-top: 100px;
+  }
+  div {
+    height: 1000px;
+  }
+`;
+
+@adoptedStyle(articleStyle)
 @customElement('app-article')
 @shadow()
 class _Article extends GemElement {
@@ -20,23 +42,25 @@ class _Article extends GemElement {
     return addListener(window, 'hashchange', this.#checkHash);
   };
 
-  render() {
-    return html`<div style="height: 1000px"><slot></slot></div>`;
-  }
+  @template()
+  #render = () => {
+    return html`<div><slot></slot></div>`;
+  };
 }
 
 @customElement('app-root')
 class _App extends GemElement {
-  render() {
+  @template()
+  #render = () => {
     return html`
       <a href="#article-1">${'<a href="#article-1">'}</a>
       <a href="#article-2">${'<a href="#article-2">'}</a>
       <gem-link path="/" hash="#article-1"><button>go #article-1</button></gem-link>
       <gem-link path="/" hash="#article-2"><button>go #article-2</button></gem-link>
-      <app-article id="article-1" style="display: block; margin-top: 100px;">article-1</app-article>
-      <app-article id="article-2" style="display: block; margin-top: 100px;">article-2</app-article>
+      <app-article id="article-1">article-1</app-article>
+      <app-article id="article-2">article-2</app-article>
     `;
-  }
+  };
 }
 
 render(

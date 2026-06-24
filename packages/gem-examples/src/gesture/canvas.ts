@@ -1,4 +1,4 @@
-import { createRef, customElement, effect, GemElement, html, property } from '@mantou/gem';
+import { createRef, customElement, effect, GemElement, html, property, template } from '@mantou/gem';
 import type { PanEventDetail } from '@mantou/gem/elements/gesture';
 
 @customElement('app-canvas')
@@ -57,11 +57,12 @@ export class AppCanvas extends GemElement {
     });
   };
 
-  render() {
+  @template()
+  #render = () => {
     return html`
       <br />
       <canvas ${this.#canvasRef} style="border: 1px solid" height="150"></canvas>
       <canvas ${this.#canvasRef1} style="border: 1px solid" height="150"></canvas>
     `;
-  }
+  };
 }

@@ -8,6 +8,7 @@ import {
   html,
   render,
   shadow,
+  template,
 } from '@mantou/gem';
 import { GemDialogBaseElement } from '@mantou/gem/elements/base/dialog';
 import { createModalClass } from '@mantou/gem/elements/base/modal-factory';
@@ -17,15 +18,17 @@ import '../elements/layout';
 
 @customElement('app-state')
 class _AppState extends GemElement {
-  state = createState({ count: 0 });
+  #state = createState({ count: 0 });
   #increment = () => {
-    this.state({ count: this.state.count + 1 });
+    this.#state({ count: this.#state.count + 1 });
   };
-  render() {
+
+  @template()
+  #render = () => {
     return html`
-      <button @click=${this.#increment}>count: ${this.state.count}</button>
+      <button @click=${this.#increment}>count: ${this.#state.count}</button>
     `;
-  }
+  };
 }
 
 const confirmStyle = css`
@@ -115,7 +118,8 @@ class Dialog extends GemDialogBaseElement {
     }
   };
 
-  render = () => {
+  @template()
+  #render = () => {
     if (!this.opened) return null;
     return html`
       <div class="root">
@@ -139,7 +143,8 @@ export class Root extends GemElement {
 
   #clickHandle = () => this.#dialog.value?.open();
 
-  render() {
+  @template()
+  #render = () => {
     return html`
       <button ?inert=${this.#state.modal} @click=${this.#clickHandle}>open dialog</button>
       <app-dialog
@@ -152,7 +157,7 @@ export class Root extends GemElement {
         <gem-link path="/hi" style="cursor: pointer; color: blue">replace route</gem-link>
       </app-dialog>
     `;
-  }
+  };
 }
 
 render(

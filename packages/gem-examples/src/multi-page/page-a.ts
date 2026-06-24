@@ -1,4 +1,4 @@
-import { connectStore, customElement, GemElement, html, mounted, shadow } from '@mantou/gem';
+import { connectStore, customElement, GemElement, html, mounted, shadow, template } from '@mantou/gem';
 
 import api from './api';
 import { pageA } from './store';
@@ -12,7 +12,8 @@ export class App extends GemElement {
     api.getData();
   };
 
-  render() {
+  @template()
+  #render = () => {
     return html`<slot></slot> ${pageA.text}`;
-  }
+  };
 }

@@ -1,4 +1,4 @@
-import { customElement, GemElement, html, shadow } from '@mantou/gem';
+import { adoptedStyle, css, customElement, GemElement, html, shadow, template } from '@mantou/gem';
 import '@mantou/gem/elements/route';
 import '@mantou/gem/elements/link';
 
@@ -19,21 +19,24 @@ const routes = [
   },
 ];
 
+const style = css`
+  gem-link + gem-link {
+    margin-left: 0.5em;
+  }
+`;
+
+@adoptedStyle(style)
 @customElement('app-page-c')
 @shadow()
 class _AppPageC extends GemElement {
-  render() {
+  @template()
+  #render = () => {
     return html`
-      <style>
-        gem-link + gem-link {
-          margin-left: 0.5em;
-        }
-      </style>
       <gem-link path="./d">Page c/d</gem-link>
       <gem-link path="./e">Page c/e</gem-link>
       <gem-route .routes=${routes}></gem-route>
       inert route:
       <gem-route ?inert=${true} .routes=${routes}></gem-route>
     `;
-  }
+  };
 }

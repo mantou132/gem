@@ -1,5 +1,5 @@
 import { I18n } from '@mantou/gem/helper/i18n';
-import { customElement } from '@mantou/gem/lib/decorators';
+import { customElement, template } from '@mantou/gem/lib/decorators';
 import { GemElement, html, render } from '@mantou/gem/lib/element';
 import { history } from '@mantou/gem/lib/history';
 import type { Help, Languages, Links, Social, Terms } from 'duoyun-ui/patterns/footer';
@@ -110,7 +110,8 @@ export class MyHomepage extends GemElement {
     },
   };
 
-  render = () => {
+  @template()
+  #render = () => {
     return html`
       <dy-pat-nav name="Chrome" .logo=${'https://gemjs.org/logo.png'} .links=${this.#links}></dy-pat-nav>
       <article style="height:80vh;display:grid;place-items:center;font-size:3em;font-weight:bold;">

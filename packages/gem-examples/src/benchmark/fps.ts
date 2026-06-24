@@ -8,6 +8,7 @@ import {
   html,
   mounted,
   shadow,
+  template,
 } from '@mantou/gem';
 
 export const fpsStyle = css`
@@ -75,7 +76,8 @@ export class NesboxFpsElement extends GemElement {
     };
   };
 
-  render = () => {
+  @template()
+  #render = () => {
     return html`FPS: ${store.fps}`;
   };
 }

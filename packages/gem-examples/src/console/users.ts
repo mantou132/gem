@@ -1,5 +1,5 @@
-import { customElement, type Emitter, emitter, mounted } from '@mantou/gem/lib/decorators';
-import { createState, GemElement, html } from '@mantou/gem/lib/element';
+import { adoptedStyle, customElement, type Emitter, emitter, mounted, template } from '@mantou/gem/lib/decorators';
+import { createState, css, GemElement, html } from '@mantou/gem/lib/element';
 import { history } from '@mantou/gem/lib/history';
 import type { ContextMenuItem } from 'duoyun-ui/elements/contextmenu';
 import { ContextMenu } from 'duoyun-ui/elements/contextmenu';
@@ -37,6 +37,13 @@ const initItem = {
 
 type NewItem = Modify<typeof initItem, { social?: string[] }>;
 
+const style = css`
+  dy-pat-table::part(table) {
+    min-width: 40em;
+  }
+`;
+
+@adoptedStyle(style)
 @customElement('console-page-users')
 export class ConsolePageItemElement extends GemElement {
   @emitter loaded: Emitter;
@@ -285,7 +292,8 @@ export class ConsolePageItemElement extends GemElement {
     this.loaded();
   };
 
-  render = () => {
+  @template()
+  #render = () => {
     return html`
       <dy-pat-table
         filterable
@@ -296,12 +304,6 @@ export class ConsolePageItemElement extends GemElement {
       >
         <dy-button @click=${this.onCreate}>Add</dy-button>
       </dy-pat-table>
-
-      <style>
-        dy-pat-table::part(table) {
-          min-width: 40em;
-        }
-      </style>
     `;
   };
 }

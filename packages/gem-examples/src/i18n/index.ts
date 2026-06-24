@@ -1,4 +1,4 @@
-import { customElement, GemElement, html, render } from '@mantou/gem';
+import { customElement, GemElement, html, render, template } from '@mantou/gem';
 import { I18n } from '@mantou/gem/helper/i18n';
 import type { RouteItem } from 'duoyun-ui/elements/route';
 
@@ -54,7 +54,8 @@ const localizeRoutes: RouteItem[] = [
 
 @customElement('app-root')
 export class App extends GemElement {
-  render() {
+  @template()
+  #render = () => {
     return html`
       <button @click=${() => i18n.setLanguage('de')}>de</button>
       <button @click=${() => i18n.setLanguage('zh')}>zh</button>
@@ -73,7 +74,7 @@ export class App extends GemElement {
       <h2>localize content</h2>
       <dy-route .trigger=${i18n} .routes=${localizeRoutes}></dy-route>
     `;
-  }
+  };
 }
 
 render(

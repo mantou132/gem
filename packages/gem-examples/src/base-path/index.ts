@@ -1,4 +1,14 @@
-import { addListener, createState, customElement, GemElement, history, html, mounted, render } from '@mantou/gem';
+import {
+  addListener,
+  createState,
+  customElement,
+  GemElement,
+  history,
+  html,
+  mounted,
+  render,
+  template,
+} from '@mantou/gem';
 import '@mantou/gem/elements/link';
 
 import '../elements/layout';
@@ -18,7 +28,8 @@ export class App extends GemElement {
       }
     });
 
-  render() {
+  @template()
+  #render = () => {
     return html`
       <main>
         ${
@@ -34,7 +45,7 @@ export class App extends GemElement {
         </button>
       </main>
     `;
-  }
+  };
 }
 
 render(
