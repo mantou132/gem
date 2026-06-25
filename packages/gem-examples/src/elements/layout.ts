@@ -1,10 +1,4 @@
-import { adoptedStyle, customElement, shadow, template } from '@mantou/gem/lib/decorators';
-import { css, GemElement, html } from '@mantou/gem/lib/element';
-
-import '@mantou/gem/elements/reflect';
-import '@mantou/gem/elements/title';
-
-import './nav';
+import { adoptedStyle, customElement, GemElement, shadow, template } from '@mantou/gem';
 
 const style = css`
   :host {

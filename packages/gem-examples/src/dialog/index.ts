@@ -1,20 +1,6 @@
-import {
-  adoptedStyle,
-  createRef,
-  createState,
-  css,
-  customElement,
-  GemElement,
-  html,
-  render,
-  shadow,
-  template,
-} from '@mantou/gem';
+import { adoptedStyle, customElement, GemElement, html, render, shadow, template } from '@mantou/gem';
 import { GemDialogBaseElement } from '@mantou/gem/elements/base/dialog';
 import { createModalClass } from '@mantou/gem/elements/base/modal-factory';
-
-import '@mantou/gem/elements/link';
-import '../elements/layout';
 
 @customElement('app-state')
 class _AppState extends GemElement {

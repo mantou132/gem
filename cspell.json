@@ -140,6 +140,7 @@
     "worklet",
     "worktree",
     "xywh",
-    "Uncapitalize"
+    "Uncapitalize",
+    "unplugin"
   ]
 }

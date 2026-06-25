@@ -1,6 +1,6 @@
-import { adoptedStyle, css, customElement, GemElement, html, mounted, shadow, template } from '@mantou/gem';
+import { adoptedStyle, customElement, GemElement, mounted, shadow, template } from '@mantou/gem';
 
-import { EXAMPLES, VERSION } from './env';
+import { EXAMPLES, VERSION } from '../env';
 
 const style = css`
   :host {

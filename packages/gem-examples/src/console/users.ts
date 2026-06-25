@@ -1,5 +1,5 @@
-import { adoptedStyle, customElement, type Emitter, emitter, mounted, template } from '@mantou/gem/lib/decorators';
-import { createState, css, GemElement, html } from '@mantou/gem/lib/element';
+import type { Emitter } from '@mantou/gem';
+import { adoptedStyle, customElement, emitter, GemElement, mounted, template } from '@mantou/gem';
 import { history } from '@mantou/gem/lib/history';
 import type { ContextMenuItem } from 'duoyun-ui/elements/contextmenu';
 import { ContextMenu } from 'duoyun-ui/elements/contextmenu';
@@ -13,9 +13,6 @@ import type { FetchEventDetail, PatTableColumn } from 'duoyun-ui/patterns/table'
 
 import type { Item } from './api';
 import { fetchItemsWithArgs } from './api';
-
-import 'duoyun-ui/patterns/table';
-import 'duoyun-ui/elements/button';
 
 const pagination = createPaginationStore<Item>({
   storageKey: 'users',

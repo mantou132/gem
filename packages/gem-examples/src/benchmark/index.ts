@@ -1,13 +1,9 @@
 import {
   adoptedStyle,
   attribute,
-  createRef,
-  createState,
-  css,
   customElement,
   effect,
   GemElement,
-  html,
   memo,
   mounted,
   numattribute,
@@ -20,8 +16,6 @@ import type { RGBA } from 'duoyun-ui/lib/color';
 import { rgbToRgbColor } from 'duoyun-ui/lib/color';
 import { formatTraffic } from 'duoyun-ui/lib/number';
 
-import 'duoyun-ui/elements/radio';
-import '../elements/layout';
 import './fps';
 
 @customElement('app-pixel')

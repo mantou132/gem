@@ -1,12 +1,7 @@
-import { connect, createStore, html, render } from '@mantou/gem';
+import { connect, render } from '@mantou/gem';
 import { ContextMenu } from 'duoyun-ui/elements/contextmenu';
 import type { MouseEventDetail, TreeItem } from 'duoyun-ui/elements/tree';
 import { sleep } from 'duoyun-ui/lib/timer';
-
-import 'duoyun-ui/elements/tree';
-import 'duoyun-ui/elements/loading';
-
-import '../elements/layout';
 
 const store = createStore({
   selected: 'Item 3.3.1',

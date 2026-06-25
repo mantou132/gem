@@ -2,19 +2,13 @@ import {
   adoptedStyle,
   attribute,
   connectStore,
-  createRef,
-  createStore,
-  css,
   customElement,
   fallback,
   GemElement,
-  html,
   mounted,
   render,
   template,
 } from '@mantou/gem';
-
-import '../elements/layout';
 
 import type { Message } from './children';
 import { Children } from './children';

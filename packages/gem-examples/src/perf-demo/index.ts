@@ -2,19 +2,13 @@ import {
   adoptedStyle,
   async,
   connectStore,
-  createState,
-  createStore,
-  css,
   customElement,
   GemElement,
-  html,
   property,
   render,
   shadow,
   template,
 } from '@mantou/gem';
-
-import '../elements/layout';
 
 const store = createStore({
   number: 1,

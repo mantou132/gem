@@ -1,9 +1,4 @@
-import { adoptedStyle, css, customElement, GemElement, html, render, shadow, template } from '@mantou/gem';
-import '@mantou/gem/elements/title';
-import '@mantou/gem/elements/route';
-import '@mantou/gem/elements/link';
-
-import '../elements/layout';
+import { adoptedStyle, customElement, GemElement, render, shadow, template } from '@mantou/gem';
 
 import './page-b';
 import './page-c';

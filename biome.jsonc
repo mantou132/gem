@@ -86,5 +86,8 @@
       "formatter": { "enabled": false },
       "assist": { "enabled": false }
     }
-  ]
+  ],
+  "files": {
+    "includes": ["**", "!packages/gem-examples/src/auto-import.d.ts"]
+  }
 }

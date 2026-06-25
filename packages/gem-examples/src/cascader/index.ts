@@ -1,11 +1,6 @@
-import { connect, createStore, html, render } from '@mantou/gem';
+import { connect, render } from '@mantou/gem';
 import type { Option } from 'duoyun-ui/elements/cascader-picker';
 import { sleep } from 'duoyun-ui/lib/timer';
-
-import 'duoyun-ui/elements/cascader-picker';
-import 'duoyun-ui/elements/loading';
-
-import '../elements/layout';
 
 const store = createStore({
   selected: [['Item 3', 'Item 3.3', 'Item 3.3.1']],

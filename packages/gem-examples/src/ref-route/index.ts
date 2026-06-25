@@ -1,20 +1,6 @@
-import {
-  adoptedStyle,
-  connectStore,
-  createRef,
-  css,
-  customElement,
-  GemElement,
-  history,
-  html,
-  render,
-  template,
-} from '@mantou/gem';
+import { adoptedStyle, connectStore, customElement, GemElement, history, render, template } from '@mantou/gem';
 import type { RouteItem } from '@mantou/gem/elements/route';
 import { createHistoryParams, GemRouteElement } from '@mantou/gem/elements/route';
-import '@mantou/gem/elements/link';
-
-import '../elements/layout';
 
 const homeRoute: RouteItem = {
   pattern: '/',

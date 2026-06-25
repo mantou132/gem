@@ -1,9 +1,6 @@
-import { customElement, GemElement, html, render, template } from '@mantou/gem';
+import { customElement, GemElement, render, template } from '@mantou/gem';
 import { I18n } from '@mantou/gem/helper/i18n';
 import type { RouteItem } from 'duoyun-ui/elements/route';
-
-import 'duoyun-ui/elements/route';
-import '../elements/layout';
 
 const en = {
   title: 'This is I18n',

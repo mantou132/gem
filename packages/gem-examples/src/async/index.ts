@@ -1,6 +1,4 @@
-import { async, createState, customElement, GemElement, html, numattribute, render, template } from '@mantou/gem';
-
-import '../elements/layout';
+import { async, customElement, GemElement, numattribute, render, template } from '@mantou/gem';
 
 @customElement('app-post')
 @async()

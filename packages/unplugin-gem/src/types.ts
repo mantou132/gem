@@ -6,6 +6,7 @@ export type AutoImportConfig =
   | {
       extends?: 'gem';
       members?: Record<string, string[]>;
+      elements?: Record<string, Record<string, string>>;
     };
 
 /**
@@ -17,6 +18,16 @@ export type AutoImportDts = boolean | string;
  * Plugin options matching swc-plugin-gem configuration
  */
 export interface UnpluginGemOptions {
+  /**
+   * Files to transform
+   */
+  include?: string | RegExp | Array<string | RegExp>;
+
+  /**
+   * Files to skip
+   */
+  exclude?: string | RegExp | Array<string | RegExp>;
+
   /**
    * Minify CSS in css`` template literals
    * @default false

@@ -80,11 +80,7 @@ pub fn process_transform(mut program: Program, data: TransformPluginProgramMetad
             visitor: preload_transform(),
         },
         Optional {
-            enabled: config.hmr
-                && !filename
-                    .as_deref()
-                    .unwrap_or_default()
-                    .contains("/node_modules/"),
+            enabled: config.hmr,
             visitor: hmr_transform(filename.clone()),
         },
     ));

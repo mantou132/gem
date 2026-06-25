@@ -1,11 +1,7 @@
+import { customElement, GemElement, render, template } from '@mantou/gem';
 import { I18n } from '@mantou/gem/helper/i18n';
-import { customElement, template } from '@mantou/gem/lib/decorators';
-import { GemElement, html, render } from '@mantou/gem/lib/element';
 import { history } from '@mantou/gem/lib/history';
 import type { Help, Languages, Links, Social, Terms } from 'duoyun-ui/patterns/footer';
-
-import 'duoyun-ui/patterns/footer';
-import 'duoyun-ui/patterns/nav';
 
 history.basePath = '/homepage';
 

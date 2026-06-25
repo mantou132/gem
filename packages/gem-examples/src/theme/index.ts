@@ -1,18 +1,6 @@
-import {
-  adoptedStyle,
-  connectStore,
-  css,
-  customElement,
-  GemElement,
-  html,
-  render,
-  styleMap,
-  template,
-} from '@mantou/gem';
+import { adoptedStyle, connectStore, customElement, GemElement, render, template } from '@mantou/gem';
 import { mediaQuery } from '@mantou/gem/helper/mediaquery';
 import { createOverrideTheme, createScopedTheme, createTheme, getThemeStore } from '@mantou/gem/helper/theme';
-
-import '../elements/layout';
 
 const scopedTheme = createScopedTheme({
   color: '#456',

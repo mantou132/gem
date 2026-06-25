@@ -5,7 +5,6 @@ import {
   customElement,
   emitter,
   GemElement,
-  html,
   mounted,
   numattribute,
   part,

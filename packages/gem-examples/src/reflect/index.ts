@@ -1,8 +1,4 @@
-import { createState, customElement, GemElement, html, mounted, randomStr, render, template } from '@mantou/gem';
-
-import '@mantou/gem/elements/reflect';
-
-import '../elements/layout';
+import { customElement, GemElement, mounted, randomStr, render, template } from '@mantou/gem';
 
 @customElement('app-children')
 export class AppChild extends GemElement {

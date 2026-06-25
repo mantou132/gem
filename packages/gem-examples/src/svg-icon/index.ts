@@ -1,8 +1,4 @@
-import { html, raw, render } from '@mantou/gem';
-
-import '@mantou/gem/elements/use';
-
-import '../elements/layout';
+import { render } from '@mantou/gem';
 
 const app = html`
   <div>

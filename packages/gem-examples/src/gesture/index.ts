@@ -1,4 +1,4 @@
-import { createRef, createState, customElement, GemElement, html, render, template } from '@mantou/gem';
+import { customElement, GemElement, render, template } from '@mantou/gem';
 import type {
   GemGestureElement,
   PanEventDetail,
@@ -7,8 +7,6 @@ import type {
   SwipeEventDetail,
 } from '@mantou/gem/elements/gesture';
 
-import '@mantou/gem/elements/gesture';
-import '../elements/layout';
 import './canvas';
 
 @customElement('app-root')
@@ -84,7 +82,6 @@ export class AppRoot extends GemElement {
           <img src="https://book.gemjs.org/logo.png" width="200" />
         </gem-gesture>
         <div>${moves[moves.length - 1] ? `${JSON.stringify(moves[moves.length - 1])}` : ''}</div>
-        <div>${swipe}</div>
         <app-canvas .data=${moves}></app-canvas>
       </gem-gesture>
     `;

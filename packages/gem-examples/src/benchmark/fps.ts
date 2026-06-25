@@ -1,15 +1,4 @@
-import {
-  adoptedStyle,
-  connectStore,
-  createStore,
-  css,
-  customElement,
-  GemElement,
-  html,
-  mounted,
-  shadow,
-  template,
-} from '@mantou/gem';
+import { adoptedStyle, connectStore, customElement, GemElement, mounted, shadow, template } from '@mantou/gem';
 
 export const fpsStyle = css`
   :host {

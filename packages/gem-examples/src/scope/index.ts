@@ -1,6 +1,4 @@
-import { adoptedStyle, css, customElement, GemElement, html, render, shadow, template } from '@mantou/gem';
-
-import '../elements/layout';
+import { adoptedStyle, customElement, GemElement, render, shadow, template } from '@mantou/gem';
 
 const closedStyles = css`
   div {

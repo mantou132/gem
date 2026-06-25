@@ -1,6 +1,4 @@
-import { adoptedStyle, css, customElement, GemElement, html, render, SheetToken, styled, template } from '@mantou/gem';
-
-import '../elements/layout';
+import { adoptedStyle, customElement, GemElement, render, SheetToken, template } from '@mantou/gem';
 
 const styles = css({
   $: styled`

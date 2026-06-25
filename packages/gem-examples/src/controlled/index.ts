@@ -1,18 +1,5 @@
 import type { Emitter } from '@mantou/gem';
-import {
-  attribute,
-  createRef,
-  createState,
-  customElement,
-  effect,
-  emitter,
-  GemElement,
-  html,
-  render,
-  template,
-} from '@mantou/gem';
-
-import '../elements/layout';
+import { attribute, customElement, effect, emitter, GemElement, render, template } from '@mantou/gem';
 
 @customElement('app-form-text')
 export class FormText extends GemElement {

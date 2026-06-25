@@ -1,4 +1,4 @@
-import { createRef, customElement, effect, GemElement, html, property, template } from '@mantou/gem';
+import { customElement, effect, GemElement, property, template } from '@mantou/gem';
 import type { PanEventDetail } from '@mantou/gem/elements/gesture';
 
 @customElement('app-canvas')

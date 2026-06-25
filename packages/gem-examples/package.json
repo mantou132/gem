@@ -14,6 +14,7 @@
   },
   "devDependencies": {
     "@gemjs/config": "^2.1.3",
-    "@rsbuild/core": "^2.0.15"
+    "@rsbuild/core": "^2.0.15",
+    "unplugin-gem": "^0.1.1"
   }
 }

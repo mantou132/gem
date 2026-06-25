@@ -1,13 +1,9 @@
-import { connectStore, customElement, mounted, template } from '@mantou/gem/lib/decorators';
-import { html } from '@mantou/gem/lib/element';
+import { connectStore, customElement, mounted, template } from '@mantou/gem';
 import { createPaginationStore } from 'duoyun-ui/helper/store';
 
 import type { Item } from './api';
 import { fetchAllItems } from './api';
 import { ConsolePageItemElement } from './users';
-
-import 'duoyun-ui/patterns/table';
-import 'duoyun-ui/elements/button';
 
 const { store, updatePage } = createPaginationStore<Item>({
   storageKey: 'users-client-search',

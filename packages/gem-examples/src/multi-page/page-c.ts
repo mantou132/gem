@@ -1,6 +1,4 @@
-import { adoptedStyle, css, customElement, GemElement, html, shadow, template } from '@mantou/gem';
-import '@mantou/gem/elements/route';
-import '@mantou/gem/elements/link';
+import { adoptedStyle, customElement, GemElement, shadow, template } from '@mantou/gem';
 
 const routes = [
   {

@@ -1,7 +1,4 @@
-import { createStore, GemElement, html, render } from '@mantou/gem';
-import { connectStore, customElement, template } from '@mantou/gem/lib/decorators';
-
-import '../elements/layout';
+import { connectStore, customElement, GemElement, render, template } from '@mantou/gem';
 
 // 新建全局数据对象
 const store = createStore({

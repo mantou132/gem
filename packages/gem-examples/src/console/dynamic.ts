@@ -1,10 +1,5 @@
-import { connectStore, customElement, template } from '@mantou/gem/lib/decorators';
-import { GemElement, html } from '@mantou/gem/lib/element';
+import { connectStore, customElement, GemElement, template } from '@mantou/gem';
 import { locationStore } from 'duoyun-ui/patterns/console';
-
-import 'duoyun-ui/elements/code-block';
-import 'duoyun-ui/elements/heading';
-import 'duoyun-ui/elements/title';
 
 @customElement('console-page-dynamic')
 @connectStore(locationStore)

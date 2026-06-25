@@ -4,6 +4,7 @@ import { createRequire } from 'node:module';
 import path from 'node:path';
 
 import { defineConfig } from '@rsbuild/core';
+import unpluginGem from 'unplugin-gem/rspack';
 
 import { version } from '../gem/package.json';
 
@@ -55,35 +56,26 @@ export default defineConfig((config) => {
         output: {
           devtoolModuleFilenameTemplate: 'webpack://[namespace]/[resource-path]',
         },
-      },
-      swc: {
-        jsc: {
-          parser: {
-            syntax: 'typescript',
-            decorators: true,
-          },
-          transform: {
-            decoratorVersion: '2023-11',
-          },
-          experimental: {
-            runPluginFirst: true,
-            plugins: isBuild
-              ? []
-              : [
-                  [
-                    swcPluginPath,
-                    {
-                      hmr: true,
-                    },
-                  ],
-                ],
-          },
-        },
+        plugins: [
+          unpluginGem({
+            include: path.resolve(__dirname, 'src'),
+            autoImport: {
+              extends: 'gem',
+              elements: {
+                src: {
+                  'gem-examples-*': '/elements/*',
+                },
+              },
+            },
+            autoImportDts: true,
+            hmr: !isBuild,
+          }),
+        ],
       },
     },
     resolve: {
       alias: {
-        src: '',
+        src: './src',
       },
     },
     plugins: [
