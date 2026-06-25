@@ -37,7 +37,11 @@ function getPluginRecord(pluginList: string[]) {
 }
 
 // dev mode uses memory file system
-export async function buildApp(dir: string, options: Required<CliUniqueConfig>, bookConfig: BookConfig) {
+export async function buildApp(
+  dir: string,
+  options: Required<CliUniqueConfig>,
+  bookConfig: BookConfig,
+): Promise<RspackDevServer | undefined> {
   const { debug, build, theme, template, output, icon, ga, site, port, plugin } = options;
   const isRemoteIcon = isURL(icon);
   const docsDir = path.resolve(dir);
@@ -91,15 +95,18 @@ export async function buildApp(dir: string, options: Required<CliUniqueConfig>, 
           test: /\.ts$/,
           use: [
             {
-              // https://github.com/swc-project/swc/issues/9565
-              loader: require.resolve('ts-loader'),
+              loader: 'builtin:swc-loader',
               options: {
-                // Install cli without installing dev @types dependency
-                transpileOnly: true,
-                compilerOptions: {
-                  module: 'esnext',
-                  declarationMap: false,
-                  importHelpers: true,
+                jsc: {
+                  externalHelpers: true,
+                  parser: {
+                    syntax: 'typescript',
+                    decorators: true,
+                  },
+                  transform: {
+                    decoratorVersion: '2023-11',
+                  },
+                  target: 'es2024',
                 },
               },
             },
@@ -110,7 +117,7 @@ export async function buildApp(dir: string, options: Required<CliUniqueConfig>, 
     resolve: {
       extensions: ['.ts', '.js'],
       alias: {
-        tslib: require.resolve('tslib'),
+        '@swc/helpers': require.resolve('@swc/helpers/package.json'),
       },
     },
     output: {

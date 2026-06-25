@@ -52,6 +52,9 @@ export default defineConfig((config) => {
     tools: {
       rspack: {
         target: ['web', 'es2024'],
+        output: {
+          devtoolModuleFilenameTemplate: 'webpack://[namespace]/[resource-path]',
+        },
       },
       swc: {
         jsc: {

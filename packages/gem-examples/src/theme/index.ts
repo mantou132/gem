@@ -93,4 +93,3 @@ render(
   `,
   document.body,
 );
-

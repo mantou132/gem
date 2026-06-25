@@ -1,4 +1,5 @@
 import './chrome-polyfill';
+
 import { html, render } from '@mantou/gem';
 
 import { PanelStore, panelStore } from './store';
