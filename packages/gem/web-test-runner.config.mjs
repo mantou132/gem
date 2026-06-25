@@ -7,12 +7,8 @@ import { esbuildPlugin } from '@web/dev-server-esbuild';
  */
 export default {
   coverage: true,
+  concurrency: 1,
   nodeResolve: true,
-  files: [
-    './src/**/*.test.ts',
-    './src/**/*.spec.ts',
-    // https://github.com/evanw/esbuild/issues/3866
-    '!./src/test/elements/link.test.ts',
-  ],
+  files: ['./src/**/*.test.ts', './src/**/*.spec.ts'],
   plugins: [esbuildPlugin({ ts: true, tsconfig: './tsconfig.json', target: 'es2022' })],
 };

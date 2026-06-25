@@ -1,0 +1,98 @@
+diff --git a/dist/EsbuildPlugin.js b/dist/EsbuildPlugin.js
+index af498e51691b2d1b391dbd35c03804eb44e48d9b..2ac5a31ee0b2cd5c01a0492577fa5f46fe762264 100644
+--- a/dist/EsbuildPlugin.js
++++ b/dist/EsbuildPlugin.js
+@@ -6,6 +6,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
+ exports.EsbuildPlugin = void 0;
+ const dev_server_core_1 = require("@web/dev-server-core");
+ const esbuild_1 = require("esbuild");
++const core_1 = require("@swc/core");
+ const util_1 = require("util");
+ const path_1 = __importDefault(require("path"));
+ const fs_1 = __importDefault(require("fs"));
+@@ -13,6 +14,7 @@ const dom5_1 = require("@web/dev-server-core/dist/dom5");
+ const parse5_1 = require("parse5");
+ const getEsbuildTarget_js_1 = require("./getEsbuildTarget.js");
+ const filteredWarnings = ['Unsupported source map comment'];
++const swcLoaders = new Set(['js', 'jsx', 'ts', 'tsx']);
+ async function fileExists(path) {
+     try {
+         await (0, util_1.promisify)(fs_1.default.access)(path);
+@@ -107,6 +109,9 @@ class EsbuildPlugin {
+         return (0, parse5_1.serialize)(documentAst);
+     }
+     async __transformCode(code, filePath, loader, target) {
++        if (swcLoaders.has(loader)) {
++            return this.__transformCodeWithSwc(code, filePath, loader, target);
++        }
+         try {
+             const transformOptions = {
+                 sourcefile: filePath,
+@@ -144,6 +149,54 @@ class EsbuildPlugin {
+             throw e;
+         }
+     }
++    async __transformCodeWithSwc(code, filePath, loader, target) {
++        try {
++            const isTypeScript = loader === 'ts' || loader === 'tsx';
++            const swcTarget = Array.isArray(target) ? target[target.length - 1] : target;
++            const { code: transformedCode } = await (0, core_1.transform)(code, {
++                filename: filePath,
++                sourceMaps: 'inline',
++                jsc: {
++                    externalHelpers: true,
++                    target: swcTarget === 'esnext' ? 'es2024' : swcTarget,
++                    parser: {
++                        syntax: isTypeScript ? 'typescript' : 'ecmascript',
++                        decorators: true,
++                        tsx: loader === 'tsx',
++                        jsx: loader === 'jsx',
++                    },
++                    transform: {
++                        decoratorVersion: '2023-11',
++                        react: {
++                            pragma: this.esbuildConfig.jsxFactory,
++                            pragmaFrag: this.esbuildConfig.jsxFragment,
++                            runtime: this.esbuildConfig.jsxFactory ? 'classic' : undefined,
++                        },
++                    },
++                },
++                module: {
++                    type: 'es6',
++                },
++            });
++            const banner = this.esbuildConfig.banner ? `${this.esbuildConfig.banner}\n` : '';
++            const footer = this.esbuildConfig.footer ? `\n${this.esbuildConfig.footer}` : '';
++            return `${banner}${this.__applyDefine(transformedCode)}${footer}`;
++        }
++        catch (e) {
++            throw new dev_server_core_1.PluginSyntaxError(e.message, filePath, code, 0, 0);
++        }
++    }
++    __applyDefine(code) {
++        if (!this.esbuildConfig.define) {
++            return code;
++        }
++        let transformedCode = code;
++        for (const [key, value] of Object.entries(this.esbuildConfig.define)) {
++            const escapedKey = key.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
++            transformedCode = transformedCode.replace(new RegExp(`\\b${escapedKey}\\b`, 'g'), value);
++        }
++        return transformedCode;
++    }
+ }
+ exports.EsbuildPlugin = EsbuildPlugin;
+ //# sourceMappingURL=EsbuildPlugin.js.map
+\ No newline at end of file
+diff --git a/package.json b/package.json
+index bc24c9efa387ee19273c4f42dc8dedcd69031d46..e7a019ef4ed5b122e82461dd8e723ddba5f01940 100644
+--- a/package.json
++++ b/package.json
+@@ -52,6 +52,7 @@
+   ],
+   "dependencies": {
+     "@mdn/browser-compat-data": "^4.0.0",
++    "@swc/core": "^1.15.40",
+     "@web/dev-server-core": "^0.7.4",
+     "esbuild": "^0.25.0",
+     "parse5": "^6.0.1",

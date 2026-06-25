@@ -29,6 +29,9 @@
   "pnpm": {
     "overrides": {
       "esbuild": "^0.24.0"
+    },
+    "patchedDependencies": {
+      "@web/dev-server-esbuild@1.0.4": "patches/@web__dev-server-esbuild@1.0.4.patch"
     }
   }
 }

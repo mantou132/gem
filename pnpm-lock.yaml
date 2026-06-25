@@ -7,6 +7,11 @@ settings:
 overrides:
   esbuild: ^0.24.0
 
+patchedDependencies:
+  '@web/dev-server-esbuild@1.0.4':
+    hash: 81752f9614f488ac1d9ab1491716c08f6d984c2e7176d91f547b4fd5d19f8b66
+    path: patches/@web__dev-server-esbuild@1.0.4.patch
+
 importers:
 
   .:
@@ -94,7 +99,7 @@ importers:
         version: 10.0.10
       '@web/dev-server-esbuild':
         specifier: ^1.0.2
-        version: 1.0.4
+        version: 1.0.4(patch_hash=81752f9614f488ac1d9ab1491716c08f6d984c2e7176d91f547b4fd5d19f8b66)
       '@web/test-runner':
         specifier: ^0.18.1
         version: 0.18.3
@@ -113,6 +118,9 @@ importers:
       '@rslib/core':
         specifier: ^0.23.0
         version: 0.23.0(@typescript/native-preview@7.0.0-dev.20251021.1)(core-js@3.29.0)(typescript@5.9.3)
+      '@swc/helpers':
+        specifier: ^0.5.23
+        version: 0.5.23
       '@types/chai':
         specifier: ^5.0.0
         version: 5.2.3
@@ -124,7 +132,7 @@ importers:
         version: 2.0.7
       '@web/dev-server-esbuild':
         specifier: ^1.0.2
-        version: 1.0.4
+        version: 1.0.4(patch_hash=81752f9614f488ac1d9ab1491716c08f6d984c2e7176d91f547b4fd5d19f8b66)
       '@web/test-runner':
         specifier: ^0.18.1
         version: 0.18.3
@@ -258,7 +266,7 @@ importers:
         version: 1.26.5
       '@web/dev-server-esbuild':
         specifier: ^1.0.2
-        version: 1.0.4
+        version: 1.0.4(patch_hash=81752f9614f488ac1d9ab1491716c08f6d984c2e7176d91f547b4fd5d19f8b66)
       '@web/test-runner':
         specifier: ^0.18.1
         version: 0.18.3
@@ -10522,7 +10530,7 @@ snapshots:
       - supports-color
       - utf-8-validate
 
-  '@web/dev-server-esbuild@1.0.4':
+  '@web/dev-server-esbuild@1.0.4(patch_hash=81752f9614f488ac1d9ab1491716c08f6d984c2e7176d91f547b4fd5d19f8b66)':
     dependencies:
       '@mdn/browser-compat-data': 4.2.1
       '@web/dev-server-core': 0.7.5
