@@ -1,4 +1,4 @@
-import { attribute, boolattribute, emitter, numattribute, property, state } from '../lib/decorators';
+import { attribute, boolattribute, emitter, globalemitter, numattribute, property, state } from '../lib/decorators';
 import { GemElement, type Metadata, UpdateToken } from '../lib/reactive';
 import type { Store } from '../lib/store';
 import { Logger } from './logger';
@@ -140,6 +140,7 @@ const descMap = {
   property,
   state,
   emitter,
+  globalemitter,
 };
 
 function setArrValue<T>(obj: any, field: string, val: T[] = []) {
