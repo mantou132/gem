@@ -1,14 +1,4 @@
-import {
-  adoptedStyle,
-  attribute,
-  connectStore,
-  customElement,
-  fallback,
-  GemElement,
-  mounted,
-  render,
-  template,
-} from '@mantou/gem';
+import { render } from '@mantou/gem';
 
 import type { Message } from './children';
 import { Children } from './children';

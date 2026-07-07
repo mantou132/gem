@@ -1,4 +1,4 @@
-import { addListener, customElement, GemElement, history, mounted, render, template } from '@mantou/gem';
+import { addListener, history, render } from '@mantou/gem';
 
 @customElement('app-root')
 export class App extends GemElement {

@@ -1,5 +1,4 @@
 import type { Emitter } from '@mantou/gem';
-import { adoptedStyle, customElement, emitter, GemElement, mounted, template } from '@mantou/gem';
 import { history } from '@mantou/gem/lib/history';
 import type { ContextMenuItem } from 'duoyun-ui/elements/contextmenu';
 import { ContextMenu } from 'duoyun-ui/elements/contextmenu';

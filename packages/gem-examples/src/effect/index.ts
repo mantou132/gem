@@ -1,4 +1,4 @@
-import { customElement, effect, GemElement, render, template } from '@mantou/gem';
+import { render } from '@mantou/gem';
 
 function resizeObserverEffect([textareaElement, callback]: [
   HTMLTextAreaElement | undefined,

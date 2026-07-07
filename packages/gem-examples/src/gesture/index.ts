@@ -1,4 +1,4 @@
-import { customElement, GemElement, render, template } from '@mantou/gem';
+import { render } from '@mantou/gem';
 import type {
   GemGestureElement,
   PanEventDetail,

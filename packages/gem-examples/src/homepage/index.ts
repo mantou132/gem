@@ -1,4 +1,4 @@
-import { customElement, GemElement, render, template } from '@mantou/gem';
+import { render } from '@mantou/gem';
 import { I18n } from '@mantou/gem/helper/i18n';
 import { history } from '@mantou/gem/lib/history';
 import type { Help, Languages, Links, Social, Terms } from 'duoyun-ui/patterns/footer';

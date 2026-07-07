@@ -27,7 +27,6 @@ declare global {
   const async: typeof import('@mantou/gem')['async'];
   const aria: typeof import('@mantou/gem')['aria'];
   const state: typeof import('@mantou/gem')['state'];
-  const test: typeof import('test')['test'];
   const raw: typeof import('@mantou/gem')['raw'];
   const slot: typeof import('@mantou/gem')['slot'];
   const mathml: typeof import('@mantou/gem')['mathml'];

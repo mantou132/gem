@@ -1,4 +1,4 @@
-import { adoptedStyle, customElement, GemElement, render, SheetToken, template } from '@mantou/gem';
+import { render, SheetToken } from '@mantou/gem';
 
 const styles = css({
   $: styled`

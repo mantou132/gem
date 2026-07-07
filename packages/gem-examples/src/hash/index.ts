@@ -1,4 +1,4 @@
-import { addListener, adoptedStyle, customElement, GemElement, mounted, render, shadow, template } from '@mantou/gem';
+import { addListener, render } from '@mantou/gem';
 
 const articleStyle = css`
   :host {

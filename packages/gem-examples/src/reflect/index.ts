@@ -1,4 +1,4 @@
-import { customElement, GemElement, mounted, randomStr, render, template } from '@mantou/gem';
+import { randomStr, render } from '@mantou/gem';
 
 @customElement('app-children')
 export class AppChild extends GemElement {

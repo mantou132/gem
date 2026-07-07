@@ -1,4 +1,4 @@
-import { adoptedStyle, customElement, GemElement, html, render, shadow, template } from '@mantou/gem';
+import { render } from '@mantou/gem';
 import { GemDialogBaseElement } from '@mantou/gem/elements/base/dialog';
 import { createModalClass } from '@mantou/gem/elements/base/modal-factory';
 

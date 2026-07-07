@@ -1,5 +1,3 @@
-import { adoptedStyle, customElement, GemElement, shadow, template } from '@mantou/gem';
-
 const routes = [
   {
     title: 'ccccccd',

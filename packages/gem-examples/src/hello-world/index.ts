@@ -1,4 +1,4 @@
-import { connectStore, customElement, GemElement, render, template } from '@mantou/gem';
+import { render } from '@mantou/gem';
 
 // 新建全局数据对象
 const store = createStore({

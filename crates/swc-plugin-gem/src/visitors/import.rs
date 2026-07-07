@@ -89,6 +89,14 @@ impl TransformVisitor {
         self.used_members.insert(ident.to_id());
     }
 
+    fn normalize_auto_import_ctxt(&self, ident: &mut Ident) {
+        if self.config.member_map.contains_key(ident.sym.as_str())
+            && !self.defined_members.contains(&ident.to_id())
+        {
+            ident.ctxt = SyntaxContext::empty();
+        }
+    }
+
     fn inset_defined_member(&mut self, ident: &Ident) {
         self.defined_members.insert(ident.to_id());
     }
@@ -102,6 +110,7 @@ impl VisitMut for TransformVisitor {
     }
 
     fn visit_mut_ident(&mut self, node: &mut Ident) {
+        self.normalize_auto_import_ctxt(node);
         self.inset_used_member(node);
     }
 
@@ -158,26 +167,25 @@ impl VisitMut for TransformVisitor {
 
         let first_item_span = node.first().map(|item| item.span()).unwrap_or(DUMMY_SP);
         let mut out: Vec<ImportDecl> = vec![];
-        let mut available_import: IndexMap<
-            String,
-            IndexMap<&Atom, (Option<&Atom>, &SyntaxContext)>,
-        > = IndexMap::new();
+        let mut available_import: IndexMap<String, IndexMap<&Atom, Option<&Atom>>> = IndexMap::new();
 
         for id in &self.used_members {
             if !self.defined_members.contains(id) {
                 let res = self.config.member_map.get(id.0.as_str());
                 if let Some((imported, pkg)) = res {
                     let set = available_import.entry(pkg.into()).or_default();
-                    set.insert(&id.0, (imported.as_ref(), &id.1));
+                    set.insert(&id.0, imported.as_ref());
                 }
             }
         }
 
         for (pkg, set) in available_import {
             let mut specifiers: Vec<ImportSpecifier> = vec![];
-            for (member_as, (member, ctx)) in set {
+            for (member_as, member) in set {
                 specifiers.push(ImportSpecifier::Named(ImportNamedSpecifier {
-                    local: Ident::new(member_as.clone(), DUMMY_SP, *ctx),
+                    // Use empty syntax context so imports survive decorator downlevel
+                    // transforms that rebind identifiers with a different ctxt (2023-11).
+                    local: Ident::new(member_as.clone(), DUMMY_SP, SyntaxContext::empty()),
                     span: DUMMY_SP,
                     imported: member.map(|x| ModuleExportName::Ident(x.clone().into())),
                     is_type_only: false,

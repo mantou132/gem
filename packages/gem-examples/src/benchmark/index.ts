@@ -1,17 +1,4 @@
-import {
-  adoptedStyle,
-  attribute,
-  customElement,
-  effect,
-  GemElement,
-  memo,
-  mounted,
-  numattribute,
-  render,
-  repeat,
-  shadow,
-  template,
-} from '@mantou/gem';
+import { render, repeat } from '@mantou/gem';
 import type { RGBA } from 'duoyun-ui/lib/color';
 import { rgbToRgbColor } from 'duoyun-ui/lib/color';
 import { formatTraffic } from 'duoyun-ui/lib/number';

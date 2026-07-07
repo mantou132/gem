@@ -1,14 +1,4 @@
-import {
-  adoptedStyle,
-  async,
-  connectStore,
-  customElement,
-  GemElement,
-  property,
-  render,
-  shadow,
-  template,
-} from '@mantou/gem';
+import { render } from '@mantou/gem';
 
 const store = createStore({
   number: 1,

@@ -1,4 +1,4 @@
-import { async, customElement, GemElement, numattribute, render, template } from '@mantou/gem';
+import { render } from '@mantou/gem';
 
 @customElement('app-post')
 @async()

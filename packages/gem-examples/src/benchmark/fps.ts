@@ -1,5 +1,3 @@
-import { adoptedStyle, connectStore, customElement, GemElement, mounted, shadow, template } from '@mantou/gem';
-
 export const fpsStyle = css`
   :host {
     font-variant-numeric: tabular-nums;

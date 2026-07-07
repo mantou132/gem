@@ -1,5 +1,3 @@
-import { adoptedStyle, customElement, GemElement, mounted, shadow, template } from '@mantou/gem';
-
 import { EXAMPLES, VERSION } from '../env';
 
 const style = css`

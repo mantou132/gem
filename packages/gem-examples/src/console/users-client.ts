@@ -1,4 +1,3 @@
-import { connectStore, customElement, mounted, template } from '@mantou/gem';
 import { createPaginationStore } from 'duoyun-ui/helper/store';
 
 import type { Item } from './api';

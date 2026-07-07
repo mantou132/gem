@@ -1,4 +1,4 @@
-import { adoptedStyle, connectStore, customElement, GemElement, render, template } from '@mantou/gem';
+import { render } from '@mantou/gem';
 import { mediaQuery } from '@mantou/gem/helper/mediaquery';
 import { createOverrideTheme, createScopedTheme, createTheme, getThemeStore } from '@mantou/gem/helper/theme';
 

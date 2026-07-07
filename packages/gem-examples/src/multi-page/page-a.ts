@@ -1,5 +1,3 @@
-import { connectStore, customElement, GemElement, mounted, shadow, template } from '@mantou/gem';
-
 import api from './api';
 import { pageA } from './store';
 
