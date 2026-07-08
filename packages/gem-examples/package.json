@@ -6,7 +6,7 @@
   "scripts": {
     "build": "rsbuild build",
     "preview": "rsbuild preview",
-    "start": "cross-env DEBUG=rsbuild rsbuild dev"
+    "start": "cross-env NODE_OPTIONS=--conditions=development DEBUG=rsbuild rsbuild dev"
   },
   "dependencies": {
     "@mantou/gem": "^2.2.4",
