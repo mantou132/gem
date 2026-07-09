@@ -117,7 +117,7 @@ export async function buildApp(
     resolve: {
       extensions: ['.ts', '.js'],
       alias: {
-        '@swc/helpers': require.resolve('@swc/helpers/package.json'),
+        '@swc/helpers': path.dirname(require.resolve('@swc/helpers/package.json')),
       },
     },
     output: {
