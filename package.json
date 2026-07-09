@@ -4,9 +4,9 @@
   "version": "1.6.5",
   "scripts": {
     "lint": "biome check --write && lerna exec --ignore @gemjs/config --ignore swc-plugin-gem -- tsgo --noEmit",
-    "test": "lerna exec --concurrency=1 --scope \"{@mantou/gem,gem-book,duoyun-ui}\" -- pnpm test",
+    "test": "lerna exec --concurrency=1 --scope \"{@mantou/gem,gem-book,tap-ui,duoyun-ui}\" -- pnpm test",
     "release": "lerna version",
-    "prepare:build": "pnpm -C packages/gem build && lerna exec --scope \"{gem-analyzer,duoyun-ui,gem-book,@mantou/gem-port}\" -- pnpm build",
+    "prepare:build": "pnpm -C packages/gem build && pnpm -C packages/tap-ui build && lerna exec --scope \"{gem-analyzer,duoyun-ui,gem-book,@mantou/gem-port}\" -- pnpm build",
     "prepare:link": "lerna exec --scope \"{gem-book,@mantou/gem-port}\" -- npm link",
     "prepare": "husky install && pnpm prepare:build && pnpm prepare:link"
   },

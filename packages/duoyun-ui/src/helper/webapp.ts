@@ -1,26 +1,15 @@
 import { mediaQuery } from '@mantou/gem/helper/mediaquery';
+import { initApp as initTapApp, type InitAppOptions as TapInitAppOptions } from 'tap-ui/helper/webapp';
 
-import { utf8ToB64 } from '../lib/encode';
+export { getWebManifestURL } from 'tap-ui/helper/webapp';
 
-export function getWebManifestURL(manifest: Record<string, unknown>) {
-  return `data:application/json;base64,${utf8ToB64(
-    JSON.stringify(manifest, (_, value) =>
-      typeof value === 'string' && value.startsWith('/') ? new URL(value, location.origin).href : value,
-    ),
-  )}`;
-}
-
-interface InitAppOptions {
-  serviceWorkerScript?: string;
+interface InitAppOptions extends TapInitAppOptions {
   initWindowSize?: [number, number];
 }
 
-export function initApp({ serviceWorkerScript, initWindowSize }: InitAppOptions = {}) {
-  if (serviceWorkerScript) {
-    navigator.serviceWorker?.register(serviceWorkerScript, { type: 'module' });
-  } else {
-    navigator.serviceWorker?.getRegistration().then((reg) => reg?.unregister());
-  }
+export function initApp(options: InitAppOptions = {}) {
+  initTapApp(options);
+  const { initWindowSize } = options;
 
   // Installed
   if (initWindowSize) {

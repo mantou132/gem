@@ -1,0 +1,34 @@
+name: Publish TapUI
+
+on:
+  workflow_dispatch:
+
+jobs:
+  tap-ui-publish:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4 # docs https://pnpm.io/continuous-integration#github-actions
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24.x
+          cache: pnpm
+
+      - name: Check publish tool versions
+        run: |
+          node --version
+          npm --version
+
+      - run: pnpm install
+      - run: pnpm -C packages/tap-ui run build:components
+
+      - uses: JS-DevTools/npm-publish@v4
+        with:
+          package: packages/tap-ui/package.json

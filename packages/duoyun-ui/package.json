@@ -49,7 +49,8 @@
   "dependencies": {
     "d3-geo": "^3.0.1",
     "deep-query-selector": "^1.0.1",
-    "elkjs": "^0.7.1"
+    "elkjs": "^0.7.1",
+    "tap-ui": "^0.1.0"
   },
   "peerDependencies": {
     "@mantou/gem": "^2.x"

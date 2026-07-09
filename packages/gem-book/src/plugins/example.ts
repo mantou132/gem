@@ -247,6 +247,10 @@ class _GbpExampleElement extends GemBookPluginElement {
         res(import(`../../duoyun-ui/src/elements/${src.split('/').pop()}`));
         return;
       }
+      if (new URL(src).pathname.startsWith('/tap-ui/')) {
+        res(import(`../../tap-ui/src/elements/${src.split('/').pop()}`));
+        return;
+      }
       /** GEM_BOOK_REPLACE */
       const script = document.createElement('script');
       script.type = 'module';

@@ -31,7 +31,8 @@ Create custom elements, bind data, route switching, and quickly develop WebApps 
 | [gem-devtools](packages/gem-devtools)           | Browser debugging tool for Gem                                                                       |
 | [gem-analyzer](packages/gem-analyzer)           | Gem element analyzer, which can automatically generate documents                                     |
 | [gem-book](packages/gem-book)                   | Documentation site builder created using Gem                                                         |
-| [duoyun-ui](packages/duoyun-ui)                 | UI library created using Gem                                                                         |
+| [duoyun-ui](packages/duoyun-ui)                 | Desktop UI library created using Gem                                                                 |
+| [tap-ui](packages/tap-ui)                       | Mobile-first UI library created using Gem                                                            |
 | [gem-port](packages/gem-port)                   | Export Gem elements as React/Vue/Svelte components                                                   |
 | [gem-examples](packages/gem-examples)           | Gem and DuoyunUI examples                                                                            |
 | [ts-gem-plugin](packages/ts-gem-plugin)         | Gem language service plugin for TypeScript                                                           |

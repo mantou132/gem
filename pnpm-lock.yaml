@@ -87,6 +87,9 @@ importers:
       elkjs:
         specifier: ^0.7.1
         version: 0.7.1
+      tap-ui:
+        specifier: ^0.1.0
+        version: link:../tap-ui
     devDependencies:
       '@gemjs/config':
         specifier: ^2.1.3
@@ -398,6 +401,31 @@ importers:
       '@gemjs/config':
         specifier: ^2.1.3
         version: link:../config
+
+  packages/tap-ui:
+    dependencies:
+      '@mantou/gem':
+        specifier: ^2.x
+        version: link:../gem
+    devDependencies:
+      '@gemjs/config':
+        specifier: ^2.1.3
+        version: link:../config
+      '@types/mocha':
+        specifier: ^10.0.7
+        version: 10.0.10
+      '@web/dev-server-esbuild':
+        specifier: ^1.0.2
+        version: 1.0.4(patch_hash=81752f9614f488ac1d9ab1491716c08f6d984c2e7176d91f547b4fd5d19f8b66)
+      '@web/test-runner':
+        specifier: ^0.18.1
+        version: 0.18.3
+      rimraf:
+        specifier: ^3.0.2
+        version: 3.0.2
+      typescript:
+        specifier: ^5.6.2
+        version: 5.9.3
 
   packages/ts-gem-plugin:
     dependencies:

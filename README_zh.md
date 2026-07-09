@@ -37,7 +37,8 @@
 | [gem-devtools](packages/gem-devtools)           | Gem 的浏览器调试工具                                |
 | [gem-analyzer](packages/gem-analyzer)           | Gem 元素分析器，能自动生成文档                      |
 | [gem-book](packages/gem-book)                   | 使用 Gem 创建的文档站生成器                         |
-| [duoyun-ui](packages/duoyun-ui)                 | 使用 Gem 创建的 UI 库                               |
+| [duoyun-ui](packages/duoyun-ui)                 | 使用 Gem 创建的桌面 UI 库                           |
+| [tap-ui](packages/tap-ui)                       | 使用 Gem 创建的移动优先 UI 库                         |
 | [gem-port](packages/gem-port)                   | 将 Gem 元素导出为 React/Vue/Svelte 组件             |
 | [gem-examples](packages/gem-examples)           | 一些 Gem 和 DuoyunUI 示例                           |
 | [ts-gem-plugin](packages/ts-gem-plugin)         | TypeScript 的 Gem 语言服务插件                      |

@@ -13,6 +13,7 @@ on:
       - swc-plugin-gem@*
       - gem-analyzer@*
       - duoyun-ui@*
+      - tap-ui@*
       - gem-book@*
       - '@mantou/gem-port@*'
       - gem-devtools@*
@@ -94,6 +95,12 @@ jobs:
               name: 'duoyun-ui',
               path: 'packages/duoyun-ui/package.json',
               workflow: 'duoyun-ui-publish.yml',
+              npm: true,
+            },
+            {
+              name: 'tap-ui',
+              path: 'packages/tap-ui/package.json',
+              workflow: 'tap-ui-publish.yml',
               npm: true,
             },
             {
