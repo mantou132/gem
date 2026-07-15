@@ -1,4 +1,4 @@
-import { aria, connectStore, customElement, GemElement, html } from '@mantou/gem';
+import { aria, connectStore, customElement, GemElement, html, template } from '@mantou/gem';
 
 import { themeStore } from '../helper/theme';
 import { joinPath } from '../lib/utils';
@@ -19,7 +19,8 @@ function getAlternateUrl(lang: string, pathname?: string) {
 @connectStore(bookStore)
 @aria({ ariaHidden: 'true' })
 export class Meta extends GemElement {
-  render() {
+  @template()
+  #content = () => {
     const { langList, lang = '', routes, homePage, getCurrentLink } = bookStore;
     const route = routes?.find((e) => e.pattern === locationStore.path && e.redirect);
     const canonicalLink = getAlternateUrl(
@@ -33,12 +34,12 @@ export class Meta extends GemElement {
       <gem-reflect>
         <gem-title></gem-title>
         <meta name="theme-color" content=${themeStore.backgroundColor} />
-        ${description ? html`<meta name="description" content=${description} />` : ''}
+        <meta v-if=${!!description} name="description" content=${description || ''} />
 
         <!-- search engine -->
         <link rel="canonical" href=${canonicalLink} />
         ${langList?.map(({ code }) => html`<link rel="alternate" hreflang=${code} href=${getAlternateUrl(code)} />`)}
       </gem-reflect>
     `;
-  }
+  };
 }

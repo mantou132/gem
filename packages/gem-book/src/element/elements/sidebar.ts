@@ -242,21 +242,17 @@ export class SideBar extends GemElement {
           >
             ${title ? capitalize(title) : 'No title'}
           </gem-book-side-link>
-          ${
-            !onlyFile && locationStore.path === link
-              ? html`<div class="links item hash">
-                ${tocStore.elements
-                  .filter((e) => e.tagName === 'H2')
-                  .map((h) =>
-                    this.#renderItem({
-                      type: 'heading',
-                      title: h.textContent || '',
-                      link: `#${h.id}`,
-                    }),
-                  )}
-              </div>`
-              : null
-          }
+          <div v-if=${!onlyFile && locationStore.path === link} class="links item hash">
+            ${tocStore.elements
+              .filter((e) => e.tagName === 'H2')
+              .map((h) =>
+                this.#renderItem({
+                  type: 'heading',
+                  title: h.textContent || '',
+                  link: `#${h.id}`,
+                }),
+              )}
+          </div>
         `;
       }
       case 'heading': {
@@ -297,21 +293,15 @@ export class SideBar extends GemElement {
     return html`
       <gem-book-nav-logo class="logo" part=${GemBookElement.sidebarLogo}></gem-book-nav-logo>
       <div class="nav">
-        ${
-          mediaQuery.isPhone && topNavList?.length
-            ? html`
-              <div class="top-nav">
-                ${topNavList.map(
-                  ({ link, navTitle, title }) => html`
-                    <gem-active-link href=${link} pattern="${link}*">
-                      ${capitalize(navTitle || title)}
-                    </gem-active-link>
-                  `,
-                )}
-              </div>
-            `
-            : ''
-        }
+        <div v-if=${!!(mediaQuery.isPhone && topNavList?.length)} class="top-nav">
+          ${topNavList?.map(
+            ({ link, navTitle, title }) => html`
+              <gem-active-link href=${link} pattern="${link}*">
+                ${capitalize(navTitle || title)}
+              </gem-active-link>
+            `,
+          )}
+        </div>
         <slot name=${GemBookElement.sidebarBefore}>${bookStore.slots?.sidebarBefore}</slot>
         <div part=${GemBookElement.sidebarContent}>
           ${bookStore.currentSidebar?.map((item) => this.#renderItem(item, true))}

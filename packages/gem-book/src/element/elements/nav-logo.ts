@@ -1,4 +1,4 @@
-import { adoptedStyle, connectStore, css, customElement, GemElement, html } from '@mantou/gem';
+import { adoptedStyle, connectStore, css, customElement, GemElement, html, template } from '@mantou/gem';
 import { mediaQuery } from '@mantou/gem/helper/mediaquery';
 
 import { GemBookElement } from '..';
@@ -41,13 +41,14 @@ const styles = css`
 @connectStore(bookStore)
 @adoptedStyle(styles)
 export class GemBookNavLogoElement extends GemElement {
-  render = () => {
+  @template()
+  #content = () => {
     const { config } = bookStore;
     const { icon = '', title = '' } = config || {};
     this.hidden = !icon && !title;
     return html`
       <gem-link path="/">
-        ${icon ? html`<img alt=${title} src=${icon} aria-hidden="true" />` : null}
+        <img v-if=${!!icon} alt=${title} src=${icon} aria-hidden="true" />
         <span>${title}</span>
       </gem-link>
       <slot name=${GemBookElement.logoAfter}>${bookStore.slots?.logoAfter}</slot>

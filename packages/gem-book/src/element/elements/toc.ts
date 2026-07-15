@@ -10,6 +10,7 @@ import {
   effect,
   GemElement,
   html,
+  template,
   unmounted,
 } from '@mantou/gem';
 
@@ -113,7 +114,8 @@ export class GemBookTocElement extends GemElement {
   @unmounted()
   #init = () => this.#io.disconnect();
 
-  render = () => {
+  @template()
+  #content = () => {
     if (!tocStore.elements.length) return html``;
     return html`
       <h2>CONTENTS</h2>

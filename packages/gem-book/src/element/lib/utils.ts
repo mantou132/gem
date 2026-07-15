@@ -7,7 +7,8 @@ export type NavItemWithLink = NavItem & {
   children?: NavItemWithLink[];
 };
 
-export function capitalize(str: string) {
+export function capitalize(str?: string) {
+  if (!str) return '';
   return str.replace(/^\w/, (s: string) => s.toUpperCase());
 }
 

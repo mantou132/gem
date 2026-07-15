@@ -13,6 +13,7 @@ import {
   history,
   html,
   state,
+  template,
 } from '@mantou/gem';
 import { mediaQuery } from '@mantou/gem/helper/mediaquery';
 
@@ -179,44 +180,44 @@ export class Nav extends GemElement {
 
   #renderI18nSelect = () => {
     const { langList = [], lang } = bookStore;
-    if (lang) {
-      return html`
-        <div class="icon item">
-          <gem-use @click=${() => this.#i18nRef.value?.click()} .element=${icons.i18n}></gem-use>
-          <select
-            ${this.#i18nRef}
-            aria-label="language select"
-            @change=${(e: any) => this.languagechange(e.target.value)}
-          >
-            ${langList.map(({ name, code }) => html`<option value=${code} ?selected=${code === lang}>${name}</option>`)}
-          </select>
-        </div>
-      `;
-    }
+    return html`
+      <div v-if=${!!lang} class="icon item">
+        <gem-use @click=${() => this.#i18nRef.value?.click()} .element=${icons.i18n}></gem-use>
+        <select
+          ${this.#i18nRef}
+          aria-label="language select"
+          @change=${(e: any) => this.languagechange(e.target.value)}
+        >
+          ${langList.map(({ name, code }) => html`<option value=${code} ?selected=${code === lang}>${name}</option>`)}
+        </select>
+      </div>
+    `;
   };
 
   #renderExternalItem = ({ navTitle, title, link }: NavItem, icon?: string | Element | DocumentFragment) => {
-    if (link) {
-      return html`
-        <gem-link class=${classMap({ item: true, icon: !!icon, external: true })} href=${link} title=${title}>
-          <span>${capitalize(navTitle || title)}</span>
-          <gem-use .element=${icon || icons.link}></gem-use>
-        </gem-link>
-      `;
-    }
+    return html`
+      <gem-link
+        v-if=${!!link}
+        class=${classMap({ item: true, icon: !!icon, external: true })}
+        href=${link}
+        title=${title}
+      >
+        <span>${capitalize(navTitle || title)}</span>
+        <gem-use .element=${icon || icons.link}></gem-use>
+      </gem-link>
+    `;
   };
 
   #renderInternalItem = ({ navTitle, title, link }: NavItem) => {
-    if (link) {
-      return html`
-        <gem-active-link class="item" href=${link} pattern="${link}*">
-          ${capitalize(navTitle || title)}
-        </gem-active-link>
-      `;
-    }
+    return html`
+      <gem-active-link v-if=${!!link} class="item" href=${link} pattern="${link}*">
+        ${capitalize(navTitle || title)}
+      </gem-active-link>
+    `;
   };
 
-  render() {
+  @template()
+  #content = () => {
     const { config, nav = [] } = bookStore;
     const { github = '' } = config || {};
     const githubLink = config
@@ -233,7 +234,7 @@ export class Nav extends GemElement {
         @click=${() => sidebarStore({ open: !sidebarStore.open })}
         .element=${sidebarStore.open ? icons.close : icons.menu}
       ></gem-use>
-      ${this.logo ? html`<gem-book-nav-logo></gem-book-nav-logo>` : ''}
+      <gem-book-nav-logo v-if=${this.logo}></gem-book-nav-logo>
       <div class="left">
         ${internals.map((item) => this.#renderInternalItem(item))}
         ${textExternals.map((item) => this.#renderExternalItem(item))}
@@ -244,7 +245,7 @@ export class Nav extends GemElement {
       ${iconExternals.map((item) => this.#renderExternalItem(item, (icons as any)[item.title.toLowerCase()]))}
       ${githubLink}
     `;
-  }
+  };
 
   @effect()
   #setCompact = () => {

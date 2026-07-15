@@ -613,21 +613,20 @@ export class Pre extends GemElement {
   render() {
     const { parts, lineNumbersParts } = this.#getParts(this.textContent || '');
     return html`
-      ${!this.#headless ? html`<div class="filename">${this.filename}</div>` : ''}
+      <div v-if=${!this.#headless} class="filename">${this.filename}</div>
       <div class="container">
         ${lineNumbersParts
           .reduce((p, c) => p.concat(Array(IGNORE_LINE)).concat(c))
-          .map((linenumber, index) =>
-            this.#highlightLineSet.has(linenumber)
-              ? html`
-                  <span
-                    class="gem-highlight"
-                    style=${styleMap({
-                      top: `calc(${index} * ${LINE_HEIGHT} + ${PADDING})`,
-                    })}
-                  ></span>
-                `
-              : '',
+          .map(
+            (linenumber, index) => html`
+              <span
+                v-if=${this.#highlightLineSet.has(linenumber)}
+                class="gem-highlight"
+                style=${styleMap({
+                  top: `calc(${index} * ${LINE_HEIGHT} + ${PADDING})`,
+                })}
+              ></span>
+            `,
           )}
         <div v-if=${this.#linenumber} class="linenumber padding">
           ${lineNumbersParts.map(

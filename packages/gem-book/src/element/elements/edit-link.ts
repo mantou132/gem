@@ -9,6 +9,7 @@ import {
   GemElement,
   html,
   memo,
+  template,
 } from '@mantou/gem';
 import { mediaQuery } from '@mantou/gem/helper/mediaquery';
 
@@ -161,7 +162,8 @@ export class EditLink extends GemElement {
     return `${github}/edit/${sourceBranch}${this.#fullPath}`;
   };
 
-  render() {
+  @template()
+  #content = () => {
     const { message, commitUrl } = this.#state;
     const lastUpdated = this.#getLastUpdated();
     const url = this.#getGitHubUrl();
@@ -176,5 +178,5 @@ export class EditLink extends GemElement {
         <gem-link href=${commitUrl} title=${message}>${lastUpdated}</gem-link>
       </div>
     `;
-  }
+  };
 }

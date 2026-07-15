@@ -1,4 +1,14 @@
-import { adoptedStyle, aria, connectStore, css, customElement, GemElement, html, property } from '@mantou/gem';
+import {
+  adoptedStyle,
+  aria,
+  connectStore,
+  css,
+  customElement,
+  GemElement,
+  html,
+  property,
+  template,
+} from '@mantou/gem';
 import { mediaQuery } from '@mantou/gem/helper/mediaquery';
 
 import type { NavItem } from '../../common/config';
@@ -26,7 +36,6 @@ const styles = css`
     border-radius: ${theme.normalRound};
     display: flex;
     gap: 1.5rem;
-    transition: all 0.1s;
     width: 45%;
     align-items: center;
     box-sizing: border-box;
@@ -34,10 +43,21 @@ const styles = css`
   .next {
     flex-direction: row-reverse;
   }
+  gem-link,
+  .arrow,
+  .title {
+    transition: all 0.15s ease;
+  }
   gem-link:hover {
     background-color: rgb(from ${theme.textColor} r g b / 0.07);
-    gap: 2rem;
-    padding: 2rem 1.5rem;
+  }
+  gem-link:where(:not(.next)):hover .arrow,
+  gem-link.next:hover .title {
+    transform: translateX(-0.25rem);
+  }
+  gem-link:where(:not(.next)):hover .title,
+  gem-link.next:hover .arrow {
+    transform: translateX(0.25rem);
   }
   @media ${mediaQuery.PHONE} {
     gem-link {
@@ -53,7 +73,8 @@ const styles = css`
 export class RelLink extends GemElement {
   @property links: NavItem[];
 
-  render() {
+  @template()
+  #content = () => {
     const { currentLinks, getCurrentLink } = bookStore;
     const currentLink = getCurrentLink?.();
     if (!currentLinks || !currentLink) return;
@@ -62,9 +83,15 @@ export class RelLink extends GemElement {
     const next = currentLinks[index + 1];
     this.hidden = !prev && !next;
     return html`
-      ${prev ? html`<gem-link path=${prev.link}>←<span>${capitalize(prev.title)}</span></gem-link>` : null}
+      <gem-link v-if=${!!prev} path=${prev?.link}>
+        <span class="arrow">←</span>
+        <span class="title">${capitalize(prev?.title)}</span>
+      </gem-link>
       <div></div>
-      ${next ? html`<gem-link class="next" path=${next.link}>→<span>${capitalize(next.title)}</span></gem-link>` : null}
+      <gem-link v-if=${!!next} class="next" path=${next?.link}>
+        <span class="arrow">→</span>
+        <span class="title">${capitalize(next?.title)}</span>
+      </gem-link>
     `;
-  }
+  };
 }

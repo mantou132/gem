@@ -1,4 +1,4 @@
-import { adoptedStyle, aria, css, customElement, GemElement, html } from '@mantou/gem';
+import { adoptedStyle, aria, css, customElement, GemElement, html, template } from '@mantou/gem';
 
 import { getUserLink } from '../../common/utils';
 import { getPlatform, selfI18n } from '../helper/i18n';
@@ -63,26 +63,21 @@ export class Meta extends GemElement {
     return `${github}/new/${sourceBranch}${fullPath}?filename=${filenameParams}`;
   };
 
-  render() {
+  @template()
+  #content = () => {
     const url = this.#getGitHubUrl();
 
     return html`
       <h1><gem-title inert>Not Found</gem-title></h1>
-      ${
-        !url
-          ? ''
-          : html`
-            <div>
-              <gem-link href=${url}>
-                <gem-use .element=${icons.compose}></gem-use>
-                <span>${selfI18n.get('createOnGithub', getPlatform())}</span>
-              </gem-link>
-            </div>
-          `
-      }
+      <div v-if=${!!url}>
+        <gem-link href=${url}>
+          <gem-use .element=${icons.compose}></gem-use>
+          <span>${selfI18n.get('createOnGithub', getPlatform())}</span>
+        </gem-link>
+      </div>
       <gem-reflect>
         <meta name="robots" content="noindex" />
       </gem-reflect>
     `;
-  }
+  };
 }

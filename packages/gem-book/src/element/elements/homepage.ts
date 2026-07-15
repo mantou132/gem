@@ -1,4 +1,4 @@
-import { adoptedStyle, connectStore, css, customElement, GemElement, html } from '@mantou/gem';
+import { adoptedStyle, connectStore, css, customElement, GemElement, html, template } from '@mantou/gem';
 import { mediaQuery } from '@mantou/gem/helper/mediaquery';
 
 import { getUserLink } from '../../common/utils';
@@ -170,14 +170,16 @@ export class Homepage extends GemElement {
     return html`
       <div class="hero" part=${GemBookElement.homepageHero} role="banner">
         <div class="body">
-          ${!title ? '' : html`<h1 class="title">${title}</h1>`}
-          ${!desc ? '' : html`<p class="desc">${unsafeRenderHTML(desc)}</p>`}
+          <h1 v-if=${!!title} class="title">${title}</h1>
+          <p v-if=${!!desc} class="desc">${unsafeRenderHTML(desc)}</p>
           <div class="actions">
             ${actions?.map(
-              ({ link, text }, index) =>
-                html`<gem-link href=${getUserLink(link)}>
-                  ${text}${index ? html`<gem-use .element=${icons.forward}></gem-use>` : ''}
-                </gem-link>`,
+              ({ link, text }, index) => html`
+                <gem-link href=${getUserLink(link)}>
+                  ${text}
+                  <gem-use v-if=${!!index} .element=${icons.forward}></gem-use>
+                </gem-link>
+              `,
             )}
           </div>
         </div>
@@ -189,34 +191,29 @@ export class Homepage extends GemElement {
     return html`
       <div role="region" aria-label="features" class="features">
         <dl class="body" ?data-len=${features?.length}>
-          ${features?.map(
-            (feature) => html`
+          ${features?.map((feature) => {
+            const isEmojiIcon = !!feature.icon && [...feature.icon].length <= 3;
+            const iconSrc = feature.icon
+              ? new URL(feature.icon, `${location.origin}${joinPath(bookStore.lang, originLink)}`).href
+              : '';
+            return html`
               <div class="feature ${feature.icon ? 'has-icon' : ''}">
-                ${
-                  !feature.icon
-                    ? ''
-                    : [...feature.icon].length <= 3
-                      ? html`<span class="icon">${feature.icon}</span>`
-                      : html`<img
-                        class="icon"
-                        src=${new URL(feature.icon, `${location.origin}${joinPath(bookStore.lang, originLink)}`).href}
-                      />`
-                }
+                <span v-if=${isEmojiIcon} class="icon">${feature.icon}</span>
+                <img v-else-if=${!!feature.icon} class="icon" src=${iconSrc} />
                 <dt class="feat-title">${feature.title}</dt>
-                <dd class="feat-desc">
-                  ${unsafeRenderHTML(feature.desc, featureStyle)}
-                </dd>
+                <dd class="feat-desc">${unsafeRenderHTML(feature.desc, featureStyle)}</dd>
               </div>
-            `,
-          )}
+            `;
+          })}
         </dl>
       </div>
     `;
   }
 
-  render() {
+  @template()
+  #content = () => {
     const homePageLink = bookStore.links?.find((e) => e.link === bookStore.homePage);
     if (!homePageLink) return null;
-    return html` ${this.#renderHero(homePageLink)}${this.#renderFeature(homePageLink)} `;
-  }
+    return html`${this.#renderHero(homePageLink)}${this.#renderFeature(homePageLink)}`;
+  };
 }

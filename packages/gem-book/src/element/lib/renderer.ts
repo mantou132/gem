@@ -222,7 +222,7 @@ export const linkStyle = css`
   }
 `;
 
-export function unsafeRenderHTML(s: string, style = css``) {
+export function unsafeRenderHTML(s = '', style = css``) {
   const htmlStr = parse(s, { renderer: currentRenderer });
   return html`<gem-unsafe html=${htmlStr} .styles=${[linkStyle, style]}></gem-unsafe>`;
 }

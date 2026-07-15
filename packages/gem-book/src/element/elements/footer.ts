@@ -1,4 +1,4 @@
-import { adoptedStyle, aria, connectStore, css, customElement, GemElement, html } from '@mantou/gem';
+import { adoptedStyle, aria, connectStore, css, customElement, GemElement, html, template } from '@mantou/gem';
 
 import { selfI18n } from '../helper/i18n';
 import { theme } from '../helper/theme';
@@ -41,7 +41,8 @@ const footerStyle = css`
 @adoptedStyle(styles)
 @aria({ role: 'contentinfo' })
 export class Footer extends GemElement {
-  render() {
+  @template()
+  #content = () => {
     const { config } = bookStore;
     return html`
       ${
@@ -50,5 +51,5 @@ export class Footer extends GemElement {
           : selfI18n.get('footer', (t) => html`<gem-link href="https://book.gemjs.org">${t}</gem-link>`)
       }
     `;
-  }
+  };
 }
