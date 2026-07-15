@@ -1,3 +1,6 @@
+/**
+ * 在 markdown 中写 <gbp-example> ，属性不能换行，不知道是规范的问题还是解析器的问题
+ */
 /** biome-ignore-all lint/security/noGlobalEval: local run */
 import type { TemplateResult } from '@mantou/gem/';
 
@@ -243,12 +246,18 @@ class _GbpExampleElement extends GemBookPluginElement {
   #loadResource = (src: string) => {
     return new Promise<null>((res, rej) => {
       /** GEM_BOOK_REPLACE
-      if (new URL(src).pathname.startsWith('/duoyun-ui/')) {
-        res(import(`../../duoyun-ui/src/elements/${src.split('/').pop()}`));
-        return;
-      }
-      if (new URL(src).pathname.startsWith('/tap-ui/')) {
-        res(import(`../../tap-ui/src/elements/${src.split('/').pop()}`));
+      const matched = new URL(src).pathname.match(/^\/(duoyun-ui|tap-ui)\/(elements|patterns)\/([^/?#]+)/);
+      if (matched) {
+        const [, pkg, dir, name] = matched;
+        res(
+          pkg === 'duoyun-ui' && dir === 'elements'
+            ? import(`../../duoyun-ui/src/elements/${name}`)
+            : pkg === 'duoyun-ui' && dir === 'patterns'
+              ? import(`../../duoyun-ui/src/patterns/${name}`)
+              : pkg === 'tap-ui' && dir === 'elements'
+                ? import(`../../tap-ui/src/elements/${name}`)
+                : import(`../../tap-ui/src/patterns/${name}`),
+        );
         return;
       }
       /** GEM_BOOK_REPLACE */
