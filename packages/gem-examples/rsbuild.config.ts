@@ -31,6 +31,10 @@ const ensureSwcPlugin: () => void = () => {
 export default defineConfig((config) => {
   const isBuild = config.command === 'build';
   return {
+    server: {
+      host: true,
+      cors: true,
+    },
     html: {
       template: './src/template.html',
     },
@@ -76,6 +80,13 @@ export default defineConfig((config) => {
     resolve: {
       alias: {
         src: './src',
+        'duoyun-ui/elements': path.resolve(__dirname, '../duoyun-ui/src/elements'),
+        'duoyun-ui/patterns': path.resolve(__dirname, '../duoyun-ui/src/patterns'),
+        'duoyun-ui/lib': path.resolve(__dirname, '../duoyun-ui/src/lib'),
+        'duoyun-ui/helper': path.resolve(__dirname, '../duoyun-ui/src/helper'),
+        'tap-ui/elements': path.resolve(__dirname, '../tap-ui/src/elements'),
+        'tap-ui/patterns': path.resolve(__dirname, '../tap-ui/src/patterns'),
+        'tap-ui/lib': path.resolve(__dirname, '../tap-ui/src/lib'),
       },
     },
     plugins: [

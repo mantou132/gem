@@ -12,13 +12,21 @@ import { css, GemElement, html } from '@mantou/gem/lib/element';
 import { classMap } from '@mantou/gem/lib/utils';
 
 import { theme } from '../lib/theme';
-
+import type { RouteItem, RouteOptions } from './route';
 import './badge';
+import './link';
 import './use';
 
 export type TabbarItem = {
   label: string;
   value?: string | number;
+  /**In-app path (same as `<tap-link path>`) */
+  path?: string;
+  /**Route item (same as `<tap-link .route>`) */
+  route?: RouteItem;
+  routeOptions?: RouteOptions;
+  /**Active match pattern (same as `<tap-active-link pattern>`) */
+  pattern?: string;
   icon?: string | Element | DocumentFragment;
   /**Icon when selected; falls back to `icon` */
   activeIcon?: string | Element | DocumentFragment;
@@ -63,8 +71,16 @@ const style = css`
     font: inherit;
     cursor: pointer;
     -webkit-tap-highlight-color: transparent;
+    text-decoration: none;
   }
-  .item:disabled {
+  tap-active-link.item {
+    color: inherit;
+  }
+  tap-active-link.item:state(active) {
+    color: ${theme.primaryColor};
+  }
+  .item:disabled,
+  tap-active-link.item[inert] {
     cursor: not-allowed;
     opacity: 0.35;
   }
@@ -103,6 +119,8 @@ export class TapTabbarElement extends GemElement {
 
   #itemValue = (item: TabbarItem, index: number) => item.value ?? index;
 
+  #isLinkItem = (item: TabbarItem) => !!(item.path || item.route);
+
   #renderIcon = (item: TabbarItem, current: boolean) => {
     const icon = (current && item.activeIcon) || item.icon;
     if (!icon) return '';
@@ -118,26 +136,47 @@ export class TapTabbarElement extends GemElement {
     `;
   };
 
+  #renderLinkItem = (item: TabbarItem) => {
+    return html`
+      <tap-active-link
+        role="tab"
+        class="item"
+        path=${item.path || ''}
+        .route=${item.route}
+        .routeOptions=${item.routeOptions}
+        pattern=${item.pattern || ''}
+        ?inert=${!!item.disabled}
+      >
+        ${this.#renderIcon(item, false)}
+        <span class="label">${item.label}</span>
+      </tap-active-link>
+    `;
+  };
+
+  #renderButtonItem = (item: TabbarItem, index: number) => {
+    const value = this.#itemValue(item, index);
+    const current = value === this.value;
+    return html`
+      <button
+        type="button"
+        role="tab"
+        class=${classMap({ item: true, current })}
+        aria-selected=${current}
+        ?disabled=${!!item.disabled}
+        @click=${() => !item.disabled && this.change(value)}
+      >
+        ${this.#renderIcon(item, current)}
+        <span class="label">${item.label}</span>
+      </button>
+    `;
+  };
+
   @template()
   #content = () => {
     return html`
-      ${(this.items || []).map((item, index) => {
-        const value = this.#itemValue(item, index);
-        const current = value === this.value;
-        return html`
-          <button
-            type="button"
-            role="tab"
-            class=${classMap({ item: true, current })}
-            aria-selected=${current}
-            ?disabled=${!!item.disabled}
-            @click=${() => !item.disabled && this.change(value)}
-          >
-            ${this.#renderIcon(item, current)}
-            <span class="label">${item.label}</span>
-          </button>
-        `;
-      })}
+      ${(this.items || []).map((item, index) =>
+        this.#isLinkItem(item) ? this.#renderLinkItem(item) : this.#renderButtonItem(item, index),
+      )}
     `;
   };
 }

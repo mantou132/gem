@@ -148,7 +148,7 @@ const groupStyle = css`
     margin-block-start: 0.5em;
   }
   .heading {
-    padding: 0.75em 1em 0.5em;
+    padding: 0.75em calc(1.0625em / 0.8125) 0.5em;
     font-size: 0.8125em;
     line-height: 1.3;
     color: ${theme.describeColor};

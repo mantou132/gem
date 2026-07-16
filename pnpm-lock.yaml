@@ -310,6 +310,9 @@ importers:
       duoyun-ui:
         specifier: ^2.2.3
         version: link:../duoyun-ui
+      tap-ui:
+        specifier: ^0.1.0
+        version: link:../tap-ui
     devDependencies:
       '@gemjs/config':
         specifier: ^2.1.3
