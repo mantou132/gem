@@ -19,6 +19,7 @@ class AppRoot extends GemElement {
         slot="footer"
         .items=${[
           { label: 'Home', path: '/', pattern: '/', icon: icons.menu },
+          { label: 'Chats', path: '/chats', pattern: '/chats', icon: icons.info },
           { label: 'Settings', path: '/settings', pattern: '/settings', icon: icons.tune },
         ]}
       ></tap-tabbar>
@@ -29,12 +30,27 @@ class AppRoot extends GemElement {
 render(
   html`
     <style>
-      :where(body) {
+      :where(body, html) {
         margin: 0;
         overflow: hidden;
+        /* Android 禁用手势 */
+        overscroll-behavior: contain;
       }
     </style>
     <app-root></app-root>
   `,
   document.body,
+);
+
+// IOS 禁用手势: https://bugs.webkit.org/show_bug.cgi?id=240183
+document.addEventListener(
+  'touchstart',
+  (e) => {
+    const edge = 24;
+    const x = e.touches[0]?.pageX ?? 0;
+    if (x > edge && x < window.innerWidth - edge) return;
+    if (e.composedPath().some((n) => 'active' in n || n instanceof HTMLButtonElement)) return;
+    e.preventDefault(); // 拦截 Safari 左右滑导航
+  },
+  { passive: false },
 );

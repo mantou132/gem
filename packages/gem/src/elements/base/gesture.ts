@@ -74,6 +74,7 @@ export class GemGestureElement extends GemElement {
   @state grabbing: boolean;
 
   #pressed = false; // 触发 press 之后不触发其他事件
+  #gestureTriggered = false; // 会排除 touchAction 方向
   #pressTimer: ReturnType<typeof setTimeout> | number = 0;
 
   #startEventMap: Map<number, PointerEvent> = new Map();
@@ -135,9 +136,11 @@ export class GemGestureElement extends GemElement {
     this.#startEventMap.set(evt.pointerId, evt);
     if (evt.isPrimary) {
       this.#pressed = false;
+      this.#gestureTriggered = false;
       this.#pressTimer = setTimeout(() => {
         this.press(evt);
         this.#pressed = true;
+        this.#gestureTriggered = true;
       }, 251);
     }
   };
@@ -168,6 +171,7 @@ export class GemGestureElement extends GemElement {
       this.pan(move);
 
       if (this.movesMap.size !== 1) {
+        this.#gestureTriggered = true;
         const secondaryPoint = this.#getOtherLastMove(pointerId) as PanEventDetail;
         const moveLen = Math.sqrt(movementX ** 2 + movementY ** 2);
         const distanceLen = Math.sqrt(
@@ -180,6 +184,9 @@ export class GemGestureElement extends GemElement {
         const y = (lastMove.clientY + secondaryPoint.clientY) / 2;
         this.pinch({ x, y, scale: newDistanceLen / distanceLen });
         this.rotate({ x, y, rotate: angleAB(newDistanceLen, distanceLen, moveLen, secondaryPoint, lastMove, move) });
+      } else if (move.x || move.y) {
+        // 经过 touch-action 过滤后仍有位移，说明手势已被本元素认领
+        this.#gestureTriggered = true;
       }
 
       const accuracy = pointerType === 'touch' ? 5 : 0;
@@ -211,6 +218,7 @@ export class GemGestureElement extends GemElement {
 
     if (this.movesMap.size === 1) {
       this.grabbing = false;
+      this.#gestureTriggered = false;
       this.end(evt);
     }
 
@@ -252,6 +260,10 @@ export class GemGestureElement extends GemElement {
 
   #preventDefault = (evt: Event) => evt.preventDefault();
 
+  #onTouchMove = (evt: TouchEvent) => {
+    if (this.#gestureTriggered) evt.preventDefault();
+  };
+
   @mounted()
   #init = () => {
     this.addEventListener('pointerdown', this.#onStart);
@@ -262,6 +274,7 @@ export class GemGestureElement extends GemElement {
     this.addEventListener('pointercancel', this.#onEnd);
 
     this.addEventListener('dragstart', this.#preventDefault);
+    this.addEventListener('touchmove', this.#onTouchMove, { passive: false });
   };
 
   /** 一次手势的指针移动事件记录 */

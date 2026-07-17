@@ -23,9 +23,13 @@ export class TapAppHomeElement extends GemElement {
     });
   };
 
+  #onRefresh = ({ detail: done }: CustomEvent<() => void>) => {
+    setTimeout(done, 1000);
+  };
+
   @template()
   #render = () => html`
-    <tap-page>
+    <tap-page refreshable @refresh=${this.#onRefresh}>
       <tap-navbar slot="header" title="Home"></tap-navbar>
       <tap-cell-group
         heading="Explore"

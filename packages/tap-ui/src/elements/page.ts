@@ -1,22 +1,34 @@
+import type { Emitter } from '@mantou/gem/lib/decorators';
 import {
   adoptedStyle,
   boolattribute,
   connectStore,
   customElement,
   effect,
+  emitter,
   part,
   shadow,
   slot,
   template,
 } from '@mantou/gem/lib/decorators';
 import { createRef, createState, css, GemElement, html } from '@mantou/gem/lib/element';
-import { addListener } from '@mantou/gem/lib/utils';
+import { addListener, classMap, styleMap } from '@mantou/gem/lib/utils';
 
+import { icons } from '../lib/icons';
 import { theme } from '../lib/theme';
 import type { PanEventDetail, SwipeEventDetail } from './gesture';
 import type { TapNavbarElement } from './navbar';
 import { stackStore } from './stack';
+
 import './gesture';
+import './use';
+
+/**Pull distance that triggers refresh */
+const PULL_THRESHOLD = 52;
+/**Held height while refreshing */
+const PULL_HOLD = 44;
+const PULL_MAX = 80;
+const PULL_ACTIVATE = 10;
 
 const style = css`
   :host(:where(:not([hidden]))) {
@@ -51,6 +63,32 @@ const style = css`
     min-height: 0;
     overflow: auto;
     -webkit-overflow-scrolling: touch;
+    overscroll-behavior-y: contain;
+  }
+  .refresh {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    flex-shrink: 0;
+    height: 0;
+    color: ${theme.describeColor};
+    transition: height 200ms ${theme.timingFunction};
+  }
+  .refresh.dragging {
+    transition: none;
+  }
+  .refresh .icon {
+    width: 1.25em;
+    height: 1.25em;
+  }
+  .refresh.spinning .icon {
+    animation: spin 0.8s linear infinite;
+  }
+  @keyframes spin {
+    to {
+      transform: rotate(360deg);
+    }
   }
   .gesture {
     position: absolute;
@@ -69,13 +107,32 @@ export class TapPageElement extends GemElement {
   @slot @part static header: string;
   @slot @part static footer: string;
   @part static main: string;
+  @part static refresh: string;
 
   /**Header overlays content; navbar stays transparent until content scrolls */
   @boolattribute floatheader: boolean;
+  /**Enable pull-to-refresh on the main scroll area */
+  @boolattribute refreshable: boolean;
 
-  #state = createState({ scrolled: false });
+  /**
+   * Fired when pull exceeds the threshold.
+   * Call `detail()` (done) when loading finishes so the indicator can dismiss.
+   */
+  @emitter refresh: Emitter<() => void>;
+
+  #state = createState({
+    scrolled: false,
+    pull: 0,
+    dragging: false,
+    refreshing: false,
+  });
   #mainRef = createRef<HTMLElement>();
   #headerSlotRef = createRef<HTMLSlotElement>();
+
+  #tracking = false;
+  #pulling = false;
+  #startY = 0;
+  #startX = 0;
 
   get #inStack() {
     return !!this.closest('tap-stack');
@@ -89,11 +146,101 @@ export class TapPageElement extends GemElement {
     this.dispatchEvent(new CustomEvent(type, { detail: evt.detail, bubbles: true, composed: true }));
   };
 
-  #syncHeaderTransparent = () => {
-    const transparent = this.floatheader && !this.#state.scrolled;
-    this.#headerSlotRef.value?.assignedElements().forEach((el) => {
-      (el as TapNavbarElement).transparent = transparent;
-    });
+  #damp = (dy: number) => Math.min(PULL_MAX, Math.max(0, dy * 0.45));
+
+  #doneRefresh = () => {
+    if (!this.#state.refreshing) return;
+    this.#state({ refreshing: false, pull: 0, dragging: false });
+  };
+
+  #startRefresh = () => {
+    if (this.#state.refreshing) return;
+    this.#state({ refreshing: true, pull: PULL_HOLD, dragging: false });
+    this.refresh(this.#doneRefresh);
+  };
+
+  #onPointerDown = (evt: PointerEvent) => {
+    if (!this.refreshable || this.#state.refreshing) return;
+    if (evt.isPrimary === false) return;
+    if (evt.pointerType === 'mouse' && evt.button !== 0) return;
+    const main = this.#mainRef.value;
+    if (!main || main.scrollTop > 0) return;
+    this.#tracking = true;
+    this.#pulling = false;
+    this.#startY = evt.clientY;
+    this.#startX = evt.clientX;
+  };
+
+  #onPointerMove = (evt: PointerEvent) => {
+    if (!this.#tracking) return;
+    const main = this.#mainRef.value;
+    if (!main) return;
+
+    const dy = evt.clientY - this.#startY;
+    const dx = evt.clientX - this.#startX;
+
+    if (!this.#pulling) {
+      if (main.scrollTop > 0) {
+        this.#tracking = false;
+        return;
+      }
+      if (dy < PULL_ACTIVATE) return;
+      if (Math.abs(dx) > dy) {
+        this.#tracking = false;
+        return;
+      }
+      this.#pulling = true;
+      main.setPointerCapture(evt.pointerId);
+    }
+
+    evt.preventDefault();
+    this.#state({ pull: this.#damp(dy), dragging: true });
+  };
+
+  #onTouchMove = (evt: TouchEvent) => {
+    if (!this.#tracking || evt.touches.length !== 1) return;
+    const main = this.#mainRef.value;
+    if (!main || main.scrollTop > 0) return;
+
+    const touch = evt.touches[0];
+    const dy = touch.clientY - this.#startY;
+    const dx = touch.clientX - this.#startX;
+
+    if (this.#pulling || (dy > 0 && Math.abs(dx) <= dy)) {
+      evt.preventDefault();
+    }
+  };
+
+  #onPointerUp = () => {
+    if (!this.#tracking) return;
+    this.#tracking = false;
+    if (!this.#pulling) return;
+    this.#pulling = false;
+
+    if (this.#state.pull >= PULL_THRESHOLD) {
+      this.#startRefresh();
+      return;
+    }
+    this.#state({ pull: 0, dragging: false });
+  };
+
+  @effect((i) => [i.refreshable])
+  #watchPull = () => {
+    if (!this.refreshable) {
+      this.#tracking = false;
+      this.#pulling = false;
+      this.#state({ pull: 0, dragging: false, refreshing: false });
+      return;
+    }
+    const el = this.#mainRef.value!;
+    const removes = [
+      addListener(el, 'pointerdown', this.#onPointerDown, { capture: true }),
+      addListener(el, 'pointermove', this.#onPointerMove, { passive: false, capture: true }),
+      addListener(el, 'touchmove', this.#onTouchMove, { passive: false, capture: true }),
+      addListener(el, 'pointerup', this.#onPointerUp, { capture: true }),
+      addListener(el, 'pointercancel', this.#onPointerUp, { capture: true }),
+    ];
+    return () => removes.forEach((remove) => remove());
   };
 
   @effect(() => [stackStore.pages.length])
@@ -101,11 +248,17 @@ export class TapPageElement extends GemElement {
     this.inert = !this.#inStack && !this.#nestedInPage && stackStore.pages.length > 0;
   };
 
+  #syncHeaderTransparent = () => {
+    const transparent = this.floatheader && !this.#state.scrolled;
+    this.#headerSlotRef.value?.assignedElements().forEach((el) => {
+      (el as TapNavbarElement).transparent = transparent;
+    });
+  };
+
   @effect((i) => [i.floatheader, i.#state.scrolled])
   #watchHeader = () => {
     this.#syncHeaderTransparent();
-    const slot = this.#headerSlotRef.value;
-    if (!slot) return;
+    const slot = this.#headerSlotRef.value!;
     return addListener(slot, 'slotchange', this.#syncHeaderTransparent);
   };
 
@@ -115,22 +268,33 @@ export class TapPageElement extends GemElement {
       this.#state({ scrolled: false });
       return;
     }
-    const el = this.#mainRef.value;
-    if (!el) return;
-    const onScroll = () => {
-      this.#state({ scrolled: el.scrollTop > 0 });
-    };
+    const el = this.#mainRef.value!;
+    const onScroll = () => this.#state({ scrolled: el.scrollTop > 0 });
     onScroll();
     return addListener(el, 'scroll', onScroll, { passive: true });
   };
 
   @template()
   #content = () => {
+    const { pull, dragging, refreshing } = this.#state;
+    const height = refreshing ? Math.max(pull, PULL_HOLD) : pull;
+    const rotate = Math.min(180, (pull / PULL_THRESHOLD) * 180);
     return html`
       <div class="header" part=${TapPageElement.header}>
         <slot ${this.#headerSlotRef} name=${TapPageElement.header}></slot>
       </div>
       <div ${this.#mainRef} class="main" part=${TapPageElement.main}>
+        <div
+          class=${classMap({ refresh: true, dragging, spinning: refreshing })}
+          part=${TapPageElement.refresh}
+          style=${styleMap({ height: this.refreshable && height > 0 ? `${height}px` : '0px' })}
+        >
+          <tap-use
+            class="icon"
+            style=${styleMap({ transform: !refreshing && `rotate(${rotate}deg)` })}
+            .element=${icons.refresh}
+          ></tap-use>
+        </div>
         <slot></slot>
       </div>
       <div class="footer" part=${TapPageElement.footer}>
