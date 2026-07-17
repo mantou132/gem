@@ -9,11 +9,11 @@ import {
   mounted,
   shadow,
   slot,
-  template,
 } from '@mantou/gem/lib/decorators';
 import { css, GemElement, html } from '@mantou/gem/lib/element';
 import { addListener } from '@mantou/gem/lib/utils';
 
+import { commonHandle } from '../lib/hotkeys';
 import { focusStyle } from '../lib/styles';
 import { getSemanticColor, theme } from '../lib/theme';
 
@@ -102,11 +102,11 @@ export class TapSwitchElement extends GemElement {
     return { color: theme.borderColor };
   };
 
-  @template()
-  #content = () => {
+  render = () => {
     return html`
       <div
         class="switch"
+        @keydown=${commonHandle}
         role="switch"
         tabindex=${-Number(this.disabled)}
         aria-disabled=${this.disabled}

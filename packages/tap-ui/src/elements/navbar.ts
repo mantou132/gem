@@ -6,6 +6,7 @@ import {
   boolattribute,
   customElement,
   emitter,
+  part,
   shadow,
   slot,
   template,
@@ -21,10 +22,10 @@ const style = css`
   :host(:where(:not([hidden]))) {
     display: grid;
     grid-template-columns: 2.5em 1fr 2.5em;
+    grid-template-rows: 2.5em;
     align-items: center;
     flex-shrink: 0;
     gap: 0.25em;
-    min-height: 2.75em;
     padding-inline: 0.25em;
     padding-block: 0.5em;
     padding-block-start: calc(0.5em + env(safe-area-inset-top, 0px));
@@ -57,9 +58,6 @@ const style = css`
     color: ${theme.primaryColor};
     cursor: pointer;
   }
-  .back:active {
-    background: ${theme.hoverBackgroundColor};
-  }
   .title {
     grid-column: 2;
     min-width: 0;
@@ -81,6 +79,7 @@ const style = css`
     align-items: center;
     justify-content: flex-end;
     min-width: 0;
+    height: 100%;
   }
 `;
 
@@ -89,13 +88,14 @@ const style = css`
 @adoptedStyle(style)
 @aria({ role: 'banner' })
 export class TapNavbarElement extends GemElement {
+  @part static title: string;
+  @slot @part static right: string;
+
   @attribute title: string;
   @boolattribute back: boolean;
   /**Set by `<tap-page floatheader>` while content is not scrolled */
   @boolattribute transparent: boolean;
   @emitter backclick: Emitter<null>;
-
-  @slot static right: string;
 
   @template()
   #content = () => {
@@ -103,8 +103,8 @@ export class TapNavbarElement extends GemElement {
       <button v-if=${this.back} type="button" class="back" aria-label="back" @click=${() => this.backclick(null)}>
         <tap-use class="icon" .element=${icons.back}></tap-use>
       </button>
-      <div class="title" part="title">${this.title}</div>
-      <div class="right" part="right">
+      <div class="title" part=${TapNavbarElement.title}>${this.title}</div>
+      <div class="right" part=${TapNavbarElement.right}>
         <slot name=${TapNavbarElement.right}></slot>
       </div>
     `;

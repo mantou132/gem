@@ -1,4 +1,3 @@
-import type { Emitter } from '@mantou/gem/lib/decorators';
 import {
   adoptedStyle,
   aria,
@@ -6,7 +5,6 @@ import {
   boolattribute,
   customElement,
   effect,
-  emitter,
   part,
   property,
   shadow,
@@ -136,6 +134,8 @@ export type CellItem = {
   /**When present, render a switch using this checked state */
   checked?: boolean;
   extra?: string | Element | DocumentFragment | TemplateResult;
+  onClick?: (evt: Event) => void;
+  onChange?: (checked: boolean) => void;
 };
 
 const groupStyle = css`
@@ -167,16 +167,13 @@ export class TapCellGroupElement extends GemElement {
   @attribute heading: string;
   @property items?: CellItem[];
 
-  @emitter itemclick: Emitter<CellItem>;
-  @emitter change: Emitter<{ item: CellItem; checked: boolean }>;
-
   #isSwitch = (item: CellItem) => typeof item.checked === 'boolean';
 
   #showAction = (item: CellItem) => item.action ?? !this.#isSwitch(item);
 
   #onSwitchChange = (item: CellItem, evt: CustomEvent<boolean>) => {
     evt.stopPropagation();
-    this.change({ item, checked: evt.detail });
+    item.onChange?.(evt.detail);
   };
 
   #renderExtra = (item: CellItem) => {
@@ -203,7 +200,7 @@ export class TapCellGroupElement extends GemElement {
         label=${item.label}
         description=${description}
         ?action=${action}
-        @click=${() => action && this.itemclick(item)}
+        @click=${(evt: Event) => action && item.onClick?.(evt)}
       >
         <div v-if=${typeof item.description !== 'string' && !!item.description} slot="description">${item.description}</div>
         ${this.#renderExtra(item)}

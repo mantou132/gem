@@ -22,12 +22,10 @@ Settings-style list row and group. Primary text on the left; description, switch
 {
   "heading": "Account",
   "items": [
-    { "label": "Profile", "action": true },
-    { "label": "Name", "description": "Mantou", "action": true },
+    { "label": "Profile", "action": true, "onClick": "() => console.log('Profile')" },
+    { "label": "Name", "description": "Mantou", "action": true, "onClick": "() => console.log('Name')" },
     { "label": "Auto save photos", "checked": true }
-  ],
-  "@change": "({ target, detail }) => { detail.item.checked = detail.checked; target.items = [...target.items] }",
-  "@itemclick": "({ detail }) => console.log(detail.label)"
+  ]
 }
 ```
 

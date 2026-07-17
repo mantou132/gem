@@ -139,7 +139,6 @@ export class TapPageElement extends GemElement {
       <tap-gesture
         v-if=${this.#inStack}
         class="gesture"
-        touch-action="none"
         @pan=${(evt: CustomEvent<PanEventDetail>) => this.#forward('pan', evt)}
         @swipe=${(evt: CustomEvent<SwipeEventDetail>) => this.#forward('swipe', evt)}
         @end=${(evt: CustomEvent) => this.#forward('end', evt)}

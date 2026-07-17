@@ -22,12 +22,10 @@
 {
   "heading": "Account",
   "items": [
-    { "label": "Profile", "action": true },
-    { "label": "Name", "description": "馒头毫无营养", "action": true },
+    { "label": "Profile", "action": true, "onClick": "() => console.log('Profile')" },
+    { "label": "Name", "description": "馒头毫无营养", "action": true, "onClick": "() => console.log('Name')" },
     { "label": "Auto save photos", "checked": true }
-  ],
-  "@change": "({ target, detail }) => { detail.item.checked = detail.checked; target.items = [...target.items] }",
-  "@itemclick": "({ detail }) => console.log(detail.label)"
+  ]
 }
 ```
 

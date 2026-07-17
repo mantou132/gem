@@ -1,4 +1,3 @@
-import type { CellItem } from 'tap-ui/elements/cell';
 import { Stack } from 'tap-ui/elements/stack';
 import { contentsContainer } from 'tap-ui/lib/styles';
 
@@ -24,11 +23,6 @@ export class TapAppHomeElement extends GemElement {
     });
   };
 
-  #onItemClick = ({ detail }: CustomEvent<CellItem>) => {
-    if (detail.label === 'Detail') this.#openDetail();
-    if (detail.label === 'Profile') this.#openProfile();
-  };
-
   @template()
   #render = () => html`
     <tap-page>
@@ -36,10 +30,9 @@ export class TapAppHomeElement extends GemElement {
       <tap-cell-group
         heading="Explore"
         .items=${[
-          { label: 'Detail', action: true },
-          { label: 'Profile', action: true },
+          { label: 'Detail', action: true, onClick: this.#openDetail },
+          { label: 'Profile', action: true, onClick: this.#openProfile },
         ]}
-        @itemclick=${this.#onItemClick}
       ></tap-cell-group>
     </tap-page>
   `;

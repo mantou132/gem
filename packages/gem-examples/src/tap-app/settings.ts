@@ -1,4 +1,3 @@
-import type { CellItem } from 'tap-ui/elements/cell';
 import { Stack } from 'tap-ui/elements/stack';
 import { contentsContainer } from 'tap-ui/lib/styles';
 
@@ -17,19 +16,6 @@ export class TapAppSettingsElement extends GemElement {
     });
   };
 
-  #onGeneralChange = ({ detail }: CustomEvent<{ item: CellItem; checked: boolean }>) => {
-    if (detail.item.label === 'Notifications') {
-      this.#state({ notifications: detail.checked });
-    }
-    if (detail.item.label === 'Dark Mode') {
-      this.#state({ darkMode: detail.checked });
-    }
-  };
-
-  #onAboutClick = ({ detail }: CustomEvent<CellItem>) => {
-    if (detail.label === 'Version') this.#openAbout();
-  };
-
   @template()
   #render = () => html`
     <tap-page>
@@ -37,15 +23,21 @@ export class TapAppSettingsElement extends GemElement {
       <tap-cell-group
         heading="General"
         .items=${[
-          { label: 'Notifications', checked: this.#state.notifications },
-          { label: 'Dark Mode', checked: this.#state.darkMode },
+          {
+            label: 'Notifications',
+            checked: this.#state.notifications,
+            onChange: (checked: boolean) => this.#state({ notifications: checked }),
+          },
+          {
+            label: 'Dark Mode',
+            checked: this.#state.darkMode,
+            onChange: (checked: boolean) => this.#state({ darkMode: checked }),
+          },
         ]}
-        @change=${this.#onGeneralChange}
       ></tap-cell-group>
       <tap-cell-group
         heading="About"
-        .items=${[{ label: 'Version', description: '1.0.0', action: true }]}
-        @itemclick=${this.#onAboutClick}
+        .items=${[{ label: 'Version', description: '1.0.0', action: true, onClick: this.#openAbout }]}
       ></tap-cell-group>
     </tap-page>
   `;

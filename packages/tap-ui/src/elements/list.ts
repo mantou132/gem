@@ -170,8 +170,7 @@ export class TapListElement extends GemElement {
     return (item === undefined && key === undefined) || key === this.getKey!(item);
   };
 
-  #getRowHeight = (ele?: TapListItemElement) =>
-    (ele ? ele.borderBoxSize.blockSize : this.#itemHeight) + this.#rowGap;
+  #getRowHeight = (ele?: TapListItemElement) => (ele ? ele.borderBoxSize.blockSize : this.#itemHeight) + this.#rowGap;
 
   #setState = (newState: Partial<State>) => {
     this.#log(newState);

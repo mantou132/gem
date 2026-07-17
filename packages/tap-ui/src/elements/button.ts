@@ -1,12 +1,4 @@
-import {
-  adoptedStyle,
-  aria,
-  boolattribute,
-  customElement,
-  shadow,
-  slot,
-  template,
-} from '@mantou/gem/lib/decorators';
+import { adoptedStyle, aria, boolattribute, customElement, shadow, slot, template } from '@mantou/gem/lib/decorators';
 import { css, GemElement, html } from '@mantou/gem/lib/element';
 
 import { focusStyle } from '../lib/styles';

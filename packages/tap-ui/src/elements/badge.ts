@@ -10,7 +10,6 @@ import {
   shadow,
   slot,
   state,
-  template,
 } from '@mantou/gem/lib/decorators';
 import { createRef, css, GemElement, html } from '@mantou/gem/lib/element';
 import { classMap } from '@mantou/gem/lib/utils';
@@ -117,8 +116,7 @@ export class TapBadgeElement extends GemElement {
     this.#slotRef.value?.addEventListener('slotchange', this.#onSlotChange);
   };
 
-  @template()
-  #content = () => {
+  render = () => {
     const value = Number(this.count) > this.#max ? `${this.#max}+` : `${this.count}`;
     return html`
       <slot ${this.#slotRef}></slot>
