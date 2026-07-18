@@ -113,16 +113,16 @@ export class LinkedList<T = any> extends EventTarget {
     return this.#lastItem;
   }
 
-  isSuperLinkOf(subLink: LinkedList<T>) {
+  isSuperLinkOf(subLink: LinkedList<T>, allowGap = false) {
     let subItem = subLink.first;
     if (!subItem) return true;
-    let item = this.find(subItem.value);
-    while (item && item.value === subItem.value) {
-      subItem = subItem.next;
-      if (!subItem) return true;
+    let item = allowGap ? this.#firstItem : this.find(subItem.value);
+    while (item && subItem) {
+      if (item.value === subItem.value) subItem = subItem.next;
+      else if (!allowGap) return false;
       item = item.next;
     }
-    return false;
+    return !subItem;
   }
 
   find(value: T) {

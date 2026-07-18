@@ -48,6 +48,30 @@ describe('utils 测试', () => {
     expect(new LinkedList().isSuperLinkOf(subLinked)).to.equal(false);
     expect(subLinked.isSuperLinkOf(new LinkedList())).to.equal(true);
 
+    // allowGap：超集中可跳过部分节点
+    const withGap = new LinkedList();
+    const a = () => 'a';
+    const b = () => 'b';
+    const c = () => 'c';
+    const d = () => 'd';
+    withGap.add(a);
+    withGap.add(b);
+    withGap.add(c);
+    withGap.add(d);
+    const gapSub = new LinkedList();
+    gapSub.add(a);
+    gapSub.add(c);
+    gapSub.add(d);
+    expect(withGap.isSuperLinkOf(gapSub)).to.equal(false);
+    expect(withGap.isSuperLinkOf(gapSub, true)).to.equal(true);
+    expect(gapSub.isSuperLinkOf(withGap, true)).to.equal(false);
+    // 顺序不一致则不是超集
+    const reordered = new LinkedList();
+    reordered.add(a);
+    reordered.add(d);
+    reordered.add(b);
+    expect(withGap.isSuperLinkOf(reordered, true)).to.equal(false);
+
     linkedList.delete(fun2);
     expect(linkedList.size).to.equal(1);
     linkedList.add(fun2);

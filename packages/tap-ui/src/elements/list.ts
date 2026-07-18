@@ -63,7 +63,7 @@ const styles = css`
 @customElement('tap-list')
 @adoptedStyle(styles)
 @adoptedStyle(blockContainer)
-@shadow({ delegatesFocus: true })
+@shadow()
 @aria({ role: 'list' })
 export class TapListElement extends GemElement {
   @part static list: string;
@@ -146,14 +146,64 @@ export class TapListElement extends GemElement {
   @memo((i) => [i.#items])
   #updateItem = ([items]: any[], oldDeps?: any[]) => {
     if (!this.infinite) return;
-    if (this.#itemLinked.isSuperLinkOf(this.#prevItemLinked)) {
-      // 是父集 items 就肯定有内容
-      this.#appendItems(items!, oldDeps?.at(0));
+    if (oldDeps && this.#itemLinked.isSuperLinkOf(this.#prevItemLinked)) {
+      // 同序追加
+      this.#appendItems(items!, oldDeps.at(0));
+    } else if (oldDeps && this.#prevItemLinked.isSuperLinkOf(this.#itemLinked, true)) {
+      // 同序删除
+      this.#removeItems();
     } else {
       // 列表改了，需要重排
       this.#setState({ beforeHeight: 0, renderList: [], afterHeight: 0 });
       this.#reLayout();
     }
+  };
+
+  #removeItems = () => {
+    const { beforeHeight, renderList, afterHeight } = this.#state;
+    const nextRenderList = renderList.filter((key) => this.#itemLinked.find(key));
+
+    let beforeDelta = 0;
+    let afterDelta = 0;
+    // 有渲染窗口时，才需要按窗口前/后调整占位高度
+    if (renderList.length) {
+      const renderSet = new Set(renderList);
+      const firstKey = renderList[0];
+      const lastKey = renderList.at(-1);
+      let before = true;
+      let after = false;
+      let count = 0;
+      for (let node = this.#prevItemLinked.first; node; node = node.next!) {
+        const key = node.value;
+        if (key === firstKey) before = false;
+        if (!this.#itemLinked.find(key) && !renderSet.has(key)) {
+          const height = this.#isLeftItem(count) ? this.#getRowHeight(this.#getElement(key)) : 0;
+          if (before) beforeDelta += height;
+          else if (after) afterDelta += height;
+        }
+        if (key === lastKey) after = true;
+        count++;
+      }
+    }
+
+    this.#setState({
+      beforeHeight: Math.max(0, beforeHeight - beforeDelta),
+      renderList: nextRenderList,
+      afterHeight: Math.max(0, afterHeight - afterDelta),
+    });
+
+    // 前面占位变矮后，减小 scrollTop 抵消，保持当前渲染列表在视口中的位置
+    if (beforeDelta) {
+      queueMicrotask(() => {
+        this.scrollContainer.scrollBy({
+          left: 0,
+          top: -beforeDelta,
+          behavior: 'instant',
+        });
+      });
+    }
+
+    if (!nextRenderList.length) this.#reLayout();
   };
 
   // 切换 infinite 时，在渲染前进行重排，以使用正确的 scrollTop

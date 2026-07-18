@@ -30,7 +30,7 @@ export function toggleActiveState(ele: Element | undefined | null, active: boole
 /**Y axis */
 export function findScrollContainer(startElement?: HTMLElement | null) {
   let element = startElement;
-  while (element) {
+  while ((element = element?.assignedSlot || element)) {
     const { overflowY } = getComputedStyle(element);
     if (overflowY === 'auto' || overflowY === 'scroll') {
       return element;
