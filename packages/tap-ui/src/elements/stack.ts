@@ -1,3 +1,4 @@
+import { createDecoratorTheme } from '@mantou/gem/helper/theme';
 import { adoptedStyle, connectStore, customElement, effect, template } from '@mantou/gem/lib/decorators';
 import type { TemplateResult } from '@mantou/gem/lib/element';
 import { createRef, css, GemElement, html } from '@mantou/gem/lib/element';
@@ -5,7 +6,7 @@ import { history } from '@mantou/gem/lib/history';
 import { createStore } from '@mantou/gem/lib/store';
 import { classMap, styleMap } from '@mantou/gem/lib/utils';
 
-import { commonAnimationOptions } from '../lib/animations';
+import { easeOutCubic } from '../lib/easing';
 import { theme } from '../lib/theme';
 import type { PanEventDetail, SwipeEventDetail } from './gesture';
 
@@ -18,10 +19,27 @@ export type StackPushOptions = {
   canLeave?: () => boolean;
 };
 
+/** Match iOS / WeChat navigation timing */
+const STACK_DURATION = 350;
+const STACK_DURATION_MIN = 140;
+/** Covered page rests at -30% width (iOS parallax) */
+const STACK_PARALLAX = 0.3;
+
 export const stackStore = createStore({
   pages: [] as StackPushOptions[],
   offset: 0,
 });
+
+export const elementTheme = createDecoratorTheme({ brightness: 0.92, shift: '0px' });
+
+export const getStackProgress = (width = 1) => Math.min(1, stackStore.offset / (width || 1));
+
+export const getStackBrightness = (width = 1) => 0.92 + 0.08 * getStackProgress(width);
+
+export const getStackShift = (width = 1) => {
+  const w = width || 1;
+  return `${-STACK_PARALLAX * w * (1 - getStackProgress(w))}px`;
+};
 
 const style = css`
   :scope {
@@ -41,10 +59,13 @@ const style = css`
     flex-direction: column;
     background: ${theme.backgroundColor};
     will-change: transform;
-    transition: filter 150ms ${theme.timingFunction};
+  }
+  .page:not(.covered) {
+    box-shadow: -2px 0 16px rgb(0 0 0 / 0.08);
   }
   .page.covered {
-    filter: brightness(0.92);
+    filter: brightness(${elementTheme.brightness});
+    transform: translateX(${elementTheme.shift});
   }
 `;
 
@@ -57,6 +78,13 @@ export class TapStackElement extends GemElement {
   #pageRef = createRef<HTMLElement>();
   #busy = false;
   #swipeClose = false;
+  #swipeSpeed = 0;
+
+  @elementTheme(() => [stackStore.offset])
+  #theme = () => {
+    const width = this.clientWidth;
+    return { brightness: getStackBrightness(width), shift: getStackShift(width) };
+  };
 
   static push(options: StackPushOptions) {
     const stack = (TapStackElement.instance ??= new TapStackElement());
@@ -72,12 +100,25 @@ export class TapStackElement extends GemElement {
     }
   }
 
-  #animateX = async (el: HTMLElement, from: string, to: string, options?: KeyframeAnimationOptions) => {
-    await el.animate([{ transform: from }, { transform: to }], {
-      ...commonAnimationOptions,
-      ...options,
-    }).finished;
-    el.style.transform = '';
+  #duration = (distance: number, width: number, speed = 0) => {
+    if (speed > 0) {
+      return Math.min(STACK_DURATION, Math.max(STACK_DURATION_MIN, distance / speed));
+    }
+    return Math.min(STACK_DURATION, Math.max(STACK_DURATION_MIN, STACK_DURATION * (distance / (width || 1))));
+  };
+
+  #animateOffset = (from: number, to: number, { duration = STACK_DURATION } = {}) => {
+    stackStore({ offset: from });
+    const start = performance.now();
+    return new Promise<void>((resolve) => {
+      const tick = (now: number) => {
+        const t = Math.min(1, (now - start) / duration);
+        stackStore({ offset: from + (to - from) * easeOutCubic(t) });
+        if (t < 1) requestAnimationFrame(tick);
+        else resolve();
+      };
+      requestAnimationFrame(tick);
+    });
   };
 
   #push = (options: StackPushOptions) => {
@@ -86,8 +127,12 @@ export class TapStackElement extends GemElement {
       shouldClose: options.canLeave,
       open: () => this.#restore(options),
     });
-    stackStore({ pages: [...stackStore.pages, options] });
-    if (options.animated !== false) queueMicrotask(() => this.#enter(options));
+    const animated = options.animated !== false;
+    stackStore({
+      pages: [...stackStore.pages, options],
+      ...(animated ? { offset: this.clientWidth || innerWidth } : null),
+    });
+    if (animated) queueMicrotask(() => this.#enter(options));
   };
 
   #enter = async (page: StackPushOptions) => {
@@ -96,14 +141,19 @@ export class TapStackElement extends GemElement {
     const el = this.#pageRef.value;
     if (!el) return;
     this.#busy = true;
-    await this.#animateX(el, 'translateX(100%)', 'translateX(0)', { fill: 'backwards' });
+    const from = stackStore.offset || el.offsetWidth;
+    await this.#animateOffset(from, 0);
     this.#busy = false;
   };
 
   #restore = (page: StackPushOptions) => {
     if (stackStore.pages.includes(page)) return;
-    stackStore({ pages: [...stackStore.pages, page] });
-    if (page.animated !== false) queueMicrotask(() => this.#enter(page));
+    const animated = page.animated !== false;
+    stackStore({
+      pages: [...stackStore.pages, page],
+      ...(animated ? { offset: this.clientWidth || innerWidth } : null),
+    });
+    if (animated) queueMicrotask(() => this.#enter(page));
   };
 
   #pop = async (page?: StackPushOptions) => {
@@ -113,7 +163,7 @@ export class TapStackElement extends GemElement {
     this.#busy = true;
     if (top.animated !== false) {
       const el = this.#pageRef.value;
-      if (el) await this.#animateX(el, 'translateX(0)', 'translateX(100%)');
+      if (el) await this.#animateOffset(0, el.offsetWidth);
     }
     stackStore({ pages: stackStore.pages.slice(0, -1), offset: 0 });
     this.#busy = false;
@@ -130,35 +180,35 @@ export class TapStackElement extends GemElement {
     if (page !== stackStore.pages.at(-1)) return;
     if (evt.detail.direction === 'right' && evt.detail.speed > 0.5) {
       this.#swipeClose = true;
+      this.#swipeSpeed = evt.detail.speed;
     }
   };
 
   #onPagePanEnd = async (page: StackPushOptions, el: HTMLElement) => {
     const offset = stackStore.offset;
     const swipeClose = this.#swipeClose;
+    const swipeSpeed = this.#swipeSpeed;
     this.#swipeClose = false;
+    this.#swipeSpeed = 0;
     if (!offset || page !== stackStore.pages.at(-1)) return;
 
-    el.style.transform = `translateX(${offset}px)`;
-    stackStore({ offset: 0 });
-
     if (page.canLeave && !page.canLeave()) {
-      await this.#animateX(el, `translateX(${offset}px)`, 'translateX(0)');
+      await this.#animateOffset(offset, 0, { duration: this.#duration(offset, el.offsetWidth) });
       return;
     }
 
     const width = el.offsetWidth;
     if (offset > width * 0.33 || swipeClose) {
       this.#busy = true;
-      await this.#animateX(el, `translateX(${offset}px)`, `translateX(${width}px)`, {
-        duration: Math.max(80, commonAnimationOptions.duration * ((width - offset) / width)),
+      await this.#animateOffset(offset, width, {
+        duration: this.#duration(width - offset, width, swipeClose ? swipeSpeed : 0),
       });
       stackStore({ pages: stackStore.pages.slice(0, -1), offset: 0 });
       this.#busy = false;
       if (history.store.$hasCloseHandle) history.back();
       return;
     }
-    await this.#animateX(el, `translateX(${offset}px)`, 'translateX(0)');
+    await this.#animateOffset(offset, 0, { duration: this.#duration(offset, width) });
   };
 
   @effect(() => [stackStore.pages.length])
@@ -173,13 +223,12 @@ export class TapStackElement extends GemElement {
     return html`
       ${pages.map((page) => {
         const isTop = page === top;
-        const dragging = isTop && offset > 0;
         return html`
           <div
             ${this.#pageRef}
             class=${classMap({ page: true, covered: !isTop })}
             ?inert=${!isTop}
-            style=${dragging ? styleMap({ transform: `translateX(${offset}px)` }) : undefined}
+            style=${isTop && offset > 0 ? styleMap({ transform: `translateX(${offset}px)` }) : undefined}
             @pan=${(evt: CustomEvent<PanEventDetail>) => this.#onPagePan(page, evt)}
             @swipe=${(evt: CustomEvent<SwipeEventDetail>) => this.#onPageSwipe(page, evt)}
             @end=${(evt: Event) => this.#onPagePanEnd(page, evt.currentTarget as HTMLElement)}

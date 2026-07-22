@@ -18,7 +18,7 @@ import { icons } from '../lib/icons';
 import { theme } from '../lib/theme';
 import type { PanEventDetail, SwipeEventDetail } from './gesture';
 import type { TapNavbarElement } from './navbar';
-import { stackStore } from './stack';
+import { elementTheme, getStackBrightness, getStackShift, stackStore } from './stack';
 
 import './gesture';
 import './use';
@@ -40,10 +40,11 @@ const style = css`
     box-sizing: border-box;
     background: ${theme.backgroundColor};
     color: ${theme.textColor};
-    transition: filter 150ms ${theme.timingFunction};
+    will-change: filter, transform;
   }
   :host([inert]) {
-    filter: brightness(0.92);
+    filter: brightness(${elementTheme.brightness});
+    transform: translateX(${elementTheme.shift});
   }
   .header,
   .footer {
@@ -66,11 +67,8 @@ const style = css`
     overscroll-behavior-y: contain;
   }
   .refresh {
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    position: relative;
     overflow: hidden;
-    flex-shrink: 0;
     height: 0;
     color: ${theme.describeColor};
     transition: height 200ms ${theme.timingFunction};
@@ -79,16 +77,12 @@ const style = css`
     transition: none;
   }
   .refresh .icon {
+    position: absolute;
+    left: 50%;
+    bottom: max(0px, calc(50% - 0.625em));
+    translate: -50% 0;
     width: 1.25em;
     height: 1.25em;
-  }
-  .refresh.spinning .icon {
-    animation: spin 0.8s linear infinite;
-  }
-  @keyframes spin {
-    to {
-      transform: rotate(360deg);
-    }
   }
   .gesture {
     position: absolute;
@@ -125,14 +119,24 @@ export class TapPageElement extends GemElement {
     pull: 0,
     dragging: false,
     refreshing: false,
+    rotate: 0,
   });
   #mainRef = createRef<HTMLElement>();
   #headerSlotRef = createRef<HTMLSlotElement>();
+  #iconRef = createRef<HTMLElement>();
 
   #tracking = false;
   #pulling = false;
   #startY = 0;
   #startX = 0;
+
+  #pullRotate = (pull: number) => Math.min(180, (pull / PULL_THRESHOLD) * 180);
+
+  @elementTheme(() => [stackStore.offset])
+  #theme = () => {
+    const width = this.clientWidth;
+    return { brightness: getStackBrightness(width), shift: getStackShift(width) };
+  };
 
   get #inStack() {
     return !!this.closest('tap-stack');
@@ -159,22 +163,41 @@ export class TapPageElement extends GemElement {
     this.refresh(this.#doneRefresh);
   };
 
+  @effect((i) => [i.#state.refreshing])
+  #spinIcon = () => {
+    if (!this.#state.refreshing) return;
+    const el = this.#iconRef.value!;
+    const from = this.#state.rotate;
+    const duration = 800;
+    const anim = el.animate([{ transform: `rotate(${from}deg)` }, { transform: `rotate(${from + 360}deg)` }], {
+      duration,
+      iterations: Infinity,
+      easing: 'linear',
+    });
+    return () => {
+      const t = Number(anim.currentTime ?? 0);
+      anim.cancel();
+      if (!this.refreshable) return;
+      const angle = (from + ((t % duration) / duration) * 360) % 360;
+      this.#state({ rotate: angle });
+    };
+  };
+
   #onPointerDown = (evt: PointerEvent) => {
     if (!this.refreshable || this.#state.refreshing) return;
     if (evt.isPrimary === false) return;
     if (evt.pointerType === 'mouse' && evt.button !== 0) return;
-    const main = this.#mainRef.value;
-    if (!main || main.scrollTop > 0) return;
+    if (this.#mainRef.value!.scrollTop > 0) return;
     this.#tracking = true;
     this.#pulling = false;
     this.#startY = evt.clientY;
     this.#startX = evt.clientX;
+    if (this.#state.rotate !== 0) this.#state({ rotate: 0 });
   };
 
   #onPointerMove = (evt: PointerEvent) => {
     if (!this.#tracking) return;
-    const main = this.#mainRef.value;
-    if (!main) return;
+    const main = this.#mainRef.value!;
 
     const dy = evt.clientY - this.#startY;
     const dx = evt.clientX - this.#startX;
@@ -194,13 +217,13 @@ export class TapPageElement extends GemElement {
     }
 
     evt.preventDefault();
-    this.#state({ pull: this.#damp(dy), dragging: true });
+    const pull = this.#damp(dy);
+    this.#state({ pull, dragging: true, rotate: this.#pullRotate(pull) });
   };
 
   #onTouchMove = (evt: TouchEvent) => {
     if (!this.#tracking || evt.touches.length !== 1) return;
-    const main = this.#mainRef.value;
-    if (!main || main.scrollTop > 0) return;
+    if (this.#mainRef.value!.scrollTop > 0) return;
 
     const touch = evt.touches[0];
     const dy = touch.clientY - this.#startY;
@@ -229,7 +252,7 @@ export class TapPageElement extends GemElement {
     if (!this.refreshable) {
       this.#tracking = false;
       this.#pulling = false;
-      this.#state({ pull: 0, dragging: false, refreshing: false });
+      this.#state({ pull: 0, dragging: false, refreshing: false, rotate: 0 });
       return;
     }
     const el = this.#mainRef.value!;
@@ -276,20 +299,20 @@ export class TapPageElement extends GemElement {
 
   @template()
   #content = () => {
-    const { pull, dragging, refreshing } = this.#state;
+    const { pull, dragging, refreshing, rotate } = this.#state;
     const height = refreshing ? Math.max(pull, PULL_HOLD) : pull;
-    const rotate = Math.min(180, (pull / PULL_THRESHOLD) * 180);
     return html`
       <div class="header" part=${TapPageElement.header}>
         <slot ${this.#headerSlotRef} name=${TapPageElement.header}></slot>
       </div>
       <div ${this.#mainRef} class="main" part=${TapPageElement.main}>
         <div
-          class=${classMap({ refresh: true, dragging, spinning: refreshing })}
+          class=${classMap({ refresh: true, dragging })}
           part=${TapPageElement.refresh}
           style=${styleMap({ height: this.refreshable && height > 0 ? `${height}px` : '0px' })}
         >
           <tap-use
+            ${this.#iconRef}
             class="icon"
             style=${styleMap({ transform: !refreshing && `rotate(${rotate}deg)` })}
             .element=${icons.refresh}
