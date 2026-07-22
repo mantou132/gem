@@ -1,7 +1,7 @@
 import { mediaQuery } from '@mantou/gem/helper/mediaquery';
-import { initApp as initTapApp, type InitAppOptions as TapInitAppOptions } from 'tap-ui/helper/webapp';
+import { initApp as initTapApp, type TapInitAppOptions } from 'tap-ui/helper/base/webapp';
 
-export { getWebManifestURL } from 'tap-ui/helper/webapp';
+export { getWebManifestURL } from 'tap-ui/helper/base/webapp';
 
 interface InitAppOptions extends TapInitAppOptions {
   initWindowSize?: [number, number];

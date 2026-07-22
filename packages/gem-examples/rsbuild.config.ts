@@ -87,6 +87,7 @@ export default defineConfig((config) => {
         'tap-ui/elements': path.resolve(__dirname, '../tap-ui/src/elements'),
         'tap-ui/patterns': path.resolve(__dirname, '../tap-ui/src/patterns'),
         'tap-ui/lib': path.resolve(__dirname, '../tap-ui/src/lib'),
+        'tap-ui/helper': path.resolve(__dirname, '../tap-ui/src/helper'),
       },
     },
     plugins: [

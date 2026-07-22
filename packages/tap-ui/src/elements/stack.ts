@@ -1,5 +1,5 @@
 import { createDecoratorTheme } from '@mantou/gem/helper/theme';
-import { adoptedStyle, connectStore, customElement, effect, template } from '@mantou/gem/lib/decorators';
+import { adoptedStyle, connectStore, customElement, template } from '@mantou/gem/lib/decorators';
 import type { TemplateResult } from '@mantou/gem/lib/element';
 import { createRef, css, GemElement, html } from '@mantou/gem/lib/element';
 import { history } from '@mantou/gem/lib/history';
@@ -30,27 +30,17 @@ export const stackStore = createStore({
   offset: 0,
 });
 
-export const elementTheme = createDecoratorTheme({ brightness: 0.92, shift: '0px' });
-
-export const getStackProgress = (width = 1) => Math.min(1, stackStore.offset / (width || 1));
-
-export const getStackBrightness = (width = 1) => 0.92 + 0.08 * getStackProgress(width);
-
-export const getStackShift = (width = 1) => {
-  const w = width || 1;
-  return `${-STACK_PARALLAX * w * (1 - getStackProgress(w))}px`;
-};
+const elementTheme = createDecoratorTheme({ brightness: 0.92, shift: '0px' });
 
 const style = css`
   :scope {
     position: fixed;
     inset: 0;
     z-index: 1;
-    pointer-events: none;
     overflow: hidden;
   }
-  :scope:not([inert]) {
-    pointer-events: auto;
+  :scope[inert] {
+    pointer-events: none;
   }
   .page {
     position: absolute;
@@ -63,7 +53,7 @@ const style = css`
   .page:not(.covered) {
     box-shadow: -2px 0 16px rgb(0 0 0 / 0.08);
   }
-  .page.covered {
+  .page.covered:not(:has(~ .page.covered)) {
     filter: brightness(${elementTheme.brightness});
     transform: translateX(${elementTheme.shift});
   }
@@ -83,13 +73,17 @@ export class TapStackElement extends GemElement {
   @elementTheme(() => [stackStore.offset])
   #theme = () => {
     const width = this.clientWidth;
-    return { brightness: getStackBrightness(width), shift: getStackShift(width) };
+    const getStackProgress = () => Math.min(1, stackStore.offset / (width || 1));
+    return {
+      brightness: 0.92 + 0.08 * getStackProgress(),
+      shift: `${-STACK_PARALLAX * width * (1 - getStackProgress())}px`,
+    };
   };
 
   static push(options: StackPushOptions) {
     const stack = (TapStackElement.instance ??= new TapStackElement());
     stack.#push(options);
-    document.body.append(stack);
+    if (!stack.isConnected) document.body.append(stack);
   }
 
   static close() {
@@ -122,11 +116,13 @@ export class TapStackElement extends GemElement {
   };
 
   #push = (options: StackPushOptions) => {
-    history.push({
-      close: () => this.#pop(options),
-      shouldClose: options.canLeave,
-      open: () => this.#restore(options),
-    });
+    if (options.gesture !== false) {
+      history.push({
+        close: () => this.#pop(options),
+        shouldClose: options.canLeave,
+        open: () => this.#restore(options),
+      });
+    }
     const animated = options.animated !== false;
     stackStore({
       pages: [...stackStore.pages, options],
@@ -209,11 +205,6 @@ export class TapStackElement extends GemElement {
       return;
     }
     await this.#animateOffset(offset, 0, { duration: this.#duration(offset, width) });
-  };
-
-  @effect(() => [stackStore.pages.length])
-  #syncInert = () => {
-    this.inert = stackStore.pages.length === 0;
   };
 
   @template()

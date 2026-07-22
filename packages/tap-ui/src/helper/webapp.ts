@@ -1,21 +1,47 @@
-import { utf8ToB64 } from '../lib/encode';
+import { html } from '@mantou/gem/lib/lit-html';
 
-export function getWebManifestURL(manifest: Record<string, unknown>) {
-  return `data:application/json;base64,${utf8ToB64(
-    JSON.stringify(manifest, (_, value) =>
-      typeof value === 'string' && value.startsWith('/') ? new URL(value, location.origin).href : value,
-    ),
-  )}`;
-}
+import { Stack } from '../elements/stack';
+import { initApp as initTapApp, type TapInitAppOptions } from './base/webapp';
 
-export interface InitAppOptions {
-  serviceWorkerScript?: string;
-}
+export { getWebManifestURL } from './base/webapp';
 
-export function initApp({ serviceWorkerScript }: InitAppOptions = {}) {
-  if (serviceWorkerScript) {
-    navigator.serviceWorker?.register(serviceWorkerScript, { type: 'module' });
-  } else {
-    navigator.serviceWorker?.getRegistration().then((reg) => reg?.unregister());
+interface InitAppOptions extends TapInitAppOptions {}
+
+export function initApp(options: InitAppOptions = {}) {
+  initTapApp({
+    ...options,
+    template: html`
+      <style>
+        :where(body, html) {
+          margin: 0;
+          overflow: hidden;
+          /* Android 禁用手势 */
+          overscroll-behavior: contain;
+        }
+      </style>
+    `,
+  });
+
+  if (options.template) {
+    Stack.push({
+      gesture: false,
+      animated: false,
+      content: options.template,
+    });
+  }
+
+  if (/iPhone|iPad|iPod/i.test(navigator.userAgent)) {
+    // IOS 禁用手势: https://bugs.webkit.org/show_bug.cgi?id=240183
+    document.addEventListener(
+      'touchstart',
+      (e) => {
+        const edge = 24;
+        const x = e.touches[0]?.pageX ?? 0;
+        if (x > edge && x < window.innerWidth - edge) return;
+        if (e.composedPath().some((n) => 'active' in n || n instanceof HTMLButtonElement)) return;
+        e.preventDefault(); // 拦截 Safari 左右滑导航
+      },
+      { passive: false },
+    );
   }
 }

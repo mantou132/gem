@@ -2,7 +2,6 @@ import type { Emitter } from '@mantou/gem/lib/decorators';
 import {
   adoptedStyle,
   boolattribute,
-  connectStore,
   customElement,
   effect,
   emitter,
@@ -18,7 +17,6 @@ import { icons } from '../lib/icons';
 import { theme } from '../lib/theme';
 import type { PanEventDetail, SwipeEventDetail } from './gesture';
 import type { TapNavbarElement } from './navbar';
-import { elementTheme, getStackBrightness, getStackShift, stackStore } from './stack';
 
 import './gesture';
 import './use';
@@ -40,11 +38,6 @@ const style = css`
     box-sizing: border-box;
     background: ${theme.backgroundColor};
     color: ${theme.textColor};
-    will-change: filter, transform;
-  }
-  :host([inert]) {
-    filter: brightness(${elementTheme.brightness});
-    transform: translateX(${elementTheme.shift});
   }
   .header,
   .footer {
@@ -96,7 +89,6 @@ const style = css`
 @customElement('tap-page')
 @shadow()
 @adoptedStyle(style)
-@connectStore(stackStore)
 export class TapPageElement extends GemElement {
   @slot @part static header: string;
   @slot @part static footer: string;
@@ -131,20 +123,6 @@ export class TapPageElement extends GemElement {
   #startX = 0;
 
   #pullRotate = (pull: number) => Math.min(180, (pull / PULL_THRESHOLD) * 180);
-
-  @elementTheme(() => [stackStore.offset])
-  #theme = () => {
-    const width = this.clientWidth;
-    return { brightness: getStackBrightness(width), shift: getStackShift(width) };
-  };
-
-  get #inStack() {
-    return !!this.closest('tap-stack');
-  }
-
-  get #nestedInPage() {
-    return !!this.parentElement?.closest('tap-page');
-  }
 
   #forward = (type: string, evt: CustomEvent) => {
     this.dispatchEvent(new CustomEvent(type, { detail: evt.detail, bubbles: true, composed: true }));
@@ -266,11 +244,6 @@ export class TapPageElement extends GemElement {
     return () => removes.forEach((remove) => remove());
   };
 
-  @effect(() => [stackStore.pages.length])
-  #syncInert = () => {
-    this.inert = !this.#inStack && !this.#nestedInPage && stackStore.pages.length > 0;
-  };
-
   #syncHeaderTransparent = () => {
     const transparent = this.floatheader && !this.#state.scrolled;
     this.#headerSlotRef.value?.assignedElements().forEach((el) => {
@@ -324,7 +297,6 @@ export class TapPageElement extends GemElement {
         <slot name=${TapPageElement.footer}></slot>
       </div>
       <tap-gesture
-        v-if=${this.#inStack}
         class="gesture"
         @pan=${(evt: CustomEvent<PanEventDetail>) => this.#forward('pan', evt)}
         @swipe=${(evt: CustomEvent<SwipeEventDetail>) => this.#forward('swipe', evt)}
