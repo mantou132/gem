@@ -4,8 +4,8 @@
   "version": "2.2.4",
   "description": "gem examples",
   "scripts": {
-    "build": "rsbuild build",
-    "preview": "rsbuild preview",
+    "build": "cross-env NODE_OPTIONS=--conditions=development rsbuild build",
+    "preview": "cross-env NODE_OPTIONS=--conditions=development rsbuild preview",
     "start": "cross-env NODE_OPTIONS=--conditions=development DEBUG=rsbuild rsbuild dev"
   },
   "dependencies": {

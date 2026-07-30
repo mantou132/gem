@@ -34,6 +34,14 @@ export default defineConfig((config) => {
     server: {
       host: true,
       cors: true,
+      // 各 example 的客户端子路由（如 /tap-app/settings）需回落到对应 HTML，
+      // 否则会落到 public/index.html 并跳转到 /hello-world
+      historyApiFallback: {
+        rewrites: examples.map((name) => ({
+          from: new RegExp(`^/${name}(/|$)`),
+          to: `/${name}.html`,
+        })),
+      },
     },
     html: {
       template: './src/template.html',
