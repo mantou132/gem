@@ -1,5 +1,6 @@
 import type { RouteItem } from 'tap-ui/elements/route';
 
+import './cards';
 import './chats';
 import './home';
 import './settings';
@@ -10,6 +11,13 @@ export const routes = {
     title: 'Home',
     getContent() {
       return html`<tap-app-home></tap-app-home>`;
+    },
+  },
+  cards: {
+    pattern: '/cards',
+    title: 'Cards',
+    getContent() {
+      return html`<tap-app-cards></tap-app-cards>`;
     },
   },
   chats: {

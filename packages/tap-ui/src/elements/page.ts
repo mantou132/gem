@@ -2,12 +2,14 @@ import type { Emitter } from '@mantou/gem/lib/decorators';
 import {
   adoptedStyle,
   boolattribute,
+  connectStore,
   customElement,
   effect,
   emitter,
   part,
   shadow,
   slot,
+  state,
   template,
 } from '@mantou/gem/lib/decorators';
 import { createRef, createState, css, GemElement, html } from '@mantou/gem/lib/element';
@@ -15,8 +17,10 @@ import { addListener, classMap, styleMap } from '@mantou/gem/lib/utils';
 
 import { icons } from '../lib/icons';
 import { theme } from '../lib/theme';
+import { expandableCardStore } from './card';
 import type { PanEventDetail, SwipeEventDetail } from './gesture';
 import type { TapNavbarElement } from './navbar';
+import { Stack } from './stack';
 
 import './gesture';
 import './use';
@@ -55,6 +59,16 @@ const style = css`
     flex: 1;
     min-height: 0;
   }
+  :host(:state(dim)) {
+    .header,
+    .footer {
+      /* TODO：改成使用动画 translate 分别移到屏幕外; 可倒放 */
+      opacity: 0;
+    }
+    .main {
+      z-index: 3;
+    }
+  }
   .refresh {
     position: relative;
     overflow: hidden;
@@ -85,6 +99,7 @@ const style = css`
 @customElement('tap-page')
 @shadow()
 @adoptedStyle(style)
+@connectStore(expandableCardStore)
 export class TapPageElement extends GemElement {
   @slot @part static header: string;
   @slot @part static footer: string;
@@ -101,6 +116,7 @@ export class TapPageElement extends GemElement {
    * Call `detail()` (done) when loading finishes so the indicator can dismiss.
    */
   @emitter refresh: Emitter<() => void>;
+  @state dim: boolean;
 
   #state = createState({
     scrolled: false,
@@ -181,6 +197,11 @@ export class TapPageElement extends GemElement {
     this.#syncHeaderTransparent();
     const slot = this.#headerSlotRef.value!;
     return addListener(slot, 'slotchange', this.#syncHeaderTransparent);
+  };
+
+  @effect(() => [expandableCardStore.open])
+  #watchExpandable = () => {
+    if (Stack.inCurrentStack(this)) this.dim = !!expandableCardStore.open;
   };
 
   @effect((i) => [i.floatheader])

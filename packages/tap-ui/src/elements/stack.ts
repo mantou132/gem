@@ -7,6 +7,7 @@ import { createStore } from '@mantou/gem/lib/store';
 import { classMap, styleMap } from '@mantou/gem/lib/utils';
 
 import { easeOutCubic } from '../lib/easing';
+import { closestElement } from '../lib/element';
 import { clamp } from '../lib/number';
 import { theme } from '../lib/theme';
 import type { PanEventDetail, SwipeEventDetail } from './gesture';
@@ -43,42 +44,34 @@ const style = css`
   :scope[inert] {
     pointer-events: none;
   }
-  .page {
+`;
+
+export const stackStyle = css({
+  page: `
     position: absolute;
     inset: 0;
     display: flex;
     flex-direction: column;
     background: ${theme.backgroundColor};
     will-change: transform;
-  }
-  .page:not(.covered) {
-    box-shadow: -2px 0 16px rgb(0 0 0 / 0.08);
-  }
-  .page.covered:not(:has(~ .page.covered)) {
-    filter: brightness(${elementTheme.brightness});
-    transform: translateX(${elementTheme.shift});
-  }
-`;
+  `,
+  covered: `
+    .page:not(&) {
+      box-shadow: -2px 0 16px rgb(0 0 0 / 0.08);
+    }
+    &.page:not(:has(~ &.page)) {
+      filter: brightness(${elementTheme.brightness});
+      transform: translateX(${elementTheme.shift});
+    }
+  `,
+});
 
 @customElement('tap-stack')
 @adoptedStyle(style)
+@adoptedStyle(stackStyle)
 @connectStore(stackStore)
 export class TapStackElement extends GemElement {
   static instance?: TapStackElement;
-
-  #pageRef = createRef<HTMLElement>();
-  #busy = false;
-  #closeSpeed = 0;
-
-  @elementTheme(() => [stackStore.offset])
-  #theme = () => {
-    const width = this.clientWidth;
-    const getStackProgress = () => Math.min(1, stackStore.offset / (width || 1));
-    return {
-      brightness: 0.92 + 0.08 * getStackProgress(),
-      shift: `${-STACK_PARALLAX * width * (1 - getStackProgress())}px`,
-    };
-  };
 
   static push(options: StackPushOptions) {
     const stack = (TapStackElement.instance ??= new TapStackElement());
@@ -93,6 +86,24 @@ export class TapStackElement extends GemElement {
       history.back();
     }
   }
+
+  static inCurrentStack(ele: HTMLElement) {
+    return !closestElement(ele, `.${stackStyle.page}.${stackStyle.covered}`);
+  }
+
+  #pageRef = createRef<HTMLElement>();
+  #busy = false;
+  #closeSpeed = 0;
+
+  @elementTheme(() => [stackStore.offset])
+  #theme = () => {
+    const width = this.clientWidth;
+    const getStackProgress = () => Math.min(1, stackStore.offset / (width || 1));
+    return {
+      brightness: 0.92 + 0.08 * getStackProgress(),
+      shift: `${-STACK_PARALLAX * width * (1 - getStackProgress())}px`,
+    };
+  };
 
   #duration = (distance: number, width: number, speed = 0) => {
     if (speed > 0) {
@@ -214,7 +225,7 @@ export class TapStackElement extends GemElement {
         return html`
           <div
             ${this.#pageRef}
-            class=${classMap({ page: true, covered: !isTop })}
+            class=${classMap({ page: true, [stackStyle.page]: true, [stackStyle.covered]: !isTop })}
             ?inert=${!isTop}
             style=${isTop && offset > 0 ? styleMap({ transform: `translateX(${offset}px)` }) : undefined}
             @pan=${(evt: CustomEvent<PanEventDetail>) => this.#onPagePan(page, evt)}

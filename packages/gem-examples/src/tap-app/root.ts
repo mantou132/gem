@@ -16,6 +16,7 @@ export class TapAppAppElement extends GemElement {
         slot="footer"
         .items=${[
           { label: 'Home', path: '/', pattern: '/', icon: icons.menu },
+          { label: 'Cards', path: '/cards', pattern: '/cards', icon: icons.expand },
           { label: 'Chats', path: '/chats', pattern: '/chats', icon: icons.info },
           { label: 'Settings', path: '/settings', pattern: '/settings', icon: icons.tune },
         ]}
