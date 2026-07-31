@@ -20,6 +20,9 @@ export const slideInUp: Keyframe[] = [
 ];
 export const slideOutDown = [...slideInUp].reverse();
 
+export const sheetIn: Keyframe[] = [{ transform: 'translateY(100%)' }, { transform: 'translateY(0)' }];
+export const sheetOut = [...sheetIn].reverse();
+
 export const slideInLeft: Keyframe[] = [
   {
     transform: 'translateX(50%)',

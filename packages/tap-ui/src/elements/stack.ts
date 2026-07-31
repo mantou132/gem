@@ -7,6 +7,7 @@ import { createStore } from '@mantou/gem/lib/store';
 import { classMap, styleMap } from '@mantou/gem/lib/utils';
 
 import { easeOutCubic } from '../lib/easing';
+import { clamp } from '../lib/number';
 import { theme } from '../lib/theme';
 import type { PanEventDetail, SwipeEventDetail } from './gesture';
 
@@ -67,8 +68,7 @@ export class TapStackElement extends GemElement {
 
   #pageRef = createRef<HTMLElement>();
   #busy = false;
-  #swipeClose = false;
-  #swipeSpeed = 0;
+  #closeSpeed = 0;
 
   @elementTheme(() => [stackStore.offset])
   #theme = () => {
@@ -96,9 +96,9 @@ export class TapStackElement extends GemElement {
 
   #duration = (distance: number, width: number, speed = 0) => {
     if (speed > 0) {
-      return Math.min(STACK_DURATION, Math.max(STACK_DURATION_MIN, distance / speed));
+      return clamp(STACK_DURATION_MIN, distance / speed, STACK_DURATION);
     }
-    return Math.min(STACK_DURATION, Math.max(STACK_DURATION_MIN, STACK_DURATION * (distance / (width || 1))));
+    return clamp(STACK_DURATION_MIN, STACK_DURATION * (distance / (width || 1)), STACK_DURATION);
   };
 
   #animateOffset = (from: number, to: number, { duration = STACK_DURATION } = {}) => {
@@ -175,18 +175,15 @@ export class TapStackElement extends GemElement {
   #onPageSwipe = (page: StackPushOptions, evt: CustomEvent<SwipeEventDetail>) => {
     if (page !== stackStore.pages.at(-1)) return;
     if (evt.detail.direction === 'right' && evt.detail.speed > 0.5) {
-      this.#swipeClose = true;
-      this.#swipeSpeed = evt.detail.speed;
+      this.#closeSpeed = evt.detail.speed;
     }
   };
 
   #onPagePanEnd = async (page: StackPushOptions, el: HTMLElement) => {
     const offset = stackStore.offset;
-    const swipeClose = this.#swipeClose;
-    const swipeSpeed = this.#swipeSpeed;
-    this.#swipeClose = false;
-    this.#swipeSpeed = 0;
-    if (!offset || page !== stackStore.pages.at(-1)) return;
+    const speed = this.#closeSpeed;
+    this.#closeSpeed = 0;
+    if (page !== stackStore.pages.at(-1)) return;
 
     if (page.canLeave && !page.canLeave()) {
       await this.#animateOffset(offset, 0, { duration: this.#duration(offset, el.offsetWidth) });
@@ -194,10 +191,10 @@ export class TapStackElement extends GemElement {
     }
 
     const width = el.offsetWidth;
-    if (offset > width * 0.33 || swipeClose) {
+    if (offset > width * 0.33 || speed) {
       this.#busy = true;
       await this.#animateOffset(offset, width, {
-        duration: this.#duration(width - offset, width, swipeClose ? swipeSpeed : 0),
+        duration: this.#duration(width - offset, width, speed),
       });
       stackStore({ pages: stackStore.pages.slice(0, -1), offset: 0 });
       this.#busy = false;

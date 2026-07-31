@@ -1,4 +1,7 @@
+import { adoptedStyle, customElement, template } from '@mantou/gem/lib/decorators';
+import { createState, GemElement, html } from '@mantou/gem/lib/element';
 import { Dialog } from 'tap-ui/elements/dialog';
+import { Sheet } from 'tap-ui/elements/sheet';
 import { Stack } from 'tap-ui/elements/stack';
 import { contentsContainer } from 'tap-ui/lib/styles';
 
@@ -12,7 +15,7 @@ import './profile';
 @customElement('tap-app-home')
 @adoptedStyle(contentsContainer)
 export class TapAppHomeElement extends GemElement {
-  #state = createState({ dialogResult: '' });
+  #state = createState({ dialogResult: '', sheetResult: '' });
 
   #openDetail = () => {
     Stack.push({
@@ -66,6 +69,34 @@ export class TapAppHomeElement extends GemElement {
     }
   };
 
+  #openSheet = async () => {
+    await Sheet.open({
+      header: 'Sheet Modal',
+      body: html`
+        <p>Bottom sheet with drag handle. Pull down or tap the mask to dismiss.</p>
+        <p style="margin-top: 1em; color: inherit; opacity: 0.7">
+          Release past 33% height or swipe down quickly to continue the close animation from the current offset.
+        </p>
+      `,
+      maskClosable: true,
+    });
+    this.#state({ sheetResult: 'Dismissed' });
+  };
+
+  #openSheetLong = async () => {
+    await Sheet.open({
+      header: 'Scrollable',
+      body: html`
+        ${Array.from(
+          { length: 30 },
+          (_, i) => html`<p style="margin: 0.5em 0">Row ${i + 1} — content scrolls inside the sheet.</p>`,
+        )}
+      `,
+      maskClosable: true,
+    });
+    this.#state({ sheetResult: 'Dismissed (long)' });
+  };
+
   #onRefresh = ({ detail: done }: CustomEvent<() => void>) => {
     setTimeout(done, 1000);
   };
@@ -90,6 +121,17 @@ export class TapAppHomeElement extends GemElement {
           {
             label: 'Last result',
             description: this.#state.dialogResult || '—',
+          },
+        ]}
+      ></tap-cell-group>
+      <tap-cell-group
+        heading="Sheet"
+        .items=${[
+          { label: 'Open', description: 'Drag header or pull body', action: true, onClick: this.#openSheet },
+          { label: 'Scrollable', description: 'Pull at top to close', action: true, onClick: this.#openSheetLong },
+          {
+            label: 'Last result',
+            description: this.#state.sheetResult || '—',
           },
         ]}
       ></tap-cell-group>
