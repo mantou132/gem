@@ -1,4 +1,4 @@
-import { adoptedStyle, effect, mounted, shadow, state } from '@mantou/gem/lib/decorators';
+import { adoptedStyle, boolattribute, effect, shadow, state } from '@mantou/gem/lib/decorators';
 import { css } from '@mantou/gem/lib/element';
 import { addListener } from '@mantou/gem/lib/utils';
 
@@ -46,13 +46,16 @@ const style = css`
 @adoptedStyle(style)
 @shadow()
 export class TapScrollBaseElement extends TapResizeBaseElement {
+  @boolattribute disablescrollmask: boolean;
+
   @state topOverflow: boolean;
   @state rightOverflow: boolean;
   @state bottomOverflow: boolean;
   @state leftOverflow: boolean;
 
-  @mounted()
+  @effect()
   #init = () => {
+    if (this.disablescrollmask) return;
     const removeScrollHandle = addListener(this, 'scroll', this.#check);
     const removeScrollEndHandle = addListener(this, 'scrollend', this.#check);
     const ob = new MutationObserver(this.#check);
@@ -66,6 +69,13 @@ export class TapScrollBaseElement extends TapResizeBaseElement {
 
   @effect()
   #check = () => {
+    if (this.disablescrollmask) {
+      this.topOverflow = false;
+      this.rightOverflow = false;
+      this.bottomOverflow = false;
+      this.leftOverflow = false;
+      return;
+    }
     const contentHeight = this.clientHeight - (this.borderBoxSize.blockSize - this.contentRect.height);
     const contentWidth = this.clientWidth - (this.borderBoxSize.inlineSize - this.contentRect.width);
     const scrollHeight = this.scrollHeight;

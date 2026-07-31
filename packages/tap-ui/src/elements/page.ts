@@ -26,7 +26,6 @@ const PULL_THRESHOLD = 52;
 /**Held height while refreshing */
 const PULL_HOLD = 44;
 const PULL_MAX = 80;
-const PULL_ACTIVATE = 10;
 
 const style = css`
   :host(:where(:not([hidden]))) {
@@ -55,9 +54,6 @@ const style = css`
     z-index: 0;
     flex: 1;
     min-height: 0;
-    overflow: auto;
-    -webkit-overflow-scrolling: touch;
-    overscroll-behavior-y: contain;
   }
   .refresh {
     position: relative;
@@ -117,11 +113,6 @@ export class TapPageElement extends GemElement {
   #headerSlotRef = createRef<HTMLSlotElement>();
   #iconRef = createRef<HTMLElement>();
 
-  #tracking = false;
-  #pulling = false;
-  #startY = 0;
-  #startX = 0;
-
   #pullRotate = (pull: number) => Math.min(180, (pull / PULL_THRESHOLD) * 180);
 
   #forward = (type: string, evt: CustomEvent) => {
@@ -161,87 +152,21 @@ export class TapPageElement extends GemElement {
     };
   };
 
-  #onPointerDown = (evt: PointerEvent) => {
-    if (!this.refreshable || this.#state.refreshing) return;
-    if (evt.isPrimary === false) return;
-    if (evt.pointerType === 'mouse' && evt.button !== 0) return;
-    if (this.#mainRef.value!.scrollTop > 0) return;
-    this.#tracking = true;
-    this.#pulling = false;
-    this.#startY = evt.clientY;
-    this.#startX = evt.clientX;
-    if (this.#state.rotate !== 0) this.#state({ rotate: 0 });
-  };
-
-  #onPointerMove = (evt: PointerEvent) => {
-    if (!this.#tracking) return;
-    const main = this.#mainRef.value!;
-
-    const dy = evt.clientY - this.#startY;
-    const dx = evt.clientX - this.#startX;
-
-    if (!this.#pulling) {
-      if (main.scrollTop > 0) {
-        this.#tracking = false;
-        return;
-      }
-      if (dy < PULL_ACTIVATE) return;
-      if (Math.abs(dx) > dy) {
-        this.#tracking = false;
-        return;
-      }
-      this.#pulling = true;
-      main.setPointerCapture(evt.pointerId);
-    }
-
-    evt.preventDefault();
-    const pull = this.#damp(dy);
+  #onPull = (evt: CustomEvent<{ distance: number }>) => {
+    const pull = this.#damp(evt.detail.distance);
     this.#state({ pull, dragging: true, rotate: this.#pullRotate(pull) });
   };
 
-  #onTouchMove = (evt: TouchEvent) => {
-    if (!this.#tracking || evt.touches.length !== 1) return;
-    if (this.#mainRef.value!.scrollTop > 0) return;
-
-    const touch = evt.touches[0];
-    const dy = touch.clientY - this.#startY;
-    const dx = touch.clientX - this.#startX;
-
-    if (this.#pulling || (dy > 0 && Math.abs(dx) <= dy)) {
-      evt.preventDefault();
-    }
+  #onPullEnd = (evt: CustomEvent<{ distance: number }>) => {
+    const pull = this.#damp(evt.detail.distance);
+    this.#state({ pull, dragging: false });
+    if (pull >= PULL_THRESHOLD) this.#startRefresh();
+    else this.#state({ pull: 0 });
   };
 
-  #onPointerUp = () => {
-    if (!this.#tracking) return;
-    this.#tracking = false;
-    if (!this.#pulling) return;
-    this.#pulling = false;
-
-    if (this.#state.pull >= PULL_THRESHOLD) {
-      this.#startRefresh();
-      return;
-    }
-    this.#state({ pull: 0, dragging: false });
-  };
-
-  @effect((i) => [i.refreshable])
+  @effect((i) => [i.refreshable, i.#state.refreshing])
   #watchPull = () => {
-    if (!this.refreshable) {
-      this.#tracking = false;
-      this.#pulling = false;
-      this.#state({ pull: 0, dragging: false, refreshing: false, rotate: 0 });
-      return;
-    }
-    const el = this.#mainRef.value!;
-    const removes = [
-      addListener(el, 'pointerdown', this.#onPointerDown, { capture: true }),
-      addListener(el, 'pointermove', this.#onPointerMove, { passive: false, capture: true }),
-      addListener(el, 'touchmove', this.#onTouchMove, { passive: false, capture: true }),
-      addListener(el, 'pointerup', this.#onPointerUp, { capture: true }),
-      addListener(el, 'pointercancel', this.#onPointerUp, { capture: true }),
-    ];
-    return () => removes.forEach((remove) => remove());
+    if (!this.refreshable) this.#state({ pull: 0, dragging: false, refreshing: false, rotate: 0 });
   };
 
   #syncHeaderTransparent = () => {
@@ -278,7 +203,15 @@ export class TapPageElement extends GemElement {
       <div class="header" part=${TapPageElement.header}>
         <slot ${this.#headerSlotRef} name=${TapPageElement.header}></slot>
       </div>
-      <div ${this.#mainRef} class="main" part=${TapPageElement.main}>
+      <tap-pull-container
+        ${this.#mainRef}
+        class="main"
+        part=${TapPageElement.main}
+        ?disablescrollmask=${true}
+        ?gesture=${this.refreshable && !refreshing}
+        @pull=${this.#onPull}
+        @pullend=${this.#onPullEnd}
+      >
         <div
           class=${classMap({ refresh: true, dragging })}
           part=${TapPageElement.refresh}
@@ -292,7 +225,7 @@ export class TapPageElement extends GemElement {
           ></tap-use>
         </div>
         <slot></slot>
-      </div>
+      </tap-pull-container>
       <div class="footer" part=${TapPageElement.footer}>
         <slot name=${TapPageElement.footer}></slot>
       </div>

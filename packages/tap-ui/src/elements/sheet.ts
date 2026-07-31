@@ -13,7 +13,7 @@ import {
   state,
 } from '@mantou/gem/lib/decorators';
 import { createRef, createState, css, GemElement, html, type TemplateResult } from '@mantou/gem/lib/element';
-import { addListener, styleMap } from '@mantou/gem/lib/utils';
+import { styleMap } from '@mantou/gem/lib/utils';
 
 import { easeOutCubic } from '../lib/easing';
 import { setBodyInert } from '../lib/element';
@@ -23,13 +23,12 @@ import { DyPromise } from '../lib/utils';
 import type { PanEventDetail, SwipeEventDetail } from './gesture';
 
 import './gesture';
+import './pull-container';
 import './scroll-box';
 
 /** Match stack / iOS sheet timing */
 const SHEET_DURATION = 350;
 const SHEET_DURATION_MIN = 140;
-/** Pull distance before body claims the gesture */
-const BODY_PULL_ACTIVATE = 10;
 
 const style = css`
   :host {
@@ -101,8 +100,6 @@ const style = css`
     flex-grow: 1;
     flex-shrink: 1;
     min-height: 0;
-    overflow: auto;
-    overscroll-behavior: contain;
   }
 `;
 
@@ -169,11 +166,6 @@ export class TapSheetElement extends GemElement {
   #bodyRef = createRef<HTMLElement>();
   #state = createState({ offset: 0 });
   #closeSpeed = 0;
-
-  #bodyTracking = false;
-  #bodyPulling = false;
-  #bodyStartY = 0;
-  #bodyStartX = 0;
 
   get #header() {
     return this.header || this.headerSlot;
@@ -252,59 +244,11 @@ export class TapSheetElement extends GemElement {
     await this.#animateOffset(offset, 0, { duration: this.#duration(offset, height) });
   };
 
-  #onBodyPointerDown = (evt: PointerEvent) => {
-    if (!this.gesture || this.closing) return;
-    if (evt.isPrimary === false) return;
-    if (evt.pointerType === 'mouse' && evt.button !== 0) return;
-    if (this.#bodyRef.value!.scrollTop > 0) return;
-    this.#bodyTracking = true;
-    this.#bodyPulling = false;
-    this.#bodyStartY = evt.clientY;
-    this.#bodyStartX = evt.clientX;
+  #onBodyPull = (evt: CustomEvent<{ distance: number }>) => {
+    this.#state({ offset: Math.max(0, evt.detail.distance) });
   };
 
-  #onBodyPointerMove = (evt: PointerEvent) => {
-    if (!this.#bodyTracking) return;
-    const body = this.#bodyRef.value!;
-    const dy = evt.clientY - this.#bodyStartY;
-    const dx = evt.clientX - this.#bodyStartX;
-
-    if (!this.#bodyPulling) {
-      if (body.scrollTop > 0) {
-        this.#bodyTracking = false;
-        return;
-      }
-      if (dy < BODY_PULL_ACTIVATE) return;
-      if (Math.abs(dx) > dy) {
-        this.#bodyTracking = false;
-        return;
-      }
-      this.#bodyPulling = true;
-      body.setPointerCapture(evt.pointerId);
-    }
-
-    evt.preventDefault();
-    this.#state({ offset: Math.max(0, dy) });
-  };
-
-  #onBodyTouchMove = (evt: TouchEvent) => {
-    if (!this.#bodyTracking || evt.touches.length !== 1) return;
-    if (this.#bodyRef.value!.scrollTop > 0) return;
-
-    const touch = evt.touches[0];
-    const dy = touch.clientY - this.#bodyStartY;
-    const dx = touch.clientX - this.#bodyStartX;
-
-    if (this.#bodyPulling || (dy > 0 && Math.abs(dx) <= dy)) {
-      evt.preventDefault();
-    }
-  };
-
-  #onBodyPointerUp = () => {
-    if (!this.#bodyTracking) return;
-    this.#bodyTracking = false;
-    if (!this.#bodyPulling) return;
-    this.#bodyPulling = false;
+  #onBodyPullEnd = () => {
     this.#onPanEnd();
   };
 
@@ -331,24 +275,6 @@ export class TapSheetElement extends GemElement {
       this.closing = false;
       this.#state({ offset: 0 });
     }
-  };
-
-  @effect((i) => [i.gesture, i.open])
-  #watchBodyPull = () => {
-    if (!this.gesture || !this.open) {
-      this.#bodyTracking = false;
-      this.#bodyPulling = false;
-      return;
-    }
-    const el = this.#bodyRef.value!;
-    const removes = [
-      addListener(el, 'pointerdown', this.#onBodyPointerDown, { capture: true }),
-      addListener(el, 'pointermove', this.#onBodyPointerMove, { passive: false, capture: true }),
-      addListener(el, 'touchmove', this.#onBodyTouchMove, { passive: false, capture: true }),
-      addListener(el, 'pointerup', this.#onBodyPointerUp, { capture: true }),
-      addListener(el, 'pointercancel', this.#onBodyPointerUp, { capture: true }),
-    ];
-    return () => removes.forEach((remove) => remove());
   };
 
   render = () => {
@@ -381,9 +307,16 @@ export class TapSheetElement extends GemElement {
             <slot name=${TapSheetElement.header}>${this.#header}</slot>
           </div>
         </tap-gesture>
-        <tap-scroll-box ${this.#bodyRef} class="body" part=${TapSheetElement.body}>
+        <tap-pull-container
+          ${this.#bodyRef}
+          class="body"
+          part=${TapSheetElement.body}
+          ?gesture=${this.gesture && !this.closing}
+          @pull=${this.#onBodyPull}
+          @pullend=${this.#onBodyPullEnd}
+        >
           <slot>${this.#body}</slot>
-        </tap-scroll-box>
+        </tap-pull-container>
       </div>
     `;
   };
