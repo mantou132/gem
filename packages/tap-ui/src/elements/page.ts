@@ -13,17 +13,19 @@ import {
   template,
 } from '@mantou/gem/lib/decorators';
 import { createRef, createState, css, GemElement, html } from '@mantou/gem/lib/element';
+import { createStore } from '@mantou/gem/lib/store';
 import { addListener, classMap, styleMap } from '@mantou/gem/lib/utils';
 
 import { icons } from '../lib/icons';
 import { theme } from '../lib/theme';
-import { expandableCardStore } from './card';
 import type { PanEventDetail, SwipeEventDetail } from './gesture';
 import type { TapNavbarElement } from './navbar';
 import { Stack } from './stack';
 
 import './gesture';
 import './use';
+
+export const pageStore = createStore({ shouldDim: false });
 
 /**Pull distance that triggers refresh */
 const PULL_THRESHOLD = 52;
@@ -47,6 +49,8 @@ const style = css`
     position: relative;
     flex-shrink: 0;
     z-index: 2;
+    will-change: opacity, transform;
+    transition: all ${350}ms ${theme.timingFunction};
   }
   :host([floatheader]) .header {
     position: absolute;
@@ -62,8 +66,14 @@ const style = css`
   :host(:state(dim)) {
     .header,
     .footer {
-      /* TODO：改成使用动画 translate 分别移到屏幕外; 可倒放 */
       opacity: 0;
+      pointer-events: none;
+    }
+    .header {
+      transform: translateY(-100%);
+    }
+    .footer {
+      transform: translateY(100%);
     }
     .main {
       z-index: 3;
@@ -99,7 +109,7 @@ const style = css`
 @customElement('tap-page')
 @shadow()
 @adoptedStyle(style)
-@connectStore(expandableCardStore)
+@connectStore(pageStore)
 export class TapPageElement extends GemElement {
   @slot @part static header: string;
   @slot @part static footer: string;
@@ -199,9 +209,9 @@ export class TapPageElement extends GemElement {
     return addListener(slot, 'slotchange', this.#syncHeaderTransparent);
   };
 
-  @effect(() => [expandableCardStore.open])
+  @effect(() => [pageStore.shouldDim])
   #watchExpandable = () => {
-    if (Stack.inCurrentStack(this)) this.dim = !!expandableCardStore.open;
+    if (Stack.inCurrentStack(this)) this.dim = !!pageStore.shouldDim;
   };
 
   @effect((i) => [i.floatheader])
@@ -228,10 +238,10 @@ export class TapPageElement extends GemElement {
         ${this.#mainRef}
         class="main"
         part=${TapPageElement.main}
-        ?disablescrollmask=${true}
-        ?gesture=${this.refreshable && !refreshing}
+        disable-scroll-mask
+        ?disable-gesture=${!this.refreshable || refreshing}
         @pull=${this.#onPull}
-        @pullend=${this.#onPullEnd}
+        @pull-end=${this.#onPullEnd}
       >
         <div
           class=${classMap({ refresh: true, dragging })}

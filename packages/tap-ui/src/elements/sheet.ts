@@ -311,9 +311,9 @@ export class TapSheetElement extends GemElement {
           ${this.#bodyRef}
           class="body"
           part=${TapSheetElement.body}
-          ?gesture=${this.gesture && !this.closing}
+          ?disable-gesture=${!this.gesture || this.closing}
           @pull=${this.#onBodyPull}
-          @pullend=${this.#onBodyPullEnd}
+          @pull-end=${this.#onBodyPullEnd}
         >
           <slot>${this.#body}</slot>
         </tap-pull-container>

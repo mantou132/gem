@@ -46,7 +46,7 @@ const style = css`
 @adoptedStyle(style)
 @shadow()
 export class TapScrollBaseElement extends TapResizeBaseElement {
-  @boolattribute disablescrollmask: boolean;
+  @boolattribute disableScrollMask: boolean;
 
   @state topOverflow: boolean;
   @state rightOverflow: boolean;
@@ -55,7 +55,7 @@ export class TapScrollBaseElement extends TapResizeBaseElement {
 
   @effect()
   #init = () => {
-    if (this.disablescrollmask) return;
+    if (this.disableScrollMask) return;
     const removeScrollHandle = addListener(this, 'scroll', this.#check);
     const removeScrollEndHandle = addListener(this, 'scrollend', this.#check);
     const ob = new MutationObserver(this.#check);
@@ -69,7 +69,7 @@ export class TapScrollBaseElement extends TapResizeBaseElement {
 
   @effect()
   #check = () => {
-    if (this.disablescrollmask) {
+    if (this.disableScrollMask) {
       this.topOverflow = false;
       this.rightOverflow = false;
       this.bottomOverflow = false;

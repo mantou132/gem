@@ -1,5 +1,3 @@
-// TODO: 优化动画; 打开时卡片应该从原位置展开。反之收起到原位置
-
 import {
   adoptedStyle,
   aria,
@@ -12,13 +10,13 @@ import {
   state,
 } from '@mantou/gem/lib/decorators';
 import { createRef, createState, css, GemElement, html } from '@mantou/gem/lib/element';
-import { createStore } from '@mantou/gem/lib/store';
 import { addListener, styleMap } from '@mantou/gem/lib/utils';
 
 import { easeOutCubic } from '../lib/easing';
 import { icons } from '../lib/icons';
 import { clamp } from '../lib/number';
 import { theme } from '../lib/theme';
+import { pageStore } from './page';
 
 import './gesture';
 import './pull-container';
@@ -27,8 +25,6 @@ import './use';
 
 const DURATION = 350;
 const DURATION_MIN = 140;
-
-export const expandableCardStore = createStore({ open: false });
 
 const style = css`
   :host(:not([hidden])) {
@@ -53,17 +49,27 @@ const style = css`
       inset: 0;
       background-color: rgba(0, 0, 0, calc(${theme.maskAlpha} + 0.2));
     }
+    .clip {
+      position: absolute;
+      overflow: hidden;
+      will-change: top, left, width, height;
+    }
     .card {
-      position: relative;
+      width: 100%;
       height: 100%;
     }
   }
   :host(:not(:state(expand))) .card {
     overscroll-behavior: auto;
+    transition: transform ${DURATION_MIN}ms ${theme.timingFunction};
+  }
+  :host(:not(:state(expand)):state(press)) .card {
+    transform: scale(0.98);
   }
   .card {
     background-color: ${theme.backgroundColor};
     will-change: transform;
+    transform-origin: center;
   }
   .close {
     position: absolute;
@@ -87,29 +93,51 @@ export class TapCardElement extends GemElement {
   @part static close: string;
 
   @state expand: boolean;
+  @state press: boolean;
 
   #cardRef = createRef<HTMLElement>();
-  #state = createState({ offset: 0, width: 0, height: 0, top: 0, left: 0 });
-  #closeSpeed = 0;
+  #wrapperRef = createRef<HTMLElement>();
+  #state = createState({
+    progress: 0,
+    pullScale: 1,
+    width: 0,
+    height: 0,
+    top: 0,
+    left: 0,
+    targetWidth: 1,
+    targetHeight: 1,
+    topLeftRadius: `calc(${theme.normalRound} * 3)`,
+    topRightRadius: `calc(${theme.normalRound} * 3)`,
+    bottomRightRadius: `calc(${theme.normalRound} * 3)`,
+    bottomLeftRadius: `calc(${theme.normalRound} * 3)`,
+  });
+  #animationId = 0;
+  #closing = false;
 
   get #height() {
     return this.#cardRef.value?.offsetHeight || 0;
   }
 
-  #duration = (distance: number, height: number, speed = 0) => {
-    if (speed > 0) {
-      return clamp(DURATION_MIN, distance / speed, DURATION);
-    }
+  #duration = (distance: number, height: number) => {
     return clamp(DURATION_MIN, DURATION * (distance / (height || 1)), DURATION);
   };
 
-  #animateOffset = (from: number, to: number, { duration = DURATION } = {}) => {
-    this.#state({ offset: from });
+  #getBorderRadius = (style: CSSStyleDeclaration) => ({
+    topLeftRadius: style.borderTopLeftRadius,
+    topRightRadius: style.borderTopRightRadius,
+    bottomRightRadius: style.borderBottomRightRadius,
+    bottomLeftRadius: style.borderBottomLeftRadius,
+  });
+
+  #animate = (from: number, to: number, update: (value: number) => void, { duration = DURATION } = {}) => {
+    const animationId = ++this.#animationId;
+    update(from);
     const start = performance.now();
     return new Promise<void>((resolve) => {
       const tick = (now: number) => {
+        if (animationId !== this.#animationId) return resolve();
         const t = Math.min(1, (now - start) / duration);
-        this.#state({ offset: from + (to - from) * easeOutCubic(t) });
+        update(from + (to - from) * easeOutCubic(t));
         if (t < 1) requestAnimationFrame(tick);
         else resolve();
       };
@@ -117,45 +145,47 @@ export class TapCardElement extends GemElement {
     });
   };
 
-  #finishClose = async () => {
-    const height = this.#height;
-    const from = this.#state.offset;
-    const speed = this.#closeSpeed;
-    this.#closeSpeed = 0;
-    await this.#animateOffset(from, height, {
-      duration: this.#duration(height - from, height, speed),
-    });
+  #animateProgress = (from: number, to: number, options = {}) =>
+    this.#animate(from, to, (progress) => this.#state({ progress }), options);
+
+  #animatePullScale = (from: number, to: number, options = {}) =>
+    this.#animate(from, to, (pullScale) => this.#state({ pullScale }), options);
+
+  #animateClose = () => {
+    const { progress, pullScale } = this.#state;
+    return this.#animate(
+      0,
+      1,
+      (value) => this.#state({ progress: progress * (1 - value), pullScale: pullScale + (1 - pullScale) * value }),
+      { duration: this.#duration(progress, 1) },
+    );
   };
 
   #close = async () => {
-    expandableCardStore({ open: false });
-    await this.#finishClose();
+    if (!this.expand || this.#closing) return;
+    this.#closing = true;
+    pageStore({ shouldDim: false });
+    await this.#animateClose();
     this.expand = false;
-    this.#state({ offset: 0 });
+    this.#state({ progress: 0, pullScale: 1 });
+    this.#closing = false;
   };
 
   #onBodyPull = (evt: CustomEvent<{ distance: number }>) => {
-    if (!expandableCardStore.open) return;
-    const offset = Math.max(0, evt.detail.distance);
+    if (!pageStore.shouldDim || this.#state.progress !== 1 || this.#closing) return;
     const height = this.#height;
-    const speed = this.#closeSpeed;
-    if (offset > height * 0.33 || speed) {
+    const distance = Math.max(0, evt.detail.distance);
+    const threshold = height * 0.1;
+    const pullScale = Math.max(0, 1 - distance / height);
+    this.#state({ pullScale });
+    if (distance >= threshold) {
       this.#close();
-      return;
     }
-    this.#state({ offset });
   };
 
-  #onBodyPullEnd = async () => {
-    const offset = this.#state.offset;
-    const height = this.#height;
-    const speed = this.#closeSpeed;
-    if (offset > height * 0.33 || speed) {
-      this.#close();
-      return;
-    }
-    this.#closeSpeed = 0;
-    await this.#animateOffset(offset, 0, { duration: this.#duration(offset, height) });
+  #onBodyPullEnd = () => {
+    if (!pageStore.shouldDim || this.#closing) return;
+    this.#animatePullScale(this.#state.pullScale, 1, { duration: DURATION_MIN });
   };
 
   @effect((i) => [i.expand])
@@ -166,47 +196,130 @@ export class TapCardElement extends GemElement {
     return () => watcher.destroy();
   };
 
+  #open = async () => {
+    if (this.expand || this.#closing) return;
+    this.press = false;
+    const { width, height, top, left } = this.getBoundingClientRect();
+    const computedStyle = getComputedStyle(this);
+    const titlebarHeight = Number.parseFloat(computedStyle.getPropertyValue('--titlebar-area-height'));
+    const wrapperTop = Number.isFinite(titlebarHeight) ? titlebarHeight : 0;
+    this.#state({
+      progress: 0,
+      pullScale: 1,
+      width,
+      height,
+      top: top - wrapperTop,
+      left,
+      targetWidth: innerWidth,
+      targetHeight: Math.max(1, innerHeight - wrapperTop),
+      ...this.#getBorderRadius(computedStyle),
+    });
+    pageStore({ shouldDim: (this.expand = true) });
+
+    await new Promise(requestAnimationFrame);
+    const wrapper = this.#wrapperRef.value?.getBoundingClientRect();
+    if (!this.expand || !wrapper) return;
+    this.#state({
+      top: top - wrapper.top,
+      left: left - wrapper.left,
+      targetWidth: wrapper.width || 1,
+      targetHeight: wrapper.height || 1,
+    });
+    await this.#animateProgress(0, 1);
+  };
+
   @mounted()
   #init = () => {
-    return addListener(this, 'click', () => {
-      if (this.expand) return;
-      const { width, height, top, left } = this.getBoundingClientRect();
-      expandableCardStore({ open: (this.expand = true) });
-      this.#state({ width, height, top, left });
-      this.#animateOffset(this.#height, 0);
-    });
+    const onPressStart = (evt: PointerEvent) => {
+      if (this.expand || evt.isPrimary === false || (evt.pointerType === 'mouse' && evt.button !== 0)) return;
+      this.#state(this.#getBorderRadius(getComputedStyle(this)));
+      this.press = true;
+    };
+    const onPressEnd = () => (this.press = false);
+    const removes = [
+      addListener(this, 'click', this.#open),
+      addListener(this, 'pointerdown', onPressStart, { capture: true }),
+      addListener(window, 'pointerup', onPressEnd, { capture: true }),
+      addListener(window, 'pointercancel', onPressEnd, { capture: true }),
+    ];
+    return () => removes.forEach((remove) => remove());
   };
 
   render = () => {
-    const { offset, width, height } = this.#state;
+    const {
+      progress,
+      pullScale,
+      width,
+      height,
+      top,
+      left,
+      targetWidth,
+      targetHeight,
+      topLeftRadius,
+      topRightRadius,
+      bottomRightRadius,
+      bottomLeftRadius,
+    } = this.#state;
+    const currentWidth = width + (targetWidth - width) * progress;
+    const currentHeight = height + (targetHeight - height) * progress;
+    const currentLeft = left * (1 - progress);
+    const currentTop = top * (1 - progress);
+    const cardStyle = this.expand
+      ? styleMap({ transform: `scale(${pullScale})` })
+      : styleMap({
+          borderTopLeftRadius: topLeftRadius,
+          borderTopRightRadius: topRightRadius,
+          borderBottomRightRadius: bottomRightRadius,
+          borderBottomLeftRadius: bottomLeftRadius,
+        });
 
     return html`
       <div style=${this.expand ? styleMap({ width: `${width}px`, height: `${height}px` }) : ''}></div>
-      <div class="wrapper">
+      <div ${this.#wrapperRef} class="wrapper">
         <div
           class="mask"
-          style=${styleMap({ opacity: 1 - Math.min(1, offset / (this.#height || innerHeight)) })}
+          style=${styleMap({ opacity: progress })}
         ></div>
-        <tap-pull-container
-          ${this.#cardRef}
-          part=${TapCardElement.card}
-          class="card"
-          disablescrollmask
-          style=${styleMap({ transform: `translateY(${offset}px)` })}
-          ?gesture=${this.expand}
-          @pull=${this.#onBodyPull}
-          @pullend=${this.#onBodyPullEnd}
+        <div
+          class="clip"
+          style=${
+            this.expand
+              ? styleMap({
+                  top: `${currentTop}px`,
+                  left: `${currentLeft}px`,
+                  width: `${currentWidth}px`,
+                  height: `${currentHeight}px`,
+                  borderTopLeftRadius: `calc(${topLeftRadius} * ${1 - progress})`,
+                  borderTopRightRadius: `calc(${topRightRadius} * ${1 - progress})`,
+                  borderBottomRightRadius: `calc(${bottomRightRadius} * ${1 - progress})`,
+                  borderBottomLeftRadius: `calc(${bottomLeftRadius} * ${1 - progress})`,
+                })
+              : ''
+          }
         >
-          <tap-use
-            v-if=${this.expand}
-            part=${TapCardElement.close}
-            class="close"
-            @click=${this.#close}
-            .element=${icons.close}
-          ></tap-use>
-          <slot></slot>
-          <slot v-if=${this.expand} name=${TapCardElement.expandable}></slot>
-        </tap-pull-container>
+          <tap-pull-container
+            ${this.#cardRef}
+            part=${TapCardElement.card}
+            class="card"
+            style=${cardStyle}
+            pull-activate=${0.1}
+            disable-scroll-mask
+            ?disable-gesture=${!this.expand}
+            @pull=${this.#onBodyPull}
+            @pull-end=${this.#onBodyPullEnd}
+          >
+            <tap-use
+              v-if=${this.expand}
+              part=${TapCardElement.close}
+              class="close"
+              style=${styleMap({ opacity: progress })}
+              @click=${this.#close}
+              .element=${icons.close}
+            ></tap-use>
+            <slot></slot>
+            <slot v-if=${this.expand} name=${TapCardElement.expandable}></slot>
+          </tap-pull-container>
+        </div>
       </div>
     `;
   };

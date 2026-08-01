@@ -1,5 +1,5 @@
 import type { Emitter } from '@mantou/gem/lib/decorators';
-import { adoptedStyle, boolattribute, customElement, emitter, mounted } from '@mantou/gem/lib/decorators';
+import { adoptedStyle, boolattribute, customElement, emitter, mounted, numattribute } from '@mantou/gem/lib/decorators';
 import { css } from '@mantou/gem/lib/element';
 import { addListener } from '@mantou/gem/lib/utils';
 
@@ -21,16 +21,21 @@ export interface PullEventDetail {
 @customElement('tap-pull-container')
 @adoptedStyle(style)
 export class TapPullContainerElement extends TapScrollBaseElement {
-  @boolattribute gesture = true;
+  @boolattribute disableGesture: boolean;
+  @numattribute pullActivate: number;
 
   @emitter pull: Emitter<PullEventDetail>;
-  @emitter pullend: Emitter<PullEventDetail>;
+  @emitter pullEnd: Emitter<PullEventDetail>;
 
   #tracking = false;
   #pulling = false;
   #startY = 0;
   #startX = 0;
   #distance = 0;
+
+  get #pullActivate() {
+    return this.pullActivate || PULL_ACTIVATE;
+  }
 
   #reset = () => {
     this.#tracking = false;
@@ -39,7 +44,7 @@ export class TapPullContainerElement extends TapScrollBaseElement {
   };
 
   #onPointerDown = (evt: PointerEvent) => {
-    if (!this.gesture || evt.isPrimary === false || (evt.pointerType === 'mouse' && evt.button !== 0)) return;
+    if (this.disableGesture || evt.isPrimary === false || (evt.pointerType === 'mouse' && evt.button !== 0)) return;
     if (this.scrollTop > 0) return;
     this.#tracking = true;
     this.#pulling = false;
@@ -58,7 +63,7 @@ export class TapPullContainerElement extends TapScrollBaseElement {
         this.#reset();
         return;
       }
-      if (dy < PULL_ACTIVATE) return;
+      if (dy < this.#pullActivate) return;
       if (Math.abs(dx) > dy) {
         this.#reset();
         return;
@@ -85,7 +90,7 @@ export class TapPullContainerElement extends TapScrollBaseElement {
     const pulling = this.#pulling;
     const distance = this.#distance;
     this.#reset();
-    if (pulling) this.pullend({ distance });
+    if (pulling) this.pullEnd({ distance });
   };
 
   @mounted()
