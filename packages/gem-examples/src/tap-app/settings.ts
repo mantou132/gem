@@ -3,6 +3,7 @@ import { contentsContainer } from 'tap-ui/lib/styles';
 
 import 'tap-ui/elements/cell';
 import 'tap-ui/elements/navbar';
+import 'tap-ui/elements/content';
 import 'tap-ui/elements/page';
 
 @customElement('tap-app-settings')
@@ -45,12 +46,12 @@ export class TapAppSettingsElement extends GemElement {
 
 @customElement('tap-app-about')
 @adoptedStyle(contentsContainer)
-class TapAppAboutElement extends GemElement {
+export class TapAppAboutElement extends GemElement {
   @template()
   #render = () => html`
     <tap-page>
       <tap-navbar slot="header" title="About" back @backclick=${() => Stack.close()}></tap-navbar>
-      <p style="padding:1em;line-height:1.6">Tap App Demo · gem-examples</p>
+      <tap-content>Tap App Demo · gem-examples</tap-content>
     </tap-page>
   `;
 }

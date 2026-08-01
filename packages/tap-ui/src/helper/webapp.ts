@@ -1,6 +1,7 @@
 import { html } from '@mantou/gem/lib/lit-html';
 
 import { Stack } from '../elements/stack';
+import { theme } from '../lib/theme';
 import { initApp as initTapApp, type TapInitAppOptions } from './base/webapp';
 
 export { getWebManifestURL } from './base/webapp';
@@ -14,6 +15,7 @@ export function initApp(options: InitAppOptions = {}) {
       <style>
         :where(body, html) {
           margin: 0;
+          font-family: ${theme.font};
           overflow: hidden;
           /* Android 禁用手势 */
           overscroll-behavior: contain;

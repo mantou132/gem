@@ -69,7 +69,7 @@ const style = css`
     box-shadow: 0 -4px 24px rgba(0, 0, 0, calc(${theme.maskAlpha} - 0.05));
     will-change: transform;
     outline: none;
-    padding: 0 1.2em 1.2em;
+    padding: 0 1.2em calc(1.2em + env(safe-area-inset-bottom, 0px));
   }
   .header-area {
     display: flex;
@@ -93,7 +93,7 @@ const style = css`
     color: ${theme.highlightColor};
     text-align: center;
     user-select: none;
-    padding: 0.35em 1em 0.75em;
+    padding: 0.35em 0 0.75em;
     flex-shrink: 0;
   }
   .body {

@@ -32,7 +32,6 @@ const style = css`
     color: ${theme.textColor};
     border-radius: calc(${theme.normalRound} * 3);
     overflow: hidden;
-    margin: 1em;
   }
   :host(:state(expand)) {
     .wrapper {

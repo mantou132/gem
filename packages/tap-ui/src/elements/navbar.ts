@@ -56,6 +56,7 @@ const style = css`
     border-radius: ${theme.normalRound};
     background: transparent;
     color: ${theme.primaryColor};
+    font: inherit;
     cursor: pointer;
   }
   .title {

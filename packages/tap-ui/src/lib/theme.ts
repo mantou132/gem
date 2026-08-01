@@ -43,6 +43,7 @@ export const lightTheme = {
   normalRound: '4px',
   smallRound: '2px',
   gridGutter: '24px',
+  pageGutter: '1em',
   // +1 user titleBar
   // +2 menu
   // +3 input-capture/keyboard-access
@@ -52,6 +53,7 @@ export const lightTheme = {
   popupZIndex: '2147483644',
   timingFunction: 'cubic-bezier(0.4, 0, 0.2, 1)',
   timingEasingFunction: 'cubic-bezier(0.16, 1, 0.29, 0.99)',
+  font: '-apple-system,system-ui,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,"Noto Sans","PingFang SC",sans-serif,"Apple Color Emoji","Segoe UI Emoji","Segoe UI Symbol","Noto Color Emoji"',
   codeFont: 'ui-monospace,SFMono-Regular,SF Mono,Consolas,Liberation Mono,monospace',
 };
 

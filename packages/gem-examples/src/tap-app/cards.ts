@@ -4,19 +4,28 @@ import { contentsContainer } from 'tap-ui/lib/styles';
 import { theme } from 'tap-ui/lib/theme';
 
 import 'tap-ui/elements/card';
+import 'tap-ui/elements/content';
 import 'tap-ui/elements/navbar';
 import 'tap-ui/elements/page';
 
 const style = css`
-  .intro,
-  .card-copy {
-    margin: 1em;
-  }
   .intro {
+    margin-block-end: 1em;
     color: ${theme.textColor};
+    p:first-of-type {
+      margin-block-start: 0;
+    }
+  }
+  .cards {
+    display: flex;
+    flex-direction: column;
+    gap: 1em;
   }
   .card-copy {
     line-height: 1.65;
+    p:first-of-type {
+      margin-block-start: 0;
+    }
   }
   .hero {
     display: flex;
@@ -47,12 +56,12 @@ const style = css`
 `;
 
 const copy = html`
-  <div slot="expandable" class="card-copy">
+  <tap-content slot="expandable" class="card-copy">
     <p>Expandable cards keep the preview and detail content in one DOM tree. The card is clipped while closed and becomes its own scroll container after opening.</p>
     <p>Pull down from the top of the detail to dismiss it. The page header and bottom tab bar move out of the way through a shared store, so the card can use the complete viewport.</p>
     <p>Long content stays mounted throughout the transition. Only transforms and opacity are animated, which prevents text from reflowing during the opening animation.</p>
     <p>${'This is additional detail content for scrolling. '.repeat(12)}</p>
-  </div>
+  </tap-content>
 `;
 
 @customElement('tap-app-cards')
@@ -63,24 +72,28 @@ export class TapAppCardsElement extends GemElement {
   #render = () => html`
     <tap-page>
       <tap-navbar slot="header" title="Cards"></tap-navbar>
-      <div class="intro">
-        <p>Android-style expandable cards inspired by Framework7.</p>
-        <p class="close-hint">Tap a card, then scroll and pull down at the top to close.</p>
-      </div>
-      <tap-card>
-        <div class="hero">
-          <h2>Build for touch</h2>
-          <p>One card, preview to full-screen detail</p>
+      <tap-content>
+        <div class="intro">
+          <p>Android-style expandable cards inspired by Framework7.</p>
+          <p class="close-hint">Tap a card, then scroll and pull down at the top to close.</p>
         </div>
-        ${copy}
-      </tap-card>
-      <tap-card>
-        <div class="hero teal">
-          <h2>Keep context</h2>
-          <p>The current page remains underneath</p>
+        <div class="cards">
+          <tap-card>
+            <div class="hero">
+              <h2>Build for touch</h2>
+              <p>One card, preview to full-screen detail</p>
+            </div>
+            ${copy}
+          </tap-card>
+          <tap-card>
+            <div class="hero teal">
+              <h2>Keep context</h2>
+              <p>The current page remains underneath</p>
+            </div>
+            ${copy}
+          </tap-card>
         </div>
-        ${copy}
-      </tap-card>
+      </tap-content>
     </tap-page>
   `;
 }

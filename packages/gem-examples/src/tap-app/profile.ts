@@ -2,12 +2,12 @@ import { Stack } from 'tap-ui/elements/stack';
 import { contentsContainer } from 'tap-ui/lib/styles';
 import { theme } from 'tap-ui/lib/theme';
 
+import 'tap-ui/elements/content';
 import 'tap-ui/elements/navbar';
 import 'tap-ui/elements/page';
 
 const style = css`
   .body {
-    padding: 1em;
     line-height: 1.6;
     color: ${theme.textColor};
   }
@@ -31,11 +31,11 @@ export class TapAppProfileElement extends GemElement {
   #render = () => html`
     <tap-page>
       <tap-navbar slot="header" title="Profile" back @backclick=${() => Stack.close()}></tap-navbar>
-      <div class="body">
+      <tap-content class="body">
         <div class="avatar">M</div>
         <p><strong>Mantou</strong></p>
         <p>Stack pages support gesture close by default.</p>
-      </div>
+      </tap-content>
     </tap-page>
   `;
 }
