@@ -1,18 +1,15 @@
 import { createState, css, GemElement, html } from '@mantou/gem';
 import type { Emitter } from '@mantou/gem/lib/decorators';
 import { adoptedStyle, customElement, emitter, property, template } from '@mantou/gem/lib/decorators';
-import type { PanEventDetail, SwipeEventDetail } from 'tap-ui/elements/gesture';
 import { contentsContainer } from 'tap-ui/lib/styles';
 import { theme } from 'tap-ui/lib/theme';
 
-import 'tap-ui/elements/gesture';
 import 'tap-ui/elements/list';
 import 'tap-ui/elements/navbar';
 import 'tap-ui/elements/page';
+import 'tap-ui/elements/swipeout';
 
 const PAGE_SIZE = 25;
-const ACTION_WIDTH = 80;
-const SWIPE_THRESHOLD = -40;
 
 type ChatItem = {
   id: number;
@@ -50,22 +47,12 @@ const itemStyle = css`
   :scope {
     display: block;
   }
-  .swipe-container {
-    position: relative;
-    overflow: hidden;
-  }
-  .actions {
-    position: absolute;
-    top: 0;
-    right: 0;
-    bottom: 0;
-    display: flex;
-  }
   .action {
     display: flex;
     align-items: center;
     justify-content: center;
-    width: ${ACTION_WIDTH}px;
+    width: 5em;
+    height: 100%;
     color: #fff;
     font-size: 14px;
     font-weight: 500;
@@ -150,58 +137,25 @@ export class TapAppChatItemElement extends GemElement {
   @property item?: ChatItem;
   @emitter delete: Emitter<ChatItem>;
 
-  #setOffset = (gesture: HTMLElement, offset: number) => {
-    const container = gesture.parentElement as HTMLElement;
-    container.dataset.offset = String(offset);
-    gesture.style.transform = `translateX(${offset}px)`;
-  };
-
-  #onPan = (evt: CustomEvent<PanEventDetail>) => {
-    const gesture = evt.currentTarget as HTMLElement;
-    const container = gesture.parentElement as HTMLElement;
-    const current = parseFloat(container.dataset.offset || '0');
-    this.#setOffset(gesture, Math.min(0, Math.max(-ACTION_WIDTH, current + evt.detail.x)));
-  };
-
-  #onSwipe = (evt: CustomEvent<SwipeEventDetail>) => {
-    this.#setOffset(evt.currentTarget as HTMLElement, evt.detail.direction === 'left' ? -ACTION_WIDTH : 0);
-  };
-
-  #onPanEnd = (evt: Event) => {
-    const gesture = evt.currentTarget as HTMLElement;
-    const container = gesture.parentElement as HTMLElement;
-    const current = parseFloat(container.dataset.offset || '0');
-    this.#setOffset(gesture, current < SWIPE_THRESHOLD ? -ACTION_WIDTH : 0);
-  };
-
   @template()
   #content = () => {
     const item = this.item;
     if (!item) return html``;
     return html`
-      <div class="swipe-container">
-        <div class="actions">
-          <button class="action delete" tabindex="-1" @click=${() => this.delete(item)}>Delete</button>
-        </div>
-        <tap-gesture
-          touch-action="pan-y"
-          @pan=${this.#onPan}
-          @swipe=${this.#onSwipe}
-          @end=${this.#onPanEnd}
-        >
-          <div class="item-content">
-            <div class="avatar">${item.name[0]}</div>
-            <div class="content">
-              <div class="name">${item.name}</div>
-              <div class="message">${item.message}</div>
-            </div>
-            <div class="meta">
-              <span class="time">${item.time}</span>
-              <span v-if=${item.unread > 0} class="badge">${item.unread}</span>
-            </div>
+      <tap-swipeout>
+        <button slot="end" class="action delete" @click=${() => this.delete(item)}>Delete</button>
+        <div class="item-content">
+          <div class="avatar">${item.name[0]}</div>
+          <div class="content">
+            <div class="name">${item.name}</div>
+            <div class="message">${item.message}</div>
           </div>
-        </tap-gesture>
-      </div>
+          <div class="meta">
+            <span class="time">${item.time}</span>
+            <span v-if=${item.unread > 0} class="badge">${item.unread}</span>
+          </div>
+        </div>
+      </tap-swipeout>
     `;
   };
 }
