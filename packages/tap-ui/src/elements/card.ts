@@ -25,6 +25,13 @@ import './use';
 
 const DURATION = 350;
 const DURATION_MIN = 140;
+const SAFE_AREA_INSET = {
+  top: 'env(safe-area-inset-top, 0px)',
+  bottom: 'env(safe-area-inset-bottom, 0px)',
+};
+
+const interpolateBorderRadius = (radius: string, target: string, progress: number) =>
+  `calc(${radius} * ${1 - progress} + ${target} * ${progress})`;
 
 const style = css`
   :host(:not([hidden])) {
@@ -264,7 +271,13 @@ export class TapCardElement extends GemElement {
     const currentLeft = left * (1 - progress);
     const currentTop = top * (1 - progress);
     const cardStyle = this.expand
-      ? styleMap({ transform: `scale(${pullScale})` })
+      ? styleMap({
+          transform: `scale(${pullScale})`,
+          borderTopLeftRadius: interpolateBorderRadius(topLeftRadius, SAFE_AREA_INSET.top, progress),
+          borderTopRightRadius: interpolateBorderRadius(topRightRadius, SAFE_AREA_INSET.top, progress),
+          borderBottomRightRadius: interpolateBorderRadius(bottomRightRadius, SAFE_AREA_INSET.bottom, progress),
+          borderBottomLeftRadius: interpolateBorderRadius(bottomLeftRadius, SAFE_AREA_INSET.bottom, progress),
+        })
       : styleMap({
           borderTopLeftRadius: topLeftRadius,
           borderTopRightRadius: topRightRadius,
@@ -288,10 +301,10 @@ export class TapCardElement extends GemElement {
                   left: `${currentLeft}px`,
                   width: `${currentWidth}px`,
                   height: `${currentHeight}px`,
-                  borderTopLeftRadius: `calc(${topLeftRadius} * ${1 - progress})`,
-                  borderTopRightRadius: `calc(${topRightRadius} * ${1 - progress})`,
-                  borderBottomRightRadius: `calc(${bottomRightRadius} * ${1 - progress})`,
-                  borderBottomLeftRadius: `calc(${bottomLeftRadius} * ${1 - progress})`,
+                  borderTopLeftRadius: interpolateBorderRadius(topLeftRadius, SAFE_AREA_INSET.top, progress),
+                  borderTopRightRadius: interpolateBorderRadius(topRightRadius, SAFE_AREA_INSET.top, progress),
+                  borderBottomRightRadius: interpolateBorderRadius(bottomRightRadius, SAFE_AREA_INSET.bottom, progress),
+                  borderBottomLeftRadius: interpolateBorderRadius(bottomLeftRadius, SAFE_AREA_INSET.bottom, progress),
                 })
               : ''
           }
