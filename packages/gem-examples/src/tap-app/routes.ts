@@ -2,6 +2,7 @@ import type { RouteItem } from 'tap-ui/elements/route';
 
 import './cards';
 import './chats';
+import './contacts';
 import './home';
 import './settings';
 
@@ -25,6 +26,13 @@ export const routes = {
     title: 'Chats',
     getContent() {
       return html`<tap-app-chats></tap-app-chats>`;
+    },
+  },
+  contacts: {
+    pattern: '/contacts',
+    title: 'Contacts',
+    getContent() {
+      return html`<tap-app-contacts></tap-app-contacts>`;
     },
   },
   settings: {

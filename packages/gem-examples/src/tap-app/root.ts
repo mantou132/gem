@@ -18,6 +18,7 @@ export class TapAppAppElement extends GemElement {
           { label: 'Home', path: '/', pattern: '/', icon: icons.menu },
           { label: 'Cards', path: '/cards', pattern: '/cards', icon: icons.expand },
           { label: 'Chats', path: '/chats', pattern: '/chats', icon: icons.info },
+          { label: 'Contacts', path: '/contacts', pattern: '/contacts', icon: icons.search },
           { label: 'Settings', path: '/settings', pattern: '/settings', icon: icons.tune },
         ]}
       ></tap-tabbar>
