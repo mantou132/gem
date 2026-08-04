@@ -4,6 +4,8 @@ import { Stack } from '../elements/stack';
 import { theme } from '../lib/theme';
 import { initApp as initTapApp, type TapInitAppOptions } from './base/webapp';
 
+import '../elements/reflect';
+
 export { getWebManifestURL } from './base/webapp';
 
 interface InitAppOptions extends TapInitAppOptions {}
@@ -12,15 +14,18 @@ export function initApp(options: InitAppOptions = {}) {
   initTapApp({
     ...options,
     template: html`
-      <style>
-        :where(body, html) {
-          margin: 0;
-          font-family: ${theme.font};
-          overflow: hidden;
-          /* Android 禁用手势 */
-          overscroll-behavior: contain;
-        }
-      </style>
+      <tap-reflect>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+        <style>
+          :where(body, html) {
+            margin: 0;
+            font-family: ${theme.font};
+            overflow: hidden;
+            /* Android 禁用手势 */
+            overscroll-behavior: contain;
+          }
+        </style>
+      </tap-reflect>
     `,
   });
 

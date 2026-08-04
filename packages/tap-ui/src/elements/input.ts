@@ -109,6 +109,7 @@ const style = css`
     background-clip: text;
     resize: none;
     field-sizing: inherit;
+    -webkit-tap-highlight-color: transparent;
   }
   textarea {
     min-height: 5em;

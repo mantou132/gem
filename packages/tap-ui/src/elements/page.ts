@@ -25,7 +25,10 @@ import { Stack } from './stack';
 import './gesture';
 import './use';
 
-export const pageStore = createStore({ shouldDim: false });
+export const pageStore = createStore({
+  shouldDim: false,
+  shouldFullscreen: false,
+});
 
 /**Pull distance that triggers refresh */
 const PULL_THRESHOLD = 52;
@@ -46,6 +49,8 @@ const style = css`
   }
   .header,
   .footer {
+    overflow: hidden;
+    height: calc-size(auto, size);
     position: relative;
     flex-shrink: 0;
     z-index: 2;
@@ -77,6 +82,12 @@ const style = css`
     }
     .main {
       z-index: 3;
+    }
+  }
+  :host(:state(fullscreen)) {
+    .header,
+    .footer {
+      height: 0;
     }
   }
   .refresh {
@@ -130,6 +141,7 @@ export class TapPageElement extends GemElement {
    */
   @emitter refresh: Emitter<() => void>;
   @state dim: boolean;
+  @state fullscreen: boolean;
 
   #state = createState({
     scrolled: false,
@@ -215,6 +227,11 @@ export class TapPageElement extends GemElement {
   @effect(() => [pageStore.shouldDim])
   #watchExpandable = () => {
     if (Stack.inCurrentStack(this)) this.dim = !!pageStore.shouldDim;
+  };
+
+  @effect(() => [pageStore.shouldFullscreen])
+  #watchMainFullscreen = () => {
+    if (Stack.inCurrentStack(this)) this.fullscreen = !!pageStore.shouldFullscreen;
   };
 
   @effect((i) => [i.floatheader])

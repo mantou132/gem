@@ -10,14 +10,15 @@ import {
   globalemitter,
   part,
   shadow,
-  state,
+  unmounted,
 } from '@mantou/gem/lib/decorators';
-import { createRef, css, GemElement, html } from '@mantou/gem/lib/element';
+import { createRef, createState, css, GemElement, html } from '@mantou/gem/lib/element';
 
 import { icons } from '../lib/icons';
 import { locale } from '../lib/locale';
 import { theme } from '../lib/theme';
 import type { TapInputElement } from './input';
+import { pageStore } from './page';
 
 import './input';
 
@@ -31,6 +32,10 @@ const style = css`
     padding: 0.5em 1em;
     background: ${theme.lightBackgroundColor};
     color: ${theme.textColor};
+    transition: padding-block-start 350ms ${theme.timingFunction};
+  }
+  :host(:focus-within) {
+    padding-block-start: calc(0.5em + env(safe-area-inset-top, 0px));
   }
   .input {
     flex: 1;
@@ -40,7 +45,7 @@ const style = css`
   }
   .cancel {
     flex: 0 0 auto;
-    max-width: 0;
+    width: 0;
     overflow: hidden;
     padding: 0;
     border: 0;
@@ -55,7 +60,7 @@ const style = css`
   }
   .cancel.visible {
     margin-inline-start: 0.65em;
-    max-width: 8em;
+    width: calc-size(auto, size);
     opacity: 1;
   }
   .cancel:disabled {
@@ -85,9 +90,8 @@ export class TapSearchbarElement extends GemElement {
   @emitter submit: Emitter<string>;
   @emitter cancel: Emitter;
 
-  @state active: boolean;
-
   #inputRef = createRef<TapInputElement>();
+  #state = createState({ active: false });
 
   focus = (options?: FocusOptions) => this.#inputRef.value?.focus(options);
   blur = () => this.#inputRef.value?.blur();
@@ -104,6 +108,17 @@ export class TapSearchbarElement extends GemElement {
 
   #onClear = () => this.#updateValue('');
 
+  #setActive = (active: boolean) => {
+    if (active === this.#state.active) return;
+    this.#state({ active });
+    pageStore({ shouldFullscreen: active });
+  };
+
+  @unmounted()
+  #deactivate = () => {
+    if (this.#state.active) pageStore({ shouldFullscreen: false });
+  };
+
   #onCancel = () => {
     this.#updateValue('');
     this.cancel(null);
@@ -117,7 +132,7 @@ export class TapSearchbarElement extends GemElement {
   };
 
   render = () => {
-    const showCancel = !this.disableCancel && (this.active || !!this.value);
+    const showCancel = !this.disableCancel && (this.#state.active || !!this.value);
     return html`
       <tap-input
         ${this.#inputRef}
@@ -132,8 +147,8 @@ export class TapSearchbarElement extends GemElement {
         clearable
         @change=${this.#onChange}
         @clear=${this.#onClear}
-        @focusin=${() => (this.active = true)}
-        @focusout=${() => (this.active = false)}
+        @focusin=${() => this.#setActive(true)}
+        @focusout=${() => this.#setActive(false)}
         @keydown=${this.#onKeyDown}
       ></tap-input>
       <button
