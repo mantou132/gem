@@ -50,7 +50,7 @@ const style = css`
     flex-shrink: 0;
     z-index: 2;
     will-change: opacity, transform;
-    transition: all ${350}ms ${theme.timingFunction};
+    transition: all 350ms ${theme.timingFunction};
   }
   :host([floatheader]) .header {
     position: absolute;
@@ -116,7 +116,10 @@ export class TapPageElement extends GemElement {
   @part static main: string;
   @part static refresh: string;
 
-  /**Header overlays content; navbar stays transparent until content scrolls */
+  /**
+   * Header overlays content; navbar stays transparent until content scrolls
+   * You need to manually handle the top safe area inset for the page content.
+   */
   @boolattribute floatheader: boolean;
   /**Enable pull-to-refresh on the main scroll area */
   @boolattribute refreshable: boolean;

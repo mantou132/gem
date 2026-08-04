@@ -1,3 +1,4 @@
+import { createDecoratorTheme } from '@mantou/gem/helper/theme';
 import {
   adoptedStyle,
   aria,
@@ -10,7 +11,7 @@ import {
   state,
 } from '@mantou/gem/lib/decorators';
 import { createRef, createState, css, GemElement, html } from '@mantou/gem/lib/element';
-import { addListener, styleMap } from '@mantou/gem/lib/utils';
+import { addListener } from '@mantou/gem/lib/utils';
 
 import { easeOutCubic } from '../lib/easing';
 import { icons } from '../lib/icons';
@@ -29,9 +30,23 @@ const SAFE_AREA_INSET = {
   top: 'env(safe-area-inset-top, 0px)',
   bottom: 'env(safe-area-inset-bottom, 0px)',
 };
-
-const interpolateBorderRadius = (radius: string, target: string, progress: number) =>
-  `calc(${radius} * ${1 - progress} + ${target} * ${progress})`;
+const elementTheme = createDecoratorTheme({
+  progress: 0,
+  scale: 1,
+  width: '0px',
+  height: '0px',
+  top: '0px',
+  left: '0px',
+  targetW: '1px',
+  targetH: '1px',
+  tlRadius: `calc(${theme.normalRound} * 3)`,
+  trRadius: `calc(${theme.normalRound} * 3)`,
+  brRadius: `calc(${theme.normalRound} * 3)`,
+  blRadius: `calc(${theme.normalRound} * 3)`,
+  firstPadding: '0px',
+  firstHeight: '0px',
+  firstMinHeight: '0px',
+});
 
 const style = css`
   :host(:not([hidden])) {
@@ -55,14 +70,39 @@ const style = css`
       inset: 0;
       background-color: rgba(0, 0, 0, calc(${theme.maskAlpha} + 0.2));
     }
+    .placeholder {
+      width: ${elementTheme.width};
+      height: ${elementTheme.height};
+    }
     .clip {
       position: absolute;
       overflow: hidden;
       will-change: top, left, width, height;
+      top: calc(${elementTheme.top} * (1 - ${elementTheme.progress}));
+      left: calc(${elementTheme.left} * (1 - ${elementTheme.progress}));
+      width: calc(${elementTheme.width} + (${elementTheme.targetW} - ${elementTheme.width}) * ${elementTheme.progress});
+      height: calc(
+        ${elementTheme.height} + (${elementTheme.targetH} - ${elementTheme.height}) * ${elementTheme.progress}
+      );
     }
     .card {
       width: 100%;
       height: 100%;
+      transform: scale(${elementTheme.scale});
+    }
+    :is(.clip, .card) {
+      border-top-left-radius: calc(
+        ${elementTheme.tlRadius} * (1 - ${elementTheme.progress}) + ${SAFE_AREA_INSET.top} * ${elementTheme.progress}
+      );
+      border-top-right-radius: calc(
+        ${elementTheme.trRadius} * (1 - ${elementTheme.progress}) + ${SAFE_AREA_INSET.top} * ${elementTheme.progress}
+      );
+      border-bottom-right-radius: calc(
+        ${elementTheme.brRadius} * (1 - ${elementTheme.progress}) + ${SAFE_AREA_INSET.bottom} * ${elementTheme.progress}
+      );
+      border-bottom-left-radius: calc(
+        ${elementTheme.blRadius} * (1 - ${elementTheme.progress}) + ${SAFE_AREA_INSET.bottom} * ${elementTheme.progress}
+      );
     }
   }
   :host(:not(:state(expand))) .card {
@@ -76,6 +116,14 @@ const style = css`
     background-color: ${theme.backgroundColor};
     will-change: transform;
     transform-origin: center;
+    border-top-left-radius: ${elementTheme.tlRadius};
+    border-top-right-radius: ${elementTheme.trRadius};
+    border-bottom-right-radius: ${elementTheme.brRadius};
+    border-bottom-left-radius: ${elementTheme.blRadius};
+  }
+  .mask,
+  .close {
+    opacity: ${elementTheme.progress};
   }
   .close {
     position: absolute;
@@ -86,8 +134,17 @@ const style = css`
     padding: 0.4em;
     font-size: 0.5em;
   }
+  :host(:state(expand)) slot:not([name])::slotted(:first-child) {
+    padding-top: calc(${elementTheme.firstPadding} + ${SAFE_AREA_INSET.top} * ${elementTheme.progress}) !important;
+    height: calc(${elementTheme.firstHeight} + ${SAFE_AREA_INSET.top} * ${elementTheme.progress}) !important;
+    min-height: calc(${elementTheme.firstMinHeight} + ${SAFE_AREA_INSET.top} * ${elementTheme.progress}) !important;
+  }
 `;
 
+/**
+ * The first element in the default slot is treated as the card header during expansion.
+ * Its top padding, height, and min-height are animated to include the top safe area in fullscreen mode.
+ */
 @customElement('tap-card')
 @adoptedStyle(style)
 @aria({ role: 'article' })
@@ -112,10 +169,13 @@ export class TapCardElement extends GemElement {
     left: 0,
     targetWidth: 1,
     targetHeight: 1,
-    topLeftRadius: `calc(${theme.normalRound} * 3)`,
-    topRightRadius: `calc(${theme.normalRound} * 3)`,
-    bottomRightRadius: `calc(${theme.normalRound} * 3)`,
-    bottomLeftRadius: `calc(${theme.normalRound} * 3)`,
+    topLeftRadius: `0px`,
+    topRightRadius: `0px`,
+    bottomRightRadius: `0px`,
+    bottomLeftRadius: `0px`,
+    firstElementChildPaddingTop: 0,
+    firstElementChildHeight: 0,
+    firstElementChildMinHeight: 0,
   });
   #animationId = 0;
   #closing = false;
@@ -159,10 +219,15 @@ export class TapCardElement extends GemElement {
 
   #animateClose = () => {
     const { progress, pullScale } = this.#state;
+    const card = this.#cardRef.value;
+    const scrollTop = card?.scrollTop || 0;
     return this.#animate(
       0,
       1,
-      (value) => this.#state({ progress: progress * (1 - value), pullScale: pullScale + (1 - pullScale) * value }),
+      (value) => {
+        card?.scrollTo({ top: scrollTop * (1 - value) });
+        this.#state({ progress: progress * (1 - value), pullScale: pullScale + (1 - pullScale) * value });
+      },
       { duration: this.#duration(progress, 1) },
     );
   };
@@ -207,24 +272,19 @@ export class TapCardElement extends GemElement {
     this.press = false;
     const { width, height, top, left } = this.getBoundingClientRect();
     const computedStyle = getComputedStyle(this);
-    const titlebarHeight = Number.parseFloat(computedStyle.getPropertyValue('--titlebar-area-height'));
-    const wrapperTop = Number.isFinite(titlebarHeight) ? titlebarHeight : 0;
+    const firstElementChildStyle = getComputedStyle(this.firstElementChild || this);
     this.#state({
       progress: 0,
       pullScale: 1,
       width,
       height,
-      top: top - wrapperTop,
-      left,
-      targetWidth: innerWidth,
-      targetHeight: Math.max(1, innerHeight - wrapperTop),
+      firstElementChildPaddingTop: Number.parseFloat(firstElementChildStyle.paddingTop) || 0,
+      firstElementChildHeight: Number.parseFloat(firstElementChildStyle.height) || 0,
+      firstElementChildMinHeight: Number.parseFloat(firstElementChildStyle.minHeight) || 0,
       ...this.#getBorderRadius(computedStyle),
     });
     pageStore({ shouldDim: (this.expand = true) });
-
-    await new Promise(requestAnimationFrame);
-    const wrapper = this.#wrapperRef.value?.getBoundingClientRect();
-    if (!this.expand || !wrapper) return;
+    const wrapper = this.#wrapperRef.value!.getBoundingClientRect();
     this.#state({
       top: top - wrapper.top,
       left: left - wrapper.left,
@@ -251,7 +311,8 @@ export class TapCardElement extends GemElement {
     return () => removes.forEach((remove) => remove());
   };
 
-  render = () => {
+  @elementTheme()
+  #theme = () => {
     const {
       progress,
       pullScale,
@@ -265,55 +326,39 @@ export class TapCardElement extends GemElement {
       topRightRadius,
       bottomRightRadius,
       bottomLeftRadius,
+      firstElementChildPaddingTop,
+      firstElementChildHeight,
+      firstElementChildMinHeight,
     } = this.#state;
-    const currentWidth = width + (targetWidth - width) * progress;
-    const currentHeight = height + (targetHeight - height) * progress;
-    const currentLeft = left * (1 - progress);
-    const currentTop = top * (1 - progress);
-    const cardStyle = this.expand
-      ? styleMap({
-          transform: `scale(${pullScale})`,
-          borderTopLeftRadius: interpolateBorderRadius(topLeftRadius, SAFE_AREA_INSET.top, progress),
-          borderTopRightRadius: interpolateBorderRadius(topRightRadius, SAFE_AREA_INSET.top, progress),
-          borderBottomRightRadius: interpolateBorderRadius(bottomRightRadius, SAFE_AREA_INSET.bottom, progress),
-          borderBottomLeftRadius: interpolateBorderRadius(bottomLeftRadius, SAFE_AREA_INSET.bottom, progress),
-        })
-      : styleMap({
-          borderTopLeftRadius: topLeftRadius,
-          borderTopRightRadius: topRightRadius,
-          borderBottomRightRadius: bottomRightRadius,
-          borderBottomLeftRadius: bottomLeftRadius,
-        });
+    return {
+      progress,
+      scale: pullScale,
+      width: `${width}px`,
+      height: `${height}px`,
+      top: `${top}px`,
+      left: `${left}px`,
+      targetW: `${targetWidth}px`,
+      targetH: `${targetHeight}px`,
+      tlRadius: topLeftRadius,
+      trRadius: topRightRadius,
+      brRadius: bottomRightRadius,
+      blRadius: bottomLeftRadius,
+      firstPadding: `${firstElementChildPaddingTop}px`,
+      firstHeight: `${firstElementChildHeight}px`,
+      firstMinHeight: `${firstElementChildMinHeight}px`,
+    };
+  };
 
+  render = () => {
     return html`
-      <div style=${this.expand ? styleMap({ width: `${width}px`, height: `${height}px` }) : ''}></div>
+      <div class="placeholder"></div>
       <div ${this.#wrapperRef} class="wrapper">
-        <div
-          class="mask"
-          style=${styleMap({ opacity: progress })}
-        ></div>
-        <div
-          class="clip"
-          style=${
-            this.expand
-              ? styleMap({
-                  top: `${currentTop}px`,
-                  left: `${currentLeft}px`,
-                  width: `${currentWidth}px`,
-                  height: `${currentHeight}px`,
-                  borderTopLeftRadius: interpolateBorderRadius(topLeftRadius, SAFE_AREA_INSET.top, progress),
-                  borderTopRightRadius: interpolateBorderRadius(topRightRadius, SAFE_AREA_INSET.top, progress),
-                  borderBottomRightRadius: interpolateBorderRadius(bottomRightRadius, SAFE_AREA_INSET.bottom, progress),
-                  borderBottomLeftRadius: interpolateBorderRadius(bottomLeftRadius, SAFE_AREA_INSET.bottom, progress),
-                })
-              : ''
-          }
-        >
+        <div class="mask"></div>
+        <div class="clip">
           <tap-pull-container
             ${this.#cardRef}
             part=${TapCardElement.card}
             class="card"
-            style=${cardStyle}
             pull-activate=${0.1}
             disable-scroll-mask
             ?disable-gesture=${!this.expand}
@@ -324,7 +369,6 @@ export class TapCardElement extends GemElement {
               v-if=${this.expand}
               part=${TapCardElement.close}
               class="close"
-              style=${styleMap({ opacity: progress })}
               @click=${this.#close}
               .element=${icons.close}
             ></tap-use>

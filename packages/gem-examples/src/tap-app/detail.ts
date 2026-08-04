@@ -19,7 +19,7 @@ const style = css`
     }
   }
   .hero {
-    height: 12em;
+    height: calc(12em + env(safe-area-inset-top));
     background: linear-gradient(160deg, ${theme.hoverBackgroundColor}, ${theme.borderColor});
   }
   .body p + p {
@@ -50,7 +50,7 @@ export class TapAppDetailElement extends GemElement {
         <p>You can also tap the back button in the navbar.</p>
         <tap-button @click=${this.#openProfile}>Open Profile</tap-button>
         <p>Scroll down to see the floating header gain a background.</p>
-        <p>${'More content. '.repeat(40)}</p>
+        <p>${'More content. '.repeat(60)}</p>
       </tap-content>
     </tap-page>
   `;
