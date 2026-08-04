@@ -1,8 +1,10 @@
 import { adoptedStyle, customElement, template } from '@mantou/gem/lib/decorators';
 import { createState, GemElement, html } from '@mantou/gem/lib/element';
+import { ActionSheet } from 'tap-ui/elements/action-sheet';
 import { Dialog } from 'tap-ui/elements/dialog';
 import { Sheet } from 'tap-ui/elements/sheet';
 import { Stack } from 'tap-ui/elements/stack';
+import { icons } from 'tap-ui/lib/icons';
 import { contentsContainer } from 'tap-ui/lib/styles';
 
 import 'tap-ui/elements/cell';
@@ -15,7 +17,7 @@ import './profile';
 @customElement('tap-app-home')
 @adoptedStyle(contentsContainer)
 export class TapAppHomeElement extends GemElement {
-  #state = createState({ dialogResult: '', sheetResult: '' });
+  #state = createState({ actionResult: '', dialogResult: '', sheetResult: '' });
 
   #openDetail = () => {
     Stack.push({
@@ -97,6 +99,43 @@ export class TapAppHomeElement extends GemElement {
     this.#state({ sheetResult: 'Dismissed (long)' });
   };
 
+  #openActionSheet = async () => {
+    const action = await ActionSheet.open({
+      title: 'Document actions',
+      description: 'Choose what to do with Quarterly report.pdf',
+      groups: [
+        {
+          actions: [
+            { label: 'Share', value: 'share' },
+            { label: 'Duplicate', value: 'duplicate' },
+          ],
+        },
+        {
+          label: 'This action cannot be undone',
+          actions: [{ label: 'Delete', value: 'delete', danger: true }],
+        },
+      ],
+    });
+    this.#state({ actionResult: action ? String(action.value) : 'Cancelled' });
+  };
+
+  #openGridActionSheet = async () => {
+    const action = await ActionSheet.open({
+      title: 'Share document',
+      description: 'Choose where to send Quarterly report.pdf',
+      mode: 'grid',
+      actions: [
+        { label: 'Open', value: 'open', icon: icons.outward },
+        { label: 'Copy', value: 'copy', icon: icons.copy },
+        { label: 'Favorite', value: 'favorite', icon: icons.star },
+        { label: 'Info', value: 'info', icon: icons.info },
+        { label: 'Delete', value: 'delete', icon: icons.delete, danger: true },
+        { label: 'More', value: 'more', icon: icons.more },
+      ],
+    });
+    this.#state({ actionResult: action ? String(action.value) : 'Cancelled' });
+  };
+
   #onRefresh = ({ detail: done }: CustomEvent<() => void>) => {
     setTimeout(done, 1000);
   };
@@ -122,6 +161,14 @@ export class TapAppHomeElement extends GemElement {
             label: 'Last result',
             description: this.#state.dialogResult || '—',
           },
+        ]}
+      ></tap-cell-group>
+      <tap-cell-group
+        heading="Action Sheet"
+        .items=${[
+          { label: 'Buttons', description: 'Grouped actions', action: true, onClick: this.#openActionSheet },
+          { label: 'Grid', description: 'Icon actions', action: true, onClick: this.#openGridActionSheet },
+          { label: 'Last result', description: this.#state.actionResult || '-' },
         ]}
       ></tap-cell-group>
       <tap-cell-group
