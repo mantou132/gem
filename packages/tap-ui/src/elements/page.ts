@@ -50,6 +50,8 @@ const style = css`
   .header,
   .footer {
     overflow: hidden;
+    /* Safari lacks calc-size(); auto keeps natural height for flex items */
+    height: auto;
     height: calc-size(auto, size);
     position: relative;
     flex-shrink: 0;
@@ -68,12 +70,13 @@ const style = css`
     flex: 1;
     min-height: 0;
   }
+  /* Flat :host descendants — nested rules under :host fail on Safari */
+  :host(:state(dim)) .header,
+  :host(:state(dim)) .footer {
+    opacity: 0;
+    pointer-events: none;
+  }
   :host(:state(dim)) {
-    .header,
-    .footer {
-      opacity: 0;
-      pointer-events: none;
-    }
     .header {
       transform: translateY(-100%);
     }
@@ -82,6 +85,8 @@ const style = css`
     }
     .main {
       z-index: 3;
+      /* Safari clips position:fixed inside overflow:auto + z-index ancestors */
+      overflow: visible;
     }
   }
   :host(:state(fullscreen)) {

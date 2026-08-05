@@ -60,6 +60,8 @@ const style = css`
   }
   .cancel.visible {
     margin-inline-start: 0.65em;
+    /* Safari lacks calc-size(); auto still reveals the label */
+    width: auto;
     width: calc-size(auto, size);
     opacity: 1;
   }
