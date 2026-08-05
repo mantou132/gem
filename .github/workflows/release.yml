@@ -9,11 +9,11 @@ on:
     tags:
       - gem-context-server@*
       - '@mantou/gem@*'
-      - unplugin-gem@*
       - swc-plugin-gem@*
+      - unplugin-gem@*
       - gem-analyzer@*
-      - duoyun-ui@*
       # - tap-ui@* # tap-ui 名字已被占用，暂不发布
+      # - duoyun-ui@* # 依赖 tap-ui，tap-ui 暂不发布，故一并暂停
       - gem-book@*
       - '@mantou/gem-port@*'
       - gem-devtools@*
@@ -74,15 +74,15 @@ jobs:
               npm: true,
             },
             {
-              name: 'unplugin-gem',
-              path: 'packages/unplugin-gem/package.json',
-              workflow: 'unplugin-gem-publish.yml',
-              npm: true,
-            },
-            {
               name: 'swc-plugin-gem',
               path: 'crates/swc-plugin-gem/package.json',
               workflow: 'swc-plugin-gem-publish.yml',
+              npm: true,
+            },
+            {
+              name: 'unplugin-gem',
+              path: 'packages/unplugin-gem/package.json',
+              workflow: 'unplugin-gem-publish.yml',
               npm: true,
             },
             {
@@ -91,16 +91,16 @@ jobs:
               workflow: 'gem-analyzer-publish.yml',
               npm: true,
             },
-            {
-              name: 'duoyun-ui',
-              path: 'packages/duoyun-ui/package.json',
-              workflow: 'duoyun-ui-publish.yml',
-              npm: true,
-            },
             // {
             //   name: 'tap-ui',
             //   path: 'packages/tap-ui/package.json',
             //   workflow: 'tap-ui-publish.yml',
+            //   npm: true,
+            // },
+            // {
+            //   name: 'duoyun-ui',
+            //   path: 'packages/duoyun-ui/package.json',
+            //   workflow: 'duoyun-ui-publish.yml',
             //   npm: true,
             // },
             {

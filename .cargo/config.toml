@@ -1,4 +1,7 @@
 # These command aliases are not final, may change
+[target.wasm32-wasip1]
+rustflags = ["-C", "link-arg=--allow-undefined"]
+
 [alias]
 # Alias to build actual plugin binary for the specified target.
 build-wasi = "build --target wasm32-wasip1"
