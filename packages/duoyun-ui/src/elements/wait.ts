@@ -19,7 +19,7 @@ const style = css`
     z-index: ${theme.popupZIndex};
     display: flex;
     left: 0;
-    --top: env(titlebar-area-height, var(--titlebar-area-height, 0px));
+    --top: var(--titlebar-area-height, env(titlebar-area-height, 0px));
     top: var(--top);
     width: 100%;
     height: calc(100% - var(--top));

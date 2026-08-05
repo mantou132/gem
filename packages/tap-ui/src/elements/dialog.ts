@@ -33,10 +33,10 @@ const style = css`
     view-transition-name: tap-dialog;
     position: fixed;
     z-index: ${theme.popupZIndex};
-    top: env(titlebar-area-height, var(--titlebar-area-height, 0px));
+    top: var(--titlebar-area-height, env(titlebar-area-height, 0px));
     left: 0;
     width: 100%;
-    height: calc(100% - env(titlebar-area-height, var(--titlebar-area-height, 0px)));
+    height: calc(100% - var(--titlebar-area-height, env(titlebar-area-height, 0px)));
     display: none;
     align-items: center;
     justify-content: center;

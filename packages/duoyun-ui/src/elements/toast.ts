@@ -22,7 +22,7 @@ const style = css`
     align-items: center;
     flex-direction: column;
     gap: var(--item-gap);
-    top: calc(var(--item-gap) + env(titlebar-area-height, var(--titlebar-area-height, 0px)));
+    top: calc(var(--item-gap) + var(--titlebar-area-height, env(titlebar-area-height, 0px)));
     left: 50%;
     transform: translateX(-50%);
     max-width: 90%;

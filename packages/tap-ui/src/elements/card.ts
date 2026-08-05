@@ -27,8 +27,8 @@ import './use';
 const DURATION = 350;
 const DURATION_MIN = 140;
 const SAFE_AREA_INSET = {
-  top: 'env(safe-area-inset-top, 0px)',
-  bottom: 'env(safe-area-inset-bottom, 0px)',
+  top: 'var(--safe-area-inset-top, env(safe-area-inset-top, 0px))',
+  bottom: 'var(--safe-area-inset-bottom, env(safe-area-inset-bottom, 0px))',
 };
 const elementTheme = createDecoratorTheme({
   progress: 0,
@@ -60,10 +60,10 @@ const style = css`
       view-transition-name: tap-card;
       position: fixed;
       z-index: ${theme.popupZIndex};
-      top: env(titlebar-area-height, var(--titlebar-area-height, 0px));
+      top: var(--titlebar-area-height, env(titlebar-area-height, 0px));
       left: 0;
       width: 100%;
-      height: calc(100% - env(titlebar-area-height, var(--titlebar-area-height, 0px)));
+      height: calc(100% - var(--titlebar-area-height, env(titlebar-area-height, 0px)));
     }
     .mask {
       position: absolute;

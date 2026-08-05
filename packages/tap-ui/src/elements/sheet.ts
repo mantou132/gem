@@ -35,10 +35,10 @@ const style = css`
     view-transition-name: tap-sheet;
     position: fixed;
     z-index: ${theme.popupZIndex};
-    top: env(titlebar-area-height, var(--titlebar-area-height, 0px));
+    top: var(--titlebar-area-height, env(titlebar-area-height, 0px));
     left: 0;
     width: 100%;
-    height: calc(100% - env(titlebar-area-height, var(--titlebar-area-height, 0px)));
+    height: calc(100% - var(--titlebar-area-height, env(titlebar-area-height, 0px)));
     display: none;
     align-items: flex-end;
     justify-content: center;
@@ -69,7 +69,7 @@ const style = css`
     box-shadow: 0 -4px 24px rgba(0, 0, 0, calc(${theme.maskAlpha} - 0.05));
     will-change: transform;
     outline: none;
-    padding: 0 1.2em calc(1.2em + env(safe-area-inset-bottom, 0px));
+    padding: 0 1.2em calc(1.2em + var(--safe-area-inset-bottom, env(safe-area-inset-bottom, 0px)));
   }
   .header-area {
     display: flex;

@@ -1,13 +1,5 @@
 import type { Emitter } from '@mantou/gem/lib/decorators';
-import {
-  adoptedStyle,
-  aria,
-  boolattribute,
-  customElement,
-  emitter,
-  property,
-  template,
-} from '@mantou/gem/lib/decorators';
+import { adoptedStyle, aria, customElement, emitter, property, template } from '@mantou/gem/lib/decorators';
 import { css, GemElement, html } from '@mantou/gem/lib/element';
 import { classMap } from '@mantou/gem/lib/utils';
 
@@ -43,18 +35,12 @@ const style = css`
     width: 100%;
     box-sizing: border-box;
     padding-block: 0.4em;
-    padding-block-end: calc(0.4em + env(safe-area-inset-bottom, 0px));
+    padding-block-end: calc(0.4em + var(--safe-area-inset-bottom, env(safe-area-inset-bottom, 0px)));
     background: ${theme.backgroundColor};
     border-block-start: 1px solid ${theme.borderColor};
     color: ${theme.describeColor};
     -webkit-tap-highlight-color: transparent;
     user-select: none;
-  }
-  :scope[fixed] {
-    position: fixed;
-    inset-inline: 0;
-    inset-block-end: 0;
-    z-index: 100;
   }
   .item {
     flex: 1;
@@ -110,9 +96,6 @@ const style = css`
 @adoptedStyle(style)
 @aria({ role: 'tablist' })
 export class TapTabbarElement extends GemElement {
-  /**Pin to the bottom of the viewport */
-  @boolattribute fixed: boolean;
-
   @property items?: TabbarItem[];
   @property value?: string | number;
   @emitter change: Emitter<string | number>;

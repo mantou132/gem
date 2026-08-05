@@ -19,7 +19,7 @@ const style = css`
     }
   }
   .hero {
-    height: calc(12em + env(safe-area-inset-top));
+    height: calc(12em + var(--safe-area-inset-top, env(safe-area-inset-top, 0px)));
     background: linear-gradient(160deg, ${theme.hoverBackgroundColor}, ${theme.borderColor});
   }
   .body p + p {

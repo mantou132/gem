@@ -28,7 +28,7 @@ const style = css`
     gap: 0.25em;
     padding-inline: 0.25em;
     padding-block: 0.5em;
-    padding-block-start: calc(0.5em + env(safe-area-inset-top, 0px));
+    padding-block-start: calc(0.5em + var(--safe-area-inset-top, env(safe-area-inset-top, 0px)));
     box-sizing: border-box;
     background: ${theme.backgroundColor};
     border-block-end: 1px solid ${theme.borderColor};

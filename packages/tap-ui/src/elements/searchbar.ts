@@ -35,7 +35,7 @@ const style = css`
     transition: padding-block-start 350ms ${theme.timingFunction};
   }
   :host(:focus-within) {
-    padding-block-start: calc(0.5em + env(safe-area-inset-top, 0px));
+    padding-block-start: calc(0.5em + var(--safe-area-inset-top, env(safe-area-inset-top, 0px)));
   }
   .input {
     flex: 1;

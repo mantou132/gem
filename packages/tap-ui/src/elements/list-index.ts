@@ -9,7 +9,7 @@ const style = css`
   :host(:where(:not([hidden]))) {
     position: fixed;
     z-index: 3;
-    inset-inline-end: max(0.25em, env(safe-area-inset-right, 0px));
+    inset-inline-end: max(0.25em, var(--safe-area-inset-right, env(safe-area-inset-right, 0px)));
     inset-block-start: 50%;
     translate: 0 -50%;
     display: grid;

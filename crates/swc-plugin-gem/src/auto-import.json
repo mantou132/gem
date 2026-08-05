@@ -57,11 +57,16 @@
     },
     "duoyun-ui": {
       "dy-pat-*": "/patterns/*",
-      "dy-input-*": "/elements/input",
       "dy-light-route": "/elements/route",
       "dy-active-link": "/elements/link",
-      "dy-(form|avatar|radio|checkbox|collapse|tab)-*": "/elements/$1",
+      "dy-(input|form|avatar|radio|checkbox|collapse|tab)-*": "/elements/$1",
       "dy-*": "/elements/*"
+    },
+    "tap-ui": {
+      "tap-light-route": "/elements/route",
+      "tap-active-link": "/elements/link",
+      "tap-(cell|input|checkbox|radio|list|collapse)-*": "/elements/$1",
+      "tap-*": "/elements/*"
     }
   }
 }

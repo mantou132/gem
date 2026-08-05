@@ -85,7 +85,7 @@ const style = css`
     position: fixed;
     z-index: calc(${theme.popupZIndex} + 2);
     inset: 0;
-    top: env(titlebar-area-height, var(--titlebar-area-height, 0px));
+    top: var(--titlebar-area-height, env(titlebar-area-height, 0px));
     font-size: 0.875em;
     cursor: default;
     user-select: none;
