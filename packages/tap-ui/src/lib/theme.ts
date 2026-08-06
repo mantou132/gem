@@ -30,7 +30,7 @@ export const lightTheme = {
   borderColor: '#e1e1e1',
   disabledColor: '#eaeaea',
   maskAlpha: '0.2',
-  controlShadow: '0 1px 2px #0000000d',
+  controlShadow: 'none',
 
   // same of light/dark
   // https://spectrum.adobe.com/page/color/#Semantic-colors
@@ -40,6 +40,8 @@ export const lightTheme = {
   noticeColor: '#e68619',
   negativeColor: '#e34850',
   focusColor: '#2680eb',
+  // https://developer.mozilla.org/en-US/docs/Web/CSS/corner-shape
+  cornerShape: 'superellipse(5)',
   normalRound: '4px',
   smallRound: '2px',
   gridGutter: '24px',

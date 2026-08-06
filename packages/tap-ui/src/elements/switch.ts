@@ -31,7 +31,7 @@ const style = css`
     opacity: 0.3;
   }
   .switch {
-    height: 1.2em;
+    height: 1.8em;
     aspect-ratio: 9 / 5;
     border-radius: 10em;
     opacity: 0.8;

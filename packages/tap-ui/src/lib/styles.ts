@@ -28,7 +28,9 @@ function createContainer(display: string) {
 }
 
 export const blockContainer = createContainer('block');
+export const inlineBlockContainer = createContainer('inline-block');
 
 export const flexContainer = createContainer('flex');
+export const inlineFlexContainer = createContainer('inline-flex');
 
 export const contentsContainer = createContainer('contents');

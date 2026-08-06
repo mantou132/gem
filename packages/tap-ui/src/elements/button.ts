@@ -11,9 +11,8 @@ import {
   shadow,
   slot,
   state,
-  template,
 } from '@mantou/gem/lib/decorators';
-import { css, GemElement, html } from '@mantou/gem/lib/element';
+import { createRef, css, GemElement, html } from '@mantou/gem/lib/element';
 import { history } from '@mantou/gem/lib/history';
 import { addListener, classMap, QueryString } from '@mantou/gem/lib/utils';
 
@@ -22,8 +21,11 @@ import { icons } from '../lib/icons';
 import { focusStyle } from '../lib/styles';
 import { getSemanticColor, theme } from '../lib/theme';
 import type { StringList } from '../lib/types';
+import type { ContextMenuItem } from './contextmenu';
+import { ContextMenu } from './contextmenu';
 import type { RouteItem } from './route';
 import { createHistoryParams } from './route';
+import type { TapUseElement } from './use';
 
 import './use';
 
@@ -39,6 +41,7 @@ const style = css`
     font-size: 0.875em;
     border-radius: ${theme.normalRound};
     white-space: nowrap;
+    height: 2.5rem;
   }
   :host(:not([borderless], [disabled])) {
     box-shadow: ${theme.controlShadow};
@@ -46,8 +49,14 @@ const style = css`
   :host([round]) {
     border-radius: 10em;
   }
-  .content {
+  .content,
+  .dropdown {
     position: relative;
+    color: ${buttonTheme.color};
+    background: ${buttonTheme.bg};
+    border: 1px solid ${buttonTheme.bg};
+  }
+  .content {
     flex-grow: 1;
     display: flex;
     align-items: center;
@@ -56,9 +65,19 @@ const style = css`
     padding: 0.5em 1.5em;
     min-width: 3em;
     border-radius: inherit;
-    color: ${buttonTheme.color};
-    background: ${buttonTheme.bg};
-    border: 1px solid ${buttonTheme.bg};
+  }
+  .content.corner {
+    border-start-end-radius: 0;
+    border-end-end-radius: 0;
+  }
+  .dropdown {
+    display: flex;
+    border-radius: inherit;
+    border-end-start-radius: 0;
+    border-start-start-radius: 0;
+    margin-inline-start: -1px;
+    padding-inline: 0.2em;
+    width: 1.4em;
   }
   .icon {
     width: 1.2em;
@@ -78,18 +97,18 @@ const style = css`
     min-width: auto;
     padding: 0.5em;
   }
-  :host([type='reverse']) .content {
+  :host([type='reverse']) :where(.content, .dropdown) {
     color: ${buttonTheme.bg};
     border-color: ${buttonTheme.bg};
     background: transparent;
   }
-  :host([borderless]) .content {
+  :host([borderless]) :where(.content, .dropdown) {
     border-color: transparent;
   }
   :host([disabled]) {
     cursor: not-allowed;
   }
-  :where(:host(:state(active)) .content, .content:where(:hover))::after {
+  :where(:host(:state(active)) .content, .content:where(:hover), .dropdown:where(:hover, :state(active)))::after {
     content: '';
     position: absolute;
     inset: -1px;
@@ -115,6 +134,7 @@ export class TapButtonElement extends GemElement {
   @slot static unnamed: string;
 
   @part static button: string;
+  @part static dropdown: string;
 
   @attribute type: 'solid' | 'reverse';
   @attribute color: StringList<'normal' | 'danger' | 'cancel'>;
@@ -124,11 +144,14 @@ export class TapButtonElement extends GemElement {
   @boolattribute disabled: boolean;
   @boolattribute borderless: boolean;
 
+  @property dropdown?: ContextMenuItem[] | null;
   @property route?: RouteItem;
   @property params?: Record<string, string>;
   @property query?: Record<string, string>;
   @property icon?: string | Element | DocumentFragment;
   @state active: boolean;
+
+  #dropdownRef = createRef<TapUseElement>();
 
   get #color() {
     return getSemanticColor(this.color) || this.color || theme.primaryColor;
@@ -144,6 +167,23 @@ export class TapButtonElement extends GemElement {
           query: new QueryString(this.query),
         }),
       );
+    }
+  };
+
+  #onClickDropdown = async (e: MouseEvent) => {
+    e.stopPropagation();
+    if (this.disabled) return;
+    if (this.dropdown) {
+      const { value: element } = this.#dropdownRef;
+      const { right, bottom } = element!.getBoundingClientRect();
+      const { width } = this.getBoundingClientRect();
+      element!.active = true;
+      await ContextMenu.open(this.dropdown, {
+        x: right - width,
+        y: bottom,
+        width: `${width}px`,
+      });
+      element!.active = false;
     }
   };
 
@@ -165,22 +205,31 @@ export class TapButtonElement extends GemElement {
     }
   };
 
-  renderButtonTemplate() {
+  render = () => {
     return html`
       <div
         role="button"
         tabindex=${-Number(this.disabled)}
         aria-disabled=${this.disabled}
         @keydown=${commonHandle}
-        class=${classMap({ content: true })}
+        class=${classMap({ content: true, corner: !!this.dropdown })}
         part=${TapButtonElement.button}
       >
         <tap-use v-if=${!!this.icon} class="icon" .element=${this.icon}></tap-use>
         <slot></slot>
       </div>
+      <tap-use
+        ${this.#dropdownRef}
+        v-if=${!!this.dropdown}
+        class="dropdown"
+        part=${TapButtonElement.dropdown}
+        @keydown=${commonHandle}
+        role="button"
+        tabindex=${-Number(this.disabled)}
+        aria-disabled=${this.disabled}
+        @click=${this.#onClickDropdown}
+        .element=${icons.expand}
+      ></tap-use>
     `;
-  }
-
-  @template()
-  #render = () => this.renderButtonTemplate();
+  };
 }
