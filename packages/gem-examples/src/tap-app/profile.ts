@@ -2,10 +2,6 @@ import { Stack } from 'tap-ui/elements/stack';
 import { contentsContainer } from 'tap-ui/lib/styles';
 import { theme } from 'tap-ui/lib/theme';
 
-import 'tap-ui/elements/content';
-import 'tap-ui/elements/navbar';
-import 'tap-ui/elements/page';
-
 const style = css`
   .body {
     line-height: 1.6;
@@ -23,10 +19,10 @@ const style = css`
   }
 `;
 
-@customElement('tap-app-profile')
+@customElement('t-profile')
 @adoptedStyle(contentsContainer)
 @adoptedStyle(style)
-export class TapAppProfileElement extends GemElement {
+export class TProfileElement extends GemElement {
   @template()
   #render = () => html`
     <tap-page>

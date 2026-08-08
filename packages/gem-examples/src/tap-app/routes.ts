@@ -11,35 +11,35 @@ export const routes = {
     pattern: '/',
     title: 'Home',
     getContent() {
-      return html`<tap-app-home></tap-app-home>`;
+      return html`<t-home></t-home>`;
     },
   },
   cards: {
     pattern: '/cards',
     title: 'Cards',
     getContent() {
-      return html`<tap-app-cards></tap-app-cards>`;
+      return html`<t-cards></t-cards>`;
     },
   },
   chats: {
     pattern: '/chats',
     title: 'Chats',
     getContent() {
-      return html`<tap-app-chats></tap-app-chats>`;
+      return html`<t-chats></t-chats>`;
     },
   },
   contacts: {
     pattern: '/contacts',
     title: 'Contacts',
     getContent() {
-      return html`<tap-app-contacts></tap-app-contacts>`;
+      return html`<t-contacts></t-contacts>`;
     },
   },
   settings: {
     pattern: '/settings',
     title: 'Settings',
     getContent() {
-      return html`<tap-app-settings></tap-app-settings>`;
+      return html`<t-settings></t-settings>`;
     },
   },
 } satisfies Record<string, RouteItem>;

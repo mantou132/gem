@@ -1,19 +1,14 @@
 import { Stack } from 'tap-ui/elements/stack';
 import { contentsContainer } from 'tap-ui/lib/styles';
 
-import 'tap-ui/elements/cell';
-import 'tap-ui/elements/navbar';
-import 'tap-ui/elements/content';
-import 'tap-ui/elements/page';
-
-@customElement('tap-app-settings')
+@customElement('t-settings')
 @adoptedStyle(contentsContainer)
-export class TapAppSettingsElement extends GemElement {
+export class TSettingsElement extends GemElement {
   #state = createState({ notifications: true, darkMode: false });
 
   #openAbout = () => {
     Stack.push({
-      content: html`<tap-app-about></tap-app-about>`,
+      content: html`<t-about></t-about>`,
     });
   };
 
@@ -44,9 +39,9 @@ export class TapAppSettingsElement extends GemElement {
   `;
 }
 
-@customElement('tap-app-about')
+@customElement('t-about')
 @adoptedStyle(contentsContainer)
-export class TapAppAboutElement extends GemElement {
+export class TAboutElement extends GemElement {
   @template()
   #render = () => html`
     <tap-page>

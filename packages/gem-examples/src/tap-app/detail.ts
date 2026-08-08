@@ -2,11 +2,6 @@ import { Stack } from 'tap-ui/elements/stack';
 import { contentsContainer } from 'tap-ui/lib/styles';
 import { theme } from 'tap-ui/lib/theme';
 
-import 'tap-ui/elements/button';
-import 'tap-ui/elements/content';
-import 'tap-ui/elements/navbar';
-import 'tap-ui/elements/page';
-
 import './profile';
 
 const style = css`
@@ -30,13 +25,13 @@ const style = css`
   }
 `;
 
-@customElement('tap-app-detail')
+@customElement('t-detail')
 @adoptedStyle(contentsContainer)
 @adoptedStyle(style)
-export class TapAppDetailElement extends GemElement {
+export class TDetailElement extends GemElement {
   #openProfile = () => {
     Stack.push({
-      content: html`<tap-app-profile></tap-app-profile>`,
+      content: html`<t-profile></t-profile>`,
     });
   };
 

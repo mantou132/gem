@@ -4,11 +4,6 @@ import { classMap } from '@mantou/gem/lib/utils';
 import { contentsContainer } from 'tap-ui/lib/styles';
 import { theme } from 'tap-ui/lib/theme';
 
-import 'tap-ui/elements/list-index';
-import 'tap-ui/elements/navbar';
-import 'tap-ui/elements/page';
-import 'tap-ui/elements/searchbar';
-
 type Contact = {
   name: string;
   phone: string;
@@ -107,10 +102,10 @@ const style = css`
   }
 `;
 
-@customElement('tap-app-contacts')
+@customElement('t-contacts')
 @adoptedStyle(contentsContainer)
 @adoptedStyle(style)
-export class TapAppContactsElement extends GemElement {
+export class TContactsElement extends GemElement {
   #state = createState({ query: '' });
 
   get #groups() {

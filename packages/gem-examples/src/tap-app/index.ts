@@ -26,6 +26,6 @@ initApp({
         })}
       />
     </tap-reflect>
-    <tap-app-root></tap-app-root>
+    <t-root></t-root>
   `,
 });

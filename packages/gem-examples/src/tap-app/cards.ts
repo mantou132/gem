@@ -3,11 +3,6 @@ import { GemElement, html } from '@mantou/gem/lib/element';
 import { contentsContainer } from 'tap-ui/lib/styles';
 import { theme } from 'tap-ui/lib/theme';
 
-import 'tap-ui/elements/card';
-import 'tap-ui/elements/content';
-import 'tap-ui/elements/navbar';
-import 'tap-ui/elements/page';
-
 const style = css`
   .intro {
     margin-block-end: 1em;
@@ -64,10 +59,10 @@ const copy = html`
   </tap-content>
 `;
 
-@customElement('tap-app-cards')
+@customElement('t-cards')
 @adoptedStyle(contentsContainer)
 @adoptedStyle(style)
-export class TapAppCardsElement extends GemElement {
+export class TCardsElement extends GemElement {
   @template()
   #render = () => html`
     <tap-page>

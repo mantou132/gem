@@ -4,11 +4,6 @@ import { adoptedStyle, customElement, emitter, property, template } from '@manto
 import { contentsContainer } from 'tap-ui/lib/styles';
 import { theme } from 'tap-ui/lib/theme';
 
-import 'tap-ui/elements/list';
-import 'tap-ui/elements/navbar';
-import 'tap-ui/elements/page';
-import 'tap-ui/elements/swipeout';
-
 const PAGE_SIZE = 25;
 
 type ChatItem = {
@@ -131,9 +126,9 @@ const itemStyle = css`
   }
 `;
 
-@customElement('tap-app-chat-item')
+@customElement('t-chat-item')
 @adoptedStyle(itemStyle)
-export class TapAppChatItemElement extends GemElement {
+export class TChatItemElement extends GemElement {
   @property item?: ChatItem;
   @emitter delete: Emitter<ChatItem>;
 
@@ -160,9 +155,9 @@ export class TapAppChatItemElement extends GemElement {
   };
 }
 
-@customElement('tap-app-chats')
+@customElement('t-chats')
 @adoptedStyle(contentsContainer)
-export class TapAppChatsElement extends GemElement {
+export class TChatsElement extends GemElement {
   #state = createState({ page: 0, items: generateChats(0) });
 
   #onBackward = () => {
@@ -190,7 +185,7 @@ export class TapAppChatsElement extends GemElement {
         .items=${this.#state.items}
         .getKey=${(item: ChatItem) => item.id}
         .renderItem=${(item: ChatItem) => html`
-          <tap-app-chat-item .item=${item} @delete=${this.#onItemDelete}></tap-app-chat-item>
+          <t-chat-item .item=${item} @delete=${this.#onItemDelete}></t-chat-item>
         `}
         @backward=${this.#onBackward}
       ></tap-list>

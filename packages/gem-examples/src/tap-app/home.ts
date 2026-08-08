@@ -7,27 +7,23 @@ import { Stack } from 'tap-ui/elements/stack';
 import { icons } from 'tap-ui/lib/icons';
 import { contentsContainer } from 'tap-ui/lib/styles';
 
-import 'tap-ui/elements/cell';
-import 'tap-ui/elements/navbar';
-import 'tap-ui/elements/page';
-
 import './detail';
 import './profile';
 
-@customElement('tap-app-home')
+@customElement('t-home')
 @adoptedStyle(contentsContainer)
-export class TapAppHomeElement extends GemElement {
+export class THomeElement extends GemElement {
   #state = createState({ actionResult: '', dialogResult: '', sheetResult: '' });
 
   #openDetail = () => {
     Stack.push({
-      content: html`<tap-app-detail></tap-app-detail>`,
+      content: html`<t-detail></t-detail>`,
     });
   };
 
   #openProfile = () => {
     Stack.push({
-      content: html`<tap-app-profile></tap-app-profile>`,
+      content: html`<t-profile></t-profile>`,
     });
   };
 

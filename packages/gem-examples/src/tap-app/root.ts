@@ -2,12 +2,8 @@ import { icons } from 'tap-ui/lib/icons';
 
 import { routes } from './routes';
 
-import 'tap-ui/elements/page';
-import 'tap-ui/elements/route';
-import 'tap-ui/elements/tabbar';
-
-@customElement('tap-app-root')
-export class TapAppAppElement extends GemElement {
+@customElement('t-root')
+export class TAppElement extends GemElement {
   @template()
   #render = () => html`
     <tap-page>
