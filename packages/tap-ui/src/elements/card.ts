@@ -30,6 +30,7 @@ const SAFE_AREA_INSET = {
   top: 'var(--safe-area-inset-top, env(safe-area-inset-top, 0px))',
   bottom: 'var(--safe-area-inset-bottom, env(safe-area-inset-bottom, 0px))',
 };
+const SCREEN_CORNER_RADIUS = 'var(--screen-corner-radius, 0px)';
 const elementTheme = createDecoratorTheme({
   progress: 0,
   scale: 1,
@@ -92,16 +93,16 @@ const style = css`
     }
     :is(.clip, .card) {
       border-top-left-radius: calc(
-        ${elementTheme.tlRadius} * (1 - ${elementTheme.progress}) + ${SAFE_AREA_INSET.top} * ${elementTheme.progress}
+        ${elementTheme.tlRadius} * (1 - ${elementTheme.progress}) + ${SCREEN_CORNER_RADIUS} * ${elementTheme.progress}
       );
       border-top-right-radius: calc(
-        ${elementTheme.trRadius} * (1 - ${elementTheme.progress}) + ${SAFE_AREA_INSET.top} * ${elementTheme.progress}
+        ${elementTheme.trRadius} * (1 - ${elementTheme.progress}) + ${SCREEN_CORNER_RADIUS} * ${elementTheme.progress}
       );
       border-bottom-right-radius: calc(
-        ${elementTheme.brRadius} * (1 - ${elementTheme.progress}) + ${SAFE_AREA_INSET.bottom} * ${elementTheme.progress}
+        ${elementTheme.brRadius} * (1 - ${elementTheme.progress}) + ${SCREEN_CORNER_RADIUS} * ${elementTheme.progress}
       );
       border-bottom-left-radius: calc(
-        ${elementTheme.blRadius} * (1 - ${elementTheme.progress}) + ${SAFE_AREA_INSET.bottom} * ${elementTheme.progress}
+        ${elementTheme.blRadius} * (1 - ${elementTheme.progress}) + ${SCREEN_CORNER_RADIUS} * ${elementTheme.progress}
       );
     }
   }
