@@ -615,9 +615,11 @@ export class TemplateInstance implements Disconnectable {
       }
     }
 
+    const conditionMap = new Map<Element, ConditionChain>();
     ifMap.forEach((idx, element) => {
       const chain = new ConditionChain(element, idx);
       this._$conditions.push(chain);
+      conditionMap.set(element, chain);
       let ele: Element | null = element;
       while ((ele = ele.nextElementSibling)) {
         const pos = elseIfMap.get(ele);
@@ -625,6 +627,13 @@ export class TemplateInstance implements Disconnectable {
         chain.push(ele, pos);
       }
     });
+    // A ChildPart can use the following conditional element as its end boundary.
+    // Point it to the persistent chain marker before v-if can remove that element.
+    for (const part of this._$parts) {
+      if (part?.type !== CHILD_PART) continue;
+      const chain = conditionMap.get(part._$endNode as Element);
+      if (chain) part._$endNode = chain.mark;
+    }
 
     // We need to set the currentNode away from the cloned tree so that we
     // don't hold onto the tree even if the tree is detached and should be
