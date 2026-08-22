@@ -5,7 +5,10 @@ import { Logger } from './logger';
 
 const logger = new Logger('HMR');
 
-const nativeDefineElement = window.customElements.define.bind(window.customElements);
+const nativeDefineElement =
+  typeof window === 'undefined' || !window.customElements
+    ? undefined
+    : window.customElements.define.bind(window.customElements);
 
 const cache = new Map<string, Element[]>();
 function updateElement(name: string, fn: (ele: Element) => void) {
@@ -160,147 +163,149 @@ declare global {
   }
 }
 
-window._hmrClassRegistry = new Map();
-window._hmrRegisterClass =
-  (name: string) =>
-  (cls: HasFieldsRecordClass, { addInitializer }: ClassDecoratorContext) => {
-    addInitializer(() => {
-      const existed = window._hmrClassRegistry.get(name);
+if (typeof window !== 'undefined' && nativeDefineElement && !window._hmrClassRegistry) {
+  window._hmrClassRegistry = new Map();
+  window._hmrRegisterClass =
+    (name: string) =>
+    (cls: HasFieldsRecordClass, { addInitializer }: ClassDecoratorContext) => {
+      addInitializer(() => {
+        const existed = window._hmrClassRegistry.get(name);
 
-      if (!existed) {
-        window._hmrClassRegistry.set(name, cls);
-        return;
-      }
-
-      logger.info(`class <${name}> update,`, { existed, cls });
-
-      let current: any[] = [existed, cls];
-      while (current) {
-        const [oldClass, newClass] = current;
-        if (oldClass === newClass || current.some((e) => e === GemElement || e === Function.prototype)) break;
-        if (current.some((e) => !e) || checkClassNeedReload(oldClass, newClass)) {
-          location.reload();
+        if (!existed) {
+          window._hmrClassRegistry.set(name, cls);
           return;
         }
 
-        // 修正 `instanceof`
-        setProperty(newClass, Symbol.hasInstance, function hasInstance(instance: any) {
-          const isOldInstance = instance instanceof oldClass;
-          if (isOldInstance) return true;
-          setProperty(newClass, Symbol.hasInstance, undefined);
-          const isNew = instance instanceof newClass;
-          setProperty(newClass, Symbol.hasInstance, hasInstance);
-          return isNew;
-        });
+        logger.info(`class <${name}> update,`, { existed, cls });
 
-        const oldMetadata = getMetadata(oldClass);
-        const newMetadata = getMetadata(newClass);
+        let current: any[] = [existed, cls];
+        while (current) {
+          const [oldClass, newClass] = current;
+          if (oldClass === newClass || current.some((e) => e === GemElement || e === Function.prototype)) break;
+          if (current.some((e) => !e) || checkClassNeedReload(oldClass, newClass)) {
+            location.reload();
+            return;
+          }
 
-        if (checkMetadataNeedReload(oldMetadata, newMetadata)) {
-          location.reload();
-          return;
-        }
-
-        const fields = getFields(oldClass, newClass);
-
-        if (checkFieldsNeedReload(fields)) {
-          location.reload();
-          return;
-        }
-
-        Object.entries(fields.staticFields).forEach(([type, { remove, add }]) => {
-          remove.forEach((prop) => {
-            if (safeProp.has(type)) {
-              deleteProperty(oldClass, prop.name);
-            }
+          // 修正 `instanceof`
+          setProperty(newClass, Symbol.hasInstance, function hasInstance(instance: any) {
+            const isOldInstance = instance instanceof oldClass;
+            if (isOldInstance) return true;
+            setProperty(newClass, Symbol.hasInstance, undefined);
+            const isNew = instance instanceof newClass;
+            setProperty(newClass, Symbol.hasInstance, hasInstance);
+            return isNew;
           });
-          add.forEach((prop) => {
-            if (safeProp.has(type)) {
-              setProperty(oldClass, prop.name, getProperty(newClass, prop.name));
-            }
-          });
-        });
 
-        const instanceFieldsEntries = Object.entries(fields.instanceFields);
-        // 删除的属性重新加回来要先清除占位值
-        instanceFieldsEntries.forEach(([type, { add }]) => {
-          add.forEach((prop) => {
-            if (type in descMap) {
-              deleteProperty(oldClass.prototype, prop.name);
-            }
-          });
-        });
-        updateElement(name, (element) => {
-          instanceFieldsEntries.forEach(([type, { add, remove }]) => {
-            add.forEach((prop) => {
-              if (type in descMap) {
-                (descMap as any)[type](undefined, {
-                  name: prop.name,
-                  metadata: oldMetadata,
-                  addInitializer: (fn: () => void) => fn.apply(element),
-                } as ClassMemberDecoratorContext);
+          const oldMetadata = getMetadata(oldClass);
+          const newMetadata = getMetadata(newClass);
+
+          if (checkMetadataNeedReload(oldMetadata, newMetadata)) {
+            location.reload();
+            return;
+          }
+
+          const fields = getFields(oldClass, newClass);
+
+          if (checkFieldsNeedReload(fields)) {
+            location.reload();
+            return;
+          }
+
+          Object.entries(fields.staticFields).forEach(([type, { remove, add }]) => {
+            remove.forEach((prop) => {
+              if (safeProp.has(type)) {
+                deleteProperty(oldClass, prop.name);
               }
             });
-            remove.forEach((prop) => {
-              setProperty(element, prop.name, undefined);
+            add.forEach((prop) => {
+              if (safeProp.has(type)) {
+                setProperty(oldClass, prop.name, getProperty(newClass, prop.name));
+              }
             });
           });
-        });
-        // 删除的属性在 proto 上添加占位符
-        instanceFieldsEntries.forEach(([type, { remove }]) => {
-          remove.forEach((prop) => {
-            if (type in descMap) {
-              // attribute 映射 prop 没有移除
-              setProperty(oldClass.prototype, prop.name, undefined);
-            }
+
+          const instanceFieldsEntries = Object.entries(fields.instanceFields);
+          // 删除的属性重新加回来要先清除占位值
+          instanceFieldsEntries.forEach(([type, { add }]) => {
+            add.forEach((prop) => {
+              if (type in descMap) {
+                deleteProperty(oldClass.prototype, prop.name);
+              }
+            });
           });
-        });
+          updateElement(name, (element) => {
+            instanceFieldsEntries.forEach(([type, { add, remove }]) => {
+              add.forEach((prop) => {
+                if (type in descMap) {
+                  (descMap as any)[type](undefined, {
+                    name: prop.name,
+                    metadata: oldMetadata,
+                    addInitializer: (fn: () => void) => fn.apply(element),
+                  } as ClassMemberDecoratorContext);
+                }
+              });
+              remove.forEach((prop) => {
+                setProperty(element, prop.name, undefined);
+              });
+            });
+          });
+          // 删除的属性在 proto 上添加占位符
+          instanceFieldsEntries.forEach(([type, { remove }]) => {
+            remove.forEach((prop) => {
+              if (type in descMap) {
+                // attribute 映射 prop 没有移除
+                setProperty(oldClass.prototype, prop.name, undefined);
+              }
+            });
+          });
 
-        setArrValue(oldMetadata, 'definedParts', newMetadata.definedParts);
-        setArrValue(oldMetadata, 'definedSlots', newMetadata.definedSlots);
-        setArrValue(oldMetadata, 'observedProperties', newMetadata.observedProperties);
-        setArrValue(oldMetadata, 'observedAttributes', newMetadata.observedAttributes);
-        setArrValue(oldMetadata, 'definedEvents', newMetadata.definedEvents);
-        setArrValue(oldMetadata, 'definedCSSStates', newMetadata.definedCSSStates);
-        setArrValue(oldMetadata, 'adoptedStyleSheets', newMetadata.adoptedStyleSheets);
-        setArrValue(oldClass, '_defined_fields_', newClass._defined_fields_);
+          setArrValue(oldMetadata, 'definedParts', newMetadata.definedParts);
+          setArrValue(oldMetadata, 'definedSlots', newMetadata.definedSlots);
+          setArrValue(oldMetadata, 'observedProperties', newMetadata.observedProperties);
+          setArrValue(oldMetadata, 'observedAttributes', newMetadata.observedAttributes);
+          setArrValue(oldMetadata, 'definedEvents', newMetadata.definedEvents);
+          setArrValue(oldMetadata, 'definedCSSStates', newMetadata.definedCSSStates);
+          setArrValue(oldMetadata, 'adoptedStyleSheets', newMetadata.adoptedStyleSheets);
+          setArrValue(oldClass, '_defined_fields_', newClass._defined_fields_);
 
-        [
-          [oldClass, newClass],
-          [oldClass.prototype, newClass.prototype],
-        ].forEach(([existedObj, newObj]) => {
-          Object.assign(
-            existedObj,
-            Object.fromEntries(
-              getHmrMethodKeys(newObj)
-                .filter((key) => existedObj[key].toString() !== newObj[key].toString())
-                .map((key) => [key, newObj[key]]),
-            ),
-          );
-        });
+          [
+            [oldClass, newClass],
+            [oldClass.prototype, newClass.prototype],
+          ].forEach(([existedObj, newObj]) => {
+            Object.assign(
+              existedObj,
+              Object.fromEntries(
+                getHmrMethodKeys(newObj)
+                  .filter((key) => existedObj[key].toString() !== newObj[key].toString())
+                  .map((key) => [key, newObj[key]]),
+              ),
+            );
+          });
 
-        current = [getPrototypeOf(oldClass), getPrototypeOf(newClass)];
-      }
+          current = [getPrototypeOf(oldClass), getPrototypeOf(newClass)];
+        }
+      });
+    };
+
+  window.customElements.define = (name: string, cls: CustomElementConstructor) => {
+    const existed = customElements.get(name);
+
+    if (!existed) {
+      nativeDefineElement(name, cls);
+      return;
+    }
+
+    // 等待类更新
+    queueMicrotask(() => {
+      logger.info(`<${name}> update,`, { cls });
+
+      updateElement(name, (element) => {
+        // 触发样式更新，支持 Light DOM
+        element.after(element);
+        // 重新渲染
+        (element as any)[UpdateToken]?.();
+      });
     });
   };
-
-window.customElements.define = (name: string, cls: CustomElementConstructor) => {
-  const existed = customElements.get(name);
-
-  if (!existed) {
-    nativeDefineElement(name, cls);
-    return;
-  }
-
-  // 等待类更新
-  queueMicrotask(() => {
-    logger.info(`<${name}> update,`, { cls });
-
-    updateElement(name, (element) => {
-      // 触发样式更新，支持 Light DOM
-      element.after(element);
-      // 重新渲染
-      (element as any)[UpdateToken]?.();
-    });
-  });
-};
+}

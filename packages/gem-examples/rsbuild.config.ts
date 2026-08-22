@@ -47,7 +47,6 @@ export default defineConfig((config) => {
       template: './src/template.html',
     },
     source: {
-      preEntry: '@mantou/gem/helper/hmr',
       entry: Object.fromEntries(examples.map((name) => [name, `./src/${name}`])),
       define: {
         'process.env.VERSION': JSON.stringify(version),

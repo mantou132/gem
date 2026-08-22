@@ -117,10 +117,15 @@ fn fixture_preload(input: PathBuf) {
 #[fixture("tests/fixture/hmr/**/input.ts")]
 fn fixture_hmr(input: PathBuf) {
     let output = input.parent().unwrap().join("output.ts");
+    let target = if input.to_string_lossy().contains("import-meta-hot") {
+        HmrTarget::ImportMetaHot
+    } else {
+        HmrTarget::WebpackHot
+    };
 
     test_fixture(
         get_syntax(),
-        &move |_| visit_mut_pass(hmr_transform(Some("reactive.js".to_string()))),
+        &move |_| visit_mut_pass(hmr_transform(Some("reactive.js".to_string()), target)),
         &input,
         &output,
         Default::default(),

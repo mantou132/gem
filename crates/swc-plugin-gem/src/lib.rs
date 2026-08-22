@@ -9,7 +9,7 @@ use swc_core::{
 };
 use swc_ecma_ast::Program;
 pub use visitors::{
-    hmr::hmr_transform,
+    hmr::{hmr_transform, HmrConfig, HmrTarget},
     import::{import_transform, AutoImport, AutoImportContent, AutoImportDts, MemberOrMemberAs},
     memo::memo_transform,
     minify::minify_transform,
@@ -32,8 +32,10 @@ struct PluginConfig {
     pub resolve_path: bool,
     ///depend on URL loader & top await
     pub preload: bool,
-    /// Under development, need add `@mantou/gem/helper/hmr` to entry
-    pub hmr: bool,
+    /// Under development. `true` / `"webpack-hot"` emit `import.meta.webpackHot`;
+    /// `unplugin-gem` injects `@mantou/gem/helper/hmr` and passes the matching target.
+    /// Using this plugin directly still needs that helper on the entry.
+    pub hmr: HmrConfig,
     /// Support `&:hover` in shadow dom and light dom
     pub selector_compatible: bool,
     /// un-implement
@@ -49,6 +51,7 @@ pub fn process_transform(mut program: Program, data: TransformPluginProgramMetad
         serde_json::from_str::<PluginConfig>(plugin_config).expect("invalid config for gem plugin");
 
     let filename = data.get_context(&TransformPluginMetadataContextKind::Filename);
+    let hmr_target = config.hmr.target();
 
     program.visit_mut_with(&mut (
         Optional {
@@ -80,8 +83,8 @@ pub fn process_transform(mut program: Program, data: TransformPluginProgramMetad
             visitor: preload_transform(),
         },
         Optional {
-            enabled: config.hmr,
-            visitor: hmr_transform(filename.clone()),
+            enabled: hmr_target.is_some(),
+            visitor: hmr_transform(filename.clone(), hmr_target.unwrap_or_default()),
         },
     ));
 
@@ -102,5 +105,11 @@ mod tests {
                 ..Default::default()
             }
         )
+    }
+
+    #[test]
+    fn should_parse_hmr_target() {
+        let config = serde_json::from_str::<PluginConfig>(r#"{"hmr":"import-meta-hot"}"#).unwrap();
+        assert_eq!(config.hmr.target(), Some(HmrTarget::ImportMetaHot));
     }
 }

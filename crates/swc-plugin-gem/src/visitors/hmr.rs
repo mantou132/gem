@@ -31,6 +31,7 @@ use std::{
 use indexmap::IndexSet;
 use once_cell::sync::Lazy;
 use regex::Regex;
+use serde::Deserialize;
 use swc_common::DUMMY_SP;
 use swc_core::{
     atoms::Atom,
@@ -44,6 +45,37 @@ use swc_ecma_ast::{
     ModuleItem, Param, ParamOrTsParamProp, Pat, PropName, RestPat, ReturnStmt, StaticBlock, Stmt,
     Str, ThisExpr,
 };
+
+#[derive(Deserialize, Debug, Clone, Copy, PartialEq, Default)]
+#[serde(rename_all = "kebab-case")]
+pub enum HmrTarget {
+    #[default]
+    WebpackHot,
+    ImportMetaHot,
+    ModuleHot,
+    None,
+}
+
+#[derive(Deserialize, Debug, Clone, PartialEq, Default)]
+#[serde(untagged)]
+pub enum HmrConfig {
+    #[default]
+    Disabled,
+    Enabled(bool),
+    Target(HmrTarget),
+}
+
+impl HmrConfig {
+    pub fn target(&self) -> Option<HmrTarget> {
+        match self {
+            HmrConfig::Disabled => None,
+            HmrConfig::Enabled(false) => None,
+            HmrConfig::Enabled(true) => Some(HmrTarget::WebpackHot),
+            HmrConfig::Target(HmrTarget::None) => None,
+            HmrConfig::Target(target) => Some(*target),
+        }
+    }
+}
 
 static DASH_REG: Lazy<Regex> = Lazy::new(|| Regex::new(r"-").unwrap());
 static HASH_KEY_PREFIX: &str = "hash_";
@@ -62,6 +94,7 @@ struct TransformVisitor {
     class_stack: Vec<String>,
     need_reload: bool,
     imported_names: IndexSet<Atom>,
+    target: HmrTarget,
     // 用来判断构造函数内部内部是否有 return
     // 语句，不支持嵌套类构造函数（嵌套类）；不能识别内部函数申明的
     // return 语句，有正常的内联函数 return 也会拒绝 hmr
@@ -759,17 +792,9 @@ impl VisitMut for TransformVisitor {
     fn visit_mut_module_items(&mut self, node: &mut Vec<ModuleItem>) {
         node.visit_mut_children_with(self);
 
-        let module_expr = Expr::Member(MemberExpr {
-            obj: Box::new(Expr::Ident("import".into())),
-            prop: MemberProp::Ident("meta".into()),
-            ..Default::default()
-        });
-
-        let hot_expr = Expr::Member(MemberExpr {
-            obj: Box::new(module_expr),
-            prop: MemberProp::Ident("webpackHot".into()),
-            ..Default::default()
-        });
+        let Some(hot_expr) = gen_hot_expr(self.target) else {
+            return;
+        };
 
         if self.need_reload {
             node.push(quote!(
@@ -793,9 +818,19 @@ impl VisitMut for TransformVisitor {
     }
 }
 
-pub fn hmr_transform(filename: Option<String>) -> impl VisitMut {
+fn gen_hot_expr(target: HmrTarget) -> Option<Expr> {
+    match target {
+        HmrTarget::None => None,
+        HmrTarget::WebpackHot => Some(quote!("import.meta.webpackHot" as Expr)),
+        HmrTarget::ImportMetaHot => Some(quote!("import.meta.hot" as Expr)),
+        HmrTarget::ModuleHot => Some(quote!("module.hot" as Expr)),
+    }
+}
+
+pub fn hmr_transform(filename: Option<String>, target: HmrTarget) -> impl VisitMut {
     TransformVisitor {
         filename: filename.unwrap_or_default(),
+        target,
         ..Default::default()
     }
 }

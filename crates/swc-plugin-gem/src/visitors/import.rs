@@ -167,7 +167,8 @@ impl VisitMut for TransformVisitor {
 
         let first_item_span = node.first().map(|item| item.span()).unwrap_or(DUMMY_SP);
         let mut out: Vec<ImportDecl> = vec![];
-        let mut available_import: IndexMap<String, IndexMap<&Atom, Option<&Atom>>> = IndexMap::new();
+        let mut available_import: IndexMap<String, IndexMap<&Atom, Option<&Atom>>> =
+            IndexMap::new();
 
         for id in &self.used_members {
             if !self.defined_members.contains(id) {
@@ -385,7 +386,7 @@ mod tests {
                     .unwrap()
                     .keys()
             ),
-            r#"["dy-pat-*", "dy-input-*", "dy-light-route", "dy-active-link", "dy-(form|avatar|radio|checkbox|collapse|tab)-*", "dy-*"]"#
+            r#"["dy-pat-*", "dy-light-route", "dy-active-link", "dy-(input|form|avatar|radio|checkbox|collapse|tab)-*", "dy-*"]"#
         )
     }
 
@@ -403,7 +404,7 @@ mod tests {
                 .unwrap()
                 .keys()
             ),
-            r#"["dy-pat-*", "dy-input-*", "dy-light-route", "dy-active-link", "dy-(form|avatar|radio|checkbox|collapse|tab)-*", "dy-*"]"#
+            r#"["dy-pat-*", "dy-light-route", "dy-active-link", "dy-(input|form|avatar|radio|checkbox|collapse|tab)-*", "dy-*"]"#
         )
     }
 }
