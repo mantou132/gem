@@ -118,7 +118,7 @@ export class TapContextmenuElement extends GemElement {
 
   static async open(contextmenu: MenuOrMenuObject, options: ContextMenuOptions = {}) {
     if (Array.isArray(contextmenu) && contextmenu.length === 0) throw new Error('menu length is 0');
-    const { activeElement, openLeft, x = 0, y = 0, maskClosable = true } = options;
+    const { activeElement, openLeft, x, y, maskClosable = true } = options;
     const menuObject = getMenuObject(contextmenu);
     const menu = menuObject.menu;
     const header = menuObject.header || options.header;
@@ -126,12 +126,23 @@ export class TapContextmenuElement extends GemElement {
     const maxHeight = menuObject.maxHeight || options.maxHeight;
     const searchable = menuObject.searchable || options.searchable;
     toggleActiveState(activeElement, true);
+    const prevMenu = contextmenuStore.menuStack.at(0);
     contextmenuStore({
       activeElement,
-      onlyActive: !!x || !!y,
+      onlyActive: x !== undefined || y !== undefined,
       openLeft,
       maskClosable,
-      menuStack: [{ x, y, menu, searchable, header, width, maxHeight }],
+      menuStack: [
+        {
+          x: x ?? prevMenu?.x ?? 0,
+          y: y ?? prevMenu?.y ?? 0,
+          menu,
+          searchable,
+          header,
+          width,
+          maxHeight,
+        },
+      ],
     });
     // biome-ignore lint/complexity/noThisInStatic: dy-contextmenu subclass
     if (!this.instance) {
