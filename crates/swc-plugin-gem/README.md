@@ -6,7 +6,7 @@
 - support minify style
 - resolve full path (for esm)
 - support module level resource preload
-- support hmr (experimental)
+- support hmr (experimental; `true` / `"webpack-hot"` emit `import.meta.webpackHot`. Use `unplugin-gem` to inject `@mantou/gem/helper/hmr` and select the matching target)
 
 # Example
 

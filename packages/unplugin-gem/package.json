@@ -57,6 +57,7 @@
   "scripts": {
     "build": "tsc",
     "start": "pnpm build --watch",
+    "test": "node --experimental-strip-types --test hmr.test.ts",
     "prepublishOnly": "pnpm build"
   },
   "keywords": [
@@ -92,6 +93,7 @@
     "typescript": "^5.6.2"
   },
   "peerDependencies": {
+    "@mantou/gem": ">=2.0.0",
     "@rspack/core": ">=0.0.0",
     "esbuild": ">=0.20.0",
     "rolldown": ">=0.0.0",
@@ -100,6 +102,9 @@
     "webpack": ">=5.0.0"
   },
   "peerDependenciesMeta": {
+    "@mantou/gem": {
+      "optional": true
+    },
     "esbuild": {
       "optional": true
     },

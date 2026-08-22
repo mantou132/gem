@@ -10,6 +10,41 @@ export type AutoImportConfig =
     };
 
 /**
+ * HMR API emitted by the SWC transform.
+ */
+export type HmrTarget = 'webpack-hot' | 'import-meta-hot' | 'module-hot' | 'none';
+
+/**
+ * HMR runtime and entry injection options.
+ */
+export interface HmrOptions {
+  /**
+   * Runtime helper module, resolved from the project
+   * @default '@mantou/gem/helper/hmr'
+   */
+  helper?: string;
+
+  /**
+   * HMR API emitted by the SWC transform.
+   * @default The native API for the selected bundler (`webpack-hot` for webpack/Rspack,
+   * `import-meta-hot` for the other supported bundlers).
+   */
+  target?: HmrTarget;
+
+  /**
+   * Entry names/paths to prepend the helper to,
+   * matched against the entry name and its import paths
+   */
+  include?: string | RegExp | Array<string | RegExp>;
+
+  /**
+   * Entry names/paths to skip, matched against the entry name and its import paths.
+   * Defaults to skipping service worker / background / content script entries
+   */
+  exclude?: string | RegExp | Array<string | RegExp>;
+}
+
+/**
  * Auto import .d.ts generation
  */
 export type AutoImportDts = boolean | string;
@@ -77,9 +112,15 @@ export interface UnpluginGemOptions {
 
   /**
    * Enable HMR support (experimental)
+   *
+   * Turns on the SWC HMR transform and automatically injects
+   * `@mantou/gem/helper/hmr` so you do not import the runtime yourself.
+   *
+   * Service worker / background / content script / Node entries are skipped
+   * by default because the runtime uses `window`.
    * @default false
    */
-  hmr?: boolean;
+  hmr?: boolean | HmrOptions;
 
   /**
    * Support `&:hover` in shadow DOM and light DOM

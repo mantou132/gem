@@ -10,7 +10,7 @@ Supports **Vite**, **Webpack**, **Rollup**, **esbuild**, **Rspack** and **Rolldo
 - 🎨 **CSS Minification** - Minify CSS in `css`` template literals
 - 🔍 **Selector Compatible** - Transform `&:hover` for Shadow DOM compatibility
 - 📦 **Resource Preload** - Preload resources with `?preload` query
-- 🔥 **HMR Support** - Hot module replacement (experimental)
+- 🔥 **HMR Support** - Injects `@mantou/gem/helper/hmr` automatically (experimental)
 - 🛠️ **Universal** - Works with all major bundlers
 
 ## Installation
@@ -37,6 +37,7 @@ export default {
       autoImport: true,
       selectorCompatible: true,
       styleMinify: true,
+      hmr: true,
     }),
   ],
 }
@@ -53,6 +54,7 @@ module.exports = {
     gemPlugin({
       autoImport: true,
       selectorCompatible: true,
+      hmr: true,
     }),
   ],
 }
@@ -69,6 +71,41 @@ export default {
     gemPlugin({
       autoImport: true,
       selectorCompatible: true,
+      hmr: true,
+    }),
+  ],
+}
+```
+
+### Rspack
+
+```js
+// rspack.config.js
+import gemPlugin from 'unplugin-gem/rspack'
+
+export default {
+  plugins: [
+    gemPlugin({
+      autoImport: true,
+      selectorCompatible: true,
+      hmr: true,
+    }),
+  ],
+}
+```
+
+### Rolldown
+
+```js
+// rolldown.config.js
+import gemPlugin from 'unplugin-gem/rolldown'
+
+export default {
+  plugins: [
+    gemPlugin({
+      autoImport: true,
+      selectorCompatible: true,
+      hmr: true,
     }),
   ],
 }
@@ -86,10 +123,32 @@ build({
     gemPlugin({
       autoImport: true,
       selectorCompatible: true,
+      hmr: true,
     }),
   ],
 })
 ```
+
+## HMR
+
+Enable `hmr` to run [swc-plugin-gem](https://github.com/mantou132/gem/tree/main/crates/swc-plugin-gem)'s HMR transform and inject `@mantou/gem/helper/hmr`. You do not add the runtime yourself.
+
+```ts
+gemPlugin({
+  hmr: true,
+})
+```
+
+The runtime is injected for every supported bundler:
+
+- **Webpack / Rspack**: prepended to each entry
+- **Vite**: injected as a module script during `serve`
+- **Rollup / Rolldown**: each selected input is wrapped so the helper runs first
+- **esbuild**: added through `inject` (or an entry proxy when `hmr.include` is set)
+
+Keep `hmr` off in production builds. The transform emits `import.meta.webpackHot` on webpack/Rspack and `import.meta.hot` elsewhere. Service worker / background / content script / Node entries are skipped by default because the runtime uses `window`.
+
+Complete JavaScript HMR still needs a host that implements those APIs (webpack/Rspack/Vite, or Rolldown's experimental HMR). Rollup and esbuild only get the runtime so the transformed classes stay compatible.
 
 ## How It Works
 
