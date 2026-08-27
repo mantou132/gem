@@ -1,4 +1,3 @@
-/** biome-ignore-all lint/complexity/noThisInStatic: base class */
 import { aria, mounted, shadow } from '../../lib/decorators';
 import { history } from '../../lib/history';
 import { GemElement } from '../../lib/reactive';

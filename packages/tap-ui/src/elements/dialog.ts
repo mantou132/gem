@@ -208,7 +208,6 @@ export class TapDialogElement extends GemElement {
       typeof body === 'string' || body instanceof TemplateResult
         ? html`<div class=${style2.c}>${body}</div>`
         : html`<pre class=${style2.p}>${JSON.stringify(body, null, 2)}</pre>`;
-    // biome-ignore lint/complexity/noThisInStatic: Drawer / Dialog
     return this.open({ ...options, body: content }).catch(() => {
       throw null;
     });

@@ -144,20 +144,16 @@ export class TapContextmenuElement extends GemElement {
         },
       ],
     });
-    // biome-ignore lint/complexity/noThisInStatic: dy-contextmenu subclass
     if (!this.instance) {
-      // biome-ignore lint/complexity/noThisInStatic: dy-contextmenu subclass
       document.body.append(new this());
     }
     await new Promise((res) => (closeResolve = res));
   }
 
   static close() {
-    // biome-ignore lint/complexity/noThisInStatic: dy-contextmenu subclass
     if (!this.instance) return;
     toggleActiveState(contextmenuStore.activeElement, false);
     closeResolve();
-    // biome-ignore lint/complexity/noThisInStatic: dy-contextmenu subclass
     this.instance.remove();
     // specify keyboard navigation location
     contextmenuStore.activeElement?.focus();
