@@ -5,46 +5,46 @@
   "type": "module",
   "main": "./dist/index.js",
   "module": "./dist/index.js",
-  "types": "./src/index.ts",
+  "types": "./dist/index.d.ts",
   "exports": {
     ".": {
-      "types": "./src/index.ts",
+      "types": "./dist/index.d.ts",
       "development": "./src/index.ts",
       "import": "./dist/index.js",
       "default": "./dist/index.js"
     },
     "./vite": {
-      "types": "./src/vite.ts",
+      "types": "./dist/vite.d.ts",
       "development": "./src/vite.ts",
       "import": "./dist/vite.js",
       "default": "./dist/vite.js"
     },
     "./webpack": {
-      "types": "./src/webpack.ts",
+      "types": "./dist/webpack.d.ts",
       "development": "./src/webpack.ts",
       "import": "./dist/webpack.js",
       "default": "./dist/webpack.js"
     },
     "./rollup": {
-      "types": "./src/rollup.ts",
+      "types": "./dist/rollup.d.ts",
       "development": "./src/rollup.ts",
       "import": "./dist/rollup.js",
       "default": "./dist/rollup.js"
     },
     "./esbuild": {
-      "types": "./src/esbuild.ts",
+      "types": "./dist/esbuild.d.ts",
       "development": "./src/esbuild.ts",
       "import": "./dist/esbuild.js",
       "default": "./dist/esbuild.js"
     },
     "./rspack": {
-      "types": "./src/rspack.ts",
+      "types": "./dist/rspack.d.ts",
       "development": "./src/rspack.ts",
       "import": "./dist/rspack.js",
       "default": "./dist/rspack.js"
     },
     "./rolldown": {
-      "types": "./src/rolldown.ts",
+      "types": "./dist/rolldown.d.ts",
       "development": "./src/rolldown.ts",
       "import": "./dist/rolldown.js",
       "default": "./dist/rolldown.js"
@@ -57,7 +57,7 @@
   "scripts": {
     "build": "tsc",
     "start": "pnpm build --watch",
-    "test": "node --experimental-strip-types --test hmr.test.ts",
+    "test": "pnpm build && node --experimental-strip-types --test hmr.test.ts",
     "prepublishOnly": "pnpm build"
   },
   "keywords": [

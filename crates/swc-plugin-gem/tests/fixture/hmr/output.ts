@@ -1,6 +1,6 @@
 // @ts-nocheck
 @customElement('my-element')
-@(window._hmrRegisterClass ? _hmrRegisterClass("my-element") : Function.prototype)
+@(globalThis._hmrRegisterClass ? globalThis._hmrRegisterClass("my-element") : Function.prototype)
 export class MyElement extends GemElement {
     _hmr_public_my_element_constructor(arg) {
         console.log(arg);

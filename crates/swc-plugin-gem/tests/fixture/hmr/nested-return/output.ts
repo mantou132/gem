@@ -1,5 +1,5 @@
 // @ts-nocheck
-@(window._hmrRegisterClass ? _hmrRegisterClass("hash_18214d53321c747c") : Function.prototype)
+@(globalThis._hmrRegisterClass ? globalThis._hmrRegisterClass("hash_18214d53321c747c") : Function.prototype)
 class GemElement extends HTMLElement {
     _private_hash_18214d53321c747c_renderRoot;
     _private_hash_18214d53321c747c_effectList = [];

@@ -3,7 +3,7 @@
 //! - 将私有成员转译成公开成员，同时修改所有私有成员访问
 //! - 为函数成员（方法、getter、setter、字段，包括静态的）添加影子方法，
 //!   在运行时进行替换，不支持计算属性名
-//! - 调用 HMR API：模块中有元素定义就接受、否则冒泡
+//! - 调用 HMR API：模块中有元素定义就接受、否则由 host 冒泡或拒绝
 //! - 收集所有非函数字段名称及其装饰器，在运行时进行比较和更新
 //!
 //! 下列情况刷新页面：
@@ -633,7 +633,7 @@ fn gen_register_class(name: &str) -> Decorator {
     let name = Expr::Lit(Lit::Str(name.into()));
     Decorator {
         expr: Box::new(quote!(
-            "(window._hmrRegisterClass ? _hmrRegisterClass($key) : Function.prototype)" as Expr,
+            "(globalThis._hmrRegisterClass ? globalThis._hmrRegisterClass($key) : Function.prototype)" as Expr,
             key: Expr = name,
         )),
         ..Default::default()
@@ -796,7 +796,7 @@ impl VisitMut for TransformVisitor {
             return;
         };
 
-        if self.need_reload {
+        if self.need_reload && self.target != HmrTarget::ImportMetaHot {
             node.push(quote!(
                 "
                 if ($hot) {

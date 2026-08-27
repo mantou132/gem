@@ -28,6 +28,7 @@ export interface HmrOptions {
    * HMR API emitted by the SWC transform.
    * @default The native API for the selected bundler (`webpack-hot` for webpack/Rspack,
    * `import-meta-hot` for the other supported bundlers).
+   * Set to `none` to disable both the HMR transform and runtime injection.
    */
   target?: HmrTarget;
 
@@ -38,8 +39,8 @@ export interface HmrOptions {
   include?: string | RegExp | Array<string | RegExp>;
 
   /**
-   * Entry names/paths to skip, matched against the entry name and its import paths.
-   * Defaults to skipping service worker / background / content script entries
+   * Entry and module names/paths to skip.
+   * Defaults to skipping service worker / background / content script / SSR paths.
    */
   exclude?: string | RegExp | Array<string | RegExp>;
 }
@@ -116,8 +117,8 @@ export interface UnpluginGemOptions {
    * Turns on the SWC HMR transform and automatically injects
    * `@mantou/gem/helper/hmr` so you do not import the runtime yourself.
    *
-   * Service worker / background / content script / Node entries are skipped
-   * by default because the runtime uses `window`.
+   * Service worker / background / content script / SSR entries are skipped by
+   * default. Node-targeted webpack, Rspack, and esbuild builds are also skipped.
    * @default false
    */
   hmr?: boolean | HmrOptions;
