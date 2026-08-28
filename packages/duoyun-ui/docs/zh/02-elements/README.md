@@ -44,8 +44,8 @@
 | [`<dy-drop-area>`](./drop-area.md)                 |                                             |                                          |
 | [`<dy-empty>`](./empty.md)                         | [`<Empty>`][antd-empty]                     | [`<ele-empty>`][ele-empty]               |
 | [`<dy-file-picker>`](./file-picker.md)             | [`<Upload>`][antd-upload]                   | [`<ele-upload>`][ele-upload]             |
-| [`<dy-flow>`](./flow.md)                           |                                             |                                          |
 | [`<dy-form>`](./form.md)                           | [`<Form>`][antd-form]                       | [`<ele-form>`][ele-form]                 |
+| [`<dy-grouped-picker>`](./grouped-picker.md)       |                                             |                                          |
 | [`<dy-heading>`](./heading.md)                     | [`<Typography.Title>`][antd-typography]     |                                          |
 | [`<dy-help-text>`](./help-text.md)                 | [`<Typography.Text>`][antd-typography]      | [`<ele-text>`][ele-text]                 |
 | [`<dy-icons>`](./icons.md)                         | [Icons][antd-icon]                          | [`<ele-icon>`][ele-icon]                 |
@@ -60,7 +60,6 @@
 | [`<dy-link>`](./link.md)                           | [`<Typography.Link>`][antd-typography]      | [`<ele-link>`][ele-link]                 |
 | [`<dy-list>`](./list.md)                           | [`<List>`][antd-list]                       |                                          |
 | [`<dy-loading>`](./loading.md)                     | [`<Spin>`][antd-spin]                       | [`<ele-loading>`][ele-loading]           |
-| [`<dy-map>`](./map.md)                             |                                             |                                          |
 | [`<dy-meter>`](./meter.md)                         | [`<Progress>`][antd-progress]               | [`<ele-progress>`][ele-progress]         |
 | [`<dy-modal>`](./modal.md)                         | [`<Modal>`][antd-modal]                     | [`<ele-dialog>`][ele-dialog]             |
 |                                                    | [`<Popconfirm>`][antd-popconfirm]           | [`ElMessageBox`][ele-message-box]        |

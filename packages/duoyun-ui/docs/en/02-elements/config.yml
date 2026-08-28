@@ -15,6 +15,7 @@ groups:
       - drop-area.md
       - file-picker.md
       - form.md
+      - grouped-picker.md
       - input.md
       - picker.md
       - radio.md
@@ -94,10 +95,8 @@ groups:
       - chart-tooltip.md
       - chart-zoom.md
       - donut-chart.md
-      - flow.md
       - legend.md
       - line-chart.md
-      - map.md
       - radar-chart.md
       - sankey-chart.md
       - scatter-chart.md
