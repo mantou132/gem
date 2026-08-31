@@ -1,5 +1,5 @@
 import { history } from '@mantou/gem';
-import { getWebManifestURL, initApp } from 'tap-ui/helper/webapp';
+import { getWebManifestURL, initApp } from '@mantou/tap-ui/helper/webapp';
 
 import './root';
 

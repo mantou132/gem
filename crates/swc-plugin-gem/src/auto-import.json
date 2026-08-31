@@ -62,7 +62,7 @@
       "dy-(input|form|avatar|radio|checkbox|collapse|tab)-*": "/elements/$1",
       "dy-*": "/elements/*"
     },
-    "tap-ui": {
+    "@mantou/tap-ui": {
       "tap-light-route": "/elements/route",
       "tap-active-link": "/elements/link",
       "tap-(cell|input|checkbox|radio|list|collapse)-*": "/elements/$1",

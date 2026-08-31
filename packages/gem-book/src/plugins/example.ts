@@ -246,7 +246,7 @@ class _GbpExampleElement extends GemBookPluginElement {
   #loadResource = (src: string) => {
     return new Promise<null>((res, rej) => {
       /** GEM_BOOK_REPLACE
-      const matched = new URL(src).pathname.match(/^\/(duoyun-ui|tap-ui)\/(elements|patterns)\/([^/?#]+)/);
+      const matched = new URL(src).pathname.match(/^\/(duoyun-ui|@mantou\/tap-ui)\/(elements|patterns)\/([^/?#]+)/);
       if (matched) {
         const [, pkg, dir, name] = matched;
         res(
@@ -254,7 +254,7 @@ class _GbpExampleElement extends GemBookPluginElement {
             ? import(`../../duoyun-ui/src/elements/${name}`)
             : pkg === 'duoyun-ui' && dir === 'patterns'
               ? import(`../../duoyun-ui/src/patterns/${name}`)
-              : pkg === 'tap-ui' && dir === 'elements'
+              : pkg === '@mantou/tap-ui' && dir === 'elements'
                 ? import(`../../tap-ui/src/elements/${name}`)
                 : import(`../../tap-ui/src/patterns/${name}`),
         );

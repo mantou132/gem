@@ -1,5 +1,5 @@
 import { customElement } from '@mantou/gem/lib/decorators';
-import { TapActiveLinkElement, TapLinkElement } from 'tap-ui/elements/link';
+import { TapActiveLinkElement, TapLinkElement } from '@mantou/tap-ui/elements/link';
 
 export * from '@mantou/gem/elements/base/link';
 

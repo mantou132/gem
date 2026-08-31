@@ -1,8 +1,8 @@
 import { mediaQuery } from '@mantou/gem/helper/mediaquery';
 import { adoptedStyle, customElement } from '@mantou/gem/lib/decorators';
 import { css } from '@mantou/gem/lib/element';
-import type { DialogOpenOptions, DialogOptions } from 'tap-ui/elements/dialog';
-import { TapDialogElement } from 'tap-ui/elements/dialog';
+import type { DialogOpenOptions, DialogOptions } from '@mantou/tap-ui/elements/dialog';
+import { TapDialogElement } from '@mantou/tap-ui/elements/dialog';
 
 export type ModalOptions = DialogOptions;
 export type ModalOpenOptions<T> = DialogOpenOptions<T>;

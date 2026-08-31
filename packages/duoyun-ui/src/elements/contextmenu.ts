@@ -1,15 +1,15 @@
 import { customElement } from '@mantou/gem/lib/decorators';
 import type { TemplateResult } from '@mantou/gem/lib/element';
 import { html } from '@mantou/gem/lib/element';
-import type { ContextMenuOptions } from 'tap-ui/elements/contextmenu';
-import { TapContextmenuElement } from 'tap-ui/elements/contextmenu';
+import type { ContextMenuOptions } from '@mantou/tap-ui/elements/contextmenu';
+import { TapContextmenuElement } from '@mantou/tap-ui/elements/contextmenu';
 
 import { locale } from '../lib/locale';
 
 import './button';
 
-export type { ContextMenuItem, ContextMenuOptions, MenuOrMenuObject } from 'tap-ui/elements/contextmenu';
-export { SEPARATOR } from 'tap-ui/elements/contextmenu';
+export type { ContextMenuItem, ContextMenuOptions, MenuOrMenuObject } from '@mantou/tap-ui/elements/contextmenu';
+export { SEPARATOR } from '@mantou/tap-ui/elements/contextmenu';
 
 @customElement('dy-contextmenu')
 export class DuoyunContextmenuElement extends TapContextmenuElement {

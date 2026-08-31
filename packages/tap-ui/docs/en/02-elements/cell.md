@@ -4,7 +4,7 @@ Settings-style list row and group. Primary text on the left; description, switch
 
 ## Example
 
-<gbp-example name="tap-cell" src="https://esm.sh/tap-ui/elements/cell">
+<gbp-example name="tap-cell" src="https://esm.sh/@mantou/tap-ui/elements/cell">
 
 ```json
 {
@@ -16,7 +16,7 @@ Settings-style list row and group. Primary text on the left; description, switch
 
 </gbp-example>
 
-<gbp-example name="tap-cell-group" src="https://esm.sh/tap-ui/elements/cell">
+<gbp-example name="tap-cell-group" src="https://esm.sh/@mantou/tap-ui/elements/cell">
 
 ```json
 {

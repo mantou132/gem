@@ -1,4 +1,4 @@
-import type { RouteItem } from 'tap-ui/elements/route';
+import type { RouteItem } from '@mantou/tap-ui/elements/route';
 
 import './cards';
 import './chats';

@@ -1,11 +1,11 @@
 import { adoptedStyle, customElement, template } from '@mantou/gem/lib/decorators';
 import { createState, GemElement, html } from '@mantou/gem/lib/element';
-import { ActionSheet } from 'tap-ui/elements/action-sheet';
-import { Dialog } from 'tap-ui/elements/dialog';
-import { Sheet } from 'tap-ui/elements/sheet';
-import { Stack } from 'tap-ui/elements/stack';
-import { icons } from 'tap-ui/lib/icons';
-import { contentsContainer } from 'tap-ui/lib/styles';
+import { ActionSheet } from '@mantou/tap-ui/elements/action-sheet';
+import { Dialog } from '@mantou/tap-ui/elements/dialog';
+import { Sheet } from '@mantou/tap-ui/elements/sheet';
+import { Stack } from '@mantou/tap-ui/elements/stack';
+import { icons } from '@mantou/tap-ui/lib/icons';
+import { contentsContainer } from '@mantou/tap-ui/lib/styles';
 
 import './detail';
 import './profile';

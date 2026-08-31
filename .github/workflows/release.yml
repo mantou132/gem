@@ -12,8 +12,8 @@ on:
       - swc-plugin-gem@*
       - unplugin-gem@*
       - gem-analyzer@*
-      # - tap-ui@* # tap-ui 名字已被占用，暂不发布
-      # - duoyun-ui@* # 依赖 tap-ui，tap-ui 暂不发布，故一并暂停
+      - '@mantou/tap-ui@*'
+      - duoyun-ui@*
       - gem-book@*
       - '@mantou/gem-port@*'
       - gem-devtools@*
@@ -91,18 +91,18 @@ jobs:
               workflow: 'gem-analyzer-publish.yml',
               npm: true,
             },
-            // {
-            //   name: 'tap-ui',
-            //   path: 'packages/tap-ui/package.json',
-            //   workflow: 'tap-ui-publish.yml',
-            //   npm: true,
-            // },
-            // {
-            //   name: 'duoyun-ui',
-            //   path: 'packages/duoyun-ui/package.json',
-            //   workflow: 'duoyun-ui-publish.yml',
-            //   npm: true,
-            // },
+            {
+              name: '@mantou/tap-ui',
+              path: 'packages/tap-ui/package.json',
+              workflow: 'tap-ui-publish.yml',
+              npm: true,
+            },
+            {
+              name: 'duoyun-ui',
+              path: 'packages/duoyun-ui/package.json',
+              workflow: 'duoyun-ui-publish.yml',
+              npm: true,
+            },
             {
               name: 'gem-book',
               path: 'packages/gem-book/package.json',

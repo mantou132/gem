@@ -1,1 +1,1 @@
-export { default } from 'tap-ui/locales/zh';
+export { default } from '@mantou/tap-ui/locales/zh';

@@ -4,7 +4,7 @@ Settings page. Pass `groups` to render groups and rows; no need to write `tap-ce
 
 ## Example
 
-<gbp-example name="tap-pat-settings" src="https://esm.sh/tap-ui/patterns/settings">
+<gbp-example name="tap-pat-settings" src="https://esm.sh/@mantou/tap-ui/patterns/settings">
 
 ```json
 [

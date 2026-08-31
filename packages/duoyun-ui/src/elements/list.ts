@@ -2,8 +2,8 @@ import { adoptedStyle, customElement, property } from '@mantou/gem/lib/decorator
 import type { TemplateResult } from '@mantou/gem/lib/element';
 import { css, html } from '@mantou/gem/lib/element';
 import { styled } from '@mantou/gem/lib/utils';
-import type { PersistentState } from 'tap-ui/elements/list';
-import { TapListElement } from 'tap-ui/elements/list';
+import type { PersistentState } from '@mantou/tap-ui/elements/list';
+import { TapListElement } from '@mantou/tap-ui/elements/list';
 
 import { theme } from '../lib/theme';
 import type { Status } from './status-light';

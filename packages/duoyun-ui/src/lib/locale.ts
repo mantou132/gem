@@ -1,1 +1,1 @@
-export * from 'tap-ui/lib/locale';
+export * from '@mantou/tap-ui/lib/locale';

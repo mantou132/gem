@@ -1,6 +1,6 @@
 import { adoptedStyle, customElement } from '@mantou/gem/lib/decorators';
 import { css } from '@mantou/gem/lib/element';
-import { TapSwitchElement } from 'tap-ui/elements/switch';
+import { TapSwitchElement } from '@mantou/tap-ui/elements/switch';
 
 const style = css`
   .switch {

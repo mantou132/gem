@@ -1,7 +1,7 @@
 import { adoptedStyle, customElement, template } from '@mantou/gem/lib/decorators';
 import { GemElement, html } from '@mantou/gem/lib/element';
-import { contentsContainer } from 'tap-ui/lib/styles';
-import { theme } from 'tap-ui/lib/theme';
+import { contentsContainer } from '@mantou/tap-ui/lib/styles';
+import { theme } from '@mantou/tap-ui/lib/theme';
 
 const style = css`
   .intro {

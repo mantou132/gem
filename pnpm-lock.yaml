@@ -81,7 +81,7 @@ importers:
       deep-query-selector:
         specifier: ^1.0.1
         version: 1.0.2
-      tap-ui:
+      '@mantou/tap-ui':
         specifier: ^0.1.4
         version: link:../tap-ui
     devDependencies:
@@ -301,7 +301,7 @@ importers:
       duoyun-ui:
         specifier: ^2.2.7
         version: link:../duoyun-ui
-      tap-ui:
+      '@mantou/tap-ui':
         specifier: ^0.1.4
         version: link:../tap-ui
     devDependencies:

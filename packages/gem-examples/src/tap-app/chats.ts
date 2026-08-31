@@ -1,8 +1,8 @@
 import { createState, css, GemElement, html } from '@mantou/gem';
 import type { Emitter } from '@mantou/gem/lib/decorators';
 import { adoptedStyle, customElement, emitter, property, template } from '@mantou/gem/lib/decorators';
-import { contentsContainer } from 'tap-ui/lib/styles';
-import { theme } from 'tap-ui/lib/theme';
+import { contentsContainer } from '@mantou/tap-ui/lib/styles';
+import { theme } from '@mantou/tap-ui/lib/theme';
 
 const PAGE_SIZE = 25;
 

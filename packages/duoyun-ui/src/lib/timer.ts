@@ -1,1 +1,1 @@
-export * from 'tap-ui/lib/timer';
+export * from '@mantou/tap-ui/lib/timer';

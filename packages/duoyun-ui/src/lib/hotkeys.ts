@@ -1,1 +1,1 @@
-export * from 'tap-ui/lib/hotkeys';
+export * from '@mantou/tap-ui/lib/hotkeys';

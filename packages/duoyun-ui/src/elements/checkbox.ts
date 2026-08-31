@@ -1,5 +1,5 @@
 import { customElement } from '@mantou/gem/lib/decorators';
-import { TapCheckboxElement, TapCheckboxGroupElement } from 'tap-ui/elements/checkbox';
+import { TapCheckboxElement, TapCheckboxGroupElement } from '@mantou/tap-ui/elements/checkbox';
 
 @customElement('dy-checkbox')
 export class DuoyunCheckboxElement extends TapCheckboxElement {}

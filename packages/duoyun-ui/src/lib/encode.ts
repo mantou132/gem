@@ -1,1 +1,1 @@
-export * from 'tap-ui/lib/encode';
+export * from '@mantou/tap-ui/lib/encode';

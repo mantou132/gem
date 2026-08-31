@@ -17,7 +17,7 @@ TapUI          foundations, light interaction, reusable structure
   └─ DuoyunUI  desktop look, default rendering, admin components & patterns
 ```
 
-Apps can keep importing from `duoyun-ui`; it depends on `tap-ui` underneath.
+Apps can keep importing from `duoyun-ui`; it depends on `@mantou/tap-ui` underneath.
 
 ## Customizing UI: Class Tokens
 
@@ -51,7 +51,7 @@ In DuoyunUI (or above), extend that token without changing structure:
 ```ts
 import { css } from '@mantou/gem/lib/element';
 import { adoptedStyle, customElement } from '@mantou/gem/lib/decorators';
-import { styles, TapDemoElement } from 'tap-ui/elements/demo';
+import { styles, TapDemoElement } from '@mantou/tap-ui/elements/demo';
 
 const dyStyles = css({
   [styles.div]: `

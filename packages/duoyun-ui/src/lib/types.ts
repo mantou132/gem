@@ -1,1 +1,1 @@
-export * from 'tap-ui/lib/types';
+export * from '@mantou/tap-ui/lib/types';

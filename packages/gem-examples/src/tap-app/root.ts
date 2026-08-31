@@ -1,4 +1,4 @@
-import { icons } from 'tap-ui/lib/icons';
+import { icons } from '@mantou/tap-ui/lib/icons';
 
 import { routes } from './routes';
 

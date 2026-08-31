@@ -1,5 +1,5 @@
 {
-  "name": "tap-ui",
+  "name": "@mantou/tap-ui",
   "version": "0.1.4",
   "description": "A lightweight mobile-first UI component library, implemented using Gem",
   "keywords": [

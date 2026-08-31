@@ -1,1 +1,1 @@
-export * from 'tap-ui/lib/icons';
+export * from '@mantou/tap-ui/lib/icons';

@@ -1,5 +1,5 @@
-import { Stack } from 'tap-ui/elements/stack';
-import { contentsContainer } from 'tap-ui/lib/styles';
+import { Stack } from '@mantou/tap-ui/elements/stack';
+import { contentsContainer } from '@mantou/tap-ui/lib/styles';
 
 @customElement('t-settings')
 @adoptedStyle(contentsContainer)

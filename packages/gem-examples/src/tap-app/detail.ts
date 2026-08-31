@@ -1,6 +1,6 @@
-import { Stack } from 'tap-ui/elements/stack';
-import { contentsContainer } from 'tap-ui/lib/styles';
-import { theme } from 'tap-ui/lib/theme';
+import { Stack } from '@mantou/tap-ui/elements/stack';
+import { contentsContainer } from '@mantou/tap-ui/lib/styles';
+import { theme } from '@mantou/tap-ui/lib/theme';
 
 import './profile';
 

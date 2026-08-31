@@ -1,1 +1,1 @@
-export * from 'tap-ui/lib/decorators';
+export * from '@mantou/tap-ui/lib/decorators';

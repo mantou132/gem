@@ -1,1 +1,1 @@
-export { TapScrollBaseElement as DuoyunScrollBaseElement } from 'tap-ui/elements/base/scroll';
+export { TapScrollBaseElement as DuoyunScrollBaseElement } from '@mantou/tap-ui/elements/base/scroll';

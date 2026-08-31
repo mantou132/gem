@@ -1,5 +1,5 @@
 import { customElement } from '@mantou/gem/lib/decorators';
-import { TapCollapseElement, TapCollapsePanelElement } from 'tap-ui/elements/collapse';
+import { TapCollapseElement, TapCollapsePanelElement } from '@mantou/tap-ui/elements/collapse';
 
 @customElement('dy-collapse-panel')
 export class DuoyunCollapsePanelElement extends TapCollapsePanelElement {}

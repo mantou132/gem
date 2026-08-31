@@ -1,1 +1,1 @@
-export * from 'tap-ui/lib/patterns';
+export * from '@mantou/tap-ui/lib/patterns';

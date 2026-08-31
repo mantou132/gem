@@ -17,7 +17,7 @@ TapUI          基础能力、轻量交互、可复用结构
   └─ DuoyunUI  桌面视觉、默认渲染、中后台组件与模式
 ```
 
-使用者仍然通过 `duoyun-ui` 引入即可；底层会依赖 `tap-ui`。
+使用者仍然通过 `duoyun-ui` 引入即可；底层会依赖 `@mantou/tap-ui`。
 
 ## 定制 UI：Class Token
 
@@ -51,7 +51,7 @@ DuoyunUI（或上层）在同一 class token 上追加样式——例如加粗�
 ```ts
 import { css } from '@mantou/gem/lib/element';
 import { adoptedStyle, customElement } from '@mantou/gem/lib/decorators';
-import { styles, TapDemoElement } from 'tap-ui/elements/demo';
+import { styles, TapDemoElement } from '@mantou/tap-ui/elements/demo';
 
 const dyStyles = css({
   [styles.div]: `

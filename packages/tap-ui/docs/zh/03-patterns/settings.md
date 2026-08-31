@@ -4,7 +4,7 @@
 
 ## Example
 
-<gbp-example name="tap-pat-settings" src="https://esm.sh/tap-ui/patterns/settings">
+<gbp-example name="tap-pat-settings" src="https://esm.sh/@mantou/tap-ui/patterns/settings">
 
 ```json
 [

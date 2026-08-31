@@ -1,8 +1,8 @@
 import { adoptedStyle, customElement, template } from '@mantou/gem/lib/decorators';
 import { createState, css, GemElement, html } from '@mantou/gem/lib/element';
 import { classMap } from '@mantou/gem/lib/utils';
-import { contentsContainer } from 'tap-ui/lib/styles';
-import { theme } from 'tap-ui/lib/theme';
+import { contentsContainer } from '@mantou/tap-ui/lib/styles';
+import { theme } from '@mantou/tap-ui/lib/theme';
 
 type Contact = {
   name: string;

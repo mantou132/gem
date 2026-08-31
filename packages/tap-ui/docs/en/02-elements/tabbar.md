@@ -4,7 +4,7 @@ Bottom tab bar. Driven by `items` / `value`; emits `change` when selection chang
 
 ## Example
 
-<gbp-example name="tap-tabbar" src="https://esm.sh/tap-ui/elements/tabbar">
+<gbp-example name="tap-tabbar" src="https://esm.sh/@mantou/tap-ui/elements/tabbar">
 
 ```json
 {
