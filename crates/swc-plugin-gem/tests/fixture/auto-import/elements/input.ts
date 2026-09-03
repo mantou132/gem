@@ -3,6 +3,7 @@
 export class MyElement extends GemElement {
   render() {
     return html`
+      <agentdy-use></agentdy-use>
       <dy-use></dy-use>
       <dy-use></dy-use>
       <dy-pat-console></dy-pat-console>

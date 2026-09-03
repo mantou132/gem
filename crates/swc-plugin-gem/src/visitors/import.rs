@@ -355,7 +355,14 @@ fn get_config(auto_import: AutoImport) -> AutoImportConfig {
 
     for (package, import_map) in content.elements.unwrap_or_default() {
         for (tag, path) in import_map {
-            if let Ok(regex) = Regex::new(&tag.replace('*', "(.*)")) {
+            let mut pattern = tag.replace('*', "(.*)");
+            if !pattern.starts_with('^') {
+                pattern = format!("^{pattern}");
+            }
+            if !pattern.ends_with('$') {
+                pattern.push('$');
+            }
+            if let Ok(regex) = Regex::new(&pattern) {
                 tag_config.push(RegexStringPair {
                     regex,
                     path: format!("{}{}", package, path.replace('*', "$1")),
@@ -406,5 +413,30 @@ mod tests {
             ),
             r#"["dy-pat-*", "dy-light-route", "dy-active-link", "dy-(input|form|avatar|radio|checkbox|collapse|tab)-*", "dy-*"]"#
         )
+    }
+
+    #[test]
+    fn should_match_exact_element_tag() {
+        let config = get_config(AutoImport::CustomContent(AutoImportContent {
+            elements: Some(
+                vec![(
+                    "deck".to_string(),
+                    vec![("deck-*".to_string(), "/elements/*".to_string())]
+                        .into_iter()
+                        .collect(),
+                )]
+                .into_iter()
+                .collect(),
+            ),
+            ..Default::default()
+        }));
+
+        let tag_pair = &config.tag_config[0];
+        assert!(!tag_pair.regex.is_match("agentdeck-xxx"));
+        assert!(tag_pair.regex.is_match("deck-xxx"));
+        assert_eq!(
+            tag_pair.regex.replace("deck-xxx", &tag_pair.path),
+            "deck/elements/xxx"
+        );
     }
 }
