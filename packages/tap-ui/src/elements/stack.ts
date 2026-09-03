@@ -1,4 +1,3 @@
-import { createDecoratorTheme } from '@mantou/gem/helper/theme';
 import { adoptedStyle, connectStore, customElement, template } from '@mantou/gem/lib/decorators';
 import type { TemplateResult } from '@mantou/gem/lib/element';
 import { createRef, css, GemElement, html } from '@mantou/gem/lib/element';
@@ -32,8 +31,6 @@ export const stackStore = createStore({
   offset: 0,
 });
 
-const elementTheme = createDecoratorTheme({ brightness: 0.92, shift: '0px' });
-
 const style = css`
   :scope {
     position: fixed;
@@ -59,10 +56,16 @@ export const stackStyle = css({
     .page:not(&) {
       box-shadow: -2px 0 16px rgb(0 0 0 / 0.08);
     }
-    &.page:not(:has(~ &.page)) {
-      filter: brightness(${elementTheme.brightness});
-      transform: translateX(${elementTheme.shift});
-    }
+  `,
+  /** Dim layer over the covered page; composited opacity instead of per-frame inherited custom props */
+  mask: `
+    position: absolute;
+    inset: 0;
+    background: black;
+    opacity: 0;
+    pointer-events: none;
+    z-index: calc(${theme.popupZIndex} + 3);
+    will-change: opacity;
   `,
 });
 
@@ -94,16 +97,6 @@ export class TapStackElement extends GemElement {
   #pageRef = createRef<HTMLElement>();
   #busy = false;
   #closeSpeed = 0;
-
-  @elementTheme(() => [stackStore.offset])
-  #theme = () => {
-    const width = this.clientWidth;
-    const getStackProgress = () => Math.min(1, stackStore.offset / (width || 1));
-    return {
-      brightness: 0.92 + 0.08 * getStackProgress(),
-      shift: `${-STACK_PARALLAX * width * (1 - getStackProgress())}px`,
-    };
-  };
 
   #duration = (distance: number, width: number, speed = 0) => {
     if (speed > 0) {
@@ -219,20 +212,41 @@ export class TapStackElement extends GemElement {
   #content = () => {
     const { pages, offset } = stackStore;
     const top = pages.at(-1);
+    // Parallax/dim only apply to the page directly under the top one; deeper pages
+    // are fully hidden behind it, so they keep transform-less like before
+    const belowTop = pages.at(-2);
+    const width = this.clientWidth || innerWidth;
+    const progress = Math.min(1, offset / (width || 1));
+    // Per-frame values stay on the two wrappers' inline styles; the page subtree
+    // (page.content) never invalidates because it's the same object reference
     return html`
       ${pages.map((page) => {
         const isTop = page === top;
+        const isBelowTop = page === belowTop;
         return html`
           <div
             ${this.#pageRef}
             class=${classMap({ page: true, [stackStyle.page]: true, [stackStyle.covered]: !isTop })}
             ?inert=${!isTop}
-            style=${isTop && offset > 0 ? styleMap({ transform: `translateX(${offset}px)` }) : undefined}
+            style=${styleMap({
+              transform: isTop
+                ? offset > 0
+                  ? `translateX(${offset}px)`
+                  : undefined
+                : isBelowTop
+                  ? `translateX(${-STACK_PARALLAX * width * (1 - progress)}px)`
+                  : undefined,
+            })}
             @pan=${(evt: CustomEvent<PanEventDetail>) => this.#onPagePan(page, evt)}
             @swipe=${(evt: CustomEvent<SwipeEventDetail>) => this.#onPageSwipe(page, evt)}
             @end=${(evt: Event) => this.#onPagePanEnd(page, evt.currentTarget as HTMLElement)}
           >
             ${page.content}
+            <div
+              v-if=${isBelowTop}
+              class=${stackStyle.mask}
+              style=${styleMap({ opacity: 0.08 * (1 - progress) })}
+            ></div>
           </div>
         `;
       })}
