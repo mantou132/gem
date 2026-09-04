@@ -1,17 +1,20 @@
 import { history } from '../lib/history';
-import { aTimeout, expect } from './utils';
+import { aTimeout, expect, nextFrame, waitForPopState } from './utils';
 
 describe('history 测试', () => {
+  afterEach(() => {
+    history.basePath = '';
+  });
+
   it('hash', async () => {
+    // 等待浏览器就绪
+    await nextFrame();
     const historyLength = window.history.length;
     const hash = window.location.hash;
-    // 等待浏览器就绪
-    await aTimeout(1000);
     history.push({ path: '/a', hash: '#a' });
     await aTimeout(10);
     expect(window.location.hash).to.equal('#a');
-    history.back();
-    await aTimeout(10);
+    await waitForPopState(() => history.back());
     expect(window.location.hash).to.equal(hash);
     history.push({ path: '/a', hash: '#b' });
     await aTimeout(10);
@@ -80,12 +83,10 @@ describe('history 测试', () => {
     await aTimeout(10);
     expect(() => history.push({ data: { $key: 1 } })).to.throw();
     // 关闭 modal
-    history.back();
-    await aTimeout(10);
+    await waitForPopState(() => history.back());
     expect(state.open).to.false;
     // 打开 modal
-    history.forward();
-    await aTimeout(10);
+    await waitForPopState(() => history.forward());
     // 替换 close
     history.replace({ close, open });
     await aTimeout(10);
@@ -97,11 +98,9 @@ describe('history 测试', () => {
     await aTimeout(10);
     expect(window.location.pathname).to.equal('/b');
     // 返回首页
-    history.back();
-    await aTimeout(10);
+    await waitForPopState(() => history.back());
     expect(state.open).to.be.false;
-    history.forward();
-    await aTimeout(10);
+    await waitForPopState(() => history.forward());
     expect(window.location.pathname).to.equal('/b');
     // 点击链接
     history.pushIgnoreCloseHandle({ path: '/c' });
