@@ -8,6 +8,8 @@ class MyElement1 {
   }
   @effect((i) => [i.#src])
   #update = () => {}
+  @effect((i) => [i.#other])
+  #update2 = () => {}
 }
 class MyElement2 {
   get #src() {

@@ -43,7 +43,7 @@ impl TransformVisitor {
 
         let class_name = self.current_class_name.as_ref().unwrap();
 
-        decorators.iter_mut().enumerate().for_each(|(idx, x)| {
+        decorators.iter_mut().for_each(|x| {
             if let Some(call_expr) = x.expr.as_mut_call() {
                 if let Callee::Expr(b) = &call_expr.callee {
                     if let Some(ident) = b.as_ident() {
@@ -60,6 +60,7 @@ impl TransformVisitor {
 
                 let first_arg = *call_expr.args.drain(0..1).next().unwrap().expr;
                 if let Expr::Arrow(arrow_expr) = first_arg {
+                    let idx = self.class_static_dep_fn.len();
                     let prop = format!("_dep_fn_{idx}");
                     // 忽略了箭头函数的 `this` 绑定，模块中类成员装饰器参数中的 `this`
                     // 会指向模块 正常情况下都不会使用
