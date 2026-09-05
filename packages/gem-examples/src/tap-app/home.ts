@@ -6,9 +6,6 @@ import { Sheet } from '@mantou/tap-ui/elements/sheet';
 import { Stack } from '@mantou/tap-ui/elements/stack';
 import { icons } from '@mantou/tap-ui/lib/icons';
 import { contentsContainer } from '@mantou/tap-ui/lib/styles';
-import { theme } from '@mantou/tap-ui/lib/theme';
-
-import '@mantou/tap-ui/elements/scroll-box';
 
 import './detail';
 import './profile';
@@ -98,27 +95,6 @@ export class THomeElement extends GemElement {
     this.#state({ sheetResult: 'Dismissed (long)' });
   };
 
-  #openSheetNestedScroll = async () => {
-    await Sheet.open({
-      header: 'Nested Scroll',
-      body: html`
-        <p style="margin-bottom: 0.75em; color: ${theme.describeColor};">
-          Inner scroll container: pull down scrolls the list first, and sheet closes only after reaching the top.
-        </p>
-        <tap-scroll-box
-          style="height: 180px; border: 1px solid ${theme.borderColor}; border-radius: ${theme.normalRound}; padding: 0.5em 1em;"
-        >
-          ${Array.from(
-            { length: 30 },
-            (_, i) => html`<p style="margin: 0.6em 0;">Item ${i + 1} — scroll inside container</p>`,
-          )}
-        </tap-scroll-box>
-      `,
-      maskClosable: true,
-    });
-    this.#state({ sheetResult: 'Dismissed (nested scroll)' });
-  };
-
   #openActionSheet = async () => {
     const action = await ActionSheet.open({
       title: 'Document actions',
@@ -196,12 +172,6 @@ export class THomeElement extends GemElement {
         .items=${[
           { label: 'Open', description: 'Drag header or pull body', action: true, onClick: this.#openSheet },
           { label: 'Scrollable', description: 'Pull at top to close', action: true, onClick: this.#openSheetLong },
-          {
-            label: 'Nested scroll',
-            description: 'Scroll inner container first',
-            action: true,
-            onClick: this.#openSheetNestedScroll,
-          },
           {
             label: 'Last result',
             description: this.#state.sheetResult || '—',
