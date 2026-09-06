@@ -11,8 +11,9 @@ use swc_core::{
     ecma::visit::{noop_visit_mut_type, VisitMut, VisitMutWith},
 };
 use swc_ecma_ast::{
-    ClassDecl, ClassExpr, FnDecl, FnExpr, Id, Ident, ImportDecl, ImportNamedSpecifier,
-    ImportSpecifier, ModuleDecl, ModuleExportName, ModuleItem, Str, TaggedTpl, VarDeclarator,
+    Callee, Class, ClassDecl, ClassExpr, ExprOrSpread, FnDecl, FnExpr, Id, Ident, ImportDecl,
+    ImportNamedSpecifier, ImportSpecifier, Lit, ModuleDecl, ModuleExportName, ModuleItem, Str,
+    TaggedTpl, VarDeclarator,
 };
 
 static CUSTOM_ELEMENT_REGEX: Lazy<Regex> =
@@ -45,6 +46,7 @@ struct TransformVisitor {
     used_members: IndexSet<Id>,
     defined_members: IndexSet<Id>,
     used_elements: IndexSet<String>,
+    defined_elements: IndexSet<String>,
 }
 
 impl TransformVisitor {
@@ -120,6 +122,28 @@ impl VisitMut for TransformVisitor {
         for ele in &node.tpl.quasis {
             for cap in CUSTOM_ELEMENT_REGEX.captures_iter(ele.raw.as_str()) {
                 self.used_elements.insert(cap["tag"].to_string());
+            }
+        }
+    }
+
+    fn visit_mut_class(&mut self, node: &mut Class) {
+        node.visit_mut_children_with(self);
+
+        for decorator in &node.decorators {
+            if let Some(call_expr) = decorator.expr.as_call() {
+                if let Callee::Expr(callee_expr) = &call_expr.callee {
+                    if let Some(Ident { sym, .. }) = callee_expr.as_ident() {
+                        if sym.as_str() == "customElement" {
+                            if let Some(ExprOrSpread { expr, .. }) = call_expr.args.first() {
+                                if let Some(Lit::Str(tag_name)) = expr.as_lit() {
+                                    if let Some(tag) = tag_name.value.as_str() {
+                                        self.defined_elements.insert(tag.to_string());
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
             }
         }
     }
@@ -205,6 +229,9 @@ impl VisitMut for TransformVisitor {
         }
 
         for tag in &self.used_elements {
+            if self.defined_elements.contains(tag) {
+                continue;
+            }
             for RegexStringPair { regex, path } in &self.config.tag_config {
                 if regex.is_match(tag) {
                     out.push(ImportDecl {
