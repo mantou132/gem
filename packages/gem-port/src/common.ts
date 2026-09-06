@@ -52,7 +52,25 @@ const project = new Project({
   useInMemoryFileSystem: true,
   compilerOptions: { target: morphTs.ScriptTarget.ESNext },
 });
-project.getFileSystem().readFile = (filePath) => promises.readFile(filePath, 'utf8');
+project.getFileSystem().readFile = async (filePath) => {
+  try {
+    return await promises.readFile(filePath, 'utf8');
+  } catch {
+    const inNodeModules = path.resolve('node_modules', filePath);
+    try {
+      return await promises.readFile(inNodeModules, 'utf8');
+    } catch {}
+    const match = filePath.match(/^((?:@[^/]+\/)?[^/]+)\/(.+)$/);
+    if (match) {
+      const [, pkg, sub] = match;
+      const inSrc = path.resolve('node_modules', pkg, 'src', sub);
+      try {
+        return await promises.readFile(inSrc, 'utf8');
+      } catch {}
+    }
+    throw new Error(`Cannot find file: ${filePath}`);
+  }
+};
 export async function getFileElements(elementFilePath: string) {
   if (!elementCache[elementFilePath]) {
     const text = readFileSync(elementFilePath, { encoding: 'utf-8' });

@@ -70,7 +70,10 @@ class _GbpApiElement extends GemBookPluginElement {
     const fileSystem = project.getFileSystem();
     fileSystem.readFile = async (filePath: string) => {
       const url = Utils.getRemoteURL(filePath);
-      return (await fetch(url)).text();
+      if (!url) throw new Error('Not Found');
+      const resp = await fetch(url);
+      if (!resp.ok) throw new Error(resp.statusText || 'Not Found');
+      return resp.text();
     };
     const file = project.createSourceFile(this.src, text);
     return { elements: await getElements(file, project), exports: await getExports(file) };

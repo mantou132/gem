@@ -6,6 +6,12 @@
   "i18n": true,
   "fallbackLanguage": "zh",
   "sourceBranch": "docs",
+  "importMap": {
+    "@mantou/tap-ui/": {
+      "dev": "/node_modules/@mantou/tap-ui/src/",
+      "prod": "https://raw.githubusercontent.com/mantou132/gem/main/packages/tap-ui/src/"
+    }
+  },
   "plugin": ["media", "api", "sandpack", "raw", "docsearch?local", "example", "import"],
   "debug": true
 }

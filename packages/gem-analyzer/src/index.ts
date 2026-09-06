@@ -100,8 +100,8 @@ async function getExtendsClassDetail(className: string, sourceFile: SourceFile, 
   );
   if (!importDeclaration) return;
   const depPath = importDeclaration.getModuleSpecifierValue();
-  if (!depPath.startsWith('.')) return;
-  const { pathname } = new URL(`${depPath}.ts`, `gem:${currentFile}`);
+  const depFile = depPath.endsWith('.ts') ? depPath : `${depPath}.ts`;
+  const pathname = depPath.startsWith('.') ? new URL(depFile, `gem:${currentFile}`).pathname : depFile;
   if (project.getSourceFile(pathname)) return;
   project.createSourceFile(pathname, '');
   try {

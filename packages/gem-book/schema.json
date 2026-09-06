@@ -56,6 +56,28 @@
           },
           "type": "array"
         },
+        "importMap": {
+          "additionalProperties": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "additionalProperties": false,
+                "properties": {
+                  "dev": {
+                    "type": "string"
+                  },
+                  "prod": {
+                    "type": "string"
+                  }
+                },
+                "type": "object"
+              }
+            ]
+          },
+          "type": "object"
+        },
         "json": {
           "type": "boolean"
         },

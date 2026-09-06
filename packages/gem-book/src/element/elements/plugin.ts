@@ -23,18 +23,29 @@ import { bookStore, locationStore } from '../store';
  */
 function getRemoteURL(originSrc = '', dev = GemBookPluginElement.devMode) {
   const { currentLink, lang, config, links } = GemBookPluginElement;
-  const { github, sourceBranch, sourceDir, base } = config;
+  const { github, sourceBranch, sourceDir, base, importMap } = config;
   let url = originSrc;
-  if (originSrc && !/^(https?:)?\/\//.test(originSrc)) {
+  if (importMap) {
+    for (const [prefix, replacement] of Object.entries(importMap)) {
+      if (url.startsWith(prefix)) {
+        const dest = typeof replacement === 'string' ? replacement : dev ? replacement.dev : replacement.prod;
+        if (dest) {
+          url = url.replace(prefix, dest);
+          break;
+        }
+      }
+    }
+  }
+  if (url && !/^(https?:)?\/\//.test(url)) {
     if (!github || !sourceBranch) return '';
-    let src = originSrc.startsWith('/') ? originSrc : `/${originSrc}`;
-    if (originSrc.startsWith('.')) {
-      const absPath = new URL(originSrc, `${location.origin}${currentLink!.originLink}`).pathname;
+    let src = url.startsWith('/') ? url : `/${url}`;
+    if (url.startsWith('.')) {
+      const absPath = new URL(url, `${location.origin}${currentLink!.originLink}`).pathname;
       const linkItem = links?.find(({ originLink, link, userFullPath }) =>
         [originLink, link, userFullPath].some((path) => path === absPath || `${path}.md` === absPath),
       );
       if (linkItem) return getURL(joinPath(lang, linkItem.originLink), linkItem.hash);
-      src = new URL(originSrc, `${location.origin}${joinPath(sourceDir, lang, currentLink!.originLink)}`).pathname;
+      src = new URL(url, `${location.origin}${joinPath(sourceDir, lang, currentLink!.originLink)}`).pathname;
     }
     url = dev
       ? `/_assets${src}`

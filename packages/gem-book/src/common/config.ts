@@ -25,6 +25,7 @@ interface CommonConfig {
   homeMode?: boolean;
   footer?: string;
   global?: any;
+  importMap?: Record<string, string | { dev?: string; prod?: string }>;
 }
 
 export type BookConfig = {
