@@ -1,6 +1,7 @@
 import { adoptedStyle, customElement, template } from '@mantou/gem/lib/decorators';
 import { createState, GemElement, html } from '@mantou/gem/lib/element';
 import { ActionSheet } from '@mantou/tap-ui/elements/action-sheet';
+import { Browser } from '@mantou/tap-ui/elements/browser';
 import { Dialog } from '@mantou/tap-ui/elements/dialog';
 import { Sheet } from '@mantou/tap-ui/elements/sheet';
 import { Stack } from '@mantou/tap-ui/elements/stack';
@@ -16,7 +17,29 @@ import './profile';
 @customElement('t-home')
 @adoptedStyle(contentsContainer)
 export class THomeElement extends GemElement {
-  #state = createState({ actionResult: '', dialogResult: '', sheetResult: '' });
+  #state = createState({ actionResult: '', dialogResult: '', sheetResult: '', browserResult: '' });
+
+  #openBrowser = async () => {
+    await Browser.open({
+      src: '/tap-browser/index.html',
+      title: 'Tap Help',
+      items: [
+        {
+          label: 'Share',
+          handler: () => {
+            this.#state({ browserResult: 'Shared from browser' });
+          },
+        },
+        {
+          label: 'Copy link',
+          handler: () => {
+            this.#state({ browserResult: 'Copied link from browser' });
+          },
+        },
+      ],
+    });
+    this.#state({ browserResult: this.#state.browserResult || 'Closed and returned to Home' });
+  };
 
   #openDetail = () => {
     Stack.push({
@@ -169,6 +192,18 @@ export class THomeElement extends GemElement {
         .items=${[
           { label: 'Detail', action: true, onClick: this.#openDetail },
           { label: 'Profile', action: true, onClick: this.#openProfile },
+        ]}
+      ></tap-cell-group>
+      <tap-cell-group
+        heading="Browser"
+        .items=${[
+          {
+            label: 'Open webpage',
+            description: 'Navigate',
+            action: true,
+            onClick: this.#openBrowser,
+          },
+          { label: 'Last result', description: this.#state.browserResult || '—' },
         ]}
       ></tap-cell-group>
       <tap-cell-group

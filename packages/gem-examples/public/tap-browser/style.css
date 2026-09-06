@@ -1,0 +1,76 @@
+:root {
+  color-scheme: light dark;
+  font-family: -apple-system, system-ui, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  color: light-dark(#4b4b4b, #c8c8c8);
+  background: light-dark(#fff, #1a1a1a);
+  line-height: 1.6;
+}
+
+body {
+  max-width: 38em;
+  margin: 0 auto;
+  padding: 1.5em;
+}
+
+header,
+nav a {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1em;
+}
+
+header strong {
+  font-size: 1.4em;
+  color: light-dark(#000, #efefef);
+}
+
+header span,
+small,
+footer {
+  font-size: 0.8em;
+  color: light-dark(#6e6e6e, #a0a0a0);
+}
+
+h1 {
+  margin: 1em 0 0.5em;
+  font-size: 1.75em;
+  line-height: 1.25;
+  letter-spacing: -0.03em;
+  color: light-dark(#000, #efefef);
+}
+
+h2 {
+  margin-top: 1.5em;
+  font-size: 1.15em;
+  color: light-dark(#000, #efefef);
+}
+
+a {
+  color: light-dark(#087c99, #53cce8);
+}
+
+nav {
+  margin-top: 2em;
+}
+
+nav a {
+  min-height: 44px;
+  padding: 1em 0;
+  color: inherit;
+  text-decoration: none;
+  border-top: 1px solid light-dark(#e1e1e1, #313131);
+}
+
+nav a:last-child {
+  border-bottom: 1px solid light-dark(#e1e1e1, #313131);
+}
+
+small {
+  display: block;
+  margin-top: 0.2em;
+}
+
+footer {
+  margin-top: 3em;
+}
