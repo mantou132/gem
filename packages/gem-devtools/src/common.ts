@@ -16,7 +16,7 @@ export async function execution<Func extends (...rest: any) => any>(
   options: Parameters<typeof devtools.inspectedWindow.eval>[1] = {},
 ): Promise<ReturnType<Func>> {
   const source = func.toString();
-  const [data, errorInfo] = await devtools.inspectedWindow.eval(
+  const evalResult = await devtools.inspectedWindow.eval(
     `(${preloadSource})();(${source}).apply(null, ${JSON.stringify(args)})`,
     // Firefox not support frameURL: undefined
     JSON.parse(
@@ -26,6 +26,7 @@ export async function execution<Func extends (...rest: any) => any>(
       }),
     ),
   );
+  const [data, errorInfo] = Array.isArray(evalResult) ? evalResult : [evalResult, undefined];
   if (errorInfo) {
     throw {
       source,
