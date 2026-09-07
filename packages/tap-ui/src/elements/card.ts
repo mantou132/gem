@@ -87,7 +87,7 @@ const style = css`
       );
     }
     .card {
-      width: 100%;
+      width: ${elementTheme.targetW};
       height: 100%;
       transform: scale(${elementTheme.scale});
     }
@@ -128,7 +128,7 @@ const style = css`
   }
   .close {
     position: absolute;
-    right: 1rem;
+    right: calc((${elementTheme.targetW} - ${elementTheme.width}) * (1 - ${elementTheme.progress}) + 1rem);
     top: 1rem;
     background: ${theme.backgroundColor};
     border-radius: 1e9px;
