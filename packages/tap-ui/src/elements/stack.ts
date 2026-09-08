@@ -33,7 +33,7 @@ export const stackStore = createStore({
 
 const style = css`
   :scope {
-    position: fixed;
+    position: absolute;
     inset: 0;
     z-index: 1;
     overflow: hidden;

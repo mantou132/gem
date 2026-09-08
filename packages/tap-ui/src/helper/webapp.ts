@@ -24,6 +24,18 @@ export function initApp(options: InitAppOptions = {}) {
             /* Android 禁用手势 */
             overscroll-behavior: contain;
           }
+          html {
+            height: 100%;
+          }
+          body {
+            position: relative;
+            height: min(100%, 100% - var(--keyboard-height, 0px) + var(--safe-area-inset-bottom, 0px));
+          }
+          @supports (-webkit-touch-callout: none) {
+            body {
+              transition: height 0.25s cubic-bezier(0.2, 0, 0, 1);
+            }
+          }
         </style>
       </tap-reflect>
     `,
