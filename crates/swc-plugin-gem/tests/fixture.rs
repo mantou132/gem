@@ -59,7 +59,7 @@ fn fixture_memo(input: PathBuf) {
     );
 }
 
-#[fixture("tests/fixture/minify/input.ts")]
+#[fixture("tests/fixture/minify/**/input.ts")]
 fn fixture_minify(input: PathBuf) {
     let output = input.parent().unwrap().join("output.ts");
 
