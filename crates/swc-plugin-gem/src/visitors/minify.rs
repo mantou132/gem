@@ -2,17 +2,35 @@ use once_cell::sync::Lazy;
 use regex::Regex;
 use swc_common::DUMMY_SP;
 use swc_core::ecma::visit::{noop_visit_mut_type, VisitMut, VisitMutWith};
-use swc_ecma_ast::{Callee, KeyValueProp, TaggedTpl, Tpl, TplElement};
+use swc_ecma_ast::{CallExpr, Callee, Prop, PropOrSpread, TaggedTpl, Tpl, TplElement};
 
 fn should_keep_expr_boundary_space(ch: char) -> bool {
-    ch.is_ascii_alphanumeric() || ch == '-' || ch == '_' || ch == '%' || ch == ')'
+    ch.is_alphanumeric()
+        || matches!(
+            ch,
+            '+' | '-'
+                | '_'
+                | '%'
+                | ')'
+                | '('
+                | ':'
+                | ']'
+                | '['
+                | '.'
+                | '#'
+                | '&'
+                | '*'
+                | '\''
+                | '"'
+                | '\\'
+        )
 }
 
 fn should_insert_css_space(prev: char, next: char) -> bool {
     if matches!(prev, '{' | '}' | ':' | ';' | ',' | '(') {
         return false;
     }
-    if matches!(next, '{' | '}' | ':' | ';' | ',' | ')') {
+    if matches!(next, '{' | '}' | ';' | ',' | ')') {
         return false;
     }
     true
@@ -58,8 +76,7 @@ fn minify_css_quasi(raw: &str, mut state: CssQuasiState) -> (String, CssQuasiSta
                 state.escaped = false;
             } else if ch == '\\' {
                 state.escaped = true;
-            } else if (state.in_single_quote && ch == '\'')
-                || (state.in_double_quote && ch == '"')
+            } else if (state.in_single_quote && ch == '\'') || (state.in_double_quote && ch == '"')
             {
                 state.in_single_quote = false;
                 state.in_double_quote = false;
@@ -138,6 +155,21 @@ fn minify_css_style_tpl(tpl: &Tpl) -> Tpl {
             let state_at_start = state;
             let (mut removed_space, state_at_end) = minify_css_quasi(raw, state);
             state = state_at_end;
+
+            // Whitespace between two expressions can separate CSS tokens.
+            if idx > 0
+                && idx < last_quasi_idx
+                && !raw.is_empty()
+                && raw.chars().all(char::is_whitespace)
+                && !state.in_string()
+            {
+                return TplElement {
+                    span: DUMMY_SP,
+                    tail: quasi.tail,
+                    cooked: None,
+                    raw: " ".into(),
+                };
+            }
 
             if !state_at_start.in_string() {
                 let keep_head_space = idx > 0
@@ -231,19 +263,29 @@ impl VisitMut for TransformVisitor {
         }
     }
 
-    fn visit_mut_callee(&mut self, node: &mut Callee) {
-        if let Callee::Expr(expr) = &node {
+    fn visit_mut_call_expr(&mut self, node: &mut CallExpr) {
+        node.visit_mut_children_with(self);
+
+        if let Callee::Expr(expr) = &node.callee {
             if let Some(ident) = expr.as_ident() {
-                if ident.sym.as_str() == "css" {
-                    node.visit_mut_children_with(self);
+                if matches!(ident.sym.as_str(), "css" | "styleMap") {
+                    if let Some(object) = node
+                        .args
+                        .first_mut()
+                        .and_then(|arg| arg.expr.as_mut_object())
+                    {
+                        for prop in &mut object.props {
+                            if let PropOrSpread::Prop(prop) = prop {
+                                if let Prop::KeyValue(prop) = &mut **prop {
+                                    if let Some(tpl) = prop.value.as_tpl() {
+                                        prop.value = minify_css_style_tpl(tpl).into();
+                                    }
+                                }
+                            }
+                        }
+                    }
                 }
             }
-        }
-    }
-
-    fn visit_mut_key_value_prop(&mut self, node: &mut KeyValueProp) {
-        if let Some(tpl) = node.value.as_tpl() {
-            node.value = minify_css_style_tpl(tpl).into();
         }
     }
 }
