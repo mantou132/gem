@@ -6,7 +6,7 @@ use swc_ecma_ast::{TaggedTpl, Tpl, TplElement};
 
 static COMMENT_REG: Lazy<Regex> = Lazy::new(|| {
     Regex::new(
-        r#"&((?:[^\s{\(\["']+|\([^()]*\)|\[[^\]]*\]|"[^"]*"|'[^']*')+)"#,
+        r#"&((?:[^\s,{\(\["']+|\([^()]*\)|\[[^\]]*\]|"[^"]*"|'[^']*')+)"#,
     )
     .unwrap()
 });

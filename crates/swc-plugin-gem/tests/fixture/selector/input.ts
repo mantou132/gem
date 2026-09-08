@@ -3,6 +3,12 @@ const style = css`
   &{
     color: red;
   }
+  &, & code, & gem-book-pre {
+    background: red;
+  }
+  &.note, &.tip {
+    color: blue;
+  }
   &.active {
     color: green;
   }

@@ -134,7 +134,7 @@ export const blockquoteStyle = css`
     }
     & > .title {
       font-weight: bold;
-      color: rgb(var(--highlight));
+      color: var(--highlight);
     }
     & > p {
       margin: 0.5em 0 0;
