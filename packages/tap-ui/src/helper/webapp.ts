@@ -44,6 +44,7 @@ export function initApp(options: InitAppOptions = {}) {
   if (options.template) {
     Stack.push({
       gesture: false,
+      history: false,
       animated: false,
       content: options.template,
     });

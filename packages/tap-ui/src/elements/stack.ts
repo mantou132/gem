@@ -17,6 +17,8 @@ export type StackPushOptions = {
   animated?: boolean;
   /**Enable swipe-to-close; default `true` */
   gesture?: boolean;
+  /**Push into history stack; default `true` */
+  history?: boolean;
   canLeave?: () => boolean;
 };
 
@@ -84,8 +86,9 @@ export class TapStackElement extends GemElement {
 
   static close() {
     if (!TapStackElement.instance) return;
+    const top = stackStore.pages.at(-1);
     TapStackElement.instance.#pop();
-    if (history.store.$hasCloseHandle) {
+    if (top?.history !== false && history.store.$hasCloseHandle) {
       history.back();
     }
   }
@@ -120,7 +123,7 @@ export class TapStackElement extends GemElement {
   };
 
   #push = (options: StackPushOptions) => {
-    if (options.gesture !== false) {
+    if (options.history !== false) {
       history.push({
         close: () => this.#pop(options),
         shouldClose: options.canLeave,
@@ -177,7 +180,7 @@ export class TapStackElement extends GemElement {
   };
 
   #onPageSwipe = (page: StackPushOptions, evt: CustomEvent<SwipeEventDetail>) => {
-    if (page !== stackStore.pages.at(-1)) return;
+    if (page !== stackStore.pages.at(-1) || page.gesture === false || this.#busy) return;
     if (evt.detail.direction === 'right' && evt.detail.speed > 0.5) {
       this.#closeSpeed = evt.detail.speed;
     }
@@ -187,7 +190,7 @@ export class TapStackElement extends GemElement {
     const offset = stackStore.offset;
     const speed = this.#closeSpeed;
     this.#closeSpeed = 0;
-    if (page !== stackStore.pages.at(-1)) return;
+    if (page !== stackStore.pages.at(-1) || page.gesture === false || this.#busy) return;
 
     if (page.canLeave && !page.canLeave()) {
       await this.#animateOffset(offset, 0, { duration: this.#duration(offset, el.offsetWidth) });
@@ -202,7 +205,7 @@ export class TapStackElement extends GemElement {
       });
       stackStore({ pages: stackStore.pages.slice(0, -1), offset: 0 });
       this.#busy = false;
-      if (history.store.$hasCloseHandle) history.back();
+      if (page.history !== false && history.store.$hasCloseHandle) history.back();
       return;
     }
     await this.#animateOffset(offset, 0, { duration: this.#duration(offset, width) });
