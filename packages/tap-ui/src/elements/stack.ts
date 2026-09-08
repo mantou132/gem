@@ -97,6 +97,16 @@ export class TapStackElement extends GemElement {
     return !closestElement(ele, `.${stackStyle.page}.${stackStyle.covered}`);
   }
 
+  /**
+   * Topmost page container, e.g. `Sheet.open` renders here so later `Stack.push`
+   * naturally covers the sheet, and the page wrapper `inert` disables it while covered
+   */
+  static get topContainer() {
+    const stack = TapStackElement.instance;
+    if (!stack?.isConnected || !stackStore.pages.length) return;
+    return stack.#pageRef.value;
+  }
+
   #pageRef = createRef<HTMLElement>();
   #busy = false;
   #closeSpeed = 0;

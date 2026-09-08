@@ -21,6 +21,7 @@ import { clamp } from '../lib/number';
 import { theme } from '../lib/theme';
 import { DyPromise } from '../lib/utils';
 import type { PanEventDetail, SwipeEventDetail } from './gesture';
+import { Stack } from './stack';
 
 import './gesture';
 import './pull-container';
@@ -137,8 +138,10 @@ export class TapSheetElement extends GemElement {
   /** Opens a sheet; settles when dismissed (mask / gesture / CloseWatcher). */
   static open(options: SheetOptions = {}) {
     const sheet = new this({ ...options, open: true });
-    const restoreInert = setBodyInert(sheet);
-    document.body.append(sheet);
+    // Inside a stack page, wrapper `inert` already handles focus; restore only inits body children
+    const inStack = !!Stack.topContainer;
+    const restoreInert = inStack ? () => {} : setBodyInert(sheet);
+    (Stack.topContainer ?? document.body).append(sheet);
     return DyPromise.new<void, { sheet: TapSheetElement }>(
       (res) => {
         sheet.addEventListener('close', () => res());
