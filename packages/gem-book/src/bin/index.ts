@@ -82,9 +82,9 @@ async function syncConfig(fullPath?: string) {
       const cliConfigValue = cliConfig[key];
 
       if (Array.isArray(cliConfigValue)) {
-        Object.assign(cliConfig, { [key]: [...new Set([...cliConfigValue, ...(value as any[])])] });
+        (cliConfig as any)[key] = [...new Set([...cliConfigValue, ...(value as any[])])];
       } else if (!cliConfigValue) {
-        Object.assign(cliConfig, { [key]: value });
+        (cliConfig as any)[key] = value;
       }
     }
   });
@@ -283,7 +283,7 @@ async function generateBookConfig(dir: string) {
 const updateBookConfig = debounce(async (dir: string) => {
   await generateBookConfig(dir);
   devServerEventTarget.dispatchEvent(
-    Object.assign(new Event(UPDATE_EVENT), {
+    new CustomEvent(UPDATE_EVENT, {
       detail: { config: bookConfig },
     }),
   );
@@ -360,7 +360,7 @@ const handleAction = async (dir = DEFAULT_DOCS_DIR) => {
 
       if (!isDirConfigFile(filePath) && !isMdFile(filePath)) {
         devServerEventTarget.dispatchEvent(
-          Object.assign(new Event(UPDATE_EVENT), {
+          new CustomEvent(UPDATE_EVENT, {
             detail: { reload: true },
           }),
         );
@@ -373,7 +373,7 @@ const handleAction = async (dir = DEFAULT_DOCS_DIR) => {
 
       const { content, metadataChanged } = getLatestMdFile(fullPath, bookConfig.displayRank);
       devServerEventTarget.dispatchEvent(
-        Object.assign(new Event(UPDATE_EVENT), {
+        new CustomEvent(UPDATE_EVENT, {
           detail: { filePath: filePath.replaceAll('\\', '/'), content },
         }),
       );

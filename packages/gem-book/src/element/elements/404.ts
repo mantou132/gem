@@ -1,14 +1,8 @@
-import { adoptedStyle, aria, css, customElement, GemElement, html, template } from '@mantou/gem';
-
 import { getUserLink } from '../../common/utils';
 import { getPlatform, selfI18n } from '../helper/i18n';
 import { getGithubPath, isGitLab } from '../lib/utils';
 import { bookStore, locationStore } from '../store';
 import { icons } from './icons';
-
-import '@mantou/gem/elements/reflect';
-import '@mantou/gem/elements/title';
-import '@mantou/gem/elements/use';
 
 const styles = css`
   :scope {

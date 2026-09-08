@@ -1,4 +1,4 @@
-import { renameSync, symlinkSync, writeFileSync } from 'node:fs';
+import { readFileSync, renameSync, symlinkSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 
 import { GenerateSW } from '@aaroon/workbox-rspack-plugin';
@@ -59,6 +59,10 @@ export async function buildApp(
   const docSearchPlugin = plugins.find((e) => e.name === 'docsearch')?.url;
   const isLocalSearch = docSearchPlugin && new URL(docSearchPlugin).searchParams.has('local');
 
+  const { default: unpluginGem } = await import('unplugin-gem/rspack');
+  const swcrc = JSON.parse(readFileSync(path.resolve(__dirname, '../.swcrc'), 'utf-8'));
+  const swcPluginConfig = swcrc.jsc.experimental.plugins.find(([name]: [string]) => name === 'swc-plugin-gem')[1];
+
   const compiler = rspack({
     stats: build ? 'normal' : 'errors-warnings',
     mode: build ? 'production' : 'development',
@@ -91,33 +95,13 @@ export async function buildApp(
             },
           },
         },
-        {
-          test: /\.ts$/,
-          use: [
-            {
-              loader: 'builtin:swc-loader',
-              options: {
-                jsc: {
-                  externalHelpers: true,
-                  parser: {
-                    syntax: 'typescript',
-                    decorators: true,
-                  },
-                  transform: {
-                    decoratorVersion: '2023-11',
-                  },
-                  target: 'es2024',
-                },
-              },
-            },
-          ],
-        },
       ].filter((e) => !!e),
     },
     resolve: {
       extensions: ['.ts', '.js'],
       alias: {
         '@swc/helpers': path.dirname(require.resolve('@swc/helpers/package.json')),
+        'gem-book': path.resolve(__dirname, process.env.GEM_BOOK_DEV ? '../src' : '..'),
       },
     },
     output: {
@@ -133,11 +117,16 @@ export async function buildApp(
     },
     devtool: debug && 'source-map',
     plugins: [
+      unpluginGem({
+        ...swcPluginConfig,
+        autoImportDts: false,
+        exclude: [/[\\/]node_modules[\\/]/, /\.js$/],
+      }),
       new HtmlRspackPlugin({
         title: bookConfig.title || 'GemBook App',
         template: template ? path.resolve(process.cwd(), template) : undefined,
         // Automatically copied to the output directory
-        favicon: !isRemoteIcon ? icon : undefined,
+        favicon: !isRemoteIcon && icon ? icon : undefined,
         meta: {
           viewport: 'width=device-width, initial-scale=1, shrink-to-fit=no',
         },

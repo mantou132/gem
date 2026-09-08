@@ -33,16 +33,75 @@ struct RegexStringPair {
     path: String,
 }
 
+fn is_match(target: &str, pattern: &str) -> bool {
+    let normalized_target = target.replace('\\', "/");
+    let normalized_pattern = pattern.replace('\\', "/");
+
+    if normalized_target == normalized_pattern {
+        return true;
+    }
+
+    if normalized_target.ends_with(&format!("/{normalized_pattern}")) {
+        return true;
+    }
+
+    if normalized_pattern.contains('*') || normalized_pattern.contains('?') {
+        let glob_regex = format!(
+            "^{}$",
+            regex::escape(&normalized_pattern)
+                .replace(r"\*", ".*")
+                .replace(r"\?", ".")
+        );
+        if let Ok(re) = Regex::new(&glob_regex) {
+            if re.is_match(&normalized_target) {
+                return true;
+            }
+            if let Some(file_name) = normalized_target.rsplit('/').next() {
+                if re.is_match(file_name) {
+                    return true;
+                }
+            }
+        }
+    }
+
+    if normalized_pattern
+        .chars()
+        .any(|c| "^$()[]{}+|\\".contains(c))
+    {
+        if let Ok(re) = Regex::new(&normalized_pattern) {
+            if re.is_match(&normalized_target) {
+                return true;
+            }
+        }
+    }
+
+    false
+}
+
+fn is_file_excluded(filename: Option<&str>, patterns: &[String]) -> bool {
+    if let Some(file) = filename {
+        for pattern in patterns {
+            if is_match(file, pattern) {
+                return true;
+            }
+        }
+    }
+    false
+}
+
 #[derive(Deserialize, Serialize, Default)]
 struct AutoImportConfig {
     /// local -> (imported, package name)
     member_map: HashMap<String, (Option<Atom>, String)>,
     tag_config: Vec<RegexStringPair>,
+    exclude_member_files: Vec<String>,
+    exclude_element_files: Vec<String>,
 }
 
 #[derive(Default)]
 struct TransformVisitor {
     config: AutoImportConfig,
+    filename: Option<String>,
     used_members: IndexSet<Id>,
     defined_members: IndexSet<Id>,
     used_elements: IndexSet<String>,
@@ -194,55 +253,64 @@ impl VisitMut for TransformVisitor {
         let mut available_import: IndexMap<String, IndexMap<&Atom, Option<&Atom>>> =
             IndexMap::new();
 
-        for id in &self.used_members {
-            if !self.defined_members.contains(id) {
-                let res = self.config.member_map.get(id.0.as_str());
-                if let Some((imported, pkg)) = res {
-                    let set = available_import.entry(pkg.into()).or_default();
-                    set.insert(&id.0, imported.as_ref());
+        let is_file_members_excluded =
+            is_file_excluded(self.filename.as_deref(), &self.config.exclude_member_files);
+        let is_file_elements_excluded =
+            is_file_excluded(self.filename.as_deref(), &self.config.exclude_element_files);
+
+        if !is_file_members_excluded {
+            for id in &self.used_members {
+                if !self.defined_members.contains(id) {
+                    let res = self.config.member_map.get(id.0.as_str());
+                    if let Some((imported, pkg)) = res {
+                        let set = available_import.entry(pkg.into()).or_default();
+                        set.insert(&id.0, imported.as_ref());
+                    }
                 }
             }
-        }
 
-        for (pkg, set) in available_import {
-            let mut specifiers: Vec<ImportSpecifier> = vec![];
-            for (member_as, member) in set {
-                specifiers.push(ImportSpecifier::Named(ImportNamedSpecifier {
-                    // Use empty syntax context so imports survive decorator downlevel
-                    // transforms that rebind identifiers with a different ctxt (2023-11).
-                    local: Ident::new(member_as.clone(), DUMMY_SP, SyntaxContext::empty()),
-                    span: DUMMY_SP,
-                    imported: member.map(|x| ModuleExportName::Ident(x.clone().into())),
-                    is_type_only: false,
-                }));
-            }
-            out.push(ImportDecl {
-                specifiers,
-                // 也许可以支持替换：'@mantou/gem/{:pascal:}' + ColorPicker ->
-                // '@mantou/gem/ColorPicker'
-                src: Box::new(Str::from(pkg)),
-                span: DUMMY_SP,
-                type_only: false,
-                with: None,
-                phase: Default::default(),
-            });
-        }
-
-        for tag in &self.used_elements {
-            if self.defined_elements.contains(tag) {
-                continue;
-            }
-            for RegexStringPair { regex, path } in &self.config.tag_config {
-                if regex.is_match(tag) {
-                    out.push(ImportDecl {
-                        specifiers: vec![],
-                        src: Box::new(Str::from(regex.replace(tag, path))),
+            for (pkg, set) in available_import {
+                let mut specifiers: Vec<ImportSpecifier> = vec![];
+                for (member_as, member) in set {
+                    specifiers.push(ImportSpecifier::Named(ImportNamedSpecifier {
+                        // Use empty syntax context so imports survive decorator downlevel
+                        // transforms that rebind identifiers with a different ctxt (2023-11).
+                        local: Ident::new(member_as.clone(), DUMMY_SP, SyntaxContext::empty()),
                         span: DUMMY_SP,
-                        type_only: false,
-                        with: None,
-                        phase: Default::default(),
-                    });
-                    break;
+                        imported: member.map(|x| ModuleExportName::Ident(x.clone().into())),
+                        is_type_only: false,
+                    }));
+                }
+                out.push(ImportDecl {
+                    specifiers,
+                    // 也许可以支持替换：'@mantou/gem/{:pascal:}' + ColorPicker ->
+                    // '@mantou/gem/ColorPicker'
+                    src: Box::new(Str::from(pkg)),
+                    span: DUMMY_SP,
+                    type_only: false,
+                    with: None,
+                    phase: Default::default(),
+                });
+            }
+        }
+
+        if !is_file_elements_excluded {
+            for tag in &self.used_elements {
+                if self.defined_elements.contains(tag) {
+                    continue;
+                }
+                for RegexStringPair { regex, path } in &self.config.tag_config {
+                    if regex.is_match(tag) {
+                        out.push(ImportDecl {
+                            specifiers: vec![],
+                            src: Box::new(Str::from(regex.replace(tag, path))),
+                            span: DUMMY_SP,
+                            type_only: false,
+                            with: None,
+                            phase: Default::default(),
+                        });
+                        break;
+                    }
                 }
             }
         }
@@ -260,9 +328,14 @@ impl VisitMut for TransformVisitor {
     }
 }
 
-pub fn import_transform(auto_import: AutoImport, gen_dts: AutoImportDts) -> impl VisitMut {
+pub fn import_transform(
+    auto_import: AutoImport,
+    gen_dts: AutoImportDts,
+    filename: Option<String>,
+) -> impl VisitMut {
     let visitor = TransformVisitor {
         config: get_config(auto_import),
+        filename,
         ..Default::default()
     };
 
@@ -277,6 +350,8 @@ pub struct AutoImportContent {
     pub extends: Option<String>,
     pub members: Option<HashMap<String, Vec<MemberOrMemberAs>>>,
     pub elements: Option<IndexMap<String, IndexMap<String, String>>>,
+    pub exclude_member_files: Option<Vec<String>>,
+    pub exclude_element_files: Option<Vec<String>>,
 }
 
 #[derive(Deserialize, Debug, Clone, PartialEq)]
@@ -343,15 +418,25 @@ fn get_config_content(config: AutoImport) -> AutoImportContent {
 
             let mut elements = IndexMap::default();
             let mut members = HashMap::default();
+            let mut exclude_member_files = Vec::new();
+            let mut exclude_element_files = Vec::new();
             for lv in chain {
                 elements.extend(lv.elements.unwrap_or_default());
                 members.extend(lv.members.unwrap_or_default());
+                if let Some(em) = lv.exclude_member_files {
+                    exclude_member_files.extend(em);
+                }
+                if let Some(ee) = lv.exclude_element_files {
+                    exclude_element_files.extend(ee);
+                }
             }
 
             AutoImportContent {
                 extends: None,
                 elements: Some(elements),
                 members: Some(members),
+                exclude_member_files: Some(exclude_member_files),
+                exclude_element_files: Some(exclude_element_files),
             }
         }
     }
@@ -398,9 +483,14 @@ fn get_config(auto_import: AutoImport) -> AutoImportConfig {
         }
     }
 
+    let exclude_member_files = content.exclude_member_files.unwrap_or_default();
+    let exclude_element_files = content.exclude_element_files.unwrap_or_default();
+
     AutoImportConfig {
         member_map,
         tag_config,
+        exclude_member_files,
+        exclude_element_files,
     }
 }
 
@@ -420,7 +510,7 @@ mod tests {
                     .unwrap()
                     .keys()
             ),
-            r#"["dy-pat-*", "dy-light-route", "dy-active-link", "dy-(input|form|avatar|radio|checkbox|collapse|tab)-*", "dy-*"]"#
+            r#"["dy-pat-*", "dy-light-route", "dy-active-link", "dy-tab-panel", "dy-sort-(item|handle)", "dy-(input|form|avatar|radio|checkbox|collapse|more|popover|tree|selection-box)-*", "dy-*"]"#
         )
     }
 
@@ -438,8 +528,29 @@ mod tests {
                 .unwrap()
                 .keys()
             ),
-            r#"["dy-pat-*", "dy-light-route", "dy-active-link", "dy-(input|form|avatar|radio|checkbox|collapse|tab)-*", "dy-*"]"#
+            r#"["dy-pat-*", "dy-light-route", "dy-active-link", "dy-tab-panel", "dy-sort-(item|handle)", "dy-(input|form|avatar|radio|checkbox|collapse|more|popover|tree|selection-box)-*", "dy-*"]"#
         )
+    }
+
+    #[test]
+    fn should_match_elements_sharing_a_module() {
+        let config = get_config(AutoImport::Gem(true));
+        for (tag, path) in [
+            ("dy-selection-box-mask", "duoyun-ui/elements/selection-box"),
+            ("dy-sort-item", "duoyun-ui/elements/sort-box"),
+            ("dy-sort-handle", "duoyun-ui/elements/sort-box"),
+            ("dy-more-slot", "duoyun-ui/elements/more"),
+            ("dy-popover-ghost", "duoyun-ui/elements/popover"),
+            ("dy-tree-item", "duoyun-ui/elements/tree"),
+            ("dy-tab-panel", "duoyun-ui/elements/tabs"),
+        ] {
+            let pair = config
+                .tag_config
+                .iter()
+                .find(|pair| pair.regex.is_match(tag))
+                .unwrap();
+            assert_eq!(pair.regex.replace(tag, &pair.path), path);
+        }
     }
 
     #[test]
@@ -465,5 +576,36 @@ mod tests {
             tag_pair.regex.replace("deck-xxx", &tag_pair.path),
             "deck/elements/xxx"
         );
+    }
+
+    #[test]
+    fn should_support_exclude_members_and_elements() {
+        let content: AutoImportContent = serde_json::from_str(
+            r#"{
+            "extends": "gem",
+            "excludeMemberFiles": ["store.ts"],
+            "excludeElementFiles": ["store.ts"]
+        }"#,
+        )
+        .unwrap();
+
+        assert_eq!(
+            content.exclude_member_files,
+            Some(vec!["store.ts".to_string()])
+        );
+        assert_eq!(
+            content.exclude_element_files,
+            Some(vec!["store.ts".to_string()])
+        );
+
+        let config = get_config(AutoImport::CustomContent(content));
+        assert!(is_file_excluded(
+            Some("/path/to/store.ts"),
+            &config.exclude_element_files
+        ));
+        assert!(!is_file_excluded(
+            Some("/path/to/main.ts"),
+            &config.exclude_element_files
+        ));
     }
 }

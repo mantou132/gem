@@ -34,9 +34,10 @@ fn fixture_auto_import(input: PathBuf) {
                         .into_iter()
                         .collect(),
                     ),
-                    elements: None,
+                    ..Default::default()
                 }),
                 AutoImportDts::Src(false),
+                None,
             ))
         },
         &input,

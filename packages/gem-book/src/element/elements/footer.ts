@@ -1,11 +1,7 @@
-import { adoptedStyle, aria, connectStore, css, customElement, GemElement, html, template } from '@mantou/gem';
-
 import { selfI18n } from '../helper/i18n';
 import { theme } from '../helper/theme';
 import { unsafeRenderHTML } from '../lib/renderer';
 import { bookStore } from '../store';
-
-import '@mantou/gem/elements/link';
 
 const styles = css`
   :scope {

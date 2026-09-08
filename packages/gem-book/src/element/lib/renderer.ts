@@ -7,8 +7,6 @@ import { theme } from '../helper/theme';
 import { bookStore } from '../store';
 import { escapeHTML, isSameOrigin, joinPath, textContent } from './utils';
 
-import '@mantou/gem/elements/unsafe';
-
 function getRenderOption() {
   return {
     lang: bookStore.lang || '',

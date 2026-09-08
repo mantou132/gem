@@ -1,23 +1,5 @@
 import type { Emitter } from '@mantou/gem';
-import {
-  adoptedStyle,
-  attribute,
-  boolattribute,
-  connectStore,
-  createRef,
-  css,
-  customElement,
-  effect,
-  GemElement,
-  globalemitter,
-  html,
-  kebabToCamelCase,
-  part,
-  property,
-  slot,
-  state,
-  willMount,
-} from '@mantou/gem';
+import { kebabToCamelCase } from '@mantou/gem';
 import type { GemLightRouteElement } from '@mantou/gem/elements/route';
 import { matchPath } from '@mantou/gem/elements/route';
 import { logger } from '@mantou/gem/helper/logger';
@@ -32,16 +14,6 @@ import type { Theme } from './helper/theme';
 import { changeTheme, theme, themeProps } from './helper/theme';
 import { checkBuiltInPlugin, joinPath } from './lib/utils';
 import { bookStore, locationStore, updateBookConfig } from './store';
-
-import '@mantou/gem/elements/reflect';
-import './elements/edit-link';
-import './elements/footer';
-import './elements/homepage';
-import './elements/meta';
-import './elements/nav';
-import './elements/rel-link';
-import './elements/sidebar';
-import './elements/toc';
 
 const styles = css`
   :scope {

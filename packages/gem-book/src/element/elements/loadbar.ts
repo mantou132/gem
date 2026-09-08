@@ -1,4 +1,3 @@
-import { adoptedStyle, aria, createState, css, customElement, GemElement, html, mounted, shadow } from '@mantou/gem';
 import { createDecoratorTheme } from '@mantou/gem/helper/theme';
 
 import { theme } from '../helper/theme';

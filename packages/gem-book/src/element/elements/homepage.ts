@@ -1,4 +1,3 @@
-import { adoptedStyle, connectStore, css, customElement, GemElement, html, template } from '@mantou/gem';
 import { mediaQuery } from '@mantou/gem/helper/mediaquery';
 
 import { getUserLink } from '../../common/utils';
@@ -9,9 +8,6 @@ import type { NavItemWithLink } from '../lib/utils';
 import { joinPath } from '../lib/utils';
 import { bookStore } from '../store';
 import { icons } from './icons';
-
-import '@mantou/gem/elements/link';
-import '@mantou/gem/elements/use';
 
 const styles = css`
   :scope {

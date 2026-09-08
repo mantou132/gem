@@ -1,0 +1,38 @@
+{
+  "$schema": "https://swc.rs/schema.json",
+  "jsc": {
+    "target": "es2024",
+    "parser": {
+      "syntax": "typescript",
+      "decorators": true
+    },
+    "transform": {
+      "decoratorVersion": "2023-11"
+    },
+    "externalHelpers": true,
+    "experimental": {
+      "runPluginFirst": true,
+      "plugins": [
+        [
+          "swc-plugin-gem",
+          {
+            "autoImport": {
+              "extends": "gem",
+              "elements": {
+                "gem-book": {
+                  "gem-book-*": "/element/elements/*"
+                }
+              },
+              "excludeElementFiles": ["store.ts"]
+            },
+            "autoImportDts": "src/auto-import.d.ts",
+            "styleMinify": true,
+            "selectorCompatible": true,
+            "preload": true,
+            "resolvePath": true
+          }
+        ]
+      ]
+    }
+  }
+}

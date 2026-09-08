@@ -1,18 +1,3 @@
-import {
-  adoptedStyle,
-  attribute,
-  boolattribute,
-  createRef,
-  css,
-  customElement,
-  effect,
-  GemElement,
-  html,
-  memo,
-  mounted,
-  shadow,
-  styleMap,
-} from '@mantou/gem';
 import { mediaQuery } from '@mantou/gem/helper/mediaquery';
 
 import { debounce } from '../../common/utils';

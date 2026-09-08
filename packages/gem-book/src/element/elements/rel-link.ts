@@ -1,22 +1,9 @@
-import {
-  adoptedStyle,
-  aria,
-  connectStore,
-  css,
-  customElement,
-  GemElement,
-  html,
-  property,
-  template,
-} from '@mantou/gem';
 import { mediaQuery } from '@mantou/gem/helper/mediaquery';
 
 import type { NavItem } from '../../common/config';
 import { theme } from '../helper/theme';
 import { capitalize } from '../lib/utils';
 import { bookStore } from '../store';
-
-import '@mantou/gem/elements/link';
 
 const styles = css`
   :scope:where(:not([hidden])) {

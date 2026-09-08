@@ -1,11 +1,6 @@
-import { aria, connectStore, customElement, GemElement, html, template } from '@mantou/gem';
-
 import { themeStore } from '../helper/theme';
 import { joinPath } from '../lib/utils';
 import { bookStore, locationStore } from '../store';
-
-import '@mantou/gem/elements/title';
-import '@mantou/gem/elements/reflect';
 
 function getAlternateUrl(lang: string, pathname?: string) {
   const { origin } = location;

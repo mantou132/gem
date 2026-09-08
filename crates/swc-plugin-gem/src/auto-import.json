@@ -59,7 +59,9 @@
       "dy-pat-*": "/patterns/*",
       "dy-light-route": "/elements/route",
       "dy-active-link": "/elements/link",
-      "dy-(input|form|avatar|radio|checkbox|collapse|tab)-*": "/elements/$1",
+      "dy-tab-panel": "/elements/tabs",
+      "dy-sort-(item|handle)": "/elements/sort-box",
+      "dy-(input|form|avatar|radio|checkbox|collapse|more|popover|tree|selection-box)-*": "/elements/$1",
       "dy-*": "/elements/*"
     },
     "@mantou/tap-ui": {

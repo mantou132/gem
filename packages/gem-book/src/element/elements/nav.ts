@@ -1,20 +1,4 @@
-import {
-  adoptedStyle,
-  aria,
-  boolattribute,
-  classMap,
-  connectStore,
-  createRef,
-  css,
-  customElement,
-  effect,
-  GemElement,
-  globalemitter,
-  history,
-  html,
-  state,
-  template,
-} from '@mantou/gem';
+import { history } from '@mantou/gem';
 import { mediaQuery } from '@mantou/gem/helper/mediaquery';
 
 import type { NavItem } from '../../common/config';
@@ -23,10 +7,6 @@ import { capitalize, isGitLab, isSameOrigin } from '../lib/utils';
 import { bookStore, updateBookConfig } from '../store';
 import { icons } from './icons';
 import { sidebarStore } from './sidebar';
-
-import '@mantou/gem/elements/link';
-import '@mantou/gem/elements/use';
-import './nav-logo';
 
 const styles = css`
   :scope {

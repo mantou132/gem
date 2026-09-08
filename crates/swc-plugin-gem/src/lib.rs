@@ -64,7 +64,7 @@ pub fn process_transform(mut program: Program, data: TransformPluginProgramMetad
                 AutoImport::Gem(enabled) => enabled,
                 AutoImport::CustomContent(_) => true,
             },
-            visitor: import_transform(config.auto_import, config.auto_import_dts),
+            visitor: import_transform(config.auto_import, config.auto_import_dts, filename.clone()),
         },
         Optional {
             enabled: config.selector_compatible,

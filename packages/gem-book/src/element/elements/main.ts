@@ -1,15 +1,3 @@
-import {
-  adoptedStyle,
-  aria,
-  connectStore,
-  css,
-  customElement,
-  effect,
-  GemElement,
-  html,
-  memo,
-  property,
-} from '@mantou/gem';
 import { mediaQuery } from '@mantou/gem/helper/mediaquery';
 
 import { getBody } from '../../common/utils';
@@ -19,8 +7,6 @@ import { checkBuiltInPlugin } from '../lib/utils';
 import { locationStore } from '../store';
 import { tocStore } from './toc';
 
-import '@mantou/gem/elements/link';
-import '@mantou/gem/elements/unsafe';
 import './pre';
 
 const style = css`

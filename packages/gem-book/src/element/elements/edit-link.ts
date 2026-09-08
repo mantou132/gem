@@ -1,16 +1,3 @@
-import {
-  adoptedStyle,
-  aria,
-  connectStore,
-  createState,
-  css,
-  customElement,
-  effect,
-  GemElement,
-  html,
-  memo,
-  template,
-} from '@mantou/gem';
 import { mediaQuery } from '@mantou/gem/helper/mediaquery';
 
 import { getPlatform, selfI18n } from '../helper/i18n';
@@ -18,9 +5,6 @@ import { theme } from '../helper/theme';
 import { getGithubPath, isGitLab } from '../lib/utils';
 import { bookStore, locationStore } from '../store';
 import { icons } from './icons';
-
-import '@mantou/gem/elements/link';
-import '@mantou/gem/elements/use';
 
 const styles = css`
   :scope {

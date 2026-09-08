@@ -1,22 +1,4 @@
-import {
-  adoptedStyle,
-  aria,
-  classMap,
-  connectStore,
-  createState,
-  createStore,
-  css,
-  customElement,
-  effect,
-  GemElement,
-  html,
-  template,
-  unmounted,
-} from '@mantou/gem';
-
 import { theme, themeStore } from '../helper/theme';
-
-import '@mantou/gem/elements/link';
 
 export const tocStore = createStore({
   elements: [] as HTMLHeadingElement[],

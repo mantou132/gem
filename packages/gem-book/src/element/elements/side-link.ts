@@ -1,4 +1,3 @@
-import { connectStore, customElement, effect, state } from '@mantou/gem';
 import { GemActiveLinkElement } from '@mantou/gem/elements/link';
 
 import { locationStore } from '../store';

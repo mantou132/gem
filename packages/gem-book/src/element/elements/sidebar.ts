@@ -1,20 +1,5 @@
 import type { TemplateResult } from '@mantou/gem';
-import {
-  addListener,
-  adoptedStyle,
-  aria,
-  classMap,
-  connect,
-  connectStore,
-  createStore,
-  css,
-  customElement,
-  effect,
-  GemElement,
-  html,
-  mounted,
-  state,
-} from '@mantou/gem';
+import { addListener, connect } from '@mantou/gem';
 import { mediaQuery } from '@mantou/gem/helper/mediaquery';
 
 import type { NavItem } from '../../common/config';
@@ -24,11 +9,6 @@ import { capitalize, isSameOrigin } from '../lib/utils';
 import { bookStore, locationStore } from '../store';
 import { icons } from './icons';
 import { tocStore } from './toc';
-
-import '@mantou/gem/elements/link';
-import '@mantou/gem/elements/use';
-import './side-link';
-import './nav-logo';
 
 export const sidebarStore = createStore({ open: false });
 

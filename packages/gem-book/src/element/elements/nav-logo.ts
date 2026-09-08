@@ -1,4 +1,3 @@
-import { adoptedStyle, connectStore, css, customElement, GemElement, html, template } from '@mantou/gem';
 import { mediaQuery } from '@mantou/gem/helper/mediaquery';
 
 import { GemBookElement } from '..';
