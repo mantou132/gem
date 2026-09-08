@@ -121,27 +121,6 @@ export class THomeElement extends GemElement {
     this.#state({ sheetResult: 'Dismissed (long)' });
   };
 
-  #openSheetPush = async () => {
-    await Sheet.open({
-      header: 'Push Page',
-      body: html`
-        <p style="margin-bottom: 0.75em; color: ${theme.describeColor};">
-          Pushing a stack page on top of this sheet; the page covers it, and closing restores the sheet.
-        </p>
-        <tap-button
-          @click=${() =>
-            Stack.push({
-              content: html`<t-detail></t-detail>`,
-            })}
-        >
-          Push Page
-        </tap-button>
-      `,
-      maskClosable: true,
-    });
-    this.#state({ sheetResult: 'Dismissed (push)' });
-  };
-
   #openSheetNestedScroll = async () => {
     await Sheet.open({
       header: 'Nested Scroll',
@@ -252,7 +231,6 @@ export class THomeElement extends GemElement {
         .items=${[
           { label: 'Open', description: 'Drag header or pull body', action: true, onClick: this.#openSheet },
           { label: 'Scrollable', description: 'Pull at top to close', action: true, onClick: this.#openSheetLong },
-          { label: 'Push page', description: 'Stack.push over the sheet', action: true, onClick: this.#openSheetPush },
           {
             label: 'Nested scroll',
             description: 'Scroll inner container first',
