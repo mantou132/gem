@@ -47,6 +47,26 @@ const style = css`
     background: ${theme.backgroundColor};
     color: ${theme.textColor};
   }
+  .progress {
+    position: absolute;
+    inset-block-start: 0;
+    inset-inline: 0;
+    z-index: 1;
+    height: 2px;
+    background: ${theme.primaryColor};
+    transform-origin: left;
+    pointer-events: none;
+
+    scale: 0 1;
+    transition: scale 300ms linear;
+    will-change: scale;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .progress {
+      transition: none;
+    }
+  }
   .header,
   .footer {
     overflow: hidden;
@@ -139,6 +159,7 @@ export class TapPageElement extends GemElement {
   @boolattribute floatheader: boolean;
   /**Enable pull-to-refresh on the main scroll area */
   @boolattribute refreshable: boolean;
+  @boolattribute loading: boolean;
 
   /**
    * Fired when pull exceeds the threshold.
@@ -154,6 +175,8 @@ export class TapPageElement extends GemElement {
     dragging: false,
     refreshing: false,
     rotate: 0,
+    progress: 0,
+    showProgress: false,
   });
   #mainRef = createRef<HTMLElement>();
   #headerSlotRef = createRef<HTMLSlotElement>();
@@ -251,6 +274,22 @@ export class TapPageElement extends GemElement {
     return addListener(el, 'scroll', onScroll, { passive: true });
   };
 
+  @effect((i) => [i.loading])
+  #watchLoading = () => {
+    if (this.loading) {
+      this.#state({ progress: 0, showProgress: true });
+      const timer = setInterval(() => {
+        const progress = this.#state.progress;
+        this.#state({ progress: progress + (95 - progress) * 0.1 });
+      }, 100);
+      return () => clearInterval(timer);
+    }
+    if (!this.#state.showProgress) return;
+    this.#state({ progress: 100 });
+    const timer = setTimeout(() => this.#state({ showProgress: false }), 300);
+    return () => clearTimeout(timer);
+  };
+
   @template()
   #content = () => {
     const { pull, dragging, refreshing, rotate } = this.#state;
@@ -280,6 +319,11 @@ export class TapPageElement extends GemElement {
             .element=${icons.refresh}
           ></tap-use>
         </div>
+        <div
+          v-if=${this.#state.showProgress}
+          class="progress"
+          style=${styleMap({ scale: `${this.#state.progress / 100} 1` })}
+        ></div>
         <slot></slot>
       </tap-pull-container>
       <div class="footer" part=${TapPageElement.footer}>

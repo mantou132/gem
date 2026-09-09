@@ -4,14 +4,17 @@ import {
   aria,
   attribute,
   customElement,
+  effect,
   emitter,
+  globalemitter,
   part,
   property,
   shadow,
   template,
   unmounted,
 } from '@mantou/gem/lib/decorators';
-import { css, GemElement, html } from '@mantou/gem/lib/element';
+import { createRef, createState, css, GemElement, html } from '@mantou/gem/lib/element';
+import { addListener } from '@mantou/gem/lib/utils';
 
 import { icons } from '../lib/icons';
 import { theme } from '../lib/theme';
@@ -34,6 +37,16 @@ export interface BrowserOptions<T = unknown> {
   actions?: BrowserItem<T>[];
   groups?: ActionSheetGroup<T>[];
   animated?: boolean;
+}
+
+/*need iframe inject js `parent.postMessage` */
+export interface MessageData {
+  type: 'next_state';
+  state: {
+    url: string;
+    title: string;
+    target: '' | '_blank';
+  };
 }
 
 const style = css`
@@ -89,6 +102,7 @@ export class TapBrowserElement<T = unknown> extends GemElement {
 
   @emitter close: Emitter<null>;
   @emitter select: Emitter<BrowserItem<T>>;
+  @globalemitter openExtraUri: Emitter<string>;
 
   static open<T = unknown>(options: BrowserOptions<T>) {
     const browser = new this<T>();
@@ -109,7 +123,9 @@ export class TapBrowserElement<T = unknown> extends GemElement {
     return result;
   }
 
+  #state = createState({ loading: false });
   #onClosed?: () => void;
+  #frameRef = createRef<HTMLIFrameElement>();
 
   get #items() {
     return this.items || this.actions;
@@ -134,6 +150,39 @@ export class TapBrowserElement<T = unknown> extends GemElement {
     }
   };
 
+  @effect((i) => [i.src])
+  #syncSrc = () => {
+    // Avoid entering the homepage history stack
+    this.#frameRef.value!.contentWindow!.location.replace(this.src);
+    this.#state({ loading: true });
+    const remove = addListener(this.#frameRef.value!, 'load', () => {
+      this.#state({ loading: false });
+    });
+    const remove1 = addListener(window, 'message', ({ data, source }: MessageEvent<MessageData>) => {
+      if (source !== this.#frameRef.value!.contentWindow) return;
+      if (data?.type === 'next_state' && data?.state) {
+        const url = new URL(data.state.url);
+        if (url.protocol !== 'http:' && url.protocol !== 'https:') {
+          this.openExtraUri(url.href);
+          return;
+        }
+        if (data.state.target === '_blank') {
+          Browser.open({
+            title: data.state.title,
+            src: url.href,
+          });
+        } else {
+          this.title = data.state.title;
+          this.src = url.href;
+        }
+      }
+    });
+    return () => {
+      remove();
+      remove1();
+    };
+  };
+
   @unmounted()
   #dispose = () => {
     this.#onClosed?.();
@@ -141,7 +190,7 @@ export class TapBrowserElement<T = unknown> extends GemElement {
 
   @template()
   #render = () => html`
-    <tap-page>
+    <tap-page loading=${this.#state.loading}>
       <tap-navbar
         slot="header"
         part=${TapBrowserElement.navbar}
@@ -161,7 +210,7 @@ export class TapBrowserElement<T = unknown> extends GemElement {
           <tap-use class="icon" .element=${icons.more}></tap-use>
         </button>
       </tap-navbar>
-      <iframe class="frame" part=${TapBrowserElement.frame} src=${this.src} allowfullscreen></iframe>
+      <iframe ${this.#frameRef} class="frame" part=${TapBrowserElement.frame} allowfullscreen></iframe>
     </tap-page>
   `;
 }
