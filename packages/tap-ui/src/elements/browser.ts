@@ -118,7 +118,7 @@ export class TapBrowserElement<T = unknown> extends GemElement {
   #onBack = () => {
     this.close(null);
     if (this.isConnected && Stack.inCurrentStack(this)) {
-      Stack.close();
+      Stack.pop();
     }
   };
 
