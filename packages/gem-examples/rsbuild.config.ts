@@ -69,6 +69,8 @@ export default defineConfig((config) => {
         },
         plugins: [
           unpluginGem({
+            styleMinify: true,
+            htmlMinify: true,
             include: path.resolve(__dirname, 'src'),
             autoImport: {
               extends: 'gem',

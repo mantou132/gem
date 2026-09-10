@@ -8,6 +8,7 @@ Supports **Vite**, **Webpack**, **Rollup**, **esbuild**, **Rspack** and **Rolldo
 
 - 🔄 **Auto Import** - Automatically import Gem APIs
 - 🎨 **CSS Minification** - Minify CSS in `css`` template literals
+- 📄 **HTML Minification** - Minify HTML in `html`/`svg`/`mathml`` template literals
 - 🔍 **Selector Compatible** - Transform `&:hover` for Shadow DOM compatibility
 - 📦 **Resource Preload** - Preload resources with `?preload` query
 - 🔥 **HMR Support** - Injects `@mantou/gem/helper/hmr` automatically (experimental)
@@ -37,6 +38,7 @@ export default {
       autoImport: true,
       selectorCompatible: true,
       styleMinify: true,
+      htmlMinify: true,
       hmr: true,
     }),
   ],

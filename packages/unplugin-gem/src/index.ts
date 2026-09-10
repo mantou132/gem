@@ -83,6 +83,7 @@ export const unpluginFactory: UnpluginFactory<UnpluginGemOptions | undefined> = 
                     swcPluginPath,
                     {
                       styleMinify: options.styleMinify ?? false,
+                      htmlMinify: options.htmlMinify ?? false,
                       autoImport: options.autoImport ?? false,
                       autoImportDts: options.autoImportDts ?? false,
                       resolvePath: options.resolvePath ?? false,

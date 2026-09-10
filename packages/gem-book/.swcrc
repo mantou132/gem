@@ -27,6 +27,7 @@
             },
             "autoImportDts": "src/auto-import.d.ts",
             "styleMinify": true,
+            "htmlMinify": true,
             "selectorCompatible": true,
             "preload": true,
             "resolvePath": true

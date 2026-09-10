@@ -10,12 +10,13 @@ use swc_core::{
 use swc_ecma_ast::Program;
 pub use visitors::{
     hmr::{hmr_transform, HmrConfig, HmrTarget},
+    html_minify::html_minify_transform,
     import::{import_transform, AutoImport, AutoImportContent, AutoImportDts, MemberOrMemberAs},
     memo::memo_transform,
-    minify::minify_transform,
     path::path_transform,
     preload::preload_transform,
     selector::selector_transform,
+    style_minify::style_minify_transform,
 };
 
 mod visitors;
@@ -23,7 +24,10 @@ mod visitors;
 #[derive(Deserialize, Debug, Clone, PartialEq, Default)]
 #[serde(default, rename_all = "camelCase")]
 struct PluginConfig {
+    /// Minify CSS in `css`/`styled` template literals
     pub style_minify: bool,
+    /// Minify HTML in `html`/`svg`/`mathml` template literals
+    pub html_minify: bool,
     /// e.g: https://github.com/mantou132/gem/blob/main/crates/swc-plugin-gem/README.md#example
     pub auto_import: AutoImport,
     /// Generate .d.ts file, use src/auto-import.d.ts when true
@@ -72,7 +76,11 @@ pub fn process_transform(mut program: Program, data: TransformPluginProgramMetad
         },
         Optional {
             enabled: config.style_minify,
-            visitor: minify_transform(),
+            visitor: style_minify_transform(),
+        },
+        Optional {
+            enabled: config.html_minify,
+            visitor: html_minify_transform(),
         },
         Optional {
             enabled: config.resolve_path,

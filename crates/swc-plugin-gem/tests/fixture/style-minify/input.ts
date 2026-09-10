@@ -55,19 +55,6 @@ const style9 = css`
     content: "a  b ${'x'} c  d";
   }
 `
-const template = html`
-  <div>
-    <!--
-      Line
-      测试
-    -->
-    content
-    <!--1211-->
-    <span>${'test'}</span>
-  </div>
-`
-const template2 = html`<span>a</span>   <span>b</span>`
-
 const highlightStyle = styleMap({
   top: `calc(${4} * ${'24px'} + ${'1em'})`,
   bottom: `calc(${9} * ${'24px'} - ${'1em'})`,

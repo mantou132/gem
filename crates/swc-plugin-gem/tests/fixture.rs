@@ -59,13 +59,26 @@ fn fixture_memo(input: PathBuf) {
     );
 }
 
-#[fixture("tests/fixture/minify/**/input.ts")]
-fn fixture_minify(input: PathBuf) {
+#[fixture("tests/fixture/style-minify/input.ts")]
+fn fixture_style_minify(input: PathBuf) {
     let output = input.parent().unwrap().join("output.ts");
 
     test_fixture(
         get_syntax(),
-        &|_| visit_mut_pass(minify_transform()),
+        &|_| visit_mut_pass(style_minify_transform()),
+        &input,
+        &output,
+        Default::default(),
+    );
+}
+
+#[fixture("tests/fixture/html-minify/input.ts")]
+fn fixture_html_minify(input: PathBuf) {
+    let output = input.parent().unwrap().join("output.ts");
+
+    test_fixture(
+        get_syntax(),
+        &|_| visit_mut_pass(html_minify_transform()),
         &input,
         &output,
         Default::default(),

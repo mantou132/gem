@@ -4,6 +4,7 @@
 - support [memo getter](https://github.com/tc39/proposal-decorators/issues/509#issuecomment-2226967170)
 - support [top `&:hover`](https://github.com/w3c/csswg-drafts/issues/11000#issuecomment-2943322835) in shadow dom (expect only using `&` in selectors)
 - support minify style
+- support minify html
 - resolve full path (for esm)
 - support module level resource preload
 - support hmr (experimental; `true` / `"webpack-hot"` emit `import.meta.webpackHot`. Use `unplugin-gem` to inject `@mantou/gem/helper/hmr` and select the matching target)
@@ -32,6 +33,7 @@
             "autoImportDts": true,
             "selectorCompatible": true,
             "styleMinify": true,
+            "htmlMinify": true,
             "preload": true,
             "resolvePath": true,
             "hmr": true

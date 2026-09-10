@@ -71,6 +71,12 @@ export interface UnpluginGemOptions {
   styleMinify?: boolean;
 
   /**
+   * Minify HTML in html`/svg`/mathml` template literals
+   * @default false
+   */
+  htmlMinify?: boolean;
+
+  /**
    * Auto import Gem APIs
    * @default false
    * @example
