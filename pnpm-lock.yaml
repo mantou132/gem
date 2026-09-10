@@ -79,7 +79,7 @@ importers:
         specifier: ^2.x
         version: link:../gem
       '@mantou/tap-ui':
-        specifier: ^0.1.7
+        specifier: ^0.1.8
         version: link:../tap-ui
       deep-query-selector:
         specifier: ^1.0.1
@@ -221,11 +221,14 @@ importers:
       string-replace-loader:
         specifier: ^3.1.0
         version: 3.2.0(webpack@5.102.1(@swc/core@1.15.40(@swc/helpers@0.5.23))(esbuild@0.24.2))
+      swc-plugin-gem:
+        specifier: '=0.1.17-beta'
+        version: 0.1.17-beta
       typescript:
         specifier: ^5.6.2
         version: 5.9.3
       unplugin-gem:
-        specifier: ^0.1.8
+        specifier: ^0.1.9
         version: link:../unplugin-gem
       yaml:
         specifier: ^1.10.2
@@ -276,9 +279,6 @@ importers:
       nodemon:
         specifier: ^2.0.7
         version: 2.0.22
-      swc-plugin-gem:
-        specifier: ^0.1.16
-        version: link:../../crates/swc-plugin-gem
       ts-morph:
         specifier: ^12.0.0
         version: 12.2.0
@@ -311,10 +311,10 @@ importers:
         specifier: ^2.2.10
         version: link:../gem
       '@mantou/tap-ui':
-        specifier: ^0.1.7
+        specifier: ^0.1.8
         version: link:../tap-ui
       duoyun-ui:
-        specifier: ^2.2.10
+        specifier: ^2.2.11
         version: link:../duoyun-ui
     devDependencies:
       '@gemjs/config':
@@ -324,7 +324,7 @@ importers:
         specifier: ^2.0.15
         version: 2.0.15(core-js@3.29.0)
       unplugin-gem:
-        specifier: ^0.1.8
+        specifier: ^0.1.9
         version: link:../unplugin-gem
 
   packages/gem-port:
@@ -389,7 +389,7 @@ importers:
         specifier: ^1.0.0
         version: 1.0.0
       duoyun-ui:
-        specifier: ^2.2.10
+        specifier: ^2.2.11
         version: link:../duoyun-ui
       tree-sitter:
         specifier: ^0.22.4
@@ -451,7 +451,7 @@ importers:
         specifier: ^5.3.6
         version: 5.3.6
       duoyun-ui:
-        specifier: ^2.2.10
+        specifier: ^2.2.11
         version: link:../duoyun-ui
       vscode-languageserver-textdocument:
         specifier: ^1.0.12
@@ -491,7 +491,7 @@ importers:
         specifier: '>=3.0.0'
         version: 4.52.5
       swc-plugin-gem:
-        specifier: ^0.1.16
+        specifier: ^0.1.17
         version: link:../../crates/swc-plugin-gem
       unplugin:
         specifier: ^3.0.0
@@ -519,13 +519,13 @@ importers:
         specifier: ^1.0.0
         version: 1.0.0
       duoyun-ui:
-        specifier: ^2.2.10
+        specifier: ^2.2.11
         version: link:../duoyun-ui
       ts-gem-plugin:
-        specifier: ^0.0.19
+        specifier: ^0.0.20
         version: link:../ts-gem-plugin
       vscode-gem-languageservice:
-        specifier: ^0.0.15
+        specifier: ^0.0.16
         version: link:../language-service
       vscode-languageclient:
         specifier: ^9.0.1
@@ -7585,6 +7585,9 @@ packages:
   supports-preserve-symlinks-flag@1.0.0:
     resolution: {integrity: sha512-ot0WnXS9fgdkgIcePe6RHNk1WA8+muPa6cSjeR3V8K27q9BB1rTE3R1p7Hv0z1ZyAc8s6Vvv8DIyWf681MAt0w==}
     engines: {node: '>= 0.4'}
+
+  swc-plugin-gem@0.1.17-beta:
+    resolution: {integrity: sha512-txFeD0y7aU/+/gObqPyYZfTKofvonlg6DOxycOm4RAm2iDLf6R00X8jmifi4APZWTax5RiOQ9Qd2mPj0Vw2scw==}
 
   symbol-tree@3.2.4:
     resolution: {integrity: sha512-9QNk5KwDF+Bvz+PyObkmSYjI5ksVUYtjW7AU22r2NKcfLJcXp96hkDWU3+XndOsUb+AQ9QhfzfCT2O+CNWT5Tw==}
@@ -16519,6 +16522,8 @@ snapshots:
   supports-color@9.4.0: {}
 
   supports-preserve-symlinks-flag@1.0.0: {}
+
+  swc-plugin-gem@0.1.17-beta: {}
 
   symbol-tree@3.2.4: {}
 
