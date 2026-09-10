@@ -1,6 +1,6 @@
 {
   "name": "swc-plugin-gem",
-  "version": "0.1.16",
+  "version": "0.1.17",
   "description": "swc plugin for Gem",
   "keywords": [
     "swc-plugin",
