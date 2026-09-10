@@ -116,7 +116,7 @@ export class TapBrowserElement<T = unknown> extends GemElement {
       },
       { browser },
     );
-    Stack.push({
+    (Stack.getClosestStack(browser) || Stack).push({
       content: browser,
       animated: options.animated,
     });

@@ -7,7 +7,7 @@ export class TSettingsElement extends GemElement {
   #state = createState({ notifications: true, darkMode: false });
 
   #openAbout = () => {
-    Stack.push({
+    Stack.getClosestStack(this)?.push({
       content: html`<t-about></t-about>`,
     });
   };
@@ -45,7 +45,7 @@ export class TAboutElement extends GemElement {
   @template()
   #render = () => html`
     <tap-page>
-      <tap-navbar slot="header" title="About" back @backclick=${() => Stack.close()}></tap-navbar>
+      <tap-navbar slot="header" title="About" back @backclick=${() => Stack.getClosestStack(this)?.pop()}></tap-navbar>
       <tap-content>Tap App Demo · gem-examples</tap-content>
     </tap-page>
   `;

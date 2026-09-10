@@ -17,7 +17,13 @@ import './profile';
 @customElement('t-home')
 @adoptedStyle(contentsContainer)
 export class THomeElement extends GemElement {
-  #state = createState({ actionResult: '', dialogResult: '', sheetResult: '', browserResult: '' });
+  #state = createState({
+    actionResult: '',
+    dialogResult: '',
+    sheetResult: '',
+    browserResult: '',
+    sheetStackResult: '',
+  });
 
   #openBrowser = async () => {
     await Browser.open({
@@ -142,6 +148,15 @@ export class THomeElement extends GemElement {
     this.#state({ sheetResult: 'Dismissed (nested scroll)' });
   };
 
+  #openSheetStack = async () => {
+    await Sheet.open({
+      body: html`<t-settings></t-settings>`,
+      maskClosable: true,
+      hasStack: true,
+    });
+    this.#state({ sheetStackResult: 'Dismissed' });
+  };
+
   #openActionSheet = async () => {
     const action = await ActionSheet.open({
       title: 'Document actions',
@@ -240,6 +255,21 @@ export class THomeElement extends GemElement {
           {
             label: 'Last result',
             description: this.#state.sheetResult || '—',
+          },
+        ]}
+      ></tap-cell-group>
+      <tap-cell-group
+        heading="Sheet Stack"
+        .items=${[
+          {
+            label: 'Settings',
+            description: 'Multi-step navigation',
+            action: true,
+            onClick: this.#openSheetStack,
+          },
+          {
+            label: 'Last result',
+            description: this.#state.sheetStackResult || '—',
           },
         ]}
       ></tap-cell-group>

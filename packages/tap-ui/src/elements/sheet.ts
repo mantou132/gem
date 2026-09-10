@@ -75,6 +75,7 @@ const style = css`
     display: flex;
     flex-direction: column;
     flex-shrink: 0;
+    z-index: 2;
   }
   .header-area::before {
     content: '';
@@ -109,6 +110,7 @@ export interface SheetOptions {
   maskClosable?: boolean;
   gesture?: boolean;
   open?: boolean;
+  hasStack?: boolean;
 }
 
 @customElement('tap-sheet')
@@ -136,7 +138,26 @@ export class TapSheetElement extends GemElement {
 
   /** Opens a sheet; settles when dismissed (mask / gesture / CloseWatcher). */
   static open(options: SheetOptions = {}) {
-    const sheet = new this({ ...options, open: true });
+    const sheet = new this({
+      ...options,
+      body: !options.hasStack
+        ? options.body
+        : // TODO: dynamic height?
+          html`
+            <div style=${styleMap({ height: '500px' })}>
+              <tap-stack
+                disable-history
+                style=${styleMap({
+                  borderRadius: `calc(${theme.normalRound} * 3) calc(${theme.normalRound} * 3) 0 0`,
+                  '--safe-area-inset-top': '1.3em',
+                })}
+              >
+                ${options.body}
+              </tap-stack>
+            </div>
+          `,
+      open: true,
+    });
     const restoreInert = setBodyInert(sheet);
     document.body.append(sheet);
     return DyPromise.new<void, { sheet: TapSheetElement }>(
