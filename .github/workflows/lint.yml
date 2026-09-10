@@ -20,6 +20,14 @@ jobs:
           node-version: 22.x
           cache: pnpm
 
+      - name: Setup Rust WASI target
+        run: rustup target add wasm32-wasip1
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: |
+            crates/swc-plugin-gem -> target
+
       - run: pnpm install
 
       - run: pnpm lint

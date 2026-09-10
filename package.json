@@ -6,7 +6,7 @@
     "lint": "biome check --write && lerna exec --ignore @gemjs/config --ignore swc-plugin-gem -- tsgo --noEmit",
     "test": "lerna exec --concurrency=1 --scope \"{@mantou/gem,gem-book,@mantou/tap-ui,duoyun-ui}\" -- pnpm test",
     "release": "lerna version",
-    "prepare:build": "pnpm -C packages/gem build && pnpm -C packages/tap-ui build && pnpm -C packages/unplugin-gem build && lerna exec --scope \"{gem-analyzer,duoyun-ui,gem-book,@mantou/gem-port}\" -- pnpm build",
+    "prepare:build": "pnpm -C crates/swc-plugin-gem run prepublish:dev && pnpm -C packages/gem build && pnpm -C packages/tap-ui build && pnpm -C packages/unplugin-gem build && lerna exec --scope \"{gem-analyzer,duoyun-ui,gem-book,@mantou/gem-port}\" -- pnpm build",
     "prepare:link": "lerna exec --scope \"{gem-book,@mantou/gem-port}\" -- npm link",
     "prepare": "husky install && pnpm prepare:build && pnpm prepare:link"
   },

@@ -15,7 +15,8 @@
     "build": "npm run build:dev -- --release",
     "cp": "cp target/wasm32-wasip1/release/swc_plugin_gem.wasm .",
     "prepublishOnly": "npm run build && npm run cp",
-    "dev": "cargo watch -s \"npm run build:dev && npm run cp:dev\"",
+    "prepublish:dev": "npm run build:dev && npm run cp:dev",
+    "dev": "cargo watch -s \"prepublish:dev\"",
     "test": "cross-env RUST_LOG=info cargo watch -x test"
   },
   "preferUnplugged": true,
