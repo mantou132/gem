@@ -37,6 +37,7 @@ export interface BrowserOptions<T = unknown> {
   actions?: BrowserItem<T>[];
   groups?: ActionSheetGroup<T>[];
   animated?: boolean;
+  allowedProtocols?: string[];
 }
 
 /*need iframe inject js `parent.postMessage` */
@@ -94,11 +95,14 @@ export class TapBrowserElement<T = unknown> extends GemElement {
   @part static frame: string;
   @part static more: string;
 
+  static allowedProtocols = new Set(['http:', 'https:']);
+
   @attribute src: string;
   @attribute title: string;
   @property items?: BrowserItem<T>[];
   @property actions?: BrowserItem<T>[];
   @property groups?: ActionSheetGroup<T>[];
+  @property allowedProtocols?: string[];
 
   @emitter close: Emitter<null>;
   @emitter select: Emitter<BrowserItem<T>>;
@@ -110,6 +114,9 @@ export class TapBrowserElement<T = unknown> extends GemElement {
     browser.title = options.title || '';
     browser.items = options.items || options.actions;
     browser.groups = options.groups;
+    if (options.allowedProtocols) {
+      browser.allowedProtocols = options.allowedProtocols;
+    }
     const result = DyPromise.new<void, { browser: TapBrowserElement<T> }>(
       (resolve) => {
         browser.#onClosed = resolve;
@@ -162,7 +169,8 @@ export class TapBrowserElement<T = unknown> extends GemElement {
       if (source !== this.#frameRef.value!.contentWindow) return;
       if (data?.type === 'next_state' && data?.state) {
         const url = new URL(data.state.url);
-        if (url.protocol !== 'http:' && url.protocol !== 'https:') {
+        const allowed = this.allowedProtocols ? new Set(this.allowedProtocols) : TapBrowserElement.allowedProtocols;
+        if (!allowed.has(url.protocol)) {
           this.openExtraUri(url.href);
           return;
         }
@@ -170,6 +178,7 @@ export class TapBrowserElement<T = unknown> extends GemElement {
           Browser.open({
             title: data.state.title,
             src: url.href,
+            allowedProtocols: this.allowedProtocols,
           });
         } else {
           this.title = data.state.title;

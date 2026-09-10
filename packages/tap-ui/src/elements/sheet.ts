@@ -25,6 +25,7 @@ import type { PanEventDetail, SwipeEventDetail } from './gesture';
 import './gesture';
 import './pull-container';
 import './scroll-box';
+import './stack';
 
 /** Match stack / iOS sheet timing */
 const SHEET_DURATION = 350;

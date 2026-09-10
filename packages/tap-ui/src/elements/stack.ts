@@ -254,6 +254,10 @@ export class TapStackElement extends GemElement {
     `;
   };
 
+  get store() {
+    return this.#store;
+  }
+
   push(options: StackPushOptions) {
     if (!this.disableHistory && options.history !== false) {
       history.push({
