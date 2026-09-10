@@ -1,4 +1,4 @@
-import { adoptedStyle, customElement, mounted, template } from '@mantou/gem/lib/decorators';
+import { adoptedStyle, boolattribute, customElement, mounted, template, willMount } from '@mantou/gem/lib/decorators';
 import type { TemplateResult } from '@mantou/gem/lib/element';
 import { createRef, css, GemElement, html } from '@mantou/gem/lib/element';
 import { history } from '@mantou/gem/lib/history';
@@ -6,7 +6,7 @@ import { connect, createStore } from '@mantou/gem/lib/store';
 import { classMap, styleMap } from '@mantou/gem/lib/utils';
 
 import { easeOutCubic } from '../lib/easing';
-import { containsElement } from '../lib/element';
+import { closestElement, containsElement } from '../lib/element';
 import { clamp } from '../lib/number';
 import { theme } from '../lib/theme';
 import type { PanEventDetail, SwipeEventDetail } from './gesture';
@@ -64,21 +64,19 @@ const style = css`
 @customElement('tap-stack')
 @adoptedStyle(style)
 export class TapStackElement extends GemElement {
+  @boolattribute disableHistory: boolean;
+
   static instance?: TapStackElement;
 
   static push(options: StackPushOptions) {
     const stack = (TapStackElement.instance ??= new TapStackElement());
-    stack.#push(options);
+    stack.push(options);
     if (!stack.isConnected) document.body.append(stack);
   }
 
   static pop() {
     if (!TapStackElement.instance) return;
-    const top = TapStackElement.instance.#store.pages.at(-1);
-    TapStackElement.instance.#pop();
-    if (top?.history !== false && history.store.$hasCloseHandle) {
-      history.back();
-    }
+    TapStackElement.instance.pop();
   }
 
   /**@deprecated Please use `pop()` */
@@ -87,10 +85,14 @@ export class TapStackElement extends GemElement {
   }
 
   static inCurrentStack(ele: HTMLElement) {
-    if (!TapStackElement.instance) return;
-    const topPage = TapStackElement.instance.#topPageRef.value;
-    if (!topPage) return;
-    return containsElement(topPage, ele);
+    const stack = closestElement(ele, TapStackElement);
+    if (!stack) return false;
+    const topPage = stack.#topPageRef.value;
+    return !!topPage && containsElement(topPage, ele);
+  }
+
+  static getClosestStack(ele: HTMLElement) {
+    return closestElement<TapStackElement>(ele, 'tap-stack');
   }
 
   #topPageRef = createRef<HTMLElement>();
@@ -117,22 +119,6 @@ export class TapStackElement extends GemElement {
       };
       requestAnimationFrame(tick);
     });
-  };
-
-  #push = (options: StackPushOptions) => {
-    if (options.history !== false) {
-      history.push({
-        close: () => this.#pop(options),
-        shouldClose: options.canLeave,
-        open: () => this.#restore(options),
-      });
-    }
-    const animated = options.animated !== false;
-    this.#store({
-      pages: [...this.#store.pages, options],
-      ...(animated ? { offset: this.clientWidth || innerWidth } : null),
-    });
-    if (animated) queueMicrotask(() => this.#enter(options));
   };
 
   #enter = async (page: StackPushOptions) => {
@@ -202,10 +188,22 @@ export class TapStackElement extends GemElement {
       });
       this.#store({ pages: this.#store.pages.slice(0, -1), offset: 0 });
       this.#busy = false;
-      if (page.history !== false && history.store.$hasCloseHandle) history.back();
+      if (!this.disableHistory && page.history !== false && history.store.$hasCloseHandle) history.back();
       return;
     }
     await this.#animateOffset(offset, 0, { duration: this.#duration(offset, width) });
+  };
+
+  @willMount()
+  #initUpdateStore = () => {
+    const children = [...this.children];
+    if (!children.length) return;
+    this.push({
+      content: html`${children}`,
+      history: false,
+      animated: false,
+      gesture: false,
+    });
   };
 
   @mounted()
@@ -255,6 +253,30 @@ export class TapStackElement extends GemElement {
       })}
     `;
   };
+
+  push(options: StackPushOptions) {
+    if (!this.disableHistory && options.history !== false) {
+      history.push({
+        close: () => this.#pop(options),
+        shouldClose: options.canLeave,
+        open: () => this.#restore(options),
+      });
+    }
+    const animated = options.animated !== false;
+    this.#store({
+      pages: [...this.#store.pages, options],
+      ...(animated ? { offset: this.clientWidth || innerWidth } : null),
+    });
+    if (animated) queueMicrotask(() => this.#enter(options));
+  }
+
+  pop() {
+    const top = this.#store.pages.at(-1);
+    this.#pop();
+    if (!this.disableHistory && top?.history !== false && history.store.$hasCloseHandle) {
+      history.back();
+    }
+  }
 }
 
 export const Stack = TapStackElement;
