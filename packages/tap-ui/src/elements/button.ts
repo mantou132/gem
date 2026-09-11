@@ -153,10 +153,6 @@ export class TapButtonElement extends GemElement {
 
   #dropdownRef = createRef<TapUseElement>();
 
-  get #color() {
-    return getSemanticColor(this.color) || this.color || theme.primaryColor;
-  }
-
   #onClick = () => {
     if (this.disabled) return;
     if (this.route) {

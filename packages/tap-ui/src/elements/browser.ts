@@ -38,6 +38,11 @@ export interface BrowserOptions<T = unknown> {
   groups?: ActionSheetGroup<T>[];
   animated?: boolean;
   allowedProtocols?: string[];
+  /**
+   * Target stack or context element used to find the closest `<tap-stack>`.
+   * When omitted, defaults to the global root `Stack`.
+   */
+  stack?: Element
 }
 
 /*need iframe inject js `parent.postMessage` */
@@ -123,7 +128,7 @@ export class TapBrowserElement<T = unknown> extends GemElement {
       },
       { browser },
     );
-    (Stack.getClosestStack(browser) || Stack).push({
+    (Stack.getClosestStack(options.stack) || Stack).push({
       content: browser,
       animated: options.animated,
     });
@@ -140,9 +145,6 @@ export class TapBrowserElement<T = unknown> extends GemElement {
 
   #onBack = () => {
     this.close(null);
-    if (this.isConnected && Stack.inCurrentStack(this)) {
-      Stack.pop();
-    }
   };
 
   #openSheet = async () => {
@@ -205,6 +207,7 @@ export class TapBrowserElement<T = unknown> extends GemElement {
         part=${TapBrowserElement.navbar}
         title=${this.title}
         back
+        default-back
         @backclick=${this.#onBack}
       >
         <button

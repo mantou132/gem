@@ -104,8 +104,21 @@ export function createDecoratorTheme<T extends Record<string, unknown>>(themeObj
     return (_: any, { addInitializer, access }: Ctx) => {
       addInitializer(function (this: E) {
         const theme = createThemeFromProps({ ...themeObj }, props);
-        this.internals.sheets.push(theme[SheetToken].getStyle(this, true));
-        this.memo(() => theme(access.get(this).apply(this)), getDep && (() => getDep(this) as any));
+        const style = theme[SheetToken].getStyle(this, true);
+        this.internals.sheets.push(style);
+        this.memo(
+          () => {
+            const next = access.get(this).apply(this);
+            const rule = style.cssRules[0] as CSSStyleRule;
+            const eleTarget = this.shadowRoot
+              ? rule
+              : ((style.element?.sheet?.cssRules[0] as CSSStyleRule)?.cssRules?.[0] as CSSStyleRule);
+            for (const key in props) {
+              eleTarget?.style.setProperty(props[key], next[key]);
+            }
+          },
+          getDep && (() => getDep(this) as any),
+        );
       });
     };
   };

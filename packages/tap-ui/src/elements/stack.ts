@@ -1,4 +1,4 @@
-import { adoptedStyle, boolattribute, customElement, mounted, template, willMount } from '@mantou/gem/lib/decorators';
+import { adoptedStyle, boolattribute, customElement, mounted, template, willMount, numattribute } from '@mantou/gem/lib/decorators';
 import type { TemplateResult } from '@mantou/gem/lib/element';
 import { createRef, css, GemElement, html } from '@mantou/gem/lib/element';
 import { history } from '@mantou/gem/lib/history';
@@ -10,6 +10,7 @@ import { closestElement, containsElement } from '../lib/element';
 import { clamp } from '../lib/number';
 import { theme } from '../lib/theme';
 import type { PanEventDetail, SwipeEventDetail } from './gesture';
+import type { TapPageElement } from './page';
 
 export type StackPushOptions = {
   content: string | number | TemplateResult | Element | Element[];
@@ -34,6 +35,10 @@ const style = css`
     inset: 0;
     z-index: 1;
     overflow: hidden;
+  }
+  :scope[auto-height] {
+    display: block;
+    position: relative;
   }
   :scope[inert] {
     pointer-events: none;
@@ -65,6 +70,8 @@ const style = css`
 @adoptedStyle(style)
 export class TapStackElement extends GemElement {
   @boolattribute disableHistory: boolean;
+  @boolattribute autoHeight: boolean;
+  @numattribute  maxHeight: number
 
   static instance?: TapStackElement;
 
@@ -79,11 +86,6 @@ export class TapStackElement extends GemElement {
     TapStackElement.instance.pop();
   }
 
-  /**@deprecated Please use `pop()` */
-  static close() {
-    return this.pop();
-  }
-
   static inCurrentStack(ele: HTMLElement) {
     const stack = closestElement(ele, TapStackElement);
     if (!stack) return false;
@@ -91,14 +93,17 @@ export class TapStackElement extends GemElement {
     return !!topPage && containsElement(topPage, ele);
   }
 
-  static getClosestStack(ele: HTMLElement) {
+  static getClosestStack(ele?: Element) {
+    if (!ele) return;
     return closestElement<TapStackElement>(ele, 'tap-stack');
   }
 
   #topPageRef = createRef<HTMLElement>();
+  #belowPageRef = createRef<HTMLElement>();
   #store = createStore({ pages: [] as StackPushOptions[], offset: 0 });
   #busy = false;
   #closeSpeed = 0;
+  #pageHeights = new WeakMap<StackPushOptions, number>();
 
   #duration = (distance: number, width: number, speed = 0) => {
     if (speed > 0) {
@@ -107,13 +112,55 @@ export class TapStackElement extends GemElement {
     return clamp(STACK_DURATION_MIN, STACK_DURATION * (distance / (width || 1)), STACK_DURATION);
   };
 
+  #getPageHeight = (page: StackPushOptions, el?: HTMLElement | null): number => {
+    const cached = this.#pageHeights.get(page);
+    if (cached) return cached;
+    if (el) {
+      const tapPage = (el.querySelector('tap-page') ||
+            el.firstElementChild?.shadowRoot?.querySelector('tap-page')
+      ) as TapPageElement | null;
+      const measured = Math.min(this.maxHeight || 9e9, tapPage?.contentHeight || el.scrollHeight || el.offsetHeight);
+      if (measured > 0) {
+        this.#pageHeights.set(page, measured);
+        return measured;
+      }
+    }
+    return 0;
+  };
+
+  #applyHeight = (height: number) => {
+    this.style.height = `${height}px`;
+  };
+
+  #syncHeight = (offset: number) => {
+    if (!this.autoHeight) return;
+    const { pages } = this.#store;
+    const top = pages.at(-1);
+    const belowTop = pages.at(-2);
+    if (!top) return;
+
+    const hTop = this.#getPageHeight(top, this.#topPageRef.value);
+    if (!belowTop) {
+      if (hTop > 0) this.#applyHeight(hTop);
+      return;
+    }
+
+    const hBelow = this.#getPageHeight(belowTop, this.#belowPageRef.value);
+    const width = this.clientWidth || innerWidth;
+    const progress = clamp(0, offset / (width || 1), 1);
+    this.#applyHeight(Math.round(hTop + (hBelow - hTop) * progress));
+  };
+
   #animateOffset = (from: number, to: number, { duration = STACK_DURATION } = {}) => {
     this.#store({ offset: from });
+    this.#syncHeight(from);
     const start = performance.now();
     return new Promise<void>((resolve) => {
       const tick = (now: number) => {
         const t = Math.min(1, (now - start) / duration);
-        this.#store({ offset: from + (to - from) * easeOutCubic(t) });
+        const offset = from + (to - from) * easeOutCubic(t);
+        this.#store({ offset });
+        this.#syncHeight(offset);
         if (t < 1) requestAnimationFrame(tick);
         else resolve();
       };
@@ -122,7 +169,7 @@ export class TapStackElement extends GemElement {
   };
 
   #enter = async (page: StackPushOptions) => {
-    // Only animate if this page is still on top (e.g. not superseded by a faster push)
+    await new Promise((res) => requestAnimationFrame(res));
     if (this.#busy || this.#store.pages.at(-1) !== page) return;
     const el = this.#topPageRef.value;
     if (!el) return;
@@ -132,7 +179,7 @@ export class TapStackElement extends GemElement {
     this.#busy = false;
   };
 
-  #restore = (page: StackPushOptions) => {
+  #push = (page: StackPushOptions) => {
     if (this.#store.pages.includes(page)) return;
     const animated = page.animated !== false;
     this.#store({
@@ -140,7 +187,10 @@ export class TapStackElement extends GemElement {
       ...(animated ? { offset: this.clientWidth || innerWidth } : null),
     });
     if (animated) queueMicrotask(() => this.#enter(page));
+    else requestAnimationFrame(() => this.#syncHeight(0));
   };
+
+  #restore = (page: StackPushOptions) => this.#push(page);
 
   #pop = async (page?: StackPushOptions) => {
     const top = this.#store.pages.at(-1);
@@ -152,6 +202,7 @@ export class TapStackElement extends GemElement {
       if (el) await this.#animateOffset(0, el.offsetWidth);
     }
     this.#store({ pages: this.#store.pages.slice(0, -1), offset: 0 });
+    if (top.animated === false) this.#syncHeight(0);
     this.#busy = false;
   };
 
@@ -160,6 +211,7 @@ export class TapStackElement extends GemElement {
     const offset = Math.max(0, this.#store.offset + evt.detail.x);
     if (offset === 0) return;
     this.#store({ offset });
+    this.#syncHeight(offset);
   };
 
   #onPageSwipe = (page: StackPushOptions, evt: CustomEvent<SwipeEventDetail>) => {
@@ -207,7 +259,10 @@ export class TapStackElement extends GemElement {
   };
 
   @mounted()
-  #init = () => connect(this.#store, this.update);
+  #init = () => {
+    this.#syncHeight(0);
+    return connect(this.#store, this.update);
+  };
 
   @template()
   #content = () => {
@@ -226,7 +281,7 @@ export class TapStackElement extends GemElement {
         const isBelowTop = page === belowTop;
         return html`
           <div
-            ${this.#topPageRef}
+            ${isTop ? this.#topPageRef : isBelowTop ? this.#belowPageRef : undefined}
             class=${classMap({ page: true, top: !!isTop })}
             ?inert=${!isTop}
             style=${styleMap({
@@ -266,12 +321,7 @@ export class TapStackElement extends GemElement {
         open: () => this.#restore(options),
       });
     }
-    const animated = options.animated !== false;
-    this.#store({
-      pages: [...this.#store.pages, options],
-      ...(animated ? { offset: this.clientWidth || innerWidth } : null),
-    });
-    if (animated) queueMicrotask(() => this.#enter(options));
+    this.#push(options);
   }
 
   pop() {

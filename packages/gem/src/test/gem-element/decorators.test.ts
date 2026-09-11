@@ -1,3 +1,4 @@
+import { createDecoratorTheme } from '../../helper/theme';
 import type { Emitter } from '../../lib/decorators';
 import {
   adoptedStyle,
@@ -17,6 +18,51 @@ import type { Metadata } from '../../lib/element';
 import { css, GemElement, html } from '../../lib/element';
 import { createStore } from '../../lib/store';
 import { expect, fixture } from '../utils';
+
+const elemTheme = createDecoratorTheme({ color: 'rgb(255, 0, 0)' });
+
+const themeDemoStyle = css`
+  :host {
+    color: ${elemTheme.color};
+  }
+`;
+
+@customElement('decorator-theme-demo')
+@adoptedStyle(themeDemoStyle)
+@shadow()
+class DecoratorThemeDemo extends GemElement {
+  @boolattribute active: boolean;
+
+  @elemTheme((i) => [i.active])
+  #theme = () => ({
+    color: this.active ? 'rgb(0, 0, 255)' : 'rgb(255, 0, 0)',
+  });
+
+  render() {
+    return html`Theme Demo`;
+  }
+}
+
+const lightThemeDemoStyle = css`
+  :scope {
+    color: ${elemTheme.color};
+  }
+`;
+
+@customElement('decorator-theme-light-demo')
+@adoptedStyle(lightThemeDemoStyle)
+class DecoratorThemeLightDemo extends GemElement {
+  @boolattribute active: boolean;
+
+  @elemTheme((i) => [i.active])
+  #theme = () => ({
+    color: this.active ? 'rgb(0, 0, 255)' : 'rgb(255, 0, 0)',
+  });
+
+  render() {
+    return html`<span>Light Theme Demo</span>`;
+  }
+}
 
 const store = createStore({
   a: 1,
@@ -105,5 +151,26 @@ describe('装饰器', () => {
     await Promise.resolve();
     expect(el.renderCount).to.equal(3);
     expect(a).to.equal(2);
+  });
+
+  it('createDecoratorTheme 响应式更新及多实例隔离', async () => {
+    const el1: DecoratorThemeDemo = await fixture(html`<decorator-theme-demo></decorator-theme-demo>`);
+    const el2: DecoratorThemeDemo = await fixture(html`<decorator-theme-demo active></decorator-theme-demo>`);
+
+    expect(getComputedStyle(el1).color).to.equal('rgb(255, 0, 0)');
+    expect(getComputedStyle(el2).color).to.equal('rgb(0, 0, 255)');
+
+    el1.active = true;
+    await Promise.resolve();
+    expect(getComputedStyle(el1).color).to.equal('rgb(0, 0, 255)');
+    expect(getComputedStyle(el2).color).to.equal('rgb(0, 0, 255)');
+
+    const elLight: DecoratorThemeLightDemo = await fixture(
+      html`<decorator-theme-light-demo></decorator-theme-light-demo>`,
+    );
+    expect(getComputedStyle(elLight).color).to.equal('rgb(255, 0, 0)');
+    elLight.active = true;
+    await Promise.resolve();
+    expect(getComputedStyle(elLight).color).to.equal('rgb(0, 0, 255)');
   });
 });

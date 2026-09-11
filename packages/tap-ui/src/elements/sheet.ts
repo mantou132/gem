@@ -71,6 +71,20 @@ const style = css`
     will-change: transform;
     outline: none;
     padding: 0 1.2em calc(1.2em + var(--safe-area-inset-bottom, env(safe-area-inset-bottom, 0px)));
+    overflow: hidden;
+  }
+  :host([paddingless]) .sheet {
+    padding: 0;
+    min-height: 0;
+  }
+  :host([paddingless]:not([header])) {
+    --safe-area-inset-top: 1.3em;
+  }
+  :host([paddingless]:not([header])) .header-area {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
   }
   .header-area {
     display: flex;
@@ -112,6 +126,7 @@ export interface SheetOptions {
   gesture?: boolean;
   open?: boolean;
   hasStack?: boolean;
+  paddingless?: boolean;
 }
 
 @customElement('tap-sheet')
@@ -126,6 +141,7 @@ export class TapSheetElement extends GemElement {
   @boolattribute open: boolean;
   @boolattribute maskClosable: boolean;
   @boolattribute gesture = true;
+  @boolattribute paddingless: boolean;
   @attribute header: string;
   @attribute body: string;
 
@@ -141,21 +157,13 @@ export class TapSheetElement extends GemElement {
   static open(options: SheetOptions = {}) {
     const sheet = new this({
       ...options,
+      paddingless: options.paddingless ?? options.hasStack,
       body: !options.hasStack
         ? options.body
-        : // TODO: dynamic height?
-          html`
-            <div style=${styleMap({ height: '500px' })}>
-              <tap-stack
-                disable-history
-                style=${styleMap({
-                  borderRadius: `calc(${theme.normalRound} * 3) calc(${theme.normalRound} * 3) 0 0`,
-                  '--safe-area-inset-top': '1.3em',
-                })}
-              >
-                ${options.body}
-              </tap-stack>
-            </div>
+        : html`
+            <tap-stack auto-height disable-history .maxHeight=${innerHeight * 0.77}>
+              ${options.body}
+            </tap-stack>
           `,
       open: true,
     });
@@ -176,9 +184,10 @@ export class TapSheetElement extends GemElement {
 
   constructor(options: SheetOptions = {}) {
     super();
-    const { open, maskClosable, gesture, header, body } = options;
+    const { open, maskClosable, gesture, header, body, paddingless } = options;
     if (open) this.open = open;
     if (maskClosable) this.maskClosable = maskClosable;
+    if (paddingless) this.paddingless = paddingless;
     this.gesture = gesture !== false;
     this.headerSlot = header;
     this.bodySlot = body;

@@ -15,6 +15,7 @@ import { css, GemElement, html } from '@mantou/gem/lib/element';
 
 import { icons } from '../lib/icons';
 import { theme } from '../lib/theme';
+import { Stack } from './stack';
 
 import './use';
 
@@ -94,14 +95,23 @@ export class TapNavbarElement extends GemElement {
 
   @attribute title: string;
   @boolattribute back: boolean;
+  @boolattribute defaultBack: boolean;
   /**Set by `<tap-page floatheader>` while content is not scrolled */
   @boolattribute transparent: boolean;
+
   @emitter backclick: Emitter<null>;
+
+  #backClick = () => {
+    if (this.defaultBack) {
+      Stack.getClosestStack(this)?.pop();
+    }
+    this.backclick(null);
+  };
 
   @template()
   #content = () => {
     return html`
-      <button v-if=${this.back} type="button" class="back" aria-label="back" @click=${() => this.backclick(null)}>
+      <button v-if=${this.back} type="button" class="back" aria-label="back" @click=${this.#backClick}>
         <tap-use class="icon" .element=${icons.back}></tap-use>
       </button>
       <div class="title" part=${TapNavbarElement.title}>${this.title}</div>

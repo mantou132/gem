@@ -1,4 +1,3 @@
-import { Stack } from '@mantou/tap-ui/elements/stack';
 import { contentsContainer } from '@mantou/tap-ui/lib/styles';
 import { theme } from '@mantou/tap-ui/lib/theme';
 
@@ -26,7 +25,7 @@ export class TProfileElement extends GemElement {
   @template()
   #render = () => html`
     <tap-page>
-      <tap-navbar slot="header" title="Profile" back @backclick=${() => Stack.close()}></tap-navbar>
+      <tap-navbar slot="header" title="Profile" back default-back></tap-navbar>
       <tap-content class="body">
         <div class="avatar">M</div>
         <p><strong>Mantou</strong></p>

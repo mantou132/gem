@@ -181,6 +181,34 @@ export class TapPageElement extends GemElement {
   #mainRef = createRef<HTMLElement>();
   #headerSlotRef = createRef<HTMLSlotElement>();
   #iconRef = createRef<HTMLElement>();
+  #footerRef = createRef<HTMLElement>();
+
+  get contentHeight() {
+    const header = this.floatheader
+      ? 0
+      : this.#headerSlotRef.value?.parentElement?.getBoundingClientRect().height || 0;
+    const footer = this.#footerRef.value?.getBoundingClientRect().height || 0;
+    const mainEl = this.#mainRef.value;
+    let main = 0;
+    if (mainEl) {
+      const mainRect = mainEl.getBoundingClientRect();
+      const mainElements = [...this.children].filter((el) => !el.slot && el instanceof HTMLElement) as HTMLElement[];
+      let maxBottom = 0;
+      for (const el of mainElements) {
+        const rect = el.getBoundingClientRect();
+        const marginBottom = parseFloat(getComputedStyle(el).marginBottom) || 0;
+        const bottom = rect.bottom + marginBottom;
+        if (bottom > maxBottom) maxBottom = bottom;
+      }
+      if (maxBottom > 0) {
+        const paddingBottom = parseFloat(getComputedStyle(mainEl).paddingBottom) || 0;
+        main = maxBottom - mainRect.top + mainEl.scrollTop + paddingBottom;
+      } else {
+        main = mainEl.scrollHeight;
+      }
+    }
+    return Math.ceil(header + footer + main);
+  }
 
   #pullRotate = (pull: number) => Math.min(180, (pull / PULL_THRESHOLD) * 180);
 
@@ -326,7 +354,7 @@ export class TapPageElement extends GemElement {
         ></div>
         <slot></slot>
       </tap-pull-container>
-      <div class="footer" part=${TapPageElement.footer}>
+      <div ${this.#footerRef} class="footer" part=${TapPageElement.footer}>
         <slot name=${TapPageElement.footer}></slot>
       </div>
       <tap-gesture

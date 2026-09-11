@@ -150,7 +150,7 @@ export class THomeElement extends GemElement {
 
   #openSheetStack = async () => {
     await Sheet.open({
-      body: html`<t-settings></t-settings>`,
+      body: html`<t-settings in-sheet></t-settings>`,
       maskClosable: true,
       hasStack: true,
     });

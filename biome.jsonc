@@ -57,7 +57,7 @@
   "linter": {
     "enabled": true,
     "rules": {
-      "recommended": true,
+      "preset": "recommended",
       "correctness": {
         "noUnusedImports": "warn",
         "noUnusedPrivateClassMembers": "off",
@@ -66,6 +66,9 @@
       "complexity": {
         "noThisInStatic": "off"
       },
+      "a11y": {
+        "useHtmlLang": "off"
+      },
       "style": {
         "noNonNullAssertion": "off",
         "useAsConstAssertion": "error"
@@ -73,6 +76,7 @@
       "suspicious": {
         "noAssignInExpressions": "off",
         "noExplicitAny": "off",
+        "noNonNullAssertedOptionalChain": "off",
         "useGetterReturn": "off",
         "useIterableCallbackReturn": "off"
       }

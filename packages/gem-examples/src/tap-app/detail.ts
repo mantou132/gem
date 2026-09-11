@@ -38,7 +38,7 @@ export class TDetailElement extends GemElement {
   @template()
   #render = () => html`
     <tap-page floatheader>
-      <tap-navbar slot="header" title="Detail" back @backclick=${() => Stack.close()}></tap-navbar>
+      <tap-navbar slot="header" title="Detail" back default-back></tap-navbar>
       <div class="hero"></div>
       <tap-content class="body">
         <p>Swipe right from the left edge to close this page.</p>

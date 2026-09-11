@@ -3,7 +3,7 @@ import { assert, expect, should } from 'chai';
 import type { TemplateResult } from '../lib/element';
 import { render } from '../lib/element';
 
-export { expect, should, assert };
+export { assert, expect, should };
 
 export function nextFrame() {
   return new Promise((resolve) => requestAnimationFrame(() => resolve(null)));
