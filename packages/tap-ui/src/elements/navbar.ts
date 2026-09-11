@@ -12,6 +12,7 @@ import {
   template,
 } from '@mantou/gem/lib/decorators';
 import { css, GemElement, html } from '@mantou/gem/lib/element';
+import { classMap } from '@mantou/gem/lib/utils';
 
 import { icons } from '../lib/icons';
 import { theme } from '../lib/theme';
@@ -22,7 +23,7 @@ import './use';
 const style = css`
   :host(:where(:not([hidden]))) {
     display: grid;
-    grid-template-columns: 2.5em 1fr 2.5em;
+    grid-template-columns: minmax(2.5em, max-content) 1fr minmax(2.5em, max-content);
     grid-template-rows: 2.5em;
     align-items: center;
     flex-shrink: 0;
@@ -44,8 +45,14 @@ const style = css`
     background: transparent;
     border-block-end-color: transparent;
   }
-  .back {
+  .left {
     grid-column: 1;
+    display: flex;
+    align-items: center;
+    min-width: 0;
+    height: 100%;
+  }
+  .back {
     display: flex;
     align-items: center;
     justify-content: center;
@@ -60,8 +67,21 @@ const style = css`
     font: inherit;
     cursor: pointer;
   }
-  .title {
+  .center {
     grid-column: 2;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-width: 0;
+    height: 100%;
+    transition: opacity 150ms ${theme.timingFunction};
+  }
+  :host([transparent]) :where(.center, .title) {
+    opacity: 0;
+  }
+  .title {
+    width: 100%;
     min-width: 0;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -70,10 +90,21 @@ const style = css`
     font-size: 1.0625em;
     font-weight: 600;
     line-height: 1.3;
-    transition: opacity 150ms ${theme.timingFunction};
   }
-  :host([transparent]) .title {
-    opacity: 0;
+  .title.small {
+    font-size: 0.9375em;
+    line-height: 1.2;
+  }
+  .subtitle {
+    width: 100%;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    text-align: center;
+    font-size: 0.75em;
+    line-height: 1.2;
+    color: ${theme.describeColor};
   }
   .right {
     grid-column: 3;
@@ -91,9 +122,12 @@ const style = css`
 @aria({ role: 'banner' })
 export class TapNavbarElement extends GemElement {
   @part static title: string;
+  @part static subtitle: string;
   @slot @part static right: string;
+  @slot @part static left: string;
 
   @attribute title: string;
+  @attribute subtitle: string;
   @boolattribute back: boolean;
   @boolattribute defaultBack: boolean;
   /**Set by `<tap-page floatheader>` while content is not scrolled */
@@ -111,10 +145,19 @@ export class TapNavbarElement extends GemElement {
   @template()
   #content = () => {
     return html`
-      <button v-if=${this.back} type="button" class="back" aria-label="back" @click=${this.#backClick}>
-        <tap-use class="icon" .element=${icons.back}></tap-use>
-      </button>
-      <div class="title" part=${TapNavbarElement.title}>${this.title}</div>
+      <div class="left" part=${TapNavbarElement.left}>
+        <slot name=${TapNavbarElement.left}>
+          <button v-if=${this.back} type="button" class="back" aria-label="back" @click=${this.#backClick}>
+            <tap-use class="icon" .element=${icons.back}></tap-use>
+          </button>
+        </slot>
+      </div>
+      <div class="center">
+        <div class=${classMap({ title: true, small: !!this.subtitle })} part=${TapNavbarElement.title}>
+          ${this.title}
+        </div>
+        <div v-if=${!!this.subtitle} class="subtitle" part=${TapNavbarElement.subtitle}>${this.subtitle}</div>
+      </div>
       <div class="right" part=${TapNavbarElement.right}>
         <slot name=${TapNavbarElement.right}></slot>
       </div>

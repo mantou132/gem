@@ -38,14 +38,14 @@ export class TDetailElement extends GemElement {
   @template()
   #render = () => html`
     <tap-page floatheader>
-      <tap-navbar slot="header" title="Detail" back default-back></tap-navbar>
+      <tap-navbar slot="header" title="Detail" subtitle="Swipe to close" back default-back></tap-navbar>
       <div class="hero"></div>
       <tap-content class="body">
         <p>Swipe right from the left edge to close this page.</p>
         <p>You can also tap the back button in the navbar.</p>
         <tap-button @click=${this.#openProfile}>Open Profile</tap-button>
         <p>Scroll down to see the floating header gain a background.</p>
-        <p>${'More content. '.repeat(60)}</p>
+        <p>${'More content. '.repeat(90)}</p>
       </tap-content>
     </tap-page>
   `;
