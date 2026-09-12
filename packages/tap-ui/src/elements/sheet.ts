@@ -20,7 +20,7 @@ import { setBodyInert } from '../lib/element';
 import { clamp } from '../lib/number';
 import { theme } from '../lib/theme';
 import { DyPromise } from '../lib/utils';
-import type { PullEndEventDetail, PullEventDetail } from './pull-container';
+import type { PullEndEventDetail, PullEventDetail, TapPullContainerElement } from './pull-container';
 
 import './pull-container';
 import './scroll-box';
@@ -175,9 +175,9 @@ export class TapSheetElement extends GemElement {
       },
       { sheet },
     ).finally(async () => {
-      restoreInert();
       sheet.closing = true;
       await sheet.#finishClose();
+      restoreInert();
       sheet.remove();
     });
   }
@@ -193,7 +193,7 @@ export class TapSheetElement extends GemElement {
     this.bodySlot = body;
   }
 
-  #sheetRef = createRef<HTMLElement>();
+  #sheetRef = createRef<TapPullContainerElement>();
   #bodyRef = createRef<HTMLElement>();
   #state = createState({ offset: 0 });
   #closeSpeed = 0;
@@ -207,7 +207,7 @@ export class TapSheetElement extends GemElement {
   }
 
   get #height() {
-    return this.#sheetRef.value?.offsetHeight || 0;
+    return this.#sheetRef.value?.borderBoxSize.blockSize || this.#sheetRef.value?.offsetHeight || 0;
   }
 
   #close = () => {
@@ -222,7 +222,8 @@ export class TapSheetElement extends GemElement {
 
   #duration = (distance: number, height: number, speed = 0) => {
     if (speed > 0) {
-      return clamp(SHEET_DURATION_MIN, distance / speed, SHEET_DURATION);
+      console.log({speed})
+      return clamp(SHEET_DURATION_MIN, 3 * (distance / speed), SHEET_DURATION);
     }
     return clamp(SHEET_DURATION_MIN, SHEET_DURATION * (distance / (height || 1)), SHEET_DURATION);
   };

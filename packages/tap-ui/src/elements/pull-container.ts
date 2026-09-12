@@ -91,6 +91,16 @@ export class TapPullContainerElement extends TapScrollBaseElement {
   };
 
   #onPointerMove = (evt: PointerEvent) => {
+    // https://bugs.webkit.org/show_bug.cgi?id=210454
+    const events = 'getCoalescedEvents' in evt ? evt.getCoalescedEvents() : [];
+    if (events.length) {
+      events.forEach((event) => this.#onMove(event));
+    } else {
+      this.#onMove(evt);
+    }
+  };
+
+  #onMove = (evt: PointerEvent) => {
     if (!this.#tracking) return;
 
     if (this.#hasScrolled()) {
