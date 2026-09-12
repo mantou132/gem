@@ -1,4 +1,13 @@
-import { adoptedStyle, boolattribute, customElement, mounted, template, willMount, numattribute } from '@mantou/gem/lib/decorators';
+import {
+  adoptedStyle,
+  boolattribute,
+  customElement,
+  effect,
+  mounted,
+  numattribute,
+  template,
+  willMount,
+} from '@mantou/gem/lib/decorators';
 import type { TemplateResult } from '@mantou/gem/lib/element';
 import { createRef, css, GemElement, html } from '@mantou/gem/lib/element';
 import { history } from '@mantou/gem/lib/history';
@@ -71,7 +80,7 @@ const style = css`
 export class TapStackElement extends GemElement {
   @boolattribute disableHistory: boolean;
   @boolattribute autoHeight: boolean;
-  @numattribute  maxHeight: number
+  @numattribute maxHeight: number;
 
   static instance?: TapStackElement;
 
@@ -262,6 +271,33 @@ export class TapStackElement extends GemElement {
   #init = () => {
     this.#syncHeight(0);
     return connect(this.#store, this.update);
+  };
+
+  @effect((i) => [i.autoHeight, i.maxHeight, i.#store.pages])
+  #watchContentHeight = () => {
+    if (!this.autoHeight) return;
+    let frame = 0;
+    const wrappers = [this.#topPageRef.value, this.#store.pages.length > 1 ? this.#belowPageRef.value : null];
+    const observer = new MutationObserver((records) => {
+      // Ignore the wrapper styles written by measurement and navigation.
+      if (records.some(({ type, target }) => type !== 'attributes' || !wrappers.includes(target as HTMLElement))) {
+        frame ||= requestAnimationFrame(() => {
+          frame = 0;
+          this.#pageHeights = new WeakMap()
+          this.#syncHeight(this.#store.offset);
+        });
+      }
+    });
+    for (const el of wrappers) {
+      if (!el) continue;
+      const options = { subtree: true, childList: true, characterData: true, attributes: true };
+      observer.observe(el, options);
+      if (el.firstElementChild?.shadowRoot) observer.observe(el.firstElementChild.shadowRoot, options);
+    }
+    return () => {
+      observer.disconnect();
+      cancelAnimationFrame(frame);
+    };
   };
 
   @template()

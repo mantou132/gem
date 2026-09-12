@@ -62,6 +62,7 @@ const style = css`
     display: flex;
     flex-direction: column;
     width: 100%;
+    max-width: 640px;
     max-height: 90%;
     min-height: 8em;
     background-color: ${theme.backgroundColor};
@@ -78,7 +79,7 @@ const style = css`
     min-height: 0;
   }
   :host([paddingless]:not([header])) {
-    --safe-area-inset-top: 1.3em;
+    --safe-area-inset-top: 0.35em;
   }
   :host([paddingless]:not([header])) .header-area {
     position: absolute;
