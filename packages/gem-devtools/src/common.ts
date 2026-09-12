@@ -26,6 +26,7 @@ export async function execution<Func extends (...rest: any) => any>(
       }),
     ),
   );
+  // func 不要返回数组，不然很难分辨格式
   const [data, errorInfo] = Array.isArray(evalResult) ? evalResult : [evalResult, undefined];
   if (errorInfo) {
     throw {

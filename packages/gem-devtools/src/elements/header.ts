@@ -62,7 +62,7 @@ export class DevtoolsHeaderElement extends GemElement {
   @mounted()
   #initFrame = () => {
     const timer = setInterval(async () => {
-      const frames = await execution(getAllFrames, [], { frameURL: undefined });
+      const { frames } = await execution(getAllFrames, [], { frameURL: undefined });
       configureStore({
         frames,
         currentFrameURL: frames.includes(configureStore.currentFrameURL) ? configureStore.currentFrameURL : '',
