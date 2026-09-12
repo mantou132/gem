@@ -30,6 +30,12 @@ export interface RotateEventDetail {
   rotate: number;
 }
 
+// 甩动手感的经验参数，非 UIKit 的公开阈值；坐标单位为 CSS px。
+const SWIPE_TIME_WINDOW = 100;
+const SWIPE_MIN_SPEED = 0.3; // px/ms
+const SWIPE_MIN_DISTANCE = 20;
+const SWIPE_DIRECTION_SLOP = 10;
+
 function angleAB(
   a: number,
   b: number,
@@ -75,6 +81,7 @@ export class GemGestureElement extends GemElement {
 
   #pressed = false; // 触发 press 之后不触发其他事件
   #gestureTriggered = false; // 会排除 touchAction 方向
+  #multiTouch = false;
   #pressTimer: ReturnType<typeof setTimeout> | number = 0;
 
   #startEventMap: Map<number, PointerEvent> = new Map();
@@ -88,7 +95,7 @@ export class GemGestureElement extends GemElement {
   };
 
   #getOtherLastMove = (pointerId: number) => {
-    for (const id of this.movesMap.keys()) {
+    for (const id of this.#startEventMap.keys()) {
       if (id !== pointerId) {
         const moves = this.#getMoves(id);
         return moves[moves.length - 1] || this.#getStartEvent(id);
@@ -129,6 +136,7 @@ export class GemGestureElement extends GemElement {
   };
 
   #onStart = (evt: PointerEvent) => {
+    this.#multiTouch = this.#startEventMap.size > 0;
     this.grabbing = true;
     evt.stopPropagation();
     this.setPointerCapture(evt.pointerId);
@@ -150,6 +158,7 @@ export class GemGestureElement extends GemElement {
     if (this.hasPointerCapture(pointerId)) {
       const moves = this.#getMoves(pointerId);
       const startEvent = this.#getStartEvent(pointerId);
+      if (!startEvent) return;
       const lastMove = moves[moves.length - 1] || startEvent;
       // Firefox contextmenu after trigger
       if (!lastMove) return;
@@ -170,7 +179,7 @@ export class GemGestureElement extends GemElement {
       moves.push(move);
       this.pan(move);
 
-      if (this.movesMap.size !== 1) {
+      if (this.#startEventMap.size !== 1) {
         this.#gestureTriggered = true;
         const secondaryPoint = this.#getOtherLastMove(pointerId) as PanEventDetail;
         const moveLen = Math.sqrt(movementX ** 2 + movementY ** 2);
@@ -204,58 +213,94 @@ export class GemGestureElement extends GemElement {
   #onMoveSet = (evt: PointerEvent) => {
     evt.stopPropagation();
     // https://bugs.webkit.org/show_bug.cgi?id=210454
-    if ('getCoalescedEvents' in evt) {
-      evt.getCoalescedEvents().forEach((event) => this.#onMove(event));
+    const events = 'getCoalescedEvents' in evt ? evt.getCoalescedEvents() : [];
+    if (events.length) {
+      events.forEach((event) => this.#onMove(event));
     } else {
       this.#onMove(evt);
     }
   };
 
+  #getSwipe = (evt: PointerEvent): SwipeEventDetail | undefined => {
+    const startEvent = this.#getStartEvent(evt.pointerId);
+    const moves = this.#getMoves(evt.pointerId);
+    const targetTime = Math.max(startEvent.timeStamp, evt.timeStamp - SWIPE_TIME_WINDOW);
+    let sample: Pick<PanEventDetail, 'clientX' | 'clientY' | 'timeStamp'> = evt;
+    let furthest = sample;
+    let axis: 'clientX' | 'clientY' | undefined;
+    let sign = 0;
+
+    for (let i = moves.length - 1; i >= -1; i--) {
+      const previous = i < 0 ? startEvent : moves[i];
+      if (previous.timeStamp >= sample.timeStamp) continue;
+      // 以抬手时间为窗口终点，插值边界，避免事件采样频率影响速度。
+      const timeStamp = Math.max(targetTime, previous.timeStamp);
+      const ratio = (timeStamp - previous.timeStamp) / (sample.timeStamp - previous.timeStamp);
+      sample = {
+        clientX: previous.clientX + (sample.clientX - previous.clientX) * ratio,
+        clientY: previous.clientY + (sample.clientY - previous.clientY) * ratio,
+        timeStamp,
+      };
+      const dx = evt.clientX - sample.clientX;
+      const dy = evt.clientY - sample.clientY;
+      if (!axis && Math.max(Math.abs(dx), Math.abs(dy)) >= SWIPE_DIRECTION_SLOP) {
+        axis = Math.abs(dx) >= Math.abs(dy) ? 'clientX' : 'clientY';
+        sign = Math.sign(evt[axis] - sample[axis]);
+      }
+      if (axis) {
+        if ((furthest[axis] - sample[axis]) * sign >= 0) {
+          furthest = sample;
+        } else if ((sample[axis] - furthest[axis]) * sign >= SWIPE_DIRECTION_SLOP) {
+          // 明显回拉时只取最后一段，微抖不改变甩动方向。
+          sample = furthest;
+          break;
+        }
+      }
+      if (timeStamp <= targetTime) break;
+    }
+
+    const duration = evt.timeStamp - sample.timeStamp;
+    if (duration <= 0) return;
+    const dx = evt.clientX - sample.clientX;
+    const dy = evt.clientY - sample.clientY;
+    const horizontal = Math.abs(dx) > Math.abs(dy);
+    if (Math.abs(dx) === Math.abs(dy)) return;
+    const movement = horizontal ? this.#getMovementX(dx, dy) : this.#getMovementY(dx, dy);
+    const distance = Math.abs(movement);
+    const speed = distance / duration;
+    if (distance < SWIPE_MIN_DISTANCE || speed < SWIPE_MIN_SPEED) return;
+    const direction = horizontal ? (movement > 0 ? 'right' : 'left') : movement > 0 ? 'bottom' : 'top';
+    return { direction, speed };
+  };
+
   #onEnd = async (evt: PointerEvent) => {
     evt.stopPropagation();
     const { pointerId } = evt;
+    if (!this.#startEventMap.has(pointerId)) return;
     clearTimeout(this.#pressTimer);
 
-    if (this.movesMap.size === 1) {
+    const moves = this.movesMap.get(pointerId);
+    // auto release: https://javascript.info/pointer-events#pointer-capturing
+    const swipe =
+      evt.type === 'pointerup' &&
+      !this.#pressed &&
+      !this.#multiTouch &&
+      this.hasPointerCapture(pointerId) &&
+      this.#getSwipe(evt);
+    // end 处理器需要先拿到本次甩动速度，才能决定回弹或继续滑动。
+    if (swipe) this.swipe(swipe);
+
+    this.#startEventMap.delete(pointerId);
+    const ended = this.#startEventMap.size === 0;
+    if (ended) {
       this.grabbing = false;
       this.#gestureTriggered = false;
       this.end(evt);
     }
 
-    // auto release: https://javascript.info/pointer-events#pointer-capturing
-    if (!this.#pressed && this.hasPointerCapture(pointerId)) {
-      const moves = this.#getMoves(pointerId);
-
-      if (moves.length > 2) {
-        const { x, y, timeStamp, clientX, clientY } = moves[moves.length - 1];
-        const move2 = moves[moves.length - 3];
-        if (Math.abs(x) > 2) {
-          if (Math.abs(x) > Math.abs(y)) {
-            const speed = Math.abs(move2.clientX - clientX) / (timeStamp - move2.timeStamp);
-            if (x > 0) {
-              this.swipe({ direction: 'right', speed });
-            } else {
-              this.swipe({ direction: 'left', speed });
-            }
-          }
-        }
-        if (Math.abs(y) > 2) {
-          const speed = Math.abs(move2.clientY - clientY) / (timeStamp - move2.timeStamp);
-          if (Math.abs(y) > Math.abs(x)) {
-            if (y > 0) {
-              this.swipe({ direction: 'bottom', speed });
-            } else {
-              this.swipe({ direction: 'top', speed });
-            }
-          }
-        }
-      }
-    }
-
-    this.#startEventMap.delete(pointerId);
-    // 确保外部 end 事件处理器中可以读取到
+    // 确保外部 end 事件处理器中可以读取到，且不删除新手势的记录。
     await Promise.resolve();
-    this.movesMap.delete(pointerId);
+    if (this.movesMap.get(pointerId) === moves) this.movesMap.delete(pointerId);
   };
 
   #preventDefault = (evt: Event) => evt.preventDefault();
