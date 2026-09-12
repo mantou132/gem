@@ -9,6 +9,7 @@ import {
   part,
   shadow,
   slot,
+  state,
 } from '@mantou/gem/lib/decorators';
 import { createRef, createState, css, GemElement, html } from '@mantou/gem/lib/element';
 import { classMap, styleMap } from '@mantou/gem/lib/utils';
@@ -31,6 +32,10 @@ const style = css`
     position: absolute;
     inset-block: 0;
     display: flex;
+  }
+  /* Webkit need */
+  .actions[inert] {
+    visibility: hidden;
   }
   .actions.start {
     inset-inline-start: 0;
@@ -70,6 +75,7 @@ export class TapSwipeoutElement extends GemElement {
 
   @boolattribute disabled: boolean;
   @numattribute threshold: number;
+  @state opened: boolean;
 
   @emitter change: Emitter<SwipeoutSide | null>;
 
@@ -95,6 +101,7 @@ export class TapSwipeoutElement extends GemElement {
     } else if (activeSwipeout === this) {
       activeSwipeout = undefined;
     }
+    this.opened = side !== null;
     this.#state({ offset, dragging: false, opened: side });
     this.change(side);
   };
