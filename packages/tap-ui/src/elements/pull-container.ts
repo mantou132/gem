@@ -1,3 +1,4 @@
+import { type GestureSample, getSwipe, type SwipeEventDetail } from '@mantou/gem/elements/base/gesture';
 import type { Emitter } from '@mantou/gem/lib/decorators';
 import { adoptedStyle, boolattribute, customElement, emitter, mounted, numattribute } from '@mantou/gem/lib/decorators';
 import { css } from '@mantou/gem/lib/element';
@@ -19,14 +20,20 @@ export interface PullEventDetail {
   distance: number;
 }
 
+export interface PullEndEventDetail extends PullEventDetail {
+  swipe?: SwipeEventDetail;
+}
+
 @customElement('tap-pull-container')
 @adoptedStyle(style)
 export class TapPullContainerElement extends TapScrollBaseElement {
   @boolattribute disableGesture: boolean;
+  /** Include a swipe in `pull-end`; disabled by default. */
+  @boolattribute detectSwipe: boolean;
   @numattribute pullActivate: number;
 
   @emitter pull: Emitter<PullEventDetail>;
-  @emitter pullEnd: Emitter<PullEventDetail>;
+  @emitter pullEnd: Emitter<PullEndEventDetail>;
 
   #tracking = false;
   #pulling = false;
@@ -34,6 +41,8 @@ export class TapPullContainerElement extends TapScrollBaseElement {
   #startX = 0;
   #distance = 0;
   #scrollContainers: HTMLElement[] = [];
+  #swipeStart?: GestureSample;
+  #swipeMoves: GestureSample[] = [];
 
   get #pullActivate() {
     return this.pullActivate || PULL_ACTIVATE;
@@ -44,6 +53,8 @@ export class TapPullContainerElement extends TapScrollBaseElement {
     this.#pulling = false;
     this.#distance = 0;
     this.#scrollContainers = [];
+    this.#swipeStart = undefined;
+    this.#swipeMoves = [];
   };
 
   #getScrollContainers = (evt: Event) => {
@@ -76,6 +87,7 @@ export class TapPullContainerElement extends TapScrollBaseElement {
     this.#distance = 0;
     this.#startY = evt.clientY;
     this.#startX = evt.clientX;
+    this.#swipeStart = evt;
   };
 
   #onPointerMove = (evt: PointerEvent) => {
@@ -84,6 +96,7 @@ export class TapPullContainerElement extends TapScrollBaseElement {
     if (this.#hasScrolled()) {
       this.#startY = evt.clientY;
       this.#startX = evt.clientX;
+      this.#swipeStart = evt;
       if (this.#pulling) {
         this.#pulling = false;
         this.#distance = 0;
@@ -109,6 +122,7 @@ export class TapPullContainerElement extends TapScrollBaseElement {
     }
 
     if (evt.cancelable) evt.preventDefault();
+    this.#swipeMoves.push(evt)
     this.#distance = Math.max(0, dy);
     this.pull({ distance: this.#distance });
   };
@@ -123,12 +137,16 @@ export class TapPullContainerElement extends TapScrollBaseElement {
     }
   };
 
-  #onPointerUp = () => {
+  #onPointerUp = (evt: PointerEvent) => {
     if (!this.#tracking) return;
     const pulling = this.#pulling;
     const distance = this.#distance;
+    const swipe =
+      pulling && this.detectSwipe && this.#swipeStart && evt.type === 'pointerup'
+        ? getSwipe(this.#swipeStart, this.#swipeMoves || [], evt)
+        : undefined;
     this.#reset();
-    if (pulling) this.pullEnd({ distance });
+    if (pulling) this.pullEnd({ distance, swipe });
   };
 
   @mounted()

@@ -36,6 +36,70 @@ const SWIPE_MIN_SPEED = 0.3; // px/ms
 const SWIPE_MIN_DISTANCE = 20;
 const SWIPE_DIRECTION_SLOP = 10;
 
+/** Viewport coordinates in CSS pixels and a monotonic timestamp in milliseconds. */
+export interface GestureSample {
+  clientX: number;
+  clientY: number;
+  timeStamp: number;
+}
+
+/** Detect the final flick from chronological samples, including the release position and pause. */
+export function getSwipe(
+  startEvent: GestureSample,
+  moves: readonly GestureSample[],
+  evt: GestureSample,
+  getMovementX?: (x: number, y: number) => number,
+  getMovementY?: (x: number, y: number) => number,
+): SwipeEventDetail | undefined {
+  const targetTime = Math.max(startEvent.timeStamp, evt.timeStamp - SWIPE_TIME_WINDOW);
+  let sample: GestureSample = evt;
+  let furthest = sample;
+  let axis: 'clientX' | 'clientY' | undefined;
+  let sign = 0;
+
+  for (let i = moves.length - 1; i >= -1; i--) {
+    const previous = i < 0 ? startEvent : moves[i];
+    if (previous.timeStamp >= sample.timeStamp) continue;
+    // 以抬手时间为窗口终点，插值边界，避免事件采样频率影响速度。
+    const timeStamp = Math.max(targetTime, previous.timeStamp);
+    const ratio = (timeStamp - previous.timeStamp) / (sample.timeStamp - previous.timeStamp);
+    sample = {
+      clientX: previous.clientX + (sample.clientX - previous.clientX) * ratio,
+      clientY: previous.clientY + (sample.clientY - previous.clientY) * ratio,
+      timeStamp,
+    };
+    const dx = evt.clientX - sample.clientX;
+    const dy = evt.clientY - sample.clientY;
+    if (!axis && Math.max(Math.abs(dx), Math.abs(dy)) >= SWIPE_DIRECTION_SLOP) {
+      axis = Math.abs(dx) >= Math.abs(dy) ? 'clientX' : 'clientY';
+      sign = Math.sign(evt[axis] - sample[axis]);
+    }
+    if (axis) {
+      if ((furthest[axis] - sample[axis]) * sign >= 0) {
+        furthest = sample;
+      } else if ((sample[axis] - furthest[axis]) * sign >= SWIPE_DIRECTION_SLOP) {
+        // 明显回拉时只取最后一段，微抖不改变甩动方向。
+        sample = furthest;
+        break;
+      }
+    }
+    if (timeStamp <= targetTime) break;
+  }
+
+  const duration = evt.timeStamp - sample.timeStamp;
+  if (duration <= 0) return;
+  const dx = evt.clientX - sample.clientX;
+  const dy = evt.clientY - sample.clientY;
+  const horizontal = Math.abs(dx) > Math.abs(dy);
+  if (Math.abs(dx) === Math.abs(dy)) return;
+  const movement = horizontal ? (getMovementX?.(dx, dy) ?? dx) : (getMovementY?.(dx, dy) ?? dy);
+  const distance = Math.abs(movement);
+  const speed = distance / duration;
+  if (distance < SWIPE_MIN_DISTANCE || speed < SWIPE_MIN_SPEED) return;
+  const direction = horizontal ? (movement > 0 ? 'right' : 'left') : movement > 0 ? 'bottom' : 'top';
+  return { direction, speed };
+}
+
 function angleAB(
   a: number,
   b: number,
@@ -222,55 +286,13 @@ export class GemGestureElement extends GemElement {
   };
 
   #getSwipe = (evt: PointerEvent): SwipeEventDetail | undefined => {
-    const startEvent = this.#getStartEvent(evt.pointerId);
-    const moves = this.#getMoves(evt.pointerId);
-    const targetTime = Math.max(startEvent.timeStamp, evt.timeStamp - SWIPE_TIME_WINDOW);
-    let sample: Pick<PanEventDetail, 'clientX' | 'clientY' | 'timeStamp'> = evt;
-    let furthest = sample;
-    let axis: 'clientX' | 'clientY' | undefined;
-    let sign = 0;
-
-    for (let i = moves.length - 1; i >= -1; i--) {
-      const previous = i < 0 ? startEvent : moves[i];
-      if (previous.timeStamp >= sample.timeStamp) continue;
-      // 以抬手时间为窗口终点，插值边界，避免事件采样频率影响速度。
-      const timeStamp = Math.max(targetTime, previous.timeStamp);
-      const ratio = (timeStamp - previous.timeStamp) / (sample.timeStamp - previous.timeStamp);
-      sample = {
-        clientX: previous.clientX + (sample.clientX - previous.clientX) * ratio,
-        clientY: previous.clientY + (sample.clientY - previous.clientY) * ratio,
-        timeStamp,
-      };
-      const dx = evt.clientX - sample.clientX;
-      const dy = evt.clientY - sample.clientY;
-      if (!axis && Math.max(Math.abs(dx), Math.abs(dy)) >= SWIPE_DIRECTION_SLOP) {
-        axis = Math.abs(dx) >= Math.abs(dy) ? 'clientX' : 'clientY';
-        sign = Math.sign(evt[axis] - sample[axis]);
-      }
-      if (axis) {
-        if ((furthest[axis] - sample[axis]) * sign >= 0) {
-          furthest = sample;
-        } else if ((sample[axis] - furthest[axis]) * sign >= SWIPE_DIRECTION_SLOP) {
-          // 明显回拉时只取最后一段，微抖不改变甩动方向。
-          sample = furthest;
-          break;
-        }
-      }
-      if (timeStamp <= targetTime) break;
-    }
-
-    const duration = evt.timeStamp - sample.timeStamp;
-    if (duration <= 0) return;
-    const dx = evt.clientX - sample.clientX;
-    const dy = evt.clientY - sample.clientY;
-    const horizontal = Math.abs(dx) > Math.abs(dy);
-    if (Math.abs(dx) === Math.abs(dy)) return;
-    const movement = horizontal ? this.#getMovementX(dx, dy) : this.#getMovementY(dx, dy);
-    const distance = Math.abs(movement);
-    const speed = distance / duration;
-    if (distance < SWIPE_MIN_DISTANCE || speed < SWIPE_MIN_SPEED) return;
-    const direction = horizontal ? (movement > 0 ? 'right' : 'left') : movement > 0 ? 'bottom' : 'top';
-    return { direction, speed };
+    return getSwipe(
+      this.#getStartEvent(evt.pointerId),
+      this.#getMoves(evt.pointerId),
+      evt,
+      this.#getMovementX,
+      this.#getMovementY,
+    );
   };
 
   #onEnd = async (evt: PointerEvent) => {

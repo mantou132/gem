@@ -20,9 +20,8 @@ import { setBodyInert } from '../lib/element';
 import { clamp } from '../lib/number';
 import { theme } from '../lib/theme';
 import { DyPromise } from '../lib/utils';
-import type { PanEventDetail, SwipeEventDetail } from './gesture';
+import type { PullEndEventDetail, PullEventDetail } from './pull-container';
 
-import './gesture';
 import './pull-container';
 import './scroll-box';
 import './stack';
@@ -47,8 +46,7 @@ const style = css`
   :host(:not([hidden]):where([open], :state(closing))) {
     display: flex;
   }
-  :host(:state(closing)),
-  :host(:not([gesture])) .header-area {
+  :host(:state(closing)) {
     pointer-events: none;
   }
   .mask {
@@ -100,7 +98,7 @@ const style = css`
     margin: 0.65em 0 0.35em;
     border-radius: 1em;
   }
-  :host([gesture]) .header-area::before {
+  :host(:not([disable-gesture])) .header-area::before {
     background: ${theme.disabledColor};
     height: 0.3em;
   }
@@ -117,6 +115,7 @@ const style = css`
     flex-grow: 1;
     flex-shrink: 1;
     min-height: 0;
+    overscroll-behavior: contain;
   }
 `;
 
@@ -124,7 +123,7 @@ export interface SheetOptions {
   header?: string | TemplateResult;
   body?: string | TemplateResult;
   maskClosable?: boolean;
-  gesture?: boolean;
+  disableGesture?: boolean;
   open?: boolean;
   hasStack?: boolean;
   paddingless?: boolean;
@@ -141,7 +140,7 @@ export class TapSheetElement extends GemElement {
 
   @boolattribute open: boolean;
   @boolattribute maskClosable: boolean;
-  @boolattribute gesture = true;
+  @boolattribute disableGesture: boolean;
   @boolattribute paddingless: boolean;
   @attribute header: string;
   @attribute body: string;
@@ -185,11 +184,11 @@ export class TapSheetElement extends GemElement {
 
   constructor(options: SheetOptions = {}) {
     super();
-    const { open, maskClosable, gesture, header, body, paddingless } = options;
+    const { open, maskClosable, disableGesture, header, body, paddingless } = options;
     if (open) this.open = open;
     if (maskClosable) this.maskClosable = maskClosable;
     if (paddingless) this.paddingless = paddingless;
-    this.gesture = gesture !== false;
+    if (disableGesture) this.disableGesture = disableGesture;
     this.headerSlot = header;
     this.bodySlot = body;
   }
@@ -252,36 +251,22 @@ export class TapSheetElement extends GemElement {
     });
   };
 
-  #onPan = (evt: CustomEvent<PanEventDetail>) => {
-    const offset = Math.max(0, this.#state.offset + evt.detail.y);
-    if (offset === 0 && evt.detail.y <= 0) return;
-    this.#state({ offset });
+  #onPull = (evt: CustomEvent<PullEventDetail>) => {
+    this.#state({ offset: Math.max(0, evt.detail.distance) });
   };
 
-  #onSwipe = (evt: CustomEvent<SwipeEventDetail>) => {
-    if (evt.detail.direction === 'bottom' && evt.detail.speed > 0.5) {
-      this.#closeSpeed = evt.detail.speed;
-    }
-  };
-
-  #onPanEnd = async () => {
+  #onPullEnd = async (evt: CustomEvent<PullEndEventDetail>) => {
     const offset = this.#state.offset;
     const height = this.#height;
-    const speed = this.#closeSpeed;
+    const { swipe } = evt.detail;
+    const speed = swipe?.direction === 'bottom' && swipe.speed > 0.5 ? swipe.speed : 0;
+    this.#closeSpeed = speed;
     if (offset > height * 0.33 || speed) {
       this.#close();
       return;
     }
     this.#closeSpeed = 0;
     await this.#animateOffset(offset, 0, { duration: this.#duration(offset, height) });
-  };
-
-  #onBodyPull = (evt: CustomEvent<{ distance: number }>) => {
-    this.#state({ offset: Math.max(0, evt.detail.distance) });
-  };
-
-  #onBodyPullEnd = () => {
-    this.#onPanEnd();
   };
 
   @memo((i) => [i.open])
@@ -320,7 +305,7 @@ export class TapSheetElement extends GemElement {
         style=${styleMap({ opacity: 1 - Math.min(1, offset / (this.#height || innerHeight)) })}
         @click=${this.#onMaskClick}
       ></div>
-      <div
+      <tap-pull-container
         ${this.#sheetRef}
         part=${TapSheetElement.sheet}
         role="dialog"
@@ -328,28 +313,21 @@ export class TapSheetElement extends GemElement {
         aria-modal="true"
         class="sheet"
         style=${styleMap({ transform: `translateY(${offset}px)` })}
+        disable-scroll-mask
+        detect-swipe
+        ?disable-gesture=${this.disableGesture || this.closing}
+        @pull=${this.#onPull}
+        @pull-end=${this.#onPullEnd}
       >
-        <tap-gesture
-          class="header-area"
-          @pan=${this.#onPan}
-          @swipe=${this.#onSwipe}
-          @end=${this.#onPanEnd}
-        >
+        <div class="header-area">
           <div v-if=${!!this.#header} part=${TapSheetElement.header} class="header" role="heading" aria-level="1">
             <slot name=${TapSheetElement.header}>${this.#header}</slot>
           </div>
-        </tap-gesture>
-        <tap-pull-container
-          ${this.#bodyRef}
-          class="body"
-          part=${TapSheetElement.body}
-          ?disable-gesture=${!this.gesture || this.closing}
-          @pull=${this.#onBodyPull}
-          @pull-end=${this.#onBodyPullEnd}
-        >
+        </div>
+        <tap-scroll-box ${this.#bodyRef} class="body" part=${TapSheetElement.body}>
           <slot>${this.#body}</slot>
-        </tap-pull-container>
-      </div>
+        </tap-scroll-box>
+      </tap-pull-container>
     `;
   };
 }

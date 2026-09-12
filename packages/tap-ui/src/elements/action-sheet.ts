@@ -227,7 +227,7 @@ export class TapActionSheetElement<T = unknown> extends GemElement {
 
     const sheetPromise = Sheet.open({
       body: html`${actionSheet}`,
-      gesture: false,
+      disableGesture: true,
       maskClosable: options.maskClosable !== false,
     });
 
