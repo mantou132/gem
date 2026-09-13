@@ -90,6 +90,12 @@ export class TapStackElement extends GemElement {
     if (!stack.isConnected) document.body.append(stack);
   }
 
+  static replace(options: StackPushOptions) {
+    const stack = (TapStackElement.instance ??= new TapStackElement());
+    stack.replace(options);
+    if (!stack.isConnected) document.body.append(stack);
+  }
+
   static pop() {
     if (!TapStackElement.instance) return;
     TapStackElement.instance.pop();
@@ -200,6 +206,18 @@ export class TapStackElement extends GemElement {
   };
 
   #restore = (page: StackPushOptions) => this.#push(page);
+
+  #replace = (page: StackPushOptions) => {
+    if (this.#store.pages.at(-1) === page) return;
+    this.#busy = false;
+    const animated = page.animated ?? false;
+    this.#store({
+      pages: [...this.#store.pages.slice(0, -1), page],
+      ...(animated ? { offset: this.clientWidth || innerWidth } : { offset: 0 }),
+    });
+    if (animated) queueMicrotask(() => this.#enter(page));
+    else requestAnimationFrame(() => this.#syncHeight(0));
+  };
 
   #pop = async (page?: StackPushOptions) => {
     const top = this.#store.pages.at(-1);
@@ -358,6 +376,21 @@ export class TapStackElement extends GemElement {
       });
     }
     this.#push(options);
+  }
+
+  replace(options: StackPushOptions) {
+    if (!this.#store.pages.length) {
+      this.push(options);
+      return;
+    }
+    if (!this.disableHistory && options.history !== false) {
+      history.replace({
+        close: () => this.#pop(options),
+        shouldClose: options.canLeave,
+        open: () => this.#restore(options),
+      });
+    }
+    this.#replace(options);
   }
 
   pop() {
