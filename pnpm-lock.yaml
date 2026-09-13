@@ -79,7 +79,7 @@ importers:
         specifier: ^2.x
         version: link:../gem
       '@mantou/tap-ui':
-        specifier: ^0.1.9
+        specifier: ^0.1.10
         version: link:../tap-ui
       deep-query-selector:
         specifier: ^1.0.1
@@ -143,7 +143,7 @@ importers:
   packages/gem-analyzer:
     dependencies:
       '@mantou/gem':
-        specifier: ^2.2.10
+        specifier: ^2.2.11
         version: link:../gem
     devDependencies:
       '@gemjs/config':
@@ -162,7 +162,7 @@ importers:
         specifier: ^0.3.2
         version: 0.3.2(@rsbuild/core@2.0.15(core-js@3.29.0))(@rspack/core@2.0.8(@swc/helpers@0.5.23))
       '@mantou/gem':
-        specifier: ^2.2.10
+        specifier: ^2.2.11
         version: link:../gem
       '@rspack/cli':
         specifier: ^2.0.8
@@ -274,7 +274,7 @@ importers:
         specifier: ^0.18.1
         version: 0.18.3
       gem-analyzer:
-        specifier: ^2.2.10
+        specifier: ^2.2.11
         version: link:../gem-analyzer
       nodemon:
         specifier: ^2.0.7
@@ -286,7 +286,7 @@ importers:
   packages/gem-devtools:
     dependencies:
       '@mantou/gem':
-        specifier: ^2.2.10
+        specifier: ^2.2.11
         version: link:../gem
       webextension-polyfill:
         specifier: ^0.10.0
@@ -308,13 +308,13 @@ importers:
   packages/gem-examples:
     dependencies:
       '@mantou/gem':
-        specifier: ^2.2.10
+        specifier: ^2.2.11
         version: link:../gem
       '@mantou/tap-ui':
-        specifier: ^0.1.9
+        specifier: ^0.1.10
         version: link:../tap-ui
       duoyun-ui:
-        specifier: ^2.2.12
+        specifier: ^2.2.13
         version: link:../duoyun-ui
     devDependencies:
       '@gemjs/config':
@@ -333,7 +333,7 @@ importers:
         specifier: ^7.2.0
         version: 7.2.0
       gem-analyzer:
-        specifier: ^2.2.10
+        specifier: ^2.2.11
         version: link:../gem-analyzer
       ts-morph:
         specifier: ^12.0.0
@@ -352,7 +352,7 @@ importers:
         specifier: ^1.13.8
         version: 1.19.5(hono@4.10.1)
       '@mantou/gem':
-        specifier: ^2.2.10
+        specifier: ^2.2.11
         version: link:../gem
       esbuild:
         specifier: ^0.24.0
@@ -389,7 +389,7 @@ importers:
         specifier: ^1.0.0
         version: 1.0.0
       duoyun-ui:
-        specifier: ^2.2.12
+        specifier: ^2.2.13
         version: link:../duoyun-ui
       tree-sitter:
         specifier: ^0.22.4
@@ -436,7 +436,7 @@ importers:
   packages/ts-gem-plugin:
     dependencies:
       '@mantou/gem':
-        specifier: ^2.2.10
+        specifier: ^2.2.11
         version: link:../gem
       '@mantou/typescript-template-language-service-decorator':
         specifier: ^2.3.6
@@ -451,7 +451,7 @@ importers:
         specifier: ^5.3.6
         version: 5.3.6
       duoyun-ui:
-        specifier: ^2.2.12
+        specifier: ^2.2.13
         version: link:../duoyun-ui
       vscode-languageserver-textdocument:
         specifier: ^1.0.12
@@ -519,13 +519,13 @@ importers:
         specifier: ^1.0.0
         version: 1.0.0
       duoyun-ui:
-        specifier: ^2.2.12
+        specifier: ^2.2.13
         version: link:../duoyun-ui
       ts-gem-plugin:
-        specifier: ^0.0.21
+        specifier: ^0.0.22
         version: link:../ts-gem-plugin
       vscode-gem-languageservice:
-        specifier: ^0.0.17
+        specifier: ^0.0.18
         version: link:../language-service
       vscode-languageclient:
         specifier: ^9.0.1
