@@ -184,9 +184,7 @@ export class TapPageElement extends GemElement {
   #footerRef = createRef<HTMLElement>();
 
   get contentHeight() {
-    const header = this.floatheader
-      ? 0
-      : this.#headerSlotRef.value?.parentElement?.getBoundingClientRect().height || 0;
+    const header = this.floatheader ? 0 : this.#headerSlotRef.value?.parentElement?.getBoundingClientRect().height || 0;
     const footer = this.#footerRef.value?.getBoundingClientRect().height || 0;
     const mainEl = this.#mainRef.value;
     let main = 0;

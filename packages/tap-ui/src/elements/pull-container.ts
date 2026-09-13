@@ -24,19 +24,26 @@ export interface PullEndEventDetail extends PullEventDetail {
   swipe?: SwipeEventDetail;
 }
 
+export type PushEventDetail = PullEventDetail;
+export type PushEndEventDetail = PullEndEventDetail;
+
 @customElement('tap-pull-container')
 @adoptedStyle(style)
 export class TapPullContainerElement extends TapScrollBaseElement {
   @boolattribute disableGesture: boolean;
-  /** Include a swipe in `pull-end`; disabled by default. */
+  @boolattribute disableScroll: boolean;
+  /** Include a swipe in `pull-end` / `push-end`; disabled by default. */
   @boolattribute detectSwipe: boolean;
   @numattribute pullActivate: number;
 
   @emitter pull: Emitter<PullEventDetail>;
   @emitter pullEnd: Emitter<PullEndEventDetail>;
+  @emitter push: Emitter<PushEventDetail>;
+  @emitter pushEnd: Emitter<PushEndEventDetail>;
 
   #tracking = false;
   #pulling = false;
+  #pushing = false;
   #startY = 0;
   #startX = 0;
   #distance = 0;
@@ -51,6 +58,7 @@ export class TapPullContainerElement extends TapScrollBaseElement {
   #reset = () => {
     this.#tracking = false;
     this.#pulling = false;
+    this.#pushing = false;
     this.#distance = 0;
     this.#scrollContainers = [];
     this.#swipeStart = undefined;
@@ -75,8 +83,15 @@ export class TapPullContainerElement extends TapScrollBaseElement {
   };
 
   #hasScrolled = () => {
+    if (this.disableScroll) return;
     if (this.scrollTop > SCROLL_DEVIATION) return true;
     return this.#scrollContainers.some((c) => c.scrollTop > SCROLL_DEVIATION);
+  };
+
+  #canScrollDown = () => {
+    if (this.disableScroll) return;
+    if (this.scrollHeight - this.clientHeight - this.scrollTop > SCROLL_DEVIATION) return true;
+    return this.#scrollContainers.some((c) => c.scrollHeight - c.clientHeight - c.scrollTop > SCROLL_DEVIATION);
   };
 
   #onPointerDown = (evt: PointerEvent) => {
@@ -84,6 +99,7 @@ export class TapPullContainerElement extends TapScrollBaseElement {
     this.#scrollContainers = this.#getScrollContainers(evt);
     this.#tracking = true;
     this.#pulling = false;
+    this.#pushing = false;
     this.#distance = 0;
     this.#startY = evt.clientY;
     this.#startX = evt.clientX;
@@ -103,60 +119,90 @@ export class TapPullContainerElement extends TapScrollBaseElement {
   #onMove = (evt: PointerEvent) => {
     if (!this.#tracking) return;
 
-    if (this.#hasScrolled()) {
-      this.#startY = evt.clientY;
-      this.#startX = evt.clientX;
-      this.#swipeStart = evt;
+    if (this.#pulling || this.#pushing) {
+      if (evt.cancelable) evt.preventDefault();
+      this.#swipeMoves.push(evt);
+      const dy = evt.clientY - this.#startY;
+      const distance = Math.max(0, this.#pulling ? dy : -dy);
+      this.#distance = distance;
       if (this.#pulling) {
-        this.#pulling = false;
-        this.#distance = 0;
-        this.pull({ distance: 0 });
+        this.pull({ distance });
+      } else {
+        this.push({ distance });
       }
       return;
     }
 
     const dy = evt.clientY - this.#startY;
     const dx = evt.clientX - this.#startX;
-    if (!this.#pulling) {
-      if (dy < this.#pullActivate) return;
-      if (Math.abs(dx) > dy) {
-        this.#reset();
-        return;
-      }
-      this.#pulling = true;
-      try {
-        this.setPointerCapture(evt.pointerId);
-      } catch {
-        // ignore
-      }
+    if (dy === 0) return;
+    const pulling = dy > 0;
+    const distance = Math.abs(dy);
+    const canScroll = pulling ? this.#hasScrolled() : this.#canScrollDown();
+
+    if (canScroll) {
+      this.#startY = evt.clientY;
+      this.#startX = evt.clientX;
+      this.#swipeStart = evt;
+      return;
     }
 
+    if (distance < this.#pullActivate) return;
+
+    if (Math.abs(dx) > distance) {
+      this.#reset();
+      return;
+    }
+
+    this.#pulling = pulling;
+    this.#pushing = !pulling;
+    this.#swipeMoves.length = 0;
+    this.#swipeMoves.push(evt);
+    try {
+      this.setPointerCapture(evt.pointerId);
+    } catch {
+      // ignore
+    }
     if (evt.cancelable) evt.preventDefault();
-    this.#swipeMoves.push(evt)
-    this.#distance = Math.max(0, dy);
-    this.pull({ distance: this.#distance });
+    this.#distance = distance;
+    if (pulling) {
+      this.pull({ distance });
+    } else {
+      this.push({ distance });
+    }
   };
 
   #onTouchMove = (evt: TouchEvent) => {
-    if (!this.#tracking || evt.touches.length !== 1 || this.#hasScrolled()) return;
+    if (!this.#tracking || evt.touches.length !== 1 || this.disableScroll) return;
     const touch = evt.touches[0];
     const dy = touch.clientY - this.#startY;
     const dx = touch.clientX - this.#startX;
-    if (this.#pulling || (dy > 0 && Math.abs(dx) <= dy)) {
+    if (this.#pulling || (!this.#hasScrolled() && dy > 0 && Math.abs(dx) <= dy)) {
       if (evt.cancelable) evt.preventDefault();
+    }
+    if (this.#pushing || (!this.#canScrollDown() && dy < 0 && Math.abs(dx) <= -dy)) {
+      if (evt.cancelable) evt.preventDefault();
+    }
+  };
+
+  #onTouch = (evt: TouchEvent) => {
+    if (this.disableScroll) {
+      evt.preventDefault();
     }
   };
 
   #onPointerUp = (evt: PointerEvent) => {
     if (!this.#tracking) return;
     const pulling = this.#pulling;
+    const pushing = this.#pushing;
     const distance = this.#distance;
     const swipe =
-      pulling && this.detectSwipe && this.#swipeStart && evt.type === 'pointerup'
+      (pulling || pushing) && this.detectSwipe && this.#swipeStart && evt.type === 'pointerup'
         ? getSwipe(this.#swipeStart, this.#swipeMoves || [], evt)
         : undefined;
     this.#reset();
     if (pulling) this.pullEnd({ distance, swipe });
+    if (pushing) this.pushEnd({ distance, swipe });
   };
 
   @mounted()
@@ -165,6 +211,7 @@ export class TapPullContainerElement extends TapScrollBaseElement {
       addListener(this, 'pointerdown', this.#onPointerDown, { capture: true }),
       addListener(this, 'pointermove', this.#onPointerMove, { passive: false, capture: true }),
       addListener(this, 'touchmove', this.#onTouchMove, { passive: false, capture: true }),
+      addListener(this, 'touchmove', this.#onTouch, { capture: true }),
       addListener(this, 'pointerup', this.#onPointerUp, { capture: true }),
       addListener(this, 'pointercancel', this.#onPointerUp, { capture: true }),
     ];

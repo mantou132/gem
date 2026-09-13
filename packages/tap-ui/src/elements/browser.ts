@@ -42,7 +42,7 @@ export interface BrowserOptions<T = unknown> {
    * Target stack or context element used to find the closest `<tap-stack>`.
    * When omitted, defaults to the global root `Stack`.
    */
-  stack?: Element
+  stack?: Element;
 }
 
 /*need iframe inject js `parent.postMessage` */

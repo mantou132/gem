@@ -18,6 +18,7 @@ export function initApp(options: InitAppOptions = {}) {
         <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
         <style>
           :where(body, html) {
+            width: 100%;
             margin: 0;
             font-family: ${theme.font};
             overflow: hidden;
@@ -26,8 +27,11 @@ export function initApp(options: InitAppOptions = {}) {
           }
           html {
             height: 100%;
+            -webkit-tap-highlight-color: transparent;
           }
           body {
+            background: black;
+            color: ${theme.textColor};
             position: relative;
             height: min(100%, 100% - var(--keyboard-height, 0px) + var(--safe-area-inset-bottom, 0px));
           }

@@ -113,6 +113,24 @@ export class THomeElement extends GemElement {
     this.#state({ sheetResult: 'Dismissed' });
   };
 
+  #openSheetSnap = async () => {
+    await Sheet.open({
+      header: 'Snap Sheet',
+      snap: true,
+      body: html`
+        <p style="margin-bottom: 0.75em; color: ${theme.describeColor};">
+          2-stage snap [40%, 90%]. Push up or pull down to expand/collapse. Contents scroll only when fully expanded.
+        </p>
+        ${Array.from(
+          { length: 30 },
+          (_, i) => html`<p style="margin: 0.5em 0">Item ${i + 1} — scrollable when fully expanded.</p>`,
+        )}
+      `,
+      maskClosable: true,
+    });
+    this.#state({ sheetResult: 'Dismissed (snap)' });
+  };
+
   #openSheetLong = async () => {
     await Sheet.open({
       header: 'Scrollable',
@@ -148,11 +166,12 @@ export class THomeElement extends GemElement {
     this.#state({ sheetResult: 'Dismissed (nested scroll)' });
   };
 
-  #openSheetStack = async () => {
+  #openSheetStack = async (snap: boolean) => {
     await Sheet.open({
       body: html`<t-settings in-sheet></t-settings>`,
       maskClosable: true,
       hasStack: true,
+      snap,
     });
     this.#state({ sheetStackResult: 'Dismissed' });
   };
@@ -245,6 +264,7 @@ export class THomeElement extends GemElement {
         heading="Sheet"
         .items=${[
           { label: 'Open', description: 'Drag header or pull body', action: true, onClick: this.#openSheet },
+          { label: 'Snap', description: '2-stage [45%, 90%]', action: true, onClick: this.#openSheetSnap },
           { label: 'Scrollable', description: 'Pull at top to close', action: true, onClick: this.#openSheetLong },
           {
             label: 'Nested scroll',
@@ -266,6 +286,12 @@ export class THomeElement extends GemElement {
             description: 'Multi-step navigation',
             action: true,
             onClick: this.#openSheetStack,
+          },
+          {
+            label: 'SnapStack',
+            description: 'Snap-Stack navigation',
+            action: true,
+            onClick: () => this.#openSheetStack(true),
           },
           {
             label: 'Last result',

@@ -8,6 +8,7 @@ import {
   emitter,
   memo,
   part,
+  property,
   shadow,
   slot,
   state,
@@ -20,7 +21,13 @@ import { setBodyInert } from '../lib/element';
 import { clamp } from '../lib/number';
 import { theme } from '../lib/theme';
 import { DyPromise } from '../lib/utils';
-import type { PullEndEventDetail, PullEventDetail, TapPullContainerElement } from './pull-container';
+import type {
+  PullEndEventDetail,
+  PullEventDetail,
+  PushEndEventDetail,
+  PushEventDetail,
+  TapPullContainerElement,
+} from './pull-container';
 
 import './pull-container';
 import './scroll-box';
@@ -127,6 +134,7 @@ export interface SheetOptions {
   open?: boolean;
   hasStack?: boolean;
   paddingless?: boolean;
+  snap?: boolean | number[];
 }
 
 @customElement('tap-sheet')
@@ -142,6 +150,7 @@ export class TapSheetElement extends GemElement {
   @boolattribute maskClosable: boolean;
   @boolattribute disableGesture: boolean;
   @boolattribute paddingless: boolean;
+  @property snap?: boolean | number[];
   @attribute header: string;
   @attribute body: string;
 
@@ -161,7 +170,7 @@ export class TapSheetElement extends GemElement {
       body: !options.hasStack
         ? options.body
         : html`
-            <tap-stack auto-height disable-history .maxHeight=${innerHeight * 0.77}>
+            <tap-stack .autoHeight=${!options.snap} disable-history .maxHeight=${innerHeight * 0.77}>
               ${options.body}
             </tap-stack>
           `,
@@ -184,11 +193,12 @@ export class TapSheetElement extends GemElement {
 
   constructor(options: SheetOptions = {}) {
     super();
-    const { open, maskClosable, disableGesture, header, body, paddingless } = options;
+    const { open, snap, maskClosable, disableGesture, header, body, paddingless } = options;
     if (open) this.open = open;
     if (maskClosable) this.maskClosable = maskClosable;
     if (paddingless) this.paddingless = paddingless;
     if (disableGesture) this.disableGesture = disableGesture;
+    if (snap) this.snap = snap;
     this.headerSlot = header;
     this.bodySlot = body;
   }
@@ -197,6 +207,20 @@ export class TapSheetElement extends GemElement {
   #bodyRef = createRef<HTMLElement>();
   #state = createState({ offset: 0 });
   #closeSpeed = 0;
+  #dragStartOffset = 0;
+
+  get #snaps(): number[] {
+    if (this.snap === true) return [0.45, 0.9];
+    if (Array.isArray(this.snap)) return [...this.snap].sort((a, b) => a - b);
+    return [];
+  }
+
+  get #snapOffsets() {
+    const snaps = this.#snaps;
+    const maxHeight = snaps.length ? snaps.at(-1)! * innerHeight : this.#height;
+    const offsets = snaps.length ? snaps.map((s) => Math.max(0, maxHeight - s * innerHeight)) : [0];
+    return { maxHeight, offsets };
+  }
 
   get #header() {
     return this.header || this.headerSlot;
@@ -222,7 +246,6 @@ export class TapSheetElement extends GemElement {
 
   #duration = (distance: number, height: number, speed = 0) => {
     if (speed > 0) {
-      console.log({speed})
       return clamp(SHEET_DURATION_MIN, 3 * (distance / speed), SHEET_DURATION);
     }
     return clamp(SHEET_DURATION_MIN, SHEET_DURATION * (distance / (height || 1)), SHEET_DURATION);
@@ -245,29 +268,54 @@ export class TapSheetElement extends GemElement {
   #finishClose = async () => {
     const height = this.#height;
     const from = this.#state.offset;
-    const speed = this.#closeSpeed;
     this.#closeSpeed = 0;
-    await this.#animateOffset(from, height, {
-      duration: this.#duration(height - from, height, speed),
-    });
+    await this.#animateOffset(from, height, { duration: SHEET_DURATION });
+  };
+
+  #onPointerDown = () => {
+    this.#dragStartOffset = this.#state.offset;
   };
 
   #onPull = (evt: CustomEvent<PullEventDetail>) => {
-    this.#state({ offset: Math.max(0, evt.detail.distance) });
+    this.#state({ offset: this.#dragStartOffset + evt.detail.distance });
   };
 
-  #onPullEnd = async (evt: CustomEvent<PullEndEventDetail>) => {
-    const offset = this.#state.offset;
-    const height = this.#height;
+  #onPush = (evt: CustomEvent<PushEventDetail>) => {
+    this.#state({ offset: Math.max(0, this.#dragStartOffset - evt.detail.distance) });
+  };
+
+  #onGestureEnd = async (evt: CustomEvent<PullEndEventDetail | PushEndEventDetail>) => {
+    const { offset } = this.#state;
+    const { maxHeight, offsets } = this.#snapOffsets;
     const { swipe } = evt.detail;
-    const speed = swipe?.direction === 'bottom' && swipe.speed > 0.5 ? swipe.speed : 0;
-    this.#closeSpeed = speed;
-    if (offset > height * 0.33 || speed) {
+    const speed = swipe ? swipe.speed : 0;
+    const isDown = swipe?.direction === 'bottom' && speed > 0.5;
+    const isUp = swipe?.direction === 'top' && speed > 0.5;
+
+    const lowestOffset = offsets[0];
+
+    if (isDown && offset >= lowestOffset) {
+      this.#closeSpeed = speed;
       this.#close();
       return;
     }
-    this.#closeSpeed = 0;
-    await this.#animateOffset(offset, 0, { duration: this.#duration(offset, height) });
+    if (offset > lowestOffset + (maxHeight - lowestOffset) * 0.33) {
+      this.#close();
+      return;
+    }
+
+    let target = offsets[0];
+    if (isUp) {
+      target = offsets.find((o) => o < offset) ?? offsets.at(-1)!;
+    } else if (isDown) {
+      target = offsets.find((o) => o > offset) ?? lowestOffset;
+    } else {
+      target = offsets.reduce((prev, curr) => (Math.abs(curr - offset) < Math.abs(prev - offset) ? curr : prev));
+    }
+
+    await this.#animateOffset(offset, target, {
+      duration: this.#duration(Math.abs(target - offset), maxHeight, speed),
+    });
   };
 
   @memo((i) => [i.open])
@@ -287,7 +335,8 @@ export class TapSheetElement extends GemElement {
   #animation = async () => {
     if (this.open) {
       !this.shadowRoot?.activeElement && this.focus();
-      this.#animateOffset(this.#height, 0);
+      const { maxHeight, offsets } = this.#snapOffsets;
+      this.#animateOffset(maxHeight, offsets[0]);
     } else if (this.closing) {
       await this.#finishClose();
       this.closing = false;
@@ -299,11 +348,17 @@ export class TapSheetElement extends GemElement {
     if (!this.open && !this.closing) return html``;
 
     const { offset } = this.#state;
+    const { maxHeight, offsets } = this.#snapOffsets;
+    const lowestOffset = offsets[0];
+    const maskProgress =
+      maxHeight === lowestOffset
+        ? 1 - offset / (maxHeight || 1)
+        : 1 - (offset - lowestOffset) / (maxHeight - lowestOffset || 1);
 
     return html`
       <div
         class="mask"
-        style=${styleMap({ opacity: 1 - Math.min(1, offset / (this.#height || innerHeight)) })}
+        style=${styleMap({ opacity: clamp(0, maskProgress, 1) })}
         @click=${this.#onMaskClick}
       ></div>
       <tap-pull-container
@@ -313,12 +368,19 @@ export class TapSheetElement extends GemElement {
         tabindex="0"
         aria-modal="true"
         class="sheet"
-        style=${styleMap({ transform: `translateY(${offset}px)` })}
+        style=${styleMap({
+          transform: `translateY(${offset}px)`,
+          height: this.#snaps.length ? `${maxHeight}px` : undefined,
+        })}
         disable-scroll-mask
         detect-swipe
         ?disable-gesture=${this.disableGesture || this.closing}
+        ?disable-scroll=${offset > 0}
+        @pointerdown=${this.#onPointerDown}
         @pull=${this.#onPull}
-        @pull-end=${this.#onPullEnd}
+        @pull-end=${this.#onGestureEnd}
+        @push=${this.#onPush}
+        @push-end=${this.#onGestureEnd}
       >
         <div class="header-area">
           <div v-if=${!!this.#header} part=${TapSheetElement.header} class="header" role="heading" aria-level="1">

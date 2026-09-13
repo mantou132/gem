@@ -2,10 +2,12 @@
 
 ## General Rules
 
+- When encountering something that is not clear, do not act freely. You should ask for confirmation.
+- Always consider the code based on its purpose, and if there is a simpler solution it should be proposed.
+- Only deal with scenarios that have a practical basis; do not add defensive logic or unnecessary complexity for situations that will not occur
 - Entire file should have consistent style
 - Use modern Web APIs or ES standards
 - When referencing other files, do not write code with the same issues
-- Formatting rules: see `biome.jsonc`
 
 ## Gem Element Development
 

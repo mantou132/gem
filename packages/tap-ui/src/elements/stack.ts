@@ -132,8 +132,7 @@ export class TapStackElement extends GemElement {
     if (cached) return cached;
     if (el) {
       const tapPage = (el.querySelector('tap-page') ||
-            el.firstElementChild?.shadowRoot?.querySelector('tap-page')
-      ) as TapPageElement | null;
+        el.firstElementChild?.shadowRoot?.querySelector('tap-page')) as TapPageElement | null;
       const measured = Math.min(this.maxHeight || 9e9, tapPage?.contentHeight || el.scrollHeight || el.offsetHeight);
       if (measured > 0) {
         this.#pageHeights.set(page, measured);
@@ -301,7 +300,7 @@ export class TapStackElement extends GemElement {
       if (records.some(({ type, target }) => type !== 'attributes' || !wrappers.includes(target as HTMLElement))) {
         frame ||= requestAnimationFrame(() => {
           frame = 0;
-          this.#pageHeights = new WeakMap()
+          this.#pageHeights = new WeakMap();
           this.#syncHeight(this.#store.offset);
         });
       }
