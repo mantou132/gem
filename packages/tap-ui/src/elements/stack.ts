@@ -44,6 +44,7 @@ const style = css`
     inset: 0;
     z-index: 1;
     overflow: hidden;
+    transform-origin: center top;
   }
   :scope[auto-height] {
     display: block;
@@ -115,7 +116,7 @@ export class TapStackElement extends GemElement {
 
   #topPageRef = createRef<HTMLElement>();
   #belowPageRef = createRef<HTMLElement>();
-  #store = createStore({ pages: [] as StackPushOptions[], offset: 0 });
+  #store = createStore({ pages: [] as StackPushOptions[], offset: 0, sheetProgress: 0 });
   #busy = false;
   #closeSpeed = 0;
   #pageHeights = new WeakMap<StackPushOptions, number>();
@@ -286,8 +287,23 @@ export class TapStackElement extends GemElement {
 
   @mounted()
   #init = () => {
+    TapStackElement.instance ??= this;
     this.#syncHeight(0);
     return connect(this.#store, this.update);
+  };
+
+  @effect((i) => [i.#store.sheetProgress])
+  #watchSheetOffset = () => {
+    const { sheetProgress } = this.#store;
+    if (!sheetProgress) {
+      this.style.scale = '';
+      this.style.translate = '';
+      this.style.borderRadius = '';
+      return;
+    }
+    this.style.scale = `${1 - sheetProgress * 0.1}`;
+    this.style.translate = `0 calc(${sheetProgress} * (10px + var(--safe-area-inset-top, env(safe-area-inset-top, 0px))))`;
+    this.style.borderRadius = `calc(var(--screen-corner-radius, 0px) * (1 - ${sheetProgress}) + ${theme.normalRound} * 3 * ${sheetProgress})`;
   };
 
   @effect((i) => [i.autoHeight, i.maxHeight, i.#store.pages])

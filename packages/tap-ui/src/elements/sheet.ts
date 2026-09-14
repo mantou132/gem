@@ -12,6 +12,7 @@ import {
   shadow,
   slot,
   state,
+  unmounted,
 } from '@mantou/gem/lib/decorators';
 import { createRef, createState, css, GemElement, html, type TemplateResult } from '@mantou/gem/lib/element';
 import { styleMap } from '@mantou/gem/lib/utils';
@@ -28,6 +29,7 @@ import type {
   PushEventDetail,
   TapPullContainerElement,
 } from './pull-container';
+import { TapStackElement } from './stack';
 
 import './pull-container';
 import './scroll-box';
@@ -251,13 +253,22 @@ export class TapSheetElement extends GemElement {
     return clamp(SHEET_DURATION_MIN, SHEET_DURATION * (distance / (height || 1)), SHEET_DURATION);
   };
 
+  #updateOffset = (offset: number) => {
+    this.#state({ offset });
+    if (this.#snaps.length > 1) {
+      const lastSpanOffset = this.#snapOffsets.offsets.at(-2)!;
+      const sheetProgress = 1 - Math.min(1, offset / lastSpanOffset);
+      TapStackElement.instance?.store({ sheetProgress });
+    }
+  };
+
   #animateOffset = (from: number, to: number, { duration = SHEET_DURATION } = {}) => {
-    this.#state({ offset: from });
+    this.#updateOffset(from);
     const start = performance.now();
     return new Promise<void>((resolve) => {
       const tick = (now: number) => {
         const t = Math.min(1, (now - start) / duration);
-        this.#state({ offset: from + (to - from) * easeOutCubic(t) });
+        this.#updateOffset(from + (to - from) * easeOutCubic(t));
         if (t < 1) requestAnimationFrame(tick);
         else resolve();
       };
@@ -277,11 +288,11 @@ export class TapSheetElement extends GemElement {
   };
 
   #onPull = (evt: CustomEvent<PullEventDetail>) => {
-    this.#state({ offset: this.#dragStartOffset + evt.detail.distance });
+    this.#updateOffset(this.#dragStartOffset + evt.detail.distance);
   };
 
   #onPush = (evt: CustomEvent<PushEventDetail>) => {
-    this.#state({ offset: Math.max(0, this.#dragStartOffset - evt.detail.distance) });
+    this.#updateOffset(Math.max(0, this.#dragStartOffset - evt.detail.distance));
   };
 
   #onGestureEnd = async (evt: CustomEvent<PullEndEventDetail | PushEndEventDetail>) => {
@@ -340,7 +351,14 @@ export class TapSheetElement extends GemElement {
     } else if (this.closing) {
       await this.#finishClose();
       this.closing = false;
-      this.#state({ offset: 0 });
+      this.#updateOffset(0);
+    }
+  };
+
+  @unmounted()
+  #cleanStack = () => {
+    if (this.#snaps.length > 1) {
+      TapStackElement.instance?.store({ sheetProgress: 0 });
     }
   };
 

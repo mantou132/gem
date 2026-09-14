@@ -42,7 +42,7 @@
     "build:dev": "cross-env MODE=dev nodemon -w ../gem-port/bin --exec gem-port src/elements",
     "clean": "node -e \"fs.readdirSync('src').map(dir => require('rimraf').sync(dir))\"",
     "build": "pnpm clean && tsc -p tsconfig.build.json",
-    "start": "pnpm build --watch",
+    "start": "tsc -p tsconfig.build.json --watch",
     "test": "cross-env wtr",
     "prepublishOnly": "pnpm build && pnpm build:components"
   },

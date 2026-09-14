@@ -285,7 +285,7 @@ export class THomeElement extends GemElement {
             label: 'Settings',
             description: 'Multi-step navigation',
             action: true,
-            onClick: this.#openSheetStack,
+            onClick: () => this.#openSheetStack(false),
           },
           {
             label: 'SnapStack',
