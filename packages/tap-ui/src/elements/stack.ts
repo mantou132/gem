@@ -29,7 +29,7 @@ export type StackPushOptions = {
   gesture?: boolean;
   /**Push into history stack; default `true` */
   history?: boolean;
-  canLeave?: () => boolean;
+  keepAlive?: boolean;
 };
 
 /** Match iOS / WeChat navigation timing */
@@ -254,11 +254,6 @@ export class TapStackElement extends GemElement {
     this.#closeSpeed = 0;
     if (page !== this.#store.pages.at(-1) || page.gesture === false || this.#busy) return;
 
-    if (page.canLeave && !page.canLeave()) {
-      await this.#animateOffset(offset, 0, { duration: this.#duration(offset, el.offsetWidth) });
-      return;
-    }
-
     const width = el.offsetWidth;
     if (offset > width * 0.33 || speed) {
       this.#busy = true;
@@ -336,20 +331,15 @@ export class TapStackElement extends GemElement {
   @template()
   #content = () => {
     const { pages, offset } = this.#store;
-    const top = pages.at(-1);
-    // Parallax/dim only apply to the page directly under the top one; deeper pages
-    // are fully hidden behind it, so they keep transform-less like before
-    const belowTop = pages.at(-2);
     const width = this.clientWidth || innerWidth;
     const progress = Math.min(1, offset / (width || 1));
-    // Per-frame values stay on the two wrappers' inline styles; the page subtree
-    // (page.content) never invalidates because it's the same object reference
     return html`
-      ${pages.map((page) => {
-        const isTop = page === top;
-        const isBelowTop = page === belowTop;
+      ${pages.map((page, index) => {
+        const isTop = index === pages.length - 1;
+        const isBelowTop = index === pages.length - 2;
         return html`
           <div
+            v-if=${isTop || isBelowTop || !!page.keepAlive}
             ${isTop ? this.#topPageRef : isBelowTop ? this.#belowPageRef : undefined}
             class=${classMap({ page: true, top: !!isTop })}
             ?inert=${!isTop}
@@ -386,7 +376,6 @@ export class TapStackElement extends GemElement {
     if (!this.disableHistory && options.history !== false) {
       history.push({
         close: () => this.#pop(options),
-        shouldClose: options.canLeave,
         open: () => this.#restore(options),
       });
     }
@@ -401,7 +390,6 @@ export class TapStackElement extends GemElement {
     if (!this.disableHistory && options.history !== false) {
       history.replace({
         close: () => this.#pop(options),
-        shouldClose: options.canLeave,
         open: () => this.#restore(options),
       });
     }

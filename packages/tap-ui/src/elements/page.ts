@@ -161,12 +161,14 @@ export class TapPageElement extends GemElement {
   /**Enable pull-to-refresh on the main scroll area */
   @boolattribute refreshable: boolean;
   @boolattribute loading: boolean;
+  @boolattribute disableNavigation: boolean;
 
   /**
    * Fired when pull exceeds the threshold.
    * Call `detail()` (done) when loading finishes so the indicator can dismiss.
    */
   @emitter refresh: Emitter<() => void>;
+  @emitter navigationGesture: Emitter<{ pan?: PanEventDetail; swipe?: SwipeEventDetail; end?: PointerEvent }>;
 
   @state dim: boolean;
   @state fullscreen: boolean;
@@ -213,6 +215,7 @@ export class TapPageElement extends GemElement {
   #pullRotate = (pull: number) => Math.min(180, (pull / PULL_THRESHOLD) * 180);
 
   #forward = (type: string, evt: CustomEvent) => {
+    if (this.disableNavigation) return this.navigationGesture({ [type]: evt.detail });
     this.dispatchEvent(new CustomEvent(type, { detail: evt.detail, bubbles: true, composed: true }));
   };
 
@@ -366,7 +369,7 @@ export class TapPageElement extends GemElement {
         class="gesture"
         @pan=${(evt: CustomEvent<PanEventDetail>) => this.#forward('pan', evt)}
         @swipe=${(evt: CustomEvent<SwipeEventDetail>) => this.#forward('swipe', evt)}
-        @end=${(evt: CustomEvent) => this.#forward('end', evt)}
+        @end=${(evt: CustomEvent<PointerEvent>) => this.#forward('end', evt)}
       ></tap-gesture>
     `;
   };

@@ -14,8 +14,10 @@ import {
 import { css, GemElement, html } from '@mantou/gem/lib/element';
 import { classMap } from '@mantou/gem/lib/utils';
 
+import { closestElement } from '../lib/element';
 import { icons } from '../lib/icons';
 import { theme } from '../lib/theme';
+import type { TapPageElement } from './page';
 import { Stack } from './stack';
 
 import './use';
@@ -139,7 +141,8 @@ export class TapNavbarElement extends GemElement {
   @emitter backclick: Emitter<null>;
 
   #backClick = () => {
-    if (this.defaultBack) {
+    const tapPage = closestElement<TapPageElement>(this, 'tap-page');
+    if (this.defaultBack && !tapPage?.disableNavigation) {
       Stack.getClosestStack(this)?.pop();
     }
     this.backclick(null);

@@ -61,7 +61,8 @@ const style = css`
   }
   .actions::slotted(*),
   ::slotted([slot='start']),
-  ::slotted([slot='end']) {
+  ::slotted([slot='end']),
+  ::slotted([slot='danger']) {
     box-sizing: border-box;
     flex-shrink: 0;
     height: 100%;
@@ -84,7 +85,7 @@ export class TapSwipeoutElement extends GemElement {
   @slot @part static start: string;
   @slot @part static end: string;
   @slot @part static content: string;
-  @slot static del: string;
+  @slot static danger: string;
 
   @boolattribute disabled: boolean;
   @numattribute threshold: number;
@@ -94,7 +95,7 @@ export class TapSwipeoutElement extends GemElement {
 
   #startSlotRef = createRef<HTMLSlotElement>();
   #endSlotRef = createRef<HTMLSlotElement>();
-  #delSlotRef = createRef<HTMLSlotElement>();
+  #dangerSlotRef = createRef<HTMLSlotElement>();
   #contentRef = createRef<HTMLElement>();
 
   #state = createState({ visibleSide: null as SwipeoutSide | null });
@@ -109,7 +110,7 @@ export class TapSwipeoutElement extends GemElement {
   }
 
   #measureSide = (side: SwipeoutSide): SideInfo => {
-    const slot = side === 'start' ? [this.#startSlotRef.value] : [this.#endSlotRef.value, this.#delSlotRef.value];
+    const slot = side === 'start' ? [this.#startSlotRef.value] : [this.#endSlotRef.value, this.#dangerSlotRef.value];
     const elements = slot
       .flatMap((e) => e?.assignedElements({ flatten: true }))
       .filter((el): el is HTMLElement => el instanceof HTMLElement);
@@ -378,7 +379,7 @@ export class TapSwipeoutElement extends GemElement {
         ?inert=${visibleSide !== 'end'}
       >
         <slot ${this.#endSlotRef} name=${TapSwipeoutElement.end} @click=${this.#onActionClick} @slotchange=${this.#onSlotChange}></slot>
-        <slot ${this.#delSlotRef} name=${TapSwipeoutElement.del} @slotchange=${this.#onSlotChange}></slot>
+        <slot ${this.#dangerSlotRef} name=${TapSwipeoutElement.danger} @slotchange=${this.#onSlotChange}></slot>
       </div>
       <tap-gesture
         ${this.#contentRef}
