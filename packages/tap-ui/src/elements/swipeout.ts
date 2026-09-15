@@ -23,6 +23,7 @@ export type SwipeoutSide = 'start' | 'end';
 
 const style = css`
   :host(:where(:not([hidden]))) {
+    view-transition-name: match-element;
     display: block;
     position: relative;
     overflow: hidden;
@@ -55,7 +56,7 @@ const style = css`
     min-width: 100%;
     background: ${theme.backgroundColor};
     will-change: transform;
-    transition: transform 220ms ${theme.timingFunction};
+    transition: transform 260ms ${theme.timingEasingFunction};
   }
   .content.dragging {
     transition: none;
@@ -92,6 +93,22 @@ export class TapSwipeoutElement extends GemElement {
     end: this.#endRef.value?.getBoundingClientRect().width || 0,
   });
 
+  #applyRubberBand = (currentOffset: number, dx: number, minOffset: number, maxOffset: number) => {
+    if (!dx) return currentOffset;
+    const direction = Math.sign(dx);
+    const boundary = direction > 0 ? maxOffset : minOffset;
+    const nextRaw = currentOffset + dx;
+    if (direction * (nextRaw - boundary) <= 0) {
+      return nextRaw;
+    }
+    const dimension = this.clientWidth || 375;
+    const overflow = Math.max(0, direction * (currentOffset - boundary));
+    const friction = Math.max(0.08, 0.4 * (1 - Math.min(1, overflow / (dimension * 0.5))));
+    const distanceToBoundary = Math.max(0, direction * (boundary - currentOffset));
+    const outsideDelta = Math.abs(dx) - distanceToBoundary;
+    return currentOffset + direction * (distanceToBoundary + outsideDelta * friction);
+  };
+
   #settle = (side: SwipeoutSide | null) => {
     const widths = this.#measure();
     const offset = side === 'start' ? widths.start : side === 'end' ? -widths.end : 0;
@@ -122,21 +139,30 @@ export class TapSwipeoutElement extends GemElement {
   #onPan = (evt: CustomEvent<PanEventDetail>) => {
     if (this.disabled || !evt.detail.x) return;
     const widths = this.#measure();
-    const offset = Math.min(widths.start, Math.max(-widths.end, this.#state.offset + evt.detail.x));
+    const offset = this.#applyRubberBand(this.#state.offset, evt.detail.x, -widths.end, widths.start);
     this.#state({ offset, dragging: true });
   };
 
   #onSwipe = (evt: CustomEvent<SwipeEventDetail>) => {
-    if (evt.detail.direction === 'left') this.open('end');
-    if (evt.detail.direction === 'right') this.open('start');
+    const { direction } = evt.detail;
+    const { opened } = this.#state;
+    if (opened === 'end' && direction === 'right') {
+      this.close();
+    } else if (opened === 'start' && direction === 'left') {
+      this.close();
+    } else if (direction === 'left') {
+      this.open('end');
+    } else if (direction === 'right') {
+      this.open('start');
+    }
   };
 
   #onPanEnd = () => {
     if (!this.#state.dragging) return;
     const { offset } = this.#state;
     const widths = this.#measure();
-    if (offset > widths.start * this.#threshold) this.#settle('start');
-    else if (offset < -widths.end * this.#threshold) this.#settle('end');
+    if (widths.start && offset > widths.start * this.#threshold) this.#settle('start');
+    else if (widths.end && offset < -widths.end * this.#threshold) this.#settle('end');
     else this.#settle(null);
   };
 
