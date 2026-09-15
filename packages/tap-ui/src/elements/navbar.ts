@@ -52,14 +52,17 @@ const style = css`
     min-width: 0;
     height: 100%;
   }
-  .back {
+  .back,
+  slot[name='left']::slotted(tap-use),
+  slot[name='right']::slotted(tap-use) {
     display: flex;
     align-items: center;
     justify-content: center;
     width: 2.5em;
     height: 2.5em;
+    box-sizing: border-box;
     margin: 0;
-    padding: 0;
+    padding: 0.5em;
     border: none;
     border-radius: ${theme.normalRound};
     background: transparent;
@@ -147,9 +150,7 @@ export class TapNavbarElement extends GemElement {
     return html`
       <div class="left" part=${TapNavbarElement.left}>
         <slot name=${TapNavbarElement.left}>
-          <button v-if=${this.back} type="button" class="back" aria-label="back" @click=${this.#backClick}>
-            <tap-use class="icon" .element=${icons.back}></tap-use>
-          </button>
+          <tap-use v-if=${this.back} class="back" role="button" aria-label="back" @click=${this.#backClick} .element=${icons.back}></tap-use>
         </slot>
       </div>
       <div class="center">

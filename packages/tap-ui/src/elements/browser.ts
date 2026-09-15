@@ -57,26 +57,6 @@ const style = css`
     border: 0;
     box-sizing: border-box;
   }
-  .more {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 2.5em;
-    height: 2.5em;
-    margin: 0;
-    padding: 0;
-    border: none;
-    border-radius: ${theme.normalRound};
-    background: transparent;
-    color: ${theme.highlightColor};
-    font: inherit;
-    cursor: pointer;
-    -webkit-tap-highlight-color: transparent;
-  }
-  .icon {
-    width: 1.25em;
-    height: 1.25em;
-  }
 `;
 
 @customElement('tap-browser')
@@ -166,17 +146,15 @@ export class TapBrowserElement<T = unknown> extends GemElement {
         default-back
         @backclick=${this.#onBack}
       >
-        <button
+        <tap-use
           v-if=${!!(this.#items?.length || this.groups?.length)}
           slot="right"
-          class="more"
           part=${TapBrowserElement.more}
-          type="button"
+          role="button"
           aria-label="More"
           @click=${this.#openSheet}
-        >
-          <tap-use class="icon" .element=${icons.more}></tap-use>
-        </button>
+          .element=${icons.more}
+        ></tap-use>
       </tap-navbar>
       <iframe ${this.#frameRef} class="frame" part=${TapBrowserElement.frame} allowfullscreen></iframe>
     </tap-page>

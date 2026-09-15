@@ -6,21 +6,6 @@ import { theme } from '@mantou/tap-ui/lib/theme';
 import '@mantou/tap-ui/elements/use';
 
 const style = css`
-  .close {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 2.5em;
-    height: 2.5em;
-    margin: 0;
-    padding: 0;
-    border: none;
-    border-radius: ${theme.normalRound};
-    background: transparent;
-    color: ${theme.primaryColor};
-    font: inherit;
-    cursor: pointer;
-  }
   .body {
     line-height: 1.6;
     color: ${theme.textColor};
@@ -49,9 +34,13 @@ export class TProfileElement extends GemElement {
   #render = () => html`
     <tap-page>
       <tap-navbar slot="header" title="Profile" subtitle="@mantou">
-        <button slot="left" class="close" type="button" aria-label="close" @click=${this.#close}>
-          <tap-use class="icon" .element=${icons.close}></tap-use>
-        </button>
+        <tap-use
+          slot="left"
+          role="button"
+          aria-label="close"
+          .element=${icons.close}
+          @click=${this.#close}
+        ></tap-use>
       </tap-navbar>
       <tap-content class="body">
         <div class="avatar">M</div>
