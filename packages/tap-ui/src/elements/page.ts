@@ -21,6 +21,7 @@ import { theme } from '../lib/theme';
 import type { PanEventDetail, SwipeEventDetail } from './gesture';
 import type { TapNavbarElement } from './navbar';
 import { Stack } from './stack';
+import { TapSwipeoutElement } from './swipeout';
 
 import './gesture';
 import './use';
@@ -166,6 +167,7 @@ export class TapPageElement extends GemElement {
    * Call `detail()` (done) when loading finishes so the indicator can dismiss.
    */
   @emitter refresh: Emitter<() => void>;
+
   @state dim: boolean;
   @state fullscreen: boolean;
 
@@ -271,6 +273,10 @@ export class TapPageElement extends GemElement {
     });
   };
 
+  #scrolling = () => {
+    TapSwipeoutElement.activeSwipeout?.close();
+  };
+
   @effect((i) => [i.floatheader, i.#state.scrolled])
   #watchHeader = () => {
     this.#syncHeaderTransparent();
@@ -332,6 +338,7 @@ export class TapPageElement extends GemElement {
         ?disable-gesture=${!this.refreshable || refreshing}
         @pull=${this.#onPull}
         @pull-end=${this.#onPullEnd}
+        @scroll=${this.#scrolling}
       >
         <div
           class=${classMap({ refresh: true, dragging })}

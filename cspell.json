@@ -107,6 +107,7 @@
     "quasis",
     "querystring",
     "refobject",
+    "refreshable",
     "routechange",
     "routechangebefore",
     "rowspan",
@@ -123,6 +124,7 @@
     "shadowrootmode",
     "sizechange",
     "slotchange",
+    "swipeout",
     "tabindex",
     "tablist",
     "Tauri",
@@ -131,6 +133,8 @@
     "texcoord",
     "titlebar",
     "tsserverlibrary",
+    "Uncapitalize",
+    "unplugin",
     "vestaboard",
     "visibilitychange",
     "vlist",
@@ -139,9 +143,6 @@
     "WIDTHSCREEN",
     "worklet",
     "worktree",
-    "xywh",
-    "Uncapitalize",
-    "unplugin",
-    "refreshable"
+    "xywh"
   ]
 }
