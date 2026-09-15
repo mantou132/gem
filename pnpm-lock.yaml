@@ -491,8 +491,8 @@ importers:
         specifier: '>=3.0.0'
         version: 4.52.5
       swc-plugin-gem:
-        specifier: ^0.1.18
-        version: link:../../crates/swc-plugin-gem
+        specifier: '=0.1.17-beta'
+        version: 0.1.17-beta
       unplugin:
         specifier: ^3.0.0
         version: 3.0.0
