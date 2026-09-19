@@ -50,6 +50,7 @@ export function initApp(options: InitAppOptions = {}) {
       gesture: false,
       history: false,
       animated: false,
+      keepAlive: true,
       content: options.template,
     });
   }

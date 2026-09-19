@@ -339,7 +339,7 @@ export class TapStackElement extends GemElement {
         const isBelowTop = index === pages.length - 2;
         return html`
           <div
-            v-if=${isTop || isBelowTop || !!page.keepAlive}
+            v-if=${index > pages.length - 5 || !!page.keepAlive}
             ${isTop ? this.#topPageRef : isBelowTop ? this.#belowPageRef : undefined}
             class=${classMap({ page: true, top: !!isTop })}
             ?inert=${!isTop}
