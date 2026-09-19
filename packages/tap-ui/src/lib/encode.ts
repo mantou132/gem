@@ -15,8 +15,15 @@ export function b64ToUtf8(str: string) {
   );
 }
 
-export function base64ToArrayBuffer(str: string) {
-  return new Uint8Array([...atob(safeUrlToBase64Str(str))].map((char) => char.charCodeAt(0))).buffer;
+export function base64ToArrayBuffer(str: string): ArrayBuffer {
+  const base64 = safeUrlToBase64Str(str);
+  if ('fromBase64' in Uint8Array && typeof Uint8Array.fromBase64 === 'function') {
+    return Uint8Array.fromBase64(base64).buffer;
+  }
+  const binary = atob(base64);
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+  return bytes.buffer;
 }
 
 function base64ToSafeUrl(str: string) {
@@ -32,8 +39,16 @@ export function utf8ToB64(str: string, isSafe?: boolean) {
 }
 
 // https://github.com/tc39/proposal-arraybuffer-base64
-export function arrayBufferToBase64(arrayBuffer: ArrayBufferLike, isSafe?: boolean) {
-  const base64 = btoa(String.fromCharCode(...new Uint8Array(arrayBuffer)));
+export function arrayBufferToBase64(arrayBuffer: ArrayBufferLike, isSafe?: boolean): string {
+  const bytes = new Uint8Array(arrayBuffer);
+  if ('toBase64' in bytes && typeof bytes.toBase64 === 'function') {
+    return bytes.toBase64({ alphabet: isSafe ? 'base64url' : 'base64', omitPadding: !!isSafe });
+  }
+  let base64 = '';
+  // Bound the spread arguments; complete three-byte groups concatenate without padding.
+  for (let offset = 0; offset < bytes.length; offset += 32766) {
+    base64 += btoa(String.fromCharCode(...bytes.subarray(offset, offset + 32766)));
+  }
   return isSafe ? base64ToSafeUrl(base64) : base64;
 }
 
