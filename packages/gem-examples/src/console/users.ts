@@ -29,6 +29,8 @@ const initItem = {
     bs: '',
   },
   updated: Date.now(),
+  enabled: true,
+  vip: false,
 };
 
 type NewItem = Modify<typeof initItem, { social?: string[] }>;
@@ -118,6 +120,12 @@ export class ConsolePageItemElement extends GemElement {
         field: 'updated',
         type: 'date-time',
       },
+    },
+    {
+      title: 'Status',
+      width: '6em',
+      visibleWidth: 'auto',
+      render: (r) => (r.enabled ? 'Enabled' : 'Disabled'),
     },
   ];
 
@@ -217,6 +225,16 @@ export class ConsolePageItemElement extends GemElement {
           return Date.now();
         }
       },
+    },
+    {
+      type: 'switch',
+      field: 'enabled',
+      label: 'Enabled',
+    },
+    {
+      type: 'checkbox',
+      field: 'vip',
+      label: 'VIP Member',
     },
   ];
 

@@ -1,7 +1,6 @@
-# Advanced form
+# Advanced Form
 
-All form elements of DuoyunUI are "[Controlled](https://reactjs.org/docs/forms.html#controlled-components)" elements,
-when forming a form editing, you need to dynamically assign a value, for example:
+All form elements of DuoyunUI are "[controlled](https://reactjs.org/docs/forms.html#controlled-components)" elements. When editing a form, you need to dynamically assign values to the form elements, for example:
 
 ```ts
 @customElement('my-ele')
@@ -24,7 +23,7 @@ export class MyEleElement extends GemElement {
 
 ## Form validation
 
-Add a `required` attribute for the field, and perform a form validation when submitted:
+Add the `required` attribute to the field and validate the form when submitting:
 
 ```ts 14,21
 @customElement('my-ele')
@@ -55,7 +54,7 @@ export class MyEleElement extends GemElement {
 }
 ```
 
-Use a custom validator:
+Using custom validator:
 
 ```ts 14,24-28
 @customElement('my-ele')
@@ -100,7 +99,7 @@ export class MyEleElement extends GemElement {
 
 ## Custom form field
 
-`<dy-form-item>` default support `text`, `number`, `checkbox`, `picker`, `radio`, `select`, `textarea`,
+`<dy-form-item>` default support `text`, `number`, `checkbox`, `switch`, `picker`, `radio`, `select`, `textarea`,
 if them can't meet your needs, you can use your own elements,
 just implement the `value` attributes and bubble `change` event, then you can use [`<dy-form-item>`](../02-elements/form.md#dy-form-item-api) `slot` type:
 
@@ -125,7 +124,7 @@ export class MyEleElement extends GemElement {
 }
 ```
 
-If you don't want to write a custom element, you may also use the DuoyunUI existing form element combination to complete your needs:
+If you don't want to write custom elements, you can also use existing DuoyunUI form elements to complete your needs:
 
 ```ts 17-20
 @customElement('my-ele')
@@ -144,11 +143,9 @@ export class MyEleElement extends GemElement {
     return html`
       <dy-form>
         <dy-form-item
-          .rules=${
-            [
-              /** support validator */
-            ]
-          }
+          .rules=${[
+            /** support validator */
+          ]}
         >
           <dy-input-group>
             <dy-input .value=${this.#state.name} @change=${this.#onChangeName}></dy-input>

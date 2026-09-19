@@ -36,6 +36,7 @@ import './input';
 import './picker';
 import './radio';
 import './select';
+import './switch';
 
 const formStyle = css`
   :where(:scope:not([inline], [hidden])) {
@@ -162,7 +163,8 @@ const formItemStyle = css`
     display: flex;
     flex-direction: column;
   }
-  :host([type='checkbox']) {
+  :host([type='checkbox']),
+  :host([type='switch']) {
     flex-direction: row;
     align-items: center;
   }
@@ -220,6 +222,7 @@ export class DuoyunFormItemElement extends GemElement {
     | 'number'
     | 'checkbox'
     | 'checkbox-group' // value is array
+    | 'switch'
     | 'picker'
     | 'radio-group'
     | 'select'
@@ -274,6 +277,10 @@ export class DuoyunFormItemElement extends GemElement {
     return this.#slotRef.value!.assignedElements()[0] as any;
   }
 
+  get #checked() {
+    return typeof this.value === 'boolean' ? this.value : this.checked;
+  }
+
   #itemchange = (value: number | string | any[] | any) => {
     if (this.name) {
       this.itemchange({ name: this.name, value });
@@ -285,7 +292,13 @@ export class DuoyunFormItemElement extends GemElement {
   };
 
   #onCheckboxChange = (evt: CustomEvent<boolean>) => {
-    this.#itemchange(this.value ? (evt.detail ? this.value : '') : evt.detail);
+    this.#itemchange(
+      typeof this.value === 'boolean' ? evt.detail : this.value ? (evt.detail ? this.value : '') : evt.detail,
+    );
+  };
+
+  #onSwitchChange = (evt: CustomEvent<boolean>) => {
+    this.#itemchange(evt.detail);
   };
 
   #onTextChangeWithIndex = (evt: CustomEvent<string>, index: number) => {
@@ -330,7 +343,12 @@ export class DuoyunFormItemElement extends GemElement {
   render = () => {
     const { invalidMessage } = this.#state;
     return html`
-      <label v-if=${this.#type !== 'checkbox' && !!this.label} class="label" part=${DuoyunFormItemElement.label} @click=${() => this.focus()}>
+      <label
+        v-if=${this.#type !== 'checkbox' && this.#type !== 'switch' && !!this.label}
+        class="label"
+        part=${DuoyunFormItemElement.label}
+        @click=${() => this.focus()}
+      >
         ${this.label}
       </label>
       ${
@@ -399,15 +417,25 @@ export class DuoyunFormItemElement extends GemElement {
                   ? html`
                     <dy-checkbox
                       @change=${this.#onCheckboxChange}
-                      ?checked=${this.checked}
+                      ?checked=${this.#checked}
                       ?disabled=${this.disabled}
                       .value=${this.value as string}
                     >
                       ${this.label}
                     </dy-checkbox>
                   `
-                  : this.#type === 'radio-group'
+                  : this.#type === 'switch'
                     ? html`
+                      <dy-switch
+                        @change=${this.#onSwitchChange}
+                        ?checked=${this.#checked}
+                        ?disabled=${this.disabled}
+                      >
+                        ${this.label}
+                      </dy-switch>
+                    `
+                    : this.#type === 'radio-group'
+                      ? html`
                       <dy-radio-group
                         @change=${this.#onChange}
                         ?disabled=${this.disabled}
@@ -416,8 +444,8 @@ export class DuoyunFormItemElement extends GemElement {
                       >
                       </dy-radio-group>
                     `
-                    : this.#type === 'checkbox-group'
-                      ? html`
+                      : this.#type === 'checkbox-group'
+                        ? html`
                         <dy-checkbox-group
                           @change=${this.#onChange}
                           ?disabled=${this.disabled}
@@ -426,9 +454,9 @@ export class DuoyunFormItemElement extends GemElement {
                         >
                         </dy-checkbox-group>
                       `
-                      : this.name && this.#type !== 'slot'
-                        ? this.multiple
-                          ? html`
+                        : this.name && this.#type !== 'slot'
+                          ? this.multiple
+                            ? html`
                             ${(this.value as string[])?.map(
                               (value, index) => html`
                                 <dy-input
@@ -450,7 +478,7 @@ export class DuoyunFormItemElement extends GemElement {
                               <dy-button .color=${'cancel'} @click=${this.#onTextAdd}>+</dy-button>
                             </div>
                           `
-                          : html`
+                            : html`
                             <dy-input
                               class="input"
                               part=${DuoyunFormItemElement.input}
@@ -471,7 +499,7 @@ export class DuoyunFormItemElement extends GemElement {
                               .dataList=${this.#options}
                             ></dy-input>
                           `
-                        : ''
+                          : ''
       }
       <slot ${this.#slotRef}></slot>
       <dy-help-text v-if=${!!invalidMessage} class="tip" part=${DuoyunFormItemElement.tip} status="negative">
@@ -483,14 +511,18 @@ export class DuoyunFormItemElement extends GemElement {
   get data() {
     const { value, checked } = this;
     if (this.#type === 'checkbox') {
-      return value ? (checked ? value : '') : checked;
+      return typeof value === 'boolean' ? this.#checked : value ? (checked ? value : '') : checked;
+    }
+    if (this.#type === 'switch') {
+      return this.#checked;
     }
     return value;
   }
 
   focus() {
     const input: HTMLElement | null | undefined =
-      this.shadowRoot?.querySelector('dy-input') || (this.querySelector('dy-input') as HTMLElement);
+      this.shadowRoot?.querySelector('dy-input, dy-checkbox, dy-switch, dy-select, dy-picker') ||
+      (this.querySelector('dy-input, dy-checkbox, dy-switch, dy-select, dy-picker') as HTMLElement);
     input?.focus();
   }
 
@@ -512,7 +544,7 @@ export class DuoyunFormItemElement extends GemElement {
       let invalidMessage = '';
       if (rule.required && (!this.value || (Array.isArray(this.value) && !this.value.length))) {
         invalidMessage = rule.message || locale.requiredMeg;
-      } else if (this.value) {
+      } else if (this.value !== undefined && this.value !== '') {
         if (rule.pattern && !new RegExp(rule.pattern).test(String(this.value))) {
           invalidMessage = rule.message || locale.patternMsg;
         } else if (rule.validator) {

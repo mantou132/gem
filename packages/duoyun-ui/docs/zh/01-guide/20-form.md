@@ -99,7 +99,7 @@ export class MyEleElement extends GemElement {
 
 ## 自定义表单字段
 
-`<dy-form-item>` 默认支持 `text`, `number`, `checkbox`, `picker`, `radio`, `select`, `textarea`，如果这些不能满足你的需求，你可以使用自己的元素，
+`<dy-form-item>` 默认支持 `text`, `number`, `checkbox`, `switch`, `picker`, `radio`, `select`, `textarea`，如果这些不能满足你的需求，你可以使用自己的元素，
 只需要实现 `value` 属性和可冒泡 `change` 事件即可，然后你可以使用 [`<dy-form-item>`](../02-elements/form.md#dy-form-item-api) 的 `slot` 类型：
 
 ```ts 12-14
@@ -142,11 +142,9 @@ export class MyEleElement extends GemElement {
     return html`
       <dy-form>
         <dy-form-item
-          .rules=${
-            [
-              /** support validator */
-            ]
-          }
+          .rules=${[
+            /** support validator */
+          ]}
         >
           <dy-input-group>
             <dy-input .value=${this.#state.name} @change=${this.#onChangeName}></dy-input>

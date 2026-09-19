@@ -26,6 +26,8 @@ const EXAMPLE = {
     bs: 'harness real-time e-markets',
   },
   updated: 0,
+  enabled: true,
+  vip: false,
 };
 
 export type Item = typeof EXAMPLE & { social?: string[] };
@@ -36,6 +38,8 @@ export async function fetchItemsWithArgs(args: FetchEventDetail): Promise<Pagina
   list.forEach((e, i) => {
     e.updated = new Time().subtract(i + 1, 'd').getTime();
     e.id += args.size * (args.page - 1);
+    e.enabled = i % 2 === 0;
+    e.vip = i % 3 === 0;
   });
   return { list, count: 30 };
 }
@@ -45,6 +49,8 @@ export async function fetchAllItems(): Promise<PaginationRes<Item>> {
   const list: any[] = await request(`https://jsonplaceholder.typicode.com/users`);
   list.forEach((e, i) => {
     e.updated = new Time().subtract(i + 1, 'd').getTime();
+    e.enabled = i % 2 === 0;
+    e.vip = i % 3 === 0;
   });
   return { list, count: list.length * 3 };
 }

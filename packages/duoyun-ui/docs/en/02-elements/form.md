@@ -1,6 +1,6 @@
 # `<dy-form>`
 
-A form component that provides a structured way to collect user input. It supports various form items like text input, password, email, phone, date picker, and date range picker. The form can be displayed in both standard and inline layouts.
+A form component that provides a structured way to collect user input. It supports various form items like text input, password, email, phone, date picker, date range picker, checkbox, and switch. The form can be displayed in both standard and inline layouts.
 
 ## Example
 
@@ -10,7 +10,7 @@ A form component that provides a structured way to collect user input. It suppor
 {
   "style": "width: 100%;",
   "@change": "(evt) => {Object.keys(evt.detail).forEach(key => evt.target.querySelector(`[name=${key}]`).value = evt.detail[key])}",
-  "innerHTML": "<dy-form-item name=\"name\" label=\"Name\" multiple></dy-form-item>\n<dy-form-item name=\"password\" label=\"Password\" type=\"password\"></dy-form-item>\n<dy-form-item name=\"email\" label=\"Email\" autofocus></dy-form-item>\n<dy-form-item name=\"phone\" label=\"Phone\"></dy-form-item>\n<dy-form-item name=\"date\" label=\"Date\" type=\"date-time\"></dy-form-item>\n<dy-form-item name=\"range\" label=\"Date Range\" type=\"date-range\"></dy-form-item>"
+  "innerHTML": "<dy-form-item name=\"name\" label=\"Name\" multiple></dy-form-item>\n<dy-form-item name=\"password\" label=\"Password\" type=\"password\"></dy-form-item>\n<dy-form-item name=\"email\" label=\"Email\" autofocus></dy-form-item>\n<dy-form-item name=\"phone\" label=\"Phone\"></dy-form-item>\n<dy-form-item name=\"date\" label=\"Date\" type=\"date-time\"></dy-form-item>\n<dy-form-item name=\"range\" label=\"Date Range\" type=\"date-range\"></dy-form-item>\n<dy-form-item name=\"agree\" label=\"Agree terms\" type=\"checkbox\"></dy-form-item>\n<dy-form-item name=\"notifications\" label=\"Enable notifications\" type=\"switch\"></dy-form-item>"
 }
 ```
 
@@ -23,7 +23,7 @@ A form component that provides a structured way to collect user input. It suppor
   "style": "width: 100%;",
   "inline": true,
   "@change": "(evt) => {Object.keys(evt.detail).forEach(key => evt.target.querySelector(`[name=${key}]`).value = evt.detail[key])}",
-  "innerHTML": "<dy-form-item name=\"name\" label=\"Name\" multiple></dy-form-item>\n<dy-form-item name=\"email\" label=\"Email\"></dy-form-item>\n<dy-form-item name=\"phone\" label=\"Phone\"></dy-form-item>"
+  "innerHTML": "<dy-form-item name=\"name\" label=\"Name\" multiple></dy-form-item>\n<dy-form-item name=\"email\" label=\"Email\"></dy-form-item>\n<dy-form-item name=\"phone\" label=\"Phone\"></dy-form-item>\n<dy-form-item name=\"agree\" label=\"Agree\" type=\"checkbox\"></dy-form-item>\n<dy-form-item name=\"notifications\" label=\"Notifications\" type=\"switch\"></dy-form-item>"
 }
 ```
 

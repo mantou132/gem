@@ -10,7 +10,9 @@
 <dy-form-item name="email" label="Email" autofocus></dy-form-item>
 <dy-form-item name="phone" label="Phone"></dy-form-item>
 <dy-form-item name="date" label="Date" type="date-time"></dy-form-item>
-<dy-form-item name="range" label="Date Range" type="date-range"></dy-form-item>'
+<dy-form-item name="range" label="Date Range" type="date-range"></dy-form-item>
+<dy-form-item name="agree" label="Agree terms" type="checkbox"></dy-form-item>
+<dy-form-item name="notifications" label="Enable notifications" type="switch"></dy-form-item>'
   src="https://esm.sh/duoyun-ui/elements/form"></gbp-example>
 
 <gbp-example
@@ -18,7 +20,9 @@
   props='{"style": "width: 100%;", "inline": true, "@change": "(evt) => {Object.keys(evt.detail).forEach(key => evt.target.querySelector(`[name=${key}]`).value = evt.detail[key])}"}'
   html='<dy-form-item name="name" label="Name" multiple></dy-form-item>
 <dy-form-item name="email" label="Email"></dy-form-item>
-<dy-form-item name="phone" label="Phone"></dy-form-item>'
+<dy-form-item name="phone" label="Phone"></dy-form-item>
+<dy-form-item name="agree" label="Agree" type="checkbox"></dy-form-item>
+<dy-form-item name="notifications" label="Notifications" type="switch"></dy-form-item>'
   src="https://esm.sh/duoyun-ui/elements/form"></gbp-example>
 
 ## `<dy-form>` API

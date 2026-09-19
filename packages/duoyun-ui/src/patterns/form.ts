@@ -5,6 +5,7 @@ import { history } from '@mantou/gem/lib/history';
 import type { StyleObject } from '@mantou/gem/lib/utils';
 import { GemError, QueryString, styleMap } from '@mantou/gem/lib/utils';
 
+import { DuoyunCheckboxElement } from '../elements/checkbox';
 import { DuoyunDatePickerElement } from '../elements/date-picker';
 import { DuoyunDateRangePickerElement } from '../elements/date-range-picker';
 import { Drawer } from '../elements/drawer';
@@ -15,6 +16,7 @@ import { Modal } from '../elements/modal';
 import { DuoyunPickerElement } from '../elements/picker';
 import { DuoyunSelectElement } from '../elements/select';
 import type { SortEventDetail } from '../elements/sort-box';
+import { DuoyunSwitchElement } from '../elements/switch';
 import { DuoyunWaitElement, waitLoading } from '../elements/wait';
 import { icons } from '../lib/icons';
 import { locale } from '../lib/locale';
@@ -23,9 +25,11 @@ import { theme } from '../lib/theme';
 import { getStringFromTemplate, readProp } from '../lib/utils';
 
 import '../elements/button';
+import '../elements/checkbox';
 import '../elements/form';
 import '../elements/sort-box';
 import '../elements/space';
+import '../elements/switch';
 
 type ListOptions = {
   add?: boolean | string | TemplateResult;
@@ -40,6 +44,7 @@ type FormItemProps<T = unknown> = {
   field: keyof T | string[];
   style?: StyleObject;
   disabled?: boolean;
+  checked?: boolean;
   hidden?: boolean;
   ignore?: boolean;
   required?: boolean;
@@ -288,6 +293,10 @@ export class DyPatFormElement<T = Record<string, unknown>> extends GemElement {
         return new DuoyunDateRangePickerElement();
       case 'picker':
         return new DuoyunPickerElement();
+      case 'checkbox':
+        return new DuoyunCheckboxElement();
+      case 'switch':
+        return new DuoyunSwitchElement();
       default:
         throw new GemError(`Not support type: \`${type}\``);
     }
@@ -356,6 +365,8 @@ export class DyPatFormElement<T = Record<string, unknown>> extends GemElement {
                     time: props.type === 'date-time',
                     style: styleMap(props.style || {}),
                     value: readProp(data!, props.field),
+                    checked:
+                      typeof readProp(data!, props.field) === 'boolean' ? readProp(data!, props.field) : props.checked,
                     loading: !!optionsRecord[name]?.loading,
                     options: props.options || optionsRecord[name]?.options,
                     dataList: props.options || optionsRecord[name]?.options,
@@ -404,6 +415,7 @@ export class DyPatFormElement<T = Record<string, unknown>> extends GemElement {
         }
         .loading=${!!optionsRecord[name]?.loading}
         .options=${props.options || optionsRecord[name]?.options}
+        ?checked=${props.checked}
         ?hidden=${props.hidden}
         ?disabled=${props.disabled}
         ?autofocus=${props.autofocus}
