@@ -241,7 +241,7 @@ const style = css`
     --keyword-color: var(--code-keyword-color, #93219e);
     --attribute-color: var(--code-attribute-color, #4646c6);
   }
-  .highlight {
+  .gem-highlight {
     display: block;
     position: absolute;
     pointer-events: none;
@@ -249,7 +249,7 @@ const style = css`
     opacity: 0.1;
     width: 100%;
   }
-  .code {
+  .gem-code {
     display: block;
     font-family: ${theme.codeFont};
     text-align: left;
@@ -330,12 +330,12 @@ const style = css`
     cursor: help;
   }
   @media print {
-    .code {
+    .gem-code {
       border-left: 5px solid ${theme.borderColor};
       white-space: pre-wrap;
       word-break: break-word;
     }
-    .highlight {
+    .gem-highlight {
       display: none;
     }
   }
@@ -412,7 +412,7 @@ export class TapCodeBlockElement extends TapVisibleBaseElement {
           ? this.#getRanges(this.highlight).map(
               ([start, end]) => html`
               <span
-                class="highlight"
+                class="gem-highlight"
                 style=${styleMap({
                   top: `${(start - 1) * lineHeight + padding}em`,
                   height: `${(end - start + 1) * lineHeight}em`,
@@ -422,7 +422,7 @@ export class TapCodeBlockElement extends TapVisibleBaseElement {
             )
           : ''
       }
-      <code ${this.#codeRef} class="code">${this.#getParts(this.textContent || '')}</code>
+      <code ${this.#codeRef} class="gem-code">${this.#getParts(this.textContent || '')}</code>
     `;
   }
 }
