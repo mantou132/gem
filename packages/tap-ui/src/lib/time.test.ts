@@ -8,6 +8,13 @@ it('`D.format`', () => {
   expect(new Time(date1).format('YYYY-MM-DD HH:mm:ss')).to.equal(date1);
 });
 
+it('`D.endOf`', () => {
+  const d = new Time(2022, 0, 31, 15, 30, 0);
+  expect(new Time(d).endOf('M').format('YYYY-MM-DD HH:mm:ss')).to.equal('2022-01-31 23:59:59');
+  expect(new Time(d).endOf('Y').format('YYYY-MM-DD HH:mm:ss')).to.equal('2022-12-31 23:59:59');
+  expect(new Time(d).endOf('d').format('YYYY-MM-DD HH:mm:ss')).to.equal('2022-01-31 23:59:59');
+});
+
 it('`D.relativeTimeFormat`', () => {
   expect(new Time().relativeTimeFormat(new Time(), { min: 1, lang: 'zh' })).to.equal('此刻');
   expect(new Time(date1).relativeTimeFormat(new Time(date1).subtract(3, 's'), { min: 1, lang: 'zh' })).to.equal(

@@ -198,7 +198,7 @@ export class Time extends Date {
   }
 
   endOf(unit: Unit) {
-    this.add(1, unit).startOf(unit).subtract(1, 'ms');
+    this.startOf(unit).add(1, unit).subtract(1, 'ms');
     return this;
   }
 

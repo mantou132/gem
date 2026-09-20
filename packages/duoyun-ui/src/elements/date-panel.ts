@@ -150,12 +150,12 @@ export class DuoyunDatePanelElement extends GemElement {
   @property initValue?: number;
 
   get #currentPosition() {
-    return new Time(`${this.#state.year}-${String(this.#state.month + 1).padStart(2, '0')}`);
+    return new Time(this.#state.year, this.#state.month);
   }
 
   get #prevPosition() {
     if (!this.#state.old) return 0;
-    return new Time(`${this.#state.old.year}-${String(this.#state.old.month + 1).padStart(2, '0')}`);
+    return new Time(this.#state.old.year, this.#state.old.month);
   }
 
   get #highlights() {
