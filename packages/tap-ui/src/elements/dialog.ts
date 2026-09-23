@@ -72,7 +72,6 @@ const style = css`
     font-size: 1.125em;
     color: ${theme.highlightColor};
     font-weight: bold;
-    user-select: none;
     padding-bottom: 0.5em;
     text-align: center;
   }

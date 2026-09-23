@@ -25,7 +25,6 @@ const style = css`
   :host(:where(:not([hidden]))) {
     display: flex;
     cursor: default;
-    user-select: none;
     font-size: 0.875em;
     line-height: 1.2;
     border-radius: ${theme.normalRound};

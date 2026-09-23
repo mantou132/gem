@@ -37,7 +37,6 @@ const style = css`
     align-items: stretch;
     line-height: 1.2;
     cursor: default;
-    user-select: none;
     font-size: 0.875em;
     border-radius: ${theme.normalRound};
     white-space: nowrap;

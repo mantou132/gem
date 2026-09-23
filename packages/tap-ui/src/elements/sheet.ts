@@ -116,7 +116,6 @@ const style = css`
     font-weight: bold;
     color: ${theme.highlightColor};
     text-align: center;
-    user-select: none;
     padding: 0.35em 0 0.75em;
     flex-shrink: 0;
   }

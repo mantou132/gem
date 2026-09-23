@@ -92,7 +92,6 @@ const style = css`
     font: inherit;
     text-align: center;
     cursor: pointer;
-    -webkit-tap-highlight-color: transparent;
   }
   .action:last-child {
     border-block-end: 0;

@@ -87,7 +87,6 @@ const style = css`
     top: env(titlebar-area-height, var(--titlebar-area-height, 0px));
     font-size: 0.875em;
     cursor: default;
-    user-select: none;
   }
   .mask {
     position: absolute;

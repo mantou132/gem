@@ -27,7 +27,16 @@ export function initApp(options: InitAppOptions = {}) {
           }
           html {
             height: 100%;
+            user-select: none;
+            -webkit-user-select: none;
+            -webkit-touch-callout: none;
             -webkit-tap-highlight-color: transparent;
+          }
+          input,
+          textarea,
+          [contenteditable] {
+            user-select: text;
+            -webkit-user-select: text;
           }
           body {
             background: black;

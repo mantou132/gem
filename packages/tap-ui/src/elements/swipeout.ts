@@ -50,7 +50,6 @@ const style = css`
     display: block;
     position: relative;
     overflow: hidden;
-    -webkit-tap-highlight-color: transparent;
   }
   .actions {
     position: absolute;

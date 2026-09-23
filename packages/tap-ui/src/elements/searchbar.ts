@@ -56,7 +56,6 @@ const style = css`
     cursor: pointer;
     opacity: 0;
     transition: all 180ms ${theme.timingFunction};
-    -webkit-tap-highlight-color: transparent;
   }
   .cancel.visible {
     margin-inline-start: 0.65em;

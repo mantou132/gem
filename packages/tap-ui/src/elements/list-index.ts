@@ -21,9 +21,7 @@ const style = css`
     color: ${theme.primaryColor};
     font-size: 0.6875em;
     line-height: 1;
-    user-select: none;
     touch-action: none;
-    -webkit-tap-highlight-color: transparent;
   }
   .item {
     position: relative;

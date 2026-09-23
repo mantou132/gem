@@ -33,7 +33,6 @@ const cellStyle = css`
     color: ${theme.highlightColor};
     font-size: 1.0625em;
     line-height: 1.4;
-    -webkit-tap-highlight-color: transparent;
   }
   :host([action]) {
     cursor: pointer;

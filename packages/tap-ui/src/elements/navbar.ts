@@ -37,8 +37,6 @@ const style = css`
     background: ${theme.backgroundColor};
     border-block-end: 1px solid ${theme.borderColor};
     color: ${theme.highlightColor};
-    -webkit-tap-highlight-color: transparent;
-    user-select: none;
     transition:
       background 150ms ${theme.timingFunction},
       border-color 150ms ${theme.timingFunction};

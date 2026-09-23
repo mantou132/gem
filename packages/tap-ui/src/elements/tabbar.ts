@@ -39,8 +39,6 @@ const style = css`
     background: ${theme.backgroundColor};
     border-block-start: 1px solid ${theme.borderColor};
     color: ${theme.describeColor};
-    -webkit-tap-highlight-color: transparent;
-    user-select: none;
   }
   .item {
     flex: 1;
@@ -56,7 +54,6 @@ const style = css`
     color: inherit;
     font: inherit;
     cursor: pointer;
-    -webkit-tap-highlight-color: transparent;
     text-decoration: none;
   }
   tap-active-link.item {
