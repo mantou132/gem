@@ -111,7 +111,7 @@ export class TapStackElement extends GemElement {
 
   static getClosestStack(ele?: Element) {
     if (!ele) return;
-    return closestElement<TapStackElement>(ele, 'tap-stack');
+    return closestElement<TapStackElement>(ele, 'tap-stack') ?? undefined;
   }
 
   #topPageRef = createRef<HTMLElement>();

@@ -16,7 +16,6 @@ import { createRef, createState, css, GemElement, html } from '@mantou/gem/lib/e
 import { addListener } from '@mantou/gem/lib/utils';
 
 import { icons } from '../lib/icons';
-import { theme } from '../lib/theme';
 import { DyPromise } from '../lib/utils';
 import type { ActionSheetAction, ActionSheetGroup } from './action-sheet';
 import { ActionSheet } from './action-sheet';
