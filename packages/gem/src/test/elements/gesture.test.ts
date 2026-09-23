@@ -1,4 +1,4 @@
-import type { GemGestureElement, SwipeEventDetail } from '../../elements/gesture';
+import type { EndEventDetail, GemGestureElement, SwipeEventDetail } from '../../elements/gesture';
 import { html } from '../../lib/element';
 import { aTimeout, expect, fixture } from '../utils';
 
@@ -36,6 +36,42 @@ async function setupGesture(touchAction = '') {
   const dispatch = (type: string, sample: Sample, id = 1) => el.dispatchEvent(pointer(type, sample, id));
   return { el, swipes, events, dispatch };
 }
+
+describe('GemGestureElement end', () => {
+  for (const type of ['pointerup', 'pointercancel', 'pointerleave']) {
+    it(`includes the original ${type} event and resets pressed for the next gesture`, async () => {
+      const { el, dispatch } = await setupGesture();
+      const ends: EndEventDetail[] = [];
+      el.addEventListener('end', (evt: CustomEvent<EndEventDetail>) => ends.push(evt.detail));
+      const pressed = new Promise((resolve) => el.addEventListener('press', resolve, { once: true }));
+      dispatch('pointerdown', [0, 0]);
+      await pressed;
+      const event = pointer(type, [300, 10, 20]);
+      el.dispatchEvent(event);
+      await Promise.resolve();
+      expect(ends).to.have.lengthOf(1);
+      expect(ends[0].event).to.equal(event);
+      expect(ends[0].pressed).to.equal(true);
+
+      dispatch('pointerdown', [400, 0]);
+      dispatch('pointerup', [450, 0]);
+      await Promise.resolve();
+      expect(ends).to.have.lengthOf(2);
+      expect(ends[1].pressed).to.equal(false);
+      expect(ends[0].pressed).to.equal(true);
+    });
+  }
+
+  it('sets pressed before a press handler synchronously ends the gesture', async () => {
+    const { el, dispatch } = await setupGesture();
+    const ended = new Promise<EndEventDetail>((resolve) => {
+      el.addEventListener('end', (evt: CustomEvent<EndEventDetail>) => resolve(evt.detail), { once: true });
+    });
+    el.addEventListener('press', () => dispatch('pointerup', [300, 0]), { once: true });
+    dispatch('pointerdown', [0, 0]);
+    expect((await ended).pressed).to.equal(true);
+  });
+});
 
 describe('GemGestureElement swipe', () => {
   for (const [direction, x, y] of [

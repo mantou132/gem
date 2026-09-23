@@ -19,7 +19,7 @@ import { addListener, classMap, styleMap } from '@mantou/gem/lib/utils';
 import { icons } from '../lib/icons';
 import { theme } from '../lib/theme';
 import { TapVisibleBaseElement } from './base/visible';
-import type { PanEventDetail, SwipeEventDetail } from './gesture';
+import type { EndEventDetail, PanEventDetail, SwipeEventDetail } from './gesture';
 import type { TapNavbarElement } from './navbar';
 import { Stack } from './stack';
 import { TapSwipeoutElement } from './swipeout';
@@ -372,7 +372,7 @@ export class TapPageElement extends TapVisibleBaseElement {
         class="gesture"
         @pan=${(evt: CustomEvent<PanEventDetail>) => this.#forward('pan', evt)}
         @swipe=${(evt: CustomEvent<SwipeEventDetail>) => this.#forward('swipe', evt)}
-        @end=${(evt: CustomEvent<PointerEvent>) => this.#forward('end', evt)}
+        @end=${(evt: CustomEvent<EndEventDetail>) => this.#forward('end', evt)}
       ></tap-gesture>
     `;
   };

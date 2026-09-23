@@ -29,6 +29,12 @@ export interface RotateEventDetail {
   y: number;
   rotate: number;
 }
+export interface EndEventDetail {
+  /** 结束手势的原始事件，可通过 type 区分抬手、取消或离开。 */
+  event: PointerEvent;
+  /** 本次手势是否触发过 press，取消时也保留该状态。 */
+  pressed: boolean;
+}
 
 // 甩动手感的经验参数，非 UIKit 的公开阈值；坐标单位为 CSS px。
 const SWIPE_TIME_WINDOW = 100;
@@ -137,7 +143,7 @@ export class GemGestureElement extends GemElement {
   @emitter rotate: Emitter<RotateEventDetail>;
   @emitter swipe: Emitter<SwipeEventDetail>;
   @emitter press: Emitter<PointerEvent>;
-  @emitter end: Emitter<PointerEvent>;
+  @emitter end: Emitter<EndEventDetail>;
 
   @attribute touchAction: string;
 
@@ -317,7 +323,7 @@ export class GemGestureElement extends GemElement {
     if (ended) {
       this.grabbing = false;
       this.#gestureTriggered = false;
-      this.end(evt);
+      this.end({ event: evt, pressed: this.#pressed });
     }
 
     // 确保外部 end 事件处理器中可以读取到，且不删除新手势的记录。
