@@ -48,6 +48,7 @@ export function visibilityObserver(ele: VisibleBaseElement) {
   const options: ExtendedIntersectionObserverInit = {
     root: ele.intersectionRoot,
     rootMargin: ele.intersectionRootMargin,
+    threshold: Number.EPSILON,
   };
   if (ele.trackVisibility) {
     options.trackVisibility = true;
@@ -55,16 +56,15 @@ export function visibilityObserver(ele: VisibleBaseElement) {
   }
 
   const io = new IntersectionObserver((entries) => {
-    entries.forEach((entry: ExtendedIntersectionObserverEntry) => {
-      const isIntersecting = entry.intersectionRatio > 0;
-      if (ele.trackVisibility && 'isVisible' in entry) {
-        nativeTrackVisibility = true;
-        inViewport = isIntersecting && Boolean(entry.isVisible);
-      } else {
-        inViewport = isIntersecting;
-      }
-      update();
-    });
+    const entry = entries.at(-1) as ExtendedIntersectionObserverEntry;
+    const isIntersecting = entry.intersectionRatio >= Number.EPSILON;
+    if (ele.trackVisibility && 'isVisible' in entry) {
+      nativeTrackVisibility = true;
+      inViewport = isIntersecting && Boolean(entry.isVisible);
+    } else {
+      inViewport = isIntersecting;
+    }
+    update();
   }, options);
 
   io.observe(ele);

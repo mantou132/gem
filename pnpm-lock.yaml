@@ -417,6 +417,9 @@ importers:
       '@gemjs/config':
         specifier: ^2.1.3
         version: link:../config
+      '@swc/helpers':
+        specifier: ^0.5.23
+        version: 0.5.23
       '@types/mocha':
         specifier: ^10.0.7
         version: 10.0.10

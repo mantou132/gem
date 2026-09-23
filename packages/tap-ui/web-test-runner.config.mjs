@@ -7,6 +7,8 @@ import { esbuildPlugin } from '@web/dev-server-esbuild';
  */
 export default {
   browserStartTimeout: 60000,
+  // Visibility tests require the test page to remain in the foreground.
+  concurrency: 1,
   coverage: true,
   coverageConfig: {
     exclude: ['**/node_modules/**', '**/__wds-outside-root__/**/*'],
