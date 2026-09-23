@@ -6,11 +6,11 @@ import {
   customElement,
   effect,
   emitter,
+  mounted,
   part,
   property,
   shadow,
   template,
-  unmounted,
 } from '@mantou/gem/lib/decorators';
 import { createRef, createState, css, GemElement, html } from '@mantou/gem/lib/element';
 import { addListener } from '@mantou/gem/lib/utils';
@@ -96,7 +96,7 @@ export class TapBrowserElement<T = unknown> extends GemElement {
     return result;
   }
 
-  #state = createState({ loading: false });
+  #state = createState({ loading: false, ready: false });
   #onClosed?: () => void;
   #frameRef = createRef<HTMLIFrameElement>();
 
@@ -120,8 +120,24 @@ export class TapBrowserElement<T = unknown> extends GemElement {
     }
   };
 
-  @effect((i) => [i.src])
+  @effect((i) => [i.src, i.#state.ready])
   #syncSrc = () => {
+    if (!this.src) return;
+    if (!this.#state.ready) {
+      const origin = new URL(this.src, location.href).origin;
+      const preconnect = document.createElement('link');
+      preconnect.rel = 'preconnect';
+      preconnect.href = origin;
+      const prefetch = document.createElement('link');
+      prefetch.rel = 'prefetch';
+      prefetch.as = 'document';
+      prefetch.href = this.src;
+      document.head.append(preconnect, prefetch);
+      return () => {
+        preconnect.remove();
+        prefetch.remove();
+      };
+    }
     // Avoid entering the homepage history stack
     this.#frameRef.value!.contentWindow!.location.replace(this.src);
     this.#state({ loading: true });
@@ -130,9 +146,14 @@ export class TapBrowserElement<T = unknown> extends GemElement {
     });
   };
 
-  @unmounted()
-  #dispose = () => {
-    this.#onClosed?.();
+  @mounted()
+  #init = () => {
+    // iframe 同主线程，延时防止动画卡顿
+    const timer = setTimeout(() => this.#state({ ready: true }), 350);
+    return () => {
+      clearTimeout(timer);
+      this.#onClosed?.();
+    };
   };
 
   @template()
