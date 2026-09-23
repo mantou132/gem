@@ -18,6 +18,7 @@ import { addListener, classMap, styleMap } from '@mantou/gem/lib/utils';
 
 import { icons } from '../lib/icons';
 import { theme } from '../lib/theme';
+import { TapVisibleBaseElement } from './base/visible';
 import type { PanEventDetail, SwipeEventDetail } from './gesture';
 import type { TapNavbarElement } from './navbar';
 import { Stack } from './stack';
@@ -147,7 +148,7 @@ const style = css`
 @shadow()
 @adoptedStyle(style)
 @connectStore(pageStore)
-export class TapPageElement extends GemElement {
+export class TapPageElement extends TapVisibleBaseElement {
   @slot @part static header: string;
   @slot @part static footer: string;
   @part static main: string;
@@ -162,6 +163,8 @@ export class TapPageElement extends GemElement {
   @boolattribute refreshable: boolean;
   @boolattribute loading: boolean;
   @boolattribute disableNavigation: boolean;
+  @boolattribute scrollMask: boolean;
+  @boolattribute trackVisibility = true;
 
   /**
    * Fired when pull exceeds the threshold.
@@ -337,7 +340,7 @@ export class TapPageElement extends GemElement {
         ${this.#mainRef}
         class="main"
         part=${TapPageElement.main}
-        disable-scroll-mask
+        ?disable-scroll-mask=${!this.scrollMask}
         ?disable-gesture=${!this.refreshable || refreshing}
         @pull=${this.#onPull}
         @pull-end=${this.#onPullEnd}
