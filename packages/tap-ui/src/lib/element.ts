@@ -115,8 +115,8 @@ export function closestElement<K extends abstract new (...args: any) => any>(ele
   return null;
 }
 
-export function containsElement(ele: Element, other: Element) {
-  let node: Element | null = other;
+export function containsElement(ele: Node, other: Node) {
+  let node: Node | null = other;
   while (node) {
     if (ele.contains(node)) return true;
     node = (node.getRootNode() as ShadowRoot).host;
