@@ -95,6 +95,9 @@ const style = css`
     border-color: transparent;
     background: ${theme.disabledColor};
   }
+  :host([readonly]) {
+    cursor: default;
+  }
   .input {
     outline: none;
     cursor: inherit;
@@ -142,7 +145,7 @@ const style = css`
     margin-inline-start: -0.35em;
     transition: opacity 0.1s;
   }
-  :host(:where([disabled], :not(:focus-within, :hover))) .clear {
+  :host(:where([disabled], [readonly], :not(:focus-within, :hover))) .clear {
     display: none;
   }
   .clear:hover {
@@ -177,6 +180,7 @@ export class TapInputElement extends GemElement {
   @boolattribute spellcheck: boolean;
   @boolattribute required: boolean;
   @boolattribute disabled: boolean;
+  @boolattribute readonly: boolean;
   @boolattribute autofocus: boolean;
   @boolattribute clearable: boolean;
   @boolattribute alwayclearable: boolean;
@@ -355,6 +359,7 @@ export class TapInputElement extends GemElement {
               spellcheck=${this.spellcheck}
               placeholder=${this.placeholder}
               ?disabled=${this.disabled}
+              ?readonly=${this.readonly}
               ?required=${this.required}
               @input=${this.#inputHandle}
               @compositionstart=${this.#compositionstartHandle}
@@ -373,6 +378,7 @@ export class TapInputElement extends GemElement {
               name=${this.name}
               placeholder=${this.placeholder}
               ?disabled=${this.disabled}
+              ?readonly=${this.readonly}
               ?required=${this.required}
               @input=${this.#inputHandle}
               @compositionstart=${this.#compositionstartHandle}
@@ -386,7 +392,7 @@ export class TapInputElement extends GemElement {
         ${this.dataList?.map(({ value, label }) => html`<option value=${value ?? label}>${label}</option>`)}
       </datalist>
       <tap-use
-        v-if=${this.clearable && (this.alwayclearable || !!this.value)}
+        v-if=${this.clearable && !this.readonly && (this.alwayclearable || !!this.value)}
         role="button"
         tabindex=${-Number(this.disabled)}
         aria-disabled=${this.disabled}

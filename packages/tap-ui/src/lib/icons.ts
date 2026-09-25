@@ -71,6 +71,7 @@ const defaultIcons = {
   ),
   delete: genIcon(`M16 9v10H8V9h8m-1.5-6h-5l-1 1H5v2h14V4h-3.5l-1-1zM18 7H6v12c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7z`),
   add: genIcon(`M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z`),
+  minus: genIcon(`M19 13H5v-2h14v2z`),
   right: genIcon(`M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z`),
   left: genIcon(`M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z`),
   expand: genIcon(`M16.59 8.59L12 13.17 7.41 8.59 6 10l6 6 6-6z`),
