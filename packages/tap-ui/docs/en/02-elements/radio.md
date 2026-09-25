@@ -1,6 +1,6 @@
 # `<tap-radio>`
 
-Radio and Radio Group components. Used for mutually exclusive single option selection.
+Radio and radio group. Used for selecting a single choice among a set of mutually exclusive options.
 
 ## Example
 
@@ -8,8 +8,8 @@ Radio and Radio Group components. Used for mutually exclusive single option sele
 
 ```json
 [
-  { "innerHTML": "Selected", "checked": true },
-  { "innerHTML": "Unselected", "checked": false },
+  { "innerHTML": "Checked", "checked": true },
+  { "innerHTML": "Unchecked", "checked": false },
   { "innerHTML": "Disabled", "disabled": true, "checked": true }
 ]
 ```
@@ -20,12 +20,14 @@ Radio and Radio Group components. Used for mutually exclusive single option sele
 
 ```json
 {
+  "heading": "Fruits",
   "value": "apple",
   "options": [
     { "label": "Apple", "value": "apple" },
-    { "label": "Banana", "value": "banana" },
-    { "label": "Orange", "value": "orange" }
-  ]
+    { "label": "Banana", "value": "banana", "description": "Yellow fruit" },
+    { "label": "Orange", "value": "orange", "disabled": true }
+  ],
+  "@change": "(evt) => evt.currentTarget.value = evt.detail"
 }
 ```
 

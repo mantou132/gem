@@ -24,6 +24,23 @@ A checkbox component that allows users to select one or multiple options. It sup
 
 </gbp-example>
 
+<gbp-example name="dy-checkbox-group" src="https://esm.sh/duoyun-ui/elements/checkbox">
+
+```json
+{
+  "orientation": "vertical",
+  "options": [
+    {"label": "Option 1"},
+    {"label": "Option 2"},
+    {"label": "Option 3"}
+  ],
+  "value": ["Option 1"],
+  "@change": "(evt) => evt.currentTarget.value = evt.detail"
+}
+```
+
+</gbp-example>
+
 ## `<dy-checkbox>` API
 
 <gbp-api name="dy-checkbox" src="/src/elements/checkbox.ts"></gbp-api>

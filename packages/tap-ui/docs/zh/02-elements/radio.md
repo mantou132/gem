@@ -20,12 +20,14 @@
 
 ```json
 {
+  "heading": "水果",
   "value": "apple",
   "options": [
     { "label": "苹果", "value": "apple" },
-    { "label": "香蕉", "value": "banana" },
-    { "label": "橙子", "value": "orange" }
-  ]
+    { "label": "香蕉", "value": "banana", "description": "黄色水果" },
+    { "label": "橙子", "value": "orange", "disabled": true }
+  ],
+  "@change": "(evt) => evt.currentTarget.value = evt.detail"
 }
 ```
 

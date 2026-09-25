@@ -1,6 +1,6 @@
 # `<tap-checkbox>`
 
-Checkbox and Checkbox Group components. Used for multi-selection among options, supporting indeterminate state.
+Checkbox and checkbox group. Used for selecting multiple choices among a set of options, supporting indeterminate state.
 
 ## Example
 
@@ -21,12 +21,14 @@ Checkbox and Checkbox Group components. Used for multi-selection among options, 
 
 ```json
 {
+  "heading": "Fruits",
   "value": ["apple", "banana"],
   "options": [
     { "label": "Apple", "value": "apple" },
-    { "label": "Banana", "value": "banana" },
-    { "label": "Orange", "value": "orange" }
-  ]
+    { "label": "Banana", "value": "banana", "description": "Yellow fruit" },
+    { "label": "Orange", "value": "orange", "disabled": true }
+  ],
+  "@change": "(evt) => evt.currentTarget.value = evt.detail"
 }
 ```
 

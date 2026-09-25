@@ -24,6 +24,8 @@ import { groupStyle } from './radio';
 
 import './use';
 
+export type CheckboxOption<T = any> = Option<T>;
+
 const style = css`
   :host(:where(:not([hidden]))) {
     cursor: default;
@@ -109,6 +111,7 @@ export class TapCheckboxElement extends GemElement {
 @aria({ role: 'group' })
 export class TapCheckboxGroupElement extends GemElement {
   @attribute orientation: 'horizontal' | 'vertical';
+  @attribute heading: string;
   @boolattribute disabled: boolean;
   @globalemitter change: Emitter<any[]>;
   @property value?: any[];
@@ -132,16 +135,21 @@ export class TapCheckboxGroupElement extends GemElement {
 
   render = () => {
     if (!this.options) return null;
-    return html`${this.options.map(
-      ({ label, value }) => html`
-        <tap-checkbox
-          ?disabled=${this.disabled}
-          ?checked=${this.#valueSet.has(value ?? label)}
-          @change=${(evt: CustomEvent<boolean>) => this.#onChange(evt, value ?? label)}
-        >
-          ${label}
-        </tap-checkbox>
-      `,
-    )}`;
+    return html`
+      <div class="heading" v-if=${!!this.heading}>${this.heading}</div>
+      ${this.options.map(
+        ({ label, value, disabled, description }) => html`
+          <tap-checkbox
+            class="item"
+            ?disabled=${this.disabled || disabled}
+            ?checked=${this.#valueSet.has(value ?? label)}
+            @change=${(evt: CustomEvent<boolean>) => this.#onChange(evt, value ?? label)}
+          >
+            <span class="label">${label}</span>
+            <span v-if=${!!description} class="description">${description}</span>
+          </tap-checkbox>
+        `,
+      )}
+    `;
   };
 }
