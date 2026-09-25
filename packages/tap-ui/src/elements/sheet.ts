@@ -282,7 +282,8 @@ export class TapSheetElement extends GemElement {
     await this.#animateOffset(from, height, { duration: SHEET_DURATION });
   };
 
-  #onPointerDown = () => {
+  #onPointerDown = (evt: PointerEvent) => {
+    if (evt.isPrimary === false || (evt.pointerType === 'mouse' && evt.button !== 0)) return;
     this.#dragStartOffset = this.#state.offset;
   };
 

@@ -41,6 +41,7 @@ export class TapPullContainerElement extends TapScrollBaseElement {
   @emitter push: Emitter<PushEventDetail>;
   @emitter pushEnd: Emitter<PushEndEventDetail>;
 
+  #pointerId?: number;
   #tracking = false;
   #pulling = false;
   #pushing = false;
@@ -56,6 +57,14 @@ export class TapPullContainerElement extends TapScrollBaseElement {
   }
 
   #reset = () => {
+    if (this.#pointerId !== undefined && this.hasPointerCapture(this.#pointerId)) {
+      try {
+        this.releasePointerCapture(this.#pointerId);
+      } catch {
+        // ignore
+      }
+    }
+    this.#pointerId = undefined;
     this.#tracking = false;
     this.#pulling = false;
     this.#pushing = false;
@@ -96,6 +105,7 @@ export class TapPullContainerElement extends TapScrollBaseElement {
 
   #onPointerDown = (evt: PointerEvent) => {
     if (this.disableGesture || evt.isPrimary === false || (evt.pointerType === 'mouse' && evt.button !== 0)) return;
+    this.#pointerId = evt.pointerId;
     this.#scrollContainers = this.#getScrollContainers(evt);
     this.#tracking = true;
     this.#pulling = false;
@@ -107,6 +117,7 @@ export class TapPullContainerElement extends TapScrollBaseElement {
   };
 
   #onPointerMove = (evt: PointerEvent) => {
+    if (this.#pointerId !== undefined && evt.pointerId !== this.#pointerId) return;
     // https://bugs.webkit.org/show_bug.cgi?id=210454
     const events = 'getCoalescedEvents' in evt ? evt.getCoalescedEvents() : [];
     if (events.length) {
@@ -192,7 +203,7 @@ export class TapPullContainerElement extends TapScrollBaseElement {
   };
 
   #onPointerUp = (evt: PointerEvent) => {
-    if (!this.#tracking) return;
+    if (!this.#tracking || (this.#pointerId !== undefined && evt.pointerId !== this.#pointerId)) return;
     const pulling = this.#pulling;
     const pushing = this.#pushing;
     const distance = this.#distance;

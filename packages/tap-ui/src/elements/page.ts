@@ -6,6 +6,7 @@ import {
   customElement,
   effect,
   emitter,
+  numattribute,
   part,
   shadow,
   slot,
@@ -17,6 +18,7 @@ import { createStore } from '@mantou/gem/lib/store';
 import { addListener, classMap, styleMap } from '@mantou/gem/lib/utils';
 
 import { icons } from '../lib/icons';
+import { clamp } from '../lib/number';
 import { theme } from '../lib/theme';
 import { TapVisibleBaseElement } from './base/visible';
 import type { EndEventDetail, PanEventDetail, SwipeEventDetail } from './gesture';
@@ -33,10 +35,10 @@ export const pageStore = createStore({
 });
 
 /**Pull distance that triggers refresh */
-const PULL_THRESHOLD = 52;
+const PULL_THRESHOLD = 72;
 /**Held height while refreshing */
 const PULL_HOLD = 44;
-const PULL_MAX = 80;
+const PULL_MAX = 96;
 
 const style = css`
   :host(:where(:not([hidden]))) {
@@ -165,6 +167,7 @@ export class TapPageElement extends TapVisibleBaseElement {
   @boolattribute disableNavigation: boolean;
   @boolattribute scrollMask: boolean;
   @boolattribute trackVisibility = true;
+  @numattribute pullThreshold: number;
 
   /**
    * Fired when pull exceeds the threshold.
@@ -189,6 +192,10 @@ export class TapPageElement extends TapVisibleBaseElement {
   #headerSlotRef = createRef<HTMLSlotElement>();
   #iconRef = createRef<HTMLElement>();
   #footerRef = createRef<HTMLElement>();
+
+  get #pullThreshold() {
+    return this.pullThreshold || PULL_THRESHOLD;
+  }
 
   get contentHeight() {
     const header = this.floatheader ? 0 : this.#headerSlotRef.value?.parentElement?.getBoundingClientRect().height || 0;
@@ -215,14 +222,17 @@ export class TapPageElement extends TapVisibleBaseElement {
     return Math.ceil(header + footer + main);
   }
 
-  #pullRotate = (pull: number) => Math.min(180, (pull / PULL_THRESHOLD) * 180);
+  #pullRotate = (pull: number) => Math.min(180, (pull / this.#pullThreshold) * 180);
 
   #forward = (type: string, evt: CustomEvent) => {
     if (this.disableNavigation) return this.navigationGesture({ [type]: evt.detail });
     this.dispatchEvent(new CustomEvent(type, { detail: evt.detail, bubbles: true, composed: true }));
   };
 
-  #damp = (dy: number) => Math.min(PULL_MAX, Math.max(0, dy * 0.45));
+  #damp = (dy: number) => {
+    const max = Math.max(PULL_MAX, this.#pullThreshold * 1.33);
+    return clamp(0, dy * 0.45, max);
+  };
 
   #doneRefresh = () => {
     if (!this.#state.refreshing) return;
@@ -263,7 +273,7 @@ export class TapPageElement extends TapVisibleBaseElement {
   #onPullEnd = (evt: CustomEvent<{ distance: number }>) => {
     const pull = this.#damp(evt.detail.distance);
     this.#state({ pull, dragging: false });
-    if (pull >= PULL_THRESHOLD) this.#startRefresh();
+    if (pull >= this.#pullThreshold) this.#startRefresh();
     else this.#state({ pull: 0 });
   };
 
