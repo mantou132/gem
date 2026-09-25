@@ -8,6 +8,7 @@
 - Entire file should have consistent style
 - Use modern Web APIs or ES standards
 - When referencing other files, do not write code with the same issues
+- Do not significantly increase the complexity of the code for the sake of testing.
 
 ## Gem Element Development
 

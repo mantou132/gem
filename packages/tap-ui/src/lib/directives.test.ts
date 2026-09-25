@@ -10,10 +10,7 @@ it('`repeatPress` basic immediate click and pointerdown', async () => {
   const container = document.createElement('div');
   document.body.appendChild(container);
 
-  render(
-    html`<button ${repeatPress(() => count++, { delay: 50, interval: 20 })}></button>`,
-    container,
-  );
+  render(html`<button ${repeatPress(() => count++, { delay: 50, interval: 20 })}></button>`, container);
 
   const btn = container.querySelector('button')!;
 
@@ -48,10 +45,7 @@ it('`repeatPress` with disabled option', async () => {
   const container = document.createElement('div');
   document.body.appendChild(container);
 
-  render(
-    html`<button ${repeatPress(() => count++, { disabled: true })}></button>`,
-    container,
-  );
+  render(html`<button ${repeatPress(() => count++, { disabled: true })}></button>`, container);
 
   const btn = container.querySelector('button')!;
   btn.dispatchEvent(new PointerEvent('pointerdown', { button: 0, pointerId: 1 }));

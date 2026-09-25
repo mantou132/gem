@@ -1,8 +1,8 @@
+import { mediaQuery } from '@mantou/gem/helper/mediaquery';
 import { adoptedStyle, aria, customElement, mounted, part, property, shadow } from '@mantou/gem/lib/decorators';
 import type { TemplateResult } from '@mantou/gem/lib/element';
 import { css, GemElement, html, repeat } from '@mantou/gem/lib/element';
 import { addListener, classMap } from '@mantou/gem/lib/utils';
-import { mediaQuery } from '@mantou/gem/helper/mediaquery';
 
 import { commonHandle } from '../lib/hotkeys';
 import { icons } from '../lib/icons';
