@@ -9,7 +9,7 @@ import {
   willMount,
 } from '@mantou/gem/lib/decorators';
 import type { TemplateResult } from '@mantou/gem/lib/element';
-import { createRef, css, GemElement, html } from '@mantou/gem/lib/element';
+import { createRef, css, GemElement, html, repeat } from '@mantou/gem/lib/element';
 import { history } from '@mantou/gem/lib/history';
 import { connect, createStore } from '@mantou/gem/lib/store';
 import { classMap, styleMap } from '@mantou/gem/lib/utils';
@@ -207,16 +207,24 @@ export class TapStackElement extends GemElement {
 
   #restore = (page: StackPushOptions) => this.#push(page);
 
-  #replace = (page: StackPushOptions) => {
+  #replace = async (page: StackPushOptions) => {
     if (this.#store.pages.at(-1) === page) return;
     this.#busy = false;
     const animated = page.animated ?? false;
+    if (!animated) {
+      this.#store({ offset: 0, pages: [...this.#store.pages.slice(0, -1), page] });
+      requestAnimationFrame(() => this.#syncHeight(0));
+      return;
+    }
     this.#store({
-      pages: [...this.#store.pages.slice(0, -1), page],
-      ...(animated ? { offset: this.clientWidth || innerWidth } : { offset: 0 }),
+      pages: [...this.#store.pages, page],
+      offset: this.clientWidth || innerWidth,
     });
-    if (animated) queueMicrotask(() => this.#enter(page));
-    else requestAnimationFrame(() => this.#syncHeight(0));
+    await this.#enter(page);
+    const pages = this.#store.pages;
+    if (pages.length >= 2 && pages.at(-1) === page) {
+      this.#store({ pages: [...pages.slice(0, -2), page] });
+    }
   };
 
   #pop = async (page?: StackPushOptions) => {
@@ -334,37 +342,41 @@ export class TapStackElement extends GemElement {
     const width = this.clientWidth || innerWidth;
     const progress = Math.min(1, offset / (width || 1));
     return html`
-      ${pages.map((page, index) => {
-        const isTop = index === pages.length - 1;
-        const isBelowTop = index === pages.length - 2;
-        return html`
-          <div
-            v-if=${index > pages.length - 5 || !!page.keepAlive}
-            ${isTop ? this.#topPageRef : isBelowTop ? this.#belowPageRef : undefined}
-            class=${classMap({ page: true, top: !!isTop })}
-            ?inert=${!isTop}
-            style=${styleMap({
-              transform: isTop
-                ? offset > 0
-                  ? `translateX(${offset}px)`
-                  : undefined
-                : isBelowTop
-                  ? `translateX(${-STACK_PARALLAX * width * (1 - progress)}px)`
-                  : undefined,
-            })}
-            @pan=${(evt: CustomEvent<PanEventDetail>) => this.#onPagePan(page, evt)}
-            @swipe=${(evt: CustomEvent<SwipeEventDetail>) => this.#onPageSwipe(page, evt)}
-            @end=${(evt: Event) => this.#onPagePanEnd(page, evt.currentTarget as HTMLElement)}
-          >
-            ${page.content}
+      ${repeat(
+        pages,
+        (page) => page,
+        (page, index) => {
+          const isTop = index === pages.length - 1;
+          const isBelowTop = index === pages.length - 2;
+          return html`
             <div
-              v-if=${isBelowTop}
-              class="mask"
-              style=${styleMap({ opacity: 0.08 * (1 - progress) })}
-            ></div>
-          </div>
-        `;
-      })}
+              v-if=${index > pages.length - 5 || !!page.keepAlive}
+              ${isTop ? this.#topPageRef : isBelowTop ? this.#belowPageRef : undefined}
+              class=${classMap({ page: true, top: !!isTop })}
+              ?inert=${!isTop}
+              style=${styleMap({
+                transform: isTop
+                  ? offset > 0
+                    ? `translateX(${offset}px)`
+                    : undefined
+                  : isBelowTop
+                    ? `translateX(${-STACK_PARALLAX * width * (1 - progress)}px)`
+                    : undefined,
+              })}
+              @pan=${(evt: CustomEvent<PanEventDetail>) => this.#onPagePan(page, evt)}
+              @swipe=${(evt: CustomEvent<SwipeEventDetail>) => this.#onPageSwipe(page, evt)}
+              @end=${(evt: Event) => this.#onPagePanEnd(page, evt.currentTarget as HTMLElement)}
+            >
+              ${page.content}
+              <div
+                v-if=${isBelowTop}
+                class="mask"
+                style=${styleMap({ opacity: 0.08 * (1 - progress) })}
+              ></div>
+            </div>
+          `;
+        },
+      )}
     `;
   };
 
