@@ -5,15 +5,24 @@ use swc_core::{
 };
 use swc_ecma_ast::{
     ArrowExpr, AssignExpr, AssignOp, AssignTarget, BlockStmt, BlockStmtOrExpr, CallExpr, Callee,
-    Class, ClassDecl, ClassMember, ClassProp, Decorator, Expr, ExprOrSpread, ExprStmt, Function,
+    Class, ClassDecl, ClassMember, ClassProp, Decorator, Expr, ExprOrSpread, ExprStmt,
     Ident, MemberExpr, MemberProp, MethodKind, Pat, PrivateMethod, PrivateName, PrivateProp,
     PropName, SimpleAssignTarget, Stmt, ThisExpr,
 };
 
+fn this_private_member(name: Atom) -> MemberExpr {
+    MemberExpr {
+        span: DUMMY_SP,
+        obj: ThisExpr { span: DUMMY_SP }.into(),
+        prop: MemberProp::PrivateName(PrivateName {
+            span: DUMMY_SP,
+            name,
+        }),
+    }
+}
+
 #[derive(Default)]
 struct TransformVisitor {
-    private_props: Vec<(Atom, Vec<Decorator>, String)>,
-
     current_class_name: Option<Ident>,
     class_static_dep_fn: Vec<ClassMember>,
 }
@@ -106,79 +115,63 @@ impl TransformVisitor {
 impl VisitMut for TransformVisitor {
     noop_visit_mut_type!();
 
+    // `@memo get #x() {}` => `get #_x() {}` `@memo #__x = () => { this.#x = this.#_x; };` `#x;`
+    // 使用字段而非私有方法：方法装饰器的初始化器在所有字段定义前执行，访问私有成员时品牌检查会失败
+    // 插入到 getter 原位置，使 memo 按源码顺序执行
     fn visit_mut_class(&mut self, node: &mut Class) {
-        node.visit_mut_children_with(self);
+        let mut body = Vec::with_capacity(node.body.len());
+        for member in node.body.drain(..) {
+            let ClassMember::PrivateMethod(mut method) = member else {
+                body.push(member);
+                continue;
+            };
+            if !self.is_memo_getter(&mut method) {
+                body.push(ClassMember::PrivateMethod(method));
+                continue;
+            }
 
-        while let Some((prop, decorators, getter_name)) = self.private_props.pop() {
-            node.body.push(ClassMember::PrivateMethod(PrivateMethod {
-                span: DUMMY_SP,
-                kind: MethodKind::Method,
+            let name = method.key.name.clone();
+            let getter_name: Atom = format!("_{name}").into();
+            method.key.name = getter_name.clone();
+            let decorators = method.function.decorators.drain(..).collect();
+            body.push(ClassMember::PrivateMethod(method));
+
+            body.push(ClassMember::PrivateProp(PrivateProp {
                 key: PrivateName {
                     span: DUMMY_SP,
                     name: format!("_{getter_name}").into(),
                 },
-                function: Box::new(Function {
-                    span: DUMMY_SP,
-                    params: vec![],
-                    decorators,
-                    body: Some(BlockStmt {
-                        span: DUMMY_SP,
+                decorators,
+                value: Some(Box::new(Expr::Arrow(ArrowExpr {
+                    body: Box::new(BlockStmtOrExpr::BlockStmt(BlockStmt {
                         stmts: vec![Stmt::Expr(ExprStmt {
                             span: DUMMY_SP,
                             expr: Box::new(Expr::Assign(AssignExpr {
                                 span: DUMMY_SP,
                                 op: AssignOp::Assign,
                                 left: AssignTarget::Simple(SimpleAssignTarget::Member(
-                                    MemberExpr {
-                                        span: DUMMY_SP,
-                                        obj: ThisExpr { span: DUMMY_SP }.into(),
-                                        prop: MemberProp::PrivateName(PrivateName {
-                                            span: DUMMY_SP,
-                                            name: prop.clone(),
-                                        }),
-                                    },
+                                    this_private_member(name.clone()),
                                 )),
-                                right: Box::new(Expr::Member(MemberExpr {
-                                    span: DUMMY_SP,
-                                    obj: ThisExpr { span: DUMMY_SP }.into(),
-                                    prop: MemberProp::PrivateName(PrivateName {
-                                        span: DUMMY_SP,
-                                        name: getter_name.as_str().into(),
-                                    }),
-                                })),
+                                right: Box::new(Expr::Member(this_private_member(getter_name))),
                             })),
                         })],
                         ..Default::default()
-                    }),
+                    })),
                     ..Default::default()
-                }),
+                }))),
                 ..Default::default()
             }));
-            node.body.push(ClassMember::PrivateProp(PrivateProp {
+            body.push(ClassMember::PrivateProp(PrivateProp {
                 key: PrivateName {
                     span: DUMMY_SP,
-                    name: prop.as_str().into(),
+                    name,
                 },
                 ..Default::default()
             }));
         }
-    }
+        node.body = body;
 
-    fn visit_mut_private_method(&mut self, node: &mut PrivateMethod) {
-        if self.is_memo_getter(node) {
-            let name = node.key.name.clone();
-            let getter_name = format!("_{name}");
-
-            node.key = PrivateName {
-                span: DUMMY_SP,
-                name: getter_name.clone().into(),
-            };
-
-            let decorators = node.function.decorators.drain(..).collect();
-
-            self.private_props
-                .push((name.clone(), decorators, getter_name));
-        }
+        node.visit_mut_children_with(self);
     }
 
     // 修复 https://github.com/swc-project/swc/issues/9565
