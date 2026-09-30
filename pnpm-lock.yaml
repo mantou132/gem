@@ -222,8 +222,8 @@ importers:
         specifier: ^3.1.0
         version: 3.2.0(webpack@5.102.1(@swc/core@1.15.40(@swc/helpers@0.5.23))(esbuild@0.24.2))
       swc-plugin-gem:
-        specifier: '=0.1.17-beta'
-        version: 0.1.17-beta
+        specifier: '=0.1.18-beta'
+        version: 0.1.18-beta
       typescript:
         specifier: ^5.6.2
         version: 5.9.3
@@ -494,8 +494,8 @@ importers:
         specifier: '>=3.0.0'
         version: 4.52.5
       swc-plugin-gem:
-        specifier: '=0.1.17-beta'
-        version: 0.1.17-beta
+        specifier: '=0.1.18-beta'
+        version: 0.1.18-beta
       unplugin:
         specifier: ^3.0.0
         version: 3.0.0
@@ -7589,8 +7589,8 @@ packages:
     resolution: {integrity: sha512-ot0WnXS9fgdkgIcePe6RHNk1WA8+muPa6cSjeR3V8K27q9BB1rTE3R1p7Hv0z1ZyAc8s6Vvv8DIyWf681MAt0w==}
     engines: {node: '>= 0.4'}
 
-  swc-plugin-gem@0.1.17-beta:
-    resolution: {integrity: sha512-txFeD0y7aU/+/gObqPyYZfTKofvonlg6DOxycOm4RAm2iDLf6R00X8jmifi4APZWTax5RiOQ9Qd2mPj0Vw2scw==}
+  swc-plugin-gem@0.1.18-beta:
+    resolution: {integrity: sha512-ZMNV88kimtfPqQeOklE6D/Kh/AbB+D+hwb9TollXPvrRircWRGRqF1576AWgGTuLkuCNu5yOMhL4opZW5sg63g==}
 
   symbol-tree@3.2.4:
     resolution: {integrity: sha512-9QNk5KwDF+Bvz+PyObkmSYjI5ksVUYtjW7AU22r2NKcfLJcXp96hkDWU3+XndOsUb+AQ9QhfzfCT2O+CNWT5Tw==}
@@ -16526,7 +16526,7 @@ snapshots:
 
   supports-preserve-symlinks-flag@1.0.0: {}
 
-  swc-plugin-gem@0.1.17-beta: {}
+  swc-plugin-gem@0.1.18-beta: {}
 
   symbol-tree@3.2.4: {}
 

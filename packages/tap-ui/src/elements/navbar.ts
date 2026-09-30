@@ -25,7 +25,7 @@ import './use';
 const style = css`
   :host(:where(:not([hidden]))) {
     display: grid;
-    grid-template-columns: minmax(2.5em, max-content) 1fr minmax(2.5em, max-content);
+    grid-template-columns: minmax(max-content, 1fr) auto minmax(max-content, 1fr);
     grid-template-rows: 2.5em;
     align-items: center;
     flex-shrink: 0;

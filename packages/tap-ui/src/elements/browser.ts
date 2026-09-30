@@ -66,6 +66,7 @@ export class TapBrowserElement<T = unknown> extends GemElement {
   @part static navbar: string;
   @part static frame: string;
   @part static more: string;
+  @part static action: string;
 
   @attribute src: string;
   @attribute title: string;
@@ -107,6 +108,19 @@ export class TapBrowserElement<T = unknown> extends GemElement {
     this.close(null);
   };
 
+  /** A single icon action is shown directly in the navbar instead of the sheet */
+  get #directAction() {
+    const items = this.#items;
+    if (this.groups?.length || items?.length !== 1 || !items[0].icon) return;
+    return items[0];
+  }
+
+  #selectAction = async (action: BrowserItem<T>) => {
+    if (action.disabled) return;
+    await action.handler?.(action);
+    this.select(action);
+  };
+
   #openSheet = async () => {
     const items = this.#items;
     if (!items?.length && !this.groups?.length) return;
@@ -117,6 +131,12 @@ export class TapBrowserElement<T = unknown> extends GemElement {
     if (action) {
       this.select(action);
     }
+  };
+
+  #load = () => {
+    // Avoid entering the homepage history stack; also works for cross-origin frames, unlike `reload()`
+    this.#frameRef.value!.contentWindow!.location.replace(this.src);
+    this.#state({ loading: true });
   };
 
   @effect((i) => [i.src, i.#state.ready])
@@ -137,9 +157,7 @@ export class TapBrowserElement<T = unknown> extends GemElement {
         prefetch.remove();
       };
     }
-    // Avoid entering the homepage history stack
-    this.#frameRef.value!.contentWindow!.location.replace(this.src);
-    this.#state({ loading: true });
+    this.#load();
     return addListener(this.#frameRef.value!, 'load', () => {
       this.#state({ loading: false });
     });
@@ -156,7 +174,9 @@ export class TapBrowserElement<T = unknown> extends GemElement {
   };
 
   @template()
-  #render = () => html`
+  #render = () => {
+    const directAction = this.#directAction;
+    return html`
     <tap-page loading=${this.#state.loading}>
       <tap-navbar
         slot="header"
@@ -169,16 +189,23 @@ export class TapBrowserElement<T = unknown> extends GemElement {
         <tap-use
           v-if=${!!(this.#items?.length || this.groups?.length)}
           slot="right"
-          part=${TapBrowserElement.more}
+          part=${directAction ? TapBrowserElement.action : TapBrowserElement.more}
           role="button"
-          aria-label="More"
-          @click=${this.#openSheet}
-          .element=${icons.more}
+          aria-label=${directAction ? (typeof directAction.label === 'string' ? directAction.label : '') : 'More'}
+          aria-disabled=${!!directAction?.disabled}
+          @click=${directAction ? () => this.#selectAction(directAction) : this.#openSheet}
+          .element=${directAction?.icon || icons.more}
         ></tap-use>
       </tap-navbar>
       <iframe ${this.#frameRef} class="frame" part=${TapBrowserElement.frame} allowfullscreen></iframe>
     </tap-page>
   `;
+  };
+
+  /** Reload `src` */
+  reload() {
+    this.#load();
+  }
 
   get contentWindow() {
     return this.#frameRef.value!.contentWindow;

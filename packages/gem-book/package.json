@@ -62,7 +62,7 @@
     "parse-github-url": "^1.0.2",
     "sitemap-rspack-plugin": "^1.1.1",
     "string-replace-loader": "^3.1.0",
-    "swc-plugin-gem": "=0.1.17-beta",
+    "swc-plugin-gem": "=0.1.18-beta",
     "typescript": "^5.6.2",
     "unplugin-gem": "^0.1.11",
     "yaml": "^1.10.2"
