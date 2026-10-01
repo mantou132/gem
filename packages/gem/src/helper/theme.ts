@@ -29,8 +29,20 @@ function createThemeFromProps<T extends Record<string, unknown>>(themeObj: T, pr
   const salt = randomStr();
   const styleSheet = css({})[SheetToken];
   const store = createStore<T>(themeObj);
+  // 同步分配变量名，新增的键在更新后立即可读；样式内容随 store 异步更新
+  const defineProps = () => {
+    Object.keys(store).forEach((key) => {
+      if (!props[key]) {
+        props[key] = `--${camelToKebabCase(key)}-${salt}`;
+        theme[key] = `var(${props[key]})`;
+      }
+    });
+  };
   const theme: any = new Proxy(
-    createUpdater({ [SheetToken]: styleSheet }, (payload: Partial<T>) => store(payload)),
+    createUpdater({ [SheetToken]: styleSheet }, (payload: Partial<T>) => {
+      store(payload);
+      defineProps();
+    }),
     {
       get(target: any, key: string) {
         if (!target[key]) {
@@ -45,12 +57,9 @@ function createThemeFromProps<T extends Record<string, unknown>>(themeObj: T, pr
   themeStoreMap.set(theme, store);
 
   const updateContent = () => {
+    defineProps();
     let rules = '';
     Object.keys(store).forEach((key) => {
-      if (!props[key]) {
-        props[key] = `--${camelToKebabCase(key)}-${salt}`;
-        theme[key] = `var(${props[key]})`;
-      }
       rules += `${props[key]}:${store[key]};`;
     });
     styleSheet.setContent(`&,:host{${rules}}`);
