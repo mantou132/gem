@@ -1,6 +1,6 @@
 {
   "name": "gem-book",
-  "version": "2.2.16",
+  "version": "2.2.17",
   "description": "Create your document website easily and quickly",
   "keywords": [
     "doc",
@@ -42,7 +42,7 @@
   },
   "dependencies": {
     "@aaroon/workbox-rspack-plugin": "^0.3.2",
-    "@mantou/gem": "^2.2.12",
+    "@mantou/gem": "^2.2.13",
     "@rspack/cli": "^2.0.8",
     "@rspack/core": "^2.0.8",
     "@rspack/dev-server": "^2.1.0",
@@ -64,7 +64,7 @@
     "string-replace-loader": "^3.1.0",
     "swc-plugin-gem": "=0.1.18-beta",
     "typescript": "^5.6.2",
-    "unplugin-gem": "^0.1.11",
+    "unplugin-gem": "^0.1.12",
     "yaml": "^1.10.2"
   },
   "devDependencies": {
@@ -81,7 +81,7 @@
     "@types/prismjs": "^1.16.5",
     "@web/dev-server-esbuild": "^1.0.2",
     "@web/test-runner": "^0.18.1",
-    "gem-analyzer": "^2.2.12",
+    "gem-analyzer": "^2.2.13",
     "nodemon": "^2.0.7",
     "ts-morph": "^12.0.0"
   },
