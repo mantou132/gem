@@ -221,7 +221,8 @@ const langAliases: Record<string, string> = {
   yml: 'yaml',
 };
 
-const lineHeight = 1.5;
+// WebKit 会把小数行高截断为整数 px，取整后高亮位置才能和实际行对齐
+const lineHeight = 'round(1.5em, 1px)';
 const padding = 1;
 
 const style = css`
@@ -414,8 +415,8 @@ export class TapCodeBlockElement extends TapVisibleBaseElement {
               <span
                 class="gem-highlight"
                 style=${styleMap({
-                  top: `${(start - 1) * lineHeight + padding}em`,
-                  height: `${(end - start + 1) * lineHeight}em`,
+                  top: `calc(${start - 1} * ${lineHeight} + ${padding}em)`,
+                  height: `calc(${end - start + 1} * ${lineHeight})`,
                 })}
               ></span>
             `,

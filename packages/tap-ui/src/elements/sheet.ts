@@ -38,6 +38,7 @@ import './stack';
 /** Match stack / iOS sheet timing */
 const SHEET_DURATION = 350;
 const SHEET_DURATION_MIN = 140;
+const SWIPE_ACTIVATE_SPEED = 0.5;
 
 const style = css`
   :host {
@@ -300,8 +301,8 @@ export class TapSheetElement extends GemElement {
     const { maxHeight, offsets } = this.#snapOffsets;
     const { swipe } = evt.detail;
     const speed = swipe ? swipe.speed : 0;
-    const isDown = swipe?.direction === 'bottom' && speed > 0.5;
-    const isUp = swipe?.direction === 'top' && speed > 0.5;
+    const isDown = swipe?.direction === 'bottom' && speed > SWIPE_ACTIVATE_SPEED;
+    const isUp = swipe?.direction === 'top' && speed > SWIPE_ACTIVATE_SPEED;
 
     const lowestOffset = offsets[0];
 

@@ -70,6 +70,8 @@ export const unpluginFactory: UnpluginFactory<UnpluginGemOptions | undefined> = 
                 tsx: filename.endsWith('.tsx'),
                 jsx: filename.endsWith('.jsx'),
                 decorators: true,
+                // ES 装饰器允许 `@dec export class`，与 TypeScript 解析保持一致
+                decoratorsBeforeExport: true,
               },
               transform: {
                 decoratorVersion: '2023-11',

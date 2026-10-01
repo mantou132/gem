@@ -8,6 +8,8 @@ import { TapScrollBaseElement } from './base/scroll';
 
 const PULL_ACTIVATE = 10;
 const SCROLL_DEVIATION = 0.5;
+/** Bias the vertical/horizontal axis lock toward vertical so a dismiss drag survives thumb wobble */
+const AXIS_LOCK_BIAS = 1.5;
 
 const style = css`
   :host(:where(:not([hidden]))) {
@@ -160,7 +162,7 @@ export class TapPullContainerElement extends TapScrollBaseElement {
 
     if (distance < this.#pullActivate) return;
 
-    if (Math.abs(dx) > distance) {
+    if (Math.abs(dx) > distance * AXIS_LOCK_BIAS) {
       this.#reset();
       return;
     }
@@ -197,9 +199,11 @@ export class TapPullContainerElement extends TapScrollBaseElement {
   };
 
   #onTouch = (evt: TouchEvent) => {
-    if (this.disableScroll) {
-      evt.preventDefault();
-    }
+    if (!this.disableScroll || evt.touches.length !== 1) return;
+    const touch = evt.touches[0];
+    const dy = touch.clientY - this.#startY;
+    const dx = touch.clientX - this.#startX;
+    if (Math.abs(dx) <= Math.abs(dy) && evt.cancelable) evt.preventDefault();
   };
 
   #onPointerUp = (evt: PointerEvent) => {
