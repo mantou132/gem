@@ -6,11 +6,13 @@ import {
   boolattribute,
   customElement,
   globalemitter,
+  light,
   memo,
   mounted,
   property,
   shadow,
   slot,
+  state,
 } from '@mantou/gem/lib/decorators';
 import { css, GemElement, html } from '@mantou/gem/lib/element';
 import { addListener } from '@mantou/gem/lib/utils';
@@ -109,11 +111,14 @@ export class TapCheckboxElement extends GemElement {
 @customElement('tap-checkbox-group')
 @adoptedStyle(groupStyle)
 @aria({ role: 'group' })
+@light({ penetrable: true })
 export class TapCheckboxGroupElement extends GemElement {
   @attribute orientation: 'horizontal' | 'vertical';
   @attribute heading: string;
   @boolattribute disabled: boolean;
   @globalemitter change: Emitter<any[]>;
+  /**Grouped list appearance */
+  @state tapList = true;
   @property value?: any[];
   @property options?: Option[];
 
@@ -136,17 +141,17 @@ export class TapCheckboxGroupElement extends GemElement {
   render = () => {
     if (!this.options) return null;
     return html`
-      <div class="heading" v-if=${!!this.heading}>${this.heading}</div>
+      <div class=${groupStyle.heading} v-if=${!!this.heading}>${this.heading}</div>
       ${this.options.map(
         ({ label, value, disabled, description }) => html`
           <tap-checkbox
-            class="item"
+            class=${groupStyle.item}
             ?disabled=${this.disabled || disabled}
             ?checked=${this.#valueSet.has(value ?? label)}
             @change=${(evt: CustomEvent<boolean>) => this.#onChange(evt, value ?? label)}
           >
-            <span class="label">${label}</span>
-            <span v-if=${!!description} class="description">${description}</span>
+            <span class=${groupStyle.label}>${label}</span>
+            <span v-if=${!!description} class=${groupStyle.description}>${description}</span>
           </tap-checkbox>
         `,
       )}

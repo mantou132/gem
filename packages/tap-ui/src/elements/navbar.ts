@@ -66,7 +66,7 @@ const style = css`
     border: none;
     border-radius: ${theme.normalRound};
     background: transparent;
-    color: ${theme.primaryColor};
+    color: ${theme.highlightColor};
     font: inherit;
     cursor: pointer;
   }

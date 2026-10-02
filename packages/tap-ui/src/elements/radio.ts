@@ -6,10 +6,12 @@ import {
   boolattribute,
   customElement,
   globalemitter,
+  light,
   mounted,
   property,
   shadow,
   slot,
+  state,
 } from '@mantou/gem/lib/decorators';
 import type { TemplateResult } from '@mantou/gem/lib/element';
 import { css, GemElement, html } from '@mantou/gem/lib/element';
@@ -91,8 +93,10 @@ export class TapRadioElement extends GemElement {
   };
 }
 
-export const groupStyle = css`
-  :scope:where(:not([hidden])) {
+// 内容可被外部样式化，类名使用生成的唯一名称，避免被外部同名规则意外命中
+// 列表样式由 `tapList` 状态启用，继承的元素可关闭（如 dy-*）
+export const groupStyle = css({
+  $: `
     display: flex;
     align-items: center;
     flex-wrap: wrap;
@@ -103,21 +107,25 @@ export const groupStyle = css`
       flex-direction: column;
       align-items: flex-start;
     }
-  }
-  :scope:where(tap-checkbox-group, tap-radio-group) {
-    display: block;
-    width: 100%;
-    color: ${theme.textColor};
-    &:not(:first-of-type) {
-      margin-block-start: 0.5em;
+    &:state(tap-list) {
+      display: block;
+      width: 100%;
+      color: ${theme.textColor};
+      &:not(:first-of-type) {
+        margin-block-start: 0.5em;
+      }
     }
-    .heading {
+  `,
+  heading: `
+    :state(tap-list) & {
       padding: 0.75em calc(1.0625em / 0.8125) 0.5em;
       font-size: 0.8125em;
       line-height: 1.3;
       color: ${theme.describeColor};
     }
-    .item {
+  `,
+  item: `
+    :state(tap-list) & {
       display: flex;
       align-items: center;
       gap: 0.75em;
@@ -150,22 +158,26 @@ export const groupStyle = css`
         }
       }
     }
-    .label {
+  `,
+  label: `
+    :state(tap-list) & {
       flex: 1;
       min-width: 0;
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
     }
-    .description {
+  `,
+  description: `
+    :state(tap-list) & {
       font-size: 0.94em;
       color: ${theme.describeColor};
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
     }
-  }
-`;
+  `,
+});
 
 export interface Option<T = any> {
   label: string | TemplateResult;
@@ -177,11 +189,14 @@ export interface Option<T = any> {
 @customElement('tap-radio-group')
 @adoptedStyle(groupStyle)
 @aria({ role: 'radiogroup' })
+@light({ penetrable: true })
 export class TapRadioGroupElement extends GemElement {
   @attribute orientation: 'horizontal' | 'vertical';
   @attribute heading: string;
   @boolattribute disabled: boolean;
   @globalemitter change: Emitter<any>;
+  /**Grouped list appearance */
+  @state tapList = true;
   @property value?: any;
   @property options?: Option[];
 
@@ -193,18 +208,18 @@ export class TapRadioGroupElement extends GemElement {
   render = () => {
     if (!this.options) return null;
     return html`
-      <div class="heading" v-if=${!!this.heading}>${this.heading}</div>
+      <div class=${groupStyle.heading} v-if=${!!this.heading}>${this.heading}</div>
       ${this.options.map(
         ({ label, value, disabled, description }) => html`
           <tap-radio
-            class="item"
+            class=${groupStyle.item}
             ?disabled=${this.disabled || disabled}
             .value=${value ?? label}
             ?checked=${(value ?? label) === this.value}
             @change=${this.#onChange}
           >
-            <span class="label">${label}</span>
-            <span v-if=${!!description} class="description">${description}</span>
+            <span class=${groupStyle.label}>${label}</span>
+            <span v-if=${!!description} class=${groupStyle.description}>${description}</span>
           </tap-radio>
         `,
       )}

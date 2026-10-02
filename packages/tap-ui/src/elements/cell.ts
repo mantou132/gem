@@ -5,6 +5,7 @@ import {
   boolattribute,
   customElement,
   effect,
+  light,
   part,
   property,
   shadow,
@@ -126,7 +127,7 @@ export class TapCellElement extends GemElement {
 }
 
 export type CellItem = {
-  label: string;
+  label: string | TemplateResult;
   description?: string | TemplateResult;
   /**Show trailing chevron; defaults to true when not a switch row */
   action?: boolean;
@@ -137,30 +138,32 @@ export type CellItem = {
   onChange?: (checked: boolean) => void;
 };
 
-const groupStyle = css`
-  :scope:where(:not([hidden])) {
+// 内容可被外部样式化，类名使用生成的唯一名称，避免被外部同名规则意外命中
+const groupStyle = css({
+  $: `
     display: block;
     width: 100%;
     color: ${theme.textColor};
-  }
-  :scope:not(:first-of-type) {
-    margin-block-start: 0.5em;
-  }
-  .heading {
+    &:where(:not(:first-of-type)) {
+      margin-block-start: 0.5em;
+    }
+  `,
+  heading: `
     padding: 0.75em calc(1.0625em / 0.8125) 0.5em;
     font-size: 0.8125em;
     line-height: 1.3;
     color: ${theme.describeColor};
-  }
-  .body {
+  `,
+  body: `
     display: block;
     background: ${theme.backgroundColor};
-  }
-`;
+  `,
+});
 
 @customElement('tap-cell-group')
 @adoptedStyle(groupStyle)
 @aria({ role: 'group' })
+@light({ penetrable: true })
 export class TapCellGroupElement extends GemElement {
   /**Optional group header, e.g. "Account" / "General" */
   @attribute heading: string;
@@ -193,14 +196,16 @@ export class TapCellGroupElement extends GemElement {
 
   #renderItem = (item: CellItem) => {
     const action = this.#showAction(item);
+    const label = typeof item.label === 'string' ? item.label : '';
     const description = typeof item.description === 'string' ? item.description : '';
     return html`
       <tap-cell
-        label=${item.label}
+        label=${label}
         description=${description}
         ?action=${action}
-        @click=${(evt: Event) => action && item.onClick?.(evt)}
+        @click=${(evt: Event) => item.onClick?.(evt)}
       >
+        <div v-if=${typeof item.label !== 'string'} slot="label">${item.label}</div>
         <div v-if=${typeof item.description !== 'string' && !!item.description} slot="description">${item.description}</div>
         ${this.#renderExtra(item)}
       </tap-cell>
@@ -215,8 +220,8 @@ export class TapCellGroupElement extends GemElement {
   @template()
   #content = () => {
     return html`
-      <div class="heading" v-if=${!!this.heading}>${this.heading}</div>
-      <div class="body">${(this.items || []).map((item) => this.#renderItem(item))}</div>
+      <div class=${groupStyle.heading} v-if=${!!this.heading}>${this.heading}</div>
+      <div class=${groupStyle.body}>${(this.items || []).map((item) => this.#renderItem(item))}</div>
     `;
   };
 }
