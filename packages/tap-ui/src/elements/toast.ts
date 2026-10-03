@@ -119,8 +119,9 @@ export class TapToastElement extends GemElement {
 
   static instance?: TapToastElement;
 
-  static open(options: ToastOptions): void;
-  static open(type: Type, content: string | TemplateResult): void;
+  /** Returns a function that closes the toast; `duration: Infinity` keeps it until closed. */
+  static open(options: ToastOptions): () => void;
+  static open(type: Type, content: string | TemplateResult): () => void;
   static open(arg1: Type | ToastOptions, arg2?: string | TemplateResult) {
     const {
       action,
@@ -138,8 +139,17 @@ export class TapToastElement extends GemElement {
     // 取消正在执行移除动画的删除定时器
     removedSet.delete(item);
     clearTimeout(itemTimerMap.get(item));
-    const removeTimer = setTimeout(() => toast.#removeItem(item), debug ? 1000000 : duration);
-    itemTimerMap.set(item, removeTimer);
+    const timeout = debug ? 1000000 : duration;
+    if (Number.isFinite(timeout)) {
+      itemTimerMap.set(
+        item,
+        setTimeout(() => toast.#removeItem(item), timeout),
+      );
+    }
+    return () => {
+      clearTimeout(itemTimerMap.get(item));
+      toast.#removeItem(item);
+    };
   }
 
   #over = Promise.resolve();

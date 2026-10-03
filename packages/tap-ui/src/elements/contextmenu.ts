@@ -34,7 +34,7 @@ export interface ContextMenuItem {
   disabled?: boolean;
   danger?: boolean;
   selected?: boolean;
-  handle?: () => void | Promise<void>;
+  handle?: () => void;
   menu?: MenuOrMenuObject;
 }
 

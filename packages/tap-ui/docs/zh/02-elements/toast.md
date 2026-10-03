@@ -43,6 +43,10 @@ Toast.open({
     handle: () => console.log('undo'),
   },
 });
+
+// 返回关闭函数，`duration: Infinity` 时一直显示直到手动关闭
+const close = Toast.open({ type: 'loading', content: '加载中…', duration: Infinity });
+close();
 ```
 
 ## API

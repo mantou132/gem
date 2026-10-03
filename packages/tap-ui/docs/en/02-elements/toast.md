@@ -43,6 +43,10 @@ Toast.open({
     handle: () => console.log('undo'),
   },
 });
+
+// Returns a close function; `duration: Infinity` keeps it until closed
+const close = Toast.open({ type: 'loading', content: 'Loading…', duration: Infinity });
+close();
 ```
 
 ## API
