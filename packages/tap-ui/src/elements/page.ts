@@ -13,7 +13,7 @@ import {
   state,
   template,
 } from '@mantou/gem/lib/decorators';
-import { createRef, createState, css, GemElement, html } from '@mantou/gem/lib/element';
+import { createRef, createState, css, html } from '@mantou/gem/lib/element';
 import { createStore } from '@mantou/gem/lib/store';
 import { addListener, classMap, styleMap } from '@mantou/gem/lib/utils';
 

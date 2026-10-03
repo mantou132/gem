@@ -601,6 +601,7 @@ export class TapListItemElement extends TapResizeBaseElement implements VisibleB
   @emitter hide: Emitter;
 
   @state visible: boolean;
+  @state fullVisible: boolean;
   @property intersectionRoot?: Element | Document;
   @property intersectionRootMargin?: string;
 

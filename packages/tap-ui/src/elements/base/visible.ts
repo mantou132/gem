@@ -7,6 +7,8 @@ export abstract class VisibleBaseElement extends GemElement {
   visible: boolean;
   show: Emitter;
   hide: Emitter;
+  fullVisible?: boolean;
+  fullShow?: Emitter;
   intersectionRoot?: Element | Document;
   intersectionRootMargin?: string;
   trackVisibility?: boolean;
@@ -24,6 +26,7 @@ interface ExtendedIntersectionObserverEntry extends IntersectionObserverEntry {
 
 export function visibilityObserver(ele: VisibleBaseElement) {
   let inViewport = false;
+  let fullInViewport = false;
   let nativeTrackVisibility = false;
 
   const update = () => {
@@ -43,12 +46,17 @@ export function visibilityObserver(ele: VisibleBaseElement) {
         ele.hide(null);
       }
     }
+    const fullVisible = visible && fullInViewport;
+    if (!!ele.fullVisible !== fullVisible) {
+      ele.fullVisible = fullVisible;
+      if (fullVisible) ele.fullShow?.(null);
+    }
   };
 
   const options: ExtendedIntersectionObserverInit = {
     root: ele.intersectionRoot,
     rootMargin: ele.intersectionRootMargin,
-    threshold: Number.EPSILON,
+    threshold: [Number.EPSILON, 1],
   };
   if (ele.trackVisibility) {
     options.trackVisibility = true;
@@ -58,6 +66,7 @@ export function visibilityObserver(ele: VisibleBaseElement) {
   const io = new IntersectionObserver((entries) => {
     const entry = entries.at(-1) as ExtendedIntersectionObserverEntry;
     const isIntersecting = entry.intersectionRatio >= Number.EPSILON;
+    fullInViewport = entry.intersectionRatio >= 1;
     if (ele.trackVisibility && 'isVisible' in entry) {
       nativeTrackVisibility = true;
       inViewport = isIntersecting && Boolean(entry.isVisible);
@@ -80,6 +89,13 @@ export class TapVisibleBaseElement extends GemElement implements VisibleBaseElem
   @emitter hide: Emitter;
 
   @state visible: boolean;
+
+  /**
+   * Fired when the element becomes visible and entirely within the viewport,
+   * e.g. a page whose enter animation has finished.
+   */
+  @emitter fullShow: Emitter;
+  @state fullVisible: boolean;
 
   @property intersectionRoot?: Element | Document;
   @property intersectionRootMargin?: string;

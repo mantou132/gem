@@ -26,6 +26,9 @@ for (const trackVisibility of [false, true]) {
     element.hide = () => {
       events.push('hide');
     };
+    element.fullShow = () => {
+      events.push('full');
+    };
     let cleanup: (() => void) | undefined;
     const notify = (...records: [boolean, number, boolean][]) => {
       const entries = records.map(([isIntersecting, intersectionRatio, isVisible]) => ({
@@ -43,7 +46,7 @@ for (const trackVisibility of [false, true]) {
 
     try {
       cleanup = visibilityObserver(element);
-      expect(observer!.thresholds).to.eql([Number.EPSILON]);
+      expect(observer!.thresholds).to.eql([Number.EPSILON, 1]);
       notify([true, 0, true]);
       expect(element.visible).to.equal(false);
       expect(events).to.eql([]);
@@ -59,19 +62,28 @@ for (const trackVisibility of [false, true]) {
       // Intermediate hiding in a batch must not emit events if the final state is unchanged.
       notify([false, 0, false], [true, 1, true]);
       expect(element.visible).to.equal(true);
-      expect(events).to.eql(['show']);
+      expect(events).to.eql(['show', 'full']);
+      expect(element.fullVisible).to.equal(true);
+
+      // Partially leaving keeps it visible; fully entering again emits again.
+      notify([true, 0.5, true]);
+      expect(element.fullVisible).to.equal(false);
+      expect(events).to.eql(['show', 'full']);
+      notify([true, 1, true]);
+      expect(events).to.eql(['show', 'full', 'full']);
 
       if (trackVisibility) {
         notify([true, 1, false]);
         expect(element.visible).to.equal(false);
-        expect(events).to.eql(['show', 'hide']);
+        expect(element.fullVisible).to.equal(false);
+        expect(events).to.eql(['show', 'full', 'full', 'hide']);
 
         notify([true, 1, false]);
-        expect(events).to.eql(['show', 'hide']);
+        expect(events).to.eql(['show', 'full', 'full', 'hide']);
 
         notify([true, 1, true]);
         expect(element.visible).to.equal(true);
-        expect(events).to.eql(['show', 'hide', 'show']);
+        expect(events).to.eql(['show', 'full', 'full', 'hide', 'show', 'full']);
       }
 
       notify([false, 0, false]);
@@ -127,9 +139,10 @@ it('hides an edge-adjacent page when the first sheet opens', async () => {
     await left;
     expect(page.visible).to.equal(false);
 
-    const entered = nextEvent('show');
+    const entered = Promise.all([nextEvent('show'), nextEvent('full-show')]);
     container.style.transform = 'none';
     await entered;
+    expect(page.fullVisible).to.equal(true);
     const hidden = nextEvent('hide');
     document.body.append(sheet);
     await hidden;
