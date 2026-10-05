@@ -3,6 +3,7 @@ import {
   adoptedStyle,
   aria,
   attribute,
+  boolattribute,
   customElement,
   effect,
   emitter,
@@ -35,6 +36,10 @@ export interface BrowserOptions<T = unknown> {
   actions?: BrowserItem<T>[];
   groups?: ActionSheetGroup<T>[];
   animated?: boolean;
+  /**Hide the navbar; close via the edge swipe-back gesture or `close` */
+  headerless?: boolean;
+  /**Navbar overlays the frame with a transparent background */
+  floatheader?: boolean;
   /**
    * Target stack or context element used to find the closest `<tap-stack>`.
    * When omitted, defaults to the global root `Stack`.
@@ -70,6 +75,13 @@ export class TapBrowserElement<T = unknown> extends GemElement {
 
   @attribute src: string;
   @attribute title: string;
+  /**Hide the navbar; close via the edge swipe-back gesture or `close` */
+  @boolattribute headerless: boolean;
+  /**
+   * Navbar overlays the frame and stays transparent, since the frame's own scroll can't be observed.
+   * The page in the frame needs to handle the top inset itself.
+   */
+  @boolattribute floatheader: boolean;
   @property items?: BrowserItem<T>[];
   @property actions?: BrowserItem<T>[];
   @property groups?: ActionSheetGroup<T>[];
@@ -83,6 +95,8 @@ export class TapBrowserElement<T = unknown> extends GemElement {
     browser.title = options.title || '';
     browser.items = options.items || options.actions;
     browser.groups = options.groups;
+    browser.headerless = !!options.headerless;
+    browser.floatheader = !!options.floatheader;
     const result = DyPromise.new<void, { browser: TapBrowserElement<T> }>(
       (resolve) => {
         browser.#onClosed = resolve;
@@ -177,8 +191,9 @@ export class TapBrowserElement<T = unknown> extends GemElement {
   #render = () => {
     const directAction = this.#directAction;
     return html`
-    <tap-page loading=${this.#state.loading}>
+    <tap-page loading=${this.#state.loading} ?floatheader=${this.floatheader}>
       <tap-navbar
+        v-if=${!this.headerless}
         slot="header"
         part=${TapBrowserElement.navbar}
         title=${this.title}
