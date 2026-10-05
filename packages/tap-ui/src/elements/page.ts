@@ -191,7 +191,9 @@ export class TapPageElement extends TapVisibleBaseElement {
   #mainRef = createRef<HTMLElement>();
   #headerSlotRef = createRef<HTMLSlotElement>();
   #iconRef = createRef<HTMLElement>();
+  #refreshRef = createRef<HTMLElement>();
   #footerRef = createRef<HTMLElement>();
+  #dimScrollTop = 0;
 
   get #pullThreshold() {
     return this.pullThreshold || PULL_THRESHOLD;
@@ -302,7 +304,15 @@ export class TapPageElement extends TapVisibleBaseElement {
 
   @effect(() => [pageStore.shouldDim])
   #watchExpandable = () => {
-    if (Stack.inCurrentStack(this)) this.dim = !!pageStore.shouldDim;
+    if (!Stack.inCurrentStack(this)) return;
+    const dim = !!pageStore.shouldDim;
+    if (dim === !!this.dim) return;
+    const main = this.#mainRef.value!;
+    // dim 时 main 为 `overflow: visible` 会丢失滚动位置，用负外边距保持内容位置，恢复后再滚回去
+    if (dim) this.#dimScrollTop = main.scrollTop;
+    this.dim = dim;
+    this.#refreshRef.value!.style.marginBlockStart = dim ? `${-this.#dimScrollTop}px` : '';
+    if (!dim) main.scrollTop = this.#dimScrollTop;
   };
 
   @effect(() => [pageStore.shouldFullscreen])
@@ -357,6 +367,7 @@ export class TapPageElement extends TapVisibleBaseElement {
         @scroll=${this.#scrolling}
       >
         <div
+          ${this.#refreshRef}
           class=${classMap({ refresh: true, dragging })}
           part=${TapPageElement.refresh}
           style=${styleMap({ height: this.refreshable && height > 0 ? `${height}px` : '0px' })}

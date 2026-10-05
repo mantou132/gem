@@ -179,6 +179,7 @@ export class TapCardElement extends GemElement {
     firstElementChildMinHeight: 0,
   });
   #animationId = 0;
+  #openPosition = { top: 0, left: 0 };
   #closing = false;
 
   get #height() {
@@ -268,10 +269,11 @@ export class TapCardElement extends GemElement {
     return () => watcher.destroy();
   };
 
-  #open = async () => {
+  #open = () => {
     if (this.expand || this.#closing) return;
     this.press = false;
     const { width, height, top, left } = this.getBoundingClientRect();
+    this.#openPosition = { top, left };
     const computedStyle = getComputedStyle(this);
     const firstElementChildStyle = getComputedStyle(this.firstElementChild || this);
     this.#state({
@@ -285,6 +287,13 @@ export class TapCardElement extends GemElement {
       ...this.#getBorderRadius(computedStyle),
     });
     pageStore({ shouldDim: (this.expand = true) });
+  };
+
+  // 渲染后占位才有尺寸，之前测量会强制布局，内容高度变小导致滚动位置被改变
+  @effect((i) => [i.expand])
+  #enter = () => {
+    if (!this.expand) return;
+    const { top, left } = this.#openPosition;
     const wrapper = this.#wrapperRef.value!.getBoundingClientRect();
     this.#state({
       top: top - wrapper.top,
@@ -292,7 +301,7 @@ export class TapCardElement extends GemElement {
       targetWidth: wrapper.width || 1,
       targetHeight: wrapper.height || 1,
     });
-    await this.#animateProgress(0, 1);
+    this.#animateProgress(0, 1);
   };
 
   @mounted()
