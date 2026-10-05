@@ -156,9 +156,13 @@ export class TMessagePreviewElement extends GemElement {
 export class TCardsElement extends GemElement {
   #previewTriggerRef = createRef<HTMLElement>();
 
+  #onRefresh = ({ detail: done }: CustomEvent<() => void>) => {
+    setTimeout(done, 1000);
+  };
+
   @template()
   #render = () => html`
-    <tap-page>
+    <tap-page refreshable @refresh=${this.#onRefresh}>
       <tap-navbar slot="header" title="Cards"></tap-navbar>
       <tap-content>
         <div class="intro">

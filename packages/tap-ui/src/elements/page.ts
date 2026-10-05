@@ -119,14 +119,20 @@ const style = css`
       height: 0;
     }
   }
+  .content {
+    transition: translate 200ms ${theme.timingFunction};
+  }
   .refresh {
-    position: relative;
+    position: absolute;
+    inset-block-end: 100%;
+    inset-inline: 0;
     overflow: hidden;
     height: 0;
     color: ${theme.describeColor};
     transition: height 200ms ${theme.timingFunction};
   }
-  .refresh.dragging {
+  .dragging,
+  .dragging .refresh {
     transition: none;
   }
   .refresh .icon {
@@ -191,7 +197,7 @@ export class TapPageElement extends TapVisibleBaseElement {
   #mainRef = createRef<HTMLElement>();
   #headerSlotRef = createRef<HTMLSlotElement>();
   #iconRef = createRef<HTMLElement>();
-  #refreshRef = createRef<HTMLElement>();
+  #contentRef = createRef<HTMLElement>();
   #footerRef = createRef<HTMLElement>();
   #dimScrollTop = 0;
 
@@ -311,7 +317,7 @@ export class TapPageElement extends TapVisibleBaseElement {
     // dim 时 main 为 `overflow: visible` 会丢失滚动位置，用负外边距保持内容位置，恢复后再滚回去
     if (dim) this.#dimScrollTop = main.scrollTop;
     this.dim = dim;
-    this.#refreshRef.value!.style.marginBlockStart = dim ? `${-this.#dimScrollTop}px` : '';
+    this.#contentRef.value!.style.marginBlockStart = dim ? `${-this.#dimScrollTop}px` : '';
     if (!dim) main.scrollTop = this.#dimScrollTop;
   };
 
@@ -351,7 +357,7 @@ export class TapPageElement extends TapVisibleBaseElement {
   @template()
   #content = () => {
     const { pull, dragging, refreshing, rotate } = this.#state;
-    const height = refreshing ? Math.max(pull, PULL_HOLD) : pull;
+    const height = this.refreshable ? (refreshing ? Math.max(pull, PULL_HOLD) : pull) : 0;
     return html`
       <div class="header" part=${TapPageElement.header}>
         <slot ${this.#headerSlotRef} name=${TapPageElement.header}></slot>
@@ -361,30 +367,31 @@ export class TapPageElement extends TapVisibleBaseElement {
         class="main"
         part=${TapPageElement.main}
         ?disable-scroll-mask=${!this.scrollMask}
-        ?disable-gesture=${!this.refreshable || refreshing}
+        ?disable-gesture=${!this.refreshable || refreshing || pageStore.shouldDim}
         @pull=${this.#onPull}
         @pull-end=${this.#onPullEnd}
         @scroll=${this.#scrolling}
       >
         <div
-          ${this.#refreshRef}
-          class=${classMap({ refresh: true, dragging })}
-          part=${TapPageElement.refresh}
-          style=${styleMap({ height: this.refreshable && height > 0 ? `${height}px` : '0px' })}
-        >
-          <tap-use
-            ${this.#iconRef}
-            class="icon"
-            style=${styleMap({ transform: !refreshing && `rotate(${rotate}deg)` })}
-            .element=${icons.refresh}
-          ></tap-use>
-        </div>
-        <div
           v-if=${this.#state.showProgress}
           class="progress"
           style=${styleMap({ scale: `${this.#state.progress / 100} 1` })}
         ></div>
-        <slot></slot>
+        <div
+          ${this.#contentRef}
+          class=${classMap({ content: true, dragging })}
+          style=${styleMap({ translate: height ? `0 ${height}px` : undefined })}
+        >
+          <div class="refresh" part=${TapPageElement.refresh} style=${styleMap({ height: `${height}px` })}>
+            <tap-use
+              ${this.#iconRef}
+              class="icon"
+              style=${styleMap({ transform: !refreshing && `rotate(${rotate}deg)` })}
+              .element=${icons.refresh}
+            ></tap-use>
+          </div>
+          <slot></slot>
+        </div>
       </tap-pull-container>
       <div ${this.#footerRef} class="footer" part=${TapPageElement.footer}>
         <slot name=${TapPageElement.footer}></slot>
