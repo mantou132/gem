@@ -1,5 +1,9 @@
 import { adoptedStyle, customElement, template } from '@mantou/gem/lib/decorators';
-import { GemElement, html } from '@mantou/gem/lib/element';
+import { createRef, GemElement, html } from '@mantou/gem/lib/element';
+import { Callout, type CalloutItem } from '@mantou/tap-ui/elements/callout';
+import { Toast } from '@mantou/tap-ui/elements/toast';
+import { longPress } from '@mantou/tap-ui/lib/directives';
+import { icons } from '@mantou/tap-ui/lib/icons';
 import { contentsContainer } from '@mantou/tap-ui/lib/styles';
 import { theme } from '@mantou/tap-ui/lib/theme';
 
@@ -43,6 +47,22 @@ const style = css`
     margin: 0.35em 0 0;
     opacity: 0.78;
   }
+  .bubble {
+    padding: 0.75em 1em;
+    border-radius: 1em;
+    color: #fff;
+    background: ${theme.primaryColor};
+  }
+  .callouts {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1em;
+    margin-block-start: 2em;
+    .preview-trigger {
+      align-self: flex-end;
+    }
+  }
   .close-hint {
     margin-block-start: 1em;
     color: ${theme.describeColor};
@@ -59,10 +79,83 @@ const copy = html`
   </tap-content>
 `;
 
+const calloutMenu: CalloutItem[] = [
+  { label: 'Copy', icon: icons.copy, handle: () => Toast.open('success', 'Copied') },
+  { label: 'Favorite', icon: icons.star, handle: () => Toast.open('success', 'Favorited') },
+  { label: 'Delete', icon: icons.delete, danger: true, handle: () => Toast.open('success', 'Deleted') },
+];
+
+const messagePreviewStyle = css`
+  :scope {
+    display: block;
+    width: 18em;
+    color: ${theme.textColor};
+  }
+  .cover {
+    display: flex;
+    align-items: flex-end;
+    aspect-ratio: 16 / 9;
+    padding: 1em 1.25em;
+    box-sizing: border-box;
+    color: #fff;
+    font-size: 1.25em;
+    font-weight: 600;
+    background: linear-gradient(145deg, #536dfe, #7c4dff);
+  }
+  .meta {
+    display: flex;
+    align-items: center;
+    gap: 0.75em;
+    padding: 1em 1.25em 0;
+  }
+  .avatar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.25em;
+    height: 2.25em;
+    border-radius: 50%;
+    color: #fff;
+    font-weight: 600;
+    background: ${theme.primaryColor};
+  }
+  .name {
+    flex: 1;
+    font-weight: 600;
+    color: ${theme.highlightColor};
+  }
+  .time {
+    font-size: 0.75em;
+    color: ${theme.describeColor};
+  }
+  .text {
+    margin: 0;
+    padding: 0.75em 1.25em 1.25em;
+    line-height: 1.6;
+  }
+`;
+
+@customElement('t-message-preview')
+@adoptedStyle(messagePreviewStyle)
+export class TMessagePreviewElement extends GemElement {
+  @template()
+  #render = () => html`
+    <div class="cover">Weekend trip</div>
+    <div class="meta">
+      <span class="avatar">A</span>
+      <span class="name">Alice</span>
+      <span class="time">10:24</span>
+    </div>
+    <p class="text">The preview opens from the pressed message, so you can read the whole thing before picking an action.</p>
+  `;
+}
+
 @customElement('t-cards')
 @adoptedStyle(contentsContainer)
 @adoptedStyle(style)
 export class TCardsElement extends GemElement {
+  #previewTriggerRef = createRef<HTMLElement>();
+
   @template()
   #render = () => html`
     <tap-page>
@@ -87,6 +180,25 @@ export class TCardsElement extends GemElement {
             </div>
             ${copy}
           </tap-card>
+        </div>
+        <div class="callouts">
+          <p class="close-hint">Long press the bubbles below.</p>
+          <tap-callout .menu=${calloutMenu}>
+            <div class="bubble">Lift in place</div>
+          </tap-callout>
+          <div
+            class="bubble preview-trigger"
+            ${this.#previewTriggerRef}
+            ${longPress(() =>
+              Callout.open({
+                target: this.#previewTriggerRef.value!,
+                menu: calloutMenu,
+                preview: html`<t-message-preview></t-message-preview>`,
+              }),
+            )}
+          >
+            Show a preview
+          </div>
         </div>
       </tap-content>
     </tap-page>
