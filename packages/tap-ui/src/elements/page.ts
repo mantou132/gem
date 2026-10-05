@@ -110,7 +110,9 @@ const style = css`
     .main {
       z-index: 3;
       /* Safari clips position:fixed inside overflow:auto + z-index ancestors */
-      overflow: visible;
+      @supports (font:-apple-system-body) {
+        overflow: visible;
+      }
     }
   }
   :host(:state(fullscreen)) {
@@ -310,15 +312,7 @@ export class TapPageElement extends TapVisibleBaseElement {
 
   @effect(() => [pageStore.shouldDim])
   #watchExpandable = () => {
-    if (!Stack.inCurrentStack(this)) return;
-    const dim = !!pageStore.shouldDim;
-    if (dim === !!this.dim) return;
-    const main = this.#mainRef.value!;
-    // dim 时 main 为 `overflow: visible` 会丢失滚动位置，用负外边距保持内容位置，恢复后再滚回去
-    if (dim) this.#dimScrollTop = main.scrollTop;
-    this.dim = dim;
-    this.#contentRef.value!.style.marginBlockStart = dim ? `${-this.#dimScrollTop}px` : '';
-    if (!dim) main.scrollTop = this.#dimScrollTop;
+    if (Stack.inCurrentStack(this)) this.dim = !!pageStore.shouldDim;
   };
 
   @effect(() => [pageStore.shouldFullscreen])

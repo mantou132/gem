@@ -117,6 +117,8 @@ export function createDecoratorTheme<T extends Record<string, unknown>>(themeObj
         this.internals.sheets.push(style);
         this.memo(
           () => {
+            // https://bugs.webkit.org/show_bug.cgi?id=326327
+            if (CSS.supports(`font:-apple-system-body`)) return theme(access.get(this).apply(this));
             const next = access.get(this).apply(this);
             const rule = style.cssRules[0] as CSSStyleRule;
             const eleTarget = this.shadowRoot
