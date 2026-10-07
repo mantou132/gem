@@ -17,17 +17,19 @@ import { theme } from '../lib/theme';
 import { DyPromise } from '../lib/utils';
 import { Sheet, type SheetOptions, type TapSheetElement } from './sheet';
 
-import './button';
 import './scroll-box';
 import './use';
 
 const style = css`
   :host(:where(:not([hidden]))) {
-    display: block;
+    --card-bg: color-mix(in srgb, ${theme.hoverBackgroundColor} 55%, ${theme.backgroundColor});
+    display: flex;
+    flex-direction: column;
+    gap: 0.5em;
     color: ${theme.textColor};
   }
   .header {
-    padding: 0 0 0.9em;
+    padding: 0.15em 1em 0.4em;
     text-align: center;
   }
   .heading {
@@ -42,59 +44,51 @@ const style = css`
     font-size: 0.875em;
     line-height: 1.45;
   }
-  .group {
-    border-block-start: 1px solid ${theme.borderColor};
-  }
-  .group:first-child {
-    border-block-start: 0;
-  }
-  .group + .group {
-    border-block-start: 0.5em solid ${theme.lightBackgroundColor};
-  }
-  .group.grid + .group.grid {
-    border-block-start: 1px solid ${theme.borderColor};
+  .group,
+  .cancel {
+    overflow: hidden;
+    border-radius: calc(${theme.normalRound} * 3);
+    background: var(--card-bg);
   }
   .group-label {
-    padding: 0.65em 1.25em;
+    padding: 0.75em 1.25em 0.6em;
     color: ${theme.describeColor};
     font-size: 0.75em;
     line-height: 1.3;
-    background: ${theme.lightBackgroundColor};
+    text-align: center;
     border-block-end: 1px solid ${theme.borderColor};
   }
-  .group:not(.grid) .group-label {
-    text-align: center;
+  .grid .group-label {
+    padding-block-end: 0;
+    text-align: start;
+    border-block-end: 0;
   }
   .grid .actions {
     display: flex;
     gap: 0.5em;
     justify-content: safe center;
-    padding-block: 0.9em 1em;
-  }
-  .grid:first-child .actions {
-    padding-block-start: 0;
-  }
-  .grid .group-label + .actions {
-    padding-block-start: 0.25em;
+    padding: 0.75em;
   }
   .action {
     display: flex;
     align-items: center;
     justify-content: center;
     width: 100%;
-    min-height: 3.4em;
+    min-height: 3.5em;
     box-sizing: border-box;
-    padding: 0.7em 1.25em;
+    padding: 0.75em 1.25em;
     border: 0;
-    border-block-end: 1px solid ${theme.borderColor};
+    border-block-start: 1px solid ${theme.borderColor};
     background: transparent;
     color: ${theme.primaryColor};
     font: inherit;
+    font-size: 1.0625em;
     text-align: center;
     cursor: pointer;
+    transition: background-color 0.15s;
   }
-  .action:last-child {
-    border-block-end: 0;
+  .action:first-child {
+    border-block-start: 0;
   }
   .action:active:not(:disabled) {
     background: ${theme.hoverBackgroundColor};
@@ -126,9 +120,11 @@ const style = css`
     gap: 0.5em;
     min-width: 0;
     min-height: 5.75em;
-    padding: 0.7em 0.25em;
-    border-block-end: 0;
-    border-radius: ${theme.normalRound};
+    padding: 0.6em 0.25em;
+    border: 0;
+    border-radius: calc(${theme.normalRound} * 2);
+    color: ${theme.textColor};
+    font-size: 1em;
   }
   .grid .icon {
     display: flex;
@@ -139,9 +135,9 @@ const style = css`
     height: 2.75em;
     padding: 0.625em;
     flex-shrink: 0;
-    border-radius: calc(${theme.normalRound} * 2);
+    border-radius: calc(${theme.normalRound} * 3);
     color: ${theme.highlightColor};
-    background: ${theme.hoverBackgroundColor};
+    background: ${theme.backgroundColor};
   }
   .grid .danger .icon {
     color: ${theme.negativeColor};
@@ -157,11 +153,10 @@ const style = css`
     font-size: 0.6875em;
   }
   .cancel {
-    padding-block-start: 0.75em;
-    border-block-start: 0.5em solid ${theme.lightBackgroundColor};
+    margin-block-start: 0.25em;
   }
-  .cancel-button {
-    width: 100%;
+  .cancel .action {
+    font-weight: 600;
   }
 `;
 
@@ -299,9 +294,9 @@ export class TapActionSheetElement<T = unknown> extends GemElement {
         `;
       })}
       <div class="cancel" part=${TapActionSheetElement.cancel}>
-        <tap-button class="cancel-button" color="cancel" @click=${() => this.cancel(null)}>
+        <button type="button" class="action" @click=${() => this.cancel(null)}>
           ${this.cancelText || locale.cancel}
-        </tap-button>
+        </button>
       </div>
     `;
   };
