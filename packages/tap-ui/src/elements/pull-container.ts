@@ -1,4 +1,4 @@
-import { type GestureSample, getSwipe, type SwipeEventDetail } from '@mantou/gem/elements/base/gesture';
+import { type GestureSample, getSwipe, lockAxis, type SwipeEventDetail } from '@mantou/gem/elements/base/gesture';
 import type { Emitter } from '@mantou/gem/lib/decorators';
 import { adoptedStyle, boolattribute, customElement, emitter, mounted, numattribute } from '@mantou/gem/lib/decorators';
 import { css } from '@mantou/gem/lib/element';
@@ -8,8 +8,6 @@ import { TapScrollBaseElement } from './base/scroll';
 
 const PULL_ACTIVATE = 10;
 const SCROLL_DEVIATION = 0.5;
-/** Bias the vertical/horizontal axis lock toward vertical so a dismiss drag survives thumb wobble */
-const AXIS_LOCK_BIAS = 1.5;
 
 const style = css`
   :host(:where(:not([hidden]))) {
@@ -45,6 +43,7 @@ export class TapPullContainerElement extends TapScrollBaseElement {
 
   #pointerId?: number;
   #tracking = false;
+  #axisLocked = false;
   #pulling = false;
   #pushing = false;
   #startY = 0;
@@ -68,6 +67,7 @@ export class TapPullContainerElement extends TapScrollBaseElement {
     }
     this.#pointerId = undefined;
     this.#tracking = false;
+    this.#axisLocked = false;
     this.#pulling = false;
     this.#pushing = false;
     this.#distance = 0;
@@ -110,6 +110,7 @@ export class TapPullContainerElement extends TapScrollBaseElement {
     this.#pointerId = evt.pointerId;
     this.#scrollContainers = this.#getScrollContainers(evt);
     this.#tracking = true;
+    this.#axisLocked = false;
     this.#pulling = false;
     this.#pushing = false;
     this.#distance = 0;
@@ -148,24 +149,28 @@ export class TapPullContainerElement extends TapScrollBaseElement {
 
     const dy = evt.clientY - this.#startY;
     const dx = evt.clientX - this.#startX;
-    if (dy === 0) return;
     const pulling = dy > 0;
     const distance = Math.abs(dy);
-    const canScroll = pulling ? this.#hasScrolled() : this.#canScrollDown();
 
-    if (canScroll) {
+    if (dy !== 0 && (pulling ? this.#hasScrolled() : this.#canScrollDown())) {
       this.#startY = evt.clientY;
       this.#startX = evt.clientX;
       this.#swipeStart = evt;
       return;
     }
 
-    if (distance < this.#pullActivate) return;
-
-    if (Math.abs(dx) > distance * AXIS_LOCK_BIAS) {
-      this.#reset();
-      return;
+    if (!this.#axisLocked) {
+      const axis = lockAxis(dx, dy);
+      if (!axis) return;
+      // A horizontal drag belongs to nested gestures (e.g. swipeout) for the rest of this touch
+      if (axis === 'x') {
+        this.#reset();
+        return;
+      }
+      this.#axisLocked = true;
     }
+
+    if (distance < this.#pullActivate) return;
 
     this.#pulling = pulling;
     this.#pushing = !pulling;

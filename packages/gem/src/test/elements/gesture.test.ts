@@ -1,4 +1,4 @@
-import type { EndEventDetail, GemGestureElement, SwipeEventDetail } from '../../elements/gesture';
+import type { EndEventDetail, GemGestureElement, PanEventDetail, SwipeEventDetail } from '../../elements/gesture';
 import { html } from '../../lib/element';
 import { aTimeout, expect, fixture } from '../utils';
 
@@ -239,6 +239,31 @@ describe('GemGestureElement swipe', () => {
       expect(swipes).to.deep.equal([]);
     });
   }
+
+  it('locks the axis for the rest of a touch with touch-action=pan-y', async () => {
+    const { el, swipes, dispatch } = await setupGesture('pan-y');
+    const pans: number[] = [];
+    el.addEventListener('pan', (evt: CustomEvent<PanEventDetail>) => pans.push(evt.detail.x));
+    dispatch('pointerdown', [0, 0]);
+    dispatch('pointermove', [10, 0, 20]);
+    dispatch('pointermove', [20, 60, 20]);
+    dispatch('pointerup', [30, 120, 20]);
+    await Promise.resolve();
+    expect(pans).to.deep.equal([0, 0]);
+    expect(swipes).to.deep.equal([]);
+  });
+
+  it('emits raw horizontal movement once locked horizontally with touch-action=pan-y', async () => {
+    const { el, dispatch } = await setupGesture('pan-y');
+    const pans: number[] = [];
+    el.addEventListener('pan', (evt: CustomEvent<PanEventDetail>) => pans.push(evt.detail.x));
+    dispatch('pointerdown', [0, 0]);
+    dispatch('pointermove', [10, 5, 0]);
+    dispatch('pointermove', [20, 15, 0]);
+    dispatch('pointermove', [30, 20, 10]);
+    await Promise.resolve();
+    expect(pans).to.deep.equal([0, 10, 5]);
+  });
 
   it('allows horizontal flicks with touch-action=pan-y', async () => {
     const { swipes, dispatch } = await setupGesture('pan-y');

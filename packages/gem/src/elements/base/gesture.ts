@@ -42,6 +42,17 @@ const SWIPE_MIN_SPEED = 0.3; // px/ms
 const SWIPE_MIN_DISTANCE = 20;
 const SWIPE_DIRECTION_SLOP = 10;
 
+/** 移动超过该距离后锁定本次触摸的方向，与 iOS 一样同一次触摸只交给一个方向的手势。 */
+export const AXIS_LOCK_SLOP = 10;
+/** 判定偏向纵向，滚动、下拉不会因为拇指的横向抖动被抢走。 */
+export const AXIS_LOCK_BIAS = 1.5;
+
+/** 根据相对起点的位移锁定方向，位移不足时返回 `undefined`。 */
+export function lockAxis(dx: number, dy: number): 'x' | 'y' | undefined {
+  if (Math.max(Math.abs(dx), Math.abs(dy)) < AXIS_LOCK_SLOP) return;
+  return Math.abs(dx) > Math.abs(dy) * AXIS_LOCK_BIAS ? 'x' : 'y';
+}
+
 /** Viewport coordinates in CSS pixels and a monotonic timestamp in milliseconds. */
 export interface GestureSample {
   clientX: number;
@@ -54,8 +65,8 @@ export function getSwipe(
   startEvent: GestureSample,
   moves: readonly GestureSample[],
   evt: GestureSample,
-  getMovementX?: (x: number, y: number) => number,
-  getMovementY?: (x: number, y: number) => number,
+  getMovementX?: (x: number) => number,
+  getMovementY?: (y: number) => number,
 ): SwipeEventDetail | undefined {
   const targetTime = Math.max(startEvent.timeStamp, evt.timeStamp - SWIPE_TIME_WINDOW);
   let sample: GestureSample = evt;
@@ -98,7 +109,7 @@ export function getSwipe(
   const dy = evt.clientY - sample.clientY;
   const horizontal = Math.abs(dx) > Math.abs(dy);
   if (Math.abs(dx) === Math.abs(dy)) return;
-  const movement = horizontal ? (getMovementX?.(dx, dy) ?? dx) : (getMovementY?.(dx, dy) ?? dy);
+  const movement = horizontal ? (getMovementX?.(dx) ?? dx) : (getMovementY?.(dy) ?? dy);
   const distance = Math.abs(movement);
   const speed = distance / duration;
   if (distance < SWIPE_MIN_DISTANCE || speed < SWIPE_MIN_SPEED) return;
@@ -151,6 +162,7 @@ export class GemGestureElement extends GemElement {
 
   #pressed = false; // 触发 press 之后不触发其他事件
   #gestureTriggered = false; // 会排除 touchAction 方向
+  #axis?: 'x' | 'y'; // 设置了 touchAction 时，本次单指触摸锁定的方向
   #multiTouch = false;
   #pressTimer: ReturnType<typeof setTimeout> | number = 0;
 
@@ -173,32 +185,27 @@ export class GemGestureElement extends GemElement {
     }
   };
 
-  #getMovementX = (x: number, y: number) => {
+  // 交给浏览器的方向，以及方向锁定之前和锁定之外的位移都不属于本元素
+  #getMovementX = (x: number) => {
     const touchAction = this.touchAction;
     if (
       (touchAction.includes('pan-right') && x > 0) ||
       (touchAction.includes('pan-left') && x < 0) ||
       touchAction.includes('pan-x') ||
-      (((touchAction.includes('pan-down') && y > 0) ||
-        (touchAction.includes('pan-up') && y < 0) ||
-        touchAction.includes('pan-y')) &&
-        Math.abs(y) > Math.abs(x)) // horizontally scrolling
+      (touchAction.includes('pan-') && this.#axis !== 'x')
     ) {
       return 0;
     }
     return x;
   };
 
-  #getMovementY = (x: number, y: number) => {
+  #getMovementY = (y: number) => {
     const touchAction = this.touchAction;
     if (
       (touchAction.includes('pan-down') && y > 0) ||
       (touchAction.includes('pan-up') && y < 0) ||
       touchAction.includes('pan-y') ||
-      (((touchAction.includes('pan-right') && x > 0) ||
-        (touchAction.includes('pan-left') && x < 0) ||
-        touchAction.includes('pan-x')) &&
-        Math.abs(x) > Math.abs(y)) // vertical scrolling
+      (touchAction.includes('pan-') && this.#axis !== 'y')
     ) {
       return 0;
     }
@@ -215,6 +222,7 @@ export class GemGestureElement extends GemElement {
     if (evt.isPrimary) {
       this.#pressed = false;
       this.#gestureTriggered = false;
+      this.#axis = undefined;
       this.#pressTimer = setTimeout(() => {
         this.press(evt);
         this.#pressed = true;
@@ -236,9 +244,12 @@ export class GemGestureElement extends GemElement {
       // https://bugs.chromium.org/p/chromium/issues/detail?id=1092358
       const movementX = clientX - lastMove.clientX;
       const movementY = clientY - lastMove.clientY;
+      if (!this.#axis && this.#startEventMap.size === 1) {
+        this.#axis = lockAxis(clientX - startEvent.clientX, clientY - startEvent.clientY);
+      }
       const move = {
-        x: this.#getMovementX(movementX, movementY),
-        y: this.#getMovementY(movementX, movementY),
+        x: this.#getMovementX(movementX),
+        y: this.#getMovementY(movementY),
         clientX,
         clientY,
         timeStamp,

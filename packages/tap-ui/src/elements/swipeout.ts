@@ -414,6 +414,8 @@ export class TapSwipeoutElement extends GemElement {
   };
 
   #onPanEnd = () => {
+    // Only a drag still in progress settles; a swipe or close may have settled it already
+    if (this.#dragOffset === undefined) return;
     this.#dragOffset = undefined;
     const long = this.#longDrag;
     if (long) {

@@ -121,29 +121,25 @@ const style = css`
       height: 0;
     }
   }
-  .content {
+  /* Pull moves the slotted content itself, so the main layout stays untouched */
+  .main ::slotted(*) {
+    translate: 0 var(--pull);
     transition: translate 200ms ${theme.timingFunction};
   }
+  /* Sits in the gap above the content; .main clips it, centered once the gap fits */
   .refresh {
     position: absolute;
-    inset-block-end: 100%;
-    inset-inline: 0;
-    overflow: hidden;
-    height: 0;
-    color: ${theme.describeColor};
-    transition: height 200ms ${theme.timingFunction};
-  }
-  .dragging,
-  .dragging .refresh {
-    transition: none;
-  }
-  .refresh .icon {
-    position: absolute;
+    inset-block-start: 0;
     left: 50%;
-    bottom: max(0px, calc(50% - 0.625em));
-    translate: -50% 0;
     width: 1.25em;
     height: 1.25em;
+    color: ${theme.describeColor};
+    translate: -50% min(calc(var(--pull, 0px) - 1.25em), calc(var(--pull, 0px) / 2 - 0.625em));
+    transition: translate 200ms ${theme.timingFunction};
+  }
+  .dragging ::slotted(*),
+  .dragging .refresh {
+    transition: none;
   }
   .gesture {
     position: absolute;
@@ -199,9 +195,7 @@ export class TapPageElement extends TapVisibleBaseElement {
   #mainRef = createRef<HTMLElement>();
   #headerSlotRef = createRef<HTMLSlotElement>();
   #iconRef = createRef<HTMLElement>();
-  #contentRef = createRef<HTMLElement>();
   #footerRef = createRef<HTMLElement>();
-  #dimScrollTop = 0;
 
   get #pullThreshold() {
     return this.pullThreshold || PULL_THRESHOLD;
@@ -276,6 +270,7 @@ export class TapPageElement extends TapVisibleBaseElement {
   };
 
   #onPull = (evt: CustomEvent<{ distance: number }>) => {
+    this.#closeSwipeout();
     const pull = this.#damp(evt.detail.distance);
     this.#state({ pull, dragging: true, rotate: this.#pullRotate(pull) });
   };
@@ -299,7 +294,8 @@ export class TapPageElement extends TapVisibleBaseElement {
     });
   };
 
-  #scrolling = () => {
+  /** Like iOS, scrolling or pulling closes an open swipeout without interrupting the gesture */
+  #closeSwipeout = () => {
     TapSwipeoutElement.activeSwipeout?.close();
   };
 
@@ -351,41 +347,36 @@ export class TapPageElement extends TapVisibleBaseElement {
   @template()
   #content = () => {
     const { pull, dragging, refreshing, rotate } = this.#state;
-    const height = this.refreshable ? (refreshing ? Math.max(pull, PULL_HOLD) : pull) : 0;
+    const offset = this.refreshable ? (refreshing ? Math.max(pull, PULL_HOLD) : pull) : 0;
     return html`
       <div class="header" part=${TapPageElement.header}>
         <slot ${this.#headerSlotRef} name=${TapPageElement.header}></slot>
       </div>
       <tap-pull-container
         ${this.#mainRef}
-        class="main"
+        class=${classMap({ main: true, dragging })}
         part=${TapPageElement.main}
+        style=${styleMap({ '--pull': offset ? `${offset}px` : undefined })}
         ?disable-scroll-mask=${!this.scrollMask}
         ?disable-gesture=${!this.refreshable || refreshing || pageStore.shouldDim}
         @pull=${this.#onPull}
         @pull-end=${this.#onPullEnd}
-        @scroll=${this.#scrolling}
+        @scroll=${this.#closeSwipeout}
       >
         <div
           v-if=${this.#state.showProgress}
           class="progress"
           style=${styleMap({ scale: `${this.#state.progress / 100} 1` })}
         ></div>
-        <div
-          ${this.#contentRef}
-          class=${classMap({ content: true, dragging })}
-          style=${styleMap({ translate: height ? `0 ${height}px` : undefined })}
-        >
-          <div class="refresh" part=${TapPageElement.refresh} style=${styleMap({ height: `${height}px` })}>
-            <tap-use
-              ${this.#iconRef}
-              class="icon"
-              style=${styleMap({ transform: !refreshing && `rotate(${rotate}deg)` })}
-              .element=${icons.refresh}
-            ></tap-use>
-          </div>
-          <slot></slot>
-        </div>
+        <tap-use
+          v-if=${this.refreshable}
+          ${this.#iconRef}
+          class="refresh"
+          part=${TapPageElement.refresh}
+          style=${styleMap({ transform: !refreshing && `rotate(${rotate}deg)` })}
+          .element=${icons.refresh}
+        ></tap-use>
+        <slot></slot>
       </tap-pull-container>
       <div ${this.#footerRef} class="footer" part=${TapPageElement.footer}>
         <slot name=${TapPageElement.footer}></slot>
