@@ -6,11 +6,20 @@ import type {
   CompletionItem,
   CompletionList,
   CompletionParams,
+  Definition,
+  DefinitionParams,
   DocumentDiagnosticParams,
   DocumentDiagnosticReport,
   Hover,
   HoverParams,
+  Location,
+  LocationLink,
   Position,
+  PrepareRenameParams,
+  PrepareRenameResult,
+  ReferenceParams,
+  RenameParams,
+  WorkspaceEdit,
 } from 'typescript/unstable/vscode';
 
 import {
@@ -21,6 +30,7 @@ import {
 } from './diagnostics';
 import { ElementDefineRules, ElementIndex } from './elements';
 import { type GemCompletionData, HtmlService } from './html';
+import { findTagAt, findTagLocations, toTextEdits } from './tags';
 import { findTemplate, findTemplates, toOffset } from './template';
 
 // 宿主无关：VS Code 中间件、LSP 代理都调用同一份变换
@@ -32,6 +42,10 @@ export interface GemMiddleware {
   'completionItem/resolve': Transformer<CompletionItem, CompletionItem>;
   'textDocument/diagnostic': Transformer<DocumentDiagnosticParams, DocumentDiagnosticReport>;
   'textDocument/codeAction': Transformer<CodeActionParams, (Command | CodeAction)[] | null>;
+  'textDocument/definition': Transformer<DefinitionParams, Definition | LocationLink[] | null>;
+  'textDocument/references': Transformer<ReferenceParams, Location[] | null>;
+  'textDocument/prepareRename': Transformer<PrepareRenameParams, PrepareRenameResult | null>;
+  'textDocument/rename': Transformer<RenameParams, WorkspaceEdit | null>;
 }
 
 export function createGemMiddleware(getApi: () => Promise<API<true>>): GemMiddleware {
@@ -43,6 +57,12 @@ export function createGemMiddleware(getApi: () => Promise<API<true>>): GemMiddle
     const project = await snapshot.getDefaultProjectForFile({ uri });
     const file = await project?.program.getSourceFile({ uri });
     return project && file && { project, file };
+  }
+
+  async function getTagContext(uri: string, position: Position) {
+    const ctx = await getFileContext(uri);
+    const info = ctx && findTagAt(ctx.file, toOffset(ctx.file.text, position));
+    return info && { ...ctx, info };
   }
 
   async function getTemplateContext(uri: string, position: Position) {
@@ -87,6 +107,32 @@ export function createGemMiddleware(getApi: () => Promise<API<true>>): GemMiddle
           ...htmlDiagnostics,
         ],
       };
+    },
+    'textDocument/definition': async (result, { params }) => {
+      const ctx = await getTemplateContext(params.textDocument.uri, params.position);
+      if (ctx?.template.kind !== 'html') return result;
+      return (await html.definition(ctx.project, ctx.template, ctx.offset)) ?? result;
+    },
+    'textDocument/references': async (result, { params }) => {
+      const ctx = await getTagContext(params.textDocument.uri, params.position);
+      if (!ctx) return result;
+      return findTagLocations(ctx.project, ctx.info.tag);
+    },
+    'textDocument/prepareRename': async (result, { params }) => {
+      const ctx = await getTagContext(params.textDocument.uri, params.position);
+      if (!ctx) return result;
+      return { range: ctx.info.range, placeholder: ctx.info.tag };
+    },
+    // 在定义处重命名所有使用的地方，在模板中只重命名当前元素的开始和结束标签
+    'textDocument/rename': async (result, { params }) => {
+      const { textDocument, position, newName } = params;
+      const ctx = await getTagContext(textDocument.uri, position);
+      if (!ctx) return result;
+      const { info } = ctx;
+      const locations = info.isDefinition
+        ? await findTagLocations(ctx.project, info.tag)
+        : info.tagRanges!.map((range) => ({ uri: textDocument.uri, range }));
+      return { changes: toTextEdits(locations, newName) };
     },
     'textDocument/codeAction': async (result, { params }) => {
       const fixes = getAttrFormatFixes(params.textDocument.uri, params.context.diagnostics);

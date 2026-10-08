@@ -1,7 +1,7 @@
 import { camelToKebabCase } from '@mantou/gem/lib/utils';
 import type { IAttributeData } from '@mantou/vscode-html-languageservice';
 import { getDefaultHTMLDataProvider } from '@mantou/vscode-html-languageservice';
-import type { ClassDeclaration, Node, PropertyDeclaration, SourceFile } from 'typescript/unstable/ast';
+import type { ClassDeclaration, Identifier, Node, PropertyDeclaration, SourceFile } from 'typescript/unstable/ast';
 import {
   isCallExpression,
   isClassDeclaration,
@@ -12,7 +12,7 @@ import {
   SyntaxKind,
 } from 'typescript/unstable/ast';
 import type { Project, Symbol as TsSymbol, Type } from 'typescript/unstable/async';
-import { isLiteralType, isUnionType } from 'typescript/unstable/async';
+import { isLiteralType, isUnionType, SymbolFlags } from 'typescript/unstable/async';
 
 const defaultDataProvider = getDefaultHTMLDataProvider();
 
@@ -145,12 +145,59 @@ export function getBuiltInAttributes() {
   return [...BUILT_IN_ATTRIBUTES, ...BUILT_IN_ATTRS_AND_EVENTS];
 }
 
-export async function getElementData(project: Project, ref: ElementRef): Promise<ElementData | undefined> {
+/** 从当前快照获取元素类声明 */
+export async function getElementNode(project: Project, ref: ElementRef) {
   const file = await project.program.getSourceFile(ref.fileName);
-  const node = file?.statements.find(
-    (s): s is ClassDeclaration => isClassDeclaration(s) && s.name?.text === ref.className,
+  return file?.statements.find(
+    (s): s is ClassDeclaration & { name: Identifier } => isClassDeclaration(s) && s.name?.text === ref.className,
   );
-  if (!node?.name) return;
+}
+
+export interface ElementType {
+  type: Type;
+  symbol?: TsSymbol;
+  isBuiltIn: boolean;
+  isSVG: boolean;
+}
+
+async function getTagNameMapType(project: Project, location: SourceFile, name: string) {
+  const symbol = await project.checker.resolveName(name, SymbolFlags.Interface, location);
+  return symbol && project.checker.getDeclaredTypeOfSymbol(symbol);
+}
+
+/**
+ * 标签对应的元素类型，内置元素使用 lib 中的 `HTMLElementTagNameMap` `SVGElementTagNameMap`
+ */
+export async function resolveElementType(
+  project: Project,
+  location: SourceFile,
+  elements: Map<string, ElementRef>,
+  tag: string,
+): Promise<ElementType | undefined> {
+  const { checker } = project;
+  const ref = elements.get(tag);
+  if (ref) {
+    const node = await getElementNode(project, ref);
+    if (!node) return;
+    const [type, symbol] = await Promise.all([
+      checker.getTypeAtLocation(node.name),
+      checker.getSymbolAtLocation(node.name),
+    ]);
+    return { type, symbol, isBuiltIn: false, isSVG: false };
+  }
+  for (const [mapName, isSVG] of [
+    ['HTMLElementTagNameMap', false],
+    ['SVGElementTagNameMap', true],
+  ] as const) {
+    const mapType = await getTagNameMapType(project, location, mapName);
+    const type = mapType && (await checker.getTypeOfPropertyOfType(mapType, tag));
+    if (type) return { type, symbol: await type.getSymbol(), isBuiltIn: true, isSVG };
+  }
+}
+
+export async function getElementData(project: Project, ref: ElementRef): Promise<ElementData | undefined> {
+  const node = await getElementNode(project, ref);
+  if (!node) return;
 
   const { checker } = project;
   const [classSymbol, classType, stringType, numberType, booleanType] = await Promise.all([

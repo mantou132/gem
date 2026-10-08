@@ -13,11 +13,11 @@ import {
   SyntaxKind,
 } from 'typescript/unstable/ast';
 import type { Checker, Project, Symbol as TsSymbol, Type } from 'typescript/unstable/async';
-import { isLiteralType, isUnionType, SymbolFlags } from 'typescript/unstable/async';
+import { isLiteralType, isUnionType } from 'typescript/unstable/async';
 import type { CodeAction, Diagnostic } from 'typescript/unstable/vscode';
 
-import type { ElementRef } from './elements';
-import { getDecoratorNames, getElementData, getTagFromDecorator } from './elements';
+import type { ElementRef, ElementType } from './elements';
+import { getDecoratorNames, getTagFromDecorator, resolveElementType } from './elements';
 import type { Template } from './template';
 import { findAncestor, toOffset, toPosition } from './template';
 
@@ -147,12 +147,7 @@ async function getLiteralValues(type: Type) {
   return (await type.getTypes()).filter(isLiteralType).map((t) => String(t.value));
 }
 
-interface ElementType {
-  type: Type;
-  isBuiltIn: boolean;
-  isSVG: boolean;
-  deprecated: boolean;
-}
+type DiagnosticElementType = ElementType & { deprecated: boolean };
 
 /** 单次诊断中共享的类型和元素信息 */
 class DiagnosticContext {
@@ -160,9 +155,8 @@ class DiagnosticContext {
   readonly checker: Checker;
   readonly file: SourceFile;
   #elements: Map<string, ElementRef>;
-  #elementTypes = new Map<string, Promise<ElementType | undefined>>();
+  #elementTypes = new Map<string, Promise<DiagnosticElementType | undefined>>();
   #primitive?: Promise<Record<'string' | 'number' | 'boolean' | 'undefined' | 'null' | 'any', Type>>;
-  #tagNameMaps?: Promise<{ html?: Type; svg?: Type }>;
 
   constructor(project: Project, file: SourceFile, elements: Map<string, ElementRef>) {
     this.project = project;
@@ -195,19 +189,6 @@ class DiagnosticContext {
     return this.#primitive;
   }
 
-  // 内置元素使用 lib 中的 `HTMLElementTagNameMap` `SVGElementTagNameMap`
-  get #builtInTagNameMaps() {
-    const { checker, file } = this;
-    const getMapType = async (name: string) => {
-      const symbol = await checker.resolveName(name, SymbolFlags.Interface, file);
-      return symbol && checker.getDeclaredTypeOfSymbol(symbol);
-    };
-    this.#tagNameMaps ??= Promise.all([getMapType('HTMLElementTagNameMap'), getMapType('SVGElementTagNameMap')]).then(
-      ([html, svg]) => ({ html, svg }),
-    );
-    return this.#tagNameMaps;
-  }
-
   async #isDeprecated(symbol: TsSymbol | undefined) {
     if (!symbol) return false;
     const tags = await symbol.getJsDocTags(this.checker);
@@ -227,22 +208,11 @@ class DiagnosticContext {
     return result;
   }
 
-  async #resolveElementType(tag: string): Promise<ElementType | undefined> {
-    const ref = this.#elements.get(tag);
-    if (ref) {
-      const data = await getElementData(this.project, ref);
-      if (!data?.node.name) return;
-      const [type, symbol] = await Promise.all([
-        this.checker.getTypeAtLocation(data.node.name),
-        this.checker.getSymbolAtLocation(data.node.name),
-      ]);
-      return { type, isBuiltIn: false, isSVG: false, deprecated: await this.#isDeprecated(symbol) };
-    }
-    const { html, svg } = await this.#builtInTagNameMaps;
-    const htmlType = html && (await this.checker.getTypeOfPropertyOfType(html, tag));
-    if (htmlType) return { type: htmlType, isBuiltIn: true, isSVG: false, deprecated: false };
-    const svgType = svg && (await this.checker.getTypeOfPropertyOfType(svg, tag));
-    if (svgType) return { type: svgType, isBuiltIn: true, isSVG: true, deprecated: false };
+  async #resolveElementType(tag: string): Promise<DiagnosticElementType | undefined> {
+    const elementType = await resolveElementType(this.project, this.file, this.#elements, tag);
+    if (!elementType) return;
+    const deprecated = !elementType.isBuiltIn && (await this.#isDeprecated(elementType.symbol));
+    return { ...elementType, deprecated };
   }
 
   async #getEmitterHandleType(classType: Type, propType: Type | undefined) {
@@ -288,7 +258,7 @@ async function checkAttribute(
   template: Template,
   vHtml: HTMLDocument,
   node: HtmlNode,
-  elementType: ElementType,
+  elementType: DiagnosticElementType,
   attributeName: string,
   { value, start, end }: { value: string | null; start: number; end: number },
 ): Promise<Diagnostic[]> {
