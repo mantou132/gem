@@ -1,103 +1,96 @@
-import type { ClassDeclaration, Node, PropertyDeclaration, SourceFile } from 'typescript/unstable/ast';
+import type { API } from 'typescript/unstable/async';
+import type {
+  CodeAction,
+  CodeActionParams,
+  Command,
+  CompletionItem,
+  CompletionList,
+  CompletionParams,
+  DocumentDiagnosticParams,
+  DocumentDiagnosticReport,
+  Hover,
+  HoverParams,
+  Position,
+} from 'typescript/unstable/vscode';
+
 import {
-  getTokenAtPosition,
-  isCallExpression,
-  isClassDeclaration,
-  isDecorator,
-  isIdentifier,
-  isPropertyDeclaration,
-  isStringLiteral,
-  isTaggedTemplateExpression,
-} from 'typescript/unstable/ast';
-import type { API, Project } from 'typescript/unstable/async';
-import type { Hover, HoverParams, Position } from 'typescript/unstable/vscode';
+  getAttrFormatFixes,
+  getElementClassDiagnostics,
+  getHtmlDiagnostics,
+  isUnusedDecoratedDiagnostic,
+} from './diagnostics';
+import { ElementDefineRules, ElementIndex } from './elements';
+import { type GemCompletionData, HtmlService } from './html';
+import { findTemplate, findTemplates, toOffset } from './template';
 
 // 宿主无关：VS Code 中间件、LSP 代理都调用同一份变换
 export type Transformer<P, R> = (result: R, context: { readonly params: P }) => Promise<R>;
 
 export interface GemMiddleware {
   'textDocument/hover': Transformer<HoverParams, Hover | null>;
-}
-
-const HTML_TAGS = new Set(['html', 'raw', 'h']);
-const PROP_DECORATORS = new Set(['attribute', 'numattribute', 'boolattribute', 'property']);
-
-function toOffset(text: string, { line, character }: Position) {
-  let offset = 0;
-  for (let i = 0; i < line; i++) offset = text.indexOf('\n', offset) + 1;
-  return offset + character;
-}
-
-function findAncestor<T extends Node>(node: Node | undefined, test: (node: Node) => node is T) {
-  for (let n = node; n; n = n.parent) if (test(n)) return n;
-}
-
-function getDecoratorCall(node: Node, names: Set<string>) {
-  const modifiers = (node as ClassDeclaration).modifiers ?? [];
-  for (const modifier of modifiers) {
-    if (!isDecorator(modifier)) continue;
-    const expr = modifier.expression;
-    const callee = isCallExpression(expr) ? expr.expression : expr;
-    if (isIdentifier(callee) && names.has(callee.text)) return { name: callee.text, expr };
-  }
-}
-
-function getTagName(node: ClassDeclaration) {
-  const call = getDecoratorCall(node, new Set(['customElement']));
-  const arg = call && isCallExpression(call.expr) ? call.expr.arguments[0] : undefined;
-  return arg && isStringLiteral(arg) ? arg.text : undefined;
-}
-
-function getCustomTagAt(text: string, offset: number) {
-  const start = text.lastIndexOf('<', offset);
-  const match = start === -1 ? null : text.slice(start).match(/^<\/?([a-z][\w]*-[\w-]*)/);
-  if (!match || offset > start + match[0].length) return;
-  return match[1];
-}
-
-async function findElement(project: Project, tag: string) {
-  const fileNames = await project.program.getSourceFileNames();
-  for (const fileName of fileNames) {
-    if (fileName.includes('/node_modules/') || fileName.endsWith('.d.ts')) continue;
-    const file = await project.program.getSourceFile(fileName);
-    const node = file?.statements.find((s): s is ClassDeclaration => isClassDeclaration(s) && getTagName(s) === tag);
-    if (node) return node;
-  }
-}
-
-async function describeElement(project: Project, node: ClassDeclaration) {
-  const members = node.members.filter(
-    (m): m is PropertyDeclaration => isPropertyDeclaration(m) && !!getDecoratorCall(m, PROP_DECORATORS),
-  );
-  const types = await project.checker.getTypeAtLocation(members.map((m) => m.name));
-  const lines = await Promise.all(
-    members.map(async (m, i) => {
-      const decorator = getDecoratorCall(m, PROP_DECORATORS)!.name;
-      return `- \`@${decorator} ${m.name.getText()}: ${await project.checker.typeToString(types[i])}\``;
-    }),
-  );
-  return [`**${node.name?.text}**`, ...lines].join('\n');
-}
-
-async function getTemplateContext(api: API<true>, uri: string, position: Position) {
-  const snapshot = await api.getCurrentLanguageServerSnapshot();
-  const project = await snapshot.getDefaultProjectForFile({ uri });
-  const file: SourceFile | undefined = await project?.program.getSourceFile({ uri });
-  if (!project || !file) return;
-  const offset = toOffset(file.text, position);
-  const template = findAncestor(getTokenAtPosition(file, offset), isTaggedTemplateExpression);
-  if (!template || !isIdentifier(template.tag) || !HTML_TAGS.has(template.tag.text)) return;
-  return { project, file, offset };
+  'textDocument/completion': Transformer<CompletionParams, CompletionList | CompletionItem[] | null>;
+  'completionItem/resolve': Transformer<CompletionItem, CompletionItem>;
+  'textDocument/diagnostic': Transformer<DocumentDiagnosticParams, DocumentDiagnosticReport>;
+  'textDocument/codeAction': Transformer<CodeActionParams, (Command | CodeAction)[] | null>;
 }
 
 export function createGemMiddleware(getApi: () => Promise<API<true>>): GemMiddleware {
+  const index = new ElementIndex(new ElementDefineRules());
+  const html = new HtmlService(index);
+
+  async function getFileContext(uri: string) {
+    const snapshot = await (await getApi()).getCurrentLanguageServerSnapshot();
+    const project = await snapshot.getDefaultProjectForFile({ uri });
+    const file = await project?.program.getSourceFile({ uri });
+    return project && file && { project, file };
+  }
+
+  async function getTemplateContext(uri: string, position: Position) {
+    const ctx = await getFileContext(uri);
+    if (!ctx) return;
+    const { project, file } = ctx;
+    const offset = toOffset(file.text, position);
+    const template = findTemplate(file, offset);
+    return template && { project, template, offset };
+  }
+
   return {
     'textDocument/hover': async (result, { params }) => {
-      const ctx = await getTemplateContext(await getApi(), params.textDocument.uri, params.position);
-      const tag = ctx && getCustomTagAt(ctx.file.text, ctx.offset);
-      const element = tag && (await findElement(ctx.project, tag));
-      if (!element) return result;
-      return { contents: { kind: 'markdown', value: await describeElement(ctx.project, element) } };
+      const ctx = await getTemplateContext(params.textDocument.uri, params.position);
+      if (ctx?.template.kind !== 'html') return result;
+      return ((await html.hover(ctx.project, ctx.template, ctx.offset)) as Hover | null) ?? result;
+    },
+    'textDocument/completion': async (result, { params }) => {
+      const ctx = await getTemplateContext(params.textDocument.uri, params.position);
+      if (ctx?.template.kind !== 'html') return result;
+      return (await html.complete(ctx.project, ctx.template, ctx.offset)) as CompletionList;
+    },
+    // Gem 补全项已包含文档，TypeScript 不认识这些补全项
+    'completionItem/resolve': async (result, { params }) => {
+      return (params.data as GemCompletionData | undefined)?.gem ? params : result;
+    },
+    // 未变化的报告无法修改，依赖 TypeScript 在文件变化时返回完整报告
+    'textDocument/diagnostic': async (result, { params }) => {
+      if (result.kind !== 'full') return result;
+      const ctx = await getFileContext(params.textDocument.uri);
+      if (!ctx) return result;
+      const { project, file } = ctx;
+      const templates = findTemplates(file, 'html');
+      const htmlDiagnostics = templates.length
+        ? await getHtmlDiagnostics(project, file, templates, await index.get(project))
+        : [];
+      return {
+        ...result,
+        items: [
+          ...result.items.filter((d) => !isUnusedDecoratedDiagnostic(file, d)),
+          ...getElementClassDiagnostics(file),
+          ...htmlDiagnostics,
+        ],
+      };
+    },
+    'textDocument/codeAction': async (result, { params }) => {
+      const fixes = getAttrFormatFixes(params.textDocument.uri, params.context.diagnostics);
+      return fixes.length ? [...(result ?? []), ...fixes] : result;
     },
   };
 }
