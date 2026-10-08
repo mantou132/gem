@@ -1,4 +1,10 @@
-import type { CompletionItem, CompletionList, Hover, TextEdit } from '@mantou/vscode-html-languageservice';
+import type {
+  CompletionItem,
+  CompletionList,
+  FoldingRange,
+  Hover,
+  TextEdit,
+} from '@mantou/vscode-html-languageservice';
 
 import type { VirtualDocument } from './template';
 
@@ -41,4 +47,13 @@ export function translateCompletionList(vDoc: VirtualDocument, offset: number, l
 
 export function translateHover(vDoc: VirtualDocument, hover: Hover | null): Hover | null {
   return hover && { ...hover, range: hover.range && vDoc.toRange(hover.range) };
+}
+
+/** 只需要转换行号 */
+export function translateFoldingRange(vDoc: VirtualDocument, range: FoldingRange): FoldingRange {
+  const { start, end } = vDoc.toRange({
+    start: { line: range.startLine, character: 0 },
+    end: { line: range.endLine, character: 0 },
+  });
+  return { ...range, startLine: start.line, endLine: end.line, startCharacter: undefined, endCharacter: undefined };
 }

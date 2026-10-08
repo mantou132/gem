@@ -13,9 +13,10 @@ import type { Project } from 'typescript/unstable/async';
 import { fileNameToDocumentURI } from 'typescript/unstable/async';
 import type { Location, Range, TextEdit } from 'typescript/unstable/vscode';
 
+import type { CssService } from './css';
 import { isDepFile } from './elements';
-import type { Template } from './template';
-import { findTemplate, findTemplates, toPosition } from './template';
+import type { Template, VirtualDocument } from './template';
+import { EmbeddedDocument, findTemplate, findTemplates, toPosition } from './template';
 
 const htmlLs = getLanguageService();
 
@@ -89,19 +90,31 @@ export function findTagAt(file: SourceFile, offset: number) {
   return findDefinedTag(file, offset) ?? findTemplateTag(file, offset);
 }
 
-/** 项目中所有使用和定义该标签的位置 */
-export async function findTagLocations(project: Project, tag: string): Promise<Location[]> {
+/** 项目中的源文件，不包含依赖 */
+export async function getProjectFiles(project: Project) {
   const fileNames = (await project.program.getSourceFileNames()).filter((name) => !isDepFile(name));
   const files = await Promise.all(fileNames.map((name) => project.program.getSourceFile(name)));
+  return files.filter((file) => !!file);
+}
+
+/** 项目中所有使用和定义该标签的位置，包括 CSS 中的元素选择器 */
+export async function findTagLocations(project: Project, tag: string, css: CssService): Promise<Location[]> {
   const locations: Location[] = [];
-  for (const file of files) {
-    if (!file) continue;
+  for (const file of await getProjectFiles(project)) {
     const uri = fileNameToDocumentURI(file.fileName);
+    const cssDocuments: VirtualDocument[] = findTemplates(file, 'css');
     for (const template of findTemplates(file, 'html')) {
       forEachTagNode(htmlLs.parseHTMLDocument(template.doc).roots, (node) => {
+        const { startTagEnd, endTagStart } = node;
+        if (node.tag === 'style' && startTagEnd !== undefined && endTagStart !== undefined) {
+          cssDocuments.push(new EmbeddedDocument(template, startTagEnd, endTagStart, 'css'));
+        }
         if (node.tag !== tag) return;
         for (const range of getTagRanges(template, node)) locations.push({ uri, range });
       });
+    }
+    for (const vDoc of cssDocuments) {
+      for (const range of css.elementSelectors(vDoc, tag)) locations.push({ uri, range });
     }
     for (const node of file.statements) {
       const arg = isClassDeclaration(node) ? getCustomElementArg(node) : undefined;

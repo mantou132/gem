@@ -1,11 +1,11 @@
 import type { CompletionList, Hover, Node } from '@mantou/vscode-css-languageservice';
 import { getCSSLanguageService, NodeType, updateTags } from '@mantou/vscode-css-languageservice';
 import { doComplete as doEmmetComplete } from '@mantou/vscode-emmet-helper';
-import type { Diagnostic } from 'typescript/unstable/vscode';
+import type { Diagnostic, FoldingRange, Range } from 'typescript/unstable/vscode';
 
 import type { GemConfiguration } from './configuration';
 import type { VirtualDocument } from './template';
-import { translateCompletionList, translateHover } from './translate';
+import { translateCompletionList, translateFoldingRange, translateHover } from './translate';
 
 const SOURCE = 'gem';
 
@@ -99,5 +99,61 @@ export class CssService {
   selectorAt(vDoc: VirtualDocument, offset: number) {
     const vOffset = vDoc.doc.offsetAt(vDoc.toVirtualPosition(offset));
     return this.classIdSelectors(vDoc).find(({ start, end }) => vOffset >= start && vOffset <= end);
+  }
+
+  /** 元素选择器，位置是源文件中的范围 */
+  elementSelectors(vDoc: VirtualDocument, tag: string): Range[] {
+    const ranges: Range[] = [];
+    const visit = (node: Node) => {
+      if (node.type === NodeType.ElementNameSelector && node.getText() === tag) {
+        ranges.push(vDoc.toRange({ start: vDoc.doc.positionAt(node.offset), end: vDoc.doc.positionAt(node.end) }));
+      }
+      node.getChildren().forEach(visit);
+    };
+    visit(this.parse(vDoc) as Node);
+    return ranges;
+  }
+
+  #nodeAt(vDoc: VirtualDocument, offset: number) {
+    const vOffset = vDoc.doc.offsetAt(vDoc.toVirtualPosition(offset));
+    return (this.parse(vDoc) as Node).findChildAtOffset(vOffset, true) ?? undefined;
+  }
+
+  #toRange(vDoc: VirtualDocument, node: Node): Range {
+    return vDoc.toRange({ start: vDoc.doc.positionAt(node.offset), end: vDoc.doc.positionAt(node.end) });
+  }
+
+  /** 光标处的元素选择器 */
+  elementSelectorAt(vDoc: VirtualDocument, offset: number) {
+    const node = this.#nodeAt(vDoc, offset);
+    const selector = node?.type === NodeType.ElementNameSelector ? node : node?.parent;
+    if (selector?.type !== NodeType.ElementNameSelector) return;
+    return { tag: selector.getText(), range: this.#toRange(vDoc, selector) };
+  }
+
+  /** 光标处的自定义属性，例如 `--color` */
+  customPropertyAt(vDoc: VirtualDocument, offset: number) {
+    const node = this.#nodeAt(vDoc, offset);
+    if (node?.type !== NodeType.Identifier || !node.getText().startsWith('--')) return;
+    return { name: node.getText(), range: this.#toRange(vDoc, node) };
+  }
+
+  /** 文档中自定义属性的声明和使用 */
+  customPropertyLocations(vDoc: VirtualDocument, name: string) {
+    const declarations: Range[] = [];
+    const references: Range[] = [];
+    const visit = (node: Node) => {
+      if (node.type === NodeType.Identifier && node.getText() === name) {
+        const isDeclaration = node.findAParent(NodeType.CustomPropertyDeclaration)?.getChild(0) === node.parent;
+        (isDeclaration ? declarations : references).push(this.#toRange(vDoc, node));
+      }
+      node.getChildren().forEach(visit);
+    };
+    visit(this.parse(vDoc) as Node);
+    return { declarations, references };
+  }
+
+  foldingRanges(vDoc: VirtualDocument): FoldingRange[] {
+    return this.#ls.getFoldingRanges(vDoc.doc).map((range) => translateFoldingRange(vDoc, range));
   }
 }
