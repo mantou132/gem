@@ -247,7 +247,7 @@ class DiagnosticContext {
   /** 属性值插值表达式的类型 */
   async getSpanType(template: Template, attrNameEnd: number) {
     // 跳过 `="${`
-    const token = getTokenAtPosition(this.file, template.start + attrNameEnd + 4);
+    const token = getTokenAtPosition(this.file, template.fromVirtualOffset(attrNameEnd + 4));
     const span = findAncestor(token, isTemplateSpan);
     return span && this.checker.getTypeAtLocation(span.expression);
   }

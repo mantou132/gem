@@ -22,6 +22,8 @@ import type {
   WorkspaceEdit,
 } from 'typescript/unstable/vscode';
 
+import { findClassNameAt, findClassNameSelectors, findClassNameUsages, findElementsUsingStyle } from './class-names';
+import { CssService } from './css';
 import {
   getAttrFormatFixes,
   getElementClassDiagnostics,
@@ -29,9 +31,11 @@ import {
   isUnusedDecoratedDiagnostic,
 } from './diagnostics';
 import { ElementDefineRules, ElementIndex } from './elements';
-import { type GemCompletionData, HtmlService } from './html';
+import { HtmlService } from './html';
+import { getClassMapKeys } from './styles';
 import { findTagAt, findTagLocations, toTextEdits } from './tags';
 import { findTemplate, findTemplates, toOffset } from './template';
+import type { GemCompletionData } from './translate';
 
 // 宿主无关：VS Code 中间件、LSP 代理都调用同一份变换
 export type Transformer<P, R> = (result: R, context: { readonly params: P }) => Promise<R>;
@@ -48,9 +52,12 @@ export interface GemMiddleware {
   'textDocument/rename': Transformer<RenameParams, WorkspaceEdit | null>;
 }
 
+const ENUM_MEMBER_KIND = 20;
+
 export function createGemMiddleware(getApi: () => Promise<API<true>>): GemMiddleware {
   const index = new ElementIndex(new ElementDefineRules());
-  const html = new HtmlService(index);
+  const css = new CssService();
+  const html = new HtmlService(index, css);
 
   async function getFileContext(uri: string) {
     const snapshot = await (await getApi()).getCurrentLanguageServerSnapshot();
@@ -65,6 +72,39 @@ export function createGemMiddleware(getApi: () => Promise<API<true>>): GemMiddle
     return info && { ...ctx, info };
   }
 
+  async function getClassMapCompletion(uri: string, position: Position): Promise<CompletionList | undefined> {
+    const ctx = await getFileContext(uri);
+    const keys = ctx && (await getClassMapKeys(ctx.project, ctx.file, toOffset(ctx.file.text, position), css));
+    if (!keys?.length) return;
+    // 和 ts-gem-plugin 一致，只提供类名
+    return { isIncomplete: false, items: keys.map((label) => ({ label, kind: ENUM_MEMBER_KIND, sortText: '' })) };
+  }
+
+  /** 类名的定义（样式中的选择器）和使用的地方 */
+  async function getClassNameReferences(uri: string, position: Position) {
+    const ctx = await getFileContext(uri);
+    if (!ctx) return;
+    const { project, file } = ctx;
+    const offset = toOffset(file.text, position);
+    const className = findClassNameAt(file, offset);
+    if (className) {
+      const { element, name } = className;
+      return [
+        ...(await findClassNameSelectors(project, element, name, css)),
+        ...findClassNameUsages(element).filter((usage) => usage.name === name),
+      ];
+    }
+    const template = findTemplate(file, offset);
+    const selector = template?.kind === 'css' && css.selectorAt(template, offset);
+    if (!template || !selector) return;
+    const elements = await findElementsUsingStyle(project, template, index);
+    const selectors = await Promise.all(elements.map((e) => findClassNameSelectors(project, e, selector.name, css)));
+    const usages = elements.flatMap((e) => findClassNameUsages(e).filter((usage) => usage.name === selector.name));
+    // 多个元素使用同一个样式时选择器会重复
+    const unique = new Map([...selectors.flat(), ...usages].map((l) => [JSON.stringify([l.uri, l.range]), l]));
+    return [...unique.values()];
+  }
+
   async function getTemplateContext(uri: string, position: Position) {
     const ctx = await getFileContext(uri);
     if (!ctx) return;
@@ -77,13 +117,21 @@ export function createGemMiddleware(getApi: () => Promise<API<true>>): GemMiddle
   return {
     'textDocument/hover': async (result, { params }) => {
       const ctx = await getTemplateContext(params.textDocument.uri, params.position);
-      if (ctx?.template.kind !== 'html') return result;
-      return ((await html.hover(ctx.project, ctx.template, ctx.offset)) as Hover | null) ?? result;
+      if (!ctx) return result;
+      const { project, template, offset } = ctx;
+      const hover =
+        template.kind === 'html' ? await html.hover(project, template, offset) : css.hover(template, offset);
+      return (hover as Hover | null) ?? result;
     },
     'textDocument/completion': async (result, { params }) => {
       const ctx = await getTemplateContext(params.textDocument.uri, params.position);
-      if (ctx?.template.kind !== 'html') return result;
-      return (await html.complete(ctx.project, ctx.template, ctx.offset)) as CompletionList;
+      if (!ctx) return (await getClassMapCompletion(params.textDocument.uri, params.position)) ?? result;
+      const { project, template, offset } = ctx;
+      const list =
+        template.kind === 'html'
+          ? await html.complete(project, template, offset)
+          : css.complete(template, offset, [...(await index.get(project)).keys()]);
+      return list as CompletionList;
     },
     // Gem 补全项已包含文档，TypeScript 不认识这些补全项
     'completionItem/resolve': async (result, { params }) => {
@@ -99,24 +147,37 @@ export function createGemMiddleware(getApi: () => Promise<API<true>>): GemMiddle
       const htmlDiagnostics = templates.length
         ? await getHtmlDiagnostics(project, file, templates, await index.get(project))
         : [];
+      const cssDocuments = [...findTemplates(file, 'css'), ...templates.flatMap((t) => html.styles(t))];
       return {
         ...result,
         items: [
           ...result.items.filter((d) => !isUnusedDecoratedDiagnostic(file, d)),
           ...getElementClassDiagnostics(file),
           ...htmlDiagnostics,
+          ...cssDocuments.flatMap((doc) => css.diagnostics(doc)),
         ],
       };
     },
     'textDocument/definition': async (result, { params }) => {
+      const fileCtx = await getFileContext(params.textDocument.uri);
+      const className = fileCtx && findClassNameAt(fileCtx.file, toOffset(fileCtx.file.text, params.position));
+      if (fileCtx && className) {
+        const selectors = await findClassNameSelectors(fileCtx.project, className.element, className.name, css);
+        return selectors.map(({ uri, range }) => ({
+          originSelectionRange: className.range,
+          targetUri: uri,
+          targetRange: range,
+          targetSelectionRange: range,
+        }));
+      }
       const ctx = await getTemplateContext(params.textDocument.uri, params.position);
       if (ctx?.template.kind !== 'html') return result;
       return (await html.definition(ctx.project, ctx.template, ctx.offset)) ?? result;
     },
     'textDocument/references': async (result, { params }) => {
       const ctx = await getTagContext(params.textDocument.uri, params.position);
-      if (!ctx) return result;
-      return findTagLocations(ctx.project, ctx.info.tag);
+      if (ctx) return findTagLocations(ctx.project, ctx.info.tag);
+      return (await getClassNameReferences(params.textDocument.uri, params.position)) ?? result;
     },
     'textDocument/prepareRename': async (result, { params }) => {
       const ctx = await getTagContext(params.textDocument.uri, params.position);
