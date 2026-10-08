@@ -186,6 +186,7 @@
   "dependencies": {
     "css-color-keywords": "^1.0.0",
     "duoyun-ui": "^2.2.18",
+    "ts-gem-lsp": "^0.0.1",
     "ts-gem-plugin": "^0.0.27",
     "vscode-gem-languageservice": "^0.0.23",
     "vscode-languageclient": "^9.0.1"

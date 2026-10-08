@@ -13,7 +13,7 @@
     "/dist/"
   ],
   "scripts": {
-    "build": "esbuild ./src/index.ts --outdir=./dist --platform=node --sourcemap --bundle --packages=external",
+    "build": "esbuild ./src/index.ts --outdir=./dist --platform=node --sourcemap --bundle --external:@mantou/vscode-* --external:vscode-* --external:tree-sitter*",
     "prepublishOnly": "pnpm run build",
     "start": "pnpm run build --watch"
   },
