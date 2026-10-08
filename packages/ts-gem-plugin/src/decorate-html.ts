@@ -695,8 +695,11 @@ function isDeprecate(symbol?: ts.Symbol) {
 }
 
 function getEmitterHandleType(typeChecker: ts.TypeChecker, classType: ts.Type, propType?: ts.Type) {
-  const handleSymbol = propType?.getProperty('handler');
-  if (handleSymbol) return typeChecker.getTypeOfSymbol(handleSymbol);
+  // `Emitter` 签名中类型参数 `_Listener` 的默认值
+  const listener =
+    propType && typeChecker.getNonNullableType(propType).getCallSignatures()[0]?.getTypeParameters()?.[0];
+  const listenerType = listener && typeChecker.getDefaultFromTypeParameter(listener);
+  if (listenerType) return listenerType;
 
   const addEventListenerSymbol = classType.getProperty('addEventListener');
   if (!addEventListenerSymbol) return typeChecker.getAnyType();
