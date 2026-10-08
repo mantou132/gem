@@ -1,13 +1,11 @@
 import { kebabToCamelCase } from '@mantou/gem/lib/utils';
 import type {
-  CompletionItem,
   CompletionList,
   Hover,
   HTMLDocument,
   IAttributeData,
   IHTMLDataProvider,
   ITagData,
-  TextEdit,
 } from '@mantou/vscode-html-languageservice';
 import { getLanguageService } from '@mantou/vscode-html-languageservice';
 import type { Node } from 'typescript/unstable/ast';
@@ -15,10 +13,13 @@ import type { Project } from 'typescript/unstable/async';
 import { fileNameToDocumentURI } from 'typescript/unstable/async';
 import type { LocationLink, Range } from 'typescript/unstable/vscode';
 
+import type { CssService } from './css';
 import type { ElementIndex } from './elements';
 import { getBuiltInAttributes, getElementData, resolveElementType } from './elements';
+import { getElementClass, getElementSelectors } from './styles';
 import type { Template } from './template';
-import { toPosition } from './template';
+import { EmbeddedDocument, toPosition } from './template';
+import { translateCompletionList, translateHover } from './translate';
 
 /** 从属性键值字符串上解析出不包含装饰符的名称 */
 function getAttrName(text: string) {
@@ -49,6 +50,9 @@ class TemplateDataProvider implements IHTMLDataProvider {
   tags: ITagData[] = [];
   attributes = new Map<string, IAttributeData[]>();
   values = new Map<string, Map<string, string[]>>();
+  /** 当前元素样式中的类名和 id */
+  classes: string[] = [];
+  ids: string[] = [];
 
   getId() {
     return 'gem';
@@ -67,6 +71,9 @@ class TemplateDataProvider implements IHTMLDataProvider {
   }
 
   provideValues(tag: string, attr: string) {
+    const name = getAttrName(attr);
+    if (name === 'class') return this.classes.map((value) => ({ name: value }));
+    if (name === 'id') return this.ids.map((value) => ({ name: value }));
     return (
       this.values
         .get(tag)
@@ -76,24 +83,40 @@ class TemplateDataProvider implements IHTMLDataProvider {
   }
 }
 
-/**
- * `completionItem/resolve` 也会发给 TypeScript，使用 TypeScript 的数据格式避免其报错，
- * 名称加上前缀使 TypeScript 找不到对应的补全项而原样返回
- */
-export interface GemCompletionData {
-  fileName: string;
-  position: number;
-  name: string;
-  gem: true;
-}
-
 export class HtmlService {
   #index: ElementIndex;
+  #css: CssService;
   #provider = new TemplateDataProvider();
   #ls = getLanguageService({ customDataProviders: [this.#provider] });
 
-  constructor(index: ElementIndex) {
+  constructor(index: ElementIndex, css: CssService) {
     this.#index = index;
+    this.#css = css;
+  }
+
+  /** 光标所在的 `<style>` 内容 */
+  #findStyle(template: Template, offset: number) {
+    const vOffset = template.toVirtualOffset(offset);
+    const node = this.#ls.parseHTMLDocument(template.doc).findNodeAt(vOffset);
+    const { tag, startTagEnd, endTagStart } = node;
+    if (tag !== 'style' || startTagEnd === undefined || endTagStart === undefined) return;
+    if (vOffset < startTagEnd || vOffset > endTagStart) return;
+    return new EmbeddedDocument(template, startTagEnd, endTagStart, 'css');
+  }
+
+  /** 模板中所有 `<style>` 的内容 */
+  styles(template: Template) {
+    const styles: EmbeddedDocument[] = [];
+    const visit = (nodes: HTMLDocument['roots']) => {
+      for (const { tag, startTagEnd, endTagStart, children } of nodes) {
+        if (tag === 'style' && startTagEnd !== undefined && endTagStart !== undefined) {
+          styles.push(new EmbeddedDocument(template, startTagEnd, endTagStart, 'css'));
+        }
+        visit(children);
+      }
+    };
+    visit(this.#ls.parseHTMLDocument(template.doc).roots);
+    return styles;
   }
 
   /**
@@ -102,9 +125,14 @@ export class HtmlService {
   async #prepare(project: Project, template: Template, offset: number) {
     const elements = await this.#index.get(project);
     const vHtml = this.#ls.parseHTMLDocument(template.doc);
-    const { tag } = vHtml.findNodeAt(offset - template.start);
+    const { tag } = vHtml.findNodeAt(template.toVirtualOffset(offset));
     const ref = tag ? elements.get(tag) : undefined;
-    const data = ref && (await getElementData(project, ref));
+    const element = getElementClass(template);
+    const [data, selectors] = await Promise.all([
+      ref && getElementData(project, ref),
+      element ? getElementSelectors(project, element, this.#css) : [],
+    ]);
+    const names = [...new Set(selectors.map(({ name }) => name))];
 
     return <T>(fn: (vHtml: HTMLDocument) => T) => {
       this.#provider.tags = [...elements.keys()].map((name) => ({
@@ -114,44 +142,23 @@ export class HtmlService {
       }));
       this.#provider.attributes = new Map(tag && data ? [[tag, data.attributes]] : []);
       this.#provider.values = new Map(tag && data ? [[tag, data.values]] : []);
+      this.#provider.classes = names.filter((name) => !name.startsWith('#'));
+      this.#provider.ids = names.filter((name) => name.startsWith('#')).map((name) => name.slice(1));
       return fn(vHtml);
     };
   }
 
-  #translateTextEdit(template: Template, edit: TextEdit): TextEdit {
-    return { newText: edit.newText, range: template.toRange(edit.range) };
-  }
-
-  #translateCompletionItem(template: Template, offset: number, item: CompletionItem): CompletionItem {
-    const { textEdit, additionalTextEdits } = item;
-    const data: GemCompletionData = {
-      fileName: template.fileName,
-      position: offset,
-      name: `gem:${item.label}`,
-      gem: true,
-    };
-    return {
-      ...item,
-      data,
-      textEdit:
-        textEdit && 'range' in textEdit
-          ? this.#translateTextEdit(template, textEdit)
-          : textEdit && {
-              newText: textEdit.newText,
-              insert: template.toRange(textEdit.insert),
-              replace: template.toRange(textEdit.replace),
-            },
-      additionalTextEdits: additionalTextEdits?.map((edit) => this.#translateTextEdit(template, edit)),
-    };
-  }
-
   async complete(project: Project, template: Template, offset: number): Promise<CompletionList> {
+    const style = this.#findStyle(template, offset);
+    if (style) return this.#css.complete(style, offset, [...(await this.#index.get(project)).keys()]);
     const use = await this.#prepare(project, template, offset);
     const list = use((vHtml) => this.#ls.doComplete(template.doc, template.toVirtualPosition(offset), vHtml));
-    return { ...list, items: list.items.map((item) => this.#translateCompletionItem(template, offset, item)) };
+    return translateCompletionList(template, offset, list);
   }
 
   async hover(project: Project, template: Template, offset: number): Promise<Hover | null> {
+    const style = this.#findStyle(template, offset);
+    if (style) return this.#css.hover(style, offset);
     const use = await this.#prepare(project, template, offset);
     const hover = use((vHtml) =>
       this.#ls.doHover(template.doc, template.toVirtualPosition(offset), vHtml, {
@@ -159,13 +166,12 @@ export class HtmlService {
         references: true,
       }),
     );
-    if (!hover) return null;
-    return { ...hover, range: hover.range && template.toRange(hover.range) };
+    return translateHover(template, hover);
   }
 
   /** 标签跳转到元素定义，属性跳转到属性定义，`v-else` 跳转到 `v-if` */
   async definition(project: Project, template: Template, offset: number): Promise<LocationLink[] | null> {
-    const vOffset = offset - template.start;
+    const vOffset = template.toVirtualOffset(offset);
     const vHtml = this.#ls.parseHTMLDocument(template.doc);
     const node = vHtml.findNodeAt(vOffset);
     const { tag, startTagEnd } = node;

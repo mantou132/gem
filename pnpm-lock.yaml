@@ -448,6 +448,9 @@ importers:
       '@mantou/gem':
         specifier: ^2.2.13
         version: link:../gem
+      '@mantou/vscode-css-languageservice':
+        specifier: ^6.3.6
+        version: 6.3.6
       '@mantou/vscode-html-languageservice':
         specifier: ^5.3.6
         version: 5.3.6

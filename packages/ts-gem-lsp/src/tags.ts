@@ -73,7 +73,7 @@ function findDefinedTag(file: SourceFile, offset: number): TagInfo | undefined {
 function findTemplateTag(file: SourceFile, offset: number): TagInfo | undefined {
   const template = findTemplate(file, offset);
   if (template?.kind !== 'html') return;
-  const vOffset = offset - template.start;
+  const vOffset = template.toVirtualOffset(offset);
   const vHtml = htmlLs.parseHTMLDocument(template.doc);
   const node = vHtml.findNodeAt(vOffset);
   if (!node.tag) return;
