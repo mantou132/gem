@@ -436,6 +436,19 @@ importers:
         specifier: ^5.6.2
         version: 5.9.3
 
+  packages/ts-gem-lsp:
+    dependencies:
+      typescript:
+        specifier: 7.1.0-dev.20261007.1
+        version: 7.1.0-dev.20261007.1
+      vscode-jsonrpc:
+        specifier: ^8.2.1
+        version: 8.2.1
+    devDependencies:
+      '@gemjs/config':
+        specifier: ^2.1.3
+        version: link:../config
+
   packages/ts-gem-plugin:
     dependencies:
       '@mantou/gem':
@@ -524,6 +537,9 @@ importers:
       duoyun-ui:
         specifier: ^2.2.16
         version: link:../duoyun-ui
+      ts-gem-lsp:
+        specifier: ^0.0.1
+        version: link:../ts-gem-lsp
       ts-gem-plugin:
         specifier: ^0.0.25
         version: link:../ts-gem-plugin
@@ -2702,7 +2718,7 @@ packages:
     resolution: {integrity: sha512-C5Mc6rdnsaJDjO3UpGW/CQTHtCKaYlScZTly4JIu97Jxo/odCiH0ITnDXSJPTOrEKk/ycSZ0AOgTmkDtkOsvIA==}
 
   '@ts-morph/common@0.11.1':
-    resolution: {integrity: sha1-KBryoGQrGTVNiqB6DVDf20qoFk4=}
+    resolution: {integrity: sha512-7hWZS0NRpEsNV8vWJzg7FEz6V8MaLNeJOmwmghqUXTpzk16V1LLZhdo+4QvE/+zv4cVci0OviuJFnqhEfoV3+g==}
 
   '@tufjs/canonical-json@2.0.0':
     resolution: {integrity: sha512-yVtV8zsdo8qFHe+/3kw81dSLyF7D576A5cCFCi4X7B39tWT7SekaEFUnvnWJHz+9qO7qJTah1JbrDjWKqFtdWA==}
@@ -2931,8 +2947,51 @@ packages:
     resolution: {integrity: sha512-9IQyUKHeF1oGk72QG7mXJfpSQpV/NId08hA8WKhS5XivDsoKS43NUZhQi8S2ZMbAC4sctjA0kShWl3HnvWGLmw==}
     hasBin: true
 
+  '@typescript/typescript-darwin-arm64@7.1.0-dev.20261007.1':
+    resolution: {integrity: sha512-uW+MMuwJQoxK1CMGkmiYQ1jNdUsS0MUsMh6bP3V3XHHoyZHbqSJShcF30dVB2WAW+p5kh+6I4za05w2Z7Y6Axg==}
+    engines: {node: '>=16.20.0'}
+    cpu: [arm64]
+    os: [darwin]
+
+  '@typescript/typescript-darwin-x64@7.1.0-dev.20261007.1':
+    resolution: {integrity: sha512-M92aWIg2vh1xdHLAQrZlTAe/BvwgnQwrtJ4BgErZg1Rc6CuiB1zzVz33nmrVcMOmGSTuGtqpVsBGh+jkFJIGrw==}
+    engines: {node: '>=16.20.0'}
+    cpu: [x64]
+    os: [darwin]
+
+  '@typescript/typescript-linux-arm64@7.1.0-dev.20261007.1':
+    resolution: {integrity: sha512-wFjFvZJyhoAsH8IVquPmXbpWP6IAO+JP5a2gdMgvUsGW4b3vXdky/LyGM7kMBsTh+aHdk4EsCIwg1XZbN/cnOw==}
+    engines: {node: '>=16.20.0'}
+    cpu: [arm64]
+    os: [linux]
+
+  '@typescript/typescript-linux-arm@7.1.0-dev.20261007.1':
+    resolution: {integrity: sha512-fH8JM8rpF78AsK1wA3WmhBgeUEULensthFv5yvktNvR9CqAk7PMS7hHTLRZkRxHL/kRq6BxjkvhLvJHGtXtbaQ==}
+    engines: {node: '>=16.20.0'}
+    cpu: [arm]
+    os: [linux]
+
+  '@typescript/typescript-linux-x64@7.1.0-dev.20261007.1':
+    resolution: {integrity: sha512-vs4yDJgDegYd0Xa2kTzH3TfgUsAQzASlZH6AV804wZakIwuDRqCFhlqi9dRHbQ5q9OvjCRX1W3ZIbXx/XpfZVg==}
+    engines: {node: '>=16.20.0'}
+    cpu: [x64]
+    os: [linux]
+
+  '@typescript/typescript-win32-arm64@7.1.0-dev.20261007.1':
+    resolution: {integrity: sha512-4V6rSStaYRcOJMN6umnvJdTxCiEXpujpA3IGC8naApW5EQAMivslxKbQ2UEWA46eNFacw7K5aG8x3eNl4roZNw==}
+    engines: {node: '>=16.20.0'}
+    cpu: [arm64]
+    os: [win32]
+
+  '@typescript/typescript-win32-x64@7.1.0-dev.20261007.1':
+    resolution: {integrity: sha512-doGojvo5Weo9T3ES6Ur0XWm61oP+2IQPDmdceA0dm/5vQsmE9pVv7+yay/Wql/igZ8YvVEyVHdP56PS6MtRlAA==}
+    engines: {node: '>=16.20.0'}
+    cpu: [x64]
+    os: [win32]
+
   '@ungap/structured-clone@1.3.0':
     resolution: {integrity: sha512-WmoN8qaIAo7WTYWbAZuG8PYEhn5fkz7dZrqTBZ7dtt//lL2Gwms1IcnQ5yHqjDfX8Ft5j4YzDM23f87zBfDe9g==}
+    deprecated: Potential CWE-502 - Update to 1.3.1 or higher
 
   '@vscode/l10n@0.0.18':
     resolution: {integrity: sha512-KYSIHVmslkaCDyw013pphY+d7x1qV8IZupYfeIfzNA+nsaWHbn5uPuQRvdRFsa9zFzGeudPuoGoZ1Op4jrJXIQ==}
@@ -3439,7 +3498,7 @@ packages:
   basic-ftp@5.0.5:
     resolution: {integrity: sha512-4Bcg1P8xhUuqcii/S0Z9wiHIrQVPMermM1any+MX5GeGD7faD3/msQUDGLol9wOcz4/jbg/WJnGqoJF6LiBdtg==}
     engines: {node: '>=10.0.0'}
-    deprecated: Security vulnerability fixed in 5.2.0, please upgrade
+    deprecated: Security vulnerability fixed in 5.2.1, please upgrade
 
   bcrypt-pbkdf@1.0.2:
     resolution: {integrity: sha512-qeFIXtP4MSoi6NLqO12WfqARWWuCKi2Rn/9hJLEmtB5yTNr9DqFWkJRCf2qShWzPeAMRnOgCrq0sg/KLv5ES9w==}
@@ -3752,7 +3811,7 @@ packages:
     engines: {iojs: '>= 1.0.0', node: '>= 0.12.0'}
 
   code-block-writer@10.1.1:
-    resolution: {integrity: sha1-rVaE7Uv7KweDyLExKBroTuZApC8=}
+    resolution: {integrity: sha512-67ueh2IRGst/51p0n6FvPrnRjAGHY5F8xdjkgrYE7DDzpJe6qA07RYQ9VcoUeo5ATOjSOiWpSL3SWBRRbempMw==}
 
   color-convert@1.9.3:
     resolution: {integrity: sha512-QfAUtd+vFdAtFQcC8CCyYt1fYWxSqAiK2cSD6zDB8N3cpsEBAvRxp9zOGg6G/SHHJYAT88/az/IuDGALsNVbGg==}
@@ -6565,7 +6624,7 @@ packages:
     engines: {node: '>= 0.8'}
 
   path-browserify@1.0.1:
-    resolution: {integrity: sha1-2YRUqcN1PVeQhg8W9ohnueRr4f0=}
+    resolution: {integrity: sha512-b7uo2UCUOYZcnF/3ID0lulOJi/bafxa1xPe7ZPsammBSpjSWQkjNxlt635YGS2MiR9GjvuXCtz2emr3jbsz98g==}
 
   path-exists@3.0.0:
     resolution: {integrity: sha512-bpC7GYwiDYQ4wYLe+FA8lhRjhQCMcQGuSgGGqDkg/QerRWw9CmGRT0iSOVRSZJ29NMLZgIzqaljJ63oaL4NIJQ==}
@@ -7439,6 +7498,7 @@ packages:
   stream-to-promise@3.0.0:
     resolution: {integrity: sha512-h+7wLeFiYegOdgTfTxjRsrT7/Op7grnKEIHWgaO1RTHwcwk7xRreMr3S8XpDfDMesSxzgM2V4CxNCFAGo6ssnA==}
     engines: {node: '>= 10'}
+    deprecated: Deprecated. Use node:stream/promises and node:stream/consumers instead.
 
   streamx@2.23.0:
     resolution: {integrity: sha512-kn+e44esVfn2Fa/O0CPFcex27fjIL6MkVae0Mm6q+E6f0hWv578YCERbv+4m02cjxvDsPKLnmxral/rR6lBMAg==}
@@ -7792,7 +7852,7 @@ packages:
     engines: {node: '>=8'}
 
   ts-morph@12.2.0:
-    resolution: {integrity: sha1-MzIxnOzUSv8Le0EPH+OWN0mbGhs=}
+    resolution: {integrity: sha512-WHXLtFDcIRwoqaiu0elAoZ/AmI+SwwDafnPKjgJmdwJ2gRVO0jMKBt88rV2liT/c6MTsXyuWbGFiHe9MRddWJw==}
 
   tsconfig-paths@4.2.0:
     resolution: {integrity: sha512-NoZ4roiN7LnbKn9QqE1amc9DJfzvZXxF4xDavcOWt1BPkdx+m+0gJuPM+S0vCe7zTJMYUP0R8pO2XMr+Y8oLIg==}
@@ -7901,6 +7961,11 @@ packages:
   typescript@5.9.3:
     resolution: {integrity: sha512-jl1vZzPDinLr9eUt3J/t7V6FgNEw9QjvBPdysz9KfQDD41fQrC2Y4vKQdiaUpFT4bXlb1RHhLpp8wtm6M5TgSw==}
     engines: {node: '>=14.17'}
+    hasBin: true
+
+  typescript@7.1.0-dev.20261007.1:
+    resolution: {integrity: sha512-mk5RKgMkHFknAWDeplGRnduMttCCgLrJW+vUXxMJ8itcZ8Y17OZUByQYxVf3ZEHqqtQ3nmen25wqqplBaiOQGg==}
+    engines: {node: '>=16.20.0'}
     hasBin: true
 
   typical@4.0.0:
@@ -8036,11 +8101,12 @@ packages:
 
   uuid@3.4.0:
     resolution: {integrity: sha512-HjSDRw6gZE5JMggctHBcjVak08+KEVhSIiDzFnT9S9aegmp85S/bReBVTb4QTFaRNptJ9kuYaNhnbNEOkbKb/A==}
-    deprecated: Please upgrade  to version 7 or higher.  Older versions may use Math.random() in certain circumstances, which is known to be problematic.  See https://v8.dev/blog/math-random for details.
+    deprecated: uuid@10 and below is no longer supported.  For ESM codebases, update to uuid@latest.  For CommonJS codebases, use uuid@11 (but be aware this version will likely be deprecated in 2028).
     hasBin: true
 
   uuid@8.3.2:
     resolution: {integrity: sha512-+NYs2QeMWy+GWFOEm9xnn6HCDp0l7QBD7ml8zLUmJ+93Q5NF0NocErnwkTkXVFNiX3/fpC6afS8Dhb/gz7R7eg==}
+    deprecated: uuid@10 and below is no longer supported.  For ESM codebases, update to uuid@latest.  For CommonJS codebases, use uuid@11 (but be aware this version will likely be deprecated in 2028).
     hasBin: true
 
   v8-to-istanbul@9.3.0:
@@ -8095,6 +8161,10 @@ packages:
 
   vscode-jsonrpc@8.2.0:
     resolution: {integrity: sha512-C+r0eKJUIfiDIfwJhria30+TYWPtuHJXHtI7J0YlOmKAo7ogxP20T0zxB7HZQIFhIyvoBPwWskjxrvAtfjyZfA==}
+    engines: {node: '>=14.0.0'}
+
+  vscode-jsonrpc@8.2.1:
+    resolution: {integrity: sha512-kdjOSJ2lLIn7r1rtrMbbNCHjyMPfRnowdKjBQ+mGq6NAW5QY2bEZC/khaC5OR8svbbjvLEaIXkOq45e2X9BIbQ==}
     engines: {node: '>=14.0.0'}
 
   vscode-languageclient@9.0.1:
@@ -11005,6 +11075,27 @@ snapshots:
       '@typescript/native-preview-linux-x64': 7.0.0-dev.20251021.1
       '@typescript/native-preview-win32-arm64': 7.0.0-dev.20251021.1
       '@typescript/native-preview-win32-x64': 7.0.0-dev.20251021.1
+
+  '@typescript/typescript-darwin-arm64@7.1.0-dev.20261007.1':
+    optional: true
+
+  '@typescript/typescript-darwin-x64@7.1.0-dev.20261007.1':
+    optional: true
+
+  '@typescript/typescript-linux-arm64@7.1.0-dev.20261007.1':
+    optional: true
+
+  '@typescript/typescript-linux-arm@7.1.0-dev.20261007.1':
+    optional: true
+
+  '@typescript/typescript-linux-x64@7.1.0-dev.20261007.1':
+    optional: true
+
+  '@typescript/typescript-win32-arm64@7.1.0-dev.20261007.1':
+    optional: true
+
+  '@typescript/typescript-win32-x64@7.1.0-dev.20261007.1':
+    optional: true
 
   '@ungap/structured-clone@1.3.0': {}
 
@@ -16852,6 +16943,16 @@ snapshots:
 
   typescript@5.9.3: {}
 
+  typescript@7.1.0-dev.20261007.1:
+    optionalDependencies:
+      '@typescript/typescript-darwin-arm64': 7.1.0-dev.20261007.1
+      '@typescript/typescript-darwin-x64': 7.1.0-dev.20261007.1
+      '@typescript/typescript-linux-arm': 7.1.0-dev.20261007.1
+      '@typescript/typescript-linux-arm64': 7.1.0-dev.20261007.1
+      '@typescript/typescript-linux-x64': 7.1.0-dev.20261007.1
+      '@typescript/typescript-win32-arm64': 7.1.0-dev.20261007.1
+      '@typescript/typescript-win32-x64': 7.1.0-dev.20261007.1
+
   typical@4.0.0: {}
 
   typical@7.3.0: {}
@@ -17003,6 +17104,8 @@ snapshots:
       terser: 5.44.0
 
   vscode-jsonrpc@8.2.0: {}
+
+  vscode-jsonrpc@8.2.1: {}
 
   vscode-languageclient@9.0.1:
     dependencies:

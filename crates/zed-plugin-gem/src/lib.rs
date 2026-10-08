@@ -1,10 +1,17 @@
-use std::{collections::HashMap, env, fs};
+use std::{
+    collections::{HashMap, HashSet},
+    env, fs,
+};
 
 use serde::Deserialize;
-use zed_extension_api::{self as zed, serde_json, Result};
+use zed_extension_api::{self as zed, serde_json, settings::LspSettings, Result};
 
 const LS_PKG_NAME: &str = "vscode-gem-languageservice";
 const LS_BIN_PATH: &str = "node_modules/vscode-gem-languageservice/dist/index.js";
+
+const TS_LSP_ID: &str = "ts-gem-lsp";
+const TS_LSP_PKG_NAME: &str = "ts-gem-lsp";
+const TS_LSP_BIN_PATH: &str = "node_modules/ts-gem-lsp/dist/bin.js";
 
 const TS_PLUGIN_PACKAGE_NAME: &str = "ts-gem-plugin";
 
@@ -22,53 +29,100 @@ struct PackageJson {
 
 #[derive(Default)]
 struct GemExtension {
-    ls_server_find: bool,
+    checked_packages: HashSet<&'static str>,
 }
 
 impl GemExtension {
-    fn ls_exists(&self) -> bool {
-        fs::metadata(LS_BIN_PATH).is_ok_and(|stat| stat.is_file())
+    fn file_exists(path: &str) -> bool {
+        fs::metadata(path).is_ok_and(|stat| stat.is_file())
     }
 
-    fn ls_path(&mut self, language_server_id: &zed::LanguageServerId) -> Result<String> {
-        let server_exists = self.ls_exists();
-        if self.ls_server_find && server_exists {
-            return Ok(LS_BIN_PATH.to_string());
+    fn npm_server_path(
+        &mut self,
+        language_server_id: &zed::LanguageServerId,
+        pkg_name: &'static str,
+        bin_path: &str,
+    ) -> Result<String> {
+        let server_exists = Self::file_exists(bin_path);
+        if self.checked_packages.contains(pkg_name) && server_exists {
+            return Ok(bin_path.to_string());
         }
 
         zed::set_language_server_installation_status(
             language_server_id,
             &zed::LanguageServerInstallationStatus::CheckingForUpdate,
         );
-        let version = zed::npm_package_latest_version(LS_PKG_NAME)?;
+        let version = zed::npm_package_latest_version(pkg_name)?;
 
         if !server_exists
-            || zed::npm_package_installed_version(LS_PKG_NAME)?.as_ref() != Some(&version)
+            || zed::npm_package_installed_version(pkg_name)?.as_ref() != Some(&version)
         {
             zed::set_language_server_installation_status(
                 language_server_id,
                 &zed::LanguageServerInstallationStatus::Downloading,
             );
-            let result = zed::npm_install_package(LS_PKG_NAME, &version);
+            let result = zed::npm_install_package(pkg_name, &version);
             match result {
                 Ok(()) => {
-                    if !self.ls_exists() {
+                    if !Self::file_exists(bin_path) {
                         Err(format!(
-                            "installed package '{LS_PKG_NAME}' did not contain expected path \
-                             '{LS_BIN_PATH}'",
+                            "installed package '{pkg_name}' did not contain expected path \
+                             '{bin_path}'",
                         ))?;
                     }
                 }
                 Err(error) => {
-                    if !self.ls_exists() {
+                    if !Self::file_exists(bin_path) {
                         Err(error)?;
                     }
                 }
             }
         }
 
-        self.ls_server_find = true;
-        Ok(LS_BIN_PATH.to_string())
+        self.checked_packages.insert(pkg_name);
+        Ok(bin_path.to_string())
+    }
+
+    fn node_command(server_path: &str, args: &[&str]) -> Result<zed::Command> {
+        let server_path = env::current_dir().unwrap().join(server_path);
+        Ok(zed::Command {
+            command: zed::node_binary_path()?,
+            args: [
+                // https://nodejs.org/docs/latest/api/modules.html#loading-ecmascript-modules-using-require
+                "--experimental-require-module",
+                &server_path.to_string_lossy(),
+            ]
+            .into_iter()
+            .chain(args.iter().copied())
+            .map(String::from)
+            .collect(),
+            env: Default::default(),
+        })
+    }
+
+    /// TypeScript 7 不加载 tsserver 插件，使用代理 `tsc --lsp` 的 ts-gem-lsp 取代 vtsls + ts-gem-plugin
+    /// 项目不是 TypeScript 7 时 ts-gem-lsp 不提供任何能力
+    fn ts_lsp_command(
+        &mut self,
+        language_server_id: &zed::LanguageServerId,
+        worktree: &zed::Worktree,
+    ) -> Result<zed::Command> {
+        let binary = LspSettings::for_worktree(TS_LSP_ID, worktree)
+            .ok()
+            .and_then(|settings| settings.binary);
+        if let Some(path) = binary.as_ref().and_then(|binary| binary.path.clone()) {
+            return Ok(zed::Command {
+                command: path,
+                args: binary
+                    .and_then(|binary| binary.arguments)
+                    .unwrap_or_default(),
+                env: Default::default(),
+            });
+        }
+
+        let server_path =
+            self.npm_server_path(language_server_id, TS_LSP_PKG_NAME, TS_LSP_BIN_PATH)?;
+        Self::node_command(&server_path, &[])
     }
 
     fn install_ts_plugin_if_needed(&self) -> Result<()> {
@@ -139,23 +193,13 @@ impl zed::Extension for GemExtension {
     fn language_server_command(
         &mut self,
         language_server_id: &zed::LanguageServerId,
-        _worktree: &zed::Worktree,
+        worktree: &zed::Worktree,
     ) -> Result<zed::Command> {
-        let server_path = self.ls_path(language_server_id)?;
-        Ok(zed::Command {
-            command: zed::node_binary_path()?,
-            args: vec![
-                // https://nodejs.org/docs/latest/api/modules.html#loading-ecmascript-modules-using-require
-                "--experimental-require-module".to_string(),
-                env::current_dir()
-                    .unwrap()
-                    .join(server_path)
-                    .to_string_lossy()
-                    .to_string(),
-                "--stdio".to_string(),
-            ],
-            env: Default::default(),
-        })
+        if language_server_id.as_ref() == TS_LSP_ID {
+            return self.ts_lsp_command(language_server_id, worktree);
+        }
+        let server_path = self.npm_server_path(language_server_id, LS_PKG_NAME, LS_BIN_PATH)?;
+        Self::node_command(&server_path, &["--stdio"])
     }
 
     fn language_server_workspace_configuration(

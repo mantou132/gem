@@ -1,0 +1,100 @@
+#!/usr/bin/env node
+
+import { spawn } from 'node:child_process';
+import { existsSync } from 'node:fs';
+import { createRequire } from 'node:module';
+import path from 'node:path';
+import { pathToFileURL } from 'node:url';
+
+import { API } from 'typescript/unstable/async';
+import type { MessageReader, MessageWriter, RequestMessage, ResponseMessage } from 'vscode-jsonrpc/node.js';
+import { Message, StreamMessageReader, StreamMessageWriter } from 'vscode-jsonrpc/node.js';
+
+import type { Transformer } from './middleware';
+import { createGemMiddleware } from './middleware';
+
+// 编辑器以项目根目录作为工作目录启动语言服务器
+function resolveProjectTypeScript7() {
+  try {
+    const require = createRequire(path.join(process.cwd(), 'package.json'));
+    const dir = path.dirname(require.resolve('typescript/package.json'));
+    if (existsSync(path.join(dir, 'lib/getExePath.js'))) return dir;
+  } catch {}
+}
+
+// 项目不是 TypeScript 7 时由 vtsls + ts-gem-plugin 提供支持，
+// 编辑器无法跳过扩展注册的语言服务器，所以启动一个不提供任何能力的服务器
+function startNoopServer(clientReader: MessageReader, clientWriter: MessageWriter) {
+  clientReader.listen((msg) => {
+    if (Message.isRequest(msg)) {
+      const result = msg.method === 'initialize' ? { capabilities: {} } : null;
+      clientWriter.write({ jsonrpc: '2.0', id: msg.id, result } as ResponseMessage);
+    } else if (Message.isNotification(msg) && msg.method === 'exit') {
+      process.exit(0);
+    }
+  });
+}
+
+async function startProxy(tsDir: string, clientReader: MessageReader, clientWriter: MessageWriter) {
+  const { default: getExePath } = await import(pathToFileURL(path.join(tsDir, 'lib/getExePath.js')).href);
+  const server = spawn(getExePath(), ['--lsp', '--stdio'], { stdio: ['pipe', 'pipe', 'inherit'] });
+  server.on('exit', (code) => process.exit(code ?? 0));
+  process.stdin.on('end', () => server.kill());
+  const serverReader = new StreamMessageReader(server.stdout);
+  const serverWriter = new StreamMessageWriter(server.stdin);
+
+  // 代理自己发给 tsc 的请求，响应不转发给编辑器
+  const ownRequests = new Map<string, (msg: ResponseMessage) => void>();
+  let ownId = 0;
+  const request = <R>(method: string, params: unknown) =>
+    new Promise<R>((resolve, reject) => {
+      const id = `gem:${ownId++}`;
+      ownRequests.set(id, (msg) => (msg.error ? reject(msg.error) : resolve(msg.result as R)));
+      serverWriter.write({ jsonrpc: '2.0', id, method, params } as RequestMessage);
+    });
+
+  const { promise: api, resolve: resolveApi } = Promise.withResolvers<API<true>>();
+  const middleware = createGemMiddleware(() => api);
+  type Method = keyof typeof middleware;
+  const pendingRequests = new Map<RequestMessage['id'], RequestMessage>();
+
+  clientReader.listen(async (msg) => {
+    if (Message.isRequest(msg) && msg.method in middleware) pendingRequests.set(msg.id, msg);
+    serverWriter.write(msg);
+    if (Message.isNotification(msg) && msg.method === 'initialized') {
+      const { pipe } = await request<{ pipe: string }>('custom/initializeAPISession', {});
+      resolveApi(await API.fromLSPConnection({ pipe }));
+    }
+  });
+
+  serverReader.listen(async (msg) => {
+    if (Message.isResponse(msg) && ownRequests.has(msg.id as string)) {
+      ownRequests.get(msg.id as string)!(msg);
+      ownRequests.delete(msg.id as string);
+      return;
+    }
+    const req = Message.isResponse(msg) && pendingRequests.get(msg.id!);
+    if (req) {
+      pendingRequests.delete(req.id);
+      // 和 VS Code 中间件一致：变换失败时使用原始响应
+      try {
+        if (!msg.error) {
+          const transform = middleware[req.method as Method] as Transformer<unknown, ResponseMessage['result']>;
+          msg.result = await transform(msg.result, { params: req.params });
+        }
+      } catch (err) {
+        process.stderr.write(`[ts-gem-lsp] ${req.method}: ${err}\n`);
+      }
+    }
+    clientWriter.write(msg);
+  });
+}
+
+const clientReader = new StreamMessageReader(process.stdin);
+const clientWriter = new StreamMessageWriter(process.stdout);
+const tsDir = resolveProjectTypeScript7();
+if (tsDir) {
+  await startProxy(tsDir, clientReader, clientWriter);
+} else {
+  startNoopServer(clientReader, clientWriter);
+}

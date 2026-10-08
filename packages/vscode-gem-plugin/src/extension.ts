@@ -1,6 +1,7 @@
 import * as fs from 'node:fs/promises';
 import * as path from 'node:path';
 
+import { registerGemMiddleware, TS7_EXTENSION_ID } from 'ts-gem-lsp/src/vscode';
 import type { PluginConfiguration } from 'ts-gem-plugin/src/configuration';
 import type { ExtensionContext, WorkspaceConfiguration } from 'vscode';
 import { commands, extensions, Range, window, workspace } from 'vscode';
@@ -53,6 +54,12 @@ export async function activate(context: ExtensionContext) {
       await grit('memo_to_getter');
     }),
   );
+
+  // TypeScript 7 不再加载 tsserver 插件，通过中间件提供 Gem 支持
+  const ts7Extension = extensions.getExtension(TS7_EXTENSION_ID);
+  if (ts7Extension) {
+    context.subscriptions.push(...registerGemMiddleware(await ts7Extension.activate()));
+  }
 
   const extension = extensions.getExtension(typeScriptExtensionId);
   if (!extension) return;
