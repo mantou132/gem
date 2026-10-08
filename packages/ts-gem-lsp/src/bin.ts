@@ -76,15 +76,23 @@ async function startProxy(tsDir: string, clientReader: MessageReader, clientWrit
     const req = Message.isResponse(msg) && pendingRequests.get(msg.id!);
     if (req) {
       pendingRequests.delete(req.id);
-      // 和 VS Code 中间件一致：变换失败时使用原始响应
-      try {
-        if (!msg.error) {
-          const transform = middleware[req.method as Method] as Transformer<unknown, ResponseMessage['result']>;
-          msg.result = await transform(msg.result, { params: req.params });
+      const response = msg as ResponseMessage;
+      const transform = middleware[req.method as Method] as Transformer<unknown, ResponseMessage['result']>;
+      if (response.error) {
+        // TypeScript 对模板中的位置可能返回错误（例如 `prepareRename`），Gem 能处理时替换错误
+        // VS Code 中间件不会处理错误响应
+        const result = await transform(null, { params: req.params }).catch(() => null);
+        clientWriter.write(result === null ? response : { jsonrpc: response.jsonrpc, id: response.id, result });
+      } else {
+        // 和 VS Code 中间件一致：变换失败时使用原始响应
+        try {
+          response.result = await transform(response.result, { params: req.params });
+        } catch (err) {
+          process.stderr.write(`[ts-gem-lsp] ${req.method}: ${err}\n`);
         }
-      } catch (err) {
-        process.stderr.write(`[ts-gem-lsp] ${req.method}: ${err}\n`);
+        clientWriter.write(response);
       }
+      return;
     }
     clientWriter.write(msg);
   });

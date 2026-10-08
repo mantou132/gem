@@ -50,11 +50,11 @@ export class Template {
   /** 模板内容在源文件中的起始偏移（反引号之后） */
   readonly start: number;
   readonly doc: TextDocument;
-  #file: SourceFile;
+  readonly file: SourceFile;
 
   constructor(file: SourceFile, node: TaggedTemplateExpression, kind: TemplateKind) {
     const { template } = node;
-    this.#file = file;
+    this.file = file;
     this.fileName = file.fileName;
     this.kind = kind;
     this.node = node;
@@ -82,7 +82,7 @@ export class Template {
   }
 
   toPosition(virtualPosition: Position) {
-    return toPosition(this.#file.text, this.doc.offsetAt(virtualPosition) + this.start);
+    return toPosition(this.file.text, this.doc.offsetAt(virtualPosition) + this.start);
   }
 
   toRange(virtualRange: Range): Range {
@@ -91,7 +91,7 @@ export class Template {
 
   /** 虚拟文档中的偏移范围对应的源文件范围 */
   toRangeFromOffsets(virtualStart: number, virtualEnd: number): Range {
-    const text = this.#file.text;
+    const text = this.file.text;
     return { start: toPosition(text, virtualStart + this.start), end: toPosition(text, virtualEnd + this.start) };
   }
 
