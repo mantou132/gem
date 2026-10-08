@@ -12,7 +12,7 @@ import { getLanguageService } from '@mantou/vscode-html-languageservice';
 import type { Node } from 'typescript/unstable/ast';
 import type { Project } from 'typescript/unstable/async';
 import { fileNameToDocumentURI } from 'typescript/unstable/async';
-import type { LocationLink, Range } from 'typescript/unstable/vscode';
+import type { DocumentHighlight, FoldingRange, LocationLink, Range } from 'typescript/unstable/vscode';
 
 import type { GemConfiguration } from './configuration';
 import type { CssService } from './css';
@@ -21,7 +21,7 @@ import { getBuiltInAttributes, getElementData, resolveElementType } from './elem
 import { getElementClass, getElementSelectors } from './styles';
 import type { Template } from './template';
 import { EmbeddedDocument, toPosition } from './template';
-import { translateCompletionList, translateHover } from './translate';
+import { translateCompletionList, translateFoldingRange, translateHover } from './translate';
 
 /** 从属性键值字符串上解析出不包含装饰符的名称 */
 function getAttrName(text: string) {
@@ -29,7 +29,7 @@ function getAttrName(text: string) {
   return attr.charCodeAt(0) < 65 ? attr.slice(1) : attr;
 }
 
-function toLocationLink(originSelectionRange: Range, node: Node): LocationLink {
+export function toLocationLink(originSelectionRange: Range, node: Node): LocationLink {
   const file = node.getSourceFile();
   const name = (node as Node & { name?: Node }).name ?? node;
   const range = (n: Node) => ({
@@ -100,7 +100,7 @@ export class HtmlService {
   }
 
   /** 光标所在的 `<style>` 内容 */
-  #findStyle(template: Template, offset: number) {
+  styleAt(template: Template, offset: number) {
     const vOffset = template.toVirtualOffset(offset);
     const node = this.#ls.parseHTMLDocument(template.doc).findNodeAt(vOffset);
     const { tag, startTagEnd, endTagStart } = node;
@@ -154,7 +154,7 @@ export class HtmlService {
   }
 
   async complete(project: Project, template: Template, offset: number): Promise<CompletionList> {
-    const style = this.#findStyle(template, offset);
+    const style = this.styleAt(template, offset);
     if (style) return this.#css.complete(style, offset, [...(await this.#index.get(project)).keys()]);
     const use = await this.#prepare(project, template, offset);
     const position = template.toVirtualPosition(offset);
@@ -170,7 +170,7 @@ export class HtmlService {
   }
 
   async hover(project: Project, template: Template, offset: number): Promise<Hover | null> {
-    const style = this.#findStyle(template, offset);
+    const style = this.styleAt(template, offset);
     if (style) return this.#css.hover(style, offset);
     const use = await this.#prepare(project, template, offset);
     const hover = use((vHtml) =>
@@ -224,5 +224,32 @@ export class HtmlService {
     const declaration = await prop?.declarations[0]?.resolve(project);
     if (!declaration) return null;
     return [toLocationLink(origin, declaration)];
+  }
+
+  /** 匹配的开始和结束标签 */
+  highlights(template: Template, offset: number): DocumentHighlight[] {
+    const vHtml = this.#ls.parseHTMLDocument(template.doc);
+    const highlights = this.#ls.findDocumentHighlights(template.doc, template.toVirtualPosition(offset), vHtml);
+    return highlights.map(({ range, kind }) => ({ range: template.toRange(range), kind }));
+  }
+
+  /** 同时编辑开始和结束标签名 */
+  linkedEditingRanges(template: Template, offset: number): Range[] | undefined {
+    const vHtml = this.#ls.parseHTMLDocument(template.doc);
+    const ranges = this.#ls.findLinkedEditingRanges(template.doc, template.toVirtualPosition(offset), vHtml);
+    return ranges?.map((range) => template.toRange(range));
+  }
+
+  /** 输入 `>` 后自动插入结束标签，返回代码片段 */
+  closingTag(template: Template, offset: number) {
+    const vHtml = this.#ls.parseHTMLDocument(template.doc);
+    const snippet = this.#ls.doTagComplete(template.doc, template.toVirtualPosition(offset), vHtml);
+    if (!snippet) return;
+    const position = template.toVirtualPosition(offset);
+    return { newText: snippet, range: template.toRange({ start: position, end: position }) };
+  }
+
+  foldingRanges(template: Template): FoldingRange[] {
+    return this.#ls.getFoldingRanges(template.doc).map((range) => translateFoldingRange(template, range));
   }
 }
