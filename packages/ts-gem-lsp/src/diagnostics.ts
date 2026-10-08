@@ -6,6 +6,7 @@ import {
   getTokenAtPosition,
   isClassDeclaration,
   isDecorator,
+  isIdentifier,
   isMethodDeclaration,
   isMethodSignatureDeclaration,
   isPropertyDeclaration,
@@ -34,6 +35,7 @@ export enum DiagnosticCode {
   DecoratorSyntaxError,
   SuggestionClassName,
   SuggestionPropOptional,
+  SuggestionPropName,
   // 和 ts-gem-plugin 保持一致
   AttrFormatError = 2552,
 }
@@ -158,7 +160,10 @@ class DiagnosticContext {
   #elementTypes = new Map<string, Promise<DiagnosticElementType | undefined>>();
   #primitive?: Promise<Record<'string' | 'number' | 'boolean' | 'undefined' | 'null' | 'any', Type>>;
 
-  constructor(project: Project, file: SourceFile, elements: Map<string, ElementRef>) {
+  readonly strict: boolean;
+
+  constructor(project: Project, file: SourceFile, elements: Map<string, ElementRef>, strict: boolean) {
+    this.strict = strict;
     this.project = project;
     this.checker = project.checker;
     this.file = file;
@@ -422,6 +427,18 @@ async function checkNode(
   const tag = node.tag!;
   const tagRange = (start: number) => template.toRangeFromOffsets(start, start + tag.length);
 
+  if (ctx.strict && template.tagName !== 'raw' && tag === 'style') {
+    return [
+      {
+        range: tagRange(node.start + 1),
+        severity: Severity.Warning,
+        code: DiagnosticCode.NoStyleTag,
+        source: SOURCE,
+        message: `Use 'adoptedStyle' or 'createDecoratorTheme' instead of the style tag`,
+      },
+    ];
+  }
+
   // 检查自定义元素是否定义
   if (tag.includes('-') && !ctx.hasElement(tag)) {
     return [
@@ -466,8 +483,9 @@ export async function getHtmlDiagnostics(
   file: SourceFile,
   templates: Template[],
   elements: Map<string, ElementRef>,
+  strict: boolean,
 ): Promise<Diagnostic[]> {
-  const ctx = new DiagnosticContext(project, file, elements);
+  const ctx = new DiagnosticContext(project, file, elements, strict);
   const results = await Promise.all(
     templates.map((template) => {
       const vHtml = htmlLs.parseHTMLDocument(template.doc);
@@ -483,8 +501,9 @@ function nodeRange(file: SourceFile, node: Node) {
   return { start: toPosition(file.text, node.getStart(file)), end: toPosition(file.text, node.end) };
 }
 
-/** 元素定义类的建议 */
-export function getElementClassDiagnostics(file: SourceFile): Diagnostic[] {
+/** 元素定义类的建议，严格模式下变成警告 */
+export function getElementClassDiagnostics(file: SourceFile, strict: boolean): Diagnostic[] {
+  const suggestion = strict ? Severity.Warning : Severity.Hint;
   const result: Diagnostic[] = [];
   for (const node of file.statements) {
     if (!isClassDeclaration(node) || !getTagFromDecorator(node)) continue;
@@ -492,7 +511,7 @@ export function getElementClassDiagnostics(file: SourceFile): Diagnostic[] {
     if (node.name && !node.name.text.endsWith('Element')) {
       result.push({
         range: nodeRange(file, node.name),
-        severity: Severity.Hint,
+        severity: suggestion,
         code: DiagnosticCode.SuggestionClassName,
         source: SOURCE,
         message: 'Element definition class suggests the suffix to use `Element`',
@@ -501,6 +520,18 @@ export function getElementClassDiagnostics(file: SourceFile): Diagnostic[] {
 
     const isShadowDom = getDecoratorNames(node).includes('shadow');
     for (const member of node.members) {
+      const nameNode = 'name' in member ? (member.name as Node | undefined) : undefined;
+      const name = nameNode && isIdentifier(nameNode) ? nameNode.text : '';
+      if (strict && name.length > 3 && name === name.toLowerCase() && name.startsWith('on')) {
+        result.push({
+          range: nodeRange(file, member),
+          severity: Severity.Warning,
+          code: DiagnosticCode.SuggestionPropName,
+          source: SOURCE,
+          message: 'Consider changing the name, it looks too much like the html event handler',
+        });
+      }
+
       if (!isPropertyDeclaration(member) || !member.modifiers) continue;
       const decorators = getDecoratorNames(member);
 
@@ -511,7 +542,7 @@ export function getElementClassDiagnostics(file: SourceFile): Diagnostic[] {
       ) {
         result.push({
           range: nodeRange(file, member),
-          severity: Severity.Hint,
+          severity: suggestion,
           code: DiagnosticCode.SuggestionPropOptional,
           source: SOURCE,
           message: 'Custom element property should be optional',

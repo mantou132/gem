@@ -23,6 +23,8 @@ import type {
 } from 'typescript/unstable/vscode';
 
 import { findClassNameAt, findClassNameSelectors, findClassNameUsages, findElementsUsingStyle } from './class-names';
+import type { GemConfiguration } from './configuration';
+import { defaultConfiguration } from './configuration';
 import { CssService } from './css';
 import {
   getAttrFormatFixes,
@@ -35,6 +37,7 @@ import { HtmlService } from './html';
 import { getClassMapKeys } from './styles';
 import { findTagAt, findTagLocations, toTextEdits } from './tags';
 import { findTemplate, findTemplates, toOffset } from './template';
+import { getNeverMembers, getThemeKeys } from './theme';
 import type { GemCompletionData } from './translate';
 
 // 宿主无关：VS Code 中间件、LSP 代理都调用同一份变换
@@ -42,7 +45,7 @@ export type Transformer<P, R> = (result: R, context: { readonly params: P }) => 
 
 export interface GemMiddleware {
   'textDocument/hover': Transformer<HoverParams, Hover | null>;
-  'textDocument/completion': Transformer<CompletionParams, CompletionList | CompletionItem[] | null>;
+  'textDocument/completion': Transformer<CompletionParams, CompletionResult>;
   'completionItem/resolve': Transformer<CompletionItem, CompletionItem>;
   'textDocument/diagnostic': Transformer<DocumentDiagnosticParams, DocumentDiagnosticReport>;
   'textDocument/codeAction': Transformer<CodeActionParams, (Command | CodeAction)[] | null>;
@@ -52,12 +55,24 @@ export interface GemMiddleware {
   'textDocument/rename': Transformer<RenameParams, WorkspaceEdit | null>;
 }
 
-const ENUM_MEMBER_KIND = 20;
+const ENUM_MEMBER_KIND = 20 as CompletionItem['kind'];
 
-export function createGemMiddleware(getApi: () => Promise<API<true>>): GemMiddleware {
-  const index = new ElementIndex(new ElementDefineRules());
-  const css = new CssService();
-  const html = new HtmlService(index, css);
+type CompletionResult = CompletionList | CompletionItem[] | null;
+
+export function createGemMiddleware(
+  getApi: () => Promise<API<true>>,
+  getConfig: () => GemConfiguration = () => defaultConfiguration,
+): GemMiddleware {
+  let rules: { key: string; value: ElementDefineRules } | undefined;
+  const getRules = () => {
+    const config = getConfig().elementDefineRules;
+    const key = JSON.stringify(config);
+    if (rules?.key !== key) rules = { key, value: new ElementDefineRules(config) };
+    return rules.value;
+  };
+  const index = new ElementIndex(getRules);
+  const css = new CssService(getConfig);
+  const html = new HtmlService(index, css, getConfig);
 
   async function getFileContext(uri: string) {
     const snapshot = await (await getApi()).getCurrentLanguageServerSnapshot();
@@ -72,12 +87,22 @@ export function createGemMiddleware(getApi: () => Promise<API<true>>): GemMiddle
     return info && { ...ctx, info };
   }
 
-  async function getClassMapCompletion(uri: string, position: Position): Promise<CompletionList | undefined> {
+  /** 模板之外的补全：`classMap` 的键、主题的键，过滤值为 `never` 的成员 */
+  async function getScriptCompletion(uri: string, position: Position, result: CompletionResult) {
     const ctx = await getFileContext(uri);
-    const keys = ctx && (await getClassMapKeys(ctx.project, ctx.file, toOffset(ctx.file.text, position), css));
-    if (!keys?.length) return;
-    // 和 ts-gem-plugin 一致，只提供类名
-    return { isIncomplete: false, items: keys.map((label) => ({ label, kind: ENUM_MEMBER_KIND, sortText: '' })) };
+    if (!ctx) return result;
+    const { project, file } = ctx;
+    const offset = toOffset(file.text, position);
+    const keys = (await getClassMapKeys(project, file, offset, css)) ?? (await getThemeKeys(project, file, offset));
+    // 和 ts-gem-plugin 一致，只提供这些键
+    if (keys?.length) {
+      return { isIncomplete: false, items: keys.map((label) => ({ label, kind: ENUM_MEMBER_KIND, sortText: '' })) };
+    }
+    const items = Array.isArray(result) ? result : result?.items;
+    const never = items?.length ? await getNeverMembers(project, file, offset) : undefined;
+    if (!never?.size || !result) return result;
+    const filter = (list: CompletionItem[]) => list.filter((item) => !never.has(item.label));
+    return Array.isArray(result) ? filter(result) : { ...result, items: filter(result.items) };
   }
 
   /** 类名的定义（样式中的选择器）和使用的地方 */
@@ -125,7 +150,7 @@ export function createGemMiddleware(getApi: () => Promise<API<true>>): GemMiddle
     },
     'textDocument/completion': async (result, { params }) => {
       const ctx = await getTemplateContext(params.textDocument.uri, params.position);
-      if (!ctx) return (await getClassMapCompletion(params.textDocument.uri, params.position)) ?? result;
+      if (!ctx) return getScriptCompletion(params.textDocument.uri, params.position, result);
       const { project, template, offset } = ctx;
       const list =
         template.kind === 'html'
@@ -145,14 +170,14 @@ export function createGemMiddleware(getApi: () => Promise<API<true>>): GemMiddle
       const { project, file } = ctx;
       const templates = findTemplates(file, 'html');
       const htmlDiagnostics = templates.length
-        ? await getHtmlDiagnostics(project, file, templates, await index.get(project))
+        ? await getHtmlDiagnostics(project, file, templates, await index.get(project), getConfig().strict)
         : [];
       const cssDocuments = [...findTemplates(file, 'css'), ...templates.flatMap((t) => html.styles(t))];
       return {
         ...result,
         items: [
           ...result.items.filter((d) => !isUnusedDecoratedDiagnostic(file, d)),
-          ...getElementClassDiagnostics(file),
+          ...getElementClassDiagnostics(file, getConfig().strict),
           ...htmlDiagnostics,
           ...cssDocuments.flatMap((doc) => css.diagnostics(doc)),
         ],

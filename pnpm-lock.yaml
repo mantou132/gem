@@ -451,6 +451,9 @@ importers:
       '@mantou/vscode-css-languageservice':
         specifier: ^6.3.6
         version: 6.3.6
+      '@mantou/vscode-emmet-helper':
+        specifier: ^2.11.0
+        version: 2.11.0
       '@mantou/vscode-html-languageservice':
         specifier: ^5.3.6
         version: 5.3.6

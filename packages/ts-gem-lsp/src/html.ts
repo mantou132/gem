@@ -1,4 +1,5 @@
 import { kebabToCamelCase } from '@mantou/gem/lib/utils';
+import { doComplete as doEmmetComplete, updateTags as updateEmmetTags } from '@mantou/vscode-emmet-helper';
 import type {
   CompletionList,
   Hover,
@@ -13,6 +14,7 @@ import type { Project } from 'typescript/unstable/async';
 import { fileNameToDocumentURI } from 'typescript/unstable/async';
 import type { LocationLink, Range } from 'typescript/unstable/vscode';
 
+import type { GemConfiguration } from './configuration';
 import type { CssService } from './css';
 import type { ElementIndex } from './elements';
 import { getBuiltInAttributes, getElementData, resolveElementType } from './elements';
@@ -89,9 +91,12 @@ export class HtmlService {
   #provider = new TemplateDataProvider();
   #ls = getLanguageService({ customDataProviders: [this.#provider] });
 
-  constructor(index: ElementIndex, css: CssService) {
+  #getConfig: () => GemConfiguration;
+
+  constructor(index: ElementIndex, css: CssService, getConfig: () => GemConfiguration) {
     this.#index = index;
     this.#css = css;
+    this.#getConfig = getConfig;
   }
 
   /** 光标所在的 `<style>` 内容 */
@@ -134,7 +139,7 @@ export class HtmlService {
     ]);
     const names = [...new Set(selectors.map(({ name }) => name))];
 
-    return <T>(fn: (vHtml: HTMLDocument) => T) => {
+    return <T>(fn: (vHtml: HTMLDocument, tags: string[]) => T) => {
       this.#provider.tags = [...elements.keys()].map((name) => ({
         name,
         attributes: [],
@@ -144,7 +149,7 @@ export class HtmlService {
       this.#provider.values = new Map(tag && data ? [[tag, data.values]] : []);
       this.#provider.classes = names.filter((name) => !name.startsWith('#'));
       this.#provider.ids = names.filter((name) => name.startsWith('#')).map((name) => name.slice(1));
-      return fn(vHtml);
+      return fn(vHtml, [...elements.keys()]);
     };
   }
 
@@ -152,7 +157,15 @@ export class HtmlService {
     const style = this.#findStyle(template, offset);
     if (style) return this.#css.complete(style, offset, [...(await this.#index.get(project)).keys()]);
     const use = await this.#prepare(project, template, offset);
-    const list = use((vHtml) => this.#ls.doComplete(template.doc, template.toVirtualPosition(offset), vHtml));
+    const position = template.toVirtualPosition(offset);
+    const list = use((vHtml, tags) => {
+      let emmet: CompletionList | undefined;
+      const onHtmlContent = () => (emmet = doEmmetComplete(template.doc, position, 'html', this.#getConfig().emmet));
+      this.#ls.setCompletionParticipants([{ onHtmlContent }]);
+      updateEmmetTags(tags);
+      const result = this.#ls.doComplete(template.doc, position, vHtml);
+      return { ...result, items: [...result.items, ...(emmet?.items ?? [])] };
+    });
     return translateCompletionList(template, offset, list);
   }
 
