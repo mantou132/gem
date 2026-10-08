@@ -14,16 +14,18 @@
     "/dist/"
   ],
   "scripts": {
-    "build": "esbuild ./src/index.ts ./src/bin.ts --outdir=./dist --platform=node --format=esm --sourcemap --bundle --packages=external",
+    "build": "esbuild ./src/index.ts ./src/bin.ts --outdir=./dist --platform=node --format=esm --sourcemap --bundle --main-fields=module,main --external:typescript --banner:js=\"import { createRequire as __createRequire } from 'node:module'; const require = __createRequire(import.meta.url);\"",
     "start": "pnpm run build --watch",
     "prepublishOnly": "pnpm run build"
   },
   "dependencies": {
-    "typescript": "7.1.0-dev.20261007.1",
-    "vscode-jsonrpc": "^8.2.1"
+    "typescript": "7.1.0-dev.20261007.1"
   },
   "devDependencies": {
-    "@gemjs/config": "^2.1.3"
+    "@gemjs/config": "^2.1.3",
+    "@mantou/gem": "^2.2.13",
+    "@mantou/vscode-html-languageservice": "^5.3.6",
+    "vscode-jsonrpc": "^8.2.1"
   },
   "author": "mantou132",
   "license": "MIT",
