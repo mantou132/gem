@@ -59,7 +59,7 @@ export async function activate(context: ExtensionContext) {
   const ts7 = await extensions.getExtension(TS7_EXTENSION_ID)?.activate();
   // 旧版本的 TypeScript 7 扩展没有中间件 API
   if (ts7?.registerLspMiddleware) {
-    context.subscriptions.push(...registerGemMiddleware(ts7));
+    context.subscriptions.push(...registerGemMiddleware(ts7, getConfiguration));
   }
 
   const extension = extensions.getExtension(typeScriptExtensionId);

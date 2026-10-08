@@ -10,6 +10,8 @@ import { API } from 'typescript/unstable/async';
 import type { MessageReader, MessageWriter, RequestMessage, ResponseMessage } from 'vscode-jsonrpc/node.js';
 import { Message, StreamMessageReader, StreamMessageWriter } from 'vscode-jsonrpc/node.js';
 
+import type { GemConfiguration } from './configuration';
+import { defaultConfiguration } from './configuration';
 import type { Transformer } from './middleware';
 import { createGemMiddleware } from './middleware';
 
@@ -54,11 +56,25 @@ async function startProxy(tsDir: string, clientReader: MessageReader, clientWrit
     });
 
   const { promise: api, resolve: resolveApi } = Promise.withResolvers<API<true>>();
-  const middleware = createGemMiddleware(() => api);
+  // 编辑器通过 `initializationOptions.gem` 或者 `settings.gem` 提供配置
+  let config = defaultConfiguration;
+  const updateConfig = (gem?: Partial<GemConfiguration>) => {
+    if (gem) config = { ...defaultConfiguration, ...gem };
+  };
+  const middleware = createGemMiddleware(
+    () => api,
+    () => config,
+  );
   type Method = keyof typeof middleware;
   const pendingRequests = new Map<RequestMessage['id'], RequestMessage>();
 
   clientReader.listen(async (msg) => {
+    if (Message.isRequest(msg) && msg.method === 'initialize') {
+      updateConfig((msg.params as { initializationOptions?: { gem?: GemConfiguration } }).initializationOptions?.gem);
+    }
+    if (Message.isNotification(msg) && msg.method === 'workspace/didChangeConfiguration') {
+      updateConfig((msg.params as { settings?: { gem?: GemConfiguration } }).settings?.gem);
+    }
     if (Message.isRequest(msg) && msg.method in middleware) pendingRequests.set(msg.id, msg);
     serverWriter.write(msg);
     if (Message.isNotification(msg) && msg.method === 'initialized') {
