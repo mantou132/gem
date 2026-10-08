@@ -58,7 +58,7 @@ export async function activate(context: ExtensionContext) {
   // TypeScript 7 不再加载 tsserver 插件，通过中间件提供 Gem 支持
   const ts7Extension = extensions.getExtension(TS7_EXTENSION_ID);
   if (ts7Extension) {
-    context.subscriptions.push(...registerGemMiddleware(await ts7Extension.activate()));
+    context.subscriptions.push(...registerGemMiddleware(await ts7Extension.activate(), getConfiguration));
   }
 
   const extension = extensions.getExtension(typeScriptExtensionId);

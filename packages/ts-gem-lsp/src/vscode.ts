@@ -6,12 +6,17 @@ import type {
   LspMiddlewareTransformer,
 } from 'typescript/unstable/vscode';
 
+import type { GemConfiguration } from './configuration';
+import { defaultConfiguration } from './configuration';
 import { createGemMiddleware } from './middleware';
 
 export const TS7_EXTENSION_ID = 'TypeScriptTeam.native-preview';
 
 // 在 VS Code 的 TypeScript 7 扩展上注册中间件，和 LSP 代理共用同一份变换
-export function registerGemMiddleware(ts7: ExtensionAPI): Disposable[] {
+export function registerGemMiddleware(
+  ts7: ExtensionAPI,
+  getConfig: () => Partial<GemConfiguration> = () => ({}),
+): Disposable[] {
   let api: Promise<API<true>> | undefined;
   const getApi = () => {
     api ??= ts7.initializeAPIConnection().then((pipe) => API.fromLSPConnection({ pipe }));
@@ -24,7 +29,7 @@ export function registerGemMiddleware(ts7: ExtensionAPI): Disposable[] {
     api = undefined;
   });
 
-  const middleware = createGemMiddleware(getApi);
+  const middleware = createGemMiddleware(getApi, () => ({ ...defaultConfiguration, ...getConfig() }));
   const registrations = Object.entries(middleware).map(([method, transformer]) =>
     ts7.registerLspMiddleware(
       method as LspMiddlewareMethod,

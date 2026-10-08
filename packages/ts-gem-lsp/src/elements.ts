@@ -96,11 +96,11 @@ function findElementRefs(file: SourceFile, rules: ElementDefineRules) {
  * 扫描需要获取全部源文件，元素很少变化，所以先返回上次的结果，同时在后台刷新
  */
 export class ElementIndex {
-  #rules: ElementDefineRules;
+  #getRules: () => ElementDefineRules;
   #cache = new Map<string, { elements?: Map<string, ElementRef>; refreshing?: Promise<Map<string, ElementRef>> }>();
 
-  constructor(rules: ElementDefineRules) {
-    this.#rules = rules;
+  constructor(getRules: () => ElementDefineRules) {
+    this.#getRules = getRules;
   }
 
   async get(project: Project) {
@@ -116,10 +116,11 @@ export class ElementIndex {
   async #scan(project: Project) {
     const fileNames = (await project.program.getSourceFileNames()).filter((name) => !isLibFile(name));
     const files = await Promise.all(fileNames.map((name) => project.program.getSourceFile(name)));
+    const rules = this.#getRules();
     const elements = new Map<string, ElementRef>();
     for (const file of files) {
       if (!file) continue;
-      for (const ref of findElementRefs(file, this.#rules)) elements.set(ref.tag, ref);
+      for (const ref of findElementRefs(file, rules)) elements.set(ref.tag, ref);
     }
     return elements;
   }
