@@ -10,8 +10,14 @@ import type {
   DefinitionParams,
   DocumentDiagnosticParams,
   DocumentDiagnosticReport,
+  DocumentHighlight,
+  DocumentHighlightParams,
+  FoldingRange,
+  FoldingRangeParams,
   Hover,
   HoverParams,
+  LinkedEditingRangeParams,
+  LinkedEditingRanges,
   Location,
   LocationLink,
   Position,
@@ -19,6 +25,9 @@ import type {
   PrepareRenameResult,
   ReferenceParams,
   RenameParams,
+  TextEdit,
+  VSOnAutoInsertParams,
+  VSOnAutoInsertResponseItem,
   WorkspaceEdit,
 } from 'typescript/unstable/vscode';
 
@@ -32,8 +41,9 @@ import {
   getHtmlDiagnostics,
   isUnusedDecoratedDiagnostic,
 } from './diagnostics';
-import { ElementDefineRules, ElementIndex } from './elements';
-import { HtmlService } from './html';
+import { ElementDefineRules, ElementIndex, resolveElementType } from './elements';
+import { HtmlService, toLocationLink } from './html';
+import { findElementProp, findPropAttributes, getPropRenameEdits } from './props';
 import { getClassMapKeys } from './styles';
 import { findTagAt, findTagLocations, toTextEdits } from './tags';
 import { findTemplate, findTemplates, toOffset } from './template';
@@ -53,11 +63,30 @@ export interface GemMiddleware {
   'textDocument/references': Transformer<ReferenceParams, Location[] | null>;
   'textDocument/prepareRename': Transformer<PrepareRenameParams, PrepareRenameResult | null>;
   'textDocument/rename': Transformer<RenameParams, WorkspaceEdit | null>;
+  'textDocument/foldingRange': Transformer<FoldingRangeParams, FoldingRange[] | null>;
+  'textDocument/documentHighlight': Transformer<DocumentHighlightParams, DocumentHighlight[] | null>;
+  'textDocument/linkedEditingRange': Transformer<LinkedEditingRangeParams, LinkedEditingRanges | null>;
+  'textDocument/_vs_onAutoInsert': Transformer<VSOnAutoInsertParams, VSOnAutoInsertResponseItem | null>;
 }
 
 const ENUM_MEMBER_KIND = 20 as CompletionItem['kind'];
+const SNIPPET_FORMAT = 2 as VSOnAutoInsertResponseItem['_vs_textEditFormat'];
 
 type CompletionResult = CompletionList | CompletionItem[] | null;
+
+/** TypeScript 可能使用 `changes` 或 `documentChanges` */
+function mergeWorkspaceEdit(edit: WorkspaceEdit, changes: Record<string, TextEdit[]>): WorkspaceEdit {
+  if (edit.documentChanges) {
+    const documentChanges = Object.entries(changes).map(([uri, edits]) => ({
+      textDocument: { uri, version: null },
+      edits,
+    }));
+    return { ...edit, documentChanges: [...edit.documentChanges, ...documentChanges] };
+  }
+  const merged = { ...edit.changes };
+  for (const [uri, edits] of Object.entries(changes)) merged[uri] = [...(merged[uri] ?? []), ...edits];
+  return { ...edit, changes: merged };
+}
 
 export function createGemMiddleware(
   getApi: () => Promise<API<true>>,
@@ -103,6 +132,53 @@ export function createGemMiddleware(
     if (!never?.size || !result) return result;
     const filter = (list: CompletionItem[]) => list.filter((item) => !never.has(item.label));
     return Array.isArray(result) ? filter(result) : { ...result, items: filter(result.items) };
+  }
+
+  /** 光标所在的样式文档：样式模板或 html 模板中的 `<style>` */
+  async function getCssContext(uri: string, position: Position) {
+    const ctx = await getTemplateContext(uri, position);
+    if (!ctx) return;
+    const { template, offset } = ctx;
+    const vDoc = template.kind === 'css' ? template : html.styleAt(template, offset);
+    return vDoc && { ...ctx, vDoc };
+  }
+
+  async function getCssDefinition(uri: string, position: Position): Promise<LocationLink[] | undefined> {
+    const ctx = await getCssContext(uri, position);
+    if (!ctx) return;
+    const { project, template, vDoc, offset } = ctx;
+    const selector = css.elementSelectorAt(vDoc, offset);
+    if (selector) {
+      const elementType = await resolveElementType(project, template.file, await index.get(project), selector.tag);
+      const declaration = await elementType?.symbol?.declarations[0]?.resolve(project);
+      return declaration ? [toLocationLink(selector.range, declaration)] : [];
+    }
+    const prop = css.customPropertyAt(vDoc, offset);
+    if (!prop) return;
+    return css.customPropertyLocations(vDoc, prop.name).declarations.map((range) => ({
+      originSelectionRange: prop.range,
+      targetUri: uri,
+      targetRange: range,
+      targetSelectionRange: range,
+    }));
+  }
+
+  async function getCssReferences(uri: string, position: Position): Promise<Location[] | undefined> {
+    const ctx = await getCssContext(uri, position);
+    if (!ctx) return;
+    const { project, vDoc, offset } = ctx;
+    const selector = css.elementSelectorAt(vDoc, offset);
+    if (selector) return findTagLocations(project, selector.tag, css);
+    const prop = css.customPropertyAt(vDoc, offset);
+    if (!prop) return;
+    const { declarations, references } = css.customPropertyLocations(vDoc, prop.name);
+    return [...declarations, ...references].map((range) => ({ uri, range }));
+  }
+
+  async function getPropContext(uri: string, position: Position) {
+    const ctx = await getFileContext(uri);
+    const prop = ctx && findElementProp(ctx.file, toOffset(ctx.file.text, position));
+    return prop && { ...ctx, prop };
   }
 
   /** 类名的定义（样式中的选择器）和使用的地方 */
@@ -195,14 +271,25 @@ export function createGemMiddleware(
           targetSelectionRange: range,
         }));
       }
+      const cssDefinition = await getCssDefinition(params.textDocument.uri, params.position);
+      if (cssDefinition) return cssDefinition;
       const ctx = await getTemplateContext(params.textDocument.uri, params.position);
       if (ctx?.template.kind !== 'html') return result;
       return (await html.definition(ctx.project, ctx.template, ctx.offset)) ?? result;
     },
     'textDocument/references': async (result, { params }) => {
       const ctx = await getTagContext(params.textDocument.uri, params.position);
-      if (ctx) return findTagLocations(ctx.project, ctx.info.tag);
-      return (await getClassNameReferences(params.textDocument.uri, params.position)) ?? result;
+      if (ctx) return findTagLocations(ctx.project, ctx.info.tag, css);
+      const propCtx = await getPropContext(params.textDocument.uri, params.position);
+      if (propCtx) {
+        const attributes = await findPropAttributes(propCtx.project, propCtx.prop, index);
+        return [...(result ?? []), ...attributes.map(({ uri, range }) => ({ uri, range }))];
+      }
+      return (
+        (await getCssReferences(params.textDocument.uri, params.position)) ??
+        (await getClassNameReferences(params.textDocument.uri, params.position)) ??
+        result
+      );
     },
     'textDocument/prepareRename': async (result, { params }) => {
       const ctx = await getTagContext(params.textDocument.uri, params.position);
@@ -213,12 +300,47 @@ export function createGemMiddleware(
     'textDocument/rename': async (result, { params }) => {
       const { textDocument, position, newName } = params;
       const ctx = await getTagContext(textDocument.uri, position);
-      if (!ctx) return result;
+      if (!ctx) {
+        // 重命名属性时同时修改模板中绑定的特性
+        const propCtx = await getPropContext(textDocument.uri, position);
+        if (!propCtx || !result) return result;
+        const attributes = await findPropAttributes(propCtx.project, propCtx.prop, index);
+        return mergeWorkspaceEdit(result, getPropRenameEdits(attributes, newName));
+      }
       const { info } = ctx;
       const locations = info.isDefinition
-        ? await findTagLocations(ctx.project, info.tag)
+        ? await findTagLocations(ctx.project, info.tag, css)
         : info.tagRanges!.map((range) => ({ uri: textDocument.uri, range }));
       return { changes: toTextEdits(locations, newName) };
+    },
+    'textDocument/foldingRange': async (result, { params }) => {
+      const ctx = await getFileContext(params.textDocument.uri);
+      if (!ctx) return result;
+      const templates = findTemplates(ctx.file, 'html');
+      const cssDocuments = [...findTemplates(ctx.file, 'css'), ...templates.flatMap((t) => html.styles(t))];
+      return [
+        ...(result ?? []),
+        ...templates.flatMap((t) => html.foldingRanges(t)),
+        ...cssDocuments.flatMap((doc) => css.foldingRanges(doc)),
+      ];
+    },
+    'textDocument/documentHighlight': async (result, { params }) => {
+      const ctx = await getTemplateContext(params.textDocument.uri, params.position);
+      if (ctx?.template.kind !== 'html') return result;
+      return html.highlights(ctx.template, ctx.offset);
+    },
+    'textDocument/linkedEditingRange': async (result, { params }) => {
+      const ctx = await getTemplateContext(params.textDocument.uri, params.position);
+      if (ctx?.template.kind !== 'html') return result;
+      const ranges = html.linkedEditingRanges(ctx.template, ctx.offset);
+      return ranges ? { ranges } : result;
+    },
+    // VS Code 输入 `>` 后自动插入结束标签
+    'textDocument/_vs_onAutoInsert': async (result, { params }) => {
+      const ctx = await getTemplateContext(params._vs_textDocument.uri, params._vs_position);
+      if (ctx?.template.kind !== 'html') return result;
+      const edit = html.closingTag(ctx.template, ctx.offset);
+      return edit ? { _vs_textEditFormat: SNIPPET_FORMAT, _vs_textEdit: edit } : result;
     },
     'textDocument/codeAction': async (result, { params }) => {
       const fixes = getAttrFormatFixes(params.textDocument.uri, params.context.diagnostics);
