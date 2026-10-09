@@ -1,16 +1,8 @@
 import { TextDocument } from '@mantou/vscode-html-languageservice';
 import type { Node, NoSubstitutionTemplateLiteral, SourceFile, TemplateExpression } from 'typescript/unstable/ast';
-import {
-  getTokenAtPosition,
-  isCallExpression,
-  isIdentifier,
-  isNoSubstitutionTemplateLiteral,
-  isObjectLiteralExpression,
-  isPropertyAssignment,
-  isTaggedTemplateExpression,
-  isTemplateExpression,
-} from 'typescript/unstable/ast';
 import type { Position, Range } from 'typescript/unstable/vscode';
+
+import { ts } from './ts';
 
 const TEMPLATE_TAGS = {
   html: new Set(['html', 'raw', 'h']),
@@ -45,11 +37,11 @@ export function findAncestor<T extends Node>(node: Node | undefined, test: (node
 }
 
 function isTemplateLiteralNode(node: Node): node is TemplateLiteralNode {
-  return isNoSubstitutionTemplateLiteral(node) || isTemplateExpression(node);
+  return ts.ast.isNoSubstitutionTemplateLiteral(node) || ts.ast.isTemplateExpression(node);
 }
 
 function isCssCall(node: Node) {
-  return isCallExpression(node) && isIdentifier(node.expression) && node.expression.text === 'css';
+  return ts.ast.isCallExpression(node) && ts.ast.isIdentifier(node.expression) && node.expression.text === 'css';
 }
 
 /**
@@ -59,13 +51,17 @@ function isCssCall(node: Node) {
  */
 function getTemplateInfo(node: TemplateLiteralNode) {
   const { parent } = node;
-  if (isTaggedTemplateExpression(parent) && isIdentifier(parent.tag)) {
+  if (ts.ast.isTaggedTemplateExpression(parent) && ts.ast.isIdentifier(parent.tag)) {
     const tagName = parent.tag.text;
     const kind = (Object.keys(TEMPLATE_TAGS) as TemplateKind[]).find((k) => TEMPLATE_TAGS[k].has(tagName));
     return kind && { kind, tagName, declarationsOnly: tagName === 'styled' };
   }
   if (isCssCall(parent)) return { kind: 'css' as const, tagName: 'css', declarationsOnly: false };
-  if (isPropertyAssignment(parent) && isObjectLiteralExpression(parent.parent) && isCssCall(parent.parent.parent)) {
+  if (
+    ts.ast.isPropertyAssignment(parent) &&
+    ts.ast.isObjectLiteralExpression(parent.parent) &&
+    isCssCall(parent.parent.parent)
+  ) {
     return { kind: 'css' as const, tagName: 'css', declarationsOnly: true };
   }
 }
@@ -104,7 +100,7 @@ export class Template implements VirtualDocument {
     this.#start = node.getStart(file) + 1;
     this.#prefix = info.declarationsOnly ? DECLARATIONS_PREFIX : '';
     const chars = file.text.slice(this.#start, node.end - 1).split('');
-    if (isTemplateExpression(node)) {
+    if (ts.ast.isTemplateExpression(node)) {
       let substitutionStart = node.head.end - 2;
       for (const span of node.templateSpans) {
         const substitutionEnd = span.literal.getStart(file) + 1;
@@ -174,7 +170,7 @@ export function findTemplates(file: SourceFile, kind: TemplateKind, root: Node =
 }
 
 export function findTemplate(file: SourceFile, offset: number) {
-  const node = findAncestor(getTokenAtPosition(file, offset), isTemplateLiteralNode);
+  const node = findAncestor(ts.ast.getTokenAtPosition(file, offset), isTemplateLiteralNode);
   const template = node && createTemplate(file, node);
   return template?.contains(offset) ? template : undefined;
 }

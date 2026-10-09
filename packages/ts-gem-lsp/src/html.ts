@@ -11,7 +11,6 @@ import type {
 import { getLanguageService } from '@mantou/vscode-html-languageservice';
 import type { Node } from 'typescript/unstable/ast';
 import type { Project } from 'typescript/unstable/async';
-import { fileNameToDocumentURI } from 'typescript/unstable/async';
 import type { DocumentHighlight, FoldingRange, LocationLink, Range } from 'typescript/unstable/vscode';
 
 import type { GemConfiguration } from './configuration';
@@ -22,6 +21,7 @@ import { getElementClass, getElementSelectors } from './styles';
 import type { Template } from './template';
 import { EmbeddedDocument, toPosition } from './template';
 import { translateCompletionList, translateFoldingRange, translateHover } from './translate';
+import { ts } from './ts';
 
 /** 从属性键值字符串上解析出不包含装饰符的名称 */
 function getAttrName(text: string) {
@@ -38,7 +38,7 @@ export function toLocationLink(originSelectionRange: Range, node: Node): Locatio
   });
   return {
     originSelectionRange,
-    targetUri: fileNameToDocumentURI(file.fileName),
+    targetUri: ts.api.fileNameToDocumentURI(file.fileName),
     targetRange: range(node),
     targetSelectionRange: range(name),
   };
@@ -212,7 +212,7 @@ export class HtmlService {
       return [
         {
           originSelectionRange: origin,
-          targetUri: fileNameToDocumentURI(template.fileName),
+          targetUri: ts.api.fileNameToDocumentURI(template.fileName),
           targetRange: template.toRangeFromOffsets(ifAttr.start, ifAttr.end),
           targetSelectionRange: template.toRangeFromOffsets(ifAttr.start, ifAttr.end),
         },
