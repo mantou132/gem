@@ -44,7 +44,7 @@ import {
 } from './diagnostics';
 import { ElementDefineRules, ElementIndex, isDepFile, resolveElementType } from './elements';
 import { HtmlService, toLocationLink } from './html';
-import { findElementProp, findPropAttributes, getPropRenameEdits } from './props';
+import { findElementProp, findPropReferences, getPropRenameEdits } from './props';
 import { getClassMapKeys } from './styles';
 import { findTagAt, findTagLocations, toTextEdits } from './tags';
 import { findTemplate, findTemplates, toOffset, toPosition } from './template';
@@ -171,6 +171,19 @@ export function createGemMiddleware(
       targetRange: range,
       targetSelectionRange: range,
     }));
+  }
+
+  /** 字符串参数中的标签，例如 `createElement('my-tag')`，模板中的标签由 html 服务处理 */
+  async function getStringTagDefinition(uri: string, position: Position): Promise<LocationLink[] | undefined> {
+    const ctx = await getFileContext(uri);
+    if (!ctx) return;
+    const { project, file } = ctx;
+    const offset = toOffset(file.text, position);
+    const tag = !findTemplate(file, offset) && findTagAt(file, offset);
+    if (!tag || tag.isDefinition) return;
+    const elementType = await resolveElementType(project, file, await index.get(project), tag.tag);
+    const declaration = await elementType?.symbol?.declarations[0]?.resolve(project);
+    return declaration ? [toLocationLink(tag.range, declaration)] : [];
   }
 
   async function getCssReferences(uri: string, position: Position): Promise<Location[] | undefined> {
@@ -300,6 +313,8 @@ export function createGemMiddleware(
           targetSelectionRange: range,
         }));
       }
+      const stringTagDefinition = await getStringTagDefinition(params.textDocument.uri, params.position);
+      if (stringTagDefinition) return stringTagDefinition;
       const cssDefinition = await getCssDefinition(params.textDocument.uri, params.position);
       if (cssDefinition) return cssDefinition;
       const ctx = await getTemplateContext(params.textDocument.uri, params.position);
@@ -311,8 +326,8 @@ export function createGemMiddleware(
       if (ctx) return findTagLocations(ctx.project, ctx.info.tag, css);
       const propCtx = await getPropContext(params.textDocument.uri, params.position);
       if (propCtx) {
-        const attributes = await findPropAttributes(propCtx.project, propCtx.prop, index);
-        return [...(result ?? []), ...attributes.map(({ uri, range }) => ({ uri, range }))];
+        const references = await findPropReferences(propCtx.project, propCtx.prop, index);
+        return [...(result ?? []), ...references.map(({ uri, range }) => ({ uri, range }))];
       }
       return (
         (await getCssReferences(params.textDocument.uri, params.position)) ??
@@ -348,15 +363,15 @@ export function createGemMiddleware(
         const { project, attr, prop, declaration } = attrCtx;
         const propName = attr.isProperty ? newName : kebabToCamelCase(newName);
         const edit = await renameDeclaration!({ ...declaration, newName: propName });
-        const attributes = await findPropAttributes(project, prop, index);
-        return mergeWorkspaceEdit(edit ?? { changes: {} }, getPropRenameEdits(attributes, propName));
+        const references = await findPropReferences(project, prop, index);
+        return mergeWorkspaceEdit(edit ?? { changes: {} }, getPropRenameEdits(references, propName));
       }
       if (!ctx) {
         // 重命名属性时同时修改模板中绑定的特性
         const propCtx = await getPropContext(textDocument.uri, position);
         if (!propCtx || !result) return result;
-        const attributes = await findPropAttributes(propCtx.project, propCtx.prop, index);
-        return mergeWorkspaceEdit(result, getPropRenameEdits(attributes, newName));
+        const references = await findPropReferences(propCtx.project, propCtx.prop, index);
+        return mergeWorkspaceEdit(result, getPropRenameEdits(references, newName));
       }
       const { info } = ctx;
       const locations = info.isDefinition
