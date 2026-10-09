@@ -219,11 +219,36 @@ export class HtmlService {
       ];
     }
 
+    const declaration = await this.#getPropDeclaration(project, template, tag, attrName);
+    return declaration ? [toLocationLink(origin, declaration)] : null;
+  }
+
+  /** 光标所在的元素特性及其对应的属性声明 */
+  async attributeAt(project: Project, template: Template, offset: number) {
+    const vOffset = template.toVirtualOffset(offset);
+    const node = this.#ls.parseHTMLDocument(template.doc).findNodeAt(vOffset);
+    const { tag, startTagEnd } = node;
+    if (!tag || startTagEnd === undefined || vOffset > startTagEnd) return;
+    const attrEntry = [...node.attributesMap].find(([, { start, end }]) => vOffset >= start && vOffset <= end);
+    if (!attrEntry) return;
+    const [attrName, { end }] = attrEntry;
+    const attr = getAttrName(attrName);
+    const declaration = await this.#getPropDeclaration(project, template, tag, attrName);
+    return (
+      declaration && {
+        name: attr,
+        /** `.prop` 使用属性名，其他使用特性名 */
+        isProperty: attrName.startsWith('.'),
+        range: template.toRangeFromOffsets(end - attr.length, end),
+        declaration,
+      }
+    );
+  }
+
+  async #getPropDeclaration(project: Project, template: Template, tag: string, attrName: string) {
     const elementType = await resolveElementType(project, template.file, await this.#index.get(project), tag);
-    const prop = await elementType?.type.getProperty(kebabToCamelCase(attr));
-    const declaration = await prop?.declarations[0]?.resolve(project);
-    if (!declaration) return null;
-    return [toLocationLink(origin, declaration)];
+    const prop = await elementType?.type.getProperty(kebabToCamelCase(getAttrName(attrName)));
+    return prop?.declarations[0]?.resolve(project);
   }
 
   /** 匹配的开始和结束标签 */

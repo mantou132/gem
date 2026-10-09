@@ -1,3 +1,4 @@
+import { kebabToCamelCase } from '@mantou/gem/lib/utils';
 import type { API } from 'typescript/unstable/async';
 import type {
   CodeAction,
@@ -41,14 +42,15 @@ import {
   getHtmlDiagnostics,
   isUnusedDecoratedDiagnostic,
 } from './diagnostics';
-import { ElementDefineRules, ElementIndex, resolveElementType } from './elements';
+import { ElementDefineRules, ElementIndex, isDepFile, resolveElementType } from './elements';
 import { HtmlService, toLocationLink } from './html';
 import { findElementProp, findPropAttributes, getPropRenameEdits } from './props';
 import { getClassMapKeys } from './styles';
 import { findTagAt, findTagLocations, toTextEdits } from './tags';
-import { findTemplate, findTemplates, toOffset } from './template';
+import { findTemplate, findTemplates, toOffset, toPosition } from './template';
 import { getNeverMembers, getThemeKeys } from './theme';
 import type { GemCompletionData } from './translate';
+import { ts } from './ts';
 
 // 宿主无关：VS Code 中间件、LSP 代理都调用同一份变换
 export type Transformer<P, R> = (result: R, context: { readonly params: P }) => Promise<R>;
@@ -97,6 +99,8 @@ export interface GemService {
 export function createGemMiddleware(
   getApi: () => Promise<API<true>>,
   getConfig: () => GemConfiguration = () => defaultConfiguration,
+  /** 由宿主请求 TypeScript 重命名，提供时支持在模板中重命名属性 */
+  renameDeclaration?: (params: RenameParams) => Promise<WorkspaceEdit | null>,
 ): GemService {
   let rules: { key: string; value: ElementDefineRules } | undefined;
   const getRules = () => {
@@ -185,6 +189,25 @@ export function createGemMiddleware(
     const ctx = await getFileContext(uri);
     const prop = ctx && findElementProp(ctx.file, toOffset(ctx.file.text, position));
     return prop && { ...ctx, prop };
+  }
+
+  /** 模板中绑定元素属性的特性，属性需要在项目中定义 */
+  async function getAttributeContext(uri: string, position: Position) {
+    if (!renameDeclaration) return;
+    const ctx = await getTemplateContext(uri, position);
+    if (ctx?.template.kind !== 'html') return;
+    const attr = await html.attributeAt(ctx.project, ctx.template, ctx.offset);
+    if (!attr || !ts.ast.isPropertyDeclaration(attr.declaration)) return;
+    const file = attr.declaration.getSourceFile();
+    if (isDepFile(file.fileName)) return;
+    const nameStart = attr.declaration.name.getStart(file);
+    const prop = findElementProp(file, nameStart);
+    if (!prop) return;
+    const declaration = {
+      textDocument: { uri: ts.api.fileNameToDocumentURI(file.fileName) },
+      position: toPosition(file.text, nameStart),
+    };
+    return { ...ctx, attr, prop, declaration };
   }
 
   /** 类名的定义（样式中的选择器）和使用的地方 */
@@ -302,7 +325,9 @@ export function createGemMiddleware(
       if (ctx) return { range: ctx.info.range, placeholder: ctx.info.tag };
       const cssCtx = await getCssContext(params.textDocument.uri, params.position);
       const prop = cssCtx && css.customPropertyAt(cssCtx.vDoc, cssCtx.offset);
-      return prop ? { range: prop.range, placeholder: prop.name } : result;
+      if (prop) return { range: prop.range, placeholder: prop.name };
+      const attrCtx = await getAttributeContext(params.textDocument.uri, params.position);
+      return attrCtx ? { range: attrCtx.attr.range, placeholder: attrCtx.attr.name } : result;
     },
     // 在定义处重命名所有使用的地方，在模板中只重命名当前元素的开始和结束标签
     'textDocument/rename': async (result, { params }) => {
@@ -316,6 +341,15 @@ export function createGemMiddleware(
         const name = newName.startsWith('--') ? newName : `--${newName}`;
         const locations = [...declarations, ...references].map((range) => ({ uri: textDocument.uri, range }));
         return { changes: toTextEdits(locations, name) };
+      }
+      // 在模板中重命名特性：重命名属性声明，再修改所有模板中的特性
+      const attrCtx = !ctx && (await getAttributeContext(textDocument.uri, position));
+      if (attrCtx) {
+        const { project, attr, prop, declaration } = attrCtx;
+        const propName = attr.isProperty ? newName : kebabToCamelCase(newName);
+        const edit = await renameDeclaration!({ ...declaration, newName: propName });
+        const attributes = await findPropAttributes(project, prop, index);
+        return mergeWorkspaceEdit(edit ?? { changes: {} }, getPropRenameEdits(attributes, propName));
       }
       if (!ctx) {
         // 重命名属性时同时修改模板中绑定的特性

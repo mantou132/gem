@@ -89,6 +89,7 @@ async function startProxy(tsDir: string, clientReader: MessageReader, clientWrit
   const { middleware, invalidate } = createGemMiddleware(
     () => api,
     () => config,
+    (params) => request('textDocument/rename', params),
   );
   type Method = keyof typeof middleware;
   const pendingRequests = new Map<RequestMessage['id'], RequestMessage>();
