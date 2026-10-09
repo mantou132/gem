@@ -1,3 +1,5 @@
+import type { Node as CssNode } from '@mantou/vscode-css-languageservice';
+import { getCSSLanguageService, NodeType, TextDocument } from '@mantou/vscode-css-languageservice';
 import type { Node as HtmlNode } from '@mantou/vscode-html-languageservice';
 import { getLanguageService } from '@mantou/vscode-html-languageservice';
 import type { CallExpression, ClassDeclaration, Node, SourceFile, StringLiteral } from 'typescript/unstable/ast';
@@ -7,10 +9,14 @@ import type { Location, Range, TextEdit } from 'typescript/unstable/vscode';
 import type { CssService } from './css';
 import { isDepFile } from './elements';
 import type { Template, VirtualDocument } from './template';
-import { EmbeddedDocument, findTemplate, findTemplates, toPosition } from './template';
+import { EmbeddedDocument, findTemplate, findTemplates, getTouchingToken, toPosition } from './template';
 import { ts } from './ts';
 
 const htmlLs = getLanguageService();
+const cssLs = getCSSLanguageService();
+
+const REGISTRY_METHODS = new Set(['get', 'whenDefined']);
+const SELECTOR_METHODS = new Set(['querySelector', 'querySelectorAll', 'closest', 'matches']);
 
 export interface TagInfo {
   tag: string;
@@ -59,9 +65,54 @@ function getCustomElementArg(node: ClassDeclaration) {
 
 /** `@customElement('my-tag')` 中的标签 */
 function findDefinedTag(file: SourceFile, offset: number): TagInfo | undefined {
-  const node = ts.ast.getTokenAtPosition(file, offset);
+  const node = getTouchingToken(file, offset);
   if (!ts.ast.isStringLiteral(node) || !isCustomElementCall(node.parent)) return;
   return { tag: node.text, range: stringContentRange(file, node), isDefinition: true };
+}
+
+/** 选择器中的元素选择器，位置是选择器中的偏移 */
+function getSelectorTags(selector: string) {
+  const result: { tag: string; start: number; end: number }[] = [];
+  const visit = (node: CssNode) => {
+    if (node.type === NodeType.ElementNameSelector)
+      result.push({ tag: node.getText(), start: node.offset, end: node.end });
+    node.getChildren().forEach(visit);
+  };
+  visit(cssLs.parseStylesheet(TextDocument.create('gem-selector://', 'css', 0, `${selector}{}`)) as CssNode);
+  return result;
+}
+
+/**
+ * 字符串参数中的标签：`createElement('my-tag')` `customElements.get('my-tag')`
+ * `querySelector('.list my-tag')` 等，位置是字符串内容中的偏移
+ */
+function getCallTags(node: Node) {
+  if (!ts.ast.isCallExpression(node) || !ts.ast.isPropertyAccessExpression(node.expression)) return;
+  const [arg] = node.arguments;
+  if (!arg || !(ts.ast.isStringLiteral(arg) || ts.ast.isNoSubstitutionTemplateLiteral(arg))) return;
+  const { name, expression } = node.expression;
+  const isRegistry = ts.ast.isIdentifier(expression) && expression.text === 'customElements';
+  if (name.text === 'createElement' || (isRegistry && REGISTRY_METHODS.has(name.text))) {
+    return { arg, tags: [{ tag: arg.text, start: 0, end: arg.text.length }] };
+  }
+  if (SELECTOR_METHODS.has(name.text)) return { arg, tags: getSelectorTags(arg.text) };
+}
+
+function stringTagRange(file: SourceFile, arg: Node, start: number, end: number): Range {
+  const contentStart = arg.getStart(file) + 1;
+  return { start: toPosition(file.text, contentStart + start), end: toPosition(file.text, contentStart + end) };
+}
+
+/** 光标所在的字符串参数中的标签 */
+function findCallTag(file: SourceFile, offset: number): TagInfo | undefined {
+  const token = getTouchingToken(file, offset);
+  const call = token.parent && getCallTags(token.parent);
+  if (call?.arg !== token) return;
+  const contentStart = token.getStart(file) + 1;
+  const found = call.tags.find(({ start, end }) => offset >= contentStart + start && offset <= contentStart + end);
+  if (!found) return;
+  const range = stringTagRange(file, token, found.start, found.end);
+  return { tag: found.tag, range, isDefinition: false, tagRanges: [range] };
 }
 
 /** 光标所在的模板标签名 */
@@ -81,7 +132,7 @@ function findTemplateTag(file: SourceFile, offset: number): TagInfo | undefined 
 }
 
 export function findTagAt(file: SourceFile, offset: number) {
-  return findDefinedTag(file, offset) ?? findTemplateTag(file, offset);
+  return findDefinedTag(file, offset) ?? findCallTag(file, offset) ?? findTemplateTag(file, offset);
 }
 
 /** 项目中的源文件，不包含依赖 */
@@ -114,6 +165,13 @@ export async function findTagLocations(project: Project, tag: string, css: CssSe
       const arg = ts.ast.isClassDeclaration(node) ? getCustomElementArg(node) : undefined;
       if (arg?.text === tag) locations.push({ uri, range: stringContentRange(file, arg) });
     }
+    file.forEachChild(function visit(node): undefined {
+      const call = getCallTags(node);
+      for (const found of call?.tags ?? []) {
+        if (found.tag === tag) locations.push({ uri, range: stringTagRange(file, call!.arg, found.start, found.end) });
+      }
+      node.forEachChild(visit);
+    });
   }
   return locations;
 }

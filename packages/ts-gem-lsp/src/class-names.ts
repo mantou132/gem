@@ -9,7 +9,7 @@ import type { ElementIndex } from './elements';
 import { getElementNode, getTagFromDecorator } from './elements';
 import { getElementSelectors, getElementStyles } from './styles';
 import type { Template } from './template';
-import { findAncestor, findTemplate, findTemplates, toPosition } from './template';
+import { findAncestor, findTemplate, findTemplates, getTouchingToken, toPosition } from './template';
 import { ts } from './ts';
 
 const htmlLs = getLanguageService();
@@ -102,7 +102,7 @@ export function findClassNameAt(file: SourceFile, offset: number) {
     const element = findAncestor(template.node, isElementClass);
     return ref && element && { name: ref.name, range: ref.range, element };
   }
-  const token = ts.ast.getTokenAtPosition(file, offset);
+  const token = getTouchingToken(file, offset);
   if (!ts.ast.isIdentifier(token) && !ts.ast.isStringLiteral(token)) return;
   const isKey = getClassMapKeyNodes(file).includes(token);
   const element = findAncestor(token, isElementClass);
