@@ -1,22 +1,14 @@
 import type { Node as HtmlNode } from '@mantou/vscode-html-languageservice';
 import { getLanguageService } from '@mantou/vscode-html-languageservice';
 import type { CallExpression, ClassDeclaration, Node, SourceFile, StringLiteral } from 'typescript/unstable/ast';
-import {
-  getTokenAtPosition,
-  isCallExpression,
-  isClassDeclaration,
-  isDecorator,
-  isIdentifier,
-  isStringLiteral,
-} from 'typescript/unstable/ast';
 import type { Project } from 'typescript/unstable/async';
-import { fileNameToDocumentURI } from 'typescript/unstable/async';
 import type { Location, Range, TextEdit } from 'typescript/unstable/vscode';
 
 import type { CssService } from './css';
 import { isDepFile } from './elements';
 import type { Template, VirtualDocument } from './template';
 import { EmbeddedDocument, findTemplate, findTemplates, toPosition } from './template';
+import { ts } from './ts';
 
 const htmlLs = getLanguageService();
 
@@ -52,21 +44,23 @@ function stringContentRange(file: SourceFile, node: StringLiteral): Range {
 }
 
 function isCustomElementCall(node: Node): node is CallExpression {
-  return isCallExpression(node) && isIdentifier(node.expression) && node.expression.text === 'customElement';
+  return (
+    ts.ast.isCallExpression(node) && ts.ast.isIdentifier(node.expression) && node.expression.text === 'customElement'
+  );
 }
 
 function getCustomElementArg(node: ClassDeclaration) {
   for (const modifier of node.modifiers ?? []) {
-    if (!isDecorator(modifier) || !isCustomElementCall(modifier.expression)) continue;
+    if (!ts.ast.isDecorator(modifier) || !isCustomElementCall(modifier.expression)) continue;
     const arg = modifier.expression.arguments[0];
-    if (arg && isStringLiteral(arg)) return arg;
+    if (arg && ts.ast.isStringLiteral(arg)) return arg;
   }
 }
 
 /** `@customElement('my-tag')` 中的标签 */
 function findDefinedTag(file: SourceFile, offset: number): TagInfo | undefined {
-  const node = getTokenAtPosition(file, offset);
-  if (!isStringLiteral(node) || !isCustomElementCall(node.parent)) return;
+  const node = ts.ast.getTokenAtPosition(file, offset);
+  if (!ts.ast.isStringLiteral(node) || !isCustomElementCall(node.parent)) return;
   return { tag: node.text, range: stringContentRange(file, node), isDefinition: true };
 }
 
@@ -101,7 +95,7 @@ export async function getProjectFiles(project: Project) {
 export async function findTagLocations(project: Project, tag: string, css: CssService): Promise<Location[]> {
   const locations: Location[] = [];
   for (const file of await getProjectFiles(project)) {
-    const uri = fileNameToDocumentURI(file.fileName);
+    const uri = ts.api.fileNameToDocumentURI(file.fileName);
     const cssDocuments: VirtualDocument[] = findTemplates(file, 'css');
     for (const template of findTemplates(file, 'html')) {
       forEachTagNode(htmlLs.parseHTMLDocument(template.doc).roots, (node) => {
@@ -117,7 +111,7 @@ export async function findTagLocations(project: Project, tag: string, css: CssSe
       for (const range of css.elementSelectors(vDoc, tag)) locations.push({ uri, range });
     }
     for (const node of file.statements) {
-      const arg = isClassDeclaration(node) ? getCustomElementArg(node) : undefined;
+      const arg = ts.ast.isClassDeclaration(node) ? getCustomElementArg(node) : undefined;
       if (arg?.text === tag) locations.push({ uri, range: stringContentRange(file, arg) });
     }
   }

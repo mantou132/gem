@@ -2,15 +2,14 @@ import { camelToKebabCase } from '@mantou/gem/lib/utils';
 import type { Node as HtmlNode } from '@mantou/vscode-html-languageservice';
 import { getLanguageService } from '@mantou/vscode-html-languageservice';
 import type { ClassDeclaration, Identifier, PropertyDeclaration, SourceFile } from 'typescript/unstable/ast';
-import { getTokenAtPosition, isClassDeclaration, isIdentifier, isPropertyDeclaration } from 'typescript/unstable/ast';
 import type { Project } from 'typescript/unstable/async';
-import { fileNameToDocumentURI } from 'typescript/unstable/async';
 import type { Location, TextEdit } from 'typescript/unstable/vscode';
 
 import type { ElementIndex } from './elements';
 import { getDecoratorNames, getTagFromDecorator, resolveElementType } from './elements';
 import { getProjectFiles } from './tags';
 import { findTemplates } from './template';
+import { ts } from './ts';
 
 const htmlLs = getLanguageService();
 
@@ -41,11 +40,11 @@ function getAttrForms(name: string, decorators: string[]): AttrForm[] {
 
 /** 光标处元素类中被装饰的属性名 */
 export function findElementProp(file: SourceFile, offset: number): ElementProp | undefined {
-  const token = getTokenAtPosition(file, offset);
+  const token = ts.ast.getTokenAtPosition(file, offset);
   const decl = token.parent;
-  if (!isIdentifier(token) || !decl || !isPropertyDeclaration(decl) || decl.name !== token) return;
+  if (!ts.ast.isIdentifier(token) || !decl || !ts.ast.isPropertyDeclaration(decl) || decl.name !== token) return;
   const element = decl.parent;
-  if (!isClassDeclaration(element) || !getTagFromDecorator(element)) return;
+  if (!ts.ast.isClassDeclaration(element) || !getTagFromDecorator(element)) return;
   const forms = getAttrForms(token.text, getDecoratorNames(decl as PropertyDeclaration));
   return forms.length ? { name: token, element, forms } : undefined;
 }
@@ -77,7 +76,7 @@ export async function findPropAttributes(project: Project, prop: ElementProp, in
   const tags = await getElementTags(project, prop.element, index);
   const result: (Location & { form: AttrForm })[] = [];
   for (const file of await getProjectFiles(project)) {
-    const uri = fileNameToDocumentURI(file.fileName);
+    const uri = ts.api.fileNameToDocumentURI(file.fileName);
     for (const template of findTemplates(file, 'html')) {
       forEachHtmlNode(htmlLs.parseHTMLDocument(template.doc).roots, (node) => {
         if (!node.tag || !tags.has(node.tag)) return;

@@ -1,16 +1,7 @@
 import type { Node as HtmlNode } from '@mantou/vscode-html-languageservice';
 import { getLanguageService } from '@mantou/vscode-html-languageservice';
 import type { ClassDeclaration, Node, SourceFile } from 'typescript/unstable/ast';
-import {
-  getTokenAtPosition,
-  isCallExpression,
-  isClassDeclaration,
-  isIdentifier,
-  isObjectLiteralExpression,
-  isStringLiteral,
-} from 'typescript/unstable/ast';
 import type { Project } from 'typescript/unstable/async';
-import { fileNameToDocumentURI } from 'typescript/unstable/async';
 import type { Location, Range } from 'typescript/unstable/vscode';
 
 import type { CssService } from './css';
@@ -19,6 +10,7 @@ import { getElementNode, getTagFromDecorator } from './elements';
 import { getElementSelectors, getElementStyles } from './styles';
 import type { Template } from './template';
 import { findAncestor, findTemplate, findTemplates, toPosition } from './template';
+import { ts } from './ts';
 
 const htmlLs = getLanguageService();
 
@@ -29,7 +21,7 @@ export interface ClassNameRef {
 }
 
 function isElementClass(node: Node): node is ClassDeclaration {
-  return isClassDeclaration(node) && !!getTagFromDecorator(node);
+  return ts.ast.isClassDeclaration(node) && !!getTagFromDecorator(node);
 }
 
 function forEachHtmlNode(nodes: HtmlNode[], fn: (node: HtmlNode) => void) {
@@ -65,7 +57,7 @@ function getAttrClassNames(template: Template) {
 }
 
 function stringContentRange(file: SourceFile, node: Node) {
-  const quote = isStringLiteral(node) ? 1 : 0;
+  const quote = ts.ast.isStringLiteral(node) ? 1 : 0;
   const start = node.getStart(file) + quote;
   return { start: toPosition(file.text, start), end: toPosition(file.text, node.end - quote) };
 }
@@ -74,11 +66,11 @@ function stringContentRange(file: SourceFile, node: Node) {
 function getClassMapKeyNodes(root: Node) {
   const keys: Node[] = [];
   root.forEachChild(function visit(node): undefined {
-    if (isCallExpression(node) && isIdentifier(node.expression) && node.expression.text === 'classMap') {
+    if (ts.ast.isCallExpression(node) && ts.ast.isIdentifier(node.expression) && node.expression.text === 'classMap') {
       const [obj] = node.arguments;
-      if (obj && isObjectLiteralExpression(obj)) {
+      if (obj && ts.ast.isObjectLiteralExpression(obj)) {
         for (const prop of obj.properties) {
-          if ('name' in prop && prop.name && (isIdentifier(prop.name) || isStringLiteral(prop.name))) {
+          if ('name' in prop && prop.name && (ts.ast.isIdentifier(prop.name) || ts.ast.isStringLiteral(prop.name))) {
             keys.push(prop.name);
           }
         }
@@ -92,7 +84,7 @@ function getClassMapKeyNodes(root: Node) {
 /** 元素类中使用类名的地方：html 模板 `class` `id` 属性值和 `classMap` 的键 */
 export function findClassNameUsages(element: ClassDeclaration): (ClassNameRef & { uri: string })[] {
   const file = element.getSourceFile();
-  const uri = fileNameToDocumentURI(file.fileName);
+  const uri = ts.api.fileNameToDocumentURI(file.fileName);
   const attrs = findTemplates(file, 'html', element).flatMap(getAttrClassNames);
   const keys = getClassMapKeyNodes(element).map((node) => ({
     name: (node as { text: string } & Node).text,
@@ -110,8 +102,8 @@ export function findClassNameAt(file: SourceFile, offset: number) {
     const element = findAncestor(template.node, isElementClass);
     return ref && element && { name: ref.name, range: ref.range, element };
   }
-  const token = getTokenAtPosition(file, offset);
-  if (!isIdentifier(token) && !isStringLiteral(token)) return;
+  const token = ts.ast.getTokenAtPosition(file, offset);
+  if (!ts.ast.isIdentifier(token) && !ts.ast.isStringLiteral(token)) return;
   const isKey = getClassMapKeyNodes(file).includes(token);
   const element = findAncestor(token, isElementClass);
   if (!isKey || !element) return;
@@ -129,7 +121,7 @@ export async function findClassNameSelectors(
   return selectors
     .filter((selector) => selector.name === name)
     .map(({ template, start, end }) => ({
-      uri: fileNameToDocumentURI(template.fileName),
+      uri: ts.api.fileNameToDocumentURI(template.fileName),
       range: template.toRangeFromOffsets(start, end),
     }));
 }
