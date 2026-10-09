@@ -8,7 +8,13 @@ import { pathToFileURL } from 'node:url';
 
 import type { API } from 'typescript/unstable/async';
 import { createTypeScriptModuleLoader } from 'typescript/unstable/vscode';
-import type { MessageReader, MessageWriter, RequestMessage, ResponseMessage } from 'vscode-jsonrpc/node.js';
+import type {
+  MessageReader,
+  MessageWriter,
+  NotificationMessage,
+  RequestMessage,
+  ResponseMessage,
+} from 'vscode-jsonrpc/node.js';
 import { Message, StreamMessageReader, StreamMessageWriter } from 'vscode-jsonrpc/node.js';
 
 import type { GemConfiguration } from './configuration';
@@ -39,6 +45,21 @@ function startNoopServer(clientReader: MessageReader, clientWriter: MessageWrite
   });
 }
 
+type FileChangeParams = { textDocument?: { uri: string }; changes?: { uri: string }[] };
+
+// 编辑器中的修改，以及磁盘上的修改（例如 `git checkout`）
+function getChangedFiles({ method, params }: NotificationMessage) {
+  switch (method) {
+    case 'textDocument/didChange':
+    case 'textDocument/didClose':
+      return [(params as FileChangeParams).textDocument!.uri];
+    case 'workspace/didChangeWatchedFiles':
+      return (params as FileChangeParams).changes!.map(({ uri }) => uri);
+    default:
+      return [];
+  }
+}
+
 async function startProxy(tsDir: string, clientReader: MessageReader, clientWriter: MessageWriter) {
   // API 客户端和启动的 tsc 来自同一个 TypeScript
   const modules = await loadTsModules(createTypeScriptModuleLoader(path.join(tsDir, 'package.json')));
@@ -65,7 +86,7 @@ async function startProxy(tsDir: string, clientReader: MessageReader, clientWrit
   const updateConfig = (gem?: Partial<GemConfiguration>) => {
     if (gem) config = { ...defaultConfiguration, ...gem };
   };
-  const middleware = createGemMiddleware(
+  const { middleware, invalidate } = createGemMiddleware(
     () => api,
     () => config,
   );
@@ -79,6 +100,7 @@ async function startProxy(tsDir: string, clientReader: MessageReader, clientWrit
     if (Message.isNotification(msg) && msg.method === 'workspace/didChangeConfiguration') {
       updateConfig((msg.params as { settings?: { gem?: GemConfiguration } }).settings?.gem);
     }
+    if (Message.isNotification(msg)) for (const uri of getChangedFiles(msg)) invalidate(uri);
     if (Message.isRequest(msg) && msg.method in middleware) pendingRequests.set(msg.id, msg);
     serverWriter.write(msg);
     if (Message.isNotification(msg) && msg.method === 'initialized') {
