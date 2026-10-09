@@ -3,8 +3,8 @@ import * as path from 'node:path';
 
 import { registerGemMiddleware, TS7_EXTENSION_ID } from 'ts-gem-lsp/src/vscode';
 import type { PluginConfiguration } from 'ts-gem-plugin/src/configuration';
-import type { ExtensionContext, WorkspaceConfiguration } from 'vscode';
-import { commands, extensions, Range, window, workspace } from 'vscode';
+import type { ExtensionContext, TextDocument, WorkspaceConfiguration } from 'vscode';
+import { commands, Disposable, extensions, Range, window, workspace } from 'vscode';
 import { LanguageClient, TransportKind } from 'vscode-languageclient/node';
 
 import { exec, showTask } from './utils';
@@ -58,7 +58,19 @@ export async function activate(context: ExtensionContext) {
   // TypeScript 7 不再加载 tsserver 插件，通过中间件提供 Gem 支持
   const ts7Extension = extensions.getExtension(TS7_EXTENSION_ID);
   if (ts7Extension) {
-    context.subscriptions.push(...registerGemMiddleware(await ts7Extension.activate(), getConfiguration));
+    // 新增和删除的文件由文件列表的变化发现，这里只需要修改事件
+    const watcher = workspace.createFileSystemWatcher('**/*.{ts,tsx,mts,cts,js,jsx,mjs,cjs}', true, false, true);
+    const isScript = (document: TextDocument) => langSelectors.includes(document.languageId);
+    const onDidChangeFiles = (listener: (uri: string) => void) =>
+      Disposable.from(
+        workspace.onDidChangeTextDocument(({ document }) => isScript(document) && listener(document.uri.toString())),
+        workspace.onDidCloseTextDocument((document) => isScript(document) && listener(document.uri.toString())),
+        watcher.onDidChange((uri) => listener(uri.toString())),
+      );
+    context.subscriptions.push(
+      watcher,
+      ...registerGemMiddleware(await ts7Extension.activate(), getConfiguration, onDidChangeFiles),
+    );
   }
 
   const extension = extensions.getExtension(typeScriptExtensionId);

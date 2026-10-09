@@ -88,10 +88,16 @@ function mergeWorkspaceEdit(edit: WorkspaceEdit, changes: Record<string, TextEdi
   return { ...edit, changes: merged };
 }
 
+export interface GemService {
+  middleware: GemMiddleware;
+  /** 宿主在项目文件修改时调用，不传 URI 时全部重新扫描 */
+  invalidate: (uri?: string) => void;
+}
+
 export function createGemMiddleware(
   getApi: () => Promise<API<true>>,
   getConfig: () => GemConfiguration = () => defaultConfiguration,
-): GemMiddleware {
+): GemService {
   let rules: { key: string; value: ElementDefineRules } | undefined;
   const getRules = () => {
     const config = getConfig().elementDefineRules;
@@ -215,7 +221,7 @@ export function createGemMiddleware(
     return template && { project, template, offset };
   }
 
-  return {
+  const middleware: GemMiddleware = {
     'textDocument/hover': async (result, { params }) => {
       const ctx = await getTemplateContext(params.textDocument.uri, params.position);
       if (!ctx) return result;
@@ -358,4 +364,6 @@ export function createGemMiddleware(
       return fixes.length ? [...(result ?? []), ...fixes] : result;
     },
   };
+
+  return { middleware, invalidate: (uri) => index.invalidate(uri) };
 }
