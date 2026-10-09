@@ -14,12 +14,9 @@
     "/dist/"
   ],
   "scripts": {
-    "build": "esbuild ./src/index.ts ./src/bin.ts --outdir=./dist --platform=node --format=esm --sourcemap --bundle --main-fields=module,main --external:typescript --banner:js=\"import { createRequire as __createRequire } from 'node:module'; const require = __createRequire(import.meta.url);\"",
+    "build": "esbuild ./src/index.ts ./src/bin.ts --outdir=./dist --platform=node --format=esm --sourcemap --bundle --main-fields=module,main --banner:js=\"import { createRequire as __createRequire } from 'node:module'; const require = __createRequire(import.meta.url);\"",
     "start": "pnpm run build --watch",
     "prepublishOnly": "pnpm run build"
-  },
-  "dependencies": {
-    "typescript": "7.1.0-dev.20261007.1"
   },
   "devDependencies": {
     "@gemjs/config": "^2.1.3",
@@ -27,6 +24,7 @@
     "@mantou/vscode-css-languageservice": "^6.3.6",
     "@mantou/vscode-emmet-helper": "^2.11.0",
     "@mantou/vscode-html-languageservice": "^5.3.6",
+    "typescript": "7.1.0-dev.20261008.1",
     "vscode-jsonrpc": "^8.2.1"
   },
   "author": "mantou132",

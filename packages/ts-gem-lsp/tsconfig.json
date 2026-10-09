@@ -1,5 +1,9 @@
 {
   "extends": "@gemjs/config/tsconfig",
+  "compilerOptions": {
+    "module": "Preserve",
+    "moduleResolution": "Bundler"
+  },
   "include": ["src"],
   "exclude": []
 }

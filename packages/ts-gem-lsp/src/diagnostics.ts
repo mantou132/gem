@@ -2,25 +2,14 @@ import { camelToKebabCase, kebabToCamelCase } from '@mantou/gem/lib/utils';
 import type { HTMLDocument, Node as HtmlNode } from '@mantou/vscode-html-languageservice';
 import { getLanguageService } from '@mantou/vscode-html-languageservice';
 import type { MethodSignatureDeclaration, Node, SourceFile } from 'typescript/unstable/ast';
-import {
-  getTokenAtPosition,
-  isClassDeclaration,
-  isDecorator,
-  isIdentifier,
-  isMethodDeclaration,
-  isMethodSignatureDeclaration,
-  isPropertyDeclaration,
-  isTemplateSpan,
-  SyntaxKind,
-} from 'typescript/unstable/ast';
 import type { Checker, Project, Symbol as TsSymbol, Type } from 'typescript/unstable/async';
-import { isLiteralType, isUnionType } from 'typescript/unstable/async';
 import type { CodeAction, Diagnostic } from 'typescript/unstable/vscode';
 
 import type { ElementRef, ElementType } from './elements';
 import { getDecoratorNames, getTagFromDecorator, resolveElementType } from './elements';
 import type { Template } from './template';
 import { findAncestor, toOffset, toPosition } from './template';
+import { ts } from './ts';
 
 const SOURCE = 'gem';
 const SUBSTITUTION_CHAR = '_';
@@ -134,7 +123,7 @@ function forEachHtmlNode(roots: HtmlNode[], fn: (node: HtmlNode) => void) {
 type TypeList = Type[];
 
 async function isAssignableToAny(checker: Checker, source: Type, targets: TypeList): Promise<boolean> {
-  if (isUnionType(source)) {
+  if (ts.api.isUnionType(source)) {
     const types = await source.getTypes();
     const results = await Promise.all(types.map((t) => isAssignableToAny(checker, t, targets)));
     return results.every(Boolean);
@@ -144,9 +133,9 @@ async function isAssignableToAny(checker: Checker, source: Type, targets: TypeLi
 }
 
 async function getLiteralValues(type: Type) {
-  if (isLiteralType(type)) return [String(type.value)];
-  if (!isUnionType(type)) return [];
-  return (await type.getTypes()).filter(isLiteralType).map((t) => String(t.value));
+  if (ts.api.isLiteralType(type)) return [String(type.value)];
+  if (!ts.api.isUnionType(type)) return [];
+  return (await type.getTypes()).filter(ts.api.isLiteralType).map((t) => String(t.value));
 }
 
 type DiagnosticElementType = ElementType & { deprecated: boolean };
@@ -233,7 +222,7 @@ class DiagnosticContext {
     );
     const declaration = declarations.find(
       (decl): decl is MethodSignatureDeclaration =>
-        !!decl && isMethodSignatureDeclaration(decl) && !decl.typeParameters,
+        !!decl && ts.ast.isMethodSignatureDeclaration(decl) && !decl.typeParameters,
     );
     const listener = declaration?.parameters[1];
     return listener ? checker.getTypeAtLocation(listener) : (await this.primitive).any;
@@ -252,8 +241,8 @@ class DiagnosticContext {
   /** 属性值插值表达式的类型 */
   async getSpanType(template: Template, attrNameEnd: number) {
     // 跳过 `="${`
-    const token = getTokenAtPosition(this.file, template.fromVirtualOffset(attrNameEnd + 4));
-    const span = findAncestor(token, isTemplateSpan);
+    const token = ts.ast.getTokenAtPosition(this.file, template.fromVirtualOffset(attrNameEnd + 4));
+    const span = findAncestor(token, ts.ast.isTemplateSpan);
     return span && this.checker.getTypeAtLocation(span.expression);
   }
 }
@@ -506,7 +495,7 @@ export function getElementClassDiagnostics(file: SourceFile, strict: boolean): D
   const suggestion = strict ? Severity.Warning : Severity.Hint;
   const result: Diagnostic[] = [];
   for (const node of file.statements) {
-    if (!isClassDeclaration(node) || !getTagFromDecorator(node)) continue;
+    if (!ts.ast.isClassDeclaration(node) || !getTagFromDecorator(node)) continue;
 
     if (node.name && !node.name.text.endsWith('Element')) {
       result.push({
@@ -521,7 +510,7 @@ export function getElementClassDiagnostics(file: SourceFile, strict: boolean): D
     const isShadowDom = getDecoratorNames(node).includes('shadow');
     for (const member of node.members) {
       const nameNode = 'name' in member ? (member.name as Node | undefined) : undefined;
-      const name = nameNode && isIdentifier(nameNode) ? nameNode.text : '';
+      const name = nameNode && ts.ast.isIdentifier(nameNode) ? nameNode.text : '';
       if (strict && name.length > 3 && name === name.toLowerCase() && name.startsWith('on')) {
         result.push({
           range: nodeRange(file, member),
@@ -532,12 +521,12 @@ export function getElementClassDiagnostics(file: SourceFile, strict: boolean): D
         });
       }
 
-      if (!isPropertyDeclaration(member) || !member.modifiers) continue;
+      if (!ts.ast.isPropertyDeclaration(member) || !member.modifiers) continue;
       const decorators = getDecoratorNames(member);
 
       if (
         decorators.includes('property') &&
-        member.postfixToken?.kind !== SyntaxKind.QuestionToken &&
+        member.postfixToken?.kind !== ts.ast.SyntaxKind.QuestionToken &&
         !member.initializer
       ) {
         result.push({
@@ -550,7 +539,7 @@ export function getElementClassDiagnostics(file: SourceFile, strict: boolean): D
       }
 
       if (!decorators.includes('slot') && !decorators.includes('part')) continue;
-      const missStaticKeyword = member.modifiers.every((e) => e.kind !== SyntaxKind.StaticKeyword);
+      const missStaticKeyword = member.modifiers.every((e) => e.kind !== ts.ast.SyntaxKind.StaticKeyword);
       if (missStaticKeyword || !isShadowDom) {
         result.push({
           range: nodeRange(file, member),
@@ -576,11 +565,11 @@ export function isUnusedDecoratedDiagnostic(file: SourceFile, diagnostic: Diagno
     (diagnostic.tags?.includes(UNNECESSARY_TAG) || UNUSED_CODES.has(Number(diagnostic.code)));
   if (!isUnused) return false;
 
-  const declaration = getTokenAtPosition(file, toOffset(file.text, diagnostic.range.start)).parent;
+  const declaration = ts.ast.getTokenAtPosition(file, toOffset(file.text, diagnostic.range.start)).parent;
   if (!declaration) return false;
-  if (isClassDeclaration(declaration)) return !!getTagFromDecorator(declaration);
-  if (isMethodDeclaration(declaration) || isPropertyDeclaration(declaration)) {
-    return !!declaration.modifiers?.some(isDecorator);
+  if (ts.ast.isClassDeclaration(declaration)) return !!getTagFromDecorator(declaration);
+  if (ts.ast.isMethodDeclaration(declaration) || ts.ast.isPropertyDeclaration(declaration)) {
+    return !!declaration.modifiers?.some(ts.ast.isDecorator);
   }
   return false;
 }

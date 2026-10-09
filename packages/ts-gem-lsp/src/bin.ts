@@ -6,7 +6,8 @@ import { createRequire } from 'node:module';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 
-import { API } from 'typescript/unstable/async';
+import type { API } from 'typescript/unstable/async';
+import { createTypeScriptModuleLoader } from 'typescript/unstable/vscode';
 import type { MessageReader, MessageWriter, RequestMessage, ResponseMessage } from 'vscode-jsonrpc/node.js';
 import { Message, StreamMessageReader, StreamMessageWriter } from 'vscode-jsonrpc/node.js';
 
@@ -14,6 +15,7 @@ import type { GemConfiguration } from './configuration';
 import { defaultConfiguration } from './configuration';
 import type { Transformer } from './middleware';
 import { createGemMiddleware } from './middleware';
+import { loadTsModules } from './ts';
 
 // 编辑器以项目根目录作为工作目录启动语言服务器
 function resolveProjectTypeScript7() {
@@ -38,6 +40,8 @@ function startNoopServer(clientReader: MessageReader, clientWriter: MessageWrite
 }
 
 async function startProxy(tsDir: string, clientReader: MessageReader, clientWriter: MessageWriter) {
+  // API 客户端和启动的 tsc 来自同一个 TypeScript
+  const modules = await loadTsModules(createTypeScriptModuleLoader(path.join(tsDir, 'package.json')));
   const { default: getExePath } = await import(pathToFileURL(path.join(tsDir, 'lib/getExePath.js')).href);
   const server = spawn(getExePath(), ['--lsp', '--stdio'], { stdio: ['pipe', 'pipe', 'inherit'] });
   server.on('exit', (code) => process.exit(code ?? 0));
@@ -79,7 +83,7 @@ async function startProxy(tsDir: string, clientReader: MessageReader, clientWrit
     serverWriter.write(msg);
     if (Message.isNotification(msg) && msg.method === 'initialized') {
       const { pipe } = await request<{ pipe: string }>('custom/initializeAPISession', {});
-      resolveApi(await API.fromLSPConnection({ pipe }));
+      resolveApi(await modules.api.API.fromLSPConnection({ pipe }));
     }
   });
 

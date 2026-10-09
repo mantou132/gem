@@ -2,17 +2,9 @@ import { camelToKebabCase } from '@mantou/gem/lib/utils';
 import type { IAttributeData } from '@mantou/vscode-html-languageservice';
 import { getDefaultHTMLDataProvider } from '@mantou/vscode-html-languageservice';
 import type { ClassDeclaration, Identifier, Node, PropertyDeclaration, SourceFile } from 'typescript/unstable/ast';
-import {
-  isCallExpression,
-  isClassDeclaration,
-  isDecorator,
-  isIdentifier,
-  isPropertyDeclaration,
-  isStringLiteral,
-  SyntaxKind,
-} from 'typescript/unstable/ast';
 import type { Project, Symbol as TsSymbol, Type } from 'typescript/unstable/async';
-import { isLiteralType, isUnionType, SymbolFlags } from 'typescript/unstable/async';
+
+import { ts } from './ts';
 
 const defaultDataProvider = getDefaultHTMLDataProvider();
 
@@ -45,18 +37,23 @@ export function isDepFile(fileName: string) {
 export function getDecoratorNames(node: Node) {
   const names: string[] = [];
   for (const modifier of (node as ClassDeclaration).modifiers ?? []) {
-    if (!isDecorator(modifier)) continue;
-    const callee = isCallExpression(modifier.expression) ? modifier.expression.expression : modifier.expression;
-    if (isIdentifier(callee)) names.push(callee.text);
+    if (!ts.ast.isDecorator(modifier)) continue;
+    const callee = ts.ast.isCallExpression(modifier.expression) ? modifier.expression.expression : modifier.expression;
+    if (ts.ast.isIdentifier(callee)) names.push(callee.text);
   }
   return names;
 }
 
 export function getTagFromDecorator(node: ClassDeclaration) {
   for (const modifier of node.modifiers ?? []) {
-    if (!isDecorator(modifier) || !isCallExpression(modifier.expression)) continue;
+    if (!ts.ast.isDecorator(modifier) || !ts.ast.isCallExpression(modifier.expression)) continue;
     const { expression, arguments: args } = modifier.expression;
-    if (isIdentifier(expression) && expression.text === 'customElement' && args[0] && isStringLiteral(args[0])) {
+    if (
+      ts.ast.isIdentifier(expression) &&
+      expression.text === 'customElement' &&
+      args[0] &&
+      ts.ast.isStringLiteral(args[0])
+    ) {
       return args[0].text;
     }
   }
@@ -84,7 +81,7 @@ const isLibFile = (fileName: string) => /\/lib\.[\w.]+\.d\.ts$/.test(fileName);
 function findElementRefs(file: SourceFile, rules: ElementDefineRules) {
   const isDep = isDepFile(file.fileName);
   return file.statements.flatMap((node): ElementRef[] => {
-    if (!isClassDeclaration(node) || !node.name) return [];
+    if (!ts.ast.isClassDeclaration(node) || !node.name) return [];
     const tag = getTagFromDecorator(node) ?? (isDep ? rules.findTag(node.name.text) : undefined);
     return tag ? [{ tag, fileName: file.fileName, className: node.name.text, isDep }] : [];
   });
@@ -127,9 +124,9 @@ export class ElementIndex {
 }
 
 async function getUnionValues(type: Type) {
-  if (!isUnionType(type)) return;
+  if (!ts.api.isUnionType(type)) return;
   const types = await type.getTypes();
-  return types.filter(isLiteralType).map((t) => String(t.value));
+  return types.filter(ts.api.isLiteralType).map((t) => String(t.value));
 }
 
 const BUILT_IN_ATTRIBUTES: IAttributeData[] = [
@@ -150,7 +147,7 @@ export function getBuiltInAttributes() {
 export async function getElementNode(project: Project, ref: ElementRef) {
   const file = await project.program.getSourceFile(ref.fileName);
   return file?.statements.find(
-    (s): s is ClassDeclaration & { name: Identifier } => isClassDeclaration(s) && s.name?.text === ref.className,
+    (s): s is ClassDeclaration & { name: Identifier } => ts.ast.isClassDeclaration(s) && s.name?.text === ref.className,
   );
 }
 
@@ -162,7 +159,7 @@ export interface ElementType {
 }
 
 async function getTagNameMapType(project: Project, location: SourceFile, name: string) {
-  const symbol = await project.checker.resolveName(name, SymbolFlags.Interface, location);
+  const symbol = await project.checker.resolveName(name, ts.api.SymbolFlags.Interface, location);
   return symbol && project.checker.getDeclaredTypeOfSymbol(symbol);
 }
 
@@ -210,7 +207,7 @@ export async function getElementData(project: Project, ref: ElementRef): Promise
   ]);
   // 继承自 DOM 接口的属性有几百个，获取声明节点需要传输 lib 文件，所以先用节点类型过滤
   const props = (await classType.getApparentProperties()).filter(
-    (prop) => prop.valueDeclaration?.kind === SyntaxKind.PropertyDeclaration,
+    (prop) => prop.valueDeclaration?.kind === ts.ast.SyntaxKind.PropertyDeclaration,
   );
   const declarations = await Promise.all(props.map((prop) => prop.valueDeclaration!.resolve(project)));
 
@@ -219,7 +216,9 @@ export async function getElementData(project: Project, ref: ElementRef): Promise
     .filter((e): e is { prop: TsSymbol; declaration: PropertyDeclaration } => {
       const { declaration } = e;
       return (
-        !!declaration && isPropertyDeclaration(declaration) && (ref.isDep || !!getDecoratorNames(declaration).length)
+        !!declaration &&
+        ts.ast.isPropertyDeclaration(declaration) &&
+        (ref.isDep || !!getDecoratorNames(declaration).length)
       );
     });
 
