@@ -19,6 +19,7 @@ on:
       - gem-devtools@*
       - vscode-gem-languageservice@*
       - ts-gem-plugin@*
+      - ts-gem-lsp@*
       - vscode-plugin-gem@*
   workflow_dispatch:
     inputs:
@@ -131,6 +132,12 @@ jobs:
               name: 'ts-gem-plugin',
               path: 'packages/ts-gem-plugin/package.json',
               workflow: 'ts-gem-plugin-publish.yml',
+              npm: true,
+            },
+            {
+              name: 'ts-gem-lsp',
+              path: 'packages/ts-gem-lsp/package.json',
+              workflow: 'ts-gem-lsp-publish.yml',
               npm: true,
             },
             {

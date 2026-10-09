@@ -29,6 +29,10 @@ Improve the development experience of writing [Gem](https://github.com/mantou132
 }
 ```
 
+## TypeScript 7
+
+When the [TypeScript 7 extension](https://marketplace.visualstudio.com/items?itemName=TypeScriptTeam.native-preview) is installed, the extension adds Gem features to it through [ts-gem-lsp](https://github.com/mantou132/gem/tree/main/packages/ts-gem-lsp), no extra configuration is needed.
+
 ## Special Thanks
 
 - [vscode-inline-html](https://github.com/pushqrdx/vscode-inline-html)
