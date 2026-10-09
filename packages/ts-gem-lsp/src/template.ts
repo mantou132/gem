@@ -32,6 +32,14 @@ export function toPosition(text: string, offset: number): Position {
   return { line, character: offset - lineStart };
 }
 
+/** 光标所在的 token，光标在 token 末尾时（例如 `name|`）也返回该 token，和 TypeScript 一致 */
+export function getTouchingToken(file: SourceFile, offset: number) {
+  const token = ts.ast.getTokenAtPosition(file, offset);
+  if (offset === 0 || token.getStart(file) !== offset) return token;
+  const previous = ts.ast.getTokenAtPosition(file, offset - 1);
+  return previous.end === offset ? previous : token;
+}
+
 export function findAncestor<T extends Node>(node: Node | undefined, test: (node: Node) => node is T) {
   for (let n = node; n; n = n.parent) if (test(n)) return n;
 }
