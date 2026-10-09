@@ -87,39 +87,66 @@ function findElementRefs(file: SourceFile, rules: ElementDefineRules) {
   });
 }
 
+interface ProjectElements {
+  /** 文件中定义的元素 */
+  files: Map<string, ElementRef[]>;
+  elements: Map<string, ElementRef>;
+  /** 修改过的文件 URI */
+  changed: Set<string>;
+  /** 串行更新，避免并发请求重复扫描 */
+  queue: Promise<unknown>;
+}
+
 /**
  * 项目中定义的所有元素
  *
- * 扫描需要获取全部源文件，元素很少变化，所以先返回上次的结果，同时在后台刷新
+ * 宿主在文件修改时调用 `invalidate`，每次请求只重新扫描修改过的文件和新增的文件
  */
 export class ElementIndex {
   #getRules: () => ElementDefineRules;
-  #cache = new Map<string, { elements?: Map<string, ElementRef>; refreshing?: Promise<Map<string, ElementRef>> }>();
+  #rules?: ElementDefineRules;
+  #projects = new Map<string, ProjectElements>();
 
   constructor(getRules: () => ElementDefineRules) {
     this.#getRules = getRules;
   }
 
-  async get(project: Project) {
-    let entry = this.#cache.get(project.id);
-    if (!entry) this.#cache.set(project.id, (entry = {}));
-    const current = entry;
-    current.refreshing ??= this.#scan(project)
-      .then((elements) => (current.elements = elements))
-      .finally(() => (current.refreshing = undefined));
-    return current.elements ?? current.refreshing;
+  /** 不传 URI 时全部重新扫描 */
+  invalidate(uri?: string) {
+    if (uri === undefined) return this.#projects.clear();
+    for (const state of this.#projects.values()) state.changed.add(uri);
   }
 
-  async #scan(project: Project) {
-    const fileNames = (await project.program.getSourceFileNames()).filter((name) => !isLibFile(name));
-    const files = await Promise.all(fileNames.map((name) => project.program.getSourceFile(name)));
+  get(project: Project) {
     const rules = this.#getRules();
-    const elements = new Map<string, ElementRef>();
-    for (const file of files) {
-      if (!file) continue;
-      for (const ref of findElementRefs(file, rules)) elements.set(ref.tag, ref);
+    if (rules !== this.#rules) {
+      this.#rules = rules;
+      this.#projects.clear();
     }
-    return elements;
+    let state = this.#projects.get(project.id);
+    if (!state) {
+      state = { files: new Map(), elements: new Map(), changed: new Set(), queue: Promise.resolve() };
+      this.#projects.set(project.id, state);
+    }
+    const result = state.queue.then(() => this.#update(project, state, rules));
+    state.queue = result.catch(() => {});
+    return result;
+  }
+
+  async #update(project: Project, state: ProjectElements, rules: ElementDefineRules) {
+    const changed = new Set([...state.changed].map((uri) => ts.api.documentURIToFileName(uri)));
+    state.changed.clear();
+    const fileNames = (await project.program.getSourceFileNames()).filter((name) => !isLibFile(name));
+    const current = new Set<string>(fileNames);
+    const removed = [...state.files.keys()].filter((name) => !current.has(name));
+    const stale = fileNames.filter((name) => !state.files.has(name) || changed.has(name));
+    if (!removed.length && !stale.length) return state.elements;
+
+    for (const name of removed) state.files.delete(name);
+    const files = await Promise.all(stale.map((name) => project.program.getSourceFile(name)));
+    stale.forEach((name, i) => state.files.set(name, files[i] ? findElementRefs(files[i], rules) : []));
+    state.elements = new Map([...state.files.values()].flat().map((ref) => [ref.tag, ref]));
+    return state.elements;
   }
 }
 
