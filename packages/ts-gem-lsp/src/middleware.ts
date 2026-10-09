@@ -135,7 +135,19 @@ export function createGemMiddleware(
     const keys = (await getClassMapKeys(project, file, offset, css)) ?? (await getThemeKeys(project, file, offset));
     // 和 ts-gem-plugin 一致，只提供这些键
     if (keys?.length) {
-      return { isIncomplete: false, items: keys.map((label) => ({ label, kind: ENUM_MEMBER_KIND, sortText: '' })) };
+      // 带上 Gem 标记，解析补全项时不转给 TypeScript
+      const items = keys.map((label) => ({
+        label,
+        kind: ENUM_MEMBER_KIND,
+        sortText: '',
+        data: {
+          fileName: file.fileName,
+          position: offset,
+          name: `gem:${label}`,
+          gem: true,
+        } satisfies GemCompletionData,
+      }));
+      return { isIncomplete: false, items };
     }
     const items = Array.isArray(result) ? result : result?.items;
     const never = items?.length ? await getNeverMembers(project, file, offset) : undefined;
