@@ -1,4 +1,8 @@
-use std::{collections::HashMap, env, fs, path::Path};
+use std::{
+    collections::HashMap,
+    env, fs,
+    path::{Component, Path, PathBuf},
+};
 
 use indexmap::{IndexMap, IndexSet};
 use node_resolve::Resolver;
@@ -130,9 +134,15 @@ impl TransformVisitor {
             "// AUTOMATICALLY GENERATED, DO NOT MODIFY MANUALLY.".into(),
             "// DELETING WILL REGENERATE".into(),
             "".into(),
-            "export {}".into(),
-            "declare global {".into(),
         ];
+        // 只导入副作用，让语言服务能找到自动导入的元素定义
+        for module in get_element_modules(
+            &self.config.tag_config,
+            &Path::new("/cwd").join("node_modules"),
+        ) {
+            import_list.push(format!("import '{module}';"));
+        }
+        import_list.extend(["".into(), "export {}".into(), "declare global {".into()]);
         for (local, (imported, pkg)) in &self.config.member_map {
             let member = imported
                 .as_ref()
@@ -442,6 +452,55 @@ fn get_config_content(config: AutoImport) -> AutoImportContent {
     }
 }
 
+/// wasm 中不能通过符号链接读取目录（pnpm 安装的包），所以手动解析相对符号链接
+fn resolve_symlinks(base: &Path, relative: &str) -> PathBuf {
+    let mut path = base.to_path_buf();
+    for component in Path::new(relative).components() {
+        path.push(component);
+        if let Ok(target) = fs::read_link(&path) {
+            path.pop();
+            for part in target.components() {
+                match part {
+                    Component::ParentDir => {
+                        path.pop();
+                    }
+                    Component::CurDir => {}
+                    _ => path.push(part),
+                }
+            }
+        }
+    }
+    path
+}
+
+/// 元素路径所在目录中的所有模块，例如 `duoyun-ui/elements/$1` -> `duoyun-ui/elements/*`
+fn get_element_modules(tag_config: &[RegexStringPair], node_modules: &Path) -> IndexSet<String> {
+    let dirs: IndexSet<&str> = tag_config
+        .iter()
+        .filter_map(|RegexStringPair { path, .. }| path.rsplit_once('/').map(|(dir, _)| dir))
+        .collect();
+    let mut modules = IndexSet::new();
+    for dir in dirs {
+        // 未安装的包
+        let Ok(entries) = fs::read_dir(resolve_symlinks(node_modules, dir)) else {
+            continue;
+        };
+        let mut names: Vec<String> = entries
+            .filter_map(|entry| {
+                entry
+                    .ok()?
+                    .file_name()
+                    .to_str()?
+                    .strip_suffix(".d.ts")
+                    .map(String::from)
+            })
+            .collect();
+        names.sort();
+        modules.extend(names.into_iter().map(|name| format!("{dir}/{name}")));
+    }
+    modules
+}
+
 fn get_config(auto_import: AutoImport) -> AutoImportConfig {
     // TODO: use cache
     let content = get_config_content(auto_import);
@@ -607,5 +666,35 @@ mod tests {
             Some("/path/to/main.ts"),
             &config.exclude_element_files
         ));
+    }
+
+    #[test]
+    fn should_list_element_modules() {
+        let node_modules = env::temp_dir().join("swc-plugin-gem-element-modules");
+        let _ = fs::remove_dir_all(&node_modules);
+        for file in [
+            "duoyun-ui/elements/button.d.ts",
+            "duoyun-ui/elements/button.js",
+            "duoyun-ui/elements/alert.d.ts",
+            "duoyun-ui/patterns/table.d.ts",
+            "@mantou/gem/elements/link.d.ts",
+        ] {
+            let path = node_modules.join(file);
+            fs::create_dir_all(path.parent().unwrap()).unwrap();
+            fs::write(path, "").unwrap();
+        }
+
+        let config = get_config(AutoImport::Gem(true));
+        assert_eq!(
+            get_element_modules(&config.tag_config, &node_modules)
+                .into_iter()
+                .collect::<Vec<_>>(),
+            vec![
+                "@mantou/gem/elements/link",
+                "duoyun-ui/patterns/table",
+                "duoyun-ui/elements/alert",
+                "duoyun-ui/elements/button",
+            ]
+        );
     }
 }
