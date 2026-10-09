@@ -293,13 +293,24 @@ export function createGemMiddleware(
     },
     'textDocument/prepareRename': async (result, { params }) => {
       const ctx = await getTagContext(params.textDocument.uri, params.position);
-      if (!ctx) return result;
-      return { range: ctx.info.range, placeholder: ctx.info.tag };
+      if (ctx) return { range: ctx.info.range, placeholder: ctx.info.tag };
+      const cssCtx = await getCssContext(params.textDocument.uri, params.position);
+      const prop = cssCtx && css.customPropertyAt(cssCtx.vDoc, cssCtx.offset);
+      return prop ? { range: prop.range, placeholder: prop.name } : result;
     },
     // 在定义处重命名所有使用的地方，在模板中只重命名当前元素的开始和结束标签
     'textDocument/rename': async (result, { params }) => {
       const { textDocument, position, newName } = params;
       const ctx = await getTagContext(textDocument.uri, position);
+      // 自定义属性只在当前样式文档中重命名
+      const cssCtx = !ctx && (await getCssContext(textDocument.uri, position));
+      const cssProp = cssCtx && css.customPropertyAt(cssCtx.vDoc, cssCtx.offset);
+      if (cssCtx && cssProp) {
+        const { declarations, references } = css.customPropertyLocations(cssCtx.vDoc, cssProp.name);
+        const name = newName.startsWith('--') ? newName : `--${newName}`;
+        const locations = [...declarations, ...references].map((range) => ({ uri: textDocument.uri, range }));
+        return { changes: toTextEdits(locations, name) };
+      }
       if (!ctx) {
         // 重命名属性时同时修改模板中绑定的特性
         const propCtx = await getPropContext(textDocument.uri, position);
