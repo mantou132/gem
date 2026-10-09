@@ -453,6 +453,9 @@ importers:
       '@mantou/vscode-html-languageservice':
         specifier: ^5.3.6
         version: 5.3.6
+      commander:
+        specifier: ^7.2.0
+        version: 7.2.0
       typescript:
         specifier: 7.1.0-dev.20261008.1
         version: 7.1.0-dev.20261008.1
