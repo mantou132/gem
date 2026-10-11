@@ -19,14 +19,14 @@
 ;     (string_fragment) @injection.content
 ;     (#set! injection.language "css")))
 
-(call_expression
-  function: (member_expression
-    object: (identifier) @_obj
-    (#eq? @_obj "styled")
-    property: (property_identifier))
-  arguments: (template_string
-    (string_fragment) @injection.content
-    (#set! injection.language "css")))
+; (call_expression
+;   function: (member_expression
+;     object: (identifier) @_obj
+;     (#eq? @_obj "styled")
+;     property: (property_identifier))
+;   arguments: (template_string
+;     (string_fragment) @injection.content
+;     (#set! injection.language "css")))
 
 ; (call_expression
 ;   function: (call_expression
@@ -240,22 +240,34 @@
   )))
 )
 
-; styled``
 ; css``
+; styled``
+; styled.div``
+; styled(Button)``
 (call_expression
-  function: (identifier) @_name (#match? @_name "^(styled|css)(\\.\\w+)?$")
+  function: [
+    (identifier) @_name
+    (member_expression object: (identifier) @_name)
+    (call_expression function: (identifier) @_name)
+  ] (#match? @_name "^(styled|css)$")
   arguments: (template_string) @injection.content
                               (#set! injection.language "css")
 )
 
 ((comment) @_css_comment
   (#match? @_css_comment "/[*]+\\s*(css|style)\\s*[*]+/")
-  (template_string) @injection.content
+  [
+    (string (string_fragment) @injection.content)
+    (template_string) @injection.content
+  ]
                               (#set! injection.language "css")
 )
 
 ((comment) @_html_comment
   (#match? @_html_comment "/[*]+\\s*html\\s*[*]+/")
-  (template_string) @injection.content
+  [
+    (string (string_fragment) @injection.content)
+    (template_string) @injection.content
+  ]
                               (#set! injection.language "html")
 )
