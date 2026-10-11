@@ -1,7 +1,9 @@
+import type { Emitter } from '@mantou/gem/lib/decorators';
 import {
   adoptedStyle,
   customElement,
   effect,
+  emitter,
   mounted,
   part,
   property,
@@ -10,13 +12,12 @@ import {
   state,
 } from '@mantou/gem/lib/decorators';
 import { createRef, createState, css, GemElement, html, type TemplateResult } from '@mantou/gem/lib/element';
-import { addListener, classMap, styleMap } from '@mantou/gem/lib/utils';
+import { addListener, classMap, exportPartsMap, styleMap } from '@mantou/gem/lib/utils';
 
 import { longPress } from '../lib/directives';
 import { clamp } from '../lib/number';
 import { theme, themeStore } from '../lib/theme';
-
-import './options';
+import { TapOptionsElement } from './options';
 
 const DURATION = 300;
 const DURATION_CLOSE = 200;
@@ -33,6 +34,7 @@ const style = css`
     /* 长按留给菜单，屏蔽 iOS 系统菜单和选词 */
     -webkit-touch-callout: none;
     user-select: none;
+    -webkit-user-select: none;
   }
   /* 浮起时和 .layer 都是 popover，进入 top layer 不受祖先层叠上下文、transform 和 overflow 影响 */
   :is(.content.lifted, .layer) {
@@ -128,10 +130,15 @@ export class TapCalloutElement extends GemElement {
   @slot static unnamed: string;
   @part static preview: string;
   @part static menu: string;
+  @part static menuItem: string;
+  @part static menuSeparator: string;
 
   @property menu?: CalloutItem[];
 
   @state open: boolean;
+
+  /** 长按浮起、菜单弹出时触发，可用于震动反馈 */
+  @emitter show: Emitter;
 
   static open({ target, preview, menu }: CalloutOptions) {
     const callout = new TapCalloutElement();
@@ -163,6 +170,7 @@ export class TapCalloutElement extends GemElement {
     const content = this.#contentRef.value!;
     const rect = content.getBoundingClientRect();
     this.open = true;
+    this.show();
     // 后打开的在上面
     this.#layerRef.value!.showPopover();
     content.popover = 'manual';
@@ -190,10 +198,10 @@ export class TapCalloutElement extends GemElement {
     this.#closing = false;
   };
 
-  // 关闭后再执行，避免操作打开的弹层被 top layer 盖住
-  #onSelect = async ({ handle }: CalloutItem) => {
-    await this.#close();
+  // 在点击中同步执行，剪贴板等需要用户激活的操作才能生效；同时开始关闭
+  #onSelect = ({ handle }: CalloutItem) => {
     handle?.();
+    this.#close();
   };
 
   /** 以长按元素为中心放置浮起内容或预览，放不下时移动或缩小，菜单在下方 */
@@ -357,6 +365,10 @@ export class TapCalloutElement extends GemElement {
             ${this.#menuRef}
             class="menu"
             part=${TapCalloutElement.menu}
+            exportparts=${exportPartsMap({
+              [TapOptionsElement.item]: TapCalloutElement.menuItem,
+              [TapOptionsElement.separator]: TapCalloutElement.menuSeparator,
+            })}
             style=${layout ? styleMap({ top: `${layout.menuTop}px`, left: `${layout.menuLeft}px` }) : undefined}
             .options=${this.menu?.map((item) => ({
               label: item.label,

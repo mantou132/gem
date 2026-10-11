@@ -1,4 +1,13 @@
-import { adoptedStyle, aria, boolattribute, customElement, property, shadow, slot } from '@mantou/gem/lib/decorators';
+import {
+  adoptedStyle,
+  aria,
+  boolattribute,
+  customElement,
+  part,
+  property,
+  shadow,
+  slot,
+} from '@mantou/gem/lib/decorators';
 import type { TemplateResult } from '@mantou/gem/lib/element';
 import { createState, css, GemElement, html } from '@mantou/gem/lib/element';
 import { classMap } from '@mantou/gem/lib/utils';
@@ -148,6 +157,8 @@ export const SEPARATOR = '---';
 @aria({ focusable: true, role: 'listbox' })
 export class TapOptionsElement extends GemElement {
   @slot static unnamed: string;
+  @part static item: string;
+  @part static separator: string;
 
   @boolattribute searchable: boolean;
 
@@ -247,11 +258,12 @@ export class TapOptionsElement extends GemElement {
           onRemove,
         }) => {
           return label === SEPARATOR
-            ? html`<div class="separator"></div>`
+            ? html`<div class="separator" part=${TapOptionsElement.separator}></div>`
             : html`
                 <div
                   role="option"
                   tabindex="0"
+                  part=${TapOptionsElement.item}
                   aria-readonly=${disabled}
                   aria-selected=${highlight}
                   class=${classMap({

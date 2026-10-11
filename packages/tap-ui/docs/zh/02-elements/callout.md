@@ -19,7 +19,7 @@
 
 </gbp-example>
 
-菜单项的 `handle` 在菜单关闭后执行，此时可以打开其他弹层。
+菜单项的 `handle` 在点击中同步执行，菜单同时开始关闭，所以复制到剪贴板等需要用户激活的操作可以生效。长按浮起、菜单弹出时触发 `show` 事件，可在其中加震动反馈。
 
 ```ts
 import { icons } from '@mantou/tap-ui/lib/icons';

@@ -19,7 +19,7 @@ Long-press menu component. Long pressing lifts the content in place, blurs and d
 
 </gbp-example>
 
-A menu item's `handle` runs after the menu closes, so it can open other popups.
+A menu item's `handle` runs synchronously in the click while the menu starts closing, so actions that need user activation, such as writing to the clipboard, work. The `show` event fires when a long press lifts the content and opens the menu, e.g. for haptic feedback.
 
 ```ts
 import { icons } from '@mantou/tap-ui/lib/icons';
