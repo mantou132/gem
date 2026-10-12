@@ -54,6 +54,7 @@ unpluginGem({
 能正确热更新：
 
 - 方法、getter/setter、箭头函数字段的函数体（包括私有和静态成员），例如模板、`@effect`、`@memo` 的内容及其依赖，以及构造函数体（对之后创建的元素生效）
+- 增删没有装饰器的方法、getter/setter、箭头函数字段（包括私有和静态成员）
 - 增删 `@attribute`、`@property`、`@emitter`、`@state`、`@part`、`@slot` 字段
 - 样式（`@adoptedStyle`、`css`），支持 Light DOM
 - 模块顶层的常量和函数
@@ -62,13 +63,11 @@ unpluginGem({
 
 会刷新页面：
 
-- 增删方法或函数字段
+- 增删带装饰器的方法或函数字段（例如 `@effect`、`@template`），增删构造函数
 - 增删没有装饰器的普通实例字段
 - 修改 `@shadow`、`@light({ penetrable })`、`@async`
 - `@connectStore` 连接的 store 有增减，或者连接的是本地 store、但不是模块顶层 `createStore` 创建的
 - 构造函数中有 `super(参数)`、`new.target`、TS 参数属性或带值的 `return`
-
-在 Vite 中，如果这样的模块被另一个元素模块导入，修改可能被忽略而不会刷新，需要手动刷新页面。
 
 能热更新，但不保证可靠：
 

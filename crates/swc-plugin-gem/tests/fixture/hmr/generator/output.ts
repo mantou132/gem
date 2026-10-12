@@ -15,7 +15,20 @@ export class MyElement extends GemElement {
         return this._hmr_public_my_element_stream(...args);
     }
     static{
-        this._defined_fields_ = [];
+        this._defined_fields_ = [
+            [
+                "stream",
+                "method",
+                false,
+                "_hmr_public_my_element_stream"
+            ],
+            [
+                "items",
+                "method",
+                false,
+                "_hmr_public_my_element_items"
+            ]
+        ];
     }
 }
 if (import.meta.webpackHot) {

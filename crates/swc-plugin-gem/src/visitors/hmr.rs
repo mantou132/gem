@@ -26,9 +26,13 @@
 //!   已绑定的箭头函数字段和装饰器捕获的引用也会调用到新代码。生成器和 async
 //!   修饰保留在影子方法上，代理直接返回其结果。构造函数的代理只调用无参
 //!   `super()`，再调用影子方法
-//! - 非函数字段以 `[name, kind, isStatic]` 记录到静态字段 `_defined_fields_`，
-//!   `kind` 来自第一个标识符形式的装饰器（`attribute`、`property`、`state`、
-//!   `part`、`slot` 等，其他为 `other`），运行时据此增删字段
+//! - 所有成员以 `[name, kind, isStatic, shadow?]` 记录到静态字段 `_defined_fields_`，
+//!   运行时据此增删成员：
+//!   - 非函数字段的 `kind` 来自第一个标识符形式的装饰器（`attribute`、`property`、
+//!     `state`、`part`、`slot` 等，其他为 `other`）
+//!   - 函数成员带上影子方法名：没有装饰器的方法和访问器为 `method`，箭头函数字段
+//!     为 `fn`；有装饰器的为 `other`（装饰器需要在构造时执行，增删需要刷新）；
+//!     构造函数为 `ctor`
 //! - 追加类装饰器 `_hmrRegisterClass(key)`。它是最内层装饰器，最先执行，
 //!   运行时以 `key` 找到老类并合并
 //! - 模块顶层 `const x = createStore(...)` 改为
@@ -36,18 +40,20 @@
 //!   store，元素的订阅和状态得以保留。没有使用 `hot.data`，因为 Rspack 不支持
 //!   `import.meta.webpackHot.data`（会被编译成 `undefined`）
 //! - 调用 HMR API：模块中有元素且不需要刷新时 `accept`；需要刷新时
-//!   webpack/`module.hot` 使用 `decline`，`import.meta.hot` 没有 `decline`，
-//!   不生成调用；没有元素且不需要刷新的模块不生成调用，由 host 冒泡给导入它的
-//!   模块
+//!   webpack/`module.hot` 使用 `decline`。`import.meta.hot`（Vite）的 `decline`
+//!   是空操作，更新会被导入方 `accept` 而忽略，所以改为用 `hot.data` 标记已加载，
+//!   模块重新执行时直接 `location.reload()`；没有元素且不需要刷新的模块不生成
+//!   调用，由 host 冒泡给导入它的模块
 //!
 //! `@effect`/`@memo` 的依赖函数会被 `memo` 转换提升为静态方法 `_dep_fn_N`，
 //! 因此也会生成影子方法，依赖的修改可以热更新。
 //!
 //! # 运行时配合
 //!
-//! 运行时比较新老类的影子方法名、`_defined_fields_` 和元数据，能合并时：
-//! 替换全部影子方法（让所有方法引用新模块的变量）、通过重放字段装饰器增删字段、
-//! 同步元数据，然后重新渲染已有实例。类装饰器返回一个 `Proxy`，使新模块中的
+//! 运行时比较新老类的 `_defined_fields_` 和元数据，能合并时：替换全部影子方法
+//! （让所有方法引用新模块的变量）、复制新增方法的代理、为新增箭头函数字段在原型上
+//! 定义按需创建代理的 getter、通过重放字段装饰器增删字段、同步元数据，然后重新渲染
+//! 已有实例。类装饰器返回一个 `Proxy`，使新模块中的
 //! `new MyElement()` 构造已注册的老类；模板字符串按内容复用老对象，未修改的模板
 //! 不会重建 DOM。
 //!
@@ -60,15 +66,13 @@
 //! - 构造函数有 TS 参数属性或带值的 `return`
 //! - 类没有 `@customElement` 且没有文件名（无法生成稳定的 `key`）
 //!
-//! 运行时：增删函数成员、增删 `other` 实例字段、修改 `mode`/`penetrable`/
-//! `noBlocking`、连接的 store 不是同一对象。
+//! 运行时：增删 `other` 实例成员（普通字段、有装饰器的函数成员）、增删构造函数、
+//! 修改 `mode`/`penetrable`/`noBlocking`、连接的 store 不是同一对象。
 //!
 //! # 技术限制
 //!
 //! - `need_reload` 是模块级的：一个类需要刷新时，之后的类不再转换，整个模块
 //!   拒绝更新
-//! - Vite 没有 `decline`：需要刷新的模块如果被另一个会 `accept` 的模块导入，
-//!   更新停在导入方，修改被忽略而不会刷新
 //! - 计算属性名的成员不转换，不能热更新
 //! - 私有名按最内层类改写，嵌套类访问外层类的 `#x` 会被改错
 //! - 构造函数中定义嵌套类时，嵌套类构造函数之后的 `return` 检测不到
@@ -643,6 +647,8 @@ struct FieldProp {
     name: String,
     kind: String,
     is_static: bool,
+    // 函数成员的影子方法名，运行时为新增的箭头函数字段生成代理
+    shadow: Option<String>,
 }
 
 impl FieldProp {
@@ -691,6 +697,37 @@ fn get_field(origin_member: &ClassMember) -> Option<FieldProp> {
     }
 }
 
+/// 函数成员：有装饰器的记为 `other`（增删需要刷新），构造函数记为 `ctor`
+fn get_fn_field(origin_member: &ClassMember, shadow_member: &ClassMember) -> Option<FieldProp> {
+    let ClassMember::Method(shadow) = shadow_member else {
+        return None;
+    };
+    let field = match origin_member {
+        ClassMember::Constructor(_) => FieldProp::new("constructor", "ctor"),
+        ClassMember::Method(method) => {
+            let kind = if method.function.decorators.is_empty() {
+                "method"
+            } else {
+                "other"
+            };
+            FieldProp::new(&method.key.as_ident()?.sym, kind).set_static(method.is_static)
+        }
+        ClassMember::ClassProp(prop) => {
+            let kind = if prop.decorators.is_empty() {
+                "fn"
+            } else {
+                "other"
+            };
+            FieldProp::new(&prop.key.as_ident()?.sym, kind).set_static(prop.is_static)
+        }
+        _ => return None,
+    };
+    Some(FieldProp {
+        shadow: Some(shadow.key.as_ident()?.sym.to_string()),
+        ..field
+    })
+}
+
 fn gen_hmr_props(props: Vec<Option<FieldProp>>) -> ClassMember {
     let elements = props
         .iter()
@@ -701,18 +738,29 @@ fn gen_hmr_props(props: Vec<Option<FieldProp>>) -> ClassMember {
                      name,
                      kind,
                      is_static,
+                     shadow,
                  }| {
                     let p_name = Expr::Lit(Lit::Str(name.clone().into()));
                     let p_type = Expr::Lit(Lit::Str(kind.clone().into()));
                     let p_static = Expr::Lit(Lit::Bool((*is_static).into()));
-                    ExprOrSpread {
-                        spread: None,
-                        expr: Box::new(quote!(
+                    let expr = match shadow {
+                        Some(shadow) => quote!(
+                            "[$prop_name, $field_type, $is_static, $shadow]" as Expr,
+                            prop_name: Expr = p_name,
+                            field_type: Expr = p_type,
+                            is_static: Expr = p_static,
+                            shadow: Expr = Expr::Lit(Lit::Str(shadow.clone().into())),
+                        ),
+                        None => quote!(
                             "[$prop_name, $field_type, $is_static]" as Expr,
                             prop_name: Expr = p_name,
                             field_type: Expr = p_type,
                             is_static: Expr = p_static,
-                        )),
+                        ),
+                    };
+                    ExprOrSpread {
+                        spread: None,
+                        expr: Box::new(expr),
                     }
                 },
             )
@@ -873,10 +921,10 @@ impl VisitMut for TransformVisitor {
             while let Some(item) = node.body.pop() {
                 let (origin_member, append) = transform_fn(item, &class_name, &has_super);
 
-                // 不是函数成员，进行记录
-                if append.is_none() {
-                    props.push(get_field(&origin_member));
-                }
+                props.push(match &append {
+                    Some(shadow_member) => get_fn_field(&origin_member, shadow_member),
+                    None => get_field(&origin_member),
+                });
 
                 body.push(origin_member);
 
@@ -915,8 +963,18 @@ impl VisitMut for TransformVisitor {
         };
 
         if self.need_reload {
-            // `import.meta.hot` 没有 `decline`，不接受即可让 host 冒泡或刷新
+            // `import.meta.hot` 没有 `decline`，更新可能被导入方接受而被忽略，
+            // 所以模块重新执行时直接刷新页面
             if self.target == HmrTarget::ImportMetaHot {
+                node.push(quote!(
+                    "
+                    if ($hot) {
+                        if ($hot.data.gemLoaded) location.reload();
+                        $hot.data.gemLoaded = true;
+                    }
+                    " as ModuleItem,
+                    hot: Expr = hot_expr
+                ));
                 return;
             }
             node.push(quote!(

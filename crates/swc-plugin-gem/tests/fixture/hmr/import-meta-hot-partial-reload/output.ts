@@ -12,3 +12,7 @@ export class MyB extends GemElement {
         super(arg);
     }
 }
+if (import.meta.hot) {
+    if (import.meta.hot.data.gemLoaded) location.reload();
+    import.meta.hot.data.gemLoaded = true;
+}

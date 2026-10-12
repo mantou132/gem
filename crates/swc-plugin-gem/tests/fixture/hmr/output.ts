@@ -79,9 +79,57 @@ export class MyElement extends GemElement {
                 false
             ],
             [
+                "_private_my_element_fieldExpr",
+                "other",
+                false,
+                "_hmr_private_my_element_fieldExpr"
+            ],
+            [
+                "_private_my_element_field",
+                "other",
+                false,
+                "_hmr_private_my_element_field"
+            ],
+            [
+                "_private_my_element_method",
+                "other",
+                false,
+                "_hmr_private_my_element_method"
+            ],
+            [
+                "field",
+                "other",
+                false,
+                "_hmr_public_my_element_field"
+            ],
+            [
+                "method",
+                "other",
+                false,
+                "_hmr_public_my_element_method"
+            ],
+            [
+                "src",
+                "method",
+                false,
+                "_hmr_public_my_element_src_set"
+            ],
+            [
+                "src",
+                "method",
+                false,
+                "_hmr_public_my_element_src_get"
+            ],
+            [
                 "change",
                 "emitter",
                 false
+            ],
+            [
+                "constructor",
+                "ctor",
+                false,
+                "_hmr_public_my_element_constructor"
             ]
         ];
     }

@@ -26,6 +26,18 @@ class GemElement extends HTMLElement {
     static{
         this._defined_fields_ = [
             [
+                "_private_hash_18214d53321c747c_metadata",
+                "method",
+                false,
+                "_hmr_private_hash_18214d53321c747c_metadata_get"
+            ],
+            [
+                "constructor",
+                "ctor",
+                false,
+                "_hmr_public_hash_18214d53321c747c_constructor"
+            ],
+            [
                 "_private_hash_18214d53321c747c_effectList",
                 "other",
                 false

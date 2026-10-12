@@ -53,6 +53,7 @@ When using [swc-plugin-gem](./009-building.md) directly:
 Hot updated correctly:
 
 - Bodies of methods, getters/setters and arrow function fields (including private and static members), such as templates, `@effect` and `@memo` contents and their dependencies, and the constructor body (applies to elements created afterwards)
+- Adding or removing undecorated methods, getters/setters and arrow function fields (including private and static members)
 - Adding or removing `@attribute`, `@property`, `@emitter`, `@state`, `@part` and `@slot` fields
 - Styles (`@adoptedStyle`, `css`), including Light DOM
 - Top-level constants and functions of the module
@@ -61,13 +62,11 @@ Hot updated correctly:
 
 Reloads the page:
 
-- Adding or removing methods or function fields
+- Adding or removing decorated methods or function fields (such as `@effect` and `@template`), or the constructor
 - Adding or removing plain instance fields without decorators
 - Changing `@shadow`, `@light({ penetrable })` or `@async`
 - Adding or removing stores in `@connectStore`, or connecting a local store that is not created by top-level `createStore`
 - A constructor with `super(args)`, `new.target`, TS parameter properties, or `return` with a value
-
-In Vite, if such a module is imported by another element module, the change may be ignored instead of reloading the page; reload manually.
 
 Hot updated, but not guaranteed to be reliable:
 

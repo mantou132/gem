@@ -10,7 +10,14 @@ export class MyElement extends GemElement {
         return this._hmr_public_my_element_render(...args);
     }
     static{
-        this._defined_fields_ = [];
+        this._defined_fields_ = [
+            [
+                "render",
+                "other",
+                false,
+                "_hmr_public_my_element_render"
+            ]
+        ];
     }
 }
 if (import.meta.hot) {

@@ -57,21 +57,9 @@ function checkMetadataNeedReload({ mode, penetrable, noBlocking, observedStores 
   }
 }
 
-/** 不支持删减函数字段，因为原函数可能已经被绑定 */
-function checkClassNeedReload(existed: CustomElementConstructor, newClass: CustomElementConstructor) {
-  if (
-    getHmrMethodKeys(existed).join() !== getHmrMethodKeys(newClass).join() ||
-    getHmrMethodKeys(existed.prototype).join() !== getHmrMethodKeys(newClass.prototype).join()
-  ) {
-    return true;
-  }
-}
-
-/** 不支持删减实例其他字段，因为新实例总是使用老 Class 定义 */
+/** 不支持删减实例其他字段、有装饰器的函数成员和构造函数，因为新实例总是使用老 Class 定义 */
 function checkFieldsNeedReload({ instanceFields }: ReturnType<typeof getFields>) {
-  if (instanceFields.other?.add?.length || instanceFields.other?.remove?.length) {
-    return true;
-  }
+  return [instanceFields.other, instanceFields.ctor].some((diff) => diff?.add.length || diff?.remove.length);
 }
 
 function diffArr<T>(oldList: T[], newList: T[], fn: (i: T) => string = (e) => String(e)) {
@@ -98,10 +86,15 @@ function diffRecord<T>(oldRecord: Partial<Record<string, T[]>>, newRecord: Parti
   return diffArr(oldKeys, newKeys);
 }
 
-type HasFieldsRecordClass = { _defined_fields_?: [string, string, boolean][] };
+type HasFieldsRecordClass = { _defined_fields_?: [string, string, boolean, string?][] };
 function getFields(existed: CustomElementConstructor, newClass: CustomElementConstructor) {
   const translate = (cls: HasFieldsRecordClass) => {
-    const fieldList = (cls._defined_fields_ || []).map(([name, type, isStatic]) => ({ name, type, isStatic }));
+    const fieldList = (cls._defined_fields_ || []).map(([name, type, isStatic, shadow]) => ({
+      name,
+      type,
+      isStatic,
+      shadow,
+    }));
     const fieldGroup = Object.groupBy(fieldList, ({ isStatic }) => (isStatic ? 'staticFields' : 'instanceFields'));
     const groupBy = (list: typeof fieldGroup.staticFields) => Object.groupBy(list || [], ({ type }) => type);
     return {
@@ -160,6 +153,28 @@ function lazyInitAttribute(proto: any, prop: string) {
       return get!.call(this);
     },
   });
+}
+
+/** 新增的箭头函数字段不会被老类构造，首次访问时为实例（静态字段为类）创建代理 */
+function defineLazyFn(target: any, name: string, shadow: string) {
+  Reflect.defineProperty(target, name, {
+    configurable: true,
+    get() {
+      const fn = (...args: any[]) => this[shadow](...args);
+      setProperty(this, name, fn);
+      return fn;
+    },
+  });
+}
+
+/** 函数成员的代理只调用影子方法，可以直接复制到老类上 */
+function updateFnMembers(oldTarget: any, newTarget: any, diffs: ReturnType<typeof getFields>['staticFields']) {
+  const { method, fn } = diffs;
+  method?.add.concat(method.some).forEach(({ name }) => {
+    Reflect.defineProperty(oldTarget, name, Object.getOwnPropertyDescriptor(newTarget, name)!);
+  });
+  fn?.add.forEach(({ name, shadow }) => defineLazyFn(oldTarget, name, shadow!));
+  [method?.remove, fn?.remove].forEach((list) => list?.forEach(({ name }) => deleteProperty(oldTarget, name)));
 }
 
 function setArrValue<T>(obj: any, field: string, val: T[] = []) {
@@ -223,7 +238,7 @@ if (typeof window !== 'undefined' && nativeDefineElement && !window._hmrClassReg
         while (current) {
           const [oldClass, newClass] = current;
           if (oldClass === newClass || current.some((e) => e === GemElement || e === Function.prototype)) break;
-          if (current.some((e) => !e) || checkClassNeedReload(oldClass, newClass)) {
+          if (current.some((e) => !e)) {
             location.reload();
             return;
           }
@@ -287,13 +302,17 @@ if (typeof window !== 'undefined' && nativeDefineElement && !window._hmrClassReg
                 }
               });
               remove.forEach((prop) => {
-                setProperty(element, prop.name, undefined);
+                if (type in descMap) {
+                  setProperty(element, prop.name, undefined);
+                }
               });
             });
           });
           instanceFieldsEntries.forEach(([type, { add }]) => {
             if (attrTypes.has(type)) add.forEach((prop) => lazyInitAttribute(oldClass.prototype, prop.name));
           });
+          updateFnMembers(oldClass, newClass, fields.staticFields);
+          updateFnMembers(oldClass.prototype, newClass.prototype, fields.instanceFields);
           // 删除的属性在 proto 上添加占位符
           instanceFieldsEntries.forEach(([type, { remove }]) => {
             remove.forEach((prop) => {
