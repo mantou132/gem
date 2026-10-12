@@ -9,12 +9,38 @@ Server render Gem element
 import { renderToString } from 'gem-ssr';
 
 app.get('/', async (req, res) => {
-  const content = await renderToString(html`<app-root></app-root>`));
-  res.send(templateContent.replace(`<app-root></app-root>`, content);
+  const content = await renderToString(html`<app-root></app-root>`, { url: req.url });
+  res.send(templateContent.replace(`<app-root></app-root>`, content));
 });
 ```
 
-## Improve WebApp Performance
+Client entry, import before any Gem element to enable hydration:
+
+```js
+import 'gem-ssr/client';
+```
+
+## Store
+
+Pass per-request store values with a key, the values after rendering are output to the page,
+and the stores are restored after rendering so other requests are not affected (JSON values only):
+
+```js
+renderToString(html`<app-root></app-root>`, {
+  url: req.url,
+  stores: { user: [userStore, { nickname: 'alice' }] },
+});
+```
+
+Read them on the client before the elements are defined, e.g. in a module imported before the elements:
+
+```js
+import { hydrateStores } from 'gem-ssr/client';
+
+hydrateStores({ user: userStore });
+```
+
+## Improve WebApp Performance (Planned)
 
 ### Lazy View
 

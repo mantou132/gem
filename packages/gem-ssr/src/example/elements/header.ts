@@ -1,4 +1,6 @@
-import { adoptedStyle, css, customElement, GemElement, html } from '@mantou/gem';
+import { adoptedStyle, connectStore, css, customElement, GemElement, html } from '@mantou/gem';
+
+import { headerStore } from '../stores';
 
 const style = css`
   :scope {
@@ -11,8 +13,9 @@ const style = css`
 
 @customElement('gem-ssr-header')
 @adoptedStyle(style)
+@connectStore(headerStore)
 export class GemSsrHeaderElement extends GemElement {
   render = () => {
-    return html`${'Header'}`;
+    return html`${headerStore.title}`;
   };
 }

@@ -1,10 +1,11 @@
 import './lib/shim';
 
-import { history, render as renderDom, type TemplateResult } from '@mantou/gem';
+import { history, render as renderDom, type Store, type TemplateResult } from '@mantou/gem';
 import { GemLightRouteElement } from '@mantou/gem/elements/route';
 import { type ChildPart, type ConditionChain, TemplateInstance } from '@mantou/gem/lib/lit-html';
 
 import { CHILD_PART, LIT_PART_END, SSR_HIDDEN, V_ELSE } from './client/hydration';
+import { STORES_SCRIPT_ID } from './client/store';
 import { dom } from './lib/shim';
 
 const endTag = `<!--${LIT_PART_END}-->`;
@@ -142,6 +143,28 @@ function* generateElement(ele: Element, endNodeSet: Set<Node>, extraAttrs?: Reco
 
 export interface RenderOptions {
   url?: string;
+  /**
+   * 渲染时使用的 store 值，渲染后的值会输出到页面中，客户端使用 `hydrateStores` 读取
+   *
+   * 只支持 JSON 值，渲染完成后会恢复成原来的值
+   */
+  stores?: Record<string, [Store<any>, object?]>;
+}
+
+// store 的值就是它自身的属性
+function replaceStore(store: Store<any>, value: object) {
+  for (const key of Object.keys(store)) delete store[key];
+  Object.assign(store, value);
+}
+
+type StoreEntries = [string, [Store<any>, object?]][];
+
+function getStoresScript(stores: StoreEntries) {
+  if (!stores.length) return '';
+  const data = Object.fromEntries(stores.map(([key, [store]]) => [key, { ...store }]));
+  // 避免内容中的 `</script>` 结束标签
+  const json = JSON.stringify(data).replaceAll('<', '\\u003c');
+  return `<script type="application/json" id="${STORES_SCRIPT_ID}">${json}</script>`;
 }
 
 async function renderChunks(result: TemplateResult, ctx: RenderOptions) {
@@ -150,11 +173,24 @@ async function renderChunks(result: TemplateResult, ctx: RenderOptions) {
   history.replace({ path: pathname, query: search, hash });
   // 每次请求都使用新的容器，避免复用上次请求的 DOM
   document.body = document.createElement('body');
-  renderDom(result, document.body);
-  await settle(document.body);
-  // 等待样式更新
-  await Promise.resolve();
-  return [getStyle(document.adoptedStyleSheets), ...generateChildren(document.body, new Set())];
+
+  // 在锁内设置，不会影响其他请求
+  const stores: StoreEntries = Object.entries(ctx.stores || {});
+  const snapshots = stores.map(([, [store]]) => ({ ...store }));
+  stores.forEach(([, [store, value]]) => value && Object.assign(store, value));
+  try {
+    renderDom(result, document.body);
+    await settle(document.body);
+    // 等待样式更新
+    await Promise.resolve();
+    return [
+      getStyle(document.adoptedStyleSheets),
+      getStoresScript(stores),
+      ...generateChildren(document.body, new Set()),
+    ];
+  } finally {
+    stores.forEach(([, [store]], index) => replaceStore(store, snapshots[index]));
+  }
 }
 
 // 所有请求共享一个 DOM 环境，所以渲染必须串行执行
