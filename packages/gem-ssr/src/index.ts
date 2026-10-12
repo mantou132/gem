@@ -67,8 +67,29 @@ function serializeShadowRootAttrs(shadowRoot: ShadowRoot) {
 // https://github.com/EasyWebApp/declarative-shadow-dom-polyfill/blob/main/source/index.ts#L93
 const xmlSerializer = new XMLSerializer();
 
+function* walkElements(root: Element | ShadowRoot): Generator<Element> {
+  for (const ele of root.querySelectorAll('*')) {
+    yield ele;
+    if (ele.shadowRoot) yield* walkElements(ele.shadowRoot);
+  }
+}
+
+// 等待异步渲染完成，新渲染的内容中可能还有异步渲染的元素
+// 服务端不执行副作用，所以需要手动加载路由内容
+async function settle(root: Element) {
+  const loaded = new WeakSet<Element>();
+  while (true) {
+    const routes = [...walkElements(root)].filter(
+      (ele): ele is GemLightRouteElement => ele instanceof GemLightRouteElement && !loaded.has(ele),
+    );
+    if (!routes.length) return;
+    routes.forEach((route) => loaded.add(route));
+    await Promise.all(routes.map((route) => route.update()));
+  }
+}
+
 // 序列化过程不能修改 DOM
-async function* generateChildren(parent: Node, endNodeSet: Set<Node>): AsyncGenerator<string> {
+function* generateChildren(parent: Node, endNodeSet: Set<Node>): Generator<string> {
   collectEndNodes((parent as any)._$litPart$?._$committedValue, endNodeSet);
   for (const node of parent.childNodes) {
     if (endNodeSet.has(node)) yield endTag;
@@ -99,7 +120,7 @@ async function* generateChildren(parent: Node, endNodeSet: Set<Node>): AsyncGene
   }
 }
 
-async function* generateElement(ele: Element, endNodeSet: Set<Node>, extraAttrs?: Record<string, string>) {
+function* generateElement(ele: Element, endNodeSet: Set<Node>, extraAttrs?: Record<string, string>): Generator<string> {
   if (ele instanceof SVGElement) {
     yield xmlSerializer.serializeToString(ele);
     return;
@@ -108,7 +129,6 @@ async function* generateElement(ele: Element, endNodeSet: Set<Node>, extraAttrs?
   const attrs = Object.fromEntries([...ele.attributes].map(({ name, value }) => [name, value]));
   yield `<${tagName}${serializeAttrs({ ...attrs, ...extraAttrs })}>`;
   if (voidElements.has(tagName)) return;
-  if (ele instanceof GemLightRouteElement) await ele.update();
   const { shadowRoot } = ele;
   if (shadowRoot) {
     yield `<template${serializeShadowRootAttrs(shadowRoot)}>`;
@@ -131,9 +151,10 @@ async function renderChunks(result: TemplateResult, ctx: RenderOptions) {
   // 每次请求都使用新的容器，避免复用上次请求的 DOM
   document.body = document.createElement('body');
   renderDom(result, document.body);
+  await settle(document.body);
+  // 等待样式更新
   await Promise.resolve();
-  const style = getStyle(document.adoptedStyleSheets);
-  return [style, ...(await Array.fromAsync(generateChildren(document.body, new Set())))];
+  return [getStyle(document.adoptedStyleSheets), ...generateChildren(document.body, new Set())];
 }
 
 // 所有请求共享一个 DOM 环境，所以渲染必须串行执行

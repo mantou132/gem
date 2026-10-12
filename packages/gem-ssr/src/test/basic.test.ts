@@ -18,6 +18,8 @@ import {
   template,
 } from '@mantou/gem';
 
+import '@mantou/gem/elements/route';
+
 import { t } from './utils';
 
 const style = css`
@@ -94,4 +96,30 @@ test('并发渲染不影响全局环境', async ({ assert }) => {
   );
   assert.equal(globalThis.setTimeout, setTimeout);
   assert.equal(globalThis.Promise, NativePromise);
+});
+
+const routeStyle = css`
+  :scope {
+    color: red;
+  }
+`;
+
+@customElement('app-route-content')
+@adoptedStyle(routeStyle)
+export class DemoRouteContentElement extends GemElement {
+  @template()
+  #render = () => html`route content`;
+}
+
+test('等待异步路由，输出路由内容的样式', async ({ assert }) => {
+  const outer = [
+    {
+      pattern: '*',
+      getContent: async () => html`<gem-light-route .routes=${inner}></gem-light-route>`,
+    },
+  ];
+  const inner = [{ pattern: '*', getContent: async () => html`<app-route-content></app-route-content>` }];
+  const result = await t(html`<gem-light-route .routes=${outer}></gem-light-route>`);
+  assert.match(result, /<app-route-content>.*route content.*<\/app-route-content>/s);
+  assert.match(result, /color: red/);
 });
