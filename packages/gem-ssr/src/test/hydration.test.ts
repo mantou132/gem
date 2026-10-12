@@ -92,12 +92,14 @@ test('水合后 litRender 能更新多个并列 ChildPart', async ({ assert }) =
   const divBefore = container.querySelector('div');
   const hrBefore = container.querySelector('hr');
   const r = litHtml`<div>${'X'}<hr />${'Y'}</div>`;
+  const textBefore = container.querySelector('div')?.childNodes[1];
   hydrateContainer(r, container);
   assert.equal(
     container.querySelector('div')?.innerHTML,
-    '<!--?lit$000$-->A<!--/lit--><hr><!--?lit$000$-->B',
-    '水合后 DOM 没有更改',
+    '<!--?lit$000$-->X<!--/lit--><hr><!--?lit$000$-->Y',
+    '水合即首次渲染，不一致的值会被修正',
   );
+  assert.equal(container.querySelector('div')?.childNodes[1], textBefore, '文本节点被复用');
   litRender(r, container);
   assert.equal(
     container.querySelector('div')?.innerHTML,
@@ -157,4 +159,55 @@ test('hydrateContainer: 幂等——多次调用不崩溃', async ({ assert }) =
   const container = mkContainer(await renderToString(result));
   hydrateContainer(result, container);
   assert.doesNotThrow(() => hydrateContainer(result, container));
+});
+
+test('水合 v-if 链：保留显示的分支，可以切换分支', async ({ assert }) => {
+  const tpl = (v: boolean) => litHtml`<div><p v-if=${v} style="color: red;">A</p><p v-else>B</p></div>`;
+  const container = mkContainer(await renderToString(tpl(false)));
+  const [a, b] = container.querySelectorAll('p');
+  hydrateContainer(tpl(false), container);
+  assert.equal(container.querySelector('div')?.textContent, 'B', '隐藏的分支被移除');
+  assert.equal(container.querySelector('p'), b, '显示的分支被复用');
+  assert.equal(b.hasAttribute('v-else'), false);
+  litRender(tpl(true), container);
+  assert.equal(container.querySelector('p'), a, '切换后使用 SSR 的分支');
+  assert.equal(a.getAttribute('style'), 'color: red;', '恢复原始样式');
+  assert.equal(a.hasAttribute('ssr-hidden'), false);
+});
+
+test('水合列表：复用列表项，可以增删', async ({ assert }) => {
+  const tpl = (items: string[]) => litHtml`<ul>${items.map((i) => litHtml`<li>${i}</li>`)}</ul>`;
+  const container = mkContainer(await renderToString(tpl(['a', 'b'])));
+  const [a, b] = container.querySelectorAll('li');
+  hydrateContainer(tpl(['a', 'b']), container);
+  litRender(tpl(['a', 'x', 'c']), container);
+  const lis = container.querySelectorAll('li');
+  assert.equal(lis[0], a);
+  assert.equal(lis[1], b);
+  assert.deepEqual(
+    [...lis].map((e) => e.textContent),
+    ['a', 'x', 'c'],
+  );
+  litRender(tpl(['y']), container);
+  assert.deepEqual(
+    [...container.querySelectorAll('li')].map((e) => e.textContent),
+    ['y'],
+  );
+});
+
+test('水合嵌套模板：part 不会覆盖后面的静态文本', async ({ assert }) => {
+  const tpl = (v: string) => litHtml`<div>${litHtml`<b>${v} tail</b>`}</div>`;
+  const container = mkContainer(await renderToString(tpl('x')));
+  hydrateContainer(tpl('x'), container);
+  litRender(tpl('y'), container);
+  assert.equal(container.querySelector('b')?.textContent, 'y tail');
+});
+
+test('水合绑定事件', async ({ assert }) => {
+  let count = 0;
+  const tpl = litHtml`<button @click=${() => count++}>${'btn'}</button>`;
+  const container = mkContainer(await renderToString(tpl));
+  hydrateContainer(tpl, container);
+  container.querySelector('button')!.click();
+  assert.equal(count, 1);
 });

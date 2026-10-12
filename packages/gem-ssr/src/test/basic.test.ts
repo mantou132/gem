@@ -18,6 +18,10 @@ import {
   template,
 } from '@mantou/gem';
 
+import '@mantou/gem/elements/route';
+
+import { renderToString } from '..';
+import { hydrateStores } from '../client/store';
 import { t } from './utils';
 
 const style = css`
@@ -75,4 +79,80 @@ test('basic shadow', async ({ assert: { snapshot } }) => {
 
 test('basic nested', async ({ assert: { snapshot } }) => {
   snapshot(await t(html`<div>${html`<em>${'hello'}</em>`}</div>`));
+});
+
+test('多次渲染互不影响', async ({ assert }) => {
+  const tpl = (v: boolean) => html`<p v-if=${v}>A</p><p v-else>B</p>`;
+  const show = (s: string) => s.match(/<p( v-else="")?>(\w)<\/p>/)?.[2];
+  assert.equal(show(await t(tpl(true))), 'A');
+  assert.equal(show(await t(tpl(true))), 'A');
+  assert.equal(show(await t(tpl(false))), 'B');
+});
+
+test('并发渲染不影响全局环境', async ({ assert }) => {
+  const { setTimeout, Promise: NativePromise } = globalThis;
+  const results = await NativePromise.all([t(html`<p>${1}</p>`), t(html`<p>${2}</p>`), t(html`<p>${3}</p>`)]);
+  assert.deepEqual(
+    results.map((r) => r.match(/(\d)<\/p>/)?.[1]),
+    ['1', '2', '3'],
+  );
+  assert.equal(globalThis.setTimeout, setTimeout);
+  assert.equal(globalThis.Promise, NativePromise);
+});
+
+const routeStyle = css`
+  :scope {
+    color: red;
+  }
+`;
+
+@customElement('app-route-content')
+@adoptedStyle(routeStyle)
+export class DemoRouteContentElement extends GemElement {
+  @template()
+  #render = () => html`route content`;
+}
+
+test('等待异步路由，输出路由内容的样式', async ({ assert }) => {
+  const outer = [
+    {
+      pattern: '*',
+      getContent: async () => html`<gem-light-route .routes=${inner}></gem-light-route>`,
+    },
+  ];
+  const inner = [{ pattern: '*', getContent: async () => html`<app-route-content></app-route-content>` }];
+  const result = await t(html`<gem-light-route .routes=${outer}></gem-light-route>`);
+  assert.match(result, /<app-route-content>.*route content.*<\/app-route-content>/s);
+  assert.match(result, /color: red/);
+});
+
+const userStore = createStore<{ nickname: string; tags?: string[] }>({ nickname: 'guest' });
+
+@customElement('app-user')
+@connectStore(userStore)
+export class DemoUserElement extends GemElement {
+  @template()
+  #render = () => html`user: ${userStore.nickname}`;
+}
+
+test('stores: 使用请求的 store 值，输出到页面，渲染后恢复', async ({ assert }) => {
+  const result = await renderToString(html`<app-user></app-user>`, {
+    stores: { user: [userStore, { nickname: '</script>alice', tags: ['a'] }] },
+  });
+  assert.match(result, /user: <!--\?lit\$\d+\$-->&lt;\/script&gt;alice/);
+  const json = result.match(/<script type="application\/json" id="gem-ssr-stores">(.*?)<\/script>/)![1];
+  assert.equal(json.includes('</script>'), false, '转义结束标签');
+  assert.deepEqual(JSON.parse(json), { user: { nickname: '</script>alice', tags: ['a'] } });
+  assert.deepEqual({ ...userStore }, { nickname: 'guest' }, '恢复原来的值');
+
+  const other = await renderToString(html`<app-user></app-user>`, { stores: { user: [userStore] } });
+  assert.match(other, /user: <!--\?lit\$\d+\$-->guest/, '不影响其他请求');
+});
+
+test('hydrateStores: 读取服务端的值', async ({ assert }) => {
+  const ssr = await renderToString(html`<p></p>`, { stores: { user: [userStore, { nickname: 'bob' }] } });
+  document.body.innerHTML = ssr;
+  const store = createStore({ nickname: 'guest' });
+  hydrateStores({ user: store, other: createStore({}) });
+  assert.equal(store.nickname, 'bob');
 });

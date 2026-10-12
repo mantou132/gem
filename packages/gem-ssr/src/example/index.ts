@@ -7,6 +7,7 @@ import { type Context, Hono } from 'hono';
 import { stream } from 'hono/streaming';
 
 import { render } from '..';
+import { headerStore } from './stores';
 
 import './elements/app';
 import './elements/card';
@@ -15,7 +16,8 @@ const app = new Hono();
 
 async function* renderPage(ctx: Context, template: TemplateResult, scripts: string[]) {
   yield `<!doctype html><html><head><meta charset="utf-8"></head><body>`;
-  yield* render(template, { url: ctx.req.url });
+  const title = `Header (rendered at ${new Date().toLocaleTimeString()})`;
+  yield* render(template, { url: ctx.req.url, stores: { header: [headerStore, { title }] } });
   for (const script of scripts) {
     yield script.startsWith('<script') ? script : `<script src="${script}"></script>`;
   }
@@ -28,6 +30,7 @@ async function buildJS(ctx: Context, elementPath: string) {
     stdin: {
       contents: `
           ${ctx.req.header('Referer')?.includes('spa') ? '//' : ''} import './src/client/index.ts';
+          import './src/example/hydrate.ts';
           import '${elementPath}';
         `,
       resolveDir: process.cwd(),
@@ -75,6 +78,7 @@ app.get('*', (ctx) => {
   });
 });
 
-serve({ fetch: app.fetch, port: 3000 }).on('listening', () => {
-  console.log('listening http://localhost:3000/');
+const port = Number(process.env.PORT) || 3000;
+serve({ fetch: app.fetch, port }).on('listening', () => {
+  console.log(`listening http://localhost:${port}/`);
 });

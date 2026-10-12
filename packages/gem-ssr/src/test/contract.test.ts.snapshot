@@ -3,7 +3,7 @@ exports[`AttributePart: 动态 attribute 的元素有 data-lit-bound 标记 1`] 
 `;
 
 exports[`AttributePart: 多个动态 attribute 1`] = `
-<!----><input type="text"></input>
+<!----><input type="text">
 `;
 
 exports[`connectStore 元素: store 值绑定有 lit-part 注释 1`] = `
@@ -63,7 +63,7 @@ exports[`primitive ChildPart: null/undefined 绑定输出空内容但保留注�
 `;
 
 exports[`primitive ChildPart: 多个并列绑定各自有独立注释 1`] = `
-<!----><div><!--?lit$000$-->first<!--/lit--><hr></hr><!--?lit$000$-->second</div>
+<!----><div><!--?lit$000$-->first<!--/lit--><hr><!--?lit$000$-->second</div>
 `;
 
 exports[`primitive ChildPart: 数字绑定 1`] = `
