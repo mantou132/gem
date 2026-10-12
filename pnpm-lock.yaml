@@ -374,6 +374,37 @@ importers:
         specifier: ^4.19.3
         version: 4.20.6
 
+  packages/gemkit:
+    dependencies:
+      '@hono/node-server':
+        specifier: ^1.13.8
+        version: 1.19.5(hono@4.10.1)
+      '@mantou/gem':
+        specifier: ^2.2.14
+        version: link:../gem
+      gem-ssr:
+        specifier: ^0.0.15
+        version: link:../gem-ssr
+      hono:
+        specifier: ^4.7.4
+        version: 4.10.1
+      jsdom:
+        specifier: ^26.0.0
+        version: 26.1.0
+      unplugin-gem:
+        specifier: ^0.1.12
+        version: link:../unplugin-gem
+    devDependencies:
+      '@gemjs/config':
+        specifier: ^2.1.3
+        version: link:../config
+      '@rsbuild/core':
+        specifier: ^2.0.15
+        version: 2.0.15(core-js@3.29.0)
+      esbuild:
+        specifier: ^0.24.0
+        version: 0.24.2
+
   packages/language-service:
     dependencies:
       '@mantou/vscode-css-languageservice':
