@@ -75,6 +75,7 @@ app.get('*', (ctx) => {
   });
 });
 
-serve({ fetch: app.fetch, port: 3000 }).on('listening', () => {
-  console.log('listening http://localhost:3000/');
+const port = Number(process.env.PORT) || 3000;
+serve({ fetch: app.fetch, port }).on('listening', () => {
+  console.log(`listening http://localhost:${port}/`);
 });

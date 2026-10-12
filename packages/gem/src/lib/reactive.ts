@@ -447,7 +447,7 @@ export abstract class GemElement extends HTMLElement {
       (item || !this.#renderList.length)
     ) {
       this.#render(item);
-      addMicrotask(this.#execEffect);
+      if (!ssrNativeQueueMicrotask) addMicrotask(this.#execEffect);
     }
   };
 
@@ -531,7 +531,8 @@ export abstract class GemElement extends HTMLElement {
     this.#clearStyle = this.#prepareStyle();
     // 等待所有元素的样式被应用，再执行回调
     // 这让 mounted 和 effect 回调和其他回调一样保持一样的异步行为
-    addMicrotask(this.#initEffect);
+    // SSR 不执行副作用
+    if (!ssrNativeQueueMicrotask) addMicrotask(this.#initEffect);
   };
 
   /**
