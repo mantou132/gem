@@ -15,13 +15,13 @@ class GemElement extends HTMLElement {
     }
     constructor(...args){
         super();
-        this._hmr_public_hash_18214d53321c747c_constructor.bind(this)(...args);
+        this._hmr_public_hash_18214d53321c747c_constructor(...args);
     }
     _hmr_private_hash_18214d53321c747c_metadata_get() {
         return this.constructor[Symbol.metadata];
     }
     get _private_hash_18214d53321c747c_metadata() {
-        return this._hmr_private_hash_18214d53321c747c_metadata_get.bind(this)();
+        return this._hmr_private_hash_18214d53321c747c_metadata_get();
     }
     static{
         this._defined_fields_ = [

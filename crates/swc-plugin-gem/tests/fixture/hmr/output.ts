@@ -7,7 +7,7 @@ export class MyElement extends GemElement {
     }
     constructor(...args){
         super();
-        this._hmr_public_my_element_constructor.bind(this)(...args);
+        this._hmr_public_my_element_constructor(...args);
     }
     @emitter
     change;
@@ -15,13 +15,13 @@ export class MyElement extends GemElement {
         return 1;
     }
     get src() {
-        return this._hmr_public_my_element_src_get.bind(this)();
+        return this._hmr_public_my_element_src_get();
     }
     _hmr_public_my_element_src_set(value) {
         this._v = value;
     }
     set src(value) {
-        this._hmr_public_my_element_src_set.bind(this)(value);
+        this._hmr_public_my_element_src_set(value);
     }
     _hmr_public_my_element_method(arg) {
         console.log('method');
@@ -31,21 +31,21 @@ export class MyElement extends GemElement {
     }
     @effect([])
     method(...args) {
-        return this._hmr_public_my_element_method.bind(this)(...args);
+        return this._hmr_public_my_element_method(...args);
     }
     _hmr_public_my_element_field(arg) {
         console.log('field');
     }
     @effect([])
     field = (...args)=>{
-        return this._hmr_public_my_element_field.bind(this)(...args);
+        return this._hmr_public_my_element_field(...args);
     };
     _hmr_private_my_element_method(arg) {
         console.log('#method');
     }
     @effect([])
     _private_my_element_method(...args) {
-        return this._hmr_private_my_element_method.bind(this)(...args);
+        return this._hmr_private_my_element_method(...args);
     }
     _hmr_private_my_element_field(arg) {
         console.log('#field');
@@ -54,14 +54,14 @@ export class MyElement extends GemElement {
             i._private_my_element_field
         ])
     _private_my_element_field = (...args)=>{
-        return this._hmr_private_my_element_field.bind(this)(...args);
+        return this._hmr_private_my_element_field(...args);
     };
     _hmr_private_my_element_fieldExpr(arg) {
         return console.log('#fieldExpr');
     }
     @effect([])
     _private_my_element_fieldExpr = (...args)=>{
-        return this._hmr_private_my_element_fieldExpr.bind(this)(...args);
+        return this._hmr_private_my_element_fieldExpr(...args);
     };
     _private_my_element_content;
     @state

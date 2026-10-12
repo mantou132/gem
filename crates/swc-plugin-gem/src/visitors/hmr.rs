@@ -1,27 +1,85 @@
-//! https://rspack.dev/api/runtime-api/hmr
+//! Gem 元素 HMR 的编译期转换，运行时见 `@mantou/gem/helper/hmr`。
 //!
-//! - 将私有成员转译成公开成员，同时修改所有私有成员访问
-//! - 为函数成员（方法、getter、setter、字段，包括静态的）添加影子方法，
-//!   在运行时进行替换，不支持计算属性名
-//! - 调用 HMR API：模块中有元素定义就接受、否则由 host 冒泡或拒绝
-//! - 收集所有非函数字段名称及其装饰器，在运行时进行比较和更新
+//! # 设计思路
 //!
-//! 下列情况刷新页面：
-//!   - 有 connectStore 本地 store
-//!   - 构造函数有下列条件
-//!     - new.target、ts 构造函数参数,
-//!     - super 带参数调用
-//!     - 没有 filename && tagName
-//!     - 构造函数带 return
+//! 自定义元素无法热替换类：
 //!
-//! 下列情况会忽略：
-//!   - 更新实例字段，字段被认为是实例状态
-//!   - 仅更新全局变量，因为实例中引用的还是老模块变量
-//!   - 修改计算属性方法
-//!   - 装饰器参数变更（但实测好像支持？）
+//! - 同一个标签名只能 `customElements.define` 一次，已有实例和之后创建的实例
+//!   都只能使用第一次注册的类
+//! - ES 私有成员绑定在某一次类求值上，新类的方法无法访问老实例的 `#x`
+//! - 箭头函数字段在构造时绑定到实例，`@effect`、`@template` 等装饰器也在构造时
+//!   捕获函数引用，替换原型上的方法不会影响它们
 //!
-//! 注意：当更新渲染模板时，模板内容不会复用已有元素，因为 Template Literals
-//! 不再一样
+//! 所以模块重新执行得到的新类只作为“补丁来源”：运行时把新类的成员合并到已注册的
+//! 老类上，已有实例和状态保持不变。本转换负责把类改写成可以被这样合并的形式，
+//! 并告诉运行时哪些变化无法合并、需要刷新页面。
+//!
+//! # 编译期实现
+//!
+//! - 私有成员公开化：`#x` 改为 `_private_{key}_x`，`#x in obj` 改为
+//!   `"_private_{key}_x" in obj`。`key` 是标签名（`-` 换成 `_`），没有
+//!   `@customElement` 的类使用 `hash_{文件名和类序号的哈希}`，用于基类等
+//! - 函数成员（方法、getter/setter、箭头函数字段、构造函数，包括静态和私有的）
+//!   拆成“代理 + 影子方法”：原位置保留代理，函数体移到
+//!   `_hmr_{public|private}_{key}_{name}[_get|_set]` 影子方法中。代理每次调用都
+//!   通过 `this._hmr_xxx(...)` 动态查找，运行时替换老类上的影子方法即可生效，
+//!   已绑定的箭头函数字段和装饰器捕获的引用也会调用到新代码。生成器和 async
+//!   修饰保留在影子方法上，代理直接返回其结果。构造函数的代理只调用无参
+//!   `super()`，再调用影子方法
+//! - 非函数字段以 `[name, kind, isStatic]` 记录到静态字段 `_defined_fields_`，
+//!   `kind` 来自第一个标识符形式的装饰器（`attribute`、`property`、`state`、
+//!   `part`、`slot` 等，其他为 `other`），运行时据此增删字段
+//! - 追加类装饰器 `_hmrRegisterClass(key)`。它是最内层装饰器，最先执行，
+//!   运行时以 `key` 找到老类并合并
+//! - 模块顶层 `const x = createStore(...)` 改为
+//!   `_hmrKeep("{文件哈希}_x", () => createStore(...))`，模块重新执行时返回同一个
+//!   store，元素的订阅和状态得以保留。没有使用 `hot.data`，因为 Rspack 不支持
+//!   `import.meta.webpackHot.data`（会被编译成 `undefined`）
+//! - 调用 HMR API：模块中有元素且不需要刷新时 `accept`；需要刷新时
+//!   webpack/`module.hot` 使用 `decline`，`import.meta.hot` 没有 `decline`，
+//!   不生成调用；没有元素且不需要刷新的模块不生成调用，由 host 冒泡给导入它的
+//!   模块
+//!
+//! `@effect`/`@memo` 的依赖函数会被 `memo` 转换提升为静态方法 `_dep_fn_N`，
+//! 因此也会生成影子方法，依赖的修改可以热更新。
+//!
+//! # 运行时配合
+//!
+//! 运行时比较新老类的影子方法名、`_defined_fields_` 和元数据，能合并时：
+//! 替换全部影子方法（让所有方法引用新模块的变量）、通过重放字段装饰器增删字段、
+//! 同步元数据，然后重新渲染已有实例。类装饰器返回一个 `Proxy`，使新模块中的
+//! `new MyElement()` 构造已注册的老类；模板字符串按内容复用老对象，未修改的模板
+//! 不会重建 DOM。
+//!
+//! # 刷新页面的条件
+//!
+//! 编译期（`need_reload`，作用于整个模块）：
+//!
+//! - `@connectStore` 的参数是本地变量且不是被保留的 `createStore`
+//! - 模块中出现 `new.target` 或带参数的 `super(...)`
+//! - 构造函数有 TS 参数属性或带值的 `return`
+//! - 类没有 `@customElement` 且没有文件名（无法生成稳定的 `key`）
+//!
+//! 运行时：增删函数成员、增删 `other` 实例字段、修改 `mode`/`penetrable`/
+//! `noBlocking`、连接的 store 不是同一对象。
+//!
+//! # 技术限制
+//!
+//! - `need_reload` 是模块级的：一个类需要刷新时，之后的类不再转换，整个模块
+//!   拒绝更新
+//! - Vite 没有 `decline`：需要刷新的模块如果被另一个会 `accept` 的模块导入，
+//!   更新停在导入方，修改被忽略而不会刷新
+//! - 计算属性名的成员不转换，不能热更新
+//! - 私有名按最内层类改写，嵌套类访问外层类的 `#x` 会被改错
+//! - 构造函数中定义嵌套类时，嵌套类构造函数之后的 `return` 检测不到
+//! - 私有成员公开化后外部可以访问，`#x in obj` 变成字符串属性检查
+//! - `_hmrKeep` 只识别直接调用 `createStore` 标识符，别名导入或 `gem.createStore`
+//!   不会被保留；同一文件在页面中被加载两次时会共享同一个 store
+//! - 除依赖函数外，装饰器参数只在类定义时求值一次，修改不生效
+//! - 新实例仍由老类构造，字段初始值的修改不生效；新增的 attribute 不在浏览器
+//!   注册时的 `observedAttributes` 中，运行时改为首次读取属性时从 DOM 获取初始值
+//! - 静态字段值只对通过新模块类名读取生效，`this.constructor` 仍是老类
+//! - 修改过的模板字面量是新的模板，对应 DOM 会重建
 
 use std::{
     hash::{DefaultHasher, Hash, Hasher},
@@ -40,10 +98,10 @@ use swc_core::{
 };
 use swc_ecma_ast::{
     op, ArrayLit, ArrowExpr, BinExpr, BlockStmt, BlockStmtOrExpr, CallExpr, Callee, Class,
-    ClassMember, ClassMethod, ClassProp, Constructor, Decorator, Expr, ExprOrSpread, Function,
-    Ident, IdentName, ImportSpecifier, Lit, MemberExpr, MemberProp, MetaPropKind, MethodKind,
-    ModuleItem, Param, ParamOrTsParamProp, Pat, PropName, RestPat, ReturnStmt, StaticBlock, Stmt,
-    Str, ThisExpr,
+    ClassMember, ClassMethod, ClassProp, Constructor, Decl, Decorator, ExportDecl, Expr,
+    ExprOrSpread, Function, Ident, IdentName, ImportSpecifier, Lit, MemberExpr, MemberProp,
+    MetaPropKind, MethodKind, ModuleDecl, ModuleItem, Param, ParamOrTsParamProp, Pat, PropName,
+    RestPat, ReturnStmt, StaticBlock, Stmt, Str, ThisExpr, VarDecl,
 };
 
 #[derive(Deserialize, Debug, Clone, Copy, PartialEq, Default)]
@@ -79,6 +137,7 @@ impl HmrConfig {
 
 static DASH_REG: Lazy<Regex> = Lazy::new(|| Regex::new(r"-").unwrap());
 static HASH_KEY_PREFIX: &str = "hash_";
+static KEEP_FNS: [&str; 1] = ["createStore"];
 
 fn hash_string(s: &str) -> u64 {
     let mut hasher = DefaultHasher::new();
@@ -94,21 +153,51 @@ struct TransformVisitor {
     class_stack: Vec<String>,
     need_reload: bool,
     imported_names: IndexSet<Atom>,
+    kept_names: IndexSet<Atom>,
     target: HmrTarget,
-    // 用来判断构造函数内部内部是否有 return
-    // 语句，不支持嵌套类构造函数（嵌套类）；不能识别内部函数申明的
-    // return 语句，有正常的内联函数 return 也会拒绝 hmr
+    // 用来判断构造函数是否有带值的 `return`，进入内部函数时会暂时重置
     in_constructor: bool,
 }
 
 impl TransformVisitor {
+    fn keep_var_decl(&mut self, var: &mut VarDecl) {
+        if self.filename.is_empty() {
+            return;
+        }
+        for decl in var.decls.iter_mut() {
+            let (Pat::Ident(name), Some(init)) = (&decl.name, &mut decl.init) else {
+                continue;
+            };
+            let is_keep_call = init
+                .as_call()
+                .and_then(|call| call.callee.as_expr())
+                .and_then(|callee| callee.as_ident())
+                .is_some_and(|ident| KEEP_FNS.contains(&ident.sym.as_str()));
+            if !is_keep_call {
+                continue;
+            }
+            let sym = name.id.sym.clone();
+            // 不使用 `hot.data`，Rspack 不支持 `import.meta.webpackHot.data`
+            let key = format!("{:x}_{}", hash_string(&self.filename), sym);
+            let origin = mem::take(&mut **init);
+            **init = quote!(
+                "(globalThis._hmrKeep || ((_, fn) => fn()))($key, () => $init)" as Expr,
+                key: Expr = Expr::Lit(Lit::Str(key.into())),
+                init: Expr = origin,
+            );
+            self.kept_names.insert(sym);
+        }
+    }
+
     fn get_current_tag_name(&self) -> &str {
         self.class_stack.last().unwrap()
     }
 
     fn store_arg_is_local(&self, expr: &Expr) -> bool {
         match expr {
-            Expr::Ident(ident) => !self.imported_names.contains(&ident.sym),
+            Expr::Ident(ident) => {
+                !self.imported_names.contains(&ident.sym) && !self.kept_names.contains(&ident.sym)
+            }
             Expr::Member(member) => match &*member.obj {
                 Expr::Ident(ident) => !self.imported_names.contains(&ident.sym),
                 _ => true,
@@ -192,12 +281,14 @@ fn gen_shadow_member(
     body: Option<BlockStmt>,
     params: Vec<Param>,
     is_async: bool,
+    is_generator: bool,
 ) -> ClassMember {
     ClassMember::Method(ClassMethod {
         is_static,
         key: PropName::Ident(shadow_ident.clone()),
         function: Box::new(Function {
             is_async,
+            is_generator,
             params,
             body,
             ..Default::default()
@@ -227,7 +318,7 @@ fn gen_proxy_body(shadow_ident: &IdentName) -> BlockStmt {
     let this_expr = gen_proxy_this_expr(shadow_ident);
     BlockStmt {
         stmts: vec![quote!(
-            "return $expr.bind(this)(...args);" as Stmt,
+            "return $expr(...args);" as Stmt,
             expr: Expr = this_expr
         )],
         ..Default::default()
@@ -238,7 +329,7 @@ fn gen_proxy_body_getter(shadow_ident: &IdentName) -> BlockStmt {
     let this_expr = gen_proxy_this_expr(shadow_ident);
     BlockStmt {
         stmts: vec![quote!(
-            "return $expr.bind(this)();" as Stmt,
+            "return $expr();" as Stmt,
             expr: Expr = this_expr
         )],
         ..Default::default()
@@ -249,7 +340,7 @@ fn gen_proxy_body_setter(shadow_ident: &IdentName) -> BlockStmt {
     let this_expr = gen_proxy_this_expr(shadow_ident);
     BlockStmt {
         stmts: vec![quote!(
-            "$expr.bind(this)(value);" as Stmt,
+            "$expr(value);" as Stmt,
             expr: Expr = this_expr
         )],
         ..Default::default()
@@ -263,7 +354,7 @@ fn gen_proxy_body_constructor(shadow_ident: &IdentName, has_super: &bool) -> Blo
         stmts.push(quote!("super();" as Stmt));
     }
     stmts.push(quote!(
-        "$expr.bind(this)(...args);" as Stmt,
+        "$expr(...args);" as Stmt,
         expr: Expr = this_expr
     ));
     BlockStmt {
@@ -396,7 +487,14 @@ fn transform_fn(
             );
             (
                 ClassMember::Constructor(Constructor { ..constructor }),
-                Some(gen_shadow_member(&shadow_ident, false, body, params, false)),
+                Some(gen_shadow_member(
+                    &shadow_ident,
+                    false,
+                    body,
+                    params,
+                    false,
+                    false,
+                )),
             )
         }
         ClassMember::Method(mut method) => {
@@ -408,7 +506,9 @@ fn transform_fn(
                     method.kind == MethodKind::Getter,
                     method.kind == MethodKind::Setter,
                 );
-                let is_async = method.function.is_async;
+                // 代理直接返回影子方法的结果（Promise/迭代器）
+                let is_async = mem::take(&mut method.function.is_async);
+                let is_generator = mem::take(&mut method.function.is_generator);
                 (
                     ClassMember::Method(ClassMethod { ..method }),
                     Some(gen_shadow_member(
@@ -417,6 +517,7 @@ fn transform_fn(
                         body,
                         params,
                         is_async,
+                        is_generator,
                     )),
                 )
             } else {
@@ -433,7 +534,8 @@ fn transform_fn(
                 method.kind == MethodKind::Getter,
                 method.kind == MethodKind::Setter,
             );
-            let is_async = method.function.is_async;
+            let is_async = mem::take(&mut method.function.is_async);
+            let is_generator = mem::take(&mut method.function.is_generator);
             (
                 ClassMember::Method(ClassMethod {
                     key: private_ident,
@@ -452,13 +554,14 @@ fn transform_fn(
                     body,
                     params,
                     is_async,
+                    is_generator,
                 )),
             )
         }
         ClassMember::ClassProp(mut prop) => {
-            if let Some(ref mut v) = prop.value {
+            // 计算属性名不支持
+            if let (Some(origin_ident), Some(v)) = (prop.key.as_ident(), prop.value.as_mut()) {
                 if let Some(func) = v.as_mut_arrow() {
-                    let origin_ident = prop.key.as_ident().unwrap();
                     let shadow_ident =
                         get_shadow_ident(origin_ident, key, false, MethodKind::Method);
                     let (body, params) = replace_to_proxy_arrow(func, &shadow_ident);
@@ -471,6 +574,7 @@ fn transform_fn(
                             Some(body),
                             params,
                             is_async,
+                            false,
                         )),
                     );
                 }
@@ -507,6 +611,7 @@ fn transform_fn(
                             Some(body),
                             params,
                             is_async,
+                            false,
                         )),
                     );
                 }
@@ -790,13 +895,30 @@ impl VisitMut for TransformVisitor {
     }
 
     fn visit_mut_module_items(&mut self, node: &mut Vec<ModuleItem>) {
+        // 先于类处理，`connectStore` 需要判断 store 是否被保留
+        for item in node.iter_mut() {
+            let var = match item {
+                ModuleItem::Stmt(Stmt::Decl(Decl::Var(var))) => var,
+                ModuleItem::ModuleDecl(ModuleDecl::ExportDecl(ExportDecl {
+                    decl: Decl::Var(var),
+                    ..
+                })) => var,
+                _ => continue,
+            };
+            self.keep_var_decl(var);
+        }
+
         node.visit_mut_children_with(self);
 
         let Some(hot_expr) = gen_hot_expr(self.target) else {
             return;
         };
 
-        if self.need_reload && self.target != HmrTarget::ImportMetaHot {
+        if self.need_reload {
+            // `import.meta.hot` 没有 `decline`，不接受即可让 host 冒泡或刷新
+            if self.target == HmrTarget::ImportMetaHot {
+                return;
+            }
             node.push(quote!(
                 "
                 if ($hot) {

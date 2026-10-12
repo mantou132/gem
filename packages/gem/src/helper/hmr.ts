@@ -1,6 +1,8 @@
 import { attribute, boolattribute, emitter, globalemitter, numattribute, property, state } from '../lib/decorators';
+import { ChildPart, type TemplateResult } from '../lib/lit-html';
 import { GemElement, type Metadata, UpdateToken } from '../lib/reactive';
 import type { Store } from '../lib/store';
+import { camelToKebabCase } from '../lib/utils';
 import { Logger } from './logger';
 
 const logger = new Logger('HMR');
@@ -41,17 +43,15 @@ function getHmrMethodKeys(obj: any) {
   return Object.getOwnPropertyNames(obj).filter((key) => key.startsWith('_hmr_'));
 }
 
-/** 不支持修改 store */
+/** 连接的 store 必须是同一对象，否则元素订阅的是老 store */
 function checkMetadataNeedReload({ mode, penetrable, noBlocking, observedStores }: Metadata, newMetadata: Metadata) {
-  const stringifyStores = (stores?: Store<any>[]) =>
-    JSON.stringify(
-      stores?.map((store) => JSON.stringify({ ...store }, (_, v) => (typeof v === 'function' ? v.toString() : v))),
-    );
+  const isSameStores = (a: Store<any>[] = [], b: Store<any>[] = []) =>
+    a.length === b.length && a.every((store, i) => store === b[i]);
   if (
     mode !== newMetadata.mode ||
     penetrable !== newMetadata.penetrable ||
     noBlocking !== newMetadata.noBlocking ||
-    stringifyStores(observedStores) !== stringifyStores(newMetadata.observedStores)
+    !isSameStores(observedStores, newMetadata.observedStores)
   ) {
     return true;
   }
@@ -146,6 +146,22 @@ const descMap = {
   globalemitter,
 };
 
+const attrTypes = new Set(['attribute', 'boolattribute', 'numattribute']);
+
+/** 新增 attribute 的初始值本应在构造时读取，但新实例仍由老类构造，改为首次读取时从 DOM 获取 */
+function lazyInitAttribute(proto: any, prop: string) {
+  const { get, set } = Object.getOwnPropertyDescriptor(proto, prop)!;
+  const attr = camelToKebabCase(prop);
+  Reflect.defineProperty(proto, prop, {
+    configurable: true,
+    set,
+    get() {
+      if (get!.call(this) === undefined) set!.call(this, this.getAttribute(attr));
+      return get!.call(this);
+    },
+  });
+}
+
 function setArrValue<T>(obj: any, field: string, val: T[] = []) {
   if (!Object.getOwnPropertyDescriptor(obj, field)) {
     setProperty(obj, field, val);
@@ -159,18 +175,43 @@ function setArrValue<T>(obj: any, field: string, val: T[] = []) {
 declare global {
   interface Window {
     _hmrClassRegistry: Map<string, any>;
-    _hmrRegisterClass: (name: string) => (cls: HasFieldsRecordClass, ctx: ClassDecoratorContext) => void;
+    _hmrRegisterClass: (name: string) => (cls: HasFieldsRecordClass, ctx: ClassDecoratorContext) => any;
+    _hmrKeep: <T>(key: string, fn: () => T) => T;
   }
 }
 
 if (typeof window !== 'undefined' && nativeDefineElement && !window._hmrClassRegistry) {
   window._hmrClassRegistry = new Map();
+
+  // 模块重新执行时复用模块顶层的 store
+  const keptValues = new Map<string, any>();
+  window._hmrKeep = (key, fn) => {
+    if (!keptValues.has(key)) keptValues.set(key, fn());
+    return keptValues.get(key);
+  };
+
+  // 模块重新执行后模板字符串是新对象，内容相同时使用老对象，以便复用已渲染的 DOM
+  const canonicalStrings = new Map<string, TemplateStringsArray>();
+  const stringsMap = new WeakMap<TemplateStringsArray, TemplateStringsArray>();
+  const { _$getTemplate } = ChildPart.prototype;
+  ChildPart.prototype._$getTemplate = function (result: TemplateResult) {
+    let strings = stringsMap.get(result.strings);
+    if (!strings) {
+      const key = `${result.type}:${result.strings.join('\0')}`;
+      strings = canonicalStrings.get(key) || result.strings;
+      canonicalStrings.set(key, strings);
+      stringsMap.set(result.strings, strings);
+    }
+    result.strings = strings;
+    return _$getTemplate.call(this, result);
+  };
+
   window._hmrRegisterClass =
     (name: string) =>
     (cls: HasFieldsRecordClass, { addInitializer }: ClassDecoratorContext) => {
-      addInitializer(() => {
-        const existed = window._hmrClassRegistry.get(name);
+      const existed = window._hmrClassRegistry.get(name);
 
+      addInitializer(() => {
         if (!existed) {
           window._hmrClassRegistry.set(name, cls);
           return;
@@ -250,6 +291,9 @@ if (typeof window !== 'undefined' && nativeDefineElement && !window._hmrClassReg
               });
             });
           });
+          instanceFieldsEntries.forEach(([type, { add }]) => {
+            if (attrTypes.has(type)) add.forEach((prop) => lazyInitAttribute(oldClass.prototype, prop.name));
+          });
           // 删除的属性在 proto 上添加占位符
           instanceFieldsEntries.forEach(([type, { remove }]) => {
             remove.forEach((prop) => {
@@ -269,23 +313,25 @@ if (typeof window !== 'undefined' && nativeDefineElement && !window._hmrClassReg
           setArrValue(oldMetadata, 'adoptedStyleSheets', newMetadata.adoptedStyleSheets);
           setArrValue(oldClass, '_defined_fields_', newClass._defined_fields_);
 
+          // 全部替换，让所有方法都引用新模块的变量
           [
             [oldClass, newClass],
             [oldClass.prototype, newClass.prototype],
           ].forEach(([existedObj, newObj]) => {
-            Object.assign(
-              existedObj,
-              Object.fromEntries(
-                getHmrMethodKeys(newObj)
-                  .filter((key) => existedObj[key].toString() !== newObj[key].toString())
-                  .map((key) => [key, newObj[key]]),
-              ),
-            );
+            getHmrMethodKeys(newObj).forEach((key) => (existedObj[key] = newObj[key]));
           });
 
           current = [getPrototypeOf(oldClass), getPrototypeOf(newClass)];
         }
       });
+
+      if (!existed) return;
+
+      // 新类未注册，构造时使用老类，例如 `new MyElement()`
+      const proxy: any = new Proxy(cls, {
+        construct: (_, args, newTarget) => Reflect.construct(existed, args, newTarget === proxy ? existed : newTarget),
+      });
+      return proxy;
     };
 
   window.customElements.define = (name: string, cls: CustomElementConstructor) => {
@@ -301,8 +347,11 @@ if (typeof window !== 'undefined' && nativeDefineElement && !window._hmrClassReg
       logger.info(`<${name}> update,`, { cls });
 
       updateElement(name, (element) => {
-        // 触发样式更新，支持 Light DOM
-        element.after(element);
+        // 触发样式更新，支持 Light DOM；不移动元素，避免失去焦点和滚动位置
+        if (element.isConnected) {
+          (element as GemElement).disconnectedCallback();
+          (element as GemElement).connectedCallback();
+        }
         // 重新渲染
         (element as any)[UpdateToken]?.();
       });

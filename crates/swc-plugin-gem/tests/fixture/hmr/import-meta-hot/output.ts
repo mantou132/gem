@@ -7,7 +7,7 @@ export class MyElement extends GemElement {
     }
     @template()
     render(...args) {
-        return this._hmr_public_my_element_render.bind(this)(...args);
+        return this._hmr_public_my_element_render(...args);
     }
     static{
         this._defined_fields_ = [];
