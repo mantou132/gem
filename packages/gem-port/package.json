@@ -1,10 +1,12 @@
 {
   "name": "@mantou/gem-port",
   "version": "1.2.14",
-  "description": "Export React component",
+  "description": "Generate React/Vue/Svelte components for Gem elements",
   "keywords": [
     "gem",
     "react",
+    "vue",
+    "svelte",
     "generator"
   ],
   "bin": {
@@ -14,15 +16,14 @@
     "/bin/"
   ],
   "scripts": {
-    "build": "esbuild ./src/index.ts --outdir=./bin --bundle --platform=node --external:typescript --external:ts-morph",
+    "build": "esbuild ./src/index.ts --outdir=./bin --bundle --platform=node --external:ts-morph",
     "start": "pnpm build --watch",
     "prepublishOnly": "pnpm build"
   },
   "dependencies": {
     "commander": "^7.2.0",
     "gem-analyzer": "^2.2.14",
-    "ts-morph": "^12.0.0",
-    "typescript": "^5.6.2"
+    "ts-morph": "^12.0.0"
   },
   "devDependencies": {
     "@gemjs/config": "^2.1.3"

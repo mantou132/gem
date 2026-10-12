@@ -1,16 +1,37 @@
 # Used in projects like React
 
 [Most frontend frameworks/libraries](https://custom-elements-everywhere.com/) can seamlessly use custom elements, such as assigning Attributes/Properties and registering events.
-However, directly using custom elements lacks [type hints](https://code.visualstudio.com/docs/editor/intellisense), so DuoyunUI has been re-exported to perfectly adapt to React/Vue/Svelte.
+However, directly using custom elements lacks [type hints](https://code.visualstudio.com/docs/editor/intellisense), so DuoyunUI exports components for React/Vue/Svelte,
+with the same import and usage in all three frameworks:
+
+- Import components from `duoyun-ui/<react|vue|svelte>/<element>`, e.g. `import { DyInput } from 'duoyun-ui/react/input'`
+- Events use `on` + camelCase event name, e.g. `onChange` (`@change` in Vue)
+- The component `ref` can call the element's methods and getters
+
+After importing, you can also use custom elements directly (e.g. `<dy-input>`) with type hints.
 
 ## React
 
 > [!NOTE]
 > React 19 supports custom elements. Please ensure you have React 19 installed.
 
-Use DuoyunUI just like any other React component library:
+```tsx
+import { useRef, useState } from 'react';
+import { DyInput } from 'duoyun-ui/react/input';
+import { DyColorPicker, type DyColorPickerExpose } from 'duoyun-ui/react/color-picker';
 
-<gbp-raw range="import DyCard,<DyCard-</DyCard>" src="https://raw.githubusercontent.com/mantou132/nextjs-learn/main/pages/ce-test.tsx"></gbp-raw>
+function Page() {
+  const ref = useRef<DyColorPickerExpose>(null);
+  const [value, setValue] = useState('');
+  return (
+    <>
+      <DyInput value={value} clearable onChange={(evt) => setValue(evt.detail)}></DyInput>
+      <DyColorPicker ref={ref}></DyColorPicker>
+      <button onClick={() => ref.current?.showPicker()}>Pick</button>
+    </>
+  );
+}
+```
 
 ### Using React Components in `<dy-route>`
 
@@ -48,43 +69,26 @@ const routes = {
 } satisfies RoutesObject;
 ```
 
-### Using React Components in Properties
-
-Some elements support custom render content, such as the `header` of `<dy-card>`:
-
-```ts
-function Page() {
-  return <DyCard header={html`<div>No.</div>`}></DyCard>;
-}
-```
-
-If you want to render React components, you need to first render them to an `HTMLElement`. This can be achieved through a custom Hook:
-
-```tsx
-function useReactNode(node: ReactNode) {
-  const ref = useRef<{ root: Root; container: HTMLElement }>();
-  useEffect(() => () => ref.current?.root.unmount(), []);
-  if (ref.current) {
-    ref.current.root.render(node);
-    return ref.current.container;
-  }
-  const container = document.createElement('div');
-  container.style.display = 'contents';
-  const root = createRoot(container);
-  ref.current = { root, container };
-  root.render(node);
-  return container;
-}
-
-function Page() {
-  return <DyCard header={useReactNode(<>No</>)}></DyCard>;
-}
-```
-
 ## Vue
 
-DuoyunUI also exports Vue components. Usage is the same as React, with the only difference being that the path changes from `react` to `vue`.
-Additionally, you need to specify custom elements in the Vue configuration file:
+```vue
+<script setup lang="ts">
+import { ref, useTemplateRef } from 'vue';
+import { DyInput } from 'duoyun-ui/vue/input';
+import { DyColorPicker } from 'duoyun-ui/vue/color-picker';
+
+const value = ref('');
+const picker = useTemplateRef('picker');
+</script>
+
+<template>
+  <DyInput :value="value" clearable @change="(evt) => (value = evt.detail)"></DyInput>
+  <DyColorPicker ref="picker"></DyColorPicker>
+  <button @click="picker?.showPicker()">Pick</button>
+</template>
+```
+
+To use custom elements directly, you need to specify them in the Vue configuration file:
 
 ```js
 {
@@ -94,15 +98,24 @@ Additionally, you need to specify custom elements in the Vue configuration file:
 }
 ```
 
-In Vue, you can also write custom elements directly, but you need to [distinguish](../02-elements/card.md) between Attributes and Properties:
-
-<gbp-raw codelang="html" range="34-45" src="https://raw.githubusercontent.com/mantou132/nuxtjs-learn/main/pages/test.vue"></gbp-raw>
-
 ## Svelte
 
-DuoyunUI hasn't been re-exported as Svelte components. You can use custom elements directly:
+```svelte
+<script lang="ts">
+  import { DyInput } from 'duoyun-ui/svelte/input';
+  import { DyColorPicker } from 'duoyun-ui/svelte/color-picker';
 
-<gbp-raw codelang="html" range="2-9,44-55" src="https://raw.githubusercontent.com/mantou132/sveltekit-learn/main/src/routes/ce-test/+page.svelte"></gbp-raw>
+  let value = $state('');
+  let picker: ReturnType<typeof DyColorPicker> | undefined = $state();
+</script>
+
+<DyInput {value} clearable onChange={(evt) => (value = evt.detail)}></DyInput>
+<DyColorPicker bind:this={picker}></DyColorPicker>
+<button onclick={() => picker?.showPicker()}>Pick</button>
+```
+
+> [!NOTE]
+> Svelte component instances can only export functions, so element getters need to be called as functions, e.g. `form.data()`.
 
 > [!NOTE]
 > When using `SvelteKit`, make sure `svelte` is installed as `dependencies` rather than `devDependencies`, otherwise types won't be imported successfully.
@@ -111,7 +124,7 @@ DuoyunUI hasn't been re-exported as Svelte components. You can use custom elemen
 > ```js
 > {
 >   ssr: {
->     noExternal: ['@mantou/gem', 'duoyun-ui'];
+>     noExternal: ['@mantou/gem', '@mantou/tap-ui', 'duoyun-ui'];
 >   }
 > }
 > ```
@@ -122,8 +135,26 @@ DuoyunUI doesn't support SSR, or more precisely, Next/Nuxt/Svelte don't support 
 To make it work correctly on the server side, import `@mantou/gem/helper/ssr-shim` at the entry point of your frontend code:
 
 - Next.js: `pages/_app.tsx`
-- Nuxt.js: `app.config.ts`
 - SvelteKit: `src/hooks.server.ts`
+- Nuxt.js: `plugins/ssr-shim.server.ts`
+
+> [!NOTE]
+> Nuxt server builds replace globals such as `window` and `document` with `undefined`, so make them read the values set by the shim in `nuxt.config.ts`:
+>
+> ```js
+> {
+>   vite: {
+>     $server: {
+>       define: {
+>         window: 'globalThis.window',
+>         document: 'globalThis.document',
+>         navigator: 'globalThis.navigator',
+>         location: 'globalThis.location',
+>       },
+>     },
+>   },
+> }
+> ```
 
 If you want to use DuoyunUI's routing, you can use `<dy-light-route>`. To avoid first-screen layout issues, add the following global style:
 

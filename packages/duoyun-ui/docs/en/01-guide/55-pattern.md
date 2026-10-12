@@ -31,14 +31,11 @@ render(
 
 > [!NOTE]
 >
-> - When [using React components](./60-integrate.md#react), you don't need to specify the `pattern` path. Pattern elements and other DuoyunUI outputs are in the same directory:
->   ```js
->   import DyPatConsole from 'duoyun-ui/react/DyPatConsole';
->   ```
-> - When [using in Svelte](./60-integrate.md#svelte), you need to add the `pat` prefix to the import path, for example:
->   ```js
->   import 'duoyun-ui/svelte/pat-console';
->   ```
+> When [using in React/Vue/Svelte](./60-integrate.md), you don't need to specify the `pattern` path, but you need to add the `pat` prefix, for example:
+>
+> ```js
+> import { DyPatConsole } from 'duoyun-ui/react/pat-console';
+> ```
 
 ## Example
 

@@ -1,10 +1,9 @@
-import { promises, readdirSync, readFileSync, statSync } from 'node:fs';
+import { mkdirSync, promises, readdirSync, readFileSync, statSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 
 import type { ElementDetail } from 'gem-analyzer';
 import { getElements } from 'gem-analyzer';
 import { ts as morphTs, Project } from 'ts-morph';
-import * as ts from 'typescript';
 
 const dev = process.env.MODE === 'dev';
 const elements = process.env.ELEMENTS?.split(',');
@@ -41,13 +40,30 @@ const mergeElementDetail = (detail: ElementDetail): ElementDetail => {
   const chain = getChain(detail);
   return {
     ...detail,
-    properties: chain.flatMap((e) => e.properties),
-    methods: chain.flatMap((e) => e.methods),
-    events: chain.flatMap((e) => e.events),
+    // 子类可能重新声明父类字段，保留子类的
+    properties: [
+      ...new Map(
+        chain
+          .flatMap((e) => e.properties)
+          .reverse()
+          .map((e) => [e.name, e]),
+      ).values(),
+    ],
+    methods: [
+      ...new Map(
+        chain
+          .flatMap((e) => e.methods)
+          .reverse()
+          .map((e) => [e.name, e]),
+      ).values(),
+    ],
+    events: [...new Set(chain.flatMap((e) => e.events))],
   };
 };
 
-const elementCache: Record<string, ElementDetail[] | undefined> = {};
+const elementCache: Record<string, Promise<ElementDetail[]> | undefined> = {};
+// 共享 `project`，并发分析时依赖文件会被重复创建覆盖，导致元素丢失，所以串行分析
+let analyzeQueue = Promise.resolve();
 const project = new Project({
   useInMemoryFileSystem: true,
   compilerOptions: { target: morphTs.ScriptTarget.ESNext },
@@ -71,13 +87,14 @@ project.getFileSystem().readFile = async (filePath) => {
     throw new Error(`Cannot find file: ${filePath}`);
   }
 };
-export async function getFileElements(elementFilePath: string) {
-  if (!elementCache[elementFilePath]) {
+export function getFileElements(elementFilePath: string) {
+  elementCache[elementFilePath] ||= analyzeQueue.then(async () => {
     const text = readFileSync(elementFilePath, { encoding: 'utf-8' });
     const file = project.getSourceFile(elementFilePath) || project.createSourceFile(elementFilePath, text);
     const details = await getElements(file, project);
-    elementCache[elementFilePath] = details.map((detail) => mergeElementDetail(detail));
-  }
+    return details.map((detail) => mergeElementDetail(detail));
+  });
+  analyzeQueue = elementCache[elementFilePath].then(() => {});
   return elementCache[elementFilePath];
 }
 
@@ -96,27 +113,97 @@ export function getRelativePath(elementFilePath: string, outDir: string) {
   return `${relativePath}/${basename}`;
 }
 
-export function compile(outDir: string, fileSystem: Record<string, string>): void {
-  const options: ts.CompilerOptions = {
-    jsx: ts.JsxEmit.React,
-    target: ts.ScriptTarget.ES2020,
-    declaration: true,
-    outDir,
+export function getComponentInfo(detail: ElementDetail) {
+  const props = detail.properties.filter(({ getter, event }) => !getter && !event);
+  const getters = detail.properties.filter(({ getter }) => getter).map(({ name }) => name);
+  const methods = detail.methods.map(({ name }) => name);
+  return {
+    componentName: getComponentName(detail.name),
+    // 非 Attribute 无法 SSR，需要组件在客户端设置
+    properties: props.filter(({ attribute }) => !attribute).map(({ name }) => name),
+    // 组件事件 prop 名称到事件名称
+    events: Object.fromEntries(
+      detail.properties.filter(({ event }) => event).map(({ event }) => [getEventProp(event!), event!]),
+    ),
+    getters,
+    methods,
+    members: [...methods, ...getters],
   };
-  const host = ts.createCompilerHost(options);
-  const originReadFile = host.readFile;
-  host.readFile = (filename: string) => {
-    if (filename in fileSystem) return fileSystem[filename];
-    return originReadFile(filename);
-  };
-  const program = ts.createProgram(Object.keys(fileSystem), options, host);
-  program.emit().diagnostics.forEach((diagnostic) => {
-    if (diagnostic.file) {
-      const { line, character } = ts.getLineAndCharacterOfPosition(diagnostic.file, diagnostic.start!);
-      const message = ts.flattenDiagnosticMessageText(diagnostic.messageText, '\n');
-      console.warn(`${diagnostic.file.fileName} (${line + 1},${character + 1}): ${message}`);
-    } else {
-      console.warn(ts.flattenDiagnosticMessageText(diagnostic.messageText, '\n'));
-    }
-  });
+}
+
+export function getEventProp(event: string) {
+  return `on${getComponentName(event)}`;
+}
+
+export function getPropsType({ constructorName, properties }: ElementDetail) {
+  const members = properties
+    .filter(({ getter, event }) => !getter && !event)
+    .map(({ name, deprecated }) => `${getJsDocDescName(`'${name}'`, deprecated)}?: ${constructorName}['${name}'];`);
+  return `{\n${members.join('\n')}\n}`;
+}
+
+export function getEventsType({ constructorName, properties }: ElementDetail, getKey = (event: string) => event) {
+  const members = properties
+    .filter(({ event }) => event)
+    .map(
+      ({ name, event, deprecated }) =>
+        `${getJsDocDescName(`'${getKey(event!)}'`, deprecated)}: (event: CustomEvent<Required<Parameters<${constructorName}['${name}']>>[0]>) => void;`,
+    );
+  return `{\n${members.join('\n')}\n}`;
+}
+
+export function getExposeType({ constructorName }: ElementDetail, members: string[]) {
+  return `Pick<${constructorName}, ${members.map((name) => `'${name}'`).join(' | ') || 'never'}>`;
+}
+
+export function toJs(value: unknown) {
+  return JSON.stringify(value).replaceAll('"', "'");
+}
+
+interface GenerateOptions {
+  /** 所有组件共享的运行时，输出到 `_runtime.js` */
+  runtime: string;
+  /** 元素文件对应的 `.js` 内容 */
+  getJs: (details: ElementDetail[]) => string;
+  /** 元素文件对应的 `.d.ts` 内容 */
+  getDts: (details: ElementDetail[]) => string;
+  /** 其他文件，例如 `.svelte` 组件 */
+  getExtraFiles?: (details: ElementDetail[]) => Record<string, string>;
+}
+
+/**
+ * 每个元素文件生成 `.js`（导入元素和组件）和 `.d.ts`（组件和元素类型声明）
+ */
+export async function generateComponents(
+  elementsDir: string,
+  outDir: string,
+  ns: string,
+  { runtime, getJs, getDts, getExtraFiles }: GenerateOptions,
+) {
+  mkdirSync(outDir, { recursive: true });
+  writeFileSync(path.resolve(outDir, '_runtime.js'), runtime);
+  await Promise.all(
+    getElementPathList(elementsDir).map(async (elementFilePath) => {
+      const details = await getFileElements(elementFilePath);
+      const relativePath = getRelativePath(elementFilePath, outDir);
+      const filename = [ns, path.basename(relativePath)].filter((e) => !!e).join('-');
+      const exportElement = `export * from '${relativePath}';\n`;
+      writeFileSync(path.resolve(outDir, `${filename}.js`), [exportElement, getJs(details)].join('\n'));
+      const dtsPath = path.resolve(outDir, `${filename}.d.ts`);
+      const dts = project.createSourceFile(
+        dtsPath,
+        [
+          `import type { ${details.map((e) => e.constructorName).join(', ')} } from '${relativePath}';`,
+          exportElement,
+          getDts(details),
+        ].join('\n'),
+        { overwrite: true },
+      );
+      dts.formatText({ indentSize: 2, convertTabsToSpaces: true });
+      writeFileSync(dtsPath, dts.getFullText());
+      Object.entries(getExtraFiles?.(details) || {}).forEach(([name, content]) => {
+        writeFileSync(path.resolve(outDir, name), content);
+      });
+    }),
+  );
 }

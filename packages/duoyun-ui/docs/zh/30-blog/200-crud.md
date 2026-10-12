@@ -24,7 +24,7 @@ render(html`<dy-pat-console></dy-pat-console>`, document.body);
 
 ```tsx React
 import { createRoot } from 'react-dom/client';
-import DyPatConsole from 'duoyun-ui/react/DyPatConsole';
+import { DyPatConsole } from 'duoyun-ui/react/pat-console';
 
 createRoot(document.body).render(<DyPatConsole />);
 ```
@@ -197,7 +197,7 @@ export class ConsolePageItemElement extends GemElement {
 ```tsx React
 import { useState, useEffect } from 'react';
 import { connect } from '@mantou/gem';
-import DyPatTable from 'duoyun-ui/react/DyPatTable';
+import { DyPatTable } from 'duoyun-ui/react/pat-table';
 
 export function Item() {
   return <DyPatTable></DyPatTable>;
@@ -248,7 +248,7 @@ export function Item() {
 import { html, GemElement, connectStore, customElement, createState, effect } from '@mantou/gem';
 import { get } from '@mantou/gem/helper/request';
 import { locationStore } from 'duoyun-ui/patterns/console';
-import type { FilterableColumn } from 'duoyun-ui/patterns/table';
+import type { PatTableColumn } from 'duoyun-ui/patterns/table';
 import 'duoyun-ui/patterns/table';
 
 @customElement('console-page-item')
@@ -256,7 +256,7 @@ import 'duoyun-ui/patterns/table';
 export class ConsolePageItemElement extends GemElement {
   #state = createState<{ data: any }>({});
 
-  #columns: FilterableColumn<any>[] = [
+  #columns: PatTableColumn<any>[] = [
     {
       title: 'No',
       dataIndex: 'id',
@@ -282,7 +282,7 @@ import { useState, useEffect } from 'react';
 import { connect } from '@mantou/gem';
 import { get } from '@mantou/gem/helper/request';
 import { locationStore } from 'duoyun-ui/patterns/console';
-import DyPatTable, { FilterableColumn } from 'duoyun-ui/react/DyPatTable';
+import { DyPatTable, type PatTableColumn } from 'duoyun-ui/react/pat-table';
 
 export function Item() {
   const [_, update] = useState({});
@@ -294,7 +294,7 @@ export function Item() {
     get(`https://jsonplaceholder.typicode.com/users`).then(updateData);
   }, [locationStore.params.id]);
 
-  const columns: FilterableColumn<any>[] = [
+  const columns: PatTableColumn<any>[] = [
     {
       title: 'No',
       dataIndex: 'id',
@@ -314,7 +314,7 @@ export function Item() {
 ```ts
 import { ContextMenu } from 'duoyun-ui/elements/contextmenu';
 
-const columns: FilterableColumn<any>[] = [
+const columns: PatTableColumn<any>[] = [
   // ...
   {
     title: '',

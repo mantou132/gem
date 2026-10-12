@@ -31,14 +31,11 @@ render(
 
 > [!NOTE]
 >
-> - [使用 React 组件](./60-integrate.md#react)时无需指定 `pattern` 路径，模式元素和其他 DuoyunUI 输出在同一个目录中：
->   ```js
->   import DyPatConsole from 'duoyun-ui/react/DyPatConsole';
->   ```
-> - [在 Svelte 中使用时](./60-integrate.md#svelte)导入路径需要添加 `pat` 前缀，例如：
->   ```js
->   import 'duoyun-ui/svelte/pat-console';
->   ```
+> [在 React/Vue/Svelte 中使用时](./60-integrate.md)无需指定 `pattern` 路径，但需要添加 `pat` 前缀，例如：
+>
+> ```js
+> import { DyPatConsole } from 'duoyun-ui/react/pat-console';
+> ```
 
 ## 例子
 
