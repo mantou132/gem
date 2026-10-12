@@ -2,6 +2,7 @@ import { adoptedStyle, css, customElement, GemElement, html } from '@mantou/gem'
 import '@mantou/gem/elements/route';
 import './card';
 import './header';
+import './quote';
 
 const style = css`
   :scope {
@@ -24,6 +25,7 @@ export class GemSsrAppElement extends GemElement {
   render = () => {
     return html`
       ${html`<gem-ssr-header></gem-ssr-header><span></span>`}
+      <gem-ssr-quote></gem-ssr-quote>
       <div class="main">
         <gem-light-route .routes=${[
           {

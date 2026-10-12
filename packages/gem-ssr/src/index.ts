@@ -1,12 +1,15 @@
 import './lib/shim';
 
-import { history, render as renderDom, type Store, type TemplateResult } from '@mantou/gem';
+import { type GemElement, history, render as renderDom, type Store, type TemplateResult } from '@mantou/gem';
 import { GemLightRouteElement } from '@mantou/gem/elements/route';
 import { type ChildPart, type ConditionChain, TemplateInstance } from '@mantou/gem/lib/lit-html';
 
 import { CHILD_PART, LIT_PART_END, SSR_HIDDEN, V_ELSE } from './client/hydration';
 import { STORES_SCRIPT_ID } from './client/store';
+import { SSR_STATE, ssrContext } from './decorators';
 import { dom } from './lib/shim';
+
+ssrContext.isServer = true;
 
 const endTag = `<!--${LIT_PART_END}-->`;
 
@@ -75,17 +78,30 @@ function* walkElements(root: Element | ShadowRoot): Generator<Element> {
   }
 }
 
+// 执行渲染出的元素的服务端方法，同一个元素的方法并行执行
+function runServerTasks(elements: Element[]) {
+  return elements.flatMap((ele) => {
+    const tasks = ssrContext.tasks.get(ele as GemElement);
+    if (!tasks) return [];
+    ssrContext.tasks.delete(ele as GemElement);
+    ssrContext.stateElements.add(ele as GemElement);
+    return tasks.map((task) => task());
+  });
+}
+
 // 等待异步渲染完成，新渲染的内容中可能还有异步渲染的元素
 // 服务端不执行副作用，所以需要手动加载路由内容
 async function settle(root: Element) {
   const loaded = new WeakSet<Element>();
   while (true) {
-    const routes = [...walkElements(root)].filter(
+    const elements = [...walkElements(root)];
+    const routes = elements.filter(
       (ele): ele is GemLightRouteElement => ele instanceof GemLightRouteElement && !loaded.has(ele),
     );
-    if (!routes.length) return;
+    const tasks = runServerTasks(elements);
+    if (!routes.length && !tasks.length) return;
     routes.forEach((route) => loaded.add(route));
-    await Promise.all(routes.map((route) => route.update()));
+    await Promise.all([...routes.map((route) => route.update()), ...tasks]);
   }
 }
 
@@ -128,6 +144,10 @@ function* generateElement(ele: Element, endNodeSet: Set<Node>, extraAttrs?: Reco
   }
   const tagName = ele.tagName.toLowerCase();
   const attrs = Object.fromEntries([...ele.attributes].map(({ name, value }) => [name, value]));
+  if (ssrContext.stateElements.has(ele as GemElement)) {
+    const states = (ele as GemElement).internals.stateList.map((state) => ({ ...state }));
+    attrs[SSR_STATE] = JSON.stringify(states);
+  }
   yield `<${tagName}${serializeAttrs({ ...attrs, ...extraAttrs })}>`;
   if (voidElements.has(tagName)) return;
   const { shadowRoot } = ele;
@@ -190,6 +210,8 @@ async function renderChunks(result: TemplateResult, ctx: RenderOptions) {
     ];
   } finally {
     stores.forEach(([, [store]], index) => replaceStore(store, snapshots[index]));
+    ssrContext.tasks.clear();
+    ssrContext.stateElements.clear();
   }
 }
 

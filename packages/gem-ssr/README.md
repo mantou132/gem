@@ -40,6 +40,26 @@ import { hydrateStores } from 'gem-ssr/client';
 hydrateStores({ user: userStore });
 ```
 
+## Server Method
+
+The method marked with `@server()` is executed on the server and waits for completion before serializing,
+the element state after execution is output to the page (JSON values only).
+On the client, the restored element doesn't execute it again, otherwise it is executed when mounted, like `@mounted()`.
+
+```ts
+import { server } from 'gem-ssr/decorators';
+
+@customElement('gem-ssr')
+class GemSsrElement extends GemElement {
+  #state = createState({ content: '' });
+
+  @server()
+  #init = async () => {
+    this.#state({ content: await fetchContent() });
+  };
+}
+```
+
 ## Improve WebApp Performance (Planned)
 
 ### Lazy View
@@ -53,14 +73,13 @@ class GemSsrElement extends GemElement {
   #state = createState({ content: 0 });
 
   @server() // or `@server('lazy')`
-  @mounted()
   #init = async () => {
-    this.#state({ content: await 1; });
-  }
+    this.#state({ content: await 1 });
+  };
 }
 ```
 
-The method marked with `@server()` waits for execution to complete on the server before returning, while `@server('lazy')` returns first, then executes, and re-renders the content after execution.
+`@server('lazy')` returns first, then executes, and re-renders the content after execution.
 
 ### Server Side Element
 

@@ -10,7 +10,8 @@
   "main": "src/index.ts",
   "exports": {
     ".": "./src/index.ts",
-    "./client": "./src/client/index.ts"
+    "./client": "./src/client/index.ts",
+    "./decorators": "./src/decorators.ts"
   },
   "scripts": {
     "test": "tsx --test",

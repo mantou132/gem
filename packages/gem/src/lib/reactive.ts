@@ -29,8 +29,12 @@ let hydrationEngine = (_value: unknown, _container: HTMLElement | DocumentFragme
   return;
 };
 
-export function setHydrationEngine(engine: typeof hydrationEngine) {
+// 在元素首次渲染前恢复 SSR 的状态
+let restoreState: ((ele: GemElement) => void) | undefined;
+
+export function setHydrationEngine(engine: typeof hydrationEngine, restore?: typeof restoreState) {
   hydrationEngine = engine;
+  restoreState = restore;
 }
 
 const { assign, defineProperty } = Object;
@@ -526,6 +530,7 @@ export abstract class GemElement extends HTMLElement {
     if (!mode && this.#renderList.length && !penetrable) this.#internals.states.add(BoundaryCSSState);
 
     this.#disconnectStore = observedStores?.map((store) => connect(store, this.#update));
+    restoreState?.(this);
     this.#render(this.#renderItem);
     this.#isMounted = true;
     this.#clearStyle = this.#prepareStyle();
