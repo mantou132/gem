@@ -161,3 +161,23 @@ describe('基本 gem element 测试', () => {
     expect(el.renderCount).to.equal(2);
   });
 });
+
+@customElement('gem-name-state')
+class GemNameStateElement extends GemElement {
+  state = createState({ name: 'guest' });
+
+  render() {
+    return html`${this.state.name}`;
+  }
+}
+
+describe('state `name` 字段', () => {
+  it('create and update state', async () => {
+    const el: GemNameStateElement = await fixture(html`<gem-name-state></gem-name-state>`);
+    expect(el.textContent).to.equal('guest');
+    el.state({ name: 'admin' });
+    await Promise.resolve();
+    expect({ ...el.state }).to.deep.equal({ name: 'admin' });
+    expect(el.textContent).to.equal('admin');
+  });
+});

@@ -1,4 +1,4 @@
-const { assign, fromEntries, entries, keys } = Object;
+const { assign, fromEntries, entries, keys, defineProperty, hasOwn } = Object;
 
 // 用原生 Chrome 找不到调用栈
 function queueMicrotask(cb: () => void) {
@@ -29,6 +29,16 @@ type OverrideFn = {
   [Symbol.metadata]: never;
 };
 
+// 删除后继承的 `name` `length` 只读，直接赋值会报错，需要先定义成自有属性
+export function assignState(state: any, payload: any) {
+  for (const key of ['name', 'length']) {
+    if (payload && hasOwn(payload, key)) {
+      defineProperty(state, key, { value: payload[key], writable: true, enumerable: true, configurable: true });
+    }
+  }
+  assign(state, payload);
+}
+
 // 注意 typeof state === 'function' 但是没有 Function 的方法和属性
 export function createUpdater<T, Fn = (payload?: Partial<T>) => any>(initState: T, fn: Fn) {
   const state: any = fn;
@@ -36,7 +46,7 @@ export function createUpdater<T, Fn = (payload?: Partial<T>) => any>(initState: 
   // setPrototypeOf(state, null);
   delete state.name;
   delete state.length;
-  assign(state, initState);
+  assignState(state, initState);
   // ts 不允许直接 Omit 掉 Fn 上的属性
   // 只能利用 ts plugin 移除多余的自动完成项
   return state as Fn & Omit<OverrideFn, keyof T> & T;

@@ -6,6 +6,7 @@ import { connect } from './store';
 import {
   addListener,
   addMicrotask,
+  assignState,
   createUpdater,
   GemError,
   isArrayChange,
@@ -343,7 +344,7 @@ export abstract class GemElement extends HTMLElement {
         if (!ssrNativeQueueMicrotask && ele.#isMounted && effect && !effect.initialized) {
           throw new GemError(`Don't set state sync before insert the DOM`);
         }
-        assign(state, payload);
+        assignState(state, payload);
         // 避免无限刷新
         // 挂载前 set state 不应该触发更新
         // SSR 中渲染 <gem-route>，其他情况的 SSR 应该也可以执行
