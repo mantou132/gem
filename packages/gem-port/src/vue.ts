@@ -1,122 +1,91 @@
-import { mkdirSync, writeFileSync } from 'node:fs';
-import { resolve } from 'node:path';
-
-import { getComponentName, getElementPathList, getFileElements, getJsDocDescName, getRelativePath } from './common';
+import { generateComponents, getComponentInfo, getEventsType, getExposeType, getPropsType, toJs } from './common';
 
 /**
- * 只用 ts 声明，有两个问题：
- * 
- * - 事件类型不知道写
- * - attribute 和 prop 写法不同
-interface DuoyunButtonHTMLAttributes extends HTMLAttributes {
-  type?: string;
-  color?: string;
-  small?: boolean;
-  disabled?: boolean;
-  dropdown?: any;
-  route?: any;
-  params?: any;
-  query?: any;
-  icon?: any;
-}
+ * Vue 3 自动按 `in` 判断设置 Property，Hydration 也会设置自定义元素的 Property，所以属性和事件都直接透传
+ */
+const runtime = `import { defineComponent, h, ref } from 'vue';
 
-declare module '@vue/runtime-dom' {
-  interface IntrinsicElementAttributes {
-    'dy-button': DuoyunButtonHTMLAttributes
+export function createComponent(name, tag, { members }) {
+  return defineComponent({
+    name,
+    inheritAttrs: false,
+    setup(_, { attrs, slots, expose }) {
+      const element = ref();
+      expose(
+        Object.defineProperties(
+          {},
+          Object.fromEntries(
+            members.map((key) => [
+              key,
+              {
+                get: () => {
+                  const value = element.value[key];
+                  return typeof value === 'function' ? value.bind(element.value) : value;
+                },
+              },
+            ]),
+          ),
+        ),
+      );
+      return () => h(tag, { ...attrs, ref: element }, slots.default?.());
+    },
+  });
+}
+`;
+
+/**
+ * 类型声明参考：
+ * https://vuejs.org/guide/extras/web-components.html#non-vue-web-components-and-typescript
+ */
+export async function generateVue(elementsDir: string, outDir: string, ns: string) {
+  await generateComponents(elementsDir, outDir, ns, {
+    runtime,
+    getJs: (details) => `import { createComponent } from './_runtime.js';
+
+${details
+  .map((detail) => {
+    const { componentName, members } = getComponentInfo(detail);
+    return `export const ${componentName} = createComponent('${componentName}', '${detail.name}', ${toJs({ members })});`;
+  })
+  .join('\n')}
+`,
+    getDts: (details) => {
+      const elements = details.map((detail) => {
+        const { name: tag, constructorName } = detail;
+        const { componentName, members, events } = getComponentInfo(detail);
+        // 避免和 `HTMLAttributes` 中的同名原生事件（例如 `onChange`）冲突
+        const omitKeys = [`keyof ${componentName}Props`, ...Object.keys(events).map((key) => `'${key}'`)].join(' | ');
+        const typeProps = `
+          /** @deprecated only for template type checking */
+          $props: Omit<HTMLAttributes, ${omitKeys}> & ${componentName}Props & PublicProps;
+          /** @deprecated only for template type checking */
+          $emit: EmitFn<${componentName}Events>;`;
+        return {
+          tag,
+          type: `
+export type ${componentName}Props = ${getPropsType(detail)};
+export type ${componentName}Events = ${getEventsType(detail)};
+export type ${componentName}Expose = ${getExposeType(detail, members)};
+export declare const ${componentName}: new () => ${componentName}Expose & {
+  ${typeProps}
+  /** @deprecated only for template type checking */
+  $slots: { default?: () => any };
+};
+type ${componentName}Element = new () => ${constructorName} & {
+  ${typeProps}
+};`,
+          componentName,
+        };
+      });
+      return `import type { EmitFn, HTMLAttributes, PublicProps } from 'vue';
+${elements.map(({ type }) => type).join('\n')}
+
+declare module 'vue' {
+  interface GlobalComponents {
+    ${elements.map(({ tag, componentName }) => `'${tag}': ${componentName}Element;`).join('\n')}
   }
 }
- */
-
-export async function generateVue(elementsDir: string, outDir: string) {
-  mkdirSync(outDir, { recursive: true });
-
-  const processFile = async (elementFilePath: string) => {
-    const elements = await getFileElements(elementFilePath);
-    elements.forEach(({ name: tag, properties, constructorName, methods, events }) => {
-      const componentName = getComponentName(tag);
-      const componentExposeName = `${componentName}Expose`;
-      const relativePath = getRelativePath(elementFilePath, outDir);
-      const settableProperties = properties.filter((e) => !e.getter && !e.event);
-      const getters = properties.filter((e) => e.getter);
-      writeFileSync(
-        resolve(outDir, `${componentName}.vue`),
-        `
-        <script setup lang="ts">
-        import { ref, defineProps, defineEmits, defineExpose, onMounted } from 'vue'
-        import { ${constructorName} } from '${relativePath}';
-        
-        const elementRef = ref<${constructorName}>();
-        
-        const props = defineProps<{
-          ${settableProperties
-            .map(({ name, deprecated }) =>
-              [getJsDocDescName(name, deprecated), `${constructorName}['${name}']`].join('?: '),
-            )
-            .join(',\n')}
-        }>();
-        
-        const emit = defineEmits<{
-          ${properties
-            .filter(({ event }) => !!event)
-            .map(({ name, deprecated }) =>
-              [
-                getJsDocDescName(name, deprecated),
-                `[event: CustomEvent<Parameters<${constructorName}['${name}']>[0]>]`,
-              ].join(': '),
-            )
-            .join(',\n')}
-        }>()
-
-        type ${componentExposeName} = {
-          ${[...methods, ...getters]
-            .map(({ name, deprecated }) =>
-              [getJsDocDescName(name, deprecated), `${constructorName}['${name}']`].join(': '),
-            )
-            .join(';\n')}
-        }
-        
-        defineExpose<${componentExposeName}>({
-          ${methods
-            .map(
-              ({ name }) => `
-                ${name}(...args) {
-                  return elementRef.value!.${name}(...args)
-                },
-              `,
-            )
-            .join('')}
-          ${getters
-            .map(
-              ({ name }) => `
-                get ${name}() {
-                  return elementRef.value!.${name}
-                },
-              `,
-            )
-            .join('')}
-        })
-        
-        </script>
-
-        <script lang="ts">
-        export * from '${relativePath}';
-        export default {
-          name: '${componentName}',
-        };
-        </script>
-        
-        <template>
-          <${tag}
-            ref="elementRef"
-            ${settableProperties.map(({ name }) => `.${name}="props.${name}"`).join(' ')}
-            ${events.map((event) => [`@${event}`, `"e => emit('${event}', e)"`].join('=')).join(' ')}>
-            <slot />
-          </${tag}>
-        </template>
-      `,
-      );
-    });
-  };
-
-  await Promise.all(getElementPathList(elementsDir).map(processFile));
+`;
+    },
+  });
 }

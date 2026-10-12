@@ -1,111 +1,108 @@
 import {
-  compile,
-  getComponentName,
-  getElementPathList,
-  getFileElements,
-  getJsDocDescName,
-  getRelativePath,
+  generateComponents,
+  getComponentInfo,
+  getEventProp,
+  getEventsType,
+  getExposeType,
+  getPropsType,
+  toJs,
 } from './common';
 
-async function createReactSourceFile(elementFilePath: string, outDir: string) {
-  const elementDetailList = await getFileElements(elementFilePath);
-  return Object.fromEntries(
-    elementDetailList.map(({ name: tag, constructorName, properties, methods }) => {
-      const componentName = getComponentName(tag);
-      const componentPropsName = `${componentName}Props`;
-      const componentExposeName = `${componentName}Expose`;
-      const relativePath = getRelativePath(elementFilePath, outDir);
-      const getters = properties.filter((e) => e.getter);
-      const settableProperties = properties.filter((e) => !e.getter && !e.event);
-      return [
-        `${componentName}.tsx`,
-        `
-          import React, { HTMLAttributes, RefAttributes } from 'react';
-          import React, { ForwardRefExoticComponent, forwardRef, useImperativeHandle, useRef, useLayoutEffect } from 'react';
-          import { ${constructorName} } from '${relativePath}';
-          export * from '${relativePath}';
-        
-          export type ${componentPropsName} = HTMLAttributes<HTMLDivElement> & RefAttributes<${constructorName}> & {
-            ${properties
-              .map(({ name, getter, event, deprecated }) =>
-                event
-                  ? [
-                      getJsDocDescName(`'on${event}'`, deprecated),
-                      `(event: CustomEvent<Parameters<${constructorName}['${name}']>[0]>) => void`,
-                    ].join('?:')
-                  : !getter
-                    ? [getJsDocDescName(name, deprecated), `${constructorName}['${name}']`].join('?:')
-                    : '',
-              )
-              .join(';\n')}
-          };
+const runtime = `import { createElement, useImperativeHandle, useLayoutEffect, useRef } from 'react';
 
-          export type ${componentExposeName} = {
-            ${[...methods, ...getters]
-              .map(({ name, deprecated }) =>
-                [getJsDocDescName(name, deprecated), `${constructorName}['${name}']`].join(': '),
-              )
-              .join(';\n')}
-          }
-        
-          declare global {
-            namespace JSX {
-              interface IntrinsicElements {
-                '${tag}': ${componentPropsName};
-              }
-            }
-          }
-        
-          export const ${componentName}: ForwardRefExoticComponent<Omit<${componentPropsName}, "ref"> & RefAttributes<${componentExposeName}>> = forwardRef<${componentExposeName}, ${componentPropsName}>(function (props, ref): JSX.Element {
-            const elementRef = useRef<${constructorName}>(null);
-            useImperativeHandle(ref, () => {
-              return {
-                ${methods
-                  .map(
-                    ({ name }) => `
-                      ${name}(...args) {
-                        return elementRef.current!.${name}(...args)
-                      },
-                    `,
-                  )
-                  .join('')}
-                  ${getters
-                    .map(
-                      ({ name }) => `
-                        get ${name}() {
-                          return elementRef.current!.${name}
-                        },
-                      `,
-                    )
-                    .join('')}
-              };
-            }, []);
-            
-            // React Bug?
-            useLayoutEffect(() => {
-              const element = elementRef.current!;
-              ${JSON.stringify(settableProperties.map(({ name }) => name))}.map(name => {
-                element[name] = props[name];
-              })
-            }, [])
+export function createComponent(tag, { properties, events, members }) {
+  return function Component({ ref, ...props }) {
+    const elementRef = useRef(null);
+    const propsRef = useRef(props);
+    propsRef.current = props;
 
-            return <${tag} ref={elementRef} {...props}></${tag}>;
-          })
+    useImperativeHandle(
+      ref,
+      () =>
+        Object.defineProperties(
+          {},
+          Object.fromEntries(
+            members.map((name) => [
+              name,
+              {
+                get: () => {
+                  const element = elementRef.current;
+                  const value = element[name];
+                  return typeof value === 'function' ? value.bind(element) : value;
+                },
+              },
+            ]),
+          ),
+        ),
+      [],
+    );
 
-          export default ${componentName};
-        `,
-      ];
-    }),
-  );
-}
+    // React hydration 不会设置自定义元素的 Property 和事件，所以都由组件设置
+    useLayoutEffect(() => {
+      const element = elementRef.current;
+      properties.forEach((name) => {
+        if (name in props) element[name] = props[name];
+      });
+    }, properties.map((name) => props[name]));
 
-export async function compileReact(elementsDir: string, outDir: string) {
-  const fileSystem: Record<string, string> = {};
+    useLayoutEffect(() => {
+      const element = elementRef.current;
+      const listeners = Object.entries(events).map(([key, type]) => [type, (evt) => propsRef.current[key]?.(evt)]);
+      listeners.forEach(([type, listener]) => element.addEventListener(type, listener));
+      return () => listeners.forEach(([type, listener]) => element.removeEventListener(type, listener));
+    }, []);
 
-  const processFile = async (elementFilePath: string) => {
-    Object.assign(fileSystem, await createReactSourceFile(elementFilePath, outDir));
+    const attrs = Object.fromEntries(
+      Object.entries(props).filter(([key]) => !properties.includes(key) && !(key in events)),
+    );
+    return createElement(tag, { ...attrs, ref: elementRef });
   };
+}
+`;
 
-  await Promise.all(getElementPathList(elementsDir).map(processFile));
-  compile(outDir, fileSystem);
+export async function generateReact(elementsDir: string, outDir: string, ns: string) {
+  await generateComponents(elementsDir, outDir, ns, {
+    runtime,
+    getJs: (details) => `import { createComponent } from './_runtime.js';
+
+${details
+  .map((detail) => {
+    const { componentName, properties, events, members } = getComponentInfo(detail);
+    return `export const ${componentName} = createComponent('${detail.name}', ${toJs({ properties, events, members })});`;
+  })
+  .join('\n')}
+`,
+    getDts: (details) => {
+      const elements = details.map((detail) => {
+        const { name: tag, constructorName } = detail;
+        const { componentName, members } = getComponentInfo(detail);
+        const htmlProps = `DetailedHTMLProps<HTMLAttributes<${constructorName}>, ${constructorName}>`;
+        return {
+          tag,
+          componentName,
+          type: `
+type ${componentName}Attributes = ${getPropsType(detail)};
+export type ${componentName}Props = Omit<${htmlProps}, keyof ${componentName}Attributes | keyof ${componentName}Events | 'ref'> &
+  ${componentName}Attributes & Partial<${componentName}Events> & { ref?: Ref<${componentName}Expose> };
+export type ${componentName}Events = ${getEventsType(detail, getEventProp)};
+export type ${componentName}Expose = ${getExposeType(detail, members)};
+export declare const ${componentName}: FC<${componentName}Props>;
+type ${componentName}ElementEvents = Partial<${getEventsType(detail, (event) => `on${event}`)}>;
+type ${componentName}ElementProps = Omit<${htmlProps}, keyof ${componentName}Attributes | keyof ${componentName}ElementEvents> &
+  ${componentName}Attributes & ${componentName}ElementEvents;`,
+        };
+      });
+      return `import type { DetailedHTMLProps, FC, HTMLAttributes, Ref } from 'react';
+${elements.map(({ type }) => type).join('\n')}
+
+declare module 'react' {
+  namespace JSX {
+    interface IntrinsicElements {
+      ${elements.map(({ tag, componentName }) => `'${tag}': ${componentName}ElementProps;`).join('\n')}
+    }
+  }
+}
+`;
+    },
+  });
 }

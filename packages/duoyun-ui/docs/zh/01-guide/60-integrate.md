@@ -1,16 +1,37 @@
 # 在 React 等项目中使用
 
 [大多数前端框架/库](https://custom-elements-everywhere.com/)都能无缝使用自定义元素，比如分配 Attribute/Property，注册事件，
-但是直接使用自定义元素没有[类型提示](https://code.visualstudio.com/docs/editor/intellisense)，所以 DuoyunUI 进行了重导出，完美适配了 React/Vue/Svelte。
+但是直接使用自定义元素没有[类型提示](https://code.visualstudio.com/docs/editor/intellisense)，所以 DuoyunUI 为 React/Vue/Svelte 分别导出了组件，
+导入和使用方式在三个框架中保持一致：
+
+- 从 `duoyun-ui/<react|vue|svelte>/<element>` 导入组件，例如 `import { DyInput } from 'duoyun-ui/react/input'`
+- 事件使用 `on` + 驼峰事件名，例如 `onChange`（Vue 中为 `@change`）
+- 组件 `ref` 可以调用元素的方法和 getter
+
+导入后也可以直接使用自定义元素（例如 `<dy-input>`），同样具有类型提示。
 
 ## React
 
 > [!NOTE]
 > React 19 才支持自定义元素，请确保安装 React 19。
 
-跟使用其他 React 组件库一样使用 DuoyunUI：
+```tsx
+import { useRef, useState } from 'react';
+import { DyInput } from 'duoyun-ui/react/input';
+import { DyColorPicker, type DyColorPickerExpose } from 'duoyun-ui/react/color-picker';
 
-<gbp-raw range="import DyCard,<DyCard-</DyCard>" src="https://raw.githubusercontent.com/mantou132/nextjs-learn/main/pages/ce-test.tsx"></gbp-raw>
+function Page() {
+  const ref = useRef<DyColorPickerExpose>(null);
+  const [value, setValue] = useState('');
+  return (
+    <>
+      <DyInput value={value} clearable onChange={(evt) => setValue(evt.detail)}></DyInput>
+      <DyColorPicker ref={ref}></DyColorPicker>
+      <button onClick={() => ref.current?.showPicker()}>Pick</button>
+    </>
+  );
+}
+```
 
 ### 在 `<dy-route>` 中使用 React 组件
 
@@ -48,43 +69,26 @@ const routes = {
 } satisfies RoutesObject;
 ```
 
-### 在 Property 上使用 React 组件
-
-一些元素支持自定义渲染内容，例如 `<dy-card>` 的 `header`：
-
-```ts
-function Page() {
-  return <DyCard header={html`<div>No.</div>`}></DyCard>;
-}
-```
-
-如果要渲染 React 组件，则需要先渲染到 `HTMLElement` 上，可以通过自定义 Hooks 实现：
-
-```tsx
-function useReactNode(node: ReactNode) {
-  const ref = useRef<{ root: Root; container: HTMLElement }>();
-  useEffect(() => () => ref.current?.root.unmount(), []);
-  if (ref.current) {
-    ref.current.root.render(node);
-    return ref.current.container;
-  }
-  const container = document.createElement('div');
-  container.style.display = 'contents';
-  const root = createRoot(container);
-  ref.current = { root, container };
-  root.render(node);
-  return container;
-}
-
-function Page() {
-  return <DyCard header={useReactNode(<>No</>)}></DyCard>;
-}
-```
-
 ## Vue
 
-DuoyunUI 也导出了 Vue 组件，使用和 React 一样，唯一的区别是路径将 `react` 改成 `vue`，
-另外需要在 Vue 配置文件中指定自定义元素：
+```vue
+<script setup lang="ts">
+import { ref, useTemplateRef } from 'vue';
+import { DyInput } from 'duoyun-ui/vue/input';
+import { DyColorPicker } from 'duoyun-ui/vue/color-picker';
+
+const value = ref('');
+const picker = useTemplateRef('picker');
+</script>
+
+<template>
+  <DyInput :value="value" clearable @change="(evt) => (value = evt.detail)"></DyInput>
+  <DyColorPicker ref="picker"></DyColorPicker>
+  <button @click="picker?.showPicker()">Pick</button>
+</template>
+```
+
+如果要直接使用自定义元素，需要在 Vue 配置文件中指定：
 
 ```js
 {
@@ -94,15 +98,24 @@ DuoyunUI 也导出了 Vue 组件，使用和 React 一样，唯一的区别是�
 }
 ```
 
-在 Vue 中也支持直接写自定义元素，但是要[区分](../02-elements/card.md#api)是 Attribute 还是 Property：
-
-<gbp-raw codelang="html" range="34-45" src="https://raw.githubusercontent.com/mantou132/nuxtjs-learn/main/pages/test.vue"></gbp-raw>
-
 ## Svelte
 
-DuoyunUI 没有重导出为 Svelte 组件，直接使用自定义元素即可：
+```svelte
+<script lang="ts">
+  import { DyInput } from 'duoyun-ui/svelte/input';
+  import { DyColorPicker } from 'duoyun-ui/svelte/color-picker';
 
-<gbp-raw codelang="html" range="2-9,44-55" src="https://raw.githubusercontent.com/mantou132/sveltekit-learn/main/src/routes/ce-test/+page.svelte"></gbp-raw>
+  let value = $state('');
+  let picker: ReturnType<typeof DyColorPicker> | undefined = $state();
+</script>
+
+<DyInput {value} clearable onChange={(evt) => (value = evt.detail)}></DyInput>
+<DyColorPicker bind:this={picker}></DyColorPicker>
+<button onclick={() => picker?.showPicker()}>Pick</button>
+```
+
+> [!NOTE]
+> Svelte 组件实例只能导出函数，所以元素的 getter 需要以函数的形式调用，例如 `form.data()`。
 
 > [!NOTE]
 > 使用 `SvelteKit` 请确保 `svelte` 安装成 `dependencies` 而非 `devDependencies`，否则类型不能成功导入；
@@ -111,7 +124,7 @@ DuoyunUI 没有重导出为 Svelte 组件，直接使用自定义元素即可：
 > ```js
 > {
 >   ssr: {
->     noExternal: ['@mantou/gem', 'duoyun-ui'];
+>     noExternal: ['@mantou/gem', '@mantou/tap-ui', 'duoyun-ui'];
 >   }
 > }
 > ```

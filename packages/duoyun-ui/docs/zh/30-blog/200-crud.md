@@ -24,7 +24,7 @@ render(html`<dy-pat-console></dy-pat-console>`, document.body);
 
 ```tsx React
 import { createRoot } from 'react-dom/client';
-import DyPatConsole from 'duoyun-ui/react/DyPatConsole';
+import { DyPatConsole } from 'duoyun-ui/react/pat-console';
 
 createRoot(document.body).render(<DyPatConsole />);
 ```
