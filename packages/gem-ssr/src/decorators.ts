@@ -1,15 +1,15 @@
 import type { GemElement } from '@mantou/gem';
+import { isServer } from '@mantou/gem/lib/ssr';
 
 // SSR 输出的元素状态，值是 `internals.stateList` 的 JSON
 export const SSR_STATE = 'ssr-state';
 
-// 服务端和客户端共享，服务端渲染器导入时设置 `isServer`
+// 服务端和客户端共享
 export const ssrContext = {
-  isServer: false,
   // 渲染期间等待执行的服务端方法
-  tasks: new Map<GemElement, (() => Promise<unknown>)[]>(),
+  tasks: new WeakMap<GemElement, (() => Promise<unknown>)[]>(),
   // 执行过服务端方法的元素，需要输出状态
-  stateElements: new Set<GemElement>(),
+  stateElements: new WeakSet<GemElement>(),
   // 刚恢复了 SSR 状态的元素，首轮副作用执行完后移除
   restoredElements: new WeakSet<GemElement>(),
 };
@@ -30,14 +30,14 @@ export const ssrContext = {
 export function server<T extends GemElement, V extends (...args: any[]) => any>() {
   return (value: V | undefined, context: ClassFieldDecoratorContext<T, V> | ClassMethodDecoratorContext<T, V>): any => {
     context.addInitializer(function (this: T) {
-      if (!ssrContext.isServer) return;
+      if (!isServer) return;
       const fn = async () => context.access.get.call(this, this).call(this);
       ssrContext.tasks.set(this, [...(ssrContext.tasks.get(this) || []), fn]);
     });
     const wrap = (fn: V) =>
       function (this: T, ...args: Parameters<V>) {
         // 状态已经由服务端执行后的结果恢复
-        if (!ssrContext.isServer && ssrContext.restoredElements.has(this)) return;
+        if (!isServer && ssrContext.restoredElements.has(this)) return;
         return fn.apply(this, args);
       };
     return context.kind === 'method' ? wrap(value!) : wrap;

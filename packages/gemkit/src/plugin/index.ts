@@ -26,6 +26,8 @@ export interface GemkitOptions extends GemkitConfig {
 
 const packageDir = fileURLToPath(new URL('..', import.meta.url));
 
+const PRERENDER_CONCURRENCY = 8;
+
 // 只处理页面和页面数据请求，其他请求交给 Rsbuild
 const ssrMiddleware =
   (getHandler: () => Promise<Handler>) =>
@@ -138,7 +140,8 @@ export function pluginGemkit(options: GemkitOptions = {}): RsbuildPlugin {
         fs.renameSync(path.join(webDir, 'index.html'), template);
         if (!prerender) return;
         const { renderer, template: html } = await loadRenderer(distDir);
-        for (const pathname of await renderer.getPaths()) {
+        const paths = await renderer.getPaths();
+        const prerenderPage = async (pathname: string) => {
           const result = await renderer.renderDocument(html, pathname);
           writeFile(webDir, path.posix.join(pathname, 'index.html'), result.html);
           // 静态托管时客户端导航使用的数据
@@ -146,7 +149,15 @@ export function pluginGemkit(options: GemkitOptions = {}): RsbuildPlugin {
             const dataPath = getDataPath(pathname);
             writeFile(webDir, dataPath, JSON.stringify((await renderer.loadData(dataPath)).data));
           }
-        }
+        };
+        // 每个请求的状态是独立的，可以并行渲染
+        await Promise.all(
+          Array.from({ length: PRERENDER_CONCURRENCY }, async () => {
+            for (let pathname = paths.shift(); pathname !== undefined; pathname = paths.shift()) {
+              await prerenderPage(pathname);
+            }
+          }),
+        );
         // 静态托管服务使用的 404 页面
         const notFound = await renderer.renderDocument(html, '/__gemkit_404__');
         if (notFound.status === 404) fs.writeFileSync(path.join(webDir, '404.html'), notFound.html);

@@ -2,6 +2,7 @@ import type { RouteTrigger } from '../elements/base/route';
 import type { UpdateHistoryParams } from '../lib/history';
 import type { TemplateResult } from '../lib/lit-html';
 import { html, UpdateToken } from '../lib/reactive';
+import { isolate } from '../lib/ssr';
 import { GemError } from '../lib/utils';
 import { logger } from './logger';
 
@@ -65,12 +66,22 @@ interface I18nOptions<T> {
 export class I18n<T = Record<string, Msg>> implements RouteTrigger {
   resources: Resources<T>;
   fallbackLanguage: string;
-  currentLanguage: string;
   cache?: boolean | 'manual';
   cachePrefix = 'gem-i18n';
   urlParamsType?: 'path' | 'querystring' | 'ccTLD' | 'gTLD';
   urlParamsName?: string;
   onChange?: (currentLanguage: string) => void;
+
+  // SSR 时每个请求使用独立的语言
+  #state = isolate({ currentLanguage: '' });
+
+  get currentLanguage() {
+    return this.#state.currentLanguage;
+  }
+
+  set currentLanguage(lang: string) {
+    this.#state.currentLanguage = lang;
+  }
 
   // 兼容 `<gem-route>`
   replace = ({ path }: UpdateHistoryParams) => this.setLanguage(path!);

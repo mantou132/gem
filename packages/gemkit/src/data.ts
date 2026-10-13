@@ -1,5 +1,5 @@
-import { history } from '@mantou/gem';
-import { ssrContext } from '@mantou/gem-ssr/decorators';
+import { createStore, history } from '@mantou/gem';
+import { isServer } from '@mantou/gem/lib/ssr';
 
 import { DATA_SCRIPT_ID, getDataPath } from './constants';
 import type { Params } from './page';
@@ -31,8 +31,8 @@ export function getServerModule(tag: string) {
   return serverModules[tag]?.();
 }
 
-/** 服务端渲染时加载的数据，渲染后输出到页面中，水合时直接使用 */
-export const ssrData: { current?: { path: string; data: unknown } } = {};
+/** 服务端渲染时加载的数据，渲染后输出到页面中，水合时直接使用，每个请求有独立的值 */
+export const ssrData = createStore<{ current?: { path: string; data: unknown } }>({});
 
 /** 执行服务端模块的 `load`，结果转换成 JSON 值，保证客户端拿到的数据和服务端一致 */
 export async function runServerLoad(tag: string, params: Params, url: URL) {
@@ -51,7 +51,7 @@ function takeSSRData(path: string) {
 
 export async function loadServerData(tag: string, params: Params) {
   const { path } = history.getParams();
-  if (ssrContext.isServer) {
+  if (isServer) {
     const data = await runServerLoad(tag, params, new URL(location.href));
     ssrData.current = { path, data };
     return data;

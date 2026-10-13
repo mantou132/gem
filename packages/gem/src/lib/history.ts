@@ -1,5 +1,6 @@
 // https://github.com/WICG/navigation-api#stakeholder-feedback
 
+import { getRequestValue } from './ssr';
 import { connect, createStore } from './store';
 import { absoluteLocation, cleanObject, GemError, QueryString } from './utils';
 
@@ -45,7 +46,11 @@ type HistoryParams = Omit<UpdateHistoryParams, 'query'> & {
   hash: string;
 };
 
-const paramsMap = new Map<string, HistoryParams>();
+const globalParamsMap = new Map<string, HistoryParams>();
+// SSR 时每个请求使用独立的记录，请求结束后释放
+// 从全局复制初始记录（设置 basePath 等操作需要它），记录会被原地修改，所以也要复制
+const copyParamsMap = () => new Map([...globalParamsMap].map(([k, v]) => [k, { ...v }]));
+const getParamsMap = () => getRequestValue(globalParamsMap, copyParamsMap);
 
 function validData(data: any) {
   const { $key, $hasCloseHandle, $hasOpenHandle, $hasShouldCloseHandle } = data || {};
@@ -71,8 +76,7 @@ function dispatchBeforeChangeEvent() {
 
 function normalizeParams(params: UpdateHistoryParams): HistoryParams {
   const current =
-    paramsMap.get(store.$key) ||
-    ({ path: getInternalPath(location.pathname), query: new QueryString() } as HistoryParams);
+    gemHistory.getParams() || ({ path: getInternalPath(location.pathname), query: new QueryString() } as HistoryParams);
   // 没提供 path 使用当前 path
   const path = params.path ? absoluteLocation(current.path, params.path) : getInternalPath(location.pathname);
   // 没提供 query 又没有提供 path 时使用当前 search
@@ -100,7 +104,7 @@ function updateHistory(p: UpdateHistoryParams, native: typeof nativeHistory.push
     $title: title,
     ...data,
   };
-  paramsMap.set(state.$key, params);
+  getParamsMap().set(state.$key, params);
   dispatchBeforeChangeEvent();
   cleanObject(store);
   store(state);
@@ -120,7 +124,7 @@ function updateHistoryByNative(data: any, title: string, originUrl: string, nati
   };
   const { pathname, search, hash } = new URL(originUrl, location.origin + location.pathname);
   const params = normalizeParams({ path: pathname, query: new QueryString(search), hash, title, data });
-  paramsMap.set(state.$key, params);
+  getParamsMap().set(state.$key, params);
   dispatchBeforeChangeEvent();
   cleanObject(store);
   store(state);
@@ -149,13 +153,13 @@ class GemHistory extends EventTarget {
     // 应用初始化的时候设置
     gemBasePathStore({ basePath });
     // paramsMap 更新后 ui 才会更新
-    Object.assign(paramsMap.get(store.$key)!, { path: getInternalPath(location.pathname) });
+    Object.assign(this.getParams(), { path: getInternalPath(location.pathname) });
   }
   getParams() {
-    return paramsMap.get(store.$key)!;
+    return getParamsMap().get(store.$key)!;
   }
   updateParams(params: UpdateHistoryParams) {
-    Object.assign(paramsMap.get(store.$key)!, params);
+    Object.assign(this.getParams(), params);
     store();
   }
   push(params: UpdateHistoryParams) {
@@ -166,7 +170,7 @@ class GemHistory extends EventTarget {
   }
   pushIgnoreCloseHandle(params: UpdateHistoryParams) {
     if (store.$hasCloseHandle) {
-      paramsMap.get(store.$key)?.close?.();
+      this.getParams()?.close?.();
       this.replace(params);
     } else {
       this.push(params);
@@ -218,7 +222,7 @@ if (!globalThis._GEMHISTORY) {
   } else if (nativeHistory.state.$hasCloseHandle) {
     store(nativeHistory.state);
     const params = normalizeParams({ title: document.title });
-    paramsMap.set(store.$key, params);
+    getParamsMap().set(store.$key, params);
     // 有 handle 返回键的页面刷新需要清除返回 handler
     gemHistory.back();
   } else {
@@ -228,11 +232,11 @@ if (!globalThis._GEMHISTORY) {
       $key: getKey(),
       ...(nativeHistory.state || {}),
     });
-    paramsMap.set(store.$key, params);
+    getParamsMap().set(store.$key, params);
   }
 
   connect(gemTitleStore, () => {
-    const params = paramsMap.get(store.$key);
+    const params = gemHistory.getParams();
     if (params) {
       params.title = gemTitleStore.title;
     }
@@ -266,9 +270,9 @@ if (!globalThis._GEMHISTORY) {
     // 刷新后再导航需要从当前 state 中构建 params
     // 理论上该条历史记录中不会出现事件处理器
     // 子 app 导航也需要从 state 中构建 params
-    if (!paramsMap.has(newState.$key)) {
+    if (!getParamsMap().has(newState.$key)) {
       const { pathname, search, hash } = location;
-      paramsMap.set(newState.$key, {
+      getParamsMap().set(newState.$key, {
         path: getInternalPath(pathname),
         query: new QueryString(search),
         hash: decodeURIComponent(hash),
@@ -284,9 +288,9 @@ if (!globalThis._GEMHISTORY) {
       // 返回键关闭的 modal 能前进键重新打开
       // 刷新后不能工作：刷新后 historyItem 中只有 url
       // 能在子 app 中工作
-      paramsMap.get(newState.$key)?.open?.();
+      getParamsMap().get(newState.$key)?.open?.();
     } else if (prevState.$hasCloseHandle) {
-      const prevParams = paramsMap.get(prevState.$key);
+      const prevParams = getParamsMap().get(prevState.$key);
       const closeHandle = prevParams?.close;
       const shouldCloseHandle = prevParams?.shouldClose;
       const notAllowClose = shouldCloseHandle && !shouldCloseHandle();

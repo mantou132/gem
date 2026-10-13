@@ -41,10 +41,34 @@ Light DOM element styles are output into the element where they first appear, an
 
 Bindings inside `<style>`, `<script>`, `<textarea>` and `<title>` can be rendered, but not hydrated.
 
+## Concurrent requests
+
+Each render runs in its own request scope (`AsyncLocalStorage`), stores, `history`, `location` and
+the `I18n` language are isolated between requests, so requests are rendered concurrently.
+Keep request-specific state in stores, other module-level variables are shared by all requests.
+
+Each request gets a shallow copy of the store, so update the top-level properties instead of
+mutating nested objects, the in-place mutation is shared by all requests:
+
+```js
+userStore({ tags: [...userStore.tags, tag] }); // ✅
+userStore.tags.push(tag); // ❌
+```
+
+Use `runInRequest` to prepare state in the same scope before rendering:
+
+```js
+import { renderToString, runInRequest } from '@mantou/gem-ssr';
+
+const html = await runInRequest(async () => {
+  await i18n.setLanguage(lang);
+  return renderToString(html`<app-root></app-root>`, { url: req.url });
+});
+```
+
 ## Store
 
-Pass per-request store values with a key, the values after rendering are output to the page,
-and the stores are restored after rendering so other requests are not affected (JSON values only):
+Pass per-request store values with a key, the values after rendering are output to the page (JSON values only):
 
 ```js
 renderToString(html`<app-root></app-root>`, {

@@ -34,6 +34,11 @@ export type { HmrOptions, HmrTarget, UnpluginGemOptions } from './types.js';
 const TRANSFORM_EXTENSIONS = /\.(?:[cm]?[jt]s|[jt]sx)(?:[?#].*)?$/;
 const require = createRequire(import.meta.url);
 
+// Gem 读取 `@mantou/gem-ssr` 提供的 SSR 功能，客户端构建时替换成 `undefined` 后，SSR 代码会被压缩移除
+// 保持长度不变，不影响 sourcemap
+const SSR_HOOK = 'globalThis.__GEM_SSR__';
+const SSR_HOOK_REPLACEMENT = 'undefined'.padEnd(SSR_HOOK.length);
+
 export const unpluginFactory: UnpluginFactory<UnpluginGemOptions | undefined> = (options = {}, meta) => {
   const swcPluginPath = require.resolve('swc-plugin-gem');
   const hmrTarget = getHmrTarget(options, meta.framework);
@@ -41,6 +46,8 @@ export const unpluginFactory: UnpluginFactory<UnpluginGemOptions | undefined> = 
   const moduleInclude = toArray(options.include);
   const moduleExclude = toArray(options.exclude);
   let nonDomBuild = false;
+  // 无法判断时不移除 SSR 代码，例如 Rollup
+  let clientBuild = false;
   let esbuildUsesEntryProxy = false;
 
   return {
@@ -52,16 +59,22 @@ export const unpluginFactory: UnpluginFactory<UnpluginGemOptions | undefined> = 
       async handler(code, id, transformOptions?: { ssr?: boolean }) {
         if (!TRANSFORM_EXTENSIONS.test(id)) return;
         const filename = cleanId(id);
-        if (moduleInclude.length && !moduleInclude.some((pattern) => matchesFilter(filename, pattern))) return;
-        if (moduleExclude.some((pattern) => matchesFilter(filename, pattern))) return;
-        if (isHmrRuntimeId(filename, helper) || decodeVirtualEntry(filename)) return;
+
+        // 包括 `node_modules` 中的 Gem
+        const isClient = meta.framework === 'vite' ? !transformOptions?.ssr : clientBuild;
+        const stripped = isClient && code.includes(SSR_HOOK) ? code.replaceAll(SSR_HOOK, SSR_HOOK_REPLACEMENT) : code;
+        const skip = () => (stripped === code ? undefined : { code: stripped, map: null });
+
+        if (moduleInclude.length && !moduleInclude.some((pattern) => matchesFilter(filename, pattern))) return skip();
+        if (moduleExclude.some((pattern) => matchesFilter(filename, pattern))) return skip();
+        if (isHmrRuntimeId(filename, helper) || decodeVirtualEntry(filename)) return skip();
 
         try {
           const moduleHmrTarget = getHmrTransformTarget(hmrTarget, filename, hmrExclude, {
             nonDom: nonDomBuild,
             ssr: transformOptions?.ssr,
           });
-          const result = await transform(code, {
+          const result = await transform(stripped, {
             filename,
             sourceMaps: true,
             jsc: {
@@ -127,11 +140,13 @@ export const unpluginFactory: UnpluginFactory<UnpluginGemOptions | undefined> = 
 
     webpack(compiler) {
       nonDomBuild = isNonDomWebpackTarget(compiler.options.target);
+      clientBuild = !nonDomBuild;
       if (hmrTarget) prependGemHmrEntry(compiler, options);
     },
 
     rspack(compiler) {
       nonDomBuild = isNonDomWebpackTarget(compiler.options.target);
+      clientBuild = !nonDomBuild;
       if (hmrTarget) prependGemHmrEntry(compiler, options);
     },
 
@@ -170,6 +185,7 @@ export const unpluginFactory: UnpluginFactory<UnpluginGemOptions | undefined> = 
 
     rolldown: {
       options(inputOptions) {
+        clientBuild = inputOptions.platform !== 'node';
         if (!hmrTarget) return;
         inputOptions.input = wrapRollupInput(inputOptions.input, hmrInclude, hmrExclude);
       },
@@ -185,9 +201,10 @@ export const unpluginFactory: UnpluginFactory<UnpluginGemOptions | undefined> = 
 
     esbuild: {
       config(initialOptions) {
+        nonDomBuild = initialOptions.platform === 'node';
+        clientBuild = !nonDomBuild;
         if (!hmrTarget) return;
         esbuildUsesEntryProxy = false;
-        nonDomBuild = initialOptions.platform === 'node';
         if (nonDomBuild) return;
 
         const helperPath = resolveHelperFromContext(initialOptions.absWorkingDir, helper);

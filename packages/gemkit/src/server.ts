@@ -4,7 +4,7 @@ import '@mantou/gem-ssr';
 import { history, type TemplateResult, titleStore } from '@mantou/gem';
 import { matchPath } from '@mantou/gem/elements/route';
 import type { I18n } from '@mantou/gem/helper/i18n';
-import { renderToString } from '@mantou/gem-ssr';
+import { renderToString, runInRequest } from '@mantou/gem-ssr';
 
 import { DATA_FILE, DATA_SCRIPT_ID, trimTrailingSlash } from './constants';
 import { getServerModule, runServerLoad, type ServerModule, setServerModules, ssrData } from './data';
@@ -57,14 +57,6 @@ export function createRenderer({
 }: RendererOptions) {
   setServerModules(serverModules);
 
-  // 渲染时会修改全局的 history 和 i18n，所以串行执行
-  let queue: Promise<unknown> = Promise.resolve();
-  const enqueue = <T>(fn: () => Promise<T>) => {
-    const task = queue.then(fn);
-    queue = task.catch(() => {});
-    return task;
-  };
-
   const findPage = (path: string) => {
     for (const page of pages) {
       const params = matchPath(page.pattern, path);
@@ -79,11 +71,11 @@ export function createRenderer({
     return { lang, path };
   };
 
+  // 每个请求有独立的 history、i18n 和 store
   const render = (url: string) =>
-    enqueue(async (): Promise<RenderResult> => {
+    runInRequest(async (): Promise<RenderResult> => {
       const { origin, pathname, search } = new URL(url, 'http://localhost');
       const { lang, path } = await setLanguage(pathname);
-      ssrData.current = undefined;
       const body = await renderToString(app, { url: `${origin}${path}${search}` });
       return {
         status: findPage(path) ? 200 : 404,
@@ -96,7 +88,7 @@ export function createRenderer({
 
   /** 处理客户端导航时的数据请求，`url` 是页面路径加上 `/__data.json` */
   const loadData = (url: string) =>
-    enqueue(async () => {
+    runInRequest(async () => {
       const { origin, pathname, search } = new URL(url, 'http://localhost');
       const pagePathname = pathname.slice(0, -DATA_FILE.length - 1) || '/';
       const { path } = await setLanguage(pagePathname);

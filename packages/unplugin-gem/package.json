@@ -57,7 +57,7 @@
   "scripts": {
     "build": "tsc",
     "start": "pnpm build --watch",
-    "test": "pnpm build && node --experimental-strip-types --test hmr.test.ts",
+    "test": "pnpm build && node --experimental-strip-types --test hmr.test.ts ssr.test.ts",
     "prepublishOnly": "pnpm build"
   },
   "keywords": [

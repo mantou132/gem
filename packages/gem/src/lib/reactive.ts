@@ -1,6 +1,7 @@
 // biome-ignore-all lint/plugin/no_this_effect: 兼容生命周期
 
 import type * as Lit from './lit-html';
+import { isServer } from './ssr';
 import type { Store } from './store';
 import { connect } from './store';
 import {
@@ -44,8 +45,6 @@ const { assign, defineProperty } = Object;
 defineProperty(Symbol, 'metadata', { value: Symbol.for('Symbol.metadata') });
 
 const execCallback = (fun: any) => typeof fun === 'function' && fun();
-
-const ssrNativeQueueMicrotask = (globalThis as any).nQM;
 
 // 读取构造样式表，跨多个 gem 工作
 export const SheetToken = Symbol.for('gem@sheetToken');
@@ -191,7 +190,7 @@ const updateStyleSheets = (map: Map<CSSStyleSheet, number>, sheets: CSSStyleShee
   if (needUpdate) {
     // 避免重复更新，例如 list 元素增删，全 light dom 时 document 更新
     // 在 SSR 中应该区别 effect 强制执行
-    addMicrotask(rootUpdateFnMap.get(map)!, ssrNativeQueueMicrotask);
+    addMicrotask(rootUpdateFnMap.get(map)!);
   }
 };
 
@@ -345,14 +344,14 @@ export abstract class GemElement extends HTMLElement {
         const effect = ele.#effectList.at(0);
         // https://github.com/mantou132/gem/issues/203
         // SSR 不会执行 initEffect，应该跳过
-        if (!ssrNativeQueueMicrotask && ele.#isMounted && effect && !effect.initialized) {
+        if (!isServer && ele.#isMounted && effect && !effect.initialized) {
           throw new GemError(`Don't set state sync before insert the DOM`);
         }
         assignState(state, payload);
         // 避免无限刷新
         // 挂载前 set state 不应该触发更新
         // SSR 中渲染 <gem-route>，其他情况的 SSR 应该也可以执行
-        if (!ele.#rendering && ele.#isMounted) addMicrotask(ele.#update, ssrNativeQueueMicrotask);
+        if (!ele.#rendering && ele.#isMounted) addMicrotask(ele.#update);
       });
       ele.#internals.stateList.push(state);
       return state;
@@ -457,13 +456,13 @@ export abstract class GemElement extends HTMLElement {
       (item || !this.#renderList.length)
     ) {
       this.#render(item);
-      if (!ssrNativeQueueMicrotask) addMicrotask(this.#execEffect);
+      if (!isServer) addMicrotask(this.#execEffect);
     }
   };
 
   #update = () => {
     // SSR 需要同步渲染
-    if (this.#metadata.noBlocking && !ssrNativeQueueMicrotask) {
+    if (this.#metadata.noBlocking && !isServer) {
       noBlockingTaskList.add(this.#updateCallback);
     } else {
       this.#updateCallback();
@@ -544,7 +543,7 @@ export abstract class GemElement extends HTMLElement {
     // 等待所有元素的样式被应用，再执行回调
     // 这让 mounted 和 effect 回调和其他回调一样保持一样的异步行为
     // SSR 不执行副作用
-    if (!ssrNativeQueueMicrotask) addMicrotask(this.#initEffect);
+    if (!isServer) addMicrotask(this.#initEffect);
   };
 
   /**
@@ -553,7 +552,7 @@ export abstract class GemElement extends HTMLElement {
    * use `@mounted`
    */
   connectedCallback(): Unique {
-    if (this.#metadata.noBlocking && !ssrNativeQueueMicrotask) {
+    if (this.#metadata.noBlocking && !isServer) {
       noBlockingTaskList.add(this.#connectedCallback);
     } else {
       this.#connectedCallback();

@@ -8,9 +8,9 @@ import { createRef, getTemplateHtml, TemplateResult } from '@mantou/gem/lib/lit-
 import { STORES_SCRIPT_ID } from './client/store';
 import { LIT_PART_END, SSR_HIDDEN, SSR_STYLE, V_ELSE, V_ELSE_IF, V_IF } from './constants';
 import { SSR_STATE, ssrContext } from './decorators';
-import { setLocation } from './lib/shim';
+import { runInRequest, setLocation } from './lib/shim';
 
-ssrContext.isServer = true;
+export { runInRequest };
 
 // 元素渲染的模板，key 是渲染容器
 const renderedTemplates = new WeakMap<object, unknown>();
@@ -552,15 +552,9 @@ export interface RenderOptions {
   /**
    * 渲染时使用的 store 值，渲染后的值会输出到页面中，客户端使用 `hydrateStores` 读取
    *
-   * 只支持 JSON 值，渲染完成后会恢复成原来的值
+   * 只支持 JSON 值，只在当前请求中有效
    */
   stores?: Record<string, [Store<any>, object?]>;
-}
-
-// store 的值就是它自身的属性
-function replaceStore(store: Store<any>, value: object) {
-  for (const key of Object.keys(store)) delete store[key];
-  Object.assign(store, value);
 }
 
 type StoreEntries = [string, [Store<any>, object?]][];
@@ -596,27 +590,19 @@ async function renderPieces(result: unknown, { url, stores = {} }: RenderOptions
   const { pathname, search, hash } = location;
   history.replace({ path: pathname, query: search, hash });
 
+  // store 在每个请求中有独立的值
   const entries: StoreEntries = Object.entries(stores);
-  const snapshots = entries.map(([, [store]]) => ({ ...store }));
   entries.forEach(([, [store, value]]) => value && Object.assign(store, value));
-  try {
-    const ctx: Context = { out: [ROOT_MARKER], parent: document, sheets: new Set(), hidden: false };
-    renderValue(result, ctx);
-    await write(ctx.out, push);
-    push(getStoresScript(entries));
-  } finally {
-    entries.forEach(([, [store]], index) => replaceStore(store, snapshots[index]));
-    ssrContext.tasks.clear();
-    ssrContext.stateElements.clear();
-  }
+  const ctx: Context = { out: [ROOT_MARKER], parent: document, sheets: new Set(), hidden: false };
+  renderValue(result, ctx);
+  await write(ctx.out, push);
+  push(getStoresScript(entries));
 }
-
-// 渲染时会修改全局的 location、history 和 store，所以串行执行
-let queue: Promise<unknown> = Promise.resolve();
 
 /**
  * 渲染成 HTML 片段，异步内容（路由、`@server`）完成前先输出前面的内容
  *
+ * 每次渲染在独立的请求作用域中执行，在 `runInRequest` 中调用时使用当前的请求作用域，
  * 渲染不受读取速度影响，读取慢时内容会缓存起来
  */
 export async function* render(result: unknown, options: RenderOptions = {}): AsyncGenerator<string> {
@@ -627,13 +613,10 @@ export async function* render(result: unknown, options: RenderOptions = {}): Asy
     if (chunk) chunks.push(chunk);
     notify?.();
   };
-  const task = queue
-    .then(() => renderPieces(result, options, push))
-    .finally(() => {
-      done = true;
-      notify?.();
-    });
-  queue = task.catch(() => {});
+  const task = runInRequest(() => renderPieces(result, options, push)).finally(() => {
+    done = true;
+    notify?.();
+  });
   while (true) {
     if (chunks.length) {
       yield chunks.splice(0).join('');

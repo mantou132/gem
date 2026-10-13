@@ -152,6 +152,12 @@ Keep `hmr` off in production builds. The transform emits `import.meta.webpackHot
 
 Complete JavaScript HMR still needs a host that implements those APIs (webpack/Rspack/Vite, or Rolldown's experimental HMR). Rollup and esbuild only get the runtime so the transformed classes stay compatible.
 
+## SSR
+
+In client builds, `globalThis.__GEM_SSR__` is replaced with `undefined` in all modules (including
+`node_modules`), so the SSR code of Gem is removed by the minifier. Client builds are detected by
+the Vite `ssr` flag, the Webpack/Rspack `target`, and the esbuild/Rolldown `platform`; Rollup builds are left unchanged.
+
 ## How It Works
 
 This plugin wraps [swc-plugin-gem](https://github.com/mantou132/gem/tree/main/crates/swc-plugin-gem) and uses [unplugin](https://github.com/unjs/unplugin) to provide universal bundler support.

@@ -54,7 +54,6 @@ test('@server: 等待执行完成，包括新渲染的元素，并输出状态',
     /<app-server-outer ssr-state="\[{&quot;loaded&quot;:true,&quot;text&quot;:&quot;<outer>&quot;}\]">/,
   );
   assert.match(result, /<app-server-inner ssr-state="\[{&quot;text&quot;:&quot;inner&quot;}\]">/);
-  assert.equal(ssrContext.tasks.size, 0, '渲染后清空');
 });
 
 test('@server: 没有服务端方法的元素不输出状态', async ({ assert }) => {

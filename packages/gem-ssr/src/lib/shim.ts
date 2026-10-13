@@ -1,3 +1,5 @@
+import { AsyncLocalStorage } from 'node:async_hooks';
+
 // 服务端不创建 DOM 树，只提供 Gem 加载和元素实例化需要的最少 API
 
 class SSRNode extends EventTarget {
@@ -148,54 +150,76 @@ class SSRDocument extends SSRNode {
   }
 }
 
-let url = new URL('http://localhost/');
+const requestScope = new AsyncLocalStorage<WeakMap<object, any>>();
+
+/**
+ * 在独立的请求作用域中执行，store、history、location 等全局状态在请求间互不影响
+ *
+ * 已经在请求中时使用当前的请求作用域
+ */
+export function runInRequest<T>(fn: () => T) {
+  return requestScope.getStore() ? fn() : requestScope.run(new WeakMap(), fn);
+}
+
+const globalNavigation = { url: new URL('http://localhost/'), state: null as unknown };
+
+// 当前请求的 URL 和 history 状态
+function getNavigation(): typeof globalNavigation {
+  const scope = requestScope.getStore();
+  if (!scope) return globalNavigation;
+  if (!scope.has(globalNavigation)) scope.set(globalNavigation, { ...globalNavigation });
+  return scope.get(globalNavigation);
+}
 
 /** 设置请求的 URL */
 export function setLocation(href: string) {
-  url = new URL(href, url);
+  const navigation = getNavigation();
+  navigation.url = new URL(href, navigation.url);
 }
 
 const location = {
   get href() {
-    return url.href;
+    return getNavigation().url.href;
   },
   get origin() {
-    return url.origin;
+    return getNavigation().url.origin;
   },
   get protocol() {
-    return url.protocol;
+    return getNavigation().url.protocol;
   },
   get host() {
-    return url.host;
+    return getNavigation().url.host;
   },
   get hostname() {
-    return url.hostname;
+    return getNavigation().url.hostname;
   },
   get port() {
-    return url.port;
+    return getNavigation().url.port;
   },
   get pathname() {
-    return url.pathname;
+    return getNavigation().url.pathname;
   },
   get search() {
-    return url.search;
+    return getNavigation().url.search;
   },
   get hash() {
-    return url.hash;
+    return getNavigation().url.hash;
   },
   toString() {
-    return url.href;
+    return getNavigation().url.href;
   },
 };
 
 const history = {
-  state: null as unknown,
   length: 1,
+  get state() {
+    return getNavigation().state;
+  },
   pushState(state: unknown, _: string, href?: string) {
     this.replaceState(state, _, href);
   },
   replaceState(state: unknown, _: string, href?: string) {
-    this.state = state;
+    getNavigation().state = state;
     if (href) setLocation(href);
   },
   back() {},
@@ -232,6 +256,6 @@ Object.assign(globalThis, {
   requestAnimationFrame: (callback: FrameRequestCallback) => setTimeout(() => callback(performance.now())),
   cancelAnimationFrame: clearTimeout,
   matchMedia: (media: string) => ({ media, matches: false, addEventListener() {}, removeEventListener() {} }),
-  // 让 Gem 进入 SSR 模式：不执行副作用，同步更新
-  nQM: queueMicrotask,
+  // 让 Gem 进入 SSR 模式，返回当前请求的作用域，Gem 用来隔离每个请求的全局状态
+  __GEM_SSR__: () => requestScope.getStore(),
 });

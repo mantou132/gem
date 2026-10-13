@@ -88,15 +88,12 @@ test('多次渲染互不影响', async ({ assert }) => {
   assert.equal(show(await t(tpl(false))), 'B');
 });
 
-test('并发渲染不影响全局环境', async ({ assert }) => {
-  const { setTimeout, Promise: NativePromise } = globalThis;
-  const results = await NativePromise.all([t(html`<p>${1}</p>`), t(html`<p>${2}</p>`), t(html`<p>${3}</p>`)]);
+test('并发渲染互不影响', async ({ assert }) => {
+  const results = await Promise.all([t(html`<p>${1}</p>`), t(html`<p>${2}</p>`), t(html`<p>${3}</p>`)]);
   assert.deepEqual(
     results.map((r) => r.match(/(\d)<\/p>/)?.[1]),
     ['1', '2', '3'],
   );
-  assert.equal(globalThis.setTimeout, setTimeout);
-  assert.equal(globalThis.Promise, NativePromise);
 });
 
 const routeStyle = css`

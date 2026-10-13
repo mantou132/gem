@@ -1,3 +1,5 @@
+import { getRequestValue } from './ssr';
+
 const { assign, fromEntries, entries, keys, defineProperty, hasOwn } = Object;
 
 // 用原生 Chrome 找不到调用栈
@@ -6,13 +8,16 @@ function queueMicrotask(cb: () => void) {
 }
 
 const microtaskSet = new Set<() => void>();
-export function addMicrotask(func: () => void, method = queueMicrotask) {
-  if (microtaskSet.has(func)) return;
-  method(() => {
-    microtaskSet.delete(func);
+const createMicrotaskSet = () => new Set<() => void>();
+export function addMicrotask(func: () => void) {
+  // SSR 时不同请求的同一个函数都需要执行
+  const taskSet = getRequestValue(microtaskSet, createMicrotaskSet);
+  if (taskSet.has(func)) return;
+  queueMicrotask(() => {
+    taskSet.delete(func);
     func();
   });
-  microtaskSet.add(func);
+  taskSet.add(func);
 }
 
 type OverrideFn = {
