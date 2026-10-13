@@ -105,8 +105,6 @@ export function pluginGemkit(options: GemkitOptions = {}): RsbuildPlugin {
                 // Rsbuild 在开发时运行 ESM 产物需要 `--experimental-vm-modules`
                 module: false,
                 distPath: { root: 'dist/server' },
-                // 项目不需要直接依赖 jsdom
-                externals: { jsdom: '@mantou/gemkit/jsdom' },
               },
               dev: { hmr: false, lazyCompilation: false },
               tools: { rspack: { plugins: [gemPlugin()] } },

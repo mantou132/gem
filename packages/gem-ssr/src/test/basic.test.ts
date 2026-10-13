@@ -21,7 +21,6 @@ import {
 import '@mantou/gem/elements/route';
 
 import { renderToString } from '..';
-import { hydrateStores } from '../client/store';
 import { t } from './utils';
 
 const style = css`
@@ -147,12 +146,4 @@ test('stores: 使用请求的 store 值，输出到页面，渲染后恢复', as
 
   const other = await renderToString(html`<app-user></app-user>`, { stores: { user: [userStore] } });
   assert.match(other, /user: <!--\?lit\$\d+\$-->guest/, '不影响其他请求');
-});
-
-test('hydrateStores: 读取服务端的值', async ({ assert }) => {
-  const ssr = await renderToString(html`<p></p>`, { stores: { user: [userStore, { nickname: 'bob' }] } });
-  document.body.innerHTML = ssr;
-  const store = createStore({ nickname: 'guest' });
-  hydrateStores({ user: store, other: createStore({}) });
-  assert.equal(store.nickname, 'bob');
 });

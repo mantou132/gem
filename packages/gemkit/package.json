@@ -17,7 +17,6 @@
     ".": "./src/index.ts",
     "./client": "./src/client.ts",
     "./server": "./src/server.ts",
-    "./jsdom": "./src/jsdom.cjs",
     "./plugin": {
       "types": "./src/plugin/index.ts",
       "default": "./dist/plugin.js"
@@ -40,7 +39,6 @@
     "@mantou/gem": "^2.2.14",
     "@mantou/gem-ssr": "^0.0.15",
     "hono": "^4.7.4",
-    "jsdom": "^26.0.0",
     "unplugin-gem": "^0.1.12"
   },
   "peerDependencies": {

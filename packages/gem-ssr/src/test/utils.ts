@@ -3,7 +3,7 @@ import { snapshot } from 'node:test';
 import type { TemplateResult } from '@mantou/gem/lib/lit-html';
 
 import { renderToString } from '..';
-import { LIT_PART_START_RE } from '../client/hydration';
+import { LIT_PART_START_RE } from '../constants';
 
 snapshot.setDefaultSnapshotSerializers([(v) => v]);
 

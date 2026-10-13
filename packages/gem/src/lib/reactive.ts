@@ -434,7 +434,12 @@ export abstract class GemElement extends HTMLElement {
       const isLight = this.#renderRoot === this;
       const temp = item ? item.render() : isLight ? undefined : html`<slot></slot>`;
       if (temp === undefined) return;
-      const r = temp !== null ? temp : html`<style>${isLight ? '@scope' : ':host'}{&{display:none!important;}}</style>`;
+      // `<style>` 中不使用绑定，SSR 水合不支持
+      const r =
+        temp ??
+        (isLight
+          ? html`<style>@scope{&{display:none!important;}}</style>`
+          : html`<style>:host{&{display:none!important;}}</style>`);
       hydrationEngine(r, this.#renderRoot) || render(r, this.#renderRoot);
     } catch (err) {
       this.dispatchEvent(new CustomEvent(_RenderErrorEvent, { bubbles: true, composed: true, detail: err }));
@@ -457,7 +462,8 @@ export abstract class GemElement extends HTMLElement {
   };
 
   #update = () => {
-    if (this.#metadata.noBlocking) {
+    // SSR 需要同步渲染
+    if (this.#metadata.noBlocking && !ssrNativeQueueMicrotask) {
       noBlockingTaskList.add(this.#updateCallback);
     } else {
       this.#updateCallback();
@@ -547,7 +553,7 @@ export abstract class GemElement extends HTMLElement {
    * use `@mounted`
    */
   connectedCallback(): Unique {
-    if (this.#metadata.noBlocking) {
+    if (this.#metadata.noBlocking && !ssrNativeQueueMicrotask) {
       noBlockingTaskList.add(this.#connectedCallback);
     } else {
       this.#connectedCallback();

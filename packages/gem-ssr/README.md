@@ -20,6 +20,27 @@ Client entry, import before any Gem element to enable hydration:
 import '@mantou/gem-ssr/client';
 ```
 
+## Streaming
+
+`render` returns an async iterable, the content before the pending async elements (routes, `@server` methods)
+is output first, independent async elements are awaited in parallel:
+
+```js
+import { render } from '@mantou/gem-ssr';
+
+const stream = ReadableStream.from(render(html`<app-root></app-root>`, { url: req.url }));
+```
+
+## How it works
+
+The server does not create a DOM tree, element instances are created with a minimal DOM shim,
+their templates are rendered to strings, so element code must not access the DOM during rendering
+(e.g. `querySelector`, `closest`), effects (`@effect`, `@mounted`) are not executed on the server.
+
+Light DOM element styles are output into the element where they first appear, and removed after hydration.
+
+Bindings inside `<style>`, `<script>`, `<textarea>` and `<title>` can be rendered, but not hydrated.
+
 ## Store
 
 Pass per-request store values with a key, the values after rendering are output to the page,

@@ -245,8 +245,10 @@ function trustFromTemplateString(tsa: TemplateStringsArray, stringFromTSA: strin
  * @return Array containing `[html, attrNames]` (array returned for terseness,
  *     to avoid object fields since this code is shared with non-minified SSR
  *     code)
+ *
+ * Gem Note: export for SSR
  */
-const getTemplateHtml = (strings: TemplateStringsArray, type: ResultType): [TrustedHTML, Array<string>] => {
+export const getTemplateHtml = (strings: TemplateStringsArray, type: ResultType): [TrustedHTML, Array<string>] => {
   // Insert makers into the template HTML to represent the position of
   // bindings. The following code scans the template strings to determine the
   // syntactic position of the bindings. They can be in text position, where

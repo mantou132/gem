@@ -7,13 +7,7 @@ import {
   TemplateResult,
 } from '@mantou/gem/lib/lit-html';
 
-export const LIT_PART_END = '/lit';
-export const LIT_PART_START_RE = /\?lit\$(\d+)\$/;
-// SSR 输出的隐藏分支，值是原始 `style`
-export const SSR_HIDDEN = 'ssr-hidden';
-export const V_IF = 'v-if';
-export const V_ELSE_IF = 'v-else-if';
-export const V_ELSE = 'v-else';
+import { LIT_PART_END, LIT_PART_START_RE, SSR_HIDDEN, SSR_STYLE, V_ELSE_IF, V_IF } from '../constants';
 
 export function isSSRRoot(node: Node | undefined | null): node is Comment {
   return node?.nodeType === Node.COMMENT_NODE && (node as Comment).data === '';
@@ -42,7 +36,9 @@ let walkerContainer: Node = document;
 const walker = document.createTreeWalker(document, NodeFilter.SHOW_COMMENT | NodeFilter.SHOW_ELEMENT, {
   acceptNode: (n) =>
     // 不是 ShadowDOM 的自定义元素中的子元素都屏蔽掉
-    n.parentNode !== walkerContainer && getSSRRoot(n.parentNode) ? NodeFilter.FILTER_REJECT : NodeFilter.FILTER_ACCEPT,
+    (n.parentNode !== walkerContainer && getSSRRoot(n.parentNode)) || (n as Element).hasAttribute?.(SSR_STYLE)
+      ? NodeFilter.FILTER_REJECT
+      : NodeFilter.FILTER_ACCEPT,
 });
 
 interface IndexedNode {

@@ -4,7 +4,7 @@ import test from 'node:test';
 
 import { createState, customElement, GemElement, html, mounted, template } from '@mantou/gem';
 
-import { renderToString } from '..';
+import { render, renderToString } from '..';
 import { server, ssrContext } from '../decorators';
 
 let calls = 0;
@@ -22,16 +22,6 @@ export class DemoServerInnerElement extends GemElement {
 
   @template()
   #render = () => html`<i>${this.#state.text}</i>`;
-}
-
-let methodCalls = 0;
-
-@customElement('app-server-method')
-export class DemoServerMethodElement extends GemElement {
-  @server()
-  load = () => {
-    methodCalls++;
-  };
 }
 
 @customElement('app-server-outer')
@@ -72,46 +62,48 @@ test('@server: 没有服务端方法的元素不输出状态', async ({ assert }
   assert.doesNotMatch(result.replace('<app-server-inner ssr-state', ''), /ssr-state/);
 });
 
-// 会设置水合引擎，放在最后
-test('@server: 客户端恢复状态，复用节点', async ({ assert }) => {
-  const ssr = await renderToString(html`<app-server-outer></app-server-outer>`);
-  ssrContext.isServer = false;
-  await import('../client');
-  calls = 0;
-  const container = document.createElement('div');
-  container.innerHTML = ssr;
-  const b = container.querySelector('b')!;
-  const i = container.querySelector('i')!;
-  document.body.append(container);
-  const outer = container.querySelector('app-server-outer')!;
-  assert.equal(outer.hasAttribute('ssr-state'), false, '移除状态属性');
-  assert.equal(container.querySelector('b'), b);
-  assert.equal(container.querySelector('i'), i, '恢复状态后 v-if 分支保持一致');
-  assert.equal(b.textContent, '<outer>');
-  assert.equal(i.textContent, 'inner');
-  assert.equal(ssrContext.restoredElements.has(outer as GemElement), true);
-  await new Promise((resolve) => setTimeout(resolve));
-  assert.equal(calls, 0, '恢复状态后跳过首轮副作用');
-  assert.equal(ssrContext.restoredElements.has(outer as GemElement), false);
+let resolveSlow: (v: string) => void;
+
+@customElement('app-server-slow')
+export class DemoServerSlowElement extends GemElement {
+  #state = createState({ text: '' });
+
+  @server()
+  #load = async () => this.#state({ text: await new Promise<string>((resolve) => (resolveSlow = resolve)) });
+
+  @template()
+  #render = () => html`<i>${this.#state.text}</i>`;
+}
+
+test('流式输出：异步内容完成前先输出前面的内容', async ({ assert }) => {
+  const iterator = render(html`<p>before</p><app-server-slow></app-server-slow><p>after</p>`);
+  const first = await iterator.next();
+  assert.match(first.value!, /<p>before<\/p>$/);
+  resolveSlow('slow');
+  let rest = '';
+  for await (const chunk of iterator) rest += chunk;
+  assert.match(rest, /^<app-server-slow[^>]*><!----><i><!--\?lit\$\d+\$-->slow<\/i><\/app-server-slow><p>after<\/p>$/);
 });
 
-// SSR 环境不执行副作用，直接调用方法
-test('@server: 恢复状态后首轮副作用之前跳过执行', async ({ assert }) => {
-  ssrContext.isServer = true;
-  const ssr = await renderToString(html`<app-server-method></app-server-method>`);
-  ssrContext.isServer = false;
-  methodCalls = 0;
-  const container = document.createElement('div');
-  container.innerHTML = ssr;
-  document.body.append(container);
-  const restored = container.querySelector<DemoServerMethodElement>('app-server-method')!;
-  restored.load();
-  assert.equal(methodCalls, 0, '恢复状态的元素跳过');
-  const created = document.createElement('app-server-method') as DemoServerMethodElement;
-  document.body.append(created);
-  created.load();
-  assert.equal(methodCalls, 1, '客户端创建的元素正常执行');
-  await new Promise((resolve) => setTimeout(resolve));
-  restored.load();
-  assert.equal(methodCalls, 2, '首轮副作用之后正常执行');
+@customElement('app-server-delay')
+export class DemoServerDelayElement extends GemElement {
+  @server()
+  #load = () => new Promise((resolve) => setTimeout(resolve, 50));
+}
+
+test('流式输出：并行等待多个异步元素', async ({ assert }) => {
+  const start = performance.now();
+  await renderToString(html`<app-server-delay></app-server-delay><app-server-delay></app-server-delay>`);
+  assert.equal(performance.now() - start < 90, true, '并行执行');
+});
+
+@customElement('app-server-error')
+export class DemoServerErrorElement extends GemElement {
+  @server()
+  #load = () => Promise.reject(new Error('load failed'));
+}
+
+test('异步元素出错时渲染失败，不影响进程', async ({ assert }) => {
+  const result = renderToString(html`<app-server-delay></app-server-delay><app-server-error></app-server-error>`);
+  await assert.rejects(result, /load failed/);
 });

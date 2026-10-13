@@ -15,14 +15,13 @@
     "./decorators": "./src/decorators.ts"
   },
   "scripts": {
-    "test": "tsx --test",
+    "test": "tsx --test 'src/**/*.test.ts'",
     "test:watch": "nodemon --watch src -e .ts --exec \"pnpm run test\"",
     "example": "tsx src/example",
     "example:watch": "nodemon --watch src -e .ts --exec \"pnpm run example\""
   },
   "dependencies": {
-    "@mantou/gem": "^2.2.14",
-    "jsdom": "^26.0.0"
+    "@mantou/gem": "^2.2.14"
   },
   "devDependencies": {
     "@gemjs/config": "^2.1.3",
@@ -30,6 +29,7 @@
     "@types/jsdom": "^21.1.7",
     "esbuild": "^0.24.0",
     "hono": "^4.7.4",
+    "jsdom": "^26.0.0",
     "nodemon": "^2.0.7",
     "tsx": "^4.19.3"
   },
