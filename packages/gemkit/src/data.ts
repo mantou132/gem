@@ -32,7 +32,11 @@ export function getServerModule(tag: string) {
 }
 
 /** 服务端渲染时加载的数据，渲染后输出到页面中，水合时直接使用，每个请求有独立的值 */
-export const ssrData = createStore<{ current?: { path: string; data: unknown } }>({});
+export const ssrData = createStore<{
+  current?: { path: string; data: unknown };
+  /** 页面的数据和标题已经确定，可以开始输出文档 */
+  ready?: boolean;
+}>({});
 
 /** 执行服务端模块的 `load`，结果转换成 JSON 值，保证客户端拿到的数据和服务端一致 */
 export async function runServerLoad(tag: string, params: Params, url: URL) {

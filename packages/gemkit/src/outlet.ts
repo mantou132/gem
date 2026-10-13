@@ -1,7 +1,8 @@
 import { adoptedStyle, css, GemElement, html, template, titleStore } from '@mantou/gem';
 import type { RouteItem } from '@mantou/gem/elements/route';
+import { isServer } from '@mantou/gem/lib/ssr';
 
-import { loadServerData } from './data';
+import { loadServerData, ssrData } from './data';
 import { getPageOptions, type Params, setPendingProps } from './page';
 
 import '@mantou/gem/elements/route';
@@ -42,6 +43,7 @@ export async function loadPage(
   defineElement(tag, cls);
   const title = typeof options.title === 'function' ? await options.title(params, data) : options.title;
   if (title !== undefined) titleStore({ title });
+  if (isServer) ssrData.ready = true;
   return data;
 }
 

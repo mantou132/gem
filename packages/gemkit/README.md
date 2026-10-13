@@ -18,6 +18,9 @@ export default defineConfig({
 - `rsbuild build`: build `dist/web` (client, prerendered pages) and `dist/server` (SSR bundle)
 - `gemkit start`: serve `dist`, prerendered pages first, otherwise SSR
 
+SSR responses are streamed: the document is sent once the page `load` and `title` are resolved,
+async content inside the page (e.g. `@server` methods) is streamed after it.
+
 Add the generated `.gemkit` and the SWC plugin cache `.swc` to `.gitignore`.
 
 ## Project structure

@@ -6,6 +6,7 @@ import path from 'node:path';
 import { serve } from '@hono/node-server';
 import { serveStatic } from '@hono/node-server/serve-static';
 import { Hono } from 'hono';
+import { stream } from 'hono/streaming';
 
 import { DATA_FILE } from '../constants';
 import type { Renderer } from '../server';
@@ -25,7 +26,9 @@ export async function loadRenderer(distDir: string) {
 
 export const isDataRequest = (pathname: string) => pathname.endsWith(`/${DATA_FILE}`);
 
-export type Handler = (url: string) => Promise<{ status: number; type: 'html' | 'json'; body: string }>;
+export type Handler = (
+  url: string,
+) => Promise<{ status: number; type: 'html' | 'json'; body: string | AsyncIterable<string> }>;
 
 /** 处理页面和页面数据请求，提供 `webDir` 时优先使用预渲染的文件 */
 export function createRequestHandler(renderer: Renderer, template: string, webDir?: string): Handler {
@@ -61,9 +64,12 @@ export async function start({ root = process.cwd(), port = Number(process.env.PO
   app.use('/*', serveStatic({ root: path.relative(process.cwd(), getDistPaths(distDir).webDir) }));
   app.get('*', async (ctx) => {
     const { status, type, body } = await handler(ctx.req.url);
-    return type === 'json'
-      ? ctx.body(body, status as 200, { 'Content-Type': 'application/json' })
-      : ctx.html(body, status as 200);
+    ctx.status(status as 200);
+    ctx.header('Content-Type', type === 'json' ? 'application/json' : 'text/html; charset=UTF-8');
+    if (typeof body === 'string') return ctx.body(body);
+    return stream(ctx, async (s) => {
+      for await (const chunk of body) await s.write(chunk);
+    });
   });
   serve({ fetch: app.fetch, port }, ({ port }) => console.log(`gemkit: listening on http://localhost:${port}/`));
 }

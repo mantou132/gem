@@ -4,7 +4,7 @@ import '@mantou/gem-ssr';
 import { history, type TemplateResult, titleStore } from '@mantou/gem';
 import { matchPath } from '@mantou/gem/elements/route';
 import type { I18n } from '@mantou/gem/helper/i18n';
-import { renderToString, runInRequest } from '@mantou/gem-ssr';
+import { render, runInRequest } from '@mantou/gem-ssr';
 
 import { DATA_FILE, DATA_SCRIPT_ID, trimTrailingSlash } from './constants';
 import { getServerModule, runServerLoad, type ServerModule, setServerModules, ssrData } from './data';
@@ -31,11 +31,8 @@ export interface RendererOptions extends TitleOptions {
 
 export interface RenderResult {
   status: number;
-  lang?: string;
-  title: string;
-  body: string;
-  /** 服务端数据，水合时使用 */
-  data?: { path: string; data: unknown };
+  /** 页面的数据和标题确定后才开始输出，之后的异步内容（例如 `@server`）流式输出 */
+  html: AsyncGenerator<string>;
 }
 
 const escapeHtml = (s: string) => s.replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('"', '&quot;');
@@ -71,21 +68,6 @@ export function createRenderer({
     return { lang, path };
   };
 
-  // 每个请求有独立的 history、i18n 和 store
-  const render = (url: string) =>
-    runInRequest(async (): Promise<RenderResult> => {
-      const { origin, pathname, search } = new URL(url, 'http://localhost');
-      const { lang, path } = await setLanguage(pathname);
-      const body = await renderToString(app, { url: `${origin}${path}${search}` });
-      return {
-        status: findPage(path) ? 200 : 404,
-        lang: lang || undefined,
-        title: formatTitle(titleStore.title, titleOptions),
-        body,
-        data: ssrData.current,
-      };
-    });
-
   /** 处理客户端导航时的数据请求，`url` 是页面路径加上 `/__data.json` */
   const loadData = (url: string) =>
     runInRequest(async () => {
@@ -99,23 +81,43 @@ export function createRenderer({
     });
 
   /** 将渲染结果插入 HTML 模版，模版中使用 `<!--gemkit-body-->` 标记内容位置 */
-  const renderDocument = async (template: string, url: string) => {
-    const { status, lang, title, body, data } = await render(url);
-    // 避免内容中的 `</script>` 结束标签
-    const dataScript =
-      data &&
-      `<script type="application/json" id="${DATA_SCRIPT_ID}">${JSON.stringify(data).replaceAll('<', '\\u003c')}</script>`;
-    let html = template
-      .replace('<!--gemkit-body-->', () => body + (dataScript || ''))
-      .replace(/<title>[\s\S]*?<\/title>/, () => `<title>${escapeHtml(title)}</title>`);
-    if (lang) {
-      html = html.replace(
-        /<html([^>]*)>/,
-        (_, attrs: string) => `<html${attrs.replace(/\s+lang="[^"]*"/, '')} lang="${lang}">`,
+  const renderDocument = (template: string, url: string) =>
+    // 每个请求有独立的 history、i18n 和 store
+    runInRequest(async (): Promise<RenderResult> => {
+      const { origin, pathname, search } = new URL(url, 'http://localhost');
+      const { lang, path } = await setLanguage(pathname);
+      const chunks = render(app, { url: `${origin}${path}${search}` });
+      // 页面的数据和标题确定后再输出文档
+      let body = '';
+      while (!ssrData.ready) {
+        const { done, value } = await chunks.next();
+        if (done) break;
+        body += value;
+      }
+      // 避免内容中的 `</script>` 结束标签
+      const dataScript = ssrData.current
+        ? `<script type="application/json" id="${DATA_SCRIPT_ID}">${JSON.stringify(ssrData.current).replaceAll('<', '\\u003c')}</script>`
+        : '';
+      let html = template.replace(
+        /<title>[\s\S]*?<\/title>/,
+        () => `<title>${escapeHtml(formatTitle(titleStore.title, titleOptions))}</title>`,
       );
-    }
-    return { status, html };
-  };
+      if (lang) {
+        html = html.replace(
+          /<html([^>]*)>/,
+          (_, attrs: string) => `<html${attrs.replace(/\s+lang="[^"]*"/, '')} lang="${lang}">`,
+        );
+      }
+      const [start, end] = html.split('<!--gemkit-body-->');
+      return {
+        status: findPage(path) ? 200 : 404,
+        html: (async function* () {
+          yield start + body;
+          yield* chunks;
+          yield dataScript + end;
+        })(),
+      };
+    });
 
   /** 需要预渲染的路径，动态路由使用 `*.server.ts` 或者页面的 `paths` 选项 */
   const getPaths = async () => {
@@ -139,7 +141,7 @@ export function createRenderer({
     return !!result && result.page.tag in serverModules;
   };
 
-  return { render, renderDocument, loadData, getPaths, hasServerData };
+  return { renderDocument, loadData, getPaths, hasServerData };
 }
 
 export type Renderer = ReturnType<typeof createRenderer>;

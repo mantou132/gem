@@ -2,6 +2,7 @@ use std::{
     collections::HashMap,
     env, fs,
     path::{Component, Path, PathBuf},
+    time::{SystemTime, UNIX_EPOCH},
 };
 
 use indexmap::{IndexMap, IndexSet};
@@ -153,7 +154,15 @@ impl TransformVisitor {
         }
         import_list.push("}".into());
 
-        fs::write(path, import_list.join("\n")).expect("create dts error");
+        // 并发转换会同时写入，先写临时文件再重命名，保证内容完整；dts 只辅助类型检查，失败不影响转换
+        let nanos = SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .map_or(0, |d| d.as_nanos());
+        let tmp = path.with_extension(format!("ts.{nanos}.tmp"));
+        if let Err(err) = fs::write(&tmp, import_list.join("\n")).and_then(|_| fs::rename(&tmp, &path)) {
+            let _ = fs::remove_file(&tmp);
+            tracing::warn!("create dts error: {err}");
+        }
     }
 
     fn inset_used_member(&mut self, ident: &Ident) {

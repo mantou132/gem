@@ -1,6 +1,8 @@
 import fs from 'node:fs';
 import type { IncomingMessage, ServerResponse } from 'node:http';
 import path from 'node:path';
+import { Readable } from 'node:stream';
+import { pipeline } from 'node:stream/promises';
 import { fileURLToPath } from 'node:url';
 
 import { logger, type RsbuildPlugin } from '@rsbuild/core';
@@ -20,7 +22,12 @@ export interface GemkitOptions extends GemkitConfig {
    * @default true
    */
   prerender?: boolean;
-  /** 传递给 `unplugin-gem` 的选项 */
+  /**
+   * `src/elements` 中元素的标签前缀，`<app-foo>` 会自动导入 `src/elements/foo`
+   * @default 'app'
+   */
+  elementPrefix?: string;
+  /** 传递给 `unplugin-gem` 的选项，默认开启除 `resolvePath` 外的所有功能 */
   gem?: UnpluginGemOptions;
 }
 
@@ -39,7 +46,7 @@ const ssrMiddleware =
       const { status, type, body } = await (await getHandler())(req.url!);
       res.statusCode = status;
       res.setHeader('Content-Type', type === 'json' ? 'application/json' : 'text/html; charset=utf-8');
-      res.end(body);
+      await pipeline(Readable.from(body), res);
     } catch (err) {
       next(err);
     }
@@ -52,7 +59,7 @@ function writeFile(webDir: string, pathname: string, content: string) {
 }
 
 export function pluginGemkit(options: GemkitOptions = {}): RsbuildPlugin {
-  const { prerender = true, gem, ...config } = options;
+  const { prerender = true, elementPrefix = 'app', gem, ...config } = options;
   return {
     name: 'gemkit',
     setup(api) {
@@ -72,9 +79,19 @@ export function pluginGemkit(options: GemkitOptions = {}): RsbuildPlugin {
         api.onCloseDevServer(() => watcher.close());
       }
 
-      const gemPlugin = () =>
+      // 只在一个环境中生成 dts，避免并发写入
+      const gemPlugin = (autoImportDts: boolean) =>
         unpluginGem({
           include: [srcDir, genDir, path.join(packageDir, 'src')],
+          autoImport: {
+            extends: 'gem',
+            elements: { [path.join(srcDir, 'elements')]: { [`${elementPrefix}-*`]: '/*' } },
+          },
+          autoImportDts,
+          styleMinify: true,
+          htmlMinify: true,
+          selectorCompatible: true,
+          preload: true,
           ...gem,
           hmr: gem?.hmr ?? isDev,
         });
@@ -98,7 +115,7 @@ export function pluginGemkit(options: GemkitOptions = {}): RsbuildPlugin {
             web: {
               source: { entry: { index: path.join(genDir, 'client.ts') } },
               output: { target: 'web', distPath: { root: 'dist/web' } },
-              tools: { rspack: { plugins: [gemPlugin()] } },
+              tools: { rspack: { plugins: [gemPlugin(true)] } },
             },
             node: {
               source: { entry: { index: path.join(genDir, 'server.ts') } },
@@ -109,7 +126,7 @@ export function pluginGemkit(options: GemkitOptions = {}): RsbuildPlugin {
                 distPath: { root: 'dist/server' },
               },
               dev: { hmr: false, lazyCompilation: false },
-              tools: { rspack: { plugins: [gemPlugin()] } },
+              tools: { rspack: { plugins: [gemPlugin(false)] } },
             },
           },
           server: {
@@ -143,7 +160,7 @@ export function pluginGemkit(options: GemkitOptions = {}): RsbuildPlugin {
         const paths = await renderer.getPaths();
         const prerenderPage = async (pathname: string) => {
           const result = await renderer.renderDocument(html, pathname);
-          writeFile(webDir, path.posix.join(pathname, 'index.html'), result.html);
+          writeFile(webDir, path.posix.join(pathname, 'index.html'), (await Array.fromAsync(result.html)).join(''));
           // 静态托管时客户端导航使用的数据
           if (renderer.hasServerData(pathname)) {
             const dataPath = getDataPath(pathname);
@@ -160,7 +177,9 @@ export function pluginGemkit(options: GemkitOptions = {}): RsbuildPlugin {
         );
         // 静态托管服务使用的 404 页面
         const notFound = await renderer.renderDocument(html, '/__gemkit_404__');
-        if (notFound.status === 404) fs.writeFileSync(path.join(webDir, '404.html'), notFound.html);
+        if (notFound.status === 404) {
+          fs.writeFileSync(path.join(webDir, '404.html'), (await Array.fromAsync(notFound.html)).join(''));
+        }
         logger.info(`gemkit: prerendered pages to ${path.relative(rootPath, webDir)}`);
       });
     },
