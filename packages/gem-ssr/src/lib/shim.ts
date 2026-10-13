@@ -37,6 +37,8 @@ class SSRShadowRoot extends SSRNode {
   serializable: boolean;
   clonable: boolean;
   slotAssignment: SlotAssignmentMode;
+  /** 模版返回 `undefined` 时作为 ShadowDOM 的内容输出，不会解析和转义 */
+  innerHTML = '';
 
   constructor(host: SSRElement, init: ShadowRootInit) {
     super();
@@ -50,6 +52,15 @@ class SSRShadowRoot extends SSRNode {
 
   getRootNode() {
     return this;
+  }
+
+  // 没有节点树
+  querySelector() {
+    return null;
+  }
+
+  querySelectorAll() {
+    return [];
   }
 }
 

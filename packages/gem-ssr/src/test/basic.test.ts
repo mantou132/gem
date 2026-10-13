@@ -17,8 +17,9 @@ import {
   shadow,
   template,
 } from '@mantou/gem';
-
+import type { TemplateResult } from '@mantou/gem/lib/lit-html';
 import '@mantou/gem/elements/route';
+import '@mantou/gem/elements/unsafe';
 
 import { renderToString } from '..';
 import { t } from './utils';
@@ -74,6 +75,30 @@ export class DemoShadowElement extends GemElement {
 
 test('basic shadow', async ({ assert: { snapshot } }) => {
   snapshot(await t(html`<app-shadow-demo></app-shadow-demo>`));
+});
+
+@customElement('app-inner-html')
+@shadow()
+export class DemoInnerHTMLElement extends GemElement {
+  @property tpl?: TemplateResult;
+
+  @template()
+  #content = () => {
+    this.shadowRoot!.innerHTML = '<b>ignored</b>';
+    return this.tpl;
+  };
+}
+
+test('shadowRoot.innerHTML: 模版返回 undefined 时原样输出', async ({ assert }) => {
+  const result = await t(html`<gem-unsafe html="<p>a</p><style>p{}</style>"></gem-unsafe>`);
+  assert.match(result, /<template [^>]*><style>[^<]*<\/style><p>a<\/p><style>p\{\}<\/style><\/template>/);
+  assert.doesNotMatch(result, /<template [^>]*><style>[^<]*<\/style><!---->/, '没有根标记，客户端不会水合');
+});
+
+test('shadowRoot.innerHTML: 模版有返回值时忽略', async ({ assert }) => {
+  const result = await t(html`<app-inner-html .tpl=${html`<i>tpl</i>`}></app-inner-html>`);
+  assert.match(result, /<i>tpl<\/i>/);
+  assert.doesNotMatch(result, /ignored/);
 });
 
 test('basic nested', async ({ assert: { snapshot } }) => {

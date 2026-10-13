@@ -453,6 +453,9 @@ function buildElement({ op, element, hidden, conditionHidden, parentCtx }: Eleme
     if (template !== undefined) {
       out.push(ROOT_MARKER);
       renderValue(template, ctx);
+    } else {
+      // 没有根标记，客户端不会水合，模版返回 `undefined` 时保留这些内容
+      out.push(shadowRoot.innerHTML);
     }
     out.push('</template>', ...children);
   } else {
