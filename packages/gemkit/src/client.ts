@@ -3,7 +3,7 @@ import { connect, history, titleStore } from '@mantou/gem';
 import { trimTrailingSlash } from './constants';
 import { formatTitle, type TitleOptions } from './title';
 
-import 'gem-ssr/client';
+import '@mantou/gem-ssr/client';
 
 const { path, query, hash } = history.getParams();
 const trimmedPath = trimTrailingSlash(path);

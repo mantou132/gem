@@ -1,5 +1,5 @@
 import { history } from '@mantou/gem';
-import { ssrContext } from 'gem-ssr/decorators';
+import { ssrContext } from '@mantou/gem-ssr/decorators';
 
 import { DATA_SCRIPT_ID, getDataPath } from './constants';
 import type { Params } from './page';

@@ -1,6 +1,7 @@
 {
   "extends": "@gemjs/config/tsconfig",
   "compilerOptions": {
+    "moduleResolution": "bundler",
     "resolveJsonModule": true
   },
   "include": ["src"],

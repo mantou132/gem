@@ -1,10 +1,10 @@
 // 必须在 Gem 之前执行，用来模拟 DOM 环境
-import 'gem-ssr';
+import '@mantou/gem-ssr';
 
 import { history, type TemplateResult, titleStore } from '@mantou/gem';
 import { matchPath } from '@mantou/gem/elements/route';
 import type { I18n } from '@mantou/gem/helper/i18n';
-import { renderToString } from 'gem-ssr';
+import { renderToString } from '@mantou/gem-ssr';
 
 import { DATA_FILE, DATA_SCRIPT_ID, trimTrailingSlash } from './constants';
 import { getServerModule, runServerLoad, type ServerModule, setServerModules, ssrData } from './data';

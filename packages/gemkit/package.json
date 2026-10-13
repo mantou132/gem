@@ -38,7 +38,7 @@
   "dependencies": {
     "@hono/node-server": "^1.13.8",
     "@mantou/gem": "^2.2.14",
-    "gem-ssr": "^0.0.15",
+    "@mantou/gem-ssr": "^0.0.15",
     "hono": "^4.7.4",
     "jsdom": "^26.0.0",
     "unplugin-gem": "^0.1.12"

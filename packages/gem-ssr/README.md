@@ -6,7 +6,7 @@ Server render Gem element
 
 ```js
 // Import before any Gem element
-import { renderToString } from 'gem-ssr';
+import { renderToString } from '@mantou/gem-ssr';
 
 app.get('/', async (req, res) => {
   const content = await renderToString(html`<app-root></app-root>`, { url: req.url });
@@ -17,7 +17,7 @@ app.get('/', async (req, res) => {
 Client entry, import before any Gem element to enable hydration:
 
 ```js
-import 'gem-ssr/client';
+import '@mantou/gem-ssr/client';
 ```
 
 ## Store
@@ -35,7 +35,7 @@ renderToString(html`<app-root></app-root>`, {
 Read them on the client before the elements are defined, e.g. in a module imported before the elements:
 
 ```js
-import { hydrateStores } from 'gem-ssr/client';
+import { hydrateStores } from '@mantou/gem-ssr/client';
 
 hydrateStores({ user: userStore });
 ```
@@ -48,7 +48,7 @@ When it runs on the client is decided by other decorators such as `@mounted()` a
 the restored element skips it in the first round of effects.
 
 ```ts
-import { server } from 'gem-ssr/decorators';
+import { server } from '@mantou/gem-ssr/decorators';
 
 @customElement('gem-ssr')
 class GemSsrElement extends GemElement {
