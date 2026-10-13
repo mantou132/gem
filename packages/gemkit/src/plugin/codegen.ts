@@ -301,8 +301,16 @@ function generateEntries(
   );
   writeIfChanged(
     path.join(genDir, 'tsconfig.json'),
-    `${JSON.stringify({ compilerOptions: { paths: { '$gemkit/*': ['./*'] } } }, null, 2)}\n`,
+    // 通过 `files` 包含声明文件，不依赖项目的 `include`（`.` 开头的目录不会被通配符匹配）
+    // `auto-import.d.ts` 由 unplugin-gem 生成
+    `${JSON.stringify(
+      { compilerOptions: { paths: { '$gemkit/*': ['./*'] } }, files: ['./env.d.ts', './auto-import.d.ts'] },
+      null,
+      2,
+    )}\n`,
   );
+  // CSS 等资源模块的类型声明，项目不需要自己引用
+  writeIfChanged(path.join(genDir, 'env.d.ts'), `${HEADER}/// <reference types="@rsbuild/core/types" />\n`);
 }
 
 /** 生成路由、i18n 和入口文件到 `.gemkit` 目录 */

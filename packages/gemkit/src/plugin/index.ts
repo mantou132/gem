@@ -79,15 +79,20 @@ export function pluginGemkit(options: GemkitOptions = {}): RsbuildPlugin {
         api.onCloseDevServer(() => watcher.close());
       }
 
+      // swc 插件在 WASI 中只能访问 cwd，需要相对路径；
+      // 文件存在时不会重新生成，启动时删除以应用最新配置
+      const dtsFile = path.join(genDir, 'auto-import.d.ts');
+      fs.rmSync(dtsFile, { force: true });
+
       // 只在一个环境中生成 dts，避免并发写入
-      const gemPlugin = (autoImportDts: boolean) =>
+      const gemPlugin = (genDts: boolean) =>
         unpluginGem({
           include: [srcDir, genDir, path.join(packageDir, 'src')],
           autoImport: {
             extends: 'gem',
             elements: { [path.join(srcDir, 'elements')]: { [`${elementPrefix}-*`]: '/*' } },
           },
-          autoImportDts,
+          autoImportDts: genDts && path.relative(process.cwd(), dtsFile),
           styleMinify: true,
           htmlMinify: true,
           selectorCompatible: true,
