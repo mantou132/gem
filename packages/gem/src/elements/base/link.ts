@@ -125,9 +125,10 @@ export class GemLinkElement extends GemElement {
 
   #getHint = () => {
     const locationString = this._getLocationString();
-    return isExternal(locationString)
-      ? locationString
-      : new URL(history.basePath + locationString, location.origin).toString();
+    if (isExternal(locationString)) return locationString;
+    // 使用根相对路径，避免 SSR/SSG 时输出服务端 origin
+    const { pathname, search, hash } = new URL(history.basePath + locationString, location.origin);
+    return pathname + search + hash;
   };
 
   #preload = () => {
