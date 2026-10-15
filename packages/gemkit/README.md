@@ -21,7 +21,7 @@ export default defineConfig({
 SSR responses are streamed: the document is sent once the page `load` and `title` are resolved,
 async content inside the page (e.g. `@server` methods) is streamed after it.
 
-Add the generated `.gemkit` and the SWC plugin cache `.swc` to `.gitignore`.
+Add the SWC plugin cache `.swc` to `.gitignore`, the generated `.gemkit` ignores itself.
 
 ## Project structure
 

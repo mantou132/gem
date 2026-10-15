@@ -318,6 +318,8 @@ export function generate(rootPath: string, config: GemkitConfig) {
   const srcDir = path.join(rootPath, 'src');
   const genDir = path.join(rootPath, '.gemkit');
   fs.mkdirSync(genDir, { recursive: true });
+  // 生成的内容不需要提交，项目不用自己配置 `.gitignore`
+  writeIfChanged(path.join(genDir, '.gitignore'), '*\n');
   const routes = generateRoutes(genDir, path.join(srcDir, 'pages'));
   generateI18n(genDir, path.join(srcDir, 'locales'), config);
   generateEntries(genDir, srcDir, config, routes);
