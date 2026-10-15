@@ -14,6 +14,7 @@ import {
 } from '../../lib/decorators';
 import { css, GemElement, html } from '../../lib/element';
 import { basePathStore, history } from '../../lib/history';
+import { isServer } from '../../lib/ssr';
 import { absoluteLocation } from '../../lib/utils';
 import type { RouteItem, RouteOptions } from './route';
 import { createHistoryParams, createPath, matchPath } from './route';
@@ -126,9 +127,9 @@ export class GemLinkElement extends GemElement {
   #getHint = () => {
     const locationString = this._getLocationString();
     if (isExternal(locationString)) return locationString;
-    // 使用根相对路径，避免 SSR/SSG 时输出服务端 origin
-    const { pathname, search, hash } = new URL(history.basePath + locationString, location.origin);
-    return pathname + search + hash;
+    const url = new URL(history.basePath + locationString, location.origin);
+    // 客户端输出完整 URL 便于打印，服务端（尤其是预渲染）的 origin 不可靠，使用根相对路径
+    return isServer ? url.pathname + url.search + url.hash : url.toString();
   };
 
   #preload = () => {
