@@ -27,6 +27,12 @@ setOutlets({
       return html\`<gemkit-page-files-name .params=\${params} .data=\${data}></gemkit-page-files-name>\`;
     },
   }, {
+    pattern: "/about",
+    getContent: async (params) => {
+      const data = await loadPage(() => import("../src/pages/about"), 'gemkit-page-about', params);
+      return html\`<gemkit-page-about .params=\${params} .data=\${data}></gemkit-page-about>\`;
+    },
+  }, {
     pattern: "/files/*",
     getContent: async (params) => {
       const data = await loadPage(() => import("../src/pages/files/[...path]"), 'gemkit-page-files-path', params);
@@ -37,12 +43,6 @@ setOutlets({
     getContent: async () => {
       await loadLayout(() => import("../src/pages/blog/_layout"), 'gemkit-layout-blog');
       return html\`<gemkit-layout-blog></gemkit-layout-blog>\`;
-    },
-  }, {
-    pattern: "/about",
-    getContent: async (params) => {
-      const data = await loadPage(() => import("../src/pages/about"), 'gemkit-page-about', params);
-      return html\`<gemkit-page-about .params=\${params} .data=\${data}></gemkit-page-about>\`;
     },
   }, {
     pattern: "/:id",

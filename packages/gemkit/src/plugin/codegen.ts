@@ -54,17 +54,18 @@ function toTag(type: 'page' | 'layout', relPath: string) {
 }
 
 // 静态片段优先，其次是参数，最后是 `*`
+// `*` 能匹配空片段，所以缺少的片段排在 `*` 之前，例如 `/` 先于 `/*`
 function rankPattern(pattern: string) {
   return pattern
     .split('/')
     .filter(Boolean)
-    .map((seg) => (seg === '*' ? 1 : seg.startsWith(':') ? 2 : 3));
+    .map((seg) => (seg === '*' ? 0 : seg.startsWith(':') ? 2 : 3));
 }
 
 function comparePattern(a: string, b: string) {
   const [ra, rb] = [rankPattern(a), rankPattern(b)];
   for (let i = 0; i < Math.max(ra.length, rb.length); i++) {
-    if (ra[i] !== rb[i]) return (rb[i] || 0) - (ra[i] || 0);
+    if (ra[i] !== rb[i]) return (rb[i] ?? 1) - (ra[i] ?? 1);
   }
   return 0;
 }
