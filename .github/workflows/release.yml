@@ -9,6 +9,8 @@ on:
     tags:
       - gem-context-server@*
       - '@mantou/gem@*'
+      - '@mantou/gem-ssr@*'
+      - '@mantou/gemkit@*'
       - swc-plugin-gem@*
       - unplugin-gem@*
       - gem-analyzer@*
@@ -71,6 +73,18 @@ jobs:
               name: '@mantou/gem',
               path: 'packages/gem/package.json',
               workflow: 'gem-publish.yml',
+              npm: true,
+            },
+            {
+              name: '@mantou/gem-ssr',
+              path: 'packages/gem-ssr/package.json',
+              workflow: 'gem-ssr-publish.yml',
+              npm: true,
+            },
+            {
+              name: '@mantou/gemkit',
+              path: 'packages/gemkit/package.json',
+              workflow: 'gemkit-publish.yml',
               npm: true,
             },
             {
