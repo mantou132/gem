@@ -2,6 +2,7 @@ import fs from 'node:fs';
 import type { IncomingMessage, ServerResponse } from 'node:http';
 import path from 'node:path';
 import { Readable } from 'node:stream';
+import { text } from 'node:stream/consumers';
 import { pipeline } from 'node:stream/promises';
 import { fileURLToPath } from 'node:url';
 
@@ -9,7 +10,7 @@ import { logger, type RsbuildPlugin } from '@rsbuild/core';
 import type { UnpluginGemOptions } from 'unplugin-gem';
 import unpluginGem from 'unplugin-gem/rspack';
 
-import { getDataPath } from '../constants';
+import { ELEMENT_PATH, ELEMENTS_FILE, getDataPath } from '../constants';
 import type { Renderer } from '../server';
 import { type GemkitConfig, generate } from './codegen';
 import { createHandler, createRequestHandler, getDistPaths, type Handler, isDataRequest, loadRenderer } from './serve';
@@ -41,9 +42,10 @@ const ssrMiddleware =
   async (req: IncomingMessage, res: ServerResponse, next: (err?: unknown) => void) => {
     const { pathname } = new URL(req.url!, 'http://localhost');
     const isPage = req.headers.accept?.includes('text/html') && !path.extname(pathname);
-    if (req.method !== 'GET' || !(isPage || isDataRequest(pathname))) return next();
+    const isPost = req.method === 'POST' && pathname === ELEMENT_PATH;
+    if (!isPost && (req.method !== 'GET' || !(isPage || isDataRequest(pathname)))) return next();
     try {
-      const { status, type, body } = await (await getHandler())(req.url!);
+      const { status, type, body } = await (await getHandler())(req.url!, isPost ? await text(req) : undefined);
       res.statusCode = status;
       res.setHeader('Content-Type', type === 'json' ? 'application/json' : 'text/html; charset=utf-8');
       await pipeline(Readable.from(body), res);
@@ -171,8 +173,13 @@ export function pluginGemkit(options: GemkitOptions = {}): RsbuildPlugin {
         const { renderer, template: html } = await loadRenderer(distDir);
         const paths = await renderer.getPaths();
         const prerenderPage = async (pathname: string) => {
-          const result = await renderer.renderDocument(html, pathname);
+          const serverElements = new Map<string, string>();
+          const result = await renderer.renderDocument(html, pathname, { serverElements });
           writeFile(webDir, path.posix.join(pathname, 'index.html'), (await Array.fromAsync(result.html)).join(''));
+          // 静态托管时客户端导航使用的纯服务端元素
+          if (serverElements.size) {
+            writeFile(webDir, getDataPath(pathname, ELEMENTS_FILE), JSON.stringify(Object.fromEntries(serverElements)));
+          }
           // 静态托管时客户端导航使用的数据
           if (renderer.hasServerData(pathname)) {
             const dataPath = getDataPath(pathname);

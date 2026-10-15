@@ -1,3 +1,5 @@
+import { isolate } from '@mantou/gem/lib/server';
+
 export type Params = Record<string, string>;
 
 export interface LayoutOptions<P extends Params = Params, D = unknown> {
@@ -23,19 +25,19 @@ type RouteClass = new (...args: any) => HTMLElement;
 
 const optionsMap = new WeakMap<RouteClass, PageOptions<any, any>>();
 
-// 即将渲染的页面或 layout 的属性
-let pendingProps: { params: Params; data: unknown } | undefined;
+// 即将渲染的页面或 layout 的属性，每个请求有独立的值
+const pending = isolate<{ props?: { params: Params; data: unknown } }>({});
 
 /** 元素可能在路由设置属性之前创建，例如水合时定义元素会立即升级服务端渲染的元素 */
-export function setPendingProps(props: typeof pendingProps) {
-  pendingProps = props;
+export function setPendingProps(props: typeof pending.props) {
+  pending.props = props;
 }
 
 const decorate = <T extends RouteClass>(cls: T, options: PageOptions<any, any>) => {
   const Route = class extends cls {
     constructor(...args: any[]) {
       super(...args);
-      if (pendingProps) Object.assign(this, pendingProps);
+      if (pending.props) Object.assign(this, pending.props);
     }
   };
   optionsMap.set(Route, options);

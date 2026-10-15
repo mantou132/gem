@@ -72,6 +72,16 @@ export default class PostPage extends GemElement {
 Module level stores updated on the server (e.g. in `@server` methods) are sent to the client automatically,
 hydration uses the server values. Only JSON values are supported.
 
+## Server elements
+
+`@server()` element classes are only rendered on the server, their code and dependencies are not bundled into the
+client, `@server({ lazy: true })` elements are loaded on the first interaction, see
+[gem-ssr](https://github.com/mantou132/gem/tree/main/packages/gem-ssr#server-elements).
+
+On client navigation, the HTML of the server elements in the page is fetched from `<page path>/__elements.json`
+(written next to the page when prerendering), elements not in it (e.g. pages not prerendered, elements shown after
+interaction) are rendered by the server on demand in one batched request, which is not available on a static host.
+
 ## Layout data
 
 Layouts can load data like pages, it is passed to the layout as `params` (without the child route part) and `data`.

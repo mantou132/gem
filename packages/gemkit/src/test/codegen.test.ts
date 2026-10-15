@@ -127,7 +127,7 @@ test('generate: 生成路由和入口文件', ({ assert }) => {
   const server = read('server.ts');
   // 按匹配优先级排序：静态片段 > 参数 > `*`
   assert.deepEqual(
-    [...server.matchAll(/pattern: "([^"]+)"/g)].map(([, pattern]) => pattern),
+    [...server.split('const layouts')[0].matchAll(/pattern: "([^"]+)"/g)].map(([, pattern]) => pattern),
     ['/files/new', '/blog/new', '/files/:name', '/blog/:slug', '/about', '/blog', '/files/*', '/:id', '/'],
   );
   assert.match(server, /'gemkit-page-blog-slug': \(\) => import\("..\/src\/pages\/blog\/\[slug\].server"\),/);

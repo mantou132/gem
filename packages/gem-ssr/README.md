@@ -190,33 +190,81 @@ Output details:
 - Hidden `v-if` branches are output with `display:none`, so the client can rebuild the condition chain
 - Bindings inside `<style>`, `<script>`, `<textarea>` and `<title>` are rendered, but not hydrated
 
-## Improve WebApp Performance (Planned)
+## Server elements
 
-### Lazy View
-
-The server renders the initial data, load the element when user interacting, and then playback of the interaction event
+`@server()` on an element class makes it a server element: it is only rendered on the server, the client does not
+load its code or hydrate it, so it can use server-only code (`node:fs`, a markdown parser) without shipping it to
+the browser. `@server({ lazy: true })` makes it a lazy view: it is rendered on the server and hydrated normally,
+but its code is loaded on the first interaction (the event is replayed after loading).
 
 ```ts
-@lazy()
-@customElement('gem-ssr')
-class GemSsrElement extends GemElement {
-  #state = createState({ content: 0 });
+import { readFile } from 'node:fs/promises';
+import { server } from '@mantou/gem-ssr/decorators';
+import { marked } from 'marked';
 
-  @server() // or `@server('lazy')`
-  #init = async () => {
-    this.#state({ content: await 1 });
+@customElement('app-markdown')
+@shadow()
+@server()
+class AppMarkdownElement extends GemElement {
+  @attribute src: string;
+
+  #state = createState({ html: '' });
+
+  @server()
+  #load = async () => this.#state({ html: await marked.parse(await readFile(this.src, 'utf8')) });
+
+  @template()
+  #content = () => {
+    this.shadowRoot!.innerHTML = this.#state.html;
+    return undefined;
   };
 }
+
+@customElement('app-like-button')
+@server({ lazy: true })
+class AppLikeButtonElement extends GemElement {}
 ```
 
-`@server('lazy')` returns first, then executes, and re-renders the content after execution.
+Both need the `ssr` option of `unplugin-gem` (or `swc-plugin-gem`), the client build rewrites the element module:
 
-### Server Side Element
+- Server element: the class is replaced with `GemServerElement` (only `@customElement` is kept),
+  declarations and imports that are no longer used are removed
+- Lazy view: the module is replaced with `defineLazy(tag, () => import('./self?gem-lazy'))`, so the element is a
+  separate chunk. Only use the element through its tag, the module can not have other exports or elements
 
-A lazy special case that never loads element
+`GemServerElement` and `defineLazy` are imported from the module `server` is imported from.
 
-```ts
-@lazy('never')
-@customElement('gem-ssr')
-class GemSsrElement extends GemElement {}
+### Server elements on the client
+
+On the first page, a server element keeps the server output. When it is created on the client (e.g. client navigation)
+or its attributes change, it gets the HTML from the loader set with `setServerElementLoader`, the loader receives a key
+generated from the tag, attributes and properties, the server renders the element with `renderServerElement`:
+
+```js
+import { setServerElementLoader } from '@mantou/gem-ssr/client';
+
+setServerElementLoader(async (key, tag, attrs, props) => {
+  const body = JSON.stringify({ url: location.href, tag, attrs, props });
+  return fetch('/element', { method: 'POST', body }).then((res) => res.json());
+});
 ```
+
+```js
+import { renderServerElement } from '@mantou/gem-ssr';
+
+app.post('/element', async (req, res) => {
+  const { url, tag, attrs, props } = req.body;
+  // JSON, so the response is not opened as an HTML page
+  res.json(await renderServerElement(tag, attrs, props, { url }));
+});
+```
+
+The `serverElements` option of `render` collects the HTML of the server elements in the page by key,
+e.g. to send them with the page data ([gemkit](https://github.com/mantou132/gem/tree/main/packages/gemkit) does this).
+
+- Server elements must not depend on client-only state, the attributes and properties must be JSON values
+- Properties are only used when the element is created, prefer attributes
+- Properties set by a server element on its child elements are not available on the client,
+  interactive child elements are hydrated independently
+- Lazy views are loaded directly when created on the client, replaying works for simple events,
+  continuous interactions such as dragging take effect after loading

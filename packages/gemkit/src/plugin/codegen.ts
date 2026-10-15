@@ -177,17 +177,19 @@ function generateRoutes(genDir: string, pagesDir: string) {
   }`;
 
   const pages: PageNode[] = [];
-  // 有 `_layout.server.ts` 的 layout
-  const layouts: { pattern: string; tag: string; server: string }[] = [];
+  // 服务端加载 layout 模块和数据使用
+  const layouts: { pattern: string; tag: string; file: string; server?: string }[] = [];
   const outlets: string[] = [];
   // 根 layout 也通过路由加载，这样可以和其他 layout 一样加载数据
   if (root.file) {
     outlets.push(`  '': [${layoutRoute('*', root, 'async () => RootLayout')}],`);
-    if (root.server) layouts.push({ pattern: '*', tag: root.tag, server: root.server });
+    layouts.push({ pattern: '*', tag: root.tag, file: root.file, server: root.server });
   }
   const collect = (layout: LayoutNode) => {
     pages.push(...layout.pages);
-    layout.layouts.forEach(({ pattern, layout: { tag, server } }) => server && layouts.push({ pattern, tag, server }));
+    layout.layouts.forEach(({ pattern, layout: { tag, file, server } }) =>
+      layouts.push({ pattern, tag, file: file!, server }),
+    );
     const routes = [
       ...layout.pages.map((page) => ({ pattern: page.pattern, code: pageRoute(page) })),
       ...layout.layouts.map(({ pattern, layout: sub }) => ({ pattern, code: layoutRoute(pattern, sub) })),
@@ -305,7 +307,10 @@ function generateEntries(
       `];`,
       '',
       `const layouts = [`,
-      ...layouts.map(({ pattern, tag }) => `  { pattern: ${JSON.stringify(pattern)}, tag: '${tag}' },`),
+      ...layouts.map(
+        ({ pattern, tag, file }) =>
+          `  { pattern: ${JSON.stringify(pattern)}, tag: '${tag}', load: () => import(${importPath(file)}) },`,
+      ),
       `];`,
       '',
       `const serverModules = {`,

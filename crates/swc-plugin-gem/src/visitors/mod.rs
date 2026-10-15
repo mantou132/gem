@@ -5,7 +5,7 @@ pub mod memo;
 pub mod path;
 pub mod preload;
 pub mod selector;
-pub mod store_key;
+pub mod ssr;
 pub mod style_minify;
 
 use std::hash::{DefaultHasher, Hash, Hasher};

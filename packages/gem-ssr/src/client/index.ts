@@ -1,8 +1,13 @@
 import { _setStoreRestorer, type GemElement, setHydrationEngine } from '@mantou/gem';
+import type { TemplateResult } from '@mantou/gem/lib/lit-html';
 
 import { STORES_SCRIPT_ID } from '../constants';
 import { SSR_STATE, ssrContext } from '../decorators';
 import { hydrateContainer } from './hydration';
+import { observeLazyRoot } from './lazy';
+
+export { defineLazy } from './lazy';
+export { GemServerElement, setServerElementLoader } from './server-element';
 
 function restoreState(ele: GemElement) {
   const value = ele.getAttribute(SSR_STATE);
@@ -15,7 +20,11 @@ function restoreState(ele: GemElement) {
   setTimeout(() => ssrContext.restoredElements.delete(ele));
 }
 
-setHydrationEngine(hydrateContainer, restoreState);
+setHydrationEngine((value, container) => {
+  // 水合的 ShadowRoot 是解析 HTML 时创建的，需要单独观察其中客户端创建的延时视图元素
+  observeLazyRoot(container);
+  return hydrateContainer(value as TemplateResult, container);
+}, restoreState);
 
 let stores: Record<string, object> | undefined;
 

@@ -4,7 +4,8 @@ import test from 'node:test';
 
 import { createStore, type GemElement } from '@mantou/gem';
 
-import { ssrContext } from '../decorators';
+import { defineLazy, GemServerElement, setServerElementLoader } from '../client';
+import { getServerElementKey, ssrContext } from '../decorators';
 import { counter, type DemoServerMethodElement } from './fixtures/server';
 import { ssr } from './ssr';
 
@@ -56,4 +57,77 @@ test('@server: 恢复状态后首轮副作用之前跳过执行', async ({ asser
   await new Promise((resolve) => setTimeout(resolve));
   restored.load();
   assert.equal(counter.methodCalls, 2, '首轮副作用之后正常执行');
+});
+
+test('纯服务端元素：首屏使用服务端内容，客户端创建时获取 HTML', async ({ assert }) => {
+  const html = await ssr('server-element.ts', 'serverElement');
+  const calls: unknown[][] = [];
+  setServerElementLoader(async (...args) => {
+    calls.push(args);
+    return html;
+  });
+  customElements.define('app-server-element', class extends GemServerElement {});
+  const container = mount(html);
+  const ssrElement = container.querySelector('app-server-element')!;
+  assert.equal(ssrElement.hasAttribute('ssr-server'), false);
+  assert.match(ssrElement.textContent!, /a:1:loaded/);
+  assert.equal(calls.length, 0, '首屏不获取');
+
+  const element = document.createElement('app-server-element');
+  element.setAttribute('text', 'a');
+  Object.assign(element, { data: { n: 1 } });
+  document.body.append(element);
+  await new Promise((resolve) => setTimeout(resolve));
+  assert.deepEqual(calls, [
+    [
+      getServerElementKey('app-server-element', { text: 'a' }, { data: { n: 1 } }),
+      'app-server-element',
+      { text: 'a' },
+      { data: { n: 1 } },
+    ],
+  ]);
+  assert.match(element.textContent!, /a:1:loaded/);
+
+  element.setAttribute('text', 'a');
+  await new Promise((resolve) => setTimeout(resolve));
+  assert.equal(calls.length, 1, '设置相同的值时不获取');
+
+  element.setAttribute('text', 'b');
+  await new Promise((resolve) => setTimeout(resolve));
+  assert.equal(calls.length, 2, 'attribute 改变时重新获取');
+  assert.equal(calls[1][0], getServerElementKey('app-server-element', { text: 'b' }, { data: { n: 1 } }));
+});
+
+test('延时视图：交互时加载并重放事件，客户端创建时直接加载', async ({ assert }) => {
+  const clicks: string[] = [];
+  let loads = 0;
+  class LazyElement extends HTMLElement {
+    constructor() {
+      super();
+      this.addEventListener('click', (evt) => clicks.push((evt.target as Element).localName));
+    }
+  }
+  // 和 `import()` 一样异步加载
+  defineLazy('app-lazy', async () => {
+    loads++;
+    await Promise.resolve();
+    customElements.define('app-lazy', LazyElement);
+  });
+  const container = mount('<app-lazy><button></button></app-lazy>');
+  let outerClicks = 0;
+  container.addEventListener('click', () => outerClicks++);
+  assert.equal(customElements.get('app-lazy'), undefined, '交互前不加载');
+  container.querySelector('button')!.click();
+  await new Promise((resolve) => setTimeout(resolve));
+  assert.equal(loads, 1);
+  assert.deepEqual(clicks, ['button'], '重放触发加载的事件');
+  assert.equal(outerClicks, 1, '其他监听器只收到重放的事件');
+
+  defineLazy('app-lazy-created', async () => {
+    loads++;
+    customElements.define('app-lazy-created', class extends HTMLElement {});
+  });
+  document.body.append(document.createElement('app-lazy-created'));
+  await new Promise((resolve) => setTimeout(resolve));
+  assert.equal(loads, 2);
 });

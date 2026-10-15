@@ -3,9 +3,18 @@ import '@mantou/gem-ssr';
 
 import test from 'node:test';
 
-import { createState, GemElement, html, mounted, type TemplateResult, template } from '@mantou/gem';
+import {
+  attribute,
+  createState,
+  customElement,
+  GemElement,
+  html,
+  mounted,
+  type TemplateResult,
+  template,
+} from '@mantou/gem';
 import { I18n } from '@mantou/gem/helper/i18n';
-import { server } from '@mantou/gem-ssr/decorators';
+import { getServerElementKey, server } from '@mantou/gem-ssr/decorators';
 
 import { DATA_SCRIPT_ID } from '../constants';
 import type { ServerModule } from '../data';
@@ -13,10 +22,19 @@ import { loadPage, setOutlets } from '../outlet';
 import { type Params, page } from '../page';
 import { createRenderer, type PageEntry } from '../server';
 
+@customElement('app-server-note')
+@server()
+class ServerNoteElement extends GemElement {
+  @attribute text: string;
+
+  @template()
+  #content = () => html`<p>note: ${this.text}</p>`;
+}
+
 @page('Home')
 class HomePage extends GemElement {
   @template()
-  #content = () => html`<h1>home</h1>`;
+  #content = () => html`<h1>home</h1><app-server-note text="hi"></app-server-note>`;
 }
 
 @page({ title: (params) => `Post ${params.id}` })
@@ -180,4 +198,18 @@ test('hasServerData: 页面是否有服务端模块', ({ assert }) => {
   assert.equal(renderer.hasServerData('/posts/1'), true);
   assert.equal(renderer.hasServerData('/zh/posts/1'), true);
   assert.equal(renderer.hasServerData('/'), false);
+});
+
+const noteKey = getServerElementKey('app-server-note', { text: 'hi' }, {});
+
+test('renderDocument: 预渲染时收集纯服务端元素', async ({ assert }) => {
+  const serverElements = new Map<string, string>();
+  const { html } = await renderer.renderDocument(documentTemplate, '/', { serverElements });
+  await Array.fromAsync(html);
+  assert.deepEqual([...serverElements.keys()], [noteKey]);
+});
+
+test('renderElements: 渲染页面中的纯服务端元素', async ({ assert }) => {
+  const [note] = await renderer.renderElements('/zh', [{ tag: 'app-server-note', attrs: { text: 'x' }, props: {} }]);
+  assert.match(note, /note: .*x/);
 });

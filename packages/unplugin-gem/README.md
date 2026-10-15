@@ -154,8 +154,11 @@ Complete JavaScript HMR still needs a host that implements those APIs (webpack/R
 
 ## SSR
 
-Enable `ssr` in both the client and server builds when using [`@mantou/gem-ssr`](https://github.com/mantou132/gem/tree/main/packages/gem-ssr),
-it adds a key to module level `createStore`, so the store values updated on the server are restored on the client.
+Enable `ssr` in both the client and server builds when using [`@mantou/gem-ssr`](https://github.com/mantou132/gem/tree/main/packages/gem-ssr):
+
+- adds a key to module level `createStore`, so the store values updated on the server are restored on the client
+- in the client build, replaces `@server()` element classes with stubs and splits `@server({ lazy: true })`
+  elements into chunks loaded on demand
 
 In client builds, `globalThis.__GEM_SSR__` is replaced with `undefined` in all modules (including
 `node_modules`), so the SSR code of Gem is removed by the minifier. Client builds are detected by

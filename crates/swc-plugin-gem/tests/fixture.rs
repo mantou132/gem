@@ -146,13 +146,41 @@ fn fixture_hmr(input: PathBuf) {
     );
 }
 
-#[fixture("tests/fixture/store-key/input.ts")]
+#[fixture("tests/fixture/ssr/store-key/input.ts")]
 fn fixture_store_key(input: PathBuf) {
     let output = input.parent().unwrap().join("output.ts");
 
     test_fixture(
         get_syntax(),
-        &|_| visit_mut_pass(store_key_transform(Some("reactive.js".to_string()))),
+        &|_| {
+            visit_mut_pass(ssr_transform(
+                Some("reactive.js".to_string()),
+                SsrTarget::Server,
+            ))
+        },
+        &input,
+        &output,
+        Default::default(),
+    );
+}
+
+#[fixture("tests/fixture/ssr/element*/input.ts")]
+fn fixture_server(input: PathBuf) {
+    let output = input.parent().unwrap().join("output.ts");
+    let target = if input.to_string_lossy().contains("lazy-chunk") {
+        SsrTarget::LazyChunk
+    } else {
+        SsrTarget::Client
+    };
+
+    test_fixture(
+        get_syntax(),
+        &move |_| {
+            visit_mut_pass(ssr_transform(
+                Some("/src/elements/input.ts".to_string()),
+                target,
+            ))
+        },
         &input,
         &output,
         Default::default(),

@@ -16,7 +16,7 @@ pub use visitors::{
     path::path_transform,
     preload::preload_transform,
     selector::selector_transform,
-    store_key::store_key_transform,
+    ssr::{ssr_transform, SsrConfig, SsrTarget},
     style_minify::style_minify_transform,
 };
 
@@ -43,8 +43,11 @@ struct PluginConfig {
     pub hmr: HmrConfig,
     /// Support `&:hover` in shadow dom and light dom
     pub selector_compatible: bool,
-    /// SSR support, e.g. add key to module level `createStore` to sync store values to the client
-    pub ssr: bool,
+    /// SSR support: `"server"` / `"client"` build (`true` is `"server"`),
+    /// add key to module level `createStore` to sync store values to the client,
+    /// rewrite `@server()` element classes in the client build,
+    /// `"lazy-chunk"` is set by `unplugin-gem` for the `?gem-lazy` module of the lazy view
+    pub ssr: SsrConfig,
     /// un-implement
     pub lazy_view: bool,
 }
@@ -59,6 +62,7 @@ pub fn process_transform(mut program: Program, data: TransformPluginProgramMetad
 
     let filename = data.get_context(&TransformPluginMetadataContextKind::Filename);
     let hmr_target = config.hmr.target();
+    let ssr_target = config.ssr.target();
 
     program.visit_mut_with(&mut (
         Optional {
@@ -95,8 +99,8 @@ pub fn process_transform(mut program: Program, data: TransformPluginProgramMetad
         },
         Optional {
             // 先于 HMR，HMR 会把 `createStore` 包在函数中
-            enabled: config.ssr,
-            visitor: store_key_transform(filename.clone()),
+            enabled: ssr_target.is_some(),
+            visitor: ssr_transform(filename.clone(), ssr_target.unwrap_or(SsrTarget::Server)),
         },
         Optional {
             enabled: hmr_target.is_some(),
@@ -121,6 +125,14 @@ mod tests {
                 ..Default::default()
             }
         )
+    }
+
+    #[test]
+    fn should_parse_ssr_target() {
+        let config = serde_json::from_str::<PluginConfig>(r#"{"ssr":"client"}"#).unwrap();
+        assert_eq!(config.ssr.target(), Some(SsrTarget::Client));
+        let config = serde_json::from_str::<PluginConfig>(r#"{"ssr":true}"#).unwrap();
+        assert_eq!(config.ssr.target(), Some(SsrTarget::Server));
     }
 
     #[test]

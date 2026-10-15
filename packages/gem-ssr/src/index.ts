@@ -3,10 +3,19 @@ import './lib/shim';
 
 import { _getUpdatedStores, type GemElement, history, SheetToken, setHydrationEngine } from '@mantou/gem';
 import { GemLightRouteElement } from '@mantou/gem/elements/route';
-import { createRef, TemplateResult } from '@mantou/gem/lib/lit-html';
+import { createRef, html, TemplateResult } from '@mantou/gem/lib/lit-html';
 
-import { LIT_PART_END, SSR_HIDDEN, SSR_STYLE, STORES_SCRIPT_ID, V_ELSE, V_ELSE_IF, V_IF } from './constants';
-import { SSR_STATE, ssrContext } from './decorators';
+import {
+  LIT_PART_END,
+  SSR_HIDDEN,
+  SSR_SERVER,
+  SSR_STYLE,
+  STORES_SCRIPT_ID,
+  V_ELSE,
+  V_ELSE_IF,
+  V_IF,
+} from './constants';
+import { getServerElementKey, getServerElementOptions, SSR_STATE, ssrContext } from './decorators';
 import { type BoundAttr, compile, type OpenOp } from './lib/compile';
 import { runInRequest, setLocation } from './lib/shim';
 
@@ -44,6 +53,8 @@ type Context = {
   sheets: Set<unknown>;
   // 在隐藏的条件分支中，元素不会挂载
   hidden: boolean;
+  // 收集纯服务端元素的输出，key 由 `getServerElementKey` 生成
+  serverElements?: Map<string, Piece[]>;
 };
 
 type DirectiveResult = {
@@ -157,6 +168,8 @@ type ElementFrame = {
   conditionHidden: boolean;
   task?: Promise<unknown>;
   parentCtx: Context;
+  // 纯服务端元素的 key
+  serverKey?: string;
 };
 
 // 路由内部捕获了加载错误，SSR 时应该渲染失败
@@ -173,21 +186,34 @@ function loadRoute(route: GemLightRouteElement) {
 function createElement(Element: CustomElementConstructor, op: OpenOp, values: unknown[], ctx: Context) {
   const element = new Element() as GemElement;
   ctx.parent.append(element);
-  for (const { name, value } of op.attrs) element.setAttribute(name, value);
+  // 模版设置的 attribute 和 property，用来生成纯服务端元素的 key
+  const attrs: Record<string, string> = {};
+  const props: Record<string, unknown> = {};
+  for (const { name, value } of op.attrs) attrs[name] = value;
   for (const bound of op.bound) {
     if (bound.name === V_IF || bound.name === V_ELSE_IF) continue;
     const value = getBoundValue(bound, values, op.tag);
-    if (bound.prefix === '.') (element as any)[bound.name] = value;
-    else if (bound.prefix === '?') element.toggleAttribute(bound.name, !!value);
-    else if (!bound.prefix && value !== null && value !== undefined) element.setAttribute(bound.name, String(value));
+    if (bound.prefix === '.') props[bound.name] = value;
+    else if (bound.prefix === '?' && value) attrs[bound.name] = '';
+    else if (!bound.prefix && value !== null && value !== undefined) attrs[bound.name] = String(value);
   }
   for (const index of op.elementParts) {
     const value = values[index];
     if (value instanceof Ref) (value as { value: unknown }).value = element;
-    else if (value && typeof value === 'object') Object.assign(element, value);
+    else if (value && typeof value === 'object') Object.assign(props, value);
   }
+  for (const name in attrs) element.setAttribute(name, attrs[name]);
+  Object.assign(element, props);
   const conditionHidden = isHiddenBranch(op, values);
-  const frame: ElementFrame = { op, element, hidden: ctx.hidden || conditionHidden, conditionHidden, parentCtx: ctx };
+  const serverOptions = getServerElementOptions(Element);
+  const frame: ElementFrame = {
+    op,
+    element,
+    hidden: ctx.hidden || conditionHidden,
+    conditionHidden,
+    parentCtx: ctx,
+    serverKey: serverOptions && !serverOptions.lazy ? getServerElementKey(op.tag, attrs, props) : undefined,
+  };
   if (frame.hidden) {
     ssrContext.tasks.delete(element);
     return frame;
@@ -196,7 +222,8 @@ function createElement(Element: CustomElementConstructor, op: OpenOp, values: un
   element.connectedCallback();
   const tasks = ssrContext.tasks.get(element);
   ssrContext.tasks.delete(element);
-  if (tasks) ssrContext.stateElements.add(element);
+  // 纯服务端元素不会水合，不需要输出状态
+  if (tasks && !frame.serverKey) ssrContext.stateElements.add(element);
   // 服务端不执行副作用，所以手动加载路由
   const route = element instanceof GemLightRouteElement ? loadRoute(element) : undefined;
   if (tasks || route) frame.task = Promise.all([...(tasks || []).map((fn) => fn()), route]);
@@ -223,8 +250,8 @@ const getShadowRootAttrs = (shadowRoot: ShadowRoot) =>
     ] as [string, string][]),
   );
 
-// light DOM 的样式表在每个渲染根中第一次出现时输出到元素中
-function getLightStyle(element: GemElement, { sheets }: Context) {
+// light DOM 的样式表在每个渲染根中第一次出现时输出到元素中，水合后移除
+function getLightStyle(element: GemElement, sheets: Set<unknown>, attrs = ` ${SSR_STYLE}`) {
   const metadata = (element.constructor as any)[Symbol.metadata];
   const list = [...element.internals.sheets];
   for (const item of metadata?.adoptedStyleSheets || []) {
@@ -233,15 +260,16 @@ function getLightStyle(element: GemElement, { sheets }: Context) {
     sheets.add(sheet);
     list.push(sheet);
   }
-  return getStyle(list, ` ${SSR_STYLE}`);
+  return getStyle(list, attrs);
 }
 
 // 在子内容后执行，异步任务完成后才能输出元素
-function buildElement({ op, element, hidden, conditionHidden, parentCtx }: ElementFrame, children: Piece[]) {
+function buildElement({ op, element, hidden, conditionHidden, parentCtx, serverKey }: ElementFrame, children: Piece[]) {
   const attrs = getElementAttrs(element);
   if (ssrContext.stateElements.has(element)) {
     attrs.set(SSR_STATE, JSON.stringify(element.internals.stateList.map((state) => ({ ...state }))));
   }
+  if (serverKey) attrs.set(SSR_SERVER, '');
   setConditionAttrs(op, conditionHidden, attrs);
   const out: Piece[] = [`<${op.tag}${serializeAttrs(attrs)}>`];
   const { shadowRoot } = element;
@@ -253,7 +281,13 @@ function buildElement({ op, element, hidden, conditionHidden, parentCtx }: Eleme
   const template = renderedTemplates.get(shadowRoot || element);
   if (shadowRoot) {
     out.push(`<template${getShadowRootAttrs(shadowRoot)}>${getStyle(shadowRoot.adoptedStyleSheets)}`);
-    const ctx: Context = { out, parent: shadowRoot, sheets: new Set(), hidden: false };
+    const ctx: Context = {
+      out,
+      parent: shadowRoot,
+      sheets: new Set(),
+      hidden: false,
+      serverElements: parentCtx.serverElements,
+    };
     if (template !== undefined) {
       out.push(ROOT_MARKER);
       renderValue(template, ctx);
@@ -263,13 +297,21 @@ function buildElement({ op, element, hidden, conditionHidden, parentCtx }: Eleme
     }
     out.push('</template>', ...children);
   } else {
-    out.push(getLightStyle(element, parentCtx), ...children);
+    // 纯服务端元素不会水合，样式需要保留，客户端导航时也需要独立的样式
+    out.push(serverKey ? getLightStyle(element, new Set(), '') : getLightStyle(element, parentCtx.sheets), ...children);
     if (template !== undefined) {
       out.push(ROOT_MARKER);
-      renderValue(template, { out, parent: element, sheets: parentCtx.sheets, hidden: false });
+      renderValue(template, {
+        out,
+        parent: element,
+        sheets: parentCtx.sheets,
+        hidden: false,
+        serverElements: parentCtx.serverElements,
+      });
     }
   }
   out.push(op.close?.text ?? '');
+  if (serverKey) parentCtx.serverElements?.set(serverKey, out);
   element.disconnectedCallback();
   return out;
 }
@@ -356,7 +398,15 @@ function renderTemplate(result: TemplateResult, rootCtx: Context) {
 
 export interface RenderOptions {
   url?: string;
+  /** 收集纯服务端元素的 HTML，key 由 `getServerElementKey` 生成，客户端导航时使用 */
+  serverElements?: Map<string, string>;
 }
+
+const piecesToString = async (pieces: Piece[]) => {
+  let result = '';
+  await write(pieces, (chunk) => (result += chunk));
+  return result;
+};
 
 // 当前请求中更新过的有 key 的 store，客户端创建 store 时恢复
 function getStoresScript() {
@@ -386,15 +436,28 @@ async function write(pieces: Piece[], push: (chunk: string) => void) {
   if (buffer) push(buffer);
 }
 
-async function renderPieces(result: unknown, { url }: RenderOptions, push: (chunk: string) => void) {
+async function renderPieces(
+  result: unknown,
+  { url, serverElements }: RenderOptions,
+  push: (chunk: string) => void,
+  // 纯服务端元素的片段不需要恢复 store
+  withStores = true,
+) {
   setLocation(url || 'http://localhost/');
   const { pathname, search, hash } = location;
   history.replace({ path: pathname, query: search, hash });
 
-  const ctx: Context = { out: [ROOT_MARKER], parent: document, sheets: new Set(), hidden: false };
+  const ctx: Context = {
+    out: [ROOT_MARKER],
+    parent: document,
+    sheets: new Set(),
+    hidden: false,
+    serverElements: serverElements && new Map(),
+  };
   renderValue(result, ctx);
   await write(ctx.out, push);
-  push(getStoresScript());
+  if (withStores) push(getStoresScript());
+  for (const [key, pieces] of ctx.serverElements || []) serverElements!.set(key, await piecesToString(pieces));
 }
 
 /**
@@ -434,4 +497,30 @@ export async function renderToString(result: unknown, options?: RenderOptions) {
   let html = '';
   for await (const chunk of render(result, options)) html += chunk;
   return html;
+}
+
+// 来自客户端请求，不能包含结束标签的字符
+const ATTR_NAME = /^[^\s"'<>/=]+$/;
+
+/**
+ * 渲染纯服务端元素，客户端导航时没有收集到元素的 HTML 时使用，例如交互后才出现的元素
+ *
+ * 只能渲染 `@server()` 标记的元素，`attrs` 和 `props` 和客户端设置的一致
+ */
+export async function renderServerElement(
+  tag: string,
+  attrs: Record<string, string>,
+  props: Record<string, unknown>,
+  options: RenderOptions = {},
+) {
+  const serverOptions = getServerElementOptions(customElements.get(tag) || {});
+  if (!serverOptions || serverOptions.lazy) throw new Error(`gem-ssr: \`${tag}\` is not a server element`);
+  for (const name in attrs) {
+    if (!ATTR_NAME.test(name)) throw new Error(`gem-ssr: invalid attribute name \`${name}\``);
+  }
+  const strings = [`<${tag}${serializeAttrs(new Map(Object.entries(attrs)))} `, `></${tag}>`];
+  const result = html(Object.assign(strings, { raw: strings }) as any, props);
+  let output = '';
+  await runInRequest(() => renderPieces(result, options, (chunk) => (output += chunk), false));
+  return output;
 }

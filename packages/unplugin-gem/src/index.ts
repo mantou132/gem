@@ -39,6 +39,13 @@ const require = createRequire(import.meta.url);
 const SSR_HOOK = 'globalThis.__GEM_SSR__';
 const SSR_HOOK_REPLACEMENT = 'undefined'.padEnd(SSR_HOOK.length);
 
+// 客户端构建时改写 `@server()` 标记的元素类，`?gem-lazy` 是延时视图元素真正的代码
+function getSsrTarget(ssr: boolean | undefined, isClient: boolean, id: string) {
+  if (!ssr) return false;
+  if (!isClient) return 'server';
+  return /[?&]gem-lazy\b/.test(id) ? 'lazy-chunk' : 'client';
+}
+
 export const unpluginFactory: UnpluginFactory<UnpluginGemOptions | undefined> = (options = {}, meta) => {
   const swcPluginPath = require.resolve('swc-plugin-gem');
   const hmrTarget = getHmrTarget(options, meta.framework);
@@ -107,7 +114,7 @@ export const unpluginFactory: UnpluginFactory<UnpluginGemOptions | undefined> = 
                       preload: options.preload ?? false,
                       hmr: moduleHmrTarget,
                       selectorCompatible: options.selectorCompatible ?? false,
-                      ssr: options.ssr ?? false,
+                      ssr: getSsrTarget(options.ssr, isClient, id),
                     },
                   ],
                 ],

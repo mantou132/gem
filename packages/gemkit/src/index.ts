@@ -1,4 +1,4 @@
-export { server } from '@mantou/gem-ssr/decorators';
+export { defineLazy, GemServerElement, server } from '@mantou/gem-ssr/decorators';
 
 export type { ServerLoadContext, ServerModule } from './data';
 export { getBasePath, localizePath, splitLanguage } from './i18n';

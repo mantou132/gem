@@ -8,7 +8,7 @@ import { serveStatic } from '@hono/node-server/serve-static';
 import { Hono } from 'hono';
 import { stream } from 'hono/streaming';
 
-import { DATA_FILE } from '../constants';
+import { DATA_FILE, ELEMENT_PATH, ELEMENTS_FILE } from '../constants';
 import type { Renderer } from '../server';
 
 export const getDistPaths = (distDir: string) => ({
@@ -24,10 +24,14 @@ export async function loadRenderer(distDir: string) {
   return { renderer, template: await readFile(template, 'utf8') };
 }
 
-export const isDataRequest = (pathname: string) => pathname.endsWith(`/${DATA_FILE}`);
+/** 页面数据、页面中纯服务端元素和渲染纯服务端元素的请求 */
+export const isDataRequest = (pathname: string) =>
+  pathname.endsWith(`/${DATA_FILE}`) || pathname.endsWith(`/${ELEMENTS_FILE}`) || pathname === ELEMENT_PATH;
 
 export type Handler = (
   url: string,
+  /** POST 请求的内容 */
+  body?: string,
 ) => Promise<{ status: number; type: 'html' | 'json'; body: string | AsyncIterable<string> }>;
 
 /** 处理页面和页面数据请求，提供 `webDir` 时优先使用预渲染的文件 */
@@ -37,11 +41,20 @@ export function createRequestHandler(renderer: Renderer, template: string, webDi
     const file = path.join(webDir, decodeURIComponent(pathname));
     if (file.startsWith(webDir + path.sep) && existsSync(file)) return readFile(file, 'utf8');
   };
-  return async (url) => {
-    const { pathname } = new URL(url, 'http://localhost');
+  return async (url, reqBody) => {
+    // 开发服务器中是相对路径
+    const requestUrl = new URL(url, 'http://localhost');
+    const { pathname } = requestUrl;
+    if (pathname === ELEMENT_PATH) {
+      const { url: pageUrl, elements } = JSON.parse(reqBody || '{}');
+      const list = await renderer.renderElements(new URL(pageUrl, requestUrl).href, elements);
+      return { status: 200, type: 'json', body: JSON.stringify(list) };
+    }
     if (isDataRequest(pathname)) {
       const body = await readStatic(pathname);
       if (body) return { status: 200, type: 'json', body };
+      // 没有预渲染时客户端使用 `ELEMENT_PATH` 渲染
+      if (pathname.endsWith(ELEMENTS_FILE)) return { status: 404, type: 'json', body: 'null' };
       const { status, data } = await renderer.loadData(url);
       return { status, type: 'json', body: JSON.stringify(data) };
     }
@@ -62,8 +75,11 @@ export async function start({ root = process.cwd(), port = Number(process.env.PO
   const handler = await createHandler(distDir);
   const app = new Hono();
   app.use('/*', serveStatic({ root: path.relative(process.cwd(), getDistPaths(distDir).webDir) }));
-  app.get('*', async (ctx) => {
-    const { status, type, body } = await handler(ctx.req.url);
+  app.on(['GET', 'POST'], '*', async (ctx) => {
+    const { status, type, body } = await handler(
+      ctx.req.url,
+      ctx.req.method === 'POST' ? await ctx.req.text() : undefined,
+    );
     ctx.status(status as 200);
     ctx.header('Content-Type', type === 'json' ? 'application/json' : 'text/html; charset=UTF-8');
     if (typeof body === 'string') return ctx.body(body);

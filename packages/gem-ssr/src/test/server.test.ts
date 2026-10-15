@@ -6,8 +6,9 @@ import { createState, customElement, fallback, GemElement, html, mounted, templa
 import { GemLightRouteElement } from '@mantou/gem/elements/route';
 import { GemUseElement } from '@mantou/gem/elements/use';
 
-import { render, renderToString } from '..';
-import { server, ssrContext } from '../decorators';
+import { render, renderServerElement, renderToString } from '..';
+import { getServerElementKey, server, ssrContext } from '../decorators';
+import { serverElement } from './fixtures/server-element';
 
 let calls = 0;
 
@@ -161,4 +162,27 @@ customElements.define('app-use', GemUseElement);
 test('`<gem-use>` 输出字符串内容', async ({ assert }) => {
   const result = await renderToString(html`<app-use .element=${'<svg><path d="M0"></path></svg>'}></app-use>`);
   assert.match(result, /<svg><path d="M0"><\/path><\/svg>/);
+});
+
+test('纯服务端元素：保留样式，不输出状态，收集 HTML', async ({ assert }) => {
+  const serverElements = new Map<string, string>();
+  const result = await renderToString(serverElement(), { serverElements });
+  assert.match(result, /<app-server-element text="a" ssr-server="">/);
+  assert.match(result, /<style>[^<]*color: ?red/, '样式不会在水合时移除');
+  assert.doesNotMatch(result, /ssr-state|ssr-style/);
+  assert.match(result, /<p>.*a.*1.*loaded.*<\/p>/, '执行服务端方法');
+  const key = getServerElementKey('app-server-element', { text: 'a' }, { data: { n: 1 } });
+  assert.deepEqual([...serverElements.keys()], [key]);
+  assert.equal(result.includes(serverElements.get(key)!), true);
+});
+
+test('renderServerElement：渲染纯服务端元素', async ({ assert }) => {
+  const result = await renderServerElement('app-server-element', { text: 'b' }, { data: { n: 2 } });
+  assert.match(result, /<p>.*b.*2.*loaded.*<\/p>/);
+  await assert.rejects(renderServerElement('app-server-inner', {}, {}), /not a server element/);
+  await assert.rejects(
+    renderServerElement('app-server-element', { 'x><script>alert(1)</script': '' }, {}),
+    /invalid attribute name/,
+  );
+  assert.doesNotMatch(result, /gem-ssr-stores/, '片段不输出 store');
 });

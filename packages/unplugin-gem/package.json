@@ -84,7 +84,7 @@
   "dependencies": {
     "@swc/core": "^1.9.3",
     "@swc/helpers": "^0.5.21",
-    "swc-plugin-gem": "=0.1.21-beta.2",
+    "swc-plugin-gem": "=0.1.21-beta.3",
     "unplugin": "^3.0.0"
   },
   "devDependencies": {

@@ -4,10 +4,18 @@ import '@mantou/gem-ssr';
 import { history, type TemplateResult, titleStore } from '@mantou/gem';
 import { matchPath } from '@mantou/gem/elements/route';
 import type { I18n } from '@mantou/gem/helper/i18n';
-import { render, runInRequest } from '@mantou/gem-ssr';
+import { type RenderOptions, render, renderServerElement, runInRequest } from '@mantou/gem-ssr';
 
 import { DATA_FILE, DATA_SCRIPT_ID, trimTrailingSlash } from './constants';
-import { getServerModule, type RouteData, runServerLoad, type ServerModule, setServerModules, ssrData } from './data';
+import {
+  getServerModule,
+  type RouteData,
+  runServerLoad,
+  type ServerElementParams,
+  type ServerModule,
+  setServerModules,
+  ssrData,
+} from './data';
 import { getBasePath, localizePath, splitLanguage } from './i18n';
 import { getLayoutParams } from './outlet';
 import { getPageOptions, type Params } from './page';
@@ -22,13 +30,13 @@ export interface PageEntry {
 export interface LayoutEntry {
   pattern: string;
   tag: string;
+  load: () => Promise<unknown>;
 }
 
 export interface RendererOptions extends TitleOptions {
   app: TemplateResult;
   /** 按匹配优先级排序 */
   pages: PageEntry[];
-  /** 有 `_layout.server.ts` 的 layout */
   layouts?: LayoutEntry[];
   /** 页面和 layout 标签名对应的 `*.server.ts` */
   serverModules?: Record<string, () => Promise<ServerModule>>;
@@ -73,7 +81,7 @@ export function createRenderer({
   /** 路径匹配的 layout 和页面中有服务端模块的，以及它们的参数 */
   const findServerRoutes = (path: string) => {
     const routes = layouts.flatMap(({ pattern, tag }) => {
-      const params = matchPath(pattern, path);
+      const params = tag in serverModules && matchPath(pattern, path);
       return params ? [{ tag, params: getLayoutParams(params) }] : [];
     });
     const result = findPage(path);
@@ -108,13 +116,35 @@ export function createRenderer({
       return Object.keys(data).length ? { status: 200, data } : { status: 404, data: null };
     });
 
-  /** 将渲染结果插入 HTML 模版，模版中使用 `<!--gemkit-body-->` 标记内容位置 */
-  const renderDocument = (template: string, url: string) =>
+  /** 渲染页面 `url` 中的纯服务端元素，返回元素的 HTML，顺序和 `elements` 一致 */
+  const renderElements = (url: string, elements: ServerElementParams[]) =>
+    runInRequest(async () => {
+      const { origin, pathname, search } = new URL(url, 'http://localhost');
+      const { path } = await setLanguage(pathname);
+      // 元素在页面和 layout 的模块中定义
+      await Promise.all([
+        findPage(path)?.page.load(),
+        ...layouts.filter(({ pattern }) => matchPath(pattern, path)).map(({ load }) => load()),
+      ]);
+      const options = { url: `${origin}${path}${search}` };
+      return Promise.all(elements.map(({ tag, attrs, props }) => renderServerElement(tag, attrs, props, options)));
+    });
+
+  /**
+   * 将渲染结果插入 HTML 模版，模版中使用 `<!--gemkit-body-->` 标记内容位置
+   *
+   * 预渲染时使用 `serverElements` 收集纯服务端元素的 HTML
+   */
+  const renderDocument = (
+    template: string,
+    url: string,
+    { serverElements }: Pick<RenderOptions, 'serverElements'> = {},
+  ) =>
     // 每个请求有独立的 history、i18n 和 store
     runInRequest(async (): Promise<RenderResult> => {
       const { origin, pathname, search } = new URL(url, 'http://localhost');
       const { lang, path } = await setLanguage(pathname);
-      const chunks = render(app, { url: `${origin}${path}${search}` });
+      const chunks = render(app, { url: `${origin}${path}${search}`, serverElements });
       // 页面的数据和标题确定后再输出文档
       let body = '';
       while (!ssrData.ready) {
@@ -166,7 +196,7 @@ export function createRenderer({
   const hasServerData = (path: string) =>
     findServerRoutes(splitLanguage(path, languages, defaultLanguage).path).length > 0;
 
-  return { renderDocument, loadData, getPaths, hasServerData };
+  return { renderDocument, loadData, renderElements, getPaths, hasServerData };
 }
 
 export type Renderer = ReturnType<typeof createRenderer>;

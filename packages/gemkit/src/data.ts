@@ -1,7 +1,7 @@
 import { history } from '@mantou/gem';
 import { isolate, isServer } from '@mantou/gem/lib/server';
 
-import { DATA_SCRIPT_ID, getDataPath } from './constants';
+import { DATA_SCRIPT_ID, ELEMENT_PATH, ELEMENTS_FILE, getDataPath } from './constants';
 import type { Params } from './page';
 
 export interface ServerLoadContext<P extends Params = Params> {
@@ -96,4 +96,57 @@ export async function loadServerData(tag: string, params: Params) {
   }
   dataRequest.taken.add(tag);
   return (await dataRequest.promise)[tag];
+}
+
+/** 纯服务端元素的标签名、attribute 和 property */
+export interface ServerElementParams {
+  tag: string;
+  attrs: Record<string, string>;
+  props: Record<string, unknown>;
+}
+
+// 页面中纯服务端元素的 HTML，同一个页面的元素共用一个请求
+let elementsRequest: { url: string; promise: Promise<Record<string, string>> } | undefined;
+
+// 同一轮渲染中需要服务端渲染的元素合并成一个请求
+let renderBatch: { url: string; elements: ServerElementParams[]; promise: Promise<string[]> } | undefined;
+
+function renderElement(url: string, element: ServerElementParams) {
+  if (renderBatch?.url !== url) {
+    const batch = { url, elements: [] as ServerElementParams[], promise: Promise.resolve([] as string[]) };
+    // 等同一轮的元素都加入后再请求
+    batch.promise = Promise.resolve().then(async () => {
+      if (renderBatch === batch) renderBatch = undefined;
+      const res = await fetch(ELEMENT_PATH, {
+        method: 'POST',
+        body: JSON.stringify({ url, elements: batch.elements }),
+      });
+      if (!res.ok) throw new Error(`gemkit: failed to render server elements of \`${url}\``);
+      return res.json();
+    });
+    renderBatch = batch;
+  }
+  const index = renderBatch.elements.push(element) - 1;
+  return renderBatch.promise.then((list) => list[index]);
+}
+
+/**
+ * 客户端创建纯服务端元素时获取 HTML，先从预渲染的 `__elements.json` 中获取，
+ * 没有时（例如没有预渲染或者交互后才出现的元素）请求服务端渲染，静态托管时不可用
+ */
+export async function loadServerElement(
+  key: string,
+  tag: string,
+  attrs: ServerElementParams['attrs'],
+  props: ServerElementParams['props'],
+) {
+  const { path } = history.getParams();
+  const url = history.basePath + getDataPath(path, ELEMENTS_FILE) + location.search;
+  if (elementsRequest?.url !== url) {
+    const promise = fetch(url).then((res) => (res.ok ? res.json() : {}));
+    elementsRequest = { url, promise };
+  }
+  const html = (await elementsRequest.promise)[key];
+  if (html !== undefined) return html;
+  return renderElement(history.basePath + path + location.search, { tag, attrs, props });
 }
