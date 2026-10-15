@@ -1,6 +1,6 @@
 {
   "name": "@mantou/gem-port",
-  "version": "1.2.14",
+  "version": "1.2.15",
   "description": "Generate React/Vue/Svelte components for Gem elements",
   "keywords": [
     "gem",
@@ -22,7 +22,7 @@
   },
   "dependencies": {
     "commander": "^7.2.0",
-    "gem-analyzer": "^2.2.14",
+    "gem-analyzer": "^2.2.15",
     "ts-morph": "^12.0.0"
   },
   "devDependencies": {

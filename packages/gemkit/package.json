@@ -1,6 +1,6 @@
 {
   "name": "@mantou/gemkit",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Gem application framework: file-based routing, layouts, i18n, SSR and SSG",
   "keywords": [
     "gem",
@@ -36,11 +36,11 @@
   },
   "dependencies": {
     "@hono/node-server": "^1.13.8",
-    "@mantou/gem": "^2.2.14",
-    "@mantou/gem-ssr": "^0.0.15",
+    "@mantou/gem": "^2.2.15",
+    "@mantou/gem-ssr": "^0.0.16",
     "eta": "^4.6.0",
     "hono": "^4.7.4",
-    "unplugin-gem": "^0.1.12"
+    "unplugin-gem": "^0.1.13"
   },
   "peerDependencies": {
     "@rsbuild/core": "^2.0.0"
