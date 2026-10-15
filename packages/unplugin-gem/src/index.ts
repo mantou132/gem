@@ -107,6 +107,7 @@ export const unpluginFactory: UnpluginFactory<UnpluginGemOptions | undefined> = 
                       preload: options.preload ?? false,
                       hmr: moduleHmrTarget,
                       selectorCompatible: options.selectorCompatible ?? false,
+                      ssr: options.ssr ?? false,
                     },
                   ],
                 ],

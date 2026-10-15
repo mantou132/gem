@@ -85,10 +85,7 @@
 //! - 静态字段值只对通过新模块类名读取生效，`this.constructor` 仍是老类
 //! - 修改过的模板字面量是新的模板，对应 DOM 会重建
 
-use std::{
-    hash::{DefaultHasher, Hash, Hasher},
-    mem, vec,
-};
+use std::{mem, vec};
 
 use indexmap::IndexSet;
 use once_cell::sync::Lazy;
@@ -107,6 +104,8 @@ use swc_ecma_ast::{
     MetaPropKind, MethodKind, ModuleDecl, ModuleItem, Param, ParamOrTsParamProp, Pat, PropName,
     RestPat, ReturnStmt, StaticBlock, Stmt, Str, ThisExpr, VarDecl,
 };
+
+use super::hash_string;
 
 #[derive(Deserialize, Debug, Clone, Copy, PartialEq, Default)]
 #[serde(rename_all = "kebab-case")]
@@ -142,12 +141,6 @@ impl HmrConfig {
 static DASH_REG: Lazy<Regex> = Lazy::new(|| Regex::new(r"-").unwrap());
 static HASH_KEY_PREFIX: &str = "hash_";
 static KEEP_FNS: [&str; 1] = ["createStore"];
-
-fn hash_string(s: &str) -> u64 {
-    let mut hasher = DefaultHasher::new();
-    s.hash(&mut hasher);
-    hasher.finish()
-}
 
 #[derive(Default)]
 struct TransformVisitor {

@@ -1,3 +1,4 @@
 import { createStore } from '@mantou/gem';
 
-export const headerStore = createStore({ title: 'Header' });
+// 没有使用 `swc-plugin-gem`，手动指定 key
+export const headerStore = createStore({ title: 'Header' }, 'header');

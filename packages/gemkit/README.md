@@ -67,6 +67,11 @@ export default class PostPage extends GemElement {
 }
 ```
 
+## Store
+
+Module level stores updated on the server (e.g. in `@server` methods) are sent to the client automatically,
+hydration uses the server values. Only JSON values are supported.
+
 ## Layout data
 
 Layouts can load data like pages, it is passed to the layout as `params` (without the child route part) and `data`.

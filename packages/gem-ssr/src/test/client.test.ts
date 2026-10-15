@@ -2,13 +2,13 @@ import './dom';
 
 import test from 'node:test';
 
-import type { GemElement } from '@mantou/gem';
+import { createStore, type GemElement } from '@mantou/gem';
 
-import { hydrateStores } from '../client';
 import { ssrContext } from '../decorators';
 import { counter, type DemoServerMethodElement } from './fixtures/server';
-import { userStore } from './fixtures/stores';
 import { ssr } from './ssr';
+
+import '../client';
 
 function mount(html: string) {
   const container = document.createElement('div');
@@ -17,10 +17,10 @@ function mount(html: string) {
   return container;
 }
 
-test('hydrateStores: 读取服务端的值', async ({ assert }) => {
+test('stores: 创建有 key 的 store 时使用服务端的值', async ({ assert }) => {
   mount(await ssr('stores.ts', 'withStore', 'bob'));
-  hydrateStores({ user: userStore });
-  assert.equal(userStore.nickname, 'bob');
+  assert.equal(createStore({ nickname: 'guest' }, 'user').nickname, 'bob');
+  assert.equal(createStore({ nickname: 'guest' }).nickname, 'guest', '没有 key 的 store 不恢复');
 });
 
 test('@server: 客户端恢复状态，复用节点', async ({ assert }) => {

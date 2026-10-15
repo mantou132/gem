@@ -103,6 +103,7 @@ export function pluginGemkit(options: GemkitOptions = {}): RsbuildPlugin {
           htmlMinify: true,
           selectorCompatible: true,
           preload: true,
+          ssr: true,
           ...gem,
           hmr: gem?.hmr ?? isDev,
         });

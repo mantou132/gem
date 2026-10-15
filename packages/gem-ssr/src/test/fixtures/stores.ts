@@ -1,5 +1,8 @@
 import { createStore, html } from '@mantou/gem';
 
-export const userStore = createStore<{ nickname: string }>({ nickname: 'guest' });
+const userStore = createStore<{ nickname: string }>({ nickname: 'guest' }, 'user');
 
-export const withStore = (nickname: string) => [html`<p></p>`, { stores: { user: [userStore, { nickname }] } }];
+export const withStore = (nickname: string) => {
+  userStore({ nickname });
+  return html`<p></p>`;
+};

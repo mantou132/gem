@@ -1,5 +1,5 @@
-import { createStore, history } from '@mantou/gem';
-import { isServer } from '@mantou/gem/lib/server';
+import { history } from '@mantou/gem';
+import { isolate, isServer } from '@mantou/gem/lib/server';
 
 import { DATA_SCRIPT_ID, getDataPath } from './constants';
 import type { Params } from './page';
@@ -34,16 +34,20 @@ export function getServerModule(tag: string) {
 /** 页面和 layout 的数据，key 是标签名 */
 export type RouteData = Record<string, unknown>;
 
-/** 服务端渲染时页面和 layout 的数据，渲染后输出到页面中，水合时直接使用，每个请求有独立的值 */
-export const ssrData = createStore<{
+/**
+ * 服务端渲染时页面和 layout 的数据，渲染后输出到页面中，水合时直接使用，每个请求有独立的值
+ *
+ * 不使用 store，避免被当作需要同步的 store 输出
+ */
+export const ssrData = isolate<{
   current?: { path: string; data: RouteData };
   /** 页面的数据和标题已经确定，可以开始输出文档 */
   ready?: boolean;
 }>({});
 
 export function setSSRData(path: string, tag: string, data: unknown) {
-  if (!ssrData.current) ssrData({ current: { path, data: {} } });
-  ssrData.current!.data[tag] = data;
+  ssrData.current ||= { path, data: {} };
+  ssrData.current.data[tag] = data;
 }
 
 /** 转换成 JSON 值，保证客户端拿到的数据和服务端一致 */

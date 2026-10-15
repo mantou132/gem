@@ -7,6 +7,7 @@
 - support minify html
 - resolve full path (for esm)
 - support module level resource preload
+- support SSR (`ssr`), e.g. add key to module level `createStore` to sync store values to the client
 - support hmr (experimental; `true` / `"webpack-hot"` emit `import.meta.webpackHot`. Use `unplugin-gem` to inject `@mantou/gem/helper/hmr` and select the matching target)
 
 # Example
@@ -36,6 +37,7 @@
             "htmlMinify": true,
             "preload": true,
             "resolvePath": true,
+            "ssr": true,
             "hmr": true
           }
         ]

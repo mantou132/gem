@@ -1,12 +1,11 @@
 // 必须在 Gem 之前执行，用来模拟 DOM 环境
 import './lib/shim';
 
-import { type GemElement, history, SheetToken, type Store, setHydrationEngine } from '@mantou/gem';
+import { _getUpdatedStores, type GemElement, history, SheetToken, setHydrationEngine } from '@mantou/gem';
 import { GemLightRouteElement } from '@mantou/gem/elements/route';
 import { createRef, TemplateResult } from '@mantou/gem/lib/lit-html';
 
-import { STORES_SCRIPT_ID } from './client/store';
-import { LIT_PART_END, SSR_HIDDEN, SSR_STYLE, V_ELSE, V_ELSE_IF, V_IF } from './constants';
+import { LIT_PART_END, SSR_HIDDEN, SSR_STYLE, STORES_SCRIPT_ID, V_ELSE, V_ELSE_IF, V_IF } from './constants';
 import { SSR_STATE, ssrContext } from './decorators';
 import { type BoundAttr, compile, type OpenOp } from './lib/compile';
 import { runInRequest, setLocation } from './lib/shim';
@@ -357,19 +356,13 @@ function renderTemplate(result: TemplateResult, rootCtx: Context) {
 
 export interface RenderOptions {
   url?: string;
-  /**
-   * 渲染时使用的 store 值，渲染后的值会输出到页面中，客户端使用 `hydrateStores` 读取
-   *
-   * 只支持 JSON 值，只在当前请求中有效
-   */
-  stores?: Record<string, [Store<any>, object?]>;
 }
 
-type StoreEntries = [string, [Store<any>, object?]][];
-
-function getStoresScript(stores: StoreEntries) {
-  if (!stores.length) return '';
-  const data = Object.fromEntries(stores.map(([key, [store]]) => [key, { ...store }]));
+// 当前请求中更新过的有 key 的 store，客户端创建 store 时恢复
+function getStoresScript() {
+  const stores = _getUpdatedStores();
+  if (!stores.size) return '';
+  const data = Object.fromEntries([...stores].map(([key, store]) => [key, { ...store }]));
   // 避免内容中的 `</script>` 结束标签
   const json = JSON.stringify(data).replaceAll('<', '\\u003c');
   return `<script type="application/json" id="${STORES_SCRIPT_ID}">${json}</script>`;
@@ -393,27 +386,24 @@ async function write(pieces: Piece[], push: (chunk: string) => void) {
   if (buffer) push(buffer);
 }
 
-async function renderPieces(result: unknown, { url, stores = {} }: RenderOptions, push: (chunk: string) => void) {
+async function renderPieces(result: unknown, { url }: RenderOptions, push: (chunk: string) => void) {
   setLocation(url || 'http://localhost/');
   const { pathname, search, hash } = location;
   history.replace({ path: pathname, query: search, hash });
 
-  // store 在每个请求中有独立的值
-  const entries: StoreEntries = Object.entries(stores);
-  entries.forEach(([, [store, value]]) => value && Object.assign(store, value));
   const ctx: Context = { out: [ROOT_MARKER], parent: document, sheets: new Set(), hidden: false };
   renderValue(result, ctx);
   await write(ctx.out, push);
-  push(getStoresScript(entries));
+  push(getStoresScript());
 }
 
 /**
  * 渲染成 HTML 片段，异步内容（路由、`@server`）完成前先输出前面的内容
  *
- * 每次渲染在独立的请求作用域中执行，在 `runInRequest` 中调用时使用当前的请求作用域，
+ * 调用时立即开始渲染，每次渲染在独立的请求作用域中执行，在 `runInRequest` 中调用时使用当前的请求作用域，
  * 渲染不受读取速度影响，读取慢时内容会缓存起来
  */
-export async function* render(result: unknown, options: RenderOptions = {}): AsyncGenerator<string> {
+export function render(result: unknown, options: RenderOptions = {}): AsyncGenerator<string> {
   const chunks: string[] = [];
   let notify: (() => void) | undefined;
   let done = false;
@@ -427,15 +417,17 @@ export async function* render(result: unknown, options: RenderOptions = {}): Asy
   });
   // 提前结束读取时（例如客户端断开）不再关心渲染结果
   task.catch(() => {});
-  while (true) {
-    if (chunks.length) {
-      yield chunks.splice(0).join('');
-    } else if (done) {
-      return task;
-    } else {
-      await new Promise<void>((resolve) => (notify = resolve));
+  return (async function* () {
+    while (true) {
+      if (chunks.length) {
+        yield chunks.splice(0).join('');
+      } else if (done) {
+        return task;
+      } else {
+        await new Promise<void>((resolve) => (notify = resolve));
+      }
     }
-  }
+  })();
 }
 
 export async function renderToString(result: unknown, options?: RenderOptions) {

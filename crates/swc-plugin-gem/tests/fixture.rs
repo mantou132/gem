@@ -145,3 +145,16 @@ fn fixture_hmr(input: PathBuf) {
         Default::default(),
     );
 }
+
+#[fixture("tests/fixture/store-key/input.ts")]
+fn fixture_store_key(input: PathBuf) {
+    let output = input.parent().unwrap().join("output.ts");
+
+    test_fixture(
+        get_syntax(),
+        &|_| visit_mut_pass(store_key_transform(Some("reactive.js".to_string()))),
+        &input,
+        &output,
+        Default::default(),
+    );
+}

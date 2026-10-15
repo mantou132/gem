@@ -6,7 +6,7 @@ import { build } from 'esbuild';
 import { type Context, Hono } from 'hono';
 import { stream } from 'hono/streaming';
 
-import { render } from '..';
+import { render, runInRequest } from '..';
 import { headerStore } from './stores';
 
 import './elements/app';
@@ -17,7 +17,11 @@ const app = new Hono();
 async function* renderPage(ctx: Context, template: TemplateResult, scripts: string[]) {
   yield `<!doctype html><html><head><meta charset="utf-8"></head><body>`;
   const title = `Header (rendered at ${new Date().toLocaleTimeString()})`;
-  yield* render(template, { url: ctx.req.url, stores: { header: [headerStore, { title }] } });
+  // 请求中更新的 store 会输出到页面中，客户端创建 store 时恢复
+  yield* runInRequest(() => {
+    headerStore({ title });
+    return render(template, { url: ctx.req.url });
+  });
   for (const script of scripts) {
     yield script.startsWith('<script') ? script : `<script src="${script}"></script>`;
   }
@@ -30,7 +34,6 @@ async function buildJS(ctx: Context, elementPath: string) {
     stdin: {
       contents: `
           ${ctx.req.header('Referer')?.includes('spa') ? '//' : ''} import './src/client/index.ts';
-          import './src/example/hydrate.ts';
           import '${elementPath}';
         `,
       resolveDir: process.cwd(),

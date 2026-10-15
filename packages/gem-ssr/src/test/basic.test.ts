@@ -21,7 +21,8 @@ import type { TemplateResult } from '@mantou/gem/lib/lit-html';
 import '@mantou/gem/elements/route';
 import '@mantou/gem/elements/unsafe';
 
-import { renderToString } from '..';
+import { renderToString, runInRequest } from '..';
+import { server } from '../decorators';
 import { t } from './utils';
 
 const style = css`
@@ -147,7 +148,9 @@ test('等待异步路由，输出路由内容的样式', async ({ assert }) => {
   assert.match(result, /color: red/);
 });
 
-const userStore = createStore<{ nickname: string; tags?: string[] }>({ nickname: 'guest' });
+const userStore = createStore<{ nickname: string; tags?: string[] }>({ nickname: 'guest' }, 'user');
+const countStore = createStore({ count: 0 }, 'count');
+const localStore = createStore({ count: 0 });
 
 @customElement('app-user')
 @connectStore(userStore)
@@ -156,16 +159,35 @@ export class DemoUserElement extends GemElement {
   #render = () => html`user: ${userStore.nickname}`;
 }
 
-test('stores: 使用请求的 store 值，输出到页面，渲染后恢复', async ({ assert }) => {
-  const result = await renderToString(html`<app-user></app-user>`, {
-    stores: { user: [userStore, { nickname: '</script>alice', tags: ['a'] }] },
+// 渲染时更新 store
+@customElement('app-counter')
+export class DemoCounterElement extends GemElement {
+  @server()
+  #load = async () => {
+    countStore({ count: 1 });
+    localStore({ count: 1 });
+  };
+}
+
+const getStoresJSON = (result: string) =>
+  result.match(/<script type="application\/json" id="gem-ssr-stores">(.*?)<\/script>/)?.[1];
+
+test('stores: 输出请求中更新过的有 key 的 store', async ({ assert }) => {
+  const result = await runInRequest(() => {
+    userStore({ nickname: '</script>alice', tags: ['a'] });
+    return renderToString(html`<app-user></app-user><app-counter></app-counter>`);
   });
   assert.match(result, /user: <!--\?lit\$\d+\$-->&lt;\/script&gt;alice/);
-  const json = result.match(/<script type="application\/json" id="gem-ssr-stores">(.*?)<\/script>/)![1];
+  const json = getStoresJSON(result)!;
   assert.equal(json.includes('</script>'), false, '转义结束标签');
-  assert.deepEqual(JSON.parse(json), { user: { nickname: '</script>alice', tags: ['a'] } });
-  assert.deepEqual({ ...userStore }, { nickname: 'guest' }, '恢复原来的值');
+  assert.deepEqual(
+    JSON.parse(json),
+    { user: { nickname: '</script>alice', tags: ['a'] }, count: { count: 1 } },
+    '没有 key 的 store 不输出',
+  );
+  assert.deepEqual({ ...userStore }, { nickname: 'guest' }, '不修改全局的值');
 
-  const other = await renderToString(html`<app-user></app-user>`, { stores: { user: [userStore] } });
+  const other = await renderToString(html`<app-user></app-user>`);
   assert.match(other, /user: <!--\?lit\$\d+\$-->guest/, '不影响其他请求');
+  assert.equal(getStoresJSON(other), undefined, '没有更新的 store 不输出');
 });

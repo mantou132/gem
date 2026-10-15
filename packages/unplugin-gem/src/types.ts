@@ -135,4 +135,12 @@ export interface UnpluginGemOptions {
    * @default false
    */
   selectorCompatible?: boolean;
+
+  /**
+   * Support `@mantou/gem-ssr`, e.g. add key to module level `createStore` to sync store values to the client
+   *
+   * Applies to both the client and server builds
+   * @default false
+   */
+  ssr?: boolean;
 }

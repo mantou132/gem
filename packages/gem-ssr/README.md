@@ -68,21 +68,20 @@ const html = await runInRequest(async () => {
 
 ## Store
 
-Pass per-request store values with a key, the values after rendering are output to the page (JSON values only):
+Stores with a key that are updated during the request (before or while rendering) are output to the page
+(JSON values only), the client uses these values when the store with the same key is created,
+so `@mantou/gem-ssr/client` must be imported before the stores are created.
+
+Enable `ssr` of `unplugin-gem` (or `swc-plugin-gem`) to add the key to module level stores automatically,
+or pass it manually:
 
 ```js
-renderToString(html`<app-root></app-root>`, {
-  url: req.url,
-  stores: { user: [userStore, { nickname: 'alice' }] },
+export const userStore = createStore({ nickname: 'guest' }, 'user');
+
+const html = await runInRequest(() => {
+  userStore({ nickname: 'alice' });
+  return renderToString(html`<app-root></app-root>`, { url: req.url });
 });
-```
-
-Read them on the client before the elements are defined, e.g. in a module imported before the elements:
-
-```js
-import { hydrateStores } from '@mantou/gem-ssr/client';
-
-hydrateStores({ user: userStore });
 ```
 
 ## Server Method

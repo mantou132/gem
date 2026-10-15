@@ -16,6 +16,7 @@ pub use visitors::{
     path::path_transform,
     preload::preload_transform,
     selector::selector_transform,
+    store_key::store_key_transform,
     style_minify::style_minify_transform,
 };
 
@@ -42,6 +43,8 @@ struct PluginConfig {
     pub hmr: HmrConfig,
     /// Support `&:hover` in shadow dom and light dom
     pub selector_compatible: bool,
+    /// SSR support, e.g. add key to module level `createStore` to sync store values to the client
+    pub ssr: bool,
     /// un-implement
     pub lazy_view: bool,
 }
@@ -89,6 +92,11 @@ pub fn process_transform(mut program: Program, data: TransformPluginProgramMetad
         Optional {
             enabled: config.preload,
             visitor: preload_transform(),
+        },
+        Optional {
+            // 先于 HMR，HMR 会把 `createStore` 包在函数中
+            enabled: config.ssr,
+            visitor: store_key_transform(filename.clone()),
         },
         Optional {
             enabled: hmr_target.is_some(),

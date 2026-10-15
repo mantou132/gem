@@ -66,9 +66,9 @@ test('并发渲染：每个请求有独立的 store、history 和 location', asy
   const names = ['alice', 'bob', 'carol-long-name', 'd'];
   const results = await Promise.all(
     names.map((name) =>
-      renderToString(html`<iso-user></iso-user>`, {
-        url: `http://localhost/${name}`,
-        stores: { user: [userStore, { name }] },
+      runInRequest(() => {
+        userStore({ name });
+        return renderToString(html`<iso-user></iso-user>`, { url: `http://localhost/${name}` });
       }),
     ),
   );
@@ -81,8 +81,11 @@ test('并发渲染：每个请求有独立的 store、history 和 location', asy
 
 test('并发渲染：其他请求更新 store 不影响当前请求的元素', async ({ assert }) => {
   const [a, b] = await Promise.all([
-    renderToString(html`<iso-user></iso-user>`, { stores: { user: [userStore, { name: 'alice' }] } }),
-    renderToString(html`<iso-writer></iso-writer><iso-user></iso-user>`, { stores: { user: [userStore, {}] } }),
+    runInRequest(() => {
+      userStore({ name: 'alice' });
+      return renderToString(html`<iso-user></iso-user>`);
+    }),
+    renderToString(html`<iso-writer></iso-writer><iso-user></iso-user>`),
   ]);
   assert.match(text(a), /^alice@\//);
   assert.match(text(b), /^writer@\//);

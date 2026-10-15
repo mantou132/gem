@@ -9,3 +9,5 @@ export const SSR_STYLE = 'ssr-style';
 export const V_IF = 'v-if';
 export const V_ELSE_IF = 'v-else-if';
 export const V_ELSE = 'v-else';
+// SSR 输出的 store 值，key 是 store 的 key
+export const STORES_SCRIPT_ID = 'gem-ssr-stores';
