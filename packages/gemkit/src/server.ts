@@ -199,10 +199,15 @@ export function createRenderer({
       const chunks = render(app, { url: `${url.origin}${path}${url.search}`, serverElements });
       // 页面的数据和标题确定后再输出文档
       let body = '';
-      while (!ssrData.ready) {
-        const { done, value } = await chunks.next();
-        if (done) break;
-        body += value;
+      try {
+        while (!ssrData.ready) {
+          const { done, value } = await chunks.next();
+          if (done) break;
+          body += value;
+        }
+      } catch (err) {
+        // 等待内容时 `load` 跳转，渲染以这个错误结束
+        if (!requestState.redirect) throw err;
       }
       // 不再读取剩余的内容
       const { redirect } = requestState;
