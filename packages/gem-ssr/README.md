@@ -181,7 +181,8 @@ rendered to strings:
   `getBoundingClientRect`
 - Do not access browser-only APIs at module level, e.g. `localStorage`
 - Browser features are reported as unsupported on the server: `matchMedia()` does not match, `CSS.supports()` returns `false`
-- If the template returns `undefined`, `shadowRoot.innerHTML` set by the element is output as is (not hydrated)
+- If the template returns `undefined`, `shadowRoot.innerHTML` (or `innerHTML` of a Light DOM element) set by the
+  element is output as is (not hydrated), e.g. trusted HTML styled by global CSS
 
 Output details:
 

@@ -1,4 +1,4 @@
-import { adoptedStyle, attribute, css, customElement, GemElement, html, template } from '@mantou/gem';
+import { adoptedStyle, attribute, css, customElement, GemElement, html, property, template } from '@mantou/gem';
 
 export const span = (v: string) => html`<span>${v}</span>`;
 export const spanTarget = (v: string) => html`<span class="target">${v}</span>`;
@@ -39,5 +39,20 @@ export class HydrationNullElement extends GemElement {
   @template()
   #render = () => null;
 }
+
+@customElement('hydration-html')
+export class HydrationHTMLElement extends GemElement {
+  @property content = '';
+
+  @template()
+  #render = () => {
+    if (this.innerHTML !== this.content) this.innerHTML = this.content;
+    return undefined;
+  };
+}
+
+// 原样输出的内容不能影响父模版的节点索引
+export const htmlContent = (v: string) =>
+  html`<hydration-html .content=${'<b>raw</b><i>html</i>'}></hydration-html><p>${v}</p>`;
 
 export const nullTemplate = (v: string) => html`<hydration-null></hydration-null><p>${v}</p>`;

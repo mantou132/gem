@@ -67,6 +67,8 @@ class SSRShadowRoot extends SSRNode {
 class SSRElement extends SSRNode {
   localName: string;
   shadowRoot: SSRShadowRoot | null = null;
+  /** light DOM 元素的模版返回 `undefined` 时作为内容输出，不会解析和转义 */
+  innerHTML = '';
   #attributes = new Map<string, string>();
 
   constructor(localName = '') {

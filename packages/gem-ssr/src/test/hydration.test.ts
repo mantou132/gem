@@ -179,6 +179,17 @@ test('水合时忽略 light DOM 元素中的样式', async ({ assert }) => {
   assert.deepEqual([i?.textContent, b?.textContent], ['x', 'y']);
 });
 
+test('水合模板为 undefined、原样输出内容的元素', async ({ assert }) => {
+  const container = await mkContainer('htmlContent', 'a');
+  const [raw, p] = [container.querySelector('b'), container.querySelector('p')];
+  assert.equal(raw?.textContent, 'raw', '输出原样内容');
+  hydrateContainer(fx.htmlContent('a'), container);
+  litRender(fx.htmlContent('b'), container);
+  assert.equal(container.querySelector('p'), p);
+  assert.equal(p?.textContent, 'b');
+  assert.equal(container.querySelector('b'), raw, '水合时保留原样内容');
+});
+
 test('水合模板为 null 的元素', async ({ assert }) => {
   const container = await mkContainer('nullTemplate', 'a');
   const p = container.querySelector('p');

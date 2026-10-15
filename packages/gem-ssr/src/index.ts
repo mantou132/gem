@@ -329,6 +329,9 @@ function buildElement({ op, element, hidden, conditionHidden, parentCtx, serverK
         hidden: false,
         serverElements: parentCtx.serverElements,
       });
+    } else if (element.innerHTML) {
+      // 模版返回 `undefined` 时保留这些内容，根标记使父模版水合时跳过它们
+      out.push(ROOT_MARKER, element.innerHTML);
     }
   }
   out.push(op.close?.text ?? '');

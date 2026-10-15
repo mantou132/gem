@@ -96,6 +96,22 @@ test('shadowRoot.innerHTML: 模版返回 undefined 时原样输出', async ({ as
   assert.doesNotMatch(result, /<template [^>]*><style>[^<]*<\/style><!--/, '没有根标记，客户端不会水合');
 });
 
+@customElement('app-light-html')
+export class DemoLightHTMLElement extends GemElement {
+  @property content = '';
+
+  @template()
+  #content = () => {
+    this.innerHTML = this.content;
+    return undefined;
+  };
+}
+
+test('innerHTML: light DOM 元素的模版返回 undefined 时原样输出', async ({ assert }) => {
+  const result = await t(html`<app-light-html .content=${'<p>a</p><script>b</script>'}></app-light-html>`);
+  assert.match(result, /<app-light-html><!----><p>a<\/p><script>b<\/script><\/app-light-html>/);
+});
+
 test('shadowRoot.innerHTML: 模版有返回值时忽略', async ({ assert }) => {
   const result = await t(html`<app-inner-html .tpl=${html`<i>tpl</i>`}></app-inner-html>`);
   assert.match(result, /<i>tpl<\/i>/);
