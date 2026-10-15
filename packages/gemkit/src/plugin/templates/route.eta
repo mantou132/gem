@@ -1,15 +1,11 @@
 <% const load = it.path ? `() => import(${it.path})` : 'async () => RootLayout' -%>
-{
-  pattern: <%= JSON.stringify(it.pattern) %>,
+<% const info = `{ tag: '${it.tag}', load: ${load}${it.server ? ', server: true' : ''} }` -%>
 <% if (it.layout) { -%>
-  getContent: async (params, container) => {
-    const props = await loadLayout(<%= load %>, '<%= it.tag %>', params, container<%= it.server ? ', true' : '' %>);
-    return html`<<%= it.tag %> .params=${props.params} .data=${props.data}></<%= it.tag %>>`;
-  },
+layoutRoute(<%= JSON.stringify(it.pattern) %>, <%= info %>, (props) =>
+  html`<<%= it.tag %> .params=${props.params} .data=${props.data}></<%= it.tag %>>`,
+)
 <% } else { -%>
-  getContent: async (params) => {
-    const data = await loadPage(<%= load %>, '<%= it.tag %>', params<%= it.server ? ', true' : '' %>);
-    return html`<<%= it.tag %> .params=${params} .data=${data}></<%= it.tag %>>`;
-  },
+pageRoute(<%= JSON.stringify(it.pattern) %>, <%= info %>, (params, data) =>
+  html`<<%= it.tag %> .params=${params} .data=${data}></<%= it.tag %>>`,
+)
 <% } -%>
-}

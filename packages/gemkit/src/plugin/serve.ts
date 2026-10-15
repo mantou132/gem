@@ -53,8 +53,8 @@ export function createRequestHandler(renderer: Renderer, template: string, webDi
     if (isDataRequest(pathname)) {
       const body = await readStatic(pathname);
       if (body) return { status: 200, type: 'json', body };
-      // 没有预渲染时客户端使用 `ELEMENT_PATH` 渲染
-      if (pathname.endsWith(ELEMENTS_FILE)) return { status: 404, type: 'json', body: 'null' };
+      // 没有预渲染时客户端使用 `ELEMENT_PATH` 渲染，导航时总会请求，避免 404
+      if (pathname.endsWith(ELEMENTS_FILE)) return { status: 200, type: 'json', body: '{}' };
       const { status, data } = await renderer.loadData(url);
       return { status, type: 'json', body: JSON.stringify(data) };
     }

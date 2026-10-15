@@ -176,10 +176,8 @@ export function pluginGemkit(options: GemkitOptions = {}): RsbuildPlugin {
           const serverElements = new Map<string, string>();
           const result = await renderer.renderDocument(html, pathname, { serverElements });
           writeFile(webDir, path.posix.join(pathname, 'index.html'), (await Array.fromAsync(result.html)).join(''));
-          // 静态托管时客户端导航使用的纯服务端元素
-          if (serverElements.size) {
-            writeFile(webDir, getDataPath(pathname, ELEMENTS_FILE), JSON.stringify(Object.fromEntries(serverElements)));
-          }
+          // 静态托管时客户端导航使用的纯服务端元素，导航时总会请求，没有元素时也输出
+          writeFile(webDir, getDataPath(pathname, ELEMENTS_FILE), JSON.stringify(Object.fromEntries(serverElements)));
           // 静态托管时客户端导航使用的数据
           if (renderer.hasServerData(pathname)) {
             const dataPath = getDataPath(pathname);

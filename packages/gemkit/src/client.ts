@@ -3,6 +3,7 @@ import { setServerElementLoader } from '@mantou/gem-ssr/client';
 
 import { trimTrailingSlash } from './constants';
 import { loadServerElement } from './data';
+import { startPrefetch } from './prefetch';
 import { formatTitle, type TitleOptions } from './title';
 
 const { path, query, hash } = history.getParams();
@@ -18,4 +19,5 @@ export function startClient(options: TitleOptions) {
   connect(titleStore, () => {
     document.title = formatTitle(titleStore.title, options);
   });
+  startPrefetch();
 }

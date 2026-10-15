@@ -1,5 +1,5 @@
-import { adoptedStyle, css, GemElement, history, html, template, titleStore } from '@mantou/gem';
-import type { RouteItem } from '@mantou/gem/elements/route';
+import { adoptedStyle, css, GemElement, history, html, type TemplateResult, template, titleStore } from '@mantou/gem';
+import { matchPath, type RouteItem } from '@mantou/gem/elements/route';
 import { isServer } from '@mantou/gem/lib/server';
 
 import { loadServerData, setSSRData, ssrData, takeSSRData, toJSONValue } from './data';
@@ -52,7 +52,7 @@ export async function loadLayout(
   load: () => Promise<ElementModule>,
   tag: string,
   routeParams: Params,
-  container: Element | ShadowRoot,
+  container: ParentNode,
   hasServerModule?: boolean,
 ) {
   const cls = (await load()).default;
@@ -83,6 +83,57 @@ export async function loadPage(
   if (title !== undefined) titleStore({ title });
   if (isServer) ssrData.ready = true;
   return data;
+}
+
+/** 生成的路由的信息，链接预取时使用 */
+export interface RouteInfo {
+  tag: string;
+  load: () => Promise<ElementModule>;
+  /** 有 `*.server.ts` */
+  server?: boolean;
+  layout?: boolean;
+}
+
+/** 创建页面路由，`render` 使用页面的标签名渲染 */
+export function pageRoute(
+  pattern: string,
+  info: RouteInfo,
+  render: (params: Params, data: unknown) => TemplateResult,
+): RouteItem<RouteInfo> {
+  return {
+    pattern,
+    data: info,
+    getContent: async (params) => render(params, await loadPage(info.load, info.tag, params, info.server)),
+  };
+}
+
+/** 创建 layout 路由，`render` 使用 layout 的标签名渲染 */
+export function layoutRoute(
+  pattern: string,
+  info: RouteInfo,
+  render: (props: { params: Params; data: unknown }) => TemplateResult,
+): RouteItem<RouteInfo> {
+  return {
+    pattern,
+    data: { ...info, layout: true },
+    getContent: async (params, container) =>
+      render(await loadLayout(info.load, info.tag, params, container, info.server)),
+  };
+}
+
+/** 路径匹配的 layout 和页面，和路由一样从根路由逐层匹配 */
+export function matchRoutes(path: string) {
+  const result: { info: RouteInfo; params: Params }[] = [];
+  let routes: RouteItem[] | undefined = outletRoutes[''];
+  while (routes) {
+    let params: Params | null = null;
+    const route = routes.find(({ pattern }) => (params = matchPath(pattern, path)));
+    const info = route?.data as RouteInfo | undefined;
+    if (!info || !params) break;
+    result.push({ info, params });
+    routes = info.layout ? outletRoutes[info.tag] : undefined;
+  }
+  return result;
 }
 
 const style = css`

@@ -77,6 +77,33 @@ export function takeSSRData(path: string, tag: string) {
   return { data };
 }
 
+// 预取的结果在这段时间内有效
+const PREFETCH_TTL = 30_000;
+
+// 预取的请求，key 是 URL，导航时只使用一次，避免使用过时的数据
+const prefetched = new Map<string, { time: number; promise: Promise<any> }>();
+
+function prefetchRequest(url: string, request: () => Promise<unknown>) {
+  const now = Date.now();
+  for (const [key, { time }] of prefetched) {
+    if (now - time >= PREFETCH_TTL) prefetched.delete(key);
+  }
+  if (prefetched.has(url)) return;
+  const promise = request();
+  // 没有使用的预取忽略错误
+  promise.catch(() => {});
+  prefetched.set(url, { time: now, promise });
+}
+
+function takePrefetched<T>(url: string): Promise<T> | undefined {
+  const item = prefetched.get(url);
+  prefetched.delete(url);
+  if (item && Date.now() - item.time < PREFETCH_TTL) return item.promise;
+}
+
+/** 页面路径（不包含语言前缀）对应的数据文件 URL */
+const getFileUrl = (path: string, search: string, file?: string) => history.basePath + getDataPath(path, file) + search;
+
 // 同一次导航中 layout 和页面共用一个数据请求，再次使用时重新请求
 let dataRequest: { url: string; promise: Promise<RouteData>; taken: Set<string> } | undefined;
 
@@ -86,13 +113,19 @@ async function fetchData(url: string, path: string) {
   return res.json() as Promise<RouteData>;
 }
 
+/** 预取页面的服务端数据 */
+export function prefetchServerData(path: string, search: string) {
+  const url = getFileUrl(path, search);
+  prefetchRequest(url, () => fetchData(url, path));
+}
+
 /** 加载 `*.server.ts` 的数据，客户端导航时通过数据文件获取 */
 export async function loadServerData(tag: string, params: Params) {
   if (isServer) return runServerLoad(tag, params, new URL(location.href));
   const { path } = history.getParams();
-  const url = history.basePath + getDataPath(path) + location.search;
+  const url = getFileUrl(path, location.search);
   if (dataRequest?.url !== url || dataRequest.taken.has(tag)) {
-    dataRequest = { url, promise: fetchData(url, path), taken: new Set() };
+    dataRequest = { url, promise: takePrefetched(url) || fetchData(url, path), taken: new Set() };
   }
   dataRequest.taken.add(tag);
   return (await dataRequest.promise)[tag];
@@ -130,6 +163,22 @@ function renderElement(url: string, element: ServerElementParams) {
   return renderBatch.promise.then((list) => list[index]);
 }
 
+const fetchElements = (url: string): Promise<Record<string, string>> =>
+  fetch(url).then((res) => (res.ok ? res.json() : {}));
+
+/** 预取页面中纯服务端元素的 HTML */
+export function prefetchElements(path: string, search: string) {
+  const url = getFileUrl(path, search, ELEMENTS_FILE);
+  prefetchRequest(url, () => fetchElements(url));
+}
+
+/** 获取当前页面中纯服务端元素的 HTML，导航时调用可以和页面模块、数据并行 */
+export function loadPageElements() {
+  const url = getFileUrl(history.getParams().path, location.search, ELEMENTS_FILE);
+  if (elementsRequest?.url !== url) elementsRequest = { url, promise: takePrefetched(url) || fetchElements(url) };
+  return elementsRequest.promise;
+}
+
 /**
  * 客户端创建纯服务端元素时获取 HTML，先从预渲染的 `__elements.json` 中获取，
  * 没有时（例如没有预渲染或者交互后才出现的元素）请求服务端渲染，静态托管时不可用
@@ -140,13 +189,8 @@ export async function loadServerElement(
   attrs: ServerElementParams['attrs'],
   props: ServerElementParams['props'],
 ) {
-  const { path } = history.getParams();
-  const url = history.basePath + getDataPath(path, ELEMENTS_FILE) + location.search;
-  if (elementsRequest?.url !== url) {
-    const promise = fetch(url).then((res) => (res.ok ? res.json() : {}));
-    elementsRequest = { url, promise };
-  }
-  const html = (await elementsRequest.promise)[key];
+  const pageUrl = history.basePath + history.getParams().path + location.search;
+  const html = (await loadPageElements())[key];
   if (html !== undefined) return html;
-  return renderElement(history.basePath + path + location.search, { tag, attrs, props });
+  return renderElement(pageUrl, { tag, attrs, props });
 }

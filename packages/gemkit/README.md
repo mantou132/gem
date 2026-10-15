@@ -82,6 +82,12 @@ On client navigation, the HTML of the server elements in the page is fetched fro
 (written next to the page when prerendering), elements not in it (e.g. pages not prerendered, elements shown after
 interaction) are rendered by the server on demand in one batched request, which is not available on a static host.
 
+## Prefetch
+
+When a `<gem-link>` is hovered or focused, the modules of the target page and its layouts, the server data
+(`__data.json`, only when needed) and the server elements (`__elements.json`) are prefetched, the prefetched results
+are used once within 30 seconds. On navigation, they are requested in parallel.
+
 ## Layout data
 
 Layouts can load data like pages, it is passed to the layout as `params` (without the child route part) and `data`.
