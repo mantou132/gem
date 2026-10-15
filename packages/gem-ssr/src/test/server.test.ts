@@ -151,6 +151,22 @@ test('提前结束读取时，之后的异步错误不会成为未处理的 reje
   assert.deepEqual(errors, []);
 });
 
+test('提前结束读取时中止渲染，不再渲染新的元素', async ({ assert }) => {
+  calls = 0;
+  const chunks = render(html`<p>head</p><app-server-outer></app-server-outer>`);
+  await chunks.next();
+  await chunks.return(undefined);
+  await new Promise((resolve) => setTimeout(resolve, 30));
+  assert.equal(calls, 1, '已经开始的外层任务完成，内层元素没有创建');
+});
+
+test('`signal` 中止时渲染失败', async ({ assert }) => {
+  const controller = new AbortController();
+  const result = renderToString(html`<app-server-outer></app-server-outer>`, { signal: controller.signal });
+  controller.abort();
+  await assert.rejects(result, { name: 'AbortError' });
+});
+
 @customElement('app-render-error')
 export class DemoRenderErrorElement extends GemElement {
   @template()

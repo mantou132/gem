@@ -207,7 +207,9 @@ export function createRenderer({
     runInRequest(async (): Promise<RenderResult> => {
       const { url, setCookies } = setRequest(input);
       const { lang, path } = await setLanguage(url.pathname);
-      const chunks = render(app, { url: `${url.origin}${path}${url.search}`, serverElements });
+      // 客户端断开时中止渲染，预渲染时没有请求
+      const signal = typeof input === 'string' ? undefined : input.signal;
+      const chunks = render(app, { url: `${url.origin}${path}${url.search}`, serverElements, signal });
       // 页面的数据和标题确定后再输出文档
       let body = '';
       try {
@@ -220,9 +222,10 @@ export function createRenderer({
         // 等待内容时 `load` 跳转，渲染以这个错误结束
         if (!requestState.redirect) throw err;
       }
-      // 不再读取剩余的内容
+      // 不再读取剩余的内容，中止渲染
       const { redirect } = requestState;
       if (redirect) {
+        await chunks.return(undefined);
         const headers = toHeaders(setCookies, { location: redirect.location });
         return { status: redirect.status, headers, html: (async function* () {})() };
       }

@@ -63,6 +63,8 @@ type Context = {
   hidden: boolean;
   // 收集纯服务端元素的输出，key 由 `getServerElementKey` 生成
   serverElements?: Map<string, Piece[]>;
+  // 中止后不再渲染新的模板，例如客户端断开
+  signal?: AbortSignal;
 };
 
 type DirectiveResult = {
@@ -308,6 +310,7 @@ function buildElement({ op, element, hidden, conditionHidden, parentCtx, serverK
       sheets: new Set(),
       hidden: false,
       serverElements: parentCtx.serverElements,
+      signal: parentCtx.signal,
     };
     if (template !== undefined) {
       out.push(ROOT_MARKER);
@@ -328,6 +331,7 @@ function buildElement({ op, element, hidden, conditionHidden, parentCtx, serverK
         sheets: parentCtx.sheets,
         hidden: false,
         serverElements: parentCtx.serverElements,
+        signal: parentCtx.signal,
       });
     } else if (element.innerHTML) {
       // 模版返回 `undefined` 时保留这些内容，根标记使父模版水合时跳过它们
@@ -343,6 +347,7 @@ function buildElement({ op, element, hidden, conditionHidden, parentCtx, serverK
 type Frame = { op: OpenOp; parentCtx: Context; finish: (children: Piece[]) => void };
 
 function renderTemplate(result: TemplateResult, rootCtx: Context) {
+  rootCtx.signal?.throwIfAborted();
   const { values } = result;
   const frames: Frame[] = [];
   let ctx = rootCtx;
@@ -424,6 +429,8 @@ export interface RenderOptions {
   url?: string;
   /** 收集纯服务端元素的 HTML，key 由 `getServerElementKey` 生成，客户端导航时使用 */
   serverElements?: Map<string, string>;
+  /** 中止渲染，例如客户端断开或者跳转，已经开始的异步任务会完成，但不再渲染新的元素 */
+  signal?: AbortSignal;
 }
 
 const piecesToString = async (pieces: Piece[]) => {
@@ -462,7 +469,7 @@ async function write(pieces: Piece[], push: (chunk: string) => void) {
 
 async function renderPieces(
   result: unknown,
-  { url, serverElements }: RenderOptions,
+  { url, serverElements, signal }: RenderOptions,
   push: (chunk: string) => void,
   // 纯服务端元素的片段不需要恢复 store
   withStores = true,
@@ -477,6 +484,7 @@ async function renderPieces(
     sheets: new Set(),
     hidden: false,
     serverElements: serverElements && new Map(),
+    signal,
   };
   renderValue(result, ctx);
   await write(ctx.out, push);
@@ -488,7 +496,7 @@ async function renderPieces(
  * 渲染成 HTML 片段，异步内容（路由、`@server`）完成前先输出前面的内容
  *
  * 调用时立即开始渲染，每次渲染在独立的请求作用域中执行，在 `runInRequest` 中调用时使用当前的请求作用域，
- * 渲染不受读取速度影响，读取慢时内容会缓存起来
+ * 渲染不受读取速度影响，读取慢时内容会缓存起来，提前结束读取或者 `signal` 中止时不再渲染新的元素
  */
 export function render(result: unknown, options: RenderOptions = {}): AsyncGenerator<string> {
   const chunks: string[] = [];
@@ -498,21 +506,28 @@ export function render(result: unknown, options: RenderOptions = {}): AsyncGener
     if (chunk) chunks.push(chunk);
     notify?.();
   };
-  const task = runInRequest(() => renderPieces(result, options, push)).finally(() => {
+  // 提前结束读取时中止渲染
+  const controller = new AbortController();
+  const signal = options.signal ? AbortSignal.any([options.signal, controller.signal]) : controller.signal;
+  const task = runInRequest(() => renderPieces(result, { ...options, signal }, push)).finally(() => {
     done = true;
     notify?.();
   });
   // 提前结束读取时（例如客户端断开）不再关心渲染结果
   task.catch(() => {});
   return (async function* () {
-    while (true) {
-      if (chunks.length) {
-        yield chunks.splice(0).join('');
-      } else if (done) {
-        return task;
-      } else {
-        await new Promise<void>((resolve) => (notify = resolve));
+    try {
+      while (true) {
+        if (chunks.length) {
+          yield chunks.splice(0).join('');
+        } else if (done) {
+          return task;
+        } else {
+          await new Promise<void>((resolve) => (notify = resolve));
+        }
       }
+    } finally {
+      controller.abort();
     }
   })();
 }
