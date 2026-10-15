@@ -39,6 +39,10 @@ export function setHydrationEngine(engine: typeof hydrationEngine, restore?: typ
   restoreState = restore;
 }
 
+/** 渲染元素内容，SSR 时由水合引擎接管 */
+export const _renderRoot = (value: unknown, container: HTMLElement | DocumentFragment) =>
+  hydrationEngine(value, container) || render(value, container);
+
 const { assign, defineProperty } = Object;
 
 // https://github.com/tc39/proposal-decorator-metadata
@@ -290,10 +294,14 @@ const noBlockingTaskList = new LinkedList<() => void>();
 const tick = (timeStamp = performance.now()) => {
   if (performance.now() > timeStamp + 50) return requestAnimationFrame(tick);
   const task = noBlockingTaskList.get();
-  if (task) {
+  if (!task) return;
+  // 出错时继续执行后面的任务，否则剩下的任务不会再被调度
+  try {
     task();
-    tick(timeStamp);
+  } catch (err) {
+    reportError(err);
   }
+  tick(timeStamp);
 };
 noBlockingTaskList.addEventListener('start', () => addMicrotask(tick));
 
@@ -439,10 +447,11 @@ export abstract class GemElement extends HTMLElement {
         (isLight
           ? html`<style>@scope{&{display:none!important;}}</style>`
           : html`<style>:host{&{display:none!important;}}</style>`);
-      hydrationEngine(r, this.#renderRoot) || render(r, this.#renderRoot);
+      _renderRoot(r, this.#renderRoot);
     } catch (err) {
-      this.dispatchEvent(new CustomEvent(_RenderErrorEvent, { bubbles: true, composed: true, detail: err }));
-      throw err;
+      const evt = new CustomEvent(_RenderErrorEvent, { bubbles: true, composed: true, cancelable: true, detail: err });
+      // `@fallback` 处理了错误
+      if (this.dispatchEvent(evt)) throw err;
     } finally {
       this.#rendering = false;
     }
@@ -516,7 +525,8 @@ export abstract class GemElement extends HTMLElement {
   };
 
   #disconnectStore?: (() => void)[];
-  #connectedCallback = async () => {
+  // 同步执行，SSR 需要捕获渲染错误
+  #connectedCallback = () => {
     if (this.#isAppendReason) {
       this.#isAppendReason = false;
       // https://github.com/mantou132/gem/issues/202

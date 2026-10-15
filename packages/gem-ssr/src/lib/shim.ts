@@ -78,6 +78,11 @@ class SSRElement extends SSRNode {
     return this.localName.toUpperCase();
   }
 
+  // Gem 元素用 `this.attributes.foo` 判断 attribute 是否存在
+  get attributes() {
+    return Object.fromEntries([...this.#attributes].map(([name, value]) => [name, { name, value }]));
+  }
+
   getAttributeNames() {
     return [...this.#attributes.keys()];
   }
@@ -121,6 +126,18 @@ const names = new Map<CustomElementConstructor, string>();
 class SSRHTMLElement extends SSRElement {
   constructor() {
     super(names.get(new.target as unknown as CustomElementConstructor));
+  }
+}
+
+class SSRTemplateElement extends SSRElement {}
+
+// 服务端不观察变化
+class SSRObserver {
+  observe() {}
+  unobserve() {}
+  disconnect() {}
+  takeRecords() {
+    return [];
   }
 }
 
@@ -244,6 +261,14 @@ Object.assign(globalThis, {
   window: globalThis,
   document: new SSRDocument(),
   Node: SSRNode,
+  Comment: SSRNode,
+  Text: SSRNode,
+  HTMLTemplateElement: SSRTemplateElement,
+  MutationObserver: SSRObserver,
+  ResizeObserver: SSRObserver,
+  IntersectionObserver: SSRObserver,
+  // 服务端不知道浏览器支持哪些特性
+  CSS: { supports: () => false, escape: (s: string) => s.replace(/[^\w-]/g, (c) => `\\${c}`) },
   Element: SSRElement,
   HTMLElement: SSRHTMLElement,
   SVGElement: SSRElement,

@@ -2,7 +2,7 @@
 
 import type { TemplateResult } from './lit-html';
 import type { Metadata, Sheet } from './reactive';
-import { _createTemplate, _RenderErrorEvent, GemElement, render, UpdateToken } from './reactive';
+import { _createTemplate, _RenderErrorEvent, _renderRoot, GemElement, UpdateToken } from './reactive';
 import type { Store } from './store';
 import { camelToKebabCase, GemError, PropProxyMap } from './utils';
 
@@ -300,8 +300,9 @@ export function template<T extends GemElement, V extends () => TemplateResult | 
 export function fallback<T extends GemElement, V extends (err: any) => TemplateResult | null | undefined>() {
   return (_: any, { addInitializer, access }: ClassFieldDecoratorContext<T, V> | ClassMethodDecoratorContext<T, V>) => {
     addInitializer(function (this: T) {
-      this.addEventListener(_RenderErrorEvent, ({ detail }: CustomEvent) => {
-        render(access.get.call(this, this).apply(this, [detail]), this.internals.shadowRoot || this);
+      this.addEventListener(_RenderErrorEvent, (evt: CustomEvent) => {
+        evt.preventDefault();
+        _renderRoot(access.get.call(this, this).apply(this, [evt.detail]), this.internals.shadowRoot || this);
       });
     });
   };

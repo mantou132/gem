@@ -74,7 +74,13 @@ export function pluginGemkit(options: GemkitOptions = {}): RsbuildPlugin {
       // 页面和语言文件增删时重新生成
       if (isDev) {
         const watcher = fs.watch(srcDir, { recursive: true }, (_, filename) => {
-          if (filename && /^(pages|locales)[/\\]|^app\./.test(filename)) generate(rootPath, config);
+          if (!filename || !/^(pages|locales)[/\\]|^app\./.test(filename)) return;
+          // 编辑中的错误（例如标签名重复、改名时目录短暂不存在）不应该让开发服务器退出
+          try {
+            generate(rootPath, config);
+          } catch (err) {
+            logger.error(err);
+          }
         });
         api.onCloseDevServer(() => watcher.close());
       }

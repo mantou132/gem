@@ -2,7 +2,9 @@ import '../lib/shim';
 
 import test from 'node:test';
 
-import { createState, customElement, GemElement, html, mounted, template } from '@mantou/gem';
+import { createState, customElement, fallback, GemElement, html, mounted, template } from '@mantou/gem';
+import { GemLightRouteElement } from '@mantou/gem/elements/route';
+import { GemUseElement } from '@mantou/gem/elements/use';
 
 import { render, renderToString } from '..';
 import { server, ssrContext } from '../decorators';
@@ -105,4 +107,58 @@ export class DemoServerErrorElement extends GemElement {
 test('异步元素出错时渲染失败，不影响进程', async ({ assert }) => {
   const result = renderToString(html`<app-server-delay></app-server-delay><app-server-error></app-server-error>`);
   await assert.rejects(result, /load failed/);
+});
+
+test('提前结束读取时，之后的异步错误不会成为未处理的 rejection', async ({ assert }) => {
+  const errors: unknown[] = [];
+  const onRejection = (err: unknown) => errors.push(err);
+  process.on('unhandledRejection', onRejection);
+  const chunks = render(html`<p>head</p><app-server-error></app-server-error>`);
+  await chunks.next();
+  await chunks.return(undefined);
+  await new Promise((resolve) => setTimeout(resolve, 10));
+  process.off('unhandledRejection', onRejection);
+  assert.deepEqual(errors, []);
+});
+
+@customElement('app-render-error')
+export class DemoRenderErrorElement extends GemElement {
+  @template()
+  #render = (): never => {
+    throw new Error('render failed');
+  };
+}
+
+test('元素渲染出错时渲染失败', async ({ assert }) => {
+  await assert.rejects(renderToString(html`<app-render-error></app-render-error>`), /render failed/);
+});
+
+@customElement('app-render-fallback')
+export class DemoRenderFallbackElement extends GemElement {
+  @template()
+  #render = (): never => {
+    throw new Error('render failed');
+  };
+
+  @fallback()
+  #fallback = (err: Error) => html`<b>${err.message}</b>`;
+}
+
+test('元素渲染出错时输出 `@fallback` 的内容', async ({ assert }) => {
+  const result = await renderToString(html`<app-render-fallback></app-render-fallback>`);
+  assert.match(result, /<b><!--\?lit\$\d+\$-->render failed<\/b>/);
+});
+
+customElements.define('app-route', GemLightRouteElement);
+
+test('路由加载出错时渲染失败', async ({ assert }) => {
+  const routes = [{ pattern: '*', getContent: () => Promise.reject(new Error('route failed')) }];
+  await assert.rejects(renderToString(html`<app-route .routes=${routes}></app-route>`), /route failed/);
+});
+
+customElements.define('app-use', GemUseElement);
+
+test('`<gem-use>` 输出字符串内容', async ({ assert }) => {
+  const result = await renderToString(html`<app-use .element=${'<svg><path d="M0"></path></svg>'}></app-use>`);
+  assert.match(result, /<svg><path d="M0"><\/path><\/svg>/);
 });

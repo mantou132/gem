@@ -367,6 +367,17 @@ type ElementFrame = {
   parentCtx: Context;
 };
 
+// 路由内部捕获了加载错误，SSR 时应该渲染失败
+function loadRoute(route: GemLightRouteElement) {
+  let error: { err: unknown } | undefined;
+  const onError = (evt: Event) => (error = { err: (evt as CustomEvent).detail });
+  route.addEventListener('error', onError);
+  return route.update().finally(() => {
+    route.removeEventListener('error', onError);
+    if (error) throw error.err;
+  });
+}
+
 function createElement(Element: CustomElementConstructor, op: OpenOp, values: unknown[], ctx: Context) {
   const element = new Element() as GemElement;
   ctx.parent.append(element);
@@ -389,12 +400,13 @@ function createElement(Element: CustomElementConstructor, op: OpenOp, values: un
     ssrContext.tasks.delete(element);
     return frame;
   }
+  // 渲染出错时抛出错误，`@fallback` 处理了错误时不会抛出
   element.connectedCallback();
   const tasks = ssrContext.tasks.get(element);
   ssrContext.tasks.delete(element);
   if (tasks) ssrContext.stateElements.add(element);
   // 服务端不执行副作用，所以手动加载路由
-  const route = element instanceof GemLightRouteElement ? element.update() : undefined;
+  const route = element instanceof GemLightRouteElement ? loadRoute(element) : undefined;
   if (tasks || route) frame.task = Promise.all([...(tasks || []).map((fn) => fn()), route]);
   return frame;
 }
@@ -620,6 +632,8 @@ export async function* render(result: unknown, options: RenderOptions = {}): Asy
     done = true;
     notify?.();
   });
+  // 提前结束读取时（例如客户端断开）不再关心渲染结果
+  task.catch(() => {});
   while (true) {
     if (chunks.length) {
       yield chunks.splice(0).join('');

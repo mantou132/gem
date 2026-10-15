@@ -7,6 +7,7 @@ export interface PageOptions<P extends Params = Params, D = unknown> {
    * 渲染页面前加载数据，结果通过 `data` 属性传给页面元素
    *
    * 服务端渲染和客户端导航时都会执行，所以只能使用同构的 API，例如 `import()` 和 `fetch`，
+   * 服务端渲染的结果会输出到页面中，水合时直接使用，所以返回值只能是 JSON 值，
    * 只能在服务端执行的代码放在同名的 `*.server.ts` 中，其 `load` 的结果为第二个参数，
    * 没有提供该选项时直接使用 `*.server.ts` 的结果
    */

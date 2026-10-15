@@ -1,5 +1,6 @@
 import type { GemElement, Sheet } from '../lib/reactive';
 import { css, SheetToken } from '../lib/reactive';
+import { isServer } from '../lib/ssr';
 import type { Store } from '../lib/store';
 import { connect, createStore } from '../lib/store';
 import type { Updater } from '../lib/utils';
@@ -118,7 +119,8 @@ export function createDecoratorTheme<T extends Record<string, unknown>>(themeObj
         this.memo(
           () => {
             // https://bugs.webkit.org/show_bug.cgi?id=326327
-            if (CSS.supports(`font:-apple-system-body`)) return theme(access.get(this).apply(this));
+            // SSR 需要更新样式表文本
+            if (isServer || CSS.supports(`font:-apple-system-body`)) return theme(access.get(this).apply(this));
             const next = access.get(this).apply(this);
             const rule = style.cssRules[0] as CSSStyleRule;
             const eleTarget = this.shadowRoot

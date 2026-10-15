@@ -1,5 +1,6 @@
 import { adoptedStyle, attribute, property, shadow, state, template } from '../../lib/decorators';
 import { css, GemElement, html } from '../../lib/reactive';
+import { isServer } from '../../lib/ssr';
 
 const styles = css`
   :host(:where(:not([hidden]))) {
@@ -14,6 +15,7 @@ const styles = css`
 `;
 
 const eleCache = new Map<string, HTMLTemplateElement>();
+const stringsCache = new Map<string, TemplateStringsArray>();
 /**
  * svg 中的 `<use>` 不能穿透 ShadowDOM,
  * 此元素用来模拟 `<use>`,
@@ -31,6 +33,15 @@ export class GemUseElement extends GemElement {
 
   #getContent = () => {
     const ele = this.element || (this.selector ? (this.root || document).querySelector(this.selector) : null);
+    // SSR 没有 DOM，把字符串作为静态模版输出
+    if (typeof ele === 'string' && isServer) {
+      let strings = stringsCache.get(ele);
+      if (!strings) {
+        strings = Object.assign([ele], { raw: [ele] });
+        stringsCache.set(ele, strings);
+      }
+      return html(strings);
+    }
     if (typeof ele === 'string') {
       let temp = eleCache.get(ele);
       if (!temp) {

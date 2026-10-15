@@ -52,6 +52,7 @@ import { page } from '@mantou/gemkit';
 
 @page<{ slug: string }, Post | undefined>({
   // runs on the server and on client-side navigation, use isomorphic APIs,
+  // the SSR result is sent to the client for hydration, so it must be a JSON value,
   // put server-only code in `*.server.ts`
   load: ({ slug }) => getPost(slug),
   title: (_, post) => post?.title || 'Not Found',
