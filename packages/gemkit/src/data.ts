@@ -1,5 +1,5 @@
 import { createStore, history } from '@mantou/gem';
-import { isServer } from '@mantou/gem/lib/ssr';
+import { isServer } from '@mantou/gem/lib/server';
 
 import { DATA_SCRIPT_ID, getDataPath } from './constants';
 import type { Params } from './page';

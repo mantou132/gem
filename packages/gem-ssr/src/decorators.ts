@@ -1,5 +1,5 @@
 import type { GemElement } from '@mantou/gem';
-import { isServer } from '@mantou/gem/lib/ssr';
+import { isServer } from '@mantou/gem/lib/server';
 
 // SSR 输出的元素状态，值是 `internals.stateList` 的 JSON
 export const SSR_STATE = 'ssr-state';

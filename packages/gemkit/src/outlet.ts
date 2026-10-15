@@ -1,6 +1,6 @@
 import { adoptedStyle, css, GemElement, history, html, template, titleStore } from '@mantou/gem';
 import type { RouteItem } from '@mantou/gem/elements/route';
-import { isServer } from '@mantou/gem/lib/ssr';
+import { isServer } from '@mantou/gem/lib/server';
 
 import { loadServerData, ssrData, takeSSRData, toJSONValue } from './data';
 import { getPageOptions, type Params, setPendingProps } from './page';

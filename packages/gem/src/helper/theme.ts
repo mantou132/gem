@@ -1,6 +1,6 @@
 import type { GemElement, Sheet } from '../lib/reactive';
 import { css, SheetToken } from '../lib/reactive';
-import { isServer } from '../lib/ssr';
+import { isServer } from '../lib/server';
 import type { Store } from '../lib/store';
 import { connect, createStore } from '../lib/store';
 import type { Updater } from '../lib/utils';

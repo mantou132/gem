@@ -1,4 +1,4 @@
-import { getRequestValue, isolate, isServer } from './ssr';
+import { getRequestValue, isolate, isServer } from './server';
 import { addMicrotask, assignState, createUpdater, type Updater } from './utils';
 
 export type Store<T = any> = Updater<T>;

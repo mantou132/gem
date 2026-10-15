@@ -1,7 +1,7 @@
 // biome-ignore-all lint/plugin/no_this_effect: 兼容生命周期
 
 import type * as Lit from './lit-html';
-import { isServer } from './ssr';
+import { isServer } from './server';
 import type { Store } from './store';
 import { connect } from './store';
 import {

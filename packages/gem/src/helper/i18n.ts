@@ -2,7 +2,7 @@ import type { RouteTrigger } from '../elements/base/route';
 import type { UpdateHistoryParams } from '../lib/history';
 import type { TemplateResult } from '../lib/lit-html';
 import { html, UpdateToken } from '../lib/reactive';
-import { isolate } from '../lib/ssr';
+import { isolate } from '../lib/server';
 import { GemError } from '../lib/utils';
 import { logger } from './logger';
 

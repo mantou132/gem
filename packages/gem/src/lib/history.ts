@@ -1,6 +1,6 @@
 // https://github.com/WICG/navigation-api#stakeholder-feedback
 
-import { getRequestValue } from './ssr';
+import { getRequestValue } from './server';
 import { connect, createStore } from './store';
 import { absoluteLocation, cleanObject, GemError, QueryString } from './utils';
 

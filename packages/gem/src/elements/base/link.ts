@@ -14,7 +14,7 @@ import {
 } from '../../lib/decorators';
 import { css, GemElement, html } from '../../lib/element';
 import { basePathStore, history } from '../../lib/history';
-import { isServer } from '../../lib/ssr';
+import { isServer } from '../../lib/server';
 import { absoluteLocation } from '../../lib/utils';
 import type { RouteItem, RouteOptions } from './route';
 import { createHistoryParams, createPath, matchPath } from './route';

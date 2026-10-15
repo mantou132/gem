@@ -1,4 +1,4 @@
-import { getRequestValue } from './ssr';
+import { getRequestValue } from './server';
 
 const { assign, fromEntries, entries, keys, defineProperty, hasOwn } = Object;
 

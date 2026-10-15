@@ -1,6 +1,6 @@
 import { adoptedStyle, attribute, property, shadow, state, template } from '../../lib/decorators';
 import { css, GemElement, html } from '../../lib/reactive';
-import { isServer } from '../../lib/ssr';
+import { isServer } from '../../lib/server';
 
 const styles = css`
   :host(:where(:not([hidden]))) {
