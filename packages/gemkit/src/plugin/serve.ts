@@ -44,6 +44,17 @@ const toStream = (html: AsyncIterator<string>) =>
     },
   }).pipeThrough(new TextEncoderStream());
 
+/**
+ * 其他网站提交的表单（CSRF），优先使用浏览器的 `Sec-Fetch-Site`，
+ * 反向代理后请求 URL 的协议可能和浏览器中的不同，所以只比较 `Origin` 的 host
+ */
+function isCrossSite(request: Request, url: URL) {
+  const site = request.headers.get('sec-fetch-site');
+  if (site) return site !== 'same-origin';
+  const origin = request.headers.get('origin');
+  return !!origin && new URL(origin).host !== url.host;
+}
+
 /** 处理页面、页面数据和表单提交请求，提供 `webDir` 时优先使用预渲染的文件 */
 export function createRequestHandler(renderer: Renderer, template: string, webDir?: string): Handler {
   const readStatic = async (pathname: string) => {
@@ -59,6 +70,7 @@ export function createRequestHandler(renderer: Renderer, template: string, webDi
       return Response.json(await renderer.renderElements(new URL(pageUrl, url).href, elements));
     }
     if (isActionRequest(request.method, url.search)) {
+      if (isCrossSite(request, url)) return new Response(null, { status: 403 });
       const { headers, result } = await renderer.runAction(request);
       if (!result) return new Response(null, { status: 404, headers });
       // `submitAction` 提交时返回结果，原生表单提交时跳转到 `redirect` 的地址或者当前页面

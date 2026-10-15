@@ -84,7 +84,10 @@ test('流式输出：异步内容完成前先输出前面的内容', async ({ as
   resolveSlow('slow');
   let rest = '';
   for await (const chunk of iterator) rest += chunk;
-  assert.match(rest, /^<app-server-slow[^>]*><!----><i><!--\?lit\$\d+\$-->slow<\/i><\/app-server-slow><p>after<\/p>$/);
+  assert.match(
+    rest,
+    /^<app-server-slow[^>]*><!--#\w+--><i><!--\?lit\$\d+\$-->slow<\/i><\/app-server-slow><p>after<\/p>$/,
+  );
 });
 
 @customElement('app-server-delay')
@@ -101,13 +104,39 @@ test('流式输出：并行等待多个异步元素', async ({ assert }) => {
 
 @customElement('app-server-error')
 export class DemoServerErrorElement extends GemElement {
+  #state = createState({ text: 'loading' });
+
   @server()
   #load = () => Promise.reject(new Error('load failed'));
+
+  @template()
+  #render = () => html`<i>${this.#state.text}</i>`;
 }
 
-test('异步元素出错时渲染失败，不影响进程', async ({ assert }) => {
-  const result = renderToString(html`<app-server-delay></app-server-delay><app-server-error></app-server-error>`);
-  await assert.rejects(result, /load failed/);
+@customElement('app-server-error-fallback')
+export class DemoServerErrorFallbackElement extends GemElement {
+  @server()
+  #load = () => Promise.reject(new Error('load failed'));
+
+  @fallback()
+  #fallback = (err: Error) => html`<b>${err.message}</b>`;
+}
+
+test('`@server` 方法出错时继续渲染，不输出状态，由客户端重新执行', async ({ assert, mock }) => {
+  const error = mock.method(console, 'error', () => {});
+  const result = await renderToString(
+    html`<app-server-delay></app-server-delay><app-server-error></app-server-error><p>after</p>`,
+  );
+  assert.match(result, /<app-server-error><!--[^>]*--><i><!--[^>]*-->loading<\/i><\/app-server-error><p>after<\/p>/);
+  assert.equal(error.mock.callCount(), 1, '服务端输出错误');
+});
+
+test('`@server` 方法出错时输出 `@fallback` 的内容', async ({ assert, mock }) => {
+  const error = mock.method(console, 'error', () => {});
+  const result = await renderToString(html`<app-server-error-fallback></app-server-error-fallback><p>after</p>`);
+  assert.match(result, /<b><!--[^>]*-->load failed<\/b><\/app-server-error-fallback><p>after<\/p>/);
+  assert.doesNotMatch(result, /ssr-state/);
+  assert.equal(error.mock.callCount(), 0, '`@fallback` 处理了错误');
 });
 
 test('提前结束读取时，之后的异步错误不会成为未处理的 rejection', async ({ assert }) => {

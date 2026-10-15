@@ -93,7 +93,7 @@ export class DemoInnerHTMLElement extends GemElement {
 test('shadowRoot.innerHTML: 模版返回 undefined 时原样输出', async ({ assert }) => {
   const result = await t(html`<gem-unsafe html="<p>a</p><style>p{}</style>"></gem-unsafe>`);
   assert.match(result, /<template [^>]*><style>[^<]*<\/style><p>a<\/p><style>p\{\}<\/style><\/template>/);
-  assert.doesNotMatch(result, /<template [^>]*><style>[^<]*<\/style><!---->/, '没有根标记，客户端不会水合');
+  assert.doesNotMatch(result, /<template [^>]*><style>[^<]*<\/style><!--/, '没有根标记，客户端不会水合');
 });
 
 test('shadowRoot.innerHTML: 模版有返回值时忽略', async ({ assert }) => {

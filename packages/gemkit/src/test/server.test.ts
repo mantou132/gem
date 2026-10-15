@@ -282,6 +282,18 @@ test('createRequestHandler: 表单提交', async ({ assert }) => {
   assert.equal(json.headers.get('set-cookie'), 'token=x; Path=/; HttpOnly; SameSite=Lax');
 });
 
+test('createRequestHandler: 拒绝其他网站提交的表单', async ({ assert }) => {
+  const handler = createRequestHandler(renderer, documentTemplate);
+  const submit = (headers: Record<string, string>) =>
+    handler(request('/me?/login', { method: 'POST', body: new URLSearchParams({ token: 'x' }), headers }));
+  assert.equal((await submit({ 'sec-fetch-site': 'cross-site' })).status, 403);
+  assert.equal((await submit({ 'sec-fetch-site': 'same-site' })).status, 403);
+  assert.equal((await submit({ 'sec-fetch-site': 'same-origin' })).status, 303);
+  // 不支持 `Sec-Fetch-Site` 的浏览器，反向代理后协议不同时也允许
+  assert.equal((await submit({ origin: 'https://evil.com' })).status, 403);
+  assert.equal((await submit({ origin: 'https://localhost' })).status, 303);
+});
+
 test('createRequestHandler: 流式输出页面', async ({ assert }) => {
   const handler = createRequestHandler(renderer, documentTemplate);
   const res = await handler(request('/me', { headers: { cookie: 'token=t' } }));

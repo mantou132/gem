@@ -1,7 +1,14 @@
 // 必须在 Gem 之前执行，用来模拟 DOM 环境
 import './lib/shim';
 
-import { _getUpdatedStores, type GemElement, history, SheetToken, setHydrationEngine } from '@mantou/gem';
+import {
+  _getUpdatedStores,
+  _RenderErrorEvent,
+  type GemElement,
+  history,
+  SheetToken,
+  setHydrationEngine,
+} from '@mantou/gem';
 import { GemLightRouteElement } from '@mantou/gem/elements/route';
 import { createRef, html, TemplateResult } from '@mantou/gem/lib/lit-html';
 
@@ -232,8 +239,16 @@ function createElement(Element: CustomElementConstructor, op: OpenOp, values: un
   if (tasks && !frame.serverKey) ssrContext.stateElements.add(element);
   // 服务端不执行副作用，所以手动加载路由
   const route = element instanceof GemLightRouteElement ? loadRoute(element) : undefined;
-  if (tasks || route) frame.task = Promise.all([...(tasks || []).map((fn) => fn()), route]);
+  const serverTasks = tasks && Promise.all(tasks.map((fn) => fn())).catch((err) => handleTaskError(element, err));
+  if (serverTasks || route) frame.task = Promise.all([serverTasks, route]);
   return frame;
+}
+
+// `@server` 方法出错时不中断渲染，`@fallback` 处理时输出后备内容，都不输出状态，由客户端重新执行
+function handleTaskError(element: GemElement, err: unknown) {
+  ssrContext.stateElements.delete(element);
+  const evt = new CustomEvent(_RenderErrorEvent, { cancelable: true, detail: err });
+  if (element.dispatchEvent(evt)) console.error(err);
 }
 
 function getStyle(sheets: Iterable<any>, attrs = '') {

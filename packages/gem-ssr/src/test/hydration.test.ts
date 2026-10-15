@@ -25,12 +25,12 @@ test('hydrateContainer: 设置 container._$litPart$', async ({ assert }) => {
   assert.notEqual((container as any)._$litPart$, undefined, '水合后有 _$litPart$');
 });
 
-test('hydrateContainer: startNode 指向 DOM 里已有的 Comment("")', async ({ assert }) => {
+test('hydrateContainer: startNode 指向 DOM 里已有的根标记（带模板摘要）', async ({ assert }) => {
   const container = await mkContainer('span', 'hello');
   hydrateContainer(fx.span('hello'), container);
   const part = (container as any)._$litPart$;
   assert.equal(part._$startNode.nodeType, Node.COMMENT_NODE);
-  assert.equal(part._$startNode.data, '');
+  assert.match(part._$startNode.data, /^#\w+$/);
   assert.equal(part._$startNode.parentNode, container);
 });
 

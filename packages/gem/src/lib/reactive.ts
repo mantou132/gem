@@ -59,7 +59,7 @@ export const UpdateToken = Symbol.for('gem@update');
 const BoundaryCSSState = 'gem-style-boundary';
 const ElementCSSState = 'gem-element';
 
-/**@internal */
+/** 渲染出错时在元素上派发，`@fallback` 处理时取消，SSR 时 `@server` 方法出错也会派发 */
 export const _RenderErrorEvent = 'gem@render-error';
 
 // fix modal-factory type error

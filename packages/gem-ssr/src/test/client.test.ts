@@ -131,3 +131,14 @@ test('延时视图：交互时加载并重放事件，客户端创建时直接�
   await new Promise((resolve) => setTimeout(resolve));
   assert.equal(loads, 2);
 });
+
+test('水合时模板和服务端不一致，由客户端重新渲染', async ({ assert, mock }) => {
+  const warn = mock.method(console, 'warn', () => {});
+  const container = mount(await ssr('mismatch.ts', 'mismatch'));
+  const div = container.querySelector('app-mismatch div')!;
+  await import('./fixtures/mismatch');
+  assert.equal(container.querySelector('app-mismatch div'), div, '模板一致的部分复用节点');
+  assert.equal(div.querySelector('p'), null);
+  assert.equal(div.textContent, 'clientb');
+  assert.equal(warn.mock.callCount(), 1);
+});
