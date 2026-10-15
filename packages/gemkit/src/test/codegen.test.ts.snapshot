@@ -6,83 +6,99 @@ import { loadLayout, loadPage, setOutlets } from '@mantou/gemkit';
 import * as RootLayout from "../src/pages/_layout";
 
 const notFound = {
-    pattern: "*",
-    getContent: async (params) => {
-      const data = await loadPage(() => import("../src/pages/_404"), 'gemkit-page-404', params);
-      return html\`<gemkit-page-404 .params=\${params} .data=\${data}></gemkit-page-404>\`;
-    },
-  };
+  pattern: "*",
+  getContent: async (params) => {
+    const data = await loadPage(() => import("../src/pages/_404"), 'gemkit-page-404', params);
+    return html\`<gemkit-page-404 .params=\${params} .data=\${data}></gemkit-page-404>\`;
+  },
+};
 
 setOutlets({
-  '': [{
-    pattern: "*",
-    getContent: async (params, container) => {
-      const props = await loadLayout(async () => RootLayout, 'gemkit-layout-root', params, container);
-      return html\`<gemkit-layout-root .params=\${props.params} .data=\${props.data}></gemkit-layout-root>\`;
+  '': [
+    {
+      pattern: "*",
+      getContent: async (params, container) => {
+        const props = await loadLayout(async () => RootLayout, 'gemkit-layout-root', params, container);
+        return html\`<gemkit-layout-root .params=\${props.params} .data=\${props.data}></gemkit-layout-root>\`;
+      },
     },
-  }],
-  'gemkit-layout-root': [{
-    pattern: "/files/new",
-    getContent: async (params) => {
-      const data = await loadPage(() => import("../src/pages/files/new"), 'gemkit-page-files-new', params);
-      return html\`<gemkit-page-files-new .params=\${params} .data=\${data}></gemkit-page-files-new>\`;
+  ],
+  'gemkit-layout-root': [
+    {
+      pattern: "/files/new",
+      getContent: async (params) => {
+        const data = await loadPage(() => import("../src/pages/files/new"), 'gemkit-page-files-new', params);
+        return html\`<gemkit-page-files-new .params=\${params} .data=\${data}></gemkit-page-files-new>\`;
+      },
     },
-  }, {
-    pattern: "/files/:name",
-    getContent: async (params) => {
-      const data = await loadPage(() => import("../src/pages/files/[name]"), 'gemkit-page-files-name', params);
-      return html\`<gemkit-page-files-name .params=\${params} .data=\${data}></gemkit-page-files-name>\`;
+    {
+      pattern: "/files/:name",
+      getContent: async (params) => {
+        const data = await loadPage(() => import("../src/pages/files/[name]"), 'gemkit-page-files-name', params);
+        return html\`<gemkit-page-files-name .params=\${params} .data=\${data}></gemkit-page-files-name>\`;
+      },
     },
-  }, {
-    pattern: "/about",
-    getContent: async (params) => {
-      const data = await loadPage(() => import("../src/pages/about"), 'gemkit-page-about', params);
-      return html\`<gemkit-page-about .params=\${params} .data=\${data}></gemkit-page-about>\`;
+    {
+      pattern: "/about",
+      getContent: async (params) => {
+        const data = await loadPage(() => import("../src/pages/about"), 'gemkit-page-about', params);
+        return html\`<gemkit-page-about .params=\${params} .data=\${data}></gemkit-page-about>\`;
+      },
     },
-  }, {
-    pattern: "/files/*",
-    getContent: async (params) => {
-      const data = await loadPage(() => import("../src/pages/files/[...path]"), 'gemkit-page-files-path', params);
-      return html\`<gemkit-page-files-path .params=\${params} .data=\${data}></gemkit-page-files-path>\`;
+    {
+      pattern: "/files/*",
+      getContent: async (params) => {
+        const data = await loadPage(() => import("../src/pages/files/[...path]"), 'gemkit-page-files-path', params);
+        return html\`<gemkit-page-files-path .params=\${params} .data=\${data}></gemkit-page-files-path>\`;
+      },
     },
-  }, {
-    pattern: "/blog/*",
-    getContent: async (params, container) => {
-      const props = await loadLayout(() => import("../src/pages/blog/_layout"), 'gemkit-layout-blog', params, container);
-      return html\`<gemkit-layout-blog .params=\${props.params} .data=\${props.data}></gemkit-layout-blog>\`;
+    {
+      pattern: "/blog/*",
+      getContent: async (params, container) => {
+        const props = await loadLayout(() => import("../src/pages/blog/_layout"), 'gemkit-layout-blog', params, container);
+        return html\`<gemkit-layout-blog .params=\${props.params} .data=\${props.data}></gemkit-layout-blog>\`;
+      },
     },
-  }, {
-    pattern: "/:id",
-    getContent: async (params) => {
-      const data = await loadPage(() => import("../src/pages/[id]"), 'gemkit-page-id', params);
-      return html\`<gemkit-page-id .params=\${params} .data=\${data}></gemkit-page-id>\`;
+    {
+      pattern: "/:id",
+      getContent: async (params) => {
+        const data = await loadPage(() => import("../src/pages/[id]"), 'gemkit-page-id', params);
+        return html\`<gemkit-page-id .params=\${params} .data=\${data}></gemkit-page-id>\`;
+      },
     },
-  }, {
-    pattern: "/",
-    getContent: async (params) => {
-      const data = await loadPage(() => import("../src/pages/index"), 'gemkit-page-index', params);
-      return html\`<gemkit-page-index .params=\${params} .data=\${data}></gemkit-page-index>\`;
+    {
+      pattern: "/",
+      getContent: async (params) => {
+        const data = await loadPage(() => import("../src/pages/index"), 'gemkit-page-index', params);
+        return html\`<gemkit-page-index .params=\${params} .data=\${data}></gemkit-page-index>\`;
+      },
     },
-  }, notFound],
-  'gemkit-layout-blog': [{
-    pattern: "/blog/new",
-    getContent: async (params) => {
-      const data = await loadPage(() => import("../src/pages/blog/new"), 'gemkit-page-blog-new', params);
-      return html\`<gemkit-page-blog-new .params=\${params} .data=\${data}></gemkit-page-blog-new>\`;
+    notFound,
+  ],
+  'gemkit-layout-blog': [
+    {
+      pattern: "/blog/new",
+      getContent: async (params) => {
+        const data = await loadPage(() => import("../src/pages/blog/new"), 'gemkit-page-blog-new', params);
+        return html\`<gemkit-page-blog-new .params=\${params} .data=\${data}></gemkit-page-blog-new>\`;
+      },
     },
-  }, {
-    pattern: "/blog/:slug",
-    getContent: async (params) => {
-      const data = await loadPage(() => import("../src/pages/blog/[slug]"), 'gemkit-page-blog-slug', params, true);
-      return html\`<gemkit-page-blog-slug .params=\${params} .data=\${data}></gemkit-page-blog-slug>\`;
+    {
+      pattern: "/blog/:slug",
+      getContent: async (params) => {
+        const data = await loadPage(() => import("../src/pages/blog/[slug]"), 'gemkit-page-blog-slug', params, true);
+        return html\`<gemkit-page-blog-slug .params=\${params} .data=\${data}></gemkit-page-blog-slug>\`;
+      },
     },
-  }, {
-    pattern: "/blog",
-    getContent: async (params) => {
-      const data = await loadPage(() => import("../src/pages/blog/index"), 'gemkit-page-blog-index', params);
-      return html\`<gemkit-page-blog-index .params=\${params} .data=\${data}></gemkit-page-blog-index>\`;
+    {
+      pattern: "/blog",
+      getContent: async (params) => {
+        const data = await loadPage(() => import("../src/pages/blog/index"), 'gemkit-page-blog-index', params);
+        return html\`<gemkit-page-blog-index .params=\${params} .data=\${data}></gemkit-page-blog-index>\`;
+      },
     },
-  }, notFound],
+    notFound,
+  ],
 });
 
 export const app = html\`<gemkit-outlet></gemkit-outlet>\`;

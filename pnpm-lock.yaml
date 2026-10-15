@@ -385,6 +385,9 @@ importers:
       '@mantou/gem-ssr':
         specifier: ^0.0.15
         version: link:../gem-ssr
+      eta:
+        specifier: ^4.6.0
+        version: 4.6.0
       hono:
         specifier: ^4.7.4
         version: 4.10.1
@@ -4500,6 +4503,10 @@ packages:
   esutils@2.0.3:
     resolution: {integrity: sha512-kVscqXk4OCp68SZ0dkgEKVi6/8ij300KBWTJq32P/dYeWTSwK41WyTxalN1eRmA5Z9UU/LX9D7FWSmV9SAYx6g==}
     engines: {node: '>=0.10.0'}
+
+  eta@4.6.0:
+    resolution: {integrity: sha512-lW6is4T1NFOYnmqGZIfvixqj7A7sSvScF+DN8EK6K58xI5MZ5UvYe0GjopxOXQtZvUn4eDdVuZ8XSoYWTMEKwA==}
+    engines: {node: '>=20'}
 
   etag@1.8.1:
     resolution: {integrity: sha512-aIL5Fx7mawVa300al2BnEE4iNvo1qETxLrPI/o05L7z6go7fCw1J6EQmbK4FmJ2AS7kgVF/KEZWufBfdClMcPg==}
@@ -12921,6 +12928,8 @@ snapshots:
   estree-walker@2.0.2: {}
 
   esutils@2.0.3: {}
+
+  eta@4.6.0: {}
 
   etag@1.8.1: {}
 

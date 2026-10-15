@@ -29,7 +29,7 @@
     "/template.html"
   ],
   "scripts": {
-    "build": "esbuild plugin=src/plugin/index.ts serve=src/plugin/serve.ts --outdir=dist --bundle --platform=node --format=esm --packages=external",
+    "build": "mkdir -p dist && cp -R src/plugin/templates dist/ && esbuild plugin=src/plugin/index.ts serve=src/plugin/serve.ts --outdir=dist --bundle --platform=node --format=esm --packages=external",
     "start": "pnpm build --watch",
     "test": "tsx --test 'src/**/*.test.ts'",
     "prepublishOnly": "pnpm build"
@@ -38,6 +38,7 @@
     "@hono/node-server": "^1.13.8",
     "@mantou/gem": "^2.2.14",
     "@mantou/gem-ssr": "^0.0.15",
+    "eta": "^4.6.0",
     "hono": "^4.7.4",
     "unplugin-gem": "^0.1.12"
   },
