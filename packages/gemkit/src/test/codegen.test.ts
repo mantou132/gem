@@ -1,0 +1,154 @@
+import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
+import test, { after, snapshot } from 'node:test';
+
+import { generate, scanPages } from '../plugin/codegen';
+
+snapshot.setDefaultSnapshotSerializers([(v) => v]);
+
+const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'gemkit-'));
+after(() => fs.rmSync(tmpDir, { recursive: true }));
+
+/** 在临时目录中创建文件，返回根目录 */
+function createFixture(files: string[]) {
+  const root = fs.mkdtempSync(path.join(tmpDir, 'app-'));
+  for (const file of files) {
+    const fullPath = path.join(root, file);
+    fs.mkdirSync(path.dirname(fullPath), { recursive: true });
+    fs.writeFileSync(fullPath, file.endsWith('.json') ? '{}' : '');
+  }
+  return root;
+}
+
+const pageFiles = [
+  'src/pages/_layout.ts',
+  'src/pages/_404.ts',
+  'src/pages/_utils.ts',
+  'src/pages/index.ts',
+  'src/pages/about.ts',
+  'src/pages/[id].ts',
+  'src/pages/[id].test.ts',
+  'src/pages/types.d.ts',
+  'src/pages/blog/_layout.ts',
+  'src/pages/blog/index.ts',
+  'src/pages/blog/[slug].ts',
+  'src/pages/blog/[slug].server.ts',
+  'src/pages/blog/new.ts',
+  'src/pages/files/[...path].ts',
+  'src/pages/files/[name].ts',
+  'src/pages/files/new.ts',
+];
+
+test('scanPages: 页面、layout 和标签名', ({ assert }) => {
+  const root = createFixture(pageFiles);
+  const pagesDir = path.join(root, 'src/pages');
+  const { root: layout, notFound } = scanPages(pagesDir);
+  const rel = (file?: string) => file && path.relative(pagesDir, file);
+
+  assert.equal(layout.tag, 'gemkit-layout-root');
+  assert.equal(rel(layout.file), '_layout.ts');
+  // `_` 开头、`.d.ts` 和测试文件不是页面，没有 layout 的目录中的页面属于上级 layout
+  assert.deepEqual(
+    layout.pages.map(({ pattern, tag }) => [pattern, tag]),
+    [
+      ['/:id', 'gemkit-page-id'],
+      ['/about', 'gemkit-page-about'],
+      ['/files/*', 'gemkit-page-files-path'],
+      ['/files/:name', 'gemkit-page-files-name'],
+      ['/files/new', 'gemkit-page-files-new'],
+      ['/', 'gemkit-page-index'],
+    ],
+  );
+
+  assert.equal(layout.layouts.length, 1);
+  const [{ pattern, layout: blog }] = layout.layouts;
+  assert.equal(pattern, '/blog/*');
+  assert.equal(blog.tag, 'gemkit-layout-blog');
+  assert.equal(rel(blog.file), 'blog/_layout.ts');
+  assert.deepEqual(
+    blog.pages.map(({ pattern, tag, server }) => [pattern, tag, rel(server)]),
+    [
+      ['/blog/:slug', 'gemkit-page-blog-slug', 'blog/[slug].server.ts'],
+      ['/blog', 'gemkit-page-blog-index', undefined],
+      ['/blog/new', 'gemkit-page-blog-new', undefined],
+    ],
+  );
+
+  assert.deepEqual(notFound && { ...notFound, file: rel(notFound.file) }, {
+    pattern: '*',
+    file: '_404.ts',
+    tag: 'gemkit-page-404',
+    server: undefined,
+  });
+});
+
+test('scanPages: 没有 layout 和 404', ({ assert }) => {
+  const root = createFixture(['src/pages/index.ts']);
+  const { root: layout, notFound } = scanPages(path.join(root, 'src/pages'));
+  assert.equal(layout.tag, '');
+  assert.equal(layout.file, undefined);
+  assert.equal(notFound, undefined);
+});
+
+test('scanPages: 标签名重复时报错', ({ assert }) => {
+  const root = createFixture(['src/pages/a-b.ts', 'src/pages/a_b.ts']);
+  assert.throws(() => scanPages(path.join(root, 'src/pages')), /have the same tag `gemkit-page-a-b`/);
+});
+
+test('generate: 生成路由和入口文件', ({ assert }) => {
+  const root = createFixture([...pageFiles, 'src/app.ts', 'src/locales/en.json', 'src/locales/zh-CN.json']);
+  generate(root, { title: 'Site', titleTemplate: '%s | Site' });
+  const genDir = path.join(root, '.gemkit');
+  const read = (file: string) => fs.readFileSync(path.join(genDir, file), 'utf8');
+
+  assert.deepEqual(fs.readdirSync(genDir).sort(), [
+    '.gitignore',
+    'client.ts',
+    'env.d.ts',
+    'i18n.ts',
+    'routes.ts',
+    'server.ts',
+    'tsconfig.json',
+  ]);
+  // 生成目录忽略自身
+  assert.equal(read('.gitignore'), '*\n');
+  assert.snapshot(read('routes.ts'));
+
+  const i18n = read('i18n.ts');
+  assert.match(i18n, /export const languages = \["en","zh-CN"\];/);
+  assert.match(i18n, /export const defaultLanguage = 'en';/);
+  assert.match(i18n, /import lang_zh_CN from "..\/src\/locales\/zh-CN.json";/);
+
+  const client = read('client.ts');
+  assert.match(client, /import "..\/src\/app";/);
+  assert.match(client, /startClient\(\{"title":"Site","titleTemplate":"%s \| Site"\}\);/);
+
+  const server = read('server.ts');
+  // 按匹配优先级排序：静态片段 > 参数 > `*`
+  assert.deepEqual(
+    [...server.matchAll(/pattern: "([^"]+)"/g)].map(([, pattern]) => pattern),
+    ['/files/new', '/blog/new', '/files/:name', '/blog/:slug', '/files/*', '/about', '/blog', '/:id', '/'],
+  );
+  assert.match(server, /'gemkit-page-blog-slug': \(\) => import\("..\/src\/pages\/blog\/\[slug\].server"\),/);
+  // 客户端路由不能引用 `*.server.ts`
+  assert.doesNotMatch(read('routes.ts'), /\.server/);
+
+  assert.deepEqual(JSON.parse(read('tsconfig.json')), {
+    compilerOptions: { paths: { '$gemkit/*': ['./*'] } },
+    files: ['./env.d.ts', './auto-import.d.ts'],
+  });
+});
+
+test('generate: 没有语言文件', ({ assert }) => {
+  const root = createFixture(['src/pages/index.ts']);
+  generate(root, {});
+  const i18n = fs.readFileSync(path.join(root, '.gemkit/i18n.ts'), 'utf8');
+  assert.match(i18n, /export const i18n = undefined;/);
+  assert.match(i18n, /export const languages: string\[\] = \[\];/);
+});
+
+test('generate: 指定的默认语言不存在时报错', ({ assert }) => {
+  const root = createFixture(['src/pages/index.ts', 'src/locales/en.json']);
+  assert.throws(() => generate(root, { defaultLanguage: 'fr' }), /not found `src\/locales\/fr.json`/);
+});

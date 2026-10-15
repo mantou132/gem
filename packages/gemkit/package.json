@@ -31,7 +31,7 @@
   "scripts": {
     "build": "esbuild plugin=src/plugin/index.ts serve=src/plugin/serve.ts --outdir=dist --bundle --platform=node --format=esm --packages=external",
     "start": "pnpm build --watch",
-    "test": "node --test",
+    "test": "tsx --test 'src/**/*.test.ts'",
     "prepublishOnly": "pnpm build"
   },
   "dependencies": {
@@ -47,7 +47,8 @@
   "devDependencies": {
     "@gemjs/config": "^2.1.3",
     "@rsbuild/core": "^2.0.15",
-    "esbuild": "^0.24.0"
+    "esbuild": "^0.24.0",
+    "tsx": "^4.20.6"
   },
   "author": "mantou132",
   "license": "MIT",

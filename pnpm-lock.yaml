@@ -401,6 +401,9 @@ importers:
       esbuild:
         specifier: ^0.24.0
         version: 0.24.2
+      tsx:
+        specifier: ^4.20.6
+        version: 4.20.6
 
   packages/language-service:
     dependencies:
