@@ -6,12 +6,13 @@ import { matchPath } from '@mantou/gem/elements/route';
 import type { I18n } from '@mantou/gem/helper/i18n';
 import { type RenderOptions, render, renderServerElement, runInRequest } from '@mantou/gem-ssr';
 
-import { DATA_FILE, DATA_SCRIPT_ID, REDIRECT_HEADER, trimTrailingSlash } from './constants';
+import { DATA_FILE, DATA_SCRIPT_ID, NOT_FOUND_HEADER, REDIRECT_HEADER, trimTrailingSlash } from './constants';
 import { createCookies } from './cookies';
 import {
   type ActionResult,
   createServerContext,
   getServerModule,
+  NotFound,
   Redirect,
   type RouteData,
   requestState,
@@ -132,16 +133,26 @@ export function createRenderer({
       const { path } = await setLanguage(pagePathname);
       const pageUrl = new URL(`${url.origin}${pagePathname}${url.search}`);
       const data: RouteData = {};
+      // 调用了 `notFound()` 的路由，其他路由的数据仍然可以使用，例如 layout 的数据
+      let notFoundTag: string | undefined;
       try {
         await Promise.all(
           findServerRoutes(path).map(async ({ tag, params }) => {
-            if ((await getServerModule(tag))?.load) data[tag] = await runServerLoad(tag, params, pageUrl);
+            if (!(await getServerModule(tag))?.load) return;
+            try {
+              data[tag] = await runServerLoad(tag, params, pageUrl);
+            } catch (err) {
+              if (!(err instanceof NotFound)) throw err;
+              notFoundTag = tag;
+            }
           }),
         );
       } catch (err) {
         if (!(err instanceof Redirect)) throw err;
         return { status: 200, headers: toHeaders(setCookies, { [REDIRECT_HEADER]: err.location }), data: null };
       }
+      if (notFoundTag)
+        return { status: 200, headers: toHeaders(setCookies, { [NOT_FOUND_HEADER]: notFoundTag }), data };
       const status = Object.keys(data).length ? 200 : 404;
       return { status, headers: toHeaders(setCookies), data: status === 200 ? data : null };
     });
@@ -231,7 +242,7 @@ export function createRenderer({
       }
       const [start, end] = html.split('<!--gemkit-body-->');
       return {
-        status: findPage(path) ? 200 : 404,
+        status: findPage(path) && !requestState.notFound ? 200 : 404,
         headers: toHeaders(setCookies),
         html: (async function* () {
           yield start + body;

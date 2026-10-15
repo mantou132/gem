@@ -6,6 +6,8 @@ export const ELEMENTS_FILE = '__elements.json';
 export const ELEMENT_PATH = '/__gemkit_element';
 /** 客户端导航时数据请求的响应头，服务端 `load` 中跳转的地址 */
 export const REDIRECT_HEADER = 'x-gemkit-redirect';
+/** 客户端导航时数据请求的响应头，服务端 `load` 中调用了 `notFound()` 的路由的标签名 */
+export const NOT_FOUND_HEADER = 'x-gemkit-not-found';
 
 /** 页面路径对应的数据文件路径 */
 export function getDataPath(path: string, file = DATA_FILE) {

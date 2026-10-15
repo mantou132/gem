@@ -16,9 +16,9 @@ import {
 import { I18n } from '@mantou/gem/helper/i18n';
 import { getServerElementKey, server } from '@mantou/gem-ssr/decorators';
 
-import { DATA_SCRIPT_ID, REDIRECT_HEADER } from '../constants';
-import { redirect, type ServerModule } from '../data';
-import { loadPage, setOutlets } from '../outlet';
+import { DATA_SCRIPT_ID, NOT_FOUND_HEADER, REDIRECT_HEADER } from '../constants';
+import { notFound, redirect, type ServerModule } from '../data';
+import { pageRoute, setOutlets } from '../outlet';
 import { type Params, page } from '../page';
 import { createRequestHandler } from '../plugin/serve';
 import { createRenderer, type PageEntry } from '../server';
@@ -91,7 +91,10 @@ const pages: PageEntry[] = [
 
 const serverModules: Record<string, () => Promise<ServerModule>> = {
   'gemkit-page-post': async () => ({
-    load: ({ params, url }) => ({ id: params.id, text: '</script><b>', url: url.pathname }),
+    load: ({ params, url }) => {
+      if (params.id === 'missing') notFound();
+      return { id: params.id, text: '</script><b>', url: url.pathname };
+    },
     paths: () => [{ id: '1' }, { id: '2' }],
   }),
   'gemkit-page-me': async () => ({
@@ -116,22 +119,24 @@ const serverModules: Record<string, () => Promise<ServerModule>> = {
 
 // 和生成的 `routes.ts` 一样，模版中使用静态的标签名
 const [slow, post, tag, me, index] = pages;
-const notFound: PageEntry = { pattern: '*', tag: 'gemkit-page-404', load: async () => ({ default: NotFoundPage }) };
-const route = ({ pattern, tag, load }: PageEntry, content: (params: Params, data: any) => TemplateResult) => ({
-  pattern,
-  getContent: async (params: Params) => content(params, await loadPage(load, tag, params, tag in serverModules)),
-});
+const notFoundPage: PageEntry = { pattern: '*', tag: 'gemkit-page-404', load: async () => ({ default: NotFoundPage }) };
+const route = ({ pattern, tag, load }: PageEntry, render: (params: Params, data: any) => TemplateResult) =>
+  pageRoute(pattern, { tag, load, server: tag in serverModules }, render);
 
-setOutlets({
-  '': [
-    route(slow, () => html`<gemkit-page-slow></gemkit-page-slow>`),
-    route(post, (p, d) => html`<gemkit-page-post .params=${p} .data=${d}></gemkit-page-post>`),
-    route(tag, (p) => html`<gemkit-page-tag .params=${p}></gemkit-page-tag>`),
-    route(me, (_, d) => html`<gemkit-page-me .data=${d}></gemkit-page-me>`),
-    route(index, () => html`<gemkit-page-index></gemkit-page-index>`),
-    route(notFound, () => html`<gemkit-page-404></gemkit-page-404>`),
-  ],
-});
+const notFoundRoute = route(notFoundPage, () => html`<gemkit-page-404></gemkit-page-404>`);
+setOutlets(
+  {
+    '': [
+      route(slow, () => html`<gemkit-page-slow></gemkit-page-slow>`),
+      route(post, (p, d) => html`<gemkit-page-post .params=${p} .data=${d}></gemkit-page-post>`),
+      route(tag, (p) => html`<gemkit-page-tag .params=${p}></gemkit-page-tag>`),
+      route(me, (_, d) => html`<gemkit-page-me .data=${d}></gemkit-page-me>`),
+      route(index, () => html`<gemkit-page-index></gemkit-page-index>`),
+      notFoundRoute,
+    ],
+  },
+  notFoundRoute,
+);
 
 const renderer = createRenderer({
   app: html`<gemkit-outlet></gemkit-outlet>`,
@@ -338,4 +343,21 @@ test('renderDocument: 预渲染时不能读取请求', async ({ assert }) => {
     renderer.renderDocument(documentTemplate, '/me'),
     /`cookies` is not available when prerendering/,
   );
+});
+
+test('renderDocument: `load` 中调用 `notFound()` 时渲染 404 页面，状态码为 404', async ({ assert }) => {
+  const { status, html } = await renderer.renderDocument(documentTemplate, '/posts/missing');
+  const result = (await Array.fromAsync(html)).join('');
+  assert.equal(status, 404);
+  assert.match(result, /<title>Not Found \| Site<\/title>/);
+  assert.match(result, /<gemkit-page-404>.*not found.*<\/gemkit-page-404>/s);
+  // 水合时直接渲染 404 页面
+  assert.match(result, /"notFound":"gemkit-page-post"/);
+});
+
+test('loadData: `load` 中调用 `notFound()` 时通过响应头告诉客户端', async ({ assert }) => {
+  const { status, headers, data } = await renderer.loadData('/posts/missing/__data.json');
+  assert.equal(status, 200);
+  assert.equal(headers.get(NOT_FOUND_HEADER), 'gemkit-page-post');
+  assert.deepEqual(data, {});
 });

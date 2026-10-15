@@ -1,7 +1,14 @@
 import { createStore, history } from '@mantou/gem';
 import { isolate, isServer } from '@mantou/gem/lib/server';
 
-import { DATA_SCRIPT_ID, ELEMENT_PATH, ELEMENTS_FILE, getDataPath, REDIRECT_HEADER } from './constants';
+import {
+  DATA_SCRIPT_ID,
+  ELEMENT_PATH,
+  ELEMENTS_FILE,
+  getDataPath,
+  NOT_FOUND_HEADER,
+  REDIRECT_HEADER,
+} from './constants';
 import type { Params } from './page';
 
 export interface CookieOptions {
@@ -80,6 +87,15 @@ export function redirect(status: 301 | 302 | 303 | 307 | 308, location: string):
   throw new Redirect(status, location);
 }
 
+export class NotFound {}
+
+/**
+ * 在 `load` 中表示路由参数对应的内容不存在，例如文章不存在，渲染 404 页面（`_404`），状态码为 404，地址不变
+ */
+export function notFound(): never {
+  throw new NotFound();
+}
+
 /** 当前请求的状态，每个请求有独立的值 */
 export const requestState = isolate<{
   /** 预渲染时没有 */
@@ -87,6 +103,8 @@ export const requestState = isolate<{
   cookies?: Cookies;
   /** `load` 中的跳转，渲染时不再输出内容 */
   redirect?: Redirect;
+  /** `load` 中调用了 `notFound()`，状态码为 404 */
+  notFound?: boolean;
 }>({});
 
 /** 页面和 layout 的数据，key 是标签名 */
@@ -98,7 +116,8 @@ export type RouteData = Record<string, unknown>;
  * 不使用 store，避免被当作需要同步的 store 输出
  */
 export const ssrData = isolate<{
-  current?: { path: string; data: RouteData };
+  /** `notFound` 是 `load` 中调用了 `notFound()` 的路由的标签名 */
+  current?: { path: string; data: RouteData; notFound?: string };
   /** 页面的数据和标题已经确定，可以开始输出文档 */
   ready?: boolean;
 }>({});
@@ -106,6 +125,13 @@ export const ssrData = isolate<{
 export function setSSRData(path: string, tag: string, data: unknown) {
   ssrData.current ||= { path, data: {} };
   ssrData.current.data[tag] = data;
+}
+
+/** 服务端渲染时路由的 `load` 调用了 `notFound()`，水合时直接渲染 404 页面 */
+export function setSSRNotFound(path: string, tag: string) {
+  requestState.notFound = true;
+  ssrData.current ||= { path, data: {} };
+  ssrData.current.notFound = tag;
 }
 
 /** 转换成 JSON 值，保证客户端拿到的数据和服务端一致 */
@@ -158,7 +184,12 @@ export function takeSSRData(path: string, tag: string) {
     script?.remove();
     ssrResult = script ? JSON.parse(script.textContent!) : null;
   }
-  if (!ssrResult || ssrResult.path !== path || !(tag in ssrResult.data)) return;
+  if (!ssrResult || ssrResult.path !== path) return;
+  if (ssrResult.notFound === tag) {
+    delete ssrResult.notFound;
+    throw new NotFound();
+  }
+  if (!(tag in ssrResult.data)) return;
   const data = ssrResult.data[tag];
   delete ssrResult.data[tag];
   return { data };
@@ -214,16 +245,19 @@ function navigate(href: string, replace = false) {
   }
 }
 
-// 同一次导航中 layout 和页面共用一个数据请求，再次使用时重新请求
-let dataRequest: { url: string; promise: Promise<RouteData>; taken: Set<string> } | undefined;
+/** 数据请求的结果，`notFound` 是 `load` 中调用了 `notFound()` 的路由的标签名 */
+type DataResult = { data: RouteData; notFound: string | null };
 
-async function fetchData(url: string, path: string) {
+// 同一次导航中 layout 和页面共用一个数据请求，再次使用时重新请求
+let dataRequest: { url: string; promise: Promise<DataResult>; taken: Set<string> } | undefined;
+
+async function fetchData(url: string, path: string): Promise<DataResult> {
   const res = await fetch(url);
   if (!res.ok) throw new Error(`gemkit: failed to load data of \`${path}\``);
   // 服务端 `load` 中的跳转，预取时不跳转，使用数据时再跳转
   const redirectTo = res.headers.get(REDIRECT_HEADER);
   if (redirectTo) throw new Redirect(302, redirectTo);
-  return res.json() as Promise<RouteData>;
+  return { data: await res.json(), notFound: res.headers.get(NOT_FOUND_HEADER) };
 }
 
 /** 预取页面的服务端数据 */
@@ -238,7 +272,7 @@ export async function loadServerData(tag: string, params: Params) {
   const { path } = history.getParams();
   const url = getFileUrl(path, location.search);
   if (dataRequest?.url !== url || dataRequest.taken.has(tag)) {
-    const promise = (takePrefetched<RouteData>(url) || fetchData(url, path)).catch((err) => {
+    const promise = (takePrefetched<DataResult>(url) || fetchData(url, path)).catch((err) => {
       // 替换当前导航，中断当前路由的渲染，layout 和页面共用请求，只跳转一次
       if (err instanceof Redirect) navigate(err.location, true);
       throw err;
@@ -246,7 +280,9 @@ export async function loadServerData(tag: string, params: Params) {
     dataRequest = { url, promise, taken: new Set() };
   }
   dataRequest.taken.add(tag);
-  return (await dataRequest.promise)[tag];
+  const { data, notFound } = await dataRequest.promise;
+  if (notFound === tag) throw new NotFound();
+  return data[tag];
 }
 
 /** 纯服务端元素的标签名、attribute 和 property */

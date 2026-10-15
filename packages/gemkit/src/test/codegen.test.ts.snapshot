@@ -51,7 +51,7 @@ setOutlets({
     ),
     notFound,
   ],
-});
+}, notFound);
 
 export const app = html\`<gemkit-outlet></gemkit-outlet>\`;
 

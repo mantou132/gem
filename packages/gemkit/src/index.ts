@@ -4,6 +4,7 @@ export {
   type ActionResult,
   type CookieOptions,
   type Cookies,
+  notFound,
   redirect,
   type ServerLoadContext,
   type ServerModule,
