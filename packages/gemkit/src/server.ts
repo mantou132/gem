@@ -7,8 +7,9 @@ import type { I18n } from '@mantou/gem/helper/i18n';
 import { render, runInRequest } from '@mantou/gem-ssr';
 
 import { DATA_FILE, DATA_SCRIPT_ID, trimTrailingSlash } from './constants';
-import { getServerModule, runServerLoad, type ServerModule, setServerModules, ssrData } from './data';
+import { getServerModule, type RouteData, runServerLoad, type ServerModule, setServerModules, ssrData } from './data';
 import { getBasePath, localizePath, splitLanguage } from './i18n';
+import { getLayoutParams } from './outlet';
 import { getPageOptions, type Params } from './page';
 import { formatTitle, type TitleOptions } from './title';
 
@@ -18,11 +19,18 @@ export interface PageEntry {
   load: () => Promise<{ default: CustomElementConstructor }>;
 }
 
+export interface LayoutEntry {
+  pattern: string;
+  tag: string;
+}
+
 export interface RendererOptions extends TitleOptions {
   app: TemplateResult;
   /** 按匹配优先级排序 */
   pages: PageEntry[];
-  /** 页面标签名对应的 `*.server.ts` */
+  /** 有 `_layout.server.ts` 的 layout */
+  layouts?: LayoutEntry[];
+  /** 页面和 layout 标签名对应的 `*.server.ts` */
   serverModules?: Record<string, () => Promise<ServerModule>>;
   i18n?: I18n<any>;
   languages?: string[];
@@ -46,6 +54,7 @@ function fillPattern(pattern: string, params: Params) {
 export function createRenderer({
   app,
   pages,
+  layouts = [],
   serverModules = {},
   i18n,
   languages = [],
@@ -61,6 +70,17 @@ export function createRenderer({
     }
   };
 
+  /** 路径匹配的 layout 和页面中有服务端模块的，以及它们的参数 */
+  const findServerRoutes = (path: string) => {
+    const routes = layouts.flatMap(({ pattern, tag }) => {
+      const params = matchPath(pattern, path);
+      return params ? [{ tag, params: getLayoutParams(params) }] : [];
+    });
+    const result = findPage(path);
+    if (result && result.page.tag in serverModules) routes.push({ tag: result.page.tag, params: result.params });
+    return routes;
+  };
+
   const setLanguage = async (pathname: string) => {
     const { lang, path } = splitLanguage(trimTrailingSlash(pathname), languages, defaultLanguage);
     history.basePath = getBasePath(lang, defaultLanguage);
@@ -68,16 +88,24 @@ export function createRenderer({
     return { lang, path };
   };
 
-  /** 处理客户端导航时的数据请求，`url` 是页面路径加上 `/__data.json` */
+  /**
+   * 处理客户端导航时的数据请求，`url` 是页面路径加上 `/__data.json`
+   *
+   * 返回路径匹配的 layout 和页面的服务端数据，key 是标签名
+   */
   const loadData = (url: string) =>
     runInRequest(async () => {
       const { origin, pathname, search } = new URL(url, 'http://localhost');
       const pagePathname = pathname.slice(0, -DATA_FILE.length - 1) || '/';
       const { path } = await setLanguage(pagePathname);
-      const result = findPage(path);
-      if (!result || !(await getServerModule(result.page.tag))?.load) return { status: 404, data: null };
-      const data = await runServerLoad(result.page.tag, result.params, new URL(`${origin}${pagePathname}${search}`));
-      return { status: 200, data };
+      const pageUrl = new URL(`${origin}${pagePathname}${search}`);
+      const data: RouteData = {};
+      await Promise.all(
+        findServerRoutes(path).map(async ({ tag, params }) => {
+          if ((await getServerModule(tag))?.load) data[tag] = await runServerLoad(tag, params, pageUrl);
+        }),
+      );
+      return Object.keys(data).length ? { status: 200, data } : { status: 404, data: null };
     });
 
   /** 将渲染结果插入 HTML 模版，模版中使用 `<!--gemkit-body-->` 标记内容位置 */
@@ -134,12 +162,9 @@ export function createRenderer({
     return languages.flatMap((lang) => paths.map((path) => localizePath(lang, path, defaultLanguage)));
   };
 
-  /** 页面是否有服务端数据，预渲染时需要输出数据文件 */
-  const hasServerData = (path: string) => {
-    const { path: pagePath } = splitLanguage(path, languages, defaultLanguage);
-    const result = findPage(pagePath);
-    return !!result && result.page.tag in serverModules;
-  };
+  /** 页面或 layout 是否有服务端数据，预渲染时需要输出数据文件 */
+  const hasServerData = (path: string) =>
+    findServerRoutes(splitLanguage(path, languages, defaultLanguage).path).length > 0;
 
   return { renderDocument, loadData, getPaths, hasServerData };
 }

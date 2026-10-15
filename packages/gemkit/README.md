@@ -21,7 +21,7 @@ export default defineConfig({
 SSR responses are streamed: the document is sent once the page `load` and `title` are resolved,
 async content inside the page (e.g. `@server` methods) is streamed after it.
 
-Add the SWC plugin cache `.swc` to `.gitignore`, the generated `.gemkit` ignores itself.
+The generated `.gemkit` ignores itself, no `.gitignore` entry is needed.
 
 ## Project structure
 
@@ -67,9 +67,29 @@ export default class PostPage extends GemElement {
 }
 ```
 
+## Layout data
+
+Layouts can load data like pages, it is passed to the layout as `params` (without the child route part) and `data`.
+When navigating between child routes, the data is reused as long as the layout params are unchanged:
+
+```ts
+// src/pages/blog/_layout.ts
+import { GemElement, html, property, template } from '@mantou/gem';
+import { layout } from '@mantou/gemkit';
+
+@layout({ load: () => fetch('/api/categories').then((res) => res.json()) })
+export default class BlogLayout extends GemElement {
+  @property data?: Category[];
+
+  @template()
+  #content = () => html`<aside>${this.data?.map(({ name }) => name)}</aside><gemkit-outlet></gemkit-outlet>`;
+}
+```
+
 ## Server data
 
-Server-only code goes into a sibling `*.server.ts` of the page, it is never bundled into the client,
+Server-only code goes into a sibling `*.server.ts` of the page or layout (e.g. `_layout.server.ts`),
+it is never bundled into the client,
 importing it from client code fails the build:
 
 ```ts
@@ -87,9 +107,9 @@ export const paths = async () => [{ slug: 'hello' }];
 ```
 
 - SSR: the data is embedded in the HTML, hydration uses it without another request
-- Client-side navigation: fetch `<page path>/__data.json`
+- Client-side navigation: fetch `<page path>/__data.json`, it contains the data of the page and its layouts
 - Prerender: `__data.json` is written next to the page, so navigation works on a static host
-- The page `load` option, if present, receives the server data as the second argument
+- The `load` option of the page or layout, if present, receives the server data as the second argument
 
 Generated modules are imported with `$gemkit/*`, e.g. `import { i18n, localizePath } from '$gemkit/i18n'`,
 extend `.gemkit/tsconfig.json` in the project `tsconfig.json` to get the types.

@@ -92,6 +92,8 @@ export const unpluginFactory: UnpluginFactory<UnpluginGemOptions | undefined> = 
               externalHelpers: true,
               target: 'es2024',
               experimental: {
+                // 插件的编译缓存，默认是项目中的 `.swc`
+                cacheRoot: 'node_modules/.cache/swc',
                 runPluginFirst: true,
                 plugins: [
                   [

@@ -2,7 +2,7 @@ import { adoptedStyle, css, GemElement, history, html, template, titleStore } fr
 import type { RouteItem } from '@mantou/gem/elements/route';
 import { isServer } from '@mantou/gem/lib/server';
 
-import { loadServerData, ssrData, takeSSRData, toJSONValue } from './data';
+import { loadServerData, setSSRData, ssrData, takeSSRData, toJSONValue } from './data';
 import { getPageOptions, type Params, setPendingProps } from './page';
 
 import '@mantou/gem/elements/route';
@@ -24,8 +24,47 @@ export function defineElement(tag: string, cls: CustomElementConstructor) {
   return cls;
 }
 
-export async function loadLayout(load: () => Promise<ElementModule>, tag: string) {
-  defineElement(tag, (await load()).default);
+async function loadData(cls: CustomElementConstructor, tag: string, params: Params, hasServerModule?: boolean) {
+  const { path } = history.getParams();
+  // 水合时使用服务端渲染的数据，不再执行 `load`
+  const ssrResult = isServer ? undefined : takeSSRData(path, tag);
+  if (ssrResult) return ssrResult.data;
+  const { load } = getPageOptions(cls);
+  if (!load && !hasServerModule) return;
+  const serverData = hasServerModule ? await loadServerData(tag, params) : undefined;
+  const data = load ? await load(params, serverData) : serverData;
+  if (!isServer) return data;
+  const json = toJSONValue(data);
+  setSSRData(path, tag, json);
+  return json;
+}
+
+/** 子路由匹配的部分（`*`）不属于 layout 的参数 */
+export const getLayoutParams = (params: Params) =>
+  Object.fromEntries(Object.entries(params).filter(([key]) => !/^\d+$/.test(key)));
+
+/**
+ * 加载 layout 模块和数据，`container` 是路由的渲染容器，`hasServerModule` 表示有 `_layout.server.ts`
+ *
+ * 子路由间导航时 layout 已经渲染，参数不变就复用数据
+ */
+export async function loadLayout(
+  load: () => Promise<ElementModule>,
+  tag: string,
+  routeParams: Params,
+  container: Element | ShadowRoot,
+  hasServerModule?: boolean,
+) {
+  const cls = (await load()).default;
+  const params = getLayoutParams(routeParams);
+  const current = [...container.children].find((e) => e.localName === tag) as { params?: Params; data?: unknown };
+  const data =
+    current && JSON.stringify(current.params) === JSON.stringify(params)
+      ? current.data
+      : await loadData(cls, tag, params, hasServerModule);
+  setPendingProps({ params, data });
+  defineElement(tag, cls);
+  return { params, data };
 }
 
 /** 加载页面模块和数据，返回页面数据，`hasServerModule` 表示页面有 `*.server.ts` */
@@ -36,22 +75,11 @@ export async function loadPage(
   hasServerModule?: boolean,
 ) {
   const cls = (await load()).default;
-  const options = getPageOptions(cls);
-  const { path } = history.getParams();
-  // 水合时使用服务端渲染的数据，不再执行 `load`
-  const ssrResult = isServer ? undefined : takeSSRData(path);
-  let data = ssrResult?.data;
-  if (!ssrResult) {
-    const serverData = hasServerModule ? await loadServerData(tag, params) : undefined;
-    data = options.load ? await options.load(params, serverData) : serverData;
-  }
-  if (isServer) {
-    data = toJSONValue(data);
-    ssrData.current = { path, data };
-  }
+  const data = await loadData(cls, tag, params, hasServerModule);
   setPendingProps({ params, data });
   defineElement(tag, cls);
-  const title = typeof options.title === 'function' ? await options.title(params, data) : options.title;
+  const { title: getTitle } = getPageOptions(cls);
+  const title = typeof getTitle === 'function' ? await getTitle(params, data) : getTitle;
   if (title !== undefined) titleStore({ title });
   if (isServer) ssrData.ready = true;
   return data;

@@ -113,11 +113,8 @@ test('renderDocument: 渲染页面和标题', async ({ assert }) => {
   assert.match(html, /<title>Home \| Site<\/title>/);
   assert.match(html, /<html lang="en">/);
   assert.match(html, /<h1>.*home<\/h1>/);
-  // 没有数据的页面也会输出，水合时不再执行 `load`
-  assert.match(
-    html,
-    new RegExp(`<script type="application/json" id="${DATA_SCRIPT_ID}">{"path":"/","data":null}</script>`),
-  );
+  // 没有 `load` 的页面不输出数据
+  assert.doesNotMatch(html, new RegExp(`id="${DATA_SCRIPT_ID}"`));
 });
 
 test('renderDocument: 未匹配的页面返回 404', async ({ assert }) => {
@@ -141,7 +138,7 @@ test('renderDocument: 输出页面数据并转义 `</script>`', async ({ assert 
   assert.doesNotMatch(json, /</);
   assert.deepEqual(JSON.parse(json), {
     path: '/posts/1',
-    data: { id: '1', text: '</script><b>', url: '/posts/1' },
+    data: { 'gemkit-page-post': { id: '1', text: '</script><b>', url: '/posts/1' } },
   });
   // 页面内容中转义了 `<`
   assert.match(html, /<p>.*&lt;\/script&gt;&lt;b&gt;<\/p>/);
@@ -160,12 +157,12 @@ test('renderDocument: 先输出文档头部，再流式输出异步内容', asyn
 test('loadData: 返回服务端数据', async ({ assert }) => {
   assert.deepEqual(await renderer.loadData('/posts/2/__data.json'), {
     status: 200,
-    data: { id: '2', text: '</script><b>', url: '/posts/2' },
+    data: { 'gemkit-page-post': { id: '2', text: '</script><b>', url: '/posts/2' } },
   });
   // `url` 包含语言前缀
   assert.deepEqual(await renderer.loadData('/zh/posts/2/__data.json'), {
     status: 200,
-    data: { id: '2', text: '</script><b>', url: '/zh/posts/2' },
+    data: { 'gemkit-page-post': { id: '2', text: '</script><b>', url: '/zh/posts/2' } },
   });
 });
 
