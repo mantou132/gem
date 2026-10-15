@@ -132,5 +132,80 @@ export const paths = async () => [{ slug: 'hello' }];
 - Prerender: `__data.json` is written next to the page, so navigation works on a static host
 - The `load` option of the page or layout, if present, receives the server data as the second argument
 
+## Request, cookies and redirect
+
+`load` also receives the current `request` and its `cookies`, `redirect` responds with a redirect:
+
+```ts
+// src/pages/_layout.server.ts
+import type { ServerLoadContext } from '@mantou/gemkit';
+
+// pages reading the request can't be prerendered, in a layout it applies to all its pages
+export const prerender = false;
+
+export const load = ({ cookies }: ServerLoadContext) => ({ user: cookies.get('user') ?? null });
+```
+
+```ts
+// src/pages/editor.server.ts
+import { redirect, type ServerLoadContext } from '@mantou/gemkit';
+
+export const prerender = false;
+
+export function load({ cookies }: ServerLoadContext) {
+  if (!cookies.get('token')) redirect(302, '/login');
+}
+```
+
+- `cookies.set` / `cookies.delete` add `Set-Cookie` to the response, defaults: `Path=/; HttpOnly; SameSite=Lax`,
+  `Secure` on HTTPS. Headers are sent with the document, cookies set after it (e.g. in `@server` methods) are ignored
+- `redirect(status, location)` throws, `location` is the full path (including the language prefix);
+  SSR responds with the status and `Location`, client navigation (`__data.json`) navigates to it instead
+- `request` and `cookies` throw when prerendering, export `prerender = false` from the page or layout `*.server.ts`
+
+## Form actions
+
+Pages handle form submissions with `actions` in `*.server.ts`, posted to `<page path>?/<name>`:
+
+```ts
+// src/pages/login.server.ts
+import { redirect, type ServerLoadContext } from '@mantou/gemkit';
+
+export const actions = {
+  login: async ({ request, cookies }: ServerLoadContext) => {
+    const form = await request.formData();
+    const res = await fetch(`${API}/users/login`, { method: 'POST', body: JSON.stringify({ ... }) });
+    // the result must be JSON, returned to `submitAction`
+    if (!res.ok) return { errors: (await res.json()).errors };
+    cookies.set('token', (await res.json()).user.token);
+    redirect(303, '/');
+  },
+};
+```
+
+```ts
+// src/pages/login.ts
+import { page, submitAction } from '@mantou/gemkit';
+
+@page('Sign in')
+export default class LoginPage extends GemElement {
+  #state = createState({ errors: undefined as Errors | undefined });
+
+  #submit = async (evt: SubmitEvent) => {
+    evt.preventDefault();
+    this.#state({ errors: await submitAction(evt.target as HTMLFormElement, evt.submitter) });
+  };
+
+  @template()
+  #content = () => html`<form method="post" action="?/login" @submit=${this.#submit}>...</form>`;
+}
+```
+
+- `submitAction` submits without reloading: on redirect it navigates on the client, otherwise reloads the current
+  page data, layouts reload their data too (e.g. the current user), returns the action result
+- Without JS the form still works: the response is a 303 to the redirect location, or back to the page
+  (the action result is dropped)
+- Cookies use `SameSite=Lax` by default, cross-site form posts don't carry them
+
 Generated modules are imported with `$gemkit/*`, e.g. `import { i18n, localizePath } from '$gemkit/i18n'`,
 extend `.gemkit/tsconfig.json` in the project `tsconfig.json` to get the types.

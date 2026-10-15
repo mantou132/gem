@@ -1,8 +1,18 @@
-import { adoptedStyle, css, GemElement, history, html, type TemplateResult, template, titleStore } from '@mantou/gem';
+import {
+  adoptedStyle,
+  connectStore,
+  css,
+  GemElement,
+  history,
+  html,
+  type TemplateResult,
+  template,
+  titleStore,
+} from '@mantou/gem';
 import { matchPath, type RouteItem } from '@mantou/gem/elements/route';
 import { isServer } from '@mantou/gem/lib/server';
 
-import { loadServerData, setSSRData, ssrData, takeSSRData, toJSONValue } from './data';
+import { clientState, loadServerData, outletStore, setSSRData, ssrData, takeSSRData, toJSONValue } from './data';
 import { getPageOptions, type Params, setPendingProps } from './page';
 
 import '@mantou/gem/elements/route';
@@ -46,7 +56,7 @@ export const getLayoutParams = (params: Params) =>
 /**
  * 加载 layout 模块和数据，`container` 是路由的渲染容器，`hasServerModule` 表示有 `_layout.server.ts`
  *
- * 子路由间导航时 layout 已经渲染，参数不变就复用数据
+ * 子路由间导航时 layout 已经渲染，参数不变就复用数据，提交表单后重新加载
  */
 export async function loadLayout(
   load: () => Promise<ElementModule>,
@@ -59,7 +69,7 @@ export async function loadLayout(
   const params = getLayoutParams(routeParams);
   const current = [...container.children].find((e) => e.localName === tag) as { params?: Params; data?: unknown };
   const data =
-    current && JSON.stringify(current.params) === JSON.stringify(params)
+    current && !clientState.invalidated && JSON.stringify(current.params) === JSON.stringify(params)
       ? current.data
       : await loadData(cls, tag, params, hasServerModule);
   setPendingProps({ params, data });
@@ -76,6 +86,8 @@ export async function loadPage(
 ) {
   const cls = (await load()).default;
   const data = await loadData(cls, tag, params, hasServerModule);
+  // layout 在页面之前加载
+  clientState.invalidated = false;
   setPendingProps({ params, data });
   defineElement(tag, cls);
   const { title: getTitle } = getPageOptions(cls);
@@ -94,6 +106,12 @@ export interface RouteInfo {
   layout?: boolean;
 }
 
+/**
+ * 导航到 layout 外时，即将移除的 layout 中的 outlet 也会响应路由变化，
+ * 它会匹配到不在当前路径上的路由（通常是 404 页面），不应该加载它，否则会覆盖标题
+ */
+const isMatched = ({ tag }: RouteInfo) => matchRoutes(history.getParams().path).some(({ info }) => info.tag === tag);
+
 /** 创建页面路由，`render` 使用页面的标签名渲染 */
 export function pageRoute(
   pattern: string,
@@ -103,7 +121,10 @@ export function pageRoute(
   return {
     pattern,
     data: info,
-    getContent: async (params) => render(params, await loadPage(info.load, info.tag, params, info.server)),
+    getContent: (params) => {
+      if (!isMatched(info)) return;
+      return loadPage(info.load, info.tag, params, info.server).then((data) => render(params, data));
+    },
   };
 }
 
@@ -116,8 +137,10 @@ export function layoutRoute(
   return {
     pattern,
     data: { ...info, layout: true },
-    getContent: async (params, container) =>
-      render(await loadLayout(info.load, info.tag, params, container, info.server)),
+    getContent: (params, container) => {
+      if (!isMatched(info)) return;
+      return loadLayout(info.load, info.tag, params, container, info.server).then(render);
+    },
   };
 }
 
@@ -147,6 +170,8 @@ const style = css`
  * 在 layout 中渲染子路由
  */
 @adoptedStyle(style)
+@connectStore(outletStore)
+@connectStore(history.store)
 export class GemkitOutletElement extends GemElement {
   // 向上查找所属的 layout，包括 ShadowDOM 的宿主
   get #routes() {
@@ -158,6 +183,11 @@ export class GemkitOutletElement extends GemElement {
     return outletRoutes[''];
   }
 
+  // 路由只在路径改变时更新，查询参数改变时也需要重新加载页面数据，只改变 hash 时不加载
+  get #key() {
+    return `${outletStore.key}${history.getParams().query}`;
+  }
+
   @template()
-  #content = () => html`<gem-light-route .routes=${this.#routes}></gem-light-route>`;
+  #content = () => html`<gem-light-route .key=${this.#key} .routes=${this.#routes}></gem-light-route>`;
 }

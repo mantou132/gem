@@ -6,7 +6,6 @@ import path from 'node:path';
 import { serve } from '@hono/node-server';
 import { serveStatic } from '@hono/node-server/serve-static';
 import { Hono } from 'hono';
-import { stream } from 'hono/streaming';
 
 import { DATA_FILE, ELEMENT_PATH, ELEMENTS_FILE } from '../constants';
 import type { Renderer } from '../server';
@@ -28,40 +27,58 @@ export async function loadRenderer(distDir: string) {
 export const isDataRequest = (pathname: string) =>
   pathname.endsWith(`/${DATA_FILE}`) || pathname.endsWith(`/${ELEMENTS_FILE}`) || pathname === ELEMENT_PATH;
 
-export type Handler = (
-  url: string,
-  /** POST 请求的内容 */
-  body?: string,
-) => Promise<{ status: number; type: 'html' | 'json'; body: string | AsyncIterable<string> }>;
+/** 表单提交到页面的 `actions`，地址是 `<page path>?/<name>` */
+export const isActionRequest = (method: string, search: string) => method === 'POST' && search.startsWith('?/');
 
-/** 处理页面和页面数据请求，提供 `webDir` 时优先使用预渲染的文件 */
+export type Handler = (request: Request) => Promise<Response>;
+
+const HTML_TYPE = 'text/html; charset=utf-8';
+
+/** 流式输出 HTML */
+const toStream = (html: AsyncIterator<string>) =>
+  new ReadableStream<string>({
+    async pull(controller) {
+      const { done, value } = await html.next();
+      if (done) controller.close();
+      else controller.enqueue(value);
+    },
+  }).pipeThrough(new TextEncoderStream());
+
+/** 处理页面、页面数据和表单提交请求，提供 `webDir` 时优先使用预渲染的文件 */
 export function createRequestHandler(renderer: Renderer, template: string, webDir?: string): Handler {
   const readStatic = async (pathname: string) => {
     if (!webDir) return;
     const file = path.join(webDir, decodeURIComponent(pathname));
     if (file.startsWith(webDir + path.sep) && existsSync(file)) return readFile(file, 'utf8');
   };
-  return async (url, reqBody) => {
-    // 开发服务器中是相对路径
-    const requestUrl = new URL(url, 'http://localhost');
-    const { pathname } = requestUrl;
+  return async (request) => {
+    const url = new URL(request.url);
+    const { pathname } = url;
     if (pathname === ELEMENT_PATH) {
-      const { url: pageUrl, elements } = JSON.parse(reqBody || '{}');
-      const list = await renderer.renderElements(new URL(pageUrl, requestUrl).href, elements);
-      return { status: 200, type: 'json', body: JSON.stringify(list) };
+      const { url: pageUrl, elements } = await request.json();
+      return Response.json(await renderer.renderElements(new URL(pageUrl, url).href, elements));
+    }
+    if (isActionRequest(request.method, url.search)) {
+      const { headers, result } = await renderer.runAction(request);
+      if (!result) return new Response(null, { status: 404, headers });
+      // `submitAction` 提交时返回结果，原生表单提交时跳转到 `redirect` 的地址或者当前页面
+      if (request.headers.get('accept') === 'application/json') return Response.json(result, { headers });
+      headers.set('location', result.type === 'redirect' ? result.location : pathname);
+      return new Response(null, { status: 303, headers });
     }
     if (isDataRequest(pathname)) {
       const body = await readStatic(pathname);
-      if (body) return { status: 200, type: 'json', body };
+      if (body) return new Response(body, { headers: { 'content-type': 'application/json' } });
       // 没有预渲染时客户端使用 `ELEMENT_PATH` 渲染，导航时总会请求，避免 404
-      if (pathname.endsWith(ELEMENTS_FILE)) return { status: 200, type: 'json', body: '{}' };
-      const { status, data } = await renderer.loadData(url);
-      return { status, type: 'json', body: JSON.stringify(data) };
+      if (pathname.endsWith(ELEMENTS_FILE)) return Response.json({});
+      const { status, headers, data } = await renderer.loadData(request);
+      return Response.json(data, { status, headers });
     }
     const body = await readStatic(path.posix.join(pathname, 'index.html'));
-    if (body) return { status: 200, type: 'html', body };
-    const { status, html } = await renderer.renderDocument(template, url);
-    return { status, type: 'html', body: html };
+    if (body) return new Response(body, { headers: { 'content-type': HTML_TYPE } });
+    const { status, headers, html } = await renderer.renderDocument(template, request);
+    headers.set('content-type', HTML_TYPE);
+    return new Response(toStream(html), { status, headers });
   };
 }
 
@@ -75,17 +92,6 @@ export async function start({ root = process.cwd(), port = Number(process.env.PO
   const handler = await createHandler(distDir);
   const app = new Hono();
   app.use('/*', serveStatic({ root: path.relative(process.cwd(), getDistPaths(distDir).webDir) }));
-  app.on(['GET', 'POST'], '*', async (ctx) => {
-    const { status, type, body } = await handler(
-      ctx.req.url,
-      ctx.req.method === 'POST' ? await ctx.req.text() : undefined,
-    );
-    ctx.status(status as 200);
-    ctx.header('Content-Type', type === 'json' ? 'application/json' : 'text/html; charset=UTF-8');
-    if (typeof body === 'string') return ctx.body(body);
-    return stream(ctx, async (s) => {
-      for await (const chunk of body) await s.write(chunk);
-    });
-  });
+  app.on(['GET', 'POST'], '*', (ctx) => handler(ctx.req.raw));
   serve({ fetch: app.fetch, port }, ({ port }) => console.log(`gemkit: listening on http://localhost:${port}/`));
 }

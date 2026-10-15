@@ -79,7 +79,7 @@ export interface RouteItem<T = unknown> {
   getContent?: (
     params: Params,
     renderRoot: DocumentFragment | GemLightRouteElement,
-  ) => TemplateResult | Promise<TemplateResult> | undefined | Promise<undefined>;
+  ) => TemplateResult | undefined | Promise<TemplateResult | undefined>;
   title?: string;
   // 用来传递数据
   data?: T;

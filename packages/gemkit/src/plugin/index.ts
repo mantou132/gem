@@ -1,11 +1,9 @@
 import fs from 'node:fs';
 import type { IncomingMessage, ServerResponse } from 'node:http';
 import path from 'node:path';
-import { Readable } from 'node:stream';
-import { text } from 'node:stream/consumers';
-import { pipeline } from 'node:stream/promises';
 import { fileURLToPath } from 'node:url';
 
+import { getRequestListener } from '@hono/node-server';
 import { logger, type RsbuildPlugin } from '@rsbuild/core';
 import type { UnpluginGemOptions } from 'unplugin-gem';
 import unpluginGem from 'unplugin-gem/rspack';
@@ -13,7 +11,15 @@ import unpluginGem from 'unplugin-gem/rspack';
 import { ELEMENT_PATH, ELEMENTS_FILE, getDataPath } from '../constants';
 import type { Renderer } from '../server';
 import { type GemkitConfig, generate } from './codegen';
-import { createHandler, createRequestHandler, getDistPaths, type Handler, isDataRequest, loadRenderer } from './serve';
+import {
+  createHandler,
+  createRequestHandler,
+  getDistPaths,
+  type Handler,
+  isActionRequest,
+  isDataRequest,
+  loadRenderer,
+} from './serve';
 
 export type { GemkitConfig } from './codegen';
 
@@ -36,19 +42,18 @@ const packageDir = fileURLToPath(new URL('..', import.meta.url));
 
 const PRERENDER_CONCURRENCY = 8;
 
-// 只处理页面和页面数据请求，其他请求交给 Rsbuild
+// 只处理页面、页面数据和表单提交请求，其他请求交给 Rsbuild
 const ssrMiddleware =
   (getHandler: () => Promise<Handler>) =>
   async (req: IncomingMessage, res: ServerResponse, next: (err?: unknown) => void) => {
-    const { pathname } = new URL(req.url!, 'http://localhost');
+    const { pathname, search } = new URL(req.url!, 'http://localhost');
     const isPage = req.headers.accept?.includes('text/html') && !path.extname(pathname);
-    const isPost = req.method === 'POST' && pathname === ELEMENT_PATH;
+    const isPost = req.method === 'POST' && (pathname === ELEMENT_PATH || isActionRequest(req.method, search));
     if (!isPost && (req.method !== 'GET' || !(isPage || isDataRequest(pathname)))) return next();
     try {
-      const { status, type, body } = await (await getHandler())(req.url!, isPost ? await text(req) : undefined);
-      res.statusCode = status;
-      res.setHeader('Content-Type', type === 'json' ? 'application/json' : 'text/html; charset=utf-8');
-      await pipeline(Readable.from(body), res);
+      // 转换成 `Request` 和 `Response`，不替换全局的 `Request` 和 `Response`
+      const listener = getRequestListener(await getHandler(), { overrideGlobalObjects: false, errorHandler: next });
+      await listener(req, res);
     } catch (err) {
       next(err);
     }
@@ -175,6 +180,9 @@ export function pluginGemkit(options: GemkitOptions = {}): RsbuildPlugin {
         const prerenderPage = async (pathname: string) => {
           const serverElements = new Map<string, string>();
           const result = await renderer.renderDocument(html, pathname, { serverElements });
+          if (result.headers.has('location')) {
+            throw new Error(`gemkit: \`${pathname}\` redirects when prerendering, export \`prerender = false\``);
+          }
           writeFile(webDir, path.posix.join(pathname, 'index.html'), (await Array.fromAsync(result.html)).join(''));
           // 静态托管时客户端导航使用的纯服务端元素，导航时总会请求，没有元素时也输出
           writeFile(webDir, getDataPath(pathname, ELEMENTS_FILE), JSON.stringify(Object.fromEntries(serverElements)));
@@ -192,9 +200,11 @@ export function pluginGemkit(options: GemkitOptions = {}): RsbuildPlugin {
             }
           }),
         );
-        // 静态托管服务使用的 404 页面
-        const notFound = await renderer.renderDocument(html, '/__gemkit_404__');
-        if (notFound.status === 404) {
+        // 静态托管服务使用的 404 页面，layout 不能预渲染时不输出
+        const notFoundPath = '/__gemkit_404__';
+        const notFound =
+          (await renderer.canPrerender(notFoundPath)) && (await renderer.renderDocument(html, notFoundPath));
+        if (notFound && notFound.status === 404) {
           fs.writeFileSync(path.join(webDir, '404.html'), (await Array.fromAsync(notFound.html)).join(''));
         }
         logger.info(`gemkit: prerendered pages to ${path.relative(rootPath, webDir)}`);
