@@ -1,6 +1,8 @@
 import type { GemElement } from '@mantou/gem';
 import { isServer } from '@mantou/gem/lib/server';
 
+import { hash } from './hash';
+
 // 客户端构建时 `@server()` 标记的元素类被改写后使用，从导入 `server` 的模块导入
 export { defineLazy } from './client/lazy';
 export { GemServerElement } from './client/server-element';
@@ -37,22 +39,6 @@ export function getServerElementOptions(cls: object): ServerElementOptions | und
 export function getServerElementKey(tag: string, attrs: Record<string, string>, props: Record<string, unknown>) {
   const sort = (obj: object) => Object.entries(obj).sort(([a], [b]) => (a < b ? -1 : 1));
   return `${tag}:${hash(JSON.stringify([sort(attrs), sort(props)]))}`;
-}
-
-const { imul } = Math;
-
-// cyrb53，避免 key 包含完整的 property，例如很长的文本
-function hash(str: string) {
-  let h1 = 0xdeadbeef;
-  let h2 = 0x41c6ce57;
-  for (let i = 0; i < str.length; i++) {
-    const ch = str.charCodeAt(i);
-    h1 = imul(h1 ^ ch, 2654435761);
-    h2 = imul(h2 ^ ch, 1597334677);
-  }
-  h1 = imul(h1 ^ (h1 >>> 16), 2246822507) ^ imul(h2 ^ (h2 >>> 13), 3266489909);
-  h2 = imul(h2 ^ (h2 >>> 16), 2246822507) ^ imul(h1 ^ (h1 >>> 13), 3266489909);
-  return (4294967296 * (2097151 & h2) + (h1 >>> 0)).toString(36);
 }
 
 type MemberContext<T, V extends (this: T, ...args: any) => any> =

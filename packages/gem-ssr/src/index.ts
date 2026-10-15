@@ -16,6 +16,7 @@ import {
   V_IF,
 } from './constants';
 import { getServerElementKey, getServerElementOptions, SSR_STATE, ssrContext } from './decorators';
+import { getTemplateDigest } from './hash';
 import { type BoundAttr, compile, type OpenOp } from './lib/compile';
 import { runInRequest, setLocation } from './lib/shim';
 
@@ -78,7 +79,12 @@ const childPartInfo = { type: 2 };
 function renderValue(value: unknown, ctx: Context) {
   value = resolveDirective(value, childPartInfo);
   if (value === null || value === undefined || value === '') return;
-  if (value instanceof TemplateResult) return renderTemplate(value, ctx);
+  if (value instanceof TemplateResult) {
+    // 前面是这个值的开始标记，加上模板的摘要，水合时模板不一致就由客户端重新渲染
+    const marker = ctx.out.pop() as string;
+    ctx.out.push(`${marker.slice(0, -3)}#${getTemplateDigest(value)}-->`);
+    return renderTemplate(value, ctx);
+  }
   if (typeof value === 'object' && Symbol.iterator in value) {
     // 列表项都有首尾标记
     for (const item of value as Iterable<unknown>) {
