@@ -73,6 +73,10 @@ async function loadData(cls: CustomElementConstructor, tag: string, params: Para
 export const getLayoutParams = (params: Params) =>
   Object.fromEntries(Object.entries(params).filter(([key]) => !/^\d+$/.test(key)));
 
+/** 子路由间导航时 layout 参数不变就复用数据，提交表单后重新加载，`prev` 和 `next` 是 layout 的参数 */
+export const canReuseLayoutData = (prev: Params | undefined, next: Params) =>
+  !!prev && !clientState.invalidated && JSON.stringify(prev) === JSON.stringify(next);
+
 /**
  * 加载 layout 模块和数据，`container` 是路由的渲染容器，`hasServerModule` 表示有 `_layout.server.ts`
  *
@@ -88,10 +92,9 @@ export async function loadLayout(
   const cls = (await load()).default;
   const params = getLayoutParams(routeParams);
   const current = [...container.children].find((e) => e.localName === tag) as { params?: Params; data?: unknown };
-  const data =
-    current && !clientState.invalidated && JSON.stringify(current.params) === JSON.stringify(params)
-      ? current.data
-      : await loadData(cls, tag, params, hasServerModule);
+  const data = canReuseLayoutData(current?.params, params)
+    ? current!.data
+    : await loadData(cls, tag, params, hasServerModule);
   setPendingProps({ params, data });
   defineElement(tag, cls);
   return { params, data };
@@ -191,6 +194,23 @@ export function matchRoutes(path: string) {
     routes = info.layout ? outletRoutes[info.tag] : undefined;
   }
   return result;
+}
+
+/** 路径匹配的页面，没有匹配时（渲染 404 页面）返回 `undefined` */
+export function matchPage(path: string) {
+  const page = matchRoutes(path).at(-1);
+  if (page && !page.info.layout && page.info !== notFoundRoute?.data) return page;
+}
+
+/** 所有页面路由，不包括 404 页面 */
+export function getPageRoutes() {
+  const result = new Map<RouteInfo, string>();
+  for (const routes of Object.values(outletRoutes)) {
+    for (const { pattern, data } of routes as RouteItem<RouteInfo>[]) {
+      if (data && !data.layout && data !== notFoundRoute?.data) result.set(data, pattern);
+    }
+  }
+  return [...result].map(([info, pattern]) => ({ info, pattern }));
 }
 
 const style = css`

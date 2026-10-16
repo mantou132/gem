@@ -2,15 +2,13 @@ import { connect, history } from '@mantou/gem';
 import { GemLinkElement } from '@mantou/gem/elements/link';
 
 import { trimTrailingSlash } from './constants';
-import { clientState, loadPageElements, prefetchElements, prefetchServerData } from './data';
-import { getLayoutParams, matchRoutes } from './outlet';
-
-const isSameParams = (a: object, b: object) => JSON.stringify(a) === JSON.stringify(b);
+import { loadPageElements, prefetchElements, prefetchServerData } from './data';
+import { canReuseLayoutData, getLayoutParams, matchRoutes } from './outlet';
 
 /**
  * 预取路径（不包含语言前缀）的 layout 和页面模块、服务端数据和纯服务端元素，`from` 是当前路径
  *
- * 和 `loadLayout` 一样，路由参数不变的 layout 会复用数据（提交表单后除外），只有它的服务端数据时不需要请求
+ * 和 `loadLayout` 一样复用 layout 的数据，只有它的服务端数据时不需要请求
  */
 function prefetch(path: string, search: string, from: string) {
   const current = matchRoutes(from);
@@ -18,8 +16,8 @@ function prefetch(path: string, search: string, from: string) {
   for (const { info, params } of matchRoutes(path)) {
     info.load();
     if (!info.server) continue;
-    const reused = info.layout && !clientState.invalidated && current.find((route) => route.info === info);
-    if (!reused || !isSameParams(getLayoutParams(params), getLayoutParams(reused.params))) needData = true;
+    const reused = info.layout && current.find((route) => route.info === info);
+    if (!reused || !canReuseLayoutData(getLayoutParams(reused.params), getLayoutParams(params))) needData = true;
   }
   if (needData) prefetchServerData(path, search);
   prefetchElements(path, search);

@@ -161,16 +161,13 @@ export function createServerContext(tag: string, params: Params, url: URL): Serv
   };
 }
 
-/** 执行服务端模块的 `load`，跳转时记录到 `requestState` 并结束等待页面数据 */
+/** 执行服务端模块的 `load`，跳转时记录到 `requestState`，渲染以这个错误结束 */
 export async function runServerLoad(tag: string, params: Params, url: URL) {
   const mod = await getServerModule(tag);
   try {
     return toJSONValue(await mod?.load?.(createServerContext(tag, params, url)));
   } catch (err) {
-    if (err instanceof Redirect) {
-      requestState.redirect ||= err;
-      ssrData.ready = true;
-    }
+    if (err instanceof Redirect) requestState.redirect ||= err;
     throw err;
   }
 }

@@ -23,9 +23,9 @@ export async function loadRenderer(distDir: string) {
   return { renderer, template: await readFile(template, 'utf8') };
 }
 
-/** 页面数据、页面中纯服务端元素和渲染纯服务端元素的请求 */
+/** 页面数据和页面中纯服务端元素的请求 */
 export const isDataRequest = (pathname: string) =>
-  pathname.endsWith(`/${DATA_FILE}`) || pathname.endsWith(`/${ELEMENTS_FILE}`) || pathname === ELEMENT_PATH;
+  pathname.endsWith(`/${DATA_FILE}`) || pathname.endsWith(`/${ELEMENTS_FILE}`);
 
 /** 表单提交到页面的 `actions`，地址是 `<page path>?/<name>` */
 export const isActionRequest = (method: string, search: string) => method === 'POST' && search.startsWith('?/');

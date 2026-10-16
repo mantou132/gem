@@ -162,7 +162,7 @@ const render = (genDir: string, file: string, template: string, data: object) =>
 const toImportPath = (genDir: string, file: string) =>
   JSON.stringify(path.relative(genDir, file).replace(MODULE_EXT, ''));
 
-/** 生成路由，返回按匹配优先级排序的页面列表和有服务端模块的 layout */
+/** 生成路由，返回有服务端模块的 layout 和页面 */
 function generateRoutes(genDir: string, pagesDir: string) {
   const { root, notFound } = scanPages(pagesDir);
   const importPath = (file: string) => toImportPath(genDir, file);
@@ -182,21 +182,21 @@ function generateRoutes(genDir: string, pagesDir: string) {
     layout: true,
   });
 
-  const pages: PageNode[] = [];
-  // 服务端加载 layout 模块和数据使用
-  const layouts: { pattern: string; tag: string; file: string; server?: string }[] = [];
+  // 有服务端模块的 layout 和页面，服务端入口使用
+  const serverRoutes: { tag: string; server: string }[] = [];
+  const addServerRoute = ({ tag, server }: { tag: string; server?: string }) =>
+    server && serverRoutes.push({ tag, server });
   const outlets: { tag: string; routes: object[]; notFound: boolean }[] = [];
   // 根 layout 也通过路由加载，这样可以和其他 layout 一样加载数据
   if (root.file) {
     // 根 layout 没有 `path`，使用静态导入的模块
     outlets.push({ tag: '', routes: [{ ...layoutRoute('*', root), path: undefined }], notFound: false });
-    layouts.push({ pattern: '*', tag: root.tag, file: root.file, server: root.server });
+    addServerRoute(root);
   }
+  if (notFound) addServerRoute(notFound);
   const collect = (layout: LayoutNode) => {
-    pages.push(...layout.pages);
-    layout.layouts.forEach(({ pattern, layout: { tag, file, server } }) =>
-      layouts.push({ pattern, tag, file: file!, server }),
-    );
+    layout.pages.forEach(addServerRoute);
+    layout.layouts.forEach(({ layout: sub }) => addServerRoute(sub));
     const routes = [
       ...layout.pages.map(pageRoute),
       ...layout.layouts.map(({ pattern, layout: sub }) => layoutRoute(pattern, sub)),
@@ -211,7 +211,7 @@ function generateRoutes(genDir: string, pagesDir: string) {
     notFound: notFound && pageRoute(notFound),
     outlets,
   });
-  return { pages: pages.sort((a, b) => comparePattern(a.pattern, b.pattern)), notFound, layouts };
+  return { serverRoutes };
 }
 
 function generateI18n(genDir: string, localesDir: string, config: GemkitConfig) {
@@ -238,7 +238,7 @@ function generateEntries(
   genDir: string,
   srcDir: string,
   config: GemkitConfig,
-  { pages, notFound, layouts }: ReturnType<typeof generateRoutes>,
+  { serverRoutes }: ReturnType<typeof generateRoutes>,
 ) {
   const importPath = (file: string) => toImportPath(genDir, file);
   const appFile = findModule(srcDir, 'app');
@@ -249,11 +249,7 @@ function generateEntries(
   render(genDir, 'client.ts', 'client', data);
   render(genDir, 'server.ts', 'server', {
     ...data,
-    pages: pages.map(({ pattern, tag, file }) => ({ pattern, tag, path: importPath(file) })),
-    layouts: layouts.map(({ pattern, tag, file }) => ({ pattern, tag, path: importPath(file) })),
-    serverModules: [...layouts, ...pages, ...(notFound ? [notFound] : [])]
-      .filter((route) => route.server)
-      .map(({ tag, server }) => ({ tag, path: importPath(server!) })),
+    serverModules: serverRoutes.map(({ tag, server }) => ({ tag, path: importPath(server) })),
   });
   writeIfChanged(
     path.join(genDir, 'tsconfig.json'),

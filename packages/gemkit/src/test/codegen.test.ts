@@ -125,11 +125,8 @@ test('generate: 生成路由和入口文件', ({ assert }) => {
   assert.match(client, /startClient\(\{"title":"Site","titleTemplate":"%s \| Site"\}\);/);
 
   const server = read('server.ts');
-  // 按匹配优先级排序：静态片段 > 参数 > `*`
-  assert.deepEqual(
-    [...server.split('const layouts')[0].matchAll(/pattern: "([^"]+)"/g)].map(([, pattern]) => pattern),
-    ['/files/new', '/blog/new', '/files/:name', '/blog/:slug', '/about', '/blog', '/files/*', '/:id', '/'],
-  );
+  // 服务端使用 `routes.ts` 中的路由匹配
+  assert.doesNotMatch(server, /pattern:/);
   assert.match(server, /'gemkit-page-blog-slug': \(\) => import\("..\/src\/pages\/blog\/\[slug\].server"\),/);
   // 客户端路由不能引用 `*.server.ts`
   assert.doesNotMatch(read('routes.ts'), /\.server/);
@@ -143,10 +140,10 @@ test('generate: 生成路由和入口文件', ({ assert }) => {
 test('generate: 根目录剩余参数页面排在首页之后', ({ assert }) => {
   const root = createFixture(['src/pages/index.ts', 'src/pages/[...rest].ts', 'src/pages/files/[...path].ts']);
   generate(root, {});
-  const server = fs.readFileSync(path.join(root, '.gemkit/server.ts'), 'utf8');
+  const routes = fs.readFileSync(path.join(root, '.gemkit/routes.ts'), 'utf8');
   // `*` 能匹配空片段，所以 `/` 要排在 `/*` 之前
   assert.deepEqual(
-    [...server.matchAll(/pattern: "([^"]+)"/g)].map(([, pattern]) => pattern),
+    [...routes.matchAll(/pageRoute\("([^"]+)"/g)].map(([, pattern]) => pattern),
     ['/files/*', '/', '/*'],
   );
 });

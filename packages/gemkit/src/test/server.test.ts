@@ -21,7 +21,7 @@ import { notFound, redirect, type ServerModule } from '../data';
 import { pageRoute, setOutlets } from '../outlet';
 import { type Params, page } from '../page';
 import { createRequestHandler } from '../plugin/serve';
-import { createRenderer, type PageEntry } from '../server';
+import { createRenderer } from '../server';
 
 @customElement('app-server-note')
 @server()
@@ -80,6 +80,9 @@ class NotFoundPage extends GemElement {
   @template()
   #content = () => html`not found`;
 }
+
+// 页面的标签名和模块，和生成的 `routes.ts` 一样
+type PageEntry = { pattern: string; tag: string; load: () => Promise<{ default: CustomElementConstructor }> };
 
 const pages: PageEntry[] = [
   { pattern: '/slow', tag: 'gemkit-page-slow', load: async () => ({ default: SlowPage }) },
@@ -140,7 +143,6 @@ setOutlets(
 
 const renderer = createRenderer({
   app: html`<gemkit-outlet></gemkit-outlet>`,
-  pages,
   serverModules,
   i18n: new I18n({ resources: { en: {}, zh: {} }, fallbackLanguage: 'en' }),
   languages: ['en', 'zh'],

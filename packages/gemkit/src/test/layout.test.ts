@@ -22,8 +22,22 @@ class EditorPage extends GemElement {
   #content = () => html`editor`;
 }
 
+@layout()
+class DocsLayout extends GemElement {
+  @template()
+  #content = () => html`<gemkit-outlet></gemkit-outlet>`;
+}
+
+@page('Pair')
+class PairPage extends GemElement {
+  @template()
+  #content = () => html`pair`;
+}
+
 const root = { tag: 'gemkit-layout-root', load: async () => ({ default: RootLayout }), server: true };
 const editor = { tag: 'gemkit-page-editor', load: async () => ({ default: EditorPage }), server: true };
+const docs = { tag: 'gemkit-layout-docs', load: async () => ({ default: DocsLayout }) };
+const pair = { tag: 'gemkit-page-a-b', load: async () => ({ default: PairPage }), server: true };
 
 const serverModules: Record<string, () => Promise<ServerModule>> = {
   [root.tag]: async () => ({ prerender: false, load: ({ cookies }) => ({ user: cookies.get('user') ?? null }) }),
@@ -34,6 +48,7 @@ const serverModules: Record<string, () => Promise<ServerModule>> = {
       return cookies.get('user') || redirect(302, '/login');
     },
   }),
+  [pair.tag]: async () => ({ prerender: false, load: () => 'pair data' }),
 };
 
 // 和生成的 `routes.ts` 一样
@@ -51,13 +66,15 @@ setOutlets({
       editor,
       (params, data) => html`<gemkit-page-editor .params=${params} .data=${data}></gemkit-page-editor>`,
     ),
+    // 静态片段优先，`/docs/x` 匹配 layout，不匹配 `/:a/:b`
+    layoutRoute('/docs/*', docs, (props) => html`<gemkit-layout-docs .params=${props.params}></gemkit-layout-docs>`),
+    pageRoute('/:a/:b', pair, (params, data) => html`<gemkit-page-a-b .data=${data}></gemkit-page-a-b>`),
   ],
+  [docs.tag]: [],
 });
 
 const renderer = createRenderer({
   app: html`<gemkit-outlet></gemkit-outlet>`,
-  pages: [{ pattern: '/editor', ...editor }],
-  layouts: [{ pattern: '*', ...root }],
   serverModules,
 });
 
@@ -74,4 +91,14 @@ test('renderDocument: layout 中的页面', async ({ assert }) => {
   const { status, html } = await renderer.renderDocument(documentTemplate, request);
   assert.equal(status, 200);
   assert.match((await Array.fromAsync(html)).join(''), /editor/);
+});
+
+test('服务端和客户端一样逐层匹配路由', async ({ assert }) => {
+  const request = new Request('http://localhost/docs/x', { headers: { cookie: 'user=a' } });
+  const { status } = await renderer.renderDocument(documentTemplate, request);
+  assert.equal(status, 404, '`/docs/x` 匹配 layout，layout 中没有匹配的页面');
+  const { data } = await renderer.loadData(new Request('http://localhost/docs/x/__data.json'));
+  assert.equal(data?.[pair.tag], undefined, '不加载 `/:a/:b` 页面的数据');
+  const other = await renderer.loadData(new Request('http://localhost/other/x/__data.json'));
+  assert.equal(other.data?.[pair.tag], 'pair data');
 });

@@ -2,7 +2,6 @@
 import '@mantou/gem-ssr';
 
 import { history, type TemplateResult, titleStore } from '@mantou/gem';
-import { matchPath } from '@mantou/gem/elements/route';
 import type { I18n } from '@mantou/gem/helper/i18n';
 import { type RenderOptions, render, renderServerElement, runInRequest } from '@mantou/gem-ssr';
 
@@ -24,27 +23,13 @@ import {
   toJSONValue,
 } from './data';
 import { getBasePath, localizePath, splitLanguage } from './i18n';
-import { getLayoutParams } from './outlet';
+import { getLayoutParams, getPageRoutes, matchPage, matchRoutes } from './outlet';
 import { getPageOptions, type Params } from './page';
 import { formatTitle, type TitleOptions } from './title';
 
-export interface PageEntry {
-  pattern: string;
-  tag: string;
-  load: () => Promise<{ default: CustomElementConstructor }>;
-}
-
-export interface LayoutEntry {
-  pattern: string;
-  tag: string;
-  load: () => Promise<unknown>;
-}
-
 export interface RendererOptions extends TitleOptions {
+  /** 路由使用 `setOutlets` 设置的路由，和客户端一样匹配 */
   app: TemplateResult;
-  /** 按匹配优先级排序 */
-  pages: PageEntry[];
-  layouts?: LayoutEntry[];
   /** 页面和 layout 标签名对应的 `*.server.ts` */
   serverModules?: Record<string, () => Promise<ServerModule>>;
   i18n?: I18n<any>;
@@ -77,8 +62,6 @@ function fillPattern(pattern: string, params: Params) {
 
 export function createRenderer({
   app,
-  pages,
-  layouts = [],
   serverModules = {},
   i18n,
   languages = [],
@@ -87,23 +70,11 @@ export function createRenderer({
 }: RendererOptions) {
   setServerModules(serverModules);
 
-  const findPage = (path: string) => {
-    for (const page of pages) {
-      const params = matchPath(page.pattern, path);
-      if (params) return { page, params };
-    }
-  };
-
-  /** 路径匹配的 layout 和页面中有服务端模块的，以及它们的参数 */
-  const findServerRoutes = (path: string) => {
-    const routes = layouts.flatMap(({ pattern, tag }) => {
-      const params = tag in serverModules && matchPath(pattern, path);
-      return params ? [{ tag, params: getLayoutParams(params) }] : [];
-    });
-    const result = findPage(path);
-    if (result && result.page.tag in serverModules) routes.push({ tag: result.page.tag, params: result.params });
-    return routes;
-  };
+  /** 路径匹配的 layout 和页面（包括 404 页面）中有服务端模块的，以及它们的参数 */
+  const findServerRoutes = (path: string) =>
+    matchRoutes(path).flatMap(({ info, params }) =>
+      info.server ? [{ tag: info.tag, params: info.layout ? getLayoutParams(params) : params }] : [],
+    );
 
   /** 设置当前请求，返回请求的 URL 和请求中设置的 cookie，预渲染时 `input` 是路径，没有请求 */
   const setRequest = (input: Request | string) => {
@@ -163,14 +134,14 @@ export function createRenderer({
       const { url, setCookies } = setRequest(request);
       const name = [...url.searchParams.keys()].find((key) => key.startsWith('/'))?.slice(1);
       const { path } = await setLanguage(url.pathname);
-      const matched = findPage(path);
-      const actions = matched && (await getServerModule(matched.page.tag))?.actions;
+      const matched = matchPage(path);
+      const actions = matched && (await getServerModule(matched.info.tag))?.actions;
       if (name === undefined || !actions || !Object.hasOwn(actions, name)) {
         return { headers: toHeaders(setCookies), result: null };
       }
       let result: ActionResult;
       try {
-        const data = await actions[name](createServerContext(matched.page.tag, matched.params, url));
+        const data = await actions[name](createServerContext(matched.info.tag, matched.params, url));
         result = { type: 'success', data: toJSONValue(data) };
       } catch (err) {
         if (!(err instanceof Redirect)) throw err;
@@ -185,10 +156,7 @@ export function createRenderer({
       const { origin, pathname, search } = new URL(url, 'http://localhost');
       const { path } = await setLanguage(pathname);
       // 元素在页面和 layout 的模块中定义
-      await Promise.all([
-        findPage(path)?.page.load(),
-        ...layouts.filter(({ pattern }) => matchPath(pattern, path)).map(({ load }) => load()),
-      ]);
+      await Promise.all(matchRoutes(path).map(({ info }) => info.load()));
       const options = { url: `${origin}${path}${search}` };
       return Promise.all(elements.map(({ tag, attrs, props }) => renderServerElement(tag, attrs, props, options)));
     });
@@ -245,7 +213,7 @@ export function createRenderer({
       }
       const [start, end] = html.split('<!--gemkit-body-->');
       return {
-        status: findPage(path) && !requestState.notFound ? 200 : 404,
+        status: matchPage(path) && !requestState.notFound ? 200 : 404,
         headers: toHeaders(setCookies),
         html: (async function* () {
           yield start + body;
@@ -265,12 +233,12 @@ export function createRenderer({
   /** 需要预渲染的路径，动态路由使用 `*.server.ts` 或者页面的 `paths` 选项 */
   const getPaths = async () => {
     const paths: string[] = [];
-    for (const { pattern, tag, load } of pages) {
+    for (const { pattern, info } of getPageRoutes()) {
       if (!/[:*]/.test(pattern)) {
         paths.push(pattern);
         continue;
       }
-      const getParams = (await getServerModule(tag))?.paths || getPageOptions((await load()).default).paths;
+      const getParams = (await getServerModule(info.tag))?.paths || getPageOptions((await info.load()).default).paths;
       for (const params of (await getParams?.()) || []) paths.push(fillPattern(pattern, params));
     }
     const allowed = await Promise.all(paths.map(canPrerender));

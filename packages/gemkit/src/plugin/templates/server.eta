@@ -7,18 +7,6 @@ import <%= it.app %>;
 <% } -%>
 import { app } from './routes';
 
-const pages = [
-<% for (const { pattern, tag, path } of it.pages) { -%>
-  { pattern: <%= JSON.stringify(pattern) %>, tag: '<%= tag %>', load: () => import(<%= path %>) },
-<% } -%>
-];
-
-const layouts = [
-<% for (const { pattern, tag, path } of it.layouts) { -%>
-  { pattern: <%= JSON.stringify(pattern) %>, tag: '<%= tag %>', load: () => import(<%= path %>) },
-<% } -%>
-];
-
 const serverModules = {
 <% for (const { tag, path } of it.serverModules) { -%>
   '<%= tag %>': () => import(<%= path %>),
@@ -27,8 +15,6 @@ const serverModules = {
 
 export default createRenderer({
   app,
-  pages,
-  layouts,
   serverModules,
   i18n,
   languages,
