@@ -65,7 +65,8 @@ async function loadData(cls: CustomElementConstructor, tag: string, params: Para
     throw err;
   }
   if (!isServer) return data;
-  const json = toJSONValue(data);
+  // 服务端模块的数据已经转换过
+  const json = load ? toJSONValue(data) : data;
   setSSRData(path, tag, json);
   return json;
 }

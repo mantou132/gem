@@ -34,15 +34,17 @@ export type Handler = (request: Request) => Promise<Response>;
 
 const HTML_TYPE = 'text/html; charset=utf-8';
 
-/** 流式输出 HTML */
+const encoder = new TextEncoder();
+
+/** 流式输出 HTML，直接编码，`TextEncoderStream` 多一层 TransformStream 开销较大 */
 const toStream = (html: AsyncIterator<string>) =>
-  new ReadableStream<string>({
+  new ReadableStream<Uint8Array>({
     async pull(controller) {
       const { done, value } = await html.next();
       if (done) controller.close();
-      else controller.enqueue(value);
+      else controller.enqueue(encoder.encode(value));
     },
-  }).pipeThrough(new TextEncoderStream());
+  });
 
 /**
  * 其他网站提交的表单（CSRF），优先使用浏览器的 `Sec-Fetch-Site`，

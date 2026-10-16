@@ -9,31 +9,58 @@ import { connect, createStore } from '../../lib/store';
 import type { QueryString } from '../../lib/utils';
 import { addListener } from '../../lib/utils';
 
-const UNNAMED_PARAM_PREFIX = '_';
-
-// '/test/:a' /^\/test\/(?<a>[^/]+)$/i
-// '/test/:a/b' /^\/test\/?<a>([^/]+)\/b$/i
-// '/test/*' /^\/test\/(?<_0>.*)$/i
-// '/test/:a/*' /^\/test\/(?<a>[^/]+)\/(?<_0>.*)$/i
-// '/test/*/:b /^\/test\/(?<_0>.*)\/(?<a>[^/]+)$/i
-class ParamsRegExp extends RegExp {
-  constructor(pattern: string) {
-    let i = 0;
-    super(
-      `^${pattern.replace(/((:[^/$]+)|(\*))/g, (_m, name: string) => {
-        if (name === '*') return `(?<${UNNAMED_PARAM_PREFIX}${i++}>.*)`;
-        return `(?<${name.slice(1)}>[^/]+)`;
-      })}$`,
-    );
-  }
-}
-
 type Params = Record<string, string>;
+type Matcher = (path: string) => Params | null | undefined;
+
 declare global {
   // https://bugzilla.mozilla.org/show_bug.cgi?id=1731418
   // https://github.com/WebKit/standards-positions/issues/61
   var URLPattern: any;
 }
+
+const UNNAMED_PARAM_PREFIX = '_';
+
+// 不支持 `URLPattern` 时转换成正则
+// '/test/:a' /^\/test\/(?<a>[^/]+)$/
+// '/test/:a/b' /^\/test\/(?<a>[^/]+)\/b$/
+// '/test/*' /^\/test\/(?<_0>.*)$/
+// '/test/:a/*' /^\/test\/(?<a>[^/]+)\/(?<_0>.*)$/
+// '/test/*/:b' /^\/test\/(?<_0>.*)\/(?<b>[^/]+)$/
+function createRegExpMatcher(pattern: string): Matcher {
+  let i = 0;
+  const source = pattern.replace(/:[^/$]+|\*/g, (name) =>
+    name === '*' ? `(?<${UNNAMED_PARAM_PREFIX}${i++}>.*)` : `(?<${name.slice(1)}>[^/]+)`,
+  );
+  const reg = new RegExp(`^${source}$`);
+  return (path) => {
+    const result = path.match(reg);
+    if (!result) return null;
+    const params: Params = {};
+    for (const key in result.groups) {
+      params[key.startsWith(UNNAMED_PARAM_PREFIX) ? key.slice(1) : key] = result.groups[key];
+    }
+    return params;
+  };
+}
+
+// pattern 开头不含参数和特殊字符的部分
+const LITERAL_PREFIX = /^[\w\-./~]*/;
+
+// `URLPattern` 的创建和 `exec` 都比较慢，不含参数时直接比较，否则先检查固定的开头
+function createMatcher(pattern: string): Matcher {
+  const literal = LITERAL_PREFIX.exec(pattern)![0];
+  if (literal === pattern) return (path) => (path === pattern ? {} : null);
+  // 根 layout 的 pattern
+  if (pattern === '*') return (path) => ({ 0: path });
+  if (!globalThis.URLPattern) return createRegExpMatcher(pattern);
+  const urlPattern = new URLPattern({ pathname: pattern });
+  // 参数前的 `/` 可能是可选的，例如 `/a/:b?` 匹配 `/a`
+  const prefix = literal.replace(/\/$/, '');
+  return (path) => (path.startsWith(prefix) ? urlPattern.exec({ pathname: path })?.pathname.groups : null);
+}
+
+// pattern 来自路由定义，数量有限
+const matchers = new Map<string, Matcher>();
 
 /**
  * - 大小写敏感
@@ -49,22 +76,9 @@ declare global {
  * ```
  */
 export function matchPath(pattern: string, path: string) {
-  if (globalThis.URLPattern) {
-    const urLPattern = new URLPattern({ pathname: pattern });
-    const matchResult = urLPattern.exec({ pathname: path }) || urLPattern.exec({ pathname: `${path}/` });
-    if (!matchResult) return null;
-    return matchResult.pathname.groups as Params;
-  }
-  const reg = new ParamsRegExp(pattern);
-  const matchResult = path.match(reg) || `${path}/`.match(reg);
-  if (!matchResult) return null;
-  const params: Params = {};
-  if (matchResult.groups) {
-    Object.entries(matchResult.groups).forEach(([key, value]) => {
-      params[key.startsWith(UNNAMED_PARAM_PREFIX) ? key.slice(1) : key] = value;
-    });
-  }
-  return params;
+  let match = matchers.get(pattern);
+  if (!match) matchers.set(pattern, (match = createMatcher(pattern)));
+  return match(path) || match(`${path}/`) || null;
 }
 
 export interface RouteItem<T = unknown> {
