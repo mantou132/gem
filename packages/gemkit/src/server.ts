@@ -9,7 +9,9 @@ import { DATA_FILE, DATA_SCRIPT_ID, NOT_FOUND_HEADER, REDIRECT_HEADER, trimTrail
 import { createCookies } from './cookies';
 import {
   type ActionResult,
+  type AppServerModule,
   createServerContext,
+  getRequestEvent,
   getServerModule,
   NotFound,
   Redirect,
@@ -32,6 +34,8 @@ export interface RendererOptions extends TitleOptions {
   app: TemplateResult;
   /** 页面和 layout 标签名对应的 `*.server.ts` */
   serverModules?: Record<string, () => Promise<ServerModule>>;
+  /** `src/app.server.ts` */
+  appServerModule?: AppServerModule;
   i18n?: I18n<any>;
   languages?: string[];
   defaultLanguage?: string;
@@ -39,7 +43,7 @@ export interface RendererOptions extends TitleOptions {
 
 export interface RenderResult {
   status: number;
-  /** `load` 设置的 cookie 和跳转的地址 */
+  /** `handle` 和 `load` 设置的 cookie 和跳转的地址 */
   headers: Headers;
   /** 页面的数据和标题确定后才开始输出，之后的异步内容（例如 `@server`）流式输出，跳转时没有内容 */
   html: AsyncGenerator<string>;
@@ -64,6 +68,7 @@ function fillPattern(pattern: string, params: Params) {
 export function createRenderer({
   app,
   serverModules = {},
+  appServerModule = {},
   i18n,
   languages = [],
   defaultLanguage = '',
@@ -93,6 +98,14 @@ export function createRenderer({
     return { lang, path };
   };
 
+  /** 执行 `src/app.server.ts` 的 `handle`，`url` 是页面的 URL，`path` 不包含语言前缀，跳转时抛出 `Redirect` */
+  const handleRequest = async (url: URL, path: string) => {
+    requestState.url = url;
+    requestState.path = path;
+    requestState.locals = {};
+    await appServerModule.handle?.(getRequestEvent());
+  };
+
   /**
    * 处理客户端导航时的数据请求，URL 是页面路径加上 `/__data.json`，预渲染时 `input` 是路径
    *
@@ -106,16 +119,17 @@ export function createRenderer({
       const { path } = await setLanguage(pagePathname);
       const pageUrl = new URL(`${url.origin}${pagePathname}${url.search}`);
       const routes = findServerRoutes(path);
-      if (!routes.length) return { status: 404, headers: toHeaders(setCookies), data: null };
       const data: RouteData = {};
       // 调用了 `notFound()` 的路由，其他路由的数据仍然可以使用，例如 layout 的数据
       let notFoundTag: string | undefined;
       try {
+        await handleRequest(pageUrl, path);
+        if (!routes.length) return { status: 404, headers: toHeaders(setCookies), data: null };
         await Promise.all(
           routes.map(async ({ tag, params }) => {
             if (!(await getServerModule(tag))?.load) return;
             try {
-              data[tag] = await runServerLoad(tag, params, pageUrl);
+              data[tag] = await runServerLoad(tag, params);
             } catch (err) {
               if (!(err instanceof NotFound)) throw err;
               notFoundTag = tag;
@@ -144,7 +158,8 @@ export function createRenderer({
       }
       let result: ActionResult;
       try {
-        const data = await actions[name](createServerContext(matched.info.tag, matched.params, url));
+        await handleRequest(url, path);
+        const data = await actions[name](createServerContext(matched.info.tag, matched.params));
         result = { type: 'success', data: toJSONValue(data) };
       } catch (err) {
         if (!(err instanceof Redirect)) throw err;
@@ -153,15 +168,29 @@ export function createRenderer({
       return { headers: toHeaders(setCookies), result };
     });
 
-  /** 渲染页面 `url` 中的纯服务端元素，返回元素的 HTML，顺序和 `elements` 一致 */
-  const renderElements = (url: string, elements: ServerElementParams[]) =>
+  /**
+   * 渲染页面中的纯服务端元素，请求体是 `{ url, elements }`，`url` 是页面的路径，
+   * 返回元素的 HTML，顺序和 `elements` 一致，跳转时为 `null`，响应头中有跳转的地址
+   */
+  const renderElements = (request: Request) =>
     runInRequest(async () => {
-      const { origin, pathname, search } = new URL(url, 'http://localhost');
+      const { url, setCookies } = setRequest(request);
+      const body: { url: string; elements: ServerElementParams[] } = await request.json();
+      const { pathname, search } = new URL(body.url, url);
       const { path } = await setLanguage(pathname);
+      try {
+        await handleRequest(new URL(`${url.origin}${pathname}${search}`), path);
+      } catch (err) {
+        if (!(err instanceof Redirect)) throw err;
+        return { headers: toHeaders(setCookies, { [REDIRECT_HEADER]: err.location }), html: null };
+      }
       // 元素在页面和 layout 的模块中定义
       await Promise.all(matchRoutes(path).map(({ info }) => info.load()));
-      const options = { url: `${origin}${path}${search}` };
-      return Promise.all(elements.map(({ tag, attrs, props }) => renderServerElement(tag, attrs, props, options)));
+      const options = { url: `${url.origin}${path}${search}` };
+      const html = await Promise.all(
+        body.elements.map(({ tag, attrs, props }) => renderServerElement(tag, attrs, props, options)),
+      );
+      return { headers: toHeaders(setCookies), html };
     });
 
   /**
@@ -178,6 +207,18 @@ export function createRenderer({
     runInRequest(async (): Promise<RenderResult> => {
       const { url, setCookies } = setRequest(input);
       const { lang, path } = await setLanguage(url.pathname);
+      const redirectTo = ({ status, location }: Redirect) => ({
+        status,
+        headers: toHeaders(setCookies, { location }),
+        html: (async function* () {})(),
+      });
+      // 调用 `render` 时立即开始渲染，需要先执行
+      try {
+        await handleRequest(url, path);
+      } catch (err) {
+        if (!(err instanceof Redirect)) throw err;
+        return redirectTo(err);
+      }
       // 客户端断开时中止渲染，预渲染时没有请求
       const signal = typeof input === 'string' ? undefined : input.signal;
       const chunks = render(app, { url: `${url.origin}${path}${url.search}`, serverElements, signal });
@@ -197,8 +238,7 @@ export function createRenderer({
       const { redirect } = requestState;
       if (redirect) {
         await chunks.return(undefined);
-        const headers = toHeaders(setCookies, { location: redirect.location });
-        return { status: redirect.status, headers, html: (async function* () {})() };
+        return redirectTo(redirect);
       }
       // 避免内容中的 `</script>` 结束标签
       const dataScript = ssrData.current
@@ -226,12 +266,24 @@ export function createRenderer({
       };
     });
 
-  /** 路径匹配的 layout 和页面的服务端模块都没有设置 `prerender = false` */
-  const canPrerender = async (path: string) => {
-    const routes = findServerRoutes(splitLanguage(path, languages, defaultLanguage).path);
-    const modules = await Promise.all(routes.map(({ tag }) => getServerModule(tag)));
-    return modules.every((mod) => mod?.prerender !== false);
-  };
+  /**
+   * 路径匹配的 layout 和页面的服务端模块都没有设置 `prerender = false`，
+   * 并且 `handle` 没有读取 `request`、`cookies`，也没有跳转，例如需要登录的页面
+   */
+  const canPrerender = (pathname: string) =>
+    runInRequest(async () => {
+      const { path } = splitLanguage(pathname, languages, defaultLanguage);
+      const modules = await Promise.all(findServerRoutes(path).map(({ tag }) => getServerModule(tag)));
+      if (modules.some((mod) => mod?.prerender === false)) return false;
+      try {
+        await handleRequest(new URL(pathname, 'http://localhost'), path);
+      } catch (err) {
+        // 预渲染时读取 `cookies` 会报错
+        if (!(err instanceof Redirect) && !requestState.personal) throw err;
+        return false;
+      }
+      return !requestState.personal;
+    });
 
   /** 需要预渲染的路径，动态路由使用 `*.server.ts` 或者页面的 `paths` 选项 */
   const getPaths = async () => {
@@ -244,10 +296,12 @@ export function createRenderer({
       const getParams = (await getServerModule(info.tag))?.paths || getPageOptions((await info.load()).default).paths;
       for (const params of (await getParams?.()) || []) paths.push(fillPattern(pattern, params));
     }
-    const allowed = await Promise.all(paths.map(canPrerender));
-    const result = paths.filter((_, index) => allowed[index]);
-    if (!languages.length) return result;
-    return languages.flatMap((lang) => result.map((path) => localizePath(lang, path, defaultLanguage)));
+    // `handle` 读取的 `url` 包含语言前缀，每个语言的路径分别判断
+    const localized = languages.length
+      ? languages.flatMap((lang) => paths.map((path) => localizePath(lang, path, defaultLanguage)))
+      : paths;
+    const allowed = await Promise.all(localized.map(canPrerender));
+    return localized.filter((_, index) => allowed[index]);
   };
 
   /** 页面或 layout 是否有服务端数据，预渲染时需要输出数据文件 */

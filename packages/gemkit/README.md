@@ -30,6 +30,7 @@ async content inside the page (e.g. `@server` methods) is streamed after it.
 ```
 src/
   app.ts               optional, imported before pages (global styles, stores)
+  app.server.ts        optional, `handle` runs before every server request
   index.html           optional HTML template, use `<!--gemkit-body-->` as the content placeholder
   pages/
     _layout.ts         root layout, render `<gemkit-outlet>` for child routes
@@ -173,6 +174,55 @@ export function load({ cookies }: ServerLoadContext) {
 - `redirect(status, location)` throws, `location` is the full path (including the language prefix);
   SSR responds with the status and `Location`, client navigation (`__data.json`) navigates to it instead
 - `request` and `cookies` throw when prerendering, export `prerender = false` from the page or layout `*.server.ts`
+
+## Request hook
+
+`handle` in `src/app.server.ts` runs before every server request: page, `__data.json`, form actions and server elements.
+Check the auth for a group of paths in one place,
+and share data (e.g. the current user) with `load`, `actions` and server elements through `locals`:
+
+```ts
+// src/app.server.ts
+import { type RequestEvent, redirect } from '@mantou/gemkit';
+
+declare module '@mantou/gemkit' {
+  interface Locals {
+    user?: User;
+  }
+}
+
+export async function handle(event: RequestEvent) {
+  if (!event.path.startsWith('/admin')) return;
+  event.locals.user = await getUser(event.cookies.get('token'));
+  if (!event.locals.user) redirect(302, '/login');
+}
+```
+
+- Check the auth here instead of in a layout `load`: a layout `load` doesn't run for form actions and server elements,
+  and in `__data.json` the page `load` runs in parallel with it, even when the layout redirects
+- `path` is the page path without the language prefix, matched by the routes, check it instead of `url.pathname`
+- `url` is the page URL (including the language prefix), for `__data.json` and server elements too
+- `redirect` responds like in `load`, server elements are not rendered and the client navigates to the location
+- `handle` also runs before prerendering, paths where it reads `request`/`cookies` or redirects are not prerendered,
+  so only read them for the paths that need them, prerendered pages are public
+- `getRequestEvent()` returns the same `{ url, path, request, cookies, locals }` of the current request,
+  e.g. in server elements, it throws outside a server request
+- client navigation to a page without `*.server.ts` sends no request, `handle` doesn't run
+
+### Server elements
+
+The page URL of a server element request is sent by the client, and any server element can be requested with any URL,
+attributes and properties. Path checks in `handle` don't protect server elements,
+check the permission in the element with `getRequestEvent().locals`:
+
+```ts
+@customElement('app-admin-stats')
+@server()
+class AdminStatsElement extends GemElement {
+  @template()
+  #content = () => (getRequestEvent().locals.user?.admin ? html`...` : html``);
+}
+```
 
 ## Form actions
 

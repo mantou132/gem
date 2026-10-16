@@ -2,9 +2,13 @@ export { defineLazy, GemServerElement, server } from '@mantou/gem-ssr/decorators
 
 export {
   type ActionResult,
+  type AppServerModule,
   type CookieOptions,
   type Cookies,
+  getRequestEvent,
+  type Locals,
   notFound,
+  type RequestEvent,
   redirect,
   type ServerLoadContext,
   type ServerModule,

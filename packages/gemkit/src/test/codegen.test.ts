@@ -97,7 +97,13 @@ test('scanPages: 标签名重复时报错', ({ assert }) => {
 });
 
 test('generate: 生成路由和入口文件', ({ assert }) => {
-  const root = createFixture([...pageFiles, 'src/app.ts', 'src/locales/en.json', 'src/locales/zh-CN.json']);
+  const root = createFixture([
+    ...pageFiles,
+    'src/app.ts',
+    'src/app.server.ts',
+    'src/locales/en.json',
+    'src/locales/zh-CN.json',
+  ]);
   generate(root, { title: 'Site', titleTemplate: '%s | Site' });
   const genDir = path.join(root, '.gemkit');
   const read = (file: string) => fs.readFileSync(path.join(genDir, file), 'utf8');
@@ -128,6 +134,8 @@ test('generate: 生成路由和入口文件', ({ assert }) => {
   // 服务端使用 `routes.ts` 中的路由匹配
   assert.doesNotMatch(server, /pattern:/);
   assert.match(server, /'gemkit-page-blog-slug': \(\) => import\("..\/src\/pages\/blog\/\[slug\].server"\),/);
+  assert.match(server, /import \* as appServerModule from "..\/src\/app.server";/);
+  assert.match(server, /^ {2}appServerModule,$/m);
   // 客户端路由不能引用 `*.server.ts`
   assert.doesNotMatch(read('routes.ts'), /\.server/);
 

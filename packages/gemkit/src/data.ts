@@ -33,14 +33,38 @@ export interface Cookies {
   delete: (name: string, options?: Pick<CookieOptions, 'path' | 'domain'>) => void;
 }
 
-export interface ServerLoadContext<P extends Params = Params> {
-  params: P;
+/**
+ * 当前请求中共享的数据，在 `src/app.server.ts` 的 `handle` 中设置，例如当前用户，
+ * 使用 `declare module '@mantou/gemkit'` 扩展类型
+ */
+// biome-ignore lint/suspicious/noEmptyInterface: 由项目扩展
+export interface Locals {}
+
+export interface RequestEvent {
   /** 页面的 URL，包含语言前缀 */
   url: URL;
+  /** 页面的路径，不包含语言前缀，和路由匹配的路径一致，按路径检查权限时使用 */
+  path: string;
   /** 当前请求，预渲染时不可用，使用的页面和 layout 需要导出 `prerender = false` */
   request: Request;
   /** 当前请求的 cookie，和 `request` 一样预渲染时不可用 */
   cookies: Cookies;
+  locals: Locals;
+}
+
+export interface ServerLoadContext<P extends Params = Params> extends RequestEvent {
+  params: P;
+}
+
+/** `src/app.server.ts` 导出的内容，只在服务端执行 */
+export interface AppServerModule {
+  /**
+   * 页面、页面数据、表单提交和纯服务端元素的请求都先执行，
+   * 可以使用 `redirect` 跳转（纯服务端元素不渲染，客户端跳转），使用 `locals` 传递数据
+   *
+   * 预渲染前也执行，读取了 `request`、`cookies` 或者跳转的路径不预渲染
+   */
+  handle?: (event: RequestEvent) => unknown;
 }
 
 /** `*.server.ts` 导出的内容，只在服务端执行 */
@@ -101,6 +125,10 @@ export const requestState = isolate<{
   /** 预渲染时没有 */
   request?: Request;
   cookies?: Cookies;
+  /** 页面的 URL 和不包含语言前缀的路径，执行 `handle` 前设置 */
+  url?: URL;
+  path?: string;
+  locals?: Locals;
   /** `load` 中的跳转，渲染时不再输出内容 */
   redirect?: Redirect;
   /** `load` 中调用了 `notFound()`，状态码为 404 */
@@ -142,19 +170,25 @@ export function toJSONValue(value: unknown) {
   return json === undefined ? null : JSON.parse(json);
 }
 
-/** 服务端模块的 `load` 和 `actions` 的参数 */
-export function createServerContext(tag: string, params: Params, url: URL): ServerLoadContext {
+/**
+ * 当前请求的 `RequestEvent`，`url` 和 `path` 在执行 `handle` 前设置，
+ * `hint` 是预渲染时读取 `request` 和 `cookies` 的错误提示，`extra` 是额外的字段
+ */
+function createRequestEvent<T extends object>(hint: string, extra: T): RequestEvent & T {
+  const { url, path, locals } = requestState;
+  if (!url) throw new Error('gemkit: `getRequestEvent` can only be called in a server request');
   const get = <K extends 'request' | 'cookies'>(key: K) => {
-    const value = requestState[key];
-    if (!value) {
-      throw new Error(`gemkit: \`${key}\` is not available when prerendering, export \`prerender = false\` (${tag})`);
-    }
+    // 预渲染时也标记，`handle` 读取时不预渲染
     requestState.personal = true;
+    const value = requestState[key];
+    if (!value) throw new Error(`gemkit: \`${key}\` is not available when prerendering, ${hint}`);
     return value as NonNullable<(typeof requestState)[K]>;
   };
   return {
-    params,
+    ...extra,
     url,
+    path: path!,
+    locals: locals!,
     get request() {
       return get('request');
     },
@@ -164,11 +198,24 @@ export function createServerContext(tag: string, params: Params, url: URL): Serv
   };
 }
 
+/** 服务端模块的 `load` 和 `actions` 的参数 */
+export function createServerContext(tag: string, params: Params): ServerLoadContext {
+  return createRequestEvent(`export \`prerender = false\` (${tag})`, { params });
+}
+
+/**
+ * 当前请求，`src/app.server.ts` 的 `handle` 的参数，纯服务端元素可以使用它读取请求、cookie 和 `locals`，
+ * 只能在服务端的请求中调用
+ */
+export function getRequestEvent() {
+  return createRequestEvent('export `prerender = false`', {});
+}
+
 /** 执行服务端模块的 `load`，跳转时记录到 `requestState`，渲染以这个错误结束 */
-export async function runServerLoad(tag: string, params: Params, url: URL) {
+export async function runServerLoad(tag: string, params: Params) {
   const mod = await getServerModule(tag);
   try {
-    return toJSONValue(await mod?.load?.(createServerContext(tag, params, url)));
+    return toJSONValue(await mod?.load?.(createServerContext(tag, params)));
   } catch (err) {
     if (err instanceof Redirect) requestState.redirect ||= err;
     throw err;
@@ -268,7 +315,7 @@ export function prefetchServerData(path: string, search: string) {
 
 /** 加载 `*.server.ts` 的数据，客户端导航时通过数据文件获取 */
 export async function loadServerData(tag: string, params: Params) {
-  if (isServer) return runServerLoad(tag, params, new URL(location.href));
+  if (isServer) return runServerLoad(tag, params);
   const { path } = history.getParams();
   const url = getFileUrl(path, location.search);
   if (dataRequest?.url !== url || dataRequest.taken.has(tag)) {
@@ -309,6 +356,12 @@ function renderElement(url: string, element: ServerElementParams) {
         body: JSON.stringify({ url, elements: batch.elements }),
       });
       if (!res.ok) throw new Error(`gemkit: failed to render server elements of \`${url}\``);
+      // `handle` 中的跳转，例如没有登录
+      const redirectTo = res.headers.get(REDIRECT_HEADER);
+      if (redirectTo) {
+        navigate(redirectTo, true);
+        throw new Redirect(302, redirectTo);
+      }
       return res.json();
     });
     renderBatch = batch;

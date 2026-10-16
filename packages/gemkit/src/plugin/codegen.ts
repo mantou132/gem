@@ -247,8 +247,10 @@ function generateEntries(
     titleOptions: { title: config.title, titleTemplate: config.titleTemplate },
   };
   render(genDir, 'client.ts', 'client', data);
+  const appServerFile = findModule(srcDir, 'app.server');
   render(genDir, 'server.ts', 'server', {
     ...data,
+    appServer: appServerFile && importPath(path.join(srcDir, appServerFile)),
     serverModules: serverRoutes.map(({ tag, server }) => ({ tag, path: importPath(server) })),
   });
   writeIfChanged(

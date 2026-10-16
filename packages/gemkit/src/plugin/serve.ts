@@ -53,7 +53,7 @@ const toStream = (html: AsyncIterator<string>) =>
   });
 
 /**
- * 其他网站提交的表单（CSRF），优先使用浏览器的 `Sec-Fetch-Site`，
+ * 其他网站提交的表单或者纯服务端元素的请求（CSRF），优先使用浏览器的 `Sec-Fetch-Site`，
  * 反向代理后请求 URL 的协议可能和浏览器中的不同，所以只比较 `Origin` 的 host
  */
 function isCrossSite(request: Request, url: URL) {
@@ -102,8 +102,9 @@ export function createRequestHandler(
     const url = new URL(request.url);
     const { pathname } = url;
     if (pathname === ELEMENT_PATH) {
-      const { url: pageUrl, elements } = await request.json();
-      return Response.json(await renderer.renderElements(new URL(pageUrl, url).href, elements));
+      if (isCrossSite(request, url)) return new Response(null, { status: 403 });
+      const { headers, html } = await renderer.renderElements(request);
+      return Response.json(html, { headers });
     }
     if (isActionRequest(request.method, url.search)) {
       if (isCrossSite(request, url)) return new Response(null, { status: 403 });

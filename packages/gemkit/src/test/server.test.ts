@@ -20,11 +20,17 @@ import { I18n } from '@mantou/gem/helper/i18n';
 import { getServerElementKey, server } from '@mantou/gem-ssr/decorators';
 
 import { DATA_SCRIPT_ID, NOT_FOUND_HEADER, REDIRECT_HEADER } from '../constants';
-import { notFound, redirect, type ServerModule } from '../data';
+import { getRequestEvent, notFound, redirect, type ServerModule } from '../data';
 import { pageRoute, setOutlets } from '../outlet';
 import { type Params, page } from '../page';
 import { createRequestHandler } from '../plugin/serve';
 import { createRenderer } from '../server';
+
+declare module '../data' {
+  interface Locals {
+    user?: string;
+  }
+}
 
 @customElement('app-server-note')
 @server()
@@ -33,6 +39,13 @@ class ServerNoteElement extends GemElement {
 
   @template()
   #content = () => html`<p>note: ${this.text}</p>`;
+}
+
+@customElement('app-server-user')
+@server()
+class ServerUserElement extends GemElement {
+  @template()
+  #content = () => html`<p>user: ${getRequestEvent().locals.user}</p>`;
 }
 
 @page('Home')
@@ -157,6 +170,14 @@ setOutlets(
 const renderer = createRenderer({
   app: html`<gemkit-outlet></gemkit-outlet>`,
   serverModules,
+  appServerModule: {
+    // 只在需要时读取 `cookies`，读取后响应不能被共享缓存，也不预渲染
+    handle: (event) => {
+      if (!event.path.startsWith('/admin')) return;
+      event.locals.user = event.cookies.get('user');
+      if (!event.locals.user) redirect(302, '/login');
+    },
+  },
   i18n: new I18n({ resources: { en: {}, zh: {} }, fallbackLanguage: 'en' }),
   languages: ['en', 'zh'],
   defaultLanguage: 'en',
@@ -306,7 +327,7 @@ test('createRequestHandler: 表单提交', async ({ assert }) => {
   assert.equal(json.headers.get('set-cookie'), 'token=x; Path=/; HttpOnly; SameSite=Lax');
 });
 
-test('createRequestHandler: 拒绝其他网站提交的表单', async ({ assert }) => {
+test('createRequestHandler: 拒绝其他网站提交的表单和纯服务端元素请求', async ({ assert }) => {
   const handler = createRequestHandler(renderer, documentTemplate);
   const submit = (headers: Record<string, string>) =>
     handler(request('/me?/login', { method: 'POST', body: new URLSearchParams({ token: 'x' }), headers }));
@@ -316,6 +337,11 @@ test('createRequestHandler: 拒绝其他网站提交的表单', async ({ assert 
   // 不支持 `Sec-Fetch-Site` 的浏览器，反向代理后协议不同时也允许
   assert.equal((await submit({ origin: 'https://evil.com' })).status, 403);
   assert.equal((await submit({ origin: 'https://localhost' })).status, 303);
+  const body = JSON.stringify({ url: '/', elements: [] });
+  const res = await handler(
+    request('/__gemkit_element', { method: 'POST', body, headers: { 'sec-fetch-site': 'cross-site' } }),
+  );
+  assert.equal(res.status, 403);
 });
 
 test('createRequestHandler: 流式输出页面', async ({ assert }) => {
@@ -366,6 +392,9 @@ test('canPrerender: 读取请求的页面不预渲染', async ({ assert }) => {
   assert.equal(await renderer.canPrerender('/me'), false);
   assert.equal(await renderer.canPrerender('/zh/me'), false);
   assert.equal(await renderer.canPrerender('/posts/1'), true);
+  // `handle` 读取了 cookie
+  assert.equal(await renderer.canPrerender('/admin'), false);
+  assert.equal(await renderer.canPrerender('/zh/admin'), false);
 });
 
 test('getPaths: 展开动态路由和语言', async ({ assert }) => {
@@ -389,8 +418,11 @@ test('renderDocument: 预渲染时收集纯服务端元素', async ({ assert }) 
 });
 
 test('renderElements: 渲染页面中的纯服务端元素', async ({ assert }) => {
-  const [note] = await renderer.renderElements('/zh', [{ tag: 'app-server-note', attrs: { text: 'x' }, props: {} }]);
-  assert.match(note, /note: .*x/);
+  const elements = [{ tag: 'app-server-note', attrs: { text: 'x' }, props: {} }];
+  const { html } = await renderer.renderElements(
+    request('/__gemkit_element', { method: 'POST', body: JSON.stringify({ url: '/zh', elements }) }),
+  );
+  assert.match(html![0], /note: .*x/);
 });
 
 test('renderDocument: 预渲染时不能读取请求', async ({ assert }) => {
@@ -415,4 +447,35 @@ test('loadData: `load` 中调用 `notFound()` 时通过响应头告诉客户端'
   assert.equal(status, 200);
   assert.equal(headers.get(NOT_FOUND_HEADER), 'gemkit-page-post');
   assert.deepEqual(data, {});
+});
+
+test('handle: 每个请求先执行，可以跳转', async ({ assert }) => {
+  const { status, headers } = await renderer.renderDocument(documentTemplate, request('/admin'));
+  assert.equal(status, 302);
+  assert.equal(headers.get('location'), '/login');
+  const data = await renderer.loadData(request('/admin/__data.json'));
+  assert.equal(data.headers.get(REDIRECT_HEADER), '/login');
+  const page = await renderer.renderDocument(documentTemplate, request('/admin', { headers: { cookie: 'user=a' } }));
+  assert.equal(page.status, 404);
+  // 读取了 cookie
+  assert.equal(page.headers.get('cache-control'), 'private, no-store');
+  // `path` 不包含语言前缀
+  const zh = await renderer.renderDocument(documentTemplate, request('/zh/admin'));
+  assert.equal(zh.headers.get('location'), '/login');
+});
+
+test('handle: 纯服务端元素的请求也先执行，元素中读取 `locals`', async ({ assert }) => {
+  const body = JSON.stringify({ url: '/admin', elements: [{ tag: 'app-server-user', attrs: {}, props: {} }] });
+  const denied = await renderer.renderElements(request('/__gemkit_element', { method: 'POST', body }));
+  assert.equal(denied.html, null);
+  assert.equal(denied.headers.get(REDIRECT_HEADER), '/login');
+  const { html, headers } = await renderer.renderElements(
+    request('/__gemkit_element', { method: 'POST', body, headers: { cookie: 'user=a' } }),
+  );
+  assert.match(html![0], /user: .*a/);
+  assert.equal(headers.get('cache-control'), 'private, no-store');
+});
+
+test('getRequestEvent: 只能在服务端的请求中调用', ({ assert }) => {
+  assert.throws(() => getRequestEvent(), /`getRequestEvent` can only be called in a server request/);
 });

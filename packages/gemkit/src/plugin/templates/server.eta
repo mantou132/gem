@@ -6,6 +6,9 @@ import { defaultLanguage, i18n, languages } from './i18n';
 import <%= it.app %>;
 <% } -%>
 import { app } from './routes';
+<% if (it.appServer) { -%>
+import * as appServerModule from <%= it.appServer %>;
+<% } -%>
 
 const serverModules = {
 <% for (const { tag, path } of it.serverModules) { -%>
@@ -16,6 +19,9 @@ const serverModules = {
 export default createRenderer({
   app,
   serverModules,
+<% if (it.appServer) { -%>
+  appServerModule,
+<% } -%>
   i18n,
   languages,
   defaultLanguage,
