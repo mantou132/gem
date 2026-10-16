@@ -1,6 +1,7 @@
 import {
   adoptedStyle,
   connectStore,
+  createRef,
   css,
   GemElement,
   history,
@@ -9,7 +10,7 @@ import {
   template,
   titleStore,
 } from '@mantou/gem';
-import { matchPath, type RouteItem } from '@mantou/gem/elements/route';
+import { type GemLightRouteElement, matchPath, type RouteItem } from '@mantou/gem/elements/route';
 import { isServer } from '@mantou/gem/lib/server';
 
 import {
@@ -242,6 +243,21 @@ export class GemkitOutletElement extends GemElement {
     return `${outletStore.key}${history.getParams().query}`;
   }
 
+  #routeRef = createRef<GemLightRouteElement>();
+
+  // 页面渲染后恢复或者重置窗口的滚动位置，layout 渲染后页面还没有加载
+  #getScrollContainer = () => {
+    const info = this.#routeRef.value?.currentRoute?.data as RouteInfo | undefined;
+    return info?.layout ? null : document.scrollingElement;
+  };
+
+  // 不在 outlet 中输出空白文本
   @template()
-  #content = () => html`<gem-light-route .key=${this.#key} .routes=${this.#routes}></gem-light-route>`;
+  #content = () =>
+    html`<gem-light-route
+      ${this.#routeRef}
+      .key=${this.#key}
+      .routes=${this.#routes}
+      .scrollContainer=${this.#getScrollContainer}
+    ></gem-light-route>`;
 }

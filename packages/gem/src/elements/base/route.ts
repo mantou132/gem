@@ -130,6 +130,9 @@ export type RouteTrigger = {
 
 const scrollPositionMap = new Map<string, number>();
 
+// 导航到了新的历史记录，前进、后退和页面加载时为 `false`
+let pushed = false;
+
 @light({ penetrable: true })
 export class GemLightRouteElement extends GemElement {
   @boolattribute transition: boolean;
@@ -148,8 +151,11 @@ export class GemLightRouteElement extends GemElement {
   @emitter routechange: Emitter<RouteItem | null>; // path 改变或者 key 改变，包含初始渲染
   @emitter error: Emitter<any>;
 
-  /**自动让滚动容器恢复滚动位置 */
-  @property scrollContainer?: HTMLElement | (() => HTMLElement);
+  /**
+   * 自动让滚动容器恢复滚动位置，导航到新的历史记录时滚动到顶部，
+   * 函数返回空值时不处理当前路由，例如只有子路由渲染后才需要滚动
+   */
+  @property scrollContainer?: Element | (() => Element | null | undefined);
   /**默认当有 `hash` 时不进行滚动 */
   @property scrollIgnoreHash?: boolean;
 
@@ -205,14 +211,22 @@ export class GemLightRouteElement extends GemElement {
     });
   };
 
+  // 已经处理过滚动的历史记录，同一条历史记录重新渲染时保持滚动位置
+  #scrolledKey?: string;
+
   #updateScrollContainerPosition = () => {
-    if (!this.#scrollContainer) return;
-    const scrollTop = scrollPositionMap.get(history.currentKey);
-    if (scrollTop) {
-      this.#scrollContainer.scroll(0, scrollTop);
-    } else if (this.scrollIgnoreHash || !history.getParams().hash) {
-      this.#scrollContainer.scroll(0, 0);
+    const container = this.#scrollContainer;
+    const key = history.currentKey;
+    if (!container || key === this.#scrolledKey) return;
+    this.#scrolledKey = key;
+    const scrollTop = scrollPositionMap.get(key);
+    if (!pushed && scrollTop !== undefined) {
+      container.scroll(0, scrollTop);
+      return;
     }
+    // 前进、后退或者页面加载时位置未知（例如刷新后），保持浏览器恢复的位置，浏览器只恢复文档的滚动位置
+    if (!pushed && container === document.scrollingElement) return;
+    if (this.scrollIgnoreHash || !history.getParams().hash) container.scroll(0, 0);
   };
 
   #lastLoader?: TemplateResult | Promise<TemplateResult | undefined>;
@@ -239,10 +253,13 @@ export class GemLightRouteElement extends GemElement {
 
   @effect((i) => [i.scrollContainer])
   #rememberScrollPosition = () => {
-    if (!this.#scrollContainer) return;
-    return addListener(history, 'beforechange', () =>
-      scrollPositionMap.set(history.currentKey, this.#scrollContainer!.scrollTop),
-    );
+    if (!this.scrollContainer) return;
+    return addListener(history, 'beforechange', () => {
+      // 前进和后退时浏览器的历史记录已经改变，Gem 的还没有改变
+      pushed = globalThis.history.state?.$key === history.currentKey;
+      const container = this.#scrollContainer;
+      if (container) scrollPositionMap.set(history.currentKey, container.scrollTop);
+    });
   };
 
   // history or i18n

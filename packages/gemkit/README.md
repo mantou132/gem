@@ -88,6 +88,11 @@ When a `<gem-link>` is hovered or focused, the modules of the target page and it
 (`__data.json`, only when needed) and the server elements (`__elements.json`) are prefetched, the prefetched results
 are used once within 30 seconds. On navigation, they are requested in parallel.
 
+## Scroll restoration
+
+After the page renders, the window scrolls to the top on new history entries (unless the URL has a hash),
+back/forward restores the previous position, re-rendering the same entry (e.g. after a form submission) keeps it.
+
 ## Layout data
 
 Layouts can load data like pages, it is passed to the layout as `params` (without the child route part) and `data`.
