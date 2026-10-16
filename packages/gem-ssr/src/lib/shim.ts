@@ -240,17 +240,22 @@ const location = {
   },
 };
 
+// 只有一条历史记录，Gem 会接管 `pushState` 和 `replaceState`，所以不能互相调用
+function setState(state: unknown, href?: string) {
+  getNavigation().state = state;
+  if (href) setLocation(href);
+}
+
 const history = {
   length: 1,
   get state() {
     return getNavigation().state;
   },
   pushState(state: unknown, _: string, href?: string) {
-    this.replaceState(state, _, href);
+    setState(state, href);
   },
   replaceState(state: unknown, _: string, href?: string) {
-    getNavigation().state = state;
-    if (href) setLocation(href);
+    setState(state, href);
   },
   back() {},
   forward() {},
