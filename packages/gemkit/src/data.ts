@@ -105,6 +105,8 @@ export const requestState = isolate<{
   redirect?: Redirect;
   /** `load` 中调用了 `notFound()`，状态码为 404 */
   notFound?: boolean;
+  /** 读取了 `request` 或 `cookies`，响应因人而异，不能被共享缓存 */
+  personal?: boolean;
 }>({});
 
 /** 页面和 layout 的数据，key 是标签名 */
@@ -147,6 +149,7 @@ export function createServerContext(tag: string, params: Params, url: URL): Serv
     if (!value) {
       throw new Error(`gemkit: \`${key}\` is not available when prerendering, export \`prerender = false\` (${tag})`);
     }
+    requestState.personal = true;
     return value as NonNullable<(typeof requestState)[K]>;
   };
   return {

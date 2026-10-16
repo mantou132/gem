@@ -16,7 +16,11 @@ export default defineConfig({
 
 - `rsbuild dev`: dev server with SSR and HMR
 - `rsbuild build`: build `dist/web` (client, prerendered pages) and `dist/server` (SSR bundle)
-- `gemkit start`: serve `dist`, prerendered pages first, otherwise SSR
+- `gemkit start`: serve `dist`, prerendered pages first, otherwise SSR. Environment variables:
+  - `PORT`: default `3000`
+  - `ORIGIN`: the site origin, e.g. `https://example.com`, set it behind a reverse proxy, otherwise the origin comes
+    from the `Host` header and the connection protocol, it is used by `url` in `load`, `Secure` cookies and
+    the same-origin check
 
 SSR responses are streamed: the document is sent once the page `load` and `title` are resolved,
 async content inside the page (e.g. `@server` methods) is streamed after it.
@@ -164,6 +168,8 @@ export function load({ cookies }: ServerLoadContext) {
 
 - `cookies.set` / `cookies.delete` add `Set-Cookie` to the response, defaults: `Path=/; HttpOnly; SameSite=Lax`,
   `Secure` on HTTPS. Headers are sent with the document, cookies set after it (e.g. in `@server` methods) are ignored
+- Responses that read `request` or `cookies`, or set cookies, have `Cache-Control: private, no-store`,
+  so a CDN doesn't share them between users
 - `redirect(status, location)` throws, `location` is the full path (including the language prefix);
   SSR responds with the status and `Location`, client navigation (`__data.json`) navigates to it instead
 - `request` and `cookies` throw when prerendering, export `prerender = false` from the page or layout `*.server.ts`

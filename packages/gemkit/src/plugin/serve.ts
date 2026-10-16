@@ -63,8 +63,29 @@ function isCrossSite(request: Request, url: URL) {
   return !!origin && new URL(origin).host !== url.host;
 }
 
+/** 请求的 `Host` 请求头和连接的协议不可信，例如反向代理后面的协议总是 `http:`，使用配置的 origin */
+function withOrigin(request: Request, origin: string) {
+  const { pathname, search } = new URL(request.url);
+  return new Request(`${origin}${pathname}${search}`, request);
+}
+
+export interface HandlerOptions {
+  /** 预渲染的文件目录，优先使用其中的文件 */
+  webDir?: string;
+  /**
+   * 网站的 origin，例如 `https://example.com`，部署在反向代理后面时设置，
+   * 否则使用 `Host` 请求头和连接的协议，`load` 中的 `url`、cookie 的 `Secure` 和同源检查都使用它
+   */
+  origin?: string;
+}
+
 /** 处理页面、页面数据和表单提交请求，提供 `webDir` 时优先使用预渲染的文件 */
-export function createRequestHandler(renderer: Renderer, template: string, webDir?: string): Handler {
+export function createRequestHandler(
+  renderer: Renderer,
+  template: string,
+  { webDir, origin }: HandlerOptions = {},
+): Handler {
+  const trustedOrigin = origin && new URL(origin).origin;
   const readStatic = async (url: URL, pathname = url.pathname) => {
     if (!webDir || isQueryRequest(url)) return;
     let file: string;
@@ -76,7 +97,8 @@ export function createRequestHandler(renderer: Renderer, template: string, webDi
     }
     if (file.startsWith(webDir + path.sep) && existsSync(file)) return readFile(file, 'utf8');
   };
-  return async (request) => {
+  return async (input) => {
+    const request = trustedOrigin ? withOrigin(input, trustedOrigin) : input;
     const url = new URL(request.url);
     const { pathname } = url;
     if (pathname === ELEMENT_PATH) {
@@ -108,14 +130,18 @@ export function createRequestHandler(renderer: Renderer, template: string, webDi
   };
 }
 
-export async function createHandler(distDir: string) {
+export async function createHandler(distDir: string, options?: Omit<HandlerOptions, 'webDir'>) {
   const { renderer, template } = await loadRenderer(distDir);
-  return createRequestHandler(renderer, template, getDistPaths(distDir).webDir);
+  return createRequestHandler(renderer, template, { ...options, webDir: getDistPaths(distDir).webDir });
 }
 
-export async function start({ root = process.cwd(), port = Number(process.env.PORT) || 3000 } = {}) {
+export async function start({
+  root = process.cwd(),
+  port = Number(process.env.PORT) || 3000,
+  origin = process.env.ORIGIN,
+} = {}) {
   const distDir = path.join(root, 'dist');
-  const handler = await createHandler(distDir);
+  const handler = await createHandler(distDir, { origin });
   const app = new Hono();
   const assets = serveStatic({ root: path.relative(process.cwd(), getDistPaths(distDir).webDir) });
   app.use('/*', (ctx, next) => (isQueryRequest(new URL(ctx.req.url)) ? next() : assets(ctx, next)));

@@ -47,10 +47,11 @@ export interface RenderResult {
 
 const escapeHtml = (s: string) => s.replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('"', '&quot;');
 
-/** 设置的 cookie 添加到响应头 */
+/** 设置的 cookie 添加到响应头，因人而异的响应不能被 CDN 等共享缓存，在请求作用域中调用 */
 function toHeaders(setCookies: string[], init?: HeadersInit) {
   const headers = new Headers(init);
   for (const cookie of setCookies) headers.append('set-cookie', cookie);
+  if (requestState.personal || setCookies.length) headers.set('cache-control', 'private, no-store');
   return headers;
 }
 

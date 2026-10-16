@@ -331,7 +331,7 @@ test('createRequestHandler: 带查询参数的页面和数据请求不使用预�
   fs.mkdirSync(path.join(webDir, 'posts/1'), { recursive: true });
   fs.writeFileSync(path.join(webDir, 'posts/1/index.html'), 'prerendered');
   fs.writeFileSync(path.join(webDir, 'posts/1/__data.json'), '"prerendered"');
-  const handler = createRequestHandler(renderer, documentTemplate, webDir);
+  const handler = createRequestHandler(renderer, documentTemplate, { webDir });
   assert.equal(await (await handler(request('/posts/1'))).text(), 'prerendered');
   assert.match(await (await handler(request('/posts/1?a=1'))).text(), /<title>Post 1 \| Site<\/title>/);
   assert.equal(await (await handler(request('/posts/1/__data.json'))).json(), 'prerendered');
@@ -340,6 +340,26 @@ test('createRequestHandler: 带查询参数的页面和数据请求不使用预�
   // 不合法的 URL 编码
   assert.equal((await handler(request('/%E0%A4%A'))).status, 404);
   fs.rmSync(webDir, { recursive: true });
+});
+
+test('createRequestHandler: 读取了请求的响应不能被共享缓存', async ({ assert }) => {
+  const handler = createRequestHandler(renderer, documentTemplate);
+  const me = await handler(request('/me', { headers: { cookie: 'token=t' } }));
+  assert.equal(me.headers.get('cache-control'), 'private, no-store');
+  const data = await handler(request('/me/__data.json', { headers: { cookie: 'token=t' } }));
+  assert.equal(data.headers.get('cache-control'), 'private, no-store');
+  assert.equal((await handler(request('/posts/1'))).headers.get('cache-control'), null, '没有读取请求');
+});
+
+test('createRequestHandler: 使用配置的 origin', async ({ assert }) => {
+  const handler = createRequestHandler(renderer, documentTemplate, { origin: 'https://example.com' });
+  const submit = (headers: Record<string, string>) =>
+    handler(request('/me?/login', { method: 'POST', body: new URLSearchParams({ token: 'x' }), headers }));
+  // 反向代理后面请求的协议是 `http:`，cookie 仍然有 `Secure`
+  const res = await submit({ origin: 'https://example.com' });
+  assert.equal(res.status, 303);
+  assert.match(res.headers.get('set-cookie')!, /; Secure/);
+  assert.equal((await submit({ origin: 'http://localhost' })).status, 403, '和配置的 origin 比较');
 });
 
 test('canPrerender: 读取请求的页面不预渲染', async ({ assert }) => {
