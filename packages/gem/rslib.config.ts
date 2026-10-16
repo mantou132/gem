@@ -13,6 +13,7 @@ export default defineConfig({
   tools: {
     swc: {
       jsc: {
+        externalHelpers: true,
         transform: {
           decoratorMetadata: true,
           decoratorVersion: '2023-11',
