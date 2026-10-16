@@ -220,23 +220,25 @@ type EffectItem<T> = {
   preCallback?: any;
 };
 
-function execEffectList(list?: EffectItem<any>[]) {
-  list?.forEach((effectItem) => {
-    const { callback, getDep, values, preCallback } = effectItem;
-    const newValues = getDep?.();
-    if (!getDep || !values || isArrayChange(values, newValues)) {
-      execCallback(preCallback);
-      effectItem.preCallback = callback(newValues, values);
-      effectItem.values = newValues;
-      // 更新时也要设置，避免异步的 `#initEffect` 重复执行
-      effectItem.initialized = true;
-    }
+function runEffect<T>(item: EffectItem<T>, values: T) {
+  execCallback(item.preCallback);
+  item.preCallback = item.callback(values, item.values);
+  item.values = values;
+  // 更新时也要设置，避免异步的 `#initEffect` 重复执行
+  item.initialized = true;
+}
+
+function execEffectList(list: EffectItem<any>[]) {
+  list.forEach((item) => {
+    const values = item.getDep?.();
+    if (!item.getDep || !item.values || isArrayChange(item.values, values)) runEffect(item, values);
   });
 }
 
 function clearEffect(list: EffectItem<any>[]) {
   return list.filter((e) => {
     execCallback(e.preCallback);
+    e.preCallback = undefined;
     e.initialized = false;
     e.values = undefined;
     return e.fixed;
@@ -409,10 +411,6 @@ export abstract class GemElement extends HTMLElement {
     execEffectList(this.#effectList);
   };
 
-  #execMemo = () => {
-    execEffectList(this.#memoList);
-  };
-
   /**
    * - 条件渲染
    * - 没有 `render` 时显示子内容
@@ -423,7 +421,7 @@ export abstract class GemElement extends HTMLElement {
   #render = (item?: RenderItem) => {
     try {
       this.#rendering = true;
-      this.#execMemo();
+      execEffectList(this.#memoList);
       const isLight = this.#renderRoot === this;
       const temp = item ? item.render() : isLight ? undefined : html`<slot></slot>`;
       if (temp === undefined) return;
@@ -488,14 +486,7 @@ export abstract class GemElement extends HTMLElement {
    * 元素挂载后执行还未初始化的副作用
    * */
   #initEffect = () => {
-    this.#effectList?.forEach((effectItem) => {
-      const { callback, getDep, initialized } = effectItem;
-      if (!initialized) {
-        effectItem.values = getDep?.();
-        effectItem.preCallback = callback(effectItem.values);
-        effectItem.initialized = true;
-      }
-    });
+    this.#effectList.forEach((item) => !item.initialized && runEffect(item, item.getDep?.()));
   };
 
   /** @lifecycle 将来会彻底移除，现在做兼容实现*/ willMount?(): void | Promise<void>;
@@ -595,17 +586,9 @@ export abstract class GemElement extends HTMLElement {
    * ```
    * */
   effect = <K = any[] | undefined>(callback: EffectCallback<K>, getDep?: K extends any[] ? () => K : undefined) => {
-    const effectItem: EffectItem<K> = {
-      callback,
-      getDep,
-      initialized: this.#isMounted,
-      fixed: !this.#notInCons,
-    };
+    const effectItem: EffectItem<K> = { callback, getDep, fixed: !this.#notInCons };
     // 已挂载时立即执行副作用，未挂载时等挂载后执行
-    if (this.#isMounted) {
-      effectItem.values = getDep?.() as K;
-      effectItem.preCallback = callback(effectItem.values);
-    }
+    if (this.#isMounted) runEffect(effectItem, getDep?.() as K);
     this.#effectList.push(effectItem);
   };
 

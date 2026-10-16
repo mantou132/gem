@@ -106,12 +106,14 @@ class LifecycleGemElement extends GemElement {
   }
   renderCount = 0;
   mountedCount = 0;
+  unmountedCount = 0;
 
   @mounted()
   #init = () => {
     this.mountedCount++;
     return () => {
       this.renderCount = 0;
+      this.unmountedCount++;
     };
   };
 
@@ -155,10 +157,12 @@ describe('gem element 生命周期', () => {
     expect(el2.renderCount).to.equal(1);
     el2.remove();
     expect(el2.mountedCount).to.equal(1);
+    expect(el2.unmountedCount).to.equal(1);
     expect(el2.renderCount).to.equal(0);
     container.append(el2);
     await Promise.resolve();
     expect(el2.mountedCount).to.equal(2);
+    expect(el2.unmountedCount).to.equal(1, '重新挂载时不再执行已经执行过的清理函数');
     expect(el2.renderCount).to.equal(1);
     el2.update();
     el2.update();
