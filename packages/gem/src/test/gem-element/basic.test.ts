@@ -114,6 +114,19 @@ describe('基本 gem element 测试', () => {
     expect(el.hasAttribute('attr')).to.equal(false);
   });
 
+  it('setAttribute/removeAttribute/toggleAttribute 设置观察的 attribute', async () => {
+    const el: GemDemo = await fixture(html`<gem-demo></gem-demo>`);
+    el.setAttribute('attr', 'a');
+    el.toggleAttribute('disabled');
+    expect(el.attr).to.equal('a');
+    expect(el.disabled).to.equal(true);
+    el.removeAttribute('attr');
+    expect(el.attr).to.equal('');
+    expect(el.hasAttribute('attr')).to.equal(false);
+    await Promise.resolve();
+    expect(el.shadowRoot?.textContent).to.equal('attr: , disabled: true, count: 0, prop: , state: ');
+  });
+
   it('读取 prop', async () => {
     const el: GemDemo = await fixture(html`<gem-demo .prop=${{ value: 'prop' }}></gem-demo>`);
     expect(el.prop).to.deep.equal({ value: 'prop' });

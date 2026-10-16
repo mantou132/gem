@@ -7,7 +7,7 @@ import type { Store } from './store';
 import { camelToKebabCase, GemError, PropProxyMap } from './utils';
 
 type GemElementPrototype = GemElement & { '': never };
-type StaticField = Exclude<keyof Metadata, keyof ShadowRootInit | 'aria' | 'noBlocking' | 'penetrable'>;
+type StaticField = Exclude<keyof Metadata, keyof ShadowRootInit | 'aria' | 'noBlocking' | 'penetrable' | 'attrProps'>;
 
 const { deleteProperty, getOwnPropertyDescriptor, defineProperty } = Reflect;
 const { getPrototypeOf, assign, hasOwn } = Object;
@@ -32,12 +32,31 @@ function clearField<T extends GemElement>(instance: T, prop: string) {
   (instance as any)[prop] = value;
 }
 
-const observedTargetAttributes = new WeakMap<GemElementPrototype, Map<string, string>>();
+/**
+ * 定义响应式的成员：在原型上定义访问器（基类定义过就跳过），移除实例上的同名字段，
+ * `field` 记录到元数据中，供外部读取
+ */
+function defineMember(
+  context: ClassFieldDecoratorContext,
+  field: StaticField,
+  name: string,
+  define: (target: GemElementPrototype, prop: string) => void,
+) {
+  const prop = context.name as string;
+  pushStaticField(context, field, name);
+  context.addInitializer(function (this: GemElement) {
+    const target = getDecoratorTarget(this, context);
+    if (!hasOwn(target, prop)) define(target, prop);
+    clearField(this, prop);
+  });
+}
+
 // hack 修改 attribute 行为，如果是观察的，就使用 `setter`
 // 不在 Devtools 中工作 https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/Content_scripts#dom_access
 // 使用 Gem DevTools 注入脚本监听 attribute 变化
 const { setAttribute, toggleAttribute, removeAttribute } = Element.prototype;
-const getObservedPropName = (i: GemElement, n: string) => observedTargetAttributes.get(getPrototypeOf(i))?.get(n);
+const getObservedPropName = (i: GemElement, n: string) =>
+  ((i.constructor as any)[Symbol.metadata] as Metadata | undefined)?.attrProps?.[n];
 GemElement.prototype.setAttribute = function (n: string, v: string) {
   const prop = getObservedPropName(this, n);
   if (!prop) return setAttribute.call(this, n, v);
@@ -130,19 +149,12 @@ type AttrType = BooleanConstructor | NumberConstructor | StringConstructor;
 function decoratorAttr<T extends GemElement>(context: ClassFieldDecoratorContext<T>, attrType: AttrType) {
   const prop = context.name as string;
   const attr = camelToKebabCase(prop);
-  context.addInitializer(function (this: T) {
-    const target = getDecoratorTarget(this, context);
-    if (!hasOwn(target, prop)) {
-      pushStaticField(context, 'observedAttributes', attr); // 没有 observe 的效果
-      defineProp(target, prop, { attr, attrType });
-    }
-    clearField(this, prop);
-    // 记录观察的 attribute, 用于 hack 的 setAttribute
-    const proto = getPrototypeOf(this);
-    const attrMap = observedTargetAttributes.get(proto) || new Map<string, string>();
-    attrMap.set(attr, prop);
-    observedTargetAttributes.set(proto, attrMap);
-  });
+  const metadata = context.metadata as Metadata;
+  // 记录观察的 attribute，用于 hack 的 setAttribute，原型链继承基类的记录
+  if (!hasOwn(metadata, 'attrProps')) metadata.attrProps = Object.create(metadata.attrProps || null);
+  metadata.attrProps![attr] = prop;
+  // `observedAttributes` 没有 observe 的效果
+  defineMember(context, 'observedAttributes', attr, (target) => defineProp(target, prop, { attr, attrType }));
   // 延时定义的元素需要继承原实例属性值
   return function (this: any, initValue: any) {
     return this.getAttribute(attr) ?? initValue;
@@ -181,14 +193,7 @@ export function numattribute<T extends GemElement>(_: undefined, context: ClassF
  */
 export function property<T extends GemElement>(_: undefined, context: ClassFieldDecoratorContext<T>) {
   const prop = context.name as string;
-  context.addInitializer(function (this: T) {
-    const target = getDecoratorTarget(this, context);
-    if (!hasOwn(target, prop)) {
-      pushStaticField(context, 'observedProperties', prop);
-      defineProp(target, prop);
-    }
-    clearField(this, prop);
-  });
+  defineMember(context, 'observedProperties', prop, defineProp);
   // 延时定义的元素需要继承原实例属性值
   return function (this: any, initValue: any) {
     return this[prop] ?? initValue;
@@ -342,16 +347,8 @@ function defineCSSState(target: GemElementPrototype, prop: string, stateStr: str
  * ```
  */
 export function state<T extends GemElement>(_: undefined, context: ClassFieldDecoratorContext<T, boolean>) {
-  const prop = context.name as string;
-  const attr = camelToKebabCase(prop);
-  context.addInitializer(function (this: T) {
-    const target = getDecoratorTarget(this, context);
-    if (!hasOwn(target, prop)) {
-      pushStaticField(context, 'definedCSSStates', attr);
-      defineCSSState(target, prop, attr);
-    }
-    clearField(this, prop);
-  });
+  const stateStr = camelToKebabCase(context.name as string);
+  defineMember(context, 'definedCSSStates', stateStr, (target, prop) => defineCSSState(target, prop, stateStr));
 }
 
 function defineStaticField(
@@ -436,20 +433,9 @@ export function emitter<T extends GemElement>(_: undefined, context: ClassFieldD
 export function globalemitter<T extends GemElement>(_: undefined, context: ClassFieldDecoratorContext<T, Emitter>) {
   defineEmitter(context, { bubbles: true, composed: true });
 }
-function defineEmitter<T extends GemElement>(
-  context: ClassFieldDecoratorContext,
-  eventOptions?: Omit<CustomEventInit<unknown>, 'detail'>,
-) {
-  const prop = context.name as string;
-  const event = camelToKebabCase(prop);
-  context.addInitializer(function (this: T) {
-    const target = getDecoratorTarget(this, context);
-    if (!hasOwn(target, prop)) {
-      pushStaticField(context, 'definedEvents', event);
-      defineProp(target, prop, { event, eventOptions });
-    }
-    clearField(this, prop);
-  });
+function defineEmitter(context: ClassFieldDecoratorContext, eventOptions?: Omit<CustomEventInit<unknown>, 'detail'>) {
+  const event = camelToKebabCase(context.name as string);
+  defineMember(context, 'definedEvents', event, (target, prop) => defineProp(target, prop, { event, eventOptions }));
 }
 
 /**

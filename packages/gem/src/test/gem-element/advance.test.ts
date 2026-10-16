@@ -352,6 +352,16 @@ describe('gem element 继承', () => {
     await Promise.resolve();
     expect(window.name).to.equal(`${name}21`);
   });
+  it('setAttribute 设置基类观察的 attribute', async () => {
+    const el: InheritGem1 = await fixture(html`<inherit-gem1></inherit-gem1>`);
+    el.setAttribute('app-title', 'c');
+    expect(el.appTitle).to.equal('c');
+    const el1: InheritGem = await fixture(html`<inherit-gem></inherit-gem>`);
+    el1.setAttribute('app-title2', 'd');
+    el1.setAttribute('app-title', 'e');
+    expect(el1.appTitle2).to.equal('d');
+    expect(el1.appTitle).to.equal('e');
+  });
 });
 @customElement('render-empty')
 @shadow()
