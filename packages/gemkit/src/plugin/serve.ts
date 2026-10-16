@@ -27,6 +27,12 @@ export async function loadRenderer(distDir: string) {
 export const isDataRequest = (pathname: string) =>
   pathname.endsWith(`/${DATA_FILE}`) || pathname.endsWith(`/${ELEMENTS_FILE}`);
 
+/**
+ * 带查询参数的页面和数据请求不使用预渲染的文件，`load` 的结果可能和预渲染时不同，
+ * 例如读取了 `url.searchParams`；其他文件（例如 `app.js?v=1`）不受影响
+ */
+const isQueryRequest = ({ pathname, search }: URL) => !!search && (isDataRequest(pathname) || !path.extname(pathname));
+
 /** 表单提交到页面的 `actions`，地址是 `<page path>?/<name>` */
 export const isActionRequest = (method: string, search: string) => method === 'POST' && search.startsWith('?/');
 
@@ -59,9 +65,15 @@ function isCrossSite(request: Request, url: URL) {
 
 /** 处理页面、页面数据和表单提交请求，提供 `webDir` 时优先使用预渲染的文件 */
 export function createRequestHandler(renderer: Renderer, template: string, webDir?: string): Handler {
-  const readStatic = async (pathname: string) => {
-    if (!webDir) return;
-    const file = path.join(webDir, decodeURIComponent(pathname));
+  const readStatic = async (url: URL, pathname = url.pathname) => {
+    if (!webDir || isQueryRequest(url)) return;
+    let file: string;
+    try {
+      file = path.join(webDir, decodeURIComponent(pathname));
+    } catch {
+      // 不合法的 URL 编码，由 SSR 渲染 404 页面
+      return;
+    }
     if (file.startsWith(webDir + path.sep) && existsSync(file)) return readFile(file, 'utf8');
   };
   return async (request) => {
@@ -81,14 +93,14 @@ export function createRequestHandler(renderer: Renderer, template: string, webDi
       return new Response(null, { status: 303, headers });
     }
     if (isDataRequest(pathname)) {
-      const body = await readStatic(pathname);
+      const body = await readStatic(url);
       if (body) return new Response(body, { headers: { 'content-type': 'application/json' } });
       // 没有预渲染时客户端使用 `ELEMENT_PATH` 渲染，导航时总会请求，避免 404
       if (pathname.endsWith(ELEMENTS_FILE)) return Response.json({});
       const { status, headers, data } = await renderer.loadData(request);
       return Response.json(data, { status, headers });
     }
-    const body = await readStatic(path.posix.join(pathname, 'index.html'));
+    const body = await readStatic(url, path.posix.join(pathname, 'index.html'));
     if (body) return new Response(body, { headers: { 'content-type': HTML_TYPE } });
     const { status, headers, html } = await renderer.renderDocument(template, request);
     headers.set('content-type', HTML_TYPE);
@@ -105,7 +117,8 @@ export async function start({ root = process.cwd(), port = Number(process.env.PO
   const distDir = path.join(root, 'dist');
   const handler = await createHandler(distDir);
   const app = new Hono();
-  app.use('/*', serveStatic({ root: path.relative(process.cwd(), getDistPaths(distDir).webDir) }));
+  const assets = serveStatic({ root: path.relative(process.cwd(), getDistPaths(distDir).webDir) });
+  app.use('/*', (ctx, next) => (isQueryRequest(new URL(ctx.req.url)) ? next() : assets(ctx, next)));
   app.on(['GET', 'POST'], '*', (ctx) => handler(ctx.req.raw));
   serve({ fetch: app.fetch, port }, ({ port }) => console.log(`gemkit: listening on http://localhost:${port}/`));
 }

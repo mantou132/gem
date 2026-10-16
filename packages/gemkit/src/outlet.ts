@@ -24,7 +24,7 @@ import {
   takeSSRData,
   toJSONValue,
 } from './data';
-import { getPageOptions, type Params, setPendingProps } from './page';
+import { getPageOptions, type Params } from './page';
 
 import '@mantou/gem/elements/route';
 
@@ -97,7 +97,6 @@ export async function loadLayout(
   const data = canReuseLayoutData(current?.params, params)
     ? current!.data
     : await loadData(cls, tag, params, hasServerModule);
-  setPendingProps({ params, data });
   defineElement(tag, cls);
   return { params, data };
 }
@@ -113,7 +112,6 @@ export async function loadPage(
   const data = await loadData(cls, tag, params, hasServerModule);
   // layout 在页面之前加载
   clientState.invalidated = false;
-  setPendingProps({ params, data });
   defineElement(tag, cls);
   const { title: getTitle } = getPageOptions(cls);
   const title = typeof getTitle === 'function' ? await getTitle(params, data) : getTitle;

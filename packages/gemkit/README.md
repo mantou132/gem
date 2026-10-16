@@ -21,8 +21,6 @@ export default defineConfig({
 SSR responses are streamed: the document is sent once the page `load` and `title` are resolved,
 async content inside the page (e.g. `@server` methods) is streamed after it.
 
-The generated `.gemkit` ignores itself, no `.gitignore` entry is needed.
-
 ## Project structure
 
 ```
@@ -135,6 +133,8 @@ export const paths = async () => [{ slug: 'hello' }];
 - SSR: the data is embedded in the HTML, hydration uses it without another request
 - Client-side navigation: fetch `<page path>/__data.json`, it contains the data of the page and its layouts
 - Prerender: `__data.json` is written next to the page, so navigation works on a static host
+- `gemkit start` serves the prerendered page and `__data.json` only when the URL has no query, other requests are
+  rendered by the server. A static host ignores the query, pages whose `load` reads `url.searchParams` need a server
 - The `load` option of the page or layout, if present, receives the server data as the second argument
 
 ## Request, cookies and redirect

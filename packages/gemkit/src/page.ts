@@ -1,5 +1,3 @@
-import { isolate } from '@mantou/gem/lib/server';
-
 export type Params = Record<string, string>;
 
 export interface LayoutOptions<P extends Params = Params, D = unknown> {
@@ -25,25 +23,6 @@ type RouteClass = new (...args: any) => HTMLElement;
 
 const optionsMap = new WeakMap<RouteClass, PageOptions<any, any>>();
 
-// 即将渲染的页面或 layout 的属性，每个请求有独立的值
-const pending = isolate<{ props?: { params: Params; data: unknown } }>({});
-
-/** 元素可能在路由设置属性之前创建，例如水合时定义元素会立即升级服务端渲染的元素 */
-export function setPendingProps(props: typeof pending.props) {
-  pending.props = props;
-}
-
-const decorate = <T extends RouteClass>(cls: T, options: PageOptions<any, any>) => {
-  const Route = class extends cls {
-    constructor(...args: any[]) {
-      super(...args);
-      if (pending.props) Object.assign(this, pending.props);
-    }
-  };
-  optionsMap.set(Route, options);
-  return Route;
-};
-
 /**
  * 标记页面元素，页面文件需要默认导出该元素，标签名由文件路径生成
  *
@@ -56,8 +35,9 @@ const decorate = <T extends RouteClass>(cls: T, options: PageOptions<any, any>) 
  * ```
  */
 export function page<P extends Params = Params, D = unknown>(options: string | PageOptions<P, D> = {}) {
-  return <T extends RouteClass>(cls: T, _: ClassDecoratorContext) =>
-    decorate(cls, typeof options === 'string' ? { title: options } : options);
+  return (cls: RouteClass, _: ClassDecoratorContext) => {
+    optionsMap.set(cls, typeof options === 'string' ? { title: options } : options);
+  };
 }
 
 /**
@@ -73,7 +53,9 @@ export function page<P extends Params = Params, D = unknown>(options: string | P
  * ```
  */
 export function layout<P extends Params = Params, D = unknown>(options: LayoutOptions<P, D> = {}) {
-  return <T extends RouteClass>(cls: T, _: ClassDecoratorContext) => decorate(cls, options);
+  return (cls: RouteClass, _: ClassDecoratorContext) => {
+    optionsMap.set(cls, options);
+  };
 }
 
 export function getPageOptions(cls: RouteClass): PageOptions<Params, any> {
