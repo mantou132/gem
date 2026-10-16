@@ -75,6 +75,12 @@ class MePage extends GemElement {
   #content = () => html`<p>token: ${this.data.token}</p>`;
 }
 
+@page('Sign in')
+class LoginPage extends GemElement {
+  @template()
+  #content = () => html`<form method="post" action="?/login"></form>`;
+}
+
 @page('Not Found')
 class NotFoundPage extends GemElement {
   @template()
@@ -89,6 +95,7 @@ const pages: PageEntry[] = [
   { pattern: '/posts/:id', tag: 'gemkit-page-post', load: async () => ({ default: PostPage }) },
   { pattern: '/tags/:tag', tag: 'gemkit-page-tag', load: async () => ({ default: TagPage }) },
   { pattern: '/me', tag: 'gemkit-page-me', load: async () => ({ default: MePage }) },
+  { pattern: '/login', tag: 'gemkit-page-login', load: async () => ({ default: LoginPage }) },
   { pattern: '/', tag: 'gemkit-page-index', load: async () => ({ default: HomePage }) },
 ];
 
@@ -118,10 +125,12 @@ const serverModules: Record<string, () => Promise<ServerModule>> = {
       },
     },
   }),
+  // 只有 `actions`，没有 `load`
+  'gemkit-page-login': async () => ({ actions: { login: () => null } }),
 };
 
 // 和生成的 `routes.ts` 一样，模版中使用静态的标签名
-const [slow, post, tag, me, index] = pages;
+const [slow, post, tag, me, login, index] = pages;
 const notFoundPage: PageEntry = { pattern: '*', tag: 'gemkit-page-404', load: async () => ({ default: NotFoundPage }) };
 const route = ({ pattern, tag, load }: PageEntry, render: (params: Params, data: any) => TemplateResult) =>
   pageRoute(pattern, { tag, load, server: tag in serverModules }, render);
@@ -134,6 +143,7 @@ setOutlets(
       route(post, (p, d) => html`<gemkit-page-post .params=${p} .data=${d}></gemkit-page-post>`),
       route(tag, (p) => html`<gemkit-page-tag .params=${p}></gemkit-page-tag>`),
       route(me, (_, d) => html`<gemkit-page-me .data=${d}></gemkit-page-me>`),
+      route(login, () => html`<gemkit-page-login></gemkit-page-login>`),
       route(index, () => html`<gemkit-page-index></gemkit-page-index>`),
       notFoundRoute,
     ],
@@ -225,7 +235,11 @@ test('loadData: 返回服务端数据', async ({ assert }) => {
   });
 });
 
-test('loadData: 没有服务端 `load` 的页面返回 404', async ({ assert }) => {
+test('loadData: 没有服务端 `load` 的页面返回空数据', async ({ assert }) => {
+  assert.deepEqual(await loadData('/login/__data.json'), { status: 200, data: {} });
+});
+
+test('loadData: 没有服务端模块的页面返回 404', async ({ assert }) => {
   assert.deepEqual(await loadData('/__data.json'), { status: 404, data: null });
   assert.deepEqual(await loadData('/a/b/__data.json'), { status: 404, data: null });
 });
@@ -316,7 +330,7 @@ test('canPrerender: 读取请求的页面不预渲染', async ({ assert }) => {
 });
 
 test('getPaths: 展开动态路由和语言', async ({ assert }) => {
-  const paths = ['/slow', '/posts/1', '/posts/2', '/tags/a', '/tags/b%20c'];
+  const paths = ['/slow', '/posts/1', '/posts/2', '/tags/a', '/tags/b%20c', '/login'];
   assert.deepEqual(await renderer.getPaths(), [...paths, '/', ...paths.map((path) => `/zh${path}`), '/zh']);
 });
 

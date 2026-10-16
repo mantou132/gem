@@ -95,7 +95,8 @@ export function createRenderer({
   /**
    * 处理客户端导航时的数据请求，URL 是页面路径加上 `/__data.json`，预渲染时 `input` 是路径
    *
-   * 返回路径匹配的 layout 和页面的服务端数据，key 是标签名，跳转时数据为 `null`，响应头中有跳转的地址
+   * 返回路径匹配的 layout 和页面的服务端数据，key 是标签名，跳转时数据为 `null`，响应头中有跳转的地址，
+   * 客户端只在有服务端模块时请求，没有 `load`（例如只有 `actions`）时数据为空对象
    */
   const loadData = (input: Request | string) =>
     runInRequest(async () => {
@@ -103,12 +104,14 @@ export function createRenderer({
       const pagePathname = url.pathname.slice(0, -DATA_FILE.length - 1) || '/';
       const { path } = await setLanguage(pagePathname);
       const pageUrl = new URL(`${url.origin}${pagePathname}${url.search}`);
+      const routes = findServerRoutes(path);
+      if (!routes.length) return { status: 404, headers: toHeaders(setCookies), data: null };
       const data: RouteData = {};
       // 调用了 `notFound()` 的路由，其他路由的数据仍然可以使用，例如 layout 的数据
       let notFoundTag: string | undefined;
       try {
         await Promise.all(
-          findServerRoutes(path).map(async ({ tag, params }) => {
+          routes.map(async ({ tag, params }) => {
             if (!(await getServerModule(tag))?.load) return;
             try {
               data[tag] = await runServerLoad(tag, params, pageUrl);
@@ -124,8 +127,7 @@ export function createRenderer({
       }
       if (notFoundTag)
         return { status: 200, headers: toHeaders(setCookies, { [NOT_FOUND_HEADER]: notFoundTag }), data };
-      const status = Object.keys(data).length ? 200 : 404;
-      return { status, headers: toHeaders(setCookies), data: status === 200 ? data : null };
+      return { status: 200, headers: toHeaders(setCookies), data };
     });
 
   /** 处理页面的表单提交 `POST <page path>?/<name>`，没有对应的 action 时结果为 `null` */
