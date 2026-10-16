@@ -81,6 +81,17 @@ describe('history 测试', () => {
     expect(new URLSearchParams(location.search).get('tab')).to.equal('a');
     expect(window.history.length - historyLength).to.equal(1);
   });
+  it('Native pushState with hash', async () => {
+    let hashChangeCount = 0;
+    const onHashChange = () => hashChangeCount++;
+    addEventListener('hashchange', onHashChange);
+    window.history.pushState({}, '', '/c#a%20b');
+    removeEventListener('hashchange', onHashChange);
+    expect(window.location.pathname).to.equal('/c');
+    expect(window.location.hash).to.equal('#a%20b');
+    expect(history.getParams().hash).to.equal('#a b');
+    expect(hashChangeCount).to.equal(1);
+  });
   it('pushIgnoreCloseHandle', async () => {
     const { href } = window.location;
     let state = { open: true };

@@ -52,13 +52,14 @@ const globalParamsMap = new Map<string, HistoryParams>();
 const copyParamsMap = () => new Map([...globalParamsMap].map(([k, v]) => [k, { ...v }]));
 const getParamsMap = () => getRequestValue(globalParamsMap, copyParamsMap);
 
+// 内部状态字段，不能由外部设置
+const internalStateKeys = ['$key', '$hasCloseHandle', '$hasOpenHandle', '$hasShouldCloseHandle'] as const;
+
 function validData(data: any) {
-  const { $key, $hasCloseHandle, $hasOpenHandle, $hasShouldCloseHandle } = data || {};
-  if (store.$key === $key) return;
-  if ($key) throw new GemError('`$key` is not allowed');
-  if ($hasCloseHandle) throw new GemError('`$hasCloseHandle` is not allowed');
-  if ($hasOpenHandle) throw new GemError('`$hasOpenHandle` is not allowed');
-  if ($hasShouldCloseHandle) throw new GemError('`$hasShouldCloseHandle` is not allowed');
+  if (store.$key === data?.$key) return;
+  for (const key of internalStateKeys) {
+    if (data?.[key]) throw new GemError(`\`${key}\` is not allowed`);
+  }
 }
 
 function getUrlBarPath(internalPath: string) {
@@ -70,8 +71,11 @@ function getInternalPath(urlBarPath: string) {
   return urlBarPath.replace(new RegExp(`^${gemHistory.basePath}/`), '/');
 }
 
-function dispatchBeforeChangeEvent() {
+// 切换到新的历史记录状态
+function changeState(state: HistoryState) {
   gemHistory.dispatchEvent(new CustomEvent('beforechange'));
+  cleanObject(store);
+  store(state);
 }
 
 function normalizeParams(params: UpdateHistoryParams): HistoryParams {
@@ -107,9 +111,7 @@ function updateHistory(p: UpdateHistoryParams, native: typeof nativeHistory.push
     ...data,
   };
   getParamsMap().set(state.$key, params);
-  dispatchBeforeChangeEvent();
-  cleanObject(store);
-  store(state);
+  changeState(state);
   const url = getUrlBarPath(path) + new QueryString(query) + hash;
   const prevHash = decodeURIComponent(location.hash);
   native(state, title, url);
@@ -118,23 +120,8 @@ function updateHistory(p: UpdateHistoryParams, native: typeof nativeHistory.push
 
 // 跨框架时，调用者对 basePath 无感知
 function updateHistoryByNative(data: any, title: string, originUrl: string, native: typeof nativeHistory.pushState) {
-  validData(data);
-  const state = {
-    $key: getKey(),
-    $title: title,
-    ...(data || {}),
-  };
   const { pathname, search, hash } = new URL(originUrl, location.origin + location.pathname);
-  const params = normalizeParams({ path: pathname, query: new QueryString(search), hash, title, data });
-  getParamsMap().set(state.$key, params);
-  dispatchBeforeChangeEvent();
-  cleanObject(store);
-  store(state);
-  const url = getUrlBarPath(pathname) + params.query + hash;
-  const prevHash = location.hash;
-  native(state, title, url);
-  // `location.hash` 和 `hash` 都已经进行了 url 编码，可以直接进行相等判断
-  if (prevHash !== hash) dispatchEvent(new CustomEvent('hashchange'));
+  updateHistory({ path: pathname, query: search, hash, title, data }, native);
 }
 
 const gemBasePathStore = createStore({
@@ -315,9 +302,7 @@ if (!globalThis._GEMHISTORY) {
       }
     }
 
-    dispatchBeforeChangeEvent();
-    cleanObject(store);
-    store(newState);
+    changeState(newState);
   });
 }
 
