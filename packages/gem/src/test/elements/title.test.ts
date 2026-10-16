@@ -21,5 +21,12 @@ describe('GemTitleElement', () => {
     await nextFrame();
     expect(document.title).to.equal('prefix-Page');
     expect(ele.shadowRoot!.textContent).to.equal('Page');
+
+    // 只改变 hash 时保持标题，不重复添加前缀
+    location.hash = '#a';
+    await nextFrame();
+    await nextFrame();
+    expect(document.title).to.equal('prefix-Page');
+    expect(ele.shadowRoot!.textContent).to.equal('Page');
   });
 });

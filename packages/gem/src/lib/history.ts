@@ -76,7 +76,8 @@ function dispatchBeforeChangeEvent() {
 
 function normalizeParams(params: UpdateHistoryParams): HistoryParams {
   const current =
-    gemHistory.getParams() || ({ path: getInternalPath(location.pathname), query: new QueryString() } as HistoryParams);
+    gemHistory.getParams() ||
+    ({ path: getInternalPath(location.pathname), query: new QueryString(), title: document.title } as HistoryParams);
   // 没提供 path 使用当前 path
   const path = params.path ? absoluteLocation(current.path, params.path) : getInternalPath(location.pathname);
   // 没提供 query 又没有提供 path 时使用当前 search
@@ -84,8 +85,9 @@ function normalizeParams(params: UpdateHistoryParams): HistoryParams {
   const queryChanged = String(newQueryObject) !== String(current.query);
   const query = queryChanged ? newQueryObject : current.query;
   const urlChanged = path !== current.path || queryChanged;
-  // 没提供 title 又没有改变 URL 时使用当前 document.title
-  const title = params.title || (urlChanged ? '' : document.title);
+  // 没提供 title 又没有改变 URL 时使用当前 title
+  // 不使用 document.title，它可能已被格式化（例如添加了网站名后缀）
+  const title = params.title || (urlChanged ? '' : current.title);
   const statusChanged = params.close || params.data || params.open || params.shouldClose;
   // 没提供 hash 又没有改变 URL 仅仅是状态更新时使用当前 hash
   const hash = decodeURIComponent(params.hash ?? (!urlChanged && statusChanged ? location.hash : ''));

@@ -58,6 +58,14 @@ describe('history 测试', () => {
     await aTimeout(10);
     expect(history.getParams().title).to.equal('321');
   });
+  it('keep title when only hash changed', async () => {
+    history.replace({ title: 'Page' });
+    // 模拟应用格式化 document.title
+    document.title = 'Page | Site';
+    location.hash = '#x';
+    await aTimeout(10);
+    expect(history.getParams().title).to.equal('Page');
+  });
   it('Native pushState/replaceState', async () => {
     const historyLength = window.history.length;
     window.history.pushState({}, 'title', '/a');
