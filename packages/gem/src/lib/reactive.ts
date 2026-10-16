@@ -53,8 +53,9 @@ export const _RenderErrorEvent = 'gem@render-error';
 // fix modal-factory type error
 const updateTokenAlias = UpdateToken;
 
-const rootStyleSheetInfo = new WeakMap<Document | ShadowRoot, Map<CSSStyleSheet, number>>();
-const rootUpdateFnMap = new WeakMap<Map<CSSStyleSheet, number>, () => void>();
+// 渲染根中 light DOM 元素使用的样式表和使用次数，以及更新渲染根样式表的函数
+type RootSheets = { counts: Map<CSSStyleSheet, number>; update: () => void };
+const rootSheetsMap = new WeakMap<Document | ShadowRoot, RootSheets>();
 
 class GemCSSStyleSheet extends CSSStyleSheet {
   #ele?: HTMLStyleElement;
@@ -84,45 +85,37 @@ class GemCSSSheet {
     this.#content = v;
   }
 
-  // 不需要 GC
-  #record = new Map<any, GemCSSStyleSheet>();
-  #used = new Map<GemCSSStyleSheet, string>();
+  // 对同一类 dom 只使用同一个样式表，key 是元素类或者 `this`，不需要 GC
+  #sheets = new Map<any, { sheet: GemCSSStyleSheet; scope: string }>();
+
+  #apply({ sheet, scope }: { sheet: GemCSSStyleSheet; scope: string }) {
+    sheet.replaceSync(scope ? `${scope}{ ${this.#content} }` : this.#content);
+  }
+
   getStyle(host?: HTMLElement, isEleTheme?: boolean) {
     const isLight = host && !(host as GemElement).internals?.shadowRoot;
-
-    // 对同一类 dom 只使用同一个样式表
     const key = isLight ? host.constructor : this;
-    if (!this.#record.has(key)) {
-      const sheet = new GemCSSStyleSheet({ media: this.#media });
-      this.#record.set(key, sheet);
+    let item = this.#sheets.get(key);
+    if (!item) {
+      // light dom 嵌套时需要选择子元素
+      // `> *` 实际上是多范围？是否存在性能问题
+      // 不能使用 @layer，两个 @layer 不能覆盖，只有顺序起作用
+      // 所以外部不能通过元素名称选择器来覆盖样式，除非样式在之前插入（会自动反转应用到尾部， see `adoptRootStyleSheets`）
+      const scope = !isLight
+        ? ''
+        : isEleTheme
+          ? '@scope'
+          : `@scope (${host.tagName}) to (:state(${BoundaryCSSState}) > *)`;
+      item = { sheet: new GemCSSStyleSheet({ media: this.#media }), scope };
+      this.#sheets.set(key, item);
+      this.#apply(item);
     }
-
-    const sheet = this.#record.get(key)!;
-
-    // 只执行一次
-    if (!this.#used.has(sheet)) {
-      let style = this.#content;
-      let scope = '';
-      if (isLight) {
-        // light dom 嵌套时需要选择子元素
-        // `> *` 实际上是多范围？是否存在性能问题
-        scope = isEleTheme ? '@scope' : `@scope (${host.tagName}) to (:state(${BoundaryCSSState}) > *)`;
-        // 不能使用 @layer，两个 @layer 不能覆盖，只有顺序起作用
-        // 所以外部不能通过元素名称选择器来覆盖样式，除非样式在之前插入（会自动反转应用到尾部， see `appleCSSStyleSheet`）
-        style = `${scope}{ ${style} }`;
-      }
-      sheet.replaceSync(style);
-      this.#used.set(sheet, scope);
-    }
-
-    return sheet;
+    return item.sheet;
   }
 
   // 一般用于主题更新
   updateStyle() {
-    this.#used.forEach((scope, sheet) => {
-      sheet.replaceSync(scope ? `${scope}{${this.#content}}` : this.#content);
-    });
+    this.#sheets.forEach((item) => this.#apply(item));
   }
 }
 
@@ -170,40 +163,38 @@ export function css<T extends Record<string, string>>(
   return sheet as Sheet<T>;
 }
 
-const updateStyleSheets = (map: Map<CSSStyleSheet, number>, sheets: CSSStyleSheet[], value: number) => {
+const updateRootSheets = ({ counts, update }: RootSheets, sheets: CSSStyleSheet[], value: number) => {
   let needUpdate = false;
   sheets.forEach((e) => {
-    const count = map.get(e) || 0;
+    const count = counts.get(e) || 0;
     needUpdate ||= (value === 1 && count === 0) || (value === -1 && count === 1);
     // count 为 0 时不立即删除，以便更新时识别是否外部样式
     // 但是只要挂载 document 的样式表就不会被 GC 了, 是否要在闲时 GC？
-    map.set(e, count + value);
+    counts.set(e, count + value);
   });
-  if (needUpdate) {
-    // 避免重复更新，例如 list 元素增删，全 light dom 时 document 更新
-    // 在 SSR 中应该区别 effect 强制执行
-    addMicrotask(rootUpdateFnMap.get(map)!);
-  }
+  // 避免重复更新，例如 list 元素增删，全 light dom 时 document 更新
+  // 在 SSR 中应该区别 effect 强制执行
+  if (needUpdate) addMicrotask(update);
 };
 
-const appleCSSStyleSheet = (ele: HTMLElement, sheets: CSSStyleSheet[]) => {
+/** light DOM 元素的样式表添加到渲染根中，返回移除函数 */
+const adoptRootStyleSheets = (ele: HTMLElement, sheets: CSSStyleSheet[]) => {
   const root = ele.getRootNode() as ShadowRoot | Document;
-  if (!rootStyleSheetInfo.has(root)) {
-    const map = new Map<CSSStyleSheet, number>();
-    rootStyleSheetInfo.set(root, map);
-    rootUpdateFnMap.set(map, () => {
+  let rootSheets = rootSheetsMap.get(root);
+  if (!rootSheets) {
+    const counts = new Map<CSSStyleSheet, number>();
+    const update = () => {
       // 先找到外部样式表
-      const newSheets = (root.adoptedStyleSheets || []).filter((e) => !map.has(e));
-      map.forEach((count, sheet) => count && newSheets.push(sheet));
+      const newSheets = (root.adoptedStyleSheets || []).filter((e) => !counts.has(e));
+      counts.forEach((count, sheet) => count && newSheets.push(sheet));
       // 外层元素的样式要放到最后，以提升优先级，但是只考虑第一次出现样式表的位置
       root.adoptedStyleSheets = newSheets.reverse();
-    });
+    };
+    rootSheets = { counts, update };
+    rootSheetsMap.set(root, rootSheets);
   }
-
-  const map = rootStyleSheetInfo.get(root)!;
-
-  updateStyleSheets(map, sheets, 1);
-  return () => updateStyleSheets(map, sheets, -1);
+  updateRootSheets(rootSheets, sheets, 1);
+  return () => updateRootSheets(rootSheets, sheets, -1);
 };
 
 /**必须使用在字段中，否则会读取到错误的实例 */
@@ -478,7 +469,7 @@ export abstract class GemElement extends HTMLElement {
       shadowRoot.adoptedStyleSheets = clsSheets.concat(sheets);
     } else {
       this.prepend(...sheets.map((e) => e.element));
-      return appleCSSStyleSheet(this, clsSheets);
+      return adoptRootStyleSheets(this, clsSheets);
     }
   };
 

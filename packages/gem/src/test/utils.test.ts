@@ -116,6 +116,12 @@ describe('utils 测试', () => {
     expect(bodyStyleSheet.cssRules.item(0).cssText.startsWith('@scope (body)')).to.true;
     expect(bodyStyleSheet).to.equal(bodyStyleSheet);
     expect(bodyStyleSheet).not.to.equal(cssSheet[SheetToken].getStyle(document.documentElement));
+    // 更新内容时保留 light DOM 的作用域
+    cssSheet[SheetToken].setContent('div { color: blue; }');
+    cssSheet[SheetToken].updateStyle();
+    expect(bodyStyleSheet.cssRules.item(0).cssText.startsWith('@scope (body)')).to.true;
+    expect(bodyStyleSheet.cssRules.item(0).cssText).to.include('blue');
+    expect(cssSheet[SheetToken].getStyle().cssRules.item(0).style.color).to.equal('blue');
   });
   it('raw/css', () => {
     const title: any = undefined;
