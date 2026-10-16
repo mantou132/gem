@@ -1,6 +1,6 @@
 import type { EndEventDetail, GemGestureElement, PanEventDetail, SwipeEventDetail } from '../../elements/gesture';
 import { html } from '../../lib/element';
-import { aTimeout, expect, fixture } from '../utils';
+import { aTimeout, createFakeTimers, expect, fixture } from '../utils';
 
 import '../../elements/gesture';
 
@@ -19,6 +19,12 @@ function pointer(type: string, [timeStamp, clientX, clientY = 0]: Sample, pointe
   Object.defineProperty(event, 'timeStamp', { value: timeStamp });
   return event;
 }
+
+const clock = createFakeTimers();
+
+afterEach(() => {
+  clock.uninstall();
+});
 
 async function setupGesture(touchAction = '') {
   const el: GemGestureElement = await fixture(html`<gem-gesture touch-action=${touchAction}></gem-gesture>`);
@@ -43,9 +49,9 @@ describe('GemGestureElement end', () => {
       const { el, dispatch } = await setupGesture();
       const ends: EndEventDetail[] = [];
       el.addEventListener('end', (evt: CustomEvent<EndEventDetail>) => ends.push(evt.detail));
-      const pressed = new Promise((resolve) => el.addEventListener('press', resolve, { once: true }));
+      clock.install();
       dispatch('pointerdown', [0, 0]);
-      await pressed;
+      clock.tick(251);
       const event = pointer(type, [300, 10, 20]);
       el.dispatchEvent(event);
       await Promise.resolve();
@@ -68,7 +74,9 @@ describe('GemGestureElement end', () => {
       el.addEventListener('end', (evt: CustomEvent<EndEventDetail>) => resolve(evt.detail), { once: true });
     });
     el.addEventListener('press', () => dispatch('pointerup', [300, 0]), { once: true });
+    clock.install();
     dispatch('pointerdown', [0, 0]);
+    clock.tick(251);
     expect((await ended).pressed).to.equal(true);
   });
 });
@@ -330,9 +338,9 @@ describe('GemGestureElement swipe', () => {
 
   it('does not swipe after a long press', async () => {
     const { el, swipes, dispatch } = await setupGesture();
-    const pressed = new Promise((resolve) => el.addEventListener('press', resolve, { once: true }));
+    clock.install();
     dispatch('pointerdown', [0, 0]);
-    await pressed;
+    clock.tick(251);
     dispatch('pointermove', [300, 0]);
     dispatch('pointermove', [340, 60]);
     dispatch('pointerup', [350, 60]);

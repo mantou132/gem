@@ -1,11 +1,20 @@
 import { html, render } from '@mantou/gem/lib/element';
-import { expect } from '@mantou/gem/test/utils';
+import { createFakeTimers, expect } from '@mantou/gem/test/utils';
 
 import { longPress, repeatPress } from './directives';
 
-const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+let clock: ReturnType<typeof createFakeTimers>;
 
-it('`repeatPress` basic immediate click and pointerdown', async () => {
+beforeEach(() => {
+  clock = createFakeTimers();
+  clock.install();
+});
+
+afterEach(() => {
+  clock.uninstall();
+});
+
+it('`repeatPress` basic immediate click and pointerdown', () => {
   let count = 0;
   const container = document.createElement('div');
   document.body.appendChild(container);
@@ -18,29 +27,39 @@ it('`repeatPress` basic immediate click and pointerdown', async () => {
   btn.dispatchEvent(new PointerEvent('pointerdown', { button: 0, pointerId: 1 }));
   expect(count).to.equal(1);
 
-  // Wait for repeat
-  await sleep(120);
-  expect(count).to.be.greaterThan(2);
+  // No repeat before delay, first repeat one interval after delay
+  clock.tick(49);
+  expect(count).to.equal(1);
+  clock.tick(1);
+  expect(count).to.equal(1);
+  clock.tick(19);
+  expect(count).to.equal(1);
+  clock.tick(1);
+  expect(count).to.equal(2);
+
+  // Repeat every interval
+  clock.tick(20);
+  expect(count).to.equal(3);
+  clock.tick(20);
+  expect(count).to.equal(4);
 
   // Stop repeat
   btn.dispatchEvent(new PointerEvent('lostpointercapture', { pointerId: 1 }));
-  const countAfterStop = count;
-
-  await sleep(50);
-  expect(count).to.equal(countAfterStop);
+  clock.tick(1000);
+  expect(count).to.equal(4);
 
   // Keyboard activation (detail === 0)
   btn.dispatchEvent(new MouseEvent('click', { detail: 0 }));
-  expect(count).to.equal(countAfterStop + 1);
+  expect(count).to.equal(5);
 
   // Mouse click (detail > 0) should not double trigger
   btn.dispatchEvent(new MouseEvent('click', { detail: 1 }));
-  expect(count).to.equal(countAfterStop + 1);
+  expect(count).to.equal(5);
 
   container.remove();
 });
 
-it('`repeatPress` with disabled option', async () => {
+it('`repeatPress` with disabled option', () => {
   let count = 0;
   const container = document.createElement('div');
   document.body.appendChild(container);
@@ -50,12 +69,13 @@ it('`repeatPress` with disabled option', async () => {
   const btn = container.querySelector('button')!;
   btn.dispatchEvent(new PointerEvent('pointerdown', { button: 0, pointerId: 1 }));
   btn.dispatchEvent(new MouseEvent('click', { detail: 0 }));
+  clock.tick(1000);
   expect(count).to.equal(0);
 
   container.remove();
 });
 
-it('`repeatPress` stops when action returns false', async () => {
+it('`repeatPress` stops when action returns false', () => {
   let count = 0;
   const container = document.createElement('div');
   document.body.appendChild(container);
@@ -77,13 +97,21 @@ it('`repeatPress` stops when action returns false', async () => {
   btn.dispatchEvent(new PointerEvent('pointerdown', { button: 0, pointerId: 1 }));
   expect(count).to.equal(1);
 
-  await sleep(150);
+  clock.tick(40);
+  expect(count).to.equal(1);
+  clock.tick(20);
+  expect(count).to.equal(2);
+  clock.tick(20);
+  expect(count).to.equal(3);
+
+  // Stops when action returns false
+  clock.tick(1000);
   expect(count).to.equal(3);
 
   container.remove();
 });
 
-it('`longPress` fires after delay and calls release on pointerup', async () => {
+it('`longPress` fires after delay and calls release on pointerup', () => {
   let count = 0;
   let released = 0;
   const container = document.createElement('div');
@@ -95,15 +123,17 @@ it('`longPress` fires after delay and calls release on pointerup', async () => {
 
   // Short press does not fire
   el.dispatchEvent(new PointerEvent('pointerdown', { button: 0, pointerId: 1 }));
-  await sleep(10);
+  clock.tick(39);
   el.dispatchEvent(new PointerEvent('pointerup', { pointerId: 1 }));
-  await sleep(60);
+  clock.tick(1000);
   expect(count).to.equal(0);
   expect(released).to.equal(0);
 
   // Long press fires while held, release on pointerup
   el.dispatchEvent(new PointerEvent('pointerdown', { button: 0, pointerId: 1 }));
-  await sleep(60);
+  clock.tick(39);
+  expect(count).to.equal(0);
+  clock.tick(1);
   expect(count).to.equal(1);
   expect(released).to.equal(0);
   el.dispatchEvent(new PointerEvent('pointerup', { pointerId: 1 }));
@@ -112,7 +142,7 @@ it('`longPress` fires after delay and calls release on pointerup', async () => {
   container.remove();
 });
 
-it('`longPress` cancels on move and pointercancel', async () => {
+it('`longPress` cancels on move and pointercancel', () => {
   let count = 0;
   const container = document.createElement('div');
   document.body.appendChild(container);
@@ -123,18 +153,18 @@ it('`longPress` cancels on move and pointercancel', async () => {
 
   el.dispatchEvent(new PointerEvent('pointerdown', { button: 0, pointerId: 1, clientX: 0, clientY: 0 }));
   el.dispatchEvent(new PointerEvent('pointermove', { pointerId: 1, clientX: 20, clientY: 0 }));
-  await sleep(60);
+  clock.tick(1000);
   expect(count).to.equal(0);
 
   el.dispatchEvent(new PointerEvent('pointerdown', { button: 0, pointerId: 1 }));
   el.dispatchEvent(new PointerEvent('pointercancel', { pointerId: 1 }));
-  await sleep(60);
+  clock.tick(1000);
   expect(count).to.equal(0);
 
   container.remove();
 });
 
-it('`longPress` blocks the context menu unless disabled', async () => {
+it('`longPress` blocks the context menu unless disabled', () => {
   let count = 0;
   const container = document.createElement('div');
   document.body.appendChild(container);
@@ -153,7 +183,7 @@ it('`longPress` blocks the context menu unless disabled', async () => {
   draw(true);
   expect(contextMenu()).to.equal(false);
   container.querySelector('div')!.dispatchEvent(new PointerEvent('pointerdown', { button: 0, pointerId: 1 }));
-  await sleep(60);
+  clock.tick(1000);
   expect(count).to.equal(0);
 
   container.remove();
