@@ -1,4 +1,4 @@
-import { SSR_SERVER } from '../constants';
+import { SSR_HIDDEN, SSR_SERVER } from '../constants';
 import { getServerElementKey } from '../decorators';
 
 type ServerElementLoader = (
@@ -32,8 +32,9 @@ export class GemServerElement extends HTMLElement {
 
   constructor() {
     super();
-    // 水合时会设置相同的 attribute 值，只在值改变时获取
+    // 水合时会设置相同的 attribute 值，只在值改变时获取，没有挂载时在挂载时获取
     new MutationObserver((records) => {
+      if (!this.isConnected) return;
       if (records.some(({ attributeName, oldValue }) => this.getAttribute(attributeName!) !== oldValue)) this.#load();
     }).observe(this, { attributes: true, attributeOldValue: true });
   }
@@ -65,12 +66,14 @@ export class GemServerElement extends HTMLElement {
   };
 
   connectedCallback() {
-    if (this.#key !== undefined) return;
     if (this.hasAttribute(SSR_SERVER)) {
       this.removeAttribute(SSR_SERVER);
       this.#key = this.#getParams().key;
       return;
     }
+    // 服务端隐藏的条件分支中没有内容，水合时会被移除，显示时再获取
+    if (this.closest(`[${SSR_HIDDEN}]`)) return;
+    // key 没有改变时不会重新获取
     this.#load();
   }
 }

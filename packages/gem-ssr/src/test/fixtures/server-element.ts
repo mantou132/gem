@@ -33,3 +33,5 @@ export class DemoServerElement extends GemElement {
 }
 
 export const serverElement = () => html`<app-server-element text="a" .data=${{ n: 1 }}></app-server-element>`;
+
+export { hiddenServerElement } from './hidden';

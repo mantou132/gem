@@ -3,9 +3,12 @@ import './dom';
 import test from 'node:test';
 
 import { createStore, type GemElement } from '@mantou/gem';
+import { render as litRender } from '@mantou/gem/lib/lit-html';
 
 import { defineLazy, GemServerElement, setServerElementLoader } from '../client';
+import { hydrateContainer } from '../client/hydration';
 import { getServerElementKey, ssrContext } from '../decorators';
+import { hiddenServerElement } from './fixtures/hidden';
 import { counter, type DemoServerMethodElement } from './fixtures/server';
 import { ssr } from './ssr';
 
@@ -96,6 +99,29 @@ test('纯服务端元素：首屏使用服务端内容，客户端创建时获�
   await new Promise((resolve) => setTimeout(resolve));
   assert.equal(calls.length, 2, 'attribute 改变时重新获取');
   assert.equal(calls[1][0], getServerElementKey('app-server-element', { text: 'b' }, { data: { n: 1 } }));
+});
+
+test('纯服务端元素：服务端隐藏的元素显示时获取 HTML', async ({ assert }) => {
+  const html = await ssr('server-element.ts', 'hiddenServerElement', false);
+  assert.doesNotMatch(html, /ssr-server/, '隐藏的元素没有服务端内容');
+  const source = await ssr('server-element.ts', 'serverElement');
+  let calls = 0;
+  setServerElementLoader(async () => {
+    calls++;
+    return source;
+  });
+  if (!customElements.get('app-server-element')) {
+    customElements.define('app-server-element', class extends GemServerElement {});
+  }
+  const container = mount(html);
+  hydrateContainer(hiddenServerElement(false), container);
+  await new Promise((resolve) => setTimeout(resolve));
+  assert.equal(calls, 0, '隐藏时不获取');
+  litRender(hiddenServerElement(true), container);
+  await new Promise((resolve) => setTimeout(resolve));
+  assert.equal(calls, 1, '显示时获取');
+  assert.match(container.querySelector('app-server-element')!.textContent!, /a:1:loaded/);
+  container.remove();
 });
 
 test('延时视图：交互时加载并重放事件，客户端创建时直接加载', async ({ assert }) => {

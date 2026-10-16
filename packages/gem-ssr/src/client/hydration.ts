@@ -87,8 +87,8 @@ function buildNodeIndexMap(container: Node) {
   const stack: StackFrame[] = [{ index: 0, indexedNode: rootIndexNode, startNode: container.firstChild! }];
   let node: Node | null;
   while ((node = walker.nextNode())) {
-    // 超出容器
-    if (node === container.nextSibling) break;
+    // 超出容器，容器可能没有后面的兄弟节点，例如父元素中的最后一个元素
+    if (!container.contains(node)) break;
     // 忽略边缘注释
     if (isSSREndEdge(node)) continue;
 

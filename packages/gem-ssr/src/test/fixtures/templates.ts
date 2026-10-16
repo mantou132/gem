@@ -20,6 +20,10 @@ export class HydrationLightElement extends GemElement {
 
 export const lightElement = () => html`<hydration-light label="hi"></hydration-light>`;
 
+// 元素是父元素中的最后一个元素，水合元素时不能遍历到后面的节点，例如父模版的结束标记
+export const lightLast = (a: string, b: string) =>
+  html`<div>${html`<main><hydration-light label="hi"></hydration-light></main>`}<footer>${a}<hr />${b}</footer></div>`;
+
 const style = css`
   :scope {
     color: red;

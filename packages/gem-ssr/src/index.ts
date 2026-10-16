@@ -143,9 +143,13 @@ function setConditionAttrs({ condition }: OpenOp, hidden: boolean, attrs: Attrs)
   attrs.set(SSR_HIDDEN, style);
 }
 
-const serializeAttrs = (attrs: Attrs) => {
+// 模版中没有改变的 attribute 原样输出，保留其中的字符引用
+const serializeAttrs = (attrs: Attrs, op?: OpenOp) => {
   let result = '';
-  for (const [name, value] of attrs) result += ` ${name}="${escapeAttr(value)}"`;
+  for (const [name, value] of attrs) {
+    const origin = op?.attrs.find((e) => e.name === name);
+    result += origin?.value === value ? ` ${origin.raw}` : ` ${name}="${escapeAttr(value)}"`;
+  }
   return result;
 };
 
@@ -156,7 +160,6 @@ function getElementAttrs(element: Element) {
 }
 
 function renderPlainElement(op: OpenOp, values: unknown[], ctx: Context) {
-  let raw = `<${op.tag}`;
   const attrs: Attrs = new Map();
   for (const { name, value } of op.attrs) attrs.set(name, value);
   for (const bound of op.bound) {
@@ -170,14 +173,7 @@ function renderPlainElement(op: OpenOp, values: unknown[], ctx: Context) {
   }
   const hidden = isHiddenBranch(op, values);
   setConditionAttrs(op, hidden, attrs);
-  // 没有改变的 attribute 原样输出
-  if (attrs.size === op.attrs.length) {
-    for (const { raw: text } of op.attrs) raw += ` ${text}`;
-    raw += '>';
-  } else {
-    raw += `${serializeAttrs(attrs)}>`;
-  }
-  ctx.out.push(raw);
+  ctx.out.push(`<${op.tag}${serializeAttrs(attrs, op)}>`);
   return hidden;
 }
 
@@ -304,10 +300,11 @@ function buildElement(
   if (ssrContext.stateElements.has(element)) {
     attrs.set(SSR_STATE, JSON.stringify(element.internals.stateList.map((state) => ({ ...state }))));
   }
-  if (serverKey) attrs.set(SSR_SERVER, '');
+  // 隐藏的元素没有内容，客户端显示时获取
+  if (serverKey && !hidden) attrs.set(SSR_SERVER, '');
   if (withProps) attrs.set(SSR_PROPS, '');
   setConditionAttrs(op, conditionHidden, attrs);
-  const out: Piece[] = [`<${op.tag}${serializeAttrs(attrs)}>`];
+  const out: Piece[] = [`<${op.tag}${serializeAttrs(attrs, op)}>`];
   const { shadowRoot } = element;
   if (hidden) {
     if (shadowRoot) out.push(`<template${getShadowRootAttrs(shadowRoot)}></template>`);

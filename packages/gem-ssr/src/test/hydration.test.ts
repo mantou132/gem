@@ -211,3 +211,14 @@ test('水合模板为 null 的元素', async ({ assert }) => {
   assert.equal(p?.textContent, 'b');
   container.remove();
 });
+
+test('水合父元素中最后一个 light DOM 元素，不会遍历到容器后面的节点', async ({ assert }) => {
+  const container = await mkContainer('lightLast', 'a', 'b');
+  const span = container.querySelector('span.label');
+  document.body.append(container);
+  assert.equal(container.querySelector('span.label'), span, '元素水合时复用节点');
+  hydrateContainer(fx.lightLast('a', 'b'), container);
+  litRender(fx.lightLast('x', 'y'), container);
+  assert.equal(container.querySelector('footer')?.textContent, 'xy');
+  container.remove();
+});

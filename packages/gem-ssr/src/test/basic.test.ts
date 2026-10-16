@@ -207,3 +207,11 @@ test('stores: 输出请求中更新过的有 key 的 store', async ({ assert }) 
   assert.match(other, /user: <!--\?lit\$\d+\$-->guest/, '不影响其他请求');
   assert.equal(getStoresJSON(other), undefined, '没有更新的 store 不输出');
 });
+
+test('模版中没有改变的 attribute 原样输出，保留字符引用', async ({ assert }) => {
+  const result = await renderToString(
+    html`<p title="&copy; a" class=${'b'}></p><app-light-demo title="&hellip;" attr=${'"'}></app-light-demo>`,
+  );
+  assert.match(result, /<p title="&copy; a" class="b">/);
+  assert.match(result, /<app-light-demo title="&hellip;" attr="&quot;">/);
+});

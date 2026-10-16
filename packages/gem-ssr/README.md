@@ -183,6 +183,8 @@ rendered to strings:
 - Browser features are reported as unsupported on the server: `matchMedia()` does not match, `CSS.supports()` returns `false`
 - If the template returns `undefined`, `shadowRoot.innerHTML` (or `innerHTML` of a Light DOM element) set by the
   element is output as is (not hydrated), e.g. trusted HTML styled by global CSS
+- Light DOM elements with a template can not have children in the parent template, they are not hydrated,
+  use Shadow DOM and `<slot>` instead
 
 Output details:
 
