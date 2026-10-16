@@ -55,4 +55,7 @@ export class HydrationHTMLElement extends GemElement {
 export const htmlContent = (v: string) =>
   html`<hydration-html .content=${'<b>raw</b><i>html</i>'}></hydration-html><p>${v}</p>`;
 
+export const rawText = (color: string, bg: string, v: string) =>
+  html`<style>p{color:${color};background:${bg}}</style><p>${v}</p>`;
+
 export const nullTemplate = (v: string) => html`<hydration-null></hydration-null><p>${v}</p>`;

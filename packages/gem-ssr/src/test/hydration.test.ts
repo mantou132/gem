@@ -190,6 +190,17 @@ test('水合模板为 undefined、原样输出内容的元素', async ({ assert 
   assert.equal(container.querySelector('b'), raw, '水合时保留原样内容');
 });
 
+test('raw-text 元素中有绑定时由客户端渲染', async ({ assert, mock }) => {
+  const warn = mock.method(console, 'warn', () => {});
+  const container = await mkContainer('rawText', 'red', 'white', 'a');
+  assert.equal(container.querySelector('style')?.textContent, 'p{color:red;background:white}');
+  hydrateContainer(fx.rawText('red', 'white', 'a'), container);
+  litRender(fx.rawText('blue', 'black', 'b'), container);
+  assert.equal(container.querySelector('style')?.textContent, 'p{color:blue;background:black}');
+  assert.equal(container.querySelector('p')?.textContent, 'b');
+  assert.equal(warn.mock.callCount(), 1);
+});
+
 test('水合模板为 null 的元素', async ({ assert }) => {
   const container = await mkContainer('nullTemplate', 'a');
   const p = container.querySelector('p');

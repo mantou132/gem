@@ -50,6 +50,7 @@ export function startPrefetch() {
     const { path } = history.getParams();
     if (path !== current) prefetch(path, location.search, current);
     current = path;
+    // 页面中有没有纯服务端元素渲染后才知道，所以总是请求，和页面模块、数据并行
     loadPageElements();
   });
 }

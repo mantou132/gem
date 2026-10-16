@@ -141,6 +141,20 @@ const ATTRIBUTE_PART = 1;
 export const CHILD_PART = 2;
 const ELEMENT_PART = 6;
 
+const rawTextBindingCache = new WeakMap<object, boolean>();
+
+// 有绑定时 lit 会在 raw-text 元素末尾添加 marker 注释
+function hasRawTextBinding(template: any) {
+  let result = rawTextBindingCache.get(template);
+  if (result === undefined) {
+    result = [...template.el.content.querySelectorAll('script,style,textarea,title')].some(
+      (e: Element) => e.lastChild?.nodeType === Node.COMMENT_NODE,
+    );
+    rawTextBindingCache.set(template, result);
+  }
+  return result;
+}
+
 // 根据 SSR 内容预先设置 `_$committedValue`，后面渲染时就会复用现有节点
 function hydrateChildPart(part: ChildPart, value: unknown, indexedNode: IndexedNode) {
   if (value instanceof TemplateResult) {
@@ -152,6 +166,12 @@ function hydrateChildPart(part: ChildPart, value: unknown, indexedNode: IndexedN
       return;
     }
     const template = (part as any)._$getTemplate(value);
+    // raw-text 元素中的绑定在 SSR 内容中没有 marker，节点索引对不上，也由客户端渲染
+    if (hasRawTextBinding(template)) {
+      console.warn('gem-ssr: bindings inside raw-text elements cannot be hydrated', part.parentNode);
+      (part as any)._$clear();
+      return;
+    }
     part._$committedValue = buildInstance(template, part, value.values, indexedNode.childIndexMap!);
   } else if (Array.isArray(value)) {
     part._$committedValue = (indexedNode.items || []).map((item, index) => {
