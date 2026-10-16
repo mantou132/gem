@@ -142,3 +142,17 @@ test('水合时模板和服务端不一致，由客户端重新渲染', async ({
   assert.equal(div.textContent, 'clientb');
   assert.equal(warn.mock.callCount(), 1);
 });
+
+test('父模版设置了 property 的元素在父模版水合后才渲染', async ({ assert, mock }) => {
+  const warn = mock.method(console, 'warn', () => {});
+  const html = await ssr('props.ts', 'props');
+  assert.match(html, /<app-props-child ssr-props="">/, '标记父模版设置了 property 的元素');
+  const container = mount(html);
+  const b = container.querySelector('app-props-child b');
+  const { renders } = await import('./fixtures/props');
+  const child = container.querySelector('app-props-child')!;
+  assert.deepEqual(renders, ['a'], '首次渲染就有 property');
+  assert.equal(child.hasAttribute('ssr-props'), false);
+  assert.equal(child.querySelector('b'), b, '复用节点');
+  assert.equal(warn.mock.callCount(), 0);
+});

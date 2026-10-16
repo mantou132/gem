@@ -1,20 +1,15 @@
 // 必须在 Gem 之前执行，用来模拟 DOM 环境
 import './lib/shim';
 
-import {
-  _getUpdatedStores,
-  _RenderErrorEvent,
-  type GemElement,
-  history,
-  SheetToken,
-  setHydrationEngine,
-} from '@mantou/gem';
+import { _RenderErrorEvent, type GemElement, history, SheetToken } from '@mantou/gem';
 import { GemLightRouteElement } from '@mantou/gem/elements/route';
 import { createRef, html, TemplateResult } from '@mantou/gem/lib/lit-html';
+import { getRequestValue, ssrHooks } from '@mantou/gem/lib/server';
 
 import {
   LIT_PART_END,
   SSR_HIDDEN,
+  SSR_PROPS,
   SSR_SERVER,
   SSR_STYLE,
   STORES_SCRIPT_ID,
@@ -31,11 +26,20 @@ export { runInRequest };
 
 // 元素渲染的模板，key 是渲染容器
 const renderedTemplates = new WeakMap<object, unknown>();
-setHydrationEngine((value, container) => {
+ssrHooks.render = (value, container) => {
   renderedTemplates.set(container, value);
-  // 返回真值，跳过 DOM 渲染
-  return {} as any;
-});
+  // 跳过 DOM 渲染
+  return true;
+};
+
+// 当前请求中更新过的有 key 的 store，渲染后输出到页面中
+const updatedStores = new Map<string, object>();
+const getUpdatedStores = () => getRequestValue(updatedStores, () => new Map());
+ssrHooks.updateStore = (key, store) => {
+  const updated = getUpdatedStores();
+  // 不在请求中时更新的是全局的值
+  if (updated !== updatedStores) updated.set(key, store);
+};
 
 const ROOT_MARKER = '<!---->';
 const END_MARKER = `<!--${LIT_PART_END}-->`;
@@ -65,6 +69,8 @@ type Context = {
   serverElements?: Map<string, Piece[]>;
   // 中止后不再渲染新的模板，例如客户端断开
   signal?: AbortSignal;
+  // 在客户端会水合的元素模版中，模版设置的 property 在水合时恢复
+  hydrating?: boolean;
 };
 
 type DirectiveResult = {
@@ -185,6 +191,8 @@ type ElementFrame = {
   parentCtx: Context;
   // 纯服务端元素的 key
   serverKey?: string;
+  // 父模版设置了 property
+  withProps: boolean;
 };
 
 // 路由内部捕获了加载错误，SSR 时应该渲染失败
@@ -228,6 +236,7 @@ function createElement(Element: CustomElementConstructor, op: OpenOp, values: un
     conditionHidden,
     parentCtx: ctx,
     serverKey: serverOptions && !serverOptions.lazy ? getServerElementKey(op.tag, attrs, props) : undefined,
+    withProps: !!ctx.hydrating && Object.keys(props).length > 0,
   };
   if (frame.hidden) {
     ssrContext.tasks.delete(element);
@@ -287,12 +296,16 @@ function getLightStyle(element: GemElement, sheets: Set<unknown>, attrs = ` ${SS
 }
 
 // 在子内容后执行，异步任务完成后才能输出元素
-function buildElement({ op, element, hidden, conditionHidden, parentCtx, serverKey }: ElementFrame, children: Piece[]) {
+function buildElement(
+  { op, element, hidden, conditionHidden, parentCtx, serverKey, withProps }: ElementFrame,
+  children: Piece[],
+) {
   const attrs = getElementAttrs(element);
   if (ssrContext.stateElements.has(element)) {
     attrs.set(SSR_STATE, JSON.stringify(element.internals.stateList.map((state) => ({ ...state }))));
   }
   if (serverKey) attrs.set(SSR_SERVER, '');
+  if (withProps) attrs.set(SSR_PROPS, '');
   setConditionAttrs(op, conditionHidden, attrs);
   const out: Piece[] = [`<${op.tag}${serializeAttrs(attrs)}>`];
   const { shadowRoot } = element;
@@ -311,6 +324,8 @@ function buildElement({ op, element, hidden, conditionHidden, parentCtx, serverK
       hidden: false,
       serverElements: parentCtx.serverElements,
       signal: parentCtx.signal,
+      // 纯服务端元素不会水合
+      hydrating: !serverKey,
     };
     if (template !== undefined) {
       out.push(ROOT_MARKER);
@@ -332,6 +347,7 @@ function buildElement({ op, element, hidden, conditionHidden, parentCtx, serverK
         hidden: false,
         serverElements: parentCtx.serverElements,
         signal: parentCtx.signal,
+        hydrating: !serverKey,
       });
     } else if (element.innerHTML) {
       // 模版返回 `undefined` 时保留这些内容，根标记使父模版水合时跳过它们
@@ -441,7 +457,7 @@ const piecesToString = async (pieces: Piece[]) => {
 
 // 当前请求中更新过的有 key 的 store，客户端创建 store 时恢复
 function getStoresScript() {
-  const stores = _getUpdatedStores();
+  const stores = getUpdatedStores();
   if (!stores.size) return '';
   const data = Object.fromEntries([...stores].map(([key, store]) => [key, { ...store }]));
   // 避免内容中的 `</script>` 结束标签

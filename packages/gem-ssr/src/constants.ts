@@ -13,3 +13,5 @@ export const V_ELSE = 'v-else';
 export const STORES_SCRIPT_ID = 'gem-ssr-stores';
 // SSR 输出的纯服务端元素，客户端据此判断已经有服务端渲染的内容
 export const SSR_SERVER = 'ssr-server';
+// SSR 输出的元素由父模版设置了 property，水合时等待父模版设置后再渲染
+export const SSR_PROPS = 'ssr-props';

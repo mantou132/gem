@@ -1,13 +1,6 @@
-import {
-  ChildPart,
-  ConditionChain,
-  ElementPart,
-  type RootPart,
-  TemplateInstance,
-  TemplateResult,
-} from '@mantou/gem/lib/lit-html';
+import { ChildPart, ConditionChain, ElementPart, TemplateInstance, TemplateResult } from '@mantou/gem/lib/lit-html';
 
-import { LIT_PART_END, LIT_PART_START_RE, SSR_HIDDEN, SSR_STYLE, V_ELSE_IF, V_IF } from '../constants';
+import { LIT_PART_END, LIT_PART_START_RE, SSR_HIDDEN, SSR_PROPS, SSR_STYLE, V_ELSE_IF, V_IF } from '../constants';
 import { getTemplateDigest } from '../hash';
 
 // 根标记和列表项的首尾标记，开始标记后面可能有模板的摘要（`#digest`）
@@ -34,6 +27,33 @@ function getSSRRoot(container: Node | null) {
   let node = container?.firstChild;
   while (node?.nodeName === 'STYLE') node = node.nextSibling;
   return isSSRRoot(node) ? node : undefined;
+}
+
+// 元素所在模版的渲染容器：ShadowRoot 或者有 SSR 内容的 light DOM 元素
+function getTemplateContainer(ele: Element) {
+  let node = ele.parentNode;
+  while (node && !(node instanceof ShadowRoot) && !getSSRRoot(node)) node = node.parentNode;
+  return node;
+}
+
+// 等待父模版水合的元素，key 是父模版的渲染容器
+const pendingElements = new WeakMap<Node, Map<Element, () => void>>();
+
+/**
+ * 父模版设置了 property 的元素在父模版水合后才挂载，否则首次渲染时没有 property，
+ * 例如子元素先定义时会立即升级
+ */
+export function deferConnect(ele: Element, connect: () => void) {
+  if (!ele.hasAttribute(SSR_PROPS)) return false;
+  const container = getTemplateContainer(ele);
+  // 父模版已经水合，升级前设置的 property 会被保留
+  if (!container || '_$litPart$' in container) {
+    ele.removeAttribute(SSR_PROPS);
+    return false;
+  }
+  if (!pendingElements.has(container)) pendingElements.set(container, new Map());
+  pendingElements.get(container)!.set(ele, connect);
+  return true;
 }
 
 let walkerContainer: Node = document;
@@ -193,11 +213,12 @@ function buildInstance(template: any, parent: ChildPart, values: unknown[], node
   return instance;
 }
 
+/** 返回 `true` 表示水合了服务端渲染的内容 */
 export function hydrateContainer(result: TemplateResult, container: HTMLElement | DocumentFragment) {
-  if ('_$litPart$' in container) return;
+  if ('_$litPart$' in container) return false;
 
   const rootStartNode = getSSRRoot(container);
-  if (!rootStartNode) return;
+  if (!rootStartNode) return false;
 
   // SSR 输出的样式由客户端重新添加
   while (container.firstChild !== rootStartNode) container.firstChild!.remove();
@@ -206,5 +227,10 @@ export function hydrateContainer(result: TemplateResult, container: HTMLElement 
   hydrateChildPart(rootPart, result, { node: container, childIndexMap: buildNodeIndexMap(container) });
   // 绑定事件、设置 property、移除隐藏的分支
   rootPart._$setValue(result);
-  return rootPart as RootPart;
+  pendingElements.get(container)?.forEach((connect, ele) => {
+    ele.removeAttribute(SSR_PROPS);
+    if (ele.isConnected) connect();
+  });
+  pendingElements.delete(container);
+  return true;
 }

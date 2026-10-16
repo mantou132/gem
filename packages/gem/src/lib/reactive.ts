@@ -1,7 +1,7 @@
 // biome-ignore-all lint/plugin/no_this_effect: 兼容生命周期
 
 import type * as Lit from './lit-html';
-import { isServer } from './server';
+import { isServer, ssrHooks } from './server';
 import type { Store } from './store';
 import { connect } from './store';
 import {
@@ -27,21 +27,9 @@ export function setEngine(h: typeof Lit.html, r: typeof Lit.render) {
   render = r;
 }
 
-let hydrationEngine = (_value: unknown, _container: HTMLElement | DocumentFragment): Lit.RootPart | undefined => {
-  return;
-};
-
-// 在元素首次渲染前恢复 SSR 的状态
-let restoreState: ((ele: GemElement) => void) | undefined;
-
-export function setHydrationEngine(engine: typeof hydrationEngine, restore?: typeof restoreState) {
-  hydrationEngine = engine;
-  restoreState = restore;
-}
-
-/** 渲染元素内容，SSR 时由水合引擎接管 */
+/** 渲染元素内容，SSR 时由 `ssrHooks.render` 接管 */
 export const _renderRoot = (value: unknown, container: HTMLElement | DocumentFragment) =>
-  hydrationEngine(value, container) || render(value, container);
+  ssrHooks.render?.(value, container) || render(value, container);
 
 const { assign, defineProperty } = Object;
 
@@ -534,6 +522,7 @@ export abstract class GemElement extends HTMLElement {
       this.#clearStyle = this.#prepareStyle();
       return;
     }
+    if (ssrHooks.connect?.(this, this.#connectedCallback)) return;
     this.#notInCons = true;
     this.#compat();
 
@@ -546,7 +535,6 @@ export abstract class GemElement extends HTMLElement {
     if (!mode && this.#renderList.length && !penetrable) this.#internals.states.add(BoundaryCSSState);
 
     this.#disconnectStore = observedStores?.map((store) => connect(store, this.#update));
-    restoreState?.(this);
     this.#render(this.#renderItem);
     this.#isMounted = true;
     this.#clearStyle = this.#prepareStyle();
