@@ -169,7 +169,12 @@ describe('gem element 生命周期', () => {
     expect(el3.appTitle).to.equal('test1');
     expect(el3.appTitle2).to.equal('test2');
     expect(el3.renderCount).to.equal(0);
+    // 挂载前更新不会造成挂载后多余的渲染
+    el3.update();
+    el3.appTitle = 'test3';
     container.append(el3);
+    expect(el3.renderCount).to.equal(1);
+    await Promise.resolve();
     expect(el3.renderCount).to.equal(1);
   });
 });

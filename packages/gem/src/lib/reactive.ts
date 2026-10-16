@@ -329,8 +329,7 @@ export abstract class GemElement extends HTMLElement {
   #clearStyle?: (() => void) | undefined;
 
   [updateTokenAlias]() {
-    // 避免 `connectedCallback` 中的 property 赋值造成多余更新
-    if (this.#isMounted) addMicrotask(this.#update);
+    this.#scheduleUpdate();
   }
 
   static {
@@ -345,9 +344,8 @@ export abstract class GemElement extends HTMLElement {
         }
         assignState(state, payload);
         // 避免无限刷新
-        // 挂载前 set state 不应该触发更新
         // SSR 中渲染 <gem-route>，其他情况的 SSR 应该也可以执行
-        if (!ele.#rendering && ele.#isMounted) addMicrotask(ele.#update);
+        if (!ele.#rendering) ele.#scheduleUpdate();
       });
       ele.#internals.stateList.push(state);
       return state;
@@ -457,13 +455,20 @@ export abstract class GemElement extends HTMLElement {
     }
   };
 
-  #update = () => {
-    // SSR 需要同步渲染
+  // `@async()` 的元素在空闲时执行，SSR 需要同步执行
+  #schedule = (task: () => void) => {
     if (this.#metadata.noBlocking && !isServer) {
-      noBlockingTaskList.add(this.#updateCallback);
+      noBlockingTaskList.add(task);
     } else {
-      this.#updateCallback();
+      task();
     }
+  };
+
+  #update = () => this.#schedule(this.#updateCallback);
+
+  // 挂载前（例如 `connectedCallback` 中的 property 赋值）不需要更新，挂载时会渲染
+  #scheduleUpdate = () => {
+    if (this.#isMounted) addMicrotask(this.#update);
   };
 
   #prepareStyle = () => {
@@ -550,11 +555,7 @@ export abstract class GemElement extends HTMLElement {
    * use `@mounted`
    */
   connectedCallback(): Unique {
-    if (this.#metadata.noBlocking && !isServer) {
-      noBlockingTaskList.add(this.#connectedCallback);
-    } else {
-      this.#connectedCallback();
-    }
+    this.#schedule(this.#connectedCallback);
     return undefined as unknown as Unique;
   }
 
@@ -637,7 +638,7 @@ export abstract class GemElement extends HTMLElement {
    * @helper
    * async
    */
-  update = () => addMicrotask(this.#update);
+  update = () => this.#scheduleUpdate();
 }
 
 // 用来禁止 connectCallback 方法被覆盖而破坏 GemElement 的功能
