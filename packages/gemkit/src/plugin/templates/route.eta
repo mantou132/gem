@@ -1,6 +1,10 @@
 <% const load = it.path ? `() => import(${it.path})` : 'async () => RootLayout' -%>
 <% const info = `{ tag: '${it.tag}', load: ${load}${it.server ? ', server: true' : ''} }` -%>
-<% if (it.layout) { -%>
+<% if (it.isError) { -%>
+errorRoute(<%= info %>, (params, error) =>
+  html`<<%= it.tag %> .params=${params} .data=${error}></<%= it.tag %>>`,
+)
+<% } else if (it.layout) { -%>
 layoutRoute(<%= JSON.stringify(it.pattern) %>, <%= info %>, (props) =>
   html`<<%= it.tag %> .params=${props.params} .data=${props.data}></<%= it.tag %>>`,
 )

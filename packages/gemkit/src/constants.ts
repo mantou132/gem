@@ -16,3 +16,6 @@ export function getDataPath(path: string, file = DATA_FILE) {
 export function trimTrailingSlash(path: string) {
   return path.length > 1 ? path.replace(/\/+$/, '') || '/' : path;
 }
+
+/** 转义 HTML 文本和双引号属性值 */
+export const escapeHtml = (s: string) => s.replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('"', '&quot;');

@@ -58,6 +58,11 @@ export interface AppServerModule {
    * 预渲染前也执行，读取了 `request`、`cookies` 或者跳转的路径不预渲染
    */
   handle?: (event: RequestEvent) => unknown;
+  /**
+   * `handle`、`load`、`actions` 中抛出的非 `error()` 错误，用来记录日志或者上报，默认使用 `console.error`，
+   * 页面显示状态码 500，生产环境不显示错误信息
+   */
+  handleError?: (error: unknown, event: RequestEvent) => unknown;
 }
 
 /** `*.server.ts` 导出的内容，只在服务端执行 */
@@ -75,7 +80,7 @@ export interface ServerModule {
   actions?: Record<string, (ctx: ServerLoadContext<any>) => unknown>;
 }
 
-type ServerModules = Record<string, () => Promise<ServerModule>>;
+export type ServerModules = Record<string, () => Promise<ServerModule>>;
 
 // 页面和 layout 的标签名对应的服务端模块
 let serverModules: ServerModules = {};
@@ -104,13 +109,42 @@ export function redirect(status: 301 | 302 | 303 | 307 | 308, location: string):
   throw new Redirect(status, location);
 }
 
-export class NotFound {}
+/** 错误页面（`_error`）的 `data` */
+export interface ErrorData {
+  status: number;
+  message: string;
+}
+
+export class HttpError implements ErrorData {
+  constructor(
+    public status: number,
+    public message: string,
+  ) {}
+}
+
+/** 出错的路由，错误页面渲染在它的位置，`tag` 是它的标签名 */
+export type RouteError = ErrorData & { tag: string };
 
 /**
- * 在 `load` 中表示路由参数对应的内容不存在，例如文章不存在，渲染 404 页面（`_404`），状态码为 404，地址不变
+ * 在 `handle`、`load` 或 `actions` 中抛出错误，渲染错误页面（`_error`），地址不变
+ *
+ * `load` 中出错时，错误页面渲染在该页面或 layout 的位置，上层的 layout 保留
  */
+export function error(status: number, message = ''): never {
+  throw new HttpError(status, message);
+}
+
+/** 路由参数对应的内容不存在，例如文章不存在，等同于 `error(404, 'Not Found')` */
 export function notFound(): never {
-  throw new NotFound();
+  error(404, 'Not Found');
+}
+
+const logError = (err: unknown) => console.error(err);
+
+let errorHandler: NonNullable<AppServerModule['handleError']> = logError;
+
+export function setErrorHandler(handler: AppServerModule['handleError']) {
+  errorHandler = handler || logError;
 }
 
 /** 当前请求的状态，每个请求有独立的值 */
@@ -124,8 +158,8 @@ export const requestState = isolate<{
   locals?: Locals;
   /** `load` 中的跳转，渲染时不再输出内容 */
   redirect?: Redirect;
-  /** `load` 中调用了 `notFound()`，状态码为 404 */
-  notFound?: boolean;
+  /** 出错的路由，`handle` 中出错时在渲染前设置，响应使用它的状态码 */
+  error?: RouteError;
   /** 读取了 `request` 或 `cookies`，响应因人而异，不能被共享缓存 */
   personal?: boolean;
 }>({});
@@ -134,13 +168,13 @@ export const requestState = isolate<{
 export type RouteData = Record<string, unknown>;
 
 /**
- * 数据文件（`__data.json`）的内容，跳转时只有 `redirect`，`notFound` 是 `load` 中调用了 `notFound()` 的路由的标签名
+ * 数据文件（`__data.json`）的内容，跳转时只有 `redirect`，`error` 是出错的路由
  *
  * 静态托管时不能设置响应头，所以都放在内容中
  */
 export type DataFile = RouteDataFile | { redirect: string };
 
-type RouteDataFile = { data: RouteData; notFound?: string };
+type RouteDataFile = { data: RouteData; error?: RouteError };
 
 /**
  * 服务端渲染时页面和 layout 的数据，渲染后输出到页面中，水合时直接使用，每个请求有独立的值
@@ -148,8 +182,8 @@ type RouteDataFile = { data: RouteData; notFound?: string };
  * 不使用 store，避免被当作需要同步的 store 输出
  */
 export const ssrData = isolate<{
-  /** `notFound` 是 `load` 中调用了 `notFound()` 的路由的标签名 */
-  current?: { path: string; data: RouteData; notFound?: string };
+  /** `error` 是出错的路由 */
+  current?: { path: string; data: RouteData; error?: RouteError };
   /** 页面的数据和标题已经确定，可以开始输出文档 */
   ready?: boolean;
 }>({});
@@ -159,11 +193,33 @@ export function setSSRData(path: string, tag: string, data: unknown) {
   ssrData.current.data[tag] = data;
 }
 
-/** 服务端渲染时路由的 `load` 调用了 `notFound()`，水合时直接渲染 404 页面 */
-export function setSSRNotFound(path: string, tag: string) {
-  requestState.notFound = true;
+/** 服务端渲染时路由出错，响应使用它的状态码，水合时直接渲染错误页面 */
+export function setSSRError(path: string, err: RouteError) {
+  requestState.error ||= err;
   ssrData.current ||= { path, data: {} };
-  ssrData.current.notFound = tag;
+  ssrData.current.error ||= err;
+}
+
+/**
+ * 转换成错误页面的数据，意外的错误状态码为 500，生产环境隐藏错误信息，
+ * 服务端交给 `handleError`，预渲染时抛出，避免把错误页面当作页面输出
+ */
+export function toErrorData(err: unknown): ErrorData {
+  if (err instanceof HttpError) return { status: err.status, message: err.message };
+  if (isServer) {
+    if (!requestState.request) throw err;
+    errorHandler(err, getRequestEvent());
+  } else {
+    console.error(err);
+  }
+  const message = process.env.NODE_ENV === 'production' ? 'Internal Error' : String((err as Error)?.message ?? err);
+  return { status: 500, message };
+}
+
+/** 转换成出错的路由，`Redirect` 不是错误，直接抛出 */
+export function toRouteError(tag: string, err: unknown): RouteError {
+  if (err instanceof Redirect) throw err;
+  return { tag, ...toErrorData(err) };
 }
 
 /** 转换成 JSON 值，保证客户端拿到的数据和服务端一致 */
@@ -226,19 +282,20 @@ export async function runServerLoad(tag: string, params: Params) {
 
 let ssrResult: typeof ssrData.current | null | undefined;
 
-/** 读取服务端渲染时输出的数据，只在水合时使用，每个元素只使用一次 */
-export function takeSSRData(path: string, tag: string) {
+/** 服务端渲染时输出的数据，只在水合时使用 */
+function getSSRResult() {
   if (ssrResult === undefined) {
     const script = document.getElementById(DATA_SCRIPT_ID);
     script?.remove();
     ssrResult = script ? JSON.parse(script.textContent!) : null;
   }
-  if (!ssrResult || ssrResult.path !== path) return;
-  if (ssrResult.notFound === tag) {
-    delete ssrResult.notFound;
-    throw new NotFound();
-  }
-  if (!(tag in ssrResult.data)) return;
+  return ssrResult;
+}
+
+/** 读取服务端渲染时输出的数据，只在水合时使用，每个元素只使用一次 */
+export function takeSSRData(path: string, tag: string) {
+  const ssrResult = getSSRResult();
+  if (!ssrResult || ssrResult.path !== path || !(tag in ssrResult.data)) return;
   const data = ssrResult.data[tag];
   delete ssrResult.data[tag];
   return { data };
@@ -274,8 +331,33 @@ const getFileUrl = (path: string, search: string, file?: string) => history.base
 /** 路由的 `key`，改变时重新渲染所有路由 */
 export const outletStore = createStore({ key: 0 });
 
-/** 客户端在提交表单后需要重新加载数据，layout 不再复用数据，加载页面后重置 */
-export const clientState = { invalidated: false };
+/**
+ * 客户端在提交表单后需要重新加载数据，layout 不再复用数据，加载页面后重置
+ *
+ * `error` 是需要渲染错误页面的路由，例如 action 出错，`path` 是出错的页面路径
+ */
+export const clientState: { invalidated: boolean; error?: RouteError & { path: string } } = { invalidated: false };
+
+/**
+ * 路由在加载前就确定的错误，渲染错误页面：服务端是 `handle` 和 action 的错误，
+ * 客户端是服务端渲染时的错误（水合时）和 action 的错误，只使用一次
+ */
+export function takeRouteError(path: string, tag: string) {
+  let err: RouteError | undefined;
+  if (isServer) {
+    err = requestState.error;
+  } else if (clientState.error?.path === path) {
+    err = clientState.error;
+  } else if (getSSRResult()?.path === path) {
+    err = ssrResult!.error;
+  }
+  if (err?.tag !== tag) return;
+  if (!isServer) {
+    delete clientState.error;
+    if (ssrResult) delete ssrResult.error;
+  }
+  return new HttpError(err.status, err.message);
+}
 
 /** 客户端跳转到 `href`，语言（`basePath`）不同时重新加载页面，和当前地址相同时重新渲染路由 */
 function navigate(href: string, replace = false) {
@@ -298,8 +380,10 @@ function navigate(href: string, replace = false) {
 // 同一次导航中 layout 和页面共用一个数据请求，再次使用时重新请求
 let dataRequest: { url: string; promise: Promise<RouteDataFile>; taken: Set<string> } | undefined;
 
-async function fetchData(url: string, path: string): Promise<RouteDataFile> {
+/** 获取页面的数据文件，静态托管时没有预渲染的页面没有数据文件，和没有匹配的路由一样是 404 */
+export async function fetchData(url: string, path: string): Promise<RouteDataFile> {
   const res = await fetch(url);
+  if (res.status === 404) notFound();
   if (!res.ok) throw new Error(`gemkit: failed to load data of \`${path}\``);
   const file: DataFile = await res.json();
   // 服务端 `load` 中的跳转，预取时不跳转，使用数据时再跳转
@@ -327,8 +411,8 @@ export async function loadServerData(tag: string, params: Params) {
     dataRequest = { url, promise, taken: new Set() };
   }
   dataRequest.taken.add(tag);
-  const { data, notFound } = await dataRequest.promise;
-  if (notFound === tag) throw new NotFound();
+  const { data, error } = await dataRequest.promise;
+  if (error?.tag === tag) throw new HttpError(error.status, error.message);
   return data[tag];
 }
 
@@ -402,13 +486,16 @@ export async function loadServerElement(
   return renderElement(pageUrl, { tag, attrs, props });
 }
 
-/** `actions` 的结果 */
-export type ActionResult = { type: 'success'; data: unknown } | { type: 'redirect'; location: string };
+/** `actions` 的结果，出错时渲染错误页面 */
+export type ActionResult =
+  | { type: 'success'; data: unknown }
+  | { type: 'redirect'; location: string }
+  | { type: 'error'; error: RouteError };
 
 /**
  * 不刷新页面提交表单到 `actions`，提交的地址是表单（或者 `submitter`）的 `action`，例如 `?/login`
  *
- * 跳转时客户端导航，否则重新加载当前页面的数据，返回 action 的返回值
+ * 跳转时客户端导航，出错时渲染错误页面，否则重新加载当前页面的数据，返回 action 的返回值
  *
  * @example
  * ```ts
@@ -436,6 +523,7 @@ export async function submitAction(form: HTMLFormElement, submitter?: HTMLElemen
     navigate(result.location);
     return;
   }
+  if (result.type === 'error') clientState.error = { ...result.error, path: history.getParams().path };
   navigate(location.href, true);
-  return result.data;
+  return result.type === 'success' ? result.data : undefined;
 }

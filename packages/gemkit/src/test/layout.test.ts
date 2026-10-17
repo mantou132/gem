@@ -68,7 +68,7 @@ setOutlets({
     ),
     // 静态片段优先，`/docs/x` 匹配 layout，不匹配 `/:a/:b`
     layoutRoute('/docs/*', docs, (props) => html`<gemkit-layout-docs .params=${props.params}></gemkit-layout-docs>`),
-    pageRoute('/:a/:b', pair, (params, data) => html`<gemkit-page-a-b .data=${data}></gemkit-page-a-b>`),
+    pageRoute('/:a/:b', pair, (_, data) => html`<gemkit-page-a-b .data=${data}></gemkit-page-a-b>`),
   ],
   [docs.tag]: [],
 });

@@ -20,8 +20,8 @@ import { I18n } from '@mantou/gem/helper/i18n';
 import { getServerElementKey, server } from '@mantou/gem-ssr/decorators';
 
 import { DATA_SCRIPT_ID, REDIRECT_HEADER } from '../constants';
-import { getRequestEvent, notFound, redirect, type ServerModule } from '../data';
-import { pageRoute, setOutlets } from '../outlet';
+import { type ErrorData, getRequestEvent, notFound, redirect, type ServerModule } from '../data';
+import { errorRoute, pageRoute, setOutlets } from '../outlet';
 import { type Params, page } from '../page';
 import { createRequestHandler } from '../plugin/serve';
 import { createRenderer } from '../server';
@@ -97,10 +97,12 @@ class LoginPage extends GemElement {
   #content = () => html`<form method="post" action="?/login"></form>`;
 }
 
-@page('Not Found')
-class NotFoundPage extends GemElement {
+@page({ title: (_, { message }) => message })
+class ErrorPage extends GemElement {
+  data: ErrorData;
+
   @template()
-  #content = () => html`not found`;
+  #content = () => html`${this.data.status}: ${this.data.message}`;
 }
 
 // 页面的标签名和模块，和生成的 `routes.ts` 一样
@@ -147,11 +149,13 @@ const serverModules: Record<string, () => Promise<ServerModule>> = {
 
 // 和生成的 `routes.ts` 一样，模版中使用静态的标签名
 const [slow, post, tag, me, login, index] = pages;
-const notFoundPage: PageEntry = { pattern: '*', tag: 'gemkit-page-404', load: async () => ({ default: NotFoundPage }) };
 const route = ({ pattern, tag, load }: PageEntry, render: (params: Params, data: any) => TemplateResult) =>
   pageRoute(pattern, { tag, load, server: tag in serverModules }, render);
 
-const notFoundRoute = route(notFoundPage, () => html`<gemkit-page-404></gemkit-page-404>`);
+const errorPage = errorRoute(
+  { tag: 'gemkit-page-error', load: async () => ({ default: ErrorPage }) },
+  (_, error) => html`<gemkit-page-error .data=${error}></gemkit-page-error>`,
+);
 setOutlets(
   {
     '': [
@@ -161,10 +165,10 @@ setOutlets(
       route(me, (_, d) => html`<gemkit-page-me .data=${d}></gemkit-page-me>`),
       route(login, () => html`<gemkit-page-login></gemkit-page-login>`),
       route(index, () => html`<gemkit-page-index></gemkit-page-index>`),
-      notFoundRoute,
+      errorPage,
     ],
   },
-  notFoundRoute,
+  errorPage,
 );
 
 const renderer = createRenderer({
@@ -209,7 +213,7 @@ test('renderDocument: 未匹配的页面返回 404', async ({ assert }) => {
   const { status, html } = await renderPage('/a/b');
   assert.equal(status, 404);
   assert.match(html, /<title>Not Found \| Site<\/title>/);
-  assert.match(html, /not found/);
+  assert.match(html, />404<.*Not Found/);
 });
 
 test('renderDocument: 非默认语言设置 `<html lang>`', async ({ assert }) => {
@@ -435,15 +439,15 @@ test('renderDocument: `load` 中调用 `notFound()` 时渲染 404 页面，状�
   const result = (await Array.fromAsync(html)).join('');
   assert.equal(status, 404);
   assert.match(result, /<title>Not Found \| Site<\/title>/);
-  assert.match(result, /<gemkit-page-404>.*not found.*<\/gemkit-page-404>/s);
-  // 水合时直接渲染 404 页面
-  assert.match(result, /"notFound":"gemkit-page-post"/);
+  assert.match(result, /<gemkit-page-error ssr-props="">.*>404<.*Not Found.*<\/gemkit-page-error>/s);
+  // 水合时直接渲染错误页面
+  assert.match(result, /"error":\{"tag":"gemkit-page-post","status":404,"message":"Not Found"\}/);
 });
 
-test('loadData: `load` 中调用 `notFound()` 时数据文件中有该路由的标签名', async ({ assert }) => {
+test('loadData: `load` 中调用 `notFound()` 时数据文件中有出错的路由', async ({ assert }) => {
   assert.deepEqual(await loadData('/posts/missing/__data.json'), {
     status: 200,
-    body: { data: {}, notFound: 'gemkit-page-post' },
+    body: { data: {}, error: { tag: 'gemkit-page-post', status: 404, message: 'Not Found' } },
   });
 });
 

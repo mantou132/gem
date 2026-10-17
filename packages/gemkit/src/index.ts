@@ -5,7 +5,10 @@ export {
   type AppServerModule,
   type CookieOptions,
   type Cookies,
+  type ErrorData,
+  error,
   getRequestEvent,
+  HttpError,
   type Locals,
   notFound,
   type RequestEvent,
@@ -15,6 +18,7 @@ export {
   submitAction,
 } from './data';
 export { getBasePath, localizePath, splitLanguage } from './i18n';
-export { defineElement, GemkitOutletElement, layoutRoute, pageRoute, setOutlets } from './outlet';
-export { getPageOptions, type LayoutOptions, layout, type PageOptions, type Params, page } from './page';
+export type { Meta } from './meta';
+export { errorRoute, layoutRoute, pageRoute, type RouteInfo, setOutlets } from './outlet';
+export { type LayoutOptions, layout, type PageOptions, type Params, page } from './page';
 export { formatTitle, type TitleOptions } from './title';

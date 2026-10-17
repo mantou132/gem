@@ -103,15 +103,21 @@ export function createRequestHandler(
     const { pathname } = url;
     if (pathname === ELEMENT_PATH) {
       if (isCrossSite(request, url)) return new Response(null, { status: 403 });
-      const { headers, html } = await renderer.renderElements(request);
-      return Response.json(html, { headers });
+      const { status, headers, html } = await renderer.renderElements(request);
+      return Response.json(html, { status, headers });
     }
     if (isActionRequest(request.method, url.search)) {
       if (isCrossSite(request, url)) return new Response(null, { status: 403 });
       const { headers, result } = await renderer.runAction(request);
       if (!result) return new Response(null, { status: 404, headers });
-      // `submitAction` 提交时返回结果，原生表单提交时跳转到 `redirect` 的地址或者当前页面
+      // `submitAction` 提交时返回结果，原生表单提交时跳转到 `redirect` 的地址或者当前页面，出错时渲染错误页面
       if (request.headers.get('accept') === 'application/json') return Response.json(result, { headers });
+      if (result.type === 'error') {
+        const page = await renderer.renderDocument(template, request, { error: result.error });
+        for (const cookie of headers.getSetCookie()) page.headers.append('set-cookie', cookie);
+        page.headers.set('content-type', HTML_TYPE);
+        return new Response(toStream(page.html), { status: page.status, headers: page.headers });
+      }
       headers.set('location', result.type === 'redirect' ? result.location : pathname);
       return new Response(null, { status: 303, headers });
     }

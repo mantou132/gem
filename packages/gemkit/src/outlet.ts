@@ -11,19 +11,22 @@ import {
   titleStore,
 } from '@mantou/gem';
 import { type GemLightRouteElement, matchPath, type RouteItem } from '@mantou/gem/elements/route';
-import { isServer } from '@mantou/gem/lib/server';
+import { isolate, isServer } from '@mantou/gem/lib/server';
 
 import {
   clientState,
+  type ErrorData,
   loadServerData,
-  NotFound,
   outletStore,
   setSSRData,
-  setSSRNotFound,
+  setSSRError,
   ssrData,
+  takeRouteError,
   takeSSRData,
   toJSONValue,
+  toRouteError,
 } from './data';
+import { type Meta, updateMeta } from './meta';
 import { getPageOptions, type Params } from './page';
 
 import '@mantou/gem/elements/route';
@@ -33,42 +36,66 @@ type ElementModule = { default: CustomElementConstructor };
 // 每个 layout 的子路由，key 是 layout 的标签名，根路由的 key 为空字符串
 let outletRoutes: Record<string, RouteItem[]> = {};
 
-// 404 页面的路由，`load` 中调用 `notFound()` 时渲染
-let notFoundRoute: RouteItem<RouteInfo> | undefined;
+// 错误页面的路由，也是没有匹配时的 404 页面，`handle`、`load` 等出错时渲染在出错的路由的位置
+let errorPage: RouteItem<RouteInfo> | undefined;
 
 // 服务端渲染的 `<gemkit-outlet>` 在定义时就会升级，所以在设置路由后再定义
-export function setOutlets(routes: Record<string, RouteItem[]>, notFound?: RouteItem<RouteInfo>) {
+export function setOutlets(routes: Record<string, RouteItem[]>, error?: RouteItem<RouteInfo>) {
   outletRoutes = routes;
-  notFoundRoute = notFound;
+  errorPage = error;
   defineElement('gemkit-outlet', GemkitOutletElement);
 }
 
 /** 页面和 layout 的标签名由文件路径生成，加载模块后定义默认导出的元素 */
-export function defineElement(tag: string, cls: CustomElementConstructor) {
+function defineElement(tag: string, cls: CustomElementConstructor) {
   if (!customElements.get(tag)) customElements.define(tag, cls);
   return cls;
 }
 
 async function loadData(cls: CustomElementConstructor, tag: string, params: Params, hasServerModule?: boolean) {
   const { path } = history.getParams();
+  const err = takeRouteError(path, tag);
+  if (err) throw err;
   // 水合时使用服务端渲染的数据，不再执行 `load`
   const ssrResult = isServer ? undefined : takeSSRData(path, tag);
   if (ssrResult) return ssrResult.data;
   const { load } = getPageOptions(cls);
   if (!load && !hasServerModule) return;
-  let data: unknown;
-  try {
-    const serverData = hasServerModule ? await loadServerData(tag, params) : undefined;
-    data = load ? await load(params, serverData) : serverData;
-  } catch (err) {
-    if (isServer && err instanceof NotFound) setSSRNotFound(path, tag);
-    throw err;
-  }
+  const serverData = hasServerModule ? await loadServerData(tag, params) : undefined;
+  const data = load ? await load(params, serverData) : serverData;
   if (!isServer) return data;
   // 服务端模块的数据已经转换过
   const json = load ? toJSONValue(data) : data;
   setSSRData(path, tag, json);
   return json;
+}
+
+// layout 和页面的 meta，`path` 是加载时的页面路径，只合并当前路径的
+const routeMeta = isolate<{ value: Record<string, { path: string; meta: Meta }> }>({ value: {} });
+
+/** 当前路径匹配的 layout 和页面（或者错误页面）的 meta，内层的覆盖外层的 */
+export function getRouteMeta(path: string) {
+  const tags = matchRoutes(path).map(({ info }) => info.tag);
+  if (errorPage) tags.push(errorPage.data!.tag);
+  return Object.fromEntries(
+    tags.flatMap((tag) => {
+      const item = routeMeta.value[tag];
+      return item?.path === path ? Object.entries(item.meta) : [];
+    }),
+  ) as Meta;
+}
+
+function deleteRouteMeta(tags: string[]) {
+  routeMeta.value = Object.fromEntries(Object.entries(routeMeta.value).filter(([tag]) => !tags.includes(tag)));
+}
+
+/** 记录 layout 或页面的 meta，客户端更新 `<head>`，layout 和页面可能并行加载，所以都要更新 */
+async function setRouteMeta(cls: CustomElementConstructor, tag: string, params: Params, data: unknown) {
+  const { meta } = getPageOptions(cls);
+  const { path } = history.getParams();
+  const value = typeof meta === 'function' ? await meta(params, data) : meta;
+  routeMeta.value = { ...routeMeta.value, [tag]: { path, meta: value || {} } };
+  if (!isServer) updateMeta(getRouteMeta(path));
 }
 
 /** 子路由匹配的部分（`*`）不属于 layout 的参数 */
@@ -84,7 +111,7 @@ export const canReuseLayoutData = (prev: Params | undefined, next: Params) =>
  *
  * 子路由间导航时 layout 已经渲染，参数不变就复用数据，提交表单后重新加载
  */
-export async function loadLayout(
+async function loadLayout(
   load: () => Promise<ElementModule>,
   tag: string,
   routeParams: Params,
@@ -98,24 +125,32 @@ export async function loadLayout(
     ? current!.data
     : await loadData(cls, tag, params, hasServerModule);
   defineElement(tag, cls);
+  await setRouteMeta(cls, tag, params, data);
   return { params, data };
 }
 
-/** 加载页面模块和数据，返回页面数据，`hasServerModule` 表示页面有 `*.server.ts` */
-export async function loadPage(
+/**
+ * 加载页面模块和数据，返回页面数据，`hasServerModule` 表示页面有 `*.server.ts`，
+ * 错误页面使用 `error` 作为数据
+ */
+async function loadPage(
   load: () => Promise<ElementModule>,
   tag: string,
   params: Params,
   hasServerModule?: boolean,
+  error?: ErrorData,
 ) {
   const cls = (await load()).default;
-  const data = await loadData(cls, tag, params, hasServerModule);
+  const data = error || (await loadData(cls, tag, params, hasServerModule));
   // layout 在页面之前加载
   clientState.invalidated = false;
   defineElement(tag, cls);
   const { title: getTitle } = getPageOptions(cls);
   const title = typeof getTitle === 'function' ? await getTitle(params, data) : getTitle;
   if (title !== undefined) titleStore({ title });
+  // 页面正常显示时，同一路径之前的错误页面的 meta 不再使用
+  if (!error && errorPage) deleteRouteMeta([errorPage.data!.tag]);
+  await setRouteMeta(cls, tag, params, data);
   if (isServer) ssrData.ready = true;
   return data;
 }
@@ -135,14 +170,22 @@ export interface RouteInfo {
  */
 const isMatched = ({ tag }: RouteInfo) => matchRoutes(history.getParams().path).some(({ info }) => info.tag === tag);
 
-// 加载并渲染路由的内容，不检查路由是否匹配，404 页面在其他路由中渲染时使用
-const routeContents = new WeakMap<RouteItem, (params: Params) => Promise<TemplateResult>>();
+// 加载并渲染错误页面，不检查路由是否匹配，在其他路由的位置渲染时使用
+const errorContents = new WeakMap<RouteItem, (params: Params, error: ErrorData) => Promise<TemplateResult>>();
 
-/** `load` 中调用了 `notFound()` 时渲染 404 页面，没有 404 页面时渲染失败 */
-const renderNotFound = (params: Params) => (err: unknown) => {
-  const content = notFoundRoute && routeContents.get(notFoundRoute);
-  if (!(err instanceof NotFound) || !content) throw err;
-  return content(params);
+/**
+ * `tag` 的路由出错时在它的位置渲染错误页面，它和子路由的 meta 不再使用，
+ * 没有错误页面时渲染失败，跳转不是错误，直接抛出
+ */
+const renderError = (tag: string, params: Params) => (err: unknown) => {
+  const content = errorPage && errorContents.get(errorPage);
+  if (!content) throw err;
+  const { path } = history.getParams();
+  const error = toRouteError(tag, err);
+  if (isServer) setSSRError(path, error);
+  const tags = matchRoutes(path).map(({ info }) => info.tag);
+  deleteRouteMeta(tags.slice(tags.indexOf(tag)));
+  return content(params, { status: error.status, message: error.message });
 };
 
 /** 创建页面路由，`render` 使用页面的标签名渲染 */
@@ -151,17 +194,33 @@ export function pageRoute(
   info: RouteInfo,
   render: (params: Params, data: unknown) => TemplateResult,
 ): RouteItem<RouteInfo> {
-  const content = (params: Params) =>
-    loadPage(info.load, info.tag, params, info.server).then((data) => render(params, data));
-  const route: RouteItem<RouteInfo> = {
+  return {
     pattern,
     data: info,
     getContent: (params) => {
       if (!isMatched(info)) return;
-      return content(params).catch(renderNotFound(params));
+      return loadPage(info.load, info.tag, params, info.server)
+        .then((data) => render(params, data))
+        .catch(renderError(info.tag, params));
     },
   };
-  routeContents.set(route, content);
+}
+
+const NOT_FOUND: ErrorData = { status: 404, message: 'Not Found' };
+
+/** 创建错误页面的路由，没有匹配的路由时渲染 404，`render` 使用页面的标签名渲染 */
+export function errorRoute(info: RouteInfo, render: (params: Params, error: ErrorData) => TemplateResult) {
+  const content = (params: Params, error: ErrorData) =>
+    loadPage(info.load, info.tag, params, false, error).then(() => render(params, error));
+  const route: RouteItem<RouteInfo> = {
+    pattern: '*',
+    data: info,
+    getContent: (params) => {
+      if (!isMatched(info)) return;
+      return content(params, NOT_FOUND);
+    },
+  };
+  errorContents.set(route, content);
   return route;
 }
 
@@ -176,7 +235,10 @@ export function layoutRoute(
     data: { ...info, layout: true },
     getContent: (params, container) => {
       if (!isMatched(info)) return;
-      return loadLayout(info.load, info.tag, params, container, info.server).then(render, renderNotFound(params));
+      return loadLayout(info.load, info.tag, params, container, info.server).then(
+        render,
+        renderError(info.tag, params),
+      );
     },
   };
 }
@@ -199,18 +261,14 @@ export function matchRoutes(path: string) {
 /** 路径匹配的页面，没有匹配时（渲染 404 页面）返回 `undefined` */
 export function matchPage(path: string) {
   const page = matchRoutes(path).at(-1);
-  if (page && !page.info.layout && page.info !== notFoundRoute?.data) return page;
+  if (page && !page.info.layout && page.info !== errorPage?.data) return page;
 }
 
-/** 所有页面路由，不包括 404 页面 */
+/** 所有页面路由，不包括错误页面 */
 export function getPageRoutes() {
-  const result = new Map<RouteInfo, string>();
-  for (const routes of Object.values(outletRoutes)) {
-    for (const { pattern, data } of routes as RouteItem<RouteInfo>[]) {
-      if (data && !data.layout && data !== notFoundRoute?.data) result.set(data, pattern);
-    }
-  }
-  return [...result].map(([info, pattern]) => ({ info, pattern }));
+  return (Object.values(outletRoutes).flat() as RouteItem<RouteInfo>[])
+    .filter(({ data }) => data && !data.layout && data !== errorPage?.data)
+    .map(({ pattern, data }) => ({ info: data!, pattern }));
 }
 
 const style = css`
@@ -226,7 +284,7 @@ const style = css`
 @adoptedStyle(style)
 @connectStore(outletStore)
 @connectStore(history.store)
-export class GemkitOutletElement extends GemElement {
+class GemkitOutletElement extends GemElement {
   // 向上查找所属的 layout，包括 ShadowDOM 的宿主
   get #routes() {
     let node: Node | null = this.parentNode;

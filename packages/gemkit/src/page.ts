@@ -1,3 +1,5 @@
+import type { Meta } from './meta';
+
 export type Params = Record<string, string>;
 
 export interface LayoutOptions<P extends Params = Params, D = unknown> {
@@ -10,6 +12,11 @@ export interface LayoutOptions<P extends Params = Params, D = unknown> {
    * 没有提供该选项时直接使用 `*.server.ts` 的结果
    */
   load?: (params: P, serverData: any) => D | Promise<D>;
+  /**
+   * 页面的 `<meta>`，例如 `{ description: '...', 'og:image': '...' }`，可以根据路由参数和数据生成，
+   * layout 和页面的合并在一起，内层的覆盖外层的同名 key
+   */
+  meta?: Meta | ((params: P, data: D) => Meta | Promise<Meta>);
 }
 
 export interface PageOptions<P extends Params = Params, D = unknown> extends LayoutOptions<P, D> {

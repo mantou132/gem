@@ -8,7 +8,7 @@ import { logger, type RsbuildPlugin } from '@rsbuild/core';
 import type { UnpluginGemOptions } from 'unplugin-gem';
 import unpluginGem from 'unplugin-gem/rspack';
 
-import { ELEMENT_PATH, ELEMENTS_FILE, getDataPath } from '../constants';
+import { ELEMENT_PATH, ELEMENTS_FILE, escapeHtml, getDataPath } from '../constants';
 import type { DataFile } from '../data';
 import type { Renderer } from '../server';
 import { type GemkitConfig, generate, getSrcDir } from './codegen';
@@ -60,10 +60,8 @@ const ssrMiddleware =
     }
   };
 
-const escapeAttr = (s: string) => s.replaceAll('&', '&amp;').replaceAll('"', '&quot;');
-
 function getRedirectHtml(location: string) {
-  const url = escapeAttr(location);
+  const url = escapeHtml(location);
   return `<!doctype html><meta charset="utf-8"><title>Redirecting</title><meta http-equiv="refresh" content="0; url=${url}"><link rel="canonical" href="${url}">\n`;
 }
 

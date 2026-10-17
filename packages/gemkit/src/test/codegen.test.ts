@@ -23,7 +23,7 @@ function createFixture(files: string[]) {
 
 const pageFiles = [
   'src/pages/_layout.ts',
-  'src/pages/_404.ts',
+  'src/pages/_error.ts',
   'src/pages/_utils.ts',
   'src/pages/index.ts',
   'src/pages/about.ts',
@@ -43,7 +43,7 @@ const pageFiles = [
 test('scanPages: 页面、layout 和标签名', ({ assert }) => {
   const root = createFixture(pageFiles);
   const pagesDir = path.join(root, 'src/pages');
-  const { root: layout, notFound } = scanPages(pagesDir);
+  const { root: layout, error } = scanPages(pagesDir);
   const rel = (file?: string) => file && path.relative(pagesDir, file);
 
   assert.equal(layout.tag, 'gemkit-layout-root');
@@ -75,20 +75,15 @@ test('scanPages: 页面、layout 和标签名', ({ assert }) => {
     ],
   );
 
-  assert.deepEqual(notFound && { ...notFound, file: rel(notFound.file) }, {
-    pattern: '*',
-    file: '_404.ts',
-    tag: 'gemkit-page-404',
-    server: undefined,
-  });
+  assert.deepEqual(error && { ...error, file: rel(error.file) }, { file: '_error.ts', tag: 'gemkit-page-error' });
 });
 
-test('scanPages: 没有 layout 和 404', ({ assert }) => {
+test('scanPages: 没有 layout 和错误页面', ({ assert }) => {
   const root = createFixture(['src/pages/index.ts']);
-  const { root: layout, notFound } = scanPages(path.join(root, 'src/pages'));
+  const { root: layout, error } = scanPages(path.join(root, 'src/pages'));
   assert.equal(layout.tag, '');
   assert.equal(layout.file, undefined);
-  assert.equal(notFound, undefined);
+  assert.equal(error, undefined);
 });
 
 test('scanPages: 标签名重复时报错', ({ assert }) => {

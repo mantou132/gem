@@ -127,7 +127,7 @@ function scanDir(pagesDir: string, dir: string, segments: string[], layout: Layo
 export function scanPages(pagesDir: string) {
   const tags = new Map<string, string>();
   const rootLayout = findModule(pagesDir, '_layout');
-  const notFound = findModule(pagesDir, '_404');
+  const error = findModule(pagesDir, '_error');
   const rootFile = rootLayout && path.join(pagesDir, rootLayout);
   const root: LayoutNode = {
     tag: rootLayout ? toTag('layout', '') : '',
@@ -137,16 +137,8 @@ export function scanPages(pagesDir: string) {
     layouts: [],
   };
   scanDir(pagesDir, pagesDir, [], root, tags);
-  const notFoundFile = notFound && path.join(pagesDir, notFound);
-  return {
-    root,
-    notFound: notFoundFile && {
-      pattern: '*',
-      file: notFoundFile,
-      tag: toTag('page', '404'),
-      server: findServerModule(notFoundFile),
-    },
-  };
+  // 错误页面的数据是错误，没有服务端模块
+  return { root, error: error && { file: path.join(pagesDir, error), tag: toTag('page', 'error') } };
 }
 
 function writeIfChanged(file: string, content: string) {
@@ -171,7 +163,7 @@ const toImportPath = (genDir: string, file: string) =>
 
 /** 生成路由，返回有服务端模块的 layout 和页面 */
 function generateRoutes(genDir: string, pagesDir: string) {
-  const { root, notFound } = scanPages(pagesDir);
+  const { root, error } = scanPages(pagesDir);
   const importPath = (file: string) => toImportPath(genDir, file);
 
   // 客户端产物不能引用 `*.server.ts`，只传递是否有服务端模块
@@ -193,14 +185,13 @@ function generateRoutes(genDir: string, pagesDir: string) {
   const serverRoutes: { tag: string; server: string }[] = [];
   const addServerRoute = ({ tag, server }: { tag: string; server?: string }) =>
     server && serverRoutes.push({ tag, server });
-  const outlets: { tag: string; routes: object[]; notFound: boolean }[] = [];
+  const outlets: { tag: string; routes: object[]; error: boolean }[] = [];
   // 根 layout 也通过路由加载，这样可以和其他 layout 一样加载数据
   if (root.file) {
     // 根 layout 没有 `path`，使用静态导入的模块
-    outlets.push({ tag: '', routes: [{ ...layoutRoute('*', root), path: undefined }], notFound: false });
+    outlets.push({ tag: '', routes: [{ ...layoutRoute('*', root), path: undefined }], error: false });
     addServerRoute(root);
   }
-  if (notFound) addServerRoute(notFound);
   const collect = (layout: LayoutNode) => {
     layout.pages.forEach(addServerRoute);
     layout.layouts.forEach(({ layout: sub }) => addServerRoute(sub));
@@ -208,14 +199,14 @@ function generateRoutes(genDir: string, pagesDir: string) {
       ...layout.pages.map(pageRoute),
       ...layout.layouts.map(({ pattern, layout: sub }) => layoutRoute(pattern, sub)),
     ].sort((a, b) => comparePattern(a.pattern, b.pattern));
-    outlets.push({ tag: layout.tag, routes, notFound: !!notFound });
+    outlets.push({ tag: layout.tag, routes, error: !!error });
     layout.layouts.forEach(({ layout: sub }) => collect(sub));
   };
   collect(root);
 
   render(genDir, 'routes.ts', 'routes', {
     rootLayout: root.file && importPath(root.file),
-    notFound: notFound && pageRoute(notFound),
+    error: error && { tag: error.tag, path: importPath(error.file), isError: true },
     outlets,
   });
   return { serverRoutes };

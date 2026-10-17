@@ -34,7 +34,7 @@ src/
   index.html           optional HTML template, use `<!--gemkit-body-->` as the content placeholder
   pages/
     _layout.ts         root layout, render `<gemkit-outlet>` for child routes
-    _404.ts
+    _error.ts          error page, also the 404 page of unmatched paths
     index.ts           /
     about.ts           /about
     blog/
@@ -64,6 +64,8 @@ import { page } from '@mantou/gemkit';
   // put server-only code in `*.server.ts`
   load: ({ slug }) => getPost(slug),
   title: (_, post) => post?.title || 'Not Found',
+  // `<meta>` of the page, see below
+  meta: (_, post) => ({ description: post?.summary, 'og:image': post?.cover }),
   // params of the dynamic route to prerender
   paths: () => posts.map(({ slug }) => ({ slug })),
 })
@@ -74,6 +76,55 @@ export default class PostPage extends GemElement {
   #content = () => html`<h1>${this.data?.title}</h1>`;
 }
 ```
+
+## Meta
+
+The `meta` option of pages and layouts (an object or a function of `params` and `data`) is rendered into `<head>`
+and updated on client navigation:
+
+- keys containing `:` (e.g. `og:image`) are rendered as `property`, others as `name`, `undefined` values are skipped
+- metas of the layouts and the page are merged, inner ones override the same keys,
+  e.g. set the site-wide defaults in the root layout
+- don't put the same `<meta>` in `index.html`, the page one is added, not replacing it
+
+## Error page
+
+`error(status, message?)` throws in `handle`, `load` (client or server) and `actions`, `notFound()` is `error(404, 'Not Found')`.
+`src/pages/_error.ts` is rendered with the error as `data`, the URL is kept and the response has the status:
+
+```ts
+// src/pages/_error.ts
+import { GemElement, html, property, template } from '@mantou/gem';
+import { type ErrorData, page } from '@mantou/gemkit';
+
+@page<{}, ErrorData>({ title: (_, { status }) => `Error ${status}` })
+export default class ErrorPage extends GemElement {
+  @property data?: ErrorData;
+
+  @template()
+  #content = () => html`<h1>${this.data?.status}</h1><p>${this.data?.message}</p>`;
+}
+```
+
+- it is rendered in place of the failed page or layout, the outer layouts are kept;
+  errors in `handle` are rendered in place of the first route that has a `*.server.ts`, otherwise the page;
+  paths not matched are rendered as 404 in place of the page
+- other errors are unexpected, the status is 500, the message is `Internal Error` in production.
+  On the server they are passed to `handleError` of `src/app.server.ts` (default `console.error`) to log or report:
+
+  ```ts
+  // src/app.server.ts
+  import type { RequestEvent } from '@mantou/gemkit';
+
+  export function handleError(error: unknown, event: RequestEvent) {
+    reportError(error, event.url);
+  }
+  ```
+
+- unexpected errors fail the build when prerendering, `error()` pages are prerendered as the page
+- an action error renders the error page in place of the page: `submitAction` renders it on the client,
+  without JS the response is the error page
+- without `_error.ts`, errors are not handled, e.g. SSR responds 500
 
 ## Store
 

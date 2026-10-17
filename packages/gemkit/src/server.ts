@@ -5,7 +5,7 @@ import { history, type TemplateResult, titleStore } from '@mantou/gem';
 import type { I18n } from '@mantou/gem/helper/i18n';
 import { type RenderOptions, render, renderServerElement, runInRequest } from '@mantou/gem-ssr';
 
-import { DATA_FILE, DATA_SCRIPT_ID, REDIRECT_HEADER, trimTrailingSlash } from './constants';
+import { DATA_FILE, DATA_SCRIPT_ID, escapeHtml, REDIRECT_HEADER, trimTrailingSlash } from './constants';
 import { createCookies } from './cookies';
 import {
   type ActionResult,
@@ -14,19 +14,24 @@ import {
   type DataFile,
   getRequestEvent,
   getServerModule,
-  NotFound,
+  HttpError,
   Redirect,
   type RouteData,
+  type RouteError,
   requestState,
   runServerLoad,
   type ServerElementParams,
-  type ServerModule,
+  type ServerModules,
+  setErrorHandler,
   setServerModules,
   ssrData,
+  toErrorData,
   toJSONValue,
+  toRouteError,
 } from './data';
 import { getBasePath, localizePath, splitLanguage } from './i18n';
-import { getLayoutParams, getPageRoutes, matchPage, matchRoutes } from './outlet';
+import { formatMeta } from './meta';
+import { getLayoutParams, getPageRoutes, getRouteMeta, matchPage, matchRoutes } from './outlet';
 import { getPageOptions, type Params } from './page';
 import { formatTitle, type TitleOptions } from './title';
 
@@ -34,7 +39,7 @@ export interface RendererOptions extends TitleOptions {
   /** 路由使用 `setOutlets` 设置的路由，和客户端一样匹配 */
   app: TemplateResult;
   /** 页面和 layout 标签名对应的 `*.server.ts` */
-  serverModules?: Record<string, () => Promise<ServerModule>>;
+  serverModules?: ServerModules;
   /** `src/app.server.ts` */
   appServerModule?: AppServerModule;
   i18n?: I18n<any>;
@@ -51,8 +56,6 @@ export interface RenderResult {
   /** 页面的数据和标题确定后才开始输出，之后的异步内容（例如 `@server`）流式输出，跳转时没有内容 */
   html: AsyncGenerator<string>;
 }
-
-const escapeHtml = (s: string) => s.replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('"', '&quot;');
 
 /** 设置的 cookie 添加到响应头，因人而异的响应不能被 CDN 等共享缓存，在请求作用域中调用 */
 function toHeaders(setCookies: string[], init?: HeadersInit) {
@@ -79,6 +82,7 @@ export function createRenderer({
   ...titleOptions
 }: RendererOptions) {
   setServerModules(serverModules);
+  setErrorHandler(appServerModule.handleError);
 
   /** 路径匹配的 layout 和页面（包括 404 页面）中有服务端模块的，以及它们的参数 */
   const findServerRoutes = (path: string) =>
@@ -105,6 +109,15 @@ export function createRenderer({
     return { lang, path };
   };
 
+  /**
+   * `handle` 出错时错误页面渲染的位置：第一个有服务端模块的路由，和客户端导航时请求数据的路由一致，
+   * 都没有时为页面
+   */
+  const getErrorTarget = (path: string) => {
+    const routes = matchRoutes(path);
+    return (routes.find(({ info }) => info.server) || routes.at(-1))?.info.tag ?? '';
+  };
+
   /** 执行 `src/app.server.ts` 的 `handle`，`url` 是页面的 URL，`path` 不包含语言前缀，跳转时抛出 `Redirect` */
   const handleRequest = async (url: URL, path: string) => {
     requestState.url = url;
@@ -117,7 +130,8 @@ export function createRenderer({
    * 处理客户端导航时的数据请求，URL 是页面路径加上 `/__data.json`，预渲染时 `input` 是路径
    *
    * 返回数据文件的内容 `body`，其中有路径匹配的 layout 和页面的服务端数据，key 是标签名，
-   * 客户端只在有服务端模块时请求，没有 `load`（例如只有 `actions`）时数据为空对象
+   * 客户端只在有服务端模块时请求，没有 `load`（例如只有 `actions`）时数据为空对象，
+   * 出错时其他路由的数据仍然可以使用，例如 layout 的数据
    */
   const loadData = (input: Request | string) =>
     runInRequest(async (): Promise<{ status: number; headers: Headers; body: DataFile | null }> => {
@@ -127,30 +141,37 @@ export function createRenderer({
       const pageUrl = new URL(`${url.origin}${pagePathname}${url.search}`);
       const routes = findServerRoutes(path);
       const data: RouteData = {};
-      // 调用了 `notFound()` 的路由，其他路由的数据仍然可以使用，例如 layout 的数据
-      let notFoundTag: string | undefined;
+      // 多个路由出错时使用外层的，和渲染时一致
+      const errors: RouteError[] = [];
       try {
-        await handleRequest(pageUrl, path);
+        try {
+          await handleRequest(pageUrl, path);
+        } catch (err) {
+          // 和渲染时一致，在第一个请求数据的路由的位置渲染错误页面
+          if (!routes.length) throw err;
+          errors[0] = toRouteError(routes[0].tag, err);
+        }
         if (!routes.length) return { status: 404, headers: toHeaders(setCookies), body: null };
-        await Promise.all(
-          routes.map(async ({ tag, params }) => {
-            if (!(await getServerModule(tag))?.load) return;
-            try {
-              data[tag] = await runServerLoad(tag, params);
-            } catch (err) {
-              if (!(err instanceof NotFound)) throw err;
-              notFoundTag = tag;
-            }
-          }),
-        );
+        if (!errors.length) {
+          await Promise.all(
+            routes.map(async ({ tag, params }, index) => {
+              if (!(await getServerModule(tag))?.load) return;
+              try {
+                data[tag] = await runServerLoad(tag, params);
+              } catch (err) {
+                errors[index] = toRouteError(tag, err);
+              }
+            }),
+          );
+        }
       } catch (err) {
         if (!(err instanceof Redirect)) throw err;
         return { status: 200, headers: toHeaders(setCookies), body: { redirect: err.location } };
       }
-      return { status: 200, headers: toHeaders(setCookies), body: { data, notFound: notFoundTag } };
+      return { status: 200, headers: toHeaders(setCookies), body: { data, error: errors.find(Boolean) } };
     });
 
-  /** 处理页面的表单提交 `POST <page path>?/<name>`，没有对应的 action 时结果为 `null` */
+  /** 处理页面的表单提交 `POST <page path>?/<name>`，没有对应的 action 时结果为 `null`，出错时错误页面渲染在页面的位置 */
   const runAction = (request: Request) =>
     runInRequest(async () => {
       const { url, setCookies } = setRequest(request);
@@ -167,18 +188,20 @@ export function createRenderer({
         const data = await actions[name](createServerContext(matched.info.tag, matched.params));
         result = { type: 'success', data: toJSONValue(data) };
       } catch (err) {
-        if (!(err instanceof Redirect)) throw err;
-        result = { type: 'redirect', location: err.location };
+        result =
+          err instanceof Redirect
+            ? { type: 'redirect', location: err.location }
+            : { type: 'error', error: toRouteError(matched.info.tag, err) };
       }
       return { headers: toHeaders(setCookies), result };
     });
 
   /**
    * 渲染页面中的纯服务端元素，请求体是 `{ url, elements }`，`url` 是页面的路径，
-   * 返回元素的 HTML，顺序和 `elements` 一致，跳转时为 `null`，响应头中有跳转的地址
+   * 返回元素的 HTML，顺序和 `elements` 一致，跳转时为 `null`，响应头中有跳转的地址，`handle` 出错时为 `null`
    */
   const renderElements = (request: Request) =>
-    runInRequest(async () => {
+    runInRequest(async (): Promise<{ status: number; headers: Headers; html: string[] | null }> => {
       const { url, setCookies } = setRequest(request);
       const body: { url: string; elements: ServerElementParams[] } = await request.json();
       const { pathname, search } = new URL(body.url, url);
@@ -186,8 +209,10 @@ export function createRenderer({
       try {
         await handleRequest(new URL(`${url.origin}${pathname}${search}`), path);
       } catch (err) {
-        if (!(err instanceof Redirect)) throw err;
-        return { headers: toHeaders(setCookies, { [REDIRECT_HEADER]: err.location }), html: null };
+        if (err instanceof Redirect) {
+          return { status: 200, headers: toHeaders(setCookies, { [REDIRECT_HEADER]: err.location }), html: null };
+        }
+        return { status: toErrorData(err).status, headers: toHeaders(setCookies), html: null };
       }
       // 元素在页面和 layout 的模块中定义
       await Promise.all(matchRoutes(path).map(({ info }) => info.load()));
@@ -195,18 +220,19 @@ export function createRenderer({
       const html = await Promise.all(
         body.elements.map(({ tag, attrs, props }) => renderServerElement(tag, attrs, props, options)),
       );
-      return { headers: toHeaders(setCookies), html };
+      return { status: 200, headers: toHeaders(setCookies), html };
     });
 
   /**
    * 将渲染结果插入 HTML 模版，模版中使用 `<!--gemkit-body-->` 标记内容位置
    *
-   * 预渲染时 `input` 是路径，使用 `serverElements` 收集纯服务端元素的 HTML
+   * 预渲染时 `input` 是路径，使用 `serverElements` 收集纯服务端元素的 HTML，
+   * `error` 是没有 JS 时提交表单的 action 的错误，渲染错误页面
    */
   const renderDocument = (
     template: string,
     input: Request | string,
-    { serverElements }: Pick<RenderOptions, 'serverElements'> = {},
+    { serverElements, error }: Pick<RenderOptions, 'serverElements'> & { error?: RouteError } = {},
   ) =>
     // 每个请求有独立的 history、i18n、store 和 `requestState`
     runInRequest(async (): Promise<RenderResult> => {
@@ -223,9 +249,11 @@ export function createRenderer({
       // 调用 `render` 时立即开始渲染，需要先执行
       try {
         await handleRequest(url, path);
+        requestState.error = error;
       } catch (err) {
-        if (!(err instanceof Redirect)) throw err;
-        return redirectTo(err);
+        if (err instanceof Redirect) return redirectTo(err);
+        // 渲染时在对应路由的位置渲染错误页面
+        requestState.error = toRouteError(getErrorTarget(path), err);
       }
       // 客户端断开时中止渲染，预渲染时没有请求
       const signal = typeof input === 'string' ? undefined : input.signal;
@@ -252,10 +280,12 @@ export function createRenderer({
       const dataScript = ssrData.current
         ? `<script type="application/json" id="${DATA_SCRIPT_ID}">${JSON.stringify(ssrData.current).replaceAll('<', '\\u003c')}</script>`
         : '';
-      let html = template.replace(
-        /<title>[\s\S]*?<\/title>/,
-        () => `<title>${escapeHtml(formatTitle(titleStore.title, titleOptions))}</title>`,
-      );
+      let html = template
+        .replace(
+          /<title>[\s\S]*?<\/title>/,
+          () => `<title>${escapeHtml(formatTitle(titleStore.title, titleOptions))}</title>`,
+        )
+        .replace('</head>', () => `${formatMeta(getRouteMeta(path))}</head>`);
       if (lang) {
         html = html.replace(
           /<html([^>]*)>/,
@@ -264,7 +294,7 @@ export function createRenderer({
       }
       const [start, end] = html.split('<!--gemkit-body-->');
       return {
-        status: matchPage(path) && !requestState.notFound ? 200 : 404,
+        status: requestState.error?.status ?? (matchPage(path) ? 200 : 404),
         headers: toHeaders(setCookies),
         html: (async function* () {
           yield start + body;
@@ -276,7 +306,7 @@ export function createRenderer({
 
   /**
    * 路径匹配的 layout 和页面的服务端模块都没有设置 `prerender = false`，
-   * 并且 `handle` 没有读取 `request`、`cookies`，也没有跳转，例如需要登录的页面
+   * 并且 `handle` 没有读取 `request`、`cookies`，也没有跳转或者出错，例如需要登录的页面
    */
   const canPrerender = (pathname: string) =>
     runInRequest(async () => {
@@ -287,7 +317,7 @@ export function createRenderer({
         await handleRequest(new URL(pathname, 'http://localhost'), path);
       } catch (err) {
         // 预渲染时读取 `cookies` 会报错
-        if (!(err instanceof Redirect) && !requestState.personal) throw err;
+        if (!(err instanceof Redirect || err instanceof HttpError) && !requestState.personal) throw err;
         return false;
       }
       return !requestState.personal;
