@@ -5,12 +5,13 @@ import { history, type TemplateResult, titleStore } from '@mantou/gem';
 import type { I18n } from '@mantou/gem/helper/i18n';
 import { type RenderOptions, render, renderServerElement, runInRequest } from '@mantou/gem-ssr';
 
-import { DATA_FILE, DATA_SCRIPT_ID, NOT_FOUND_HEADER, REDIRECT_HEADER, trimTrailingSlash } from './constants';
+import { DATA_FILE, DATA_SCRIPT_ID, REDIRECT_HEADER, trimTrailingSlash } from './constants';
 import { createCookies } from './cookies';
 import {
   type ActionResult,
   type AppServerModule,
   createServerContext,
+  type DataFile,
   getRequestEvent,
   getServerModule,
   NotFound,
@@ -39,6 +40,8 @@ export interface RendererOptions extends TitleOptions {
   i18n?: I18n<any>;
   languages?: string[];
   defaultLanguage?: string;
+  /** 默认语言也使用路径前缀，没有前缀的路径跳转到默认语言 */
+  prefixDefaultLanguage?: boolean;
 }
 
 export interface RenderResult {
@@ -72,6 +75,7 @@ export function createRenderer({
   i18n,
   languages = [],
   defaultLanguage = '',
+  prefixDefaultLanguage = false,
   ...titleOptions
 }: RendererOptions) {
   setServerModules(serverModules);
@@ -91,9 +95,12 @@ export function createRenderer({
     return { url: new URL(input.url), setCookies };
   };
 
+  const split = (pathname: string) => splitLanguage(pathname, languages, defaultLanguage, prefixDefaultLanguage);
+  const localize = (lang: string, path: string) => localizePath(lang, path, defaultLanguage, prefixDefaultLanguage);
+
   const setLanguage = async (pathname: string) => {
-    const { lang, path } = splitLanguage(trimTrailingSlash(pathname), languages, defaultLanguage);
-    history.basePath = getBasePath(lang, defaultLanguage);
+    const { lang, path } = split(trimTrailingSlash(pathname));
+    history.basePath = getBasePath(lang, defaultLanguage, prefixDefaultLanguage);
     await i18n?.setLanguage(lang);
     return { lang, path };
   };
@@ -109,11 +116,11 @@ export function createRenderer({
   /**
    * 处理客户端导航时的数据请求，URL 是页面路径加上 `/__data.json`，预渲染时 `input` 是路径
    *
-   * 返回路径匹配的 layout 和页面的服务端数据，key 是标签名，跳转时数据为 `null`，响应头中有跳转的地址，
+   * 返回数据文件的内容 `body`，其中有路径匹配的 layout 和页面的服务端数据，key 是标签名，
    * 客户端只在有服务端模块时请求，没有 `load`（例如只有 `actions`）时数据为空对象
    */
   const loadData = (input: Request | string) =>
-    runInRequest(async () => {
+    runInRequest(async (): Promise<{ status: number; headers: Headers; body: DataFile | null }> => {
       const { url, setCookies } = setRequest(input);
       const pagePathname = url.pathname.slice(0, -DATA_FILE.length - 1) || '/';
       const { path } = await setLanguage(pagePathname);
@@ -124,7 +131,7 @@ export function createRenderer({
       let notFoundTag: string | undefined;
       try {
         await handleRequest(pageUrl, path);
-        if (!routes.length) return { status: 404, headers: toHeaders(setCookies), data: null };
+        if (!routes.length) return { status: 404, headers: toHeaders(setCookies), body: null };
         await Promise.all(
           routes.map(async ({ tag, params }) => {
             if (!(await getServerModule(tag))?.load) return;
@@ -138,11 +145,9 @@ export function createRenderer({
         );
       } catch (err) {
         if (!(err instanceof Redirect)) throw err;
-        return { status: 200, headers: toHeaders(setCookies, { [REDIRECT_HEADER]: err.location }), data: null };
+        return { status: 200, headers: toHeaders(setCookies), body: { redirect: err.location } };
       }
-      if (notFoundTag)
-        return { status: 200, headers: toHeaders(setCookies, { [NOT_FOUND_HEADER]: notFoundTag }), data };
-      return { status: 200, headers: toHeaders(setCookies), data };
+      return { status: 200, headers: toHeaders(setCookies), body: { data, notFound: notFoundTag } };
     });
 
   /** 处理页面的表单提交 `POST <page path>?/<name>`，没有对应的 action 时结果为 `null` */
@@ -212,6 +217,9 @@ export function createRenderer({
         headers: toHeaders(setCookies, { location }),
         html: (async function* () {})(),
       });
+      // 所有语言都有前缀时，没有前缀的路径跳转到默认语言
+      const localized = localize(lang, path);
+      if (localized !== trimTrailingSlash(url.pathname)) return redirectTo(new Redirect(302, localized + url.search));
       // 调用 `render` 时立即开始渲染，需要先执行
       try {
         await handleRequest(url, path);
@@ -272,7 +280,7 @@ export function createRenderer({
    */
   const canPrerender = (pathname: string) =>
     runInRequest(async () => {
-      const { path } = splitLanguage(pathname, languages, defaultLanguage);
+      const { path } = split(pathname);
       const modules = await Promise.all(findServerRoutes(path).map(({ tag }) => getServerModule(tag)));
       if (modules.some((mod) => mod?.prerender === false)) return false;
       try {
@@ -287,28 +295,34 @@ export function createRenderer({
 
   /** 需要预渲染的路径，动态路由使用 `*.server.ts` 或者页面的 `paths` 选项 */
   const getPaths = async () => {
-    const paths: string[] = [];
-    for (const { pattern, info } of getPageRoutes()) {
-      if (!/[:*]/.test(pattern)) {
-        paths.push(pattern);
-        continue;
+    const localized: string[] = [];
+    // 每个语言的动态路由参数可能不同，例如某些文章没有翻译
+    for (const lang of languages.length ? languages : [defaultLanguage]) {
+      const paths: string[] = [];
+      for (const { pattern, info } of getPageRoutes()) {
+        if (!/[:*]/.test(pattern)) {
+          paths.push(pattern);
+          continue;
+        }
+        const getParams = (await getServerModule(info.tag))?.paths || getPageOptions((await info.load()).default).paths;
+        for (const params of (await getParams?.({ lang })) || []) paths.push(fillPattern(pattern, params));
       }
-      const getParams = (await getServerModule(info.tag))?.paths || getPageOptions((await info.load()).default).paths;
-      for (const params of (await getParams?.()) || []) paths.push(fillPattern(pattern, params));
+      // `handle` 读取的 `url` 包含语言前缀，每个语言的路径分别判断
+      localized.push(...(languages.length ? paths.map((path) => localize(lang, path)) : paths));
+      // 没有前缀的路径输出跳转页面，静态托管时也能跳转到默认语言
+      if (prefixDefaultLanguage && lang === defaultLanguage) localized.push(...paths);
     }
-    // `handle` 读取的 `url` 包含语言前缀，每个语言的路径分别判断
-    const localized = languages.length
-      ? languages.flatMap((lang) => paths.map((path) => localizePath(lang, path, defaultLanguage)))
-      : paths;
     const allowed = await Promise.all(localized.map(canPrerender));
     return localized.filter((_, index) => allowed[index]);
   };
 
   /** 页面或 layout 是否有服务端数据，预渲染时需要输出数据文件 */
-  const hasServerData = (path: string) =>
-    findServerRoutes(splitLanguage(path, languages, defaultLanguage).path).length > 0;
+  const hasServerData = (path: string) => findServerRoutes(split(path).path).length > 0;
 
-  return { renderDocument, loadData, runAction, renderElements, getPaths, canPrerender, hasServerData };
+  /** 预渲染 404 页面时使用的路径，使用默认语言 */
+  const notFoundPath = localize(defaultLanguage, '/__gemkit_404__');
+
+  return { renderDocument, loadData, runAction, renderElements, getPaths, canPrerender, hasServerData, notFoundPath };
 }
 
 export type Renderer = ReturnType<typeof createRenderer>;

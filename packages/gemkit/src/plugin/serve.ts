@@ -120,8 +120,8 @@ export function createRequestHandler(
       if (body) return new Response(body, { headers: { 'content-type': 'application/json' } });
       // 没有预渲染时客户端使用 `ELEMENT_PATH` 渲染，导航时总会请求，避免 404
       if (pathname.endsWith(ELEMENTS_FILE)) return Response.json({});
-      const { status, headers, data } = await renderer.loadData(request);
-      return Response.json(data, { status, headers });
+      const { status, headers, body: file } = await renderer.loadData(request);
+      return Response.json(file, { status, headers });
     }
     const body = await readStatic(url, path.posix.join(pathname, 'index.html'));
     if (body) return new Response(body, { headers: { 'content-type': HTML_TYPE } });

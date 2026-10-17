@@ -15,8 +15,8 @@ export interface LayoutOptions<P extends Params = Params, D = unknown> {
 export interface PageOptions<P extends Params = Params, D = unknown> extends LayoutOptions<P, D> {
   /** 页面标题，可以根据路由参数和页面数据生成 */
   title?: string | ((params: P, data: D) => string | Promise<string>);
-  /** 动态路由预渲染时使用的参数列表 */
-  paths?: () => P[] | Promise<P[]>;
+  /** 动态路由预渲染时使用的参数列表，每个语言分别调用，没有多语言时 `lang` 为空字符串 */
+  paths?: (ctx: { lang: string }) => P[] | Promise<P[]>;
 }
 
 type RouteClass = new (...args: any) => HTMLElement;

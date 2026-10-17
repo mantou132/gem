@@ -97,8 +97,12 @@ test('服务端和客户端一样逐层匹配路由', async ({ assert }) => {
   const request = new Request('http://localhost/docs/x', { headers: { cookie: 'user=a' } });
   const { status } = await renderer.renderDocument(documentTemplate, request);
   assert.equal(status, 404, '`/docs/x` 匹配 layout，layout 中没有匹配的页面');
-  const { data } = await renderer.loadData(new Request('http://localhost/docs/x/__data.json'));
-  assert.equal(data?.[pair.tag], undefined, '不加载 `/:a/:b` 页面的数据');
-  const other = await renderer.loadData(new Request('http://localhost/other/x/__data.json'));
-  assert.equal(other.data?.[pair.tag], 'pair data');
+  const getData = async (url: string) =>
+    ((await renderer.loadData(new Request(url))).body as { data: Record<string, unknown> }).data;
+  assert.equal(
+    (await getData('http://localhost/docs/x/__data.json'))[pair.tag],
+    undefined,
+    '不加载 `/:a/:b` 页面的数据',
+  );
+  assert.equal((await getData('http://localhost/other/x/__data.json'))[pair.tag], 'pair data');
 });

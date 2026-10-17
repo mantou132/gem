@@ -47,6 +47,11 @@ src/
     zh.json            /zh/*
 ```
 
+- `srcDir`: the directory of the structure above, relative to the project root, default `src`. It can be a directory
+  of another package, e.g. a framework providing the pages, `.gemkit` and `dist` are still in the project root
+- `prefixDefaultLanguage`: the default language also has the path prefix (`/en/about`), paths without the prefix
+  redirect to the default language, prerendered as redirect pages too
+
 Pages and layouts default export a Gem element, the tag name is generated from the file path:
 
 ```ts
@@ -131,8 +136,8 @@ export async function load({ params, url }: ServerLoadContext<{ slug: string }>)
   return { markdown: await readFile(`content/${params.slug}.md`, 'utf8') };
 }
 
-// params of the dynamic route to prerender
-export const paths = async () => [{ slug: 'hello' }];
+// params of the dynamic route to prerender, called for each language (`lang` is `''` without locales)
+export const paths = async ({ lang }: { lang: string }) => [{ slug: 'hello' }];
 ```
 
 - SSR: the data is embedded in the HTML, hydration uses it without another request
@@ -172,7 +177,9 @@ export function load({ cookies }: ServerLoadContext) {
 - Responses that read `request` or `cookies`, or set cookies, have `Cache-Control: private, no-store`,
   so a CDN doesn't share them between users
 - `redirect(status, location)` throws, `location` is the full path (including the language prefix);
-  SSR responds with the status and `Location`, client navigation (`__data.json`) navigates to it instead
+  SSR responds with the status and `Location`, client navigation (`__data.json`) navigates to it instead.
+  Prerendered redirects are written as `<meta http-equiv="refresh">` pages and `__data.json` contains the location,
+  so they work on a static host
 - `request` and `cookies` throw when prerendering, export `prerender = false` from the page or layout `*.server.ts`
 
 ## Request hook

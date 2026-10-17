@@ -1,14 +1,7 @@
 import { createStore, history } from '@mantou/gem';
 import { isolate, isServer } from '@mantou/gem/lib/server';
 
-import {
-  DATA_SCRIPT_ID,
-  ELEMENT_PATH,
-  ELEMENTS_FILE,
-  getDataPath,
-  NOT_FOUND_HEADER,
-  REDIRECT_HEADER,
-} from './constants';
+import { DATA_SCRIPT_ID, ELEMENT_PATH, ELEMENTS_FILE, getDataPath, REDIRECT_HEADER } from './constants';
 import type { Params } from './page';
 
 export interface CookieOptions {
@@ -71,8 +64,8 @@ export interface AppServerModule {
 export interface ServerModule {
   /** 返回值只能是 JSON 值，可以使用 `redirect` 跳转 */
   load?: (ctx: ServerLoadContext<any>) => unknown;
-  /** 动态路由预渲染时使用的参数列表，只对页面有效 */
-  paths?: () => Params[] | Promise<Params[]>;
+  /** 动态路由预渲染时使用的参数列表，只对页面有效，每个语言分别调用，没有多语言时 `lang` 为空字符串 */
+  paths?: (ctx: { lang: string }) => Params[] | Promise<Params[]>;
   /** 为 `false` 时不预渲染，在 layout 中设置时对其中的页面都有效 */
   prerender?: boolean;
   /**
@@ -139,6 +132,15 @@ export const requestState = isolate<{
 
 /** 页面和 layout 的数据，key 是标签名 */
 export type RouteData = Record<string, unknown>;
+
+/**
+ * 数据文件（`__data.json`）的内容，跳转时只有 `redirect`，`notFound` 是 `load` 中调用了 `notFound()` 的路由的标签名
+ *
+ * 静态托管时不能设置响应头，所以都放在内容中
+ */
+export type DataFile = RouteDataFile | { redirect: string };
+
+type RouteDataFile = { data: RouteData; notFound?: string };
 
 /**
  * 服务端渲染时页面和 layout 的数据，渲染后输出到页面中，水合时直接使用，每个请求有独立的值
@@ -285,26 +287,24 @@ function navigate(href: string, replace = false) {
   }
   const path = pathname.slice(basePath.length) || '/';
   const current = history.getParams();
-  if (path === current.path && new URLSearchParams(search).toString() === String(current.query)) {
+  // `QueryString` 的字符串包含 `?`，统一成 `URLSearchParams` 再比较
+  if (path === current.path && String(new URLSearchParams(search)) === String(new URLSearchParams(current.query))) {
     outletStore({ key: outletStore.key + 1 });
   } else {
     history[replace ? 'replace' : 'push']({ path, query: search, hash });
   }
 }
 
-/** 数据请求的结果，`notFound` 是 `load` 中调用了 `notFound()` 的路由的标签名 */
-type DataResult = { data: RouteData; notFound: string | null };
-
 // 同一次导航中 layout 和页面共用一个数据请求，再次使用时重新请求
-let dataRequest: { url: string; promise: Promise<DataResult>; taken: Set<string> } | undefined;
+let dataRequest: { url: string; promise: Promise<RouteDataFile>; taken: Set<string> } | undefined;
 
-async function fetchData(url: string, path: string): Promise<DataResult> {
+async function fetchData(url: string, path: string): Promise<RouteDataFile> {
   const res = await fetch(url);
   if (!res.ok) throw new Error(`gemkit: failed to load data of \`${path}\``);
+  const file: DataFile = await res.json();
   // 服务端 `load` 中的跳转，预取时不跳转，使用数据时再跳转
-  const redirectTo = res.headers.get(REDIRECT_HEADER);
-  if (redirectTo) throw new Redirect(302, redirectTo);
-  return { data: await res.json(), notFound: res.headers.get(NOT_FOUND_HEADER) };
+  if ('redirect' in file) throw new Redirect(302, file.redirect);
+  return file;
 }
 
 /** 预取页面的服务端数据 */
@@ -319,7 +319,7 @@ export async function loadServerData(tag: string, params: Params) {
   const { path } = history.getParams();
   const url = getFileUrl(path, location.search);
   if (dataRequest?.url !== url || dataRequest.taken.has(tag)) {
-    const promise = (takePrefetched<DataResult>(url) || fetchData(url, path)).catch((err) => {
+    const promise = (takePrefetched<RouteDataFile>(url) || fetchData(url, path)).catch((err) => {
       // 替换当前导航，中断当前路由的渲染，layout 和页面共用请求，只跳转一次
       if (err instanceof Redirect) navigate(err.location, true);
       throw err;

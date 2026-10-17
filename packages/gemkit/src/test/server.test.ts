@@ -19,7 +19,7 @@ import {
 import { I18n } from '@mantou/gem/helper/i18n';
 import { getServerElementKey, server } from '@mantou/gem-ssr/decorators';
 
-import { DATA_SCRIPT_ID, NOT_FOUND_HEADER, REDIRECT_HEADER } from '../constants';
+import { DATA_SCRIPT_ID, REDIRECT_HEADER } from '../constants';
 import { getRequestEvent, notFound, redirect, type ServerModule } from '../data';
 import { pageRoute, setOutlets } from '../outlet';
 import { type Params, page } from '../page';
@@ -242,30 +242,31 @@ test('renderDocument: 先输出文档头部，再流式输出异步内容', asyn
   assert.match(html, /<\/body><\/html>$/);
 });
 
+// 和客户端收到的一样，经过 JSON 序列化
 const loadData = async (input: Request | string) => {
-  const { status, data } = await renderer.loadData(input);
-  return { status, data };
+  const { status, body } = await renderer.loadData(input);
+  return { status, body: JSON.parse(JSON.stringify(body)) };
 };
 
 test('loadData: 返回服务端数据', async ({ assert }) => {
   assert.deepEqual(await loadData('/posts/2/__data.json'), {
     status: 200,
-    data: { 'gemkit-page-post': { id: '2', text: '</script><b>', url: '/posts/2' } },
+    body: { data: { 'gemkit-page-post': { id: '2', text: '</script><b>', url: '/posts/2' } } },
   });
   // `url` 包含语言前缀
   assert.deepEqual(await loadData('/zh/posts/2/__data.json'), {
     status: 200,
-    data: { 'gemkit-page-post': { id: '2', text: '</script><b>', url: '/zh/posts/2' } },
+    body: { data: { 'gemkit-page-post': { id: '2', text: '</script><b>', url: '/zh/posts/2' } } },
   });
 });
 
 test('loadData: 没有服务端 `load` 的页面返回空数据', async ({ assert }) => {
-  assert.deepEqual(await loadData('/login/__data.json'), { status: 200, data: {} });
+  assert.deepEqual(await loadData('/login/__data.json'), { status: 200, body: { data: {} } });
 });
 
 test('loadData: 没有服务端模块的页面返回 404', async ({ assert }) => {
-  assert.deepEqual(await loadData('/__data.json'), { status: 404, data: null });
-  assert.deepEqual(await loadData('/a/b/__data.json'), { status: 404, data: null });
+  assert.deepEqual(await loadData('/__data.json'), { status: 404, body: null });
+  assert.deepEqual(await loadData('/a/b/__data.json'), { status: 404, body: null });
 });
 
 const request = (url: string, init?: RequestInit) => new Request(new URL(url, 'http://localhost'), init);
@@ -287,11 +288,8 @@ test('renderDocument: `load` 中跳转', async ({ assert }) => {
   assert.deepEqual(await Array.fromAsync(html), []);
 });
 
-test('loadData: `load` 中跳转时通过响应头告诉客户端', async ({ assert }) => {
-  const { status, headers, data } = await renderer.loadData(request('/me/__data.json'));
-  assert.equal(status, 200);
-  assert.equal(headers.get(REDIRECT_HEADER), '/login');
-  assert.equal(data, null);
+test('loadData: `load` 中跳转时数据文件中只有跳转地址', async ({ assert }) => {
+  assert.deepEqual(await loadData(request('/me/__data.json')), { status: 200, body: { redirect: '/login' } });
 });
 
 test('runAction: 执行 action，返回结果或者跳转', async ({ assert }) => {
@@ -361,7 +359,7 @@ test('createRequestHandler: 带查询参数的页面和数据请求不使用预�
   assert.equal(await (await handler(request('/posts/1'))).text(), 'prerendered');
   assert.match(await (await handler(request('/posts/1?a=1'))).text(), /<title>Post 1 \| Site<\/title>/);
   assert.equal(await (await handler(request('/posts/1/__data.json'))).json(), 'prerendered');
-  const data = await (await handler(request('/posts/1/__data.json?a=1'))).json();
+  const { data } = await (await handler(request('/posts/1/__data.json?a=1'))).json();
   assert.equal(data['gemkit-page-post'].id, '1');
   // 不合法的 URL 编码
   assert.equal((await handler(request('/%E0%A4%A'))).status, 404);
@@ -442,19 +440,18 @@ test('renderDocument: `load` 中调用 `notFound()` 时渲染 404 页面，状�
   assert.match(result, /"notFound":"gemkit-page-post"/);
 });
 
-test('loadData: `load` 中调用 `notFound()` 时通过响应头告诉客户端', async ({ assert }) => {
-  const { status, headers, data } = await renderer.loadData('/posts/missing/__data.json');
-  assert.equal(status, 200);
-  assert.equal(headers.get(NOT_FOUND_HEADER), 'gemkit-page-post');
-  assert.deepEqual(data, {});
+test('loadData: `load` 中调用 `notFound()` 时数据文件中有该路由的标签名', async ({ assert }) => {
+  assert.deepEqual(await loadData('/posts/missing/__data.json'), {
+    status: 200,
+    body: { data: {}, notFound: 'gemkit-page-post' },
+  });
 });
 
 test('handle: 每个请求先执行，可以跳转', async ({ assert }) => {
   const { status, headers } = await renderer.renderDocument(documentTemplate, request('/admin'));
   assert.equal(status, 302);
   assert.equal(headers.get('location'), '/login');
-  const data = await renderer.loadData(request('/admin/__data.json'));
-  assert.equal(data.headers.get(REDIRECT_HEADER), '/login');
+  assert.deepEqual((await renderer.loadData(request('/admin/__data.json'))).body, { redirect: '/login' });
   const page = await renderer.renderDocument(documentTemplate, request('/admin', { headers: { cookie: 'user=a' } }));
   assert.equal(page.status, 404);
   // 读取了 cookie

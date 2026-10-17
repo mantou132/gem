@@ -168,3 +168,25 @@ test('generate: 指定的默认语言不存在时报错', ({ assert }) => {
   const root = createFixture(['src/pages/index.ts', 'src/locales/en.json']);
   assert.throws(() => generate(root, { defaultLanguage: 'fr' }), /not found `src\/locales\/fr.json`/);
 });
+
+test('generate: 默认语言也使用路径前缀', ({ assert }) => {
+  const root = createFixture(['src/pages/index.ts', 'src/locales/en.json', 'src/locales/zh.json']);
+  generate(root, { prefixDefaultLanguage: true });
+  const i18n = fs.readFileSync(path.join(root, '.gemkit/i18n.ts'), 'utf8');
+  assert.match(i18n, /export const prefixDefaultLanguage = true;/);
+  const server = fs.readFileSync(path.join(root, '.gemkit/server.ts'), 'utf8');
+  assert.match(server, /^ {2}prefixDefaultLanguage,$/m);
+});
+
+test('generate: 使用其他目录中的页面和语言文件', ({ assert }) => {
+  const root = createFixture(['theme/pages/index.ts', 'theme/locales/en.json', 'theme/app.ts']);
+  generate(root, { srcDir: 'theme' });
+  const read = (file: string) => fs.readFileSync(path.join(root, '.gemkit', file), 'utf8');
+  assert.match(read('routes.ts'), /import\("..\/theme\/pages\/index"\)/);
+  assert.match(read('i18n.ts'), /import lang_en from "..\/theme\/locales\/en.json";/);
+  assert.match(read('client.ts'), /import "..\/theme\/app";/);
+  assert.throws(
+    () => generate(root, { srcDir: 'theme', defaultLanguage: 'fr' }),
+    /not found `theme\/locales\/fr.json`/,
+  );
+});

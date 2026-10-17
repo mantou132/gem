@@ -9,8 +9,9 @@ import type { UnpluginGemOptions } from 'unplugin-gem';
 import unpluginGem from 'unplugin-gem/rspack';
 
 import { ELEMENT_PATH, ELEMENTS_FILE, getDataPath } from '../constants';
+import type { DataFile } from '../data';
 import type { Renderer } from '../server';
-import { type GemkitConfig, generate } from './codegen';
+import { type GemkitConfig, generate, getSrcDir } from './codegen';
 import {
   createHandler,
   createRequestHandler,
@@ -30,7 +31,7 @@ export interface GemkitOptions extends GemkitConfig {
    */
   prerender?: boolean;
   /**
-   * `src/elements` 中元素的标签前缀，`<app-foo>` 会自动导入 `src/elements/foo`
+   * `<srcDir>/elements` 中元素的标签前缀，`<app-foo>` 会自动导入 `<srcDir>/elements/foo`
    * @default 'app'
    */
   elementPrefix?: string;
@@ -59,6 +60,13 @@ const ssrMiddleware =
     }
   };
 
+const escapeAttr = (s: string) => s.replaceAll('&', '&amp;').replaceAll('"', '&quot;');
+
+function getRedirectHtml(location: string) {
+  const url = escapeAttr(location);
+  return `<!doctype html><meta charset="utf-8"><title>Redirecting</title><meta http-equiv="refresh" content="0; url=${url}"><link rel="canonical" href="${url}">\n`;
+}
+
 function writeFile(webDir: string, pathname: string, content: string) {
   const file = path.join(webDir, decodeURIComponent(pathname));
   fs.mkdirSync(path.dirname(file), { recursive: true });
@@ -71,7 +79,7 @@ export function pluginGemkit(options: GemkitOptions = {}): RsbuildPlugin {
     name: 'gemkit',
     setup(api) {
       const { rootPath } = api.context;
-      const srcDir = path.join(rootPath, 'src');
+      const srcDir = getSrcDir(rootPath, config);
       const genDir = path.join(rootPath, '.gemkit');
       const distDir = path.join(rootPath, 'dist');
       const isDev = api.context.action === 'dev';
@@ -180,8 +188,12 @@ export function pluginGemkit(options: GemkitOptions = {}): RsbuildPlugin {
         const prerenderPage = async (pathname: string) => {
           const serverElements = new Map<string, string>();
           const result = await renderer.renderDocument(html, pathname, { serverElements });
-          if (result.headers.has('location')) {
-            throw new Error(`gemkit: \`${pathname}\` redirects when prerendering, export \`prerender = false\``);
+          const location = result.headers.get('location');
+          // 静态托管不能响应跳转，页面使用 `<meta>` 跳转，客户端导航时从数据文件中读取跳转地址
+          if (location) {
+            writeFile(webDir, path.posix.join(pathname, 'index.html'), getRedirectHtml(location));
+            writeFile(webDir, getDataPath(pathname), JSON.stringify({ redirect: location } satisfies DataFile));
+            return;
           }
           writeFile(webDir, path.posix.join(pathname, 'index.html'), (await Array.fromAsync(result.html)).join(''));
           // 静态托管时客户端导航使用的纯服务端元素，导航时总会请求，没有元素时也输出
@@ -189,7 +201,7 @@ export function pluginGemkit(options: GemkitOptions = {}): RsbuildPlugin {
           // 静态托管时客户端导航使用的数据
           if (renderer.hasServerData(pathname)) {
             const dataPath = getDataPath(pathname);
-            writeFile(webDir, dataPath, JSON.stringify((await renderer.loadData(dataPath)).data));
+            writeFile(webDir, dataPath, JSON.stringify((await renderer.loadData(dataPath)).body));
           }
         };
         // 每个请求的状态是独立的，可以并行渲染
@@ -201,7 +213,7 @@ export function pluginGemkit(options: GemkitOptions = {}): RsbuildPlugin {
           }),
         );
         // 静态托管服务使用的 404 页面，layout 不能预渲染时不输出
-        const notFoundPath = '/__gemkit_404__';
+        const { notFoundPath } = renderer;
         const notFound =
           (await renderer.canPrerender(notFoundPath)) && (await renderer.renderDocument(html, notFoundPath));
         if (notFound && notFound.status === 404) {

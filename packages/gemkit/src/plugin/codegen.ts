@@ -7,8 +7,15 @@ import { Eta } from 'eta';
 import type { TitleOptions } from '../title';
 
 export interface GemkitConfig extends TitleOptions {
-  /** 默认语言，没有路径前缀，默认为 `en` 或者 `src/locales` 中的第一个语言 */
+  /**
+   * 页面、语言文件等源码的目录，相对于项目根目录，可以是其他包中的目录，例如由框架提供页面
+   * @default 'src'
+   */
+  srcDir?: string;
+  /** 默认语言，默认没有路径前缀，默认为 `en` 或者 `locales` 中的第一个语言 */
   defaultLanguage?: string;
+  /** 默认语言也使用路径前缀，例如 `/en/about`，没有前缀的路径跳转到默认语言 */
+  prefixDefaultLanguage?: boolean;
 }
 
 interface PageNode {
@@ -224,13 +231,16 @@ function generateI18n(genDir: string, localesDir: string, config: GemkitConfig) 
     : [];
   const defaultLanguage = config.defaultLanguage || (languages.includes('en') ? 'en' : languages[0]);
   if (languages.length && !languages.includes(defaultLanguage))
-    throw new Error(`gemkit: not found \`src/locales/${defaultLanguage}.json\``);
+    throw new Error(
+      `gemkit: not found \`${path.relative(path.dirname(genDir), path.join(localesDir, defaultLanguage))}.json\``,
+    );
   render(genDir, 'i18n.ts', 'i18n', {
     languages: languages.map((lang) => ({
       lang,
       path: JSON.stringify(path.relative(genDir, path.join(localesDir, `${lang}.json`))),
     })),
     defaultLanguage,
+    prefixDefaultLanguage: !!config.prefixDefaultLanguage,
   });
 }
 
@@ -267,9 +277,11 @@ function generateEntries(
   writeIfChanged(path.join(genDir, 'env.d.ts'), `${HEADER}/// <reference types="@rsbuild/core/types" />\n`);
 }
 
+export const getSrcDir = (rootPath: string, config: GemkitConfig) => path.resolve(rootPath, config.srcDir ?? 'src');
+
 /** 生成路由、i18n 和入口文件到 `.gemkit` 目录 */
 export function generate(rootPath: string, config: GemkitConfig) {
-  const srcDir = path.join(rootPath, 'src');
+  const srcDir = getSrcDir(rootPath, config);
   const genDir = path.join(rootPath, '.gemkit');
   fs.mkdirSync(genDir, { recursive: true });
   // 生成的内容不需要提交，项目不用自己配置 `.gitignore`

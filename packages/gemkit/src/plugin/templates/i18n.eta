@@ -4,6 +4,7 @@
 export const i18n = undefined;
 export const languages: string[] = [];
 export const defaultLanguage = '';
+export const prefixDefaultLanguage = false;
 <% } else { -%>
 <% const id = (lang) => `lang_${lang.replace(/\W/g, '_')}` -%>
 import { history } from '@mantou/gem';
@@ -15,9 +16,10 @@ import <%= id(lang) %> from <%= path %>;
 
 export const languages = <%= JSON.stringify(it.languages.map(({ lang }) => lang)) %>;
 export const defaultLanguage = '<%= it.defaultLanguage %>';
+export const prefixDefaultLanguage = <%= it.prefixDefaultLanguage %>;
 
-const { lang } = splitLanguage(location.pathname, languages, defaultLanguage);
-history.basePath = getBasePath(lang, defaultLanguage);
+const { lang } = splitLanguage(location.pathname, languages, defaultLanguage, prefixDefaultLanguage);
+history.basePath = getBasePath(lang, defaultLanguage, prefixDefaultLanguage);
 
 export const i18n = new I18n<typeof <%= id(it.defaultLanguage) %>>({
   resources: { <%= it.languages.map(({ lang }) => `${JSON.stringify(lang)}: ${id(lang)}`).join(', ') %> },
@@ -26,5 +28,6 @@ export const i18n = new I18n<typeof <%= id(it.defaultLanguage) %>>({
 });
 
 /** 切换语言的路径，需要使用 `<a>` 跳转使页面重新加载 */
-export const localizePath = (lang: string, path = history.getParams().path) => localize(lang, path, defaultLanguage);
+export const localizePath = (lang: string, path = history.getParams().path) =>
+  localize(lang, path, defaultLanguage, prefixDefaultLanguage);
 <% } -%>
