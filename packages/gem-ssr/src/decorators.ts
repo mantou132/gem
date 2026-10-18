@@ -1,10 +1,11 @@
 import type { GemElement } from '@mantou/gem';
 import { isServer } from '@mantou/gem/lib/server';
 
+import type { LazyOptions } from './client/lazy';
 import { hash } from './hash';
 
-// 客户端构建时 `@server()` 标记的元素类被改写后使用，从导入 `server` 的模块导入
-export { defineLazy } from './client/lazy';
+// 客户端构建时 `@server()` `@lazy()` 标记的元素类被改写后使用，从导入 `server` 或 `lazy` 的模块导入
+export { defineLazy, type LazyOptions } from './client/lazy';
 export { GemServerElement, waitServerElements } from './client/server-element';
 
 // SSR 输出的元素状态，值是 `internals.stateList` 的 JSON
@@ -20,15 +21,13 @@ export const ssrContext = {
   restoredElements: new WeakSet<GemElement>(),
 };
 
-export interface ServerElementOptions {
-  /** 延时视图：服务端渲染，客户端在用户交互时才加载元素代码并水合 */
-  lazy?: boolean;
-}
+/** `server`：纯服务端元素，`lazy`：延时视图 */
+export type ServerElementKind = 'server' | 'lazy';
 
 const SERVER_ELEMENT = Symbol('gem-ssr-server-element');
 
-/** `@server()` 标记的元素类的选项，没有标记时返回 `undefined` */
-export function getServerElementOptions(cls: object): ServerElementOptions | undefined {
+/** `@server()` 或 `@lazy()` 标记的元素类的类型，没有标记时返回 `undefined` */
+export function getServerElementKind(cls: object): ServerElementKind | undefined {
   return (cls as any)[Symbol.metadata]?.[SERVER_ELEMENT];
 }
 
@@ -51,9 +50,9 @@ type MemberContext<T, V extends (this: T, ...args: any) => any> =
  * 客户端什么时候执行由其他装饰器决定，例如 `@mounted()`、`@effect()`，
  * 恢复了 SSR 状态的元素会跳过首轮副作用中的执行
  *
- * 用在元素类上：纯服务端元素，只输出 HTML，客户端不加载元素代码，也不水合；
- * `lazy` 为延时视图，客户端在用户交互时才加载元素代码并水合。
- * 都需要 `unplugin-gem`（或 `swc-plugin-gem`）的 `ssr` 选项在客户端构建时改写元素模块
+ * 用在元素类上：纯服务端元素，只输出 HTML，客户端不加载元素代码，也不水合，
+ * 可以使用只在服务端运行的代码（例如 `node:fs`）。
+ * 需要 `unplugin-gem`（或 `swc-plugin-gem`）的 `ssr` 选项在客户端构建时改写元素模块
  *
  * @example
  * ```ts
@@ -70,10 +69,10 @@ type ServerDecorator = {
   (value: abstract new (...args: any[]) => GemElement, context: ClassDecoratorContext): void;
 };
 
-export function server(options: ServerElementOptions = {}): ServerDecorator {
+export function server(): ServerDecorator {
   return (value: any, context: MemberContext<GemElement, any> | ClassDecoratorContext): any => {
     if (context.kind === 'class') {
-      context.metadata[SERVER_ELEMENT] = options;
+      context.metadata[SERVER_ELEMENT] = 'server' satisfies ServerElementKind;
       return;
     }
     context.addInitializer(function (this: GemElement) {
@@ -88,5 +87,26 @@ export function server(options: ServerElementOptions = {}): ServerDecorator {
         return fn.apply(this, args);
       };
     return context.kind === 'method' ? wrap(value) : wrap;
+  };
+}
+
+/**
+ * 延时视图：服务端渲染，客户端按 `on` 选项（默认用户交互时）才加载元素代码并水合，
+ * 客户端创建时先从服务端获取 HTML
+ *
+ * 元素代码会打包到客户端（单独的 chunk），只能使用同构的代码，
+ * 需要 `unplugin-gem`（或 `swc-plugin-gem`）的 `ssr` 选项在客户端构建时改写元素模块，
+ * 改写后的模块需要知道 `options`，所以只能是字面量
+ *
+ * @example
+ * ```ts
+ * @customElement('app-like-button')
+ * @lazy({ on: 'visible' })
+ * class AppLikeButtonElement extends GemElement {}
+ * ```
+ */
+export function lazy(_options?: LazyOptions) {
+  return (_value: abstract new (...args: any[]) => GemElement, context: ClassDecoratorContext) => {
+    context.metadata[SERVER_ELEMENT] = 'lazy' satisfies ServerElementKind;
   };
 }

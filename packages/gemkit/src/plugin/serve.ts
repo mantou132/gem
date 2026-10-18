@@ -35,7 +35,19 @@ const isQueryRequest = ({ pathname, search }: URL) => !!search && (isDataRequest
 /** 表单提交到页面的 `actions`，地址是 `<page path>?/<name>` */
 export const isActionRequest = (method: string, search: string) => method === 'POST' && search.startsWith('?/');
 
-export type Handler = (request: Request) => Promise<Response>;
+export type Handler = ((request: Request) => Promise<Response>) & {
+  /** 路径匹配 API 路由，开发服务器用来判断是否处理请求 */
+  isEndpoint: (pathname: string) => boolean;
+};
+
+/** 浏览器可以跨站直接提交（不需要预检）的请求体类型，API 路由拒绝这些跨站请求 */
+const FORM_TYPES = ['application/x-www-form-urlencoded', 'multipart/form-data', 'text/plain'];
+
+const isFormRequest = (request: Request) => {
+  if (request.method === 'GET' || request.method === 'HEAD') return false;
+  const type = request.headers.get('content-type')?.split(';')[0].trim().toLowerCase();
+  return !!type && FORM_TYPES.includes(type);
+};
 
 const HTML_TYPE = 'text/html; charset=utf-8';
 
@@ -78,7 +90,7 @@ export interface HandlerOptions {
   origin?: string;
 }
 
-/** 处理页面、页面数据和表单提交请求，提供 `webDir` 时优先使用预渲染的文件 */
+/** 处理页面、页面数据、表单提交和 API 路由请求，提供 `webDir` 时优先使用预渲染的文件 */
 export function createRequestHandler(
   renderer: Renderer,
   template: string,
@@ -103,7 +115,7 @@ export function createRequestHandler(
       if (code !== 'ENOENT' && code !== 'ENOTDIR') throw err;
     }
   };
-  return async (input) => {
+  const handler = async (input: Request) => {
     const request = trustedOrigin ? withOrigin(input, trustedOrigin) : input;
     const url = new URL(request.url);
     const { pathname } = url;
@@ -111,6 +123,11 @@ export function createRequestHandler(
       if (isCrossSite(request, url)) return new Response(null, { status: 403 });
       const { status, headers, html } = await renderer.renderElements(request);
       return Response.json(html, { status, headers });
+    }
+    if (renderer.matchEndpoint(pathname)) {
+      // 跨站的 JSON 请求需要预检，由 CORS 限制，没有 `Origin` 的请求（例如 webhook）不受影响
+      if (isFormRequest(request) && isCrossSite(request, url)) return new Response(null, { status: 403 });
+      return renderer.runEndpoint(request);
     }
     if (isActionRequest(request.method, url.search)) {
       if (isCrossSite(request, url)) return new Response(null, { status: 403 });
@@ -141,6 +158,7 @@ export function createRequestHandler(
     headers.set('content-type', HTML_TYPE);
     return new Response(toStream(html), { status, headers });
   };
+  return Object.assign(handler, { isEndpoint: (pathname: string) => !!renderer.matchEndpoint(pathname) });
 }
 
 export async function createHandler(distDir: string, options?: Omit<HandlerOptions, 'webDir'>) {
@@ -158,6 +176,6 @@ export async function start({
   const app = new Hono();
   const assets = serveStatic({ root: path.relative(process.cwd(), getDistPaths(distDir).webDir) });
   app.use('/*', (ctx, next) => (isQueryRequest(new URL(ctx.req.url)) ? next() : assets(ctx, next)));
-  app.on(['GET', 'POST'], '*', (ctx) => handler(ctx.req.raw));
+  app.all('*', (ctx) => handler(ctx.req.raw));
   serve({ fetch: app.fetch, port }, ({ port }) => console.log(`gemkit: listening on http://localhost:${port}/`));
 }

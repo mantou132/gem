@@ -16,9 +16,16 @@ const serverModules = {
 <% } -%>
 };
 
+const endpoints = [
+<% for (const { pattern, path } of it.endpoints) { -%>
+  { pattern: '<%= pattern %>', load: () => import(<%= path %>) },
+<% } -%>
+];
+
 export default createRenderer({
   app,
   serverModules,
+  endpoints,
 <% if (it.appServer) { -%>
   appServerModule,
 <% } -%>

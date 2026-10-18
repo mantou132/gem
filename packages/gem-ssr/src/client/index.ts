@@ -7,8 +7,15 @@ import { SSR_STATE, ssrContext } from '../decorators';
 import { deferConnect, hydrateContainer } from './hydration';
 import { observeLazyRoot } from './lazy';
 
-export { defineLazy } from './lazy';
+export { defineLazy, type LazyOptions } from './lazy';
 export { GemServerElement, setServerElementLoader } from './server-element';
+
+// 等待移除的恢复了状态的元素
+const restoredList: GemElement[] = [];
+
+function clearRestored() {
+  for (const ele of restoredList.splice(0)) ssrContext.restoredElements.delete(ele);
+}
 
 function restoreState(ele: GemElement) {
   const value = ele.getAttribute(SSR_STATE);
@@ -16,9 +23,10 @@ function restoreState(ele: GemElement) {
   ele.removeAttribute(SSR_STATE);
   const { stateList } = ele.internals;
   JSON.parse(value).forEach((state: object, index: number) => Object.assign(stateList[index], state));
+  // 首轮副作用在渲染后的微任务中执行，之后一起移除
+  if (!restoredList.length) setTimeout(clearRestored);
+  restoredList.push(ele);
   ssrContext.restoredElements.add(ele);
-  // 首轮副作用在渲染后的微任务中执行
-  setTimeout(() => ssrContext.restoredElements.delete(ele));
 }
 
 ssrHooks.render = (value, container) => {

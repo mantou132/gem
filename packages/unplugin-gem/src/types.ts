@@ -143,7 +143,7 @@ export interface UnpluginGemOptions {
    * - add key to module level `createTheme`/`createScopedTheme`/`createDecoratorTheme`
    *   so the CSS variable names are the same on the server and the client
    * - in the client build, replace `@server()` element classes with stubs and
-   *   load `@server({ lazy: true })` elements on demand
+   *   load `@lazy()` elements on demand
    * @default false
    */
   ssr?: boolean;

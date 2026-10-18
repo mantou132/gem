@@ -38,6 +38,10 @@ const pageFiles = [
   'src/pages/files/[...path].ts',
   'src/pages/files/[name].ts',
   'src/pages/files/new.ts',
+  'src/pages/rss.xml.server.ts',
+  'src/pages/api/index.server.ts',
+  'src/pages/api/likes/[slug].server.ts',
+  'src/pages/api/likes/top.server.ts',
 ];
 
 test('scanPages: 页面、layout 和标签名', ({ assert }) => {
@@ -76,6 +80,21 @@ test('scanPages: 页面、layout 和标签名', ({ assert }) => {
   );
 
   assert.deepEqual(error && { ...error, file: rel(error.file) }, { file: '_error.ts', tag: 'gemkit-page-error' });
+});
+
+test('scanPages: 没有同名页面模块的 `*.server.ts` 是 API 路由', ({ assert }) => {
+  const root = createFixture(pageFiles);
+  const pagesDir = path.join(root, 'src/pages');
+  const { endpoints } = scanPages(pagesDir);
+  assert.deepEqual(
+    endpoints.map(({ pattern, file }) => [pattern, path.relative(pagesDir, file)]),
+    [
+      ['/api/likes/top', 'api/likes/top.server.ts'],
+      ['/api/likes/:slug', 'api/likes/[slug].server.ts'],
+      ['/api', 'api/index.server.ts'],
+      ['/rss.xml', 'rss.xml.server.ts'],
+    ],
+  );
 });
 
 test('scanPages: 没有 layout 和错误页面', ({ assert }) => {
@@ -126,8 +145,13 @@ test('generate: 生成路由和入口文件', ({ assert }) => {
   assert.match(client, /startClient\(\{"title":"Site","titleTemplate":"%s \| Site"\}\);/);
 
   const server = read('server.ts');
-  // 服务端使用 `routes.ts` 中的路由匹配
-  assert.doesNotMatch(server, /pattern:/);
+  // 服务端使用 `routes.ts` 中的页面路由匹配，API 路由只在服务端入口中
+  assert.doesNotMatch(server, /pattern: '\/blog/);
+  assert.match(
+    server,
+    /\{ pattern: '\/api\/likes\/:slug', load: \(\) => import\("..\/src\/pages\/api\/likes\/\[slug\].server"\) \},/,
+  );
+  assert.doesNotMatch(read('routes.ts'), /api/);
   assert.match(server, /'gemkit-page-blog-slug': \(\) => import\("..\/src\/pages\/blog\/\[slug\].server"\),/);
   assert.match(server, /import \* as appServerModule from "..\/src\/app.server";/);
   assert.match(server, /^ {2}appServerModule,$/m);

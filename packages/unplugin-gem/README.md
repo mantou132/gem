@@ -158,7 +158,7 @@ Enable `ssr` in both the client and server builds when using [`@mantou/gem-ssr`]
 
 - adds a key to module level `createStore`, so the store values updated on the server are restored on the client
 - adds a key to module level `createTheme`/`createScopedTheme`/`createDecoratorTheme`, so the CSS variable names are the same on the server and the client
-- in the client build, replaces `@server()` element classes with stubs and splits `@server({ lazy: true })`
+- in the client build, replaces `@server()` element classes with stubs and splits `@lazy()`
   elements into chunks loaded on demand
 
 In client builds, `globalThis.__GEM_SSR__` is replaced with `undefined` in all modules (including

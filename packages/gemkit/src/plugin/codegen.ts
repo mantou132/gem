@@ -26,6 +26,12 @@ interface PageNode {
   server?: string;
 }
 
+/** 没有同名页面模块的 `*.server.ts`，处理 HTTP 请求 */
+interface EndpointNode {
+  pattern: string;
+  file: string;
+}
+
 interface LayoutNode {
   tag: string;
   file?: string;
@@ -82,7 +88,14 @@ function comparePattern(a: string, b: string) {
   return 0;
 }
 
-function scanDir(pagesDir: string, dir: string, segments: string[], layout: LayoutNode, tags: Map<string, string>) {
+function scanDir(
+  pagesDir: string,
+  dir: string,
+  segments: string[],
+  layout: LayoutNode,
+  tags: Map<string, string>,
+  endpoints: EndpointNode[],
+) {
   const addTag = (tag: string, file: string) => {
     if (tags.has(tag)) throw new Error(`gemkit: \`${file}\` and \`${tags.get(tag)}\` have the same tag \`${tag}\``);
     tags.set(tag, file);
@@ -98,7 +111,7 @@ function scanDir(pagesDir: string, dir: string, segments: string[], layout: Layo
       const subSegments = [...segments, toSegment(entry.name)];
       const layoutFile = findModule(fullPath, '_layout');
       if (!layoutFile) {
-        scanDir(pagesDir, fullPath, subSegments, layout, tags);
+        scanDir(pagesDir, fullPath, subSegments, layout, tags, endpoints);
         continue;
       }
       const file = path.join(fullPath, layoutFile);
@@ -110,7 +123,7 @@ function scanDir(pagesDir: string, dir: string, segments: string[], layout: Layo
         layouts: [],
       };
       layout.layouts.push({ pattern: `/${[...subSegments, '*'].join('/')}`, layout: subLayout });
-      scanDir(pagesDir, fullPath, subSegments, subLayout, tags);
+      scanDir(pagesDir, fullPath, subSegments, subLayout, tags, endpoints);
     } else if (isModule(entry.name) && !isServerModule(entry.name)) {
       const name = entry.name.replace(MODULE_EXT, '');
       const pageSegments = name === 'index' ? segments : [...segments, toSegment(name)];
@@ -120,12 +133,19 @@ function scanDir(pagesDir: string, dir: string, segments: string[], layout: Layo
         tag: addTag(toTag('page', relPath.replace(MODULE_EXT, '')), fullPath),
         server: findServerModule(fullPath),
       });
+    } else if (isModule(entry.name)) {
+      const name = entry.name.replace(MODULE_EXT, '').replace(/\.server$/, '');
+      // 有同名页面模块时是页面的服务端模块
+      if (findModule(dir, name)) continue;
+      const endpointSegments = name === 'index' ? segments : [...segments, toSegment(name)];
+      endpoints.push({ pattern: `/${endpointSegments.join('/')}`, file: fullPath });
     }
   }
 }
 
 export function scanPages(pagesDir: string) {
   const tags = new Map<string, string>();
+  const endpoints: EndpointNode[] = [];
   const rootLayout = findModule(pagesDir, '_layout');
   const error = findModule(pagesDir, '_error');
   const rootFile = rootLayout && path.join(pagesDir, rootLayout);
@@ -136,9 +156,10 @@ export function scanPages(pagesDir: string) {
     pages: [],
     layouts: [],
   };
-  scanDir(pagesDir, pagesDir, [], root, tags);
+  scanDir(pagesDir, pagesDir, [], root, tags, endpoints);
+  endpoints.sort((a, b) => comparePattern(a.pattern, b.pattern));
   // 错误页面的数据是错误，没有服务端模块
-  return { root, error: error && { file: path.join(pagesDir, error), tag: toTag('page', 'error') } };
+  return { root, endpoints, error: error && { file: path.join(pagesDir, error), tag: toTag('page', 'error') } };
 }
 
 function writeIfChanged(file: string, content: string) {
@@ -161,9 +182,9 @@ const render = (genDir: string, file: string, template: string, data: object) =>
 const toImportPath = (genDir: string, file: string) =>
   JSON.stringify(path.relative(genDir, file).replace(MODULE_EXT, ''));
 
-/** 生成路由，返回有服务端模块的 layout 和页面 */
+/** 生成路由，返回有服务端模块的 layout 和页面，以及 API 路由 */
 function generateRoutes(genDir: string, pagesDir: string) {
-  const { root, error } = scanPages(pagesDir);
+  const { root, endpoints, error } = scanPages(pagesDir);
   const importPath = (file: string) => toImportPath(genDir, file);
 
   // 客户端产物不能引用 `*.server.ts`，只传递是否有服务端模块
@@ -209,7 +230,7 @@ function generateRoutes(genDir: string, pagesDir: string) {
     error: error && { tag: error.tag, path: importPath(error.file), isError: true },
     outlets,
   });
-  return { serverRoutes };
+  return { serverRoutes, endpoints };
 }
 
 function generateI18n(genDir: string, localesDir: string, config: GemkitConfig) {
@@ -239,7 +260,7 @@ function generateEntries(
   genDir: string,
   srcDir: string,
   config: GemkitConfig,
-  { serverRoutes }: ReturnType<typeof generateRoutes>,
+  { serverRoutes, endpoints }: ReturnType<typeof generateRoutes>,
 ) {
   const importPath = (file: string) => toImportPath(genDir, file);
   const appFile = findModule(srcDir, 'app');
@@ -253,6 +274,7 @@ function generateEntries(
     ...data,
     appServer: appServerFile && importPath(path.join(srcDir, appServerFile)),
     serverModules: serverRoutes.map(({ tag, server }) => ({ tag, path: importPath(server) })),
+    endpoints: endpoints.map(({ pattern, file }) => ({ pattern, path: importPath(file) })),
   });
   writeIfChanged(
     path.join(genDir, 'tsconfig.json'),

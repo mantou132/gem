@@ -2,15 +2,74 @@ import { SSR_SERVER } from '../constants';
 import { SSR_STATE } from '../decorators';
 import { fillServerContent, getServerElementParams, loadServerElement } from './server-element';
 
+export interface LazyOptions {
+  /**
+   * 什么时候加载元素代码，在这之前用户交互时也会加载并重放触发加载的事件
+   * - `interaction`：用户交互时
+   * - `load`：页面加载完（`load` 事件后浏览器空闲时）
+   * - `visible`：元素进入视口时
+   * @default 'interaction'
+   */
+  on?: 'interaction' | 'load' | 'visible';
+}
+
 // 用户交互时加载延时视图元素，加载后重放触发加载的事件
 const INTERACTION_EVENTS = ['pointerdown', 'click', 'focusin', 'keydown', 'input'];
 
-const lazyElements = new Map<string, () => Promise<unknown>>();
+const lazyElements = new Map<string, { load: () => Promise<unknown>; on: NonNullable<LazyOptions['on']> }>();
 const loading = new Map<string, Promise<unknown>>();
 
 function loadElement(tag: string) {
-  if (!loading.has(tag)) loading.set(tag, lazyElements.get(tag)!());
+  if (!loading.has(tag)) loading.set(tag, lazyElements.get(tag)!.load());
   return loading.get(tag)!;
+}
+
+let pageLoaded: Promise<void> | undefined;
+
+/** `load` 事件后浏览器空闲时，避免和页面的其他资源竞争 */
+function whenPageLoaded() {
+  pageLoaded ||= new Promise<void>((resolve) => {
+    const idle = () => ('requestIdleCallback' in window ? requestIdleCallback(() => resolve()) : setTimeout(resolve));
+    if (document.readyState === 'complete') idle();
+    else window.addEventListener('load', idle, { once: true });
+  });
+  return pageLoaded;
+}
+
+let intersectionObserver: IntersectionObserver | undefined;
+
+function observeVisible(ele: Element) {
+  // 不支持时直接加载
+  if (typeof IntersectionObserver === 'undefined') {
+    loadElement(ele.localName);
+    return;
+  }
+  intersectionObserver ||= new IntersectionObserver((entries) => {
+    for (const { target, isIntersecting } of entries) {
+      if (!isIntersecting) continue;
+      intersectionObserver!.unobserve(target);
+      loadElement(target.localName);
+    }
+  });
+  intersectionObserver.observe(ele);
+}
+
+/** 按 `on` 选项安排加载服务端渲染（或者已经填入服务端内容）的元素 */
+function scheduleLoad(ele: Element) {
+  const tag = ele.localName;
+  if (customElements.get(tag)) return;
+  const { on } = lazyElements.get(tag)!;
+  if (on === 'load') whenPageLoaded().then(() => loadElement(tag));
+  if (on === 'visible') observeVisible(ele);
+}
+
+/** 文档中服务端渲染的元素，包括开放的 ShadowRoot（例如声明式 Shadow DOM）中的元素 */
+function queryDeep(root: ParentNode, tag: string, result: Element[] = []) {
+  for (const ele of root.querySelectorAll('*')) {
+    if (ele.localName === tag) result.push(ele);
+    if (ele.shadowRoot) queryDeep(ele.shadowRoot, tag, result);
+  }
+  return result;
 }
 
 const isLazy = (node: unknown): node is Element =>
@@ -31,9 +90,14 @@ async function onInteraction(event: Event) {
 
 /**
  * 客户端创建的元素（例如客户端导航）没有服务端渲染的内容，和纯服务端元素一样从服务端获取，
- * 用户交互时再加载元素代码并水合
+ * 然后和服务端渲染的元素一样按 `on` 选项加载元素代码并水合
  */
 async function fillElement(ele: Element) {
+  await fillContent(ele);
+  scheduleLoad(ele);
+}
+
+async function fillContent(ele: Element) {
   // 已经有服务端渲染的内容，例如获取的内容中嵌套的延时视图元素
   if (ele.hasAttribute(SSR_SERVER)) return;
   const source = await loadServerElement(getServerElementParams(ele));
@@ -81,11 +145,17 @@ function init() {
 }
 
 /**
- * 注册延时视图元素，客户端构建时 `@server({ lazy: true })` 标记的元素模块会被改写成调用这个方法
+ * 注册延时视图元素，客户端构建时 `@lazy()` 标记的元素模块会被改写成调用这个方法，`options` 是 `@lazy()` 的参数
  *
- * 服务端渲染的元素在用户交互时加载，客户端创建的元素立即加载
+ * 按 `on` 选项加载元素代码，客户端创建的元素先从服务端获取 HTML
  */
-export function defineLazy(tag: string, load: () => Promise<unknown>) {
-  lazyElements.set(tag, load);
+export function defineLazy(tag: string, load: () => Promise<unknown>, { on = 'interaction' }: LazyOptions = {}) {
+  lazyElements.set(tag, { load, on });
   if (lazyElements.size === 1) init();
+  if (on === 'load') {
+    whenPageLoaded().then(() => {
+      if (queryDeep(document, tag).length) loadElement(tag);
+    });
+  }
+  if (on === 'visible') queryDeep(document, tag).forEach(observeVisible);
 }

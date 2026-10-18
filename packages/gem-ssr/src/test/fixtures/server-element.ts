@@ -10,7 +10,7 @@ import {
   template,
 } from '@mantou/gem';
 
-import { server } from '../../decorators';
+import { lazy, server } from '../../decorators';
 
 @customElement('app-server-element')
 @adoptedStyle(css`
@@ -40,7 +40,7 @@ export const serverElement = () => html`<app-server-element text="a" .data=${{ n
     color: blue;
   }
 `)
-@server({ lazy: true })
+@lazy()
 export class DemoLazyElement extends GemElement {
   @attribute text: string;
 

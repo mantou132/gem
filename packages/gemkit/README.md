@@ -80,6 +80,10 @@ export default class PostPage extends GemElement {
 }
 ```
 
+When the params change on client navigation (e.g. `/blog/a` to `/blog/b`), the page element is recreated, the elements
+and their state in the page are not reused. When only the query changes or the data is reloaded after a form
+submission, the page element is reused and gets the new `data`.
+
 ## Meta
 
 The `meta` option of pages and layouts (an object or a function of `params` and `data`) is rendered into `<head>`
@@ -137,11 +141,13 @@ hydration uses the server values. Only JSON values are supported.
 ## Server elements
 
 `@server()` element classes are only rendered on the server, their code and dependencies are not bundled into the
-client, `@server({ lazy: true })` elements are loaded on the first interaction, see
+client, `@lazy()` elements are loaded on the first interaction, after the page is loaded (`@lazy({ on: 'load' })`)
+or when visible (`@lazy({ on: 'visible' })`), their code is bundled into the client, so only isomorphic code can
+be used, see
 [gem-ssr](https://github.com/mantou132/gem/tree/main/packages/gem-ssr#server-elements).
 
-On client navigation, the HTML of the server elements (including lazy elements, whose code is still loaded on the
-first interaction) in the page is fetched from `<page path>/__elements.json` (written next to the page when
+On client navigation, the HTML of the server elements (including lazy elements, whose code is still loaded by the
+`on` option) in the page is fetched from `<page path>/__elements.json` (written next to the page when
 prerendering, not requested in dev or with `prerender: false`), elements not in it (e.g. pages not prerendered,
 elements shown after interaction) are rendered by the server on demand in one batched request, which is not
 available on a static host.
@@ -207,6 +213,37 @@ export const paths = async ({ lang }: { lang: string }) => [{ slug: 'hello' }];
   rendered by the server. A static host ignores the query, pages whose `load` reads `url.searchParams` need a server
 - The `load` option of the page or layout, if present, receives the server data as the second argument
 
+## API routes
+
+A `*.server.ts` in `src/pages` without a page module of the same name is an API route, it exports handlers
+named by the request methods (`GET`, `POST`, `PUT`, `PATCH`, `DELETE`):
+
+```ts
+// src/pages/api/likes/[slug].server.ts -> /api/likes/:slug
+import type { ServerLoadContext } from '@mantou/gemkit';
+
+type Context = ServerLoadContext<{ slug: string }>;
+
+// other values than `Response` are responded as JSON
+export const GET = ({ params }: Context) => ({ likes: getLikes(params.slug) });
+
+export async function POST({ params, request }: Context) {
+  const { count } = await request.json();
+  return Response.json({ likes: addLikes(params.slug, count) }, { status: 201 });
+}
+```
+
+- `rss.xml.server.ts` is `/rss.xml`, `index.server.ts` is the directory path
+- the path has no language prefix, `handle` runs before the handler, `event.path` is the API path
+- the context is the same as `load`: `params`, `url`, `request`, `cookies` and `locals`,
+  cookies set in the handler are added to the response
+- `redirect` responds with the redirect, `error(status, message)` responds with `{ status, message }` as JSON,
+  `HEAD` uses `GET`, methods not exported respond 405
+- cross-site requests with a form content type (`application/x-www-form-urlencoded`, `multipart/form-data`,
+  `text/plain`) are rejected (CSRF), other cross-site requests need a CORS preflight, requests without
+  `Origin` (e.g. webhooks) are not affected
+- API routes are not prerendered, they are not available on a static host
+
 ## Request, cookies and redirect
 
 `load` also receives the current `request` and its `cookies`, `redirect` responds with a redirect:
@@ -244,7 +281,8 @@ export function load({ cookies }: ServerLoadContext) {
 
 ## Request hook
 
-`handle` in `src/app.server.ts` runs before every server request: page, `__data.json`, form actions and server elements.
+`handle` in `src/app.server.ts` runs before every server request: page, `__data.json`, form actions, server elements
+and API routes.
 Check the auth for a group of paths in one place,
 and share data (e.g. the current user) with `load`, `actions` and server elements through `locals`:
 

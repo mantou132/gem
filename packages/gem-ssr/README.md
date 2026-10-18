@@ -197,12 +197,22 @@ Output details:
 
 `@server()` on an element class makes it a server element: it is only rendered on the server, the client does not
 load its code or hydrate it, so it can use server-only code (`node:fs`, a markdown parser) without shipping it to
-the browser. `@server({ lazy: true })` makes it a lazy view: it is rendered on the server and hydrated normally,
-but its code is loaded on the first interaction (the event is replayed after loading).
+the browser. `@lazy()` makes it a lazy view: it is rendered on the server and hydrated normally,
+but its code is loaded later (by default on the first interaction, the event is replayed after loading). The code of
+a lazy view is bundled into the client (as a separate chunk), so it can only use isomorphic code.
+
+The `on` option of `@lazy()` sets when the code is loaded, interacting before it also loads the code and replays the event:
+
+- `interaction` (default): on the first interaction (`pointerdown`, `click`, `focusin`, `keydown`, `input`)
+- `load`: after the page is loaded (when the browser is idle after the `load` event), if the element is in the page
+- `visible`: when the element enters the viewport (`IntersectionObserver`)
+
+Use `load` or `visible` when the element needs client-side code without interaction, e.g. `@mounted()` fetching
+the latest data in a prerendered page (`@server()` methods are not run again for the restored state).
 
 ```ts
 import { readFile } from 'node:fs/promises';
-import { server } from '@mantou/gem-ssr/decorators';
+import { lazy, server } from '@mantou/gem-ssr/decorators';
 import { marked } from 'marked';
 
 @customElement('app-markdown')
@@ -224,7 +234,7 @@ class AppMarkdownElement extends GemElement {
 }
 
 @customElement('app-like-button')
-@server({ lazy: true })
+@lazy({ on: 'visible' })
 class AppLikeButtonElement extends GemElement {}
 ```
 
@@ -232,10 +242,12 @@ Both need the `ssr` option of `unplugin-gem` (or `swc-plugin-gem`), the client b
 
 - Server element: the class is replaced with `GemServerElement` (only `@customElement` is kept),
   declarations and imports that are no longer used are removed
-- Lazy view: the module is replaced with `defineLazy(tag, () => import('./self?gem-lazy'))`, so the element is a
-  separate chunk. Only use the element through its tag, the module can not have other exports or elements
+- Lazy view: the module is replaced with `defineLazy(tag, () => import('./self?gem-lazy'), options)`, so the element
+  is a separate chunk. Only use the element through its tag, the module can not have other exports or elements.
+  `options` is the argument of `@lazy()`, so it must be a literal, e.g. `{ on: 'visible' }`
 
-`GemServerElement` and `defineLazy` are imported from the module `server` is imported from.
+`GemServerElement` is imported from the module `server` is imported from, `defineLazy` from the module `lazy` is
+imported from.
 
 ### Server elements on the client
 
@@ -269,5 +281,5 @@ e.g. to send them with the page data ([gemkit](https://github.com/mantou132/gem/
 - Properties are only used when the element is created, prefer attributes
 - Properties set by a server element on its child elements are not available on the client,
   interactive child elements are hydrated independently
-- Lazy views are loaded directly when created on the client, replaying works for simple events,
-  continuous interactions such as dragging take effect after loading
+- Lazy views created on the client get the HTML from the loader too, then the code is loaded by the `on` option,
+  replaying works for simple events, continuous interactions such as dragging take effect after loading

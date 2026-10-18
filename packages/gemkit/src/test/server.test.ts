@@ -20,7 +20,15 @@ import { I18n } from '@mantou/gem/helper/i18n';
 import { getServerElementKey, server } from '@mantou/gem-ssr/decorators';
 
 import { DATA_SCRIPT_ID, REDIRECT_HEADER } from '../constants';
-import { type ErrorData, getRequestEvent, notFound, redirect, type ServerModule } from '../data';
+import {
+  type EndpointModule,
+  type ErrorData,
+  error,
+  getRequestEvent,
+  notFound,
+  redirect,
+  type ServerModule,
+} from '../data';
 import { errorRoute, pageRoute, setOutlets } from '../outlet';
 import { type Params, page } from '../page';
 import { createRequestHandler } from '../plugin/serve';
@@ -171,9 +179,27 @@ setOutlets(
   errorPage,
 );
 
+const likes: Record<string, number> = {};
+
+const likesEndpoint: EndpointModule = {
+  GET: ({ params }) => ({ likes: likes[params.slug] || 0 }),
+  POST: async ({ params, request, cookies }) => {
+    const { count = 1 }: { count?: number } = await request.json();
+    if (params.slug === 'locked') error(403, 'Locked');
+    cookies.set('liked', params.slug);
+    likes[params.slug] = (likes[params.slug] || 0) + count;
+    return Response.json({ likes: likes[params.slug] }, { status: 201 });
+  },
+};
+
 const renderer = createRenderer({
   app: html`<gemkit-outlet></gemkit-outlet>`,
   serverModules,
+  endpoints: [
+    { pattern: '/api/likes/:slug', load: async () => likesEndpoint },
+    { pattern: '/admin/api', load: async () => ({ GET: () => getRequestEvent().locals.user }) },
+    { pattern: '/old', load: async () => ({ GET: () => redirect(301, '/new') }) },
+  ],
   appServerModule: {
     // 只在需要时读取 `cookies`，读取后响应不能被共享缓存，也不预渲染
     handle: (event) => {
@@ -479,4 +505,52 @@ test('handle: 纯服务端元素的请求也先执行，元素中读取 `locals`
 
 test('getRequestEvent: 只能在服务端的请求中调用', ({ assert }) => {
   assert.throws(() => getRequestEvent(), /`getRequestEvent` can only be called in a server request/);
+});
+
+test('endpoint: 按请求方法处理，其他值作为 JSON 响应', async ({ assert }) => {
+  const handler = createRequestHandler(renderer, documentTemplate);
+  assert.deepEqual(await (await handler(request('/api/likes/a'))).json(), { likes: 0 });
+  const post = (slug: string, init: RequestInit = {}) =>
+    handler(request(`/api/likes/${slug}`, { method: 'POST', body: JSON.stringify({ count: 2 }), ...init }));
+  const res = await post('a');
+  assert.equal(res.status, 201);
+  assert.deepEqual(await res.json(), { likes: 2 });
+  assert.equal(res.headers.get('set-cookie'), 'liked=a; Path=/; HttpOnly; SameSite=Lax');
+  assert.equal(res.headers.get('cache-control'), 'private, no-store');
+  // 末尾的 `/`、`HEAD` 使用 `GET`
+  assert.deepEqual(await (await handler(request('/api/likes/a/'))).json(), { likes: 2 });
+  const head = await handler(request('/api/likes/a', { method: 'HEAD' }));
+  assert.equal(head.status, 200);
+  assert.equal(await head.text(), '');
+  // 没有对应的请求方法
+  const del = await handler(request('/api/likes/a', { method: 'DELETE' }));
+  assert.equal(del.status, 405);
+  assert.equal(del.headers.get('allow'), 'GET, POST');
+  // `error` 响应 JSON 格式的错误
+  const locked = await post('locked');
+  assert.equal(locked.status, 403);
+  assert.deepEqual(await locked.json(), { status: 403, message: 'Locked' });
+  // 跨站的表单类型请求被拒绝，JSON 请求需要预检，由 CORS 限制
+  assert.equal(
+    (await post('b', { headers: { 'sec-fetch-site': 'cross-site', 'content-type': 'text/plain' } })).status,
+    403,
+  );
+  assert.equal(
+    (await post('b', { headers: { 'sec-fetch-site': 'cross-site', 'content-type': 'application/json' } })).status,
+    201,
+  );
+});
+
+test('endpoint: 先执行 `handle`，可以跳转', async ({ assert }) => {
+  const denied = await renderer.runEndpoint(request('/admin/api'));
+  assert.equal(denied.status, 302);
+  assert.equal(denied.headers.get('location'), '/login');
+  const res = await renderer.runEndpoint(request('/admin/api', { headers: { cookie: 'user=a' } }));
+  assert.equal(await res.json(), 'a');
+  const old = await renderer.runEndpoint(request('/old'));
+  assert.equal(old.status, 301);
+  assert.equal(old.headers.get('location'), '/new');
+  // 不匹配的路径不是 API 路由
+  assert.equal(renderer.matchEndpoint('/api/likes'), undefined);
+  assert.equal(createRequestHandler(renderer, documentTemplate).isEndpoint('/api/likes/a'), true);
 });

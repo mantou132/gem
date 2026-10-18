@@ -2,6 +2,7 @@
 import '@mantou/gem-ssr';
 
 import { history, type TemplateResult, titleStore } from '@mantou/gem';
+import { matchPath } from '@mantou/gem/elements/route';
 import type { I18n } from '@mantou/gem/helper/i18n';
 import { type RenderOptions, render, renderServerElement, runInRequest } from '@mantou/gem-ssr';
 
@@ -12,10 +13,13 @@ import {
   type AppServerModule,
   createServerContext,
   type DataFile,
+  type EndpointModule,
+  type Endpoints,
   getRequestEvent,
   getServerModule,
   HttpError,
   Redirect,
+  type RequestMethod,
   type RouteData,
   type RouteError,
   requestState,
@@ -40,6 +44,8 @@ export interface RendererOptions extends TitleOptions {
   app: TemplateResult;
   /** 页面和 layout 标签名对应的 `*.server.ts` */
   serverModules?: ServerModules;
+  /** API 路由，按匹配优先级排序 */
+  endpoints?: Endpoints;
   /** `src/app.server.ts` */
   appServerModule?: AppServerModule;
   i18n?: I18n<any>;
@@ -74,6 +80,7 @@ function fillPattern(pattern: string, params: Params) {
 export function createRenderer({
   app,
   serverModules = {},
+  endpoints = [],
   appServerModule = {},
   i18n,
   languages = [],
@@ -223,6 +230,53 @@ export function createRenderer({
       return { status: 200, headers: toHeaders(setCookies), html };
     });
 
+  /** 路径匹配的 API 路由和参数，路径不包含语言前缀 */
+  const matchEndpoint = (pathname: string) => {
+    const path = trimTrailingSlash(pathname);
+    for (const endpoint of endpoints) {
+      const params = matchPath(endpoint.pattern, path);
+      if (params) return { endpoint, params, path };
+    }
+  };
+
+  /**
+   * 处理 API 路由的请求，先执行 `handle`，处理函数返回 `Response`，其他值作为 JSON 响应，
+   * `redirect` 响应跳转，`error` 响应 JSON 格式的错误，没有对应的请求方法时为 405
+   */
+  const runEndpoint = (request: Request) =>
+    runInRequest(async (): Promise<Response> => {
+      const { url, setCookies } = setRequest(request);
+      const matched = matchEndpoint(url.pathname);
+      if (!matched) return new Response(null, { status: 404 });
+      const { endpoint, params, path } = matched;
+      let response: Response;
+      try {
+        await handleRequest(url, path);
+        const mod: EndpointModule = await endpoint.load();
+        const method = (request.method === 'HEAD' ? 'GET' : request.method) as RequestMethod;
+        const fn = Object.hasOwn(mod, method) ? mod[method] : undefined;
+        if (!fn) {
+          const allow = Object.keys(mod).filter((key) => /^[A-Z]+$/.test(key));
+          return new Response(null, { status: 405, headers: toHeaders(setCookies, { allow: allow.join(', ') }) });
+        }
+        const result = await fn(createServerContext(endpoint.pattern, params));
+        response = result instanceof Response ? result : Response.json(toJSONValue(result));
+      } catch (err) {
+        if (err instanceof Redirect) {
+          return new Response(null, { status: err.status, headers: toHeaders(setCookies, { location: err.location }) });
+        }
+        const data = toErrorData(err);
+        return Response.json(data, { status: data.status, headers: toHeaders(setCookies) });
+      }
+      // 返回的响应头可能不可修改，例如 `Response.redirect`
+      const headers = toHeaders(setCookies, response.headers);
+      return new Response(request.method === 'HEAD' ? null : response.body, {
+        status: response.status,
+        statusText: response.statusText,
+        headers,
+      });
+    });
+
   /**
    * 将渲染结果插入 HTML 模版，模版中使用 `<!--gemkit-body-->` 标记内容位置
    *
@@ -352,7 +406,18 @@ export function createRenderer({
   /** 预渲染 404 页面时使用的路径，使用默认语言 */
   const notFoundPath = localize(defaultLanguage, '/__gemkit_404__');
 
-  return { renderDocument, loadData, runAction, renderElements, getPaths, canPrerender, hasServerData, notFoundPath };
+  return {
+    renderDocument,
+    loadData,
+    runAction,
+    renderElements,
+    matchEndpoint,
+    runEndpoint,
+    getPaths,
+    canPrerender,
+    hasServerData,
+    notFoundPath,
+  };
 }
 
 export type Renderer = ReturnType<typeof createRenderer>;

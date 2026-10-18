@@ -45,7 +45,7 @@ struct PluginConfig {
     pub selector_compatible: bool,
     /// SSR support: `"server"` / `"client"` build (`true` is `"server"`),
     /// add key to module level `createStore` to sync store values to the client,
-    /// rewrite `@server()` element classes in the client build,
+    /// rewrite `@server()` / `@lazy()` element classes in the client build,
     /// `"lazy-chunk"` is set by `unplugin-gem` for the `?gem-lazy` module of the lazy view
     pub ssr: SsrConfig,
     /// un-implement

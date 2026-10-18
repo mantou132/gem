@@ -158,6 +158,63 @@ test('延时视图：交互时加载并重放事件', async ({ assert }) => {
   assert.equal(outerClicks, 1, '其他监听器只收到重放的事件');
 });
 
+test('延时视图：`on: load` 页面加载完时加载服务端渲染的元素', async ({ assert }) => {
+  let loads = 0;
+  mount('<app-lazy-load ssr-server=""></app-lazy-load>');
+  defineLazy(
+    'app-lazy-load',
+    async () => {
+      loads++;
+      customElements.define('app-lazy-load', class extends HTMLElement {});
+    },
+    { on: 'load' },
+  );
+  // 页面已经加载完，等待空闲
+  await new Promise((resolve) => setTimeout(resolve, 10));
+  assert.equal(loads, 1);
+  // 页面中没有元素时不加载
+  let unused = 0;
+  defineLazy('app-lazy-unused', async () => void unused++, { on: 'load' });
+  await new Promise((resolve) => setTimeout(resolve, 10));
+  assert.equal(unused, 0);
+});
+
+test('延时视图：`on: visible` 元素进入视口时加载', async ({ assert }) => {
+  const observed: Element[] = [];
+  let callback: IntersectionObserverCallback;
+  (globalThis as any).IntersectionObserver = class {
+    constructor(cb: IntersectionObserverCallback) {
+      callback = cb;
+    }
+    observe(ele: Element) {
+      observed.push(ele);
+    }
+    unobserve(ele: Element) {
+      observed.splice(observed.indexOf(ele), 1);
+    }
+  };
+  let loads = 0;
+  const container = mount('<div><app-lazy-visible ssr-server=""></app-lazy-visible></div>');
+  // 声明式 Shadow DOM 中的元素
+  container.firstElementChild!.attachShadow({ mode: 'open' }).innerHTML =
+    '<app-lazy-visible ssr-server=""></app-lazy-visible>';
+  defineLazy(
+    'app-lazy-visible',
+    async () => {
+      loads++;
+      customElements.define('app-lazy-visible', class extends HTMLElement {});
+    },
+    { on: 'visible' },
+  );
+  assert.equal(observed.length, 2);
+  assert.equal(loads, 0, '进入视口前不加载');
+  callback!([{ target: observed[0], isIntersecting: true } as any], {} as any);
+  await new Promise((resolve) => setTimeout(resolve));
+  assert.equal(loads, 1);
+  assert.equal(observed.length, 1, '已经加载的元素不再观察');
+  delete (globalThis as any).IntersectionObserver;
+});
+
 test('延时视图：客户端创建时获取 HTML，交互时再加载', async ({ assert }) => {
   const calls: unknown[][] = [];
   setServerElementLoader(async (...args) => {

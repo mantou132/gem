@@ -208,19 +208,40 @@ const renderError = (tag: string, params: Params) => (err: unknown) => {
   return content(params, { status: error.status, message: error.message });
 };
 
-/** 创建页面路由，`render` 使用页面的标签名渲染 */
+// 两个不同的模板，切换时不复用其中的元素；内容也要不同，开发时 HMR 会把内容相同的模板当作同一个，
+// 用空的插值区分，注释会被 html 压缩移除
+const pageWrappers = [
+  (content: TemplateResult) => html`${content}`,
+  (content: TemplateResult) => html`${content}${''}`,
+];
+
+/**
+ * 创建页面路由，`render` 使用页面的标签名渲染
+ *
+ * 参数改变时（例如 `/blog/a` 到 `/blog/b`）重新创建页面元素，页面中的元素和状态都不复用；
+ * 只有查询参数改变或者提交表单后重新加载时参数不变，复用页面元素。
+ * 服务端和水合时使用第一个模板，和 SSR 的内容一致
+ */
 export function pageRoute(
   pattern: string,
   info: RouteInfo,
   render: (params: Params, data: unknown) => TemplateResult,
 ): RouteItem<RouteInfo> {
+  let current: { key: string; index: number } | undefined;
+  const wrap = (params: Params, content: TemplateResult) => {
+    if (isServer) return pageWrappers[0](content);
+    const key = JSON.stringify(params);
+    if (!current) current = { key, index: 0 };
+    else if (current.key !== key) current = { key, index: 1 - current.index };
+    return pageWrappers[current.index](content);
+  };
   return {
     pattern,
     data: info,
     getContent: (params) => {
       if (!isMatched(info)) return;
       return loadPage(info.load, info.tag, params, info.server)
-        .then((data) => render(params, data))
+        .then((data) => wrap(params, render(params, data)))
         .catch(renderError(info.tag, params));
     },
   };

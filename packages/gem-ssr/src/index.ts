@@ -17,7 +17,7 @@ import {
   V_ELSE_IF,
   V_IF,
 } from './constants';
-import { getServerElementKey, getServerElementOptions, SSR_STATE, ssrContext } from './decorators';
+import { getServerElementKey, getServerElementKind, SSR_STATE, ssrContext } from './decorators';
 import { getTemplateDigest } from './hash';
 import { type BoundAttr, compile, type OpenOp } from './lib/compile';
 import { runInRequest, setLocation } from './lib/shim';
@@ -159,18 +159,23 @@ function getElementAttrs(element: Element) {
   return attrs;
 }
 
-function renderPlainElement(op: OpenOp, values: unknown[], ctx: Context) {
-  const attrs: Attrs = new Map();
-  for (const { name, value } of op.attrs) attrs.set(name, value);
+// 模版设置的 attribute 和 property，条件绑定不输出
+function getTemplateAttrs(op: OpenOp, values: unknown[]) {
+  const attrs: Record<string, string> = {};
+  const props: Record<string, unknown> = {};
+  for (const { name, value } of op.attrs) attrs[name] = value;
   for (const bound of op.bound) {
     if (bound.name === V_IF || bound.name === V_ELSE_IF) continue;
     const value = getBoundValue(bound, values, op.tag);
-    if (bound.prefix === '?') {
-      if (value) attrs.set(bound.name, '');
-    } else if (!bound.prefix && value !== null && value !== undefined) {
-      attrs.set(bound.name, String(value));
-    }
+    if (bound.prefix === '.') props[bound.name] = value;
+    else if (bound.prefix === '?' && value) attrs[bound.name] = '';
+    else if (!bound.prefix && value !== null && value !== undefined) attrs[bound.name] = String(value);
   }
+  return { attrs, props };
+}
+
+function renderPlainElement(op: OpenOp, values: unknown[], ctx: Context) {
+  const attrs: Attrs = new Map(Object.entries(getTemplateAttrs(op, values).attrs));
   const hidden = isHiddenBranch(op, values);
   setConditionAttrs(op, hidden, attrs);
   ctx.out.push(`<${op.tag}${serializeAttrs(attrs, op)}>`);
@@ -207,17 +212,8 @@ function loadRoute(route: GemLightRouteElement) {
 function createElement(Element: CustomElementConstructor, op: OpenOp, values: unknown[], ctx: Context) {
   const element = new Element() as GemElement;
   ctx.parent.append(element);
-  // 模版设置的 attribute 和 property，用来生成纯服务端元素的 key
-  const attrs: Record<string, string> = {};
-  const props: Record<string, unknown> = {};
-  for (const { name, value } of op.attrs) attrs[name] = value;
-  for (const bound of op.bound) {
-    if (bound.name === V_IF || bound.name === V_ELSE_IF) continue;
-    const value = getBoundValue(bound, values, op.tag);
-    if (bound.prefix === '.') props[bound.name] = value;
-    else if (bound.prefix === '?' && value) attrs[bound.name] = '';
-    else if (!bound.prefix && value !== null && value !== undefined) attrs[bound.name] = String(value);
-  }
+  // 也用来生成纯服务端元素的 key
+  const { attrs, props } = getTemplateAttrs(op, values);
   for (const index of op.elementParts) {
     const value = values[index];
     if (value instanceof Ref) (value as { value: unknown }).value = element;
@@ -226,15 +222,15 @@ function createElement(Element: CustomElementConstructor, op: OpenOp, values: un
   for (const name in attrs) element.setAttribute(name, attrs[name]);
   Object.assign(element, props);
   const conditionHidden = isHiddenBranch(op, values);
-  const serverOptions = getServerElementOptions(Element);
+  const serverKind = getServerElementKind(Element);
   const frame: ElementFrame = {
     op,
     element,
     hidden: ctx.hidden || conditionHidden,
     conditionHidden,
     parentCtx: ctx,
-    serverKey: serverOptions && getServerElementKey(op.tag, attrs, props),
-    pure: !!serverOptions && !serverOptions.lazy,
+    serverKey: serverKind && getServerElementKey(op.tag, attrs, props),
+    pure: serverKind === 'server',
     withProps: !!ctx.hydrating && Object.keys(props).length > 0,
   };
   if (frame.hidden) {
@@ -563,7 +559,7 @@ const ATTR_NAME = /^[^\s"'<>/=]+$/;
 /**
  * 渲染纯服务端元素或者延时视图元素，客户端导航时没有收集到元素的 HTML 时使用，例如交互后才出现的元素
  *
- * 只能渲染 `@server()` 标记的元素，`attrs` 和 `props` 和客户端设置的一致
+ * 只能渲染 `@server()` `@lazy()` 标记的元素，`attrs` 和 `props` 和客户端设置的一致
  */
 export async function renderServerElement(
   tag: string,
@@ -571,7 +567,7 @@ export async function renderServerElement(
   props: Record<string, unknown>,
   options: RenderOptions = {},
 ) {
-  if (!getServerElementOptions(customElements.get(tag) || {})) {
+  if (!getServerElementKind(customElements.get(tag) || {})) {
     throw new Error(`gem-ssr: \`${tag}\` is not a server element`);
   }
   for (const name in attrs) {

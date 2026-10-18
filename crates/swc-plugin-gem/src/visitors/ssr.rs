@@ -5,11 +5,13 @@
 //! （只识别直接调用 `createStore` 标识符，和 HMR 保留 store 的规则一样，已经有第二个参数时不处理）；
 //! `createTheme` `createScopedTheme` `createDecoratorTheme` 同样添加 key，用作 css 变量名的后缀
 //!
-//! 客户端构建：改写 `@server()` 标记的元素类，`GemServerElement` 和 `defineLazy` 从导入 `server` 的模块导入
+//! 客户端构建：改写 `@server()` `@lazy()` 标记的元素类，
+//! `GemServerElement` 从导入 `server` 的模块导入，`defineLazy` 从导入 `lazy` 的模块导入
 //!
 //! - `@server()`：纯服务端元素，类替换成只保留 `@customElement` 的 `GemServerElement` 子类，
 //!   然后移除不再使用的顶层声明和导入，例如只在服务端使用的 `marked`
-//! - `@server({ lazy: true })`：延时视图，模块替换成 `defineLazy(tag, () => import('./self?gem-lazy'))`，
+//! - `@lazy()`：延时视图，模块替换成 `defineLazy(tag, () => import('./self?gem-lazy'), options)`，
+//!   `options` 是 `@lazy()` 的参数，只能是字面量，例如 `{ on: 'visible' }`，
 //!   带 `?gem-lazy` 的模块（`LazyChunk`）是元素真正的代码，不改写延时视图
 
 use std::{collections::HashSet, path::Path};
@@ -81,24 +83,44 @@ fn get_call_name(expr: &Expr) -> Option<&Atom> {
         .map(|ident| &ident.sym)
 }
 
-fn is_lazy(expr: &Expr) -> bool {
-    let Some(obj) = expr
-        .as_call()
-        .and_then(|call| call.args.first())
-        .and_then(|arg| arg.expr.as_object())
-    else {
-        return false;
+static LAZY_ON: [&str; 3] = ["interaction", "load", "visible"];
+
+/// `@lazy()` 的参数，改写后的模块需要知道，所以只能是 `{ on: 'visible' }` 这样的字面量，不合法时报错
+fn get_lazy_options(expr: &Expr) -> Result<Option<Expr>, ()> {
+    let Some(arg) = expr.as_call().and_then(|call| call.args.first()) else {
+        return Ok(None);
     };
-    obj.props.iter().any(|prop| {
-        let PropOrSpread::Prop(prop) = prop else {
-            return false;
-        };
-        let Prop::KeyValue(kv) = &**prop else {
-            return false;
-        };
-        matches!(&kv.key, PropName::Ident(key) if &*key.sym == "lazy")
-            && matches!(&*kv.value, Expr::Lit(Lit::Bool(value)) if value.value)
-    })
+    let valid = arg.spread.is_none()
+        && arg.expr.as_object().is_some_and(|obj| {
+            obj.props.iter().all(|prop| {
+                let PropOrSpread::Prop(prop) = prop else {
+                    return false;
+                };
+                let Prop::KeyValue(kv) = &**prop else {
+                    return false;
+                };
+                let is_on = match &kv.key {
+                    PropName::Ident(key) => &*key.sym == "on",
+                    PropName::Str(key) => key.value.as_str() == Some("on"),
+                    _ => false,
+                };
+                is_on
+                    && matches!(&*kv.value, Expr::Lit(Lit::Str(value))
+                        if value.value.as_str().is_some_and(|v| LAZY_ON.contains(&v)))
+            })
+        });
+    if valid {
+        return Ok(Some((*arg.expr).clone()));
+    }
+    HANDLER.with(|handler| {
+        handler
+            .struct_span_err(
+                arg.expr.span(),
+                "the options of `@lazy()` must be a literal, e.g. `{ on: 'visible' }`, `on` is one of `interaction`, `load` and `visible`",
+            )
+            .emit()
+    });
+    Err(())
 }
 
 fn get_tag(expr: &Expr) -> Option<String> {
@@ -168,8 +190,8 @@ fn is_element(item: &ModuleItem) -> bool {
     })
 }
 
-/// 导入 `server` 的模块和本地名称
-fn find_server_import(items: &[ModuleItem]) -> Option<(Atom, String)> {
+/// 导入 `name` 的本地名称和模块
+fn find_import(items: &[ModuleItem], name: &str) -> Option<(Atom, String)> {
     items.iter().find_map(|item| {
         let import = item.as_module_decl()?.as_import()?;
         import.specifiers.iter().find_map(|specifier| {
@@ -181,7 +203,7 @@ fn find_server_import(items: &[ModuleItem]) -> Option<(Atom, String)> {
                 Some(_) => return None,
                 None => &named.local.sym,
             };
-            (&**imported == "server").then(|| {
+            (&**imported == name).then(|| {
                 (
                     named.local.sym.clone(),
                     import.src.value.as_str().unwrap_or_default().to_string(),
@@ -286,26 +308,34 @@ impl TransformVisitor {
         }
     }
 
-    /// 改写 `@server()` 标记的元素类，模块替换成延时视图的注册时返回 `true`
+    /// 改写 `@server()` `@lazy()` 标记的元素类，模块替换成延时视图的注册时返回 `true`
     fn rewrite_elements(&self, items: &mut Vec<ModuleItem>) -> bool {
-        let Some((server_name, src)) = find_server_import(items) else {
+        let server_import = find_import(items, "server");
+        let lazy_import = find_import(items, "lazy");
+        if server_import.is_none() && lazy_import.is_none() {
             return false;
+        }
+        let find_decorator = |class: &Class, import: &Option<(Atom, String)>| {
+            import.as_ref().and_then(|(local, _)| {
+                class
+                    .decorators
+                    .iter()
+                    .find(|decorator| get_call_name(&decorator.expr) == Some(local))
+                    .map(|decorator| (*decorator.expr).clone())
+            })
         };
         let mut lazy_tag = None;
+        let mut lazy_options = None;
         let mut lazy_index = 0;
         let mut replaced = false;
         for (index, item) in items.iter_mut().enumerate() {
             let Some(class) = get_class(item) else {
                 continue;
             };
-            let Some(server) = class
-                .decorators
-                .iter()
-                .find(|decorator| get_call_name(&decorator.expr) == Some(&server_name))
-            else {
+            let lazy = find_decorator(class, &lazy_import);
+            if lazy.is_none() && find_decorator(class, &server_import).is_none() {
                 continue;
-            };
-            let lazy = is_lazy(&server.expr);
+            }
             let Some(define) = class
                 .decorators
                 .iter()
@@ -316,9 +346,13 @@ impl TransformVisitor {
             else {
                 continue;
             };
-            if lazy {
+            if let Some(lazy) = lazy {
                 if self.target != SsrTarget::LazyChunk {
+                    let Ok(options) = get_lazy_options(&lazy) else {
+                        return false;
+                    };
                     lazy_tag = get_tag(&define.expr);
+                    lazy_options = options;
                     lazy_index = index;
                 }
                 continue;
@@ -344,7 +378,7 @@ impl TransformVisitor {
                     handler
                         .struct_span_err(
                             other.1.span(),
-                            "a module with `@server({ lazy: true })` element can not have other exports or elements",
+                            "a module with `@lazy()` element can not have other exports or elements",
                         )
                         .emit()
                 });
@@ -356,19 +390,33 @@ impl TransformVisitor {
             else {
                 return false;
             };
+            let (_, src) = lazy_import.unwrap();
+            let define = Ident::new(DEFINE_LAZY.into(), DUMMY_SP, SyntaxContext::empty());
+            let tag = Expr::Lit(Lit::Str(tag.into()));
+            let path = Expr::Lit(Lit::Str(format!("./{file_name}?gem-lazy").into()));
             *items = vec![
                 named_import(DEFINE_LAZY, "defineLazy", &src),
-                quote!(
-                    "$define($tag, () => import($path));" as ModuleItem,
-                    define: Ident = Ident::new(DEFINE_LAZY.into(), DUMMY_SP, SyntaxContext::empty()),
-                    tag: Expr = Expr::Lit(Lit::Str(tag.into())),
-                    path: Expr = Expr::Lit(Lit::Str(format!("./{file_name}?gem-lazy").into())),
-                ),
+                match lazy_options {
+                    Some(options) => quote!(
+                        "$define($tag, () => import($path), $options);" as ModuleItem,
+                        define: Ident = define,
+                        tag: Expr = tag,
+                        path: Expr = path,
+                        options: Expr = options,
+                    ),
+                    None => quote!(
+                        "$define($tag, () => import($path));" as ModuleItem,
+                        define: Ident = define,
+                        tag: Expr = tag,
+                        path: Expr = path,
+                    ),
+                },
             ];
             return true;
         }
 
         if replaced {
+            let (_, src) = server_import.unwrap();
             remove_unused(items);
             items.insert(0, named_import(SERVER_ELEMENT, "GemServerElement", &src));
         }

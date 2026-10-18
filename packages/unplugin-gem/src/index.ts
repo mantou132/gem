@@ -39,7 +39,7 @@ const require = createRequire(import.meta.url);
 const SSR_HOOK = 'globalThis.__GEM_SSR__';
 const SSR_HOOK_REPLACEMENT = 'undefined'.padEnd(SSR_HOOK.length);
 
-// 客户端构建时改写 `@server()` 标记的元素类，`?gem-lazy` 是延时视图元素真正的代码
+// 客户端构建时改写 `@server()` `@lazy()` 标记的元素类，`?gem-lazy` 是延时视图元素真正的代码
 function getSsrTarget(ssr: boolean | undefined, isClient: boolean, id: string) {
   if (!ssr) return false;
   if (!isClient) return 'server';

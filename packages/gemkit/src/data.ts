@@ -82,6 +82,24 @@ export interface ServerModule {
 
 export type ServerModules = Record<string, () => Promise<ServerModule>>;
 
+export type RequestMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
+
+/** 返回 `Response`，其他值作为 JSON 响应，可以使用 `redirect` 跳转和 `error` 响应错误 */
+export type RequestHandler<P extends Params = Params> = (ctx: ServerLoadContext<P>) => unknown;
+
+/**
+ * API 路由：没有同名页面模块的 `*.server.ts`，按请求方法导出处理函数，`HEAD` 使用 `GET`
+ *
+ * @example
+ * ```ts
+ * // src/pages/api/likes/[slug].server.ts -> /api/likes/:slug
+ * export const GET = ({ params }: ServerLoadContext<{ slug: string }>) => ({ likes: getLikes(params.slug) });
+ * ```
+ */
+export type EndpointModule = Partial<Record<RequestMethod, RequestHandler<any>>>;
+
+export type Endpoints = { pattern: string; load: () => Promise<EndpointModule> }[];
+
 // 页面和 layout 的标签名对应的服务端模块
 let serverModules: ServerModules = {};
 

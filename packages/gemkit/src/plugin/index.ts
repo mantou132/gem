@@ -43,17 +43,19 @@ const packageDir = fileURLToPath(new URL('..', import.meta.url));
 
 const PRERENDER_CONCURRENCY = 8;
 
-// 只处理页面、页面数据和表单提交请求，其他请求交给 Rsbuild
+// 只处理页面、页面数据、表单提交和 API 路由请求，其他请求交给 Rsbuild
 const ssrMiddleware =
   (getHandler: () => Promise<Handler>) =>
   async (req: IncomingMessage, res: ServerResponse, next: (err?: unknown) => void) => {
     const { pathname, search } = new URL(req.url!, 'http://localhost');
     const isPage = req.headers.accept?.includes('text/html') && !path.extname(pathname);
     const isPost = req.method === 'POST' && (pathname === ELEMENT_PATH || isActionRequest(req.method, search));
-    if (!isPost && (req.method !== 'GET' || !(isPage || isDataRequest(pathname)))) return next();
+    const isSSR = isPost || (req.method === 'GET' && (isPage || isDataRequest(pathname)));
     try {
+      const handler = await getHandler();
+      if (!isSSR && !handler.isEndpoint(pathname)) return next();
       // 转换成 `Request` 和 `Response`，不替换全局的 `Request` 和 `Response`
-      const listener = getRequestListener(await getHandler(), { overrideGlobalObjects: false, errorHandler: next });
+      const listener = getRequestListener(handler, { overrideGlobalObjects: false, errorHandler: next });
       await listener(req, res);
     } catch (err) {
       next(err);
@@ -65,10 +67,11 @@ function getRedirectHtml(location: string) {
   return `<!doctype html><meta charset="utf-8"><title>Redirecting</title><meta http-equiv="refresh" content="0; url=${url}"><link rel="canonical" href="${url}">\n`;
 }
 
-function writeFile(webDir: string, pathname: string, content: string) {
+// 预渲染并行执行，异步写入不阻塞其他页面的渲染
+async function writeFile(webDir: string, pathname: string, content: string) {
   const file = path.join(webDir, decodeURIComponent(pathname));
-  fs.mkdirSync(path.dirname(file), { recursive: true });
-  fs.writeFileSync(file, content);
+  await fs.promises.mkdir(path.dirname(file), { recursive: true });
+  await fs.promises.writeFile(file, content);
 }
 
 export function pluginGemkit(options: GemkitOptions = {}): RsbuildPlugin {
@@ -193,17 +196,25 @@ export function pluginGemkit(options: GemkitOptions = {}): RsbuildPlugin {
           const location = result.headers.get('location');
           // 静态托管不能响应跳转，页面使用 `<meta>` 跳转，客户端导航时从数据文件中读取跳转地址
           if (location) {
-            writeFile(webDir, path.posix.join(pathname, 'index.html'), getRedirectHtml(location));
-            writeFile(webDir, getDataPath(pathname), JSON.stringify({ redirect: location } satisfies DataFile));
+            await writeFile(webDir, path.posix.join(pathname, 'index.html'), getRedirectHtml(location));
+            await writeFile(webDir, getDataPath(pathname), JSON.stringify({ redirect: location } satisfies DataFile));
             return;
           }
-          writeFile(webDir, path.posix.join(pathname, 'index.html'), (await Array.fromAsync(result.html)).join(''));
+          await writeFile(
+            webDir,
+            path.posix.join(pathname, 'index.html'),
+            (await Array.fromAsync(result.html)).join(''),
+          );
           // 静态托管时客户端导航使用的纯服务端元素，导航时总会请求，没有元素时也输出
-          writeFile(webDir, getDataPath(pathname, ELEMENTS_FILE), JSON.stringify(Object.fromEntries(serverElements)));
+          await writeFile(
+            webDir,
+            getDataPath(pathname, ELEMENTS_FILE),
+            JSON.stringify(Object.fromEntries(serverElements)),
+          );
           // 静态托管时客户端导航使用的数据
           if (renderer.hasServerData(pathname)) {
             const dataPath = getDataPath(pathname);
-            writeFile(webDir, dataPath, JSON.stringify((await renderer.loadData(dataPath)).body));
+            await writeFile(webDir, dataPath, JSON.stringify((await renderer.loadData(dataPath)).body));
           }
         };
         // 每个请求的状态是独立的，可以并行渲染
