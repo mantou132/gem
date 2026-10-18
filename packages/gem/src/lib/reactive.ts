@@ -359,6 +359,10 @@ export abstract class GemElement extends HTMLElement {
     // 这里认为 rest 不会有自定义字段和 ShadowRootInit 参数冲突
     this.#renderRoot = !mode ? this : this.shadowRoot || this.attachShadow({ mode, delegatesFocus, ...rest });
     this.#internals = this.attachInternals() as GemElement['internals'];
+    // 定义前添加的 ShadowRoot 对 `ElementInternals` 不可见，例如客户端填充了服务端内容的延时视图元素
+    if (this.#renderRoot !== this && !this.#internals.shadowRoot) {
+      defineProperty(this.#internals, 'shadowRoot', { value: this.#renderRoot });
+    }
     this.#internals.stateList = [];
     this.#internals.sheets = [];
 

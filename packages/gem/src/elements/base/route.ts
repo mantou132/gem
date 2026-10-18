@@ -170,6 +170,8 @@ export class GemLightRouteElement extends GemElement {
    * 函数返回空值时不处理当前路由，例如只有子路由渲染后才需要滚动
    */
   @property scrollContainer?: Element | (() => Element | null | undefined);
+  /**恢复滚动位置前等待，例如等待异步加载的内容撑开滚动容器 */
+  @property scrollWait?: () => Promise<unknown>;
   /**默认当有 `hash` 时不进行滚动 */
   @property scrollIgnoreHash?: boolean;
 
@@ -228,14 +230,16 @@ export class GemLightRouteElement extends GemElement {
   // 已经处理过滚动的历史记录，同一条历史记录重新渲染时保持滚动位置
   #scrolledKey?: string;
 
-  #updateScrollContainerPosition = () => {
+  #updateScrollContainerPosition = async () => {
     const container = this.#scrollContainer;
     const key = history.currentKey;
     if (!container || key === this.#scrolledKey) return;
     this.#scrolledKey = key;
     const scrollTop = scrollPositionMap.get(key);
     if (!pushed && scrollTop !== undefined) {
-      container.scroll(0, scrollTop);
+      await this.scrollWait?.();
+      // 等待时可能已经导航
+      if (key === history.currentKey) container.scroll(0, scrollTop);
       return;
     }
     // 前进、后退或者页面加载时位置未知（例如刷新后），保持浏览器恢复的位置，浏览器只恢复文档的滚动位置

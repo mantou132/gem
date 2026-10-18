@@ -2,7 +2,7 @@ import type { GemElement } from '@mantou/gem';
 import type { TemplateResult } from '@mantou/gem/lib/lit-html';
 import { ssrHooks } from '@mantou/gem/lib/server';
 
-import { STORES_SCRIPT_ID } from '../constants';
+import { SSR_SERVER, STORES_SCRIPT_ID } from '../constants';
 import { SSR_STATE, ssrContext } from '../decorators';
 import { deferConnect, hydrateContainer } from './hydration';
 import { observeLazyRoot } from './lazy';
@@ -29,6 +29,8 @@ ssrHooks.render = (value, container) => {
 
 // 推迟挂载的元素在挂载时才恢复状态
 ssrHooks.connect = (ele, connect) => {
+  // 延时视图元素的服务端内容标记，升级后由元素自己渲染
+  ele.removeAttribute(SSR_SERVER);
   if (deferConnect(ele, connect)) return true;
   restoreState(ele);
   return false;

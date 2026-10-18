@@ -12,10 +12,13 @@ import {
 } from '@mantou/gem';
 import { type GemLightRouteElement, matchPath, type RouteItem } from '@mantou/gem/elements/route';
 import { isolate, isServer } from '@mantou/gem/lib/server';
+import { waitServerElements } from '@mantou/gem-ssr/decorators';
 
 import {
+  cacheHistoryData,
   clientState,
   type ErrorData,
+  getHistoryEntry,
   loadServerData,
   outletStore,
   setSSRData,
@@ -56,7 +59,24 @@ async function loadData(cls: CustomElementConstructor, tag: string, params: Para
   const { path } = history.getParams();
   const err = takeRouteError(path, tag);
   if (err) throw err;
-  // 水合时使用服务端渲染的数据，不再执行 `load`
+  if (isServer) return runLoad(cls, tag, params, path, hasServerModule);
+  // 前进后退时使用离开时的数据，不再执行 `load`
+  const cached = getHistoryEntry()?.data;
+  if (cached && tag in cached) return cached[tag];
+  const key = history.currentKey;
+  const data = await runLoad(cls, tag, params, path, hasServerModule);
+  cacheHistoryData(key, tag, data);
+  return data;
+}
+
+/** 执行 `load` 获取数据，水合时使用服务端渲染的数据 */
+async function runLoad(
+  cls: CustomElementConstructor,
+  tag: string,
+  params: Params,
+  path: string,
+  hasServerModule?: boolean,
+) {
   const ssrResult = isServer ? undefined : takeSSRData(path, tag);
   if (ssrResult) return ssrResult.data;
   const { load } = getPageOptions(cls);
@@ -316,5 +336,6 @@ class GemkitOutletElement extends GemElement {
       .key=${this.#key}
       .routes=${this.#routes}
       .scrollContainer=${this.#getScrollContainer}
+      .scrollWait=${waitServerElements}
     ></gem-light-route>`;
 }

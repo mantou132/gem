@@ -5,8 +5,9 @@ const { window } = new JSDOM('', { url: 'http://localhost/' });
 
 window.document.adoptedStyleSheets = [];
 // jsdom 不支持，测试中不需要声明式 ShadowDOM
-(window.Document as any).parseHTMLUnsafe ??= (html: string) =>
-  new window.DOMParser().parseFromString(html, 'text/html');
+window.HTMLTemplateElement.prototype.setHTMLUnsafe ??= function (this: HTMLTemplateElement, html: string) {
+  this.innerHTML = html;
+};
 
 // Node 内部也使用全局 `Event`，不能替换，所以在派发时转换成 jsdom 的事件
 const { EventTarget, Event, CustomEvent, HTMLElement } = window;

@@ -2,7 +2,7 @@ import { connect, history } from '@mantou/gem';
 import { GemLinkElement } from '@mantou/gem/elements/link';
 
 import { trimTrailingSlash } from './constants';
-import { loadPageElements, prefetchElements, prefetchServerData } from './data';
+import { getHistoryEntry, loadPageElements, prefetchElements, prefetchServerData } from './data';
 import { canReuseLayoutData, getLayoutParams, matchRoutes } from './outlet';
 
 /**
@@ -44,13 +44,14 @@ export function startPrefetch() {
   document.addEventListener('pointerover', onIntent);
   document.addEventListener('focusin', onIntent);
 
-  // 先于路由更新执行，路由加载时使用这里的请求
+  // 先于路由更新执行，路由加载时使用这里的请求，前进后退时使用缓存，不需要请求
   let current = history.getParams().path;
   connect(history.store, () => {
     const { path } = history.getParams();
-    if (path !== current) prefetch(path, location.search, current);
+    const cached = !!getHistoryEntry();
+    if (path !== current && !cached) prefetch(path, location.search, current);
     current = path;
     // 页面中有没有纯服务端元素渲染后才知道，所以总是请求，和页面模块、数据并行
-    loadPageElements();
+    if (!cached) loadPageElements();
   });
 }

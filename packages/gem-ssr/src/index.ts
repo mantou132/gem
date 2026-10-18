@@ -65,7 +65,7 @@ type Context = {
   sheets: Set<unknown>;
   // 在隐藏的条件分支中，元素不会挂载
   hidden: boolean;
-  // 收集纯服务端元素的输出，key 由 `getServerElementKey` 生成
+  // 收集纯服务端元素和延时视图元素的输出，key 由 `getServerElementKey` 生成
   serverElements?: Map<string, Piece[]>;
   // 中止后不再渲染新的模板，例如客户端断开
   signal?: AbortSignal;
@@ -185,8 +185,10 @@ type ElementFrame = {
   conditionHidden: boolean;
   task?: Promise<unknown>;
   parentCtx: Context;
-  // 纯服务端元素的 key
+  // 纯服务端元素和延时视图元素的 key，客户端创建时用来获取 HTML
   serverKey?: string;
+  // 纯服务端元素，不会水合
+  pure: boolean;
   // 父模版设置了 property
   withProps: boolean;
 };
@@ -231,7 +233,8 @@ function createElement(Element: CustomElementConstructor, op: OpenOp, values: un
     hidden: ctx.hidden || conditionHidden,
     conditionHidden,
     parentCtx: ctx,
-    serverKey: serverOptions && !serverOptions.lazy ? getServerElementKey(op.tag, attrs, props) : undefined,
+    serverKey: serverOptions && getServerElementKey(op.tag, attrs, props),
+    pure: !!serverOptions && !serverOptions.lazy,
     withProps: !!ctx.hydrating && Object.keys(props).length > 0,
   };
   if (frame.hidden) {
@@ -243,7 +246,7 @@ function createElement(Element: CustomElementConstructor, op: OpenOp, values: un
   const tasks = ssrContext.tasks.get(element);
   ssrContext.tasks.delete(element);
   // 纯服务端元素不会水合，不需要输出状态
-  if (tasks && !frame.serverKey) ssrContext.stateElements.add(element);
+  if (tasks && !frame.pure) ssrContext.stateElements.add(element);
   // 服务端不执行副作用，所以手动加载路由
   const route = element instanceof GemLightRouteElement ? loadRoute(element) : undefined;
   const serverTasks = tasks && Promise.all(tasks.map((fn) => fn())).catch((err) => handleTaskError(element, err));
@@ -293,7 +296,7 @@ function getLightStyle(element: GemElement, sheets: Set<unknown>, attrs = ` ${SS
 
 // 在子内容后执行，异步任务完成后才能输出元素
 function buildElement(
-  { op, element, hidden, conditionHidden, parentCtx, serverKey, withProps }: ElementFrame,
+  { op, element, hidden, conditionHidden, parentCtx, serverKey, pure, withProps }: ElementFrame,
   children: Piece[],
 ) {
   const attrs = getElementAttrs(element);
@@ -322,7 +325,7 @@ function buildElement(
       serverElements: parentCtx.serverElements,
       signal: parentCtx.signal,
       // 纯服务端元素不会水合
-      hydrating: !serverKey,
+      hydrating: !pure,
     };
     if (template !== undefined) {
       out.push(ROOT_MARKER);
@@ -333,8 +336,11 @@ function buildElement(
     }
     out.push('</template>', ...children);
   } else {
-    // 纯服务端元素不会水合，样式需要保留，客户端导航时也需要独立的样式
-    out.push(serverKey ? getLightStyle(element, new Set(), '') : getLightStyle(element, parentCtx.sheets), ...children);
+    // 纯服务端元素不会水合，样式需要保留，客户端导航时获取的元素需要独立的样式
+    const style = pure
+      ? getLightStyle(element, new Set(), '')
+      : getLightStyle(element, serverKey ? new Set() : parentCtx.sheets);
+    out.push(style, ...children);
     if (template !== undefined) {
       out.push(ROOT_MARKER);
       renderValue(template, {
@@ -344,7 +350,7 @@ function buildElement(
         hidden: false,
         serverElements: parentCtx.serverElements,
         signal: parentCtx.signal,
-        hydrating: !serverKey,
+        hydrating: !pure,
       });
     } else if (element.innerHTML) {
       // 模版返回 `undefined` 时保留这些内容，根标记使父模版水合时跳过它们
@@ -440,7 +446,7 @@ function renderTemplate(result: TemplateResult, rootCtx: Context) {
 
 export interface RenderOptions {
   url?: string;
-  /** 收集纯服务端元素的 HTML，key 由 `getServerElementKey` 生成，客户端导航时使用 */
+  /** 收集纯服务端元素和延时视图元素的 HTML，key 由 `getServerElementKey` 生成，客户端导航时使用 */
   serverElements?: Map<string, string>;
   /** 中止渲染，例如客户端断开或者跳转，已经开始的异步任务会完成，但不再渲染新的元素 */
   signal?: AbortSignal;
@@ -555,7 +561,7 @@ export async function renderToString(result: unknown, options?: RenderOptions) {
 const ATTR_NAME = /^[^\s"'<>/=]+$/;
 
 /**
- * 渲染纯服务端元素，客户端导航时没有收集到元素的 HTML 时使用，例如交互后才出现的元素
+ * 渲染纯服务端元素或者延时视图元素，客户端导航时没有收集到元素的 HTML 时使用，例如交互后才出现的元素
  *
  * 只能渲染 `@server()` 标记的元素，`attrs` 和 `props` 和客户端设置的一致
  */
@@ -565,8 +571,9 @@ export async function renderServerElement(
   props: Record<string, unknown>,
   options: RenderOptions = {},
 ) {
-  const serverOptions = getServerElementOptions(customElements.get(tag) || {});
-  if (!serverOptions || serverOptions.lazy) throw new Error(`gem-ssr: \`${tag}\` is not a server element`);
+  if (!getServerElementOptions(customElements.get(tag) || {})) {
+    throw new Error(`gem-ssr: \`${tag}\` is not a server element`);
+  }
   for (const name in attrs) {
     if (!ATTR_NAME.test(name)) throw new Error(`gem-ssr: invalid attribute name \`${name}\``);
   }

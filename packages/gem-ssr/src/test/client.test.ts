@@ -132,7 +132,7 @@ test('纯服务端元素：服务端隐藏的元素显示时获取 HTML', async 
   container.remove();
 });
 
-test('延时视图：交互时加载并重放事件，客户端创建时直接加载', async ({ assert }) => {
+test('延时视图：交互时加载并重放事件', async ({ assert }) => {
   const clicks: string[] = [];
   let loads = 0;
   class LazyElement extends HTMLElement {
@@ -156,14 +156,37 @@ test('延时视图：交互时加载并重放事件，客户端创建时直接�
   assert.equal(loads, 1);
   assert.deepEqual(clicks, ['button'], '重放触发加载的事件');
   assert.equal(outerClicks, 1, '其他监听器只收到重放的事件');
+});
 
+test('延时视图：客户端创建时获取 HTML，交互时再加载', async ({ assert }) => {
+  const calls: unknown[][] = [];
+  setServerElementLoader(async (...args) => {
+    calls.push(args);
+    return '<app-lazy-created ssr-state="[]" ssr-server=""><b>server</b><app-lazy-created ssr-server=""></app-lazy-created></app-lazy-created>';
+  });
+  let loads = 0;
   defineLazy('app-lazy-created', async () => {
     loads++;
     customElements.define('app-lazy-created', class extends HTMLElement {});
   });
-  document.body.append(document.createElement('app-lazy-created'));
+  const element = document.createElement('app-lazy-created');
+  element.setAttribute('text', 'a');
+  document.body.append(element);
   await new Promise((resolve) => setTimeout(resolve));
-  assert.equal(loads, 2);
+  assert.deepEqual(calls, [
+    [getServerElementKey('app-lazy-created', { text: 'a' }, {}), 'app-lazy-created', { text: 'a' }, {}],
+  ]);
+  assert.equal(element.querySelector('b')?.textContent, 'server');
+  assert.equal(element.getAttribute('ssr-state'), '[]', '水合时恢复状态');
+  assert.equal(element.hasAttribute('ssr-server'), true, '升级前保留标记，移动时不再获取');
+  element.after(element);
+  await new Promise((resolve) => setTimeout(resolve));
+  assert.equal(calls.length, 1, '嵌套的元素和移动的元素不再获取');
+  assert.equal(loads, 0, '交互前不加载');
+  element.querySelector('b')!.click();
+  await new Promise((resolve) => setTimeout(resolve));
+  assert.equal(loads, 1);
+  element.remove();
 });
 
 test('水合时模板和服务端不一致，由客户端重新渲染', async ({ assert, mock }) => {

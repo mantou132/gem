@@ -34,4 +34,25 @@ export class DemoServerElement extends GemElement {
 
 export const serverElement = () => html`<app-server-element text="a" .data=${{ n: 1 }}></app-server-element>`;
 
+@customElement('app-lazy-element')
+@adoptedStyle(css`
+  :scope {
+    color: blue;
+  }
+`)
+@server({ lazy: true })
+export class DemoLazyElement extends GemElement {
+  @attribute text: string;
+
+  #state = createState({ loaded: '' });
+
+  @server()
+  #load = async () => this.#state({ loaded: 'loaded' });
+
+  @template()
+  #render = () => html`<p>${this.text}:${this.#state.loaded}</p>`;
+}
+
+export const lazyElement = () => html`<app-lazy-element text="a"></app-lazy-element>`;
+
 export { hiddenServerElement } from './hidden';

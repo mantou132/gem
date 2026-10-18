@@ -7,7 +7,7 @@ import '../../elements/route';
 
 const routes = [{ pattern: '*', content: html`<div style="height: 1000px"></div>` }];
 
-// 滚动位置在路由渲染后、`routechange` 之前更新
+// 滚动位置在路由渲染后更新，恢复位置可能晚一个微任务，等待 `routechange` 后已经更新
 const rendered = (route: GemRouteElement) =>
   new Promise((resolve) => route.addEventListener('routechange', resolve, { once: true }));
 
@@ -71,6 +71,24 @@ describe('<gem-route> scrollContainer', () => {
     scrollTo(0, 0);
     document.body.style.minHeight = '';
     window.history.scrollRestoration = 'auto';
+  });
+
+  it('恢复位置前等待 scrollWait', async () => {
+    const route = await createRoute();
+    route.scrollContainer = container;
+    let resolve = () => {};
+    const ready = new Promise<void>((r) => (resolve = r));
+    route.scrollWait = () => ready;
+    await nextFrame();
+    await navigate(route, () => history.push({ path: '/scroll-h' }));
+    container.scrollTop = 300;
+    await navigate(route, () => history.push({ path: '/scroll-i' }));
+    expect(container.scrollTop).to.equal(0);
+    await navigate(route, () => waitForPopState(() => history.back()));
+    expect(container.scrollTop).to.equal(0);
+    resolve();
+    await ready;
+    expect(container.scrollTop).to.equal(300);
   });
 
   it('滚动容器为空时不滚动', async () => {

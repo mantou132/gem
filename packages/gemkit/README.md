@@ -25,6 +25,9 @@ export default defineConfig({
 SSR responses are streamed: the document is sent once the page `load` and `title` are resolved,
 async content inside the page (e.g. `@server` methods) is streamed after it.
 
+How each scenario is rendered (first load, hydration, navigation, back/forward, actions) and why:
+[docs/rendering.md](docs/rendering.md) (Chinese).
+
 ## Project structure
 
 ```
@@ -137,20 +140,26 @@ hydration uses the server values. Only JSON values are supported.
 client, `@server({ lazy: true })` elements are loaded on the first interaction, see
 [gem-ssr](https://github.com/mantou132/gem/tree/main/packages/gem-ssr#server-elements).
 
-On client navigation, the HTML of the server elements in the page is fetched from `<page path>/__elements.json`
-(written next to the page when prerendering), elements not in it (e.g. pages not prerendered, elements shown after
-interaction) are rendered by the server on demand in one batched request, which is not available on a static host.
+On client navigation, the HTML of the server elements (including lazy elements, whose code is still loaded on the
+first interaction) in the page is fetched from `<page path>/__elements.json` (written next to the page when
+prerendering, not requested in dev or with `prerender: false`), elements not in it (e.g. pages not prerendered,
+elements shown after interaction) are rendered by the server on demand in one batched request, which is not
+available on a static host.
 
 ## Prefetch
 
 When a `<gem-link>` is hovered or focused, the modules of the target page and its layouts, the server data
-(`__data.json`, only when needed) and the server elements (`__elements.json`) are prefetched, the prefetched results
-are used once within 30 seconds. On navigation, they are requested in parallel.
+(`__data.json`, only when needed) and the server elements (`__elements.json`, only when prerendering) are prefetched,
+the prefetched results are used once within 30 seconds. On navigation, they are requested in parallel.
+
+Back/forward navigation restores the data and the server element HTML of the history entry as it was left, without
+any request (the latest 50 entries are kept, a form submission clears them).
 
 ## Scroll restoration
 
 After the page renders, the window scrolls to the top on new history entries (unless the URL has a hash),
-back/forward restores the previous position, re-rendering the same entry (e.g. after a form submission) keeps it.
+back/forward restores the previous position once the server elements in the page have their HTML,
+re-rendering the same entry (e.g. after a form submission) keeps it.
 
 ## Layout data
 

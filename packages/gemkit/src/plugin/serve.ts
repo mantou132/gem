@@ -1,4 +1,3 @@
-import { existsSync } from 'node:fs';
 import { readFile } from 'node:fs/promises';
 import { createRequire } from 'node:module';
 import path from 'node:path';
@@ -95,7 +94,14 @@ export function createRequestHandler(
       // 不合法的 URL 编码，由 SSR 渲染 404 页面
       return;
     }
-    if (file.startsWith(webDir + path.sep) && existsSync(file)) return readFile(file, 'utf8');
+    if (!file.startsWith(webDir + path.sep)) return;
+    try {
+      return await readFile(file, 'utf8');
+    } catch (err) {
+      // 没有预渲染的文件，由服务端渲染，路径中间是文件时（例如 `/a.png/__data.json`）为 `ENOTDIR`
+      const { code } = err as NodeJS.ErrnoException;
+      if (code !== 'ENOENT' && code !== 'ENOTDIR') throw err;
+    }
   };
   return async (input) => {
     const request = trustedOrigin ? withOrigin(input, trustedOrigin) : input;
@@ -124,7 +130,7 @@ export function createRequestHandler(
     if (isDataRequest(pathname)) {
       const body = await readStatic(url);
       if (body) return new Response(body, { headers: { 'content-type': 'application/json' } });
-      // 没有预渲染时客户端使用 `ELEMENT_PATH` 渲染，导航时总会请求，避免 404
+      // 没有预渲染的页面客户端使用 `ELEMENT_PATH` 渲染，开启预渲染时导航总会请求，避免 404
       if (pathname.endsWith(ELEMENTS_FILE)) return Response.json({});
       const { status, headers, body: file } = await renderer.loadData(request);
       return Response.json(file, { status, headers });

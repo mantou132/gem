@@ -20,6 +20,55 @@ export function setServerElementLoader(fn: ServerElementLoader) {
   loader = fn;
 }
 
+/** 元素的 key、标签名、attribute 和 property，用来获取服务端渲染的 HTML */
+export function getServerElementParams(ele: Element) {
+  const tag = ele.localName;
+  const attrs = Object.fromEntries(ele.getAttributeNames().map((name) => [name, ele.getAttribute(name)!]));
+  // 模板绑定的 property 是元素自身的属性
+  const props = Object.fromEntries(Object.entries(ele));
+  return { key: getServerElementKey(tag, attrs, props), tag, attrs, props };
+}
+
+// 正在获取的 HTML
+const pendingLoads = new Set<Promise<unknown>>();
+
+/**
+ * 等待客户端创建的纯服务端元素和延时视图元素获取 HTML，失败的也算完成，例如客户端导航后恢复滚动位置前
+ *
+ * 复用的元素在微任务中更新，观察回调也在微任务中执行，所以先等到下一帧绘制前，需要获取的元素都已经开始获取，
+ * 不需要等待时在这一帧绘制前完成
+ */
+export async function waitServerElements() {
+  await new Promise(requestAnimationFrame);
+  return Promise.allSettled(pendingLoads);
+}
+
+/** 获取服务端渲染的元素，没有时返回 `null` */
+export async function loadServerElement({ key, tag, attrs, props }: ReturnType<typeof getServerElementParams>) {
+  if (!loader) throw new Error('gem-ssr: server element loader is not set');
+  const promise = loader(key, tag, attrs, props);
+  const remove = () => pendingLoads.delete(promise);
+  pendingLoads.add(promise);
+  promise.then(remove, remove);
+  const html = await promise;
+  // `Document.parseHTMLUnsafe` 会移除注释，水合需要其中的标记
+  const template = document.createElement('template');
+  template.setHTMLUnsafe(html);
+  return template.content.querySelector(tag);
+}
+
+/** 使用服务端渲染的元素的内容 */
+export function fillServerContent(ele: Element, source: Element) {
+  const { shadowRoot } = source;
+  if (shadowRoot) {
+    const { mode, delegatesFocus, serializable, clonable, slotAssignment } = shadowRoot;
+    const root = ele.shadowRoot || ele.attachShadow({ mode, delegatesFocus, serializable, clonable, slotAssignment });
+    root.replaceChildren(...shadowRoot.childNodes);
+  } else {
+    ele.replaceChildren(...source.childNodes);
+  }
+}
+
 /**
  * 客户端构建时，`@server()` 标记的纯服务端元素会被替换成这个类
  *
@@ -39,36 +88,20 @@ export class GemServerElement extends HTMLElement {
     }).observe(this, { attributes: true, attributeOldValue: true });
   }
 
-  #getParams() {
-    const tag = this.localName;
-    const attrs = Object.fromEntries(this.getAttributeNames().map((name) => [name, this.getAttribute(name)!]));
-    // 模板绑定的 property 是元素自身的属性
-    const props = Object.fromEntries(Object.entries(this));
-    return { key: getServerElementKey(tag, attrs, props), tag, attrs, props };
-  }
-
   #load = async () => {
-    const { key, tag, attrs, props } = this.#getParams();
-    if (key === this.#key) return;
-    this.#key = key;
-    if (!loader) throw new Error('gem-ssr: server element loader is not set');
-    const html = await loader(key, tag, attrs, props);
+    const params = getServerElementParams(this);
+    if (params.key === this.#key) return;
+    this.#key = params.key;
+    const source = await loadServerElement(params);
     // 已经有更新的请求
-    if (key !== this.#key) return;
-    const source = Document.parseHTMLUnsafe(html).querySelector(tag);
-    if (!source) return;
-    if (source.shadowRoot) {
-      const root = this.shadowRoot || this.attachShadow({ mode: source.shadowRoot.mode });
-      root.replaceChildren(...source.shadowRoot.childNodes);
-    } else {
-      this.replaceChildren(...source.childNodes);
-    }
+    if (params.key !== this.#key || !source) return;
+    fillServerContent(this, source);
   };
 
   connectedCallback() {
     if (this.hasAttribute(SSR_SERVER)) {
       this.removeAttribute(SSR_SERVER);
-      this.#key = this.#getParams().key;
+      this.#key = getServerElementParams(this).key;
       return;
     }
     // 服务端隐藏的条件分支中没有内容，水合时会被移除，显示时再获取

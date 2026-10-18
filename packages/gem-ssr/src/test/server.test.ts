@@ -8,7 +8,7 @@ import { GemUseElement } from '@mantou/gem/elements/use';
 
 import { render, renderServerElement, renderToString } from '..';
 import { getServerElementKey, server, ssrContext } from '../decorators';
-import { serverElement } from './fixtures/server-element';
+import { lazyElement, serverElement } from './fixtures/server-element';
 
 let calls = 0;
 
@@ -221,10 +221,21 @@ test('纯服务端元素：保留样式，不输出状态，收集 HTML', async 
   assert.equal(result.includes(serverElements.get(key)!), true);
 });
 
+test('延时视图：输出状态和水合时移除的样式，收集 HTML', async ({ assert }) => {
+  const serverElements = new Map<string, string>();
+  const result = await renderToString(lazyElement(), { serverElements });
+  assert.match(result, /<app-lazy-element text="a" ssr-state="[^"]*loaded[^"]*" ssr-server="">/);
+  assert.match(result, /<style ssr-style>[^<]*color: ?blue/, '客户端导航时也有样式');
+  const key = getServerElementKey('app-lazy-element', { text: 'a' }, {});
+  assert.deepEqual([...serverElements.keys()], [key]);
+  assert.equal(result.includes(serverElements.get(key)!), true);
+});
+
 test('renderServerElement：渲染纯服务端元素', async ({ assert }) => {
   const result = await renderServerElement('app-server-element', { text: 'b' }, { data: { n: 2 } });
   assert.match(result, /<p>.*b.*2.*loaded.*<\/p>/);
   await assert.rejects(renderServerElement('app-server-inner', {}, {}), /not a server element/);
+  assert.match(await renderServerElement('app-lazy-element', { text: 'b' }, {}), /<p>.*b.*loaded.*<\/p>/, '延时视图');
   await assert.rejects(
     renderServerElement('app-server-element', { 'x><script>alert(1)</script': '' }, {}),
     /invalid attribute name/,

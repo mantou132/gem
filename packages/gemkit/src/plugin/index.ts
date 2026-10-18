@@ -129,6 +129,10 @@ export function pluginGemkit(options: GemkitOptions = {}): RsbuildPlugin {
       api.modifyRsbuildConfig((userConfig, { mergeRsbuildConfig }) => {
         const userTemplate = path.join(srcDir, 'index.html');
         return mergeRsbuildConfig(userConfig, {
+          source: {
+            // 没有预渲染时不会输出 `__elements.json`，客户端直接请求服务端渲染元素
+            define: { 'process.env.GEMKIT_PRERENDER': JSON.stringify(String(prerender && !isDev)) },
+          },
           html: {
             template: fs.existsSync(userTemplate) ? userTemplate : path.join(packageDir, 'template.html'),
             title: config.title,

@@ -5,7 +5,7 @@ import { hash } from './hash';
 
 // 客户端构建时 `@server()` 标记的元素类被改写后使用，从导入 `server` 的模块导入
 export { defineLazy } from './client/lazy';
-export { GemServerElement } from './client/server-element';
+export { GemServerElement, waitServerElements } from './client/server-element';
 
 // SSR 输出的元素状态，值是 `internals.stateList` 的 JSON
 export const SSR_STATE = 'ssr-state';

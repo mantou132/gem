@@ -325,6 +325,34 @@ function takePrefetched<T>(url: string): Promise<T> | undefined {
   if (item && Date.now() - item.time < PREFETCH_TTL) return item.promise;
 }
 
+// 最多缓存的历史记录数量
+const HISTORY_CACHE_SIZE = 50;
+
+/** 历史记录离开时的状态，`data` 是 layout 和页面的数据，key 是标签名，`elements` 是纯服务端元素的 HTML */
+type HistoryEntry = { data: RouteData; elements: Record<string, string> };
+
+// 前进后退时恢复历史记录离开时的状态，不再请求，key 是历史记录的 key，导航到新的历史记录时总是重新请求
+const historyCache = new Map<string, HistoryEntry>();
+
+/** 历史记录的缓存，默认是当前的历史记录 */
+export const getHistoryEntry = (key = history.currentKey) => historyCache.get(key);
+
+/** 更新历史记录的缓存，`key` 是开始加载时的历史记录，加载期间可能已经导航，只保留最近更新的历史记录 */
+function updateHistoryEntry(key: string, update: (entry: HistoryEntry) => void) {
+  const entry = historyCache.get(key) || { data: {}, elements: {} };
+  update(entry);
+  historyCache.delete(key);
+  historyCache.set(key, entry);
+  if (historyCache.size > HISTORY_CACHE_SIZE) historyCache.delete(historyCache.keys().next().value!);
+}
+
+/** 缓存历史记录中 layout 或页面的数据 */
+export function cacheHistoryData(key: string, tag: string, data: unknown) {
+  updateHistoryEntry(key, (entry) => {
+    entry.data[tag] = data;
+  });
+}
+
 /** 页面路径（不包含语言前缀）对应的数据文件 URL */
 const getFileUrl = (path: string, search: string, file?: string) => history.basePath + getDataPath(path, file) + search;
 
@@ -457,21 +485,26 @@ function renderElement(url: string, element: ServerElementParams) {
 const fetchElements = (url: string): Promise<Record<string, string>> =>
   fetch(url).then((res) => (res.ok ? res.json() : {}));
 
+// 预渲染时才有页面中纯服务端元素的 HTML 文件，在构建时确定
+const hasElementsFile = process.env.GEMKIT_PRERENDER !== 'false';
+
 /** 预取页面中纯服务端元素的 HTML */
 export function prefetchElements(path: string, search: string) {
+  if (!hasElementsFile) return;
   const url = getFileUrl(path, search, ELEMENTS_FILE);
   prefetchRequest(url, () => fetchElements(url));
 }
 
-/** 获取当前页面中纯服务端元素的 HTML，导航时调用可以和页面模块、数据并行 */
+/** 获取当前页面中纯服务端元素的 HTML，导航时调用可以和页面模块、数据并行，没有预渲染时为空 */
 export function loadPageElements() {
+  if (!hasElementsFile) return Promise.resolve({} as Record<string, string>);
   const url = getFileUrl(history.getParams().path, location.search, ELEMENTS_FILE);
   if (elementsRequest?.url !== url) elementsRequest = { url, promise: takePrefetched(url) || fetchElements(url) };
   return elementsRequest.promise;
 }
 
 /**
- * 客户端创建纯服务端元素时获取 HTML，先从预渲染的 `__elements.json` 中获取，
+ * 客户端创建纯服务端元素或者延时视图元素时获取 HTML，先从预渲染的 `__elements.json` 中获取，
  * 没有时（例如没有预渲染或者交互后才出现的元素）请求服务端渲染，静态托管时不可用
  */
 export async function loadServerElement(
@@ -480,10 +513,16 @@ export async function loadServerElement(
   attrs: ServerElementParams['attrs'],
   props: ServerElementParams['props'],
 ) {
+  const historyKey = history.currentKey;
+  // 前进后退时使用离开时的 HTML
+  const cached = getHistoryEntry(historyKey)?.elements[key];
+  if (cached !== undefined) return cached;
   const pageUrl = history.basePath + history.getParams().path + location.search;
-  const html = (await loadPageElements())[key];
-  if (html !== undefined) return html;
-  return renderElement(pageUrl, { tag, attrs, props });
+  const html = (await loadPageElements())[key] ?? (await renderElement(pageUrl, { tag, attrs, props }));
+  updateHistoryEntry(historyKey, (entry) => {
+    entry.elements[key] = html;
+  });
+  return html;
 }
 
 /** `actions` 的结果，出错时渲染错误页面 */
@@ -519,6 +558,7 @@ export async function submitAction(form: HTMLFormElement, submitter?: HTMLElemen
   // 提交后 cookie 等状态可能改变，之前的数据都不能再使用
   clientState.invalidated = true;
   prefetched.clear();
+  historyCache.clear();
   if (result.type === 'redirect') {
     navigate(result.location);
     return;
