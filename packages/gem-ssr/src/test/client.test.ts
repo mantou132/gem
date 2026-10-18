@@ -10,6 +10,7 @@ import { hydrateContainer } from '../client/hydration';
 import { getServerElementKey, ssrContext } from '../decorators';
 import { hiddenServerElement } from './fixtures/hidden';
 import { counter, type DemoServerMethodElement } from './fixtures/server';
+import { theme } from './fixtures/themes';
 import { ssr } from './ssr';
 
 import '../client';
@@ -25,6 +26,13 @@ test('stores: 创建有 key 的 store 时使用服务端的值', async ({ assert
   mount(await ssr('stores.ts', 'withStore', 'bob'));
   assert.equal(createStore({ nickname: 'guest' }, 'user').nickname, 'bob');
   assert.equal(createStore({ nickname: 'guest' }).nickname, 'guest', '没有 key 的 store 不恢复');
+});
+
+test('theme: 有 key 的主题服务端和客户端的变量名一致', async ({ assert }) => {
+  const html = await ssr('themes.ts', 'themed');
+  assert.equal(theme.textColor, 'var(--text-color-app-theme)');
+  assert.equal(html.includes('--text-color-app-theme:red;'), true, '服务端定义的变量名');
+  assert.equal(html.includes(`color: ${theme.textColor};`), true, '服务端使用的变量名');
 });
 
 test('@server: 客户端恢复状态，复用节点', async ({ assert }) => {

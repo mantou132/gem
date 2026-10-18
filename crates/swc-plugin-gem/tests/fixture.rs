@@ -146,8 +146,8 @@ fn fixture_hmr(input: PathBuf) {
     );
 }
 
-#[fixture("tests/fixture/ssr/store-key/input.ts")]
-fn fixture_store_key(input: PathBuf) {
+#[fixture("tests/fixture/ssr/key/input.ts")]
+fn fixture_ssr_key(input: PathBuf) {
     let output = input.parent().unwrap().join("output.ts");
 
     test_fixture(

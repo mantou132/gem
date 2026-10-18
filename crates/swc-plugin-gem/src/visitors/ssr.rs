@@ -2,7 +2,8 @@
 //!
 //! 客户端和服务端构建：模块顶层 `const x = createStore(...)` 添加 key 参数，
 //! 改为 `createStore(..., "{文件哈希}_x")`，服务端和客户端用 key 同步 store 的值
-//! （只识别直接调用 `createStore` 标识符，和 HMR 保留 store 的规则一样，已经有第二个参数时不处理）
+//! （只识别直接调用 `createStore` 标识符，和 HMR 保留 store 的规则一样，已经有第二个参数时不处理）；
+//! `createTheme` `createScopedTheme` `createDecoratorTheme` 同样添加 key，用作 css 变量名的后缀
 //!
 //! 客户端构建：改写 `@server()` 标记的元素类，`GemServerElement` 和 `defineLazy` 从导入 `server` 的模块导入
 //!
@@ -59,6 +60,13 @@ impl SsrConfig {
 
 static SERVER_ELEMENT: &str = "_GemServerElement";
 static DEFINE_LAZY: &str = "_defineLazy";
+/// 第二个参数是 key 的函数
+static KEYED_FNS: [&str; 4] = [
+    "createStore",
+    "createTheme",
+    "createScopedTheme",
+    "createDecoratorTheme",
+];
 
 struct TransformVisitor {
     filename: String,
@@ -257,7 +265,7 @@ fn remove_unused(items: &mut Vec<ModuleItem>) {
 }
 
 impl TransformVisitor {
-    fn add_store_key(&self, var: &mut VarDecl) {
+    fn add_key(&self, var: &mut VarDecl) {
         for decl in var.decls.iter_mut() {
             let (Pat::Ident(name), Some(init)) = (&decl.name, &mut decl.init) else {
                 continue;
@@ -265,12 +273,12 @@ impl TransformVisitor {
             let Some(call) = init.as_mut_call() else {
                 continue;
             };
-            let is_create_store = call
+            let is_keyed = call
                 .callee
                 .as_expr()
                 .and_then(|callee| callee.as_ident())
-                .is_some_and(|ident| &*ident.sym == "createStore");
-            if !is_create_store || call.args.len() != 1 {
+                .is_some_and(|ident| KEYED_FNS.contains(&&*ident.sym));
+            if !is_keyed || call.args.len() != 1 {
                 continue;
             }
             let key = format!("{:x}_{}", hash_string(&self.filename), name.id.sym);
@@ -384,7 +392,7 @@ impl VisitMut for TransformVisitor {
                 })) => var,
                 _ => continue,
             };
-            self.add_store_key(var);
+            self.add_key(var);
         }
     }
 }

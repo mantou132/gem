@@ -139,6 +139,8 @@ export interface UnpluginGemOptions {
   /**
    * Support `@mantou/gem-ssr`, enable it in both the client and server builds:
    * - add key to module level `createStore` to sync store values to the client
+   * - add key to module level `createTheme`/`createScopedTheme`/`createDecoratorTheme`
+   *   so the CSS variable names are the same on the server and the client
    * - in the client build, replace `@server()` element classes with stubs and
    *   load `@server({ lazy: true })` elements on demand
    * @default false

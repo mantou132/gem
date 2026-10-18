@@ -26,8 +26,11 @@ export function getThemeProps<T>(theme: Theme<T>) {
   return themePropsMap.get(theme) as Theme<T>;
 }
 
-function createThemeFromProps<T extends Record<string, unknown>>(themeObj: T, props: Record<string, string> = {}) {
-  const salt = randomStr();
+function createThemeFromProps<T extends Record<string, unknown>>(
+  themeObj: T,
+  props: Record<string, string> = {},
+  salt = randomStr(),
+) {
   const styleSheet = css({})[SheetToken];
   const store = createStore<T>(themeObj);
   // 同步分配变量名，新增的键在更新后立即可读；样式内容随 store 异步更新
@@ -75,14 +78,17 @@ function createThemeFromProps<T extends Record<string, unknown>>(themeObj: T, pr
 
 /**
  * 用于 `@adoptedStyle(theme)`，类似 `css`
+ *
+ * `key` 用作 css 变量名的后缀，SSR 时让服务端和客户端的变量名一致，
+ * `swc-plugin-gem` 的 `ssr` 选项会为模块顶层的主题自动添加
  */
-export function createScopedTheme<T extends Record<string, unknown>>(themeObj: T) {
-  return createThemeFromProps(themeObj);
+export function createScopedTheme<T extends Record<string, unknown>>(themeObj: T, key?: string) {
+  return createThemeFromProps(themeObj, {}, key);
 }
 
-/** 全局主题 */
-export function createTheme<T extends Record<string, unknown>>(themeObj: T) {
-  const result = createScopedTheme(themeObj);
+/** 全局主题，`key` 同 `createScopedTheme` */
+export function createTheme<T extends Record<string, unknown>>(themeObj: T, key?: string) {
+  const result = createScopedTheme(themeObj, key);
   document.adoptedStyleSheets.push(result[SheetToken].getStyle());
   return result;
 }
@@ -94,6 +100,7 @@ export function createOverrideTheme<T extends Record<string, unknown>>(theme: Th
 
 /**
  * 返回一个主题对象，但同时又是一个装饰器函数，用来装饰一个主题更新函数
+ * 所有实例共享变量名，`key` 同 `createScopedTheme`
  *
  * @example
  * ```ts
@@ -104,8 +111,8 @@ export function createOverrideTheme<T extends Record<string, unknown>>(theme: Th
  * }
  * ```
  * */
-export function createDecoratorTheme<T extends Record<string, unknown>>(themeObj: T) {
-  const themeAsKeys = createThemeFromProps(themeObj);
+export function createDecoratorTheme<T extends Record<string, unknown>>(themeObj: T, key?: string) {
+  const themeAsKeys = createThemeFromProps(themeObj, {}, key);
   const props = getThemeProps(themeAsKeys);
   const update = <E extends GemElement, V extends () => T, K = any[] | undefined>(
     getDep?: K extends readonly any[] ? (instance: E) => K : undefined,
