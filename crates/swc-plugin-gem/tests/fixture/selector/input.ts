@@ -24,4 +24,16 @@ const style = css`
   &:is(.a, .b):where(:hover, :focus) {
     color: purple;
   }
+  &::before {
+    content: '#';
+  }
+  &::after, &::-webkit-details-marker {
+    display: none;
+  }
+  &:hover::after {
+    color: red;
+  }
+  &.open:not([data-x="a::b"])::part(icon):hover {
+    color: blue;
+  }
 `
