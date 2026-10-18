@@ -36,4 +36,34 @@ const style = css`
   &.open:not([data-x="a::b"])::part(icon):hover {
     color: blue;
   }
+  /* don't transform nested & */
+  button {
+    color: ${color};
+    &:hover, &::after {
+      color: blue;
+    }
+    & span {
+      &:hover {
+        color: red;
+      }
+    }
+  }
+  :host {
+    &:hover {
+      color: red;
+    }
+  }
+  @media print {
+    &::details-content {
+      display: block;
+    }
+    &:focus {
+      color: red;
+    }
+    a {
+      &:focus {
+        color: red;
+      }
+    }
+  }
 `

@@ -131,7 +131,8 @@ export interface UnpluginGemOptions {
 
   /**
    * Support `&:hover` in shadow DOM and light DOM
-   * Transform to `:is(&:hover,:host(:hover))`
+   * Transform top-level (or in `:host`/`:scope`) `&:hover` to `:is(&:hover,:host(:hover))`,
+   * `&:hover::after` to `:is(&:hover,:host(:hover))::after`
    * @default false
    */
   selectorCompatible?: boolean;

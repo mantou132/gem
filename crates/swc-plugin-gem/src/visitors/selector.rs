@@ -4,9 +4,9 @@ use swc_common::DUMMY_SP;
 use swc_core::ecma::visit::{noop_visit_mut_type, VisitMut, VisitMutWith};
 use swc_ecma_ast::{TaggedTpl, Tpl, TplElement};
 
-static COMMENT_REG: Lazy<Regex> = Lazy::new(|| {
+static SELECTOR_REG: Lazy<Regex> = Lazy::new(|| {
     Regex::new(
-        r#"&((?:[^\s,{\(\["']+|\([^()]*\)|\[[^\]]*\]|"[^"]*"|'[^']*')+)"#,
+        r#"^&((?:[^\s,{\(\["']+|\([^()]*\)|\[[^\]]*\]|"[^"]*"|'[^']*')+)"#,
     )
     .unwrap()
 });
@@ -40,7 +40,74 @@ fn replace_selector(caps: &Captures) -> String {
     format!(":is(&{compound},:host({compound})){pseudo_element}")
 }
 
+/// 跨模版片段记录嵌套层级，只有表示宿主元素的 `&` 才需要转换，
+/// 即顶层或者 `:host`/`:scope` 中的 `&`，at-rule 继承上一层
+#[derive(Default)]
+struct CssScanner {
+    stack: Vec<bool>,
+    prelude: String,
+    quote: Option<char>,
+}
+
+impl CssScanner {
+    fn is_host(&self) -> bool {
+        self.stack.last().copied().unwrap_or(true)
+    }
+
+    fn trans(&mut self, text: &str) -> String {
+        let mut out = String::with_capacity(text.len());
+        let mut i = 0;
+        while let Some(c) = text[i..].chars().next() {
+            let mut len = c.len_utf8();
+            match (self.quote, c) {
+                (Some(q), _) if c == q => self.quote = None,
+                (Some(_), _) => {}
+                (None, '"' | '\'') => self.quote = Some(c),
+                (None, '/') if text[i..].starts_with("/*") => {
+                    len = text[i..].find("*/").map_or(text.len() - i, |e| e + 2);
+                    out.push_str(&text[i..i + len]);
+                    i += len;
+                    continue;
+                }
+                (None, '{') => {
+                    let prelude = self.prelude.trim();
+                    let is_host = if prelude.starts_with('@') {
+                        self.is_host()
+                    } else {
+                        matches!(prelude, ":host" | ":scope")
+                    };
+                    self.stack.push(is_host);
+                    self.prelude.clear();
+                }
+                (None, '}') => {
+                    self.stack.pop();
+                    self.prelude.clear();
+                }
+                (None, ';') => self.prelude.clear(),
+                (None, '&') if self.is_host() => {
+                    if let Some(caps) = SELECTOR_REG.captures(&text[i..]) {
+                        len = caps[0].len();
+                        out.push_str(&replace_selector(&caps));
+                        self.prelude.push_str(&caps[0]);
+                        i += len;
+                        continue;
+                    }
+                }
+                _ => {}
+            }
+            let s = &text[i..i + len];
+            out.push_str(s);
+            if !matches!(c, '{' | '}' | ';') {
+                self.prelude.push_str(s);
+            }
+            i += len;
+        }
+        out
+    }
+}
+
 fn trans_css_tpl(tpl: &Tpl) -> Tpl {
+    let mut scanner = CssScanner::default();
     Tpl {
         span: DUMMY_SP,
         exprs: tpl.exprs.clone(),
@@ -51,9 +118,7 @@ fn trans_css_tpl(tpl: &Tpl) -> Tpl {
                 span: DUMMY_SP,
                 tail: x.tail,
                 cooked: None,
-                raw: COMMENT_REG
-                    .replace_all(x.raw.as_str(), replace_selector)
-                    .into(),
+                raw: scanner.trans(x.raw.as_str()).into(),
             })
             .collect(),
     }
