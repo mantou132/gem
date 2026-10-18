@@ -4,8 +4,8 @@ use swc_core::{
     ecma::visit::{noop_visit_mut_type, VisitMut, VisitMutWith},
 };
 use swc_ecma_ast::{
-    ArrowExpr, AssignExpr, AssignOp, AssignTarget, BlockStmt, BlockStmtOrExpr, CallExpr, Callee,
-    Class, ClassDecl, ClassMember, ClassProp, Decorator, Expr, ExprOrSpread, ExprStmt,
+    ArrowExpr, ArrowFunctionBody, AssignExpr, AssignOp, AssignTarget, CallExpr, Callee, Class,
+    ClassDecl, ClassMember, ClassProp, Decorator, Expr, ExprOrSpread, ExprStmt, FunctionBody,
     Ident, MemberExpr, MemberProp, MethodKind, Pat, PrivateMethod, PrivateName, PrivateProp,
     PropName, SimpleAssignTarget, Stmt, ThisExpr,
 };
@@ -86,7 +86,7 @@ impl TransformVisitor {
                         spread: None,
                         expr: Expr::Arrow(ArrowExpr {
                             params: vec![Pat::Ident("i".into())],
-                            body: BlockStmtOrExpr::Expr(Box::new(Expr::Call(CallExpr {
+                            body: ArrowFunctionBody::Expr(Box::new(Expr::Call(CallExpr {
                                 callee: Callee::Expr(
                                     Expr::Member(MemberExpr {
                                         span: DUMMY_SP,
@@ -143,7 +143,7 @@ impl VisitMut for TransformVisitor {
                 },
                 decorators,
                 value: Some(Box::new(Expr::Arrow(ArrowExpr {
-                    body: Box::new(BlockStmtOrExpr::BlockStmt(BlockStmt {
+                    body: Box::new(ArrowFunctionBody::FunctionBody(FunctionBody {
                         stmts: vec![Stmt::Expr(ExprStmt {
                             span: DUMMY_SP,
                             expr: Box::new(Expr::Assign(AssignExpr {

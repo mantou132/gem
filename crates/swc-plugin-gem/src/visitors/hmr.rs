@@ -98,11 +98,11 @@ use swc_core::{
     quote,
 };
 use swc_ecma_ast::{
-    op, ArrayLit, ArrowExpr, BinExpr, BlockStmt, BlockStmtOrExpr, CallExpr, Callee, Class,
+    op, ArrayLit, ArrowExpr, ArrowFunctionBody, BinExpr, BlockStmt, CallExpr, Callee, Class,
     ClassMember, ClassMethod, ClassProp, Constructor, Decl, Decorator, ExportDecl, Expr,
-    ExprOrSpread, Function, Ident, IdentName, ImportSpecifier, Lit, MemberExpr, MemberProp,
-    MetaPropKind, MethodKind, ModuleDecl, ModuleItem, Param, ParamOrTsParamProp, Pat, PropName,
-    RestPat, ReturnStmt, StaticBlock, Stmt, Str, ThisExpr, VarDecl,
+    ExprOrSpread, Function, FunctionBody, Ident, IdentName, ImportSpecifier, Lit, MemberExpr,
+    MemberProp, MetaPropKind, MethodKind, ModuleDecl, ModuleItem, Param, ParamOrTsParamProp, Pat,
+    PropName, RestPat, ReturnStmt, StaticBlock, Stmt, Str, ThisExpr, VarDecl,
 };
 
 use super::hash_string;
@@ -251,7 +251,7 @@ fn get_shadow_ident(
     let kind_suffix = match method_kind {
         MethodKind::Getter => "_get",
         MethodKind::Setter => "_set",
-        MethodKind::Method => "",
+        _ => "",
     };
     format!(
         "_hmr_{}_{}_{}{}",
@@ -275,7 +275,7 @@ fn get_private_ident(origin_ident: &IdentName, key: &str) -> IdentName {
 fn gen_shadow_member(
     shadow_ident: &IdentName,
     is_static: bool,
-    body: Option<BlockStmt>,
+    body: Option<FunctionBody>,
     params: Vec<Param>,
     is_async: bool,
     is_generator: bool,
@@ -311,9 +311,9 @@ fn gen_proxy_this_expr(shadow_ident: &IdentName) -> Expr {
     })
 }
 
-fn gen_proxy_body(shadow_ident: &IdentName) -> BlockStmt {
+fn gen_proxy_body(shadow_ident: &IdentName) -> FunctionBody {
     let this_expr = gen_proxy_this_expr(shadow_ident);
-    BlockStmt {
+    FunctionBody {
         stmts: vec![quote!(
             "return $expr(...args);" as Stmt,
             expr: Expr = this_expr
@@ -322,9 +322,9 @@ fn gen_proxy_body(shadow_ident: &IdentName) -> BlockStmt {
     }
 }
 
-fn gen_proxy_body_getter(shadow_ident: &IdentName) -> BlockStmt {
+fn gen_proxy_body_getter(shadow_ident: &IdentName) -> FunctionBody {
     let this_expr = gen_proxy_this_expr(shadow_ident);
-    BlockStmt {
+    FunctionBody {
         stmts: vec![quote!(
             "return $expr();" as Stmt,
             expr: Expr = this_expr
@@ -333,9 +333,9 @@ fn gen_proxy_body_getter(shadow_ident: &IdentName) -> BlockStmt {
     }
 }
 
-fn gen_proxy_body_setter(shadow_ident: &IdentName) -> BlockStmt {
+fn gen_proxy_body_setter(shadow_ident: &IdentName) -> FunctionBody {
     let this_expr = gen_proxy_this_expr(shadow_ident);
-    BlockStmt {
+    FunctionBody {
         stmts: vec![quote!(
             "$expr(value);" as Stmt,
             expr: Expr = this_expr
@@ -344,7 +344,7 @@ fn gen_proxy_body_setter(shadow_ident: &IdentName) -> BlockStmt {
     }
 }
 
-fn gen_proxy_body_constructor(shadow_ident: &IdentName, has_super: &bool) -> BlockStmt {
+fn gen_proxy_body_constructor(shadow_ident: &IdentName, has_super: &bool) -> FunctionBody {
     let this_expr = gen_proxy_this_expr(shadow_ident);
     let mut stmts = vec![];
     if *has_super {
@@ -354,7 +354,7 @@ fn gen_proxy_body_constructor(shadow_ident: &IdentName, has_super: &bool) -> Blo
         "$expr(...args);" as Stmt,
         expr: Expr = this_expr
     ));
-    BlockStmt {
+    FunctionBody {
         stmts,
         ..Default::default()
     }
@@ -365,7 +365,7 @@ fn replace_to_proxy_function(
     shadow_ident: &IdentName,
     is_getter: bool,
     is_setter: bool,
-) -> (Option<BlockStmt>, Vec<Param>) {
+) -> (Option<FunctionBody>, Vec<Param>) {
     if is_getter {
         return (
             mem::replace(&mut func.body, gen_proxy_body_getter(shadow_ident).into()),
@@ -395,7 +395,7 @@ fn replace_to_proxy_function_for_constructor(
     constructor: &mut Constructor,
     shadow_ident: &IdentName,
     has_super: &bool,
-) -> (Option<BlockStmt>, Vec<Param>) {
+) -> (Option<FunctionBody>, Vec<Param>) {
     let body = mem::replace(
         &mut constructor.body,
         gen_proxy_body_constructor(shadow_ident, has_super).into(),
@@ -408,7 +408,7 @@ fn replace_to_proxy_function_for_constructor(
             .collect(),
     );
     (
-        body.map(|mut b| BlockStmt {
+        body.map(|mut b| FunctionBody {
             stmts: b
                 .stmts
                 .drain(..)
@@ -441,21 +441,25 @@ fn replace_to_proxy_function_for_constructor(
 fn replace_to_proxy_arrow(
     func: &mut ArrowExpr,
     shadow_ident: &IdentName,
-) -> (BlockStmt, Vec<Param>) {
+) -> (FunctionBody, Vec<Param>) {
     let origin_body = mem::replace(
         &mut func.body,
-        Box::new(BlockStmtOrExpr::BlockStmt(gen_proxy_body(shadow_ident))),
+        Box::new(ArrowFunctionBody::FunctionBody(gen_proxy_body(
+            shadow_ident,
+        ))),
     );
     (
         match *origin_body {
-            BlockStmtOrExpr::BlockStmt(body) => body,
-            BlockStmtOrExpr::Expr(expr) => BlockStmt {
+            ArrowFunctionBody::FunctionBody(body) => body,
+            ArrowFunctionBody::Expr(expr) => FunctionBody {
                 stmts: vec![quote!(
                     "return $expr;" as Stmt,
                     expr: Expr = *expr
                 )],
                 ..Default::default()
             },
+            #[cfg(swc_ast_unknown)]
+            _ => swc_common::unknown!(),
         },
         mem::replace(&mut func.params, gen_proxy_arg())
             .drain(..)

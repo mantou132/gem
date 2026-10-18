@@ -8,8 +8,9 @@ publish = false
 [lib]
 crate-type = ["cdylib", "rlib"]
 
-[profile.release]
-lto = true
+[lints.rust]
+# 由 .cargo/config.toml 的 rustflags 启用，见 https://swc.rs/docs/plugin/ecmascript/compatibility
+unexpected_cfgs = { level = "warn", check-cfg = ["cfg(swc_ast_unknown)"] }
 
 [dependencies]
 node-resolve = { workspace = true }

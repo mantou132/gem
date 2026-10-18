@@ -82,9 +82,9 @@
   },
   "homepage": "https://github.com/mantou132/gem#readme",
   "dependencies": {
-    "@swc/core": "^1.9.3",
+    "@swc/core": "^1.16.1",
     "@swc/helpers": "^0.5.21",
-    "swc-plugin-gem": "=0.1.21-beta.3",
+    "swc-plugin-gem": "=0.1.21-beta.6",
     "unplugin": "^3.0.0"
   },
   "devDependencies": {
