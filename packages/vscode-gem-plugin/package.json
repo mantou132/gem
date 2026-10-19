@@ -4,7 +4,7 @@
   "displayName": "Gem",
   "description": "Language Support for Gem",
   "icon": "logo.png",
-  "version": "1.0.28",
+  "version": "1.1.0",
   "engines": {
     "vscode": "^1.94.0"
   },
