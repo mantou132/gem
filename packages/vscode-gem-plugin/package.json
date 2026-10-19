@@ -4,7 +4,7 @@
   "displayName": "Gem",
   "description": "Language Support for Gem",
   "icon": "logo.png",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "engines": {
     "vscode": "^1.94.0"
   },
@@ -185,10 +185,10 @@
   },
   "dependencies": {
     "css-color-keywords": "^1.0.0",
-    "duoyun-ui": "^2.2.18",
-    "ts-gem-lsp": "^0.0.1",
-    "ts-gem-plugin": "^0.0.27",
-    "vscode-gem-languageservice": "^0.0.23",
+    "duoyun-ui": "^2.3.0",
+    "ts-gem-lsp": "^0.1.0",
+    "ts-gem-plugin": "^0.1.0",
+    "vscode-gem-languageservice": "^0.1.0",
     "vscode-languageclient": "^9.0.1"
   },
   "devDependencies": {

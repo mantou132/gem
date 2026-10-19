@@ -79,7 +79,7 @@ importers:
         specifier: ^2.x
         version: link:../gem
       '@mantou/tap-ui':
-        specifier: ^0.1.15
+        specifier: ^0.2.0
         version: link:../tap-ui
       deep-query-selector:
         specifier: ^1.0.1
@@ -143,7 +143,7 @@ importers:
   packages/gem-analyzer:
     dependencies:
       '@mantou/gem':
-        specifier: ^2.2.15
+        specifier: ^2.3.0
         version: link:../gem
     devDependencies:
       '@gemjs/config':
@@ -159,10 +159,10 @@ importers:
   packages/gem-book:
     dependencies:
       '@mantou/gem':
-        specifier: ^2.2.15
+        specifier: ^2.3.0
         version: link:../gem
       '@mantou/gemkit':
-        specifier: ^0.0.2
+        specifier: ^0.1.0
         version: link:../gemkit
       '@rsbuild/core':
         specifier: ^2.0.15
@@ -174,7 +174,7 @@ importers:
         specifier: ^4.0.2
         version: 4.0.2
       gem-analyzer:
-        specifier: ^2.2.15
+        specifier: ^2.3.0
         version: link:../gem-analyzer
       highlight.js:
         specifier: ^11.12.0
@@ -199,7 +199,7 @@ importers:
   packages/gem-devtools:
     dependencies:
       '@mantou/gem':
-        specifier: ^2.2.15
+        specifier: ^2.3.0
         version: link:../gem
       webextension-polyfill:
         specifier: ^0.10.0
@@ -221,13 +221,13 @@ importers:
   packages/gem-examples:
     dependencies:
       '@mantou/gem':
-        specifier: ^2.2.15
+        specifier: ^2.3.0
         version: link:../gem
       '@mantou/tap-ui':
-        specifier: ^0.1.15
+        specifier: ^0.2.0
         version: link:../tap-ui
       duoyun-ui:
-        specifier: ^2.2.18
+        specifier: ^2.3.0
         version: link:../duoyun-ui
     devDependencies:
       '@gemjs/config':
@@ -237,7 +237,7 @@ importers:
         specifier: ^2.0.15
         version: 2.0.15(core-js@3.29.0)
       unplugin-gem:
-        specifier: ^0.1.13
+        specifier: ^0.2.0
         version: link:../unplugin-gem
 
   packages/gem-port:
@@ -246,7 +246,7 @@ importers:
         specifier: ^14.0.3
         version: 14.0.3
       gem-analyzer:
-        specifier: ^2.2.15
+        specifier: ^2.3.0
         version: link:../gem-analyzer
       ts-morph:
         specifier: ^12.0.0
@@ -259,7 +259,7 @@ importers:
   packages/gem-ssr:
     dependencies:
       '@mantou/gem':
-        specifier: ^2.2.15
+        specifier: ^2.3.0
         version: link:../gem
     devDependencies:
       '@gemjs/config':
@@ -293,10 +293,10 @@ importers:
         specifier: ^1.13.8
         version: 1.19.5(hono@4.10.1)
       '@mantou/gem':
-        specifier: ^2.2.15
+        specifier: ^2.3.0
         version: link:../gem
       '@mantou/gem-ssr':
-        specifier: ^0.0.16
+        specifier: ^0.1.0
         version: link:../gem-ssr
       commander:
         specifier: ^14.0.3
@@ -308,7 +308,7 @@ importers:
         specifier: ^4.7.4
         version: 4.10.1
       unplugin-gem:
-        specifier: ^0.1.13
+        specifier: ^0.2.0
         version: link:../unplugin-gem
     devDependencies:
       '@gemjs/config':
@@ -336,7 +336,7 @@ importers:
         specifier: ^1.0.0
         version: 1.0.0
       duoyun-ui:
-        specifier: ^2.2.18
+        specifier: ^2.3.0
         version: link:../duoyun-ui
       tree-sitter:
         specifier: ^0.22.4
@@ -389,7 +389,7 @@ importers:
         specifier: ^2.1.3
         version: link:../config
       '@mantou/gem':
-        specifier: ^2.2.13
+        specifier: ^2.3.0
         version: link:../gem
       '@mantou/vscode-css-languageservice':
         specifier: ^6.3.6
@@ -413,7 +413,7 @@ importers:
   packages/ts-gem-plugin:
     dependencies:
       '@mantou/gem':
-        specifier: ^2.2.15
+        specifier: ^2.3.0
         version: link:../gem
       '@mantou/typescript-template-language-service-decorator':
         specifier: ^2.3.6
@@ -428,7 +428,7 @@ importers:
         specifier: ^5.3.6
         version: 5.3.6
       duoyun-ui:
-        specifier: ^2.2.18
+        specifier: ^2.3.0
         version: link:../duoyun-ui
       vscode-languageserver-textdocument:
         specifier: ^1.0.12
@@ -496,16 +496,16 @@ importers:
         specifier: ^1.0.0
         version: 1.0.0
       duoyun-ui:
-        specifier: ^2.2.18
+        specifier: ^2.3.0
         version: link:../duoyun-ui
       ts-gem-lsp:
-        specifier: ^0.0.1
+        specifier: ^0.1.0
         version: link:../ts-gem-lsp
       ts-gem-plugin:
-        specifier: ^0.0.27
+        specifier: ^0.1.0
         version: link:../ts-gem-plugin
       vscode-gem-languageservice:
-        specifier: ^0.0.23
+        specifier: ^0.1.0
         version: link:../language-service
       vscode-languageclient:
         specifier: ^9.0.1
