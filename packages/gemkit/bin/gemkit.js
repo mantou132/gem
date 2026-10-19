@@ -1,16 +1,14 @@
 #!/usr/bin/env node
-import { parseArgs } from 'node:util';
+import { Command } from 'commander';
 
 import { start } from '../dist/serve.js';
 
-const { positionals, values } = parseArgs({
-  allowPositionals: true,
-  options: { port: { type: 'string', short: 'p' } },
-});
+const program = new Command('gemkit');
 
-if (positionals[0] === 'start') {
-  start({ port: values.port ? Number(values.port) : undefined });
-} else {
-  console.log('Usage: gemkit start [--port <port>]');
-  process.exitCode = 1;
-}
+program
+  .command('start')
+  .description('start the production server, serves dist/')
+  .option('-p, --port <port>', 'server port')
+  .action(({ port }) => start({ port: port ? Number(port) : undefined }));
+
+program.parse();

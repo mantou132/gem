@@ -1,56 +1,101 @@
 {
-  "$ref": "#/definitions/CliConfig",
+  "$ref": "#/definitions/GemBookConfig",
   "$schema": "http://json-schema.org/draft-07/schema#",
   "definitions": {
-    "CliConfig": {
+    "GemBookConfig": {
       "additionalProperties": false,
+      "description": "配置文件 `gem-book.cli.json`",
       "properties": {
-        "base": {
-          "type": "string"
-        },
-        "build": {
-          "type": "boolean"
-        },
-        "config": {
-          "type": "string"
-        },
-        "debug": {
-          "type": "boolean"
-        },
-        "displayRank": {
-          "type": "boolean"
-        },
-        "fallbackLanguage": {
-          "anyOf": [
-            {
-              "$ref": "#/definitions/SupportLang"
+        "comment": {
+          "additionalProperties": false,
+          "description": "Gitalk 评论",
+          "properties": {
+            "admin": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
             },
-            {
-              "const": "",
+            "clientID": {
+              "type": "string"
+            },
+            "clientSecret": {
+              "type": "string"
+            },
+            "owner": {
+              "type": "string"
+            },
+            "repo": {
               "type": "string"
             }
-          ]
+          },
+          "required": ["clientID", "clientSecret"],
+          "type": "object"
+        },
+        "displayRank": {
+          "description": "链接中保留文件名的排序数字",
+          "type": "boolean"
+        },
+        "docsearch": {
+          "anyOf": [
+            {
+              "const": "local",
+              "type": "string"
+            },
+            {
+              "additionalProperties": false,
+              "properties": {
+                "apiKey": {
+                  "type": "string"
+                },
+                "appId": {
+                  "type": "string"
+                },
+                "indexName": {
+                  "type": "string"
+                }
+              },
+              "required": ["apiKey", "indexName"],
+              "type": "object"
+            }
+          ],
+          "description": "搜索，Algolia DocSearch 的配置或者 `local`（本地搜索）"
+        },
+        "fallbackLanguage": {
+          "description": "没有开启多语言时文档的语言，开启时是默认语言",
+          "type": "string"
         },
         "footer": {
+          "description": "页脚，Markdown 格式",
           "type": "string"
         },
         "ga": {
+          "description": "Google Analytics 的 ID",
           "type": "string"
         },
         "github": {
+          "description": "GitHub 或 GitLab 仓库地址，默认使用 git 的 `origin`",
           "type": "string"
         },
-        "global": {},
+        "global": {
+          "additionalProperties": {},
+          "description": "全局变量，`<gbp-var>` 使用",
+          "type": "object"
+        },
         "homeMode": {
+          "description": "首页（`README.md`）使用 `hero` 和 `features` 渲染，不显示侧边栏",
           "type": "boolean"
         },
         "i18n": {
+          "description": "文档按语言放在子目录中，例如 `docs/en`、`docs/zh`",
           "type": "boolean"
         },
         "icon": {
+          "description": "图标的路径（相对于项目目录）或者网址",
           "type": "string"
         },
         "ignored": {
+          "description": "忽略的文档或目录，相对于语言目录，没有 `/` 时匹配任意目录中的名称， `*` 匹配名称中的任意字符，`**` 匹配任意层级的目录，例如 `[\"drafts\", \"*.draft.md\", \"guide/**\"]`",
           "items": {
             "type": "string"
           },
@@ -58,189 +103,67 @@
         },
         "importMap": {
           "additionalProperties": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "additionalProperties": false,
-                "properties": {
-                  "dev": {
-                    "type": "string"
-                  },
-                  "prod": {
-                    "type": "string"
-                  }
-                },
-                "type": "object"
-              }
-            ]
+            "type": "string"
           },
+          "description": "路径前缀映射，`<gbp-raw>` 等插件的 `src` 和 `<gbp-api>` 读取父类时使用， 例如把包名映射到源码目录：`{ \"@mantou/tap-ui/\": \"node_modules/@mantou/tap-ui/src/\" }`",
           "type": "object"
         },
-        "json": {
-          "type": "boolean"
-        },
         "nav": {
+          "description": "导航中的链接，站外链接显示在右侧，标题是 `github` 等时显示图标",
           "items": {
-            "$ref": "#/definitions/NavItem"
+            "$ref": "#/definitions/LinkItem"
           },
           "type": "array"
         },
-        "output": {
-          "type": "string"
-        },
-        "plugin": {
+        "plugins": {
+          "description": "全站插件，模块的路径（相对于项目目录）或者包名，和网站一起打包， 可以定义在文档中直接使用的元素，例如 `[\"docs/plugins/hello.ts\"]`",
           "items": {
             "type": "string"
           },
           "type": "array"
         },
         "port": {
+          "description": "开发服务器的端口",
           "type": "number"
         },
         "site": {
+          "description": "网站的地址，例如 `https://book.gemjs.org`，构建时输出 `sitemap.xml`",
           "type": "string"
         },
         "sourceBranch": {
-          "type": "string"
-        },
-        "sourceDir": {
-          "type": "string"
-        },
-        "template": {
+          "description": "编辑链接使用的分支，默认使用当前分支",
           "type": "string"
         },
         "theme": {
+          "description": "内置主题的名称（例如 `dark`）或者主题文件的路径",
           "type": "string"
         },
         "title": {
+          "description": "网站标题，默认使用 `package.json` 的 `title` 或者目录名",
           "type": "string"
+        },
+        "versions": {
+          "description": "旧版本，新的在前，例如 `[\"v2\", \"v1\"]`，文档放在文档目录的版本目录中（例如 `docs/v1/en`）， 页面地址是 `/en/v1/guide`，最新版本的文档不变",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
         }
       },
       "type": "object"
     },
-    "Feature": {
+    "LinkItem": {
       "additionalProperties": false,
       "properties": {
-        "desc": {
-          "type": "string"
-        },
-        "icon": {
-          "type": "string"
-        },
-        "title": {
-          "type": "string"
-        }
-      },
-      "required": ["title", "desc"],
-      "type": "object"
-    },
-    "Hero": {
-      "additionalProperties": false,
-      "properties": {
-        "actions": {
-          "items": {
-            "additionalProperties": false,
-            "properties": {
-              "link": {
-                "type": "string"
-              },
-              "text": {
-                "type": "string"
-              }
-            },
-            "required": ["text", "link"],
-            "type": "object"
-          },
-          "type": "array"
-        },
-        "desc": {
-          "type": "string"
-        },
-        "title": {
-          "type": "string"
-        }
-      },
-      "type": "object"
-    },
-    "NavItem": {
-      "additionalProperties": false,
-      "properties": {
-        "children": {
-          "items": {
-            "$ref": "#/definitions/NavItem"
-          },
-          "type": "array"
-        },
-        "features": {
-          "items": {
-            "$ref": "#/definitions/Feature"
-          },
-          "type": "array"
-        },
-        "groups": {
-          "items": {
-            "additionalProperties": false,
-            "properties": {
-              "members": {
-                "items": {
-                  "type": "string"
-                },
-                "type": "array"
-              },
-              "title": {
-                "type": "string"
-              }
-            },
-            "required": ["title", "members"],
-            "type": "object"
-          },
-          "type": "array"
-        },
-        "hash": {
-          "type": "string"
-        },
-        "hero": {
-          "$ref": "#/definitions/Hero",
-          "description": "below only homepage"
-        },
-        "isNav": {
-          "type": "boolean"
-        },
         "link": {
           "type": "string"
         },
-        "navOrder": {
-          "type": "number"
-        },
-        "navTitle": {
-          "type": "string"
-        },
-        "redirect": {
-          "type": "string"
-        },
-        "reverse": {
-          "description": "below only dir",
-          "type": "boolean"
-        },
-        "sidebarIgnore": {
-          "type": "boolean"
-        },
         "title": {
-          "type": "string"
-        },
-        "type": {
-          "enum": ["dir", "file", "heading"],
           "type": "string"
         }
       },
-      "required": ["link", "title"],
+      "required": ["title", "link"],
       "type": "object"
-    },
-    "SupportLang": {
-      "enum": ["zh", "en"],
-      "type": "string"
     }
   }
 }

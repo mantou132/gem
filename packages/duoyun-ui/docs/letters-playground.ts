@@ -1,11 +1,8 @@
-import type { GemBookElement } from '../../gem-book';
+import { adoptedStyle, createRef, createState, css, customElement, GemElement, html, raw } from '@mantou/gem';
+import { theme } from 'gem-book/plugin';
+
 import type { DuoyunLettersElement } from '../elements/letters';
-
-await customElements.whenDefined('gem-book');
-
-const { GemBookPluginElement } = customElements.get('gem-book') as typeof GemBookElement;
-const { Gem, theme, icons } = GemBookPluginElement;
-const { html, adoptedStyle, css, customElement, createRef, createState, raw } = Gem;
+import { icons } from '../src/lib/icons';
 
 const play = raw`
   <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="currentColor"><path d="M320-200v-560l440 280-440 280Zm80-280Zm0 134 210-134-210-134v268Z"/></svg>
@@ -185,7 +182,7 @@ enum PlayingState {
 
 @customElement('letters-playground')
 @adoptedStyle(style)
-class _LettersPlaygroundElement extends GemBookPluginElement {
+class _LettersPlaygroundElement extends GemElement {
   #dy = createRef<DuoyunLettersElement>();
   #state = createState({
     bg: Bg.Gradient,

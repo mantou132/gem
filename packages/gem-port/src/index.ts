@@ -2,7 +2,7 @@
 
 import path from 'node:path';
 
-import program from 'commander';
+import { program } from 'commander';
 
 import { description, name, version } from '../package.json';
 import { generateReact } from './react';

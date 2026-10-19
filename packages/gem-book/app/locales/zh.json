@@ -1,0 +1,19 @@
+{
+  "toc": "本页内容",
+  "editLink": "在 $1 上编辑此页",
+  "lastUpdated": "最后更新",
+  "prev": "上一篇",
+  "next": "下一篇",
+  "menu": "菜单",
+  "language": "语言",
+  "copy": "复制",
+  "notFound": "页面不存在",
+  "backHome": "返回首页",
+  "footer": "通过 $1<GemBook> 生成",
+  "version": "版本",
+  "latest": "最新",
+  "oldVersion": "这是 $1 版本的文档，已不再积极维护。",
+  "viewLatest": "查看最新版本",
+  "untranslated": "该文档还未翻译。",
+  "machineTranslated": "该文档是机器翻译的。"
+}

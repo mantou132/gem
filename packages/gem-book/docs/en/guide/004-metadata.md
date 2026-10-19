@@ -6,6 +6,7 @@ to set how documents appear in the sidebar and navigation bar. For example:
 ```md
 ---
 title: Sidebar title
+description: The description of the page, the first paragraph is used by default
 sidebarIgnore: true
 
 isNav: true
@@ -18,12 +19,9 @@ redirect: ./new.md
 # Markdown title
 ```
 
-> [!WARNING]
-> Modifying `redirect` in development mode requires restarting the service to take effect.
-
 ## Homepage {#home}
 
-The [homepage](./003-cli.md#--home-mode) also supports `hero` and `features`, for example:
+The homepage of [`homeMode`](../002-cli.md#homemode) also supports `hero` and `features`, for example:
 
 <gbp-raw src="docs/en/README.md" range="1-17"></gbp-raw>
 
@@ -36,8 +34,10 @@ The settings for Markdown also apply to folders, just add `config.yml` in the fo
 Two special options are supported:
 
 - `reverse`: Reverse [sort](./001-sort.md), which is useful when blogging
-- `groups`: Place multiple files within a group in the sidebar without modifying the directory structure
+- `groups`: Place multiple files within a group in the sidebar without modifying the directory structure, the files of a group without `title` are displayed directly
+
+A folder with `isNav` is an independent part of the documents, it is only displayed in the navigation bar, when the current page is in it, the sidebar only displays the documents of the folder.
 
 ## Definition
 
-<gbp-raw src="src/common/frontmatter.ts"></gbp-raw>
+<gbp-raw src="app/lib/frontmatter.ts"></gbp-raw>

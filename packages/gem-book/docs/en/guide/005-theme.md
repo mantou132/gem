@@ -1,30 +1,35 @@
 # Theme
 
-The `<gem-book>` element provides the theme API, which can be very convenient to customize the theme.
+The colors, fonts and sizes of the website are defined by the theme.
 
 ## Default theme
 
-<gbp-raw src="src/element/helper/default-theme.ts"></gbp-raw>
+<gbp-raw src="app/lib/default-theme.ts" range="1--4"></gbp-raw>
 
 ## Custom theme
 
-You can directly use the cli options to provide the theme file path in `json`/`CommonJs` format or [build-in theme](https://github.com/mantou132/gem/tree/master/packages/gem-book/themes) name:
+Use the config [`theme`](../002-cli.md#theme) to provide the name of a [built-in theme](https://github.com/mantou132/gem/tree/main/packages/gem-book/themes)
+or the path of a theme file in `JSON` format or a module that default exports the theme, the theme only needs to contain the values to be modified:
 
-```bash
-gem-book docs --theme path/my-theme.mjs
-gem-book docs --theme dark
+```json
+{
+  "theme": "dark"
+}
 ```
 
-Of course, you can also set the theme directly using the DOM API of `<gem-book>`.
+<gbp-raw src="themes/dark.js"></gbp-raw>
 
-<gbp-code-group>
+## CSS variables
 
-```js vanilla.js
-new GemBookElement(config, theme);
+The theme is defined as CSS variables on `:root`, for example `primaryColor` is `--gem-book-primary-color`,
+you can also modify them with CSS on specific pages, for example using [`<gbp-content>`](../003-plugins.md#gbp-content):
+
+```md
+<gbp-content>
+  <style>
+    :root {
+      --gem-book-primary-color: tomato;
+    }
+  </style>
+</gbp-content>
 ```
-
-```js lit
-html`<gem-book .config=${config} .theme=${theme}></gem-book>`;
-```
-
-</gbp-code-group>

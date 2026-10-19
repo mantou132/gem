@@ -1,10 +1,11 @@
-[[redirects]]
-  from = "/*"
-  to = "/"
-  status = 200
+# 文档网站是 gem-book 预渲染的静态文件（dist/web），不需要重写规则，找不到的路径使用 404.html
 [[headers]]
-  # Define which paths this specific [[headers]] block will cover.
   for = "/*"
-    [headers.values]
+  [headers.values]
     Access-Control-Allow-Origin = "*"
+
+# 文件名中有哈希，可以长时间缓存
+[[headers]]
+  for = "/static/*"
+  [headers.values]
     Cache-Control = "public, max-age=31536000, immutable"

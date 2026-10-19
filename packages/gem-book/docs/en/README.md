@@ -11,10 +11,10 @@ features:
     desc: Just run the command line to pack all front-end resources, so that all attention can be paid to document writing
   - title: Performance
     icon: /logo.png
-    desc: No redundant dependencies, the entire application will run smoothly with streamlined code
+    desc: Every page is rendered to HTML when building, the content is visible before JavaScript loads
   - title: Expandable
     icon: 👩‍🎨
-    desc: Can insert custom elements into existing websites; using custom elements can also customize display documents very conveniently
+    desc: Extend documents with custom elements in Markdown, such as runnable examples, API documentation and search
 ---
 
 ## Getting Started

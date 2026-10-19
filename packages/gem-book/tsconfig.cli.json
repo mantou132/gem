@@ -1,8 +1,0 @@
-{
-  "extends": "@gemjs/config/tsconfig",
-  "compilerOptions": {
-    "declaration": false,
-    "declarationMap": false,
-    "module": "commonjs"
-  }
-}

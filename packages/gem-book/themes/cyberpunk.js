@@ -1,7 +1,7 @@
 /**
- * @type {import('gem-book')['defaultTheme']}
+ * @type {Partial<import('gem-book/plugin').Theme>}
  */
-module.exports = {
+export default {
   backgroundColor: 'rgb(10, 23, 45)',
   borderColor: 'rgb(19, 61, 201)',
   textColor: 'rgb(11, 196, 207)',

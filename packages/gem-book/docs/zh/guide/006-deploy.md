@@ -1,42 +1,38 @@
 # 部署
 
-只需要使用 `npx gem-book docs --build` 构建前端资源（`index.html`，`*.js`...），然后为输出目录（默认为 `dist`）提供静态服务即可。
+使用 `npx gem-book build docs` 将网站构建到 `dist/web`，然后为该目录提供静态服务即可，不需要配置重写规则：
 
-> [!WARNING]
-> 由于 `<gem-book>` 使用了 [History API](https://developer.mozilla.org/en-US/docs/Web/API/History)，所以默认不支持 Github Pages
+- 每个页面都预渲染成自己的 `index.html`，例如 `dist/web/guide/index.html`
+- `404.html` 是找不到路径时的页面，GitHub Pages、Netlify、Vercel 等会自动使用
+- [重定向](./004-metadata.md)是使用 `<meta http-equiv="refresh">` 跳转的页面
+- `dist/web/static` 中的脚本和样式文件名中有哈希，可以长时间缓存
+- [`llms.txt`](https://llmstxt.org/) 给 LLM 列出所有页面，`llms-full.txt` 包含所有页面的内容，每个页面也有展开了插件的 Markdown 版本，例如 `dist/web/guide.md`，多语言时它们在语言目录中，根目录中的是默认语言的；只包括最新版本
+- 配置了 [`site`](../002-cli.md#site) 时会生成 `sitemap.xml`
+- 页面有 `<link rel="canonical">` 和其他语言的 `<link rel="alternate" hreflang>`，描述来自 [`description`](./004-metadata.md)
+- 使用 `npx gem-book serve docs` 在本地预览构建的网站
 
-## Netlify
+## GitHub Pages
 
-Netlify 中配置构建命令和输出目录，然后在项目根目录中添加 `netlify.toml` 文件配置重定向规则以及缓存规则：
+使用 [GitHub Actions](https://docs.github.com/zh/pages/getting-started-with-github-pages/using-custom-workflows-with-github-pages) 上传 `dist/web`，例如：
 
-```toml
-[[redirects]]
-  from = "/*"
-  to = "/"
-  status = 200
-[[headers]]
-for = "/*"
-  [headers.values]
-  Access-Control-Allow-Origin = "*"
-  Cache-Control = "public, max-age=31536000, immutable"
+```yaml
+- run: npx gem-book build docs
+- uses: actions/upload-pages-artifact@v3
+  with:
+    path: dist/web
+- uses: actions/deploy-pages@v4
 ```
 
-## Vercel
+## Netlify / Vercel
 
-Vercel 中配置构建命令和输出目录，然后在项目根目录中添加 `vercel.json` 文件配置重定向规则以及缓存规则：
+构建命令设置为 `npx gem-book build docs`，发布（输出）目录设置为 `dist/web`，可以让静态资源长时间缓存，例如 `vercel.json`：
 
 ```json
 {
-  "rewrites": [{ "source": "/(.*)", "destination": "/" }],
   "headers": [
     {
-      "source": "/(.*)",
-      "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "public, max-age=31536000, immutable"
-        }
-      ]
+      "source": "/static/(.*)",
+      "headers": [{ "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }]
     }
   ]
 }

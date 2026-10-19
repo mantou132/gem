@@ -6,12 +6,14 @@
   "homeMode": true,
   "site": "https://book.gemjs.org",
   "sourceBranch": "docs",
-  "plugin": ["raw", "docsearch", "api", "sandpack", "code-group", "import", "include", "var", "example"],
-  "template": "docs/template.html",
   "ga": "G-PZYZ441YD3",
-  "debug": true,
   "port": 8090,
   "global": {
     "hello": "Hello World!"
+  },
+  "docsearch": {
+    "appId": "05KK61XW6A",
+    "apiKey": "b6738e2ef6d977e01ab3a325b91937e1",
+    "indexName": "book-gemjs"
   }
 }

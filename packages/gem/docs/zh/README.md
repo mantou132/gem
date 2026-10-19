@@ -23,7 +23,7 @@ features:
 
   - title: 生态系统
     desc: >
-      提供国际化、本地化、文档生成、组件跨框架输出、SSR（开发中）等解决方案。
+      提供国际化、本地化、文档生成、组件跨框架输出、SSR/SSG（[gemkit](https://github.com/mantou132/gem/tree/main/packages/gemkit)）等解决方案。
 
 
       还提供构建优化（例如自动导入）、开发体验优化（例如 HMR）。

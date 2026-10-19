@@ -1,6 +1,6 @@
 # Document sorting
 
-The rendered sidebar of `<gem-book>` should be consistent with the sorting of documents in the IDE and editor. The default rules are:
+The rendered sidebar should be consistent with the sorting of documents in the IDE and editor. The default rules are:
 
 - `readme.md` and `index.md` always come first
 - Folders come before file
@@ -36,4 +36,4 @@ Output sidebar:
 > Use [`reverse`](./004-metadata.md#dir) to reverse sort.
 > In addition, it is allowed to use links in documents without these weight numbers, but this will lose IDE support, so it is not recommended.
 
-By default, this number will not be displayed in the URL. If your file name already has a prefix in the same format, you can use [`--display-rank`](./003-cli.md#--display-rank) option to display them.
+By default, this number will not be displayed in the URL. If your file name already has a prefix in the same format, you can use the [`displayRank`](../002-cli.md#displayrank) option to display them.

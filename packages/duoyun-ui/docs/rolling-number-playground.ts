@@ -1,10 +1,5 @@
-import type { GemBookElement } from '../../gem-book';
-
-await customElements.whenDefined('gem-book');
-
-const { GemBookPluginElement } = customElements.get('gem-book') as typeof GemBookElement;
-const { Gem, theme } = GemBookPluginElement;
-const { html, adoptedStyle, css, customElement, createState } = Gem;
+import { adoptedStyle, createState, css, customElement, GemElement, html } from '@mantou/gem';
+import { theme } from 'gem-book/plugin';
 
 type State = {
   value: number;
@@ -181,7 +176,7 @@ const style = css`
 
 @customElement('rolling-number-playground')
 @adoptedStyle(style)
-class _RollingNumberPlaygroundElement extends GemBookPluginElement {
+class _RollingNumberPlaygroundElement extends GemElement {
   #state = createState<State>({
     value: 1234,
     duration: 800,

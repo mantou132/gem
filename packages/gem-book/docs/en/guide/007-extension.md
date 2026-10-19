@@ -1,6 +1,6 @@
 # Extension
 
-`<gem-book>` renders Markdown and also extends the Markdown syntax. In addition, some methods are provided for users to customize `<gem-book>`.
+GemBook renders Markdown on the server and extends the Markdown syntax, custom elements can be used in Markdown to extend documents.
 
 ## Markdown enhancement
 
@@ -11,6 +11,11 @@ Syntax:
 ```md
 <language>? <filename>? <status>? <highlight>?
 ```
+
+- `language`: The language of [syntax highlighting](https://highlightjs.org/), highlighted when building
+- `filename`: Displayed above the code, it is also the tab name in [`<gbp-code-group>`](../003-plugins.md#gbp-code-group) and the file name in [`<gbp-sandpack>`](../003-plugins.md#gbp-sandpack)
+- `status`: In code groups, `active` is displayed by default, `hidden` is not displayed in the tabs
+- `highlight`: The lines to highlight, e.g. `1,3-5`, negative numbers count from the end
 
 Use highlight example:
 
@@ -52,73 +57,122 @@ By default, hash is generated based on the title text field, but sometimes you n
 > [!CAUTION]
 > This is `[!CAUTION]`
 
-## Slots
+## Page regions {#slots}
 
-[Slot](https://developer.mozilla.org/en-US/docs/Web/HTML/Global_attributes/slot) allows you to customize `<gem-book>` but the content, currently supported slots are `sidebar-before`, `main-before`, `main-after`, `nav-inside`, `logo-after`.
+Use [`<gbp-content>`](../003-plugins.md#gbp-content) in a document to insert content into the regions of the page, the content is removed when leaving the page:
 
-<gbp-raw src="docs/template.html" range="8--4"></gbp-raw>
+- `nav-inside`: In the navigation bar
+- `sidebar-before`: At the top of the sidebar
+- `main-before`: Before the document
+- `main-after`: After the document
 
-_Can use `--template` specified template file_
+```md
+<gbp-content slot="main-before">
+  <p>This document is deprecated.</p>
+</gbp-content>
+```
 
 ## Plugins {#plugins}
 
-### Use plugin
-
-GemBook uses custom elements as a plugin system, they can customize the rendering of Markdown content or enhance the ability of `<gem-book>`. The following is how to use the built-in plugin `<gbp-raw>`.
-
-Import the plugin:
-
-<gbp-code-group>
-
-```bash cli
-# Built-in plugin name
-gem-book docs --plugin raw
-
-# Local plugin path
-gem-book docs --plugin ./my-plugin.ts
-
-# Remote URL
-gem-book docs --plugin https://example.com/plugin.js
-```
-
-```html html
-<script type="module" src="https://unpkg.com/gem-book/plugins/raw.js"></script>
-```
-
-</gbp-code-group>
-
-Then use it in Markdown to render files in the warehouse:
+GemBook uses custom elements as a plugin system, the [built-in plugins](../003-plugins.md) can be used in Markdown directly, for example:
 
 ```md
-<gbp-raw src="/src/plugins/raw.ts"></gbp-raw>
+<gbp-raw src="package.json"></gbp-raw>
 ```
+
+Some plugins are rendered on the server when building (e.g. `<gbp-raw>`, `<gbp-include>`, `<gbp-api>`), they don't load any code in the browser,
+others are rendered on the server and work in the browser (e.g. `<gbp-code-group>`, `<gbp-sandpack>`).
 
 > [!TIP]
 >
-> 1. Attribute should not be line break when using a plugin in Markdown, otherwise it will be interrupted by the `<p>` tag as the inline element.
-> 2. GemBook built-in plugin supports automatic import, the disadvantage is that it will be loaded after rendering documents. It is possible that the page will flash
-> 3. VSCode cannot use [Emmet](https://code.visualstudio.com/docs/editor/emmet) in MarkDown files by default. You can enable it through settings:
+> 1. Write the start tag of a plugin in one line, otherwise Markdown may treat it as text
+> 2. VSCode cannot use [Emmet](https://code.visualstudio.com/docs/editor/emmet) in Markdown files by default. You can enable it through settings:
 >
 >    ```json
 >    "emmet.excludeLanguages": [],
 >    "emmet.includeLanguages": {"markdown": "html"},
 >    ```
 
-### Plugin development
+### Custom elements
 
-GemBook exposes a class `GemBookPluginElement`, which extends from [`GemElement`](https://gemjs.org/api/),
-[Contains](../004-api.md#gem-book-plugin-api) many internal methods and properties, get the `GemBookPluginElement` and read the `<gem-book>` configuration in the following way:
+Write your own plugins as custom elements, for example with [Gem](https://gemjs.org):
 
-```js
-customElements.whenDefined('gem-book').then(({ GemBookPluginElement }) => {
-  customElements.define(
-    'gbp-example',
-    class extends GemBookPluginElement {
-      constructor() {
-        super();
-        console.log(GemBookPluginElement.config);
-      }
-    },
-  );
-});
+<gbp-raw src="docs/hello.ts"></gbp-raw>
+
+Use [`<gbp-import>`](../003-plugins.md#gbp-import) to load it only on the pages that use it:
+
+```md
+<gbp-import name="my-plugin-hello" dependencies="canvas-confetti" src="docs/hello.ts"></gbp-import>
 ```
+
+Or add it to [`plugins`](../002-cli.md#plugins) of the config file as a site-wide plugin, it is bundled with the website and its dependencies are installed in the project, then use the element in any document directly, Gem elements are also rendered on the server:
+
+```md
+<my-plugin-hello></my-plugin-hello>
+```
+
+### Plugin API
+
+Bundled plugins (site-wide plugins and local [`<gbp-import>`](../003-plugins.md#gbp-import) modules) can import `gem-book/plugin`, it is available even if `gem-book` is not installed in the project (e.g. using `npx`):
+
+```ts
+import { adoptedStyle, connectStore, css, customElement, GemElement, html, template } from '@mantou/gem';
+import { bookStore, getGlobal, theme } from 'gem-book/plugin';
+
+const style = css`
+  :scope {
+    color: ${theme.primaryColor};
+  }
+`;
+
+@customElement('my-page-info')
+@adoptedStyle(style)
+@connectStore(bookStore)
+export class MyPageInfoElement extends GemElement {
+  @template()
+  #content = () => html`${bookStore.doc?.title} (${bookStore.lang}) v${getGlobal('version')}`;
+}
+```
+
+- `bookStore`: the data of the website and the current page, also available when rendering on the server, updated when navigating
+  - `config`: the config of the website
+  - `lang`: the current language
+  - `path`: the path of the current page without the language prefix, e.g. `/v1/guide`
+  - `version`: the old version of the current page, empty for the latest version
+  - `site`: the navigation and sidebar of the website, including old versions
+  - `doc`: the current document (title, headings, etc.), empty on other pages (e.g. 404)
+- `theme`: the [CSS variables](./005-theme.md#css-variables) of the theme, e.g. `theme.primaryColor`
+- `getGlobal(name)`: the value of [`global`](../002-cli.md#global), `name` can be a path, e.g. `pkg.version`
+- `htmlTemplate(html)`: renders an HTML string as a template, custom elements in it are also rendered on the server
+
+`gem-book/plugin/server` is for code only executed on the server, such as [server elements](https://github.com/mantou132/gem/tree/main/packages/gem-ssr#server-elements) marked with `@server()`, the current document is the document of the current page:
+
+```ts
+import fs from 'node:fs';
+
+import { createState, customElement, GemElement, html, mounted, template } from '@mantou/gem';
+import { server } from '@mantou/gemkit';
+import { htmlTemplate } from 'gem-book/plugin';
+import { renderMarkdown, resolveSrc } from 'gem-book/plugin/server';
+
+// Only outputs HTML, the code is not loaded in the browser
+@customElement('my-changelog')
+@server()
+export class MyChangelogElement extends GemElement {
+  #state = createState({ html: '' });
+
+  @server()
+  @mounted()
+  #init = async () => {
+    const resolved = resolveSrc(this.getAttribute('src') || '');
+    if ('file' in resolved) this.#state({ html: await renderMarkdown(fs.readFileSync(resolved.file, 'utf8')) });
+  };
+
+  @template()
+  #content = () => htmlTemplate(this.#state.html);
+}
+```
+
+- `resolveSrc(src)`: resolves `src` like built-in plugins: a URL, or a file relative to the current document (starting with `.`) or the current working directory, supports [`importMap`](../002-cli.md#importmap)
+- `renderMarkdown(md)`: renders Markdown like documents (syntax highlighting, relative links, server plugins), returns HTML
+- `getGlobal(name)`: same as above

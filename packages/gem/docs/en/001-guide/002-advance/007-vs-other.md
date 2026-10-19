@@ -20,4 +20,4 @@ Using Gem may cause too much ShadowDOM, which may slow down the speed of the App
 
 ### SEO
 
-Gem cannot perform server-side rendering and can only provide effective indexing for search engines through pre-rendering.
+With [gemkit](https://github.com/mantou132/gem/tree/main/packages/gemkit), Gem supports server-side rendering (SSR) and static site generation (SSG). Shadow DOM is output as Declarative Shadow DOM, so search engines can index page content without executing JavaScript, and the page title and `<meta>` are also rendered on the server.

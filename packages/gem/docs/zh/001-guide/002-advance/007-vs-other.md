@@ -27,4 +27,4 @@ Gem 使用完全不同的方式，参见 lit-html [文档](https://github.com/li
 
 ### SEO
 
-Gem 不能进行服务端渲染，只能通过预渲染的方法为搜索引擎提供有效索引。
+使用 [gemkit](https://github.com/mantou132/gem/tree/main/packages/gemkit) 可以进行服务端渲染（SSR）和静态生成（SSG），ShadowDOM 以声明式 ShadowDOM 输出，搜索引擎无需执行 JavaScript 就能索引页面内容，页面标题和 `<meta>` 也会在服务端输出。

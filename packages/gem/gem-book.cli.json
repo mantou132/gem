@@ -6,7 +6,9 @@
   "homeMode": true,
   "site": "https://gemjs.org",
   "sourceBranch": "docs",
-  "template": "docs/template.html",
-  "plugin": ["raw", "docsearch", "sandpack", "code-group", "api"],
-  "debug": true
+  "docsearch": {
+    "appId": "HH69WUYEV1",
+    "apiKey": "92e580909316a373f879739621d7075b",
+    "indexName": "gemjs"
+  }
 }

@@ -5,55 +5,21 @@ navTitle: Guide
 
 # Introduction
 
-GemBook renders [Markdown](https://zh.wikipedia.org/wiki/Markdown) content into a website and generates pages based on the directory structure.
-GemBook is a document site generation tool created for [Gem](https://github.com/mantou132/gem). It is also written using Gem. It has a symbiotic relationship with Gem. It uses the custom element `<gem-book>` render content.
+GemBook renders [Markdown](https://en.wikipedia.org/wiki/Markdown) content into a website and generates pages based on the directory structure.
+GemBook is a document site generation tool created for [Gem](https://github.com/mantou132/gem), it is also written with Gem and built on [gemkit](https://github.com/mantou132/gem/tree/main/packages/gemkit):
+Markdown is rendered on the server, every page is prerendered into HTML when building, and the browser takes over the pages for client-side navigation.
 
 ## Getting Started
 
-You can try it online directly at [StackBlitz](https://stackblitz.com/edit/node-c7iw5d?file=README.md).
-
 > [!WARNING]
-> GemBook depends on [Node.js v18+](https://nodejs.org/), please ensure that the `node -v` command can be executed
+> GemBook depends on [Node.js v22+](https://nodejs.org/), please ensure that the `node -v` command can be executed
 
 <gbp-include src="../snippets/start.md"></gbp-include>
 
 More [options](../002-cli.md).
 
-<details>
-<summary>
-
-Use `<gem-book>`
-
-</summary>
-
-The above command uses `webpack` to package a complete front-end project, but you can also use the `<gem-book>` element directly in HTML.
-
-```bash
-# Install as dependency
-npm install gem-book
-
-# Only generate <gem-book> requires json configuration file
-npx gem-book docs -t MyApp -i logo.png --home-mode --build --json
-```
-
-Then use `<gem-book>` in your project:
-
-```js
-import { html, render } from '@mantou/gem';
-import 'gem-book';
-
-import config from './gem-book.json';
-
-render(html`<gem-book .config=${config}></gem-book>`, document.body);
-```
-
-You can use the `<gem-book>` element in any framework.
-
-</details>
-
 ## Goals
 
-- Build Markdown content into a website with one command
-- Provide stable Plugin API for user extensions
-- Export `<gem-book>` element for use in any frontend project
-- Parse directories and generate `json` format rendering data for `<gem-book>`
+- Build Markdown content into a website with one command, without project configuration
+- The content is visible before JavaScript loads, and can be deployed to any static hosting
+- Extend Markdown with [custom elements](../003-plugins.md), such as runnable examples and API documentation

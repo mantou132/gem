@@ -21,7 +21,7 @@
     "prepublishOnly": "pnpm build"
   },
   "dependencies": {
-    "commander": "^7.2.0",
+    "commander": "^14.0.3",
     "gem-analyzer": "^2.2.15",
     "ts-morph": "^12.0.0"
   },

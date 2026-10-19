@@ -36,8 +36,7 @@
   ],
   "scripts": {
     "docs": "cross-env GEM_BOOK_REPLACE=true gem-book docs",
-    "docs:remote": "gem-book docs",
-    "build:docs": "gem-book docs --build",
+    "build:docs": "gem-book build docs",
     "build:components": "gem-port src/elements && gem-port src/patterns --ns=pat",
     "build:dev": "cross-env MODE=dev nodemon -w ../gem-port/bin --exec gem-port src/elements",
     "clean": "node -e \"fs.readdirSync('src').map(dir => require('rimraf').sync(dir))\"",

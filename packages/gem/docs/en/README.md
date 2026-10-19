@@ -23,7 +23,7 @@ features:
 
   - title: Ecosystem
     desc: >
-      Provide solutions for internationalization, localization, documentation generation, cross-framework component output, SSR (in development), and more.
+      Provide solutions for internationalization, localization, documentation generation, cross-framework component output, SSR/SSG ([gemkit](https://github.com/mantou132/gem/tree/main/packages/gemkit)), and more.
 
 
       Also offers build optimizations (e.g., automatic imports) and development experience enhancements (e.g., HMR).
