@@ -65,10 +65,10 @@ import { page } from '@mantou/gemkit';
   // runs on the server and on client-side navigation, use isomorphic APIs,
   // the SSR result is sent to the client for hydration, so it must be a JSON value,
   // put server-only code in `*.server.ts`
-  load: ({ slug }) => getPost(slug),
-  title: (_, post) => post?.title || 'Not Found',
+  load: ({ params }) => getPost(params.slug),
+  title: ({ data }) => data?.title || 'Not Found',
   // `<meta>` of the page, see below
-  meta: (_, post) => ({ description: post?.summary, 'og:image': post?.cover }),
+  meta: ({ data }) => ({ description: data?.summary, 'og:image': data?.cover }),
   // params of the dynamic route to prerender
   paths: () => posts.map(({ slug }) => ({ slug })),
 })
@@ -79,6 +79,9 @@ export default class PostPage extends GemElement {
   #content = () => html`<h1>${this.data?.title}</h1>`;
 }
 ```
+
+`load` receives `{ params, data }`, `data` is the result of the `load` of the sibling `*.server.ts`
+(see [Server data](#server-data)), `title` and `meta` receive `{ params, data }`, `data` is the result of `load`.
 
 When the params change on client navigation (e.g. `/blog/a` to `/blog/b`), the page element is recreated, the elements
 and their state in the page are not reused. When only the query changes or the data is reloaded after a form
@@ -104,7 +107,7 @@ and updated on client navigation:
 import { GemElement, html, property, template } from '@mantou/gem';
 import { type ErrorData, page } from '@mantou/gemkit';
 
-@page<{}, ErrorData>({ title: (_, { status }) => `Error ${status}` })
+@page<{}, ErrorData>({ title: ({ data }) => `Error ${data.status}` })
 export default class ErrorPage extends GemElement {
   @property data?: ErrorData;
 
@@ -211,7 +214,7 @@ export const paths = async ({ lang }: { lang: string }) => [{ slug: 'hello' }];
 - Prerender: `__data.json` is written next to the page, so navigation works on a static host
 - `gemkit start` serves the prerendered page and `__data.json` only when the URL has no query, other requests are
   rendered by the server. A static host ignores the query, pages whose `load` reads `url.searchParams` need a server
-- The `load` option of the page or layout, if present, receives the server data as the second argument
+- The `load` option of the page or layout, if present, receives the server data as `data`
 
 ## API routes
 

@@ -29,7 +29,8 @@ let pageLoaded: Promise<void> | undefined;
 /** `load` 事件后浏览器空闲时，避免和页面的其他资源竞争 */
 function whenPageLoaded() {
   pageLoaded ||= new Promise<void>((resolve) => {
-    const idle = () => ('requestIdleCallback' in window ? requestIdleCallback(() => resolve()) : setTimeout(resolve));
+    // https://bugs.webkit.org/show_bug.cgi?id=285049
+    const idle = () => setTimeout(resolve);
     if (document.readyState === 'complete') idle();
     else window.addEventListener('load', idle, { once: true });
   });
@@ -39,11 +40,6 @@ function whenPageLoaded() {
 let intersectionObserver: IntersectionObserver | undefined;
 
 function observeVisible(ele: Element) {
-  // 不支持时直接加载
-  if (typeof IntersectionObserver === 'undefined') {
-    loadElement(ele.localName);
-    return;
-  }
   intersectionObserver ||= new IntersectionObserver((entries) => {
     for (const { target, isIntersecting } of entries) {
       if (!isIntersecting) continue;

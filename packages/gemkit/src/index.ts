@@ -23,5 +23,13 @@ export {
 export { getBasePath, localizePath, splitLanguage } from './i18n';
 export type { Meta } from './meta';
 export { errorRoute, layoutRoute, pageRoute, type RouteInfo, setOutlets } from './outlet';
-export { type LayoutOptions, layout, type PageOptions, type Params, page } from './page';
+export {
+  type LayoutOptions,
+  type LoadContext,
+  layout,
+  type PageOptions,
+  type Params,
+  page,
+  type RouteContext,
+} from './page';
 export { formatTitle, type TitleOptions } from './title';

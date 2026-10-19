@@ -18,7 +18,13 @@ class HomePage extends GemElement {
   #content = () => html`home`;
 }
 
-@page('Post')
+type PostData = { id: string; text: string };
+
+// `load` 读取路由参数和服务端数据，`title` 读取 `load` 的结果
+@page<{ id: string }, PostData>({
+  load: ({ params, data }) => ({ id: params.id, text: data.text }),
+  title: ({ data }) => `Post ${data.id} ${data.text}`,
+})
 class PostPage extends GemElement {
   @template()
   #content = () => html`post`;
@@ -30,7 +36,7 @@ const post = { tag: 'gemkit-page-post', load: async () => ({ default: PostPage }
 const serverModules: Record<string, () => Promise<ServerModule>> = {
   // 中文只翻译了部分文章
   [post.tag]: async () => ({
-    load: () => null,
+    load: ({ params }) => ({ text: `text ${params.id}` }),
     paths: ({ lang }) => (lang === 'zh' ? [{ id: '1' }] : [{ id: '1' }, { id: '2' }]),
   }),
 };
@@ -78,6 +84,14 @@ test('renderDocument: 没有语言前缀时跳转到默认语言', async ({ asse
     const { status } = await renderer.renderDocument(documentTemplate, new Request(`http://localhost${url}`));
     assert.equal(status, 200, url);
   }
+});
+
+test('renderDocument: `load` 和 `title` 的上下文', async ({ assert }) => {
+  const { html } = await renderer.renderDocument(documentTemplate, new Request('http://localhost/zh/posts/1'));
+  let content = '';
+  for await (const chunk of html) content += chunk;
+  assert.match(content, /<title>Post 1 text 1<\/title>/);
+  assert.match(content, /"gemkit-page-post":\{"id":"1","text":"text 1"\}/);
 });
 
 test('getPaths: 每个语言分别获取动态路由参数，没有前缀的路径用于输出跳转页面', async ({ assert }) => {

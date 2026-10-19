@@ -206,13 +206,28 @@ export const ssrData = isolate<{
   ready?: boolean;
 }>({});
 
-export function setSSRData(path: string, tag: string, data: unknown) {
+// 客户端也调用下面的函数，内部判断服务端，只在服务端使用的代码才能在客户端构建时移除
+
+/**
+ * 服务端渲染时记录 layout 或页面的数据，返回转换成 JSON 值的数据，`isJSON` 表示已经转换过，
+ * 客户端直接返回
+ */
+export function setSSRData(path: string, tag: string, data: unknown, isJSON = false) {
+  if (!isServer) return data;
+  const json = isJSON ? data : toJSONValue(data);
   ssrData.current ||= { path, data: {} };
-  ssrData.current.data[tag] = data;
+  ssrData.current.data[tag] = json;
+  return json;
+}
+
+/** 服务端渲染时页面的数据和标题已经确定，可以开始输出文档 */
+export function setSSRReady() {
+  if (isServer) ssrData.ready = true;
 }
 
 /** 服务端渲染时路由出错，响应使用它的状态码，水合时直接渲染错误页面 */
 export function setSSRError(path: string, err: RouteError) {
+  if (!isServer) return;
   requestState.error ||= err;
   ssrData.current ||= { path, data: {} };
   ssrData.current.error ||= err;

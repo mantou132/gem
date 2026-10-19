@@ -62,7 +62,7 @@ class HomePage extends GemElement {
   #content = () => html`<h1>home</h1><app-server-note text="hi"></app-server-note>`;
 }
 
-@page({ title: (params) => `Post ${params.id}` })
+@page({ title: ({ params }) => `Post ${params.id}` })
 class PostPage extends GemElement {
   data: { id: string; text: string; url: string };
 
@@ -105,7 +105,7 @@ class LoginPage extends GemElement {
   #content = () => html`<form method="post" action="?/login"></form>`;
 }
 
-@page({ title: (_, { message }) => message })
+@page<Params, ErrorData>({ title: ({ data }) => data.message })
 class ErrorPage extends GemElement {
   data: ErrorData;
 

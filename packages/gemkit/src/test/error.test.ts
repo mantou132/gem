@@ -19,7 +19,7 @@ class RootLayout extends GemElement {
 
 @page<Record<string, string>, { summary: string }>({
   title: 'Home',
-  meta: (_, data) => ({ description: data.summary, 'og:image': undefined }),
+  meta: ({ data }) => ({ description: data.summary, 'og:image': undefined }),
 })
 class HomePage extends GemElement {
   @template()
@@ -57,8 +57,8 @@ class DocPage extends GemElement {
 }
 
 @page<Record<string, string>, ErrorData>({
-  title: (_, { status }) => `Error ${status}`,
-  meta: (_, { message }) => ({ 'og:title': message }),
+  title: ({ data }) => `Error ${data.status}`,
+  meta: ({ data }) => ({ 'og:title': data.message }),
 })
 class ErrorPage extends GemElement {
   data: ErrorData;

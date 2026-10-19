@@ -23,10 +23,9 @@ import {
   outletStore,
   setSSRData,
   setSSRError,
-  ssrData,
+  setSSRReady,
   takeRouteError,
   takeSSRData,
-  toJSONValue,
   toRouteError,
 } from './data';
 import { type Meta, updateMeta } from './meta';
@@ -82,12 +81,9 @@ async function runLoad(
   const { load } = getPageOptions(cls);
   if (!load && !hasServerModule) return;
   const serverData = hasServerModule ? await loadServerData(tag, params) : undefined;
-  const data = load ? await load(params, serverData) : serverData;
-  if (!isServer) return data;
+  const data = load ? await load({ params, data: serverData }) : serverData;
   // 服务端模块的数据已经转换过
-  const json = load ? toJSONValue(data) : data;
-  setSSRData(path, tag, json);
-  return json;
+  return setSSRData(path, tag, data, !load);
 }
 
 // layout 和页面的 meta，`path` 是加载时的页面路径，只合并当前路径的
@@ -113,7 +109,7 @@ function deleteRouteMeta(tags: string[]) {
 async function setRouteMeta(cls: CustomElementConstructor, tag: string, params: Params, data: unknown) {
   const { meta } = getPageOptions(cls);
   const { path } = history.getParams();
-  const value = typeof meta === 'function' ? await meta(params, data) : meta;
+  const value = typeof meta === 'function' ? await meta({ params, data }) : meta;
   routeMeta.value = { ...routeMeta.value, [tag]: { path, meta: value || {} } };
   if (!isServer) updateMeta(getRouteMeta(path));
 }
@@ -166,12 +162,12 @@ async function loadPage(
   clientState.invalidated = false;
   defineElement(tag, cls);
   const { title: getTitle } = getPageOptions(cls);
-  const title = typeof getTitle === 'function' ? await getTitle(params, data) : getTitle;
+  const title = typeof getTitle === 'function' ? await getTitle({ params, data }) : getTitle;
   if (title !== undefined) titleStore({ title });
   // 页面正常显示时，同一路径之前的错误页面的 meta 不再使用
   if (!error && errorPage) deleteRouteMeta([errorPage.data!.tag]);
   await setRouteMeta(cls, tag, params, data);
-  if (isServer) ssrData.ready = true;
+  setSSRReady();
   return data;
 }
 
@@ -202,7 +198,7 @@ const renderError = (tag: string, params: Params) => (err: unknown) => {
   if (!content) throw err;
   const { path } = history.getParams();
   const error = toRouteError(tag, err);
-  if (isServer) setSSRError(path, error);
+  setSSRError(path, error);
   const tags = matchRoutes(path).map(({ info }) => info.tag);
   deleteRouteMeta(tags.slice(tags.indexOf(tag)));
   return content(params, { status: error.status, message: error.message });
