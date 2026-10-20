@@ -1,4 +1,6 @@
-export { client, defineLazy, GemServerElement, lazy, server } from '@mantou/gem-ssr/decorators';
+export { client, lazy, server } from '@mantou/gem-ssr/decorators';
+// 供 `@server()`/`@lazy()` 的编译产物使用，编译时从导入装饰器的模块中导入，不需要直接调用
+export { defineLazy, GemServerElement } from '@mantou/gem-ssr/decorators';
 
 export {
   type ActionResult,

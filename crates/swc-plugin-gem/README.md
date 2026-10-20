@@ -6,7 +6,7 @@
 - support minify style
 - support minify html
 - resolve full path (for esm)
-- support module level resource preload
+- support module level resource preload (`?preload`, depends on `?url` and top-level await; only rewritten to `?url` in the `"server"` build of `ssr`)
 - support SSR (`ssr`), e.g. add key to module level `createStore` to sync store values to the client, add key to module level `createTheme` to keep CSS variable names the same on the server and the client; set `"client"` / `"server"` for the build to rewrite `@server()` / `@lazy()` elements in the client build and `@client()` elements in the server build
 - support hmr (experimental; `true` / `"webpack-hot"` emit `import.meta.webpackHot`. Use `unplugin-gem` to inject `@mantou/gem/helper/hmr` and select the matching target)
 

@@ -15,8 +15,9 @@ enum AwaitItem {
     ArrayBuffer(Ident, Ident),
 }
 
-#[derive(Default)]
 struct TransformVisitor {
+    // 服务端没有 `Image`，`fetch` 也不能使用相对 URL，只改写成 `?url`
+    server: bool,
     await_items: Vec<AwaitItem>,
 }
 
@@ -29,19 +30,23 @@ impl VisitMut for TransformVisitor {
             if prefix != "preload" {
                 return;
             }
+            let is_img = IMG_REG.is_match(source);
+            *node.src = Str::from([source, "url"].join("?"));
+            if self.server {
+                return;
+            }
             let ident = node
                 .specifiers
                 .get_mut(0)
                 .expect("preload only allow one specifier")
                 .local_mut();
-            if IMG_REG.is_match(source) {
+            if is_img {
                 self.await_items.push(AwaitItem::Img(ident.clone()));
             } else {
                 let data = ident.clone();
                 ident.sym = format!("_{}", ident.sym.as_str()).into();
                 self.await_items.push(AwaitItem::ArrayBuffer(data, ident.clone()));
             }
-            *node.src = Str::from([source, "url"].join("?"));
         }
     }
 
@@ -78,6 +83,9 @@ impl VisitMut for TransformVisitor {
     }
 }
 
-pub fn preload_transform() -> impl VisitMut {
-    TransformVisitor::default()
+pub fn preload_transform(server: bool) -> impl VisitMut {
+    TransformVisitor {
+        server,
+        await_items: vec![],
+    }
 }

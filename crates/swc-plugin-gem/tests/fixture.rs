@@ -115,13 +115,14 @@ fn fixture_path(input: PathBuf) {
     );
 }
 
-#[fixture("tests/fixture/preload/input.ts")]
+#[fixture("tests/fixture/preload/**/input.ts")]
 fn fixture_preload(input: PathBuf) {
     let output = input.parent().unwrap().join("output.ts");
+    let server = input.to_string_lossy().contains("server");
 
     test_fixture(
         get_syntax(),
-        &|_| visit_mut_pass(preload_transform()),
+        &|_| visit_mut_pass(preload_transform(server)),
         &input,
         &output,
         Default::default(),

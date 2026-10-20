@@ -35,7 +35,7 @@ struct PluginConfig {
     pub auto_import_dts: AutoImportDts,
     /// Use esm directly with import map
     pub resolve_path: bool,
-    ///depend on URL loader & top await
+    /// Depend on URL loader & top await, only rewrite to `?url` in the server build
     pub preload: bool,
     /// Under development. `true` / `"webpack-hot"` emit `import.meta.webpackHot`;
     /// `unplugin-gem` injects `@mantou/gem/helper/hmr` and passes the matching target.
@@ -96,7 +96,7 @@ pub fn process_transform(mut program: Program, data: TransformPluginProgramMetad
         },
         Optional {
             enabled: config.preload,
-            visitor: preload_transform(),
+            visitor: preload_transform(ssr_target == Some(SsrTarget::Server)),
         },
         Optional {
             // 先于 HMR，HMR 会把 `createStore` 包在函数中

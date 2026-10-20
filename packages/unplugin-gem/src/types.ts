@@ -112,7 +112,11 @@ export interface UnpluginGemOptions {
   resolvePath?: boolean;
 
   /**
-   * Enable resource preloading with ?preload query
+   * Enable resource preloading with ?preload query, the module waits until the resource is loaded:
+   * images get the URL, other resources get the `ArrayBuffer` content.
+   * Rewritten to `?url` in the bundler, only resources supported by `?url` (e.g. images, fonts, media) work.
+   * In the SSR server build only rewritten to `?url` without waiting, other resources get the URL.
+   * Use `import()` to avoid blocking the importer, e.g. a popup image
    * @default false
    */
   preload?: boolean;
