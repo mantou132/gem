@@ -35,6 +35,10 @@
             "type": "boolean",
             "description": "Writing standard custom elements"
           },
+          "gem.ssr": {
+            "type": "boolean",
+            "description": "Warn about code that gem-ssr can not hydrate, only supported with TypeScript 7"
+          },
           "gem.emmet": {
             "type": "object",
             "description": "Emmet plugin configuration"

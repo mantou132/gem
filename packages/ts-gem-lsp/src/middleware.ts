@@ -300,7 +300,7 @@ export function createGemMiddleware(
       const { project, file } = ctx;
       const templates = findTemplates(file, 'html');
       const htmlDiagnostics = templates.length
-        ? await getHtmlDiagnostics(project, file, templates, await index.get(project), getConfig().strict)
+        ? await getHtmlDiagnostics(project, file, templates, await index.get(project), getConfig())
         : [];
       const cssDocuments = [...findTemplates(file, 'css'), ...templates.flatMap((t) => html.styles(t))];
       return {

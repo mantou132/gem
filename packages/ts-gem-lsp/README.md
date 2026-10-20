@@ -110,12 +110,14 @@ Add `--json` to print the raw LSP result.
 
 ## Configuration
 
-Same as ts-gem-plugin:
+Same as ts-gem-plugin, except `ssr`:
 
 ```json
 {
   // Some suggestions become warnings, for writing standard custom elements
   "strict": false,
+  // Warn about code that gem-ssr can not hydrate (children of Light DOM elements with a template, bindings inside raw-text elements), only supported by ts-gem-lsp
+  "ssr": false,
   // Same as emmet configuration
   "emmet": {},
   // Let the language service know how to find the element definition

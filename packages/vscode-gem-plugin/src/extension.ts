@@ -1,8 +1,8 @@
 import * as fs from 'node:fs/promises';
 import * as path from 'node:path';
 
+import type { GemConfiguration } from 'ts-gem-lsp/src/configuration';
 import { registerGemMiddleware, TS7_EXTENSION_ID } from 'ts-gem-lsp/src/vscode';
-import type { PluginConfiguration } from 'ts-gem-plugin/src/configuration';
 import type { ExtensionContext, TextDocument, WorkspaceConfiguration } from 'vscode';
 import { commands, Disposable, extensions, Range, window, workspace } from 'vscode';
 import { LanguageClient, TransportKind } from 'vscode-languageclient/node';
@@ -103,13 +103,14 @@ type TupleUnion<U extends string, R extends string[] = []> = {
 }[U] &
   string[];
 
-function getConfiguration(): Partial<PluginConfiguration> {
+// ts-gem-plugin 会忽略只有 ts-gem-lsp 支持的配置
+function getConfiguration(): Partial<GemConfiguration> {
   const config = workspace.getConfiguration(configurationSection);
-  const outConfig: Partial<PluginConfiguration> = {
-    emmet: workspace.getConfiguration('emmet') as PluginConfiguration['emmet'],
+  const outConfig: Partial<GemConfiguration> = {
+    emmet: workspace.getConfiguration('emmet') as GemConfiguration['emmet'],
   };
 
-  (['strict', 'emmet', 'elementDefineRules'] as TupleUnion<keyof PluginConfiguration>).forEach((k) => {
+  (['strict', 'ssr', 'emmet', 'elementDefineRules'] as TupleUnion<keyof GemConfiguration>).forEach((k) => {
     withConfigValue<any>(config, k, (v) => {
       outConfig[k] = v;
     });

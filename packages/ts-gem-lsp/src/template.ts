@@ -129,6 +129,13 @@ export class Template implements VirtualDocument {
     return !this.#substitutions.some(([start, end]) => offset >= start && offset <= end);
   }
 
+  /** 虚拟文档中的偏移范围内是否有插值 */
+  hasSubstitution(virtualStart: number, virtualEnd: number) {
+    const start = this.fromVirtualOffset(virtualStart);
+    const end = this.fromVirtualOffset(virtualEnd);
+    return this.#substitutions.some(([substitutionStart]) => substitutionStart >= start && substitutionStart < end);
+  }
+
   toVirtualOffset(offset: number) {
     return offset - this.#start + this.#prefix.length;
   }

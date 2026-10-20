@@ -1,12 +1,19 @@
 import { camelToKebabCase, kebabToCamelCase } from '@mantou/gem/lib/utils';
 import type { HTMLDocument, Node as HtmlNode } from '@mantou/vscode-html-languageservice';
 import { getLanguageService } from '@mantou/vscode-html-languageservice';
-import type { MethodSignatureDeclaration, Node, SourceFile } from 'typescript/unstable/ast';
+import type {
+  ClassDeclaration,
+  Identifier,
+  MethodSignatureDeclaration,
+  Node,
+  SourceFile,
+} from 'typescript/unstable/ast';
 import type { Checker, Project, Symbol as TsSymbol, Type } from 'typescript/unstable/async';
 import type { CodeAction, Diagnostic } from 'typescript/unstable/vscode';
 
+import type { GemConfiguration } from './configuration';
 import type { ElementRef, ElementType } from './elements';
-import { getDecoratorNames, getTagFromDecorator, resolveElementType } from './elements';
+import { getDecoratorNames, getElementNode, getTagFromDecorator, isDepFile, resolveElementType } from './elements';
 import type { Template } from './template';
 import { findAncestor, toOffset, toPosition } from './template';
 import { ts } from './ts';
@@ -25,6 +32,7 @@ export enum DiagnosticCode {
   SuggestionClassName,
   SuggestionPropOptional,
   SuggestionPropName,
+  SsrRestriction,
   // 和 ts-gem-plugin 保持一致
   AttrFormatError = 2552,
 }
@@ -149,10 +157,19 @@ class DiagnosticContext {
   #elementTypes = new Map<string, Promise<DiagnosticElementType | undefined>>();
   #primitive?: Promise<Record<'string' | 'number' | 'boolean' | 'undefined' | 'null' | 'any', Type>>;
 
-  readonly strict: boolean;
+  #lightTemplateElements = new Map<string, Promise<boolean>>();
 
-  constructor(project: Project, file: SourceFile, elements: Map<string, ElementRef>, strict: boolean) {
+  readonly strict: boolean;
+  readonly ssr: boolean;
+
+  constructor(
+    project: Project,
+    file: SourceFile,
+    elements: Map<string, ElementRef>,
+    { strict, ssr }: GemConfiguration,
+  ) {
     this.strict = strict;
+    this.ssr = ssr;
     this.project = project;
     this.checker = project.checker;
     this.file = file;
@@ -191,6 +208,43 @@ class DiagnosticContext {
 
   async isPropDeprecated(type: Type, propName: string) {
     return this.#isDeprecated(await type.getProperty(propName));
+  }
+
+  /** 有模板的 Light DOM 元素 */
+  isLightTemplateElement(tag: string) {
+    let result = this.#lightTemplateElements.get(tag);
+    if (!result) {
+      result = this.#resolveLightTemplateElement(tag);
+      this.#lightTemplateElements.set(tag, result);
+    }
+    return result;
+  }
+
+  /** `@shadow()` 和 `@template()` 都会被继承，依赖中的声明文件没有装饰器，基类无法确认时不检查 */
+  async #resolveLightTemplateElement(tag: string) {
+    const ref = this.#elements.get(tag);
+    let node: ClassDeclaration | undefined = ref && !ref.isDep ? await getElementNode(this.project, ref) : undefined;
+    let hasTemplate = false;
+    while (node) {
+      if (getDecoratorNames(node).includes('shadow')) return false;
+      hasTemplate ||= node.members.some((member) => getDecoratorNames(member).includes('template'));
+      const extendsClause = node.heritageClauses?.find((e) => e.token === ts.ast.SyntaxKind.ExtendsKeyword);
+      const [heritage] = extendsClause?.types ?? [];
+      const base = heritage && ts.ast.isExpressionWithTypeArguments(heritage) ? heritage.expression : undefined;
+      if (!base || !ts.ast.isIdentifier(base)) return false;
+      if (base.text === 'GemElement') return hasTemplate;
+      node = await this.#resolveClass(base);
+    }
+    return false;
+  }
+
+  async #resolveClass(name: Identifier) {
+    let symbol = await this.checker.getSymbolAtLocation(name);
+    if (symbol && symbol.flags & ts.api.SymbolFlags.Alias) symbol = await this.checker.getAliasedSymbol(symbol);
+    const handle = symbol?.valueDeclaration;
+    if (!handle || isDepFile(handle.path)) return;
+    const declaration = await handle.resolve(this.project);
+    return declaration && ts.ast.isClassDeclaration(declaration) ? declaration : undefined;
   }
 
   getElementType(tag: string) {
@@ -445,6 +499,19 @@ async function checkNode(
   if (!elementType) return [];
 
   const result: Diagnostic[] = [];
+  if (ctx.ssr && (await ctx.isLightTemplateElement(tag))) {
+    // 自闭合或者没有闭合的标签没有 `endTagStart`
+    const content = node.endTagStart ? template.doc.getText().slice(node.startTagEnd, node.endTagStart) : '';
+    if (content.trim()) {
+      result.push({
+        range: tagRange(node.start + 1),
+        severity: Severity.Warning,
+        code: DiagnosticCode.SsrRestriction,
+        source: SOURCE,
+        message: 'Children of Light DOM element with a template are not hydrated, use Shadow DOM and `<slot>` instead',
+      });
+    }
+  }
   // 检查元素是否弃用
   if (elementType.deprecated) {
     for (const start of [node.start + 1, node.endTagStart && node.endTagStart + 2]) {
@@ -467,20 +534,47 @@ async function checkNode(
   return [...result, ...attributeResults.flat()];
 }
 
+// 有绑定时 lit 会在 raw-text 元素末尾添加 marker 注释，SSR 内容中没有，节点索引对不上
+const rawTextHints = new Map([
+  ['script', ''],
+  ['style', ', use `css` or theme instead'],
+  ['textarea', ', use `.value` instead'],
+  ['title', ', use `document.title` instead'],
+]);
+
+/** gem-ssr 不能 hydrate raw-text 元素中的绑定，整个模板会在客户端重新渲染 */
+function checkRawText(template: Template, node: HtmlNode): Diagnostic[] {
+  const tag = node.tag!;
+  const hint = rawTextHints.get(tag);
+  if (hint === undefined || !node.startTagEnd || !node.endTagStart) return [];
+  if (!template.hasSubstitution(node.startTagEnd, node.endTagStart)) return [];
+  return [
+    {
+      range: template.toRangeFromOffsets(node.start + 1, node.start + 1 + tag.length),
+      severity: Severity.Warning,
+      code: DiagnosticCode.SsrRestriction,
+      source: SOURCE,
+      message: `Bindings inside \`<${tag}>\` are not hydrated, the whole template is rendered again on the client${hint}`,
+    },
+  ];
+}
+
 export async function getHtmlDiagnostics(
   project: Project,
   file: SourceFile,
   templates: Template[],
   elements: Map<string, ElementRef>,
-  strict: boolean,
+  config: GemConfiguration,
 ): Promise<Diagnostic[]> {
-  const ctx = new DiagnosticContext(project, file, elements, strict);
+  const ctx = new DiagnosticContext(project, file, elements, config);
   const results = await Promise.all(
     templates.map((template) => {
       const vHtml = htmlLs.parseHTMLDocument(template.doc);
       const nodes: HtmlNode[] = [];
       forEachHtmlNode(vHtml.roots, (node) => node.tag && nodes.push(node));
-      return Promise.all(nodes.map((node) => checkNode(ctx, template, vHtml, node)));
+      const rawTextResults =
+        ctx.ssr && template.tagName !== 'raw' ? nodes.flatMap((node) => checkRawText(template, node)) : [];
+      return Promise.all([...nodes.map((node) => checkNode(ctx, template, vHtml, node)), rawTextResults]);
     }),
   );
   return results.flat(2);
