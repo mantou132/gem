@@ -418,7 +418,8 @@ export type Emitter<T = any> = <_Listener = EmitterListener<T>>(
 
 /**
  * 定义一个事件发射器，类似 `HTMLElement.click`，
- * 调用时将同步发送一个和字段名称的烤串式格式的自定义事件
+ * 调用时将在微任务中发送一个和字段名称的烤串式格式的自定义事件，
+ * 避免同步触发时祖先元素还没挂载好（https://github.com/mantou132/gem/issues/203）
  *
  * @example
  * ```ts
