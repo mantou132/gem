@@ -146,7 +146,8 @@ hydration uses the server values. Only JSON values are supported.
 `@server()` element classes are only rendered on the server, their code and dependencies are not bundled into the
 client, `@lazy()` elements are loaded on the first interaction, after the page is loaded (`@lazy({ on: 'load' })`)
 or when visible (`@lazy({ on: 'visible' })`), their code is bundled into the client, so only isomorphic code can
-be used, see
+be used. `@client()` elements are only rendered on the client, the server outputs the tag only, so browser-only
+code can be used, see
 [gem-ssr](https://github.com/mantou132/gem/tree/main/packages/gem-ssr#server-elements).
 
 On client navigation, the HTML of the server elements (including lazy elements, whose code is still loaded by the

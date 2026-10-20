@@ -256,6 +256,12 @@ function generateI18n(genDir: string, localesDir: string, config: GemkitConfig) 
   });
 }
 
+// unplugin-gem 的 `?preload`：图片得到已加载的 URL，其他资源得到内容
+// 多个通配模块匹配时 TS 取先声明的，所以图片要在 `*?preload` 之前
+const preloadDts = `${['svg', 'gif', 'jpg', 'jpeg', 'tif', 'tiff', 'png', 'apng', 'webp', 'avif', 'bmp']
+  .map((ext) => `declare module '*.${ext}?preload' {\n  const url: string;\n  export default url;\n}\n`)
+  .join('')}declare module '*?preload' {\n  const data: ArrayBuffer;\n  export default data;\n}\n`;
+
 function generateEntries(
   genDir: string,
   srcDir: string,
@@ -287,7 +293,10 @@ function generateEntries(
     )}\n`,
   );
   // CSS 等资源模块的类型声明，项目不需要自己引用
-  writeIfChanged(path.join(genDir, 'env.d.ts'), `${HEADER}/// <reference types="@rsbuild/core/types" />\n`);
+  writeIfChanged(
+    path.join(genDir, 'env.d.ts'),
+    `${HEADER}/// <reference types="@rsbuild/core/types" />\n\n${preloadDts}`,
+  );
 }
 
 export const getSrcDir = (rootPath: string, config: GemkitConfig) => path.resolve(rootPath, config.srcDir ?? 'src');

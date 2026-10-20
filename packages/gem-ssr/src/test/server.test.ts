@@ -8,6 +8,7 @@ import { GemUseElement } from '@mantou/gem/elements/use';
 
 import { render, renderServerElement, renderToString } from '..';
 import { getServerElementKey, server, ssrContext } from '../decorators';
+import { clientElement } from './fixtures/client-element';
 import { lazyElement, serverElement } from './fixtures/server-element';
 
 let calls = 0;
@@ -229,6 +230,13 @@ test('延时视图：输出状态和水合时移除的样式，收集 HTML', asy
   const key = getServerElementKey('app-lazy-element', { text: 'a' }, {});
   assert.deepEqual([...serverElements.keys()], [key]);
   assert.equal(result.includes(serverElements.get(key)!), true);
+});
+
+test('纯客户端元素：输出成普通元素，不渲染', async ({ assert }) => {
+  const result = await renderToString(clientElement());
+  assert.match(result, /<app-client-element text="a"><\/app-client-element>/);
+  assert.doesNotMatch(result, /<p>|ssr-props|ssr-server/);
+  await assert.rejects(renderServerElement('app-client-element', {}, {}), /not a server element/);
 });
 
 test('renderServerElement：渲染纯服务端元素', async ({ assert }) => {

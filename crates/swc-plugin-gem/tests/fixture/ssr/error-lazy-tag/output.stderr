@@ -1,0 +1,7 @@
+  x the tag of `@lazy()` element must be a string literal
+   ,-[input.js:7:1]
+ 6 | 
+ 7 | @customElement(TAG)
+   :  ^^^^^^^^^^^^^^^^^^
+ 8 | @lazy()
+   `----

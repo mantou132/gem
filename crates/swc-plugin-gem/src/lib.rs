@@ -43,9 +43,10 @@ struct PluginConfig {
     pub hmr: HmrConfig,
     /// Support `&:hover` in shadow dom and light dom
     pub selector_compatible: bool,
-    /// SSR support: `"server"` / `"client"` build (`true` is `"server"`),
+    /// SSR support: `"server"` / `"client"` build (`true` only adds keys, e.g. the build target is unknown),
     /// add key to module level `createStore` to sync store values to the client,
     /// rewrite `@server()` / `@lazy()` element classes in the client build,
+    /// rewrite `@client()` element modules in the server build,
     /// `"lazy-chunk"` is set by `unplugin-gem` for the `?gem-lazy` module of the lazy view
     pub ssr: SsrConfig,
     /// un-implement
@@ -132,7 +133,7 @@ mod tests {
         let config = serde_json::from_str::<PluginConfig>(r#"{"ssr":"client"}"#).unwrap();
         assert_eq!(config.ssr.target(), Some(SsrTarget::Client));
         let config = serde_json::from_str::<PluginConfig>(r#"{"ssr":true}"#).unwrap();
-        assert_eq!(config.ssr.target(), Some(SsrTarget::Server));
+        assert_eq!(config.ssr.target(), Some(SsrTarget::Unknown));
     }
 
     #[test]

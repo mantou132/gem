@@ -39,9 +39,11 @@ const require = createRequire(import.meta.url);
 const SSR_HOOK = 'globalThis.__GEM_SSR__';
 const SSR_HOOK_REPLACEMENT = 'undefined'.padEnd(SSR_HOOK.length);
 
-// 客户端构建时改写 `@server()` `@lazy()` 标记的元素类，`?gem-lazy` 是延时视图元素真正的代码
-function getSsrTarget(ssr: boolean | undefined, isClient: boolean, id: string) {
+// 客户端构建时改写 `@server()` `@lazy()` 标记的元素类，服务端构建时改写 `@client()` 标记的元素模块，
+// `?gem-lazy` 是延时视图元素真正的代码，无法判断构建目标时只添加 key
+function getSsrTarget(ssr: boolean | undefined, isClient: boolean | undefined, id: string) {
   if (!ssr) return false;
+  if (isClient === undefined) return true;
   if (!isClient) return 'server';
   return /[?&]gem-lazy\b/.test(id) ? 'lazy-chunk' : 'client';
 }
@@ -53,8 +55,8 @@ export const unpluginFactory: UnpluginFactory<UnpluginGemOptions | undefined> = 
   const moduleInclude = toArray(options.include);
   const moduleExclude = toArray(options.exclude);
   let nonDomBuild = false;
-  // 无法判断时不移除 SSR 代码，例如 Rollup
-  let clientBuild = false;
+  // 无法判断时不移除 SSR 代码，也不改写元素，例如 Rollup
+  let clientBuild: boolean | undefined;
   let esbuildUsesEntryProxy = false;
 
   return {

@@ -1,6 +1,6 @@
 use std::path::PathBuf;
 
-use swc_core::ecma::transforms::testing::test_fixture;
+use swc_core::ecma::transforms::testing::{test_fixture, FixtureTestConfig};
 use swc_ecma_parser::{Syntax, TsSyntax};
 use swc_ecma_visit::visit_mut_pass;
 use swc_plugin_gem::*;
@@ -165,10 +165,14 @@ fn fixture_ssr_key(input: PathBuf) {
 }
 
 #[fixture("tests/fixture/ssr/element*/input.ts")]
+#[fixture("tests/fixture/ssr/error*/input.ts")]
 fn fixture_server(input: PathBuf) {
     let output = input.parent().unwrap().join("output.ts");
-    let target = if input.to_string_lossy().contains("lazy-chunk") {
+    let path = input.to_string_lossy();
+    let target = if path.contains("lazy-chunk") {
         SsrTarget::LazyChunk
+    } else if path.contains("-server") {
+        SsrTarget::Server
     } else {
         SsrTarget::Client
     };
@@ -183,6 +187,9 @@ fn fixture_server(input: PathBuf) {
         },
         &input,
         &output,
-        Default::default(),
+        FixtureTestConfig {
+            allow_error: path.contains("error"),
+            ..Default::default()
+        },
     );
 }

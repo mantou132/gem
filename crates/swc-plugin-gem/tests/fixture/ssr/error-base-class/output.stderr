@@ -1,0 +1,7 @@
+  x `@server()` can only be used on the element class with `@customElement`
+   ,-[input.js:5:1]
+ 4 | 
+ 5 | @server()
+   :  ^^^^^^^^
+ 6 | export class BaseElement extends GemElement {}
+   `----

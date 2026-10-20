@@ -144,6 +144,7 @@ export interface UnpluginGemOptions {
    *   so the CSS variable names are the same on the server and the client
    * - in the client build, replace `@server()` element classes with stubs and
    *   load `@lazy()` elements on demand
+   * - in the server build, replace `@client()` element modules with empty modules
    * @default false
    */
   ssr?: boolean;

@@ -5,19 +5,23 @@
 //! （只识别直接调用 `createStore` 标识符，和 HMR 保留 store 的规则一样，已经有第二个参数时不处理）；
 //! `createTheme` `createScopedTheme` `createDecoratorTheme` 同样添加 key，用作 css 变量名的后缀
 //!
-//! 客户端构建：改写 `@server()` `@lazy()` 标记的元素类，
+//! 改写 `@server()` `@lazy()` `@client()` 标记的元素类，
 //! `GemServerElement` 从导入 `server` 的模块导入，`defineLazy` 从导入 `lazy` 的模块导入
 //!
-//! - `@server()`：纯服务端元素，类替换成只保留 `@customElement` 的 `GemServerElement` 子类，
+//! - `@server()`：纯服务端元素，客户端构建时类替换成只保留 `@customElement` 的 `GemServerElement` 子类，
 //!   然后移除不再使用的顶层声明和导入，例如只在服务端使用的 `marked`
-//! - `@lazy()`：延时视图，模块替换成 `defineLazy(tag, () => import('./self?gem-lazy'), options)`，
+//! - `@lazy()`：延时视图，客户端构建时模块替换成 `defineLazy(tag, () => import('./self?gem-lazy'), options)`，
 //!   `options` 是 `@lazy()` 的参数，只能是字面量，例如 `{ on: 'visible' }`，
 //!   带 `?gem-lazy` 的模块（`LazyChunk`）是元素真正的代码，不改写延时视图
+//! - `@client()`：纯客户端元素，服务端构建时模块替换成空模块，模块中只在浏览器中运行的代码不会在服务端执行
+//!
+//! 这些装饰器只能用在有 `@customElement` 的类上（不能用在基类上），一个类只能用其中一个，
+//! `@lazy()` `@client()` 会替换整个模块，所以模块中不能有其他导出或元素
 
 use std::{collections::HashSet, path::Path};
 
 use serde::Deserialize;
-use swc_common::{errors::HANDLER, Spanned, SyntaxContext, DUMMY_SP};
+use swc_common::{errors::HANDLER, Span, Spanned, SyntaxContext, DUMMY_SP};
 use swc_core::{
     atoms::Atom,
     ecma::visit::{noop_visit_mut_type, Visit, VisitMut, VisitWith},
@@ -38,9 +42,11 @@ pub enum SsrTarget {
     Client,
     /// 客户端构建中延时视图元素真正的代码（`?gem-lazy` 模块），由 `unplugin-gem` 设置
     LazyChunk,
+    /// 不知道是客户端还是服务端构建，只添加 key，不改写元素
+    Unknown,
 }
 
-/// `true` 等同于 `"server"`，只添加 store 的 key，不改写元素
+/// `true` 等同于 `"unknown"`
 #[derive(Deserialize, Debug, Clone, PartialEq, Default)]
 #[serde(untagged)]
 pub enum SsrConfig {
@@ -54,13 +60,15 @@ impl SsrConfig {
     pub fn target(&self) -> Option<SsrTarget> {
         match self {
             SsrConfig::Disabled | SsrConfig::Enabled(false) => None,
-            SsrConfig::Enabled(true) => Some(SsrTarget::Server),
+            SsrConfig::Enabled(true) => Some(SsrTarget::Unknown),
             SsrConfig::Target(target) => Some(*target),
         }
     }
 }
 
 static SERVER_ELEMENT: &str = "_GemServerElement";
+/// 元素类装饰器，也是导入的名称
+static ELEMENT_KINDS: [&str; 3] = ["server", "lazy", "client"];
 static DEFINE_LAZY: &str = "_defineLazy";
 /// 第二个参数是 key 的函数
 static KEYED_FNS: [&str; 4] = [
@@ -81,6 +89,10 @@ fn get_call_name(expr: &Expr) -> Option<&Atom> {
         .as_expr()?
         .as_ident()
         .map(|ident| &ident.sym)
+}
+
+fn emit_error(span: Span, msg: &str) {
+    HANDLER.with(|handler| handler.struct_span_err(span, msg).emit());
 }
 
 static LAZY_ON: [&str; 3] = ["interaction", "load", "visible"];
@@ -112,14 +124,10 @@ fn get_lazy_options(expr: &Expr) -> Result<Option<Expr>, ()> {
     if valid {
         return Ok(Some((*arg.expr).clone()));
     }
-    HANDLER.with(|handler| {
-        handler
-            .struct_span_err(
-                arg.expr.span(),
-                "the options of `@lazy()` must be a literal, e.g. `{ on: 'visible' }`, `on` is one of `interaction`, `load` and `visible`",
-            )
-            .emit()
-    });
+    emit_error(
+        arg.expr.span(),
+        "the options of `@lazy()` must be a literal, e.g. `{ on: 'visible' }`, `on` is one of `interaction`, `load` and `visible`",
+    );
     Err(())
 }
 
@@ -308,33 +316,42 @@ impl TransformVisitor {
         }
     }
 
-    /// 改写 `@server()` `@lazy()` 标记的元素类，模块替换成延时视图的注册时返回 `true`
+    /// 检查并改写 `@server()` `@lazy()` `@client()` 标记的元素类，模块被整个替换时返回 `true`
     fn rewrite_elements(&self, items: &mut Vec<ModuleItem>) -> bool {
-        let server_import = find_import(items, "server");
-        let lazy_import = find_import(items, "lazy");
-        if server_import.is_none() && lazy_import.is_none() {
+        let imports: Vec<_> = ELEMENT_KINDS
+            .iter()
+            .filter_map(|kind| find_import(items, kind).map(|import| (*kind, import)))
+            .collect();
+        if imports.is_empty() {
             return false;
         }
-        let find_decorator = |class: &Class, import: &Option<(Atom, String)>| {
-            import.as_ref().and_then(|(local, _)| {
-                class
-                    .decorators
-                    .iter()
-                    .find(|decorator| get_call_name(&decorator.expr) == Some(local))
-                    .map(|decorator| (*decorator.expr).clone())
-            })
-        };
-        let mut lazy_tag = None;
-        let mut lazy_options = None;
-        let mut lazy_index = 0;
+        // 替换整个模块的元素：类型、位置、`@customElement` 和元素类装饰器
+        let mut module_element = None;
         let mut replaced = false;
         for (index, item) in items.iter_mut().enumerate() {
             let Some(class) = get_class(item) else {
                 continue;
             };
-            let lazy = find_decorator(class, &lazy_import);
-            if lazy.is_none() && find_decorator(class, &server_import).is_none() {
+            let decorators: Vec<_> = class
+                .decorators
+                .iter()
+                .filter_map(|decorator| {
+                    let name = get_call_name(&decorator.expr)?;
+                    imports
+                        .iter()
+                        .find(|(_, (local, _))| local == name)
+                        .map(|(kind, _)| (*kind, (*decorator.expr).clone()))
+                })
+                .collect();
+            let Some((kind, decorator)) = decorators.first().cloned() else {
                 continue;
+            };
+            if let Some((other, other_decorator)) = decorators.get(1) {
+                emit_error(
+                    other_decorator.span(),
+                    &format!("`@{kind}()` and `@{other}()` can not be used on the same element"),
+                );
+                return false;
             }
             let Some(define) = class
                 .decorators
@@ -344,17 +361,19 @@ impl TransformVisitor {
                 })
                 .cloned()
             else {
-                continue;
+                emit_error(
+                    decorator.span(),
+                    &format!(
+                        "`@{kind}()` can only be used on the element class with `@customElement`"
+                    ),
+                );
+                return false;
             };
-            if let Some(lazy) = lazy {
-                if self.target != SsrTarget::LazyChunk {
-                    let Ok(options) = get_lazy_options(&lazy) else {
-                        return false;
-                    };
-                    lazy_tag = get_tag(&define.expr);
-                    lazy_options = options;
-                    lazy_index = index;
-                }
+            if kind != "server" {
+                module_element = Some((kind, index, define.expr, decorator));
+                continue;
+            }
+            if self.target != SsrTarget::Client {
                 continue;
             }
             class.decorators = vec![define];
@@ -369,19 +388,37 @@ impl TransformVisitor {
             replaced = true;
         }
 
-        if let Some(tag) = lazy_tag {
+        if let Some((kind, element_index, define, decorator)) = module_element {
             // 模块会被整个替换，其他导出和元素会丢失
             if let Some(other) = items.iter().enumerate().find(|(index, item)| {
-                *index != lazy_index && (is_value_export(item) || is_element(item))
+                *index != element_index && (is_value_export(item) || is_element(item))
             }) {
-                HANDLER.with(|handler| {
-                    handler
-                        .struct_span_err(
-                            other.1.span(),
-                            "a module with `@lazy()` element can not have other exports or elements",
-                        )
-                        .emit()
-                });
+                emit_error(
+                    other.1.span(),
+                    &format!(
+                        "a module with `@{kind}()` element can not have other exports or elements"
+                    ),
+                );
+                return false;
+            }
+            if kind == "client" {
+                if self.target != SsrTarget::Server {
+                    return false;
+                }
+                items.clear();
+                return true;
+            }
+            let Ok(options) = get_lazy_options(&decorator) else {
+                return false;
+            };
+            let Some(tag) = get_tag(&define) else {
+                emit_error(
+                    define.span(),
+                    "the tag of `@lazy()` element must be a string literal",
+                );
+                return false;
+            };
+            if self.target != SsrTarget::Client {
                 return false;
             }
             let Some(file_name) = Path::new(&self.filename)
@@ -390,13 +427,13 @@ impl TransformVisitor {
             else {
                 return false;
             };
-            let (_, src) = lazy_import.unwrap();
+            let (_, (_, src)) = imports.iter().find(|(kind, _)| *kind == "lazy").unwrap();
             let define = Ident::new(DEFINE_LAZY.into(), DUMMY_SP, SyntaxContext::empty());
             let tag = Expr::Lit(Lit::Str(tag.into()));
             let path = Expr::Lit(Lit::Str(format!("./{file_name}?gem-lazy").into()));
             *items = vec![
-                named_import(DEFINE_LAZY, "defineLazy", &src),
-                match lazy_options {
+                named_import(DEFINE_LAZY, "defineLazy", src),
+                match options {
                     Some(options) => quote!(
                         "$define($tag, () => import($path), $options);" as ModuleItem,
                         define: Ident = define,
@@ -416,7 +453,8 @@ impl TransformVisitor {
         }
 
         if replaced {
-            let (_, src) = server_import.unwrap();
+            let (_, (_, src)) = imports.iter().find(|(kind, _)| *kind == "server").unwrap();
+            let src = src.clone();
             remove_unused(items);
             items.insert(0, named_import(SERVER_ELEMENT, "GemServerElement", &src));
         }
@@ -428,7 +466,7 @@ impl VisitMut for TransformVisitor {
     noop_visit_mut_type!();
 
     fn visit_mut_module_items(&mut self, items: &mut Vec<ModuleItem>) {
-        if self.target != SsrTarget::Server && self.rewrite_elements(items) {
+        if self.target != SsrTarget::Unknown && self.rewrite_elements(items) {
             return;
         }
         for item in items.iter_mut() {

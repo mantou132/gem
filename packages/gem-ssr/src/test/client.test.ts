@@ -270,3 +270,13 @@ test('父模版设置了 property 的元素在父模版水合后才渲染', asyn
   assert.equal(child.querySelector('b'), b, '复用节点');
   assert.equal(warn.mock.callCount(), 0);
 });
+
+test('纯客户端元素：父模版水合，元素在客户端渲染', async ({ assert }) => {
+  const container = mount(await ssr('client-element.ts', 'clientElement'));
+  const b = container.querySelector('app-client-parent > b');
+  const { renders } = await import('./fixtures/client-element');
+  await new Promise((resolve) => setTimeout(resolve));
+  assert.equal(container.querySelector('app-client-parent > b'), b, '父模版复用节点');
+  assert.equal(container.querySelector('app-client-element p')!.textContent, 'a:1');
+  assert.equal(renders.at(-1), 'a:1');
+});

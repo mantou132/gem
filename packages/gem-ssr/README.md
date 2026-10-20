@@ -200,6 +200,7 @@ load its code or hydrate it, so it can use server-only code (`node:fs`, a markdo
 the browser. `@lazy()` makes it a lazy view: it is rendered on the server and hydrated normally,
 but its code is loaded later (by default on the first interaction, the event is replayed after loading). The code of
 a lazy view is bundled into the client (as a separate chunk), so it can only use isomorphic code.
+`@client()` makes it a client element, the opposite of a server element, see [Client elements](#client-elements).
 
 The `on` option of `@lazy()` sets when the code is loaded, interacting before it also loads the code and replays the event:
 
@@ -237,6 +238,9 @@ class AppMarkdownElement extends GemElement {
 @lazy({ on: 'visible' })
 class AppLikeButtonElement extends GemElement {}
 ```
+
+They can only be used on the element class with `@customElement` (not on a base class), one element class can only
+use one of `@server()`, `@lazy()` and `@client()`, otherwise the build fails.
 
 Both need the `ssr` option of `unplugin-gem` (or `swc-plugin-gem`), the client build rewrites the element module:
 
@@ -283,3 +287,41 @@ e.g. to send them with the page data ([gemkit](https://github.com/mantou132/gem/
   interactive child elements are hydrated independently
 - Lazy views created on the client get the HTML from the loader too, then the code is loaded by the `on` option,
   replaying works for simple events, continuous interactions such as dragging take effect after loading
+
+## Client elements
+
+`@client()` on an element class makes it a client element: the server outputs the tag with its attributes and
+children only, the client renders it normally (without hydration). It is the place for browser-only code, e.g. an
+editor library that accesses `window` when imported, or `localStorage` at module level:
+
+```ts
+import { client } from '@mantou/gem-ssr/decorators';
+import { EditorView } from 'browser-only-editor';
+
+const saved = localStorage.getItem('draft');
+
+@customElement('app-editor')
+@shadow()
+@client()
+class AppEditorElement extends GemElement {
+  @mounted()
+  #init = () => new EditorView({ parent: this.shadowRoot!, doc: saved });
+}
+```
+
+- The server build of the `ssr` option of `unplugin-gem` (or `swc-plugin-gem`) replaces the element module with an
+  empty module, so the module can not have other exports or elements. Without the plugin, the element is still
+  output as a plain tag, but the module code runs on the server
+- The element is empty until the client code is loaded, style the tag (e.g. a size or a placeholder background)
+  to avoid layout shifts, or render a placeholder in its children with Shadow DOM and `<slot>`
+- Properties set by the parent template are set after the parent template is hydrated, the element may render
+  without them first
+- If only part of an element is client-only, render it after mounting instead, so the server and the client render
+  the same content first:
+
+  ```ts
+  #state = createState({ mounted: false });
+
+  @mounted()
+  #onMounted = () => this.#state({ mounted: true });
+  ```

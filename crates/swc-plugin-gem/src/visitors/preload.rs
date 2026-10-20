@@ -11,7 +11,8 @@ static IMG_REG: Lazy<Regex> =
 
 enum AwaitItem {
     Img(Ident),
-    ArrayBuffer(Ident),
+    // 原始标识符和重命名后的 url 标识符
+    ArrayBuffer(Ident, Ident),
 }
 
 #[derive(Default)]
@@ -36,8 +37,9 @@ impl VisitMut for TransformVisitor {
             if IMG_REG.is_match(source) {
                 self.await_items.push(AwaitItem::Img(ident.clone()));
             } else {
+                let data = ident.clone();
                 ident.sym = format!("_{}", ident.sym.as_str()).into();
-                self.await_items.push(AwaitItem::ArrayBuffer(ident.clone()));
+                self.await_items.push(AwaitItem::ArrayBuffer(data, ident.clone()));
             }
             *node.src = Str::from([source, "url"].join("?"));
         }
@@ -58,11 +60,12 @@ impl VisitMut for TransformVisitor {
                       source: Ident = source
                     ));
                 }
-                AwaitItem::ArrayBuffer(source) => {
+                AwaitItem::ArrayBuffer(data, source) => {
                     out.push(quote!(
                         "
-                        const data = await fetch($source).then(e => e.arrayBuffer())
+                        const $data = await fetch($source).then(e => e.arrayBuffer())
                         " as ModuleItem,
+                        data: Ident = data,
                         source: Ident = source
                     ));
                 }

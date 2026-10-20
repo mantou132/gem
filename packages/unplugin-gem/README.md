@@ -160,10 +160,12 @@ Enable `ssr` in both the client and server builds when using [`@mantou/gem-ssr`]
 - adds a key to module level `createTheme`/`createScopedTheme`/`createDecoratorTheme`, so the CSS variable names are the same on the server and the client
 - in the client build, replaces `@server()` element classes with stubs and splits `@lazy()`
   elements into chunks loaded on demand
+- in the server build, replaces `@client()` element modules with empty modules
 
 In client builds, `globalThis.__GEM_SSR__` is replaced with `undefined` in all modules (including
 `node_modules`), so the SSR code of Gem is removed by the minifier. Client builds are detected by
-the Vite `ssr` flag, the Webpack/Rspack `target`, and the esbuild/Rolldown `platform`; Rollup builds are left unchanged.
+the Vite `ssr` flag, the Webpack/Rspack `target`, and the esbuild/Rolldown `platform`; Rollup builds are left unchanged,
+only the keys are added, the elements are not rewritten.
 
 ## How It Works
 

@@ -1,0 +1,7 @@
+  x `@server()` and `@lazy()` can not be used on the same element
+   ,-[input.js:7:1]
+ 6 | @server()
+ 7 | @lazy()
+   :  ^^^^^^
+ 8 | export class AppCounterElement extends GemElement {}
+   `----

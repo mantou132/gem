@@ -1,0 +1,6 @@
+  x a module with `@client()` element can not have other exports or elements
+   ,-[input.js:5:1]
+ 4 | 
+ 5 | export const shared = 1;
+   : ^^^^^^^^^^^^^^^^^^^^^^^^
+   `----

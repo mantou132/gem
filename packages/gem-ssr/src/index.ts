@@ -390,7 +390,8 @@ function renderTemplate(result: TemplateResult, rootCtx: Context) {
         const Element = op.custom ? customElements.get(op.tag) : undefined;
         const parentCtx = ctx;
         let frame: Frame;
-        if (Element) {
+        // 纯客户端元素输出成普通元素
+        if (Element && getServerElementKind(Element) !== 'client') {
           const elementFrame = createElement(Element, op, values, ctx);
           ctx = { ...ctx, out: [], parent: elementFrame.element, hidden: elementFrame.hidden };
           frame = {
@@ -567,7 +568,8 @@ export async function renderServerElement(
   props: Record<string, unknown>,
   options: RenderOptions = {},
 ) {
-  if (!getServerElementKind(customElements.get(tag) || {})) {
+  const kind = getServerElementKind(customElements.get(tag) || {});
+  if (kind !== 'server' && kind !== 'lazy') {
     throw new Error(`gem-ssr: \`${tag}\` is not a server element`);
   }
   for (const name in attrs) {

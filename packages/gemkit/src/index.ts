@@ -1,4 +1,4 @@
-export { defineLazy, GemServerElement, lazy, server } from '@mantou/gem-ssr/decorators';
+export { client, defineLazy, GemServerElement, lazy, server } from '@mantou/gem-ssr/decorators';
 
 export {
   type ActionResult,

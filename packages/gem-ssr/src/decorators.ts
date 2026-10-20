@@ -21,12 +21,12 @@ export const ssrContext = {
   restoredElements: new WeakSet<GemElement>(),
 };
 
-/** `server`：纯服务端元素，`lazy`：延时视图 */
-export type ServerElementKind = 'server' | 'lazy';
+/** `server`：纯服务端元素，`lazy`：延时视图，`client`：纯客户端元素 */
+export type ServerElementKind = 'server' | 'lazy' | 'client';
 
 const SERVER_ELEMENT = Symbol('gem-ssr-server-element');
 
-/** `@server()` 或 `@lazy()` 标记的元素类的类型，没有标记时返回 `undefined` */
+/** `@server()` `@lazy()` 或 `@client()` 标记的元素类的类型，没有标记时返回 `undefined` */
 export function getServerElementKind(cls: object): ServerElementKind | undefined {
   return (cls as any)[Symbol.metadata]?.[SERVER_ELEMENT];
 }
@@ -108,5 +108,24 @@ export function server(): ServerDecorator {
 export function lazy(_options?: LazyOptions) {
   return (_value: abstract new (...args: any[]) => GemElement, context: ClassDecoratorContext) => {
     context.metadata[SERVER_ELEMENT] = 'lazy' satisfies ServerElementKind;
+  };
+}
+
+/**
+ * 纯客户端元素：服务端只输出标签（attribute 和子内容），客户端正常渲染，不水合，
+ * 模块中可以使用只在浏览器中运行的代码（例如顶层访问 `localStorage`）。
+ * 需要 `unplugin-gem`（或 `swc-plugin-gem`）的 `ssr` 选项在服务端构建时把元素模块替换成空模块，
+ * 所以模块中不能有其他导出或元素
+ *
+ * @example
+ * ```ts
+ * @customElement('app-editor')
+ * @client()
+ * class AppEditorElement extends GemElement {}
+ * ```
+ */
+export function client() {
+  return (_value: abstract new (...args: any[]) => GemElement, context: ClassDecoratorContext) => {
+    context.metadata[SERVER_ELEMENT] = 'client' satisfies ServerElementKind;
   };
 }
