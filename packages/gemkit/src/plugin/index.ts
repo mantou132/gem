@@ -11,7 +11,7 @@ import unpluginGem from 'unplugin-gem/rspack';
 import { ELEMENT_PATH, ELEMENTS_FILE, escapeHtml, getDataPath } from '../constants';
 import type { DataFile } from '../data';
 import type { Renderer } from '../server';
-import { type GemkitConfig, generate, getSrcDir } from './codegen';
+import { type GemkitConfig, generate, getPublicModules, getSrcDir } from './codegen';
 import {
   createHandler,
   createRequestHandler,
@@ -141,7 +141,7 @@ export function pluginGemkit(options: GemkitOptions = {}): RsbuildPlugin {
             title: config.title,
           },
           resolve: {
-            alias: { $gemkit: genDir },
+            alias: getPublicModules(genDir),
           },
           environments: {
             web: {

@@ -9,7 +9,7 @@ export const prefixDefaultLanguage = false;
 <% const id = (lang) => `lang_${lang.replace(/\W/g, '_')}` -%>
 import { history } from '@mantou/gem';
 import { I18n } from '@mantou/gem/helper/i18n';
-import { getBasePath, localizePath as localize, splitLanguage } from '@mantou/gemkit';
+import { getBasePath, localizePath as localize, splitLanguage } from '@mantou/gemkit/internal';
 <% for (const { lang, path } of it.languages) { -%>
 import <%= id(lang) %> from <%= path %>;
 <% } -%>

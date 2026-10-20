@@ -18,6 +18,15 @@ export interface GemkitConfig extends TitleOptions {
   prefixDefaultLanguage?: boolean;
 }
 
+/**
+ * 可以通过 `$gemkit/*` 导入的生成模块，其他生成文件是入口或内部模块，导入会产生副作用
+ */
+export const PUBLIC_MODULES = ['i18n'];
+
+/** `$gemkit/*` 到生成文件的映射，供 alias 和 tsconfig `paths` 使用 */
+export const getPublicModules = (genDir: string) =>
+  Object.fromEntries(PUBLIC_MODULES.map((name) => [`$gemkit/${name}`, path.join(genDir, `${name}.ts`)]));
+
 interface PageNode {
   pattern: string;
   file: string;
@@ -287,7 +296,12 @@ function generateEntries(
     // 通过 `files` 包含声明文件，不依赖项目的 `include`（`.` 开头的目录不会被通配符匹配）
     // `auto-import.d.ts` 由 unplugin-gem 生成
     `${JSON.stringify(
-      { compilerOptions: { paths: { '$gemkit/*': ['./*'] } }, files: ['./env.d.ts', './auto-import.d.ts'] },
+      {
+        compilerOptions: {
+          paths: Object.fromEntries(PUBLIC_MODULES.map((name) => [`$gemkit/${name}`, [`./${name}.ts`]])),
+        },
+        files: ['./env.d.ts', './auto-import.d.ts'],
+      },
       null,
       2,
     )}\n`,

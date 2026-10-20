@@ -377,5 +377,6 @@ export default class LoginPage extends GemElement {
   (the action result is dropped)
 - Cookies use `SameSite=Lax` by default, cross-site form posts don't carry them
 
-Generated modules are imported with `$gemkit/*`, e.g. `import { i18n, localizePath } from '$gemkit/i18n'`,
+Generated modules are imported with `$gemkit/*`, currently only `$gemkit/i18n` is public,
+e.g. `import { i18n, localizePath } from '$gemkit/i18n'`,
 extend `.gemkit/tsconfig.json` in the project `tsconfig.json` to get the types.

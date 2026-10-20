@@ -16,6 +16,7 @@
   "exports": {
     ".": "./src/index.ts",
     "./client": "./src/client.ts",
+    "./internal": "./src/internal.ts",
     "./server": "./src/server.ts",
     "./plugin": {
       "types": "./src/plugin/index.ts",

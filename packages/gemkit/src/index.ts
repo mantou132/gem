@@ -20,9 +20,7 @@ export {
   type ServerModule,
   submitAction,
 } from './data';
-export { getBasePath, localizePath, splitLanguage } from './i18n';
 export type { Meta } from './meta';
-export { errorRoute, layoutRoute, pageRoute, type RouteInfo, setOutlets } from './outlet';
 export {
   type LayoutOptions,
   type LoadContext,

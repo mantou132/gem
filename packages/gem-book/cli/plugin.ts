@@ -460,6 +460,7 @@ export function pluginGemBook(options: GemBookOptions): RsbuildPlugins {
               'gem-book/plugin/server$': path.join(appDir, 'plugin.server.ts'),
               '@mantou/gemkit$': fileURLToPath(import.meta.resolve('@mantou/gemkit')),
               '@mantou/gemkit/client$': fileURLToPath(import.meta.resolve('@mantou/gemkit/client')),
+              '@mantou/gemkit/internal$': fileURLToPath(import.meta.resolve('@mantou/gemkit/internal')),
               '@mantou/gemkit/server$': fileURLToPath(import.meta.resolve('@mantou/gemkit/server')),
             },
           },
