@@ -1,16 +1,15 @@
 # Stylized elements
 
-Benefit from ShadowDOM, [CSS Nesting](https://drafts.csswg.org/css-nesting-1/), [`@layer`](https://developer.mozilla.org/en-US/docs/Web/CSS/@layer), [`@scope`](https://developer.mozilla.org/en-US/docs/Web/CSS/@scope), in addition, browser compatibility has improved in recent years, and vendor private prefixes have also been cancelled, there is no longer a need for [CSS Modules](https://css-tricks.com/css-modules-part-3-react/) similar solutions.
+Benefit from [CSS Nesting](https://drafts.csswg.org/css-nesting-1/), [`@layer`](https://developer.mozilla.org/en-US/docs/Web/CSS/@layer), [`@scope`](https://developer.mozilla.org/en-US/docs/Web/CSS/@scope), in addition, browser compatibility has improved in recent years, and vendor private prefixes have also been cancelled, there is no longer a need for [CSS Modules](https://css-tricks.com/css-modules-part-3-react/) similar solutions.
 
 ## Shared style
 
 Use the `css` to create a shared style table, use `@adoptedStyle` to apply to the required elements.
 
-```js 11
-import { GemElement } from '@mantou/gem';
-import { adoptedStyle, customElement } from '@mantou/gem';
+```js 10
+import { GemElement, css, adoptedStyle, customElement } from '@mantou/gem';
 
-// 使用 Constructable Stylesheet 创建样式表
+// Create a style sheet using Constructable Stylesheet
 const styles = css`
   h1 {
     text-decoration: underline;
@@ -22,16 +21,14 @@ const styles = css`
 class MyElement extends GemElement {}
 ```
 
-Because the style cannot penetrate the ShadowDOM, the global style table cannot be used to achieve sharing styles.
-But you can use [CSS variables](https://developer.mozilla.org/en-US/docs/Web/CSS/--*) to achieve the same effect.
+Light DOM elements (the default) are also affected by global style sheets. Global styles cannot cross the Shadow DOM boundary, so elements using `@shadow()` can share values through [CSS variables](https://developer.mozilla.org/en-US/docs/Web/CSS/--*).
 
 ## CSS in JS
 
 You can reference CSS selectors in JS:
 
 ```js 17
-import { GemElement, html } from '@mantou/gem';
-import { css, styled, adoptedStyle, customElement } from '@mantou/gem';
+import { GemElement, html, css, styled, adoptedStyle, customElement, template } from '@mantou/gem';
 
 const styles = css({
   header: styled.class`
@@ -45,7 +42,8 @@ const styles = css({
 @adoptedStyle(styles)
 @customElement('my-element')
 class MyElement extends GemElement {
-  render = () => {
+  @template()
+  #content = () => {
     return html`<div class=${styles.header}></div>`;
   }
 }
@@ -62,10 +60,12 @@ If you need to specify the style of a single instance through properties or stat
 // Omit import...
 
 @customElement('my-element')
+@shadow()
 class MyElement extends GemElement {
   @attribute color;
 
-  render = () => {
+  @template()
+  #content = () => {
     return html`
       <style>
         :host {
@@ -83,7 +83,7 @@ This method is complex and troublesome to write; it is recommended to use [`crea
 
 Use [`::part`](https://drafts.csswg.org/css-shadow-parts-1/#part)(only ShadowDOM) to export the internal content of the element, allowing external custom styles:
 
-```js 14
+```js 15
 /**
  * The following code has the same effect as `<div part="header"></div>`,
  * But Gem recommends using decorators to define parts, so that IDE integration can be done well in the future
@@ -96,7 +96,8 @@ Use [`::part`](https://drafts.csswg.org/css-shadow-parts-1/#part)(only ShadowDOM
 class MyElement extends GemElement {
   @part static header;
 
-  render = () => {
+  @template()
+  #content = () => {
     return html`<div part=${MyElement.header}></div>`;
   }
 }
@@ -140,4 +141,5 @@ class MyElement extends GemElement {
 
 ## Tailwind CSS
 
-Atomic CSS solutions such as Tailwind only support Light DOM
+Atomic CSS solutions such as Tailwind CSS work with Light DOM elements, which is Gem's default: load the generated style sheet globally and use utility classes directly in templates. Global utility classes cannot style content inside elements that use `@shadow()`.
+

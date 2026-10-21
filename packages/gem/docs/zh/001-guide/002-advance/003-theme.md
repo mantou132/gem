@@ -56,7 +56,8 @@ const styles = css`
 @adoptedStyle(styles)
 @connectStore(themeStore)
 class App extends GemElement {
-  render = () => {
+  @template()
+  #content = () => {
     return html`
       <div>primaryColor: ${themeStore.primaryColor}</div>
     `;
@@ -106,20 +107,17 @@ import { createDecoratorTheme } from '@mantou/gem/helper/theme';
 const elementTheme = createDecoratorTheme({ color: '' });
 
 const style = css`
-  :host(:where(:not([hidden]))) {
+  :scope {
     border-color: ${elementTheme.color};
   }
 `;
 
 @customElement('app-root')
+@adoptedStyle(style)
 class App extends GemElement {
   @attribute color;
 
   @elementTheme()
-  #theme = () => ({ color: this.color })
-
-  render = () => {
-    return html``;
-  }
+  #theme = () => ({ color: this.color });
 }
 ```

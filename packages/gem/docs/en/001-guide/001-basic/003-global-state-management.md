@@ -61,7 +61,8 @@ document.addEventListener('visibilitychange', () => {
 @customElement('my-element')
 @connectStore(store)
 class MyElement extends GemElement {
-  render = () => {
+  @template()
+  #content = () => {
     return html`Saving: ${store.savingMode}`;
   }
 }

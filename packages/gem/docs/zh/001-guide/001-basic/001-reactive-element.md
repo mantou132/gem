@@ -14,7 +14,8 @@
 class MyElement extends GemElement {
   @attribute firstName;
 
-  render = () => {
+  @template()
+  #content = () => {
     return html`${this.firstName}`;
   }
 }
@@ -33,7 +34,8 @@ class MyElement extends GemElement {
 class MyElement extends GemElement {
   @property data;
 
-  render = () => {
+  @template()
+  #content = () => {
     return html`${this.data.id} ${store.name}`;
   }
 }
@@ -62,7 +64,8 @@ class MyElement extends GemElement {
     this.#state({ count: ++this.#state.count });
   }
 
-  render = () => {
+  @template()
+  #content = () => {
     return html`
       <button @click=${this.#clicked}>
         ${this.name}:
@@ -82,19 +85,18 @@ class MyElement extends GemElement {
 
 ## 生命周期
 
-> [!WARNING]
-> 生命周期在未来可能被基于 `@effect` `@memo` 的装饰器 `@willMount` `@template` `@mounted` `@unmounted` [替代](https://github.com/mantou132/gem/issues/159)
-
-你可以为 GemElement 指定生命周期函数，有时候他们会很有用，例如：
+使用装饰器在元素的不同阶段执行代码，例如：
 
 ```js
 // 省略导入...
 
 @customElement('my-element')
 class MyElement extends GemElement {
-  mounted = () => {
+  @mounted()
+  #log = () => {
     console.log('element mounted!');
-  }
+    return () => console.log('element unmounted!');
+  };
 }
 ```
 
@@ -105,22 +107,22 @@ class MyElement extends GemElement {
   | constructor |       |attr/prop/store update|
   +-------------+       +----------------------+
          |                         |
-         |                   (shouldUpdate)
+         |                (@template condition)
          |                         |
   +------v-------------------------v------+
-  |            @memo(willMount)           |
+  |          @memo / @willMount           |
   +---------------------------------------+
          |                         |
          |                         |
   +------v-------------------------v------+
-  |           @template(render)           |
+  |               @template               |
   +---------------------------------------+
          |                         |
          |                         |
   +------v-------------------------v------+
-  |  @effect(mounted/updated/unmounted)   |
+  |    @effect / @mounted / @unmounted    |
   +---------------------------------------+
 ```
 
 > [!NOTE]
-> 父元素的 `constructor` 和 `unmounted` 先于子元素执行，但 `mounted` 后于子元素执行
+> 父元素的 `constructor` 和 `@unmounted` 先于子元素执行，但 `@mounted` 后于子元素执行

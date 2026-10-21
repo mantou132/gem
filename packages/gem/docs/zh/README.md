@@ -57,7 +57,8 @@ export class AppRootElement extends GemElement {
     this.#state({ input: '' });
   };
 
-  render = () => {
+  @template()
+  #content = () => {
     return html`
       <dy-heading>待办事项列表</dy-heading>
       <todo-list></todo-list>
@@ -86,7 +87,8 @@ const styles = css`
 @connectStore(todoData)
 @adoptedStyle(styles)
 export class TodoListElement extends GemElement {
-  render = () => {
+  @template()
+  #content = () => {
     return html`
       <ul class="p-0">
         ${todoData.items.map(

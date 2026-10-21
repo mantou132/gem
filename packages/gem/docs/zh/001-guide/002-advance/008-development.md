@@ -27,7 +27,7 @@ pnpm add -D prettier@npm:@mantou/prettier
 
 ## HMR
 
-通过 [unplugin-gem](./009-building.md)，HMR 可用于 webpack、Rspack、Vite、Rollup、Rolldown 和 esbuild。
+通过 [unplugin-gem](./009-building.md)，HMR 可用于 webpack、Rspack、Vite 和 Rolldown（实验性）。
 
 ### unplugin-gem（推荐）
 

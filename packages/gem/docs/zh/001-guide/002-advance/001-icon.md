@@ -1,6 +1,6 @@
 # 使用图标
 
-[SVG Sprite](https://css-tricks.com/svg-sprites-use-better-icon-fonts/) 不能在 [ShadowDOM](https://developer.mozilla.org/en-US/docs/Web/Web_Components/Using_shadow_DOM) 中生效。
+[SVG Sprite](https://css-tricks.com/svg-sprites-use-better-icon-fonts/) 不能在 [ShadowDOM](https://developer.mozilla.org/zh-CN/docs/Web/API/Web_components/Using_shadow_DOM) 中生效。
 
 ## 字体图标
 
@@ -25,7 +25,8 @@ import './icon.js';
 @customElement('my-element')
 @shadow()
 class MyElement extends GemElement {
-  render = () => {
+  @template()
+  #content = () => {
     return html`
       <g-icon>chevron_right</g-icon>
       <g-icon>home</g-icon>
@@ -66,7 +67,7 @@ class GIconElement extends GemElement {}
 
 ## SVG 图标
 
-Gem 有一个内置元素 `<gem-use>`，来用替代 SVG Sprite：
+Gem 内置了 `<gem-use>` 元素，可以用来替代 SVG Sprite：
 
 <gbp-sandpack dependencies="@mantou/gem">
 

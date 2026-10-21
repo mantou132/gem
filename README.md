@@ -2,23 +2,26 @@
 
 Read in other languages: English | [中文](./README_zh.md)
 
-Create custom elements, bind data, route switching, and quickly develop WebApps based on custom elements. Stripped from [mt-music-player](https://github.com/mantou132/mt-music-player).
+Build reusable custom elements and web apps on Web Components with Gem's layered toolset.
 
 ## Features
 
-- **Lightweight:**
-  The whole librarie is divided into three modules (custom elements, global data management, routing), you can choose whether to use the built-in custom elements, all the content is packaged together and only 15kb(br compression).
+- **Start with a small custom element:**
+  Use Gem's reactive and decorator APIs without a template engine, then add `GemElement` and HTML template rendering when you need them.
 
-- **Simple:**
-  There is no new syntax, everything is HTML, CSS, JavaScript. There is no superfluous concept, only "Observe" is needed to create reactive custom elements;
+- **Build UI libraries:**
+  Gem elements are standard custom elements. Prefer Shadow DOM when components need style isolation, and use [gem-port](packages/gem-port) to generate React, Vue, and Svelte wrappers for those ecosystems.
 
-- **High performance:**
-  The template engine uses [lit-html](https://github.com/Polymer/lit-html), bundle size, performance of addition, deletion, modification, and memory usage are better than React and Vue, [here](https://rawgit.com/krausest/js-framework-benchmark/master/webdriver-ts-results/table.html) is the performance comparison between lit-html and React and Vue;
+- **Build complete apps:**
+  Use `@mantou/gem` for routing, history, and Store; [gemkit](packages/gemkit) adds file-based routing, layouts, SSR, and SSG. Prefer Light DOM for app UI that should work naturally with Tailwind CSS and other global CSS.
+
+- **Use familiar web standards:**
+  Build with HTML templates, CSS, and JavaScript on the browser's custom element model, with no JSX or single-file component DSL to learn.
 
 - **Asynchronous rendering:**
-  which will avoid blocking the main thread for a long time when continuously rendering (such as creating a list) of element, providing a smooth user experience;
+  `@async()` lets many elements render in slices, yielding to the main thread to keep the interface responsive.
 
-## Document
+## Documentation
 
 - [Guide](https://gemjs.org/guide/)
 - [API](https://gemjs.org/api/)
@@ -28,16 +31,19 @@ Create custom elements, bind data, route switching, and quickly develop WebApps 
 | Package                                         | Description                                                                                          |
 | ----------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
 | [gem](packages/gem)                             | Gem core                                                                                             |
+| [gem-ssr](packages/gem-ssr)                     | Server-side rendering and hydration for Gem elements                                                 |
+| [gemkit](packages/gemkit)                       | Application framework with file-based routing, layouts, SSR, and SSG                                 |
 | [gem-devtools](packages/gem-devtools)           | Browser debugging tool for Gem                                                                       |
 | [gem-analyzer](packages/gem-analyzer)           | Gem element analyzer, which can automatically generate documents                                     |
 | [gem-book](packages/gem-book)                   | Documentation site builder created using Gem                                                         |
 | [duoyun-ui](packages/duoyun-ui)                 | Desktop UI library created using Gem                                                                 |
-| [@mantou/tap-ui](packages/tap-ui)               | Mobile-first UI library created using Gem                                                            |
+| [tap-ui](packages/tap-ui)                       | Mobile-first UI library created using Gem                                                            |
 | [gem-port](packages/gem-port)                   | Export Gem elements as React/Vue/Svelte components                                                   |
 | [gem-examples](packages/gem-examples)           | Gem and DuoyunUI examples                                                                            |
 | [ts-gem-plugin](packages/ts-gem-plugin)         | Gem language service plugin for TypeScript                                                           |
-| [swc-plugin-gem](crates/swc-plugin-gem)         | Building plugin for [SWC](https://swc.rs/)                                                           |
-| [unplugin-gem](packages/unplugin-gem)           | Universal plugin for Vite/Webpack/Rollup/esbuild/Rspack/Rolldown                                |
+| [ts-gem-lsp](packages/ts-gem-lsp)               | Gem language server for TypeScript 7                                                                 |
+| [swc-plugin-gem](crates/swc-plugin-gem)         | Build plugin for [SWC](https://swc.rs/)                                                              |
+| [unplugin-gem](packages/unplugin-gem)           | Universal plugin for Vite/Webpack/Rollup/esbuild/Rspack/Rolldown                                     |
 | [zed-plugin-gem](crates/zed-plugin-gem)         | [Zed](https://zed.dev/) extension                                                                    |
 | [vscode-gem-plugin](packages/vscode-gem-plugin) | VSCode [extension](https://marketplace.visualstudio.com/items?itemName=gem-vscode.vscode-plugin-gem) |
 
@@ -45,4 +51,4 @@ Create custom elements, bind data, route switching, and quickly develop WebApps 
 
 ## Contribution
 
-Fork repo, submit PR
+Fork the repository and open a pull request.

@@ -7,12 +7,13 @@ In a traditional multi-page application, the browser loads different HTML pages 
 The URL can be changed using the [History API](https://developer.mozilla.org/en-US/docs/Web/API/History), Gem's `history` object maintains a `Store` of history: `history.store`, when using `history` to update the route, its `history.store` will be updated to update the elements connected to `history.store`.
 
 ```js
-import { GemElement, html, history, customElement, connectStore } from '@mantou/gem';
+import { GemElement, html, history, customElement, connectStore, template } from '@mantou/gem';
 
 @customElement('app-root')
 @connectStore(history.store)
 class App extends GemElement {
-  render = () => {
+  @template()
+  #content = () => {
     return html`${history.getParams().path}`;
   }
 }
@@ -29,7 +30,8 @@ import { routes } from './routes';
 
 @customElement('app-root')
 class App extends GemElement {
-  render = () => {
+  @template()
+  #content = () => {
     return html`
       <nav style="display: flex; gap: 1em">
         <gem-link .route=${routes.home}>Home</gem-link>

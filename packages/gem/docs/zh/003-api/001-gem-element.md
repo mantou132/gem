@@ -11,6 +11,20 @@ class GemElement extends HTMLElement {
 }
 ```
 
+## 模块导入入口
+
+Gem 提供了不同的导入入口，可以按需选择使用层级：
+
+| 导入路径                                         | 包含内容                                                                                             |
+| ------------------------------------------------ | ---------------------------------------------------------------------------------------------------- |
+| `@mantou/gem/lib/reactive`                       | `GemElement` 和响应式、样式 API，不会初始化 Lit 模板引擎                                             |
+| `@mantou/gem/lib/decorators`                     | Gem 装饰器；不需要模板渲染时与响应式入口配合使用                                                     |
+| `@mantou/gem/lib/element`                        | 元素和装饰器 API、Lit 模板、指令及 `repeat`                                                          |
+| `@mantou/gem`                                    | 元素入口，以及 history、Store 和通用工具                                                             |
+| `@mantou/gem/elements/*`、`@mantou/gem/helper/*` | 按需导入内置元素和辅助模块，见[内置 Gem 元素](./005-built-in-element.md)和 [Helper](./006-helper.md) |
+
+需要使用 Lit 模板、指令时，请从 `@mantou/gem/lib/element` 或 `@mantou/gem` 导入。响应式入口不会初始化 Lit 模板引擎。
+
 ## 类装饰器
 
 | 名称             | 描述                                                 |
@@ -38,7 +52,7 @@ class GemElement extends HTMLElement {
 | `@part`          | 定义元素的 [`part`][3]，可以定义成静态字段                   |
 
 > [!NOTE]
-> 除 `@property` 外其他装饰器装饰的字段都有默认值，`@attribute`/`@boolattribute`/`@numattribute`/`@state`/`@slot`/`@part` 装饰的字段的值都将自动进行烤串式转换，在元素外部使用时请使用对应的烤串式值\_
+> 除 `@property` 外，其他字段装饰器都会提供默认值。`@attribute`/`@boolattribute`/`@numattribute`/`@state`/`@slot`/`@part` 对应的名称会自动转换为烤串式；在元素外部使用时请使用烤串式名称。
 
 配合装饰器的 Type
 
@@ -59,16 +73,18 @@ class GemElement extends HTMLElement {
 | `@fallback`  | 当内容渲染失败时渲染后备内容                         |
 
 
-## ~~生命周期钩子~~
+## 已弃用的生命周期兼容接口
 
-| 名称           | 描述                                                            |
-| -------------- | --------------------------------------------------------------- |
-| `willMount`    | 挂载元素前的回调                                                |
-| `render`       | 渲染元素，返回 `null` 时清空内容，返回 `undefined` 时不更新内容 |
-| `mounted`      | 挂载元素后的回调                                                |
-| `shouldUpdate` | 更新元素前的回调, 返回 `false` 时不更新元素                     |
-| `updated`      | 更新元素后的回调                                                |
-| `unmounted`    | 卸载元素后的回调                                                |
+这些生命周期方法仅为向后兼容而保留，已弃用且将来可能移除。新元素不要使用它们，应改用装饰器。
+
+| 旧方法         | 替代方案                                            |
+| -------------- | --------------------------------------------------- |
+| `willMount`    | `@willMount()`                                      |
+| `render`       | `@template()`                                       |
+| `shouldUpdate` | `@template((instance) => condition)` 的条件参数     |
+| `mounted`      | `@mounted()`                                        |
+| `updated`      | `@effect()`；需要时传入依赖函数，仅在依赖变化时执行 |
+| `unmounted`    | `@unmounted()`，或从 `@effect()` 返回清理函数       |
 
 ## 扩展方法
 
@@ -79,7 +95,7 @@ class GemElement extends HTMLElement {
 | `update`    | 手动更新元素                           |
 | `internals` | 获取元素的 [ElementInternals][12] 对象 |
 
-[1]: https://github.com/w3c/webcomponents/blob/gh-pages/proposals/custom-states-and-state-pseudo-class.md
+[1]: https://developer.mozilla.org/en-US/docs/Web/API/ElementInternals/states
 [2]: https://developer.mozilla.org/en-US/docs/Web/HTML/Global_attributes/slot
 [3]: https://developer.mozilla.org/en-US/docs/Web/HTML/Global_attributes/part
 [4]: https://developer.mozilla.org/en-US/docs/Web/API/HTMLElement/click
@@ -105,4 +121,4 @@ class GemElement extends HTMLElement {
 | `repeat`      | 优化 lit-html 列表渲染指令                  |
 
 > [!NOTE]
-> 通过 `import {} from '@mantou/gem/lib/reactive'` 可以导入无 lit-html 模板引擎的反应性元素，如果你的组件足够简单，使用这种方法将大幅减少构建尺寸。
+> 不需要 Lit 模板引擎时，可从 `@mantou/gem/lib/reactive` 导入响应式能力；需要 Lit 模板时请使用 `@mantou/gem/lib/element`。

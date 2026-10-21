@@ -1,14 +1,13 @@
 # 样式化元素
 
-得益于 ShadowDOM、[CSS 嵌套](https://drafts.csswg.org/css-nesting-1/)、[`@layer`](https://developer.mozilla.org/en-US/docs/Web/CSS/@layer)、[`@scope`](https://developer.mozilla.org/en-US/docs/Web/CSS/@scope)，另外浏览器的兼容性近年来已经好转，供应商私有前缀也纷纷被取消，所以不再需要 [CSS Modules](https://css-tricks.com/css-modules-part-3-react/) 类似的方案。
+得益于 [CSS 嵌套](https://drafts.csswg.org/css-nesting-1/)、[`@layer`](https://developer.mozilla.org/en-US/docs/Web/CSS/@layer)、[`@scope`](https://developer.mozilla.org/en-US/docs/Web/CSS/@scope)，另外浏览器的兼容性近年来已经好转，供应商私有前缀也纷纷被取消，所以不再需要 [CSS Modules](https://css-tricks.com/css-modules-part-3-react/) 类似的方案。
 
 ## 共享样式
 
 使用 `css` 能创建可共享样式表，再使用 `@adoptedStyle` 应用到需要的元素即可。
 
-```js 11
-import { GemElement } from '@mantou/gem';
-import { adoptedStyle, customElement } from '@mantou/gem';
+```js 10
+import { GemElement, css, adoptedStyle, customElement } from '@mantou/gem';
 
 // 使用 Constructable Stylesheet 创建样式表
 const styles = css`
@@ -22,16 +21,14 @@ const styles = css`
 class MyElement extends GemElement {}
 ```
 
-由于样式不能穿透 ShadowDOM，所以不能使用全局样式表来实现共享样式。
-但是可以使用 [CSS variables](https://developer.mozilla.org/en-US/docs/Web/CSS/--*) 来达到同样的效果。
+Light DOM 元素（默认）同样会受到全局样式表的影响。全局样式不能穿透 Shadow DOM，所以使用 `@shadow()` 的元素可以通过 [CSS 变量](https://developer.mozilla.org/zh-CN/docs/Web/CSS/--*)共享样式值。
 
 ## CSS in JS
 
 可以在 JS 中引用 CSS 选择器：
 
 ```js 17
-import { GemElement, html } from '@mantou/gem';
-import { css, styled, adoptedStyle, customElement } from '@mantou/gem';
+import { GemElement, html, css, styled, adoptedStyle, customElement, template } from '@mantou/gem';
 
 const styles = css({
   header: styled.class`
@@ -45,7 +42,8 @@ const styles = css({
 @adoptedStyle(styles)
 @customElement('my-element')
 class MyElement extends GemElement {
-  render = () => {
+  @template()
+  #content = () => {
     return html`<div class=${styles.header}></div>`;
   }
 }
@@ -62,10 +60,12 @@ class MyElement extends GemElement {
 // 省略导入...
 
 @customElement('my-element')
+@shadow()
 class MyElement extends GemElement {
   @attribute color;
 
-  render = () => {
+  @template()
+  #content = () => {
     return html`
       <style>
         :host {
@@ -83,7 +83,7 @@ class MyElement extends GemElement {
 
 可以使用 [`::part`](https://drafts.csswg.org/css-shadow-parts-1/#part)(仅限于 ShadowDOM) 导出元素内部内容，允许外部进行自定义样式：
 
-```js 14
+```js 15
 /**
  * 下面的代码跟 `<div part="header"></div>` 效果一样，
  * 但是 Gem 推荐使用装饰器来定义 part，这样在将来能很好的进行 IDE 集成
@@ -96,7 +96,8 @@ class MyElement extends GemElement {
 class MyElement extends GemElement {
   @part static header;
 
-  render = () => {
+  @template()
+  #content = () => {
     return html`<div part=${MyElement.header}></div>`;
   }
 }
@@ -140,4 +141,4 @@ class MyElement extends GemElement {
 
 ## Tailwind CSS
 
-Tailwind 等原子 CSS 方案仅支持 Light DOM
+Tailwind CSS 等原子 CSS 方案适用于 Light DOM 元素（Gem 的默认模式）：全局加载生成的样式表，然后在模板中直接使用工具类即可。全局工具类无法作用于使用了 `@shadow()` 的元素内部内容。

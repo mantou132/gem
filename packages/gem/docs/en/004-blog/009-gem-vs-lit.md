@@ -198,7 +198,7 @@ To get the same information in Lit, you need the [Custom Elements Manifest](http
 
 Lit uses Shadow DOM by default, and `static styles` depends on Shadow DOM. If you override `createRenderRoot` to use Light DOM, `static styles` no longer applies and only global CSS is left.
 
-Gem uses Light DOM by default because it performs better than Shadow DOM, and the difference grows with the number of element instances. Style sheets can still be adopted and stay scoped:
+Gem uses Light DOM by default because it performs better than Shadow DOM, and the difference grows with the number of element instances. Light DOM also makes CSS-based tools such as Tailwind CSS easy to use: utility classes can style element content directly without extra work to cross Shadow DOM boundaries. Style sheets can still be adopted and stay scoped:
 
 ```ts
 const style = css`

@@ -15,7 +15,7 @@ import * as Gem from 'https://esm.sh/@mantou/gem';
 ```
 
 ```html unpkg.com
-<script src="https://unpkg.com/@mantou/gem/dist/gem.umd.js"></script>
+<script src="https://unpkg.com/@mantou/gem/dist/gem.js"></script>
 ```
 
 </gbp-code-group>
@@ -27,7 +27,8 @@ import * as Gem from 'https://esm.sh/@mantou/gem';
 ```js index.js
 @customElement('my-element')
 class MyElement extends GemElement {
-  render = () => {
+  @template()
+  #content = () => {
     return html`<h1>Hello Gem</h1>`;
   }
 }
@@ -41,7 +42,7 @@ class MyElement extends GemElement {
 
 Decorator `@customElement` use standard [API](https://developer.mozilla.org/en-US/docs/Web/API/Window/customElements) to define a custom element, and then use it in HTML in any way, of course, it can also be used in other custom element templates.
 
-Return the rendering template in the `render` method, Gem uses [lit-html](https://lit.dev/docs/templates/overview/) as its template engine, it uses ES6 template strings to write [standard HTML content](https://developer.mozilla.org/en-US/docs/Learn_web_development/Core/Structuring_content/Basic_HTML_syntax), there are no other concepts and no compile-time.
+Return the rendering template from a field decorated with `@template()`. Gem uses [lit-html](https://lit.dev/docs/templates/overview/) as its template engine, it uses ES6 template strings to write [standard HTML content](https://developer.mozilla.org/en-US/docs/Learn_web_development/Core/Structuring_content/Basic_HTML_syntax), there are no other concepts and no compile-time.
 
 Use variables:
 

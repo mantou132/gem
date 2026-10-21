@@ -65,7 +65,7 @@ html`<gem-link path="/page"></gem-link>`;
 
 还有用于开发涉及*历史记录栈*组件的模块：
 
-| 模块                | 描述                                       |
-| ------------------- | ------------------------------------------ |
-| `createModalClass`  | 一个函数，他能生成一个可以显示 UI 的静态类 |
-| `DialogBaseElement` | 一个类，基于他创建 Dialog 元素             |
+| 模块                                      | 导出                   | 描述                                       |
+| ----------------------------------------- | ---------------------- | ------------------------------------------ |
+| `@mantou/gem/elements/base/modal-factory` | `createModalClass`     | 一个函数，它能生成一个可以显示 UI 的静态类 |
+| `@mantou/gem/elements/base/dialog`        | `GemDialogBaseElement` | 一个类，基于它创建 Dialog 元素             |

@@ -11,6 +11,20 @@ class GemElement extends HTMLElement {
 }
 ```
 
+## Module entry points
+
+Gem provides separate entry points so you can choose which layer to use:
+
+| Import                                           | Includes                                                                                                                 |
+| ------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------ |
+| `@mantou/gem/lib/reactive`                       | `GemElement` and reactive/style APIs without initializing the Lit template engine                                        |
+| `@mantou/gem/lib/decorators`                     | Gem decorators; use with the reactive entry when you do not need template rendering                                      |
+| `@mantou/gem/lib/element`                        | The element and decorator APIs, Lit-backed templates, directives, and `repeat`                                           |
+| `@mantou/gem`                                    | The element entry point plus history, Store, and shared utilities                                                        |
+| `@mantou/gem/elements/*`, `@mantou/gem/helper/*` | Optional built-in elements and helpers; see [Built-in elements](./005-built-in-element.md) and [Helper](./006-helper.md) |
+
+Use `@mantou/gem/lib/element` or `@mantou/gem` for Lit-backed `html`/`svg` templates and directives. The reactive entry does not initialize the Lit template engine.
+
 ## Class Decorator
 
 | name             | description                                                              |
@@ -38,7 +52,7 @@ class GemElement extends HTMLElement {
 | `@part`          | Field(static or instance) decorator, [`part`][3] that defines the element    |
 
 > [!NOTE]
-> Except for `@property`, all fields decorated by decorators have default values, `@attribute`/`@boolattribute`/`@numattribute`/`@state`/`@slot`/`@part` the value of the decorated field will be automatically converted to kebab-case. Please use the kebab-case value when you use it outside the element outside
+> All field decorators except `@property` provide a default value. Names defined by `@attribute`/`@boolattribute`/`@numattribute`/`@state`/`@slot`/`@part` are automatically converted to kebab-case; use the kebab-case names outside the element.
 
 Type with decorator
 
@@ -59,16 +73,18 @@ Type with decorator
 | `@fallback`  | When the content render error, rendering the reserve content |
 
 
-## ~~Lifecycle hook~~
+## Deprecated lifecycle compatibility
 
-| name           | description                                                                                                 |
-| -------------- | ----------------------------------------------------------------------------------------------------------- |
-| `willMount`    | Callback before mounting the element                                                                        |
-| `render`       | Render element, clear the content when return `null`, and do not update the content when return `undefined` |
-| `mounted`      | Callback after mounting the element                                                                         |
-| `shouldUpdate` | Callback before updating the element, do not re-render the element when returning `false`                   |
-| `updated`      | Callback after updating the element                                                                         |
-| `unmounted`    | Callback after unloading the element                                                                        |
+These lifecycle methods remain for backward compatibility, but are deprecated and may be removed. Do not use them in new elements; use decorators instead.
+
+| Legacy method  | Use instead                                                                             |
+| -------------- | --------------------------------------------------------------------------------------- |
+| `willMount`    | `@willMount()`                                                                          |
+| `render`       | `@template()`                                                                           |
+| `shouldUpdate` | The condition argument to `@template((instance) => condition)`                          |
+| `mounted`      | `@mounted()`                                                                            |
+| `updated`      | `@effect()`; provide a dependency function when it should run only for specific changes |
+| `unmounted`    | `@unmounted()` or a cleanup function returned from `@effect()`                          |
 
 ## Method
 
@@ -79,7 +95,7 @@ Type with decorator
 | `update`    | Update elements manually                            |
 | `internals` | Get the element's [ElementInternals][12] object     |
 
-[1]: https://github.com/w3c/webcomponents/blob/gh-pages/proposals/custom-states-and-state-pseudo-class.md
+[1]: https://developer.mozilla.org/en-US/docs/Web/API/ElementInternals/states
 [2]: https://developer.mozilla.org/en-US/docs/Web/HTML/Global_attributes/slot
 [3]: https://developer.mozilla.org/en-US/docs/Web/HTML/Global_attributes/part
 [4]: https://developer.mozilla.org/en-US/docs/Web/API/HTMLElement/click
@@ -105,4 +121,4 @@ Type with decorator
 | `repeat`      | Optimize lit-html list rendering directive                                      |
 
 > [!NOTE]
-> You can import reactive elements without the lit-html template engine by using `import {} from '@mantou/gem/lib/reactive'`. If your component is simple enough, using this method will significantly reduce the build size.
+> Import from `@mantou/gem/lib/reactive` when you do not need the Lit template engine. If a component needs Lit-backed templates, use `@mantou/gem/lib/element` instead.

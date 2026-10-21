@@ -1,6 +1,6 @@
 # Use Icon
 
-[SVG Sprite](https://css-tricks.com/svg-sprites-use-better-icon-fonts/) cannot be at [ShadowDOM](https://developer.mozilla.org/en-s/docs/web_components/usion_shadow_dom) takes effect.
+[SVG Sprite](https://css-tricks.com/svg-sprites-use-better-icon-fonts/) does not work inside [Shadow DOM](https://developer.mozilla.org/en-US/docs/Web/API/Web_components/Using_shadow_DOM).
 
 ## Font icons
 
@@ -25,7 +25,8 @@ import './icon.js';
 @customElement('my-element')
 @shadow()
 class MyElement extends GemElement {
-  render = () => {
+  @template()
+  #content = () => {
     return html`
       <g-icon>chevron_right</g-icon>
       <g-icon>home</g-icon>
@@ -66,7 +67,7 @@ class GIconElement extends GemElement {}
 
 ## SVG icons
 
-Gem has a built-in element `<gem-user>` to replace SVG Sprite:
+Gem has a built-in element `<gem-use>` to replace SVG Sprite:
 
 <gbp-sandpack dependencies="@mantou/gem">
 

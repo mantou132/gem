@@ -13,7 +13,8 @@ Define reactive Attribute, using decorator `@attribute`:
 class MyElement extends GemElement {
   @attribute firstName;
 
-  render = () => {
+  @template()
+  #content = () => {
     return html`${this.firstName}`;
   }
 }
@@ -32,7 +33,8 @@ Similar to `@attribute`, GemElement also provides `numattribute` `boolattribute`
 class MyElement extends GemElement {
   @property data;
 
-  render = () => {
+  @template()
+  #content = () => {
     return html`${this.data.id} ${store.name}`;
   }
 }
@@ -59,7 +61,8 @@ class MyElement extends GemElement {
     this.#state({ count: ++this.#state.count });
   }
 
-  render = () => {
+  @template()
+  #content = () => {
     return html`
       <button @click=${this.#clicked}>
         ${this.name}:
@@ -79,19 +82,18 @@ class MyElement extends GemElement {
 
 ## Life cycle
 
-> [!WARNING]
-> The lifecycle may be [replaced](https://github.com/mantou132/gem/issues/159) in the future by decorators based on `@effect` `@memo` `@willMount` `@template` `@mounted` `@unmounted`
-
-You can specify life cycle functions for GemElement. Sometimes they are useful, for example:
+Use decorators to run code at different stages of an element, for example:
 
 ```js
 // Omit import...
 
 @customElement('my-element')
 class MyElement extends GemElement {
-  mounted = () => {
+  @mounted()
+  #log = () => {
     console.log('element mounted!');
-  }
+    return () => console.log('element unmounted!');
+  };
 }
 ```
 
@@ -102,22 +104,22 @@ Complete life cycle:
   | constructor |       |attr/prop/store update|
   +-------------+       +----------------------+
          |                         |
-         |                   (shouldUpdate)
+         |                (@template condition)
          |                         |
   +------v-------------------------v------+
-  |            @memo(willMount)           |
+  |          @memo / @willMount           |
   +---------------------------------------+
          |                         |
          |                         |
   +------v-------------------------v------+
-  |           @template(render)           |
+  |               @template               |
   +---------------------------------------+
          |                         |
          |                         |
   +------v-------------------------v------+
-  |  @effect(mounted/updated/unmounted)   |
+  |    @effect / @mounted / @unmounted    |
   +---------------------------------------+
 ```
 
 > [!NOTE]
-> The `constructor` and `unmounted` of the parent element are executed before the child element, but the `mounted` is executed after the child element
+> The `constructor` and `@unmounted` of the parent element are executed before the child element, but `@mounted` is executed after the child element

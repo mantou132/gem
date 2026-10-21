@@ -18,7 +18,8 @@ Gem 对 [lit-html](https://lit.dev/docs/templates/overview/) 进行了很多修�
 class MyElement extends GemElement {
   #inputRef = createRef();
 
-  render = () => {
+  @template()
+  #content = () => {
     return html`<input ${this.#inputRef} />`;
   }
 
@@ -77,7 +78,8 @@ GemElement 允许快速定义方法来触发自定义事件：
 class MyElement extends GemElement {
   @emitter valueChange;
 
-  render = () => {
+  @template()
+  #content = () => {
     return html`<input @change=${(e) => this.valueChange(e.target.value)} />`;
   }
 }
@@ -123,7 +125,8 @@ export class App extends GemElement {
     this.#state({ height });
   });
 
-  render() {
+  @template()
+  #content = () => {
     const { visible, height } = this.#state;
     return html`
       <button @click=${() => this.#state({ visible: !visible})}>

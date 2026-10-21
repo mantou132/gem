@@ -10,12 +10,13 @@ Gem 的 `history` 对象维护一个历史记录的 `Store`: `history.store`，�
 其 `history.store` 将得到更新，进而更新连接 `history.store` 的元素。
 
 ```js
-import { GemElement, html, history, customElement, connectStore } from '@mantou/gem';
+import { GemElement, html, history, customElement, connectStore, template } from '@mantou/gem';
 
 @customElement('app-root')
 @connectStore(history.store)
 class App extends GemElement {
-  render = () => {
+  @template()
+  #content = () => {
     return html`${history.getParams().path}`;
   }
 }
@@ -32,7 +33,8 @@ import { routes } from './routes';
 
 @customElement('app-root')
 class App extends GemElement {
-  render = () => {
+  @template()
+  #content = () => {
     return html`
       <nav style="display: flex; gap: 1em">
         <gem-link .route=${routes.home}>Home</gem-link>

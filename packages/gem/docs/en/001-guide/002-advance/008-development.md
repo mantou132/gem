@@ -26,7 +26,7 @@ pnpm add -D prettier@npm:@mantou/prettier
 
 ## HMR
 
-HMR is available through [unplugin-gem](./009-building.md) on webpack, Rspack, Vite, Rollup, Rolldown and esbuild.
+HMR is available through [unplugin-gem](./009-building.md) on webpack, Rspack, Vite and Rolldown (experimental).
 
 ### unplugin-gem (recommended)
 

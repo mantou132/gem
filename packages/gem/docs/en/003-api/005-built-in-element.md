@@ -65,7 +65,7 @@ Render the string directly into content.
 
 There are modules for developing element related to the _history stack_:
 
-| Module              | Description                                                     |
-| ------------------- | --------------------------------------------------------------- |
-| `createModalClass`  | A function that can generate a static class that can display UI |
-| `DialogBaseElement` | A class based on which to create Dialog elements                |
+| Module                                    | Export                 | Description                                                     |
+| ----------------------------------------- | ---------------------- | --------------------------------------------------------------- |
+| `@mantou/gem/elements/base/modal-factory` | `createModalClass`     | A function that can generate a static class that can display UI |
+| `@mantou/gem/elements/base/dialog`        | `GemDialogBaseElement` | A class based on which to create Dialog elements                |

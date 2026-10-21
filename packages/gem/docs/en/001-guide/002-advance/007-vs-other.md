@@ -1,23 +1,33 @@
-# VS other libraries
+# Is Gem a good fit?
 
-Gem borrows ideas from other libraries, but Gem still has many unique features. For a detailed comparison with Lit, see [this blog post](../../004-blog/009-gem-vs-lit.md).
+Gem is a library for building applications and reusable elements on the Web Components platform. It uses standard HTML, CSS, JavaScript, and the browser's custom element model.
 
-### Ability
+## From a small element to a complete app
 
-Gem is a library for the web environment, so it can meet the common needs of WebApp, such as routing, global state and theming, without the need to install other dependencies. The Gem core does not include a UI library or an application framework, they are provided by [DuoyunUI](https://github.com/mantou132/gem/tree/main/packages/duoyun-ui) and [gemkit](https://github.com/mantou132/gem/tree/main/packages/gemkit).
+Gem is layered, so you can use only the capabilities a project needs:
 
-### Development experience
+- **Lightweight custom element wrappers**: combine `@mantou/gem/lib/reactive` with `@mantou/gem/lib/decorators` without the lit-html template engine. For simple elements, update the DOM directly and keep the bundle smaller.
+- **Reusable components and UI libraries**: use `@mantou/gem/lib/element` for `GemElement` and its template engine. These remain standard custom elements; [gem-port](https://github.com/mantou132/gem/tree/main/packages/gem-port) can generate React, Vue, and Svelte wrapper components.
+- **Complete apps**: `@mantou/gem` adds app capabilities such as routing, history, and Store. Add [gemkit](https://github.com/mantou132/gem/tree/main/packages/gemkit) when you need an app framework with file-based routing, layouts, page data, and prerendering; [gem-ssr](https://github.com/mantou132/gem/tree/main/packages/gem-ssr) provides the SSR primitives.
 
-Unlike other libraries, Gem only uses JavaScript/Typescript to write any part of WebApp and runs without compilation, so it has no syntactic sugar like JSX or single-file components, to complete the same function may require more code, of course, this is also one of the advantages of Gem, you do not need to learn additional languages. The template extensions such as `v-if`, Ref and rest props are also implemented at runtime.
+## Choose a DOM mode for the use case
 
-If you want a better experience, such as template diagnosis, you need to install the IDE plugin and build plugin just like you would with other libraries.
+For reusable components in a UI library, prefer Shadow DOM to encapsulate implementation styles. For apps, prefer Light DOM so application-wide CSS and utilities such as Tailwind CSS work naturally across the page. Gem defaults to Light DOM; use `@shadow()` when a component should use Shadow DOM.
 
-### Performance
+## Gem is a good fit when
 
-React calculates the vDOM of the entire component when it needs to be updated, then finds the DOM/Node that needs to be modified through comparison, and finally writes it to the DOM/Node. Gem uses a completely different method, see lit-html [document](https://github.com/lit/lit/blob/main/dev-docs/design/how-lit-html-works.md), before mounting, lit-html found the DOM/Node corresponding to the data in the template string. When updating, directly put the content on the target DOM/Node. In addition, when an element re-renders, only the Attribute/Property of the child elements in the template are updated, the content of child elements is rendered by themselves, and they are only updated when the Attribute/Property/Store they "Observe" changes, which will cause the Gem App to be updated in batches. There is a small task management cost.
+- You want to build reusable custom elements that can be used in plain HTML and across framework ecosystems.
+- You want to build a web app from custom elements, with reactive state, routing, and theming in the Gem ecosystem.
+- You prefer HTML templates and standard JavaScript over JSX or template syntaxes such as Vue's and Svelte's.
 
-When rendering a large number of elements at once, use `@async()` to keep element rendering from blocking the main thread.
+## Things to consider
 
-### SEO
+- Gem uses lit-html tagged template strings rather than JSX or template syntaxes such as Vue's and Svelte's. The syntax may feel unfamiliar if your team is used to those DSLs.
+- The Gem core does not include ready-made UI components; use [DuoyunUI](https://github.com/mantou132/gem/tree/main/packages/duoyun-ui) or build your own.
+- JavaScript users do not need a dedicated compiler for the core runtime. TypeScript checks, template diagnostics, and HMR use the corresponding TypeScript, editor, and build plugins; see [Development](./008-development.md).
 
-With [gemkit](https://github.com/mantou132/gem/tree/main/packages/gemkit), Gem supports server-side rendering (SSR) and static site generation (SSG). Elements using Shadow DOM are output as Declarative Shadow DOM, so search engines can index page content without executing JavaScript, and the page title and `<meta>` are also rendered on the server.
+## Compare specific workflows
+
+- [Gem and Lit](../../004-blog/009-gem-vs-lit.md) compares their element models, styling, templates, and migration considerations.
+- [Migrating from React](../../004-blog/008-migrate-from-react.md) walks through adapting a React app to Gem.
+- For shared styles and Tailwind CSS setup, see [Styling elements](../001-basic/006-styled-element.md).

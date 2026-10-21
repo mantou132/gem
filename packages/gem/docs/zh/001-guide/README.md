@@ -19,7 +19,7 @@ import * as Gem from 'https://esm.sh/@mantou/gem';
 ```
 
 ```html unpkg.com
-<script src="https://unpkg.com/@mantou/gem/dist/gem.umd.js"></script>
+<script src="https://unpkg.com/@mantou/gem/dist/gem.js"></script>
 ```
 
 </gbp-code-group>
@@ -31,7 +31,8 @@ import * as Gem from 'https://esm.sh/@mantou/gem';
 ```js index.js
 @customElement('my-element')
 class MyElement extends GemElement {
-  render = () => {
+  @template()
+  #content = () => {
     return html`<h1>Hello Gem</h1>`;
   }
 }
@@ -45,7 +46,7 @@ class MyElement extends GemElement {
 
 装饰器 `@customElement` 使用标准的 [API](https://developer.mozilla.org/en-US/docs/Web/API/Window/customElements) 定义一个自定义元素，然后以任何方式在 HTML 中使用他，当然也可以在其他自定义元素的模板中使用。
 
-在 `render` 方法中返回渲染模版，Gem 将 [lit-html](https://lit.dev/docs/templates/overview/) 作为其模版引擎，
+在使用 `@template()` 装饰的字段中返回渲染模版，Gem 将 [lit-html](https://lit.dev/docs/templates/overview/) 作为其模版引擎，
 他使用 ES6 的模版字符串来编写[标准 HTML 内容](https://developer.mozilla.org/en-US/docs/Learn_web_development/Core/Structuring_content/Basic_HTML_syntax)，没有其他概念，不存在编译时。
 
 使用变量：

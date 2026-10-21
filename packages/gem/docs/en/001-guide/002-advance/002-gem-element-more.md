@@ -17,7 +17,8 @@ If you want to manipulate the DOM content within an element, such as reading the
 class MyElement extends GemElement {
   #inputRef = createRef();
 
-  render = () => {
+  @template()
+  #content = () => {
     return html`<input ${this.#inputRef} />`;
   }
 
@@ -76,7 +77,8 @@ Custom event is a method of transferring data. It can be easily done by using `d
 class MyElement extends GemElement {
   @emitter valueChange;
 
-  render = () => {
+  @template()
+  #content = () => {
     return html`<input @change=${(e) => this.valueChange(e.target.value)} />`;
   }
 }
@@ -121,7 +123,8 @@ export class App extends GemElement {
     this.#state({ height });
   });
 
-  render() {
+  @template()
+  #content = () => {
     const { visible, height } = this.#state;
     return html`
       <button @click=${() => this.#state({ visible: !visible})}>

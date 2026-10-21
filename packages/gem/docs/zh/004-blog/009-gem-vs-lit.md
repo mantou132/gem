@@ -198,7 +198,7 @@ Lit 要生成同样的信息，需要使用 [Custom Elements Manifest](https://c
 
 Lit 默认使用 Shadow DOM，`static styles` 也依赖 Shadow DOM。如果覆盖 `createRenderRoot` 改为 Light DOM，`static styles` 就不再生效，只能使用全局 CSS。
 
-Gem 默认使用 Light DOM，因为它的性能比 Shadow DOM 更好，元素实例越多差异越明显。同时样式表同样能挂载并保持隔离：
+Gem 默认使用 Light DOM，因为它的性能比 Shadow DOM 更好，元素实例越多差异越明显。Light DOM 也方便使用 Tailwind CSS 等基于 CSS 的方案：工具类可以直接作用于元素内容，无需额外处理 Shadow DOM 的样式边界。同时，Gem 的样式表仍然可以挂载并保持隔离：
 
 ```ts
 const style = css`
