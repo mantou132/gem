@@ -2,9 +2,22 @@ import * as fs from 'node:fs/promises';
 import * as path from 'node:path';
 
 import type { GemConfiguration } from 'ts-gem-lsp/src/configuration';
+import type { GemService } from 'ts-gem-lsp/src/middleware';
 import { registerGemMiddleware, TS7_EXTENSION_ID } from 'ts-gem-lsp/src/vscode';
 import type { ExtensionContext, TextDocument, WorkspaceConfiguration } from 'vscode';
-import { commands, Disposable, extensions, Range, window, workspace } from 'vscode';
+import {
+  Color,
+  ColorInformation,
+  ColorPresentation,
+  commands,
+  Disposable,
+  extensions,
+  languages,
+  Range,
+  TextEdit,
+  window,
+  workspace,
+} from 'vscode';
 import { LanguageClient, TransportKind } from 'vscode-languageclient/node';
 
 import { exec, showTask } from './utils';
@@ -35,7 +48,7 @@ export async function activate(context: ExtensionContext) {
       documentSelector: langSelectors,
     },
   );
-  client.start();
+  const clientStarted = client.start();
 
   (await fs.readdir(gritDir)).forEach((file) => {
     const fileName = path.basename(file, '.md');
@@ -68,7 +81,15 @@ export async function activate(context: ExtensionContext) {
         workspace.onDidCloseTextDocument((document) => isScript(document) && listener(document.uri.toString())),
         watcher.onDidChange((uri) => listener(uri.toString())),
       );
-    context.subscriptions.push(watcher, ...registerGemMiddleware(ts7, getConfiguration, onDidChangeFiles));
+    // TypeScript 7 提供了 language-service 的功能，停止 language-service
+    const onDidActivate = (gem: GemService) => {
+      clientStarted.then(() => client?.stop());
+      context.subscriptions.push(registerColorProvider(gem));
+    };
+    context.subscriptions.push(
+      watcher,
+      ...registerGemMiddleware(ts7, getConfiguration, onDidChangeFiles, onDidActivate),
+    );
   }
 
   const extension = extensions.getExtension(typeScriptExtensionId);
@@ -92,6 +113,28 @@ export async function activate(context: ExtensionContext) {
 
 export function deactivate() {
   return client?.stop();
+}
+
+type LspRange = Parameters<GemService['colorPresentations']>[1];
+
+const toRange = ({ start, end }: LspRange) => new Range(start.line, start.character, end.line, end.character);
+
+function registerColorProvider(gem: GemService) {
+  return languages.registerColorProvider(langSelectors, {
+    async provideDocumentColors(document) {
+      const colors = await gem.documentColors(document.uri.toString());
+      return colors.map(({ range, color: { red, green, blue, alpha } }) => {
+        return new ColorInformation(toRange(range), new Color(red, green, blue, alpha));
+      });
+    },
+    provideColorPresentations(color, { range }) {
+      return gem.colorPresentations(color, range).map(({ label, textEdit }) => {
+        const presentation = new ColorPresentation(label);
+        if (textEdit) presentation.textEdit = new TextEdit(toRange(textEdit.range), textEdit.newText);
+        return presentation;
+      });
+    },
+  });
 }
 
 function synchronizeConfiguration(api: any) {

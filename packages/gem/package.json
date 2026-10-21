@@ -1,7 +1,7 @@
 {
   "name": "@mantou/gem",
   "version": "2.3.0",
-  "description": "💎 使用自定义元素的轻量级 WebApp 开发框架",
+  "description": "💎 Build reusable custom elements and web apps on Web Components",
   "keywords": [
     "frontend",
     "web components",

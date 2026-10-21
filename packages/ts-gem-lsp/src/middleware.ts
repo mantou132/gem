@@ -1,4 +1,6 @@
 import { kebabToCamelCase } from '@mantou/gem/lib/utils';
+import type { Color, ColorInformation, ColorPresentation } from '@mantou/vscode-css-languageservice';
+import type { SourceFile } from 'typescript/unstable/ast';
 import type { API } from 'typescript/unstable/async';
 import type {
   CodeAction,
@@ -13,6 +15,8 @@ import type {
   DocumentDiagnosticReport,
   DocumentHighlight,
   DocumentHighlightParams,
+  DocumentSymbol,
+  DocumentSymbolParams,
   FoldingRange,
   FoldingRangeParams,
   Hover,
@@ -24,8 +28,10 @@ import type {
   Position,
   PrepareRenameParams,
   PrepareRenameResult,
+  Range,
   ReferenceParams,
   RenameParams,
+  SymbolInformation,
   TextEdit,
   VSOnAutoInsertParams,
   VSOnAutoInsertResponseItem,
@@ -47,7 +53,8 @@ import { HtmlService, toLocationLink } from './html';
 import { findElementProp, findPropReferences, getPropRenameEdits } from './props';
 import { getClassMapKeys } from './styles';
 import { findTagAt, findTagLocations, toTextEdits } from './tags';
-import { findTemplate, findTemplates, toOffset, toPosition } from './template';
+import type { Template } from './template';
+import { findStyleValues, findTemplate, findTemplates, toOffset, toPosition } from './template';
 import { getNeverMembers, getThemeKeys } from './theme';
 import type { GemCompletionData } from './translate';
 import { ts } from './ts';
@@ -67,6 +74,7 @@ export interface GemMiddleware {
   'textDocument/rename': Transformer<RenameParams, WorkspaceEdit | null>;
   'textDocument/foldingRange': Transformer<FoldingRangeParams, FoldingRange[] | null>;
   'textDocument/documentHighlight': Transformer<DocumentHighlightParams, DocumentHighlight[] | null>;
+  'textDocument/documentSymbol': Transformer<DocumentSymbolParams, SymbolInformation[] | DocumentSymbol[] | null>;
   'textDocument/linkedEditingRange': Transformer<LinkedEditingRangeParams, LinkedEditingRanges | null>;
   'textDocument/_vs_onAutoInsert': Transformer<VSOnAutoInsertParams, VSOnAutoInsertResponseItem | null>;
 }
@@ -90,10 +98,22 @@ function mergeWorkspaceEdit(edit: WorkspaceEdit, changes: Record<string, TextEdi
   return { ...edit, changes: merged };
 }
 
+const isBefore = (a: Position, b: Position) => a.line < b.line || (a.line === b.line && a.character <= b.character);
+
+/** 模板中的符号放到包含该模板的最内层符号下 */
+function insertSymbols(symbols: DocumentSymbol[], range: Range, children: DocumentSymbol[]) {
+  const parent = symbols.find((s) => isBefore(s.range.start, range.start) && isBefore(range.end, s.range.end));
+  if (parent) insertSymbols((parent.children ??= []), range, children);
+  else symbols.push(...children);
+}
+
 export interface GemService {
   middleware: GemMiddleware;
   /** 宿主在项目文件修改时调用，不传 URI 时全部重新扫描 */
   invalidate: (uri?: string) => void;
+  /** TypeScript 不提供颜色，宿主直接注册 */
+  documentColors: (uri: string) => Promise<ColorInformation[]>;
+  colorPresentations: (color: Color, range: Range) => ColorPresentation[];
 }
 
 export function createGemMiddleware(
@@ -118,6 +138,11 @@ export function createGemMiddleware(
     const project = await snapshot.getDefaultProjectForFile({ uri });
     const file = await project?.program.getSourceFile({ uri });
     return project && file && { project, file };
+  }
+
+  /** 样式模板和 html 模板中的 `<style>` */
+  function getCssDocuments(file: SourceFile, htmlTemplates: Template[] = findTemplates(file, 'html')) {
+    return [...findTemplates(file, 'css'), ...htmlTemplates.flatMap((t) => html.styles(t))];
   }
 
   async function getTagContext(uri: string, position: Position) {
@@ -302,7 +327,7 @@ export function createGemMiddleware(
       const htmlDiagnostics = templates.length
         ? await getHtmlDiagnostics(project, file, templates, await index.get(project), getConfig())
         : [];
-      const cssDocuments = [...findTemplates(file, 'css'), ...templates.flatMap((t) => html.styles(t))];
+      const cssDocuments = getCssDocuments(file, templates);
       return {
         ...result,
         items: [
@@ -395,12 +420,29 @@ export function createGemMiddleware(
       const ctx = await getFileContext(params.textDocument.uri);
       if (!ctx) return result;
       const templates = findTemplates(ctx.file, 'html');
-      const cssDocuments = [...findTemplates(ctx.file, 'css'), ...templates.flatMap((t) => html.styles(t))];
       return [
         ...(result ?? []),
         ...templates.flatMap((t) => html.foldingRanges(t)),
-        ...cssDocuments.flatMap((doc) => css.foldingRanges(doc)),
+        ...getCssDocuments(ctx.file, templates).flatMap((doc) => css.foldingRanges(doc)),
       ];
+    },
+    // 编辑器支持层级符号时 TypeScript 返回 `DocumentSymbol`
+    'textDocument/documentSymbol': async (result, { params }) => {
+      if (result?.some((s) => 'location' in s)) return result;
+      const ctx = await getFileContext(params.textDocument.uri);
+      if (!ctx) return result;
+      const { file } = ctx;
+      const symbols = (result as DocumentSymbol[] | null) ?? [];
+      // 只有声明的样式没有选择器
+      const cssTemplates = findTemplates(file, 'css').filter((t) => !t.declarationsOnly);
+      for (const template of [...findTemplates(file, 'html'), ...cssTemplates]) {
+        const range = {
+          start: toPosition(file.text, template.node.getStart(file)),
+          end: toPosition(file.text, template.node.end),
+        };
+        insertSymbols(symbols, range, template.kind === 'html' ? html.symbols(template) : css.symbols(template));
+      }
+      return symbols;
     },
     'textDocument/documentHighlight': async (result, { params }) => {
       const ctx = await getTemplateContext(params.textDocument.uri, params.position);
@@ -426,5 +468,14 @@ export function createGemMiddleware(
     },
   };
 
-  return { middleware, invalidate: (uri) => index.invalidate(uri) };
+  return {
+    middleware,
+    invalidate: (uri) => index.invalidate(uri),
+    documentColors: async (uri) => {
+      const ctx = await getFileContext(uri);
+      if (!ctx) return [];
+      return [...getCssDocuments(ctx.file), ...findStyleValues(ctx.file)].flatMap((doc) => css.colors(doc));
+    },
+    colorPresentations: (color, range) => css.colorPresentations(color, range),
+  };
 }

@@ -7,14 +7,14 @@ The functionality provided is similar to [VSCode extension](https://marketplace.
 
 ## TypeScript 7
 
-TypeScript 7 does not support tsserver plugins, the extension provides `ts-gem-lsp` to replace the TypeScript language server. Enable it in `.zed/settings.json` of TypeScript 7 projects, then restart Zed:
+TypeScript 7 does not support tsserver plugins, the extension provides `ts-gem-lsp` to replace the TypeScript language server and the Gem language server. Enable it in `.zed/settings.json` of TypeScript 7 projects, then restart Zed:
 
 ```json
 {
   "languages": {
-    "TypeScript": { "language_servers": ["ts-gem-lsp", "!vtsls", "!typescript-language-server", "..."] },
-    "TSX": { "language_servers": ["ts-gem-lsp", "!vtsls", "!typescript-language-server", "..."] },
-    "JavaScript": { "language_servers": ["ts-gem-lsp", "!vtsls", "!typescript-language-server", "..."] }
+    "TypeScript": { "language_servers": ["ts-gem-lsp", "!gem", "!vtsls", "!typescript-language-server", "..."] },
+    "TSX": { "language_servers": ["ts-gem-lsp", "!gem", "!vtsls", "!typescript-language-server", "..."] },
+    "JavaScript": { "language_servers": ["ts-gem-lsp", "!gem", "!vtsls", "!typescript-language-server", "..."] }
   }
 }
 ```

@@ -8,6 +8,7 @@ import type {
 
 import type { GemConfiguration } from './configuration';
 import { defaultConfiguration } from './configuration';
+import type { GemService } from './middleware';
 import { createGemMiddleware } from './middleware';
 import { loadTsModules } from './ts';
 
@@ -19,10 +20,13 @@ export function registerGemMiddleware(
   getConfig: () => Partial<GemConfiguration>,
   /** 文件修改的事件，参数是文件 URI，中间件看不到文档同步通知 */
   onDidChangeFiles: (listener: (uri: string) => void) => Disposable,
+  /** 语言服务器首次初始化时调用，宿主注册中间件之外的功能 */
+  onDidActivate: (service: GemService) => void,
 ): Disposable[] {
   let api: Promise<API<true>> | undefined;
   const getApi = () => api ?? Promise.reject(new Error('TypeScript 7 language server is not initialized'));
-  const { middleware, invalidate } = createGemMiddleware(getApi, () => ({ ...defaultConfiguration, ...getConfig() }));
+  const service = createGemMiddleware(getApi, () => ({ ...defaultConfiguration, ...getConfig() }));
+  const { middleware, invalidate } = service;
 
   // 每次语言服务器初始化后，从其使用的 TypeScript 中加载版本匹配的 API 客户端，旧的连接失效
   // 已经初始化时注册监听器会立即调用
@@ -34,6 +38,7 @@ export function registerGemMiddleware(
     });
     oldApi?.then((old) => old.close()).catch(() => {});
     invalidate();
+    if (!oldApi) onDidActivate(service);
   });
 
   const registrations = Object.entries(middleware).map(([method, transformer]) =>

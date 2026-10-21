@@ -1,5 +1,11 @@
 import { TextDocument } from '@mantou/vscode-html-languageservice';
-import type { Node, NoSubstitutionTemplateLiteral, SourceFile, TemplateExpression } from 'typescript/unstable/ast';
+import type {
+  Node,
+  NoSubstitutionTemplateLiteral,
+  SourceFile,
+  StringLiteral,
+  TemplateExpression,
+} from 'typescript/unstable/ast';
 import type { Position, Range } from 'typescript/unstable/vscode';
 
 import { ts } from './ts';
@@ -93,6 +99,8 @@ export class Template implements VirtualDocument {
   readonly file: SourceFile;
   readonly fileName: string;
   readonly doc: TextDocument;
+  /** 只有声明的样式，例如 styled`` */
+  readonly declarationsOnly: boolean;
   /** 模板内容在源文件中的起始偏移（反引号之后） */
   readonly #start: number;
   readonly #prefix: string;
@@ -105,6 +113,7 @@ export class Template implements VirtualDocument {
     this.kind = info.kind;
     this.tagName = info.tagName;
     this.node = node;
+    this.declarationsOnly = info.declarationsOnly;
     this.#start = node.getStart(file) + 1;
     this.#prefix = info.declarationsOnly ? DECLARATIONS_PREFIX : '';
     const chars = file.text.slice(this.#start, node.end - 1).split('');
@@ -214,4 +223,52 @@ export class EmbeddedDocument implements VirtualDocument {
     const toOffset = (position: Position) => this.doc.offsetAt(position) + this.#start;
     return this.#template.toRangeFromOffsets(toOffset(virtualRange.start), toOffset(virtualRange.end));
   }
+}
+
+// 样式值需要包裹在声明中才能解析
+const STYLE_VALUE_PREFIX = '.parent { color: ';
+const STYLE_VALUE_SUFFIX = ' }';
+
+/** `styleMap({ key: 'value' })` 中的样式值 */
+export class StyleValue implements VirtualDocument {
+  readonly doc: TextDocument;
+  readonly fileName: string;
+  readonly #file: SourceFile;
+  /** 值在源文件中的起始偏移（引号之后） */
+  readonly #start: number;
+
+  constructor(file: SourceFile, node: StringLiteral) {
+    this.#file = file;
+    this.fileName = file.fileName;
+    this.#start = node.getStart(file) + 1;
+    const text = `${STYLE_VALUE_PREFIX}${file.text.slice(this.#start, node.end - 1)}${STYLE_VALUE_SUFFIX}`;
+    this.doc = TextDocument.create(`gem-style-value://${this.#start}.css`, 'css', 0, text);
+  }
+
+  toVirtualPosition(offset: number): Position {
+    return this.doc.positionAt(offset - this.#start + STYLE_VALUE_PREFIX.length);
+  }
+
+  toRange({ start, end }: Range): Range {
+    const toSourcePosition = (position: Position) =>
+      toPosition(this.#file.text, this.doc.offsetAt(position) - STYLE_VALUE_PREFIX.length + this.#start);
+    return { start: toSourcePosition(start), end: toSourcePosition(end) };
+  }
+}
+
+export function findStyleValues(file: SourceFile) {
+  const values: StyleValue[] = [];
+  file.forEachChild(function visit(node): undefined {
+    if (ts.ast.isCallExpression(node) && ts.ast.isIdentifier(node.expression) && node.expression.text === 'styleMap') {
+      const [arg] = node.arguments;
+      const properties = arg && ts.ast.isObjectLiteralExpression(arg) ? arg.properties : [];
+      for (const p of properties) {
+        if (ts.ast.isPropertyAssignment(p) && ts.ast.isStringLiteral(p.initializer)) {
+          values.push(new StyleValue(file, p.initializer));
+        }
+      }
+    }
+    node.forEachChild(visit);
+  });
+  return values;
 }

@@ -13,20 +13,21 @@ The TypeScript API is loaded from the project's own `typescript` package, so it 
 ## Features
 
 - HTML templates (`html`, `raw`, `h`)
-  - Completion, hover, folding, highlight, linked editing, closing tag, emmet
+  - Completion, hover, folding, highlight, linked editing, closing tag, emmet, outline
   - Custom element tag/attribute/property/event completion and validation
   - Go to definition, find references and rename for tags and properties
 - CSS templates (`css`, `styled`, `<style>`)
-  - Completion, hover, validation, folding, emmet
+  - Completion, hover, validation, folding, emmet, outline, color picker
   - Class name completion from element styles, go to definition and find references
   - Element selector and custom property navigation, custom property rename
 - Gem API
   - `@effect`/`@memo`/`@template` etc. allow unused private fields
   - Theme key completion, hide `never` members of state
+  - Color picker for `styleMap` values
 
 ## Zed
 
-The [Gem extension](../../crates/zed-plugin-gem) installs and starts ts-gem-lsp automatically. It replaces the built-in TypeScript server, so disable the others for TypeScript 7 projects in `.zed/settings.json`:
+The [Gem extension](../../crates/zed-plugin-gem) installs and starts ts-gem-lsp automatically. It replaces the built-in TypeScript server and the Gem language server, so disable the others for TypeScript 7 projects in `.zed/settings.json`:
 
 ```json
 {
@@ -34,6 +35,7 @@ The [Gem extension](../../crates/zed-plugin-gem) installs and starts ts-gem-lsp 
     "TypeScript": {
       "language_servers": [
         "ts-gem-lsp",
+        "!gem",
         "!vtsls",
         "!typescript-language-server",
         "..."
@@ -42,6 +44,7 @@ The [Gem extension](../../crates/zed-plugin-gem) installs and starts ts-gem-lsp 
     "TSX": {
       "language_servers": [
         "ts-gem-lsp",
+        "!gem",
         "!vtsls",
         "!typescript-language-server",
         "..."
@@ -50,6 +53,7 @@ The [Gem extension](../../crates/zed-plugin-gem) installs and starts ts-gem-lsp 
     "JavaScript": {
       "language_servers": [
         "ts-gem-lsp",
+        "!gem",
         "!vtsls",
         "!typescript-language-server",
         "..."

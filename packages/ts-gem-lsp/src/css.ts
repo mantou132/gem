@@ -1,11 +1,19 @@
-import type { CompletionList, Hover, Node } from '@mantou/vscode-css-languageservice';
-import { getCSSLanguageService, NodeType, updateTags } from '@mantou/vscode-css-languageservice';
+import type {
+  Color,
+  ColorInformation,
+  ColorPresentation,
+  CompletionList,
+  DocumentSymbol,
+  Hover,
+  Node,
+} from '@mantou/vscode-css-languageservice';
+import { getCSSLanguageService, NodeType, TextDocument, updateTags } from '@mantou/vscode-css-languageservice';
 import { doComplete as doEmmetComplete } from '@mantou/vscode-emmet-helper';
 import type { Diagnostic, FoldingRange, Range } from 'typescript/unstable/vscode';
 
 import type { GemConfiguration } from './configuration';
 import type { VirtualDocument } from './template';
-import { translateCompletionList, translateFoldingRange, translateHover } from './translate';
+import { translateCompletionList, translateDocumentSymbol, translateFoldingRange, translateHover } from './translate';
 
 const SOURCE = 'gem';
 
@@ -155,5 +163,22 @@ export class CssService {
 
   foldingRanges(vDoc: VirtualDocument): FoldingRange[] {
     return this.#ls.getFoldingRanges(vDoc.doc).map((range) => translateFoldingRange(vDoc, range));
+  }
+
+  symbols(vDoc: VirtualDocument): DocumentSymbol[] {
+    return this.#ls.findDocumentSymbols2(vDoc.doc, this.parse(vDoc)).map((s) => translateDocumentSymbol(vDoc, s));
+  }
+
+  colors(vDoc: VirtualDocument): ColorInformation[] {
+    return this.#ls.findDocumentColors(vDoc.doc, this.parse(vDoc)).map(({ color, range }) => ({
+      color,
+      range: vDoc.toRange(range),
+    }));
+  }
+
+  /** 颜色的表示方式和文档无关，使用空文档 */
+  colorPresentations(color: Color, range: Range): ColorPresentation[] {
+    const doc = TextDocument.create('', 'css', 0, '');
+    return this.#ls.getColorPresentations(doc, this.#ls.parseStylesheet(doc), color, range);
   }
 }

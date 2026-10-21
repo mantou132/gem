@@ -6,7 +6,9 @@ import { createRequire } from 'node:module';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 
+import type { Color } from '@mantou/vscode-css-languageservice';
 import type { API } from 'typescript/unstable/async';
+import type { Range } from 'typescript/unstable/vscode';
 import { createTypeScriptModuleLoader } from 'typescript/unstable/vscode';
 import type {
   MessageReader,
@@ -47,6 +49,8 @@ function startNoopServer(clientReader: MessageReader, clientWriter: MessageWrite
 
 type FileChangeParams = { textDocument?: { uri: string }; changes?: { uri: string }[] };
 
+type ColorParams = { textDocument: { uri: string }; color: Color; range: Range };
+
 // 编辑器中的修改，以及磁盘上的修改（例如 `git checkout`）
 function getChangedFiles({ method, params }: NotificationMessage) {
   switch (method) {
@@ -86,16 +90,30 @@ async function startProxy(tsDir: string, clientReader: MessageReader, clientWrit
   const updateConfig = (gem?: Partial<GemConfiguration>) => {
     if (gem) config = { ...defaultConfiguration, ...gem };
   };
-  const { middleware, invalidate } = createGemMiddleware(
+  const { middleware, invalidate, documentColors, colorPresentations } = createGemMiddleware(
     () => api,
     () => config,
     (params) => request('textDocument/rename', params),
   );
   type Method = keyof typeof middleware;
   const pendingRequests = new Map<RequestMessage['id'], RequestMessage>();
+  let initializeId: RequestMessage['id'] | undefined;
+
+  // TypeScript 不提供颜色，由代理直接响应
+  const colorRequests = {
+    'textDocument/documentColor': ({ textDocument }: ColorParams) => documentColors(textDocument.uri),
+    'textDocument/colorPresentation': ({ color, range }: ColorParams) => colorPresentations(color, range),
+  };
 
   clientReader.listen(async (msg) => {
+    if (Message.isRequest(msg) && msg.method in colorRequests) {
+      const handler = colorRequests[msg.method as keyof typeof colorRequests];
+      const result = await Promise.resolve(handler(msg.params as ColorParams)).catch(() => null);
+      clientWriter.write({ jsonrpc: '2.0', id: msg.id, result } as ResponseMessage);
+      return;
+    }
     if (Message.isRequest(msg) && msg.method === 'initialize') {
+      initializeId = msg.id;
       updateConfig((msg.params as { initializationOptions?: { gem?: GemConfiguration } }).initializationOptions?.gem);
     }
     if (Message.isNotification(msg) && msg.method === 'workspace/didChangeConfiguration') {
@@ -115,6 +133,9 @@ async function startProxy(tsDir: string, clientReader: MessageReader, clientWrit
       ownRequests.get(msg.id as string)!(msg);
       ownRequests.delete(msg.id as string);
       return;
+    }
+    if (Message.isResponse(msg) && msg.id === initializeId) {
+      (msg.result as { capabilities: Record<string, unknown> }).capabilities.colorProvider = true;
     }
     const req = Message.isResponse(msg) && pendingRequests.get(msg.id!);
     if (req) {

@@ -1,6 +1,7 @@
 import type {
   CompletionItem,
   CompletionList,
+  DocumentSymbol,
   FoldingRange,
   Hover,
   TextEdit,
@@ -56,4 +57,13 @@ export function translateFoldingRange(vDoc: VirtualDocument, range: FoldingRange
     end: { line: range.endLine, character: 0 },
   });
   return { ...range, startLine: start.line, endLine: end.line, startCharacter: undefined, endCharacter: undefined };
+}
+
+export function translateDocumentSymbol(vDoc: VirtualDocument, symbol: DocumentSymbol): DocumentSymbol {
+  return {
+    ...symbol,
+    range: vDoc.toRange(symbol.range),
+    selectionRange: vDoc.toRange(symbol.selectionRange),
+    children: symbol.children?.map((child) => translateDocumentSymbol(vDoc, child)),
+  };
 }

@@ -2,6 +2,7 @@ import { kebabToCamelCase } from '@mantou/gem/lib/utils';
 import { doComplete as doEmmetComplete, updateTags as updateEmmetTags } from '@mantou/vscode-emmet-helper';
 import type {
   CompletionList,
+  DocumentSymbol,
   Hover,
   HTMLDocument,
   IAttributeData,
@@ -20,7 +21,7 @@ import { getBuiltInAttributes, getElementData, resolveElementType } from './elem
 import { getElementClass, getElementSelectors } from './styles';
 import type { Template } from './template';
 import { EmbeddedDocument, toPosition } from './template';
-import { translateCompletionList, translateFoldingRange, translateHover } from './translate';
+import { translateCompletionList, translateDocumentSymbol, translateFoldingRange, translateHover } from './translate';
 import { ts } from './ts';
 
 /** 从属性键值字符串上解析出不包含装饰符的名称 */
@@ -276,5 +277,10 @@ export class HtmlService {
 
   foldingRanges(template: Template): FoldingRange[] {
     return this.#ls.getFoldingRanges(template.doc).map((range) => translateFoldingRange(template, range));
+  }
+
+  symbols(template: Template): DocumentSymbol[] {
+    const vHtml = this.#ls.parseHTMLDocument(template.doc);
+    return this.#ls.findDocumentSymbols2(template.doc, vHtml).map((s) => translateDocumentSymbol(template, s));
   }
 }
