@@ -1,0 +1,19 @@
+{
+  "name": "<%= it.name %>",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "rsbuild dev",
+    "build": "rsbuild build",
+    "start": "gemkit start"
+  },
+  "dependencies": {
+    "@mantou/gem": "<%= it.deps['@mantou/gem'] %>",
+    "@mantou/gemkit": "^<%= it.version %>"
+  },
+  "devDependencies": {
+    "@rsbuild/core": "<%= it.deps['@rsbuild/core'] %>",
+    "@types/node": "^22.13.10",
+    "typescript": "^5.6.2"
+  }
+}

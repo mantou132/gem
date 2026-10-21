@@ -18,6 +18,7 @@
     "./client": "./src/client.ts",
     "./internal": "./src/internal.ts",
     "./server": "./src/server.ts",
+    "./init": "./bin/init.js",
     "./plugin": {
       "types": "./src/plugin/index.ts",
       "default": "./dist/plugin.js"
@@ -27,6 +28,7 @@
     "/bin/",
     "/dist/",
     "/src/",
+    "/starter/",
     "/template.html"
   ],
   "scripts": {

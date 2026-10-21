@@ -4,6 +4,16 @@ Gem application framework based on [Rsbuild](https://rsbuild.rs): file-based rou
 
 ## Usage
 
+Create an app:
+
+```sh
+npm create gemkit@latest my-app
+# or
+npx @mantou/gemkit init my-app
+```
+
+Or add it to an existing Rsbuild project:
+
 ```ts
 // rsbuild.config.ts
 import { pluginGemkit } from '@mantou/gemkit/plugin';
@@ -16,6 +26,7 @@ export default defineConfig({
 
 - `rsbuild dev`: dev server with SSR and HMR
 - `rsbuild build`: build `dist/web` (client, prerendered pages) and `dist/server` (SSR bundle)
+- `gemkit init [dir]`: create an app in the directory, it must be empty or not exist
 - `gemkit start`: serve `dist`, prerendered pages first, otherwise SSR. Environment variables:
   - `PORT`: default `3000`
   - `ORIGIN`: the site origin, e.g. `https://example.com`, set it behind a reverse proxy, otherwise the origin comes
