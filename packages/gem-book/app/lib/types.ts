@@ -31,10 +31,8 @@ export interface Content {
 }
 
 export interface Site extends Content {
-  /** 首页，没有 `README.md` 时是第一个页面 */
-  home: string;
-  /** 旧版本，`link` 是版本的首页 */
-  versions: (Content & { name: string; link: string })[];
+  /** 旧版本，首页是 `/${name}` */
+  versions: (Content & { name: string })[];
   links: ExternalLink[];
   langs: { code: string; name: string }[];
   /** 页脚的 HTML，没有配置时为空 */

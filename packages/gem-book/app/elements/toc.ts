@@ -43,7 +43,7 @@ const style = css`
     text-decoration: none;
     border-inline-start: 1px solid transparent;
   }
-  gem-link:hover {
+  gem-link:not(.current):hover {
     color: ${theme.textColor};
   }
   .level-3 {

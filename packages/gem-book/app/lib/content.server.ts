@@ -137,9 +137,12 @@ function scanLang(lang: string, version = ''): LangContent {
           if (sidebarIgnore || !children.length) return [];
           // `isNav` 的目录是独立的一部分文档，只在导航中显示
           if (isNav) {
-            sections.push({ link: toPagePath(relFile), items: children });
+            const link = toPagePath(relFile);
+            sections.push({ link, items: children });
+            // 导航显示目录，没有 index 时跳转到第一个页面
             const [first] = flatLinks(children);
-            if (first) nav.push({ title: navTitle || item.title, link: first.link, order: navOrder });
+            if (first.link !== link) redirects.set(link, first.link);
+            nav.push({ title: navTitle || item.title, link, order: navOrder });
             return [];
           }
           return [item];
@@ -159,6 +162,10 @@ function scanLang(lang: string, version = ''): LangContent {
 
   // 旧版本可能没有该语言
   const sidebar = fs.existsSync(root) ? scan(root) : [];
+  // 没有首页时跳转到第一个页面
+  const home = version ? `/${version}` : '/';
+  const [first] = files.keys();
+  if (first && !files.has(home) && !redirects.has(home)) redirects.set(home, first);
   nav.sort((a, b) => a.order - b.order);
   return { sidebar, sections, nav: nav.map(({ title, link }) => ({ title, link })), files, redirects };
 }
@@ -166,17 +173,13 @@ function scanLang(lang: string, version = ''): LangContent {
 const ICON_LINKS = ['github', 'gitlab', 'twitter', 'discord'];
 
 /** 版本的导航和侧边栏，导航包括配置的站内链接 */
-function getContent(lang: string, version = ''): Content & { files: LangContent['files'] } {
-  const { sidebar, sections, nav, files } = scanLang(lang, version);
-  return { sidebar, sections, nav: [...nav, ...__GEM_BOOK_NAV__.filter(({ link }) => !isURL(link))], files };
+function getContent(lang: string, version = ''): Content {
+  const { sidebar, sections, nav } = scanLang(lang, version);
+  return { sidebar, sections, nav: [...nav, ...__GEM_BOOK_NAV__.filter(({ link }) => !isURL(link))] };
 }
 
-/** 首页，没有时是第一个页面 */
-const getHomePath = (files: LangContent['files'], home: string) =>
-  files.has(home) ? home : files.keys().next().value || home;
-
 export function getSite(lang: string): Site {
-  const { sidebar, sections, nav, files } = getContent(lang);
+  const { sidebar, sections, nav } = getContent(lang);
   const configNav = __GEM_BOOK_NAV__;
   const links: ExternalLink[] = configNav
     .filter(({ link }) => isURL(link))
@@ -187,15 +190,10 @@ export function getSite(lang: string): Site {
   if (github)
     links.push({ title: isGitLab() ? 'GitLab' : 'GitHub', link: github, icon: isGitLab() ? 'gitlab' : 'github' });
   return {
-    home: getHomePath(files, '/'),
     sidebar,
     sections,
     nav,
-    versions: versions.map((name) => {
-      const { files, ...content } = getContent(lang, name);
-      const link = getHomePath(files, `/${name}`);
-      return { name, link, ...content };
-    }),
+    versions: versions.map((name) => ({ name, ...getContent(lang, name) })),
     links,
     langs: __GEM_BOOK_CONFIG__.i18n
       ? languages.map((code) => ({ code, name: langNames[code as keyof typeof langNames] || code }))

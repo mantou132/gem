@@ -44,7 +44,7 @@ export default class ErrorPage extends GemElement {
     return html`
       <h1>${error.status}</h1>
       <p>${getMessage(error)}</p>
-      <gem-link path=${bookStore.site?.home || '/'}>${i18n.get('backHome')}</gem-link>
+      <gem-link path="/">${i18n.get('backHome')}</gem-link>
     `;
   };
 }

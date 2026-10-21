@@ -37,7 +37,8 @@ const style = css`
     font-family: ${theme.font};
   }
   a,
-  gem-link {
+  gem-link,
+  gem-active-link {
     color: inherit;
     text-decoration: none;
   }
@@ -86,7 +87,7 @@ const style = css`
   .nav-link {
     font-size: 0.9375rem;
     &:hover,
-    &.current {
+    &:state(active) {
       color: ${theme.primaryColor};
     }
   }
@@ -312,23 +313,16 @@ export default class RootLayout extends GemElement {
   @effect(() => [history.getParams().path])
   #closeMenu = () => this.#state({ menuOpen: false });
 
-  // 当前链接在模版中判断，服务端渲染时也能显示
-  #renderNav = (cls: string) => {
-    const { path } = history.getParams();
-    return (
-      this.data &&
-      getContent(this.data, path).nav.map(
-        ({ title: navTitle, link }) => html`
-        <gem-link
-          class=${classMap({ [cls]: true, current: path === link || (link !== '/' && path.startsWith(`${link}/`)) })}
-          path=${link}
-        >
+  // 导航可能是目录，目录中的页面都高亮
+  #renderNav = (cls: string) =>
+    this.data &&
+    getContent(this.data, history.getParams().path).nav.map(
+      ({ title: navTitle, link }) => html`
+        <gem-active-link class=${cls} path=${link} pattern=${link === '/' ? '' : `${link}/*`}>
           ${navTitle}
-        </gem-link>
+        </gem-active-link>
       `,
-      )
     );
-  };
 
   #renderItems = (items: SidebarItem[]): unknown => html`
     <ul>
@@ -356,8 +350,8 @@ export default class RootLayout extends GemElement {
         <label v-if=${!!versions.length} class="version" aria-label=${i18n.get('version')}>
           ${version || i18n.get('latest')} ${icons.arrow}
           <select @change=${this.#changeVersion}>
-            <option value=${this.data?.home || '/'} ?selected=${!version}>${i18n.get('latest')}</option>
-            ${versions.map(({ name, link }) => html`<option value=${link} ?selected=${name === version}>${name}</option>`)}
+            <option value="/" ?selected=${!version}>${i18n.get('latest')}</option>
+            ${versions.map(({ name }) => html`<option value=${`/${name}`} ?selected=${name === version}>${name}</option>`)}
           </select>
         </label>
         ${links
@@ -397,7 +391,7 @@ export default class RootLayout extends GemElement {
         <button class="menu" aria-label=${i18n.get('menu')} aria-expanded=${menuOpen} @click=${this.#toggleMenu}>
           ${menuOpen ? icons.close : icons.menu}
         </button>
-        <gem-link class="logo" path=${this.data?.home || '/'}>
+        <gem-link class="logo" path="/">
           ${icon ? html`<img src=${icon} alt="" />` : ''}
           <span>${title}</span>
         </gem-link>
