@@ -1,6 +1,7 @@
 import type { Path } from '../store';
 
 declare function inspect(arg: any): void;
+declare let $0: any;
 
 export const inspectValue = (path: Path, token: string) => {
   const value = window.__GEM_DEVTOOLS__PRELOAD__.readProp(path);
@@ -16,7 +17,7 @@ export const inspectValue = (path: Path, token: string) => {
     const symbol = Object.getOwnPropertySymbols(value)[0];
     if (symbol && symbol.toString() === token) {
       // stylesheet
-      console.log(value[symbol]);
+      console.log(value[symbol].getStyle($0));
     } else {
       console.log(value);
     }

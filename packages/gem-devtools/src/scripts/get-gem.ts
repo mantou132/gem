@@ -122,9 +122,8 @@ export const getSelectedGem = (data: PanelStore): PanelStore | string => {
     'toggleAttribute',
   ]);
   const lifecycleMethod = new Set(['willMount', 'render', 'mounted', 'shouldUpdate', 'updated', 'unmounted']);
-  const buildInMethod = new Set(['update', /**@deprecated */ 'setState', 'effect', 'memo']);
+  const buildInMethod = new Set(['update', 'effect', 'memo']);
   const buildInProperty = new Set(['internals']);
-  const buildInAttribute = new Set([/**@deprecated */ 'ref', /**@deprecated */ 'data-gem-reflect']);
   const buildInCSSState = new Set(['gem-style-boundary']);
   const memberSet = getProps($0);
   metadata.observedAttributes?.forEach((attr) => {
@@ -145,7 +144,6 @@ export const getSelectedGem = (data: PanelStore): PanelStore | string => {
       name: attr,
       value: value,
       type: 'string',
-      buildIn: buildInAttribute.has(attr) ? 1 : 0,
     });
   });
   metadata.observedProperties?.forEach((prop) => {
@@ -172,7 +170,7 @@ export const getSelectedGem = (data: PanelStore): PanelStore | string => {
   metadata.adoptedStyleSheets?.forEach((sheet, index) => {
     data.adoptedStyles.push({
       name: `StyleSheet${index + 1}`,
-      value: objectToString(sheet[Object.getOwnPropertySymbols(sheet)[0] as typeof SheetToken]),
+      value: objectToString(sheet[Object.getOwnPropertySymbols(sheet)[0] as typeof SheetToken].getStyle($0)),
       type: 'object',
       path: ['constructor', 'Symbol.metadata', 'adoptedStyleSheets', String(index)],
     });
@@ -218,16 +216,6 @@ export const getSelectedGem = (data: PanelStore): PanelStore | string => {
       path: [['shadowRoot', ''], 'querySelector', selector],
     });
   });
-  metadata.definedRefs?.forEach((ref) => {
-    const prop = kebabToCamelCase(ref.replace(/-\w+$/, ''));
-    memberSet.delete(prop);
-    data.refs.push({
-      name: ref,
-      value: objectToString($0[prop].element),
-      type: 'element',
-      path: [['shadowRoot', ''], 'querySelector', `[ref=${$0[prop].ref}]`],
-    });
-  });
   metadata.definedCSSStates?.forEach((state) => {
     const prop = kebabToCamelCase(state);
     memberSet.delete(prop);
@@ -254,19 +242,6 @@ export const getSelectedGem = (data: PanelStore): PanelStore | string => {
     memberSet.delete(key);
     // GemElement 不允许覆盖内置生命周期，所以不考虑
     if (elementMethod.has(key)) return;
-    if (key === 'state') {
-      $0.state &&
-        $0.setState &&
-        Object.keys($0.state).forEach((k) => {
-          const value = $0.state[k];
-          data.state.push({
-            name: k,
-            value: objectToString(value),
-            type: typeof value,
-          });
-        });
-      return;
-    }
     if (lifecycleMethod.has(key)) {
       data.lifecycleMethod.push({
         name: key,

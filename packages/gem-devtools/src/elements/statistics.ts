@@ -10,6 +10,7 @@ import {
   memo,
   property,
   shadow,
+  template,
 } from '@mantou/gem';
 
 import { execution } from '../common';
@@ -25,7 +26,7 @@ import { style } from './section';
 export class devtoolsStatisticsElement extends GemElement {
   @attribute name: string;
   @boolattribute ignore: boolean;
-  @attribute type: DomStatInfo['type'] = 'ele';
+  @attribute type: DomStatInfo['type'];
   @property highlight?: Array<string>;
 
   @property data = [] as string[];
@@ -41,7 +42,7 @@ export class devtoolsStatisticsElement extends GemElement {
         class="inspect"
         title="Inspect"
         @click=${(e: Event) => {
-          execution(inspectDom, [{ id, type: this.type }]);
+          execution(inspectDom, [{ id, type: this.#type }]);
           e.preventDefault();
         }}
       >
@@ -71,12 +72,17 @@ export class devtoolsStatisticsElement extends GemElement {
 
   #highlight = new Set<string>();
 
-  @memo()
+  get #type() {
+    return this.type || 'ele';
+  }
+
+  @memo((i) => [i.highlight, i.data])
   #setHighlight = () => {
     this.#highlight = new Set(this.highlight || this.data);
   };
 
-  render = () => {
+  @template()
+  #content = () => {
     const { name, data = [] } = this;
     return html`
       <details>

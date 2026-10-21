@@ -9,11 +9,12 @@ import {
   mounted,
   shadow,
   styleMap,
+  template,
 } from '@mantou/gem';
 
 import { execution } from '../common';
 import { getAllFrames } from '../scripts/get-all-frame';
-import { appendScanElement, checkGemElement, checkScanElement } from '../scripts/scan';
+import { appendScanElement, checkGemElement, checkScanElement, removeScanElement } from '../scripts/scan';
 import { configureStore } from '../store';
 
 const style = css`
@@ -53,7 +54,8 @@ const style = css`
 @connectStore(configureStore)
 @shadow()
 export class DevtoolsHeaderElement extends GemElement {
-  #state = createState({ showScanBtn: false });
+  // 页面没有 Gem 时为 `undefined`，不显示按钮
+  #state = createState({ scanning: undefined as boolean | undefined });
 
   #onChange = (evt: Event) => {
     configureStore({ currentFrameURL: (evt.target as HTMLSelectElement).value });
@@ -77,20 +79,24 @@ export class DevtoolsHeaderElement extends GemElement {
     if (!hasGem) return;
     const timer = setInterval(async () => {
       const hasScan = await execution(checkScanElement, []);
-      this.#state({ showScanBtn: !hasScan });
+      this.#state({ scanning: hasScan });
     }, 1000);
     return () => clearInterval(timer);
   };
 
-  #enableScan = async () => {
-    await execution(appendScanElement, []);
-    this.#state({ showScanBtn: false });
+  #toggleScan = async () => {
+    const { scanning } = this.#state;
+    await execution(scanning ? removeScanElement : appendScanElement, []);
+    this.#state({ scanning: !scanning });
   };
 
-  render = () => {
+  @template()
+  #content = () => {
     return html`
       <div class="title"><slot></slot></div>
-      <div class="btn" v-if=${this.#state.showScanBtn} @click=${this.#enableScan}>Scan</div>
+      <div class="btn" v-if=${this.#state.scanning !== undefined} @click=${this.#toggleScan}>
+        ${this.#state.scanning ? 'Stop Scan' : 'Scan'}
+      </div>
       <select
         @change=${this.#onChange}
         style=${styleMap({ width: `${configureStore.currentFrameURL.length * 0.5}em` })}

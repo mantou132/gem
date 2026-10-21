@@ -94,6 +94,9 @@ export const appendScanElement = () => {
   document.body.after(document.createElement('devtools-scan'));
 };
 
+// 卸载时还原渲染引擎
+export const removeScanElement = () => document.querySelector('devtools-scan')?.remove();
+
 export const checkScanElement = () => !!document.querySelector('devtools-scan');
 
 export const checkGemElement = () => !!window.__GEM_DEVTOOLS__HOOK__?.GemElement;

@@ -138,7 +138,7 @@ test('generate: 生成路由和入口文件', ({ assert }) => {
   const i18n = read('i18n.ts');
   assert.match(i18n, /export const languages = \["en","zh-CN"\];/);
   assert.match(i18n, /export const defaultLanguage = 'en';/);
-  assert.match(i18n, /import lang_zh_CN from "..\/src\/locales\/zh-CN.json";/);
+  assert.match(i18n, /"zh-CN": \(\) => import\("..\/src\/locales\/zh-CN.json"\),/);
 
   const client = read('client.ts');
   assert.match(client, /import "..\/src\/app";/);
@@ -202,7 +202,7 @@ test('generate: 使用其他目录中的页面和语言文件', ({ assert }) => 
   generate(root, { srcDir: 'theme' });
   const read = (file: string) => fs.readFileSync(path.join(root, '.gemkit', file), 'utf8');
   assert.match(read('routes.ts'), /import\("..\/theme\/pages\/index"\)/);
-  assert.match(read('i18n.ts'), /import lang_en from "..\/theme\/locales\/en.json";/);
+  assert.match(read('i18n.ts'), /"en": \(\) => import\("..\/theme\/locales\/en.json"\),/);
   assert.match(read('client.ts'), /import "..\/theme\/app";/);
   assert.throws(
     () => generate(root, { srcDir: 'theme', defaultLanguage: 'fr' }),

@@ -268,8 +268,6 @@ export type Metadata = Partial<ShadowRootInit> & {
   definedCSSStates?: string[];
   definedParts?: string[];
   definedSlots?: string[];
-  /**@deprecated GemDevtools 在使用*/
-  definedRefs?: string[];
 };
 
 // global render task pool

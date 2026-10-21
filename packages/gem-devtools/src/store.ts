@@ -31,13 +31,11 @@ export class PanelStore {
   observedProperties = [] as Item[];
   observedStores = [] as Item[];
   adoptedStyles = [] as Item[];
-  state = [] as Item[];
   stateList = [] as Item[][];
   emitters = [] as Item[];
   slots = [] as Item[];
   cssStates = [] as Item[];
   parts = [] as Item[];
-  refs = [] as Item[];
   lifecycleMethod = [] as Item[];
   method = [] as Item[];
   properties = [] as Item[];

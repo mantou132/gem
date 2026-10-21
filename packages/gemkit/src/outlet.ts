@@ -35,6 +35,21 @@ import '@mantou/gem/elements/route';
 
 type ElementModule = { default: CustomElementConstructor };
 
+// 应用的 i18n，加载模块后等待模块中创建的子模块加载语言包
+let i18n: { ready: Promise<unknown> } | undefined;
+
+/** 设置应用的 i18n，加载 layout 和页面模块后等待语言包加载完成再渲染 */
+export function setI18n(value: typeof i18n) {
+  i18n = value;
+}
+
+/** 加载 layout 或页面模块，等待模块中的 i18n 子模块加载当前语言包 */
+async function loadModule(load: () => Promise<ElementModule>) {
+  const mod = await load();
+  await i18n?.ready;
+  return mod.default;
+}
+
 // 每个 layout 的子路由，key 是 layout 的标签名，根路由的 key 为空字符串
 let outletRoutes: Record<string, RouteItem[]> = {};
 
@@ -134,7 +149,7 @@ async function loadLayout(
   container: ParentNode,
   hasServerModule?: boolean,
 ) {
-  const cls = (await load()).default;
+  const cls = await loadModule(load);
   const params = getLayoutParams(routeParams);
   const current = [...container.children].find((e) => e.localName === tag) as { params?: Params; data?: unknown };
   const data = canReuseLayoutData(current?.params, params)
@@ -156,7 +171,7 @@ async function loadPage(
   hasServerModule?: boolean,
   error?: ErrorData,
 ) {
-  const cls = (await load()).default;
+  const cls = await loadModule(load);
   const data = error || (await loadData(cls, tag, params, hasServerModule));
   // layout 在页面之前加载
   clientState.invalidated = false;

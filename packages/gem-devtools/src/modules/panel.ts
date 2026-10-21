@@ -1,4 +1,4 @@
-import { adoptedStyle, connectStore, css, customElement, GemElement, html, shadow } from '@mantou/gem';
+import { adoptedStyle, connectStore, css, customElement, GemElement, html, shadow, template } from '@mantou/gem';
 
 import { panelStore } from '../store';
 
@@ -21,10 +21,11 @@ const style = css`
 @adoptedStyle(style)
 @shadow()
 export class Panel extends GemElement {
-  render() {
+  @template()
+  #content = () => {
     return html`
       <devtools-header>
-        ${panelStore.isGemElement ? panelStore.gemVersion : `This not's GemElement, page stat:`}
+        ${panelStore.isGemElement ? panelStore.gemVersion : 'Not a GemElement, page stats:'}
       </devtools-header>
       ${
         panelStore.isGemElement
@@ -33,11 +34,6 @@ export class Panel extends GemElement {
             <devtools-section name="Observed Properties" .items=${panelStore.observedProperties}></devtools-section>
             <devtools-section name="Observed Stores" .items=${panelStore.observedStores}></devtools-section>
             <devtools-section name="Adopted Styles" .items=${panelStore.adoptedStyles}></devtools-section>
-            ${
-              panelStore.state.length
-                ? html`<devtools-section name="State" .path=${['state']} .items=${panelStore.state}></devtools-section>`
-                : ''
-            }
             ${panelStore.stateList.map(
               (state, index) => html`
                 <devtools-section
@@ -51,11 +47,6 @@ export class Panel extends GemElement {
             <devtools-section name="Slots" tip=${TIP} .items=${panelStore.slots}></devtools-section>
             <devtools-section name="CSS States" tip=${TIP} .items=${panelStore.cssStates}></devtools-section>
             <devtools-section name="CSS Parts" tip=${TIP} .items=${panelStore.parts}></devtools-section>
-            ${
-              panelStore.refs.length
-                ? html`<devtools-section name="Refs" tip=${TIP} .items=${panelStore.refs}></devtools-section>`
-                : ''
-            }
             <devtools-section name="Lifecycle Method" .items=${panelStore.lifecycleMethod}></devtools-section>
             <devtools-section name="Method" .items=${panelStore.method}></devtools-section>
             <devtools-section name="Unobserved Attributes" .items=${panelStore.attributes}></devtools-section>
@@ -91,5 +82,5 @@ export class Panel extends GemElement {
           `
       }
     `;
-  }
+  };
 }

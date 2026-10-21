@@ -9,6 +9,7 @@ import {
   property,
   SheetToken,
   shadow,
+  template,
 } from '@mantou/gem';
 
 import { execution } from '../common';
@@ -204,14 +205,13 @@ export class Section extends GemElement {
   };
 
   #renderItemValue = (item: Item) => {
-    const path =
-      this.items === panelStore.staticMember
+    const path = this.path
+      ? [...this.path, item.name]
+      : this.items === panelStore.staticMember
         ? ['constructor', item.name]
-        : this.items === panelStore.state
-          ? ['state', item.name]
-          : this.items === panelStore.observedAttributes || this.items === panelStore.cssStates
-            ? [kebabToCamelCase(item.name)]
-            : [item.name];
+        : this.items === panelStore.observedAttributes || this.items === panelStore.cssStates
+          ? [kebabToCamelCase(item.name)]
+          : [item.name];
     const onInput = (evt: Event) => {
       execution(setGemPropValue, [path, (evt.target as HTMLInputElement).value]);
     };
@@ -267,7 +267,8 @@ export class Section extends GemElement {
     `;
   };
 
-  render() {
+  @template()
+  #content = () => {
     const { name, items = [] } = this;
     return html`
       <details open>
@@ -275,5 +276,5 @@ export class Section extends GemElement {
         <div>${items.length ? this.#renderItem(items) : html`<div class="nodata">no data</div>`}</div>
       </details>
     `;
-  }
+  };
 }

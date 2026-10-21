@@ -9,10 +9,8 @@ export const prefixDefaultLanguage = false;
 <% const id = (lang) => `lang_${lang.replace(/\W/g, '_')}` -%>
 import { history } from '@mantou/gem';
 import { I18n } from '@mantou/gem/helper/i18n';
-import { getBasePath, localizePath as localize, splitLanguage } from '@mantou/gemkit/internal';
-<% for (const { lang, path } of it.languages) { -%>
-import <%= id(lang) %> from <%= path %>;
-<% } -%>
+import { getBasePath, localizePath as localize, setI18n, splitLanguage } from '@mantou/gemkit/internal';
+import type <%= id(it.defaultLanguage) %> from <%= it.languages.find(({ lang }) => lang === it.defaultLanguage).path %>;
 
 export const languages = <%= JSON.stringify(it.languages.map(({ lang }) => lang)) %>;
 export const defaultLanguage = '<%= it.defaultLanguage %>';
@@ -22,10 +20,17 @@ const { lang } = splitLanguage(location.pathname, languages, defaultLanguage, pr
 history.basePath = getBasePath(lang, defaultLanguage, prefixDefaultLanguage);
 
 export const i18n = new I18n<typeof <%= id(it.defaultLanguage) %>>({
-  resources: { <%= it.languages.map(({ lang }) => `${JSON.stringify(lang)}: ${id(lang)}`).join(', ') %> },
+  // 每个语言单独打包，服务端渲染时输出当前语言包，客户端不需要再加载
+  resources: {
+<% for (const { lang, path } of it.languages) { -%>
+    <%= JSON.stringify(lang) %>: () => import(<%= path %>),
+<% } -%>
+  },
   fallbackLanguage: defaultLanguage,
   currentLanguage: lang,
 });
+
+setI18n(i18n);
 
 /** 切换语言的路径，需要使用 `<a>` 跳转使页面重新加载 */
 export const localizePath = (lang: string, path = history.getParams().path) =>

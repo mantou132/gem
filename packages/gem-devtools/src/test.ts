@@ -31,7 +31,6 @@ panelStore({
   observedStores: [{ name: 'store', value: '{...}', type: 'object' }],
   lifecycleMethod: [{ name: 'render', value: 'function ()', type: 'function' }],
   method: [{ name: 'click', value: 'function ()', type: 'function' }],
-  state: [{ name: 'loaded', value: true, type: 'boolean' }],
   stateList: [[{ name: 'opened', value: true, type: 'boolean' }]],
   properties: [
     { name: 'mute', value: 'true', type: 'boolean' },

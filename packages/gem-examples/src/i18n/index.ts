@@ -15,7 +15,8 @@ const i18n = new I18n<typeof en>({
     de: {
       title: 'Das ist I18n',
     },
-    zh: 'data:text/plain;base64,eyJ0aXRsZSI6Iui/meaYr0kxOG4ifQ==',
+    // 按需加载，也可以是 `() => import('./zh.json')`
+    zh: async () => ({ title: '这是 I18n' }),
   },
   onChange: console.log,
 });
@@ -25,7 +26,10 @@ const i18nModule = i18n.createSubModule<typeof en>('test', {
   de: {
     title: 'Das ist I18n',
   },
-  zh: 'data:text/plain;base64,eyJ0aXRsZSI6Iui/meaYr0kxOG4ifQ==',
+  zh: async () => {
+    await new Promise((res) => setTimeout(res, 1000));
+    return { title: '这是 I18n' };
+  },
 });
 
 const localizeRoutes: RouteItem[] = [

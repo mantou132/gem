@@ -1,9 +1,8 @@
 /**
- * - 预渲染可能造成重复的元素，在序列化时可以用正则移除 GemReflectElement 渲染的从开始到结束连续的元素
- * - `replaceAll(/<!--gem-reflect-start-->.*?<!--gem-reflect-end-->/gs, '')`
+ * 把子节点移动到 `target`（默认 `document.head`）中，用开始和结束注释标记这些节点，
+ * 修改 `target` 或者卸载时一起移动或移除
  *
- * 不能在在顶级代码块中清除这些元素，因为重复加载该代码时会把正常 reflect 元素清除，
- * 比如 duoyun-ui 文档站加载示例元素时把 GemReflectElement 渲染的元素清除
+ * 服务端渲染时不执行 effect，客户端水合后才移动
  */
 
 import { attribute, effect, property, willMount } from '../../lib/decorators';

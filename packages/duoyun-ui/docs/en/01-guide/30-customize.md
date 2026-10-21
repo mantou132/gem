@@ -97,13 +97,12 @@ import { I18n } from '@mantou/gem/helper/i18n';
 import { loadLocale } from 'duoyun-ui/lib/locale';
 
 import zhCN from 'src/locales/templates/messages.json';
-import enURI from 'src/locales/en/messages.json?url';
 
 export const i18n = new I18n<typeof zhCN>({
   fallbackLanguage: 'zh-CN',
   resources: {
     'zh-CN': zhCN,
-    en: enURI,
+    en: () => import('src/locales/en/messages.json'),
   },
   onChange: (code: keyof typeof langNames) => {
     switch (code) {
