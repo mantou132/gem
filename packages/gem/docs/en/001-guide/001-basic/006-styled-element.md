@@ -45,7 +45,7 @@ class MyElement extends GemElement {
   @template()
   #content = () => {
     return html`<div class=${styles.header}></div>`;
-  }
+  };
 }
 ```
 
@@ -73,7 +73,7 @@ class MyElement extends GemElement {
         }
       </style>
     `;
-  }
+  };
 }
 ```
 
@@ -99,7 +99,7 @@ class MyElement extends GemElement {
   @template()
   #content = () => {
     return html`<div part=${MyElement.header}></div>`;
-  }
+  };
 }
 ```
 
@@ -115,7 +115,7 @@ class MyElement extends GemElement {
   open = () => {
     // Can be selected by the selector `:state(opened)`
     this.opened = true;
-  }
+  };
 }
 ```
 
@@ -142,4 +142,3 @@ class MyElement extends GemElement {
 ## Tailwind CSS
 
 Atomic CSS solutions such as Tailwind CSS work with Light DOM elements, which is Gem's default: load the generated style sheet globally and use utility classes directly in templates. Global utility classes cannot style content inside elements that use `@shadow()`.
-

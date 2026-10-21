@@ -11,7 +11,7 @@ Banners communicate important messages to users. They are highly visible and oft
   "style": "width: 100%",
   "closable": true,
   "status": "positive",
-  "action": {"text": "View"},
+  "action": { "text": "View" },
   "innerHTML": "This is banner"
 }
 ```

@@ -1,7 +1,6 @@
 # Gem SSR
 
 Server-side rendering and hydration for Gem elements:
-
 - Elements are rendered to HTML on the server, Shadow DOM is output as [Declarative Shadow DOM](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/template#shadowrootmode)
 - The client takes over the server-rendered DOM without re-rendering it
 - Streaming: the content before pending async elements is sent first
@@ -124,13 +123,12 @@ const html = await runInRequest(() => {
 
 ### Where should data live
 
-| | Element state + `@server()` | Store | Route data (e.g. gemkit `load`) |
-| --- | --- | --- | --- |
-| Scope | One element, any element | Shared by elements and pages | A route (page or layout) |
-| Lifetime | The element | The app, kept across navigation | The route, reloaded on navigation |
-| Blocks the document | No, streamed when ready | No | Yes, it can decide the title and status |
-| Client navigation | Shows the page, then loads (needs a loading state) | Not reloaded automatically | Waits for the data, then switches the page |
-
+|                     | Element state + `@server()`                        | Store                           | Route data (e.g. gemkit `load`)            |
+| ------------------- | -------------------------------------------------- | ------------------------------- | ------------------------------------------ |
+| Scope               | One element, any element                           | Shared by elements and pages    | A route (page or layout)                   |
+| Lifetime            | The element                                        | The app, kept across navigation | The route, reloaded on navigation          |
+| Blocks the document | No, streamed when ready                            | No                              | Yes, it can decide the title and status    |
+| Client navigation   | Shows the page, then loads (needs a loading state) | Not reloaded automatically      | Waits for the data, then switches the page |
 - Data that decides whether and how the page is shown (main content, title, 404): route data
 - Data owned by a component that can arrive later (comments, recommendations): element state + `@server()`
 - Data shared by many elements or kept across navigation (current user, theme, cart): store
@@ -175,7 +173,6 @@ export const requestInfo = isolate({ locale: '' });
 
 The server does not create a DOM tree, element instances are created with a minimal DOM shim and their templates are
 rendered to strings:
-
 - Effects (`@effect()`, `@mounted()`, `@unmounted()`) are not executed on the server, put DOM and browser API access in them
 - Do not access the DOM while rendering (constructor, `@memo()`, `@template()`), e.g. `querySelector`, `closest`,
   `getBoundingClientRect`
@@ -187,7 +184,6 @@ rendered to strings:
   use Shadow DOM and `<slot>` instead
 
 Output details:
-
 - Shadow DOM styles are output in each shadow root, Light DOM element styles are output where they first appear
   and removed after hydration
 - Hidden `v-if` branches are output with `display:none`, so the client can rebuild the condition chain
@@ -203,7 +199,6 @@ a lazy view is bundled into the client (as a separate chunk), so it can only use
 `@client()` makes it a client element, the opposite of a server element, see [Client elements](#client-elements).
 
 The `on` option of `@lazy()` sets when the code is loaded, interacting before it also loads the code and replays the event:
-
 - `interaction` (default): on the first interaction (`pointerdown`, `click`, `focusin`, `keydown`, `input`)
 - `load`: after the page is loaded (when the browser is idle after the `load` event), if the element is in the page
 - `visible`: when the element enters the viewport (`IntersectionObserver`)
@@ -243,7 +238,6 @@ They can only be used on the element class with `@customElement` (not on a base 
 use one of `@server()`, `@lazy()` and `@client()`, otherwise the build fails.
 
 Both need the `ssr` option of `unplugin-gem` (or `swc-plugin-gem`), the client build rewrites the element module:
-
 - Server element: the class is replaced with `GemServerElement` (only `@customElement` is kept),
   declarations and imports that are no longer used are removed
 - Lazy view: the module is replaced with `defineLazy(tag, () => import('./self?gem-lazy'), options)`, so the element
@@ -280,7 +274,6 @@ app.post('/element', async (req, res) => {
 
 The `serverElements` option of `render` collects the HTML of the server elements in the page by key,
 e.g. to send them with the page data ([gemkit](https://github.com/mantou132/gem/tree/main/packages/gemkit) does this).
-
 - Server elements must not depend on client-only state, the attributes and properties must be JSON values
 - Properties are only used when the element is created, prefer attributes
 - Properties set by a server element on its child elements are not available on the client,

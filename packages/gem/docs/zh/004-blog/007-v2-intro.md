@@ -31,12 +31,12 @@ class MyElement extends GemElement {
   @memo((myElement) => [myElement.name])
   #calcContent = () => {
     this.#content = this.name;
-  }
+  };
 
   @effect((myElement) => [myElement.name])
   #fetchData = () => {
     // request
-  }
+  };
 }
 ```
 
@@ -55,7 +55,7 @@ class MyElement extends GemElement {
   render = () => {
     this.#state({ a: false });
     console.log(this.#state.a);
-  }
+  };
 }
 ```
 
@@ -68,14 +68,13 @@ class MyElement extends GemElement {
 
   render = () => {
     return html`<input ${this.#input} />`;
-  }
+  };
 }
 ```
 
 ## 默认使用 Light DOM
 
 Gem 使用 Shadow DOM 的一个理由是样式隔离性，他让用户可以直接编写“模块化”的 CSS，但是使用 Shadow DOM 编写 WebApp 也有一些缺点：
-
 - 不能使用 SVG 符号
 - URL Hash 无效
 - `document.activeElement` 无效

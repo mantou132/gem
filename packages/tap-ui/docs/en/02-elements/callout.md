@@ -9,11 +9,7 @@ Long-press menu component. Long pressing lifts the content in place, blurs and d
 ```json
 {
   "innerHTML": "<div style=\"display: inline-block; padding: 0.75em 1em; border-radius: 1em; color: #fff; background: #536dfe\">Long press me</div>",
-  "menu": [
-    { "label": "Copy" },
-    { "label": "Favorite" },
-    { "label": "Delete", "danger": true }
-  ]
+  "menu": [{ "label": "Copy" }, { "label": "Favorite" }, { "label": "Delete", "danger": true }]
 }
 ```
 

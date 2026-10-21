@@ -12,7 +12,11 @@ Settings page. Pass `groups` to render groups and rows; no need to write `tap-ce
     "groups": [
       {
         "items": [
-          { "label": "Guardian Mode", "action": true, "onClick": "() => console.log('Guardian Mode')" },
+          {
+            "label": "Guardian Mode",
+            "action": true,
+            "onClick": "() => console.log('Guardian Mode')"
+          },
           { "label": "Easy Mode", "action": true, "onClick": "() => console.log('Easy Mode')" }
         ]
       },
@@ -20,7 +24,12 @@ Settings page. Pass `groups` to render groups and rows; no need to write `tap-ce
         "heading": "Account",
         "items": [
           { "label": "Profile", "action": true, "onClick": "() => console.log('Profile')" },
-          { "label": "Name", "description": "Mantou", "action": true, "onClick": "() => console.log('Name')" }
+          {
+            "label": "Name",
+            "description": "Mantou",
+            "action": true,
+            "onClick": "() => console.log('Name')"
+          }
         ]
       },
       {

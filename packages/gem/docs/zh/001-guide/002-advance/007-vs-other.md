@@ -5,7 +5,6 @@ Gem 是基于 Web Components 平台构建应用和可复用元素的库，围绕
 ## 从简单元素到完整应用
 
 Gem 是分层的，可以按项目需要选用相应能力：
-
 - **轻量自定义元素封装**：组合使用 `@mantou/gem/lib/reactive` 和 `@mantou/gem/lib/decorators`，不引入 lit-html 模板引擎。简单元素可以直接操作 DOM，保持较小的构建体积。
 - **可复用组件和 UI 库**：使用 `@mantou/gem/lib/element` 引入 `GemElement` 和模板引擎。产物仍是标准自定义元素；[gem-port](https://github.com/mantou132/gem/tree/main/packages/gem-port) 可以生成 React、Vue 和 Svelte 包装组件。
 - **完整应用**：`@mantou/gem` 提供路由、history、Store 等应用能力。需要应用框架、基于文件的路由、布局、页面数据和预渲染时，可以加上 [gemkit](https://github.com/mantou132/gem/tree/main/packages/gemkit)；[gem-ssr](https://github.com/mantou132/gem/tree/main/packages/gem-ssr) 提供 SSR 基础能力。

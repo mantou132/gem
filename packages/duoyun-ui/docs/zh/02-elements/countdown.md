@@ -1,6 +1,5 @@
 # `<dy-countdown>`
 
-
 ## Example
 
 <gbp-example name="dy-countdown" src="https://esm.sh/duoyun-ui/elements/countdown">

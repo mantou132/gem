@@ -27,7 +27,6 @@ such as the context menu opened by `ContextMenu.open` method, `inert` prevent th
 but `<dy-modal>` does not always have this feature.
 
 `<dy-modal>` has two ways to use:
-
 1. Write directly in the rendering template to `<dy-modal>`
 2. Use `Modal.open` static method
 

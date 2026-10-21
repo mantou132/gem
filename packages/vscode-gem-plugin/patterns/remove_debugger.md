@@ -8,7 +8,7 @@ language js
 
 or {
   `debugger` => .,
-  `console.$method($arg)` => . where { $arg <: not within catch_clause() },
+  `console.$method($arg)` => . where { $arg <: not within catch_clause() }
 }
 ```
 
@@ -17,7 +17,7 @@ or {
 ```js
 console.log(123);
 // debugger
-debugger
+debugger;
 ```
 
 ```js

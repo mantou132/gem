@@ -12,9 +12,9 @@ A donut chart is a circular statistical graphic that displays data in a ring for
   "label": "Title",
   "total": "60",
   "sequences": [
-    {"label": "Label 1", "value": 20},
-    {"label": "Label 2", "value": 10},
-    {"label": "Label 3", "value": 30}
+    { "label": "Label 1", "value": 20 },
+    { "label": "Label 2", "value": 10 },
+    { "label": "Label 3", "value": 30 }
   ]
 }
 ```

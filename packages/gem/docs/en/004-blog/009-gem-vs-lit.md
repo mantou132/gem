@@ -36,7 +36,6 @@ class MyButtonElement extends GemElement {
 ```
 
 This leads to two conventions:
-
 - **Attributes have no initial values**. Assigning a value means calling `setAttribute`, so serializing the element (e.g. `outerHTML`, SSR) would output Attributes the user never wrote. Default values are provided by getters, just like `<input>` behaves as `text` when it has no `type`
 - **Elements do not modify their own Attributes/Properties**. They are the user's input, changes inside the element are expressed with internal state and reported through events, see [Create controlled element](./002-create-controlled-element.md)
 
@@ -156,7 +155,9 @@ class MySwitch extends LitElement {
 
   private toggle(checked: boolean) {
     checked ? this.internals.states.add('checked') : this.internals.states.delete('checked');
-    this.dispatchEvent(new CustomEvent('checked-change', { detail: checked, bubbles: true, composed: true }));
+    this.dispatchEvent(
+      new CustomEvent('checked-change', { detail: checked, bubbles: true, composed: true }),
+    );
   }
 
   render() {
@@ -229,7 +230,11 @@ import { when } from 'lit/directives/when.js';
 
 html`
   <input ${ref(this.inputRef)} />
-  ${when(this.loading, () => html`<my-spinner></my-spinner>`, () => html`<my-list .items=${items}></my-list>`)}
+  ${when(
+    this.loading,
+    () => html`<my-spinner></my-spinner>`,
+    () => html`<my-list .items=${items}></my-list>`,
+  )}
 `;
 ```
 
@@ -277,7 +282,6 @@ A Store is just a plain object plus an update function, with no Provider and no 
 Lit is a library for writing components. It is only responsible for "defining elements and rendering them efficiently", and leaves state management, routing and context to the ecosystem.
 
 Gem is layered, so you can write a component library in the most basic way, and also write apps with a complete solution:
-
 - **`@mantou/gem/lib/reactive` + `@mantou/gem/lib/decorators`**: reactive elements and decorators without the lit-html template engine, which greatly reduces the build size when your components are simple enough
 - **`@mantou/gem/lib/element`**: adds the modified lit-html, which is the `GemElement` introduced in this article
 - **`@mantou/gem`**: adds routing (`history`), Store and other capabilities needed to write apps

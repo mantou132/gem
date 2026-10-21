@@ -40,17 +40,15 @@ DuoyunUI supports an ESM method independently uses an element, such as adding a 
 
 ```ts
 import('https://esm.sh/duoyun-ui/elements/keyboard-access').then(
-  ({ DuoyunKeyboardAccessElement }) =>
-    document.body.append(new DuoyunKeyboardAccessElement()),
+  ({ DuoyunKeyboardAccessElement }) => document.body.append(new DuoyunKeyboardAccessElement()),
 );
 ```
 
 For example, enable input recording mode:
 
 ```ts
-import('https://esm.sh/duoyun-ui/elements/input-capture').then(
-  ({ DuoyunInputCaptureElement }) =>
-    document.body.append(new DuoyunInputCaptureElement()),
+import('https://esm.sh/duoyun-ui/elements/input-capture').then(({ DuoyunInputCaptureElement }) =>
+  document.body.append(new DuoyunInputCaptureElement()),
 );
 ```
 

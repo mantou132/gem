@@ -1,7 +1,6 @@
 # Deploy
 
 Use `npx gem-book build docs` to build the website into `dist/web`, then provide static services for this directory, no rewrite rules are needed:
-
 - Every page is prerendered into its own `index.html`, e.g. `dist/web/guide/index.html`
 - `404.html` is the page of paths not found, it is used by GitHub Pages, Netlify, Vercel etc. automatically
 - [Redirects](./004-metadata.md) are pages that redirect with `<meta http-equiv="refresh">`

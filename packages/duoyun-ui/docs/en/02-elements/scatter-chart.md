@@ -12,11 +12,7 @@ A scatter plot component that visualizes data points in a two-dimensional space,
   "sequences": [
     {
       "label": "Label",
-      "values": [
-        [100, 1],
-        [200, 3],
-        [1000, 5]
-      ]
+      "values": [[100, 1], [200, 3], [1000, 5]]
     }
   ]
 }

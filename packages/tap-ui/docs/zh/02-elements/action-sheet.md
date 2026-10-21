@@ -36,11 +36,11 @@ await ActionSheet.open({
     {
       actions: [
         { label: '复制链接', onClick: () => console.log('copy') },
-        { label: '删除', danger: true, onClick: () => console.log('delete') }
-      ]
-    }
+        { label: '删除', danger: true, onClick: () => console.log('delete') },
+      ],
+    },
   ],
-  cancel: true
+  cancel: true,
 });
 ```
 

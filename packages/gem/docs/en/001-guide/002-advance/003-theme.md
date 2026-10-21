@@ -1,7 +1,6 @@
 # Theme
 
 [CSS variables](https://developer.mozilla.org/en-US/docs/Web/CSS/--*) can easily implement the theme, using the theme modules provided by Gem will have more advantages:
-
 - TypeScript integration
 - Prevent multiple theme CSS custom property name conflicts
 - Observable `ThemeStore` object
@@ -61,7 +60,7 @@ class App extends GemElement {
     return html`
       <div>primaryColor: ${themeStore.primaryColor}</div>
     `;
-  }
+  };
 }
 ```
 
@@ -80,7 +79,9 @@ const darkTheme = {
   primaryColor: '#eee',
 };
 
-const theme = createTheme(matchMedia('(prefers-color-scheme: dark)').matches ? darkTheme : lightTheme);
+const theme = createTheme(
+  matchMedia('(prefers-color-scheme: dark)').matches ? darkTheme : lightTheme,
+);
 
 const styles = css`
   div {

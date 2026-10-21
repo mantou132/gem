@@ -23,7 +23,12 @@ Settings-style list row and group. Primary text on the left; description, switch
   "heading": "Account",
   "items": [
     { "label": "Profile", "action": true, "onClick": "() => console.log('Profile')" },
-    { "label": "Name", "description": "Mantou", "action": true, "onClick": "() => console.log('Name')" },
+    {
+      "label": "Name",
+      "description": "Mantou",
+      "action": true,
+      "onClick": "() => console.log('Name')"
+    },
     { "label": "Auto save photos", "checked": true }
   ]
 }

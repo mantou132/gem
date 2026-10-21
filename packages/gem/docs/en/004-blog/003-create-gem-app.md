@@ -77,7 +77,6 @@ const proxy = {
 ## Other templates
 
 `create-gem-app` uses [`gem-boilerplate`](https://github.com/mantou132/gem-boilerplate) as a template by default. In fact, it also supports other templates that use Gem:
-
 - `lib`: Suitable for building UI libraries based on `GemElement`
 - `wasm`: Used to build a custom element library with Rust/WebAssembly
 

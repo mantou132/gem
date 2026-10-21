@@ -102,7 +102,6 @@ submission, the page element is reused and gets the new `data`.
 
 The `meta` option of pages and layouts (an object or a function of `params` and `data`) is rendered into `<head>`
 and updated on client navigation:
-
 - keys containing `:` (e.g. `og:image`) are rendered as `property`, others as `name`, `undefined` values are skipped
 - metas of the layouts and the page are merged, inner ones override the same keys,
   e.g. set the site-wide defaults in the root layout
@@ -197,7 +196,8 @@ export default class BlogLayout extends GemElement {
   @property data?: Category[];
 
   @template()
-  #content = () => html`<aside>${this.data?.map(({ name }) => name)}</aside><gemkit-outlet></gemkit-outlet>`;
+  #content = () =>
+    html`<aside>${this.data?.map(({ name }) => name)}</aside><gemkit-outlet></gemkit-outlet>`;
 }
 ```
 

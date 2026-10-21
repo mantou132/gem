@@ -40,7 +40,7 @@ const img = new MyImgElement({ width: 100, height: 100 });
 class MyImgElement extends GemElement {
   @numattribute width: number;
   @numattribute height: number;
-  @property srcObject?:  MediaStream | MediaSource | Blob | File;
+  @property srcObject?: MediaStream | MediaSource | Blob | File;
 
   constructor(options = {}) {
     super();
@@ -138,7 +138,6 @@ class MyElement extends GemElement {
 ```
 
 千万不要使用这种方式，因为他们有很多缺点：
-
 - 根据[ES 语义](https://github.com/tc39/proposal-class-fields#public-fields-created-with-objectdefineproperty)，它将不能工作
 - 能在元素外部覆盖和取消
 
@@ -189,7 +188,7 @@ class MyElement extends GemElement {
         }
       </style>
     `;
-  }
+  };
 }
 ```
 
@@ -252,14 +251,13 @@ class MyElement extends GemElement {
 
   render = () => {
     return html`<div>Focusable</div>`;
-  }
+  };
 }
 ```
 
 > [!NOTE] `delegatesFocus` 或者 `@aria.focusable` 元素当有 `disabled` 属性时会像[原生元素](https://github.com/whatwg/html/issues/5886)一样不会触发 `click` 事件
 
 资源：
-
 - https://w3c.github.io/html-aria
 - https://w3c.github.io/using-aria/
 - https://www.w3.org/WAI/fundamentals/accessibility-principles/

@@ -11,7 +11,6 @@ After installation, open the **Gem** sidebar pane in the browser DevTools **Elem
 ### Inspect elements
 
 Select a Gem element in the Elements panel, and the pane groups its members:
-
 - Observed attributes, properties and stores, adopted styles, and element state
 - Emitters, slots, CSS states, parts, and methods
 - Unobserved attributes and properties, and static class members

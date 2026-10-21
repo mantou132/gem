@@ -10,9 +10,9 @@ Options component provides a list of selectable options with customizable labels
 {
   "style": "width: 240px;",
   "options": [
-    {"label": "Option 1"},
-    {"label": "Option 2"},
-    {"label": "Option 3", "danger": true}
+    { "label": "Option 1" },
+    { "label": "Option 2" },
+    { "label": "Option 3", "danger": true }
   ]
 }
 ```

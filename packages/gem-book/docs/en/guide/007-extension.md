@@ -60,7 +60,6 @@ By default, hash is generated based on the title text field, but sometimes you n
 ## Page regions {#slots}
 
 Use [`<gbp-content>`](../003-plugins.md#gbp-content) in a document to insert content into the regions of the page, the content is removed when leaving the page:
-
 - `nav-inside`: In the navigation bar
 - `sidebar-before`: At the top of the sidebar
 - `main-before`: Before the document
@@ -116,7 +115,15 @@ Or add it to [`plugins`](../002-cli.md#plugins) of the config file as a site-wid
 Bundled plugins (site-wide plugins and local [`<gbp-import>`](../003-plugins.md#gbp-import) modules) can import `gem-book/plugin`, it is available even if `gem-book` is not installed in the project (e.g. using `npx`):
 
 ```ts
-import { adoptedStyle, connectStore, css, customElement, GemElement, html, template } from '@mantou/gem';
+import {
+  adoptedStyle,
+  connectStore,
+  css,
+  customElement,
+  GemElement,
+  html,
+  template,
+} from '@mantou/gem';
 import { bookStore, getGlobal, theme } from 'gem-book/plugin';
 
 const style = css`
@@ -165,7 +172,8 @@ export class MyChangelogElement extends GemElement {
   @mounted()
   #init = async () => {
     const resolved = resolveSrc(this.getAttribute('src') || '');
-    if ('file' in resolved) this.#state({ html: await renderMarkdown(fs.readFileSync(resolved.file, 'utf8')) });
+    if ('file' in resolved)
+      this.#state({ html: await renderMarkdown(fs.readFileSync(resolved.file, 'utf8')) });
   };
 
   @template()

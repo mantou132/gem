@@ -9,11 +9,7 @@
 ```json
 {
   "innerHTML": "<div style=\"display: inline-block; padding: 0.75em 1em; border-radius: 1em; color: #fff; background: #536dfe\">长按我</div>",
-  "menu": [
-    { "label": "复制" },
-    { "label": "收藏" },
-    { "label": "删除", "danger": true }
-  ]
+  "menu": [{ "label": "复制" }, { "label": "收藏" }, { "label": "删除", "danger": true }]
 }
 ```
 

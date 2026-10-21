@@ -5,7 +5,6 @@ DuoyunUI 面向桌面端中后台，而 [TapUI](https://github.com/mantou132/gem
 ## 下沉了什么
 
 近期下沉主要包括：
-
 - **工具与主题**：`lib/*`、`locales/*`、部分 `helper/*`（此前已完成）
 - **基类**：`VisibleBaseElement` / `ResizeBaseElement`（DuoyunUI 仍以原名再导出，兼容旧导入）
 - **列表核心**：无限滚动、虚拟化渲染等放在 `<tap-list>`；`<dy-list>` 继承它，并保留默认的桌面条目渲染（头像、标题、描述等）
@@ -22,7 +21,6 @@ TapUI          基础能力、轻量交互、可复用结构
 ## 定制 UI：Class Token
 
 下沉之后，更理想的定制方式不是复制整份模板，而是：
-
 1. 在 TapUI（或基础实现）里用 `css({})` **暴露 class token**
 2. 在 DuoyunUI（或业务侧）用 **同一 token 作为选择器** 叠加样式
 
@@ -66,7 +64,6 @@ export class DuoyunDemoElement extends TapDemoElement {}
 ```
 
 要点：
-
 - `styles.div` 既是模板里的 **class 名**，也是上层样式表里的 **选择器 key**
 - 上层只声明差异样式；结构与默认行为仍在 TapUI
 - DuoyunUI 适合继续叠加主题色、间距、默认 `renderItem` 等「桌面语义」
@@ -76,7 +73,6 @@ export class DuoyunDemoElement extends TapDemoElement {}
 ## 小结
 
 把基础下沉到 TapUI，是为了：
-
 - 移动端与桌面端共享列表虚拟化、可见性/尺寸观测等基础设施
 - 让 DuoyunUI 专注桌面体验与默认 UI
 - 用 class token 做可组合的样式定制，而不是分叉实现

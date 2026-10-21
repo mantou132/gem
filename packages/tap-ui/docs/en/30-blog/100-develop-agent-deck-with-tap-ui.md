@@ -9,7 +9,6 @@ Building a responsive, native-feeling mobile experience on touch screens and sma
 ## 1. Why TapUI?
 
 When developing mobile web or hybrid apps (via Tauri or Capacitor), developers typically encounter several pain points:
-
 1. **Desktop UI libraries are ill-fitted for mobile**: Controls are too small, and touch gestures or fluid view transitions are absent.
 2. **Heavy frameworks and runtime overhead**: Traditional SPAs carry bulky virtual DOM runtimes that cause dropped frames and input latency on mobile hardware.
 3. **Complex Safe Area adaptation**: Adapting to iOS Home Indicators, Android punch-hole notches, and edge-to-edge system bars usually demands tedious glue code.
@@ -124,7 +123,6 @@ Swiping left smoothly reveals the delete action, springing back into place upon 
 ### `<tap-sheet>` and `Sheet`: Bottom Drawers
 
 On mobile screens, standard modal dialogs can obstruct context. AgentDeck houses complex secondary workflows (MCP tool execution logs, attachment selectors, session details) inside bottom sheets:
-
 - Declarative: Use `<tap-sheet>` combined with `<tap-reflect .target=${document.body}>` to mount at root level.
 - Imperative: Trigger dynamically via `Sheet.open({ content: ... })`.
 
@@ -178,7 +176,6 @@ export const icons = extendIcons({
 ## 6. Practical Mobile Utilities
 
 TapUI also bundles handy utilities in `lib/*` that simplify mobile engineering:
-
 - **`compressionImage`**: Compresses camera photos and gallery screenshots on the client side before uploading them as agent attachments, conserving mobile bandwidth and LLM token usage.
 - **`Time`**: Provides friendly relative time strings ("just now", "5 mins ago", "yesterday").
 - **`loadLocale`**: Handles on-demand dynamic loading of localization dictionaries.

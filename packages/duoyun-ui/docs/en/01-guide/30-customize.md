@@ -3,13 +3,7 @@
 DuoyunUI comes with themes, icons, and texts that can be used in applications:
 
 ```ts
-import {
-  css,
-  adoptedStyle,
-  customElement,
-  GemElement,
-  html,
-} from '@mantou/gem';
+import { css, adoptedStyle, customElement, GemElement, html } from '@mantou/gem';
 import { theme } from 'duoyun-ui/lib/theme';
 import { icons } from 'duoyun-ui/lib/icons';
 import { locale } from 'duoyun-ui/lib/locale';

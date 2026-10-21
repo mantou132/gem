@@ -3,6 +3,8 @@
 GemBook 允许在 Markdown 文件的开头添加 `yaml` 格式（称为 `FrontMatter`）的数据，
 以设置文档在侧边栏和导航栏中的显示方式。例如：
 
+<!-- biome-ignore format: frontmatter in embedded md is not parsed -->
+
 ```md
 ---
 title: 侧边栏标题
@@ -33,7 +35,6 @@ redirect: ./new.md # 如果文档移动或者重命名，可以使用重定向�
 <gbp-raw src="docs/zh/guide/config.yml"></gbp-raw>
 
 另外，文件夹还有两个特殊的设置：
-
 - `reverse`：反向[排序](./001-sort.md)，这在写博客时很有用
 - `groups`：在不修改目录结构的情况下在侧边栏中将多个文件放在一个组内，没有 `title` 的组直接显示其中的文件
 

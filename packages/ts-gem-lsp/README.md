@@ -3,7 +3,6 @@
 [Gem](https://github.com/mantou132/gem) language features for TypeScript 7.
 
 TypeScript 7 (`tsc --lsp`) no longer loads tsserver plugins, so [ts-gem-plugin](../ts-gem-plugin) does not work with it. ts-gem-lsp provides the same features through the TypeScript 7 API:
-
 - **LSP proxy** (`ts-gem-lsp`): starts the project's `tsc --lsp` and adds Gem features to its responses, for Zed and other LSP editors
 - **VS Code middleware**: used by the [VS Code extension](../vscode-gem-plugin) through the TypeScript 7 extension's `registerLspMiddleware`
 - **CLI** (`ts-gem`): runs diagnostics and editor requests from the command line
@@ -33,31 +32,13 @@ The [Gem extension](../../crates/zed-plugin-gem) installs and starts ts-gem-lsp 
 {
   "languages": {
     "TypeScript": {
-      "language_servers": [
-        "ts-gem-lsp",
-        "!gem",
-        "!vtsls",
-        "!typescript-language-server",
-        "..."
-      ]
+      "language_servers": ["ts-gem-lsp", "!gem", "!vtsls", "!typescript-language-server", "..."]
     },
     "TSX": {
-      "language_servers": [
-        "ts-gem-lsp",
-        "!gem",
-        "!vtsls",
-        "!typescript-language-server",
-        "..."
-      ]
+      "language_servers": ["ts-gem-lsp", "!gem", "!vtsls", "!typescript-language-server", "..."]
     },
     "JavaScript": {
-      "language_servers": [
-        "ts-gem-lsp",
-        "!gem",
-        "!vtsls",
-        "!typescript-language-server",
-        "..."
-      ]
+      "language_servers": ["ts-gem-lsp", "!gem", "!vtsls", "!typescript-language-server", "..."]
     }
   },
   "lsp": {

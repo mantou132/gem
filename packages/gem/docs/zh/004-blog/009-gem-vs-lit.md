@@ -36,7 +36,6 @@ class MyButtonElement extends GemElement {
 ```
 
 这带来了两个约定：
-
 - **Attribute 不赋初始值**。因为赋值就是调用 `setAttribute`，元素序列化（例如 `outerHTML`、SSR）时会多出使用者没有写的 Attribute，默认值用 getter 提供，就像 `<input>` 没有 `type` 时表现为 `text` 一样
 - **元素内部不修改自己的 Attribute/Property**。它们是使用者的输入，元素自身的变化用内部状态表达，再通过事件通知外部，参见[创建受控元素](./002-create-controlled-element.md)
 
@@ -156,7 +155,9 @@ class MySwitch extends LitElement {
 
   private toggle(checked: boolean) {
     checked ? this.internals.states.add('checked') : this.internals.states.delete('checked');
-    this.dispatchEvent(new CustomEvent('checked-change', { detail: checked, bubbles: true, composed: true }));
+    this.dispatchEvent(
+      new CustomEvent('checked-change', { detail: checked, bubbles: true, composed: true }),
+    );
   }
 
   render() {
@@ -229,7 +230,11 @@ import { when } from 'lit/directives/when.js';
 
 html`
   <input ${ref(this.inputRef)} />
-  ${when(this.loading, () => html`<my-spinner></my-spinner>`, () => html`<my-list .items=${items}></my-list>`)}
+  ${when(
+    this.loading,
+    () => html`<my-spinner></my-spinner>`,
+    () => html`<my-list .items=${items}></my-list>`,
+  )}
 `;
 ```
 
@@ -277,7 +282,6 @@ Store 只是一个普通对象加一个更新函数，没有 Provider，没有�
 Lit 是编写组件的库，它只负责“定义元素并高效渲染”，状态管理、路由、上下文都交给生态。
 
 Gem 是分层的，既能用最基本的方式编写组件库，又能使用完整方案编写应用：
-
 - **`@mantou/gem/lib/reactive` + `@mantou/gem/lib/decorators`**：反应性元素和装饰器，不包含 lit-html 模板引擎，组件足够简单时可以大幅减少构建尺寸
 - **`@mantou/gem/lib/element`**：加上修改版 lit-html，也就是本文介绍的 `GemElement`
 - **`@mantou/gem`**：再加上路由（`history`）、Store 等编写应用需要的能力

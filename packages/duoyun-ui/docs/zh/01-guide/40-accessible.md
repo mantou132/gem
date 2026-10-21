@@ -26,7 +26,6 @@ DuoyunUI 有部分可访问性支持：元素参考 [ARIA 1.3](https://w3c.githu
 但是 `<dy-modal>` 并不总是具备该特性。
 
 `<dy-modal>` 有两种使用方法：
-
 1. 在渲染模版中直接写 `<dy-modal>`
 2. 使用 `Modal.open` 的静态方法
 

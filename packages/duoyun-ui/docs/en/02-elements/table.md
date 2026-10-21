@@ -12,10 +12,7 @@ A table component that displays data in rows and columns. It supports features l
     { "title": "Name", "dataIndex": "name", "width": "20%" },
     { "title": "Email", "dataIndex": "email", "tooltip": "Tooltip" }
   ],
-  "data": [
-    { "name": "Foo", "email": "foo@bar.com" },
-    { "name": "Bar", "email": "bar@foo.com" }
-  ],
+  "data": [{ "name": "Foo", "email": "foo@bar.com" }, { "name": "Bar", "email": "bar@foo.com" }],
   "selectable": true,
   "@select": "(evt) => evt.target.selection = evt.detail"
 }

@@ -64,7 +64,7 @@ class MyElement extends GemElement {
   @template()
   #content = () => {
     return html`Saving: ${store.savingMode}`;
-  }
+  };
 }
 ```
 

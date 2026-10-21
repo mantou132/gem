@@ -12,9 +12,15 @@ TypeScript 7 does not support tsserver plugins, the extension provides `ts-gem-l
 ```json
 {
   "languages": {
-    "TypeScript": { "language_servers": ["ts-gem-lsp", "!gem", "!vtsls", "!typescript-language-server", "..."] },
-    "TSX": { "language_servers": ["ts-gem-lsp", "!gem", "!vtsls", "!typescript-language-server", "..."] },
-    "JavaScript": { "language_servers": ["ts-gem-lsp", "!gem", "!vtsls", "!typescript-language-server", "..."] }
+    "TypeScript": {
+      "language_servers": ["ts-gem-lsp", "!gem", "!vtsls", "!typescript-language-server", "..."]
+    },
+    "TSX": {
+      "language_servers": ["ts-gem-lsp", "!gem", "!vtsls", "!typescript-language-server", "..."]
+    },
+    "JavaScript": {
+      "language_servers": ["ts-gem-lsp", "!gem", "!vtsls", "!typescript-language-server", "..."]
+    }
   }
 }
 ```

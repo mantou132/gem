@@ -43,7 +43,7 @@ class MyElement extends GemElement {
         <pre>${this.str}</pre>
       </div>
     `;
-  }
+  };
 }
 ```
 
@@ -75,7 +75,7 @@ class MyElement extends GemElement {
     return html`
       <div ${this.#divRef} @click=${() => this.#state({ count: count++ })}>${count}</div>
     `;
-  }
+  };
 }
 ```
 
@@ -117,7 +117,7 @@ class MyElement extends GemElement {
   @effect(() => [])
   log = () => {
     console.log('mounted!');
-  }
+  };
 
   render = () => {
     return html`
@@ -126,7 +126,7 @@ class MyElement extends GemElement {
         <pre>${this.str}</pre>
       </div>
     `;
-  }
+  };
 }
 ```
 
@@ -164,7 +164,7 @@ const styles = css({
 class MyElement extends GemElement {
   render = () => {
     return html`<div class=${styles.title}></div>`;
-  }
+  };
 }
 ```
 

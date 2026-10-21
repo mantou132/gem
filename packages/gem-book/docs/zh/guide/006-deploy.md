@@ -1,7 +1,6 @@
 # 部署
 
 使用 `npx gem-book build docs` 将网站构建到 `dist/web`，然后为该目录提供静态服务即可，不需要配置重写规则：
-
 - 每个页面都预渲染成自己的 `index.html`，例如 `dist/web/guide/index.html`
 - `404.html` 是找不到路径时的页面，GitHub Pages、Netlify、Vercel 等会自动使用
 - [重定向](./004-metadata.md)是使用 `<meta http-equiv="refresh">` 跳转的页面

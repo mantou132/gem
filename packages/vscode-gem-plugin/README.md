@@ -1,7 +1,6 @@
 # Gem for VSCode
 
 Improve the development experience of writing [Gem](https://github.com/mantou132/gem) elements:
-
 - Inline HTML/CSS/Style support
   - Basic functional support, just like developing in `.html`/`.css` files
   - Custom element support

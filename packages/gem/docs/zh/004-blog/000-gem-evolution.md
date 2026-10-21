@@ -54,7 +54,6 @@ customElements.define('my-element', MyElement);
 ## JS 实现
 
 基于上述思路，可以编写一个[完整](https://github.com/mantou132/mt-music-player/blob/master/fe/lib/component.js)的 `Component` 基类，基于原生[生命周期](https://developer.mozilla.org/en-US/docs/Web/Web_Components/Using_custom_elements#Using_the_lifecycle_callbacks)定义了下列生命周期：
-
 - willMount
 - render
 - mounted

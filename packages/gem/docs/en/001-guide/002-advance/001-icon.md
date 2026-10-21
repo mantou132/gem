@@ -32,7 +32,7 @@ class MyElement extends GemElement {
       <g-icon>home</g-icon>
       <g-icon>menu</g-icon>
     `;
-  }
+  };
 }
 ```
 
@@ -102,7 +102,6 @@ render(
 > [!NOTE] `<gem-use>` since the content is copied for rendering, the update of `<svg>` cannot update the original `<gem-use>` instance
 
 There are many open source icon libraries that can be used directly in your projects:
-
 - [Lucide](https://lucide.dev/)
 - [Radix](https://github.com/radix-ui/icons)
 - [Feather](https://github.com/feathericons/feather)

@@ -31,12 +31,12 @@ class MyElement extends GemElement {
   @memo((myElement) => [myElement.name])
   #calcContent = () => {
     this.#content = this.name;
-  }
+  };
 
   @effect((myElement) => [myElement.name])
   #fetchData = () => {
     // request
-  }
+  };
 }
 ```
 
@@ -55,7 +55,7 @@ class MyElement extends GemElement {
   render = () => {
     this.#state({ a: false });
     console.log(this.#state.a);
-  }
+  };
 }
 ```
 
@@ -68,14 +68,13 @@ class MyElement extends GemElement {
 
   render = () => {
     return html`<input ${this.#input} />`;
-  }
+  };
 }
 ```
 
 ## Default Use of Light DOM
 
 One reason Gem uses Shadow DOM is for style isolation, allowing users to write "modular" CSS directly. However, there are some drawbacks to using Shadow DOM for WebApp development:
-
 - Cannot use SVG symbols
 - URL Hash is ineffective
 - `document.activeElement` is ineffective

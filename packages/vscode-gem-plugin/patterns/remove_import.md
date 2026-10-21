@@ -14,7 +14,6 @@ or {
     },
     $import_clause <: not contains `$_`
   } => .,
-
   `import { $named_imports } from "@mantou/gem"` where {
     $named_imports <: maybe some bubble or {
       `type $import`,
@@ -28,7 +27,6 @@ or {
         `html`,
         `mathml`,
         `svg`,
-
         `aria`,
         `async`,
         `shadow`,
@@ -36,10 +34,8 @@ or {
         `adoptedStyle`,
         `connectStore`,
         `customElement`,
-
         `part`,
         `slot`,
-
         `attribute`,
         `numattribute`,
         `boolattribute`,
@@ -47,7 +43,6 @@ or {
         `emitter`,
         `globalemitter`,
         `state`,
-
         `effect`,
         `memo`,
         `willMount`,
@@ -55,45 +50,43 @@ or {
         `unmounted`,
         `template`,
         `fallback`,
-
         `createRef`,
         `createState`,
         `createStore`,
-
         `raw`,
         `styled`,
         `styleMap`,
         `classMap`,
         `partMap`,
-        `exportPartsMap`,
+        `exportPartsMap`
       },
-      $import_item => .,
+      $import_item => .
     }
-  },
+  }
 }
 ```
 
 ## Test case: element import
 
 ```js
-import { GemLinkElement } from "@mantou/gem/elements/link";
-import "@mantou/gem/elements/link";
+import { GemLinkElement } from '@mantou/gem/elements/link';
+import '@mantou/gem/elements/link';
 
 html`<gem-link></gem-link>`;
 ```
 
 ```js
-import { GemLinkElement } from "@mantou/gem/elements/link";
+import { GemLinkElement } from '@mantou/gem/elements/link';
 
-html`<gem-link></gem-link>`
+html`<gem-link></gem-link>`;
 ```
 
 ## Test case: member import
 
 ```js
-import { html, css, xx } from "@mantou/gem";
+import { html, css, xx } from '@mantou/gem';
 ```
 
 ```js
-import { xx } from "@mantou/gem";
+import { xx } from '@mantou/gem';
 ```

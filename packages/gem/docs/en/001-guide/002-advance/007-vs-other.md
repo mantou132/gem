@@ -5,7 +5,6 @@ Gem is a library for building applications and reusable elements on the Web Comp
 ## From a small element to a complete app
 
 Gem is layered, so you can use only the capabilities a project needs:
-
 - **Lightweight custom element wrappers**: combine `@mantou/gem/lib/reactive` with `@mantou/gem/lib/decorators` without the lit-html template engine. For simple elements, update the DOM directly and keep the bundle smaller.
 - **Reusable components and UI libraries**: use `@mantou/gem/lib/element` for `GemElement` and its template engine. These remain standard custom elements; [gem-port](https://github.com/mantou132/gem/tree/main/packages/gem-port) can generate React, Vue, and Svelte wrapper components.
 - **Complete apps**: `@mantou/gem` adds app capabilities such as routing, history, and Store. Add [gemkit](https://github.com/mantou132/gem/tree/main/packages/gemkit) when you need an app framework with file-based routing, layouts, page data, and prerendering; [gem-ssr](https://github.com/mantou132/gem/tree/main/packages/gem-ssr) provides the SSR primitives.

@@ -9,11 +9,7 @@ A radio button component that allows users to select a single option from a grou
 ```json
 {
   "orientation": "vertical",
-  "options": [
-    {"label": "Option 1"},
-    {"label": "Option 2"},
-    {"label": "Option 3"}
-  ],
+  "options": [{ "label": "Option 1" }, { "label": "Option 2" }, { "label": "Option 3" }],
   "value": "Option 1",
   "@change": "(evt) => evt.currentTarget.value = evt.detail"
 }

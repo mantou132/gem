@@ -33,14 +33,14 @@ In imperative calls, it is common to configure properties in constructor argumen
 const img = new MyImgElement({ width: 100, height: 100 });
 ```
 
-To avoid static `attribute` defined in the declarative form being overwritten in the constructor, you should *only* set the passed attributes in the constructor:
+To avoid static `attribute` defined in the declarative form being overwritten in the constructor, you should _only_ set the passed attributes in the constructor:
 
 ```ts 9-10
 @customElement('my-img')
 class MyImgElement extends GemElement {
   @numattribute width: number;
   @numattribute height: number;
-  @property srcObject?:  MediaStream | MediaSource | Blob | File;
+  @property srcObject?: MediaStream | MediaSource | Blob | File;
 
   constructor(options = {}) {
     super();
@@ -137,7 +137,6 @@ class MyElement extends GemElement {
 ```
 
 Never use this method, because they have many disadvantages:
-
 - According to [ES Semantics](https://github.com/tc39/proposal-class-fields#public-fields-created-with-objectdefineproperty), it will not work
 - Can be overridden and cancelled outside the element
 
@@ -188,7 +187,7 @@ class MyElement extends GemElement {
         }
       </style>
     `;
-  }
+  };
 }
 ```
 
@@ -251,14 +250,13 @@ class MyElement extends GemElement {
 
   render = () => {
     return html`<div>Focusable</div>`;
-  }
+  };
 }
 ```
 
 > [!NOTE] `delegatesFocus` or `@aria.focusable` elements with the `disabled` attribute will not trigger the `click` event just like [native elements](https://github.com/whatwg/html/issues/5886).
 >
 > Resources:
-
 - https://w3c.github.io/html-aria
 - https://w3c.github.io/using-aria/
 - https://www.w3.org/WAI/fundamentals/accessibility-principles/

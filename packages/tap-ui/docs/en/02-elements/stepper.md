@@ -9,8 +9,20 @@ Stepper component. Based on number input, allows users to increase or decrease v
 ```json
 [
   { "value": 1, "@change": "(evt) => (evt.target.value = evt.detail)" },
-  { "value": 5, "min": 1, "max": 10, "step": 1, "@change": "(evt) => (evt.target.value = evt.detail)" },
-  { "value": 0.5, "step": 0.1, "min": 0, "max": 1, "@change": "(evt) => (evt.target.value = evt.detail)" },
+  {
+    "value": 5,
+    "min": 1,
+    "max": 10,
+    "step": 1,
+    "@change": "(evt) => (evt.target.value = evt.detail)"
+  },
+  {
+    "value": 0.5,
+    "step": 0.1,
+    "min": 0,
+    "max": 1,
+    "@change": "(evt) => (evt.target.value = evt.detail)"
+  },
   { "value": 2, "disableinput": true, "@change": "(evt) => (evt.target.value = evt.detail)" },
   { "value": 1, "disabled": true }
 ]

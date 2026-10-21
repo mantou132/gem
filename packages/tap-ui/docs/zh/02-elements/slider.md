@@ -7,11 +7,7 @@
 <gbp-example name="tap-slider" src="https://esm.sh/@mantou/tap-ui/elements/slider">
 
 ```json
-[
-  { "value": 30 },
-  { "value": 60, "editable": true },
-  { "value": 40, "disabled": true }
-]
+[{ "value": 30 }, { "value": 60, "editable": true }, { "value": 40, "disabled": true }]
 ```
 
 </gbp-example>

@@ -1,7 +1,6 @@
 # 主题
 
 [CSS 变量](https://developer.mozilla.org/en-US/docs/Web/CSS/--*) 能轻松实现主题。使用 Gem 提供的主题模块将有更多当优势：
-
 - TypeScript 集成
 - 防止多个主题 CSS 自定义属性名冲突
 - 可观察的 `ThemeStore` 对象
@@ -61,7 +60,7 @@ class App extends GemElement {
     return html`
       <div>primaryColor: ${themeStore.primaryColor}</div>
     `;
-  }
+  };
 }
 ```
 
@@ -80,7 +79,9 @@ const darkTheme = {
   primaryColor: '#eee',
 };
 
-const theme = createTheme(matchMedia('(prefers-color-scheme: dark)').matches ? darkTheme : lightTheme);
+const theme = createTheme(
+  matchMedia('(prefers-color-scheme: dark)').matches ? darkTheme : lightTheme,
+);
 
 const styles = css`
   div {

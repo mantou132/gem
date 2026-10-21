@@ -3,7 +3,6 @@
 [Most frontend frameworks/libraries](https://custom-elements-everywhere.com/) can seamlessly use custom elements, such as assigning Attributes/Properties and registering events.
 However, directly using custom elements lacks [type hints](https://code.visualstudio.com/docs/editor/intellisense), so DuoyunUI exports components for React/Vue/Svelte,
 with the same import and usage in all three frameworks:
-
 - Import components from `duoyun-ui/<react|vue|svelte>/<element>`, e.g. `import { DyInput } from 'duoyun-ui/react/input'`
 - Events use `on` + camelCase event name, e.g. `onChange` (`@change` in Vue)
 - The component `ref` can call the element's methods and getters
@@ -133,7 +132,6 @@ To use custom elements directly, you need to specify them in the Vue configurati
 
 DuoyunUI doesn't support SSR, or more precisely, Next/Nuxt/Svelte don't support custom element SSR. The ShadowDOM of custom elements is generated at runtime.
 To make it work correctly on the server side, import `@mantou/gem/helper/ssr-shim` at the entry point of your frontend code:
-
 - Next.js: `pages/_app.tsx`
 - SvelteKit: `src/hooks.server.ts`
 - Nuxt.js: `plugins/ssr-shim.server.ts`

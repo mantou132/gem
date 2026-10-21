@@ -1,7 +1,6 @@
 # DuoyunUI Patterns
 
 DuoyunUI provides some complex elements, typically composed of multiple DuoyunUI elements. Using them can quickly fulfill specific requirements, such as creating a landing page or admin console. They have some unique characteristics:
-
 - Element names are in the format `<dy-pat-*>`
 - Element class names are in the format `DyPat*Element`
 

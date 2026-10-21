@@ -1,7 +1,6 @@
 # 使用模式创建 CRUD 应用
 
 DuoyunUI 的[模式元素](../01-guide/55-pattern.md)和帮助模块能让你快速创建一个 CRUD 应用（[示例](https://examples.gemjs.org/console/)，[React 示例](https://stackblitz.com/edit/stackblitz-starters-vyqlvr?file=src%2Findex.tsx&view=editor)），这篇文章将使用：
-
 - `<dy-pat-console>` 创建 App 基本布局
 - `<dy-pat-table>` 创建表格页面
 - `helper/store` 创建分页数据管理器
@@ -408,7 +407,7 @@ html`
 
 <DyPatTable filterable={true} columns={columns} data={data}>
   <DyButton onClick={onCreate}>Create</DyButton>
-</DyPatTable>
+</DyPatTable>;
 ```
 
 </gbp-code-group>
@@ -445,7 +444,7 @@ html`
   onfetch={onFetch}
 >
   <DyButton onClick={onCreate}>Create</DyButton>
-</DyPatTable>
+</DyPatTable>;
 ```
 
 </gbp-code-group>
@@ -481,8 +480,8 @@ const onFetch = ({ detail }: CustomEvent<FetchEventDetail>) => {
 
 <details>
   <summary>优化搜索结果展示（可选）</summary>
-  
-  当在有搜索词和无搜索词之间切换时，页面不能立刻切换到新列表，可以为搜索词分配独立的 `pagination`：
+
+当在有搜索词和无搜索词之间切换时，页面不能立刻切换到新列表，可以为搜索词分配独立的 `pagination`：
 
 ```ts
 @customElement('console-page-item')

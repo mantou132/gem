@@ -12,17 +12,7 @@ See [`<dy-area-chart>`](./area-chart.md)
 {
   "style": "width: 100%",
   "aspectRatio": 5,
-  "values": [
-    [1, 8],
-    [2, 2],
-    [3, 6],
-    [4, 7],
-    [5, 5],
-    [6, 3],
-    [7, 4],
-    [8, 1],
-    [9, 9]
-  ],
+  "values": [[1, 8], [2, 2], [3, 6], [4, 7], [5, 5], [6, 3], [7, 4], [8, 1], [9, 9]],
   "@change": "({ target, detail }) => target.value = detail",
   "value": [0, 1]
 }

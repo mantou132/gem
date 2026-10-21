@@ -5,7 +5,6 @@ DuoyunUI targets desktop admin UIs, while [TapUI](https://github.com/mantou132/g
 ## What Moved Down
 
 Recent sinks include:
-
 - **Utilities & theme**: `lib/*`, `locales/*`, parts of `helper/*` (earlier)
 - **Base classes**: visible / resize bases (still re-exported under the old `Duoyun*` names)
 - **List core**: infinite scroll and virtualization live in `<tap-list>`; `<dy-list>` extends it and keeps the default desktop item render (avatar, title, description)
@@ -22,7 +21,6 @@ Apps can keep importing from `duoyun-ui`; it depends on `@mantou/tap-ui` underne
 ## Customizing UI: Class Tokens
 
 After the sink, prefer composing styles over forking templates:
-
 1. Expose **class tokens** with `css({})` in TapUI (or the base implementation)
 2. In DuoyunUI (or your app), target the **same token** to layer styles
 
@@ -66,7 +64,6 @@ export class DuoyunDemoElement extends TapDemoElement {}
 ```
 
 Notes:
-
 - `styles.div` is both the **class name** in the template and the **selector key** in the override sheet
 - The upper layer only adds diffs; structure and default behavior stay in TapUI
 - DuoyunUI remains the place for theme colors, spacing, and desktop defaults like `renderItem`
@@ -76,7 +73,6 @@ That is also the intended direction for components such as `<dy-list>`: interact
 ## Summary
 
 Sinking foundations into TapUI aims to:
-
 - Share virtualization, visibility/resize observers, and other infra across mobile and desktop
 - Keep DuoyunUI focused on desktop experience and defaults
 - Customize with composable class tokens instead of forked implementations

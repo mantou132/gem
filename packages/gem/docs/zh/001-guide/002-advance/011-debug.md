@@ -11,7 +11,6 @@ GemElement 是标准的自定义元素，能在浏览器 DevTools 中检查和�
 ### 检查元素
 
 在 Elements 面板中选中 Gem 元素后，侧边栏会分类显示它的成员：
-
 - 被观察的 Attribute、Property、Store，挂载的样式和元素状态
 - Emitter、Slot、CSS 状态、Part 和方法
 - 未被观察的 Attribute、Property，以及类的静态成员

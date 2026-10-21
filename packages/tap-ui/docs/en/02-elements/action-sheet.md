@@ -36,11 +36,11 @@ await ActionSheet.open({
     {
       actions: [
         { label: 'Copy Link', onClick: () => console.log('copy') },
-        { label: 'Delete', danger: true, onClick: () => console.log('delete') }
-      ]
-    }
+        { label: 'Delete', danger: true, onClick: () => console.log('delete') },
+      ],
+    },
   ],
-  cancel: true
+  cancel: true,
 });
 ```
 

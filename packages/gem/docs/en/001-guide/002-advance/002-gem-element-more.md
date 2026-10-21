@@ -20,11 +20,11 @@ class MyElement extends GemElement {
   @template()
   #content = () => {
     return html`<input ${this.#inputRef} />`;
-  }
+  };
 
   focus = () => {
     this.#inputRef.value.focus();
-  }
+  };
 }
 ```
 
@@ -35,10 +35,10 @@ Sometimes, when passing properties to an element through parameters, a lot of re
 ```js
 const { prop1, prop2, prop3 } = props;
 
-html`<my-element .prop1=${prop1} .prop2=${prop2} .prop3=${prop3}></my-element>`
+html`<my-element .prop1=${prop1} .prop2=${prop2} .prop3=${prop3}></my-element>`;
 ```
 
-Gem supports rest properties, similar to React: 
+Gem supports rest properties, similar to React:
 
 ```js
 html`<my-element ${...props}></my-element>`
@@ -49,7 +49,7 @@ html`<my-element ${...props}></my-element>`
 In development, conditional rendering is often encountered, and it is usually written like this:
 
 ```js
-html`${isA ? html`<div>a</div>` : isB ? html`<div>b</div>` : html`<div>c</div>`}`
+html`${isA ? html`<div>a</div>` : isB ? html`<div>b</div>` : html`<div>c</div>`}`;
 ```
 
 This has low readability, so Gem supports v-if, resembling Vue:
@@ -59,12 +59,12 @@ html`
   <div v-if=${isA}>a</div>
   <div v-else-if=${isB}>b</div>
   <div v-else>c</div>
-`
+`;
 ```
 
 > [!NOTE]
 > Compared to the original approach, using v-if incurs a slight performance loss during element initialization, as those elements that will not render will still have their parameters parsed and created.
-     
+
 
 ## Custom event
 
@@ -80,7 +80,7 @@ class MyElement extends GemElement {
   @template()
   #content = () => {
     return html`<input @change=${(e) => this.valueChange(e.target.value)} />`;
-  }
+  };
 }
 ```
 
@@ -127,13 +127,13 @@ export class App extends GemElement {
   #content = () => {
     const { visible, height } = this.#state;
     return html`
-      <button @click=${() => this.#state({ visible: !visible})}>
+      <button @click=${() => this.#state({ visible: !visible })}>
         ${visible ? 'hidden' : 'show'}
       </button>
       <div>${height}</div>
       <textarea v-if=${visible} ${this.#ref}></textarea>
     `;
-  }
+  };
 }
 ```
 
@@ -146,7 +146,7 @@ export function resizeEffect(callback) {
     });
     ro.observe(ele, {});
     return () => ro.disconnect();
-  }
+  };
 }
 ```
 

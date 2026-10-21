@@ -7,11 +7,7 @@
 <gbp-example name="tap-rate" src="https://esm.sh/@mantou/tap-ui/elements/rate">
 
 ```json
-[
-  { "value": 3 },
-  { "value": 4 },
-  { "value": 5, "disabled": true }
-]
+[{ "value": 3 }, { "value": 4 }, { "value": 5, "disabled": true }]
 ```
 
 </gbp-example>

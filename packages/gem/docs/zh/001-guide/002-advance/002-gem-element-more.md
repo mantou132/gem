@@ -21,11 +21,11 @@ class MyElement extends GemElement {
   @template()
   #content = () => {
     return html`<input ${this.#inputRef} />`;
-  }
+  };
 
   focus = () => {
     this.#inputRef.value.focus();
-  }
+  };
 }
 ```
 
@@ -36,7 +36,7 @@ class MyElement extends GemElement {
 ```js
 const { prop1, prop2, prop3 } = props;
 
-html`<my-element .prop1=${prop1} .prop2=${prop2} .prop3=${prop3}></my-element>`
+html`<my-element .prop1=${prop1} .prop2=${prop2} .prop3=${prop3}></my-element>`;
 ```
 
 Gem 支持剩余属性，写法类似 React：
@@ -50,7 +50,7 @@ html`<my-element ${...props}></my-element>`
 开发中经常会遇到条件渲染，一般会这样写：
 
 ```js
-html`${isA ? html`<div>a</div>` : isB ? html`<div>b</div>` : html`<div>c</div>`}`
+html`${isA ? html`<div>a</div>` : isB ? html`<div>b</div>` : html`<div>c</div>`}`;
 ```
 
 这样的可读性很低，所以 Gem 支持了 `v-if`，写法类似 Vue：
@@ -60,7 +60,7 @@ html`
   <div v-if=${isA}>a</div>
   <div v-else-if=${isB}>b</div>
   <div v-else>c</div>
-`
+`;
 ```
 
 > [!NOTE]
@@ -81,7 +81,7 @@ class MyElement extends GemElement {
   @template()
   #content = () => {
     return html`<input @change=${(e) => this.valueChange(e.target.value)} />`;
-  }
+  };
 }
 ```
 
@@ -129,13 +129,13 @@ export class App extends GemElement {
   #content = () => {
     const { visible, height } = this.#state;
     return html`
-      <button @click=${() => this.#state({ visible: !visible})}>
+      <button @click=${() => this.#state({ visible: !visible })}>
         ${visible ? 'hidden' : 'show'}
       </button>
       <div>${height}</div>
       <textarea v-if=${visible} ${this.#ref}></textarea>
     `;
-  }
+  };
 }
 ```
 
@@ -148,7 +148,7 @@ export function resizeEffect(callback) {
     });
     ro.observe(ele, {});
     return () => ro.disconnect();
-  }
+  };
 }
 ```
 

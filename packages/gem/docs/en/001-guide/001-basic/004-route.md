@@ -15,7 +15,7 @@ class App extends GemElement {
   @template()
   #content = () => {
     return html`${history.getParams().path}`;
-  }
+  };
 }
 ```
 
@@ -41,7 +41,7 @@ class App extends GemElement {
         <gem-route .routes=${routes}></gem-route>
       </main>
     `;
-  }
+  };
 }
 ```
 

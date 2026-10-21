@@ -34,4 +34,4 @@ A radar chart (also known as spider or star chart) displays multivariate data in
 
 ## API
 
-<gbp-api src="/src/elements/radar-chart.ts"></gbp-api> 
+<gbp-api src="/src/elements/radar-chart.ts"></gbp-api>

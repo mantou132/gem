@@ -32,7 +32,7 @@ class MyElement extends GemElement {
       <g-icon>home</g-icon>
       <g-icon>menu</g-icon>
     `;
-  }
+  };
 }
 ```
 
@@ -102,7 +102,6 @@ render(
 > [!NOTE] `<gem-use>` 由于是复制内容进行渲染，所以 `<svg>` 更新不能同步更新原先的 `<gem-use>` 实例
 
 有许多开源图标库可以直接在你的项目中使用：
-
 - [Lucide](https://lucide.dev/)
 - [Radix](https://github.com/radix-ui/icons)
 - [Feather](https://github.com/feathericons/feather)

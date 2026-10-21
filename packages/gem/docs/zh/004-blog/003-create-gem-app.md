@@ -77,7 +77,6 @@ const proxy = {
 ## 其他模版
 
 `create-gem-app` 默认使用 [`gem-boilerplate`](https://github.com/mantou132/gem-boilerplate) 作为模版，实际上，它还支持其他使用 Gem 的模版：
-
 - `lib`: 适用于搭建基于 `GemElement` 的 UI 库
 - `wasm`: 使用于搭建应用了 Rust/WebAssembly 的自定义元素库
 

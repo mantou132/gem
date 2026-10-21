@@ -7,11 +7,7 @@
 <gbp-example name="tap-empty" src="https://esm.sh/@mantou/tap-ui/elements/empty">
 
 ```json
-[
-  {},
-  { "text": "暂无搜索结果" },
-  { "text": "购物车空空如也" }
-]
+[{}, { "text": "暂无搜索结果" }, { "text": "购物车空空如也" }]
 ```
 
 </gbp-example>

@@ -1,7 +1,6 @@
 # 创建受控元素
 
 在 React 中，表单元素默认是[受控](https://reactjs.org/docs/forms.html#controlled-components)的，需要使用组件传递数据给表单元素以修改表单元素的值，这有许多的好处：
-
 - 单一数据来源
 - 渲染前处理用户输入
 
@@ -14,16 +13,15 @@ class FormTextElement extends GemElement {
 
   render = () => {
     return html`<input ${this.#inputRef} value="defaultValue" />`;
-  }
+  };
 
   submit = () => {
     return fetch('/', { body: this.#inputRef.value!.value });
-  }
+  };
 }
 ```
 
 你可以利用 [`input` 事件](https://developer.mozilla.org/en-US/docs/Web/API/HTMLElement/input_event) 自行创建受控表单元素：
-
 1. 监听 `input` 事件，储存新值
 
    ```ts
@@ -111,7 +109,7 @@ class FormElement extends GemElement {
 
   render = () => {
     return html`<form-text value=${this.#state.value} @change=${this.#changeHandle}></form-text>`;
-  }
+  };
 
   submit = () => {
     fetch('/', { body: this.#state.value });

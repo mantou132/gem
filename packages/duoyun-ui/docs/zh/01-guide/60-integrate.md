@@ -3,7 +3,6 @@
 [大多数前端框架/库](https://custom-elements-everywhere.com/)都能无缝使用自定义元素，比如分配 Attribute/Property，注册事件，
 但是直接使用自定义元素没有[类型提示](https://code.visualstudio.com/docs/editor/intellisense)，所以 DuoyunUI 为 React/Vue/Svelte 分别导出了组件，
 导入和使用方式在三个框架中保持一致：
-
 - 从 `duoyun-ui/<react|vue|svelte>/<element>` 导入组件，例如 `import { DyInput } from 'duoyun-ui/react/input'`
 - 事件使用 `on` + 驼峰事件名，例如 `onChange`（Vue 中为 `@change`）
 - 组件 `ref` 可以调用元素的方法和 getter
@@ -133,7 +132,6 @@ const picker = useTemplateRef('picker');
 
 DuoyunUI 不支持 SSR，确切的说是 Next/Nuxt/Svelte 不支持自定义元素 SSR，自定义元素的 ShadowDOM 是运行时生成，
 为了能在服务端正确运行，在前端代码的入口位置导入 `@mantou/gem/helper/ssr-shim`：
-
 - Next.js: `pages/_app.tsx`
 - SvelteKit: `src/hooks.server.ts`
 - Nuxt.js: `plugins/ssr-shim.server.ts`

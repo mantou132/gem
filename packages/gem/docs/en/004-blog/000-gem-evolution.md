@@ -54,7 +54,6 @@ In addition to `observedProperties`, it also defines the `observedStores` static
 ## JS implementation
 
 Based on the above ideas, you can write a [complete](https://github.com/mantou132/mt-music-player/blob/master/fe/lib/component.js) `Component` base class, based on the native [Life Cycle](https://developer.mozilla.org/en-US/docs/Web/Web_Components/Using_custom_elements#Using_the_lifecycle_callbacks) defines the following life cycles:
-
 - willMount
 - render
 - mounted

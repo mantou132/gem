@@ -1,7 +1,6 @@
 # Create controlled elements
 
 In React, form elements are [controlled](https://reactjs.org/docs/forms.html#controlled-components) by default, and components need to be used to pass data to form elements to modify the value of form elements. Many benefits:
-
 - Single source of data
 - Process user input before rendering
 
@@ -14,16 +13,15 @@ class FormTextElement extends GemElement {
 
   render = () => {
     return html`<input ${this.#inputRef} value="defaultValue" />`;
-  }
+  };
 
   submit = () => {
     return fetch('/', { body: this.#inputRef.value!.value });
-  }
+  };
 }
 ```
 
 You can use [`input` event](https://developer.mozilla.org/en-US/docs/Web/API/HTMLElement/input_event) to create controlled form elements yourself:
-
 1. Listen to the `input` event and store the new value
 
    ```ts
@@ -111,7 +109,7 @@ class FormElement extends GemElement {
 
   render = () => {
     return html`<form-text value=${this.#state.value} @change=${this.#changeHandle}></form-text>`;
-  }
+  };
 
   submit = () => {
     fetch('/', { body: this.#state.value });

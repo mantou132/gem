@@ -10,7 +10,12 @@ PIN 码 / 验证码（OTP）输入组件。专为移动端设计的定长字符�
 [
   { "length": 6, "@change": "(evt) => (evt.target.value = evt.detail)" },
   { "length": 4, "mask": true, "@change": "(evt) => (evt.target.value = evt.detail)" },
-  { "length": 6, "variant": "joint", "mask": true, "@change": "(evt) => (evt.target.value = evt.detail)" },
+  {
+    "length": 6,
+    "variant": "joint",
+    "mask": true,
+    "@change": "(evt) => (evt.target.value = evt.detail)"
+  },
   { "length": 4, "variant": "underline", "@change": "(evt) => (evt.target.value = evt.detail)" },
   { "length": 4, "error": true, "value": "1234" },
   { "length": 4, "disabled": true, "value": "12" }

@@ -13,7 +13,6 @@ When switching routes, components are not unloaded immediately, but a progress b
 This way, we won't see a white screen and improve the user experience.
 
 After adopting this strategy, two points need to be paid attention to:
-
 1. The old page will not be unloaded immediately, when the URL changes, old pages may respond to URL changes by reading the wrong URL parameters
 2. If the network speed is a bit slow, when switching routes multiple times in a row, it is necessary to ensure that the final correct page is rendered.
 3. The scroll bar position should be reset after a new page is loaded. The scroll bar position should be restored after using the browser "Forward" and "Back".

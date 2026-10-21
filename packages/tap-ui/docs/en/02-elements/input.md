@@ -9,7 +9,12 @@ Text input component. Supports clear button, various input types (password, numb
 ```json
 [
   { "placeholder": "Please enter text...", "clearable": true },
-  { "type": "password", "placeholder": "Please enter password...", "value": "123456", "clearable": true },
+  {
+    "type": "password",
+    "placeholder": "Please enter password...",
+    "value": "123456",
+    "clearable": true
+  },
   { "type": "textarea", "placeholder": "Multi-line text input...", "rows": 3 },
   { "placeholder": "Disabled input", "disabled": true, "value": "Disabled" }
 ]

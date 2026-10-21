@@ -60,7 +60,6 @@ GemBook 在服务端使用 [`marked`](https://github.com/markedjs/marked) 渲染
 ## 页面区域 {#slots}
 
 在文档中使用 [`<gbp-content>`](../003-plugins.md#gbp-content) 可以将内容插入到页面的区域中，离开页面时移除：
-
 - `nav-inside`：导航栏中
 - `sidebar-before`：侧边栏顶部
 - `main-before`：文档前面
@@ -116,7 +115,15 @@ GemBook 使用自定义元素作为插件系统，[内置插件](../003-plugins.
 打包的插件（全站插件和本地的 [`<gbp-import>`](../003-plugins.md#gbp-import) 模块）可以导入 `gem-book/plugin`，项目中没有安装 `gem-book` 时也可以使用（例如使用 `npx`）：
 
 ```ts
-import { adoptedStyle, connectStore, css, customElement, GemElement, html, template } from '@mantou/gem';
+import {
+  adoptedStyle,
+  connectStore,
+  css,
+  customElement,
+  GemElement,
+  html,
+  template,
+} from '@mantou/gem';
 import { bookStore, getGlobal, theme } from 'gem-book/plugin';
 
 const style = css`
@@ -165,7 +172,8 @@ export class MyChangelogElement extends GemElement {
   @mounted()
   #init = async () => {
     const resolved = resolveSrc(this.getAttribute('src') || '');
-    if ('file' in resolved) this.#state({ html: await renderMarkdown(fs.readFileSync(resolved.file, 'utf8')) });
+    if ('file' in resolved)
+      this.#state({ html: await renderMarkdown(fs.readFileSync(resolved.file, 'utf8')) });
   };
 
   @template()

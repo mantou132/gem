@@ -39,17 +39,15 @@ DuoyunUI 支持以 ESM 的方法独立使用某一个元素，例如为你的网
 
 ```ts
 import('https://esm.sh/duoyun-ui/elements/keyboard-access').then(
-  ({ DuoyunKeyboardAccessElement }) =>
-    document.body.append(new DuoyunKeyboardAccessElement()),
+  ({ DuoyunKeyboardAccessElement }) => document.body.append(new DuoyunKeyboardAccessElement()),
 );
 ```
 
 例如启用录屏模式：
 
 ```ts
-import('https://esm.sh/duoyun-ui/elements/input-capture').then(
-  ({ DuoyunInputCaptureElement }) =>
-    document.body.append(new DuoyunInputCaptureElement()),
+import('https://esm.sh/duoyun-ui/elements/input-capture').then(({ DuoyunInputCaptureElement }) =>
+  document.body.append(new DuoyunInputCaptureElement()),
 );
 ```
 

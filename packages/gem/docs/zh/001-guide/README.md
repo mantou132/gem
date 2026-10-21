@@ -34,7 +34,7 @@ class MyElement extends GemElement {
   @template()
   #content = () => {
     return html`<h1>Hello Gem</h1>`;
-  }
+  };
 }
 ```
 

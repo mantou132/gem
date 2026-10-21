@@ -11,7 +11,7 @@
     "prepare": "husky install && pnpm prepare:build && pnpm prepare:link"
   },
   "devDependencies": {
-    "@biomejs/biome": "^2.2.6",
+    "@biomejs/biome": "^2.6.2",
     "@types/node": "^22.13.10",
     "@typescript/native-preview": "^7.0.0-dev.20250610.1",
     "concurrently": "^8.2.2",
@@ -23,7 +23,7 @@
     "typescript": "^5.6.2"
   },
   "lint-staged": {
-    "*.ts": "biome check --write"
+    "*": "biome check --write --no-errors-on-unmatched --files-ignore-unknown=true"
   },
   "packageManager": "pnpm@10.33.2",
   "pnpm": {

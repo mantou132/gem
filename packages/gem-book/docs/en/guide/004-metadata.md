@@ -3,6 +3,8 @@
 GemBook allows adding data in `yaml` format (called `FrontMatter`) at the beginning of the Markdown file,
 to set how documents appear in the sidebar and navigation bar. For example:
 
+<!-- biome-ignore format: frontmatter in embedded md is not parsed -->
+
 ```md
 ---
 title: Sidebar title
@@ -32,7 +34,6 @@ The settings for Markdown also apply to folders, just add `config.yml` in the fo
 <gbp-raw src="docs/zh/guide/config.yml"></gbp-raw>
 
 Two special options are supported:
-
 - `reverse`: Reverse [sort](./001-sort.md), which is useful when blogging
 - `groups`: Place multiple files within a group in the sidebar without modifying the directory structure, the files of a group without `title` are displayed directly
 

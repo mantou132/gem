@@ -1,5 +1,5 @@
 {
-  "$schema": "https://raw.githubusercontent.com/biomejs/biome/refs/tags/%40biomejs/biome%402.2.6/packages/%40biomejs/biome/configuration_schema.json",
+  "$schema": "./node_modules/@biomejs/biome/configuration_schema.json",
   "vcs": {
     "enabled": true,
     "clientKind": "git",
@@ -53,6 +53,17 @@
       "attributePosition": "auto"
     }
   },
+  "markdown": {
+    "parser": {
+      "frontmatter": true,
+      "cjkFriendlyEmphasis": true
+    }
+  },
+  "yaml": {
+    "formatter": {
+      "quoteStyle": "single"
+    }
+  },
   "plugins": ["./linter/assign.grit", "./linter/no_this_effect.grit"],
   "linter": {
     "enabled": true,
@@ -95,6 +106,6 @@
     }
   ],
   "files": {
-    "includes": ["**", "!packages/gem-examples/src/auto-import.d.ts"]
+    "includes": ["**", "!packages/gem-examples/src/auto-import.d.ts", "!pnpm-lock.yaml"]
   }
 }

@@ -45,7 +45,7 @@ class MyElement extends GemElement {
   @template()
   #content = () => {
     return html`<div class=${styles.header}></div>`;
-  }
+  };
 }
 ```
 
@@ -73,7 +73,7 @@ class MyElement extends GemElement {
         }
       </style>
     `;
-  }
+  };
 }
 ```
 
@@ -99,7 +99,7 @@ class MyElement extends GemElement {
   @template()
   #content = () => {
     return html`<div part=${MyElement.header}></div>`;
-  }
+  };
 }
 ```
 
@@ -115,7 +115,7 @@ class MyElement extends GemElement {
   open = () => {
     // 可被选择器 `:state(opened)` 选中
     this.opened = true;
-  }
+  };
 }
 ```
 

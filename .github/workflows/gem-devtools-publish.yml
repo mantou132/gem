@@ -47,7 +47,7 @@ jobs:
 
       - uses: wdzeng/firefox-addon@v1
         with:
-          addon-guid: "{2af13fd2-a726-41de-b3a1-4bf2cb91c105}"
+          addon-guid: '{2af13fd2-a726-41de-b3a1-4bf2cb91c105}'
           xpi-path: ${{ env.ZIP_PATH }}
           jwt-issuer: ${{ secrets.FIREFOX_API_KEY }}
           jwt-secret: ${{ secrets.FIREFOX_API_SECRET }}

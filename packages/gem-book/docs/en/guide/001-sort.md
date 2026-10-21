@@ -1,7 +1,6 @@
 # Document sorting
 
 The rendered sidebar should be consistent with the sorting of documents in the IDE and editor. The default rules are:
-
 - `readme.md` and `index.md` always come first
 - Folders come before file
 - Sort ascending by filename ASCII encoding

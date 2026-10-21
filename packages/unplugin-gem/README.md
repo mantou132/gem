@@ -30,7 +30,7 @@ yarn add unplugin-gem
 
 ```ts
 // vite.config.ts
-import gemPlugin from 'unplugin-gem/vite'
+import gemPlugin from 'unplugin-gem/vite';
 
 export default {
   plugins: [
@@ -42,14 +42,14 @@ export default {
       hmr: true,
     }),
   ],
-}
+};
 ```
 
 ### Webpack
 
 ```js
 // webpack.config.js
-const gemPlugin = require('unplugin-gem/webpack')
+const gemPlugin = require('unplugin-gem/webpack');
 
 module.exports = {
   plugins: [
@@ -59,14 +59,14 @@ module.exports = {
       hmr: true,
     }),
   ],
-}
+};
 ```
 
 ### Rollup
 
 ```js
 // rollup.config.js
-import gemPlugin from 'unplugin-gem/rollup'
+import gemPlugin from 'unplugin-gem/rollup';
 
 export default {
   plugins: [
@@ -76,14 +76,14 @@ export default {
       hmr: true,
     }),
   ],
-}
+};
 ```
 
 ### Rspack
 
 ```js
 // rspack.config.js
-import gemPlugin from 'unplugin-gem/rspack'
+import gemPlugin from 'unplugin-gem/rspack';
 
 export default {
   plugins: [
@@ -93,14 +93,14 @@ export default {
       hmr: true,
     }),
   ],
-}
+};
 ```
 
 ### Rolldown
 
 ```js
 // rolldown.config.js
-import gemPlugin from 'unplugin-gem/rolldown'
+import gemPlugin from 'unplugin-gem/rolldown';
 
 export default {
   plugins: [
@@ -110,15 +110,15 @@ export default {
       hmr: true,
     }),
   ],
-}
+};
 ```
 
 ### esbuild
 
 ```js
 // esbuild.config.js
-import { build } from 'esbuild'
-import gemPlugin from 'unplugin-gem/esbuild'
+import { build } from 'esbuild';
+import gemPlugin from 'unplugin-gem/esbuild';
 
 build({
   plugins: [
@@ -128,7 +128,7 @@ build({
       hmr: true,
     }),
   ],
-})
+});
 ```
 
 ## HMR
@@ -138,11 +138,10 @@ Enable `hmr` to run [swc-plugin-gem](https://github.com/mantou132/gem/tree/main/
 ```ts
 gemPlugin({
   hmr: true,
-})
+});
 ```
 
 The runtime is injected for every supported bundler:
-
 - **Webpack / Rspack**: prepended to each entry
 - **Vite**: injected as a module script during `serve`
 - **Rollup / Rolldown**: each selected input is wrapped so the helper runs first
@@ -155,7 +154,6 @@ Complete JavaScript HMR still needs a host that implements those APIs (webpack/R
 ## SSR
 
 Enable `ssr` in both the client and server builds when using [`@mantou/gem-ssr`](https://github.com/mantou132/gem/tree/main/packages/gem-ssr):
-
 - adds a key to module level `createStore`, so the store values updated on the server are restored on the client
 - adds a key to module level `createTheme`/`createScopedTheme`/`createDecoratorTheme`, so the CSS variable names are the same on the server and the client
 - in the client build, replaces `@server()` element classes with stubs and splits `@lazy()`

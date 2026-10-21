@@ -17,7 +17,7 @@ class MyElement extends GemElement {
   @template()
   #content = () => {
     return html`${this.firstName}`;
-  }
+  };
 }
 ```
 
@@ -37,7 +37,7 @@ class MyElement extends GemElement {
   @template()
   #content = () => {
     return html`${this.data.id} ${store.name}`;
-  }
+  };
 }
 ```
 
@@ -50,7 +50,6 @@ class MyElement extends GemElement {
 
 ## 例子
 
-
 <gbp-sandpack dependencies="@mantou/gem">
 
 ```js index.js
@@ -62,7 +61,7 @@ class MyElement extends GemElement {
 
   #clicked = () => {
     this.#state({ count: ++this.#state.count });
-  }
+  };
 
   @template()
   #content = () => {
@@ -72,7 +71,7 @@ class MyElement extends GemElement {
         Clicked ${this.#state.count} times
       </button>
     `;
-  }
+  };
 }
 ```
 

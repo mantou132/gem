@@ -143,9 +143,11 @@ export class MyEleElement extends GemElement {
     return html`
       <dy-form>
         <dy-form-item
-          .rules=${[
-            /** support validator */
-          ]}
+          .rules=${
+            [
+              /** support validator */
+            ]
+          }
         >
           <dy-input-group>
             <dy-input .value=${this.#state.name} @change=${this.#onChangeName}></dy-input>

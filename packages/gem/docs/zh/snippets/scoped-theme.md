@@ -6,7 +6,7 @@ const theme = createTheme({ textColor: '#eee' });
 
 const scopedTheme = createScopedTheme({ scopeTextColor: '#333' });
 
-const overrideTheme = createOverrideTheme(theme, { textColor: '#eff' })
+const overrideTheme = createOverrideTheme(theme, { textColor: '#eff' });
 
 const styles = css`
   :scope {
