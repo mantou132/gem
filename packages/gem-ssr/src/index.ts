@@ -8,6 +8,7 @@ import { getRequestValue, ssrHooks } from '@mantou/gem/lib/server';
 
 import {
   LIT_PART_END,
+  SSR_CSS_STATES,
   SSR_HIDDEN,
   SSR_PROPS,
   SSR_SERVER,
@@ -257,11 +258,28 @@ function handleTaskError(element: GemElement, err: unknown) {
   if (element.dispatchEvent(evt)) console.error(err);
 }
 
+// 改写后的样式，主题更新时样式表的内容会改变
+const stateCssTexts = new WeakMap<object, { source: string; text: string }>();
+
+// `:state()` 同时匹配 SSR 输出的 attribute，水合前也能应用 CSS 状态的样式
+function getCssText(sheet: { cssText: string }) {
+  let item = stateCssTexts.get(sheet);
+  if (item?.source !== sheet.cssText) {
+    const text = sheet.cssText.replace(
+      /:state\(([\w-]+)\)/g,
+      (_, name) => `:is(:state(${name}),[${SSR_CSS_STATES}~="${name}"])`,
+    );
+    item = { source: sheet.cssText, text };
+    stateCssTexts.set(sheet, item);
+  }
+  return item.text;
+}
+
 function getStyle(sheets: Iterable<any>, attrs = '') {
   let result = '';
   for (const sheet of sheets) {
     const media = sheet.media?.mediaText;
-    result += `<style${attrs}${media ? ` media="${escapeAttr(media)}"` : ''}>${sheet.cssText}</style>`;
+    result += `<style${attrs}${media ? ` media="${escapeAttr(media)}"` : ''}>${getCssText(sheet)}</style>`;
   }
   return result;
 }
@@ -302,6 +320,8 @@ function buildElement(
   // 隐藏的元素没有内容，客户端显示时获取
   if (serverKey && !hidden) attrs.set(SSR_SERVER, '');
   if (withProps) attrs.set(SSR_PROPS, '');
+  const { states } = element.internals;
+  if (states.size) attrs.set(SSR_CSS_STATES, [...states].join(' '));
   setConditionAttrs(op, conditionHidden, attrs);
   const out: Piece[] = [`<${op.tag}${serializeAttrs(attrs, op)}>`];
   const { shadowRoot } = element;

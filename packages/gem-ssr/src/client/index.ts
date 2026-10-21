@@ -2,7 +2,7 @@ import type { GemElement } from '@mantou/gem';
 import type { TemplateResult } from '@mantou/gem/lib/lit-html';
 import { ssrHooks } from '@mantou/gem/lib/server';
 
-import { SSR_SERVER, STORES_SCRIPT_ID } from '../constants';
+import { SSR_CSS_STATES, SSR_SERVER, STORES_SCRIPT_ID } from '../constants';
 import { SSR_STATE, ssrContext } from '../decorators';
 import { deferConnect, hydrateContainer } from './hydration';
 import { observeLazyRoot } from './lazy';
@@ -29,6 +29,13 @@ function restoreState(ele: GemElement) {
   ssrContext.restoredElements.add(ele);
 }
 
+function restoreCSSStates(ele: GemElement) {
+  const value = ele.getAttribute(SSR_CSS_STATES);
+  if (value === null) return;
+  ele.removeAttribute(SSR_CSS_STATES);
+  for (const state of value.split(' ')) ele.internals.states.add(state);
+}
+
 ssrHooks.render = (value, container) => {
   // 水合的 ShadowRoot 是解析 HTML 时创建的，需要单独观察其中客户端创建的延时视图元素
   observeLazyRoot(container);
@@ -41,6 +48,7 @@ ssrHooks.connect = (ele, connect) => {
   ele.removeAttribute(SSR_SERVER);
   if (deferConnect(ele, connect)) return true;
   restoreState(ele);
+  restoreCSSStates(ele);
   return false;
 };
 

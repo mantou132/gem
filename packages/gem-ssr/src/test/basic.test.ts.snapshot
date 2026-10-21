@@ -1,5 +1,5 @@
 exports[`basic light 1`] = `
-<!--#s3v7o1t862--><app-light-demo attr="attr"><style ssr-style>@scope (APP-LIGHT-DEMO) to (:state(gem-style-boundary) > *){ 
+<!--#s3v7o1t862--><app-light-demo attr="attr" ssr-css-states="gem-element gem-style-boundary"><style ssr-style>@scope (APP-LIGHT-DEMO) to (:is(:state(gem-style-boundary),[ssr-css-states~="gem-style-boundary"]) > *){ 
   :scope {
     font-size: medium;
   }
@@ -17,5 +17,5 @@ exports[`basic nested 1`] = `
 `;
 
 exports[`basic shadow 1`] = `
-<!--#5tyrny3fm7--><app-shadow-demo><template shadowrootmode="open" shadowrootserializable=""><!--#201x9p7c2r0-->shadow dom</template></app-shadow-demo>
+<!--#5tyrny3fm7--><app-shadow-demo ssr-css-states="gem-element"><template shadowrootmode="open" shadowrootserializable=""><!--#201x9p7c2r0-->shadow dom</template></app-shadow-demo>
 `;

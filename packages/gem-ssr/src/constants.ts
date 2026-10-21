@@ -6,6 +6,8 @@ export const LIT_PART_START_RE = /\?lit\$(\d+)\$/;
 export const SSR_HIDDEN = 'ssr-hidden';
 // SSR 输出的 light DOM 样式，水合时忽略
 export const SSR_STYLE = 'ssr-style';
+// SSR 输出的元素 CSS 状态，样式中的 `:state()` 同时匹配该 attribute，水合时恢复
+export const SSR_CSS_STATES = 'ssr-css-states';
 export const V_IF = 'v-if';
 export const V_ELSE_IF = 'v-else-if';
 export const V_ELSE = 'v-else';

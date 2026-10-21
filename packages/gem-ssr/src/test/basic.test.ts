@@ -109,7 +109,10 @@ export class DemoLightHTMLElement extends GemElement {
 
 test('innerHTML: light DOM 元素的模版返回 undefined 时原样输出', async ({ assert }) => {
   const result = await t(html`<app-light-html .content=${'<p>a</p><script>b</script>'}></app-light-html>`);
-  assert.match(result, /<app-light-html><!----><p>a<\/p><script>b<\/script><\/app-light-html>/);
+  assert.match(
+    result,
+    /<app-light-html ssr-css-states="gem-element gem-style-boundary"><!----><p>a<\/p><script>b<\/script><\/app-light-html>/,
+  );
 });
 
 test('shadowRoot.innerHTML: 模版有返回值时忽略', async ({ assert }) => {
@@ -160,7 +163,10 @@ test('等待异步路由，输出路由内容的样式', async ({ assert }) => {
   ];
   const inner = [{ pattern: '*', getContent: async () => html`<app-route-content></app-route-content>` }];
   const result = await t(html`<gem-light-route .routes=${outer}></gem-light-route>`);
-  assert.match(result, /<app-route-content>.*route content.*<\/app-route-content>/s);
+  assert.match(
+    result,
+    /<app-route-content ssr-css-states="gem-element gem-style-boundary">.*route content.*<\/app-route-content>/s,
+  );
   assert.match(result, /color: red/);
 });
 
@@ -213,5 +219,8 @@ test('模版中没有改变的 attribute 原样输出，保留字符引用', asy
     html`<p title="&copy; a" class=${'b'}></p><app-light-demo title="&hellip;" attr=${'"'}></app-light-demo>`,
   );
   assert.match(result, /<p title="&copy; a" class="b">/);
-  assert.match(result, /<app-light-demo title="&hellip;" attr="&quot;">/);
+  assert.match(
+    result,
+    /<app-light-demo title="&hellip;" attr="&quot;" ssr-css-states="gem-element gem-style-boundary">/,
+  );
 });

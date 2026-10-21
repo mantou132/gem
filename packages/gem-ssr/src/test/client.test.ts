@@ -8,6 +8,7 @@ import { render as litRender } from '@mantou/gem/lib/lit-html';
 import { defineLazy, GemServerElement, setServerElementLoader } from '../client';
 import { hydrateContainer } from '../client/hydration';
 import { getServerElementKey, ssrContext } from '../decorators';
+import type { DemoCSSStateElement } from './fixtures/css-states';
 import { hiddenServerElement } from './fixtures/hidden';
 import { counter, type DemoServerMethodElement } from './fixtures/server';
 import { theme } from './fixtures/themes';
@@ -260,7 +261,11 @@ test('水合时模板和服务端不一致，由客户端重新渲染', async ({
 test('父模版设置了 property 的元素在父模版水合后才渲染', async ({ assert, mock }) => {
   const warn = mock.method(console, 'warn', () => {});
   const html = await ssr('props.ts', 'props');
-  assert.match(html, /<app-props-child ssr-props="">/, '标记父模版设置了 property 的元素');
+  assert.match(
+    html,
+    /<app-props-child ssr-props="" ssr-css-states="gem-element gem-style-boundary">/,
+    '标记父模版设置了 property 的元素',
+  );
   const container = mount(html);
   const b = container.querySelector('app-props-child b');
   const { renders } = await import('./fixtures/props');
@@ -269,6 +274,16 @@ test('父模版设置了 property 的元素在父模版水合后才渲染', asyn
   assert.equal(child.hasAttribute('ssr-props'), false);
   assert.equal(child.querySelector('b'), b, '复用节点');
   assert.equal(warn.mock.callCount(), 0);
+});
+
+test('CSS 状态：服务端输出 attribute，样式同时匹配，水合时恢复', async ({ assert }) => {
+  const html = await ssr('css-states.ts', 'cssState');
+  assert.match(html, /<app-css-state ssr-state="\[\]" ssr-css-states="gem-element gem-style-boundary open">/);
+  assert.match(html, /:scope:is\(:state\(open\),\[ssr-css-states~="open"\]\)/);
+  const element = mount(html).querySelector<DemoCSSStateElement>('app-css-state')!;
+  await import('./fixtures/css-states');
+  assert.equal(element.hasAttribute('ssr-css-states'), false, '移除 attribute');
+  assert.equal(element.open, true);
 });
 
 test('纯客户端元素：父模版水合，元素在客户端渲染', async ({ assert }) => {

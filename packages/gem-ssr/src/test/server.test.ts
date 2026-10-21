@@ -55,9 +55,12 @@ test('@server: 等待执行完成，包括新渲染的元素，并输出状态',
   assert.match(result, /<i><!--\?lit\$\d+\$-->inner<\/i>/);
   assert.match(
     result,
-    /<app-server-outer ssr-state="\[{&quot;loaded&quot;:true,&quot;text&quot;:&quot;<outer>&quot;}\]">/,
+    /<app-server-outer ssr-state="\[{&quot;loaded&quot;:true,&quot;text&quot;:&quot;<outer>&quot;}\]" ssr-css-states="gem-element gem-style-boundary">/,
   );
-  assert.match(result, /<app-server-inner ssr-state="\[{&quot;text&quot;:&quot;inner&quot;}\]">/);
+  assert.match(
+    result,
+    /<app-server-inner ssr-state="\[{&quot;text&quot;:&quot;inner&quot;}\]" ssr-css-states="gem-element gem-style-boundary">/,
+  );
 });
 
 test('@server: 没有服务端方法的元素不输出状态', async ({ assert }) => {
@@ -128,7 +131,10 @@ test('`@server` 方法出错时继续渲染，不输出状态，由客户端重�
   const result = await renderToString(
     html`<app-server-delay></app-server-delay><app-server-error></app-server-error><p>after</p>`,
   );
-  assert.match(result, /<app-server-error><!--[^>]*--><i><!--[^>]*-->loading<\/i><\/app-server-error><p>after<\/p>/);
+  assert.match(
+    result,
+    /<app-server-error ssr-css-states="gem-element gem-style-boundary"><!--[^>]*--><i><!--[^>]*-->loading<\/i><\/app-server-error><p>after<\/p>/,
+  );
   assert.equal(error.mock.callCount(), 1, '服务端输出错误');
 });
 
@@ -213,7 +219,7 @@ test('`<gem-use>` 输出字符串内容', async ({ assert }) => {
 test('纯服务端元素：保留样式，不输出状态，收集 HTML', async ({ assert }) => {
   const serverElements = new Map<string, string>();
   const result = await renderToString(serverElement(), { serverElements });
-  assert.match(result, /<app-server-element text="a" ssr-server="">/);
+  assert.match(result, /<app-server-element text="a" ssr-server="" ssr-css-states="gem-element gem-style-boundary">/);
   assert.match(result, /<style>[^<]*color: ?red/, '样式不会在水合时移除');
   assert.doesNotMatch(result, /ssr-state|ssr-style/);
   assert.match(result, /<p>.*a.*1.*loaded.*<\/p>/, '执行服务端方法');
@@ -225,7 +231,10 @@ test('纯服务端元素：保留样式，不输出状态，收集 HTML', async 
 test('延时视图：输出状态和水合时移除的样式，收集 HTML', async ({ assert }) => {
   const serverElements = new Map<string, string>();
   const result = await renderToString(lazyElement(), { serverElements });
-  assert.match(result, /<app-lazy-element text="a" ssr-state="[^"]*loaded[^"]*" ssr-server="">/);
+  assert.match(
+    result,
+    /<app-lazy-element text="a" ssr-state="[^"]*loaded[^"]*" ssr-server="" ssr-css-states="gem-element gem-style-boundary">/,
+  );
   assert.match(result, /<style ssr-style>[^<]*color: ?blue/, '客户端导航时也有样式');
   const key = getServerElementKey('app-lazy-element', { text: 'a' }, {});
   assert.deepEqual([...serverElements.keys()], [key]);
