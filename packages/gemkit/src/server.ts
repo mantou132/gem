@@ -230,6 +230,19 @@ export function createRenderer({
       return { status: 200, headers: toHeaders(setCookies), html };
     });
 
+  /** API 路由的输入：`GET` `DELETE` 是查询参数，其他方法是 JSON 请求体，处理函数还可以自己读取 `request` */
+  const getInput = async (request: Request, url: URL) => {
+    if (request.method === 'GET' || request.method === 'HEAD' || request.method === 'DELETE') {
+      return Object.fromEntries(url.searchParams);
+    }
+    if (!request.headers.get('content-type')?.includes('application/json')) return;
+    try {
+      return await request.clone().json();
+    } catch {
+      throw new HttpError(400, 'Invalid JSON');
+    }
+  };
+
   /** 路径匹配的 API 路由和参数，路径不包含语言前缀 */
   const matchEndpoint = (pathname: string) => {
     const path = trimTrailingSlash(pathname);
@@ -259,7 +272,7 @@ export function createRenderer({
           const allow = Object.keys(mod).filter((key) => /^[A-Z]+$/.test(key));
           return new Response(null, { status: 405, headers: toHeaders(setCookies, { allow: allow.join(', ') }) });
         }
-        const result = await fn(createServerContext(endpoint.pattern, params));
+        const result = await fn(createServerContext(endpoint.pattern, params), await getInput(request, url));
         response = result instanceof Response ? result : Response.json(toJSONValue(result));
       } catch (err) {
         if (err instanceof Redirect) {

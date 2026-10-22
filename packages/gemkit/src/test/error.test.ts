@@ -160,7 +160,7 @@ test('error: layout 出错时错误页面渲染在 layout 的位置，上层 lay
   assert.match(html, /<title>Error 403<\/title>/);
   assert.match(html, /<nav>nav<\/nav>/);
   assert.doesNotMatch(html, /<gemkit-layout-private|>doc</);
-  assert.match(html, /<gemkit-page-error ssr-props="">.*error .*403.*Forbidden.*<\/gemkit-page-error>/s);
+  assert.match(html, /<gemkit-page-error ssr-props=""[^>]*>.*error .*403.*Forbidden.*<\/gemkit-page-error>/s);
   // 水合时直接渲染错误页面
   assert.match(html, /"error":\{"tag":"gemkit-layout-private","status":403,"message":"Forbidden"\}/);
   // 错误页面的 meta 和上层 layout 的合并

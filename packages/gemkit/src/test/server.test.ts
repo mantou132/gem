@@ -199,6 +199,7 @@ const renderer = createRenderer({
     { pattern: '/api/likes/:slug', load: async () => likesEndpoint },
     { pattern: '/admin/api', load: async () => ({ GET: () => getRequestEvent().locals.user }) },
     { pattern: '/old', load: async () => ({ GET: () => redirect(301, '/new') }) },
+    { pattern: '/echo', load: async () => ({ GET: (_, input) => input, PUT: (_, input) => ({ input }) }) },
   ],
   appServerModule: {
     // 只在需要时读取 `cookies`，读取后响应不能被共享缓存，也不预渲染
@@ -465,7 +466,7 @@ test('renderDocument: `load` 中调用 `notFound()` 时渲染 404 页面，状�
   const result = (await Array.fromAsync(html)).join('');
   assert.equal(status, 404);
   assert.match(result, /<title>Not Found \| Site<\/title>/);
-  assert.match(result, /<gemkit-page-error ssr-props="">.*>404<.*Not Found.*<\/gemkit-page-error>/s);
+  assert.match(result, /<gemkit-page-error ssr-props=""[^>]*>.*>404<.*Not Found.*<\/gemkit-page-error>/s);
   // 水合时直接渲染错误页面
   assert.match(result, /"error":\{"tag":"gemkit-page-post","status":404,"message":"Not Found"\}/);
 });
@@ -539,6 +540,19 @@ test('endpoint: 按请求方法处理，其他值作为 JSON 响应', async ({ a
     (await post('b', { headers: { 'sec-fetch-site': 'cross-site', 'content-type': 'application/json' } })).status,
     201,
   );
+});
+
+test('endpoint: `GET` 的输入是查询参数，其他方法是 JSON 请求体', async ({ assert }) => {
+  const handler = createRequestHandler(renderer, documentTemplate);
+  assert.deepEqual(await (await handler(request('/echo?a=1&b=2'))).json(), { a: '1', b: '2' });
+  const put = (body: string, type: string) =>
+    handler(request('/echo', { method: 'PUT', body, headers: { 'content-type': type } }));
+  assert.deepEqual(await (await put('{"a":[1]}', 'application/json')).json(), { input: { a: [1] } });
+  // 不是 JSON 时没有输入，处理函数自己读取 `request`
+  assert.deepEqual(await (await put('a=1', 'application/x-www-form-urlencoded')).json(), {});
+  const invalid = await put('{', 'application/json');
+  assert.equal(invalid.status, 400);
+  assert.deepEqual(await invalid.json(), { status: 400, message: 'Invalid JSON' });
 });
 
 test('endpoint: 先执行 `handle`，可以跳转', async ({ assert }) => {

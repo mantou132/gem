@@ -84,8 +84,11 @@ export type ServerModules = Record<string, () => Promise<ServerModule>>;
 
 export type RequestMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
 
-/** 返回 `Response`，其他值作为 JSON 响应，可以使用 `redirect` 跳转和 `error` 响应错误 */
-export type RequestHandler<P extends Params = Params> = (ctx: ServerLoadContext<P>) => unknown;
+/**
+ * 返回 `Response`，其他值作为 JSON 响应，可以使用 `redirect` 跳转和 `error` 响应错误，
+ * `input` 是 `GET` `DELETE` 的查询参数，其他方法的 JSON 请求体，`$gemkit/api` 根据它的类型推导调用参数
+ */
+export type RequestHandler<P extends Params = Params> = (ctx: ServerLoadContext<P>, input?: any) => unknown;
 
 /**
  * API 路由：没有同名页面模块的 `*.server.ts`，按请求方法导出处理函数，`HEAD` 使用 `GET`
@@ -567,7 +570,8 @@ export type ActionResult =
 /**
  * 不刷新页面提交表单到 `actions`，提交的地址是表单（或者 `submitter`）的 `action`，例如 `?/login`
  *
- * 跳转时客户端导航，出错时渲染错误页面，否则重新加载当前页面的数据，返回 action 的返回值
+ * 跳转时客户端导航，出错时渲染错误页面，否则重新加载当前页面的数据，返回 action 的返回值，
+ * 请求期间表单有 `aria-busy` 属性，例如 `form[aria-busy] button { opacity: 0.5 }`
  *
  * @example
  * ```ts
@@ -581,11 +585,12 @@ export type ActionResult =
  */
 export async function submitAction(form: HTMLFormElement, submitter?: HTMLElement | null) {
   const action = submitter?.getAttribute('formaction') ? (submitter as HTMLButtonElement).formAction : form.action;
+  form.ariaBusy = 'true';
   const res = await fetch(action, {
     method: 'POST',
     headers: { accept: 'application/json' },
     body: new FormData(form, submitter),
-  });
+  }).finally(() => (form.ariaBusy = null));
   if (!res.ok) throw new Error(`gemkit: failed to submit \`${action}\``);
   const result: ActionResult = await res.json();
   // 提交后 cookie 等状态可能改变，之前的数据都不能再使用

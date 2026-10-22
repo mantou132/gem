@@ -242,11 +242,26 @@ type Context = ServerLoadContext<{ slug: string }>;
 // other values than `Response` are responded as JSON
 export const GET = ({ params }: Context) => ({ likes: getLikes(params.slug) });
 
-export async function POST({ params, request }: Context) {
-  const { count } = await request.json();
-  return Response.json({ likes: addLikes(params.slug, count) }, { status: 201 });
-}
+// the second parameter is the input: the query of `GET` and `DELETE`, the JSON body of other methods
+export const POST = ({ params }: Context, input: { count: number }) => ({ likes: addLikes(params.slug, input.count) });
+
+export const DELETE = () => new Response(null, { status: 204 });
 ```
+
+Call them from the client with `$gemkit/api`, the parameters and the result are inferred from the handlers:
+
+```ts
+import { apis } from '$gemkit/api';
+
+// properties are the static segments, calls are the params, `POST /api/likes/<slug>`
+const { likes } = await apis.api.likes(slug).POST({ count: 1 });
+// a handler returning `Response` gets the raw response
+const res = await apis.api.likes(slug).DELETE();
+```
+
+- the input is typed only, check it in the handler when the shape matters, e.g. writing it to a database
+- an `error()` response rejects with `HttpError`, which has `status` and `message`
+- the handler can still read `request` itself, e.g. `request.formData()`
 
 - `rss.xml.server.ts` is `/rss.xml`, `index.server.ts` is the directory path
 - the path has no language prefix, `handle` runs before the handler, `event.path` is the API path
@@ -383,11 +398,12 @@ export default class LoginPage extends GemElement {
 ```
 
 - `submitAction` submits without reloading: on redirect it navigates on the client, otherwise reloads the current
-  page data, layouts reload their data too (e.g. the current user), returns the action result
+  page data, layouts reload their data too (e.g. the current user), returns the action result.
+  The form has `aria-busy` during the request, e.g. `form[aria-busy] button { opacity: 0.5 }`
 - Without JS the form still works: the response is a 303 to the redirect location, or back to the page
   (the action result is dropped)
 - Cookies use `SameSite=Lax` by default, cross-site form posts don't carry them
 
-Generated modules are imported with `$gemkit/*`, currently only `$gemkit/i18n` is public,
+Generated modules are imported with `$gemkit/*`, currently `$gemkit/i18n` and `$gemkit/api` are public,
 e.g. `import { i18n, localizePath } from '$gemkit/i18n'`,
 extend `.gemkit/tsconfig.json` in the project `tsconfig.json` to get the types.

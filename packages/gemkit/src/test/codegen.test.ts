@@ -124,6 +124,7 @@ test('generate: 生成路由和入口文件', ({ assert }) => {
 
   assert.deepEqual(fs.readdirSync(genDir).sort(), [
     '.gitignore',
+    'api.ts',
     'client.ts',
     'env.d.ts',
     'i18n.ts',
@@ -158,8 +159,11 @@ test('generate: 生成路由和入口文件', ({ assert }) => {
   // 客户端路由不能引用 `*.server.ts`
   assert.doesNotMatch(read('routes.ts'), /\.server/);
 
+  // 只引用服务端模块的类型，构建时会移除
+  assert.snapshot(read('api.ts'));
+
   assert.deepEqual(JSON.parse(read('tsconfig.json')), {
-    compilerOptions: { paths: { '$gemkit/i18n': ['./i18n.ts'] } },
+    compilerOptions: { paths: { '$gemkit/i18n': ['./i18n.ts'], '$gemkit/api': ['./api.ts'] } },
     files: ['./env.d.ts', './auto-import.d.ts'],
   });
 });

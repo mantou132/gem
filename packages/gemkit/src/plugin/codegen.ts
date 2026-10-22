@@ -21,7 +21,7 @@ export interface GemkitConfig extends TitleOptions {
 /**
  * 可以通过 `$gemkit/*` 导入的生成模块，其他生成文件是入口或内部模块，导入会产生副作用
  */
-export const PUBLIC_MODULES = ['i18n'];
+export const PUBLIC_MODULES = ['i18n', 'api'];
 
 /** `$gemkit/*` 到生成文件的映射，供 alias 和 tsconfig `paths` 使用 */
 export const getPublicModules = (genDir: string) =>
@@ -242,6 +242,45 @@ function generateRoutes(genDir: string, pagesDir: string) {
   return { serverRoutes, endpoints };
 }
 
+interface ApiNode {
+  /** 路径对应的 API 路由模块的序号 */
+  module?: number;
+  /** 静态部分，`:name` 是参数，`*` 是剩余参数 */
+  children: Map<string, ApiNode>;
+}
+
+/** API 路由的路径树转换成 `apis` 的类型，属性是静态部分，调用签名是参数 */
+function toApiType({ module, children }: ApiNode, indent: string): string {
+  const inner = `${indent}  `;
+  const members = [...children].map(([segment, child]) => {
+    const type = toApiType(child, inner);
+    if (segment === '*') return `${inner}(...path: string[]): ${type};`;
+    if (segment.startsWith(':')) return `${inner}(${segment.slice(1)}: string): ${type};`;
+    return `${inner}${JSON.stringify(segment)}: ${type};`;
+  });
+  const types = [];
+  if (module !== undefined) types.push(`EndpointMethods<typeof endpoint${module}>`);
+  if (members.length) types.push(`{\n${members.join('\n')}\n${indent}}`);
+  return types.join(' & ') || '{}';
+}
+
+/** 生成 `$gemkit/api`，按路径调用 API 路由，只引用服务端模块的类型 */
+function generateApi(genDir: string, endpoints: EndpointNode[]) {
+  const root: ApiNode = { children: new Map() };
+  endpoints.forEach(({ pattern }, index) => {
+    let node = root;
+    for (const segment of pattern.split('/').filter(Boolean)) {
+      if (!node.children.has(segment)) node.children.set(segment, { children: new Map() });
+      node = node.children.get(segment)!;
+    }
+    node.module = index;
+  });
+  render(genDir, 'api.ts', 'api', {
+    modules: endpoints.map(({ file }) => toImportPath(genDir, file)),
+    type: toApiType(root, ''),
+  });
+}
+
 function generateI18n(genDir: string, localesDir: string, config: GemkitConfig) {
   const languages = fs.existsSync(localesDir)
     ? fs
@@ -325,4 +364,5 @@ export function generate(rootPath: string, config: GemkitConfig) {
   const routes = generateRoutes(genDir, path.join(srcDir, 'pages'));
   generateI18n(genDir, path.join(srcDir, 'locales'), config);
   generateEntries(genDir, srcDir, config, routes);
+  generateApi(genDir, routes.endpoints);
 }
