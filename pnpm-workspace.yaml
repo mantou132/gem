@@ -2,3 +2,4 @@ linkWorkspacePackages: deep
 packages:
   - 'packages/*'
   - 'crates/swc-plugin-gem'
+  - 'crates/zed-plugin-gem'

@@ -1,4 +1,5 @@
 {
   "npmClient": "pnpm",
-  "version": "independent"
+  "version": "independent",
+  "ignoreChanges": ["**/*.md"]
 }

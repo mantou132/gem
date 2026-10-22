@@ -1,12 +1,8 @@
 name: Publish Zed Plugin Gem
 
 on:
+  # Dispatched by release.yml with the `zed-plugin-gem@*` tag as ref, the submodule points to that commit
   workflow_dispatch:
-    inputs:
-      gem_ref:
-        description: Branch in mantou132/gem used for the Zed submodule
-        required: true
-        default: main
 
 permissions:
   contents: read
@@ -41,7 +37,6 @@ jobs:
           EXTENSION_PATH: extensions/gem
           EXTENSION_REPO: https://github.com/mantou132/gem.git
           EXTENSION_SUBDIR: crates/zed-plugin-gem
-          EXTENSION_REF: ${{ inputs.gem_ref }}
         run: |
           set -euo pipefail
 
@@ -56,10 +51,10 @@ jobs:
             git submodule add "${EXTENSION_REPO}" "${EXTENSION_PATH}"
           fi
 
-          git -C "${EXTENSION_PATH}" fetch origin '+refs/heads/*:refs/remotes/origin/*' '+refs/tags/*:refs/tags/*'
-          git -C "${EXTENSION_PATH}" checkout -B "${EXTENSION_REF}" "origin/${EXTENSION_REF}"
+          git -C "${EXTENSION_PATH}" fetch origin "${GITHUB_SHA}"
+          git -C "${EXTENSION_PATH}" checkout --detach "${GITHUB_SHA}"
 
-          EXTENSION_SHA=$(git -C "${EXTENSION_PATH}" rev-parse HEAD)
+          EXTENSION_SHA="${GITHUB_SHA}"
           VERSION=$(node -e "const fs = require('node:fs'); const toml = fs.readFileSync('${EXTENSION_PATH}/${EXTENSION_SUBDIR}/extension.toml', 'utf8'); console.log(toml.match(/^version\\s*=\\s*\"([^\"]+)\"/m)[1]);")
           git branch -M "update-gem-${VERSION}"
           export EXTENSION_SHA VERSION

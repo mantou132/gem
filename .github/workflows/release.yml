@@ -22,6 +22,7 @@ on:
       - vscode-gem-languageservice@*
       - ts-gem-plugin@*
       - ts-gem-lsp@*
+      - zed-plugin-gem@*
       - vscode-plugin-gem@*
   workflow_dispatch:
     inputs:
@@ -153,6 +154,12 @@ jobs:
               path: 'packages/ts-gem-lsp/package.json',
               workflow: 'ts-gem-lsp-publish.yml',
               npm: true,
+            },
+            {
+              name: 'zed-plugin-gem',
+              path: 'crates/zed-plugin-gem/package.json',
+              workflow: 'zed-plugin-gem-publish.yml',
+              npm: false,
             },
             {
               name: 'vscode-plugin-gem',

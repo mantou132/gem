@@ -1,0 +1,16 @@
+{
+  "private": true,
+  "name": "zed-plugin-gem",
+  "version": "0.0.5",
+  "description": "Zed extension for Gem",
+  "scripts": {
+    "version": "node version.mjs"
+  },
+  "author": "mantou132",
+  "license": "ISC",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mantou132/gem.git",
+    "directory": "crates/zed-plugin-gem"
+  }
+}

@@ -49,6 +49,8 @@ importers:
 
   crates/swc-plugin-gem: {}
 
+  crates/zed-plugin-gem: {}
+
   packages/config: {}
 
   packages/context-server:
