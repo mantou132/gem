@@ -210,7 +210,7 @@ const plugins: Record<string, (attrs: Record<string, string>, ctx: MarkdownConte
   api: async ({ src, name, headinglevel }) => {
     const resolved = resolveSrc(src, '', '/');
     if (!('file' in resolved)) throw new Error('only supports local file');
-    return marked.lexer(await renderApi(resolved.file, { name, headingLevel: Number(headinglevel) || 3 }));
+    return marked.lexer(renderApi(resolved.file, { name, headingLevel: Number(headinglevel) || 3 }));
   },
   /** 图片、视频和音频 */
   media: async ({ src, type, width = '', height = '' }) => {

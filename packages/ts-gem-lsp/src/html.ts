@@ -10,9 +10,9 @@ import type {
   ITagData,
 } from '@mantou/vscode-html-languageservice';
 import { getLanguageService } from '@mantou/vscode-html-languageservice';
-import type { Node } from 'typescript/unstable/ast';
-import type { Project } from 'typescript/unstable/async';
-import type { DocumentHighlight, FoldingRange, LocationLink, Range } from 'typescript/unstable/vscode';
+import type { Node } from 'typescript/ast';
+import type { Project } from 'typescript/async';
+import type { DocumentHighlight, FoldingRange, LocationLink, Range } from 'typescript/vscode';
 
 import type { GemConfiguration } from './configuration';
 import type { CssService } from './css';

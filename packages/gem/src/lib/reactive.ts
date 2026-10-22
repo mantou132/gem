@@ -50,9 +50,6 @@ const ElementCSSState = 'gem-element';
 /** 渲染出错时在元素上派发，`@fallback` 处理时取消，SSR 时 `@server` 方法出错也会派发 */
 export const _RenderErrorEvent = 'gem@render-error';
 
-// fix modal-factory type error
-const updateTokenAlias = UpdateToken;
-
 // 渲染根中 light DOM 元素使用的样式表和使用次数，以及更新渲染根样式表的函数
 type RootSheets = { counts: Map<CSSStyleSheet, number>; update: () => void };
 const rootSheetsMap = new WeakMap<Document | ShadowRoot, RootSheets>();
@@ -321,7 +318,7 @@ export abstract class GemElement extends HTMLElement {
   #rendering?: boolean;
   #clearStyle?: (() => void) | undefined;
 
-  [updateTokenAlias]() {
+  [UpdateToken]() {
     this.#scheduleUpdate();
   }
 

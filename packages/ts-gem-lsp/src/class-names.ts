@@ -1,8 +1,8 @@
 import type { Node as HtmlNode } from '@mantou/vscode-html-languageservice';
 import { getLanguageService } from '@mantou/vscode-html-languageservice';
-import type { ClassDeclaration, Node, SourceFile } from 'typescript/unstable/ast';
-import type { Project } from 'typescript/unstable/async';
-import type { Location, Range } from 'typescript/unstable/vscode';
+import type { ClassDeclaration, Node, SourceFile } from 'typescript/ast';
+import type { Project } from 'typescript/async';
+import type { Location, Range } from 'typescript/vscode';
 
 import type { CssService } from './css';
 import type { ElementIndex } from './elements';

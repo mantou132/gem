@@ -19,7 +19,7 @@ import type {
   Range,
   TextEdit,
   WorkspaceEdit,
-} from 'typescript/unstable/vscode';
+} from 'typescript/vscode';
 import type { MessageConnection } from 'vscode-jsonrpc/node.js';
 import { createMessageConnection, StreamMessageReader, StreamMessageWriter } from 'vscode-jsonrpc/node.js';
 

@@ -474,7 +474,12 @@ export function pluginGemBook(options: GemBookOptions): RsbuildPlugins {
               output: {
                 externals: [
                   // `<gbp-api>` 使用，不能打包，项目中可能没有安装
-                  { 'ts-morph': `commonjs ${fileURLToPath(import.meta.resolve('ts-morph'))}` },
+                  Object.fromEntries(
+                    ['tsrs/unstable/sync', 'tsrs/unstable/ast'].map((id) => [
+                      id,
+                      `commonjs ${fileURLToPath(import.meta.resolve(id))}`,
+                    ]),
+                  ),
                   // 服务端不会加载
                   externals,
                 ],

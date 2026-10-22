@@ -1,8 +1,8 @@
 import { camelToKebabCase } from '@mantou/gem/lib/utils';
 import type { IAttributeData } from '@mantou/vscode-html-languageservice';
 import { getDefaultHTMLDataProvider } from '@mantou/vscode-html-languageservice';
-import type { ClassDeclaration, Identifier, Node, PropertyDeclaration, SourceFile } from 'typescript/unstable/ast';
-import type { Project, Symbol as TsSymbol, Type } from 'typescript/unstable/async';
+import type { ClassDeclaration, Identifier, Node, PropertyDeclaration, SourceFile } from 'typescript/ast';
+import type { Project, Symbol as TsSymbol, Type } from 'typescript/async';
 
 import { ts } from './ts';
 

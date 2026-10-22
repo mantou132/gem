@@ -5,8 +5,8 @@ import type {
   SourceFile,
   StringLiteral,
   TemplateExpression,
-} from 'typescript/unstable/ast';
-import type { Position, Range } from 'typescript/unstable/vscode';
+} from 'typescript/ast';
+import type { Position, Range } from 'typescript/vscode';
 
 import { ts } from './ts';
 

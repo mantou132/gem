@@ -1,10 +1,5 @@
-import type { API } from 'typescript/unstable/async';
-import type {
-  Disposable,
-  ExtensionAPI,
-  LspMiddlewareMethod,
-  LspMiddlewareTransformer,
-} from 'typescript/unstable/vscode';
+import type { API } from 'typescript/async';
+import type { Disposable, ExtensionAPI, LspMiddlewareMethod, LspMiddlewareTransformer } from 'typescript/vscode';
 
 import type { GemConfiguration } from './configuration';
 import { defaultConfiguration } from './configuration';

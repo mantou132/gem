@@ -16,14 +16,14 @@
     "/bin/"
   ],
   "scripts": {
-    "build": "esbuild ./src/index.ts --outdir=./bin --bundle --platform=node --external:ts-morph",
+    "build": "esbuild ./src/index.ts --outdir=./bin --bundle --platform=node --external:tsrs",
     "start": "pnpm build --watch",
     "prepublishOnly": "pnpm build"
   },
   "dependencies": {
     "commander": "^14.0.3",
     "gem-analyzer": "^2.3.0",
-    "ts-morph": "^12.0.0"
+    "tsrs": "^0.18.0-ts7.1.0-dev.20260929"
   },
   "devDependencies": {
     "@gemjs/config": "^2.1.3"

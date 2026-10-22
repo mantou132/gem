@@ -1,5 +1,5 @@
-import type { Node, ObjectLiteralExpression, SourceFile } from 'typescript/unstable/ast';
-import type { Project } from 'typescript/unstable/async';
+import type { Node, ObjectLiteralExpression, SourceFile } from 'typescript/ast';
+import type { Project } from 'typescript/async';
 
 import { findAncestor } from './template';
 import { ts } from './ts';

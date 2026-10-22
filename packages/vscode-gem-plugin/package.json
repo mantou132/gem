@@ -183,7 +183,7 @@
     "compile": "node --experimental-transform-types esbuild.ts",
     "package": "pnpm compile --production",
     "watch": "pnpm compile --watch",
-    "pretest": "tsc -p . --outDir out && pnpm compile",
+    "pretest": "tsrs -p . --outDir out && pnpm compile",
     "test": "vscode-test",
     "vscode:prepublish": "pnpm package"
   },
@@ -201,7 +201,7 @@
     "@vscode/test-cli": "^0.0.10",
     "@vscode/test-electron": "^2.4.1",
     "esbuild": "^0.24.0",
-    "typescript": "^5.6.2"
+    "tsrs": "^0.18.0-ts7.1.0-dev.20260929"
   },
   "optionalDependencies": {
     "@gemjs/config": "^2.1.3"

@@ -9,7 +9,7 @@ import type {
 } from '@mantou/vscode-css-languageservice';
 import { getCSSLanguageService, NodeType, TextDocument, updateTags } from '@mantou/vscode-css-languageservice';
 import { doComplete as doEmmetComplete } from '@mantou/vscode-emmet-helper';
-import type { Diagnostic, FoldingRange, Range } from 'typescript/unstable/vscode';
+import type { Diagnostic, FoldingRange, Range } from 'typescript/vscode';
 
 import type { GemConfiguration } from './configuration';
 import type { VirtualDocument } from './template';

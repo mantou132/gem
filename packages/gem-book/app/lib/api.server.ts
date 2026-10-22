@@ -2,33 +2,29 @@ import fs from 'node:fs';
 import path from 'node:path';
 
 import { camelToKebabCase, kebabToCamelCase } from '@mantou/gem/lib/utils';
-import { type ElementDetail, type ExportDetail, getElements, getExports } from 'gem-analyzer';
-import { Project, ts } from 'ts-morph';
+import { Analyzer, type ElementDetail, type ExportDetail } from 'gem-analyzer';
 
 import { applyImportMap, PROJECT_DIR } from './common.server';
 
-type ApiResult = { elements: ElementDetail[]; exports: ExportDetail[] };
+let analyzer: Analyzer | undefined;
+
+// 父类可能从包中导入，例如 `@mantou/tap-ui/elements/button`，使用 `importMap` 找到源码
+function resolveModule(specifier: string) {
+  const src = applyImportMap(specifier);
+  if (src === specifier) return;
+  const file = path.join(PROJECT_DIR, `${src}.ts`);
+  return fs.existsSync(file) ? file : undefined;
+}
 
 // 同一个文件的多个 `<gbp-api>` 只分析一次，文件修改后重新分析
-const cache = new Map<string, { mtime: number; result: Promise<ApiResult> }>();
+const cache = new Map<string, { mtime: number; result: ReturnType<Analyzer['analyze']> }>();
 
 function analyze(file: string) {
   const { mtimeMs } = fs.statSync(file);
   const cached = cache.get(file);
   if (cached?.mtime === mtimeMs) return cached.result;
-  // 和 gem-analyzer 的约定一样使用内存文件系统，父类的文件由它自己读取，
-  // 分析父类时已经加载的文件会被跳过，所以每个文件使用新的项目
-  const project = new Project({ useInMemoryFileSystem: true, compilerOptions: { target: ts.ScriptTarget.ESNext } });
-  // 父类可能从包中导入，例如 `@mantou/tap-ui/elements/button`，使用 `importMap` 找到源码
-  project.getFileSystem().readFile = (filePath: string) =>
-    fs.promises.readFile(
-      path.isAbsolute(filePath) ? filePath : path.join(PROJECT_DIR, applyImportMap(filePath)),
-      'utf8',
-    );
-  const sourceFile = project.createSourceFile(file, fs.readFileSync(file, 'utf8'));
-  const result = Promise.all([getElements(sourceFile, project), getExports(sourceFile)]).then(
-    ([elements, exports = []]) => ({ elements, exports }),
-  );
+  analyzer ??= new Analyzer({ cwd: PROJECT_DIR, resolveModule });
+  const result = analyzer.analyze(file);
   cache.set(file, { mtime: mtimeMs, result });
   return result;
 }
@@ -161,8 +157,8 @@ const renderExports = (exports: ExportDetail[]) =>
  * 分析文件中的 Gem 元素，生成 API 文档（Markdown），指定 `name` 时只生成该元素的文档，
  * 没有元素时生成导出的函数和类
  */
-export async function renderApi(file: string, { name = '', headingLevel = 3 }) {
-  const { elements, exports } = await analyze(file);
+export function renderApi(file: string, { name = '', headingLevel = 3 }) {
+  const { elements, exports } = analyze(file);
   const list = name ? elements.filter((element) => element.name === name) : elements;
   if (!list.length) return renderExports(exports);
   return list.map((detail) => renderElement(detail, headingLevel)).join('\n\n');

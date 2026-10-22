@@ -38,8 +38,8 @@
     "build:components": "gem-port src/elements && gem-port src/patterns --ns=pat",
     "build:dev": "cross-env MODE=dev nodemon -w ../gem-port/bin --exec gem-port src/elements",
     "clean": "node -e \"fs.readdirSync('src').map(dir => require('rimraf').sync(dir))\"",
-    "build": "pnpm clean && tsc -p tsconfig.build.json",
-    "start": "tsc -p tsconfig.build.json --watch",
+    "build": "pnpm clean && tsrs -p tsconfig.build.json",
+    "start": "tsrs -p tsconfig.build.json --watch",
     "test": "cross-env wtr",
     "prepublishOnly": "pnpm build && pnpm build:components"
   },
@@ -53,7 +53,7 @@
     "@web/dev-server-esbuild": "^1.0.2",
     "@web/test-runner": "^0.18.1",
     "rimraf": "^3.0.2",
-    "typescript": "^5.6.2"
+    "tsrs": "^0.18.0-ts7.1.0-dev.20260929"
   },
   "author": "mantou132",
   "license": "ISC",

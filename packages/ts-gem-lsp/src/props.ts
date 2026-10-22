@@ -10,9 +10,9 @@ import type {
   PropertyDeclaration,
   SourceFile,
   StringLiteral,
-} from 'typescript/unstable/ast';
-import type { NodeHandle, Project, Type } from 'typescript/unstable/async';
-import type { Location, Range, TextEdit } from 'typescript/unstable/vscode';
+} from 'typescript/ast';
+import type { NodeHandle, Project, Type } from 'typescript/async';
+import type { Location, Range, TextEdit } from 'typescript/vscode';
 
 import type { ElementIndex } from './elements';
 import { getDecoratorNames, getTagFromDecorator, resolveElementType } from './elements';

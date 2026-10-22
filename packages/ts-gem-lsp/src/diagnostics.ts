@@ -1,15 +1,9 @@
 import { camelToKebabCase, kebabToCamelCase } from '@mantou/gem/lib/utils';
 import type { HTMLDocument, Node as HtmlNode } from '@mantou/vscode-html-languageservice';
 import { getLanguageService } from '@mantou/vscode-html-languageservice';
-import type {
-  ClassDeclaration,
-  Identifier,
-  MethodSignatureDeclaration,
-  Node,
-  SourceFile,
-} from 'typescript/unstable/ast';
-import type { Checker, Project, Symbol as TsSymbol, Type } from 'typescript/unstable/async';
-import type { CodeAction, Diagnostic } from 'typescript/unstable/vscode';
+import type { ClassDeclaration, Identifier, MethodSignatureDeclaration, Node, SourceFile } from 'typescript/ast';
+import type { Checker, Project, Symbol as TsSymbol, Type } from 'typescript/async';
+import type { CodeAction, Diagnostic } from 'typescript/vscode';
 
 import type { GemConfiguration } from './configuration';
 import type { ElementRef, ElementType } from './elements';

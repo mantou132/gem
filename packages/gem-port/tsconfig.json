@@ -1,8 +1,7 @@
 {
   "extends": "@gemjs/config/tsconfig",
   "compilerOptions": {
-    "module": "commonjs",
-    "verbatimModuleSyntax": false
+    "types": ["node"]
   },
   "include": ["src"],
   "exclude": []

@@ -21,19 +21,15 @@
     "source.fixAll.biome": true,
     "source.organizeImports.biome": true
   },
-  "language_servers": [
-    "vtsls",
-    "!typescript-language-server",
-    // use biome
-    "!prettier",
-    "!eslint",
-    "..."
-  ],
   "lsp": {
-    "vtsls": {
+    "ts-gem-lsp": {
+      // Use the local build, run `pnpm build` in `packages/ts-gem-lsp` first
+      "binary": {
+        "path": "node",
+        "arguments": ["packages/ts-gem-lsp/dist/bin.js"]
+      },
       "settings": {
-        "typescript": {
-          "tsdk": "node_modules/typescript/lib",
+        "js/ts": {
           "preferences": {
             "importModuleSpecifier": "non-relative"
           }
@@ -49,6 +45,15 @@
     }
   },
   "languages": {
+    // Overrides Zed's default per-language list, root-level `language_servers` does not apply.
+    // TypeScript 7 does not support tsserver plugins, `ts-gem-lsp` (included by "...") replaces
+    // the TypeScript and Gem language servers, ESLint is replaced by Biome
+    "TypeScript": {
+      "language_servers": ["!gem", "!vtsls", "!typescript-language-server", "!eslint", "..."]
+    },
+    "JavaScript": {
+      "language_servers": ["!gem", "!vtsls", "!typescript-language-server", "!eslint", "..."]
+    },
     "Rust": {
       "tab_size": 4,
       "formatter": {

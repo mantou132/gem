@@ -1,6 +1,7 @@
 {
   "extends": "@gemjs/config/tsconfig",
   "compilerOptions": {
+    "rootDir": "./src",
     "outDir": "./dist"
   },
   "include": ["src"],

@@ -1,5 +1,5 @@
-import type { ClassDeclaration, Node, ObjectLiteralExpression, SourceFile } from 'typescript/unstable/ast';
-import type { Project } from 'typescript/unstable/async';
+import type { ClassDeclaration, Node, ObjectLiteralExpression, SourceFile } from 'typescript/ast';
+import type { Project } from 'typescript/async';
 
 import type { CssService } from './css';
 import { getTagFromDecorator } from './elements';

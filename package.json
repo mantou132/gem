@@ -3,7 +3,7 @@
   "name": "root",
   "version": "1.6.5",
   "scripts": {
-    "lint": "biome check --write && lerna exec --ignore @gemjs/config --ignore swc-plugin-gem -- tsgo --noEmit",
+    "lint": "biome check --write && lerna exec --ignore @gemjs/config --ignore swc-plugin-gem -- tsrs --noEmit",
     "test": "lerna exec --concurrency=1 --scope \"{@mantou/gem,@mantou/tap-ui,duoyun-ui}\" -- pnpm test",
     "release": "lerna version",
     "prepare:build": "pnpm -C packages/gem build && pnpm -C packages/tap-ui build && pnpm -C packages/unplugin-gem build && pnpm -C packages/gemkit build && lerna exec --scope \"{gem-analyzer,duoyun-ui,gem-book,@mantou/gem-port}\" -- pnpm build",
@@ -13,14 +13,14 @@
   "devDependencies": {
     "@biomejs/biome": "^2.6.2",
     "@types/node": "^22.13.10",
-    "@typescript/native-preview": "^7.0.0-dev.20250610.1",
     "concurrently": "^8.2.2",
     "cross-env": "^7.0.3",
     "esbuild": "^0.24.0",
     "husky": "^8.0.3",
     "lerna": "^8.0.0",
     "lint-staged": "^15.1.0",
-    "typescript": "^5.6.2"
+    "tsrs": "^0.18.0-ts7.1.0-dev.20260929",
+    "typescript": "7.1.0-beta"
   },
   "lint-staged": {
     "*": "biome check --write --no-errors-on-unmatched --files-ignore-unknown=true"

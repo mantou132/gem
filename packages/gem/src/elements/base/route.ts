@@ -12,12 +12,6 @@ import { addListener } from '../../lib/utils';
 type Params = Record<string, string>;
 type Matcher = (path: string) => Params | null | undefined;
 
-declare global {
-  // https://bugzilla.mozilla.org/show_bug.cgi?id=1731418
-  // https://github.com/WebKit/standards-positions/issues/61
-  var URLPattern: any;
-}
-
 const UNNAMED_PARAM_PREFIX = '_';
 
 // 不支持 `URLPattern` 时转换成正则
@@ -56,7 +50,8 @@ function createMatcher(pattern: string): Matcher {
   const urlPattern = new URLPattern({ pathname: pattern });
   // 参数前的 `/` 可能是可选的，例如 `/a/:b?` 匹配 `/a`
   const prefix = literal.replace(/\/$/, '');
-  return (path) => (path.startsWith(prefix) ? urlPattern.exec({ pathname: path })?.pathname.groups : null);
+  return (path) =>
+    path.startsWith(prefix) ? (urlPattern.exec({ pathname: path })?.pathname.groups as Params | undefined) : null;
 }
 
 // pattern 来自路由定义，数量有限

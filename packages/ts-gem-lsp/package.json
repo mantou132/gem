@@ -29,7 +29,7 @@
     "@mantou/vscode-emmet-helper": "^2.11.0",
     "@mantou/vscode-html-languageservice": "^5.3.6",
     "commander": "^14.0.3",
-    "typescript": "7.1.0-dev.20261008.1",
+    "typescript": "7.1.0-beta",
     "vscode-jsonrpc": "^8.2.1"
   },
   "author": "mantou132",

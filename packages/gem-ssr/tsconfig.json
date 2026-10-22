@@ -1,9 +1,10 @@
 {
   "extends": "@gemjs/config/tsconfig",
   "compilerOptions": {
+    "rootDir": "./src",
     "outDir": "./",
     "verbatimModuleSyntax": false,
-    "module": "commonjs"
+    "module": "preserve"
   },
   "include": ["src"],
   "exclude": []

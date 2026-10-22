@@ -1,7 +1,38 @@
 import { camelToKebabCase } from '@mantou/gem/lib/utils';
-import type { ClassDeclaration, Project, SourceFile } from 'ts-morph';
+import type {
+  ClassDeclaration,
+  ClassElement,
+  Expression,
+  Node,
+  ParameterDeclaration,
+  SourceFile,
+} from 'tsrs/unstable/ast';
+import {
+  isCallExpression,
+  isClassDeclaration,
+  isConstructorDeclaration,
+  isDecorator,
+  isExpressionWithTypeArguments,
+  isGetAccessorDeclaration,
+  isIdentifier,
+  isMethodDeclaration,
+  isPropertyDeclaration,
+  isSetAccessorDeclaration,
+  SyntaxKind,
+} from 'tsrs/unstable/ast';
+import type { ModuleResolver, Project } from 'tsrs/unstable/sync';
+import { API, ModuleKind, ModuleResolutionKind, SymbolFlags } from 'tsrs/unstable/sync';
 
-import { getJsDoc, getTypeText, isGetter, isPrivateId, isSetter } from './lib/utils';
+import {
+  getJsDoc,
+  getJsDocParams,
+  getJsDocs,
+  getJsDocTag,
+  getJsDocText,
+  getModifiers,
+  hasModifier,
+  isPrivateId,
+} from './lib/utils';
 
 interface StaticProperty {
   getter?: boolean;
@@ -54,7 +85,6 @@ interface ConstructorParam {
 }
 
 export interface ElementDetail {
-  relativePath?: string;
   shadow: boolean;
   name: string;
   constructorName: string;
@@ -73,6 +103,14 @@ export interface ElementDetail {
   extend?: ElementDetail;
 }
 
+export interface ExportDetail {
+  name: string;
+  kindName: string;
+  type: string;
+  deprecated?: boolean;
+  description?: string;
+}
+
 const shadowDecoratorName = ['shadow'];
 const elementDecoratorName = ['customElement'];
 const attrDecoratorName = ['attribute', 'boolattribute', 'numattribute'];
@@ -85,39 +123,48 @@ const eventDecoratorName = ['emitter', 'globalemitter'];
 const globalEventDecoratorName = ['globalemitter'];
 const lifecyclePopsOrMethods = ['state', 'willMount', 'render', 'mounted', 'shouldUpdate', 'updated', 'unmounted'];
 
-async function getExtendsClassDetail(className: string, sourceFile: SourceFile, project?: Project) {
-  if (className === 'GemElement') return;
-  const currentFile = sourceFile.getFilePath();
-  const isAbsFilePath = currentFile.startsWith('/');
-  if (!isAbsFilePath || !project) return;
-  const fileSystem = project.getFileSystem();
-  const importDeclaration = sourceFile.getImportDeclaration(
-    (desc) =>
-      !!desc
-        .getNamedImports()
-        .map((e) => e.getText())
-        .find((e) => e.includes(className)),
-  );
-  if (!importDeclaration) return;
-  const depPath = importDeclaration.getModuleSpecifierValue();
-  const depFile = depPath.endsWith('.ts') ? depPath : `${depPath}.ts`;
-  const pathname = depPath.startsWith('.') ? new URL(depFile, `gem:${currentFile}`).pathname : depFile;
-  if (project.getSourceFile(pathname)) return;
-  project.createSourceFile(pathname, '');
-  try {
-    const text = await fileSystem.readFile(pathname);
-    const file = project.createSourceFile(pathname, text, { overwrite: true });
-    const classDeclaration = file.getClass(className);
-    if (!classDeclaration) return;
-    const detail = await parseElement(classDeclaration, file, project);
-    detail.relativePath = depPath;
-    return detail;
-  } catch {
-    return;
-  }
+const compilerOptions = {
+  module: ModuleKind.ESNext,
+  moduleResolution: ModuleResolutionKind.Bundler,
+  skipLibCheck: true,
+  types: [],
+  // 并行解析模块时，`resolveModuleName` 回调中的嵌套请求可能得到其他请求的结果，导致导入的符号解析失败，
+  // tsrs 升级到包含 https://github.com/microsoft/TypeScript/pull/64639 的版本后移除
+  singleThreaded: true,
+};
+
+function getDecorators(node: Node) {
+  return getModifiers(node)
+    .filter(isDecorator)
+    .map(({ expression }) => {
+      const call = isCallExpression(expression) ? expression : undefined;
+      const callee = call ? call.expression : expression;
+      return { name: isIdentifier(callee) ? callee.text : '', args: call?.arguments ?? [] };
+    });
 }
 
-export const parseElement = async (declaration: ClassDeclaration, file: SourceFile, project?: Project) => {
+function getTypeString({ checker }: Project, node: Node) {
+  const { name } = node as { name?: Node };
+  return checker.typeToString(checker.getTypeAtLocation(name ?? node), node);
+}
+
+/** 优先使用声明的类型 */
+function getTypeText(project: Project, node: ClassElement | ParameterDeclaration) {
+  const { type } = node as { type?: Node };
+  return type?.getText() || getTypeString(project, node);
+}
+
+function getExtendsClassDetail(project: Project, expression: Expression) {
+  const { checker } = project;
+  let symbol = checker.getSymbolAtLocation(expression);
+  if (symbol && symbol.flags & SymbolFlags.Alias) symbol = checker.getAliasedSymbol(symbol);
+  const declaration = symbol?.valueDeclaration?.resolve(project);
+  // 声明文件中没有装饰器
+  if (!declaration || !isClassDeclaration(declaration) || declaration.getSourceFile().isDeclarationFile) return;
+  return parseElement(project, declaration);
+}
+
+function parseElement(project: Project, declaration: ClassDeclaration) {
   const detail: ElementDetail = {
     name: '',
     shadow: false,
@@ -134,120 +181,108 @@ export const parseElement = async (declaration: ClassDeclaration, file: SourceFi
     parts: [],
     slots: [],
   };
-  const className = declaration.getName();
-  const constructorExtendsName = declaration.getExtends()?.getText();
-  const cons = declaration.getConstructors()[0];
+  const className = declaration.name?.text;
+  const heritage = declaration.heritageClauses?.find((e) => e.token === SyntaxKind.ExtendsKeyword)?.types[0];
+  const cons = declaration.members.find(isConstructorDeclaration);
   const appendElementDesc = (desc = '') =>
     (detail.description = (detail.description ? `${detail.description}\n\n` : '') + desc);
-  declaration.getJsDocs().forEach((jsDoc) => appendElementDesc(jsDoc.getCommentText()));
+  getJsDocs(declaration).forEach((jsDoc) => appendElementDesc(getJsDocText(jsDoc)));
 
-  if (className && constructorExtendsName) {
-    detail.extend = await getExtendsClassDetail(constructorExtendsName, file, project);
+  if (className && heritage && isExpressionWithTypeArguments(heritage)) {
+    const constructorExtendsName = heritage.getText();
+    if (constructorExtendsName !== 'GemElement') {
+      detail.extend = getExtendsClassDetail(project, heritage.expression);
+    }
     detail.constructorName = className;
     detail.constructorExtendsName = constructorExtendsName;
     if (cons) {
-      const params: Record<string, string> = {};
-      const jsDocs = cons.getJsDocs();
-      jsDocs.forEach((jsDoc) => {
-        appendElementDesc(jsDoc.getDescription());
-        jsDoc
-          .getTags()
-          .map((tag) => ({ tagName: tag.getTagName(), name: (tag as any).getName(), comment: tag.getCommentText() }))
-          .filter(({ tagName, comment, name }) => tagName === 'param' && comment && name)
-          .forEach(({ name, comment }) => {
-            params[name] = comment!;
-          });
-      });
-      detail.constructorParams = cons.getParameters().map((param) => ({
-        name: param.getName(),
-        type: getTypeText(param),
-        description: params[param.getName()],
+      getJsDocs(cons).forEach((jsDoc) => appendElementDesc(getJsDocText(jsDoc)));
+      const params = new Map(getJsDocParams(cons).map(({ name, comment }) => [name, comment]));
+      detail.constructorParams = cons.parameters.map((param) => ({
+        name: param.name.getText(),
+        type: getTypeText(project, param),
+        description: params.get(param.name.getText()),
       }));
     }
   }
 
-  const staticPropertiesDeclarations = declaration.getStaticProperties();
-  for (const staticPropDeclaration of staticPropertiesDeclarations) {
-    const staticPropName = staticPropDeclaration.getName();
-    if (isPrivateId(staticPropName)) continue;
-    const prop: StaticProperty = {
-      name: staticPropName,
-      type: staticPropDeclaration.getType().getText(),
-      getter: isGetter(staticPropDeclaration),
-      setter: isSetter(staticPropDeclaration),
-      ...getJsDoc(staticPropDeclaration),
-    };
+  for (const member of declaration.members) {
+    const isMethod = isMethodDeclaration(member);
+    const getter = isGetAccessorDeclaration(member);
+    const setter = isSetAccessorDeclaration(member);
+    if (!isMethod && !getter && !setter && !isPropertyDeclaration(member)) continue;
+    // 重载只保留实现
+    if (isMethod && !member.body) continue;
+    const name = member.name.getText();
+    if (isPrivateId(name)) continue;
+    const decoratorNames = getDecorators(member).map((e) => e.name);
+    const kebabName = camelToKebabCase(name);
 
-    let isPartOrSlot = false;
-
-    const staticPropDecorators = staticPropDeclaration.getDecorators();
-    for (const decorator of staticPropDecorators) {
-      const decoratorName = decorator.getName();
-      if (slotDecoratorName.includes(decoratorName)) {
-        isPartOrSlot = true;
-        prop.slot = camelToKebabCase(staticPropName);
-        detail.slots.push(prop.slot);
-      } else if (partDecoratorName.includes(decoratorName)) {
-        isPartOrSlot = true;
-        prop.part = camelToKebabCase(staticPropName);
-        detail.parts.push(prop.part);
+    if (hasModifier(member, SyntaxKind.StaticKeyword)) {
+      if (isMethod) {
+        detail.staticMethods.push({ name, type: getTypeString(project, member), ...getJsDoc(member) });
+      } else if (decoratorNames.some((e) => slotDecoratorName.includes(e))) {
+        detail.slots.push(kebabName);
+      } else if (decoratorNames.some((e) => partDecoratorName.includes(e))) {
+        detail.parts.push(kebabName);
+      } else {
+        detail.staticProperties.push({
+          name,
+          type: getTypeString(project, member),
+          getter,
+          setter,
+          ...getJsDoc(member),
+        });
       }
+      continue;
     }
 
-    if (!isPartOrSlot) {
-      detail.staticProperties.push(prop);
+    if (lifecyclePopsOrMethods.includes(name)) continue;
+
+    if (isMethod) {
+      const method: Method = { name, type: getTypeText(project, member), ...getJsDoc(member) };
+      detail.methods.push(method);
+      for (const decoratorName of decoratorNames) {
+        if (eventDecoratorName.includes(decoratorName)) {
+          method.event = kebabName;
+          detail.events.push(method.event);
+        }
+        if (globalEventDecoratorName.includes(decoratorName)) {
+          method.isGlobalEvent = true;
+        }
+      }
+      continue;
     }
-  }
 
-  const staticMethodDeclarations = declaration.getStaticMethods();
-  for (const staticMethodDeclaration of staticMethodDeclarations) {
-    const staticMethodName = staticMethodDeclaration.getName();
-    if (isPrivateId(staticMethodName)) continue;
-    const method: StaticMethod = {
-      name: staticMethodName,
-      type: staticMethodDeclaration.getType().getText(),
-      ...getJsDoc(staticMethodDeclaration),
-    };
-    detail.staticMethods.push(method);
-  }
-
-  const propDeclarations = declaration.getInstanceProperties();
-  for (const propDeclaration of propDeclarations) {
-    const propName = propDeclaration.getName();
-    if (isPrivateId(propName)) continue;
-    if (lifecyclePopsOrMethods.includes(propName)) continue;
     const prop: Property = {
-      name: propName,
+      name,
       reactive: false,
-      type: getTypeText(propDeclaration),
-      getter: isGetter(propDeclaration),
-      setter: isSetter(propDeclaration),
-      ...getJsDoc(propDeclaration),
+      type: getTypeText(project, member),
+      getter,
+      setter,
+      ...getJsDoc(member),
     };
     detail.properties.push(prop);
-
-    const propDecorators = propDeclaration.getDecorators();
-    for (const decorator of propDecorators) {
-      const decoratorName = decorator.getName();
+    for (const decoratorName of decoratorNames) {
       if (attrDecoratorName.includes(decoratorName)) {
         prop.reactive = true;
-        prop.attribute = camelToKebabCase(propName);
+        prop.attribute = kebabName;
         detail.attributes.push(prop.attribute);
       } else if (propDecoratorName.includes(decoratorName)) {
         prop.reactive = true;
       } else if (stateDecoratorName.includes(decoratorName)) {
-        prop.cssState = camelToKebabCase(propName);
+        prop.cssState = kebabName;
         detail.cssStates.push(prop.cssState);
       } else if (slotDecoratorName.includes(decoratorName)) {
-        prop.slot = camelToKebabCase(propName);
+        prop.slot = kebabName;
         detail.slots.push(prop.slot);
       } else if (partDecoratorName.includes(decoratorName)) {
-        prop.part = camelToKebabCase(propName);
+        prop.part = kebabName;
         detail.parts.push(prop.part);
       } else if (refDecoratorName.includes(decoratorName)) {
         prop.isRef = true;
       } else if (eventDecoratorName.includes(decoratorName)) {
-        prop.event = camelToKebabCase(propName);
+        prop.event = kebabName;
         detail.events.push(prop.event);
       }
       if (globalEventDecoratorName.includes(decoratorName)) {
@@ -256,107 +291,101 @@ export const parseElement = async (declaration: ClassDeclaration, file: SourceFi
     }
   }
 
-  const methodDeclarations = declaration.getInstanceMethods();
-  for (const methodDeclaration of methodDeclarations) {
-    const methodName = methodDeclaration.getName();
-    if (isPrivateId(methodName)) continue;
-    if (lifecyclePopsOrMethods.includes(methodName)) continue;
-    const method: Method = {
-      name: methodName,
-      type: getTypeText(methodDeclaration),
-      ...getJsDoc(methodDeclaration),
-    };
-    detail.methods.push(method);
-
-    const methodDecorators = methodDeclaration.getDecorators();
-    for (const decorator of methodDecorators) {
-      const decoratorName = decorator.getName();
-      if (eventDecoratorName.includes(decoratorName)) {
-        method.event = camelToKebabCase(methodName);
-        detail.events.push(method.event);
-      }
-      if (globalEventDecoratorName.includes(decoratorName)) {
-        method.isGlobalEvent = true;
-      }
-    }
-  }
-
-  const elementDecorators = declaration.getDecorators();
-  const shadowDeclaration = elementDecorators.find((decorator) => shadowDecoratorName.includes(decorator.getName()));
-  if (shadowDeclaration) {
-    detail.shadow = true;
-  }
+  detail.shadow = getDecorators(declaration).some((e) => shadowDecoratorName.includes(e.name));
 
   return detail;
-};
-
-export const getElements = async (file: SourceFile, project?: Project) => {
-  const result: ElementDetail[] = [];
-  for (const declaration of file.getClasses()) {
-    // need support other decorators?
-    const elementDecorators = declaration.getDecorators();
-    const elementDeclaration = elementDecorators.find((decorator) =>
-      elementDecoratorName.includes(decorator.getName()),
-    );
-    const elementTag =
-      elementDeclaration
-        ?.getCallExpression()!
-        .getArguments()[0]
-        .getText()
-        .replace(/('|"|`)?(\S*)\1/, '$2') ||
-      declaration
-        .getJsDocs()
-        .flatMap((jsDoc) => jsDoc.getTags())
-        .find((e) => e.getTagName() === 'customElement')
-        ?.getCommentText();
-    if (elementTag) {
-      const detail: ElementDetail = {
-        ...(await parseElement(declaration, file, project)),
-        name: elementTag,
-      };
-      if (!detail.constructorName.startsWith('_')) {
-        result.push(detail);
-      }
-    }
-  }
-  return result;
-};
-
-export interface ExportDetail {
-  name: string;
-  kindName: string;
-  type: string;
-  deprecated?: boolean;
-  description?: string;
 }
 
-export const getExports = async (file: SourceFile) => {
-  const result: ExportDetail[] = [];
-
-  for (const [name, declarations] of file.getExportedDeclarations()) {
-    // reexport
-    if (!declarations.length) return;
-    let deprecated = false;
-    let description = '';
-    declarations.forEach((declaration) => {
-      // 只支持 1 份有效的 jsDoc
-      const jsDoc = getJsDoc(declaration);
-      if (jsDoc?.deprecated || jsDoc?.description) {
-        deprecated = jsDoc.deprecated;
-        description = jsDoc.description;
-      }
-    });
-
-    result.push({
-      name,
-      kindName: declarations[0].getKindName(),
-      type: declarations
-        .map((declaration) => declaration.getType().getText())
-        .filter((e) => !!e)
-        .join(';'),
-      deprecated,
-      description,
-    });
+function getElements(project: Project, file: SourceFile) {
+  const result: ElementDetail[] = [];
+  for (const declaration of file.statements) {
+    if (!isClassDeclaration(declaration)) continue;
+    const elementDecorator = getDecorators(declaration).find((e) => elementDecoratorName.includes(e.name));
+    const elementTag =
+      elementDecorator?.args[0]?.getText().replace(/('|"|`)?(\S*)\1/, '$2') ||
+      getJsDocTag(declaration, 'customElement');
+    if (!elementTag) continue;
+    const detail = { ...parseElement(project, declaration), name: elementTag };
+    if (!detail.constructorName.startsWith('_')) result.push(detail);
   }
   return result;
-};
+}
+
+function getExports(project: Project, file: SourceFile) {
+  const { checker } = project;
+  const moduleSymbol = checker.getSymbolAtLocation(file);
+  if (!moduleSymbol) return [];
+  // 按照声明顺序
+  const symbols = checker
+    .getExportsOfModule(moduleSymbol)
+    .toSorted((a, b) => (a.declarations[0]?.index ?? 0) - (b.declarations[0]?.index ?? 0));
+  return symbols.flatMap((symbol): ExportDetail[] => {
+    // 重新导出的声明在其他文件中
+    const target = symbol.flags & SymbolFlags.Alias ? checker.getAliasedSymbol(symbol) : symbol;
+    const declarations = target.declarations.flatMap((e) => e.resolve(project) ?? []);
+    if (!declarations.length) return [];
+    // 只支持 1 份有效的 jsDoc
+    const jsDoc = declarations.map(getJsDoc).find((e) => e.deprecated || e.description);
+    return [
+      {
+        name: symbol.name,
+        kindName: SyntaxKind[declarations[0].kind],
+        type: declarations
+          .map((declaration) => getTypeString(project, declaration))
+          .filter((e) => !!e)
+          .join(';'),
+        deprecated: jsDoc?.deprecated ?? false,
+        description: jsDoc?.description ?? '',
+      },
+    ];
+  });
+}
+
+export interface AnalyzerOptions {
+  /** 默认为 `process.cwd()` */
+  cwd?: string;
+  /**
+   * 把导入的模块解析到源码文件，没有返回时使用默认解析；
+   * 依赖中的声明文件没有装饰器，继承依赖中的元素时需要分析源码
+   */
+  resolveModule?: (specifier: string, containingDirectory: string) => string | undefined;
+}
+
+/** 使用 tsrs 分析文件，用完后需要调用 `close` 结束 tsrs 进程 */
+export class Analyzer {
+  #api: API;
+  #moduleResolver?: ModuleResolver;
+
+  constructor({ cwd, resolveModule }: AnalyzerOptions = {}) {
+    this.#api = new API({ cwd });
+    if (!resolveModule) return;
+    const defaultResolver = this.#api.createModuleResolver(compilerOptions);
+    this.#moduleResolver = this.#api.createModuleResolver(compilerOptions, {
+      // 回调没有返回时模块不会被解析，所以需要使用默认解析
+      resolveModuleName: (specifier, containingDirectory, mode) => ({
+        resolvedFileName:
+          resolveModule(specifier, containingDirectory) ||
+          defaultResolver.resolveModuleName(specifier, containingDirectory, mode).resolvedModule?.resolvedFileName,
+      }),
+    });
+  }
+
+  /** 每次分析都读取最新的文件内容 */
+  analyze(fileName: string) {
+    const snapshot = this.#api.createSnapshot({
+      createPrograms: [{ rootFiles: [fileName], compilerOptions, options: { moduleResolver: this.#moduleResolver } }],
+    });
+    try {
+      const project = snapshot.getProject(snapshot.operation.createdPrograms[0].id)!;
+      const file = project.program.getSourceFile(fileName);
+      if (!file) throw new Error(`Cannot find file: ${fileName}`);
+      return { elements: getElements(project, file), exports: getExports(project, file) };
+    } finally {
+      snapshot.dispose();
+    }
+  }
+
+  close() {
+    this.#api.close();
+  }
+}

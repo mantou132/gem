@@ -2,9 +2,9 @@ import type { Node as CssNode } from '@mantou/vscode-css-languageservice';
 import { getCSSLanguageService, NodeType, TextDocument } from '@mantou/vscode-css-languageservice';
 import type { Node as HtmlNode } from '@mantou/vscode-html-languageservice';
 import { getLanguageService } from '@mantou/vscode-html-languageservice';
-import type { CallExpression, ClassDeclaration, Node, SourceFile, StringLiteral } from 'typescript/unstable/ast';
-import type { Project } from 'typescript/unstable/async';
-import type { Location, Range, TextEdit } from 'typescript/unstable/vscode';
+import type { CallExpression, ClassDeclaration, Node, SourceFile, StringLiteral } from 'typescript/ast';
+import type { Project } from 'typescript/async';
+import type { Location, Range, TextEdit } from 'typescript/vscode';
 
 import type { CssService } from './css';
 import { isDepFile } from './elements';

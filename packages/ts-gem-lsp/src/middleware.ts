@@ -1,7 +1,7 @@
 import { kebabToCamelCase } from '@mantou/gem/lib/utils';
 import type { Color, ColorInformation, ColorPresentation } from '@mantou/vscode-css-languageservice';
-import type { SourceFile } from 'typescript/unstable/ast';
-import type { API } from 'typescript/unstable/async';
+import type { SourceFile } from 'typescript/ast';
+import type { API } from 'typescript/async';
 import type {
   CodeAction,
   CodeActionParams,
@@ -36,7 +36,7 @@ import type {
   VSOnAutoInsertParams,
   VSOnAutoInsertResponseItem,
   WorkspaceEdit,
-} from 'typescript/unstable/vscode';
+} from 'typescript/vscode';
 
 import { findClassNameAt, findClassNameSelectors, findClassNameUsages, findElementsUsingStyle } from './class-names';
 import type { GemConfiguration } from './configuration';

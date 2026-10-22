@@ -7,9 +7,9 @@ import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 
 import type { Color } from '@mantou/vscode-css-languageservice';
-import type { API } from 'typescript/unstable/async';
-import type { Range } from 'typescript/unstable/vscode';
-import { createTypeScriptModuleLoader } from 'typescript/unstable/vscode';
+import type { API } from 'typescript/async';
+import type { Range } from 'typescript/vscode';
+import { createTypeScriptModuleLoader } from 'typescript/vscode';
 import type {
   MessageReader,
   MessageWriter,

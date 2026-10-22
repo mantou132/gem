@@ -1,9 +1,8 @@
-import { mkdirSync, promises, readdirSync, readFileSync, statSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readdirSync, statSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 
 import type { ElementDetail } from 'gem-analyzer';
-import { getElements } from 'gem-analyzer';
-import { ts as morphTs, Project } from 'ts-morph';
+import { Analyzer } from 'gem-analyzer';
 
 const dev = process.env.MODE === 'dev';
 const elements = process.env.ELEMENTS?.split(',');
@@ -61,40 +60,21 @@ const mergeElementDetail = (detail: ElementDetail): ElementDetail => {
   };
 };
 
-const elementCache: Record<string, Promise<ElementDetail[]> | undefined> = {};
-// 共享 `project`，并发分析时依赖文件会被重复创建覆盖，导致元素丢失，所以串行分析
-let analyzeQueue = Promise.resolve();
-const project = new Project({
-  useInMemoryFileSystem: true,
-  compilerOptions: { target: morphTs.ScriptTarget.ESNext },
+const elementCache: Record<string, ElementDetail[] | undefined> = {};
+// 依赖中的声明文件没有装饰器，父类从依赖的源码中分析
+const analyzer = new Analyzer({
+  resolveModule: (specifier) => {
+    if (specifier.startsWith('.')) return;
+    const match = specifier.match(/^((?:@[^/]+\/)?[^/]+)\/(.+)$/);
+    const files = [`${specifier}.ts`, ...(match ? [`${match[1]}/src/${match[2]}.ts`] : [])];
+    return files.map((file) => path.resolve('node_modules', file)).find((file) => existsSync(file));
+  },
 });
-project.getFileSystem().readFile = async (filePath) => {
-  try {
-    return await promises.readFile(filePath, 'utf8');
-  } catch {
-    const inNodeModules = path.resolve('node_modules', filePath);
-    try {
-      return await promises.readFile(inNodeModules, 'utf8');
-    } catch {}
-    const match = filePath.match(/^((?:@[^/]+\/)?[^/]+)\/(.+)$/);
-    if (match) {
-      const [, pkg, sub] = match;
-      const inSrc = path.resolve('node_modules', pkg, 'src', sub);
-      try {
-        return await promises.readFile(inSrc, 'utf8');
-      } catch {}
-    }
-    throw new Error(`Cannot find file: ${filePath}`);
-  }
-};
+
 export function getFileElements(elementFilePath: string) {
-  elementCache[elementFilePath] ||= analyzeQueue.then(async () => {
-    const text = readFileSync(elementFilePath, { encoding: 'utf-8' });
-    const file = project.getSourceFile(elementFilePath) || project.createSourceFile(elementFilePath, text);
-    const details = await getElements(file, project);
-    return details.map((detail) => mergeElementDetail(detail));
-  });
-  analyzeQueue = elementCache[elementFilePath].then(() => {});
+  elementCache[elementFilePath] ||= analyzer
+    .analyze(elementFilePath)
+    .elements.map((detail) => mergeElementDetail(detail));
   return elementCache[elementFilePath];
 }
 
@@ -184,23 +164,19 @@ export async function generateComponents(
   writeFileSync(path.resolve(outDir, '_runtime.js'), runtime);
   await Promise.all(
     getElementPathList(elementsDir).map(async (elementFilePath) => {
-      const details = await getFileElements(elementFilePath);
+      const details = getFileElements(elementFilePath);
       const relativePath = getRelativePath(elementFilePath, outDir);
       const filename = [ns, path.basename(relativePath)].filter((e) => !!e).join('-');
       const exportElement = `export * from '${relativePath}';\n`;
       writeFileSync(path.resolve(outDir, `${filename}.js`), [exportElement, getJs(details)].join('\n'));
-      const dtsPath = path.resolve(outDir, `${filename}.d.ts`);
-      const dts = project.createSourceFile(
-        dtsPath,
+      writeFileSync(
+        path.resolve(outDir, `${filename}.d.ts`),
         [
           `import type { ${details.map((e) => e.constructorName).join(', ')} } from '${relativePath}';`,
           exportElement,
           getDts(details),
         ].join('\n'),
-        { overwrite: true },
       );
-      dts.formatText({ indentSize: 2, convertTabsToSpaces: true });
-      writeFileSync(dtsPath, dts.getFullText());
       Object.entries(getExtraFiles?.(details) || {}).forEach(([name, content]) => {
         writeFileSync(path.resolve(outDir, name), content);
       });

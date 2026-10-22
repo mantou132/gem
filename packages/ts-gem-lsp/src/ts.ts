@@ -1,5 +1,5 @@
-import type * as AstModule from 'typescript/unstable/ast';
-import type * as ApiModule from 'typescript/unstable/async';
+import type * as AstModule from 'typescript/ast';
+import type * as ApiModule from 'typescript/async';
 
 export interface TsModules {
   ast: typeof AstModule;
@@ -18,8 +18,8 @@ export let ts: TsModules;
 
 export async function loadTsModules(loader: TsModuleLoader) {
   const [ast, api] = await Promise.all([
-    loader.importModule('typescript/unstable/ast'),
-    loader.importModule('typescript/unstable/async'),
+    loader.importModule('typescript/ast'),
+    loader.importModule('typescript/async'),
   ]);
   ts = { ast, api } as TsModules;
   return ts;
