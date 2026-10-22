@@ -7,6 +7,8 @@ type DevToolsHookStore = {
   customElementMap: Map<string, CustomElementConstructor>;
   currentElementsMap: Map<string, Element>;
   domAttrMutation?: MutationObserver;
+  /** 已经安装了 Performance 面板的 Gem 轨道 */
+  performanceTrack?: boolean;
 };
 declare global {
   interface Window {
