@@ -1,3 +1,4 @@
+import { getLogicalParent } from '@mantou/gem/elements/base/reflect';
 import type { Metadata } from '@mantou/gem/lib/element';
 import { GemElement } from '@mantou/gem/lib/element';
 
@@ -99,27 +100,16 @@ export function closestElement<K extends abstract new (...args: any) => any>(
 ): InstanceType<K> | null;
 export function closestElement<K extends Element>(ele: Element, tag: string): K | null;
 export function closestElement<K extends abstract new (...args: any) => any>(ele: Element, selector: K | string) {
-  let node: Element | null = ele;
-  if (typeof selector === 'function') {
-    while (node) {
-      if (node instanceof selector) return node;
-      node = node.parentElement || (node.getRootNode() as ShadowRoot).host;
-    }
-  } else {
-    while (node) {
-      const e = node.closest(selector);
-      if (e) return e;
-      node = (node.getRootNode() as ShadowRoot).host;
-    }
+  for (let node: Element | null = ele; node; node = getLogicalParent(node)) {
+    if (typeof selector === 'function' ? node instanceof selector : node.matches(selector)) return node;
   }
   return null;
 }
 
+/** `other` 是否是 `ele` 或者它的逻辑子孙节点，跨越 ShadowDOM 和 reflect */
 export function containsElement(ele: Node, other: Node) {
-  let node: Node | null = other;
-  while (node) {
-    if (ele.contains(node)) return true;
-    node = (node.getRootNode() as ShadowRoot).host;
+  for (let node: Node | null = other; node; node = getLogicalParent(node)) {
+    if (node === ele) return true;
   }
   return false;
 }

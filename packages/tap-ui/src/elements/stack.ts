@@ -14,6 +14,7 @@ import { history } from '@mantou/gem/lib/history';
 import { connect, createStore } from '@mantou/gem/lib/store';
 import { classMap, styleMap } from '@mantou/gem/lib/utils';
 
+import { activityStore } from '../lib/decorators';
 import { easeOutCubic } from '../lib/easing';
 import { closestElement, containsElement } from '../lib/element';
 import { clamp } from '../lib/number';
@@ -295,6 +296,10 @@ export class TapStackElement extends GemElement {
     return connect(this.#store, this.update);
   };
 
+  // 渲染后非栈顶页面的 `data-inactive` 已经切换
+  @effect((i) => [i.#store.pages])
+  #notifyActivity = () => activityStore();
+
   @effect((i) => [i.#store.sheetProgress])
   #watchSheetOffset = () => {
     const { sheetProgress } = this.#store;
@@ -354,6 +359,7 @@ export class TapStackElement extends GemElement {
               ${isTop ? this.#topPageRef : isBelowTop ? this.#belowPageRef : undefined}
               class=${classMap({ page: true, top: !!isTop })}
               ?inert=${!isTop}
+              ?data-inactive=${!isTop}
               style=${styleMap({
                 transform: isTop
                   ? offset > 0
