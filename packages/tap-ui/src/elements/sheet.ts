@@ -161,8 +161,8 @@ export class TapSheetElement extends GemElement {
 
   @state closing: boolean;
 
-  headerSlot?: string | TemplateResult;
-  bodySlot?: string | TemplateResult;
+  @property headerSlot?: string | TemplateResult;
+  @property bodySlot?: string | TemplateResult;
 
   /** Opens a sheet; settles when dismissed (mask / gesture / CloseWatcher). */
   static open(options: SheetOptions = {}) {

@@ -63,6 +63,7 @@ export class DuoyunPopoverElement extends GemElement {
 
   // 不能通过 slot 元素支持
   @property content?: string | TemplateResult;
+  @property ghostStyle?: GhostStyle;
 
   @emitter open: Emitter<null>;
   @emitter close: Emitter<null>;
@@ -334,8 +335,6 @@ export class DuoyunPopoverElement extends GemElement {
       <slot ${this.#slotRef} part=${DuoyunPopoverElement.slot}></slot>
     `;
   };
-
-  ghostStyle?: GhostStyle;
 }
 
 export const Popover = DuoyunPopoverElement;

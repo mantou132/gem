@@ -197,7 +197,7 @@ export class DyPatNavElement extends GemElement {
   @property logo?: string | Element | DocumentFragment;
   @state switching: boolean;
 
-  navSlot?: TemplateResult;
+  @property navSlot?: TemplateResult;
 
   #state = createState({
     drawerOpen: false,

@@ -35,18 +35,28 @@ const getChain = (detail: ElementDetail) => {
   return result;
 };
 
+type Property = ElementDetail['properties'][number];
+
+// 只有响应式字段、CSS 状态和 setter 作为组件 Prop，其他字段（例如 `contentRect`）和 getter 通过实例读取
+function isProp({ setter, event, reactive, cssState }: Property) {
+  return !event && (reactive || !!cssState || !!setter);
+}
+
 const mergeElementDetail = (detail: ElementDetail): ElementDetail => {
   const chain = getChain(detail);
   return {
     ...detail,
-    // 子类可能重新声明父类字段，保留子类的
+    // 子类可能重新声明父类字段（例如修改默认值），保留子类的，但继承父类的装饰器信息
     properties: [
-      ...new Map(
-        chain
-          .flatMap((e) => e.properties)
-          .reverse()
-          .map((e) => [e.name, e]),
-      ).values(),
+      ...chain
+        .flatMap((e) => e.properties)
+        .reverse()
+        .reduce((map, e) => {
+          const base = map.get(e.name);
+          const { reactive, attribute, cssState } = base && !isProp(e) ? base : e;
+          return map.set(e.name, { ...e, reactive, attribute, cssState });
+        }, new Map<string, Property>())
+        .values(),
     ],
     methods: [
       ...new Map(
@@ -94,8 +104,10 @@ export function getRelativePath(elementFilePath: string, outDir: string) {
 }
 
 export function getComponentInfo(detail: ElementDetail) {
-  const props = detail.properties.filter(({ getter, event }) => !getter && !event);
-  const getters = detail.properties.filter(({ getter }) => getter).map(({ name }) => name);
+  const props = detail.properties.filter(isProp);
+  const getters = detail.properties
+    .filter((prop) => !prop.event && (prop.getter || !isProp(prop)))
+    .map(({ name }) => name);
   const methods = detail.methods.map(({ name }) => name);
   return {
     componentName: getComponentName(detail.name),
@@ -117,7 +129,7 @@ export function getEventProp(event: string) {
 
 export function getPropsType({ constructorName, properties }: ElementDetail) {
   const members = properties
-    .filter(({ getter, event }) => !getter && !event)
+    .filter(isProp)
     .map(({ name, deprecated }) => `${getJsDocDescName(`'${name}'`, deprecated)}?: ${constructorName}['${name}'];`);
   return `{\n${members.join('\n')}\n}`;
 }

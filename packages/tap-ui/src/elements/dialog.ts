@@ -166,9 +166,9 @@ export class TapDialogElement extends GemElement {
 
   @state closing: boolean;
 
-  headerSlot?: string | TemplateResult;
-  bodySlot?: string | TemplateResult;
-  footerSlot?: string | TemplateResult;
+  @property headerSlot?: string | TemplateResult;
+  @property bodySlot?: string | TemplateResult;
+  @property footerSlot?: string | TemplateResult;
 
   // Cannot be used for dynamic forms
   static open<T = Element>(options: DialogOptions & DialogOpenOptions<T>) {

@@ -86,6 +86,8 @@ export class TapListElement extends GemElement {
   @boolattribute infinite: boolean;
   /**If infinite scrolling is enabled, this method must be provided */
   @property getKey?: (item: any) => Key;
+  // 切换容器？
+  @property scrollContainer = document.documentElement;
   /**only infinite */
   @emitter forward: Emitter;
   /**only infinite */
@@ -586,9 +588,6 @@ export class TapListElement extends GemElement {
       scrollTop: this.scrollContainer.scrollTop,
     };
   }
-
-  // 切换容器？
-  scrollContainer = document.documentElement;
 }
 
 @customElement('tap-list-item')

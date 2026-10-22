@@ -35,6 +35,9 @@ const renderCode = (s = '', deprecated?: boolean, prefix?: string) => {
   return deprecated ? `~~${code}~~` : code;
 };
 
+const getAccessorPrefix = ({ getter, setter }: { getter?: boolean; setter?: boolean }) =>
+  [getter && 'get', setter && 'set'].filter(Boolean).join('/');
+
 const renderDescription = ({ description = '' }: { description?: string }) => description.replaceAll('\n', '<br>');
 
 /** 没有描述时不显示描述列 */
@@ -88,7 +91,7 @@ function renderElement(detail: ElementDetail, headingLevel: number, root = detai
       staticProperties,
       ['Property', 'Type'],
       [
-        ({ name, deprecated, getter, setter }) => renderCode(name, deprecated, getter ? 'get' : setter ? 'set' : ''),
+        ({ name, deprecated, ...rest }) => renderCode(name, deprecated, getAccessorPrefix(rest)),
         ({ type }) => renderCode(type),
       ],
     );
@@ -110,8 +113,8 @@ function renderElement(detail: ElementDetail, headingLevel: number, root = detai
       instanceProperties,
       ['Property(Attribute)', 'Reactive', 'Type'],
       [
-        ({ name, attribute, deprecated, setter, getter }) =>
-          renderCode(name, deprecated, getter ? 'get' : setter ? 'set' : '') +
+        ({ name, attribute, deprecated, ...rest }) =>
+          renderCode(name, deprecated, getAccessorPrefix(rest)) +
           (attribute ? `(${renderCode(attribute, deprecated)})` : ''),
         ({ reactive }) => (reactive ? 'Yes' : ''),
         ({ type }) => renderCode(type),

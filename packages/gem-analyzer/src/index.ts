@@ -254,6 +254,14 @@ function parseElement(project: Project, declaration: ClassDeclaration) {
       continue;
     }
 
+    // get/set 访问器合并成一个属性
+    const accessor = (getter || setter) && detail.properties.find((e) => e.name === name);
+    if (accessor) {
+      accessor.getter ||= getter;
+      accessor.setter ||= setter;
+      continue;
+    }
+
     const prop: Property = {
       name,
       reactive: false,

@@ -244,6 +244,7 @@ export class DuoyunFormItemElement extends GemElement {
 
   @property value?: number | string | any[] | any;
   @property renderLabel?: (e: SelectOption) => string | TemplateResult;
+  @property rules?: FormItemRule[];
 
   // textarea
   @numattribute rows: number;
@@ -529,8 +530,6 @@ export class DuoyunFormItemElement extends GemElement {
   clearInvalidMessage() {
     this.#state({ invalidMessage: undefined });
   }
-
-  rules?: FormItemRule[];
 
   // 不绑定 `value` 将只支持 `validator`
   async valid() {

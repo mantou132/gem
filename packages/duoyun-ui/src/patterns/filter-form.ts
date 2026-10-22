@@ -94,6 +94,7 @@ const defaultState: State = {
 export class DyPatFilterFormElement extends GemElement {
   @property options?: FilterableOptions;
   @property getText?: (text: ComparerType) => string;
+  @property initValue?: Partial<SubmitValue>;
 
   @emitter submit: Emitter<SubmitValue>;
 
@@ -279,6 +280,4 @@ export class DyPatFilterFormElement extends GemElement {
       <dy-button ?disabled=${this.#disabled} @click=${this.#onSubmit}>${locale.ok}</dy-button>
     `;
   };
-
-  initValue?: Partial<SubmitValue>;
 }
