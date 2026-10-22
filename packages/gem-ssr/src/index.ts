@@ -195,8 +195,9 @@ type ElementFrame = {
   serverKey?: string;
   // 纯服务端元素，不会水合
   pure: boolean;
-  // 父模版设置了 property
-  withProps: boolean;
+  // 父模版设置了 property：空字符串表示水合时等待父模版设置；
+  // 纯服务端元素的模版不会水合，输出 property 的 JSON，客户端挂载前设置
+  ssrProps?: string;
 };
 
 // 路由内部捕获了加载错误，SSR 时应该渲染失败
@@ -208,6 +209,12 @@ function loadRoute(route: GemLightRouteElement) {
     route.removeEventListener('error', onError);
     if (error) throw error.err;
   });
+}
+
+function getSSRProps(ctx: Context, props: Record<string, unknown>) {
+  if (ctx.hydrating) return '';
+  // 根模版没有父模版，不需要设置
+  if (ctx.hydrating === false) return JSON.stringify(props);
 }
 
 function createElement(Element: CustomElementConstructor, op: OpenOp, values: unknown[], ctx: Context) {
@@ -232,7 +239,7 @@ function createElement(Element: CustomElementConstructor, op: OpenOp, values: un
     parentCtx: ctx,
     serverKey: serverKind && getServerElementKey(op.tag, attrs, props),
     pure: serverKind === 'server',
-    withProps: !!ctx.hydrating && Object.keys(props).length > 0,
+    ssrProps: Object.keys(props).length ? getSSRProps(ctx, props) : undefined,
   };
   if (frame.hidden) {
     ssrContext.tasks.delete(element);
@@ -310,7 +317,7 @@ function getLightStyle(element: GemElement, sheets: Set<unknown>, attrs = ` ${SS
 
 // 在子内容后执行，异步任务完成后才能输出元素
 function buildElement(
-  { op, element, hidden, conditionHidden, parentCtx, serverKey, pure, withProps }: ElementFrame,
+  { op, element, hidden, conditionHidden, parentCtx, serverKey, pure, ssrProps }: ElementFrame,
   children: Piece[],
 ) {
   const attrs = getElementAttrs(element);
@@ -319,7 +326,7 @@ function buildElement(
   }
   // 隐藏的元素没有内容，客户端显示时获取
   if (serverKey && !hidden) attrs.set(SSR_SERVER, '');
-  if (withProps) attrs.set(SSR_PROPS, '');
+  if (ssrProps !== undefined) attrs.set(SSR_PROPS, ssrProps);
   const { states } = element.internals;
   if (states.size) attrs.set(SSR_CSS_STATES, [...states].join(' '));
   setConditionAttrs(op, conditionHidden, attrs);

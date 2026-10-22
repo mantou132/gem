@@ -276,6 +276,20 @@ test('父模版设置了 property 的元素在父模版水合后才渲染', asyn
   assert.equal(warn.mock.callCount(), 0);
 });
 
+test('纯服务端元素中的元素使用服务端输出的 property', async ({ assert }) => {
+  const html = await ssr('server-element.ts', 'serverProps');
+  assert.match(html, /<app-props-child ssr-props="\{&quot;item&quot;:\{&quot;name&quot;:&quot;s&quot;\}\}"/);
+  customElements.define('app-server-props', class extends GemServerElement {});
+  const container = mount(html);
+  const b = container.querySelector('app-server-props b');
+  const { renders } = await import('./fixtures/props');
+  const child = container.querySelector('app-server-props app-props-child')!;
+  assert.equal(renders.includes(''), false, '首次渲染就有 property');
+  assert.equal(child.hasAttribute('ssr-props'), false);
+  assert.deepEqual((child as any).item, { name: 's' });
+  assert.equal(child.querySelector('b'), b, '复用节点');
+});
+
 test('CSS 状态：服务端输出 attribute，样式同时匹配，水合时恢复', async ({ assert }) => {
   const html = await ssr('css-states.ts', 'cssState');
   assert.match(html, /<app-css-state ssr-state="\[\]" ssr-css-states="gem-element gem-style-boundary open">/);

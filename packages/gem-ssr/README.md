@@ -276,8 +276,8 @@ The `serverElements` option of `render` collects the HTML of the server elements
 e.g. to send them with the page data ([gemkit](https://github.com/mantou132/gem/tree/main/packages/gemkit) does this).
 - Server elements must not depend on client-only state, the attributes and properties must be JSON values
 - Properties are only used when the element is created, prefer attributes
-- Properties set by a server element on its child elements are not available on the client,
-  interactive child elements are hydrated independently
+- Interactive child elements are hydrated independently, the properties set by the server element are output as JSON
+  and set before they are mounted (values like `Date` and `Map` are converted by JSON), event listeners are not bound
 - Lazy views created on the client get the HTML from the loader too, then the code is loaded by the `on` option,
   replaying works for simple events, continuous interactions such as dragging take effect after loading
 

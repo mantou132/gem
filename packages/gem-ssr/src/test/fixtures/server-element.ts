@@ -12,6 +12,8 @@ import {
 
 import { lazy, server } from '../../decorators';
 
+import './props';
+
 @customElement('app-server-element')
 @adoptedStyle(css`
   :scope {
@@ -56,3 +58,13 @@ export class DemoLazyElement extends GemElement {
 export const lazyElement = () => html`<app-lazy-element text="a"></app-lazy-element>`;
 
 export { hiddenServerElement } from './hidden';
+
+// 纯服务端元素给子元素设置的 property 输出成 JSON，客户端挂载前设置
+@customElement('app-server-props')
+@server()
+export class DemoServerPropsElement extends GemElement {
+  @template()
+  #render = () => html`<app-props-child .item=${{ name: 's' }}></app-props-child>`;
+}
+
+export const serverProps = () => html`<app-server-props></app-server-props>`;

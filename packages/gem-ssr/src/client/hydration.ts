@@ -41,10 +41,17 @@ const pendingElements = new WeakMap<Node, Map<Element, () => void>>();
 
 /**
  * 父模版设置了 property 的元素在父模版水合后才挂载，否则首次渲染时没有 property，
- * 例如子元素先定义时会立即升级
+ * 例如子元素先定义时会立即升级；纯服务端元素中的元素直接设置服务端输出的 property
  */
 export function deferConnect(ele: Element, connect: () => void) {
-  if (!ele.hasAttribute(SSR_PROPS)) return false;
+  const props = ele.getAttribute(SSR_PROPS);
+  if (props === null) return false;
+  // 纯服务端元素中的元素，父模版不会水合，使用服务端输出的 property
+  if (props) {
+    ele.removeAttribute(SSR_PROPS);
+    Object.assign(ele, JSON.parse(props));
+    return false;
+  }
   const container = getTemplateContainer(ele);
   // 父模版已经水合，升级前设置的 property 会被保留
   if (!container || '_$litPart$' in container) {
