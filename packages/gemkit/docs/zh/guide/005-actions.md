@@ -29,6 +29,30 @@ export const actions = {
 action 的参数和 `load` 相同：`params`、`url`、`request`、`cookies` 和 `locals`。
 返回值必须可以序列化成 JSON。
 
+## 布局中的 action
+
+`_layout.server.ts` 也可以导出 `actions`，对布局中的所有页面都有效，布局中的表单（例如导航栏的退出登录）
+不需要借用某个页面的地址：
+
+```ts
+// src/pages/_layout.server.ts
+export const actions = {
+  logout: ({ cookies }: ServerLoadContext) => {
+    cookies.delete('token');
+    redirect(303, '/');
+  },
+};
+```
+
+```ts
+// src/pages/_layout.ts
+html`<form method="post" action="?/logout" @submit=${this.#submit}><button>Sign out</button></form>`;
+```
+
+- 从页面开始逐层向外查找，页面和内层布局的同名 action 覆盖外层的。
+- `params` 是布局的参数，不包括子路由的部分，和布局的 `load` 一样。
+- 出错时错误页面渲染在布局的位置。
+
 ## 在页面中提交
 
 ```ts

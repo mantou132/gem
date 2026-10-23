@@ -79,8 +79,8 @@ export interface ServerModule {
    */
   revalidate?: number;
   /**
-   * 处理表单提交 `POST <page path>?/<name>`，只对页面有效，返回值只能是 JSON 值，
-   * 可以使用 `redirect` 跳转
+   * 处理表单提交 `POST <page path>?/<name>`，返回值只能是 JSON 值，可以使用 `redirect` 跳转；
+   * 在 layout 中定义时对其中的页面都有效，页面和内层 layout 的同名 action 覆盖外层的
    */
   actions?: Record<string, (ctx: ServerLoadContext<any>) => unknown>;
 }

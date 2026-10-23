@@ -63,7 +63,7 @@ export default class BlogLayout extends GemElement {
 在子路由之间导航时，如果布局的参数没有改变，布局数据会被复用。提交表单或者 `invalidate()` 后会重新加载，
 因为请求可能改变了它依赖的状态，例如当前用户。
 
-布局也可以有同名的 `_layout.server.ts`，它的 `load` 结果作为 `data` 传给 `load`。
+布局也可以有同名的 `_layout.server.ts`，它的 `load` 结果作为 `data` 传给 `load`，它的 `actions` 对布局中的页面都有效，见[布局中的 action](./005-actions.md#布局中的-action)。
 需要每个请求都执行的权限检查应该使用[请求钩子](../guide/007-request.md)，而不是布局 `load`：
 布局 `load` 不会在表单提交和服务端元素中执行，而且客户端导航时它和页面 `load` 并行执行。
 

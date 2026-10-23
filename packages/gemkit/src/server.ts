@@ -179,27 +179,36 @@ export function createRenderer({
       return { status: 200, headers: toHeaders(setCookies), body: { data, error: errors.find(Boolean) } };
     });
 
-  /** 处理页面的表单提交 `POST <page path>?/<name>`，没有对应的 action 时结果为 `null`，出错时错误页面渲染在页面的位置 */
+  /** 页面和 layout 中名称为 `name` 的 action，从页面开始逐层向外查找，内层的覆盖外层的同名 action */
+  const findAction = async (path: string, name: string) => {
+    if (!matchPage(path)) return;
+    for (const { tag, params } of findServerRoutes(path).reverse()) {
+      const actions = (await getServerModule(tag))?.actions;
+      if (actions && Object.hasOwn(actions, name)) return { tag, params, action: actions[name] };
+    }
+  };
+
+  /**
+   * 处理页面的表单提交 `POST <page path>?/<name>`，action 可以在页面或者 layout 中，参数和 `load` 的一样，
+   * 没有对应的 action 时结果为 `null`，出错时错误页面渲染在 action 所在的页面或 layout 的位置
+   */
   const runAction = (request: Request) =>
     runInRequest(async () => {
       const { url, setCookies } = setRequest(request);
       const name = [...url.searchParams.keys()].find((key) => key.startsWith('/'))?.slice(1);
       const { path } = await setLanguage(url.pathname);
-      const matched = matchPage(path);
-      const actions = matched && (await getServerModule(matched.info.tag))?.actions;
-      if (name === undefined || !actions || !Object.hasOwn(actions, name)) {
-        return { headers: toHeaders(setCookies), result: null };
-      }
+      const found = name === undefined ? undefined : await findAction(path, name);
+      if (!found) return { headers: toHeaders(setCookies), result: null };
       let result: ActionResult;
       try {
         await handleRequest(url, path);
-        const data = await actions[name](createServerContext(matched.info.tag, matched.params));
+        const data = await found.action(createServerContext(found.tag, found.params));
         result = { type: 'success', data: toJSONValue(data) };
       } catch (err) {
         result =
           err instanceof Redirect
             ? { type: 'redirect', location: err.location }
-            : { type: 'error', error: toRouteError(matched.info.tag, err) };
+            : { type: 'error', error: toRouteError(found.tag, err) };
       }
       return { headers: toHeaders(setCookies), result };
     });

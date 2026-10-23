@@ -29,6 +29,31 @@ export const actions = {
 The action receives the same context as `load`: `params`, `url`, `request`, `cookies` and `locals`.
 The return value must be JSON-serializable.
 
+## Actions in layouts
+
+A `_layout.server.ts` can export `actions` too. They work for every page in the layout, so a form in the
+layout, such as sign out in the navigation bar, doesn't need to borrow the address of a page:
+
+```ts
+// src/pages/_layout.server.ts
+export const actions = {
+  logout: ({ cookies }: ServerLoadContext) => {
+    cookies.delete('token');
+    redirect(303, '/');
+  },
+};
+```
+
+```ts
+// src/pages/_layout.ts
+html`<form method="post" action="?/logout" @submit=${this.#submit}><button>Sign out</button></form>`;
+```
+
+- Actions are looked up from the page outward; the page and inner layouts override actions of the same name
+  in outer layouts.
+- `params` are the layout params, without the child route part, like the layout `load`.
+- On error, the error page renders at the position of the layout.
+
 ## Submit from the page
 
 ```ts

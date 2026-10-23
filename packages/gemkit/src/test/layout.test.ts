@@ -5,7 +5,7 @@ import test from 'node:test';
 
 import { GemElement, html, template } from '@mantou/gem';
 
-import { redirect, type ServerModule } from '../data';
+import { error, redirect, type ServerModule } from '../data';
 import { layoutRoute, pageRoute, setOutlets } from '../outlet';
 import { layout, page } from '../page';
 import { createRenderer } from '../server';
@@ -40,7 +40,19 @@ const docs = { tag: 'gemkit-layout-docs', load: async () => ({ default: DocsLayo
 const pair = { tag: 'gemkit-page-a-b', load: async () => ({ default: PairPage }), server: true };
 
 const serverModules: Record<string, () => Promise<ServerModule>> = {
-  [root.tag]: async () => ({ prerender: false, load: ({ cookies }) => ({ user: cookies.get('user') ?? null }) }),
+  [root.tag]: async () => ({
+    prerender: false,
+    load: ({ cookies }) => ({ user: cookies.get('user') ?? null }),
+    // layout 的 action 对其中的页面都有效
+    actions: {
+      logout: ({ cookies, params }) => {
+        cookies.delete('user');
+        return { from: 'root', params };
+      },
+      rename: () => 'root',
+      fail: () => error(403, 'Forbidden'),
+    },
+  }),
   // 等待数据时已经开始读取渲染结果
   [editor.tag]: async () => ({
     load: async ({ cookies }) => {
@@ -48,7 +60,12 @@ const serverModules: Record<string, () => Promise<ServerModule>> = {
       return cookies.get('user') || redirect(302, '/login');
     },
   }),
-  [pair.tag]: async () => ({ prerender: false, load: () => 'pair data' }),
+  [pair.tag]: async () => ({
+    prerender: false,
+    load: () => 'pair data',
+    // 覆盖 layout 的同名 action
+    actions: { rename: ({ params }) => params },
+  }),
 };
 
 // 和生成的 `routes.ts` 一样
@@ -105,4 +122,24 @@ test('服务端和客户端一样逐层匹配路由', async ({ assert }) => {
     '不加载 `/:a/:b` 页面的数据',
   );
   assert.equal((await getData('http://localhost/other/x/__data.json'))[pair.tag], 'pair data');
+});
+
+test('runAction: 页面和 layout 中的 action，内层覆盖外层的同名 action', async ({ assert }) => {
+  const post = (url: string) => renderer.runAction(new Request(url, { method: 'POST', body: new FormData() }));
+  // layout 的参数不包括子路由的部分
+  const logout = await post('http://localhost/a/b?/logout');
+  assert.deepEqual(logout.result, { type: 'success', data: { from: 'root', params: {} } });
+  assert.match(logout.headers.get('set-cookie')!, /^user=;/);
+  assert.deepEqual((await post('http://localhost/editor?/logout')).result?.type, 'success');
+  // 页面覆盖 layout 的同名 action
+  assert.deepEqual((await post('http://localhost/a/b?/rename')).result, { type: 'success', data: { a: 'a', b: 'b' } });
+  assert.deepEqual((await post('http://localhost/editor?/rename')).result, { type: 'success', data: 'root' });
+  // 出错时错误页面渲染在 layout 的位置
+  assert.deepEqual((await post('http://localhost/a/b?/fail')).result, {
+    type: 'error',
+    error: { tag: root.tag, status: 403, message: 'Forbidden' },
+  });
+  // 没有匹配的页面时 layout 的 action 也不处理
+  assert.equal((await post('http://localhost/docs/x?/logout')).result, null);
+  assert.equal((await post('http://localhost/a/b?/missing')).result, null);
 });

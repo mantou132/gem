@@ -67,7 +67,8 @@ When navigating between child routes, the layout data is reused as long as its p
 After a form submission or `invalidate()` it is loaded again, because the request may have changed the state it depends
 on, such as the current user.
 
-A layout can also have a sibling `_layout.server.ts`, whose `load` result is passed to `load` as `data`.
+A layout can also have a sibling `_layout.server.ts`, whose `load` result is passed to `load` as `data`, and
+whose `actions` work for every page in the layout, see [Actions in layouts](./005-actions.md#actions-in-layouts).
 The [request hook](../guide/007-request.md) should be used for authentication that must run for every
 request, not a layout `load`: a layout `load` does not run for form actions and server elements, and on
 client navigation it runs in parallel with the page `load`.
