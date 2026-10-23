@@ -331,23 +331,20 @@ const getTemplate = (theme: typeof defaultTheme) => `<!doctype html>
 function generateSrc(srcDir: string, languages: string[], theme: typeof defaultTheme) {
   fs.rmSync(srcDir, { recursive: true, force: true });
   fs.mkdirSync(path.join(srcDir, 'pages'), { recursive: true });
-  fs.mkdirSync(path.join(srcDir, 'elements'));
   fs.mkdirSync(path.join(srcDir, 'locales'));
   // 生成的内容不需要提交
   fs.writeFileSync(path.join(srcDir, '.gitignore'), '*\n');
   fs.writeFileSync(path.join(srcDir, 'index.html'), getTemplate(theme));
-  // 页面，元素用于自动导入，例如模版中的 `<gbp-docsearch>`
-  for (const dir of ['pages', 'elements']) {
-    for (const file of fs.readdirSync(path.join(appDir, dir))) {
-      const target = path.relative(path.join(srcDir, dir), path.join(appDir, dir, file)).replaceAll(path.sep, '/');
-      const specifier = JSON.stringify(target.replace(/\.ts$/, ''));
-      // 元素和 `*.server.ts` 没有默认导出
-      const content =
-        dir === 'pages' && !file.includes('.server.')
-          ? `export { default } from ${specifier};\n`
-          : `export * from ${specifier};\n`;
-      fs.writeFileSync(path.join(srcDir, dir, file), content);
-    }
+  for (const file of fs.readdirSync(path.join(appDir, 'pages'))) {
+    const target = path
+      .relative(path.join(srcDir, 'pages'), path.join(appDir, 'pages', file))
+      .replaceAll(path.sep, '/');
+    const specifier = JSON.stringify(target.replace(/\.ts$/, ''));
+    // `*.server.ts` 没有默认导出
+    const content = file.includes('.server.')
+      ? `export * from ${specifier};\n`
+      : `export { default } from ${specifier};\n`;
+    fs.writeFileSync(path.join(srcDir, 'pages', file), content);
   }
   for (const lang of languages) {
     const file = path.join(appDir, 'locales', `${lang}.json`);
@@ -506,8 +503,9 @@ export function pluginGemBook(options: GemBookOptions): RsbuildPlugins {
       titleTemplate: `%s - ${title}`,
       defaultLanguage: fallbackLanguage,
       prefixDefaultLanguage: i18n,
-      elementPrefix: 'gbp',
       gem: {
+        // 例如模版中的 `<gbp-docsearch>`
+        autoImport: { elements: { 'gem-book': { 'gbp-*': '/elements/*' } } },
         include: [
           /[\\/]\.gem-book[\\/]/,
           /[\\/]\.gemkit[\\/]/,

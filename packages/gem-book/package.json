@@ -16,6 +16,7 @@
   "exports": {
     "./plugin": "./app/plugin.ts",
     "./plugin/server": "./app/plugin.server.ts",
+    "./elements/*": "./app/elements/*.ts",
     "./package.json": "./package.json",
     "./schema.json": "./schema.json"
   },

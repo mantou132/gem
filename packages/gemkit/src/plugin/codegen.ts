@@ -27,6 +27,9 @@ export const PUBLIC_MODULES = ['i18n', 'api'];
 export const getPublicModules = (genDir: string) =>
   Object.fromEntries(PUBLIC_MODULES.map((name) => [`$gemkit/${name}`, path.join(genDir, `${name}.ts`)]));
 
+/** `<srcDir>` 的别名，元素自动导入等需要使用模块路径而不是文件路径 */
+export const SRC_ALIAS = 'src';
+
 interface PageNode {
   pattern: string;
   file: string;
@@ -337,7 +340,10 @@ function generateEntries(
     `${JSON.stringify(
       {
         compilerOptions: {
-          paths: Object.fromEntries(PUBLIC_MODULES.map((name) => [`$gemkit/${name}`, [`./${name}.ts`]])),
+          paths: {
+            ...Object.fromEntries(PUBLIC_MODULES.map((name) => [`$gemkit/${name}`, [`./${name}.ts`]])),
+            [`${SRC_ALIAS}/*`]: [`${path.relative(genDir, srcDir).replaceAll(path.sep, '/')}/*`],
+          },
         },
         files: ['./env.d.ts', './auto-import.d.ts'],
       },
