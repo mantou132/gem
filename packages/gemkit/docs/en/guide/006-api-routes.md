@@ -53,8 +53,6 @@ are function calls, and the HTTP methods are the last call. Parameters and resul
 handlers:
 
 ```ts
-import { apis } from '$gemkit/api';
-
 const result = await apis.api.likes(slug).POST({ count: 1 });
 const res = await apis.api.likes(slug).DELETE();
 

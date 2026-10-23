@@ -76,15 +76,12 @@ src/
     zh.json            /zh/*
 ```
 
-只有 `pages` 和 `locales` 目录是必需的。布局是可选的，没有 `_layout.ts` 时页面直接渲染在根 outlet 中。
+只有 `pages` 目录是必需的，`locales` 只在需要[国际化](./009-i18n.md)时使用。布局是可选的，没有 `_layout.ts` 时页面直接渲染在根 outlet 中。
 
 ## 页面
 
 ```ts
 // src/pages/about.ts
-import { GemElement, html, template } from '@mantou/gem';
-import { page } from '@mantou/gemkit';
-
 @page('About')
 export default class AboutPage extends GemElement {
   @template()
@@ -95,13 +92,12 @@ export default class AboutPage extends GemElement {
 默认导出必须是一个 Gem 元素。标签名由文件路径生成，所以不需要调用 `@customElement`，
 文件路径同时决定了 URL。
 
+Gem 和常用的 Gemkit API 会自动导入，所以本文档的示例省略了它们的导入。见 [`gem`](../reference/001-config.md#gem)。
+
 ## 布局
 
 ```ts
 // src/pages/_layout.ts
-import { GemElement, html, template } from '@mantou/gem';
-import { layout } from '@mantou/gemkit';
-
 @layout()
 export default class RootLayout extends GemElement {
   @template()

@@ -34,9 +34,6 @@ A directory can contain `_layout.ts`. The default export is a Gem element marked
 
 ```ts
 // src/pages/blog/_layout.ts
-import { GemElement, html, template } from '@mantou/gem';
-import { layout } from '@mantou/gemkit';
-
 @layout()
 export default class BlogLayout extends GemElement {
   @template()
@@ -60,8 +57,7 @@ so scroll position, open menus and other state in the layout survive. See [Layou
 
 ```ts
 // src/pages/_error.ts
-import { GemElement, html, property, template } from '@mantou/gem';
-import { type ErrorData, page } from '@mantou/gemkit';
+import type { ErrorData } from '@mantou/gemkit';
 
 @page<{}, ErrorData>({ title: ({ data }) => `Error ${data.status}` })
 export default class ErrorPage extends GemElement {

@@ -20,9 +20,6 @@ export async function load({ params }: { params: { slug: string } }) {
 
 ```ts
 // src/pages/blog/[slug].ts
-import { GemElement, html, property, template } from '@mantou/gem';
-import { page } from '@mantou/gemkit';
-
 @page<{ slug: string }, { markdown: string }>({
   load: ({ data }) => parseMarkdown(data.markdown),
 })
@@ -81,7 +78,7 @@ export function load({ cookies }: ServerLoadContext) {
 
 ```ts
 // src/pages/editor.server.ts
-import { redirect, type ServerLoadContext } from '@mantou/gemkit';
+import type { ServerLoadContext } from '@mantou/gemkit';
 
 export const prerender = false;
 

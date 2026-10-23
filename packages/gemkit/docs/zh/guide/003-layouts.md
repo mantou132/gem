@@ -17,9 +17,6 @@ src/pages/
 
 ```ts
 // src/pages/blog/_layout.ts
-import { GemElement, html, property, template } from '@mantou/gem';
-import { layout } from '@mantou/gemkit';
-
 @layout()
 export default class BlogLayout extends GemElement {
   @template()
@@ -43,9 +40,6 @@ export default class BlogLayout extends GemElement {
 
 ```ts
 // src/pages/blog/_layout.ts
-import { GemElement, html, property, template } from '@mantou/gem';
-import { layout } from '@mantou/gemkit';
-
 @layout({
   load: () => fetch('/api/categories').then((res) => res.json()),
 })

@@ -5,9 +5,6 @@ Gemkit generates the tag name, loads the module on demand and passes `params` an
 
 ```ts
 // src/pages/about.ts
-import { GemElement, html, template } from '@mantou/gem';
-import { page } from '@mantou/gemkit';
-
 @page('About')
 export default class AboutPage extends GemElement {
   @template()
@@ -31,9 +28,6 @@ sibling `*.server.ts`; for `title` and `meta`, `data` is the result of `load`.
 
 ```ts
 // src/pages/blog/[slug].ts
-import { GemElement, html, property, template } from '@mantou/gem';
-import { page } from '@mantou/gemkit';
-
 interface Post {
   slug: string;
   title: string;

@@ -79,16 +79,13 @@ src/
     zh.json            /zh/*
 ```
 
-Only the `pages` and `locales` directories are required. Layouts are optional; without `_layout.ts`, pages are
-rendered directly in the root outlet.
+Only the `pages` directory is required; `locales` is only needed for [i18n](./009-i18n.md). Layouts are
+optional; without `_layout.ts`, pages are rendered directly in the root outlet.
 
 ## A page
 
 ```ts
 // src/pages/about.ts
-import { GemElement, html, template } from '@mantou/gem';
-import { page } from '@mantou/gemkit';
-
 @page('About')
 export default class AboutPage extends GemElement {
   @template()
@@ -99,13 +96,13 @@ export default class AboutPage extends GemElement {
 The default export must be a Gem element. Its tag name is generated from the file path, so you don't need to
 call `@customElement`. The file path also determines the URL.
 
+Gem and common Gemkit APIs are auto-imported, so the examples in this documentation omit their imports.
+See [`gem`](../reference/001-config.md#gem).
+
 ## A layout
 
 ```ts
 // src/pages/_layout.ts
-import { GemElement, html, template } from '@mantou/gem';
-import { layout } from '@mantou/gemkit';
-
 @layout()
 export default class RootLayout extends GemElement {
   @template()

@@ -83,9 +83,10 @@ The tag prefix of elements in `<srcDir>/elements`. With the default, `<app-foo>`
 - Default: `undefined`
 
 Options passed to [unplugin-gem](https://github.com/mantou132/gem/tree/main/packages/unplugin-gem).
-Gemkit sets the include paths, `@mantou/gemkit` and `$gemkit/*` API auto-import, element auto-import,
-style and HTML minification, selector compatibility, preload and SSR, and enables HMR in development.
-Options here override those defaults; `hmr` can still be overridden separately.
+Gemkit sets the include paths, auto-import of Gem APIs, common `@mantou/gemkit` APIs (except `HttpError`,
+`formatTitle` and types), `i18n`, `apis` and `<srcDir>/elements` elements, style and HTML minification,
+selector compatibility, preload and SSR, and enables HMR in development. Options here override those
+defaults; `hmr` can still be overridden separately.
 
 ## Generated files
 

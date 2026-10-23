@@ -7,7 +7,7 @@ Pages handle form submissions with `actions` in their `*.server.ts`. The form is
 
 ```ts
 // src/pages/login.server.ts
-import { redirect, type ServerLoadContext } from '@mantou/gemkit';
+import type { ServerLoadContext } from '@mantou/gemkit';
 
 export const actions = {
   login: async ({ request, cookies }: ServerLoadContext) => {
@@ -33,9 +33,6 @@ The return value must be JSON-serializable.
 
 ```ts
 // src/pages/login.ts
-import { GemElement, createState, html, template } from '@mantou/gem';
-import { page, submitAction } from '@mantou/gemkit';
-
 @page('Sign in')
 export default class LoginPage extends GemElement {
   #state = createState<{ errors?: string[] }>({});
