@@ -176,7 +176,7 @@ page fetches those elements once more.
   The client clears prefetch results and the history cache, navigates to the location, and layouts don't
   reuse data.
 - **`invalidate()`**: like after a form submission, clear prefetch results and the history cache and re-render
-  the current routes. It resolves after the page loads.
+  the current routes. It resolves after the page is rendered.
 
 ## Redirects and errors
 

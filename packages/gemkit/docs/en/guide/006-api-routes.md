@@ -87,7 +87,7 @@ await invalidate();
 
 - The page element is reused, so input state is kept, and the scroll position does not change.
 - Prefetched results and the history cache are not used anymore, and layouts reload their data too.
-- It resolves when the data is loaded.
+- It resolves after the page is rendered.
 
 ## Validate input
 

@@ -83,6 +83,7 @@ export default class LoginPage extends GemElement {
 - `redirect()` 时在客户端导航。
 - `error()` 时在页面的位置渲染错误页面。
 - 其他情况重新加载当前页面的数据（包括布局数据），并返回 action 的结果。
+- 页面渲染后才 resolve，此时页面上已经是新数据。
   页面元素会被复用，所以输入框的状态保留，滚动位置不变。
 
 请求期间表单带有 `aria-busy` 属性：

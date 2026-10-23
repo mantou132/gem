@@ -638,18 +638,27 @@ export function clearClientCache() {
   historyCache.clear();
 }
 
-// `invalidate()` 等待当前页面重新加载
-let invalidation: PromiseWithResolvers<void> | undefined;
+// `invalidate()` 和 `submitAction()` 等待导航的页面渲染
+let navigation: PromiseWithResolvers<void> | undefined;
 
-/** 页面（或者错误页面）加载后调用，完成 `invalidate()` */
-export function settleInvalidation() {
-  invalidation?.resolve();
-  invalidation = undefined;
+/** 页面（或者错误页面）渲染后调用，没有错误页面时用加载的错误 reject */
+export function settleNavigation(err?: unknown) {
+  if (err) navigation?.reject(err);
+  else navigation?.resolve();
+  navigation = undefined;
+}
+
+/** 客户端导航到 `href`，页面渲染后 resolve */
+function navigateAndWait(href: string, replace?: boolean) {
+  navigation ||= Promise.withResolvers();
+  const { promise } = navigation;
+  navigate(href, replace);
+  return promise;
 }
 
 /**
  * 重新加载当前页面和 layout 的数据，不刷新页面，页面元素会被复用，例如调用 API 修改数据后，
- * 预取的结果和历史缓存都不再使用，加载完成后 resolve
+ * 预取的结果和历史缓存都不再使用，页面渲染后 resolve，没有错误页面时加载出错 reject
  *
  * @example
  * ```ts
@@ -659,10 +668,7 @@ export function settleInvalidation() {
  */
 export function invalidate() {
   clearClientCache();
-  invalidation ||= Promise.withResolvers();
-  const { promise } = invalidation;
-  navigate(location.href, true);
-  return promise;
+  return navigateAndWait(location.href, true);
 }
 
 /** `actions` 的结果，出错时渲染错误页面 */
@@ -674,7 +680,7 @@ export type ActionResult =
 /**
  * 不刷新页面提交表单到 `actions`，提交的地址是表单（或者 `submitter`）的 `action`，例如 `?/login`
  *
- * 跳转时客户端导航，出错时渲染错误页面，否则重新加载当前页面的数据，返回 action 的返回值，
+ * 跳转时客户端导航，出错时渲染错误页面，否则重新加载当前页面的数据，页面渲染后返回 action 的返回值，
  * 请求期间表单有 `aria-busy` 属性，例如 `form[aria-busy] button { opacity: 0.5 }`
  *
  * @example
@@ -700,11 +706,11 @@ export async function submitAction(form: HTMLFormElement, submitter?: HTMLElemen
   // 提交后 cookie 等状态可能改变，之前的数据都不能再使用
   clearClientCache();
   if (result.type === 'redirect') {
-    navigate(result.location);
+    await navigateAndWait(result.location);
     return;
   }
   if (result.type === 'error') clientState.error = { ...result.error, path: history.getParams().path };
-  navigate(location.href, true);
+  await navigateAndWait(location.href, true);
   return result.type === 'success' ? result.data : undefined;
 }
 

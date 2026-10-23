@@ -9,6 +9,7 @@ import {
   type TemplateResult,
   template,
   titleStore,
+  unmounted,
 } from '@mantou/gem';
 import { type GemLightRouteElement, matchPath, type RouteItem } from '@mantou/gem/elements/route';
 import { isolate, isServer } from '@mantou/gem/lib/server';
@@ -22,10 +23,11 @@ import {
   loadServerData,
   navigationStore,
   outletStore,
+  Redirect,
   setSSRData,
   setSSRError,
   setSSRReady,
-  settleInvalidation,
+  settleNavigation,
   takeRouteError,
   takeSSRData,
   toRouteError,
@@ -177,7 +179,6 @@ async function loadPage(
   const data = error || (await loadData(cls, tag, params, hasServerModule));
   // layout 在页面之前加载
   clientState.invalidated = false;
-  settleInvalidation();
   defineElement(tag, cls);
   const { title: getTitle } = getPageOptions(cls);
   const title = typeof getTitle === 'function' ? await getTitle({ params, data }) : getTitle;
@@ -204,18 +205,26 @@ export interface RouteInfo {
  */
 const isMatched = ({ tag }: RouteInfo) => matchRoutes(history.getParams().path).some(({ info }) => info.tag === tag);
 
-// 最近一次开始加载的 layout 或页面
-let loadId = 0;
+// 正在加载或者等待渲染的路由容器，layout 和页面可能并行加载，都渲染后导航结束
+const loadingContainers = new Set<ParentNode>();
+// 没有错误页面时加载的错误
+let loadError: unknown;
 
-/** 开始加载 layout 或页面，返回加载的 id */
-function startLoad() {
-  if (!isServer && !navigationStore.pending) navigationStore({ pending: true });
-  return ++loadId;
+/** 路由容器开始加载 layout 或页面 */
+function startLoad(container: ParentNode) {
+  if (isServer) return;
+  loadingContainers.add(container);
+  if (!navigationStore.pending) navigationStore({ pending: true });
 }
 
-/** 页面加载完成或者渲染错误页面时导航结束，之后又开始了新的加载时不结束 */
-function endLoad(id: number) {
-  if (id === loadId && navigationStore.pending) navigationStore({ pending: false });
+/** 路由容器渲染、出错或者移除，同一个容器中只有最后一次加载会渲染 */
+function endLoad(container: ParentNode, err?: unknown) {
+  if (!loadingContainers.delete(container)) return;
+  loadError ||= err;
+  if (loadingContainers.size) return;
+  navigationStore({ pending: false });
+  settleNavigation(loadError);
+  loadError = undefined;
 }
 
 // 加载并渲染错误页面，不检查路由是否匹配，在其他路由的位置渲染时使用
@@ -225,7 +234,7 @@ const errorContents = new WeakMap<RouteItem, (params: Params, error: ErrorData) 
  * `tag` 的路由出错时在它的位置渲染错误页面，它和子路由的 meta 不再使用，
  * 没有错误页面时渲染失败，跳转不是错误，直接抛出
  */
-const renderError = (tag: string, params: Params) => async (err: unknown) => {
+const renderError = (tag: string, params: Params) => (err: unknown) => {
   const content = errorPage && errorContents.get(errorPage);
   if (!content) throw err;
   const { path } = history.getParams();
@@ -266,13 +275,12 @@ export function pageRoute(
   return {
     pattern,
     data: info,
-    getContent: (params) => {
+    getContent: (params, container) => {
       if (!isMatched(info)) return;
-      const id = startLoad();
+      startLoad(container);
       return loadPage(info.load, info.tag, params, info.server)
         .then((data) => wrap(params, render(params, data)))
-        .catch(renderError(info.tag, params))
-        .finally(() => endLoad(id));
+        .catch(renderError(info.tag, params));
     },
   };
 }
@@ -286,10 +294,10 @@ export function errorRoute(info: RouteInfo, render: (params: Params, error: Erro
   const route: RouteItem<RouteInfo> = {
     pattern: '*',
     data: info,
-    getContent: (params) => {
+    getContent: (params, container) => {
       if (!isMatched(info)) return;
-      const id = startLoad();
-      return content(params, NOT_FOUND).finally(() => endLoad(id));
+      startLoad(container);
+      return content(params, NOT_FOUND);
     },
   };
   errorContents.set(route, content);
@@ -307,10 +315,10 @@ export function layoutRoute(
     data: { ...info, layout: true },
     getContent: (params, container) => {
       if (!isMatched(info)) return;
-      // layout 加载完成后还要加载子路由，只有出错时导航结束
-      const id = startLoad();
-      return loadLayout(info.load, info.tag, params, container, info.server).then(render, (err) =>
-        renderError(info.tag, params)(err).finally(() => endLoad(id)),
+      startLoad(container);
+      return loadLayout(info.load, info.tag, params, container, info.server).then(
+        render,
+        renderError(info.tag, params),
       );
     },
   };
@@ -381,6 +389,17 @@ class GemkitOutletElement extends GemElement {
     return info?.layout ? null : document.scrollingElement;
   };
 
+  #onRouteChange = () => endLoad(this.#routeRef.value!);
+
+  // 没有错误页面时渲染失败，跳转不是错误，会重新加载
+  #onError = ({ detail }: CustomEvent) => {
+    if (!(detail instanceof Redirect)) endLoad(this.#routeRef.value!, detail);
+  };
+
+  // 导航到 layout 外时，加载中的子路由不会再渲染
+  @unmounted()
+  #onUnmounted = () => endLoad(this.#routeRef.value!);
+
   // 不在 outlet 中输出空白文本
   @template()
   #content = () =>
@@ -390,5 +409,7 @@ class GemkitOutletElement extends GemElement {
       .routes=${this.#routes}
       .scrollContainer=${this.#getScrollContainer}
       .scrollWait=${waitServerElements}
+      @routechange=${this.#onRouteChange}
+      @error=${this.#onError}
     ></gem-light-route>`;
 }

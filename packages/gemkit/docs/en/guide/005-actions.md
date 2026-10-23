@@ -84,6 +84,7 @@ export default class LoginPage extends GemElement {
 - On `redirect()` it navigates on the client.
 - On `error()` it renders the error page in place of the page.
 - Otherwise it reloads the current page data, including layout data, and returns the action result.
+- It resolves after the page is rendered, so the new data is already on the page.
   The page element is reused, so input state is kept, and the scroll position does not change.
 
 During the request the form has the `aria-busy` attribute:
