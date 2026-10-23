@@ -43,6 +43,25 @@ const packageDir = fileURLToPath(new URL('..', import.meta.url));
 
 const PRERENDER_CONCURRENCY = 8;
 
+const AUTO_IMPORT_MEMBERS = {
+  '@mantou/gemkit': [
+    'page',
+    'layout',
+    'server',
+    'lazy',
+    'client',
+    'error',
+    'notFound',
+    'redirect',
+    'HttpError',
+    'submitAction',
+    'getRequestEvent',
+    'formatTitle',
+  ],
+  '$gemkit/i18n': ['i18n'],
+  '$gemkit/api': ['apis'],
+};
+
 // 只处理页面、页面数据、表单提交和 API 路由请求，其他请求交给 Rsbuild
 const ssrMiddleware =
   (getHandler: () => Promise<Handler>) =>
@@ -112,6 +131,7 @@ export function pluginGemkit(options: GemkitOptions = {}): RsbuildPlugin {
           include: [srcDir, genDir, path.join(packageDir, 'src')],
           autoImport: {
             extends: 'gem',
+            members: AUTO_IMPORT_MEMBERS,
             elements: { [path.join(srcDir, 'elements')]: { [`${elementPrefix}-*`]: '/*' } },
           },
           autoImportDts: genDts && path.relative(process.cwd(), dtsFile),

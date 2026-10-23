@@ -162,9 +162,18 @@ const style = css`
   }
   .features {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 1rem;
     margin: 0 0 4rem;
+    &[data-columns='4'] {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+  }
+  @media (width < 54rem) {
+    .features,
+    .features[data-columns='4'] {
+      grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+    }
   }
   .feature {
     padding: 1.75rem;
@@ -265,7 +274,7 @@ export default class DocPage extends GemElement {
         )}
       </div>
     </section>
-    <dl v-if=${!!features.length} class="features">
+    <dl v-if=${!!features.length} class="features" data-columns=${features.length % 4 === 0 ? 4 : 3}>
       ${features.map(
         ({ icon, title, desc }) => html`
           <div class="feature">

@@ -34,6 +34,8 @@
   "scripts": {
     "build": "mkdir -p dist && cp -R src/plugin/templates dist/ && esbuild plugin=src/plugin/index.ts serve=src/plugin/serve.ts --outdir=dist --bundle --platform=node --format=esm --packages=external",
     "start": "pnpm build --watch",
+    "docs": "gem-book docs",
+    "build:docs": "gem-book build docs",
     "test": "tsx --test 'src/**/*.test.ts'",
     "prepublishOnly": "pnpm build"
   },

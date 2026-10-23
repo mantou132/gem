@@ -1,0 +1,11 @@
+{
+  "$schema": "../gem-book/schema.json",
+  "title": "Gemkit",
+  "icon": "../../logo.png",
+  "i18n": true,
+  "fallbackLanguage": "en",
+  "homeMode": true,
+  "site": "https://gemkit.gemjs.org",
+  "sourceBranch": "docs",
+  "docsearch": "local"
+}
