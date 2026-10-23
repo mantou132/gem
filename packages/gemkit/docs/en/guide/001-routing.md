@@ -116,7 +116,7 @@ Besides `pages` and `locales`, these optional files configure the app:
 
 Elements in `src/elements` can be used in templates without importing them. `src/elements/counter.ts`
 is the element `app-counter`; change it or add other elements with the
-[`autoImport`](../reference/001-config.md#autoimport) plugin option. This is implemented by
+[`gem.autoImport`](../reference/001-config.md#gem) plugin option. This is implemented by
 [unplugin-gem](https://github.com/mantou132/gem/tree/main/packages/unplugin-gem).
 
 ## Languages

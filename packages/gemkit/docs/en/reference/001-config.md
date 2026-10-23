@@ -69,27 +69,6 @@ page is rendered on demand and needs a server.
 Individual pages and layouts can opt out in their server module with `export const prerender = false`,
 or in a layout to disable it for all of its pages.
 
-### `autoImport`
-
-- Type: `{ members?: Record<string, string[]>; elements?: Record<string, Record<string, string>> }`
-- Default: `undefined`
-
-Extra auto-imports, merged with the Gemkit defaults. Keys are package names or aliases, not file paths.
-`src` is an alias of `<srcDir>` (in both the bundler and `.gemkit/tsconfig.json`), and by default
-`<app-foo>` imports `src/elements/foo`. Setting `elements.src` replaces that default:
-
-```ts
-pluginGemkit({
-  autoImport: {
-    members: { 'src/utils': ['format'] },
-    elements: {
-      src: { 'app-*': '/components/*' },
-      'my-ui': { 'my-*': '/elements/*' },
-    },
-  },
-});
-```
-
 ### `gem`
 
 - Type: `UnpluginGemOptions`
@@ -98,22 +77,39 @@ pluginGemkit({
 Options passed to [unplugin-gem](https://github.com/mantou132/gem/tree/main/packages/unplugin-gem).
 Gemkit sets the include paths, `@mantou/gemkit` and `$gemkit/*` API auto-import, element auto-import,
 style and HTML minification, selector compatibility, preload and SSR, and enables HMR in development.
-Options here override those defaults; `hmr` can still be overridden separately. Use [`autoImport`](#autoimport)
-to add auto-imports, `gem.autoImport` replaces the Gemkit ones.
+Options here override those defaults; `hmr` can still be overridden separately.
+
+`autoImport` is merged with the Gemkit defaults instead. Keys are package names or aliases, not file paths.
+`src` is an alias of `<srcDir>` (in both the bundler and `.gemkit/tsconfig.json`), and by default
+`<app-foo>` imports `src/elements/foo`. Setting `elements.src` replaces that default:
+
+```ts
+pluginGemkit({
+  gem: {
+    autoImport: {
+      members: { 'src/utils': ['format'] },
+      elements: {
+        src: { 'app-*': '/components/*' },
+        'my-ui': { 'my-*': '/elements/*' },
+      },
+    },
+  },
+});
+```
 
 ## Generated files
 
 Gemkit generates into `.gemkit`:
 
-| File               | Description                                                           |
-| ------------------ | --------------------------------------------------------------------- |
-| `index.ts`         | The client entry, generated from the pages and prerender state.       |
-| `server.ts`        | The server entry, used by the SSR build and prerendering.             |
-| `routes.ts`        | The route table.                                                      |
-| `i18n.ts`          | `$gemkit/i18n`, see [i18n](../guide/009-i18n.md).                     |
-| `api.ts`           | `$gemkit/api`, see [API routes](../guide/006-api-routes.md).          |
-| `auto-import.d.ts` | Auto-import types for `@mantou/gemkit`, `$gemkit/*` and `autoImport`. |
-| `tsconfig.json`    | Path aliases and types, extend it from the project `tsconfig.json`.   |
+| File               | Description                                                               |
+| ------------------ | ------------------------------------------------------------------------- |
+| `index.ts`         | The client entry, generated from the pages and prerender state.           |
+| `server.ts`        | The server entry, used by the SSR build and prerendering.                 |
+| `routes.ts`        | The route table.                                                          |
+| `i18n.ts`          | `$gemkit/i18n`, see [i18n](../guide/009-i18n.md).                         |
+| `api.ts`           | `$gemkit/api`, see [API routes](../guide/006-api-routes.md).              |
+| `auto-import.d.ts` | Auto-import types for `@mantou/gemkit`, `$gemkit/*` and `gem.autoImport`. |
+| `tsconfig.json`    | Path aliases and types, extend it from the project `tsconfig.json`.       |
 
 `.gemkit` is ignored by Git. Extend its tsconfig to get types for `$gemkit/*` and auto-imports:
 

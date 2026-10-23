@@ -110,7 +110,7 @@ src/pages/blog/[slug].server.ts
 | `src/elements/*.ts` | 根据 `app-*` 标签自动导入的元素（见下文）。           |
 
 `src/elements` 中的元素可以直接在模板中使用，不需要导入。`src/elements/counter.ts` 就是
-`app-counter` 元素，可以使用 [`autoImport`](../reference/001-config.md#autoimport) 插件选项修改或者添加其他元素。
+`app-counter` 元素，可以使用 [`gem.autoImport`](../reference/001-config.md#gem) 插件选项修改或者添加其他元素。
 这个功能由 [unplugin-gem](https://github.com/mantou132/gem/tree/main/packages/unplugin-gem) 实现。
 
 ## 语言

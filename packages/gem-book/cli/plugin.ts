@@ -503,9 +503,9 @@ export function pluginGemBook(options: GemBookOptions): RsbuildPlugins {
       titleTemplate: `%s - ${title}`,
       defaultLanguage: fallbackLanguage,
       prefixDefaultLanguage: i18n,
-      // 例如模版中的 `<gbp-docsearch>`
-      autoImport: { elements: { 'gem-book': { 'gbp-*': '/elements/*' } } },
       gem: {
+        // 例如模版中的 `<gbp-docsearch>`
+        autoImport: { elements: { 'gem-book': { 'gbp-*': '/elements/*' } } },
         include: [
           /[\\/]\.gem-book[\\/]/,
           /[\\/]\.gemkit[\\/]/,

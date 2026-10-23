@@ -31,18 +31,19 @@ export interface GemkitOptions extends GemkitConfig {
    */
   prerender?: boolean;
   /**
-   * 额外的自动导入，和 Gemkit 的默认值合并；键是包名或者别名，不是文件路径，`src` 是 `<srcDir>` 的别名，
+   * 传递给 `unplugin-gem` 的选项，默认开启除 `resolvePath` 外的所有功能；
+   * `autoImport` 和 Gemkit 的默认值合并，键是包名或者别名，不是文件路径，`src` 是 `<srcDir>` 的别名，
    * 默认 `<app-foo>` 自动导入 `src/elements/foo`，设置 `elements.src` 会替换它
    * @example
    * ```ts
    * {
-   *   members: { 'src/utils': ['format'] },
-   *   elements: { src: { 'app-*': '/components/*' }, 'my-ui': { 'my-*': '/elements/*' } },
+   *   autoImport: {
+   *     members: { 'src/utils': ['format'] },
+   *     elements: { src: { 'app-*': '/components/*' }, 'my-ui': { 'my-*': '/elements/*' } },
+   *   },
    * }
    * ```
    */
-  autoImport?: { members?: Record<string, string[]>; elements?: Record<string, Record<string, string>> };
-  /** 传递给 `unplugin-gem` 的选项，默认开启除 `resolvePath` 外的所有功能 */
   gem?: UnpluginGemOptions;
 }
 
@@ -101,7 +102,9 @@ async function writeFile(webDir: string, pathname: string, content: string) {
 }
 
 export function pluginGemkit(options: GemkitOptions = {}): RsbuildPlugin {
-  const { prerender = true, autoImport, gem, ...config } = options;
+  const { prerender = true, gem, ...config } = options;
+  const { autoImport, ...gemOptions } = gem ?? {};
+  const userAutoImport = typeof autoImport === 'object' ? autoImport : {};
   return {
     name: 'gemkit',
     setup(api) {
@@ -138,8 +141,9 @@ export function pluginGemkit(options: GemkitOptions = {}): RsbuildPlugin {
           include: [srcDir, genDir, path.join(packageDir, 'src')],
           autoImport: {
             extends: 'gem',
-            members: { ...AUTO_IMPORT_MEMBERS, ...autoImport?.members },
-            elements: { [SRC_ALIAS]: { 'app-*': '/elements/*' }, ...autoImport?.elements },
+            ...userAutoImport,
+            members: { ...AUTO_IMPORT_MEMBERS, ...userAutoImport.members },
+            elements: { [SRC_ALIAS]: { 'app-*': '/elements/*' }, ...userAutoImport.elements },
           },
           autoImportDts: genDts && path.relative(process.cwd(), dtsFile),
           styleMinify: true,
@@ -147,8 +151,8 @@ export function pluginGemkit(options: GemkitOptions = {}): RsbuildPlugin {
           selectorCompatible: true,
           preload: true,
           ssr: true,
-          ...gem,
-          hmr: gem?.hmr ?? isDev,
+          ...gemOptions,
+          hmr: gemOptions.hmr ?? isDev,
         });
 
       // `*.server.ts` 只能在服务端使用，避免服务端代码泄露到客户端
