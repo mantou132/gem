@@ -97,7 +97,8 @@ src/pages/blog/[slug].server.ts
 
 The server module is only loaded on the server. Importing it from client code fails the build.
 
-A `*.server.ts` without a page module is an [API route](./006-api-routes.md) instead.
+A `*.server.ts` without a page module is an [API route](./006-api-routes.md) instead. The build fails when it has the
+same path as a page.
 
 ## App files
 

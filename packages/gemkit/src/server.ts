@@ -6,7 +6,7 @@ import { matchPath } from '@mantou/gem/elements/route';
 import type { I18n } from '@mantou/gem/helper/i18n';
 import { type RenderOptions, render, renderServerElement, runInRequest } from '@mantou/gem-ssr';
 
-import { DATA_FILE, DATA_SCRIPT_ID, escapeHtml, REDIRECT_HEADER, trimTrailingSlash } from './constants';
+import { CLIENT_HEADER, DATA_FILE, DATA_SCRIPT_ID, escapeHtml, REDIRECT_HEADER, trimTrailingSlash } from './constants';
 import { createCookies } from './cookies';
 import {
   type ActionResult,
@@ -27,6 +27,7 @@ import {
   type ServerElementParams,
   type ServerModules,
   setErrorHandler,
+  setRevalidateHandler,
   setServerModules,
   ssrData,
   toErrorData,
@@ -254,7 +255,8 @@ export function createRenderer({
 
   /**
    * 处理 API 路由的请求，先执行 `handle`，处理函数返回 `Response`，其他值作为 JSON 响应，
-   * `redirect` 响应跳转，`error` 响应 JSON 格式的错误，没有对应的请求方法时为 405
+   * `redirect` 响应跳转（`$gemkit/api` 的请求响应 `REDIRECT_HEADER`），`error` 响应 JSON 格式的错误，
+   * 没有对应的请求方法时为 405
    */
   const runEndpoint = (request: Request) =>
     runInRequest(async (): Promise<Response> => {
@@ -276,6 +278,10 @@ export function createRenderer({
         response = result instanceof Response ? result : Response.json(toJSONValue(result));
       } catch (err) {
         if (err instanceof Redirect) {
+          // `fetch` 会自动跟随跳转，客户端拿不到跳转的地址
+          if (request.headers.has(CLIENT_HEADER)) {
+            return new Response(null, { headers: toHeaders(setCookies, { [REDIRECT_HEADER]: err.location }) });
+          }
           return new Response(null, { status: err.status, headers: toHeaders(setCookies, { location: err.location }) });
         }
         const data = toErrorData(err);
@@ -390,6 +396,14 @@ export function createRenderer({
       return !requestState.personal;
     });
 
+  /** 页面和 layout 的服务端模块中最小的 `revalidate`，都没有设置时页面不使用 ISR */
+  const getRevalidate = async (pathname: string) => {
+    const { path } = split(pathname);
+    const modules = await Promise.all(findServerRoutes(path).map(({ tag }) => getServerModule(tag)));
+    const values = modules.flatMap((mod) => (mod?.revalidate === undefined ? [] : [mod.revalidate]));
+    return values.length ? Math.min(...values) : undefined;
+  };
+
   /** 需要预渲染的路径，动态路由使用 `*.server.ts` 或者页面的 `paths` 选项 */
   const getPaths = async () => {
     const localized: string[] = [];
@@ -428,6 +442,8 @@ export function createRenderer({
     runEndpoint,
     getPaths,
     canPrerender,
+    getRevalidate,
+    setRevalidateHandler,
     hasServerData,
     notFoundPath,
   };

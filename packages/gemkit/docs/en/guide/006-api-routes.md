@@ -29,6 +29,9 @@ export const DELETE = () => new Response(null, { status: 204 });
 | `src/pages/api/likes/index.server.ts`  | `/api/likes`       |
 | `src/pages/rss.xml.server.ts`          | `/rss.xml`         |
 
+The build fails when an API route and a page have the same path, because the API route matches first and
+the page would only be reachable by client navigation.
+
 An API route has no language prefix. `handle` runs before the handler, and `event.path` is the API path.
 The context is the same as `load`: `params`, `url`, `request`, `cookies` and `locals`. Cookies set in
 the handler are added to the response.
@@ -40,7 +43,7 @@ exported. Other methods respond `405` with an `Allow` header.
 
 - Return a `Response` to control the status, headers and body.
 - Return any other value to respond with JSON.
-- `redirect(status, location)` responds with the redirect.
+- `redirect(status, location)` responds with the redirect; a `$gemkit/api` call navigates on the client.
 - `error(status, message)` responds with `{ status, message }` as JSON.
 
 Thrown unexpected errors respond with the status `500` and a JSON error, and are passed to
@@ -63,10 +66,47 @@ const likes = await api.likes(slug).GET();
 
 - The request is sent to the API path, without the language prefix.
 - A JSON response is parsed; other responses give the raw `Response`.
-- An `error()` response rejects with `HttpError`, which has `status` and `message`.
-- The input is only typed. Validate it in the handler when the shape matters, for example before writing
-  it to a database.
+- An `error()` response rejects with `HttpError`, which has `status`, `message` and the `issues` of schema
+  validation.
+- When the handler or `handle` redirects, the client clears prefetched results and the history cache,
+  navigates to the location, and the call does not resolve. The request has the `x-gemkit-client` header, and
+  the server responds with `x-gemkit-redirect` instead of 3xx, because `fetch` follows redirects.
+- The input is only typed. Validate it with [`endpoint`](#validate-input), or in the handler, for example
+  before writing it to a database.
 - The handler can still read `request` itself, for example `request.formData()`.
+
+## Reload data
+
+After a mutation through an API route, the results of the page and layout `load` are stale. `invalidate()`
+reloads them without reloading the page:
+
+```ts
+await apis.api.likes(slug).POST({ count: 1 });
+await invalidate();
+```
+
+- The page element is reused, so input state is kept, and the scroll position does not change.
+- Prefetched results and the history cache are not used anymore, and layouts reload their data too.
+- It resolves when the data is loaded.
+
+## Validate input
+
+`endpoint(schema, handler)` validates and transforms the input with a
+[Standard Schema](https://standardschema.dev) (zod, valibot, arktype and others):
+
+```ts
+// src/pages/api/posts/[slug].server.ts
+import { z } from 'zod';
+
+export const GET = endpoint(z.object({ page: z.coerce.number() }), ({ params }, { page }) =>
+  getComments(params.slug, page),
+);
+```
+
+- When validation fails, it responds `400` and the `issues` of `HttpError` are the validation issues.
+- Query values are strings; use a schema transform such as `z.coerce.number()` to convert them.
+- The input type of `$gemkit/api` is the output type of the schema: the client passes the values the handler
+  expects, they become strings in the query, and the schema transforms them back.
 
 ## Security
 

@@ -8,10 +8,10 @@ import { logger, type RsbuildPlugin } from '@rsbuild/core';
 import type { UnpluginGemOptions } from 'unplugin-gem';
 import unpluginGem from 'unplugin-gem/rspack';
 
-import { ELEMENT_PATH, ELEMENTS_FILE, escapeHtml, getDataPath } from '../constants';
-import type { DataFile } from '../data';
+import { ELEMENT_PATH } from '../constants';
 import type { Renderer } from '../server';
 import { type GemkitConfig, generate, getPublicModules, getSrcDir, SRC_ALIAS } from './codegen';
+import { prerenderPage, writeFiles } from './prerender';
 import {
   createHandler,
   createRequestHandler,
@@ -62,6 +62,9 @@ const AUTO_IMPORT_MEMBERS = {
     'notFound',
     'redirect',
     'submitAction',
+    'invalidate',
+    'endpoint',
+    'revalidatePath',
     'getRequestEvent',
   ],
   '$gemkit/i18n': ['i18n'],
@@ -86,18 +89,6 @@ const ssrMiddleware =
       next(err);
     }
   };
-
-function getRedirectHtml(location: string) {
-  const url = escapeHtml(location);
-  return `<!doctype html><meta charset="utf-8"><title>Redirecting</title><meta http-equiv="refresh" content="0; url=${url}"><link rel="canonical" href="${url}">\n`;
-}
-
-// 预渲染并行执行，异步写入不阻塞其他页面的渲染
-async function writeFile(webDir: string, pathname: string, content: string) {
-  const file = path.join(webDir, decodeURIComponent(pathname));
-  await fs.promises.mkdir(path.dirname(file), { recursive: true });
-  await fs.promises.writeFile(file, content);
-}
 
 export function pluginGemkit(options: GemkitOptions = {}): RsbuildPlugin {
   const { prerender = true, gem, ...config } = options;
@@ -211,46 +202,24 @@ export function pluginGemkit(options: GemkitOptions = {}): RsbuildPlugin {
       });
 
       api.onAfterBuild(async () => {
-        const { webDir, serverDir, template } = getDistPaths(distDir);
+        const { webDir, serverDir, cacheDir, template } = getDistPaths(distDir);
         // 项目可能是 ESM 包，服务端产物是 CommonJS
         fs.writeFileSync(path.join(serverDir, 'package.json'), '{ "type": "commonjs" }\n');
         // HTML 模版只给服务端使用，避免静态服务器把它当成首页
         fs.renameSync(path.join(webDir, 'index.html'), template);
+        // 上次构建的 ISR 缓存属于旧的代码
+        fs.rmSync(cacheDir, { recursive: true, force: true });
         if (!prerender) return;
         const { renderer, template: html } = await loadRenderer(distDir);
         const paths = await renderer.getPaths();
-        const prerenderPage = async (pathname: string) => {
-          const serverElements = new Map<string, string>();
-          const result = await renderer.renderDocument(html, pathname, { serverElements });
-          const location = result.headers.get('location');
-          // 静态托管不能响应跳转，页面使用 `<meta>` 跳转，客户端导航时从数据文件中读取跳转地址
-          if (location) {
-            await writeFile(webDir, path.posix.join(pathname, 'index.html'), getRedirectHtml(location));
-            await writeFile(webDir, getDataPath(pathname), JSON.stringify({ redirect: location } satisfies DataFile));
-            return;
-          }
-          await writeFile(
-            webDir,
-            path.posix.join(pathname, 'index.html'),
-            (await Array.fromAsync(result.html)).join(''),
-          );
-          // 静态托管时客户端导航使用的纯服务端元素，导航时总会请求，没有元素时也输出
-          await writeFile(
-            webDir,
-            getDataPath(pathname, ELEMENTS_FILE),
-            JSON.stringify(Object.fromEntries(serverElements)),
-          );
-          // 静态托管时客户端导航使用的数据
-          if (renderer.hasServerData(pathname)) {
-            const dataPath = getDataPath(pathname);
-            await writeFile(webDir, dataPath, JSON.stringify((await renderer.loadData(dataPath)).body));
-          }
-        };
         // 每个请求的状态是独立的，可以并行渲染
         await Promise.all(
           Array.from({ length: PRERENDER_CONCURRENCY }, async () => {
             for (let pathname = paths.shift(); pathname !== undefined; pathname = paths.shift()) {
-              await prerenderPage(pathname);
+              const { files } = await prerenderPage(renderer, html, pathname);
+              // 使用 ISR 的页面写到缓存中，`gemkit start` 按 `revalidate` 重新渲染
+              const isr = (await renderer.getRevalidate(pathname)) !== undefined;
+              await writeFiles(isr ? cacheDir : webDir, files);
             }
           }),
         );

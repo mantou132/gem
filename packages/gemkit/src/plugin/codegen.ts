@@ -155,6 +155,23 @@ function scanDir(
   }
 }
 
+// 参数名不影响匹配，`/blog/:id` 和 `/blog/:slug` 是同一个路径
+const normalizePattern = (pattern: string) => pattern.replace(/:[^/]+/g, ':');
+
+/** API 路由先于页面匹配，路径相同时页面只能通过客户端导航访问 */
+function checkConflicts(root: LayoutNode, endpoints: EndpointNode[]) {
+  const pages = new Map<string, string>();
+  const collect = (layout: LayoutNode) => {
+    for (const { pattern, file } of layout.pages) pages.set(normalizePattern(pattern), file);
+    for (const { layout: sub } of layout.layouts) collect(sub);
+  };
+  collect(root);
+  for (const { pattern, file } of endpoints) {
+    const page = pages.get(normalizePattern(pattern));
+    if (page) throw new Error(`gemkit: \`${file}\` and \`${page}\` have the same path \`${pattern}\``);
+  }
+}
+
 export function scanPages(pagesDir: string) {
   const tags = new Map<string, string>();
   const endpoints: EndpointNode[] = [];
@@ -169,6 +186,7 @@ export function scanPages(pagesDir: string) {
     layouts: [],
   };
   scanDir(pagesDir, pagesDir, [], root, tags, endpoints);
+  checkConflicts(root, endpoints);
   endpoints.sort((a, b) => comparePattern(a.pattern, b.pattern));
   // 错误页面的数据是错误，没有服务端模块
   return { root, endpoints, error: error && { file: path.join(pagesDir, error), tag: toTag('page', 'error') } };

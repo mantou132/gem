@@ -1,4 +1,5 @@
-import { HttpError, type RequestMethod } from './data';
+import { CLIENT_HEADER, REDIRECT_HEADER } from './constants';
+import { clearClientCache, HttpError, navigate, type RequestMethod } from './data';
 
 const METHODS = new Set<string>(['GET', 'POST', 'PUT', 'PATCH', 'DELETE'] satisfies RequestMethod[]);
 // 没有请求体，参数作为查询参数
@@ -18,13 +19,20 @@ async function request(method: string, segments: string[], input?: Record<string
   const res = await fetch(
     `/${segments.join('/')}${search}`,
     query || input === undefined
-      ? { method }
-      : { method, headers: { 'content-type': 'application/json' }, body: JSON.stringify(input) },
+      ? { method, headers: { [CLIENT_HEADER]: '1' } }
+      : { method, headers: { 'content-type': 'application/json', [CLIENT_HEADER]: '1' }, body: JSON.stringify(input) },
   );
+  // `handle` 或者处理函数中的跳转，例如没有登录或者登录成功，数据可能已经改变；页面离开，不再 resolve
+  const redirectTo = res.headers.get(REDIRECT_HEADER);
+  if (redirectTo) {
+    clearClientCache();
+    navigate(redirectTo);
+    return new Promise(() => {});
+  }
   const isJSON = res.headers.get('content-type')?.includes('application/json');
   if (!res.ok) {
-    const { status, message } = isJSON ? await res.json() : { status: res.status, message: res.statusText };
-    throw new HttpError(status, message);
+    const { status, message, issues } = isJSON ? await res.json() : { status: res.status, message: res.statusText };
+    throw new HttpError(status, message, issues);
   }
   return isJSON ? res.json() : res;
 }

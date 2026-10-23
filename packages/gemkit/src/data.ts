@@ -52,14 +52,14 @@ export interface ServerLoadContext<P extends Params = Params> extends RequestEve
 /** `src/app.server.ts` 导出的内容，只在服务端执行 */
 export interface AppServerModule {
   /**
-   * 页面、页面数据、表单提交和纯服务端元素的请求都先执行，
+   * 页面、页面数据、表单提交、API 路由和纯服务端元素的请求都先执行，
    * 可以使用 `redirect` 跳转（纯服务端元素不渲染，客户端跳转），使用 `locals` 传递数据
    *
    * 预渲染前也执行，读取了 `request`、`cookies` 或者跳转的路径不预渲染
    */
   handle?: (event: RequestEvent) => unknown;
   /**
-   * `handle`、`load`、`actions` 中抛出的非 `error()` 错误，用来记录日志或者上报，默认使用 `console.error`，
+   * `handle`、`load`、`actions`、API 路由中抛出的非 `error()` 错误，用来记录日志或者上报，默认使用 `console.error`，
    * 页面显示状态码 500，生产环境不显示错误信息
    */
   handleError?: (error: unknown, event: RequestEvent) => unknown;
@@ -73,6 +73,11 @@ export interface ServerModule {
   paths?: (ctx: { lang: string }) => Params[] | Promise<Params[]>;
   /** 为 `false` 时不预渲染，在 layout 中设置时对其中的页面都有效 */
   prerender?: boolean;
+  /**
+   * 增量静态再生成（ISR）的秒数：`gemkit start` 第一次请求时渲染并缓存，过期后先返回旧内容，在后台重新渲染，
+   * 构建时预渲染的结果也写到缓存中；layout 和页面都设置时使用最小的，和预渲染的条件一样
+   */
+  revalidate?: number;
   /**
    * 处理表单提交 `POST <page path>?/<name>`，只对页面有效，返回值只能是 JSON 值，
    * 可以使用 `redirect` 跳转
@@ -101,6 +106,51 @@ export type RequestHandler<P extends Params = Params> = (ctx: ServerLoadContext<
  */
 export type EndpointModule = Partial<Record<RequestMethod, RequestHandler<any>>>;
 
+/** Standard Schema（https://standardschema.dev），zod、valibot、arktype 等都实现了它 */
+export interface StandardSchemaV1<Input = unknown, Output = Input> {
+  readonly '~standard': {
+    readonly version: 1;
+    readonly vendor: string;
+    readonly validate: (
+      value: unknown,
+    ) =>
+      | { readonly value: Output; readonly issues?: undefined }
+      | { readonly issues: readonly SchemaIssue[] }
+      | Promise<{ readonly value: Output; readonly issues?: undefined } | { readonly issues: readonly SchemaIssue[] }>;
+    readonly types?: { readonly input: Input; readonly output: Output };
+  };
+}
+
+/** 校验失败的问题，`path` 是出错字段的路径 */
+export interface SchemaIssue {
+  readonly message: string;
+  readonly path?: readonly (PropertyKey | { readonly key: PropertyKey })[];
+}
+
+type SchemaOutput<S extends StandardSchemaV1> = NonNullable<S['~standard']['types']>['output'];
+
+/**
+ * 使用 schema 校验 API 路由的输入，失败时响应 `400`，错误的 `issues` 是校验的问题
+ *
+ * 查询参数的值都是字符串，需要转换类型时使用 schema 的转换，例如 `z.coerce.number()`；
+ * `$gemkit/api` 的参数类型是 schema 的输出类型，作为查询参数传输时变成字符串，由 schema 转换回来
+ *
+ * @example
+ * ```ts
+ * export const POST = endpoint(z.object({ count: z.coerce.number() }), ({ params }, { count }) => addLikes(params.slug, count));
+ * ```
+ */
+export function endpoint<S extends StandardSchemaV1, P extends Params, R>(
+  schema: S,
+  handler: (ctx: ServerLoadContext<P>, input: SchemaOutput<S>) => R,
+) {
+  return async (ctx: ServerLoadContext<P>, input: SchemaOutput<S>) => {
+    const result = await schema['~standard'].validate(input);
+    if (result.issues) throw new HttpError(400, 'Invalid input', result.issues);
+    return handler(ctx, result.value as SchemaOutput<S>);
+  };
+}
+
 export type Endpoints = { pattern: string; load: () => Promise<EndpointModule> }[];
 
 // 页面和 layout 的标签名对应的服务端模块
@@ -122,24 +172,26 @@ export class Redirect {
 }
 
 /**
- * 在 `load` 或 `actions` 中跳转到 `location`，`location` 是完整的路径，包括语言前缀
+ * 在 `handle`、`load`、`actions` 或 API 路由中跳转到 `location`，`location` 是完整的路径，包括语言前缀
  *
- * 表单提交时总是使用 303 跳转
+ * 表单提交时总是使用 303 跳转，`$gemkit/api` 调用时客户端导航
  */
 export function redirect(status: 301 | 302 | 303 | 307 | 308, location: string): never {
   throw new Redirect(status, location);
 }
 
-/** 错误页面（`_error`）的 `data` */
+/** 错误页面（`_error`）的 `data`，以及 API 路由的错误响应，`issues` 是 schema 校验的问题 */
 export interface ErrorData {
   status: number;
   message: string;
+  issues?: readonly SchemaIssue[];
 }
 
 export class HttpError implements ErrorData {
   constructor(
     public status: number,
     public message: string,
+    public issues?: readonly SchemaIssue[],
   ) {}
 }
 
@@ -147,7 +199,7 @@ export class HttpError implements ErrorData {
 export type RouteError = ErrorData & { tag: string };
 
 /**
- * 在 `handle`、`load` 或 `actions` 中抛出错误，渲染错误页面（`_error`），地址不变
+ * 在 `handle`、`load`、`actions` 或 API 路由中抛出错误，页面中渲染错误页面（`_error`），地址不变，API 路由响应 JSON 错误
  *
  * `load` 中出错时，错误页面渲染在该页面或 layout 的位置，上层的 layout 保留
  */
@@ -241,7 +293,10 @@ export function setSSRError(path: string, err: RouteError) {
  * 服务端交给 `handleError`，预渲染时抛出，避免把错误页面当作页面输出
  */
 export function toErrorData(err: unknown): ErrorData {
-  if (err instanceof HttpError) return { status: err.status, message: err.message };
+  if (err instanceof HttpError) {
+    const { status, message, issues } = err;
+    return issues ? { status, message, issues } : { status, message };
+  }
   if (isServer) {
     if (!requestState.request) throw err;
     errorHandler(err, getRequestEvent());
@@ -292,7 +347,7 @@ function createRequestEvent<T extends object>(hint: string, extra: T): RequestEv
   };
 }
 
-/** 服务端模块的 `load` 和 `actions` 的参数 */
+/** 服务端模块的 `load`、`actions` 和 API 路由处理函数的参数 */
 export function createServerContext(tag: string, params: Params): ServerLoadContext {
   return createRequestEvent(`export \`prerender = false\` (${tag})`, { params });
 }
@@ -396,7 +451,7 @@ const getFileUrl = (path: string, search: string, file?: string) => history.base
 export const outletStore = createStore({ key: 0 });
 
 /**
- * 客户端在提交表单后需要重新加载数据，layout 不再复用数据，加载页面后重置
+ * 客户端在提交表单或者 `invalidate()` 后需要重新加载数据，layout 不再复用数据，加载页面后重置
  *
  * `error` 是需要渲染错误页面的路由，例如 action 出错，`path` 是出错的页面路径
  */
@@ -424,7 +479,7 @@ export function takeRouteError(path: string, tag: string) {
 }
 
 /** 客户端跳转到 `href`，语言（`basePath`）不同时重新加载页面，和当前地址相同时重新渲染路由 */
-function navigate(href: string, replace = false) {
+export function navigate(href: string, replace = false) {
   const { origin, pathname, search, hash } = new URL(href, location.href);
   const { basePath } = history;
   if (origin !== location.origin || (basePath && pathname !== basePath && !pathname.startsWith(`${basePath}/`))) {
@@ -561,6 +616,40 @@ export async function loadServerElement(
   return html;
 }
 
+/** 预取的结果和历史缓存都不再使用，layout 也重新加载数据，例如修改数据或者登录后 */
+export function clearClientCache() {
+  clientState.invalidated = true;
+  prefetched.clear();
+  historyCache.clear();
+}
+
+// `invalidate()` 等待当前页面重新加载
+let invalidation: PromiseWithResolvers<void> | undefined;
+
+/** 页面（或者错误页面）加载后调用，完成 `invalidate()` */
+export function settleInvalidation() {
+  invalidation?.resolve();
+  invalidation = undefined;
+}
+
+/**
+ * 重新加载当前页面和 layout 的数据，不刷新页面，页面元素会被复用，例如调用 API 修改数据后，
+ * 预取的结果和历史缓存都不再使用，加载完成后 resolve
+ *
+ * @example
+ * ```ts
+ * await apis.api.likes(slug).POST({ count: 1 });
+ * await invalidate();
+ * ```
+ */
+export function invalidate() {
+  clearClientCache();
+  invalidation ||= Promise.withResolvers();
+  const { promise } = invalidation;
+  navigate(location.href, true);
+  return promise;
+}
+
 /** `actions` 的结果，出错时渲染错误页面 */
 export type ActionResult =
   | { type: 'success'; data: unknown }
@@ -594,9 +683,7 @@ export async function submitAction(form: HTMLFormElement, submitter?: HTMLElemen
   if (!res.ok) throw new Error(`gemkit: failed to submit \`${action}\``);
   const result: ActionResult = await res.json();
   // 提交后 cookie 等状态可能改变，之前的数据都不能再使用
-  clientState.invalidated = true;
-  prefetched.clear();
-  historyCache.clear();
+  clearClientCache();
   if (result.type === 'redirect') {
     navigate(result.location);
     return;
@@ -604,4 +691,19 @@ export async function submitAction(form: HTMLFormElement, submitter?: HTMLElemen
   if (result.type === 'error') clientState.error = { ...result.error, path: history.getParams().path };
   navigate(location.href, true);
   return result.type === 'success' ? result.data : undefined;
+}
+
+let revalidateHandler: ((pathname: string) => unknown) | undefined;
+
+/** `gemkit start` 设置，清除 ISR 的缓存 */
+export function setRevalidateHandler(handler: typeof revalidateHandler) {
+  revalidateHandler = handler;
+}
+
+/**
+ * 在服务端清除页面（`revalidate`）的 ISR 缓存，下次请求时重新渲染，`pathname` 包含语言前缀，
+ * 例如在 webhook 或者修改数据的 API 路由中调用；开发时和静态托管时没有缓存
+ */
+export async function revalidatePath(pathname: string) {
+  await revalidateHandler?.(pathname);
 }

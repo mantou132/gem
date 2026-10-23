@@ -64,7 +64,7 @@ The result is passed to the layout element as `data`. It can be a JSON value; th
 `load` apply.
 
 When navigating between child routes, the layout data is reused as long as its params are unchanged.
-After a form submission it is loaded again, because the request may have changed the state it depends
+After a form submission or `invalidate()` it is loaded again, because the request may have changed the state it depends
 on, such as the current user.
 
 A layout can also have a sibling `_layout.server.ts`, whose `load` result is passed to `load` as `data`.

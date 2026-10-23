@@ -4,8 +4,10 @@ export const DATA_FILE = '__data.json';
 export const ELEMENTS_FILE = '__elements.json';
 /** 渲染纯服务端元素（POST），没有预渲染的元素时使用，例如交互后才出现的元素 */
 export const ELEMENT_PATH = '/__gemkit_element';
-/** 纯服务端元素请求的响应头，`handle` 中跳转的地址 */
+/** 纯服务端元素和 `$gemkit/api` 请求的响应头，`handle` 或处理函数中跳转的地址，客户端收到后导航 */
 export const REDIRECT_HEADER = 'x-gemkit-redirect';
+/** `$gemkit/api` 的请求头，跳转时响应 `REDIRECT_HEADER`，而不是 3xx（`fetch` 会自动跟随） */
+export const CLIENT_HEADER = 'x-gemkit-client';
 
 /** 页面路径对应的数据文件路径 */
 export function getDataPath(path: string, file = DATA_FILE) {

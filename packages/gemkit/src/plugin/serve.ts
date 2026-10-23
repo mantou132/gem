@@ -1,4 +1,4 @@
-import { readFile } from 'node:fs/promises';
+import { readFile, rm, stat } from 'node:fs/promises';
 import { createRequire } from 'node:module';
 import path from 'node:path';
 
@@ -6,14 +6,18 @@ import { serve } from '@hono/node-server';
 import { serveStatic } from '@hono/node-server/serve-static';
 import { Hono } from 'hono';
 
-import { DATA_FILE, ELEMENT_PATH, ELEMENTS_FILE } from '../constants';
+import { DATA_FILE, ELEMENT_PATH, ELEMENTS_FILE, getDataPath, trimTrailingSlash } from '../constants';
+import type { RouteError } from '../data';
 import type { Renderer } from '../server';
+import { prerenderPage, writeFiles } from './prerender';
 
 export const getDistPaths = (distDir: string) => ({
   webDir: path.join(distDir, 'web'),
   serverDir: path.join(distDir, 'server'),
   serverEntry: path.join(distDir, 'server', 'index.js'),
   template: path.join(distDir, 'server', 'template.html'),
+  /** ISR 的页面，构建时预渲染的结果也在这里 */
+  cacheDir: path.join(distDir, 'cache'),
 });
 
 export async function loadRenderer(distDir: string) {
@@ -80,9 +84,90 @@ function withOrigin(request: Request, origin: string) {
   return new Request(`${origin}${pathname}${search}`, request);
 }
 
+/** `dir` 中的文件路径，路径不合法或者不在 `dir` 中时为 `undefined` */
+function resolveFile(dir: string, pathname: string) {
+  let file: string;
+  try {
+    file = path.join(dir, decodeURIComponent(pathname));
+  } catch {
+    // 不合法的 URL 编码，由 SSR 渲染 404 页面
+    return;
+  }
+  if (file.startsWith(dir + path.sep)) return file;
+}
+
+/** 没有文件时为 `undefined`，路径中间是文件时（例如 `/a.png/__data.json`）为 `ENOTDIR` */
+async function readOptional<T>(read: () => Promise<T>) {
+  try {
+    return await read();
+  } catch (err) {
+    const { code } = err as NodeJS.ErrnoException;
+    if (code !== 'ENOENT' && code !== 'ENOTDIR') throw err;
+  }
+}
+
+/** 请求的页面路径和对应的文件，例如 `/blog/__data.json` 是 `/blog` 和 `/blog/__data.json` */
+function getPageFile(pathname: string) {
+  if (!isDataRequest(pathname)) {
+    const page = trimTrailingSlash(pathname);
+    return { page, file: path.posix.join(page, 'index.html') };
+  }
+  return { page: pathname.slice(0, pathname.lastIndexOf('/')) || '/', file: pathname };
+}
+
+/**
+ * 增量静态再生成（ISR）：设置了 `revalidate` 的页面第一次请求时预渲染并写到 `cacheDir`，
+ * 过期后先返回旧内容，在后台重新渲染，同一个页面同时只渲染一次；
+ * 和预渲染的条件一样，渲染结果不是 200 时（例如跳转、出错）不缓存，由服务端渲染
+ */
+function createIsr(renderer: Renderer, template: string, cacheDir: string) {
+  const pending = new Map<string, Promise<boolean>>();
+  const regenerate = (page: string) => {
+    let promise = pending.get(page);
+    if (!promise) {
+      promise = (async () => {
+        const { status, files } = await prerenderPage(renderer, template, page);
+        if (status !== 200) return false;
+        await writeFiles(cacheDir, files);
+        return true;
+      })().finally(() => pending.delete(page));
+      pending.set(page, promise);
+    }
+    return promise;
+  };
+  renderer.setRevalidateHandler((page) =>
+    Promise.all(
+      [path.posix.join(page, 'index.html'), getDataPath(page), getDataPath(page, ELEMENTS_FILE)].map((pathname) => {
+        const file = resolveFile(cacheDir, pathname);
+        return file && rm(file, { force: true });
+      }),
+    ),
+  );
+  /** 页面或者数据文件的内容，页面不使用 ISR 或者不能缓存时为 `undefined` */
+  return async (pathname: string) => {
+    const { page, file: filePath } = getPageFile(pathname);
+    const file = resolveFile(cacheDir, filePath);
+    if (!file) return;
+    const revalidate = await renderer.getRevalidate(page);
+    if (revalidate === undefined) return;
+    const stats = await readOptional(() => stat(file));
+    if (!stats) {
+      // 渲染出错时由服务端渲染错误页面，并交给 `handleError`
+      if (!(await renderer.canPrerender(page)) || !(await regenerate(page).catch(() => false))) return;
+      return readOptional(() => readFile(file, 'utf8'));
+    }
+    // 先读取旧内容再在后台重新渲染
+    const content = await readOptional(() => readFile(file, 'utf8'));
+    if (Date.now() - stats.mtimeMs > revalidate * 1000) regenerate(page).catch((err) => console.error(err));
+    return content;
+  };
+}
+
 export interface HandlerOptions {
   /** 预渲染的文件目录，优先使用其中的文件 */
   webDir?: string;
+  /** ISR 的缓存目录，提供时设置了 `revalidate` 的页面使用 ISR */
+  cacheDir?: string;
   /**
    * 网站的 origin，例如 `https://example.com`，部署在反向代理后面时设置，
    * 否则使用 `Host` 请求头和连接的协议，`load` 中的 `url`、cookie 的 `Secure` 和同源检查都使用它
@@ -90,30 +175,24 @@ export interface HandlerOptions {
   origin?: string;
 }
 
-/** 处理页面、页面数据、表单提交和 API 路由请求，提供 `webDir` 时优先使用预渲染的文件 */
+/** 处理页面、页面数据、表单提交、纯服务端元素和 API 路由请求，提供 `webDir` 时优先使用预渲染的文件 */
 export function createRequestHandler(
   renderer: Renderer,
   template: string,
-  { webDir, origin }: HandlerOptions = {},
+  { webDir, cacheDir, origin }: HandlerOptions = {},
 ): Handler {
   const trustedOrigin = origin && new URL(origin).origin;
-  const readStatic = async (url: URL, pathname = url.pathname) => {
-    if (!webDir || isQueryRequest(url)) return;
-    let file: string;
-    try {
-      file = path.join(webDir, decodeURIComponent(pathname));
-    } catch {
-      // 不合法的 URL 编码，由 SSR 渲染 404 页面
-      return;
-    }
-    if (!file.startsWith(webDir + path.sep)) return;
-    try {
-      return await readFile(file, 'utf8');
-    } catch (err) {
-      // 没有预渲染的文件，由服务端渲染，路径中间是文件时（例如 `/a.png/__data.json`）为 `ENOTDIR`
-      const { code } = err as NodeJS.ErrnoException;
-      if (code !== 'ENOENT' && code !== 'ENOTDIR') throw err;
-    }
+  const readIsr = cacheDir ? createIsr(renderer, template, cacheDir) : undefined;
+  // 带查询参数的请求不使用预渲染和 ISR 的文件
+  const readPrerendered = async (url: URL) => {
+    if (isQueryRequest(url)) return;
+    const file = webDir && resolveFile(webDir, getPageFile(url.pathname).file);
+    return (file && (await readOptional(() => readFile(file, 'utf8')))) || readIsr?.(url.pathname);
+  };
+  const renderHtml = async (request: Request, error?: RouteError) => {
+    const { status, headers, html } = await renderer.renderDocument(template, request, { error });
+    headers.set('content-type', HTML_TYPE);
+    return new Response(toStream(html), { status, headers });
   };
   const handler = async (input: Request) => {
     const request = trustedOrigin ? withOrigin(input, trustedOrigin) : input;
@@ -136,34 +215,32 @@ export function createRequestHandler(
       // `submitAction` 提交时返回结果，原生表单提交时跳转到 `redirect` 的地址或者当前页面，出错时渲染错误页面
       if (request.headers.get('accept') === 'application/json') return Response.json(result, { headers });
       if (result.type === 'error') {
-        const page = await renderer.renderDocument(template, request, { error: result.error });
+        const page = await renderHtml(request, result.error);
         for (const cookie of headers.getSetCookie()) page.headers.append('set-cookie', cookie);
-        page.headers.set('content-type', HTML_TYPE);
-        return new Response(toStream(page.html), { status: page.status, headers: page.headers });
+        return page;
       }
       headers.set('location', result.type === 'redirect' ? result.location : pathname);
       return new Response(null, { status: 303, headers });
     }
     if (isDataRequest(pathname)) {
-      const body = await readStatic(url);
+      const body = await readPrerendered(url);
       if (body) return new Response(body, { headers: { 'content-type': 'application/json' } });
       // 没有预渲染的页面客户端使用 `ELEMENT_PATH` 渲染，开启预渲染时导航总会请求，避免 404
       if (pathname.endsWith(ELEMENTS_FILE)) return Response.json({});
       const { status, headers, body: file } = await renderer.loadData(request);
       return Response.json(file, { status, headers });
     }
-    const body = await readStatic(url, path.posix.join(pathname, 'index.html'));
+    const body = await readPrerendered(url);
     if (body) return new Response(body, { headers: { 'content-type': HTML_TYPE } });
-    const { status, headers, html } = await renderer.renderDocument(template, request);
-    headers.set('content-type', HTML_TYPE);
-    return new Response(toStream(html), { status, headers });
+    return renderHtml(request);
   };
   return Object.assign(handler, { isEndpoint: (pathname: string) => !!renderer.matchEndpoint(pathname) });
 }
 
-export async function createHandler(distDir: string, options?: Omit<HandlerOptions, 'webDir'>) {
+export async function createHandler(distDir: string, options?: Pick<HandlerOptions, 'origin'>) {
   const { renderer, template } = await loadRenderer(distDir);
-  return createRequestHandler(renderer, template, { ...options, webDir: getDistPaths(distDir).webDir });
+  const { webDir, cacheDir } = getDistPaths(distDir);
+  return createRequestHandler(renderer, template, { ...options, webDir, cacheDir });
 }
 
 export async function start({

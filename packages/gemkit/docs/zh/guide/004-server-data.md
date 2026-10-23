@@ -53,6 +53,16 @@ export async function paths({ lang }: { lang: string }) {
 
 同样的选项也可以定义在页面中，适合没有服务端模块的情况。见[动态路径](./002-pages.md#动态路径)。
 
+## 增量静态再生成
+
+页面很多或者内容会变化时，导出 `revalidate`（秒），`gemkit start` 在第一次请求时预渲染并缓存，
+过期后在后台重新渲染。`paths` 只需要返回热门的页面。见[部署](./011-deploy.md#增量静态再生成)。
+
+```ts
+// src/pages/blog/[slug].server.ts
+export const revalidate = 60;
+```
+
 ## 关闭预渲染
 
 页面依赖请求时，在服务端模块中导出 `prerender = false`：

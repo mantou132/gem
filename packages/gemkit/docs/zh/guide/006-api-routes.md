@@ -27,6 +27,8 @@ export const DELETE = () => new Response(null, { status: 204 });
 | `src/pages/api/likes/index.server.ts`  | `/api/likes`       |
 | `src/pages/rss.xml.server.ts`          | `/rss.xml`         |
 
+API 路由和页面的路径相同时构建会报错，因为 API 路由先匹配，页面只能通过客户端导航访问。
+
 API 路由没有语言前缀。`handle` 在处理函数之前执行，`event.path` 是 API 路径。
 参数和 `load` 相同：`params`、`url`、`request`、`cookies` 和 `locals`。
 处理函数中设置的 cookie 会添加到响应中。
@@ -38,7 +40,7 @@ API 路由没有语言前缀。`handle` 在处理函数之前执行，`event.pat
 
 - 返回 `Response` 可以控制状态码、响应头和内容。
 - 返回其他值会作为 JSON 响应。
-- `redirect(status, location)` 响应跳转。
+- `redirect(status, location)` 响应跳转，`$gemkit/api` 调用时客户端导航。
 - `error(status, message)` 响应 `{ status, message }` 的 JSON。
 
 抛出的意外错误响应状态码 `500` 和 JSON 错误，在服务端会交给 `src/app.server.ts` 的 `handleError`。
@@ -59,9 +61,43 @@ const likes = await api.likes(slug).GET();
 
 - 请求发送到 API 路径，不包含语言前缀。
 - JSON 响应会解析，其他响应返回原始 `Response`。
-- `error()` 响应会 reject `HttpError`，它有 `status` 和 `message`。
-- 输入只有类型，需要校验内容时在处理函数中检查，例如写入数据库之前。
+- `error()` 响应会 reject `HttpError`，它有 `status`、`message` 和 schema 校验的 `issues`。
+- 处理函数或者 `handle` 跳转时，客户端清除预取的结果和历史缓存，导航到目标地址，调用不会 resolve。
+  请求头 `x-gemkit-client` 表示由它发送，服务端响应 `x-gemkit-redirect` 而不是 3xx，因为 `fetch` 会自动跟随跳转。
+- 输入只有类型，需要校验内容时使用 [`endpoint`](#校验输入)，或者在处理函数中检查，例如写入数据库之前。
 - 处理函数仍然可以自己读取 `request`，例如 `request.formData()`。
+
+## 重新加载数据
+
+调用 API 修改数据后，页面和 layout 的 `load` 的结果已经过期。`invalidate()` 重新加载它们，不刷新页面：
+
+```ts
+await apis.api.likes(slug).POST({ count: 1 });
+await invalidate();
+```
+
+- 页面元素被复用，所以输入框的状态保留，滚动位置不变。
+- 预取的结果和历史缓存都不再使用，layout 也重新加载数据。
+- 数据加载完成后 resolve。
+
+## 校验输入
+
+`endpoint(schema, handler)` 使用 [Standard Schema](https://standardschema.dev)（zod、valibot、arktype 等）
+校验和转换输入：
+
+```ts
+// src/pages/api/posts/[slug].server.ts
+import { z } from 'zod';
+
+export const GET = endpoint(z.object({ page: z.coerce.number() }), ({ params }, { page }) =>
+  getComments(params.slug, page),
+);
+```
+
+- 校验失败时响应 `400`，`HttpError` 的 `issues` 是校验的问题。
+- 查询参数的值都是字符串，需要转换类型时使用 schema 的转换，例如 `z.coerce.number()`。
+- `$gemkit/api` 的参数类型是 schema 的输出类型：客户端传入处理函数期望的值，
+  作为查询参数传输时变成字符串，由 schema 转换回来。
 
 ## 安全
 

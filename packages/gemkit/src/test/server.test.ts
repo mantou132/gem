@@ -19,15 +19,18 @@ import {
 import { I18n } from '@mantou/gem/helper/i18n';
 import { getServerElementKey, server } from '@mantou/gem-ssr/decorators';
 
-import { DATA_SCRIPT_ID, REDIRECT_HEADER } from '../constants';
+import { CLIENT_HEADER, DATA_SCRIPT_ID, REDIRECT_HEADER } from '../constants';
 import {
   type EndpointModule,
   type ErrorData,
+  endpoint,
   error,
   getRequestEvent,
   notFound,
   redirect,
+  revalidatePath,
   type ServerModule,
+  type StandardSchemaV1,
 } from '../data';
 import { errorRoute, pageRoute, setOutlets } from '../outlet';
 import { type Params, page } from '../page';
@@ -125,6 +128,9 @@ const pages: PageEntry[] = [
   { pattern: '/', tag: 'gemkit-page-index', load: async () => ({ default: HomePage }) },
 ];
 
+// 每次渲染都不同，用来判断是否使用了缓存
+let tagVersion = 0;
+
 const serverModules: Record<string, () => Promise<ServerModule>> = {
   'gemkit-page-post': async () => ({
     load: ({ params, url }) => {
@@ -153,6 +159,13 @@ const serverModules: Record<string, () => Promise<ServerModule>> = {
   }),
   // 只有 `actions`，没有 `load`
   'gemkit-page-login': async () => ({ actions: { login: () => null } }),
+  'gemkit-page-tag': async () => ({
+    revalidate: 60,
+    load: ({ params }) => {
+      if (params.tag === 'missing') notFound();
+      return { tag: params.tag, version: ++tagVersion };
+    },
+  }),
 };
 
 // 和生成的 `routes.ts` 一样，模版中使用静态的标签名
@@ -192,6 +205,25 @@ const likesEndpoint: EndpointModule = {
   },
 };
 
+const loginEndpoint: EndpointModule = {
+  POST: ({ cookies }, { token }: { token: string }) => {
+    cookies.set('token', token);
+    redirect(303, '/me');
+  },
+};
+
+// 最小的 Standard Schema 实现：`count` 转换成数字
+const countSchema: StandardSchemaV1<{ count: string | number }, { count: number }> = {
+  '~standard': {
+    version: 1,
+    vendor: 'test',
+    validate: (value) => {
+      const count = Number((value as { count?: unknown })?.count);
+      return Number.isInteger(count) ? { value: { count } } : { issues: [{ message: 'Invalid', path: ['count'] }] };
+    },
+  },
+};
+
 const renderer = createRenderer({
   app: html`<gemkit-outlet></gemkit-outlet>`,
   serverModules,
@@ -200,6 +232,11 @@ const renderer = createRenderer({
     { pattern: '/admin/api', load: async () => ({ GET: () => getRequestEvent().locals.user }) },
     { pattern: '/old', load: async () => ({ GET: () => redirect(301, '/new') }) },
     { pattern: '/echo', load: async () => ({ GET: (_, input) => input, PUT: (_, input) => ({ input }) }) },
+    { pattern: '/api/login', load: async () => loginEndpoint },
+    {
+      pattern: '/count',
+      load: async () => ({ GET: endpoint(countSchema, (_, { count }) => ({ double: count * 2 })) }),
+    },
   ],
   appServerModule: {
     // 只在需要时读取 `cookies`，读取后响应不能被共享缓存，也不预渲染
@@ -354,6 +391,41 @@ test('createRequestHandler: 表单提交', async ({ assert }) => {
   const json = await handler(request('/me?/login', { method: 'POST', body, headers: { accept: 'application/json' } }));
   assert.deepEqual(await json.json(), { type: 'redirect', location: '/me' });
   assert.equal(json.headers.get('set-cookie'), 'token=x; Path=/; HttpOnly; SameSite=Lax');
+});
+
+test('endpoint: `$gemkit/api` 的请求跳转时响应跳转地址', async ({ assert }) => {
+  const login = (headers: Record<string, string>) =>
+    renderer.runEndpoint(
+      request('/api/login', {
+        method: 'POST',
+        body: JSON.stringify({ token: 'x' }),
+        headers: { 'content-type': 'application/json', ...headers },
+      }),
+    );
+  const res = await login({ [CLIENT_HEADER]: '1' });
+  assert.equal(res.status, 200);
+  assert.equal(res.headers.get(REDIRECT_HEADER), '/me');
+  assert.equal(res.headers.get('location'), null);
+  assert.deepEqual(res.headers.getSetCookie(), ['token=x; Path=/; HttpOnly; SameSite=Lax']);
+  // 其他请求正常响应跳转
+  const other = await login({});
+  assert.equal(other.status, 303);
+  assert.equal(other.headers.get('location'), '/me');
+  // `handle` 中的跳转
+  const denied = await renderer.runEndpoint(request('/admin/api', { headers: { [CLIENT_HEADER]: '1' } }));
+  assert.equal(denied.headers.get(REDIRECT_HEADER), '/login');
+});
+
+test('endpoint: 使用 schema 校验和转换输入', async ({ assert }) => {
+  const handler = createRequestHandler(renderer, documentTemplate);
+  assert.deepEqual(await (await handler(request('/count?count=2'))).json(), { double: 4 });
+  const invalid = await handler(request('/count?count=a'));
+  assert.equal(invalid.status, 400);
+  assert.deepEqual(await invalid.json(), {
+    status: 400,
+    message: 'Invalid input',
+    issues: [{ message: 'Invalid', path: ['count'] }],
+  });
 });
 
 test('createRequestHandler: 拒绝其他网站提交的表单和纯服务端元素请求', async ({ assert }) => {
@@ -567,4 +639,58 @@ test('endpoint: 先执行 `handle`，可以跳转', async ({ assert }) => {
   // 不匹配的路径不是 API 路由
   assert.equal(renderer.matchEndpoint('/api/likes'), undefined);
   assert.equal(createRequestHandler(renderer, documentTemplate).isEndpoint('/api/likes/a'), true);
+});
+
+test('getRevalidate: 页面和 layout 中最小的 `revalidate`', async ({ assert }) => {
+  assert.equal(await renderer.getRevalidate('/tags/a'), 60);
+  assert.equal(await renderer.getRevalidate('/zh/tags/a'), 60);
+  assert.equal(await renderer.getRevalidate('/posts/1'), undefined);
+});
+
+test('createRequestHandler: ISR 缓存页面，过期后在后台重新渲染', async ({ assert }) => {
+  const cacheDir = fs.mkdtempSync(path.join(os.tmpdir(), 'gemkit-'));
+  const handler = createRequestHandler(renderer, documentTemplate, { cacheDir });
+  const getVersion = async (url: string) =>
+    (await (await handler(request(url))).json()).data['gemkit-page-tag'].version;
+  const html = await (await handler(request('/tags/a'))).text();
+  assert.match(html, /<gemkit-page-tag/);
+  // 和预渲染一样输出页面、数据和元素文件
+  assert.deepEqual(fs.readdirSync(path.join(cacheDir, 'tags/a')).sort(), [
+    '__data.json',
+    '__elements.json',
+    'index.html',
+  ]);
+  const version = await getVersion('/tags/a/__data.json');
+  assert.equal(await (await handler(request('/tags/a'))).text(), html);
+  // 带查询参数的请求不使用缓存
+  assert.notEqual(await getVersion('/tags/a/__data.json?x=1'), version);
+  // 过期后先返回旧内容
+  const old = new Date(Date.now() - 61_000);
+  fs.utimesSync(path.join(cacheDir, 'tags/a/__data.json'), old, old);
+  assert.equal(await getVersion('/tags/a/__data.json'), version);
+  for (let i = 0; i < 500 && (await getVersion('/tags/a/__data.json')) === version; i++) {
+    await new Promise((resolve) => setTimeout(resolve, 10));
+  }
+  const regenerated = await getVersion('/tags/a/__data.json');
+  assert.notEqual(regenerated, version);
+  // 清除缓存后重新渲染
+  await revalidatePath('/tags/a');
+  assert.equal(fs.existsSync(path.join(cacheDir, 'tags/a/index.html')), false);
+  assert.notEqual(await getVersion('/tags/a/__data.json'), regenerated);
+  // 没有 `revalidate` 的页面和不能预渲染的页面不缓存
+  await handler(request('/posts/1'));
+  await handler(request('/me', { headers: { cookie: 'token=t' } }));
+  assert.deepEqual(fs.readdirSync(cacheDir), ['tags']);
+  fs.rmSync(cacheDir, { recursive: true });
+});
+
+test('createRequestHandler: ISR 不缓存跳转和出错的页面', async ({ assert }) => {
+  const cacheDir = fs.mkdtempSync(path.join(os.tmpdir(), 'gemkit-'));
+  const handler = createRequestHandler(renderer, documentTemplate, { cacheDir });
+  // 末尾的 `/` 和没有 `/` 的是同一个页面
+  assert.equal((await handler(request('/tags/a/'))).status, 200);
+  assert.equal(fs.existsSync(path.join(cacheDir, 'tags/a/index.html')), true);
+  assert.equal((await handler(request('/tags/missing'))).status, 404);
+  assert.equal(fs.existsSync(path.join(cacheDir, 'tags/missing')), false);
+  fs.rmSync(cacheDir, { recursive: true });
 });

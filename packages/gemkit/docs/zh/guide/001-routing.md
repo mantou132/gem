@@ -92,7 +92,7 @@ src/pages/blog/[slug].server.ts
 
 服务端模块只在服务端加载，客户端代码导入它会导致构建失败。
 
-没有同名页面模块的 `*.server.ts` 是 [API 路由](./006-api-routes.md)。
+没有同名页面模块的 `*.server.ts` 是 [API 路由](./006-api-routes.md)。它和页面的路径相同时构建会报错。
 
 ## 应用文件
 

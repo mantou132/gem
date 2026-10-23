@@ -110,6 +110,13 @@ test('scanPages: 标签名重复时报错', ({ assert }) => {
   assert.throws(() => scanPages(path.join(root, 'src/pages')), /have the same tag `gemkit-page-a-b`/);
 });
 
+test('scanPages: API 路由和页面的路径相同时报错', ({ assert }) => {
+  const root = createFixture(['src/pages/post/[id].ts', 'src/pages/post/[slug].server.ts']);
+  assert.throws(() => scanPages(path.join(root, 'src/pages')), /have the same path `\/post\/:slug`/);
+  const index = createFixture(['src/pages/blog.ts', 'src/pages/blog/index.server.ts']);
+  assert.throws(() => scanPages(path.join(index, 'src/pages')), /have the same path `\/blog`/);
+});
+
 test('generate: 生成路由和入口文件', ({ assert }) => {
   const root = createFixture([
     ...pageFiles,

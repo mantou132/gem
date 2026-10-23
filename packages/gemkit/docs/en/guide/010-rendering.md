@@ -27,6 +27,10 @@ works that way.
 | Form `actions`           | Available                   | Available                                              | Not available          |
 - **Requests with a query**: `gemkit start` doesn't use the prerendered file, because `load` may read
   `url.searchParams` and the result differs from prerendering.
+- **ISR (`revalidate`)**: `gemkit start` prerenders the page on the first request and writes the page,
+  `__data.json` and `__elements.json` like prerendering, cached in `dist/cache`. Once stale, it responds with
+  the old files and rerenders in the background. Build-time prerendering also writes these pages there
+  instead of `dist/web`, otherwise the static files would always win and the page would never update.
 - **Which pages are prerendered**: no `prerender = false`, `handle` didn't read `request` or `cookies`,
   and no redirect or error. Personal content can't be written to a static file. `load` must not read the
   request or cookies either; export `prerender = false` in that case.
@@ -97,7 +101,7 @@ fresh content.
      it can't match the current path, so it doesn't load. Otherwise it would load the 404 page and
      overwrite the title.
 3. **Layout data**: when navigating between child routes, reuse the rendered layout data if its params
-   didn't change. After a form submission, don't reuse.
+   didn't change. After a form submission or `invalidate()`, don't reuse.
 4. **Page data**: layouts and the page share one `__data.json` request, preferring the prefetched result.
    - `load` receives the server data as `data`. Without `load`, the server data is used directly.
    - A redirect in the data file replaces the current navigation.
@@ -106,7 +110,7 @@ fresh content.
 5. **Title and meta**: the title is updated after the page loads. Layout and page meta are merged into
    `<head>`.
 6. **Page element**: when params change (for example `/blog/a` to `/blog/b`), the page element is
-   recreated. It is reused when only the query changes or after a form submission reloads the page.
+   recreated. It is reused when only the query changes, or after a form submission or `invalidate()` reloads the page.
    - Element state, such as data from `@mounted()` or input values, belongs to the previous page. Reusing
      the element with new params would show the wrong content. The query is usually a filter or page
      number of the same page, and a form submission also stays on the same page, so keeping the state is
@@ -133,7 +137,7 @@ The state of each history entry when leaving is cached in memory by key, keeping
   HTML of server and lazy elements.
 - **Back and forward**: use the cache directly, no prefetch and no request.
 - **New navigation**: `push` and `replace` create new keys, so they never hit the cache.
-- **After a form submission**: clear the whole cache. The submission may have changed the login state,
+- **After a form submission, `invalidate()` or a redirect from an API route**: clear the whole cache. The submission may have changed the login state,
   so previous content can't be used.
 - **Scroll position**: restore the position from when the entry was left. Wait for server element HTML
   to fill in first, otherwise the page is too short and the position is clipped.
@@ -164,6 +168,15 @@ page fetches those elements once more.
 - **Without JS**: native form submission.
   - On success or redirect, respond `303` and redirect to the target or the current page.
   - On error, respond with the error page.
+
+## API routes and `invalidate()`
+
+- **`$gemkit/api`**: requests have the `x-gemkit-client` header. When the handler redirects, respond with the
+  `x-gemkit-redirect` header instead of 3xx, because `fetch` follows redirects and the location would be lost.
+  The client clears prefetch results and the history cache, navigates to the location, and layouts don't
+  reuse data.
+- **`invalidate()`**: like after a form submission, clear prefetch results and the history cache and re-render
+  the current routes. It resolves after the page loads.
 
 ## Redirects and errors
 

@@ -2,10 +2,11 @@
 
 生产构建有两部分：
 
-| 产物          | 内容                                                                   |
-| ------------- | ---------------------------------------------------------------------- |
-| `dist/web`    | 客户端资源、预渲染的页面、`__data.json`、`__elements.json`、`404.html` |
-| `dist/server` | 服务端产物，以及动态渲染使用的 HTML 模板                               |
+| 产物          | 内容                                                                                 |
+| ------------- | ------------------------------------------------------------------------------------ |
+| `dist/web`    | 客户端资源、预渲染的页面、`__data.json`、`__elements.json`、`404.html`               |
+| `dist/server` | 服务端产物，以及动态渲染使用的 HTML 模板                                             |
+| `dist/cache`  | 设置了 `revalidate` 的页面，`gemkit start` 使用，见[增量静态再生成](#增量静态再生成) |
 
 在项目中执行构建：
 
@@ -23,7 +24,7 @@ npm run build
 - `/static/` 下带 hash 的文件（以及其他不会变化的资源）可以长期缓存。HTML 和数据文件不要使用同样的规则，
   这样部署后能立即看到新内容。
 - 跳转写成 `<meta http-equiv="refresh">` 页面，客户端导航时从数据文件的 `redirect` 字段读取。
-- `prerender = false` 的页面、API 路由和表单 `actions` 不可用。
+- `prerender = false` 的页面、设置了 `revalidate` 的页面、API 路由和表单 `actions` 不可用。
 - 按需渲染的服务端元素不可用，只有预渲染时收集到 `__elements.json` 的 HTML 可以使用。
 
 静态托管忽略查询参数，总是返回同一个文件。页面的 `load` 读取 `url.searchParams` 时需要服务器。
@@ -49,6 +50,31 @@ npm run start
 服务端进程运行时需要 `@mantou/gemkit` 和应用依赖。在容器或者托管 Node 环境中，
 安装生产依赖，并把工作目录设置为包含 `dist` 的项目根目录。
 
+## 增量静态再生成
+
+商品、文章这类页面数量很多、内容会变化，不适合全部在构建时预渲染。在服务端模块中导出 `revalidate`（秒）：
+
+```ts
+// src/pages/products/[id].server.ts
+export const revalidate = 60;
+
+export const paths = async () => (await getHotProducts()).map(({ id }) => ({ id }));
+
+export async function load({ params }: ServerLoadContext<{ id: string }>) {
+  return getProduct(params.id);
+}
+```
+
+- `paths` 只返回热门的页面，构建时预渲染。其他页面在 `gemkit start` 第一次请求时预渲染并缓存。
+- 缓存超过 `revalidate` 秒后，先返回旧内容，在后台重新渲染，同一个页面同时只渲染一次。
+- 页面、`__data.json` 和 `__elements.json` 一起缓存，客户端导航也使用缓存，不需要服务端渲染元素。
+- 和预渲染的条件一样：读取请求或 cookie 的页面、带查询参数的请求不缓存。渲染结果不是 200（例如跳转、出错）时
+  也不缓存，由服务端渲染。
+- 修改数据后可以在 action 或者 API 路由中调用 `revalidatePath(pathname)` 清除缓存，下次请求时重新渲染。
+- 缓存在 `dist/cache` 中，每次构建时清空。多个服务器实例的缓存不共享，serverless 等文件系统不可写的环境不可用。
+
+价格、库存这类需要实时的内容，放在 API 路由中由客户端请求，或者使用按需渲染的服务端元素。
+
 ## 缓存
 
 读取请求或 cookie、设置 cookie 的响应会带有 `Cache-Control: private, no-store`，
@@ -61,6 +87,6 @@ CDN 不会共享这些因人而异的内容。配置代理时保留这个响应�
 
 - 开发时每次请求都渲染，并且有 HMR。
 - 生产构建会预渲染页面，并启用 `process.env.GEMKIT_PRERENDER`。
-- `prerender = false` 的页面、API 路由、`actions` 和按需渲染的服务端元素需要 `gemkit start`，
+- `prerender = false` 的页面、ISR、API 路由、`actions` 和按需渲染的服务端元素需要 `gemkit start`，
   或者其他运行 Gemkit 处理器的服务器。
 - 静态托管和 `gemkit start` 对查询参数的处理不同，见上文。

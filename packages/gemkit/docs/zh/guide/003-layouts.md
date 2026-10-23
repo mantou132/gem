@@ -60,7 +60,7 @@ export default class BlogLayout extends GemElement {
 
 结果作为 `data` 属性传给布局元素，可以是 JSON 值，规则和页面 `load` 相同。
 
-在子路由之间导航时，如果布局的参数没有改变，布局数据会被复用。提交表单后会重新加载，
+在子路由之间导航时，如果布局的参数没有改变，布局数据会被复用。提交表单或者 `invalidate()` 后会重新加载，
 因为请求可能改变了它依赖的状态，例如当前用户。
 
 布局也可以有同名的 `_layout.server.ts`，它的 `load` 结果作为 `data` 传给 `load`。

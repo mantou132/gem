@@ -24,6 +24,7 @@ import {
   setSSRData,
   setSSRError,
   setSSRReady,
+  settleInvalidation,
   takeRouteError,
   takeSSRData,
   toRouteError,
@@ -133,14 +134,14 @@ async function setRouteMeta(cls: CustomElementConstructor, tag: string, params: 
 export const getLayoutParams = (params: Params) =>
   Object.fromEntries(Object.entries(params).filter(([key]) => !/^\d+$/.test(key)));
 
-/** 子路由间导航时 layout 参数不变就复用数据，提交表单后重新加载，`prev` 和 `next` 是 layout 的参数 */
+/** 子路由间导航时 layout 参数不变就复用数据，提交表单或 `invalidate()` 后重新加载，`prev` 和 `next` 是 layout 的参数 */
 export const canReuseLayoutData = (prev: Params | undefined, next: Params) =>
   !!prev && !clientState.invalidated && JSON.stringify(prev) === JSON.stringify(next);
 
 /**
  * 加载 layout 模块和数据，`container` 是路由的渲染容器，`hasServerModule` 表示有 `_layout.server.ts`
  *
- * 子路由间导航时 layout 已经渲染，参数不变就复用数据，提交表单后重新加载
+ * 子路由间导航时 layout 已经渲染，参数不变就复用数据，提交表单或 `invalidate()` 后重新加载
  */
 async function loadLayout(
   load: () => Promise<ElementModule>,
@@ -175,6 +176,7 @@ async function loadPage(
   const data = error || (await loadData(cls, tag, params, hasServerModule));
   // layout 在页面之前加载
   clientState.invalidated = false;
+  settleInvalidation();
   defineElement(tag, cls);
   const { title: getTitle } = getPageOptions(cls);
   const title = typeof getTitle === 'function' ? await getTitle({ params, data }) : getTitle;
@@ -230,7 +232,7 @@ const pageWrappers = [
  * 创建页面路由，`render` 使用页面的标签名渲染
  *
  * 参数改变时（例如 `/blog/a` 到 `/blog/b`）重新创建页面元素，页面中的元素和状态都不复用；
- * 只有查询参数改变或者提交表单后重新加载时参数不变，复用页面元素。
+ * 只有查询参数改变、提交表单或者 `invalidate()` 重新加载时参数不变，复用页面元素。
  * 服务端和水合时使用第一个模板，和 SSR 的内容一致
  */
 export function pageRoute(

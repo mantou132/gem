@@ -59,6 +59,17 @@ export async function paths({ lang }: { lang: string }) {
 The same option can be defined on the page, which is useful when no server module is needed. See
 [dynamic paths](./002-pages.md#dynamic-paths).
 
+## Incremental static regeneration
+
+When there are many pages or their content changes, export `revalidate` (seconds). `gemkit start`
+prerenders and caches the page on the first request, and rerenders it in the background once stale. `paths`
+only needs to return the popular pages. See [Deploy](./011-deploy.md#incremental-static-regeneration).
+
+```ts
+// src/pages/blog/[slug].server.ts
+export const revalidate = 60;
+```
+
 ## Skip prerendering
 
 Export `prerender = false` from the server module when the page depends on the request:
