@@ -451,6 +451,21 @@ const getFileUrl = (path: string, search: string, file?: string) => history.base
 export const outletStore = createStore({ key: 0 });
 
 /**
+ * 客户端导航状态，从开始加载 layout 或页面到页面加载完成（或者渲染错误页面），
+ * 包括提交表单和 `invalidate()` 后的重新加载，用来显示进度条等
+ *
+ * @example
+ * ```ts
+ * @connectStore(navigationStore)
+ * class MyLayoutElement extends GemElement {
+ *   @template()
+ *   #content = () => html`<progress v-if=${navigationStore.pending}></progress><gemkit-outlet></gemkit-outlet>`;
+ * }
+ * ```
+ */
+export const navigationStore = createStore({ pending: false });
+
+/**
  * 客户端在提交表单或者 `invalidate()` 后需要重新加载数据，layout 不再复用数据，加载页面后重置
  *
  * `error` 是需要渲染错误页面的路由，例如 action 出错，`path` 是出错的页面路径

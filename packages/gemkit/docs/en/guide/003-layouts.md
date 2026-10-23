@@ -89,6 +89,26 @@ When a page or layout `load` throws, the [error page](./001-routing.md#error-pag
 the failed route, and the outer layouts are kept. This means the navigation and footer of the layout are
 still shown on a 404 page.
 
+## Navigation progress
+
+Client navigation loads the page module and data. `navigationStore.pending` tells whether it is loading,
+so the root layout can show a progress bar:
+
+```ts
+// src/pages/_layout.ts
+@layout()
+@connectStore(navigationStore)
+export default class RootLayout extends GemElement {
+  @template()
+  #content = () => html`
+    <progress v-if=${navigationStore.pending}></progress>
+    <gemkit-outlet></gemkit-outlet>
+  `;
+}
+```
+
+Loading is fast when the data is cached, so consider delaying the progress bar to avoid flicker.
+
 ## Root layout and `<gemkit-outlet>`
 
 The root layout is optional. Without it, pages are rendered directly in the root outlet. With it, the

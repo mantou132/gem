@@ -20,6 +20,7 @@ import {
   type ErrorData,
   getHistoryEntry,
   loadServerData,
+  navigationStore,
   outletStore,
   setSSRData,
   setSSRError,
@@ -203,6 +204,20 @@ export interface RouteInfo {
  */
 const isMatched = ({ tag }: RouteInfo) => matchRoutes(history.getParams().path).some(({ info }) => info.tag === tag);
 
+// 最近一次开始加载的 layout 或页面
+let loadId = 0;
+
+/** 开始加载 layout 或页面，返回加载的 id */
+function startLoad() {
+  if (!isServer && !navigationStore.pending) navigationStore({ pending: true });
+  return ++loadId;
+}
+
+/** 页面加载完成或者渲染错误页面时导航结束，之后又开始了新的加载时不结束 */
+function endLoad(id: number) {
+  if (id === loadId && navigationStore.pending) navigationStore({ pending: false });
+}
+
 // 加载并渲染错误页面，不检查路由是否匹配，在其他路由的位置渲染时使用
 const errorContents = new WeakMap<RouteItem, (params: Params, error: ErrorData) => Promise<TemplateResult>>();
 
@@ -210,7 +225,7 @@ const errorContents = new WeakMap<RouteItem, (params: Params, error: ErrorData) 
  * `tag` 的路由出错时在它的位置渲染错误页面，它和子路由的 meta 不再使用，
  * 没有错误页面时渲染失败，跳转不是错误，直接抛出
  */
-const renderError = (tag: string, params: Params) => (err: unknown) => {
+const renderError = (tag: string, params: Params) => async (err: unknown) => {
   const content = errorPage && errorContents.get(errorPage);
   if (!content) throw err;
   const { path } = history.getParams();
@@ -253,9 +268,11 @@ export function pageRoute(
     data: info,
     getContent: (params) => {
       if (!isMatched(info)) return;
+      const id = startLoad();
       return loadPage(info.load, info.tag, params, info.server)
         .then((data) => wrap(params, render(params, data)))
-        .catch(renderError(info.tag, params));
+        .catch(renderError(info.tag, params))
+        .finally(() => endLoad(id));
     },
   };
 }
@@ -271,7 +288,8 @@ export function errorRoute(info: RouteInfo, render: (params: Params, error: Erro
     data: info,
     getContent: (params) => {
       if (!isMatched(info)) return;
-      return content(params, NOT_FOUND);
+      const id = startLoad();
+      return content(params, NOT_FOUND).finally(() => endLoad(id));
     },
   };
   errorContents.set(route, content);
@@ -289,9 +307,10 @@ export function layoutRoute(
     data: { ...info, layout: true },
     getContent: (params, container) => {
       if (!isMatched(info)) return;
-      return loadLayout(info.load, info.tag, params, container, info.server).then(
-        render,
-        renderError(info.tag, params),
+      // layout 加载完成后还要加载子路由，只有出错时导航结束
+      const id = startLoad();
+      return loadLayout(info.load, info.tag, params, container, info.server).then(render, (err) =>
+        renderError(info.tag, params)(err).finally(() => endLoad(id)),
       );
     },
   };

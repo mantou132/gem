@@ -14,6 +14,7 @@ export {
   HttpError,
   invalidate,
   type Locals,
+  navigationStore,
   notFound,
   type RequestEvent,
   type RequestHandler,

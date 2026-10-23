@@ -82,6 +82,25 @@ export default class BlogLayout extends GemElement {
 页面或者布局 `load` 抛出错误时，[错误页面](./001-routing.md#错误页面)渲染在出错路由的位置，
 外层布局保留。所以 404 页面中仍然显示布局的导航和页脚。
 
+## 导航进度
+
+客户端导航时需要加载页面的模块和数据，`navigationStore.pending` 表示正在加载，可以在根布局中显示进度条：
+
+```ts
+// src/pages/_layout.ts
+@layout()
+@connectStore(navigationStore)
+export default class RootLayout extends GemElement {
+  @template()
+  #content = () => html`
+    <progress v-if=${navigationStore.pending}></progress>
+    <gemkit-outlet></gemkit-outlet>
+  `;
+}
+```
+
+数据已经缓存时加载很快，可以延迟一段时间再显示进度条，避免闪烁。
+
 ## 根布局和 `<gemkit-outlet>`
 
 根布局是可选的。没有根布局时页面直接渲染在根 outlet 中。有根布局时先渲染布局模板，
