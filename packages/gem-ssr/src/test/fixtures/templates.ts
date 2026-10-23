@@ -9,6 +9,8 @@ export const nestedTail = (v: string) => html`<div>${html`<b>${v} tail</b>`}</di
 export const condition = (v: boolean) => html`<div><p v-if=${v} style="color: red;">A</p><p v-else>B</p></div>`;
 export const list = (items: string[]) => html`<ul>${items.map((i) => html`<li>${i}</li>`)}</ul>`;
 export const button = (onClick?: () => void) => html`<button @click=${onClick}>${'btn'}</button>`;
+export const restForm = (onsubmit?: () => void) =>
+  html`<form ${{ method: 'post', action: '?/save', onsubmit }}>${'form'}</form>`;
 
 @customElement('hydration-light')
 export class HydrationLightElement extends GemElement {
