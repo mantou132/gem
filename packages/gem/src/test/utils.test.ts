@@ -145,6 +145,10 @@ describe('utils 测试', () => {
     expect(rules.item(1).style.background).to.equal('red');
     expect(rules.item(1).cssRules.item(0).selectorText).to.equal('&:hover *');
     expect(rules.item(1).cssRules.item(0).style.background).to.equal('blue');
+    // 有 `-` 的 key 保留原样，可以用来扩展其他样式表的类名
+    const extended = css({ [cssSheet.scroll]: styled`font-weight: bold;` });
+    expect(extended[cssSheet.scroll]).to.equal(cssSheet.scroll);
+    expect(extended[SheetToken].getStyle().cssRules.item(0).selectorText).to.equal(`.${cssSheet.scroll}`);
   });
   it('styleMap/classMap/exportPartsMap', () => {
     expect(styleMap({ '--x': '1px', fontSize: '14px', content: `'*'` })).to.equal(

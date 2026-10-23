@@ -13,6 +13,7 @@ import {
   attribute,
   connectStore,
   customElement,
+  effect,
   emitter,
   mounted,
   property,
@@ -82,6 +83,92 @@ describe('没有 Shadow DOM 的 gem 元素', () => {
     // 样式在队列末尾执行
     await Promise.resolve();
     expect(getComputedStyle(el0).fontSize).not.to.equal('18.1px');
+  });
+});
+
+const scopeStyle = css`
+  p {
+    text-decoration: underline;
+  }
+`;
+
+@customElement('scope-child-demo')
+class _ScopeChildDemo extends GemElement {
+  render() {
+    return html`<p>child</p>`;
+  }
+}
+
+@customElement('scope-gem-demo')
+@adoptedStyle(scopeStyle)
+class ScopeGemDemo extends GemElement {
+  render() {
+    return html`<p>own</p><article><p>nested</p></article><scope-child-demo></scope-child-demo>`;
+  }
+}
+
+@customElement('closed-gem-demo')
+@adoptedStyle(css`
+  div {
+    color: rgb(255, 0, 0);
+  }
+`)
+@shadow({ mode: 'closed' })
+class ClosedGemDemo extends GemElement {
+  render() {
+    return html`<div>closed</div>`;
+  }
+}
+
+describe('元素样式的作用域', () => {
+  it('Light DOM 的样式不影响有模版的子元素', async () => {
+    const el: ScopeGemDemo = await fixture(html`<scope-gem-demo></scope-gem-demo>`);
+    const decoration = (selector: string) => getComputedStyle(el.querySelector(selector)!).textDecorationLine;
+    expect(decoration(':scope > p')).to.equal('underline');
+    expect(decoration('article > p')).to.equal('underline');
+    expect(decoration('scope-child-demo > p')).to.equal('none');
+  });
+  it('closed Shadow DOM', async () => {
+    const el: ClosedGemDemo = await fixture(html`<closed-gem-demo></closed-gem-demo>`);
+    expect(el.shadowRoot).to.equal(null);
+    const div = el.internals.shadowRoot!.querySelector('div')!;
+    expect(getComputedStyle(div).color).to.equal('rgb(255, 0, 0)');
+  });
+});
+
+@customElement('effect-ref-demo')
+class EffectRefDemo extends GemElement {
+  #state = createState({ hidden: false });
+  ref = createRef<HTMLTextAreaElement>();
+  values: (HTMLTextAreaElement | undefined)[] = [];
+
+  @effect((i) => [i.ref.value])
+  #observe = ([ele]: [HTMLTextAreaElement | undefined]) => {
+    this.values.push(ele);
+  };
+
+  toggle = () => this.#state({ hidden: !this.#state.hidden });
+
+  render() {
+    return this.#state.hidden ? null : html`<textarea ${this.ref}></textarea>`;
+  }
+}
+
+describe('effect 依赖 ref', () => {
+  it('元素重新创建时执行', async () => {
+    const el: EffectRefDemo = await fixture(html`<effect-ref-demo></effect-ref-demo>`);
+    const [first] = el.values;
+    expect(first).to.be.instanceOf(HTMLTextAreaElement);
+    // 元素移除时 ref 不会清空，保留最后的元素
+    el.toggle();
+    await nextFrame();
+    expect(el.ref.value).to.equal(first);
+    expect(el.values).to.eql([first]);
+    el.toggle();
+    await nextFrame();
+    expect(el.values.length).to.equal(2);
+    expect(el.values[1]).to.be.instanceOf(HTMLTextAreaElement);
+    expect(el.values[1]).not.to.equal(first);
   });
 });
 
