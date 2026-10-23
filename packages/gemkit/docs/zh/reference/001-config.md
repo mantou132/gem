@@ -64,12 +64,26 @@ export default defineConfig({
 单个页面或者布局可以在服务端模块中导出 `export const prerender = false` 来关闭，
 在布局中设置会对它下面的所有页面生效。
 
-### `elementPrefix`
+### `autoImport`
 
-- 类型：`string`
-- 默认值：`'app'`
+- 类型：`{ members?: Record<string, string[]>; elements?: Record<string, Record<string, string>> }`
+- 默认值：`undefined`
 
-`<srcDir>/elements` 中元素的标签前缀。使用默认值时，`<app-foo>` 会导入 `<srcDir>/elements/foo`。
+额外的自动导入，和 Gemkit 的默认值合并。键是包名或者别名，不是文件路径。
+`src` 是 `<srcDir>` 的别名（打包工具和 `.gemkit/tsconfig.json` 中都有），默认 `<app-foo>` 会导入
+`src/elements/foo`，设置 `elements.src` 会替换这个默认值：
+
+```ts
+pluginGemkit({
+  autoImport: {
+    members: { 'src/utils': ['format'] },
+    elements: {
+      src: { 'app-*': '/components/*' },
+      'my-ui': { 'my-*': '/elements/*' },
+    },
+  },
+});
+```
 
 ### `gem`
 
@@ -79,21 +93,21 @@ export default defineConfig({
 传递给 [unplugin-gem](https://github.com/mantou132/gem/tree/main/packages/unplugin-gem) 的选项。
 Gemkit 会设置包含路径、`@mantou/gemkit` 和 `$gemkit/*` 成员自动导入、元素自动导入、
 样式和 HTML 压缩、选择器兼容、preload 和 SSR，开发时启用 HMR。这里的选项会覆盖这些默认值，
-`hmr` 仍然可以单独覆盖。
+`hmr` 仍然可以单独覆盖。添加自动导入使用 [`autoImport`](#autoimport)，`gem.autoImport` 会替换 Gemkit 的自动导入。
 
 ## 生成的文件
 
 Gemkit 在 `.gemkit` 中生成：
 
-| 文件               | 说明                                                                  |
-| ------------------ | --------------------------------------------------------------------- |
-| `index.ts`         | 客户端入口，根据页面和预渲染状态生成。                                |
-| `server.ts`        | 服务端入口，SSR 构建和预渲染使用。                                    |
-| `routes.ts`        | 路由表。                                                              |
-| `i18n.ts`          | `$gemkit/i18n`，见[国际化](../guide/009-i18n.md)。                    |
-| `api.ts`           | `$gemkit/api`，见 [API 路由](../guide/006-api-routes.md)。            |
-| `auto-import.d.ts` | `@mantou/gemkit`、`$gemkit/*` 和 `<srcDir>/elements` 的自动导入类型。 |
-| `tsconfig.json`    | 路径别名和类型，在项目的 `tsconfig.json` 中继承它。                   |
+| 文件               | 说明                                                           |
+| ------------------ | -------------------------------------------------------------- |
+| `index.ts`         | 客户端入口，根据页面和预渲染状态生成。                         |
+| `server.ts`        | 服务端入口，SSR 构建和预渲染使用。                             |
+| `routes.ts`        | 路由表。                                                       |
+| `i18n.ts`          | `$gemkit/i18n`，见[国际化](../guide/009-i18n.md)。             |
+| `api.ts`           | `$gemkit/api`，见 [API 路由](../guide/006-api-routes.md)。     |
+| `auto-import.d.ts` | `@mantou/gemkit`、`$gemkit/*` 和 `autoImport` 的自动导入类型。 |
+| `tsconfig.json`    | 路径别名和类型，在项目的 `tsconfig.json` 中继承它。            |
 
 `.gemkit` 会被 Git 忽略。继承它的 tsconfig 才能获得 `$gemkit/*` 和自动导入的类型：
 

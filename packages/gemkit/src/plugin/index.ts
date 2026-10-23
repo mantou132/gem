@@ -11,7 +11,7 @@ import unpluginGem from 'unplugin-gem/rspack';
 import { ELEMENT_PATH, ELEMENTS_FILE, escapeHtml, getDataPath } from '../constants';
 import type { DataFile } from '../data';
 import type { Renderer } from '../server';
-import { type GemkitConfig, generate, getPublicModules, getSrcDir } from './codegen';
+import { type GemkitConfig, generate, getPublicModules, getSrcDir, SRC_ALIAS } from './codegen';
 import {
   createHandler,
   createRequestHandler,
@@ -31,10 +31,17 @@ export interface GemkitOptions extends GemkitConfig {
    */
   prerender?: boolean;
   /**
-   * `<srcDir>/elements` 中元素的标签前缀，`<app-foo>` 会自动导入 `<srcDir>/elements/foo`
-   * @default 'app'
+   * 额外的自动导入，和 Gemkit 的默认值合并；键是包名或者别名，不是文件路径，`src` 是 `<srcDir>` 的别名，
+   * 默认 `<app-foo>` 自动导入 `src/elements/foo`，设置 `elements.src` 会替换它
+   * @example
+   * ```ts
+   * {
+   *   members: { 'src/utils': ['format'] },
+   *   elements: { src: { 'app-*': '/components/*' }, 'my-ui': { 'my-*': '/elements/*' } },
+   * }
+   * ```
    */
-  elementPrefix?: string;
+  autoImport?: { members?: Record<string, string[]>; elements?: Record<string, Record<string, string>> };
   /** 传递给 `unplugin-gem` 的选项，默认开启除 `resolvePath` 外的所有功能 */
   gem?: UnpluginGemOptions;
 }
@@ -94,7 +101,7 @@ async function writeFile(webDir: string, pathname: string, content: string) {
 }
 
 export function pluginGemkit(options: GemkitOptions = {}): RsbuildPlugin {
-  const { prerender = true, elementPrefix = 'app', gem, ...config } = options;
+  const { prerender = true, autoImport, gem, ...config } = options;
   return {
     name: 'gemkit',
     setup(api) {
@@ -131,8 +138,8 @@ export function pluginGemkit(options: GemkitOptions = {}): RsbuildPlugin {
           include: [srcDir, genDir, path.join(packageDir, 'src')],
           autoImport: {
             extends: 'gem',
-            members: AUTO_IMPORT_MEMBERS,
-            elements: { [path.join(srcDir, 'elements')]: { [`${elementPrefix}-*`]: '/*' } },
+            members: { ...AUTO_IMPORT_MEMBERS, ...autoImport?.members },
+            elements: { [SRC_ALIAS]: { 'app-*': '/elements/*' }, ...autoImport?.elements },
           },
           autoImportDts: genDts && path.relative(process.cwd(), dtsFile),
           styleMinify: true,
@@ -161,7 +168,7 @@ export function pluginGemkit(options: GemkitOptions = {}): RsbuildPlugin {
             title: config.title,
           },
           resolve: {
-            alias: getPublicModules(genDir),
+            alias: { ...getPublicModules(genDir), [SRC_ALIAS]: srcDir },
           },
           environments: {
             web: {

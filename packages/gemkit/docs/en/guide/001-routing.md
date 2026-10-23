@@ -115,8 +115,8 @@ Besides `pages` and `locales`, these optional files configure the app:
 | `src/elements/*.ts` | Elements imported automatically from `app-*` tags (see below).     |
 
 Elements in `src/elements` can be used in templates without importing them. `src/elements/counter.ts`
-is the element `app-counter`; change the prefix with the
-[`elementPrefix`](../reference/001-config.md#elementprefix) plugin option. This is implemented by
+is the element `app-counter`; change it or add other elements with the
+[`autoImport`](../reference/001-config.md#autoimport) plugin option. This is implemented by
 [unplugin-gem](https://github.com/mantou132/gem/tree/main/packages/unplugin-gem).
 
 ## Languages

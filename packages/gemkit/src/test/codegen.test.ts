@@ -163,7 +163,9 @@ test('generate: 生成路由和入口文件', ({ assert }) => {
   assert.snapshot(read('api.ts'));
 
   assert.deepEqual(JSON.parse(read('tsconfig.json')), {
-    compilerOptions: { paths: { '$gemkit/i18n': ['./i18n.ts'], '$gemkit/api': ['./api.ts'] } },
+    compilerOptions: {
+      paths: { '$gemkit/i18n': ['./i18n.ts'], '$gemkit/api': ['./api.ts'], 'src/*': ['../src/*'] },
+    },
     files: ['./env.d.ts', './auto-import.d.ts'],
   });
 });
