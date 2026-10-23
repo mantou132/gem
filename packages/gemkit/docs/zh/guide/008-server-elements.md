@@ -10,9 +10,6 @@ Gemkit 可以把页面拆成服务端渲染、按需加载和只在浏览器运�
 所以可以使用 Node.js API 和只能在服务端使用的包。输出的 HTML 保留在页面中，客户端不加载代码，也不水合。
 
 ```ts
-import { customElement, GemElement, html, template } from '@mantou/gem';
-import { server } from '@mantou/gemkit';
-
 @customElement('app-stars')
 @server()
 class AppStarsElement extends GemElement {
@@ -32,9 +29,6 @@ class AppStarsElement extends GemElement {
 代码会打包到单独的客户端 chunk 中，所以只能使用同构的代码。
 
 ```ts
-import { customElement, GemElement } from '@mantou/gem';
-import { lazy } from '@mantou/gemkit';
-
 @customElement('app-like-button')
 @lazy({ on: 'visible' })
 class AppLikeButtonElement extends GemElement {}
@@ -57,9 +51,6 @@ class AppLikeButtonElement extends GemElement {}
 客户端正常渲染，不水合。模块中可以使用只在浏览器运行的代码，包括顶层代码：
 
 ```ts
-import { customElement, GemElement } from '@mantou/gem';
-import { client } from '@mantou/gemkit';
-
 @customElement('app-editor')
 @client()
 class AppEditorElement extends GemElement {}
@@ -94,9 +85,6 @@ class AppEditorElement extends GemElement {}
 `handle` 中的路径检查不能保护服务端元素，需要在元素内部检查权限：
 
 ```ts
-import { customElement, GemElement, html, template } from '@mantou/gem';
-import { getRequestEvent, server } from '@mantou/gemkit';
-
 @customElement('app-admin-stats')
 @server()
 class AppAdminStatsElement extends GemElement {

@@ -7,7 +7,7 @@ action 可以返回数据、跳转或者抛出错误。
 
 ```ts
 // src/pages/login.server.ts
-import { redirect, type ServerLoadContext } from '@mantou/gemkit';
+import type { ServerLoadContext } from '@mantou/gemkit';
 
 export const actions = {
   login: async ({ request, cookies }: ServerLoadContext) => {
@@ -33,9 +33,6 @@ action 的参数和 `load` 相同：`params`、`url`、`request`、`cookies` 和
 
 ```ts
 // src/pages/login.ts
-import { GemElement, createState, html, template } from '@mantou/gem';
-import { page, submitAction } from '@mantou/gemkit';
-
 @page('Sign in')
 export default class LoginPage extends GemElement {
   #state = createState<{ errors?: string[] }>({});

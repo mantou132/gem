@@ -77,9 +77,9 @@ export default defineConfig({
 - 默认值：`undefined`
 
 传递给 [unplugin-gem](https://github.com/mantou132/gem/tree/main/packages/unplugin-gem) 的选项。
-Gemkit 会设置包含路径、`@mantou/gemkit` 和 `$gemkit/*` 成员自动导入、元素自动导入、
-样式和 HTML 压缩、选择器兼容、preload 和 SSR，开发时启用 HMR。这里的选项会覆盖这些默认值，
-`hmr` 仍然可以单独覆盖。
+Gemkit 会设置包含路径、Gem API、常用的 `@mantou/gemkit` API（`HttpError`、`formatTitle` 和类型除外）、`i18n`、
+`apis` 和 `<srcDir>/elements` 元素的自动导入、样式和 HTML 压缩、选择器兼容、preload 和 SSR，
+开发时启用 HMR。这里的选项会覆盖这些默认值，`hmr` 仍然可以单独覆盖。
 
 ## 生成的文件
 

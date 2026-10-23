@@ -10,7 +10,7 @@ form actions, server elements and API routes.
 
 ```ts
 // src/app.server.ts
-import { type RequestEvent, redirect } from '@mantou/gemkit';
+import type { RequestEvent } from '@mantou/gemkit';
 
 declare module '@mantou/gemkit' {
   interface Locals {
@@ -56,8 +56,6 @@ current request and throws outside a server request. Use it in server elements a
 code that doesn't receive the context as an argument:
 
 ```ts
-import { getRequestEvent } from '@mantou/gemkit';
-
 const { locals } = getRequestEvent();
 ```
 
@@ -70,8 +68,6 @@ failed page or layout; outer layouts stay.
 `redirect(status, location)` throws and responds with a redirect:
 
 ```ts
-import { redirect } from '@mantou/gemkit';
-
 redirect(302, '/login');
 ```
 

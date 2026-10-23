@@ -5,9 +5,6 @@ Gemkit 生成标签名，按需加载模块，并把 `params` 和 `data` 传递�
 
 ```ts
 // src/pages/about.ts
-import { GemElement, html, template } from '@mantou/gem';
-import { page } from '@mantou/gemkit';
-
 @page('About')
 export default class AboutPage extends GemElement {
   @template()
@@ -31,9 +28,6 @@ export default class AboutPage extends GemElement {
 
 ```ts
 // src/pages/blog/[slug].ts
-import { GemElement, html, property, template } from '@mantou/gem';
-import { page } from '@mantou/gemkit';
-
 interface Post {
   slug: string;
   title: string;

@@ -49,8 +49,6 @@ API 路由没有语言前缀。`handle` 在处理函数之前执行，`event.pat
 参数和结果都从处理函数推导：
 
 ```ts
-import { apis } from '$gemkit/api';
-
 const result = await apis.api.likes(slug).POST({ count: 1 });
 const res = await apis.api.likes(slug).DELETE();
 

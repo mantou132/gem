@@ -10,7 +10,7 @@
 
 ```ts
 // src/app.server.ts
-import { type RequestEvent, redirect } from '@mantou/gemkit';
+import type { RequestEvent } from '@mantou/gemkit';
 
 declare module '@mantou/gemkit' {
   interface Locals {
@@ -50,8 +50,6 @@ export async function handle(event: RequestEvent) {
 在服务端请求之外调用会抛出错误。服务端元素等没有参数的服务端代码可以使用它：
 
 ```ts
-import { getRequestEvent } from '@mantou/gemkit';
-
 const { locals } = getRequestEvent();
 ```
 
@@ -64,8 +62,6 @@ const { locals } = getRequestEvent();
 `redirect(status, location)` 抛出并响应跳转：
 
 ```ts
-import { redirect } from '@mantou/gemkit';
-
 redirect(302, '/login');
 ```
 

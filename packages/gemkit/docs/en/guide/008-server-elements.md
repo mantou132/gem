@@ -12,9 +12,6 @@ bundled into the client, so it can use Node.js APIs and server-only packages. Th
 page, and the client neither loads the code nor hydrates it.
 
 ```ts
-import { customElement, GemElement, html, template } from '@mantou/gem';
-import { server } from '@mantou/gemkit';
-
 @customElement('app-stars')
 @server()
 class AppStarsElement extends GemElement {
@@ -36,9 +33,6 @@ A `@lazy()` element is rendered on the server, and its HTML is used until the cl
 and hydrates it. The code is bundled into a separate client chunk, so it must be isomorphic.
 
 ```ts
-import { customElement, GemElement } from '@mantou/gem';
-import { lazy } from '@mantou/gemkit';
-
 @customElement('app-like-button')
 @lazy({ on: 'visible' })
 class AppLikeButtonElement extends GemElement {}
@@ -63,9 +57,6 @@ attributes and child content, and the client renders it normally without hydrati
 browser-only code, even at the top level:
 
 ```ts
-import { customElement, GemElement } from '@mantou/gem';
-import { client } from '@mantou/gemkit';
-
 @customElement('app-editor')
 @client()
 class AppEditorElement extends GemElement {}
@@ -105,9 +96,6 @@ can be requested with any URL. Path checks in `handle` don't protect server elem
 permission inside the element:
 
 ```ts
-import { customElement, GemElement, html, template } from '@mantou/gem';
-import { getRequestEvent, server } from '@mantou/gemkit';
-
 @customElement('app-admin-stats')
 @server()
 class AppAdminStatsElement extends GemElement {
