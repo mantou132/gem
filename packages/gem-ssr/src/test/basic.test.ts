@@ -17,7 +17,7 @@ import {
   shadow,
   template,
 } from '@mantou/gem';
-import { createRef, type TemplateResult } from '@mantou/gem/lib/lit-html';
+import type { TemplateResult } from '@mantou/gem/lib/lit-html';
 import '@mantou/gem/elements/route';
 import '@mantou/gem/elements/unsafe';
 
@@ -223,27 +223,4 @@ test('模版中没有改变的 attribute 原样输出，保留字符引用', asy
     result,
     /<app-light-demo title="&hellip;" attr="&quot;" ssr-css-states="gem-element gem-style-boundary">/,
   );
-});
-
-test('原生元素的剩余属性输出对应的 attribute', async ({ assert }) => {
-  const onsubmit = () => {};
-  const props = {
-    method: 'post',
-    action: '?/a&b',
-    className: 'c',
-    ariaLabel: 'l',
-    ariaHasPopup: 'menu',
-    noValidate: true,
-    hidden: false,
-    tabIndex: 0,
-    onsubmit,
-    dataset: { x: '1' },
-  };
-  const result = await renderToString(html`<form title="t" hidden ${props}></form><input ${createRef()} />`);
-  assert.match(
-    result,
-    /<form title="t" method="post" action="\?\/a&amp;b" class="c" aria-label="l" aria-haspopup="menu" novalidate="" tabindex="0">/,
-  );
-  // `ref` 不输出
-  assert.match(result, /<input>/);
 });

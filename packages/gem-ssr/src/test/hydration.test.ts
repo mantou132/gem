@@ -222,14 +222,3 @@ test('水合父元素中最后一个 light DOM 元素，不会遍历到容器后
   assert.equal(container.querySelector('footer')?.textContent, 'xy');
   container.remove();
 });
-
-test('水合原生元素的剩余属性：SSR 输出 attribute，客户端设置 property', async ({ assert }) => {
-  const onsubmit = () => {};
-  const container = await mkContainer('restForm');
-  const form = container.querySelector('form')!;
-  assert.equal(form.getAttribute('method'), 'post');
-  assert.equal(form.getAttribute('action'), '?/save');
-  hydrateContainer(fx.restForm(onsubmit), container);
-  assert.equal(container.querySelector('form'), form, '复用 SSR 的节点');
-  assert.equal(form.onsubmit, onsubmit);
-});

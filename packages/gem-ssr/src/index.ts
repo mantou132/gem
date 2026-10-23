@@ -175,36 +175,8 @@ function getTemplateAttrs(op: OpenOp, values: unknown[]) {
   return { attrs, props };
 }
 
-// 名称不是小写的 property 对应的 attribute，其他的是小写的 property 名，`aria*` 是 `aria-*`
-const PROP_ATTRS: Record<string, string> = {
-  className: 'class',
-  htmlFor: 'for',
-  httpEquiv: 'http-equiv',
-  acceptCharset: 'accept-charset',
-};
-
-const toAttrName = (prop: string) =>
-  PROP_ATTRS[prop] ?? (/^aria[A-Z]/.test(prop) ? `aria-${prop.slice(4).toLowerCase()}` : prop.toLowerCase());
-
-/**
- * 原生元素的剩余属性（`<form ${{ method: 'post' }}>`）在客户端设置 property，SSR 时输出对应的 attribute，
- * 没有 JS 时也能使用，例如表单的 `action`；`true` 是空 attribute，`false`、`null` 和 `undefined` 移除 attribute，
- * 函数（例如 `onsubmit`）和对象只在客户端设置
- */
-function setRestAttrs(attrs: Attrs, value: unknown) {
-  if (!value || typeof value !== 'object' || value instanceof Ref || '_$litDirective$' in value) return;
-  for (const [prop, propValue] of Object.entries(value)) {
-    const name = toAttrName(prop);
-    if (propValue === false || propValue === null || propValue === undefined) attrs.delete(name);
-    else if (propValue === true) attrs.set(name, '');
-    else if (typeof propValue === 'string' || typeof propValue === 'number') attrs.set(name, String(propValue));
-  }
-}
-
 function renderPlainElement(op: OpenOp, values: unknown[], ctx: Context) {
   const attrs: Attrs = new Map(Object.entries(getTemplateAttrs(op, values).attrs));
-  // 客户端在 attribute 之后设置剩余属性
-  for (const index of op.elementParts) setRestAttrs(attrs, values[index]);
   const hidden = isHiddenBranch(op, values);
   setConditionAttrs(op, hidden, attrs);
   ctx.out.push(`<${op.tag}${serializeAttrs(attrs, op)}>`);

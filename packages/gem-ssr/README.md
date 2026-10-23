@@ -188,10 +188,6 @@ Output details:
   and removed after hydration
 - Hidden `v-if` branches are output with `display:none`, so the client can rebuild the condition chain
 - Bindings inside `<style>`, `<script>`, `<textarea>` and `<title>` are rendered, but not hydrated
-- Rest props on native elements (`<form ${{ method: 'post', action: '?/save', onsubmit }}>`) are output as the
-  matching attributes, so they work without JavaScript: `className` is `class`, `htmlFor` is `for`, `ariaLabel` is
-  `aria-label`, other names are lowercased; `true` is an empty attribute, `false`, `null` and `undefined` remove it;
-  functions and objects are only set on the client
 
 ## Server elements
 
