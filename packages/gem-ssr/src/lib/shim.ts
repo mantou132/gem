@@ -182,6 +182,14 @@ class SSRDocument extends SSRNode {
 
 const requestScope = new AsyncLocalStorage<WeakMap<object, any>>();
 
+// 每个请求独立的数据，不在请求中时使用 `global`（例如模块顶层）
+function getScoped<T extends object>(global: T, init: () => T): T {
+  const scope = requestScope.getStore();
+  if (!scope) return global;
+  if (!scope.has(global)) scope.set(global, init());
+  return scope.get(global);
+}
+
 /**
  * 在独立的请求作用域中执行，store、history、location 等全局状态在请求间互不影响
  *
@@ -194,12 +202,7 @@ export function runInRequest<T>(fn: () => T) {
 const globalNavigation = { url: new URL('http://localhost/'), state: null as unknown };
 
 // 当前请求的 URL 和 history 状态
-function getNavigation(): typeof globalNavigation {
-  const scope = requestScope.getStore();
-  if (!scope) return globalNavigation;
-  if (!scope.has(globalNavigation)) scope.set(globalNavigation, { ...globalNavigation });
-  return scope.get(globalNavigation);
-}
+const getNavigation = () => getScoped(globalNavigation, () => ({ ...globalNavigation }));
 
 /** 设置请求的 URL */
 export function setLocation(href: string) {
@@ -262,7 +265,49 @@ const history = {
   go() {},
 };
 
+/**
+ * Node.js 25 自带的 `localStorage` 没有指定 `--localstorage-file` 时会报错，指定时所有请求共用，
+ * 替换成每个请求独立的内存存储
+ */
+class SSRStorage {
+  #global = new Map<string, string>();
+
+  get #data() {
+    return getScoped(this.#global, () => new Map());
+  }
+
+  get length() {
+    return this.#data.size;
+  }
+
+  key(index: number) {
+    return [...this.#data.keys()][index] ?? null;
+  }
+
+  getItem(key: string) {
+    return this.#data.get(key) ?? null;
+  }
+
+  setItem(key: string, value: string) {
+    this.#data.set(key, String(value));
+  }
+
+  removeItem(key: string) {
+    this.#data.delete(key);
+  }
+
+  clear() {
+    this.#data.clear();
+  }
+}
+
 const window = new EventTarget();
+
+Object.defineProperties(globalThis, {
+  Storage: { value: SSRStorage, configurable: true, writable: true },
+  localStorage: { value: new SSRStorage(), configurable: true, writable: true },
+  sessionStorage: { value: new SSRStorage(), configurable: true, writable: true },
+});
 
 Object.assign(globalThis, {
   window: globalThis,
