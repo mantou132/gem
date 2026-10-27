@@ -1,7 +1,7 @@
 {
   "private": true,
   "name": "zed-plugin-gem",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "description": "Zed extension for Gem",
   "scripts": {
     "version": "node version.mjs"

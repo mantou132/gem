@@ -1,6 +1,6 @@
 {
   "name": "@mantou/gem",
-  "version": "2.3.0",
+  "version": "2.3.1",
   "description": "💎 Build reusable custom elements and web apps on Web Components",
   "keywords": [
     "frontend",
@@ -40,7 +40,7 @@
     "test": "cross-env wtr"
   },
   "devDependencies": {
-    "@gemjs/config": "^2.1.3",
+    "@gemjs/config": "^2.1.4",
     "@rslib/core": "^0.23.0",
     "@swc/helpers": "^0.5.23",
     "@types/chai": "^5.0.0",
