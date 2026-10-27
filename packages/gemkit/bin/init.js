@@ -33,6 +33,14 @@ export function init(dir = '.') {
       return false;
     },
   });
+  // Claude Code 读取 `CLAUDE.md`，其他 Agent 读取 `AGENTS.md`（npm 发布时会忽略软链接，所以在这里创建）
+  // Windows 没有权限创建软链接时，写一个导入 `AGENTS.md` 的文件
+  const claudeFile = path.join(targetDir, 'CLAUDE.md');
+  try {
+    fs.symlinkSync('AGENTS.md', claudeFile);
+  } catch {
+    fs.writeFileSync(claudeFile, '@AGENTS.md\n');
+  }
 
   // 例如 `pnpm/10.33.2 npm/? node/v22.13.1 darwin arm64`
   const pm = process.env.npm_config_user_agent?.split('/')[0] || 'npm';

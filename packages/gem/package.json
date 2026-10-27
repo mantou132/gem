@@ -22,6 +22,7 @@
     "./helper/*": "./helper/*.js"
   },
   "files": [
+    "/AGENTS.md",
     "/index.*",
     "/dist/",
     "/elements/",

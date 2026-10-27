@@ -1,0 +1,37 @@
+# Agent Guide
+
+This is a [Gemkit](https://gemkit.gemjs.org/en/guide/) app: Gem elements with file-based routing, SSR and SSG, built on Rsbuild.
+
+Gem syntax and best practices, read before writing elements: @node_modules/@mantou/gem/AGENTS.md
+
+## Commands
+
+- `npm run dev`: dev server with SSR and HMR
+- `npm run build`: build `dist/web` (client assets and prerendered pages) and `dist/server`
+- `npm start`: serve `dist`, prerendered pages first, other requests rendered on the server
+
+## Project structure
+
+- `src/pages/`: each file is a route, the default export is a Gem element marked with `@page()`, no `@customElement()`
+  - `_layout.ts`: layout marked with `@layout()`, renders `<gemkit-outlet>` for child routes
+  - `_error.ts`: error and 404 page
+  - `[slug].ts`, `[...rest].ts`: dynamic and catch-all routes
+  - `*.server.ts` next to a page: server-only `load`, `actions`, `paths`, `prerender`, `revalidate`; never import it from client code
+  - `*.server.ts` without a page: API route exporting `GET`, `POST`, etc.
+- `src/elements/`: `<app-*>` elements, imported automatically when used in templates
+- `src/app.ts`: imported before pages (global styles, stores)
+- `src/app.server.ts`: `handle` and `handleError` for server requests
+- `src/locales/`: i18n messages, optional
+
+## Rules
+
+- Page `load` runs on both server and client, use isomorphic APIs only; Node.js APIs and secrets go in `*.server.ts`
+- `load` results and server state must be JSON values
+- Declare `params` and `data` on pages with `@property`
+- Pages reading `request` or `cookies` must export `prerender = false` from the server module
+- `@server()` elements are server-only, `@lazy()` elements hydrate on demand, `@client()` elements render only in the browser
+
+## Docs
+
+- Guide: https://gemkit.gemjs.org/en/guide/
+- Config reference: https://gemkit.gemjs.org/en/reference/config
