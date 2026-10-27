@@ -31,7 +31,7 @@ pnpm dev
 | `gemkit start`  | 提供 `dist` 的内容，优先使用预渲染的页面，其他请求由服务端渲染。                        |
 | `gemkit init`   | 在空目录或者不存在的目录中，使用模板创建应用。                                          |
 
-`gemkit start` 读取这些环境变量：
+`gemkit start` 支持 `-p, --port <port>` 选项或读取这些环境变量：
 - `PORT`：HTTP 端口，默认 `3000`
 - `ORIGIN`：站点的公开地址，例如 `https://example.com`。部署在反向代理后面时必须设置，
   否则 origin 来自 `Host` 请求头和连接协议。`load` 中的 `url`、`Secure` cookie 和同源检查都使用它。

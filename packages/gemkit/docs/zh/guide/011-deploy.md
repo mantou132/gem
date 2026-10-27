@@ -40,7 +40,7 @@ npm run build
 npm run start
 ```
 
-`gemkit start` 提供 `dist/web` 的文件，其他请求使用 `dist/server` 渲染。它读取：
+`gemkit start` 提供 `dist/web` 的文件，其他请求使用 `dist/server` 渲染。它支持 `-p, --port <port>` 选项或读取：
 - `PORT`：HTTP 端口，默认 `3000`
 - `ORIGIN`：站点的公开地址，例如 `https://example.com`
 

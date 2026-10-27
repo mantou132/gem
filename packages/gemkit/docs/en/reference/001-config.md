@@ -104,11 +104,12 @@ Gemkit generates into `.gemkit`:
 
 | File               | Description                                                               |
 | ------------------ | ------------------------------------------------------------------------- |
-| `index.ts`         | The client entry, generated from the pages and prerender state.           |
+| `client.ts`        | The client entry, generated from the pages and prerender state.           |
 | `server.ts`        | The server entry, used by the SSR build and prerendering.                 |
 | `routes.ts`        | The route table.                                                          |
 | `i18n.ts`          | `$gemkit/i18n`, see [i18n](../guide/009-i18n.md).                         |
 | `api.ts`           | `$gemkit/api`, see [API routes](../guide/006-api-routes.md).              |
+| `env.d.ts`         | Type declarations for resource modules and `@rsbuild/core/types`.         |
 | `auto-import.d.ts` | Auto-import types for `@mantou/gemkit`, `$gemkit/*` and `gem.autoImport`. |
 | `tsconfig.json`    | Path aliases and types, extend it from the project `tsconfig.json`.       |
 
@@ -129,6 +130,7 @@ and `$gemkit/api`.
 | ------------- | ------------------------------------------------------------------------------ |
 | `dist/web`    | Client assets, prerendered pages, `__data.json`, `__elements.json`, `404.html` |
 | `dist/server` | SSR bundle and the HTML template.                                              |
+| `dist/cache`  | ISR page cache, cleared at each build.                                         |
 
 The HTML template is moved out of `dist/web` after the client build, so a static host doesn't serve it as
 the home page. See [Deploy](../guide/011-deploy.md).

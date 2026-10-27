@@ -44,7 +44,7 @@ Deploy the whole `dist` directory and run:
 npm run start
 ```
 
-`gemkit start` serves `dist/web` and renders other requests with `dist/server`. It uses:
+`gemkit start` serves `dist/web` and renders other requests with `dist/server`. It supports the `-p, --port <port>` option or uses:
 - `PORT`: the HTTP port, default `3000`
 - `ORIGIN`: the public origin, for example `https://example.com`
 

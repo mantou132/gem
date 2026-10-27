@@ -98,11 +98,12 @@ Gemkit 在 `.gemkit` 中生成：
 
 | 文件               | 说明                                                               |
 | ------------------ | ------------------------------------------------------------------ |
-| `index.ts`         | 客户端入口，根据页面和预渲染状态生成。                             |
+| `client.ts`        | 客户端入口，根据页面和预渲染状态生成。                             |
 | `server.ts`        | 服务端入口，SSR 构建和预渲染使用。                                 |
 | `routes.ts`        | 路由表。                                                           |
 | `i18n.ts`          | `$gemkit/i18n`，见[国际化](../guide/009-i18n.md)。                 |
 | `api.ts`           | `$gemkit/api`，见 [API 路由](../guide/006-api-routes.md)。         |
+| `env.d.ts`         | 资源模块和 `@rsbuild/core/types` 的类型声明。                      |
 | `auto-import.d.ts` | `@mantou/gemkit`、`$gemkit/*` 和 `gem.autoImport` 的自动导入类型。 |
 | `tsconfig.json`    | 路径别名和类型，在项目的 `tsconfig.json` 中继承它。                |
 
@@ -122,6 +123,7 @@ Gemkit 在 `.gemkit` 中生成：
 | ------------- | ---------------------------------------------------------------------- |
 | `dist/web`    | 客户端资源、预渲染的页面、`__data.json`、`__elements.json`、`404.html` |
 | `dist/server` | SSR 产物和 HTML 模板。                                                 |
+| `dist/cache`  | ISR 页面缓存，构建时清空。                                             |
 
 客户端构建之后，HTML 模板会从 `dist/web` 中移走，避免静态托管把它当作首页。
 见[部署](../guide/011-deploy.md)。
