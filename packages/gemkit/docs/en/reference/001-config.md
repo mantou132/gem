@@ -38,7 +38,7 @@ template has no `%s`.
 - Type: `string`
 - Default: `'src'`
 
-The directory that contains `pages`, `locales`, `elements`, `app.ts`, `app.server.ts` and `index.html`.
+The directory that contains `pages`, `locales`, `elements`, `app.ts`, `app.server.ts`, `app.client.ts` and `index.html`.
 It is resolved from the project root and can point to another package that provides the pages.
 `.gemkit` and `dist` are still generated in the project root.
 

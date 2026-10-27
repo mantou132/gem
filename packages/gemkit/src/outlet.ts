@@ -24,6 +24,7 @@ import {
   navigationStore,
   outletStore,
   Redirect,
+  runServerLoad,
   setSSRData,
   setSSRError,
   setSSRReady,
@@ -73,33 +74,27 @@ function defineElement(tag: string, cls: CustomElementConstructor) {
   return cls;
 }
 
-async function loadData(cls: CustomElementConstructor, tag: string, params: Params, hasServerModule?: boolean) {
+async function loadData(cls: CustomElementConstructor, tag: string, params: Params, serverLoad?: boolean) {
   const { path } = history.getParams();
   const err = takeRouteError(path, tag);
   if (err) throw err;
-  if (isServer) return runLoad(cls, tag, params, path, hasServerModule);
+  if (isServer) return runLoad(cls, tag, params, path, serverLoad);
   // 前进后退时使用离开时的数据，不再执行 `load`
   const cached = getHistoryEntry()?.data;
   if (cached && tag in cached) return cached[tag];
   const key = history.currentKey;
-  const data = await runLoad(cls, tag, params, path, hasServerModule);
+  const data = await runLoad(cls, tag, params, path, serverLoad);
   cacheHistoryData(key, tag, data);
   return data;
 }
 
 /** 执行 `load` 获取数据，水合时使用服务端渲染的数据 */
-async function runLoad(
-  cls: CustomElementConstructor,
-  tag: string,
-  params: Params,
-  path: string,
-  hasServerModule?: boolean,
-) {
+async function runLoad(cls: CustomElementConstructor, tag: string, params: Params, path: string, serverLoad?: boolean) {
   const ssrResult = isServer ? undefined : takeSSRData(path, tag);
   if (ssrResult) return ssrResult.data;
   const { load } = getPageOptions(cls);
-  if (!load && !hasServerModule) return;
-  const serverData = hasServerModule ? await loadServerData(tag, params) : undefined;
+  if (!load && !serverLoad) return;
+  const serverData = serverLoad ? await loadServerData(tag, params) : undefined;
   const data = load ? await load({ params, data: serverData }) : serverData;
   // 服务端模块的数据已经转换过
   return setSSRData(path, tag, data, !load);
@@ -142,7 +137,7 @@ export const canReuseLayoutData = (prev: Params | undefined, next: Params) =>
   !!prev && !clientState.invalidated && JSON.stringify(prev) === JSON.stringify(next);
 
 /**
- * 加载 layout 模块和数据，`container` 是路由的渲染容器，`hasServerModule` 表示有 `_layout.server.ts`
+ * 加载 layout 模块和数据，`container` 是路由的渲染容器，`serverLoad` 表示 `_layout.server.ts` 有 `load`
  *
  * 子路由间导航时 layout 已经渲染，参数不变就复用数据，提交表单或 `invalidate()` 后重新加载
  */
@@ -151,32 +146,32 @@ async function loadLayout(
   tag: string,
   routeParams: Params,
   container: ParentNode,
-  hasServerModule?: boolean,
+  serverLoad?: boolean,
 ) {
   const cls = await loadModule(load);
   const params = getLayoutParams(routeParams);
   const current = [...container.children].find((e) => e.localName === tag) as { params?: Params; data?: unknown };
   const data = canReuseLayoutData(current?.params, params)
     ? current!.data
-    : await loadData(cls, tag, params, hasServerModule);
+    : await loadData(cls, tag, params, serverLoad);
   defineElement(tag, cls);
   await setRouteMeta(cls, tag, params, data);
   return { params, data };
 }
 
 /**
- * 加载页面模块和数据，返回页面数据，`hasServerModule` 表示页面有 `*.server.ts`，
+ * 加载页面模块和数据，返回页面数据，`serverLoad` 表示页面的 `*.server.ts` 有 `load`，
  * 错误页面使用 `error` 作为数据
  */
 async function loadPage(
   load: () => Promise<ElementModule>,
   tag: string,
   params: Params,
-  hasServerModule?: boolean,
+  serverLoad?: boolean,
   error?: ErrorData,
 ) {
   const cls = await loadModule(load);
-  const data = error || (await loadData(cls, tag, params, hasServerModule));
+  const data = error || (await loadData(cls, tag, params, serverLoad));
   // layout 在页面之前加载
   clientState.invalidated = false;
   defineElement(tag, cls);
@@ -196,7 +191,38 @@ export interface RouteInfo {
   load: () => Promise<ElementModule>;
   /** 有 `*.server.ts` */
   server?: boolean;
+  /** `*.server.ts` 没有导出 `load`（构建时分析），不需要服务端数据 */
+  noLoad?: boolean;
+  /** `*.server.ts` 中导出了 `ssr = false`，或者在 `ssr = false` 的 layout 中，服务端不渲染 */
+  ssr?: false;
   layout?: boolean;
+}
+
+/** 需要加载服务端数据 */
+export const hasServerLoad = ({ server, noLoad }: RouteInfo) => server && !noLoad;
+
+/**
+ * `ssr = false` 的路由在服务端只输出空的 outlet，由客户端加载和渲染，
+ * 它和子路由（也不在服务端渲染）的服务端 `load` 仍然在服务端执行，数据输出到文档中，水合时不需要再请求；
+ * 出错时由客户端渲染错误页面，响应使用它的状态码
+ */
+async function loadClientRoutes(tag: string): Promise<undefined> {
+  const { path } = history.getParams();
+  const routes = matchRoutes(path);
+  const errors = await Promise.all(
+    routes.slice(routes.findIndex(({ info }) => info.tag === tag)).map(async ({ info, params }) => {
+      if (!hasServerLoad(info)) return;
+      try {
+        setSSRData(path, info.tag, await runServerLoad(info.tag, info.layout ? getLayoutParams(params) : params), true);
+      } catch (err) {
+        return toRouteError(info.tag, err);
+      }
+    }),
+  );
+  // 多个路由出错时使用外层的，和客户端渲染时一致
+  const error = errors.find(Boolean);
+  if (error) setSSRError(path, error);
+  return undefined;
 }
 
 /**
@@ -277,8 +303,9 @@ export function pageRoute(
     data: info,
     getContent: (params, container) => {
       if (!isMatched(info)) return;
+      if (isServer && info.ssr === false) return loadClientRoutes(info.tag);
       startLoad(container);
-      return loadPage(info.load, info.tag, params, info.server)
+      return loadPage(info.load, info.tag, params, hasServerLoad(info))
         .then((data) => wrap(params, render(params, data)))
         .catch(renderError(info.tag, params));
     },
@@ -315,8 +342,9 @@ export function layoutRoute(
     data: { ...info, layout: true },
     getContent: (params, container) => {
       if (!isMatched(info)) return;
+      if (isServer && info.ssr === false) return loadClientRoutes(info.tag);
       startLoad(container);
-      return loadLayout(info.load, info.tag, params, container, info.server).then(
+      return loadLayout(info.load, info.tag, params, container, hasServerLoad(info)).then(
         render,
         renderError(info.tag, params),
       );

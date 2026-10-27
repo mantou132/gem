@@ -45,9 +45,18 @@ It is per request, so it is safe for user data.
 - `handle` also runs while prerendering. Reading `request` or `cookies`, redirecting or throwing there
   prevents the page from being prerendered. Read them only for the paths that need them; prerendered
   pages are public.
-- Client navigation to a page without a server module sends no request, so `handle` does not run.
-  The page data is embedded in the document at first load and on client navigation the page is
-  rendered from local data.
+- When neither the page nor its layouts have a server `load`, client navigation sends no request, so
+  `handle` does not run. The page data is embedded in the document at first load and on client
+  navigation the page is rendered from local data. These pages have no server data, and `handle` still
+  runs when `actions` are submitted, so no data leaks.
+- For an area that requires login to redirect to the login page as soon as you navigate into it, export
+  a `load` from its `_layout.server.ts` (for example returning the current user). Client navigation into
+  it then requests data, so `handle` runs and redirects. Keep the permission check in `handle`:
+
+```ts
+// src/pages/admin/_layout.server.ts
+export const load = ({ locals }: ServerLoadContext) => ({ user: locals.user });
+```
 
 ## getRequestEvent
 

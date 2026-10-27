@@ -15,7 +15,15 @@ import { ELEMENT_PATH } from '../constants';
 import { type Handler, isActionRequest, isDataRequest, prerenderPage } from '../handler';
 import type { Renderer } from '../server';
 import type { GemkitAdapter } from './adapter';
-import { type GemkitConfig, generate, generateHandler, getPublicModules, getSrcDir, SRC_ALIAS } from './codegen';
+import {
+  CLIENT_QUERY,
+  type GemkitConfig,
+  generate,
+  generateHandler,
+  getPublicModules,
+  getSrcDir,
+  SRC_ALIAS,
+} from './codegen';
 import { createRequestHandler, getDistPaths, loadHandler, loadRenderer, writeFiles } from './serve';
 
 export { cloudflare } from '../adapters/cloudflare';
@@ -110,7 +118,23 @@ const ssrMiddleware =
     }
   };
 
-/** 预渲染所有静态路由和 `paths` 指定的动态路由，以及静态托管使用的 404 页面 */
+/**
+ * 静态托管使用的 404 页面，layout 不能预渲染时不输出；
+ * 单页应用（根 layout `ssr = false`）的内容和路径无关，同时输出成 `200.html`，作为所有路径的后备页面
+ */
+async function writeFallbackPages(distDir: string, spa: boolean) {
+  const { webDir } = getDistPaths(distDir);
+  const { renderer, template: html } = await loadRenderer(distDir);
+  const { notFoundPath } = renderer;
+  if (!(await renderer.canPrerender(notFoundPath))) return;
+  const result = await renderer.renderDocument(html, notFoundPath);
+  if (result.status !== 404) return;
+  const content = (await Array.fromAsync(result.html)).join('');
+  fs.writeFileSync(path.join(webDir, '404.html'), content);
+  if (spa) fs.writeFileSync(path.join(webDir, '200.html'), content);
+}
+
+/** 预渲染所有静态路由和 `paths` 指定的动态路由 */
 async function prerenderPages(distDir: string) {
   const { webDir, cacheDir } = getDistPaths(distDir);
   const { renderer, template: html } = await loadRenderer(distDir);
@@ -126,12 +150,6 @@ async function prerenderPages(distDir: string) {
       }
     }),
   );
-  // 静态托管服务使用的 404 页面，layout 不能预渲染时不输出
-  const { notFoundPath } = renderer;
-  const notFound = (await renderer.canPrerender(notFoundPath)) && (await renderer.renderDocument(html, notFoundPath));
-  if (notFound && notFound.status === 404) {
-    fs.writeFileSync(path.join(webDir, '404.html'), (await Array.fromAsync(notFound.html)).join(''));
-  }
 }
 
 export function pluginGemkit(options: GemkitOptions = {}): RsbuildPlugin {
@@ -150,7 +168,7 @@ export function pluginGemkit(options: GemkitOptions = {}): RsbuildPlugin {
       const adapter = isDev || adapterOption === false ? undefined : adapterOption || detectAdapter(rootPath);
 
       // 创建 `.gemkit` 目录，`generateHandler` 写入其中
-      generate(rootPath, config);
+      const { spa } = generate(rootPath, config);
       const handlerEntry = adapter && generateHandler(rootPath, adapter.runtime);
 
       // 页面和语言文件增删时重新生成
@@ -196,6 +214,12 @@ export function pluginGemkit(options: GemkitOptions = {}): RsbuildPlugin {
       api.transform({ test: /\.server\.[cm]?[jt]s$/, environments: ['web'] }, ({ resourcePath }) => {
         throw new Error(`gemkit: \`${path.relative(rootPath, resourcePath)}\` can only be imported on the server`);
       });
+
+      // `ssr = false` 的页面和 layout 不在服务端执行，和 `@client()` 一样替换成空模块，元素类只用来读取选项
+      api.transform(
+        { test: /\.[cm]?[jt]s$/, resourceQuery: new RegExp(`[?&]${CLIENT_QUERY}\\b`), environments: ['node'] },
+        () => 'export default class {}\n',
+      );
 
       api.modifyRsbuildConfig((userConfig, { mergeRsbuildConfig }) => {
         const userTemplate = path.join(srcDir, 'index.html');
@@ -271,6 +295,8 @@ export function pluginGemkit(options: GemkitOptions = {}): RsbuildPlugin {
           await prerenderPages(distDir);
           logger.info(`gemkit: prerendered pages to ${path.relative(rootPath, webDir)}`);
         }
+        // 单页应用不需要预渲染也能静态托管
+        if (prerender || spa) await writeFallbackPages(distDir, spa);
         if (adapter) {
           const handlerFile = path.join(serverDir, 'handler.js');
           await adapter.write({

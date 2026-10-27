@@ -36,7 +36,7 @@ import {
 } from './data';
 import { getBasePath, localizePath, splitLanguage } from './i18n';
 import { formatMeta } from './meta';
-import { getLayoutParams, getPageRoutes, getRouteMeta, matchPage, matchRoutes } from './outlet';
+import { getLayoutParams, getPageRoutes, getRouteMeta, hasServerLoad, matchPage, matchRoutes } from './outlet';
 import { getPageOptions, type Params } from './page';
 import { formatTitle, type TitleOptions } from './title';
 
@@ -118,12 +118,12 @@ export function createRenderer({
   };
 
   /**
-   * `handle` 出错时错误页面渲染的位置：第一个有服务端模块的路由，和客户端导航时请求数据的路由一致，
+   * `handle` 出错时错误页面渲染的位置：第一个有服务端 `load` 的路由，和客户端导航时请求数据的路由一致，
    * 都没有时为页面
    */
   const getErrorTarget = (path: string) => {
     const routes = matchRoutes(path);
-    return (routes.find(({ info }) => info.server) || routes.at(-1))?.info.tag ?? '';
+    return (routes.find(({ info }) => hasServerLoad(info)) || routes.at(-1))?.info.tag ?? '';
   };
 
   /** 执行 `src/app.server.ts` 的 `handle`，`url` 是页面的 URL，`path` 不包含语言前缀，跳转时抛出 `Redirect` */
@@ -157,7 +157,7 @@ export function createRenderer({
         } catch (err) {
           // 和渲染时一致，在第一个请求数据的路由的位置渲染错误页面
           if (!routes.length) throw err;
-          errors[0] = toRouteError(routes[0].tag, err);
+          errors[0] = toRouteError(getErrorTarget(path), err);
         }
         if (!routes.length) return { status: 404, headers: toHeaders(setCookies), body: null };
         if (!errors.length) {

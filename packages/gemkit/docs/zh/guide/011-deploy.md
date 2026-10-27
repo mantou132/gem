@@ -32,6 +32,17 @@ npm run build
 
 没有服务端模块的页面首次加载时使用文档中输出的数据，客户端导航时使用本地数据，所以完全可以部署到静态托管。
 
+### 单页应用
+
+根布局导出 [`ssr = false`](./010-rendering.md#只在客户端渲染) 时，构建会输出 `dist/web/200.html`，
+所有路径都可以使用它，由客户端渲染：
+- Surge 等会自动使用 `200.html`；`404.html` 的内容相同，GitHub Pages 等使用 `404.html` 也能显示页面（状态码是 404）。
+- Netlify 在 `public/_redirects`（构建时复制到 `dist/web`）中添加 `/* /200.html 200`，Cloudflare 设置 `"not_found_handling": "single-page-application"`
+  时使用的是 `index.html`，即预渲染的首页。
+- Tauri 等 WebView 加载部署后的地址，或者把 `dist/web` 作为前端资源目录（入口是预渲染的 `index.html`）。
+
+没有预渲染的路径的服务端 `load`、`actions`、API 路由和纯服务端元素仍然需要服务器，单页应用中纯服务端元素都需要按需渲染。
+
 ## Node.js
 
 部署整个 `dist` 目录，然后运行：

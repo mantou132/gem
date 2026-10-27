@@ -43,7 +43,7 @@ works that way.
 Prerendering runs the same render for every path at build time and writes the files.
 1. **Run `handle`**: runs `handle` from `src/app.server.ts`, for example to read the current user.
    - On redirect, respond with the redirect.
-   - On error, the error page is rendered at the position of the first route with a server module.
+   - On error, the error page is rendered at the position of the first route with a server `load`.
      The client requests data for the same route, so both sides show the same result.
 2. **Render the app**: `<gemkit-outlet>` matches routes from the root, running layout and page `load`.
    Server data calls `*.server.ts` directly, without a data file.
@@ -60,6 +60,37 @@ Prerendering runs the same render for every path at build time and writes the fi
    - When prerendering, it is also collected into `__elements.json`.
    - On client navigation the elements are created on the client and have no server content, so they get
      it from this file.
+
+## Client-only rendering
+
+A page that depends on the browser (for example WebGL, WebRTC, or a login state in `localStorage`) can
+export `ssr = false` from its server module:
+
+```ts
+// src/pages/play.server.ts
+export const ssr = false;
+```
+
+- **Server**: the page module is replaced with an empty module in the server build, like
+  [`@client()`](./008-server-elements.md), so its top level can use browser APIs. The route outputs an
+  empty outlet, and the title and meta use the defaults.
+- **Server data**: the `*.server.ts` `load` (including those of child routes) still runs on the server and
+  its data is embedded in the document, so hydration doesn't wait for the page module before requesting
+  it. On error the response uses its status code and the client renders the error page. If the
+  `*.server.ts` doesn't export `load`, there is no server data (analyzed at build time) and client
+  navigation doesn't request it either.
+- **Client**: hydration loads the page module and renders it with the data in the document.
+- **Layouts**: set in a `_layout.server.ts`, the layout and all pages below it render only on the client.
+- **Prerendering**: still works; it outputs the outer layouts and the data file.
+
+Set in the root layout `src/pages/_layout.server.ts`, the whole app is a single-page app:
+- `src/app.ts` also runs only on the client, and the server outputs only the HTML template.
+- The build writes `dist/web/200.html` (the same content as `404.html`) as the fallback page for every
+  path, so no server is needed. On a static host, rewrite unmatched paths to it, see
+  [Deploy](./011-deploy.md#single-page-apps).
+
+Client-only code (for example registering a service worker or listening to gamepads) goes in
+`src/app.client.ts`. It is imported after `src/app.ts` and before the routes, independent of `ssr`.
 
 ## Hydration
 
@@ -88,7 +119,7 @@ fresh content.
 1. **Prefetch**: starts when the link is hovered or focused, or at navigation time if not prefetched yet.
    Prefetch includes:
    - the layout and page modules of the target route
-   - `__data.json`, only when needed. If every route with a server module is a reusable layout, it is
+   - `__data.json`, only when needed. If every route with a server `load` is a reusable layout, it is
      not requested.
    - `__elements.json`, only when prerendering is enabled. It is always requested because the client
      only knows whether the page has server elements after rendering.

@@ -10,18 +10,19 @@ snapshot.setDefaultSnapshotSerializers([(v) => v]);
 const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'gemkit-'));
 after(() => fs.rmSync(tmpDir, { recursive: true }));
 
-/** 在临时目录中创建文件，返回根目录 */
-function createFixture(files: string[]) {
+/** 在临时目录中创建文件，可以指定内容，返回根目录 */
+function createFixture(files: (string | [file: string, content: string])[]) {
   const root = fs.mkdtempSync(path.join(tmpDir, 'app-'));
-  for (const file of files) {
+  for (const item of files) {
+    const [file, content] = typeof item === 'string' ? [item, item.endsWith('.json') ? '{}' : ''] : item;
     const fullPath = path.join(root, file);
     fs.mkdirSync(path.dirname(fullPath), { recursive: true });
-    fs.writeFileSync(fullPath, file.endsWith('.json') ? '{}' : '');
+    fs.writeFileSync(fullPath, content);
   }
   return root;
 }
 
-const pageFiles = [
+const pageFiles: (string | [string, string])[] = [
   'src/pages/_layout.ts',
   'src/pages/_error.ts',
   'src/pages/_utils.ts',
@@ -33,7 +34,7 @@ const pageFiles = [
   'src/pages/blog/_layout.ts',
   'src/pages/blog/index.ts',
   'src/pages/blog/[slug].ts',
-  'src/pages/blog/[slug].server.ts',
+  ['src/pages/blog/[slug].server.ts', 'export const load = () => ({});'],
   'src/pages/blog/new.ts',
   'src/pages/files/[...path].ts',
   'src/pages/files/[name].ts',
@@ -221,4 +222,66 @@ test('generate: 使用其他目录中的页面和语言文件', ({ assert }) => 
     () => generate(root, { srcDir: 'theme', defaultLanguage: 'fr' }),
     /not found `theme\/locales\/fr.json`/,
   );
+});
+
+test('scanPages: `ssr = false` 对 layout 中的页面都有效，分析是否导出了 `load`', ({ assert }) => {
+  const root = createFixture([
+    'src/pages/_layout.ts',
+    'src/pages/index.ts',
+    ['src/pages/index.server.ts', 'export async function load() {}'],
+    'src/pages/play.ts',
+    ['src/pages/play.server.ts', "export const ssr = false;\nexport { load } from './data';"],
+    'src/pages/app/_layout.ts',
+    ['src/pages/app/_layout.server.ts', 'export const ssr = false;\nexport const prerender = false;'],
+    'src/pages/app/index.ts',
+    ['src/pages/app/index.server.ts', "export * from './data';"],
+    'src/pages/app/settings/_layout.ts',
+    'src/pages/app/settings/index.ts',
+  ]);
+  const { root: layout } = scanPages(path.join(root, 'src/pages'));
+  const pick = ({ tag, ssr, load }: { tag: string; ssr: boolean; load: boolean }) => [tag, ssr, load];
+  assert.deepEqual(pick(layout), ['gemkit-layout-root', true, false]);
+  assert.deepEqual(layout.pages.map(pick), [
+    ['gemkit-page-index', true, true],
+    ['gemkit-page-play', false, true],
+  ]);
+  const [{ layout: app }] = layout.layouts;
+  assert.deepEqual(pick(app), ['gemkit-layout-app', false, false]);
+  // `export *` 不能确定，认为导出了 `load`
+  assert.deepEqual(app.pages.map(pick), [['gemkit-page-app-index', false, true]]);
+  const [{ layout: settings }] = app.layouts;
+  assert.deepEqual(
+    [pick(settings), ...settings.pages.map(pick)],
+    [
+      ['gemkit-layout-app-settings', false, false],
+      ['gemkit-page-app-settings-index', false, false],
+    ],
+  );
+});
+
+test('generate: 根 layout `ssr = false` 时是单页应用，`src/app.ts` 只在客户端执行', ({ assert }) => {
+  const root = createFixture([
+    'src/pages/_layout.ts',
+    ['src/pages/_layout.server.ts', 'export const ssr = false;'],
+    'src/pages/_error.ts',
+    'src/pages/index.ts',
+    'src/app.ts',
+    'src/app.client.ts',
+  ]);
+  assert.deepEqual(generate(root, {}), { spa: true });
+  const read = (file: string) => fs.readFileSync(path.join(root, '.gemkit', file), 'utf8');
+  const routes = read('routes.ts');
+  // 服务端构建时替换成空模块
+  assert.match(routes, /import \* as RootLayout from "..\/src\/pages\/_layout\?gemkit-client";/);
+  assert.match(routes, /load: \(\) => import\("..\/src\/pages\/_error\?gemkit-client"\)/);
+  assert.match(routes, /load: \(\) => import\("..\/src\/pages\/index\?gemkit-client"\), ssr: false \}/);
+  // 没有 `load`，客户端不请求数据
+  assert.match(routes, /load: async \(\) => RootLayout, server: true, noLoad: true, ssr: false \}/);
+  assert.match(read('client.ts'), /import "..\/src\/app";\nimport "..\/src\/app.client";\nimport '.\/routes';/);
+  assert.doesNotMatch(read('server.ts'), /src\/app/);
+
+  const ssr = createFixture(['src/pages/_layout.ts', 'src/pages/index.ts', 'src/app.ts', 'src/app.client.ts']);
+  assert.deepEqual(generate(ssr, {}), { spa: false });
+  assert.match(fs.readFileSync(path.join(ssr, '.gemkit/server.ts'), 'utf8'), /import "..\/src\/app";/);
+  assert.doesNotMatch(fs.readFileSync(path.join(ssr, '.gemkit/server.ts'), 'utf8'), /app.client/);
 });

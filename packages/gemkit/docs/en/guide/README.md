@@ -62,6 +62,7 @@ environments: `web` and `node`. You can still add any other Rsbuild plugins and 
 src/
   app.ts               optional, imported before pages (global styles, stores)
   app.server.ts        optional, `handle` runs before every server request
+  app.client.ts        optional, runs only on the client (service worker, browser APIs)
   index.html           optional HTML template, use `<!--gemkit-body-->` as the content placeholder
   elements/            optional, `app-*` tags are imported automatically
   pages/

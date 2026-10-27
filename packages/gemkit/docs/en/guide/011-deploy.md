@@ -36,6 +36,19 @@ file.
 A page without a server module is rendered from the data embedded in the document on first load and
 from local data on client navigation, so it works fully on a static host.
 
+### Single-page apps
+
+When the root layout exports [`ssr = false`](./010-rendering.md#client-only-rendering), the build writes
+`dist/web/200.html`, which works for every path and is rendered on the client:
+- Surge and similar hosts use `200.html` automatically. `404.html` has the same content, so hosts like
+  GitHub Pages also show the page (with status 404).
+- On Netlify add `/* /200.html 200` to `public/_redirects` (copied to `dist/web` by the build). With Cloudflare
+  `"not_found_handling": "single-page-application"`, `index.html` is used, which is the prerendered home page.
+- A WebView such as Tauri can load the deployed URL, or use `dist/web` as its frontend directory (the
+  entry is the prerendered `index.html`).
+
+Server `load` for paths that aren't prerendered, `actions`, API routes and server elements still need a server. In a single-page app every server element is rendered on demand.
+
 ## Node.js
 
 Deploy the whole `dist` directory and run:

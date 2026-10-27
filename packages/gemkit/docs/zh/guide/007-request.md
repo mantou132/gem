@@ -41,8 +41,16 @@ export async function handle(event: RequestEvent) {
   而且在 `__data.json` 中页面 `load` 和它并行执行，即使布局跳转也不会阻止页面 `load`。
 - 预渲染时 `handle` 也会执行。在其中读取 `request` 或 `cookies`、跳转或者抛出错误会让页面不被预渲染。
   只对需要这些功能的路径读取它们，预渲染的页面是公开的。
-- 没有服务端模块的页面在客户端导航时不会发送请求，`handle` 不会执行。
+- 页面和布局都没有服务端 `load` 时，客户端导航不会发送请求，`handle` 不会执行。
   首次加载时页面数据已经输出到文档中，客户端导航时使用本地数据渲染。
+  这些页面没有服务端数据，提交 `actions` 时 `handle` 仍然会执行，所以不会泄露数据。
+- 需要登录的区域如果要在导航进入时就跳转到登录页，在它的 `_layout.server.ts` 中导出 `load`（例如返回当前用户）。
+  客户端导航进入时会请求数据，`handle` 执行并跳转，权限检查仍然放在 `handle` 中：
+
+```ts
+// src/pages/admin/_layout.server.ts
+export const load = ({ locals }: ServerLoadContext) => ({ user: locals.user });
+```
 
 ## getRequestEvent
 

@@ -98,12 +98,13 @@ src/pages/blog/[slug].server.ts
 
 除了 `pages` 和 `locales`，这些可选文件用来配置应用：
 
-| 文件                | 用途                                                  |
-| ------------------- | ----------------------------------------------------- |
-| `src/app.ts`        | 在路由之前导入，用来设置全局样式、store 等。          |
-| `src/app.server.ts` | 服务端请求的 `handle` 和 `handleError`。              |
-| `src/index.html`    | 替换默认的 HTML 模板，需要保留 `<!--gemkit-body-->`。 |
-| `src/elements/*.ts` | 根据 `app-*` 标签自动导入的元素（见下文）。           |
+| 文件                | 用途                                                                |
+| ------------------- | ------------------------------------------------------------------- |
+| `src/app.ts`        | 在路由之前导入，用来设置全局样式、store 等。                        |
+| `src/app.server.ts` | 服务端请求的 `handle` 和 `handleError`。                            |
+| `src/app.client.ts` | 只在客户端执行，在 `src/app.ts` 之后导入，例如注册 service worker。 |
+| `src/index.html`    | 替换默认的 HTML 模板，需要保留 `<!--gemkit-body-->`。               |
+| `src/elements/*.ts` | 根据 `app-*` 标签自动导入的元素（见下文）。                         |
 
 `src/elements` 中的元素可以直接在模板中使用，不需要导入。`src/elements/counter.ts` 就是
 `app-counter` 元素，可以使用 [`gem.autoImport`](../reference/001-config.md#gem) 插件选项修改或者添加其他元素。

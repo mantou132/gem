@@ -74,6 +74,12 @@ export interface ServerModule {
   /** 为 `false` 时不预渲染，在 layout 中设置时对其中的页面都有效 */
   prerender?: boolean;
   /**
+   * 为 `false` 时服务端不执行页面或 layout 模块（构建时替换成空模块），只输出空的 outlet，由客户端加载、渲染，
+   * `load` 仍然在服务端执行，数据输出到文档中；在 layout 中设置时对其中的页面都有效，在根 layout 中设置时是单页应用。
+   * 构建时读取，只能写成 `export const ssr = false`
+   */
+  ssr?: false;
+  /**
    * 增量静态再生成（ISR）的秒数：`gemkit start` 第一次请求时渲染并缓存，过期后先返回旧内容，在后台重新渲染，
    * 构建时预渲染的结果也写到缓存中；layout 和页面都设置时使用最小的，和预渲染的条件一样
    */

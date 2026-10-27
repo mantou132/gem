@@ -30,12 +30,23 @@ export const getPublicModules = (genDir: string) =>
 /** `<srcDir>` 的别名，元素自动导入等需要使用模块路径而不是文件路径 */
 export const SRC_ALIAS = 'src';
 
-interface PageNode {
+/** 导入 `ssr = false` 的页面和 layout 模块时添加的查询参数，服务端构建时替换成空模块 */
+export const CLIENT_QUERY = 'gemkit-client';
+
+/** 页面和 layout 的服务端模块 */
+interface ServerInfo {
+  /** 同名的 `*.server.ts` */
+  server?: string;
+  /** 服务端是否渲染，上层 layout 为 `false` 时也为 `false` */
+  ssr: boolean;
+  /** `*.server.ts` 可能导出了 `load` */
+  load: boolean;
+}
+
+interface PageNode extends ServerInfo {
   pattern: string;
   file: string;
   tag: string;
-  /** 同名的 `*.server.ts` */
-  server?: string;
 }
 
 /** 没有同名页面模块的 `*.server.ts`，处理 HTTP 请求 */
@@ -44,11 +55,9 @@ interface EndpointNode {
   file: string;
 }
 
-interface LayoutNode {
+interface LayoutNode extends ServerInfo {
   tag: string;
   file?: string;
-  /** 同名的 `_layout.server.ts` */
-  server?: string;
   pages: PageNode[];
   layouts: { pattern: string; layout: LayoutNode }[];
 }
@@ -62,10 +71,21 @@ const isServerModule = (name: string) => /\.server\.[cm]?[jt]s$/.test(name);
 const findModule = (dir: string, name: string) =>
   fs.readdirSync(dir).find((file) => isModule(file) && file.replace(MODULE_EXT, '') === name);
 
-const findServerModule = (file: string) => {
+// 构建时就要确定，所以只能是字面量
+const SSR_FALSE = /^export\s+const\s+ssr\s*=\s*false\b/m;
+
+// 不能确定时（例如 `export *`）认为导出了 `load`
+const LOAD_EXPORT =
+  /^export\s+(?:(?:const|let|var)\s+load\b|(?:async\s+)?function\s*\*?\s*load\b|\*)|^export\s*\{[^}]*\bload\b/m;
+
+/** 页面或 layout 同名的 `*.server.ts` 和其中的配置，`ssr` 是上层 layout 的 */
+const readServerInfo = (file: string, ssr: boolean): ServerInfo => {
   const dir = path.dirname(file);
   const serverFile = findModule(dir, `${path.basename(file).replace(MODULE_EXT, '')}.server`);
-  return serverFile && path.join(dir, serverFile);
+  if (!serverFile) return { ssr, load: false };
+  const server = path.join(dir, serverFile);
+  const code = fs.readFileSync(server, 'utf8');
+  return { server, ssr: ssr && !SSR_FALSE.test(code), load: LOAD_EXPORT.test(code) };
 };
 
 // `[id]` -> `:id`, `[...rest]` -> `*`
@@ -130,7 +150,7 @@ function scanDir(
       const subLayout: LayoutNode = {
         tag: addTag(toTag('layout', relPath), file),
         file,
-        server: findServerModule(file),
+        ...readServerInfo(file, layout.ssr),
         pages: [],
         layouts: [],
       };
@@ -143,7 +163,7 @@ function scanDir(
         pattern: `/${pageSegments.join('/')}`,
         file: fullPath,
         tag: addTag(toTag('page', relPath.replace(MODULE_EXT, '')), fullPath),
-        server: findServerModule(fullPath),
+        ...readServerInfo(fullPath, layout.ssr),
       });
     } else if (isModule(entry.name)) {
       const name = entry.name.replace(MODULE_EXT, '').replace(/\.server$/, '');
@@ -181,7 +201,7 @@ export function scanPages(pagesDir: string) {
   const root: LayoutNode = {
     tag: rootLayout ? toTag('layout', '') : '',
     file: rootFile,
-    server: rootFile && findServerModule(rootFile),
+    ...(rootFile ? readServerInfo(rootFile, true) : { ssr: true, load: false }),
     pages: [],
     layouts: [],
   };
@@ -209,26 +229,31 @@ const eta = new Eta({
 const render = (genDir: string, file: string, template: string, data: object) =>
   writeIfChanged(path.join(genDir, file), eta.render(template, data));
 
-const toImportPath = (genDir: string, file: string) =>
-  JSON.stringify(path.relative(genDir, file).replace(MODULE_EXT, ''));
+/** `client` 时添加 `CLIENT_QUERY`，服务端构建时替换成空模块 */
+const toImportPath = (genDir: string, file: string, client = false) =>
+  JSON.stringify(path.relative(genDir, file).replace(MODULE_EXT, '') + (client ? `?${CLIENT_QUERY}` : ''));
 
-/** 生成路由，返回有服务端模块的 layout 和页面，以及 API 路由 */
+/** 生成路由，返回有服务端模块的 layout 和页面、API 路由，以及根 layout 是否 `ssr = false` */
 function generateRoutes(genDir: string, pagesDir: string) {
   const { root, endpoints, error } = scanPages(pagesDir);
-  const importPath = (file: string) => toImportPath(genDir, file);
+  const importPath = (file: string, ssr = true) => toImportPath(genDir, file, !ssr);
 
-  // 客户端产物不能引用 `*.server.ts`，只传递是否有服务端模块
-  const pageRoute = ({ pattern, file, tag, server }: PageNode) => ({
-    pattern,
+  // 客户端产物不能引用 `*.server.ts`，只传递是否有服务端模块和其中的配置
+  const routeInfo = ({ tag, server, ssr, load }: { tag: string } & ServerInfo) => ({
     tag,
-    path: importPath(file),
     server: !!server,
+    ssr,
+    noLoad: !!server && !load,
   });
-  const layoutRoute = (pattern: string, { file, tag, server }: LayoutNode) => ({
+  const pageRoute = (page: PageNode) => ({
+    ...routeInfo(page),
+    pattern: page.pattern,
+    path: importPath(page.file, page.ssr),
+  });
+  const layoutRoute = (pattern: string, layout: LayoutNode) => ({
+    ...routeInfo(layout),
     pattern,
-    tag,
-    path: importPath(file!),
-    server: !!server,
+    path: importPath(layout.file!, layout.ssr),
     layout: true,
   });
 
@@ -256,11 +281,12 @@ function generateRoutes(genDir: string, pagesDir: string) {
   collect(root);
 
   render(genDir, 'routes.ts', 'routes', {
-    rootLayout: root.file && importPath(root.file),
-    error: error && { tag: error.tag, path: importPath(error.file), isError: true },
+    rootLayout: root.file && importPath(root.file, root.ssr),
+    // 错误页面没有服务端模块，根 layout 不在服务端渲染时它也不会
+    error: error && { tag: error.tag, path: importPath(error.file, root.ssr), isError: true },
     outlets,
   });
-  return { serverRoutes, endpoints };
+  return { serverRoutes, endpoints, spa: !root.ssr };
 }
 
 interface ApiNode {
@@ -335,19 +361,21 @@ function generateEntries(
   genDir: string,
   srcDir: string,
   config: GemkitConfig,
-  { serverRoutes, endpoints }: ReturnType<typeof generateRoutes>,
+  { serverRoutes, endpoints, spa }: ReturnType<typeof generateRoutes>,
 ) {
   const importPath = (file: string) => toImportPath(genDir, file);
-  const appFile = findModule(srcDir, 'app');
-  const data = {
-    app: appFile && importPath(path.join(srcDir, appFile)),
-    titleOptions: { title: config.title, titleTemplate: config.titleTemplate },
+  const findApp = (name: string) => {
+    const file = findModule(srcDir, name);
+    return file && importPath(path.join(srcDir, file));
   };
-  render(genDir, 'client.ts', 'client', data);
-  const appServerFile = findModule(srcDir, 'app.server');
+  const titleOptions = { title: config.title, titleTemplate: config.titleTemplate };
+  const app = findApp('app');
+  render(genDir, 'client.ts', 'client', { app, appClient: findApp('app.client'), titleOptions });
   render(genDir, 'server.ts', 'server', {
-    ...data,
-    appServer: appServerFile && importPath(path.join(srcDir, appServerFile)),
+    // 整个应用都不在服务端渲染时 `src/app.ts` 也只在客户端执行
+    app: !spa && app,
+    titleOptions,
+    appServer: findApp('app.server'),
     serverModules: serverRoutes.map(({ tag, server }) => ({ tag, path: importPath(server) })),
     endpoints: endpoints.map(({ pattern, file }) => ({ pattern, path: importPath(file) })),
   });
@@ -388,7 +416,7 @@ export function generateHandler(rootPath: string, runtime: string) {
 
 export const getSrcDir = (rootPath: string, config: GemkitConfig) => path.resolve(rootPath, config.srcDir ?? 'src');
 
-/** 生成路由、i18n 和入口文件到 `.gemkit` 目录 */
+/** 生成路由、i18n 和入口文件到 `.gemkit` 目录，返回根 layout 是否 `ssr = false`（单页应用） */
 export function generate(rootPath: string, config: GemkitConfig) {
   const srcDir = getSrcDir(rootPath, config);
   const genDir = path.join(rootPath, '.gemkit');
@@ -399,4 +427,5 @@ export function generate(rootPath: string, config: GemkitConfig) {
   generateI18n(genDir, path.join(srcDir, 'locales'), config);
   generateEntries(genDir, srcDir, config, routes);
   generateApi(genDir, routes.endpoints);
+  return { spa: routes.spa };
 }

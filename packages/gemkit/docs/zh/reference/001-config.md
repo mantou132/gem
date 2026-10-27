@@ -37,7 +37,7 @@ export default defineConfig({
 - 类型：`string`
 - 默认值：`'src'`
 
-包含 `pages`、`locales`、`elements`、`app.ts`、`app.server.ts` 和 `index.html` 的目录。
+包含 `pages`、`locales`、`elements`、`app.ts`、`app.server.ts`、`app.client.ts` 和 `index.html` 的目录。
 相对于项目根目录，可以指向提供页面的其他包。`.gemkit` 和 `dist` 仍然生成在项目根目录。
 
 ### `defaultLanguage`
