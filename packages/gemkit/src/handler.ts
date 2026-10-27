@@ -15,8 +15,8 @@ export const isDataRequest = (pathname: string) =>
 export const isQueryRequest = ({ pathname, search }: URL) =>
   !!search && (isDataRequest(pathname) || !path.extname(pathname));
 
-/** 表单提交到页面的 `actions`，地址是 `<page path>?/<name>` */
-export const isActionRequest = (method: string, search: string) => method === 'POST' && search.startsWith('?/');
+/** 表单提交到页面的 `actions`，地址是 `<page path>?/<name>`，有的平台（例如 Vercel）会把 `/` 编码成 `%2F` */
+export const isActionRequest = (method: string, search: string) => method === 'POST' && /^\?(\/|%2F)/i.test(search);
 
 /** 平台提供的请求上下文，serverless 平台在响应后需要 `waitUntil` 才能继续执行后台任务 */
 export interface PlatformContext {

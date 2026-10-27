@@ -389,6 +389,8 @@ test('createRequestHandler: 表单提交', async ({ assert }) => {
   // 没有跳转时回到当前页面
   const back = await handler(request('/me?/login', { method: 'POST', body: new URLSearchParams() }));
   assert.equal(back.headers.get('location'), '/me');
+  // 平台把 `?/login` 编码成 `?%2Flogin`
+  assert.equal((await handler(request('/me?%2Flogin', { method: 'POST', body }))).status, 303);
   // `submitAction` 提交
   const json = await handler(request('/me?/login', { method: 'POST', body, headers: { accept: 'application/json' } }));
   assert.deepEqual(await json.json(), { type: 'redirect', location: '/me' });
