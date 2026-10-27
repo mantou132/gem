@@ -16,14 +16,13 @@
     "prepublishOnly": "esbuild ./src/index.ts --outdir=./dist --platform=node --sourcemap --bundle --packages=external"
   },
   "dependencies": {
-    "@modelcontextprotocol/sdk": "^1.6.1",
-    "adm-zip": "^0.5.16",
+    "@modelcontextprotocol/sdk": "^1.32.2",
     "dedent": "^1.7.2",
     "zod": "^3.25.42"
   },
   "devDependencies": {
     "@gemjs/config": "^2.1.4",
-    "@types/adm-zip": "^0.5.7"
+    "@types/node": "^22.13.10"
   },
   "author": "mantou132",
   "license": "MIT",
