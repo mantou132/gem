@@ -78,6 +78,7 @@ const AUTO_IMPORT_MEMBERS = {
     'notFound',
     'redirect',
     'submitAction',
+    'formActions',
     'invalidate',
     'endpoint',
     'revalidatePath',

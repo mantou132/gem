@@ -175,8 +175,22 @@ function getTemplateAttrs(op: OpenOp, values: unknown[]) {
   return { attrs, props };
 }
 
+// 原生元素的剩余属性，基本类型的值输出成 attribute，例如 `{ method: 'post' }`，
+// 只适用于 property 名小写后就是 attribute 名的属性
+function setRestAttrs(op: OpenOp, values: unknown[], attrs: Attrs) {
+  for (const index of op.elementParts) {
+    const value = values[index];
+    if (!value || typeof value !== 'object' || value instanceof Ref) continue;
+    for (const [name, v] of Object.entries(value)) {
+      if (typeof v === 'string' || typeof v === 'number') attrs.set(name.toLowerCase(), String(v));
+      else if (v === true) attrs.set(name.toLowerCase(), '');
+    }
+  }
+}
+
 function renderPlainElement(op: OpenOp, values: unknown[], ctx: Context) {
   const attrs: Attrs = new Map(Object.entries(getTemplateAttrs(op, values).attrs));
+  setRestAttrs(op, values, attrs);
   const hidden = isHiddenBranch(op, values);
   setConditionAttrs(op, hidden, attrs);
   ctx.out.push(`<${op.tag}${serializeAttrs(attrs, op)}>`);

@@ -10,6 +10,8 @@ export {
   type ErrorData,
   endpoint,
   error,
+  type FormActions,
+  formActions,
   getRequestEvent,
   HttpError,
   invalidate,

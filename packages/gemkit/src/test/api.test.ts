@@ -7,7 +7,7 @@ import { history } from '@mantou/gem';
 
 import { createApi } from '../api';
 import { CLIENT_HEADER, REDIRECT_HEADER } from '../constants';
-import { HttpError } from '../data';
+import { formActions, HttpError } from '../data';
 
 test('createApi: 属性是路径，调用是参数，请求方法发送请求', async ({ assert, mock }) => {
   const calls: [string, RequestInit][] = [];
@@ -47,4 +47,22 @@ test('createApi: 属性是路径，调用是参数，请求方法发送请求', 
   assert.deepEqual(pushed.mock.calls[0].arguments[0], { path: '/me', query: '', hash: '' });
   // 不是 thenable
   assert.equal(typeof (await apis.api), 'function');
+});
+
+test('formActions: action 名称和结果的类型来自 `actions`，返回表单的剩余属性', ({ assert }) => {
+  const actions = {
+    login: async () => ({ errors: ['invalid'] }),
+    logout: () => {},
+  };
+  const { login, logout } = formActions<typeof actions>();
+  const props = login((data) => {
+    const errors: string[] | undefined = data?.errors;
+    return errors;
+  });
+  assert.equal(props.method, 'post');
+  assert.equal(props.action, '?/login');
+  assert.equal(typeof props.onsubmit, 'function');
+  assert.equal(logout().action, '?/logout');
+  // @ts-expect-error 不存在的 action
+  formActions<typeof actions>().register;
 });

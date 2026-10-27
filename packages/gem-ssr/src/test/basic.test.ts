@@ -214,6 +214,12 @@ test('stores: 输出请求中更新过的有 key 的 store', async ({ assert }) 
   assert.equal(getStoresJSON(other), undefined, '没有更新的 store 不输出');
 });
 
+test('原生元素的剩余属性输出基本类型的值', async ({ assert }) => {
+  const props = { method: 'post', action: '?/login', noValidate: true, hidden: false, onsubmit: () => {} };
+  const result = await renderToString(html`<form ${props}></form>`);
+  assert.match(result, /<form method="post" action="\?\/login" novalidate="">/);
+});
+
 test('模版中没有改变的 attribute 原样输出，保留字符引用', async ({ assert }) => {
   const result = await renderToString(
     html`<p title="&copy; a" class=${'b'}></p><app-light-demo title="&hellip;" attr=${'"'}></app-light-demo>`,

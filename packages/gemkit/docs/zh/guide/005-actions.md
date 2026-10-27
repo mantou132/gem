@@ -46,7 +46,11 @@ export const actions = {
 
 ```ts
 // src/pages/_layout.ts
-html`<form method="post" action="?/logout" @submit=${this.#submit}><button>Sign out</button></form>`;
+import type { actions } from './_layout.server';
+
+const { logout } = formActions<typeof actions>();
+
+html`<form ${logout()}><button>Sign out</button></form>`;
 ```
 
 - 从页面开始逐层向外查找，页面和内层布局的同名 action 覆盖外层的。
@@ -55,21 +59,22 @@ html`<form method="post" action="?/logout" @submit=${this.#submit}><button>Sign 
 
 ## 在页面中提交
 
+`formActions` 使用 `*.server.ts` 中 `actions` 的类型，action 的名称和结果都有类型检查。
+`import type` 只引用类型，不会把服务端代码打包到客户端：
+
 ```ts
 // src/pages/login.ts
+import type { actions } from './login.server';
+
+const { login } = formActions<typeof actions>();
+
 @page('Sign in')
 export default class LoginPage extends GemElement {
   #state = createState<{ errors?: string[] }>({});
 
-  #submit = async (evt: SubmitEvent) => {
-    evt.preventDefault();
-    const result = await submitAction(evt.target as HTMLFormElement, evt.submitter);
-    this.#state({ errors: result?.errors });
-  };
-
   @template()
   #content = () => html`
-    <form method="post" action="?/login" @submit=${this.#submit}>
+    <form ${login((data) => this.#state({ errors: data?.errors }))}>
       <input name="name" required />
       <input name="password" type="password" required />
       <button type="submit">Sign in</button>
@@ -79,7 +84,31 @@ export default class LoginPage extends GemElement {
 }
 ```
 
-`submitAction(form, submitter)` 提交表单，不刷新页面：
+`login(callback)` 返回表单的剩余属性：`method="post"`、`action="?/login"` 和提交时调用 `submitAction` 的
+`onsubmit`。服务端渲染时也会输出 `method` 和 `action`，所以水合前或者没有 JavaScript 时表单也能正常提交。
+回调的参数是 action 的结果（跳转或者出错时是 `undefined`）和表单，例如成功后用 `form.reset()` 清空输入。
+
+页面也可以提交到布局的 action，合并它们的类型即可：
+
+```ts
+import type { actions } from './login.server';
+import type { actions as layoutActions } from './_layout.server';
+
+const { login, logout } = formActions<typeof actions & typeof layoutActions>();
+```
+
+需要自己控制提交时，可以直接使用 `submitAction(form, submitter)`：
+
+```ts
+html`<form method="post" action="?/login" @submit=${this.#submit}></form>`;
+
+#submit = async (evt: SubmitEvent) => {
+  evt.preventDefault();
+  const data = await submitAction(evt.target as HTMLFormElement, evt.submitter);
+};
+```
+
+`submitAction` 提交表单，不刷新页面：
 - `redirect()` 时在客户端导航。
 - `error()` 时在页面的位置渲染错误页面。
 - 其他情况重新加载当前页面的数据（包括布局数据），并返回 action 的结果。

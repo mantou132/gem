@@ -714,6 +714,43 @@ export async function submitAction(form: HTMLFormElement, submitter?: HTMLElemen
   return result.type === 'success' ? result.data : undefined;
 }
 
+/** `formActions` 的 action，参数是提交后的回调，返回值作为表单的剩余属性 */
+export type FormActions<A> = {
+  [K in keyof A & string]: (
+    callback?: (
+      data: (A[K] extends (...args: any) => infer R ? Awaited<R> : never) | undefined,
+      form: HTMLFormElement,
+    ) => void,
+  ) => { method: 'post'; action: string; onsubmit: (evt: SubmitEvent) => void };
+};
+
+/**
+ * 使用 `*.server.ts` 中 `actions` 的类型，得到表单的剩余属性，提交时调用 `submitAction`，
+ * 回调的参数是 action 的结果（跳转或者出错时是 `undefined`）和表单
+ *
+ * @example
+ * ```ts
+ * import type { actions } from './login.server';
+ *
+ * const { login } = formActions<typeof actions>();
+ *
+ * html`<form ${login((data) => this.#state({ errors: data?.errors }))}></form>`;
+ * ```
+ */
+export function formActions<A>() {
+  return new Proxy({} as FormActions<A>, {
+    get: (_, name: string) => (callback?: (data: unknown, form: HTMLFormElement) => void) => ({
+      method: 'post',
+      action: `?/${name}`,
+      onsubmit: async (evt: SubmitEvent) => {
+        evt.preventDefault();
+        const form = evt.target as HTMLFormElement;
+        callback?.(await submitAction(form, evt.submitter), form);
+      },
+    }),
+  });
+}
+
 let revalidateHandler: ((pathname: string) => unknown) | undefined;
 
 /** `gemkit start` 设置，清除 ISR 的缓存 */

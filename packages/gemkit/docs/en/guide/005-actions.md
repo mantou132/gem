@@ -46,7 +46,11 @@ export const actions = {
 
 ```ts
 // src/pages/_layout.ts
-html`<form method="post" action="?/logout" @submit=${this.#submit}><button>Sign out</button></form>`;
+import type { actions } from './_layout.server';
+
+const { logout } = formActions<typeof actions>();
+
+html`<form ${logout()}><button>Sign out</button></form>`;
 ```
 
 - Actions are looked up from the page outward; the page and inner layouts override actions of the same name
@@ -56,21 +60,22 @@ html`<form method="post" action="?/logout" @submit=${this.#submit}><button>Sign 
 
 ## Submit from the page
 
+`formActions` uses the type of `actions` in `*.server.ts`, so action names and results are type-checked.
+`import type` only references the types and does not bundle server code into the client:
+
 ```ts
 // src/pages/login.ts
+import type { actions } from './login.server';
+
+const { login } = formActions<typeof actions>();
+
 @page('Sign in')
 export default class LoginPage extends GemElement {
   #state = createState<{ errors?: string[] }>({});
 
-  #submit = async (evt: SubmitEvent) => {
-    evt.preventDefault();
-    const result = await submitAction(evt.target as HTMLFormElement, evt.submitter);
-    this.#state({ errors: result?.errors });
-  };
-
   @template()
   #content = () => html`
-    <form method="post" action="?/login" @submit=${this.#submit}>
+    <form ${login((data) => this.#state({ errors: data?.errors }))}>
       <input name="name" required />
       <input name="password" type="password" required />
       <button type="submit">Sign in</button>
@@ -80,7 +85,32 @@ export default class LoginPage extends GemElement {
 }
 ```
 
-`submitAction(form, submitter)` submits the form without reloading the page:
+`login(callback)` returns rest properties for the form: `method="post"`, `action="?/login"` and an
+`onsubmit` that calls `submitAction`. `method` and `action` are rendered on the server too, so the form
+submits correctly before hydration or without JavaScript. The callback receives the action result
+(`undefined` on redirect or error) and the form, for example to clear the inputs with `form.reset()` on success.
+
+A page can also submit to layout actions by merging their types:
+
+```ts
+import type { actions } from './login.server';
+import type { actions as layoutActions } from './_layout.server';
+
+const { login, logout } = formActions<typeof actions & typeof layoutActions>();
+```
+
+To control the submission yourself, use `submitAction(form, submitter)` directly:
+
+```ts
+html`<form method="post" action="?/login" @submit=${this.#submit}></form>`;
+
+#submit = async (evt: SubmitEvent) => {
+  evt.preventDefault();
+  const data = await submitAction(evt.target as HTMLFormElement, evt.submitter);
+};
+```
+
+`submitAction` submits the form without reloading the page:
 - On `redirect()` it navigates on the client.
 - On `error()` it renders the error page in place of the page.
 - Otherwise it reloads the current page data, including layout data, and returns the action result.
