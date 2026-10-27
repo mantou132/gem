@@ -376,6 +376,16 @@ function generateEntries(
   );
 }
 
+/**
+ * 部署平台的函数入口，服务端构建的 `handler` 入口；
+ * 产物是 CommonJS，使用命名导出，Node.js 的 ESM 和打包工具都能识别
+ */
+export function generateHandler(rootPath: string, runtime: string) {
+  const genDir = path.join(rootPath, '.gemkit');
+  render(genDir, 'handler.ts', 'handler.eta', { runtime: JSON.stringify(runtime) });
+  return path.join(genDir, 'handler.ts');
+}
+
 export const getSrcDir = (rootPath: string, config: GemkitConfig) => path.resolve(rootPath, config.srcDir ?? 'src');
 
 /** 生成路由、i18n 和入口文件到 `.gemkit` 目录 */

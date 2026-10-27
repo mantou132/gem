@@ -19,6 +19,7 @@ import {
 import { I18n } from '@mantou/gem/helper/i18n';
 import { getServerElementKey, server } from '@mantou/gem-ssr/decorators';
 
+import { createHandler as createCloudflareHandler } from '../adapters/cloudflare/runtime';
 import { CLIENT_HEADER, DATA_SCRIPT_ID, REDIRECT_HEADER } from '../constants';
 import {
   type EndpointModule,
@@ -32,6 +33,7 @@ import {
   type ServerModule,
   type StandardSchemaV1,
 } from '../data';
+import { createFetchHandler } from '../handler';
 import { errorRoute, pageRoute, setOutlets } from '../outlet';
 import { type Params, page } from '../page';
 import { createRequestHandler } from '../plugin/serve';
@@ -693,4 +695,46 @@ test('createRequestHandler: ISR 不缓存跳转和出错的页面', async ({ ass
   assert.equal((await handler(request('/tags/missing'))).status, 404);
   assert.equal(fs.existsSync(path.join(cacheDir, 'tags/missing')), false);
   fs.rmSync(cacheDir, { recursive: true });
+});
+
+test('createFetchHandler: ISR 页面使用 CDN 缓存，因人而异的页面不缓存', async ({ assert }) => {
+  const handler = createFetchHandler(renderer, documentTemplate, {
+    cdnCache: (revalidate) => ['cdn-cache-control', `s-maxage=${revalidate}`],
+  });
+  const getHeader = async (url: string, init?: RequestInit) =>
+    (await handler(request(url, init))).headers.get('cdn-cache-control');
+  assert.equal(await getHeader('/tags/a'), 's-maxage=60');
+  assert.equal(await getHeader('/tags/a/__data.json'), 's-maxage=60');
+  assert.equal(await getHeader('/posts/1'), null);
+  assert.equal(await getHeader('/tags/missing'), null);
+  assert.equal(await getHeader('/me', { headers: { cookie: 'token=t' } }), null);
+});
+
+test('createCloudflareHandler: ISR 使用 KV，过期后在 `waitUntil` 中重新渲染', async ({ assert }) => {
+  const kv = new Map<string, { value: string; metadata: any }>();
+  const env = {
+    GEMKIT_CACHE: {
+      getWithMetadata: async (key: string) => kv.get(key) || { value: null, metadata: null },
+      put: async (key: string, value: string, { metadata }: { metadata?: unknown } = {}) => {
+        kv.set(key, { value, metadata });
+      },
+      delete: async (key: string) => {
+        kv.delete(key);
+      },
+    },
+  };
+  const tasks: Promise<unknown>[] = [];
+  const ctx = { waitUntil: (promise: Promise<unknown>) => tasks.push(promise) };
+  const { fetch } = createCloudflareHandler(renderer, documentTemplate);
+  const getVersion = async (url: string) =>
+    (await (await fetch(request(url), env, ctx)).json()).data['gemkit-page-tag'].version;
+  const version = await getVersion('/tags/a/__data.json');
+  assert.deepEqual([...kv.keys()].sort(), ['/tags/a/__data.json', '/tags/a/__elements.json', '/tags/a/index.html']);
+  assert.equal(await getVersion('/tags/a/__data.json'), version);
+  assert.equal(tasks.length, 0);
+  kv.get('/tags/a/__data.json')!.metadata = { time: Date.now() - 61_000 };
+  assert.equal(await getVersion('/tags/a/__data.json'), version, '先返回旧内容');
+  assert.equal(tasks.length, 1);
+  await Promise.all(tasks);
+  assert.notEqual(await getVersion('/tags/a/__data.json'), version);
 });

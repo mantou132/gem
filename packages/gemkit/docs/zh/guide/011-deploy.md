@@ -50,6 +50,106 @@ npm run start
 服务端进程运行时需要 `@mantou/gemkit` 和应用依赖。在容器或者托管 Node 环境中，
 安装生产依赖，并把工作目录设置为包含 `dist` 的项目根目录。
 
+## 部署平台
+
+在 Vercel、Netlify 和 Cloudflare 上构建时，Gemkit 识别出平台，输出平台需要的文件，不需要服务器。
+也可以用 [`adapter`](../reference/001-config.md#adapter) 指定平台，例如 `adapter: cloudflare()`。
+预渲染的文件由平台作为静态文件提供，其他请求（不能预渲染的页面、API 路由、`actions`、按需渲染的服务端元素）
+由平台的函数处理。
+
+| 平台       | 输出                                      | ISR                     |
+| ---------- | ----------------------------------------- | ----------------------- |
+| Vercel     | `.vercel/output`（Build Output API）      | Vercel 的 CDN 缓存      |
+| Netlify    | `.netlify/v1/functions`                   | Netlify 的持久 CDN 缓存 |
+| Cloudflare | `dist/cloudflare/index.js`（Worker 入口） | 绑定的 KV               |
+
+### Vercel
+
+构建命令是 `npm run build`，不需要其他配置。函数使用 Node.js 运行时。
+
+### Netlify
+
+在 `netlify.toml` 中设置静态文件目录：
+
+```toml
+[build]
+  command = "npm run build"
+  publish = "dist/web"
+```
+
+### Cloudflare
+
+部署到 Workers，静态文件使用 Workers Static Assets。在项目根目录添加 `wrangler.jsonc`：
+
+```jsonc
+{
+  "name": "my-app",
+  "main": "dist/cloudflare/index.js",
+  "compatibility_date": "2026-03-01",
+  // gem-ssr 使用 `AsyncLocalStorage` 隔离每个请求的状态
+  "compatibility_flags": ["nodejs_compat"],
+  // Gemkit 的路径没有末尾的 `/`
+  "assets": { "directory": "dist/web", "html_handling": "drop-trailing-slash" },
+  // 可选，ISR 使用的 KV
+  "kv_namespaces": [{ "binding": "GEMKIT_CACHE", "id": "<namespace id>" }]
+}
+```
+
+然后执行 `npm run build` 和 `npx wrangler deploy`。Worker 中没有文件系统，服务端代码不能在运行时读取项目中的文件，
+需要在构建时读取（例如预渲染），或者打包到代码中。
+
+### ISR
+
+- Vercel 和 Netlify 由 CDN 缓存设置了 `revalidate` 的页面：响应带有 `stale-while-revalidate` 的 CDN 缓存头，
+  过期后 CDN 先返回旧内容，在后台请求函数重新渲染。`revalidatePath` 不能清除 CDN 缓存，页面在过期后更新。
+- Cloudflare 绑定了 `GEMKIT_CACHE` KV 时，和 `gemkit start` 一样缓存页面和数据文件，在 `waitUntil` 中重新渲染。
+  没有绑定时每次请求都渲染。
+
+### 自定义适配器
+
+其他平台可以实现 `GemkitAdapter`，由两部分组成：
+- `runtime`：运行时模块（包名或者绝对路径），服务端构建时打包。导出 `createHandler(renderer, template)`，
+  返回平台需要的处理函数。一般使用 `@mantou/gemkit/handler` 的 `createFetchHandler`，
+  它处理页面、数据、表单、服务端元素和 API 路由的请求，参数提供平台的差异：
+  `readStatic`（读取预渲染的文件，平台优先提供静态文件时不需要）、`isrStore`（ISR 的存储）
+  或者 `cdnCache`（ISR 使用 CDN 缓存时的响应头）。处理函数的第二个参数可以传入 `{ waitUntil }`。
+- `write(ctx)`：构建后输出平台需要的文件。`ctx.handlerFile` 是服务端构建的函数入口，它命名导出
+  `createHandler(template)`，平台的入口用 `ctx.template` 调用它。`ctx.webDir` 是需要作为静态文件提供的目录，
+  `ctx.cacheDir` 是设置了 `revalidate` 的页面在构建时预渲染的文件，平台支持时可以作为 ISR 的初始缓存。
+
+```ts
+// my-adapter/runtime.ts
+import { createFetchHandler } from '@mantou/gemkit/handler';
+import type { Renderer } from '@mantou/gemkit/server';
+
+export function createHandler(renderer: Renderer, template: string) {
+  return createFetchHandler(renderer, template);
+}
+```
+
+```ts
+// my-adapter/index.ts
+import fs from 'node:fs';
+import path from 'node:path';
+import type { GemkitAdapter } from '@mantou/gemkit/plugin';
+
+export const myAdapter = (): GemkitAdapter => ({
+  name: 'my-platform',
+  runtime: 'my-adapter/runtime',
+  write({ distDir, handlerFile, template }) {
+    const file = path.join(distDir, 'my-platform/server.mjs');
+    fs.mkdirSync(path.dirname(file), { recursive: true });
+    fs.writeFileSync(
+      file,
+      `import { createHandler } from ${JSON.stringify(handlerFile)};\n` +
+        `export default createHandler(${JSON.stringify(template)});\n`,
+    );
+  },
+});
+```
+
+服务端产物是 CommonJS，并且没有拆分 chunk，平台可以直接运行，也可以再打包。
+
 ## 增量静态再生成
 
 商品、文章这类页面数量很多、内容会变化，不适合全部在构建时预渲染。在服务端模块中导出 `revalidate`（秒）：
@@ -71,7 +171,8 @@ export async function load({ params }: ServerLoadContext<{ id: string }>) {
 - 和预渲染的条件一样：读取请求或 cookie 的页面、带查询参数的请求不缓存。渲染结果不是 200（例如跳转、出错）时
   也不缓存，由服务端渲染。
 - 修改数据后可以在 action 或者 API 路由中调用 `revalidatePath(pathname)` 清除缓存，下次请求时重新渲染。
-- 缓存在 `dist/cache` 中，每次构建时清空。多个服务器实例的缓存不共享，serverless 等文件系统不可写的环境不可用。
+- 缓存在 `dist/cache` 中，每次构建时清空。多个服务器实例的缓存不共享，serverless 等文件系统不可写的环境使用平台的缓存，
+  见[部署平台](#isr)。
 
 价格、库存这类需要实时的内容，放在 API 路由中由客户端请求，或者使用按需渲染的服务端元素。
 
@@ -87,6 +188,6 @@ CDN 不会共享这些因人而异的内容。配置代理时保留这个响应�
 
 - 开发时每次请求都渲染，并且有 HMR。
 - 生产构建会预渲染页面，并启用 `process.env.GEMKIT_PRERENDER`。
-- `prerender = false` 的页面、ISR、API 路由、`actions` 和按需渲染的服务端元素需要 `gemkit start`，
-  或者其他运行 Gemkit 处理器的服务器。
+- `prerender = false` 的页面、ISR、API 路由、`actions` 和按需渲染的服务端元素需要 `gemkit start`、
+  [部署平台](#部署平台)的函数，或者其他运行 Gemkit 处理器的服务器。
 - 静态托管和 `gemkit start` 对查询参数的处理不同，见上文。

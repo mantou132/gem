@@ -64,6 +64,24 @@ export default defineConfig({
 单个页面或者布局可以在服务端模块中导出 `export const prerender = false` 来关闭，
 在布局中设置会对它下面的所有页面生效。
 
+### `adapter`
+
+- 类型：`GemkitAdapter | false`
+- 默认值：根据构建环境识别
+
+部署平台，构建时输出平台需要的文件，见[部署平台](../guide/011-deploy.md#部署平台)。
+内置的 `vercel()`、`netlify()`、`cloudflare()` 从 `@mantou/gemkit/plugin` 导入：
+
+```ts
+import { cloudflare, pluginGemkit } from '@mantou/gemkit/plugin';
+
+pluginGemkit({ adapter: cloudflare() });
+```
+
+没有设置时，在 Vercel、Netlify 上构建时根据它们设置的环境变量识别，Cloudflare Workers Builds 中或者项目根目录有
+Wrangler 配置时使用 `cloudflare()`。都没有或者为 `false` 时使用 Node.js（`gemkit start` 或者静态托管）。
+开发时总是使用 Node.js。
+
 ### `gem`
 
 - 类型：`UnpluginGemOptions`
@@ -100,6 +118,7 @@ Gemkit 在 `.gemkit` 中生成：
 | ------------------ | ------------------------------------------------------------------ |
 | `client.ts`        | 客户端入口，根据页面和预渲染状态生成。                             |
 | `server.ts`        | 服务端入口，SSR 构建和预渲染使用。                                 |
+| `handler.ts`       | 部署平台的函数入口，使用 `adapter` 时生成。                        |
 | `routes.ts`        | 路由表。                                                           |
 | `i18n.ts`          | `$gemkit/i18n`，见[国际化](../guide/009-i18n.md)。                 |
 | `api.ts`           | `$gemkit/api`，见 [API 路由](../guide/006-api-routes.md)。         |

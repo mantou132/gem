@@ -8,20 +8,20 @@ import { logger, type RsbuildPlugin } from '@rsbuild/core';
 import type { UnpluginGemOptions } from 'unplugin-gem';
 import unpluginGem from 'unplugin-gem/rspack';
 
+import { cloudflare } from '../adapters/cloudflare';
+import { netlify } from '../adapters/netlify';
+import { vercel } from '../adapters/vercel';
 import { ELEMENT_PATH } from '../constants';
+import { type Handler, isActionRequest, isDataRequest, prerenderPage } from '../handler';
 import type { Renderer } from '../server';
-import { type GemkitConfig, generate, getPublicModules, getSrcDir, SRC_ALIAS } from './codegen';
-import { prerenderPage, writeFiles } from './prerender';
-import {
-  createHandler,
-  createRequestHandler,
-  getDistPaths,
-  type Handler,
-  isActionRequest,
-  isDataRequest,
-  loadRenderer,
-} from './serve';
+import type { GemkitAdapter } from './adapter';
+import { type GemkitConfig, generate, generateHandler, getPublicModules, getSrcDir, SRC_ALIAS } from './codegen';
+import { createRequestHandler, getDistPaths, loadHandler, loadRenderer, writeFiles } from './serve';
 
+export { cloudflare } from '../adapters/cloudflare';
+export { netlify } from '../adapters/netlify';
+export { vercel } from '../adapters/vercel';
+export type { AdapterContext, GemkitAdapter } from './adapter';
 export type { GemkitConfig } from './codegen';
 
 export interface GemkitOptions extends GemkitConfig {
@@ -30,6 +30,11 @@ export interface GemkitOptions extends GemkitConfig {
    * @default true
    */
   prerender?: boolean;
+  /**
+   * 部署平台，构建时输出平台需要的文件，默认根据平台的环境变量或者 Wrangler 配置识别，
+   * 没有识别出来或者为 `false` 时使用 Node.js（`gemkit start` 或者静态托管）
+   */
+  adapter?: GemkitAdapter | false;
   /**
    * 传递给 `unplugin-gem` 的选项，默认开启除 `resolvePath` 外的所有功能；
    * `autoImport` 和 Gemkit 的默认值合并，键是包名或者别名，不是文件路径，`src` 是 `<srcDir>` 的别名，
@@ -50,6 +55,17 @@ export interface GemkitOptions extends GemkitConfig {
 const packageDir = fileURLToPath(new URL('..', import.meta.url));
 
 const PRERENDER_CONCURRENCY = 8;
+
+const WRANGLER_FILES = ['wrangler.json', 'wrangler.jsonc', 'wrangler.toml'];
+
+/** 根据平台构建时设置的环境变量或者 Wrangler 配置识别平台，没有识别出来时使用 Node.js */
+export function detectAdapter(rootPath: string): GemkitAdapter | undefined {
+  if (process.env.VERCEL) return vercel();
+  if (process.env.NETLIFY) return netlify();
+  if (process.env.WORKERS_CI || WRANGLER_FILES.some((file) => fs.existsSync(path.join(rootPath, file)))) {
+    return cloudflare();
+  }
+}
 
 const AUTO_IMPORT_MEMBERS = {
   '@mantou/gemkit': [
@@ -83,15 +99,42 @@ const ssrMiddleware =
       const handler = await getHandler();
       if (!isSSR && !handler.isEndpoint(pathname)) return next();
       // 转换成 `Request` 和 `Response`，不替换全局的 `Request` 和 `Response`
-      const listener = getRequestListener(handler, { overrideGlobalObjects: false, errorHandler: next });
+      const listener = getRequestListener((request) => handler(request), {
+        overrideGlobalObjects: false,
+        errorHandler: next,
+      });
       await listener(req, res);
     } catch (err) {
       next(err);
     }
   };
 
+/** 预渲染所有静态路由和 `paths` 指定的动态路由，以及静态托管使用的 404 页面 */
+async function prerenderPages(distDir: string) {
+  const { webDir, cacheDir } = getDistPaths(distDir);
+  const { renderer, template: html } = await loadRenderer(distDir);
+  const paths = await renderer.getPaths();
+  // 每个请求的状态是独立的，可以并行渲染
+  await Promise.all(
+    Array.from({ length: PRERENDER_CONCURRENCY }, async () => {
+      for (let pathname = paths.shift(); pathname !== undefined; pathname = paths.shift()) {
+        const { files } = await prerenderPage(renderer, html, pathname);
+        // 使用 ISR 的页面写到缓存中，`gemkit start` 按 `revalidate` 重新渲染
+        const isr = (await renderer.getRevalidate(pathname)) !== undefined;
+        await writeFiles(isr ? cacheDir : webDir, files);
+      }
+    }),
+  );
+  // 静态托管服务使用的 404 页面，layout 不能预渲染时不输出
+  const { notFoundPath } = renderer;
+  const notFound = (await renderer.canPrerender(notFoundPath)) && (await renderer.renderDocument(html, notFoundPath));
+  if (notFound && notFound.status === 404) {
+    fs.writeFileSync(path.join(webDir, '404.html'), (await Array.fromAsync(notFound.html)).join(''));
+  }
+}
+
 export function pluginGemkit(options: GemkitOptions = {}): RsbuildPlugin {
-  const { prerender = true, gem, ...config } = options;
+  const { prerender = true, adapter: adapterOption, gem, ...config } = options;
   const { autoImport, ...gemOptions } = gem ?? {};
   const userAutoImport = typeof autoImport === 'object' ? autoImport : {};
   return {
@@ -102,8 +145,12 @@ export function pluginGemkit(options: GemkitOptions = {}): RsbuildPlugin {
       const genDir = path.join(rootPath, '.gemkit');
       const distDir = path.join(rootPath, 'dist');
       const isDev = api.context.action === 'dev';
+      // 开发时总是使用 Node.js
+      const adapter = isDev || adapterOption === false ? undefined : adapterOption || detectAdapter(rootPath);
 
+      // 创建 `.gemkit` 目录，`generateHandler` 写入其中
       generate(rootPath, config);
+      const handlerEntry = adapter && generateHandler(rootPath, adapter.runtime);
 
       // 页面和语言文件增删时重新生成
       if (isDev) {
@@ -170,7 +217,13 @@ export function pluginGemkit(options: GemkitOptions = {}): RsbuildPlugin {
               tools: { rspack: { plugins: [gemPlugin(true)] } },
             },
             node: {
-              source: { entry: { index: path.join(genDir, 'server.ts') } },
+              source: {
+                entry: {
+                  index: path.join(genDir, 'server.ts'),
+                  // 静态的命名导出，Node.js 的 ESM 可以识别，平台不打包函数时也能导入
+                  ...(handlerEntry && { handler: { import: handlerEntry, library: { type: 'commonjs-static' } } }),
+                },
+              },
               output: {
                 target: 'node',
                 // Rsbuild 在开发时运行 ESM 产物需要 `--experimental-vm-modules`
@@ -178,7 +231,11 @@ export function pluginGemkit(options: GemkitOptions = {}): RsbuildPlugin {
                 distPath: { root: 'dist/server' },
               },
               dev: { hmr: false, lazyCompilation: false },
-              tools: { rspack: { plugins: [gemPlugin(false)] } },
+              // 平台打包函数时不能处理加载 chunk 的动态 `require`，每个入口输出成一个文件
+              ...(handlerEntry && { splitChunks: false }),
+              tools: {
+                rspack: { plugins: [gemPlugin(false)], output: { asyncChunks: !handlerEntry } },
+              },
             },
           },
           server: {
@@ -193,7 +250,7 @@ export function pluginGemkit(options: GemkitOptions = {}): RsbuildPlugin {
                   }),
                 );
               } else {
-                const handler = createHandler(distDir);
+                const handler = loadHandler(distDir);
                 ctx.server.middlewares.use(ssrMiddleware(() => handler));
               }
             },
@@ -209,28 +266,23 @@ export function pluginGemkit(options: GemkitOptions = {}): RsbuildPlugin {
         fs.renameSync(path.join(webDir, 'index.html'), template);
         // 上次构建的 ISR 缓存属于旧的代码
         fs.rmSync(cacheDir, { recursive: true, force: true });
-        if (!prerender) return;
-        const { renderer, template: html } = await loadRenderer(distDir);
-        const paths = await renderer.getPaths();
-        // 每个请求的状态是独立的，可以并行渲染
-        await Promise.all(
-          Array.from({ length: PRERENDER_CONCURRENCY }, async () => {
-            for (let pathname = paths.shift(); pathname !== undefined; pathname = paths.shift()) {
-              const { files } = await prerenderPage(renderer, html, pathname);
-              // 使用 ISR 的页面写到缓存中，`gemkit start` 按 `revalidate` 重新渲染
-              const isr = (await renderer.getRevalidate(pathname)) !== undefined;
-              await writeFiles(isr ? cacheDir : webDir, files);
-            }
-          }),
-        );
-        // 静态托管服务使用的 404 页面，layout 不能预渲染时不输出
-        const { notFoundPath } = renderer;
-        const notFound =
-          (await renderer.canPrerender(notFoundPath)) && (await renderer.renderDocument(html, notFoundPath));
-        if (notFound && notFound.status === 404) {
-          fs.writeFileSync(path.join(webDir, '404.html'), (await Array.fromAsync(notFound.html)).join(''));
+        if (prerender) {
+          await prerenderPages(distDir);
+          logger.info(`gemkit: prerendered pages to ${path.relative(rootPath, webDir)}`);
         }
-        logger.info(`gemkit: prerendered pages to ${path.relative(rootPath, webDir)}`);
+        if (adapter) {
+          const handlerFile = path.join(serverDir, 'handler.js');
+          await adapter.write({
+            rootPath,
+            distDir,
+            webDir,
+            serverDir,
+            cacheDir,
+            handlerFile,
+            template: fs.readFileSync(template, 'utf8'),
+          });
+          logger.info(`gemkit: wrote ${adapter.name} output`);
+        }
       });
     },
   };

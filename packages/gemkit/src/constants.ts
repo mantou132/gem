@@ -8,6 +8,8 @@ export const ELEMENT_PATH = '/__gemkit_element';
 export const REDIRECT_HEADER = 'x-gemkit-redirect';
 /** `$gemkit/api` 的请求头，跳转时响应 `REDIRECT_HEADER`，而不是 3xx（`fetch` 会自动跟随） */
 export const CLIENT_HEADER = 'x-gemkit-client';
+/** ISR 的页面由 CDN 缓存时，过期后最多返回一年内的旧内容，同时在后台重新渲染 */
+export const CDN_STALE_SECONDS = 60 * 60 * 24 * 365;
 
 /** 页面路径对应的数据文件路径 */
 export function getDataPath(path: string, file = DATA_FILE) {

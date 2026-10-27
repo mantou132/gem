@@ -18,6 +18,8 @@
     "./client": "./src/client.ts",
     "./internal": "./src/internal.ts",
     "./server": "./src/server.ts",
+    "./handler": "./src/handler.ts",
+    "./adapters/*": "./src/adapters/*/runtime.ts",
     "./init": "./bin/init.js",
     "./plugin": {
       "types": "./src/plugin/index.ts",

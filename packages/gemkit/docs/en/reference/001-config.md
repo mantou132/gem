@@ -69,6 +69,25 @@ page is rendered on demand and needs a server.
 Individual pages and layouts can opt out in their server module with `export const prerender = false`,
 or in a layout to disable it for all of its pages.
 
+### `adapter`
+
+- Type: `GemkitAdapter | false`
+- Default: detected from the build environment
+
+The deployment platform, the build writes the files it needs, see
+[Platforms](../guide/011-deploy.md#platforms). The built-in `vercel()`, `netlify()` and `cloudflare()` are
+imported from `@mantou/gemkit/plugin`:
+
+```ts
+import { cloudflare, pluginGemkit } from '@mantou/gemkit/plugin';
+
+pluginGemkit({ adapter: cloudflare() });
+```
+
+When unset, builds on Vercel and Netlify are detected from the environment variables they set, and
+`cloudflare()` is used in Cloudflare Workers Builds or when the project root has a Wrangler config. Otherwise,
+or when `false`, Node.js is used (`gemkit start` or static hosting). Development always uses Node.js.
+
 ### `gem`
 
 - Type: `UnpluginGemOptions`
@@ -106,6 +125,7 @@ Gemkit generates into `.gemkit`:
 | ------------------ | ------------------------------------------------------------------------- |
 | `client.ts`        | The client entry, generated from the pages and prerender state.           |
 | `server.ts`        | The server entry, used by the SSR build and prerendering.                 |
+| `handler.ts`       | The function entry for the platform, when an `adapter` is used.           |
 | `routes.ts`        | The route table.                                                          |
 | `i18n.ts`          | `$gemkit/i18n`, see [i18n](../guide/009-i18n.md).                         |
 | `api.ts`           | `$gemkit/api`, see [API routes](../guide/006-api-routes.md).              |

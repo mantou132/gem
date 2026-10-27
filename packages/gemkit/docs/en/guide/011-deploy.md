@@ -56,6 +56,110 @@ The server process needs the dependencies of `@mantou/gemkit` and the app at run
 managed Node host, install production dependencies and set the working directory to the project root
 that contains `dist`.
 
+## Platforms
+
+When building on Vercel, Netlify or Cloudflare, Gemkit detects the platform and writes the files it needs,
+no server required. The platform can also be set with [`adapter`](../reference/001-config.md#adapter), such as `adapter: cloudflare()`.
+The platform serves the prerendered files as static files, and its function handles other requests
+(pages that can't be prerendered, API routes, `actions` and on-demand server elements).
+
+| Platform   | Output                                    | ISR                         |
+| ---------- | ----------------------------------------- | --------------------------- |
+| Vercel     | `.vercel/output` (Build Output API)       | Vercel's CDN cache          |
+| Netlify    | `.netlify/v1/functions`                   | Netlify's durable CDN cache |
+| Cloudflare | `dist/cloudflare/index.js` (Worker entry) | A bound KV namespace        |
+
+### Vercel
+
+The build command is `npm run build`, nothing else to configure. The function uses the Node.js runtime.
+
+### Netlify
+
+Set the static directory in `netlify.toml`:
+
+```toml
+[build]
+  command = "npm run build"
+  publish = "dist/web"
+```
+
+### Cloudflare
+
+Deploy to Workers, with Workers Static Assets for static files. Add `wrangler.jsonc` to the project root:
+
+```jsonc
+{
+  "name": "my-app",
+  "main": "dist/cloudflare/index.js",
+  "compatibility_date": "2026-03-01",
+  // gem-ssr isolates the state of each request with `AsyncLocalStorage`
+  "compatibility_flags": ["nodejs_compat"],
+  // Gemkit paths have no trailing `/`
+  "assets": { "directory": "dist/web", "html_handling": "drop-trailing-slash" },
+  // Optional, the KV used by ISR
+  "kv_namespaces": [{ "binding": "GEMKIT_CACHE", "id": "<namespace id>" }]
+}
+```
+
+Then run `npm run build` and `npx wrangler deploy`. A Worker has no file system, so server code can't read
+project files at runtime. Read them at build time (for example when prerendering), or bundle them into the
+code.
+
+### ISR
+
+- On Vercel and Netlify, the CDN caches pages that set `revalidate`: responses carry a CDN cache header with
+  `stale-while-revalidate`, so after expiry the CDN returns the old content and requests the function to
+  rerender in the background. `revalidatePath` can't purge the CDN cache, the page updates once it expires.
+- On Cloudflare with a `GEMKIT_CACHE` KV binding, pages and data files are cached like `gemkit start` does,
+  and rerendered in `waitUntil`. Without the binding every request is rendered.
+
+### Custom adapters
+
+Other platforms can implement `GemkitAdapter`, which has two parts:
+- `runtime`: the runtime module (a package name or an absolute path), bundled by the server build. It exports
+  `createHandler(renderer, template)` and returns the handler the platform needs. It usually uses
+  `createFetchHandler` from `@mantou/gemkit/handler`, which handles pages, data, forms, server elements and
+  API routes, with options for what differs between platforms: `readStatic` (read prerendered files, not
+  needed when the platform serves static files first), `isrStore` (the ISR storage) or `cdnCache` (the
+  response header when the CDN caches ISR pages). The handler takes `{ waitUntil }` as its second argument.
+- `write(ctx)`: writes the files the platform needs after the build. `ctx.handlerFile` is the function entry
+  of the server build, which has a named export `createHandler(template)`; the platform entry calls it with
+  `ctx.template`. `ctx.webDir` is the directory to serve as static files, and `ctx.cacheDir` has the files
+  prerendered at build time for pages that set `revalidate`, which a platform can use as the initial ISR cache.
+
+```ts
+// my-adapter/runtime.ts
+import { createFetchHandler } from '@mantou/gemkit/handler';
+import type { Renderer } from '@mantou/gemkit/server';
+
+export function createHandler(renderer: Renderer, template: string) {
+  return createFetchHandler(renderer, template);
+}
+```
+
+```ts
+// my-adapter/index.ts
+import fs from 'node:fs';
+import path from 'node:path';
+import type { GemkitAdapter } from '@mantou/gemkit/plugin';
+
+export const myAdapter = (): GemkitAdapter => ({
+  name: 'my-platform',
+  runtime: 'my-adapter/runtime',
+  write({ distDir, handlerFile, template }) {
+    const file = path.join(distDir, 'my-platform/server.mjs');
+    fs.mkdirSync(path.dirname(file), { recursive: true });
+    fs.writeFileSync(
+      file,
+      `import { createHandler } from ${JSON.stringify(handlerFile)};\n` +
+        `export default createHandler(${JSON.stringify(template)});\n`,
+    );
+  },
+});
+```
+
+The server build is CommonJS without split chunks, so a platform can run it directly or bundle it again.
+
 ## Incremental static regeneration
 
 Pages such as products or articles are numerous and change over time, so prerendering all of them at build
@@ -83,8 +187,8 @@ export async function load({ params }: ServerLoadContext<{ id: string }>) {
   server.
 - After a mutation, call `revalidatePath(pathname)` in an action or an API route to clear the cache, so the
   next request rerenders the page.
-- The cache is in `dist/cache` and is cleared on every build. It isn't shared between server instances,
-  and doesn't work where the file system isn't writable, such as serverless.
+- The cache is in `dist/cache` and is cleared on every build. It isn't shared between server instances.
+  Where the file system isn't writable, such as serverless, the platform's cache is used, see [ISR](#isr).
 
 Content that must be live, such as price or stock, belongs in an API route requested by the client, or in a
 server element rendered on demand.
@@ -102,6 +206,6 @@ change, so they can be cached for a long time.
 
 - Development renders every request and has HMR.
 - A production build prerenders pages and enables `process.env.GEMKIT_PRERENDER`.
-- `prerender = false` pages, ISR, API routes, `actions` and on-demand server elements need `gemkit start` or
-  another server that runs the Gemkit handler.
+- `prerender = false` pages, ISR, API routes, `actions` and on-demand server elements need `gemkit start`,
+  the function of a [platform](#platforms), or another server that runs the Gemkit handler.
 - Behavior with a query string differs between a static host and `gemkit start`, see above.
