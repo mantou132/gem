@@ -5,6 +5,8 @@ import path from 'node:path';
 export interface AdapterContext {
   /** 项目根目录 */
   rootPath: string;
+  /** 页面等源码的目录，`srcDir` 选项 */
+  srcDir: string;
   /** `dist` */
   distDir: string;
   /** 客户端资源和预渲染的文件，平台应该作为静态文件提供 */

@@ -1,7 +1,7 @@
 import path from 'node:path';
 
 import { DATA_FILE, ELEMENT_PATH, ELEMENTS_FILE, escapeHtml, getDataPath, trimTrailingSlash } from './constants';
-import type { DataFile, RouteError } from './data';
+import type { DataFile, Platform, PlatformContext, PlatformEnv, RouteError } from './data';
 import type { Renderer } from './server';
 
 /** 页面数据和页面中纯服务端元素的请求 */
@@ -18,12 +18,14 @@ export const isQueryRequest = ({ pathname, search }: URL) =>
 /** 表单提交到页面的 `actions`，地址是 `<page path>?/<name>`，有的平台（例如 Vercel）会把 `/` 编码成 `%2F` */
 export const isActionRequest = (method: string, search: string) => method === 'POST' && /^\?(\/|%2F)/i.test(search);
 
-/** 平台提供的请求上下文，serverless 平台在响应后需要 `waitUntil` 才能继续执行后台任务 */
-export interface PlatformContext {
-  waitUntil?: (promise: Promise<unknown>) => void;
-}
+/** Node.js 运行时（`gemkit start`、Vercel、Netlify）的平台上下文，环境变量是 `process.env` */
+export const createNodePlatform = (ctx: PlatformContext): Platform => ({
+  env: process.env as unknown as PlatformEnv,
+  ctx,
+});
 
-export type Handler = ((request: Request, platform?: PlatformContext) => Promise<Response>) & {
+/** `platform` 是部署平台的环境和上下文，`load`、actions、API 路由等通过 `RequestEvent` 读取 */
+export type Handler = ((request: Request, platform?: Platform) => Promise<Response>) & {
   /** 路径匹配 API 路由，开发服务器用来判断是否处理请求 */
   isEndpoint: (pathname: string) => boolean;
 };
@@ -108,13 +110,13 @@ function getRedirectHtml(location: string) {
 }
 
 /**
- * 预渲染页面，返回状态码和需要写入的文件（路径和内容），构建时和 ISR 使用
+ * 预渲染页面，返回状态码和需要写入的文件（路径和内容），构建时和 ISR 使用，ISR 时有平台上下文
  *
  * 静态托管不能响应跳转，页面使用 `<meta>` 跳转，客户端导航时从数据文件中读取跳转地址
  */
-export async function prerenderPage(renderer: Renderer, template: string, pathname: string) {
+export async function prerenderPage(renderer: Renderer, template: string, pathname: string, platform?: Platform) {
   const serverElements = new Map<string, string>();
-  const result = await renderer.renderDocument(template, pathname, { serverElements });
+  const result = await renderer.renderDocument(template, pathname, { serverElements, platform });
   const files = new Map<string, string>();
   const location = result.headers.get('location');
   if (location) {
@@ -128,7 +130,7 @@ export async function prerenderPage(renderer: Renderer, template: string, pathna
   // 客户端导航时使用的数据
   if (renderer.hasServerData(pathname)) {
     const dataPath = getDataPath(pathname);
-    files.set(dataPath, JSON.stringify((await renderer.loadData(dataPath)).body));
+    files.set(dataPath, JSON.stringify((await renderer.loadData(dataPath, platform)).body));
   }
   return { status: result.status, files };
 }
@@ -140,11 +142,11 @@ export async function prerenderPage(renderer: Renderer, template: string, pathna
  */
 function createIsr(renderer: Renderer, template: string, store: IsrStore) {
   const pending = new Map<string, Promise<Map<string, string> | undefined>>();
-  const regenerate = (page: string) => {
+  const regenerate = (page: string, platform?: Platform) => {
     let promise = pending.get(page);
     if (!promise) {
       promise = (async () => {
-        const { status, files } = await prerenderPage(renderer, template, page);
+        const { status, files } = await prerenderPage(renderer, template, page, platform);
         if (status !== 200) return;
         await store.set(files);
         return files;
@@ -157,20 +159,20 @@ function createIsr(renderer: Renderer, template: string, store: IsrStore) {
     store.delete([path.posix.join(page, 'index.html'), getDataPath(page), getDataPath(page, ELEMENTS_FILE)]),
   );
   /** 页面或者数据文件的内容，页面不使用 ISR 或者不能缓存时为 `undefined` */
-  return async (pathname: string, platform?: PlatformContext) => {
+  return async (pathname: string, platform?: Platform) => {
     const { page, file } = getPageFile(pathname);
     const revalidate = await renderer.getRevalidate(page);
     if (revalidate === undefined) return;
     const cached = await store.get(file);
     if (!cached) {
       // 渲染出错时由服务端渲染错误页面，并交给 `handleError`
-      if (!(await renderer.canPrerender(page))) return;
-      return (await regenerate(page).catch(() => undefined))?.get(file);
+      if (!(await renderer.canPrerender(page, platform))) return;
+      return (await regenerate(page, platform).catch(() => undefined))?.get(file);
     }
     // 先返回旧内容再在后台重新渲染
     if (Date.now() - cached.time > revalidate * 1000) {
-      const task = regenerate(page).catch((err) => console.error(err));
-      platform?.waitUntil?.(task);
+      const task = regenerate(page, platform).catch((err) => console.error(err));
+      platform?.ctx.waitUntil(task);
     }
     return cached.content;
   };
@@ -185,7 +187,7 @@ export function createFetchHandler(
   const trustedOrigin = origin && new URL(origin).origin;
   const readIsr = isrStore ? createIsr(renderer, template, isrStore) : undefined;
   // 带查询参数的请求不使用预渲染和 ISR 的文件
-  const readPrerendered = async (url: URL, platform?: PlatformContext) => {
+  const readPrerendered = async (url: URL, platform?: Platform) => {
     if (isQueryRequest(url)) return;
     return (await readStatic?.(getPageFile(url.pathname).file)) || readIsr?.(url.pathname, platform);
   };
@@ -196,33 +198,33 @@ export function createFetchHandler(
     if (revalidate !== undefined) response.headers.set(...cdnCache(revalidate));
     return response;
   };
-  const renderHtml = async (request: Request, error?: RouteError) => {
-    const { status, headers, html } = await renderer.renderDocument(template, request, { error });
+  const renderHtml = async (request: Request, platform?: Platform, error?: RouteError) => {
+    const { status, headers, html } = await renderer.renderDocument(template, request, { error, platform });
     headers.set('content-type', HTML_TYPE);
     return new Response(toStream(html), { status, headers });
   };
-  const handler = async (input: Request, platform?: PlatformContext) => {
+  const handler = async (input: Request, platform?: Platform) => {
     const request = trustedOrigin ? withOrigin(input, trustedOrigin) : input;
     const url = new URL(request.url);
     const { pathname } = url;
     if (pathname === ELEMENT_PATH) {
       if (isCrossSite(request, url)) return new Response(null, { status: 403 });
-      const { status, headers, html } = await renderer.renderElements(request);
+      const { status, headers, html } = await renderer.renderElements(request, platform);
       return Response.json(html, { status, headers });
     }
     if (renderer.matchEndpoint(pathname)) {
       // 跨站的 JSON 请求需要预检，由 CORS 限制，没有 `Origin` 的请求（例如 webhook）不受影响
       if (isFormRequest(request) && isCrossSite(request, url)) return new Response(null, { status: 403 });
-      return renderer.runEndpoint(request);
+      return renderer.runEndpoint(request, platform);
     }
     if (isActionRequest(request.method, url.search)) {
       if (isCrossSite(request, url)) return new Response(null, { status: 403 });
-      const { headers, result } = await renderer.runAction(request);
+      const { headers, result } = await renderer.runAction(request, platform);
       if (!result) return new Response(null, { status: 404, headers });
       // `submitAction` 提交时返回结果，原生表单提交时跳转到 `redirect` 的地址或者当前页面，出错时渲染错误页面
       if (request.headers.get('accept') === 'application/json') return Response.json(result, { headers });
       if (result.type === 'error') {
-        const page = await renderHtml(request, result.error);
+        const page = await renderHtml(request, platform, result.error);
         for (const cookie of headers.getSetCookie()) page.headers.append('set-cookie', cookie);
         return page;
       }
@@ -234,12 +236,12 @@ export function createFetchHandler(
       if (body) return new Response(body, { headers: { 'content-type': 'application/json' } });
       // 没有预渲染的页面客户端使用 `ELEMENT_PATH` 渲染，开启预渲染时导航总会请求，避免 404
       if (pathname.endsWith(ELEMENTS_FILE)) return setCdnCache(url, Response.json({}));
-      const { status, headers, body: file } = await renderer.loadData(request);
+      const { status, headers, body: file } = await renderer.loadData(request, platform);
       return setCdnCache(url, Response.json(file, { status, headers }));
     }
     const body = await readPrerendered(url, platform);
     if (body) return new Response(body, { headers: { 'content-type': HTML_TYPE } });
-    return setCdnCache(url, await renderHtml(request));
+    return setCdnCache(url, await renderHtml(request, platform));
   };
   return Object.assign(handler, { isEndpoint: (pathname: string) => !!renderer.matchEndpoint(pathname) });
 }

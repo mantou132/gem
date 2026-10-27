@@ -26,13 +26,14 @@ export async function handle(event: RequestEvent) {
 }
 ```
 
-| 字段      | 说明                                                                 |
-| --------- | -------------------------------------------------------------------- |
-| `url`     | 页面的 URL，包含语言前缀。                                           |
-| `path`    | 不包含语言前缀的页面路径，和路由匹配的路径一致。                     |
-| `request` | 当前的 `Request`，预渲染时不可用。                                   |
-| `cookies` | 请求的 cookie，预渲染时不可用。                                      |
-| `locals`  | 同一个请求中，和 `load`、`actions`、API 路由、服务端元素共享的数据。 |
+| 字段       | 说明                                                                          |
+| ---------- | ----------------------------------------------------------------------------- |
+| `url`      | 页面的 URL，包含语言前缀。                                                    |
+| `path`     | 不包含语言前缀的页面路径，和路由匹配的路径一致。                              |
+| `request`  | 当前的 `Request`，预渲染时不可用。                                            |
+| `cookies`  | 请求的 cookie，预渲染时不可用。                                               |
+| `locals`   | 同一个请求中，和 `load`、`actions`、API 路由、服务端元素共享的数据。          |
+| `platform` | 部署平台的环境变量、绑定和 `waitUntil`，见[平台](#平台)。构建时预渲染时没有。 |
 
 按路径检查时使用 `path`，不要使用 `url.pathname`。`__data.json` 和服务端元素的请求也使用页面 URL。
 
@@ -54,12 +55,44 @@ export const load = ({ locals }: ServerLoadContext) => ({ user: locals.user });
 
 ## getRequestEvent
 
-`getRequestEvent()` 返回当前的 `{ url, path, request, cookies, locals }`。它属于当前请求，
+`getRequestEvent()` 返回当前的 `{ url, path, request, cookies, locals, platform }`。它属于当前请求，
 在服务端请求之外调用会抛出错误。服务端元素等没有参数的服务端代码可以使用它：
 
 ```ts
 const { locals } = getRequestEvent();
 ```
+
+## 平台
+
+`platform` 是部署平台提供的 `{ env, ctx }`，`handle`、`load`、`actions`、API 路由和服务端元素都可以读取：
+
+| 平台                 | `env`                                   | `ctx`                                  |
+| -------------------- | --------------------------------------- | -------------------------------------- |
+| Cloudflare           | Worker 的 `env`，包括 KV、D1、AI 等绑定 | `ExecutionContext`                     |
+| Netlify              | `process.env`                           | Netlify 的 `Context`                   |
+| Vercel               | `process.env`                           | 只有 `waitUntil`                       |
+| `gemkit start`、开发 | `process.env`                           | 只有 `waitUntil`，进程不会在响应后退出 |
+
+`ctx.waitUntil(promise)` 在响应后继续执行后台任务，例如记录日志、写入统计。
+`env` 的类型是空接口 `PlatformEnv`，使用 `declare module` 声明：
+
+```ts
+// src/app.server.ts
+declare module '@mantou/gemkit' {
+  interface PlatformEnv {
+    DB: D1Database;
+    AI: Ai;
+  }
+}
+
+// src/pages/posts/[id].server.ts
+export async function load({ params, platform }: ServerLoadContext<{ id: string }>) {
+  return platform!.env.DB.prepare('SELECT * FROM posts WHERE id = ?').bind(params.id).first();
+}
+```
+
+构建时预渲染没有平台上下文，`platform` 为 `undefined`；需要它的页面导出 `prerender = false`，
+或者使用 [ISR](./011-deploy.md#增量静态再生成)，ISR 在请求中渲染时使用该请求的 `platform`。
 
 ## 错误和跳转
 

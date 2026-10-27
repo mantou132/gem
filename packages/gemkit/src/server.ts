@@ -18,6 +18,7 @@ import {
   getRequestEvent,
   getServerModule,
   HttpError,
+  type Platform,
   Redirect,
   type RequestMethod,
   type RouteData,
@@ -98,8 +99,12 @@ export function createRenderer({
       info.server ? [{ tag: info.tag, params: info.layout ? getLayoutParams(params) : params }] : [],
     );
 
-  /** 设置当前请求，返回请求的 URL 和请求中设置的 cookie，预渲染时 `input` 是路径，没有请求 */
-  const setRequest = (input: Request | string) => {
+  /**
+   * 设置当前请求和平台上下文，返回请求的 URL 和请求中设置的 cookie，预渲染时 `input` 是路径，没有请求，
+   * ISR 在后台预渲染时也有平台上下文
+   */
+  const setRequest = (input: Request | string, platform?: Platform) => {
+    requestState.platform = platform;
     if (typeof input === 'string') return { url: new URL(input, 'http://localhost'), setCookies: [] };
     const { cookies, setCookies } = createCookies(input);
     requestState.request = input;
@@ -141,9 +146,9 @@ export function createRenderer({
    * 客户端只在有服务端模块时请求，没有 `load`（例如只有 `actions`）时数据为空对象，
    * 出错时其他路由的数据仍然可以使用，例如 layout 的数据
    */
-  const loadData = (input: Request | string) =>
+  const loadData = (input: Request | string, platform?: Platform) =>
     runInRequest(async (): Promise<{ status: number; headers: Headers; body: DataFile | null }> => {
-      const { url, setCookies } = setRequest(input);
+      const { url, setCookies } = setRequest(input, platform);
       const pagePathname = url.pathname.slice(0, -DATA_FILE.length - 1) || '/';
       const { path } = await setLanguage(pagePathname);
       const pageUrl = new URL(`${url.origin}${pagePathname}${url.search}`);
@@ -192,9 +197,9 @@ export function createRenderer({
    * 处理页面的表单提交 `POST <page path>?/<name>`，action 可以在页面或者 layout 中，参数和 `load` 的一样，
    * 没有对应的 action 时结果为 `null`，出错时错误页面渲染在 action 所在的页面或 layout 的位置
    */
-  const runAction = (request: Request) =>
+  const runAction = (request: Request, platform?: Platform) =>
     runInRequest(async () => {
-      const { url, setCookies } = setRequest(request);
+      const { url, setCookies } = setRequest(request, platform);
       const name = [...url.searchParams.keys()].find((key) => key.startsWith('/'))?.slice(1);
       const { path } = await setLanguage(url.pathname);
       const found = name === undefined ? undefined : await findAction(path, name);
@@ -217,9 +222,9 @@ export function createRenderer({
    * 渲染页面中的纯服务端元素，请求体是 `{ url, elements }`，`url` 是页面的路径，
    * 返回元素的 HTML，顺序和 `elements` 一致，跳转时为 `null`，响应头中有跳转的地址，`handle` 出错时为 `null`
    */
-  const renderElements = (request: Request) =>
+  const renderElements = (request: Request, platform?: Platform) =>
     runInRequest(async (): Promise<{ status: number; headers: Headers; html: string[] | null }> => {
-      const { url, setCookies } = setRequest(request);
+      const { url, setCookies } = setRequest(request, platform);
       const body: { url: string; elements: ServerElementParams[] } = await request.json();
       const { pathname, search } = new URL(body.url, url);
       const { path } = await setLanguage(pathname);
@@ -267,9 +272,9 @@ export function createRenderer({
    * `redirect` 响应跳转（`$gemkit/api` 的请求响应 `REDIRECT_HEADER`），`error` 响应 JSON 格式的错误，
    * 没有对应的请求方法时为 405
    */
-  const runEndpoint = (request: Request) =>
+  const runEndpoint = (request: Request, platform?: Platform) =>
     runInRequest(async (): Promise<Response> => {
-      const { url, setCookies } = setRequest(request);
+      const { url, setCookies } = setRequest(request, platform);
       const matched = matchEndpoint(url.pathname);
       if (!matched) return new Response(null, { status: 404 });
       const { endpoint, params, path } = matched;
@@ -314,11 +319,15 @@ export function createRenderer({
   const renderDocument = (
     template: string,
     input: Request | string,
-    { serverElements, error }: Pick<RenderOptions, 'serverElements'> & { error?: RouteError } = {},
+    {
+      serverElements,
+      error,
+      platform,
+    }: Pick<RenderOptions, 'serverElements'> & { error?: RouteError; platform?: Platform } = {},
   ) =>
     // 每个请求有独立的 history、i18n、store 和 `requestState`
     runInRequest(async (): Promise<RenderResult> => {
-      const { url, setCookies } = setRequest(input);
+      const { url, setCookies } = setRequest(input, platform);
       const { lang, path } = await setLanguage(url.pathname);
       const redirectTo = ({ status, location }: Redirect) => ({
         status,
@@ -390,8 +399,9 @@ export function createRenderer({
    * 路径匹配的 layout 和页面的服务端模块都没有设置 `prerender = false`，
    * 并且 `handle` 没有读取 `request`、`cookies`，也没有跳转或者出错，例如需要登录的页面
    */
-  const canPrerender = (pathname: string) =>
+  const canPrerender = (pathname: string, platform?: Platform) =>
     runInRequest(async () => {
+      requestState.platform = platform;
       const { path } = split(pathname);
       const modules = await Promise.all(findServerRoutes(path).map(({ tag }) => getServerModule(tag)));
       if (modules.some((mod) => mod?.prerender === false)) return false;
@@ -432,7 +442,7 @@ export function createRenderer({
       // 没有前缀的路径输出跳转页面，静态托管时也能跳转到默认语言
       if (prefixDefaultLanguage && lang === defaultLanguage) localized.push(...paths);
     }
-    const allowed = await Promise.all(localized.map(canPrerender));
+    const allowed = await Promise.all(localized.map((path) => canPrerender(path)));
     return localized.filter((_, index) => allowed[index]);
   };
 

@@ -26,13 +26,14 @@ export async function handle(event: RequestEvent) {
 }
 ```
 
-| Field     | Description                                                                             |
-| --------- | --------------------------------------------------------------------------------------- |
-| `url`     | The page URL, including the language prefix.                                            |
-| `path`    | The page path without the language prefix, matched by the routes.                       |
-| `request` | The current `Request`. Not available when prerendering.                                 |
-| `cookies` | The request cookies. Not available when prerendering.                                   |
-| `locals`  | Data shared with `load`, `actions`, API routes and server elements in the same request. |
+| Field      | Description                                                                                                                                |
+| ---------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| `url`      | The page URL, including the language prefix.                                                                                               |
+| `path`     | The page path without the language prefix, matched by the routes.                                                                          |
+| `request`  | The current `Request`. Not available when prerendering.                                                                                    |
+| `cookies`  | The request cookies. Not available when prerendering.                                                                                      |
+| `locals`   | Data shared with `load`, `actions`, API routes and server elements in the same request.                                                    |
+| `platform` | Environment variables, bindings and `waitUntil` of the platform, see [Platform](#platform). Not available when prerendering at build time. |
 
 Use `path` rather than `url.pathname` for route checks. `url` is the page URL, also for
 `__data.json` and server element requests.
@@ -60,13 +61,47 @@ export const load = ({ locals }: ServerLoadContext) => ({ user: locals.user });
 
 ## getRequestEvent
 
-`getRequestEvent()` returns the current `{ url, path, request, cookies, locals }`. It is scoped to the
+`getRequestEvent()` returns the current `{ url, path, request, cookies, locals, platform }`. It is scoped to the
 current request and throws outside a server request. Use it in server elements and other server-only
 code that doesn't receive the context as an argument:
 
 ```ts
 const { locals } = getRequestEvent();
 ```
+
+## Platform
+
+`platform` is the `{ env, ctx }` provided by the deployment platform. `handle`, `load`, `actions`, API
+routes and server elements can all read it:
+
+| Platform            | `env`                                                     | `ctx`                                                          |
+| ------------------- | --------------------------------------------------------- | -------------------------------------------------------------- |
+| Cloudflare          | The Worker `env`, including KV, D1, AI and other bindings | `ExecutionContext`                                             |
+| Netlify             | `process.env`                                             | The Netlify `Context`                                          |
+| Vercel              | `process.env`                                             | Only `waitUntil`                                               |
+| `gemkit start`, dev | `process.env`                                             | Only `waitUntil`, the process keeps running after the response |
+
+`ctx.waitUntil(promise)` keeps a background task running after the response, for example logging or
+analytics. The type of `env` is the empty interface `PlatformEnv`, extend it with `declare module`:
+
+```ts
+// src/app.server.ts
+declare module '@mantou/gemkit' {
+  interface PlatformEnv {
+    DB: D1Database;
+    AI: Ai;
+  }
+}
+
+// src/pages/posts/[id].server.ts
+export async function load({ params, platform }: ServerLoadContext<{ id: string }>) {
+  return platform!.env.DB.prepare('SELECT * FROM posts WHERE id = ?').bind(params.id).first();
+}
+```
+
+Prerendering at build time has no platform, so `platform` is `undefined`. Pages that need it export
+`prerender = false` or use [ISR](./011-deploy.md#incremental-static-regeneration), which renders with the
+`platform` of the request that triggers it.
 
 ## Errors and redirects
 

@@ -109,6 +109,35 @@ npm run start
 然后执行 `npm run build` 和 `npx wrangler deploy`。Worker 中没有文件系统，服务端代码不能在运行时读取项目中的文件，
 需要在构建时读取（例如预渲染），或者打包到代码中。
 
+Worker 的 `env`（KV、D1、AI、Vectorize 等绑定）和 `ctx` 通过 [`platform`](./007-request.md#平台) 传给
+`handle`、`load`、`actions`、API 路由和服务端元素。
+
+Worker 的其他导出写在 `src/worker.ts` 中，构建时合并到 Worker 入口：
+- 默认导出的处理函数（例如 `scheduled`、`queue`）合并到 Worker 的默认导出，`fetch` 由 Gemkit 处理。
+- 其他导出（例如 Durable Object、Workflow 类）原样导出，在 `wrangler.jsonc` 中绑定。
+
+```ts
+// src/worker.ts
+import { DurableObject } from 'cloudflare:workers';
+
+export class Counter extends DurableObject {
+  async increment() {
+    const value = ((await this.ctx.storage.get<number>('value')) || 0) + 1;
+    await this.ctx.storage.put('value', value);
+    return value;
+  }
+}
+
+export default {
+  async scheduled(controller, env, ctx) {
+    ctx.waitUntil(cleanup(env));
+  },
+} satisfies ExportedHandler<Env>;
+```
+
+`src/worker.ts` 由 Wrangler 打包，不经过 Rsbuild，所以可以导入 `cloudflare:workers`，但没有 Gem 的编译和自动导入，
+也和应用的服务端代码是不同的模块实例。
+
 ### ISR
 
 - Vercel 和 Netlify 由 CDN 缓存设置了 `revalidate` 的页面：响应带有 `stale-while-revalidate` 的 CDN 缓存头，
@@ -123,9 +152,9 @@ npm run start
   返回平台需要的处理函数。一般使用 `@mantou/gemkit/handler` 的 `createFetchHandler`，
   它处理页面、数据、表单、服务端元素和 API 路由的请求，参数提供平台的差异：
   `readStatic`（读取预渲染的文件，平台优先提供静态文件时不需要）、`isrStore`（ISR 的存储）
-  或者 `cdnCache`（ISR 使用 CDN 缓存时的响应头）。处理函数的第二个参数可以传入 `{ waitUntil }`。
+  或者 `cdnCache`（ISR 使用 CDN 缓存时的响应头）。处理函数的第二个参数是平台的 [`{ env, ctx }`](./007-request.md#平台)。
 - `write(ctx)`：构建后输出平台需要的文件。`ctx.handlerFile` 是服务端构建的函数入口，它命名导出
-  `createHandler(template)`，平台的入口用 `ctx.template` 调用它。`ctx.webDir` 是需要作为静态文件提供的目录，
+  `createHandler(template)`，平台的入口用 `ctx.template` 调用它。`ctx.webDir` 是需要作为静态文件提供的目录，`ctx.srcDir` 是源码目录，
   `ctx.cacheDir` 是设置了 `revalidate` 的页面在构建时预渲染的文件，平台支持时可以作为 ISR 的初始缓存。
 
 ```ts

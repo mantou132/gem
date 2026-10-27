@@ -1,4 +1,5 @@
-import { createFetchHandler, type Handler, type IsrStore, type PlatformContext } from '../../handler';
+import type { PlatformContext, PlatformEnv } from '../../data';
+import { createFetchHandler, type Handler, type IsrStore } from '../../handler';
 import type { Renderer } from '../../server';
 
 /** Cloudflare KV 中使用的部分 */
@@ -30,16 +31,17 @@ export interface CloudflareEnv {
 
 /**
  * Cloudflare Workers，静态文件由 Workers Static Assets 提供，
- * Worker 的 Cache API 在 `workers.dev` 上不可用，所以 ISR 使用 KV
+ * Worker 的 Cache API 在 `workers.dev` 上不可用，所以 ISR 使用 KV；
+ * `platform` 是 Worker 的 `env`（绑定）和 `ctx`（`ExecutionContext`）
  */
 export function createHandler(renderer: Renderer, template: string) {
   // KV 只能在请求中从 `env` 获取
   let handler: Handler | undefined;
   return {
-    fetch(request: Request, env: CloudflareEnv, ctx: Required<PlatformContext>) {
+    fetch(request: Request, env: CloudflareEnv & PlatformEnv, ctx: PlatformContext) {
       const kv = env.GEMKIT_CACHE;
       handler ||= createFetchHandler(renderer, template, { isrStore: kv && createKvStore(kv) });
-      return handler(request, ctx);
+      return handler(request, { env, ctx });
     },
   };
 }

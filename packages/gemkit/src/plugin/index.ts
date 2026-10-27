@@ -24,7 +24,7 @@ import {
   getSrcDir,
   SRC_ALIAS,
 } from './codegen';
-import { createRequestHandler, getDistPaths, loadHandler, loadRenderer, writeFiles } from './serve';
+import { createRequestHandler, getDistPaths, loadHandler, loadRenderer, nodePlatform, writeFiles } from './serve';
 
 export { cloudflare } from '../adapters/cloudflare';
 export { netlify } from '../adapters/netlify';
@@ -108,7 +108,7 @@ const ssrMiddleware =
       const handler = await getHandler();
       if (!isSSR && !handler.isEndpoint(pathname)) return next();
       // 转换成 `Request` 和 `Response`，不替换全局的 `Request` 和 `Response`
-      const listener = getRequestListener((request) => handler(request), {
+      const listener = getRequestListener((request) => handler(request, nodePlatform), {
         overrideGlobalObjects: false,
         errorHandler: next,
       });
@@ -301,6 +301,7 @@ export function pluginGemkit(options: GemkitOptions = {}): RsbuildPlugin {
           const handlerFile = path.join(serverDir, 'handler.js');
           await adapter.write({
             rootPath,
+            srcDir,
             distDir,
             webDir,
             serverDir,

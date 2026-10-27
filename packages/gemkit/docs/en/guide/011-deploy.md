@@ -118,6 +118,37 @@ Then run `npm run build` and `npx wrangler deploy`. A Worker has no file system,
 project files at runtime. Read them at build time (for example when prerendering), or bundle them into the
 code.
 
+The Worker `env` (KV, D1, AI, Vectorize and other bindings) and `ctx` are passed to `handle`, `load`,
+`actions`, API routes and server elements as [`platform`](./007-request.md#platform).
+
+Other Worker exports go in `src/worker.ts`, which is merged into the Worker entry at build time:
+- Handlers in its default export (for example `scheduled`, `queue`) are merged into the Worker default
+  export. `fetch` is handled by Gemkit.
+- Other exports (for example Durable Object and Workflow classes) are exported as is; bind them in
+  `wrangler.jsonc`.
+
+```ts
+// src/worker.ts
+import { DurableObject } from 'cloudflare:workers';
+
+export class Counter extends DurableObject {
+  async increment() {
+    const value = ((await this.ctx.storage.get<number>('value')) || 0) + 1;
+    await this.ctx.storage.put('value', value);
+    return value;
+  }
+}
+
+export default {
+  async scheduled(controller, env, ctx) {
+    ctx.waitUntil(cleanup(env));
+  },
+} satisfies ExportedHandler<Env>;
+```
+
+`src/worker.ts` is bundled by Wrangler, not Rsbuild, so it can import `cloudflare:workers`, but it has no
+Gem compilation or auto imports, and its modules are separate instances from the app server code.
+
 ### ISR
 
 - On Vercel and Netlify, the CDN caches pages that set `revalidate`: responses carry a CDN cache header with
@@ -134,10 +165,10 @@ Other platforms can implement `GemkitAdapter`, which has two parts:
   `createFetchHandler` from `@mantou/gemkit/handler`, which handles pages, data, forms, server elements and
   API routes, with options for what differs between platforms: `readStatic` (read prerendered files, not
   needed when the platform serves static files first), `isrStore` (the ISR storage) or `cdnCache` (the
-  response header when the CDN caches ISR pages). The handler takes `{ waitUntil }` as its second argument.
+  response header when the CDN caches ISR pages). The handler takes the platform [`{ env, ctx }`](./007-request.md#platform) as its second argument.
 - `write(ctx)`: writes the files the platform needs after the build. `ctx.handlerFile` is the function entry
   of the server build, which has a named export `createHandler(template)`; the platform entry calls it with
-  `ctx.template`. `ctx.webDir` is the directory to serve as static files, and `ctx.cacheDir` has the files
+  `ctx.template`. `ctx.webDir` is the directory to serve as static files, `ctx.srcDir` is the source directory, and `ctx.cacheDir` has the files
   prerendered at build time for pages that set `revalidate`, which a platform can use as the initial ISR cache.
 
 ```ts

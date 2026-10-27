@@ -6,8 +6,21 @@ import { serve } from '@hono/node-server';
 import { serveStatic } from '@hono/node-server/serve-static';
 import { Hono } from 'hono';
 
-import { createFetchHandler, type Handler, type HandlerOptions, type IsrStore, isQueryRequest } from '../handler';
+import type { Platform } from '../data';
+import {
+  createFetchHandler,
+  createNodePlatform,
+  type Handler,
+  type HandlerOptions,
+  type IsrStore,
+  isQueryRequest,
+} from '../handler';
 import type { Renderer } from '../server';
+
+/** 开发服务器和 `gemkit start` 的平台上下文，进程在响应后不会退出，后台任务只需要记录错误 */
+export const nodePlatform: Platform = createNodePlatform({
+  waitUntil: (promise) => void promise.catch((err) => console.error(err)),
+});
 
 export const getDistPaths = (distDir: string) => ({
   webDir: path.join(distDir, 'web'),
@@ -123,6 +136,6 @@ export async function start({
   const app = new Hono();
   const assets = serveStatic({ root: path.relative(process.cwd(), getDistPaths(distDir).webDir) });
   app.use('/*', (ctx, next) => (isQueryRequest(new URL(ctx.req.url)) ? next() : assets(ctx, next)));
-  app.all('*', (ctx) => handler(ctx.req.raw));
+  app.all('*', (ctx) => handler(ctx.req.raw, nodePlatform));
   serve({ fetch: app.fetch, port }, ({ port }) => console.log(`gemkit: listening on http://localhost:${port}/`));
 }

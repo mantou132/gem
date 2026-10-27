@@ -33,6 +33,27 @@ export interface Cookies {
 // biome-ignore lint/suspicious/noEmptyInterface: 由项目扩展
 export interface Locals {}
 
+/**
+ * 部署平台的环境变量和绑定，例如 Cloudflare 的 KV、D1、AI，
+ * 使用 `declare module '@mantou/gemkit'` 声明类型
+ */
+// biome-ignore lint/suspicious/noEmptyInterface: 由项目扩展
+export interface PlatformEnv {}
+
+/** 部署平台的请求上下文，使用 `declare module '@mantou/gemkit'` 声明平台提供的其他字段 */
+export interface PlatformContext {
+  /** 响应后继续执行后台任务，serverless 平台需要它才不会在响应后中止 */
+  waitUntil(promise: Promise<unknown>): void;
+}
+
+/** 部署平台提供的环境和上下文 */
+export interface Platform {
+  /** Cloudflare 是 Worker 的 `env`，其他平台是 `process.env` */
+  env: PlatformEnv;
+  /** Cloudflare 是 `ExecutionContext`，Netlify 是 `Context`，Node.js 和 Vercel 只有 `waitUntil` */
+  ctx: PlatformContext;
+}
+
 export interface RequestEvent {
   /** 页面的 URL，包含语言前缀 */
   url: URL;
@@ -43,6 +64,8 @@ export interface RequestEvent {
   /** 当前请求的 cookie，和 `request` 一样预渲染时不可用 */
   cookies: Cookies;
   locals: Locals;
+  /** 部署平台的环境和上下文，构建时预渲染时没有 */
+  platform?: Platform;
 }
 
 export interface ServerLoadContext<P extends Params = Params> extends RequestEvent {
@@ -231,6 +254,8 @@ export const requestState = isolate<{
   /** 预渲染时没有 */
   request?: Request;
   cookies?: Cookies;
+  /** 构建时预渲染时没有 */
+  platform?: Platform;
   /** 页面的 URL 和不包含语言前缀的路径，执行 `handle` 前设置 */
   url?: URL;
   path?: string;
@@ -344,6 +369,7 @@ function createRequestEvent<T extends object>(hint: string, extra: T): RequestEv
     url,
     path: path!,
     locals: locals!,
+    platform: requestState.platform,
     get request() {
       return get('request');
     },
