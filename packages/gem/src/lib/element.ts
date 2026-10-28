@@ -13,11 +13,12 @@ export { createRef, mathml, svg, TemplateResult } from './lit-html';
 export * from './reactive';
 export { repeat } from './repeat';
 
+type HookExports = typeof reactiveExports & typeof decoratorsExports & typeof storeExports & typeof versionExports;
+
 declare global {
-  var __GEM_DEVTOOLS__HOOK__:
-    | (typeof reactiveExports & typeof decoratorsExports & typeof storeExports & typeof versionExports)
-    | Record<string, never>
-    | undefined;
+  /** devtools 注入的钩子，其他包可以扩展，例如 gem-ssr */
+  interface GemDevToolsHook extends HookExports {}
+  var __GEM_DEVTOOLS__HOOK__: GemDevToolsHook | Record<string, never> | undefined;
 }
 
 // 只记录第一次定义，往往是最外层 App

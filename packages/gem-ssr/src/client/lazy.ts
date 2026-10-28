@@ -16,8 +16,8 @@ export interface LazyOptions {
 // 用户交互时加载延时视图元素，加载后重放触发加载的事件
 const INTERACTION_EVENTS = ['pointerdown', 'click', 'focusin', 'keydown', 'input'];
 
-const lazyElements = new Map<string, { load: () => Promise<unknown>; on: NonNullable<LazyOptions['on']> }>();
-const loading = new Map<string, Promise<unknown>>();
+export const lazyElements = new Map<string, { load: () => Promise<unknown>; on: NonNullable<LazyOptions['on']> }>();
+export const loading = new Map<string, Promise<unknown>>();
 
 function loadElement(tag: string) {
   if (!loading.has(tag)) loading.set(tag, lazyElements.get(tag)!.load());

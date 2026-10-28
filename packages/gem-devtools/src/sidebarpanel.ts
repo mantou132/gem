@@ -5,6 +5,7 @@ import { devtools } from 'webextension-polyfill';
 import { execution } from './common';
 import { getDomStat } from './scripts/dom-stat';
 import { getSelectedGem } from './scripts/get-gem';
+import { getSelectedSSR } from './scripts/ssr';
 import { PanelStore, panelStore } from './store';
 import { theme } from './theme';
 
@@ -13,11 +14,12 @@ import './modules/panel';
 async function updateElementProperties() {
   try {
     const result = await execution(getSelectedGem, [new PanelStore()]);
+    const ssrStatus = await execution(getSelectedSSR, []);
     if (typeof result !== 'string') {
-      panelStore(result);
+      panelStore({ ...result, ssrStatus });
     } else {
       logger.info(result);
-      panelStore(await execution(getDomStat, [new PanelStore({ isGemElement: false })]));
+      panelStore({ ...(await execution(getDomStat, [new PanelStore({ isGemElement: false })])), ssrStatus });
     }
   } catch (err) {
     logger.error(err);

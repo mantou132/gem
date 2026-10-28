@@ -12,6 +12,7 @@ const lightTheme = {
   objectValueColor: '#75bfff',
   functionValueColor: '#75bfff',
   elementValueColor: '#ba77b4',
+  warningColor: '#f29d38',
 };
 const darkTheme = {
   backgroundColorRGB: '25,25,25',

@@ -162,6 +162,25 @@ function hasRawTextBinding(template: any) {
   return result;
 }
 
+export interface HydrationMismatch {
+  /** 由客户端重新渲染的内容所在的节点 */
+  node: Node;
+  reason: 'template' | 'raw-text';
+  /** 客户端的模板 */
+  template: string;
+}
+
+/** 水合了服务端内容的渲染容器（ShadowRoot 或者 light DOM 元素），值是其中和服务端不一致的位置 */
+export const hydrated = new WeakMap<Node, HydrationMismatch[]>();
+
+// 正在水合的容器中和服务端不一致的位置
+let mismatches: HydrationMismatch[] = [];
+
+function clearMismatch(part: ChildPart, value: TemplateResult, reason: HydrationMismatch['reason']) {
+  mismatches.push({ node: part.parentNode, reason, template: value.strings.join('${…}') });
+  (part as any)._$clear();
+}
+
 // 根据 SSR 内容预先设置 `_$committedValue`，后面渲染时就会复用现有节点
 function hydrateChildPart(part: ChildPart, value: unknown, indexedNode: IndexedNode) {
   if (value instanceof TemplateResult) {
@@ -169,14 +188,14 @@ function hydrateChildPart(part: ChildPart, value: unknown, indexedNode: IndexedN
     // 移除服务端的内容，由客户端渲染
     if (!(part.startNode as Comment).data.endsWith(`#${getTemplateDigest(value)}`)) {
       console.warn('gem-ssr: hydration template mismatch', part.parentNode);
-      (part as any)._$clear();
+      clearMismatch(part, value, 'template');
       return;
     }
     const template = (part as any)._$getTemplate(value);
     // raw-text 元素中的绑定在 SSR 内容中没有 marker，节点索引对不上，也由客户端渲染
     if (hasRawTextBinding(template)) {
       console.warn('gem-ssr: bindings inside raw-text elements cannot be hydrated', part.parentNode);
-      (part as any)._$clear();
+      clearMismatch(part, value, 'raw-text');
       return;
     }
     part._$committedValue = buildInstance(template, part, value.values, indexedNode.childIndexMap!);
@@ -251,7 +270,9 @@ export function hydrateContainer(result: TemplateResult, container: HTMLElement 
   while (container.firstChild !== rootStartNode) container.firstChild!.remove();
   const rootPart = new ChildPart(rootStartNode, null, undefined, {});
   (container as any)._$litPart$ = rootPart;
+  mismatches = [];
   hydrateChildPart(rootPart, result, { node: container, childIndexMap: buildNodeIndexMap(container) });
+  hydrated.set(container, mismatches);
   // 绑定事件、设置 property、移除隐藏的分支
   rootPart._$setValue(result);
   pendingElements.get(container)?.forEach((connect, ele) => {

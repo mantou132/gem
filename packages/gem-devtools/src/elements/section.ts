@@ -162,6 +162,9 @@ export const style = css`
   .element {
     color: ${theme.elementValueColor};
   }
+  .warning {
+    color: ${theme.warningColor};
+  }
 `;
 
 @customElement('devtools-section')

@@ -7,6 +7,10 @@ import { SSR_STATE, ssrContext } from '../decorators';
 import { deferConnect, hydrateContainer } from './hydration';
 import { observeLazyRoot } from './lazy';
 
+import './devtools';
+
+export type { SSRDevToolsHook } from './devtools';
+export type { HydrationMismatch } from './hydration';
 export { defineLazy, type LazyOptions } from './lazy';
 export { GemServerElement, setServerElementLoader } from './server-element';
 

@@ -3,6 +3,7 @@ import { adoptedStyle, connectStore, css, customElement, GemElement, html, shado
 import { panelStore } from '../store';
 
 import '../elements/section';
+import '../elements/ssr';
 import '../elements/statistics';
 import '../elements/header';
 
@@ -27,6 +28,7 @@ export class Panel extends GemElement {
       <devtools-header>
         ${panelStore.isGemElement ? panelStore.gemVersion : 'Not a GemElement, page stats:'}
       </devtools-header>
+      <devtools-ssr v-if=${!!panelStore.ssrStatus} .status=${panelStore.ssrStatus}></devtools-ssr>
       ${
         panelStore.isGemElement
           ? html`
@@ -54,6 +56,23 @@ export class Panel extends GemElement {
             <devtools-section name="Class Static Member" .items=${panelStore.staticMember}></devtools-section>
           `
           : html`
+            ${
+              panelStore.ssr
+                ? html`
+              <devtools-statistics
+                name="Hydration Mismatches"
+                warning
+                .data=${panelStore.mismatchElements}
+              ></devtools-statistics>
+              <devtools-statistics name="Hydrated Elements" .data=${panelStore.hydratedElements}></devtools-statistics>
+              <devtools-statistics name="Server Only Elements" .data=${panelStore.serverElements}></devtools-statistics>
+              <devtools-statistics
+                name="Lazy Elements (JS Not Loaded)"
+                .data=${panelStore.lazyElements}
+              ></devtools-statistics>
+                `
+                : ''
+            }
             <devtools-statistics name="Total Elements" ignore .data=${panelStore.elements}></devtools-statistics>
             <devtools-statistics name="Total Custom Elements" .data=${panelStore.customElements}></devtools-statistics>
             <devtools-statistics name="Total Gem Elements" .data=${panelStore.gemElements}></devtools-statistics>

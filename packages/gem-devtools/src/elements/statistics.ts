@@ -26,6 +26,8 @@ import { style } from './section';
 export class devtoolsStatisticsElement extends GemElement {
   @attribute name: string;
   @boolattribute ignore: boolean;
+  // 有数据时显示为警告
+  @boolattribute warning: boolean;
   @attribute type: DomStatInfo['type'];
   @property highlight?: Array<string>;
 
@@ -86,7 +88,7 @@ export class devtoolsStatisticsElement extends GemElement {
     const { name, data = [] } = this;
     return html`
       <details>
-        <summary><span class="summary">${name}${data.length ? `(${data.length})` : ''}</span></summary>
+        <summary><span class=${classMap({ summary: true, warning: this.warning && !!data.length })}>${name}${data.length ? `(${data.length})` : ''}</span></summary>
         <div>
           ${
             this.ignore

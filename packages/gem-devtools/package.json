@@ -18,6 +18,7 @@
   },
   "devDependencies": {
     "@gemjs/config": "^2.1.4",
+    "@mantou/gem-ssr": "^0.1.1",
     "@rsbuild/core": "^2.0.15",
     "@types/webextension-polyfill": "^0.10.7",
     "web-ext": "^7.8.0"

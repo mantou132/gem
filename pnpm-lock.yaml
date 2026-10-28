@@ -204,6 +204,9 @@ importers:
       '@gemjs/config':
         specifier: ^2.1.4
         version: link:../config
+      '@mantou/gem-ssr':
+        specifier: ^0.1.1
+        version: link:../gem-ssr
       '@rsbuild/core':
         specifier: ^2.0.15
         version: 2.0.15(core-js@3.29.0)

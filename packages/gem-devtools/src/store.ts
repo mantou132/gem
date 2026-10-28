@@ -1,4 +1,5 @@
 import { createStore } from '@mantou/gem';
+import type { HydrationMismatch } from '@mantou/gem-ssr/client';
 
 const types = typeof ('' as any);
 type Type = typeof types | 'element' | 'null';
@@ -12,6 +13,13 @@ export interface Item {
   type: Type;
   path?: Path;
   buildIn?: BuildIn;
+}
+
+// 选中元素的 SSR 信息
+export interface SSRStatus {
+  render: string;
+  lazy?: string;
+  mismatches: Omit<HydrationMismatch, 'node'>[];
 }
 
 export class PanelStore {
@@ -41,6 +49,14 @@ export class PanelStore {
   properties = [] as Item[];
   attributes = [] as Item[];
   staticMember = [] as Item[];
+  // 选中元素没有 SSR 信息时为 `null`
+  ssrStatus = null as SSRStatus | null;
+  // 页面是否使用了 gem-ssr
+  ssr = false;
+  mismatchElements = [] as string[];
+  hydratedElements = [] as string[];
+  serverElements = [] as string[];
+  lazyElements = [] as string[];
 }
 
 export const panelStore = createStore({ ...new PanelStore(), isGemElement: false });
