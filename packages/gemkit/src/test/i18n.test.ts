@@ -7,7 +7,7 @@ import { GemElement, html, template } from '@mantou/gem';
 import { I18n } from '@mantou/gem/helper/i18n';
 
 import type { ServerModule } from '../data';
-import { localizePath, splitLanguage } from '../i18n';
+import { localizePath, matchLanguage, parseAcceptLanguage, splitLanguage } from '../i18n';
 import { pageRoute, setOutlets } from '../outlet';
 import { page } from '../page';
 import { createRenderer } from '../server';
@@ -71,14 +71,25 @@ test('splitLanguage: 默认语言也使用路径前缀', ({ assert }) => {
   assert.equal(localizePath('en', '/a', 'en'), '/a');
 });
 
-test('renderDocument: 没有语言前缀时跳转到默认语言', async ({ assert }) => {
-  for (const [url, location] of [
-    ['/', '/en'],
-    ['/posts/1?a=1', '/en/posts/1?a=1'],
-  ]) {
-    const { status, headers } = await renderer.renderDocument(documentTemplate, new Request(`http://localhost${url}`));
-    assert.equal(status, 302);
-    assert.equal(headers.get('location'), location);
+test('matchLanguage: 按偏好顺序匹配完整的代码和主语言', ({ assert }) => {
+  assert.deepEqual(parseAcceptLanguage('en;q=0.8, zh-CN,zh;q=0.9,*;q=0.5,fr;q=0'), ['zh-CN', 'zh', 'en']);
+  assert.equal(matchLanguage([undefined, 'zh-CN', 'en'], ['en', 'zh']), 'zh');
+  assert.equal(matchLanguage(['fr'], ['en', 'zh']), undefined);
+});
+
+test('renderDocument: 没有语言前缀时跳转到用户的语言', async ({ assert }) => {
+  for (const [url, location, headers] of [
+    ['/', '/en', {}],
+    ['/posts/1?a=1', '/en/posts/1?a=1', {}],
+    ['/', '/zh', { 'accept-language': 'fr,zh-CN;q=0.9' }],
+    // 用户上次使用的语言优先
+    ['/posts/1', '/en/posts/1', { 'accept-language': 'zh', cookie: 'gemkit-lang=en' }],
+  ] as const) {
+    const request = new Request(`http://localhost${url}`, { headers });
+    const result = await renderer.renderDocument(documentTemplate, request);
+    assert.equal(result.status, 302);
+    assert.equal(result.headers.get('location'), location);
+    assert.equal(result.headers.get('cache-control'), 'private, no-store');
   }
   for (const url of ['/en', '/en/', '/zh', '/en/posts/1']) {
     const { status } = await renderer.renderDocument(documentTemplate, new Request(`http://localhost${url}`));
@@ -110,4 +121,19 @@ test('getPaths: 每个语言分别获取动态路由参数，没有前缀的路�
 test('notFoundPath: 预渲染 404 页面使用默认语言的路径，不会跳转', async ({ assert }) => {
   assert.equal(renderer.notFoundPath, '/en/__gemkit_404__');
   assert.equal((await renderer.renderDocument(documentTemplate, renderer.notFoundPath)).status, 404);
+});
+
+test('renderDocument: 预渲染没有前缀的路径时输出选择语言的脚本，只包含页面存在的语言', async ({ assert }) => {
+  await renderer.getPaths();
+  for (const [pathname, targets] of [
+    ['/', '{"en":"/en","zh":"/zh"}'],
+    ['/posts/2', '{"en":"/en/posts/2"}'],
+  ]) {
+    const { status, headers, html } = await renderer.renderDocument(documentTemplate, pathname);
+    assert.equal(status, 302);
+    assert.equal(headers.get('location'), pathname === '/' ? '/en' : `/en${pathname}`);
+    assert.equal(headers.get('cache-control'), null);
+    const script = (await Array.fromAsync(html)).join('');
+    assert.equal(script.includes(`const p=${targets};`), true);
+  }
 });

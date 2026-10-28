@@ -9,7 +9,7 @@ export const prefixDefaultLanguage = false;
 <% const id = (lang) => `lang_${lang.replace(/\W/g, '_')}` -%>
 import { history } from '@mantou/gem';
 import { I18n } from '@mantou/gem/helper/i18n';
-import { getBasePath, localizePath as localize, setI18n, splitLanguage } from '@mantou/gemkit/internal';
+import { getBasePath, localizePath as localize, saveLanguage, setI18n, splitLanguage } from '@mantou/gemkit/internal';
 import type <%= id(it.defaultLanguage) %> from <%= it.languages.find(({ lang }) => lang === it.defaultLanguage).path %>;
 
 export const languages = <%= JSON.stringify(it.languages.map(({ lang }) => lang)) %>;
@@ -18,6 +18,7 @@ export const prefixDefaultLanguage = <%= it.prefixDefaultLanguage %>;
 
 const { lang } = splitLanguage(location.pathname, languages, defaultLanguage, prefixDefaultLanguage);
 history.basePath = getBasePath(lang, defaultLanguage, prefixDefaultLanguage);
+saveLanguage(lang, prefixDefaultLanguage);
 
 export const i18n = new I18n<typeof <%= id(it.defaultLanguage) %>>({
   // 每个语言单独打包，服务端渲染时输出当前语言包，客户端不需要再加载

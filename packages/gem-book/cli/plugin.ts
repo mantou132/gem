@@ -202,29 +202,20 @@ interface SeoOptions {
 
 /**
  * 页面的 `<link rel="canonical">` 和其他语言的 `<link rel="alternate" hreflang>`，配置了 `site` 时是完整的网址；
- * 没有语言前缀的跳转页面根据浏览器的语言跳转
+ * 没有语言前缀的跳转页面由 gemkit 根据用户的语言跳转
  */
 function writeSeo(webDir: string, { languages, defaultLanguage, i18n, site }: SeoOptions) {
-  const files = getHtmlFiles(webDir);
-  const pages = new Set(files.filter(({ redirect }) => !redirect).map(({ page }) => page));
+  const files = getHtmlFiles(webDir).filter(({ redirect }) => !redirect);
+  const pages = new Set(files.map(({ page }) => page));
   const toUrl = (page: string) => (site ? new URL(page, site).href : page);
   /** 页面在各个语言中的路径，`rest` 是不包括语言前缀的路径 */
   const getLocalized = (rest: string) =>
     languages
       .map((lang) => ({ lang, page: rest === '/' ? `/${lang}` : `/${lang}${rest}` }))
       .filter(({ page }) => pages.has(page));
-  for (const { page, file, html, redirect } of files) {
+  for (const { page, file, html } of files) {
     const [, first] = page.split('/');
     const rest = page.slice(first.length + 1) || '/';
-    if (redirect) {
-      // 只处理 gemkit 生成的到默认语言的跳转
-      if (!i18n || languages.includes(first)) continue;
-      const langs = getLocalized(page).map(({ lang }) => lang);
-      if (langs.length < 2) continue;
-      const script = `<script>{const l=${JSON.stringify(langs)};const c=navigator.languages.flatMap((e)=>[e,e.split('-')[0]]).find((e)=>l.includes(e));if(c&&c!==${JSON.stringify(defaultLanguage)})location.replace('/'+c+${JSON.stringify(page === '/' ? '' : page)}+location.search+location.hash)}</script>`;
-      fs.writeFileSync(file, html.replace('<meta http-equiv="refresh"', `${script}<meta http-equiv="refresh"`));
-      continue;
-    }
     const links = [`<link rel="canonical" href="${toUrl(page)}">`];
     const alternates = i18n && languages.includes(first) ? getLocalized(rest) : [];
     if (alternates.length > 1) {

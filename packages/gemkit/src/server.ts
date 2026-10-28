@@ -35,7 +35,7 @@ import {
   toJSONValue,
   toRouteError,
 } from './data';
-import { getBasePath, localizePath, splitLanguage } from './i18n';
+import { getBasePath, LANGUAGE_COOKIE, localizePath, matchLanguage, parseAcceptLanguage, splitLanguage } from './i18n';
 import { formatMeta } from './meta';
 import { getLayoutParams, getPageRoutes, getRouteMeta, hasServerLoad, matchPage, matchRoutes } from './outlet';
 import { getPageOptions, type Params } from './page';
@@ -114,6 +114,42 @@ export function createRenderer({
 
   const split = (pathname: string) => splitLanguage(pathname, languages, defaultLanguage, prefixDefaultLanguage);
   const localize = (lang: string, path: string) => localizePath(lang, path, defaultLanguage, prefixDefaultLanguage);
+
+  /** 预渲染的路径（不包含语言前缀）存在的语言，没有前缀的路径的跳转页面只跳转到这些语言 */
+  const pathLanguages = new Map<string, string[]>();
+
+  /**
+   * 所有语言都有前缀时，没有前缀的路径跳转到用户上次使用的语言或者浏览器的语言，都不匹配时跳转到默认语言；
+   * 预渲染时没有请求，由跳转页面中的脚本在浏览器中选择，规则和 `matchLanguage` 相同
+   */
+  const redirectToLanguage = (path: string, search: string): RenderResult => {
+    const { request, cookies } = requestState;
+    if (request) {
+      const accept = parseAcceptLanguage(request.headers.get('accept-language') || '');
+      const lang = matchLanguage([cookies?.get(LANGUAGE_COOKIE), ...accept], languages) || defaultLanguage;
+      // 因人而异，不能被共享缓存
+      const headers = new Headers({
+        location: localize(lang, path) + search,
+        'cache-control': 'private, no-store',
+        vary: 'Accept-Language, Cookie',
+      });
+      return { status: 302, headers, html: (async function* () {})() };
+    }
+    const targets = Object.fromEntries((pathLanguages.get(path) || languages).map((e) => [e, localize(e, path)]));
+    const script =
+      `<script>{const p=${JSON.stringify(targets).replaceAll('<', '\\u003c')};` +
+      `const c=document.cookie.match(/(?:^|; )${LANGUAGE_COOKIE}=([^;]*)/)?.[1];` +
+      `const l=[c,...navigator.languages].flatMap((e)=>e?[e,e.split('-')[0]]:[]).find((e)=>p[e])||${JSON.stringify(defaultLanguage)};` +
+      `location.replace(p[l]+location.search+location.hash)}</script>`;
+    const headers = new Headers({ location: localize(defaultLanguage, path) });
+    return {
+      status: 302,
+      headers,
+      html: (async function* () {
+        yield script;
+      })(),
+    };
+  };
 
   const setLanguage = async (pathname: string) => {
     const { lang, path } = split(trimTrailingSlash(pathname));
@@ -334,9 +370,8 @@ export function createRenderer({
         headers: toHeaders(setCookies, { location }),
         html: (async function* () {})(),
       });
-      // 所有语言都有前缀时，没有前缀的路径跳转到默认语言
-      const localized = localize(lang, path);
-      if (localized !== trimTrailingSlash(url.pathname)) return redirectTo(new Redirect(302, localized + url.search));
+      // 所有语言都有前缀时，没有前缀的路径跳转到用户的语言
+      if (localize(lang, path) !== trimTrailingSlash(url.pathname)) return redirectToLanguage(path, url.search);
       // 调用 `render` 时立即开始渲染，需要先执行
       try {
         await handleRequest(url, path);
@@ -426,6 +461,7 @@ export function createRenderer({
   /** 需要预渲染的路径，动态路由使用 `*.server.ts` 或者页面的 `paths` 选项 */
   const getPaths = async () => {
     const localized: string[] = [];
+    pathLanguages.clear();
     // 每个语言的动态路由参数可能不同，例如某些文章没有翻译
     for (const lang of languages.length ? languages : [defaultLanguage]) {
       const paths: string[] = [];
@@ -437,6 +473,7 @@ export function createRenderer({
         const getParams = (await getServerModule(info.tag))?.paths || getPageOptions((await info.load()).default).paths;
         for (const params of (await getParams?.({ lang })) || []) paths.push(fillPattern(pattern, params));
       }
+      for (const path of paths) pathLanguages.set(path, [...(pathLanguages.get(path) || []), lang]);
       // `handle` 读取的 `url` 包含语言前缀，每个语言的路径分别判断
       localized.push(...(languages.length ? paths.map((path) => localize(lang, path)) : paths));
       // 没有前缀的路径输出跳转页面，静态托管时也能跳转到默认语言

@@ -104,9 +104,10 @@ export function getPageFile(pathname: string) {
   return { page: pathname.slice(0, pathname.lastIndexOf('/')) || '/', file: pathname };
 }
 
-function getRedirectHtml(location: string) {
+/** `head` 在 `<meta>` 跳转之前执行，例如没有语言前缀时选择语言的脚本 */
+function getRedirectHtml(location: string, head = '') {
   const url = escapeHtml(location);
-  return `<!doctype html><meta charset="utf-8"><title>Redirecting</title><meta http-equiv="refresh" content="0; url=${url}"><link rel="canonical" href="${url}">\n`;
+  return `<!doctype html><meta charset="utf-8"><title>Redirecting</title>${head}<meta http-equiv="refresh" content="0; url=${url}"><link rel="canonical" href="${url}">\n`;
 }
 
 /**
@@ -120,7 +121,8 @@ export async function prerenderPage(renderer: Renderer, template: string, pathna
   const files = new Map<string, string>();
   const location = result.headers.get('location');
   if (location) {
-    files.set(path.posix.join(pathname, 'index.html'), getRedirectHtml(location));
+    const head = (await Array.fromAsync(result.html)).join('');
+    files.set(path.posix.join(pathname, 'index.html'), getRedirectHtml(location, head));
     files.set(getDataPath(pathname), JSON.stringify({ redirect: location } satisfies DataFile));
     return { status: result.status, files };
   }

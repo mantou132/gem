@@ -56,7 +56,8 @@ language file.
 - Default: `false`
 
 Put the default language under a prefix too, for example `/en/about`. Unprefixed paths redirect to the
-default language, including on a static host.
+language the user used last, the browser's preferred language or the default language, including on a
+static host. See [Internationalization](../guide/009-i18n.md#unprefixed-paths).
 
 ### `prerender`
 
