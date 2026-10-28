@@ -5,7 +5,7 @@ import { html } from '@mantou/gem';
 import { errorRoute, layoutRoute, pageRoute, setOutlets } from '@mantou/gemkit/internal';
 import * as RootLayout from "../src/pages/_layout";
 
-const error = errorRoute({ tag: 'gemkit-page-error', load: () => import("../src/pages/_error") }, (params, error) =>
+const error = errorRoute({ tag: 'gemkit-page-error', load: () => import(/* webpackChunkName: "gemkit-page-error" */ "../src/pages/_error") }, (params, error) =>
   html\`<gemkit-page-error .params=\${params} .data=\${error}></gemkit-page-error>\`,
 );
 
@@ -16,37 +16,37 @@ setOutlets({
     ),
   ],
   'gemkit-layout-root': [
-    pageRoute("/files/new", { tag: 'gemkit-page-files-new', load: () => import("../src/pages/files/new") }, (params, data) =>
+    pageRoute("/files/new", { tag: 'gemkit-page-files-new', load: () => import(/* webpackChunkName: "gemkit-page-files-new" */ "../src/pages/files/new") }, (params, data) =>
       html\`<gemkit-page-files-new .params=\${params} .data=\${data}></gemkit-page-files-new>\`,
     ),
-    pageRoute("/files/:name", { tag: 'gemkit-page-files-name', load: () => import("../src/pages/files/[name]") }, (params, data) =>
+    pageRoute("/files/:name", { tag: 'gemkit-page-files-name', load: () => import(/* webpackChunkName: "gemkit-page-files-name" */ "../src/pages/files/[name]") }, (params, data) =>
       html\`<gemkit-page-files-name .params=\${params} .data=\${data}></gemkit-page-files-name>\`,
     ),
-    pageRoute("/about", { tag: 'gemkit-page-about', load: () => import("../src/pages/about") }, (params, data) =>
+    pageRoute("/about", { tag: 'gemkit-page-about', load: () => import(/* webpackChunkName: "gemkit-page-about" */ "../src/pages/about") }, (params, data) =>
       html\`<gemkit-page-about .params=\${params} .data=\${data}></gemkit-page-about>\`,
     ),
-    pageRoute("/files/*", { tag: 'gemkit-page-files-path', load: () => import("../src/pages/files/[...path]") }, (params, data) =>
+    pageRoute("/files/*", { tag: 'gemkit-page-files-path', load: () => import(/* webpackChunkName: "gemkit-page-files-path" */ "../src/pages/files/[...path]") }, (params, data) =>
       html\`<gemkit-page-files-path .params=\${params} .data=\${data}></gemkit-page-files-path>\`,
     ),
-    layoutRoute("/blog/*", { tag: 'gemkit-layout-blog', load: () => import("../src/pages/blog/_layout") }, (props) =>
+    layoutRoute("/blog/*", { tag: 'gemkit-layout-blog', load: () => import(/* webpackChunkName: "gemkit-layout-blog" */ "../src/pages/blog/_layout") }, (props) =>
       html\`<gemkit-layout-blog .params=\${props.params} .data=\${props.data}></gemkit-layout-blog>\`,
     ),
-    pageRoute("/:id", { tag: 'gemkit-page-id', load: () => import("../src/pages/[id]") }, (params, data) =>
+    pageRoute("/:id", { tag: 'gemkit-page-id', load: () => import(/* webpackChunkName: "gemkit-page-id" */ "../src/pages/[id]") }, (params, data) =>
       html\`<gemkit-page-id .params=\${params} .data=\${data}></gemkit-page-id>\`,
     ),
-    pageRoute("/", { tag: 'gemkit-page-index', load: () => import("../src/pages/index") }, (params, data) =>
+    pageRoute("/", { tag: 'gemkit-page-index', load: () => import(/* webpackChunkName: "gemkit-page-index" */ "../src/pages/index") }, (params, data) =>
       html\`<gemkit-page-index .params=\${params} .data=\${data}></gemkit-page-index>\`,
     ),
     error,
   ],
   'gemkit-layout-blog': [
-    pageRoute("/blog/new", { tag: 'gemkit-page-blog-new', load: () => import("../src/pages/blog/new") }, (params, data) =>
+    pageRoute("/blog/new", { tag: 'gemkit-page-blog-new', load: () => import(/* webpackChunkName: "gemkit-page-blog-new" */ "../src/pages/blog/new") }, (params, data) =>
       html\`<gemkit-page-blog-new .params=\${params} .data=\${data}></gemkit-page-blog-new>\`,
     ),
-    pageRoute("/blog/:slug", { tag: 'gemkit-page-blog-slug', load: () => import("../src/pages/blog/[slug]"), server: true }, (params, data) =>
+    pageRoute("/blog/:slug", { tag: 'gemkit-page-blog-slug', load: () => import(/* webpackChunkName: "gemkit-page-blog-slug" */ "../src/pages/blog/[slug]"), server: true }, (params, data) =>
       html\`<gemkit-page-blog-slug .params=\${params} .data=\${data}></gemkit-page-blog-slug>\`,
     ),
-    pageRoute("/blog", { tag: 'gemkit-page-blog-index', load: () => import("../src/pages/blog/index") }, (params, data) =>
+    pageRoute("/blog", { tag: 'gemkit-page-blog-index', load: () => import(/* webpackChunkName: "gemkit-page-blog-index" */ "../src/pages/blog/index") }, (params, data) =>
       html\`<gemkit-page-blog-index .params=\${params} .data=\${data}></gemkit-page-blog-index>\`,
     ),
     error,

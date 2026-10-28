@@ -10,13 +10,13 @@ hero:
 features:
   - title: 文件路由
     icon: 📁
-    desc: "`src/pages` 中的文件就是路由，支持嵌套布局、动态参数，页面按需加载"
+    desc: '`src/pages` 中的文件就是路由，支持嵌套布局、动态参数，页面按需加载'
   - title: SSR 和 SSG
     icon: ⚡
     desc: 页面在服务端渲染、浏览器中水合，不依赖请求的页面预渲染后可部署到静态托管
   - title: 服务端元素
     icon: 🏝️
-    desc: "`@server()` 让代码不进入客户端，`@lazy()` 在交互时才加载"
+    desc: '`@server()` 让代码不进入客户端，`@lazy()` 在交互时才加载'
   - title: 感知请求
     icon: 🔐
     desc: 在 `load` 中读取 cookie，用 `actions` 处理表单，用请求钩子保护路径，API 路由就是普通模块

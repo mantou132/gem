@@ -251,6 +251,10 @@ const renderer = createRenderer({
   i18n: new I18n({ resources: { en: {}, zh: {} }, fallbackLanguage: 'en' }),
   languages: ['en', 'zh'],
   defaultLanguage: 'en',
+  routeChunks: {
+    'gemkit-page-post': ['/static/js/async/post.js', '/static/css/async/post.css'],
+    'gemkit-page-error': ['/static/js/async/error.js'],
+  },
   title: 'Site',
   titleTemplate: '%s | Site',
 });
@@ -280,6 +284,17 @@ test('renderDocument: 未匹配的页面返回 404', async ({ assert }) => {
   assert.equal(status, 404);
   assert.match(html, /<title>Not Found \| Site<\/title>/);
   assert.match(html, />404<.*Not Found/);
+});
+
+test('renderDocument: 预加载渲染的 layout 和页面的 chunk', async ({ assert }) => {
+  const { html } = await renderPage('/posts/1');
+  assert.match(html, /<link rel="preload" as="script" href="\/static\/js\/async\/post.js">/);
+  assert.match(html, /<link rel="preload" as="style" href="\/static\/css\/async\/post.css">/);
+  assert.doesNotMatch(html, /error\.js/);
+  // `load` 出错时渲染错误页面，客户端也会加载页面模块
+  assert.match((await renderPage('/posts/missing')).html, /post\.js.*error\.js/);
+  // 404 页面
+  assert.doesNotMatch((await renderPage('/a/b')).html, /post\.js/);
 });
 
 test('renderDocument: 非默认语言设置 `<html lang>`', async ({ assert }) => {

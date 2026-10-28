@@ -48,8 +48,15 @@ export function setI18n(value: typeof i18n) {
   i18n = value;
 }
 
+// 服务端渲染时加载的 layout 和页面（包括错误页面），以及由客户端渲染的路由，水合时客户端会加载它们的模块
+const ssrRoutes = isolate<{ tags: string[] }>({ tags: [] });
+
+/** 当前请求中客户端需要加载的 layout 和页面的标签名，文档中预加载它们的 chunk */
+export const getSSRRoutes = () => ssrRoutes.tags;
+
 /** 加载 layout 或页面模块，等待模块中的 i18n 子模块加载当前语言包 */
-async function loadModule(load: () => Promise<ElementModule>) {
+async function loadModule(load: () => Promise<ElementModule>, tag: string) {
+  if (isServer) ssrRoutes.tags = [...ssrRoutes.tags, tag];
   const mod = await load();
   await i18n?.ready;
   return mod.default;
@@ -148,7 +155,7 @@ async function loadLayout(
   container: ParentNode,
   serverLoad?: boolean,
 ) {
-  const cls = await loadModule(load);
+  const cls = await loadModule(load, tag);
   const params = getLayoutParams(routeParams);
   const current = [...container.children].find((e) => e.localName === tag) as { params?: Params; data?: unknown };
   const data = canReuseLayoutData(current?.params, params)
@@ -170,7 +177,7 @@ async function loadPage(
   serverLoad?: boolean,
   error?: ErrorData,
 ) {
-  const cls = await loadModule(load);
+  const cls = await loadModule(load, tag);
   const data = error || (await loadData(cls, tag, params, serverLoad));
   // layout 在页面之前加载
   clientState.invalidated = false;
@@ -208,9 +215,11 @@ export const hasServerLoad = ({ server, noLoad }: RouteInfo) => server && !noLoa
  */
 async function loadClientRoutes(tag: string): Promise<undefined> {
   const { path } = history.getParams();
-  const routes = matchRoutes(path);
+  const all = matchRoutes(path);
+  const routes = all.slice(all.findIndex(({ info }) => info.tag === tag));
+  ssrRoutes.tags = [...ssrRoutes.tags, ...routes.map(({ info }) => info.tag)];
   const errors = await Promise.all(
-    routes.slice(routes.findIndex(({ info }) => info.tag === tag)).map(async ({ info, params }) => {
+    routes.map(async ({ info, params }) => {
       if (!hasServerLoad(info)) return;
       try {
         setSSRData(path, info.tag, await runServerLoad(info.tag, info.layout ? getLayoutParams(params) : params), true);

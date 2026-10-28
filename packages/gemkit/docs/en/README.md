@@ -16,7 +16,7 @@ features:
     desc: Pages render on the server and hydrate in the browser; pages that don't depend on the request are prerendered for static hosting
   - title: Server elements
     icon: 🏝️
-    desc: "`@server()` keeps code out of the client bundle and `@lazy()` loads it on interaction"
+    desc: '`@server()` keeps code out of the client bundle and `@lazy()` loads it on interaction'
   - title: Request-aware
     icon: 🔐
     desc: Read cookies in `load`, handle forms with `actions`, guard paths with a request hook and write API routes as plain modules

@@ -1,4 +1,4 @@
-<% const load = it.path ? `() => import(${it.path})` : 'async () => RootLayout' -%>
+<% const load = it.path ? `() => import(/* webpackChunkName: "${it.tag}" */ ${it.path})` : 'async () => RootLayout' -%>
 <% const flags = `${it.server ? ', server: true' : ''}${it.noLoad ? ', noLoad: true' : ''}${it.ssr === false ? ', ssr: false' : ''}` -%>
 <% const info = `{ tag: '${it.tag}', load: ${load}${flags} }` -%>
 <% if (it.isError) { -%>

@@ -4,7 +4,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import { getRequestListener } from '@hono/node-server';
-import { logger, type RsbuildPlugin } from '@rsbuild/core';
+import { logger, type RsbuildPlugin, type Rspack } from '@rsbuild/core';
 import type { UnpluginGemOptions } from 'unplugin-gem';
 import unpluginGem from 'unplugin-gem/rspack';
 
@@ -23,6 +23,7 @@ import {
   getPublicModules,
   getSrcDir,
   SRC_ALIAS,
+  writeRouteChunks,
 } from './codegen';
 import { createRequestHandler, getDistPaths, loadHandler, loadRenderer, nodePlatform, writeFiles } from './serve';
 
@@ -65,6 +66,28 @@ const packageDir = fileURLToPath(new URL('..', import.meta.url));
 const PRERENDER_CONCURRENCY = 8;
 
 const WRANGLER_FILES = ['wrangler.json', 'wrangler.jsonc', 'wrangler.toml'];
+
+/** 动态导入的 layout 和页面的 chunk 以标签名命名，返回标签名对应的 JS 和 CSS 文件，包括拆分出的公共 chunk */
+function getRouteChunks(stats: Rspack.Stats) {
+  const {
+    namedChunkGroups = {},
+    entrypoints = {},
+    publicPath = '/',
+  } = stats.toJson({
+    all: false,
+    chunkGroups: true,
+    entrypoints: true,
+    publicPath: true,
+  });
+  return Object.fromEntries(
+    Object.entries(namedChunkGroups)
+      .filter(([name]) => !(name in entrypoints))
+      .map(([name, { assets = [] }]) => [
+        name,
+        assets.flatMap((asset) => (/\.(js|css)$/.test(asset.name) ? [publicPath + asset.name] : [])),
+      ]),
+  );
+}
 
 /** 根据平台构建时设置的环境变量或者 Wrangler 配置识别平台，没有识别出来时使用 Node.js */
 export function detectAdapter(rootPath: string): GemkitAdapter | undefined {
@@ -190,6 +213,13 @@ export function pluginGemkit(options: GemkitOptions = {}): RsbuildPlugin {
       const dtsFile = path.join(genDir, 'auto-import.d.ts');
       fs.rmSync(dtsFile, { force: true });
 
+      // 客户端构建完成后写入路由的 chunk，服务端构建依赖客户端构建，之后才开始
+      const routeChunksPlugin: Rspack.RspackPluginInstance = {
+        apply: (compiler) => {
+          compiler.hooks.done.tap('gemkit', (stats) => writeRouteChunks(rootPath, getRouteChunks(stats)));
+        },
+      };
+
       // 只在一个环境中生成 dts，避免并发写入
       const gemPlugin = (genDts: boolean) =>
         unpluginGem({
@@ -239,7 +269,7 @@ export function pluginGemkit(options: GemkitOptions = {}): RsbuildPlugin {
             web: {
               source: { entry: { index: path.join(genDir, 'client.ts') } },
               output: { target: 'web', distPath: { root: 'dist/web' } },
-              tools: { rspack: { plugins: [gemPlugin(true)] } },
+              tools: { rspack: { plugins: [gemPlugin(true), ...(isDev ? [] : [routeChunksPlugin])] } },
             },
             node: {
               source: {
@@ -259,7 +289,12 @@ export function pluginGemkit(options: GemkitOptions = {}): RsbuildPlugin {
               // 平台打包函数时不能处理加载 chunk 的动态 `require`，每个入口输出成一个文件
               ...(handlerEntry && { splitChunks: false }),
               tools: {
-                rspack: { plugins: [gemPlugin(false)], output: { asyncChunks: !handlerEntry } },
+                rspack: {
+                  plugins: [gemPlugin(false)],
+                  output: { asyncChunks: !handlerEntry },
+                  // 导入客户端构建写入的路由 chunk，开发时不需要
+                  ...(!isDev && { dependencies: ['web'] }),
+                },
               },
             },
           },

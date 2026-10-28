@@ -37,9 +37,19 @@ import {
 } from './data';
 import { getBasePath, LANGUAGE_COOKIE, localizePath, matchLanguage, parseAcceptLanguage, splitLanguage } from './i18n';
 import { formatMeta } from './meta';
-import { getLayoutParams, getPageRoutes, getRouteMeta, hasServerLoad, matchPage, matchRoutes } from './outlet';
+import {
+  getLayoutParams,
+  getPageRoutes,
+  getRouteMeta,
+  getSSRRoutes,
+  hasServerLoad,
+  matchPage,
+  matchRoutes,
+} from './outlet';
 import { getPageOptions, type Params } from './page';
 import { formatTitle, type TitleOptions } from './title';
+
+export type RouteChunks = Record<string, string[]>;
 
 export interface RendererOptions extends TitleOptions {
   /** 路由使用 `setOutlets` 设置的路由，和客户端一样匹配 */
@@ -55,6 +65,8 @@ export interface RendererOptions extends TitleOptions {
   defaultLanguage?: string;
   /** 默认语言也使用路径前缀，没有前缀的路径跳转到默认语言 */
   prefixDefaultLanguage?: boolean;
+  /** 客户端构建中 layout 和页面的标签名对应的 chunk 文件，渲染页面时预加载 */
+  routeChunks?: RouteChunks;
 }
 
 export interface RenderResult {
@@ -73,6 +85,16 @@ function toHeaders(setCookies: string[], init?: HeadersInit) {
   return headers;
 }
 
+/** 预加载客户端水合时需要加载的 layout 和页面的 chunk，和入口脚本并行请求 */
+function formatPreload(routeChunks: RouteChunks) {
+  const files = new Set(getSSRRoutes().flatMap((tag) => routeChunks[tag] || []));
+  let result = '';
+  for (const file of files) {
+    result += `<link rel="preload" as="${file.endsWith('.css') ? 'style' : 'script'}" href="${escapeHtml(file)}">`;
+  }
+  return result;
+}
+
 function fillPattern(pattern: string, params: Params) {
   return pattern
     .replace(/:([^/]+)/g, (_, name) => encodeURIComponent(params[name]))
@@ -88,6 +110,7 @@ export function createRenderer({
   languages = [],
   defaultLanguage = '',
   prefixDefaultLanguage = false,
+  routeChunks = {},
   ...titleOptions
 }: RendererOptions) {
   setServerModules(serverModules);
@@ -411,7 +434,7 @@ export function createRenderer({
           /<title>[\s\S]*?<\/title>/,
           () => `<title>${escapeHtml(formatTitle(titleStore.title, titleOptions))}</title>`,
         )
-        .replace('</head>', () => `${formatMeta(getRouteMeta(path))}</head>`);
+        .replace('</head>', () => `${formatMeta(getRouteMeta(path))}${formatPreload(routeChunks)}</head>`);
       if (lang) {
         html = html.replace(
           /<html([^>]*)>/,

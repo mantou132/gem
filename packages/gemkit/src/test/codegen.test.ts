@@ -136,6 +136,7 @@ test('generate: 生成路由和入口文件', ({ assert }) => {
     'client.ts',
     'env.d.ts',
     'i18n.ts',
+    'route-chunks.json',
     'routes.ts',
     'server.ts',
     'tsconfig.json',
@@ -215,7 +216,10 @@ test('generate: 使用其他目录中的页面和语言文件', ({ assert }) => 
   const root = createFixture(['theme/pages/index.ts', 'theme/locales/en.json', 'theme/app.ts']);
   generate(root, { srcDir: 'theme' });
   const read = (file: string) => fs.readFileSync(path.join(root, '.gemkit', file), 'utf8');
-  assert.match(read('routes.ts'), /import\("..\/theme\/pages\/index"\)/);
+  assert.match(
+    read('routes.ts'),
+    /import\(\/\* webpackChunkName: "gemkit-page-index" \*\/ "..\/theme\/pages\/index"\)/,
+  );
   assert.match(read('i18n.ts'), /"en": \(\) => import\("..\/theme\/locales\/en.json"\),/);
   assert.match(read('client.ts'), /import "..\/theme\/app";/);
   assert.throws(
@@ -273,8 +277,14 @@ test('generate: 根 layout `ssr = false` 时是单页应用，`src/app.ts` 只�
   const routes = read('routes.ts');
   // 服务端构建时替换成空模块
   assert.match(routes, /import \* as RootLayout from "..\/src\/pages\/_layout\?gemkit-client";/);
-  assert.match(routes, /load: \(\) => import\("..\/src\/pages\/_error\?gemkit-client"\)/);
-  assert.match(routes, /load: \(\) => import\("..\/src\/pages\/index\?gemkit-client"\), ssr: false \}/);
+  assert.match(
+    routes,
+    /load: \(\) => import\(\/\* webpackChunkName: "gemkit-page-error" \*\/ "..\/src\/pages\/_error\?gemkit-client"\)/,
+  );
+  assert.match(
+    routes,
+    /load: \(\) => import\(\/\* webpackChunkName: "gemkit-page-index" \*\/ "..\/src\/pages\/index\?gemkit-client"\), ssr: false \}/,
+  );
   // 没有 `load`，客户端不请求数据
   assert.match(routes, /load: async \(\) => RootLayout, server: true, noLoad: true, ssr: false \}/);
   assert.match(read('client.ts'), /import "..\/src\/app";\nimport "..\/src\/app.client";\nimport '.\/routes';/);
