@@ -1,4 +1,5 @@
 import fs from 'node:fs';
+import { createRequire } from 'node:module';
 import path from 'node:path';
 
 import { type GemkitAdapter, writeFile } from '../../plugin/adapter';
@@ -10,7 +11,8 @@ import { type GemkitAdapter, writeFile } from '../../plugin/adapter';
 export function vercel(): GemkitAdapter {
   return {
     name: 'vercel',
-    runtime: '@mantou/gemkit/adapters/vercel',
+    // 解析成路径，项目没有直接安装 gemkit 时也能导入，例如 gem-book
+    runtime: createRequire(import.meta.url).resolve('@mantou/gemkit/adapters/vercel'),
     write({ rootPath, webDir, serverDir, template }) {
       const outputDir = path.join(rootPath, '.vercel/output');
       const funcDir = path.join(outputDir, 'functions/__gemkit.func');

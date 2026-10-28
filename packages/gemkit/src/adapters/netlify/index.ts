@@ -1,3 +1,4 @@
+import { createRequire } from 'node:module';
 import path from 'node:path';
 
 import { type GemkitAdapter, importPath, writeFile } from '../../plugin/adapter';
@@ -9,7 +10,8 @@ import { type GemkitAdapter, importPath, writeFile } from '../../plugin/adapter'
 export function netlify(): GemkitAdapter {
   return {
     name: 'netlify',
-    runtime: '@mantou/gemkit/adapters/netlify',
+    // 解析成路径，项目没有直接安装 gemkit 时也能导入，例如 gem-book
+    runtime: createRequire(import.meta.url).resolve('@mantou/gemkit/adapters/netlify'),
     write({ rootPath, handlerFile, template }) {
       const functionsDir = path.join(rootPath, '.netlify/v1/functions');
       writeFile(

@@ -1,4 +1,5 @@
 import fs from 'node:fs';
+import { createRequire } from 'node:module';
 import path from 'node:path';
 
 import { type GemkitAdapter, importPath, writeFile } from '../../plugin/adapter';
@@ -15,7 +16,8 @@ import { type GemkitAdapter, importPath, writeFile } from '../../plugin/adapter'
 export function cloudflare(): GemkitAdapter {
   return {
     name: 'cloudflare',
-    runtime: '@mantou/gemkit/adapters/cloudflare',
+    // 解析成路径，项目没有直接安装 gemkit 时也能导入，例如 gem-book
+    runtime: createRequire(import.meta.url).resolve('@mantou/gemkit/adapters/cloudflare'),
     write({ srcDir, distDir, handlerFile, template }) {
       const outDir = path.join(distDir, 'cloudflare');
       const workerFile = fs.readdirSync(srcDir).find((file) => /^worker\.[cm]?[jt]s$/.test(file));
