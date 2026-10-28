@@ -1,32 +1,23 @@
 ---
-title: Quickly Build UI Components, High-Performance WebApps
+title: Build Fast, Standards-Based Web Components and Apps
 hero:
   title: Gem
-  desc: Quickly build UI components, high-performance WebApps
+  desc: Build fast, standards-based web components and apps
   actions:
-    - text: Get Started Quickly
+    - text: Get Started
       link: ./001-guide/
+    - text: GitHub
+      link: https://github.com/mantou132/gem
 features:
   - title: Based on Standards
-    desc: >
-      Create custom elements using standard JavaScript, HTML, and CSS technologies without needing to learn anything outside of these standards.
-
-
-      Follow unified design principles to achieve high abstraction on top of standards, making it easy to get started while meeting various needs.
-
+    icon: 🧩
+    desc: Create custom elements with plain JavaScript, HTML and CSS, with nothing new to learn
   - title: Declarative
-    desc: >
-      Define element properties and templates declaratively using decorators, making it readable without any learning curve.
-
-
-      With TypeScript and plugins, type constraints and element diagnostics can also be performed.
-
+    icon: ✍️
+    desc: Declare properties and templates with decorators, with type checking and element diagnostics from TypeScript
   - title: Ecosystem
-    desc: >
-      Provide solutions for internationalization, localization, documentation generation, cross-framework component output, SSR/SSG ([gemkit](https://github.com/mantou132/gem/tree/main/packages/gemkit)), and more.
-
-
-      Also offers build optimizations (e.g., automatic imports) and development experience enhancements (e.g., HMR).
+    icon: 🌐
+    desc: Internationalization, documentation, SSR/SSG with [gemkit](https://github.com/mantou132/gem/tree/main/packages/gemkit), auto-import and HMR built in
 ---
 
 ## TodoApp

@@ -5,12 +5,14 @@ hero:
   actions:
     - text: Getting Started
       link: ./guide/README.md
+    - text: GitHub
+      link: https://github.com/mantou132/gem
 features:
   - title: Out of the box
     icon: 📝
     desc: Just run the command line to pack all front-end resources, so that all attention can be paid to document writing
   - title: Performance
-    icon: /logo.png
+    icon: ⚡
     desc: Every page is rendered to HTML when building, the content is visible before JavaScript loads
   - title: Expandable
     icon: 👩‍🎨

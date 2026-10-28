@@ -15,7 +15,7 @@ import {
 } from '@mantou/gem';
 
 import { i18n } from '$gemkit/i18n';
-import { theme } from '../lib/theme';
+import { primaryTextColor, theme } from '../lib/theme';
 import type { Heading } from '../lib/types';
 
 import '@mantou/gem/elements/link';
@@ -50,7 +50,7 @@ const style = css`
     padding-inline-start: 2em;
   }
   .current {
-    color: ${theme.primaryColor};
+    color: ${primaryTextColor};
     border-color: currentColor;
   }
 `;

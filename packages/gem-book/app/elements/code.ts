@@ -99,6 +99,19 @@ const style = css`
   .copy:focus-visible {
     opacity: 1;
   }
+  /* 语言名称，鼠标悬停时让位给复制按钮 */
+  .lang {
+    position: absolute;
+    top: 0.5em;
+    right: 0.9em;
+    font-size: 0.75em;
+    color: rgb(from ${theme.textColor} r g b / 0.4);
+    user-select: none;
+    transition: opacity 0.2s;
+  }
+  :host(:hover) .lang {
+    opacity: 0;
+  }
   .copy svg {
     width: 1.2em;
     height: 1.2em;
@@ -200,6 +213,7 @@ export class GemBookCodeElement extends GemElement {
         ${this.linenumbers.split(',').map((line) => html`<span>${line}</span>`)}
       </div>
       <slot></slot>
+      <span v-if=${!this.headless && !!this.lang} class="lang">${this.lang}</span>
       <button class="copy" aria-label=${i18n.get('copy')} @click=${this.#copy}>
         ${this.#state.copied ? icons.check : icons.copy}
       </button>

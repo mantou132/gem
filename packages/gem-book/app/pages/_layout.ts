@@ -19,7 +19,7 @@ import { i18n, localizePath } from '$gemkit/i18n';
 import { icons } from '../lib/icons';
 import { getContent, getSidebar, getVersion, isHomePage } from '../lib/site';
 import { htmlTemplate } from '../lib/template';
-import { theme } from '../lib/theme';
+import { primaryTextColor, theme } from '../lib/theme';
 import type { SidebarItem, Site } from '../lib/types';
 import { bookStore } from '../plugin';
 
@@ -58,7 +58,8 @@ const style = css`
     padding-inline: 1.5rem;
     box-sizing: border-box;
     border-bottom: 1px solid ${theme.borderColor};
-    background: ${theme.backgroundColor};
+    background: rgb(from ${theme.backgroundColor} r g b / 0.85);
+    backdrop-filter: blur(12px);
   }
   .slot:empty {
     display: none;
@@ -86,9 +87,10 @@ const style = css`
   }
   .nav-link {
     font-size: 0.9375rem;
+    font-weight: 500;
     &:hover,
     &:state(active) {
-      color: ${theme.primaryColor};
+      color: ${primaryTextColor};
     }
   }
   .actions {
@@ -139,29 +141,37 @@ const style = css`
     position: sticky;
     top: ${theme.headerHeight};
     height: calc(100vh - ${theme.headerHeight});
-    padding: 1.5rem;
+    padding: 1.5rem 0.75rem;
     box-sizing: border-box;
     overflow: auto;
     overscroll-behavior: contain;
     scrollbar-width: thin;
     font-size: 0.9375rem;
     border-inline-end: 1px solid ${theme.borderColor};
+    background: rgb(from ${theme.textColor} r g b / 0.02);
     ul {
       margin: 0;
       padding: 0;
       list-style: none;
     }
     ul ul {
-      margin-inline-start: 0.25rem;
-      padding-inline-start: 0.75rem;
+      margin-inline-start: 0.75rem;
+      padding-inline-start: 0.5rem;
       border-inline-start: 1px solid ${theme.borderColor};
+    }
+    /* 顶层的分组之间使用分隔线 */
+    > ul > li:has(> details):not(:first-child),
+    > ul > li:has(> details) + li {
+      margin-top: 0.75rem;
+      padding-top: 0.75rem;
+      border-top: 1px solid ${theme.borderColor};
     }
     summary {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding-block: 0.4rem;
-      font-weight: bold;
+      padding: 0.4rem 0.75rem;
+      font-weight: 600;
       cursor: pointer;
       list-style: none;
     }
@@ -184,13 +194,23 @@ const style = css`
     }
     .link {
       display: block;
-      padding-block: 0.3rem;
+      padding: 0.3rem 0.75rem;
+      border-radius: ${theme.smallRound};
       color: rgb(from ${theme.textColor} r g b / 0.7);
       &:hover {
         color: ${theme.textColor};
       }
       &.current {
-        color: ${theme.primaryColor};
+        font-weight: 500;
+        color: ${primaryTextColor};
+        background: rgb(from ${theme.primaryColor} r g b / 0.12);
+      }
+    }
+    /* 顶层的页面和分组标题一样 */
+    > ul > li > .link {
+      font-weight: 600;
+      &:not(.current) {
+        color: ${theme.textColor};
       }
     }
   }

@@ -53,7 +53,7 @@ const style = css`
     gap: 0.3em;
     padding: calc(0.5em - var(--padding) + 1px) 1em;
     border-radius: var(--inner-radius);
-    min-width: 5em;
+    min-width: 4em;
   }
   :host(:where(:not([disabled], :state(animating)))) .segment:hover {
     background: color-mix(in srgb, ${theme.hoverBackgroundColor}, currentColor 6%);

@@ -2,7 +2,7 @@ import { adoptedStyle, css, GemElement, html, memo, property, template } from '@
 import { type ErrorData, type Params, page } from '@mantou/gemkit';
 
 import { i18n } from '$gemkit/i18n';
-import { theme } from '../lib/theme';
+import { primaryTextColor, theme } from '../lib/theme';
 import { bookStore } from '../plugin';
 
 import '@mantou/gem/elements/link';
@@ -21,7 +21,7 @@ const style = css`
     color: rgb(from ${theme.textColor} r g b / 0.6);
   }
   gem-link {
-    color: ${theme.primaryColor};
+    color: ${primaryTextColor};
     text-decoration: none;
   }
 `;

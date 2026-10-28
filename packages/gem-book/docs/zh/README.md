@@ -5,12 +5,14 @@ hero:
   actions:
     - text: 快速开始
       link: ./guide/README.md
+    - text: GitHub
+      link: https://github.com/mantou132/gem
 features:
   - title: 开箱即用
     icon: 📝
     desc: 只需运行一条命令就能构建所有前端资源，让所有注意力都能放在文档编写上。
   - title: 高性能
-    icon: /logo.png
+    icon: ⚡
     desc: 构建时把每个页面渲染成 HTML，不需要等待 JavaScript 加载就能看到内容。
   - title: 可插拔可扩展
     icon: 👩‍🎨

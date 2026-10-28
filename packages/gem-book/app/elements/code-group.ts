@@ -11,7 +11,7 @@ import {
   template,
 } from '@mantou/gem';
 
-import { theme } from '../lib/theme';
+import { primaryTextColor, theme } from '../lib/theme';
 import type { CodeFile } from '../lib/types';
 
 const style = css`
@@ -36,7 +36,7 @@ const style = css`
   }
   .tab:hover,
   .current {
-    color: ${theme.primaryColor};
+    color: ${primaryTextColor};
   }
   .current {
     box-shadow: inset 0 -2px currentColor;

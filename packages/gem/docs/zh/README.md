@@ -1,32 +1,23 @@
 ---
-title: 快速构建 UI 组件、高性能 WebApp
+title: 基于 Web 标准，快速构建 UI 组件和高性能应用
 hero:
   title: Gem
-  desc: 快速构建 UI 组件、高性能 WebApp
+  desc: 基于 Web 标准，快速构建 UI 组件和高性能应用
   actions:
     - text: 快速开始
       link: ./001-guide/
+    - text: GitHub
+      link: https://github.com/mantou132/gem
 features:
   - title: 基于标准
-    desc: >
-      使用标准 JavaScript、HTML、CSS 技术创建自定义元素，无需学习标准外任何东西。
-
-
-      遵循统一设计原则在标准之上进行高度抽象，既能简单上手，又能满足各种需求。
-
+    icon: 🧩
+    desc: 使用标准 JavaScript、HTML、CSS 创建自定义元素，无需学习额外概念
   - title: 声明式
-    desc: >
-      使用装饰器声明式定义元素属性和模板，不需要任何学习即可阅读。
-
-
-      配合 TypeScript 以及插件，还可以进行类型约束、元素诊断。
-
+    icon: ✍️
+    desc: 用装饰器声明属性和模板，配合 TypeScript 获得类型检查和元素诊断
   - title: 生态系统
-    desc: >
-      提供国际化、本地化、文档生成、组件跨框架输出、SSR/SSG（[gemkit](https://github.com/mantou132/gem/tree/main/packages/gemkit)）等解决方案。
-
-
-      还提供构建优化（例如自动导入）、开发体验优化（例如 HMR）。
+    icon: 🌐
+    desc: 内置国际化、文档生成、SSR/SSG（[gemkit](https://github.com/mantou132/gem/tree/main/packages/gemkit)）、自动导入和 HMR
 ---
 
 ## 待办事项 App

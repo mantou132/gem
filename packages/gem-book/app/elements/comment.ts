@@ -12,7 +12,7 @@ import {
 } from '@mantou/gem';
 
 import { i18n } from '$gemkit/i18n';
-import { theme } from '../lib/theme';
+import { primaryTextColor, theme } from '../lib/theme';
 
 const gitalkUrl = 'https://esm.sh/gitalk@1.7.2';
 const gitalkCSSUrl = 'https://esm.sh/gitalk@1.7.2/dist/gitalk.css';
@@ -30,19 +30,19 @@ const style = css`
   .gt-container a:hover,
   .gt-container .gt-header-controls-tip,
   .gt-container .gt-svg svg {
-    color: ${theme.primaryColor};
-    fill: ${theme.primaryColor};
+    color: ${primaryTextColor};
+    fill: ${primaryTextColor};
   }
   .gt-container .gt-btn-preview,
   .gt-container .gt-btn-preview:hover {
     border-color: currentColor;
     background-color: transparent;
-    color: ${theme.primaryColor};
+    color: ${primaryTextColor};
   }
   .gt-container .gt-btn-public,
   .gt-container .gt-btn-public:hover {
-    border-color: ${theme.primaryColor};
-    background-color: ${theme.primaryColor};
+    border-color: ${primaryTextColor};
+    background-color: ${primaryTextColor};
     color: ${theme.backgroundColor};
   }
   .gt-container .gt-header-textarea {

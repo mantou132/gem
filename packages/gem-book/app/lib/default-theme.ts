@@ -11,6 +11,8 @@ export const defaultTheme = {
   normalRound: '0.5rem',
   smallRound: '0.25rem',
 
+  // 深色主题设置为 `dark`，滚动条、表单控件和代码高亮使用深色
+  colorScheme: 'light',
   backgroundColor: 'white',
   borderColor: '#eaeaea',
   textColor: 'rgb(40, 44, 52)',

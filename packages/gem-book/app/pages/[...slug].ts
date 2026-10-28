@@ -8,7 +8,7 @@ import { icons } from '../lib/icons';
 import { markdownStyle } from '../lib/markdown-style';
 import { isGitLab } from '../lib/site';
 import { htmlTemplate } from '../lib/template';
-import { theme } from '../lib/theme';
+import { primaryTextColor, theme } from '../lib/theme';
 import type { Doc, Home } from '../lib/types';
 import { bookStore } from '../plugin';
 
@@ -57,7 +57,7 @@ const style = css`
     border-radius: ${theme.normalRound};
     background: rgb(from ${theme.primaryColor} r g b / 0.1);
     gem-link {
-      color: ${theme.primaryColor};
+      color: ${primaryTextColor};
       font-weight: 500;
     }
   }
@@ -91,12 +91,15 @@ const style = css`
     display: flex;
     align-items: center;
     gap: 1.5rem;
-    padding: 1.5rem 2rem;
+    padding: 1.25rem 1.75rem;
     line-height: 1.5;
+    font-weight: 500;
+    color: ${primaryTextColor};
+    border: 1px solid ${theme.borderColor};
     border-radius: ${theme.normalRound};
-    background: rgb(from ${theme.textColor} r g b / 0.05);
+    transition: border-color 0.2s;
     &:hover {
-      background: rgb(from ${theme.textColor} r g b / 0.07);
+      border-color: ${primaryTextColor};
     }
     span {
       transition: transform 0.15s ease;
@@ -121,44 +124,87 @@ const style = css`
     max-width: calc(${theme.sidebarWidth} + ${theme.maxMainWidth});
     margin-inline: auto;
   }
+  /* 文字在左，logo 在右，窄屏时 logo 在上并且居中 */
   .hero {
-    padding: 4rem 0 5rem;
-    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 2rem 4rem;
+    padding: 3rem 0 4rem;
+  }
+  .hero-image {
+    flex-shrink: 0;
+    width: 15rem;
+    height: 15rem;
+    padding: 3rem;
+    object-fit: contain;
+    background: radial-gradient(closest-side, rgb(from ${theme.primaryColor} r g b / 0.3), transparent);
   }
   .hero-title {
+    width: fit-content;
     margin: 0;
-    font-size: 3.5rem;
+    font-size: 4rem;
+    font-weight: 700;
     line-height: 1.2;
+    letter-spacing: -0.03em;
+    color: transparent;
+    background: linear-gradient(120deg, ${primaryTextColor} 30%, ${theme.primaryColor}) text;
   }
   .hero-desc {
-    max-width: ${theme.maxMainWidth};
-    margin: 1.5rem auto 0;
-    font-size: 1.4rem;
+    max-width: 36rem;
+    margin: 1rem 0 0;
+    font-size: 1.5rem;
+    line-height: 1.5;
     text-wrap: balance;
-    color: rgb(from ${theme.textColor} r g b / 0.6);
+    color: rgb(from ${theme.textColor} r g b / 0.7);
   }
   .hero-actions {
     display: flex;
     flex-wrap: wrap;
-    justify-content: center;
     align-items: center;
-    gap: 1rem 2rem;
-    margin-top: 2.5rem;
+    gap: 1rem;
+    margin-top: 2rem;
+  }
+  @media (width < 54rem) {
+    .hero {
+      flex-direction: column-reverse;
+      gap: 1rem;
+      padding-top: 1rem;
+      text-align: center;
+    }
+    .hero-image {
+      width: 7rem;
+      height: 7rem;
+      padding: 2rem;
+    }
+    .hero-title,
+    .hero-desc {
+      margin-inline: auto;
+    }
+    .hero-actions {
+      justify-content: center;
+    }
   }
   .action {
     display: flex;
     align-items: center;
     gap: 0.5rem;
-    color: ${theme.primaryColor};
+    padding: 0.6rem 1.75rem;
+    font-weight: 500;
+    border: 1px solid ${theme.borderColor};
+    border-radius: 10em;
     &:hover {
-      filter: brightness(1.1);
+      border-color: ${primaryTextColor};
     }
   }
   .primary {
-    padding: 0.6rem 2rem;
-    border-radius: ${theme.normalRound};
+    border-color: transparent;
     color: ${theme.backgroundColor};
-    background: ${theme.primaryColor};
+    background: ${primaryTextColor};
+    &:hover {
+      border-color: transparent;
+      filter: brightness(1.1);
+    }
   }
   .features {
     display: grid;
@@ -177,11 +223,16 @@ const style = css`
   }
   .feature {
     padding: 1.75rem;
+    border: 1px solid ${theme.borderColor};
     border-radius: ${theme.normalRound};
-    background: rgb(from ${theme.textColor} r g b / 0.03);
+    background: rgb(from ${theme.textColor} r g b / 0.02);
+    transition: border-color 0.2s;
+    &:hover {
+      border-color: rgb(from ${theme.primaryColor} r g b / 0.6);
+    }
     dt {
       font-size: 1.1rem;
-      font-weight: bold;
+      font-weight: 600;
     }
     dd {
       margin: 0.75rem 0 0;
@@ -197,7 +248,7 @@ const style = css`
     font-size: 2rem;
     object-fit: contain;
     border-radius: ${theme.normalRound};
-    background: rgb(from ${theme.textColor} r g b / 0.03);
+    background: rgb(from ${theme.primaryColor} r g b / 0.1);
   }
   @media not ${`(${mediaQuery.DESKTOP})`} {
     :scope {
@@ -266,13 +317,16 @@ export default class DocPage extends GemElement {
 
   #renderHome = ({ hero, features = [] }: Home) => html`
     <section v-if=${!!hero} class="hero">
-      <h1 class="hero-title">${hero?.title}</h1>
-      <p v-if=${!!hero?.desc} class="hero-desc">${htmlTemplate(hero?.desc || '')}</p>
-      <div class="hero-actions">
-        ${hero?.actions?.map(({ title, link }, index) =>
-          renderLink(index ? 'action' : 'action primary', link, html`${title}${index ? icons.forward : ''}`),
-        )}
+      <div>
+        <h1 class="hero-title">${hero?.title}</h1>
+        <p v-if=${!!hero?.desc} class="hero-desc">${htmlTemplate(hero?.desc || '')}</p>
+        <div class="hero-actions">
+          ${hero?.actions?.map(({ title, link }, index) =>
+            renderLink(index ? 'action' : 'action primary', link, html`${title}${index ? icons.forward : ''}`),
+          )}
+        </div>
       </div>
+      ${__GEM_BOOK_CONFIG__.icon ? html`<img class="hero-image" src=${__GEM_BOOK_CONFIG__.icon} alt="" />` : ''}
     </section>
     <dl v-if=${!!features.length} class="features" data-columns=${features.length % 4 === 0 ? 4 : 3}>
       ${features.map(

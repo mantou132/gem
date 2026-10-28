@@ -290,6 +290,7 @@ const getTemplate = (theme: typeof defaultTheme) => `<!doctype html>
           .join('\n        ')}
       }
       html {
+        color-scheme: var(--gem-book-color-scheme);
         background: var(--gem-book-background-color);
         color: var(--gem-book-text-color);
         font: 16px/1.7 var(--gem-book-font);
@@ -300,8 +301,7 @@ const getTemplate = (theme: typeof defaultTheme) => `<!doctype html>
         margin: 0;
       }
       ::selection {
-        color: var(--gem-book-background-color);
-        background: var(--gem-book-primary-color);
+        background: rgb(from var(--gem-book-primary-color) r g b / 0.3);
       }
       :where(:focus-visible) {
         outline: 2px solid var(--gem-book-primary-color);

@@ -24,7 +24,7 @@ import {
 } from '@mantou/gem';
 
 import { icons } from '../lib/icons';
-import { theme } from '../lib/theme';
+import { primaryTextColor, theme } from '../lib/theme';
 import type { CodeFile } from '../lib/types';
 import type { GemBookCodeElement } from './code';
 import { getDefaultFile } from './code-group';
@@ -127,7 +127,7 @@ const style = css`
   }
   button:hover,
   .current {
-    color: ${theme.primaryColor};
+    color: ${primaryTextColor};
   }
   .current {
     box-shadow: inset 0 -2px currentColor;

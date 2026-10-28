@@ -9,41 +9,23 @@ hero:
       link: https://github.com/mantou132/gem/tree/main/packages/gemkit
 features:
   - title: File-based routing
-    desc: >
-      Create a file in `src/pages` and it becomes a route. Nested directories, dynamic segments,
-      catch-all routes, layouts and error pages are all part of the file system.
-
-
-      Route modules are loaded on demand, so pages that are not visited are not downloaded.
+    icon: 📁
+    desc: A file in `src/pages` is a route, with nested layouts, dynamic segments and pages loaded on demand
   - title: SSR and SSG
-    desc: >
-      Every page is rendered on the server, then hydrated in the browser. Pages that don't depend on the
-      request are prerendered at build time, so they work on any static host.
-
-
-      Server data is embedded into the document, so hydration does not make another request.
+    icon: ⚡
+    desc: Pages render on the server and hydrate in the browser; pages that don't depend on the request are prerendered for static hosting
   - title: Server elements
-    desc: >
-      Mark elements with `@server()` to keep their code and dependencies out of the client bundle,
-      or `@lazy()` to load them when the user interacts with them.
-
-
-      A page can mix static HTML, interactive islands and fully server-rendered parts.
+    icon: 🏝️
+    desc: "`@server()` keeps code out of the client bundle and `@lazy()` loads it on interaction"
   - title: Request-aware
-    desc: >
-      Read cookies and the request in `load`, redirect in one line, handle form submissions with
-      `actions`, and protect a group of paths in one place with a request hook.
-
-
-      API routes are plain modules exporting `GET`, `POST`, and other HTTP methods.
+    icon: 🔐
+    desc: Read cookies in `load`, handle forms with `actions`, guard paths with a request hook and write API routes as plain modules
   - title: Internationalization
-    desc: >
-      Put language packs in `src/locales`, get language-prefixed URLs, translated pages and
-      server-side language detection without routing boilerplate.
+    icon: 🌐
+    desc: Language packs in `src/locales` give you prefixed URLs, translated pages and language detection
   - title: Rsbuild native
-    desc: >
-      Gemkit is an Rsbuild plugin. Configure Rsbuild as usual and use any Rsbuild feature,
-      including its dev server, environment configuration and build plugins.
+    icon: 🦀
+    desc: Gemkit is an Rsbuild plugin, so its dev server, configuration and plugins all work as usual
 ---
 
 ## Start with a file

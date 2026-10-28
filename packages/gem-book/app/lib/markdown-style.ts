@@ -1,7 +1,7 @@
 import { css } from '@mantou/gem';
 import { mediaQuery } from '@mantou/gem/helper/mediaquery';
 
-import { theme } from './theme';
+import { primaryTextColor, theme } from './theme';
 
 /** 外部链接的图标，和 `icons.link` 一样 */
 const LINK_ICON = `url("data:image/svg+xml,${encodeURIComponent(
@@ -17,21 +17,27 @@ export const markdownStyle = css`
       margin-top: 0;
     }
     :where(h1, h2, h3, h4, h5, h6) {
-      font-weight: bold;
-      line-height: 1.25;
+      font-weight: 600;
+      line-height: 1.3;
+      letter-spacing: -0.01em;
       scroll-margin-top: calc(${theme.headerHeight} + 2rem);
     }
     h1 {
-      font-size: 2.5rem;
-      margin: 0 0 2rem;
+      font-size: 2.25rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      margin: 0 0 1.5rem;
     }
+    /* 章节之间使用分隔线 */
     h2 {
-      font-size: 1.75rem;
-      margin: 3.5rem 0 1.5rem;
+      font-size: 1.5rem;
+      margin: 3rem 0 1rem;
+      padding-top: 1.5rem;
+      border-top: 1px solid ${theme.borderColor};
     }
     h3 {
-      font-size: 1.4rem;
-      margin: 2.5rem 0 1rem;
+      font-size: 1.25rem;
+      margin: 2rem 0 0.75rem;
     }
     :where(h4, h5, h6) {
       font-size: 1.1rem;
@@ -40,7 +46,7 @@ export const markdownStyle = css`
     .anchor {
       margin-inline-start: 0.25em;
       font-weight: normal;
-      color: ${theme.primaryColor};
+      color: ${primaryTextColor};
       text-decoration: none;
       opacity: 0;
     }
@@ -71,7 +77,8 @@ export const markdownStyle = css`
       background: ${theme.borderColor};
     }
     .link {
-      color: ${theme.primaryColor};
+      font-weight: 500;
+      color: ${primaryTextColor};
       text-decoration: none;
       &:hover {
         text-decoration: underline;
@@ -89,7 +96,8 @@ export const markdownStyle = css`
     :not(pre) > code {
       font: 0.875em ${theme.codeFont};
       padding: 0.15em 0.4em;
-      background: rgb(from ${theme.textColor} r g b / 0.05);
+      color: ${primaryTextColor};
+      background: rgb(from ${theme.primaryColor} r g b / 0.1);
       border-radius: ${theme.smallRound};
     }
     kbd {
@@ -139,10 +147,17 @@ export const markdownStyle = css`
       --highlight: ${theme.textColor};
       margin: 2rem 0;
       padding: 0.75rem 1rem;
-      border-inline-start: 0.25rem solid rgb(from var(--highlight) r g b / 0.3);
-      border-radius: ${theme.smallRound};
-      background: rgb(from var(--highlight) r g b / 0.05);
+      border-inline-start: 0.25rem solid rgb(from var(--highlight) r g b / 0.2);
+      color: rgb(from ${theme.textColor} r g b / 0.8);
       break-inside: avoid;
+      /* 提示块 */
+      &:is(.note, .tip, .important, .warning, .caution) {
+        padding: 1rem 1.25rem;
+        border: none;
+        border-radius: ${theme.normalRound};
+        color: inherit;
+        background: rgb(from var(--highlight) r g b / 0.08);
+      }
       &.note {
         --highlight: ${theme.noteColor};
       }
@@ -159,7 +174,9 @@ export const markdownStyle = css`
         --highlight: ${theme.cautionColor};
       }
       > .title {
-        font-weight: bold;
+        font-size: 0.875em;
+        font-weight: 600;
+        letter-spacing: 0.02em;
         color: var(--highlight);
       }
       > p {
@@ -199,8 +216,8 @@ export const markdownStyle = css`
     th {
       font-weight: normal;
     }
-    /* 可以编辑的代码，例如 <gbp-sandpack> 中，焦点样式会显示在每一行上 */
-    gem-book-code code[contenteditable] {
+    /* 可以编辑的代码，例如 <gbp-sandpack> 中，\`<gem-book-code>\` 高亮光标所在的行，不需要焦点框 */
+    gem-book-code pre[contenteditable] {
       outline: none;
     }
     /* 代码块中省略的行 */
@@ -233,32 +250,32 @@ export const markdownStyle = css`
 
   /* 服务端高亮的代码 https://highlightjs.org/ */
   :where(.hljs-comment, .hljs-quote) {
-    color: var(--code-comment-color, #6e6e6e);
+    color: var(--code-comment-color, light-dark(#6e6e6e, #8b949e));
     font-style: italic;
   }
   :where(.hljs-punctuation) {
-    color: var(--code-title-color, #4646c6);
+    color: var(--code-title-color, light-dark(#4646c6, #a5b4fc));
   }
   :where(.hljs-tag, .hljs-name, .hljs-property, .hljs-symbol, .hljs-deletion, .hljs-operator, .hljs-meta) {
-    color: var(--code-section-color, #c9252d);
+    color: var(--code-section-color, light-dark(#c9252d, #7ee787));
   }
   :where(.hljs-variable, .hljs-template-variable, .hljs-link) {
-    color: var(--code-variable-color, #ae0e66);
+    color: var(--code-variable-color, light-dark(#ae0e66, #ffa657));
   }
   :where(.hljs-number, .hljs-literal) {
-    color: var(--code-literal-color, #6f38b1);
+    color: var(--code-literal-color, light-dark(#6f38b1, #79c0ff));
   }
   :where(.hljs-string, .hljs-regexp, .hljs-built_in, .hljs-addition) {
-    color: var(--code-string-color, #12805c);
+    color: var(--code-string-color, light-dark(#12805c, #a5d6ff));
   }
   :where(.hljs-title, .hljs-type, .hljs-section) {
-    color: var(--code-function-color, #0d66d0);
+    color: var(--code-function-color, light-dark(#0d66d0, #d2a8ff));
   }
   :where(.hljs-keyword, .hljs-selector-tag) {
-    color: var(--code-keyword-color, #93219e);
+    color: var(--code-keyword-color, light-dark(#93219e, #ff7b72));
   }
   :where(.hljs-attr, .hljs-attribute, .hljs-selector-class, .hljs-selector-id, .hljs-selector-attr) {
-    color: var(--code-attribute-color, #4646c6);
+    color: var(--code-attribute-color, light-dark(#4646c6, #a5b4fc));
   }
   :where(.hljs-strong) {
     font-weight: bold;

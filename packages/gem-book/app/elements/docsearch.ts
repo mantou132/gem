@@ -3,7 +3,7 @@ import { mediaQuery } from '@mantou/gem/helper/mediaquery';
 
 import { i18n } from '$gemkit/i18n';
 import { isGitLab } from '../lib/site';
-import { theme } from '../lib/theme';
+import { primaryTextColor, theme } from '../lib/theme';
 import type { SearchItem } from '../lib/types';
 
 const moduleLink = 'https://esm.sh/@docsearch/js@3.5.2';
@@ -114,7 +114,7 @@ const style = css`
 const globalStyle = `
   :root {
     --docsearch-logo-color: ${theme.primaryColor};
-    --docsearch-primary-color: ${theme.primaryColor};
+    --docsearch-primary-color: ${primaryTextColor};
     --docsearch-text-color: ${theme.textColor};
     --docsearch-muted-color: rgb(from ${theme.textColor} r g b / 0.6);
     --docsearch-container-background: rgba(101, 108, 133, 0.8);
@@ -137,10 +137,10 @@ const globalStyle = `
   }
   .DocSearch-Container * {
     outline-offset: -2px;
-    outline-color: ${theme.primaryColor};
+    outline-color: ${primaryTextColor};
   }
   .DocSearch-Container a {
-    color: ${theme.primaryColor};
+    color: ${primaryTextColor};
   }
   .DocSearch-Commands-Key {
     padding: 0;
