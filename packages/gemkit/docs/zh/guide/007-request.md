@@ -211,6 +211,23 @@ export function handleError(error: unknown, event: RequestEvent) {
 默认使用 `console.error`。错误页面显示状态码 `500`，生产环境中的信息是 `Internal Error`。
 预渲染时出现意外错误会让构建失败，避免发布错误的页面。
 
+客户端导航时，`load`、加载页面模块或数据等出现的意外错误交给 `src/app.client.ts` 的 `handleError`，
+例如上报到错误监控服务：
+
+```ts
+// src/app.client.ts
+import type { AppClientModule } from '@mantou/gemkit';
+
+export const handleError: AppClientModule['handleError'] = (error, { url, path }) => {
+  reportError(error, url);
+};
+```
+
+- Gemkit 捕获这些错误并渲染错误页面，它们不会出现在 `window` 的 `error` 和 `unhandledrejection` 事件中，
+  所以监控服务的 SDK 不能自动收集，需要在这里上报。
+- 其他错误（例如元素的模板、事件处理函数中的错误）没有被捕获，仍然由 `window` 的事件和监控服务的 SDK 收集。
+- `url` 是页面的 URL，`path` 不包含语言前缀。默认使用 `console.error`。
+
 ## Cookie
 
 ```ts

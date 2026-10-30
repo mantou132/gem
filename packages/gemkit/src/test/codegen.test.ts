@@ -287,7 +287,11 @@ test('generate: 根 layout `ssr = false` 时是单页应用，`src/app.ts` 只�
   );
   // 没有 `load`，客户端不请求数据
   assert.match(routes, /load: async \(\) => RootLayout, server: true, noLoad: true, ssr: false \}/);
-  assert.match(read('client.ts'), /import "..\/src\/app";\nimport "..\/src\/app.client";\nimport '.\/routes';/);
+  assert.match(
+    read('client.ts'),
+    /import "..\/src\/app";\nimport \* as appClient from "..\/src\/app.client";\nimport '.\/routes';/,
+  );
+  assert.match(read('client.ts'), /startClient\(.*, appClient\);/);
   assert.doesNotMatch(read('server.ts'), /src\/app/);
 
   const ssr = createFixture(['src/pages/_layout.ts', 'src/pages/index.ts', 'src/app.ts', 'src/app.client.ts']);

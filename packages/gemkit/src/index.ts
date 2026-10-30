@@ -3,6 +3,7 @@ export { client, defineLazy, GemServerElement, lazy, server } from '@mantou/gem-
 
 export {
   type ActionResult,
+  type AppClientModule,
   type AppServerModule,
   type CookieOptions,
   type Cookies,

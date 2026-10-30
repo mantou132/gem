@@ -21,6 +21,7 @@ Gem syntax and best practices, read before writing elements: @node_modules/@mant
 - `src/elements/`: `<app-*>` elements, imported automatically when used in templates
 - `src/app.ts`: imported before pages (global styles, stores)
 - `src/app.server.ts`: `handle` and `handleError` for server requests
+- `src/app.client.ts`: runs only on the client, `handleError` for client navigation errors, optional
 - `src/locales/`: i18n messages, optional
 
 ## Rules

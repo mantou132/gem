@@ -6,8 +6,8 @@ import './i18n';
 import <%= it.app %>;
 <% } -%>
 <% if (it.appClient) { -%>
-import <%= it.appClient %>;
+import * as appClient from <%= it.appClient %>;
 <% } -%>
 import './routes';
 
-startClient(<%= JSON.stringify(it.titleOptions) %>);
+startClient(<%= JSON.stringify(it.titleOptions) %><% if (it.appClient) { %>, appClient<% } %>);

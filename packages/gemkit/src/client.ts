@@ -2,7 +2,7 @@ import { connect, history, titleStore } from '@mantou/gem';
 import { setServerElementLoader } from '@mantou/gem-ssr/client';
 
 import { trimTrailingSlash } from './constants';
-import { clientState, loadServerElement } from './data';
+import { type AppClientModule, clientState, loadServerElement, setClientErrorHandler } from './data';
 import { startPrefetch } from './prefetch';
 import { formatTitle, type TitleOptions } from './title';
 
@@ -15,7 +15,9 @@ titleStore({ url: location.href });
 
 setServerElementLoader(loadServerElement);
 
-export function startClient(options: TitleOptions) {
+/** 路由渲染之前调用，`appClient` 是 `src/app.client.ts` 的导出 */
+export function startClient(options: TitleOptions, { handleError }: AppClientModule = {}) {
+  setClientErrorHandler(handleError);
   // 导航后加载的 chunk 可能已经被重新部署删除
   connect(history.store, () => {
     clientState.navigated = true;

@@ -104,14 +104,14 @@ same path as a page.
 
 Besides `pages` and `locales`, these optional files configure the app:
 
-| File                | Purpose                                                                                         |
-| ------------------- | ----------------------------------------------------------------------------------------------- |
-| `src/app.ts`        | Imported before routes, for global styles, stores and other setup.                              |
-| `src/app.server.ts` | `handle` and `handleError` for server requests.                                                 |
-| `src/app.client.ts` | Runs only on the client, imported after `src/app.ts`, for example to register a service worker. |
-| `src/worker.ts`     | Other Cloudflare Worker exports, see [Deploy](./011-deploy.md#cloudflare).                      |
-| `src/index.html`    | Replaces the default HTML template, keep `<!--gemkit-body-->`.                                  |
-| `src/elements/*.ts` | Elements imported automatically from `app-*` tags (see below).                                  |
+| File                | Purpose                                                                                                                          |
+| ------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| `src/app.ts`        | Imported before routes, for global styles, stores and other setup.                                                               |
+| `src/app.server.ts` | `handle` and `handleError` for server requests.                                                                                  |
+| `src/app.client.ts` | Runs only on the client, imported after `src/app.ts`, for example to register a service worker; `handleError` for client errors. |
+| `src/worker.ts`     | Other Cloudflare Worker exports, see [Deploy](./011-deploy.md#cloudflare).                                                       |
+| `src/index.html`    | Replaces the default HTML template, keep `<!--gemkit-body-->`.                                                                   |
+| `src/elements/*.ts` | Elements imported automatically from `app-*` tags (see below).                                                                   |
 
 Elements in `src/elements` can be used in templates without importing them. `src/elements/counter.ts`
 is the element `app-counter`; change it or add other elements with the

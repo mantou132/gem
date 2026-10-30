@@ -228,6 +228,25 @@ export function handleError(error: unknown, event: RequestEvent) {
 The default handler is `console.error`. The error page shows status `500`; in production the message is
 `Internal Error`. Unexpected errors during prerendering fail the build, so a broken page is not published.
 
+On client navigation, unexpected errors from `load`, loading page modules or data are passed to
+`handleError` in `src/app.client.ts`, for example to report them to an error monitoring service:
+
+```ts
+// src/app.client.ts
+import type { AppClientModule } from '@mantou/gemkit';
+
+export const handleError: AppClientModule['handleError'] = (error, { url, path }) => {
+  reportError(error, url);
+};
+```
+
+- Gemkit catches these errors and renders the error page, so they don't reach the `error` and
+  `unhandledrejection` events of `window`, and a monitoring SDK can't collect them automatically. Report
+  them here.
+- Other errors, for example in element templates or event handlers, are not caught and still reach the
+  `window` events and the monitoring SDK.
+- `url` is the page URL and `path` is without the language prefix. The default handler is `console.error`.
+
 ## Cookies
 
 ```ts

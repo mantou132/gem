@@ -101,6 +101,16 @@ export interface AppServerModule {
   handleError?: (error: unknown, event: RequestEvent) => unknown;
 }
 
+/** `src/app.client.ts` 导出的内容，只在客户端执行 */
+export interface AppClientModule {
+  /**
+   * 客户端导航时 `load`、加载页面模块或数据等抛出的非 `error()` 错误，用来上报，默认使用 `console.error`；
+   * Gemkit 捕获这些错误并渲染错误页面，它们不会出现在 `window` 的 `error` 事件中。
+   * `url` 是页面的 URL，`path` 不包含语言前缀
+   */
+  handleError?: (error: unknown, event: Pick<RequestEvent, 'url' | 'path'>) => unknown;
+}
+
 /** `*.server.ts` 导出的内容，只在服务端执行 */
 export interface ServerModule {
   /** 返回值只能是 JSON 值，可以使用 `redirect` 跳转 */
@@ -262,6 +272,12 @@ export function setErrorHandler(handler: AppServerModule['handleError']) {
   errorHandler = handler || logError;
 }
 
+let clientErrorHandler: NonNullable<AppClientModule['handleError']> = logError;
+
+export function setClientErrorHandler(handler: AppClientModule['handleError']) {
+  clientErrorHandler = handler || logError;
+}
+
 /** 当前请求的状态，每个请求有独立的值 */
 export const requestState = isolate<{
   /** 预渲染时没有 */
@@ -373,7 +389,7 @@ export function setSSRError(path: string, err: RouteError) {
 
 /**
  * 转换成错误页面的数据，意外的错误状态码为 500，生产环境隐藏错误信息，
- * 服务端交给 `handleError`，预渲染时抛出，避免把错误页面当作页面输出
+ * 交给 `src/app.server.ts` 或者 `src/app.client.ts` 的 `handleError`，预渲染时抛出，避免把错误页面当作页面输出
  */
 export function toErrorData(err: unknown): ErrorData {
   if (err instanceof HttpError) {
@@ -384,7 +400,7 @@ export function toErrorData(err: unknown): ErrorData {
     if (!requestState.request) throw err;
     errorHandler(err, getRequestEvent());
   } else {
-    console.error(err);
+    clientErrorHandler(err, { url: new URL(location.href), path: history.getParams().path });
   }
   const message = process.env.NODE_ENV === 'production' ? 'Internal Error' : String((err as Error)?.message ?? err);
   return { status: 500, message };
