@@ -2,7 +2,7 @@ import { connect, history, titleStore } from '@mantou/gem';
 import { setServerElementLoader } from '@mantou/gem-ssr/client';
 
 import { trimTrailingSlash } from './constants';
-import { loadServerElement } from './data';
+import { clientState, loadServerElement } from './data';
 import { startPrefetch } from './prefetch';
 import { formatTitle, type TitleOptions } from './title';
 
@@ -16,6 +16,10 @@ titleStore({ url: location.href });
 setServerElementLoader(loadServerElement);
 
 export function startClient(options: TitleOptions) {
+  // 导航后加载的 chunk 可能已经被重新部署删除
+  connect(history.store, () => {
+    clientState.navigated = true;
+  });
   connect(titleStore, () => {
     document.title = formatTitle(titleStore.title, options);
   });

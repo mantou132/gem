@@ -548,7 +548,7 @@ test('renderElements: 渲染页面中的纯服务端元素', async ({ assert }) 
   const response = await renderer.renderElements(
     request('/__gemkit_element', { method: 'POST', body: JSON.stringify({ url: '/zh', elements }) }),
   );
-  assert.match((await response.json())[0], /note: .*x/);
+  assert.match((await response.json()).html[0], /note: .*x/);
 });
 
 test('renderDocument: `prerender = false` 的页面不能预渲染', async ({ assert }) => {
@@ -589,12 +589,12 @@ test('handle: 每个请求先执行，可以跳转', async ({ assert }) => {
 test('handle: 纯服务端元素的请求也先执行，元素中读取 `locals`', async ({ assert }) => {
   const body = JSON.stringify({ url: '/admin', elements: [{ tag: 'app-server-user', attrs: {}, props: {} }] });
   const denied = await renderer.renderElements(request('/__gemkit_element', { method: 'POST', body }));
-  assert.equal(await denied.json(), null);
+  assert.deepEqual(await denied.json(), { html: null });
   assert.equal(denied.headers.get(REDIRECT_HEADER), '/login');
   const response = await renderer.renderElements(
     request('/__gemkit_element', { method: 'POST', body, headers: { cookie: 'user=a' } }),
   );
-  assert.match((await response.json())[0], /user: .*a/);
+  assert.match((await response.json()).html[0], /user: .*a/);
   assert.equal(response.headers.get('cache-control'), 'private, no-store');
 });
 

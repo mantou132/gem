@@ -133,10 +133,10 @@ test('generate: 生成路由和入口文件', ({ assert }) => {
   assert.deepEqual(fs.readdirSync(genDir).sort(), [
     '.gitignore',
     'api.ts',
+    'client-build.json',
     'client.ts',
     'env.d.ts',
     'i18n.ts',
-    'route-chunks.json',
     'routes.ts',
     'server.ts',
     'tsconfig.json',

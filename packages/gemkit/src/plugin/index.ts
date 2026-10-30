@@ -32,7 +32,7 @@ import {
   getPublicModules,
   getSrcDir,
   SRC_ALIAS,
-  writeRouteChunks,
+  writeClientBuild,
 } from './codegen';
 
 export { cloudflare } from '../adapters/cloudflare';
@@ -220,10 +220,12 @@ export function pluginGemkit(options: GemkitOptions = {}): RsbuildPlugin {
       const dtsFile = path.join(genDir, 'auto-import.d.ts');
       fs.rmSync(dtsFile, { force: true });
 
-      // 客户端构建完成后写入路由的 chunk，服务端构建依赖客户端构建，之后才开始
-      const routeChunksPlugin: Rspack.RspackPluginInstance = {
+      // 客户端构建完成后写入版本和路由的 chunk，服务端构建依赖客户端构建，之后才开始
+      const clientBuildPlugin: Rspack.RspackPluginInstance = {
         apply: (compiler) => {
-          compiler.hooks.done.tap('gemkit', (stats) => writeRouteChunks(rootPath, getRouteChunks(stats)));
+          compiler.hooks.done.tap('gemkit', (stats) =>
+            writeClientBuild(rootPath, { version: stats.hash!, routeChunks: getRouteChunks(stats) }),
+          );
         },
       };
 
@@ -276,7 +278,7 @@ export function pluginGemkit(options: GemkitOptions = {}): RsbuildPlugin {
             web: {
               source: { entry: { index: path.join(genDir, 'client.ts') } },
               output: { target: 'web', distPath: { root: 'dist/web' } },
-              tools: { rspack: { plugins: [gemPlugin(true), ...(isDev ? [] : [routeChunksPlugin])] } },
+              tools: { rspack: { plugins: [gemPlugin(true), ...(isDev ? [] : [clientBuildPlugin])] } },
             },
             node: {
               source: {
@@ -299,7 +301,7 @@ export function pluginGemkit(options: GemkitOptions = {}): RsbuildPlugin {
                 rspack: {
                   plugins: [gemPlugin(false)],
                   output: { asyncChunks: !handlerEntry },
-                  // 导入客户端构建写入的路由 chunk，开发时不需要
+                  // 导入客户端构建写入的版本和路由 chunk，开发时不需要
                   ...(!isDev && { dependencies: ['web'] }),
                 },
               },

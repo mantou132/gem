@@ -21,6 +21,7 @@ import {
   type AppServerModule,
   createServerContext,
   type DataFile,
+  type ElementsResult,
   type EndpointModule,
   type Endpoints,
   getRequestEvent,
@@ -76,6 +77,11 @@ export interface RendererOptions extends TitleOptions {
   prefixDefaultLanguage?: boolean;
   /** 客户端构建中 layout 和页面的标签名对应的 chunk 文件，渲染页面时预加载 */
   routeChunks?: RouteChunks;
+  /**
+   * 客户端构建的 hash，数据文件和服务端元素的响应中包含它，
+   * 重新部署后客户端发现和自己的版本不同时重新加载页面，开发时没有
+   */
+  version?: string;
 }
 
 /**
@@ -147,6 +153,7 @@ export function createRenderer({
   defaultLanguage = '',
   prefixDefaultLanguage = false,
   routeChunks = {},
+  version,
   ...titleOptions
 }: RendererOptions) {
   setServerModules(serverModules);
@@ -371,7 +378,7 @@ export function createRenderer({
       const routes = findServerRoutes(path);
       const json = (body: DataFile | null, status = 200) => Response.json(body, { status, headers: toHeaders() });
       return runHandle(pageUrl, path, async (err) => {
-        if (err instanceof Redirect) return json({ redirect: err.location });
+        if (err instanceof Redirect) return json({ redirect: err.location, version });
         if (!routes.length) return json(null, 404);
         const data: RouteData = {};
         // 多个路由出错时使用外层的，和渲染时一致
@@ -394,9 +401,9 @@ export function createRenderer({
           }
         } catch (err) {
           if (!(err instanceof Redirect)) throw err;
-          return json({ redirect: err.location });
+          return json({ redirect: err.location, version });
         }
-        return json({ data, error: errors.find(Boolean) });
+        return json({ data, error: errors.find(Boolean), version });
       });
     });
 
@@ -441,6 +448,9 @@ export function createRenderer({
       });
     });
 
+  const elementsResult = (html: string[] | null, init: ResponseInit) =>
+    Response.json({ html, version } satisfies ElementsResult, init);
+
   /**
    * 渲染页面中的纯服务端元素，请求体是 `{ url, elements }`，`url` 是页面的路径，
    * 响应元素的 HTML，顺序和 `elements` 一致，跳转时为 `null`，响应头中有跳转的地址，`handle` 出错时为 `null`
@@ -453,16 +463,16 @@ export function createRenderer({
       const { path } = await setLanguage(pathname);
       return runHandle(new URL(`${url.origin}${pathname}${search}`), path, async (err) => {
         if (err instanceof Redirect) {
-          return Response.json(null, { headers: toHeaders({ [REDIRECT_HEADER]: err.location }) });
+          return elementsResult(null, { headers: toHeaders({ [REDIRECT_HEADER]: err.location }) });
         }
-        if (err !== undefined) return Response.json(null, { status: toErrorData(err).status, headers: toHeaders() });
+        if (err !== undefined) return elementsResult(null, { status: toErrorData(err).status, headers: toHeaders() });
         // 元素在页面和 layout 的模块中定义
         await Promise.all(matchRoutes(path).map(({ info }) => info.load()));
         const options = { url: `${url.origin}${path}${search}` };
         const html = await Promise.all(
           body.elements.map(({ tag, attrs, props }) => renderServerElement(tag, attrs, props, options)),
         );
-        return Response.json(html, { headers: toHeaders() });
+        return elementsResult(html, { headers: toHeaders() });
       });
     });
 
@@ -598,6 +608,7 @@ export function createRenderer({
     setRevalidateHandler,
     hasServerData,
     notFoundPath,
+    version,
   };
 }
 

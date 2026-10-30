@@ -20,10 +20,12 @@ import {
   clientState,
   type ErrorData,
   getHistoryEntry,
+  isOutdated,
   loadServerData,
   navigationStore,
   outletStore,
   Redirect,
+  reload,
   runServerLoad,
   setSSRData,
   setSSRError,
@@ -54,10 +56,20 @@ const ssrRoutes = isolate<{ tags: string[] }>({ tags: [] });
 /** 当前请求中客户端需要加载的 layout 和页面的标签名，文档中预加载它们的 chunk */
 export const getSSRRoutes = () => ssrRoutes.tags;
 
-/** 加载 layout 或页面模块，等待模块中的 i18n 子模块加载当前语言包 */
+/**
+ * 加载 layout 或页面模块，等待模块中的 i18n 子模块加载当前语言包；
+ * 导航时 chunk 加载失败通常是重新部署删除了旧的 chunk，重新加载页面；
+ * 首次加载时是部署本身的问题，离线时是网络的问题，重新加载也会失败，渲染错误页面
+ */
 async function loadModule(load: () => Promise<ElementModule>, tag: string) {
   if (isServer) ssrRoutes.tags = [...ssrRoutes.tags, tag];
-  const mod = await load();
+  let mod: ElementModule;
+  try {
+    mod = await load();
+  } catch (err) {
+    if (clientState.navigated && navigator.onLine && isOutdated(err)) return reload();
+    throw err;
+  }
   await i18n?.ready;
   return mod.default;
 }

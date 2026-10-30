@@ -6,7 +6,7 @@ import { defaultLanguage, i18n, languages, prefixDefaultLanguage } from './i18n'
 import <%= it.app %>;
 <% } -%>
 import { app } from './routes';
-import routeChunks from './route-chunks.json';
+import clientBuild from './client-build.json';
 <% if (it.appServer) { -%>
 import * as appServerModule from <%= it.appServer %>;
 <% } -%>
@@ -34,6 +34,6 @@ export default createRenderer({
   languages,
   defaultLanguage,
   prefixDefaultLanguage,
-  routeChunks,
+  ...clientBuild,
   ...<%= JSON.stringify(it.titleOptions) %>,
 });

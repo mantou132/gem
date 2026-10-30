@@ -9,7 +9,7 @@ import {
   HTML_TYPE,
   trimTrailingSlash,
 } from './constants';
-import type { DataFile, Platform, PlatformContext, PlatformEnv } from './data';
+import type { DataFile, ElementsFile, Platform, PlatformContext, PlatformEnv } from './data';
 import type { Renderer } from './server';
 
 /** 页面数据和页面中纯服务端元素的请求 */
@@ -118,12 +118,16 @@ export async function prerenderPage(renderer: Renderer, template: string, pathna
   const location = response.headers.get('location');
   if (location) {
     files.set(path.posix.join(pathname, 'index.html'), getRedirectHtml(location, await response.text()));
-    files.set(getDataPath(pathname), JSON.stringify({ redirect: location } satisfies DataFile));
+    files.set(
+      getDataPath(pathname),
+      JSON.stringify({ redirect: location, version: renderer.version } satisfies DataFile),
+    );
     return { status: response.status, files };
   }
   files.set(path.posix.join(pathname, 'index.html'), await response.text());
   // 客户端导航时使用的纯服务端元素，导航时总会请求，没有元素时也输出
-  files.set(getDataPath(pathname, ELEMENTS_FILE), JSON.stringify(Object.fromEntries(serverElements)));
+  const elements: ElementsFile = { elements: Object.fromEntries(serverElements), version: renderer.version };
+  files.set(getDataPath(pathname, ELEMENTS_FILE), JSON.stringify(elements));
   // 客户端导航时使用的数据
   if (renderer.hasServerData(pathname)) {
     const dataPath = getDataPath(pathname);
@@ -216,7 +220,9 @@ export function createFetchHandler(
       const body = await readPrerendered(url, platform);
       if (body) return new Response(body, { headers: { 'content-type': 'application/json' } });
       // 没有预渲染的页面客户端使用 `ELEMENT_PATH` 渲染，开启预渲染时导航总会请求，避免 404
-      if (pathname.endsWith(ELEMENTS_FILE)) return setCdnCache(url, Response.json({}));
+      if (pathname.endsWith(ELEMENTS_FILE)) {
+        return setCdnCache(url, Response.json({ elements: {}, version: renderer.version } satisfies ElementsFile));
+      }
       return setCdnCache(url, await renderer.loadData(request, platform));
     }
     const body = await readPrerendered(url, platform);

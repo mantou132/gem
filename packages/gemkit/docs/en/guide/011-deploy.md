@@ -308,6 +308,7 @@ Dynamically rendered responses can set `Cache-Control` and other headers with
 platform without them, so configure their headers on the platform.
 
 Prerendered HTML and `__data.json` are public files, but a new deploy replaces them at the same path.
+Pages already open during a deploy don't mix the two versions, see [Redeploying](./010-rendering.md#redeploying).
 Use a short cache lifetime or purge the cache after deploying. Hashed assets in `dist/web/static` never
 change, so they can be cached for a long time. `gemkit start` sets these headers.
 

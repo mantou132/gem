@@ -289,13 +289,48 @@ export const requestState = isolate<{
 export type RouteData = Record<string, unknown>;
 
 /**
- * 数据文件（`__data.json`）的内容，跳转时只有 `redirect`，`error` 是出错的路由
+ * 数据文件（`__data.json`）的内容，跳转时只有 `redirect`，`error` 是出错的路由，
+ * `version` 是生成它的客户端构建的版本，开发时没有
  *
  * 静态托管时不能设置响应头，所以都放在内容中
  */
-export type DataFile = RouteDataFile | { redirect: string };
+export type DataFile = (RouteDataFile | { redirect: string }) & { version?: string };
 
 type RouteDataFile = { data: RouteData; error?: RouteError };
+
+/** 页面中纯服务端元素的 HTML 文件（`__elements.json`）的内容，key 是元素的 key */
+export type ElementsFile = { elements: Record<string, string>; version?: string };
+
+/** 服务端渲染元素（`ELEMENT_PATH`）的响应，`html` 的顺序和请求的元素一致，跳转或者 `handle` 出错时为 `null` */
+export type ElementsResult = { html: string[] | null; version?: string };
+
+declare const __webpack_hash__: string;
+
+/** 客户端构建的 hash，服务端渲染的内容带有生成它们的版本，开发时和测试中没有 */
+const clientVersion = typeof __webpack_hash__ === 'string' ? __webpack_hash__ : undefined;
+
+/** 服务端的内容来自重新部署后的版本，当前页面的代码已经过时 */
+class Outdated {}
+
+/** 服务端的内容和客户端的代码属于不同的版本时抛出 `Outdated`，开发时服务端没有版本 */
+function checkVersion(version?: string) {
+  if (version && version !== clientVersion) throw new Outdated();
+}
+
+/**
+ * 重新加载当前地址，加载新版本的代码和内容，返回不会完成的 Promise，中断渲染；
+ * 导航时地址已经是目标地址
+ */
+export function reload(): Promise<never> {
+  location.reload();
+  return new Promise(() => {});
+}
+
+/** 重新部署后旧的 chunk 不存在了，或者服务端的内容来自新的版本 */
+export const isOutdated = (err: unknown) =>
+  err instanceof Outdated ||
+  (err as Error)?.name === 'ChunkLoadError' ||
+  (err as { code?: string })?.code === 'CSS_CHUNK_LOAD_FAILED';
 
 /**
  * 服务端渲染时页面和 layout 的数据，渲染后输出到页面中，水合时直接使用，每个请求有独立的值
@@ -525,7 +560,12 @@ export const navigationStore = createStore({ pending: false });
  *
  * `error` 是需要渲染错误页面的路由，例如 action 出错，`path` 是出错的页面路径
  */
-export const clientState: { invalidated: boolean; error?: RouteError & { path: string } } = { invalidated: false };
+export const clientState: {
+  invalidated: boolean;
+  error?: RouteError & { path: string };
+  /** 已经在客户端导航过，之后加载的 chunk 可能已经被重新部署删除 */
+  navigated?: boolean;
+} = { invalidated: false };
 
 /**
  * 路由在加载前就确定的错误，渲染错误页面：服务端是 `handle` 和 action 的错误，
@@ -575,6 +615,7 @@ export async function fetchData(url: string, path: string): Promise<RouteDataFil
   if (res.status === 404) notFound();
   if (!res.ok) throw new Error(`gemkit: failed to load data of \`${path}\``);
   const file: DataFile = await res.json();
+  checkVersion(file.version);
   // 服务端 `load` 中的跳转，预取时不跳转，使用数据时再跳转
   if ('redirect' in file) throw new Redirect(302, file.redirect);
   return file;
@@ -595,6 +636,8 @@ export async function loadServerData(tag: string, params: Params) {
     const promise = (takePrefetched<RouteDataFile>(url) || fetchData(url, path)).catch((err) => {
       // 替换当前导航，中断当前路由的渲染，layout 和页面共用请求，只跳转一次
       if (err instanceof Redirect) navigate(err.location, true);
+      // 不能使用新版本的数据渲染旧的页面
+      if (err instanceof Outdated) return reload();
       throw err;
     });
     dataRequest = { url, promise, taken: new Set() };
@@ -635,7 +678,9 @@ function renderElement(url: string, element: ServerElementParams) {
         navigate(redirectTo, true);
         throw new Redirect(302, redirectTo);
       }
-      return res.json();
+      const { html, version }: ElementsResult = await res.json();
+      checkVersion(version);
+      return html!;
     });
     renderBatch = batch;
   }
@@ -643,8 +688,13 @@ function renderElement(url: string, element: ServerElementParams) {
   return renderBatch.promise.then((list) => list[index]);
 }
 
-const fetchElements = (url: string): Promise<Record<string, string>> =>
-  fetch(url).then((res) => (res.ok ? res.json() : {}));
+async function fetchElements(url: string) {
+  const res = await fetch(url);
+  if (!res.ok) return {};
+  const { elements, version }: ElementsFile = await res.json();
+  checkVersion(version);
+  return elements;
+}
 
 // 预渲染时才有页面中纯服务端元素的 HTML 文件，在构建时确定
 const hasElementsFile = process.env.GEMKIT_PRERENDER !== 'false';
@@ -660,7 +710,12 @@ export function prefetchElements(path: string, search: string) {
 export function loadPageElements() {
   if (!hasElementsFile) return Promise.resolve({} as Record<string, string>);
   const url = getFileUrl(history.getParams().path, location.search, ELEMENTS_FILE);
-  if (elementsRequest?.url !== url) elementsRequest = { url, promise: takePrefetched(url) || fetchElements(url) };
+  if (elementsRequest?.url !== url) {
+    const promise: Promise<Record<string, string>> = takePrefetched(url) || fetchElements(url);
+    // 导航时总会请求，页面中没有纯服务端元素时不使用
+    promise.catch(() => {});
+    elementsRequest = { url, promise };
+  }
   return elementsRequest.promise;
 }
 
@@ -679,7 +734,14 @@ export async function loadServerElement(
   const cached = getHistoryEntry(historyKey)?.elements[key];
   if (cached !== undefined) return cached;
   const pageUrl = history.basePath + history.getParams().path + location.search;
-  const html = (await loadPageElements())[key] ?? (await renderElement(pageUrl, { tag, attrs, props }));
+  let html: string;
+  try {
+    html = (await loadPageElements())[key] ?? (await renderElement(pageUrl, { tag, attrs, props }));
+  } catch (err) {
+    // 不能把新版本的 HTML 放到旧的页面中
+    if (err instanceof Outdated) return reload();
+    throw err;
+  }
   updateHistoryEntry(historyKey, (entry) => {
     entry.elements[key] = html;
   });

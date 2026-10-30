@@ -33,7 +33,7 @@ export const SRC_ALIAS = 'src';
 /** 导入 `ssr = false` 的页面和 layout 模块时添加的查询参数，服务端构建时替换成空模块 */
 export const CLIENT_QUERY = 'gemkit-client';
 
-const ROUTE_CHUNKS_FILE = 'route-chunks.json';
+const CLIENT_BUILD_FILE = 'client-build.json';
 
 /** 页面和 layout 的服务端模块 */
 interface ServerInfo {
@@ -373,8 +373,8 @@ function generateEntries(
   const titleOptions = { title: config.title, titleTemplate: config.titleTemplate };
   const app = findApp('app');
   render(genDir, 'client.ts', 'client', { app, appClient: findApp('app.client'), titleOptions });
-  // 客户端构建完成后写入路由的 chunk（`writeRouteChunks`），开发时为空
-  writeIfChanged(path.join(genDir, ROUTE_CHUNKS_FILE), '{}\n');
+  // 客户端构建完成后写入（`writeClientBuild`），开发时为空
+  writeIfChanged(path.join(genDir, CLIENT_BUILD_FILE), '{}\n');
   render(genDir, 'server.ts', 'server', {
     // 整个应用都不在服务端渲染时 `src/app.ts` 也只在客户端执行
     app: !spa && app,
@@ -408,9 +408,12 @@ function generateEntries(
   );
 }
 
-/** 客户端构建中 layout 和页面的标签名对应的 chunk 文件，服务端构建导入后渲染页面时预加载 */
-export function writeRouteChunks(rootPath: string, routeChunks: Record<string, string[]>) {
-  writeIfChanged(path.join(rootPath, '.gemkit', ROUTE_CHUNKS_FILE), `${JSON.stringify(routeChunks, null, 2)}\n`);
+/**
+ * 客户端构建的信息，服务端构建导入：`version` 是客户端构建的 hash，客户端用来识别重新部署后的内容，
+ * `routeChunks` 是 layout 和页面的标签名对应的 chunk 文件，渲染页面时预加载
+ */
+export function writeClientBuild(rootPath: string, build: { version: string; routeChunks: Record<string, string[]> }) {
+  writeIfChanged(path.join(rootPath, '.gemkit', CLIENT_BUILD_FILE), `${JSON.stringify(build, null, 2)}\n`);
 }
 
 /**

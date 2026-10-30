@@ -22,7 +22,7 @@ works that way.
 | ------------------------ | --------------------------- | ------------------------------------------------------ | ---------------------- |
 | Page HTML                | Rendered per request        | Prerendered file first, otherwise rendered per request | Prerendered pages only |
 | `__data.json`            | Generated per request       | Prerendered file first                                 | Prerendered pages only |
-| `__elements.json`        | Not requested by the client | Only for prerendered pages, otherwise `{}`             | Prerendered pages only |
+| `__elements.json`        | Not requested by the client | Only for prerendered pages, otherwise empty            | Prerendered pages only |
 | `POST /__gemkit_element` | Available                   | Available                                              | Not available          |
 | Form `actions`           | Available                   | Available                                              | Not available          |
 - **Requests with a query**: `gemkit start` doesn't use the prerendered file, because `load` may read
@@ -244,6 +244,22 @@ Look from top to bottom and stop at the first hit.
 2. `__elements.json`: requested when prerendering, may be prefetched.
 3. `POST /__gemkit_element`.
 
+## Redeploying
+
+When a deploy happens while a page is open, the browser still runs the old code while the server runs the
+new version: old chunks may be gone and the shape of data may have changed. Gemkit never mixes the two
+versions:
+- **Version**: the hash of the client build. `__data.json`, `__elements.json` and `POST /__gemkit_element`
+  contain the version that produced them. When client navigation finds a different version, it reloads the
+  target page instead of rendering the old page with new content. Prefetched content is checked when used.
+- **Chunk load failures**: when a layout or page chunk fails to load during navigation (the deploy removed
+  the old chunk), the target page is reloaded too. On first load the failure is a problem of the deployment
+  itself, and when offline (`navigator.onLine` is `false`) it is a network problem. Reloading would fail
+  again, so the error page is shown.
+- **No reload needed**: navigation without server data to a module already loaded runs entirely on the old
+  code, and data files cached by the browser or a CDN from the old version match the old code.
+- Keeping API routes (`$gemkit/api`) compatible is up to the app. There is no version in development.
+
 ## Trade-offs
 
 - **Layout `load` runs again on the server**: when navigating below the same layout, `__data.json` still
@@ -252,7 +268,7 @@ Look from top to bottom and stop at the first hit.
 - **Two `handle` calls for dynamically rendered pages**: on client navigation, `__data.json` and
   `POST /__gemkit_element` are two requests, each runs `handle`.
 - **Empty request with prerendering**: when prerendering is enabled, non-prerendered pages also request
-  `__elements.json`, receive `{}` and then `POST`. The client doesn't know which pages were prerendered.
+  `__elements.json`, receive no elements and then `POST`. The client doesn't know which pages were prerendered.
 
 ## Related
 

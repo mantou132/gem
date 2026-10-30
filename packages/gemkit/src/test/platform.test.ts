@@ -86,7 +86,7 @@ test('platform：Cloudflare 的 `env` 和 `ctx` 传给 `handle`、`load`、actio
     method: 'POST',
     body: JSON.stringify({ url: '/', elements: [{ tag: 'app-server-greeting', attrs: {}, props: {} }] }),
   });
-  assert.match((await elements.json())[0], /hi/);
+  assert.match((await elements.json()).html[0], /hi/);
   await Promise.all(tasks);
   assert.deepEqual(logs, ['/', '/', '/', '/api/greeting', '/']);
 });
