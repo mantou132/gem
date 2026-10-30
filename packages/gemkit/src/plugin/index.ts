@@ -148,11 +148,9 @@ const ssrMiddleware =
 async function writeFallbackPages(distDir: string, spa: boolean) {
   const { webDir } = getDistPaths(distDir);
   const { renderer, template: html } = await loadRenderer(distDir);
-  const { notFoundPath } = renderer;
-  if (!(await renderer.canPrerender(notFoundPath))) return;
-  const result = await renderer.renderDocument(html, notFoundPath);
-  if (result.status !== 404) return;
-  const content = (await Array.fromAsync(result.html)).join('');
+  const response = await renderer.prerenderDocument(html, renderer.notFoundPath);
+  if (response?.status !== 404) return;
+  const content = await response.text();
   fs.writeFileSync(path.join(webDir, '404.html'), content);
   if (spa) fs.writeFileSync(path.join(webDir, '200.html'), content);
 }
@@ -166,10 +164,11 @@ async function prerenderPages(distDir: string) {
   await Promise.all(
     Array.from({ length: PRERENDER_CONCURRENCY }, async () => {
       for (let pathname = paths.shift(); pathname !== undefined; pathname = paths.shift()) {
-        const { files } = await prerenderPage(renderer, html, pathname);
+        const result = await prerenderPage(renderer, html, pathname);
+        if (!result) continue;
         // 使用 ISR 的页面写到缓存中，`gemkit start` 按 `revalidate` 重新渲染
         const isr = (await renderer.getRevalidate(pathname)) !== undefined;
-        await writeFiles(isr ? cacheDir : webDir, files);
+        await writeFiles(isr ? cacheDir : webDir, result.files);
       }
     }),
   );

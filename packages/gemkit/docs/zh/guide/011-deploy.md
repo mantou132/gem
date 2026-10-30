@@ -221,6 +221,9 @@ export async function load({ params }: ServerLoadContext<{ id: string }>) {
 读取请求或 cookie、设置 cookie 的响应会带有 `Cache-Control: private, no-store`，
 CDN 不会共享这些因人而异的内容。配置代理时保留这个响应头。
 
+动态渲染的响应可以使用 [`setHeaders`](./007-request.md#响应头) 设置 `Cache-Control` 等响应头。
+预渲染的文件由静态服务器或者平台提供，没有这些响应头，需要在平台中配置。
+
 预渲染的 HTML 和 `__data.json` 是公开文件，但新的部署会替换相同路径的内容。
 使用较短的缓存时间，或者在部署后清除缓存。`dist/web/static` 中带 hash 的资源不会改变，可以长期缓存。
 

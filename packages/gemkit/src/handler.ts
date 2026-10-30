@@ -1,7 +1,15 @@
 import path from 'node:path';
 
-import { DATA_FILE, ELEMENT_PATH, ELEMENTS_FILE, escapeHtml, getDataPath, trimTrailingSlash } from './constants';
-import type { DataFile, Platform, PlatformContext, PlatformEnv, RouteError } from './data';
+import {
+  DATA_FILE,
+  ELEMENT_PATH,
+  ELEMENTS_FILE,
+  escapeHtml,
+  getDataPath,
+  HTML_TYPE,
+  trimTrailingSlash,
+} from './constants';
+import type { DataFile, Platform, PlatformContext, PlatformEnv } from './data';
 import type { Renderer } from './server';
 
 /** 页面数据和页面中纯服务端元素的请求 */
@@ -64,20 +72,6 @@ const isFormRequest = (request: Request) => {
   return !!type && FORM_TYPES.includes(type);
 };
 
-const HTML_TYPE = 'text/html; charset=utf-8';
-
-const encoder = new TextEncoder();
-
-/** 流式输出 HTML，直接编码，`TextEncoderStream` 多一层 TransformStream 开销较大 */
-const toStream = (html: AsyncIterator<string>) =>
-  new ReadableStream<Uint8Array>({
-    async pull(controller) {
-      const { done, value } = await html.next();
-      if (done) controller.close();
-      else controller.enqueue(encoder.encode(value));
-    },
-  });
-
 /**
  * 其他网站提交的表单或者纯服务端元素的请求（CSRF），优先使用浏览器的 `Sec-Fetch-Site`，
  * 反向代理后请求 URL 的协议可能和浏览器中的不同，所以只比较 `Origin` 的 host
@@ -111,36 +105,37 @@ function getRedirectHtml(location: string, head = '') {
 }
 
 /**
- * 预渲染页面，返回状态码和需要写入的文件（路径和内容），构建时和 ISR 使用，ISR 时有平台上下文
+ * 预渲染页面，返回状态码和需要写入的文件（路径和内容），不能预渲染时为 `undefined`，
+ * 构建时和 ISR 使用，ISR 时有平台上下文；预渲染的文件没有响应头
  *
  * 静态托管不能响应跳转，页面使用 `<meta>` 跳转，客户端导航时从数据文件中读取跳转地址
  */
 export async function prerenderPage(renderer: Renderer, template: string, pathname: string, platform?: Platform) {
   const serverElements = new Map<string, string>();
-  const result = await renderer.renderDocument(template, pathname, { serverElements, platform });
+  const response = await renderer.prerenderDocument(template, pathname, { serverElements, platform });
+  if (!response) return;
   const files = new Map<string, string>();
-  const location = result.headers.get('location');
+  const location = response.headers.get('location');
   if (location) {
-    const head = (await Array.fromAsync(result.html)).join('');
-    files.set(path.posix.join(pathname, 'index.html'), getRedirectHtml(location, head));
+    files.set(path.posix.join(pathname, 'index.html'), getRedirectHtml(location, await response.text()));
     files.set(getDataPath(pathname), JSON.stringify({ redirect: location } satisfies DataFile));
-    return { status: result.status, files };
+    return { status: response.status, files };
   }
-  files.set(path.posix.join(pathname, 'index.html'), (await Array.fromAsync(result.html)).join(''));
+  files.set(path.posix.join(pathname, 'index.html'), await response.text());
   // 客户端导航时使用的纯服务端元素，导航时总会请求，没有元素时也输出
   files.set(getDataPath(pathname, ELEMENTS_FILE), JSON.stringify(Object.fromEntries(serverElements)));
   // 客户端导航时使用的数据
   if (renderer.hasServerData(pathname)) {
     const dataPath = getDataPath(pathname);
-    files.set(dataPath, JSON.stringify((await renderer.loadData(dataPath, platform)).body));
+    files.set(dataPath, await (await renderer.loadData(dataPath, platform)).text());
   }
-  return { status: result.status, files };
+  return { status: response.status, files };
 }
 
 /**
  * 增量静态再生成（ISR）：设置了 `revalidate` 的页面第一次请求时预渲染并保存到 `store`，
  * 过期后先返回旧内容，在后台重新渲染，同一个页面同时只渲染一次；
- * 和预渲染的条件一样，渲染结果不是 200 时（例如跳转、出错）不缓存，由服务端渲染
+ * 和预渲染的条件一样，不能预渲染或者渲染结果不是 200 时（例如跳转、出错）不缓存，由服务端渲染
  */
 function createIsr(renderer: Renderer, template: string, store: IsrStore) {
   const pending = new Map<string, Promise<Map<string, string> | undefined>>();
@@ -148,10 +143,10 @@ function createIsr(renderer: Renderer, template: string, store: IsrStore) {
     let promise = pending.get(page);
     if (!promise) {
       promise = (async () => {
-        const { status, files } = await prerenderPage(renderer, template, page, platform);
-        if (status !== 200) return;
-        await store.set(files);
-        return files;
+        const result = await prerenderPage(renderer, template, page, platform);
+        if (result?.status !== 200) return;
+        await store.set(result.files);
+        return result.files;
       })().finally(() => pending.delete(page));
       pending.set(page, promise);
     }
@@ -166,11 +161,8 @@ function createIsr(renderer: Renderer, template: string, store: IsrStore) {
     const revalidate = await renderer.getRevalidate(page);
     if (revalidate === undefined) return;
     const cached = await store.get(file);
-    if (!cached) {
-      // 渲染出错时由服务端渲染错误页面，并交给 `handleError`
-      if (!(await renderer.canPrerender(page, platform))) return;
-      return (await regenerate(page, platform).catch(() => undefined))?.get(file);
-    }
+    // 渲染出错时由服务端渲染错误页面，并交给 `handleError`
+    if (!cached) return (await regenerate(page, platform).catch(() => undefined))?.get(file);
     // 先返回旧内容再在后台重新渲染
     if (Date.now() - cached.time > revalidate * 1000) {
       const task = regenerate(page, platform).catch((err) => console.error(err));
@@ -180,7 +172,10 @@ function createIsr(renderer: Renderer, template: string, store: IsrStore) {
   };
 }
 
-/** 处理页面、页面数据、表单提交、纯服务端元素和 API 路由请求，提供 `readStatic` 时优先使用预渲染的文件 */
+/**
+ * 处理页面、页面数据、表单提交、纯服务端元素和 API 路由请求，提供 `readStatic` 时优先使用预渲染的文件，
+ * 预渲染和 ISR 缓存的文件和平台提供的静态文件一样，不经过 `handle`
+ */
 export function createFetchHandler(
   renderer: Renderer,
   template: string,
@@ -200,19 +195,13 @@ export function createFetchHandler(
     if (revalidate !== undefined) response.headers.set(...cdnCache(revalidate));
     return response;
   };
-  const renderHtml = async (request: Request, platform?: Platform, error?: RouteError) => {
-    const { status, headers, html } = await renderer.renderDocument(template, request, { error, platform });
-    headers.set('content-type', HTML_TYPE);
-    return new Response(toStream(html), { status, headers });
-  };
   const handler = async (input: Request, platform?: Platform) => {
     const request = trustedOrigin ? withOrigin(input, trustedOrigin) : input;
     const url = new URL(request.url);
     const { pathname } = url;
     if (pathname === ELEMENT_PATH) {
       if (isCrossSite(request, url)) return new Response(null, { status: 403 });
-      const { status, headers, html } = await renderer.renderElements(request, platform);
-      return Response.json(html, { status, headers });
+      return renderer.renderElements(request, platform);
     }
     if (renderer.matchEndpoint(pathname)) {
       // 跨站的 JSON 请求需要预检，由 CORS 限制，没有 `Origin` 的请求（例如 webhook）不受影响
@@ -221,29 +210,18 @@ export function createFetchHandler(
     }
     if (isActionRequest(request.method, url.search)) {
       if (isCrossSite(request, url)) return new Response(null, { status: 403 });
-      const { headers, result } = await renderer.runAction(request, platform);
-      if (!result) return new Response(null, { status: 404, headers });
-      // `submitAction` 提交时返回结果，原生表单提交时跳转到 `redirect` 的地址或者当前页面，出错时渲染错误页面
-      if (request.headers.get('accept') === 'application/json') return Response.json(result, { headers });
-      if (result.type === 'error') {
-        const page = await renderHtml(request, platform, result.error);
-        for (const cookie of headers.getSetCookie()) page.headers.append('set-cookie', cookie);
-        return page;
-      }
-      headers.set('location', result.type === 'redirect' ? result.location : pathname);
-      return new Response(null, { status: 303, headers });
+      return renderer.runAction(template, request, platform);
     }
     if (isDataRequest(pathname)) {
       const body = await readPrerendered(url, platform);
       if (body) return new Response(body, { headers: { 'content-type': 'application/json' } });
       // 没有预渲染的页面客户端使用 `ELEMENT_PATH` 渲染，开启预渲染时导航总会请求，避免 404
       if (pathname.endsWith(ELEMENTS_FILE)) return setCdnCache(url, Response.json({}));
-      const { status, headers, body: file } = await renderer.loadData(request, platform);
-      return setCdnCache(url, Response.json(file, { status, headers }));
+      return setCdnCache(url, await renderer.loadData(request, platform));
     }
     const body = await readPrerendered(url, platform);
     if (body) return new Response(body, { headers: { 'content-type': HTML_TYPE } });
-    return setCdnCache(url, await renderHtml(request, platform));
+    return setCdnCache(url, await renderer.renderDocument(template, request, { platform }));
   };
   return Object.assign(handler, { isEndpoint: (pathname: string) => !!renderer.matchEndpoint(pathname) });
 }

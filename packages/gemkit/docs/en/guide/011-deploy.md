@@ -242,6 +242,10 @@ server element rendered on demand.
 Gemkit sets `Cache-Control: private, no-store` on responses that read the request or cookies, or set
 cookies, so a CDN doesn't share personal content. Keep that header when configuring a proxy.
 
+Dynamically rendered responses can set `Cache-Control` and other headers with
+[`setHeaders`](./007-request.md#response-headers). Prerendered files are served by the static server or the
+platform without them, so configure their headers on the platform.
+
 Prerendered HTML and `__data.json` are public files, but a new deploy replaces them at the same path.
 Use a short cache lifetime or purge the cache after deploying. Hashed assets in `dist/web/static` never
 change, so they can be cached for a long time.

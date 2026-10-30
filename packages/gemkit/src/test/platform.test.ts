@@ -59,7 +59,10 @@ const renderer = createRenderer({
   serverModules,
   endpoints: [{ pattern: '/api/greeting', load: async () => ({ GET: ({ platform }) => platform!.env.GREETING }) }],
   appServerModule: {
-    handle: ({ path, platform }) => platform?.ctx.waitUntil(Promise.resolve().then(() => logs.push(path))),
+    handle: ({ path, platform }, resolve) => {
+      platform?.ctx.waitUntil(Promise.resolve().then(() => logs.push(path)));
+      return resolve();
+    },
   },
 });
 
@@ -89,11 +92,11 @@ test('platform：Cloudflare 的 `env` 和 `ctx` 传给 `handle`、`load`、actio
 });
 
 test('platform：构建时预渲染没有平台上下文，ISR 在请求中预渲染时有', async ({ assert }) => {
-  const prerendered = await prerenderPage(renderer, documentTemplate, '/');
+  const prerendered = (await prerenderPage(renderer, documentTemplate, '/'))!;
   assert.match(prerendered.files.get('/index.html')!, /-->prerendered<\/p>/);
   const env = { GREETING: 'isr' };
   const ctx = { waitUntil: () => {} };
-  const isr = await prerenderPage(renderer, documentTemplate, '/', { env, ctx });
+  const isr = (await prerenderPage(renderer, documentTemplate, '/', { env, ctx }))!;
   assert.match(isr.files.get('/index.html')!, /-->isr<\/p>/);
   assert.equal(isr.files.get('/__data.json'), JSON.stringify({ data: { [home.tag]: 'isr' } }));
 });

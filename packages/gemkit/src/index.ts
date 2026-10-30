@@ -13,6 +13,7 @@ export {
   type FormActions,
   formActions,
   getRequestEvent,
+  type Handle,
   HttpError,
   invalidate,
   type Locals,

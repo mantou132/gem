@@ -62,8 +62,8 @@ const renderer = createRenderer({ app: html`<gemkit-outlet></gemkit-outlet>`, se
 const documentTemplate = '<!doctype html><html><head><title></title></head><body><!--gemkit-body--></body></html>';
 
 const render = async (path: string) => {
-  const { status, html } = await renderer.renderDocument(documentTemplate, new Request(`http://localhost${path}`));
-  return { status, html: (await Array.fromAsync(html)).join('') };
+  const response = await renderer.renderDocument(documentTemplate, new Request(`http://localhost${path}`));
+  return { status: response.status, html: await response.text() };
 };
 
 const getData = (html: string) =>
@@ -76,8 +76,8 @@ test('ssr = false：服务端只输出空的 outlet，`load` 的数据输出到�
   assert.doesNotMatch(html, /<gemkit-page-play/);
   assert.deepEqual(getData(html), { path: '/play', data: { [play.tag]: { rom: 'mario' } } });
   // 客户端导航时请求数据
-  const { body } = await renderer.loadData(new Request('http://localhost/play/__data.json'));
-  assert.deepEqual(body, { data: { [play.tag]: { rom: 'mario' } }, error: undefined });
+  const data = await renderer.loadData(new Request('http://localhost/play/__data.json'));
+  assert.deepEqual(await data.json(), { data: { [play.tag]: { rom: 'mario' } } });
 });
 
 test('ssr = false：在 layout 中设置时对其中的页面都有效', async ({ assert }) => {
@@ -104,6 +104,6 @@ test('没有服务端 `load` 的路由不输出数据', async ({ assert }) => {
   const { html } = await render('/');
   assert.match(html, /home/);
   assert.doesNotMatch(html, new RegExp(DATA_SCRIPT_ID));
-  const { result } = await renderer.runAction(new Request('http://localhost/?/like', { method: 'POST' }));
-  assert.deepEqual(result, { type: 'success', data: null });
+  const action = new Request('http://localhost/?/like', { method: 'POST', headers: { accept: 'application/json' } });
+  assert.deepEqual(await (await renderer.runAction(documentTemplate, action)).json(), { type: 'success', data: null });
 });

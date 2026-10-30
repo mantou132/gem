@@ -105,9 +105,9 @@ test('renderDocument: layout 中的页面 `load` 跳转', async ({ assert }) => 
 
 test('renderDocument: layout 中的页面', async ({ assert }) => {
   const request = new Request('http://localhost/editor', { headers: { cookie: 'user=a' } });
-  const { status, html } = await renderer.renderDocument(documentTemplate, request);
-  assert.equal(status, 200);
-  assert.match((await Array.fromAsync(html)).join(''), /editor/);
+  const response = await renderer.renderDocument(documentTemplate, request);
+  assert.equal(response.status, 200);
+  assert.match(await response.text(), /editor/);
 });
 
 test('服务端和客户端一样逐层匹配路由', async ({ assert }) => {
@@ -115,7 +115,7 @@ test('服务端和客户端一样逐层匹配路由', async ({ assert }) => {
   const { status } = await renderer.renderDocument(documentTemplate, request);
   assert.equal(status, 404, '`/docs/x` 匹配 layout，layout 中没有匹配的页面');
   const getData = async (url: string) =>
-    ((await renderer.loadData(new Request(url))).body as { data: Record<string, unknown> }).data;
+    ((await (await renderer.loadData(new Request(url))).json()) as { data: Record<string, unknown> }).data;
   assert.equal(
     (await getData('http://localhost/docs/x/__data.json'))[pair.tag],
     undefined,
@@ -125,21 +125,26 @@ test('服务端和客户端一样逐层匹配路由', async ({ assert }) => {
 });
 
 test('runAction: 页面和 layout 中的 action，内层覆盖外层的同名 action', async ({ assert }) => {
-  const post = (url: string) => renderer.runAction(new Request(url, { method: 'POST', body: new FormData() }));
+  const post = (url: string) =>
+    renderer.runAction(
+      documentTemplate,
+      new Request(url, { method: 'POST', body: new FormData(), headers: { accept: 'application/json' } }),
+    );
+  const result = async (url: string) => (await post(url)).json();
   // layout 的参数不包括子路由的部分
   const logout = await post('http://localhost/a/b?/logout');
-  assert.deepEqual(logout.result, { type: 'success', data: { from: 'root', params: {} } });
+  assert.deepEqual(await logout.json(), { type: 'success', data: { from: 'root', params: {} } });
   assert.match(logout.headers.get('set-cookie')!, /^user=;/);
-  assert.deepEqual((await post('http://localhost/editor?/logout')).result?.type, 'success');
+  assert.deepEqual((await result('http://localhost/editor?/logout')).type, 'success');
   // 页面覆盖 layout 的同名 action
-  assert.deepEqual((await post('http://localhost/a/b?/rename')).result, { type: 'success', data: { a: 'a', b: 'b' } });
-  assert.deepEqual((await post('http://localhost/editor?/rename')).result, { type: 'success', data: 'root' });
+  assert.deepEqual(await result('http://localhost/a/b?/rename'), { type: 'success', data: { a: 'a', b: 'b' } });
+  assert.deepEqual(await result('http://localhost/editor?/rename'), { type: 'success', data: 'root' });
   // 出错时错误页面渲染在 layout 的位置
-  assert.deepEqual((await post('http://localhost/a/b?/fail')).result, {
+  assert.deepEqual(await result('http://localhost/a/b?/fail'), {
     type: 'error',
     error: { tag: root.tag, status: 403, message: 'Forbidden' },
   });
   // 没有匹配的页面时 layout 的 action 也不处理
-  assert.equal((await post('http://localhost/docs/x?/logout')).result, null);
-  assert.equal((await post('http://localhost/a/b?/missing')).result, null);
+  assert.equal((await post('http://localhost/docs/x?/logout')).status, 404);
+  assert.equal((await post('http://localhost/a/b?/missing')).status, 404);
 });

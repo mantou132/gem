@@ -5,12 +5,13 @@ The same APIs are available in `load`, `actions`, API routes and server elements
 
 ## Request hook
 
-`src/app.server.ts` can export `handle`, which runs before every server request: pages, `__data.json`,
-form actions, server elements and API routes.
+`src/app.server.ts` can export `handle`. Every request Gemkit handles goes through it: pages, `__data.json`,
+form actions, server elements and API routes. `resolve()` produces Gemkit's response. `handle` returns it,
+optionally after modifying it, or returns another response without calling `resolve()`.
 
 ```ts
 // src/app.server.ts
-import type { RequestEvent } from '@mantou/gemkit';
+import type { Handle } from '@mantou/gemkit';
 
 declare module '@mantou/gemkit' {
   interface Locals {
@@ -18,34 +19,97 @@ declare module '@mantou/gemkit' {
   }
 }
 
-export async function handle(event: RequestEvent) {
-  if (!event.path.startsWith('/admin')) return;
-
-  event.locals.user = await getUser(event.cookies.get('token'));
-  if (!event.locals.user) redirect(302, '/login');
-}
+export const handle: Handle = async (event, resolve) => {
+  if (event.path.startsWith('/admin')) {
+    event.locals.user = await getUser(event.cookies.get('token'));
+    if (!event.locals.user) redirect(302, '/login');
+  }
+  return resolve();
+};
 ```
 
-| Field      | Description                                                                                                                                |
-| ---------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
-| `url`      | The page URL, including the language prefix.                                                                                               |
-| `path`     | The page path without the language prefix, matched by the routes.                                                                          |
-| `request`  | The current `Request`. Not available when prerendering.                                                                                    |
-| `cookies`  | The request cookies. Not available when prerendering.                                                                                      |
-| `locals`   | Data shared with `load`, `actions`, API routes and server elements in the same request.                                                    |
-| `platform` | Environment variables, bindings and `waitUntil` of the platform, see [Platform](#platform). Not available when prerendering at build time. |
+| Field        | Description                                                                                                                                |
+| ------------ | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| `url`        | The page URL, including the language prefix.                                                                                               |
+| `path`       | The page path without the language prefix, matched by the routes.                                                                          |
+| `request`    | The current `Request`. Not available when prerendering.                                                                                    |
+| `cookies`    | The request cookies. Not available when prerendering.                                                                                      |
+| `locals`     | Data shared with `load`, `actions`, API routes and server elements in the same request.                                                    |
+| `platform`   | Environment variables, bindings and `waitUntil` of the platform, see [Platform](#platform). Not available when prerendering at build time. |
+| `setHeaders` | Sets response headers, see [Response headers](#response-headers).                                                                          |
 
 Use `path` rather than `url.pathname` for route checks. `url` is the page URL, also for
 `__data.json` and server element requests.
+
+### Before `resolve()`
+
+`redirect()` and `error()` called before `resolve()` behave as they do in `load`: the request type decides
+the response. A page redirects or renders the error page, `__data.json` contains the location or the error,
+and an API route redirects or responds with a JSON error. Headers set with `setHeaders` before that are
+still added to the response.
+
+Requests that don't need Gemkit to render can be answered directly, for example a health check or a
+maintenance page:
+
+```ts
+export const handle: Handle = (event, resolve) => {
+  if (event.path === '/healthz') return new Response('ok');
+  return resolve();
+};
+```
+
+### After `resolve()`
+
+The response returned by `resolve()` can be modified, for example to add headers or log the status and
+duration:
+
+```ts
+export const handle: Handle = async (event, resolve) => {
+  const start = performance.now();
+  const response = await resolve();
+  response.headers.set('server-timing', `app;dur=${performance.now() - start}`);
+  event.platform?.ctx.waitUntil(log(event.path, response.status));
+  return response;
+};
+```
+
+- Pages are streamed. `resolve()` returns once the page data and title are ready, so the status and headers
+  are final while the rest of the content is still being sent.
+- An error thrown after `resolve()` does not render the error page; the request fails.
+
+### Composing `handle`
+
+There is one `handle`. Compose several in order:
+
+```ts
+const sequence =
+  (...handles: Handle[]): Handle =>
+  (event, resolve) =>
+    handles.reduceRight<() => Promise<Response>>(
+      (next, handle) => async () => handle(event, next),
+      resolve,
+    )();
+
+export const handle = sequence(securityHeaders, auth, logger);
+```
+
+### Which requests run `handle`
+
+- Every request Gemkit renders runs `handle`, including prerendering and ISR regeneration.
+- Prerendered files, ISR cached files and other static files don't run `handle`; the static server or the
+  platform serves them directly. Configure their headers on the platform, for example Netlify `_headers`
+  or `headers` in `vercel.json`.
+- `handle` also runs while prerendering. Reading `request` or `cookies` (also after `resolve()`), or
+  redirecting or throwing before `resolve()`, prevents the page from being prerendered. Read them only for
+  the paths that need them; prerendered pages are public.
+
+### Authentication
 
 `locals` is an empty interface. Extend it with `declare module` to type the values you put in it.
 It is per request, so it is safe for user data.
 - Check authentication in `handle` instead of a layout `load`. A layout `load` does not run for form
   actions and server elements, and in `__data.json` the page `load` runs in parallel with it, even when
   the layout redirects.
-- `handle` also runs while prerendering. Reading `request` or `cookies`, redirecting or throwing there
-  prevents the page from being prerendered. Read them only for the paths that need them; prerendered
-  pages are public.
 - When neither the page nor its layouts have a server `load`, client navigation sends no request, so
   `handle` does not run. The page data is embedded in the document at first load and on client
   navigation the page is rendered from local data. These pages have no server data, and `handle` still
@@ -59,10 +123,43 @@ It is per request, so it is safe for user data.
 export const load = ({ locals }: ServerLoadContext) => ({ user: locals.user });
 ```
 
+## Response headers
+
+`setHeaders` sets response headers. It is on the event in `handle`, `load`, `actions`, API routes and the
+one returned by `getRequestEvent()`:
+
+```ts
+// src/app.server.ts
+export const handle: Handle = (event, resolve) => {
+  event.setHeaders({
+    'x-frame-options': 'DENY',
+    'referrer-policy': 'strict-origin-when-cross-origin',
+  });
+  return resolve();
+};
+```
+
+```ts
+// src/pages/blog/[slug].server.ts
+export async function load({ params, setHeaders }: ServerLoadContext<{ slug: string }>) {
+  setHeaders({ 'cache-control': 'public, max-age=60' });
+  return getPost(params.slug);
+}
+```
+
+- A header replaces the one set before with the same name. Headers of a `Response` returned by an API
+  route take precedence.
+- Responses that read the request or cookies, or set cookies, default to `Cache-Control: private, no-store`.
+  `setHeaders` can override it, and then it's up to you that a CDN doesn't share the content between users.
+- Use `cookies.set` for cookies; setting `Set-Cookie` with `setHeaders` throws.
+- Like cookies, headers set after the document starts streaming (for example in a `@server()` method) are
+  ignored.
+- Prerendered files have no response headers, see [Which requests run `handle`](#which-requests-run-handle).
+
 ## getRequestEvent
 
-`getRequestEvent()` returns the current `{ url, path, request, cookies, locals, platform }`. It is scoped to the
-current request and throws outside a server request. Use it in server elements and other server-only
+`getRequestEvent()` returns the event of the current request, the same as the argument of `handle`. It is
+scoped to the current request and throws outside a server request. Use it in server elements and other server-only
 code that doesn't receive the context as an argument:
 
 ```ts

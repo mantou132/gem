@@ -66,21 +66,34 @@ export interface RequestEvent {
   locals: Locals;
   /** 部署平台的环境和上下文，构建时预渲染时没有 */
   platform?: Platform;
+  /**
+   * 设置响应头，例如 `Cache-Control`、`Content-Security-Policy`，同名的覆盖之前设置的，
+   * cookie 使用 `cookies`；和 cookie 一样，文档开始流式输出之后设置的会被忽略，预渲染的文件没有响应头
+   */
+  setHeaders: (headers: Record<string, string>) => void;
 }
 
 export interface ServerLoadContext<P extends Params = Params> extends RequestEvent {
   params: P;
 }
 
+/**
+ * 处理 Gemkit 渲染的每个请求：页面、页面数据、表单提交、API 路由和纯服务端元素，
+ * `resolve()` 生成 Gemkit 的响应，返回它或者修改后的响应，也可以不调用 `resolve()` 直接返回其他响应
+ *
+ * 调用 `resolve()` 之前可以使用 `redirect`、`error`，和在 `load` 中一样，由请求的类型决定响应，
+ * 例如页面渲染错误页面、数据文件中包含跳转地址
+ */
+export type Handle = (event: RequestEvent, resolve: () => Promise<Response>) => Response | Promise<Response>;
+
 /** `src/app.server.ts` 导出的内容，只在服务端执行 */
 export interface AppServerModule {
   /**
-   * 页面、页面数据、表单提交、API 路由和纯服务端元素的请求都先执行，
-   * 可以使用 `redirect` 跳转（纯服务端元素不渲染，客户端跳转），使用 `locals` 传递数据
+   * 见 `Handle`，使用 `locals` 传递数据
    *
-   * 预渲染前也执行，读取了 `request`、`cookies` 或者跳转的路径不预渲染
+   * 预渲染时也执行，读取了 `request`、`cookies`，或者在 `resolve()` 之前跳转、出错的路径不预渲染
    */
-  handle?: (event: RequestEvent) => unknown;
+  handle?: Handle;
   /**
    * `handle`、`load`、`actions`、API 路由中抛出的非 `error()` 错误，用来记录日志或者上报，默认使用 `console.error`，
    * 页面显示状态码 500，生产环境不显示错误信息
@@ -266,6 +279,10 @@ export const requestState = isolate<{
   error?: RouteError;
   /** 读取了 `request` 或 `cookies`，响应因人而异，不能被共享缓存 */
   personal?: boolean;
+  /** `cookies` 设置的 `Set-Cookie` */
+  setCookies?: string[];
+  /** `setHeaders` 设置的响应头 */
+  headers?: Headers;
 }>({});
 
 /** 页面和 layout 的数据，key 是标签名 */
@@ -375,6 +392,12 @@ function createRequestEvent<T extends object>(hint: string, extra: T): RequestEv
     },
     get cookies() {
       return get('cookies');
+    },
+    setHeaders: (headers) => {
+      for (const [name, value] of Object.entries(headers)) {
+        if (name.toLowerCase() === 'set-cookie') throw new Error('gemkit: use `cookies.set` to set cookies');
+        requestState.headers!.set(name, value);
+      }
     },
   };
 }

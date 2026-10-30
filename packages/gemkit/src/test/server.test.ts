@@ -33,7 +33,7 @@ import {
   type ServerModule,
   type StandardSchemaV1,
 } from '../data';
-import { createFetchHandler } from '../handler';
+import { createFetchHandler, prerenderPage } from '../handler';
 import { errorRoute, pageRoute, setOutlets } from '../outlet';
 import { type Params, page } from '../page';
 import { createRequestHandler } from '../plugin/serve';
@@ -242,10 +242,12 @@ const renderer = createRenderer({
   ],
   appServerModule: {
     // 只在需要时读取 `cookies`，读取后响应不能被共享缓存，也不预渲染
-    handle: (event) => {
-      if (!event.path.startsWith('/admin')) return;
-      event.locals.user = event.cookies.get('user');
-      if (!event.locals.user) redirect(302, '/login');
+    handle: (event, resolve) => {
+      if (event.path.startsWith('/admin')) {
+        event.locals.user = event.cookies.get('user');
+        if (!event.locals.user) redirect(302, '/login');
+      }
+      return resolve();
     },
   },
   i18n: new I18n({ resources: { en: {}, zh: {} }, fallbackLanguage: 'en' }),
@@ -263,9 +265,10 @@ const documentTemplate =
   '<!doctype html><html lang="en"><head><title>Gemkit</title></head><body><!--gemkit-body--></body></html>';
 
 async function renderPage(url: string) {
-  const { status, html } = await renderer.renderDocument(documentTemplate, url);
+  const { status, body } = await renderer.renderDocument(documentTemplate, url);
+  const decoder = new TextDecoder();
   const chunks: string[] = [];
-  for await (const chunk of html) chunks.push(chunk);
+  for await (const chunk of body!) chunks.push(decoder.decode(chunk));
   return { status, chunks, html: chunks.join('') };
 }
 
@@ -329,8 +332,8 @@ test('renderDocument: 先输出文档头部，再流式输出异步内容', asyn
 
 // 和客户端收到的一样，经过 JSON 序列化
 const loadData = async (input: Request | string) => {
-  const { status, body } = await renderer.loadData(input);
-  return { status, body: JSON.parse(JSON.stringify(body)) };
+  const response = await renderer.loadData(input);
+  return { status: response.status, body: await response.json() };
 };
 
 test('loadData: 返回服务端数据', async ({ assert }) => {
@@ -357,20 +360,20 @@ test('loadData: 没有服务端模块的页面返回 404', async ({ assert }) =>
 const request = (url: string, init?: RequestInit) => new Request(new URL(url, 'http://localhost'), init);
 
 test('renderDocument: `load` 读取和设置 cookie', async ({ assert }) => {
-  const { status, headers, html } = await renderer.renderDocument(
+  const response = await renderer.renderDocument(
     documentTemplate,
     request('/me', { headers: { cookie: 'token=a%3Bb' } }),
   );
-  assert.equal(status, 200);
-  assert.deepEqual(headers.getSetCookie(), ['seen=1; Path=/; HttpOnly; SameSite=Lax']);
-  assert.match((await Array.fromAsync(html)).join(''), /token: .*a;b/);
+  assert.equal(response.status, 200);
+  assert.deepEqual(response.headers.getSetCookie(), ['seen=1; Path=/; HttpOnly; SameSite=Lax']);
+  assert.match(await response.text(), /token: .*a;b/);
 });
 
 test('renderDocument: `load` 中跳转', async ({ assert }) => {
-  const { status, headers, html } = await renderer.renderDocument(documentTemplate, request('/me'));
-  assert.equal(status, 302);
-  assert.equal(headers.get('location'), '/login');
-  assert.deepEqual(await Array.fromAsync(html), []);
+  const response = await renderer.renderDocument(documentTemplate, request('/me'));
+  assert.equal(response.status, 302);
+  assert.equal(response.headers.get('location'), '/login');
+  assert.equal(response.body, null);
 });
 
 test('loadData: `load` 中跳转时数据文件中只有跳转地址', async ({ assert }) => {
@@ -381,17 +384,20 @@ test('runAction: 执行 action，返回结果或者跳转', async ({ assert }) =
   const post = (url: string, token?: string) => {
     const body = new FormData();
     if (token) body.set('token', token);
-    return renderer.runAction(request(url, { method: 'POST', body }));
+    return renderer.runAction(
+      documentTemplate,
+      request(url, { method: 'POST', body, headers: { accept: 'application/json' } }),
+    );
   };
   const failed = await post('/me?/login');
-  assert.deepEqual(failed.result, { type: 'success', data: { error: 'required' } });
+  assert.deepEqual(await failed.json(), { type: 'success', data: { error: 'required' } });
   const success = await post('/me?/login', 'x');
-  assert.deepEqual(success.result, { type: 'redirect', location: '/me' });
+  assert.deepEqual(await success.json(), { type: 'redirect', location: '/me' });
   assert.deepEqual(success.headers.getSetCookie(), ['token=x; Path=/; HttpOnly; SameSite=Lax']);
   // 不存在的 action
-  assert.equal((await post('/me?/logout')).result, null);
-  assert.equal((await post('/me?/constructor')).result, null);
-  assert.equal((await post('/posts/1?/login')).result, null);
+  assert.equal((await post('/me?/logout')).status, 404);
+  assert.equal((await post('/me?/constructor')).status, 404);
+  assert.equal((await post('/posts/1?/login')).status, 404);
 });
 
 test('createRequestHandler: 表单提交', async ({ assert }) => {
@@ -508,17 +514,18 @@ test('createRequestHandler: 使用配置的 origin', async ({ assert }) => {
   assert.equal((await submit({ origin: 'http://localhost' })).status, 403, '和配置的 origin 比较');
 });
 
-test('canPrerender: 读取请求的页面不预渲染', async ({ assert }) => {
-  assert.equal(await renderer.canPrerender('/me'), false);
-  assert.equal(await renderer.canPrerender('/zh/me'), false);
-  assert.equal(await renderer.canPrerender('/posts/1'), true);
+test('prerenderPage: 读取请求的页面不预渲染', async ({ assert }) => {
+  const prerender = async (path: string) => !!(await prerenderPage(renderer, documentTemplate, path));
+  assert.equal(await prerender('/me'), false);
+  assert.equal(await prerender('/zh/me'), false);
+  assert.equal(await prerender('/posts/1'), true);
   // `handle` 读取了 cookie
-  assert.equal(await renderer.canPrerender('/admin'), false);
-  assert.equal(await renderer.canPrerender('/zh/admin'), false);
+  assert.equal(await prerender('/admin'), false);
+  assert.equal(await prerender('/zh/admin'), false);
 });
 
 test('getPaths: 展开动态路由和语言', async ({ assert }) => {
-  const paths = ['/slow', '/posts/1', '/posts/2', '/tags/a', '/tags/b%20c', '/login'];
+  const paths = ['/slow', '/posts/1', '/posts/2', '/tags/a', '/tags/b%20c', '/me', '/login'];
   assert.deepEqual(await renderer.getPaths(), [...paths, '/', ...paths.map((path) => `/zh${path}`), '/zh']);
 });
 
@@ -532,30 +539,26 @@ const noteKey = getServerElementKey('app-server-note', { text: 'hi' }, {});
 
 test('renderDocument: 预渲染时收集纯服务端元素', async ({ assert }) => {
   const serverElements = new Map<string, string>();
-  const { html } = await renderer.renderDocument(documentTemplate, '/', { serverElements });
-  await Array.fromAsync(html);
+  await (await renderer.renderDocument(documentTemplate, '/', { serverElements })).text();
   assert.deepEqual([...serverElements.keys()], [noteKey]);
 });
 
 test('renderElements: 渲染页面中的纯服务端元素', async ({ assert }) => {
   const elements = [{ tag: 'app-server-note', attrs: { text: 'x' }, props: {} }];
-  const { html } = await renderer.renderElements(
+  const response = await renderer.renderElements(
     request('/__gemkit_element', { method: 'POST', body: JSON.stringify({ url: '/zh', elements }) }),
   );
-  assert.match(html![0], /note: .*x/);
+  assert.match((await response.json())[0], /note: .*x/);
 });
 
-test('renderDocument: 预渲染时不能读取请求', async ({ assert }) => {
-  await assert.rejects(
-    renderer.renderDocument(documentTemplate, '/me'),
-    /`cookies` is not available when prerendering/,
-  );
+test('renderDocument: `prerender = false` 的页面不能预渲染', async ({ assert }) => {
+  assert.equal(await renderer.prerenderDocument(documentTemplate, '/me'), undefined);
 });
 
 test('renderDocument: `load` 中调用 `notFound()` 时渲染 404 页面，状态码为 404', async ({ assert }) => {
-  const { status, html } = await renderer.renderDocument(documentTemplate, '/posts/missing');
-  const result = (await Array.fromAsync(html)).join('');
-  assert.equal(status, 404);
+  const response = await renderer.renderDocument(documentTemplate, '/posts/missing');
+  const result = await response.text();
+  assert.equal(response.status, 404);
   assert.match(result, /<title>Not Found \| Site<\/title>/);
   assert.match(result, /<gemkit-page-error ssr-props=""[^>]*>.*>404<.*Not Found.*<\/gemkit-page-error>/s);
   // 水合时直接渲染错误页面
@@ -573,7 +576,7 @@ test('handle: 每个请求先执行，可以跳转', async ({ assert }) => {
   const { status, headers } = await renderer.renderDocument(documentTemplate, request('/admin'));
   assert.equal(status, 302);
   assert.equal(headers.get('location'), '/login');
-  assert.deepEqual((await renderer.loadData(request('/admin/__data.json'))).body, { redirect: '/login' });
+  assert.deepEqual(await (await renderer.loadData(request('/admin/__data.json'))).json(), { redirect: '/login' });
   const page = await renderer.renderDocument(documentTemplate, request('/admin', { headers: { cookie: 'user=a' } }));
   assert.equal(page.status, 404);
   // 读取了 cookie
@@ -586,13 +589,13 @@ test('handle: 每个请求先执行，可以跳转', async ({ assert }) => {
 test('handle: 纯服务端元素的请求也先执行，元素中读取 `locals`', async ({ assert }) => {
   const body = JSON.stringify({ url: '/admin', elements: [{ tag: 'app-server-user', attrs: {}, props: {} }] });
   const denied = await renderer.renderElements(request('/__gemkit_element', { method: 'POST', body }));
-  assert.equal(denied.html, null);
+  assert.equal(await denied.json(), null);
   assert.equal(denied.headers.get(REDIRECT_HEADER), '/login');
-  const { html, headers } = await renderer.renderElements(
+  const response = await renderer.renderElements(
     request('/__gemkit_element', { method: 'POST', body, headers: { cookie: 'user=a' } }),
   );
-  assert.match(html![0], /user: .*a/);
-  assert.equal(headers.get('cache-control'), 'private, no-store');
+  assert.match((await response.json())[0], /user: .*a/);
+  assert.equal(response.headers.get('cache-control'), 'private, no-store');
 });
 
 test('getRequestEvent: 只能在服务端的请求中调用', ({ assert }) => {

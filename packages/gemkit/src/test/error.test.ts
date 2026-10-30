@@ -6,6 +6,7 @@ import test from 'node:test';
 import { GemElement, html, template } from '@mantou/gem';
 
 import { type ErrorData, error, fetchData, HttpError, type ServerModule } from '../data';
+import { prerenderPage } from '../handler';
 import { errorRoute, layoutRoute, pageRoute, setOutlets } from '../outlet';
 import { layout, page } from '../page';
 import { createRequestHandler } from '../plugin/serve';
@@ -125,8 +126,9 @@ const renderer = createRenderer({
   app: html`<gemkit-outlet></gemkit-outlet>`,
   serverModules,
   appServerModule: {
-    handle: ({ path }) => {
+    handle: ({ path }, resolve) => {
       if (path === '/guarded') error(401, 'Unauthorized');
+      return resolve();
     },
     handleError: (err) => handledErrors.push(err),
   },
@@ -138,8 +140,8 @@ const documentTemplate =
 const request = (path: string, init?: RequestInit) => new Request(`http://localhost${path}`, init);
 
 async function renderPage(input: Request | string) {
-  const { status, html } = await renderer.renderDocument(documentTemplate, input);
-  return { status, html: (await Array.fromAsync(html)).join('') };
+  const response = await renderer.renderDocument(documentTemplate, input);
+  return { status: response.status, html: await response.text() };
 }
 
 const getHead = (html: string) => html.slice(html.indexOf('<head>'), html.indexOf('</head>'));
@@ -210,15 +212,15 @@ test('error: `handle` 出错时错误页面渲染在第一个有服务端模块�
   assert.match(html, /<nav>nav<\/nav>/);
   assert.match(html, /error .*401.*Unauthorized/s);
   assert.doesNotMatch(html, />guarded</);
-  const { body } = await renderer.loadData(request('/guarded/__data.json'));
-  assert.deepEqual(body, { data: {}, error: { tag: guarded.tag, status: 401, message: 'Unauthorized' } });
-  assert.equal(await renderer.canPrerender('/guarded'), false);
+  const data = await renderer.loadData(request('/guarded/__data.json'));
+  assert.deepEqual(await data.json(), { data: {}, error: { tag: guarded.tag, status: 401, message: 'Unauthorized' } });
+  assert.equal(await prerenderPage(renderer, documentTemplate, '/guarded'), undefined);
 });
 
 test('loadData: 出错的路由和其他路由的数据', async ({ assert }) => {
-  const { status, body } = await renderer.loadData(request('/private/doc/__data.json'));
-  assert.equal(status, 200);
-  assert.deepEqual(JSON.parse(JSON.stringify(body)), {
+  const response = await renderer.loadData(request('/private/doc/__data.json'));
+  assert.equal(response.status, 200);
+  assert.deepEqual(await response.json(), {
     data: { [doc.tag]: 'doc data' },
     error: { tag: privateLayout.tag, status: 403, message: 'Forbidden' },
   });
@@ -231,13 +233,10 @@ test('runAction: action 出错时返回错误，没有 JS 时渲染错误页面'
       headers: { origin: 'http://localhost', ...(accept && { accept }) },
       body: new FormData(),
     });
-  const { result } = await renderer.runAction(submit());
-  assert.deepEqual(result, { type: 'error', error: { tag: form.tag, status: 422, message: 'Invalid' } });
-
   const handler = createRequestHandler(renderer, documentTemplate);
   const json = await handler(submit('application/json'));
   assert.equal(json.status, 200);
-  assert.deepEqual(await json.json(), result);
+  assert.deepEqual(await json.json(), { type: 'error', error: { tag: form.tag, status: 422, message: 'Invalid' } });
 
   const res = await handler(submit());
   assert.equal(res.status, 422);

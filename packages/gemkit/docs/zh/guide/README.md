@@ -58,7 +58,7 @@ export default defineConfig({
 ```
 src/
   app.ts               可选，在页面之前导入（全局样式、store）
-  app.server.ts        可选，`handle` 在每个服务端请求前执行
+  app.server.ts        可选，每个服务端请求都经过 `handle`
   app.client.ts        可选，只在客户端执行（service worker、浏览器 API）
   index.html           可选，HTML 模板，使用 `<!--gemkit-body-->` 作为内容占位符
   elements/            可选，`app-*` 标签会自动导入

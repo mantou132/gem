@@ -98,9 +98,8 @@ test('renderDocument: 没有语言前缀时跳转到用户的语言', async ({ a
 });
 
 test('renderDocument: `load` 和 `title` 的上下文', async ({ assert }) => {
-  const { html } = await renderer.renderDocument(documentTemplate, new Request('http://localhost/zh/posts/1'));
-  let content = '';
-  for await (const chunk of html) content += chunk;
+  const response = await renderer.renderDocument(documentTemplate, new Request('http://localhost/zh/posts/1'));
+  const content = await response.text();
   assert.match(content, /<title>Post 1 text 1<\/title>/);
   assert.match(content, /"gemkit-page-post":\{"id":"1","text":"text 1"\}/);
 });
@@ -129,11 +128,12 @@ test('renderDocument: 预渲染没有前缀的路径时输出选择语言的脚�
     ['/', '{"en":"/en","zh":"/zh"}'],
     ['/posts/2', '{"en":"/en/posts/2"}'],
   ]) {
-    const { status, headers, html } = await renderer.renderDocument(documentTemplate, pathname);
+    const response = await renderer.renderDocument(documentTemplate, pathname);
+    const { status, headers } = response;
     assert.equal(status, 302);
     assert.equal(headers.get('location'), pathname === '/' ? '/en' : `/en${pathname}`);
     assert.equal(headers.get('cache-control'), null);
-    const script = (await Array.fromAsync(html)).join('');
+    const script = await response.text();
     assert.equal(script.includes(`const p=${targets};`), true);
   }
 });
