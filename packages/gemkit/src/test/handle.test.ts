@@ -7,9 +7,9 @@ import { GemElement, html, template } from '@mantou/gem';
 
 import { type ErrorData, error, getRequestEvent, type Handle, type ServerModule } from '../data';
 import { prerenderPage } from '../handler';
+import { createRequestHandler } from '../node';
 import { errorRoute, pageRoute, setOutlets } from '../outlet';
 import { page } from '../page';
-import { createRequestHandler } from '../plugin/serve';
 import { createRenderer } from '../server';
 
 @page('Home')

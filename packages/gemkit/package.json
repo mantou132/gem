@@ -21,6 +21,10 @@
     "./handler": "./src/handler.ts",
     "./adapters/*": "./src/adapters/*/runtime.ts",
     "./init": "./bin/init.js",
+    "./node": {
+      "types": "./src/node.ts",
+      "default": "./dist/node.js"
+    },
     "./plugin": {
       "types": "./src/plugin/index.ts",
       "default": "./dist/plugin.js"
@@ -34,7 +38,7 @@
     "/template.html"
   ],
   "scripts": {
-    "build": "mkdir -p dist && cp -R src/plugin/templates dist/ && esbuild plugin=src/plugin/index.ts serve=src/plugin/serve.ts --outdir=dist --bundle --platform=node --format=esm --packages=external",
+    "build": "mkdir -p dist && cp -R src/plugin/templates dist/ && esbuild plugin=src/plugin/index.ts node=src/node.ts --outdir=dist --bundle --platform=node --format=esm --packages=external",
     "start": "pnpm build --watch",
     "docs": "gem-book docs",
     "build:docs": "gem-book build docs",

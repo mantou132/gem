@@ -34,9 +34,9 @@ import {
   type StandardSchemaV1,
 } from '../data';
 import { createFetchHandler, prerenderPage } from '../handler';
+import { createFsStore, createRequestHandler } from '../node';
 import { errorRoute, pageRoute, setOutlets } from '../outlet';
 import { type Params, page } from '../page';
-import { createRequestHandler } from '../plugin/serve';
 import { createRenderer } from '../server';
 
 declare module '../data' {
@@ -671,7 +671,7 @@ test('getRevalidate: 页面和 layout 中最小的 `revalidate`', async ({ asser
 
 test('createRequestHandler: ISR 缓存页面，过期后在后台重新渲染', async ({ assert }) => {
   const cacheDir = fs.mkdtempSync(path.join(os.tmpdir(), 'gemkit-'));
-  const handler = createRequestHandler(renderer, documentTemplate, { cacheDir });
+  const handler = createRequestHandler(renderer, documentTemplate, { isrStore: createFsStore(cacheDir) });
   const getVersion = async (url: string) =>
     (await (await handler(request(url))).json()).data['gemkit-page-tag'].version;
   const html = await (await handler(request('/tags/a'))).text();
@@ -708,7 +708,7 @@ test('createRequestHandler: ISR 缓存页面，过期后在后台重新渲染', 
 
 test('createRequestHandler: ISR 不缓存跳转和出错的页面', async ({ assert }) => {
   const cacheDir = fs.mkdtempSync(path.join(os.tmpdir(), 'gemkit-'));
-  const handler = createRequestHandler(renderer, documentTemplate, { cacheDir });
+  const handler = createRequestHandler(renderer, documentTemplate, { isrStore: createFsStore(cacheDir) });
   // 末尾的 `/` 和没有 `/` 的是同一个页面
   assert.equal((await handler(request('/tags/a/'))).status, 200);
   assert.equal(fs.existsSync(path.join(cacheDir, 'tags/a/index.html')), true);

@@ -147,11 +147,11 @@ and `$gemkit/api`.
 
 ## Build output
 
-| Directory     | Content                                                                        |
-| ------------- | ------------------------------------------------------------------------------ |
-| `dist/web`    | Client assets, prerendered pages, `__data.json`, `__elements.json`, `404.html` |
-| `dist/server` | SSR bundle and the HTML template.                                              |
-| `dist/cache`  | ISR page cache, cleared at each build.                                         |
+| Directory     | Content                                                                                                           |
+| ------------- | ----------------------------------------------------------------------------------------------------------------- |
+| `dist/web`    | Client assets, prerendered pages, `__data.json`, `__elements.json`, `404.html`, and `.br`/`.gz` files for Node.js |
+| `dist/server` | SSR bundle and the HTML template.                                                                                 |
+| `dist/cache`  | ISR page cache, cleared at each build.                                                                            |
 
 The HTML template is moved out of `dist/web` after the client build, so a static host doesn't serve it as
 the home page. See [Deploy](../guide/011-deploy.md).
@@ -161,6 +161,7 @@ the home page. See [Deploy](../guide/011-deploy.md).
 | Variable           | Description                                                                                         |
 | ------------------ | --------------------------------------------------------------------------------------------------- |
 | `PORT`             | The port of `gemkit start`, default `3000`.                                                         |
+| `HOST`             | The address `gemkit start` listens on, all addresses by default.                                    |
 | `ORIGIN`           | The public origin of `gemkit start`, for `url`, `Secure` cookies and same-origin checks.            |
 | `GEMKIT_PRERENDER` | Set by the build. `'false'` means pages are not prerendered and the client skips `__elements.json`. |
 
@@ -168,4 +169,5 @@ the home page. See [Deploy](../guide/011-deploy.md).
 
 `@mantou/gemkit/server` exports `createRenderer(options)`. It creates the renderer used by the build and
 by `gemkit start`, with the app, server modules, endpoints, i18n and title options. It is an advanced API
-for integrations that provide their own server; normal applications use `gemkit start`.
+for integrations that provide their own server; normal applications use `gemkit start`, and a custom Node.js
+server uses `@mantou/gemkit/node`, see [Custom server](../guide/011-deploy.md#custom-server).

@@ -139,11 +139,11 @@ Gemkit 在 `.gemkit` 中生成：
 
 ## 构建产物
 
-| 目录          | 内容                                                                   |
-| ------------- | ---------------------------------------------------------------------- |
-| `dist/web`    | 客户端资源、预渲染的页面、`__data.json`、`__elements.json`、`404.html` |
-| `dist/server` | SSR 产物和 HTML 模板。                                                 |
-| `dist/cache`  | ISR 页面缓存，构建时清空。                                             |
+| 目录          | 内容                                                                                                               |
+| ------------- | ------------------------------------------------------------------------------------------------------------------ |
+| `dist/web`    | 客户端资源、预渲染的页面、`__data.json`、`__elements.json`、`404.html`，Node.js 部署时还有压缩的 `.br`、`.gz` 文件 |
+| `dist/server` | SSR 产物和 HTML 模板。                                                                                             |
+| `dist/cache`  | ISR 页面缓存，构建时清空。                                                                                         |
 
 客户端构建之后，HTML 模板会从 `dist/web` 中移走，避免静态托管把它当作首页。
 见[部署](../guide/011-deploy.md)。
@@ -153,6 +153,7 @@ Gemkit 在 `.gemkit` 中生成：
 | 变量               | 说明                                                                   |
 | ------------------ | ---------------------------------------------------------------------- |
 | `PORT`             | `gemkit start` 的端口，默认 `3000`。                                   |
+| `HOST`             | `gemkit start` 监听的地址，默认监听所有地址。                          |
 | `ORIGIN`           | `gemkit start` 的公开地址，`url`、`Secure` cookie 和同源检查使用。     |
 | `GEMKIT_PRERENDER` | 构建时设置。`'false'` 表示没有预渲染，客户端会跳过 `__elements.json`。 |
 
@@ -160,4 +161,4 @@ Gemkit 在 `.gemkit` 中生成：
 
 `@mantou/gemkit/server` 导出 `createRenderer(options)`。它创建构建和 `gemkit start` 使用的渲染器，
 参数包括应用、服务端模块、API 路由、i18n 和标题选项。这是给自带服务器的集成使用的高级 API，
-普通应用使用 `gemkit start` 即可。
+普通应用使用 `gemkit start`，自定义 Node.js 服务器使用 `@mantou/gemkit/node`，见[自定义服务器](../guide/011-deploy.md#自定义服务器)。

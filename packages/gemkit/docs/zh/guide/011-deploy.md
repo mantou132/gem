@@ -2,11 +2,11 @@
 
 生产构建有两部分：
 
-| 产物          | 内容                                                                                 |
-| ------------- | ------------------------------------------------------------------------------------ |
-| `dist/web`    | 客户端资源、预渲染的页面、`__data.json`、`__elements.json`、`404.html`               |
-| `dist/server` | 服务端产物，以及动态渲染使用的 HTML 模板                                             |
-| `dist/cache`  | 设置了 `revalidate` 的页面，`gemkit start` 使用，见[增量静态再生成](#增量静态再生成) |
+| 产物          | 内容                                                                                                               |
+| ------------- | ------------------------------------------------------------------------------------------------------------------ |
+| `dist/web`    | 客户端资源、预渲染的页面、`__data.json`、`__elements.json`、`404.html`，Node.js 部署时还有压缩的 `.br`、`.gz` 文件 |
+| `dist/server` | 服务端产物，以及动态渲染使用的 HTML 模板                                                                           |
+| `dist/cache`  | 设置了 `revalidate` 的页面，`gemkit start` 使用，见[增量静态再生成](#增量静态再生成)                               |
 
 在项目中执行构建：
 
@@ -51,15 +51,68 @@ npm run build
 npm run start
 ```
 
-`gemkit start` 提供 `dist/web` 的文件，其他请求使用 `dist/server` 渲染。它支持 `-p, --port <port>` 选项或读取：
-- `PORT`：HTTP 端口，默认 `3000`
-- `ORIGIN`：站点的公开地址，例如 `https://example.com`
+`gemkit start` 提供 `dist/web` 的文件，其他请求使用 `dist/server` 渲染。它支持这些选项和环境变量：
+
+| 选项                | 环境变量 | 说明                                         |
+| ------------------- | -------- | -------------------------------------------- |
+| `-p, --port <port>` | `PORT`   | HTTP 端口，默认 `3000`。                     |
+| `--host <host>`     | `HOST`   | 监听的地址，默认监听所有地址。               |
+| `--no-compress`     |          | 不实时压缩动态响应，见下文。                 |
+|                     | `ORIGIN` | 站点的公开地址，例如 `https://example.com`。 |
 
 部署在反向代理后面时设置 `ORIGIN`。`load` 中的 `url`、`Secure` cookie 和同源检查都使用它。
 不设置时，origin 来自 `Host` 请求头和连接协议，在终止 TLS 的代理后面是 HTTP。
+- **静态文件**：`dist/web/static` 中带 hash 的文件使用 `Cache-Control: public, max-age=31536000, immutable`。
+  其他文件（包括预渲染的页面和数据文件）使用 `no-cache` 和 `ETag`，部署后立即生效，没有变化时响应 304。
+  支持分段请求（`Range`），例如播放视频。启动时读取 `dist/web` 中的文件列表，请求时不访问文件系统，
+  所以运行时添加到 `dist/web` 的文件不会被提供。
+- **压缩**：构建时把 `dist/web` 中 1 KB 以上的文本文件压缩成 `.br` 和 `.gz`，按 `Accept-Encoding` 直接提供。
+  动态渲染的响应实时压缩，流式输出的页面不会被压缩缓冲。反向代理和 CDN 不需要再压缩。
+  实时压缩会占用渲染的 CPU（测试中吞吐降低约 10%～20%），部署在会压缩的 CDN 或反向代理后面时，
+  使用 `gemkit start --no-compress` 关闭，构建时压缩的文件仍然会使用。
+  使用[部署平台](#部署平台)时由平台压缩，不生成压缩文件。
+- **关闭**：收到 `SIGTERM` 或 `SIGINT` 时不再接受新连接，等待进行中的请求和 `waitUntil` 的后台任务完成，
+  最多等待 30 秒，超时后关闭剩余的连接。进程在没有其他任务时退出，所以应用打开的数据库连接等资源需要在
+  `process.on('SIGTERM')` 中关闭。
 
 服务端进程运行时需要 `@mantou/gemkit` 和应用依赖。在容器或者托管 Node 环境中，
 安装生产依赖，并把工作目录设置为包含 `dist` 的项目根目录。
+
+### 自定义服务器
+
+`@mantou/gemkit/node` 的 `createApp` 返回 `gemkit start` 使用的应用，可以在自己的服务器中使用，
+例如添加 WebSocket、使用多个实例共享的 ISR 存储：
+
+```ts
+// server.ts
+import { createServer } from 'node:http';
+import { getRequestListener } from '@hono/node-server';
+import { createApp } from '@mantou/gemkit/node';
+
+const app = await createApp({ origin: process.env.ORIGIN, isrStore: createRedisStore() });
+const server = createServer(getRequestListener(app.fetch));
+server.on('upgrade', handleWebSocket);
+server.listen(3000);
+
+process.on('SIGTERM', () => server.close(() => app.drain()));
+```
+
+- `app.fetch(request)` 是标准的 fetch 处理函数，和 `gemkit start` 一样提供静态文件、渲染页面并压缩响应。
+  Node.js 的 `http` 服务器需要用 `@hono/node-server` 的 `getRequestListener` 转换，Express 等框架也一样。
+- `app.drain()` 等待 `waitUntil` 的后台任务（例如 ISR 重新渲染）完成，关闭服务器时使用。
+- `createApp` 的选项：`root` 是包含 `dist` 的目录，默认是当前目录；`origin` 和 `ORIGIN` 相同；
+  `isrStore` 是 ISR 的存储，默认使用 `dist/cache` 中的文件；`compress` 为 `false` 时不实时压缩动态响应。
+
+`isrStore` 实现 `IsrStore`，key 是页面或者数据文件的路径，例如 `/blog/index.html`：
+
+```ts
+interface IsrStore {
+  /** 内容和写入时间（毫秒），没有时为 `undefined` */
+  get(file: string): Promise<{ content: string; time: number } | undefined>;
+  set(files: Map<string, string>): Promise<unknown>;
+  delete(files: string[]): Promise<unknown>;
+}
+```
 
 ## 部署平台
 
@@ -225,7 +278,8 @@ CDN 不会共享这些因人而异的内容。配置代理时保留这个响应�
 预渲染的文件由静态服务器或者平台提供，没有这些响应头，需要在平台中配置。
 
 预渲染的 HTML 和 `__data.json` 是公开文件，但新的部署会替换相同路径的内容。
-使用较短的缓存时间，或者在部署后清除缓存。`dist/web/static` 中带 hash 的资源不会改变，可以长期缓存。
+使用较短的缓存时间，或者在部署后清除缓存。`dist/web/static` 中带 hash 的资源不会改变，可以长期缓存，
+`gemkit start` 会自动设置这些响应头。
 
 ## 不同环境的区别
 

@@ -13,6 +13,15 @@ import { netlify } from '../adapters/netlify';
 import { vercel } from '../adapters/vercel';
 import { ELEMENT_PATH } from '../constants';
 import { type Handler, isActionRequest, isDataRequest, prerenderPage } from '../handler';
+import {
+  createRequestHandler,
+  getDistPaths,
+  loadHandler,
+  loadRenderer,
+  nodePlatform,
+  precompress,
+  writeFiles,
+} from '../node';
 import type { Renderer } from '../server';
 import type { GemkitAdapter } from './adapter';
 import {
@@ -25,7 +34,6 @@ import {
   SRC_ALIAS,
   writeRouteChunks,
 } from './codegen';
-import { createRequestHandler, getDistPaths, loadHandler, loadRenderer, nodePlatform, writeFiles } from './serve';
 
 export { cloudflare } from '../adapters/cloudflare';
 export { netlify } from '../adapters/netlify';
@@ -344,6 +352,10 @@ export function pluginGemkit(options: GemkitOptions = {}): RsbuildPlugin {
             template: fs.readFileSync(template, 'utf8'),
           });
           logger.info(`gemkit: wrote ${adapter.name} output`);
+        } else {
+          // 平台会压缩响应，Node.js 服务器直接提供压缩好的文件
+          await precompress(webDir);
+          logger.info(`gemkit: precompressed ${path.relative(rootPath, webDir)}`);
         }
       });
     },

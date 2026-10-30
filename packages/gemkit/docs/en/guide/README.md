@@ -33,8 +33,9 @@ pnpm dev
 | `gemkit start`  | Serve `dist`. Prerendered pages are served first, other requests are rendered by the server.                |
 | `gemkit init`   | Create an app from the starter template, in an empty or non-existing directory.                             |
 
-`gemkit start` supports the `-p, --port <port>` option or reads these environment variables:
+`gemkit start` supports the `-p, --port <port>`, `--host <host>` and `--no-compress` (see [Deploy](./011-deploy.md#node.js)) options or reads these environment variables:
 - `PORT`: the HTTP port, default `3000`
+- `HOST`: the address to listen on, all addresses by default
 - `ORIGIN`: the public origin, for example `https://example.com`. Set it behind a reverse proxy, otherwise the origin
   comes from the `Host` header and the connection protocol. It is used by `url` in `load`, `Secure` cookies, and the
   same-origin check.

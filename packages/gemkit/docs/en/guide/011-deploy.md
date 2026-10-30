@@ -2,11 +2,11 @@
 
 A production build has two parts:
 
-| Output        | Content                                                                                      |
-| ------------- | -------------------------------------------------------------------------------------------- |
-| `dist/web`    | Client assets, prerendered pages, `__data.json`, `__elements.json`, `404.html`               |
-| `dist/server` | The server bundle and the HTML template used for dynamic rendering                           |
-| `dist/cache`  | Pages with `revalidate`, used by `gemkit start`, see [ISR](#incremental-static-regeneration) |
+| Output        | Content                                                                                                           |
+| ------------- | ----------------------------------------------------------------------------------------------------------------- |
+| `dist/web`    | Client assets, prerendered pages, `__data.json`, `__elements.json`, `404.html`, and `.br`/`.gz` files for Node.js |
+| `dist/server` | The server bundle and the HTML template used for dynamic rendering                                                |
+| `dist/cache`  | Pages with `revalidate`, used by `gemkit start`, see [ISR](#incremental-static-regeneration)                      |
 
 Run the build in the project:
 
@@ -57,17 +57,78 @@ Deploy the whole `dist` directory and run:
 npm run start
 ```
 
-`gemkit start` serves `dist/web` and renders other requests with `dist/server`. It supports the `-p, --port <port>` option or uses:
-- `PORT`: the HTTP port, default `3000`
-- `ORIGIN`: the public origin, for example `https://example.com`
+`gemkit start` serves `dist/web` and renders other requests with `dist/server`. It supports these options and
+environment variables:
+
+| Option              | Variable | Description                                           |
+| ------------------- | -------- | ----------------------------------------------------- |
+| `-p, --port <port>` | `PORT`   | The HTTP port, default `3000`.                        |
+| `--host <host>`     | `HOST`   | The address to listen on, all addresses by default.   |
+| `--no-compress`     |          | Don't compress dynamic responses, see below.          |
+|                     | `ORIGIN` | The public origin, for example `https://example.com`. |
 
 Set `ORIGIN` when the app is behind a reverse proxy. It is used for `url` in `load`, `Secure` cookies and
 the same-origin check. Without it, the origin comes from the `Host` header and the connection protocol,
 which is HTTP behind a proxy that terminates TLS.
+- **Static files**: hashed files in `dist/web/static` use `Cache-Control: public, max-age=31536000, immutable`.
+  Other files, including prerendered pages and data files, use `no-cache` with an `ETag`, so a deploy takes
+  effect immediately and unchanged files respond with 304. Range requests are supported, for example for
+  video.
+  The file list of `dist/web` is read at startup and requests don't touch the file system, so files added to
+  `dist/web` at runtime are not served.
+- **Compression**: the build compresses text files over 1 KB in `dist/web` to `.br` and `.gz`, which are served
+  according to `Accept-Encoding`. Dynamically rendered responses are compressed on the fly without buffering
+  streamed pages. A reverse proxy or CDN doesn't need to compress again. Compressing on the fly costs
+  rendering CPU (about 10-20% lower throughput in tests), so behind a CDN or reverse proxy that compresses,
+  turn it off with `gemkit start --no-compress`; files compressed at build time are still used. With a
+  [deployment platform](#platforms) the platform compresses and no compressed files are written.
+- **Shutdown**: on `SIGTERM` or `SIGINT` the server stops accepting connections and waits for in-flight requests
+  and `waitUntil` background tasks, at most 30 seconds, then closes the remaining connections. The process
+  exits once nothing else is pending, so close resources the app opened, such as database connections, in
+  `process.on('SIGTERM')`.
 
 The server process needs the dependencies of `@mantou/gemkit` and the app at runtime. In a container or a
 managed Node host, install production dependencies and set the working directory to the project root
 that contains `dist`.
+
+### Custom server
+
+`createApp` from `@mantou/gemkit/node` returns the app used by `gemkit start`, so you can use it in your own
+server, for example to add WebSockets or an ISR store shared by several instances:
+
+```ts
+// server.ts
+import { createServer } from 'node:http';
+import { getRequestListener } from '@hono/node-server';
+import { createApp } from '@mantou/gemkit/node';
+
+const app = await createApp({ origin: process.env.ORIGIN, isrStore: createRedisStore() });
+const server = createServer(getRequestListener(app.fetch));
+server.on('upgrade', handleWebSocket);
+server.listen(3000);
+
+process.on('SIGTERM', () => server.close(() => app.drain()));
+```
+
+- `app.fetch(request)` is a standard fetch handler. Like `gemkit start`, it serves static files, renders pages
+  and compresses responses. A Node.js `http` server needs `getRequestListener` from `@hono/node-server` to
+  convert it, and so do frameworks like Express.
+- `app.drain()` waits for `waitUntil` background tasks, such as ISR regeneration. Use it when closing the
+  server.
+- Options of `createApp`: `root` is the directory containing `dist`, the current directory by default;
+  `origin` is the same as `ORIGIN`; `isrStore` is the ISR storage, files in `dist/cache` by default;
+  `compress: false` turns off compressing dynamic responses.
+
+`isrStore` implements `IsrStore`. Keys are paths of pages or data files, for example `/blog/index.html`:
+
+```ts
+interface IsrStore {
+  /** Content and write time in milliseconds, `undefined` when missing */
+  get(file: string): Promise<{ content: string; time: number } | undefined>;
+  set(files: Map<string, string>): Promise<unknown>;
+  delete(files: string[]): Promise<unknown>;
+}
+```
 
 ## Platforms
 
@@ -248,7 +309,7 @@ platform without them, so configure their headers on the platform.
 
 Prerendered HTML and `__data.json` are public files, but a new deploy replaces them at the same path.
 Use a short cache lifetime or purge the cache after deploying. Hashed assets in `dist/web/static` never
-change, so they can be cached for a long time.
+change, so they can be cached for a long time. `gemkit start` sets these headers.
 
 ## What changes between environments
 
