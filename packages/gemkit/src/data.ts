@@ -878,7 +878,9 @@ export function formActions<A>() {
       onsubmit: async (evt: SubmitEvent) => {
         evt.preventDefault();
         const form = evt.target as HTMLFormElement;
-        callback?.(await submitAction(form, evt.submitter), form);
+        // 不能写成 `callback?.(await submitAction(...))`，没有回调时参数不会执行
+        const data = await submitAction(form, evt.submitter);
+        callback?.(data, form);
       },
     }),
   });
