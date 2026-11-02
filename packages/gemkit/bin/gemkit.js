@@ -13,6 +13,14 @@ program
   .action((dir) => init(dir));
 
 program
+  .command('sync')
+  .description('generate .gemkit for type checking without building')
+  .action(async () => {
+    const { sync } = await import('../dist/plugin.js');
+    await sync();
+  });
+
+program
   .command('start')
   .description('start the production server, serves dist/')
   .option('-p, --port <port>', 'server port, defaults to $PORT or 3000')

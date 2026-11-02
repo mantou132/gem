@@ -142,6 +142,10 @@ Gemkit generates into `.gemkit`:
 }
 ```
 
+They are generated when `rsbuild dev` and `rsbuild build` start. To only type check, run `gemkit sync`, no build
+is needed. The starter's `prepare` script runs it after installing dependencies, and its `check` script runs it
+before `tsc`.
+
 The generated files are overwritten at every build. Don't import them directly, except `$gemkit/i18n`
 and `$gemkit/api`.
 

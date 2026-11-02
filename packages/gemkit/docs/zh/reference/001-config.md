@@ -135,6 +135,9 @@ Gemkit 在 `.gemkit` 中生成：
 }
 ```
 
+`rsbuild dev` 和 `rsbuild build` 启动时生成，只做类型检查时运行 `gemkit sync`，不需要构建。
+模板的 `prepare` 脚本在安装依赖后运行它，`check` 脚本先运行它再执行 `tsc`。
+
 生成的文件在每次构建时覆盖。除了 `$gemkit/i18n` 和 `$gemkit/api`，不要直接导入它们。
 
 ## 构建产物

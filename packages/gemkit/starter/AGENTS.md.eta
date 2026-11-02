@@ -9,6 +9,7 @@ Gem syntax and best practices, read before writing elements: @node_modules/@mant
 - `npm run dev`: dev server with SSR and HMR
 - `npm run build`: build `dist/web` (client assets and prerendered pages) and `dist/server`
 - `npm start`: serve `dist`, prerendered pages first, other requests rendered on the server
+- `npm run check`: generate `.gemkit` with `gemkit sync` and type check, no build needed
 
 ## Project structure
 

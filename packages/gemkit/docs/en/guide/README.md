@@ -31,6 +31,7 @@ pnpm dev
 | `rsbuild dev`   | Start the dev server with SSR and HMR. Pages are rendered on each request.                                  |
 | `rsbuild build` | Build `dist/web` (client assets and prerendered pages) and `dist/server` (server bundle and HTML template). |
 | `gemkit start`  | Serve `dist`. Prerendered pages are served first, other requests are rendered by the server.                |
+| `gemkit sync`   | Generate `.gemkit` only, without building. Run it before type checking and linting.                         |
 | `gemkit init`   | Create an app from the starter template, in an empty or non-existing directory.                             |
 
 `gemkit start` supports the `-p, --port <port>`, `--host <host>` and `--no-compress` (see [Deploy](./011-deploy.md#node.js)) options or reads these environment variables:

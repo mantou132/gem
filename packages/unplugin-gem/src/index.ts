@@ -33,6 +33,9 @@ export type { HmrOptions, HmrTarget, UnpluginGemOptions } from './types.js';
 
 const TRANSFORM_EXTENSIONS = /\.(?:[cm]?[jt]s|[jt]sx)(?:[?#].*)?$/;
 const require = createRequire(import.meta.url);
+const swcPluginPath = require.resolve('swc-plugin-gem');
+// 插件的编译缓存，默认是项目中的 `.swc`
+const SWC_CACHE_ROOT = 'node_modules/.cache/swc';
 
 // Gem 读取 `@mantou/gem-ssr` 提供的 SSR 功能，客户端构建时替换成 `undefined` 后，SSR 代码会被压缩移除
 // 保持长度不变，不影响 sourcemap
@@ -48,8 +51,25 @@ function getSsrTarget(ssr: boolean | undefined, isClient: boolean | undefined, i
   return /[?&]gem-lazy\b/.test(id) ? 'lazy-chunk' : 'client';
 }
 
+/**
+ * Generate the `autoImportDts` file without transforming modules, e.g. before type checking;
+ * same as the plugin, an existing file is kept
+ */
+export async function generateAutoImportDts({ autoImport, autoImportDts }: UnpluginGemOptions) {
+  // 插件创建时就会生成 dts，转换空模块即可
+  await transform('', {
+    filename: 'auto-import.ts',
+    jsc: {
+      parser: { syntax: 'typescript' },
+      experimental: {
+        cacheRoot: SWC_CACHE_ROOT,
+        plugins: [[swcPluginPath, { autoImport: autoImport ?? false, autoImportDts: autoImportDts ?? false }]],
+      },
+    },
+  });
+}
+
 export const unpluginFactory: UnpluginFactory<UnpluginGemOptions | undefined> = (options = {}, meta) => {
-  const swcPluginPath = require.resolve('swc-plugin-gem');
   const hmrTarget = getHmrTarget(options, meta.framework);
   const { helper, include: hmrInclude, exclude: hmrExclude } = getHmrFilters(options);
   const moduleInclude = toArray(options.include);
@@ -101,8 +121,7 @@ export const unpluginFactory: UnpluginFactory<UnpluginGemOptions | undefined> = 
               externalHelpers: true,
               target: 'es2024',
               experimental: {
-                // 插件的编译缓存，默认是项目中的 `.swc`
-                cacheRoot: 'node_modules/.cache/swc',
+                cacheRoot: SWC_CACHE_ROOT,
                 runPluginFirst: true,
                 plugins: [
                   [

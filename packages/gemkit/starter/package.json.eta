@@ -5,7 +5,9 @@
   "scripts": {
     "dev": "rsbuild dev",
     "build": "rsbuild build",
-    "start": "gemkit start"
+    "start": "gemkit start",
+    "check": "gemkit sync && tsc --noEmit",
+    "prepare": "gemkit sync"
   },
   "dependencies": {
     "@mantou/gem": "<%= it.deps['@mantou/gem'] %>",

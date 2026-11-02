@@ -29,6 +29,7 @@ pnpm dev
 | `rsbuild dev`   | 启动带 SSR 和 HMR 的开发服务器，每次请求时渲染页面。                                    |
 | `rsbuild build` | 构建 `dist/web`（客户端资源和预渲染的页面）和 `dist/server`（服务端产物和 HTML 模板）。 |
 | `gemkit start`  | 提供 `dist` 的内容，优先使用预渲染的页面，其他请求由服务端渲染。                        |
+| `gemkit sync`   | 只生成 `.gemkit`，不构建，类型检查和 lint 之前使用。                                    |
 | `gemkit init`   | 在空目录或者不存在的目录中，使用模板创建应用。                                          |
 
 `gemkit start` 支持 `-p, --port <port>`、`--host <host>`、`--no-compress`（见[部署](./011-deploy.md#node.js)）选项或读取这些环境变量：

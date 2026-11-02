@@ -4,8 +4,8 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import { getRequestListener } from '@hono/node-server';
-import { logger, type RsbuildPlugin, type Rspack } from '@rsbuild/core';
-import type { UnpluginGemOptions } from 'unplugin-gem';
+import { createRsbuild, loadConfig, logger, type RsbuildPlugin, type Rspack } from '@rsbuild/core';
+import { generateAutoImportDts, type UnpluginGemOptions } from 'unplugin-gem';
 import unpluginGem from 'unplugin-gem/rspack';
 
 import { cloudflare } from '../adapters/cloudflare';
@@ -188,7 +188,7 @@ export function pluginGemkit(options: GemkitOptions = {}): RsbuildPlugin {
   const userAutoImport = typeof autoImport === 'object' ? autoImport : {};
   return {
     name: 'gemkit',
-    setup(api) {
+    async setup(api) {
       const { rootPath } = api.context;
       const srcDir = getSrcDir(rootPath, config);
       const genDir = path.join(rootPath, '.gemkit');
@@ -215,11 +215,6 @@ export function pluginGemkit(options: GemkitOptions = {}): RsbuildPlugin {
         api.onCloseDevServer(() => watcher.close());
       }
 
-      // swc 插件在 WASI 中只能访问 cwd，需要相对路径；
-      // 文件存在时不会重新生成，启动时删除以应用最新配置
-      const dtsFile = path.join(genDir, 'auto-import.d.ts');
-      fs.rmSync(dtsFile, { force: true });
-
       // 客户端构建完成后写入版本和路由的 chunk，服务端构建依赖客户端构建，之后才开始
       const clientBuildPlugin: Rspack.RspackPluginInstance = {
         apply: (compiler) => {
@@ -229,17 +224,22 @@ export function pluginGemkit(options: GemkitOptions = {}): RsbuildPlugin {
         },
       };
 
-      // 只在一个环境中生成 dts，避免并发写入
-      const gemPlugin = (genDts: boolean) =>
+      const autoImport: UnpluginGemOptions['autoImport'] = {
+        extends: 'gem',
+        ...userAutoImport,
+        members: { ...AUTO_IMPORT_MEMBERS, ...userAutoImport.members },
+        elements: { [SRC_ALIAS]: { 'app-*': '/elements/*' }, ...userAutoImport.elements },
+      };
+      // 构建前生成 dts，`gemkit sync` 也只执行到这里；
+      // swc 插件在 WASI 中只能访问 cwd，需要相对路径；文件存在时不会重新生成，先删除以应用最新配置
+      const dtsFile = path.join(genDir, 'auto-import.d.ts');
+      fs.rmSync(dtsFile, { force: true });
+      await generateAutoImportDts({ autoImport, autoImportDts: path.relative(process.cwd(), dtsFile) });
+
+      const gemPlugin = () =>
         unpluginGem({
           include: [srcDir, genDir, path.join(packageDir, 'src')],
-          autoImport: {
-            extends: 'gem',
-            ...userAutoImport,
-            members: { ...AUTO_IMPORT_MEMBERS, ...userAutoImport.members },
-            elements: { [SRC_ALIAS]: { 'app-*': '/elements/*' }, ...userAutoImport.elements },
-          },
-          autoImportDts: genDts && path.relative(process.cwd(), dtsFile),
+          autoImport,
           styleMinify: true,
           htmlMinify: true,
           selectorCompatible: true,
@@ -278,7 +278,7 @@ export function pluginGemkit(options: GemkitOptions = {}): RsbuildPlugin {
             web: {
               source: { entry: { index: path.join(genDir, 'client.ts') } },
               output: { target: 'web', distPath: { root: 'dist/web' } },
-              tools: { rspack: { plugins: [gemPlugin(true), ...(isDev ? [] : [clientBuildPlugin])] } },
+              tools: { rspack: { plugins: [gemPlugin(), ...(isDev ? [] : [clientBuildPlugin])] } },
             },
             node: {
               source: {
@@ -299,7 +299,7 @@ export function pluginGemkit(options: GemkitOptions = {}): RsbuildPlugin {
               ...(handlerEntry && { splitChunks: false }),
               tools: {
                 rspack: {
-                  plugins: [gemPlugin(false)],
+                  plugins: [gemPlugin()],
                   output: { asyncChunks: !handlerEntry },
                   // 导入客户端构建写入的版本和路由 chunk，开发时不需要
                   ...(!isDev && { dependencies: ['web'] }),
@@ -362,4 +362,12 @@ export function pluginGemkit(options: GemkitOptions = {}): RsbuildPlugin {
       });
     },
   };
+}
+
+/** `gemkit sync`：执行插件的 `setup` 生成 `.gemkit`，不构建，类型检查前使用 */
+export async function sync(cwd = process.cwd()) {
+  const { content } = await loadConfig({ cwd });
+  const rsbuild = await createRsbuild({ cwd, config: content, loadEnv: true });
+  await rsbuild.initConfigs();
+  logger.info('gemkit: generated .gemkit');
 }
