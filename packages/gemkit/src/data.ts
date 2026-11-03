@@ -239,12 +239,16 @@ export interface ErrorData {
   issues?: readonly SchemaIssue[];
 }
 
-export class HttpError implements ErrorData {
+export class HttpError extends Error implements ErrorData {
+  name = 'HttpError';
+
   constructor(
     public status: number,
-    public message: string,
+    message: string,
     public issues?: readonly SchemaIssue[],
-  ) {}
+  ) {
+    super(message);
+  }
 }
 
 /** 出错的路由，错误页面渲染在它的位置，`tag` 是它的标签名 */
