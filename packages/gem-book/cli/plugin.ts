@@ -449,7 +449,7 @@ export function pluginGemBook(options: GemBookOptions): RsbuildPlugins {
               '@mantou/gemkit$': fileURLToPath(import.meta.resolve('@mantou/gemkit')),
               '@mantou/gemkit/client$': fileURLToPath(import.meta.resolve('@mantou/gemkit/client')),
               '@mantou/gemkit/internal$': fileURLToPath(import.meta.resolve('@mantou/gemkit/internal')),
-              '@mantou/gemkit/server$': fileURLToPath(import.meta.resolve('@mantou/gemkit/server')),
+              '@mantou/gemkit/internal/server$': fileURLToPath(import.meta.resolve('@mantou/gemkit/internal/server')),
             },
           },
           // 文档中引用的图片等资源，文档已经渲染到页面中，不需要输出

@@ -1,8 +1,7 @@
 import { getRequestListener } from '@hono/node-server';
 
 import { CDN_STALE_SECONDS } from '../../constants';
-import { createFetchHandler, createNodePlatform, withOrigin } from '../../handler';
-import type { Renderer } from '../../server';
+import { createFetchHandler, createNodePlatform, type Renderer, withOrigin } from '../../handler';
 
 // Vercel 运行时为每个请求设置的上下文，`@vercel/functions` 的 `waitUntil` 也从这里获取
 const REQUEST_CONTEXT = Symbol.for('@vercel/request-context');

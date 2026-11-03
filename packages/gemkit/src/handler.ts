@@ -12,6 +12,9 @@ import {
 import type { DataFile, ElementsFile, Platform, PlatformContext, PlatformEnv } from './data';
 import type { Renderer } from './server';
 
+/** 服务端构建创建的渲染器，自定义适配器的 `createHandler` 原样传给 `createFetchHandler`，不要使用它的成员 */
+export type { Renderer };
+
 /** 页面数据和页面中纯服务端元素的请求 */
 export const isDataRequest = (pathname: string) =>
   pathname.endsWith(`/${DATA_FILE}`) || pathname.endsWith(`/${ELEMENTS_FILE}`);

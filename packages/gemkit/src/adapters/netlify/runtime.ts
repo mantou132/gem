@@ -1,7 +1,6 @@
 import { CDN_STALE_SECONDS } from '../../constants';
 import type { PlatformContext } from '../../data';
-import { createFetchHandler, createNodePlatform } from '../../handler';
-import type { Renderer } from '../../server';
+import { createFetchHandler, createNodePlatform, type Renderer } from '../../handler';
 
 /** Netlify Functions，静态文件优先，ISR 使用 Netlify 的持久 CDN 缓存，`platform.ctx` 是 Netlify 的 `Context` */
 export function createHandler(renderer: Renderer, template: string) {

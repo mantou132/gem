@@ -159,9 +159,3 @@ Gemkit 在 `.gemkit` 中生成：
 | `HOST`             | `gemkit start` 监听的地址，默认监听所有地址。                          |
 | `ORIGIN`           | `gemkit start` 的公开地址，`url`、`Secure` cookie 和同源检查使用。     |
 | `GEMKIT_PRERENDER` | 构建时设置。`'false'` 表示没有预渲染，客户端会跳过 `__elements.json`。 |
-
-## 渲染器
-
-`@mantou/gemkit/server` 导出 `createRenderer(options)`。它创建构建和 `gemkit start` 使用的渲染器，
-参数包括应用、服务端模块、API 路由、i18n 和标题选项。这是给自带服务器的集成使用的高级 API，
-普通应用使用 `gemkit start`，自定义 Node.js 服务器使用 `@mantou/gemkit/node`，见[自定义服务器](../guide/011-deploy.md#自定义服务器)。

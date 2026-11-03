@@ -202,7 +202,7 @@ export default {
 
 其他平台可以实现 `GemkitAdapter`，由两部分组成：
 - `runtime`：运行时模块（包名或者绝对路径），服务端构建时打包。导出 `createHandler(renderer, template)`，
-  返回平台需要的处理函数。一般使用 `@mantou/gemkit/handler` 的 `createFetchHandler`，
+  返回平台需要的处理函数。`renderer` 是服务端构建创建的渲染器，原样传给 `@mantou/gemkit/handler` 的 `createFetchHandler`，
   它处理页面、数据、表单、服务端元素和 API 路由的请求，参数提供平台的差异：
   `readStatic`（读取预渲染的文件，平台优先提供静态文件时不需要）、`isrStore`（ISR 的存储）
   或者 `cdnCache`（ISR 使用 CDN 缓存时的响应头）。处理函数的第二个参数是平台的 [`{ env, ctx }`](./007-request.md#平台)。
@@ -212,8 +212,7 @@ export default {
 
 ```ts
 // my-adapter/runtime.ts
-import { createFetchHandler } from '@mantou/gemkit/handler';
-import type { Renderer } from '@mantou/gemkit/server';
+import { createFetchHandler, type Renderer } from '@mantou/gemkit/handler';
 
 export function createHandler(renderer: Renderer, template: string) {
   return createFetchHandler(renderer, template);

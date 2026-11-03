@@ -1,6 +1,5 @@
 import type { PlatformContext, PlatformEnv } from '../../data';
-import { createFetchHandler, type Handler, type IsrStore } from '../../handler';
-import type { Renderer } from '../../server';
+import { createFetchHandler, type Handler, type IsrStore, type Renderer } from '../../handler';
 
 /** Cloudflare KV 中使用的部分 */
 interface KVNamespace {

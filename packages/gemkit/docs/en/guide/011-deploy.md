@@ -222,8 +222,8 @@ Gem compilation or auto imports, and its modules are separate instances from the
 
 Other platforms can implement `GemkitAdapter`, which has two parts:
 - `runtime`: the runtime module (a package name or an absolute path), bundled by the server build. It exports
-  `createHandler(renderer, template)` and returns the handler the platform needs. It usually uses
-  `createFetchHandler` from `@mantou/gemkit/handler`, which handles pages, data, forms, server elements and
+  `createHandler(renderer, template)` and returns the handler the platform needs. `renderer` is created by the
+  server build; pass it as is to `createFetchHandler` from `@mantou/gemkit/handler`, which handles pages, data, forms, server elements and
   API routes, with options for what differs between platforms: `readStatic` (read prerendered files, not
   needed when the platform serves static files first), `isrStore` (the ISR storage) or `cdnCache` (the
   response header when the CDN caches ISR pages). The handler takes the platform [`{ env, ctx }`](./007-request.md#platform) as its second argument.
@@ -234,8 +234,7 @@ Other platforms can implement `GemkitAdapter`, which has two parts:
 
 ```ts
 // my-adapter/runtime.ts
-import { createFetchHandler } from '@mantou/gemkit/handler';
-import type { Renderer } from '@mantou/gemkit/server';
+import { createFetchHandler, type Renderer } from '@mantou/gemkit/handler';
 
 export function createHandler(renderer: Renderer, template: string) {
   return createFetchHandler(renderer, template);

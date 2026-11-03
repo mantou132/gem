@@ -1,3 +1,5 @@
+// 供 `.gemkit` 中生成的服务端入口使用，不属于公开 API
+
 // 必须在 Gem 之前执行，用来模拟 DOM 环境
 import '@mantou/gem-ssr';
 

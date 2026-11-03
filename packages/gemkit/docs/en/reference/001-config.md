@@ -168,10 +168,3 @@ the home page. See [Deploy](../guide/011-deploy.md).
 | `HOST`             | The address `gemkit start` listens on, all addresses by default.                                    |
 | `ORIGIN`           | The public origin of `gemkit start`, for `url`, `Secure` cookies and same-origin checks.            |
 | `GEMKIT_PRERENDER` | Set by the build. `'false'` means pages are not prerendered and the client skips `__elements.json`. |
-
-## Renderer
-
-`@mantou/gemkit/server` exports `createRenderer(options)`. It creates the renderer used by the build and
-by `gemkit start`, with the app, server modules, endpoints, i18n and title options. It is an advanced API
-for integrations that provide their own server; normal applications use `gemkit start`, and a custom Node.js
-server uses `@mantou/gemkit/node`, see [Custom server](../guide/011-deploy.md#custom-server).
