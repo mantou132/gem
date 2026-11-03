@@ -206,6 +206,8 @@ export default {
   它处理页面、数据、表单、服务端元素和 API 路由的请求，参数提供平台的差异：
   `readStatic`（读取预渲染的文件，平台优先提供静态文件时不需要）、`isrStore`（ISR 的存储）
   或者 `cdnCache`（ISR 使用 CDN 缓存时的响应头）。处理函数的第二个参数是平台的 [`{ env, ctx }`](./007-request.md#平台)。
+  Node.js 运行时的平台可以使用 `createNodePlatform(ctx)` 创建，`env` 是 `process.env`；
+  平台的请求 URL 不可信时（例如反向代理后协议总是 `http:`），使用 `withOrigin(request, origin)` 替换它的 origin。
 - `write(ctx)`：构建后输出平台需要的文件。`ctx.handlerFile` 是服务端构建的函数入口，它命名导出
   `createHandler(template)`，平台的入口用 `ctx.template` 调用它。`ctx.webDir` 是需要作为静态文件提供的目录，`ctx.srcDir` 是源码目录，
   `ctx.cacheDir` 是设置了 `revalidate` 的页面在构建时预渲染的文件，平台支持时可以作为 ISR 的初始缓存。

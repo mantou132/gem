@@ -18,7 +18,7 @@
     "./client": "./src/client.ts",
     "./internal": "./src/internal.ts",
     "./internal/server": "./src/server.ts",
-    "./handler": "./src/handler.ts",
+    "./handler": "./src/runtime.ts",
     "./adapters/*": "./src/adapters/*/runtime.ts",
     "./init": "./bin/init.js",
     "./node": {

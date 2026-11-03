@@ -227,6 +227,9 @@ Other platforms can implement `GemkitAdapter`, which has two parts:
   API routes, with options for what differs between platforms: `readStatic` (read prerendered files, not
   needed when the platform serves static files first), `isrStore` (the ISR storage) or `cdnCache` (the
   response header when the CDN caches ISR pages). The handler takes the platform [`{ env, ctx }`](./007-request.md#platform) as its second argument.
+  On a Node.js runtime, `createNodePlatform(ctx)` creates the platform with `process.env` as `env`; when the
+  request URL from the platform can't be trusted (e.g. always `http:` behind a proxy), `withOrigin(request, origin)`
+  replaces its origin.
 - `write(ctx)`: writes the files the platform needs after the build. `ctx.handlerFile` is the function entry
   of the server build, which has a named export `createHandler(template)`; the platform entry calls it with
   `ctx.template`. `ctx.webDir` is the directory to serve as static files, `ctx.srcDir` is the source directory, and `ctx.cacheDir` has the files
