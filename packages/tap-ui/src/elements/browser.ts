@@ -53,9 +53,9 @@ const style = css`
     inset: 0;
     display: block;
   }
+  /* In flow, so the page insets keep it between the bars; block avoids the inline baseline gap that would scroll */
   .frame {
-    position: absolute;
-    inset: 0;
+    display: block;
     width: 100%;
     height: 100%;
     border: 0;

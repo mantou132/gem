@@ -161,6 +161,13 @@ const style = css`
   }
 `;
 
+/**
+ * Content scrolls in the page itself and runs under the header and footer;
+ * padding keeps it clear of them, so `height: 100%` children fill the area between the bars.
+ * Don't add another scroll container, use `scrollElement` instead.
+ * Absolutely positioned children ignore that padding and end up under the bars,
+ * so keep them in flow or inside an in-flow wrapper.
+ */
 @customElement('tap-page')
 @shadow()
 @adoptedStyle(style)
