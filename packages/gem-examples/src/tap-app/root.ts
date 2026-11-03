@@ -7,7 +7,7 @@ export class TAppElement extends GemElement {
   @template()
   #render = () => html`
     <tap-page>
-      <tap-route .routes=${routes}></tap-route>
+      <tap-light-route .routes=${routes}></tap-light-route>
       <tap-tabbar
         slot="footer"
         .items=${[

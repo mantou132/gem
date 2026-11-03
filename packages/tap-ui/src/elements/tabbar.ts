@@ -36,7 +36,8 @@ const style = css`
     box-sizing: border-box;
     padding-block: 0.4em;
     padding-block-end: calc(0.4em + var(--safe-area-inset-bottom, env(safe-area-inset-bottom, 0px)));
-    background: ${theme.backgroundColor};
+    background: color-mix(in srgb, ${theme.backgroundColor} 75%, transparent);
+    backdrop-filter: blur(16px);
     border-block-start: 1px solid ${theme.borderColor};
     color: ${theme.describeColor};
   }

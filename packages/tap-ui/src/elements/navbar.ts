@@ -34,7 +34,8 @@ const style = css`
     padding-block: 0.5em;
     padding-block-start: calc(0.5em + var(--safe-area-inset-top, env(safe-area-inset-top, 0px)));
     box-sizing: border-box;
-    background: ${theme.backgroundColor};
+    background: color-mix(in srgb, ${theme.backgroundColor} 75%, transparent);
+    backdrop-filter: blur(16px);
     border-block-end: 1px solid ${theme.borderColor};
     color: ${theme.highlightColor};
     transition:
@@ -43,6 +44,7 @@ const style = css`
   }
   :host([transparent]) {
     background: transparent;
+    backdrop-filter: none;
     border-block-end-color: transparent;
   }
   .left {
