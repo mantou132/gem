@@ -1,5 +1,5 @@
 import { CLIENT_HEADER, REDIRECT_HEADER } from './constants';
-import { clearClientCache, HttpError, navigate, type RequestMethod } from './data';
+import { clearClientCache, HttpError, localizeLocation, navigate, type RequestMethod } from './data';
 
 const METHODS = new Set<string>(['GET', 'POST', 'PUT', 'PATCH', 'DELETE'] satisfies RequestMethod[]);
 // 没有请求体，参数作为查询参数
@@ -23,10 +23,11 @@ async function request(method: string, segments: string[], input?: Record<string
       : { method, headers: { 'content-type': 'application/json', [CLIENT_HEADER]: '1' }, body: JSON.stringify(input) },
   );
   // `handle` 或者处理函数中的跳转，例如没有登录或者登录成功，数据可能已经改变；页面离开，不再 resolve
+  // API 路由没有语言，应用路径跳转到当前页面的语言
   const redirectTo = res.headers.get(REDIRECT_HEADER);
   if (redirectTo) {
     clearClientCache();
-    navigate(redirectTo);
+    navigate(localizeLocation(redirectTo));
     return new Promise(() => {});
   }
   const isJSON = res.headers.get('content-type')?.includes('application/json');

@@ -106,8 +106,9 @@ export function load({ cookies }: ServerLoadContext) {
 }
 ```
 
-`redirect(status, location)` throws and stops rendering. `location` is a full path including the
-language prefix. On the server the response has that status and a `Location` header; on client navigation
+`redirect(status, location)` throws and stops rendering. A `location` starting with `/` is an app path
+without the language prefix, like `path`, and redirects within the current language; to redirect to
+another language, use a full URL such as `url.origin + localizePath('en', '/about')`. On the server the response has that status and a `Location` header; on client navigation
 Gemkit navigates to it instead. Prerendered redirects are written as `<meta http-equiv="refresh">` pages,
 and their data file contains the location, so they also work on a static host.
 

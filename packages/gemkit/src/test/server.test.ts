@@ -11,12 +11,14 @@ import {
   createState,
   customElement,
   GemElement,
+  history,
   html,
   mounted,
   type TemplateResult,
   template,
 } from '@mantou/gem';
 import { I18n } from '@mantou/gem/helper/i18n';
+import { runInRequest } from '@mantou/gem-ssr';
 import { getServerElementKey, server } from '@mantou/gem-ssr/decorators';
 
 import { createHandler as createCloudflareHandler } from '../adapters/cloudflare/runtime';
@@ -27,6 +29,7 @@ import {
   endpoint,
   error,
   getRequestEvent,
+  localizeLocation,
   notFound,
   redirect,
   revalidatePath,
@@ -604,9 +607,25 @@ test('handle: 每个请求先执行，可以跳转', async ({ assert }) => {
   assert.equal(page.status, 404);
   // 读取了 cookie
   assert.equal(page.headers.get('cache-control'), 'private, no-store');
-  // `path` 不包含语言前缀
+  // `path` 和跳转的应用路径都不包含语言前缀，跳转到当前语言
   const zh = await renderer.renderDocument(documentTemplate, request('/zh/admin'));
-  assert.equal(zh.headers.get('location'), '/login');
+  assert.equal(zh.headers.get('location'), '/zh/login');
+  assert.deepEqual(await (await renderer.loadData(request('/zh/admin/__data.json'))).json(), { redirect: '/zh/login' });
+});
+
+test('redirect: 应用路径加上当前语言的前缀，完整的 URL 不变', async ({ assert }) => {
+  // 每个请求有独立的 history
+  const location = (path: string) =>
+    runInRequest(() => {
+      history.basePath = '/zh';
+      return localizeLocation(path);
+    });
+  assert.equal(location('/'), '/zh');
+  assert.equal(location('/me?a=1'), '/zh/me?a=1');
+  assert.equal(location('https://example.com/me'), 'https://example.com/me');
+  assert.equal(location('//example.com/me'), '//example.com/me');
+  // API 路由没有语言，由 `$gemkit/api` 在客户端加上前缀
+  assert.equal((await renderer.runEndpoint(request('/old'))).headers.get('location'), '/new');
 });
 
 test('handle: 纯服务端元素的请求也先执行，元素中读取 `locals`', async ({ assert }) => {

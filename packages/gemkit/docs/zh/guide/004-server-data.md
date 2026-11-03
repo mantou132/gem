@@ -98,7 +98,8 @@ export function load({ cookies }: ServerLoadContext) {
 }
 ```
 
-`redirect(status, location)` 会抛出并停止渲染。`location` 是包含语言前缀的完整路径。
+`redirect(status, location)` 会抛出并停止渲染。`/` 开头的 `location` 是不包含语言前缀的应用路径，和 `path` 一样，
+跳转到当前语言的页面；跳转到其他语言时使用完整的 URL，例如 `url.origin + localizePath('en', '/about')`。
 服务端响应使用该状态码和 `Location` 头，客户端导航时 Gemkit 导航到该地址。
 预渲染的跳转写成 `<meta http-equiv="refresh">` 页面，数据文件中包含跳转地址，所以静态托管也可以使用。
 
