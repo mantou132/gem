@@ -290,7 +290,7 @@ const renderLink = (cls: string, link: string, content: unknown) =>
 const formatDate = (date: string) =>
   new Intl.DateTimeFormat(i18n.currentLanguage, { dateStyle: 'medium' }).format(new Date(date));
 
-@page<{ 0: string }, Doc>({
+@page<{ slug: string }, Doc>({
   title: ({ data }) => data.title,
   meta: ({ data }) => ({ description: data.description || undefined }),
 })
