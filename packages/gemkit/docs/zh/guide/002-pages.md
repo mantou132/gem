@@ -50,6 +50,8 @@ export default class PostPage extends GemElement {
 ```
 
 第一个泛型参数是路由参数，第二个是 `data` 的类型。它们只用来提供类型，Gemkit 不会在运行时校验数据。
+没有写泛型时，`data` 的类型从 `load` 的返回值推导。元素的 `params` 和 `data` 属性要和它们一致，否则类型检查报错，
+所以修改 `load` 后不会忘记修改元素；没有 `load` 也没有写第二个泛型时不检查 `data`。
 
 ## 页面元素
 

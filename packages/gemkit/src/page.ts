@@ -38,6 +38,9 @@ export interface PageOptions<P extends Params = Params, D = unknown> extends Lay
 
 type RouteClass = new (...args: any) => HTMLElement;
 
+/** 页面和 layout 元素的 `params` 和 `data` 属性需要和类型参数一致，例如和 `load` 的返回值一致 */
+type RouteElementClass<P, D> = new (...args: any) => HTMLElement & { params?: P; data?: D };
+
 const optionsMap = new WeakMap<RouteClass, PageOptions<any, any>>();
 
 /**
@@ -52,7 +55,7 @@ const optionsMap = new WeakMap<RouteClass, PageOptions<any, any>>();
  * ```
  */
 export function page<P extends Params = Params, D = unknown>(options: string | PageOptions<P, D> = {}) {
-  return (cls: RouteClass, _: ClassDecoratorContext) => {
+  return (cls: RouteElementClass<P, D>, _: ClassDecoratorContext) => {
     optionsMap.set(cls, typeof options === 'string' ? { title: options } : options);
   };
 }
@@ -70,7 +73,7 @@ export function page<P extends Params = Params, D = unknown>(options: string | P
  * ```
  */
 export function layout<P extends Params = Params, D = unknown>(options: LayoutOptions<P, D> = {}) {
-  return (cls: RouteClass, _: ClassDecoratorContext) => {
+  return (cls: RouteElementClass<P, D>, _: ClassDecoratorContext) => {
     optionsMap.set(cls, options);
   };
 }

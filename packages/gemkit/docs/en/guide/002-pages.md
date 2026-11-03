@@ -50,7 +50,10 @@ export default class PostPage extends GemElement {
 ```
 
 The first generic parameter is the route params, the second is the type of `data`. They are only for typing;
-Gemkit does not validate the data at runtime.
+Gemkit does not validate the data at runtime. Without generics, the type of `data` is inferred from what `load`
+returns. The `params` and `data` properties of the element must match them, or type checking fails, so the
+element can't fall behind when `load` changes; `data` is not checked when there is no `load` and no second
+generic.
 
 ## Page element
 
