@@ -10,7 +10,7 @@ export type ResizeDetail = {
 };
 
 export function resizeObserver(ele: TapResizeBaseElement) {
-  const { resizeThrottle = true } = ele;
+  const { resizeThrottle = true, resizeBox } = ele;
   const callback = (entryList: ResizeObserverEntry[]) => {
     entryList.forEach((entry) => {
       const oldDetail = { contentRect: ele.contentRect, borderBoxSize: ele.borderBoxSize };
@@ -26,15 +26,17 @@ export function resizeObserver(ele: TapResizeBaseElement) {
   };
   const throttleCallback = resizeThrottle ? throttle(callback, 300, { leading: true }) : callback;
   const ro = new ResizeObserver(throttleCallback);
-  ro.observe(ele, {});
+  ro.observe(ele, { box: resizeBox });
   return () => ro.disconnect();
 }
 
 export class TapResizeBaseElement extends GemElement {
   @emitter resize: Emitter<ResizeDetail>;
   @property resizeThrottle?: boolean;
+  /**Box that triggers resize, `content-box` by default */
+  @property resizeBox?: ResizeObserverBoxOptions;
 
-  @effect((i) => [i.resizeThrottle])
+  @effect((i) => [i.resizeThrottle, i.resizeBox])
   #observer = () => resizeObserver(this);
 
   borderBoxSize = {

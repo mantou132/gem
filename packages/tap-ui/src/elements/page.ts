@@ -413,6 +413,7 @@ export class TapPageElement extends TapVisibleBaseElement {
           '--footer-height': `${footerHeight}px`,
         })}
         disable-scroll-mask
+        .resizeBox=${'border-box'}
         ?disable-gesture=${!this.refreshable || refreshing || pageStore.shouldDim}
         @pull=${this.#onPull}
         @pull-end=${this.#onPullEnd}
