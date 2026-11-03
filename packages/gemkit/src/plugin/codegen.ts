@@ -47,6 +47,8 @@ interface ServerInfo {
 
 interface PageNode extends ServerInfo {
   pattern: string;
+  /** `[...rest]` 的参数名 */
+  rest?: string;
   file: string;
   tag: string;
 }
@@ -54,6 +56,8 @@ interface PageNode extends ServerInfo {
 /** 没有同名页面模块的 `*.server.ts`，处理 HTTP 请求 */
 interface EndpointNode {
   pattern: string;
+  /** `[...rest]` 的参数名 */
+  rest?: string;
   file: string;
 }
 
@@ -90,12 +94,20 @@ const readServerInfo = (file: string, ssr: boolean): ServerInfo => {
   return { server, ssr: ssr && !SSR_FALSE.test(code), load: LOAD_EXPORT.test(code) };
 };
 
+const REST_NAME = /^\[\.\.\.(.+)\]$/;
+
 // `[id]` -> `:id`, `[...rest]` -> `*`
 function toSegment(name: string) {
-  if (/^\[\.\.\..+\]$/.test(name)) return '*';
+  if (REST_NAME.test(name)) return '*';
   const param = name.match(/^\[(.+)\]$/);
   return param ? `:${param[1]}` : name;
 }
+
+/** 文件和目录名组成的路由，`rest` 是 `[...rest]` 的参数名，匹配时 `*` 的参数名是 `0` */
+const toRoute = (names: string[]) => ({
+  pattern: `/${names.map(toSegment).join('/')}`,
+  rest: names.map((name) => REST_NAME.exec(name)?.[1]).find(Boolean),
+});
 
 function toTag(type: 'page' | 'layout', relPath: string) {
   const name = relPath
@@ -125,7 +137,7 @@ function comparePattern(a: string, b: string) {
 function scanDir(
   pagesDir: string,
   dir: string,
-  segments: string[],
+  names: string[],
   layout: LayoutNode,
   tags: Map<string, string>,
   endpoints: EndpointNode[],
@@ -142,10 +154,10 @@ function scanDir(
     const fullPath = path.join(dir, entry.name);
     const relPath = path.relative(pagesDir, fullPath);
     if (entry.isDirectory()) {
-      const subSegments = [...segments, toSegment(entry.name)];
+      const subNames = [...names, entry.name];
       const layoutFile = findModule(fullPath, '_layout');
       if (!layoutFile) {
-        scanDir(pagesDir, fullPath, subSegments, layout, tags, endpoints);
+        scanDir(pagesDir, fullPath, subNames, layout, tags, endpoints);
         continue;
       }
       const file = path.join(fullPath, layoutFile);
@@ -156,13 +168,12 @@ function scanDir(
         pages: [],
         layouts: [],
       };
-      layout.layouts.push({ pattern: `/${[...subSegments, '*'].join('/')}`, layout: subLayout });
-      scanDir(pagesDir, fullPath, subSegments, subLayout, tags, endpoints);
+      layout.layouts.push({ pattern: `${toRoute(subNames).pattern}/*`, layout: subLayout });
+      scanDir(pagesDir, fullPath, subNames, subLayout, tags, endpoints);
     } else if (isModule(entry.name) && !isServerModule(entry.name)) {
       const name = entry.name.replace(MODULE_EXT, '');
-      const pageSegments = name === 'index' ? segments : [...segments, toSegment(name)];
       layout.pages.push({
-        pattern: `/${pageSegments.join('/')}`,
+        ...toRoute(name === 'index' ? names : [...names, name]),
         file: fullPath,
         tag: addTag(toTag('page', relPath.replace(MODULE_EXT, '')), fullPath),
         ...readServerInfo(fullPath, layout.ssr),
@@ -171,8 +182,7 @@ function scanDir(
       const name = entry.name.replace(MODULE_EXT, '').replace(/\.server$/, '');
       // 有同名页面模块时是页面的服务端模块
       if (findModule(dir, name)) continue;
-      const endpointSegments = name === 'index' ? segments : [...segments, toSegment(name)];
-      endpoints.push({ pattern: `/${endpointSegments.join('/')}`, file: fullPath });
+      endpoints.push({ ...toRoute(name === 'index' ? names : [...names, name]), file: fullPath });
     }
   }
 }
@@ -250,6 +260,7 @@ function generateRoutes(genDir: string, pagesDir: string) {
   const pageRoute = (page: PageNode) => ({
     ...routeInfo(page),
     pattern: page.pattern,
+    rest: page.rest,
     path: importPath(page.file, page.ssr),
   });
   const layoutRoute = (pattern: string, layout: LayoutNode) => ({
@@ -296,6 +307,8 @@ interface ApiNode {
   module?: number;
   /** 静态部分，`:name` 是参数，`*` 是剩余参数 */
   children: Map<string, ApiNode>;
+  /** `*` 节点的参数名 */
+  rest?: string;
 }
 
 /** API 路由的路径树转换成 `apis` 的类型，属性是静态部分，调用签名是参数 */
@@ -303,7 +316,7 @@ function toApiType({ module, children }: ApiNode, indent: string): string {
   const inner = `${indent}  `;
   const members = [...children].map(([segment, child]) => {
     const type = toApiType(child, inner);
-    if (segment === '*') return `${inner}(...path: string[]): ${type};`;
+    if (segment === '*') return `${inner}(...${child.rest}: string[]): ${type};`;
     if (segment.startsWith(':')) return `${inner}(${segment.slice(1)}: string): ${type};`;
     return `${inner}${JSON.stringify(segment)}: ${type};`;
   });
@@ -316,10 +329,10 @@ function toApiType({ module, children }: ApiNode, indent: string): string {
 /** 生成 `$gemkit/api`，按路径调用 API 路由，只引用服务端模块的类型 */
 function generateApi(genDir: string, endpoints: EndpointNode[]) {
   const root: ApiNode = { children: new Map() };
-  endpoints.forEach(({ pattern }, index) => {
+  endpoints.forEach(({ pattern, rest }, index) => {
     let node = root;
     for (const segment of pattern.split('/').filter(Boolean)) {
-      if (!node.children.has(segment)) node.children.set(segment, { children: new Map() });
+      if (!node.children.has(segment)) node.children.set(segment, { children: new Map(), rest });
       node = node.children.get(segment)!;
     }
     node.module = index;
@@ -381,7 +394,7 @@ function generateEntries(
     titleOptions,
     appServer: findApp('app.server'),
     serverModules: serverRoutes.map(({ tag, server }) => ({ tag, path: importPath(server) })),
-    endpoints: endpoints.map(({ pattern, file }) => ({ pattern, path: importPath(file) })),
+    endpoints: endpoints.map(({ pattern, rest, file }) => ({ pattern, rest, path: importPath(file) })),
   });
   writeIfChanged(
     path.join(genDir, 'tsconfig.json'),

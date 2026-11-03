@@ -18,8 +18,8 @@ const serverModules = {
 };
 
 const endpoints = [
-<% for (const { pattern, path } of it.endpoints) { -%>
-  { pattern: '<%= pattern %>', load: () => import(<%= path %>) },
+<% for (const { pattern, rest, path } of it.endpoints) { -%>
+  { pattern: '<%= pattern %>',<%= rest ? ` rest: '${rest}',` : '' %> load: () => import(<%= path %>) },
 <% } -%>
 ];
 

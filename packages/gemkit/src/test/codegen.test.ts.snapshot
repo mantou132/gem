@@ -25,7 +25,7 @@ setOutlets({
     pageRoute("/about", { tag: 'gemkit-page-about', load: () => import(/* webpackChunkName: "gemkit-page-about" */ "../src/pages/about") }, (params, data) =>
       html\`<gemkit-page-about .params=\${params} .data=\${data}></gemkit-page-about>\`,
     ),
-    pageRoute("/files/*", { tag: 'gemkit-page-files-path', load: () => import(/* webpackChunkName: "gemkit-page-files-path" */ "../src/pages/files/[...path]") }, (params, data) =>
+    pageRoute("/files/*", { tag: 'gemkit-page-files-path', load: () => import(/* webpackChunkName: "gemkit-page-files-path" */ "../src/pages/files/[...path]"), rest: 'path' }, (params, data) =>
       html\`<gemkit-page-files-path .params=\${params} .data=\${data}></gemkit-page-files-path>\`,
     ),
     layoutRoute("/blog/*", { tag: 'gemkit-layout-blog', load: () => import(/* webpackChunkName: "gemkit-layout-blog" */ "../src/pages/blog/_layout") }, (props) =>

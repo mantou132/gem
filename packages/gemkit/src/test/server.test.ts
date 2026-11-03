@@ -81,6 +81,12 @@ class TagPage extends GemElement {
   #content = () => html`tag`;
 }
 
+@page<{ slug: string }>({ title: ({ params }) => `Docs ${params.slug}`, paths: () => [{ slug: 'a/b' }] })
+class DocsPage extends GemElement {
+  @template()
+  #content = () => html`docs`;
+}
+
 @page('Slow')
 class SlowPage extends GemElement {
   #state = createState({ text: 'loading' });
@@ -119,7 +125,12 @@ class ErrorPage extends GemElement {
 }
 
 // 页面的标签名和模块，和生成的 `routes.ts` 一样
-type PageEntry = { pattern: string; tag: string; load: () => Promise<{ default: CustomElementConstructor }> };
+type PageEntry = {
+  pattern: string;
+  rest?: string;
+  tag: string;
+  load: () => Promise<{ default: CustomElementConstructor }>;
+};
 
 const pages: PageEntry[] = [
   { pattern: '/slow', tag: 'gemkit-page-slow', load: async () => ({ default: SlowPage }) },
@@ -127,6 +138,7 @@ const pages: PageEntry[] = [
   { pattern: '/tags/:tag', tag: 'gemkit-page-tag', load: async () => ({ default: TagPage }) },
   { pattern: '/me', tag: 'gemkit-page-me', load: async () => ({ default: MePage }) },
   { pattern: '/login', tag: 'gemkit-page-login', load: async () => ({ default: LoginPage }) },
+  { pattern: '/docs/*', rest: 'slug', tag: 'gemkit-page-docs', load: async () => ({ default: DocsPage }) },
   { pattern: '/', tag: 'gemkit-page-index', load: async () => ({ default: HomePage }) },
 ];
 
@@ -161,6 +173,7 @@ const serverModules: Record<string, () => Promise<ServerModule>> = {
   }),
   // 只有 `actions`，没有 `load`
   'gemkit-page-login': async () => ({ actions: { login: () => null } }),
+  'gemkit-page-docs': async () => ({ load: ({ params }) => params }),
   'gemkit-page-tag': async () => ({
     revalidate: 60,
     load: ({ params }) => {
@@ -171,9 +184,9 @@ const serverModules: Record<string, () => Promise<ServerModule>> = {
 };
 
 // 和生成的 `routes.ts` 一样，模版中使用静态的标签名
-const [slow, post, tag, me, login, index] = pages;
-const route = ({ pattern, tag, load }: PageEntry, render: (params: Params, data: any) => TemplateResult) =>
-  pageRoute(pattern, { tag, load, server: tag in serverModules }, render);
+const [slow, post, tag, me, login, docs, index] = pages;
+const route = ({ pattern, rest, tag, load }: PageEntry, render: (params: Params, data: any) => TemplateResult) =>
+  pageRoute(pattern, { tag, load, rest, server: tag in serverModules }, render);
 
 const errorPage = errorRoute(
   { tag: 'gemkit-page-error', load: async () => ({ default: ErrorPage }) },
@@ -187,6 +200,7 @@ setOutlets(
       route(tag, (p) => html`<gemkit-page-tag .params=${p}></gemkit-page-tag>`),
       route(me, (_, d) => html`<gemkit-page-me .data=${d}></gemkit-page-me>`),
       route(login, () => html`<gemkit-page-login></gemkit-page-login>`),
+      route(docs, () => html`<gemkit-page-docs></gemkit-page-docs>`),
       route(index, () => html`<gemkit-page-index></gemkit-page-index>`),
       errorPage,
     ],
@@ -235,6 +249,7 @@ const renderer = createRenderer({
     { pattern: '/old', load: async () => ({ GET: () => redirect(301, '/new') }) },
     { pattern: '/echo', load: async () => ({ GET: (_, input) => input, PUT: (_, input) => ({ input }) }) },
     { pattern: '/api/login', load: async () => loginEndpoint },
+    { pattern: '/files/*', rest: 'path', load: async () => ({ GET: ({ params }) => params }) },
     {
       pattern: '/count',
       load: async () => ({ GET: endpoint(countSchema, (_, { count }) => ({ double: count * 2 })) }),
@@ -280,6 +295,14 @@ test('renderDocument: 渲染页面和标题', async ({ assert }) => {
   assert.match(html, /<h1>.*home<\/h1>/);
   // 没有 `load` 的页面不输出数据
   assert.doesNotMatch(html, new RegExp(`id="${DATA_SCRIPT_ID}"`));
+});
+
+test('renderDocument: 剩余参数使用 `[...rest]` 的参数名', async ({ assert }) => {
+  const { html } = await renderPage('/docs/a/b');
+  assert.match(html, /<title>Docs a\/b \| Site<\/title>/);
+  assert.match(html, /"gemkit-page-docs":\{"slug":"a\/b"\}/);
+  const res = await renderer.runEndpoint(request('/files/a/b'));
+  assert.deepEqual(await res.json(), { path: 'a/b' });
 });
 
 test('renderDocument: 未匹配的页面返回 404', async ({ assert }) => {
@@ -525,7 +548,7 @@ test('prerenderPage: 读取请求的页面不预渲染', async ({ assert }) => {
 });
 
 test('getPaths: 展开动态路由和语言', async ({ assert }) => {
-  const paths = ['/slow', '/posts/1', '/posts/2', '/tags/a', '/tags/b%20c', '/me', '/login'];
+  const paths = ['/slow', '/posts/1', '/posts/2', '/tags/a', '/tags/b%20c', '/me', '/login', '/docs/a/b'];
   assert.deepEqual(await renderer.getPaths(), [...paths, '/', ...paths.map((path) => `/zh${path}`), '/zh']);
 });
 

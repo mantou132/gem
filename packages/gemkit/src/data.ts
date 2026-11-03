@@ -203,7 +203,8 @@ export function endpoint<S extends StandardSchemaV1, P extends Params, R>(
   };
 }
 
-export type Endpoints = { pattern: string; load: () => Promise<EndpointModule> }[];
+/** `rest` 是 `[...rest]` 的参数名 */
+export type Endpoints = { pattern: string; rest?: string; load: () => Promise<EndpointModule> }[];
 
 // 页面和 layout 的标签名对应的服务端模块
 let serverModules: ServerModules = {};

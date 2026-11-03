@@ -15,7 +15,7 @@
 | `src/pages/api/likes/[slug].server.ts` | `/api/likes/:slug` |
 - `index` 对应目录路径：`blog/index.ts` 是 `/blog`，不是 `/blog/index`。
 - `[name]` 匹配一段路径，通过 `params.name` 读取。
-- `[...rest]` 匹配路径的剩余部分，包括剩余的多段路径。参数名是数字，模式中第一个通配参数是 `params[0]`。
+- `[...rest]` 匹配路径的剩余部分，包括剩余的多段路径，通过 `params.rest` 读取，例如 `/blog/a/b` 是 `'a/b'`。
 - 页面模块可以是 `.js`、`.mjs`、`.cjs`、`.ts`、`.mts` 或 `.cts`。
 - 名称以 `_` 或 `.` 开头的文件和目录不是页面，用来放 `_layout.ts`、`_error.ts` 等特殊文件，
   或者被页面导入的模块。测试文件（`*.test.*`、`*.spec.*`）和类型声明文件也会被忽略。

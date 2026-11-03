@@ -15,8 +15,8 @@ and a few special names define layouts, dynamic segments and error pages.
 | `src/pages/api/likes/[slug].server.ts` | `/api/likes/:slug` |
 - `index` maps to the directory path: `blog/index.ts` is `/blog`, not `/blog/index`.
 - `[name]` matches one segment and exposes it as `params.name`.
-- `[...rest]` matches the rest of the path, including its remaining segments. The value is a numbered
-  parameter, `params[0]` for the first catch-all in the pattern.
+- `[...rest]` matches the rest of the path, including its remaining segments, read with `params.rest`,
+  e.g. `'a/b'` for `/blog/a/b`.
 - Page modules can be `.js`, `.mjs`, `.cjs`, `.ts`, `.mts` or `.cts`.
 - Files and directories whose name starts with `_` or `.` are not pages. They are used for special files
   such as `_layout.ts` and `_error.ts`, or for modules that are imported by pages. Test files

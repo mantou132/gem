@@ -147,6 +147,13 @@ async function setRouteMeta(cls: CustomElementConstructor, tag: string, params: 
   if (!isServer) updateMeta(getRouteMeta(path));
 }
 
+/** `*` 匹配的参数名是 `0`，改成 `[...rest]` 的参数名 */
+export function nameRestParam(params: Params, rest?: string) {
+  if (!rest) return params;
+  const { 0: value, ...others } = params;
+  return { ...others, [rest]: value };
+}
+
 /** 子路由匹配的部分（`*`）不属于 layout 的参数 */
 export const getLayoutParams = (params: Params) =>
   Object.fromEntries(Object.entries(params).filter(([key]) => !/^\d+$/.test(key)));
@@ -215,6 +222,8 @@ export interface RouteInfo {
   /** `*.server.ts` 中导出了 `ssr = false`，或者在 `ssr = false` 的 layout 中，服务端不渲染 */
   ssr?: false;
   layout?: boolean;
+  /** `[...rest]` 的参数名 */
+  rest?: string;
 }
 
 /** 需要加载服务端数据 */
@@ -322,10 +331,11 @@ export function pageRoute(
   return {
     pattern,
     data: info,
-    getContent: (params, container) => {
+    getContent: (matched, container) => {
       if (!isMatched(info)) return;
       if (isServer && info.ssr === false) return loadClientRoutes(info.tag);
       startLoad(container);
+      const params = nameRestParam(matched, info.rest);
       return loadPage(info.load, info.tag, params, hasServerLoad(info))
         .then((data) => wrap(params, render(params, data)))
         .catch(renderError(info.tag, params));
@@ -382,7 +392,7 @@ export function matchRoutes(path: string) {
     const route = routes.find(({ pattern }) => (params = matchPath(pattern, path)));
     const info = route?.data as RouteInfo | undefined;
     if (!info || !params) break;
-    result.push({ info, params });
+    result.push({ info, params: nameRestParam(params, info.rest) });
     routes = info.layout ? outletRoutes[info.tag] : undefined;
   }
   return result;

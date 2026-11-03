@@ -55,6 +55,7 @@ import {
   hasServerLoad,
   matchPage,
   matchRoutes,
+  nameRestParam,
 } from './outlet';
 import { getPageOptions, type Params } from './page';
 import { formatTitle, type TitleOptions } from './title';
@@ -132,10 +133,11 @@ function formatPreload(routeChunks: RouteChunks) {
   return result;
 }
 
-function fillPattern(pattern: string, params: Params) {
+/** `rest` 是 `[...rest]` 的参数名，它的值可以包含 `/` */
+function fillPattern(pattern: string, params: Params, rest?: string) {
   return pattern
     .replace(/:([^/]+)/g, (_, name) => encodeURIComponent(params[name]))
-    .replace('*', () => params['*'] ?? params[0] ?? '');
+    .replace('*', () => (rest && params[rest]) || '');
 }
 
 const redirectResponse = ({ status, location }: Redirect) =>
@@ -494,7 +496,7 @@ export function createRenderer({
     const path = trimTrailingSlash(pathname);
     for (const endpoint of endpoints) {
       const params = matchPath(endpoint.pattern, path);
-      if (params) return { endpoint, params, path };
+      if (params) return { endpoint, params: nameRestParam(params, endpoint.rest), path };
     }
   };
 
@@ -579,7 +581,7 @@ export function createRenderer({
           continue;
         }
         const getParams = (await getServerModule(info.tag))?.paths || getPageOptions((await info.load()).default).paths;
-        for (const params of (await getParams?.({ lang })) || []) paths.push(fillPattern(pattern, params));
+        for (const params of (await getParams?.({ lang })) || []) paths.push(fillPattern(pattern, params, info.rest));
       }
       for (const path of paths) pathLanguages.set(path, [...(pathLanguages.get(path) || []), lang]);
       localized.push(...(languages.length ? paths.map((path) => localize(lang, path)) : paths));
