@@ -5,17 +5,37 @@ const METHODS = new Set<string>(['GET', 'POST', 'PUT', 'PATCH', 'DELETE'] satisf
 // 没有请求体，参数作为查询参数
 const QUERY_METHODS = new Set<string>(['GET', 'DELETE'] satisfies RequestMethod[]);
 
-/** API 路由处理函数在客户端的调用签名，第二个参数是输入，返回 `Response` 时得到原始响应 */
-export type Endpoint<F> = F extends (ctx: any, ...args: infer A) => infer R
-  ? (...args: A) => Promise<Awaited<R> extends Response ? Response : Awaited<R>>
+/** `GET` `DELETE` 的输入作为查询参数，只能是简单的值，值为 `undefined` 的字段不发送 */
+type QueryInput = Record<string, string | number | boolean | undefined>;
+
+/** 查询参数的输入，不能表示的字段（例如数组、对象）类型为 `never` */
+type QueryArgs<A extends unknown[]> = { [I in keyof A]: A[I] & QueryInput };
+
+/**
+ * API 路由处理函数在客户端的调用签名，第二个参数是输入，返回 `Response` 时得到原始响应，
+ * `M` 是请求方法
+ */
+export type Endpoint<F, M extends RequestMethod = RequestMethod> = F extends (ctx: any, ...args: infer A) => infer R
+  ? (
+      ...args: M extends 'GET' | 'DELETE' ? QueryArgs<A> : A
+    ) => Promise<Awaited<R> extends Response ? Response : Awaited<R>>
   : never;
 
 /** API 路由模块导出的请求方法 */
-export type EndpointMethods<M> = { [K in keyof M & RequestMethod]: Endpoint<M[K]> };
+export type EndpointMethods<M> = { [K in keyof M & RequestMethod]: Endpoint<M[K], K> };
+
+function toSearch(input: QueryInput) {
+  const params = new URLSearchParams();
+  for (const [key, value] of Object.entries(input)) {
+    if (value !== undefined) params.set(key, String(value));
+  }
+  const search = String(params);
+  return search && `?${search}`;
+}
 
 async function request(method: string, segments: string[], input?: Record<string, any>) {
   const query = QUERY_METHODS.has(method);
-  const search = query && input ? `?${new URLSearchParams(input)}` : '';
+  const search = query && input ? toSearch(input) : '';
   const res = await fetch(
     `/${segments.join('/')}${search}`,
     query || input === undefined

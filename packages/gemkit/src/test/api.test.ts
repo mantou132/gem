@@ -5,7 +5,7 @@ import test from 'node:test';
 
 import { history } from '@mantou/gem';
 
-import { createApi } from '../api';
+import { createApi, type EndpointMethods } from '../api';
 import { CLIENT_HEADER, REDIRECT_HEADER } from '../constants';
 import { formActions, HttpError } from '../data';
 
@@ -31,6 +31,11 @@ test('createApi: 属性是路径，调用是参数，请求方法发送请求', 
   ]);
   await apis.api.likes.GET({ page: '2' });
   assert.deepEqual(calls.at(-1), ['/api/likes?page=2', { method: 'GET', headers: { [CLIENT_HEADER]: '1' } }]);
+  // 值为 `undefined` 的字段不发送
+  await apis.api.likes.GET({ page: 2, tag: undefined });
+  assert.equal(calls.at(-1)![0], '/api/likes?page=2');
+  await apis.api.likes.GET({ tag: undefined });
+  assert.equal(calls.at(-1)![0], '/api/likes');
   // 剩余参数
   await apis.files('a', 'b/c').DELETE();
   assert.deepEqual(calls.at(-1), ['/files/a/b%2Fc', { method: 'DELETE', headers: { [CLIENT_HEADER]: '1' } }]);
@@ -65,4 +70,20 @@ test('formActions: action 名称和结果的类型来自 `actions`，返回表�
   assert.equal(logout().action, '?/logout');
   // @ts-expect-error 不存在的 action
   formActions<typeof actions>().register;
+});
+
+test('EndpointMethods: `GET` `DELETE` 的输入只能是查询参数能表示的值', () => {
+  type Methods = EndpointMethods<{
+    GET: (ctx: unknown, input: { page: number; tags: string[] }) => null;
+    DELETE: (ctx: unknown, input?: { id: string; force?: boolean }) => null;
+    POST: (ctx: unknown, input: { tags: string[] }) => null;
+  }>;
+  const call = <F extends (...args: any) => any>(_: F, ...args: Parameters<F>) => args;
+  const methods = {} as Methods;
+  // @ts-expect-error 数组不能作为查询参数
+  call(methods.GET, { page: 1, tags: ['a'] });
+  call(methods.DELETE, { id: 'a', force: true });
+  call(methods.DELETE);
+  // 请求体可以是任意 JSON
+  call(methods.POST, { tags: ['a'] });
 });
