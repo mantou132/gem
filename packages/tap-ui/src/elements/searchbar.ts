@@ -10,10 +10,12 @@ import {
   globalemitter,
   part,
   shadow,
+  state,
   unmounted,
 } from '@mantou/gem/lib/decorators';
 import { createRef, createState, css, GemElement, html } from '@mantou/gem/lib/element';
 
+import { closestElement } from '../lib/element';
 import { icons } from '../lib/icons';
 import { locale } from '../lib/locale';
 import { theme } from '../lib/theme';
@@ -34,7 +36,7 @@ const style = css`
     color: ${theme.textColor};
     transition: padding-block-start 350ms ${theme.timingFunction};
   }
-  :host(:focus-within) {
+  :host(:state(fullscreen)) {
     padding-block-start: calc(0.5em + var(--safe-area-inset-top, env(safe-area-inset-top, 0px)));
   }
   .input {
@@ -91,6 +93,9 @@ export class TapSearchbarElement extends GemElement {
   @emitter submit: Emitter<string>;
   @emitter cancel: Emitter;
 
+  /**Page goes fullscreen while focused, except in a sheet */
+  @state fullscreen: boolean;
+
   #inputRef = createRef<TapInputElement>();
   #state = createState({ active: false });
 
@@ -112,12 +117,15 @@ export class TapSearchbarElement extends GemElement {
   #setActive = (active: boolean) => {
     if (active === this.#state.active) return;
     this.#state({ active });
+    // Sheet 不需要全屏，而且全局的 `shouldFullscreen` 会影响其下方的页面
+    if (closestElement(this, 'tap-sheet')) return;
+    this.fullscreen = active;
     pageStore({ shouldFullscreen: active });
   };
 
   @unmounted()
   #deactivate = () => {
-    if (this.#state.active) pageStore({ shouldFullscreen: false });
+    if (this.fullscreen) pageStore({ shouldFullscreen: false });
   };
 
   #onCancel = () => {
