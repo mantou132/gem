@@ -137,7 +137,26 @@ const style = css`
     &:where(:not([hidden])) {
       display: block;
       user-select: none;
-      touch-action: attr(touch-action, none);
+      touch-action: none;
+    }
+    /* 常用取值，兼容不支持在 touch-action 中使用 attr() 的浏览器 */
+    &:where([touch-action='auto']) {
+      touch-action: auto;
+    }
+    &:where([touch-action='manipulation']) {
+      touch-action: manipulation;
+    }
+    &:where([touch-action='pan-x']) {
+      touch-action: pan-x;
+    }
+    &:where([touch-action='pan-y']) {
+      touch-action: pan-y;
+    }
+    /* 支持任意取值；不带类型的 attr() 是字符串，对 touch-action 无效 */
+    @supports (touch-action: attr(touch-action type(*), none)) {
+      &:where([touch-action]) {
+        touch-action: attr(touch-action type(*), none);
+      }
     }
   }
 `;

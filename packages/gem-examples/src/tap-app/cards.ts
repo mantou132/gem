@@ -1,6 +1,7 @@
 import { adoptedStyle, customElement, template } from '@mantou/gem/lib/decorators';
 import { createRef, GemElement, html } from '@mantou/gem/lib/element';
 import { Callout, type CalloutItem } from '@mantou/tap-ui/elements/callout';
+import { PhotoBrowser } from '@mantou/tap-ui/elements/photo-browser';
 import { Toast } from '@mantou/tap-ui/elements/toast';
 import { longPress } from '@mantou/tap-ui/lib/directives';
 import { icons } from '@mantou/tap-ui/lib/icons';
@@ -63,6 +64,19 @@ const style = css`
       align-self: flex-end;
     }
   }
+  .photos {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.25em;
+    margin-block-start: 2em;
+    img {
+      display: block;
+      width: 100%;
+      aspect-ratio: 1;
+      object-fit: cover;
+      border-radius: ${theme.normalRound};
+    }
+  }
   .close-hint {
     margin-block-start: 1em;
     color: ${theme.describeColor};
@@ -78,6 +92,15 @@ const copy = html`
     <p>${'This is additional detail content for scrolling. '.repeat(12)}</p>
   </tap-content>
 `;
+
+const photos = [10, 1015, 1025, 1039, 1043, 1050, 1011, 1018, 1035, 1036, 1040, 1044].map((id, i) => {
+  const [width, height] = i % 2 ? [800, 1200] : [1200, 800];
+  return {
+    src: `https://picsum.photos/id/${id}/${width}/${height}`,
+    thumbnail: `https://picsum.photos/id/${id}/${width / 4}/${height / 4}`,
+    alt: `Photo ${id}`,
+  };
+});
 
 const calloutMenu: CalloutItem[] = [
   { label: 'Copy', icon: icons.copy, handle: () => Toast.open('success', 'Copied') },
@@ -156,6 +179,16 @@ export class TMessagePreviewElement extends GemElement {
 export class TCardsElement extends GemElement {
   #previewTriggerRef = createRef<HTMLElement>();
 
+  #photosRef = createRef<HTMLElement>();
+
+  #openPhoto = (index: number) => {
+    PhotoBrowser.open({
+      items: photos.map((item, i) => ({ ...item, origin: () => this.#photosRef.value?.children[i] })),
+      index,
+      scrollToOrigin: true,
+    });
+  };
+
   #onRefresh = ({ detail: done }: CustomEvent<() => void>) => {
     setTimeout(done, 1000);
   };
@@ -184,6 +217,14 @@ export class TCardsElement extends GemElement {
             </div>
             ${copy}
           </tap-card>
+        </div>
+        <p class="close-hint">Tap a photo, swipe to browse, then tap or pull down to close.</p>
+        <div class="photos" ${this.#photosRef}>
+          ${photos.map(
+            ({ thumbnail, alt }, index) => html`
+              <img src=${thumbnail} alt=${alt} @click=${() => this.#openPhoto(index)} />
+            `,
+          )}
         </div>
         <div class="callouts">
           <p class="close-hint">Long press the bubbles below.</p>
