@@ -410,7 +410,7 @@ const inputGroupStyle = css`
   :scope {
     display: flex;
 
-    :where(tap-input, tap-select, tap-picker):where(:focus, :focus-within, :hover, :state(active)) {
+    :where(tap-input, tap-select, tap-date-picker):where(:focus, :focus-within, :hover, :state(active)) {
       position: relative;
       z-index: 1;
     }
