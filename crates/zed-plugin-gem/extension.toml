@@ -17,3 +17,4 @@ languages = ["TypeScript", "TSX", "JavaScript", "JSDoc"]
 [language_servers.ts-gem-lsp]
 name = "Gem TypeScript 7 language server"
 languages = ["TypeScript", "TSX", "JavaScript"]
+opt_in_languages = ["TypeScript", "TSX", "JavaScript"]
