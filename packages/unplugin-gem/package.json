@@ -1,6 +1,6 @@
 {
   "name": "unplugin-gem",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "Universal plugin for Gem element transformations (Vite/Webpack/Rollup/esbuild)",
   "type": "module",
   "main": "./dist/index.js",
