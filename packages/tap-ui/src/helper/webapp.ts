@@ -1,4 +1,4 @@
-import { html } from '@mantou/gem/lib/lit-html';
+import { html, type TemplateResult } from '@mantou/gem/lib/lit-html';
 
 import { Stack } from '../elements/stack';
 import { theme } from '../lib/theme';
@@ -8,7 +8,10 @@ import '../elements/reflect';
 
 export { getWebManifestURL } from './base/webapp';
 
-interface InitAppOptions extends TapInitAppOptions {}
+interface InitAppOptions extends TapInitAppOptions {
+  /**Rendered into `body` instead of the root page of the global Stack, for layouts beside it (e.g. a split view sidebar); its `<tap-stack>` becomes the global Stack */
+  layout?: TemplateResult;
+}
 
 export function initApp(options: InitAppOptions = {}) {
   initTapApp({
@@ -51,6 +54,7 @@ export function initApp(options: InitAppOptions = {}) {
           }
         </style>
       </tap-reflect>
+      ${options.layout}
     `,
   });
 

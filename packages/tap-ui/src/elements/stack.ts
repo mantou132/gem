@@ -22,6 +22,11 @@ import { theme } from '../lib/theme';
 import type { PanEventDetail, SwipeEventDetail } from './gesture';
 import type { TapPageElement } from './page';
 
+export type StackReplaceOptions = {
+  /**Number of bottom pages to keep; default all but the top, e.g. `1` replaces everything above the root page */
+  keep?: number;
+};
+
 export type StackPushOptions = {
   content: string | number | TemplateResult | Element | Element[];
   /**Play enter animation; default `true` */
@@ -92,9 +97,9 @@ export class TapStackElement extends GemElement {
     if (!stack.isConnected) document.body.append(stack);
   }
 
-  static replace(options: StackPushOptions) {
+  static replace(options: StackPushOptions, replaceOptions?: StackReplaceOptions) {
     const stack = (TapStackElement.instance ??= new TapStackElement());
-    stack.replace(options);
+    stack.replace(options, replaceOptions);
     if (!stack.isConnected) document.body.append(stack);
   }
 
@@ -208,12 +213,12 @@ export class TapStackElement extends GemElement {
 
   #restore = (page: StackPushOptions) => this.#push(page);
 
-  #replace = async (page: StackPushOptions) => {
+  #replace = async (page: StackPushOptions, keep: number) => {
     if (this.#store.pages.at(-1) === page) return;
     this.#busy = false;
     const animated = page.animated ?? false;
     if (!animated) {
-      this.#store({ offset: 0, pages: [...this.#store.pages.slice(0, -1), page] });
+      this.#store({ offset: 0, pages: [...this.#store.pages.slice(0, keep), page] });
       requestAnimationFrame(() => this.#syncHeight(0));
       return;
     }
@@ -224,7 +229,7 @@ export class TapStackElement extends GemElement {
     await this.#enter(page);
     const pages = this.#store.pages;
     if (pages.length >= 2 && pages.at(-1) === page) {
-      this.#store({ pages: [...pages.slice(0, -2), page] });
+      this.#store({ pages: [...pages.slice(0, keep), page] });
     }
   };
 
@@ -286,6 +291,7 @@ export class TapStackElement extends GemElement {
       history: false,
       animated: false,
       gesture: false,
+      keepAlive: true,
     });
   };
 
@@ -400,18 +406,29 @@ export class TapStackElement extends GemElement {
     this.#push(options);
   }
 
-  replace(options: StackPushOptions) {
-    if (!this.#store.pages.length) {
+  replace(options: StackPushOptions, { keep = this.#store.pages.length - 1 }: StackReplaceOptions = {}) {
+    const { pages } = this.#store;
+    if (!pages.length) {
       this.push(options);
       return;
     }
-    if (!this.disableHistory && options.history !== false) {
-      history.replace({
-        close: () => this.#pop(options),
-        open: () => this.#restore(options),
-      });
+    const replaceHistory = () => {
+      if (!this.disableHistory && options.history !== false) {
+        history.replace({
+          close: () => this.#pop(options),
+          open: () => this.#restore(options),
+        });
+      }
+    };
+    // Rewind the entries of the other removed pages in one step; their close handles no longer find a page to pop
+    const back = this.disableHistory ? 0 : pages.slice(keep, -1).filter((page) => page.history !== false).length;
+    if (back) {
+      addEventListener('popstate', replaceHistory, { once: true });
+      globalThis.history.go(-back);
+    } else {
+      replaceHistory();
     }
-    this.#replace(options);
+    this.#replace(options, keep);
   }
 
   pop() {
