@@ -206,6 +206,7 @@ export class TapSheetElement extends GemElement {
   }
 
   #sheetRef = createRef<TapPullContainerElement>();
+  #maskRef = createRef<HTMLElement>();
   #bodyRef = createRef<HTMLElement>();
   #state = createState({ offset: 0 });
   #closeSpeed = 0;
@@ -347,8 +348,13 @@ export class TapSheetElement extends GemElement {
   #animation = async () => {
     if (this.open) {
       !this.shadowRoot?.activeElement && this.focus();
-      const { maxHeight, offsets } = this.#snapOffsets;
-      this.#animateOffset(maxHeight, offsets[0]);
+      // Rest at the lowest snap and slide in from below by percentage: content without snaps may not have its height yet
+      // (e.g. an auto-height Stack measures its page later)
+      const rest = this.#snapOffsets.offsets[0];
+      this.#updateOffset(rest);
+      const options = { duration: SHEET_DURATION, easing: 'cubic-bezier(0.33, 1, 0.68, 1)' /* easeOutCubic */ };
+      this.#sheetRef.value?.animate({ translate: [`0 calc(100% - ${rest}px)`, '0 0'] }, options);
+      this.#maskRef.value?.animate({ opacity: [0, 1] }, options);
     } else if (this.closing) {
       await this.#finishClose();
       this.closing = false;
@@ -376,6 +382,7 @@ export class TapSheetElement extends GemElement {
 
     return html`
       <div
+        ${this.#maskRef}
         class="mask"
         style=${styleMap({ opacity: clamp(0, maskProgress, 1) })}
         @click=${this.#onMaskClick}
