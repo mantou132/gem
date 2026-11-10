@@ -40,6 +40,8 @@ const PULL_THRESHOLD = 72;
 /**Held height while refreshing */
 const PULL_HOLD = 44;
 const PULL_MAX = 96;
+/**Like native, a slight drag at the top doesn't start pulling */
+const PULL_ACTIVATE = 24;
 
 const style = css`
   :host(:where(:not([hidden]))) {
@@ -264,7 +266,7 @@ export class TapPageElement extends TapVisibleBaseElement {
 
   #damp = (dy: number) => {
     const max = Math.max(PULL_MAX, this.#pullThreshold * 1.33);
-    return clamp(0, dy * 0.45, max);
+    return clamp(0, (dy - PULL_ACTIVATE) * 0.45, max);
   };
 
   #doneRefresh = () => {
@@ -421,6 +423,7 @@ export class TapPageElement extends TapVisibleBaseElement {
         })}
         disable-scroll-mask
         .resizeBox=${'border-box'}
+        pull-activate=${PULL_ACTIVATE}
         ?disable-gesture=${!this.refreshable || refreshing || pageStore.shouldDim}
         @pull=${this.#onPull}
         @pull-end=${this.#onPullEnd}
