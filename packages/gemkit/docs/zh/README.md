@@ -50,6 +50,17 @@ pnpm dev
 
 继续阅读[指南](./guide/README.md)，了解数据加载、布局、表单、服务端元素和部署。
 
+## 性能对比
+
+用 Gemkit、SvelteKit、Nuxt 和 Next.js 实现同一个 [RealWorld](https://github.com/gothinkster/realworld) 应用（相同的 API 和 CSS）。
+Gemkit 通过了 91 个官方 e2e 测试中的 84 个；
+源码、未通过的用例和测试方法见 [realworld 仓库](https://github.com/mantou132/realworld/tree/framework-comparison/frameworks)。
+
+![客户端 JavaScript](https://raw.githubusercontent.com/mantou132/realworld/framework-comparison/frameworks/bench/results/charts/1-js.png)
+![SSR 吞吐量](https://raw.githubusercontent.com/mantou132/realworld/framework-comparison/frameworks/bench/results/charts/2-ssr.png)
+![Lighthouse](https://raw.githubusercontent.com/mantou132/realworld/framework-comparison/frameworks/bench/results/charts/3-lighthouse.png)
+![客户端导航和代码量](https://raw.githubusercontent.com/mantou132/realworld/framework-comparison/frameworks/bench/results/charts/4-dx.png)
+
 ## 相关包
 
 Gemkit 基于 [Gem](https://gemjs.org) 和

@@ -3,6 +3,10 @@
 A [Gem](https://gemjs.org) application framework built on [Rsbuild](https://rsbuild.rs): file-based routing,
 layouts, i18n, SSR and SSG.
 
+![Client JavaScript](https://raw.githubusercontent.com/mantou132/realworld/framework-comparison/frameworks/bench/results/charts/1-js.png)
+
+See the [benchmark](https://gemkit.gemjs.org/en#benchmark) for SSR throughput, Lighthouse and navigation results.
+
 ## Quick start
 
 ```sh

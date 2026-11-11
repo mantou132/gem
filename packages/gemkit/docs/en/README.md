@@ -51,6 +51,17 @@ pnpm dev
 Continue with the [guide](./guide/README.md) to learn about data loading, layouts, forms,
 server elements and deployment.
 
+## Benchmark
+
+The same [RealWorld](https://github.com/gothinkster/realworld) app (same API, same CSS) built with Gemkit,
+SvelteKit, Nuxt and Next.js. Gemkit passes 84 of 91 official e2e tests;
+the source, test failures and methodology are in the [realworld repo](https://github.com/mantou132/realworld/tree/framework-comparison/frameworks).
+
+![Client JavaScript](https://raw.githubusercontent.com/mantou132/realworld/framework-comparison/frameworks/bench/results/charts/1-js.png)
+![SSR throughput](https://raw.githubusercontent.com/mantou132/realworld/framework-comparison/frameworks/bench/results/charts/2-ssr.png)
+![Lighthouse](https://raw.githubusercontent.com/mantou132/realworld/framework-comparison/frameworks/bench/results/charts/3-lighthouse.png)
+![Client navigation and code size](https://raw.githubusercontent.com/mantou132/realworld/framework-comparison/frameworks/bench/results/charts/4-dx.png)
+
 ## Packages
 
 Gemkit is built on [Gem](https://gemjs.org) and
