@@ -2,50 +2,73 @@
 
 使用其他语言阅读：[English](./README.md) | 简体中文
 
-基于 Web Components 构建可复用的自定义元素和 WebApp，并按项目需要组合 Gem 的各层能力。
+**Web Components 框架与应用工具链。** 使用浏览器原生技术构建可复用的自定义元素、UI 库和完整的 Web 应用——从轻量的响应式元素到 SSR/SSG 应用。
 
-## 特色
+## 为什么选择 Gem
 
-- **从轻量自定义元素开始：**
-  使用 Gem 的响应式和装饰器能力，不引入模板引擎；需要时再添加 `GemElement` 和 HTML 模板渲染。
+- **从小处开始，按需扩展。** 使用 Gem 的装饰器和 API 为自定义元素添加响应式能力；需要组件模型时再使用 `GemElement` 和 HTML 模板渲染。
+- **标准优先的组件。** Gem 元素就是原生自定义元素。需要样式隔离时使用 Shadow DOM，需要与应用级 CSS 集成时使用 Light DOM。
+- **从组件到应用的完整路径。** `@mantou/gem` 提供响应式元素、模板、路由、history 和 Store；[GemKit](packages/gemkit) 在 Gem 之上提供文件路由、布局、服务端数据、表单 actions、API 路由、i18n、SSR 和 SSG。
+- **融入现有生态。** [gem-port](packages/gem-port) 可生成 React、Vue 和 Svelte 包装组件；GemKit 基于 [Rsbuild](https://rsbuild.rs) 构建。
+- **保持界面响应。** `@async()` 让元素分片渲染，并让出主线程。
 
-- **开发 UI 库：**
-  Gem 元素是标准自定义元素；组件需要样式隔离时优先使用 Shadow DOM，并通过 [gem-port](packages/gem-port) 生成 React、Vue 和 Svelte 包装组件，供相应框架生态使用。
+## 使用 GemKit 快速开始
 
-- **开发完整应用：**
-  使用 `@mantou/gem` 提供的路由、history 和 Store；[gemkit](packages/gemkit) 进一步提供文件路由、布局、SSR 和 SSG。应用界面优先使用 Light DOM，便于 Tailwind CSS 等全局 CSS 方案直接生效。
+创建一个全栈 Gem 应用：
 
-- **沿用熟悉的 Web 标准：**
-  基于浏览器的自定义元素模型，使用 HTML 模板、CSS 和 JavaScript 构建界面，无需学习 JSX 或单文件组件等 DSL。
+```sh
+npm create gemkit@latest my-app
+cd my-app
+npm install
+npm run dev
+```
 
-- **异步渲染：**
-  `@async()` 会分批渲染大量元素，并让出主线程，保持界面响应。
+如果想先从单个自定义元素开始，请阅读 [Gem 指南](https://gemjs.org/guide/)。
+
+## 各部分如何协作
+
+```mermaid
+flowchart TB
+    Core["Gem 核心<br/>响应式元素 · 模板 · Store"]
+    SSR["gem-ssr<br/>服务端渲染与水合"]
+    Swc["swc-plugin-gem<br/>SWC 转换插件"]
+    Build["unplugin-gem<br/>构建插件"]
+    Kit["GemKit<br/>文件路由 · 布局 · API 路由 · SSR · SSG"]
+    Analyzer["gem-analyzer<br/>元素分析"]
+    Book["Gem Book<br/>文档站生成器"]
+    Port["gem-port<br/>React · Vue · Svelte 包装组件"]
+    Tap["Tap UI<br/>移动优先 UI 库"]
+    Duoyun["Duoyun UI<br/>桌面端 UI 库"]
+
+    Core --> SSR --> Kit
+    Swc --> Build --> Kit
+    Kit --> Book
+    Core --> Analyzer
+    Analyzer --> Book
+    Analyzer --> Port
+    Core --> Tap --> Duoyun
+```
 
 ## 文档
 
-- [Guide](https://gemjs.org/guide/)
-- [API](https://gemjs.org/api/)
+- [Gem 指南](https://gemjs.org/guide/)
+- [Gem API](https://gemjs.org/api/)
+- [GemKit 指南](https://gemkit.gemjs.org/zh/guide)
+- [GemKit 参考](https://gemkit.gemjs.org/zh/reference)
 
-## 项目结构
+## 生态
 
-| 目录                                            | 描述                                                                                            |
-| ----------------------------------------------- | ----------------------------------------------------------------------------------------------- |
-| [gem](packages/gem)                             | Gem 核心                                                                                        |
-| [gem-ssr](packages/gem-ssr)                     | Gem 自定义元素的服务端渲染与水合                                                                |
-| [gemkit](packages/gemkit)                       | 提供文件路由、布局、SSR 和 SSG 的应用框架                                                       |
-| [gem-devtools](packages/gem-devtools)           | Gem 的浏览器调试工具                                                                            |
-| [gem-analyzer](packages/gem-analyzer)           | Gem 元素分析器，能自动生成文档                                                                  |
-| [gem-book](packages/gem-book)                   | 使用 Gem 创建的文档站生成器                                                                     |
-| [duoyun-ui](packages/duoyun-ui)                 | 使用 Gem 创建的桌面 UI 库                                                                       |
-| [tap-ui](packages/tap-ui)                       | 使用 Gem 创建的移动优先 UI 库                                                                   |
-| [gem-port](packages/gem-port)                   | 将 Gem 元素导出为 React/Vue/Svelte 组件                                                         |
-| [gem-examples](packages/gem-examples)           | 一些 Gem 和 DuoyunUI 示例                                                                       |
-| [ts-gem-plugin](packages/ts-gem-plugin)         | TypeScript 的 Gem 语言服务插件                                                                  |
-| [ts-gem-lsp](packages/ts-gem-lsp)               | TypeScript 7 的 Gem 语言服务器                                                                  |
-| [swc-plugin-gem](crates/swc-plugin-gem)         | [SWC](https://swc.rs/) 构建插件                                                                 |
-| [unplugin-gem](packages/unplugin-gem)           | 通用构建插件，支持 Vite/Webpack/Rollup/esbuild/Rspack/Rolldown                                  |
-| [zed-plugin-gem](crates/zed-plugin-gem)         | [Zed](https://zed.dev/) 扩展                                                                    |
-| [vscode-gem-plugin](packages/vscode-gem-plugin) | VSCode [扩展](https://marketplace.visualstudio.com/items?itemName=gem-vscode.vscode-plugin-gem) |
+| 项目 | 描述 |
+| --- | --- |
+| [Gem](packages/gem) | 核心响应式 Web Components 框架 |
+| [GemKit](packages/gemkit) | 基于 Rsbuild 的应用框架：文件路由、布局、服务端数据、表单 actions、API 路由、i18n、SSR 和 SSG |
+| [gem-ssr](packages/gem-ssr) | 服务端渲染与水合 |
+| [gem-port](packages/gem-port) | 为 Gem 元素生成 React、Vue 和 Svelte 包装组件 |
+| [Duoyun UI](packages/duoyun-ui) · [Tap UI](packages/tap-ui) | 使用 Gem 构建的桌面端和移动优先 UI 库 |
+| [DevTools](packages/gem-devtools) · [Analyzer](packages/gem-analyzer) | 调试与组件分析 |
+| [TypeScript 插件](packages/ts-gem-plugin) · [LSP](packages/ts-gem-lsp) | TypeScript 语言支持 |
+| [unplugin-gem](packages/unplugin-gem) · [swc-plugin-gem](crates/swc-plugin-gem) | 构建插件，支持 Vite/Webpack/Rollup/esbuild/Rspack/Rolldown 和 SWC |
+| [Zed](crates/zed-plugin-gem) · [VS Code](packages/vscode-gem-plugin) | 编辑器扩展 |
 
 [路线图](https://mm.tt/app/map/3412316197?t=TGs84FRcwQ)。
 

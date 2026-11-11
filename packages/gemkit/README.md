@@ -12,8 +12,8 @@ See the [benchmark](https://gemkit.gemjs.org/en#benchmark) for SSR throughput, L
 ```sh
 npm create gemkit@latest my-app
 cd my-app
-pnpm install
-pnpm dev
+npm install
+npm run dev
 ```
 
 Or add Gemkit to an existing Rsbuild project:

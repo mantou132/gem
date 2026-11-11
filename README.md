@@ -2,50 +2,74 @@
 
 Read in other languages: English | [中文](./README_zh.md)
 
-Build reusable custom elements and web apps on Web Components with Gem's layered toolset.
+**A Web Components framework and application toolchain.** Build reusable custom elements, UI libraries and complete web apps with browser-native technologies — from small reactive elements to SSR/SSG applications.
 
-## Features
+## Why Gem
 
-- **Start with a small custom element:**
-  Use Gem's reactive and decorator APIs without a template engine, then add `GemElement` and HTML template rendering when you need them.
+- **Start small, scale up.** Add reactive behavior to a custom element with Gem's decorators and APIs. Use `GemElement` and HTML template rendering when you need a component model.
+- **Standards-first components.** Gem elements are native Custom Elements. Use Shadow DOM for isolated components, or Light DOM when app-level CSS integration matters.
+- **A path from components to apps.** Use `@mantou/gem` for reactive elements, templates, routing, history and Store. [GemKit](packages/gemkit) builds on Gem with file-based routing, layouts, server data, actions, API routes, i18n, SSR and SSG.
+- **Work with the ecosystem you have.** [gem-port](packages/gem-port) generates React, Vue and Svelte wrappers. GemKit is built on [Rsbuild](https://rsbuild.rs).
+- **Keep the browser responsive.** `@async()` lets elements render in slices and yield to the main thread.
 
-- **Build UI libraries:**
-  Gem elements are standard custom elements. Prefer Shadow DOM when components need style isolation, and use [gem-port](packages/gem-port) to generate React, Vue, and Svelte wrappers for those ecosystems.
+## Get started with GemKit
 
-- **Build complete apps:**
-  Use `@mantou/gem` for routing, history, and Store; [gemkit](packages/gemkit) adds file-based routing, layouts, SSR, and SSG. Prefer Light DOM for app UI that should work naturally with Tailwind CSS and other global CSS.
+Create a full-stack Gem application:
 
-- **Use familiar web standards:**
-  Build with HTML templates, CSS, and JavaScript on the browser's custom element model, with no JSX or single-file component DSL to learn.
+```sh
+npm create gemkit@latest my-app
+cd my-app
+npm install
+npm run dev
+```
 
-- **Asynchronous rendering:**
-  `@async()` lets many elements render in slices, yielding to the main thread to keep the interface responsive.
+Or start with the [Gem guide](https://gemjs.org/guide/) if you want to build individual custom elements first.
+
+## How the pieces fit together
+
+```mermaid
+flowchart TB
+    Core["Gem core<br/>Reactive elements · Templates · Store"]
+    SSR["gem-ssr<br/>Server rendering and hydration"]
+    Swc["swc-plugin-gem<br/>SWC transform"]
+    Build["unplugin-gem<br/>Build plugin"]
+    Kit["GemKit<br/>File routes · Layouts · API routes · SSR · SSG"]
+    Analyzer["gem-analyzer<br/>Element analysis"]
+    Book["Gem Book<br/>Documentation sites"]
+    Port["gem-port<br/>React · Vue · Svelte wrappers"]
+    Tap["Tap UI<br/>Mobile-first UI library"]
+    Duoyun["Duoyun UI<br/>Desktop UI library"]
+
+    Core --> SSR --> Kit
+    Swc --> Build --> Kit
+    Kit --> Book
+    Core --> Analyzer
+    Analyzer --> Book
+    Analyzer --> Port
+    Core --> Tap --> Duoyun
+```
 
 ## Documentation
 
-- [Guide](https://gemjs.org/guide/)
-- [API](https://gemjs.org/api/)
+- [Gem Guide](https://gemjs.org/guide/)
+- [Gem API](https://gemjs.org/api/)
+- [GemKit Guide](https://gemkit.gemjs.org/en/guide)
+- [GemKit Reference](https://gemkit.gemjs.org/en/reference)
+- [中文文档](https://gemkit.gemjs.org/zh)
 
-## Project Packages
+## Ecosystem
 
-| Package                                         | Description                                                                                          |
-| ----------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
-| [gem](packages/gem)                             | Gem core                                                                                             |
-| [gem-ssr](packages/gem-ssr)                     | Server-side rendering and hydration for Gem elements                                                 |
-| [gemkit](packages/gemkit)                       | Application framework with file-based routing, layouts, SSR, and SSG                                 |
-| [gem-devtools](packages/gem-devtools)           | Browser debugging tool for Gem                                                                       |
-| [gem-analyzer](packages/gem-analyzer)           | Gem element analyzer, which can automatically generate documents                                     |
-| [gem-book](packages/gem-book)                   | Documentation site builder created using Gem                                                         |
-| [duoyun-ui](packages/duoyun-ui)                 | Desktop UI library created using Gem                                                                 |
-| [tap-ui](packages/tap-ui)                       | Mobile-first UI library created using Gem                                                            |
-| [gem-port](packages/gem-port)                   | Export Gem elements as React/Vue/Svelte components                                                   |
-| [gem-examples](packages/gem-examples)           | Gem and DuoyunUI examples                                                                            |
-| [ts-gem-plugin](packages/ts-gem-plugin)         | Gem language service plugin for TypeScript                                                           |
-| [ts-gem-lsp](packages/ts-gem-lsp)               | Gem language server for TypeScript 7                                                                 |
-| [swc-plugin-gem](crates/swc-plugin-gem)         | Build plugin for [SWC](https://swc.rs/)                                                              |
-| [unplugin-gem](packages/unplugin-gem)           | Universal plugin for Vite/Webpack/Rollup/esbuild/Rspack/Rolldown                                     |
-| [zed-plugin-gem](crates/zed-plugin-gem)         | [Zed](https://zed.dev/) extension                                                                    |
-| [vscode-gem-plugin](packages/vscode-gem-plugin) | VSCode [extension](https://marketplace.visualstudio.com/items?itemName=gem-vscode.vscode-plugin-gem) |
+| Project | Description |
+| --- | --- |
+| [Gem](packages/gem) | Core reactive Web Components framework |
+| [GemKit](packages/gemkit) | Rsbuild-based application framework: file routing, layouts, server data, actions, API routes, i18n, SSR and SSG |
+| [gem-ssr](packages/gem-ssr) | Server rendering and hydration |
+| [gem-port](packages/gem-port) | React, Vue and Svelte wrappers for Gem elements |
+| [Duoyun UI](packages/duoyun-ui) · [Tap UI](packages/tap-ui) | Desktop and mobile-first UI libraries built with Gem |
+| [DevTools](packages/gem-devtools) · [Analyzer](packages/gem-analyzer) | Debugging and component analysis |
+| [TypeScript tools](packages/ts-gem-plugin) · [LSP](packages/ts-gem-lsp) | TypeScript language support |
+| [unplugin-gem](packages/unplugin-gem) · [swc-plugin-gem](crates/swc-plugin-gem) | Build plugins for Vite/Webpack/Rollup/esbuild/Rspack/Rolldown and SWC |
+| [Zed](crates/zed-plugin-gem) · [VS Code](packages/vscode-gem-plugin) | Editor extensions |
 
 [Roadmap](https://mm.tt/app/map/3412316197?t=TGs84FRcwQ).
 
