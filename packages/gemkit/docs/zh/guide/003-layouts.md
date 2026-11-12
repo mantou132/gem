@@ -107,3 +107,25 @@ export default class RootLayout extends GemElement {
 由 `<gemkit-outlet>` 渲染匹配的子布局或者页面。
 
 布局中只渲染一个 `<gemkit-outlet>`。它通过父元素找到所属布局的路由。
+
+### 滚动容器和视图过渡
+
+渲染页面后 `<gemkit-outlet>` 会恢复或者重置文档的滚动位置。页面在布局中的某个元素中滚动时，
+用 `scrollContainer` 指定这个元素，内层布局的 `<gemkit-outlet>` 没有指定时使用外层的：
+
+```ts
+@layout()
+export default class RootLayout extends GemElement {
+  #mainRef = createRef<HTMLElement>();
+
+  @template()
+  #content = () => html`
+    <main ${this.#mainRef}>
+      <gemkit-outlet .scrollContainer=${() => this.#mainRef.value}></gemkit-outlet>
+    </main>
+  `;
+}
+```
+
+添加 `transition` 属性后，切换这个 `<gemkit-outlet>` 中的子布局或者页面时使用
+[视图过渡](https://developer.mozilla.org/docs/Web/API/View_Transition_API)。

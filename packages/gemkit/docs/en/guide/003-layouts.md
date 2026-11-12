@@ -116,3 +116,26 @@ layout's template is rendered first, and `<gemkit-outlet>` renders the matched c
 
 Only render `<gemkit-outlet>` once in a layout. It finds the routes of its owning layout by looking at its
 parent element.
+
+### Scroll container and view transitions
+
+After a page is rendered, `<gemkit-outlet>` restores or resets the document's scroll position. When pages
+scroll inside an element of the layout, specify it with `scrollContainer`. Outlets in inner layouts use the
+outer one's when not specified:
+
+```ts
+@layout()
+export default class RootLayout extends GemElement {
+  #mainRef = createRef<HTMLElement>();
+
+  @template()
+  #content = () => html`
+    <main ${this.#mainRef}>
+      <gemkit-outlet .scrollContainer=${() => this.#mainRef.value}></gemkit-outlet>
+    </main>
+  `;
+}
+```
+
+With the `transition` attribute, switching the child layout or page in that `<gemkit-outlet>` uses a
+[view transition](https://developer.mozilla.org/docs/Web/API/View_Transition_API).

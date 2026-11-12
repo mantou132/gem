@@ -1,11 +1,13 @@
 import {
   adoptedStyle,
+  boolattribute,
   connectStore,
   createRef,
   css,
   GemElement,
   history,
   html,
+  property,
   type TemplateResult,
   template,
   titleStore,
@@ -425,14 +427,35 @@ const style = css`
 @connectStore(outletStore)
 @connectStore(history.store)
 class GemkitOutletElement extends GemElement {
-  // 向上查找所属的 layout，包括 ShadowDOM 的宿主
-  get #routes() {
+  /** 页面的滚动容器，用来恢复或者重置滚动位置，默认使用外层 outlet 的，最外层默认为文档 */
+  @property scrollContainer?: Element | (() => Element | null | undefined);
+  /** 切换子路由时使用视图过渡 */
+  @boolattribute transition: boolean;
+
+  // 祖先元素，包括 ShadowDOM 的宿主
+  *#ancestors() {
     let node: Node | null = this.parentNode;
     while (node) {
-      if (node instanceof Element && node.localName in outletRoutes) return outletRoutes[node.localName];
+      if (node instanceof Element) yield node;
       node = node instanceof ShadowRoot ? node.host : node.parentNode;
     }
+  }
+
+  // 所属 layout 的子路由
+  get #routes() {
+    for (const node of this.#ancestors()) {
+      if (node.localName in outletRoutes) return outletRoutes[node.localName];
+    }
     return outletRoutes[''];
+  }
+
+  get #scrollContainer(): Element | null | undefined {
+    const { scrollContainer } = this;
+    if (scrollContainer) return typeof scrollContainer === 'function' ? scrollContainer() : scrollContainer;
+    for (const node of this.#ancestors()) {
+      if (node instanceof GemkitOutletElement) return node.#scrollContainer;
+    }
+    return document.scrollingElement;
   }
 
   // 路由只在路径改变时更新，查询参数改变时也需要重新加载页面数据，只改变 hash 时不加载
@@ -442,10 +465,10 @@ class GemkitOutletElement extends GemElement {
 
   #routeRef = createRef<GemLightRouteElement>();
 
-  // 页面渲染后恢复或者重置窗口的滚动位置，layout 渲染后页面还没有加载
+  // 页面渲染后恢复或者重置滚动位置，layout 渲染后页面还没有加载
   #getScrollContainer = () => {
     const info = this.#routeRef.value?.currentRoute?.data as RouteInfo | undefined;
-    return info?.layout ? null : document.scrollingElement;
+    return info?.layout ? null : this.#scrollContainer;
   };
 
   #onRouteChange = () => endLoad(this.#routeRef.value!);
@@ -466,6 +489,7 @@ class GemkitOutletElement extends GemElement {
       ${this.#routeRef}
       .key=${this.#key}
       .routes=${this.#routes}
+      ?transition=${this.transition}
       .scrollContainer=${this.#getScrollContainer}
       .scrollWait=${waitServerElements}
       @routechange=${this.#onRouteChange}
