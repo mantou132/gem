@@ -147,6 +147,9 @@ const redirectResponse = ({ status, location }: Redirect) =>
 
 const resolveHandle: Handle = (_, resolve) => resolve();
 
+/** `shell` 时渲染外壳页面，见 `requestState.shell` */
+type DocumentOptions = Pick<RenderOptions, 'serverElements'> & { platform?: Platform; shell?: boolean };
+
 export function createRenderer({
   app,
   serverModules = {},
@@ -349,11 +352,12 @@ export function createRenderer({
   const renderDocument = (
     template: string,
     input: Request | string,
-    { serverElements, platform }: Pick<RenderOptions, 'serverElements'> & { platform?: Platform } = {},
+    { serverElements, platform, shell }: DocumentOptions = {},
   ) =>
     // 每个请求有独立的 history、i18n、store 和 `requestState`
     runInRequest(async () => {
       const url = setRequest(input, platform);
+      requestState.shell = shell;
       const { lang, path } = await setLanguage(url.pathname);
       if (typeof input === 'string' && !(await isPrerenderable(path))) throw new NotPrerenderable();
       return runHandle(url, path, async (err) => {
@@ -547,11 +551,7 @@ export function createRenderer({
     });
 
   /** 预渲染页面，不能预渲染时为 `undefined` */
-  const prerenderDocument = async (
-    template: string,
-    pathname: string,
-    options?: Pick<RenderOptions, 'serverElements'> & { platform?: Platform },
-  ) => {
+  const prerenderDocument = async (template: string, pathname: string, options?: DocumentOptions) => {
     try {
       return await renderDocument(template, pathname, options);
     } catch (err) {

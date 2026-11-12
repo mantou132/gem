@@ -49,6 +49,14 @@ When the root layout exports [`ssr = false`](./010-rendering.md#client-only-rend
 
 Server `load` for paths that aren't prerendered, `actions`, API routes and server elements still need a server. In a single-page app every server element is rendered on demand.
 
+### Partially client-only apps
+
+When a page or layout other than the root layout exports `ssr = false`, its dynamic paths (e.g. `/room/[id]`)
+usually aren't prerendered. The build writes a shell page `dist/web/200.html` that has only the HTML template
+and an empty outlet. Every route is rendered on the client, so it works for any path. Rewrite those paths to it:
+- On Netlify or Cloudflare Pages, add `/room/* /200.html 200` to `public/_redirects`.
+- Only rewrite client-only paths, not `/*`. Otherwise missing paths return status 200 instead of `404.html`.
+
 ## Node.js
 
 Deploy the whole `dist` directory and run:

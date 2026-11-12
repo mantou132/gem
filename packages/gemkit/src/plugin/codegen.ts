@@ -256,7 +256,7 @@ const render = (genDir: string, file: string, template: string, data: object) =>
 const toImportPath = (genDir: string, file: string, client = false) =>
   JSON.stringify(path.relative(genDir, file).replace(MODULE_EXT, '') + (client ? `?${CLIENT_QUERY}` : ''));
 
-/** 生成路由，返回有服务端模块的 layout 和页面、API 路由，以及根 layout 是否 `ssr = false` */
+/** 生成路由，返回有服务端模块的 layout 和页面、API 路由，根 layout 是否 `ssr = false`，以及是否有 `ssr = false` 的路由 */
 function generateRoutes(genDir: string, pagesDir: string) {
   const { root, endpoints, error } = scanPages(pagesDir);
   const importPath = (file: string, ssr = true) => toImportPath(genDir, file, !ssr);
@@ -314,7 +314,11 @@ function generateRoutes(genDir: string, pagesDir: string) {
     error: error && { tag: error.tag, path: importPath(error.file, root.ssr), isError: true },
     outlets,
   });
-  return { serverRoutes, endpoints, spa: !root.ssr };
+  const hasClientRoutes = (layout: LayoutNode): boolean =>
+    !layout.ssr ||
+    layout.pages.some(({ ssr }) => !ssr) ||
+    layout.layouts.some(({ layout: sub }) => hasClientRoutes(sub));
+  return { serverRoutes, endpoints, spa: !root.ssr, clientRoutes: hasClientRoutes(root) };
 }
 
 interface ApiNode {
@@ -469,5 +473,5 @@ export function generate(rootPath: string, config: GemkitConfig) {
   generateI18n(genDir, path.join(srcDir, 'locales'), config);
   generateEntries(genDir, srcDir, config, routes);
   generateApi(genDir, routes.endpoints);
-  return { spa: routes.spa };
+  return { spa: routes.spa, clientRoutes: routes.clientRoutes };
 }

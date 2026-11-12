@@ -315,6 +315,8 @@ export const requestState = isolate<{
   setCookies?: string[];
   /** `setHeaders` 设置的响应头 */
   headers?: Headers;
+  /** 渲染外壳页面，所有路由都由客户端渲染，有 `ssr = false` 的路由时作为静态托管的后备页面 */
+  shell?: boolean;
 }>({});
 
 /** 页面和 layout 的数据，key 是标签名 */

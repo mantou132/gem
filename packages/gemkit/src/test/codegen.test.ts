@@ -324,7 +324,7 @@ test('generate: 根 layout `ssr = false` 时是单页应用，`src/app.ts` 只�
     'src/app.ts',
     'src/app.client.ts',
   ]);
-  assert.deepEqual(generate(root, {}), { spa: true });
+  assert.deepEqual(generate(root, {}), { spa: true, clientRoutes: true });
   const read = (file: string) => fs.readFileSync(path.join(root, '.gemkit', file), 'utf8');
   const routes = read('routes.ts');
   // 服务端构建时替换成空模块
@@ -347,7 +347,14 @@ test('generate: 根 layout `ssr = false` 时是单页应用，`src/app.ts` 只�
   assert.doesNotMatch(read('server.ts'), /src\/app/);
 
   const ssr = createFixture(['src/pages/_layout.ts', 'src/pages/index.ts', 'src/app.ts', 'src/app.client.ts']);
-  assert.deepEqual(generate(ssr, {}), { spa: false });
+  assert.deepEqual(generate(ssr, {}), { spa: false, clientRoutes: false });
+  // 有 `ssr = false` 的页面时输出外壳页面作为后备页面
+  const mixed = createFixture([
+    'src/pages/index.ts',
+    'src/pages/play.ts',
+    ['src/pages/play.server.ts', 'export const ssr = false;'],
+  ]);
+  assert.deepEqual(generate(mixed, {}), { spa: false, clientRoutes: true });
   assert.match(fs.readFileSync(path.join(ssr, '.gemkit/server.ts'), 'utf8'), /import "..\/src\/app";/);
   assert.doesNotMatch(fs.readFileSync(path.join(ssr, '.gemkit/server.ts'), 'utf8'), /app.client/);
 });

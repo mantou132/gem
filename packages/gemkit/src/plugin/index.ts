@@ -155,16 +155,23 @@ const ssrMiddleware =
 
 /**
  * 静态托管使用的 404 页面，layout 不能预渲染时不输出；
- * 单页应用（根 layout `ssr = false`）的内容和路径无关，同时输出成 `200.html`，作为所有路径的后备页面
+ * 单页应用（根 layout `ssr = false`）的内容和路径无关，同时输出成 `200.html`，作为所有路径的后备页面；
+ * 其他有 `ssr = false` 的路由的应用输出外壳页面作为 `200.html`，所有路由都由客户端渲染，
+ * 用于没有预渲染的路径，例如只在客户端渲染的动态路径
  */
-async function writeFallbackPages(distDir: string, spa: boolean) {
+async function writeFallbackPages(distDir: string, spa: boolean, clientRoutes: boolean) {
   const { webDir } = getDistPaths(distDir);
   const { renderer, template: html } = await loadRenderer(distDir);
   const response = await renderer.prerenderDocument(html, renderer.notFoundPath);
   if (response?.status !== 404) return;
   const content = await response.text();
   fs.writeFileSync(path.join(webDir, '404.html'), content);
-  if (spa) fs.writeFileSync(path.join(webDir, '200.html'), content);
+  if (spa) {
+    fs.writeFileSync(path.join(webDir, '200.html'), content);
+  } else if (clientRoutes) {
+    const shell = await renderer.prerenderDocument(html, renderer.notFoundPath, { shell: true });
+    if (shell) fs.writeFileSync(path.join(webDir, '200.html'), await shell.text());
+  }
 }
 
 /** 预渲染所有静态路由和 `paths` 指定的动态路由 */
@@ -202,7 +209,7 @@ export function pluginGemkit(options: GemkitOptions = {}): RsbuildPlugin {
       const adapter = isDev || adapterOption === false ? undefined : adapterOption || detectAdapter(rootPath);
 
       // 创建 `.gemkit` 目录，`generateHandler` 写入其中
-      const { spa } = generate(rootPath, config);
+      const { spa, clientRoutes } = generate(rootPath, config);
       const handlerEntry = adapter && generateHandler(rootPath, adapter.runtime);
 
       // 页面和语言文件增删时重新生成
@@ -346,7 +353,7 @@ export function pluginGemkit(options: GemkitOptions = {}): RsbuildPlugin {
           logger.info(`gemkit: prerendered pages to ${path.relative(rootPath, webDir)}`);
         }
         // 单页应用不需要预渲染也能静态托管
-        if (prerender || spa) await writeFallbackPages(distDir, spa);
+        if (prerender || spa) await writeFallbackPages(distDir, spa, clientRoutes);
         if (adapter) {
           const handlerFile = path.join(serverDir, 'handler.js');
           await adapter.write({

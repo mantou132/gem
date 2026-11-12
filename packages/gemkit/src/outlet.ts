@@ -28,6 +28,7 @@ import {
   outletStore,
   Redirect,
   reload,
+  requestState,
   runServerLoad,
   setSSRData,
   setSSRError,
@@ -487,7 +488,7 @@ class GemkitOutletElement extends GemElement {
     html`<gem-light-route
       ${this.#routeRef}
       .key=${this.#key}
-      .routes=${this.#routes}
+      .routes=${isServer && requestState.shell ? [] : this.#routes}
       ?transition=${this.transition}
       .scrollContainer=${this.#getScrollContainer}
       .scrollWait=${waitServerElements}

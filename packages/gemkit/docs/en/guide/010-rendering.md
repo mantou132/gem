@@ -81,7 +81,9 @@ export const ssr = false;
   navigation doesn't request it either.
 - **Client**: hydration loads the page module and renders it with the data in the document.
 - **Layouts**: set in a `_layout.server.ts`, the layout and all pages below it render only on the client.
-- **Prerendering**: still works; it outputs the outer layouts and the data file.
+- **Prerendering**: still works; it outputs the outer layouts and the data file. Paths that aren't
+  prerendered (e.g. dynamic paths) use the shell page `200.html` on static hosting, see
+  [Deployment](./011-deploy.md#partially-client-only-apps).
 
 Set in the root layout `src/pages/_layout.server.ts`, the whole app is a single-page app:
 - `src/app.ts` also runs only on the client, and the server outputs only the HTML template.
