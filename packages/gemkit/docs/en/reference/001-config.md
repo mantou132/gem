@@ -119,6 +119,42 @@ pluginGemkit({
 });
 ```
 
+## Extending the Rsbuild config
+
+The rest of `rsbuild.config.ts` works as usual. Gemkit builds two environments: `web` (browser) and `node`
+(server rendering and prerendering). Top-level options apply to both. Put options for only one of them in
+`environments.web` or `environments.node`, which Rsbuild merges with the top-level config.
+
+Put browser-only dependencies (e.g. WebGL, Emscripten-compiled wasm modules) in `ssr = false` pages or
+[`@client()`](../guide/008-server-elements.md) elements. Those modules are replaced with empty modules in the
+server build, so the dependencies never reach the `node` environment. Handle other bundling issues as in any
+Rsbuild project, for example:
+
+```ts
+// rsbuild.config.ts
+export default defineConfig({
+  plugins: [pluginGemkit()],
+  tools: {
+    rspack: {
+      module: {
+        rules: [
+          // Files Rsbuild doesn't know, such as shaders: `import code from "./a.glsl?raw"`
+          { resourceQuery: /^\?raw$/, type: 'asset/source' },
+          // `.wasm` is a module by default; import its URL with `?url`
+          { test: /\.wasm$/, resourceQuery: /^\?url$/, type: 'asset/resource' },
+          {
+            // Node.js branches in Emscripten output; load the wasm through `locateFile` and `?url`
+            test: /[\\/]my-emulator[\\/]/,
+            parser: { url: false },
+            resolve: { alias: { module: false } },
+          },
+        ],
+      },
+    },
+  },
+});
+```
+
 ## Generated files
 
 Gemkit generates into `.gemkit`:

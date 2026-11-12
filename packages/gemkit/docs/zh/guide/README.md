@@ -55,6 +55,11 @@ export default defineConfig({
 插件会在 `.gemkit` 中生成路由表、客户端入口和服务端入口，并构建 `web` 和 `node` 两个环境。
 你仍然可以添加其他 Rsbuild 插件和配置。
 
+Gem 和 Gemkit 发布的是 TypeScript 源码，项目的 `tsconfig.json` 需要继承 `.gemkit/tsconfig.json`
+（见[配置](../reference/001-config.md)），并且：
+- 使用 TypeScript 5.9 或以上，源码中用到了更新的 DOM 类型，例如 `cookieStore`。
+- `moduleResolution` 为 `bundler`。
+
 ## 项目结构
 
 ```

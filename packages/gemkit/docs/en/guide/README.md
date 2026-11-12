@@ -58,6 +58,11 @@ export default defineConfig({
 The plugin generates the route table, the client entry and the server entry in `.gemkit`, and builds two
 environments: `web` and `node`. You can still add any other Rsbuild plugins and configuration.
 
+Gem and Gemkit are published as TypeScript source. The project's `tsconfig.json` needs to extend
+`.gemkit/tsconfig.json` (see [Configuration](../reference/001-config.md)), and:
+- Use TypeScript 5.9 or later, since the source uses newer DOM types such as `cookieStore`.
+- Set `moduleResolution` to `bundler`.
+
 ## Project structure
 
 ```

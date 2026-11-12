@@ -111,6 +111,41 @@ pluginGemkit({
 });
 ```
 
+## 扩展 Rsbuild 配置
+
+`rsbuild.config.ts` 中的其他配置照常生效。Gemkit 构建两个环境：`web`（浏览器）和 `node`（服务端渲染和预渲染），
+顶层配置对两个环境都生效，只用于一个环境的配置写在 `environments.web` 或者 `environments.node` 中，
+Rsbuild 会把它和顶层配置合并。
+
+只在浏览器运行的依赖（例如 WebGL、Emscripten 编译的 wasm 模块）放在 `ssr = false` 的页面或者
+[`@client()`](../guide/008-server-elements.md) 元素中，服务端构建时这些模块被替换成空模块，依赖不会进入 `node` 环境。
+其他打包问题和普通的 Rsbuild 项目一样处理，例如：
+
+```ts
+// rsbuild.config.ts
+export default defineConfig({
+  plugins: [pluginGemkit()],
+  tools: {
+    rspack: {
+      module: {
+        rules: [
+          // 着色器等 Rsbuild 不认识的文件，`import code from "./a.glsl?raw"` 导入内容
+          { resourceQuery: /^\?raw$/, type: 'asset/source' },
+          // `.wasm` 默认作为模块，通过 `?url` 导入文件地址
+          { test: /\.wasm$/, resourceQuery: /^\?url$/, type: 'asset/resource' },
+          {
+            // Emscripten 产物中 Node.js 的分支，wasm 通过 `locateFile` 和 `?url` 加载
+            test: /[\\/]my-emulator[\\/]/,
+            parser: { url: false },
+            resolve: { alias: { module: false } },
+          },
+        ],
+      },
+    },
+  },
+});
+```
+
 ## 生成的文件
 
 Gemkit 在 `.gemkit` 中生成：
