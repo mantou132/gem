@@ -11,11 +11,19 @@ import * as RootLayout from <%= it.rootLayout %>;
 const error = <%= route(it.error, '') %>;
 
 <% } -%>
+<% for (const layout of it.layouts) { -%>
+const <%= layout.name %> = <%= route(layout, '') %>;
+
+<% } -%>
 setOutlets({
 <% for (const { tag, routes, error } of it.outlets) { -%>
   '<%= tag %>': [
 <% for (const data of routes) { -%>
+<% if (data.name) { -%>
+    <%= data.name %>(<%= JSON.stringify(data.pattern) %>),
+<% } else { -%>
     <%= route(data, '    ') %>,
+<% } -%>
 <% } -%>
 <% if (error) { -%>
     error,

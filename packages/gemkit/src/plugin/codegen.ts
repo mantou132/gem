@@ -65,7 +65,8 @@ interface LayoutNode extends ServerInfo {
   tag: string;
   file?: string;
   pages: PageNode[];
-  layouts: { pattern: string; layout: LayoutNode }[];
+  /** 子 layout 和它匹配的路径，路由分组的 layout 匹配其中的页面和子 layout 的路径 */
+  layouts: { patterns: string[]; layout: LayoutNode }[];
 }
 
 const MODULE_EXT = /\.[cm]?[jt]s$/;
@@ -154,7 +155,9 @@ function scanDir(
     const fullPath = path.join(dir, entry.name);
     const relPath = path.relative(pagesDir, fullPath);
     if (entry.isDirectory()) {
-      const subNames = [...names, entry.name];
+      // `(name)` 是路由分组，不是路径的一部分
+      const group = /^\(.+\)$/.test(entry.name);
+      const subNames = group ? names : [...names, entry.name];
       const layoutFile = findModule(fullPath, '_layout');
       if (!layoutFile) {
         scanDir(pagesDir, fullPath, subNames, layout, tags, endpoints);
@@ -168,8 +171,11 @@ function scanDir(
         pages: [],
         layouts: [],
       };
-      layout.layouts.push({ pattern: `${toRoute(subNames).pattern}/*`, layout: subLayout });
       scanDir(pagesDir, fullPath, subNames, subLayout, tags, endpoints);
+      const patterns = group
+        ? [...subLayout.pages.map(({ pattern }) => pattern), ...subLayout.layouts.flatMap(({ patterns }) => patterns)]
+        : [`${toRoute(subNames).pattern}/*`];
+      layout.layouts.push({ patterns, layout: subLayout });
     } else if (isModule(entry.name) && !isServerModule(entry.name)) {
       const name = entry.name.replace(MODULE_EXT, '');
       layout.pages.push({
@@ -190,11 +196,16 @@ function scanDir(
 // 参数名不影响匹配，`/blog/:id` 和 `/blog/:slug` 是同一个路径
 const normalizePattern = (pattern: string) => pattern.replace(/:[^/]+/g, ':');
 
-/** API 路由先于页面匹配，路径相同时页面只能通过客户端导航访问 */
+/** 页面的路径不能相同，例如不同路由分组中的页面；API 路由先于页面匹配，路径相同时页面只能通过客户端导航访问 */
 function checkConflicts(root: LayoutNode, endpoints: EndpointNode[]) {
   const pages = new Map<string, string>();
   const collect = (layout: LayoutNode) => {
-    for (const { pattern, file } of layout.pages) pages.set(normalizePattern(pattern), file);
+    for (const { pattern, file } of layout.pages) {
+      const key = normalizePattern(pattern);
+      const other = pages.get(key);
+      if (other) throw new Error(`gemkit: \`${file}\` and \`${other}\` have the same path \`${pattern}\``);
+      pages.set(key, file);
+    }
     for (const { layout: sub } of layout.layouts) collect(sub);
   };
   collect(root);
@@ -263,12 +274,13 @@ function generateRoutes(genDir: string, pagesDir: string) {
     rest: page.rest,
     path: importPath(page.file, page.ssr),
   });
-  const layoutRoute = (pattern: string, layout: LayoutNode) => ({
-    ...routeInfo(layout),
-    pattern,
-    path: importPath(layout.file!, layout.ssr),
-    layout: true,
-  });
+  // layout 的多个路由（路由分组）使用同一个模板，切换时复用 layout 元素
+  const layouts: object[] = [];
+  const layoutRoutes = (patterns: string[], layout: LayoutNode, path?: string) => {
+    const name = `layout${layouts.length}`;
+    layouts.push({ ...routeInfo(layout), name, path, layout: true });
+    return patterns.map((pattern) => ({ name, pattern, layout: true }));
+  };
 
   // 有服务端模块的 layout 和页面，服务端入口使用
   const serverRoutes: { tag: string; server: string }[] = [];
@@ -278,7 +290,7 @@ function generateRoutes(genDir: string, pagesDir: string) {
   // 根 layout 也通过路由加载，这样可以和其他 layout 一样加载数据
   if (root.file) {
     // 根 layout 没有 `path`，使用静态导入的模块
-    outlets.push({ tag: '', routes: [{ ...layoutRoute('*', root), path: undefined }], error: false });
+    outlets.push({ tag: '', routes: layoutRoutes(['*'], root, undefined), error: false });
     addServerRoute(root);
   }
   const collect = (layout: LayoutNode) => {
@@ -286,7 +298,9 @@ function generateRoutes(genDir: string, pagesDir: string) {
     layout.layouts.forEach(({ layout: sub }) => addServerRoute(sub));
     const routes = [
       ...layout.pages.map(pageRoute),
-      ...layout.layouts.map(({ pattern, layout: sub }) => layoutRoute(pattern, sub)),
+      ...layout.layouts.flatMap(({ patterns, layout: sub }) =>
+        layoutRoutes(patterns, sub, importPath(sub.file!, sub.ssr)),
+      ),
     ].sort((a, b) => comparePattern(a.pattern, b.pattern));
     outlets.push({ tag: layout.tag, routes, error: !!error });
     layout.layouts.forEach(({ layout: sub }) => collect(sub));
@@ -295,6 +309,7 @@ function generateRoutes(genDir: string, pagesDir: string) {
 
   render(genDir, 'routes.ts', 'routes', {
     rootLayout: root.file && importPath(root.file, root.ssr),
+    layouts,
     // 错误页面没有服务端模块，根 layout 不在服务端渲染时它也不会
     error: error && { tag: error.tag, path: importPath(error.file, root.ssr), isError: true },
     outlets,

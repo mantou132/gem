@@ -72,10 +72,9 @@ const serverModules: Record<string, () => Promise<ServerModule>> = {
 setOutlets({
   '': [
     layoutRoute(
-      '*',
       root,
       (props) => html`<gemkit-layout-root .params=${props.params} .data=${props.data}></gemkit-layout-root>`,
-    ),
+    )('*'),
   ],
   [root.tag]: [
     pageRoute(
@@ -84,7 +83,7 @@ setOutlets({
       (params, data) => html`<gemkit-page-editor .params=${params} .data=${data}></gemkit-page-editor>`,
     ),
     // 静态片段优先，`/docs/x` 匹配 layout，不匹配 `/:a/:b`
-    layoutRoute('/docs/*', docs, (props) => html`<gemkit-layout-docs .params=${props.params}></gemkit-layout-docs>`),
+    layoutRoute(docs, (props) => html`<gemkit-layout-docs .params=${props.params}></gemkit-layout-docs>`)('/docs/*'),
     pageRoute('/:a/:b', pair, (_, data) => html`<gemkit-page-a-b .data=${data}></gemkit-page-a-b>`),
   ],
   [docs.tag]: [],

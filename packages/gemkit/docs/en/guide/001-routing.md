@@ -51,6 +51,27 @@ everything under `/blog`. A layout is not a route by itself and has no URL.
 When navigating between pages that share a layout, the layout element is kept. Only the child outlet changes,
 so scroll position, open menus and other state in the layout survive. See [Layouts](./003-layouts.md).
 
+### Route groups
+
+A directory named `(name)` is a route group and is not part of the URL. A `_layout.ts` in a group only wraps
+the pages in that group, so pages can use different layouts without sharing a path prefix:
+
+```
+src/pages/
+├─ (marketing)/
+│  ├─ _layout.ts       # wraps /about and /pricing
+│  ├─ about.ts         # /about
+│  └─ pricing.ts       # /pricing
+└─ (app)/
+   ├─ _layout.ts       # wraps /settings
+   ├─ _layout.server.ts
+   └─ settings.ts      # /settings
+```
+
+A group's layout can also export [`ssr = false`](./010-rendering.md#client-only-rendering) from its server
+module, so its pages render only on the client while other pages still render on the server. Pages in
+different groups can't have the same path.
+
 ## Error page
 
 `src/pages/_error.ts` is the error page and the 404 page of unmatched paths:

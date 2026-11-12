@@ -67,8 +67,8 @@ test('scanPages: 页面、layout 和标签名', ({ assert }) => {
   );
 
   assert.equal(layout.layouts.length, 1);
-  const [{ pattern, layout: blog }] = layout.layouts;
-  assert.equal(pattern, '/blog/*');
+  const [{ patterns, layout: blog }] = layout.layouts;
+  assert.deepEqual(patterns, ['/blog/*']);
   assert.equal(blog.tag, 'gemkit-layout-blog');
   assert.equal(rel(blog.file), 'blog/_layout.ts');
   assert.deepEqual(
@@ -116,6 +116,57 @@ test('scanPages: API 路由和页面的路径相同时报错', ({ assert }) => {
   assert.throws(() => scanPages(path.join(root, 'src/pages')), /have the same path `\/post\/:slug`/);
   const index = createFixture(['src/pages/blog.ts', 'src/pages/blog/index.server.ts']);
   assert.throws(() => scanPages(path.join(index, 'src/pages')), /have the same path `\/blog`/);
+});
+
+test('scanPages: 路由分组不是路径的一部分，分组的 layout 匹配其中的页面和子 layout', ({ assert }) => {
+  const root = createFixture([
+    'src/pages/index.ts',
+    'src/pages/(marketing)/_layout.ts',
+    'src/pages/(marketing)/about.ts',
+    'src/pages/(marketing)/(legal)/terms.ts',
+    'src/pages/(marketing)/blog/_layout.ts',
+    'src/pages/(marketing)/blog/index.ts',
+    'src/pages/(app)/_layout.ts',
+    ['src/pages/(app)/_layout.server.ts', 'export const ssr = false;'],
+    'src/pages/(app)/settings.ts',
+    'src/pages/(app)/api.server.ts',
+  ]);
+  const { root: layout, endpoints } = scanPages(path.join(root, 'src/pages'));
+  assert.deepEqual(
+    layout.pages.map(({ pattern }) => pattern),
+    ['/'],
+  );
+  assert.deepEqual(
+    layout.layouts.map(({ patterns, layout: { tag, ssr } }) => [tag, ssr, patterns]),
+    [
+      ['gemkit-layout-app', false, ['/settings']],
+      ['gemkit-layout-marketing', true, ['/terms', '/about', '/blog/*']],
+    ],
+  );
+  assert.deepEqual(
+    layout.layouts[1].layout.pages.map(({ pattern, tag }) => [pattern, tag]),
+    [
+      ['/terms', 'gemkit-page-marketing-legal-terms'],
+      ['/about', 'gemkit-page-marketing-about'],
+    ],
+  );
+  assert.deepEqual(
+    endpoints.map(({ pattern }) => pattern),
+    ['/api'],
+  );
+});
+
+test('scanPages: 不同路由分组中的页面路径相同时报错', ({ assert }) => {
+  const root = createFixture(['src/pages/(a)/about.ts', 'src/pages/(b)/about.ts']);
+  assert.throws(() => scanPages(path.join(root, 'src/pages')), /have the same path `\/about`/);
+});
+
+test('generate: 路由分组的 layout 的多个路由使用同一个模板', ({ assert }) => {
+  const root = createFixture(['src/pages/(site)/_layout.ts', 'src/pages/(site)/a.ts', 'src/pages/(site)/b.ts']);
+  generate(root, {});
+  const routes = fs.readFileSync(path.join(root, '.gemkit/routes.ts'), 'utf8');
+  assert.equal(routes.match(/<gemkit-layout-site /g)?.length, 1);
+  assert.match(routes, /layout0\("\/a"\),\n\s+layout0\("\/b"\),/);
 });
 
 test('generate: 生成路由和入口文件', ({ assert }) => {

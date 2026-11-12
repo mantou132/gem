@@ -45,10 +45,10 @@ const serverModules: Record<string, () => Promise<ServerModule>> = {
 };
 
 setOutlets({
-  '': [layoutRoute('*', root, () => html`<gemkit-layout-root></gemkit-layout-root>`)],
+  '': [layoutRoute(root, () => html`<gemkit-layout-root></gemkit-layout-root>`)('*')],
   [root.tag]: [
     pageRoute('/play', play, () => html`<gemkit-page-play></gemkit-page-play>`),
-    layoutRoute('/app/*', app, () => html`<gemkit-layout-app></gemkit-layout-app>`),
+    layoutRoute(app, () => html`<gemkit-layout-app></gemkit-layout-app>`)('/app/*'),
     pageRoute('/', home, () => html`<gemkit-page-index></gemkit-page-index>`),
   ],
   [app.tag]: [

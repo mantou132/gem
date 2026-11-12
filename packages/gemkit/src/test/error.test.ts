@@ -103,12 +103,12 @@ const errorPage = errorRoute(
 );
 setOutlets(
   {
-    '': [layoutRoute('*', root, () => html`<gemkit-layout-root></gemkit-layout-root>`)],
+    '': [layoutRoute(root, () => html`<gemkit-layout-root></gemkit-layout-root>`)('*')],
     [root.tag]: [
       pageRoute('/crash', crash, () => html`<gemkit-page-crash></gemkit-page-crash>`),
       pageRoute('/form', form, () => html`<gemkit-page-form></gemkit-page-form>`),
       pageRoute('/guarded', guarded, () => html`<gemkit-page-guarded></gemkit-page-guarded>`),
-      layoutRoute('/private/*', privateLayout, () => html`<gemkit-layout-private></gemkit-layout-private>`),
+      layoutRoute(privateLayout, () => html`<gemkit-layout-private></gemkit-layout-private>`)('/private/*'),
       pageRoute('/', home, () => html`<gemkit-page-index></gemkit-page-index>`),
       errorPage,
     ],

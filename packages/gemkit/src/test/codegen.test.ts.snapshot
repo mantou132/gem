@@ -9,11 +9,17 @@ const error = errorRoute({ tag: 'gemkit-page-error', load: () => import(/* webpa
   html\`<gemkit-page-error .params=\${params} .data=\${error}></gemkit-page-error>\`,
 );
 
+const layout0 = layoutRoute({ tag: 'gemkit-layout-root', load: async () => RootLayout }, (props) =>
+  html\`<gemkit-layout-root .params=\${props.params} .data=\${props.data}></gemkit-layout-root>\`,
+);
+
+const layout1 = layoutRoute({ tag: 'gemkit-layout-blog', load: () => import(/* webpackChunkName: "gemkit-layout-blog" */ "../src/pages/blog/_layout") }, (props) =>
+  html\`<gemkit-layout-blog .params=\${props.params} .data=\${props.data}></gemkit-layout-blog>\`,
+);
+
 setOutlets({
   '': [
-    layoutRoute("*", { tag: 'gemkit-layout-root', load: async () => RootLayout }, (props) =>
-      html\`<gemkit-layout-root .params=\${props.params} .data=\${props.data}></gemkit-layout-root>\`,
-    ),
+    layout0("*"),
   ],
   'gemkit-layout-root': [
     pageRoute("/files/new", { tag: 'gemkit-page-files-new', load: () => import(/* webpackChunkName: "gemkit-page-files-new" */ "../src/pages/files/new") }, (params, data) =>
@@ -28,9 +34,7 @@ setOutlets({
     pageRoute("/files/*", { tag: 'gemkit-page-files-path', load: () => import(/* webpackChunkName: "gemkit-page-files-path" */ "../src/pages/files/[...path]"), rest: 'path' }, (params, data) =>
       html\`<gemkit-page-files-path .params=\${params} .data=\${data}></gemkit-page-files-path>\`,
     ),
-    layoutRoute("/blog/*", { tag: 'gemkit-layout-blog', load: () => import(/* webpackChunkName: "gemkit-layout-blog" */ "../src/pages/blog/_layout") }, (props) =>
-      html\`<gemkit-layout-blog .params=\${props.params} .data=\${props.data}></gemkit-layout-blog>\`,
-    ),
+    layout1("/blog/*"),
     pageRoute("/:id", { tag: 'gemkit-page-id', load: () => import(/* webpackChunkName: "gemkit-page-id" */ "../src/pages/[id]") }, (params, data) =>
       html\`<gemkit-page-id .params=\${params} .data=\${data}></gemkit-page-id>\`,
     ),

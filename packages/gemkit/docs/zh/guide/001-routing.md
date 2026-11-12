@@ -47,6 +47,26 @@ export default class BlogLayout extends GemElement {
 在共享同一个布局的页面之间导航时，布局元素会被保留，只有子 outlet 改变，
 所以布局中的滚动位置、展开的菜单等状态不会丢失。见[布局](./003-layouts.md)。
 
+### 路由分组
+
+名称是 `(name)` 的目录是路由分组，不是 URL 的一部分。分组中的 `_layout.ts` 只包裹分组中的页面，
+这样不同的页面可以使用不同的布局，而不需要共同的路径前缀：
+
+```
+src/pages/
+├─ (marketing)/
+│  ├─ _layout.ts       # 包裹 /about 和 /pricing
+│  ├─ about.ts         # /about
+│  └─ pricing.ts       # /pricing
+└─ (app)/
+   ├─ _layout.ts       # 包裹 /settings
+   ├─ _layout.server.ts
+   └─ settings.ts      # /settings
+```
+
+分组的布局也可以在服务端模块中导出 [`ssr = false`](./010-rendering.md#只在客户端渲染)，
+让其中的页面只在客户端渲染，而其他页面仍然在服务端渲染。不同分组中的页面路径不能相同。
+
 ## 错误页面
 
 `src/pages/_error.ts` 是错误页面，也是没有匹配的路径的 404 页面：

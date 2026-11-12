@@ -6,7 +6,7 @@ errorRoute(<%= info %>, (params, error) =>
   html`<<%= it.tag %> .params=${params} .data=${error}></<%= it.tag %>>`,
 )
 <% } else if (it.layout) { -%>
-layoutRoute(<%= JSON.stringify(it.pattern) %>, <%= info %>, (props) =>
+layoutRoute(<%= info %>, (props) =>
   html`<<%= it.tag %> .params=${props.params} .data=${props.data}></<%= it.tag %>>`,
 )
 <% } else { -%>

@@ -364,13 +364,13 @@ export function errorRoute(info: RouteInfo, render: (params: Params, error: Erro
   return route;
 }
 
-/** 创建 layout 路由，`render` 使用 layout 的标签名渲染 */
-export function layoutRoute(
-  pattern: string,
-  info: RouteInfo,
-  render: (props: { params: Params; data: unknown }) => TemplateResult,
-): RouteItem<RouteInfo> {
-  return {
+/**
+ * 创建 layout 路由，`render` 使用 layout 的标签名渲染，返回的函数为每个匹配的路径创建路由；
+ * 路由分组的 layout 匹配多个路径，它们使用同一个模板，在其中的页面间导航时复用 layout 元素
+ */
+export const layoutRoute =
+  (info: RouteInfo, render: (props: { params: Params; data: unknown }) => TemplateResult) =>
+  (pattern: string): RouteItem<RouteInfo> => ({
     pattern,
     data: { ...info, layout: true },
     getContent: (params, container) => {
@@ -382,8 +382,7 @@ export function layoutRoute(
         renderError(info.tag, params),
       );
     },
-  };
-}
+  });
 
 /** 路径匹配的 layout 和页面，和路由一样从根路由逐层匹配 */
 export function matchRoutes(path: string) {
