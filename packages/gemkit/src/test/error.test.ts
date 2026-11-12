@@ -8,8 +8,9 @@ import { GemElement, html, template } from '@mantou/gem';
 import { type ErrorData, error, fetchData, HttpError, type ServerModule } from '../data';
 import { prerenderPage } from '../handler';
 import { createRequestHandler } from '../node';
-import { errorRoute, layoutRoute, pageRoute, setOutlets } from '../outlet';
+import { setOutlets } from '../outlet';
 import { layout, page } from '../page';
+import { errorRoute, layoutRoute, pageRoute } from '../route';
 import { createRenderer } from '../server';
 
 @layout({ meta: { description: 'Site description', 'og:site_name': 'Site' } })

@@ -109,6 +109,28 @@ export default class RootLayout extends GemElement {
 
 Loading is fast when the data is cached, so consider delaying the progress bar to avoid flicker.
 
+During navigation all matched layouts and the page load in parallel and are replaced together in the same
+render once everything is loaded, so the previous layouts and page stay visible while loading. On errors the
+error page is rendered at the outermost failed route.
+
+### Current route
+
+`history` updates as soon as navigation starts, so a layout rendering a sidebar or similar content from it is
+out of sync with the previous page while loading. `routeStore` is the displayed route and updates together with
+the layouts and page:
+
+```ts
+@layout()
+@connectStore(routeStore)
+export default class RootLayout extends GemElement {
+  @template()
+  #content = () => html`
+    <aside v-if=${routeStore.path !== '/'}>...</aside>
+    <gemkit-outlet></gemkit-outlet>
+  `;
+}
+```
+
 ## Root layout and `<gemkit-outlet>`
 
 The root layout is optional. Without it, pages are rendered directly in the root outlet. With it, the
@@ -137,5 +159,8 @@ export default class RootLayout extends GemElement {
 }
 ```
 
-With the `transition` attribute, switching the child layout or page in that `<gemkit-outlet>` uses a
-[view transition](https://developer.mozilla.org/docs/Web/API/View_Transition_API).
+With the `transition` attribute, a navigation that re-renders the content of that `<gemkit-outlet>` uses a
+[view transition](https://developer.mozilla.org/docs/Web/API/View_Transition_API). There is only one
+transition per navigation: the old view is the whole previous page and the new view is rendered after all
+layouts and the page, including layout content rendered from `routeStore`. Use the CSS `view-transition-name`
+to animate only some elements.

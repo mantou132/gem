@@ -3,8 +3,7 @@
 // 必须在 Gem 之前执行，用来模拟 DOM 环境
 import '@mantou/gem-ssr';
 
-import { history, type TemplateResult, titleStore } from '@mantou/gem';
-import { matchPath } from '@mantou/gem/elements/route';
+import { history, matchPath, type TemplateResult, titleStore } from '@mantou/gem';
 import type { I18n } from '@mantou/gem/helper/i18n';
 import { type RenderOptions, render, renderServerElement, runInRequest } from '@mantou/gem-ssr';
 
@@ -49,17 +48,9 @@ import {
 } from './data';
 import { getBasePath, LANGUAGE_COOKIE, localizePath, matchLanguage, parseAcceptLanguage, splitLanguage } from './i18n';
 import { formatMeta } from './meta';
-import {
-  getLayoutParams,
-  getPageRoutes,
-  getRouteMeta,
-  getSSRRoutes,
-  hasServerLoad,
-  matchPage,
-  matchRoutes,
-  nameRestParam,
-} from './outlet';
+import { getRouteMeta, getSSRRoutes } from './navigation';
 import { getPageOptions, type Params } from './page';
+import { getPageRoutes, hasServerLoad, matchPage, matchRoutes, nameRestParam } from './route';
 import { formatTitle, type TitleOptions } from './title';
 
 export type RouteChunks = Record<string, string[]>;
@@ -169,9 +160,7 @@ export function createRenderer({
 
   /** 路径匹配的 layout 和页面（包括 404 页面）中有服务端模块的，以及它们的参数 */
   const findServerRoutes = (path: string) =>
-    matchRoutes(path).flatMap(({ info, params }) =>
-      info.server ? [{ tag: info.tag, params: info.layout ? getLayoutParams(params) : params }] : [],
-    );
+    matchRoutes(path).flatMap(({ info, params }) => (info.server ? [{ tag: info.tag, params }] : []));
 
   /**
    * 设置当前请求和平台上下文，返回请求的 URL，预渲染时 `input` 是路径，没有请求，

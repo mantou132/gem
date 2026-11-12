@@ -1,4 +1,4 @@
-import { adoptedStyle, css, effect, GemElement, html, memo, property, template } from '@mantou/gem';
+import { adoptedStyle, css, effect, GemElement, history, html, memo, property, template } from '@mantou/gem';
 import { mediaQuery } from '@mantou/gem/helper/mediaquery';
 import { page } from '@mantou/gemkit';
 
@@ -6,7 +6,7 @@ import { i18n } from '$gemkit/i18n';
 import { trackPageView } from '../lib/ga';
 import { icons } from '../lib/icons';
 import { markdownStyle } from '../lib/markdown-style';
-import { isGitLab } from '../lib/site';
+import { getPathState, isGitLab } from '../lib/site';
 import { htmlTemplate } from '../lib/template';
 import { primaryTextColor, theme } from '../lib/theme';
 import type { Doc, Home } from '../lib/types';
@@ -299,9 +299,9 @@ const formatDate = (date: string) =>
 export default class DocPage extends GemElement {
   @property data?: Doc;
 
-  // 在渲染文档中的插件前更新
+  // 在渲染文档中的插件前更新，插件读取的路径和文档一致
   @memo((i) => [i.data])
-  #updateBookStore = () => bookStore({ doc: this.data });
+  #updateBookStore = () => bookStore({ ...getPathState(history.getParams().path), doc: this.data });
 
   // 客户端导航到带 hash 的地址时滚动到标题，例如搜索结果
   @effect((i) => [i.data])

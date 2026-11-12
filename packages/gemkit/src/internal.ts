@@ -2,4 +2,6 @@
 
 export { createApi, type EndpointMethods } from './api';
 export { getBasePath, localizePath, saveLanguage, splitLanguage } from './i18n';
-export { errorRoute, layoutRoute, pageRoute, type RouteInfo, setI18n, setOutlets } from './outlet';
+export { setI18n } from './navigation';
+export { setOutlets } from './outlet';
+export { errorRoute, layoutRoute, pageRoute, type RouteInfo } from './route';

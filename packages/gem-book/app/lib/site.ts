@@ -4,6 +4,9 @@ import type { Content, LinkItem, SidebarItem, Site } from './types';
 export const getVersion = (path: string) =>
   __GEM_BOOK_CONFIG__.versions.find((version) => path === `/${version}` || path.startsWith(`/${version}/`)) || '';
 
+/** 页面渲染时更新到 `bookStore` 的路径和版本，和页面数据一致 */
+export const getPathState = (path: string) => ({ path, version: getVersion(path) });
+
 /** 页面所在版本的导航和侧边栏 */
 export const getContent = (site: Site, path: string): Content => {
   const version = getVersion(path);

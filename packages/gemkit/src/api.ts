@@ -1,5 +1,6 @@
 import { CLIENT_HEADER, REDIRECT_HEADER } from './constants';
-import { clearClientCache, HttpError, localizeLocation, navigate, type RequestMethod } from './data';
+import { HttpError, localizeLocation, type RequestMethod } from './data';
+import { navigate } from './navigation';
 
 const METHODS = new Set<string>(['GET', 'POST', 'PUT', 'PATCH', 'DELETE'] satisfies RequestMethod[]);
 // 没有请求体，参数作为查询参数
@@ -46,8 +47,7 @@ async function request(method: string, segments: string[], input?: Record<string
   // API 路由没有语言，应用路径跳转到当前页面的语言
   const redirectTo = res.headers.get(REDIRECT_HEADER);
   if (redirectTo) {
-    clearClientCache();
-    navigate(localizeLocation(redirectTo));
+    navigate(localizeLocation(redirectTo), { invalidate: true });
     return new Promise(() => {});
   }
   const isJSON = res.headers.get('content-type')?.includes('application/json');

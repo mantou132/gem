@@ -2,28 +2,30 @@ import { connect, history, titleStore } from '@mantou/gem';
 import { setServerElementLoader } from '@mantou/gem-ssr/client';
 
 import { trimTrailingSlash } from './constants';
-import { type AppClientModule, clientState, loadServerElement, setClientErrorHandler } from './data';
+import { type AppClientModule, loadServerElement, setClientErrorHandler } from './data';
+import { getCommittedTitle, routeStore, startRouter } from './navigation';
 import { startPrefetch } from './prefetch';
 import { formatTitle, type TitleOptions } from './title';
 
 const { path, query, hash } = history.getParams();
 const trimmedPath = trimTrailingSlash(path);
 if (trimmedPath !== path) history.replace({ path: trimmedPath, query, hash });
-
-// 服务端已经输出了标题，避免路由初始化时重置标题
-titleStore({ url: location.href });
+// 路由提交前 outlet 外的元素也能读取
+routeStore({ path: trimmedPath, query });
 
 setServerElementLoader(loadServerElement);
 
 /** 路由渲染之前调用，`appClient` 是 `src/app.client.ts` 的导出 */
 export function startClient(options: TitleOptions, { handleError }: AppClientModule = {}) {
   setClientErrorHandler(handleError);
-  // 导航后加载的 chunk 可能已经被重新部署删除
+  // 导航到没有标题的历史记录时 gem 会清空标题，加载期间保持显示中的页面的标题，提交时再更新
   connect(history.store, () => {
-    clientState.navigated = true;
+    const title = getCommittedTitle();
+    if (!titleStore.title && title) titleStore({ title });
   });
   connect(titleStore, () => {
     document.title = formatTitle(titleStore.title, options);
   });
+  startRouter();
   startPrefetch();
 }

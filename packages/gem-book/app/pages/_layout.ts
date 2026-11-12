@@ -13,7 +13,7 @@ import {
   template,
 } from '@mantou/gem';
 import { mediaQuery } from '@mantou/gem/helper/mediaquery';
-import { layout } from '@mantou/gemkit';
+import { layout, routeStore } from '@mantou/gemkit';
 
 import { i18n, localizePath } from '$gemkit/i18n';
 import { icons } from '../lib/icons';
@@ -305,8 +305,8 @@ const style = css`
 
 @layout()
 @adoptedStyle(style)
-// 切换语言的链接和侧边栏使用当前路径
-@connectStore(history.store)
+// 侧边栏等使用已渲染的页面的路径，和页面同时切换，否则新页面加载完成前旧页面会显示在新的布局中
+@connectStore(routeStore)
 export default class RootLayout extends GemElement {
   @property data?: Site;
 
@@ -323,20 +323,18 @@ export default class RootLayout extends GemElement {
     history.push({ path: (evt.target as HTMLSelectElement).value });
   };
 
-  // 在渲染页面中的插件前更新，服务端渲染时也一样
-  @memo((i) => [history.getParams().path, i.data])
-  #updateBookStore = () => {
-    const { path } = history.getParams();
-    bookStore({ lang: i18n.currentLanguage, path, version: getVersion(path), site: this.data });
-  };
+  // 在渲染页面中的插件前更新，服务端渲染时也一样，页面相关的数据由页面更新
+  @memo((i) => [i.data])
+  #updateBookStore = () => bookStore({ lang: i18n.currentLanguage, site: this.data });
 
-  @effect(() => [history.getParams().path])
+  // 新页面显示时关闭菜单
+  @effect(() => [routeStore.path])
   #closeMenu = () => this.#state({ menuOpen: false });
 
   // 导航可能是目录，目录中的页面都高亮
   #renderNav = (cls: string) =>
     this.data &&
-    getContent(this.data, history.getParams().path).nav.map(
+    getContent(this.data, routeStore.path).nav.map(
       ({ title: navTitle, link }) => html`
         <gem-active-link class=${cls} path=${link} pattern=${link === '/' ? '' : `${link}/*`}>
           ${navTitle}
@@ -352,7 +350,7 @@ export default class RootLayout extends GemElement {
             ${
               children
                 ? html`<details open><summary>${itemTitle}</summary>${this.#renderItems(children)}</details>`
-                : html`<gem-link class=${classMap({ link: true, current: link === history.getParams().path })} path=${link}>
+                : html`<gem-link class=${classMap({ link: true, current: link === routeStore.path })} path=${link}>
                     ${itemTitle}
                   </gem-link>`
             }
@@ -364,7 +362,7 @@ export default class RootLayout extends GemElement {
 
   #renderActions = () => {
     const { links = [], langs = [], versions = [] } = this.data || {};
-    const version = getVersion(history.getParams().path);
+    const version = getVersion(routeStore.path);
     return html`
       <div class="actions">
         <label v-if=${!!versions.length} class="version" aria-label=${i18n.get('version')}>
@@ -403,7 +401,7 @@ export default class RootLayout extends GemElement {
 
   @template()
   #content = () => {
-    const { path } = history.getParams();
+    const { path } = routeStore;
     const sidebar = this.data ? getSidebar(getContent(this.data, path), path) : [];
     const { menuOpen } = this.#state;
     return html`

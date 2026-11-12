@@ -1,7 +1,8 @@
-import { createStore, history } from '@mantou/gem';
+import { history } from '@mantou/gem';
 import { isolate, isServer } from '@mantou/gem/lib/server';
 
 import { DATA_SCRIPT_ID, ELEMENT_PATH, ELEMENTS_FILE, getDataPath, REDIRECT_HEADER } from './constants';
+import { navigate } from './navigation';
 import type { Params } from './page';
 
 export interface CookieOptions {
@@ -330,7 +331,7 @@ export type RouteData = Record<string, unknown>;
  */
 export type DataFile = (RouteDataFile | { redirect: string }) & { version?: string };
 
-type RouteDataFile = { data: RouteData; error?: RouteError };
+export type RouteDataFile = { data: RouteData; error?: RouteError };
 
 /** 页面中纯服务端元素的 HTML 文件（`__elements.json`）的内容，key 是元素的 key */
 export type ElementsFile = { elements: Record<string, string>; version?: string };
@@ -516,6 +517,9 @@ export function takeSSRData(path: string, tag: string) {
   return { data };
 }
 
+/** 服务端渲染时出错的路由，水合时直接渲染错误页面 */
+export const takeSSRError = (path: string) => (getSSRResult()?.path === path ? ssrResult!.error : undefined);
+
 // 预取的结果在这段时间内有效
 const PREFETCH_TTL = 30_000;
 
@@ -571,78 +575,6 @@ export function cacheHistoryData(key: string, tag: string, data: unknown) {
 /** 页面路径（不包含语言前缀）对应的数据文件 URL */
 const getFileUrl = (path: string, search: string, file?: string) => history.basePath + getDataPath(path, file) + search;
 
-/** 路由的 `key`，改变时重新渲染所有路由 */
-export const outletStore = createStore({ key: 0 });
-
-/**
- * 客户端导航状态，从开始加载 layout 或页面到页面加载完成（或者渲染错误页面），
- * 包括提交表单和 `invalidate()` 后的重新加载，用来显示进度条等
- *
- * @example
- * ```ts
- * @connectStore(navigationStore)
- * class MyLayoutElement extends GemElement {
- *   @template()
- *   #content = () => html`<progress v-if=${navigationStore.pending}></progress><gemkit-outlet></gemkit-outlet>`;
- * }
- * ```
- */
-export const navigationStore = createStore({ pending: false });
-
-/**
- * 客户端在提交表单或者 `invalidate()` 后需要重新加载数据，layout 不再复用数据，加载页面后重置
- *
- * `error` 是需要渲染错误页面的路由，例如 action 出错，`path` 是出错的页面路径
- */
-export const clientState: {
-  invalidated: boolean;
-  error?: RouteError & { path: string };
-  /** 已经在客户端导航过，之后加载的 chunk 可能已经被重新部署删除 */
-  navigated?: boolean;
-} = { invalidated: false };
-
-/**
- * 路由在加载前就确定的错误，渲染错误页面：服务端是 `handle` 和 action 的错误，
- * 客户端是服务端渲染时的错误（水合时）和 action 的错误，只使用一次
- */
-export function takeRouteError(path: string, tag: string) {
-  let err: RouteError | undefined;
-  if (isServer) {
-    err = requestState.error;
-  } else if (clientState.error?.path === path) {
-    err = clientState.error;
-  } else if (getSSRResult()?.path === path) {
-    err = ssrResult!.error;
-  }
-  if (err?.tag !== tag) return;
-  if (!isServer) {
-    delete clientState.error;
-    if (ssrResult) delete ssrResult.error;
-  }
-  return new HttpError(err.status, err.message);
-}
-
-/** 客户端跳转到 `href`，语言（`basePath`）不同时重新加载页面，和当前地址相同时重新渲染路由 */
-export function navigate(href: string, replace = false) {
-  const { origin, pathname, search, hash } = new URL(href, location.href);
-  const { basePath } = history;
-  if (origin !== location.origin || (basePath && pathname !== basePath && !pathname.startsWith(`${basePath}/`))) {
-    location.assign(href);
-    return;
-  }
-  const path = pathname.slice(basePath.length) || '/';
-  const current = history.getParams();
-  // `QueryString` 的字符串包含 `?`，统一成 `URLSearchParams` 再比较
-  if (path === current.path && String(new URLSearchParams(search)) === String(new URLSearchParams(current.query))) {
-    outletStore({ key: outletStore.key + 1 });
-  } else {
-    history[replace ? 'replace' : 'push']({ path, query: search, hash });
-  }
-}
-
-// 同一次导航中 layout 和页面共用一个数据请求，再次使用时重新请求
-let dataRequest: { url: string; promise: Promise<RouteDataFile>; taken: Set<string> } | undefined;
-
 /** 获取页面的数据文件，静态托管时没有预渲染的页面没有数据文件，和没有匹配的路由一样是 404 */
 export async function fetchData(url: string, path: string): Promise<RouteDataFile> {
   const res = await fetch(url);
@@ -661,25 +593,14 @@ export function prefetchServerData(path: string, search: string) {
   prefetchRequest(url, () => fetchData(url, path));
 }
 
-/** 加载 `*.server.ts` 的数据，客户端导航时通过数据文件获取 */
-export async function loadServerData(tag: string, params: Params) {
-  if (isServer) return runServerLoad(tag, params);
-  const { path } = history.getParams();
-  const url = getFileUrl(path, location.search);
-  if (dataRequest?.url !== url || dataRequest.taken.has(tag)) {
-    const promise = (takePrefetched<RouteDataFile>(url) || fetchData(url, path)).catch((err) => {
-      // 替换当前导航，中断当前路由的渲染，layout 和页面共用请求，只跳转一次
-      if (err instanceof Redirect) navigate(err.location, true);
-      // 不能使用新版本的数据渲染旧的页面
-      if (err instanceof Outdated) return reload();
-      throw err;
-    });
-    dataRequest = { url, promise, taken: new Set() };
-  }
-  dataRequest.taken.add(tag);
-  const { data, error } = await dataRequest.promise;
-  if (error?.tag === tag) throw new HttpError(error.status, error.message);
-  return data[tag];
+/** 客户端导航时获取页面的服务端数据，优先使用预取的请求 */
+export function fetchServerData(path: string, search: string) {
+  const url = getFileUrl(path, search);
+  return (takePrefetched<RouteDataFile>(url) || fetchData(url, path)).catch((err) => {
+    // 不能使用新版本的数据渲染旧的页面
+    if (err instanceof Outdated) return reload();
+    throw err;
+  });
 }
 
 /** 纯服务端元素的标签名、attribute 和 property */
@@ -709,7 +630,7 @@ function renderElement(url: string, element: ServerElementParams) {
       // `handle` 中的跳转，例如没有登录
       const redirectTo = res.headers.get(REDIRECT_HEADER);
       if (redirectTo) {
-        navigate(redirectTo, true);
+        navigate(redirectTo, { replace: true });
         throw new Redirect(302, redirectTo);
       }
       const { html, version }: ElementsResult = await res.json();
@@ -782,44 +703,10 @@ export async function loadServerElement(
   return html;
 }
 
-/** 预取的结果和历史缓存都不再使用，layout 也重新加载数据，例如修改数据或者登录后 */
+/** 预取的结果和历史缓存都不再使用，例如修改数据或者登录后 */
 export function clearClientCache() {
-  clientState.invalidated = true;
   prefetched.clear();
   historyCache.clear();
-}
-
-// `invalidate()` 和 `submitAction()` 等待导航的页面渲染
-let navigation: PromiseWithResolvers<void> | undefined;
-
-/** 页面（或者错误页面）渲染后调用，没有错误页面时用加载的错误 reject */
-export function settleNavigation(err?: unknown) {
-  if (err) navigation?.reject(err);
-  else navigation?.resolve();
-  navigation = undefined;
-}
-
-/** 客户端导航到 `href`，页面渲染后 resolve */
-function navigateAndWait(href: string, replace?: boolean) {
-  navigation ||= Promise.withResolvers();
-  const { promise } = navigation;
-  navigate(href, replace);
-  return promise;
-}
-
-/**
- * 重新加载当前页面和 layout 的数据，不刷新页面，页面元素会被复用，例如调用 API 修改数据后，
- * 预取的结果和历史缓存都不再使用，页面渲染后 resolve，没有错误页面时加载出错 reject
- *
- * @example
- * ```ts
- * await apis.api.likes(slug).POST({ count: 1 });
- * await invalidate();
- * ```
- */
-export function invalidate() {
-  clearClientCache();
-  return navigateAndWait(location.href, true);
 }
 
 /** `actions` 的结果，出错时渲染错误页面 */
@@ -827,82 +714,6 @@ export type ActionResult =
   | { type: 'success'; data: unknown }
   | { type: 'redirect'; location: string }
   | { type: 'error'; error: RouteError };
-
-/**
- * 不刷新页面提交表单到 `actions`，提交的地址是表单（或者 `submitter`）的 `action`，例如 `?/login`
- *
- * 跳转时客户端导航，出错时渲染错误页面，否则重新加载当前页面的数据，页面渲染后返回 action 的返回值，
- * 请求期间表单有 `aria-busy` 属性，例如 `form[aria-busy] button { opacity: 0.5 }`
- *
- * @example
- * ```ts
- * html`<form method="post" action="?/login" @submit=${this.#submit}></form>`;
- *
- * #submit = async (evt: SubmitEvent) => {
- *   evt.preventDefault();
- *   this.#state({ errors: await submitAction(evt.target as HTMLFormElement, evt.submitter) });
- * };
- * ```
- */
-export async function submitAction(form: HTMLFormElement, submitter?: HTMLElement | null) {
-  const action = submitter?.getAttribute('formaction') ? (submitter as HTMLButtonElement).formAction : form.action;
-  form.ariaBusy = 'true';
-  const res = await fetch(action, {
-    method: 'POST',
-    headers: { accept: 'application/json' },
-    body: new FormData(form, submitter),
-  }).finally(() => (form.ariaBusy = null));
-  if (!res.ok) throw new Error(`gemkit: failed to submit \`${action}\``);
-  const result: ActionResult = await res.json();
-  // 提交后 cookie 等状态可能改变，之前的数据都不能再使用
-  clearClientCache();
-  if (result.type === 'redirect') {
-    await navigateAndWait(result.location);
-    return;
-  }
-  if (result.type === 'error') clientState.error = { ...result.error, path: history.getParams().path };
-  await navigateAndWait(location.href, true);
-  return result.type === 'success' ? result.data : undefined;
-}
-
-/** `formActions` 的 action，参数是提交后的回调，返回值作为表单的剩余属性 */
-export type FormActions<A> = {
-  [K in keyof A & string]: (
-    callback?: (
-      data: (A[K] extends (...args: any) => infer R ? Awaited<R> : never) | undefined,
-      form: HTMLFormElement,
-    ) => void,
-  ) => { method: 'post'; action: string; onsubmit: (evt: SubmitEvent) => void };
-};
-
-/**
- * 使用 `*.server.ts` 中 `actions` 的类型，得到表单的剩余属性，提交时调用 `submitAction`，
- * 回调的参数是 action 的结果（跳转或者出错时是 `undefined`）和表单
- *
- * @example
- * ```ts
- * import type { actions } from './login.server';
- *
- * const { login } = formActions<typeof actions>();
- *
- * html`<form ${login((data) => this.#state({ errors: data?.errors }))}></form>`;
- * ```
- */
-export function formActions<A>() {
-  return new Proxy({} as FormActions<A>, {
-    get: (_, name: string) => (callback?: (data: unknown, form: HTMLFormElement) => void) => ({
-      method: 'post',
-      action: `?/${name}`,
-      onsubmit: async (evt: SubmitEvent) => {
-        evt.preventDefault();
-        const form = evt.target as HTMLFormElement;
-        // 不能写成 `callback?.(await submitAction(...))`，没有回调时参数不会执行
-        const data = await submitAction(form, evt.submitter);
-        callback?.(data, form);
-      },
-    }),
-  });
-}
 
 let revalidateHandler: ((pathname: string) => unknown) | undefined;
 

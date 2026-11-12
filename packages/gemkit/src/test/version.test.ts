@@ -9,8 +9,9 @@ import { server } from '@mantou/gem-ssr/decorators';
 import { ELEMENT_PATH } from '../constants';
 import { fetchData, isOutdated, type ServerModule } from '../data';
 import { prerenderPage } from '../handler';
-import { pageRoute, setOutlets } from '../outlet';
+import { setOutlets } from '../outlet';
 import { page } from '../page';
+import { pageRoute } from '../route';
 import { createRenderer } from '../server';
 
 @customElement('app-server-version')

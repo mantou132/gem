@@ -1,7 +1,8 @@
-import { adoptedStyle, css, GemElement, html, memo, property, template } from '@mantou/gem';
+import { adoptedStyle, css, GemElement, history, html, memo, property, template } from '@mantou/gem';
 import { type ErrorData, type Params, page } from '@mantou/gemkit';
 
 import { i18n } from '$gemkit/i18n';
+import { getPathState } from '../lib/site';
 import { primaryTextColor, theme } from '../lib/theme';
 import { bookStore } from '../plugin';
 
@@ -36,7 +37,7 @@ export default class ErrorPage extends GemElement {
   @property data?: ErrorData;
 
   @memo((i) => [i.data])
-  #updateBookStore = () => bookStore({ doc: undefined });
+  #updateBookStore = () => bookStore({ ...getPathState(history.getParams().path), doc: undefined });
 
   @template()
   #content = () => {

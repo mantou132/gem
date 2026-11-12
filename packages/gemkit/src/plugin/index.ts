@@ -123,6 +123,8 @@ const AUTO_IMPORT_MEMBERS = {
     'submitAction',
     'formActions',
     'invalidate',
+    'routeStore',
+    'navigationStore',
     'endpoint',
     'revalidatePath',
     'getRequestEvent',

@@ -14,8 +14,9 @@ import { createHandler as createCloudflareHandler } from '../adapters/cloudflare
 import { ELEMENT_PATH } from '../constants';
 import { getRequestEvent, type ServerModule } from '../data';
 import { prerenderPage } from '../handler';
-import { pageRoute, setOutlets } from '../outlet';
+import { setOutlets } from '../outlet';
 import { page } from '../page';
+import { pageRoute } from '../route';
 import { createRenderer } from '../server';
 
 declare module '../data' {

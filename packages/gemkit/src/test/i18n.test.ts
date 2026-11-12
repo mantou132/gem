@@ -8,8 +8,9 @@ import { I18n } from '@mantou/gem/helper/i18n';
 
 import type { ServerModule } from '../data';
 import { localizePath, matchLanguage, parseAcceptLanguage, splitLanguage } from '../i18n';
-import { pageRoute, setOutlets } from '../outlet';
+import { setOutlets } from '../outlet';
 import { page } from '../page';
+import { pageRoute } from '../route';
 import { createRenderer } from '../server';
 
 @page('Home')

@@ -101,6 +101,26 @@ export default class RootLayout extends GemElement {
 
 数据已经缓存时加载很快，可以延迟一段时间再显示进度条，避免闪烁。
 
+导航时路径匹配的所有布局和页面并行加载，全部完成后在同一轮中替换，加载期间一直显示原来的布局和页面；
+出错时在最外层出错的位置渲染错误页面。
+
+### 当前路由
+
+导航开始时 `history` 就已经更新，布局根据它渲染侧边栏等内容时，加载期间会和原来的页面不一致。
+`routeStore` 是当前显示的路由，和布局、页面一起更新：
+
+```ts
+@layout()
+@connectStore(routeStore)
+export default class RootLayout extends GemElement {
+  @template()
+  #content = () => html`
+    <aside v-if=${routeStore.path !== '/'}>...</aside>
+    <gemkit-outlet></gemkit-outlet>
+  `;
+}
+```
+
 ## 根布局和 `<gemkit-outlet>`
 
 根布局是可选的。没有根布局时页面直接渲染在根 outlet 中。有根布局时先渲染布局模板，
@@ -127,5 +147,7 @@ export default class RootLayout extends GemElement {
 }
 ```
 
-添加 `transition` 属性后，切换这个 `<gemkit-outlet>` 中的子布局或者页面时使用
-[视图过渡](https://developer.mozilla.org/docs/Web/API/View_Transition_API)。
+添加 `transition` 属性后，导航中这个 `<gemkit-outlet>` 的内容重新渲染时使用
+[视图过渡](https://developer.mozilla.org/docs/Web/API/View_Transition_API)。一次导航只有一个过渡，
+旧的画面是原来的整个页面，新的画面是所有布局和页面渲染后的，布局中根据 `routeStore` 渲染的内容也包括在内。
+只想让部分元素产生动画时，使用 CSS 的 `view-transition-name`。

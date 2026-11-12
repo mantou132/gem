@@ -38,8 +38,9 @@ import {
 } from '../data';
 import { createFetchHandler, prerenderPage } from '../handler';
 import { createFsStore, createRequestHandler } from '../node';
-import { errorRoute, pageRoute, setOutlets } from '../outlet';
+import { setOutlets } from '../outlet';
 import { type Params, page } from '../page';
+import { errorRoute, pageRoute } from '../route';
 import { createRenderer } from '../server';
 
 declare module '../data' {

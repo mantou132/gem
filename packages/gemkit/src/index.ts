@@ -11,14 +11,10 @@ export {
   type ErrorData,
   endpoint,
   error,
-  type FormActions,
-  formActions,
   getRequestEvent,
   type Handle,
   HttpError,
-  invalidate,
   type Locals,
-  navigationStore,
   notFound,
   type Platform,
   type PlatformContext,
@@ -32,9 +28,16 @@ export {
   type ServerLoadContext,
   type ServerModule,
   type StandardSchemaV1,
-  submitAction,
 } from './data';
 export type { Meta } from './meta';
+export {
+  type FormActions,
+  formActions,
+  invalidate,
+  navigationStore,
+  routeStore,
+  submitAction,
+} from './navigation';
 export {
   type LayoutOptions,
   type LoadContext,
