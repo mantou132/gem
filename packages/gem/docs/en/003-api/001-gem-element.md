@@ -119,6 +119,7 @@ These lifecycle methods remain for backward compatibility, but are deprecated an
 | `render`      | Mount lit-html template to DOM                                                  |
 | `directive`   | Custom lit-html template rendering directive                                    |
 | `repeat`      | Optimize lit-html list rendering directive                                      |
+| `keyed`       | Recreate the content when the key changes, even with the same template          |
 
 > [!NOTE]
 > Import from `@mantou/gem/lib/reactive` when you do not need the Lit template engine. If a component needs Lit-backed templates, use `@mantou/gem/lib/element` instead.

@@ -19,6 +19,8 @@ export const ssrContext = {
   stateElements: new WeakSet<GemElement>(),
   // 刚恢复了 SSR 状态的元素，首轮副作用执行完后移除
   restoredElements: new WeakSet<GemElement>(),
+  // 渲染期间等待的异步内容，例如 gemkit 加载路由，完成后输出元素当时的内容，不输出状态，在元素挂载前设置
+  waits: new WeakMap<GemElement, Promise<unknown>>(),
 };
 
 /** `server`：纯服务端元素，`lazy`：延时视图，`client`：纯客户端元素 */

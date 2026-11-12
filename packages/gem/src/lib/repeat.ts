@@ -571,7 +571,7 @@ export interface RepeatDirectiveFn {
  * If no `keyFn` is provided, this directive will perform similar to mapping
  * items to values, and DOM will be reused against potentially different items.
  */
-export const repeat = directive(RepeatDirective) as RepeatDirectiveFn;
+export const repeat = /*#__PURE__*/ directive(RepeatDirective) as RepeatDirectiveFn;
 
 /**
  * The type of the class that powers this directive. Necessary for naming the

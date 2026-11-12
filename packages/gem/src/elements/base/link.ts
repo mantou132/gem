@@ -13,11 +13,11 @@ import {
   template,
 } from '../../lib/decorators';
 import { css, GemElement, html } from '../../lib/element';
-import { basePathStore, history } from '../../lib/history';
+import type { RouteOptions } from '../../lib/history';
+import { basePathStore, createHistoryParams, createPath, history, matchPath } from '../../lib/history';
 import { isServer } from '../../lib/server';
 import { absoluteLocation } from '../../lib/utils';
-import type { RouteItem, RouteOptions } from './route';
-import { createHistoryParams, createPath, matchPath } from './route';
+import type { RouteItem } from './route';
 
 function isExternal(path: string) {
   return !path.startsWith('/');

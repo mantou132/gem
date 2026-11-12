@@ -12,6 +12,14 @@
   "esm.sh": {
     "bundle": false
   },
+  "sideEffects": [
+    "./index.js",
+    "./lib/element.js",
+    "./elements/*.js",
+    "./helper/hmr.js",
+    "./helper/ssr-shim.js",
+    "./dist/*"
+  ],
   "main": "index.js",
   "module": "index.js",
   "exports": {

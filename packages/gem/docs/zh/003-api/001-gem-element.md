@@ -119,6 +119,7 @@ Gem 提供了不同的导入入口，可以按需选择使用层级：
 | `render`      | 挂载 lit-html 模版到 DOM                    |
 | `directive`   | 自定义 lit-html 模版渲染指令                |
 | `repeat`      | 优化 lit-html 列表渲染指令                  |
+| `keyed`       | key 改变时重新创建内容，即使模版相同        |
 
 > [!NOTE]
 > 不需要 Lit 模板引擎时，可从 `@mantou/gem/lib/reactive` 导入响应式能力；需要 Lit 模板时请使用 `@mantou/gem/lib/element`。

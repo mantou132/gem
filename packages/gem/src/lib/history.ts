@@ -309,3 +309,99 @@ if (!globalThis._GEMHISTORY) {
 const { history, titleStore, basePathStore } = globalThis._GEMHISTORY;
 
 export { basePathStore, history, titleStore };
+
+type Params = Record<string, string>;
+type Matcher = (path: string) => Params | null | undefined;
+
+const UNNAMED_PARAM_PREFIX = '_';
+
+// 不支持 `URLPattern` 时转换成正则
+// '/test/:a' /^\/test\/(?<a>[^/]+)$/
+// '/test/:a/b' /^\/test\/(?<a>[^/]+)\/b$/
+// '/test/*' /^\/test\/(?<_0>.*)$/
+// '/test/:a/*' /^\/test\/(?<a>[^/]+)\/(?<_0>.*)$/
+// '/test/*/:b' /^\/test\/(?<_0>.*)\/(?<b>[^/]+)$/
+function createRegExpMatcher(pattern: string): Matcher {
+  let i = 0;
+  const source = pattern.replace(/:[^/$]+|\*/g, (name) =>
+    name === '*' ? `(?<${UNNAMED_PARAM_PREFIX}${i++}>.*)` : `(?<${name.slice(1)}>[^/]+)`,
+  );
+  const reg = new RegExp(`^${source}$`);
+  return (path) => {
+    const result = path.match(reg);
+    if (!result) return null;
+    const params: Params = {};
+    for (const key in result.groups) {
+      params[key.startsWith(UNNAMED_PARAM_PREFIX) ? key.slice(1) : key] = result.groups[key];
+    }
+    return params;
+  };
+}
+
+// pattern 开头不含参数和特殊字符的部分
+const LITERAL_PREFIX = /^[\w\-./~]*/;
+
+// `URLPattern` 的创建和 `exec` 都比较慢，不含参数时直接比较，否则先检查固定的开头
+function createMatcher(pattern: string): Matcher {
+  const literal = LITERAL_PREFIX.exec(pattern)![0];
+  if (literal === pattern) return (path) => (path === pattern ? {} : null);
+  // 根 layout 的 pattern
+  if (pattern === '*') return (path) => ({ 0: path });
+  if (!globalThis.URLPattern) return createRegExpMatcher(pattern);
+  const urlPattern = new URLPattern({ pathname: pattern });
+  // 参数前的 `/` 可能是可选的，例如 `/a/:b?` 匹配 `/a`
+  const prefix = literal.replace(/\/$/, '');
+  return (path) =>
+    path.startsWith(prefix) ? (urlPattern.exec({ pathname: path })?.pathname.groups as Params | undefined) : null;
+}
+
+// pattern 来自路由定义，数量有限
+const matchers = new Map<string, Matcher>();
+
+/**
+ * - 大小写敏感
+ * - 匹配成功时返回 params
+ * - 以 `/` 结尾时能不带 `/` 结尾的路径
+ * - `*` 匹配到的 params 名称为数字
+ *
+ * @example
+ * ```js
+ * matchPath(`/a/b/:c/:d`,`/a/b/1/2`);
+ * matchPath(`/a/b/:c/:d`,`/a/b/1/2/`);
+ * matchPath(`/a/b/*`,`/a/b/1/2/`);
+ * ```
+ */
+export function matchPath(pattern: string, path: string) {
+  let match = matchers.get(pattern);
+  if (!match) matchers.set(pattern, (match = createMatcher(pattern)));
+  return match(path) || match(`${path}/`) || null;
+}
+
+// params 中的成员不会验证
+export interface RouteOptions extends Omit<UpdateHistoryParams, 'path'> {
+  params?: Record<string, string>;
+}
+
+// 从路由创建路径
+// 不包含 basePath
+export function createPath(route: { pattern: string }, options?: RouteOptions) {
+  // /a/* /a/:0
+  // /a/*/:b/* /a/:0/:b/:1
+  let i = 0;
+  let path = route.pattern.replaceAll('*', () => `:${i++}`);
+  const params = options?.params;
+  if (params) {
+    Object.keys(params).forEach((key) => {
+      path = path.replace(new RegExp(`:${key}`, 'g'), params[key]);
+    });
+  }
+  return path;
+}
+
+export function createHistoryParams(route: { pattern: string }, options?: RouteOptions): UpdateHistoryParams {
+  const path = createPath(route, options);
+  return {
+    path,
+    ...options,
+  };
+}

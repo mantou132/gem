@@ -19,6 +19,7 @@ import {
   V_IF,
 } from './constants';
 import { getServerElementKey, getServerElementKind, SSR_STATE, ssrContext } from './decorators';
+import { childPartInfo, resolveDirective } from './directive';
 import { getTemplateDigest } from './hash';
 import { type BoundAttr, compile, type OpenOp } from './lib/compile';
 import { runInRequest, setLocation } from './lib/shim';
@@ -74,23 +75,7 @@ type Context = {
   hydrating?: boolean;
 };
 
-type DirectiveResult = {
-  _$litDirective$: new (partInfo: object) => { render(...values: unknown[]): unknown };
-  values: unknown[];
-};
-
 const Ref = createRef().constructor;
-
-const isDirectiveResult = (value: unknown): value is DirectiveResult =>
-  !!value && typeof value === 'object' && '_$litDirective$' in value;
-
-function resolveDirective(value: unknown, partInfo: object): unknown {
-  if (!isDirectiveResult(value)) return value;
-  const directive = new value._$litDirective$(partInfo);
-  return resolveDirective(directive.render(...value.values), partInfo);
-}
-
-const childPartInfo = { type: 2 };
 
 function renderValue(value: unknown, ctx: Context) {
   value = resolveDirective(value, childPartInfo);
@@ -266,9 +251,9 @@ function createElement(Element: CustomElementConstructor, op: OpenOp, values: un
   // 纯服务端元素不会水合，不需要输出状态
   if (tasks && !frame.pure) ssrContext.stateElements.add(element);
   // 服务端不执行副作用，所以手动加载路由
-  const route = element instanceof GemLightRouteElement ? loadRoute(element) : undefined;
+  const wait = element instanceof GemLightRouteElement ? loadRoute(element) : ssrContext.waits.get(element);
   const serverTasks = tasks && Promise.all(tasks.map((fn) => fn())).catch((err) => handleTaskError(element, err));
-  if (serverTasks || route) frame.task = Promise.all([serverTasks, route]);
+  if (serverTasks || wait) frame.task = Promise.all([serverTasks, wait]);
   return frame;
 }
 

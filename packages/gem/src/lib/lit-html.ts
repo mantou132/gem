@@ -167,9 +167,9 @@ const tag =
     return new TemplateResult(type, strings, values);
   };
 
-export const html = tag(HTML_RESULT);
-export const svg = tag(SVG_RESULT);
-export const mathml = tag(MATHML_RESULT);
+export const html = /*#__PURE__*/ tag(HTML_RESULT);
+export const svg = /*#__PURE__*/ tag(SVG_RESULT);
+export const mathml = /*#__PURE__*/ tag(MATHML_RESULT);
 
 // for directive
 export const noChange = Symbol.for('lit-noChange');

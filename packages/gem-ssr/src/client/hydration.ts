@@ -1,6 +1,7 @@
 import { ChildPart, ConditionChain, ElementPart, TemplateInstance, TemplateResult } from '@mantou/gem/lib/lit-html';
 
 import { LIT_PART_END, LIT_PART_START_RE, SSR_HIDDEN, SSR_PROPS, SSR_STYLE, V_ELSE_IF, V_IF } from '../constants';
+import { childPartInfo, resolveDirective } from '../directive';
 import { getTemplateDigest } from '../hash';
 
 // 根标记和列表项的首尾标记，开始标记后面可能有模板的摘要（`#digest`）
@@ -183,6 +184,8 @@ function clearMismatch(part: ChildPart, value: TemplateResult, reason: Hydration
 
 // 根据 SSR 内容预先设置 `_$committedValue`，后面渲染时就会复用现有节点
 function hydrateChildPart(part: ChildPart, value: unknown, indexedNode: IndexedNode) {
+  // 和服务端渲染时一样使用指令 `render` 的结果
+  value = resolveDirective(value, childPartInfo);
   if (value instanceof TemplateResult) {
     // 服务端和客户端渲染的模板不一致（例如依赖了浏览器环境，或者服务端输出了 `@fallback` 的内容），
     // 移除服务端的内容，由客户端渲染
