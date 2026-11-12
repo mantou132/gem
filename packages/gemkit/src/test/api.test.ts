@@ -7,7 +7,7 @@ import { history } from '@mantou/gem';
 
 import { createApi, type EndpointMethods } from '../api';
 import { CLIENT_HEADER, REDIRECT_HEADER } from '../constants';
-import { HttpError } from '../data';
+import { HttpError } from '../error';
 import { formActions } from '../navigation';
 
 test('createApi: 属性是路径，调用是参数，请求方法发送请求', async ({ assert, mock }) => {

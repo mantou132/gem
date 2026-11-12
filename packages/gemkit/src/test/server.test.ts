@@ -23,27 +23,17 @@ import { getServerElementKey, server } from '@mantou/gem-ssr/decorators';
 
 import { createHandler as createCloudflareHandler } from '../adapters/cloudflare/runtime';
 import { CLIENT_HEADER, DATA_SCRIPT_ID, REDIRECT_HEADER } from '../constants';
-import {
-  type EndpointModule,
-  type ErrorData,
-  endpoint,
-  error,
-  getRequestEvent,
-  localizeLocation,
-  notFound,
-  redirect,
-  revalidatePath,
-  type ServerModule,
-  type StandardSchemaV1,
-} from '../data';
+import { type ErrorData, error, localizeLocation, notFound, redirect } from '../error';
 import { createFetchHandler, prerenderPage } from '../handler';
 import { createFsStore, createRequestHandler } from '../node';
 import { setOutlets } from '../outlet';
 import { type Params, page } from '../page';
+import { endpoint, getRequestEvent, revalidatePath } from '../request';
 import { errorRoute, pageRoute } from '../route';
 import { createRenderer } from '../server';
+import type { EndpointModule, ServerModule, StandardSchemaV1 } from '../types';
 
-declare module '../data' {
+declare module '../types' {
   interface Locals {
     user?: string;
   }

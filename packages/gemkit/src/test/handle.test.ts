@@ -5,13 +5,15 @@ import test from 'node:test';
 
 import { GemElement, html, template } from '@mantou/gem';
 
-import { type ErrorData, error, getRequestEvent, type Handle, type ServerModule } from '../data';
+import { type ErrorData, error } from '../error';
 import { prerenderPage } from '../handler';
 import { createRequestHandler } from '../node';
 import { setOutlets } from '../outlet';
 import { page } from '../page';
+import { getRequestEvent } from '../request';
 import { errorRoute, pageRoute } from '../route';
 import { createRenderer } from '../server';
+import type { Handle, ServerModule } from '../types';
 
 @page('Home')
 class HomePage extends GemElement {

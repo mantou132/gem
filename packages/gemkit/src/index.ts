@@ -1,34 +1,7 @@
 // 供 `@server()`/`@lazy()` 的编译产物使用，编译时从导入装饰器的模块中导入，不需要直接调用
 export { client, defineLazy, GemServerElement, lazy, server } from '@mantou/gem-ssr/decorators';
 
-export {
-  type ActionResult,
-  type AppClientModule,
-  type AppServerModule,
-  type CookieOptions,
-  type Cookies,
-  type EndpointModule,
-  type ErrorData,
-  endpoint,
-  error,
-  getRequestEvent,
-  type Handle,
-  HttpError,
-  type Locals,
-  notFound,
-  type Platform,
-  type PlatformContext,
-  type PlatformEnv,
-  type RequestEvent,
-  type RequestHandler,
-  type RequestMethod,
-  redirect,
-  revalidatePath,
-  type SchemaIssue,
-  type ServerLoadContext,
-  type ServerModule,
-  type StandardSchemaV1,
-} from './data';
+export { type ErrorData, error, HttpError, notFound, redirect } from './error';
 export type { Meta } from './meta';
 export {
   type FormActions,
@@ -47,4 +20,25 @@ export {
   page,
   type RouteContext,
 } from './page';
+export { endpoint, getRequestEvent, revalidatePath } from './request';
 export { formatTitle, type TitleOptions } from './title';
+export type {
+  ActionResult,
+  AppClientModule,
+  AppServerModule,
+  CookieOptions,
+  Cookies,
+  EndpointModule,
+  Handle,
+  Locals,
+  Platform,
+  PlatformContext,
+  PlatformEnv,
+  RequestEvent,
+  RequestHandler,
+  RequestMethod,
+  SchemaIssue,
+  ServerLoadContext,
+  ServerModule,
+  StandardSchemaV1,
+} from './types';

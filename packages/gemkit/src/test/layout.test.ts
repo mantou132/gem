@@ -5,11 +5,12 @@ import test from 'node:test';
 
 import { GemElement, html, template } from '@mantou/gem';
 
-import { error, redirect, type ServerModule } from '../data';
+import { error, redirect } from '../error';
 import { setOutlets } from '../outlet';
 import { layout, page } from '../page';
 import { layoutRoute, pageRoute } from '../route';
 import { createRenderer } from '../server';
+import type { ServerModule } from '../types';
 
 @layout()
 class RootLayout extends GemElement {

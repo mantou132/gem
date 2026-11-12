@@ -5,13 +5,15 @@ import test from 'node:test';
 
 import { GemElement, html, template } from '@mantou/gem';
 
-import { type ErrorData, error, fetchData, HttpError, type ServerModule } from '../data';
+import { fetchData } from '../cache';
+import { type ErrorData, error, HttpError } from '../error';
 import { prerenderPage } from '../handler';
 import { createRequestHandler } from '../node';
 import { setOutlets } from '../outlet';
 import { layout, page } from '../page';
 import { errorRoute, layoutRoute, pageRoute } from '../route';
 import { createRenderer } from '../server';
+import type { ServerModule } from '../types';
 
 @layout({ meta: { description: 'Site description', 'og:site_name': 'Site' } })
 class RootLayout extends GemElement {

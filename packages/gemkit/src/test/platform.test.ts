@@ -12,14 +12,15 @@ import { server } from '@mantou/gem-ssr/decorators';
 import { cloudflare } from '../adapters/cloudflare';
 import { createHandler as createCloudflareHandler } from '../adapters/cloudflare/runtime';
 import { ELEMENT_PATH } from '../constants';
-import { getRequestEvent, type ServerModule } from '../data';
 import { prerenderPage } from '../handler';
 import { setOutlets } from '../outlet';
 import { page } from '../page';
+import { getRequestEvent } from '../request';
 import { pageRoute } from '../route';
 import { createRenderer } from '../server';
+import type { ServerModule } from '../types';
 
-declare module '../data' {
+declare module '../types' {
   interface PlatformEnv {
     GREETING?: string;
   }

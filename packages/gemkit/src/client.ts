@@ -2,10 +2,12 @@ import { connect, history, titleStore } from '@mantou/gem';
 import { setServerElementLoader } from '@mantou/gem-ssr/client';
 
 import { trimTrailingSlash } from './constants';
-import { type AppClientModule, loadServerElement, setClientErrorHandler } from './data';
+import { loadServerElement } from './elements';
 import { getCommittedTitle, routeStore, startRouter } from './navigation';
 import { startPrefetch } from './prefetch';
+import { setClientErrorHandler } from './request';
 import { formatTitle, type TitleOptions } from './title';
+import type { AppClientModule } from './types';
 
 const { path, query, hash } = history.getParams();
 const trimmedPath = trimTrailingSlash(path);

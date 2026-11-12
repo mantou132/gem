@@ -1,8 +1,9 @@
 import { history } from '@mantou/gem';
 import { GemLinkElement } from '@mantou/gem/elements/link';
 
+import { prefetchServerData } from './cache';
 import { trimTrailingSlash } from './constants';
-import { prefetchElements, prefetchServerData } from './data';
+import { prefetchElements } from './elements';
 import { needServerData } from './navigation';
 import { matchRoutes } from './route';
 

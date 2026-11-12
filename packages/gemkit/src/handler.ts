@@ -9,8 +9,8 @@ import {
   HTML_TYPE,
   trimTrailingSlash,
 } from './constants';
-import type { DataFile, ElementsFile, Platform, PlatformContext, PlatformEnv } from './data';
 import type { Renderer } from './server';
+import type { DataFile, ElementsFile, Platform, PlatformContext, PlatformEnv } from './types';
 
 /** 服务端构建创建的渲染器，自定义适配器的 `createHandler` 原样传给 `createFetchHandler`，不要使用它的成员 */
 export type { Renderer };

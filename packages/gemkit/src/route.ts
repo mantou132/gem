@@ -1,7 +1,7 @@
 import { matchPath, type TemplateResult } from '@mantou/gem';
 import type { RouteItem } from '@mantou/gem/elements/base/route';
 
-import type { ErrorData } from './data';
+import type { ErrorData } from './error';
 import type { Params } from './page';
 
 type ElementModule = { default: CustomElementConstructor };

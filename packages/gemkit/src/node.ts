@@ -10,7 +10,6 @@ import { serve as serveNode } from '@hono/node-server';
 import { getMimeType } from 'hono/utils/mime';
 
 import { trimTrailingSlash } from './constants';
-import type { Platform } from './data';
 import {
   createFetchHandler,
   createNodePlatform,
@@ -20,6 +19,7 @@ import {
   isQueryRequest,
 } from './handler';
 import type { Renderer } from './server';
+import type { Platform } from './types';
 
 export type { IsrStore };
 

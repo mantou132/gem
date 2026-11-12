@@ -6,13 +6,14 @@ import test from 'node:test';
 import { customElement, GemElement, html, template } from '@mantou/gem';
 import { server } from '@mantou/gem-ssr/decorators';
 
+import { fetchData, isOutdated } from '../cache';
 import { ELEMENT_PATH } from '../constants';
-import { fetchData, isOutdated, type ServerModule } from '../data';
 import { prerenderPage } from '../handler';
 import { setOutlets } from '../outlet';
 import { page } from '../page';
 import { pageRoute } from '../route';
 import { createRenderer } from '../server';
+import type { ServerModule } from '../types';
 
 @customElement('app-server-version')
 @server()

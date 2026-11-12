@@ -1,6 +1,7 @@
 import { CLIENT_HEADER, REDIRECT_HEADER } from './constants';
-import { HttpError, localizeLocation, type RequestMethod } from './data';
+import { HttpError, localizeLocation } from './error';
 import { navigate } from './navigation';
+import type { RequestMethod } from './types';
 
 const METHODS = new Set<string>(['GET', 'POST', 'PUT', 'PATCH', 'DELETE'] satisfies RequestMethod[]);
 // 没有请求体，参数作为查询参数

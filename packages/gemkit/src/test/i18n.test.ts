@@ -6,12 +6,12 @@ import test from 'node:test';
 import { GemElement, html, template } from '@mantou/gem';
 import { I18n } from '@mantou/gem/helper/i18n';
 
-import type { ServerModule } from '../data';
 import { localizePath, matchLanguage, parseAcceptLanguage, splitLanguage } from '../i18n';
 import { setOutlets } from '../outlet';
 import { page } from '../page';
 import { pageRoute } from '../route';
 import { createRenderer } from '../server';
+import type { ServerModule } from '../types';
 
 @page('Home')
 class HomePage extends GemElement {

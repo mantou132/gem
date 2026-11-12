@@ -1,6 +1,6 @@
 import { parse, serialize } from 'hono/utils/cookie';
 
-import type { Cookies } from './data';
+import type { Cookies } from './types';
 
 /** 读取请求的 cookie，修改的 cookie 输出到 `setCookies` */
 export function createCookies(request: Request) {

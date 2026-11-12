@@ -58,17 +58,17 @@ flowchart TB
 
 ## 生态
 
-| 项目 | 描述 |
-| --- | --- |
-| [Gem](packages/gem) | 核心响应式 Web Components 框架 |
-| [GemKit](packages/gemkit) | 基于 Rsbuild 的应用框架：文件路由、布局、服务端数据、表单 actions、API 路由、i18n、SSR 和 SSG |
-| [gem-ssr](packages/gem-ssr) | 服务端渲染与水合 |
-| [gem-port](packages/gem-port) | 为 Gem 元素生成 React、Vue 和 Svelte 包装组件 |
-| [Duoyun UI](packages/duoyun-ui) · [Tap UI](packages/tap-ui) | 使用 Gem 构建的桌面端和移动优先 UI 库 |
-| [DevTools](packages/gem-devtools) · [Analyzer](packages/gem-analyzer) | 调试与组件分析 |
-| [TypeScript 插件](packages/ts-gem-plugin) · [LSP](packages/ts-gem-lsp) | TypeScript 语言支持 |
-| [unplugin-gem](packages/unplugin-gem) · [swc-plugin-gem](crates/swc-plugin-gem) | 构建插件，支持 Vite/Webpack/Rollup/esbuild/Rspack/Rolldown 和 SWC |
-| [Zed](crates/zed-plugin-gem) · [VS Code](packages/vscode-gem-plugin) | 编辑器扩展 |
+| 项目                                                                            | 描述                                                                                          |
+| ------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------- |
+| [Gem](packages/gem)                                                             | 核心响应式 Web Components 框架                                                                |
+| [GemKit](packages/gemkit)                                                       | 基于 Rsbuild 的应用框架：文件路由、布局、服务端数据、表单 actions、API 路由、i18n、SSR 和 SSG |
+| [gem-ssr](packages/gem-ssr)                                                     | 服务端渲染与水合                                                                              |
+| [gem-port](packages/gem-port)                                                   | 为 Gem 元素生成 React、Vue 和 Svelte 包装组件                                                 |
+| [Duoyun UI](packages/duoyun-ui) · [Tap UI](packages/tap-ui)                     | 使用 Gem 构建的桌面端和移动优先 UI 库                                                         |
+| [DevTools](packages/gem-devtools) · [Analyzer](packages/gem-analyzer)           | 调试与组件分析                                                                                |
+| [TypeScript 插件](packages/ts-gem-plugin) · [LSP](packages/ts-gem-lsp)          | TypeScript 语言支持                                                                           |
+| [unplugin-gem](packages/unplugin-gem) · [swc-plugin-gem](crates/swc-plugin-gem) | 构建插件，支持 Vite/Webpack/Rollup/esbuild/Rspack/Rolldown 和 SWC                             |
+| [Zed](crates/zed-plugin-gem) · [VS Code](packages/vscode-gem-plugin)            | 编辑器扩展                                                                                    |
 
 [路线图](https://mm.tt/app/map/3412316197?t=TGs84FRcwQ)。
 
