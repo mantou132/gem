@@ -327,7 +327,9 @@ export function pluginGemkit(options: GemkitOptions = {}): RsbuildPlugin {
         });
       });
 
-      api.onAfterBuild(async () => {
+      api.onAfterBuild(async ({ stats }) => {
+        // 构建失败时产物不完整，继续处理会抛出其他错误，掩盖构建错误
+        if (stats?.hasErrors()) return;
         const { webDir, serverDir, cacheDir, template } = getDistPaths(distDir);
         // 项目可能是 ESM 包，服务端产物是 CommonJS
         fs.writeFileSync(path.join(serverDir, 'package.json'), '{ "type": "commonjs" }\n');
