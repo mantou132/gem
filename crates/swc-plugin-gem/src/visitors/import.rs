@@ -1,5 +1,5 @@
 use std::{
-    collections::HashMap,
+    collections::{HashMap, HashSet},
     env, fs,
     path::{Component, Path, PathBuf},
     time::{SystemTime, UNIX_EPOCH},
@@ -29,6 +29,16 @@ static CUSTOM_ELEMENT_REGEX: Lazy<Regex> =
 pub enum MemberOrMemberAs {
     Member(String),
     MemberAs([String; 2]),
+}
+
+impl MemberOrMemberAs {
+    /// 导入后的名称
+    fn name(&self) -> &str {
+        match self {
+            MemberOrMemberAs::Member(name) => name,
+            MemberOrMemberAs::MemberAs([_, member_as]) => member_as,
+        }
+    }
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -159,7 +169,9 @@ impl TransformVisitor {
             .duration_since(UNIX_EPOCH)
             .map_or(0, |d| d.as_nanos());
         let tmp = path.with_extension(format!("ts.{nanos}.tmp"));
-        if let Err(err) = fs::write(&tmp, import_list.join("\n")).and_then(|_| fs::rename(&tmp, &path)) {
+        if let Err(err) =
+            fs::write(&tmp, import_list.join("\n")).and_then(|_| fs::rename(&tmp, &path))
+        {
             let _ = fs::remove_file(&tmp);
             tracing::warn!("create dts error: {err}");
         }
@@ -435,13 +447,32 @@ fn get_config_content(config: AutoImport) -> AutoImportContent {
         AutoImport::CustomContent(content) => {
             let chain = merge_content(content, vec![]);
 
-            let mut elements = IndexMap::default();
-            let mut members = HashMap::default();
+            let mut elements: IndexMap<String, IndexMap<String, String>> = IndexMap::default();
+            let mut members: HashMap<String, Vec<MemberOrMemberAs>> = HashMap::default();
+            let mut defined_members = HashSet::new();
             let mut exclude_member_files = Vec::new();
             let mut exclude_element_files = Vec::new();
+            // 用户配置在前，同名的元素和成员优先使用用户配置，元素按顺序匹配，所以也排在前面
             for lv in chain {
-                elements.extend(lv.elements.unwrap_or_default());
-                members.extend(lv.members.unwrap_or_default());
+                for (package, tags) in lv.elements.unwrap_or_default() {
+                    let map = elements.entry(package).or_default();
+                    for (tag, path) in tags {
+                        map.entry(tag).or_insert(path);
+                    }
+                }
+                let lv_members = lv.members.unwrap_or_default();
+                let names: Vec<String> = lv_members
+                    .values()
+                    .flatten()
+                    .map(|m| m.name().to_string())
+                    .collect();
+                for (package, list) in lv_members {
+                    members.entry(package).or_default().extend(
+                        list.into_iter()
+                            .filter(|m| !defined_members.contains(m.name())),
+                    );
+                }
+                defined_members.extend(names);
                 if let Some(em) = lv.exclude_member_files {
                     exclude_member_files.extend(em);
                 }
@@ -578,7 +609,7 @@ mod tests {
                     .unwrap()
                     .keys()
             ),
-            r#"["dy-pat-*", "dy-light-route", "dy-active-link", "dy-tab-panel", "dy-sort-(item|handle)", "dy-(input|form|avatar|radio|checkbox|collapse|more|popover|tree|selection-box)-*", "dy-*"]"#
+            r#"["dy-pat-*", "dy-light-route", "dy-active-link", "dy-tab-panel", "dy-input-capture", "dy-sort-(item|handle)", "dy-(input|form|avatar|radio|checkbox|collapse|more|popover|tree|selection-box)-*", "dy-*"]"#
         )
     }
 
@@ -596,7 +627,7 @@ mod tests {
                 .unwrap()
                 .keys()
             ),
-            r#"["dy-pat-*", "dy-light-route", "dy-active-link", "dy-tab-panel", "dy-sort-(item|handle)", "dy-(input|form|avatar|radio|checkbox|collapse|more|popover|tree|selection-box)-*", "dy-*"]"#
+            r#"["dy-pat-*", "dy-light-route", "dy-active-link", "dy-tab-panel", "dy-input-capture", "dy-sort-(item|handle)", "dy-(input|form|avatar|radio|checkbox|collapse|more|popover|tree|selection-box)-*", "dy-*"]"#
         )
     }
 
@@ -611,6 +642,8 @@ mod tests {
             ("dy-popover-ghost", "duoyun-ui/elements/popover"),
             ("dy-tree-item", "duoyun-ui/elements/tree"),
             ("dy-tab-panel", "duoyun-ui/elements/tabs"),
+            ("dy-input-capture", "duoyun-ui/elements/input-capture"),
+            ("dy-input-group", "duoyun-ui/elements/input"),
         ] {
             let pair = config
                 .tag_config
@@ -619,6 +652,37 @@ mod tests {
                 .unwrap();
             assert_eq!(pair.regex.replace(tag, &pair.path), path);
         }
+    }
+
+    #[test]
+    fn should_prefer_user_config() {
+        let config = get_config(AutoImport::CustomContent(
+            serde_json::from_str::<AutoImportContent>(
+                r#"{
+                "extends": "gem",
+                "members": { "my-lib": ["html", ["myCss", "css"]] },
+                "elements": { "duoyun-ui": { "dy-foo": "/elements/bar" } }
+            }"#,
+            )
+            .unwrap(),
+        ));
+
+        assert_eq!(config.member_map["html"], (None, "my-lib".into()));
+        assert_eq!(
+            config.member_map["css"],
+            (Some("myCss".into()), "my-lib".into())
+        );
+        assert!(config.member_map.contains_key("svg"));
+
+        let pair = config
+            .tag_config
+            .iter()
+            .find(|pair| pair.regex.is_match("dy-foo"))
+            .unwrap();
+        assert_eq!(
+            pair.regex.replace("dy-foo", &pair.path),
+            "duoyun-ui/elements/bar"
+        );
     }
 
     #[test]

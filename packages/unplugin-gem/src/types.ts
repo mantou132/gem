@@ -4,9 +4,16 @@
 export type AutoImportConfig =
   | boolean
   | {
-      extends?: 'gem';
-      members?: Record<string, string[]>;
+      /** `gem` or a JSON config path; the current config takes precedence */
+      extends?: 'gem' | (string & {});
+      /** Package -> member names or `[member, localName]` */
+      members?: Record<string, Array<string | [string, string]>>;
+      /** Package -> { tag pattern: path }, matched in order, e.g. `{ 'duoyun-ui': { 'dy-*': '/elements/*' } }` */
       elements?: Record<string, Record<string, string>>;
+      /** Files (name, path suffix or glob) where members are not auto imported */
+      excludeMemberFiles?: string[];
+      /** Files (name, path suffix or glob) where elements are not auto imported, e.g. files defining same-named elements */
+      excludeElementFiles?: string[];
     };
 
 /**
