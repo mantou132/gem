@@ -135,6 +135,9 @@ Gemkit 在 `.gemkit` 中生成：
 }
 ```
 
+它包含项目根目录中的所有文件（`include` 为 `../**/*`），项目可以用自己的 `include` 覆盖。
+`paths` 相对于 `.gemkit` 目录，项目设置 `baseUrl` 后会以 `baseUrl` 为准而失效，这时需要在项目中重新设置 `paths`。
+
 `rsbuild dev` 和 `rsbuild build` 启动时生成，只做类型检查时运行 `gemkit sync`，不需要构建。
 模板的 `prepare` 脚本在安装依赖后运行它，`check` 脚本先运行它再执行 `tsc`。
 

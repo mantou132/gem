@@ -399,7 +399,8 @@ function generateEntries(
   writeIfChanged(
     path.join(genDir, 'tsconfig.json'),
     // 通过 `files` 包含声明文件，不依赖项目的 `include`（`.` 开头的目录不会被通配符匹配）
-    // `auto-import.d.ts` 由 unplugin-gem 生成
+    // `auto-import.d.ts` 由 unplugin-gem 生成；
+    // 有 `files` 时 `include` 默认为空，所以设置成项目根目录，和没有 `files` 时 TypeScript 的默认值一致
     `${JSON.stringify(
       {
         compilerOptions: {
@@ -409,6 +410,7 @@ function generateEntries(
           },
         },
         files: ['./env.d.ts', './auto-import.d.ts'],
+        include: ['../**/*'],
       },
       null,
       2,

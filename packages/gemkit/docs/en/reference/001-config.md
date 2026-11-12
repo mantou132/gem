@@ -142,6 +142,10 @@ Gemkit generates into `.gemkit`:
 }
 ```
 
+It includes every file in the project root (`include` is `../**/*`); the project can override it with its own
+`include`. Its `paths` are relative to the `.gemkit` directory. If the project sets `baseUrl`, they are resolved
+from `baseUrl` instead and break, so redefine `paths` in the project.
+
 They are generated when `rsbuild dev` and `rsbuild build` start. To only type check, run `gemkit sync`, no build
 is needed. The starter's `prepare` script runs it after installing dependencies, and its `check` script runs it
 before `tsc`.

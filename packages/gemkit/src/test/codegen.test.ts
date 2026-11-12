@@ -176,6 +176,7 @@ test('generate: 生成路由和入口文件', ({ assert }) => {
       paths: { '$gemkit/i18n': ['./i18n.ts'], '$gemkit/api': ['./api.ts'], 'src/*': ['../src/*'] },
     },
     files: ['./env.d.ts', './auto-import.d.ts'],
+    include: ['../**/*'],
   });
 });
 
