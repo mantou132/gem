@@ -86,7 +86,8 @@ pluginGemkit({ adapter: cloudflare() });
 ```
 
 When unset, builds on Vercel and Netlify are detected from the environment variables they set, and
-`cloudflare()` is used in Cloudflare Workers Builds or when the project root has a Wrangler config. Otherwise,
+`cloudflare()` is used in Cloudflare Workers Builds or when the `main` of the Wrangler config in the project root is
+`dist/cloudflare/index.js`. Otherwise,
 or when `false`, Node.js is used (`gemkit start` or static hosting). Development always uses Node.js.
 
 ### `gem`

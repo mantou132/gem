@@ -79,8 +79,8 @@ import { cloudflare, pluginGemkit } from '@mantou/gemkit/plugin';
 pluginGemkit({ adapter: cloudflare() });
 ```
 
-没有设置时，在 Vercel、Netlify 上构建时根据它们设置的环境变量识别，Cloudflare Workers Builds 中或者项目根目录有
-Wrangler 配置时使用 `cloudflare()`。都没有或者为 `false` 时使用 Node.js（`gemkit start` 或者静态托管）。
+没有设置时，在 Vercel、Netlify 上构建时根据它们设置的环境变量识别，Cloudflare Workers Builds 中或者项目根目录的
+Wrangler 配置的 `main` 是 `dist/cloudflare/index.js` 时使用 `cloudflare()`。都没有或者为 `false` 时使用 Node.js（`gemkit start` 或者静态托管）。
 开发时总是使用 Node.js。
 
 ### `gem`
