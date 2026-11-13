@@ -31,24 +31,45 @@ import './use';
 const panelStyle = css`
   :host(:where(:not([hidden]))) {
     display: block;
-    border-block-start: 1px solid ${theme.borderColor};
+    position: relative;
+  }
+  :host(:not(:last-of-type))::after {
+    content: '';
+    position: absolute;
+    inset-inline-start: 1em;
+    inset-inline-end: 0;
+    inset-block-end: 0;
+    border-block-end: ${theme.hairline} solid ${theme.separatorColor};
+    pointer-events: none;
   }
   .summary {
     cursor: pointer;
     display: flex;
     align-items: center;
-    gap: 0.5em;
-    padding: 1em;
-    background: ${theme.lightBackgroundColor};
+    gap: 0.75em;
+    min-height: 3.5em;
+    padding: 0.75em 1em;
+    box-sizing: border-box;
+    font-size: 1.0625em;
+    line-height: 1.4;
+    color: ${theme.highlightColor};
+  }
+  .summary:active {
+    background: ${theme.hoverBackgroundColor};
   }
   .title {
+    flex: 1;
+    min-width: 0;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
   }
   .icon {
-    width: 1.2em;
+    order: 1;
+    width: 1.25em;
     flex-shrink: 0;
+    color: ${theme.describeColor};
+    opacity: 0.55;
     transition: transform 0.3s;
   }
   .icon.expand {
@@ -57,15 +78,14 @@ const panelStyle = css`
   .detail {
     height: 0;
     padding: 0 1em;
-    border-block-start: 0px solid ${theme.borderColor};
     overflow: hidden;
     box-sizing: border-box;
     line-height: 1.5;
+    color: ${theme.describeColor};
   }
   .detail.expand {
     height: auto;
-    padding-block: 1em;
-    border-width: 1px;
+    padding-block-end: 1em;
   }
 `;
 
@@ -93,7 +113,7 @@ export class TapCollapsePanelElement extends GemElement {
     const { value: element } = this.#contentRef;
     if (!element) return;
     const { height } = element.getBoundingClientRect();
-    const frames = [{ height: 0, paddingBlock: 0, borderWidth: 0 }, { height: `${height}px` }];
+    const frames = [{ height: 0, paddingBlock: 0 }, { height: `${height}px` }];
     if (isCollapse) frames.reverse();
     return element.animate(frames, commonAnimationOptions).finished;
   };
@@ -144,12 +164,10 @@ const style = css`
   :scope:where(:not([hidden])) {
     display: block;
     overflow: hidden;
-    border-radius: ${theme.normalRound};
-    border: 1px solid ${theme.borderColor};
+    border-radius: calc(${theme.normalRound} * 3);
+    background: ${theme.backgroundColor};
+    color: ${theme.textColor};
     overflow-anchor: none;
-  }
-  :scope :state(collapse-panel):first-child {
-    border-block-start: none;
   }
 `;
 

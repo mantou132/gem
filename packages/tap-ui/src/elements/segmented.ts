@@ -22,8 +22,11 @@ import './use';
 const getAnchorName = (index: number) => `--anchor-${index}`;
 
 const style = css`
+  /* 等宽分段：撑满时平分宽度，未撑满时按最宽的标签决定宽度 */
   :host(:where(:not([hidden]))) {
-    display: flex;
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(0, 1fr);
     cursor: default;
     font-size: 0.875em;
     line-height: 1.2;
@@ -46,14 +49,12 @@ const style = css`
   }
   .segment {
     z-index: 0;
-    width: 0;
-    flex-grow: 1;
     display: flex;
     justify-content: center;
     gap: 0.3em;
     padding: calc(0.5em - var(--padding) + 1px) 1em;
     border-radius: var(--inner-radius);
-    min-width: 4em;
+    min-width: 0;
   }
   :host(:where(:not([disabled], :state(animating)))) .segment:hover {
     background: color-mix(in srgb, ${theme.hoverBackgroundColor}, currentColor 6%);
@@ -89,7 +90,6 @@ const style = css`
     }
     .marker {
       display: block;
-      transition: inset 0.3s ${theme.timingFunction};
       border-radius: var(--inner-radius);
       position: absolute;
       inset: anchor(top) anchor(right) anchor(bottom) anchor(left);
@@ -97,6 +97,10 @@ const style = css`
     }
     :host(:not([disabled])) .marker {
       box-shadow: ${theme.controlShadow};
+    }
+    /* 只在点击切换时动画，避免首次渲染（锚点定位完成前）也执行动画 */
+    :host(:state(animating)) .marker {
+      transition: inset 0.3s ${theme.timingFunction};
     }
   }
 `;

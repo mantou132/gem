@@ -129,7 +129,7 @@ const style = css`
   .close {
     position: absolute;
     right: calc((${elementTheme.targetW} - ${elementTheme.width}) * (1 - ${elementTheme.progress}) + 1rem);
-    top: 1rem;
+    top: calc(1rem + ${SAFE_AREA_INSET.top} * ${elementTheme.progress});
     background: ${theme.backgroundColor};
     border-radius: 1e9px;
     padding: 0.4em;

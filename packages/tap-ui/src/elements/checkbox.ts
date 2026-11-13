@@ -142,19 +142,21 @@ export class TapCheckboxGroupElement extends GemElement {
     if (!this.options) return null;
     return html`
       <div class=${groupStyle.heading} v-if=${!!this.heading}>${this.heading}</div>
-      ${this.options.map(
-        ({ label, value, disabled, description }) => html`
-          <tap-checkbox
-            class=${groupStyle.item}
-            ?disabled=${this.disabled || disabled}
-            ?checked=${this.#valueSet.has(value ?? label)}
-            @change=${(evt: CustomEvent<boolean>) => this.#onChange(evt, value ?? label)}
-          >
-            <span class=${groupStyle.label}>${label}</span>
-            <span v-if=${!!description} class=${groupStyle.description}>${description}</span>
-          </tap-checkbox>
-        `,
-      )}
+      <div class=${groupStyle.body}>
+        ${this.options.map(
+          ({ label, value, disabled, description }) => html`
+            <tap-checkbox
+              class=${groupStyle.item}
+              ?disabled=${this.disabled || disabled}
+              ?checked=${this.#valueSet.has(value ?? label)}
+              @change=${(evt: CustomEvent<boolean>) => this.#onChange(evt, value ?? label)}
+            >
+              <span class=${groupStyle.label}>${label}</span>
+              <span v-if=${!!description} class=${groupStyle.description}>${description}</span>
+            </tap-checkbox>
+          `,
+        )}
+      </div>
     `;
   };
 }

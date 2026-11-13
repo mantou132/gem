@@ -34,11 +34,11 @@ const style = css`
     justify-content: space-around;
     width: 100%;
     box-sizing: border-box;
-    padding-block: 0.4em;
-    padding-block-end: calc(0.4em + var(--safe-area-inset-bottom, env(safe-area-inset-bottom, 0px)));
+    /* The home indicator area already leaves room below the labels, so no extra padding there */
+    padding-block: 0 max(0.25em, var(--safe-area-inset-bottom, env(safe-area-inset-bottom, 0px)));
     background: color-mix(in srgb, ${theme.backgroundColor} 75%, transparent);
     backdrop-filter: blur(16px);
-    border-block-start: 1px solid ${theme.borderColor};
+    border-block-start: ${theme.hairline} solid ${theme.separatorColor};
     color: ${theme.describeColor};
   }
   .item {
@@ -49,7 +49,10 @@ const style = css`
     justify-content: center;
     gap: 0.2em;
     min-width: 0;
-    padding: 0.2em 0.4em;
+    /* 49px, iOS tab bar height */
+    min-height: 3.0625em;
+    box-sizing: border-box;
+    padding: 0.25em 0.4em;
     border: none;
     background: transparent;
     color: inherit;

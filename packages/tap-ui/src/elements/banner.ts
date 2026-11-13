@@ -24,7 +24,7 @@ const style = css`
   :host(:where(:not([hidden]))) {
     display: flex;
     align-items: flex-start;
-    background: ${theme.neutralColor};
+    background: ${theme.neutralColor700};
     color: #fff;
     padding: 0.8em;
     line-height: 1.5;
@@ -46,7 +46,8 @@ const style = css`
     width: 1.5em;
   }
   .content {
-    flex-grow: 1;
+    flex: 1;
+    min-width: 0;
   }
   .action {
     color: inherit;

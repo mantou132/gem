@@ -53,7 +53,7 @@ const style = css`
   :host(:where(:not([hidden]))) {
     font-size: 0.875em;
     inline-size: 15em;
-    block-size: calc(2.2em + 2px);
+    block-size: 2.5rem;
     position: relative;
     display: inline-flex;
     align-items: center;

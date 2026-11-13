@@ -24,10 +24,16 @@ export const lightTheme = {
   highlightColor: '#000', // title, etc
   textColor: '#4b4b4b',
   describeColor: '#6e6e6e',
+  /**Surface of cards, cells, list rows, navbar and pages */
   backgroundColor: '#fff',
+  /**Subtle fill set apart from `backgroundColor`, e.g. placeholder, collapse panel, searchbar */
   lightBackgroundColor: '#fafafa',
   hoverBackgroundColor: '#ededed',
+  /**Outline of controls, e.g. input, select, stepper */
   borderColor: '#e1e1e1',
+  /**Divider lines, e.g. navbar, tabbar, list rows; drawn with `hairline` width */
+  separatorColor: 'rgba(60, 60, 67, 0.29)',
+  /**Fill of disabled controls */
   disabledColor: '#eaeaea',
   maskAlpha: '0.2',
   controlShadow: 'none',
@@ -42,6 +48,8 @@ export const lightTheme = {
   focusColor: '#2680eb',
   // https://developer.mozilla.org/en-US/docs/Web/CSS/corner-shape
   cornerShape: 'superellipse(5)',
+  /**Width of divider lines, one physical pixel on 2x/3x screens */
+  hairline: '0.5px',
   normalRound: '4px',
   smallRound: '2px',
   gridGutter: '24px',
@@ -64,16 +72,32 @@ export const darkTheme: Partial<typeof lightTheme> = {
   primaryColor: '#26c0e3',
   highlightColor: '#efefef',
   textColor: '#c8c8c8',
-  describeColor: '#616161',
+  describeColor: '#8e8e8e',
   backgroundColor: '#1a1a1a',
   lightBackgroundColor: '#1e1e1e',
   hoverBackgroundColor: '#2f2f2f',
   borderColor: '#313131',
-  disabledColor: '#5b5b5b',
+  separatorColor: 'rgba(84, 84, 88, 0.6)',
+  disabledColor: '#3a3a3a',
   maskAlpha: '0.4',
 };
 
-export const theme = createTheme({ ...lightTheme });
+/**
+ * Follows the page's `color-scheme` (e.g. `html { color-scheme: light dark }`) via `light-dark()`,
+ * default theme, so values not passed to `extendTheme` also adapt
+ */
+export const systemTheme = {
+  ...lightTheme,
+  ...Object.fromEntries(
+    Object.entries(darkTheme)
+      // 相同的值保持原样，便于派生色 `oklch(from ...)` 使用
+      .filter(([key, value]) => key.endsWith('Color') && value !== lightTheme[key as keyof typeof lightTheme])
+      .map(([key, value]) => [key, `light-dark(${lightTheme[key as keyof typeof lightTheme]}, ${value})`]),
+  ),
+  colorScheme: 'light dark',
+};
+
+export const theme = createTheme({ ...systemTheme });
 export const themeStore = getThemeStore(theme);
 
 export function extendTheme<T extends Record<string, string>>(t: Partial<typeof lightTheme> & T) {

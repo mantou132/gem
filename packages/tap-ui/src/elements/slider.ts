@@ -38,10 +38,15 @@ const style = css`
     display: inline-flex;
     align-items: center;
     gap: 1em;
-    block-size: calc(2.2em + 2px);
+    block-size: 2.5rem;
     border-radius: ${theme.normalRound};
     box-sizing: border-box;
     padding-inline: 2px;
+  }
+  /* 标签行占据高度，滑杆仍与同一行其他控件对齐 */
+  :host([label]:not([orientation='vertical'])) {
+    block-size: calc(2.5rem + 1em);
+    padding-block-start: 1em;
   }
   :host([orientation='vertical']) {
     writing-mode: vertical-lr;

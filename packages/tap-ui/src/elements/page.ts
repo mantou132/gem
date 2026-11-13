@@ -100,15 +100,25 @@ const style = css`
     --page-inset-bottom: calc(var(--outer-inset-bottom) + var(--footer-height));
     position: absolute;
     inset: 0;
-    padding-block: var(--page-inset-top) var(--page-inset-bottom);
+    padding-block-start: var(--page-inset-top);
     scroll-padding-block: var(--page-inset-top) var(--page-inset-bottom);
+  }
+  /* A spacer instead of padding-block-end: iOS WebKit leaves that padding out of the scroll range here,
+     so the end of the content would stay under the footer */
+  .main::after {
+    content: '';
+    display: block;
+    height: var(--page-inset-bottom);
   }
   :host([floatheader]) .main {
     --page-inset-top: var(--outer-inset-top);
   }
   /* Enabled once fullscreen toggles, so the first measurement does not slide the content */
   .main.animate-insets {
-    transition: padding-block 350ms ${theme.timingFunction};
+    transition: padding-block-start 350ms ${theme.timingFunction};
+  }
+  .main.animate-insets::after {
+    transition: height 350ms ${theme.timingFunction};
   }
   /* Content already runs under the bars, so moving them away is enough */
   :host(:is(:state(dim), :state(fullscreen))) .header {
@@ -239,7 +249,7 @@ export class TapPageElement extends TapVisibleBaseElement {
     if (mainEl) {
       const mainRect = mainEl.getBoundingClientRect();
       const paddingTop = parseFloat(getComputedStyle(mainEl).paddingTop);
-      const paddingBottom = parseFloat(getComputedStyle(mainEl).paddingBottom);
+      const spacer = parseFloat(getComputedStyle(mainEl, '::after').height) || 0;
       const mainElements = [...this.children].filter((el) => !el.slot && el instanceof HTMLElement) as HTMLElement[];
       let maxBottom = 0;
       for (const el of mainElements) {
@@ -251,7 +261,7 @@ export class TapPageElement extends TapVisibleBaseElement {
       if (maxBottom > 0) {
         main = maxBottom - mainRect.top - paddingTop + mainEl.scrollTop;
       } else {
-        main = mainEl.scrollHeight - paddingTop - paddingBottom;
+        main = mainEl.scrollHeight - paddingTop - spacer;
       }
     }
     return Math.ceil(header + footer + main);

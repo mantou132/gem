@@ -56,7 +56,7 @@ const style = css`
     font-size: 0.75em;
     line-height: 1.3;
     text-align: center;
-    border-block-end: 1px solid ${theme.borderColor};
+    border-block-end: ${theme.hairline} solid ${theme.separatorColor};
   }
   .grid .group-label {
     padding-block-end: 0;
@@ -78,7 +78,7 @@ const style = css`
     box-sizing: border-box;
     padding: 0.75em 1.25em;
     border: 0;
-    border-block-start: 1px solid ${theme.borderColor};
+    border-block-start: ${theme.hairline} solid ${theme.separatorColor};
     background: transparent;
     color: ${theme.primaryColor};
     font: inherit;
