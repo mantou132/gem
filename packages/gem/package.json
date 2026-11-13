@@ -1,6 +1,6 @@
 {
   "name": "@mantou/gem",
-  "version": "2.3.2",
+  "version": "2.3.3",
   "description": "💎 Build reusable custom elements and web apps on Web Components",
   "keywords": [
     "frontend",

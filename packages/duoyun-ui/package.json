@@ -1,6 +1,6 @@
 {
   "name": "duoyun-ui",
-  "version": "2.3.2",
+  "version": "2.3.3",
   "description": "A lightweight desktop UI component library, implemented using Gem",
   "keywords": [
     "frontend",
@@ -46,7 +46,7 @@
     "prepublishOnly": "pnpm build && pnpm build:components"
   },
   "dependencies": {
-    "@mantou/tap-ui": "^0.2.2",
+    "@mantou/tap-ui": "^0.2.3",
     "deep-query-selector": "^1.0.1"
   },
   "peerDependencies": {

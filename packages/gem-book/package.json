@@ -1,6 +1,6 @@
 {
   "name": "gem-book",
-  "version": "2.3.2",
+  "version": "2.3.3",
   "description": "Build documentation websites from Markdown, with SSR/SSG powered by gemkit",
   "type": "module",
   "keywords": [
@@ -34,12 +34,12 @@
     "build:website": "node ./cli/index.ts build docs"
   },
   "dependencies": {
-    "@mantou/gem": "^2.3.2",
-    "@mantou/gemkit": "^0.2.1",
+    "@mantou/gem": "^2.3.3",
+    "@mantou/gemkit": "^0.2.2",
     "@rsbuild/core": "^2.0.15",
     "commander": "^14.0.3",
     "front-matter": "^4.0.2",
-    "gem-analyzer": "^2.3.2",
+    "gem-analyzer": "^2.3.3",
     "highlight.js": "^11.12.0",
     "marked": "^10.0.0",
     "tsrs": "^0.18.0-ts7.1.0-dev.20260929",

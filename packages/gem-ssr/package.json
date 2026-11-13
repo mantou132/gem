@@ -1,6 +1,6 @@
 {
   "name": "@mantou/gem-ssr",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "Server-side rendering and hydration for Gem elements",
   "keywords": [
     "gem",
@@ -21,7 +21,7 @@
     "example:watch": "nodemon --watch src -e .ts --exec \"pnpm run example\""
   },
   "dependencies": {
-    "@mantou/gem": "^2.3.2"
+    "@mantou/gem": "^2.3.3"
   },
   "devDependencies": {
     "@gemjs/config": "^2.1.4",

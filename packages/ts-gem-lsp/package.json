@@ -1,6 +1,6 @@
 {
   "name": "ts-gem-lsp",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "TypeScript 7 language server proxy for Gem",
   "keywords": [
     "gem",
@@ -24,7 +24,7 @@
   },
   "devDependencies": {
     "@gemjs/config": "^2.1.4",
-    "@mantou/gem": "^2.3.2",
+    "@mantou/gem": "^2.3.3",
     "@mantou/vscode-css-languageservice": "^6.3.6",
     "@mantou/vscode-emmet-helper": "^2.11.0",
     "@mantou/vscode-html-languageservice": "^5.3.6",

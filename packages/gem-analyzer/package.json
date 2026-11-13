@@ -1,6 +1,6 @@
 {
   "name": "gem-analyzer",
-  "version": "2.3.2",
+  "version": "2.3.3",
   "description": "gem analyzer",
   "main": "index.js",
   "files": [
@@ -13,7 +13,7 @@
     "prepublishOnly": "pnpm build"
   },
   "dependencies": {
-    "@mantou/gem": "^2.3.2",
+    "@mantou/gem": "^2.3.3",
     "tsrs": "^0.18.0-ts7.1.0-dev.20260929"
   },
   "devDependencies": {
