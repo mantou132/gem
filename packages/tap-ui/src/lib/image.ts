@@ -15,7 +15,8 @@ export function createCanvas(width?: number, height?: number) {
 }
 
 export function createDataURLFromSVG(rawStr: string) {
-  return `data:image/svg+xml;base64,${btoa(rawStr)}`;
+  // `btoa` throws on characters outside Latin-1
+  return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(rawStr)}`;
 }
 
 // if `bg` is't `HexColor`, text fill color error
@@ -90,18 +91,12 @@ export async function createBitmapFromSvg(
   const ctx = canvas.getContext('2d');
   if (!ctx) throw new Error('ctx is null');
   img.src = createDataURLFromSVG(svg);
-  await new Promise((res) => {
-    img.onload = () => {
-      ctx.drawImage(img, 0, 0, width, height);
-      res(null);
-    };
-  });
-  return new Promise<File>((res) => {
+  // Rejects when the SVG can't be loaded
+  await img.decode();
+  ctx.drawImage(img, 0, 0, width, height);
+  return new Promise<File>((res, rej) => {
     canvas.toBlob(
-      (b) => {
-        if (!b) throw new Error();
-        res(new File([b], '', { type: b.type }));
-      },
+      (b) => (b ? res(new File([b], '', { type: b.type })) : rej(new Error('Canvas not encoded'))),
       type,
       quality,
     );
