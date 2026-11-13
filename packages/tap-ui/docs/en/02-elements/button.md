@@ -1,6 +1,6 @@
 # `<tap-button>`
 
-Mobile button component. Supports semantic colors, sizes, reverse/ghost styles, rounded corners, and dropdown actions.
+Mobile button component. Supports semantic colors, sizes, reverse/ghost styles and rounded corners.
 
 ## Example
 

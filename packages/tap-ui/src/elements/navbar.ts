@@ -26,17 +26,17 @@ const style = css`
   :host(:where(:not([hidden]))) {
     display: grid;
     grid-template-columns: minmax(max-content, 1fr) auto minmax(max-content, 1fr);
-    grid-template-rows: 2.5em;
+    /* 44px, iOS navigation bar height */
+    grid-template-rows: 2.75em;
     align-items: center;
     flex-shrink: 0;
     gap: 0.25em;
     padding-inline: 0.25em;
-    padding-block: 0.5em;
-    padding-block-start: calc(0.5em + var(--safe-area-inset-top, env(safe-area-inset-top, 0px)));
+    padding-block: var(--safe-area-inset-top, env(safe-area-inset-top, 0px)) 0;
     box-sizing: border-box;
     background: color-mix(in srgb, ${theme.backgroundColor} 75%, transparent);
     backdrop-filter: blur(16px);
-    border-block-end: 1px solid ${theme.borderColor};
+    border-block-end: ${theme.hairline} solid ${theme.separatorColor};
     color: ${theme.highlightColor};
     transition:
       background 150ms ${theme.timingFunction},

@@ -37,7 +37,7 @@ const style = css`
     border-radius: ${theme.normalRound};
     outline: none;
     overflow: hidden;
-    block-size: calc(2.2em + 2px);
+    block-size: 2.5rem;
     vertical-align: middle;
   }
   :host(:not([disabled])) {

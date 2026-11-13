@@ -103,12 +103,27 @@ const style = css`
     padding-block: var(--page-inset-top) var(--page-inset-bottom);
     scroll-padding-block: var(--page-inset-top) var(--page-inset-bottom);
   }
+  /* The padding sizes the content box to the area between the bars (for \`height: 100%\` children).
+     iOS WebKit may leave a padding that changes after layout (the footer is measured late) out of the
+     scroll range, so the end of the content stays under the footer; this spacer reaches the same end
+     without taking space (its negative margin cancels its height), and its resizing updates the range */
+  .main::after {
+    content: '';
+    display: block;
+    height: var(--page-inset-bottom);
+    margin-block-end: calc(-1 * var(--page-inset-bottom));
+  }
   :host([floatheader]) .main {
     --page-inset-top: var(--outer-inset-top);
   }
   /* Enabled once fullscreen toggles, so the first measurement does not slide the content */
   .main.animate-insets {
     transition: padding-block 350ms ${theme.timingFunction};
+  }
+  .main.animate-insets::after {
+    transition:
+      height 350ms ${theme.timingFunction},
+      margin-block-end 350ms ${theme.timingFunction};
   }
   /* Content already runs under the bars, so moving them away is enough */
   :host(:is(:state(dim), :state(fullscreen))) .header {

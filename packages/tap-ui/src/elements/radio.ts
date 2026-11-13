@@ -94,7 +94,7 @@ export class TapRadioElement extends GemElement {
 }
 
 // 内容可被外部样式化，类名使用生成的唯一名称，避免被外部同名规则意外命中
-// 列表样式由 `tapList` 状态启用，继承的元素可关闭（如 dy-*）
+// 列表样式由 `tapList` 状态启用，继承的元素可关闭（如 dy-*）；`orientation="horizontal"` 时不使用列表样式
 export const groupStyle = css({
   $: `
     display: flex;
@@ -107,7 +107,7 @@ export const groupStyle = css({
       flex-direction: column;
       align-items: flex-start;
     }
-    &:state(tap-list) {
+    &:state(tap-list):not([orientation='horizontal']) {
       display: block;
       width: 100%;
       color: ${theme.textColor};
@@ -117,15 +117,25 @@ export const groupStyle = css({
     }
   `,
   heading: `
-    :state(tap-list) & {
+    :state(tap-list):not([orientation='horizontal']) & {
       padding: 0.75em calc(1.0625em / 0.8125) 0.5em;
       font-size: 0.8125em;
       line-height: 1.3;
       color: ${theme.describeColor};
     }
   `,
+  // 背景放在容器上，禁用项的透明度不会影响背景
+  body: `
+    display: contents;
+    :state(tap-list):not([orientation='horizontal']) & {
+      display: block;
+      overflow: hidden;
+      border-radius: calc(${theme.normalRound} * 3);
+      background: ${theme.backgroundColor};
+    }
+  `,
   item: `
-    :state(tap-list) & {
+    :state(tap-list):not([orientation='horizontal']) & {
       display: flex;
       align-items: center;
       gap: 0.75em;
@@ -137,7 +147,6 @@ export const groupStyle = css({
       font-size: 1.0625em;
       line-height: 1.4;
       color: ${theme.highlightColor};
-      background: ${theme.backgroundColor};
       &:active {
         background: ${theme.hoverBackgroundColor};
       }
@@ -147,20 +156,20 @@ export const groupStyle = css({
         inset-inline-start: calc(1em + 1em + 0.75em);
         inset-inline-end: 0;
         inset-block-end: 0;
-        border-block-end: 1px solid ${theme.borderColor};
+        border-block-end: ${theme.hairline} solid ${theme.separatorColor};
         pointer-events: none;
       }
       &[disabled] {
         cursor: not-allowed;
         opacity: 0.3;
         &:active {
-          background: ${theme.backgroundColor};
+          background: none;
         }
       }
     }
   `,
   label: `
-    :state(tap-list) & {
+    :state(tap-list):not([orientation='horizontal']) & {
       flex: 1;
       min-width: 0;
       overflow: hidden;
@@ -169,7 +178,7 @@ export const groupStyle = css({
     }
   `,
   description: `
-    :state(tap-list) & {
+    :state(tap-list):not([orientation='horizontal']) & {
       font-size: 0.94em;
       color: ${theme.describeColor};
       overflow: hidden;
@@ -209,20 +218,22 @@ export class TapRadioGroupElement extends GemElement {
     if (!this.options) return null;
     return html`
       <div class=${groupStyle.heading} v-if=${!!this.heading}>${this.heading}</div>
-      ${this.options.map(
-        ({ label, value, disabled, description }) => html`
-          <tap-radio
-            class=${groupStyle.item}
-            ?disabled=${this.disabled || disabled}
-            .value=${value ?? label}
-            ?checked=${(value ?? label) === this.value}
-            @change=${this.#onChange}
-          >
-            <span class=${groupStyle.label}>${label}</span>
-            <span v-if=${!!description} class=${groupStyle.description}>${description}</span>
-          </tap-radio>
-        `,
-      )}
+      <div class=${groupStyle.body}>
+        ${this.options.map(
+          ({ label, value, disabled, description }) => html`
+            <tap-radio
+              class=${groupStyle.item}
+              ?disabled=${this.disabled || disabled}
+              .value=${value ?? label}
+              ?checked=${(value ?? label) === this.value}
+              @change=${this.#onChange}
+            >
+              <span class=${groupStyle.label}>${label}</span>
+              <span v-if=${!!description} class=${groupStyle.description}>${description}</span>
+            </tap-radio>
+          `,
+        )}
+      </div>
     `;
   };
 }

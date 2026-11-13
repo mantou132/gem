@@ -47,7 +47,7 @@ const cellStyle = css`
     inset-inline-start: 1em;
     inset-inline-end: 0;
     inset-block-end: 0;
-    border-block-end: 1px solid ${theme.borderColor};
+    border-block-end: ${theme.hairline} solid ${theme.separatorColor};
     pointer-events: none;
   }
   .label {
@@ -156,6 +156,8 @@ const groupStyle = css({
   `,
   body: `
     display: block;
+    overflow: hidden;
+    border-radius: calc(${theme.normalRound} * 3);
     background: ${theme.backgroundColor};
   `,
   footer: `

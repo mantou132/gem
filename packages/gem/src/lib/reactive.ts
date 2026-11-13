@@ -162,7 +162,9 @@ export function css<T extends Record<string, string>>(
 
 const updateRootSheets = ({ counts, update }: RootSheets, sheets: CSSStyleSheet[], value: number) => {
   let needUpdate = false;
-  sheets.forEach((e) => {
+  // 倒序记录，`update` 整体反转后同一元素的样式表保持声明顺序（父类在前，子类在后）
+  // light 元素的样式表按元素类缓存，不会与其他元素共享，所以首次出现时总是成组的
+  sheets.toReversed().forEach((e) => {
     const count = counts.get(e) || 0;
     needUpdate ||= (value === 1 && count === 0) || (value === -1 && count === 1);
     // count 为 0 时不立即删除，以便更新时识别是否外部样式
@@ -181,11 +183,13 @@ const adoptRootStyleSheets = (ele: HTMLElement, sheets: CSSStyleSheet[]) => {
   if (!rootSheets) {
     const counts = new Map<CSSStyleSheet, number>();
     const update = () => {
-      // 先找到外部样式表
-      const newSheets = (root.adoptedStyleSheets || []).filter((e) => !counts.has(e));
-      counts.forEach((count, sheet) => count && newSheets.push(sheet));
+      // 先找到外部样式表，保持其原有顺序
+      const externalSheets = (root.adoptedStyleSheets || []).filter((e) => !counts.has(e));
+      const sheets: CSSStyleSheet[] = [];
+      counts.forEach((count, sheet) => count && sheets.push(sheet));
       // 外层元素的样式要放到最后，以提升优先级，但是只考虑第一次出现样式表的位置
-      root.adoptedStyleSheets = newSheets.reverse();
+      // 同一元素的样式表保持声明顺序，see `updateRootSheets`
+      root.adoptedStyleSheets = [...sheets.reverse(), ...externalSheets];
     };
     rootSheets = { counts, update };
     rootSheetsMap.set(root, rootSheets);

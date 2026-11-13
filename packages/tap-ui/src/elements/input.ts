@@ -85,7 +85,7 @@ const style = css`
     box-shadow: ${theme.controlShadow};
   }
   :host(:not([type='textarea'])) {
-    block-size: calc(2.2em + 2px);
+    block-size: 2.5rem;
   }
   :host(:where(:focus-within, :hover)) {
     border-color: ${theme.primaryColor};
