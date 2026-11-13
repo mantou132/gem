@@ -158,6 +158,12 @@ const groupStyle = css({
     display: block;
     background: ${theme.backgroundColor};
   `,
+  footer: `
+    padding: 0.5em calc(1.0625em / 0.8125) 0.75em;
+    font-size: 0.8125em;
+    line-height: 1.3;
+    color: ${theme.describeColor};
+  `,
 });
 
 @customElement('tap-cell-group')
@@ -167,6 +173,8 @@ const groupStyle = css({
 export class TapCellGroupElement extends GemElement {
   /**Optional group header, e.g. "Account" / "General" */
   @attribute heading: string;
+  /**Optional group footer explaining the rows above it */
+  @attribute footer: string;
   @property items?: CellItem[];
 
   #isSwitch = (item: CellItem) => typeof item.checked === 'boolean';
@@ -222,6 +230,7 @@ export class TapCellGroupElement extends GemElement {
     return html`
       <div class=${groupStyle.heading} v-if=${!!this.heading}>${this.heading}</div>
       <div class=${groupStyle.body}>${(this.items || []).map((item) => this.#renderItem(item))}</div>
+      <div class=${groupStyle.footer} v-if=${!!this.footer}>${this.footer}</div>
     `;
   };
 }

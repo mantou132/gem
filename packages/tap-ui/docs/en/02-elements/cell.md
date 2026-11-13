@@ -30,7 +30,8 @@ Settings-style list row and group. Primary text on the left; description, switch
       "onClick": "() => console.log('Name')"
     },
     { "label": "Auto save photos", "checked": true }
-  ]
+  ],
+  "footer": "Photos are saved to the album after taking."
 }
 ```
 

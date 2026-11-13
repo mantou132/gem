@@ -30,7 +30,8 @@
       "onClick": "() => console.log('Name')"
     },
     { "label": "Auto save photos", "checked": true }
-  ]
+  ],
+  "footer": "拍摄后自动保存到相册。"
 }
 ```
 

@@ -11,6 +11,8 @@ export { getWebManifestURL } from './base/webapp';
 interface InitAppOptions extends TapInitAppOptions {
   /**Rendered into `body` instead of the root page of the global Stack, for layouts beside it (e.g. a split view sidebar); its `<tap-stack>` becomes the global Stack */
   layout?: TemplateResult;
+  /**Closing the root page of `template` (`Stack.pop()` or swiping back on it), e.g. to leave the app; with `layout`, listen to `root-close` on its `<tap-stack>` */
+  onRootClose?: () => void;
 }
 
 export function initApp(options: InitAppOptions = {}) {
@@ -60,12 +62,12 @@ export function initApp(options: InitAppOptions = {}) {
 
   if (options.template) {
     Stack.push({
-      gesture: false,
       history: false,
       animated: false,
       keepAlive: true,
       content: options.template,
     });
+    if (options.onRootClose) Stack.instance!.addEventListener('root-close', options.onRootClose);
   }
 
   if (/iPhone|iPad|iPod/i.test(navigator.userAgent)) {

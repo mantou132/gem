@@ -83,7 +83,7 @@ export class TapSwitchElement extends GemElement {
   get #checkedColor() {
     const semanticColor = getSemanticColor(this.neutral);
     if (semanticColor) return semanticColor;
-    return theme.neutralColor;
+    return theme.positiveColor;
   }
 
   #onClick = () => {

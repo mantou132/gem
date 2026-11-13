@@ -1,8 +1,10 @@
+import type { Emitter } from '@mantou/gem/lib/decorators';
 import {
   adoptedStyle,
   boolattribute,
   customElement,
   effect,
+  emitter,
   mounted,
   numattribute,
   template,
@@ -89,6 +91,9 @@ export class TapStackElement extends GemElement {
   @boolattribute autoHeight: boolean;
   @numattribute maxHeight: number;
 
+  /**Closing the root page: `pop()` with only the root page left, or swiping back on it; the root page stays, and nothing is below it, so it doesn't follow the finger */
+  @emitter rootClose: Emitter<null>;
+
   static instance?: TapStackElement;
 
   static push(options: StackPushOptions) {
@@ -125,7 +130,14 @@ export class TapStackElement extends GemElement {
   #store = createStore({ pages: [] as StackPushOptions[], offset: 0, sheetProgress: 0 });
   #busy = false;
   #closeSpeed = 0;
+  /**Swipe distance on the root page, which stays in place */
+  #rootPan = 0;
   #pageHeights = new WeakMap<StackPushOptions, number>();
+
+  /**Only the root page is left */
+  get #atRoot() {
+    return this.#store.pages.length === 1;
+  }
 
   #duration = (distance: number, width: number, speed = 0) => {
     if (speed > 0) {
@@ -249,6 +261,10 @@ export class TapStackElement extends GemElement {
 
   #onPagePan = (page: StackPushOptions, evt: CustomEvent<PanEventDetail>) => {
     if (page !== this.#store.pages.at(-1) || page.gesture === false || this.#busy) return;
+    if (this.#atRoot) {
+      this.#rootPan = Math.max(0, this.#rootPan + evt.detail.x);
+      return;
+    }
     const offset = Math.max(0, this.#store.offset + evt.detail.x);
     if (offset === 0) return;
     this.#store({ offset });
@@ -265,10 +281,16 @@ export class TapStackElement extends GemElement {
   #onPagePanEnd = async (page: StackPushOptions, el: HTMLElement) => {
     const offset = this.#store.offset;
     const speed = this.#closeSpeed;
+    const rootPan = this.#rootPan;
     this.#closeSpeed = 0;
+    this.#rootPan = 0;
     if (page !== this.#store.pages.at(-1) || page.gesture === false || this.#busy) return;
 
     const width = el.offsetWidth;
+    if (this.#atRoot) {
+      if (rootPan > width * 0.33 || speed) this.rootClose(null);
+      return;
+    }
     if (offset > width * 0.33 || speed) {
       this.#busy = true;
       await this.#animateOffset(offset, width, {
@@ -290,7 +312,6 @@ export class TapStackElement extends GemElement {
       content: html`${children}`,
       history: false,
       animated: false,
-      gesture: false,
       keepAlive: true,
     });
   };
@@ -432,6 +453,12 @@ export class TapStackElement extends GemElement {
   }
 
   pop() {
+    // Like native navigation, ignored while a page animates; the history entry would otherwise go back without the page
+    if (this.#busy) return;
+    if (this.#atRoot) {
+      this.rootClose(null);
+      return;
+    }
     const top = this.#store.pages.at(-1);
     this.#pop();
     if (!this.disableHistory && top?.history !== false && history.store.$hasCloseHandle) {
