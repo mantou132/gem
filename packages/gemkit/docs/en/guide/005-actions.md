@@ -7,10 +7,10 @@ Pages handle form submissions with `actions` in their `*.server.ts`. The form is
 
 ```ts
 // src/pages/login.server.ts
-import type { ServerLoadContext } from '@mantou/gemkit';
+import type { ServerContext } from '@mantou/gemkit';
 
 export const actions = {
-  login: async ({ request, cookies }: ServerLoadContext) => {
+  login: async ({ request, cookies }: ServerContext) => {
     const form = await request.formData();
     const res = await fetch(`${API}/users/login`, {
       method: 'POST',
@@ -75,7 +75,7 @@ layout, such as sign out in the navigation bar, doesn't need to borrow the addre
 ```ts
 // src/pages/_layout.server.ts
 export const actions = {
-  logout: ({ cookies }: ServerLoadContext) => {
+  logout: ({ cookies }: ServerContext) => {
     cookies.delete('token');
     redirect(303, '/');
   },

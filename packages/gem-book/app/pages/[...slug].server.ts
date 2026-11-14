@@ -1,9 +1,9 @@
-import { notFound, redirect, type ServerLoadContext } from '@mantou/gemkit';
+import { notFound, redirect, type ServerContext } from '@mantou/gemkit';
 
 import { i18n } from '$gemkit/i18n';
 import { getDoc, getPagePaths, getRedirect } from '../lib/content.server';
 
-export async function load({ params }: ServerLoadContext<{ slug: string }>) {
+export async function load({ params }: ServerContext<{ slug: string }>) {
   const lang = i18n.currentLanguage;
   const pagePath = `/${params.slug}`;
   const target = getRedirect(lang, pagePath);

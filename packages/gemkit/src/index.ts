@@ -16,7 +16,6 @@ export {
 } from './navigation';
 export {
   type LayoutOptions,
-  type LoadContext,
   layout,
   type PageOptions,
   type Params,
@@ -51,7 +50,7 @@ export type {
   RequestHandler,
   RequestMethod,
   SchemaIssue,
-  ServerLoadContext,
+  ServerContext,
   ServerModule,
   StandardSchemaV1,
 } from './types';

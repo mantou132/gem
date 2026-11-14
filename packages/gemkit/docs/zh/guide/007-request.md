@@ -109,7 +109,7 @@ export const handle = sequence(securityHeaders, auth, logger);
 
 ```ts
 // src/pages/admin/_layout.server.ts
-export const load = ({ locals }: ServerLoadContext) => ({ user: locals.user });
+export const load = ({ locals }: ServerContext) => ({ user: locals.user });
 ```
 
 ## 响应头
@@ -235,11 +235,11 @@ export const handleError: AppClientModule['handleError'] = (error, { url, path }
 ## Cookie
 
 ```ts
-import type { ServerLoadContext } from '@mantou/gemkit';
+import type { ServerContext } from '@mantou/gemkit';
 
 export const prerender = false;
 
-export function load({ cookies }: ServerLoadContext) {
+export function load({ cookies }: ServerContext) {
   const theme = cookies.get('theme');
   cookies.set('theme', 'dark', { maxAge: 60 * 60 * 24 * 365 });
   return { theme };

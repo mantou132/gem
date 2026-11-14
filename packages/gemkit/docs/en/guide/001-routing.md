@@ -148,7 +148,7 @@ export default class PostPage extends GemElement {
 | Type            | Description                                                                                                                                       |
 | --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `Params`        | Route params from the file path, `[...path]` is a `string` too; a layout's don't include the parts of its child routes.                           |
-| `ServerContext` | `ServerLoadContext<Params>`, the parameter of `load`, `actions` and API route handlers.                                                           |
+| `ServerContext` | `ServerContext<Params>` from `@mantou/gemkit`, the parameter of `load`, `actions` and API route handlers.                                         |
 | `ServerData`    | The result of the server `load` converted to JSON (see [`Jsonify`](../reference/002-api.md#jsonify)), `undefined` without one. Pages and layouts. |
 | `Load`          | `load` of the server module. Pages and layouts.                                                                                                   |
 | `Actions`       | `actions` of the server module. Pages and layouts.                                                                                                |

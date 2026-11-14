@@ -120,7 +120,7 @@ It is per request, so it is safe for user data.
 
 ```ts
 // src/pages/admin/_layout.server.ts
-export const load = ({ locals }: ServerLoadContext) => ({ user: locals.user });
+export const load = ({ locals }: ServerContext) => ({ user: locals.user });
 ```
 
 ## Response headers
@@ -254,11 +254,11 @@ export const handleError: AppClientModule['handleError'] = (error, { url, path }
 ## Cookies
 
 ```ts
-import type { ServerLoadContext } from '@mantou/gemkit';
+import type { ServerContext } from '@mantou/gemkit';
 
 export const prerender = false;
 
-export function load({ cookies }: ServerLoadContext) {
+export function load({ cookies }: ServerContext) {
   const theme = cookies.get('theme');
   cookies.set('theme', 'dark', { maxAge: 60 * 60 * 24 * 365 });
   return { theme };

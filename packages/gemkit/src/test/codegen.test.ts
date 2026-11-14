@@ -262,7 +262,7 @@ test('generate: 每个页面、布局和 API 路由的参数类型，来自文�
   const read = (file: string) => fs.readFileSync(path.join(typesDir, file), 'utf8');
   // API 路由只有处理函数的类型
   const endpoint = read('api/likes/[slug].$types.d.ts');
-  assert.match(endpoint, /export type ServerContext = ServerLoadContext<Params>;/);
+  assert.match(endpoint, /export type ServerContext = Context<Params>;/);
   assert.match(endpoint, /export type Handler = RequestHandler<Params>;/);
   assert.doesNotMatch(endpoint, /Actions|ServerData|Paths/);
   // 有服务端模块时 `ServerData` 是它的 `load` 的结果，路径相对于源码

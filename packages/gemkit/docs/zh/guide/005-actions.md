@@ -7,10 +7,10 @@ action 可以返回数据、使用 `fail` 返回失败的结果、跳转或者�
 
 ```ts
 // src/pages/login.server.ts
-import type { ServerLoadContext } from '@mantou/gemkit';
+import type { ServerContext } from '@mantou/gemkit';
 
 export const actions = {
-  login: async ({ request, cookies }: ServerLoadContext) => {
+  login: async ({ request, cookies }: ServerContext) => {
     const form = await request.formData();
     const res = await fetch(`${API}/users/login`, {
       method: 'POST',
@@ -70,7 +70,7 @@ export const actions = {
 ```ts
 // src/pages/_layout.server.ts
 export const actions = {
-  logout: ({ cookies }: ServerLoadContext) => {
+  logout: ({ cookies }: ServerContext) => {
     cookies.delete('token');
     redirect(303, '/');
   },

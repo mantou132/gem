@@ -74,11 +74,11 @@ export const revalidate = 60;
 
 ```ts
 // src/pages/account.server.ts
-import type { ServerLoadContext } from '@mantou/gemkit';
+import type { ServerContext } from '@mantou/gemkit';
 
 export const prerender = false;
 
-export function load({ cookies }: ServerLoadContext) {
+export function load({ cookies }: ServerContext) {
   return { user: cookies.get('user') ?? null };
 }
 ```
@@ -93,11 +93,11 @@ export function load({ cookies }: ServerLoadContext) {
 
 ```ts
 // src/pages/editor.server.ts
-import type { ServerLoadContext } from '@mantou/gemkit';
+import type { ServerContext } from '@mantou/gemkit';
 
 export const prerender = false;
 
-export function load({ cookies }: ServerLoadContext) {
+export function load({ cookies }: ServerContext) {
   if (!cookies.get('token')) redirect(302, '/login');
   return { draft: loadDraft(cookies.get('token')) };
 }

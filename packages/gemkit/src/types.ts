@@ -107,7 +107,7 @@ export type Jsonify<T> = 0 extends 1 & T
             ? { [K in keyof T as T[K] extends NotJSON ? never : K]: Jsonify<T[K]> }
             : never;
 
-export interface ServerLoadContext<P extends Params = Params> extends RequestEvent {
+export interface ServerContext<P extends Params = Params> extends RequestEvent {
   params: P;
 }
 
@@ -148,7 +148,7 @@ export interface AppClientModule {
 /** `*.server.ts` 导出的内容，只在服务端执行 */
 export interface ServerModule {
   /** 返回值只能是 JSON 值，可以使用 `redirect` 跳转 */
-  load?: (ctx: ServerLoadContext<any>) => unknown;
+  load?: (ctx: ServerContext<any>) => unknown;
   /** 动态路由预渲染时使用的参数列表，只对页面有效，每个语言分别调用，没有多语言时 `lang` 为空字符串 */
   paths?: (ctx: { lang: string }) => Params[] | Promise<Params[]>;
   /** 为 `false` 时不预渲染，在 layout 中设置时对其中的页面都有效 */
@@ -168,7 +168,7 @@ export interface ServerModule {
    * 处理表单提交 `POST <page path>?/<name>`，返回值只能是 JSON 值，可以使用 `redirect` 跳转；
    * 在 layout 中定义时对其中的页面都有效，页面和内层 layout 的同名 action 覆盖外层的
    */
-  actions?: Record<string, (ctx: ServerLoadContext<any>) => unknown>;
+  actions?: Record<string, (ctx: ServerContext<any>) => unknown>;
 }
 
 export type ServerModules = Record<string, () => Promise<ServerModule>>;
@@ -179,7 +179,7 @@ export type RequestMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
  * 返回 `Response`，其他值作为 JSON 响应，可以使用 `redirect` 跳转和 `error` 响应错误，
  * `input` 是 `GET` `DELETE` 的查询参数，其他方法的 JSON 请求体，`$gemkit/api` 根据它的类型推导调用参数
  */
-export type RequestHandler<P extends Params = Params> = (ctx: ServerLoadContext<P>, input?: any) => unknown;
+export type RequestHandler<P extends Params = Params> = (ctx: ServerContext<P>, input?: any) => unknown;
 
 /**
  * API 路由：没有同名页面模块的 `*.server.ts`，按请求方法导出处理函数，`HEAD` 使用 `GET`

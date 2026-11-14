@@ -15,7 +15,7 @@ import type {
   RequestEvent,
   RouteData,
   SchemaIssue,
-  ServerLoadContext,
+  ServerContext,
   ServerModules,
   StandardSchemaV1,
 } from './types';
@@ -55,9 +55,9 @@ type EndpointArgs<
  */
 export function endpoint<S extends StandardSchemaV1, P extends Params, R>(
   schema: S,
-  handler: (ctx: ServerLoadContext<P>, input: SchemaOutput<S>) => R,
+  handler: (ctx: ServerContext<P>, input: SchemaOutput<S>) => R,
 ) {
-  return async (ctx: ServerLoadContext<P>, ...[input]: EndpointArgs<S>) => {
+  return async (ctx: ServerContext<P>, ...[input]: EndpointArgs<S>) => {
     // 有请求体时只解析 JSON，其他类型（例如表单）的输入是 `undefined`，提示真正的原因而不是 schema 的错误
     const type = input === undefined && ctx.request.headers.get('content-type');
     if (type && !type.includes('application/json')) {
@@ -98,9 +98,9 @@ export function formDataToObject(form: FormData) {
  */
 export function action<S extends StandardSchemaV1, P extends Params, R>(
   schema: S,
-  handler: (ctx: ServerLoadContext<P>, input: SchemaOutput<S>) => R,
+  handler: (ctx: ServerContext<P>, input: SchemaOutput<S>) => R,
 ) {
-  return async (ctx: ServerLoadContext<P>): Promise<Awaited<R> | ActionFailure<{ issues: readonly SchemaIssue[] }>> => {
+  return async (ctx: ServerContext<P>): Promise<Awaited<R> | ActionFailure<{ issues: readonly SchemaIssue[] }>> => {
     const result = await schema['~standard'].validate(formDataToObject(await ctx.request.formData()));
     if (result.issues) return fail(400, { issues: result.issues });
     return await handler(ctx, result.value as SchemaOutput<S>);
@@ -273,7 +273,7 @@ function createRequestEvent<T extends object>(hint: string, extra: T): RequestEv
 }
 
 /** 服务端模块的 `load`、`actions` 和 API 路由处理函数的参数 */
-export function createServerContext(tag: string, params: Params): ServerLoadContext {
+export function createServerContext(tag: string, params: Params): ServerContext {
   return createRequestEvent(`export \`prerender = false\` (${tag})`, { params });
 }
 

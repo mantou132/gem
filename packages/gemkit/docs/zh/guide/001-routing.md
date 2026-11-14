@@ -141,7 +141,7 @@ export default class PostPage extends GemElement {
 | 类型            | 说明                                                                                                                            |
 | --------------- | ------------------------------------------------------------------------------------------------------------------------------- |
 | `Params`        | 路由参数，来自文件路径，`[...path]` 也是 `string`；布局的不包括子路由的部分。                                                   |
-| `ServerContext` | `ServerLoadContext<Params>`，`load`、`actions` 和 API 路由处理函数的参数。                                                      |
+| `ServerContext` | `@mantou/gemkit` 的 `ServerContext<Params>`，`load`、`actions` 和 API 路由处理函数的参数。                                      |
 | `ServerData`    | 服务端 `load` 的结果转换成 JSON 后的类型（见 [`Jsonify`](../reference/002-api.md#jsonify)），没有时是 `undefined`。页面和布局。 |
 | `Load`          | 服务端模块的 `load`。页面和布局。                                                                                               |
 | `Actions`       | 服务端模块的 `actions`。页面和布局。                                                                                            |

@@ -2,9 +2,9 @@
 <% const name = it.kind === 'layout' ? '布局' : '页面' -%>
 
 <% if (it.kind === 'endpoint') { -%>
-import type { RequestHandler, ServerLoadContext } from '@mantou/gemkit';
+import type { RequestHandler, ServerContext as Context } from '@mantou/gemkit';
 <% } else { -%>
-import type { <%= it.server ? 'Jsonify, ' : '' %>ServerLoadContext } from '@mantou/gemkit';
+import type { <%= it.server ? 'Jsonify, ' : '' %>ServerContext as Context } from '@mantou/gemkit';
 import type { MergeActions } from '@mantou/gemkit/internal';
 <% } -%>
 
@@ -12,7 +12,7 @@ import type { MergeActions } from '@mantou/gemkit/internal';
 export type Params = {<%= it.params.length ? ` ${it.params.map((name) => `${JSON.stringify(name)}: string`).join('; ')} ` : '' %>};
 
 /** `load`、`actions` 和 API 路由处理函数的参数 */
-export type ServerContext = ServerLoadContext<Params>;
+export type ServerContext = Context<Params>;
 <% if (it.kind === 'endpoint') { -%>
 
 /** 处理函数，`export const GET = ((ctx) => ...) satisfies Handler`，`ctx` 的类型由它推导，返回值的类型不变 */

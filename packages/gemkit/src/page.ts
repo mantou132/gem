@@ -2,15 +2,15 @@ import type { Meta } from './meta';
 
 export type Params = Record<string, string>;
 
-/** `title` 和 `meta` 的参数，`data` 是 `load` 的结果 */
+/**
+ * `title`、`meta` 和 `load` 的参数，`params` 是路由参数；
+ * `title` 和 `meta` 中 `data` 是 `load` 的结果，`load` 中是同名 `*.server.ts` 的 `load` 的结果（`$types` 中的 `ServerData`）
+ */
 export interface RouteContext<P extends Params = Params, D = unknown> {
   /** 路由参数，layout 不包括子路由的部分 */
   params: P;
   data: D;
 }
-
-/** `load` 的参数，`data` 是同名的 `*.server.ts` 的 `load` 的结果，类型为 `$types` 中的 `ServerData` */
-export type LoadContext<P extends Params = Params, S = any> = RouteContext<P, S>;
 
 export interface LayoutOptions<P extends Params = Params, D = unknown, S = any> {
   /**
@@ -21,7 +21,7 @@ export interface LayoutOptions<P extends Params = Params, D = unknown, S = any> 
    * 只能在服务端执行的代码放在同名的 `*.server.ts` 中，其 `load` 的结果为参数的 `data`，
    * 没有提供该选项时直接使用 `*.server.ts` 的结果
    */
-  load?: (ctx: LoadContext<P, S>) => D | Promise<D>;
+  load?: (ctx: RouteContext<P, S>) => D | Promise<D>;
   /**
    * 页面的 `<meta>`，例如 `{ description: '...', 'og:image': '...' }`，可以根据路由参数和数据生成，
    * layout 和页面的合并在一起，内层的覆盖外层的同名 key
