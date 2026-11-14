@@ -78,9 +78,9 @@ different groups can't have the same path.
 
 ```ts
 // src/pages/_error.ts
-import type { ErrorData } from '@mantou/gemkit';
+import type { ErrorData, Params } from '@mantou/gemkit';
 
-@page<{}, ErrorData>({ title: ({ data }) => `Error ${data.status}` })
+@page<Params, ErrorData>({ title: ({ data }) => `Error ${data.status}` })
 export default class ErrorPage extends GemElement {
   @property data?: ErrorData;
 

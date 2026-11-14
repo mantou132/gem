@@ -24,9 +24,9 @@ export async function load({ params }: ServerContext) {
 
 ```ts
 // src/pages/blog/[slug].ts
-import type { Params } from './[slug].$types';
+import type { Params, ServerData } from './[slug].$types';
 
-@page<Params, { markdown: string }>({
+@page<Params, { html: string }, ServerData>({
   load: ({ data }) => parseMarkdown(data.markdown),
 })
 export default class PostPage extends GemElement {
