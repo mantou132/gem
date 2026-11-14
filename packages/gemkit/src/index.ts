@@ -1,7 +1,7 @@
 // 供 `@server()`/`@lazy()` 的编译产物使用，编译时从导入装饰器的模块中导入，不需要直接调用
 export { client, defineLazy, GemServerElement, lazy, server } from '@mantou/gem-ssr/decorators';
 
-export { ActionFailure, type ErrorData, error, fail, HttpError, notFound, redirect } from './error';
+export { ActionFailure, type ErrorData, error, fail, HttpError, notFound, RedirectError, redirect } from './error';
 export type { Meta } from './meta';
 export {
   type ActionData,

@@ -1,5 +1,5 @@
 import { CLIENT_HEADER, REDIRECT_HEADER } from './constants';
-import { HttpError, localizeLocation } from './error';
+import { HttpError, localizeLocation, RedirectError } from './error';
 import { navigate } from './navigation';
 import type { RequestMethod } from './types';
 
@@ -44,12 +44,14 @@ async function request(method: string, segments: string[], input?: Record<string
       ? { method, headers: { [CLIENT_HEADER]: '1' } }
       : { method, headers: { 'content-type': 'application/json', [CLIENT_HEADER]: '1' }, body: JSON.stringify(input) },
   );
-  // `handle` 或者处理函数中的跳转，例如没有登录或者登录成功，数据可能已经改变；页面离开，不再 resolve
-  // API 路由没有语言，应用路径跳转到当前页面的语言
+  // `handle` 或者处理函数中的跳转，例如没有登录或者登录成功，数据可能已经改变；
+  // 页面渲染后 reject，调用方 `await` 之后的代码不再执行，`finally` 仍然执行（例如 layout 中的元素结束 loading 状态）
+  // API 路由没有语言，应用路径跳转到当前页面的语言；跳转到其他网站或者语言时页面会卸载，`navigate` 不会 resolve
   const redirectTo = res.headers.get(REDIRECT_HEADER);
   if (redirectTo) {
-    navigate(localizeLocation(redirectTo), { invalidate: true });
-    return new Promise(() => {});
+    const location = localizeLocation(redirectTo);
+    await navigate(location, { invalidate: true });
+    throw new RedirectError(location);
   }
   const isJSON = res.headers.get('content-type')?.includes('application/json');
   if (!res.ok) {

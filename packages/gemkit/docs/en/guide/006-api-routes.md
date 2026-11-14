@@ -67,7 +67,10 @@ const likes = await api.likes(slug).GET();
 - An `error()` response rejects with `HttpError`, which has `status`, `message` and the `issues` of schema
   validation.
 - When the handler or `handle` redirects, the client clears prefetched results and the history cache,
-  navigates to the location, and the call does not resolve. The request has the `x-gemkit-client` header, and
+  navigates to the location, and the call rejects with `RedirectError` after the page is rendered: code after
+  `await` doesn't run, but `finally` does, so elements in layouts (such as a sign out button in the navbar) can end
+  their loading state. Tell it from other errors with `err instanceof RedirectError`. When redirecting to another
+  site or language the page unloads and the call doesn't settle. The request has the `x-gemkit-client` header, and
   the server responds with `x-gemkit-redirect` instead of 3xx, because `fetch` follows redirects.
 - The input is only typed. Validate it with [`endpoint`](#validate-input), or in the handler, for example
   before writing it to a database.

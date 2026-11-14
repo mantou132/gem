@@ -7,7 +7,7 @@ import { history } from '@mantou/gem';
 
 import { createApi, type EndpointMethods } from '../api';
 import { CLIENT_HEADER, REDIRECT_HEADER } from '../constants';
-import { fail, HttpError } from '../error';
+import { fail, HttpError, RedirectError } from '../error';
 import { formActions } from '../navigation';
 import type { Jsonify, MergeActions } from '../types';
 
@@ -45,12 +45,14 @@ test('createApi: 属性是路径，调用是参数，请求方法发送请求', 
   assert.equal(await (await apis['rss.xml'].GET()).text(), '<rss></rss>');
   // 错误
   await assert.rejects(apis.api.locked.POST(), (err) => err instanceof HttpError && err.status === 403);
-  // 跳转时客户端导航，不再 resolve
+  // 跳转时客户端导航，页面渲染后以 `RedirectError` reject，`finally` 会执行
   const pushed = mock.method(history, 'push', () => {});
   let settled = false;
-  apis.api.login.POST({}).finally(() => (settled = true));
-  await new Promise((resolve) => setTimeout(resolve, 10));
-  assert.equal(settled, false);
+  await assert.rejects(
+    apis.api.login.POST({}).finally(() => (settled = true)),
+    (err) => err instanceof RedirectError && err.location === '/me',
+  );
+  assert.equal(settled, true);
   assert.deepEqual(pushed.mock.calls[0].arguments[0], { path: '/me', query: '', hash: '' });
   // 不是 thenable
   assert.equal(typeof (await apis.api), 'function');

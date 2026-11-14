@@ -61,6 +61,29 @@ export function fail<T>(status: number, data?: T) {
   return new ActionFailure(status, data);
 }
 
+/**
+ * `$gemkit/api` 的请求在服务端跳转（例如没有登录）时，客户端导航到 `location`，页面渲染后调用以这个错误 reject，
+ * 所以 `await` 之后的代码不再执行，`finally` 仍然执行，例如结束 loading 状态；用 `instanceof` 和其他错误区分
+ *
+ * @example
+ * ```ts
+ * try {
+ *   await apis.api.likes(slug).POST({ count: 1 });
+ * } catch (err) {
+ *   if (!(err instanceof RedirectError)) Toast.open('error', String(err));
+ * } finally {
+ *   this.#state({ loading: false });
+ * }
+ * ```
+ */
+export class RedirectError extends Error {
+  name = 'RedirectError';
+
+  constructor(public location: string) {
+    super(`gemkit: redirected to \`${location}\``);
+  }
+}
+
 /** 错误页面（`_error`）的 `data`，以及 API 路由的错误响应，`issues` 是 schema 校验的问题 */
 export interface ErrorData {
   status: number;

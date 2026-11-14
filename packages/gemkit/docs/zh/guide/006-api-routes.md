@@ -60,7 +60,9 @@ const likes = await api.likes(slug).GET();
 - 请求发送到 API 路径，不包含语言前缀。
 - JSON 响应会解析，其他响应返回原始 `Response`。
 - `error()` 响应会 reject `HttpError`，它有 `status`、`message` 和 schema 校验的 `issues`。
-- 处理函数或者 `handle` 跳转时，客户端清除预取的结果和历史缓存，导航到目标地址，调用不会 resolve。
+- 处理函数或者 `handle` 跳转时，客户端清除预取的结果和历史缓存，导航到目标地址，页面渲染后调用以 `RedirectError` reject：
+  `await` 之后的代码不再执行，`finally` 仍然执行，所以布局中的元素（例如导航栏的退出按钮）可以结束 loading 状态。
+  用 `err instanceof RedirectError` 和其他错误区分，跳转到其他网站或者语言时页面卸载，调用不会完成。
   请求头 `x-gemkit-client` 表示由它发送，服务端响应 `x-gemkit-redirect` 而不是 3xx，因为 `fetch` 会自动跟随跳转。
 - 输入只有类型，需要校验内容时使用 [`endpoint`](#校验输入)，或者在处理函数中检查，例如写入数据库之前。
 - 处理函数仍然可以自己读取 `request`，例如 `request.formData()`。
