@@ -7,7 +7,7 @@ import { history } from '@mantou/gem';
 
 import { createApi, type EndpointMethods } from '../api';
 import { CLIENT_HEADER, REDIRECT_HEADER } from '../constants';
-import { HttpError } from '../error';
+import { fail, HttpError } from '../error';
 import { formActions } from '../navigation';
 
 test('createApi: 属性是路径，调用是参数，请求方法发送请求', async ({ assert, mock }) => {
@@ -71,6 +71,18 @@ test('formActions: action 名称和结果的类型来自 `actions`，返回表�
   assert.equal(logout().action, '?/logout');
   // @ts-expect-error 不存在的 action
   formActions<typeof actions>().register;
+});
+
+test('formActions: `fail` 的结果类型是它的 `data`', () => {
+  const actions = {
+    sign: async (ok: boolean) => (ok ? { id: 1 } : fail(400, { error: 'required' as const })),
+  };
+  formActions<typeof actions>().sign((data) => {
+    const result: { id: number } | { error: 'required' } | undefined = data;
+    // @ts-expect-error 不是 `ActionFailure`
+    data?.status;
+    return result;
+  });
 });
 
 test('EndpointMethods: `GET` `DELETE` 的输入只能是查询参数能表示的值', () => {

@@ -12,6 +12,20 @@ export const HTML_TYPE = 'text/html; charset=utf-8';
 /** ISR 的页面由 CDN 缓存时，过期后最多返回一年内的旧内容，同时在后台重新渲染 */
 export const CDN_STALE_SECONDS = 60 * 60 * 24 * 365;
 
+/** 表单提交的 action 名称，`?/login` 中的 `login` */
+export function getActionName(searchParams: URLSearchParams) {
+  return [...searchParams.keys()].find((key) => key.startsWith('/'))?.slice(1);
+}
+
+/** 去掉 action 名称的查询参数，表单提交后回到的页面地址和渲染页面的地址 */
+export function removeActionName(searchParams: URLSearchParams) {
+  const params = new URLSearchParams(searchParams);
+  const name = getActionName(params);
+  if (name !== undefined) params.delete(`/${name}`);
+  const search = String(params);
+  return search && `?${search}`;
+}
+
 /** 页面路径对应的数据文件路径 */
 export function getDataPath(path: string, file = DATA_FILE) {
   return `${path === '/' ? '' : path}/${file}`;

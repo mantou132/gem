@@ -8,6 +8,7 @@ import test from 'node:test';
 
 import {
   attribute,
+  connectStore,
   createState,
   customElement,
   GemElement,
@@ -23,8 +24,9 @@ import { getServerElementKey, server } from '@mantou/gem-ssr/decorators';
 
 import { createHandler as createCloudflareHandler } from '../adapters/cloudflare/runtime';
 import { CLIENT_HEADER, DATA_SCRIPT_ID, REDIRECT_HEADER } from '../constants';
-import { type ErrorData, error, localizeLocation, notFound, redirect } from '../error';
+import { type ErrorData, error, fail, localizeLocation, notFound, redirect } from '../error';
 import { createFetchHandler, prerenderPage } from '../handler';
+import { actionStore } from '../navigation';
 import { createFsStore, createRequestHandler } from '../node';
 import { setOutlets } from '../outlet';
 import { type Params, page } from '../page';
@@ -105,9 +107,11 @@ class MePage extends GemElement {
 }
 
 @page('Sign in')
+@connectStore(actionStore)
 class LoginPage extends GemElement {
   @template()
-  #content = () => html`<form method="post" action="?/login"></form>`;
+  #content = () =>
+    html`<form method="post" action="?/login"></form>${actionStore.name === 'login' ? `error: ${actionStore.data.error}` : ''}${history.getParams().query.toString()}`;
 }
 
 @page<Params, ErrorData>({ title: ({ data }) => data.message })
@@ -166,7 +170,14 @@ const serverModules: Record<string, () => Promise<ServerModule>> = {
     },
   }),
   // 只有 `actions`，没有 `load`
-  'gemkit-page-login': async () => ({ actions: { login: () => null } }),
+  'gemkit-page-login': async () => ({
+    actions: {
+      login: async ({ request }) => {
+        if (!(await request.formData()).get('name')) return fail(400, { error: 'required' });
+        return null;
+      },
+    },
+  }),
   'gemkit-page-docs': async () => ({ load: ({ params }) => params }),
   'gemkit-page-tag': async () => ({
     revalidate: 60,
@@ -433,6 +444,31 @@ test('createRequestHandler: 表单提交', async ({ assert }) => {
   const json = await handler(request('/me?/login', { method: 'POST', body, headers: { accept: 'application/json' } }));
   assert.deepEqual(await json.json(), { type: 'redirect', location: '/me' });
   assert.equal(json.headers.get('set-cookie'), 'token=x; Path=/; HttpOnly; SameSite=Lax');
+});
+
+test('fail: 原生表单提交不跳转，使用状态码渲染当前页面，结果在 `actionStore` 中', async ({ assert }) => {
+  const handler = createRequestHandler(renderer, documentTemplate);
+  const res = await handler(request('/login?/login&next=1', { method: 'POST', body: new URLSearchParams() }));
+  assert.equal(res.status, 400);
+  const html = await res.text();
+  assert.equal(html.includes('error: required'), true, '没有 JS 时页面显示错误');
+  assert.equal(html.includes('?next=1'), true, '保留其他查询参数');
+  assert.equal(html.includes('/login&'), false, '渲染的地址不包含 action 名称');
+  assert.equal(html.includes('gemkit-action'), true, '`actionStore` 同步到客户端');
+  // 成功时跳转回页面，保留其他查询参数
+  const ok = await handler(
+    request('/login?/login&next=1', { method: 'POST', body: new URLSearchParams({ name: 'a' }) }),
+  );
+  assert.equal(ok.status, 303);
+  assert.equal(ok.headers.get('location'), '/login?next=1');
+});
+
+test('fail: `submitAction` 提交时响应失败的结果，`accept` 可以有多个值', async ({ assert }) => {
+  const res = await renderer.runAction(
+    documentTemplate,
+    request('/login?/login', { method: 'POST', body: new FormData(), headers: { accept: 'application/json, */*' } }),
+  );
+  assert.deepEqual(await res.json(), { type: 'failure', status: 400, data: { error: 'required' } });
 });
 
 test('endpoint: `$gemkit/api` 的请求跳转时响应跳转地址', async ({ assert }) => {

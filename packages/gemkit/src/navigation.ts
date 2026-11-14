@@ -12,8 +12,9 @@ import {
   takeSSRData,
   takeSSRError,
 } from './cache';
+import { getActionName } from './constants';
 import { loadPageElements } from './elements';
-import { type ErrorData, HttpError, Redirect, type RouteError } from './error';
+import { type ActionFailure, type ErrorData, HttpError, Redirect, type RouteError } from './error';
 import { type Meta, updateMeta } from './meta';
 import { getPageOptions, type Params } from './page';
 import { requestState, runServerLoad, setSSRData, setSSRError, setSSRReady, toRouteError } from './request';
@@ -50,6 +51,27 @@ export const navigationStore = createStore({ pending: false });
  * ```
  */
 export const routeStore = createStore({ path: '', query: new QueryString(), params: {} as Params });
+
+/**
+ * 最后一次表单提交的结果，`name` 是 action 的名称，`status` 是 `fail` 的状态码，成功时为 200，
+ * 原生表单提交失败时服务端渲染页面前设置，并同步到客户端，所以没有 JS 时页面也能显示错误；
+ * `submitAction` 提交后设置，导航到其他页面时清空
+ *
+ * 原生表单提交成功时跳转回页面（POST/Redirect/GET），结果为空
+ *
+ * @example
+ * ```ts
+ * @connectStore(actionStore)
+ * class LoginPage extends GemElement {
+ *   #content = () => html`<p v-if=${actionStore.name === 'login'}>${actionStore.data?.error}</p>`;
+ * }
+ * ```
+ */
+export const actionStore = createStore<{ name?: string; status?: number; data?: any }>({}, 'gemkit-action');
+
+const clearActionStore = () => {
+  if (actionStore.name !== undefined) actionStore({ name: undefined, status: undefined, data: undefined });
+};
 
 /** 导航中一层路由（layout、页面或者错误页面）加载的结果，`params` 是元素的参数 */
 export interface RouteResult {
@@ -393,6 +415,7 @@ function startNavigation(options: Pick<Navigation, 'invalidate' | 'error'> = {})
     navigationStore({ pending: true });
     if (prev) {
       navigated = true;
+      clearActionStore();
       prev.done.resolve(nav.done.promise);
       // 不使用缓存时，服务端数据和纯服务端元素与模块并行请求
       if (!getHistoryEntry(nav.key)) {
@@ -472,7 +495,8 @@ export function invalidate() {
 /**
  * 不刷新页面提交表单到 `actions`，提交的地址是表单（或者 `submitter`）的 `action`，例如 `?/login`
  *
- * 跳转时客户端导航，出错时渲染错误页面，否则重新加载当前页面的数据，页面渲染后返回 action 的返回值，
+ * 跳转时客户端导航，出错时渲染错误页面，`fail` 时不重新加载数据，否则重新加载当前页面的数据，
+ * 页面渲染后返回 action 的返回值（`fail` 时是它的 `data`），同时更新 `actionStore`，
  * 请求期间表单有 `aria-busy` 属性，例如 `form[aria-busy] button { opacity: 0.5 }`
  *
  * @example
@@ -495,6 +519,12 @@ export async function submitAction(form: HTMLFormElement, submitter?: HTMLElemen
   }).finally(() => (form.ariaBusy = null));
   if (!res.ok) throw new Error(`gemkit: failed to submit \`${action}\``);
   const result: ActionResult = await res.json();
+  const name = getActionName(new URL(action).searchParams);
+  // action 没有成功，数据没有改变，不重新加载
+  if (result.type === 'failure') {
+    actionStore({ name, status: result.status, data: result.data });
+    return result.data;
+  }
   // 提交后 cookie 等状态可能改变，之前的数据都不能再使用
   if (result.type === 'redirect') {
     await navigate(result.location, { invalidate: true });
@@ -502,22 +532,32 @@ export async function submitAction(form: HTMLFormElement, submitter?: HTMLElemen
   }
   const error = result.type === 'error' ? result.error : undefined;
   await navigate(location.href, { replace: true, invalidate: true, error });
-  return result.type === 'success' ? result.data : undefined;
+  if (result.type !== 'success') return;
+  actionStore({ name, status: 200, data: result.data });
+  return result.data;
 }
+
+/** action 的结果在客户端的类型，`fail` 返回的是它的 `data` */
+export type ActionData<F> = F extends (...args: any) => infer R
+  ? Awaited<R> extends infer D
+    ? D extends ActionFailure<infer T>
+      ? T
+      : D
+    : never
+  : never;
 
 /** `formActions` 的 action，参数是提交后的回调，返回值作为表单的剩余属性 */
 export type FormActions<A> = {
-  [K in keyof A & string]: (
-    callback?: (
-      data: (A[K] extends (...args: any) => infer R ? Awaited<R> : never) | undefined,
-      form: HTMLFormElement,
-    ) => void,
-  ) => { method: 'post'; action: string; onsubmit: (evt: SubmitEvent) => void };
+  [K in keyof A & string]: (callback?: (data: ActionData<A[K]> | undefined, form: HTMLFormElement) => void) => {
+    method: 'post';
+    action: string;
+    onsubmit: (evt: SubmitEvent) => void;
+  };
 };
 
 /**
  * 使用 `*.server.ts` 中 `actions` 的类型，得到表单的剩余属性，提交时调用 `submitAction`，
- * 回调的参数是 action 的结果（跳转或者出错时是 `undefined`）和表单
+ * 回调的参数是 action 的结果（`fail` 时是它的 `data`，跳转或者出错时是 `undefined`）和表单
  *
  * @example
  * ```ts

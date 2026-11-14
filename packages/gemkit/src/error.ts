@@ -31,6 +31,36 @@ export function redirect(status: 301 | 302 | 303 | 307 | 308, location: string):
   throw new Redirect(status, localizeLocation(location));
 }
 
+/** `fail` 的返回值，表示 action 没有成功，例如表单校验失败 */
+export class ActionFailure<T = undefined> {
+  constructor(
+    public status: number,
+    public data: T,
+  ) {}
+}
+
+/**
+ * 在 `actions` 中返回，表示 action 没有成功（例如表单校验失败），`status` 是 4xx 状态码，`data` 必须是 JSON
+ *
+ * 原生表单提交时不跳转，使用 `status` 渲染当前页面，`actionStore` 中有这次提交的结果，所以没有 JS 时页面也能显示错误；
+ * `submitAction` 提交时不重新加载数据，返回 `data`
+ *
+ * @example
+ * ```ts
+ * export const actions = {
+ *   login: async ({ request }) => {
+ *     const form = await request.formData();
+ *     if (!form.get('name')) return fail(400, { error: 'required' });
+ *   },
+ * };
+ * ```
+ */
+export function fail(status: number): ActionFailure;
+export function fail<T>(status: number, data: T): ActionFailure<T>;
+export function fail<T>(status: number, data?: T) {
+  return new ActionFailure(status, data);
+}
+
 /** 错误页面（`_error`）的 `data`，以及 API 路由的错误响应，`issues` 是 schema 校验的问题 */
 export interface ErrorData {
   status: number;

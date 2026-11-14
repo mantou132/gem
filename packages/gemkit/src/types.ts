@@ -210,5 +210,6 @@ export interface ServerElementParams {
 /** `actions` 的结果，出错时渲染错误页面 */
 export type ActionResult =
   | { type: 'success'; data: unknown }
+  | { type: 'failure'; status: number; data: unknown }
   | { type: 'redirect'; location: string }
   | { type: 'error'; error: RouteError };

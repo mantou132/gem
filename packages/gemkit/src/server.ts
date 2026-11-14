@@ -12,15 +12,17 @@ import {
   DATA_FILE,
   DATA_SCRIPT_ID,
   escapeHtml,
+  getActionName,
   HTML_TYPE,
   REDIRECT_HEADER,
+  removeActionName,
   trimTrailingSlash,
 } from './constants';
 import { createCookies } from './cookies';
-import { HttpError, Redirect, type RouteError } from './error';
+import { ActionFailure, HttpError, Redirect, type RouteError } from './error';
 import { getBasePath, LANGUAGE_COOKIE, localizePath, matchLanguage, parseAcceptLanguage, splitLanguage } from './i18n';
 import { formatMeta } from './meta';
-import { getRouteMeta, getSSRRoutes } from './navigation';
+import { actionStore, getRouteMeta, getSSRRoutes } from './navigation';
 import { getPageOptions, type Params } from './page';
 import {
   createServerContext,
@@ -416,13 +418,16 @@ export function createRenderer({
   /**
    * 处理页面的表单提交 `POST <page path>?/<name>`，action 可以在页面或者 layout 中，参数和 `load` 的一样，
    * 没有对应的 action 时响应 404；`submitAction` 提交时响应结果，
-   * 原生表单提交时跳转到 `redirect` 的地址或者当前页面，出错时渲染错误页面，错误页面渲染在 action 所在的页面或 layout 的位置
+   * 原生表单提交时跳转到 `redirect` 的地址或者当前页面（保留其他查询参数），`fail` 时使用它的状态码渲染当前页面，
+   * 结果保存在 `actionStore` 中，出错时渲染错误页面，错误页面渲染在 action 所在的页面或 layout 的位置
    */
   const runAction = (template: string, request: Request, platform?: Platform) =>
     runInRequest(async () => {
       const url = setRequest(request, platform);
-      const name = [...url.searchParams.keys()].find((key) => key.startsWith('/'))?.slice(1);
+      const name = getActionName(url.searchParams);
       const { lang, path } = await setLanguage(url.pathname);
+      // 提交后的页面地址，不包含 action 名称
+      const pageURL = new URL(url.pathname + removeActionName(url.searchParams), url);
       return runHandle(url, path, async (err) => {
         const found = name === undefined ? undefined : await findAction(path, name);
         if (!found) return new Response(null, { status: 404, headers: toHeaders() });
@@ -430,17 +435,28 @@ export function createRenderer({
         try {
           if (err !== undefined) throw err;
           const data = await found.action(createServerContext(found.tag, found.params));
-          result = { type: 'success', data: toJSONValue(data) };
+          result =
+            data instanceof ActionFailure
+              ? { type: 'failure', status: data.status, data: toJSONValue(data.data) }
+              : { type: 'success', data: toJSONValue(data) };
         } catch (err) {
           result =
             err instanceof Redirect
               ? { type: 'redirect', location: err.location }
               : { type: 'error', error: toRouteError(found.tag, err) };
         }
-        if (request.headers.get('accept') === 'application/json')
+        if (request.headers.get('accept')?.includes('application/json'))
           return Response.json(result, { headers: toHeaders() });
-        if (result.type === 'error') return renderPage(template, url, lang, path, result.error);
-        const location = result.type === 'redirect' ? result.location : url.pathname;
+        if (result.type === 'error') return renderPage(template, pageURL, lang, path, result.error);
+        if (result.type === 'failure') {
+          // 不跳转，渲染当前页面，`actionStore` 同步到客户端，没有 JS 时页面也能显示错误
+          actionStore({ name, status: result.status, data: result.data });
+          const res = await renderPage(template, pageURL, lang, path);
+          // `load` 跳转或者出错时使用它们的状态码
+          if (res.status !== 200) return res;
+          return new Response(res.body, { status: result.status, headers: res.headers });
+        }
+        const location = result.type === 'redirect' ? result.location : pageURL.pathname + pageURL.search;
         return new Response(null, { status: 303, headers: toHeaders({ location }) });
       });
     });
