@@ -4,7 +4,8 @@
 <% if (it.kind === 'endpoint') { -%>
 import type { RequestHandler, ServerLoadContext } from '@mantou/gemkit';
 <% } else { -%>
-import type { <%= it.server ? 'Jsonify, ' : '' %>MergeActions, ServerLoadContext } from '@mantou/gemkit';
+import type { <%= it.server ? 'Jsonify, ' : '' %>ServerLoadContext } from '@mantou/gemkit';
+import type { MergeActions } from '@mantou/gemkit/internal';
 <% } -%>
 
 /** <%= { layout: '布局', page: `页面 \`${it.pattern}\` `, endpoint: `API 路由 \`${it.pattern}\` ` }[it.kind] %>的参数，来自文件路径<%= it.kind === 'layout' ? '，不包括子路由的部分' : '' %> */

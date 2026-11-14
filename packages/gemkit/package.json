@@ -20,7 +20,6 @@
     "./internal/server": "./src/server.ts",
     "./handler": "./src/runtime.ts",
     "./adapters/*": "./src/adapters/*/runtime.ts",
-    "./init": "./bin/init.js",
     "./node": {
       "types": "./src/node.ts",
       "default": "./dist/node.js"

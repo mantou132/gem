@@ -22,7 +22,7 @@ export interface GemkitConfig extends TitleOptions {
 /**
  * 可以通过 `$gemkit/*` 导入的生成模块，其他生成文件是入口或内部模块，导入会产生副作用
  */
-export const PUBLIC_MODULES = ['i18n', 'api'];
+const PUBLIC_MODULES = ['i18n', 'api'];
 
 /** `$gemkit/*` 到生成文件的映射，供 alias 和 tsconfig `paths` 使用 */
 export const getPublicModules = (genDir: string) =>

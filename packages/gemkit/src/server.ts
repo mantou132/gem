@@ -55,9 +55,9 @@ import type {
   ServerModules,
 } from './types';
 
-export type RouteChunks = Record<string, string[]>;
+type RouteChunks = Record<string, string[]>;
 
-export interface RendererOptions extends TitleOptions {
+interface RendererOptions extends TitleOptions {
   /** 路由使用 `setOutlets` 设置的路由，和客户端一样匹配 */
   app: TemplateResult;
   /** 页面和 layout 标签名对应的 `*.server.ts` */

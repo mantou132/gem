@@ -74,7 +74,7 @@ const clearActionStore = () => {
 };
 
 /** 导航中一层路由（layout、页面或者错误页面）加载的结果，`params` 是元素的参数 */
-export interface RouteResult {
+interface RouteResult {
   info: RouteInfo;
   cls: CustomElementConstructor;
   params: Params;

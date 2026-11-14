@@ -93,7 +93,7 @@ export function withOrigin(request: Request, origin: string) {
 }
 
 /** 请求的页面路径和对应的文件，例如 `/blog/__data.json` 是 `/blog` 和 `/blog/__data.json` */
-export function getPageFile(pathname: string) {
+function getPageFile(pathname: string) {
   if (!isDataRequest(pathname)) {
     const page = trimTrailingSlash(pathname);
     return { page, file: path.posix.join(page, 'index.html') };

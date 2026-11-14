@@ -102,7 +102,7 @@ const isGemkitWorker = (file: string) =>
   fs.existsSync(file) && fs.readFileSync(file, 'utf8').includes('dist/cloudflare/index.js');
 
 /** 根据平台构建时设置的环境变量或者 Wrangler 配置识别平台，没有识别出来时使用 Node.js */
-export function detectAdapter(rootPath: string): GemkitAdapter | undefined {
+function detectAdapter(rootPath: string): GemkitAdapter | undefined {
   if (process.env.VERCEL) return vercel();
   if (process.env.NETLIFY) return netlify();
   if (process.env.WORKERS_CI || WRANGLER_FILES.some((file) => isGemkitWorker(path.join(rootPath, file)))) {

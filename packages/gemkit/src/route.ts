@@ -79,7 +79,7 @@ export function nameRestParam(params: Params, rest?: string) {
 }
 
 /** 子路由匹配的部分（`*`）不属于 layout 的参数 */
-export const getLayoutParams = (params: Params) =>
+const getLayoutParams = (params: Params) =>
   Object.fromEntries(Object.entries(params).filter(([key]) => !/^\d+$/.test(key)));
 
 /** 路径匹配的一层路由，`params` 是元素的参数，layout 不包括子路由匹配的部分 */

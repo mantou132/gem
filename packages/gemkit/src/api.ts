@@ -17,7 +17,7 @@ type QueryArgs<A extends unknown[]> = { [I in keyof A]: A[I] & QueryInput };
  * API 路由处理函数在客户端的调用签名，第二个参数是输入，结果见 `EndpointResult`，
  * `M` 是请求方法
  */
-export type Endpoint<F, M extends RequestMethod = RequestMethod> = F extends (ctx: any, ...args: infer A) => infer R
+type Endpoint<F, M extends RequestMethod = RequestMethod> = F extends (ctx: any, ...args: infer A) => infer R
   ? (...args: M extends 'GET' | 'DELETE' ? QueryArgs<A> : A) => Promise<EndpointResult<Awaited<R>>>
   : never;
 
