@@ -1,6 +1,6 @@
 # 下沉基础到 TapUI
 
-DuoyunUI 面向桌面端中后台，而 [TapUI](https://github.com/mantou132/gem/tree/main/packages/tap-ui) 面向移动端优先体验。两者共享同一套 Gem 体系，因此把「可复用的基础能力」从 DuoyunUI 下沉到 TapUI，让上层只保留差异化的桌面 UI。
+DuoyunUI 面向桌面端中后台，而 [TapUI](https://tap-ui.gemjs.org/zh/guide/) 面向移动端优先体验。两者共享同一套 Gem 体系，因此把「可复用的基础能力」从 DuoyunUI 下沉到 TapUI，让上层只保留差异化的桌面 UI。
 
 ## 下沉了什么
 

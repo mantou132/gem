@@ -1,0 +1,26 @@
+# `<tap-code-block>`
+
+用于展示带语法高亮的代码片段，支持行号、行高亮和范围选择，以聚焦代码的特定部分。
+
+## Example
+
+<gbp-example
+  name="tap-code-block"
+  html='&amp;lt;html&amp;gt;
+  &amp;lt;head&amp;gt;
+    &amp;lt;title&amp;gt;Href Attribute Example&amp;lt;/title&amp;gt;
+  &amp;lt;/head&amp;gt;
+  &amp;lt;body&amp;gt;
+    &amp;lt;h1&amp;gt;Href Attribute Example&amp;lt;/h1&amp;gt;
+    &amp;lt;p&amp;gt;
+      &amp;lt;a&amp;gt;The freeCodeCamp Contribution Page&amp;lt;/a&amp;gt; shows you how and where you can contribute to freeCodeCamps community and growth.
+    &amp;lt;/p&amp;gt;
+  &amp;lt;/body&amp;gt;
+&amp;lt;/html&amp;gt;
+Test'
+  props='{"style": "width: 100%", "codelang": "html", "range": "-11", "highlight": "8"}'
+  src="https://esm.sh/@mantou/tap-ui/elements/code-block"></gbp-example>
+
+## API
+
+<gbp-api src="/src/elements/code-block.ts"></gbp-api>

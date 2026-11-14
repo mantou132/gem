@@ -12,6 +12,6 @@ A drawer is a panel that slides in from the edge of the screen. It can contain v
 
 ## API
 
-See [`<dy-modal>`](./modal.md)
+See [`<tap-dialog>`](https://tap-ui.gemjs.org/en/elements/dialog)
 
 <gbp-api src="/src/elements/drawer.ts"></gbp-api>

@@ -10,6 +10,6 @@
 
 ## API
 
-See [`<dy-modal>`](./modal.md)
+参考 [`<tap-dialog>`](https://tap-ui.gemjs.org/zh/elements/dialog)
 
 <gbp-api src="/src/elements/drawer.ts"></gbp-api>

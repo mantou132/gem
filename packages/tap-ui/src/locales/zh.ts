@@ -26,6 +26,7 @@ const lang: typeof en = {
   loading: '加载中',
   ok: '确认',
   cancel: '取消',
+  done: '完成',
   prevPage: '上一页',
   nextPage: '下一页',
   perPage: '$1 / 页',

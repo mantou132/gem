@@ -24,6 +24,7 @@ export default {
   loading: 'Loading',
   ok: 'OK',
   cancel: 'Cancel',
+  done: 'Done',
   prevPage: 'Prev',
   nextPage: 'Next',
   perPage: '$1 / Page',

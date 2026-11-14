@@ -5,7 +5,6 @@ groups:
     members:
       - cascader-picker.md
       - cascader.md
-      - checkbox.md
       - color-panel.md
       - color-picker.md
       - date-panel.md
@@ -16,15 +15,9 @@ groups:
       - file-picker.md
       - form.md
       - grouped-picker.md
-      - input.md
       - picker.md
-      - radio.md
-      - rate.md
-      - segmented.md
       - select.md
       - shortcut-record.md
-      - slider.md
-      - switch.md
       - time-panel.md
       - time-picker.md
   - title: Action
@@ -32,7 +25,6 @@ groups:
       - action-text.md
       - button.md
       - copy.md
-      - link.md
       - contextmenu.md
   - title: Feedback
     members:
@@ -43,12 +35,9 @@ groups:
       - input-capture.md
       - keyboard-access.md
       - loading.md
-      - modal.md
       - page-loadbar.md
-      - placeholder.md
       - popover.md
       - progress.md
-      - toast.md
       - tooltip.md
       - wait.md
   - title: Navigator
@@ -56,38 +45,26 @@ groups:
       - breadcrumbs.md
       - pagination.md
       - side-navigation.md
-  - title: Data Entry
+  - title: Data Display
     members:
       - avatar.md
-      - badge.md
-      - banner.md
       - calendar.md
       - card.md
       - carousel.md
-      - code-block.md
-      - collapse.md
-      - compartment.md
-      - countdown.md
-      - empty.md
       - heading.md
       - image-preview.md
       - list.md
       - meter.md
       - more.md
-      - paragraph.md
-      - options.md
       - result.md
-      - rolling-number.md
       - statistic.md
       - status-light.md
       - table.md
       - tabs.md
-      - tag.md
       - text-mask.md
       - timeline.md
       - tree.md
       - vestaboard.md
-      - letters.md
   - title: Chart
     members:
       - area-chart.md
@@ -100,13 +77,6 @@ groups:
       - radar-chart.md
       - sankey-chart.md
       - scatter-chart.md
-  - title: Layout
-    members:
-      - divider.md
-      - space.md
   - title: Base Class
     members:
       - 001-loadable-base.md
-      - 002-resize-base.md
-      - 003-scroll-base.md
-      - 004-visible-base.md

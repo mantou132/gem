@@ -1,6 +1,6 @@
 # Sinking Foundations to TapUI
 
-DuoyunUI targets desktop admin UIs, while [TapUI](https://github.com/mantou132/gem/tree/main/packages/tap-ui) is mobile-first. Both share the Gem stack, so reusable foundations move down into TapUI; DuoyunUI keeps desktop-specific UI on top.
+DuoyunUI targets desktop admin UIs, while [TapUI](https://tap-ui.gemjs.org/en/guide/) is mobile-first. Both share the Gem stack, so reusable foundations move down into TapUI; DuoyunUI keeps desktop-specific UI on top.
 
 ## What Moved Down
 

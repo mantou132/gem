@@ -21,7 +21,7 @@
 
 </gbp-example>
 
-Items with `path` / `route` render as `<tap-active-link>` and navigate via history. Other items use `value` and emit `change`.
+带 `path` / `route` 的项渲染为 `<tap-active-link>`，通过 history 导航；其他项使用 `value` 并触发 `change` 事件。
 
 ## API
 

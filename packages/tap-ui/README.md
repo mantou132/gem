@@ -1,6 +1,6 @@
 # TapUI
 
-TapUI is the mobile-first UI package for Gem.
+TapUI is the mobile-first UI package for Gem. [Documentation](https://tap-ui.gemjs.org/en/guide/)
 
 ## Showcase
 

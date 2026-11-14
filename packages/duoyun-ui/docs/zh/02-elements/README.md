@@ -1,102 +1,104 @@
 # 元素索引
 
+与 TapUI 共享的元素链接到 TapUI 文档，参考[来自 TapUI](../01-guide/50-tap-ui.md)。
+
 <style>
   a, gem-link {
     white-space: nowrap;
   }
 </style>
 
-| DuoyunUI                                           | AntD                                        | Element Plus                             |
-| -------------------------------------------------- | ------------------------------------------- | ---------------------------------------- |
-| [`<dy-action-text>`](./action-text.md)             | [`<Button>`][antd-button]                   | [`<ele-button>`][ele-button]             |
-| [`<dy-alert>`](./alert.md)                         | [`<Alert>`][antd-alert]                     | [`<ele-alert>`][ele-alert]               |
-| [`<dy-area-chart>`](./area-chart.md)               |                                             |                                          |
-| [`<dy-avatar>`](./avatar.md)                       | [`<Avatar>`][antd-avatar]                   | [`<ele-avatar>`][ele-avatar]             |
-| [`<dy-badge>`](./badge.md)                         | [`<Badge>`][antd-badge]                     | [`<ele-badge>`][ele-badge]               |
-| [`<dy-banner>`](./banner.md)                       |                                             |                                          |
-| [`<dy-bar-chart>`](./bar-chart.md)                 |                                             |                                          |
-| [`<dy-breadcrumbs>`](./breadcrumbs.md)             | [`<Breadcrumb>`][antd-breadcrumb]           | [`<ele-breadcrumb>`][ele-breadcrumb]     |
-| [`<dy-button>`](./button.md)                       | [`<Button>`][antd-button]                   | [`<ele-button>`][ele-button]             |
-| [`<dy-calendar>`](./calendar.md)                   | [`<Calendar>`][antd-calendar]               | [`<ele-calendar>`][ele-calendar]         |
-| [`<dy-card>`](./card.md)                           | [`<Card>`][antd-card]                       | [`<ele-card>`][ele-card]                 |
-| [`<dy-carousel>`](./carousel.md)                   | [`<Carousel>`][antd-carousel]               | [`<ele-carousel>`][ele-carousel]         |
-| [`<dy-cascader-picker>`](./cascader-picker.md)     |                                             |                                          |
-| [`<dy-cascader>`](./cascader.md)                   | [`<Cascader>`][antd-cascader]               | [`<ele-cascader>`][ele-cascader]         |
-|                                                    | [`<TreeSelect>`][antd-tree-select]          |                                          |
-| [`<dy-chart-tooltip>`](./chart-tooltip.md)         |                                             |                                          |
-| [`<dy-chart-zoom>`](./chart-zoom.md)               |                                             |                                          |
-| [`<dy-checkbox>`](./checkbox.md)                   | [`<Checkbox>`][antd-checkbox]               | [`<ele-checkbox>`][ele-checkbox]         |
-| [`<dy-coach-mark>`](./coach-mark.md)               | [`<Tour>`][antd-tour]                       |                                          |
-| [`<dy-code-block>`](./code-block.md)               |                                             |                                          |
-| [`<dy-collapse>`](./collapse.md)                   | [`<Collapse>`][antd-collapse]               | [`<ele-collapse>`][ele-collapse]         |
-| [`<dy-color-panel>`](./color-panel.md)             |                                             |                                          |
-| [`<dy-color-picker>`](./color-picker.md)           | [`<ColorPicker>`][antd-color-picker]        | [`<ele-color-picker>`][ele-color-picker] |
-| [`<dy-compartment>`](./compartment.md)             |                                             |                                          |
-| [`<dy-contextmenu>`](./contextmenu.md)             | [`<Dropdown>`][antd-dropdown]               | [`<ele-dropdown>`][ele-dropdown]         |
-| [`<dy-copy>`](./copy.md)                           |                                             |                                          |
-| [`<dy-date-panel>`](./date-panel.md)               |                                             |                                          |
-| [`<dy-date-picker>`](./date-picker.md)             | [`<DatePicker>`][antd-date-picker]          | [`<ele-date-picker>`][ele-date-picker]   |
-| [`<dy-date-range-panel>`](./date-range-panel.md)   |                                             |                                          |
-| [`<dy-date-range-picker>`](./date-range-picker.md) | [`<DatePicker>`][antd-date-picker]          | [`<ele-date-picker>`][ele-date-picker]   |
-| [`<dy-divider>`](./divider.md)                     | [`<Divider>`][antd-divider]                 | [`<ele-divider>`][ele-divider]           |
-| [`<dy-donut-chart>`](./donut-chart.md)             |                                             |                                          |
-| [`<dy-drawer>`](./drawer.md)                       | [`<Drawer>`][antd-drawer]                   | [`<ele-drawer>`][ele-drawer]             |
-| [`<dy-drop-area>`](./drop-area.md)                 |                                             |                                          |
-| [`<dy-empty>`](./empty.md)                         | [`<Empty>`][antd-empty]                     | [`<ele-empty>`][ele-empty]               |
-| [`<dy-file-picker>`](./file-picker.md)             | [`<Upload>`][antd-upload]                   | [`<ele-upload>`][ele-upload]             |
-| [`<dy-form>`](./form.md)                           | [`<Form>`][antd-form]                       | [`<ele-form>`][ele-form]                 |
-| [`<dy-grouped-picker>`](./grouped-picker.md)       |                                             |                                          |
-| [`<dy-heading>`](./heading.md)                     | [`<Typography.Title>`][antd-typography]     |                                          |
-| [`<dy-help-text>`](./help-text.md)                 | [`<Typography.Text>`][antd-typography]      | [`<ele-text>`][ele-text]                 |
-| [`<dy-icons>`](./icons.md)                         | [Icons][antd-icon]                          | [`<ele-icon>`][ele-icon]                 |
-| [`<dy-image-preview>`](./image-preview.md)         |                                             |                                          |
-| [`<dy-input-capture>`](./input-capture.md)         |                                             |                                          |
-| [`<dy-input>`](./input.md)                         | [`<Input>`][antd-input]                     | [`<ele-input>`][ele-input]               |
-|                                                    | [`<InputNumber>`][antd-input-number]        | [`<ele-input-number>`][ele-input-number] |
-|                                                    | [`<AutoComplete>`][antd-auto-complete]      | [`<ele-autocomplete>`][ele-autocomplete] |
-| [`<dy-keyboard-access>`](./keyboard-access.md)     |                                             |                                          |
-| [`<dy-legend>`](./legend.md)                       |                                             |                                          |
-| [`<dy-line-chart>`](./line-chart.md)               |                                             |                                          |
-| [`<dy-link>`](./link.md)                           | [`<Typography.Link>`][antd-typography]      | [`<ele-link>`][ele-link]                 |
-| [`<dy-list>`](./list.md)                           | [`<List>`][antd-list]                       |                                          |
-| [`<dy-loading>`](./loading.md)                     | [`<Spin>`][antd-spin]                       | [`<ele-loading>`][ele-loading]           |
-| [`<dy-meter>`](./meter.md)                         | [`<Progress>`][antd-progress]               | [`<ele-progress>`][ele-progress]         |
-| [`<dy-modal>`](./modal.md)                         | [`<Modal>`][antd-modal]                     | [`<ele-dialog>`][ele-dialog]             |
-|                                                    | [`<Popconfirm>`][antd-popconfirm]           | [`ElMessageBox`][ele-message-box]        |
-|                                                    |                                             | [`<ele-popconfirm>`][ele-popconfirm]     |
-| [`<dy-more>`](./more.md)                           |                                             |                                          |
-| [`<dy-options>`](./options.md)                     |                                             |                                          |
-| [`<dy-page-loadbar>`](./page-loadbar.md)           |                                             |                                          |
-| [`<dy-pagination>`](./pagination.md)               | [`<Pagination>`][antd-pagination]           | [`<ele-pagination>`][ele-pagination]     |
-| [`<dy-paragraph>`](./paragraph.md)                 | [`<Typography.Paragraph>`][antd-typography] |                                          |
-| [`<dy-picker>`](./picker.md)                       |                                             |                                          |
-| [`<dy-placeholder>`](./placeholder.md)             | [`<Skeleton>`][antd-skeleton]               | [`<ele-skeleton>`][ele-skeleton]         |
-| [`<dy-popover>`](./popover.md)                     | [`<Popover>`][antd-popover]                 | [`<ele-popover>`][ele-popover]           |
-| [`<dy-progress>`](./progress.md)                   | [`<Progress>`][antd-progress]               | [`<ele-progress>`][ele-progress]         |
-| [`<dy-radio>`](./radio.md)                         | [`<Radio>`][antd-radio]                     | [`<ele-radio>`][ele-radio]               |
-| [`<dy-rate>`](./rate.md)                           | [`<Rate>`][antd-rate]                       | [`<ele-rate>`][ele-rate]                 |
-| [`<dy-result>`](./result.md)                       | [`<Result>`][antd-result]                   | [`<ele-result>`][ele-result]             |
-| [`<dy-scatter-chart>`](./scatter-chart.md)         |                                             |                                          |
-| [`<dy-segmented>`](./segmented.md)                 | [`<Segmented>`][antd-segmented]             |                                          |
-| [`<dy-select>`](./select.md)                       | [`<Select>`][antd-select]                   | [`<ele-select>`][ele-select]             |
-| [`<dy-shortcut-record>`](./shortcut-record.md)     |                                             |                                          |
-| [`<dy-side-navigation>`](./side-navigation.md)     | [`<Menu>`][antd-menu]                       | [`<ele-menu>`][ele-menu]                 |
-| [`<dy-slider>`](./slider.md)                       | [`<Slider>`][antd-slider]                   | [`<ele-slider>`][ele-slider]             |
-| [`<dy-space>`](./space.md)                         | [`<Space>`][antd-space]                     | [`<ele-space>`][ele-space]               |
-| [`<dy-statistic>`](./statistic.md)                 | [`<Statistic>`][antd-statistic]             | [`<ele-statistic>`][ele-statistic]       |
-| [`<dy-status-light>`](./status-light.md)           |                                             |                                          |
-| [`<dy-switch>`](./switch.md)                       | [`<Switch>`][antd-switch]                   | [`<ele-switch>`][ele-switch]             |
-| [`<dy-table>`](./table.md)                         | [`<Table>`][antd-table]                     | [`<ele-table>`][ele-table]               |
-| [`<dy-tabs>`](./tabs.md)                           | [`<Tabs>`][antd-tabs]                       | [`<ele-tabs>`][ele-tabs]                 |
-| [`<dy-tag>`](./tag.md)                             | [`<Tag>`][antd-tag]                         | [`<ele-tag>`][ele-tag]                   |
-| [`<dy-text-mask>`](./text-mask.md)                 |                                             |                                          |
-| [`<dy-time-panel>`](./time-panel.md)               |                                             |                                          |
-| [`<dy-time-picker>`](./time-picker.md)             | [`<TimePicker>`][antd-time-picker]          | [`<ele-time-picker>`][ele-time-picker]   |
-| [`<dy-timeline>`](./timeline.md)                   | [`<Timeline>`][antd-timeline]               | [`<ele-timeline>`][ele-timeline]         |
-| [`<dy-toast>`](./toast.md)                         | [Message][antd-message]                     | [`ElMessage`][ele-message]               |
-| [`<dy-tooltip>`](./tooltip.md)                     | [`<Tooltip>`][antd-tooltip]                 | [`<ele-tooltip>`][ele-tooltip]           |
-| [`<dy-tree>`](./tree.md)                           | [`<Tree>`][antd-tree]                       | [`<ele-tree>`][ele-tree]                 |
-| [`<dy-wait>`](./wait.md)                           |                                             | [`<ele-loading>`][ele-loading]           |
+| DuoyunUI                                                               | AntD                                        | Element Plus                             |
+| ---------------------------------------------------------------------- | ------------------------------------------- | ---------------------------------------- |
+| [`<dy-action-text>`](./action-text.md)                                 | [`<Button>`][antd-button]                   | [`<ele-button>`][ele-button]             |
+| [`<dy-alert>`](./alert.md)                                             | [`<Alert>`][antd-alert]                     | [`<ele-alert>`][ele-alert]               |
+| [`<dy-area-chart>`](./area-chart.md)                                   |                                             |                                          |
+| [`<dy-avatar>`](./avatar.md)                                           | [`<Avatar>`][antd-avatar]                   | [`<ele-avatar>`][ele-avatar]             |
+| [`<dy-badge>`](https://tap-ui.gemjs.org/zh/elements/badge)             | [`<Badge>`][antd-badge]                     | [`<ele-badge>`][ele-badge]               |
+| [`<dy-banner>`](https://tap-ui.gemjs.org/zh/elements/banner)           |                                             |                                          |
+| [`<dy-bar-chart>`](./bar-chart.md)                                     |                                             |                                          |
+| [`<dy-breadcrumbs>`](./breadcrumbs.md)                                 | [`<Breadcrumb>`][antd-breadcrumb]           | [`<ele-breadcrumb>`][ele-breadcrumb]     |
+| [`<dy-button>`](./button.md)                                           | [`<Button>`][antd-button]                   | [`<ele-button>`][ele-button]             |
+| [`<dy-calendar>`](./calendar.md)                                       | [`<Calendar>`][antd-calendar]               | [`<ele-calendar>`][ele-calendar]         |
+| [`<dy-card>`](./card.md)                                               | [`<Card>`][antd-card]                       | [`<ele-card>`][ele-card]                 |
+| [`<dy-carousel>`](./carousel.md)                                       | [`<Carousel>`][antd-carousel]               | [`<ele-carousel>`][ele-carousel]         |
+| [`<dy-cascader-picker>`](./cascader-picker.md)                         |                                             |                                          |
+| [`<dy-cascader>`](./cascader.md)                                       | [`<Cascader>`][antd-cascader]               | [`<ele-cascader>`][ele-cascader]         |
+|                                                                        | [`<TreeSelect>`][antd-tree-select]          |                                          |
+| [`<dy-chart-tooltip>`](./chart-tooltip.md)                             |                                             |                                          |
+| [`<dy-chart-zoom>`](./chart-zoom.md)                                   |                                             |                                          |
+| [`<dy-checkbox>`](https://tap-ui.gemjs.org/zh/elements/checkbox)       | [`<Checkbox>`][antd-checkbox]               | [`<ele-checkbox>`][ele-checkbox]         |
+| [`<dy-coach-mark>`](./coach-mark.md)                                   | [`<Tour>`][antd-tour]                       |                                          |
+| [`<dy-code-block>`](https://tap-ui.gemjs.org/zh/elements/code-block)   |                                             |                                          |
+| [`<dy-collapse>`](https://tap-ui.gemjs.org/zh/elements/collapse)       | [`<Collapse>`][antd-collapse]               | [`<ele-collapse>`][ele-collapse]         |
+| [`<dy-color-panel>`](./color-panel.md)                                 |                                             |                                          |
+| [`<dy-color-picker>`](./color-picker.md)                               | [`<ColorPicker>`][antd-color-picker]        | [`<ele-color-picker>`][ele-color-picker] |
+| [`<dy-compartment>`](https://tap-ui.gemjs.org/zh/elements/compartment) |                                             |                                          |
+| [`<dy-contextmenu>`](./contextmenu.md)                                 | [`<Dropdown>`][antd-dropdown]               | [`<ele-dropdown>`][ele-dropdown]         |
+| [`<dy-copy>`](./copy.md)                                               |                                             |                                          |
+| [`<dy-date-panel>`](./date-panel.md)                                   |                                             |                                          |
+| [`<dy-date-picker>`](./date-picker.md)                                 | [`<DatePicker>`][antd-date-picker]          | [`<ele-date-picker>`][ele-date-picker]   |
+| [`<dy-date-range-panel>`](./date-range-panel.md)                       |                                             |                                          |
+| [`<dy-date-range-picker>`](./date-range-picker.md)                     | [`<DatePicker>`][antd-date-picker]          | [`<ele-date-picker>`][ele-date-picker]   |
+| [`<dy-divider>`](https://tap-ui.gemjs.org/zh/elements/divider)         | [`<Divider>`][antd-divider]                 | [`<ele-divider>`][ele-divider]           |
+| [`<dy-donut-chart>`](./donut-chart.md)                                 |                                             |                                          |
+| [`<dy-drawer>`](./drawer.md)                                           | [`<Drawer>`][antd-drawer]                   | [`<ele-drawer>`][ele-drawer]             |
+| [`<dy-drop-area>`](./drop-area.md)                                     |                                             |                                          |
+| [`<dy-empty>`](https://tap-ui.gemjs.org/zh/elements/empty)             | [`<Empty>`][antd-empty]                     | [`<ele-empty>`][ele-empty]               |
+| [`<dy-file-picker>`](./file-picker.md)                                 | [`<Upload>`][antd-upload]                   | [`<ele-upload>`][ele-upload]             |
+| [`<dy-form>`](./form.md)                                               | [`<Form>`][antd-form]                       | [`<ele-form>`][ele-form]                 |
+| [`<dy-grouped-picker>`](./grouped-picker.md)                           |                                             |                                          |
+| [`<dy-heading>`](./heading.md)                                         | [`<Typography.Title>`][antd-typography]     |                                          |
+| [`<dy-help-text>`](./help-text.md)                                     | [`<Typography.Text>`][antd-typography]      | [`<ele-text>`][ele-text]                 |
+| [`<dy-icons>`](./icons.md)                                             | [Icons][antd-icon]                          | [`<ele-icon>`][ele-icon]                 |
+| [`<dy-image-preview>`](./image-preview.md)                             |                                             |                                          |
+| [`<dy-input-capture>`](./input-capture.md)                             |                                             |                                          |
+| [`<dy-input>`](https://tap-ui.gemjs.org/zh/elements/input)             | [`<Input>`][antd-input]                     | [`<ele-input>`][ele-input]               |
+|                                                                        | [`<InputNumber>`][antd-input-number]        | [`<ele-input-number>`][ele-input-number] |
+|                                                                        | [`<AutoComplete>`][antd-auto-complete]      | [`<ele-autocomplete>`][ele-autocomplete] |
+| [`<dy-keyboard-access>`](./keyboard-access.md)                         |                                             |                                          |
+| [`<dy-legend>`](./legend.md)                                           |                                             |                                          |
+| [`<dy-line-chart>`](./line-chart.md)                                   |                                             |                                          |
+| [`<dy-link>`](https://tap-ui.gemjs.org/zh/elements/link)               | [`<Typography.Link>`][antd-typography]      | [`<ele-link>`][ele-link]                 |
+| [`<dy-list>`](./list.md)                                               | [`<List>`][antd-list]                       |                                          |
+| [`<dy-loading>`](./loading.md)                                         | [`<Spin>`][antd-spin]                       | [`<ele-loading>`][ele-loading]           |
+| [`<dy-meter>`](./meter.md)                                             | [`<Progress>`][antd-progress]               | [`<ele-progress>`][ele-progress]         |
+| [`<dy-modal>`](https://tap-ui.gemjs.org/zh/elements/dialog)            | [`<Modal>`][antd-modal]                     | [`<ele-dialog>`][ele-dialog]             |
+|                                                                        | [`<Popconfirm>`][antd-popconfirm]           | [`ElMessageBox`][ele-message-box]        |
+|                                                                        |                                             | [`<ele-popconfirm>`][ele-popconfirm]     |
+| [`<dy-more>`](./more.md)                                               |                                             |                                          |
+| [`<dy-options>`](https://tap-ui.gemjs.org/zh/elements/options)         |                                             |                                          |
+| [`<dy-page-loadbar>`](./page-loadbar.md)                               |                                             |                                          |
+| [`<dy-pagination>`](./pagination.md)                                   | [`<Pagination>`][antd-pagination]           | [`<ele-pagination>`][ele-pagination]     |
+| [`<dy-paragraph>`](https://tap-ui.gemjs.org/zh/elements/paragraph)     | [`<Typography.Paragraph>`][antd-typography] |                                          |
+| [`<dy-picker>`](./picker.md)                                           |                                             |                                          |
+| [`<dy-placeholder>`](https://tap-ui.gemjs.org/zh/elements/placeholder) | [`<Skeleton>`][antd-skeleton]               | [`<ele-skeleton>`][ele-skeleton]         |
+| [`<dy-popover>`](./popover.md)                                         | [`<Popover>`][antd-popover]                 | [`<ele-popover>`][ele-popover]           |
+| [`<dy-progress>`](./progress.md)                                       | [`<Progress>`][antd-progress]               | [`<ele-progress>`][ele-progress]         |
+| [`<dy-radio>`](https://tap-ui.gemjs.org/zh/elements/radio)             | [`<Radio>`][antd-radio]                     | [`<ele-radio>`][ele-radio]               |
+| [`<dy-rate>`](https://tap-ui.gemjs.org/zh/elements/rate)               | [`<Rate>`][antd-rate]                       | [`<ele-rate>`][ele-rate]                 |
+| [`<dy-result>`](./result.md)                                           | [`<Result>`][antd-result]                   | [`<ele-result>`][ele-result]             |
+| [`<dy-scatter-chart>`](./scatter-chart.md)                             |                                             |                                          |
+| [`<dy-segmented>`](https://tap-ui.gemjs.org/zh/elements/segmented)     | [`<Segmented>`][antd-segmented]             |                                          |
+| [`<dy-select>`](./select.md)                                           | [`<Select>`][antd-select]                   | [`<ele-select>`][ele-select]             |
+| [`<dy-shortcut-record>`](./shortcut-record.md)                         |                                             |                                          |
+| [`<dy-side-navigation>`](./side-navigation.md)                         | [`<Menu>`][antd-menu]                       | [`<ele-menu>`][ele-menu]                 |
+| [`<dy-slider>`](https://tap-ui.gemjs.org/zh/elements/slider)           | [`<Slider>`][antd-slider]                   | [`<ele-slider>`][ele-slider]             |
+| [`<dy-space>`](https://tap-ui.gemjs.org/zh/elements/space)             | [`<Space>`][antd-space]                     | [`<ele-space>`][ele-space]               |
+| [`<dy-statistic>`](./statistic.md)                                     | [`<Statistic>`][antd-statistic]             | [`<ele-statistic>`][ele-statistic]       |
+| [`<dy-status-light>`](./status-light.md)                               |                                             |                                          |
+| [`<dy-switch>`](https://tap-ui.gemjs.org/zh/elements/switch)           | [`<Switch>`][antd-switch]                   | [`<ele-switch>`][ele-switch]             |
+| [`<dy-table>`](./table.md)                                             | [`<Table>`][antd-table]                     | [`<ele-table>`][ele-table]               |
+| [`<dy-tabs>`](./tabs.md)                                               | [`<Tabs>`][antd-tabs]                       | [`<ele-tabs>`][ele-tabs]                 |
+| [`<dy-tag>`](https://tap-ui.gemjs.org/zh/elements/tag)                 | [`<Tag>`][antd-tag]                         | [`<ele-tag>`][ele-tag]                   |
+| [`<dy-text-mask>`](./text-mask.md)                                     |                                             |                                          |
+| [`<dy-time-panel>`](./time-panel.md)                                   |                                             |                                          |
+| [`<dy-time-picker>`](./time-picker.md)                                 | [`<TimePicker>`][antd-time-picker]          | [`<ele-time-picker>`][ele-time-picker]   |
+| [`<dy-timeline>`](./timeline.md)                                       | [`<Timeline>`][antd-timeline]               | [`<ele-timeline>`][ele-timeline]         |
+| [`<dy-toast>`](https://tap-ui.gemjs.org/zh/elements/toast)             | [Message][antd-message]                     | [`ElMessage`][ele-message]               |
+| [`<dy-tooltip>`](./tooltip.md)                                         | [`<Tooltip>`][antd-tooltip]                 | [`<ele-tooltip>`][ele-tooltip]           |
+| [`<dy-tree>`](./tree.md)                                               | [`<Tree>`][antd-tree]                       | [`<ele-tree>`][ele-tree]                 |
+| [`<dy-wait>`](./wait.md)                                               |                                             | [`<ele-loading>`][ele-loading]           |
 
 <!-- copy([...new Set($$('a').filter(e => e.href.startsWith("https://ant.design/components/")).map(e => e.href))].join('\n'))  -->
 
