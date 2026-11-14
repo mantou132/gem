@@ -1,10 +1,10 @@
 #!/usr/bin/env node
 
 import { spawn } from 'node:child_process';
-import { existsSync } from 'node:fs';
-import { createRequire } from 'node:module';
+import fs from 'node:fs';
+import module, { createRequire } from 'node:module';
 import path from 'node:path';
-import { pathToFileURL } from 'node:url';
+import url, { pathToFileURL } from 'node:url';
 
 import type { Color } from '@mantou/vscode-css-languageservice';
 import type { API } from 'typescript/async';
@@ -26,11 +26,12 @@ import { createGemMiddleware } from './middleware';
 import { loadTsModules } from './ts';
 
 // 编辑器以项目根目录作为工作目录启动语言服务器
+// TypeScript 7.0 的 API 在 `typescript/unstable/*` 下，7.1 起才是 `typescript/async` 等稳定路径
 function resolveProjectTypeScript7() {
   try {
     const require = createRequire(path.join(process.cwd(), 'package.json'));
-    const dir = path.dirname(require.resolve('typescript/package.json'));
-    if (existsSync(path.join(dir, 'lib/getExePath.js'))) return dir;
+    require.resolve('typescript/async');
+    return path.dirname(require.resolve('typescript/package.json'));
   } catch {}
 }
 
@@ -68,7 +69,8 @@ async function startProxy(tsDir: string, clientReader: MessageReader, clientWrit
   // API 客户端和启动的 tsc 来自同一个 TypeScript
   const modules = await loadTsModules(createTypeScriptModuleLoader(path.join(tsDir, 'package.json')));
   const { default: getExePath } = await import(pathToFileURL(path.join(tsDir, 'lib/getExePath.js')).href);
-  const server = spawn(getExePath(), ['--lsp', '--stdio'], { stdio: ['pipe', 'pipe', 'inherit'] });
+  // TypeScript 7.1 起需要传入 Node 模块，之前的版本忽略参数
+  const server = spawn(getExePath({ fs, module, path, url }), ['--lsp', '--stdio'], { stdio: ['pipe', 'pipe', 'inherit'] });
   server.on('exit', (code) => process.exit(code ?? 0));
   process.stdin.on('end', () => server.kill());
   const serverReader = new StreamMessageReader(server.stdout);

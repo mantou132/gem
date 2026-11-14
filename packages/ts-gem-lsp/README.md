@@ -7,7 +7,7 @@ TypeScript 7 (`tsc --lsp`) no longer loads tsserver plugins, so [ts-gem-plugin](
 - **VS Code middleware**: used by the [VS Code extension](../vscode-gem-plugin) through the TypeScript 7 extension's `registerLspMiddleware`
 - **CLI** (`ts-gem`): runs diagnostics and editor requests from the command line
 
-The TypeScript API is loaded from the project's own `typescript` package, so it always matches the running language server. When the project does not use TypeScript 7, the proxy starts a server without any capabilities, keep using ts-gem-plugin in that case.
+The TypeScript API is loaded from the project's own `typescript` package, so it always matches the running language server. When the project does not use TypeScript 7.1 or later, the proxy starts a server without any capabilities, keep using ts-gem-plugin in that case.
 
 ## Features
 
