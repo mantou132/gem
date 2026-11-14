@@ -214,7 +214,15 @@ export function pluginGemkit(options: GemkitOptions = {}): RsbuildPlugin {
       const adapter = isDev || adapterOption === false ? undefined : adapterOption || detectAdapter(rootPath);
 
       // 创建 `.gemkit` 目录，`generateHandler` 写入其中
-      const { spa, clientRoutes } = generate(rootPath, config);
+      // 生成的警告（例如 API 路由不能通过 `$gemkit/api` 调用），开发时只在内容改变后再输出
+      let lastWarnings = '';
+      const logWarnings = (warnings: string[]) => {
+        if (warnings.join('\n') === lastWarnings) return;
+        lastWarnings = warnings.join('\n');
+        warnings.forEach((warning) => logger.warn(warning));
+      };
+      const { spa, clientRoutes, warnings } = generate(rootPath, config);
+      logWarnings(warnings);
       const handlerEntry = adapter && generateHandler(rootPath, adapter.runtime);
 
       // 页面和语言文件增删时重新生成
@@ -223,7 +231,7 @@ export function pluginGemkit(options: GemkitOptions = {}): RsbuildPlugin {
           if (!filename || !/^(pages|locales)[/\\]|^app\./.test(filename)) return;
           // 编辑中的错误（例如标签名重复、改名时目录短暂不存在）不应该让开发服务器退出
           try {
-            generate(rootPath, config);
+            logWarnings(generate(rootPath, config).warnings);
           } catch (err) {
             logger.error(err);
           }

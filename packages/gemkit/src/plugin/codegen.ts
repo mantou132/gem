@@ -4,6 +4,7 @@ import { fileURLToPath } from 'node:url';
 
 import { Eta } from 'eta';
 
+import { RESERVED_API_SEGMENTS } from '../constants';
 import type { TitleOptions } from '../title';
 
 export interface GemkitConfig extends TitleOptions {
@@ -361,8 +362,21 @@ function toApiType({ module, children }: ApiNode, indent: string): string {
   return types.join(' & ') || '{}';
 }
 
-/** 生成 `$gemkit/api`，按路径调用 API 路由，只引用服务端模块的类型 */
-function generateApi(genDir: string, endpoints: EndpointNode[]) {
+/**
+ * 生成 `$gemkit/api`，按路径调用 API 路由，只引用服务端模块的类型；
+ * 路径的静态部分是保留名称（见 `RESERVED_API_SEGMENTS`）的 API 路由不能通过 `apis` 调用，不在类型中，返回警告
+ */
+function generateApi(genDir: string, allEndpoints: EndpointNode[]) {
+  const warnings: string[] = [];
+  const endpoints = allEndpoints.filter(({ pattern, file }) => {
+    const reserved = pattern.split('/').find((segment) => RESERVED_API_SEGMENTS.has(segment));
+    if (reserved === undefined) return true;
+    const relFile = toPosix(path.relative(path.dirname(genDir), file));
+    warnings.push(
+      `gemkit: \`${relFile}\` is not in \`$gemkit/api\`, \`${reserved}\` in its path is reserved, rename it or use \`fetch\``,
+    );
+    return false;
+  });
   const root: ApiNode = { children: new Map() };
   endpoints.forEach(({ pattern, rest }, index) => {
     let node = root;
@@ -376,6 +390,7 @@ function generateApi(genDir: string, endpoints: EndpointNode[]) {
     modules: endpoints.map(({ file }) => toImportPath(genDir, file)),
     type: toApiType(root, ''),
   });
+  return warnings;
 }
 
 /** 路由的类型文件所在的目录，通过 tsconfig 的 `rootDirs` 和 `srcDir` 合并，`./<name>.$types` 导入 */
@@ -552,7 +567,10 @@ export function generateHandler(rootPath: string, runtime: string) {
 
 export const getSrcDir = (rootPath: string, config: GemkitConfig) => path.resolve(rootPath, config.srcDir ?? 'src');
 
-/** 生成路由、i18n 和入口文件到 `.gemkit` 目录，返回根 layout 是否 `ssr = false`（单页应用） */
+/**
+ * 生成路由、i18n 和入口文件到 `.gemkit` 目录，返回根 layout 是否 `ssr = false`（单页应用）、
+ * 是否有客户端渲染的路由，以及需要输出的警告
+ */
 export function generate(rootPath: string, config: GemkitConfig) {
   const srcDir = getSrcDir(rootPath, config);
   const genDir = path.join(rootPath, '.gemkit');
@@ -562,6 +580,6 @@ export function generate(rootPath: string, config: GemkitConfig) {
   const routes = generateRoutes(genDir, srcDir);
   generateI18n(genDir, path.join(srcDir, 'locales'), config);
   generateEntries(genDir, srcDir, config, routes);
-  generateApi(genDir, routes.endpoints);
-  return { spa: routes.spa, clientRoutes: routes.clientRoutes };
+  const warnings = generateApi(genDir, routes.endpoints);
+  return { spa: routes.spa, clientRoutes: routes.clientRoutes, warnings };
 }

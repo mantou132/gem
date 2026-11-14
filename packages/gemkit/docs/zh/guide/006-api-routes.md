@@ -58,6 +58,8 @@ const likes = await api.likes(slug).GET();
 ```
 
 - 请求发送到 API 路径，不包含语言前缀。
+- 路径的静态部分是请求方法（`GET`、`POST`、`PUT`、`PATCH`、`DELETE`）或者 `then` 时不能通过 `apis` 调用：
+  它们不在 `apis` 的类型中，构建时输出警告，路由仍然可以用 `fetch` 请求。参数（例如 `[then]`）不受影响。
 - JSON 响应会解析，其他响应返回原始 `Response`。
 - `error()` 响应会 reject `HttpError`，它有 `status`、`message` 和 schema 校验的 `issues`。
 - 处理函数或者 `handle` 跳转时，客户端清除预取的结果和历史缓存，导航到目标地址，页面渲染后调用以 `RedirectError` reject：

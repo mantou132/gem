@@ -12,6 +12,15 @@ export const HTML_TYPE = 'text/html; charset=utf-8';
 /** ISR 的页面由 CDN 缓存时，过期后最多返回一年内的旧内容，同时在后台重新渲染 */
 export const CDN_STALE_SECONDS = 60 * 60 * 24 * 365;
 
+/** API 路由的处理函数名，也是 `$gemkit/api` 中发送请求的方法 */
+export const REQUEST_METHODS = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'] as const;
+
+/**
+ * `$gemkit/api` 不能作为路径静态部分的名称：请求方法会被当作发送请求，`then` 会让 `await` 把它当作 Promise，
+ * 包含它们的 API 路由不在 `apis` 中，使用 `fetch` 请求
+ */
+export const RESERVED_API_SEGMENTS: ReadonlySet<string> = new Set(['then', ...REQUEST_METHODS]);
+
 /** 表单提交的 action 名称，`?/login` 中的 `login` */
 export function getActionName(searchParams: URLSearchParams) {
   return [...searchParams.keys()].find((key) => key.startsWith('/'))?.slice(1);

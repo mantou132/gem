@@ -296,6 +296,27 @@ test('generate: 每个页面、布局和 API 路由的参数类型，来自文�
   assert.equal(fs.existsSync(path.join(typesDir, '[lang]/blog')), false, '空目录也删除');
 });
 
+test('generate: 路径中有保留名称的 API 路由不在 `$gemkit/api` 中，返回警告', ({ assert }) => {
+  const root = createFixture([
+    'src/pages/api/then/[id].server.ts',
+    'src/pages/api/items/GET.server.ts',
+    'src/pages/api/user-info.server.ts',
+    // 参数名不是路径的静态部分
+    'src/pages/api/likes/[then].server.ts',
+  ]);
+  const { warnings } = generate(root, {});
+  assert.deepEqual(warnings, [
+    'gemkit: `src/pages/api/items/GET.server.ts` is not in `$gemkit/api`, `GET` in its path is reserved, rename it or use `fetch`',
+    'gemkit: `src/pages/api/then/[id].server.ts` is not in `$gemkit/api`, `then` in its path is reserved, rename it or use `fetch`',
+  ]);
+  const api = fs.readFileSync(path.join(root, '.gemkit/api.ts'), 'utf8');
+  assert.doesNotMatch(api, /"then"|"GET"|items/);
+  assert.match(api, /"user-info": EndpointMethods/);
+  assert.match(api, /\(then: string\): EndpointMethods/);
+  // 服务端仍然处理这些路由
+  assert.match(fs.readFileSync(path.join(root, '.gemkit/server.ts'), 'utf8'), /pattern: '\/api\/then\/:id'/);
+});
+
 test('generate: 根目录剩余参数页面排在首页之后', ({ assert }) => {
   const root = createFixture(['src/pages/index.ts', 'src/pages/[...rest].ts', 'src/pages/files/[...path].ts']);
   generate(root, {});
@@ -389,7 +410,7 @@ test('generate: 根 layout `ssr = false` 时是单页应用，`src/app.ts` 只�
     'src/app.ts',
     'src/app.client.ts',
   ]);
-  assert.deepEqual(generate(root, {}), { spa: true, clientRoutes: true });
+  assert.deepEqual(generate(root, {}), { spa: true, clientRoutes: true, warnings: [] });
   const read = (file: string) => fs.readFileSync(path.join(root, '.gemkit', file), 'utf8');
   const routes = read('routes.ts');
   // 服务端构建时替换成空模块
@@ -412,14 +433,14 @@ test('generate: 根 layout `ssr = false` 时是单页应用，`src/app.ts` 只�
   assert.doesNotMatch(read('server.ts'), /src\/app/);
 
   const ssr = createFixture(['src/pages/_layout.ts', 'src/pages/index.ts', 'src/app.ts', 'src/app.client.ts']);
-  assert.deepEqual(generate(ssr, {}), { spa: false, clientRoutes: false });
+  assert.deepEqual(generate(ssr, {}), { spa: false, clientRoutes: false, warnings: [] });
   // 有 `ssr = false` 的页面时输出外壳页面作为后备页面
   const mixed = createFixture([
     'src/pages/index.ts',
     'src/pages/play.ts',
     ['src/pages/play.server.ts', 'export const ssr = false;'],
   ]);
-  assert.deepEqual(generate(mixed, {}), { spa: false, clientRoutes: true });
+  assert.deepEqual(generate(mixed, {}), { spa: false, clientRoutes: true, warnings: [] });
   assert.match(fs.readFileSync(path.join(ssr, '.gemkit/server.ts'), 'utf8'), /import "..\/src\/app";/);
   assert.doesNotMatch(fs.readFileSync(path.join(ssr, '.gemkit/server.ts'), 'utf8'), /app.client/);
 });

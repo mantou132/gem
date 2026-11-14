@@ -1,9 +1,9 @@
-import { CLIENT_HEADER, REDIRECT_HEADER } from './constants';
+import { CLIENT_HEADER, REDIRECT_HEADER, REQUEST_METHODS } from './constants';
 import { HttpError, localizeLocation, RedirectError } from './error';
 import { navigate } from './navigation';
 import type { RequestMethod } from './types';
 
-const METHODS = new Set<string>(['GET', 'POST', 'PUT', 'PATCH', 'DELETE'] satisfies RequestMethod[]);
+const METHODS = new Set<string>(REQUEST_METHODS satisfies readonly RequestMethod[]);
 // 没有请求体，参数作为查询参数
 const QUERY_METHODS = new Set<string>(['GET', 'DELETE'] satisfies RequestMethod[]);
 
@@ -68,7 +68,7 @@ async function request(method: string, segments: string[], input?: Record<string
 export function createApi(segments: string[] = []): any {
   return new Proxy(() => {}, {
     get: (_, key) => {
-      // 不是 thenable，避免被 `await` 时当作 Promise
+      // 不是 thenable，避免被 `await` 时当作 Promise；包含 `then` 的 API 路由不在 `apis` 中，见 `RESERVED_API_SEGMENTS`
       if (typeof key !== 'string' || key === 'then') return;
       if (METHODS.has(key)) return (input?: Record<string, any>) => request(key, segments, input);
       return createApi([...segments, key]);

@@ -63,6 +63,9 @@ const likes = await api.likes(slug).GET();
 ```
 
 - The request is sent to the API path, without the language prefix.
+- Routes with a static path segment that is a request method (`GET`, `POST`, `PUT`, `PATCH`, `DELETE`) or `then`
+  can't be called through `apis`: they are left out of its type and the build prints a warning, but they can still be
+  requested with `fetch`. Params (such as `[then]`) are not affected.
 - A JSON response is parsed; other responses give the raw `Response`.
 - An `error()` response rejects with `HttpError`, which has `status`, `message` and the `issues` of schema
   validation.
