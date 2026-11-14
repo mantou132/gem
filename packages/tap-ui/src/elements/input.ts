@@ -334,8 +334,9 @@ export class TapInputElement extends GemElement {
     if (!element) return;
     const { value, selectionStart, selectionEnd } = this.#nextState;
     if (this.value === value) {
-      // biome-ignore lint/plugin/assign: 有些控件没有原生 selectionStart
-      Object.assign(element, { value, selectionStart, selectionEnd });
+      element.value = value;
+      // `email` 等类型不支持选区，读取为 `null`，设置会抛错
+      if (element.selectionStart !== null) element.setSelectionRange(selectionStart, selectionEnd);
     } else {
       if (this.#editing && this.#isNumberNotChange(this.value, value)) {
         element.value = value;

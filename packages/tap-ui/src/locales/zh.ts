@@ -27,6 +27,8 @@ const lang: typeof en = {
   ok: '确认',
   cancel: '取消',
   done: '完成',
+  clear: '清除',
+  recentSearches: '最近搜索',
   prevPage: '上一页',
   nextPage: '下一页',
   perPage: '$1 / 页',

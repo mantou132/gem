@@ -25,6 +25,8 @@ export default {
   ok: 'OK',
   cancel: 'Cancel',
   done: 'Done',
+  clear: 'Clear',
+  recentSearches: 'Recent Searches',
   prevPage: 'Prev',
   nextPage: 'Next',
   perPage: '$1 / Page',
