@@ -47,10 +47,8 @@ const UNUSED_CODES = new Set([6133, 6138, 6196]);
 
 const htmlLs = getLanguageService();
 
+// 其他内置元素的属性由 `DiagnosticContext.getPropName` 按小写匹配
 const buildInElementNoGlobalAttrPropMap = new Map([
-  ['crossorigin', 'crossOrigin'],
-  ['rowspan', 'rowSpan'],
-  ['colspan', 'colSpan'],
   // <input> list: string
   ['list', 'ariaLabelledby'],
 ]);
@@ -152,6 +150,7 @@ class DiagnosticContext {
   #primitive?: Promise<Record<'string' | 'number' | 'boolean' | 'undefined' | 'null' | 'any', Type>>;
 
   #lightTemplateElements = new Map<string, Promise<boolean>>();
+  #builtInPropNames = new Map<Type, Promise<Map<string, string>>>();
 
   readonly strict: boolean;
   readonly ssr: boolean;
@@ -198,6 +197,18 @@ class DiagnosticContext {
     if (!symbol) return false;
     const tags = await symbol.getJsDocTags(this.checker);
     return tags.some(({ name }) => name === 'deprecated');
+  }
+
+  /** HTML 属性名不区分大小写，内置元素的属性名是驼峰式的，例如 `maxlength` 对应 `maxLength` */
+  async getPropName({ type, isBuiltIn, isSVG }: DiagnosticElementType, attr: string) {
+    const propName = getPropName(attr, isBuiltIn);
+    if (!isBuiltIn || isSVG || propName !== attr) return propName;
+    let names = this.#builtInPropNames.get(type);
+    if (!names) {
+      names = type.getProperties().then((props) => new Map(props.map(({ name }) => [name.toLowerCase(), name])));
+      this.#builtInPropNames.set(type, names);
+    }
+    return (await names).get(attr) ?? propName;
   }
 
   async isPropDeprecated(type: Type, propName: string) {
@@ -308,7 +319,7 @@ async function checkAttribute(
   const primitive = await ctx.primitive;
   const hasValueSpan = !!value?.startsWith(SUBSTITUTION_CHAR) || !!value?.startsWith(`"${SUBSTITUTION_CHAR}`);
   const { attr, decorate } = parseAttrName(attributeName);
-  const propName = getPropName(attr, elementType.isBuiltIn);
+  const propName = await ctx.getPropName(elementType, attr);
   const [propTypes, deprecated] = await Promise.all([
     ctx.getPropTypes(elementType.type, propName, decorate === '@'),
     ctx.isPropDeprecated(elementType.type, propName),
