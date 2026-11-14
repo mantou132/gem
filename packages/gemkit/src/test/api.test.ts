@@ -10,7 +10,7 @@ import { CLIENT_HEADER, REDIRECT_HEADER } from '../constants';
 import { fail, HttpError, RedirectError } from '../error';
 import { formActions } from '../navigation';
 import type { Params } from '../page';
-import { endpoint } from '../request';
+import { endpoint, type json } from '../request';
 import type { Jsonify, MergeActions, StandardSchemaV1 } from '../types';
 
 test('createApi: 属性是路径，调用是参数，请求方法发送请求', async ({ assert, mock }) => {
@@ -139,6 +139,28 @@ test('EndpointMethods: `endpoint` 的参数是 schema 的输入类型，输入�
   call(methods.PUT, { at: new Date() });
   // 处理函数得到的是输出类型
   endpoint(schema<{ count?: number } | undefined, { count: number }>(), (_, { count }) => count.toFixed());
+});
+
+test('EndpointMethods: 结果是转换成 JSON 后的类型，`json()` 的响应是它的数据', async () => {
+  type Methods = EndpointMethods<{
+    GET: () => { at: Date; count: number };
+    POST: () => Promise<ReturnType<typeof json<{ id: number }>>>;
+    PUT: () => Response;
+    DELETE: () => void;
+    PATCH: (ctx: unknown, input: { ok: boolean }) => { ok: true } | ReturnType<typeof json<{ error: string }>>;
+  }>;
+  const methods = {} as Methods;
+  const result = <F extends (...args: any) => Promise<any>>(_: F) => ({}) as Awaited<ReturnType<F>>;
+  const get: { at: string; count: number } = result(methods.GET);
+  // @ts-expect-error `Date` 转换成字符串
+  const getBad: { at: Date } = result(methods.GET);
+  const post: { id: number } = result(methods.POST);
+  // @ts-expect-error 不是原始的 `Response`
+  const postBad: Response = result(methods.POST);
+  const put: Response = result(methods.PUT);
+  const del: null = result(methods.DELETE);
+  const patch: { ok: true } | { error: string } = result(methods.PATCH);
+  void [get, getBad, post, postBad, put, del, patch];
 });
 
 test('Jsonify: JSON 序列化后的类型', () => {

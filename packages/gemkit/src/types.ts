@@ -80,6 +80,13 @@ export type MergeActions<M extends unknown[], Result = Record<never, never>> = M
   ? MergeActions<Rest, Omit<Result, keyof ModuleActions<Head>> & ModuleActions<Head>>
   : Result;
 
+declare const JSON_DATA: unique symbol;
+
+/** `json()` 返回的响应，只用于类型：`$gemkit/api` 的结果是 `Jsonify<T>`，而不是原始的 `Response` */
+export interface JSONResponse<T> extends Response {
+  readonly [JSON_DATA]: T;
+}
+
 type NotJSON = undefined | symbol | ((...args: any) => any);
 
 /**

@@ -39,8 +39,17 @@ exported. Other methods respond `405` with an `Allow` header.
 
 ## Responses
 
-- Return a `Response` to control the status, headers and body.
 - Return any other value to respond with JSON.
+- To set the status or headers, use `json(data, init)` (imported from `@mantou/gemkit`); the `$gemkit/api` result
+  still has the type of `data`:
+
+  ```ts
+  import { json } from '@mantou/gemkit';
+
+  export const POST = endpoint(Post, (_, post) => json(createPost(post), { status: 201 })) satisfies Handler;
+  ```
+
+- Return a `Response` to fully control the status, headers and body; `$gemkit/api` gives the raw `Response`.
 - `redirect(status, location)` responds with the redirect; a `$gemkit/api` call navigates on the client.
 - `error(status, message)` responds with `{ status, message }` as JSON.
 
@@ -66,7 +75,9 @@ const likes = await api.likes(slug).GET();
 - Routes with a static path segment that is a request method (`GET`, `POST`, `PUT`, `PATCH`, `DELETE`) or `then`
   can't be called through `apis`: they are left out of its type and the build prints a warning, but they can still be
   requested with `fetch`. Params (such as `[then]`) are not affected.
-- A JSON response is parsed; other responses give the raw `Response`.
+- A JSON response is parsed, its type is the return value converted to JSON (see
+  [`Jsonify`](../reference/002-api.md#jsonify)), for example a `Date` is a string; it is `null` without a return
+  value. Other responses give the raw `Response`.
 - An `error()` response rejects with `HttpError`, which has `status`, `message` and the `issues` of schema
   validation.
 - When the handler or `handle` redirects, the client clears prefetched results and the history cache,
@@ -108,6 +119,7 @@ export const GET = endpoint(z.object({ page: z.coerce.number() }), ({ params }, 
 ```
 
 - When validation fails, it responds `400` and the `issues` of `HttpError` are the validation issues.
+- Only JSON bodies are parsed; a body of another type (such as a form) responds `415`.
 - Query values are strings; use a schema transform such as `z.coerce.number()` to convert them.
 - The input type of `$gemkit/api` is the input type of the schema: fields with defaults can be omitted (the whole
   input can be omitted when it has a default), and `transform` fields take the value before the transform, such as

@@ -30,7 +30,7 @@ import { type ActionData, actionStore } from '../navigation';
 import { createFsStore, createRequestHandler } from '../node';
 import { setOutlets } from '../outlet';
 import { type Params, page } from '../page';
-import { action, endpoint, formDataToObject, getRequestEvent, revalidatePath } from '../request';
+import { action, endpoint, formDataToObject, getRequestEvent, json, revalidatePath } from '../request';
 import { errorRoute, pageRoute } from '../route';
 import { createRenderer } from '../server';
 import type { EndpointModule, ServerModule, StandardSchemaV1 } from '../types';
@@ -258,7 +258,12 @@ const renderer = createRenderer({
     { pattern: '/files/*', rest: 'path', load: async () => ({ GET: ({ params }) => params }) },
     {
       pattern: '/count',
-      load: async () => ({ GET: endpoint(countSchema, (_, { count }) => ({ double: count * 2 })) }),
+      load: async () => ({
+        GET: endpoint(countSchema, (_, { count }) => ({ double: count * 2 })),
+        POST: endpoint(countSchema, (_, { count }) =>
+          json({ double: count * 2 }, { status: 201, headers: { 'x-count': String(count) } }),
+        ),
+      }),
     },
   ],
   appServerModule: {
@@ -549,6 +554,22 @@ test('endpoint: 使用 schema 校验和转换输入', async ({ assert }) => {
     message: 'Invalid input',
     issues: [{ message: 'Invalid', path: ['count'] }],
   });
+});
+
+test('endpoint: `json()` 设置状态码和响应头，请求体不是 JSON 时响应 415', async ({ assert }) => {
+  const handler = createRequestHandler(renderer, documentTemplate);
+  const post = (body: string, type: string) =>
+    handler(
+      request('/count', { method: 'POST', body, headers: { 'content-type': type, 'sec-fetch-site': 'same-origin' } }),
+    );
+  const created = await post('{"count":3}', 'application/json');
+  assert.equal(created.status, 201);
+  assert.equal(created.headers.get('x-count'), '3');
+  assert.deepEqual(await created.json(), { double: 6 });
+  // 表单数据不会被解析，提示真正的原因而不是 schema 的错误
+  const form = await post('count=3', 'application/x-www-form-urlencoded');
+  assert.equal(form.status, 415);
+  assert.match((await form.json()).message, /expected `application\/json`, got `application\/x-www-form-urlencoded`/);
 });
 
 test('createRequestHandler: 拒绝其他网站提交的表单和纯服务端元素请求', async ({ assert }) => {

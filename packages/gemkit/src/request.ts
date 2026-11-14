@@ -9,6 +9,7 @@ import type {
   AppClientModule,
   AppServerModule,
   Cookies,
+  JSONResponse,
   Locals,
   Platform,
   RequestEvent,
@@ -57,6 +58,11 @@ export function endpoint<S extends StandardSchemaV1, P extends Params, R>(
   handler: (ctx: ServerLoadContext<P>, input: SchemaOutput<S>) => R,
 ) {
   return async (ctx: ServerLoadContext<P>, ...[input]: EndpointArgs<S>) => {
+    // 有请求体时只解析 JSON，其他类型（例如表单）的输入是 `undefined`，提示真正的原因而不是 schema 的错误
+    const type = input === undefined && ctx.request.headers.get('content-type');
+    if (type && !type.includes('application/json')) {
+      throw new HttpError(415, `Unsupported Media Type: expected \`application/json\`, got \`${type}\``);
+    }
     const result = await schema['~standard'].validate(input);
     if (result.issues) throw new HttpError(400, 'Invalid input', result.issues);
     return handler(ctx, result.value as SchemaOutput<S>);
@@ -99,6 +105,18 @@ export function action<S extends StandardSchemaV1, P extends Params, R>(
     if (result.issues) return fail(400, { issues: result.issues });
     return await handler(ctx, result.value as SchemaOutput<S>);
   };
+}
+
+/**
+ * API 路由返回 JSON 并设置状态码或者响应头，和 `Response.json` 一样，但 `$gemkit/api` 的结果仍然有类型
+ *
+ * @example
+ * ```ts
+ * export const POST = endpoint(Post, (_, post) => json(createPost(post), { status: 201 }));
+ * ```
+ */
+export function json<T>(data: T, init?: ResponseInit) {
+  return Response.json(toJSONValue(data), init) as JSONResponse<T>;
 }
 
 // 页面和 layout 的标签名对应的服务端模块

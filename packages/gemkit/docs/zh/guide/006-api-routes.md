@@ -36,8 +36,16 @@ API 路由没有语言前缀。`handle` 在处理函数之前执行，`event.pat
 
 ## 响应
 
-- 返回 `Response` 可以控制状态码、响应头和内容。
 - 返回其他值会作为 JSON 响应。
+- 需要设置状态码或者响应头时使用 `json(data, init)`（从 `@mantou/gemkit` 导入），`$gemkit/api` 的结果仍然是 `data` 的类型：
+
+  ```ts
+  import { json } from '@mantou/gemkit';
+
+  export const POST = endpoint(Post, (_, post) => json(createPost(post), { status: 201 })) satisfies Handler;
+  ```
+
+- 返回 `Response` 可以完全控制状态码、响应头和内容，`$gemkit/api` 得到原始的 `Response`。
 - `redirect(status, location)` 响应跳转，`$gemkit/api` 调用时客户端导航。
 - `error(status, message)` 响应 `{ status, message }` 的 JSON。
 
@@ -60,7 +68,8 @@ const likes = await api.likes(slug).GET();
 - 请求发送到 API 路径，不包含语言前缀。
 - 路径的静态部分是请求方法（`GET`、`POST`、`PUT`、`PATCH`、`DELETE`）或者 `then` 时不能通过 `apis` 调用：
   它们不在 `apis` 的类型中，构建时输出警告，路由仍然可以用 `fetch` 请求。参数（例如 `[then]`）不受影响。
-- JSON 响应会解析，其他响应返回原始 `Response`。
+- JSON 响应会解析，结果的类型是返回值转换成 JSON 后的类型（见 [`Jsonify`](../reference/002-api.md#jsonify)），例如 `Date` 是字符串；
+  没有返回值时是 `null`，其他响应返回原始 `Response`。
 - `error()` 响应会 reject `HttpError`，它有 `status`、`message` 和 schema 校验的 `issues`。
 - 处理函数或者 `handle` 跳转时，客户端清除预取的结果和历史缓存，导航到目标地址，页面渲染后调用以 `RedirectError` reject：
   `await` 之后的代码不再执行，`finally` 仍然执行，所以布局中的元素（例如导航栏的退出按钮）可以结束 loading 状态。
@@ -97,6 +106,7 @@ export const GET = endpoint(z.object({ page: z.coerce.number() }), ({ params }, 
 ```
 
 - 校验失败时响应 `400`，`HttpError` 的 `issues` 是校验的问题。
+- 有请求体的方法只解析 JSON，请求体是其他类型（例如表单）时响应 `415`。
 - 查询参数的值都是字符串，需要转换类型时使用 schema 的转换，例如 `z.coerce.number()`。
 - `$gemkit/api` 的参数类型是 schema 的输入类型：有默认值的字段可以省略（整个输入有默认值时可以不传参数），
   `transform` 的字段传入转换之前的值，例如字符串而不是 `Date`。

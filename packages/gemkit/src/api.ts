@@ -1,7 +1,7 @@
 import { CLIENT_HEADER, REDIRECT_HEADER, REQUEST_METHODS } from './constants';
 import { HttpError, localizeLocation, RedirectError } from './error';
 import { navigate } from './navigation';
-import type { RequestMethod } from './types';
+import type { JSONResponse, Jsonify, RequestMethod } from './types';
 
 const METHODS = new Set<string>(REQUEST_METHODS satisfies readonly RequestMethod[]);
 // 没有请求体，参数作为查询参数
@@ -14,14 +14,26 @@ type QueryInput = Record<string, string | number | boolean | undefined>;
 type QueryArgs<A extends unknown[]> = { [I in keyof A]: A[I] & QueryInput };
 
 /**
- * API 路由处理函数在客户端的调用签名，第二个参数是输入，返回 `Response` 时得到原始响应，
+ * API 路由处理函数在客户端的调用签名，第二个参数是输入，结果见 `EndpointResult`，
  * `M` 是请求方法
  */
 export type Endpoint<F, M extends RequestMethod = RequestMethod> = F extends (ctx: any, ...args: infer A) => infer R
-  ? (
-      ...args: M extends 'GET' | 'DELETE' ? QueryArgs<A> : A
-    ) => Promise<Awaited<R> extends Response ? Response : Awaited<R>>
+  ? (...args: M extends 'GET' | 'DELETE' ? QueryArgs<A> : A) => Promise<EndpointResult<Awaited<R>>>
   : never;
+
+/**
+ * 处理函数的返回值在客户端的类型：转换成 JSON 后的类型，`json()` 的响应是它的数据，
+ * 其他 `Response` 得到原始响应，没有返回值时响应 `null`
+ */
+type EndpointResult<R> =
+  R extends JSONResponse<infer T>
+    ? Jsonify<T>
+    : R extends Response
+      ? Response
+      : // biome-ignore lint/suspicious/noConfusingVoidType: 没有返回值的处理函数返回 `void`，它不能赋值给 `undefined`
+        R extends undefined | void
+        ? null
+        : Jsonify<R>;
 
 /** API 路由模块导出的请求方法 */
 export type EndpointMethods<M> = { [K in keyof M & RequestMethod]: Endpoint<M[K], K> };
