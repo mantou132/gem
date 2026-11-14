@@ -106,8 +106,11 @@ export const GET = endpoint(z.object({ page: z.coerce.number() }), ({ params }, 
 
 - When validation fails, it responds `400` and the `issues` of `HttpError` are the validation issues.
 - Query values are strings; use a schema transform such as `z.coerce.number()` to convert them.
-- The input type of `$gemkit/api` is the output type of the schema: the client passes the values the handler
-  expects, they become strings in the query, and the schema transforms them back.
+- The input type of `$gemkit/api` is the input type of the schema: fields with defaults can be omitted (the whole
+  input can be omitted when it has a default), and `transform` fields take the value before the transform, such as
+  a string instead of a `Date`.
+- Fields whose input type is `unknown` (such as `z.coerce.number()`) use the output type: the client passes the
+  values the handler expects, they become strings in the query, and the schema transforms them back.
 
 ## Security
 

@@ -22,7 +22,7 @@ export {
   page,
   type RouteContext,
 } from './page';
-export { action, endpoint, formDataToObject, getRequestEvent, revalidatePath } from './request';
+export { action, type EndpointInput, endpoint, formDataToObject, getRequestEvent, revalidatePath } from './request';
 export { formatTitle, type TitleOptions } from './title';
 export type {
   ActionResult,

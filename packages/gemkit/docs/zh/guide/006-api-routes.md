@@ -96,7 +96,9 @@ export const GET = endpoint(z.object({ page: z.coerce.number() }), ({ params }, 
 
 - 校验失败时响应 `400`，`HttpError` 的 `issues` 是校验的问题。
 - 查询参数的值都是字符串，需要转换类型时使用 schema 的转换，例如 `z.coerce.number()`。
-- `$gemkit/api` 的参数类型是 schema 的输出类型：客户端传入处理函数期望的值，
+- `$gemkit/api` 的参数类型是 schema 的输入类型：有默认值的字段可以省略（整个输入有默认值时可以不传参数），
+  `transform` 的字段传入转换之前的值，例如字符串而不是 `Date`。
+- 输入类型是 `unknown` 的字段（例如 `z.coerce.number()`）使用输出类型：客户端传入处理函数期望的值，
   作为查询参数传输时变成字符串，由 schema 转换回来。
 
 ## 安全

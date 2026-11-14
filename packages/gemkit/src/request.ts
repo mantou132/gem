@@ -21,11 +21,31 @@ import type {
 
 type SchemaOutput<S extends StandardSchemaV1> = NonNullable<S['~standard']['types']>['output'];
 
+type SchemaInput<S extends StandardSchemaV1> = NonNullable<S['~standard']['types']>['input'];
+
+/**
+ * 客户端传入的值的类型，`I` 是 schema 的输入类型，`O` 是输出类型：使用输入类型（有默认值的字段可选，
+ * `transform` 之前的类型），输入是 `unknown` 的字段（例如 `z.coerce.number()`）使用输出类型，仍然有类型提示
+ */
+export type EndpointInput<I, O> = unknown extends I
+  ? O
+  : I extends object
+    ? O extends object
+      ? { [K in keyof I]: K extends keyof O ? EndpointInput<I[K], O[K]> : I[K] }
+      : I
+    : I;
+
+/** 处理函数的输入参数，输入可以是 `undefined` 时（例如整个对象有默认值）可以省略 */
+type EndpointArgs<
+  S extends StandardSchemaV1,
+  In = EndpointInput<SchemaInput<S>, SchemaOutput<S>>,
+> = undefined extends In ? [input?: In] : [input: In];
+
 /**
  * 使用 schema 校验 API 路由的输入，失败时响应 `400`，错误的 `issues` 是校验的问题
  *
  * 查询参数的值都是字符串，需要转换类型时使用 schema 的转换，例如 `z.coerce.number()`；
- * `$gemkit/api` 的参数类型是 schema 的输出类型，作为查询参数传输时变成字符串，由 schema 转换回来
+ * `$gemkit/api` 的参数类型是 schema 的输入类型（见 `EndpointInput`），例如有默认值的字段可以省略
  *
  * @example
  * ```ts
@@ -36,7 +56,7 @@ export function endpoint<S extends StandardSchemaV1, P extends Params, R>(
   schema: S,
   handler: (ctx: ServerLoadContext<P>, input: SchemaOutput<S>) => R,
 ) {
-  return async (ctx: ServerLoadContext<P>, input: SchemaOutput<S>) => {
+  return async (ctx: ServerLoadContext<P>, ...[input]: EndpointArgs<S>) => {
     const result = await schema['~standard'].validate(input);
     if (result.issues) throw new HttpError(400, 'Invalid input', result.issues);
     return handler(ctx, result.value as SchemaOutput<S>);

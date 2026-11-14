@@ -9,7 +9,9 @@ import { createApi, type EndpointMethods } from '../api';
 import { CLIENT_HEADER, REDIRECT_HEADER } from '../constants';
 import { fail, HttpError, RedirectError } from '../error';
 import { formActions } from '../navigation';
-import type { Jsonify, MergeActions } from '../types';
+import type { Params } from '../page';
+import { endpoint } from '../request';
+import type { Jsonify, MergeActions, StandardSchemaV1 } from '../types';
 
 test('createApi: 属性是路径，调用是参数，请求方法发送请求', async ({ assert, mock }) => {
   const calls: [string, RequestInit][] = [];
@@ -102,6 +104,41 @@ test('EndpointMethods: `GET` `DELETE` 的输入只能是查询参数能表示的
   call(methods.DELETE);
   // 请求体可以是任意 JSON
   call(methods.POST, { tags: ['a'] });
+});
+
+test('EndpointMethods: `endpoint` 的参数是 schema 的输入类型，输入是 `unknown` 的字段使用输出类型', () => {
+  // 只用到类型，和 zod 的 `input`、`output` 一致
+  const schema = <I, O>() => ({}) as StandardSchemaV1<I, O>;
+  type Methods = EndpointMethods<{
+    // `z.object({ count: z.number().default(1) }).default({ count: 1 })`
+    POST: ReturnType<
+      typeof endpoint<StandardSchemaV1<{ count?: number } | undefined, { count: number }>, Params, null>
+    >;
+    // `z.object({ page: z.coerce.number() })`
+    GET: ReturnType<typeof endpoint<StandardSchemaV1<{ page: unknown }, { page: number }>, Params, null>>;
+    // `z.object({ at: z.string().transform((s) => new Date(s)) })`
+    PUT: ReturnType<typeof endpoint<StandardSchemaV1<{ at: string }, { at: Date }>, Params, null>>;
+  }>;
+  const call = <F extends (...args: any) => any>(_: F, ...args: Parameters<F>) => args;
+  const methods = {} as Methods;
+  // 有默认值时可以省略
+  call(methods.POST);
+  call(methods.POST, {});
+  call(methods.POST, { count: 1 });
+  // @ts-expect-error
+  call(methods.POST, { count: '1' });
+  // 转换的输入是 `unknown`，使用输出类型
+  call(methods.GET, { page: 2 });
+  // @ts-expect-error
+  call(methods.GET, { page: 'x' });
+  // @ts-expect-error 必须传入
+  call(methods.GET);
+  // `transform` 之前的类型
+  call(methods.PUT, { at: '2026-01-01' });
+  // @ts-expect-error
+  call(methods.PUT, { at: new Date() });
+  // 处理函数得到的是输出类型
+  endpoint(schema<{ count?: number } | undefined, { count: number }>(), (_, { count }) => count.toFixed());
 });
 
 test('Jsonify: JSON 序列化后的类型', () => {
