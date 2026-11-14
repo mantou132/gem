@@ -30,6 +30,7 @@ Gem syntax and best practices, read before writing elements: @node_modules/@mant
 - Page `load` runs on both server and client, use isomorphic APIs only; Node.js APIs and secrets go in `*.server.ts`
 - `load` results and server state must be JSON values
 - Declare `params` and `data` on pages with `@property`
+- Type routes with the generated `./<name>.$types` (`Params`, `ServerContext`, `ServerData`), and use `satisfies Actions` / `Handler` / `Load` / `Paths` instead of annotating parameters
 - Pages reading `request` or `cookies` must export `prerender = false` from the server module
 - `@server()` elements are server-only, `@lazy()` elements hydrate on demand, `@client()` elements render only in the browser
 

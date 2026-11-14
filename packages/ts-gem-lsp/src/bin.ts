@@ -70,7 +70,9 @@ async function startProxy(tsDir: string, clientReader: MessageReader, clientWrit
   const modules = await loadTsModules(createTypeScriptModuleLoader(path.join(tsDir, 'package.json')));
   const { default: getExePath } = await import(pathToFileURL(path.join(tsDir, 'lib/getExePath.js')).href);
   // TypeScript 7.1 起需要传入 Node 模块，之前的版本忽略参数
-  const server = spawn(getExePath({ fs, module, path, url }), ['--lsp', '--stdio'], { stdio: ['pipe', 'pipe', 'inherit'] });
+  const server = spawn(getExePath({ fs, module, path, url }), ['--lsp', '--stdio'], {
+    stdio: ['pipe', 'pipe', 'inherit'],
+  });
   server.on('exit', (code) => process.exit(code ?? 0));
   process.stdin.on('end', () => server.kill());
   const serverReader = new StreamMessageReader(server.stdout);

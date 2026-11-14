@@ -114,6 +114,72 @@ src/pages/blog/[slug].server.ts
 
 没有同名页面模块的 `*.server.ts` 是 [API 路由](./006-api-routes.md)。它和页面的路径相同时构建会报错。
 
+## 参数类型
+
+Gemkit 为每个页面、布局和 API 路由生成参数类型，文件名后加上 `.$types` 导入：
+
+```ts
+// src/pages/blog/[slug].server.ts
+import type { ServerContext } from './[slug].$types';
+
+export async function load({ params }: ServerContext) {
+  return getPost(params.slug); // `params` 是 `{ slug: string }`
+}
+```
+
+```ts
+// src/pages/blog/[slug].ts
+import type { Params, ServerData } from './[slug].$types';
+
+@page<Params, ServerData>()
+export default class PostPage extends GemElement {
+  @property params?: Params;
+  @property data?: ServerData; // `[slug].server.ts` 中 `load` 的结果
+}
+```
+
+| 类型            | 说明                                                                                                                            |
+| --------------- | ------------------------------------------------------------------------------------------------------------------------------- |
+| `Params`        | 路由参数，来自文件路径，`[...path]` 也是 `string`；布局的不包括子路由的部分。                                                   |
+| `ServerContext` | `ServerLoadContext<Params>`，`load`、`actions` 和 API 路由处理函数的参数。                                                      |
+| `ServerData`    | 服务端 `load` 的结果转换成 JSON 后的类型（见 [`Jsonify`](../reference/002-api.md#jsonify)），没有时是 `undefined`。页面和布局。 |
+| `Load`          | 服务端模块的 `load`。页面和布局。                                                                                               |
+| `Actions`       | 服务端模块的 `actions`。页面和布局。                                                                                            |
+| `Paths`         | 预渲染的参数列表 `paths`。页面。                                                                                                |
+| `Handler`       | API 路由的处理函数。API 路由。                                                                                                  |
+
+`Load`、`Actions`、`Paths` 和 `Handler` 配合 `satisfies` 使用，参数不用再写类型，返回值的类型不变，
+所以 `formActions`、`$gemkit/api` 和 `ServerData` 仍然能推导出结果的类型：
+
+```ts
+// src/pages/guestbook.server.ts
+import type { Actions } from './guestbook.$types';
+
+export const actions = {
+  sign: async ({ request, cookies }) => {
+    // ...
+  },
+} satisfies Actions;
+```
+
+```ts
+// src/pages/api/likes/[slug].server.ts
+import type { Handler } from './[slug].$types';
+
+export const GET = (({ params }) => ({ likes: getLikes(params.slug) })) satisfies Handler;
+// `endpoint` 的处理函数的 `ctx` 也由 `satisfies` 推导
+export const POST = endpoint(schema, ({ params }, { count }) =>
+  addLikes(params.slug, count),
+) satisfies Handler;
+```
+
+- 页面模块和同名的 `*.server.ts` 使用同一个 `<名称>.$types`，`_layout.ts` 是 `./_layout.$types`。
+- 文件或者参数改名后类型随之改变，没有改的代码会出现类型错误。
+- 函数声明（`export async function load`）不能使用 `satisfies`，给参数写上 `ServerContext`。
+
+类型文件生成在 `.gemkit/types` 中，通过 `.gemkit/tsconfig.json` 的 `rootDirs` 和源码目录合并，
+所以项目的 tsconfig 需要继承它，并且不能设置自己的 `rootDirs`。只使用 `import type` 导入，构建时会被移除。
+
 ## 应用文件
 
 除了 `pages` 和 `locales`，这些可选文件用来配置应用：

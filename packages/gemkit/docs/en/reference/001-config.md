@@ -159,17 +159,18 @@ export default defineConfig({
 
 Gemkit generates into `.gemkit`:
 
-| File               | Description                                                               |
-| ------------------ | ------------------------------------------------------------------------- |
-| `client.ts`        | The client entry, generated from the pages and prerender state.           |
-| `server.ts`        | The server entry, used by the SSR build and prerendering.                 |
-| `handler.ts`       | The function entry for the platform, when an `adapter` is used.           |
-| `routes.ts`        | The route table.                                                          |
-| `i18n.ts`          | `$gemkit/i18n`, see [i18n](../guide/009-i18n.md).                         |
-| `api.ts`           | `$gemkit/api`, see [API routes](../guide/006-api-routes.md).              |
-| `env.d.ts`         | Type declarations for resource modules and `@rsbuild/core/types`.         |
-| `auto-import.d.ts` | Auto-import types for `@mantou/gemkit`, `$gemkit/*` and `gem.autoImport`. |
-| `tsconfig.json`    | Path aliases and types, extend it from the project `tsconfig.json`.       |
+| File               | Description                                                                                  |
+| ------------------ | -------------------------------------------------------------------------------------------- |
+| `client.ts`        | The client entry, generated from the pages and prerender state.                              |
+| `server.ts`        | The server entry, used by the SSR build and prerendering.                                    |
+| `handler.ts`       | The function entry for the platform, when an `adapter` is used.                              |
+| `routes.ts`        | The route table.                                                                             |
+| `i18n.ts`          | `$gemkit/i18n`, see [i18n](../guide/009-i18n.md).                                            |
+| `api.ts`           | `$gemkit/api`, see [API routes](../guide/006-api-routes.md).                                 |
+| `env.d.ts`         | Type declarations for resource modules and `@rsbuild/core/types`.                            |
+| `auto-import.d.ts` | Auto-import types for `@mantou/gemkit`, `$gemkit/*` and `gem.autoImport`.                    |
+| `tsconfig.json`    | Path aliases and types, extend it from the project `tsconfig.json`.                          |
+| `types/`           | `<name>.$types.d.ts` of every route, see [Param types](../guide/001-routing.md#param-types). |
 
 `.gemkit` is ignored by Git. Extend its tsconfig to get types for `$gemkit/*` and auto-imports:
 
@@ -187,8 +188,8 @@ They are generated when `rsbuild dev` and `rsbuild build` start. To only type ch
 is needed. The starter's `prepare` script runs it after installing dependencies, and its `check` script runs it
 before `tsc`.
 
-The generated files are overwritten at every build. Don't import them directly, except `$gemkit/i18n`
-and `$gemkit/api`.
+The generated files are overwritten at every build. Don't import them directly, except `$gemkit/i18n`,
+`$gemkit/api` and the routes' `./<name>.$types`.
 
 ## Build output
 

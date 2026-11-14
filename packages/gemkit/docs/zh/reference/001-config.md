@@ -150,17 +150,18 @@ export default defineConfig({
 
 Gemkit 在 `.gemkit` 中生成：
 
-| 文件               | 说明                                                               |
-| ------------------ | ------------------------------------------------------------------ |
-| `client.ts`        | 客户端入口，根据页面和预渲染状态生成。                             |
-| `server.ts`        | 服务端入口，SSR 构建和预渲染使用。                                 |
-| `handler.ts`       | 部署平台的函数入口，使用 `adapter` 时生成。                        |
-| `routes.ts`        | 路由表。                                                           |
-| `i18n.ts`          | `$gemkit/i18n`，见[国际化](../guide/009-i18n.md)。                 |
-| `api.ts`           | `$gemkit/api`，见 [API 路由](../guide/006-api-routes.md)。         |
-| `env.d.ts`         | 资源模块和 `@rsbuild/core/types` 的类型声明。                      |
-| `auto-import.d.ts` | `@mantou/gemkit`、`$gemkit/*` 和 `gem.autoImport` 的自动导入类型。 |
-| `tsconfig.json`    | 路径别名和类型，在项目的 `tsconfig.json` 中继承它。                |
+| 文件               | 说明                                                                              |
+| ------------------ | --------------------------------------------------------------------------------- |
+| `client.ts`        | 客户端入口，根据页面和预渲染状态生成。                                            |
+| `server.ts`        | 服务端入口，SSR 构建和预渲染使用。                                                |
+| `handler.ts`       | 部署平台的函数入口，使用 `adapter` 时生成。                                       |
+| `routes.ts`        | 路由表。                                                                          |
+| `i18n.ts`          | `$gemkit/i18n`，见[国际化](../guide/009-i18n.md)。                                |
+| `api.ts`           | `$gemkit/api`，见 [API 路由](../guide/006-api-routes.md)。                        |
+| `env.d.ts`         | 资源模块和 `@rsbuild/core/types` 的类型声明。                                     |
+| `auto-import.d.ts` | `@mantou/gemkit`、`$gemkit/*` 和 `gem.autoImport` 的自动导入类型。                |
+| `tsconfig.json`    | 路径别名和类型，在项目的 `tsconfig.json` 中继承它。                               |
+| `types/`           | 每个路由的 `<名称>.$types.d.ts`，见[参数类型](../guide/001-routing.md#参数类型)。 |
 
 `.gemkit` 会被 Git 忽略。继承它的 tsconfig 才能获得 `$gemkit/*` 和自动导入的类型：
 
@@ -176,7 +177,7 @@ Gemkit 在 `.gemkit` 中生成：
 `rsbuild dev` 和 `rsbuild build` 启动时生成，只做类型检查时运行 `gemkit sync`，不需要构建。
 模板的 `prepare` 脚本在安装依赖后运行它，`check` 脚本先运行它再执行 `tsc`。
 
-生成的文件在每次构建时覆盖。除了 `$gemkit/i18n` 和 `$gemkit/api`，不要直接导入它们。
+生成的文件在每次构建时覆盖。除了 `$gemkit/i18n`、`$gemkit/api` 和路由的 `./<名称>.$types`，不要直接导入它们。
 
 ## 构建产物
 

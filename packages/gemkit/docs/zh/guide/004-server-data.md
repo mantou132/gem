@@ -13,14 +13,19 @@ src/pages/blog/[slug].server.ts
 // src/pages/blog/[slug].server.ts
 import { readFile } from 'node:fs/promises';
 
-export async function load({ params }: { params: { slug: string } }) {
+import type { ServerContext } from './[slug].$types';
+
+// `params` 的类型来自文件路径，见[参数类型](./001-routing.md#参数类型)
+export async function load({ params }: ServerContext) {
   return { markdown: await readFile(`content/${params.slug}.md`, 'utf8') };
 }
 ```
 
 ```ts
 // src/pages/blog/[slug].ts
-@page<{ slug: string }, { markdown: string }>({
+import type { Params } from './[slug].$types';
+
+@page<Params, { markdown: string }>({
   load: ({ data }) => parseMarkdown(data.markdown),
 })
 export default class PostPage extends GemElement {

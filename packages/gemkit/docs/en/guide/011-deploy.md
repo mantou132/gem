@@ -282,11 +282,13 @@ time doesn't fit. Export `revalidate` (seconds) from the server module:
 
 ```ts
 // src/pages/products/[id].server.ts
+import type { ServerContext } from './[id].$types';
+
 export const revalidate = 60;
 
 export const paths = async () => (await getHotProducts()).map(({ id }) => ({ id }));
 
-export async function load({ params }: ServerLoadContext<{ id: string }>) {
+export async function load({ params }: ServerContext) {
   return getProduct(params.id);
 }
 ```

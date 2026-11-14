@@ -32,6 +32,7 @@ export type {
   Cookies,
   EndpointModule,
   Handle,
+  Jsonify,
   Locals,
   Platform,
   PlatformContext,

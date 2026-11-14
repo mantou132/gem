@@ -121,6 +121,74 @@ The server module is only loaded on the server. Importing it from client code fa
 A `*.server.ts` without a page module is an [API route](./006-api-routes.md) instead. The build fails when it has the
 same path as a page.
 
+## Param types
+
+Gemkit generates param types for every page, layout and API route. Import them from the file name plus `.$types`:
+
+```ts
+// src/pages/blog/[slug].server.ts
+import type { ServerContext } from './[slug].$types';
+
+export async function load({ params }: ServerContext) {
+  return getPost(params.slug); // `params` is `{ slug: string }`
+}
+```
+
+```ts
+// src/pages/blog/[slug].ts
+import type { Params, ServerData } from './[slug].$types';
+
+@page<Params, ServerData>()
+export default class PostPage extends GemElement {
+  @property params?: Params;
+  @property data?: ServerData; // the result of `load` in `[slug].server.ts`
+}
+```
+
+| Type            | Description                                                                                                                                       |
+| --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `Params`        | Route params from the file path, `[...path]` is a `string` too; a layout's don't include the parts of its child routes.                           |
+| `ServerContext` | `ServerLoadContext<Params>`, the parameter of `load`, `actions` and API route handlers.                                                           |
+| `ServerData`    | The result of the server `load` converted to JSON (see [`Jsonify`](../reference/002-api.md#jsonify)), `undefined` without one. Pages and layouts. |
+| `Load`          | `load` of the server module. Pages and layouts.                                                                                                   |
+| `Actions`       | `actions` of the server module. Pages and layouts.                                                                                                |
+| `Paths`         | `paths`, the params to prerender. Pages.                                                                                                          |
+| `Handler`       | An API route handler. API routes.                                                                                                                 |
+
+Use `Load`, `Actions`, `Paths` and `Handler` with `satisfies`: parameters don't need type annotations and the
+return types are kept, so `formActions`, `$gemkit/api` and `ServerData` still infer the result types:
+
+```ts
+// src/pages/guestbook.server.ts
+import type { Actions } from './guestbook.$types';
+
+export const actions = {
+  sign: async ({ request, cookies }) => {
+    // ...
+  },
+} satisfies Actions;
+```
+
+```ts
+// src/pages/api/likes/[slug].server.ts
+import type { Handler } from './[slug].$types';
+
+export const GET = (({ params }) => ({ likes: getLikes(params.slug) })) satisfies Handler;
+// `satisfies` also infers `ctx` of an `endpoint` handler
+export const POST = endpoint(schema, ({ params }, { count }) =>
+  addLikes(params.slug, count),
+) satisfies Handler;
+```
+
+- A page module and its `*.server.ts` share the same `<name>.$types`, `_layout.ts` uses `./_layout.$types`.
+- When a file or param is renamed the types change with it, so code that wasn't updated fails type checking.
+- Function declarations (`export async function load`) can't use `satisfies`, annotate the parameter with
+  `ServerContext`.
+
+The type files are generated in `.gemkit/types` and merged with the source directory through `rootDirs` in
+`.gemkit/tsconfig.json`, so the project tsconfig must extend it and must not set its own `rootDirs`. Import them with
+`import type` only, they are removed by the build.
+
 ## App files
 
 Besides `pages` and `locales`, these optional files configure the app:

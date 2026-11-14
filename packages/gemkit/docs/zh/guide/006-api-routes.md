@@ -4,9 +4,7 @@
 
 ```ts
 // src/pages/api/likes/[slug].server.ts -> /api/likes/:slug
-import type { ServerLoadContext } from '@mantou/gemkit';
-
-type Context = ServerLoadContext<{ slug: string }>;
+import type { ServerContext as Context } from './[slug].$types';
 
 // 返回 `Response` 以外的值会作为 JSON 响应。
 export const GET = ({ params }: Context) => ({ likes: getLikes(params.slug) });

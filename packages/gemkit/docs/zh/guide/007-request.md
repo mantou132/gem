@@ -129,7 +129,9 @@ export const handle: Handle = (event, resolve) => {
 
 ```ts
 // src/pages/blog/[slug].server.ts
-export async function load({ params, setHeaders }: ServerLoadContext<{ slug: string }>) {
+import type { ServerContext } from './[slug].$types';
+
+export async function load({ params, setHeaders }: ServerContext) {
   setHeaders({ 'cache-control': 'public, max-age=60' });
   return getPost(params.slug);
 }
@@ -175,7 +177,9 @@ declare module '@mantou/gemkit' {
 }
 
 // src/pages/posts/[id].server.ts
-export async function load({ params, platform }: ServerLoadContext<{ id: string }>) {
+import type { ServerContext } from './[id].$types';
+
+export async function load({ params, platform }: ServerContext) {
   return platform!.env.DB.prepare('SELECT * FROM posts WHERE id = ?').bind(params.id).first();
 }
 ```

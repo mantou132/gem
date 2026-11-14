@@ -5,9 +5,7 @@ It exports handlers named by the HTTP methods.
 
 ```ts
 // src/pages/api/likes/[slug].server.ts -> /api/likes/:slug
-import type { ServerLoadContext } from '@mantou/gemkit';
-
-type Context = ServerLoadContext<{ slug: string }>;
+import type { ServerContext as Context } from './[slug].$types';
 
 // Other values than `Response` are responded as JSON.
 export const GET = ({ params }: Context) => ({ likes: getLikes(params.slug) });

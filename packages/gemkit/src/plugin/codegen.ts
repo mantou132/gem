@@ -49,6 +49,8 @@ interface PageNode extends ServerInfo {
   pattern: string;
   /** `[...rest]` 的参数名 */
   rest?: string;
+  /** 路由参数名，包括 `[...rest]` 的 */
+  params: string[];
   file: string;
   tag: string;
 }
@@ -58,12 +60,16 @@ interface EndpointNode {
   pattern: string;
   /** `[...rest]` 的参数名 */
   rest?: string;
+  /** 路由参数名，包括 `[...rest]` 的 */
+  params: string[];
   file: string;
 }
 
 interface LayoutNode extends ServerInfo {
   tag: string;
   file?: string;
+  /** 路由参数名，不包括子路由的部分 */
+  params: string[];
   pages: PageNode[];
   /** 子 layout 和它匹配的路径，路由分组的 layout 匹配其中的页面和子 layout 的路径 */
   layouts: { patterns: string[]; layout: LayoutNode }[];
@@ -104,10 +110,14 @@ function toSegment(name: string) {
   return param ? `:${param[1]}` : name;
 }
 
+/** 文件和目录名中的参数名，`[id]` 和 `[...rest]` */
+const toParams = (names: string[]) => names.flatMap((name) => /^\[(?:\.\.\.)?(.+)\]$/.exec(name)?.[1] ?? []);
+
 /** 文件和目录名组成的路由，`rest` 是 `[...rest]` 的参数名，匹配时 `*` 的参数名是 `0` */
 const toRoute = (names: string[]) => ({
   pattern: `/${names.map(toSegment).join('/')}`,
   rest: names.map((name) => REST_NAME.exec(name)?.[1]).find(Boolean),
+  params: toParams(names),
 });
 
 function toTag(type: 'page' | 'layout', relPath: string) {
@@ -167,6 +177,7 @@ function scanDir(
       const subLayout: LayoutNode = {
         tag: addTag(toTag('layout', relPath), file),
         file,
+        params: toParams(subNames),
         ...readServerInfo(file, layout.ssr),
         pages: [],
         layouts: [],
@@ -224,6 +235,7 @@ export function scanPages(pagesDir: string) {
   const root: LayoutNode = {
     tag: rootLayout ? toTag('layout', '') : '',
     file: rootFile,
+    params: [],
     ...(rootFile ? readServerInfo(rootFile, true) : { ssr: true, load: false }),
     pages: [],
     layouts: [],
@@ -252,13 +264,17 @@ const eta = new Eta({
 const render = (genDir: string, file: string, template: string, data: object) =>
   writeIfChanged(path.join(genDir, file), eta.render(template, data));
 
+const toPosix = (file: string) => file.replaceAll(path.sep, '/');
+
 /** `client` 时添加 `CLIENT_QUERY`，服务端构建时替换成空模块 */
 const toImportPath = (genDir: string, file: string, client = false) =>
   JSON.stringify(path.relative(genDir, file).replace(MODULE_EXT, '') + (client ? `?${CLIENT_QUERY}` : ''));
 
 /** 生成路由，返回有服务端模块的 layout 和页面、API 路由，根 layout 是否 `ssr = false`，以及是否有 `ssr = false` 的路由 */
-function generateRoutes(genDir: string, pagesDir: string) {
-  const { root, endpoints, error } = scanPages(pagesDir);
+function generateRoutes(genDir: string, srcDir: string) {
+  const scanned = scanPages(path.join(srcDir, 'pages'));
+  const { root, endpoints, error } = scanned;
+  generateTypes(genDir, srcDir, scanned);
   const importPath = (file: string, ssr = true) => toImportPath(genDir, file, !ssr);
 
   // 客户端产物不能引用 `*.server.ts`，只传递是否有服务端模块和其中的配置
@@ -362,6 +378,66 @@ function generateApi(genDir: string, endpoints: EndpointNode[]) {
   });
 }
 
+/** 路由的类型文件所在的目录，通过 tsconfig 的 `rootDirs` 和 `srcDir` 合并，`./<name>.$types` 导入 */
+const TYPES_DIR = 'types';
+
+/** 路由模块对应的类型文件，相对于 `srcDir`，`[slug].ts` 和 `[slug].server.ts` 都是 `[slug].$types.d.ts` */
+const toTypesFile = (srcDir: string, file: string) =>
+  path.join(
+    path.relative(srcDir, path.dirname(file)),
+    `${path
+      .basename(file)
+      .replace(MODULE_EXT, '')
+      .replace(/\.server$/, '')}.$types.d.ts`,
+  );
+
+/** 删除目录中不在 `keep` 中的文件和空目录 */
+function removeStale(dir: string, keep: Set<string>) {
+  if (!fs.existsSync(dir)) return;
+  for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+    const fullPath = path.join(dir, entry.name);
+    if (entry.isDirectory()) {
+      removeStale(fullPath, keep);
+      if (!fs.readdirSync(fullPath).length) fs.rmdirSync(fullPath);
+    } else if (!keep.has(fullPath)) {
+      fs.rmSync(fullPath);
+    }
+  }
+}
+
+/**
+ * 每个页面、layout 和 API 路由生成 `<name>.$types.d.ts`，参数类型来自文件路径，
+ * 页面模块和服务端模块使用 `import type { Params, ServerContext } from './<name>.$types'` 导入
+ */
+function generateTypes(genDir: string, srcDir: string, { root, endpoints }: ReturnType<typeof scanPages>) {
+  type Kind = 'layout' | 'page' | 'endpoint';
+  const routes: { file: string; params: string[]; kind: Kind; pattern?: string; server?: string }[] = [];
+  // 类型文件和源码合并成一个目录，所以服务端模块使用相对于源码的路径
+  const serverPath = (server?: string) =>
+    server && JSON.stringify(`./${path.basename(server).replace(MODULE_EXT, '')}`);
+  const collect = (layout: LayoutNode) => {
+    const { file, params, server } = layout;
+    if (file) routes.push({ file, params, kind: 'layout', server: serverPath(server) });
+    for (const page of layout.pages) {
+      const { file, params, pattern, server } = page;
+      routes.push({ file, params, kind: 'page', pattern, server: serverPath(server) });
+    }
+    layout.layouts.forEach(({ layout: sub }) => collect(sub));
+  };
+  collect(root);
+  for (const { file, params, pattern } of endpoints) routes.push({ file, params, kind: 'endpoint', pattern });
+
+  const typesDir = path.join(genDir, TYPES_DIR);
+  const written = new Set<string>();
+  for (const { file, ...data } of routes) {
+    const typesFile = path.join(TYPES_DIR, toTypesFile(srcDir, file));
+    fs.mkdirSync(path.dirname(path.join(genDir, typesFile)), { recursive: true });
+    render(genDir, typesFile, 'types', data);
+    written.add(path.join(genDir, typesFile));
+  }
+  removeStale(typesDir, written);
+}
+
 function generateI18n(genDir: string, localesDir: string, config: GemkitConfig) {
   const languages = fs.existsSync(localesDir)
     ? fs
@@ -425,8 +501,10 @@ function generateEntries(
         compilerOptions: {
           paths: {
             ...Object.fromEntries(PUBLIC_MODULES.map((name) => [`$gemkit/${name}`, [`./${name}.ts`]])),
-            [`${SRC_ALIAS}/*`]: [`${path.relative(genDir, srcDir).replaceAll(path.sep, '/')}/*`],
+            [`${SRC_ALIAS}/*`]: [`${toPosix(path.relative(genDir, srcDir))}/*`],
           },
+          // 路由的类型文件和源码合并成一个目录，`./[slug].$types` 导入 `types/pages/[slug].$types.d.ts`
+          rootDirs: [toPosix(path.relative(genDir, srcDir)), `./${TYPES_DIR}`],
         },
         files: ['./env.d.ts', './auto-import.d.ts'],
         include: ['../**/*'],
@@ -469,7 +547,7 @@ export function generate(rootPath: string, config: GemkitConfig) {
   fs.mkdirSync(genDir, { recursive: true });
   // 生成的内容不需要提交，项目不用自己配置 `.gitignore`
   writeIfChanged(path.join(genDir, '.gitignore'), '*\n');
-  const routes = generateRoutes(genDir, path.join(srcDir, 'pages'));
+  const routes = generateRoutes(genDir, srcDir);
   generateI18n(genDir, path.join(srcDir, 'locales'), config);
   generateEntries(genDir, srcDir, config, routes);
   generateApi(genDir, routes.endpoints);

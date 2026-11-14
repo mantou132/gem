@@ -72,6 +72,26 @@ export interface RequestEvent {
   setHeaders: (headers: Record<string, string>) => void;
 }
 
+type NotJSON = undefined | symbol | ((...args: any) => any);
+
+/**
+ * `JSON.stringify` 再 `JSON.parse` 后的类型，服务端数据、action 结果等发送到客户端时转换成这个类型：
+ * 有 `toJSON` 的值（例如 `Date`）使用它的结果，对象中 `undefined`、函数和 `symbol` 的字段被去掉，数组中的变成 `null`
+ */
+export type Jsonify<T> = 0 extends 1 & T
+  ? any
+  : T extends { toJSON(...args: any): infer J }
+    ? Jsonify<J>
+    : T extends string | number | boolean | null
+      ? T
+      : T extends NotJSON
+        ? never
+        : T extends readonly (infer U)[]
+          ? (U extends NotJSON ? null : Jsonify<U>)[]
+          : T extends object
+            ? { [K in keyof T as T[K] extends NotJSON ? never : K]: Jsonify<T[K]> }
+            : never;
+
 export interface ServerLoadContext<P extends Params = Params> extends RequestEvent {
   params: P;
 }
@@ -152,7 +172,8 @@ export type RequestHandler<P extends Params = Params> = (ctx: ServerLoadContext<
  * @example
  * ```ts
  * // src/pages/api/likes/[slug].server.ts -> /api/likes/:slug
- * export const GET = ({ params }: ServerLoadContext<{ slug: string }>) => ({ likes: getLikes(params.slug) });
+ * // `import type { ServerContext } from './[slug].$types'`
+ * export const GET = ({ params }: ServerContext) => ({ likes: getLikes(params.slug) });
  * ```
  */
 export type EndpointModule = Partial<Record<RequestMethod, RequestHandler<any>>>;

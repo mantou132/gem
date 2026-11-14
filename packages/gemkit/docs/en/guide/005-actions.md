@@ -42,7 +42,8 @@ const Login = z.object({ name: z.string().trim().min(1), password: z.string().mi
 export const actions = {
   login: async ({ request }: ServerLoadContext) => {
     const parsed = Login.safeParse(Object.fromEntries(await request.formData()));
-    if (!parsed.success) return fail(400, { errors: parsed.error.issues.map((issue) => issue.message) });
+    if (!parsed.success)
+      return fail(400, { errors: parsed.error.issues.map((issue) => issue.message) });
     // ...
   },
 };

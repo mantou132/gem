@@ -9,6 +9,7 @@ import { createApi, type EndpointMethods } from '../api';
 import { CLIENT_HEADER, REDIRECT_HEADER } from '../constants';
 import { fail, HttpError } from '../error';
 import { formActions } from '../navigation';
+import type { Jsonify } from '../types';
 
 test('createApi: 属性是路径，调用是参数，请求方法发送请求', async ({ assert, mock }) => {
   const calls: [string, RequestInit][] = [];
@@ -99,4 +100,24 @@ test('EndpointMethods: `GET` `DELETE` 的输入只能是查询参数能表示的
   call(methods.DELETE);
   // 请求体可以是任意 JSON
   call(methods.POST, { tags: ['a'] });
+});
+
+test('Jsonify: JSON 序列化后的类型', () => {
+  type Data = Jsonify<{
+    date: Date;
+    count: number;
+    optional?: string;
+    nested: { fn: () => void; list: (string | undefined)[]; at: Date[] };
+    skipped: undefined;
+  }>;
+  const data: Data = { date: '', count: 1, nested: { list: ['a', null], at: [''] } };
+  // @ts-expect-error `Date` 转换成字符串
+  data.date = new Date();
+  // @ts-expect-error 函数和值为 `undefined` 的字段被去掉
+  data.nested.fn;
+  // @ts-expect-error
+  data.skipped;
+  const optional: string | undefined = data.optional;
+  const any: Jsonify<any> = 1;
+  void [optional, any];
 });

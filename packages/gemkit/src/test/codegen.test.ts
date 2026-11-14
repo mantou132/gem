@@ -191,6 +191,7 @@ test('generate: 生成路由和入口文件', ({ assert }) => {
     'routes.ts',
     'server.ts',
     'tsconfig.json',
+    'types',
   ]);
   // 生成目录忽略自身
   assert.equal(read('.gitignore'), '*\n');
@@ -225,10 +226,63 @@ test('generate: 生成路由和入口文件', ({ assert }) => {
   assert.deepEqual(JSON.parse(read('tsconfig.json')), {
     compilerOptions: {
       paths: { '$gemkit/i18n': ['./i18n.ts'], '$gemkit/api': ['./api.ts'], 'src/*': ['../src/*'] },
+      rootDirs: ['../src', './types'],
     },
     files: ['./env.d.ts', './auto-import.d.ts'],
     include: ['../**/*'],
   });
+});
+
+test('generate: 每个页面、布局和 API 路由的参数类型，来自文件路径', ({ assert }) => {
+  const root = createFixture([
+    'src/pages/_layout.ts',
+    'src/pages/index.ts',
+    'src/pages/[lang]/_layout.ts',
+    'src/pages/[lang]/(docs)/_layout.ts',
+    'src/pages/[lang]/(docs)/[...path].ts',
+    'src/pages/[lang]/blog/[slug].ts',
+    'src/pages/[lang]/blog/[slug].server.ts',
+    'src/pages/api/likes/[slug].server.ts',
+  ]);
+  generate(root, {});
+  const typesDir = path.join(root, '.gemkit/types/pages');
+  const params = (file: string) =>
+    /export type Params = (.*);/.exec(fs.readFileSync(path.join(typesDir, file), 'utf8'))?.[1];
+
+  assert.equal(params('_layout.$types.d.ts'), '{}');
+  assert.equal(params('index.$types.d.ts'), '{}');
+  // 布局不包括子路由的参数，路由分组不是路径的一部分
+  assert.equal(params('[lang]/_layout.$types.d.ts'), '{ "lang": string }');
+  assert.equal(params('[lang]/(docs)/_layout.$types.d.ts'), '{ "lang": string }');
+  assert.equal(params('[lang]/(docs)/[...path].$types.d.ts'), '{ "lang": string; "path": string }');
+  // 页面模块和服务端模块使用同一个类型文件
+  assert.equal(params('[lang]/blog/[slug].$types.d.ts'), '{ "lang": string; "slug": string }');
+  assert.equal(params('api/likes/[slug].$types.d.ts'), '{ "slug": string }');
+  const read = (file: string) => fs.readFileSync(path.join(typesDir, file), 'utf8');
+  // API 路由只有处理函数的类型
+  const endpoint = read('api/likes/[slug].$types.d.ts');
+  assert.match(endpoint, /export type ServerContext = ServerLoadContext<Params>;/);
+  assert.match(endpoint, /export type Handler = RequestHandler<Params>;/);
+  assert.doesNotMatch(endpoint, /Actions|ServerData|Paths/);
+  // 有服务端模块时 `ServerData` 是它的 `load` 的结果，路径相对于源码
+  const post = read('[lang]/blog/[slug].$types.d.ts');
+  assert.match(post, /export type ServerData = typeof import\("\.\/\[slug\]\.server"\) extends/);
+  assert.match(post, /export type Actions = /);
+  assert.match(post, /export type Paths = /);
+  assert.match(read('index.$types.d.ts'), /export type ServerData = undefined;/);
+  // `paths` 只对页面有效
+  assert.doesNotMatch(read('[lang]/_layout.$types.d.ts'), /Paths/);
+
+  // 删除或者改名的路由不再有类型文件
+  fs.renameSync(
+    path.join(root, 'src/pages/api/likes/[slug].server.ts'),
+    path.join(root, 'src/pages/api/likes/[id].server.ts'),
+  );
+  fs.rmSync(path.join(root, 'src/pages/[lang]/blog'), { recursive: true });
+  generate(root, {});
+  assert.equal(params('api/likes/[id].$types.d.ts'), '{ "id": string }');
+  assert.equal(fs.existsSync(path.join(typesDir, 'api/likes/[slug].$types.d.ts')), false);
+  assert.equal(fs.existsSync(path.join(typesDir, '[lang]/blog')), false, '空目录也删除');
 });
 
 test('generate: 根目录剩余参数页面排在首页之后', ({ assert }) => {
