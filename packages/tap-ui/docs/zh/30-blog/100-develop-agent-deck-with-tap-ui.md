@@ -1,6 +1,6 @@
 # 使用 TapUI 开发移动端 ACP 客户端：AgentDeck 实战复盘
 
-[AgentDeck](https://github.com/mantou132/agent-deck) 是一个基于 Tauri 2 构建的移动端 ACP (Agent Client Protocol) 客户端，能够将运行在桌面上的 Coding Agents（例如 Claude Code、Codex、Cursor、pi 等）转化为在手机上随时随地触达的远程服务。
+[AgentDeck](https://github.com/mantou132/agentdeck) 是一个基于 Tauri 2 构建的移动端 ACP (Agent Client Protocol) 客户端，能够将运行在桌面上的 Coding Agents（例如 Claude Code、Codex、Cursor、pi 等）转化为在手机上随时随地触达的远程服务。
 
 在手机小屏和触控交互的约束下，构建一套响应灵敏、符合移动端原生直觉的交互界面并不轻松。AgentDeck 选用 **Gem + TapUI + Tailwind CSS** 作为前端技术栈，本文将复盘我们如何利用 TapUI 的组件体系与移动端基础设施，快速打造出一款丝滑、轻量的移动端应用。
 

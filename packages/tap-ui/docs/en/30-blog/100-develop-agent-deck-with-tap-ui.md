@@ -1,6 +1,6 @@
 # Building AgentDeck: A Mobile ACP Client Powered by TapUI
 
-[AgentDeck](https://github.com/mantou132/agent-deck) is a mobile ACP (Agent Client Protocol) client built with Tauri 2. It turns your desktop coding agents (such as Claude Code, Codex, Cursor, pi, etc.) into remote services that you can access from your mobile phone anytime, anywhere.
+[AgentDeck](https://github.com/mantou132/agentdeck) is a mobile ACP (Agent Client Protocol) client built with Tauri 2. It turns your desktop coding agents (such as Claude Code, Codex, Cursor, pi, etc.) into remote services that you can access from your mobile phone anytime, anywhere.
 
 Building a responsive, native-feeling mobile experience on touch screens and smaller viewports is always challenging. AgentDeck chose **Gem + TapUI + Tailwind CSS** as its frontend stack. In this post, we share our experience leveraging TapUI's component system and mobile-first infrastructure to build a fluid, lightweight mobile application.
 
