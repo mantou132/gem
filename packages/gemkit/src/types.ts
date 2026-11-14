@@ -243,9 +243,12 @@ export interface ServerElementParams {
   props: Record<string, unknown>;
 }
 
-/** `actions` 的结果，出错时渲染错误页面 */
-export type ActionResult =
-  | { type: 'success'; data: unknown }
-  | { type: 'failure'; status: number; data: unknown }
+/**
+ * 表单 action 的结果，`S` 是成功的结果，`F` 是 `fail` 的 `data`，
+ * 成功时 `status` 为 200，跳转时是跳转地址，出错时渲染错误页面
+ */
+export type ActionResult<S = unknown, F = unknown> =
+  | { type: 'success'; status: 200; data: S }
+  | { type: 'failure'; status: number; data: F }
   | { type: 'redirect'; location: string }
   | { type: 'error'; error: RouteError };

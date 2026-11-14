@@ -43,7 +43,7 @@ export class ActionFailure<T = undefined> {
  * 在 `actions` 中返回，表示 action 没有成功（例如表单校验失败），`status` 是 4xx 状态码，`data` 必须是 JSON
  *
  * 原生表单提交时不跳转，使用 `status` 渲染当前页面，`actionStore` 中有这次提交的结果，所以没有 JS 时页面也能显示错误；
- * `submitAction` 提交时不重新加载数据，返回 `data`
+ * `submitAction` 提交时不重新加载数据，结果是 `{ type: 'failure', status, data }`
  *
  * @example
  * ```ts

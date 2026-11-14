@@ -134,12 +134,16 @@ test('runAction: 页面和 layout 中的 action，内层覆盖外层的同名 ac
   const result = async (url: string) => (await post(url)).json();
   // layout 的参数不包括子路由的部分
   const logout = await post('http://localhost/a/b?/logout');
-  assert.deepEqual(await logout.json(), { type: 'success', data: { from: 'root', params: {} } });
+  assert.deepEqual(await logout.json(), { type: 'success', status: 200, data: { from: 'root', params: {} } });
   assert.match(logout.headers.get('set-cookie')!, /^user=;/);
   assert.deepEqual((await result('http://localhost/editor?/logout')).type, 'success');
   // 页面覆盖 layout 的同名 action
-  assert.deepEqual(await result('http://localhost/a/b?/rename'), { type: 'success', data: { a: 'a', b: 'b' } });
-  assert.deepEqual(await result('http://localhost/editor?/rename'), { type: 'success', data: 'root' });
+  assert.deepEqual(await result('http://localhost/a/b?/rename'), {
+    type: 'success',
+    status: 200,
+    data: { a: 'a', b: 'b' },
+  });
+  assert.deepEqual(await result('http://localhost/editor?/rename'), { type: 'success', status: 200, data: 'root' });
   // 出错时错误页面渲染在 layout 的位置
   assert.deepEqual(await result('http://localhost/a/b?/fail'), {
     type: 'error',

@@ -36,7 +36,8 @@ When the action does not succeed, for example when an external service returns a
 - Without JavaScript there is no redirect: the current page is rendered with `status`, and the page reads the
   result from `actionStore`, see [Without JavaScript](#without-javascript).
 - `submitAction` does not reload the page data, since the action changed nothing.
-- The `formActions` callback and `submitAction` receive `data`.
+- The `formActions` callback and `submitAction` receive `{ type: 'failure', status, data }`, and
+  `{ type: 'success', status: 200, data }` on success.
 
 ## Validate input
 
@@ -113,7 +114,7 @@ export default class LoginPage extends GemElement {
 
   @template()
   #content = () => html`
-    <form ${login((data) => this.#state({ errors: data?.errors }))}>
+    <form ${login((result) => result.type === 'failure' && this.#state({ errors: result.data.errors }))}>
       <input name="name" required />
       <input name="password" type="password" required />
       <button type="submit">Sign in</button>
@@ -125,9 +126,20 @@ export default class LoginPage extends GemElement {
 
 `login(callback)` returns rest properties for the form: `method="post"`, `action="?/login"` and an
 `onsubmit` that calls `submitAction`. `method` and `action` are rendered on the server too, so the form
-submits correctly before hydration or without JavaScript. The callback receives the action result
-(the `data` of `fail`, `undefined` on redirect or error) and the form, for example to clear the inputs with
-`form.reset()` on success.
+submits correctly before hydration or without JavaScript. `action` keeps the query parameters of the current page,
+for example `?/sign&page=2` in `/guestbook?page=2`, so page 2 is rendered or redirected back to after submitting.
+
+The callback receives the action result and the form. The result is told apart by `type`:
+
+| `type`       | Other fields          | Description                                                         |
+| ------------ | --------------------- | ------------------------------------------------------------------- |
+| `'success'`  | `status: 200`, `data` | The return value of the action, `undefined` when it returns nothing |
+| `'failure'`  | `status`, `data`      | `fail(status, data)`                                                |
+| `'redirect'` | `location`            | `redirect()`, already navigated to the location                     |
+| `'error'`    | `error`               | `error()` or a thrown error, the error page is already rendered     |
+
+`data` has the type after JSON conversion (see [`Jsonify`](../reference/002-api.md#jsonify)). For example, to clear
+the inputs unless the action failed: `login((result, form) => result.type !== 'failure' && form.reset())`.
 
 `FormActions` includes the actions of the parent layouts, so a page can submit to layout actions too. Inner actions
 override outer ones with the same name, matching the lookup order on submit:
@@ -145,16 +157,18 @@ html`<form method="post" action="?/login" @submit=${this.#submit}></form>`;
 
 #submit = async (evt: SubmitEvent) => {
   evt.preventDefault();
-  const data = await submitAction(evt.target as HTMLFormElement, evt.submitter);
+  const result = await submitAction(evt.target as HTMLFormElement, evt.submitter);
 };
 ```
 
 `submitAction` submits the form without reloading the page:
 - On `redirect()` it navigates on the client.
 - On `error()` it renders the error page in place of the page.
-- On `fail()` it does not reload the data and returns its `data`.
-- Otherwise it reloads the current page data, including layout data, and returns the action result.
-- The result is also kept in `actionStore`.
+- On `fail()` it does not reload the data.
+- Otherwise it reloads the current page data, including layout data.
+- It returns the same result as the `formActions` callback; `submitAction` does not know which action it is,
+  so the result is untyped.
+- Successful and `fail()` results are also kept in `actionStore`.
 - It resolves after the page is rendered, so the new data is already on the page.
   The page element is reused, so input state is kept, and the scroll position does not change.
 
@@ -175,24 +189,29 @@ The form is a normal HTML form. Without JavaScript the browser submits it and Ge
   `actionStore`
 - the error page when the action calls `error()`
 
-A successful result is dropped. To show errors without JavaScript too, read them from `actionStore` instead of
-relying only on the `formActions` callback:
+A successful result is dropped. To show errors without JavaScript too, read them from the `result` of the action
+instead of relying only on the `formActions` callback:
 
 ```ts
+const { login } = formActions<FormActions>();
+
 @page('Sign in')
 @connectStore(actionStore)
 export default class LoginPage extends GemElement {
   @template()
   #content = () => html`
     <form ${login()}>...</form>
-    <p v-if=${actionStore.name === 'login'}>${actionStore.data?.errors?.join(', ')}</p>
+    <p v-if=${login.result?.type === 'failure'}>${login.result?.data.errors.join(', ')}</p>
   `;
 }
 ```
 
-`actionStore` is `{ name, status, data }`: `name` is the action name, `status` is the status of `fail` (`200` on
-success) and `data` is the result. It is set during server rendering and synced to the client on hydration; it is
-also updated after `submitAction` and cleared when navigating to another page.
+`login.result` is the last successful or `fail()` result of `login`, with the same type as the callback result, and
+`undefined` before submitting or after submitting another action. It is read from `actionStore`, so the element needs
+`@connectStore(actionStore)`.
+
+`actionStore` is `{ name, result }`, `name` is the action name. It is set during server rendering and synced to the
+client on hydration; it is also updated after `submitAction` and cleared when navigating to another page.
 
 ## Cookies and CSRF
 

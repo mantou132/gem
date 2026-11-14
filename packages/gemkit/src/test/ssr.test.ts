@@ -107,7 +107,11 @@ test('没有服务端 `load` 的路由不输出数据', async ({ assert }) => {
   assert.match(html, /home/);
   assert.doesNotMatch(html, new RegExp(DATA_SCRIPT_ID));
   const action = new Request('http://localhost/?/like', { method: 'POST', headers: { accept: 'application/json' } });
-  assert.deepEqual(await (await renderer.runAction(documentTemplate, action)).json(), { type: 'success', data: null });
+  assert.deepEqual(await (await renderer.runAction(documentTemplate, action)).json(), {
+    type: 'success',
+    status: 200,
+    data: null,
+  });
 });
 
 test('外壳页面：所有路由都由客户端渲染，不执行 `load`', async ({ assert }) => {

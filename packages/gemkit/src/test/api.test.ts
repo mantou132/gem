@@ -7,8 +7,8 @@ import { history } from '@mantou/gem';
 
 import { createApi, type EndpointMethods } from '../api';
 import { CLIENT_HEADER, REDIRECT_HEADER } from '../constants';
-import { fail, HttpError, RedirectError } from '../error';
-import { formActions } from '../navigation';
+import { type ActionFailure, fail, HttpError, RedirectError } from '../error';
+import { actionStore, formActions } from '../navigation';
 import type { Params } from '../page';
 import { endpoint, type json } from '../request';
 import type { Jsonify, MergeActions, StandardSchemaV1 } from '../types';
@@ -66,8 +66,8 @@ test('formActions: action 名称和结果的类型来自 `actions`，返回表�
     logout: () => {},
   };
   const { login, logout } = formActions<typeof actions>();
-  const props = login((data) => {
-    const errors: string[] | undefined = data?.errors;
+  const props = login((result) => {
+    const errors: string[] | undefined = result.type === 'success' ? result.data.errors : undefined;
     return errors;
   });
   assert.equal(props.method, 'post');
@@ -78,16 +78,48 @@ test('formActions: action 名称和结果的类型来自 `actions`，返回表�
   formActions<typeof actions>().register;
 });
 
-test('formActions: `fail` 的结果类型是它的 `data`', () => {
+test('formActions: 回调的结果区分成功和 `fail`，`data` 是 JSON 转换后的类型', () => {
   const actions = {
-    sign: async (ok: boolean) => (ok ? { id: 1 } : fail(400, { error: 'required' as const })),
+    sign: async (ok: boolean) => (ok ? { id: 1, at: new Date() } : fail(400, { error: 'required' as const })),
+    reset: () => {},
   };
-  formActions<typeof actions>().sign((data) => {
-    const result: { id: number } | { error: 'required' } | undefined = data;
-    // @ts-expect-error 不是 `ActionFailure`
-    data?.status;
-    return result;
+  const { sign, reset } = formActions<typeof actions>();
+  sign((result) => {
+    if (result.type === 'success') {
+      const value: { id: number; at: string } = result.data;
+      return value;
+    }
+    if (result.type === 'failure') {
+      const value: { error: 'required' } = result.data;
+      // @ts-expect-error 不是成功的结果
+      result.data.id;
+      return value;
+    }
+    const location: string = result.type === 'redirect' ? result.location : result.error.message;
+    return location;
   });
+  // 没有返回值时 `data` 是 `undefined`
+  reset((result) => {
+    const value: undefined = result.type === 'success' ? result.data : undefined;
+    return value;
+  });
+  // 没有提交过时是 `undefined`，只有成功和 `fail` 的结果
+  void (() => {
+    const result = sign.result;
+    // @ts-expect-error 可能是 `undefined`
+    result.type;
+    // @ts-expect-error 不包括跳转
+    if (result?.type === 'redirect') return;
+  });
+});
+
+test('formActions: `result` 读取 `actionStore` 中同名 action 的结果', ({ assert }) => {
+  const { sign, other } = formActions<{ sign: () => ActionFailure<{ error: string }>; other: () => null }>();
+  actionStore({ name: 'sign', result: { type: 'failure', status: 400, data: { error: 'required' } } });
+  assert.deepEqual(sign.result, { type: 'failure', status: 400, data: { error: 'required' } });
+  assert.equal(other.result, undefined);
+  actionStore({ name: undefined, result: undefined });
+  assert.equal(sign.result, undefined);
 });
 
 test('EndpointMethods: `GET` `DELETE` 的输入只能是查询参数能表示的值', () => {
@@ -188,13 +220,13 @@ test('MergeActions: 从外到内合并 actions，内层同名的覆盖外层的'
   type Blog = { actions: { shared: () => 'blog' } };
   type Page = { load: () => null };
   const { logout, shared } = formActions<MergeActions<[Root, Blog, Page]>>();
-  logout((data) => {
-    const value: 'root' | undefined = data;
+  logout((result) => {
+    const value: 'root' | undefined = result.type === 'success' ? result.data : undefined;
     return value;
   });
-  shared((data) => {
+  shared((result) => {
     // @ts-expect-error 被内层的覆盖
-    const value: 'root' | undefined = data;
+    const value: 'root' | undefined = result.type === 'success' ? result.data : undefined;
     return value;
   });
   // @ts-expect-error 没有 actions 的模块

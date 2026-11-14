@@ -19,7 +19,7 @@ import { type Meta, updateMeta } from './meta';
 import { getPageOptions, type Params } from './page';
 import { requestState, runServerLoad, setSSRData, setSSRError, setSSRReady, toRouteError } from './request';
 import { errorPage, hasServerLoad, type MatchedRoute, matchRoutes, type RouteInfo } from './route';
-import type { ActionResult, RouteDataFile } from './types';
+import type { ActionResult, Jsonify, RouteDataFile } from './types';
 
 /**
  * 客户端导航状态，从开始加载 layout 或页面到页面加载完成（或者渲染错误页面），
@@ -53,24 +53,29 @@ export const navigationStore = createStore({ pending: false });
 export const routeStore = createStore({ path: '', query: new QueryString(), params: {} as Params });
 
 /**
- * 最后一次表单提交的结果，`name` 是 action 的名称，`status` 是 `fail` 的状态码，成功时为 200，
+ * 最后一次表单提交的结果，`name` 是 action 的名称，`result` 是成功或者 `fail` 的结果，
  * 原生表单提交失败时服务端渲染页面前设置，并同步到客户端，所以没有 JS 时页面也能显示错误；
  * `submitAction` 提交后设置，导航到其他页面时清空
  *
- * 原生表单提交成功时跳转回页面（POST/Redirect/GET），结果为空
+ * 原生表单提交成功时跳转回页面（POST/Redirect/GET），结果为空；
+ * 一般使用 `formActions` 中 action 的 `result` 读取，它有类型
  *
  * @example
  * ```ts
+ * const { login } = formActions<FormActions>();
+ *
  * @connectStore(actionStore)
  * class LoginPage extends GemElement {
- *   #content = () => html`<p v-if=${actionStore.name === 'login'}>${actionStore.data?.error}</p>`;
+ *   #content = () => html`<p v-if=${login.result?.type === 'failure'}>${login.result?.data.error}</p>`;
  * }
  * ```
  */
-export const actionStore = createStore<{ name?: string; status?: number; data?: any }>({}, 'gemkit-action');
+export const actionStore = createStore<{ name?: string; result?: SettledActionResult }>({}, 'gemkit-action');
+
+type SettledActionResult<S = unknown, F = unknown> = Extract<ActionResult<S, F>, { type: 'success' | 'failure' }>;
 
 const clearActionStore = () => {
-  if (actionStore.name !== undefined) actionStore({ name: undefined, status: undefined, data: undefined });
+  if (actionStore.name !== undefined) actionStore({ name: undefined, result: undefined });
 };
 
 /** 导航中一层路由（layout、页面或者错误页面）加载的结果，`params` 是元素的参数 */
@@ -496,7 +501,7 @@ export function invalidate() {
  * 不刷新页面提交表单到 `actions`，提交的地址是表单（或者 `submitter`）的 `action`，例如 `?/login`
  *
  * 跳转时客户端导航，出错时渲染错误页面，`fail` 时不重新加载数据，否则重新加载当前页面的数据，
- * 页面渲染后返回 action 的返回值（`fail` 时是它的 `data`），同时更新 `actionStore`，
+ * 页面渲染后返回 action 的结果，成功和 `fail` 时同时更新 `actionStore`，
  * 请求期间表单有 `aria-busy` 属性，例如 `form[aria-busy] button { opacity: 0.5 }`
  *
  * @example
@@ -505,11 +510,12 @@ export function invalidate() {
  *
  * #submit = async (evt: SubmitEvent) => {
  *   evt.preventDefault();
- *   this.#state({ errors: await submitAction(evt.target as HTMLFormElement, evt.submitter) });
+ *   const result = await submitAction(evt.target as HTMLFormElement, evt.submitter);
+ *   if (result.type === 'failure') this.#state({ errors: result.data });
  * };
  * ```
  */
-export async function submitAction(form: HTMLFormElement, submitter?: HTMLElement | null) {
+export async function submitAction(form: HTMLFormElement, submitter?: HTMLElement | null): Promise<ActionResult> {
   const action = submitter?.getAttribute('formaction') ? (submitter as HTMLButtonElement).formAction : form.action;
   form.ariaBusy = 'true';
   const res = await fetch(action, {
@@ -517,69 +523,82 @@ export async function submitAction(form: HTMLFormElement, submitter?: HTMLElemen
     headers: { accept: 'application/json' },
     body: new FormData(form, submitter),
   }).finally(() => (form.ariaBusy = null));
-  if (!res.ok) throw new Error(`gemkit: failed to submit \`${action}\``);
+  if (!res.ok) throw new HttpError(res.status, `gemkit: failed to submit \`${action}\``);
   const result: ActionResult = await res.json();
   const name = getActionName(new URL(action).searchParams);
   // action 没有成功，数据没有改变，不重新加载
   if (result.type === 'failure') {
-    actionStore({ name, status: result.status, data: result.data });
-    return result.data;
+    actionStore({ name, result });
+    return result;
   }
   // 提交后 cookie 等状态可能改变，之前的数据都不能再使用
   if (result.type === 'redirect') {
     await navigate(result.location, { invalidate: true });
-    return;
+    return result;
   }
   const error = result.type === 'error' ? result.error : undefined;
   await navigate(location.href, { replace: true, invalidate: true, error });
-  if (result.type !== 'success') return;
-  actionStore({ name, status: 200, data: result.data });
-  return result.data;
+  if (result.type === 'success') actionStore({ name, result });
+  return result;
 }
 
-/** action 的结果在客户端的类型，`fail` 返回的是它的 `data` */
-export type ActionData<F> = F extends (...args: any) => infer R
-  ? Awaited<R> extends infer D
-    ? D extends ActionFailure<infer T>
-      ? T
-      : D
-    : never
-  : never;
+type ActionReturn<F> = F extends (...args: any) => infer R ? Awaited<R> : never;
 
-/** `formActions` 的 action，参数是提交后的回调，返回值作为表单的剩余属性 */
-export type FormActions<A> = {
-  [K in keyof A & string]: (callback?: (data: ActionData<A[K]> | undefined, form: HTMLFormElement) => void) => {
+/** 结果发送到客户端后的类型，没有返回值时是 `undefined` */
+// biome-ignore lint/suspicious/noConfusingVoidType: 没有返回值的 action 返回 `void`，它不能赋值给 `undefined`
+type ClientData<T> = [T] extends [undefined | void] ? undefined : Jsonify<T>;
+
+/** action 在客户端的结果，成功的结果和 `fail` 的 `data` 都转换成 JSON 后的类型 */
+export type ActionResultOf<F> = ActionResult<
+  ClientData<Exclude<ActionReturn<F>, ActionFailure<any>>>,
+  ClientData<ActionReturn<F> extends infer D ? (D extends ActionFailure<infer T> ? T : never) : never>
+>;
+
+/** `formActions` 的 action */
+export type FormAction<F> = {
+  /** 参数是提交后的回调，返回值作为表单的剩余属性 */
+  (
+    callback?: (result: ActionResultOf<F>, form: HTMLFormElement) => void,
+  ): {
     method: 'post';
     action: string;
     onsubmit: (evt: SubmitEvent) => void;
   };
+  /** 这个 action 最后一次成功或者 `fail` 的结果，来自 `actionStore`，元素需要 `@connectStore(actionStore)` */
+  readonly result: Extract<ActionResultOf<F>, { type: 'success' | 'failure' }> | undefined;
 };
+
+export type FormActions<A> = { [K in keyof A & string]: FormAction<A[K]> };
 
 /**
  * 使用 `*.server.ts` 中 `actions` 的类型，得到表单的剩余属性，提交时调用 `submitAction`，
- * 回调的参数是 action 的结果（`fail` 时是它的 `data`，跳转或者出错时是 `undefined`）和表单
+ * 回调的参数是 action 的结果和表单，提交的地址保留当前页面的查询参数，例如 `?/login&next=1`
  *
  * @example
  * ```ts
- * import type { actions } from './login.server';
+ * const { login } = formActions<FormActions>();
  *
- * const { login } = formActions<typeof actions>();
- *
- * html`<form ${login((data) => this.#state({ errors: data?.errors }))}></form>`;
+ * html`<form ${login((result) => result.type === 'failure' && this.#state({ errors: result.data.errors }))}></form>`;
  * ```
  */
 export function formActions<A>() {
   return new Proxy({} as FormActions<A>, {
-    get: (_, name: string) => (callback?: (data: unknown, form: HTMLFormElement) => void) => ({
-      method: 'post',
-      action: `?/${name}`,
-      onsubmit: async (evt: SubmitEvent) => {
-        evt.preventDefault();
-        const form = evt.target as HTMLFormElement;
-        // 不能写成 `callback?.(await submitAction(...))`，没有回调时参数不会执行
-        const data = await submitAction(form, evt.submitter);
-        callback?.(data, form);
-      },
-    }),
+    get: (_, name: string) => {
+      const formAction = (callback?: (result: ActionResult, form: HTMLFormElement) => void) => ({
+        method: 'post',
+        // 原生提交后渲染的页面和跳转回的页面使用这些查询参数
+        action: `?/${name}${String(routeStore.query).replace('?', '&')}`,
+        onsubmit: async (evt: SubmitEvent) => {
+          evt.preventDefault();
+          const form = evt.target as HTMLFormElement;
+          // 不能写成 `callback?.(await submitAction(...))`，没有回调时参数不会执行
+          const result = await submitAction(form, evt.submitter);
+          callback?.(result, form);
+        },
+      });
+      return Object.defineProperty(formAction, 'result', {
+        get: () => (actionStore.name === name ? actionStore.result : undefined),
+      });
+    },
   });
 }

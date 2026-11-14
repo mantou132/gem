@@ -26,7 +26,7 @@ import { createHandler as createCloudflareHandler } from '../adapters/cloudflare
 import { CLIENT_HEADER, DATA_SCRIPT_ID, REDIRECT_HEADER } from '../constants';
 import { ActionFailure, type ErrorData, error, fail, localizeLocation, notFound, redirect } from '../error';
 import { createFetchHandler, prerenderPage } from '../handler';
-import { type ActionData, actionStore } from '../navigation';
+import { type ActionResultOf, actionStore, formActions } from '../navigation';
 import { createFsStore, createRequestHandler } from '../node';
 import { setOutlets } from '../outlet';
 import { type Params, page } from '../page';
@@ -106,12 +106,14 @@ class MePage extends GemElement {
   #content = () => html`<p>token: ${this.data.token}</p>`;
 }
 
+const { login: loginForm } = formActions<{ login: () => Promise<ActionFailure<{ error: string }> | null> }>();
+
 @page('Sign in')
 @connectStore(actionStore)
 class LoginPage extends GemElement {
   @template()
   #content = () =>
-    html`<form method="post" action="?/login"></form>${actionStore.name === 'login' ? `error: ${actionStore.data.error}` : ''}${history.getParams().query.toString()}`;
+    html`<form ${loginForm()}></form>${loginForm.result?.type === 'failure' ? `error: ${loginForm.result.data.error}` : ''}<p>query: ${history.getParams().query.toString()}</p>`;
 }
 
 @page<Params, ErrorData>({ title: ({ data }) => data.message })
@@ -424,7 +426,7 @@ test('runAction: 执行 action，返回结果或者跳转', async ({ assert }) =
     );
   };
   const failed = await post('/me?/login');
-  assert.deepEqual(await failed.json(), { type: 'success', data: { error: 'required' } });
+  assert.deepEqual(await failed.json(), { type: 'success', status: 200, data: { error: 'required' } });
   const success = await post('/me?/login', 'x');
   assert.deepEqual(await success.json(), { type: 'redirect', location: '/me' });
   assert.deepEqual(success.headers.getSetCookie(), ['token=x; Path=/; HttpOnly; SameSite=Lax']);
@@ -458,8 +460,8 @@ test('fail: 原生表单提交不跳转，使用状态码渲染当前页面，�
   assert.equal(res.status, 400);
   const html = await res.text();
   assert.equal(html.includes('error: required'), true, '没有 JS 时页面显示错误');
-  assert.equal(html.includes('?next=1'), true, '保留其他查询参数');
-  assert.equal(html.includes('/login&'), false, '渲染的地址不包含 action 名称');
+  assert.match(html, /query: (<!--[^>]*-->)?\?next=1</, '渲染的地址保留其他查询参数，不包含 action 名称');
+  assert.match(html, /action="\?\/login&(amp;)?next=1"/, '表单提交的地址保留查询参数');
   assert.equal(html.includes('gemkit-action'), true, '`actionStore` 同步到客户端');
   // 成功时跳转回页面，保留其他查询参数
   const ok = await handler(
@@ -528,10 +530,10 @@ test('action: 使用 schema 校验表单数据，失败时返回 `fail(400, { is
 
   // 结果类型包括失败的 `issues`
   const result: Awaited<ReturnType<typeof double>> = failed;
-  const data: ActionData<typeof double> = { double: 1 };
-  const issues: ActionData<typeof double> = { issues: [] };
+  const data: ActionResultOf<typeof double> = { type: 'success', status: 200, data: { double: 1 } };
+  const issues: ActionResultOf<typeof double> = { type: 'failure', status: 400, data: { issues: [] } };
   // @ts-expect-error 不是结果的类型
-  const bad: ActionData<typeof double> = { double: '1' };
+  const bad: ActionResultOf<typeof double> = { type: 'success', status: 200, data: { double: '1' } };
   void [result, data, issues, bad];
 });
 

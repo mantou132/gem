@@ -4,7 +4,9 @@ export { client, defineLazy, GemServerElement, lazy, server } from '@mantou/gem-
 export { ActionFailure, type ErrorData, error, fail, HttpError, notFound, RedirectError, redirect } from './error';
 export type { Meta } from './meta';
 export {
+  type ActionResultOf,
   actionStore,
+  type FormAction,
   type FormActions,
   formActions,
   invalidate,

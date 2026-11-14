@@ -82,7 +82,7 @@ test('platform：Cloudflare 的 `env` 和 `ctx` 传给 `handle`、`load`、actio
   assert.match(await (await send('/')).text(), /-->hi<\/p>/);
   assert.deepEqual(await (await send('/__data.json')).json(), { data: { [home.tag]: 'hi' } });
   const action = await send('/?/greet', { method: 'POST', headers: { accept: 'application/json' } });
-  assert.deepEqual(await action.json(), { type: 'success', data: 'hi' });
+  assert.deepEqual(await action.json(), { type: 'success', status: 200, data: 'hi' });
   assert.equal(await (await send('/api/greeting')).json(), 'hi');
   const elements = await send(ELEMENT_PATH, {
     method: 'POST',

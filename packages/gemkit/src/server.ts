@@ -438,7 +438,7 @@ export function createRenderer({
           result =
             data instanceof ActionFailure
               ? { type: 'failure', status: data.status, data: toJSONValue(data.data) }
-              : { type: 'success', data: toJSONValue(data) };
+              : { type: 'success', status: 200, data: toJSONValue(data) };
         } catch (err) {
           result =
             err instanceof Redirect
@@ -450,7 +450,7 @@ export function createRenderer({
         if (result.type === 'error') return renderPage(template, pageURL, lang, path, result.error);
         if (result.type === 'failure') {
           // 不跳转，渲染当前页面，`actionStore` 同步到客户端，没有 JS 时页面也能显示错误
-          actionStore({ name, status: result.status, data: result.data });
+          actionStore({ name, result });
           const res = await renderPage(template, pageURL, lang, path);
           // `load` 跳转或者出错时使用它们的状态码
           if (res.status !== 200) return res;
