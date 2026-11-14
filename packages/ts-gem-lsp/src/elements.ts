@@ -78,11 +78,38 @@ export interface ElementData {
 // 编译器内置的 lib 文件不会定义元素，跳过以减少传输
 const isLibFile = (fileName: string) => /\/lib\.[\w.]+\.d\.ts$/.test(fileName);
 
+const isDefineCallee = (node: Node) =>
+  ts.ast.isIdentifier(node)
+    ? node.text === 'defineElement'
+    : ts.ast.isPropertyAccessExpression(node) &&
+      ts.ast.isIdentifier(node.expression) &&
+      node.expression.text === 'customElements' &&
+      node.name.text === 'define';
+
+/** `customElements.define('tag', Cls)` 和 gemkit 的 `defineElement('tag', Cls)` 定义的元素，类名对应的标签名 */
+function getDefinedTags(file: SourceFile) {
+  const tags = new Map<string, string>();
+  // 声明文件中没有函数调用
+  if (file.isDeclarationFile) return tags;
+  file.forEachChild(function visit(node): undefined {
+    if (ts.ast.isCallExpression(node) && isDefineCallee(node.expression)) {
+      const [tag, cls] = node.arguments;
+      if (tag && cls && ts.ast.isStringLiteral(tag) && ts.ast.isIdentifier(cls)) tags.set(cls.text, tag.text);
+    }
+    node.forEachChild(visit);
+  });
+  return tags;
+}
+
 function findElementRefs(file: SourceFile, rules: ElementDefineRules) {
   const isDep = isDepFile(file.fileName);
+  const definedTags = getDefinedTags(file);
   return file.statements.flatMap((node): ElementRef[] => {
     if (!ts.ast.isClassDeclaration(node) || !node.name) return [];
-    const tag = getTagFromDecorator(node) ?? (isDep ? rules.findTag(node.name.text) : undefined);
+    const tag =
+      getTagFromDecorator(node) ??
+      definedTags.get(node.name.text) ??
+      (isDep ? rules.findTag(node.name.text) : undefined);
     return tag ? [{ tag, fileName: file.fileName, className: node.name.text, isDep }] : [];
   });
 }

@@ -513,10 +513,11 @@ function generateEntries(
       2,
     )}\n`,
   );
-  // CSS 等资源模块的类型声明，项目不需要自己引用
+  // CSS 等资源模块的类型声明，项目不需要自己引用；
+  // gemkit 在运行时注册的元素（`<gem-link>` 等）也在这里引入，让编辑器识别模板中的这些元素
   writeIfChanged(
     path.join(genDir, 'env.d.ts'),
-    `${HEADER}/// <reference types="@rsbuild/core/types" />\n\n${preloadDts}`,
+    `${HEADER}/// <reference types="@rsbuild/core/types" />\n/// <reference types="@mantou/gem/elements/link" />\n\n${preloadDts}`,
   );
 }
 
