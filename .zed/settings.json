@@ -49,10 +49,10 @@
     // TypeScript 7 does not support tsserver plugins, `ts-gem-lsp` (included by "...") replaces
     // the TypeScript and Gem language servers, ESLint is replaced by Biome
     "TypeScript": {
-      "language_servers": ["!gem", "!vtsls", "!typescript-language-server", "!eslint", "..."]
+      "language_servers": ["ts-gem-lsp", "!gem", "!vtsls", "!typescript-language-server", "!eslint", "..."]
     },
     "JavaScript": {
-      "language_servers": ["!gem", "!vtsls", "!typescript-language-server", "!eslint", "..."]
+      "language_servers": ["ts-gem-lsp", "!gem", "!vtsls", "!typescript-language-server", "!eslint", "..."]
     },
     "Rust": {
       "tab_size": 4,

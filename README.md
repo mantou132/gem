@@ -67,7 +67,7 @@ flowchart TB
 | [gem-port](packages/gem-port)                                                   | React, Vue and Svelte wrappers for Gem elements                                                                 |
 | [Duoyun UI](packages/duoyun-ui) · [Tap UI](packages/tap-ui)                     | Desktop and mobile-first UI libraries built with Gem                                                            |
 | [DevTools](packages/gem-devtools) · [Analyzer](packages/gem-analyzer)           | Debugging and component analysis                                                                                |
-| [TypeScript tools](packages/ts-gem-plugin) · [LSP](packages/ts-gem-lsp)         | TypeScript language support                                                                                     |
+| [TypeScript tools](packages/ts-gem-lsp)                                         | TypeScript language support                                                                                     |
 | [unplugin-gem](packages/unplugin-gem) · [swc-plugin-gem](crates/swc-plugin-gem) | Build plugins for Vite/Webpack/Rollup/esbuild/Rspack/Rolldown and SWC                                           |
 | [Zed](crates/zed-plugin-gem) · [VS Code](packages/vscode-gem-plugin)            | Editor extensions                                                                                               |
 

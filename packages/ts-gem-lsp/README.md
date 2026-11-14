@@ -2,12 +2,12 @@
 
 [Gem](https://github.com/mantou132/gem) language features for TypeScript 7.
 
-TypeScript 7 (`tsc --lsp`) no longer loads tsserver plugins, so [ts-gem-plugin](../ts-gem-plugin) does not work with it. ts-gem-lsp provides the same features through the TypeScript 7 API:
+TypeScript 7 (`tsc --lsp`) no longer loads tsserver plugins, so [ts-gem-plugin](https://www.npmjs.com/package/ts-gem-plugin) does not work with it. ts-gem-lsp provides the same features through the TypeScript 7 API:
 - **LSP proxy** (`ts-gem-lsp`): starts the project's `tsc --lsp` and adds Gem features to its responses, for Zed and other LSP editors
 - **VS Code middleware**: used by the [VS Code extension](../vscode-gem-plugin) through the TypeScript 7 extension's `registerLspMiddleware`
 - **CLI** (`ts-gem`): runs diagnostics and editor requests from the command line
 
-The TypeScript API is loaded from the project's own `typescript` package, so it always matches the running language server. When the project does not use TypeScript 7.1 or later, the proxy starts a server without any capabilities, keep using ts-gem-plugin in that case.
+The TypeScript API is loaded from the project's own `typescript` package, so it always matches the running language server. When the project does not use TypeScript 7.1 or later, the proxy starts a server without any capabilities, keep using ts-gem-plugin in that case, the VS Code and Zed extensions still use it for TypeScript 6 projects.
 
 ## Features
 
@@ -95,7 +95,7 @@ Add `--json` to print the raw LSP result.
 
 ## Configuration
 
-Same as ts-gem-plugin, except `ssr`:
+Same as ts-gem-plugin, `ssr` is only supported by ts-gem-lsp:
 
 ```json
 {

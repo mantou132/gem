@@ -19,8 +19,6 @@ on:
       - gem-book@*
       - '@mantou/gem-port@*'
       - gem-devtools@*
-      - vscode-gem-languageservice@*
-      - ts-gem-plugin@*
       - ts-gem-lsp@*
       - zed-plugin-gem@*
       - vscode-plugin-gem@*
@@ -136,18 +134,6 @@ jobs:
               path: 'packages/gem-devtools/package.json',
               workflow: 'gem-devtools-publish.yml',
               npm: false,
-            },
-            {
-              name: 'vscode-gem-languageservice',
-              path: 'packages/language-service/package.json',
-              workflow: 'language-service-publish.yml',
-              npm: true,
-            },
-            {
-              name: 'ts-gem-plugin',
-              path: 'packages/ts-gem-plugin/package.json',
-              workflow: 'ts-gem-plugin-publish.yml',
-              npm: true,
             },
             {
               name: 'ts-gem-lsp',
