@@ -22,7 +22,7 @@ export {
   page,
   type RouteContext,
 } from './page';
-export { endpoint, getRequestEvent, revalidatePath } from './request';
+export { action, endpoint, formDataToObject, getRequestEvent, revalidatePath } from './request';
 export { formatTitle, type TitleOptions } from './title';
 export type {
   ActionResult,
@@ -34,6 +34,8 @@ export type {
   Handle,
   Jsonify,
   Locals,
+  MergeActions,
+  ModuleActions,
   Platform,
   PlatformContext,
   PlatformEnv,

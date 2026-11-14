@@ -72,6 +72,14 @@ export interface RequestEvent {
   setHeaders: (headers: Record<string, string>) => void;
 }
 
+/** 服务端模块的 `actions`，没有时是空对象 */
+export type ModuleActions<M> = M extends { actions: infer A } ? A : Record<never, never>;
+
+/** 从外到内合并服务端模块的 `actions`，内层同名的覆盖外层的，和提交时查找 action 的顺序一致 */
+export type MergeActions<M extends unknown[], Result = Record<never, never>> = M extends [infer Head, ...infer Rest]
+  ? MergeActions<Rest, Omit<Result, keyof ModuleActions<Head>> & ModuleActions<Head>>
+  : Result;
+
 type NotJSON = undefined | symbol | ((...args: any) => any);
 
 /**

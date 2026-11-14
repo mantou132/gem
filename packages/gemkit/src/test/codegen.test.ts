@@ -238,6 +238,7 @@ test('generate: 每个页面、布局和 API 路由的参数类型，来自文�
     'src/pages/_layout.ts',
     'src/pages/index.ts',
     'src/pages/[lang]/_layout.ts',
+    'src/pages/[lang]/_layout.server.ts',
     'src/pages/[lang]/(docs)/_layout.ts',
     'src/pages/[lang]/(docs)/[...path].ts',
     'src/pages/[lang]/blog/[slug].ts',
@@ -270,6 +271,16 @@ test('generate: 每个页面、布局和 API 路由的参数类型，来自文�
   assert.match(post, /export type Actions = /);
   assert.match(post, /export type Paths = /);
   assert.match(read('index.$types.d.ts'), /export type ServerData = undefined;/);
+  // 表单可以提交到上层布局和自己的 actions，从外到内，路径相对于源码
+  assert.match(
+    post,
+    /export type FormActions = MergeActions<\[typeof import\("\.\.\/_layout\.server"\), typeof import\("\.\/\[slug\]\.server"\)\]>;/,
+  );
+  assert.match(
+    read('[lang]/(docs)/[...path].$types.d.ts'),
+    /export type FormActions = MergeActions<\[typeof import\("\.\.\/_layout\.server"\)\]>;/,
+  );
+  assert.match(read('index.$types.d.ts'), /export type FormActions = MergeActions<\[\]>;/);
   // `paths` 只对页面有效
   assert.doesNotMatch(read('[lang]/_layout.$types.d.ts'), /Paths/);
 

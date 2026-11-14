@@ -31,27 +31,36 @@ action 的参数和 `load` 相同：`params`、`url`、`request`、`cookies` 和
 
 ## 失败的结果
 
-表单校验失败这类情况使用 `fail(status, data)`，不要直接返回数据：
+action 没有成功时（例如外部服务返回错误）使用 `fail(status, data)`，不要直接返回数据。和直接返回数据的区别：
+- 没有 JavaScript 时不跳转，使用 `status` 渲染当前页面，页面从 `actionStore` 中读取结果，见[没有 JavaScript 时](#没有-javascript-时)。
+- `submitAction` 不重新加载页面的数据，因为 action 没有修改任何东西。
+- `formActions` 的回调和 `submitAction` 得到的是 `data`。
+
+## 校验输入
+
+`action(schema, handler)` 使用 [Standard Schema](https://standardschema.dev)（zod、valibot、arktype 等）
+校验表单数据，和 API 路由的 [`endpoint`](./006-api-routes.md#校验输入) 一样：
 
 ```ts
+// src/pages/login.server.ts
 import { z } from 'zod';
+
+import type { Actions } from './login.$types';
 
 const Login = z.object({ name: z.string().trim().min(1), password: z.string().min(1) });
 
 export const actions = {
-  login: async ({ request }: ServerLoadContext) => {
-    const parsed = Login.safeParse(Object.fromEntries(await request.formData()));
-    if (!parsed.success)
-      return fail(400, { errors: parsed.error.issues.map((issue) => issue.message) });
+  login: action(Login, async ({ cookies }, { name, password }) => {
     // ...
-  },
-};
+  }),
+} satisfies Actions;
 ```
 
-和直接返回数据的区别：
-- 没有 JavaScript 时不跳转，使用 `status` 渲染当前页面，页面从 `actionStore` 中读取结果，见[没有 JavaScript 时](#没有-javascript-时)。
-- `submitAction` 不重新加载页面的数据，因为 action 没有修改任何东西。
-- `formActions` 的回调和 `submitAction` 得到的是 `data`。
+- 读取 `request.formData()` 转换成对象再校验，第二个参数是 schema 的输出。
+- 校验失败时返回 `fail(400, { issues })`，`issues` 是校验的问题，`path` 是出错的字段，可以在字段旁边显示错误。
+- 表单的值都是字符串（文件是 `File`），需要转换类型时使用 schema 的转换，例如 `z.coerce.number()`。
+- 同名的字段（例如多选框）是数组；只选中一个时也需要数组，字段名以 `[]` 结尾，例如 `name="tags[]"`，
+  得到的字段是 `tags`。也可以直接使用 `formDataToObject(formData)`。
 
 ## 布局中的 action
 
@@ -70,9 +79,9 @@ export const actions = {
 
 ```ts
 // src/pages/_layout.ts
-import type { actions } from './_layout.server';
+import type { FormActions } from './_layout.$types';
 
-const { logout } = formActions<typeof actions>();
+const { logout } = formActions<FormActions>();
 
 html`<form ${logout()}><button>Sign out</button></form>`;
 ```
@@ -83,14 +92,14 @@ html`<form ${logout()}><button>Sign out</button></form>`;
 
 ## 在页面中提交
 
-`formActions` 使用 `*.server.ts` 中 `actions` 的类型，action 的名称和结果都有类型检查。
+`formActions` 使用生成的 `FormActions` 类型（见[参数类型](./001-routing.md#参数类型)），action 的名称和结果都有类型检查。
 `import type` 只引用类型，不会把服务端代码打包到客户端：
 
 ```ts
 // src/pages/login.ts
-import type { actions } from './login.server';
+import type { FormActions } from './login.$types';
 
-const { login } = formActions<typeof actions>();
+const { login } = formActions<FormActions>();
 
 @page('Sign in')
 export default class LoginPage extends GemElement {
@@ -113,14 +122,13 @@ export default class LoginPage extends GemElement {
 回调的参数是 action 的结果（`fail` 时是它的 `data`，跳转或者出错时是 `undefined`）和表单，
 例如成功后用 `form.reset()` 清空输入。
 
-页面也可以提交到布局的 action，合并它们的类型即可：
+`FormActions` 包括上层布局的 actions，所以页面也可以提交到布局的 action，内层同名的覆盖外层的，和提交时的查找顺序一致：
 
 ```ts
-import type { actions } from './login.server';
-import type { actions as layoutActions } from './_layout.server';
-
-const { login, logout } = formActions<typeof actions & typeof layoutActions>();
+const { login, logout } = formActions<FormActions>(); // `logout` 在 `_layout.server.ts` 中
 ```
+
+没有生成的类型时（例如不在 `src/pages` 中的元素），使用 `formActions<typeof actions>()`。
 
 需要自己控制提交时，可以直接使用 `submitAction(form, submitter)`：
 

@@ -9,7 +9,7 @@ import { createApi, type EndpointMethods } from '../api';
 import { CLIENT_HEADER, REDIRECT_HEADER } from '../constants';
 import { fail, HttpError } from '../error';
 import { formActions } from '../navigation';
-import type { Jsonify } from '../types';
+import type { Jsonify, MergeActions } from '../types';
 
 test('createApi: 属性是路径，调用是参数，请求方法发送请求', async ({ assert, mock }) => {
   const calls: [string, RequestInit][] = [];
@@ -120,4 +120,22 @@ test('Jsonify: JSON 序列化后的类型', () => {
   const optional: string | undefined = data.optional;
   const any: Jsonify<any> = 1;
   void [optional, any];
+});
+
+test('MergeActions: 从外到内合并 actions，内层同名的覆盖外层的', () => {
+  type Root = { actions: { logout: () => 'root'; shared: () => 'root' } };
+  type Blog = { actions: { shared: () => 'blog' } };
+  type Page = { load: () => null };
+  const { logout, shared } = formActions<MergeActions<[Root, Blog, Page]>>();
+  logout((data) => {
+    const value: 'root' | undefined = data;
+    return value;
+  });
+  shared((data) => {
+    // @ts-expect-error 被内层的覆盖
+    const value: 'root' | undefined = data;
+    return value;
+  });
+  // @ts-expect-error 没有 actions 的模块
+  formActions<MergeActions<[Page]>>().logout;
 });

@@ -24,13 +24,13 @@ import { getServerElementKey, server } from '@mantou/gem-ssr/decorators';
 
 import { createHandler as createCloudflareHandler } from '../adapters/cloudflare/runtime';
 import { CLIENT_HEADER, DATA_SCRIPT_ID, REDIRECT_HEADER } from '../constants';
-import { type ErrorData, error, fail, localizeLocation, notFound, redirect } from '../error';
+import { ActionFailure, type ErrorData, error, fail, localizeLocation, notFound, redirect } from '../error';
 import { createFetchHandler, prerenderPage } from '../handler';
-import { actionStore } from '../navigation';
+import { type ActionData, actionStore } from '../navigation';
 import { createFsStore, createRequestHandler } from '../node';
 import { setOutlets } from '../outlet';
 import { type Params, page } from '../page';
-import { endpoint, getRequestEvent, revalidatePath } from '../request';
+import { action, endpoint, formDataToObject, getRequestEvent, revalidatePath } from '../request';
 import { errorRoute, pageRoute } from '../route';
 import { createRenderer } from '../server';
 import type { EndpointModule, ServerModule, StandardSchemaV1 } from '../types';
@@ -176,6 +176,7 @@ const serverModules: Record<string, () => Promise<ServerModule>> = {
         if (!(await request.formData()).get('name')) return fail(400, { error: 'required' });
         return null;
       },
+      check: action(countSchema, () => null),
     },
   }),
   'gemkit-page-docs': async () => ({ load: ({ params }) => params }),
@@ -492,6 +493,50 @@ test('endpoint: `$gemkit/api` 的请求跳转时响应跳转地址', async ({ as
   // `handle` 中的跳转
   const denied = await renderer.runEndpoint(request('/admin/api', { headers: { [CLIENT_HEADER]: '1' } }));
   assert.equal(denied.headers.get(REDIRECT_HEADER), '/login');
+});
+
+test('formDataToObject: 同名字段是数组，`name[]` 总是数组', ({ assert }) => {
+  const form = new FormData();
+  form.append('name', 'a');
+  form.append('tags', 'x');
+  form.append('tags', 'y');
+  form.append('ids[]', '1');
+  const file = new File(['hi'], 'a.txt');
+  form.append('file', file);
+  assert.deepEqual(formDataToObject(form), { name: 'a', tags: ['x', 'y'], ids: ['1'], file });
+});
+
+test('action: 使用 schema 校验表单数据，失败时返回 `fail(400, { issues })`', async ({ assert }) => {
+  const double = action(countSchema, (_, { count }) => ({ double: count * 2 }));
+  const submit = (count: string) => {
+    const body = new FormData();
+    body.set('count', count);
+    const request = new Request('http://localhost/?/double', { method: 'POST', body });
+    return double({ request } as Parameters<typeof double>[0]);
+  };
+  // 表单的值是字符串，由 schema 转换
+  assert.deepEqual(await submit('2'), { double: 4 });
+  const failed = await submit('x');
+  if (!(failed instanceof ActionFailure)) throw new Error('not a failure');
+  assert.equal(failed.status, 400);
+  assert.deepEqual(failed.data, { issues: [{ message: 'Invalid', path: ['count'] }] });
+
+  // 结果类型包括失败的 `issues`
+  const result: Awaited<ReturnType<typeof double>> = failed;
+  const data: ActionData<typeof double> = { double: 1 };
+  const issues: ActionData<typeof double> = { issues: [] };
+  // @ts-expect-error 不是结果的类型
+  const bad: ActionData<typeof double> = { double: '1' };
+  void [result, data, issues, bad];
+});
+
+test('action: 原生表单提交校验失败时使用 400 渲染当前页面', async ({ assert }) => {
+  const res = await createRequestHandler(
+    renderer,
+    documentTemplate,
+  )(request('/login?/check', { method: 'POST', body: new URLSearchParams({ count: 'x' }) }));
+  assert.equal(res.status, 400);
+  assert.equal((await res.text()).includes('"name":"check"'), true, '`actionStore` 中有 `issues`');
 });
 
 test('endpoint: 使用 schema 校验和转换输入', async ({ assert }) => {

@@ -145,6 +145,7 @@ export default class PostPage extends GemElement {
 | `ServerData`    | 服务端 `load` 的结果转换成 JSON 后的类型（见 [`Jsonify`](../reference/002-api.md#jsonify)），没有时是 `undefined`。页面和布局。 |
 | `Load`          | 服务端模块的 `load`。页面和布局。                                                                                               |
 | `Actions`       | 服务端模块的 `actions`。页面和布局。                                                                                            |
+| `FormActions`   | 表单可以提交到的 actions，包括上层布局的，`formActions<FormActions>()`。页面和布局。                                                       |
 | `Paths`         | 预渲染的参数列表 `paths`。页面。                                                                                                |
 | `Handler`       | API 路由的处理函数。API 路由。                                                                                                  |
 

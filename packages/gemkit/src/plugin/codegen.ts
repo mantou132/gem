@@ -411,28 +411,39 @@ function removeStale(dir: string, keep: Set<string>) {
  */
 function generateTypes(genDir: string, srcDir: string, { root, endpoints }: ReturnType<typeof scanPages>) {
   type Kind = 'layout' | 'page' | 'endpoint';
-  const routes: { file: string; params: string[]; kind: Kind; pattern?: string; server?: string }[] = [];
-  // 类型文件和源码合并成一个目录，所以服务端模块使用相对于源码的路径
-  const serverPath = (server?: string) =>
-    server && JSON.stringify(`./${path.basename(server).replace(MODULE_EXT, '')}`);
-  const collect = (layout: LayoutNode) => {
+  // `actions` 是可以提交到的 actions 所在的服务端模块，上层 layout、自己，从外到内
+  type Route = { file: string; params: string[]; kind: Kind; pattern?: string; server?: string; actions: string[] };
+  const routes: Route[] = [];
+  const collect = (layout: LayoutNode, outer: string[]) => {
     const { file, params, server } = layout;
-    if (file) routes.push({ file, params, kind: 'layout', server: serverPath(server) });
+    const actions = server ? [...outer, server] : outer;
+    if (file) routes.push({ file, params, kind: 'layout', server, actions });
     for (const page of layout.pages) {
       const { file, params, pattern, server } = page;
-      routes.push({ file, params, kind: 'page', pattern, server: serverPath(server) });
+      routes.push({ file, params, kind: 'page', pattern, server, actions: server ? [...actions, server] : actions });
     }
-    layout.layouts.forEach(({ layout: sub }) => collect(sub));
+    layout.layouts.forEach(({ layout: sub }) => collect(sub, actions));
   };
-  collect(root);
-  for (const { file, params, pattern } of endpoints) routes.push({ file, params, kind: 'endpoint', pattern });
+  collect(root, []);
+  for (const { file, params, pattern } of endpoints) {
+    routes.push({ file, params, kind: 'endpoint', pattern, actions: [] });
+  }
 
+  // 类型文件和源码合并成一个目录，所以服务端模块使用相对于源码的路径
+  const importPath = (from: string, to: string) => {
+    const relPath = toPosix(path.relative(path.dirname(from), to).replace(MODULE_EXT, ''));
+    return JSON.stringify(relPath.startsWith('.') ? relPath : `./${relPath}`);
+  };
   const typesDir = path.join(genDir, TYPES_DIR);
   const written = new Set<string>();
-  for (const { file, ...data } of routes) {
+  for (const { file, server, actions, ...data } of routes) {
     const typesFile = path.join(TYPES_DIR, toTypesFile(srcDir, file));
     fs.mkdirSync(path.dirname(path.join(genDir, typesFile)), { recursive: true });
-    render(genDir, typesFile, 'types', data);
+    render(genDir, typesFile, 'types', {
+      ...data,
+      server: server && importPath(file, server),
+      actions: actions.map((to) => importPath(file, to)),
+    });
     written.add(path.join(genDir, typesFile));
   }
   removeStale(typesDir, written);

@@ -128,6 +128,7 @@ const AUTO_IMPORT_MEMBERS = {
     'navigationStore',
     'actionStore',
     'endpoint',
+    'action',
     'revalidatePath',
     'getRequestEvent',
   ],

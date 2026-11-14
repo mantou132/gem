@@ -31,6 +31,7 @@ Gem syntax and best practices, read before writing elements: @node_modules/@mant
 - `load` results and server state must be JSON values
 - Declare `params` and `data` on pages with `@property`
 - Type routes with the generated `./<name>.$types` (`Params`, `ServerContext`, `ServerData`), and use `satisfies Actions` / `Handler` / `Load` / `Paths` instead of annotating parameters
+- Validate form actions with `action(schema, handler)` and API routes with `endpoint(schema, handler)`; submit forms with `formActions<FormActions>()`
 - Pages reading `request` or `cookies` must export `prerender = false` from the server module
 - `@server()` elements are server-only, `@lazy()` elements hydrate on demand, `@client()` elements render only in the browser
 

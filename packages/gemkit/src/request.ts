@@ -3,7 +3,7 @@
 import { history } from '@mantou/gem';
 import { isolate, isServer } from '@mantou/gem/lib/server';
 
-import { type ErrorData, HttpError, Redirect, type RouteError } from './error';
+import { type ActionFailure, type ErrorData, fail, HttpError, Redirect, type RouteError } from './error';
 import type { Params } from './page';
 import type {
   AppClientModule,
@@ -13,6 +13,7 @@ import type {
   Platform,
   RequestEvent,
   RouteData,
+  SchemaIssue,
   ServerLoadContext,
   ServerModules,
   StandardSchemaV1,
@@ -39,6 +40,44 @@ export function endpoint<S extends StandardSchemaV1, P extends Params, R>(
     const result = await schema['~standard'].validate(input);
     if (result.issues) throw new HttpError(400, 'Invalid input', result.issues);
     return handler(ctx, result.value as SchemaOutput<S>);
+  };
+}
+
+/**
+ * 表单数据转换成对象：同名的字段（例如多选框）是数组，`name[]` 总是数组（字段名不包括 `[]`），
+ * 只选中一个时也是数组；其他字段是字符串或者 `File`
+ */
+export function formDataToObject(form: FormData) {
+  const result: Record<string, FormDataEntryValue | FormDataEntryValue[]> = {};
+  for (const key of new Set(form.keys())) {
+    const values = form.getAll(key);
+    if (key.endsWith('[]')) result[key.slice(0, -2)] = values;
+    else result[key] = values.length > 1 ? values : values[0];
+  }
+  return result;
+}
+
+/**
+ * 使用 schema 校验表单 action 的输入（`request.formData()` 转换成的对象，见 `formDataToObject`），
+ * 失败时返回 `fail(400, { issues })`，没有 JS 时也能在页面中显示
+ *
+ * 表单的值都是字符串，需要转换类型时使用 schema 的转换，例如 `z.coerce.number()`
+ *
+ * @example
+ * ```ts
+ * export const actions = {
+ *   sign: action(z.object({ name: z.string().min(1) }), ({ cookies }, { name }) => cookies.set('name', name)),
+ * } satisfies Actions;
+ * ```
+ */
+export function action<S extends StandardSchemaV1, P extends Params, R>(
+  schema: S,
+  handler: (ctx: ServerLoadContext<P>, input: SchemaOutput<S>) => R,
+) {
+  return async (ctx: ServerLoadContext<P>): Promise<Awaited<R> | ActionFailure<{ issues: readonly SchemaIssue[] }>> => {
+    const result = await schema['~standard'].validate(formDataToObject(await ctx.request.formData()));
+    if (result.issues) return fail(400, { issues: result.issues });
+    return await handler(ctx, result.value as SchemaOutput<S>);
   };
 }
 

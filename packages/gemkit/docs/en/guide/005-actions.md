@@ -31,29 +31,40 @@ The return value must be JSON-serializable.
 
 ## Failures
 
-When the action does not succeed, for example when form validation fails, return `fail(status, data)` instead of
-plain data:
-
-```ts
-import { z } from 'zod';
-
-const Login = z.object({ name: z.string().trim().min(1), password: z.string().min(1) });
-
-export const actions = {
-  login: async ({ request }: ServerLoadContext) => {
-    const parsed = Login.safeParse(Object.fromEntries(await request.formData()));
-    if (!parsed.success)
-      return fail(400, { errors: parsed.error.issues.map((issue) => issue.message) });
-    // ...
-  },
-};
-```
-
-Compared to returning plain data:
+When the action does not succeed, for example when an external service returns an error, return
+`fail(status, data)` instead of plain data. Compared to returning plain data:
 - Without JavaScript there is no redirect: the current page is rendered with `status`, and the page reads the
   result from `actionStore`, see [Without JavaScript](#without-javascript).
 - `submitAction` does not reload the page data, since the action changed nothing.
 - The `formActions` callback and `submitAction` receive `data`.
+
+## Validate input
+
+`action(schema, handler)` validates the form data with a [Standard Schema](https://standardschema.dev) (zod,
+valibot, arktype, ...), like [`endpoint`](./006-api-routes.md#validate-input) does for API routes:
+
+```ts
+// src/pages/login.server.ts
+import { z } from 'zod';
+
+import type { Actions } from './login.$types';
+
+const Login = z.object({ name: z.string().trim().min(1), password: z.string().min(1) });
+
+export const actions = {
+  login: action(Login, async ({ cookies }, { name, password }) => {
+    // ...
+  }),
+} satisfies Actions;
+```
+
+- `request.formData()` is converted to an object and validated; the second parameter is the schema output.
+- When validation fails it returns `fail(400, { issues })`. `issues` are the validation issues, their `path` is the
+  field, so errors can be shown next to the fields.
+- Form values are strings (files are `File`), use the schema's conversions such as `z.coerce.number()`.
+- Fields with the same name (such as checkboxes) are arrays. To always get an array, even with a single checked
+  value, end the field name with `[]`, such as `name="tags[]"`, which gives the field `tags`. `formDataToObject(formData)`
+  can also be used directly.
 
 ## Actions in layouts
 
@@ -72,9 +83,9 @@ export const actions = {
 
 ```ts
 // src/pages/_layout.ts
-import type { actions } from './_layout.server';
+import type { FormActions } from './_layout.$types';
 
-const { logout } = formActions<typeof actions>();
+const { logout } = formActions<FormActions>();
 
 html`<form ${logout()}><button>Sign out</button></form>`;
 ```
@@ -86,14 +97,15 @@ html`<form ${logout()}><button>Sign out</button></form>`;
 
 ## Submit from the page
 
-`formActions` uses the type of `actions` in `*.server.ts`, so action names and results are type-checked.
-`import type` only references the types and does not bundle server code into the client:
+`formActions` uses the generated `FormActions` type (see [Param types](./001-routing.md#param-types)), so action
+names and results are type-checked. `import type` only references the types and does not bundle server code into
+the client:
 
 ```ts
 // src/pages/login.ts
-import type { actions } from './login.server';
+import type { FormActions } from './login.$types';
 
-const { login } = formActions<typeof actions>();
+const { login } = formActions<FormActions>();
 
 @page('Sign in')
 export default class LoginPage extends GemElement {
@@ -117,14 +129,14 @@ submits correctly before hydration or without JavaScript. The callback receives 
 (the `data` of `fail`, `undefined` on redirect or error) and the form, for example to clear the inputs with
 `form.reset()` on success.
 
-A page can also submit to layout actions by merging their types:
+`FormActions` includes the actions of the parent layouts, so a page can submit to layout actions too. Inner actions
+override outer ones with the same name, matching the lookup order on submit:
 
 ```ts
-import type { actions } from './login.server';
-import type { actions as layoutActions } from './_layout.server';
-
-const { login, logout } = formActions<typeof actions & typeof layoutActions>();
+const { login, logout } = formActions<FormActions>(); // `logout` is in `_layout.server.ts`
 ```
+
+Without generated types (for example in elements outside `src/pages`), use `formActions<typeof actions>()`.
 
 To control the submission yourself, use `submitAction(form, submitter)` directly:
 

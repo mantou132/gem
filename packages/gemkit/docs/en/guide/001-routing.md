@@ -152,6 +152,7 @@ export default class PostPage extends GemElement {
 | `ServerData`    | The result of the server `load` converted to JSON (see [`Jsonify`](../reference/002-api.md#jsonify)), `undefined` without one. Pages and layouts. |
 | `Load`          | `load` of the server module. Pages and layouts.                                                                                                   |
 | `Actions`       | `actions` of the server module. Pages and layouts.                                                                                                |
+| `FormActions`   | The actions forms can submit to, including the parent layouts', `formActions<FormActions>()`. Pages and layouts.                                  |
 | `Paths`         | `paths`, the params to prerender. Pages.                                                                                                          |
 | `Handler`       | An API route handler. API routes.                                                                                                                 |
 
