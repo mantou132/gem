@@ -48,10 +48,19 @@ const style = css`
     top: var(--titlebar-area-height, env(titlebar-area-height, 0px));
     left: 0;
     width: 100%;
-    height: calc(100% - var(--titlebar-area-height, env(titlebar-area-height, 0px)));
+    /* Ends above the keyboard like the body of \`initApp\`, so inputs in the sheet stay visible */
+    height: calc(
+      min(100%, 100% - var(--keyboard-height, 0px) + var(--safe-area-inset-bottom, 0px)) -
+        var(--titlebar-area-height, env(titlebar-area-height, 0px))
+    );
     display: none;
     align-items: flex-end;
     justify-content: center;
+  }
+  @supports (-webkit-touch-callout: none) {
+    :host {
+      transition: height 0.25s cubic-bezier(0.2, 0, 0, 1);
+    }
   }
   :host(:not([hidden]):where([open], :state(closing))) {
     display: flex;
