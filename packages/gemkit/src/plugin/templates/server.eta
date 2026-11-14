@@ -34,6 +34,7 @@ export default createRenderer({
   languages,
   defaultLanguage,
   prefixDefaultLanguage,
-  ...clientBuild,
+  // 开发时忽略：同一目录中执行构建会写入生产构建的版本，和开发时的客户端不一致，导致每次导航都重新加载
+  ...(process.env.NODE_ENV === 'production' && clientBuild),
   ...<%= JSON.stringify(it.titleOptions) %>,
 });

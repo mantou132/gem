@@ -405,7 +405,7 @@ function generateEntries(
   const titleOptions = { title: config.title, titleTemplate: config.titleTemplate };
   const app = findApp('app');
   render(genDir, 'client.ts', 'client', { app, appClient: findApp('app.client'), titleOptions });
-  // 客户端构建完成后写入（`writeClientBuild`），开发时为空
+  // 客户端构建完成后写入（`writeClientBuild`），开发时不使用
   writeIfChanged(path.join(genDir, CLIENT_BUILD_FILE), '{}\n');
   render(genDir, 'server.ts', 'server', {
     // 整个应用都不在服务端渲染时 `src/app.ts` 也只在客户端执行
