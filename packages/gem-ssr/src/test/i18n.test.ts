@@ -95,10 +95,6 @@ test('i18n 客户端：主模块切换语言时等待子模块', async ({ assert
   assert.equal(document.documentElement.lang, 'en');
   assert.equal(sub.currentLanguage, 'en');
   assert.equal(sub.get('title'), 'Sub');
-
-  // 子模块不修改文档的语言
-  await sub.setLanguage('zh');
-  assert.equal(document.documentElement.lang, 'en');
 });
 
 test('i18n 客户端：子模块只跟随自己的主模块，不缓存语言', async ({ assert }) => {
@@ -165,4 +161,70 @@ test('i18n 客户端：没有开启缓存时不缓存语言包', async ({ assert
   await i18n.ready;
   assert.equal(i18n.get('text'), '你好');
   assert.equal(storage.size, 0);
+});
+
+test('i18n 客户端：主模块和子模块的语言包都加载完成后才同时切换', async ({ assert }) => {
+  const { I18n } = await import('@mantou/gem/helper/i18n');
+  mockStorage();
+  let resolve!: () => void;
+  const zhPack = new Promise<{ title: string }>((r) => (resolve = () => r({ title: '子模块' })));
+  const main = new I18n({
+    cachePrefix: 'atomic',
+    fallbackLanguage: 'en',
+    currentLanguage: 'en',
+    resources: { en: { text: 'Hello' }, zh: { text: '你好' } },
+  });
+  const sub = main.createSubModule('sub', { en: { title: 'Sub' }, zh: () => zhPack });
+
+  const switching = main.setLanguage('zh');
+  await tick();
+  assert.equal(main.get('text'), 'Hello', '子模块加载完成前主模块不切换');
+  assert.equal(sub.currentLanguage, 'en');
+
+  resolve();
+  await switching;
+  assert.equal(main.get('text'), '你好');
+  assert.equal(sub.get('title'), '子模块');
+});
+
+test('i18n 客户端：同一轮中多个模块的元素更新只执行一次', async ({ assert }) => {
+  const { I18n } = await import('@mantou/gem/helper/i18n');
+  mockStorage();
+  const resources = { en: async () => ({ text: 'en' }), zh: async () => ({ text: 'zh' }) };
+  const main = new I18n({ cachePrefix: 'batch', fallbackLanguage: 'en', currentLanguage: 'en', resources });
+  main.createSubModule('a', resources);
+  main.createSubModule('b', resources);
+  await main.ready;
+
+  let updates = 0;
+  const element = document.createElement('div');
+  (element as any)[Symbol.for('gem@update')] = () => updates++;
+  document.body.append(element);
+  await main.setLanguage('zh');
+  await tick();
+  element.remove();
+  assert.equal(updates, 1);
+});
+
+test('i18n 客户端：快速切换时加载慢的语言包不覆盖后选择的语言', async ({ assert }) => {
+  const { I18n } = await import('@mantou/gem/helper/i18n');
+  mockStorage();
+  let resolve!: () => void;
+  const zhPack = new Promise<{ text: string }>((r) => (resolve = () => r({ text: '你好' })));
+  const main = new I18n({
+    cachePrefix: 'race',
+    fallbackLanguage: 'en',
+    currentLanguage: 'en',
+    resources: { en: { text: 'Hello' }, zh: () => zhPack, ja: async () => ({ text: 'こんにちは' }) },
+  });
+  const sub = main.createSubModule('sub', { en: { title: 'Sub' }, zh: { title: '子模块' }, ja: { title: 'サブ' } });
+
+  const slow = main.setLanguage('zh');
+  await main.setLanguage('ja');
+  resolve();
+  await slow;
+  assert.equal(main.currentLanguage, 'ja');
+  assert.equal(sub.get('title'), 'サブ');
+  await main.ready;
+  assert.equal(main.get('text'), 'こんにちは');
 });

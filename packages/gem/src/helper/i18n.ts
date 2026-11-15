@@ -3,7 +3,7 @@ import type { UpdateHistoryParams } from '../lib/history';
 import type { TemplateResult } from '../lib/lit-html';
 import { html, UpdateToken } from '../lib/reactive';
 import { isolate, isServer, ssrHooks } from '../lib/server';
-import { GemError } from '../lib/utils';
+import { addMicrotask, GemError } from '../lib/utils';
 import { logger } from './logger';
 
 // Hello, $1
@@ -28,6 +28,17 @@ export function splice(rawValue: string, ...rest: (((s: string) => TemplateResul
 
 // 正在创建子模块，构造函数中用来区分主模块
 let creatingSubModule = false;
+
+// 更新所有元素，可能会更新许多不必要的元素；通过微任务合并同一轮中多个模块的更新
+const updateElements = () => {
+  const temp: Element[] = [document.documentElement];
+  while (temp.length) {
+    const element = temp.pop()!;
+    (element as any)[UpdateToken]?.();
+    // 和 gem 更新机制一样使用深度优先
+    temp.push(...[...element.children, ...(element.shadowRoot?.children || [])].reverse());
+  }
+};
 
 type Msg =
   | {
@@ -71,6 +82,9 @@ interface I18nOptions<T> {
   onChange?: (currentLanguage: string) => void;
 }
 
+/** 子模块跟随主模块切换语言，只能读取 */
+export type I18nSubModule<T> = Pick<I18n<T>, 'get' | 'ready' | 'currentLanguage' | 'resources'>;
+
 export class I18n<T = Record<string, Msg>> implements RouteTrigger {
   resources: Resources<T>;
   fallbackLanguage: string;
@@ -89,10 +103,6 @@ export class I18n<T = Record<string, Msg>> implements RouteTrigger {
 
   get currentLanguage() {
     return this.#state.currentLanguage;
-  }
-
-  set currentLanguage(lang: string) {
-    this.#state.currentLanguage = lang;
   }
 
   /** 等待切换语言完成，包括加载语言包和所有子模块，例如渲染刚加载的模块前 */
@@ -135,7 +145,7 @@ export class I18n<T = Record<string, Msg>> implements RouteTrigger {
 
   set #lang(lang: string) {
     if (!this.#isSub) document.documentElement.lang = lang;
-    this.currentLanguage = lang;
+    this.#state.currentLanguage = lang;
     this.onChange?.(lang);
   }
 
@@ -157,7 +167,8 @@ export class I18n<T = Record<string, Msg>> implements RouteTrigger {
       throw new GemError('i18n: fallbackLanguage invalid');
     }
 
-    Object.assign<I18n<T>, I18nOptions<T>>(this as I18n<T>, options);
+    const { currentLanguage, ...rest } = options;
+    Object.assign<I18n<T>, Omit<I18nOptions<T>, 'currentLanguage'>>(this, rest);
 
     const ssrData = isServer ? undefined : (ssrHooks.createStore?.(this.#storeKey) as I18nJSON<T> | undefined);
     // 已经包含后备语言中的消息
@@ -165,8 +176,8 @@ export class I18n<T = Record<string, Msg>> implements RouteTrigger {
 
     // 子模块使用主模块当前的语言，可能和服务端输出时不同，例如客户端切换过语言
     const lang = this.#isSub
-      ? this.currentLanguage || ssrData?.currentLanguage
-      : ssrData?.currentLanguage || this.#urlParamsLang || this.currentLanguage || this.#cacheLang;
+      ? currentLanguage || ssrData?.currentLanguage
+      : ssrData?.currentLanguage || this.#urlParamsLang || currentLanguage || this.#cacheLang;
 
     if (lang) {
       this.#lang = lang;
@@ -271,40 +282,41 @@ export class I18n<T = Record<string, Msg>> implements RouteTrigger {
     this.#fallbackLoading ||= Promise.resolve(this.#loadPack(this.fallbackLanguage)).then(() => this.#updateElements());
   }
 
-  // 更新所有元素，可能会更新许多不必要的元素
   #updateElements() {
-    const temp: Element[] = [document.documentElement];
-    while (temp.length) {
-      const element = temp.pop()!;
-      (element as any)[UpdateToken]?.();
-      // 和 gem 更新机制一样使用深度优先
-      temp.push(...[...element.children, ...(element.shadowRoot?.children || [])].reverse());
-    }
+    addMicrotask(updateElements);
   }
 
+  /** 加载主模块和子模块的语言包，全部已经加载时同步返回 */
+  #load(modules: I18n<any>[], lang: string) {
+    const packs = modules.flatMap((i18n) => {
+      // 服务端渲染需要同步读取后备语言中的消息，输出的语言包也包含后备语言的消息
+      const langs = isServer && lang !== i18n.fallbackLanguage ? [lang, i18n.fallbackLanguage] : [lang];
+      return langs.map((e) => i18n.#loadPack(e));
+    });
+    if (packs.some((e) => e instanceof Promise)) return Promise.all(packs);
+  }
+
+  /** 先加载主模块和子模块的语言包，再同时切换，避免页面中混合不同语言 */
   setLanguage(lang: string): Promise<string> {
-    const promise = this.#setLanguage(lang);
-    this.#state.pending = promise;
-    return promise;
-  }
-
-  async #setLanguage(lang: string): Promise<string> {
     if (!this.resources[lang]) {
       logger.warn(`${this.cachePrefix}: not found \`${lang}\``);
       return this.resetLanguage();
     }
-    const subModules = [...this.#subModules].map((i18n) => i18n.setLanguage(lang));
-
-    // 服务端渲染需要同步读取后备语言中的消息，输出的语言包也包含后备语言的消息
-    const langs = isServer && lang !== this.fallbackLanguage ? [lang, this.fallbackLanguage] : [lang];
-    const packs = langs.map((e) => this.#loadPack(e));
-    if (packs.some((e) => e instanceof Promise)) await Promise.all(packs);
-
-    if (!this.#inConstructor) this.#updateElements();
-    if (lang !== this.currentLanguage) this.#lang = lang;
-    if (this.cache === true) this.setCache();
-    await Promise.all(subModules);
-    return lang;
+    const modules = [this, ...this.#subModules];
+    const commit = () => {
+      // 加载期间开始了新的切换时，由新的切换提交，避免慢的语言包覆盖后选择的语言
+      for (const i18n of modules) {
+        if (i18n.#state.pending === promise && lang !== i18n.currentLanguage) i18n.#lang = lang;
+      }
+      if (!this.#inConstructor) this.#updateElements();
+      if (this.cache === true && this.#state.pending === promise) this.setCache();
+      return lang;
+    };
+    const loading = this.#load(modules, lang);
+    const promise = loading ? loading.then(commit) : Promise.resolve(lang);
+    for (const i18n of modules) i18n.#state.pending = promise;
+    if (!loading) commit();
+    return promise;
   }
 
   resetLanguage() {
@@ -328,7 +340,7 @@ export class I18n<T = Record<string, Msg>> implements RouteTrigger {
    *   zh: () => import('./zh.json'),
    * });
    */
-  createSubModule<K = Record<string, Msg>>(name: string, resources: Resources<K>) {
+  createSubModule<K = Record<string, Msg>>(name: string, resources: Resources<K>): I18nSubModule<K> {
     creatingSubModule = true;
     try {
       const module = new I18n<K>({
