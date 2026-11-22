@@ -9,7 +9,8 @@ export const focusStyle = css`
   :where(:focus) {
     outline: none;
   }
-  :host(:where(:focus-visible)),
+  :host(:where(:focus-visible:not(:state(delegate-focus)))),
+  :host(:where(:focus-visible:state(delegate-focus))) .delegate-focus,
   :where(:focus-visible) {
     outline: 2px solid ${theme.focusColor};
     outline-offset: -2px;

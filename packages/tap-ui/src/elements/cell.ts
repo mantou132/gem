@@ -133,13 +133,14 @@ export type CellItem = {
   action?: boolean;
   /**When present, render a switch using this checked state */
   checked?: boolean;
+  disabled?: boolean;
   extra?: string | Element | DocumentFragment | TemplateResult;
   onClick?: (evt: Event) => void;
   onChange?: (checked: boolean) => void;
 };
 
 // 内容可被外部样式化，类名使用生成的唯一名称，避免被外部同名规则意外命中
-const groupStyle = css({
+export const groupStyle = css({
   $: `
     display: block;
     width: 100%;
@@ -190,10 +191,13 @@ export class TapCellGroupElement extends GemElement {
 
   #renderExtra = (item: CellItem) => {
     if (this.#isSwitch(item)) {
+      const label = typeof item.label === 'string' ? item.label : null;
       return html`
         <tap-switch
           slot="extra"
-          .checked=${item.checked!}
+          aria-label=${label}
+          ?checked=${item.checked}
+          ?disabled=${item.disabled}
           neutral="positive"
           @change=${(evt: CustomEvent<boolean>) => this.#onSwitchChange(item, evt)}
           @click=${(evt: Event) => evt.stopPropagation()}

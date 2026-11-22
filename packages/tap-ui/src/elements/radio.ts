@@ -5,6 +5,7 @@ import {
   attribute,
   boolattribute,
   customElement,
+  effect,
   globalemitter,
   light,
   mounted,
@@ -59,7 +60,8 @@ const style = css`
 @customElement('tap-radio')
 @adoptedStyle(style)
 @adoptedStyle(focusStyle)
-@shadow({ delegatesFocus: true })
+@shadow()
+@aria({ focusable: true, role: 'radio' })
 export class TapRadioElement extends GemElement {
   @slot static unnamed: string;
 
@@ -68,6 +70,8 @@ export class TapRadioElement extends GemElement {
   @globalemitter change: Emitter<string>;
 
   @attribute value: string;
+  @attribute label: string;
+  @state delegateFocus = true;
 
   #onClick = () => {
     if (this.disabled) return;
@@ -75,20 +79,24 @@ export class TapRadioElement extends GemElement {
   };
 
   @mounted()
-  #init = () => addListener(this, 'click', this.#onClick);
+  #init = () => {
+    const removeClick = addListener(this, 'click', this.#onClick);
+    const removeKeydown = addListener(this, 'keydown', commonHandle);
+    return () => {
+      removeClick();
+      removeKeydown();
+    };
+  };
+
+  @effect((i) => [i.checked])
+  #updateAria = () => {
+    this.internals.ariaChecked = String(this.checked);
+  };
 
   render = () => {
     return html`
-      <div
-        role="radio"
-        @keydown=${commonHandle}
-        tabindex=${-Number(this.disabled)}
-        aria-disabled=${this.disabled}
-        aria-checked=${this.checked}
-        aria-labelledby="label"
-        class="radio"
-      ></div>
-      <slot id="label"></slot>
+      <div class="radio delegate-focus"></div>
+      <slot>${this.label}</slot>
     `;
   };
 }

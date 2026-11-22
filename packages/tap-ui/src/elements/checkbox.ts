@@ -5,6 +5,7 @@ import {
   attribute,
   boolattribute,
   customElement,
+  effect,
   globalemitter,
   light,
   memo,
@@ -73,7 +74,8 @@ const style = css`
 @customElement('tap-checkbox')
 @adoptedStyle(style)
 @adoptedStyle(focusStyle)
-@shadow({ delegatesFocus: true })
+@shadow()
+@aria({ focusable: true, role: 'checkbox' })
 export class TapCheckboxElement extends GemElement {
   @slot static unnamed: string;
 
@@ -82,9 +84,23 @@ export class TapCheckboxElement extends GemElement {
   @boolattribute disabled: boolean;
   @globalemitter change: Emitter<boolean>;
   @attribute value: string;
+  @attribute label: string;
+  @state delegateFocus = true;
 
   @mounted()
-  #init = () => addListener(this, 'click', this.#onClick);
+  #init = () => {
+    const removeClick = addListener(this, 'click', this.#onClick);
+    const removeKeydown = addListener(this, 'keydown', commonHandle);
+    return () => {
+      removeClick();
+      removeKeydown();
+    };
+  };
+
+  @effect((i) => [i.checked, i.indeterminate])
+  #updateAria = () => {
+    this.internals.ariaChecked = this.indeterminate ? 'mixed' : String(this.checked);
+  };
 
   #onClick = () => {
     if (this.disabled) return;
@@ -93,17 +109,8 @@ export class TapCheckboxElement extends GemElement {
 
   render = () => {
     return html`
-      <tap-use
-        role="checkbox"
-        tabindex=${-Number(this.disabled)}
-        aria-disabled=${this.disabled}
-        aria-labelledby="label"
-        aria-checked=${this.indeterminate ? 'mixed' : this.checked}
-        class="checkbox"
-        @keydown=${commonHandle}
-        .element=${this.checked ? icons.check : undefined}
-      ></tap-use>
-      <slot id="label"></slot>
+      <tap-use class="checkbox delegate-focus" .element=${this.checked ? icons.check : undefined}></tap-use>
+      <slot>${this.label}</slot>
     `;
   };
 }

@@ -2,13 +2,16 @@ import { createDecoratorTheme } from '@mantou/gem/helper/theme';
 import type { Emitter } from '@mantou/gem/lib/decorators';
 import {
   adoptedStyle,
+  aria,
   attribute,
   boolattribute,
   customElement,
+  effect,
   globalemitter,
   mounted,
   shadow,
   slot,
+  state,
 } from '@mantou/gem/lib/decorators';
 import { css, GemElement, html } from '@mantou/gem/lib/element';
 import { addListener } from '@mantou/gem/lib/utils';
@@ -70,15 +73,18 @@ const style = css`
 @customElement('tap-switch')
 @adoptedStyle(style)
 @adoptedStyle(focusStyle)
-@shadow({ delegatesFocus: true })
+@shadow()
+@aria({ focusable: true, role: 'switch' })
 export class TapSwitchElement extends GemElement {
   @slot static unnamed: string;
 
   @boolattribute disabled: boolean;
   @boolattribute checked: boolean;
   @attribute value: string;
+  @attribute label: string;
   @attribute neutral: 'positive' | 'negative' | 'neutral' | 'informative';
   @globalemitter change: Emitter<boolean>;
+  @state delegateFocus = true;
 
   get #checkedColor() {
     const semanticColor = getSemanticColor(this.neutral);
@@ -93,7 +99,19 @@ export class TapSwitchElement extends GemElement {
   };
 
   @mounted()
-  #init = () => addListener(this, 'click', this.#onClick);
+  #init = () => {
+    const removeClick = addListener(this, 'click', this.#onClick);
+    const removeKeydown = addListener(this, 'keydown', commonHandle);
+    return () => {
+      removeClick();
+      removeKeydown();
+    };
+  };
+
+  @effect((i) => [i.checked])
+  #updateAria = () => {
+    this.internals.ariaChecked = String(this.checked);
+  };
 
   @elementTheme()
   #theme = () => {
@@ -104,16 +122,8 @@ export class TapSwitchElement extends GemElement {
 
   render = () => {
     return html`
-      <div
-        class="switch"
-        @keydown=${commonHandle}
-        role="switch"
-        tabindex=${-Number(this.disabled)}
-        aria-disabled=${this.disabled}
-        aria-labelledby="label"
-        aria-checked=${this.checked}
-      ></div>
-      <slot id="label"></slot>
+      <div class="switch delegate-focus"></div>
+      <slot>${this.label}</slot>
     `;
   };
 }
