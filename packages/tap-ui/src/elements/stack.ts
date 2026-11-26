@@ -29,6 +29,13 @@ export type StackReplaceOptions = {
   keep?: number;
 };
 
+export type StackPopOptions = {
+  /**Number of bottom pages to keep; default all but the top, e.g. `1` pops everything above the root page */
+  keep?: number;
+  /**Play exit animation; default follows the top page's `animated` option */
+  animated?: boolean;
+};
+
 export type StackPushOptions = {
   content: string | number | TemplateResult | Element | Element[];
   /**Play enter animation; default `true` */
@@ -108,9 +115,9 @@ export class TapStackElement extends GemElement {
     if (!stack.isConnected) document.body.append(stack);
   }
 
-  static pop() {
+  static pop(options?: StackPopOptions) {
     if (!TapStackElement.instance) return;
-    TapStackElement.instance.pop();
+    TapStackElement.instance.pop(options);
   }
 
   static inCurrentStack(ele: HTMLElement) {
@@ -245,17 +252,22 @@ export class TapStackElement extends GemElement {
     }
   };
 
-  #pop = async (page?: StackPushOptions) => {
-    const top = this.#store.pages.at(-1);
+  #pop = async (page?: StackPushOptions, keep = this.#store.pages.length - 1, animated?: boolean) => {
+    const { pages } = this.#store;
+    const top = pages.at(-1);
     if (!top || this.#busy) return;
     if (page && top !== page) return;
+    const playAnimation = animated ?? top.animated !== false;
     this.#busy = true;
-    if (top.animated !== false) {
-      const el = this.#topPageRef.value;
-      if (el) await this.#animateOffset(0, el.offsetWidth);
+    const el = playAnimation ? this.#topPageRef.value : undefined;
+    if (el) {
+      if (keep < pages.length - 1) {
+        this.#store({ pages: [...pages.slice(0, keep), top] });
+      }
+      await this.#animateOffset(0, el.offsetWidth);
     }
-    this.#store({ pages: this.#store.pages.slice(0, -1), offset: 0 });
-    if (top.animated === false) this.#syncHeight(0);
+    this.#store({ pages: this.#store.pages.slice(0, keep), offset: 0 });
+    if (!el) requestAnimationFrame(() => this.#syncHeight(0));
     this.#busy = false;
   };
 
@@ -452,17 +464,21 @@ export class TapStackElement extends GemElement {
     this.#replace(options, keep);
   }
 
-  pop() {
+  pop(options: StackPopOptions = {}) {
     // Like native navigation, ignored while a page animates; the history entry would otherwise go back without the page
     if (this.#busy) return;
-    if (this.#atRoot) {
+    const { pages } = this.#store;
+    if (!pages.length) return;
+    if (options.keep === undefined && this.#atRoot) {
       this.rootClose(null);
       return;
     }
-    const top = this.#store.pages.at(-1);
-    this.#pop();
-    if (!this.disableHistory && top?.history !== false && history.store.$hasCloseHandle) {
-      history.back();
+    const keep = Math.max(1, options.keep ?? pages.length - 1);
+    if (keep >= pages.length) return;
+    const back = this.disableHistory ? 0 : pages.slice(keep).filter((page) => page.history !== false).length;
+    this.#pop(undefined, keep, options.animated);
+    if (back && history.store.$hasCloseHandle) {
+      globalThis.history.go(-back);
     }
   }
 }
