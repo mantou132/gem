@@ -101,6 +101,56 @@ render(
 
 > [!NOTE] `<gem-use>` 由于是复制内容进行渲染，所以 `<svg>` 更新不能同步更新原先的 `<gem-use>` 实例
 
+### 模块化与按需引入
+
+推荐将图标按模块拆分为独立文件并具名导出 SVG 字符串，再传给 `<gem-use .element=${...}>`，既支持 SSR，也能被构建工具自动 Tree-shaking：
+
+```ts
+// icons/editor.ts
+import { raw } from '@mantou/gem';
+
+export const menu = raw`
+  <svg part="icon" aria-hidden="true" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z" />
+  </svg>
+`;
+```
+
+如果项目直接维护 `.svg` 文件，可以通过构建工具按原始字符串导入（如 `import menu from './menu.svg?raw'`）；如果使用开源图标库，也可以配合 [unplugin-icons](https://github.com/unplugin/unplugin-icons)（`compiler: 'raw'`）按需引入字符串：
+
+```ts
+import IconMenu from '~icons/lucide/menu';
+
+html`<gem-use .element=${IconMenu}></gem-use>`;
+```
+
+### 样式定制
+
+- **颜色**：在 SVG 中使用 `fill="currentColor"`（或 `stroke="currentColor"`），即可直接继承外部 CSS 的 `color`。
+- **尺寸**：`<gem-use>` 内部默认设置了 `svg { width: 100%; height: 100%; }`，保留 `viewBox` 后直接控制 `<gem-use>` 的 `width` / `height` 即可。
+- **局部样式**：`<gem-use>` 使用 Shadow DOM 渲染，需要定制局部颜色或样式时，可为 `<svg>` 或内部 `<path>` 添加 `part` 属性，在外部通过 `::part()` 穿透控制：
+
+```ts
+const sort = raw`
+  <svg viewBox="0 0 24 24" fill="currentColor">
+    <path part="up" d="M8 13v-7.175L5.425 8.4l-1.425-1.4 5-5 5 5-1.425 1.4-2.575-2.575v7.175h-2Z" />
+    <path part="down" d="M15 22 10 17l1.425-1.4 2.575 2.575v-7.175h2v7.175l2.575-2.575 1.425 1.4L15 22Z" />
+  </svg>
+`;
+```
+
+```css
+gem-use {
+  width: 1.5em;
+  color: gray;
+}
+gem-use::part(up) {
+  fill: red;
+}
+```
+
+### 开源图标库
+
 有许多开源图标库可以直接在你的项目中使用：
 - [Lucide](https://lucide.dev/)
 - [Radix](https://github.com/radix-ui/icons)
