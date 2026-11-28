@@ -449,7 +449,10 @@ export class TapPageElement extends TapVisibleBaseElement {
             ${this.#iconRef}
             class="refresh-icon"
             part=${TapPageElement.refresh}
-            style=${styleMap({ transform: !refreshing && `rotate(${rotate}deg)` })}
+            style=${styleMap({
+              transform: !refreshing && `rotate(${rotate}deg)`,
+              opacity: refreshing ? 1 : Math.min(1, pull / this.#pullThreshold),
+            })}
             .element=${icons.refresh}
           ></tap-use>
         </div>
